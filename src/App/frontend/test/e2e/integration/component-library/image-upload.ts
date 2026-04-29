@@ -77,7 +77,8 @@ describe('ImageUpload component', () => {
   });
 
   it('shows validation error when required and no image is uploaded, removes validation error on upload', () => {
-    cy.interceptLayout('Task_1', (component) => {
+    cy.gotoNavPage('Bildeopplasting');
+    cy.changeLayout((component) => {
       if (component.type === 'ImageUpload' && component.id === 'ImageUploadPage-ImageUpload') {
         component.required = true;
       }
@@ -85,8 +86,8 @@ describe('ImageUpload component', () => {
         component.validateOnNext = { page: 'currentAndPrevious', show: ['All'] };
       }
     });
-    cy.gotoNavPage('Bildeopplasting');
 
+    cy.get('[data-componentId="ImageUploadPage-ImageUpload"]').should('be.visible');
     cy.findByRole('button', { name: /next/i }).click();
     cy.findAllByText('Du må laste opp et bilde').first().should('be.visible');
 

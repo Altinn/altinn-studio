@@ -39,8 +39,13 @@ jobs:
           git fetch origin "$BASE"
           git checkout -B "$BASE" "$MERGE_SHA"
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
+        with:
+          global-json-file: src/cli/global.json
+
       - name: Setup Go
-        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: 'src/tools/releaser/go.mod'
           cache-dependency-path: src/tools/releaser/go.sum

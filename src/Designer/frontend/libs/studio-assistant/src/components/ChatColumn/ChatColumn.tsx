@@ -1,18 +1,23 @@
-import { useRef, useEffect } from 'react';
 import type { ReactElement } from 'react';
+import { useRef, useEffect } from 'react';
 import cn from 'classnames';
 import { Messages } from './Messages/Messages';
 import { UserInput } from './UserInput/UserInput';
 import classes from './ChatColumn.module.css';
 import { StudioParagraph } from '@studio/components';
-import type { Message, UserMessage } from '../../types/ChatThread';
+import type { Message } from '../../types/ChatThread';
 import type { AssistantTexts } from '../../types/AssistantTexts';
 import type { User } from '../../types/User';
+import type { WorkflowStatus } from '../../types/WorkflowStatus';
 
 export type ChatColumnProps = {
   texts: AssistantTexts;
   messages: Message[];
-  onSubmitMessage: (message: UserMessage) => void;
+  onSubmitMessage: (message: Message) => void;
+  onCancelWorkflow?: () => void;
+  cancelledMessageContent?: string | null;
+  onCancelledMessageConsumed?: () => void;
+  workflowStatus?: WorkflowStatus;
   enableCompactInterface: boolean;
   currentUser?: User;
 };
@@ -21,17 +26,22 @@ export function ChatColumn({
   texts,
   messages,
   onSubmitMessage,
+  onCancelWorkflow,
+  cancelledMessageContent,
+  onCancelledMessageConsumed,
+  workflowStatus,
   enableCompactInterface,
   currentUser,
 }: ChatColumnProps): ReactElement {
+  const workflowIsActive = workflowStatus?.isActive === true;
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView?.({ behavior: 'smooth' });
     }
-  }, [messages]);
+  }, [messages, workflowIsActive]);
+
   const placeholderContent = (
     <div className={classes.emptyState}>
       <div className={classes.emptyStateIcon}>
@@ -57,6 +67,7 @@ export function ChatColumn({
           <>
             <Messages
               messages={messages}
+              workflowStatus={workflowStatus}
               currentUser={currentUser}
               assistantAvatarUrl={undefined}
             />
@@ -69,6 +80,10 @@ export function ChatColumn({
       <UserInput
         texts={texts}
         onSubmitMessage={onSubmitMessage}
+        onCancelWorkflow={onCancelWorkflow}
+        cancelledMessageContent={cancelledMessageContent}
+        onCancelledMessageConsumed={onCancelledMessageConsumed}
+        workflowIsActive={workflowIsActive}
         enableCompactInterface={enableCompactInterface}
       />
     </div>

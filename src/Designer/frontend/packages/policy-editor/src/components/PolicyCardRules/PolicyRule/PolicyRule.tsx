@@ -32,7 +32,7 @@ export const PolicyRule = ({
   const [policyError, setPolicyError] = useState<PolicyError>({
     resourceError: policyRule.resources.length === 0,
     actionsError: policyRule.actions.length === 0,
-    subjectsError: policyRule.subject.length === 0,
+    subjectsError: policyRule.subject.length === 0 && policyRule.accessPackages.length === 0,
   });
   const { resourceError, actionsError, subjectsError } = policyError;
 

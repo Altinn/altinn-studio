@@ -1,14 +1,14 @@
 import { isAttachmentUploaded } from 'src/features/attachments';
+import { FormStore } from 'src/features/form/FormContext';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { AttachmentValidation, ComponentValidation } from 'src/features/validation';
 
 export function useValidateMissingTag(baseComponentId: string): ComponentValidation[] {
   const item = useItemWhenType(baseComponentId, 'FileUploadWithTag');
   const tagKey = item?.textResourceBindings?.tagTitle;
-  const attachments = NodesInternal.useAttachments(useIndexedId(baseComponentId));
+  const attachments = FormStore.nodes.useAttachments(useIndexedId(baseComponentId));
   const validations: ComponentValidation[] = [];
 
   for (const attachment of attachments) {

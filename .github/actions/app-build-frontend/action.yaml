@@ -5,18 +5,16 @@ runs:
   steps:
     - name: Cache frontend build
       id: cache-frontend
-      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
       with:
         path: src/App/frontend/dist
-        key: frontend-build-${{ runner.os }}-${{ hashFiles('src/App/frontend/yarn.lock', 'src/App/frontend/package.json') }}-${{ hashFiles('src/App/frontend/src/**') }}
+        key: frontend-build-${{ runner.os }}-${{ hashFiles('src/App/frontend/package.json') }}-${{ hashFiles('src/App/frontend/src/**') }}
         restore-keys: |
-          frontend-build-${{ runner.os }}-${{ hashFiles('src/App/frontend/yarn.lock', 'src/App/frontend/package.json') }}-
+          frontend-build-${{ runner.os }}-${{ hashFiles('src/App/frontend/package.json') }}-
 
     - name: Installing Frontend Dependencies
       if: steps.cache-frontend.outputs.cache-hit != 'true'
       uses: ./.github/actions/yarn-install
-      with:
-        working-directory: src/App/frontend
 
     - name: Build frontend
       if: steps.cache-frontend.outputs.cache-hit != 'true'

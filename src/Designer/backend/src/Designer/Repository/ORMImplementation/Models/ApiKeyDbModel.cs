@@ -14,5 +14,8 @@ public class ApiKeyDbModel
     public bool Revoked { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 
+    public Guid? CreatedByUserAccountId { get; set; }
+
     public UserAccountDbModel UserAccount { get; set; } = null!;
+    public UserAccountDbModel? CreatedByUserAccount { get; set; }
 }

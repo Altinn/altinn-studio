@@ -27,7 +27,7 @@ public partial class AppFixture : IAsyncDisposable
         public async Task<ApiResponse> PostSimplified(string token, InstansiationInstance instansiation)
         {
             var client = _fixture.GetAppClient();
-            var endpoint = $"/ttd/{_fixture._app}/instances/create";
+            var endpoint = $"{_fixture.AppPath}/instances/create";
             using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var payload = JsonSerializer.Serialize(instansiation, _jsonSerializerOptions);
@@ -40,11 +40,11 @@ public partial class AppFixture : IAsyncDisposable
         {
             var client = _fixture.GetAppClient();
             if (instanceData.Data.Model is null)
-                throw new InvalidOperationException("Instance data model is null");
+                throw new InvalidOperationException(CreateNullInstanceMessage(instanceData));
             var instance = instanceData.Data.Model;
             var instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
             var instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
-            var endpoint = $"/ttd/{_fixture._app}/instances/{instanceOwnerPartyId}/{instanceGuid}";
+            var endpoint = $"{_fixture.AppPath}/instances/{instanceOwnerPartyId}/{instanceGuid}";
             using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var response = await client.SendAsync(request);
@@ -78,7 +78,7 @@ public partial class AppFixture : IAsyncDisposable
             {
                 var dataElement = instance.Data[i];
                 var dataGuid = Guid.Parse(dataElement.Id);
-                var endpoint = $"/ttd/{_fixture._app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}";
+                var endpoint = $"{_fixture.AppPath}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}";
 
                 // Find the data type configuration
                 var dataType = applicationMetadata.DataTypes.Find(dt => dt.Id == dataElement.DataType);
@@ -134,11 +134,11 @@ public partial class AppFixture : IAsyncDisposable
         {
             var client = _fixture.GetAppClient();
             if (instanceData.Data.Model is null)
-                throw new InvalidOperationException("Instance data model is null");
+                throw new InvalidOperationException(CreateNullInstanceMessage(instanceData));
             var instance = instanceData.Data.Model;
             var instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
             var instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
-            var endpoint = $"/ttd/{_fixture._app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data";
+            var endpoint = $"{_fixture.AppPath}/instances/{instanceOwnerPartyId}/{instanceGuid}/data";
             if (language is not null)
                 endpoint += $"?language={language}";
             using var request = new HttpRequestMessage(HttpMethod.Patch, endpoint);
@@ -160,11 +160,11 @@ public partial class AppFixture : IAsyncDisposable
         {
             var client = _fixture.GetAppClient();
             if (instanceData.Data.Model is null)
-                throw new InvalidOperationException("Instance data model is null");
+                throw new InvalidOperationException(CreateNullInstanceMessage(instanceData));
             var instance = instanceData.Data.Model;
             var instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
             var instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
-            var endpoint = $"/ttd/{_fixture._app}/instances/{instanceOwnerPartyId}/{instanceGuid}/validate";
+            var endpoint = $"{_fixture.AppPath}/instances/{instanceOwnerPartyId}/{instanceGuid}/validate";
 
             var queryParams = new List<string>();
             if (ignoredValidators is not null)
@@ -188,7 +188,7 @@ public partial class AppFixture : IAsyncDisposable
         public async Task<ApiResponse> Post(string token, Instance instanceTemplate)
         {
             var client = _fixture.GetAppClient();
-            var endpoint = $"/ttd/{_fixture._app}/instances";
+            var endpoint = $"{_fixture.AppPath}/instances";
             using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var payload = JsonSerializer.Serialize(instanceTemplate, _jsonSerializerOptions);
@@ -204,7 +204,7 @@ public partial class AppFixture : IAsyncDisposable
         )
         {
             var client = _fixture.GetAppClient();
-            var endpoint = $"/ttd/{_fixture._app}/instances";
+            var endpoint = $"{_fixture.AppPath}/instances";
             using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -241,11 +241,11 @@ public partial class AppFixture : IAsyncDisposable
         {
             var client = _fixture.GetAppClient();
             if (instanceData.Data.Model is null)
-                throw new InvalidOperationException("Instance data model is null");
+                throw new InvalidOperationException(CreateNullInstanceMessage(instanceData));
             var instance = instanceData.Data.Model;
             var instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
             var instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
-            var endpoint = $"/ttd/{_fixture._app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/next";
+            var endpoint = $"{_fixture.AppPath}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/next";
 
             var queryParams = new List<string>();
             if (elementId is not null)
@@ -281,14 +281,14 @@ public partial class AppFixture : IAsyncDisposable
         {
             var client = _fixture.GetAppClient();
             if (instanceData.Data.Model is null)
-                throw new InvalidOperationException("Instance data model is null");
+                throw new InvalidOperationException(CreateNullInstanceMessage(instanceData));
             var instance = instanceData.Data.Model;
             var instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
             var instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
 
             var endpoint = useNewEndpoint
-                ? $"/ttd/{_fixture._app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/{dataType}"
-                : $"/ttd/{_fixture._app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data?dataType={dataType}";
+                ? $"{_fixture.AppPath}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/{dataType}"
+                : $"{_fixture.AppPath}/instances/{instanceOwnerPartyId}/{instanceGuid}/data?dataType={dataType}";
 
             using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -298,6 +298,17 @@ public partial class AppFixture : IAsyncDisposable
 
             var response = await client.SendAsync(request);
             return new ApiResponse(_fixture, response);
+        }
+
+        private static string CreateNullInstanceMessage(ReadApiResponse<Instance> instanceData)
+        {
+            var body = instanceData.Data.Body;
+            if (body is { Length: > 1000 })
+                body = body[..1000];
+
+            var exception = instanceData.Data.Exception;
+            var exceptionMessage = exception is null ? "none" : $"{exception.GetType().Name}: {exception.Message}";
+            return $"Instance data model is null. Status={(int)instanceData.Response.StatusCode} {instanceData.Response.ReasonPhrase}; Exception={exceptionMessage}; Body={body}";
         }
     }
 }

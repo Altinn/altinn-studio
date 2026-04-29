@@ -41,12 +41,18 @@
   background: var(--fds-semantic-surface-action-second-default);
 }
 
-.link,
-.link:focus,
-.link:hover,
-.link:active,
-.link:visited {
+a.link,
+a.link:link,
+a.link:focus,
+a.link:hover,
+a.link:active,
+a.link:visited {
   color: var(--fds-semantic-text-action-on_action);
+}
+
+a.link span,
+a.link svg {
+  color: inherit;
 }
 
 .link:active {

@@ -16,9 +16,9 @@ describe('Party selection', () => {
     cy.findByText('underenhet').click();
     cy.contains(appFrontend.partySelection.subUnits, 'Bergen').should('be.visible');
     cy.contains(appFrontend.partySelection.party, 'slettet').should('not.exist');
-    cy.findByRole('checkbox', { name: /Vis slettede/i }).dsCheck();
+    cy.findByRole('checkbox', { name: /Vis slettede/i }).check();
     cy.contains(appFrontend.partySelection.party, 'slettet').should('be.visible');
-    cy.findByRole('checkbox', { name: /Vis underenheter/i }).dsCheck();
+    cy.findByRole('checkbox', { name: /Vis underenheter/i }).check();
     cy.findByText('underenhet').click();
     cy.get(appFrontend.partySelection.search).type('DDG');
     cy.get(appFrontend.partySelection.party).should('have.length', 1).contains('DDG');
@@ -193,16 +193,12 @@ describe('Party selection', () => {
     cy.findAllByText(/org\.nr\. \d+/)
       .first()
       .click();
+
     cy.get(appFrontend.altinnError).should('contain.text', texts.missingRights);
 
     // Try again with another party
     cy.findByRole('link', { name: 'skift aktør her' }).click();
     cy.get(appFrontend.partySelection.appHeader).should('be.visible');
-
-    /** We need to wait for the instantiation to be cleared before we can instantiate again.
-     * @see InstantiateContainer */
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(500);
 
     // The person on the other hand is allowed to instantiate
     cy.findAllByText(/personnr\. \d+/)
@@ -221,9 +217,6 @@ describe('Party selection', () => {
       win.location.pathname = `/ttd/${appFrontend.apps.frontendTest}/party-selection`;
     });
     cy.get(appFrontend.partySelection.appHeader).should('be.visible');
-
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(500);
 
     cy.findAllByText(/personnr\. \d+/)
       .first()

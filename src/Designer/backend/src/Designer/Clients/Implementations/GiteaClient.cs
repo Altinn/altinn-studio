@@ -917,6 +917,57 @@ public class GiteaClient(
         return organisation;
     }
 
+    public async Task<List<Team>> GetOrgTeamsAsync(string org, CancellationToken cancellationToken = default)
+    {
+        using HttpResponseMessage response = await httpClient.GetAsync($"orgs/{org}/teams", cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<List<Team>>(s_jsonOptions, cancellationToken);
+    }
+
+    public async Task AddTeamMemberAsync(long teamId, string username, CancellationToken cancellationToken = default)
+    {
+        using HttpResponseMessage response = await httpClient.PutAsync(
+            $"teams/{teamId}/members/{username}",
+            null,
+            cancellationToken
+        );
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task RemoveTeamMemberAsync(long teamId, string username, CancellationToken cancellationToken = default)
+    {
+        using HttpResponseMessage response = await httpClient.DeleteAsync(
+            $"teams/{teamId}/members/{username}",
+            cancellationToken
+        );
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task<bool> IsTeamMemberAsync(
+        long teamId,
+        string username,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using HttpResponseMessage response = await httpClient.GetAsync(
+            $"teams/{teamId}/members/{username}",
+            cancellationToken
+        );
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+        response.EnsureSuccessStatusCode();
+        return true;
+    }
+
+    public async Task<List<User>> GetTeamMembersAsync(long teamId, CancellationToken cancellationToken = default)
+    {
+        using HttpResponseMessage response = await httpClient.GetAsync($"teams/{teamId}/members", cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<List<User>>(s_jsonOptions, cancellationToken);
+    }
+
     private static string AddRefIfExists(string path, string reference)
     {
         if (string.IsNullOrWhiteSpace(reference))

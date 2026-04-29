@@ -1,10 +1,10 @@
-"""Planning tool node that calls MCP planning_tool for semantic guidance."""
+"""Planning tool node that calls MCP altinn_route for semantic guidance."""
 
 from __future__ import annotations
 
 import json
 import re
-from langfuse import get_client
+from shared.utils.langfuse_utils import trace_span
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, sink
 from shared.utils.logging_utils import get_logger
@@ -68,15 +68,14 @@ def _extract_markdown_from_guidance(planning_guidance: str) -> str:
 
 
 async def handle(state: AgentState) -> AgentState:
-    """Call planning_tool MCP tool to get planning guidance with semantic search."""
+    """Call altinn_route MCP tool to get planning guidance with semantic search."""
     
     import time
     log.info(f"⏱️ [PLANNING_TOOL NODE] Starting at {time.time()}")
     log.info("📋 Planning tool node executing")
     
-    langfuse = get_client()
-    with langfuse.start_as_current_observation(
-        name="planning_tool_node",
+    with trace_span(
+        "planning_tool_node",
         metadata={"span_type": "AGENT"},
         input={
             "user_goal": state.user_goal,
@@ -98,20 +97,46 @@ async def handle(state: AgentState) -> AgentState:
             
             client = get_mcp_client()
             await client.connect()
+
+            # Wait for docs if still indexing (user sees status message)
+            if client.is_ready and not client.is_docs_ready:
+                log.info(f"⏳ MCP docs still indexing — waiting before planning (session {state.session_id})")
+                sink.send(AgentEvent(
+                    type="status",
+                    session_id=state.session_id,
+                    data={
+                        "message": "Venter på at dokumentasjonsindeksen skal bli klar...",
+                        "status": "docs_indexing",
+                    },
+                ))
+                docs_ready = await client.wait_for_docs_ready()
+                if docs_ready:
+                    log.info(f"✅ MCP docs ready — proceeding with planning (session {state.session_id})")
+                else:
+                    log.warning(f"⚠️ MCP docs not available — proceeding anyway (session {state.session_id})")
+                    state.mcp_degraded = True
+                    sink.send(AgentEvent(
+                        type="status",
+                        session_id=state.session_id,
+                        data={
+                            "message": "MCP-serveren mistet tilkoblingen. Resultatet kan være ufullstendig — prøv igjen om det ikke ser riktig ut.",
+                            "status": "mcp_degraded",
+                        },
+                    ))
             
-            with langfuse.start_as_current_observation(
-                name="planning_tool_mcp_call",
+            with trace_span(
+                "altinn_route_mcp_call",
                 metadata={
                     "span_type": "TOOL",
                     "semantic_query_length": len(semantic_query),
                     "original_goal_length": len(state.user_goal),
                     "has_repo_facts": bool(state.repo_facts),
-                    "tool": "planning_tool",
+                    "tool": "altinn_route",
                     "semantic_search_enabled": True
                 },
                 input={
-                    "tool": "planning_tool",
-                    "semantic_query": semantic_query,  # Focused English query for semantic search
+                    "tool": "altinn_route",
+                    "semantic_query": semantic_query,
                     "original_user_goal": state.user_goal[:200] + "..." if len(state.user_goal) > 200 else state.user_goal,
                     "query_length": len(semantic_query),
                     "repository_facts_summary": {
@@ -121,39 +146,44 @@ async def handle(state: AgentState) -> AgentState:
                     }
                 }
             ) as span:
-                # Prepare tool input with focused semantic search query
-                # The query enables TF-IDF semantic search in planning_tool
-                tool_input = {
-                    "query": semantic_query,  # Use generated focused query
-                }
+                # Call altinn_route with the semantic query derived from user goal
+                tool_input = {"query": semantic_query}
                 
-                log.info(f"🔍 Calling planning_tool with semantic search query: {semantic_query}")
+                log.info(f"🔍 Calling altinn_route with query: '{semantic_query}'")
                 
-                # Call planning_tool with enhanced semantic search
-                # Without query: Returns standard planning context
-                # With query: Returns TF-IDF semantic search results (top 5 most relevant docs)
-                planning_result = await client.call_tool('planning_tool', tool_input)
+                # Call altinn_route - the v2 entry point
+                # Returns: planning_context, next_tool, args_template, prerequisites, workflow
+                planning_result = await client.call_tool('altinn_route', tool_input)
                 
                 # Debug: Log what we received
-                log.info(f"🔍 Planning tool result type: {type(planning_result)}")
-                # log.info(f"🔍 Planning tool result: {planning_result}")
+                log.info(f"🔍 altinn_route result type: {type(planning_result)}")
                 
                 # Extract planning guidance using robust extraction
                 planning_guidance = None
                 
                 # New: MCPClient.call_tool may already return a structured dict (structured_content)
                 if isinstance(planning_result, dict):
-                    # Check if it's an error response
-                    if "error" in planning_result:
-                        log.error(f"❌ Planning tool returned error: {planning_result['error']}")
+                    # Check if it's an error response (altinn_route uses "error_code", call_tool uses "error")
+                    if "error" in planning_result or "error_code" in planning_result:
+                        err_detail = planning_result.get("error") or planning_result.get("message") or planning_result.get("error_code")
+                        log.warning(f"⚠️ altinn_route returned error: {err_detail}")
+                        state.mcp_degraded = True
+                        planning_guidance = ""
+                    # Verify response contains actual guidance, not just a routing stub
+                    elif "content" not in planning_result and "planning_context" not in planning_result:
+                        log.warning(
+                            f"⚠️ altinn_route returned no guidance content (keys: {list(planning_result.keys())})"
+                            " — marking degraded"
+                        )
+                        state.mcp_degraded = True
                         planning_guidance = ""
                     else:
                         # Serialize dict to JSON string so downstream consumers can treat it uniformly
                         try:
                             planning_guidance = json.dumps(planning_result, ensure_ascii=False)
-                            log.info(f"✅ Serialized planning_result dict to JSON string ({len(planning_guidance)} chars)")
+                            log.info(f"✅ Serialized altinn_route result to JSON string ({len(planning_guidance)} chars)")
                         except Exception as e:
-                            log.error(f"❌ Failed to serialize planning_result dict to JSON: {e}")
+                            log.error(f"❌ Failed to serialize altinn_route result to JSON: {e}")
                             planning_guidance = str(planning_result)
                 elif planning_result:
                     # Handle CallToolResult objects (older MCP client behaviour)
@@ -224,19 +254,13 @@ async def handle(state: AgentState) -> AgentState:
             state.next_action = "plan"
             
         except Exception as exc:
-            log.error(f"❌ Planning tool node failed: {exc}", exc_info=True)
+            log.warning(f"⚠️ altinn_route node failed: {exc}", exc_info=True)
             node_span.update(metadata={"error": str(exc)})
-            # Ensure planning_guidance is at least empty string, not None
+            # Mark degraded and continue — actor fallback can still produce a result
+            state.mcp_degraded = True
             if not hasattr(state, 'planning_guidance') or state.planning_guidance is None:
                 state.planning_guidance = ""
-                log.error("Set planning_guidance to empty string after error")
-            state.next_action = "stop"
-            sink.send(
-                AgentEvent(
-                    type="error",
-                    session_id=state.session_id,
-                    data={"message": f"Planning tool call failed: {exc}"},
-                )
-            )
+            state.next_action = "plan"
+            log.info("MCP degraded — continuing workflow without planning guidance")
     
     return state

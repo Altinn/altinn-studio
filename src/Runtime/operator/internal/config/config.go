@@ -43,6 +43,7 @@ func (m *ConfigMonitor) Get() *Config {
 }
 
 func (m *ConfigMonitor) start(ctx context.Context) {
+	ctx = telemetry.WithoutSpan(ctx)
 	sighup := make(chan os.Signal, 1)
 	signal.Notify(sighup, syscall.SIGHUP)
 

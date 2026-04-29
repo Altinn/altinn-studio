@@ -8,12 +8,12 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"time"
 
-	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/studioctl/internal/config"
-	"altinn.studio/studioctl/internal/networking"
+	"altinn.studio/studioctl/internal/envtopology"
 )
 
 const (
@@ -26,11 +26,31 @@ const (
 	// NetworkName is the name of the localtest network.
 	NetworkName = "altinntestlocal_network"
 
-	devImageTagLocaltest = "localtest:dev"
-	devImageTagPDF3      = "localtest-pdf3:dev"
-	flavorDocker         = "Docker"
-	flavorPodman         = "Podman"
-	flavorUnknown        = "Unknown"
+	devImageTagLocaltest      = "localtest:dev"
+	devImageTagPDF3           = "localtest-pdf3:dev"
+	devImageTagWorkflowEngine = "localtest-workflow-engine:dev"
+	buildCacheRefLocaltest    = "ghcr.io/altinn/altinn-studio/localtest-main-cache:latest"
+	buildCacheRefPDF3         = "ghcr.io/altinn/altinn-studio/localtest-pdf3-cache:latest"
+	infraDir                  = "infra"
+	workflowEngineInfraDir    = "workflow-engine"
+	workflowEngineDbDataDir   = "workflow-engine-db"
+	workflowEngineDbVolume    = "localtest-workflow-engine-db-data"
+	localtestServicePort      = "5101"
+
+	postgresHealthInterval    = 10 * time.Second
+	postgresHealthTimeout     = 5 * time.Second
+	postgresHealthRetries     = 5
+	postgresHealthStartPeriod = 5 * time.Second
+
+	postgresUser            = "postgres"
+	postgresPassword        = "postgres"
+	postgresDB              = "postgres"
+	postgresPort            = "5432"
+	workflowEngineDB        = "workflow_engine"
+	pgAdminEmail            = "admin@altinn.no"
+	pgAdminPassword         = "admin123"
+	pgAdminContainerPort    = "80"
+	pgAdminConnectionSource = "/pgadmin4/connection-source.conf"
 )
 
 // ErrInvalidResourceLayout is returned when required host paths are missing or have wrong type.
@@ -38,21 +58,21 @@ var ErrInvalidResourceLayout = errors.New("invalid localtest resource layout")
 
 // RuntimeConfig holds runtime-specific configuration for localtest.
 type RuntimeConfig struct {
-	HostGateway      string                      // resolved host gateway IP (e.g., "172.17.0.1")
-	LoadBalancerPort string                      // port for localtest (default: "8000")
-	User             string                      // "uid:gid" to run containers as (prevents root-owned bind mount files)
-	Platform         container.ContainerPlatform // selected container platform
+	User string // "uid:gid" to run containers as (prevents root-owned bind mount files)
 }
 
 // ContainerSpec defines a container to run.
 type ContainerSpec struct {
-	Name         string
-	Ports        []types.PortMapping
-	Environment  map[string]string
-	Volumes      []types.VolumeMount
-	ExtraHosts   []string
-	Dependencies []string
-	Command      []string
+	HealthCheck    *types.HealthCheck
+	Name           string
+	Ports          []types.PortMapping
+	Environment    map[string]string
+	Volumes        []types.VolumeMount
+	ExtraHosts     []string
+	NetworkAliases []string
+	Dependencies   []string
+	Command        []string
+	UseDefaultUser bool // When true, ignore host user override and use the image's default user.
 }
 
 // ContainerStatus describes one localtest container.
@@ -72,7 +92,7 @@ func newPort(hostPort, containerPort string) types.PortMapping {
 	return types.PortMapping{
 		HostPort:      hostPort,
 		ContainerPort: containerPort,
-		HostIP:        "",
+		HostIP:        "127.0.0.1",
 		Protocol:      "",
 	}
 }
@@ -82,6 +102,25 @@ func newVolume(hostPath, containerPath string) types.VolumeMount {
 		HostPath:      hostPath,
 		ContainerPath: containerPath,
 		ReadOnly:      false,
+		Type:          types.VolumeMountTypeBind,
+	}
+}
+
+func newReadOnlyVolume(hostPath, containerPath string) types.VolumeMount {
+	return types.VolumeMount{
+		HostPath:      hostPath,
+		ContainerPath: containerPath,
+		ReadOnly:      true,
+		Type:          types.VolumeMountTypeBind,
+	}
+}
+
+func newNamedVolume(name, containerPath string) types.VolumeMount {
+	return types.VolumeMount{
+		HostPath:      name,
+		ContainerPath: containerPath,
+		ReadOnly:      false,
+		Type:          types.VolumeMountTypeVolume,
 	}
 }
 
@@ -90,100 +129,183 @@ func newContainerSpec(
 	ports []types.PortMapping,
 	env map[string]string,
 	volumes []types.VolumeMount,
-	extraHosts, deps, cmd []string,
+	networkAliases, deps, cmd []string,
 ) ContainerSpec {
 	return ContainerSpec{
-		Name:         name,
-		Ports:        ports,
-		Environment:  env,
-		Volumes:      volumes,
-		ExtraHosts:   extraHosts,
-		Dependencies: deps,
-		Command:      cmd,
+		HealthCheck:    nil,
+		Name:           name,
+		Ports:          ports,
+		Environment:    env,
+		Volumes:        volumes,
+		ExtraHosts:     nil,
+		NetworkAliases: networkAliases,
+		Dependencies:   deps,
+		Command:        cmd,
+		UseDefaultUser: false,
 	}
 }
 
-func newStatus() Status {
-	return Status{
-		Containers: []ContainerStatus{},
-		Running:    false,
-		AnyRunning: false,
+func localtestListenURLs(loadBalancerPort string) string {
+	if loadBalancerPort == localtestServicePort {
+		return "http://*:" + localtestServicePort + "/"
 	}
+	return "http://*:" + localtestServicePort + "/;http://*:" + loadBalancerPort + "/"
 }
 
-func newContainerStatus(name, status string) ContainerStatus {
-	return ContainerStatus{
-		Name:   name,
-		Status: status,
+func coreContainers(
+	dataDir string,
+	topology envtopology.Local,
+	includeMonitoring bool,
+	includePgAdmin bool,
+) []ContainerSpec {
+	ingressPort := topology.IngressPort()
+	app := topology.MustComponent(envtopology.ComponentApp)
+	runtimeConfig := newLocaltestConfig(topology)
+	bindings := topology.ResolveBindings(RuntimeBindings(BindingOptions{
+		IncludeMonitoring: includeMonitoring,
+		IncludePgAdmin:    includePgAdmin,
+	}))
+	networkAliases := []string{app.Host()}
+	for _, binding := range bindings {
+		if !binding.Enabled || !binding.HasRoute() || binding.Host == app.Host() {
+			continue
+		}
+		networkAliases = append(networkAliases, binding.Host)
 	}
-}
 
-func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
-	extraHosts := []string{
-		"host.docker.internal:" + cfg.HostGateway,
-		"host.containers.internal:" + cfg.HostGateway,
-		networking.LocalDomain + ":" + cfg.HostGateway,
-	}
-
-	dotnetEnv := localtestEnvironment(cfg.Platform)
-
-	return []ContainerSpec{
+	containers := []ContainerSpec{
 		newContainerSpec(
 			ContainerLocaltest,
 			[]types.PortMapping{
-				newPort(cfg.LoadBalancerPort, "5101"), // Main port
-				newPort("5101", "5101"),               // Internal port
+				newPort(ingressPort, localtestServicePort), // Main port
+				// TODO: internal port below is kept to keep compatibility with "dotnet run" apps,
+				// as PlatformSettings default values is what is used when users do "dotnet run --project App"
+				// and similar. We only use the topology ingress port when running through "studioctl [app] run"
+				// Whenever we are comfortable completely relying on studioctl run or v8 is completely unsupported
+				// we can remove this port mapping
+				newPort(localtestServicePort, localtestServicePort), // Internal port
 			},
-			map[string]string{
-				"DOTNET_ENVIRONMENT":        dotnetEnv,
-				"GeneralSettings__BaseUrl":  "http://" + networking.LocalDomain + ":" + cfg.LoadBalancerPort,
-				"GeneralSettings__HostName": networking.LocalDomain,
-			},
+			runtimeConfig.localtestEnv(ingressPort),
 			[]types.VolumeMount{
+				newReadOnlyVolume(
+					envtopology.BoundTopologyHostDir(dataDir),
+					envtopology.BoundTopologyContainerDir,
+				),
 				newVolume(filepath.Join(dataDir, "testdata"), "/testdata"),
 				newVolume(filepath.Join(dataDir, "AltinnPlatformLocal"), "/AltinnPlatformLocal"),
 			},
-			extraHosts,
+			networkAliases,
 			nil,
 			nil,
 		),
 		newContainerSpec(
 			ContainerPDF3,
+			// TODO: same as above, we only need host port mapping here because old
 			[]types.PortMapping{newPort("5300", "5031")},
-			map[string]string{
-				"TZ":                             "Europe/Oslo",
-				"PDF3_ENVIRONMENT":               "localtest",
-				"PDF3_QUEUE_SIZE":                "3",
-				"PDF3_LOCALTEST_PUBLIC_BASE_URL": "http://" + networking.LocalDomain + ":" + cfg.LoadBalancerPort,
-			},
+			runtimeConfig.pdfEnv(),
 			nil,
-			extraHosts,
+			nil,
 			[]string{ContainerLocaltest},
 			nil,
 		),
+		workflowEngineDbContainerSpec(dataDir),
+		workflowEngineContainerSpec(runtimeConfig),
+		pgAdminContainerSpec(dataDir),
 	}
+	return containers
 }
 
-func localtestEnvironment(platform container.ContainerPlatform) string {
-	switch platform {
-	case container.PlatformDocker, container.PlatformColima:
-		return flavorDocker
-	case container.PlatformPodman:
-		return flavorPodman
-	default:
-		return flavorUnknown
+func workflowEngineDbContainerSpec(dataDir string) ContainerSpec {
+	spec := newContainerSpec(
+		ContainerWorkflowEngineDb,
+		nil,
+		map[string]string{
+			"POSTGRES_DB":       postgresDB,
+			"POSTGRES_USER":     postgresUser,
+			"POSTGRES_PASSWORD": postgresPassword,
+			"TZ":                "Europe/Oslo",
+		},
+		[]types.VolumeMount{
+			newNamedVolume(
+				workflowEngineDbVolume,
+				"/var/lib/postgresql",
+			),
+			newReadOnlyVolume(
+				workflowEngineInfraFilePath(dataDir, "postgres-init.sql"),
+				"/docker-entrypoint-initdb.d/01-tuning.sql",
+			),
+		},
+		nil,
+		nil,
+		[]string{"postgres", "-c", "shared_preload_libraries=pg_stat_statements"},
+	)
+	spec.HealthCheck = &types.HealthCheck{
+		Test:        []string{"CMD-SHELL", "pg_isready -h 127.0.0.1 -p " + postgresPort + " -U " + postgresUser},
+		Interval:    postgresHealthInterval,
+		Timeout:     postgresHealthTimeout,
+		Retries:     postgresHealthRetries,
+		StartPeriod: postgresHealthStartPeriod,
 	}
+	spec.UseDefaultUser = true
+	return spec
 }
 
-//nolint:funlen // Container spec list is more readable as a single function
-func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
-	extraHosts := []string{
-		"host.docker.internal:" + cfg.HostGateway,
-		"host.containers.internal:" + cfg.HostGateway,
-		networking.LocalDomain + ":" + cfg.HostGateway,
-	}
+func workflowEngineContainerSpec(runtimeConfig localtestConfig) ContainerSpec {
+	return newContainerSpec(
+		ContainerWorkflowEngine,
+		nil,
+		runtimeConfig.workflowEngineEnv(),
+		nil,
+		nil,
+		[]string{ContainerWorkflowEngineDb, ContainerLocaltest},
+		nil,
+	)
+}
 
-	infraDir := filepath.Join(dataDir, "infra")
+func pgAdminContainerSpec(dataDir string) ContainerSpec {
+	spec := newContainerSpec(
+		ContainerPgAdmin,
+		nil,
+		map[string]string{
+			"PGADMIN_DEFAULT_EMAIL":                   pgAdminEmail,
+			"PGADMIN_DEFAULT_PASSWORD":                pgAdminPassword,
+			"PGADMIN_CONFIG_SERVER_MODE":              "False",
+			"PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED": "False",
+			"PGPASS_FILE":                             pgAdminConnectionSource,
+			"GUNICORN_ACCESS_LOGFILE":                 "/dev/null",
+		},
+		[]types.VolumeMount{
+			newReadOnlyVolume(
+				workflowEngineInfraFilePath(dataDir, "pgadmin-servers.json"),
+				"/pgadmin4/servers.json",
+			),
+			newReadOnlyVolume(
+				workflowEngineInfraFilePath(dataDir, "pgpass"),
+				pgAdminConnectionSource,
+			),
+		},
+		nil,
+		[]string{ContainerWorkflowEngineDb},
+		nil,
+	)
+	spec.UseDefaultUser = true
+	return spec
+}
+
+func workflowEngineInfraFilePath(dataDir, name string) string {
+	return filepath.Join(workflowEngineInfraPath(dataDir), name)
+}
+
+func workflowEngineInfraPath(dataDir string) string {
+	return filepath.Join(dataDir, infraDir, workflowEngineInfraDir)
+}
+
+func workflowEngineDbDataPath(dataDir string) string {
+	return filepath.Join(dataDir, workflowEngineDbDataDir)
+}
+
+func monitoringContainers(dataDir string, topology envtopology.Local) []ContainerSpec {
+	infraPath := filepath.Join(dataDir, infraDir)
 
 	return []ContainerSpec{
 		newContainerSpec(
@@ -191,7 +313,7 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			nil,
 			nil,
 			[]types.VolumeMount{
-				newVolume(filepath.Join(infraDir, "tempo.yaml"), "/etc/tempo.yaml"),
+				newVolume(filepath.Join(infraPath, "tempo.yaml"), "/etc/tempo.yaml"),
 			},
 			nil,
 			nil,
@@ -202,7 +324,7 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			nil,
 			nil,
 			[]types.VolumeMount{
-				newVolume(filepath.Join(infraDir, "mimir.yaml"), "/etc/mimir.yaml"),
+				newVolume(filepath.Join(infraPath, "mimir.yaml"), "/etc/mimir.yaml"),
 			},
 			nil,
 			nil,
@@ -213,56 +335,71 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			nil,
 			nil,
 			[]types.VolumeMount{
-				newVolume(filepath.Join(infraDir, "loki.yaml"), "/etc/loki.yaml"),
+				newVolume(filepath.Join(infraPath, "loki.yaml"), "/etc/loki.yaml"),
 			},
 			nil,
 			nil,
 			[]string{"-config.file=/etc/loki.yaml", "-target=all", "-log.level=error"},
 		),
-		newContainerSpec(
-			ContainerMonitoringOtelCollector,
-			[]types.PortMapping{newPort("4317", "4317")},
-			nil,
-			[]types.VolumeMount{
-				newVolume(filepath.Join(infraDir, "otel-collector.yaml"), "/etc/otel-collector.yaml"),
-			},
-			nil,
-			[]string{ContainerMonitoringMimir, ContainerMonitoringTempo, ContainerMonitoringLoki},
-			[]string{"--config=/etc/otel-collector.yaml"},
-		),
-		newContainerSpec(
-			ContainerMonitoringGrafana,
-			nil,
-			map[string]string{
-				"GF_AUTH_ANONYMOUS_ENABLED":     "true",
-				"GF_AUTH_ANONYMOUS_ORG_ROLE":    "Admin",
-				"GF_AUTH_DISABLE_LOGIN_FORM":    "true",
-				"GF_LOG_LEVEL":                  "error",
-				"GF_SERVER_DOMAIN":              networking.LocalDomain,
-				"GF_SERVER_SERVE_FROM_SUB_PATH": "true",
-				"GF_SERVER_ROOT_URL":            "%(protocol)s://%(domain)s:%(http_port)s/grafana/",
-			},
-			[]types.VolumeMount{
-				newVolume(
-					filepath.Join(infraDir, "grafana-datasources.yaml"),
-					"/etc/grafana/provisioning/datasources/datasources.yaml",
-				),
-				newVolume(
-					filepath.Join(infraDir, "grafana-dashboards.yaml"),
-					"/etc/grafana/provisioning/dashboards/dashboards.yaml",
-				),
-				newVolume(filepath.Join(infraDir, "grafana-dashboards"), "/var/lib/grafana/dashboards"),
-			},
-			extraHosts,
-			[]string{
-				ContainerMonitoringOtelCollector,
-				ContainerMonitoringMimir,
-				ContainerMonitoringTempo,
-				ContainerMonitoringLoki,
-			},
-			nil,
-		),
+		monitoringOTelCollectorContainer(infraPath, topology),
+		monitoringGrafanaContainer(infraPath, topology),
 	}
+}
+
+func monitoringOTelCollectorContainer(
+	infraPath string,
+	topology envtopology.Local,
+) ContainerSpec {
+	otel := topology.MustComponent(envtopology.ComponentOTel)
+
+	return newContainerSpec(
+		ContainerMonitoringOtelCollector,
+		[]types.PortMapping{newPort("4317", "4317")},
+		nil,
+		[]types.VolumeMount{
+			newVolume(filepath.Join(infraPath, "otel-collector.yaml"), "/etc/otel-collector.yaml"),
+		},
+		[]string{otel.Host()},
+		[]string{ContainerMonitoringMimir, ContainerMonitoringTempo, ContainerMonitoringLoki},
+		[]string{"--config=/etc/otel-collector.yaml"},
+	)
+}
+
+func monitoringGrafanaContainer(infraPath string, topology envtopology.Local) ContainerSpec {
+	app := topology.MustComponent(envtopology.ComponentApp)
+
+	return newContainerSpec(
+		ContainerMonitoringGrafana,
+		nil,
+		map[string]string{
+			"GF_AUTH_ANONYMOUS_ENABLED":     "true",
+			"GF_AUTH_ANONYMOUS_ORG_ROLE":    "Admin",
+			"GF_AUTH_DISABLE_LOGIN_FORM":    "true",
+			"GF_LOG_LEVEL":                  "error",
+			"GF_SERVER_DOMAIN":              app.Host(), // TODO: should be localtest/proxy, not app.
+			"GF_SERVER_SERVE_FROM_SUB_PATH": "true",
+			"GF_SERVER_ROOT_URL":            "%(protocol)s://%(domain)s:%(http_port)s/grafana/", // TODO: mirror real envs, /monitor.
+		},
+		[]types.VolumeMount{
+			newVolume(
+				filepath.Join(infraPath, "grafana-datasources.yaml"),
+				"/etc/grafana/provisioning/datasources/datasources.yaml",
+			),
+			newVolume(
+				filepath.Join(infraPath, "grafana-dashboards.yaml"),
+				"/etc/grafana/provisioning/dashboards/dashboards.yaml",
+			),
+			newVolume(filepath.Join(infraPath, "grafana-dashboards"), "/var/lib/grafana/dashboards"),
+		},
+		nil,
+		[]string{
+			ContainerMonitoringOtelCollector,
+			ContainerMonitoringMimir,
+			ContainerMonitoringTempo,
+			ContainerMonitoringLoki,
+		},
+		nil,
+	)
 }
 
 func monitoringImageRefs(mon config.MonitoringImages) map[string]string {
@@ -281,152 +418,177 @@ type ResourceBuildOptions struct {
 	Images            config.ImagesConfig
 	DataDir           string
 	RuntimeConfig     RuntimeConfig
+	Topology          envtopology.Local
 	ImageMode         ImageMode
 	IncludeMonitoring bool
-}
-
-// ResourceDestroyOptions holds minimal options for destroying resources.
-type ResourceDestroyOptions struct {
-	DataDir           string
-	Images            config.ImagesConfig
-	IncludeMonitoring bool
-	Platform          container.ContainerPlatform
-}
-
-type containerResourceMode int
-
-const (
-	containerModeApply containerResourceMode = iota
-	containerModeDestroy
-)
-
-// BuildResources creates the resource graph for localtest.
-// Returns pure resource types that can be applied via an Executor.
-func BuildResources(opts ResourceBuildOptions) []resource.Resource {
-	return buildResourcesWithMode(
-		opts.DataDir,
-		opts.RuntimeConfig,
-		opts.IncludeMonitoring,
-		buildCoreImages(opts),
-		monitoringImageRefs(opts.Images.Monitoring),
-		containerModeApply,
-	)
-}
-
-// BuildResourcesForDestroy creates the list of resources need to shutdown localtest.
-func BuildResourcesForDestroy(opts ResourceDestroyOptions) []resource.Resource {
-	runtimeCfg := RuntimeConfig{
-		Platform:         opts.Platform,
-		HostGateway:      "", // not used for destroy
-		LoadBalancerPort: "", // not used for destroy
-		User:             "", // not used for destroy
-	}
-
-	return buildResourcesWithMode(
-		opts.DataDir,
-		runtimeCfg,
-		opts.IncludeMonitoring,
-		buildRemoteCoreImages(opts.Images.Core),
-		monitoringImageRefs(opts.Images.Monitoring),
-		containerModeDestroy,
-	)
+	IncludePgAdmin    bool
 }
 
 func buildCoreImages(opts ResourceBuildOptions) map[string]resource.ImageResource {
-	images := make(map[string]resource.ImageResource, 2)
+	if opts.ImageMode != DevMode || opts.DevConfig == nil {
+		return buildRemoteCoreImages(opts.Images.Core, opts.IncludePgAdmin)
+	}
 
-	if opts.ImageMode == DevMode && opts.DevConfig != nil {
-		images[ContainerLocaltest] = &resource.LocalImage{
-			ContextPath: opts.DevConfig.LocaltestContextPath(),
-			Dockerfile:  opts.DevConfig.LocaltestDockerfile(),
-			Tag:         devImageTagLocaltest,
-		}
-		images[ContainerPDF3] = &resource.LocalImage{
-			ContextPath: opts.DevConfig.PDF3ContextPath(),
-			Dockerfile:  opts.DevConfig.PDF3Dockerfile(),
-			Tag:         devImageTagPDF3,
-		}
-	} else {
-		images = buildRemoteCoreImages(opts.Images.Core)
+	images := buildRemoteCoreImages(opts.Images.Core, opts.IncludePgAdmin)
+
+	images[ContainerLocaltest] = &resource.LocalImage{
+		Enabled:     nil,
+		ContextPath: opts.DevConfig.LocaltestContextPath(),
+		Dockerfile:  opts.DevConfig.LocaltestDockerfile(),
+		Build:       buildCacheOptions(buildCacheRefLocaltest),
+		Tag:         devImageTagLocaltest,
+	}
+	images[ContainerPDF3] = &resource.LocalImage{
+		Enabled:     nil,
+		ContextPath: opts.DevConfig.PDF3ContextPath(),
+		Dockerfile:  opts.DevConfig.PDF3Dockerfile(),
+		Build:       buildCacheOptions(buildCacheRefPDF3),
+		Tag:         devImageTagPDF3,
+	}
+	images[ContainerWorkflowEngine] = &resource.LocalImage{
+		Enabled:     nil,
+		ContextPath: opts.DevConfig.WorkflowEngineContextPath(),
+		Dockerfile:  opts.DevConfig.WorkflowEngineDockerfile(),
+		Build: types.BuildOptions{
+			CacheFrom: nil,
+			CacheTo:   nil,
+		},
+		Tag: devImageTagWorkflowEngine,
 	}
 
 	return images
 }
 
-func buildRemoteCoreImages(core config.CoreImages) map[string]resource.ImageResource {
+func buildCacheOptions(ref string) types.BuildOptions {
+	if ref == "" || !config.IsCI() {
+		return types.BuildOptions{
+			CacheFrom: nil,
+			CacheTo:   nil,
+		}
+	}
+
+	opts := types.BuildOptions{
+		CacheFrom: []string{"type=registry,ref=" + ref},
+		CacheTo:   nil,
+	}
+	if config.IsTruthyEnv(os.Getenv(config.EnvRegistryCacheWrite)) {
+		opts.CacheTo = []string{"type=registry,ref=" + ref + ",mode=max"}
+	}
+	return opts
+}
+
+func buildRemoteCoreImages(core config.CoreImages, includePgAdmin bool) map[string]resource.ImageResource {
 	return map[string]resource.ImageResource{
 		ContainerLocaltest: &resource.RemoteImage{
+			Enabled:    nil,
 			Ref:        core.Localtest.Ref(),
 			PullPolicy: resource.PullIfNotPresent,
 		},
 		ContainerPDF3: &resource.RemoteImage{
+			Enabled:    nil,
 			Ref:        core.PDF3.Ref(),
+			PullPolicy: resource.PullIfNotPresent,
+		},
+		ContainerWorkflowEngineDb: &resource.RemoteImage{
+			Enabled:    nil,
+			Ref:        core.WorkflowEngineDb.Ref(),
+			PullPolicy: resource.PullIfNotPresent,
+		},
+		ContainerWorkflowEngine: &resource.RemoteImage{
+			Enabled:    nil,
+			Ref:        core.WorkflowEngine.Ref(),
+			PullPolicy: resource.PullIfNotPresent,
+		},
+		ContainerPgAdmin: &resource.RemoteImage{
+			Enabled:    resourceEnabledRef(includePgAdmin),
+			Ref:        imageRef(core.PgAdmin.Ref(), ContainerPgAdmin, includePgAdmin),
 			PullPolicy: resource.PullIfNotPresent,
 		},
 	}
 }
 
-func buildResourcesWithMode(
-	dataDir string,
-	runtimeCfg RuntimeConfig,
-	includeMonitoring bool,
-	coreImages map[string]resource.ImageResource,
-	monImages map[string]string,
-	mode containerResourceMode,
-) []resource.Resource {
-	core := coreContainers(dataDir, runtimeCfg)
-	mon := monitoringContainers(dataDir, runtimeCfg)
+func buildResources(opts ResourceBuildOptions) []resource.Resource {
+	core := coreContainers(opts.DataDir, opts.Topology, opts.IncludeMonitoring, opts.IncludePgAdmin)
+	mon := monitoringContainers(opts.DataDir, opts.Topology)
+	coreImages := buildCoreImages(opts)
+	monImages := monitoringImageRefs(opts.Images.Monitoring)
 	labels := map[string]string{LabelKey: LabelValue}
 
-	capacity := 1 + len(core)*2
-	if includeMonitoring {
-		capacity += len(mon) * 2
-	}
+	capacity := 1 + len(core)*2 + len(mon)*2
 	resources := make([]resource.Resource, 0, capacity)
 
 	network := &resource.Network{
-		Name:   NetworkName,
-		Driver: "bridge",
-		Labels: labels,
+		Enabled: nil,
+		Name:    NetworkName,
+		Driver:  "bridge",
+		Labels:  labels,
+		Lifecycle: resource.LifecycleOptions{
+			// When apps are started with `studioctl run --mode container ..`
+			// we might have active containers attached to the network
+			HandleDestroyError: func(err error) resource.ErrorDecision {
+				if errors.Is(err, types.ErrNetworkInUse) {
+					return resource.ErrorDecisionIgnore
+				}
+				return resource.ErrorDecisionDefault
+			},
+		},
 	}
 	resources = append(resources, network)
 
-	for _, name := range coreContainerNames() {
-		resources = append(resources, coreImages[name])
+	for i := range core {
+		resources = append(resources, coreImages[core[i].Name])
 	}
 
 	for i := range core {
 		spec := &core[i]
+		enabled := coreResourceEnabled(spec.Name, opts.IncludePgAdmin)
 		resources = append(resources, newContainerResource(
 			spec,
 			coreImages[spec.Name],
 			resource.Ref(network),
 			labels,
-			runtimeCfg.User,
-			mode,
+			opts.RuntimeConfig.User,
+			resourceEnabledRef(enabled),
 		))
 	}
 
-	if includeMonitoring {
-		for i := range mon {
-			spec := &mon[i]
-			image := &resource.RemoteImage{
-				Ref:        monImages[spec.Name],
-				PullPolicy: resource.PullIfNotPresent,
-			}
-			resources = append(resources, image)
-			resources = append(resources, newContainerResource(
-				spec,
-				image,
-				resource.Ref(network),
-				labels,
-				"", // Monitoring containers use default user (config mounts are read-only)
-				mode,
-			))
+	for i := range mon {
+		spec := &mon[i]
+		image := &resource.RemoteImage{
+			Enabled:    resourceEnabledRef(opts.IncludeMonitoring),
+			Ref:        imageRef(monImages[spec.Name], spec.Name, opts.IncludeMonitoring),
+			PullPolicy: resource.PullIfNotPresent,
 		}
+		resources = append(resources, image)
+		resources = append(resources, newContainerResource(
+			spec,
+			image,
+			resource.Ref(network),
+			labels,
+			"", // Monitoring containers use default user (config mounts are read-only)
+			resourceEnabledRef(opts.IncludeMonitoring),
+		))
 	}
 
 	return resources
+}
+
+func coreResourceEnabled(name string, includePgAdmin bool) bool {
+	return name != ContainerPgAdmin || includePgAdmin
+}
+
+func resourceEnabledRef(enabled bool) *bool {
+	if enabled {
+		return nil
+	}
+	return new(false)
+}
+
+func imageRef(ref, name string, enabled bool) string {
+	if enabled {
+		return ref
+	}
+	return "disabled.local/" + name + ":disabled"
 }
 
 func newContainerResource(
@@ -435,37 +597,47 @@ func newContainerResource(
 	network resource.ResourceRef,
 	labels map[string]string,
 	user string,
-	mode containerResourceMode,
+	enabled *bool,
 ) *resource.Container {
-	if mode == containerModeDestroy {
-		return &resource.Container{
-			Name:          spec.Name,
-			Image:         resource.Ref(imageRes),
-			Networks:      []resource.ResourceRef{network},
-			Labels:        labels,
-			Ports:         nil,
-			Volumes:       nil,
-			Env:           nil,
-			Command:       nil,
-			ExtraHosts:    nil,
-			RestartPolicy: "",
-			User:          "",
-		}
+	containerUser := user
+	if spec.UseDefaultUser {
+		containerUser = ""
 	}
 
 	return &resource.Container{
-		Name:          spec.Name,
-		Image:         resource.Ref(imageRes),
-		Networks:      []resource.ResourceRef{network},
-		Ports:         spec.Ports,
-		Volumes:       spec.Volumes,
-		Env:           toEnvSlice(spec.Environment),
-		Labels:        labels,
-		Command:       spec.Command,
-		ExtraHosts:    spec.ExtraHosts,
-		RestartPolicy: "",
-		User:          user,
+		HealthCheck: spec.HealthCheck,
+		Name:        spec.Name,
+		Image:       resource.Ref(imageRes),
+		Enabled:     enabled,
+		Networks:    []resource.ResourceRef{network},
+		DependsOn:   containerDependencyRefs(spec.Dependencies),
+		Ports:       spec.Ports,
+		Volumes:     spec.Volumes,
+		Env:         toEnvSlice(spec.Environment),
+		Labels:      labels,
+		Command:     spec.Command,
+		ExtraHosts:  spec.ExtraHosts,
+		Lifecycle: resource.ContainerLifecycleOptions{
+			LifecycleOptions: resource.LifecycleOptions{
+				HandleDestroyError: nil,
+			},
+			WaitForReady: true,
+		},
+		NetworkAliases: spec.NetworkAliases,
+		RestartPolicy:  "",
+		User:           containerUser,
 	}
+}
+
+func containerDependencyRefs(names []string) []resource.ResourceRef {
+	if len(names) == 0 {
+		return nil
+	}
+	refs := make([]resource.ResourceRef, len(names))
+	for i, name := range names {
+		refs[i] = resource.RefID(resource.ContainerID(name))
+	}
+	return refs
 }
 
 func toEnvSlice(env map[string]string) []string {
@@ -485,19 +657,21 @@ type hostPathExpectation struct {
 }
 
 func hostPathExpectations(opts ResourceBuildOptions) []hostPathExpectation {
-	core := coreContainers(opts.DataDir, opts.RuntimeConfig)
-	all := core
-	if opts.IncludeMonitoring {
-		all = append(all, monitoringContainers(opts.DataDir, opts.RuntimeConfig)...)
-	}
+	resources := buildResources(opts)
 
 	// Dedupe by host path while preserving first expectation.
-	seen := make(map[string]struct{}, len(all))
-	result := make([]hostPathExpectation, 0, len(all))
-	for i := range all {
-		spec := &all[i]
-		for j := range spec.Volumes {
-			volume := spec.Volumes[j]
+	seen := make(map[string]struct{}, len(resources))
+	result := make([]hostPathExpectation, 0, len(resources))
+	for _, res := range resources {
+		container, ok := res.(*resource.Container)
+		if !ok || !resource.IsEnabled(container) {
+			continue
+		}
+		for j := range container.Volumes {
+			volume := container.Volumes[j]
+			if !isBindMount(volume) {
+				continue
+			}
 			if _, ok := seen[volume.HostPath]; ok {
 				continue
 			}
@@ -509,6 +683,10 @@ func hostPathExpectations(opts ResourceBuildOptions) []hostPathExpectation {
 		}
 	}
 	return result
+}
+
+func isBindMount(volume types.VolumeMount) bool {
+	return volume.Type == "" || volume.Type == types.VolumeMountTypeBind
 }
 
 // ValidateResourceHostPaths ensures all bind-mounted host paths exist and have expected type.

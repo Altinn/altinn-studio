@@ -21,6 +21,8 @@ type authStatusFlags struct {
 	jsonOutput bool
 }
 
+const authStatusSubcommand = "status"
+
 var errLoginCancelled = errors.New("login cancelled")
 
 // AuthCommand implements the 'auth' subcommand.
@@ -45,18 +47,19 @@ func (c *AuthCommand) Synopsis() string { return "Manage authentication with Alt
 
 // Usage returns the full help text.
 func (c *AuthCommand) Usage() string {
-	return fmt.Sprintf(`Usage: %s auth <subcommand> [options]
-
-Manage authentication with Altinn Studio.
-
-Subcommands:
-  login     Authenticate with Altinn Studio using a Personal Access Token
-            (requires 'read:user' and 'repo' scopes)
-  status    Show authentication status
-  logout    Clear stored credentials
-
-Run '%s auth <subcommand> --help' for more information.
-`, osutil.CurrentBin(), osutil.CurrentBin())
+	return joinLines(
+		fmt.Sprintf("Usage: %s auth <subcommand> [options]", osutil.CurrentBin()),
+		"",
+		"Manage authentication with Altinn Studio.",
+		"",
+		"Subcommands:",
+		"  login     Authenticate with Altinn Studio using a Personal Access Token",
+		"            (requires 'read:user' and 'repo' scopes)",
+		"  status    Show authentication status",
+		"  logout    Clear stored credentials",
+		"",
+		fmt.Sprintf("Run '%s auth <subcommand> --help' for more information.", osutil.CurrentBin()),
+	)
 }
 
 // Run executes the command.
@@ -72,7 +75,7 @@ func (c *AuthCommand) Run(ctx context.Context, args []string) error {
 	switch subCmd {
 	case "login":
 		return c.runLogin(ctx, subArgs)
-	case "status":
+	case authStatusSubcommand:
 		return c.runStatus(ctx, subArgs)
 	case "logout":
 		return c.runLogout(ctx, subArgs)
@@ -119,7 +122,7 @@ func (c *AuthCommand) openPATPage(ctx context.Context, host string) {
 	c.out.Verbosef("Opening browser to: %s", patURL)
 	if err := osutil.OpenContext(ctx, patURL); err != nil {
 		c.out.Warningf("Failed to open browser: %v", err)
-		c.out.Printf("Please open manually: %s\n", patURL)
+		c.out.Printlnf("Please open manually: %s", patURL)
 	}
 }
 
@@ -271,13 +274,13 @@ func (c *AuthCommand) runStatus(ctx context.Context, args []string) error {
 			return c.printAuthStatusJSON(status)
 		}
 		if status.MissingEnv != "" {
-			c.out.Printf("Not logged in to %s\n", status.MissingEnv)
+			c.out.Printlnf("Not logged in to %s", status.MissingEnv)
 			return nil
 		}
 
 		c.out.Println("Not logged in to any environment")
 		c.out.Println("")
-		c.out.Printf("Run '%s auth login' to authenticate\n", osutil.CurrentBin())
+		c.out.Printlnf("Run '%s auth login' to authenticate", osutil.CurrentBin())
 		return nil
 	}
 
@@ -285,12 +288,22 @@ func (c *AuthCommand) runStatus(ctx context.Context, args []string) error {
 		return c.printAuthStatusJSON(status)
 	}
 
-	rows := [][]string{{"ENV", "HOST", "USERNAME", "STATUS"}}
+	table := ui.NewTable(
+		ui.NewColumn("ENV"),
+		ui.NewColumn("HOST"),
+		ui.NewColumn("USERNAME"),
+		ui.NewColumn("STATUS"),
+	)
 	for _, envStatus := range status.Environments {
-		rows = append(rows, []string{envStatus.Env, envStatus.Host, envStatus.Username, envStatus.Status})
+		table.Row(
+			ui.Text(envStatus.Env),
+			ui.Text(envStatus.Host),
+			ui.Text(envStatus.Username),
+			ui.Text(envStatus.Status),
+		)
 	}
 
-	c.out.Table(rows)
+	c.out.RenderTable(table)
 	return nil
 }
 
@@ -321,7 +334,7 @@ func (c *AuthCommand) printAuthStatusJSON(status authsvc.StatusResult) error {
 	if err != nil {
 		return fmt.Errorf("marshal auth status json: %w", err)
 	}
-	c.out.Printf("%s\n", payload)
+	c.out.Println(string(payload))
 	return nil
 }
 
@@ -363,12 +376,9 @@ func (c *AuthCommand) runLogout(_ context.Context, args []string) error {
 // confirmOverwrite prompts the user to confirm overwriting existing credentials.
 // Returns (confirmed, error) where error is ui.ErrInterrupted on Ctrl+C.
 func (c *AuthCommand) confirmOverwrite(ctx context.Context) (bool, error) {
-	c.out.Print("Overwrite existing credentials? [y/N]: ")
-	response, err := ui.ReadLine(ctx, os.Stdin)
+	confirmed, err := ui.Confirm(ctx, c.out, os.Stdin, "Overwrite existing credentials? [y/N]: ")
 	if err != nil {
-		c.out.Println("")
-		return false, fmt.Errorf("read confirmation: %w", err)
+		return false, fmt.Errorf("confirm overwrite: %w", err)
 	}
-	answer := strings.TrimSpace(strings.ToLower(string(response)))
-	return answer == "y" || answer == "yes", nil
+	return confirmed, nil
 }

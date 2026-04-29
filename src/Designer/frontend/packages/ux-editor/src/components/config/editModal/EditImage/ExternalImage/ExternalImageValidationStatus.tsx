@@ -1,6 +1,5 @@
 import classes from './ExternalImageValidationStatus.module.css';
-import { StudioSpinner } from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
 
@@ -21,8 +20,7 @@ export const ExternalImageValidationStatus = ({
     case 'pending':
       return (
         <StudioSpinner
-          size='small'
-          showSpinnerTitle
+          aria-hidden
           spinnerTitle={t('ux_editor.properties_panel.images.validating_image_url_pending')}
         />
       );

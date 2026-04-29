@@ -84,7 +84,6 @@ public class CorrespondenceBuilderTests
                 reminderEmailSubject = "reminder-email-subject-1",
                 reminderEmailBody = "reminder-email-body-1",
                 reminderSmsBody = "reminder-sms-body-1",
-                requestedSendTime = DateTimeOffset.Now.AddDays(1),
                 sendersReference = "notification-senders-ref-1",
                 sendReminder = true,
                 notificationChannel = CorrespondenceNotificationChannel.EmailPreferred,
@@ -166,7 +165,6 @@ public class CorrespondenceBuilderTests
                     .WithReminderEmailSubject(data.notification.reminderEmailSubject)
                     .WithReminderEmailBody(data.notification.reminderEmailBody)
                     .WithReminderSmsBody(data.notification.reminderSmsBody)
-                    .WithRequestedSendTime(data.notification.requestedSendTime)
                     .WithSendersReference(data.notification.sendersReference)
                     .WithSendReminder(data.notification.sendReminder)
                     .WithNotificationChannel(data.notification.notificationChannel)
@@ -179,7 +177,6 @@ public class CorrespondenceBuilderTests
                     )
             )
             .WithDueDateTime(data.dueDateTime)
-            .WithAllowSystemDeleteAfter(data.allowDeleteAfter)
             .WithMessageSender(data.messageSender)
             .WithIgnoreReservation(data.ignoreReservation)
             .WithIsConfirmationNeeded(data.isConfirmationNeeded)
@@ -251,7 +248,6 @@ public class CorrespondenceBuilderTests
         correspondence.SendersReference.Should().Be(data.sendersReference);
         correspondence.Recipients.Should().BeEquivalentTo([data.recipient]);
         correspondence.DueDateTime.Should().Be(data.dueDateTime);
-        correspondence.AllowSystemDeleteAfter.Should().Be(data.allowDeleteAfter);
         correspondence.IgnoreReservation.Should().Be(data.ignoreReservation);
         correspondence.IsConfirmationNeeded.Should().Be(data.isConfirmationNeeded);
         correspondence.RequestedPublishTime.Should().Be(data.requestedPublishTime);
@@ -282,7 +278,6 @@ public class CorrespondenceBuilderTests
         correspondence.Notification.ReminderEmailSubject.Should().Be(data.notification.reminderEmailSubject);
         correspondence.Notification.ReminderEmailBody.Should().Be(data.notification.reminderEmailBody);
         correspondence.Notification.ReminderSmsBody.Should().Be(data.notification.reminderSmsBody);
-        correspondence.Notification.RequestedSendTime.Should().Be(data.notification.requestedSendTime);
         correspondence.Notification.SendersReference.Should().Be(data.notification.sendersReference);
         correspondence.Notification.SendReminder.Should().Be(data.notification.sendReminder);
         correspondence.Notification.NotificationChannel.Should().Be(data.notification.notificationChannel);
@@ -340,7 +335,6 @@ public class CorrespondenceBuilderTests
                     .WithEmailBody("email-body-1")
             )
             .WithReplyOption("url1", "text1")
-            .WithAllowSystemDeleteAfter(DateTimeOffset.UtcNow.AddDays(1))
             .WithExternalReference(CorrespondenceReferenceType.Generic, "aaa")
             .WithPropertyList(new Dictionary<string, string> { ["prop1"] = "value1", ["prop2"] = "value2" })
             .WithExistingAttachment(Guid.Parse("a3ac4826-5873-4ecb-9fe7-dc4cfccd0afa"))
@@ -362,7 +356,6 @@ public class CorrespondenceBuilderTests
             TestHelpers.GetNationalIdentityNumber(7).Value,
         ]);
         builder.WithDueDateTime(DateTimeOffset.UtcNow.AddDays(2));
-        builder.WithAllowSystemDeleteAfter(DateTimeOffset.UtcNow.AddDays(2));
         builder.WithContent("en", "content-title-2", "content-summary-2", "content-body-2");
         builder.WithNotification(
             CorrespondenceNotificationBuilder
@@ -405,7 +398,6 @@ public class CorrespondenceBuilderTests
         correspondence.ResourceId.Should().Be("resourceId-2");
         correspondence.Sender.Should().Be(TestHelpers.GetOrganisationNumber(2));
         correspondence.SendersReference.Should().Be("sender-reference-2");
-        correspondence.AllowSystemDeleteAfter.Should().BeSameDateAs(DateTimeOffset.UtcNow.AddDays(2));
         correspondence.DueDateTime.Should().BeSameDateAs(DateTimeOffset.UtcNow.AddDays(2));
         correspondence.Recipients.Should().HaveCount(7);
         correspondence

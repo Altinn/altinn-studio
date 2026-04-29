@@ -6,20 +6,19 @@ import (
 	"errors"
 	"fmt"
 
+	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/install"
 )
 
 // Service contains self command logic.
 type Service struct {
-	dataDir string
-	version string
+	cfg *config.Config
 }
 
 // NewService creates a new self command service.
-func NewService(dataDir, version string) *Service {
+func NewService(cfg *config.Config) *Service {
 	return &Service{
-		dataDir: dataDir,
-		version: version,
+		cfg: cfg,
 	}
 }
 
@@ -45,7 +44,7 @@ func (s *Service) InstallBinary(targetPath string) (InstallBinaryResult, error) 
 	if err != nil {
 		if errors.Is(err, ErrAlreadyInstalled) {
 			return InstallBinaryResult{
-				InstalledPath:    targetPath,
+				InstalledPath:    installedPath,
 				AlreadyInstalled: true,
 			}, nil
 		}
@@ -82,8 +81,8 @@ func (s *Service) InstallResources(ctx context.Context) (InstallResourcesResult,
 	}
 
 	opts := install.Options{
-		DataDir: s.dataDir,
-		Version: s.version,
+		DataDir: s.cfg.DataDir,
+		Version: s.cfg.Version,
 		Force:   false,
 	}
 	if err := install.Install(ctx, opts); err != nil {
@@ -97,5 +96,5 @@ func (s *Service) InstallResources(ctx context.Context) (InstallResourcesResult,
 
 // ResourcesInstalled reports whether localtest resources are already installed.
 func (s *Service) ResourcesInstalled() bool {
-	return install.IsInstalled(s.dataDir, s.version)
+	return install.IsInstalled(s.cfg.DataDir, s.cfg.Version)
 }

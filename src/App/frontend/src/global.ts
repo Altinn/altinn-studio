@@ -6,7 +6,8 @@ import type { IFooterLayout } from 'src/features/footer/types';
 import type { UiConfig } from 'src/features/form/ui/types';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { IFeatureTogglesOptionalMap } from 'src/features/toggles';
-import type { IAppLanguage, IApplicationSettings, IParty, IProfile } from 'src/types/shared';
+import type { ILayoutCollection } from 'src/layout/layout';
+import type { IAppLanguage, IApplicationSettings, IParty, IPlatformFrontendSettings, IProfile } from 'src/types/shared';
 
 ///<reference types="cypress-iframe" />
 
@@ -21,6 +22,7 @@ export type AltinnAppGlobalData = {
   footer: IFooterLayout;
   ui: UiConfig;
   frontendSettings: IApplicationSettings;
+  platformFrontendSettings: IPlatformFrontendSettings;
   availableLanguages: IAppLanguage[];
   userProfile?: IProfile;
   returnUrl?: string;
@@ -43,6 +45,10 @@ declare global {
     // in the app preview. We cannot simply remove/rename this without making sure the Studio team has a plan to
     // replace that functionality with something else.
     queryClient: QueryClient;
+
+    // This can be used to override the current layouts. In the future this is what will be used by Studio as well.
+    changeLayouts: (mutator: (existingLayouts: ILayoutCollection) => ILayoutCollection) => void;
+    resetLayouts: () => void;
 
     // Useful tooling and state when running in Cypress. We need to update state here in order for Cypress to be able
     // to read it in some tests.

@@ -3,13 +3,14 @@ import { type Repository, type User } from 'app-shared/types/Repository';
 import { useTranslation } from 'react-i18next';
 import { useUserNameAndOrg } from 'app-shared/hooks/useUserNameAndOrg';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useMediaQuery, StudioAvatar } from '@studio/components-legacy';
+import { useMediaQuery } from '@studio/components-legacy';
 import {
   StudioPageHeader,
+  StudioAvatar,
   type StudioProfileMenuItem,
   type StudioProfileMenuGroup,
 } from '@studio/components';
-import { MEDIA_QUERY_MAX_WIDTH, USER_SETTINGS_BASENAME } from 'app-shared/constants';
+import { MEDIA_QUERY_MAX_WIDTH, SETTINGS_BASENAME } from 'app-shared/constants';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
@@ -33,13 +34,13 @@ export const UserProfileMenu = ({ user, repository }: UserProfileMenuProps): Rea
     itemName: t('sync_header.documentation'),
   };
 
-  const userSettingsMenuItem: StudioProfileMenuItem = {
+  const settingsMenuItem: StudioProfileMenuItem = {
     action: {
       type: 'link',
-      href: USER_SETTINGS_BASENAME,
+      href: `${SETTINGS_BASENAME}/${org}`,
       openInNewTab: false,
     },
-    itemName: t('user.settings'),
+    itemName: t('settings'),
   };
 
   const logOutMenuItem: StudioProfileMenuItem = {
@@ -48,7 +49,8 @@ export const UserProfileMenu = ({ user, repository }: UserProfileMenuProps): Rea
   };
 
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    { items: studioOidc ? [docsMenuItem, userSettingsMenuItem] : [docsMenuItem] },
+    ...(studioOidc ? [{ items: [settingsMenuItem] }] : []),
+    { items: [docsMenuItem] },
     { items: [logOutMenuItem] },
   ];
 

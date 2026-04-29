@@ -3,9 +3,10 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
-import { fetchInstanceData } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompFileUploadWithTagExternal } from 'src/layout/FileUploadWithTag/config.generated';
 import type { IData } from 'src/types/shared';
@@ -127,12 +128,6 @@ const render = async ({ component, addAttachment = true }: RenderProps) => {
     });
   });
 
-  jest.mocked(fetchInstanceData).mockImplementation(async () => ({
-    ...getInstanceDataMock((i) => {
-      addAttachment && i.data.push(attachment);
-    }),
-  }));
-
   return await renderWithInstanceAndLayout({
     renderer: (
       <AttachmentSummaryComponent
@@ -144,17 +139,30 @@ const render = async ({ component, addAttachment = true }: RenderProps) => {
       />
     ),
     queries: {
-      fetchLayouts: async () => ({
-        FormLayout: {
-          data: {
-            layout: [component],
-          },
-        },
-      }),
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.layouts = {
+            FormLayout: {
+              data: {
+                layout: [component],
+              },
+            },
+          };
+        }),
       fetchOptions: (url) =>
         availableOptions[url]
           ? Promise.resolve(availableOptions[url])
           : Promise.reject(new Error(`No options available for ${url}`)),
+    },
+    apis: {
+      instanceApi: {
+        getInstance: async () => ({
+          ...getInstanceDataMock((i) => {
+            addAttachment && i.data.push(attachment);
+          }),
+          process: getProcessDataMock(),
+        }),
+      },
     },
   });
 };

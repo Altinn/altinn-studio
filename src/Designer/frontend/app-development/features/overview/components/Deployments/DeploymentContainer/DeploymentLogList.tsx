@@ -50,7 +50,7 @@ export const DeploymentLogList = ({
               ? t(`general.production_environment_alt`)
               : `${t('general.test_environment_alt')} ${pipelineDeployment.envName?.toUpperCase()}`;
             return (
-              <li key={pipelineDeployment.build.id}>
+              <li key={pipelineDeployment.build?.id ?? pipelineDeployment.created}>
                 <div className={classes.logTitle}>
                   {t('overview.deployment_log_list_title', {
                     tagName: pipelineDeployment.tagName,

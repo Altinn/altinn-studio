@@ -39,7 +39,6 @@ export type AssistantMessage = {
   content: string;
   timestamp: Date;
   filesChanged: string[];
-  isLoading?: boolean;
   sources?: Source[];
 };
 

@@ -1,147 +1,260 @@
 import { renderHook, act } from '@testing-library/react';
 import { useBranchOperations } from './useBranchOperations';
-import { useCreateAndCheckoutBranch } from '../useCreateAndCheckoutBranch';
-import { useCheckoutWithUncommittedChangesHandling } from 'app-shared/hooks/mutations/useCheckoutWithUncommittedChangesHandling';
+import { useCheckoutBranchMutation } from 'app-shared/hooks/mutations/useCheckoutBranchMutation';
+import { useCreateBranchMutation } from 'app-shared/hooks/mutations/useCreateBranchMutation';
 import { useDiscardChangesMutation } from 'app-shared/hooks/mutations/useDiscardChangesMutation';
+import { useDeleteBranchMutation } from 'app-shared/hooks/mutations/useDeleteBranchMutation';
 import { uncommittedChangesErrorMock } from '../../test/mocks/branchingMocks';
 import { app, org } from '@studio/testing/testids';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
-jest.mock('../useCreateAndCheckoutBranch');
-jest.mock('app-shared/hooks/mutations/useCheckoutWithUncommittedChangesHandling');
+jest.mock('app-shared/hooks/mutations/useCheckoutBranchMutation');
+jest.mock('app-shared/hooks/mutations/useCreateBranchMutation');
 jest.mock('app-shared/hooks/mutations/useDiscardChangesMutation');
+jest.mock('app-shared/hooks/mutations/useDeleteBranchMutation');
 
-const mockUseCreateAndCheckoutBranch = jest.mocked(useCreateAndCheckoutBranch);
-const mockUseCheckoutWithUncommittedChangesHandling = jest.mocked(
-  useCheckoutWithUncommittedChangesHandling,
-);
+const mockUseCheckoutBranchMutation = jest.mocked(useCheckoutBranchMutation);
+const mockUseCreateBranchMutation = jest.mocked(useCreateBranchMutation);
 const mockUseDiscardChangesMutation = jest.mocked(useDiscardChangesMutation);
+const mockUseDeleteBranchMutation = jest.mocked(useDeleteBranchMutation);
 
-const createAndCheckoutBranch = jest.fn();
-const checkoutMutate = jest.fn();
+const checkoutBranchMutate = jest.fn();
+const createBranchMutate = jest.fn();
 const discardChangesMutate = jest.fn();
+const deleteBranchMutate = jest.fn();
+
+const { reload: originalReload } = window.location;
 
 describe('useBranchOperations', () => {
   beforeEach(() => {
-    mockUseCreateAndCheckoutBranch.mockReturnValue({
-      createAndCheckoutBranch,
-      isLoading: false,
-      createError: null,
-    });
-    mockUseCheckoutWithUncommittedChangesHandling.mockReturnValue({
-      mutate: checkoutMutate,
+    mockUseCheckoutBranchMutation.mockReturnValue({
+      mutate: checkoutBranchMutate,
+      isPending: false,
+    } as any);
+    mockUseCreateBranchMutation.mockReturnValue({
+      mutate: createBranchMutate,
       isPending: false,
     } as any);
     mockUseDiscardChangesMutation.mockReturnValue({
       mutate: discardChangesMutate,
       isPending: false,
     } as any);
-  });
-
-  afterEach(jest.clearAllMocks);
-
-  it('Should call checkout mutation with branch name', () => {
-    const { result } = renderHook(() => useBranchOperations(org, app));
-
-    result.current.checkoutExistingBranch('feature-branch');
-
-    expect(checkoutMutate).toHaveBeenCalledWith('feature-branch');
-  });
-
-  it('Should call createAndCheckoutBranch with branch name', () => {
-    const { result } = renderHook(() => useBranchOperations(org, app));
-
-    result.current.checkoutNewBranch('new-feature');
-
-    expect(createAndCheckoutBranch).toHaveBeenCalledWith('new-feature');
-  });
-
-  it('Should call discard mutation and then checkout on success', () => {
-    const mockDiscardMutate = jest.fn((_, options) => options?.onSuccess?.());
-
-    mockUseDiscardChangesMutation.mockReturnValue({
-      mutate: mockDiscardMutate,
+    mockUseDeleteBranchMutation.mockReturnValue({
+      mutate: deleteBranchMutate,
       isPending: false,
     } as any);
 
-    const { result } = renderHook(() => useBranchOperations(org, app));
-
-    result.current.discardChangesAndCheckout('target-branch');
-
-    expect(mockDiscardMutate).toHaveBeenCalledWith(undefined, expect.any(Object));
-    expect(checkoutMutate).toHaveBeenCalledWith('target-branch');
+    Object.defineProperty(window, 'location', {
+      value: { reload: jest.fn() },
+      writable: true,
+    });
   });
 
-  it('Should handle uncommitted changes errors and allow clearing them', () => {
-    mockUseCheckoutWithUncommittedChangesHandling.mockImplementation((_org, _app, options) => {
-      return {
-        mutate: jest.fn(() => {
-          options?.onUncommittedChanges?.(uncommittedChangesErrorMock);
-        }),
-        isPending: false,
-      } as any;
-    });
-
-    const { result } = renderHook(() => useBranchOperations(org, app));
-
-    expect(result.current.uncommittedChangesError).toBeNull();
-
-    act(() => {
-      result.current.checkoutExistingBranch('feature-branch');
-    });
-
-    expect(result.current.uncommittedChangesError).toEqual(uncommittedChangesErrorMock);
-
-    act(() => {
-      result.current.clearUncommittedChangesError();
-    });
-
-    expect(result.current.uncommittedChangesError).toBeNull();
+  afterEach(() => {
+    window.location.reload = originalReload;
+    jest.clearAllMocks();
   });
 
-  it('Should set uncommitted changes error when create and checkout triggers it', () => {
-    mockUseCreateAndCheckoutBranch.mockImplementation((_org, _app, options) => {
-      return {
-        createAndCheckoutBranch: jest.fn(() => {
-          options?.onUncommittedChanges?.(uncommittedChangesErrorMock);
-        }),
-        isLoading: false,
-        createError: null,
-      };
+  describe('checkoutExistingBranch', () => {
+    it('should checkout and reload on success', () => {
+      checkoutBranchMutate.mockImplementation((_branch, options) => options?.onSuccess?.());
+
+      const { result } = renderHook(() => useBranchOperations(org, app));
+
+      act(() => result.current.checkoutExistingBranch('feature-branch'));
+
+      expect(checkoutBranchMutate).toHaveBeenCalledWith('feature-branch', expect.any(Object));
+      expect(window.location.reload).toHaveBeenCalled();
     });
 
-    const { result } = renderHook(() => useBranchOperations(org, app));
+    it('should set uncommittedChangesError on 409 conflict with data', () => {
+      checkoutBranchMutate.mockImplementation((_branch, options) =>
+        options?.onError?.(createAxiosError(409, uncommittedChangesErrorMock)),
+      );
 
-    act(() => {
-      result.current.checkoutNewBranch('new-feature');
+      const { result } = renderHook(() => useBranchOperations(org, app));
+
+      act(() => result.current.checkoutExistingBranch('feature-branch'));
+
+      expect(result.current.uncommittedChangesError).toEqual(uncommittedChangesErrorMock);
+      expect(window.location.reload).not.toHaveBeenCalled();
     });
 
-    expect(result.current.uncommittedChangesError).toEqual(uncommittedChangesErrorMock);
+    it('should clear previous uncommittedChangesError', () => {
+      checkoutBranchMutate
+        .mockImplementationOnce((_branch, options) =>
+          options?.onError?.(createAxiosError(409, uncommittedChangesErrorMock)),
+        )
+        .mockImplementationOnce((_branch, options) => options?.onSuccess?.());
+
+      const { result } = renderHook(() => useBranchOperations(org, app));
+
+      act(() => result.current.checkoutExistingBranch('feature-branch'));
+      expect(result.current.uncommittedChangesError).toEqual(uncommittedChangesErrorMock);
+
+      act(() => result.current.checkoutExistingBranch('other-branch'));
+      expect(result.current.uncommittedChangesError).toBeNull();
+    });
   });
 
-  it('Should return create error from useCreateAndCheckoutBranch', () => {
-    mockUseCreateAndCheckoutBranch.mockReturnValue({
-      createAndCheckoutBranch,
-      isLoading: false,
-      createError: 'Branch already exists',
+  describe('checkoutNewBranch', () => {
+    it('should create branch, checkout, and reload on success', () => {
+      createBranchMutate.mockImplementation((_branch, options) => options?.onSuccess?.());
+      checkoutBranchMutate.mockImplementation((_branch, options) => options?.onSuccess?.());
+
+      const { result } = renderHook(() => useBranchOperations(org, app));
+
+      act(() => result.current.checkoutNewBranch('new-feature'));
+
+      expect(createBranchMutate).toHaveBeenCalledWith('new-feature', expect.any(Object));
+      expect(checkoutBranchMutate).toHaveBeenCalledWith('new-feature', expect.any(Object));
+      expect(window.location.reload).toHaveBeenCalled();
     });
 
-    const { result } = renderHook(() => useBranchOperations(org, app));
+    it('should set "already exists" error when create fails with 409', () => {
+      createBranchMutate.mockImplementation((_branch, options) =>
+        options?.onError?.(createAxiosError(409)),
+      );
 
-    expect(result.current.createError).toBe('Branch already exists');
-  });
+      const { result } = renderHook(() => useBranchOperations(org, app));
 
-  it('Should return correct loading state', () => {
-    const { result, rerender } = renderHook(() => useBranchOperations(org, app));
+      act(() => result.current.checkoutNewBranch('existing-branch'));
 
-    expect(result.current.isLoading).toBe(false);
-
-    mockUseCreateAndCheckoutBranch.mockReturnValue({
-      createAndCheckoutBranch,
-      isLoading: true,
-      createError: null,
+      expect(result.current.createError).toBe(
+        textMock('branching.new_branch_dialog.error_already_exists'),
+      );
+      expect(checkoutBranchMutate).not.toHaveBeenCalled();
     });
 
-    rerender();
-    expect(result.current.isLoading).toBe(true);
+    it('should set generic error when create fails with 500', () => {
+      createBranchMutate.mockImplementation((_branch, options) =>
+        options?.onError?.(createAxiosError(500)),
+      );
+
+      const { result } = renderHook(() => useBranchOperations(org, app));
+
+      act(() => result.current.checkoutNewBranch('new-branch'));
+
+      expect(result.current.createError).toBe(
+        textMock('branching.new_branch_dialog.error_generic'),
+      );
+      expect(checkoutBranchMutate).not.toHaveBeenCalled();
+    });
+
+    it('should set uncommittedChangesError when checkout fails with 409 and data', () => {
+      createBranchMutate.mockImplementation((_branch, options) => options?.onSuccess?.());
+      checkoutBranchMutate.mockImplementation((_branch, options) =>
+        options?.onError?.(createAxiosError(409, uncommittedChangesErrorMock)),
+      );
+
+      const { result } = renderHook(() => useBranchOperations(org, app));
+
+      act(() => result.current.checkoutNewBranch('new-branch'));
+
+      expect(result.current.uncommittedChangesError).toEqual(uncommittedChangesErrorMock);
+      expect(result.current.createError).toBe('');
+    });
+
+    it('should reset createError when retrying', () => {
+      createBranchMutate
+        .mockImplementationOnce((_branch, options) => options?.onError?.(createAxiosError(409)))
+        .mockImplementationOnce((_branch, options) => options?.onSuccess?.());
+      checkoutBranchMutate.mockImplementation((_branch, options) => options?.onSuccess?.());
+
+      const { result } = renderHook(() => useBranchOperations(org, app));
+
+      act(() => result.current.checkoutNewBranch('existing-branch'));
+      expect(result.current.createError).not.toBe('');
+
+      act(() => result.current.checkoutNewBranch('another-branch'));
+      expect(result.current.createError).toBe('');
+    });
   });
+
+  describe('discardChangesAndCheckout', () => {
+    it('should discard changes, checkout, and reload on success', () => {
+      discardChangesMutate.mockImplementation((_undefined, options) => options?.onSuccess?.());
+      checkoutBranchMutate.mockImplementation((_branch, options) => options?.onSuccess?.());
+
+      const { result } = renderHook(() => useBranchOperations(org, app));
+
+      act(() => result.current.discardChangesAndCheckout('target-branch'));
+
+      expect(discardChangesMutate).toHaveBeenCalledWith(undefined, expect.any(Object));
+      expect(checkoutBranchMutate).toHaveBeenCalledWith('target-branch', expect.any(Object));
+      expect(window.location.reload).toHaveBeenCalled();
+    });
+
+    it('should set uncommittedChangesError when checkout fails with 409', () => {
+      discardChangesMutate.mockImplementation((_undefined, options) => options?.onSuccess?.());
+      checkoutBranchMutate.mockImplementation((_branch, options) =>
+        options?.onError?.(createAxiosError(409, uncommittedChangesErrorMock)),
+      );
+
+      const { result } = renderHook(() => useBranchOperations(org, app));
+
+      act(() => result.current.discardChangesAndCheckout('target-branch'));
+
+      expect(result.current.uncommittedChangesError).toEqual(uncommittedChangesErrorMock);
+      expect(window.location.reload).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('deleteCurrentBranch', () => {
+    it('should discard changes, checkout master, delete branch, then reload', () => {
+      discardChangesMutate.mockImplementation((_undefined, options) => options?.onSuccess?.());
+      checkoutBranchMutate.mockImplementation((_branch, options) => options?.onSuccess?.());
+      deleteBranchMutate.mockImplementation((_branch, options) => options?.onSuccess?.());
+
+      const { result } = renderHook(() => useBranchOperations(org, app));
+
+      act(() => result.current.deleteCurrentBranch('feature-branch'));
+
+      expect(discardChangesMutate).toHaveBeenCalledWith(undefined, expect.any(Object));
+      expect(checkoutBranchMutate).toHaveBeenCalledWith('master', expect.any(Object));
+      expect(deleteBranchMutate).toHaveBeenCalledWith('feature-branch', expect.any(Object));
+      expect(window.location.reload).toHaveBeenCalled();
+    });
+  });
+
+  describe('clearUncommittedChangesError', () => {
+    it('should clear the error state', () => {
+      checkoutBranchMutate.mockImplementation((_undefined, options) =>
+        options?.onError?.(createAxiosError(409, uncommittedChangesErrorMock)),
+      );
+
+      const { result } = renderHook(() => useBranchOperations(org, app));
+
+      act(() => result.current.checkoutExistingBranch('feature-branch'));
+      expect(result.current.uncommittedChangesError).toEqual(uncommittedChangesErrorMock);
+
+      act(() => result.current.clearUncommittedChangesError());
+      expect(result.current.uncommittedChangesError).toBeNull();
+    });
+  });
+
+  describe('isLoading', () => {
+    it('should return false when no mutations are pending', () => {
+      const { result } = renderHook(() => useBranchOperations(org, app));
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('should return true when any mutation is pending', () => {
+      mockUseCreateBranchMutation.mockReturnValue({
+        mutate: createBranchMutate,
+        isPending: true,
+      } as any);
+
+      const { result } = renderHook(() => useBranchOperations(org, app));
+      expect(result.current.isLoading).toBe(true);
+    });
+  });
+});
+
+const createAxiosError = (status: number, data?: unknown) => ({
+  response: { status, data, statusText: 'Error', headers: {}, config: {} as any },
+  isAxiosError: true,
+  toJSON: () => ({}),
+  name: 'AxiosError',
+  message: `Request failed with status code ${status}`,
 });

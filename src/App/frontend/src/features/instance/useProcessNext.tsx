@@ -3,23 +3,28 @@ import { toast } from 'react-toastify';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { ContextNotProvided } from 'src/core/contexts/context';
+import { useUpdateInitialValidations } from 'src/core/queries/backendValidation';
+import { FormStore } from 'src/features/form/FormContext';
 import { invalidateFormDataQueries } from 'src/features/formData/useFormDataQuery';
 import { useHasPendingScans, useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useOptimisticallyUpdateProcess, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useUpdateInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
-import { Validation } from 'src/features/validation/validationContext';
-import { TaskKeys, useNavigateToTask } from 'src/hooks/useNavigatePage';
+import { useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { doProcessNext } from 'src/queries/queries';
+import { TaskKeys } from 'src/routesBuilder';
 import type { BackendValidationIssue } from 'src/features/validation';
 import type { IActionType, IProcess, ProblemDetails } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 interface ProcessNextProps {
   action?: IActionType;
+}
+
+interface ProcessNextInternalProps extends ProcessNextProps {
+  beforeProcessNext?: () => Promise<boolean>;
+  onValidationIssues?: (validationIssues: BackendValidationIssue[]) => Promise<void>;
 }
 
 export function getProcessNextMutationKey(action?: IActionType) {
@@ -29,16 +34,12 @@ export function getProcessNextMutationKey(action?: IActionType) {
   return ['processNext', action] as const;
 }
 
-export function useProcessNext({ action }: ProcessNextProps = {}) {
+function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues }: ProcessNextInternalProps = {}) {
   const reFetchInstanceData = useInstanceDataQuery({ enabled: false }).refetch;
   const language = useCurrentLanguage();
   const { data: process, refetch: refetchProcessData } = useProcessQuery();
   const navigateToTask = useNavigateToTask();
   const instanceId = useLaxInstanceId();
-  const onFormSubmitValidation = useOnFormSubmitValidation();
-  const updateInitialValidations = useUpdateInitialValidations();
-  const setShowAllBackendErrors = Validation.useSetShowAllBackendErrors();
-  const onSubmitFormValidation = useOnFormSubmitValidation();
   const queryClient = useQueryClient();
   const hasPendingScans = useHasPendingScans();
   const optimisticallyUpdateProcess = useOptimisticallyUpdateProcess();
@@ -51,8 +52,7 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
         await reFetchInstanceData();
       }
 
-      const hasErrors = await onFormSubmitValidation();
-      if (hasErrors) {
+      if (await beforeProcessNext?.()) {
         return [null, null];
       }
 
@@ -87,13 +87,13 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
         }
         navigateToTask(task);
       } else if (validationIssues) {
-        // Set initial validation to validation issues from process/next and make all errors visible
-        updateInitialValidations(validationIssues);
-
-        const hasValidationErrors = await onSubmitFormValidation(true);
-        if (!hasValidationErrors) {
-          setShowAllBackendErrors !== ContextNotProvided && setShowAllBackendErrors();
+        if (!onValidationIssues) {
+          throw new Error(
+            'Process next returned validation issues outside a form context. This task cannot represent validation issues without a FormProvider.',
+          );
         }
+
+        await onValidationIssues(validationIssues);
       }
     },
     onError: async (error: HttpClientError<ProblemDetails | undefined>) => {
@@ -113,6 +113,30 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
       });
     },
   });
+}
+
+export function useProcessNext({ action }: ProcessNextProps = {}) {
+  const onFormSubmitValidation = useOnFormSubmitValidation();
+  const updateInitialValidations = useUpdateInitialValidations();
+  const setShowAllBackendErrors = FormStore.validation.useSetShowAllBackendErrors();
+
+  return useProcessNextInternal({
+    action,
+    beforeProcessNext: async () => await onFormSubmitValidation(),
+    onValidationIssues: async (validationIssues) => {
+      // Set initial validation to validation issues from process/next and make all errors visible
+      updateInitialValidations(validationIssues);
+
+      const hasValidationErrors = await onFormSubmitValidation(true);
+      if (!hasValidationErrors) {
+        await setShowAllBackendErrors();
+      }
+    },
+  });
+}
+
+export function useProcessNextOutsideFormProvider({ action }: ProcessNextProps = {}) {
+  return useProcessNextInternal({ action });
 }
 
 export function getTargetTaskFromProcess(processData: IProcess | undefined) {

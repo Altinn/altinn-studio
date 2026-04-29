@@ -7,9 +7,6 @@ import (
 
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/studioctl/internal/ui"
-
-	"github.com/charmbracelet/lipgloss"
-	"golang.org/x/term"
 )
 
 const (
@@ -77,21 +74,25 @@ type Renderer interface {
 
 //nolint:gochecknoglobals // These styles are immutable presentation constants; package scope keeps the renderer readable.
 var (
-	statePendingStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
-	stateWorkingStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("12"))
-	stateReadyStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("10"))
-	stateFailedStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("9"))
-	stateCanceledStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
-	footerLabelStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
-	footerReadyStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("10"))
-	footerFailedStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("9"))
-	progressStatsStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
+	statePendingStyle  = ui.ColorStyle(ui.ColorGray)
+	stateWorkingStyle  = ui.ColorStyle(ui.ColorBlue)
+	stateReadyStyle    = ui.ColorStyle(ui.ColorGreen)
+	stateFailedStyle   = ui.ColorStyle(ui.ColorRed)
+	stateCanceledStyle = ui.ColorStyle(ui.ColorGray)
+	footerLabelStyle   = ui.ColorStyle(ui.ColorGray)
+	footerReadyStyle   = ui.ColorStyle(ui.ColorGreen)
+	footerFailedStyle  = ui.ColorStyle(ui.ColorRed)
+	progressStatsStyle = ui.ColorStyle(ui.ColorGray)
 )
 
 //nolint:gochecknoglobals // Test seams for terminal detection keep the production code simple and the behavior unit-testable.
 var (
-	termGetSizeFn    = term.GetSize
-	termIsTerminalFn = term.IsTerminal
+	outputIsTTYFn = func(out *ui.Output) bool {
+		return out.IsTerminal()
+	}
+	outputTerminalSizeFn = func(out *ui.Output) (int, int, bool) {
+		return out.TerminalSize()
+	}
 )
 
 //nolint:govet // fieldalignment: keep model state grouped by concern; this is short-lived CLI state.

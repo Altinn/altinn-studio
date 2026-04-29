@@ -299,6 +299,12 @@ func TestRunWorkflow_StudioctlLikeRepo_LocalRepo(t *testing.T) {
 		"studioctl-darwin-arm64",
 		"studioctl-windows-amd64.exe",
 		"studioctl-windows-arm64.exe",
+		"app-manager-linux-amd64.tar.gz",
+		"app-manager-linux-arm64.tar.gz",
+		"app-manager-darwin-amd64.tar.gz",
+		"app-manager-darwin-arm64.tar.gz",
+		"app-manager-windows-amd64.tar.gz",
+		"app-manager-windows-arm64.tar.gz",
 		"localtest-resources.tar.gz",
 		"install.sh",
 		"install.ps1",
@@ -329,8 +335,8 @@ func TestRunWorkflow_StudioctlLikeRepo_LocalRepo(t *testing.T) {
 		t.Fatalf("read SHA256SUMS: %v", readErr)
 	}
 	lines := strings.Split(strings.TrimSpace(string(checksums)), "\n")
-	if len(lines) != 9 {
-		t.Fatalf("SHA256SUMS line count = %d, want 9", len(lines))
+	if len(lines) != 15 {
+		t.Fatalf("SHA256SUMS line count = %d, want 15", len(lines))
 	}
 	if !strings.Contains(string(checksums), "localtest-resources.tar.gz") {
 		t.Fatalf("SHA256SUMS missing localtest-resources.tar.gz entry:\n%s", string(checksums))
@@ -406,6 +412,16 @@ func prepareStudioctlLikeLayout(t *testing.T, log internal.Logger, repoDir, comp
 		t,
 		filepath.Join(repoDir, "src", "cli", "cmd", "studioctl", "main.go"),
 		"package main\n\nimport (\n\t\"fmt\"\n\tcmd \"altinn.studio/studioctl/internal/cmd\"\n)\n\nfunc main() { fmt.Println(cmd.Version()) }\n",
+	)
+	writeFile(
+		t,
+		filepath.Join(repoDir, "src", "cli", "app-manager", "app-manager.csproj"),
+		"<Project Sdk=\"Microsoft.NET.Sdk.Web\"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><AssemblyName>app-manager</AssemblyName><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup></Project>\n",
+	)
+	writeFile(
+		t,
+		filepath.Join(repoDir, "src", "cli", "app-manager", "Program.cs"),
+		"var builder = WebApplication.CreateSlimBuilder(args);\nvar app = builder.Build();\napp.MapGet(\"/api/v1/healthz\", () => Results.Ok());\napp.Run();\n",
 	)
 	writeFile(
 		t,

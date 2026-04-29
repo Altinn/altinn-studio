@@ -14,7 +14,8 @@ import { type NavigationMenuGroup } from '../../types/NavigationMenuGroup';
 import type { HeaderMenuItem } from '../../types/HeaderMenuItem';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
-import { USER_SETTINGS_BASENAME } from 'app-shared/constants';
+import { SETTINGS_BASENAME } from 'app-shared/constants';
+import { isOrg } from 'dashboard/utils/orgUtils/orgUtils';
 
 export type HeaderContextProps = {
   selectableOrgs?: Organization[];
@@ -73,13 +74,13 @@ export const HeaderContextProvider = ({
     itemName: t('shared.header_go_to_gitea'),
   };
 
-  const userSettingsMenuItem: NavigationMenuItem = {
+  const settingsMenuItem: NavigationMenuItem = {
     action: {
       type: 'link',
-      href: USER_SETTINGS_BASENAME,
+      href: `${SETTINGS_BASENAME}/${isOrg(selectedContext) ? selectedContext : user?.login}`,
       openInNewTab: false,
     },
-    itemName: t('user.settings'),
+    itemName: t('settings'),
   };
 
   const logOutMenuItem: NavigationMenuItem = {
@@ -90,19 +91,20 @@ export const HeaderContextProvider = ({
   const studioOidc = environment?.featureFlags?.studioOidc;
 
   const selectableOrgMenuGroup: NavigationMenuGroup = {
-    name: t('dashboard.header_menu_all_orgs'),
+    name: t('top_bar.group_organizations'),
     showName: true,
     items: [allMenuItem, ...selectableOrgMenuItems, selfMenuItem],
   };
-  const otherMenuItems: NavigationMenuItem[] = [
+  const profileMenuItems: NavigationMenuItem[] = [
+    ...(studioOidc ? [settingsMenuItem] : []),
     giteaMenuItem,
-    ...(studioOidc ? [userSettingsMenuItem] : []),
+    logOutMenuItem,
   ];
-  const profileMenuItems: NavigationMenuItem[] = [...otherMenuItems, logOutMenuItem];
 
   const profileMenuGroups: NavigationMenuGroup[] = [
     selectableOrgMenuGroup,
-    { items: otherMenuItems },
+    ...(studioOidc ? [{ items: [settingsMenuItem] }] : []),
+    { items: [giteaMenuItem] },
     { items: [logOutMenuItem] },
   ];
 

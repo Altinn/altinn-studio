@@ -7,12 +7,14 @@ import (
 
 // mockResource is a test implementation of Resource.
 type mockResource struct {
-	id   ResourceID
-	deps []ResourceRef
+	id      ResourceID
+	enabled *bool
+	deps    []ResourceRef
 }
 
 func (m *mockResource) ID() ResourceID              { return m.id }
 func (m *mockResource) Dependencies() []ResourceRef { return m.deps }
+func (m *mockResource) IsEnabled() bool             { return Enabled(m.enabled) }
 
 func mustAddResource(t *testing.T, g *Graph, r Resource) {
 	t.Helper()
@@ -91,12 +93,15 @@ func TestGraph_Get(t *testing.T) {
 
 func TestGraph_All(t *testing.T) {
 	g := NewGraph()
-	mustAddResource(t, g, &mockResource{id: "a"})
 	mustAddResource(t, g, &mockResource{id: "b"})
+	mustAddResource(t, g, &mockResource{id: "a"})
 
 	all := g.All()
 	if len(all) != 2 {
 		t.Errorf("All() returned %d resources, want 2", len(all))
+	}
+	if all[0].ID() != "a" || all[1].ID() != "b" {
+		t.Fatalf("All() order = [%s %s], want [a b]", all[0].ID(), all[1].ID())
 	}
 }
 
@@ -130,6 +135,23 @@ func TestGraph_Validate(t *testing.T) {
 			},
 			wantErr: true,
 			errMsg:  "non-existent resource",
+		},
+		{
+			name: "enabled resource depends on disabled resource",
+			resources: []Resource{
+				&mockResource{id: "a", enabled: new(bool)},
+				&mockResource{id: "b", deps: DepIDs("a")},
+			},
+			wantErr: true,
+			errMsg:  "disabled resource",
+		},
+		{
+			name: "disabled resource with missing dependency is ignored",
+			resources: []Resource{
+				&mockResource{id: "a", enabled: new(bool), deps: DepIDs("nonexistent")},
+				&mockResource{id: "b"},
+			},
+			wantErr: false,
 		},
 		{
 			name: "self cycle",
@@ -182,6 +204,21 @@ func TestGraph_Validate(t *testing.T) {
 	}
 }
 
+func TestGraph_Enabled(t *testing.T) {
+	g := NewGraph()
+	mustAddResource(t, g, &mockResource{id: "c"})
+	mustAddResource(t, g, &mockResource{id: "b", enabled: new(bool)})
+	mustAddResource(t, g, &mockResource{id: "a"})
+
+	enabled := g.Enabled()
+	if len(enabled) != 2 {
+		t.Fatalf("Enabled() returned %d resources, want 2", len(enabled))
+	}
+	if enabled[0].ID() != "a" || enabled[1].ID() != "c" {
+		t.Fatalf("Enabled() order = [%s %s], want [a c]", enabled[0].ID(), enabled[1].ID())
+	}
+}
+
 func TestGraph_TopologicalOrder(t *testing.T) {
 	g, resources := buildLinearGraph()
 	for _, r := range resources {
@@ -210,6 +247,28 @@ func TestGraph_TopologicalOrder(t *testing.T) {
 	}
 }
 
+func TestGraph_TopologicalOrder_SkipsDisabledResources(t *testing.T) {
+	a := &mockResource{id: "a"}
+	b := &mockResource{id: "b", enabled: new(bool)}
+	c := &mockResource{id: "c", deps: DepIDs("a")}
+
+	g := NewGraph()
+	mustAddResource(t, g, a)
+	mustAddResource(t, g, b)
+	mustAddResource(t, g, c)
+
+	levels, err := g.TopologicalOrder()
+	if err != nil {
+		t.Fatalf("TopologicalOrder() error = %v", err)
+	}
+	if len(levels) != 2 {
+		t.Fatalf("TopologicalOrder() returned %d levels, want 2", len(levels))
+	}
+	if levels[0][0].ID() != "a" || levels[1][0].ID() != "c" {
+		t.Fatalf("TopologicalOrder() = %v, want a then c", levels)
+	}
+}
+
 func TestGraph_TopologicalOrder_ParallelLevel(t *testing.T) {
 	// a and b have no deps, c depends on both
 	a := &mockResource{id: "a"}
@@ -234,6 +293,9 @@ func TestGraph_TopologicalOrder_ParallelLevel(t *testing.T) {
 	// First level should have both a and b
 	if len(levels[0]) != 2 {
 		t.Errorf("level 0 has %d resources, want 2", len(levels[0]))
+	}
+	if levels[0][0].ID() != "a" || levels[0][1].ID() != "b" {
+		t.Fatalf("level 0 order = [%s %s], want [a b]", levels[0][0].ID(), levels[0][1].ID())
 	}
 
 	// Second level should have c

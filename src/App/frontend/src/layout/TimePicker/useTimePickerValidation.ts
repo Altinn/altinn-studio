@@ -1,5 +1,5 @@
 import { parseTimeString } from 'src/app-components/TimePicker/utils/timeConstraintUtils';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
@@ -56,7 +56,7 @@ const timeToSeconds = (time: TimeValue): number => time.hours * 3600 + time.minu
 export function useTimePickerValidation(baseComponentId: string): ComponentValidation[] {
   const field = useDataModelBindingsFor(baseComponentId, 'TimePicker')?.simpleBinding;
   const component = useItemWhenType(baseComponentId, 'TimePicker');
-  const data = FD.useDebouncedPick(field);
+  const data = FormStore.data.useDebouncedPick(field);
   const { minTime, maxTime, format = 'HH:mm' } = component || {};
 
   const timeString = typeof data === 'string' || typeof data === 'number' ? String(data) : undefined;

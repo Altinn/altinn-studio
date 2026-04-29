@@ -1,0 +1,27 @@
+# Keep src/ build context minimal for workflow-engine image.
+
+**
+!common/**
+!Runtime/workflow-engine/**
+**/bin
+**/obj
+
+# EFCore buggy outputs
+**bin\\Debug
+**bin\\Release
+
+**/README.md
+**/readme.*
+**/README.*
+**/docs/
+**/tests/
+!**/tests/WorkflowEngine.TestApp/
+*.sln.DotSettings*
+*.slnx
+**/.DS_Store
+**/.csharpier*
+
+Directory.*.props
+**/Directory.*.props
+!Directory.Packages.props
+!**/Directory.Packages.props

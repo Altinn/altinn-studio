@@ -11,6 +11,8 @@ using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Infrastructure.Models;
+using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
@@ -31,283 +33,297 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Altinn.Studio.Designer.TypedHttpClients
+namespace Altinn.Studio.Designer.TypedHttpClients;
+
+/// <summary>
+/// Contains extension methods to register typed http clients
+/// </summary>
+public static class TypedHttpClientRegistration
 {
     /// <summary>
-    /// Contains extension methods to register typed http clients
+    /// Sets up and registers all typed Http clients to DI container
     /// </summary>
-    public static class TypedHttpClientRegistration
+    /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
+    /// <param name="config">The Microsoft.Extensions.Configuration.IConfiguration for </param>
+    /// <param name="env">The Microsoft.Extensions.Hosting.IHostEnvironment</param>
+    /// <returns>IServiceCollection</returns>
+    public static IServiceCollection RegisterTypedHttpClients(
+        this IServiceCollection services,
+        IConfiguration config,
+        IHostEnvironment env
+    )
     {
-        /// <summary>
-        /// Sets up and registers all typed Http clients to DI container
-        /// </summary>
-        /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
-        /// <param name="config">The Microsoft.Extensions.Configuration.IConfiguration for </param>
-        /// <param name="env">The Microsoft.Extensions.Hosting.IHostEnvironment</param>
-        /// <returns>IServiceCollection</returns>
-        public static IServiceCollection RegisterTypedHttpClients(
-            this IServiceCollection services,
-            IConfiguration config,
-            IHostEnvironment env
-        )
+        services.AddHttpClient();
+        services.AddTransient<AzureDevOpsTokenDelegatingHandler>();
+        services.AddTransient<EnsureSuccessHandler>();
+        services.AddTransient<PlatformBearerTokenHandler>();
+        services.AddAzureDevOpsTypedHttpClient(config);
+        // Order is important here. The GiteaBot client must be registered before the regular Gitea client
+        // to ensure that the regular Gitea client is injected when IGiteaClient is requested.
+        services.AddGiteaBotTypedHttpClient(config);
+        services.AddGiteaTypedHttpClient(config);
+        services.AddAltinnAuthenticationTypedHttpClient(config);
+        services.AddAuthenticatedAltinnPlatformTypedHttpClient<
+            IAltinnStorageAppMetadataClient,
+            AltinnStorageAppMetadataClient
+        >();
+        services.AddAuthenticatedAltinnPlatformTypedHttpClient<
+            IAltinnAuthorizationPolicyClient,
+            AltinnAuthorizationPolicyClient
+        >();
+        services.AddAuthenticatedAltinnPlatformTypedHttpClient<
+            IAltinnStorageTextResourceClient,
+            AltinnStorageTextResourceClient
+        >();
+        services.AddAuthenticatedAltinnPlatformTypedHttpClient<
+            IAltinnStorageInstancesClient,
+            AltinnStorageInstancesClient
+        >();
+        services.AddAltinnNotificationsClient(config, env);
+        services.AddKubernetesWrapperTypedHttpClient();
+        services.AddHttpClient<IPolicyOptions, PolicyOptionsClient>();
+        services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();
+        services.AddHttpClient<IAltinn2MetadataClient, Altinn2MetadataClient>();
+        bool studioOidcEnabled =
+            config.GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}").Get<bool?>() ?? false;
+
+        if (studioOidcEnabled)
         {
-            services.AddHttpClient();
-            services.AddTransient<AzureDevOpsTokenDelegatingHandler>();
-            services.AddTransient<EnsureSuccessHandler>();
-            services.AddTransient<PlatformBearerTokenHandler>();
-            services.AddAzureDevOpsTypedHttpClient(config);
-            // Order is important here. The GiteaBot client must be registered before the regular Gitea client
-            // to ensure that the regular Gitea client is injected when IGiteaClient is requested.
-            services.AddGiteaBotTypedHttpClient(config);
-            services.AddGiteaTypedHttpClient(config);
-            services.AddAltinnAuthenticationTypedHttpClient(config);
-            services.AddAuthenticatedAltinnPlatformTypedHttpClient<
-                IAltinnStorageAppMetadataClient,
-                AltinnStorageAppMetadataClient
-            >();
-            services.AddAuthenticatedAltinnPlatformTypedHttpClient<
-                IAltinnAuthorizationPolicyClient,
-                AltinnAuthorizationPolicyClient
-            >();
-            services.AddAuthenticatedAltinnPlatformTypedHttpClient<
-                IAltinnStorageTextResourceClient,
-                AltinnStorageTextResourceClient
-            >();
-            services.AddAuthenticatedAltinnPlatformTypedHttpClient<
-                IAltinnStorageInstancesClient,
-                AltinnStorageInstancesClient
-            >();
-            services.AddAltinnNotificationsClient(config, env);
-            services.AddKubernetesWrapperTypedHttpClient();
-            services.AddHttpClient<IPolicyOptions, PolicyOptionsClient>();
-            services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();
-            services.AddHttpClient<IAltinn2MetadataClient, Altinn2MetadataClient>();
-            bool studioOidcEnabled =
-                config.GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}").Get<bool?>() ?? false;
-
-            if (studioOidcEnabled)
-            {
-                services.AddTransient<GiteaWebAuthDelegatingHandler>();
-            }
-            else
-            {
-                services.AddTransient<GiteaTokenDelegatingHandler>();
-            }
-
-            services.AddTransient<GitOpsBotTokenDelegatingHandler>();
-            services.AddTransient<PlatformSubscriptionAuthDelegatingHandler>();
-            services.AddMaskinportenHttpClient();
-            services.AddHttpClient<ISlackClient, SlackClient>();
-            services.AddRuntimeGatewayHttpClient(config, env);
-
-            return services;
+            services.AddTransient<GiteaWebAuthDelegatingHandler>();
+        }
+        else
+        {
+            services.AddTransient<GiteaTokenDelegatingHandler>();
         }
 
-        private static IServiceCollection AddAltinnNotificationsClient(
-            this IServiceCollection services,
-            IConfiguration config,
-            IHostEnvironment env
-        )
-        {
-            var clientBuilder = services.AddAuthenticatedAltinnPlatformTypedHttpClient<
-                IAltinnNotificationClient,
-                AltinnNotificationClient
-            >();
-            if (!env.IsDevelopment())
-            {
-                clientBuilder.AddMaskinportenHttpMessageHandler<SettingsJwkClientDefinition, AltinnNotificationClient>(
-                    def =>
-                    {
-                        var clients = config
-                            .GetSection(nameof(MaskinportenClientForNotifications))
-                            .Get<MaskinportenClientForNotifications>();
-                        def.ClientSettings = clients.FirstOrDefault().Value;
-                    }
-                );
-            }
-            return services;
-        }
+        services.AddGiteaUserProvisioningTypedHttpClient(config);
+        services.AddTransient<GitOpsBotTokenDelegatingHandler>();
+        services.AddTransient<PlatformSubscriptionAuthDelegatingHandler>();
+        services.AddMaskinportenHttpClient();
+        services.AddHttpClient<ISlackClient, SlackClient>();
+        services.AddRuntimeGatewayHttpClient(config, env);
 
-        private static IHttpClientBuilder AddAzureDevOpsTypedHttpClient(
-            this IServiceCollection services,
-            IConfiguration config
-        )
+        return services;
+    }
+
+    private static IServiceCollection AddAltinnNotificationsClient(
+        this IServiceCollection services,
+        IConfiguration config,
+        IHostEnvironment env
+    )
+    {
+        var clientBuilder = services.AddAuthenticatedAltinnPlatformTypedHttpClient<
+            IAltinnNotificationClient,
+            AltinnNotificationClient
+        >();
+        if (!env.IsDevelopment())
         {
-            AzureDevOpsSettings azureDevOpsSettings = config
-                .GetSection("Integrations:AzureDevOpsSettings")
-                .Get<AzureDevOpsSettings>();
-            string token = config["AccessTokenDevOps"];
-            return services
-                .AddHttpClient<IAzureDevOpsBuildClient, AzureDevOpsBuildClient>(client =>
+            clientBuilder.AddMaskinportenHttpMessageHandler<SettingsJwkClientDefinition, AltinnNotificationClient>(
+                def =>
                 {
-                    client.BaseAddress = new Uri($"{azureDevOpsSettings.BaseUri}");
-                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
-                })
-                .AddHttpMessageHandler<AzureDevOpsTokenDelegatingHandler>()
-                .AddHttpMessageHandler<EnsureSuccessHandler>();
+                    var clients = config
+                        .GetSection(nameof(MaskinportenClientForNotifications))
+                        .Get<MaskinportenClientForNotifications>();
+                    def.ClientSettings = clients.FirstOrDefault().Value;
+                }
+            );
         }
+        return services;
+    }
 
-        private static IHttpClientBuilder AddKubernetesWrapperTypedHttpClient(this IServiceCollection services)
-        {
-            return services.AddHttpClient<IKubernetesWrapperClient, KubernetesWrapperClient>();
-            // Commented due to the issue with deployments endpoint described in issue: https://github.com/Altinn/altinn-studio/issues/12037
-            // .AddHttpMessageHandler<EnsureSuccessHandler>()
-            // .AddHttpMessageHandler(sp => new CachingDelegatingHandler(sp.GetService<IMemoryCache>(), 15));
-        }
-
-        private static IHttpClientBuilder AddGiteaTypedHttpClient(
-            this IServiceCollection services,
-            IConfiguration config
-        )
-        {
-            bool studioOidcEnabled =
-                config.GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}").Get<bool?>() ?? false;
-
-            var builder = services
-                .AddHttpClient<IGiteaClient, GiteaClient>(
-                    (_, httpClient) =>
-                    {
-                        ServiceRepositorySettings serviceRepoSettings = config
-                            .GetSection(nameof(ServiceRepositorySettings))
-                            .Get<ServiceRepositorySettings>();
-                        Uri uri = new Uri(serviceRepoSettings.ApiEndPoint);
-                        httpClient.BaseAddress = uri;
-                    }
-                )
-                .ConfigurePrimaryHttpMessageHandler(
-                    (sp) =>
-                    {
-                        var handler = new HttpClientHandler { AllowAutoRedirect = true };
-
-                        return new Custom401Handler(handler);
-                    }
-                );
-
-            if (studioOidcEnabled)
+    private static IHttpClientBuilder AddAzureDevOpsTypedHttpClient(
+        this IServiceCollection services,
+        IConfiguration config
+    )
+    {
+        AzureDevOpsSettings azureDevOpsSettings = config
+            .GetSection("Integrations:AzureDevOpsSettings")
+            .Get<AzureDevOpsSettings>();
+        string token = config["AccessTokenDevOps"];
+        return services
+            .AddHttpClient<IAzureDevOpsBuildClient, AzureDevOpsBuildClient>(client =>
             {
-                builder.AddHttpMessageHandler<GiteaWebAuthDelegatingHandler>();
-            }
-            else
-            {
-                builder.AddHttpMessageHandler<GiteaTokenDelegatingHandler>();
-            }
+                client.BaseAddress = new Uri($"{azureDevOpsSettings.BaseUri}");
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
+            })
+            .AddHttpMessageHandler<AzureDevOpsTokenDelegatingHandler>()
+            .AddHttpMessageHandler<EnsureSuccessHandler>();
+    }
 
-            return builder;
-        }
+    private static IHttpClientBuilder AddKubernetesWrapperTypedHttpClient(this IServiceCollection services)
+    {
+        return services.AddHttpClient<IKubernetesWrapperClient, KubernetesWrapperClient>();
+        // Commented due to the issue with deployments endpoint described in issue: https://github.com/Altinn/altinn-studio/issues/12037
+        // .AddHttpMessageHandler<EnsureSuccessHandler>()
+        // .AddHttpMessageHandler(sp => new CachingDelegatingHandler(sp.GetService<IMemoryCache>(), 15));
+    }
 
-        private static IHttpClientBuilder AddGiteaBotTypedHttpClient(
-            this IServiceCollection services,
-            IConfiguration config
-        )
-        {
-            // Register the named HTTP client (for direct IHttpClientFactory usage)
-            var builder = services
-                .AddHttpClient<IGiteaClient, GiteaClient>(
-                    "bot-auth",
-                    (_, httpClient) =>
-                    {
-                        ServiceRepositorySettings serviceRepoSettings = config
-                            .GetSection(nameof(ServiceRepositorySettings))
-                            .Get<ServiceRepositorySettings>();
-                        Uri uri = new Uri(serviceRepoSettings.ApiEndPoint);
-                        httpClient.BaseAddress = uri;
-                    }
-                )
-                .ConfigurePrimaryHttpMessageHandler(
-                    (sp) =>
-                    {
-                        var handler = new HttpClientHandler { AllowAutoRedirect = true };
+    private static IHttpClientBuilder AddGiteaTypedHttpClient(this IServiceCollection services, IConfiguration config)
+    {
+        bool studioOidcEnabled =
+            config.GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}").Get<bool?>() ?? false;
 
-                        return new Custom401Handler(handler);
-                    }
-                )
-                .AddHttpMessageHandler<GitOpsBotTokenDelegatingHandler>();
-
-            // Register keyed service by delegating to the named HTTP client registration
-            services.AddKeyedTransient<IGiteaClient>(
-                "bot-auth",
-                (sp, _) =>
+        var builder = services
+            .AddHttpClient<IGiteaClient, GiteaClient>(
+                (_, httpClient) =>
                 {
-                    // Leverage the existing typed HTTP client factory instead of manual construction
-                    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
-                    var namedClient = httpClientFactory.CreateClient("bot-auth");
-
-                    // Use the same dependencies that the named client would use
-                    var serviceRepoSettings = sp.GetRequiredService<IConfiguration>()
+                    ServiceRepositorySettings serviceRepoSettings = config
                         .GetSection(nameof(ServiceRepositorySettings))
                         .Get<ServiceRepositorySettings>();
-                    var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
-                    var memoryCache = sp.GetRequiredService<IMemoryCache>();
-                    var logger = sp.GetRequiredService<ILogger<GiteaClient>>();
+                    Uri uri = new Uri(serviceRepoSettings.ApiEndPoint);
+                    httpClient.BaseAddress = uri;
+                }
+            )
+            .ConfigurePrimaryHttpMessageHandler(
+                (sp) =>
+                {
+                    var handler = new HttpClientHandler { AllowAutoRedirect = true };
 
-                    return new GiteaClient(serviceRepoSettings, httpContextAccessor, memoryCache, logger, namedClient);
+                    return new Custom401Handler(handler);
                 }
             );
 
-            return builder;
+        if (studioOidcEnabled)
+        {
+            builder.AddHttpMessageHandler<GiteaWebAuthDelegatingHandler>();
+        }
+        else
+        {
+            builder.AddHttpMessageHandler<GiteaTokenDelegatingHandler>();
         }
 
-        private static IHttpClientBuilder AddAltinnAuthenticationTypedHttpClient(
-            this IServiceCollection services,
-            IConfiguration config
-        ) =>
-            services
-                .AddHttpClient<IAltinnAuthenticationClient, AltinnAuthenticationClient>(
-                    (sp, httpClient) =>
-                    {
-                        httpClient.DefaultRequestHeaders.Accept.Add(
-                            new MediaTypeWithQualityHeaderValue("application/json")
-                        );
-                    }
-                )
-                .AddHttpMessageHandler<EnsureSuccessHandler>();
+        return builder;
+    }
 
-        private static IHttpClientBuilder AddAuthenticatedAltinnPlatformTypedHttpClient<TInterface, TImplementation>(
-            this IServiceCollection services
-        )
-            where TImplementation : class, TInterface
-            where TInterface : class =>
-            services
-                .AddHttpClient<TInterface, TImplementation>(
-                    (sp, httpClient) =>
-                    {
-                        httpClient.DefaultRequestHeaders.Accept.Add(
-                            new MediaTypeWithQualityHeaderValue(MediaTypeNames.Application.Json)
-                        );
-                    }
-                )
-                .AddHttpMessageHandler<PlatformBearerTokenHandler>()
-                .AddHttpMessageHandler<PlatformSubscriptionAuthDelegatingHandler>()
-                .AddHttpMessageHandler<EnsureSuccessHandler>();
+    private static IHttpClientBuilder AddGiteaBotTypedHttpClient(
+        this IServiceCollection services,
+        IConfiguration config
+    )
+    {
+        // Register the named HTTP client (for direct IHttpClientFactory usage)
+        var builder = services
+            .AddHttpClient<IGiteaClient, GiteaClient>(
+                "bot-auth",
+                (_, httpClient) =>
+                {
+                    ServiceRepositorySettings serviceRepoSettings = config
+                        .GetSection(nameof(ServiceRepositorySettings))
+                        .Get<ServiceRepositorySettings>();
+                    Uri uri = new Uri(serviceRepoSettings.ApiEndPoint);
+                    httpClient.BaseAddress = uri;
+                }
+            )
+            .ConfigurePrimaryHttpMessageHandler(
+                (sp) =>
+                {
+                    var handler = new HttpClientHandler { AllowAutoRedirect = true };
 
-        private static IServiceCollection AddMaskinportenHttpClient(this IServiceCollection services)
-        {
-            services.AddTransient<OidcTokenDelegatingHandler>();
-            services
-                .AddHttpClient(
-                    MaskinPortenHttpClient.HttpClientName,
-                    (serviceProvider, httpClient) =>
-                    {
-                        var options = serviceProvider
-                            .GetRequiredService<IOptions<MaskinPortenHttpClientSettings>>()
-                            .Value;
-                        httpClient.BaseAddress = new Uri(options.BaseUrl);
-                    }
-                )
-                .AddHttpMessageHandler<OidcTokenDelegatingHandler>();
-            services.AddHttpClient(
-                MaskinPortenHttpClient.PublicHttpClientName,
+                    return new Custom401Handler(handler);
+                }
+            )
+            .AddHttpMessageHandler<GitOpsBotTokenDelegatingHandler>();
+
+        // Register keyed service by delegating to the named HTTP client registration
+        services.AddKeyedTransient<IGiteaClient>(
+            "bot-auth",
+            (sp, _) =>
+            {
+                // Leverage the existing typed HTTP client factory instead of manual construction
+                var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+                var namedClient = httpClientFactory.CreateClient("bot-auth");
+
+                // Use the same dependencies that the named client would use
+                var serviceRepoSettings = sp.GetRequiredService<IConfiguration>()
+                    .GetSection(nameof(ServiceRepositorySettings))
+                    .Get<ServiceRepositorySettings>();
+                var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
+                var memoryCache = sp.GetRequiredService<IMemoryCache>();
+                var logger = sp.GetRequiredService<ILogger<GiteaClient>>();
+
+                return new GiteaClient(serviceRepoSettings, httpContextAccessor, memoryCache, logger, namedClient);
+            }
+        );
+
+        return builder;
+    }
+
+    private static IHttpClientBuilder AddGiteaUserProvisioningTypedHttpClient(
+        this IServiceCollection services,
+        IConfiguration config
+    )
+    {
+        return services
+            .AddHttpClient<IUserProvisioningService, GiteaUserProvisioningService>(
+                (_, httpClient) =>
+                {
+                    ServiceRepositorySettings serviceRepoSettings = config
+                        .GetSection(nameof(ServiceRepositorySettings))
+                        .Get<ServiceRepositorySettings>();
+                    Uri uri = new Uri(serviceRepoSettings.ApiEndPoint);
+                    httpClient.BaseAddress = uri;
+                }
+            )
+            .AddHttpMessageHandler<EnsureSuccessHandler>();
+    }
+
+    private static IHttpClientBuilder AddAltinnAuthenticationTypedHttpClient(
+        this IServiceCollection services,
+        IConfiguration config
+    ) =>
+        services
+            .AddHttpClient<IAltinnAuthenticationClient, AltinnAuthenticationClient>(
+                (sp, httpClient) =>
+                {
+                    httpClient.DefaultRequestHeaders.Accept.Add(
+                        new MediaTypeWithQualityHeaderValue("application/json")
+                    );
+                }
+            )
+            .AddHttpMessageHandler<EnsureSuccessHandler>();
+
+    private static IHttpClientBuilder AddAuthenticatedAltinnPlatformTypedHttpClient<TInterface, TImplementation>(
+        this IServiceCollection services
+    )
+        where TImplementation : class, TInterface
+        where TInterface : class =>
+        services
+            .AddHttpClient<TInterface, TImplementation>(
+                (sp, httpClient) =>
+                {
+                    httpClient.DefaultRequestHeaders.Accept.Add(
+                        new MediaTypeWithQualityHeaderValue(MediaTypeNames.Application.Json)
+                    );
+                }
+            )
+            .AddHttpMessageHandler<PlatformBearerTokenHandler>()
+            .AddHttpMessageHandler<PlatformSubscriptionAuthDelegatingHandler>()
+            .AddHttpMessageHandler<EnsureSuccessHandler>();
+
+    private static IServiceCollection AddMaskinportenHttpClient(this IServiceCollection services)
+    {
+        services.AddTransient<OidcTokenDelegatingHandler>();
+        services
+            .AddHttpClient(
+                MaskinPortenHttpClient.HttpClientName,
                 (serviceProvider, httpClient) =>
                 {
                     var options = serviceProvider.GetRequiredService<IOptions<MaskinPortenHttpClientSettings>>().Value;
                     httpClient.BaseAddress = new Uri(options.BaseUrl);
                 }
-            );
+            )
+            .AddHttpMessageHandler<OidcTokenDelegatingHandler>();
+        services.AddHttpClient(
+            MaskinPortenHttpClient.PublicHttpClientName,
+            (serviceProvider, httpClient) =>
+            {
+                var options = serviceProvider.GetRequiredService<IOptions<MaskinPortenHttpClientSettings>>().Value;
+                httpClient.BaseAddress = new Uri(options.BaseUrl);
+            }
+        );
 
-            services.AddSingleton<IMaskinPortenHttpClient, MaskinPortenHttpClient>();
+        services.AddSingleton<IMaskinPortenHttpClient, MaskinPortenHttpClient>();
 
-            return services;
-        }
+        return services;
     }
 }

@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Linq;
 using System.Threading;
@@ -106,7 +105,7 @@ public class DeploymentWebhooksController : ControllerBase
         return Enum.TryParse(eventTypeString, out eventType);
     }
 
-    private record DeploymentResolveResult(DeploymentEntity Deployment, string BuildId, IActionResult ErrorResult);
+    private record DeploymentResolveResult(DeploymentEntity? Deployment, string? BuildId, IActionResult? ErrorResult);
 
     private async Task<DeploymentResolveResult> TryResolveDeploymentAsync(
         string org,

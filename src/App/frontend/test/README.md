@@ -58,16 +58,10 @@ dotnet run
 
 4. Start the tests for a given app:
 
-If you ran app-localtest with Docker:
+If you ran app-localtest locally:
 
 ```cmd
-npx cypress run --env environment=docker -s 'test/e2e/integration/frontend-test/*.ts'
-```
-
-If you ran app-localtest with podman:
-
-```cmd
-npx cypress run --env environment=podman -s 'test/e2e/integration/frontend-test/*.ts'
+npx cypress run --env environment=localtest -s 'test/e2e/integration/frontend-test/*.ts'
 ```
 
 5. Stop the running app (using `Ctrl+C` in the terminal where it's running) and

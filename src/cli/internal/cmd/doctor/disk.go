@@ -2,19 +2,17 @@ package doctor
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
-	"strconv"
-	"strings"
 
 	"gopkg.in/yaml.v3"
 
 	"altinn.studio/studioctl/internal/auth"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/install"
-	"altinn.studio/studioctl/internal/networking"
 )
 
 func (s *Service) buildDisk() *Disk {
@@ -26,7 +24,6 @@ func (s *Service) buildDisk() *Disk {
 		s.checkDirState("bin_dir", s.cfg.BinDir, false),
 		s.checkConfigFileState(),
 		s.checkCredentialsFileState(),
-		s.checkNetworkCacheState(),
 		s.checkResourcesState(),
 		s.checkAppManagerBinaryState(),
 		s.checkAppManagerRuntimeState(),
@@ -249,43 +246,6 @@ func (s *Service) checkCredentialsFileState() DiskCheck {
 	return summarizeCredentialsState(path, creds)
 }
 
-func (s *Service) checkNetworkCacheState() DiskCheck {
-	path := filepath.Join(s.cfg.Home, doctorNetworkCacheFileName)
-	status := networking.GetCacheStatus(s.cfg.Home)
-	if !status.Exists {
-		return DiskCheck{
-			ID:      "network_cache",
-			Level:   diskLevelInfo,
-			Path:    path,
-			Message: "missing (will be created by probe)",
-		}
-	}
-
-	level := diskLevelOK
-	message := "valid and fresh"
-	if status.IP == "" {
-		level = diskLevelWarn
-		message = "invalid or unreadable content"
-	} else if !status.Fresh {
-		level = diskLevelWarn
-		message = "stale cache (" + formatDuration(status.Age) + " old)"
-	}
-
-	if info, err := os.Stat(path); err == nil {
-		if warning := ownerOnlyPermissionsWarning(info.Mode()); warning != "" {
-			level = worstDiskLevel(level, diskLevelWarn)
-			message = warning
-		}
-	}
-
-	return DiskCheck{
-		ID:      "network_cache",
-		Level:   level,
-		Path:    path,
-		Message: message,
-	}
-}
-
 func (s *Service) checkResourcesState() DiskCheck {
 	platformPath := filepath.Join(s.cfg.DataDir, doctorResourcesPlatformDir)
 	installStatus := install.CheckInstallStatus(s.cfg.DataDir, s.cfg.Version)
@@ -411,6 +371,16 @@ func (s *Service) resourceStateFromInstallReadErrors(status install.Status) *Dis
 }
 
 func (s *Service) checkAppManagerBinaryState() DiskCheck {
+	installDir := s.cfg.AppManagerInstallDir()
+	if info, err := os.Stat(installDir); err == nil && !info.IsDir() {
+		return DiskCheck{
+			ID:      "appmgr_binary",
+			Level:   diskLevelError,
+			Path:    installDir,
+			Message: "install path exists but is not a directory",
+		}
+	}
+
 	path := s.cfg.AppManagerBinaryPath()
 	info, err := os.Stat(path)
 	if err != nil {
@@ -456,8 +426,11 @@ func (s *Service) checkAppManagerBinaryState() DiskCheck {
 
 func (s *Service) checkAppManagerRuntimeState() DiskCheck {
 	pidPath := s.cfg.AppManagerPIDPath()
-	socketPath := s.cfg.AppManagerSocketPath()
+	if runtime.GOOS == osWindows {
+		return checkAppManagerRuntimeStateWindows(s.cfg.Home, pidPath)
+	}
 
+	socketPath := s.cfg.AppManagerSocketPath()
 	pidInfo, pidErr := os.Stat(pidPath)
 	socketInfo, socketErr := os.Stat(socketPath)
 	if check := s.checkAppManagerPresenceState(pidPath, socketPath, pidErr, socketErr); check != nil {
@@ -499,6 +472,36 @@ func (s *Service) checkAppManagerRuntimeState() DiskCheck {
 		Level:   diskLevelOK,
 		Path:    s.cfg.Home,
 		Message: "pid and socket files are consistent",
+	}
+}
+
+func checkAppManagerRuntimeStateWindows(home, pidPath string) DiskCheck {
+	if _, err := os.Stat(pidPath); err != nil {
+		if os.IsNotExist(err) {
+			return DiskCheck{
+				ID:      "appmgr_state",
+				Level:   diskLevelInfo,
+				Path:    home,
+				Message: "pid file absent (not running)",
+			}
+		}
+		return DiskCheck{
+			ID:      "appmgr_state",
+			Level:   diskLevelWarn,
+			Path:    pidPath,
+			Message: "stat pid file failed: " + err.Error(),
+		}
+	}
+
+	if check := checkAppManagerPIDFile(pidPath); check != nil {
+		return *check
+	}
+
+	return DiskCheck{
+		ID:      "appmgr_state",
+		Level:   diskLevelOK,
+		Path:    pidPath,
+		Message: "pid file present",
 	}
 }
 
@@ -649,13 +652,15 @@ func checkAppManagerPIDFile(pidPath string) *DiskCheck {
 		}
 		return &check
 	}
-	pid := strings.TrimSpace(string(pidRaw))
-	if _, err := strconv.Atoi(pid); err != nil {
+	var state struct {
+		PID int `json:"pid"`
+	}
+	if err := json.Unmarshal(pidRaw, &state); err != nil || state.PID <= 0 {
 		check := DiskCheck{
 			ID:      "appmgr_state",
 			Level:   diskLevelWarn,
 			Path:    pidPath,
-			Message: "pid file is not a valid integer",
+			Message: "pid file is not valid runtime state",
 		}
 		return &check
 	}
@@ -679,24 +684,4 @@ func ownerOnlyPermissionsWarning(mode os.FileMode) string {
 		return fmt.Sprintf("permissions %03o are broader than owner-only", mode.Perm())
 	}
 	return ""
-}
-
-func worstDiskLevel(current, candidate string) string {
-	if diskLevelPriority(candidate) > diskLevelPriority(current) {
-		return candidate
-	}
-	return current
-}
-
-func diskLevelPriority(level string) diskLevelRank {
-	switch level {
-	case diskLevelOK:
-		return diskRankOK
-	case diskLevelWarn:
-		return diskRankWarn
-	case diskLevelError:
-		return diskRankError
-	default:
-		return diskRankInfo
-	}
 }

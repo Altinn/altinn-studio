@@ -73,6 +73,53 @@ type Resource interface {
 	Dependencies() []ResourceRef
 }
 
+// Enabled reports whether a resource participates in graph validation and execution.
+// A nil enabled value means enabled by default.
+func Enabled(enabled *bool) bool {
+	return enabled == nil || *enabled
+}
+
+// EnablementProvider exposes optional resource enablement.
+type EnablementProvider interface {
+	IsEnabled() bool
+}
+
+// IsEnabled reports whether a resource participates in graph validation and execution.
+func IsEnabled(r Resource) bool {
+	provider, ok := r.(EnablementProvider)
+	return !ok || provider.IsEnabled()
+}
+
+// ErrorDecision describes how an executor should handle a lifecycle error.
+type ErrorDecision int
+
+const (
+	// ErrorDecisionDefault preserves the executor's default error behavior.
+	ErrorDecisionDefault ErrorDecision = iota
+	// ErrorDecisionIgnore treats the error as handled.
+	ErrorDecisionIgnore
+)
+
+// ErrorHandler handles lifecycle errors.
+type ErrorHandler func(error) ErrorDecision
+
+// LifecycleOptions customizes resource lifecycle behavior.
+type LifecycleOptions struct {
+	HandleDestroyError ErrorHandler
+}
+
+// ContainerLifecycleOptions customizes container-specific lifecycle behavior.
+type ContainerLifecycleOptions struct {
+	LifecycleOptions
+
+	WaitForReady bool
+}
+
+// LifecycleOptionsProvider exposes resource lifecycle options.
+type LifecycleOptionsProvider interface {
+	LifecycleOptions() LifecycleOptions
+}
+
 // Validator checks that a resource has valid configuration.
 // Returns nil for resources that don't support validation.
 type Validator interface {

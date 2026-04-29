@@ -410,6 +410,7 @@ public class OptionsServiceTests : IDisposable
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(
             TestDataHelper.GetTestDataRepositoriesRootDirectory()
         );
+
         OptionsService optionsService = new(altinnGitRepositoryFactory, _giteaContentLibraryServiceMock.Object);
 
         return optionsService;

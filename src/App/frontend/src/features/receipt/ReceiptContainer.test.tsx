@@ -8,8 +8,8 @@ import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
 import { getSummaryDataObject, ReceiptContainer } from 'src/features/receipt/ReceiptContainer';
-import { TaskKeys } from 'src/hooks/useNavigatePage';
-import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
+import { fetchProcessState } from 'src/queries/queries';
+import { TaskKeys } from 'src/routesBuilder';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import { PartyType } from 'src/types/shared';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
@@ -97,8 +97,6 @@ const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender
     }),
   );
 
-  jest.mocked(fetchInstanceData).mockImplementation(async () => buildInstance(hasPdf));
-
   return await renderWithoutInstanceAndLayout({
     renderer: () => (
       <InstanceProvider>
@@ -114,8 +112,10 @@ const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender
         {children}
       </InstanceRouter>
     ),
-    queries: {
-      fetchFormData: async () => ({}),
+    apis: {
+      instanceApi: {
+        getInstance: async () => ({ ...buildInstance(hasPdf), process: getProcessDataMock() }),
+      },
     },
   });
 };

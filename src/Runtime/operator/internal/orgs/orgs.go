@@ -119,6 +119,7 @@ func (r *OrgRegistry) Get(serviceOwnerId string) (Org, bool) {
 }
 
 func (r *OrgRegistry) startPeriodicRefresh(ctx context.Context, interval time.Duration) {
+	ctx = telemetry.WithoutSpan(ctx)
 	go func() {
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()

@@ -17,148 +17,147 @@ using System.Runtime.Serialization;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace Altinn.Studio.Designer.RepositoryClient.Model
+namespace Altinn.Studio.Designer.RepositoryClient.Model;
+
+/// <summary>
+/// CreateKeyOption options when creating a key
+/// </summary>
+[DataContract]
+public partial class CreateKeyOption : IEquatable<CreateKeyOption>, IValidatableObject
 {
     /// <summary>
-    /// CreateKeyOption options when creating a key
+    /// Initializes a new instance of the <see cref="CreateKeyOption" /> class.
     /// </summary>
-    [DataContract]
-    public partial class CreateKeyOption : IEquatable<CreateKeyOption>, IValidatableObject
+    [JsonConstructor]
+    protected CreateKeyOption() { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CreateKeyOption" /> class.
+    /// </summary>
+    /// <param name="key">An armored SSH key to add (required).</param>
+    /// <param name="readOnly">Describe if the key has only read access or read/write.</param>
+    /// <param name="title">Title of the key to add (required).</param>
+    public CreateKeyOption(
+        string key = default(string),
+        bool? readOnly = default(bool?),
+        string title = default(string)
+    )
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CreateKeyOption" /> class.
-        /// </summary>
-        [JsonConstructor]
-        protected CreateKeyOption() { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CreateKeyOption" /> class.
-        /// </summary>
-        /// <param name="key">An armored SSH key to add (required).</param>
-        /// <param name="readOnly">Describe if the key has only read access or read/write.</param>
-        /// <param name="title">Title of the key to add (required).</param>
-        public CreateKeyOption(
-            string key = default(string),
-            bool? readOnly = default(bool?),
-            string title = default(string)
-        )
+        // to ensure "Key" is required (not null)
+        if (key == null)
         {
-            // to ensure "Key" is required (not null)
-            if (key == null)
+            throw new InvalidDataException("Key is a required property for CreateKeyOption and cannot be null");
+        }
+
+        // to ensure "Title" is required (not null)
+        if (title == null)
+        {
+            throw new InvalidDataException("Title is a required property for CreateKeyOption and cannot be null");
+        }
+        this.Key = key;
+        this.Title = title;
+        IsReadOnly = readOnly;
+    }
+
+    /// <summary>
+    /// An armored SSH key to add
+    /// </summary>
+    [DataMember(Name = "key", EmitDefaultValue = false)]
+    public string Key { get; set; }
+
+    /// <summary>
+    /// Describe if the key has only read access or read/write
+    /// </summary>
+    [DataMember(Name = "read_only", EmitDefaultValue = false)]
+    public bool? IsReadOnly { get; set; }
+
+    /// <summary>
+    /// Title of the key to add
+    /// </summary>
+    [DataMember(Name = "title", EmitDefaultValue = false)]
+    public string Title { get; set; }
+
+    /// <summary>
+    /// Returns the string presentation of the object
+    /// </summary>
+    /// <returns>String presentation of the object</returns>
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        sb.Append("class CreateKeyOption {\n");
+        sb.Append("  Key: ").Append(Key).Append("\n");
+        sb.Append("  _ReadOnly: ").Append(IsReadOnly).Append("\n");
+        sb.Append("  Title: ").Append(Title).Append("\n");
+        sb.Append("}\n");
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Returns true if objects are equal
+    /// </summary>
+    /// <param name="input">Object to be compared</param>
+    /// <returns>Boolean</returns>
+    public override bool Equals(object input)
+    {
+        return this.Equals(input as CreateKeyOption);
+    }
+
+    /// <summary>
+    /// Returns true if CreateKeyOption instances are equal
+    /// </summary>
+    /// <param name="input">Instance of CreateKeyOption to be compared</param>
+    /// <returns>Boolean</returns>
+    public bool Equals(CreateKeyOption input)
+    {
+        if (input == null)
+        {
+            return false;
+        }
+
+        return (this.Key == input.Key || (this.Key != null && this.Key.Equals(input.Key)))
+            && (
+                this.IsReadOnly == input.IsReadOnly
+                || (this.IsReadOnly != null && this.IsReadOnly.Equals(input.IsReadOnly))
+            )
+            && (this.Title == input.Title || (this.Title != null && this.Title.Equals(input.Title)));
+    }
+
+    /// <summary>
+    /// Gets the hash code
+    /// </summary>
+    /// <returns>Hash code</returns>
+    public override int GetHashCode()
+    {
+        // Overflow is fine, just wrap
+        unchecked
+        {
+            int hashCode = 41;
+            if (this.Key != null)
             {
-                throw new InvalidDataException("Key is a required property for CreateKeyOption and cannot be null");
+                hashCode = (hashCode * 59) + this.Key.GetHashCode();
             }
 
-            // to ensure "Title" is required (not null)
-            if (title == null)
+            if (this.IsReadOnly != null)
             {
-                throw new InvalidDataException("Title is a required property for CreateKeyOption and cannot be null");
-            }
-            this.Key = key;
-            this.Title = title;
-            IsReadOnly = readOnly;
-        }
-
-        /// <summary>
-        /// An armored SSH key to add
-        /// </summary>
-        [DataMember(Name = "key", EmitDefaultValue = false)]
-        public string Key { get; set; }
-
-        /// <summary>
-        /// Describe if the key has only read access or read/write
-        /// </summary>
-        [DataMember(Name = "read_only", EmitDefaultValue = false)]
-        public bool? IsReadOnly { get; set; }
-
-        /// <summary>
-        /// Title of the key to add
-        /// </summary>
-        [DataMember(Name = "title", EmitDefaultValue = false)]
-        public string Title { get; set; }
-
-        /// <summary>
-        /// Returns the string presentation of the object
-        /// </summary>
-        /// <returns>String presentation of the object</returns>
-        public override string ToString()
-        {
-            var sb = new StringBuilder();
-            sb.Append("class CreateKeyOption {\n");
-            sb.Append("  Key: ").Append(Key).Append("\n");
-            sb.Append("  _ReadOnly: ").Append(IsReadOnly).Append("\n");
-            sb.Append("  Title: ").Append(Title).Append("\n");
-            sb.Append("}\n");
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// Returns true if objects are equal
-        /// </summary>
-        /// <param name="input">Object to be compared</param>
-        /// <returns>Boolean</returns>
-        public override bool Equals(object input)
-        {
-            return this.Equals(input as CreateKeyOption);
-        }
-
-        /// <summary>
-        /// Returns true if CreateKeyOption instances are equal
-        /// </summary>
-        /// <param name="input">Instance of CreateKeyOption to be compared</param>
-        /// <returns>Boolean</returns>
-        public bool Equals(CreateKeyOption input)
-        {
-            if (input == null)
-            {
-                return false;
+                hashCode = (hashCode * 59) + this.IsReadOnly.GetHashCode();
             }
 
-            return (this.Key == input.Key || (this.Key != null && this.Key.Equals(input.Key)))
-                && (
-                    this.IsReadOnly == input.IsReadOnly
-                    || (this.IsReadOnly != null && this.IsReadOnly.Equals(input.IsReadOnly))
-                )
-                && (this.Title == input.Title || (this.Title != null && this.Title.Equals(input.Title)));
-        }
-
-        /// <summary>
-        /// Gets the hash code
-        /// </summary>
-        /// <returns>Hash code</returns>
-        public override int GetHashCode()
-        {
-            // Overflow is fine, just wrap
-            unchecked
+            if (this.Title != null)
             {
-                int hashCode = 41;
-                if (this.Key != null)
-                {
-                    hashCode = (hashCode * 59) + this.Key.GetHashCode();
-                }
-
-                if (this.IsReadOnly != null)
-                {
-                    hashCode = (hashCode * 59) + this.IsReadOnly.GetHashCode();
-                }
-
-                if (this.Title != null)
-                {
-                    hashCode = (hashCode * 59) + this.Title.GetHashCode();
-                }
-
-                return hashCode;
+                hashCode = (hashCode * 59) + this.Title.GetHashCode();
             }
-        }
 
-        /// <summary>
-        /// To validate all properties of the instance
-        /// </summary>
-        /// <param name="validationContext">Validation context</param>
-        /// <returns>Validation Result</returns>
-        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
-        {
-            yield break;
+            return hashCode;
         }
+    }
+
+    /// <summary>
+    /// To validate all properties of the instance
+    /// </summary>
+    /// <param name="validationContext">Validation context</param>
+    /// <returns>Validation Result</returns>
+    IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+    {
+        yield break;
     }
 }

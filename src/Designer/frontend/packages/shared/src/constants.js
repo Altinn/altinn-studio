@@ -8,7 +8,7 @@ export const RESOURCEADM_BASENAME = '/resourceadm';
 export const ORG_LIBRARY_BASENAME = 'org-library';
 export const PREVIEW_BASENAME = '/preview';
 export const STUDIO_ROOT_BASENAME = '/info';
-export const USER_SETTINGS_BASENAME = '/settings';
+export const SETTINGS_BASENAME = '/settings';
 export const DISPLAY_NAME = 'Altinn Studio';
 export const DEFAULT_LANGUAGE = 'nb';
 export const BASE_CONTAINER_ID = '__base__';
@@ -30,3 +30,9 @@ export const MINIMUM_SUPPORTED_BACKEND_VERSION = 7;
 export const MAXIMUM_SUPPORTED_BACKEND_VERSION = 8;
 export const CODE_LIST_FOLDER = 'CodeLists';
 export const PUBLISHED_CODE_LIST_FOLDER = 'code_lists';
+export const DEFAULT_APP_BRANCH = 'master';
+export const DEFAULT_RIGHTS_DESCRIPTION = {
+  nb: 'Ved å gi tilgang til denne tjenesten gir du en annen person fullmakt til å bruke den på dine vegne. Les beskrivelsen av tjenesten for mer informasjon om hva tilgangen innebærer.',
+  nn: 'Når du gir tilgang til denne tenesta, gir du ein annan person fullmakt til å bruka ho på dine vegner. Les skildringa av tenesta for meir informasjon om kva tilgangen inneber.',
+  en: 'By granting access to this service, you are authorising another person to use it on your behalf. Please read the service description for more information about what this access entails.',
+};

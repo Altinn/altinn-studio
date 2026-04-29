@@ -3,31 +3,18 @@ import {
   getDataListsUrl,
   getEnvironmentLoginUrl,
   getHostname,
-  getInstanceLayoutsUrl,
   getInstantiateUrl,
-  getLayoutsUrl,
   getOptionsUrl,
   getProcessStateUrl,
   getSetSelectedPartyUrl,
   getUpgradeAuthLevelUrl,
-  getValidationUrl,
   redirectToUpgrade,
-  textResourcesUrl,
-  validPartiesUrl,
 } from 'src/utils/urls/appUrlHelper';
 
 describe('Frontend urlHelper.ts', () => {
   describe('constants', () => {
-    it('should return the expected url for validPartiesUrl', () => {
-      expect(validPartiesUrl).toBe(
-        'https://local.altinn.cloud/ttd/test/api/v1/parties?allowedtoinstantiatefilter=true',
-      );
-    });
     it('should return the expected url for getSetSelectedPartyUrl', () => {
       expect(getSetSelectedPartyUrl(12345)).toBe('https://local.altinn.cloud/ttd/test/api/v1/parties/12345');
-    });
-    it('should return the expected url for textResourcesUrl', () => {
-      expect(textResourcesUrl('nb')).toBe('https://local.altinn.cloud/ttd/test/api/v1/texts/nb');
     });
     it('should return the expected url for getProcessStateUrl', () => {
       expect(getProcessStateUrl('12345/instanceId-1234')).toBe(
@@ -48,11 +35,6 @@ describe('Frontend urlHelper.ts', () => {
     it('should return the expected url for getCreateInstancesUrl with language', () => {
       expect(getCreateInstancesUrl(12345, 'en')).toBe(
         'https://local.altinn.cloud/ttd/test/instances?instanceOwnerPartyId=12345&language=en',
-      );
-    });
-    it('should return the expected url for getValidationUrl', () => {
-      expect(getValidationUrl('12345/instanceId-1234', 'nb')).toBe(
-        'https://local.altinn.cloud/ttd/test/instances/12345/instanceId-1234/validate?language=nb',
       );
     });
     it('should return the expected url for getUpgradeAuthLevelUrl', () => {
@@ -344,21 +326,6 @@ describe('Frontend urlHelper.ts', () => {
       expect(result).toEqual(
         'https://local.altinn.cloud/ttd/test/api/datalists/country?language=no&size=10&page=2&sortColumn=id&sortDirection=desc&selectedCountry=Norway',
       );
-    });
-  });
-
-  describe('getLayoutsUrl', () => {
-    it('should return layout as passed argument', () => {
-      const result = getLayoutsUrl('custom-layout.json');
-
-      expect(result).toBe('https://local.altinn.cloud/ttd/test/api/layouts/custom-layout.json');
-    });
-  });
-
-  describe('getInstanceLayoutsUrl', () => {
-    it('should include instance ID in layout URL when provided', () => {
-      const result = getInstanceLayoutsUrl('custom-layout.json', 'instanceId-1234');
-      expect(result).toBe('https://local.altinn.cloud/ttd/test/instances/instanceId-1234/layouts/custom-layout.json');
     });
   });
 });

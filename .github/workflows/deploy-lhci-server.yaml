@@ -17,9 +17,6 @@ permissions:
   contents: read
 
 jobs:
-  get-short-sha:
-    uses: ./.github/workflows/template-short-sha.yaml
-
   construct-environments-array:
     uses: ./.github/workflows/template-studio-construct-environments.yaml
     with:
@@ -27,20 +24,25 @@ jobs:
 
   push-artifact:
     name: Push LHCI server as OCI artifact
-    needs: get-short-sha
     runs-on: ubuntu-latest
     environment: dev
     env:
       REGISTRY_NAME: altinntjenestercontainerregistry
-      IMAGE_REPO: altinntjenestercontainerregistry.azurecr.io/altinn-studio/lhci-server:${{ needs.get-short-sha.outputs.short-sha }}
-      CONFIG_REPO: altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/lhci-repo:${{ needs.get-short-sha.outputs.short-sha }}
     outputs:
-      CONFIG_REPO: altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/lhci-repo:${{ needs.get-short-sha.outputs.short-sha }}
+      CONFIG_REPO: ${{ steps.vars.outputs.config-repo }}
     defaults:
       run:
         working-directory: src/lhci-server
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set vars
+        id: vars
+        run: |
+          SHA="${GITHUB_SHA::10}"
+          echo "short-sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "image-repo=altinntjenestercontainerregistry.azurecr.io/altinn-studio/lhci-server:${SHA}" >> "$GITHUB_OUTPUT"
+          echo "config-repo=altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/lhci-repo:${SHA}" >> "$GITHUB_OUTPUT"
 
       - name: az login
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
@@ -56,23 +58,23 @@ jobs:
         uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
 
       - name: docker build
-        run: docker build -t ${{ env.IMAGE_REPO }} -f Dockerfile .
+        run: docker build -t ${{ steps.vars.outputs.image-repo }} -f Dockerfile .
 
       - name: push image
-        run: docker push ${{ env.IMAGE_REPO }}
+        run: docker push ${{ steps.vars.outputs.image-repo }}
 
       - name: patch base with image tag
         working-directory: src/lhci-server/infra/kustomize
         run: |
-          export IMAGE="${{ env.IMAGE_REPO }}"
-          export IMAGE_TAG="${{ needs.get-short-sha.outputs.short-sha }}"
+          export IMAGE="${{ steps.vars.outputs.image-repo }}"
+          export IMAGE_TAG="${{ steps.vars.outputs.short-sha }}"
           yq -i '.metadata.annotations["altinn.studio/image"] = env(IMAGE)' deployment.yaml
           yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' deployment.yaml
 
       - name: push artifact
         working-directory: src/lhci-server/infra/kustomize
         run: |
-          flux push artifact oci://${{ env.CONFIG_REPO }} \
+          flux push artifact oci://${{ steps.vars.outputs.config-repo }} \
             --provider=azure \
             --reproducible \
             --path="." \

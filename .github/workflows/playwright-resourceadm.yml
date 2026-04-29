@@ -11,6 +11,7 @@ jobs:
   playwright-run:
     name: 'Resourceadm Playwright Tests'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: 'Checking Out Code'
@@ -27,7 +28,7 @@ jobs:
         id: yarn-cache-dir-path
         run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
 
-      - uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}

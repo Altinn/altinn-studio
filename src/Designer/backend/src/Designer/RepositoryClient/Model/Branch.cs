@@ -11,40 +11,39 @@
 
 using System.Runtime.Serialization;
 
-namespace Altinn.Studio.Designer.RepositoryClient.Model
+namespace Altinn.Studio.Designer.RepositoryClient.Model;
+
+/// <summary>
+/// Branch represents a repository branch
+/// </summary>
+[DataContract]
+public partial class Branch
 {
     /// <summary>
-    /// Branch represents a repository branch
+    /// Initializes a new instance of the <see cref="Branch"/> class.
     /// </summary>
-    [DataContract]
-    public partial class Branch
+    public Branch() { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Branch" /> class.
+    /// </summary>
+    /// <param name="commit">Commit.</param>
+    /// <param name="name">Name.</param>
+    public Branch(PayloadCommit commit = default(PayloadCommit), string name = default(string))
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Branch"/> class.
-        /// </summary>
-        public Branch() { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Branch" /> class.
-        /// </summary>
-        /// <param name="commit">Commit.</param>
-        /// <param name="name">Name.</param>
-        public Branch(PayloadCommit commit = default(PayloadCommit), string name = default(string))
-        {
-            this.Commit = commit;
-            this.Name = name;
-        }
-
-        /// <summary>
-        /// Gets or Sets Commit
-        /// </summary>
-        [DataMember(Name = "commit", EmitDefaultValue = false)]
-        public PayloadCommit Commit { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Name
-        /// </summary>
-        [DataMember(Name = "name", EmitDefaultValue = false)]
-        public string Name { get; set; }
+        this.Commit = commit;
+        this.Name = name;
     }
+
+    /// <summary>
+    /// Gets or Sets Commit
+    /// </summary>
+    [DataMember(Name = "commit", EmitDefaultValue = false)]
+    public PayloadCommit Commit { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Name
+    /// </summary>
+    [DataMember(Name = "name", EmitDefaultValue = false)]
+    public string Name { get; set; }
 }

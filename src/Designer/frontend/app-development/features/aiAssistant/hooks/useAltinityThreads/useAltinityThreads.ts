@@ -1,10 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import type {
-  ChatThread,
-  UserMessage,
-  AssistantMessage,
-  AssistantMessageData,
-} from '@studio/assistant';
+import type { ChatThread, UserMessage, AssistantMessage } from '@studio/assistant';
 import { MessageAuthor } from '@studio/assistant';
 import type { MutableRefObject } from 'react';
 import { useThreadStorage } from '../useThreadStorage/useThreadStorage';
@@ -17,14 +12,8 @@ export interface AltinityThreadState {
   selectThread: (threadId: string | null) => void;
   createNewThread: () => void;
   deleteThread: (threadId: string) => void;
-  addMessageToThread: (threadId: string, message: UserMessage | AssistantMessage) => void;
-  upsertAssistantMessage: (
-    sessionId: string,
-    assistantMessage: AssistantMessageData,
-    content: string,
-    timestamp: Date,
-  ) => void;
-  updateWorkflowStatusMessage: (sessionId: string, statusMessage: string) => void;
+  removeLastUserMessage: (threadId: string) => string | null;
+  persistMessage: (threadId: string, message: UserMessage | AssistantMessage) => void;
 }
 
 export const useAltinityThreads = (): AltinityThreadState => {
@@ -64,14 +53,11 @@ export const useAltinityThreads = (): AltinityThreadState => {
     [deleteThreadFromStorage, setCurrentSession],
   );
 
-  const addMessageToThread = useCallback(
+  const persistMessage = useCallback(
     (threadId: string, message: UserMessage | AssistantMessage) => {
       const existingThread = getThread(threadId);
       if (existingThread) {
-        const updatedMessages = [...existingThread.messages, message];
-        updateThread(threadId, {
-          messages: updatedMessages,
-        });
+        updateThread(threadId, { messages: [...existingThread.messages, message] });
       } else {
         const newThread: ChatThread = {
           id: threadId,
@@ -89,49 +75,20 @@ export const useAltinityThreads = (): AltinityThreadState => {
     [addThread, updateThread, getThread],
   );
 
-  const upsertAssistantMessage = useCallback(
-    (
-      sessionId: string,
-      assistantMessage: AssistantMessageData,
-      content: string,
-      timestamp: Date,
-    ) => {
-      const existingThread = getThread(sessionId);
-      if (!existingThread) return;
-
-      const lastMessage = existingThread.messages[existingThread.messages.length - 1];
-      const assistantUpdate: AssistantMessage = {
-        author: MessageAuthor.Assistant,
-        content,
-        timestamp,
-        filesChanged: assistantMessage.filesChanged || [],
-        sources: assistantMessage.sources || [],
-        isLoading: false,
-      };
-      const updatedMessages =
-        lastMessage && lastMessage.author === MessageAuthor.Assistant
-          ? [...existingThread.messages.slice(0, -1), { ...lastMessage, ...assistantUpdate }]
-          : [...existingThread.messages, assistantUpdate];
-      updateThread(sessionId, { messages: updatedMessages });
-    },
-    [getThread, updateThread],
-  );
-
-  const updateWorkflowStatusMessage = useCallback(
-    (sessionId: string, statusMessage: string) => {
-      const existingThread = getThread(sessionId);
-      if (!existingThread) return;
-
-      const updatedMessages = existingThread.messages.map((msg, index) => {
-        if (
-          msg.author === MessageAuthor.Assistant &&
-          index === existingThread.messages.length - 1
-        ) {
-          return { ...msg, content: `${statusMessage}` };
-        }
-        return msg;
+  const removeLastUserMessage = useCallback(
+    (threadId: string): string | null => {
+      const existingThread = getThread(threadId);
+      if (!existingThread) return null;
+      const lastUserIndex = existingThread.messages.reduceRight(
+        (found, msg, index) => (found === -1 && msg.author === MessageAuthor.User ? index : found),
+        -1,
+      );
+      if (lastUserIndex === -1) return null;
+      const content = existingThread.messages[lastUserIndex].content;
+      updateThread(threadId, {
+        messages: existingThread.messages.filter((_, i) => i !== lastUserIndex),
       });
-      updateThread(sessionId, { messages: updatedMessages });
+      return content;
     },
     [getThread, updateThread],
   );
@@ -144,8 +101,7 @@ export const useAltinityThreads = (): AltinityThreadState => {
     selectThread,
     createNewThread,
     deleteThread,
-    addMessageToThread,
-    upsertAssistantMessage,
-    updateWorkflowStatusMessage,
+    removeLastUserMessage,
+    persistMessage,
   };
 };

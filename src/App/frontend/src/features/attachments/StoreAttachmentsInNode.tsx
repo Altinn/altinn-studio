@@ -5,6 +5,7 @@ import deepEqual from 'fast-deep-equal';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { isAttachmentUploaded } from 'src/features/attachments/index';
+import { FormStore } from 'src/features/form/FormContext';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
@@ -12,7 +13,6 @@ import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { WhenParentAdded } from 'src/utils/layout/generator/GeneratorStages';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useFormDataFor } from 'src/utils/layout/useNodeItem';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IAttachment } from 'src/features/attachments/index';
@@ -46,10 +46,10 @@ function StoreAttachmentsInNodeWorker() {
   }
   const item = GeneratorInternal.useIntermediateItem();
   const attachments = useNodeAttachments();
-  const errors = NodesInternal.useNodeErrors(parent.indexedId);
+  const errors = FormStore.nodes.useNodeErrors(parent.indexedId);
   const hasErrors = errors && Object.values(errors).length > 0;
 
-  const hasBeenSet = NodesInternal.useNodeData(parent.indexedId, undefined, (data) =>
+  const hasBeenSet = FormStore.nodes.useNodeData(parent.indexedId, undefined, (data) =>
     deepEqual('attachments' in data ? data.attachments : undefined, attachments),
   );
 
@@ -100,7 +100,7 @@ function useNodeAttachments(): AttachmentRecord {
     return mapAttachments(indexedId, baseId, data, application, taskId, nodeData);
   }, [indexedId, baseId, data, application, currentTask, nodeData, overriddenTaskId]);
 
-  const prev = NodesInternal.useNodeData(indexedId, undefined, (data) =>
+  const prev = FormStore.nodes.useNodeData(indexedId, undefined, (data) =>
     'attachments' in data ? data.attachments : undefined,
   );
 

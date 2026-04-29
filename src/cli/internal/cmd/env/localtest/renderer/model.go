@@ -7,13 +7,21 @@ import (
 	"altinn.studio/devenv/pkg/resource"
 )
 
-func newRenderModel(resources []resource.Resource, operation Operation) *renderModel {
+func newRenderModel(
+	resources []resource.Resource,
+	operation Operation,
+	statuses map[resource.ResourceID]resource.Status,
+) *renderModel {
 	rowMap := make(map[string]*progressRow)
 	order := make([]string, 0)
 	resourceToRows := make(map[resource.ResourceID][]string)
 	imageToContainers := make(map[resource.ResourceID][]string)
 
 	for _, res := range resources {
+		if skipInitialResource(res, operation, statuses) {
+			continue
+		}
+
 		switch res := res.(type) {
 		case *resource.Network:
 			if _, exists := rowMap[res.Name]; !exists {
@@ -54,6 +62,18 @@ func newRenderModel(resources []resource.Resource, operation Operation) *renderM
 		startedAt:        time.Time{},
 		frame:            0,
 	}
+}
+
+func skipInitialResource(
+	res resource.Resource,
+	operation Operation,
+	statuses map[resource.ResourceID]resource.Status,
+) bool {
+	if operation != OperationDestroy || statuses == nil {
+		return false
+	}
+	status, ok := statuses[res.ID()]
+	return ok && status == resource.StatusDestroyed
 }
 
 func newProgressRow(name string) *progressRow {
