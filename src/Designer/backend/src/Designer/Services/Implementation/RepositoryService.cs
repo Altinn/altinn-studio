@@ -697,12 +697,14 @@ public class RepositoryService : IRepository
         try
         {
             bool hasIdentifier = !string.IsNullOrEmpty(newResource.Identifier);
-            bool isValidFormat = hasIdentifier && (
-                Regex.IsMatch(newResource.Identifier, _resourceIdentifierRegex)
-                || ResourceAdminHelper.IsMigratedAltinn1App(newResource.Identifier)
-            );
-            bool isValidResourceType = !newResource.Identifier.StartsWith("app_")
-                || newResource.ResourceType == ResourceType.MigratedApp;
+            bool isValidFormat =
+                hasIdentifier
+                && (
+                    Regex.IsMatch(newResource.Identifier, _resourceIdentifierRegex)
+                    || ResourceAdminHelper.IsMigratedAltinn1App(newResource.Identifier)
+                );
+            bool isValidResourceType =
+                !newResource.Identifier.StartsWith("app_") || newResource.ResourceType == ResourceType.MigratedApp;
 
             bool isResourceIdentifierValid = isValidFormat && isValidResourceType;
             if (!isResourceIdentifierValid)
