@@ -1,6 +1,7 @@
 ﻿#nullable disable
 using System.Collections.Generic;
 using System.Linq;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Helpers;
@@ -49,4 +50,16 @@ public static class ResourceAdminHelper
     }
 
     public static char[] GetInvalidFileNameChars() => new char[] { '\"', '<', '>', '|', '*', '?' };
+
+    public static bool IsMigratedAltinn1App(string resourceIdentifier)
+    {
+        return resourceIdentifier.Contains("_a1-");
+    }
+
+    public static string GetResourceFileStructureName(string resourceIdentifier)
+    {
+        return IsMigratedAltinn1App(resourceIdentifier) == true
+            ? resourceIdentifier.Replace(":", "%3A")
+            : resourceIdentifier.AsFileName();
+    }
 }

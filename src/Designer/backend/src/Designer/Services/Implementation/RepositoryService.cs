@@ -666,7 +666,10 @@ public class RepositoryService : IRepository
                 repository,
                 AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)
             );
-            string resourceFileName = GetResourceFileName(updatedResource.Identifier);
+            string resourceFileStructureName = ResourceAdminHelper.GetResourceFileStructureName(
+                updatedResource.Identifier
+            );
+            string resourceFileName = GetResourceFileName(resourceFileStructureName);
 
             foreach (FileSystemObject resourceFile in resourceFiles)
             {
@@ -693,10 +696,15 @@ public class RepositoryService : IRepository
     {
         try
         {
-            bool isResourceIdentifierValid =
-                !string.IsNullOrEmpty(newResource.Identifier)
-                && Regex.IsMatch(newResource.Identifier, _resourceIdentifierRegex)
-                && (!newResource.Identifier.StartsWith("app_") || newResource.ResourceType == ResourceType.MigratedApp);
+            bool hasIdentifier = !string.IsNullOrEmpty(newResource.Identifier);
+            bool isValidFormat = hasIdentifier && (
+                Regex.IsMatch(newResource.Identifier, _resourceIdentifierRegex)
+                || ResourceAdminHelper.IsMigratedAltinn1App(newResource.Identifier)
+            );
+            bool isValidResourceType = !newResource.Identifier.StartsWith("app_")
+                || newResource.ResourceType == ResourceType.MigratedApp;
+
+            bool isResourceIdentifierValid = isValidFormat && isValidResourceType;
             if (!isResourceIdentifierValid)
             {
                 return new StatusCodeResult(400);
@@ -709,13 +717,18 @@ public class RepositoryService : IRepository
                     repository,
                     AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)
                 );
+
+                string resourceFileStructureName = ResourceAdminHelper.GetResourceFileStructureName(
+                    newResource.Identifier
+                );
+
                 string fullPathOfNewResource = Path.Combine(
                     repopath,
-                    newResource.Identifier.AsFileName(),
-                    GetResourceFileName(newResource.Identifier)
+                    resourceFileStructureName,
+                    GetResourceFileName(resourceFileStructureName)
                 );
                 string newResourceJson = System.Text.Json.JsonSerializer.Serialize(newResource, _serializerOptions);
-                Directory.CreateDirectory(Path.Combine(repopath, newResource.Identifier.AsFileName()));
+                Directory.CreateDirectory(Path.Combine(repopath, resourceFileStructureName));
                 File.WriteAllText(fullPathOfNewResource, newResourceJson);
 
                 return new StatusCodeResult(201);
@@ -746,10 +759,11 @@ public class RepositoryService : IRepository
         CancellationToken cancellationToken = default
     )
     {
+        string resourceFileStructureName = ResourceAdminHelper.GetResourceFileStructureName(identifier);
         List<ServiceResource> resourcesInRepo = await GetServiceResources(
             org,
             repository,
-            identifier,
+            resourceFileStructureName,
             cancellationToken
         );
         return resourcesInRepo.Where(r => r.Identifier == identifier).FirstOrDefault();

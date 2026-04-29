@@ -491,7 +491,13 @@ public class ResourceAdminController : ControllerBase
     public async Task<ActionResult> AddExistingResource(string org, string resourceId, string env)
     {
         string repository = GetRepositoryName(org);
-        ServiceResource resource = await _resourceRegistry.GetResource(resourceId, env);
+        List<ServiceResource> allResources = await _resourceRegistry.GetServiceResourceList(
+            env.ToLower(),
+            includeAltinn2: false,
+            includeApps: true,
+            includeMigratedApps: true
+        );
+        ServiceResource? resource = allResources.Find(r => r.Identifier == resourceId);
         if (resource == null)
         {
             return new StatusCodeResult(404);
@@ -504,7 +510,8 @@ public class ResourceAdminController : ControllerBase
         }
 
         XacmlPolicy policy = await _resourceRegistry.GetResourcePolicy(resourceId, env);
-        await _repository.SavePolicy(org, repository, resource.Identifier, policy);
+        string resourceFileStructureName = ResourceAdminHelper.GetResourceFileStructureName(resourceId);
+        await _repository.SavePolicy(org, repository, resourceFileStructureName, policy);
         return Ok(resource);
     }
 
@@ -923,7 +930,8 @@ public class ResourceAdminController : ControllerBase
     {
         if (repository == $"{org}-resources")
         {
-            string xacmlPolicyPath = _repository.GetPolicyPath(org, repository, id);
+            string resourceFileStructureName = ResourceAdminHelper.GetResourceFileStructureName(id);
+            string xacmlPolicyPath = _repository.GetPolicyPath(org, repository, resourceFileStructureName);
             ActionResult publishResult = await _repository.PublishResource(org, repository, id, env, xacmlPolicyPath);
             _memoryCache.Remove($"resourcelist_${env}");
             return publishResult;
