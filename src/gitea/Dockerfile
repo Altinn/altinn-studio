@@ -1,19 +1,17 @@
 ARG GITEA_VERSION=1.26.1
 
-# Grab the locale files from the gitea binary in the image
-FROM gitea/gitea:${GITEA_VERSION}-rootless AS locale_source
-RUN gitea embedded extract --destination /var/lib/gitea/ options/locale/**.*
-
-# Merge the custom locale files with the base locale files
-FROM node:lts-alpine@sha256:01743339035a5c3c11a373cd7c83aeab6ed1457b55da6a69e014a95ac4e4700b AS locale_builder
-COPY ./files/locale /build
+# Extract the upstream locale files from the gitea binary, then merge them with the custom locale files
+FROM gitea/gitea:${GITEA_VERSION}-rootless AS locale_builder
+USER 0:0
+RUN apk --no-cache add jq
+USER 1000:1000
 WORKDIR /build
-RUN mkdir -p ./locale
-# Copy the en-US locale file from the gitea binary
-COPY --from=locale_source /var/lib/gitea/options/locale/locale_en-US.json ./base/locale_en-US.json
-# Merge the custom locale files with the base locale files
-RUN node ./merge.js ./base/locale_en-US.json ./custom/locale_en-US.json ./locale/locale_en-US.json
-RUN node ./merge.js ./base/locale_nb-NO.json ./custom/locale_nb-NO.json ./locale/locale_nb-NO.json
+COPY --chown=1000:1000 ./files/locale /build/
+RUN gitea embedded extract --destination /var/lib/gitea/ options/locale/**.* && \
+    mkdir -p ./locale && \
+    cp /var/lib/gitea/options/locale/locale_en-US.json ./base/locale_en-US.json && \
+    jq -s '.[0] * .[1]' ./base/locale_en-US.json ./custom/locale_en-US.json > ./locale/locale_en-US.json && \
+    jq -s '.[0] * .[1]' ./base/locale_nb-NO.json ./custom/locale_nb-NO.json > ./locale/locale_nb-NO.json
 
 # Ensure to update the locales, templates, and configuration when upgrading Gitea
 FROM gitea/gitea:${GITEA_VERSION}-rootless
