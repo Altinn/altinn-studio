@@ -405,7 +405,6 @@ func replacePathOnce(src, dst string) error {
 
 	//nolint:gosec // G304/G703: both paths are resolved inside the staged install flow.
 	if err := os.Rename(src, dst); err != nil {
-		//nolint:gosec // G304/G703: both paths are resolved inside the staged install flow.
 		restoreErr := os.Rename(backupPath, dst)
 		if restoreErr != nil {
 			return errors.Join(

@@ -53,9 +53,13 @@ Infrastructure-only (no engine host). Supporting services for local development.
 | `postgres-exporter` | 9187             | Prometheus PostgreSQL exporter             |
 | `wiremock`          | 6060             | Mock app callbacks                         |
 
-## Code Style
+## Code Style & Documentation
 
 CSharpier formatting enforced at build time. Use the `/format` skill for details and commands.
+
+Use docstrings to document all public types and members. Extend this to private members where necessary to explain complex logic or add clarity.
+
+Be extremely sparse with inline comments. If a pattern is not self-describing, it likely needs refactoring. The exception is complex order-dependent logic in the various hot processing loops.
 
 ## Tests
 

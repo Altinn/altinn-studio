@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using WorkflowEngine.Data;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
@@ -149,9 +150,7 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
             )
             ?.Dispose();
 
-        // No TCS — the caller doesn't need to know when this flush completes.
-        // If a later Submit() for the same workflow arrives before this one is flushed,
-        // the deduplication logic will discard this entry.
+        // No TCS — a later Submit() for the same workflow will supersede this via dedup.
         var request = new WorkflowUpdateRequest(workflow, dirtySteps, Completion: null);
 
         if (!_channel.Writer.TryWrite(request))
@@ -194,7 +193,7 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
             // Expected on shutdown
         }
 
-        // Drain remaining items (bounded to prevent indefinite hangs)
+        // Drain remaining items on shutdown, bounded to prevent indefinite hangs.
         using var drainCts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         try
         {
@@ -212,13 +211,11 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
         }
         catch (OperationCanceledException) when (drainCts.IsCancellationRequested)
         {
-            // Cancel any items still in the current batch
             foreach (var pending in batch)
             {
                 pending.Completion?.TrySetCanceled(drainCts.Token);
             }
 
-            // Cancel any items still queued in the channel
             while (_channel.Reader.TryRead(out var pending))
             {
                 pending.Completion?.TrySetCanceled(drainCts.Token);
@@ -234,12 +231,22 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
     /// This is safe because the latest entry's dirty steps reflect the most recent mutations,
     /// and the Workflow reference carries the full current state.
     /// </summary>
+    /// <remarks>
+    /// Completing superseded entries with <c>TrySetResult()</c> before the final item is
+    /// flushed cannot mis-signal a real caller: the handler is single-threaded per workflow,
+    /// so an awaited <see cref="Submit"/> never has a concurrent second <see cref="Submit"/>
+    /// in flight for the same workflow id. Only <see cref="SubmitAndForget"/> entries (which
+    /// carry a null <c>Completion</c> and are safe under <c>?.TrySetResult</c>) can precede
+    /// an awaited submission in a single batch. If that invariant ever changes — e.g. a
+    /// second awaited writer enters the mix — this assumption must be revisited, since the
+    /// earlier caller would be told "success" even though the final item may be rejected
+    /// via lease loss.
+    /// </remarks>
     private int DeduplicateBatch(List<WorkflowUpdateRequest> batch)
     {
         if (batch.Count <= 1)
             return 0;
 
-        // Map each workflow ID to the index of its latest submission
         var latest = new Dictionary<Guid, int>(batch.Count);
         for (int i = 0; i < batch.Count; i++)
         {
@@ -251,7 +258,6 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
 
         int superseded = batch.Count - latest.Count;
 
-        // Complete superseded entries and rebuild the batch with only the latest per workflow
         var kept = new List<WorkflowUpdateRequest>(latest.Count);
         for (int i = 0; i < batch.Count; i++)
         {
@@ -278,7 +284,6 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
     {
         var deduplicated = DeduplicateBatch(batch);
 
-        // Filter out items whose callers have already canceled
         for (int i = batch.Count - 1; i >= 0; i--)
         {
             if (batch[i].Completion?.Task.IsCanceled == true)
@@ -316,13 +321,32 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
 
             var updates = batch.Select(r => new BatchWorkflowStatusUpdate(r.Workflow, r.DirtySteps)).ToList();
 
-            await repo.BatchUpdateWorkflowsAndSteps(updates, ct);
+            var result = await repo.BatchUpdateWorkflowsAndSteps(updates, ct);
 
             Metrics.UpdateBufferFlushedItems.Add(batch.Count);
 
-            foreach (var request in batch)
+            if (result.Rejected.Count == 0)
             {
-                request.Completion?.TrySetResult();
+                foreach (var request in batch)
+                {
+                    request.Completion?.TrySetResult();
+                }
+            }
+            else
+            {
+                // Fault rejected callers with LeaseLostException; complete the rest normally.
+                var rejected = result.Rejected.ToHashSet();
+                foreach (var request in batch)
+                {
+                    if (rejected.Contains(request.Workflow.DatabaseId))
+                    {
+                        request.Completion?.TrySetException(new LeaseLostException(request.Workflow.DatabaseId));
+                    }
+                    else
+                    {
+                        request.Completion?.TrySetResult();
+                    }
+                }
             }
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
@@ -337,7 +361,6 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
             _logger.UpdateBufferFlushFailed(batch.Count, ex);
             activity?.Errored(ex);
 
-            // Fault all waiting callers
             foreach (var request in batch)
             {
                 request.Completion?.TrySetException(ex);

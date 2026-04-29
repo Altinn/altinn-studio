@@ -19,17 +19,7 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
     public bool TryAdd(Guid workflowId, CancellationTokenSource cts, Workflow workflow) =>
         _workflows.TryAdd(workflowId, (cts, workflow));
 
-    public bool TryRemove(Guid workflowId, out CancellationTokenSource? cts)
-    {
-        if (_workflows.TryRemove(workflowId, out var entry))
-        {
-            cts = entry.Cts;
-            return true;
-        }
-
-        cts = null;
-        return false;
-    }
+    public void Remove(Guid workflowId) => _workflows.TryRemove(workflowId, out _);
 
     /// <summary>
     /// Attempts to cancel a single in-flight workflow by triggering its CTS.
@@ -70,6 +60,26 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
     }
 
     public IReadOnlyList<Guid> GetSnapshotIds() => [.. _workflows.Keys];
+
+    /// <summary>
+    /// Snapshot of (workflowId, leaseToken) pairs for every in-flight workflow.
+    /// </summary>
+    /// <remarks>
+    /// <c>FetchAndLockWorkflows</c> always stamps a fresh <c>LeaseToken</c>, so the
+    /// <c>?? throw</c> is an invariant check, not a runtime code path.
+    /// </remarks>
+    public IReadOnlyList<(Guid WorkflowId, Guid LeaseToken)> GetSnapshotLeases() =>
+        _workflows
+            .Select(kvp =>
+                (
+                    kvp.Key,
+                    kvp.Value.Workflow.LeaseToken
+                        ?? throw new InvalidOperationException(
+                            $"Workflow {kvp.Key} tracked without a LeaseToken; expected FetchAndLockWorkflows to stamp one"
+                        )
+                )
+            )
+            .ToList();
 
     /// <summary>
     /// Attempts to retrieve the in-memory <see cref="Workflow"/> object for a tracked workflow.
