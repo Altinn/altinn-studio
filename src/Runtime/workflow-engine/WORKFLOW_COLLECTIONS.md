@@ -33,8 +33,8 @@ Tri-state control over head membership and head consumption:
 
 ### Example 1: Simple Sequential Chaining
 
-```
-Batch 1:  POST /api/v1/workflows?collectionKey=daily-sync
+```text
+Batch 1:  POST /api/v1/{namespace}/workflows?collectionKey=daily-sync
           Workflows: [A, B]    (no deps between them)
 
           Collection state after:
@@ -44,8 +44,8 @@ Batch 1:  POST /api/v1/workflows?collectionKey=daily-sync
               ●       ●  ← heads
 ```
 
-```
-Batch 2:  POST /api/v1/workflows?collectionKey=daily-sync
+```text
+Batch 2:  POST /api/v1/{namespace}/workflows?collectionKey=daily-sync
           Workflows: [C]
 
           C is a root (no intra-batch DependsOn) and DependsOnHeads=true (default),
@@ -61,8 +61,8 @@ Batch 2:  POST /api/v1/workflows?collectionKey=daily-sync
                  ●  ← head
 ```
 
-```
-Batch 3:  POST /api/v1/workflows?collectionKey=daily-sync
+```text
+Batch 3:  POST /api/v1/{namespace}/workflows?collectionKey=daily-sync
           Workflows: [D, E]   where E depends on D (intra-batch)
 
           D is a root → injected deps on [C]
@@ -85,7 +85,7 @@ Batch 3:  POST /api/v1/workflows?collectionKey=daily-sync
 
 ### Example 2: Opting Out with `DependsOnHeads = false`
 
-```
+```text
 Starting state: Collection "pipeline" has Heads = [X]
 
 Batch:    Workflows: [F (DependsOnHeads=false), G]
@@ -110,7 +110,7 @@ Note: F runs in parallel with X (no dependency), while G waits for X.
 
 ### Example 3: Head Preservation (Unconsumed Heads Survive)
 
-```
+```text
 Starting state: Collection "multi" has Heads = [P, Q]
 
 Batch:    Workflows: [R]  with explicit DependsOn = [P's database ID]
@@ -132,7 +132,7 @@ Batch:    Workflows: [R]  with explicit DependsOn = [P's database ID]
 
 But if R had `DependsOnHeads = false` and only explicitly depended on P:
 
-```
+```text
           P is consumed (explicit dep). Q is NOT consumed.
           R is a new leaf.
 
@@ -148,8 +148,8 @@ But if R had `DependsOnHeads = false` and only explicitly depended on P:
 
 Use `IsHead = true` on a non-leaf combined with `IsHead = false` on its dependents to keep the collection frontier at a checkpoint while spawning auxiliary work.
 
-```
-Batch:    POST /api/v1/workflows?collectionKey=build
+```text
+Batch:    POST /api/v1/{namespace}/workflows?collectionKey=build
           Workflows: [M, N]  where N depends on M
           M: IsHead=true
           N: IsHead=false (invisible)
@@ -166,7 +166,7 @@ Batch:    POST /api/v1/workflows?collectionKey=build
 
 The next batch depends on M. N runs after M but doesn't block the pipeline:
 
-```
+```text
 Next batch:  Workflows: [P]
 
              P depends on M (the head). M is consumed.
@@ -185,7 +185,7 @@ This is useful when N is auxiliary work (e.g., notifications, cleanup) that shou
 
 You want to spawn work that depends on the current heads for execution ordering, but without disturbing the collection's frontier.
 
-```
+```text
 Starting state: Collection "pipeline" has Heads = [X]
 
 Batch:    Workflows: [S]  (DependsOnHeads=true, IsHead=false)
@@ -207,7 +207,7 @@ Batch:    Workflows: [S]  (DependsOnHeads=true, IsHead=false)
 
 The next batch still depends on X, not S:
 
-```
+```text
 Next batch:  Workflows: [Y]  (default: DependsOnHeads=true, IsHead=null)
 
              Y is a root → depends on [X]
@@ -224,7 +224,7 @@ Next batch:  Workflows: [Y]  (default: DependsOnHeads=true, IsHead=null)
 
 ### Example 6: Mixed Visible and Invisible in One Batch
 
-```
+```text
 Starting state: Collection "mixed" has Heads = [H]
 
 Batch:    Workflows: [V (IsHead=null), I (IsHead=false)]
@@ -250,7 +250,7 @@ Batch:    Workflows: [V (IsHead=null), I (IsHead=false)]
 
 When a root workflow uses `DependsOnHeads = false` and depends on a non-head workflow by database ID, the batch has no connection to the current heads. The existing heads are preserved, and the batch's leaf joins them — creating parallel branches.
 
-```
+```text
 Starting state: Collection "example" has Heads = [H]
                 There exists a non-head workflow W (previously enqueued, not in heads).
 
@@ -278,7 +278,7 @@ Batch:    Workflows: [A, B]  where B depends on A (intra-batch)
 
 The next batch would depend on both H and B, merging the two branches:
 
-```
+```text
 Next batch:  Workflows: [C]  (default: DependsOnHeads=true, IsHead=null)
 
              C is a root → depends on [H, B]
@@ -300,10 +300,10 @@ Note: If B joining the heads is not desired, it can be marked `IsHead = false` t
 
 ## Query Endpoints
 
-**`GET /api/v1/namespaces/{ns}/collections`**
-List of all collections with their keys, head counts, and timestamps. Returns 204 if none exist.
+**`GET /api/v1/{namespace}/collections`**
+List of all collections with their keys, heads, and timestamps. Returns 204 if none exist.
 
-**`GET /api/v1/namespaces/{ns}/collections/{key}`**
+**`GET /api/v1/{namespace}/collections/{key}`**
 Detail for one collection: key, heads (with workflow ID + current status), and timestamps. Returns 404 if not found.
 
 ---

@@ -455,6 +455,25 @@ public class WorkflowCollectionTests
     }
 
     [Fact]
+    public void ComputeHeadDependencyEdges_ExplicitCurrentHeadDbId_SkipsDuplicateInjectedEdge()
+    {
+        // Arrange: explicit DB-ID dep on one current head should not also be injected via DependsOnHeads
+        var wfId = Guid.NewGuid();
+        var headA = Guid.NewGuid();
+        var headB = Guid.NewGuid();
+        var requests = new[] { CreateRequest("a", dependsOn: [WorkflowRef.FromDatabaseId(headA)]) };
+        var workflows = new[] { CreateWorkflow(wfId) };
+        Guid[] currentHeads = [headA, headB];
+
+        // Act
+        var edges = EngineRepository.ComputeHeadDependencyEdges(requests, workflows, currentHeads);
+
+        // Assert — headA is already explicit, so only headB should be injected
+        Assert.Single(edges);
+        Assert.Equal((wfId, headB), edges[0]);
+    }
+
+    [Fact]
     public void ComputeHeadDependencyEdges_MultipleRoots_AllGetHeadDeps()
     {
         // Arrange: two root workflows, one head

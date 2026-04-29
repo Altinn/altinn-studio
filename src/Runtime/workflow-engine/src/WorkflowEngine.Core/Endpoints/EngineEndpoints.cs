@@ -309,6 +309,10 @@ internal static class EngineRequestHandlers
         return result;
     }
 
+    /// <summary>
+    /// Lists all workflow collections in the requested namespace.
+    /// Normalizes <paramref name="ns"/>, records the query metric, and returns 204 when no collections exist.
+    /// </summary>
     public static async Task<Results<Ok<IReadOnlyList<WorkflowCollectionResponse>>, NoContent>> ListCollections(
         [FromRoute(Name = "namespace")] string ns,
         [FromServices] IEngineRepository repository,
@@ -316,6 +320,8 @@ internal static class EngineRequestHandlers
     )
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list-collections"));
+
+        ns = NormalizeNamespace(ns);
 
         var collections = await repository.GetCollections(ns, cancellationToken);
 
@@ -325,6 +331,10 @@ internal static class EngineRequestHandlers
         return TypedResults.Ok(collections);
     }
 
+    /// <summary>
+    /// Gets a single workflow collection by <paramref name="key"/> within the requested namespace.
+    /// Normalizes <paramref name="ns"/>, records the query metric, and returns 404 when the collection is missing.
+    /// </summary>
     public static async Task<Results<Ok<WorkflowCollectionDetailResponse>, NotFound>> GetCollection(
         [FromRoute(Name = "namespace")] string ns,
         [FromRoute] string key,
@@ -333,6 +343,8 @@ internal static class EngineRequestHandlers
     )
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "get-collection"));
+
+        ns = NormalizeNamespace(ns);
 
         var collection = await repository.GetCollection(key, ns, cancellationToken);
 

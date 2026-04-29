@@ -41,6 +41,11 @@ internal static class MetadataExtractor
         return value;
     }
 
+    /// <summary>
+    /// Extracts the collection key from the request header or query string.
+    /// </summary>
+    /// <param name="httpContext">The HTTP context to read metadata from.</param>
+    /// <returns>The collection key, or <see langword="null"/> when it is missing or whitespace.</returns>
     public static string? ExtractCollectionKey(HttpContext httpContext)
     {
         var raw = ExtractSingleValue(

@@ -17,6 +17,10 @@ internal sealed class EngineDbContext : DbContext
     public DbSet<WorkflowEntity> Workflows { get; set; }
     public DbSet<StepEntity> Steps { get; set; }
     public DbSet<IdempotencyKeyEntity> IdempotencyKeys { get; set; }
+
+    /// <summary>
+    /// Gets or sets the workflow collection entities stored in the database.
+    /// </summary>
     public DbSet<WorkflowCollectionEntity> WorkflowCollections { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

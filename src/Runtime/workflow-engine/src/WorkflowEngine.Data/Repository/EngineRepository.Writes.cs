@@ -758,8 +758,28 @@ internal sealed partial class EngineRepository
             }
 
             var wfId = workflows[i].DatabaseId;
+            HashSet<Guid>? explicitCurrentHeadDeps = null;
+            if (req.DependsOn is not null)
+            {
+                foreach (var dep in req.DependsOn)
+                {
+                    if (!dep.IsId || !currentHeads.Contains(dep.Id))
+                    {
+                        continue;
+                    }
+
+                    explicitCurrentHeadDeps ??= [];
+                    explicitCurrentHeadDeps.Add(dep.Id);
+                }
+            }
+
             foreach (var headId in currentHeads)
             {
+                if (explicitCurrentHeadDeps?.Contains(headId) == true)
+                {
+                    continue;
+                }
+
                 edges.Add((wfId, headId));
             }
         }

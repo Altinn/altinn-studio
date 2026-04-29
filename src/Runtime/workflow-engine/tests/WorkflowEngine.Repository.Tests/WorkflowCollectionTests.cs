@@ -197,6 +197,44 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
     }
 
     [Fact]
+    public async Task Enqueue_ExplicitDepOnHead_WithDependsOnHeadsTrue_DoesNotDuplicateDependency()
+    {
+        // Arrange — create a collection with two heads (two independent workflows)
+        var repo = fixture.CreateRepository();
+        var wfA = CreateWorkflowRequest("a");
+        var wfB = CreateWorkflowRequest("b");
+        var results1 = await EnqueueWithCollection(repo, "partial-consume-default", [wfA, wfB]);
+        var idA = results1[0].WorkflowIds![0];
+        var idB = results1[0].WorkflowIds![1];
+
+        // Act — enqueue a workflow that explicitly depends on A by DB ID and keeps default head deps
+        var wfC = CreateWorkflowRequest("c", dependsOn: [WorkflowRef.FromDatabaseId(idA)]);
+        var results2 = await EnqueueWithCollection(repo, "partial-consume-default", [wfC]);
+        var idC = results2[0].WorkflowIds![0];
+
+        // Assert — C depends on A explicitly and B via head injection, without a duplicate edge to A
+        await using var context = fixture.CreateDbContext();
+        var entityC = await context
+            .Workflows.Include(w => w.Dependencies)
+            .SingleAsync(w => w.Id == idC, TestContext.Current.CancellationToken);
+
+        Assert.NotNull(entityC.Dependencies);
+        Assert.Equal(2, entityC.Dependencies.Count);
+        Assert.Contains(entityC.Dependencies, d => d.Id == idA);
+        Assert.Contains(entityC.Dependencies, d => d.Id == idB);
+
+        // Assert — both previous heads were consumed, so only C remains head
+        var collection = await repo.GetCollection(
+            "partial-consume-default",
+            "test-ns",
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(collection);
+        Assert.Single(collection.Heads);
+        Assert.Equal(idC, collection.Heads[0].DatabaseId);
+    }
+
+    [Fact]
     public async Task Enqueue_DAGInBatch_OnlyLeafBecomesHead()
     {
         // Arrange: A -> B within the batch; only B should be head

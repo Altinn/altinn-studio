@@ -168,7 +168,7 @@ internal static class EngineRepositoryQueryExtensions
 
         private IQueryable<WorkflowEntity> MaybeFilterByCollectionKey(string? collectionKey)
         {
-            if (collectionKey is not null)
+            if (!string.IsNullOrWhiteSpace(collectionKey))
                 entityQuery = entityQuery.Where(wf => wf.CollectionKey == collectionKey);
 
             return entityQuery;
