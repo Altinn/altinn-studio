@@ -8,6 +8,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.7] - 2026-04-29
+
 ### Added
 
 - Add `env reset` for localtest to delete persisted localtest and workflow-engine database data, with interactive confirmation.
