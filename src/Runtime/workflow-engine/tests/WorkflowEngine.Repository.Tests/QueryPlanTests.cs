@@ -35,7 +35,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         var interceptor = new SqlCapturingInterceptor();
         var repo = fixture.CreateRepositoryWithInterceptor(interceptor, timeProvider: _timeProvider);
 
-        await repo.FetchAndLockWorkflows(count: 5, staleThreshold: TimeSpan.FromSeconds(15), maxReclaimCount: 3, ct);
+        await repo.FetchAndLockWorkflows(count: 5, ct);
 
         // The FetchAndLock CTE is the largest captured query — find it by the "ready" CTE keyword
         var fetchQuery = interceptor.Queries.FirstOrDefault(q => q.Sql.Contains("ready", StringComparison.Ordinal));
@@ -138,6 +138,48 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         );
 
         // The retention query should use the UpdatedAt filtered index on terminal statuses
+        QueryPlanHelper.AssertNoSeqScan(plan, "Workflows");
+        await VerifyJson(plan.GetRawText());
+    }
+
+    [Fact]
+    public async Task AbandonStaleWorkflows_UsesIndexScans()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            DbMaintenanceService.Sql.AbandonStaleWorkflows,
+            [
+                new NpgsqlParameter<DateTimeOffset>("now", _now),
+                new NpgsqlParameter<DateTimeOffset>("staleDeadline", _now.AddSeconds(-15)),
+                new NpgsqlParameter<int>("maxReclaimCount", 3),
+            ],
+            ct
+        );
+
+        QueryPlanHelper.AssertNoSeqScan(plan, "Workflows");
+        await VerifyJson(plan.GetRawText());
+    }
+
+    [Fact]
+    public async Task ReclaimStaleWorkflows_UsesIndexScans()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var plan = await QueryPlanHelper.ExplainAsync(
+            dataSource,
+            DbMaintenanceService.Sql.ReclaimStaleWorkflows,
+            [
+                new NpgsqlParameter<DateTimeOffset>("now", _now),
+                new NpgsqlParameter<DateTimeOffset>("staleDeadline", _now.AddSeconds(-15)),
+                new NpgsqlParameter<int>("maxReclaimCount", 3),
+            ],
+            ct
+        );
+
         QueryPlanHelper.AssertNoSeqScan(plan, "Workflows");
         await VerifyJson(plan.GetRawText());
     }

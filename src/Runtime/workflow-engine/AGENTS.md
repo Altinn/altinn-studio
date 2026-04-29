@@ -5,7 +5,7 @@ Reusable class library for async workflow processing. Provides the core engine, 
 ## Projects
 
 | Project                     | Purpose                                                                                                 |
-| --------------------------- | ------------------------------------------------------------------------------------------------------- |
+|-----------------------------|---------------------------------------------------------------------------------------------------------|
 | `WorkflowEngine.Core`       | Core engine class library: processing loop, HTTP endpoints, executor, extensions                        |
 | `WorkflowEngine.Commands`   | Command plugin system (Webhook). Runtime-specific commands (e.g. AppCommand) live in their host project |
 | `WorkflowEngine.Models`     | Domain models: `Workflow`, `Step`, `EngineRequest`, status enums                                        |
@@ -45,7 +45,7 @@ Reusable class library for async workflow processing. Provides the core engine, 
 Infrastructure-only (no engine host). Supporting services for local development.
 
 | Container           | Port             | Purpose                                    |
-| ------------------- | ---------------- | ------------------------------------------ |
+|---------------------|------------------|--------------------------------------------|
 | `postgres`          | 5433             | Database                                   |
 | `pgadmin`           | 5050             | PostgreSQL admin UI                        |
 | `lgtm`              | 7070, 4317, 4318 | Grafana + Prometheus + Loki + Tempo + OTLP |
@@ -53,9 +53,13 @@ Infrastructure-only (no engine host). Supporting services for local development.
 | `postgres-exporter` | 9187             | Prometheus PostgreSQL exporter             |
 | `wiremock`          | 6060             | Mock app callbacks                         |
 
-## Code Style
+## Code Style & Documentation
 
 CSharpier formatting enforced at build time. Use the `/format` skill for details and commands.
+
+Use docstrings to document all public types and members. Extend this to private members where necessary to explain complex logic or add clarity.
+
+Be extremely sparse with inline comments. If a pattern is not self-describing, it likely needs refactoring. The exception is complex order-dependent logic in the various hot processing loops.
 
 ## Tests
 
