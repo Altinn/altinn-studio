@@ -681,7 +681,7 @@ internal sealed partial class EngineRepository
     /// Seeds multiple collection rows if needed, then locks them with SELECT ... FOR UPDATE and
     /// returns their current heads. Using one command keeps first-writer serialization without
     /// adding a second database round-trip.
-    /// ORDER BY ensures consistent lock acquisition order to prevent deadlocks.
+    /// ORDER BY ensures consistent lock acquisition order to prevent deadlocks
     /// </summary>
     private static async Task<Dictionary<(string Key, string Ns), Guid[]>> LockAndReadCollectionHeads(
         NpgsqlConnection conn,
@@ -696,6 +696,7 @@ internal sealed partial class EngineRepository
             INSERT INTO "engine"."WorkflowCollections" ("Key", "Namespace", "Heads", "CreatedAt")
             SELECT "Key", "Namespace", ARRAY[]::uuid[], @now
             FROM unnest(@keys, @namespaces) AS t("Key", "Namespace")
+            ORDER BY "Key", "Namespace"
             ON CONFLICT ("Key", "Namespace") DO NOTHING;
 
             SELECT wc."Key", wc."Namespace", wc."Heads"
