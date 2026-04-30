@@ -6,7 +6,7 @@ import { StatusFilter } from './components/StatusFilter';
 import { useQueryParamState } from 'admin/features/apps/hooks/useQueryParamState';
 import { ProcessTaskFilter } from './components/ProcessTaskFilter';
 import { useTranslation } from 'react-i18next';
-import { useRoutePathsParams } from 'admin/hooks/useRoutePathsParams';
+import { useRequiredRoutePathsParams } from 'admin/hooks/useRequiredRoutePathsParams';
 
 const YES_NO_ALL_OPTIONS = [
   { label: 'admin.instances.filter.all', value: undefined },
@@ -34,7 +34,11 @@ function getCurrentDateOnlyStringMinusDays(days: number | undefined) {
 
 export const Instances = () => {
   const { t } = useTranslation();
-  const { owner: org, environment, app } = useRoutePathsParams();
+  const {
+    owner: org,
+    environment,
+    app,
+  } = useRequiredRoutePathsParams(['owner', 'environment', 'app']);
   const [archiveReference, setArchiveReference] = useQueryParamState<string>(
     'archiveReference',
     undefined,

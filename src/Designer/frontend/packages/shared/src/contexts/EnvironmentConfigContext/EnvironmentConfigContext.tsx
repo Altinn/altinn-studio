@@ -7,7 +7,7 @@ import { envFilePath } from 'app-shared/api/paths';
 
 type EnvironmentConfigContextValue = {
   environment: AltinnStudioEnvironment | null;
-  isLoading: boolean;
+  isPending: boolean;
   error: Error | null;
 };
 
@@ -20,7 +20,7 @@ export type EnvironmentConfigProviderProps = {
 export const EnvironmentConfigProvider = ({
   children,
 }: EnvironmentConfigProviderProps): ReactElement => {
-  const { data, isLoading, error } = useQuery({
+  const { data, isPending, error } = useQuery({
     queryKey: ['environmentConfig'],
     queryFn: fetchEnvironmentConfig,
     staleTime: Infinity,
@@ -30,7 +30,7 @@ export const EnvironmentConfigProvider = ({
 
   const contextValue: EnvironmentConfigContextValue = {
     environment: data ?? null,
-    isLoading,
+    isPending,
     error,
   };
 

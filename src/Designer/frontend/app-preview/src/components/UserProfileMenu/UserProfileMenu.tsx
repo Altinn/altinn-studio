@@ -14,6 +14,7 @@ import { MEDIA_QUERY_MAX_WIDTH, SETTINGS_BASENAME } from 'app-shared/constants';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
+import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 
 export type UserProfileMenuProps = {
   user: User;
@@ -28,6 +29,8 @@ export const UserProfileMenu = ({ user, repository }: UserProfileMenuProps): Rea
   const { mutate: logout } = useLogoutMutation();
   const { environment } = useEnvironmentConfig();
   const studioOidc = environment?.featureFlags?.studioOidc;
+  const isAdminEnabled = useFeatureFlag(FeatureFlag.Admin);
+  const showSettingsLink = studioOidc || isAdminEnabled;
 
   const docsMenuItem: StudioProfileMenuItem = {
     action: { type: 'link', href: altinnDocsUrl() },
@@ -49,7 +52,7 @@ export const UserProfileMenu = ({ user, repository }: UserProfileMenuProps): Rea
   };
 
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    ...(studioOidc ? [{ items: [settingsMenuItem] }] : []),
+    ...(showSettingsLink ? [{ items: [settingsMenuItem] }] : []),
     { items: [docsMenuItem] },
     { items: [logOutMenuItem] },
   ];

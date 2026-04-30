@@ -54,3 +54,32 @@ func (s Status) IsTerminal() bool {
 func (s Status) IsHealthy() bool {
 	return s == StatusReady
 }
+
+// StatusOption customizes status collection.
+type StatusOption func(*StatusOptions)
+
+// StatusOptions controls status collection behavior.
+type StatusOptions struct {
+	skip func(Resource) bool
+}
+
+// SkipResource excludes resources matching skip from status collection.
+func SkipResource(skip func(Resource) bool) StatusOption {
+	return func(opts *StatusOptions) {
+		opts.skip = skip
+	}
+}
+
+func newStatusOptions(options []StatusOption) StatusOptions {
+	var opts StatusOptions
+	for _, option := range options {
+		if option != nil {
+			option(&opts)
+		}
+	}
+	return opts
+}
+
+func (o StatusOptions) skipResource(resource Resource) bool {
+	return o.skip != nil && o.skip(resource)
+}

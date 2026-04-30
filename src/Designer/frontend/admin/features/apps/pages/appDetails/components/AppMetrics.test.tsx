@@ -32,8 +32,8 @@ const orgMockWithoutFullName = {
 };
 
 jest.mock('react-chartjs-2');
-jest.mock('admin/hooks/useRoutePathsParams', () => ({
-  useRoutePathsParams: () => ({ owner: org, environment: env, app }),
+jest.mock('admin/hooks/useRequiredRoutePathsParams', () => ({
+  useRequiredRoutePathsParams: () => ({ owner: org, environment: env, app }),
 }));
 jest.mock('axios', () => ({
   ...jest.requireActual('axios'),

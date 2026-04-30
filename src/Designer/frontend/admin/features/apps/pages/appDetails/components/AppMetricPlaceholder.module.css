@@ -1,0 +1,14 @@
+.chartOverlay {
+  position: relative;
+  height: 100%;
+}
+
+.disclaimer {
+  width: 70%;
+  opacity: 0.8;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  white-space: normal;
+}

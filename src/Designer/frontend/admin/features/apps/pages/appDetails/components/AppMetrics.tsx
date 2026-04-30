@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import 'chartjs-adapter-date-fns';
 
 import { AppMetric } from './AppMetric';
+import { AppMetricPlaceholder } from './AppMetricPlaceholder';
 import { useAppHealthMetricsQuery } from 'admin/features/apps/hooks/queries/useAppHealthMetricsQuery';
 import { AppHealthMetric } from './AppHealthMetric';
 import { TimeRangeSelect } from 'admin/features/apps/components/TimeRangeSelect/TimeRangeSelect';
@@ -29,7 +30,7 @@ import { useAppErrorMetricsQuery } from 'admin/features/apps/hooks/queries/useAp
 import { AppErrorMetric } from './AppErrorMetric';
 import { isAxiosError } from 'axios';
 import { useCurrentOrg } from 'admin/contexts/OrgContext';
-import { useRoutePathsParams } from 'admin/hooks/useRoutePathsParams';
+import { useRequiredRoutePathsParams } from 'admin/hooks/useRequiredRoutePathsParams';
 
 ChartJS.register(LinearScale, BarElement, ArcElement, Title, Tooltip, Filler, TimeScale);
 
@@ -39,7 +40,11 @@ export type AppMetricsProps = {
 };
 
 export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
-  const { owner: org, environment, app } = useRoutePathsParams();
+  const {
+    owner: org,
+    environment,
+    app,
+  } = useRequiredRoutePathsParams(['owner', 'environment', 'app']);
   const { t } = useTranslation();
 
   const envTitle = useEnvironmentTitle(environment);
@@ -144,6 +149,13 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
       } else {
         return <StudioError className={classes.metric}>{t('admin.metrics.app.error')}</StudioError>;
       }
+    }
+
+    const hasData = appMetrics?.some((metric) => metric.counts.length > 0);
+    if (!hasData) {
+      return appMetrics?.map((metric) => (
+        <AppMetricPlaceholder key={metric.name} metric={metric} range={range} />
+      ));
     }
 
     return appMetrics?.map((metric) => (

@@ -480,6 +480,15 @@ func TestExecutor_ContainerStatus_UsesHealth(t *testing.T) {
 			},
 			want: StatusFailed,
 		},
+		{
+			name: "exited zero is failed for long running resources",
+			state: types.ContainerState{
+				Status:   "exited",
+				ExitCode: 0,
+				Running:  false,
+			},
+			want: StatusFailed,
+		},
 	}
 
 	for _, tt := range tests {
@@ -499,6 +508,44 @@ func TestExecutor_ContainerStatus_UsesHealth(t *testing.T) {
 				t.Fatalf("containerStatus() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestExecutor_Status_SkipsResources(t *testing.T) {
+	t.Parallel()
+
+	client := containermock.New()
+	client.ContainerInspectFunc = func(context.Context, string) (types.ContainerInfo, error) {
+		return types.ContainerInfo{
+			State: types.ContainerState{
+				Status:  "running",
+				Running: true,
+			},
+		}, nil
+	}
+	client.ImageInspectFunc = func(context.Context, string) (types.ImageInfo, error) {
+		t.Fatal("ImageInspect called for skipped image")
+		return types.ImageInfo{}, nil
+	}
+
+	image := &RemoteImage{Ref: "localtest:latest"}
+	container := &Container{Name: "localtest", Image: Ref(image)}
+	graph := NewGraph()
+	mustAddResource(t, graph, image)
+	mustAddResource(t, graph, container)
+
+	statuses, err := NewExecutor(client).Status(t.Context(), graph, SkipResource(func(r Resource) bool {
+		_, ok := r.(ImageResource)
+		return ok
+	}))
+	if err != nil {
+		t.Fatalf("Status() error = %v, want nil", err)
+	}
+	if _, ok := statuses[image.ID()]; ok {
+		t.Fatalf("Status() included skipped image %q", image.ID())
+	}
+	if statuses[container.ID()] != StatusReady {
+		t.Fatalf("container status = %v, want ready", statuses[container.ID()])
 	}
 }
 

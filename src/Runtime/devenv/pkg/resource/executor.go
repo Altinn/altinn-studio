@@ -121,12 +121,16 @@ func (e *Executor) Destroy(ctx context.Context, g *Graph) error {
 	return nil
 }
 
-// Status returns the current status of all resources in the graph.
-func (e *Executor) Status(ctx context.Context, g *Graph) (map[ResourceID]Status, error) {
+// Status returns the current status of all resources in the graph that are not skipped.
+func (e *Executor) Status(ctx context.Context, g *Graph, opts ...StatusOption) (map[ResourceID]Status, error) {
+	options := newStatusOptions(opts)
 	resources := g.Enabled()
 	result := make(map[ResourceID]Status, len(resources))
 
 	for _, r := range resources {
+		if options.skipResource(r) {
+			continue
+		}
 		status, err := e.resourceStatus(ctx, r)
 		if err != nil {
 			return nil, fmt.Errorf("status %s: %w", r.ID(), err)
@@ -491,8 +495,6 @@ func (e *Executor) containerStatus(ctx context.Context, c *Container) (Status, e
 		return StatusPending, nil
 	case info.State.Status == "created":
 		return StatusPending, nil
-	case info.State.Status == containerStatusExited && info.State.ExitCode == 0:
-		return StatusReady, nil
 	case info.State.Status == containerStatusExited:
 		return StatusFailed, nil
 	default:

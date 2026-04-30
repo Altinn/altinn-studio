@@ -1,10 +1,10 @@
 import { AppsTable } from './components/AppsTable';
 import { useTranslation } from 'react-i18next';
-import { useRoutePathsParams } from 'admin/hooks/useRoutePathsParams';
+import { useRequiredRoutePathsParams } from 'admin/hooks/useRequiredRoutePathsParams';
 
 export const Apps = () => {
   const { t } = useTranslation();
-  const { owner: org } = useRoutePathsParams();
+  const { owner: org } = useRequiredRoutePathsParams('owner');
 
   return (
     <div>

@@ -4,10 +4,13 @@ import (
 	"context"
 	"errors"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	self "altinn.studio/studioctl/internal/cmd/self"
+	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -185,6 +188,58 @@ func TestChecksumForAsset(t *testing.T) {
 	_, err = self.ChecksumForAsset(checksums, "missing")
 	if !errors.Is(err, self.ErrChecksumAssetNotFound) {
 		t.Fatalf("ChecksumForAsset() error = %v, want %v", err, self.ErrChecksumAssetNotFound)
+	}
+}
+
+func TestRemoveHomeRemovesConfiguredHome(t *testing.T) {
+	t.Parallel()
+
+	home := filepath.Join(t.TempDir(), "studioctl-home")
+	cfg, err := config.New(config.Flags{Home: home}, "test-version")
+	if err != nil {
+		t.Fatalf("config.New() error = %v", err)
+	}
+	if writeErr := os.WriteFile(filepath.Join(cfg.Home, "config.yaml"), []byte("test"), 0o600); writeErr != nil {
+		t.Fatalf("write config: %v", writeErr)
+	}
+
+	removed, err := self.NewService(cfg).RemoveHome()
+	if err != nil {
+		t.Fatalf("RemoveHome() error = %v", err)
+	}
+	if removed != home {
+		t.Fatalf("RemoveHome() = %q, want %q", removed, home)
+	}
+	if _, err := os.Stat(home); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("home still exists after RemoveHome(): %v", err)
+	}
+}
+
+func TestRemoveHomeRejectsUserHome(t *testing.T) {
+	t.Parallel()
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		t.Skipf("user home unavailable: %v", err)
+	}
+
+	err = self.NewService(&config.Config{Home: home}).ValidateHomeRemoval()
+	if !errors.Is(err, self.ErrUnsafeHomeRemoval) {
+		t.Fatalf("ValidateHomeRemoval() error = %v, want ErrUnsafeHomeRemoval", err)
+	}
+}
+
+func TestRemoveHomeRejectsCurrentDirectory(t *testing.T) {
+	t.Parallel()
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("get cwd: %v", err)
+	}
+
+	err = self.NewService(&config.Config{Home: cwd}).ValidateHomeRemoval()
+	if !errors.Is(err, self.ErrUnsafeHomeRemoval) {
+		t.Fatalf("ValidateHomeRemoval() error = %v, want ErrUnsafeHomeRemoval", err)
 	}
 }
 

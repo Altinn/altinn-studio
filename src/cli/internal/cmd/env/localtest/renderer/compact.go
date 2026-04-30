@@ -10,8 +10,18 @@ import (
 
 // NewCompact creates the narrow interactive row renderer.
 func NewCompact(out *ui.Output, resources []resource.Resource, operation Operation) *CompactRenderer {
+	return NewCompactWithStatus(out, resources, operation, nil)
+}
+
+// NewCompactWithStatus creates the narrow interactive row renderer with initial resource status.
+func NewCompactWithStatus(
+	out *ui.Output,
+	resources []resource.Resource,
+	operation Operation,
+	statuses map[resource.ResourceID]resource.Status,
+) *CompactRenderer {
 	return &CompactRenderer{
-		screenRenderer: newScreenRenderer(out, resources, operation, compactLayout{}),
+		screenRenderer: newScreenRenderer(out, resources, operation, statuses, compactLayout{}),
 	}
 }
 
