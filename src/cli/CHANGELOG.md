@@ -8,6 +8,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- Improve localtest resource reconciliation so `env up` removes managed resources that are no longer requested, such as pgAdmin or monitoring, without restarting unchanged core containers.
+
 ## [0.1.0-preview.7] - 2026-04-29
 
 ### Added
