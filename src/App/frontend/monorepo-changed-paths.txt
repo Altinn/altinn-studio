@@ -62,6 +62,8 @@ src/hooks/usePageValidation.ts
 src/hooks/useWaitForState.ts
 src/index.tsx
 src/layout/GenericComponent.test.tsx
+src/layout/Grid/GridComponent.test.tsx
+src/layout/Grid/tools.test.ts
 src/layout/Group/SummaryGroupComponent.test.tsx
 src/layout/Group/__snapshots__/SummaryGroupComponent.test.tsx.snap
 src/layout/NavigationButtons/NavigationButtonsComponent.test.tsx
