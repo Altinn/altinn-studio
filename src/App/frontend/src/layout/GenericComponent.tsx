@@ -13,6 +13,7 @@ import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { ExprVal } from 'src/features/expressions/types';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
+import { replaceAndPreventResetOptions } from 'src/features/navigation/navigationOptions';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import classes from 'src/layout/GenericComponent.module.css';
 import { getComponentDef } from 'src/layout/index';
@@ -30,7 +31,6 @@ import type { GenericComponentOverrideDisplay, IFormComponentContext } from 'src
 import type { PropsFromGenericComponent } from 'src/layout/index';
 import type { CompInternal, CompTypes } from 'src/layout/layout';
 import type { AnyComponent } from 'src/layout/LayoutComponent';
-import type { NavigationState } from 'src/types/NavigationState';
 
 export interface IGenericComponentProps<Type extends CompTypes> {
   baseComponentId: string;
@@ -264,11 +264,7 @@ function cleanupQuery(searchParams: URLSearchParams, setSearchParams: SetURLSear
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.delete(SearchParams.FocusComponentId);
     newSearchParams.delete(SearchParams.FocusErrorBinding);
-    setSearchParams(newSearchParams, {
-      replace: true,
-      preventScrollReset: true,
-      state: { preventFocusReset: true } satisfies NavigationState,
-    });
+    setSearchParams(newSearchParams, replaceAndPreventResetOptions);
   }
 }
 

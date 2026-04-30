@@ -9,8 +9,8 @@ import type { DOMNode, Element as ReactParserElement, HTMLReactParserOptions } f
 
 import { LinkToPotentialNode } from 'src/components/form/LinkToPotentialNode';
 import { LinkToPotentialPage } from 'src/components/form/LinkToPotentialPage';
+import { preventFocusAndScrollResetOptions } from 'src/features/navigation/navigationOptions';
 import { cachedFunction } from 'src/utils/cachedFunction';
-import type { NavigationState } from 'src/types/NavigationState';
 
 marked.use(mangle());
 
@@ -136,8 +136,7 @@ const parserOptions: HTMLReactParserOptions = {
         LinkToPotentialNode,
         {
           to: domNode.attribs.href,
-          preventScrollReset: true,
-          state: { preventFocusReset: true } satisfies NavigationState,
+          ...preventFocusAndScrollResetOptions,
         },
         domToReact(domNode.children as DOMNode[], parserOptions),
       );
@@ -147,8 +146,7 @@ const parserOptions: HTMLReactParserOptions = {
         LinkToPotentialPage,
         {
           to: domNode.attribs.href,
-          preventScrollReset: true,
-          state: { preventFocusReset: true } satisfies NavigationState,
+          ...preventFocusAndScrollResetOptions,
         },
         domToReact(domNode.children as DOMNode[], parserOptions),
       );

@@ -8,7 +8,7 @@ import {
   useHandledNavigationKey,
   useSetHandledNavigationKey,
 } from 'src/features/navigation/NavigationFocusStateContext';
-import type { NavigationState } from 'src/types/NavigationState';
+import type { NavigationState } from 'src/features/navigation/NavigationState';
 
 /**
  * Moves focus to #main-content on every navigation, unless the navigation was

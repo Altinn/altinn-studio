@@ -10,6 +10,7 @@ import { usePageSettings, useRawPageOrder } from 'src/features/form/layoutSettin
 import { getUiConfig } from 'src/features/form/ui';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
+import { preventFocusAndScrollResetOptions } from 'src/features/navigation/navigationOptions';
 import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
@@ -18,7 +19,6 @@ import { ProcessTaskType } from 'src/types';
 import { computeStartUrl } from 'src/utils/computeStartUrl';
 import { useHiddenPages } from 'src/utils/layout/hidden';
 import type { NodeRefValidation } from 'src/features/validation';
-import type { NavigationState } from 'src/types/NavigationState';
 
 export interface NavigateToPageOptions {
   replace?: boolean;
@@ -222,8 +222,7 @@ export function useNavigatePage() {
       const shouldExitSubform = options?.searchParams?.has(SearchParams.ExitSubform, 'true') ?? false;
       const navOptions: NavigateOptions = {
         replace: options?.replace ?? false,
-        preventScrollReset,
-        state: preventScrollReset ? ({ preventFocusReset: true } satisfies NavigationState) : undefined,
+        ...(preventScrollReset ? preventFocusAndScrollResetOptions : undefined),
       };
       if (!page) {
         window.logWarn('navigateToPage called without page');
@@ -402,10 +401,7 @@ export function useNavigateToComponent() {
           !!newSearchParams.get(SearchParams.FocusComponentId) || !!newSearchParams.get(SearchParams.ExitSubform),
       });
     } else {
-      setSearchParams(newSearchParams, {
-        preventScrollReset: true,
-        state: { preventFocusReset: true } satisfies NavigationState,
-      });
+      setSearchParams(newSearchParams, preventFocusAndScrollResetOptions);
     }
   };
 }

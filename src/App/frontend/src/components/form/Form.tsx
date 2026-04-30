@@ -20,6 +20,7 @@ import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { replaceAndPreventResetOptions } from 'src/features/navigation/navigationOptions';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
 import { useQueryKey } from 'src/hooks/navigation';
@@ -29,7 +30,6 @@ import { getComponentCapabilities } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import type { AnyValidation, BaseValidation, NodeRefValidation } from 'src/features/validation';
-import type { NavigationState } from 'src/types/NavigationState';
 
 interface FormState {
   hasRequired: boolean;
@@ -55,18 +55,11 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   useEffect(() => {
     if (shouldValidateFormPage && !shouldNavigateToStart) {
       onFormSubmitValidation();
-      setSearchParams(
-        (params) => {
-          const nextParams = new URLSearchParams(params);
-          nextParams.delete(SearchParams.Validate);
-          return nextParams;
-        },
-        {
-          replace: true,
-          preventScrollReset: true,
-          state: { preventFocusReset: true } satisfies NavigationState,
-        },
-      );
+      setSearchParams((params) => {
+        const nextParams = new URLSearchParams(params);
+        nextParams.delete(SearchParams.Validate);
+        return nextParams;
+      }, replaceAndPreventResetOptions);
     }
   }, [onFormSubmitValidation, searchParams, setSearchParams, shouldValidateFormPage, shouldNavigateToStart]);
 
@@ -264,11 +257,7 @@ function HandleNavigationFocusComponent() {
         searchParams.delete(SearchParams.ExitSubform);
         const basePath = locationRef.current.pathname;
         const nextLocation = searchParams.size > 0 ? `${basePath}?${searchParams.toString()}` : basePath;
-        navigate(nextLocation, {
-          replace: true,
-          preventScrollReset: true,
-          state: { preventFocusReset: true } satisfies NavigationState,
-        });
+        navigate(nextLocation, replaceAndPreventResetOptions);
       }
     })();
   }, [navigate, locationRef, exitSubform, validate, onFormSubmitValidation]);
