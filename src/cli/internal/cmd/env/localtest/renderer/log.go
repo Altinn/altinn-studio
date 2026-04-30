@@ -16,20 +16,26 @@ func NewLog(
 	operation Operation,
 	startMessage string,
 ) *LogRenderer {
-	return NewLogWithStatus(out, resources, operation, nil, startMessage)
+	return &LogRenderer{
+		out:          out,
+		model:        newRenderModel(resources, operation, nil),
+		startMessage: startMessage,
+		emitted:      make(map[string]string),
+		mu:           sync.Mutex{},
+	}
 }
 
-// NewLogWithStatus creates the non-interactive line-based renderer with initial resource status.
-func NewLogWithStatus(
+// NewLogWithPlan creates the non-interactive line-based renderer from planned resources.
+func NewLogWithPlan(
 	out *ui.Output,
-	resources []resource.Resource,
+	resources []resource.PlannedResource,
 	operation Operation,
 	statuses map[resource.ResourceID]resource.Status,
 	startMessage string,
 ) *LogRenderer {
 	return &LogRenderer{
 		out:          out,
-		model:        newRenderModel(resources, operation, statuses),
+		model:        newRenderModelPlanned(resources, operation, statuses),
 		startMessage: startMessage,
 		emitted:      make(map[string]string),
 		mu:           sync.Mutex{},
@@ -84,7 +90,7 @@ func (r *LogRenderer) linesForNamesLocked(names []string) []string {
 		if row == nil {
 			continue
 		}
-		line, signature, ok := logLineForRow(r.model, row)
+		line, signature, ok := logLineForRow(row)
 		if !ok {
 			continue
 		}
@@ -97,7 +103,7 @@ func (r *LogRenderer) linesForNamesLocked(names []string) []string {
 	return lines
 }
 
-func logLineForRow(model *renderModel, row *progressRow) (string, string, bool) {
+func logLineForRow(row *progressRow) (string, string, bool) {
 	if row.state == statePending {
 		return "", "", false
 	}
@@ -118,7 +124,7 @@ func logLineForRow(model *renderModel, row *progressRow) (string, string, bool) 
 		signature += "|" + row.message
 	}
 
-	if row.state == model.operation.successState() ||
+	if isSuccessfulState(row.state) ||
 		isTerminalUnsuccessfulState(row.state) ||
 		isActiveState(row.state) {
 		return line, signature, true

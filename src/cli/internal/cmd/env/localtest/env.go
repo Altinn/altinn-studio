@@ -176,12 +176,20 @@ func (e *Env) Reset(ctx context.Context) error {
 
 // Status returns the localtest environment status.
 func (e *Env) Status(ctx context.Context) (*Status, error) {
-	return e.status(ctx, false)
+	return e.status(ctx, statusOptions{
+		IncludeMonitoring: false,
+		IncludePgAdmin:    false,
+		RequireDesired:    false,
+	})
 }
 
 // StatusForUp returns status for the containers requested by env up.
 func (e *Env) StatusForUp(ctx context.Context, opts envtypes.UpOptions) (*Status, error) {
-	return e.status(ctx, opts.PgAdmin)
+	return e.status(ctx, statusOptions{
+		IncludeMonitoring: opts.Monitoring,
+		IncludePgAdmin:    opts.PgAdmin,
+		RequireDesired:    true,
+	})
 }
 
 // Logs streams localtest environment logs.
@@ -189,7 +197,13 @@ func (e *Env) Logs(ctx context.Context, opts envtypes.LogsOptions) error {
 	return e.logs.Stream(ctx, opts.Component, opts.Follow, opts.JSON)
 }
 
-func (e *Env) status(ctx context.Context, includePgAdmin bool) (*Status, error) {
+type statusOptions struct {
+	IncludeMonitoring bool
+	IncludePgAdmin    bool
+	RequireDesired    bool
+}
+
+func (e *Env) status(ctx context.Context, opts statusOptions) (*Status, error) {
 	resources := buildResources(ResourceBuildOptions{
 		DevConfig:         nil,
 		DataDir:           e.cfg.DataDir,
@@ -197,8 +211,8 @@ func (e *Env) status(ctx context.Context, includePgAdmin bool) (*Status, error) 
 		RuntimeConfig:     RuntimeConfig{User: ""},
 		Topology:          envtopology.NewLocal(envtopology.DefaultIngressPortString()),
 		ImageMode:         ReleaseMode,
-		IncludeMonitoring: false,
-		IncludePgAdmin:    includePgAdmin,
+		IncludeMonitoring: opts.IncludeMonitoring,
+		IncludePgAdmin:    opts.IncludePgAdmin,
 	})
 	graph, err := buildResourceGraph(resources)
 	if err != nil {
@@ -206,12 +220,12 @@ func (e *Env) status(ctx context.Context, includePgAdmin bool) (*Status, error) 
 	}
 
 	executor := resource.NewExecutor(e.client)
-	statuses, err := executor.Status(ctx, graph, resource.SkipResource(isImageResource))
+	snapshot, err := executor.Status(ctx, graph, resource.SkipResource(isImageResource))
 	if err != nil {
 		return nil, fmt.Errorf("get resource status: %w", err)
 	}
 
-	return localtestStatus(graph.Enabled(), statuses), nil
+	return localtestStatus(graph.All(), snapshot, opts.RequireDesired), nil
 }
 
 func (e *Env) hasManagedResources(ctx context.Context) (bool, error) {
@@ -222,22 +236,19 @@ func (e *Env) hasManagedResources(ctx context.Context) (bool, error) {
 	}
 
 	executor := resource.NewExecutor(e.client)
-	statuses, err := executor.Status(ctx, graph, resource.SkipResource(isImageResource))
+	snapshot, err := executor.Status(ctx, graph, resource.SkipResource(isImageResource))
 	if err != nil {
 		return false, fmt.Errorf("get resource status: %w", err)
 	}
 
-	for _, res := range graph.Enabled() {
-		if !isRuntimeResource(res) {
+	for _, observed := range snapshot.Resources {
+		if !observed.Managed || observed.Status == resource.StatusDestroyed {
 			continue
 		}
-		status, ok := statuses[res.ID()]
-		if !ok {
-			return true, nil
+		if observed.Resource != nil && !isRuntimeResource(observed.Resource) {
+			continue
 		}
-		if status != resource.StatusDestroyed {
-			return true, nil
-		}
+		return true, nil
 	}
 
 	return false, nil
@@ -286,24 +297,27 @@ func (e *Env) applyResources(ctx context.Context, opts ResourceBuildOptions) err
 	}
 
 	var renderer localtestrenderer.Renderer
-	switch localtestrenderer.DetectMode(e.out, e.cfg.Verbose) {
-	case localtestrenderer.ModeTable:
-		renderer = localtestrenderer.NewTable(e.out, graph.Enabled(), localtestrenderer.OperationApply)
-	case localtestrenderer.ModeCompact:
-		renderer = localtestrenderer.NewCompact(e.out, graph.Enabled(), localtestrenderer.OperationApply)
-	case localtestrenderer.ModeLog:
-		renderer = localtestrenderer.NewLog(e.out, graph.Enabled(), localtestrenderer.OperationApply, spinnerMsg)
-	}
-	renderer.Start()
-	executor.SetObserver(renderer)
-
-	if _, err := executor.Apply(ctx, graph); err != nil {
-		renderer.FailAll(err.Error())
-		renderer.Stop()
+	if _, err := executor.Apply(ctx, graph, resource.WithApplyPlan(func(plan resource.ApplyPlan) error {
+		e.startRenderer(
+			executor,
+			&renderer,
+			applyPlannedResources(plan),
+			localtestrenderer.OperationApply,
+			plan.Snapshot.Statuses(),
+			spinnerMsg,
+		)
+		return nil
+	})); err != nil {
+		if renderer != nil {
+			renderer.FailAll(err.Error())
+			renderer.Stop()
+		}
 		return fmt.Errorf("start environment: %w", err)
 	}
 
-	renderer.Stop()
+	if renderer != nil {
+		renderer.Stop()
+	}
 	e.out.Success("Environment started")
 	return nil
 }
@@ -315,54 +329,81 @@ func (e *Env) destroyResources(ctx context.Context, opts ResourceBuildOptions, l
 		return err
 	}
 
-	executor := resource.NewExecutor(e.client)
-	statuses, statusErr := executor.Status(ctx, graph, resource.SkipResource(isImageResource))
-	if statusErr != nil {
-		e.out.Verbosef("Failed to probe current resource status for destroy rendering: %v", statusErr)
-		statuses = nil
-	}
-	renderResources := graph.Enabled()
 	var renderer localtestrenderer.Renderer
-	switch localtestrenderer.DetectMode(e.out, e.cfg.Verbose) {
-	case localtestrenderer.ModeTable:
-		renderer = localtestrenderer.NewTableWithStatus(
-			e.out,
-			renderResources,
+	executor := resource.NewExecutor(e.client)
+	if err := executor.Destroy(ctx, graph, resource.WithDestroyPlan(func(plan resource.DestroyPlan) error {
+		e.startRenderer(
+			executor,
+			&renderer,
+			plan.Destroy,
 			localtestrenderer.OperationDestroy,
-			statuses,
-		)
-	case localtestrenderer.ModeCompact:
-		renderer = localtestrenderer.NewCompactWithStatus(
-			e.out,
-			renderResources,
-			localtestrenderer.OperationDestroy,
-			statuses,
-		)
-	case localtestrenderer.ModeLog:
-		renderer = localtestrenderer.NewLogWithStatus(
-			e.out,
-			renderResources,
-			localtestrenderer.OperationDestroy,
-			statuses,
+			plan.Snapshot.Statuses(),
 			logStartMessage,
 		)
-	}
-	renderer.Start()
-	executor.SetObserver(renderer)
-
-	if err := executor.Destroy(ctx, graph); err != nil {
-		renderer.FailAll(err.Error())
-		renderer.Stop()
+		return nil
+	})); err != nil {
+		if renderer != nil {
+			renderer.FailAll(err.Error())
+			renderer.Stop()
+		}
 		return fmt.Errorf("destroy resources: %w", err)
 	}
 
-	renderer.Stop()
+	if renderer != nil {
+		renderer.Stop()
+	}
 	return nil
+}
+
+func (e *Env) startRenderer(
+	executor *resource.Executor,
+	renderer *localtestrenderer.Renderer,
+	resources []resource.PlannedResource,
+	operation localtestrenderer.Operation,
+	statuses map[resource.ResourceID]resource.Status,
+	logStartMessage string,
+) {
+	switch localtestrenderer.DetectMode(e.out, e.cfg.Verbose) {
+	case localtestrenderer.ModeTable:
+		*renderer = localtestrenderer.NewTableWithPlan(
+			e.out,
+			resources,
+			operation,
+			statuses,
+		)
+	case localtestrenderer.ModeCompact:
+		*renderer = localtestrenderer.NewCompactWithPlan(
+			e.out,
+			resources,
+			operation,
+			statuses,
+		)
+	case localtestrenderer.ModeLog:
+		*renderer = localtestrenderer.NewLogWithPlan(
+			e.out,
+			resources,
+			operation,
+			statuses,
+			logStartMessage,
+		)
+	default:
+		*renderer = localtestrenderer.NewLogWithPlan(e.out, resources, operation, statuses, logStartMessage)
+	}
+	(*renderer).Start()
+	executor.SetObserver(*renderer)
+}
+
+func applyPlannedResources(plan resource.ApplyPlan) []resource.PlannedResource {
+	resources := make([]resource.PlannedResource, 0, len(plan.Destroy)+len(plan.Reconcile))
+	resources = append(resources, plan.Destroy...)
+	resources = append(resources, plan.Reconcile...)
+	return resources
 }
 
 func localtestStatus(
 	resources []resource.Resource,
-	statuses map[resource.ResourceID]resource.Status,
+	snapshot resource.Snapshot,
+	requireDesired bool,
 ) *Status {
 	status := Status{
 		Containers: []ContainerStatus{},
@@ -370,7 +411,7 @@ func localtestStatus(
 		AnyRunning: false,
 	}
 	containerCount := 0
-	readyContainers := 0
+	convergedContainers := 0
 
 	for _, res := range resources {
 		containerResource, ok := res.(*resource.Container)
@@ -378,22 +419,47 @@ func localtestStatus(
 			continue
 		}
 
-		resourceStatus := statuses[containerResource.ID()]
+		resourceStatus := managedResourceStatus(snapshot, containerResource.ID())
+		if !resource.IsEnabled(containerResource) && resourceStatus == resource.StatusDestroyed {
+			continue
+		}
 		status.Containers = append(
 			status.Containers,
 			ContainerStatus{Name: containerResource.Name, Status: localtestStatusString(resourceStatus)},
 		)
 		containerCount++
-		if resourceStatus.IsHealthy() {
-			readyContainers++
+		if containerConverged(containerResource, resourceStatus, requireDesired) {
+			convergedContainers++
 		}
 		if resourceStatus != resource.StatusDestroyed {
 			status.AnyRunning = true
 		}
 	}
 
-	status.Running = containerCount > 0 && readyContainers == containerCount
+	status.Running = containerCount > 0 && convergedContainers == containerCount
 	return &status
+}
+
+func managedResourceStatus(snapshot resource.Snapshot, id resource.ResourceID) resource.Status {
+	if !managedResourcePresent(snapshot, id) {
+		return resource.StatusDestroyed
+	}
+	return snapshot.Resources[id].Status
+}
+
+func managedResourcePresent(snapshot resource.Snapshot, id resource.ResourceID) bool {
+	observed, ok := snapshot.Resources[id]
+	return ok && observed.Managed && observed.Status != resource.StatusDestroyed
+}
+
+func containerConverged(containerResource *resource.Container, status resource.Status, requireDesired bool) bool {
+	if resource.IsEnabled(containerResource) {
+		return status.IsHealthy()
+	}
+	if !requireDesired {
+		return status.IsHealthy()
+	}
+	return status == resource.StatusDestroyed
 }
 
 func localtestStatusString(status resource.Status) string {
@@ -670,7 +736,7 @@ func ensurePgpass(dataDir string) error {
 }
 
 func buildResourceGraph(resources []resource.Resource) (*resource.Graph, error) {
-	graph := resource.NewGraph()
+	graph := resource.NewGraph(resource.GraphID(graphID))
 	for _, res := range resources {
 		if err := graph.Add(res); err != nil {
 			return nil, fmt.Errorf("add resource %q to graph: %w", res.ID(), err)

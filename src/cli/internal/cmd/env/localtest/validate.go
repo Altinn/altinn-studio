@@ -6,10 +6,14 @@ import (
 	"fmt"
 
 	"altinn.studio/devenv/pkg/container"
+	"altinn.studio/devenv/pkg/resource"
 )
 
 // CheckForLegacyLocaltest checks if legacy localtest containers are running.
 // Returns an error if containers exist without the studioctl management label.
+// TODO: we should do something else for this. Need a smooth migration path
+// and we can probably check docker/podman compose labels or something
+// instead of matching on container names.
 func CheckForLegacyLocaltest(ctx context.Context, client container.ContainerClient, includePgAdmin bool) error {
 	containers := coreContainerNames(includePgAdmin)
 	var legacyContainers []string
@@ -27,7 +31,7 @@ func CheckForLegacyLocaltest(ctx context.Context, client container.ContainerClie
 			continue
 		}
 
-		if info.Labels[LabelKey] == LabelValue {
+		if isStudioctlManagedContainer(info.Labels) {
 			continue
 		}
 
@@ -38,4 +42,8 @@ func CheckForLegacyLocaltest(ctx context.Context, client container.ContainerClie
 		return fmt.Errorf("%w: %v", ErrLegacyLocaltestRunning, legacyContainers)
 	}
 	return nil
+}
+
+func isStudioctlManagedContainer(labels map[string]string) bool {
+	return labels[resource.GraphIDLabel] == graphID
 }

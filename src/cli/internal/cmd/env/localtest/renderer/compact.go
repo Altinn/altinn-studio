@@ -10,37 +10,37 @@ import (
 
 // NewCompact creates the narrow interactive row renderer.
 func NewCompact(out *ui.Output, resources []resource.Resource, operation Operation) *CompactRenderer {
-	return NewCompactWithStatus(out, resources, operation, nil)
+	return &CompactRenderer{
+		screenRenderer: newScreenRenderer(out, resources, operation, nil, compactLayout{}),
+	}
 }
 
-// NewCompactWithStatus creates the narrow interactive row renderer with initial resource status.
-func NewCompactWithStatus(
+// NewCompactWithPlan creates the narrow interactive row renderer from planned resources.
+func NewCompactWithPlan(
 	out *ui.Output,
-	resources []resource.Resource,
+	resources []resource.PlannedResource,
 	operation Operation,
 	statuses map[resource.ResourceID]resource.Status,
 ) *CompactRenderer {
 	return &CompactRenderer{
-		screenRenderer: newScreenRenderer(out, resources, operation, statuses, compactLayout{}),
+		screenRenderer: newScreenRendererPlanned(out, resources, operation, statuses, compactLayout{}),
 	}
 }
 
 func (compactLayout) renderLines(model *renderModel, width int, now time.Time) []string {
 	lines := make([]string, 0, len(model.order)+1)
 	readyCount, failedCount, canceledCount, activeCount := 0, 0, 0, 0
-	successState := model.operation.successState()
-
 	for _, name := range model.order {
 		row := model.rows[name]
 		if row == nil {
 			continue
 		}
-		switch row.state {
-		case successState:
+		switch {
+		case isSuccessfulState(row.state):
 			readyCount++
-		case stateFailed:
+		case row.state == stateFailed:
 			failedCount++
-		case stateCanceled:
+		case row.state == stateCanceled:
 			canceledCount++
 		}
 		if isActiveState(row.state) {

@@ -18,20 +18,31 @@ var (
 	errGraphDisabledDependency = errors.New("enabled resource depends on disabled resource")
 	errGraphNilDependency      = errors.New("resource depends on nil resource")
 	errGraphDependencyCycle    = errors.New("dependency cycle detected")
+	errGraphEmptyID            = errors.New("resource graph ID is empty")
 )
 
 // Graph manages a DAG of resources with dependency tracking.
 // Graph is a pure data structure - use Executor to apply resources.
 type Graph struct {
 	resources map[ResourceID]Resource
+	id        GraphID
 	mu        sync.RWMutex
 }
 
 // NewGraph creates an empty resource graph.
-func NewGraph() *Graph {
+func NewGraph(id GraphID) *Graph {
 	return &Graph{
+		id:        id,
 		resources: make(map[ResourceID]Resource),
 	}
+}
+
+// ID returns the stable graph identity.
+func (g *Graph) ID() GraphID {
+	if g == nil {
+		return ""
+	}
+	return g.id
 }
 
 // Add registers a resource in the graph.
@@ -131,10 +142,33 @@ func (g *Graph) TopologicalOrder() ([][]Resource, error) {
 	return topologicalLevels(resources, order)
 }
 
+// TopologicalOrderSubset returns selected resources in dependency order.
+// Dependencies outside the selected set are ignored.
+func (g *Graph) TopologicalOrderSubset(ids []ResourceID) ([][]Resource, error) {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+
+	resources, err := g.subsetLocked(ids)
+	if err != nil {
+		return nil, err
+	}
+	return topologicalLevels(resources, sortedResourceIDs(resources))
+}
+
 // ReverseTopologicalOrder returns resources in reverse dependency order.
 // Used for destroy operations (dependents before dependencies).
 func (g *Graph) ReverseTopologicalOrder() ([][]Resource, error) {
 	levels, err := g.TopologicalOrder()
+	if err != nil {
+		return nil, err
+	}
+	slices.Reverse(levels)
+	return levels, nil
+}
+
+// ReverseTopologicalOrderSubset returns selected resources in reverse dependency order.
+func (g *Graph) ReverseTopologicalOrderSubset(ids []ResourceID) ([][]Resource, error) {
+	levels, err := g.TopologicalOrderSubset(ids)
 	if err != nil {
 		return nil, err
 	}
@@ -150,6 +184,18 @@ func (g *Graph) enabledResourcesLocked() map[ResourceID]Resource {
 		}
 	}
 	return result
+}
+
+func (g *Graph) subsetLocked(ids []ResourceID) (map[ResourceID]Resource, error) {
+	resources := make(map[ResourceID]Resource, len(ids))
+	for _, id := range ids {
+		r, exists := g.resources[id]
+		if !exists {
+			return nil, fmt.Errorf("%w: %q", errGraphResourceNotFound, id)
+		}
+		resources[id] = r
+	}
+	return resources, nil
 }
 
 func sortedResources(resources map[ResourceID]Resource) []Resource {
@@ -295,9 +341,13 @@ func topologicalLevels(resources map[ResourceID]Resource, order []ResourceID) ([
 	for _, id := range order {
 		resource := resources[id]
 		deps := resource.Dependencies()
-		inDegree[id] = len(deps)
+		inDegree[id] = 0
 		for _, dep := range deps {
 			depID := dep.ID()
+			if _, exists := resources[depID]; !exists {
+				continue
+			}
+			inDegree[id]++
 			dependents[depID] = append(dependents[depID], id)
 		}
 	}

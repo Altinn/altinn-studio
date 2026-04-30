@@ -270,12 +270,11 @@ func TestResourceBuilder_FailsForUnknownContainerDependency(t *testing.T) {
 		&specs[0],
 		images["localtest-dependent"],
 		network,
-		nil,
 		"",
 		nil,
 	)
 
-	graph := resource.NewGraph()
+	graph := resource.NewGraph(resource.GraphID(graphID))
 	if err := graph.Add(&resource.Network{Name: NetworkName}); err != nil {
 		t.Fatalf("graph.Add(network) error = %v", err)
 	}

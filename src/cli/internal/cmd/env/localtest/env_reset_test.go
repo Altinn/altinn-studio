@@ -14,6 +14,7 @@ import (
 
 	containermock "altinn.studio/devenv/pkg/container/mock"
 	containertypes "altinn.studio/devenv/pkg/container/types"
+	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -53,10 +54,14 @@ func TestReset_StopsManagedResourcesBeforeRemovingPersistedData(t *testing.T) {
 
 	client := containermock.New()
 	client.ContainerInspectFunc = func(context.Context, string) (containertypes.ContainerInfo, error) {
-		return containertypes.ContainerInfo{}, nil
+		return containertypes.ContainerInfo{
+			Labels: map[string]string{resource.GraphIDLabel: graphID},
+		}, nil
 	}
 	client.NetworkInspectFunc = func(context.Context, string) (containertypes.NetworkInfo, error) {
-		return containertypes.NetworkInfo{}, nil
+		return containertypes.NetworkInfo{
+			Labels: map[string]string{resource.GraphIDLabel: graphID},
+		}, nil
 	}
 
 	env := NewEnv(

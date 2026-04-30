@@ -12,6 +12,7 @@ import (
 	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/devenv/pkg/container/mock"
 	"altinn.studio/devenv/pkg/container/types"
+	"altinn.studio/devenv/pkg/resource"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	"altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/config"
@@ -38,7 +39,7 @@ func TestStatus_RunningRequiresAllCoreContainers(t *testing.T) {
 			wantRunning:    true,
 			wantAnyRunning: true,
 		},
-		"all core containers running without pgadmin": {
+		"optional pgadmin stale": {
 			states: map[string]types.ContainerState{
 				localtest.ContainerLocaltest:        {Status: "running", Running: true},
 				localtest.ContainerPDF3:             {Status: "running", Running: true},
@@ -46,7 +47,7 @@ func TestStatus_RunningRequiresAllCoreContainers(t *testing.T) {
 				localtest.ContainerWorkflowEngine:   {Status: "running", Running: true},
 				localtest.ContainerPgAdmin:          {Status: "exited", Running: false},
 			},
-			wantRunning:    true,
+			wantRunning:    false,
 			wantAnyRunning: true,
 		},
 		"one running one exited": {
@@ -83,7 +84,7 @@ func TestStatus_RunningRequiresAllCoreContainers(t *testing.T) {
 				if !ok {
 					return types.ContainerInfo{}, types.ErrContainerNotFound
 				}
-				return types.ContainerInfo{State: state}, nil
+				return managedContainerInfo(state), nil
 			}
 
 			env := newTestEnv(client)
@@ -109,7 +110,7 @@ func TestStatus_ReturnsErrorForNonNotFoundStateError(t *testing.T) {
 		if nameOrID == localtest.ContainerPDF3 {
 			return types.ContainerInfo{}, errStateUnavailable
 		}
-		return types.ContainerInfo{State: types.ContainerState{Status: "running", Running: true}}, nil
+		return managedContainerInfo(types.ContainerState{Status: "running", Running: true}), nil
 	}
 
 	env := newTestEnv(client)
@@ -117,6 +118,32 @@ func TestStatus_ReturnsErrorForNonNotFoundStateError(t *testing.T) {
 	if !errors.Is(err, errStateUnavailable) {
 		t.Fatalf("Status() error = %v, want wrapped %v", err, errStateUnavailable)
 	}
+}
+
+func TestStatus_HidesAbsentOptionalContainers(t *testing.T) {
+	t.Parallel()
+
+	coreState := types.ContainerState{Status: "running", Running: true}
+	client := mock.New()
+	client.ContainerInspectFunc = func(_ context.Context, nameOrID string) (types.ContainerInfo, error) {
+		switch nameOrID {
+		case localtest.ContainerLocaltest,
+			localtest.ContainerPDF3,
+			localtest.ContainerWorkflowEngineDb,
+			localtest.ContainerWorkflowEngine:
+			return managedContainerInfo(coreState), nil
+		default:
+			return types.ContainerInfo{}, types.ErrContainerNotFound
+		}
+	}
+
+	env := newTestEnv(client)
+	status, err := env.Status(context.Background())
+	if err != nil {
+		t.Fatalf("Status() error = %v", err)
+	}
+	assertContainerStatusAbsent(t, status, localtest.ContainerPgAdmin)
+	assertContainerStatusAbsent(t, status, localtest.ContainerMonitoringGrafana)
 }
 
 func TestStatusForUp_IncludesPgAdminWhenRequested(t *testing.T) {
@@ -127,7 +154,7 @@ func TestStatusForUp_IncludesPgAdminWhenRequested(t *testing.T) {
 		if nameOrID == localtest.ContainerPgAdmin {
 			return types.ContainerInfo{}, types.ErrContainerNotFound
 		}
-		return types.ContainerInfo{State: types.ContainerState{Status: "running", Running: true}}, nil
+		return managedContainerInfo(types.ContainerState{Status: "running", Running: true}), nil
 	}
 
 	env := newTestEnv(client)
@@ -137,6 +164,146 @@ func TestStatusForUp_IncludesPgAdminWhenRequested(t *testing.T) {
 	}
 	if status.Running {
 		t.Fatal("StatusForUp().Running = true, want false when pgadmin is requested but missing")
+	}
+}
+
+func TestStatusForUp_RequiresUnrequestedPgAdminDestroyed(t *testing.T) {
+	t.Parallel()
+
+	client := mock.New()
+	client.ContainerInspectFunc = func(_ context.Context, _ string) (types.ContainerInfo, error) {
+		return managedContainerInfo(types.ContainerState{Status: "running", Running: true}), nil
+	}
+
+	env := newTestEnv(client)
+	status, err := env.StatusForUp(context.Background(), envtypes.UpOptions{})
+	if err != nil {
+		t.Fatalf("StatusForUp() error = %v", err)
+	}
+	if status.Running {
+		t.Fatal("StatusForUp().Running = true, want false when unrequested pgadmin is running")
+	}
+}
+
+func TestStatus_TreatsPresentOptionalContainerAsRunning(t *testing.T) {
+	t.Parallel()
+
+	client := mock.New()
+	client.ContainerInspectFunc = func(_ context.Context, _ string) (types.ContainerInfo, error) {
+		return managedContainerInfo(types.ContainerState{Status: "running", Running: true}), nil
+	}
+
+	env := newTestEnv(client)
+	status, err := env.Status(context.Background())
+	if err != nil {
+		t.Fatalf("Status() error = %v", err)
+	}
+	if !status.Running {
+		t.Fatal("Status().Running = false, want true when visible optional containers are running")
+	}
+	assertContainerStatus(t, status, localtest.ContainerPgAdmin, "running")
+}
+
+func TestStatusForUp_IncludesMonitoringWhenRequested(t *testing.T) {
+	t.Parallel()
+
+	coreState := types.ContainerState{Status: "running", Running: true}
+	client := mock.New()
+	client.ContainerInspectFunc = func(_ context.Context, nameOrID string) (types.ContainerInfo, error) {
+		switch nameOrID {
+		case localtest.ContainerLocaltest,
+			localtest.ContainerPDF3,
+			localtest.ContainerWorkflowEngineDb,
+			localtest.ContainerWorkflowEngine:
+			return managedContainerInfo(coreState), nil
+		default:
+			return types.ContainerInfo{}, types.ErrContainerNotFound
+		}
+	}
+
+	env := newTestEnv(client)
+	status, err := env.StatusForUp(context.Background(), envtypes.UpOptions{Monitoring: true})
+	if err != nil {
+		t.Fatalf("StatusForUp() error = %v", err)
+	}
+	if status.Running {
+		t.Fatal("StatusForUp().Running = true, want false when monitoring is requested but missing")
+	}
+	assertContainerStatus(t, status, localtest.ContainerMonitoringGrafana, "not found")
+}
+
+func TestStatus_IgnoresUnmanagedNameCollisions(t *testing.T) {
+	t.Parallel()
+
+	client := mock.New()
+	client.ContainerInspectFunc = func(context.Context, string) (types.ContainerInfo, error) {
+		return types.ContainerInfo{
+			State:  types.ContainerState{Status: "running", Running: true},
+			Labels: map[string]string{},
+		}, nil
+	}
+
+	env := newTestEnv(client)
+	status, err := env.Status(context.Background())
+	if err != nil {
+		t.Fatalf("Status() error = %v", err)
+	}
+	if status.Running {
+		t.Fatal("Status().Running = true, want false")
+	}
+	if status.AnyRunning {
+		t.Fatal("Status().AnyRunning = true, want false")
+	}
+}
+
+func TestDown_IgnoresUnmanagedNameCollision(t *testing.T) {
+	t.Parallel()
+
+	client := mock.New()
+	client.ContainerInspectFunc = func(_ context.Context, nameOrID string) (types.ContainerInfo, error) {
+		if nameOrID != localtest.ContainerLocaltest {
+			return types.ContainerInfo{}, types.ErrContainerNotFound
+		}
+		return types.ContainerInfo{
+			State:  types.ContainerState{Status: "running", Running: true},
+			Labels: map[string]string{},
+		}, nil
+	}
+	client.ContainerRemoveFunc = func(context.Context, string, bool) error {
+		t.Fatal("ContainerRemove called for unmanaged container")
+		return nil
+	}
+
+	env := newTestEnv(client)
+	err := env.Down(context.Background())
+	if !errors.Is(err, envtypes.ErrAlreadyStopped) {
+		t.Fatalf("Down() error = %v, want ErrAlreadyStopped", err)
+	}
+}
+
+func TestDown_StopsStaleManagedResources(t *testing.T) {
+	t.Parallel()
+
+	client := mock.New()
+	var removedContainer string
+	client.ListContainersFunc = func(context.Context, types.ContainerListFilter) ([]types.ContainerInfo, error) {
+		return []types.ContainerInfo{{
+			ID:     "stale-container-id",
+			Name:   "stale-container",
+			Labels: map[string]string{resource.GraphIDLabel: testGraphID},
+		}}, nil
+	}
+	client.ContainerRemoveFunc = func(_ context.Context, nameOrID string, _ bool) error {
+		removedContainer = nameOrID
+		return nil
+	}
+
+	env := newTestEnv(client)
+	if err := env.Down(context.Background()); err != nil {
+		t.Fatalf("Down() error = %v", err)
+	}
+	if removedContainer != "stale-container-id" {
+		t.Fatalf("removed container = %q, want stale-container-id", removedContainer)
 	}
 }
 
@@ -194,6 +361,35 @@ func TestLogs_JSONOutputsOneObjectPerLine(t *testing.T) {
 	}
 }
 
+func managedContainerInfo(state types.ContainerState) types.ContainerInfo {
+	return types.ContainerInfo{
+		State:  state,
+		Labels: map[string]string{resource.GraphIDLabel: testGraphID},
+	}
+}
+
+func assertContainerStatus(t *testing.T, status *localtest.Status, name string, want string) {
+	t.Helper()
+	for _, entry := range status.Containers {
+		if entry.Name == name {
+			if entry.Status != want {
+				t.Fatalf("container %q status = %q, want %q", name, entry.Status, want)
+			}
+			return
+		}
+	}
+	t.Fatalf("container %q missing from status", name)
+}
+
+func assertContainerStatusAbsent(t *testing.T, status *localtest.Status, name string) {
+	t.Helper()
+	for _, entry := range status.Containers {
+		if entry.Name == name {
+			t.Fatalf("container %q present in status with status %q, want absent", name, entry.Status)
+		}
+	}
+}
+
 func newTestEnv(client container.ContainerClient) *localtest.Env {
 	return localtest.NewEnv(
 		&config.Config{Images: testImages()},
@@ -210,6 +406,13 @@ func testImages() config.ImagesConfig {
 			WorkflowEngineDb: config.ImageSpec{Image: "postgres", Tag: "18"},
 			WorkflowEngine:   config.ImageSpec{Image: "ghcr.io/altinn/test-workflow-engine", Tag: "latest"},
 			PgAdmin:          config.ImageSpec{Image: "dpage/pgadmin4", Tag: "latest"},
+		},
+		Monitoring: config.MonitoringImages{
+			Tempo:         config.ImageSpec{Image: "grafana/tempo", Tag: "latest"},
+			Mimir:         config.ImageSpec{Image: "grafana/mimir", Tag: "latest"},
+			Loki:          config.ImageSpec{Image: "grafana/loki", Tag: "latest"},
+			OtelCollector: config.ImageSpec{Image: "otel/opentelemetry-collector-contrib", Tag: "latest"},
+			Grafana:       config.ImageSpec{Image: "grafana/grafana", Tag: "latest"},
 		},
 	}
 }

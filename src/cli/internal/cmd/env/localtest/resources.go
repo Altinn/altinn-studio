@@ -17,11 +17,8 @@ import (
 )
 
 const (
-	// LabelKey is the label used to identify studioctl-managed resources.
-	LabelKey = "altinn.studio/cli"
-
-	// LabelValue is the value for the localtest runtime.
-	LabelValue = "localtest"
+	// graphID scopes devenv ownership labels to studioctl's localtest graph.
+	graphID = "studioctl-localtest"
 
 	// NetworkName is the name of the localtest network.
 	NetworkName = "altinntestlocal_network"
@@ -512,7 +509,6 @@ func buildResources(opts ResourceBuildOptions) []resource.Resource {
 	mon := monitoringContainers(opts.DataDir, opts.Topology)
 	coreImages := buildCoreImages(opts)
 	monImages := monitoringImageRefs(opts.Images.Monitoring)
-	labels := map[string]string{LabelKey: LabelValue}
 
 	capacity := 1 + len(core)*2 + len(mon)*2
 	resources := make([]resource.Resource, 0, capacity)
@@ -521,7 +517,7 @@ func buildResources(opts ResourceBuildOptions) []resource.Resource {
 		Enabled: nil,
 		Name:    NetworkName,
 		Driver:  "bridge",
-		Labels:  labels,
+		Labels:  nil,
 		Lifecycle: resource.LifecycleOptions{
 			// When apps are started with `studioctl run --mode container ..`
 			// we might have active containers attached to the network
@@ -531,6 +527,7 @@ func buildResources(opts ResourceBuildOptions) []resource.Resource {
 				}
 				return resource.ErrorDecisionDefault
 			},
+			RetainOnDestroy: false,
 		},
 	}
 	resources = append(resources, network)
@@ -546,7 +543,6 @@ func buildResources(opts ResourceBuildOptions) []resource.Resource {
 			spec,
 			coreImages[spec.Name],
 			resource.Ref(network),
-			labels,
 			opts.RuntimeConfig.User,
 			resourceEnabledRef(enabled),
 		))
@@ -564,7 +560,6 @@ func buildResources(opts ResourceBuildOptions) []resource.Resource {
 			spec,
 			image,
 			resource.Ref(network),
-			labels,
 			"", // Monitoring containers use default user (config mounts are read-only)
 			resourceEnabledRef(opts.IncludeMonitoring),
 		))
@@ -595,7 +590,6 @@ func newContainerResource(
 	spec *ContainerSpec,
 	imageRes resource.ImageResource,
 	network resource.ResourceRef,
-	labels map[string]string,
 	user string,
 	enabled *bool,
 ) *resource.Container {
@@ -614,12 +608,13 @@ func newContainerResource(
 		Ports:       spec.Ports,
 		Volumes:     spec.Volumes,
 		Env:         toEnvSlice(spec.Environment),
-		Labels:      labels,
+		Labels:      nil,
 		Command:     spec.Command,
 		ExtraHosts:  spec.ExtraHosts,
 		Lifecycle: resource.ContainerLifecycleOptions{
 			LifecycleOptions: resource.LifecycleOptions{
 				HandleDestroyError: nil,
+				RetainOnDestroy:    false,
 			},
 			WaitForReady: true,
 		},

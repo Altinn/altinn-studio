@@ -12,37 +12,96 @@ func newRenderModel(
 	operation Operation,
 	statuses map[resource.ResourceID]resource.Status,
 ) *renderModel {
+	return newRenderModelResources(renderResourcesFromResources(resources), operation, statuses)
+}
+
+func newRenderModelPlanned(
+	resources []resource.PlannedResource,
+	operation Operation,
+	statuses map[resource.ResourceID]resource.Status,
+) *renderModel {
+	return newRenderModelResources(renderResourcesFromPlan(resources), operation, statuses)
+}
+
+type renderResource struct {
+	id      resource.ResourceID
+	imageID resource.ResourceID
+	name    string
+}
+
+func renderResourcesFromResources(resources []resource.Resource) []renderResource {
+	rows := make([]renderResource, 0, len(resources))
+	for _, res := range resources {
+		if row, ok := renderResourceFromResource(res, res.ID()); ok {
+			rows = append(rows, row)
+		}
+	}
+	return rows
+}
+
+func renderResourcesFromPlan(resources []resource.PlannedResource) []renderResource {
+	rows := make([]renderResource, 0, len(resources))
+	for _, res := range resources {
+		if row, ok := renderResourceFromResource(res.Resource, res.ID); ok {
+			rows = append(rows, row)
+			continue
+		}
+		if res.Resource != nil {
+			continue
+		}
+		rows = append(rows, renderResource{
+			id:      res.ID,
+			imageID: "",
+			name:    renderNameFromID(res.ID),
+		})
+	}
+	return rows
+}
+
+func renderResourceFromResource(res resource.Resource, id resource.ResourceID) (renderResource, bool) {
+	switch res := res.(type) {
+	case *resource.Network:
+		return renderResource{id: id, imageID: "", name: res.Name}, true
+	case *resource.Container:
+		return renderResource{id: id, imageID: res.Image.ID(), name: res.Name}, true
+	default:
+		return renderResource{id: "", imageID: "", name: ""}, false
+	}
+}
+
+func renderNameFromID(id resource.ResourceID) string {
+	value := id.String()
+	if name, ok := strings.CutPrefix(value, "container:"); ok {
+		return name
+	}
+	if name, ok := strings.CutPrefix(value, "network:"); ok {
+		return name
+	}
+	return value
+}
+
+func newRenderModelResources(
+	resources []renderResource,
+	operation Operation,
+	statuses map[resource.ResourceID]resource.Status,
+) *renderModel {
 	rowMap := make(map[string]*progressRow)
 	order := make([]string, 0)
 	resourceToRows := make(map[resource.ResourceID][]string)
 	imageToContainers := make(map[resource.ResourceID][]string)
 
 	for _, res := range resources {
-		if skipInitialResource(res, operation, statuses) {
+		if skipInitialResource(res.id, operation, statuses) {
 			continue
 		}
 
-		switch res := res.(type) {
-		case *resource.Network:
-			if _, exists := rowMap[res.Name]; !exists {
-				rowMap[res.Name] = newProgressRow(res.Name)
-				order = append(order, res.Name)
-			}
-			resourceToRows[res.ID()] = append(resourceToRows[res.ID()], res.Name)
-		case *resource.Container:
-			if _, exists := rowMap[res.Name]; !exists {
-				rowMap[res.Name] = newProgressRow(res.Name)
-				order = append(order, res.Name)
-			}
-
-			resourceToRows[res.ID()] = append(
-				resourceToRows[res.ID()],
-				res.Name,
-			)
-			imageToContainers[res.Image.ID()] = append(
-				imageToContainers[res.Image.ID()],
-				res.Name,
-			)
+		if _, exists := rowMap[res.name]; !exists {
+			rowMap[res.name] = newProgressRowFromStatus(res.name, operation, statuses[res.id])
+			order = append(order, res.name)
+		}
+		resourceToRows[res.id] = append(resourceToRows[res.id], res.name)
+		if res.imageID != "" {
+			imageToContainers[res.imageID] = append(imageToContainers[res.imageID], res.name)
 		}
 	}
 
@@ -65,15 +124,31 @@ func newRenderModel(
 }
 
 func skipInitialResource(
-	res resource.Resource,
+	id resource.ResourceID,
 	operation Operation,
 	statuses map[resource.ResourceID]resource.Status,
 ) bool {
 	if operation != OperationDestroy || statuses == nil {
 		return false
 	}
-	status, ok := statuses[res.ID()]
+	status, ok := statuses[id]
 	return ok && status == resource.StatusDestroyed
+}
+
+func newProgressRowFromStatus(
+	name string,
+	operation Operation,
+	status resource.Status,
+) *progressRow {
+	row := newProgressRow(name)
+	if operation != OperationApply || status != resource.StatusReady {
+		return row
+	}
+
+	row.state = stateReady
+	row.current = rowProgressComplete
+	row.total = rowProgressComplete
+	return row
 }
 
 func newProgressRow(name string) *progressRow {
@@ -281,15 +356,12 @@ func isTerminalState(state string) bool {
 	return state == stateReady || state == stateRemoved || isTerminalUnsuccessfulState(state)
 }
 
-func isTerminalUnsuccessfulState(state string) bool {
-	return state == stateFailed || state == stateCanceled
+func isSuccessfulState(state string) bool {
+	return state == stateReady || state == stateRemoved
 }
 
-func (o Operation) successState() string {
-	if o == OperationDestroy {
-		return stateRemoved
-	}
-	return stateReady
+func isTerminalUnsuccessfulState(state string) bool {
+	return state == stateFailed || state == stateCanceled
 }
 
 func (o Operation) successLabel() string {
