@@ -2,7 +2,7 @@ import './styles/index.css';
 import { AppContextProvider } from './AppContext';
 import { App as FormDesigner } from './App';
 import { FormDesignerNavigation } from './containers/FormDesignNavigation';
-import { Outlet, Route, Routes } from 'react-router-dom';
+import { Outlet, Route, Routes, useParams } from 'react-router-dom';
 
 type SubAppProps = {
   shouldReloadPreview: boolean;
@@ -11,8 +11,10 @@ type SubAppProps = {
 };
 
 const App = (props: SubAppProps) => {
+  const { layoutSet } = useParams();
+
   return (
-    <AppContextProvider {...props}>
+    <AppContextProvider key={layoutSet ?? 'default'} {...props}>
       <Outlet />
     </AppContextProvider>
   );
