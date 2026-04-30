@@ -88,6 +88,27 @@ public class WorkflowCollectionTests
     }
 
     [Fact]
+    public void ComputeNewHeads_InvisibleSideChainByRef_DoesNotBlockVisibleParentFromBecomingHead()
+    {
+        // Arrange: main -> invisible side, so main should still be treated as the visible leaf/head.
+        var mainId = Guid.NewGuid();
+        var sideId = Guid.NewGuid();
+        var requests = new[]
+        {
+            CreateRequest("main"),
+            CreateRequest("side", dependsOn: [WorkflowRef.FromRefString("main")], isHead: false),
+        };
+        var workflows = new[] { CreateWorkflow(mainId), CreateWorkflow(sideId) };
+
+        // Act
+        var heads = EngineRepository.ComputeNewHeads(requests, workflows, [], []);
+
+        // Assert
+        Assert.Single(heads);
+        Assert.Equal(mainId, heads[0]);
+    }
+
+    [Fact]
     public void ComputeNewHeads_Diamond_OnlyLeafIsHead()
     {
         // Arrange: A -> B, A -> C, B -> D, C -> D (diamond: only D is leaf)

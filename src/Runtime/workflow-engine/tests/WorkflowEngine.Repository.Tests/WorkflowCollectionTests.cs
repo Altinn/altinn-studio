@@ -441,6 +441,38 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
     }
 
     [Fact]
+    public async Task Enqueue_InvisibleSideChainByRef_DoesNotPreventVisibleParentFromBecomingHead()
+    {
+        // Arrange
+        var repo = fixture.CreateRepository();
+        var main = CreateWorkflowRequest("main");
+        var side = CreateWorkflowRequest("side", dependsOn: [WorkflowRef.FromRefString("main")], isHead: false);
+
+        // Act
+        var results = await EnqueueWithCollection(repo, "invisible-ref-side-chain", [main, side]);
+        var mainId = results[0].WorkflowIds![0];
+        var sideId = results[0].WorkflowIds![1];
+
+        // Assert — only the visible workflow becomes the collection head
+        var collection = await repo.GetCollection(
+            "invisible-ref-side-chain",
+            "test-ns",
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(collection);
+        Assert.Single(collection.Heads);
+        Assert.Equal(mainId, collection.Heads[0].DatabaseId);
+
+        // Assert — execution ordering still includes the side-chain dependency
+        await using var context = fixture.CreateDbContext();
+        var sideEntity = await context
+            .Workflows.Include(w => w.Dependencies)
+            .SingleAsync(w => w.Id == sideId, TestContext.Current.CancellationToken);
+        Assert.NotNull(sideEntity.Dependencies);
+        Assert.Contains(sideEntity.Dependencies, d => d.Id == mainId);
+    }
+
+    [Fact]
     public async Task Enqueue_IsHeadFalse_NextBatch_StillDependsOnOriginalHeads()
     {
         // Arrange — create a collection, enqueue invisible side-chain, then enqueue a third batch

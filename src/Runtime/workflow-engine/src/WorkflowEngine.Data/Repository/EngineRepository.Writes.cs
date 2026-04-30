@@ -811,8 +811,11 @@ internal sealed partial class EngineRepository
         var dependedOnRefs = new HashSet<string>();
         foreach (var req in workflowRequests)
         {
-            if (req.DependsOn is null)
+            if (req.DependsOn is null || req.IsHead == false)
+            {
                 continue;
+            }
+
             foreach (var dep in req.DependsOn)
             {
                 if (dep.IsRef)
