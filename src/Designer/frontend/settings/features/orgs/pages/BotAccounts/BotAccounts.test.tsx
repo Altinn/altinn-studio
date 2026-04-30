@@ -79,6 +79,8 @@ const renderBotAccounts = (botAccounts?: BotAccount[], initialEntries = ['/ttd/s
 };
 
 describe('BotAccounts', () => {
+  afterEach(() => jest.clearAllMocks());
+
   it('renders the loading spinner while data is pending', () => {
     renderBotAccounts();
     expect(screen.getByTestId('studio-spinner-test-id')).toBeInTheDocument();

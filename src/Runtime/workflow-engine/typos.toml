@@ -1,0 +1,18 @@
+[files]
+extend-exclude = [
+    "**/wwwroot/**",
+    "**/.k6/**",
+    "**/bin/**",
+    "**/obj/**",
+    "*.svg",
+    "*.drawio*",
+    "**/docs/presentation/**"
+]
+
+[default]
+locale = "en-us"
+
+[default.extend-words]
+# Domain words and acronyms that should not be flagged.
+# Add entries as `word = "word"` to whitelist a token.
+OCE = "OCE" # OperationCanceledException

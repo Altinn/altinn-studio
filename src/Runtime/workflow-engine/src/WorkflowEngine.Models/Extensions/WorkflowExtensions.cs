@@ -1,5 +1,8 @@
 namespace WorkflowEngine.Models.Extensions;
 
+/// <summary>
+/// Helpers for inspecting and projecting <see cref="Workflow"/> data.
+/// </summary>
 public static class WorkflowExtensions
 {
     extension(Workflow workflow)
@@ -54,6 +57,6 @@ public static class WorkflowExtensions
         /// <summary>
         /// Step metadata useful for enriching telemetry histograms.
         /// </summary>
-        public (string key, object? value)[] GetHistorgramTags() => [("workflow.operation.id", workflow.OperationId)];
+        public (string key, object? value)[] GetHistogramTags() => [("workflow.operation.id", workflow.OperationId)];
     }
 }

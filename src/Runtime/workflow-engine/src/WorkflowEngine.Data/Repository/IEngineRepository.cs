@@ -159,7 +159,7 @@ internal interface IEngineRepository
 
     /// <summary>
     /// Returns the subset of <paramref name="inFlightIds"/> that have a non-null <c>CancellationRequestedAt</c>.
-    /// Used by <see cref="WorkflowEngine.Core.CancellationWatcherService"/> for cross-pod cancellation propagation.
+    /// Used by <c>WorkflowEngine.Core.CancellationWatcherService</c> for cross-pod cancellation propagation.
     /// </summary>
     Task<IReadOnlyList<Guid>> GetPendingCancellations(
         IReadOnlyList<Guid> inFlightIds,

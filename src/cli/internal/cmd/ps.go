@@ -85,9 +85,10 @@ func (c *AppPsCommand) RunWithCommandPath(ctx context.Context, args []string, co
 		return fmt.Errorf("get app-manager status: %w", err)
 	}
 
+	apps := appPsAppsOutput(sortDiscoveredApps(filterApps(status.Apps, appID, false)))
 	return appPsOutput{
-		Running:    true,
-		Apps:       appPsAppsOutput(sortDiscoveredApps(filterApps(status.Apps, appID, false))),
+		Running:    len(apps) > 0,
+		Apps:       apps,
 		JSONOutput: flags.jsonOutput,
 	}.Print(c.out)
 }

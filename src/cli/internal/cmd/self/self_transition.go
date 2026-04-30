@@ -114,6 +114,44 @@ func (t *Transition) RunMigrations(ctx context.Context) error {
 	return nil
 }
 
+// ResetEnvs removes persisted environment data before uninstall.
+func (t *Transition) ResetEnvs(ctx context.Context) error {
+	containerClient := t.containerClient
+	if containerClient == nil {
+		containerClient = container.Detect
+	}
+	client, err := containerClient(ctx)
+	if err != nil {
+		return fmt.Errorf("connect to container runtime: %w", err)
+	}
+	defer func() {
+		if closeErr := client.Close(); closeErr != nil {
+			t.out.Verbosef("failed to close container client: %v", closeErr)
+		}
+	}()
+
+	envs, err := envregistry.Envs(
+		envregistry.WithConfig(t.cfg),
+		envregistry.WithOutput(t.out),
+		envregistry.WithContainerClient(client),
+	)
+	if err != nil {
+		return fmt.Errorf("build environment registry: %w", err)
+	}
+
+	for _, env := range envs {
+		resetter, ok := env.(envtypes.Resetter)
+		if !ok {
+			continue
+		}
+		if err := resetter.Reset(ctx); err != nil {
+			return fmt.Errorf("reset %s before uninstall: %w", env.Name(), err)
+		}
+	}
+
+	return nil
+}
+
 // Restore restarts app-manager after a failed self operation when it was previously running.
 func (t *Transition) Restore(
 	ctx context.Context,
