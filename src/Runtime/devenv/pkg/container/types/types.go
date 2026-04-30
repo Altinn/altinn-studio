@@ -210,6 +210,11 @@ type ContainerListFilter struct {
 	All    bool
 }
 
+// NetworkListFilter restricts network listing.
+type NetworkListFilter struct {
+	Labels map[string]string
+}
+
 // VolumeMountType defines the source type for a container volume mount.
 type VolumeMountType string
 
