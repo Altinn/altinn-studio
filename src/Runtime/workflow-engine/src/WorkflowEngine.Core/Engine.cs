@@ -211,11 +211,11 @@ internal sealed class Engine(
         );
 
         // Validate input size limits before expensive graph validation or command deserialization
-        var sizeResult = ValidateInputSizeLimits(request, metadata);
-        if (sizeResult is SizeLimitValidationResult.Invalid sizeError)
+        var constraintResult = ValidateRequestConstraints(request, metadata);
+        if (constraintResult is RequestConstraintValidationResult.Invalid constraintError)
         {
-            activity?.Errored(errorMessage: sizeError.Message);
-            return new WorkflowEnqueueResponse.Rejected.Invalid(sizeError.Message);
+            activity?.Errored(errorMessage: constraintError.Message);
+            return new WorkflowEnqueueResponse.Rejected.Invalid(constraintError.Message);
         }
 
         IReadOnlyList<WorkflowRequest> sortedRequests;
@@ -434,20 +434,20 @@ internal sealed class Engine(
     }
 
     /// <summary>
-    /// Validates that the request does not exceed input size limits.
+    /// Validates request-level constraints before more expensive graph and command validation.
     /// </summary>
-    private SizeLimitValidationResult ValidateInputSizeLimits(
+    private RequestConstraintValidationResult ValidateRequestConstraints(
         WorkflowEnqueueRequest request,
         WorkflowRequestMetadata metadata
     )
     {
         if (request.Workflows.Count > _settings.MaxWorkflowsPerRequest)
-            return new SizeLimitValidationResult.Invalid(
+            return new RequestConstraintValidationResult.Invalid(
                 $"Request contains {request.Workflows.Count} workflows, maximum is {_settings.MaxWorkflowsPerRequest}."
             );
 
         if (request.Labels is not null && request.Labels.Count > _settings.MaxLabels)
-            return new SizeLimitValidationResult.Invalid(
+            return new RequestConstraintValidationResult.Invalid(
                 $"Request contains {request.Labels.Count} labels, maximum is {_settings.MaxLabels}."
             );
 
@@ -455,10 +455,10 @@ internal sealed class Engine(
         if (metadata.CollectionKey is not null)
         {
             if (string.IsNullOrWhiteSpace(metadata.CollectionKey))
-                return new SizeLimitValidationResult.Invalid("CollectionKey cannot be empty or whitespace.");
+                return new RequestConstraintValidationResult.Invalid("CollectionKey cannot be empty or whitespace.");
 
             if (metadata.CollectionKey.Length > 200)
-                return new SizeLimitValidationResult.Invalid(
+                return new RequestConstraintValidationResult.Invalid(
                     $"CollectionKey '{metadata.CollectionKey[..50]}...' is {metadata.CollectionKey.Length} characters, maximum is 200."
                 );
         }
@@ -467,7 +467,7 @@ internal sealed class Engine(
         {
             var workflow = request.Workflows[i];
             if (workflow.Steps.Count > _settings.MaxStepsPerWorkflow)
-                return new SizeLimitValidationResult.Invalid(
+                return new RequestConstraintValidationResult.Invalid(
                     $"Workflow '{workflow.Ref ?? $"#{i}"}' contains {workflow.Steps.Count} steps, maximum is {_settings.MaxStepsPerWorkflow}."
                 );
 
@@ -475,12 +475,12 @@ internal sealed class Engine(
             {
                 var step = workflow.Steps[j];
                 if (step.Labels is not null && step.Labels.Count > _settings.MaxLabels)
-                    return new SizeLimitValidationResult.Invalid(
+                    return new RequestConstraintValidationResult.Invalid(
                         $"Step '{step.OperationId}' in workflow '{workflow.Ref ?? $"#{i}"}' contains {step.Labels.Count} labels, maximum is {_settings.MaxLabels}."
                     );
             }
         }
 
-        return new SizeLimitValidationResult.Valid();
+        return new RequestConstraintValidationResult.Valid();
     }
 }
