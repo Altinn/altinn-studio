@@ -1,9 +1,13 @@
-import { useEffect, useEffectEvent, useRef } from 'react';
+import { useEffect, useEffectEvent } from 'react';
 import { useLocation } from 'react-router';
 import type { Location } from 'react-router';
 
 import { loadingAttribute, useHasElementsByAttribute } from 'src/components/ReadyForPrint';
 import { useIsLoading } from 'src/core/loading/LoadingContext';
+import {
+  useHandledNavigationKey,
+  useSetHandledNavigationKey,
+} from 'src/features/navigation/NavigationFocusStateContext';
 import type { NavigationState } from 'src/types/NavigationState';
 
 /**
@@ -19,16 +23,16 @@ export function NavigationFocus(): null {
   const hasLoaders = useHasElementsByAttribute(loadingAttribute);
   const isLoading = isLoadingResult || hasLoaders;
 
-  // We don't want to move focus on first render, so we mark the current navigation key as handled.
-  const handledKeyRef = useRef<string | null>(key);
+  const handledNavigationKey = useHandledNavigationKey();
+  const setHandledNavigationKey = useSetHandledNavigationKey();
 
   const handleOnNavigate = useEffectEvent((key: string, isLoading: boolean) => {
-    if (handledKeyRef.current === key) {
+    if (handledNavigationKey === key) {
       return;
     }
 
     if (state?.preventFocusReset) {
-      handledKeyRef.current = key;
+      setHandledNavigationKey(key);
       return;
     }
 
@@ -37,7 +41,7 @@ export function NavigationFocus(): null {
     }
 
     document.getElementById('main-content')?.focus({ preventScroll: true });
-    handledKeyRef.current = key;
+    setHandledNavigationKey(key);
   });
 
   useEffect(() => {

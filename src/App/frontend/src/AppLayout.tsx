@@ -10,6 +10,7 @@ import { ViewportWrapper } from 'src/components/ViewportWrapper';
 import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
+import { NavigationFocusStateProvider } from 'src/features/navigation/NavigationFocusStateContext';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { PartyPrefetcher } from 'src/queries/partyPrefetcher';
 
@@ -17,27 +18,29 @@ export function AppLayout() {
   return (
     <>
       <AppComponentsBridge>
-        <ErrorBoundary>
-          <ViewportWrapper>
-            <UiConfigProvider>
-              <InstantiationUrlReset />
-              <GlobalFormDataReadersProvider>
-                <PartyProvider>
-                  <KeepAliveProvider>
-                    <Outlet />
-                    <ToastContainer
-                      position='top-center'
-                      theme='colored'
-                      transition={Slide}
-                      draggable={false}
-                    />
-                  </KeepAliveProvider>
-                </PartyProvider>
-                <PartyPrefetcher />
-              </GlobalFormDataReadersProvider>
-            </UiConfigProvider>
-          </ViewportWrapper>
-        </ErrorBoundary>
+        <NavigationFocusStateProvider>
+          <ErrorBoundary>
+            <ViewportWrapper>
+              <UiConfigProvider>
+                <InstantiationUrlReset />
+                <GlobalFormDataReadersProvider>
+                  <PartyProvider>
+                    <KeepAliveProvider>
+                      <Outlet />
+                      <ToastContainer
+                        position='top-center'
+                        theme='colored'
+                        transition={Slide}
+                        draggable={false}
+                      />
+                    </KeepAliveProvider>
+                  </PartyProvider>
+                  <PartyPrefetcher />
+                </GlobalFormDataReadersProvider>
+              </UiConfigProvider>
+            </ViewportWrapper>
+          </ErrorBoundary>
+        </NavigationFocusStateProvider>
       </AppComponentsBridge>
       <ScrollRestoration />
     </>

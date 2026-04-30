@@ -1,9 +1,9 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { NavigationFocus } from 'src/components/NavigationFocus';
 import { DevTools } from 'src/features/devtools/DevTools';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
+import { NavigationFocus } from 'src/features/navigation/NavigationFocus';
 
 interface Props extends PropsWithChildren {
   devTools?: boolean;

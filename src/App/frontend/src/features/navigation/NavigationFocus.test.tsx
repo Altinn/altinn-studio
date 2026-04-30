@@ -4,8 +4,9 @@ import { MemoryRouter, Route, Routes, useNavigate } from 'react-router';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import { NavigationFocus } from 'src/components/NavigationFocus';
 import { LoadingProvider } from 'src/core/loading/LoadingContext';
+import { NavigationFocus } from 'src/features/navigation/NavigationFocus';
+import { NavigationFocusStateProvider } from 'src/features/navigation/NavigationFocusStateContext';
 
 function TriggerNavigation({ preventFocusReset = false }: { preventFocusReset?: boolean }) {
   const navigate = useNavigate();
@@ -37,23 +38,27 @@ function LoadingWrapper({ isLoading, children }: React.PropsWithChildren<{ isLoa
 function TestComponent({ preventFocusReset = false, isLoading = false }: TestComponentProps) {
   return (
     <MemoryRouter initialEntries={['/']}>
-      <LoadingWrapper isLoading={isLoading}>
-        <NavigationFocus />
-      </LoadingWrapper>
-      <main
-        id='main-content'
-        tabIndex={-1}
-      />
-      <Routes>
-        <Route
-          path='/'
-          element={<TriggerNavigation preventFocusReset={preventFocusReset} />}
-        />
-        <Route
-          path='/next'
-          element={<div>Next page</div>}
-        />
-      </Routes>
+      <NavigationFocusStateProvider>
+        <>
+          <LoadingWrapper isLoading={isLoading}>
+            <NavigationFocus />
+          </LoadingWrapper>
+          <main
+            id='main-content'
+            tabIndex={-1}
+          />
+          <Routes>
+            <Route
+              path='/'
+              element={<TriggerNavigation preventFocusReset={preventFocusReset} />}
+            />
+            <Route
+              path='/next'
+              element={<div>Next page</div>}
+            />
+          </Routes>
+        </>
+      </NavigationFocusStateProvider>
     </MemoryRouter>
   );
 }
