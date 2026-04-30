@@ -1,5 +1,5 @@
 import React from 'react';
-import { MemoryRouter, Route, Routes, useNavigate } from 'react-router';
+import { Link, MemoryRouter, Route, Routes } from 'react-router';
 
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
@@ -7,18 +7,19 @@ import { userEvent } from '@testing-library/user-event';
 import { LoadingProvider } from 'src/core/loading/LoadingContext';
 import { NavigationFocus } from 'src/features/navigation/NavigationFocus';
 import { NavigationFocusStateProvider } from 'src/features/navigation/NavigationFocusStateContext';
+import { NavigationState } from 'src/features/navigation/NavigationState';
 
-function TriggerNavigation({ preventFocusReset = false }: { preventFocusReset?: boolean }) {
-  const navigate = useNavigate();
-
+function HomeRoute() {
   return (
-    <button
-      onClick={() => {
-        navigate('/next', preventFocusReset ? { state: { preventFocusReset: true } } : undefined);
-      }}
-    >
-      Navigate
-    </button>
+    <>
+      <Link to='/next'>Navigate with reset</Link>
+      <Link
+        to='/next'
+        state={{ preventFocusReset: true } satisfies NavigationState}
+      >
+        Navigate without reset
+      </Link>
+    </>
   );
 }
 
@@ -35,29 +36,30 @@ function LoadingWrapper({ isLoading, children }: React.PropsWithChildren<{ isLoa
   return <LoadingProvider reason='loading'>{children}</LoadingProvider>;
 }
 
-function TestComponent({ preventFocusReset = false, isLoading = false }: TestComponentProps) {
+function TestComponent({ isLoading = false }: TestComponentProps) {
   return (
     <MemoryRouter initialEntries={['/']}>
       <NavigationFocusStateProvider>
-        <>
-          <LoadingWrapper isLoading={isLoading}>
-            <NavigationFocus />
-          </LoadingWrapper>
-          <main
-            id='main-content'
-            tabIndex={-1}
-          />
+        <main
+          id='main-content'
+          tabIndex={-1}
+        >
           <Routes>
             <Route
               path='/'
-              element={<TriggerNavigation preventFocusReset={preventFocusReset} />}
+              Component={HomeRoute}
             />
             <Route
               path='/next'
-              element={<div>Next page</div>}
+              element={
+                <LoadingWrapper isLoading={isLoading}>
+                  <NavigationFocus />
+                  <div>Next page</div>
+                </LoadingWrapper>
+              }
             />
           </Routes>
-        </>
+        </main>
       </NavigationFocusStateProvider>
     </MemoryRouter>
   );
@@ -69,7 +71,7 @@ describe('NavigationFocus', () => {
 
     expect(document.activeElement).not.toBe(document.getElementById('main-content'));
 
-    await userEvent.click(screen.getByRole('button', { name: 'Navigate' }));
+    await userEvent.click(screen.getByRole('link', { name: 'Navigate with reset' }));
     await screen.findByText('Next page');
 
     await waitFor(() => {
@@ -80,28 +82,23 @@ describe('NavigationFocus', () => {
   it('does not move focus to main-content when preventFocusReset is true', async () => {
     render(<TestComponent preventFocusReset />);
 
-    const mainContent = document.getElementById('main-content');
-
-    await userEvent.click(screen.getByRole('button', { name: 'Navigate' }));
+    await userEvent.click(screen.getByRole('link', { name: 'Navigate without reset' }));
 
     await screen.findByText('Next page');
 
-    expect(document.activeElement).not.toBe(mainContent);
+    expect(document.activeElement).not.toBe(document.getElementById('main-content'));
   });
 
   it('does not move focus while loading and moves focus when loading is removed', async () => {
     const { rerender } = render(<TestComponent isLoading />);
-    const mainContent = document.getElementById('main-content');
 
-    await userEvent.click(screen.getByRole('button', { name: 'Navigate' }));
+    await userEvent.click(screen.getByRole('link', { name: 'Navigate with reset' }));
     await screen.findByText('Next page');
 
-    expect(document.activeElement).not.toBe(mainContent);
+    expect(document.activeElement).not.toBe(document.getElementById('main-content'));
 
     rerender(<TestComponent isLoading={false} />);
 
-    await waitFor(() => {
-      expect(document.activeElement).toBe(mainContent);
-    });
+    expect(document.activeElement).toBe(document.getElementById('main-content'));
   });
 });
