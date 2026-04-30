@@ -13,11 +13,12 @@ import (
 )
 
 func TestSelfUninstallConfirmationRequiresYesWithoutTerminal(t *testing.T) {
-	withSelfInteractiveInput(t, func() (io.Reader, func() error, error) {
-		return nil, nil, errors.New("no terminal")
-	})
-
-	command := &SelfCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	command := &SelfCommand{
+		out: ui.NewOutput(io.Discard, io.Discard, false),
+		interactiveInput: func() (io.Reader, func() error, error) {
+			return nil, nil, io.ErrClosedPipe
+		},
+	}
 
 	proceed, err := command.confirmUninstallIfNeeded(context.Background(), selfUninstallFlags{})
 	if err == nil {
@@ -35,14 +36,15 @@ func TestSelfUninstallConfirmationRequiresYesWithoutTerminal(t *testing.T) {
 }
 
 func TestSelfUninstallRunRequiresConfirmationBeforePrepare(t *testing.T) {
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == osWindows {
 		t.Skip("self uninstall exits before confirmation on Windows")
 	}
-	withSelfInteractiveInput(t, func() (io.Reader, func() error, error) {
-		return nil, nil, errors.New("no terminal")
-	})
-
-	command := &SelfCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	command := &SelfCommand{
+		out: ui.NewOutput(io.Discard, io.Discard, false),
+		interactiveInput: func() (io.Reader, func() error, error) {
+			return nil, nil, io.ErrClosedPipe
+		},
+	}
 
 	err := command.runUninstall(context.Background(), nil)
 	if err == nil {
@@ -54,12 +56,13 @@ func TestSelfUninstallRunRequiresConfirmationBeforePrepare(t *testing.T) {
 }
 
 func TestSelfUninstallConfirmationYesSkipsPrompt(t *testing.T) {
-	withSelfInteractiveInput(t, func() (io.Reader, func() error, error) {
-		t.Fatal("selfInteractiveInput() called with --yes")
-		return nil, nil, nil
-	})
-
-	command := &SelfCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	command := &SelfCommand{
+		out: ui.NewOutput(io.Discard, io.Discard, false),
+		interactiveInput: func() (io.Reader, func() error, error) {
+			t.Fatal("interactiveInput() called with --yes")
+			return nil, nil, nil
+		},
+	}
 
 	proceed, err := command.confirmUninstallIfNeeded(
 		context.Background(),
@@ -75,15 +78,17 @@ func TestSelfUninstallConfirmationYesSkipsPrompt(t *testing.T) {
 
 func TestSelfUninstallConfirmationCancel(t *testing.T) {
 	cleanupCalled := false
-	withSelfInteractiveInput(t, func() (io.Reader, func() error, error) {
-		return strings.NewReader("n\n"), func() error {
-			cleanupCalled = true
-			return nil
-		}, nil
-	})
 
 	var out bytes.Buffer
-	command := &SelfCommand{out: ui.NewOutput(&out, io.Discard, false)}
+	command := &SelfCommand{
+		out: ui.NewOutput(&out, io.Discard, false),
+		interactiveInput: func() (io.Reader, func() error, error) {
+			return strings.NewReader("n\n"), func() error {
+				cleanupCalled = true
+				return nil
+			}, nil
+		},
+	}
 
 	proceed, err := command.confirmUninstallIfNeeded(context.Background(), selfUninstallFlags{})
 	if err != nil {
@@ -102,17 +107,4 @@ func TestSelfUninstallConfirmationCancel(t *testing.T) {
 	if !strings.Contains(got, "Uninstall cancelled") {
 		t.Fatalf("output = %q, want cancellation message", got)
 	}
-}
-
-func withSelfInteractiveInput(
-	t *testing.T,
-	input func() (io.Reader, func() error, error),
-) {
-	t.Helper()
-
-	old := selfInteractiveInput
-	selfInteractiveInput = input
-	t.Cleanup(func() {
-		selfInteractiveInput = old
-	})
 }

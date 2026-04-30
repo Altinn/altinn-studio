@@ -16,25 +16,28 @@ import (
 	"altinn.studio/studioctl/internal/ui"
 )
 
-const selfMigrateSubcmd = "__migrate"
-
-var selfInteractiveInput = ui.InteractiveInput
+const (
+	selfMigrateSubcmd = "__migrate"
+	osWindows         = "windows"
+)
 
 // SelfCommand implements the 'self' subcommand.
 type SelfCommand struct {
-	cfg        *config.Config
-	out        *ui.Output
-	service    *selfsvc.Service
-	transition *selfsvc.Transition
+	cfg              *config.Config
+	out              *ui.Output
+	service          *selfsvc.Service
+	transition       *selfsvc.Transition
+	interactiveInput func() (io.Reader, func() error, error)
 }
 
 // NewSelfCommand creates a new self command.
 func NewSelfCommand(cfg *config.Config, out *ui.Output) *SelfCommand {
 	return &SelfCommand{
-		cfg:        cfg,
-		out:        out,
-		service:    selfsvc.NewService(cfg),
-		transition: selfsvc.NewTransition(cfg, out),
+		cfg:              cfg,
+		out:              out,
+		service:          selfsvc.NewService(cfg),
+		transition:       selfsvc.NewTransition(cfg, out),
+		interactiveInput: ui.InteractiveInput,
 	}
 }
 
@@ -329,7 +332,7 @@ func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == osWindows {
 		return fmt.Errorf("%w: windows executable is locked while running", selfsvc.ErrUpdateUnsupported)
 	}
 
@@ -459,7 +462,7 @@ func (c *SelfCommand) runUninstall(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == osWindows {
 		c.out.Error("Self-uninstall while running is not supported on Windows.")
 		c.out.Println("Run this after studioctl has exited:")
 		c.out.Println(`  Remove-Item "<path-to-studioctl.exe>"`)
@@ -514,7 +517,7 @@ func (c *SelfCommand) confirmUninstallIfNeeded(
 		return true, nil
 	}
 
-	input, cleanup, err := selfInteractiveInput()
+	input, cleanup, err := c.interactiveInput()
 	if err != nil {
 		return false, fmt.Errorf(
 			"%w: --yes is required when no terminal input is available",
