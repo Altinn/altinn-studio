@@ -6326,7 +6326,7 @@ __metadata:
   dependencies:
     "@digdir/designsystemet-theme": "npm:^1.0.8"
     "@studio/components": "workspace:^"
-    dompurify: "npm:^3.2.6"
+    dompurify: "npm:3.4.1"
   languageName: unknown
   linkType: soft
 
@@ -8962,7 +8962,7 @@ __metadata:
     cypress-wait-until: "npm:3.0.2"
     date-fns: "npm:4.1.0"
     decimal.js: "npm:10.6.0"
-    dompurify: "npm:3.3.2"
+    dompurify: "npm:3.4.1"
     dot-object: "npm:2.1.5"
     dotenv: "npm:17.3.1"
     esbuild-loader: "npm:4.4.2"
@@ -11842,7 +11842,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:3.3.2, dompurify@npm:^3.2.6, dompurify@npm:^3.3.2":
+"dompurify@npm:3.4.1":
+  version: 3.4.1
+  resolution: "dompurify@npm:3.4.1"
+  dependencies:
+    "@types/trusted-types": "npm:^2.0.7"
+  dependenciesMeta:
+    "@types/trusted-types":
+      optional: true
+  checksum: 10/dcaf945376eff2a61841b205501b163b2c8ae9afe7251e68276b561d9fcf943cefc67e2631fdeae080b52a8b37c96e6beb7e6ae80ad8a83692ff67965dd6b4db
+  languageName: node
+  linkType: hard
+
+"dompurify@npm:^3.3.2":
   version: 3.3.2
   resolution: "dompurify@npm:3.3.2"
   dependencies:
@@ -21212,7 +21224,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "resourceadm@workspace:src/Designer/frontend/resourceadm"
   dependencies:
-    dompurify: "npm:^3.2.6"
+    dompurify: "npm:3.4.1"
     html-react-parser: "npm:^5.2.5"
     jest: "npm:29.7.0"
     markdown-to-jsx: "npm:7.7.17"
