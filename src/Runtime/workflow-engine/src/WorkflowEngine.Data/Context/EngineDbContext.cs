@@ -118,8 +118,6 @@ internal sealed class EngineDbContext : DbContext
         modelBuilder.Entity<WorkflowCollectionEntity>(entity =>
         {
             entity.HasKey(e => new { e.Key, e.Namespace });
-            entity.Property(e => e.Key).HasMaxLength(200);
-            entity.Property(e => e.Namespace).HasMaxLength(200);
             entity.HasIndex(e => e.Namespace);
         });
     }

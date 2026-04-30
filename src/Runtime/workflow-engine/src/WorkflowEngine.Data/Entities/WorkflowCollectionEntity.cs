@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WorkflowEngine.Data.Entities;
@@ -5,8 +6,10 @@ namespace WorkflowEngine.Data.Entities;
 [Table("WorkflowCollections", Schema = Constants.SchemaNames.Engine)]
 internal sealed class WorkflowCollectionEntity
 {
+    [MaxLength(200)]
     public required string Key { get; set; }
 
+    [MaxLength(200)]
     public required string Namespace { get; set; }
 
     [Column(TypeName = "uuid[]")]
