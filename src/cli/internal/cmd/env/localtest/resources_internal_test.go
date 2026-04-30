@@ -103,7 +103,7 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 	t.Setenv(config.EnvCI, "")
 
 	dataDir := t.TempDir()
-	containers := coreContainers(dataDir, testTopology(), false, true)
+	containers := coreContainers(dataDir, testTopology())
 	assertCoreContainerLayout(t, containers)
 	assertLocaltestContainerConfig(t, containers[0], dataDir)
 	assertPdf3ContainerConfig(t, containers[1])
@@ -231,6 +231,26 @@ func TestResourceBuilder_AddsPgAdminOnlyWhenRequested(t *testing.T) {
 	}
 }
 
+func TestResourceBuilder_LocaltestAliasesDoNotChangeWithPgAdmin(t *testing.T) {
+	t.Setenv(config.EnvCI, "")
+
+	withoutPgAdmin := buildResources(newResourceBuildOptions(t.TempDir(), false, false))
+	withPgAdmin := buildResources(newResourceBuildOptions(t.TempDir(), false, true))
+
+	without := findResource(withoutPgAdmin, resource.ContainerID(ContainerLocaltest))
+	with := findResource(withPgAdmin, resource.ContainerID(ContainerLocaltest))
+	if without == nil || with == nil {
+		t.Fatalf("buildResources() missing %q", ContainerLocaltest)
+	}
+	if !slices.Equal(without.NetworkAliases, with.NetworkAliases) {
+		t.Fatalf(
+			"localtest aliases changed with pgadmin: without=%v with=%v",
+			without.NetworkAliases,
+			with.NetworkAliases,
+		)
+	}
+}
+
 func TestMonitoringContainers_OtelUsesLocalDomainAlias(t *testing.T) {
 	containers := monitoringContainers(t.TempDir(), testTopology())
 
@@ -294,7 +314,7 @@ func TestCoreContainers_PgAdminUsesImportedPassfile(t *testing.T) {
 	t.Setenv(config.EnvCI, "")
 
 	dataDir := t.TempDir()
-	containers := coreContainers(dataDir, testTopology(), false, true)
+	containers := coreContainers(dataDir, testTopology())
 
 	index := slices.IndexFunc(containers, func(spec ContainerSpec) bool {
 		return spec.Name == ContainerPgAdmin

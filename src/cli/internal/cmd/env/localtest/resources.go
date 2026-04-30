@@ -152,23 +152,10 @@ func localtestListenURLs(loadBalancerPort string) string {
 func coreContainers(
 	dataDir string,
 	topology envtopology.Local,
-	includeMonitoring bool,
-	includePgAdmin bool,
 ) []ContainerSpec {
 	ingressPort := topology.IngressPort()
-	app := topology.MustComponent(envtopology.ComponentApp)
 	runtimeConfig := newLocaltestConfig(topology)
-	bindings := topology.ResolveBindings(RuntimeBindings(BindingOptions{
-		IncludeMonitoring: includeMonitoring,
-		IncludePgAdmin:    includePgAdmin,
-	}))
-	networkAliases := []string{app.Host()}
-	for _, binding := range bindings {
-		if !binding.Enabled || !binding.HasRoute() || binding.Host == app.Host() {
-			continue
-		}
-		networkAliases = append(networkAliases, binding.Host)
-	}
+	networkAliases := topology.LocaltestIngressHosts()
 
 	containers := []ContainerSpec{
 		newContainerSpec(
@@ -505,7 +492,7 @@ func buildRemoteCoreImages(core config.CoreImages, includePgAdmin bool) map[stri
 }
 
 func buildResources(opts ResourceBuildOptions) []resource.Resource {
-	core := coreContainers(opts.DataDir, opts.Topology, opts.IncludeMonitoring, opts.IncludePgAdmin)
+	core := coreContainers(opts.DataDir, opts.Topology)
 	mon := monitoringContainers(opts.DataDir, opts.Topology)
 	coreImages := buildCoreImages(opts)
 	monImages := monitoringImageRefs(opts.Images.Monitoring)
