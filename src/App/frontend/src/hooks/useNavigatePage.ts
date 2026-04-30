@@ -10,7 +10,10 @@ import { usePageSettings, useRawPageOrder } from 'src/features/form/layoutSettin
 import { getUiConfig } from 'src/features/form/ui';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
-import { preventFocusAndScrollResetOptions } from 'src/features/navigation/navigationOptions';
+import {
+  preventFocusAndScrollResetOptions,
+  replaceAndPreventResetOptions,
+} from 'src/features/navigation/navigationOptions';
 import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
@@ -207,7 +210,7 @@ export function useNavigatePage() {
   useEffect(() => {
     const currentPageId = navParams.current.pageKey ?? '';
     if (isStateless && orderRef.current[0] !== undefined && (!currentPageId || !isValidPageId(currentPageId))) {
-      navigate(`/${orderRef.current[0]}?${searchParamsRef.current}`, undefined, { replace: true });
+      navigate(`/${orderRef.current[0]}?${searchParamsRef.current}`, undefined, replaceAndPreventResetOptions);
     }
   }, [isStateless, orderRef, navigate, isValidPageId, navParams, searchParamsRef]);
 
