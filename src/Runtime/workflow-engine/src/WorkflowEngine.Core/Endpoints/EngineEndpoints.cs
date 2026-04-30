@@ -52,11 +52,6 @@ internal static class EngineEndpoints
         var collectionGroup = app.MapGroup("/api/v1/{namespace}/collections").WithTags("Collections");
 
         collectionGroup
-            .MapGet("", EngineRequestHandlers.ListCollections)
-            .WithName("ListCollections")
-            .WithDescription("Lists all workflow collections in a namespace");
-
-        collectionGroup
             .MapGet("/{key}", EngineRequestHandlers.GetCollection)
             .WithName("GetCollection")
             .WithDescription("Gets a single workflow collection by key, including head workflow statuses");
@@ -307,28 +302,6 @@ internal static class EngineRequestHandlers
         }
 
         return result;
-    }
-
-    /// <summary>
-    /// Lists all workflow collections in the requested namespace.
-    /// Normalizes <paramref name="ns"/>, records the query metric, and returns 204 when no collections exist.
-    /// </summary>
-    public static async Task<Results<Ok<IReadOnlyList<WorkflowCollectionResponse>>, NoContent>> ListCollections(
-        [FromRoute(Name = "namespace")] string ns,
-        [FromServices] IEngineRepository repository,
-        CancellationToken cancellationToken
-    )
-    {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list-collections"));
-
-        ns = NormalizeNamespace(ns);
-
-        var collections = await repository.GetCollections(ns, cancellationToken);
-
-        if (collections.Count == 0)
-            return TypedResults.NoContent();
-
-        return TypedResults.Ok(collections);
     }
 
     /// <summary>

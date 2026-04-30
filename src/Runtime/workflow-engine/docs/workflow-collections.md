@@ -300,9 +300,6 @@ Note: If B joining the heads is not desired, it can be marked `IsHead = false` t
 
 ## Query Endpoints
 
-**`GET /api/v1/{namespace}/collections`**
-List of all collections with their keys, heads, and timestamps. Returns 204 if none exist.
-
 **`GET /api/v1/{namespace}/collections/{key}`**
 Detail for one collection: key, heads (with workflow ID + current status), and timestamps. Returns 404 if not found.
 
