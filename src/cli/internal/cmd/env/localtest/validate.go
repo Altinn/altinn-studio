@@ -7,6 +7,7 @@ import (
 
 	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 )
 
 // CheckForLegacyLocaltest checks if legacy localtest containers are running.
@@ -14,8 +15,12 @@ import (
 // TODO: we should do something else for this. Need a smooth migration path
 // and we can probably check docker/podman compose labels or something
 // instead of matching on container names.
-func CheckForLegacyLocaltest(ctx context.Context, client container.ContainerClient, includePgAdmin bool) error {
-	containers := coreContainerNames(includePgAdmin)
+func CheckForLegacyLocaltest(
+	ctx context.Context,
+	client container.ContainerClient,
+	resources []resource.Resource,
+) error {
+	containers := components.EnabledContainerNames(resources)
 	var legacyContainers []string
 
 	for _, name := range containers {

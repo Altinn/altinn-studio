@@ -397,7 +397,7 @@ func TestWriteHostsFileAtomicReplacesExistingFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("os.Stat() error = %v", err)
 	}
-	if runtime.GOOS != osWindows {
+	if runtime.GOOS != windowsGOOS {
 		if info.Mode().Perm() != 0o600 {
 			t.Fatalf("perm = %o, want %o", info.Mode().Perm(), 0o600)
 		}

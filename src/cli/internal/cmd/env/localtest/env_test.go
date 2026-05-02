@@ -15,6 +15,7 @@ import (
 	"altinn.studio/devenv/pkg/resource"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	"altinn.studio/studioctl/internal/cmd/env/localtest"
+	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -31,38 +32,38 @@ func TestStatus_RunningRequiresAllCoreContainers(t *testing.T) {
 	}{
 		"all core containers running": {
 			states: map[string]types.ContainerState{
-				localtest.ContainerLocaltest:        {Status: "running", Running: true},
-				localtest.ContainerPDF3:             {Status: "running", Running: true},
-				localtest.ContainerWorkflowEngineDb: {Status: "running", Running: true},
-				localtest.ContainerWorkflowEngine:   {Status: "running", Running: true},
+				components.ContainerLocaltest:        {Status: "running", Running: true},
+				components.ContainerPDF3:             {Status: "running", Running: true},
+				components.ContainerWorkflowEngineDb: {Status: "running", Running: true},
+				components.ContainerWorkflowEngine:   {Status: "running", Running: true},
 			},
 			wantRunning:    true,
 			wantAnyRunning: true,
 		},
 		"optional pgadmin stale": {
 			states: map[string]types.ContainerState{
-				localtest.ContainerLocaltest:        {Status: "running", Running: true},
-				localtest.ContainerPDF3:             {Status: "running", Running: true},
-				localtest.ContainerWorkflowEngineDb: {Status: "running", Running: true},
-				localtest.ContainerWorkflowEngine:   {Status: "running", Running: true},
-				localtest.ContainerPgAdmin:          {Status: "exited", Running: false},
+				components.ContainerLocaltest:        {Status: "running", Running: true},
+				components.ContainerPDF3:             {Status: "running", Running: true},
+				components.ContainerWorkflowEngineDb: {Status: "running", Running: true},
+				components.ContainerWorkflowEngine:   {Status: "running", Running: true},
+				components.ContainerPgAdmin:          {Status: "exited", Running: false},
 			},
 			wantRunning:    false,
 			wantAnyRunning: true,
 		},
 		"one running one exited": {
 			states: map[string]types.ContainerState{
-				localtest.ContainerLocaltest:        {Status: "running", Running: true},
-				localtest.ContainerPDF3:             {Status: "exited", Running: false},
-				localtest.ContainerWorkflowEngineDb: {Status: "running", Running: true},
-				localtest.ContainerWorkflowEngine:   {Status: "running", Running: true},
+				components.ContainerLocaltest:        {Status: "running", Running: true},
+				components.ContainerPDF3:             {Status: "exited", Running: false},
+				components.ContainerWorkflowEngineDb: {Status: "running", Running: true},
+				components.ContainerWorkflowEngine:   {Status: "running", Running: true},
 			},
 			wantRunning:    false,
 			wantAnyRunning: true,
 		},
 		"one running one missing": {
 			states: map[string]types.ContainerState{
-				localtest.ContainerLocaltest: {Status: "running", Running: true},
+				components.ContainerLocaltest: {Status: "running", Running: true},
 			},
 			wantRunning:    false,
 			wantAnyRunning: true,
@@ -107,7 +108,7 @@ func TestStatus_ReturnsErrorForNonNotFoundStateError(t *testing.T) {
 
 	client := mock.New()
 	client.ContainerInspectFunc = func(_ context.Context, nameOrID string) (types.ContainerInfo, error) {
-		if nameOrID == localtest.ContainerPDF3 {
+		if nameOrID == components.ContainerPDF3 {
 			return types.ContainerInfo{}, errStateUnavailable
 		}
 		return managedContainerInfo(types.ContainerState{Status: "running", Running: true}), nil
@@ -127,10 +128,10 @@ func TestStatus_HidesAbsentOptionalContainers(t *testing.T) {
 	client := mock.New()
 	client.ContainerInspectFunc = func(_ context.Context, nameOrID string) (types.ContainerInfo, error) {
 		switch nameOrID {
-		case localtest.ContainerLocaltest,
-			localtest.ContainerPDF3,
-			localtest.ContainerWorkflowEngineDb,
-			localtest.ContainerWorkflowEngine:
+		case components.ContainerLocaltest,
+			components.ContainerPDF3,
+			components.ContainerWorkflowEngineDb,
+			components.ContainerWorkflowEngine:
 			return managedContainerInfo(coreState), nil
 		default:
 			return types.ContainerInfo{}, types.ErrContainerNotFound
@@ -142,8 +143,8 @@ func TestStatus_HidesAbsentOptionalContainers(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Status() error = %v", err)
 	}
-	assertContainerStatusAbsent(t, status, localtest.ContainerPgAdmin)
-	assertContainerStatusAbsent(t, status, localtest.ContainerMonitoringGrafana)
+	assertContainerStatusAbsent(t, status, components.ContainerPgAdmin)
+	assertContainerStatusAbsent(t, status, components.ContainerMonitoringGrafana)
 }
 
 func TestStatusForUp_IncludesPgAdminWhenRequested(t *testing.T) {
@@ -151,7 +152,7 @@ func TestStatusForUp_IncludesPgAdminWhenRequested(t *testing.T) {
 
 	client := mock.New()
 	client.ContainerInspectFunc = func(_ context.Context, nameOrID string) (types.ContainerInfo, error) {
-		if nameOrID == localtest.ContainerPgAdmin {
+		if nameOrID == components.ContainerPgAdmin {
 			return types.ContainerInfo{}, types.ErrContainerNotFound
 		}
 		return managedContainerInfo(types.ContainerState{Status: "running", Running: true}), nil
@@ -201,7 +202,7 @@ func TestStatus_TreatsPresentOptionalContainerAsRunning(t *testing.T) {
 	if !status.Running {
 		t.Fatal("Status().Running = false, want true when visible optional containers are running")
 	}
-	assertContainerStatus(t, status, localtest.ContainerPgAdmin, "running")
+	assertContainerStatus(t, status, components.ContainerPgAdmin, "running")
 }
 
 func TestStatusForUp_IncludesMonitoringWhenRequested(t *testing.T) {
@@ -211,10 +212,10 @@ func TestStatusForUp_IncludesMonitoringWhenRequested(t *testing.T) {
 	client := mock.New()
 	client.ContainerInspectFunc = func(_ context.Context, nameOrID string) (types.ContainerInfo, error) {
 		switch nameOrID {
-		case localtest.ContainerLocaltest,
-			localtest.ContainerPDF3,
-			localtest.ContainerWorkflowEngineDb,
-			localtest.ContainerWorkflowEngine:
+		case components.ContainerLocaltest,
+			components.ContainerPDF3,
+			components.ContainerWorkflowEngineDb,
+			components.ContainerWorkflowEngine:
 			return managedContainerInfo(coreState), nil
 		default:
 			return types.ContainerInfo{}, types.ErrContainerNotFound
@@ -229,7 +230,7 @@ func TestStatusForUp_IncludesMonitoringWhenRequested(t *testing.T) {
 	if status.Running {
 		t.Fatal("StatusForUp().Running = true, want false when monitoring is requested but missing")
 	}
-	assertContainerStatus(t, status, localtest.ContainerMonitoringGrafana, "not found")
+	assertContainerStatus(t, status, components.ContainerMonitoringGrafana, "not found")
 }
 
 func TestStatus_IgnoresUnmanagedNameCollisions(t *testing.T) {
@@ -261,7 +262,7 @@ func TestDown_IgnoresUnmanagedNameCollision(t *testing.T) {
 
 	client := mock.New()
 	client.ContainerInspectFunc = func(_ context.Context, nameOrID string) (types.ContainerInfo, error) {
-		if nameOrID != localtest.ContainerLocaltest {
+		if nameOrID != components.ContainerLocaltest {
 			return types.ContainerInfo{}, types.ErrContainerNotFound
 		}
 		return types.ContainerInfo{
@@ -312,14 +313,14 @@ func TestLogs_JSONOutputsOneObjectPerLine(t *testing.T) {
 
 	client := mock.New()
 	client.ContainerStateFunc = func(_ context.Context, nameOrID string) (types.ContainerState, error) {
-		if nameOrID == localtest.ContainerLocaltest {
+		if nameOrID == components.ContainerLocaltest {
 			return types.ContainerState{Status: "running", Running: true}, nil
 		}
 		return types.ContainerState{}, types.ErrContainerNotFound
 	}
 	client.ContainerLogsFunc = func(_ context.Context, nameOrID string, follow bool, tail string) (io.ReadCloser, error) {
-		if nameOrID != localtest.ContainerLocaltest {
-			t.Fatalf("ContainerLogs() name = %q, want %q", nameOrID, localtest.ContainerLocaltest)
+		if nameOrID != components.ContainerLocaltest {
+			t.Fatalf("ContainerLogs() name = %q, want %q", nameOrID, components.ContainerLocaltest)
 		}
 		if follow {
 			t.Fatal("ContainerLogs() follow = true, want false")
@@ -333,7 +334,7 @@ func TestLogs_JSONOutputsOneObjectPerLine(t *testing.T) {
 	var out bytes.Buffer
 	env := localtest.NewEnv(&config.Config{}, ui.NewOutput(&out, io.Discard, false), client)
 	if err := env.Logs(context.Background(), envtypes.LogsOptions{
-		Component: localtest.ContainerLocaltest,
+		Component: components.ContainerLocaltest,
 		Follow:    false,
 		JSON:      true,
 	}); err != nil {
@@ -352,8 +353,8 @@ func TestLogs_JSONOutputsOneObjectPerLine(t *testing.T) {
 		if err := json.Unmarshal([]byte(line), &got); err != nil {
 			t.Fatalf("json.Unmarshal(line %d) error = %v", i, err)
 		}
-		if got.Component != localtest.ContainerLocaltest {
-			t.Fatalf("line %d component = %q, want %q", i, got.Component, localtest.ContainerLocaltest)
+		if got.Component != components.ContainerLocaltest {
+			t.Fatalf("line %d component = %q, want %q", i, got.Component, components.ContainerLocaltest)
 		}
 	}
 	if !strings.Contains(lines[0], `"line":"one"`) || !strings.Contains(lines[1], `"line":"two"`) {

@@ -62,7 +62,7 @@ func renderCompactRow(model *renderModel, row *progressRow, width int) string {
 
 	nameWidth := min(nameColumnWidth, max(width/compactNameDivisor, compactMinNameWidth))
 	nameCell := fmt.Sprintf("%-*s", nameWidth, fitWidth(row.name, nameWidth))
-	stateRaw := compactStateLabel(model, row)
+	stateRaw := rawStateLabel(model, row)
 	stateCell := stateRaw
 	if ui.Colors() {
 		stateCell = styleStateLabel(row, stateRaw)
@@ -75,8 +75,4 @@ func renderCompactRow(model *renderModel, row *progressRow, width int) string {
 		line += " " + fitWidth(message, messageWidth)
 	}
 	return line
-}
-
-func compactStateLabel(model *renderModel, row *progressRow) string {
-	return rawStateLabel(model, row)
 }

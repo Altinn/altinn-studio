@@ -14,6 +14,7 @@ import (
 	containertypes "altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
 	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
+	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
@@ -26,10 +27,10 @@ func TestEnvUpJSON_AlreadyRunning(t *testing.T) {
 	client := mock.New()
 	client.ContainerInspectFunc = func(_ context.Context, nameOrID string) (containertypes.ContainerInfo, error) {
 		switch nameOrID {
-		case envlocaltest.ContainerLocaltest,
-			envlocaltest.ContainerPDF3,
-			envlocaltest.ContainerWorkflowEngineDb,
-			envlocaltest.ContainerWorkflowEngine:
+		case components.ContainerLocaltest,
+			components.ContainerPDF3,
+			components.ContainerWorkflowEngineDb,
+			components.ContainerWorkflowEngine:
 		default:
 			return containertypes.ContainerInfo{}, containertypes.ErrContainerNotFound
 		}
