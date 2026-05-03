@@ -11,7 +11,7 @@ import { LayoutInspectorItem } from 'src/features/devtools/components/LayoutInsp
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { useLayoutValidationForPage } from 'src/features/devtools/layoutValidation/useLayoutValidation';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
 
@@ -19,7 +19,7 @@ export const LayoutInspector = () => {
   const selectedComponent = useDevToolsStore((state) => state.layoutInspector.selectedComponentId);
   const setSelectedComponent = useDevToolsStore((state) => state.actions.layoutInspectorSet);
   const currentView = useCurrentView();
-  const layouts = FormBootstrap.useLayouts();
+  const layouts = FormStore.bootstrap.useLayouts();
   const [componentProperties, setComponentProperties] = useState<string | null>(null);
   const [propertiesHaveChanged, setPropertiesHaveChanged] = useState(false);
   const [error, setError] = useState<boolean>(false);

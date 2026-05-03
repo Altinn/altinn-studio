@@ -7,7 +7,7 @@ import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/Condit
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { RadioButton } from 'src/components/form/RadioButton';
 import { LabelContent } from 'src/components/label/LabelContent';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
@@ -46,7 +46,7 @@ export const ControlledRadioGroup = (props: PropsFromGenericComponent<'RadioButt
     error: !isValid,
   });
 
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const parent = layoutLookups.componentToParent[baseComponentId];
   let leftColumnHeader: string | undefined = undefined;
   if (parent?.type === 'node' && layoutLookups.getComponent(parent.id).type === 'Likert') {

@@ -9,7 +9,6 @@ import { AppTable } from 'src/app-components/Table/Table';
 import { translationKey } from 'src/AppComponentsBridge';
 import { Caption } from 'src/components/form/caption/Caption';
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -41,7 +40,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
   const accessibleTitle = elementAsString(title);
   const isMobile = useIsMobile();
   const data = formData.tableData;
-  const schemaLookup = FormBootstrap.useSchemaLookup();
+  const schemaLookup = FormStore.bootstrap.useSchemaLookup();
   const [showEdit, setShowEdit] = useState(false);
   const [editItemIndex, setEditItemIndex] = useState<number>(-1);
   const setMultiLeafValues = FormStore.data.useSetMultiLeafValues();

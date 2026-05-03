@@ -7,7 +7,6 @@ import { useDisplayDataFor } from 'src/features/displayData/useDisplayData';
 import { ExprFunctionDefinitions } from 'src/features/expressions/expression-functions';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useDataElementsSelectorProps, useInstanceDataSources } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -62,22 +61,22 @@ const directHooks = {
   applicationSettings: () => useApplicationSettings(),
   currentLanguage: () => useCurrentLanguage(),
   currentDataModelPath: () => useCurrentDataModelLocation(),
-  layoutLookups: () => FormBootstrap.useLayoutLookups(),
+  layoutLookups: () => FormStore.bootstrap.useLayoutLookups(),
   codeListSelector: () => {
-    const staticOptions = FormBootstrap.useStaticOptionsMap();
+    const staticOptions = FormStore.bootstrap.useStaticOptionsMap();
     return useCallback((optionsId: string) => staticOptions[optionsId]?.options, [staticOptions]);
   },
   dataElementSelector: () => useDataElementsSelectorProps(),
   instanceDataSources: (isInGenerator) =>
     isInGenerator ? GeneratorData.useLaxInstanceDataSources() : useInstanceDataSources(),
-  defaultDataType: () => FormBootstrap.useDefaultDataType() ?? null,
-  dataModelNames: () => FormBootstrap.useReadableDataTypes(),
+  defaultDataType: () => FormStore.bootstrap.useDefaultDataType() ?? null,
+  dataModelNames: () => FormStore.bootstrap.useReadableDataTypes(),
   externalApis: (isInGenerator) =>
     isInGenerator ? GeneratorData.useExternalApis() : useExternalApis(getApplicationMetadata().externalApiIds ?? []),
   langToolsSelector: () =>
     useInnerLanguageWithForcedPathSelector(
-      FormBootstrap.useDefaultDataType(),
-      FormBootstrap.useReadableDataTypes(),
+      FormStore.bootstrap.useDefaultDataType(),
+      FormStore.bootstrap.useReadableDataTypes(),
       FormStore.data.useDebouncedSelector(),
     ),
   currentPage: (_isInGenerator) => useNavigationParam('pageKey'),

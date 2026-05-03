@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
@@ -142,7 +142,7 @@ function RegularRepeatingGroupRow({
   const children = RepGroupHooks.useChildIds(targetBaseComponentId);
   const isHidden = useIsHiddenMulti(children);
   const idMutator = useComponentIdMutator();
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const { tableColumns } = useItemWhenType(targetBaseComponentId, 'RepeatingGroup');
 
   const hiddenColumns = tableColumns

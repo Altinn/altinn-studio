@@ -5,7 +5,7 @@ import cn from 'classnames';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
@@ -64,7 +64,7 @@ export const NavigationBarComponent = ({ baseComponentId }: PropsFromGenericComp
   const performProcess = useProcessingMutationWithKey<NavigatePageProcessKey>('navigate-page');
   const currentProcessKey = useCurrentProcessKey<NavigatePageProcessKey>('navigate-page');
   const isAnyProcessing = useIsAnyProcessing();
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
 
   const firstPageLink = React.useRef<HTMLButtonElement>(undefined);
 
