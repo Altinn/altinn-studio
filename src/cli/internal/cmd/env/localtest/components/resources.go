@@ -3,6 +3,7 @@ package components
 import (
 	"os"
 	"path/filepath"
+	"slices"
 
 	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
@@ -193,8 +194,13 @@ func toEnvSlice(env map[string]string) []string {
 		return nil
 	}
 	result := make([]string, 0, len(env))
-	for k, v := range env {
-		result = append(result, k+"="+v)
+	keys := make([]string, 0, len(env))
+	for k := range env {
+		keys = append(keys, k)
+	}
+	slices.Sort(keys)
+	for _, k := range keys {
+		result = append(result, k+"="+env[k])
 	}
 	return result
 }
