@@ -268,7 +268,7 @@ func TestManifestPrepareWritesLocalFiles(t *testing.T) {
 	if err != nil {
 		t.Fatalf("stat pgpass: %v", err)
 	}
-	if runtime.GOOS != windowsGOOS && info.Mode().Perm() != osutil.FilePermDefault {
+	if runtime.GOOS != osutil.OSWindows && info.Mode().Perm() != osutil.FilePermDefault {
 		got := info.Mode().Perm()
 		t.Fatalf("pgpass mode = %v, want %v", got, osutil.FilePermDefault)
 	}

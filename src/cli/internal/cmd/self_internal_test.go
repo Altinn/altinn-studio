@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -36,7 +37,7 @@ func TestSelfUninstallConfirmationRequiresYesWithoutTerminal(t *testing.T) {
 }
 
 func TestSelfUninstallRunRequiresConfirmationBeforePrepare(t *testing.T) {
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == osutil.OSWindows {
 		t.Skip("self uninstall exits before confirmation on Windows")
 	}
 	command := &SelfCommand{

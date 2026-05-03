@@ -17,6 +17,7 @@ import (
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -215,7 +216,7 @@ func TestReset_IgnoresLegacyWorkflowEngineDbDataCleanupFailure(t *testing.T) {
 }
 
 func TestRemoveResetDataPath_RejectsSymlink(t *testing.T) {
-	if runtime.GOOS == windowsGOOS {
+	if runtime.GOOS == osutil.OSWindows {
 		t.Skip("symlink creation requires elevated privileges on some Windows setups")
 	}
 

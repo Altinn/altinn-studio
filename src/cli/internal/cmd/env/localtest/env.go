@@ -51,8 +51,6 @@ const stoppingEnvironmentMessage = "Stopping localtest environment..."
 // graphID scopes devenv ownership labels to studioctl's localtest graph.
 const graphID = "studioctl-localtest"
 
-const windowsGOOS = "windows"
-
 // Env implements envtypes.Env for the localtest runtime.
 type Env struct {
 	cfg    *config.Config
@@ -94,7 +92,7 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 
 	runtimeUser := ""
 	// Keep empty on Windows because os.Getuid/getgid are unsupported there.
-	if runtime.GOOS != windowsGOOS {
+	if runtime.GOOS != osutil.OSWindows {
 		runtimeUser = fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid())
 	}
 	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())

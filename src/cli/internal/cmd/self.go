@@ -18,7 +18,6 @@ import (
 
 const (
 	selfMigrateSubcmd = "__migrate"
-	osWindows         = "windows"
 )
 
 // SelfCommand implements the 'self' subcommand.
@@ -332,7 +331,7 @@ func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == osutil.OSWindows {
 		return fmt.Errorf("%w: windows executable is locked while running", selfsvc.ErrUpdateUnsupported)
 	}
 
@@ -462,7 +461,7 @@ func (c *SelfCommand) runUninstall(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == osutil.OSWindows {
 		c.out.Error("Self-uninstall while running is not supported on Windows.")
 		c.out.Println("Run this after studioctl has exited:")
 		c.out.Println(`  Remove-Item "<path-to-studioctl.exe>"`)

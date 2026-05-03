@@ -140,7 +140,7 @@ func copyDirectoryContents(srcDir, dstDir string) error {
 		if err := copyFile(srcPath, dstPath); err != nil {
 			return fmt.Errorf("copy payload file %q: %w", srcPath, err)
 		}
-		if runtime.GOOS != osWindows {
+		if runtime.GOOS != osutil.OSWindows {
 			//nolint:gosec // G304/G703: destination path is derived from the staged install directory.
 			if err := os.Chmod(dstPath, info.Mode().Perm()); err != nil {
 				return fmt.Errorf("set permissions on %q: %w", dstPath, err)
