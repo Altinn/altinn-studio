@@ -1,7 +1,7 @@
 import type { IGenericEditComponent } from '../componentConfig';
 import { getMinOccursFromDataModel, getXsdDataTypeFromDataModel } from '../../../utils/dataModel';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useText } from '../../../hooks';
 import { SelectDataModelComponent } from '../SelectDataModelComponent';
 import { useDataModelMetadataQuery } from '../../../hooks/queries/useDataModelMetadataQuery';

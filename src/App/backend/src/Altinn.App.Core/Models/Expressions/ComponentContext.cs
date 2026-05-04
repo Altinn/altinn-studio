@@ -45,6 +45,8 @@ public sealed class ComponentContext
 
     /// <summary>
     /// The component from <see cref="LayoutModel"/> that should be used as context
+    /// Might be null when evaluating expressions not tied to a specific component
+    /// (eg Gateway conditions)
     /// </summary>
     public BaseComponent? Component { get; }
 
@@ -93,24 +95,9 @@ public sealed class ComponentContext
         {
             return _isHidden.Value;
         }
+        ArgumentNullException.ThrowIfNull(Component, "To get the hidden status, the Context needs a component.");
 
-        // If the data has already been cleaned, rows are set to null for validation
-        // but if the "hiddenRow" expression hides rows with specific values, the expression
-        // might not hide the row when the data is null.
-        //
-        // The only reason for a row to be null is that the data has been cleaned and the row was considered hidden
-        // so we just check the data and assume it was hidden.
-        if (Component is RepeatingGroupRowComponent rgc && rgc.DataModelBindings.TryGetValue("group", out var binding))
-        {
-            var data = await State.GetModelData(binding, DataElementIdentifier, RowIndices);
-            if (data is null)
-            {
-                _isHidden = true;
-                return _isHidden.Value;
-            }
-        }
-
-        var isHidden = await ExpressionEvaluator.EvaluateBooleanExpression(State, this, "hidden", false);
+        var isHidden = await Component.IsHidden(this);
         _isHidden = isHidden;
         return _isHidden.Value;
     }
@@ -121,18 +108,22 @@ public sealed class ComponentContext
         {
             return _removeWhenHidden.Value;
         }
-
-        var removeWhenHidden = await ExpressionEvaluator.EvaluateBooleanExpression(
-            State,
-            this,
-            "removeWhenHidden",
-            // Default return should match AppSettings.RemoveHiddenData,
-            // but currently we only run removal when it is true, so we set it to true here
-            defaultReturn: true
+        ArgumentNullException.ThrowIfNull(
+            Component,
+            "To get the removeWhenHidden status, the Context needs a component."
         );
 
-        _removeWhenHidden = removeWhenHidden;
+        _removeWhenHidden = await Component.ShouldRemoveWhenHidden(this);
         return _removeWhenHidden.Value;
+    }
+
+    /// <summary>
+    /// Evaluates whether the associated component is required based on the "required" expression.
+    /// </summary>
+    public async Task<bool> IsRequired()
+    {
+        ArgumentNullException.ThrowIfNull(Component, "To get the required status, the Context needs a component.");
+        return await Component.IsRequired(this);
     }
 
     internal async Task<DataReference> AddIndexes(ModelBinding binding) => await State.AddInidicies(binding, this);
@@ -180,6 +171,14 @@ public sealed class ComponentContext
         }
     }
 
+    /// <summary>
+    /// Evaluate the given expression in the context of this component context
+    /// </summary>
+    public async Task<ExpressionValue> EvaluateExpression(Expression expression)
+    {
+        return await ExpressionEvaluator.EvaluateExpression_internal(State, expression, this);
+    }
+
     private string _debuggerName =>
         $"{Component?.Type}" + (RowIndices is not null ? $"[{string.Join(',', RowIndices)}]" : "");
     private string _debuggerDisplay =>
@@ -222,7 +221,7 @@ public sealed class ComponentContext
             public Task<ExpressionValue> EvaluationResult =>
                 _expression.IsLiteralValue
                     ? Task.FromResult(_expression.ValueUnion)
-                    : ExpressionEvaluator.EvaluateExpression_internal(_context.State, _expression, _context, null);
+                    : _context.EvaluateExpression(_expression);
 
             public override string ToString()
             {

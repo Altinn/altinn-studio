@@ -1,11 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.AccessManagement.Tests.Utils;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -18,11 +15,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OptionsController;
 
-public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, IClassFixture<WebApplicationFactory<Program>>
+public class GetOptionsTests
+    : DesignerEndpointsTestsBase<GetOptionsTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public GetOptionsTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public GetOptionsTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     [Fact]
     public async Task GetOptionsListIds_Returns200OK_WithOptionsListIds()
@@ -81,8 +79,14 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
         await File.WriteAllTextAsync(Path.Combine(filePath, "optionListMissingValue.json"), optionListMissingValue);
         await File.WriteAllTextAsync(Path.Combine(filePath, "optionListMissingLabel.json"), optionListMissingLabel);
         await File.WriteAllTextAsync(Path.Combine(filePath, "optionListTrailingComma.json"), optionListTrailingComma);
-        await File.WriteAllTextAsync(Path.Combine(filePath, "optionListLabelWithObject.json"), optionListLabelWithObject);
-        await File.WriteAllTextAsync(Path.Combine(filePath, "optionListLabelWithNumber.json"), optionListLabelWithNumber);
+        await File.WriteAllTextAsync(
+            Path.Combine(filePath, "optionListLabelWithObject.json"),
+            optionListLabelWithObject
+        );
+        await File.WriteAllTextAsync(
+            Path.Combine(filePath, "optionListLabelWithNumber.json"),
+            optionListLabelWithNumber
+        );
         await File.WriteAllTextAsync(Path.Combine(filePath, "optionListLabelWithBool.json"), optionListLabelWithBool);
 
         // Act
@@ -103,7 +107,6 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
         Assert.Single(responseList, o => o.Title == "optionListLabelWithObject" && o.HasError == true);
         Assert.Single(responseList, o => o.Title == "optionListLabelWithNumber" && o.HasError == true);
         Assert.Single(responseList, o => o.Title == "optionListLabelWithBool" && o.HasError == true);
-
     }
 
     [Fact]

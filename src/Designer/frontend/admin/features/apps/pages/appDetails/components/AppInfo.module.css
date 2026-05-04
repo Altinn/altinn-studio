@@ -1,0 +1,10 @@
+.details-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.external {
+  margin-left: 2px;
+  margin-bottom: -2px;
+}

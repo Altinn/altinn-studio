@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ThreeDotsMenuProps } from './ThreeDotsMenu';
@@ -38,17 +37,12 @@ describe('ThreeDotsMenu', () => {
   });
 
   it('Reopens the local changes modal when the user clicks the button after having closed it', async () => {
-    const consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => {});
     const user = userEvent.setup();
     renderThreeDotsMenu();
     await user.click(getGiteaMenuButton());
     await user.click(getLocalChangesButton());
     expect(getLocalChangesHeading()).toBeInTheDocument();
     await user.click(getCloseLocalChangesButton());
-    const dialog = screen.getByRole('dialog', { name: '' }) as HTMLDialogElement;
-    dialog.close();
-    dialog.dispatchEvent(new Event('close', { bubbles: true }));
-    consoleErrorMock.mockRestore();
 
     expect(queryLocalChangesHeading()).not.toBeInTheDocument();
     await user.click(getLocalChangesButton());
@@ -69,7 +63,7 @@ const queryCloneButton = () => queryButton(cloneButtonName);
 const queryButton = (name: string) => screen.queryByRole('button', { name });
 
 const getRepositoryLink = () => getLink(repositoryLinkName);
-const getLink = (name: string) => screen.getByRole('button', { name });
+const getLink = (name: string) => screen.getByRole('link', { name });
 
 const getLocalChangesHeading = () => getHeading(localChangesHeading);
 const getHeading = (name: string) => screen.getByRole('heading', { name });

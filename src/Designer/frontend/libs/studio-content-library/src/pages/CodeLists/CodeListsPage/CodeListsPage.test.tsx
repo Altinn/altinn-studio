@@ -2,7 +2,6 @@ import { render, screen, within } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { CodeListsPage } from './CodeListsPage';
 import type { CodeListsPageProps } from './CodeListsPage';
-import React from 'react';
 import { userEvent } from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -11,7 +10,13 @@ import { codeLists, coloursData } from './test-data/codeLists';
 // Test data:
 const onPublish = jest.fn();
 const onSave = jest.fn();
-const defaultProps: CodeListsPageProps = { codeLists, onPublish, onSave };
+const defaultProps: CodeListsPageProps = {
+  codeLists,
+  isPublishing: jest.fn().mockReturnValue(false),
+  onPublish,
+  onSave,
+  publishedCodeLists: [],
+};
 
 describe('CodeListsPage', () => {
   beforeEach(() => {

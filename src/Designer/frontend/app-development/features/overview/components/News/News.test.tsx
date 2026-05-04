@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import type { NewsList } from 'app-shared/types/api/NewsList';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -57,7 +56,7 @@ describe('News', () => {
     await renderNews(newsList);
 
     await screen.findByText('title');
-    await screen.findByText('News content');
+    await screen.findByText(/News content/);
     await screen.findByText(
       textMock('overview.news_date', { date: formatDateToVisualText(formatDate(publishDate)) }),
     );

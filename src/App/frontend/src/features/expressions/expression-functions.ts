@@ -4,11 +4,11 @@ import escapeStringRegexp from 'escape-string-regexp';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { SearchParams } from 'src/core/routing/types';
 import { exprCastValue } from 'src/features/expressions';
+import { Decimal } from 'src/features/expressions/Decimal';
 import { ExprRuntimeError, NodeRelationNotFound } from 'src/features/expressions/errors';
 import { ExprVal } from 'src/features/expressions/types';
 import { addError } from 'src/features/expressions/validation';
 import { makeIndexedId } from 'src/features/form/layout/utils/makeIndexedId';
-import { CodeListPending } from 'src/features/options/CodeListsProvider';
 import { buildAuthContext } from 'src/utils/authContext';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { formatDateLocale } from 'src/utils/dateUtils';
@@ -23,7 +23,7 @@ import type {
 } from 'src/features/expressions/types';
 import type { ValidationContext } from 'src/features/expressions/validation';
 import type { IDataModelReference } from 'src/layout/common.generated';
-import type { IAuthContext, IInstanceDataSources } from 'src/types/shared';
+import type { IInstanceDataSources } from 'src/types/shared';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 type ArgsToActual<T extends readonly AnyExprArg[]> = {
@@ -126,6 +126,26 @@ export const ExprFunctionDefinitions = {
   lessThanEq: {
     args: args(required(ExprVal.Number), required(ExprVal.Number)),
     returns: ExprVal.Boolean,
+    needs: noSources,
+  },
+  plus: {
+    args: args(required(ExprVal.Number), required(ExprVal.Number)),
+    returns: ExprVal.Number,
+    needs: noSources,
+  },
+  minus: {
+    args: args(required(ExprVal.Number), required(ExprVal.Number)),
+    returns: ExprVal.Number,
+    needs: noSources,
+  },
+  multiply: {
+    args: args(required(ExprVal.Number), required(ExprVal.Number)),
+    returns: ExprVal.Number,
+    needs: noSources,
+  },
+  divide: {
+    args: args(required(ExprVal.Number), required(ExprVal.Number)),
+    returns: ExprVal.Number,
     needs: noSources,
   },
   concat: {
@@ -374,6 +394,24 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
   lessThanEq(arg1, arg2) {
     return compare(this, 'lessThanEq', arg1, arg2);
   },
+  plus(term1, term2) {
+    return applyNullableBinaryOperation(Decimal.add, [term1, term2]);
+  },
+  minus(minuend, subtrahend) {
+    return applyNullableBinaryOperation(Decimal.subtract, [minuend, subtrahend]);
+  },
+  multiply(factor1, factor2) {
+    return applyNullableBinaryOperation(Decimal.multiply, [factor1, factor2]);
+  },
+  divide(dividend, divisor) {
+    if (dividend === null || divisor === null) {
+      return null;
+    } else if (divisor === 0) {
+      throw new ExprRuntimeError(this.expr, this.path, 'The second argument is 0, cannot divide by 0');
+    } else {
+      return Decimal.divide(dividend, divisor);
+    }
+  },
   concat: (...args) => args.join(''),
   and: (...args) => args.reduce((prev, cur) => prev && !!cur, true),
   or: (...args) => args.reduce((prev, cur) => prev || !!cur, false),
@@ -407,22 +445,20 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     return (this.dataSources.applicationSettings && this.dataSources.applicationSettings[key]) || null;
   },
   authContext(key) {
-    const authContextKeys: { [key in keyof IAuthContext]: true } = {
-      read: true,
-      write: true,
-      instantiate: true,
-      confirm: true,
-      sign: true,
-      reject: true,
-      complete: true,
-    };
-
-    if (key === null || authContextKeys[key] !== true) {
-      throw new ExprRuntimeError(this.expr, this.path, `Unknown auth context property ${key}`);
+    if (key === null) {
+      throw new ExprRuntimeError(this.expr, this.path, `Auth context key cannot be null`);
     }
 
     const authContext = buildAuthContext(this.dataSources.process?.currentTask);
-    return Boolean(authContext?.[key]);
+    const hasAction = authContext?.[key];
+    if (hasAction === undefined) {
+      throw new ExprRuntimeError(
+        this.expr,
+        this.path,
+        `Unknown Auth context property ${key} for task ${this.dataSources.process?.currentTask?.elementId} (allowed keys are {${Object.keys(authContext).join(', ')}})`,
+      );
+    }
+    return Boolean(hasAction);
   },
   component(id) {
     if (id === null) {
@@ -553,11 +589,6 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new ExprRuntimeError(this.expr, this.path, `Could not find options with id "${optionsId}"`);
     }
 
-    if (options === CodeListPending) {
-      // We don't have the options yet, but it's not an error to ask for them.
-      return null;
-    }
-
     // Lax comparison by design. Numbers in raw option lists will be cast to strings by useGetOptions(), so we cannot
     // be strict about the type here.
     const option = options.find((o) => o.value == value);
@@ -617,7 +648,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     const taskId = this.dataSources.process?.currentTask?.elementId;
     const instanceId = this.dataSources.instanceDataSources?.instanceId;
 
-    let url = '';
+    let url: string;
     if (taskId && instanceId) {
       url = `/instance/${instanceId}/${taskId}/${pageKey}`;
     } else {
@@ -650,7 +681,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     const taskId = this.dataSources.process?.currentTask?.elementId;
     const instanceId = this.dataSources.instanceDataSources?.instanceId;
 
-    let url = '';
+    let url: string;
     if (taskId && instanceId) {
       url = `/instance/${instanceId}/${taskId}/${pageId}`;
     } else {
@@ -992,6 +1023,13 @@ function compare(
   }
 
   return def.impl.call(ctx, a, b);
+}
+
+function applyNullableBinaryOperation(
+  operation: (a: number, b: number) => number,
+  [a, b]: [number | null, number | null],
+): number | null {
+  return a === null || b === null ? null : operation(a, b);
 }
 
 function validateDatesForSameDay(this: EvaluateExpressionParams, a: ExprDate, b: ExprDate) {

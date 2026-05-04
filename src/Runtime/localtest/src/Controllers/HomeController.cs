@@ -1,8 +1,5 @@
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
 using System.Xml;
 using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Profile.Models;
@@ -10,9 +7,9 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using LocalTest.Configuration;
 using LocalTest.Models;
-using LocalTest.Services.AppRegistry;
 using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.LocalApp.Interface;
+using LocalTest.Services.LocalFrontend.Interface;
 using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.TestData;
 using Microsoft.AspNetCore.Authentication;
@@ -27,6 +24,7 @@ namespace LocalTest.Controllers
     [Route("/Home/[action]")]
     public class HomeController : Controller
     {
+        private static readonly TimeSpan LocalAppViewTimeout = TimeSpan.FromSeconds(5);
         private readonly GeneralSettings _generalSettings;
         private readonly LocalPlatformSettings _localPlatformSettings;
         private readonly IUserProfiles _userProfileService;
@@ -35,8 +33,8 @@ namespace LocalTest.Controllers
         private readonly IParties _partiesService;
 
         private readonly ILocalApp _localApp;
+        private readonly ILocalFrontendService _localFrontendService;
         private readonly TestDataService _testDataService;
-        private readonly AppRegistryService _appRegistryService;
         private readonly ILogger<HomeController> _logger;
 
         public HomeController(
@@ -47,9 +45,9 @@ namespace LocalTest.Controllers
             IApplicationRepository applicationRepository,
             IParties partiesService,
             ILocalApp localApp,
+            ILocalFrontendService localFrontendService,
             TestDataService testDataService,
-            ILogger<HomeController> logger,
-            AppRegistryService appRegistryService
+            ILogger<HomeController> logger
         )
         {
             _generalSettings = generalSettings.Value;
@@ -59,8 +57,8 @@ namespace LocalTest.Controllers
             _applicationRepository = applicationRepository;
             _partiesService = partiesService;
             _localApp = localApp;
+            _localFrontendService = localFrontendService;
             _testDataService = testDataService;
-            _appRegistryService = appRegistryService;
             _logger = logger;
         }
 
@@ -70,44 +68,30 @@ namespace LocalTest.Controllers
         [HttpGet("/Home/Index")]
         public async Task<IActionResult> Index()
         {
-            AppMode appMode = _localPlatformSettings.LocalAppMode switch
-            {
-                "http" => AppMode.Http,
-                _ => AppMode.File
-            };
-
             StartAppModel model = new StartAppModel()
             {
-                AppMode = appMode,
                 StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath,
                 LocalFrontendUrl = HttpContext.Request.Cookies[
                     FrontendVersionController.FRONTEND_URL_COOKIE_NAME
                 ],
-                HasRegisteredApps = _appRegistryService.GetAll().Any(),
             };
+            model.LocalFrontendDescription = _localFrontendService.DescribeFrontendUrl(model.LocalFrontendUrl);
 
             try
             {
-                model.TestApps = await GetAppsList();
-                model.TestUsers = await GetTestUsersAndPartiesSelectList();
+                using var timeoutCancellationTokenSource = new CancellationTokenSource(LocalAppViewTimeout);
+                var cancellationToken = timeoutCancellationTokenSource.Token;
+                model.TestApps = await GetAppsList(cancellationToken);
+                model.TestUsers = await GetTestUsersAndPartiesSelectList(cancellationToken);
                 model.UserSelect = Request.Cookies["Localtest_User.Party_Select"];
-                var firstAppId =
-                    model.AppMode == AppMode.Http && model.TestApps.Count() == 1
-                        ? model.TestApps.First().Value
-                        : null;
-                var defaultAuthLevel = await GetAppAuthLevel(firstAppId);
+                var firstAppId = model.TestApps.Count() == 1 ? model.TestApps.First().Value : null;
+                var defaultAuthLevel = await GetAppAuthLevel(firstAppId, cancellationToken);
                 model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
             }
-            catch (HttpRequestException e)
+            catch (Exception e) when (e is HttpRequestException or OperationCanceledException)
             {
-                model.HttpException = e;
-            }
-
-            // In http mode, apps can register themselves, so empty list is OK
-            // Only show invalid path error in file mode
-            if (appMode == AppMode.File && (!model.TestApps?.Any() ?? true))
-            {
-                model.InvalidAppPath = true;
+                model.HttpException = e as HttpRequestException
+                    ?? new HttpRequestException($"Request to local app timed out after {LocalAppViewTimeout.TotalSeconds:0} seconds.", e);
             }
 
             if (!model.TestUsers?.Any() ?? true)
@@ -122,83 +106,7 @@ namespace LocalTest.Controllers
         [HttpGet("/Home/Localtest/Version")]
         public IActionResult Version()
         {
-            return Ok("3");
-        }
-
-        /// <summary>
-        /// Register an app running on a dynamic port
-        /// </summary>
-        [AllowAnonymous]
-        [HttpPost("/Home/Localtest/Register")]
-        public IActionResult RegisterApp([FromBody] AppRegistrationRequest request)
-        {
-            if (string.IsNullOrWhiteSpace(request.AppId))
-            {
-                return BadRequest("AppId is required");
-            }
-
-            if (request.Port <= 0 || request.Port > 65535)
-            {
-                return BadRequest("Invalid port number");
-            }
-
-            var sourceIp = HttpContext.Connection.RemoteIpAddress;
-            if (sourceIp == null)
-            {
-                return BadRequest("Could not determine source IP address");
-            }
-
-            var hostname = sourceIp.ToString();
-            var parsedSourceIp = sourceIp.IsIPv4MappedToIPv6 ? sourceIp.MapToIPv4() : sourceIp;
-
-            // Reach the host machine when apps are running outside of container runtime
-            if (ShouldUseDockerHostInternal(parsedSourceIp))
-            {
-                // TODO: This does not work with all container runtimes. Make sure it does.
-                hostname = "host.docker.internal";
-            }
-
-            _appRegistryService.Register(request.AppId, request.Port, hostname);
-            return Ok(
-                new
-                {
-                    message = "App registered successfully",
-                    appId = request.AppId,
-                    port = request.Port,
-                    hostname
-                }
-            );
-        }
-
-        /// <summary>
-        /// Unregister an app
-        /// </summary>
-        [AllowAnonymous]
-        [HttpDelete("/Home/Localtest/Register")]
-        public IActionResult UnregisterApp([FromQuery] string appId)
-        {
-            if (string.IsNullOrWhiteSpace(appId))
-            {
-                return BadRequest("AppId is required");
-            }
-
-            var removed = _appRegistryService.Unregister(appId);
-            if (removed)
-            {
-                return Ok(new { message = "App unregistered successfully", appId });
-            }
-            return NotFound(new { message = "App not found", appId });
-        }
-
-        /// <summary>
-        /// Get all registered apps
-        /// </summary>
-        [AllowAnonymous]
-        [HttpGet("/Home/Localtest/Register")]
-        public IActionResult GetRegisteredApps()
-        {
-            var apps = _appRegistryService.GetAll();
-            return Ok(apps);
+            return Ok("4");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -223,7 +131,7 @@ namespace LocalTest.Controllers
         {
             if (startAppModel.AuthenticationLevel != "-1")
             {
-                UserProfile? profile = await _userProfileService.GetUser(startAppModel.UserId);
+                UserProfile profile = await _userProfileService.GetUser(startAppModel.UserId);
                 if (profile == null)
                 {
                     return BadRequest("User not found");
@@ -255,38 +163,38 @@ namespace LocalTest.Controllers
             Application app = await _localApp.GetApplicationMetadata(
                 startAppModel.AppPathSelection
             );
-
-            if (_localPlatformSettings.LocalAppMode == "http")
+            if (app == null)
             {
-                // Instantiate a prefill if a file attachment exists.
-                var prefill = Request.Form.Files.FirstOrDefault();
-                if (prefill != null)
+                return BadRequest("App not found");
+            }
+
+            var prefill = Request.Form.Files.FirstOrDefault();
+            if (prefill != null)
+            {
+                var instance = new Instance
                 {
-                    var instance = new Instance
-                    {
-                        AppId = app.Id,
-                        Org = app.Org,
-                        InstanceOwner = new() { PartyId = startAppModel.PartyId.ToString(), },
-                        DataValues = new() { { "PrefillFilename", prefill.FileName } },
-                    };
+                    AppId = app.Id,
+                    Org = app.Org,
+                    InstanceOwner = new() { PartyId = startAppModel.PartyId.ToString(), },
+                    DataValues = new() { { "PrefillFilename", prefill.FileName } },
+                };
 
-                    var xmlDataId = app.DataTypes.First(dt => dt.AppLogic?.ClassRef is not null).Id;
+                var xmlDataId = app.DataTypes.First(dt => dt.AppLogic?.ClassRef is not null).Id;
 
-                    using var reader = new StreamReader(prefill.OpenReadStream());
-                    var content = await reader.ReadToEndAsync();
-                    var token = await _authenticationService.GenerateTokenForOrg(
-                        app.Id.Split("/")[0]
-                    );
-                    var newInstance = await _localApp.Instantiate(
-                        app.Id,
-                        instance,
-                        content,
-                        xmlDataId,
-                        token
-                    );
+                using var reader = new StreamReader(prefill.OpenReadStream());
+                var content = await reader.ReadToEndAsync();
+                var token = await _authenticationService.GenerateTokenForOrg(
+                    app.Id.Split("/")[0]
+                );
+                var newInstance = await _localApp.Instantiate(
+                    app.Id,
+                    instance,
+                    content,
+                    xmlDataId,
+                    token
+                );
 
-                    return Redirect($"/{app.Id}/#/instance/{newInstance.Id}");
-                }
+                return Redirect($"/{app.Id}/instance/{newInstance.Id}");
             }
 
             return Redirect($"/{app.Id}/");
@@ -295,18 +203,33 @@ namespace LocalTest.Controllers
         [HttpGet("/Home/Tokens")]
         public async Task<IActionResult> Tokens()
         {
-            var model = new TokensViewModel
+            try
             {
-                AuthenticationLevels = GetAuthenticationLevels(2),
-                TestUsers = await GetUsersSelectList(),
-                TestSystemUsers = await GetSystemUsersSelectList(),
-                DefaultOrg =
-                    _localPlatformSettings.LocalAppMode == "http"
-                        ? (await GetAppsList()).First().Value?.Split("/").FirstOrDefault()
-                        : null,
-            };
+                using var timeoutCancellationTokenSource = new CancellationTokenSource(LocalAppViewTimeout);
+                var cancellationToken = timeoutCancellationTokenSource.Token;
+                var model = new TokensViewModel
+                {
+                    AuthenticationLevels = GetAuthenticationLevels(2),
+                    TestUsers = await GetUsersSelectList(cancellationToken),
+                    TestSystemUsers = await GetSystemUsersSelectList(cancellationToken),
+                    DefaultOrg = (await GetAppsList(cancellationToken)).FirstOrDefault()?.Value?.Split("/").FirstOrDefault(),
+                };
 
-            return View(model);
+                return View(model);
+            }
+            catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException)
+            {
+                _logger.LogWarning(ex, "Timed out while loading tokens view");
+                return View(
+                    new TokensViewModel
+                    {
+                        AuthenticationLevels = GetAuthenticationLevels(2),
+                        TestUsers = [],
+                        TestSystemUsers = [],
+                        DefaultOrg = string.Empty,
+                    }
+                );
+            }
         }
 
         /// <summary>
@@ -405,9 +328,9 @@ namespace LocalTest.Controllers
             return Ok(token);
         }
 
-        private async Task<IEnumerable<SelectListItem>> GetTestUsersAndPartiesSelectList()
+        private async Task<IEnumerable<SelectListItem>> GetTestUsersAndPartiesSelectList(CancellationToken cancellationToken = default)
         {
-            var data = await _testDataService.GetTestData();
+            var data = await _testDataService.GetTestData(cancellationToken);
             var userItems = new List<SelectListItem>();
 
             foreach (UserProfile profile in data.Profile.User.Values)
@@ -454,9 +377,9 @@ namespace LocalTest.Controllers
             return userItems;
         }
 
-        private async Task<List<SelectListItem>> GetUsersSelectList()
+        private async Task<List<SelectListItem>> GetUsersSelectList(CancellationToken cancellationToken = default)
         {
-            var data = await _testDataService.GetTestData();
+            var data = await _testDataService.GetTestData(cancellationToken);
             var testUsers = new List<SelectListItem>();
             foreach (UserProfile profile in data.Profile.User.Values)
             {
@@ -469,9 +392,9 @@ namespace LocalTest.Controllers
             return testUsers;
         }
 
-        private async Task<List<SelectListItem>> GetSystemUsersSelectList()
+        private async Task<List<SelectListItem>> GetSystemUsersSelectList(CancellationToken cancellationToken = default)
         {
-            var data = await _testDataService.GetTestData();
+            var data = await _testDataService.GetTestData(cancellationToken);
             var testUsers = new List<SelectListItem>();
             var orgs = data.Register.Org;
             foreach (var systemUser in data.Authorization.SystemUsers.Values)
@@ -485,16 +408,15 @@ namespace LocalTest.Controllers
             return testUsers;
         }
 
-        private async Task<int> GetAppAuthLevel(string appId)
+        private async Task<int> GetAppAuthLevel(string appId, CancellationToken cancellationToken = default)
         {
-            bool isHttp = _localPlatformSettings.LocalAppMode == "http";
-            if (!isHttp || string.IsNullOrWhiteSpace(appId))
+            if (string.IsNullOrWhiteSpace(appId))
             {
                 return 2;
             }
             try
             {
-                var policyString = await _localApp.GetXACMLPolicy(appId);
+                var policyString = await _localApp.GetXACMLPolicy(appId, cancellationToken);
                 var document = new XmlDocument();
                 document.LoadXml(policyString);
                 var nsMngr = new XmlNamespaceManager(document.NameTable);
@@ -573,9 +495,9 @@ namespace LocalTest.Controllers
             };
         }
 
-        private async Task<List<SelectListItem>> GetAppsList()
+        private async Task<List<SelectListItem>> GetAppsList(CancellationToken cancellationToken = default)
         {
-            var applications = await _localApp.GetApplications();
+            var applications = await _localApp.GetApplications(cancellationToken);
             return applications.Select((kv) => GetSelectItem(kv.Value, kv.Key)).ToList();
         }
 
@@ -655,92 +577,5 @@ namespace LocalTest.Controllers
             );
         }
 
-        /// <summary>
-        /// Determines whether to use host.docker.internal based on the source IP address.
-        /// Returns true if host.docker.internal should be used, false if the actual IP should be used.
-        /// </summary>
-        private bool ShouldUseDockerHostInternal(IPAddress? address)
-        {
-            if (address == null)
-            {
-                return false;
-            }
-
-            try
-            {
-                var interfaces = NetworkInterface
-                    .GetAllNetworkInterfaces()
-                    .Where(n => n.OperationalStatus == OperationalStatus.Up)
-                    .Where(n => n.NetworkInterfaceType != NetworkInterfaceType.Loopback);
-
-                var myIp = interfaces
-                    .SelectMany(n => n.GetIPProperties().UnicastAddresses)
-                    .Select(a => a.Address)
-                    .FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork);
-
-                var defaultGateway = interfaces
-                    .SelectMany(n => n.GetIPProperties().GatewayAddresses)
-                    .Select(g => g.Address)
-                    .FirstOrDefault(a => a?.AddressFamily == AddressFamily.InterNetwork);
-
-                // Request comes from default gateway (typically using docker)
-                if (Equals(address, defaultGateway))
-                {
-                    return true;
-                }
-
-                // Request comes from the containers own IP (typical quick in podman on linux)
-                if (Equals(address, myIp))
-                {
-                    return true;
-                }
-
-                // Request comes from same subnet as container's assigned interface (typically goes to test-apps container)
-                var myUnicastAddress = interfaces
-                    .SelectMany(n => n.GetIPProperties().UnicastAddresses)
-                    .FirstOrDefault(a => a.Address.AddressFamily == AddressFamily.InterNetwork);
-
-                if (myUnicastAddress != null)
-                {
-                    var subnetMask = myUnicastAddress.IPv4Mask;
-                    if (subnetMask != null)
-                    {
-                        // Check if addresses are in the same subnet
-                        var ip1Bytes = address.GetAddressBytes();
-                        var ip2Bytes = myUnicastAddress.Address.GetAddressBytes();
-                        var maskBytes = subnetMask.GetAddressBytes();
-
-                        if (
-                            ip1Bytes.Length == ip2Bytes.Length
-                            && ip1Bytes.Length == maskBytes.Length
-                        )
-                        {
-                            bool sameSubnet = true;
-                            for (int i = 0; i < ip1Bytes.Length; i++)
-                            {
-                                if ((ip1Bytes[i] & maskBytes[i]) != (ip2Bytes[i] & maskBytes[i]))
-                                {
-                                    sameSubnet = false;
-                                    break;
-                                }
-                            }
-
-                            if (sameSubnet)
-                            {
-                                return false; // Use the actual IP we received
-                            }
-                        }
-                    }
-                }
-
-                // Otherwise, the request came from outside our inner network, so we assume it came from the container
-                // host. This makes it impossible to run an app on an entirely different machine, but that's OK.
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
     }
 }

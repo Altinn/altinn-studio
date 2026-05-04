@@ -4,7 +4,7 @@ import { Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import { Caption } from 'src/components/form/caption/Caption';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { Lang } from 'src/features/language/Lang';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { GenericComponent } from 'src/layout/GenericComponent';
@@ -43,7 +43,19 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
   const required = !!minCount && minCount > 0;
 
   const columnSettings = tableColumns ? structuredClone(tableColumns) : ({} as ITableColumnFormatting);
+
+  const hiddenColumns = Object.entries(columnSettings)
+    .filter(([_, settings]) => settings.hidden === true)
+    .map(([id]) => id);
+
   const tableIds = useTableComponentIds(baseComponentId);
+  const tableIdsWithoutHiddenColumns = tableIds.filter((id) => !hiddenColumns.includes(id));
+
+  // Calculate hidden column indices for ExtraRows (which uses positional indexing)
+  const hiddenColumnIndices = tableIds
+    .map((id, index) => (hiddenColumns.includes(id) ? index : -1))
+    .filter((index) => index !== -1);
+
   const numRows = rowsToDisplay.length;
   const firstRowId = numRows >= 1 ? rowsToDisplay[0].uuid : undefined;
 
@@ -65,7 +77,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
     displayEditColumn = false;
   }
 
-  const parent = useLayoutLookups().componentToParent[baseComponentId];
+  const parent = FormBootstrap.useLayoutLookups().componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';
   const extraCells = [...(displayEditColumn ? [null] : []), ...(displayDeleteColumn ? [null] : [])];
 
@@ -108,6 +120,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
           where='Before'
           extraCells={extraCells}
           columnSettings={columnSettings}
+          hiddenColumnIndices={hiddenColumnIndices}
         />
         {showTableHeader && !mobileView && (
           <Table.Head id={`group-${id}-table-header`}>
@@ -116,7 +129,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
                 groupBinding={dataModelBindings.group}
                 rowIndex={0} // Force the header row to show texts as if it is in the first row
               >
-                {tableIds?.map((id) => (
+                {tableIdsWithoutHiddenColumns?.map((id) => (
                   <TitleCell
                     key={id}
                     baseComponentId={id}
@@ -151,7 +164,8 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
               uuid={row.uuid}
               displayDeleteColumn={displayDeleteColumn}
               displayEditColumn={displayEditColumn}
-              tableIds={tableIds}
+              tableIds={tableIdsWithoutHiddenColumns}
+              hiddenColumns={hiddenColumns}
             />
           ))}
         </Table.Body>
@@ -160,6 +174,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
           where='After'
           extraCells={extraCells}
           columnSettings={columnSettings}
+          hiddenColumnIndices={hiddenColumnIndices}
         />
       </Table>
     </div>
@@ -174,17 +189,18 @@ function RowToDisplay({
   index,
   uuid,
   tableIds,
+  hiddenColumns,
 }: {
   baseComponentId: string;
   dataModelBindings: IDataModelBindings<'RepeatingGroup'>;
   displayDeleteColumn: boolean;
   displayEditColumn: boolean;
   tableIds: string[];
+  hiddenColumns: string[];
 } & BaseRow) {
   const component = useExternalItem(baseComponentId, 'RepeatingGroup');
   const mobileView = useIsMobileOrTablet();
   const isEditingRow = RepGroupContext.useIsEditingRow(uuid);
-
   return (
     <DataModelLocationProvider
       groupBinding={group}
@@ -200,6 +216,7 @@ function RowToDisplay({
         mobileView={mobileView}
         displayDeleteColumn={displayDeleteColumn}
         displayEditColumn={displayEditColumn}
+        hiddenColumns={hiddenColumns}
       />
       {isEditingRow && (
         <Table.Row
@@ -224,15 +241,16 @@ interface ExtraRowsProps {
   where: 'Before' | 'After';
   extraCells: GridCell[];
   columnSettings: ITableColumnFormatting;
+  hiddenColumnIndices: number[];
 }
 
-function ExtraRows({ where, extraCells, columnSettings }: ExtraRowsProps) {
+function ExtraRows({ where, extraCells, columnSettings, hiddenColumnIndices }: ExtraRowsProps) {
   const mobileView = useIsMobileOrTablet();
   const baseComponentId = useRepeatingGroupComponentId();
   const { visibleRows } = useRepeatingGroupRowState();
   const isEmpty = visibleRows.length === 0;
   const { rowsBefore, rowsAfter } = useExternalItem(baseComponentId, 'RepeatingGroup');
-  const parent = useLayoutLookups().componentToParent[baseComponentId];
+  const parent = FormBootstrap.useLayoutLookups().componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';
 
   const rows = where === 'Before' ? rowsBefore : rowsAfter;
@@ -270,6 +288,7 @@ function ExtraRows({ where, extraCells, columnSettings }: ExtraRowsProps) {
       extraCells={extraCells}
       isNested={isNested}
       mutableColumnSettings={columnSettings}
+      hiddenColumnIndices={hiddenColumnIndices}
     />
   );
 }

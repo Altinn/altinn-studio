@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { StudioSpinner } from './StudioSpinner';
@@ -30,12 +29,8 @@ describe('StudioSpinner', () => {
   });
 });
 
-const defaultProps: StudioSpinnerProps = {
-  'aria-label': 'Loading',
-  'data-size': 'md',
-  'aria-hidden': true,
-};
-
 const renderStudioSpinner = (props: Partial<StudioSpinnerProps>): RenderResult => {
-  return render(<StudioSpinner {...defaultProps} {...props} />);
+  return render(
+    <StudioSpinner aria-label={'aria-label'} data-size='md' aria-hidden={true} {...props} />,
+  );
 };

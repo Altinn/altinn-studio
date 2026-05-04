@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './DeploymentEnvironmentLogList.module.css';
 import { Link, Table } from '@digdir/designsystemet-react';
 import { DateUtils } from '@studio/pure-functions';
@@ -88,18 +87,17 @@ export const DeploymentEnvironmentLogList = ({
             <Table.Body>
               {pipelineDeploymentList.map((deploy: PipelineDeployment) => {
                 const deploymentStatus = getDeployStatus(deploy);
-                const areLogsAvailable = DateUtils.isDateWithinDays(deploy.build.started, 30);
+                const areLogsAvailable =
+                  deploy.build?.started != null &&
+                  DateUtils.isDateWithinDays(deploy.build.started, 30);
 
                 const tableCellStatusClassName = classes[deploymentStatus];
-                const buildStartTime = deploy.build.started
-                  ? new Date(deploy.build.started).getTime()
-                  : undefined;
-                const buildFinishTime = deploy.build.finished
-                  ? new Date(deploy.build.finished).getTime()
-                  : undefined;
 
                 return (
-                  <Table.Row key={deploy.build.id} className={tableCellStatusClassName}>
+                  <Table.Row
+                    key={deploy.build?.id ?? deploy.created}
+                    className={tableCellStatusClassName}
+                  >
                     <Table.Cell
                       className={classNames(
                         classes.tableCell,
@@ -123,27 +121,41 @@ export const DeploymentEnvironmentLogList = ({
                           <Trans
                             i18nKey={`app_deployment.pipeline_deployment.build_result.failed.details`}
                             components={{
-                              grafana: (
-                                <StudioLink
-                                  href={grafanaPodLogsUrl({
-                                    org,
-                                    env: envName,
-                                    app,
-                                    isProduction,
-                                    buildStartTime,
-                                    buildFinishTime,
-                                  })}
-                                  rel='noopener noreferrer'
-                                  target='_blank'
-                                  icon={
-                                    <ExternalLinkIcon title={t('general.open_app_in_new_window')} />
-                                  }
-                                  iconPlacement={'right'}
-                                >
-                                  Grafana
-                                </StudioLink>
-                              ),
-                              buildLog: (
+                              grafana: (() => {
+                                const deployStart =
+                                  deploy.events.at(0)?.created ?? deploy.build?.started;
+                                const deployStartTime = new Date(deployStart).getTime();
+
+                                const deployFinish =
+                                  deploy.events.at(-1)?.created ?? deploy.build?.finished;
+                                const deployFinishTime = deployFinish
+                                  ? new Date(deployFinish).getTime()
+                                  : undefined;
+
+                                return (
+                                  <StudioLink
+                                    href={grafanaPodLogsUrl({
+                                      org,
+                                      env: envName,
+                                      app,
+                                      isProduction,
+                                      deployStartTime,
+                                      deployFinishTime,
+                                    })}
+                                    rel='noopener noreferrer'
+                                    target='_blank'
+                                    icon={
+                                      <ExternalLinkIcon
+                                        title={t('general.open_app_in_new_window')}
+                                      />
+                                    }
+                                    iconPlacement={'right'}
+                                  >
+                                    Grafana
+                                  </StudioLink>
+                                );
+                              })(),
+                              buildLog: deploy.build?.id ? (
                                 <StudioLink
                                   href={getAzureDevopsBuildResultUrl(deploy.build.id)}
                                   rel='noopener noreferrer'
@@ -155,7 +167,7 @@ export const DeploymentEnvironmentLogList = ({
                                 >
                                   Build log
                                 </StudioLink>
-                              ),
+                              ) : null,
                             }}
                           />
                         </span>
@@ -194,7 +206,8 @@ export const DeploymentEnvironmentLogList = ({
                         classes.finishedDateCell,
                       )}
                     >
-                      {deploy.build.finished && DateUtils.formatDateTime(deploy.build.finished)}
+                      {(deploy.build?.finished ?? deploy.created) &&
+                        DateUtils.formatDateTime(deploy.build?.finished ?? deploy.created)}
                     </Table.Cell>
                     <Table.Cell
                       className={classNames(
@@ -212,7 +225,7 @@ export const DeploymentEnvironmentLogList = ({
                         classes.buildLogCell,
                       )}
                     >
-                      {deploy.build.started &&
+                      {deploy.build?.started &&
                         (areLogsAvailable ? (
                           <Link
                             href={getAzureDevopsBuildResultUrl(deploy.build.id)}

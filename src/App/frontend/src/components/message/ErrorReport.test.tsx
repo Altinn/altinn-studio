@@ -3,64 +3,65 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { Form } from 'src/components/form/Form';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
 import { doProcessNext } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
 describe('ErrorReport', () => {
-  const render = async (validationIssues: BackendValidationIssue[] = []) =>
-    await renderWithInstanceAndLayout({
+  const render = async (validationIssues: BackendValidationIssue[] = []) => {
+    window.altinnAppGlobalData.textResources!.resources = [{ id: 'submit', value: 'This is a page title' }];
+    window.altinnAppGlobalData.ui = getUiConfigMock((ui) => {
+      ui.folders.Task_1 = {
+        defaultDataType: defaultDataTypeMock,
+        pages: {
+          order: ['form', 'submit'],
+        },
+      };
+    });
+
+    return await renderWithInstanceAndLayout({
       initialPage: 'submit',
       renderer: () => <Form />,
       queries: {
-        fetchBackendValidations: async () => validationIssues,
-        fetchLayoutSettings: async () => ({
-          pages: {
-            order: ['form', 'submit'],
-          },
-        }),
-        fetchLayouts: async () => ({
-          form: {
-            data: {
-              layout: [
-                {
-                  id: 'input',
-                  type: 'Input',
-                  dataModelBindings: {
-                    simpleBinding: { dataType: defaultDataTypeMock, field: 'boundField' },
-                  },
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
+            obj.layouts = {
+              form: {
+                data: {
+                  layout: [
+                    {
+                      id: 'input',
+                      type: 'Input',
+                      dataModelBindings: {
+                        simpleBinding: { dataType: defaultDataTypeMock, field: 'boundField' },
+                      },
+                    },
+                  ],
                 },
-              ],
-            },
-          },
-          submit: {
-            data: {
-              layout: [
-                {
-                  id: 'submit',
-                  type: 'Button',
-                  textResourceBindings: {
-                    title: 'Submit',
-                  },
+              },
+              submit: {
+                data: {
+                  layout: [
+                    {
+                      id: 'submit',
+                      type: 'Button',
+                      textResourceBindings: {
+                        title: 'Submit',
+                      },
+                    },
+                  ],
                 },
-              ],
-            },
-          },
-        }),
-        fetchTextResources: async () => ({
-          language: 'nb',
-          resources: [
-            {
-              id: 'submit',
-              value: 'This is a page title',
-            },
-          ],
-        }),
+              },
+            };
+          }),
       },
     });
+  };
 
   it('should not render when there are no errors', async () => {
     await render();
@@ -81,7 +82,8 @@ describe('ErrorReport', () => {
               customTextKey: 'some unmapped error',
               source: 'taskValidator',
               severity: BackendValidationSeverity.Error,
-            } as BackendValidationIssue,
+              dataElementId: defaultMockDataElementId,
+            } satisfies BackendValidationIssue,
           ],
         },
       };

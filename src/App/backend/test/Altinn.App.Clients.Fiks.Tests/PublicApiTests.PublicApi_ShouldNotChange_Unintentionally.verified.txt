@@ -73,7 +73,6 @@ namespace Altinn.App.Clients.Fiks.FiksArkiv
         System.Threading.Tasks.Task<KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmelding.Korrespondansepart?> GetInstanceOwnerParty(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivRecipient> GetRecipient(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Threading.CancellationToken cancellationToken = default);
         KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmelding.Korrespondansepart GetRecipientParty(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivRecipient recipient);
-        System.Threading.Tasks.Task<KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmelding.Korrespondansepart> GetServiceOwnerParty(System.Threading.CancellationToken cancellationToken = default);
     }
     public interface IFiksArkivHost
     {

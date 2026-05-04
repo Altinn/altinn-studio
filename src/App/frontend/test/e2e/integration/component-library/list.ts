@@ -76,7 +76,7 @@ describe('List component', () => {
   });
 
   it('Adds and removes data properly when using group and hard deletion', () => {
-    cy.interceptLayout('ComponentLayouts', (component) => {
+    cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'List' && component.id === 'ListPage-ListWithCheckboxesComponent') {
         component.deletionStrategy = 'hard';
         if (component.dataModelBindings) {
@@ -155,7 +155,7 @@ describe('List component', () => {
   });
 
   it('Required validation shows when List is selected with simpleBinding', () => {
-    cy.interceptLayout('ComponentLayouts', (component) => {
+    cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'List' && component.id === 'ListPage-ListComponent') {
         component.required = true;
       }
@@ -173,7 +173,7 @@ describe('List component', () => {
     cy.get(list).contains('span', 'Du må fylle ut Min Liste').should('not.exist');
   });
   it('Required validation shows when List is selected with group and soft delete', () => {
-    cy.interceptLayout('ComponentLayouts', (component) => {
+    cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'List' && component.id === 'ListPage-ListWithCheckboxesComponent') {
         component.required = true;
       }
@@ -192,7 +192,7 @@ describe('List component', () => {
     cy.get(list).contains('span', 'Du må fylle ut Min Liste med Checkboxer').should('not.exist');
   });
   it('Required validation shows when List is selected with group and hard delete', () => {
-    cy.interceptLayout('ComponentLayouts', (component) => {
+    cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'List' && component.id === 'ListPage-ListWithCheckboxesComponent') {
         component.required = true;
         component.deletionStrategy = 'hard';

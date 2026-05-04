@@ -11,10 +11,11 @@ import type { ResponseFuzzing, Size, SnapshotOptions, SnapshotViewport } from 't
 
 import { breakpoints } from 'src/hooks/useDeviceWidths';
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
-import type { LayoutContextValue } from 'src/features/form/layout/LayoutsContext';
 import type { IFeatureToggles } from 'src/features/toggles';
 import type { ILayoutFile } from 'src/layout/common.generated';
+import type { ILayoutCollection, ILayouts } from 'src/layout/layout';
 import JQueryWithSelector = Cypress.JQueryWithSelector;
+import type { IDataModelMultiPatchResponse } from 'src/features/formData/types';
 
 const appFrontend = new AppFrontend();
 
@@ -26,20 +27,6 @@ Cypress.Commands.add('assertTextWithoutWhiteSpaces', { prevSubject: true }, (sub
 Cypress.Commands.add('isVisible', { prevSubject: true }, (subject) => {
   const isVisible = (elem) => !!(elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length);
   expect(isVisible(subject[0])).to.be.true;
-});
-
-Cypress.Commands.add('dsCheck', { prevSubject: true }, (subject: JQueryWithSelector | undefined) => {
-  cy.log('Checking');
-  if (subject && !subject.is(':checked')) {
-    cy.wrap(subject).parent().click();
-  }
-});
-
-Cypress.Commands.add('dsUncheck', { prevSubject: true }, (subject: JQueryWithSelector | undefined) => {
-  cy.log('Unchecking');
-  if (subject && subject.is(':checked')) {
-    cy.wrap(subject).parent().click();
-  }
 });
 
 Cypress.Commands.add('waitUntilSaved', () => {
@@ -256,7 +243,7 @@ Cypress.Commands.add('clearSelectionAndWait', (viewport) => {
   cy.window().then((win) => {
     const layoutCache = win.queryClient.getQueriesData({
       queryKey: ['formLayouts'],
-    })?.[0]?.[1] as LayoutContextValue | undefined;
+    })?.[0]?.[1] as { layouts?: ILayouts } | undefined;
     const layouts = layoutCache?.layouts;
     cy.waitUntil(() => {
       const allDropdowns = win.document.querySelectorAll('[data-componenttype="Dropdown"]');
@@ -300,7 +287,7 @@ Cypress.Commands.add('clearSelectionAndWait', (viewport) => {
   });
 });
 
-Cypress.Commands.add('getCurrentPageId', () => cy.location('hash').then((hash) => hash.split('/').slice(-1)[0]));
+Cypress.Commands.add('getCurrentPageId', () => cy.location('pathname').then((pathname) => pathname.split('/').at(-1)));
 
 const defaultSnapshotOptions: SnapshotOptions = {
   wcag: true,
@@ -493,9 +480,11 @@ Cypress.Commands.add('moveProcessNext', () => {
 
 Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator, _options) => {
   const options = _options ?? { times: 1 };
-  cy.intercept({ method: 'GET', url: `**/api/layouts/${taskName}`, ...options }, (req) => {
+  cy.intercept({ method: 'GET', url: `**/bootstrap-form/${taskName}*`, ...options }, (req) => {
     req.reply((res) => {
-      const set = JSON.parse(res.body);
+      const response = typeof res.body === 'string' ? JSON.parse(res.body) : res.body;
+      const set = response?.layouts as ILayoutCollection;
+
       if (mutator) {
         for (const layout of Object.values(set)) {
           (layout as ILayoutFile).data.layout.map(mutator);
@@ -504,7 +493,8 @@ Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator, 
       if (wholeLayoutMutator) {
         wholeLayoutMutator(set);
       }
-      res.send(JSON.stringify(set));
+
+      res.send({ ...response, layouts: set });
     });
   }).as(`interceptLayout(${taskName})`);
 });
@@ -512,41 +502,34 @@ Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator, 
 Cypress.Commands.add('changeLayout', (mutator, wholeLayoutMutator) => {
   cy.log('Changing current layout');
   cy.window().then((win) => {
-    const activeData = win.queryClient.getQueryCache().findAll({ type: 'active' });
-    for (const query of activeData) {
-      if (Array.isArray(query.queryKey) && query.queryKey[0] === 'formLayouts') {
-        const copy = structuredClone(query.state.data) as LayoutContextValue | undefined;
-        if (copy) {
-          if (mutator) {
-            for (const page of Object.values(copy.layouts)) {
-              for (const component of page || []) {
-                mutator(component);
-              }
-            }
-          }
-          if (wholeLayoutMutator) {
-            wholeLayoutMutator(copy.layouts);
-          }
+    win.changeLayouts((current) => {
+      const nextLayouts = structuredClone(current);
+      const layouts = Object.fromEntries(
+        Object.entries(nextLayouts).map(([pageKey, page]) => [pageKey, page?.data?.layout ?? []]),
+      ) as ILayouts;
 
-          win.queryClient.setQueryData(query.queryKey, copy);
+      if (mutator) {
+        for (const page of Object.values(layouts)) {
+          for (const component of page || []) {
+            mutator(component);
+          }
         }
       }
-    }
+      if (wholeLayoutMutator) {
+        wholeLayoutMutator(layouts);
+      }
+      for (const [pageKey, layout] of Object.entries(layouts)) {
+        if (nextLayouts[pageKey]?.data) {
+          nextLayouts[pageKey].data.layout = layout!;
+        }
+      }
+
+      return nextLayouts;
+    });
   });
 
+  cy.findByTestId('presentation').should('exist');
   cy.findByRole('progressbar').should('not.exist');
-});
-
-Cypress.Commands.add('interceptLayoutSetsUiSettings', (uiSettings) => {
-  cy.intercept('GET', '**/api/layoutsets', (req) => {
-    req.continue((res) => {
-      const body = JSON.parse(res.body);
-      res.body = JSON.stringify({
-        ...body,
-        uiSettings: { ...body.uiSettings, ...uiSettings },
-      });
-    });
-  }).as('layoutSets');
 });
 
 Cypress.Commands.add('getSummary', (label) => {
@@ -652,9 +635,6 @@ Cypress.Commands.add(
     // Store initial viewport size for later
     cy.getCurrentViewportSize().as('testPdfViewportSize');
 
-    // Make sure instantiation is completed before we get the url
-    cy.location('hash', { log: false }).should('contain', '#/instance/').as('hashBeforePdf');
-
     // Make sure we blur any selected component before reload to trigger save
     cy.get('body').click({ log: false });
 
@@ -733,11 +713,15 @@ Cypress.Commands.add(
         cy.viewport(width, height);
       });
       cy.get('body').invoke('css', 'margin', '');
+      cy.get('#readyForPrint').should('exist');
 
-      cy.get('@hashBeforePdf').then((hashBeforePdf) => {
-        cy.window().then((win) => {
-          win.location.hash = hashBeforePdf.toString();
-        });
+      // Exit pdf by removing pdf queryparam
+      cy.location().then((location) => {
+        const params = new URLSearchParams(location.search);
+        if (params.has('pdf')) {
+          params.delete('pdf');
+          cy.visit(location.pathname + (params.size ? `?${params}` : ''));
+        }
       });
 
       cy.get('#readyForPrint').should('not.exist');
@@ -776,7 +760,7 @@ Cypress.Commands.add('getNextPatchValidations', (result) => {
   cy.intercept({ method: 'PATCH', url: '**/data*', times: 1 }, (req) => {
     req.on('response', (res) => {
       // Consider finding out what data element id corresponds to each type at the beginning of the test instead, for more explicit checking
-      result.validations = res.body.validationIssues;
+      result.validations = (res.body as IDataModelMultiPatchResponse).validationIssues;
     });
   }).as('getNextValidations');
 });

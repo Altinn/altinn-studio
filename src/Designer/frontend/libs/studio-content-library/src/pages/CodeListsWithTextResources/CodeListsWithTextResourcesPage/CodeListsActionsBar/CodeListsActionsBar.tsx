@@ -30,10 +30,10 @@ export function CodeListsActionsBar({
   textResources,
   externalResources,
   onImportCodeListFromOrg,
-}: CodeListsActionsBarProps) {
+}: CodeListsActionsBarProps): React.ReactElement {
   const { t } = useTranslation();
 
-  const handleChangeSearch = (event: ChangeEvent<HTMLInputElement>) =>
+  const handleChangeSearch = (event: ChangeEvent<HTMLInputElement>): void =>
     onSetSearchString(event.target.value);
 
   return (

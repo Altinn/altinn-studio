@@ -1,12 +1,9 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { useTaskTypeFromBackend } from 'src/features/instance/useProcessQuery';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { SigningActionsDef } from 'src/layout/SigningActions/config.def.generated';
 import { SigningActionsComponent } from 'src/layout/SigningActions/SigningActionsComponent';
-import { ProcessTaskType } from 'src/types';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { ValidateSigningTaskType } from 'src/layout/SigningActions/ValidateSigningTaskType';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { NodeValidationProps } from 'src/layout/layout';
 
@@ -17,17 +14,7 @@ export class SigningActions extends SigningActionsDef {
     },
   );
 
-  renderLayoutValidators(_props: NodeValidationProps<'SigningActions'>): JSX.Element | null {
-    const taskType = useTaskTypeFromBackend();
-    const addError = NodesInternal.useAddError();
-    const { langAsString } = useLanguage();
-
-    if (taskType !== ProcessTaskType.Signing) {
-      const error = langAsString('signing.wrong_task_error', ['SigningActions']);
-      addError(error, _props.intermediateItem.id, 'node');
-      window.logErrorOnce(`Validation error for '${_props.intermediateItem.id}': ${error}`);
-    }
-
-    return null;
+  renderLayoutValidators(props: NodeValidationProps<'SigningActions'>): JSX.Element | null {
+    return <ValidateSigningTaskType {...props} />;
   }
 }

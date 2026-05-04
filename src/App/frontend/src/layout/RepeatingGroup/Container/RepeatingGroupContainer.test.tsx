@@ -1,13 +1,13 @@
 import React from 'react';
 
-import { beforeAll } from '@jest/globals';
 import { screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { v4 as uuidv4 } from 'uuid';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getFormLayoutRepeatingGroupMock } from 'src/__mocks__/getFormLayoutGroupMock';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
 import { RepeatingGroupContainer } from 'src/layout/RepeatingGroup/Container/RepeatingGroupContainer';
@@ -20,6 +20,17 @@ import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ILayout } from 'src/layout/layout';
 import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/config.generated';
+
+type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
+jest.mock<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider', () => ({
+  ...jest.requireActual<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider'),
+  useTextResources: jest.fn(() => ({
+    'option.label': { value: 'Value to be shown' },
+    'button.open': { value: 'New open text' },
+    'button.close': { value: 'New close text' },
+    'button.save': { value: 'New save text' },
+  })),
+}));
 
 const mockContainer = getFormLayoutRepeatingGroupMock({
   id: 'myGroup',
@@ -105,31 +116,24 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
       </RepeatingGroupProvider>
     ),
     queries: {
-      fetchLayouts: async () => ({
-        FormLayout: {
-          data: {
-            layout: [group, ...mockComponents],
-          },
-        },
-      }),
-      fetchTextResources: () =>
-        Promise.resolve({
-          language: 'en',
-          resources: [
-            { id: 'option.label', value: 'Value to be shown' },
-            { id: 'button.open', value: 'New open text' },
-            { id: 'button.close', value: 'New close text' },
-            { id: 'button.save', value: 'New save text' },
-          ],
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.layouts = {
+            FormLayout: {
+              data: {
+                layout: [group, ...mockComponents],
+              },
+            },
+          };
+          obj.dataModels[defaultDataTypeMock].initialData = {
+            Group: Array.from({ length: numRows }).map((_, index) => ({
+              [ALTINN_ROW_ID]: uuidv4(),
+              prop1: `value${index + 1}`,
+              checkboxBinding: ['option.value'],
+            })),
+          };
+          obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
         }),
-      fetchFormData: async () => ({
-        Group: Array.from({ length: numRows }).map((_, index) => ({
-          [ALTINN_ROW_ID]: uuidv4(),
-          prop1: `value${index + 1}`,
-          checkboxBinding: ['option.value'],
-        })),
-      }),
-      fetchBackendValidations: async () => validationIssues,
     },
   });
 }

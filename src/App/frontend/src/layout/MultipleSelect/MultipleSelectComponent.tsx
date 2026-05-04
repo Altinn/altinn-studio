@@ -7,13 +7,14 @@ import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { getDescriptionId } from 'src/components/label/Label';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { useSaveValueToGroup } from 'src/features/saveToGroup/useSaveToGroup';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import classes from 'src/layout/MultipleSelect/MultipleSelectComponent.module.css';
 import utilClasses from 'src/styles/utils.module.css';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
@@ -36,7 +37,7 @@ export function MultipleSelectComponent({
   const groupBinding = useSaveValueToGroup(dataModelBindings);
   const selectedValues = groupBinding.enabled ? groupBinding.selectedValues : selectedFromSimpleBinding;
 
-  const debounce = FD.useDebounceImmediately();
+  const debounce = FormStore.data.useDebounceImmediately();
   const { langAsString, lang } = useLanguage();
 
   const selectedLabels = selectedValues.map((value) => {
@@ -164,7 +165,11 @@ export function MultipleSelectComponent({
                   <span>
                     <wbr />
                     <Lang id={option.label} />
-                    {option.description && <Lang id={option.description} />}
+                    {option.description && (
+                      <span className={classes.optionDescription}>
+                        <Lang id={option.description} />
+                      </span>
+                    )}
                   </span>
                 </Suggestion.Option>
               ))}

@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+  - service.yaml
+  - ingressroute.yaml
+  - middleware.yaml
+patches:
+  - path: image-annotation-patch.yaml
+  - path: otel-env-patch.yaml
+  - path: deployment-selector-patch.yaml
+  - target:
+      kind: Deployment
+      name: kuberneteswrapper
+    path: deployment-name-patch.yaml
+replacements:
+  - source:
+      kind: Deployment
+      name: kuberneteswrapper-kubernetes-api-wrapper
+      fieldPath: metadata.annotations.[altinn.studio/image]
+    targets:
+      - select:
+          kind: Deployment
+          name: kuberneteswrapper-kubernetes-api-wrapper
+        fieldPaths:
+          - spec.template.spec.containers.[name=kuberneteswrapper].image

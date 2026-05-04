@@ -9,11 +9,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OrgTextController;
 
-public class GetLanguagesTests : DesignerEndpointsTestsBase<GetLanguagesTests>, IClassFixture<WebApplicationFactory<Program>>
+public class GetLanguagesTests
+    : DesignerEndpointsTestsBase<GetLanguagesTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public GetLanguagesTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public GetLanguagesTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     private const string DeveloperName = "testUser";
     private const string OrgName = "ttd";

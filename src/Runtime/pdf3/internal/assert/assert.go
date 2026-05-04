@@ -1,10 +1,14 @@
 package assert
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
 	"runtime"
+	"time"
+
+	"go.opentelemetry.io/otel"
 
 	"altinn.studio/pdf3/internal/log"
 )
@@ -33,5 +37,26 @@ func panicking(message string, userArgs ...any) {
 	args = append(args, userArgs...)
 	logger.Error("Assertion failed:", args...)
 	_, _ = fmt.Fprintln(os.Stderr, stackTrace)
+	flushOTel()
 	os.Exit(1)
+}
+
+func flushOTel() {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	if tp, ok := otel.GetTracerProvider().(interface {
+		ForceFlush(flushCtx context.Context) error
+	}); ok {
+		if err := tp.ForceFlush(ctx); err != nil {
+			logger.Warn("Failed to flush tracer provider", "error", err)
+		}
+	}
+	if mp, ok := otel.GetMeterProvider().(interface {
+		ForceFlush(flushCtx context.Context) error
+	}); ok {
+		if err := mp.ForceFlush(ctx); err != nil {
+			logger.Warn("Failed to flush meter provider", "error", err)
+		}
+	}
 }

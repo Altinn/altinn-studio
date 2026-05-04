@@ -1,5 +1,5 @@
 import type { ChangeEventHandler, ReactElement } from 'react';
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { FeatureFlag, useFeatureToggle } from '@studio/feature-flags';
 import { StudioSwitch, StudioHeading } from '@studio/components';
 import classes from './FlagsPage.module.css';

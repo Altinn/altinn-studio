@@ -40,6 +40,7 @@ export function en() {
     'date_picker.aria_label_year_dropdown': 'Select year',
     'date_picker.aria_label_month_dropdown': 'Select month',
     'date_picker.format_text': 'For example {0}',
+    'devtools.filter_logs': 'Filter logs',
     'time_picker.invalid_time_message': 'Invalid time format. Use format {0}.',
     'time_picker.min_time_exceeded': 'The time you selected is before the earliest allowed time ({0}).',
     'time_picker.max_time_exceeded': 'The time you selected is after the latest allowed time ({0}).',
@@ -153,7 +154,7 @@ export function en() {
     'general.create_new': 'Create new',
     'general.create': 'Create',
     'general.customer_service_phone_number': '+47 75 00 60 00',
-    'general.customer_service_slack': 'https://altinn.slack.com',
+    'general.customer_service_slack': 'https://digdir-samarbeid.slack.com',
     'general.customer_service_email': 'servicedesk@altinn.no',
     'general.customer_service_error_message':
       'If you need help resolving this issue, reach out to Altinn via our support lines<br/><br/><ul><li>Phone: <a href="tel:{0}">{0}</a></li><li>Email: {1}</li><li>Slack: {2}</li></ul>',
@@ -218,6 +219,7 @@ export function en() {
     'image_upload_component.reset': 'Reset position and zoom',
     'image_upload_component.error_invalid_file_type': 'Invalid file format. Please upload an image file.',
     'image_upload_component.error_file_size_exceeded': 'File size exceeds 10MB limit.',
+    'image_upload_component.error_required': 'You must upload an image',
     'image_upload_component.valid_file_types': 'Image files only',
     'input_components.remaining_characters': 'You have %d characters left',
     'input_components.exceeded_max_limit': 'You have exceeded the maximum limit with %d characters',
@@ -339,8 +341,9 @@ export function en() {
     'person_lookup.validation_error_name_too_short': "The name can't be empty.",
     'person_lookup.validation_error_ssn': 'The national ID number/D-number is invalid.',
     'person_lookup.validation_error_not_found':
-      'No person is registered with this combination of national ID number/D-number and name. Please check the fields and try again. <br> Note: After 5 failed attempts, the search functionality will be temporarily locked.',
-    'person_lookup.validation_error_too_many_requests': 'Too many requests. Please try again later.',
+      'No person is registered with this combination of national ID number/D-number and name. Please check the fields and try again. <br> Note: After 3 failed attempts, the search functionality may be temporarily locked.',
+    'person_lookup.validation_error_too_many_requests':
+      'Too many requests. You have been locked out of the search functionality for one hour. Please try again later.',
     'person_lookup.validation_error_forbidden':
       'You do not have permission to perform this action. A security level of minimum 2 is required.',
     'person_lookup.validation_invalid_response_from_server': 'An error occurred. Please try again later.',
@@ -357,7 +360,7 @@ export function en() {
     'receipt.receipt': 'Receipt',
     'receipt.ref_num': 'Reference number',
     'receipt.sender': 'Sender',
-    'receipt.subtitle': 'A copy of your receipt has been sent to your archive',
+    'receipt.subtitle': 'Your receipt has been saved and is available in your inbox',
     'receipt.title': 'The form is submitted',
     'receipt.title_submitted': 'The following is submitted:',
     'receipt_platform.attachments': 'Attachments',
@@ -404,7 +407,8 @@ export function en() {
     'config_error.component_has_errors': 'An error occurred for <code>{0}</code>:',
     'config_error.component_has_errors_after':
       'As long as the component has configuration errors, we cannot show it in the form. Fix the errors and try again.',
-    'config_error.subform_no_datatype_layoutset': 'Data type specification not found in layout-sets.json',
+    'config_error.subform_no_datatype_layoutset':
+      'Data type specification not found in App/ui/{folderId}/Settings.json',
     'config_error.subform_no_datatype_appmetadata': "Data type '{0}' was not found in applicationmetadata.json",
     'config_error.subform_misconfigured_add_button':
       "Data type '{0}' is marked as 'disallowUserCreate=true', but the subform component is configured with 'showAddButton=true'. This is a contradiction, as the user will never be permitted to perform the add-button operation.",
@@ -511,5 +515,11 @@ export function en() {
       'You can try to process again by clicking "{0}". If the problem persists, contact customer service at {1}.',
     'service_task.retry_button': 'Try again',
     'service_task.back_button': 'Go back',
+    'service_task_custom_pdf_default.title': 'Something went wrong',
+    'service_task_custom_pdf_default.body': 'An error occurred during automatic processing of the form.',
+    'service_task_custom_pdf_default.help_text':
+      'You can try to process again by clicking "Try again". If the problem persists, contact customer service at +47 75 00 60 00.',
+    'service_task_custom_pdf_default.retry_button': 'Try again',
+    'service_task_custom_pdf_default.back_button': 'Go back',
   };
 }

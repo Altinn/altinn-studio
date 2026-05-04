@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -8,13 +7,19 @@ import {
   type PolicyEditorContextProps,
 } from '../../contexts/PolicyEditorContext';
 import { ConsentResourcePolicyRulesEditor } from './ConsentResourcePolicyRulesEditor';
-import { accessListSubjectSource, emptyPolicyRule, organizationSubject } from '../../utils';
+import { emptyPolicyRule, organizationSubject } from '../../utils';
+import {
+  ACCESS_LIST_SUBJECT_SOURCE,
+  CONSENT_ACTION,
+  REQUEST_CONSENT_ACTION,
+} from '@altinn/policy-editor/constants';
+import type { PolicyRuleCard } from '@altinn/policy-editor/types';
 
 const accessListSubject = {
   id: 'test-liste',
   description: 'Dette er en testliste',
-  legacyUrn: `${accessListSubjectSource}:ttd:test-liste`,
-  urn: `${accessListSubjectSource}:ttd:test-liste`,
+  legacyUrn: `${ACCESS_LIST_SUBJECT_SOURCE}:ttd:test-liste`,
+  urn: `${ACCESS_LIST_SUBJECT_SOURCE}:ttd:test-liste`,
   name: 'Testliste',
   legacyRoleCode: 'test-liste',
   provider: {
@@ -27,8 +32,8 @@ const accessListSubject = {
 const accessListSubject2 = {
   id: 'test-liste2',
   description: 'Dette er en testliste2',
-  legacyUrn: `${accessListSubjectSource}:ttd:test-liste2`,
-  urn: `${accessListSubjectSource}:ttd:test-liste2`,
+  legacyUrn: `${ACCESS_LIST_SUBJECT_SOURCE}:ttd:test-liste2`,
+  urn: `${ACCESS_LIST_SUBJECT_SOURCE}:ttd:test-liste2`,
   name: 'Testliste2',
   legacyRoleCode: 'test-liste2',
   provider: {
@@ -39,17 +44,18 @@ const accessListSubject2 = {
 };
 
 const resourceId = 'consent-resource';
-const requestConsentRule = {
+const requestConsentRule: PolicyRuleCard = {
   ...emptyPolicyRule,
   subject: [],
-  actions: ['requestconsent'],
+  actions: [REQUEST_CONSENT_ACTION],
   ruleId: '1',
   resources: [[{ id: resourceId, type: 'urn:altinn:resource' }]],
 };
-const acceptConsentRule = {
+const acceptConsentRule: PolicyRuleCard = {
   ...emptyPolicyRule,
-  subject: [],
-  actions: ['consent'],
+  subject: ['urn:altinn:rolecode:s1'],
+  accessPackages: ['urn:altinn:accesspackage:test'],
+  actions: [CONSENT_ACTION],
   ruleId: '2',
   resources: [[{ id: resourceId, type: 'urn:altinn:resource' }]],
 };
@@ -66,7 +72,10 @@ describe('ConsentResourcePolicyRulesEditor', () => {
   });
 
   it('should display error if no subject is set in rule for consenting', () => {
-    renderConsentResourcePolicyRulesEditor({ showAllErrors: true });
+    renderConsentResourcePolicyRulesEditor({
+      showAllErrors: true,
+      policyRules: [requestConsentRule, { ...acceptConsentRule, subject: [], accessPackages: [] }],
+    });
 
     expect(
       screen.getByText(

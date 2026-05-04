@@ -3,8 +3,7 @@ import type { JSX } from 'react';
 
 import type { PropsFromGenericComponent, ValidateComponent, ValidationFilter, ValidationFilterFunction } from '..';
 
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { FrontendValidationSource } from 'src/features/validation';
 import { claimGridRowsChildren } from 'src/layout/Grid/claimGridRowsChildren';
 import { RepeatingGroupDef } from 'src/layout/RepeatingGroup/config.def.generated';
@@ -48,8 +47,19 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
   evalExpressions(props: ExprResolver<'RepeatingGroup'>): RepGroupInternal {
     const { item, evalBool } = props;
 
+    const tableColumns = item.tableColumns ? { ...item.tableColumns } : undefined;
+    if (item.tableColumns) {
+      for (const column in tableColumns) {
+        tableColumns[column] = {
+          ...tableColumns[column],
+          hidden: evalBool(tableColumns[column].hidden, false),
+        };
+      }
+    }
+
     return {
       ...this.evalDefaultExpressions(props),
+      ...(tableColumns ? { tableColumns } : undefined),
       edit: item.edit
         ? {
             ...item.edit,
@@ -103,8 +113,8 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
   }
 
   useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'RepeatingGroup'>): string[] {
-    const lookupBinding = DataModels.useLookupBinding();
-    const layoutLookups = useLayoutLookups();
+    const lookupBinding = FormBootstrap.useLookupBinding();
+    const layoutLookups = FormBootstrap.useLayoutLookups();
     const [errors, result] = validateDataModelBindingsAny(
       baseComponentId,
       bindings,

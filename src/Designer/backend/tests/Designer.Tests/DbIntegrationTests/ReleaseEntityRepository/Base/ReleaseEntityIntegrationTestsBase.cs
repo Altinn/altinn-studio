@@ -11,9 +11,8 @@ namespace Designer.Tests.DbIntegrationTests.ReleaseEntityRepository.Base;
 
 public class ReleaseEntityIntegrationTestsBase : DbIntegrationTestsBase
 {
-    public ReleaseEntityIntegrationTestsBase(DesignerDbFixture dbFixture) : base(dbFixture)
-    {
-    }
+    public ReleaseEntityIntegrationTestsBase(DesignerDbFixture dbFixture)
+        : base(dbFixture) { }
 
     protected async Task PrepareEntityInDatabase(ReleaseEntity releaseEntity)
     {
@@ -36,7 +35,9 @@ public class ReleaseEntityIntegrationTestsBase : DbIntegrationTestsBase
         }
     }
 
-    private Altinn.Studio.Designer.Repository.ORMImplementation.Models.ReleaseDbModel MapToDbObject(ReleaseEntity entity) =>
+    private Altinn.Studio.Designer.Repository.ORMImplementation.Models.ReleaseDbModel MapToDbObject(
+        ReleaseEntity entity
+    ) =>
         new()
         {
             Buildid = entity.Build.Id,
@@ -46,6 +47,6 @@ public class ReleaseEntityIntegrationTestsBase : DbIntegrationTestsBase
             Buildstatus = entity.Build.Status.ToEnumMemberAttributeValue(),
             Buildresult = entity.Build.Result.ToEnumMemberAttributeValue(),
             Created = entity.Created,
-            Entity = JsonSerializer.Serialize(entity, JsonOptions)
+            Entity = JsonSerializer.Serialize(entity, JsonOptions),
         };
 }

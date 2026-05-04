@@ -25,7 +25,7 @@ public sealed record CorrespondenceNotification : MultipartCorrespondenceItem
     /// <p>Depending on the <see cref="NotificationTemplate"/> in use,
     /// this value may be padded according to the template logic.</p>
     /// </summary>
-    [StringLength(1024, MinimumLength = 0)]
+    [StringLength(10000, MinimumLength = 0)]
     public string? EmailBody { get; init; }
 
     /// <summary>
@@ -33,7 +33,7 @@ public sealed record CorrespondenceNotification : MultipartCorrespondenceItem
     /// <p>Depending on the <see cref="NotificationTemplate"/> in use,
     /// this value may be padded according to the template logic.</p>
     /// </summary>
-    [StringLength(160, MinimumLength = 0)]
+    [StringLength(2144, MinimumLength = 0)]
     public string? SmsBody { get; init; }
 
     /// <summary>
@@ -54,7 +54,7 @@ public sealed record CorrespondenceNotification : MultipartCorrespondenceItem
     /// <p>Depending on the <see cref="NotificationTemplate"/> in use,
     /// this value may be padded according to the template logic.</p>
     /// </summary>
-    [StringLength(1024, MinimumLength = 0)]
+    [StringLength(10000, MinimumLength = 0)]
     public string? ReminderEmailBody { get; init; }
 
     /// <summary>
@@ -62,7 +62,7 @@ public sealed record CorrespondenceNotification : MultipartCorrespondenceItem
     /// <p>Depending on the <see cref="NotificationTemplate"/> in use,
     /// this value may be padded according to the template logic.</p>
     /// </summary>
-    [StringLength(160, MinimumLength = 0)]
+    [StringLength(2144, MinimumLength = 0)]
     public string? ReminderSmsBody { get; init; }
 
     /// <summary>
@@ -83,6 +83,7 @@ public sealed record CorrespondenceNotification : MultipartCorrespondenceItem
     /// <summary>
     /// The date and time for when the notification should be sent.
     /// </summary>
+    [Obsolete("RequestedSendTime is no longer supported by the Correspondence API.")]
     public DateTimeOffset? RequestedSendTime { get; init; }
 
     /// <summary>
@@ -111,7 +112,6 @@ public sealed record CorrespondenceNotification : MultipartCorrespondenceItem
         AddIfNotNull(content, ReminderSmsBody, "Correspondence.Notification.ReminderSmsBody");
         AddIfNotNull(content, NotificationChannel.ToString(), "Correspondence.Notification.NotificationChannel");
         AddIfNotNull(content, SendersReference, "Correspondence.Notification.SendersReference");
-        AddIfNotNull(content, RequestedSendTime, "Correspondence.Notification.RequestedSendTime");
         CustomRecipient?.Serialise(content);
         if (CustomRecipient is null)
         {

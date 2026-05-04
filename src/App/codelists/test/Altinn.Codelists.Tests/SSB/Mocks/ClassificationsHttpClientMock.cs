@@ -1,6 +1,5 @@
 ﻿using Altinn.Codelists.SSB;
 using Altinn.Codelists.SSB.Clients;
-using Altinn.Codelists.SSB.Models;
 using RichardSzalay.MockHttp;
 
 namespace Altinn.Codelists.Tests.SSB.Mocks;
@@ -35,48 +34,48 @@ public class ClassificationsHttpClientMock : IClassificationsClient
         HttpMessageHandlerMock = new MockHttpMessageHandler();
 
         HttpMessageHandlerMock
-            .When("http://data.ssb.no/api/klass/v1/classifications/2/*")
+            .When("https://data.ssb.no/api/klass/v1/classifications/2/*")
             .Respond("application/json", EmbeddedResource.LoadDataAsString(SEX_TESTDATA_RESOURCE).Result);
 
         HttpMessageHandlerMock
-            .When("http://data.ssb.no/api/klass/v1/classifications/6/*")
+            .When("https://data.ssb.no/api/klass/v1/classifications/6/*")
             .Respond("application/json", EmbeddedResource.LoadDataAsString(INDUSTRY_GROUPING_TESTDATA_RESOURCE).Result);
 
         HttpMessageHandlerMock
-            .When("http://data.ssb.no/api/klass/v1/classifications/7/*")
+            .When("https://data.ssb.no/api/klass/v1/classifications/7/*")
             .Respond("application/json", EmbeddedResource.LoadDataAsString(OCCUPATIONS_TESTDATA_RESOURCE).Result);
 
         MockedMaritalStatusRequest = HttpMessageHandlerMock
-            .When("http://data.ssb.no/api/klass/v1/classifications/19/*")
+            .When("https://data.ssb.no/api/klass/v1/classifications/19/*")
             .Respond("application/json", EmbeddedResource.LoadDataAsString(MARITAL_STATUS_TESTDATA_RESOURCE).Result);
 
         MockedClassificationsRequest = HttpMessageHandlerMock
-            .When("http://data.ssb.no/api/klass/v1/classifications/20/*")
+            .When("https://data.ssb.no/api/klass/v1/classifications/20/*")
             .Respond(
                 "application/json",
                 EmbeddedResource.LoadDataAsString(BASE_AMOUT_NATIONAL_INSURANCE_TESTDATA_RESOURCE).Result
             );
 
         HttpMessageHandlerMock
-            .When("http://data.ssb.no/api/klass/v1/classifications/104/*")
+            .When("https://data.ssb.no/api/klass/v1/classifications/104/*")
             .Respond("application/json", EmbeddedResource.LoadDataAsString(COUNTIES_TESTDATA_RESOURCE).Result);
         HttpMessageHandlerMock
-            .When("http://data.ssb.no/api/klass/v1/classifications/131/*")
+            .When("https://data.ssb.no/api/klass/v1/classifications/131/*")
             .Respond("application/json", EmbeddedResource.LoadDataAsString(MUNICIPALITIES_TESTDATA_RESOURCE).Result);
 
         HttpMessageHandlerMock
-            .When("http://data.ssb.no/api/klass/v1/classifications/552/*")
+            .When("https://data.ssb.no/api/klass/v1/classifications/552/*")
             .Respond("application/json", EmbeddedResource.LoadDataAsString(COUNTRIES_TESTDATA_RESOURCE).Result);
 
         HttpMessageHandlerMock
-            .When("http://data.ssb.no/api/klass/v1/classifications/74/variantAt*")
+            .When("https://data.ssb.no/api/klass/v1/classifications/74/variantAt*")
             .Respond(
                 "application/json",
                 EmbeddedResource.LoadDataAsString(SMALL_GAME_VARIANT_TESTDATA_RESOURCE).Result
             );
 
         HttpMessageHandlerMock
-            .When("http://data.ssb.no/api/klass/v1/classifications/303/*")
+            .When("https://data.ssb.no/api/klass/v1/classifications/303/*")
             .Respond("application/json", EmbeddedResource.LoadDataAsString(UNITS_TESTDATA_RESOURCE).Result);
 
         _client = new ClassificationsHttpClient(_options, new HttpClient(HttpMessageHandlerMock));

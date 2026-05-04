@@ -1,5 +1,5 @@
 import React from 'react';
-import { createMemoryRouter, MemoryRouter, Route, RouterProvider, Routes, useLocation } from 'react-router-dom';
+import { createMemoryRouter, MemoryRouter, Route, RouterProvider, Routes, useLocation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { jest } from '@jest/globals';
@@ -11,34 +11,31 @@ import type { AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
 import { getDataListMock } from 'src/__mocks__/getDataListMock';
-import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
+import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { orderDetailsResponsePayload } from 'src/__mocks__/getOrderDetailsPayloadMock';
-import { getOrgsMock } from 'src/__mocks__/getOrgsMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
-import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
+import { AppComponentsBridge } from 'src/AppComponentsBridge';
+import { ApiProvider } from 'src/core/contexts/ApiProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
-import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
-import { FormProvider } from 'src/features/form/FormContext';
-import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
+import { FormProvider } from 'src/features/form/FormProvider';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
-import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
-import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
-import { LanguageProvider } from 'src/features/language/LanguageProvider';
-import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
-import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
-import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
+import { NavigationFocusStateProvider } from 'src/features/navigation/NavigationFocusStateContext';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
-import { ProfileProvider } from 'src/features/profile/ProfileProvider';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
+import { fetchFormBootstrapForInstance } from 'src/queries/queries';
 import { PageNavigationRouter } from 'src/test/routerUtils';
-import type { IFooterLayout } from 'src/features/footer/types';
+import type { BackendValidationApi } from 'src/core/api-client/backendValidation.api';
+import type { InstanceApi } from 'src/core/api-client/instance.api';
+import type { PartyApi } from 'src/core/api-client/party.api';
+import type { ApiClients } from 'src/core/contexts/ApiProvider';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { FormDataMethods } from 'src/features/formData/FormDataWriteStateMachine';
 import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
@@ -46,11 +43,18 @@ import type { IRawOption } from 'src/layout/common.generated';
 import type { CompExternal, CompExternalExact, CompTypes } from 'src/layout/layout';
 import type { AppMutations, AppQueries, AppQueriesContext } from 'src/queries/types';
 
+type ApiOverrides = Partial<{
+  backendValidationApi: Partial<BackendValidationApi>;
+  partyApi: Partial<PartyApi>;
+  instanceApi: Partial<InstanceApi>;
+}>;
+
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   renderer: (() => React.ReactElement) | React.ReactElement;
   router?: (props: PropsWithChildren) => React.ReactNode;
   waitUntilLoaded?: boolean;
   queries?: Partial<AppQueries>;
+  apis?: ApiOverrides;
   initialRenderRef?: InitialRenderRef;
 }
 
@@ -109,40 +113,55 @@ export const makeMutationMocks = <T extends (name: keyof AppMutations) => any>(
   doAttachmentUpload: makeMock('doAttachmentUpload'),
   doPatchMultipleFormData: makeMock('doPatchMultipleFormData'),
   doPostStatelessFormData: makeMock('doPostStatelessFormData'),
-  doSetSelectedParty: makeMock('doSetSelectedParty'),
-  doInstantiate: makeMock('doInstantiate'),
-  doInstantiateWithPrefill: makeMock('doInstantiateWithPrefill'),
   doPerformAction: makeMock('doPerformAction'),
   doSubformEntryAdd: makeMock('doSubformEntryAdd'),
   doSubformEntryDelete: makeMock('doSubformEntryDelete'),
 });
 
+// Mock postal codes data for testing. Uses the indexed format where:
+// - places array contains unique place names (index 0 is null for "not found")
+// - mapping array maps zip code (as index) to places array index
+const defaultPostalCodesMock = (() => {
+  const places: (string | null)[] = [null, 'OSLO', 'BERGEN', 'FREDRIKSTAD', 'KARDEMOMME BY'];
+  const mapping = new Array(4610).fill(0);
+  mapping[1] = 1; // 0001 -> OSLO
+  mapping[2] = 2; // 0002 -> BERGEN
+  mapping[1613] = 3; // 1613 -> FREDRIKSTAD
+  mapping[4609] = 4; // 4609 -> KARDEMOMME BY
+  return { places, mapping };
+})();
+
 const defaultQueryMocks: AppQueries = {
   fetchLogo: async () => getLogoMock(),
-  fetchActiveInstances: async () => [],
-  fetchSelectedParty: async () => getPartyMock(),
-  fetchApplicationSettings: async () => ({}),
-  fetchFooterLayout: async () => ({ footer: [] }) as IFooterLayout,
-  fetchLayoutSets: async () => getLayoutSetsMock(),
-  fetchOrgs: async () => ({ orgs: getOrgsMock() }),
-  fetchReturnUrl: async () => Promise.reject(),
-  fetchDataModelSchema: async () => ({}),
-  fetchPartiesAllowedToInstantiate: async () => [getPartyMock()],
   fetchRefreshJwtToken: async () => ({}),
-  fetchCustomValidationConfig: async () => null,
-  fetchFormData: async () => ({}),
+  fetchFormData: async () => {
+    throw new Error('Not implemented/overridden in test');
+  },
   fetchOptions: async () => ({ data: [], headers: {} }) as unknown as AxiosResponse<IRawOption[], unknown>,
   fetchDataList: async () => getDataListMock(),
   fetchPdfFormat: async () => ({ excludedPages: [], excludedComponents: [] }),
-  fetchTextResources: async (language) => ({ language, resources: getTextResourcesMock() }),
   fetchLayoutSchema: async () => ({}) as JSONSchema7,
-  fetchAppLanguages: async () => [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }],
-  fetchPostPlace: async () => ({ valid: true, result: 'OSLO' }),
-  fetchLayoutSettings: async () => ({ pages: { order: [] } }),
-  fetchLayouts: () => Promise.reject(new Error('fetchLayouts not mocked')),
-  fetchBackendValidations: async () => [],
   fetchPaymentInformation: async () => paymentResponsePayload,
   fetchOrderDetails: async () => orderDetailsResponsePayload,
+  fetchPostalCodes: async () => defaultPostalCodesMock,
+  fetchFormBootstrapForInstance: async () => getFormBootstrapMock(),
+  fetchFormBootstrapForStateless: async () => getFormBootstrapMock(),
+};
+
+const defaultApiMocks: Omit<ApiClients, 'textResourcesApi'> = {
+  backendValidationApi: {
+    fetchBackendValidations: async () => [],
+  },
+  partyApi: {
+    getPartiesAllowedToInstantiateHierarchical: async () => [getPartyMock()],
+    setSelectedParty: async () => 'Party successfully updated',
+  },
+  instanceApi: {
+    getInstance: async () => getInstanceWithProcessMock(),
+    getActiveInstances: async () => [],
+    create: async () => getInstanceWithProcessMock(),
+    createWithPrefill: async () => getInstanceWithProcessMock(),
+  },
 };
 
 function makeProxy<Name extends keyof FormDataMethods>(name: Name, ref: InitialRenderRef) {
@@ -184,7 +203,6 @@ export const makeFormDataMethodProxies = (
     lock: makeProxy('lock', ref),
     nextLock: makeProxy('nextLock', ref),
     requestManualSave: makeProxy('requestManualSave', ref),
-    setLastValidationIssues: makeProxy('setLastValidationIssues', ref),
   };
 
   const proxies: FormDataWriteProxies = Object.fromEntries(
@@ -205,7 +223,7 @@ function NotFound() {
 
 function DefaultRouter({ children }: PropsWithChildren) {
   return (
-    <MemoryRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+    <MemoryRouter>
       <Routes>
         <Route
           path='/'
@@ -248,7 +266,6 @@ export function InstanceRouter({
     {
       basename: '/ttd/test',
       initialEntries: [query ? `${path}?${query}` : path],
-      future: { v7_relativeSplatPath: true },
     },
   );
 
@@ -257,12 +274,7 @@ export function InstanceRouter({
     routerRef.current = router;
   }
 
-  return (
-    <RouterProvider
-      router={router}
-      future={{ v7_startTransition: true }}
-    />
-  );
+  return <RouterProvider router={router} />;
 }
 
 export function StatelessRouter({
@@ -287,7 +299,6 @@ export function StatelessRouter({
     {
       basename: '/ttd/test',
       initialEntries: [query ? `${path}?${query}` : path],
-      future: { v7_relativeSplatPath: true },
     },
   );
 
@@ -296,54 +307,36 @@ export function StatelessRouter({
     routerRef.current = router;
   }
 
-  return (
-    <RouterProvider
-      router={router}
-      future={{ v7_startTransition: true }}
-    />
-  );
+  return <RouterProvider router={router} />;
 }
 
 interface ProvidersProps extends PropsWithChildren {
   queries: AppQueriesContext;
+  apis: Omit<ApiClients, 'textResourcesApi'>;
   queryClient: QueryClient;
   Router?: (props: PropsWithChildren) => React.ReactNode;
 }
 
-function DefaultProviders({ children, queries, queryClient, Router = DefaultRouter }: ProvidersProps) {
+function DefaultProviders({ children, queries, apis, queryClient, Router = DefaultRouter }: ProvidersProps) {
   return (
-    <AppQueriesProvider
-      {...queries}
-      queryClient={queryClient}
-    >
-      <LanguageProvider>
-        <LangToolsStoreProvider>
-          <UiConfigProvider>
-            <PageNavigationProvider>
-              <Router>
-                <NavigationEffectProvider>
-                  <ApplicationMetadataProvider>
-                    <GlobalFormDataReadersProvider>
-                      <OrgsProvider>
-                        <ApplicationSettingsProvider>
-                          <LayoutSetsProvider>
-                            <ProfileProvider>
-                              <PartyProvider>
-                                <TextResourcesProvider>{children}</TextResourcesProvider>
-                              </PartyProvider>
-                            </ProfileProvider>
-                          </LayoutSetsProvider>
-                        </ApplicationSettingsProvider>
-                      </OrgsProvider>
-                    </GlobalFormDataReadersProvider>
-                  </ApplicationMetadataProvider>
-                </NavigationEffectProvider>
-              </Router>
-            </PageNavigationProvider>
-          </UiConfigProvider>
-        </LangToolsStoreProvider>
-      </LanguageProvider>
-    </AppQueriesProvider>
+    <ApiProvider apis={apis}>
+      <AppQueriesProvider
+        {...queries}
+        queryClient={queryClient}
+      >
+        <UiConfigProvider>
+          <Router>
+            <AppComponentsBridge>
+              <NavigationFocusStateProvider>
+                <GlobalFormDataReadersProvider>
+                  <PartyProvider>{children}</PartyProvider>
+                </GlobalFormDataReadersProvider>
+              </NavigationFocusStateProvider>
+            </AppComponentsBridge>
+          </Router>
+        </UiConfigProvider>
+      </AppQueriesProvider>
+    </ApiProvider>
   );
 }
 
@@ -361,24 +354,27 @@ function InstanceFormAndLayoutProviders({ children, formDataProxies }: InstanceP
   );
 }
 
-function MinimalProviders({ children, queries, queryClient, Router = DefaultRouter }: ProvidersProps) {
+function MinimalProviders({ children, queries, apis, queryClient, Router = DefaultRouter }: ProvidersProps) {
   return (
-    <AppQueriesProvider
-      {...queries}
-      queryClient={queryClient}
-    >
-      <LangToolsStoreProvider>
+    <ApiProvider apis={apis}>
+      <AppQueriesProvider
+        {...queries}
+        queryClient={queryClient}
+      >
         <Router>
-          <NavigationEffectProvider>{children}</NavigationEffectProvider>
+          <NavigationFocusStateProvider>
+            <AppComponentsBridge>{children}</AppComponentsBridge>
+          </NavigationFocusStateProvider>
         </Router>
-      </LangToolsStoreProvider>
-    </AppQueriesProvider>
+      </AppQueriesProvider>
+    </ApiProvider>
   );
 }
 
 interface SetupFakeAppProps {
   queries?: Partial<AppQueries>;
   mutations?: Partial<AppMutations>;
+  apis?: ApiOverrides;
 }
 
 /**
@@ -390,7 +386,7 @@ interface SetupFakeAppProps {
  * which may not be available in a unit test context) you can use this function to render all the basic providers
  * needed to render a component in something that looks like an app.
  */
-export function setupFakeApp({ queries, mutations }: SetupFakeAppProps = {}) {
+export function setupFakeApp({ queries, mutations, apis }: SetupFakeAppProps = {}) {
   const queryClient = new QueryClient({
     defaultOptions: {
       mutations: { retry: false },
@@ -412,12 +408,28 @@ export function setupFakeApp({ queries, mutations }: SetupFakeAppProps = {}) {
     ...mutations,
   };
 
+  const finalApis: Omit<ApiClients, 'textResourcesApi'> = {
+    backendValidationApi: {
+      ...defaultApiMocks.backendValidationApi,
+      ...apis?.backendValidationApi,
+    },
+    partyApi: {
+      ...defaultApiMocks.partyApi,
+      ...apis?.partyApi,
+    },
+    instanceApi: {
+      ...defaultApiMocks.instanceApi,
+      ...apis?.instanceApi,
+    },
+  };
+
   return {
     queryClient,
     queries: {
       ...finalQueries,
       ...finalMutations,
     },
+    apis: finalApis,
     queriesOnly: finalQueries,
     mutationsOnly: finalMutations,
   };
@@ -427,12 +439,13 @@ const renderBase = async ({
   renderer,
   router,
   queries = {},
+  apis = {},
   waitUntilLoaded = true,
   Providers = DefaultProviders,
   initialRenderRef = { current: true },
   ...renderOptions
 }: BaseRenderOptions) => {
-  const { queryClient, queriesOnly: finalQueries } = setupFakeApp({ queries });
+  const { queryClient, queriesOnly: finalQueries, apis: finalApis } = setupFakeApp({ queries, apis });
   const mutations = makeMutationMocks(queryPromiseMock);
 
   const queryMocks = Object.fromEntries(
@@ -451,6 +464,7 @@ const renderBase = async ({
     <Providers
       Router={router}
       queryClient={queryClient}
+      apis={finalApis}
       queries={{
         ...queryMocks,
         ...mutationMocks,
@@ -589,6 +603,15 @@ export const renderWithInstanceAndLayout = async ({
     throw new Error('Cannot use custom router with renderWithInstanceAndLayout');
   }
 
+  const realTaskId = taskId ?? 'Task_1';
+  if (
+    window.altinnAppGlobalData.ui.folders[realTaskId]?.pages &&
+    'order' in window.altinnAppGlobalData.ui.folders[realTaskId].pages &&
+    !window.altinnAppGlobalData.ui.folders[realTaskId].pages.order.includes(initialPage)
+  ) {
+    window.altinnAppGlobalData.ui.folders[realTaskId].pages.order = [initialPage];
+  }
+
   const routerRef: RouterRef = { current: undefined };
   return {
     formDataMethods,
@@ -614,29 +637,27 @@ export const renderWithInstanceAndLayout = async ({
         </InstanceRouter>
       ),
       queries: {
-        fetchLayouts: async () => ({
-          [initialPage]: {
-            data: {
-              layout: [
-                {
-                  id: 'noOtherComponentsHere',
-                  type: 'Header',
-                  textResourceBindings: {
-                    title:
-                      "You haven't added any components yet. Supply your own components " +
-                      'by overriding the "fetchLayouts" query in your test.',
-                  },
-                  size: 'L',
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = {
+              [initialPage]: {
+                data: {
+                  layout: [
+                    {
+                      id: 'noOtherComponentsHere',
+                      type: 'Header',
+                      textResourceBindings: {
+                        title:
+                          "You haven't added any components yet. Supply your own components " +
+                          'by overriding the "fetchLayouts" query in your test.',
+                      },
+                      size: 'L',
+                    },
+                  ],
                 },
-              ],
-            },
-          },
-        }),
-        fetchLayoutSettings: async () => ({
-          pages: {
-            order: [initialPage],
-          },
-        }),
+              },
+            };
+          }),
         ...renderOptions.queries,
       },
     })),
@@ -644,8 +665,7 @@ export const renderWithInstanceAndLayout = async ({
 };
 
 export interface RenderGenericComponentTestProps<T extends CompTypes, InInstance extends boolean = true>
-  extends Omit<ExtendedRenderOptions, 'renderer'>,
-    Omit<InstanceRouterProps, 'routerRef'> {
+  extends Omit<ExtendedRenderOptions, 'renderer'>, Omit<InstanceRouterProps, 'routerRef'> {
   type: T;
   renderer: (props: PropsFromGenericComponent<T>) => React.ReactElement;
   component?: Partial<CompExternalExact<T>>;
@@ -685,6 +705,25 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
     );
   };
 
+  async function formBoostrap(
+    ...args: Parameters<typeof fetchFormBootstrapForInstance>
+  ): Promise<FormBootstrapResponse> {
+    const mock =
+      (inInstance ? await rest.queries?.fetchFormBootstrapForInstance?.(...args) : undefined) ??
+      (!inInstance ? await rest.queries?.fetchFormBootstrapForStateless?.(...args) : undefined) ??
+      getFormBootstrapMock();
+
+    mock.layouts = {
+      [initialPage]: {
+        data: {
+          layout: [realComponentDef],
+        },
+      },
+    };
+
+    return mock;
+  }
+
   const inInstance = (rest.inInstance ?? true) as InInstance;
   const funcToCall = inInstance ? renderWithInstanceAndLayout : renderWithoutInstanceAndLayout;
   return funcToCall({
@@ -692,19 +731,9 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
     renderer: Wrapper,
     initialPage,
     queries: {
-      fetchLayouts: async () => ({
-        [initialPage]: {
-          data: {
-            layout: [realComponentDef],
-          },
-        },
-      }),
-      fetchLayoutSettings: async () => ({
-        pages: {
-          order: [initialPage],
-        },
-      }),
       ...rest.queries,
+      fetchFormBootstrapForInstance: formBoostrap,
+      fetchFormBootstrapForStateless: formBoostrap,
     },
   }) as RenderGenericComponentReturnType<InInstance>;
 }

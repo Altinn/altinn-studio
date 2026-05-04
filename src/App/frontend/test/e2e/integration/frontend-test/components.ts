@@ -70,7 +70,7 @@ describe('UI Components', () => {
   });
 
   it('is possible to upload and delete attachments', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'newFirstName') {
         // TODO(Validation): Once it is possible to treat custom validations as required, this can be removed.
         (component as CompInputExternal).showValidations = [];
@@ -116,7 +116,7 @@ describe('UI Components', () => {
   });
 
   it('is possible to upload attachments with tags', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'newFirstName') {
         // TODO(Validation): Once it is possible to treat custom validations as required, this can be removed.
         (component as CompInputExternal).showValidations = [];
@@ -188,7 +188,7 @@ describe('UI Components', () => {
         shouldExist: appFrontend.changeOfName.uploadWithTag.editWindow,
       },
     ];
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       for (const { type } of components) {
         if (component.type === type) {
           component.alertOnDelete = true;
@@ -211,7 +211,7 @@ describe('UI Components', () => {
   });
 
   it('minNumberOfAttachments should validate like required', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.type === 'FileUpload' || component.type === 'FileUploadWithTag') {
         component.minNumberOfAttachments = 1;
       }
@@ -270,29 +270,15 @@ describe('UI Components', () => {
   it('address component fetches post place from zip code', () => {
     cy.goto('changename');
 
-    // Mock zip code API, so that we don't rely on external services for our tests
-    cy.intercept('GET', 'https://api.bring.com/shippingguide/api/postalCode.json**', (req) => {
-      req.reply((res) => {
-        res.send({
-          body: {
-            postalCodeType: 'NORMAL',
-            result: 'KARDEMOMME BY', // Intentionally wrong, to test that our mock is used
-            valid: true,
-          },
-        });
-      });
-    }).as('zipCodeApi');
-
     cy.get(appFrontend.changeOfName.address.street_name).type('Sesame Street 1A');
     cy.get(appFrontend.changeOfName.address.street_name).blur();
-    cy.get(appFrontend.changeOfName.address.zip_code).type('0123');
+    cy.get(appFrontend.changeOfName.address.zip_code).type('4609');
     cy.get(appFrontend.changeOfName.address.zip_code).blur();
     cy.get(appFrontend.changeOfName.address.post_place).should('have.value', 'KARDEMOMME BY');
-    cy.get('@zipCodeApi').its('request.url').should('include', '0123');
   });
 
   it('should not be possible to check a readonly checkbox', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.type === 'Checkboxes') {
         component.readOnly = true;
       }
@@ -309,7 +295,7 @@ describe('UI Components', () => {
   });
 
   it('should not be possible to check a readonly radio button', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.type === 'RadioButtons') {
         component.readOnly = true;
       }
@@ -327,7 +313,7 @@ describe('UI Components', () => {
   });
 
   it('should be possible to set all elements as readonly and snapshot', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       const formTypes: CompExternal['type'][] = [
         'Address',
         'Checkboxes',
@@ -372,7 +358,15 @@ describe('UI Components', () => {
     cy.visualTesting('components:read-only');
   });
 
-  it('description and helptext for options in radio and checkbox groups', () => {
+  it('description and helptext for components and options in radio and checkboxes', () => {
+    cy.interceptLayout('Task_2', (component) => {
+      if (component.type === 'RadioButtons' && component.id === 'reason') {
+        component.textResourceBindings!.help = 'Denne står på reason-komponenten';
+      }
+      if (component.type === 'Checkboxes' && component.id === 'confirmChangeName') {
+        component.textResourceBindings!.help = 'Denne står på confirmChangeName-komponenten';
+      }
+    });
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).type('Per');
     cy.get(appFrontend.changeOfName.newFirstName).blur();
@@ -382,20 +376,41 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.newLastName).blur();
 
     cy.get(appFrontend.changeOfName.confirmChangeName).findByText('Dette er en beskrivelse.').should('be.visible');
-    cy.get(appFrontend.helpText.alert).eq(1).should('not.be.visible');
-    cy.get(appFrontend.changeOfName.confirmChangeName).findByRole('button').click();
-    cy.get(appFrontend.helpText.alert).eq(1).should('be.visible');
+    cy.get(appFrontend.helpText.alertOpen).should('have.length', 0);
+    cy.get(appFrontend.changeOfName.confirmChangeName).findAllByRole('button').should('have.length', 2);
+    cy.get(appFrontend.changeOfName.confirmChangeName).findAllByRole('button').eq(0).click();
+    cy.get(appFrontend.helpText.alertOpen).should('have.length', 1);
+    cy.get(appFrontend.helpText.alertOpen).should('contain.text', 'Denne står på confirmChangeName-komponenten');
+    cy.get(appFrontend.helpText.alertOpen)
+      .find('span')
+      .should((helpText) => expect(helpText).to.have.css('font-weight', '400'));
+    cy.get(appFrontend.changeOfName.confirmChangeName).findAllByRole('button').eq(1).click();
+    cy.get(appFrontend.helpText.alertOpen).should('have.length', 1);
+    cy.get(appFrontend.helpText.alertOpen).should('contain.text', 'Dette er en hjelpetekst');
+    cy.get(appFrontend.helpText.alertOpen)
+      .find('span')
+      .should((helpText) => expect(helpText).to.have.css('font-weight', '400'));
 
     cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
-    cy.get(appFrontend.changeOfName.reasons).should('be.visible');
+    cy.get(appFrontend.helpText.alertOpen).should('have.length', 0);
 
     cy.get(appFrontend.changeOfName.reasons).findByText('Dette er en beskrivelse.').should('be.visible');
-    cy.get(appFrontend.changeOfName.reasons).findByRole('button').click();
-    cy.get(appFrontend.helpText.alert).eq(2).should('be.visible');
+    cy.get(appFrontend.changeOfName.reasons).findAllByRole('button').eq(0).click();
+    cy.get(appFrontend.helpText.alertOpen).should('have.length', 1);
+    cy.get(appFrontend.helpText.alertOpen).should('contain.text', 'Denne står på reason-komponenten');
+    cy.get(appFrontend.helpText.alertOpen)
+      .find('span')
+      .should((helpText) => expect(helpText).to.have.css('font-weight', '400'));
+    cy.get(appFrontend.changeOfName.reasons).findAllByRole('button').eq(1).click();
+    cy.get(appFrontend.helpText.alertOpen).should('have.length', 1);
+    cy.get(appFrontend.helpText.alertOpen).should('contain.text', 'Dette er en hjelpetekst');
+    cy.get(appFrontend.helpText.alertOpen)
+      .find('span')
+      .should((helpText) => expect(helpText).to.have.css('font-weight', '400'));
   });
 
   it('should display alert on changing radio button', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'reason' && component.type === 'RadioButtons') {
         component.alertOnChange = true;
         component.preselectedOptionIndex = undefined;
@@ -423,7 +438,7 @@ describe('UI Components', () => {
   });
 
   it('should display alert on changing dropdown', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'sources' && component.type === 'Dropdown') {
         component.alertOnChange = true;
       }
@@ -453,7 +468,7 @@ describe('UI Components', () => {
   });
 
   it('should display alert on changing multiple-select', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'colorsCheckboxes' && component.type === 'Checkboxes') {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (component as any).type = 'MultipleSelect';
@@ -464,36 +479,37 @@ describe('UI Components', () => {
     cy.gotoHiddenPage('label-data-bindings');
 
     cy.get('#form-content-colorsCheckboxes').click();
-    cy.findByRole('option', { name: /blå/i }).click();
-    cy.findByRole('option', { name: /blå/i }).should('have.attr', 'aria-selected', 'true');
-    cy.findByRole('option', { name: /cyan/i }).click();
-    cy.findByRole('option', { name: /cyan/i }).should('have.attr', 'aria-selected', 'true');
-    cy.findByRole('option', { name: /grønn/i }).click();
-    cy.findByRole('option', { name: /grønn/i }).should('have.attr', 'aria-selected', 'true');
-    cy.findByRole('option', { name: /gul/i }).click();
-    cy.findByRole('option', { name: /gul/i }).should('have.attr', 'aria-selected', 'true');
 
-    cy.findByRole('button', {
-      name: /Grønn, Press to remove, 3 of 4/i,
+    cy.get('u-option[label="Blå"][aria-selected="false"]').click();
+    cy.get('u-option[label="Blå"][aria-selected="true"]').should('exist');
+    cy.get('u-option[label="Cyan"][aria-selected="false"]').click();
+    cy.get('u-option[label="Cyan"][aria-selected="true"]').should('exist');
+    cy.get('u-option[label="Grønn"][aria-selected="false"]').click();
+    cy.get('u-option[label="Grønn"][aria-selected="true"]').should('exist');
+    cy.get('u-option[label="Gul"][aria-selected="false"]').click();
+    cy.get('u-option[label="Gul"][aria-selected="true"]').should('exist');
+
+    cy.findByRole('option', {
+      name: /Grønn, Press to remove/i,
     }).click('right', { force: true });
     cy.get(appFrontend.deleteWarningPopover).should('contain.text', 'Er du sikker på at du vil slette Grønn?');
     cy.findByRole('button', { name: /Avbryt/ }).click();
-    cy.findByRole('button', {
-      name: /Grønn, Press to remove, 3 of 4/i,
+    cy.findByRole('option', {
+      name: /Grønn, Press to remove/i,
     }).should('exist');
 
-    cy.findByRole('button', {
-      name: /Gul, Press to remove, 4 of 4/i,
+    cy.findByRole('option', {
+      name: /Gul, Press to remove/i,
     }).click('right', { force: true });
     cy.get(appFrontend.deleteWarningPopover).should('contain.text', 'Er du sikker på at du vil slette Gul?');
     cy.findByRole('button', { name: /Bekreft/ }).click();
-    cy.findByRole('button', {
-      name: /Gul, Press to remove, 4 of 4/i,
+    cy.findByRole('option', {
+      name: /Gul, Press to remove/i,
     }).should('not.exist');
   });
 
   it('should display alert when unchecking checkbox', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'confirmChangeName' && component.type === 'Checkboxes') {
         component.alertOnChange = true;
       }
@@ -512,7 +528,7 @@ describe('UI Components', () => {
   });
 
   it('retains focus when checking focused checkbox that has alert on uncheck', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'confirmChangeName' && component.type === 'Checkboxes') {
         component.alertOnChange = true;
       }
@@ -529,7 +545,7 @@ describe('UI Components', () => {
   });
 
   it('should display alert unchecking checkbox in checkbox group', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'innhentet-studie' && component.type === 'Checkboxes') {
         component.alertOnChange = true;
       }
@@ -595,7 +611,7 @@ describe('UI Components', () => {
 
   [4, 5].forEach((maxLength) => {
     it(`should countdown remaining letters of ${maxLength} and display validation`, () => {
-      cy.interceptLayout('changename', (component) => {
+      cy.interceptLayout('Task_2', (component) => {
         if (component.type === 'Input' && component.id === 'newFirstName') {
           component.maxLength = maxLength;
         }
@@ -776,7 +792,7 @@ describe('UI Components', () => {
 
   it('Map component with simpleBinding', function () {
     cy.fixture('map-tile.png', 'base64').then((data) => {
-      cy.interceptLayout('changename', (component) => {
+      cy.interceptLayout('Task_2', (component) => {
         if (component.type === 'Map' && component.id === 'map') {
           component.layers = [
             {
@@ -866,7 +882,7 @@ describe('UI Components', () => {
 
   it('Map component with geometries should center the map around the geometries', () => {
     cy.fixture('map-tile.png', 'base64').then((data) => {
-      cy.interceptLayout('changename', (component) => {
+      cy.interceptLayout('Task_2', (component) => {
         if (component.type === 'Map' && component.id === 'map') {
           component.layers = [
             {
@@ -915,10 +931,10 @@ describe('UI Components', () => {
     cy.get(component('mapSummary')).findByRole('img', { description: /hankabakken 8/i }).should('be.visible');
     }
 
-    cy.findByRole('checkbox', { name: /hankabakken 2/i }).dsUncheck();
-    cy.findByRole('checkbox', { name: /hankabakken 4/i }).dsUncheck();
-    cy.findByRole('checkbox', { name: /hankabakken 7/i }).dsUncheck();
-    cy.findByRole('checkbox', { name: /hankabakken 8/i }).dsUncheck();
+    cy.findByRole('checkbox', { name: /hankabakken 2/i }).uncheck();
+    cy.findByRole('checkbox', { name: /hankabakken 4/i }).uncheck();
+    cy.findByRole('checkbox', { name: /hankabakken 7/i }).uncheck();
+    cy.findByRole('checkbox', { name: /hankabakken 8/i }).uncheck();
     cy.waitUntilSaved();
 
     // prettier-ignore

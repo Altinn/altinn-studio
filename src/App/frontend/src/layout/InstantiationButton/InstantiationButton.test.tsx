@@ -1,25 +1,23 @@
 import React from 'react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router';
 
-import { expect, jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { FormProvider } from 'src/features/form/FormContext';
+import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
+import { FormProvider } from 'src/features/form/FormProvider';
 import { InstantiationButtonComponent } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
-import { fetchApplicationMetadata } from 'src/queries/queries';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
+import type { InstanceApi } from 'src/core/api-client/instance.api';
 
-const render = async () => {
-  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
-    getIncomingApplicationMetadataMock({
-      onEntry: {
-        show: 'stateless',
-      },
-    }),
-  );
+const render = async (createWithPrefill: InstanceApi['createWithPrefill']) => {
+  window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock({
+    onEntry: {
+      show: 'stateless',
+    },
+  });
   return await renderGenericComponentTest({
     type: 'InstantiationButton',
     component: {
@@ -33,7 +31,6 @@ const render = async () => {
       <MemoryRouter
         basename='/ttd/test'
         initialEntries={['/ttd/test']}
-        future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
       >
         <Routes>
           <Route
@@ -41,7 +38,7 @@ const render = async () => {
             element={children}
           />
           <Route
-            path='/instance/abc123'
+            path='/instance/512345/abc123'
             element={<span>You are now looking at the instance</span>}
           />
         </Routes>
@@ -52,12 +49,23 @@ const render = async () => {
         <InstantiationButtonComponent {...props} />
       </FormProvider>
     ),
+    apis: {
+      instanceApi: {
+        createWithPrefill,
+      },
+    },
   });
 };
 
 describe('InstantiationButton', () => {
   it('should show button and it should be possible to click and start loading', async () => {
-    const { mutations } = await render();
+    const createWithPrefillMock = jest.fn(async () => ({
+      ...getInstanceDataMock(),
+      id: '512345/abc123',
+      process: getProcessDataMock(),
+    }));
+
+    await render(createWithPrefillMock);
 
     expect(screen.getByText('Instantiate')).toBeInTheDocument();
 
@@ -67,14 +75,7 @@ describe('InstantiationButton', () => {
 
     await userEvent.click(screen.getByRole('button'));
 
-    expect(screen.getByLabelText('Laster innhold')).toBeInTheDocument();
-
-    expect(mutations.doInstantiateWithPrefill.mock).toHaveBeenCalledTimes(1);
-
-    mutations.doInstantiateWithPrefill.resolve({
-      ...getInstanceDataMock(),
-      id: 'abc123',
-    });
+    expect(createWithPrefillMock).toHaveBeenCalledTimes(1);
 
     await waitFor(() => {
       expect(screen.getByText('You are now looking at the instance')).toBeInTheDocument();

@@ -1,11 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using System.Xml.Serialization;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+
+#pragma warning disable IDE1006 // Naming Styles
 
 namespace Altinn.App.SourceGenerator.Integration.Tests.Models;
 
 public class Skjema
 {
+    // Extra properties to test that they get ignored by source generator
+    public const string FormDataType = "form";
+    public static readonly string FormDataTypeStatic = FormDataType;
+    public string FormDataTypeId => FormDataType;
+
     [JsonPropertyName("skjemanummer")]
     public string? Skjemanummer { get; set; }
 
@@ -39,6 +49,25 @@ public class SkjemaInnhold
 
     [JsonPropertyName("tidligere-adresse")]
     public List<Adresse>? TidligereAdresse { get; set; }
+
+    [JsonPropertyName("oldXmlValue")]
+    public OldXmlValue? OldXmlValue { get; set; }
+
+    [JsonPropertyName("withCollection")]
+    public ICollection<Adresse>? WithCollection { get; set; }
+
+#nullable disable
+    // Test that non nullable lists does not cause problems. Old datamodels might have these and they should be supported even if they are not ideal.
+    [JsonPropertyName("withListOfString")]
+    public List<string> WithListOfString { get; set; }
+
+    [JsonPropertyName("withListOfInt")]
+    public List<int> WithListOfInt { get; set; }
+
+    [JsonPropertyName("withListOfNullableInt")]
+    public List<int?> ListNullableInt { get; set; }
+
+#nullable enable
 }
 
 public class Adresse
@@ -58,7 +87,27 @@ public class Adresse
 
     // List of string is invalid in altinn datamodels, but might be used for backend purposes and must compile
     [JsonPropertyName("tags")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<string>? Tags { get; set; }
 }
 
-public class Empty { }
+public class OldXmlValue
+{
+    [Range(-999999999999999d, 999999999999999d)]
+    [Required]
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [JsonIgnore]
+    public decimal value
+    {
+        get => valueNullable ?? default;
+        set { valueNullable = value; }
+    }
+
+    [XmlAttribute("orid")]
+    [BindNever]
+    public string orid { get; set; } = "7117";
+}

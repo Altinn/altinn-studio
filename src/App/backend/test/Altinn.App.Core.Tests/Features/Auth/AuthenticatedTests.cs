@@ -15,6 +15,9 @@ namespace Altinn.App.Core.Tests.Features.Auth;
 
 public class AuthenticatedTests
 {
+    private const string MaskinportenExchangedServiceOwnerToken =
+        "eyJhbGciOiJSUzI1NiIsImtpZCI6IkQ4RDg2N0M3RDUyMTM2MEY0RjM1Q0Q1MTU4MEM0OUEwNTE2NUQ0RTEiLCJ4NXQiOiIyTmhueDlVaE5nOVBOYzFSV0F4Sm9GRmwxT0UiLCJ0eXAiOiJKV1QifQ.eyJzY29wZSI6ImFsdGlubjpzZXJ2aWNlb3duZXIvaW5zdGFuY2VzLndyaXRlIGFsdGlubjpzZXJ2aWNlb3duZXIvaW5zdGFuY2VzLnJlYWQiLCJ0b2tlbl90eXBlIjoiQmVhcmVyIiwiZXhwIjoxNzM3ODE5Mzc2LCJpYXQiOjE3Mzc4MTc1NzYsImNsaWVudF9pZCI6IjA0NGY1MDQwLTU0ZTMtNGEyNy1hMjIxLWE4NTE0ZmQzMGNhOSIsImNvbnN1bWVyIjp7ImF1dGhvcml0eSI6ImlzbzY1MjMtYWN0b3JpZC11cGlzIiwiSUQiOiIwMTkyOjk5MTgyNTgyNyJ9LCJ1cm46YWx0aW5uOm9yZyI6ImRpZ2RpciIsInVybjphbHRpbm46b3JnTnVtYmVyIjoiOTkxODI1ODI3IiwidXJuOmFsdGlubjphdXRoZW50aWNhdGVtZXRob2QiOiJtYXNraW5wb3J0ZW4iLCJ1cm46YWx0aW5uOmF1dGhsZXZlbCI6MywiaXNzIjoiaHR0cHM6Ly9wbGF0Zm9ybS50dDAyLmFsdGlubi5uby9hdXRoZW50aWNhdGlvbi9hcGkvdjEvb3BlbmlkLyIsImp0aSI6IjFmN2RlMDFhLTgyYjMtNDc3Yi04MmQzLTBiY2I5NDkzOGVjNyIsIm5iZiI6MTczNzgxNzU3Nn0.G9uZ_YK2IxUgv8ySP3zy_IG0kOO3qJtEqHPds2f3jh1_YHcQlHEnQXUecUR-xD-Qi8qtI_GEJizA3l-zXc9DLkxgv4HVamzBrOcm9aQWqd3s8_OuI1nF4WjWrcw5FHpaXl1DqbgqPQI8rxOJhmW-H4rE944TKHLwvBlsX-9brYU_CC1WfnymFwODKsGhT1hm5ljQeV6O6j0GkNsRANiQlUnIMJcMVQEBtcuHGBLeNq-u5JSXzs17GLB371IN9Jb8IoYKu7njW3-Pat-QWebDYT9jdMQHOYslr0WByTvlnhL6Z7aQ8KbllbNw3GoYOvCBphVVpmk7aaqcchUiBh30-g";
+
     // These are real tokens used from tt02/test login methods across Altinn, ID-porten and Maskinporten
     public static TheoryData<string, string, AuthenticationTypes, bool> Tokens =>
         new()
@@ -63,7 +66,7 @@ public class AuthenticatedTests
             },
             {
                 "Maskinporten exchanged service owner token",
-                "eyJhbGciOiJSUzI1NiIsImtpZCI6IkQ4RDg2N0M3RDUyMTM2MEY0RjM1Q0Q1MTU4MEM0OUEwNTE2NUQ0RTEiLCJ4NXQiOiIyTmhueDlVaE5nOVBOYzFSV0F4Sm9GRmwxT0UiLCJ0eXAiOiJKV1QifQ.eyJzY29wZSI6ImFsdGlubjpzZXJ2aWNlb3duZXIvaW5zdGFuY2VzLndyaXRlIGFsdGlubjpzZXJ2aWNlb3duZXIvaW5zdGFuY2VzLnJlYWQiLCJ0b2tlbl90eXBlIjoiQmVhcmVyIiwiZXhwIjoxNzM3ODE5Mzc2LCJpYXQiOjE3Mzc4MTc1NzYsImNsaWVudF9pZCI6IjA0NGY1MDQwLTU0ZTMtNGEyNy1hMjIxLWE4NTE0ZmQzMGNhOSIsImNvbnN1bWVyIjp7ImF1dGhvcml0eSI6ImlzbzY1MjMtYWN0b3JpZC11cGlzIiwiSUQiOiIwMTkyOjk5MTgyNTgyNyJ9LCJ1cm46YWx0aW5uOm9yZyI6ImRpZ2RpciIsInVybjphbHRpbm46b3JnTnVtYmVyIjoiOTkxODI1ODI3IiwidXJuOmFsdGlubjphdXRoZW50aWNhdGVtZXRob2QiOiJtYXNraW5wb3J0ZW4iLCJ1cm46YWx0aW5uOmF1dGhsZXZlbCI6MywiaXNzIjoiaHR0cHM6Ly9wbGF0Zm9ybS50dDAyLmFsdGlubi5uby9hdXRoZW50aWNhdGlvbi9hcGkvdjEvb3BlbmlkLyIsImp0aSI6IjFmN2RlMDFhLTgyYjMtNDc3Yi04MmQzLTBiY2I5NDkzOGVjNyIsIm5iZiI6MTczNzgxNzU3Nn0.G9uZ_YK2IxUgv8ySP3zy_IG0kOO3qJtEqHPds2f3jh1_YHcQlHEnQXUecUR-xD-Qi8qtI_GEJizA3l-zXc9DLkxgv4HVamzBrOcm9aQWqd3s8_OuI1nF4WjWrcw5FHpaXl1DqbgqPQI8rxOJhmW-H4rE944TKHLwvBlsX-9brYU_CC1WfnymFwODKsGhT1hm5ljQeV6O6j0GkNsRANiQlUnIMJcMVQEBtcuHGBLeNq-u5JSXzs17GLB371IN9Jb8IoYKu7njW3-Pat-QWebDYT9jdMQHOYslr0WByTvlnhL6Z7aQ8KbllbNw3GoYOvCBphVVpmk7aaqcchUiBh30-g",
+                MaskinportenExchangedServiceOwnerToken,
                 AuthenticationTypes.ServiceOwner,
                 true
             },
@@ -121,6 +124,18 @@ public class AuthenticatedTests
                 AuthenticationTypes.Org,
                 true
             },
+            {
+                "Custom token with unknown type",
+                "eyJhbGciOiJSUzI1NiIsImtpZCI6Im9lZC1hZG1pbi1jbGllbnQta2V5IiwidHlwIjoiSldUIn0.eyJhdWQiOiJodHRwczovL3Rlc3QubWFza2lucG9ydGVuLm5vLyIsInNjb3BlIjoiZGlnZGlyOmRkOnByb2JhdGVkZWNsYXJhdGlvbnMiLCJpc3MiOiI3ZDdjM2M4OC1kNGZlLTRkZDEtOTI0NC0wYzYzNWIxZGZkMDMiLCJleHAiOjE3NjQyNDk3NTksImlhdCI6MTc2NDI0OTc0OSwianRpIjoiYmI0NmJmYmQtMjM4ZS00ZTRlLWEyOGEtN2JjY2I5N2U3OTk5In0.mnYdN2OEzL3xRC37ZXbnsMqBCI1uQPxGBYhOKS85y0XnwvajUwi4e5yJ643MZy3L_N41b-U7pi4km-nfUmbCAIAjGwsTNO9mXyPCrp14Xf51RqoYHbEfvIkHxY0QbFkDijyGrNttSqI3UOhf3RnyT0Ev86IFSHc0zdqDqZoKjwshqAvok18YW6o_IyyNloCoKqLWYVVXy4Fg9eALph76QsqdEh9YAUojUN14ngG3Qs76xUAJefMmJcQWzgoBhwZlU0KiEMbwe8PdJuCaEd7dRX71wTMK8pKhZRIxXjVmNfTtgdgyW5YE37C9uTwMYyuZhJXJ3F6bWCS_joYrn7m-SQ",
+                AuthenticationTypes.Unknown,
+                true
+            },
+            {
+                "Custom Maskinporten token",
+                "eyJraWQiOiJiZFhMRVduRGpMSGpwRThPZnl5TUp4UlJLbVo3MUxCOHUxeUREbVBpdVQwIiwiYWxnIjoiUlMyNTYifQ.eyJzY29wZSI6ImRnbTpwb2xpY2UiLCJpc3MiOiJodHRwczovL3Rlc3QubWFza2lucG9ydGVuLm5vLyIsImNsaWVudF9hbXIiOiJwcml2YXRlX2tleV9qd3QiLCJ0b2tlbl90eXBlIjoiQmVhcmVyIiwiZXhwIjoxNzY0NjI3MjAxLCJpYXQiOjE3NjQ2MjcwODEsImNsaWVudF9pZCI6ImY0ODExZTE4LTA1YWEtNGE1MC1iNWQ1LTg0OTBkYTc4YWFjZSIsImp0aSI6Ik1CSzQ2Tk9hdGx6VldVdjgzZ0VRalBsTVQ2Z0VpYlgzaWI5X3VaWVRwQVEiLCJjb25zdW1lciI6eyJhdXRob3JpdHkiOiJpc282NTIzLWFjdG9yaWQtdXBpcyIsIklEIjoiMDE5Mjo5OTE4MjU4MjcifX0.iZCrY4qGZrAiR2vGq4VuH7X8Ta9ZJU68F6hcQMAAijlEnqGs1PPvnQhLh4DZRI1QDvbub_k6zjmpYJvAPXKYb1hS9IdBbX3kWxX4dtPaiKcHHpz1W9i5t3pbKnxkoI1Tk7xfuY4Cv8hkz00VKZHWh631mSz9vG3w_3TeRW0g5NYCUVMJ7OmA3ZO9Y7f6IeYw3Z4-1LLVTLRSh1ie0-riCKBDpfPDTgCcRN_W5mio8CyWGey_l9kzVjwbLftix-FCNPIVe5GJIqQVU-RlfApmNFazgeCn8Yq5EOD9z7ypY3SFGMsKPsGQ86mRExCMituZ0w6nfMf2vebdch5G0OQvs_o5FIb8gg7E05ZlWI0Enh9HH3hyeYK8IhJZF0ODzb87i0-4h7v6orGtezz0qmpZ1WvwSdG2saHVlsCsa-pyBzGlAYYwYcjKOmP5u2NQgwPi8z--ZaokXHFjr2PSJJZXmbknGPOL0MulDd412eiW_7TTYfSq438KHf2amQ_DnOpD",
+                AuthenticationTypes.Unknown,
+                true
+            },
         };
 
     [Theory]
@@ -175,23 +190,64 @@ public class AuthenticatedTests
                 Assert.Equal(token, auth.Token);
                 details = await systemUser.LoadDetails();
                 break;
+            case AuthenticationTypes.Unknown:
+                Assert.IsType<Authenticated.Unknown>(auth);
+                Assert.Equal(token, auth.Token);
+                break;
             default:
                 Assert.Fail("Unknown token type: " + tokenType);
                 break;
         }
 
         var hash = Convert.ToBase64String(XxHash128.Hash(Encoding.UTF8.GetBytes(token)));
-        await Verify(
-                new
-                {
-                    Description = description,
-                    AuthType = auth.GetType().FullName,
-                    Auth = auth,
-                    Jwt = (Dictionary<string, object>)jwtToken.Payload,
-                    Details = details,
-                }
-            )
-            .UseTextForParameters($"type={tokenType}_{hash[0..4]}")
+        await VerifyAuthenticated(
+            new
+            {
+                Description = description,
+                AuthType = auth.GetType().FullName,
+                Auth = auth,
+                Jwt = jwtToken.Payload,
+                Details = details,
+            },
+            $"type={tokenType}_{hash[0..4]}"
+        );
+    }
+
+    [Fact]
+    public async Task Can_Parse_Real_ServiceOwner_Token_When_App_Metadata_Org_Differs()
+    {
+        const string appMetadataOrg = "ttd";
+        var handler = new JwtSecurityTokenHandler();
+        var jwtToken = handler.ReadJwtToken(MaskinportenExchangedServiceOwnerToken);
+
+        var auth = Parse(
+            "Maskinporten exchanged service owner token with mismatched app metadata org",
+            jwtToken,
+            MaskinportenExchangedServiceOwnerToken,
+            AuthenticationTypes.ServiceOwner,
+            appMetadataOrg
+        );
+
+        var serviceOwner = Assert.IsType<Authenticated.ServiceOwner>(auth);
+        var details = await serviceOwner.LoadDetails();
+
+        await VerifyAuthenticated(
+            new
+            {
+                Description = "Maskinporten exchanged service owner token with mismatched app metadata org",
+                AppMetadataOrg = appMetadataOrg,
+                AuthType = auth.GetType().FullName,
+                Auth = auth,
+                Jwt = jwtToken.Payload,
+                Details = details,
+            },
+            "service_owner_mismatched_app_org"
+        );
+    }
+
+    private Task VerifyAuthenticated(object target, string parameter) =>
+        Verify(target)
+            .UseTextForParameters(parameter)
             .DontIgnoreEmptyCollections()
             .DontScrubDateTimes()
             .DontScrubGuids()
@@ -200,7 +256,6 @@ public class AuthenticatedTests
                 s.Converters.Add(new ScopesConverter());
                 s.Converters.Add(new OrganisationNumberConverter());
             });
-    }
 
     private sealed class ScopesConverter : WriteOnlyJsonConverter<Scopes>
     {
@@ -218,7 +273,13 @@ public class AuthenticatedTests
         }
     }
 
-    private Authenticated Parse(string description, JwtSecurityToken jwtToken, string token, AuthenticationTypes type)
+    private Authenticated Parse(
+        string description,
+        JwtSecurityToken jwtToken,
+        string token,
+        AuthenticationTypes type,
+        string appMetadataOrg = "digdir"
+    )
     {
         string ReadClaim(string key)
         {
@@ -258,7 +319,7 @@ public class AuthenticatedTests
                         tokenStr: token,
                         parsedToken: null,
                         isAuthenticated: true,
-                        appMetadata: TestAuthentication.NewApplicationMetadata("digdir"),
+                        appMetadata: TestAuthentication.NewApplicationMetadata(appMetadataOrg),
                         getSelectedParty: () =>
                             ReadClaimInt(AltinnCoreClaimTypes.PartyID).ToString(CultureInfo.InvariantCulture),
                         getUserProfile: userId =>
@@ -310,7 +371,7 @@ public class AuthenticatedTests
                         tokenStr: token,
                         parsedToken: null,
                         isAuthenticated: true,
-                        appMetadata: TestAuthentication.NewApplicationMetadata("digdir"),
+                        appMetadata: TestAuthentication.NewApplicationMetadata(appMetadataOrg),
                         getSelectedParty: () =>
                             ReadClaimInt(AltinnCoreClaimTypes.PartyID).ToString(CultureInfo.InvariantCulture),
                         getUserProfile: userId =>
@@ -351,7 +412,7 @@ public class AuthenticatedTests
                         tokenStr: token,
                         parsedToken: null,
                         isAuthenticated: true,
-                        appMetadata: TestAuthentication.NewApplicationMetadata("digdir"),
+                        appMetadata: TestAuthentication.NewApplicationMetadata(appMetadataOrg),
                         getSelectedParty: null!,
                         getUserProfile: null!,
                         lookupUserParty: null!,
@@ -383,7 +444,7 @@ public class AuthenticatedTests
                         tokenStr: token,
                         parsedToken: null,
                         isAuthenticated: true,
-                        appMetadata: TestAuthentication.NewApplicationMetadata("digdir"),
+                        appMetadata: TestAuthentication.NewApplicationMetadata(appMetadataOrg),
                         getSelectedParty: null!,
                         getUserProfile: null!,
                         lookupUserParty: null!,
@@ -415,7 +476,7 @@ public class AuthenticatedTests
                         tokenStr: token,
                         parsedToken: null,
                         isAuthenticated: true,
-                        appMetadata: TestAuthentication.NewApplicationMetadata("digdir"),
+                        appMetadata: TestAuthentication.NewApplicationMetadata(appMetadataOrg),
                         getSelectedParty: null!,
                         getUserProfile: null!,
                         lookupUserParty: null!,
@@ -438,6 +499,22 @@ public class AuthenticatedTests
                                 }
                             );
                         },
+                        getPartyList: null!,
+                        validateSelectedParty: null!
+                    );
+                }
+                break;
+            case AuthenticationTypes.Unknown:
+                {
+                    auth = Authenticated.From(
+                        tokenStr: token,
+                        parsedToken: null,
+                        isAuthenticated: true,
+                        appMetadata: TestAuthentication.NewApplicationMetadata(appMetadataOrg),
+                        getSelectedParty: null!,
+                        getUserProfile: null!,
+                        lookupUserParty: null!,
+                        lookupOrgParty: null!,
                         getPartyList: null!,
                         validateSelectedParty: null!
                     );

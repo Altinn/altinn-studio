@@ -18,15 +18,20 @@ function getMaxDate(...dates) {
   return new Date(Math.max(...dates.filter((d) => !!d).map((d) => d.getTime())));
 }
 
+const taskNames = {
+  Task_1: 'Utfylling',
+  Task_2: 'Signering',
+};
+
 const randomInstances = Array.from({ length: 1000 }).map(() => {
   const id = uuid();
   const createdAt = getRandomDate();
 
-  const isActive = Math.random() < 0.2;
+  const isActive = Math.random() < 0.4;
 
-  const isRead = !isActive || Math.random() < 0.8;
-  const currentTaskId = isActive ? 'Task_1' : null;
-  const currentTaskName = isActive ? 'Utfylling' : null;
+  const currentTaskId = isActive ? (Math.random() < 0.5 ? 'Task_1' : 'Task_2') : null;
+  const currentTaskName = currentTaskId ? taskNames[currentTaskId] : null;
+  const isRead = currentTaskId != 'Task_1' || Math.random() < 0.8;
   const archivedAt = !isActive ? getRandomDate(createdAt.getTime()) : null;
   const completedAt = archivedAt;
   const confirmedAt = !isActive && Math.random() < 0.8 ? getRandomDate(archivedAt.getTime()) : null;
@@ -39,37 +44,94 @@ const randomInstances = Array.from({ length: 1000 }).map(() => {
     : null;
   const hardDeletedAt = isHardDeleted ? softDeletedAt : null;
 
-  const lastChangedAt = getMaxDate(createdAt, archivedAt, confirmedAt, softDeletedAt);
+  const task_1_submitted =
+    currentTaskId !== 'Task_1' ? getRandomDate(createdAt.getTime(), archivedAt?.getTime()) : null;
 
-  const generateDataElement = () => ({
+  const dataModelElement = {
     id: uuid(),
     dataType: 'model',
     contentType: 'application/xml',
-    size: Math.round(Math.random() * 1000),
-    locked: !isActive,
+    size: Math.round(Math.random() * 1000 + 10),
+    locked: currentTaskId !== 'Task_1',
     isRead,
     fileScanResult: 'NotApplicable',
     hardDeletedAt,
     createdAt,
-    lastChangedAt: getRandomDate(createdAt.getTime(), (archivedAt ?? lastChangedAt).getTime()),
-  });
+    lastChangedAt: isRead
+      ? getRandomDate(createdAt.getTime(), task_1_submitted?.getTime())
+      : createdAt,
+  };
 
-  const generatePdfDataElement = () => ({
-    id: uuid(),
-    dataType: 'ref-data-as-pdf',
-    contentType: 'application/pdf',
-    size: Math.round(Math.random() * 1000),
-    locked: false,
-    isRead: true,
-    fileScanResult: 'NotApplicable',
-    hardDeletedAt,
-    createdAt: archivedAt,
-    lastChangedAt: archivedAt,
-  });
+  const generateAttachment = () => {
+    const attachmentCreated = getRandomDate(
+      createdAt.getTime(),
+      dataModelElement.lastChangedAt.getTime(),
+    );
+    return {
+      id: uuid(),
+      dataType: 'fileUpload',
+      contentType: Math.random() < 0.5 ? 'application/pdf' : 'image/jpg',
+      size: Math.round(Math.random() * 1000 + 10),
+      locked: currentTaskId !== 'Task_1',
+      isRead: true,
+      fileScanResult: 'NotApplicable',
+      hardDeletedAt,
+      createdAt: attachmentCreated,
+      lastChangedAt: attachmentCreated,
+    };
+  };
 
-  const data = archivedAt
-    ? [generateDataElement(), generatePdfDataElement()]
-    : [generateDataElement()];
+  const pdfDataElement = task_1_submitted
+    ? {
+        id: uuid(),
+        dataType: 'ref-data-as-pdf',
+        contentType: 'application/pdf',
+        size: Math.round(Math.random() * 1000 + 100),
+        locked: false,
+        isRead: true,
+        fileScanResult: 'NotApplicable',
+        hardDeletedAt,
+        createdAt: task_1_submitted,
+        lastChangedAt: task_1_submitted,
+      }
+    : null;
+
+  const task_2_submitted = archivedAt
+    ? getRandomDate(task_1_submitted.getTime(), archivedAt.getTime())
+    : null;
+  const signatureDataElement = task_2_submitted
+    ? {
+        id: uuid(),
+        dataType: 'signature',
+        contentType: 'application/json',
+        size: Math.round(Math.random() * 100 + 10),
+        locked: true,
+        isRead: true,
+        fileScanResult: 'NotApplicable',
+        hardDeletedAt,
+        createdAt: task_2_submitted,
+        lastChangedAt: task_2_submitted,
+      }
+    : null;
+
+  const n_attachments = isRead ? Math.round(Math.random() * 3) : 0;
+
+  const data = [
+    dataModelElement,
+    ...Array.from({ length: n_attachments }).map(generateAttachment),
+    pdfDataElement,
+    signatureDataElement,
+  ].filter((d) => d != null);
+
+  const lastChangedAt = getMaxDate(
+    createdAt,
+    dataModelElement.lastChangedAt,
+    task_1_submitted,
+    task_2_submitted,
+    archivedAt,
+    confirmedAt,
+    softDeletedAt,
+  );
 
   return {
     id,

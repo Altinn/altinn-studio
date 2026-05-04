@@ -1,4 +1,3 @@
-import React from 'react';
 import { CustomReceiptContent } from './CustomReceiptContent';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
@@ -21,7 +20,7 @@ describe('CustomReceiptContent', () => {
   it('Shows the spinner when there are pending API operations', () => {
     renderCustomReceiptContent({ pendingApiOperations: true });
 
-    const spinner = screen.getByTitle(
+    const spinner = screen.getByLabelText(
       textMock('process_editor.configuration_panel_custom_receipt_spinner_title'),
     );
     expect(spinner).toBeInTheDocument();

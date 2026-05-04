@@ -1,5 +1,6 @@
 {
   "repoType": "Datamodels",
   "imports": null,
-  "useNullableReferenceTypes": false
+  "useNullableReferenceTypes": false,
+  "templates": []
 }

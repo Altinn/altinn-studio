@@ -15,8 +15,10 @@ public class ProcessDataTypesChangedApplicationMetadataHandler : INotificationHa
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
 
-    public ProcessDataTypesChangedApplicationMetadataHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-        IFileSyncHandlerExecutor fileSyncHandlerExecutor)
+    public ProcessDataTypesChangedApplicationMetadataHandler(
+        IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+        IFileSyncHandlerExecutor fileSyncHandlerExecutor
+    )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
@@ -34,18 +36,23 @@ public class ProcessDataTypesChangedApplicationMetadataHandler : INotificationHa
                 var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                     notification.EditingContext.Org,
                     notification.EditingContext.Repo,
-                    notification.EditingContext.Developer);
+                    notification.EditingContext.Developer
+                );
 
                 var applicationMetadata = await repository.GetApplicationMetadata(cancellationToken);
 
-                if (notification.ConnectedTaskId != Constants.General.CustomReceiptId && TryChangeDataTypes(applicationMetadata, notification.NewDataTypes, notification.ConnectedTaskId))
+                if (
+                    notification.ConnectedTaskId != Constants.General.CustomReceiptId
+                    && TryChangeDataTypes(applicationMetadata, notification.NewDataTypes, notification.ConnectedTaskId)
+                )
                 {
                     await repository.SaveApplicationMetadata(applicationMetadata);
                     hasChanges = true;
                 }
 
                 return hasChanges;
-            });
+            }
+        );
     }
 
     /// <summary>
@@ -53,12 +60,17 @@ public class ProcessDataTypesChangedApplicationMetadataHandler : INotificationHa
     /// If there are changes, the application metadata is updated and the method returns true.
     /// Otherwise, the method returns false.
     /// </summary>
-    private static bool TryChangeDataTypes(Application applicationMetadata, List<string> newDataTypes, string connectedTaskId)
+    private static bool TryChangeDataTypes(
+        Application applicationMetadata,
+        List<string> newDataTypes,
+        string connectedTaskId
+    )
     {
         bool hasChanges = false;
 
-
-        var dataTypesToDisconnect = applicationMetadata.DataTypes.FindAll(dataType => dataType.TaskId == connectedTaskId);
+        var dataTypesToDisconnect = applicationMetadata.DataTypes.FindAll(dataType =>
+            dataType.TaskId == connectedTaskId
+        );
         foreach (var dataTypeToDisconnect in dataTypesToDisconnect)
         {
             dataTypeToDisconnect.TaskId = null;
@@ -77,5 +89,4 @@ public class ProcessDataTypesChangedApplicationMetadataHandler : INotificationHa
 
         return hasChanges;
     }
-
 }

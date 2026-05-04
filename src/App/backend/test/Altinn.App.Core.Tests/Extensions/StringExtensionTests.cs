@@ -7,7 +7,7 @@ public class StringExtensionTests
 {
     [Theory]
     [InlineData(
-        "http://local.altinn.cloud/dihe/redusert-foreldrebetaling-bhg/#/instance/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643",
+        "http://local.altinn.cloud/dihe/redusert-foreldrebetaling-bhg/instance/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643",
         '/'
     )]
     [InlineData("/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643", '/')]
@@ -20,7 +20,7 @@ public class StringExtensionTests
 
     [Theory]
     [InlineData(
-        "http://local.altinn.cloud/dihe/redusert-foreldrebetaling-bhg/#/instance/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643",
+        "http://local.altinn.cloud/dihe/redusert-foreldrebetaling-bhg/instance/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643",
         ':'
     )]
     [InlineData("/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643", ':')]
@@ -33,7 +33,7 @@ public class StringExtensionTests
 
     [Theory]
     [InlineData(
-        "http://local.altinn.cloud/dihe/redusert-foreldrebetaling-bhg/#/instance/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643",
+        "http://local.altinn.cloud/dihe/redusert-foreldrebetaling-bhg/instance/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643",
         '_'
     )]
     [InlineData("/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643", '_')]
@@ -46,7 +46,7 @@ public class StringExtensionTests
 
     [Theory]
     [InlineData(
-        "http://local.altinn.cloud/dihe/redusert-foreldrebetaling-bhg/#/instance/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643",
+        "http://local.altinn.cloud/dihe/redusert-foreldrebetaling-bhg/instance/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643",
         '/'
     )]
     [InlineData("/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643", '/')]
@@ -59,7 +59,7 @@ public class StringExtensionTests
 
     [Theory]
     [InlineData(
-        "http://local.altinn.cloud/dihe/redusert-foreldrebetaling-bhg/#/instance/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643",
+        "http://local.altinn.cloud/dihe/redusert-foreldrebetaling-bhg/instance/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643",
         ':'
     )]
     [InlineData("510002/4fdbcec8-3e71-43de-862a-0d8098fa0643", '/')]
@@ -72,7 +72,7 @@ public class StringExtensionTests
 
     [Theory]
     [InlineData(
-        "http://local.altinn.cloud/dihe/redusert-foreldrebetaling-bhg/#/instance/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643",
+        "http://local.altinn.cloud/dihe/redusert-foreldrebetaling-bhg/instance/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643",
         '_'
     )]
     [InlineData("/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643", '_')]
@@ -85,7 +85,7 @@ public class StringExtensionTests
 
     [Theory]
     [InlineData(
-        "http://local.altinn.cloud/dihe/redusert-foreldrebetaling-bhg/#/instance/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643",
+        "http://local.altinn.cloud/dihe/redusert-foreldrebetaling-bhg/instance/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643",
         '/'
     )]
     [InlineData("/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643", '/')]
@@ -98,7 +98,7 @@ public class StringExtensionTests
 
     [Theory]
     [InlineData(
-        "http://local.altinn.cloud/dihe/redusert-foreldrebetaling-bhg/#/instance/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643",
+        "http://local.altinn.cloud/dihe/redusert-foreldrebetaling-bhg/instance/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643",
         ':'
     )]
     [InlineData("510002/4fdbcec8-3e71-43de-862a-0d8098fa0643", '/')]
@@ -111,7 +111,7 @@ public class StringExtensionTests
 
     [Theory]
     [InlineData(
-        "http://local.altinn.cloud/dihe/redusert-foreldrebetaling-bhg/#/instance/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643",
+        "http://local.altinn.cloud/dihe/redusert-foreldrebetaling-bhg/instance/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643",
         '_'
     )]
     [InlineData("/510002/4fdbcec8-3e71-43de-862a-0d8098fa0643", '_')]

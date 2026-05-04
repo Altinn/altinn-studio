@@ -1,25 +1,12 @@
-import React from 'react';
-
-import { render } from '@testing-library/react';
 import type { JSONSchema7 } from 'json-schema';
 
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
-import * as UseBindingSchema from 'src/features/datamodel/useBindingSchema';
-import { FD } from 'src/features/formData/FormDataWrite';
-import { SchemaValidation } from 'src/features/validation/schemaValidation/SchemaValidation';
-import { Validation } from 'src/features/validation/validationContext';
-import type { IDataType } from 'src/types/shared';
+import { DataModelSchemaResult } from 'src/features/datamodel/SchemaLookupTool';
+import { deriveSchemaValidations } from 'src/features/validation/schemaValidation/SchemaValidation';
+import { createValidator } from 'src/features/validation/schemaValidation/schemaValidationUtils';
 
 describe('SchemaValidation', () => {
   describe('format validation', () => {
-    beforeEach(() => {
-      jest.spyOn(FD, 'useDebounced').mockRestore();
-      jest.spyOn(DataModels, 'useDataModelSchema').mockRestore();
-      jest.spyOn(UseBindingSchema, 'useDataModelType').mockRestore();
-      jest.spyOn(Validation, 'useUpdateDataModelValidations').mockRestore();
-    });
-
     const formatTests = [
       {
         format: 'date',
@@ -253,18 +240,16 @@ describe('SchemaValidation', () => {
                 },
               },
             };
-
-            jest.spyOn(FD, 'useDebounced').mockReturnValue(formData);
-            jest.spyOn(DataModels, 'useDataModelSchema').mockReturnValue(schema);
-            jest.spyOn(DataModels, 'useDataElementIdForDataType').mockReturnValue(defaultMockDataElementId);
-            jest.spyOn(UseBindingSchema, 'useDataModelType').mockReturnValue({} as IDataType);
-
-            const updateDataModelValidations = jest.fn();
-            jest
-              .spyOn(Validation, 'useUpdateDataModelValidations')
-              .mockImplementation(() => updateDataModelValidations);
-
-            render(<SchemaValidation dataType='mockDataType' />);
+            const schemaResult = {
+              schema,
+              rootElementPath: '',
+              validator: createValidator(schema),
+            } as DataModelSchemaResult;
+            const validations = deriveSchemaValidations({
+              formData,
+              schemaResult,
+              dataElementId: defaultMockDataElementId,
+            });
 
             // If valid, expect empty validations object
             // If not valid, expect an object containing at least field and severity
@@ -274,11 +259,7 @@ describe('SchemaValidation', () => {
                   field: expect.arrayContaining([expect.objectContaining({ field: 'field', severity: 'error' })]),
                 });
 
-            expect(updateDataModelValidations).toHaveBeenCalledWith(
-              'schema',
-              defaultMockDataElementId,
-              expectedValidations,
-            );
+            expect(validations).toEqual(expectedValidations);
           });
         });
       });

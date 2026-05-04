@@ -1,4 +1,3 @@
-import React from 'react';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { NativeSelect } from '@digdir/designsystemet-react';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Altinn.Augmenter.Agent": {
+      "commandName": "Project",
+      "applicationUrl": "http://localhost:8072",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

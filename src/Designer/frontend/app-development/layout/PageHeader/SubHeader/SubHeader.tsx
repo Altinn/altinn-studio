@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import classes from './SubHeader.module.css';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
@@ -12,6 +12,8 @@ import { StudioButton } from '@studio/components';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
+import { ProblemStatusIndicator } from './ProblemStatusIndicator';
+import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValidationQuery';
 
 export type SubHeaderProps = {
   hasRepoError?: boolean;
@@ -21,11 +23,23 @@ export const SubHeader = ({ hasRepoError }: SubHeaderProps): ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const repositoryType = getRepositoryType(org, app);
   const { doReloadPreview } = usePreviewContext();
+  const {
+    data: validationResult,
+    refetch: refetchValidation,
+    isFetching: validationPending,
+  } = useAppValidationQuery(org, app);
 
   return (
     <GiteaHeader
       hasCloneModal
       leftComponent={<LeftContent repositoryType={repositoryType} />}
+      rightContent={
+        <ProblemStatusIndicator
+          validationResult={validationResult}
+          refetchValidation={refetchValidation}
+          validationPending={validationPending}
+        />
+      }
       hasRepoError={hasRepoError}
       onPullSuccess={doReloadPreview}
       owner={org}

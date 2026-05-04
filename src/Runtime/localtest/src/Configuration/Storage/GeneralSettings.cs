@@ -47,5 +47,15 @@ namespace Altinn.Platform.Storage.Configuration
         /// Gets or sets the cache lifetime for application metadata document.
         /// </summary>
         public int AppMetadataCacheLifeTimeInSeconds { get; set; }
+
+        /// <summary>
+        /// Gets or sets the scope for storage sync adapters.
+        /// </summary>
+        public string InstanceSyncAdapterScope { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether to use Ttd as service owner for environments without "normal" service owners
+        /// </summary>
+        public bool A2UseTtdAsServiceOwner { get; set; }
     }
 }

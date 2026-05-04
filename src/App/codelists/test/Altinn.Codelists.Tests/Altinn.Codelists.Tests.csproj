@@ -41,7 +41,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Core" />
+    <ProjectReference Include="../../../backend/src/Altinn.App.Core/Altinn.App.Core.csproj" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="RichardSzalay.MockHttp" />
     <PackageReference Include="WireMock.Net" />

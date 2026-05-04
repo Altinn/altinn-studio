@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

@@ -50,7 +50,7 @@ describe('Expression validation', () => {
     cy.findByRole('textbox', { name: /telefonnummer/i }).type('98765432');
     cy.get(appFrontend.errorReport).should('not.exist');
 
-    cy.dsSelect(appFrontend.expressionValidationTest.bosted, 'Oslo');
+    cy.dsSelect(appFrontend.expressionValidationTest.bosted, /Oslo/);
 
     cy.findByRole('button', { name: /neste/i }).click();
     cy.navPage('Skjul felter').should('have.attr', 'aria-current', 'page');
@@ -73,27 +73,27 @@ describe('Expression validation', () => {
     cy.findByText(/basert på stilling/i).should('be.visible');
 
     cy.get(appFrontend.errorReport).should('contain.text', 'Du må fylle ut fornavn');
-    cy.findByRole('checkbox', { name: /fornavn/i }).dsCheck();
+    cy.findByRole('checkbox', { name: /fornavn/i }).check();
     cy.get(appFrontend.errorReport).should('not.contain.text', 'Du må fylle ut fornavn');
 
     cy.get(appFrontend.errorReport).should('contain.text', 'Du må fylle ut etternavn');
-    cy.findByRole('checkbox', { name: /etternavn/i }).dsCheck();
+    cy.findByRole('checkbox', { name: /etternavn/i }).check();
     cy.get(appFrontend.errorReport).should('not.contain.text', 'Du må fylle ut etternavn');
 
     cy.get(appFrontend.errorReport).should('contain.text', 'Du må fylle ut kjønn');
-    cy.findByRole('checkbox', { name: /kjønn/i }).dsCheck();
+    cy.findByRole('checkbox', { name: /kjønn/i }).check();
     cy.get(appFrontend.errorReport).should('not.contain.text', 'Du må fylle ut kjønn');
 
     cy.get(appFrontend.errorReport).should('contain.text', "E-post må slutte med '@altinn.no'");
-    cy.findByRole('checkbox', { name: /e-post/i }).dsCheck();
+    cy.findByRole('checkbox', { name: /e-post/i }).check();
     cy.get(appFrontend.errorReport).should('not.contain.text', "E-post må slutte med '@altinn.no'");
 
     cy.get(appFrontend.errorReport).should('contain.text', "Telefonnummer må starte med '9'");
-    cy.findByRole('checkbox', { name: /telefon/i }).dsCheck();
+    cy.findByRole('checkbox', { name: /telefon/i }).check();
     cy.get(appFrontend.errorReport).should('not.contain.text', "Telefonnummer må starte med '9'");
 
     cy.get(appFrontend.errorReport).should('contain.text', 'Du må fylle ut bosted');
-    cy.findByRole('checkbox', { name: /bosted/i }).dsCheck();
+    cy.findByRole('checkbox', { name: /bosted/i }).check();
     cy.get(appFrontend.errorReport).should('not.exist');
 
     cy.findByRole('button', { name: /send inn/i }).click();
@@ -103,13 +103,13 @@ describe('Expression validation', () => {
   it('should show validation messages for repeating groups', () => {
     cy.gotoNavPage('Skjul felter');
 
-    cy.findByRole('checkbox', { name: /fornavn/i }).dsCheck();
-    cy.findByRole('checkbox', { name: /etternavn/i }).dsCheck();
-    cy.findByRole('checkbox', { name: /alder/i }).dsCheck();
-    cy.findByRole('checkbox', { name: /kjønn/i }).dsCheck();
-    cy.findByRole('checkbox', { name: /e-post/i }).dsCheck();
-    cy.findByRole('checkbox', { name: /telefon/i }).dsCheck();
-    cy.findByRole('checkbox', { name: /bosted/i }).dsCheck();
+    cy.findByRole('checkbox', { name: /fornavn/i }).check();
+    cy.findByRole('checkbox', { name: /etternavn/i }).check();
+    cy.findByRole('checkbox', { name: /alder/i }).check();
+    cy.findByRole('checkbox', { name: /kjønn/i }).check();
+    cy.findByRole('checkbox', { name: /e-post/i }).check();
+    cy.findByRole('checkbox', { name: /telefon/i }).check();
+    cy.findByRole('checkbox', { name: /bosted/i }).check();
 
     cy.gotoNavPage('CV');
 
@@ -162,21 +162,20 @@ describe('Expression validation', () => {
 
   it('should work with hiddenRow', () => {
     // Ability to save group row with errors
-    cy.interceptLayout('skjema', (c) => {
+    cy.gotoNavPage('Skjul felter');
+    cy.changeLayout((c) => {
       if (c.type === 'RepeatingGroup') {
         c.validateOnSaveRow = undefined;
       }
     });
 
-    cy.gotoNavPage('Skjul felter');
-
-    cy.findByRole('checkbox', { name: /fornavn/i }).dsCheck();
-    cy.findByRole('checkbox', { name: /etternavn/i }).dsCheck();
-    cy.findByRole('checkbox', { name: /alder/i }).dsCheck();
-    cy.findByRole('checkbox', { name: /kjønn/i }).dsCheck();
-    cy.findByRole('checkbox', { name: /e-post/i }).dsCheck();
-    cy.findByRole('checkbox', { name: /telefon/i }).dsCheck();
-    cy.findByRole('checkbox', { name: /bosted/i }).dsCheck();
+    cy.findByRole('checkbox', { name: /fornavn/i }).check();
+    cy.findByRole('checkbox', { name: /etternavn/i }).check();
+    cy.findByRole('checkbox', { name: /alder/i }).check();
+    cy.findByRole('checkbox', { name: /kjønn/i }).check();
+    cy.findByRole('checkbox', { name: /e-post/i }).check();
+    cy.findByRole('checkbox', { name: /telefon/i }).check();
+    cy.findByRole('checkbox', { name: /bosted/i }).check();
 
     cy.gotoNavPage('CV');
 
@@ -298,7 +297,7 @@ describe('Expression validation', () => {
     cy.get(appFrontend.errorReport).should('contain.text', 'Startdatoen må være før sluttdato');
     cy.get(appFrontend.errorReport).should('contain.text', 'Sluttdato må være etter startdato');
 
-    cy.findByRole('checkbox', { name: /jeg er fortsatt ansatt her/i }).dsCheck();
+    cy.findByRole('checkbox', { name: /jeg er fortsatt ansatt her/i }).check();
     cy.findByRole('button', { name: /lagre og lukk/i }).click();
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
 

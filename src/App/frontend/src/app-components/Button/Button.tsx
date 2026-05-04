@@ -4,8 +4,9 @@ import type { PropsWithChildren } from 'react';
 import { Button as DesignSystemButton } from '@digdir/designsystemet-react';
 import type { ButtonProps as DesignSystemButtonProps } from '@digdir/designsystemet-react';
 
+import { useTranslation } from 'src/app-components/AppComponentsProvider';
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
-import { useLanguage } from 'src/features/language/useLanguage';
+import type { TranslationKey } from 'src/app-components/types';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | undefined;
 export type ButtonColor = 'first' | 'second' | 'success' | 'danger' | undefined;
@@ -16,30 +17,11 @@ export type ButtonProps = {
   color?: ButtonColor;
   isLoading?: boolean;
   size?: 'sm' | 'md' | 'lg';
-  className?: string;
   fullWidth?: boolean;
   textAlign?: TextAlign;
-  popoverTarget?: string;
-} & Pick<
-  DesignSystemButtonProps,
-  | 'id'
-  | 'title'
-  | 'disabled'
-  | 'icon'
-  | 'onClick'
-  | 'style'
-  | 'tabIndex'
-  | 'onMouseDown'
-  | 'aria-label'
-  | 'aria-busy'
-  | 'aria-controls'
-  | 'aria-haspopup'
-  | 'aria-expanded'
-  | 'aria-labelledby'
-  | 'aria-describedby'
-  | 'onKeyUp'
-  | 'asChild'
->;
+  title?: TranslationKey;
+  'aria-label'?: TranslationKey;
+} & Omit<DesignSystemButtonProps, 'variant' | 'color' | 'size' | 'title' | 'aria-label'>;
 
 type DSButtonColor = 'accent' | 'neutral' | 'success' | 'danger' | 'brand1' | 'brand2' | 'brand3' | undefined;
 
@@ -56,63 +38,35 @@ function mapColorNames(color: ButtonColor): DSButtonColor {
 
 export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProps>>(function Button(
   {
-    id,
     disabled,
     isLoading = false,
     variant = 'primary',
     color = 'first',
     size = 'sm',
     children,
-    className,
-    title,
-    icon,
     fullWidth,
-    onClick,
     style,
-    tabIndex,
-    onMouseDown,
-    onKeyUp,
-    asChild,
     textAlign,
-    popoverTarget,
+    title,
     'aria-label': ariaLabel,
-    'aria-busy': ariaBusy,
-    'aria-controls': ariaControls,
-    'aria-haspopup': ariaHasPopup,
-    'aria-expanded': ariaExpanded,
-    'aria-labelledby': ariaLabelledBy,
-    'aria-describedby': ariaDescribedBy,
+    ...rest
   },
   ref,
 ) {
-  const { langAsString } = useLanguage();
+  const { translate } = useTranslation();
   const expandedStyle = { ...style, justifyContent: textAlign ? textAlign : undefined };
   return (
     <DesignSystemButton
-      id={id}
+      {...rest}
+      title={title ? translate(title) : undefined}
       disabled={disabled || isLoading}
       variant={variant}
       data-color={mapColorNames(color)}
       data-size={size}
       data-fullwidth={fullWidth ? true : undefined}
       ref={ref}
-      className={className}
-      title={title}
-      icon={icon}
-      onClick={onClick}
       style={expandedStyle}
-      tabIndex={tabIndex}
-      onMouseDown={onMouseDown}
-      onKeyUp={onKeyUp}
-      asChild={asChild}
-      popoverTarget={popoverTarget}
-      aria-label={ariaLabel}
-      aria-busy={ariaBusy}
-      aria-controls={ariaControls}
-      aria-haspopup={ariaHasPopup}
-      aria-expanded={ariaExpanded}
-      aria-labelledby={ariaLabelledBy}
-      aria-describedby={ariaDescribedBy}
+      aria-label={ariaLabel ? translate(ariaLabel) : undefined}
     >
       {isLoading ? (
         <>
@@ -120,7 +74,7 @@ export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProp
             aria-hidden='true'
             data-color={color}
             data-size={size === 'lg' ? 'sm' : 'xs'}
-            aria-label={langAsString('general.loading')}
+            aria-label={translate('general.loading')}
           />
           {children}
         </>

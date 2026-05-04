@@ -1,0 +1,14 @@
+{
+  "partyId": "512002",
+  "partyUuid": "b2c3d4e5-f6a7-8901-bcde-fa2345678901",
+  "partyTypeName": 1,
+  "orgNumber": "",
+  "ssn": "12889898001",
+  "unitType": null,
+  "name": "Kari Nordvik",
+  "isDeleted": false,
+  "onlyHierarchyElementWithNoAccess": false,
+  "person": null,
+  "organisation": null,
+  "childParties": null
+}

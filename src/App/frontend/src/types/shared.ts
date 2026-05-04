@@ -9,10 +9,6 @@ export interface IAltinnOrg {
   environments: string[];
 }
 
-export interface IAltinnOrgs {
-  [org: string]: IAltinnOrg;
-}
-
 export interface IApplicationLogic {
   allowAnonymousOnStateless?: boolean | null;
   autoCreate?: boolean | null;
@@ -289,6 +285,13 @@ export interface IApplicationSettings {
   [source: string]: string | undefined;
 }
 
+export interface IPlatformFrontendSettings {
+  appFrontendCdnBaseUrl: string;
+  altinnLogoUrl: string;
+  helpCircleIllustrationUrl: string;
+  postalCodesUrl: string;
+}
+
 export type InstanceOwnerPartyType = 'unknown' | 'org' | 'person' | 'selfIdentified';
 
 /** Describes an object with key values from current instance to be used in texts. */
@@ -312,3 +315,8 @@ export type ProblemDetails = {
   detail: string;
   status: number;
 };
+
+export interface PostalCodesRegistry {
+  places: (string | null)[];
+  mapping: number[];
+}

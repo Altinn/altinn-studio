@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './OldDynamicsInfo.module.css';
 import { ExternalLinkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';

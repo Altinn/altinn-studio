@@ -1,5 +1,3 @@
-#nullable enable
-
 using System;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -21,7 +19,8 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
     private readonly PlatformSettings _platformSettings;
     private readonly ILogger<AltinnStorageInstancesClient> _logger;
 
-    private const int SIZE = 10;
+    private const int DEFAULT_SIZE = 10;
+    private const int MAX_SIZE = 1000;
 
     public AltinnStorageInstancesClient(
         HttpClient httpClient,
@@ -45,16 +44,22 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
         bool? isArchivedFilter,
         string? archiveReferenceFilter,
         bool? confirmedFilter,
+        bool? isProcessComplete,
         bool? isSoftDeletedFilter,
         bool? isHardDeletedFilter,
         DateOnly? createdBeforeFilter,
+        int? size,
         CancellationToken ct
     )
     {
         var platformUri = await _environmentsService.CreatePlatformUri(env);
         var uri = $"{platformUri}{_platformSettings.ApiStorageInstancesUri}{org}/{app}";
 
-        uri = QueryHelpers.AddQueryString(uri, "size", SIZE.ToString());
+        var s =
+            size is null ? DEFAULT_SIZE
+            : size > MAX_SIZE ? MAX_SIZE
+            : size.Value;
+        uri = QueryHelpers.AddQueryString(uri, "size", s.ToString());
 
         if (!string.IsNullOrEmpty(continuationToken))
         {
@@ -82,10 +87,15 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
 
         if (confirmedFilter != null)
         {
+            uri = QueryHelpers.AddQueryString(uri, "confirmed", confirmedFilter.Value.ToString().ToLowerInvariant());
+        }
+
+        if (isProcessComplete != null)
+        {
             uri = QueryHelpers.AddQueryString(
                 uri,
-                "confirmed",
-                confirmedFilter.Value.ToString().ToLowerInvariant()
+                "process.isComplete",
+                isProcessComplete.Value.ToString().ToLowerInvariant()
             );
         }
 
@@ -116,9 +126,7 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
         using var response = await _httpClient.GetAsync(uri, ct);
         response.EnsureSuccessStatusCode();
 
-        var queryResponse = await response.Content.ReadFromJsonAsync<QueryResponse<SimpleInstance>>(
-            ct
-        );
+        var queryResponse = await response.Content.ReadFromJsonAsync<QueryResponse<SimpleInstance>>(ct);
 
         if (queryResponse == null)
         {
@@ -137,8 +145,7 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
     )
     {
         var platformUri = await _environmentsService.CreatePlatformUri(env);
-        var uri =
-            $"{platformUri}{_platformSettings.ApiStorageInstancesUri}{org}/{app}/{instanceId}";
+        var uri = $"{platformUri}{_platformSettings.ApiStorageInstancesUri}{org}/{app}/{instanceId}";
 
         using var response = await _httpClient.GetAsync(uri, ct);
         response.EnsureSuccessStatusCode();

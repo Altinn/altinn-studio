@@ -6,15 +6,15 @@
   "dependencies": {
     "@studio/icons": "workspace:^",
     "classnames": "2.5.1",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
     "typescript": "5.9.3",
     "uuid": "13.0.0"
   },
   "devDependencies": {
     "jest": "29.7.0"
   },
-  "license": "3-Clause BSD",
+  "license": "MIT",
   "main": "index.js",
   "scripts": {
     "test": "jest --maxWorkers=50%"

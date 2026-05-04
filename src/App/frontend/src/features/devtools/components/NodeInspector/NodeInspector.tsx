@@ -5,6 +5,7 @@ import { Tabs } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
+import { translationKey } from 'src/AppComponentsBridge';
 import reusedClasses from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
 import { NodeHierarchy } from 'src/features/devtools/components/NodeInspector/NodeHierarchy';
 import classes from 'src/features/devtools/components/NodeInspector/NodeInspector.module.css';
@@ -12,7 +13,7 @@ import { NodeInspectorContextProvider } from 'src/features/devtools/components/N
 import { ValidationInspector } from 'src/features/devtools/components/NodeInspector/ValidationInspector';
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { getComponentDef, implementsAnyValidation } from 'src/layout';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
@@ -22,7 +23,7 @@ export const NodeInspector = () => {
   const pageKey = useCurrentView();
   const selectedId = useDevToolsStore((state) => state.nodeInspector.selectedNodeId);
   const { baseComponentId } = splitDashedKey(selectedId ?? '');
-  const lookups = useLayoutLookups();
+  const lookups = FormBootstrap.useLayoutLookups();
   const def = baseComponentId ? getComponentDef(lookups.getComponent(baseComponentId).type) : undefined;
   const children = pageKey ? lookups.topLevelComponents[pageKey] : undefined;
   const setSelected = useDevToolsStore((state) => state.actions.nodeInspectorSet);
@@ -49,7 +50,7 @@ export const NodeInspector = () => {
                 onClick={() => setSelected(undefined)}
                 variant='tertiary'
                 color='second'
-                aria-label='close'
+                aria-label={translationKey('general.close')}
                 icon={true}
               >
                 <XMarkIcon

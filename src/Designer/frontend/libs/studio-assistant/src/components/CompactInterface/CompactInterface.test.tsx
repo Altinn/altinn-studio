@@ -1,4 +1,3 @@
-import React from 'react';
 import { CompactInterface } from './CompactInterface';
 import { render, screen } from '@testing-library/react';
 import type { CompactInterfaceProps } from './CompactInterface';
@@ -17,7 +16,7 @@ describe('CompactInterface', () => {
 
   it('should render the chat input', () => {
     renderCompactInterface();
-    const textarea = screen.getByPlaceholderText(mockTexts.textareaPlaceholder);
+    const textarea = screen.getByPlaceholderText(mockTexts.textarea.placeholder);
 
     expect(textarea).toBeInTheDocument();
   });

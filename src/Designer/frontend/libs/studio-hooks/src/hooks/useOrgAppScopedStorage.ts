@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   type ScopedStorage,
@@ -28,11 +29,14 @@ export const useOrgAppScopedStorage = ({
   const { org, app } = useParams<OrgAppParams>();
 
   const storageKey: string = `${org}-${app}`;
-  const scopedStorage = new ScopedStorageImpl(supportedStorageMap[storage], storageKey);
 
-  return {
-    setItem: scopedStorage.setItem,
-    getItem: scopedStorage.getItem,
-    removeItem: scopedStorage.removeItem,
-  };
+  return useMemo(() => {
+    const scopedStorage = new ScopedStorageImpl(supportedStorageMap[storage], storageKey);
+
+    return {
+      setItem: scopedStorage.setItem,
+      getItem: scopedStorage.getItem,
+      removeItem: scopedStorage.removeItem,
+    };
+  }, [storage, storageKey]);
 };

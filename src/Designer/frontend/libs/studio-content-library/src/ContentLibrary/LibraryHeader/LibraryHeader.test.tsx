@@ -1,11 +1,6 @@
-import React from 'react';
 import type { LibraryHeaderProps } from './LibraryHeader';
 import { LibraryHeader } from './LibraryHeader';
 import { render, screen } from '@testing-library/react';
-import { RouterContext } from '../../contexts/RouterContext';
-import { PageName } from '../../types/PageName';
-
-const navigateMock = jest.fn();
 
 // Test data:
 const children = 'The test library';
@@ -30,11 +25,5 @@ describe('LibraryHeader', () => {
 });
 
 const renderLibraryHeader = (): void => {
-  render(
-    <RouterContext.Provider
-      value={{ currentPage: PageName.CodeListsWithTextResources, navigate: navigateMock }}
-    >
-      <LibraryHeader {...defaultProps} />
-    </RouterContext.Provider>,
-  );
+  render(<LibraryHeader {...defaultProps} />);
 };

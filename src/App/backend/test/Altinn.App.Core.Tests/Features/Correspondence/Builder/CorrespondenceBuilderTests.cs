@@ -84,7 +84,6 @@ public class CorrespondenceBuilderTests
                 reminderEmailSubject = "reminder-email-subject-1",
                 reminderEmailBody = "reminder-email-body-1",
                 reminderSmsBody = "reminder-sms-body-1",
-                requestedSendTime = DateTimeOffset.Now.AddDays(1),
                 sendersReference = "notification-senders-ref-1",
                 sendReminder = true,
                 notificationChannel = CorrespondenceNotificationChannel.EmailPreferred,
@@ -166,7 +165,6 @@ public class CorrespondenceBuilderTests
                     .WithReminderEmailSubject(data.notification.reminderEmailSubject)
                     .WithReminderEmailBody(data.notification.reminderEmailBody)
                     .WithReminderSmsBody(data.notification.reminderSmsBody)
-                    .WithRequestedSendTime(data.notification.requestedSendTime)
                     .WithSendersReference(data.notification.sendersReference)
                     .WithSendReminder(data.notification.sendReminder)
                     .WithNotificationChannel(data.notification.notificationChannel)
@@ -179,7 +177,6 @@ public class CorrespondenceBuilderTests
                     )
             )
             .WithDueDateTime(data.dueDateTime)
-            .WithAllowSystemDeleteAfter(data.allowDeleteAfter)
             .WithMessageSender(data.messageSender)
             .WithIgnoreReservation(data.ignoreReservation)
             .WithIsConfirmationNeeded(data.isConfirmationNeeded)
@@ -204,18 +201,16 @@ public class CorrespondenceBuilderTests
                     IsEncrypted = data.attachments[1].isEncrypted,
                 }
             )
-            .WithAttachments(
-                [
-                    new CorrespondenceAttachment
-                    {
-                        Filename = data.attachments[2].filename,
-                        SendersReference = data.attachments[2].sendersReference,
-                        Data = Encoding.UTF8.GetBytes(data.attachments[2].data),
-                        DataLocationType = data.attachments[2].dataLocationType,
-                        IsEncrypted = data.attachments[2].isEncrypted,
-                    },
-                ]
-            )
+            .WithAttachments([
+                new CorrespondenceAttachment
+                {
+                    Filename = data.attachments[2].filename,
+                    SendersReference = data.attachments[2].sendersReference,
+                    Data = Encoding.UTF8.GetBytes(data.attachments[2].data),
+                    DataLocationType = data.attachments[2].dataLocationType,
+                    IsEncrypted = data.attachments[2].isEncrypted,
+                },
+            ])
             .WithExistingAttachment(data.existingAttachments[0])
             .WithExistingAttachments(data.existingAttachments.Skip(1).ToList())
             .WithExternalReference(data.externalReferences[0].type, data.externalReferences[0].value)
@@ -229,15 +224,13 @@ public class CorrespondenceBuilderTests
                     .ToList()
             )
             .WithReplyOption(data.replyOptions[0].url, data.replyOptions[0].text)
-            .WithReplyOptions(
-                [
-                    new CorrespondenceReplyOption
-                    {
-                        LinkUrl = data.replyOptions[1].url,
-                        LinkText = data.replyOptions[1].text,
-                    },
-                ]
-            );
+            .WithReplyOptions([
+                new CorrespondenceReplyOption
+                {
+                    LinkUrl = data.replyOptions[1].url,
+                    LinkText = data.replyOptions[1].text,
+                },
+            ]);
 
         // Act
         var correspondence = builder.Build();
@@ -255,7 +248,6 @@ public class CorrespondenceBuilderTests
         correspondence.SendersReference.Should().Be(data.sendersReference);
         correspondence.Recipients.Should().BeEquivalentTo([data.recipient]);
         correspondence.DueDateTime.Should().Be(data.dueDateTime);
-        correspondence.AllowSystemDeleteAfter.Should().Be(data.allowDeleteAfter);
         correspondence.IgnoreReservation.Should().Be(data.ignoreReservation);
         correspondence.IsConfirmationNeeded.Should().Be(data.isConfirmationNeeded);
         correspondence.RequestedPublishTime.Should().Be(data.requestedPublishTime);
@@ -286,7 +278,6 @@ public class CorrespondenceBuilderTests
         correspondence.Notification.ReminderEmailSubject.Should().Be(data.notification.reminderEmailSubject);
         correspondence.Notification.ReminderEmailBody.Should().Be(data.notification.reminderEmailBody);
         correspondence.Notification.ReminderSmsBody.Should().Be(data.notification.reminderSmsBody);
-        correspondence.Notification.RequestedSendTime.Should().Be(data.notification.requestedSendTime);
         correspondence.Notification.SendersReference.Should().Be(data.notification.sendersReference);
         correspondence.Notification.SendReminder.Should().Be(data.notification.sendReminder);
         correspondence.Notification.NotificationChannel.Should().Be(data.notification.notificationChannel);
@@ -344,7 +335,6 @@ public class CorrespondenceBuilderTests
                     .WithEmailBody("email-body-1")
             )
             .WithReplyOption("url1", "text1")
-            .WithAllowSystemDeleteAfter(DateTimeOffset.UtcNow.AddDays(1))
             .WithExternalReference(CorrespondenceReferenceType.Generic, "aaa")
             .WithPropertyList(new Dictionary<string, string> { ["prop1"] = "value1", ["prop2"] = "value2" })
             .WithExistingAttachment(Guid.Parse("a3ac4826-5873-4ecb-9fe7-dc4cfccd0afa"))
@@ -357,17 +347,15 @@ public class CorrespondenceBuilderTests
         builder.WithSendersReference("sender-reference-2");
         builder.WithRecipient(TestHelpers.GetOrganisationNumber(2).Get(OrganisationNumberFormat.International));
         builder.WithRecipient(TestHelpers.GetOrganisationNumber(3));
-        builder.WithRecipients(
-            [OrganisationOrPersonIdentifier.Parse(orgParty), OrganisationOrPersonIdentifier.Parse(personParty)]
-        );
-        builder.WithRecipients(
-            [
-                TestHelpers.GetOrganisationNumber(6).Get(OrganisationNumberFormat.Local),
-                TestHelpers.GetNationalIdentityNumber(7).Value,
-            ]
-        );
+        builder.WithRecipients([
+            OrganisationOrPersonIdentifier.Parse(orgParty),
+            OrganisationOrPersonIdentifier.Parse(personParty),
+        ]);
+        builder.WithRecipients([
+            TestHelpers.GetOrganisationNumber(6).Get(OrganisationNumberFormat.Local),
+            TestHelpers.GetNationalIdentityNumber(7).Value,
+        ]);
         builder.WithDueDateTime(DateTimeOffset.UtcNow.AddDays(2));
-        builder.WithAllowSystemDeleteAfter(DateTimeOffset.UtcNow.AddDays(2));
         builder.WithContent("en", "content-title-2", "content-summary-2", "content-body-2");
         builder.WithNotification(
             CorrespondenceNotificationBuilder
@@ -383,15 +371,13 @@ public class CorrespondenceBuilderTests
                 ReferenceValue = "bbb",
             }
         );
-        builder.WithExternalReferences(
-            [
-                new CorrespondenceExternalReference
-                {
-                    ReferenceType = CorrespondenceReferenceType.DialogportenProcessId,
-                    ReferenceValue = "ccc",
-                },
-            ]
-        );
+        builder.WithExternalReferences([
+            new CorrespondenceExternalReference
+            {
+                ReferenceType = CorrespondenceReferenceType.DialogportenProcessId,
+                ReferenceValue = "ccc",
+            },
+        ]);
         builder.WithReplyOption("url2", "text2");
         builder.WithReplyOption(new CorrespondenceReplyOption { LinkUrl = "url3", LinkText = "text3" });
         builder.WithReplyOptions([new CorrespondenceReplyOption { LinkUrl = "url4", LinkText = "text4" }]);
@@ -412,23 +398,20 @@ public class CorrespondenceBuilderTests
         correspondence.ResourceId.Should().Be("resourceId-2");
         correspondence.Sender.Should().Be(TestHelpers.GetOrganisationNumber(2));
         correspondence.SendersReference.Should().Be("sender-reference-2");
-        correspondence.AllowSystemDeleteAfter.Should().BeSameDateAs(DateTimeOffset.UtcNow.AddDays(2));
         correspondence.DueDateTime.Should().BeSameDateAs(DateTimeOffset.UtcNow.AddDays(2));
         correspondence.Recipients.Should().HaveCount(7);
         correspondence
             .Recipients.Select(x => x.ToString())
             .Should()
-            .BeEquivalentTo(
-                [
-                    TestHelpers.GetOrganisationNumber(1).ToString(),
-                    TestHelpers.GetOrganisationNumber(2).ToString(),
-                    TestHelpers.GetOrganisationNumber(3).ToString(),
-                    TestHelpers.GetOrganisationNumber(4).ToString(),
-                    TestHelpers.GetNationalIdentityNumber(5).ToString(),
-                    TestHelpers.GetOrganisationNumber(6).ToString(),
-                    TestHelpers.GetNationalIdentityNumber(7).ToString(),
-                ]
-            );
+            .BeEquivalentTo([
+                TestHelpers.GetOrganisationNumber(1).ToString(),
+                TestHelpers.GetOrganisationNumber(2).ToString(),
+                TestHelpers.GetOrganisationNumber(3).ToString(),
+                TestHelpers.GetOrganisationNumber(4).ToString(),
+                TestHelpers.GetNationalIdentityNumber(5).ToString(),
+                TestHelpers.GetOrganisationNumber(6).ToString(),
+                TestHelpers.GetNationalIdentityNumber(7).ToString(),
+            ]);
         correspondence.Content.Title.Should().Be("content-title-2");
         correspondence.Content.Language.Should().Be(LanguageCode<Iso6391>.Parse("en"));
         correspondence.Content.Summary.Should().Be("content-summary-2");
@@ -437,40 +420,36 @@ public class CorrespondenceBuilderTests
         correspondence.Notification.EmailBody.Should().Be("email-body-2");
         correspondence
             .ExternalReferences.Should()
-            .BeEquivalentTo(
-                [
-                    new CorrespondenceExternalReference
-                    {
-                        ReferenceType = CorrespondenceReferenceType.Generic,
-                        ReferenceValue = "aaa",
-                    },
-                    new CorrespondenceExternalReference
-                    {
-                        ReferenceType = CorrespondenceReferenceType.Generic,
-                        ReferenceValue = "aaa",
-                    },
-                    new CorrespondenceExternalReference
-                    {
-                        ReferenceType = CorrespondenceReferenceType.AltinnAppInstance,
-                        ReferenceValue = "bbb",
-                    },
-                    new CorrespondenceExternalReference
-                    {
-                        ReferenceType = CorrespondenceReferenceType.DialogportenProcessId,
-                        ReferenceValue = "ccc",
-                    },
-                ]
-            );
+            .BeEquivalentTo([
+                new CorrespondenceExternalReference
+                {
+                    ReferenceType = CorrespondenceReferenceType.Generic,
+                    ReferenceValue = "aaa",
+                },
+                new CorrespondenceExternalReference
+                {
+                    ReferenceType = CorrespondenceReferenceType.Generic,
+                    ReferenceValue = "aaa",
+                },
+                new CorrespondenceExternalReference
+                {
+                    ReferenceType = CorrespondenceReferenceType.AltinnAppInstance,
+                    ReferenceValue = "bbb",
+                },
+                new CorrespondenceExternalReference
+                {
+                    ReferenceType = CorrespondenceReferenceType.DialogportenProcessId,
+                    ReferenceValue = "ccc",
+                },
+            ]);
         correspondence
             .ReplyOptions.Should()
-            .BeEquivalentTo(
-                [
-                    new CorrespondenceReplyOption { LinkUrl = "url1", LinkText = "text1" },
-                    new CorrespondenceReplyOption { LinkUrl = "url2", LinkText = "text2" },
-                    new CorrespondenceReplyOption { LinkUrl = "url3", LinkText = "text3" },
-                    new CorrespondenceReplyOption { LinkUrl = "url4", LinkText = "text4" },
-                ]
-            );
+            .BeEquivalentTo([
+                new CorrespondenceReplyOption { LinkUrl = "url1", LinkText = "text1" },
+                new CorrespondenceReplyOption { LinkUrl = "url2", LinkText = "text2" },
+                new CorrespondenceReplyOption { LinkUrl = "url3", LinkText = "text3" },
+                new CorrespondenceReplyOption { LinkUrl = "url4", LinkText = "text4" },
+            ]);
         correspondence
             .PropertyList.Should()
             .BeEquivalentTo(
@@ -484,13 +463,11 @@ public class CorrespondenceBuilderTests
         correspondence
             .ExistingAttachments!.Select(x => x.ToString())
             .Should()
-            .BeEquivalentTo(
-                [
-                    "a3ac4826-5873-4ecb-9fe7-dc4cfccd0afa",
-                    "eeb67483-7d6d-40dc-9861-3fc1beff7608",
-                    "9a12dfd9-6c70-489c-8b3d-77bb188c64b3",
-                ]
-            );
+            .BeEquivalentTo([
+                "a3ac4826-5873-4ecb-9fe7-dc4cfccd0afa",
+                "eeb67483-7d6d-40dc-9861-3fc1beff7608",
+                "9a12dfd9-6c70-489c-8b3d-77bb188c64b3",
+            ]);
         correspondence.RequestedPublishTime.Should().BeSameDateAs(DateTime.Today.AddDays(1));
         correspondence.IgnoreReservation.Should().BeFalse();
         correspondence.IsConfirmationNeeded.Should().BeFalse();

@@ -26,7 +26,8 @@ internal sealed class ProcessTaskCleaner : IProcessTaskCleaner
                 .Data?.Where(de =>
                     de.References?.Exists(r => r.ValueType == ReferenceType.Task && r.Value == taskId) is true
                 )
-                .ToList() ?? [];
+                .ToList()
+            ?? [];
 
         _logger.LogInformation("Found {Count} stale data element(s) to delete", dataElements.Count);
 
@@ -41,7 +42,9 @@ internal sealed class ProcessTaskCleaner : IProcessTaskCleaner
                 instanceIdentifier.InstanceOwnerPartyId,
                 instanceIdentifier.InstanceGuid,
                 Guid.Parse(dataElement.Id),
-                false
+                false,
+                authenticationMethod: null,
+                CancellationToken.None
             );
 
             instance.Data?.Remove(dataElement);

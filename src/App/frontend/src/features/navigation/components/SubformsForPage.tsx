@@ -3,15 +3,16 @@ import React, { useState } from 'react';
 import { ChevronDownIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { ExprVal } from 'src/features/expressions/types';
-import { useDataTypeFromLayoutSet, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/features/navigation/components/SubformsForPage.module.css';
 import { isSubformValidation } from 'src/features/validation';
 import { useComponentValidationsFor } from 'src/features/validation/selectors/componentValidationsForNode';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useIsAnyProcessing } from 'src/hooks/useProcessingMutation';
 import {
   getSubformEntryDisplayName,
   useExpressionDataSourcesForSubform,
@@ -23,7 +24,7 @@ import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IData } from 'src/types/shared';
 
 export function SubformsForPage({ pageKey }: { pageKey: string }) {
-  const lookups = useLayoutLookups();
+  const lookups = FormBootstrap.useLayoutLookups();
   const subformIds = lookups.topLevelComponents[pageKey]?.filter((id) => lookups.allComponents[id]?.type === 'Subform');
   if (!subformIds?.length) {
     return null;
@@ -39,7 +40,7 @@ export function SubformsForPage({ pageKey }: { pageKey: string }) {
 
 function SubformGroup({ baseId }: { baseId: string }) {
   const [isOpen, setIsOpen] = useState(false);
-  const pageKey = useLayoutLookups().componentToPage[baseId];
+  const pageKey = FormBootstrap.useLayoutLookups().componentToPage[baseId];
   if (!pageKey) {
     throw new Error(`Unable to find page for subform with id ${baseId}`);
   }
@@ -51,7 +52,7 @@ function SubformGroup({ baseId }: { baseId: string }) {
     defaultValue: '',
     errorIntroText: `Invalid expression for Subform title in ${baseId}`,
   });
-  const dataType = useDataTypeFromLayoutSet(layoutSet);
+  const dataType = getDefaultDataTypeFromUiFolder(layoutSet);
   if (!dataType) {
     throw new Error(`Unable to find data type for subform with id ${baseId}`);
   }
@@ -116,7 +117,7 @@ function SubformLink({
   dataElement: IData;
   hasErrors: boolean;
 }) {
-  const { isAnyProcessing: disabled } = useIsProcessing();
+  const disabled = useIsAnyProcessing();
   const { enterSubform } = useNavigatePage();
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
   const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData, entryDisplayName);

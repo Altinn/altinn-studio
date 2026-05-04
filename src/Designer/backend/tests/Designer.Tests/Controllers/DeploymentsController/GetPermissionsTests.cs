@@ -15,10 +15,13 @@ namespace Designer.Tests.Controllers.DeploymentsController;
 
 public class GetPermissions : DesignerEndpointsTestsBase<GetPermissions>, IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/deployments";
+    private static string VersionPrefix(string org, string repository) =>
+        $"/designer/api/{org}/{repository}/deployments";
+
     private readonly Mock<IGiteaClient> _giteaMock;
 
-    public GetPermissions(WebApplicationFactory<Program> factory) : base(factory)
+    public GetPermissions(WebApplicationFactory<Program> factory)
+        : base(factory)
     {
         _giteaMock = new Mock<IGiteaClient>();
     }
@@ -36,7 +39,11 @@ public class GetPermissions : DesignerEndpointsTestsBase<GetPermissions>, IClass
         string uri = $"{VersionPrefix(org, app)}/permissions";
         List<Team> teamWithDeployAccess = new()
         {
-            new Team { Name = "Deploy-TestEnv", Organization = new Organization { Username = "ttd" } }
+            new Team
+            {
+                Name = "Deploy-TestEnv",
+                Organization = new Organization { Username = "ttd" },
+            },
         };
         _giteaMock.Setup(g => g.GetTeams()).ReturnsAsync(teamWithDeployAccess);
 
@@ -45,7 +52,10 @@ public class GetPermissions : DesignerEndpointsTestsBase<GetPermissions>, IClass
         // Act
         HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
         string responseString = await res.Content.ReadAsStringAsync();
-        List<string> permittedEnvironments = JsonSerializer.Deserialize<List<string>>(responseString, JsonSerializerOptions);
+        List<string> permittedEnvironments = JsonSerializer.Deserialize<List<string>>(
+            responseString,
+            JsonSerializerOptions
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
@@ -68,7 +78,10 @@ public class GetPermissions : DesignerEndpointsTestsBase<GetPermissions>, IClass
         // Act
         HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
         string responseString = await res.Content.ReadAsStringAsync();
-        List<string> permittedEnvironments = JsonSerializer.Deserialize<List<string>>(responseString, JsonSerializerOptions);
+        List<string> permittedEnvironments = JsonSerializer.Deserialize<List<string>>(
+            responseString,
+            JsonSerializerOptions
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);

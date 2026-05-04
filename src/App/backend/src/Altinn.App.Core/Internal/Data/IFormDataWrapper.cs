@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.DataModel;
+using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Layout;
 
 namespace Altinn.App.Core.Internal.Data;
@@ -36,6 +37,14 @@ public interface IFormDataWrapper
     /// </summary>
     /// <param name="path">The dotted path to use (including inline indexes)</param>
     object? Get(ReadOnlySpan<char> path);
+
+    /// <summary>
+    /// Set the value at the given path in the data model
+    /// </summary>
+    /// <param name="path">The dotted path to use (including inline indexes)</param>
+    /// <param name="value">The value to set (will be automatically converted to the target type if possible)</param>
+    /// <returns>True if the value was set successfully, false if the path could not be resolved or type conversion failed</returns>
+    bool Set(ReadOnlySpan<char> path, ExpressionValue value);
 
     /// <summary>
     /// Remove the field at the given path
@@ -121,6 +130,37 @@ internal static class FormDataWrapperExtensions
         {
             var indexedPath = formDataWrapper.AddIndexToPath(path, rowIndexes, pool);
             return indexedPath.IsEmpty ? null : formDataWrapper.Get(indexedPath);
+        }
+        finally
+        {
+            System.Buffers.ArrayPool<char>.Shared.Return(pool);
+        }
+    }
+
+    /// <summary>
+    /// Simple way to set a value in the form data model adding indexes from context
+    /// </summary>
+    /// <returns>True if the value was set successfully, false if the path could not be resolved or type conversion failed</returns>
+    public static bool Set(
+        this IFormDataWrapper formDataWrapper,
+        ReadOnlySpan<char> path,
+        ExpressionValue value,
+        ReadOnlySpan<int> rowIndexes
+    )
+    {
+        int len = GetMaxBufferLength(path, rowIndexes);
+        if (len <= 512)
+        {
+            Span<char> buffer = stackalloc char[len];
+            var indexedPath = formDataWrapper.AddIndexToPath(path, rowIndexes, buffer);
+            return !indexedPath.IsEmpty && formDataWrapper.Set(indexedPath, value);
+        }
+
+        char[] pool = System.Buffers.ArrayPool<char>.Shared.Rent(len);
+        try
+        {
+            var indexedPath = formDataWrapper.AddIndexToPath(path, rowIndexes, pool);
+            return !indexedPath.IsEmpty && formDataWrapper.Set(indexedPath, value);
         }
         finally
         {

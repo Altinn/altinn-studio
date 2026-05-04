@@ -4,6 +4,10 @@ resources:
   - altinn-designer.yaml
   - altinn-repositories.yaml
   - altinn-loadbalancer.yaml
-  - kuberneteswrapper.yaml
+  - kubernetes-wrapper.yaml
   - gitea-runners.yaml
   - altinn-mcp-server.yaml
+  - altinn-altinity-agents.yaml
+  - lhci.yaml
+  - observability.yaml
+  - otel-operator.yaml

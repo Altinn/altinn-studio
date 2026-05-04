@@ -3,10 +3,10 @@ import type { PropsWithChildren } from 'react';
 
 import { Loader } from 'src/core/loading/Loader';
 import { useCurrentDataModelDataElementId } from 'src/features/datamodel/useBindingSchema';
-import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { getUiConfig } from 'src/features/form/ui';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { TaskKeys, useNavigateToTask } from 'src/hooks/useNavigatePage';
-import { behavesLikeDataTask } from 'src/utils/formLayout';
+import { useNavigateToTask } from 'src/hooks/useNavigatePage';
+import { TaskKeys } from 'src/routesBuilder';
 
 /**
  * Wrap this around any components rendered in a receipt route. This will check if you were actually supposed to
@@ -15,8 +15,8 @@ import { behavesLikeDataTask } from 'src/utils/formLayout';
  */
 export function FixWrongReceiptType({ children }: PropsWithChildren) {
   const taskId = useNavigationParam('taskId');
-  const layoutSets = useLayoutSets();
-  const hasCustomReceipt = behavesLikeDataTask(TaskKeys.CustomReceipt, layoutSets);
+  const uiFolders = getUiConfig().folders;
+  const hasCustomReceipt = TaskKeys.CustomReceipt in uiFolders;
   const navigateToTask = useNavigateToTask();
   const dataElementId = useCurrentDataModelDataElementId();
   const customReceiptDataModelNotFound = hasCustomReceipt && !dataElementId;

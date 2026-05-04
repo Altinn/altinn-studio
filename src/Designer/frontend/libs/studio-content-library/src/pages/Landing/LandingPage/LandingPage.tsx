@@ -11,7 +11,7 @@ export function LandingPage(): React.ReactElement {
       <StudioParagraph data-size='md'>
         {t('app_content_library.landing_page.description')}
       </StudioParagraph>
-      <img className={classes.image} src={'/designer/img/Altinn-studio-3-blue.svg'} alt='' />
+      <img className={classes.image} src={'/img/Altinn-studio-3-blue.svg'} alt='' />
     </div>
   );
 }

@@ -2,7 +2,8 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
+import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { NavigationButtonsComponent } from 'src/layout/NavigationButtons/NavigationButtonsComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { CompNavigationButtonsExternal } from 'src/layout/NavigationButtons/config.generated';
@@ -26,54 +27,60 @@ describe('NavigationButtons', () => {
     textResourceBindings: {},
   };
 
-  const render = async ({ component, genericProps, currentPageId = 'layout1' }: RenderProps) =>
-    await renderGenericComponentTest({
+  const render = async ({ component, genericProps, currentPageId = 'layout1' }: RenderProps) => {
+    window.altinnAppGlobalData.ui = getUiConfigMock(
+      (obj) => (obj.folders.Task_1.pages = { order: ['layout1', 'layout2'] }),
+    );
+
+    return await renderGenericComponentTest({
       type: 'NavigationButtons',
       renderer: (props) => <NavigationButtonsComponent {...props} />,
       component,
       genericProps,
       initialPage: currentPageId,
       queries: {
-        fetchLayouts: async () => ({
-          layout1: {
-            data: {
-              layout: [
-                {
-                  type: 'Input',
-                  id: 'mockId1',
-                  dataModelBindings: {
-                    simpleBinding: { dataType: defaultDataTypeMock, field: 'mockDataBinding1' },
-                  },
-                  readOnly: false,
-                  required: false,
-                  textResourceBindings: {},
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = {
+              layout1: {
+                data: {
+                  layout: [
+                    {
+                      type: 'Input',
+                      id: 'mockId1',
+                      dataModelBindings: {
+                        simpleBinding: { dataType: defaultDataTypeMock, field: 'mockDataBinding1' },
+                      },
+                      readOnly: false,
+                      required: false,
+                      textResourceBindings: {},
+                    },
+                    ...(currentPageId === 'layout1' ? [component] : []),
+                  ],
                 },
-                ...(currentPageId === 'layout1' ? [component] : []),
-              ],
-            },
-          },
-          layout2: {
-            data: {
-              layout: [
-                {
-                  type: 'Input',
-                  id: 'mockId2',
-                  dataModelBindings: {
-                    simpleBinding: { dataType: defaultDataTypeMock, field: 'mockDataBinding2' },
-                  },
-                  readOnly: false,
-                  required: false,
-                  textResourceBindings: {},
+              },
+              layout2: {
+                data: {
+                  layout: [
+                    {
+                      type: 'Input',
+                      id: 'mockId2',
+                      dataModelBindings: {
+                        simpleBinding: { dataType: defaultDataTypeMock, field: 'mockDataBinding2' },
+                      },
+                      readOnly: false,
+                      required: false,
+                      textResourceBindings: {},
+                    },
+                    ...(currentPageId === 'layout2' ? [component] : []),
+                  ],
                 },
-                ...(currentPageId === 'layout2' ? [component] : []),
-              ],
-            },
-          },
-        }),
-        fetchLayoutSets: async () => ({ sets: [{ dataType: 'test-data-model', id: 'message', tasks: ['Task_1'] }] }),
-        fetchLayoutSettings: async () => ({ pages: { order: ['layout1', 'layout2'] } }),
+              },
+            };
+          }),
       },
     });
+  };
 
   test('renders default NavigationButtons component', async () => {
     await render({

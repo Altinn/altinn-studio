@@ -16,16 +16,14 @@ namespace Altinn.Studio.Designer.Migrations
                 table: "deployments",
                 type: "integer",
                 nullable: false,
-                defaultValue: 0);
+                defaultValue: 0
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "deployment_type",
-                schema: "designer",
-                table: "deployments");
+            migrationBuilder.DropColumn(name: "deployment_type", schema: "designer", table: "deployments");
         }
     }
 }

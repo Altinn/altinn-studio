@@ -1,4 +1,3 @@
-import React from 'react';
 import { Combobox, Label, Checkbox } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './AttachmentListContent.module.css';

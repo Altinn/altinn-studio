@@ -10,15 +10,18 @@ import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { FileTable } from 'src/layout/FileUpload/FileUploadTable/FileTable';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableComponent.module.css';
 import { useUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
+import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
-import { useExternalItem } from 'src/utils/layout/hooks';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2Props) {
   const attachments = useUploaderSummaryData(targetBaseComponentId);
-  const component = useExternalItem(targetBaseComponentId);
-  const hasTag = component?.type === 'FileUploadWithTag';
+  const component = useItemWhenType<'FileUpload' | 'FileUploadWithTag'>(
+    targetBaseComponentId,
+    (t) => t === 'FileUpload' || t === 'FileUploadWithTag',
+  );
+  const hasTag = component.type === 'FileUploadWithTag';
   const { options, isFetching } = useOptionsFor(targetBaseComponentId, 'single');
   const mobileView = useIsMobileOrTablet();
   const pdfModeActive = usePdfModeActive();
@@ -32,11 +35,7 @@ export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2P
     return attachment.data.tags && attachment.data.tags?.length > 0;
   });
   const isEmpty = filteredAttachments.length === 0;
-  const required =
-    useItemWhenType<'FileUpload' | 'FileUploadWithTag'>(
-      targetBaseComponentId,
-      (t) => t === 'FileUpload' || t === 'FileUploadWithTag',
-    ).minNumberOfAttachments > 0;
+  const required = component.minNumberOfAttachments > 0;
 
   return (
     <SummaryFlex
@@ -49,13 +48,22 @@ export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2P
           : SummaryContains.SomeUserContent
       }
     >
-      <Label
-        baseComponentId={targetBaseComponentId}
-        overrideId={`attachment-summary2-${targetBaseComponentId}`}
-        renderLabelAs='span'
-        className={classes.summaryLabelMargin}
-        weight='regular'
-      />
+      <div className={classes.summaryHeader}>
+        <Label
+          textResourceBindings={{
+            title: component.textResourceBindings?.summaryTitle || component.textResourceBindings?.title,
+          }}
+          baseComponentId={targetBaseComponentId}
+          overrideId={`attachment-summary2-${targetBaseComponentId}`}
+          renderLabelAs='span'
+          className={classes.summaryLabelMargin}
+          weight='regular'
+        />
+        <EditButton
+          className={classes.summaryEditButton}
+          targetBaseComponentId={targetBaseComponentId}
+        />
+      </div>
       {filteredAttachments.length === 0 ? (
         <Paragraph asChild>
           <span className={classes.emptyField}>

@@ -1,6 +1,5 @@
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { render, screen } from '@testing-library/react';
-import React from 'react';
 import { MergeConflictWarning, type MergeConflictWarningProps } from './MergeConflictWarning';
 import { MemoryRouter } from 'react-router-dom';
 import { org, app } from '@studio/testing/testids';
@@ -43,7 +42,7 @@ describe('MergeConflictWarning', () => {
     expect(fullRepoLink).toHaveAttribute('href', repoDownloadPath(org, app, true));
   });
 
-  it('should open and close popover when clicking the delete button', async () => {
+  it('should open the popover when clicking the delete button', async () => {
     const user = userEvent.setup();
     renderMergeConflictWarning();
 
@@ -57,7 +56,7 @@ describe('MergeConflictWarning', () => {
     expect(getHeadingInDeletePopover()).toBeInTheDocument();
 
     await user.click(deleteButton);
-    expect(getHeadingInDeletePopover()).not.toBeInTheDocument();
+    expect(getHeadingInDeletePopover()).toBeInTheDocument();
   });
 
   it('should close the popover when clicking cancel', async () => {

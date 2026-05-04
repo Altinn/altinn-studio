@@ -1,4 +1,3 @@
-import React from 'react';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { EditCodeList } from './editModal/EditCodeList';
 import { EditDataModelBindings } from './editModal/EditDataModelBindings';
@@ -10,6 +9,8 @@ import { EditRequired } from './editModal/EditRequired';
 import { EditAutocomplete } from './editModal/EditAutocomplete';
 import { EditTextResourceBinding } from './editModal/EditTextResourceBinding';
 import type { FormComponent } from '../../types/FormComponent';
+
+import type { JSX } from 'react';
 
 export interface IGenericEditComponent<T extends FormComponent = FormComponent> {
   editFormId?: string;

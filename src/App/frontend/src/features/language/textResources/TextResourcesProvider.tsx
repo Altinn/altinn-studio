@@ -1,51 +1,25 @@
-import { useEffect } from 'react';
+import {
+  resourcesAsMap as resourcesAsMapCore,
+  useTextResourcesQuery as useTextResourcesQueryCore,
+} from 'src/core/queries/textResources';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import type { TextResourceMap } from 'src/features/language/textResources/index';
 
-import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
-import { delayedContext } from 'src/core/contexts/delayedContext';
-import { createQueryContext } from 'src/core/contexts/queryContext';
-import { useQueryWithStaleData } from 'src/core/queries/useQueryWithStaleData';
-import { useCurrentLanguage, useIsCurrentLanguageResolved } from 'src/features/language/LanguageProvider';
-import { resourcesAsMap } from 'src/features/language/textResources/resourcesAsMap';
-import type { ITextResourceResult, TextResourceMap } from 'src/features/language/textResources/index';
-import type { HttpClientError } from 'src/utils/network/sharedNetworking';
+export const resourcesAsMap = resourcesAsMapCore;
 
-const convertResult = (result: ITextResourceResult): TextResourceMap => {
-  const { resources } = result;
-  return resourcesAsMap(resources);
-};
-
-const useTextResourcesQuery = () => {
-  const { fetchTextResources } = useAppQueries();
+export function useTextResources(): TextResourceMap {
   const selectedLanguage = useCurrentLanguage();
+  const query = useTextResourcesQueryCore({
+    selectedLanguage,
+    textResourcesFromWindow: window.altinnAppGlobalData.textResources,
+  });
 
-  // This makes sure to await potential profile fetching before fetching text resources
-  const enabled = useIsCurrentLanguageResolved();
+  if (!query.data) {
+    window.logError('Fetching text resources failed:\n', query.error);
+    throw new Error(
+      'Text resources query did not return data. This should not happen. Something is possibly wrong with the query.',
+    );
+  }
 
-  const utils = {
-    ...useQueryWithStaleData<TextResourceMap, HttpClientError>({
-      enabled,
-      queryKey: ['fetchTextResources', selectedLanguage],
-      queryFn: async () => convertResult(await fetchTextResources(selectedLanguage)),
-    }),
-    enabled,
-  };
-
-  useEffect(() => {
-    utils.error && window.logError('Fetching text resources failed:\n', utils.error);
-  }, [utils.error]);
-
-  return utils;
-};
-
-const { Provider, useCtx, useHasProvider } = delayedContext(() =>
-  createQueryContext<TextResourceMap, false>({
-    name: 'TextResources',
-    required: false,
-    default: {},
-    query: useTextResourcesQuery,
-  }),
-);
-
-export const TextResourcesProvider = Provider;
-export const useTextResources = () => useCtx();
-export const useHasTextResources = () => useHasProvider();
+  return query.data;
+}

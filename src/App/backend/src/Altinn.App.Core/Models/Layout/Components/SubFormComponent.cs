@@ -8,7 +8,7 @@ namespace Altinn.App.Core.Models.Layout.Components;
 /// <summary>
 /// Component for handling subforms
 /// </summary>
-public sealed class SubFormComponent : Base.BaseComponent
+public sealed class SubFormComponent : Base.BaseLayoutComponent
 {
     /// <summary>Constructor</summary>
     /// <remarks>
@@ -53,7 +53,7 @@ public sealed class SubFormComponent : Base.BaseComponent
         LayoutEvaluatorState state,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
-        Dictionary<string, LayoutSetComponent> layoutsLookup
+        Dictionary<string, UiFolderComponent> layoutsLookup
     )
     {
         if (!layoutsLookup.TryGetValue(LayoutSetId, out var layoutSet))
@@ -74,7 +74,7 @@ public sealed class SubFormComponent : Base.BaseComponent
             // We don't have any need for a "SubFormRow" context.
             foreach (var subformPage in layoutSet.Pages)
             {
-                childContexts.Add(await subformPage.GetContext(state, dataElement, null, layoutsLookup));
+                childContexts.Add(await subformPage.GetContextForPage(state, dataElement, null, layoutsLookup));
             }
         }
 
@@ -83,7 +83,7 @@ public sealed class SubFormComponent : Base.BaseComponent
 
     /// <inheritdoc />
     public override void ClaimChildren(
-        Dictionary<string, Base.BaseComponent> unclaimedComponents,
+        Dictionary<string, Base.BaseLayoutComponent> unclaimedComponents,
         Dictionary<string, string> claimedComponents
     )
     {

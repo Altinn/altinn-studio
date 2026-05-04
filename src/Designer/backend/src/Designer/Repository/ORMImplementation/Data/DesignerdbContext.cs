@@ -1,4 +1,4 @@
-﻿#nullable disable
+#nullable disable
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data.EntityConfigurations;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Microsoft.EntityFrameworkCore;
@@ -8,14 +8,19 @@ namespace Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 public class DesignerdbContext : DbContext
 {
     public DesignerdbContext(DbContextOptions<DesignerdbContext> options)
-        : base(options)
-    {
-    }
+        : base(options) { }
 
     public virtual DbSet<DeploymentDbModel> Deployments { get; set; }
     public virtual DbSet<DeployEventDbModel> DeployEvents { get; set; }
     public virtual DbSet<ReleaseDbModel> Releases { get; set; }
     public virtual DbSet<AppScopesDbModel> AppScopes { get; set; }
+    public virtual DbSet<AppSettingsDbModel> AppSettings { get; set; }
+    public virtual DbSet<ChatThreadDbModel> ChatThreads { get; set; }
+    public virtual DbSet<ChatMessageDbModel> ChatMessages { get; set; }
+    public virtual DbSet<UserAccountDbModel> UserAccounts { get; set; }
+    public virtual DbSet<ApiKeyDbModel> ApiKeys { get; set; }
+    public virtual DbSet<ContactPointDbModel> ContactPoints { get; set; }
+    public virtual DbSet<ContactMethodDbModel> ContactMethods { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,6 +30,13 @@ public class DesignerdbContext : DbContext
         modelBuilder.ApplyConfiguration(new DeployEventConfiguration());
         modelBuilder.ApplyConfiguration(new ReleaseConfiguration());
         modelBuilder.ApplyConfiguration(new AppScopesConfiguration());
+        modelBuilder.ApplyConfiguration(new AppSettingsConfiguration());
+        modelBuilder.ApplyConfiguration(new ChatThreadConfiguration());
+        modelBuilder.ApplyConfiguration(new ChatMessageConfiguration());
+        modelBuilder.ApplyConfiguration(new UserAccountConfiguration());
+        modelBuilder.ApplyConfiguration(new ApiKeyConfiguration());
+        modelBuilder.ApplyConfiguration(new ContactPointConfiguration());
+        modelBuilder.ApplyConfiguration(new ContactMethodConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 }

@@ -12,8 +12,22 @@ using Moq.Protected;
 
 namespace Altinn.App.Core.Tests.Features.Maskinporten;
 
+/// <summary>
+/// Captures HTTP request URLs for test assertions.
+/// </summary>
+internal sealed class CapturedUrls
+{
+    public Uri? WellKnownUrl { get; set; }
+    public Uri? TokenUrl { get; set; }
+    public Uri? ExchangeUrl { get; set; }
+}
+
 internal static class TestHelpers
 {
+    public const string DefaultWellKnownIssuer = "https://test.maskinporten.no/";
+
+    private static readonly Expression<Func<HttpRequestMessage, bool>> _isWellKnownRequest = req =>
+        req.RequestUri!.PathAndQuery.Contains(".well-known", StringComparison.OrdinalIgnoreCase);
     private static readonly Expression<Func<HttpRequestMessage, bool>> _isTokenRequest = req =>
         req.RequestUri!.PathAndQuery.Contains("token", StringComparison.OrdinalIgnoreCase);
     private static readonly Expression<Func<HttpRequestMessage, bool>> _isExchangeRequest = req =>
@@ -21,22 +35,61 @@ internal static class TestHelpers
 
     public static Mock<HttpMessageHandler> MockHttpMessageHandlerFactory(
         MaskinportenTokenResponse maskinportenTokenResponse,
-        string? altinnAccessToken = null
+        string? altinnAccessToken = null,
+        string? wellKnownIssuer = null
+    ) => MockHttpMessageHandlerFactory(maskinportenTokenResponse, altinnAccessToken, wellKnownIssuer, null);
+
+    public static Mock<HttpMessageHandler> MockHttpMessageHandlerFactory(
+        MaskinportenTokenResponse maskinportenTokenResponse,
+        string? altinnAccessToken,
+        string? wellKnownIssuer,
+        CapturedUrls? capturedUrls
     )
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         var protectedMock = handlerMock.Protected();
+
+        // Mock the well-known endpoint
+        wellKnownIssuer ??= DefaultWellKnownIssuer;
+        protectedMock
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is(_isWellKnownRequest),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .Returns(
+                (HttpRequestMessage req, CancellationToken _) =>
+                {
+                    if (capturedUrls is not null)
+                        capturedUrls.WellKnownUrl = req.RequestUri;
+                    return Task.FromResult(
+                        new HttpResponseMessage
+                        {
+                            StatusCode = HttpStatusCode.OK,
+                            Content = new StringContent(JsonSerializer.Serialize(new { issuer = wellKnownIssuer })),
+                        }
+                    );
+                }
+            );
+
         protectedMock
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.Is(_isTokenRequest),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(() =>
-                new HttpResponseMessage
+            .Returns(
+                (HttpRequestMessage req, CancellationToken _) =>
                 {
-                    StatusCode = HttpStatusCode.OK,
-                    Content = new StringContent(JsonSerializer.Serialize(maskinportenTokenResponse)),
+                    if (capturedUrls is not null)
+                        capturedUrls.TokenUrl = req.RequestUri;
+                    return Task.FromResult(
+                        new HttpResponseMessage
+                        {
+                            StatusCode = HttpStatusCode.OK,
+                            Content = new StringContent(JsonSerializer.Serialize(maskinportenTokenResponse)),
+                        }
+                    );
                 }
             );
 
@@ -47,11 +100,18 @@ internal static class TestHelpers
                 ItExpr.Is(_isExchangeRequest),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(() =>
-                new HttpResponseMessage
+            .Returns(
+                (HttpRequestMessage req, CancellationToken _) =>
                 {
-                    StatusCode = HttpStatusCode.OK,
-                    Content = new StringContent(altinnAccessToken),
+                    if (capturedUrls is not null)
+                        capturedUrls.ExchangeUrl = req.RequestUri;
+                    return Task.FromResult(
+                        new HttpResponseMessage
+                        {
+                            StatusCode = HttpStatusCode.OK,
+                            Content = new StringContent(altinnAccessToken),
+                        }
+                    );
                 }
             );
 

@@ -23,7 +23,7 @@ public class InstanceAppOptionsFactory
     /// provided.
     /// </summary>
     /// <param name="optionsId">Id matching the options requested.</param>
-    public IInstanceAppOptionsProvider GetOptionsProvider(string optionsId)
+    public IInstanceAppOptionsProvider? GetOptionsProvider(string optionsId)
     {
         var instanceAppOptionsProviders = _appImplementationFactory.GetAll<IInstanceAppOptionsProvider>();
         foreach (var instanceAppOptionProvider in instanceAppOptionsProviders)
@@ -36,6 +36,6 @@ public class InstanceAppOptionsFactory
             return instanceAppOptionProvider;
         }
 
-        return new NullInstanceAppOptionsProvider();
+        return null;
     }
 }

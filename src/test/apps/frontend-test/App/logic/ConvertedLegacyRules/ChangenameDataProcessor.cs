@@ -40,17 +40,7 @@ public class ChangenameDataProcessor : IDataWriteProcessor
         fornavn = !string.IsNullOrEmpty(fornavn) ? fornavn + " " : "";
         mellomnavn = !string.IsNullOrEmpty(mellomnavn) ? mellomnavn + " " : "";
         etternavn = !string.IsNullOrEmpty(etternavn) ? etternavn : "";
-
-        if (data is not null)
-        {
-            data.Innledninggrp9309 ??= new Innledninggrp9309();
-            data.Innledninggrp9309.NavneendringenGjelderForgrp9310 ??= new NavneendringenGjelderForgrp9310();
-            data.Innledninggrp9309.NavneendringenGjelderForgrp9310.SubjektFornavnFolkeregistrertdatadef34730 = new SubjektFornavnFolkeregistrertdatadef34730
-            {
-                value = fornavn + mellomnavn + etternavn
-            };
-        }
-
+        wrapper.Set("Innledning-grp-9309.NavneendringenGjelderFor-grp-9310.SubjektFornavnFolkeregistrert-datadef-34730.value", fornavn + mellomnavn + etternavn);
         await Task.CompletedTask;
     }
 

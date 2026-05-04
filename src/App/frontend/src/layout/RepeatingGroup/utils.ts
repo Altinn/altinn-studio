@@ -3,14 +3,19 @@ import { useCallback, useMemo } from 'react';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
+import { getComponentDef } from 'src/layout';
+import { CompCategory } from 'src/layout/common';
 import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import { useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
+import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { IDataModelReference } from 'src/layout/common.generated';
+import type { CompExternal } from 'src/layout/layout';
 import type { GroupExpressions } from 'src/layout/RepeatingGroup/types';
 import type { BaseRow } from 'src/utils/layout/types';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
@@ -60,10 +65,109 @@ function evalBool({ expr, defaultValue = false, dataSources, groupBinding, rowIn
   return evalExpr(expr, { ...dataSources, currentDataModelPath }, { returnType: ExprVal.Boolean, defaultValue });
 }
 
+function getReadOnlyExpression(component: CompExternal): ExprValToActualOrExpr<ExprVal.Boolean> | undefined {
+  return 'readOnly' in component ? component.readOnly : undefined;
+}
+
+function isReadOnlyComponent(
+  childComponent: CompExternal,
+  dataSources: ExpressionDataSources,
+  groupBinding: IDataModelReference | undefined,
+  rowIndex: number,
+): boolean {
+  if (!('readOnly' in childComponent) || childComponent.readOnly === undefined) {
+    return false;
+  }
+  return evalBool({
+    expr: childComponent.readOnly,
+    dataSources,
+    groupBinding,
+    rowIndex,
+  });
+}
+
+/**
+ * Helper function to check if a single form component is editable in a repeating group row
+ */
+function isEditableFormComponent(
+  childBaseComponentId: string,
+  layoutLookups: LayoutLookups,
+  parentComponent: CompExternal<'RepeatingGroup'>,
+  rowWithExpressions: RepGroupRowWithExpressions | undefined,
+  dataSources: ExpressionDataSources,
+  groupBinding: IDataModelReference | undefined,
+): boolean {
+  const childComponent = layoutLookups.getComponent(childBaseComponentId);
+  const componentDef = getComponentDef(childComponent.type);
+
+  const isNotFormComponent: boolean = componentDef.category !== CompCategory.Form;
+  if (isNotFormComponent) {
+    return false;
+  }
+
+  if (isReadOnlyComponent(childComponent, dataSources, groupBinding, rowWithExpressions?.index ?? 0)) {
+    return false;
+  }
+
+  const columnSettings = parentComponent.tableColumns?.[childBaseComponentId];
+  const hiddenInTable = columnSettings?.hidden === true;
+  const editInTable = columnSettings?.editInTable ?? false;
+  const showInExpandedEdit = columnSettings?.showInExpandedEdit ?? true;
+  const editButtonVisible = rowWithExpressions?.edit?.editButton !== false;
+
+  if (editButtonVisible) {
+    return showInExpandedEdit;
+  }
+
+  return editInTable && !hiddenInTable;
+}
+
+function collectEditableChildren(
+  childBaseComponentId: string,
+  layoutLookups: LayoutLookups,
+  parentComponent: CompExternal<'RepeatingGroup'>,
+  rowWithExpressions: RepGroupRowWithExpressions | undefined,
+  dataSources: ExpressionDataSources,
+  groupBinding: IDataModelReference | undefined,
+  acc: string[],
+) {
+  const childComponent = layoutLookups.getComponent(childBaseComponentId);
+  const componentDef = getComponentDef(childComponent.type);
+
+  if (componentDef.category === CompCategory.Container) {
+    const containerChildren = (childComponent as { children?: string[] }).children ?? [];
+    for (const grandChildId of containerChildren) {
+      collectEditableChildren(
+        grandChildId,
+        layoutLookups,
+        parentComponent,
+        rowWithExpressions,
+        dataSources,
+        groupBinding,
+        acc,
+      );
+    }
+    return;
+  }
+
+  if (
+    isEditableFormComponent(
+      childBaseComponentId,
+      layoutLookups,
+      parentComponent,
+      rowWithExpressions,
+      dataSources,
+      groupBinding,
+    )
+  ) {
+    acc.push(childBaseComponentId);
+  }
+}
+
 export const RepGroupHooks = {
   useAllBaseRows(baseComponentId: string) {
     const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup')?.group;
-    return FD.useFreshRows(groupBinding);
+    return FormStore.data.useFreshRows(groupBinding);
   },
 
   useAllRowsWithHidden(baseComponentId: string): RepGroupRow[] {
@@ -117,7 +221,7 @@ export const RepGroupHooks = {
     const editButton = component?.edit?.editButton;
     const deleteButton = component?.edit?.deleteButton;
     const dataSources = useExpressionDataSources({ hiddenRow, editButton, deleteButton });
-    const getFreshRows = FD.useGetFreshRows();
+    const getFreshRows = FormStore.data.useGetFreshRows();
 
     return useCallback(() => {
       const freshRows = getFreshRows(groupBinding);
@@ -227,5 +331,35 @@ export const RepGroupHooks = {
       multiPageIndex,
       hidden: hidden[baseId] ?? false,
     }));
+  },
+
+  useEditableChildren(baseComponentId: string, rowWithExpressions: RepGroupRowWithExpressions | undefined): string[] {
+    const childrenBaseIds = RepGroupHooks.useChildIds(baseComponentId);
+    const layoutLookups = FormBootstrap.useLayoutLookups();
+    const component = layoutLookups.getComponent(baseComponentId, 'RepeatingGroup');
+    const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup')?.group;
+    const readOnlyExpressions = useMemo(
+      () =>
+        childrenBaseIds
+          .map((id) => layoutLookups.getComponent(id))
+          .map(getReadOnlyExpression)
+          .filter((value) => value !== undefined),
+      [childrenBaseIds, layoutLookups],
+    );
+    const dataSources = useExpressionDataSources(readOnlyExpressions);
+
+    const editableChildIds: string[] = [];
+    for (const childId of childrenBaseIds) {
+      collectEditableChildren(
+        childId,
+        layoutLookups,
+        component,
+        rowWithExpressions,
+        dataSources,
+        groupBinding,
+        editableChildIds,
+      );
+    }
+    return editableChildIds;
   },
 };

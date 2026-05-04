@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.DataModel;
+using Altinn.App.Core.Internal.Expressions;
 
 namespace Altinn.App.Core.Internal.Data;
 
@@ -45,6 +46,21 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
             throw new ArgumentException("Field cannot be empty");
         }
         return GetModelDataRecursive(field.Split('.'), 0, _dataModel);
+    }
+
+    /// <inheritdoc />
+    public bool Set(ReadOnlySpan<char> path, ExpressionValue value)
+    {
+        if (path.IsEmpty)
+        {
+            return false;
+        }
+        var field = path.ToString();
+        if (string.IsNullOrEmpty(field))
+        {
+            return false;
+        }
+        return SetModelDataRecursive(field.Split('.'), 0, _dataModel, value);
     }
 
     /// <inheritdoc />
@@ -130,27 +146,33 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
             return null; // Error index for collection not specified
         }
 
-        var elementAt = GetElementAt(childModelList, groupIndex.Value);
-        if (elementAt is null)
+        if (!TryGetElementAt(childModelList, groupIndex.Value, out var elementAt))
         {
             return null; // Error condition, no value at index
+        }
+
+        if (elementAt is null)
+        {
+            return null;
         }
 
         return GetModelDataRecursive(keys, index + 1, elementAt);
     }
 
-    private static object? GetElementAt(System.Collections.IEnumerable enumerable, int index)
+    private static bool TryGetElementAt(System.Collections.IEnumerable enumerable, int index, out object? element)
     {
         // Return the element with index = groupIndex (could not find another way to get the n'th element in non-generic enumerable)
         foreach (var arrayElement in enumerable)
         {
             if (index-- < 1)
             {
-                return arrayElement;
+                element = arrayElement;
+                return true;
             }
         }
 
-        return null;
+        element = null;
+        return false;
     }
 
     private static readonly Regex _keyPartRegex = new(
@@ -182,6 +204,130 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
             return (match.Groups[1].Value, null);
         }
         return (match.Groups[1].Value, int.Parse(indexString, CultureInfo.InvariantCulture));
+    }
+
+    private static bool SetModelDataRecursive(string[] keys, int index, object currentModel, ExpressionValue value)
+    {
+        if (index == keys.Length - 1)
+        {
+            // We're at the last key, set the value
+            var (key, groupIndex) = ParseKeyPart(keys[index]);
+            var prop = Array.Find(currentModel.GetType().GetProperties(), p => IsPropertyWithJsonName(p, key));
+            if (prop is null)
+            {
+                return false;
+            }
+
+            if (groupIndex is null)
+            {
+                // Setting a simple property
+                if (!value.TryDeserialize(prop.PropertyType, out var convertedValue))
+                {
+                    return false;
+                }
+                if (
+                    convertedValue is null
+                    && prop.PropertyType.IsValueType
+                    && Nullable.GetUnderlyingType(prop.PropertyType) is null
+                )
+                {
+                    // Can't set a non-nullable value type to null
+                    return false;
+                }
+                try
+                {
+                    prop.SetValue(currentModel, convertedValue);
+                    return true;
+                }
+                catch (TargetException)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                // Setting an element in a list
+                var listProperty = prop.GetValue(currentModel);
+                if (listProperty is not System.Collections.IList list)
+                {
+                    return false;
+                }
+
+                if (groupIndex.Value < 0 || groupIndex.Value >= list.Count)
+                {
+                    return false;
+                }
+
+                var elementType = list.GetType().GetGenericArguments().FirstOrDefault();
+                if (elementType is null)
+                {
+                    return false;
+                }
+
+                if (value.TryDeserialize(elementType, out var deserializedValue))
+                {
+                    list[groupIndex.Value] = deserializedValue;
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        // Navigate to the next level
+        var (currentKey, currentGroupIndex) = ParseKeyPart(keys[index]);
+        var currentProp = Array.Find(
+            currentModel.GetType().GetProperties(),
+            p => IsPropertyWithJsonName(p, currentKey)
+        );
+        if (currentProp is null)
+        {
+            return false;
+        }
+
+        var childModel = currentProp.GetValue(currentModel);
+        if (childModel is null)
+        {
+            // Create an instance of the property type if it's null
+            childModel = Activator.CreateInstance(currentProp.PropertyType);
+            if (childModel is null)
+            {
+                return false;
+            }
+            currentProp.SetValue(currentModel, childModel);
+        }
+
+        // Strings are enumerable in C#
+        // Other enumerable types is treated as a collection
+        if (!(childModel is not string && childModel is System.Collections.IEnumerable childModelList))
+        {
+            if (currentGroupIndex is not null)
+            {
+                // Error, trying to index a non-collection
+                return false;
+            }
+            return SetModelDataRecursive(keys, index + 1, childModel, value);
+        }
+
+        if (currentGroupIndex is null)
+        {
+            return false; // Error: index for collection not specified
+        }
+
+        if (!TryGetElementAt(childModelList, currentGroupIndex.Value, out var elementAt))
+        {
+            return false;
+        }
+
+        if (elementAt is null)
+        {
+            // The list had an item at the index, but it was null
+            // We might consider creating a new instance and replacing it in the list
+            // For now, just return false
+            return false;
+        }
+
+        return SetModelDataRecursive(keys, index + 1, elementAt, value);
     }
 
     private static void AddIndexesRecursive(
@@ -331,6 +477,12 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
         {
             // Remove row from list
             var propertyValue = property.GetValue(containingObject);
+            if (propertyValue is null)
+            {
+                // Trying to remove row from a property that is already null
+                return;
+            }
+
             if (propertyValue is not System.Collections.IList listValue)
             {
                 throw new ArgumentException(

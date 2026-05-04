@@ -2,17 +2,23 @@ name: pdf3 - Build
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/Runtime/pdf3/**'
-      - 'src/Runtime/test/fixture/**'
+      - 'src/Runtime/devenv/**'
       - '.github/workflows/runtime-pdf3-build.yml'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   build:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Build and test
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     defaults:
       run:
@@ -20,17 +26,19 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: src/Runtime/pdf3/go.mod
           cache-dependency-path: src/Runtime/pdf3/go.sum
 
-      - name: Run fmt
-        run: make fmt
+      - name: Check formatting
+        run: |
+          make fmt
+          git diff --exit-code -- .
 
       - name: Run linters
         run: make lint
@@ -46,7 +54,7 @@ jobs:
 
       - name: Upload test logs
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: runtime-pdf3-test-logs
           path: src/Runtime/pdf3/test/logs/

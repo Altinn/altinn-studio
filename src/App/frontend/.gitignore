@@ -400,7 +400,6 @@ src/Altinn.Apps/AppTemplates/AspNet/App/Properties/launchSettings.json
 *.generated.json
 *.generated.schema.json
 layout.schema.v1.json
-layout-sets.schema.v1.json
 layoutSettings.schema.v1.json
 
 /test/run-all-artifacts
@@ -414,3 +413,6 @@ CLAUDE.local.md
 
 # Lighthouse CI generated files
 .lighthouseci/
+
+# k6 browser test screenshots
+k6-browser-screenshots/

@@ -1,4 +1,4 @@
-import React, { type HTMLAttributes, type ReactElement } from 'react';
+import type { HTMLAttributes, ReactElement } from 'react';
 import classes from './StudioPageImageBackgroundContainer.module.css';
 
 export type StudioPageImageBackgroundContainerProps = {

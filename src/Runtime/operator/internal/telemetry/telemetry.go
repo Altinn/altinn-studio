@@ -5,78 +5,127 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	otelmetric "go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"go.opentelemetry.io/otel/sdk/trace"
+	oteltrace "go.opentelemetry.io/otel/trace"
 	"k8s.io/client-go/rest"
 )
 
-const ServiceName string = "altinn-studio-operator"
+const (
+	scopeName = "operator"
+)
 
-// ConfigureOTel bootstraps the OpenTelemetry pipeline.
-// If it does not return an error, make sure to call shutdown for proper cleanup.
+func Tracer() oteltrace.Tracer {
+	return otel.Tracer(scopeName)
+}
+
+func Meter() otelmetric.Meter {
+	return otel.Meter(scopeName)
+}
+
+// WithoutSpan keeps cancellation and context values while dropping active span parentage.
+// Use this when handing a request-scoped context to long-lived background loops.
+func WithoutSpan(ctx context.Context) context.Context {
+	return oteltrace.ContextWithSpanContext(ctx, oteltrace.SpanContext{})
+}
+
 func ConfigureOTel(ctx context.Context) (shutdown func(context.Context) error, err error) {
 	var shutdownFuncs []func(context.Context) error
 
-	// shutdown calls cleanup functions registered via shutdownFuncs.
-	// The errors from the calls are joined.
-	// Each registered cleanup will be invoked once.
 	shutdown = func(ctx context.Context) error {
-		var err error
+		var shutdownErr error
 		for _, fn := range shutdownFuncs {
-			err = errors.Join(err, fn(ctx))
+			shutdownErr = errors.Join(shutdownErr, fn(ctx))
 		}
 		shutdownFuncs = nil
-		return err
+		return shutdownErr
 	}
 
-	// handleErr calls shutdown for cleanup and makes sure that all errors are returned.
-	_ = func(inErr error) {
+	handleErr := func(inErr error) {
 		err = errors.Join(inErr, shutdown(ctx))
 	}
 
-	_, err = resource.New(ctx,
-		resource.WithAttributes(
-			// the service name used to display traces in backends
-			semconv.ServiceName(ServiceName),
-		),
+	res, err := resource.New(ctx,
+		// OTEL_SERVICE_NAME and OTEL_RESOURCE_ATTRIBUTES set the service identity
+		resource.WithFromEnv(),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create resource: %w", err)
 	}
 
-	// Set up propagator.
 	prop := newPropagator()
 	otel.SetTextMapPropagator(prop)
 
-	// Set up trace provider.
-	// tracerProvider, err := newTraceProvider(ctx, res)
-	// if err != nil {
-	// 	handleErr(err)
-	// 	return shutdown, err
-	// }
-	// shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
-	// otel.SetTracerProvider(tracerProvider)
+	tracerProvider, err := newTraceProvider(ctx, res)
+	if err != nil {
+		handleErr(err)
+		return shutdown, err
+	}
+	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
+	otel.SetTracerProvider(tracerProvider)
 
-	// Set up meter provider.
-	// meterProvider, err := newMeterProvider(ctx, res)
-	// if err != nil {
-	// 	handleErr(err)
-	// 	return shutdown, err
-	// }
-	// shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
-	// otel.SetMeterProvider(meterProvider)
+	meterProvider, err := newMeterProvider(ctx, res)
+	if err != nil {
+		handleErr(err)
+		return shutdown, err
+	}
+	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
+	otel.SetMeterProvider(meterProvider)
 
 	return shutdown, err
 }
 
 func WrapTransport(config *rest.Config) {
-	config.Wrap(func(rt http.RoundTripper) http.RoundTripper {
-		return otelhttp.NewTransport(rt)
-	})
+	config.Wrap(newKubernetesTransport)
+}
+
+func newKubernetesTransport(base http.RoundTripper) http.RoundTripper {
+	return otelhttp.NewTransport(&kubernetesAPITransport{base: base})
+}
+
+type kubernetesAPITransport struct {
+	base http.RoundTripper
+}
+
+//nolint:wrapcheck // Preserve the exact transport error so callers can keep type-based handling.
+func (t *kubernetesAPITransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if t.base == nil {
+		t.base = http.DefaultTransport
+	}
+
+	res, err := t.base.RoundTrip(req)
+	if err != nil || res == nil || res.StatusCode != http.StatusNotFound || !isExpectedNotFoundKubernetesRequest(req) {
+		return res, err
+	}
+
+	const azureMonitorExpected404Attribute = "azuremonitor.expected_404"
+	span := oteltrace.SpanFromContext(req.Context())
+	span.SetAttributes(attribute.Bool(azureMonitorExpected404Attribute, true))
+	span.SetStatus(codes.Ok, "")
+
+	return res, nil
+}
+
+func isExpectedNotFoundKubernetesRequest(req *http.Request) bool {
+	const inactivityScalerOverrideConfigMapPath = "/api/v1/namespaces/runtime-operator/configmaps/" +
+		"inactivity-scaler-override"
+
+	if req == nil || req.URL == nil {
+		return false
+	}
+
+	return req.Method == http.MethodGet && req.URL.Path == inactivityScalerOverrideConfigMapPath
 }
 
 func newPropagator() propagation.TextMapPropagator {
@@ -86,30 +135,30 @@ func newPropagator() propagation.TextMapPropagator {
 	)
 }
 
-// func newTraceProvider(ctx context.Context, res *resource.Resource) (*trace.TracerProvider, error) {
-// 	traceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure())
-// 	if err != nil {
-// 		return nil, err
-// 	}
+func newTraceProvider(ctx context.Context, res *resource.Resource) (*trace.TracerProvider, error) {
+	// cluster-internal endpoint, no TLS needed
+	traceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure())
+	if err != nil {
+		return nil, fmt.Errorf("create trace exporter: %w", err)
+	}
 
-// 	traceProvider := trace.NewTracerProvider(
-// 		trace.WithBatcher(traceExporter,
-// 			// Default is 5s. Set to 1s for demonstrative purposes.
-// 			trace.WithBatchTimeout(time.Second)), trace.WithResource(res),
-// 	)
-// 	return traceProvider, nil
-// }
+	traceProvider := trace.NewTracerProvider(
+		trace.WithBatcher(traceExporter, trace.WithBatchTimeout(5*time.Second)),
+		trace.WithResource(res),
+	)
+	return traceProvider, nil
+}
 
-// func newMeterProvider(ctx context.Context, res *resource.Resource) (*metric.MeterProvider, error) {
-// 	metricExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithInsecure())
-// 	if err != nil {
-// 		return nil, err
-// 	}
+func newMeterProvider(ctx context.Context, res *resource.Resource) (*metric.MeterProvider, error) {
+	// cluster-internal endpoint, no TLS needed
+	metricExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithInsecure())
+	if err != nil {
+		return nil, fmt.Errorf("create metric exporter: %w", err)
+	}
 
-// 	meterProvider := metric.NewMeterProvider(
-// 		metric.WithReader(metric.NewPeriodicReader(metricExporter,
-// 			// Default is 1m. Set to 3s for demonstrative purposes.
-// 			metric.WithInterval(5*time.Second))), metric.WithResource(res),
-// 	)
-// 	return meterProvider, nil
-// }
+	meterProvider := metric.NewMeterProvider(
+		metric.WithReader(metric.NewPeriodicReader(metricExporter, metric.WithInterval(30*time.Second))),
+		metric.WithResource(res),
+	)
+	return meterProvider, nil
+}

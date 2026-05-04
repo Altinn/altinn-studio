@@ -51,6 +51,7 @@ public class RepeatingGroupsHidden
         var state = await LayoutTestUtils.GetLayoutModelTools(data, "RepeatingGroupsHidden");
         var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
 
-        await Verify(hidden).UseParameters(hidePage1, hidePage2);
+        await Verify(hidden.OrderBy(d => d.DataElementIdentifier.Guid).ThenBy(d => d.Field))
+            .UseParameters(hidePage1, hidePage2);
     }
 }

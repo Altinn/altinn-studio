@@ -1,12 +1,12 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 
-import { jest } from '@jest/globals';
 import { screen } from '@testing-library/dom';
 import { render } from '@testing-library/react';
 
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { Lang } from 'src/features/language/Lang';
 import { CompInternal } from 'src/layout/layout';
 import { NotificationStatus, SigneeState, useSigneeList } from 'src/layout/SigneeList/api';
@@ -15,15 +15,17 @@ import { useIsHidden } from 'src/utils/layout/hidden';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 
 jest.mock('src/layout/SigneeList/api');
-jest.mock('react-router-dom');
+jest.mock('react-router');
 jest.mock('src/utils/layout/useNodeItem');
 jest.mock('src/features/language/Lang');
-jest.mock('src/features/form/layout/LayoutsContext');
+jest.mock('src/features/formBootstrap/FormBootstrap');
 jest.mock('src/utils/layout/hidden');
+jest.mock('src/core/contexts/TaskOverrides');
 
 describe('SigneeListSummary', () => {
   const mockedUseSigneeList = jest.mocked(useSigneeList);
-  const mockedUseLayoutLookups = jest.mocked(useLayoutLookups);
+  const mockedUseLayoutLookups = jest.mocked(FormBootstrap.useLayoutLookups);
+  const mockedUseTaskOverrides = jest.mocked(useTaskOverrides);
   const mockedUseItemWhenType = jest.mocked(useItemWhenType);
   const mockedUseItemFor = jest.mocked(useItemFor);
   const mockedUseIsHidden = jest.mocked(useIsHidden);
@@ -78,6 +80,7 @@ describe('SigneeListSummary', () => {
     mockNodeItem();
     jest.mocked(Lang).mockImplementation(({ id }: { id: string }) => id);
     jest.mocked(mockedUseIsHidden).mockReturnValue(false);
+    mockedUseTaskOverrides.mockReturnValue({});
   });
 
   it('should render loading state', () => {
@@ -278,5 +281,45 @@ describe('SigneeListSummary', () => {
     expect(mockedUseSigneeList).toHaveBeenCalledTimes(1);
     screen.getByText('signee_list_summary.no_signatures');
     expect(screen.queryByText('title')).not.toBeInTheDocument();
+  });
+
+  it('should use taskId from TaskOverrides when available', () => {
+    mockedUseTaskOverrides.mockReturnValue({ taskId: 'overrideTaskId' });
+    mockedUseSigneeList.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+    } as unknown as ReturnType<typeof useSigneeList>);
+
+    // Test case
+    render(
+      <SigneeListSummary
+        titleOverride={null}
+        targetBaseComponentId={mockedItem.id}
+      />,
+    );
+
+    // Assertion
+    expect(mockedUseSigneeList).toHaveBeenCalledWith('instanceOwnerPartyId', 'instanceGuid', 'overrideTaskId');
+  });
+
+  it('should fall back to taskId from URL params when TaskOverrides is empty', () => {
+    mockedUseTaskOverrides.mockReturnValue({});
+    mockedUseSigneeList.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+    } as unknown as ReturnType<typeof useSigneeList>);
+
+    // Test case
+    render(
+      <SigneeListSummary
+        titleOverride={null}
+        targetBaseComponentId={mockedItem.id}
+      />,
+    );
+
+    // Assertion
+    expect(mockedUseSigneeList).toHaveBeenCalledWith('instanceOwnerPartyId', 'instanceGuid', 'taskId');
   });
 });

@@ -27,7 +27,7 @@ export function MapSummary({ targetBaseComponentId }: Summary2Props) {
   const markerLocationIsValid = isLocationValid(markerLocation);
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
-  const title = textResourceBindings?.title;
+  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
 
   if (markerBinding && !markerLocationIsValid) {
     return (

@@ -1,15 +1,15 @@
 import React from 'react';
 
-import { beforeAll, expect, jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import { v4 as uuidv4 } from 'uuid';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
+import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
+import { getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
 import { Lang } from 'src/features/language/Lang';
-import { fetchApplicationMetadata, fetchInstanceData } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IRawTextResource } from 'src/features/language/textResources';
 import type { IData, IDataType } from 'src/types/shared';
@@ -50,13 +50,14 @@ async function render(props: TestProps) {
   });
   const instanceId = instanceData.id;
 
-  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
-    getIncomingApplicationMetadataMock((a) => {
-      a.dataTypes = a.dataTypes.filter((dt) => !dt.appLogic?.classRef);
-      a.dataTypes.push(...generateDataTypes());
-    }),
-  );
-  jest.mocked(fetchInstanceData).mockImplementationOnce(async () => instanceData);
+  window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock((a) => {
+    a.dataTypes = a.dataTypes.filter((dt) => !dt.appLogic?.classRef);
+    a.dataTypes.push(...generateDataTypes());
+  });
+  window.altinnAppGlobalData.ui = getUiConfigMock((obj) => {
+    obj.folders.Task_1.defaultDataType = props.defaultDataModel;
+  });
+  window.altinnAppGlobalData.textResources!.resources = props.textResources;
 
   function generateDataElements(instanceId: string): IData[] {
     return dataModelNames.map((name) => {
@@ -112,17 +113,23 @@ async function render(props: TestProps) {
     ),
     instanceId: instanceData.id,
     queries: {
-      fetchLayoutSets: async () => {
-        const mock = getLayoutSetsMock();
-        for (const set of mock.sets) {
-          set.dataType = props.defaultDataModel;
-        }
-        return mock;
-      },
-      fetchTextResources: async () => ({
-        resources: props.textResources,
-        language: 'nb',
-      }),
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          for (const dm of Object.keys(props.dataModels)) {
+            if (props.dataModels[dm] instanceof Promise || props.dataModels[dm] instanceof Error) {
+              continue;
+            }
+
+            obj.dataModels[dm] = getDataModelBootstrapMock();
+            obj.dataModels[dm].initialData = props.dataModels[dm];
+            obj.dataModels[dm].schema = {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+              },
+            };
+          }
+        }),
       fetchFormData: async (url) => {
         const path = new URL(url).pathname;
         const id = path.split('/').pop();
@@ -131,10 +138,17 @@ async function render(props: TestProps) {
         if (formData instanceof Error) {
           return Promise.reject(formData);
         }
-        if (!formData) {
-          throw new Error(`No form data mocked for testing (modelName = ${modelName})`);
+        if (formData instanceof Promise) {
+          return formData;
         }
-        return formData;
+        throw new Error(
+          `No form data mocked for testing (modelName = ${modelName}), or statically fetchable data model fetched via API.`,
+        );
+      },
+    },
+    apis: {
+      instanceApi: {
+        getInstance: async () => ({ ...instanceData, process: getProcessDataMock() }),
       },
     },
   });
@@ -161,7 +175,7 @@ describe('FormDataReaders', () => {
   it.each<string>(['someModel', 'someModel1.0'])(
     'simple, should render a resource with a variable lookup - %s',
     async (modelName: string) => {
-      const { queries, urlFor } = await render({
+      const { queries } = await render({
         ids: ['test'],
         textResources: [
           {
@@ -185,8 +199,7 @@ describe('FormDataReaders', () => {
 
       await waitFor(() => expect(screen.getByTestId('test')).toHaveTextContent('Hello World'));
 
-      expect(queries.fetchFormData).toHaveBeenCalledTimes(1);
-      expect(queries.fetchFormData).toHaveBeenCalledWith(urlFor(modelName), {});
+      expect(queries.fetchFormData).not.toHaveBeenCalled();
 
       expect(window.logError).not.toHaveBeenCalled();
       expect(window.logErrorOnce).not.toHaveBeenCalled();
@@ -309,8 +322,8 @@ describe('FormDataReaders', () => {
     await waitFor(() => expect(screen.getByTestId('test2')).toHaveTextContent('Hello Universe'));
     expect(screen.getByTestId('test3')).toHaveTextContent('You are [missing] year(s) old');
 
-    expect(queries.fetchFormData).toHaveBeenCalledTimes(3);
-    expect(queries.fetchFormData).toHaveBeenCalledWith(urlFor('model1'), {});
+    expect(queries.fetchFormData).toHaveBeenCalledTimes(2);
+    expect(queries.fetchFormData).not.toHaveBeenCalledWith(urlFor('model1'), {});
     expect(queries.fetchFormData).toHaveBeenCalledWith(urlFor('model2'), {});
     expect(queries.fetchFormData).toHaveBeenCalledWith(urlFor('modelMissing'), {});
 

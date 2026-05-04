@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { TaskCard } from './TaskCard';
@@ -9,7 +9,7 @@ import { AddSubformCard } from '@altinn/ux-editor/components/TaskNavigation/AddS
 export const TaskCardBar = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets, isPending: layoutSetsPending } = useLayoutSetsExtendedQuery(org, app);
-  const [isCreateSubformMode, setIsCreateSubformMode] = React.useState(false);
+  const [isCreateSubformMode, setIsCreateSubformMode] = useState(false);
 
   if (layoutSetsPending) return null;
 

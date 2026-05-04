@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactElement } from 'react';
-import React, { Children, useEffect, useRef } from 'react';
+import React, { Children, useEffect, useRef, useState } from 'react';
 import classes from './StudioResizableLayoutContainer.module.css';
 import { type StudioResizableLayoutElementProps } from '../StudioResizableLayoutElement/StudioResizableLayoutElement';
 import { useStudioResizableLayoutFunctions } from '../hooks/useStudioResizableFunctions';
@@ -11,12 +11,14 @@ export type StudioResizableOrientation = (typeof ORIENTATIONS)[number];
 export const horizontal: StudioResizableOrientation = 'horizontal';
 export const vertical: StudioResizableOrientation = 'vertical';
 
+type StudioResizableLayoutElementPropsWithRef = StudioResizableLayoutElementProps &
+  React.RefAttributes<HTMLDivElement>;
+
 export type StudioResizableLayoutContainerProps = {
   localStorageContext?: string;
   orientation: StudioResizableOrientation;
   style?: CSSProperties;
-
-  children: ReactElement<StudioResizableLayoutElementProps>[];
+  children: ReactElement<StudioResizableLayoutElementPropsWithRef>[];
 };
 
 const StudioResizableLayoutContainer = ({
@@ -30,6 +32,7 @@ const StudioResizableLayoutContainer = ({
     elementRefs.current = elementRefs.current.slice(0, getValidChildren(children).length);
   }, [children]);
 
+  const [isResizing, setIsResizing] = useState(false);
   const { containerSizes, setContainerSizes } = useTrackContainerSizes(localStorageContext);
   const { resizeTo, resizeDelta } = useStudioResizableLayoutFunctions(
     orientation,
@@ -41,10 +44,12 @@ const StudioResizableLayoutContainer = ({
   const renderChildren = (): React.ReactNode => {
     return Children.map(getValidChildren(children), (child, index) => {
       const hasNeighbour = index < getValidChildren(children).length - 1;
-      return React.cloneElement(child, {
+      return React.cloneElement<StudioResizableLayoutElementPropsWithRef>(child, {
         index,
         hasNeighbour,
-        ref: (element: HTMLDivElement) => (elementRefs.current[index] = element),
+        ref: (element: HTMLDivElement | null) => {
+          elementRefs.current[index] = element;
+        },
       });
     });
   };
@@ -53,7 +58,7 @@ const StudioResizableLayoutContainer = ({
 
   return (
     <StudioResizableLayoutContext.Provider
-      value={{ resizeDelta, resizeTo, orientation, containerSizes }}
+      value={{ resizeDelta, resizeTo, orientation, containerSizes, isResizing, setIsResizing }}
     >
       <div className={`${classes.root} ${flexDirectionClass}`} style={{ ...style }}>
         {renderChildren()}
@@ -64,10 +69,10 @@ const StudioResizableLayoutContainer = ({
 
 const getValidChildren = (
   children: React.ReactElement<
-    StudioResizableLayoutElementProps,
+    StudioResizableLayoutElementPropsWithRef,
     string | React.JSXElementConstructor<unknown>
   >[],
-): React.ReactElement<StudioResizableLayoutElementProps>[] => {
+): React.ReactElement<StudioResizableLayoutElementPropsWithRef>[] => {
   return children.filter((child) => !!child);
 };
 

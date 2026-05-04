@@ -1,4 +1,3 @@
-import React from 'react';
 import { Messages, type MessagesProps } from './Messages';
 import { render, screen } from '@testing-library/react';
 import type { Message } from '../../../types/ChatThread';
@@ -17,6 +16,7 @@ const mockMessages: Message[] = [
     author: MessageAuthor.Assistant,
     content: assistantMessageContent,
     timestamp: new Date(),
+    filesChanged: [],
   },
 ];
 

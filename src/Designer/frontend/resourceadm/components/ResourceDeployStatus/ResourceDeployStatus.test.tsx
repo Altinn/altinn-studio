@@ -1,5 +1,5 @@
-import React from 'react';
 import type { ReactElement } from 'react';
+import { createElement, Fragment, cloneElement } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { ResourceDeployStatusProps } from './ResourceDeployStatus';
 import { ResourceDeployStatus } from './ResourceDeployStatus';
@@ -14,12 +14,12 @@ jest.mock('react-i18next', () => ({
     const hasInterpolationElement = i18nKey.indexOf('<0>') > -1;
     if (hasInterpolationElement) {
       const parts = i18nKey.split(/<\/?0>/);
-      return React.createElement(
-        React.Fragment,
+      return createElement(
+        Fragment,
         {},
         ...parts.map((_part, index) => {
           const partString = textMock(i18nKey);
-          return index % 2 === 1 ? React.cloneElement(children, {}, partString) : partString;
+          return index % 2 === 1 ? cloneElement(children, {}, partString) : partString;
         }),
       );
     } else {

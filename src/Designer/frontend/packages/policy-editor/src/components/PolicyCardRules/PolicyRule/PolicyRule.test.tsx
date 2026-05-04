@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PolicyRule, type PolicyRuleProps } from './PolicyRule';
@@ -94,6 +93,18 @@ describe('PolicyRule', () => {
 
     const numFields = 5;
     expect(mockSavePolicy).toHaveBeenCalledTimes(numFields + 1);
+  });
+
+  it('does not show subjects error when rule has access packages but no roles', () => {
+    const policyRuleWithAccessPackagesOnly = {
+      ...mockPolicyRuleCard1,
+      subject: [],
+      accessPackages: ['urn:altinn:accesspackage:some-package'],
+    };
+    renderPolicyRule({}, { policyRule: policyRuleWithAccessPackagesOnly, showErrors: true });
+    expect(
+      screen.queryByText(textMock('policy_editor.policy_rule_missing_subjects')),
+    ).not.toBeInTheDocument();
   });
 
   it('renders policy rule with description when usage type is app', () => {

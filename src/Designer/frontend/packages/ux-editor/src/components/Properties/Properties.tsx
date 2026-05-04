@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './Properties.module.css';
 import { PageConfigPanel } from './PageConfigPanel';
 import { useAppContext } from '../../hooks';

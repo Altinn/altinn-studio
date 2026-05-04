@@ -183,6 +183,11 @@ namespace Altinn.App.Models.Model
     [JsonPropertyName("DatepickerMinDateExample")]
     public string DatepickerMinDateExample { get; set; }
 
+    [XmlElement("Geometries", Order = 34)]
+    [JsonProperty("Geometries")]
+    [JsonPropertyName("Geometries")]
+    public List<Geometries> Geometries { get; set; }
+
   }
 
   public class GridExample
@@ -594,6 +599,35 @@ namespace Altinn.App.Models.Model
     [JsonProperty("Name")]
     [JsonPropertyName("Name")]
     public Name Name { get; set; }
+
+  }
+
+  public class Geometries
+  {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
+    [XmlElement("Label", Order = 1)]
+    [JsonProperty("Label")]
+    [JsonPropertyName("Label")]
+    public string Label { get; set; }
+
+    [XmlElement("Data", Order = 2)]
+    [JsonProperty("Data")]
+    [JsonPropertyName("Data")]
+    public string Data { get; set; }
+
+    [XmlElement("Editable", Order = 3)]
+    [JsonProperty("Editable")]
+    [JsonPropertyName("Editable")]
+    public bool? Editable { get; set; }
+
+    public bool ShouldSerializeEditable() => Editable.HasValue;
 
   }
 }

@@ -368,20 +368,18 @@ public sealed class ValidationServiceTests : IDisposable
         var result = await validatorService.ValidateIncrementalFormData(
             _dataAccessor,
             "Task_1",
-            new DataElementChanges(
-                [
-                    new FormDataChange(
-                        type: ChangeType.Updated,
-                        dataElement: _defaultDataElement,
-                        dataType: _defaultDataType,
-                        contentType: "application/xml",
-                        previousFormDataWrapper: FormDataWrapperFactory.Create(previousData),
-                        currentFormDataWrapper: FormDataWrapperFactory.Create(data),
-                        previousBinaryData: null,
-                        currentBinaryData: null
-                    ),
-                ]
-            ),
+            new DataElementChanges([
+                new FormDataChange(
+                    type: ChangeType.Updated,
+                    dataElement: _defaultDataElement,
+                    dataType: _defaultDataType,
+                    contentType: "application/xml",
+                    previousFormDataWrapper: FormDataWrapperFactory.Create(previousData),
+                    currentFormDataWrapper: FormDataWrapperFactory.Create(data),
+                    previousBinaryData: null,
+                    currentBinaryData: null
+                ),
+            ]),
             null,
             DefaultLanguage
         );
@@ -416,20 +414,18 @@ public sealed class ValidationServiceTests : IDisposable
 
         var validatorService = serviceProvider.GetRequiredService<IValidationService>();
         var data = new MyModel { Name = "Kari" };
-        DataElementChanges dataElementChanges = new(
-            [
-                new FormDataChange(
-                    type: ChangeType.Updated,
-                    dataElement: _defaultDataElement,
-                    dataType: _defaultDataType,
-                    contentType: "application/xml",
-                    currentFormDataWrapper: FormDataWrapperFactory.Create(data),
-                    previousFormDataWrapper: FormDataWrapperFactory.Create(data),
-                    previousBinaryData: null,
-                    currentBinaryData: null
-                ),
-            ]
-        );
+        DataElementChanges dataElementChanges = new([
+            new FormDataChange(
+                type: ChangeType.Updated,
+                dataElement: _defaultDataElement,
+                dataType: _defaultDataType,
+                contentType: "application/xml",
+                currentFormDataWrapper: FormDataWrapperFactory.Create(data),
+                previousFormDataWrapper: FormDataWrapperFactory.Create(data),
+                previousBinaryData: null,
+                currentBinaryData: null
+            ),
+        ]);
         SetupDataClient(data);
         var dataAccessor = new InstanceDataUnitOfWork(
             _defaultInstance,

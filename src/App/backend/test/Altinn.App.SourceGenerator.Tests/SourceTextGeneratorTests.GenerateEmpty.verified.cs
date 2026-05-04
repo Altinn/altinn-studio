@@ -34,12 +34,25 @@ public sealed class Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper
     public object? Get(global::System.ReadOnlySpan<char> path) => null;
 
     #endregion Getters
+    #region Setters
+
+    /// <inheritdoc />
+    public bool Set(
+        global::System.ReadOnlySpan<char> path,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    ) => false;
+
+    #endregion Setters
     #region AddIndexToPath
 
     /// <inheritdoc />
-    public global::System.ReadOnlySpan<char> AddIndexToPath(global::System.ReadOnlySpan<char> path, global::System.ReadOnlySpan<int> rowIndexes, global::System.Span<char> buffer)
+    public global::System.ReadOnlySpan<char> AddIndexToPath(
+        global::System.ReadOnlySpan<char> path,
+        global::System.ReadOnlySpan<int> rowIndexes,
+        global::System.Span<char> buffer
+    )
     {
-        if(path.IsEmpty)
+        if (path.IsEmpty)
         {
             return global::System.ReadOnlySpan<char>.Empty;
         }
@@ -105,7 +118,10 @@ public sealed class Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper
     #region Remove
 
     /// <inheritdoc />
-    public void RemoveField(global::System.ReadOnlySpan<char> path, global::Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption) { }
+    public void RemoveField(
+        global::System.ReadOnlySpan<char> path,
+        global::Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption
+    ) { }
 
     #endregion Remove
     #region AltinnRowIds
@@ -117,7 +133,12 @@ public sealed class Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper
     public void InitializeAltinnRowIds() { }
 
     #endregion AltinnRowIds
-    public static global::System.ReadOnlySpan<char> ParseSegment(global::System.ReadOnlySpan<char> path, int offset, out int nextOffset, out int literalIndex)
+    public static global::System.ReadOnlySpan<char> ParseSegment(
+        global::System.ReadOnlySpan<char> path,
+        int offset,
+        out int nextOffset,
+        out int literalIndex
+    )
     {
         if (offset < 0 || offset > path.Length)
         {
@@ -150,21 +171,30 @@ public sealed class Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper
         var bracketOffset = global::System.MemoryExtensions.IndexOf(segment, ']');
         if (bracketOffset < 0)
         {
-            throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException($"Missing closing bracket ']' in {path}.");
+            throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException(
+                $"Missing closing bracket ']' in {path}."
+            );
         }
 
-        if (!int.TryParse(
-            segment[..bracketOffset],
-            global::System.Globalization.NumberStyles.None,
-            global::System.Globalization.CultureInfo.InvariantCulture,
-            out var index))
+        if (
+            !int.TryParse(
+                segment[..bracketOffset],
+                global::System.Globalization.NumberStyles.None,
+                global::System.Globalization.CultureInfo.InvariantCulture,
+                out var index
+            )
+        )
         {
-            throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException($"Invalid index in {path}.");
+            throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException(
+                $"Invalid index in {path}."
+            );
         }
 
         if (index < 0)
         {
-            throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException($"Invalid negative index in {path}.");
+            throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException(
+                $"Invalid negative index in {path}."
+            );
         }
 
         if (offset + bracketOffset + 1 == path.Length)
@@ -176,7 +206,9 @@ public sealed class Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper
 
         if (path[offset + bracketOffset + 1] != '.')
         {
-            throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException($"Invalid character after closing bracket ']' in {path}. Expected '.' or end of path.");
+            throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException(
+                $"Invalid character after closing bracket ']' in {path}. Expected '.' or end of path."
+            );
         }
 
         nextOffset = offset + bracketOffset + 2;
@@ -187,7 +219,9 @@ public sealed class Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper
     [global::System.Runtime.CompilerServices.ModuleInitializer]
     internal static void Register()
     {
-        global::Altinn.App.Core.Internal.Data.FormDataWrapperFactory.Register<global::Altinn.App.SourceGenerator.Tests.Empty>(dataModel => new Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper(dataModel));
+        global::Altinn.App.Core.Internal.Data.FormDataWrapperFactory.Register<global::Altinn.App.SourceGenerator.Tests.Empty>(
+            dataModel => new Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper(dataModel)
+        );
     }
 }
 
@@ -198,6 +232,7 @@ public sealed class Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper
 // {
 //   "JsonName": "",
 //   "CSharpName": "",
+//   "IsNullable": false,
 //   "TypeName": "global::Altinn.App.SourceGenerator.Tests.Empty",
 //   "IsJsonValueType": false,
 // }

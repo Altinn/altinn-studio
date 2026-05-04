@@ -2,14 +2,19 @@ name: App Fileanalyzers - Build and test
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/App/fileanalyzers/**'
       - '.github/workflows/app-fileanalyzers-tests.yml'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   analyze:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     strategy:
       matrix:
         os:
@@ -21,6 +26,7 @@ jobs:
             workingDir: src\App\fileanalyzers\
     name: Run dotnet build and test
     runs-on: ${{ matrix.os.id }}
+    timeout-minutes: 30
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
     steps:
@@ -28,11 +34,11 @@ jobs:
         if: matrix.os.id == 'windows-latest'
         run: git config --system core.longpaths true
       - name: Setup .NET
-        uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
         with:
           dotnet-version: |
             8.0.x
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: Build

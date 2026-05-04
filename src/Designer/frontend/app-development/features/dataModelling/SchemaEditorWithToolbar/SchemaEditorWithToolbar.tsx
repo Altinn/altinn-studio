@@ -1,7 +1,7 @@
 import classes from './SchemaEditorWithToolbar.module.css';
 import { TopToolbar } from './TopToolbar';
 import { LandingPagePanel } from './LandingPagePanel';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { MetadataOption } from '../../../types/MetadataOption';
 import { SelectedSchemaEditor } from './SelectedSchemaEditor';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';

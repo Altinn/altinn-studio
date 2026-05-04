@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import { AddItemContent, type AddItemContentProps } from './AddItemContent';
 import { ComponentType } from 'app-shared/types/ComponentType';

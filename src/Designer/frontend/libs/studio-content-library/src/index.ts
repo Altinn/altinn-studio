@@ -1,4 +1,4 @@
-export { ResourceContentLibraryImpl } from './config/ContentResourceLibraryImpl';
+export * from './ContentLibrary';
 export type { ContentLibraryConfig } from './types/ContentLibraryConfig';
 export type {
   CodeListWithMetadata,
@@ -12,3 +12,5 @@ export type { PagesConfig } from './types/PagesProps';
 export { CodeListUsageTaskType } from './types/CodeListUsageTaskType';
 export type { CodeListDataWithTextResources } from './types/CodeListDataWithTextResources';
 export type { CodeListData } from './types/CodeListData';
+export { PageName } from './types/PageName';
+export type { ContentLibraryRouter } from './types/ContentLibraryRouter';

@@ -181,8 +181,9 @@ internal sealed class ScopeAuthorizationService(
     public IReadOnlyList<ApiEndpointInfo> Metadata =>
         _metadataLookup
             ?.Select(kvp => new ApiEndpointInfo(kvp.Key.ToString(), kvp.Value))
-            .OrderBy(kv => kv.Endpoint)
-            .ToArray() ?? [];
+            .OrderBy(kv => kv.Endpoint, StringComparer.Ordinal)
+            .ToArray()
+        ?? [];
 
     public bool HasDefinedCustomScopes { get; private set; }
 

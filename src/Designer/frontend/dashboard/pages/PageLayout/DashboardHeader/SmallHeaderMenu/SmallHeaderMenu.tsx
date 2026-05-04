@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { ReactElement } from 'react';
 import classes from './SmallHeaderMenu.module.css';
 import { useTranslation } from 'react-i18next';
@@ -15,6 +15,7 @@ import {
   mapHeaderMenuGroupToNavigationMenu,
 } from '../../../../utils/headerUtils';
 import { useProfileMenuTriggerButtonText } from '../../../../hooks/useProfileMenuTriggerButtonText';
+import { useSelectedContext } from '../../../../hooks/useSelectedContext';
 
 export function SmallHeaderMenu(): ReactElement {
   const { t } = useTranslation();
@@ -75,10 +76,13 @@ type DropdownMenuGroupsProps = {
 const DropdownMenuGroups = ({ onClickMenuItem }: DropdownMenuGroupsProps): ReactElement[] => {
   const { t } = useTranslation();
   const { menuItems, profileMenuGroups } = useHeaderContext();
+  const selectedContext = useSelectedContext();
   const groupedMenuItems: HeaderMenuGroup[] = groupMenuItemsByGroup(menuItems);
 
   const menuGroups: NavigationMenuGroup[] = [
-    ...groupedMenuItems.map(mapHeaderMenuGroupToNavigationMenu),
+    ...groupedMenuItems.map((menuGroup: HeaderMenuGroup) =>
+      mapHeaderMenuGroupToNavigationMenu(menuGroup, selectedContext),
+    ),
     ...profileMenuGroups,
   ];
 
@@ -86,7 +90,7 @@ const DropdownMenuGroups = ({ onClickMenuItem }: DropdownMenuGroupsProps): React
     <DropdownMenu.Group
       heading={menuGroup.showName && t(menuGroup.name)}
       className={classes.dropDownMenuGroup}
-      key={menuGroup.name}
+      key={menuGroup.items.map((item) => item.itemName).join('-')}
     >
       {menuGroup.items.map((menuItem: NavigationMenuItem) => (
         <SmallHeaderMenuItem

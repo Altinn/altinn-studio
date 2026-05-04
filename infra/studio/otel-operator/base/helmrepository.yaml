@@ -1,0 +1,9 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: otel-oci
+  namespace: otel-operator
+spec:
+  type: oci
+  interval: 1h
+  url: oci://ghcr.io/open-telemetry/opentelemetry-helm-charts

@@ -23,6 +23,7 @@ public enum AuthenticationTypes
     Org = 3,
     SystemUser = 4,
     ServiceOwner = 5,
+    Unknown = 99,
 }
 
 public sealed class TestJwtToken : IXunitSerializable

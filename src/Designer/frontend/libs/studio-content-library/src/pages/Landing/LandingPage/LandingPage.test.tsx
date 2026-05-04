@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { LandingPage } from './LandingPage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -21,6 +20,6 @@ describe('LandingPage', () => {
   });
 });
 
-const renderLandingPage = () => {
+const renderLandingPage = (): void => {
   render(<LandingPage />);
 };

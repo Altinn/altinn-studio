@@ -1,10 +1,13 @@
 # Building studio frontend
-FROM node:lts-alpine@sha256:c921b97d4b74f51744057454b306b418cf693865e73b8100559189605f6955b8 AS generate-studio-frontend
+FROM node:lts-alpine@sha256:01743339035a5c3c11a373cd7c83aeab6ed1457b55da6a69e014a95ac4e4700b AS generate-studio-frontend
 WORKDIR /build
 
 COPY ./package.json yarn.lock ./
 COPY ./.yarnrc.yml ./.yarnrc.yml
 COPY ./.yarn/releases ./.yarn/releases
+COPY ./.yarn/patches ./.yarn/patches
+
+COPY src/App/frontend/package.json ./src/App/frontend/
 
 COPY src/Designer/development/azure-devops-mock/package.json ./src/Designer/development/azure-devops-mock/
 COPY src/Designer/frontend/package.json ./src/Designer/frontend/
@@ -20,9 +23,11 @@ COPY src/Designer/frontend/libs/studio-components-legacy/package.json ./src/Desi
 COPY src/Designer/frontend/libs/studio-content-library/package.json ./src/Designer/frontend/libs/studio-content-library/
 COPY src/Designer/frontend/libs/studio-feature-flags/package.json ./src/Designer/frontend/libs/studio-feature-flags/
 COPY src/Designer/frontend/libs/studio-feedback-form/package.json ./src/Designer/frontend/libs/studio-feedback-form/
+COPY src/Designer/frontend/libs/studio-guard/package.json ./src/Designer/frontend/libs/studio-guard/
 COPY src/Designer/frontend/libs/studio-hooks/package.json ./src/Designer/frontend/libs/studio-hooks/
 COPY src/Designer/frontend/libs/studio-icons/package.json ./src/Designer/frontend/libs/studio-icons/
 COPY src/Designer/frontend/libs/studio-pure-functions/package.json ./src/Designer/frontend/libs/studio-pure-functions/
+COPY src/Designer/frontend/libs/studio-ui-test/package.json ./src/Designer/frontend/libs/studio-ui-test/
 COPY src/Designer/frontend/packages/policy-editor/package.json ./src/Designer/frontend/packages/policy-editor/
 COPY src/Designer/frontend/packages/process-editor/package.json ./src/Designer/frontend/packages/process-editor/
 COPY src/Designer/frontend/packages/schema-editor/package.json ./src/Designer/frontend/packages/schema-editor/
@@ -36,6 +41,8 @@ COPY src/Designer/frontend/resourceadm/testing/playwright/package.json ./src/Des
 COPY src/Designer/frontend/studio-root/package.json ./src/Designer/frontend/studio-root/
 COPY src/Designer/frontend/testing/cypress/package.json ./src/Designer/frontend/testing/cypress/
 COPY src/Designer/frontend/testing/playwright/package.json ./src/Designer/frontend/testing/playwright/
+COPY src/Designer/frontend/settings/package.json ./src/Designer/frontend/settings/
+COPY libs/form-component/package.json ./libs/form-component/
 
 RUN yarn --immutable
 
@@ -43,18 +50,18 @@ COPY . .
 RUN cd src/Designer/frontend && yarn build
 
 # Building the backend
-FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:e0f7abfb9c18aa419198b2c4e05dc2f7fd864a6098f09bddb1ceb2b0bce67685 AS generate-studio-backend
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:3ea83f1463983ba8b51babffebb8556f8b94041fbc5eee2190cc77e913cc6325 AS generate-studio-backend
 ARG DESIGNER_VERSION=''
 WORKDIR /build
 COPY src/Designer/backend .
-RUN dotnet publish src/Designer/Designer.csproj -c Release -o /app_output
+RUN dotnet publish src/Designer/Designer.csproj -c Release -o /app_output /p:CSharpier_Bypass=true
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
 # Create version file
 WORKDIR /version
 RUN echo "{\"version\": \"${DESIGNER_VERSION}\"}" > version.json
 
 # Prepare app template
-FROM alpine@sha256:865b95f46d98cf867a156fe4a135ad3fe50d2056aa3f25ed31662dff6da4eb62 AS app-template-release
+FROM alpine@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659 AS app-template-release
 RUN apk add --no-cache rsync
 
 COPY ./src/App/template/src /app-template-dotnet-src
@@ -62,7 +69,7 @@ WORKDIR /app-template-dotnet-src
 RUN rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /app-template-release
 
 # Building the final image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine@sha256:be36809e32840cf9fcbf1a3366657c903e460d3c621d6593295a5e5d02268a0d AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine@sha256:3af07ffc67cf14710da8a6d15f8ce963e0eb7f2e73a57445edd964a505a2557c AS final
 EXPOSE 80
 WORKDIR /app
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
@@ -77,6 +84,7 @@ COPY --from=generate-studio-frontend /build/src/Designer/frontend/dashboard/dist
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/studio-root/dist ./wwwroot/info/
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/app-preview/dist ./wwwroot/preview/
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/resourceadm/dist ./wwwroot/resourceadm/
+COPY --from=generate-studio-frontend /build/src/Designer/frontend/settings/dist ./wwwroot/settings/
 
 COPY --from=generate-studio-backend /version/version.json ./wwwroot/designer/version.json
 

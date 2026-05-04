@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { IOption } from '../../../types/global';
 import { Fieldset, Radio, ErrorMessage } from '@digdir/designsystemet-react';
 import classes from './EditOptions.module.css';
@@ -15,8 +15,9 @@ import type {
 import { FormField } from '../../FormField';
 import { StudioButton, StudioTextfield } from '@studio/components';
 
-export interface ISelectionEditComponentProvidedProps
-  extends IGenericEditComponent<FormCheckboxesComponent | FormRadioButtonsComponent> {
+export interface ISelectionEditComponentProvidedProps extends IGenericEditComponent<
+  FormCheckboxesComponent | FormRadioButtonsComponent
+> {
   renderOptions?: {
     onlyCodeListOptions?: boolean;
   };

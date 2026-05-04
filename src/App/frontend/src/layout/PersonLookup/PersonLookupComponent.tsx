@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { Field, ValidationMessage } from '@digdir/designsystemet-react';
 import { queryOptions, useQuery } from '@tanstack/react-query';
@@ -8,6 +8,7 @@ import { Input } from 'src/app-components/Input/Input';
 import { NumericInput } from 'src/app-components/Input/NumericInput';
 import { Fieldset } from 'src/app-components/Label/Fieldset';
 import { Label } from 'src/app-components/Label/Label';
+import { translationKey } from 'src/AppComponentsBridge';
 import { Description } from 'src/components/form/Description';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { getDescriptionId } from 'src/components/label/Label';
@@ -91,9 +92,10 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
   const [nameError, setNameError] = useState<string>();
 
   const bindingValidations = useBindingValidationsFor<'PersonLookup'>(baseComponentId);
+
   const { langAsString } = useLanguage();
   const {
-    formData: { person_lookup_ssn, person_lookup_name },
+    formData: { person_lookup_ssn, person_lookup_name, person_lookup_first_name, person_lookup_last_name },
     setValue,
   } = useDataModelBindings(dataModelBindings);
 
@@ -132,25 +134,61 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
 
     const { data } = await performLookup();
     if (data?.person) {
-      setValue('person_lookup_name', getFullName(data.person));
-      setValue('person_lookup_ssn', data.person.ssn);
+      if (dataModelBindings.person_lookup_ssn) {
+        setValue('person_lookup_ssn', data.person.ssn);
+      }
+      if (dataModelBindings.person_lookup_first_name) {
+        setValue('person_lookup_first_name', data.person.firstName);
+      }
+      if (dataModelBindings.person_lookup_last_name) {
+        setValue('person_lookup_last_name', data.person.lastName);
+      }
+      if (dataModelBindings.person_lookup_middle_name) {
+        setValue('person_lookup_middle_name', data.person.middleName || '');
+      }
+      if (dataModelBindings.person_lookup_name) {
+        setValue('person_lookup_name', composeFullName(data.person));
+      }
     }
   }
 
-  function getFullName({ firstName, middleName, lastName }) {
+  function composeFullName({ firstName, middleName, lastName }) {
     return middleName ? `${firstName} ${middleName} ${lastName}` : `${firstName} ${lastName}`;
   }
 
   function handleClear() {
-    setValue('person_lookup_name', '');
-    setValue('person_lookup_ssn', '');
+    if (dataModelBindings.person_lookup_ssn) {
+      setValue('person_lookup_ssn', '');
+    }
+    if (dataModelBindings.person_lookup_first_name) {
+      setValue('person_lookup_first_name', '');
+    }
+    if (dataModelBindings.person_lookup_last_name) {
+      setValue('person_lookup_last_name', '');
+    }
+    if (dataModelBindings.person_lookup_middle_name) {
+      setValue('person_lookup_middle_name', '');
+    }
+    if (dataModelBindings.person_lookup_name) {
+      setValue('person_lookup_name', '');
+    }
+
     setTempName('');
     setTempSsn('');
     setSsnErrors(undefined);
     setNameError(undefined);
   }
 
-  const hasSuccessfullyFetched = !!person_lookup_name && !!person_lookup_ssn;
+  const displayName = useMemo(() => {
+    // We prefer to not display middle name
+    if (person_lookup_first_name && person_lookup_last_name) {
+      return `${person_lookup_first_name} ${person_lookup_last_name}`;
+    }
+
+    return person_lookup_name || '';
+  }, [person_lookup_name, person_lookup_first_name, person_lookup_last_name]);
+
+  const hasSuccessfullyFetched = !!person_lookup_ssn;
 
   const invalidSsn =
     (ssnErrors?.length && ssnErrors?.length > 0) || hasValidationErrors(bindingValidations?.person_lookup_ssn);
@@ -177,7 +215,6 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
                   <Description
                     description={langAsString('person_lookup.from_registry_description')}
                     componentId={`${id}_ssn`}
-                    style={{ fontSize: '1rem' }}
                   />
                 ) : undefined
               }
@@ -187,7 +224,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
             <NumericInput
               id={`${id}_ssn`}
               aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${id}_ssn`) : undefined}
-              aria-label={langAsString('person_lookup.ssn_label')}
+              aria-label={translationKey('person_lookup.ssn_label')}
               value={hasSuccessfullyFetched ? person_lookup_ssn : tempSsn}
               required={required}
               readOnly={hasSuccessfullyFetched}
@@ -238,10 +275,10 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
             <Input
               id={`${id}_name`}
               aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${id}_name`) : undefined}
-              aria-label={langAsString(
+              aria-label={translationKey(
                 hasSuccessfullyFetched ? 'person_lookup.name_label' : 'person_lookup.surname_label',
               )}
-              value={hasSuccessfullyFetched ? person_lookup_name : tempName}
+              value={hasSuccessfullyFetched ? displayName : tempName}
               type='text'
               required={required}
               readOnly={hasSuccessfullyFetched}

@@ -75,4 +75,25 @@ describe('ImageUpload component', () => {
     cy.findByRole('button', { name: /Lagre/i }).click();
     cy.findByRole('img', { name: /uploadThis2.png/ }).should('be.visible');
   });
+
+  it('shows validation error when required and no image is uploaded, removes validation error on upload', () => {
+    cy.gotoNavPage('Bildeopplasting');
+    cy.changeLayout((component) => {
+      if (component.type === 'ImageUpload' && component.id === 'ImageUploadPage-ImageUpload') {
+        component.required = true;
+      }
+      if (component.type === 'NavigationButtons' && component.id === 'ImageUploadPage-NavigationButtons') {
+        component.validateOnNext = { page: 'currentAndPrevious', show: ['All'] };
+      }
+    });
+
+    cy.get('[data-componentId="ImageUploadPage-ImageUpload"]').should('be.visible');
+    cy.findByRole('button', { name: /next/i }).click();
+    cy.findAllByText('Du må laste opp et bilde').first().should('be.visible');
+
+    uploadImageAndVerify(fileName1);
+    cy.findByRole('button', { name: /Lagre/i }).click();
+
+    cy.findAllByText('Du må laste opp et bilde').should('not.exist');
+  });
 });

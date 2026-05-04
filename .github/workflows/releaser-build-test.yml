@@ -1,0 +1,58 @@
+name: Releaser - Build and test
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - "src/tools/releaser/**"
+      - ".github/workflows/releaser-build-test.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Build, lint and unit tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/tools/releaser
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: src/tools/releaser/go.mod
+          cache-dependency-path: src/tools/releaser/go.sum
+
+      - name: Build
+        run: make build
+
+      - name: Check formatting
+        run: |
+          make fmt
+          git diff --exit-code -- .
+
+      - name: Lint
+        run: make lint
+
+      - name: Run unit tests
+        run: make test
+
+      - name: Run e2e tests
+        run: make test-e2e
+
+      - name: Upload e2e test logs
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: releaser-e2e-test-logs
+          path: src/tools/releaser/test/e2e/_logs/
+          if-no-files-found: ignore

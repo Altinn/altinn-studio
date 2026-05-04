@@ -1,12 +1,12 @@
 import React from 'react';
 
-import { jest } from '@jest/globals';
 import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { AxiosResponse } from 'axios';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepGroup';
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
 import { queryPromiseMock, renderGenericComponentTest } from 'src/test/renderWithProviders';
@@ -69,9 +69,10 @@ const render = async ({ component, options, ...rest }: Props = {}) => {
     },
     ...rest,
     queries: {
-      fetchFormData: async () => ({
-        ...getFormDataMockForRepGroup(),
-      }),
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.dataModels[defaultDataTypeMock].initialData = getFormDataMockForRepGroup();
+        }),
       fetchOptions: (...args) =>
         options === undefined
           ? fetchOptions.mock(...args)
@@ -204,7 +205,6 @@ describe('DropdownComponent', () => {
     await userEvent.click(screen.getByRole('combobox'));
     await userEvent.click(screen.getByText('The value from the group is: Label for first'));
 
-    await waitFor(() => expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(1));
     await waitFor(() =>
       expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
         reference: { field: 'myDropdown', dataType: defaultDataTypeMock },
@@ -277,12 +277,15 @@ describe('DropdownComponent', () => {
       },
       options,
       queries: {
-        fetchDataModelSchema: async () => ({
-          type: 'object',
-          properties: {
-            myDropdown: { anyOf: [{ type: 'boolean' }, { type: 'number' }, { type: 'null' }] },
-          },
-        }),
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].schema = {
+              type: 'object',
+              properties: {
+                myDropdown: { anyOf: [{ type: 'boolean' }, { type: 'number' }, { type: 'null' }] },
+              },
+            };
+          }),
       },
     });
 

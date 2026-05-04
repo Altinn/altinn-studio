@@ -81,6 +81,19 @@ export const getMockBpmnElementForTask = (taskType: BpmnTaskType) => {
           },
         },
       };
+    case 'pdf':
+      return {
+        businessObject: {
+          extensionElements: {
+            values: [
+              {
+                taskType: 'pdf',
+                pdfConfig: {},
+              },
+            ],
+          },
+        },
+      };
   }
 };
 

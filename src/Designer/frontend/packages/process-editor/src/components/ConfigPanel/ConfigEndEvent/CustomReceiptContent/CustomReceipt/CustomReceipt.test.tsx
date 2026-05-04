@@ -1,4 +1,3 @@
-import React from 'react';
 import { CustomReceipt } from './CustomReceipt';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -108,7 +107,7 @@ describe('CustomReceipt', () => {
     await user.click(propertyButton);
 
     const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_data_model_label'),
+      name: /process_editor\.configuration_panel_set_data_model_label/,
     });
     const newOption: string = mockAllDataModelIds[1];
     await user.type(combobox, newOption);

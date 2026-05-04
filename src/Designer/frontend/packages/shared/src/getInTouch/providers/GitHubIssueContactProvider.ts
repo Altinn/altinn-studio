@@ -24,9 +24,10 @@ const gitHubIssueType: Record<MappableGithubTypes, GitHubChannelConfig> = {
   },
 };
 
-export class GitHubIssueContactProvider
-  implements GetInTouchProvider<GitHubIssueTypes, GitHubIssueContactOptions>
-{
+export class GitHubIssueContactProvider implements GetInTouchProvider<
+  GitHubIssueTypes,
+  GitHubIssueContactOptions
+> {
   private readonly githubRepoUrl: string = 'https://github.com/Altinn/altinn-studio';
   private readonly githubIssueUrl: string = `${this.githubRepoUrl}/issues/new`;
 

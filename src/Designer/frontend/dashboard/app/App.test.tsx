@@ -1,4 +1,3 @@
-import React from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { App } from './App';
@@ -13,6 +12,10 @@ import { APP_DASHBOARD_BASENAME } from 'app-shared/constants';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithProviders } from '../testing/mocks';
 import type { ProviderData } from '../testing/mocks';
+
+jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+  useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
+}));
 
 jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
@@ -76,7 +79,7 @@ describe('App', () => {
   it('should display the library when the user clicks on the library link', async () => {
     const user = userEvent.setup();
     const queryClient = createQueryClientWithUserAndOrg();
-    const initialEntries = [`${APP_DASHBOARD_BASENAME}/${org.username}`];
+    const initialEntries = [`/${APP_DASHBOARD_BASENAME}/${org.username}`];
     renderApp({ queryClient, queries, initialEntries });
 
     await user.click(screen.getByRole('link', { name: textMock('dashboard.header_item_library') }));
@@ -86,7 +89,7 @@ describe('App', () => {
   it('should display the apps overview when the user is on the library page and clicks on the apps link', async () => {
     const user = userEvent.setup();
     const queryClient = createQueryClientWithUserAndOrg();
-    const initialEntries = [`${APP_DASHBOARD_BASENAME}/${org.username}`];
+    const initialEntries = [`/${APP_DASHBOARD_BASENAME}/${org.username}`];
     renderApp({ queryClient, queries, initialEntries });
 
     await user.click(screen.getByRole('link', { name: textMock('dashboard.header_item_library') }));

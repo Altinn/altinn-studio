@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
 
+import { wktToGeoJSON } from '@terraformer/wkt';
 import dot from 'dot-object';
 import { geoJson, LatLngBounds } from 'leaflet';
-import WKT from 'terraformer-wkt-parser';
 import type { GeoJSON } from 'geojson';
 
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { toRelativePath } from 'src/features/saveToGroup/useSaveToGroup';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
@@ -14,7 +14,7 @@ import type { Geometry, RawGeometry } from 'src/layout/Map/types';
 
 export function useMapRawGeometries(baseComponentId: string): RawGeometry[] | undefined {
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'Map');
-  const formData = FD.useDebouncedPick(dataModelBindings?.geometries);
+  const formData = FormStore.data.useDebouncedPick(dataModelBindings?.geometries);
 
   return useMemo(() => {
     if (!formData || !Array.isArray(formData)) {
@@ -23,6 +23,8 @@ export function useMapRawGeometries(baseComponentId: string): RawGeometry[] | un
 
     const labelPath = toRelativePath(dataModelBindings?.geometries, dataModelBindings?.geometryLabel) ?? 'label';
     const dataPath = toRelativePath(dataModelBindings?.geometries, dataModelBindings?.geometryData) ?? 'data';
+    const isEditablePath =
+      toRelativePath(dataModelBindings?.geometries, dataModelBindings?.geometryIsEditable) ?? 'isEditable';
 
     return formData.map((item: unknown): RawGeometry => {
       if (!item || typeof item !== 'object' || !item[ALTINN_ROW_ID]) {
@@ -35,9 +37,16 @@ export function useMapRawGeometries(baseComponentId: string): RawGeometry[] | un
         altinnRowId: item[ALTINN_ROW_ID],
         data: dot.pick(dataPath, item),
         label: dot.pick(labelPath, item),
+        isEditable: dot.pick(isEditablePath, item),
       };
     });
-  }, [dataModelBindings?.geometries, dataModelBindings?.geometryData, dataModelBindings?.geometryLabel, formData]);
+  }, [
+    dataModelBindings?.geometries,
+    dataModelBindings?.geometryData,
+    dataModelBindings?.geometryLabel,
+    dataModelBindings?.geometryIsEditable,
+    formData,
+  ]);
 }
 
 export function useMapParsedGeometries(baseComponentId: string): Geometry[] | null {
@@ -66,13 +75,13 @@ function parseGeometries(geometries: RawGeometry[] | undefined, geometryType?: I
   }
 
   const out: Geometry[] = [];
-  for (const { altinnRowId, data: rawData, label } of geometries) {
+  for (const { altinnRowId, data: rawData, label, isEditable } of geometries) {
     if (geometryType === 'WKT') {
-      const data = WKT.parse(rawData);
-      out.push({ altinnRowId, data, label });
+      const data = wktToGeoJSON(rawData);
+      out.push({ altinnRowId, data, label, isEditable });
     } else {
       const data = JSON.parse(rawData) as GeoJSON;
-      out.push({ altinnRowId, data, label });
+      out.push({ altinnRowId, data, label, isEditable });
     }
   }
 

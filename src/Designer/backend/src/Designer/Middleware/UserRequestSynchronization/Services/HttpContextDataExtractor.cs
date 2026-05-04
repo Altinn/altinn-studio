@@ -70,9 +70,11 @@ public class HttpContextDataExtractor
         app = null;
         var routeValues = httpContext.Request.RouteValues;
 
-        if (routeValues.TryGetValue("app", out object appValue) ||
-            routeValues.TryGetValue("repo", out appValue) ||
-            routeValues.TryGetValue("repository", out appValue))
+        if (
+            routeValues.TryGetValue("app", out object appValue)
+            || routeValues.TryGetValue("repo", out appValue)
+            || routeValues.TryGetValue("repository", out appValue)
+        )
         {
             app = appValue?.ToString();
             return !string.IsNullOrEmpty(app);
@@ -94,9 +96,11 @@ public class HttpContextDataExtractor
         }
 
         string controllerName = controllerActionDescriptor.ControllerName;
-        bool isResourceAdmin = string.Equals(controllerName,
+        bool isResourceAdmin = string.Equals(
+            controllerName,
             nameof(ResourceAdminController).Replace("Controller", string.Empty),
-            StringComparison.InvariantCulture);
+            StringComparison.InvariantCulture
+        );
 
         if (isResourceAdmin && TryResolveOrg(httpContext, out string org))
         {

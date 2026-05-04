@@ -1,11 +1,10 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import classes from './ToolColumn.module.css';
 import { ToolColumnMode } from '../../types/ToolColumnMode';
 
 export type ToolColumnProps = {
   mode: ToolColumnMode;
-  previewContent?: ReactElement;
+  previewContent: ReactElement;
   fileBrowserContent?: ReactElement;
 };
 
@@ -17,10 +16,11 @@ export function ToolColumn({
 }: ToolColumnProps): ReactElement {
   return (
     <div className={classes.container}>
-      {mode === ToolColumnMode.Preview &&
-        (previewContent || <div className={classes.placeholder}>Preview placeholder</div>)}
+      {mode === ToolColumnMode.Preview && previewContent}
       {mode === ToolColumnMode.FileExplorer &&
-        (fileBrowserContent || (
+        (fileBrowserContent ? (
+          <div className={classes.fileExplorerContainer}>{fileBrowserContent}</div>
+        ) : (
           <div className={classes.placeholder}>
             <ul className={classes.fileList}>
               <li>📁 src/</li>

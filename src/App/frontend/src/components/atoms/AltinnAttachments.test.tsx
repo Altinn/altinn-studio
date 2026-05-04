@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { jest } from '@jest/globals';
 import { render, screen } from '@testing-library/react';
 
 import { AltinnAttachments } from 'src/components/atoms/AltinnAttachments';
@@ -130,7 +129,7 @@ describe('AltinnAttachments', () => {
     render(
       <AltinnAttachments
         attachments={mockAttachments}
-        title={title}
+        title={title as unknown as React.ReactElement}
         showLinks={true}
       />,
     );

@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, render } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { StudioTextfield } from './StudioTextfield';
@@ -67,6 +66,16 @@ describe('StudioTextfield', () => {
 
   it('Appends given classname to internal classname', () => {
     testRootClassNameAppending((className: string) => renderStudioTextfield({ label, className }));
+  });
+
+  it('Does not set the field as required by default', () => {
+    renderStudioTextfield({ label });
+    expect(screen.getByRole('textbox')).not.toBeRequired();
+  });
+
+  it('Sets the field as required when the required prop is true', () => {
+    renderStudioTextfield({ label, required: true });
+    expect(screen.getByRole('textbox')).toBeRequired();
   });
 });
 

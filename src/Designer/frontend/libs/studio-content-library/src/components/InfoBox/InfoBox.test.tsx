@@ -1,10 +1,9 @@
-import React from 'react';
 import { InfoBox } from './InfoBox';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { PageName } from '../../types/PageName';
 import { infoBoxConfigs } from './infoBoxConfigs';
-import { Guard } from '@studio/pure-functions';
+import { Guard } from '@studio/guard';
 
 const pageNameMock: PageName = PageName.CodeListsWithTextResources;
 
@@ -31,6 +30,6 @@ describe('InfoBox', () => {
   });
 });
 
-const renderInfoBox = (pageName: PageName = pageNameMock) => {
+const renderInfoBox = (pageName: PageName = pageNameMock): void => {
   render(<InfoBox pageName={pageName} />);
 };

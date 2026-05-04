@@ -17,7 +17,7 @@ export const TextAreaSummary = ({ targetBaseComponentId }: Summary2Props) => {
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
   const { textResourceBindings, required } = useItemWhenType(targetBaseComponentId, 'TextArea');
-  const title = textResourceBindings?.title;
+  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
 
   return (
     <SummaryFlex

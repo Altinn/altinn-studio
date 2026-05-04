@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './SchemaEditor.module.css';
 import { TypesInspector } from '../TypesInspector';
 import { SchemaInspector } from '../SchemaInspector';

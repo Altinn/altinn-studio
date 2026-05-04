@@ -1,0 +1,83 @@
+using System;
+using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
+using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
+using Altinn.Studio.Designer.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+
+namespace Altinn.Studio.Designer.Services.Implementation;
+
+public class GiteaDbStudioOidcUsernameProvider(
+    DesignerdbContext designerDb,
+    GiteaDbSettings giteaDbSettings,
+    TimeProvider timeProvider
+) : IStudioOidcUsernameProvider
+{
+    private const string GiteaLookupQuery = """
+        SELECT u.lower_name
+        FROM external_login_user elu
+        JOIN "user" u ON elu.user_id = u.id
+        WHERE elu.external_id = @sub
+        LIMIT 1
+        """;
+
+    public async Task<string> ResolveUsernameAsync(string sub, PidHash pidHash, string? givenName, string? familyName)
+    {
+        string pidHashValue = pidHash.Value;
+
+        // Step 1: Check Designer DB mapping
+        var mapping = await designerDb.UserAccounts.FirstOrDefaultAsync(m => m.PidHash == pidHashValue);
+
+        if (mapping != null)
+        {
+            if (mapping.Deactivated)
+            {
+                throw new UnauthorizedAccessException($"User account '{mapping.Username}' has been deactivated.");
+            }
+
+            return mapping.Username;
+        }
+
+        // Step 2: Check Gitea DB by sub
+        string? giteaUsername = await LookupGiteaUsernameAsync(sub);
+        if (giteaUsername != null)
+        {
+            await StoreMapping(pidHash, giteaUsername);
+            return giteaUsername;
+        }
+
+        // Step 3: Generate new username
+        string generatedUsername = GiteaUsernameGenerator.GenerateUsername(givenName, familyName);
+        await StoreMapping(pidHash, generatedUsername);
+        return generatedUsername;
+    }
+
+    private async Task<string?> LookupGiteaUsernameAsync(string sub)
+    {
+        await using var connection = new NpgsqlConnection(giteaDbSettings.ConnectionString);
+        await connection.OpenAsync();
+
+        await using var command = new NpgsqlCommand(GiteaLookupQuery, connection);
+        command.Parameters.AddWithValue("sub", sub);
+
+        var result = await command.ExecuteScalarAsync();
+        return result as string;
+    }
+
+    private async Task StoreMapping(PidHash pidHash, string username)
+    {
+        designerDb.UserAccounts.Add(
+            new UserAccountDbModel
+            {
+                PidHash = pidHash.Value,
+                Username = username,
+                Created = timeProvider.GetUtcNow(),
+            }
+        );
+        await designerDb.SaveChangesAsync();
+    }
+}

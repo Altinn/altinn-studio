@@ -1,33 +1,38 @@
 #nullable disable
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
-namespace Altinn.Studio.Designer.Helpers
+namespace Altinn.Studio.Designer.Helpers;
+
+/// <summary>
+/// helper class for authentication
+/// </summary>
+public static class AuthenticationHelper
 {
     /// <summary>
-    /// helper class for authentication
+    /// Gets the app developer's user name
     /// </summary>
-    public static class AuthenticationHelper
+    /// <param name="context">the http context</param>
+    /// <returns>The developer user name</returns>
+    public static string GetDeveloperUserName(HttpContext context)
     {
-        /// <summary>
-        /// Gets the app developer's user name
-        /// </summary>
-        /// <param name="context">the http context</param>
-        /// <returns>The developer user name</returns>
-        public static string GetDeveloperUserName(HttpContext context)
+        return context.User.Identity?.Name;
+    }
+
+    public static async Task<string> GetDeveloperAppTokenAsync(this HttpContext context)
+    {
+        if (context.User.Identity?.AuthenticationType == ApiKeyAuthenticationDefaults.AuthenticationScheme)
         {
-            return context.User.Identity?.Name;
+            return null;
         }
 
-        public static Task<string> GetDeveloperAppTokenAsync(this HttpContext context)
-        {
-            return context.GetTokenAsync("access_token");
-        }
+        return await context.GetTokenAsync("access_token");
+    }
 
-        public static bool IsAuthenticated(HttpContext context)
-        {
-            return context.User.Identity?.IsAuthenticated ?? false;
-        }
+    public static bool IsAuthenticated(HttpContext context)
+    {
+        return context.User.Identity?.IsAuthenticated ?? false;
     }
 }

@@ -79,6 +79,13 @@ public class ApplicationMetadata : Application
     public Dictionary<string, object>? UnmappedProperties { get; set; }
 
     /// <summary>
+    /// Configure whether the user should be prompted for party selection.
+    /// Valid values are "always" and "never". When null, the default behavior is used.
+    /// </summary>
+    [JsonProperty(PropertyName = "promptForParty")]
+    public string? PromptForParty { get; set; }
+
+    /// <summary>
     /// List of ids for the external APIs registered in the application
     /// </summary>
     [JsonProperty(PropertyName = "externalApiIds")]

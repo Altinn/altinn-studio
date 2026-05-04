@@ -109,7 +109,9 @@ public class SigningUserActionTests
 
             var instanceClientMock = new Mock<IInstanceClient>();
             instanceClientMock
-                .Setup(x => x.GetInstance(_instance))
+                .Setup(x =>
+                    x.GetInstance(_instance, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+                )
                 .ReturnsAsync(() =>
                 {
                     if (signatureWasAdded)
@@ -702,16 +704,14 @@ public class SigningUserActionHandleOnBehalfOfTests
             .Setup(s =>
                 s.GetAuthorizedOrganizationSignees(dataMutator.Object, signatureConfig, userId, CancellationToken.None)
             )
-            .ReturnsAsync(
-                [
-                    new()
-                    {
-                        OrgNumber = "111111111",
-                        OrgName = "TestOrg",
-                        OrgParty = new Party { PartyId = 123 },
-                    },
-                ]
-            );
+            .ReturnsAsync([
+                new()
+                {
+                    OrgNumber = "111111111",
+                    OrgName = "TestOrg",
+                    OrgParty = new Party { PartyId = 123 },
+                },
+            ]);
 
         // Act:
         bool result = await action.HandleOnBehalfOf(context, signatureConfig, CancellationToken.None);
@@ -750,16 +750,14 @@ public class SigningUserActionHandleOnBehalfOfTests
             .Setup(s =>
                 s.GetAuthorizedOrganizationSignees(dataMutator.Object, signatureConfig, 200, CancellationToken.None)
             )
-            .ReturnsAsync(
-                [
-                    new OrganizationSignee
-                    {
-                        OrgNumber = onBehalfOrg,
-                        OrgName = "TestOrg",
-                        OrgParty = new Party { PartyId = 123 },
-                    },
-                ]
-            );
+            .ReturnsAsync([
+                new OrganizationSignee
+                {
+                    OrgNumber = onBehalfOrg,
+                    OrgName = "TestOrg",
+                    OrgParty = new Party { PartyId = 123 },
+                },
+            ]);
 
         // Act:
         bool result = await action.HandleOnBehalfOf(context, signatureConfig, CancellationToken.None);

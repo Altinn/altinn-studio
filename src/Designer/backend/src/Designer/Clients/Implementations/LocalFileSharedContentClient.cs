@@ -14,17 +14,22 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.SharedContent;
 using Microsoft.Extensions.Logging;
 using Quartz.Util;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Altinn.Studio.Designer.Clients.Implementations;
 
 public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> logger) : ISharedContentClient
 {
-
     private const string InitialVersion = "1";
     private const string CodeListsSegment = "code_lists";
     private const string IndexFileName = "_index.json";
     private const string LatestCodeListFileName = "_latest.json";
-    private readonly string _basePath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "altinn", "published_resources");
+    private const string JsonExtension = ".json";
+    private readonly string _basePath = Path.Join(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "altinn",
+        "published_resources"
+    );
 
     internal readonly ConcurrentDictionary<string, string> FileNamesAndContent = [];
     internal string CurrentVersion = InitialVersion;
@@ -35,10 +40,15 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        AllowTrailingCommas = true
+        AllowTrailingCommas = true,
     };
 
-    public async Task<string> PublishCodeList(string orgName, string codeListId, CodeList codeList, CancellationToken cancellationToken = default)
+    public async Task<string> PublishCodeList(
+        string orgName,
+        string codeListId,
+        CodeList codeList,
+        CancellationToken cancellationToken = default
+    )
     {
         orgName.ValidPathSegment(nameof(orgName));
         codeListId.ValidPathSegment(nameof(codeListId));
@@ -48,7 +58,11 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         string versionIndexPrefix = CombineWithDelimiter(orgName, CodeListsSegment, codeListId);
 
         Task organisationIndexTask = PrepareOrganisationIndexFile(orgName, cancellationToken);
-        Task resourceTypeTask = PrepareResourceTypeIndexFile(resourceTypeIndexPrefix, CodeListsSegment, cancellationToken);
+        Task resourceTypeTask = PrepareResourceTypeIndexFile(
+            resourceTypeIndexPrefix,
+            CodeListsSegment,
+            cancellationToken
+        );
         Task resourceTask = PrepareResourceIndexFile(resourceIndexPrefix, codeListId, cancellationToken);
         Task versionTask = PrepareVersionIndexFile(versionIndexPrefix, cancellationToken);
         await Task.WhenAll(organisationIndexTask, resourceTypeTask, resourceTask, versionTask);
@@ -58,6 +72,33 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
 
         await UploadFiles(cancellationToken);
         return CurrentVersion;
+    }
+
+    public async Task<CodeList?> GetPublishedCodeListForOrg(
+        string orgName,
+        string codeListId,
+        string? version = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        version = string.IsNullOrWhiteSpace(version) ? LatestCodeListFileName : version.Trim();
+        string url = CombineWithDelimiter(
+            orgName,
+            CodeListsSegment,
+            codeListId,
+            version.EndsWith(JsonExtension, StringComparison.OrdinalIgnoreCase) ? version : JsonFileName(version)
+        );
+        try
+        {
+            string? jsonString = await ReadFileByRelativePathAsync(url, cancellationToken);
+            return !string.IsNullOrWhiteSpace(jsonString)
+                ? JsonSerializer.Deserialize<CodeList>(jsonString, s_jsonOptions)
+                : null;
+        }
+        catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
+        {
+            return null;
+        }
     }
 
     private async Task PrepareOrganisationIndexFile(string content, CancellationToken cancellationToken = default)
@@ -73,12 +114,19 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         }
         catch (Exception ex) when (ex is IOException)
         {
-            logger.LogError("Issues with the file format when getting files, in {Client}", nameof(LocalFileSharedContentClient));
+            logger.LogError(
+                "Issues with the file format when getting files, in {Client}",
+                nameof(LocalFileSharedContentClient)
+            );
             throw new InvalidOperationException($"Request failed, class: {nameof(LocalFileSharedContentClient)}", ex);
         }
     }
 
-    private async Task PrepareResourceTypeIndexFile(string pathPrefix, string resourceType, CancellationToken cancellationToken = default)
+    private async Task PrepareResourceTypeIndexFile(
+        string pathPrefix,
+        string resourceType,
+        CancellationToken cancellationToken = default
+    )
     {
         string content = CombineWithDelimiter(pathPrefix, resourceType);
         string path = CombineWithDelimiter(pathPrefix, IndexFileName);
@@ -92,12 +140,19 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         }
         catch (Exception ex) when (ex is IOException)
         {
-            logger.LogError("Issues with the file format when getting files, in {Client}", nameof(LocalFileSharedContentClient));
+            logger.LogError(
+                "Issues with the file format when getting files, in {Client}",
+                nameof(LocalFileSharedContentClient)
+            );
             throw new InvalidOperationException($"Request failed, class: {nameof(LocalFileSharedContentClient)}", ex);
         }
     }
 
-    private async Task PrepareResourceIndexFile(string pathPrefix, string resourceId, CancellationToken cancellationToken = default)
+    private async Task PrepareResourceIndexFile(
+        string pathPrefix,
+        string resourceId,
+        CancellationToken cancellationToken = default
+    )
     {
         string content = CombineWithDelimiter(pathPrefix, resourceId);
         string path = CombineWithDelimiter(pathPrefix, IndexFileName);
@@ -111,7 +166,10 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         }
         catch (Exception ex) when (ex is IOException)
         {
-            logger.LogError("Issues with the file format when getting files, in {Client}", nameof(LocalFileSharedContentClient));
+            logger.LogError(
+                "Issues with the file format when getting files, in {Client}",
+                nameof(LocalFileSharedContentClient)
+            );
             throw new InvalidOperationException($"Request failed, class: {nameof(LocalFileSharedContentClient)}", ex);
         }
     }
@@ -224,12 +282,16 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
     private async Task UploadFiles(CancellationToken cancellationToken = default)
     {
         ParallelOptions options = new() { MaxDegreeOfParallelism = 10, CancellationToken = cancellationToken };
-        await Parallel.ForEachAsync(FileNamesAndContent, options, async (fileNameAndContent, token) =>
-        {
-            string relativePath = fileNameAndContent.Key;
-            string text = fileNameAndContent.Value;
-            await WriteTextByRelativePathAsync(relativePath, text, token);
-        });
+        await Parallel.ForEachAsync(
+            FileNamesAndContent,
+            options,
+            async (fileNameAndContent, token) =>
+            {
+                string relativePath = fileNameAndContent.Key;
+                string text = fileNameAndContent.Value;
+                await WriteTextByRelativePathAsync(relativePath, text, token);
+            }
+        );
     }
 
     /// <summary>
@@ -242,7 +304,7 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         return string.Join('/', nonNulls.Select(segment => segment?.Trim('/')));
     }
 
-    internal static string JsonFileName(string filename) => $"{filename}.json";
+    internal static string JsonFileName(string filename) => $"{filename}{JsonExtension}";
 
     internal void SetCurrentVersion(List<string> versionPrefixes)
     {
@@ -251,7 +313,10 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
 
         foreach (string? versionAsString in versionsAsString)
         {
-            if (versionAsString is null) { continue; }
+            if (versionAsString is null)
+            {
+                continue;
+            }
 
             bool success = int.TryParse(versionAsString, out int versionAsInt);
             if (success)
@@ -260,16 +325,26 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
                 continue;
             }
 
-            logger.LogWarning("Could not parse version string to int: {VersionString}, class: {Class}", versionAsString, nameof(LocalFileSharedContentClient));
+            logger.LogWarning(
+                "Could not parse version string to int: {VersionString}, class: {Class}",
+                versionAsString,
+                nameof(LocalFileSharedContentClient)
+            );
         }
 
-        if (versions.Count == 0) { return; }
+        if (versions.Count == 0)
+        {
+            return;
+        }
 
         int version = versions.Max();
         CurrentVersion = (version + 1).ToString();
     }
 
-    private async Task<string?> ReadFileByRelativePathAsync(string relativeFilePath, CancellationToken cancellationToken = default)
+    private async Task<string?> ReadFileByRelativePathAsync(
+        string relativeFilePath,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string absoluteFilePath = Path.Join(_basePath, relativeFilePath);
@@ -288,7 +363,11 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         }
     }
 
-    private async Task WriteTextByRelativePathAsync(string relativePath, string text, CancellationToken cancellationToken = default)
+    private async Task WriteTextByRelativePathAsync(
+        string relativePath,
+        string text,
+        CancellationToken cancellationToken = default
+    )
     {
         string absoluteFilePath = Path.Join(_basePath, relativePath);
         ValidatePathIsSubPath(absoluteFilePath);
@@ -300,11 +379,22 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         }
 
         byte[] encodedText = Encoding.UTF8.GetBytes(text);
-        await using FileStream sourceStream = new(absoluteFilePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
+        await using FileStream sourceStream = new(
+            absoluteFilePath,
+            FileMode.Create,
+            FileAccess.Write,
+            FileShare.None,
+            bufferSize: 4096,
+            useAsync: true
+        );
         await sourceStream.WriteAsync(encodedText.AsMemory(0, encodedText.Length), cancellationToken);
     }
 
-    public async Task<List<string>> GetPublishedResourcesForOrg(string orgName, string path = "", CancellationToken cancellationToken = default)
+    public async Task<List<string>> GetPublishedResourcesForOrg(
+        string orgName,
+        string path = "",
+        CancellationToken cancellationToken = default
+    )
     {
         orgName.ValidPathSegment(nameof(orgName));
         if (path.IsNullOrWhiteSpace() is false)
@@ -319,9 +409,7 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         try
         {
             IEnumerable<string> directoryFiles = Directory.GetFiles(prefix, "*", SearchOption.AllDirectories);
-            return directoryFiles
-                .Select(file => Path.GetRelativePath(prefix, file).Replace("\\", "/"))
-                .ToList();
+            return directoryFiles.Select(file => Path.GetRelativePath(prefix, file).Replace("\\", "/")).ToList();
         }
         catch (Exception ex) when (ex is DirectoryNotFoundException)
         {
@@ -333,7 +421,10 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
     {
         string fullBasePath = Path.GetFullPath(_basePath);
         string normalizedFilePath = Path.GetFullPath(path);
-        if (!normalizedFilePath.StartsWith(fullBasePath + Path.DirectorySeparatorChar) && normalizedFilePath != fullBasePath)
+        if (
+            !normalizedFilePath.StartsWith(fullBasePath + Path.DirectorySeparatorChar)
+            && normalizedFilePath != fullBasePath
+        )
         {
             throw new UnauthorizedAccessException("Attempted path traversal or access outside permitted directory.");
         }

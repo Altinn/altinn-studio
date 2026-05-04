@@ -1,25 +1,25 @@
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
+import { FormStore } from 'src/features/form/FormContext';
+import { getUiFolderSettings } from 'src/features/form/ui';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
-import { Validation } from 'src/features/validation/validationContext';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import type { ComponentValidation, SubformValidation } from 'src/features/validation';
 
 export function useValidateSubform(baseComponentId: string): ComponentValidation[] {
-  const applicationMetadata = useApplicationMetadata();
-  const layoutSets = useLayoutSets();
+  const applicationMetadata = getApplicationMetadata();
   const component = useExternalItem(baseComponentId, 'Subform');
   const layoutSetName = component?.layoutSet;
   if (!layoutSetName) {
     throw new Error(`Layoutset not found for node with id ${baseComponentId}.`);
   }
-  const targetType = layoutSets.find((set) => set.id === layoutSetName)?.dataType;
+
+  const targetType = getUiFolderSettings(layoutSetName)?.defaultDataType;
   if (!targetType) {
-    throw new Error(`Data type not found for layout with name ${layoutSetName}`);
+    throw new Error(`Default data type not found for ui folder with name ${layoutSetName}`);
   }
   const elements = useInstanceDataElements(targetType);
-  const subformIdsWithError = Validation.useDataElementsWithErrors(elements.map((dE) => dE.id));
+  const subformIdsWithError = FormStore.validation.useDataElementsWithErrors(elements.map((element) => element.id));
   const dataTypeDefinition = applicationMetadata.dataTypes.find((x) => x.id === targetType);
   if (dataTypeDefinition === undefined) {
     return [];

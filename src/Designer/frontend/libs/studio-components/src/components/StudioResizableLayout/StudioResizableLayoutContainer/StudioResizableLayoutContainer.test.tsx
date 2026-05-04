@@ -1,4 +1,3 @@
-import React from 'react';
 import type { StudioResizableLayoutContainerProps } from './StudioResizableLayoutContainer';
 import { StudioResizableLayoutContainer } from './StudioResizableLayoutContainer';
 import { fireEvent, render, screen } from '@testing-library/react';

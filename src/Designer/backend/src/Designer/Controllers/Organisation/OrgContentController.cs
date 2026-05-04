@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -34,7 +33,6 @@ public class OrgContentController : ControllerBase
         _orgService = orgService;
     }
 
-
     /// <summary>
     /// Retrieves a list of available library content from the organisation.
     /// </summary>
@@ -42,7 +40,10 @@ public class OrgContentController : ControllerBase
     /// <param name="contentType">The type of content to return the names of. Returns all types if not given.</param>
     [HttpGet]
     [Route("content")]
-    public async Task<ActionResult<List<LibraryContentReference>>> GetOrgLibraryContentReferences([FromRoute] string orgName, [FromQuery] string contentType)
+    public async Task<ActionResult<List<LibraryContentReference>>> GetOrgLibraryContentReferences(
+        [FromRoute] string orgName,
+        [FromQuery] string? contentType
+    )
     {
         if (!await _orgService.IsOrg(orgName))
         {

@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: runtime-obs
+  labels:
+    altinn.studio/runtime: "true"
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: observability-repo
+  namespace: runtime-obs
+spec:
+  interval: 5m
+  provider: azure
+  ref:
+    tag: ${UPGRADE_CHANNEL}
+  timeout: 5m
+  url: oci://altinncr.azurecr.io/studio-apps/runtime-observability
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: observability
+  namespace: runtime-obs
+spec:
+  targetNamespace: runtime-obs
+  interval: 5m
+  retryInterval: 5m
+  timeout: 1m
+  prune: true
+  force: false
+  wait: true
+  path: ./runtime/env/${ENVIRONMENT}
+  sourceRef:
+    kind: OCIRepository
+    name: observability-repo
+    namespace: runtime-obs
+  postBuild:
+    substitute:
+      ENVIRONMENT: ${ENVIRONMENT}

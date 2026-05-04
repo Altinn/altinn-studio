@@ -6,11 +6,13 @@ using Altinn.App.Api.Helpers;
 using Altinn.App.Api.Helpers.Patch;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Infrastructure.Health;
+using Altinn.App.Api.Infrastructure.Lifetime;
 using Altinn.App.Api.Infrastructure.Middleware;
 using Altinn.App.Api.Infrastructure.Telemetry;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.Cache;
 using Altinn.App.Core.Features.Correspondence.Extensions;
 using Altinn.App.Core.Features.Maskinporten;
@@ -118,11 +120,14 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<IAuthorizationHandler, AppAccessHandler>();
         services.AddTransient<InternalPatchService>();
+        services.AddTransient<FormBootstrapService>();
 
         services.Configure<KestrelServerOptions>(options =>
         {
             options.AllowSynchronousIO = true;
         });
+
+        ConfigureGracefulShutdown(services, env);
 
         // HttpClients for platform functionality. Registered as HttpClient so default HttpClientFactory is used
         services.AddHttpClient<AuthorizationApiClient>();
@@ -232,6 +237,7 @@ public static class ServiceCollectionExtensions
         DistributedContextPropagator.Current = new AspNetCorePropagator();
 
         var appInsightsConnectionString = GetAppInsightsConnectionStringForOtel(config, env);
+        var useOpenTelemetryCollector = config.GetValue<bool?>("AppSettings:UseOpenTelemetryCollector");
 
         services
             .AddOpenTelemetry()
@@ -249,12 +255,13 @@ public static class ServiceCollectionExtensions
                     .AddAspNetCoreInstrumentation(opts =>
                     {
                         opts.RecordException = true;
+                        opts.Filter = httpContext => !httpContext.Request.Path.StartsWithSegments("/health");
                     });
 
                 if (isTest)
                     return;
 
-                if (!string.IsNullOrWhiteSpace(appInsightsConnectionString))
+                if (useOpenTelemetryCollector is not true && !string.IsNullOrWhiteSpace(appInsightsConnectionString))
                 {
                     builder = builder.AddAzureMonitorTraceExporter(options =>
                     {
@@ -277,7 +284,7 @@ public static class ServiceCollectionExtensions
                 if (isTest)
                     return;
 
-                if (!string.IsNullOrWhiteSpace(appInsightsConnectionString))
+                if (useOpenTelemetryCollector is not true && !string.IsNullOrWhiteSpace(appInsightsConnectionString))
                 {
                     builder = builder.AddAzureMonitorMetricExporter(options =>
                     {
@@ -299,7 +306,7 @@ public static class ServiceCollectionExtensions
                 if (isTest)
                     return;
 
-                if (!string.IsNullOrWhiteSpace(appInsightsConnectionString))
+                if (useOpenTelemetryCollector is not true && !string.IsNullOrWhiteSpace(appInsightsConnectionString))
                 {
                     options.AddAzureMonitorLogExporter(options =>
                     {
@@ -543,5 +550,34 @@ public static class ServiceCollectionExtensions
         }
 
         return $"InstrumentationKey={key}";
+    }
+
+    private static void ConfigureGracefulShutdown(IServiceCollection services, IHostEnvironment env)
+    {
+        if (env.IsDevelopment())
+            return;
+
+        // Need to coordinate graceful shutdown (let's assume k8s as the scheduler/runtime):
+        // - deployment is configured with a terminationGracePeriod of 30s (default timeout before SIGKILL)
+        // - k8s flow of information is eventually consistent.
+        //   it takes time for knowledge of SIGTERM on the worker node to propagate to e.g. networking layers
+        //   (k8s Service -> Endspoints rotation. It takes time to be taken out of Endpoint rotation)
+        // - we want to gracefully drain ASP.NET core for requests, leaving some time for active requests to complete
+        // This leaves us with the following sequence of events
+        // - container receives SIGTERM
+        // - `AppHostLifetime` intercepts SIGTERM and delays for `shutdownDelay`
+        // - `AppHostLifetime` calls `IHostApplicationLifetime.StopApplication`, to start ASP.NET Core shutdown process
+        // - ASP.NET Core will spend a maximum of `shutdownTimeout` trying to drain active requests
+        //   (cancelable requests can combine cancellation tokens with `IHostApplicationLifetime.ApplicationStopping`)
+        // - If ASP.NET Core completes shutdown within `shutdownTimeout`, everything is fine
+        // - If ASP.NET Core is stuck or in some way can't terminate, kubelet will eventually SIGKILL
+        var shutdownDelay = TimeSpan.FromSeconds(5);
+        var shutdownTimeout = TimeSpan.FromSeconds(20);
+
+        services.AddSingleton<IHostLifetime>(sp =>
+            ActivatorUtilities.CreateInstance<AppHostLifetime>(sp, shutdownDelay)
+        );
+
+        services.Configure<HostOptions>(options => options.ShutdownTimeout = shutdownTimeout);
     }
 }

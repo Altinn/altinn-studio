@@ -1,14 +1,15 @@
 import type { IGenericEditComponent } from '../../componentConfig';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import classes from './EditDataModelBinding.module.css';
 import { useTranslation } from 'react-i18next';
 import { UndefinedBinding } from './UndefinedBinding';
 import { EditBinding } from './EditBinding';
 import { DefinedBinding } from './DefinedBinding';
 
-export interface EditDataModelBindingProps<T extends ComponentType>
-  extends IGenericEditComponent<T> {
+export interface EditDataModelBindingProps<
+  T extends ComponentType,
+> extends IGenericEditComponent<T> {
   renderOptions?: {
     label?: string;
     returnValue?: any;

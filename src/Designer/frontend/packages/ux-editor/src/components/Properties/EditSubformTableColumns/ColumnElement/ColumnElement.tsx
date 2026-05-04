@@ -1,4 +1,5 @@
-import React, { useState, type ReactElement } from 'react';
+import type { ReactElement } from 'react';
+import { useState } from 'react';
 import classes from './ColumnElement.module.css';
 import type { TableColumn } from '../types/TableColumn';
 import { useTranslation } from 'react-i18next';
@@ -6,7 +7,7 @@ import { StudioProperty } from '@studio/components';
 import { EditColumnElement } from './EditColumnElement';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { textResourceByLanguageAndIdSelector } from '../../../../selectors/textResourceSelectors';
+import { textResourceByLanguageAndIdSelector } from 'app-shared/selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 export type ColumnElementProps = {

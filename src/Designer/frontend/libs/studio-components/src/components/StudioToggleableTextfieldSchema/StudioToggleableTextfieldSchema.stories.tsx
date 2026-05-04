@@ -1,22 +1,18 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioToggleableTextfieldSchema } from './StudioToggleableTextfieldSchema';
 
-type Story = StoryFn<typeof StudioToggleableTextfieldSchema>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioToggleableTextfieldSchema',
   component: StudioToggleableTextfieldSchema,
-};
-
-export const Preview: Story = (args) => (
-  <StudioToggleableTextfieldSchema {...args}></StudioToggleableTextfieldSchema>
-);
-
-Preview.args = {
-  label: 'My awesome label',
-  value: 'value',
-  error: '',
-};
-
+} satisfies Meta<typeof StudioToggleableTextfieldSchema>;
 export default meta;
+
+type Story = StoryObj<typeof StudioToggleableTextfieldSchema>;
+
+export const Preview: Story = {
+  args: {
+    label: 'My awesome label',
+    value: 'value',
+    error: '',
+  },
+};

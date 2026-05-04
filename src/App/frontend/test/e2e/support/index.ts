@@ -9,17 +9,16 @@ import 'test/e2e/support/auth';
 import 'test/e2e/support/navigation';
 import 'test/e2e/support/formFiller';
 import '@percy/cypress';
+import 'test/e2e/support/snapshot';
 
-import { register as registerSnapshot } from '@cypress/snapshot';
 import failOnConsoleError from 'cypress-fail-on-console-error';
 import installLogsCollector from 'cypress-terminal-report/src/installLogsCollector';
+import dotenv from 'dotenv';
 import type { ConsoleMessage } from 'cypress-fail-on-console-error';
 
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { chaiExtensions } from 'test/e2e/support/chai-extensions';
 import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
-
-registerSnapshot();
 
 const appFrontend = new AppFrontend();
 
@@ -60,4 +59,7 @@ Cypress.Commands.add('ignoreConsoleMessages', (consoleMessages: ConsoleMessage[]
   });
 });
 
-installLogsCollector();
+const env = dotenv.config({ quiet: true }).parsed || {};
+if (env.CYPRESS_LOGS_COLLECTOR === 'true') {
+  installLogsCollector();
+}

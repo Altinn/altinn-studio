@@ -89,7 +89,7 @@ public static class SelfLinkHelper
     {
         StringBuilder urlBuilder = new($"https://{request.Host.ToUriComponent()}/");
         urlBuilder.Append(instance.AppId);
-        urlBuilder.Append("/#/instance/");
+        urlBuilder.Append("/instance/");
         urlBuilder.Append(instance.Id);
 
         return urlBuilder.ToString();

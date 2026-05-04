@@ -11,9 +11,16 @@ interface RoleListProps {
   selectedSubjects: string[];
   subjects: PolicySubject[];
   heading: string;
+  isPersonSubject?: boolean;
   handleChange: (subjectUrn: string, subjectLegacyUrn?: string) => void;
 }
-export const RoleList = ({ subjects, selectedSubjects, heading, handleChange }: RoleListProps) => {
+export const RoleList = ({
+  subjects,
+  selectedSubjects,
+  heading,
+  isPersonSubject,
+  handleChange,
+}: RoleListProps) => {
   const { t } = useTranslation();
   const [search, setSearch] = useState<string>('');
 
@@ -49,6 +56,7 @@ export const RoleList = ({ subjects, selectedSubjects, heading, handleChange }: 
             legacyUrn={subject.legacyUrn}
             icon={PersonTallShortIcon}
             title={subjectTitle}
+            isPersonSubject={isPersonSubject}
             description={subject.description}
             isChecked={hasSubject(selectedSubjects, subject.urn, subject.legacyUrn)}
             handleChange={handleChange}

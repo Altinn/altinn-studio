@@ -1,4 +1,3 @@
-import React from 'react';
 import { MemoryRouter, useParams } from 'react-router-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -7,6 +6,11 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { PageLayout } from './PageLayout';
+import { FeatureFlagsContextProvider } from '@studio/feature-flags';
+
+jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+  useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
+}));
 
 const mockedNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
@@ -82,9 +86,11 @@ const renderComponent = (queries: Partial<ServicesContextProps> = {}) => {
 
   return render(
     <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-        <PageLayout />
-      </ServicesContextProvider>
+      <FeatureFlagsContextProvider value={{ flags: [] }}>
+        <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
+          <PageLayout />
+        </ServicesContextProvider>
+      </FeatureFlagsContextProvider>
     </MemoryRouter>,
   );
 };

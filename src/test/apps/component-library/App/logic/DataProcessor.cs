@@ -12,10 +12,16 @@ namespace Altinn.App.logic;
 
 public class DataProcessor : IDataWriteProcessor
 {
-    public async Task ProcessDataWrite(IInstanceDataMutator instanceDataMutator, string taskId, DataElementChanges changes,
-        string language)
+    public async Task ProcessDataWrite(
+        IInstanceDataMutator instanceDataMutator,
+        string taskId,
+        DataElementChanges changes,
+        string language
+    )
     {
-        var change = changes.FormDataChanges.FirstOrDefault(change => change.CurrentFormData is Model);
+        var change = changes.FormDataChanges.FirstOrDefault(change =>
+            change.CurrentFormData is Model
+        );
         if (change != null)
         {
             Model data = (Model)change.CurrentFormData;
@@ -40,20 +46,26 @@ public class DataProcessor : IDataWriteProcessor
             }
             else
             {
-                DateTime date = data.Dates.SetDate == "now"
-                    ? DateTime.Now
-                    : DateTime.Parse(data.Dates.SetDate);
+                DateTime date =
+                    data.Dates.SetDate == "now" ? DateTime.Now : DateTime.Parse(data.Dates.SetDate);
 
-
-                data.Dates.String = data.Dates.SetDate == "now"
-                    ? date.ToString("o")
-                    : data.Dates.SetDate;
+                data.Dates.String =
+                    data.Dates.SetDate == "now" ? date.ToString("o") : data.Dates.SetDate;
                 data.Dates.DateTime = date;
                 data.Dates.DateOnly = new DateOnly(date.Year, date.Month, date.Day);
 
-                data.Dates.FormatStringBackend = await FormatDateUsingExpression(mutator, data.Dates.String);
-                data.Dates.FormatDateTimeBackend = await FormatDateUsingExpression(mutator, data.Dates.DateTime);
-                data.Dates.FormatDateOnlyBackend = await FormatDateUsingExpression(mutator, data.Dates.DateOnly);
+                data.Dates.FormatStringBackend = await FormatDateUsingExpression(
+                    mutator,
+                    data.Dates.String
+                );
+                data.Dates.FormatDateTimeBackend = await FormatDateUsingExpression(
+                    mutator,
+                    data.Dates.DateTime
+                );
+                data.Dates.FormatDateOnlyBackend = await FormatDateUsingExpression(
+                    mutator,
+                    data.Dates.DateOnly
+                );
             }
         }
     }
@@ -65,8 +77,19 @@ public class DataProcessor : IDataWriteProcessor
             string dateAsJson = System.Text.Json.JsonSerializer.Serialize(date);
             string dateAsString = System.Text.Json.JsonSerializer.Deserialize<string>(dateAsJson);
 
-            LayoutEvaluatorState state = new LayoutEvaluatorState(mutator, null!, null!, null!, null, "nb", TimeZoneInfo.Local);
-            List<Expression> args = new List<Expression> { new (dateAsString), new ("dd.MM.yyyy HH:mm:ss") };
+            LayoutEvaluatorState state = new LayoutEvaluatorState(
+                dataAccessor: mutator,
+                null!,
+                null!,
+                null!,
+                language: "nb",
+                timeZone: TimeZoneInfo.Local
+            );
+            List<Expression> args = new List<Expression>
+            {
+                new(dateAsString),
+                new("dd.MM.yyyy HH:mm:ss")
+            };
             Expression expr = new Expression(ExpressionFunction.formatDate, args);
             var result = await ExpressionEvaluator.EvaluateExpression(state, expr, null!);
 
@@ -76,7 +99,7 @@ public class DataProcessor : IDataWriteProcessor
             }
             return System.Text.Json.JsonSerializer.Serialize(result);
         }
-        catch(Exception error)
+        catch (Exception error)
         {
             return error.Message;
         }

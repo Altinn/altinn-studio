@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
 import { EXPERIMENTAL_Suggestion as Suggestion, Label as DSLabel } from '@digdir/designsystemet-react';
 import cn from 'classnames';
@@ -9,7 +9,7 @@ import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { getDescriptionId } from 'src/components/label/Label';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetOptions } from 'src/features/options/useGetOptions';
@@ -30,11 +30,13 @@ export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFro
   const { id, readOnly, textResourceBindings, alertOnChange, grid, required } = item;
   const { langAsString, lang } = useLanguage();
 
+  const isPatchingFocus = useRef(false);
+
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
     useLabel({ baseComponentId, overrideDisplay });
 
   const { options, isFetching, selectedValues, setData } = useGetOptions(baseComponentId, 'single');
-  const debounce = FD.useDebounceImmediately();
+  const debounce = FormStore.data.useDebounceImmediately();
 
   const selectedLabels = selectedValues.map((value) => {
     const option = options.find((o) => o.value === value);
@@ -115,6 +117,33 @@ export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFro
           <Suggestion.Input
             id={id}
             aria-invalid={!isValid}
+            onFocus={async (e) => {
+              // Workaround for when programmatically focused by repeating group focus management
+
+              // If this event was triggered by our code below, reset the flag and exit.
+              if (isPatchingFocus.current) {
+                isPatchingFocus.current = false;
+                return;
+              }
+
+              const input = e.target;
+
+              // Wait for the combobox to be fully defined
+              await customElements.whenDefined('u-combobox');
+
+              setTimeout(() => {
+                // Ensure we are still the active element
+                if (document.activeElement !== input) {
+                  return;
+                }
+
+                // Tell the next execution of onFocus to ignore the event we are about to fire
+                isPatchingFocus.current = true;
+
+                // Wake up the component
+                input.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+              }, 150);
+            }}
             aria-label={overrideDisplay?.renderedInTable ? langAsString(textResourceBindings?.title) : undefined}
             aria-describedby={
               overrideDisplay?.renderedInTable !== true &&

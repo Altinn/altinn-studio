@@ -1,0 +1,17 @@
+# Terminologi
+- Bruk «innboks», ikke «meldingsboks» eller «melding»
+- Bruk «representere», ikke «opptre på vegne av»
+- Bruk «logg inn», ikke «logg på» eller «sign in»
+- Bruk «app», ikke «applikasjon»
+- Bruk «avmerkingsboks» ikke «avkrysningsboks» eller «avhukingsboks»
+- Bruk «avsnitt» ikke «paragraf» om engelsk «paragraph». Dette er også et komponentnavn i Studio.
+- Bruk «utrulling» ikke «deployment» og velg verbet «å rulle ut» i konteksten det å deploye en versjon/endring.
+- Bruk «instans» ikke «instance» eller «eksemplar», men hvis et er nødvendig i hjelpetekster og feilmeldinger, forklar med eksemplar hvis det er et eksemplar av et skjema
+- Bruk «endringstransaksjon» ikke «commit»
+- Bruk «forhåndsvisning» og «forhåndsvis» ikke «preview»
+- Bruk «forhåndsutfylling» og «forhåndsutfylt», ikke «prefill» og «prefilled»
+- Bruk «lite tekstfelt» ikke «input field» når det er navnet på komponenten i Studio.
+- Bruk «inndata» ikke «input» om det brukeren fyller ut i et tekstfelt.
+- Bruk «navigasjonsfelt» om «navigation bar» ikke «navigasjonsbar»
+- Bruk «stort tekstfelt» ikke «tekstområde» om «text area» når det er et komponentnavn.
+- Bruk «tjeneste» ikke «service» 

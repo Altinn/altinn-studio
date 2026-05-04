@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { TabsContent } from './TabsContent';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -11,7 +10,14 @@ import type { SettingsPageTabId } from 'app-development/types/SettingsPageTabId'
 import { MemoryRouter } from 'react-router-dom';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 
-const tabs: SettingsPageTabId[] = ['about', 'setup', 'policy', 'access_control', 'maskinporten'];
+const tabs: SettingsPageTabId[] = [
+  'about',
+  'setup',
+  'policy',
+  'access_control',
+  'run',
+  'maskinporten',
+];
 
 describe('TabsContent', () => {
   afterEach(() => {

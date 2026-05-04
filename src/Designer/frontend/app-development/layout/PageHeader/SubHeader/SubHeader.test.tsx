@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import { LeftContent, type LeftContentProps, SubHeader, type SubHeaderProps } from './SubHeader';
 import { renderWithProviders } from '../../../test/mocks';
@@ -10,6 +9,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { PageHeaderContextProps } from '../../../contexts/PageHeaderContext';
 import { RepositoryType } from 'app-shared/types/global';
 import userEvent from '@testing-library/user-event';
+import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 
 const mockNavigate = jest.fn();
 
@@ -120,6 +120,11 @@ describe('LeftContent', () => {
   });
 });
 
+it('should render validation status button', () => {
+  renderSubHeader();
+  expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
+});
+
 type Props<T> = {
   componentProps?: Partial<T>;
   pageHeaderContextProps?: Partial<PageHeaderContextProps>;
@@ -130,11 +135,13 @@ const renderSubHeader = ({
   pageHeaderContextProps,
 }: Partial<Props<SubHeaderProps>> = {}) => {
   return renderWithProviders()(
-    <PageHeaderContext.Provider value={{ ...pageHeaderContextMock, ...pageHeaderContextProps }}>
-      <PreviewContext.Provider value={previewContextMock}>
-        <SubHeader {...defaultProps} {...componentProps} />
-      </PreviewContext.Provider>
-    </PageHeaderContext.Provider>,
+    <FeatureFlagsContextProvider value={{ flags: [] }}>
+      <PageHeaderContext.Provider value={{ ...pageHeaderContextMock, ...pageHeaderContextProps }}>
+        <PreviewContext.Provider value={previewContextMock}>
+          <SubHeader {...defaultProps} {...componentProps} />
+        </PreviewContext.Provider>
+      </PageHeaderContext.Provider>
+    </FeatureFlagsContextProvider>,
   );
 };
 
@@ -146,8 +153,10 @@ const renderLeftContent = ({
     repositoryType: RepositoryType.App,
   };
   return renderWithProviders()(
-    <PageHeaderContext.Provider value={{ ...pageHeaderContextMock, ...pageHeaderContextProps }}>
-      <LeftContent {...props} {...componentProps} />
-    </PageHeaderContext.Provider>,
+    <FeatureFlagsContextProvider value={{ flags: [] }}>
+      <PageHeaderContext.Provider value={{ ...pageHeaderContextMock, ...pageHeaderContextProps }}>
+        <LeftContent {...props} {...componentProps} />
+      </PageHeaderContext.Provider>
+    </FeatureFlagsContextProvider>,
   );
 };

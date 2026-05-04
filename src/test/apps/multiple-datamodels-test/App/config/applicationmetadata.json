@@ -101,6 +101,18 @@
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": [],
       "enabledFileValidators": []
+    },
+    {
+      "id": "sharedperson",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.sharedperson.sharedperson"
+      },
+      "maxCount": 1,
+      "minCount": 1
     }
   ],
   "partyTypesAllowed": {

@@ -4,3 +4,14 @@
   margin: 0;
   list-style-type: none;
 }
+
+.softValidation {
+  margin-top: var(--ds-size-2);
+  break-inside: avoid;
+}
+
+.softValidationListItem {
+  padding-left: 0;
+  margin-bottom: 0;
+  list-style-type: none;
+}

@@ -39,7 +39,7 @@ internal sealed class PdfServiceTask : IPdfServiceTask
         _logger.LogDebug("Calling PdfService for PDF Service Task {TaskId}.", LogSanitizer.Sanitize(taskId));
 
         ValidAltinnPdfConfiguration config = GetValidAltinnPdfConfiguration(taskId);
-        await _pdfService.GenerateAndStorePdf(
+        _ = await _pdfService.GenerateAndStorePdf(
             instance,
             taskId,
             config.FilenameTextResourceKey,

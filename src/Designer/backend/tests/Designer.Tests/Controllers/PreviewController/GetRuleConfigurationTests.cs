@@ -6,39 +6,43 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
 
-namespace Designer.Tests.Controllers.PreviewController
+namespace Designer.Tests.Controllers.PreviewController;
+
+public class GetRuleConfigurationTests
+    : PreviewControllerTestsBase<GetRuleConfigurationTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public class GetRuleConfigurationTests : PreviewControllerTestsBase<GetRuleConfigurationTests>, IClassFixture<WebApplicationFactory<Program>>
+    public GetRuleConfigurationTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
+
+    [Fact]
+    public async Task Get_RuleConfiguration_Ok()
     {
+        string appwithRuleConfig = "app-without-layoutsets";
+        string expectedRuleConfig = TestDataHelper.GetFileFromRepo(
+            Org,
+            appwithRuleConfig,
+            Developer,
+            "App/ui/RuleConfiguration.json"
+        );
 
-        public GetRuleConfigurationTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        string dataPathWithData = $"{Org}/{appwithRuleConfig}/api/resource/RuleConfiguration.json";
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-        [Fact]
-        public async Task Get_RuleConfiguration_Ok()
-        {
-            string appwithRuleConfig = "app-without-layoutsets";
-            string expectedRuleConfig = TestDataHelper.GetFileFromRepo(Org, appwithRuleConfig, Developer, "App/ui/RuleConfiguration.json");
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            string dataPathWithData = $"{Org}/{appwithRuleConfig}/api/resource/RuleConfiguration.json";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+        string responseBody = await response.Content.ReadAsStringAsync();
+        Assert.True(JsonUtils.DeepEquals(expectedRuleConfig, responseBody));
+    }
 
-            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    [Fact]
+    public async Task Get_RuleConfiguration_NoContent()
+    {
+        string dataPathWithData = $"{Org}/{PreviewApp}/api/resource/RuleConfiguration.json";
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            string responseBody = await response.Content.ReadAsStringAsync();
-            Assert.True(JsonUtils.DeepEquals(expectedRuleConfig, responseBody));
-        }
-
-        [Fact]
-        public async Task Get_RuleConfiguration_NoContent()
-        {
-            string dataPathWithData = $"{Org}/{PreviewApp}/api/resource/RuleConfiguration.json";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-
-            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        }
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
 }

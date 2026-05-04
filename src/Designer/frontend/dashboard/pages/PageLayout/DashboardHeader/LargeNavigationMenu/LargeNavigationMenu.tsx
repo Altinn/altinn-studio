@@ -1,12 +1,11 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import type { HeaderMenuItem } from '../../../../types/HeaderMenuItem';
-import { StringUtils, UrlUtils } from '@studio/pure-functions';
 import { useSelectedContext } from '../../../../hooks/useSelectedContext';
-import { StudioPageHeader } from '@studio/components';
-import { useTranslation } from 'react-i18next';
-import { NavLink, useLocation } from 'react-router-dom';
+import { StudioLink, StudioPageHeader } from '@studio/components';
+import { NavLink } from 'react-router-dom';
 import classes from './LargeNavigationMenu.module.css';
 import cn from 'classnames';
+import { useSubroute } from '../../../../hooks/useSubRoute';
 
 type LargeNavigationMenuProps = {
   menuItems: HeaderMenuItem[];
@@ -28,27 +27,30 @@ type NavigationMenuItemProps = {
 
 function NavigationMenuItem({ menuItem }: NavigationMenuItemProps): ReactElement {
   const selectedContext: string = useSelectedContext();
-  const { t } = useTranslation();
-  const location = useLocation();
-  const path: string = `${menuItem.link}/${selectedContext}`;
-  const currentRoutePath: string = UrlUtils.extractSecondLastRouterParam(location.pathname);
+  const subroute = useSubroute();
+  const path: string = menuItem.getLink(selectedContext);
 
   return (
-    <li key={menuItem.name}>
+    <li key={menuItem.key}>
       <StudioPageHeader.HeaderLink
         isBeta={menuItem.isBeta}
-        renderLink={(props) => (
-          <NavLink to={path} {...props}>
-            <span
-              className={cn({
-                [classes.active]:
-                  StringUtils.removeLeadingSlash(menuItem.link) === currentRoutePath,
-              })}
-            >
-              {t(menuItem.name)}
-            </span>
-          </NavLink>
-        )}
+        renderLink={(props) =>
+          menuItem.isExternalLink ? (
+            <StudioLink href={path} {...props}>
+              {menuItem.name}
+            </StudioLink>
+          ) : (
+            <NavLink to={path} {...props}>
+              <span
+                className={cn({
+                  [classes.active]: path.startsWith('/' + subroute),
+                })}
+              >
+                {menuItem.name}
+              </span>
+            </NavLink>
+          )
+        }
       />
     </li>
   );

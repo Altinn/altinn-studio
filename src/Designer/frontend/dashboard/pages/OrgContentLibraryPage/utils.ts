@@ -13,7 +13,8 @@ import type {
 } from 'app-shared/types/api/UpdateSharedResourcesRequest';
 import type { CodeListDataNew } from 'app-shared/types/CodeListDataNew';
 import { CODE_LIST_FOLDER } from 'app-shared/constants';
-import { FileNameUtils, Guard } from '@studio/pure-functions';
+import { Guard } from '@studio/guard';
+import { FileNameUtils } from '@studio/pure-functions';
 import type { BackendLibraryFile, FileKind, LibraryFile } from 'app-shared/types/LibraryFile';
 import { isCodeListValid } from './validators/isCodelistValid';
 

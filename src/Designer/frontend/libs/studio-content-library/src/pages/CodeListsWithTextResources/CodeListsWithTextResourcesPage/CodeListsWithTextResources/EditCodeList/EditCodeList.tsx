@@ -111,11 +111,11 @@ function EditCodeListTitle({
   const { t } = useTranslation();
   const getInvalidInputFileNameErrorMessage = useInputCodeListNameErrorMessage();
 
-  const handleUpdateCodeListId = (newCodeListId: string) => {
+  const handleUpdateCodeListId = (newCodeListId: string): void => {
     if (newCodeListId !== codeListTitle) onUpdateCodeListId(codeListTitle, newCodeListId);
   };
 
-  const handleValidateCodeListId = (newCodeListId: string) => {
+  const handleValidateCodeListId = (newCodeListId: string): string | undefined => {
     const invalidCodeListNames = ArrayUtils.removeItemByValue(codeListNames, codeListTitle);
     const fileNameError = FileNameUtils.findFileNameError(newCodeListId, invalidCodeListNames);
     return getInvalidInputFileNameErrorMessage(fileNameError);

@@ -1,4 +1,3 @@
-import React from 'react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { RenderResult } from '@testing-library/react';
@@ -96,6 +95,7 @@ describe('ActionsEditor', () => {
 
     (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
       deleteActionFromTask: deleteActionFromTaskMock,
+      getTypeForAction: jest.fn(),
     }));
 
     renderActionsEditor({ mode: 'edit' });
@@ -130,6 +130,7 @@ describe('ActionsEditor', () => {
 
     (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
       deleteActionFromTask: deleteActionFromTaskMock,
+      getTypeForAction: jest.fn(),
     }));
     renderActionsEditor({ mode: 'edit' });
 
@@ -148,6 +149,7 @@ describe('ActionsEditor', () => {
 
     (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
       deleteActionFromTask: deleteActionFromTaskMock,
+      getTypeForAction: jest.fn(),
     }));
     renderActionsEditor({
       actionElement: { ...actionElementMock, action: undefined },

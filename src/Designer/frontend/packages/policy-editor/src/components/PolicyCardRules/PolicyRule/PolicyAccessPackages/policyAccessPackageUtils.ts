@@ -42,16 +42,13 @@ export const groupAccessPackagesByArea = (
   return accessPackageAreaGroups.flatMap((group: PolicyAccessPackageAreaGroup) => group.areas);
 };
 
-export const filterAccessPackagesByIsDelegable = (
+export const filterAccessPackagesByIsResourcePolicyAvailable = (
   areas: PolicyAccessPackageArea[],
 ): PolicyAccessPackageArea[] => {
   return areas.map((area) => {
     return {
       ...area,
-      packages: area.packages.filter(
-        (accessPackage) =>
-          accessPackage.isDelegable || accessPackage.urn === 'urn:altinn:accesspackage:eksplisitt',
-      ),
+      packages: area.packages.filter((accessPackage) => accessPackage.isResourcePolicyAvailable),
     };
   });
 };

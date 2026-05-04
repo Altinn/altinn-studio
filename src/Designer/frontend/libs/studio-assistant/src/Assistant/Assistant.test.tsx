@@ -1,4 +1,3 @@
-import React from 'react';
 import { Assistant } from './Assistant';
 import { render, screen } from '@testing-library/react';
 import type { AssistantProps } from '../Assistant/Assistant';
@@ -39,6 +38,10 @@ const defaultProps: AssistantProps = {
   onSubmitMessage,
   texts: mockTexts,
   chatThreads: [],
+  activeThreadId: '',
+  connectionStatus: 'error',
+  workflowStatus: { isActive: false },
+  previewContent: <p>Preview placeholder</p>,
 };
 
 const renderAssistant = (props?: Partial<AssistantProps>): void => {

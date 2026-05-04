@@ -1,16 +1,15 @@
 import React from 'react';
 
-import { expect, jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
 import { getSummaryDataObject, ReceiptContainer } from 'src/features/receipt/ReceiptContainer';
-import { TaskKeys } from 'src/hooks/useNavigatePage';
-import { fetchApplicationMetadata, fetchInstanceData, fetchProcessState } from 'src/queries/queries';
+import { fetchProcessState } from 'src/queries/queries';
+import { TaskKeys } from 'src/routesBuilder';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import { PartyType } from 'src/types/shared';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
@@ -88,19 +87,15 @@ const buildInstance = (hasPdf = true) =>
   });
 
 const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender = {}) => {
-  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
-    getIncomingApplicationMetadataMock((a) => {
-      a.autoDeleteOnProcessEnd = autoDeleteOnProcessEnd;
-    }),
-  );
+  window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock((a) => {
+    a.autoDeleteOnProcessEnd = autoDeleteOnProcessEnd;
+  });
   jest.mocked(fetchProcessState).mockImplementation(async () =>
     getProcessDataMock((p) => {
       p.currentTask = undefined;
       p.ended = '2022-02-05T09:19:32.8858042Z';
     }),
   );
-
-  jest.mocked(fetchInstanceData).mockImplementation(async () => buildInstance(hasPdf));
 
   return await renderWithoutInstanceAndLayout({
     renderer: () => (
@@ -117,23 +112,10 @@ const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender
         {children}
       </InstanceRouter>
     ),
-    queries: {
-      fetchOrgs: async () => ({
-        orgs: {
-          brg: {
-            name: {
-              en: 'Brønnøysund Register Centre',
-              nb: 'Brønnøysundregistrene',
-              nn: 'Brønnøysundregistera',
-            },
-            logo: 'https://altinncdn.no/orgs/brg/brreg.png',
-            orgnr: '974760673',
-            homepage: 'https://www.brreg.no',
-            environments: ['tt02', 'production'],
-          },
-        },
-      }),
-      fetchFormData: async () => ({}),
+    apis: {
+      instanceApi: {
+        getInstance: async () => ({ ...buildInstance(hasPdf), process: getProcessDataMock() }),
+      },
     },
   });
 };
@@ -162,7 +144,7 @@ describe('ReceiptContainer', () => {
 
     expect(
       screen.getByRole('link', {
-        name: /Kopi av din kvittering er sendt til ditt arkiv/i,
+        name: /Din kvittering er lagret og tilgjengelig i din innboks/i,
       }),
     ).toBeInTheDocument();
 

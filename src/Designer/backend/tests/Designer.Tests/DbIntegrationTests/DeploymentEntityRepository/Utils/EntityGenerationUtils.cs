@@ -11,7 +11,16 @@ public static partial class EntityGenerationUtils
 {
     public static class Deployment
     {
-        public static DeploymentEntity GenerateDeploymentEntity(string org, string app = null, string buildId = null, string tagname = null, BuildStatus buildStatus = BuildStatus.Completed, BuildResult buildResult = BuildResult.Succeeded, string envName = null, DeploymentType deploymentType = DeploymentType.Deploy)
+        public static DeploymentEntity GenerateDeploymentEntity(
+            string org,
+            string app = null,
+            string buildId = null,
+            string tagname = null,
+            BuildStatus buildStatus = BuildStatus.Completed,
+            BuildResult buildResult = BuildResult.Succeeded,
+            string envName = null,
+            DeploymentType deploymentType = DeploymentType.Deploy
+        )
         {
             BuildEntity build = Build.GenerateBuildEntity(buildId, buildStatus, buildResult);
 
@@ -24,17 +33,24 @@ public static partial class EntityGenerationUtils
                 EnvName = envName ?? Guid.NewGuid().ToString(),
                 Created = DateTime.UtcNow,
                 CreatedBy = "testUser",
-                DeploymentType = deploymentType
+                DeploymentType = deploymentType,
             };
         }
 
-        public static IEnumerable<DeploymentEntity> GenerateDeploymentEntities(string org, string app, int count, string envName = null) =>
-            Enumerable.Range(0, count)
+        public static IEnumerable<DeploymentEntity> GenerateDeploymentEntities(
+            string org,
+            string app,
+            int count,
+            string envName = null
+        ) =>
+            Enumerable
+                .Range(0, count)
                 .Select(x =>
                 {
                     Thread.Sleep(1); // To ensure unique timestamps
                     return GenerateDeploymentEntity(org, app, envName: envName);
-                }).ToList();
+                })
+                .ToList();
 
         public static List<DeployEvent> GenerateDeployEvents()
         {
@@ -46,7 +62,7 @@ public static partial class EntityGenerationUtils
                     Message = "Pipeline scheduled",
                     Timestamp = DateTimeOffset.UtcNow.AddMinutes(-2),
                     Created = DateTimeOffset.UtcNow.AddMinutes(-2),
-                    Origin = DeployEventOrigin.Internal
+                    Origin = DeployEventOrigin.Internal,
                 },
                 new DeployEvent
                 {
@@ -54,10 +70,9 @@ public static partial class EntityGenerationUtils
                     Message = "Pipeline succeeded",
                     Timestamp = DateTimeOffset.UtcNow.AddMinutes(-1),
                     Created = DateTimeOffset.UtcNow.AddMinutes(-2),
-                    Origin = DeployEventOrigin.PollingJob
-                }
+                    Origin = DeployEventOrigin.PollingJob,
+                },
             ];
         }
     }
-
 }

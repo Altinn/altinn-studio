@@ -1,4 +1,3 @@
-import React from 'react';
 import { ConfigPanel } from './ConfigPanel';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -60,6 +59,21 @@ describe('ConfigPanel', () => {
     expect(
       screen.getByText(textMock('process_editor.configuration_panel_end_event')),
     ).toBeInTheDocument();
+  });
+
+  it('should render ConfigServiceTask if bpmn type is ServiceTask', () => {
+    renderConfigPanel({
+      modelerRef: {
+        current: {
+          get: () => {},
+        } as unknown as Modeler,
+      },
+      bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.ServiceTask },
+    });
+    const editTaskIdButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_change_task_id'),
+    });
+    expect(editTaskIdButton).toBeInTheDocument();
   });
 
   it.each([

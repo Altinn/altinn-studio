@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { useMediaQuery } from '@studio/components-legacy';
 import { StudioPageHeader } from '@studio/components';
 import { ArrowLeftIcon, CogIcon } from '@studio/icons';

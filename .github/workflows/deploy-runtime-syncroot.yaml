@@ -9,10 +9,10 @@ on:
       - .github/workflows/deploy-runtime-syncroot.yaml
   workflow_dispatch:
     inputs:
-      rings:
-        description: 'Rings to tag the artifact with. Format of the input object is [{"ring": "at_ring1", "environment": "dev"}].'
+      environments:
+        description: "Runtime environments to tag. Comma-separated (e.g. at_ring1,at_ring2)."
         required: false
-        default: '[{"ring": "at_ring1", "environment": "runtime_at_ring1"}]'
+        default: "at_ring1"
 
 permissions:
   id-token: write
@@ -20,43 +20,30 @@ permissions:
   actions: write
 
 jobs:
-  get-short-sha:
-    uses: ./.github/workflows/template-short-sha.yaml
-
   construct-rings-array:
-    runs-on: ubuntu-latest
-    env:
-      default-rings: >-
-        [{"ring": "at_ring1", "environment": "runtime_at_ring1"},{"ring": "at_ring2", "environment": "runtime_at_ring2"},{"ring": "tt_ring1", "environment": "runtime_tt_ring1"},{"ring": "tt_ring2", "environment": "runtime_tt_ring2"},{"ring": "prod_ring1", "environment": "runtime_prod_ring1"},{"ring": "prod_ring2", "environment": "runtime_prod_ring2"}]
-    outputs:
-      ringsjson: ${{ steps.construct-rings.outputs.ringsjson }}
-    steps:
-      - name: Construct rings array
-        id: construct-rings
-        run: |
-          rings='${{ github.event.inputs.rings }}'
-          if [ -z "$rings" ]; then
-            rings='${{ env.default-rings }}'
-          fi
-          echo "Raw rings input: $rings"
-          echo "ringsjson=${rings}" >> $GITHUB_OUTPUT
+    uses: ./.github/workflows/template-runtime-construct-environments.yaml
+    with:
+      inputs: ${{ toJSON(github.event.inputs) }}
 
   push-syncroot-artifact:
     name: Push syncroot as OCI artifact
-    needs: get-short-sha
     runs-on: ubuntu-latest
     environment: dev
     permissions:
       id-token: write # Require write permission to Fetch an OIDC token.
     outputs:
-      short-sha: ${{ needs.get-short-sha.outputs.short-sha }}
+      short-sha: ${{ steps.vars.outputs.short-sha }}
     defaults:
       run:
         working-directory: ./infra/runtime
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0 # Shallow clone
+
+      - name: Set vars
+        id: vars
+        run: echo "short-sha=${GITHUB_SHA::10}" >> "$GITHUB_OUTPUT"
 
       - name: az login
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
@@ -69,12 +56,12 @@ jobs:
         run: az acr login --name altinncr
 
       - name: flux install
-        uses: fluxcd/flux2/action@8454b02a32e48d775b9f563cb51fdcb1787b5b93 # v2.7.5
+        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
 
       - name: push artifact
         run: |
           cd syncroot/
-          flux push artifact oci://altinncr.azurecr.io/studio-apps/syncroot:${{ needs.get-short-sha.outputs.short-sha }} \
+          flux push artifact oci://altinncr.azurecr.io/studio-apps/syncroot:${{ steps.vars.outputs.short-sha }} \
             --provider=generic \
             --reproducible \
             --path="." \
@@ -90,9 +77,9 @@ jobs:
       id-token: write # Require write permission to Fetch an OIDC token.
     strategy:
       matrix:
-        include: ${{ fromJson(needs.construct-rings-array.outputs.ringsjson) }}
+        include: ${{ fromJson(needs.construct-rings-array.outputs.result) }}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0 # Shallow clone
 
@@ -107,7 +94,7 @@ jobs:
         run: az acr login --name altinncr
 
       - name: flux install
-        uses: fluxcd/flux2/action@8454b02a32e48d775b9f563cb51fdcb1787b5b93 # v2.7.5
+        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
 
       - name: tag artifact
         run: |

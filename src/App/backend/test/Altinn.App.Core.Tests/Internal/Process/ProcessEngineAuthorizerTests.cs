@@ -1,6 +1,9 @@
-﻿using System.Security.Claims;
+﻿using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Security.Claims;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
@@ -258,6 +261,9 @@ public class ProcessEngineAuthorizerTests
     [Theory]
     [InlineData("data", new[] { "write" })]
     [InlineData("feedback", new[] { "write" })]
+    [InlineData("pdf", new[] { "write" })]
+    [InlineData("eFormidling", new[] { "write" })]
+    [InlineData("subformPdf", new[] { "write" })]
     [InlineData("payment", new[] { "pay", "write" })]
     [InlineData("confirmation", new[] { "confirm" })]
     [InlineData("signing", new[] { "sign", "write" })]
@@ -272,6 +278,52 @@ public class ProcessEngineAuthorizerTests
 
         // Assert
         Assert.Equal(expectedActions, result);
+    }
+
+    [Fact]
+    public void GetActionsThatAllowProcessNextForTaskType_AllServiceTasksReturnWriteAction()
+    {
+        // This test ensures that all built-in IServiceTask implementations return "write" as one of
+        // the allowed actions in ProcessEngineAuthorizer.GetActionsThatAllowProcessNextForTaskType.
+        // This helps prevent forgetting to add new service tasks to the authorization logic.
+
+        // Arrange - Find all concrete IServiceTask implementations in Altinn.App.Core
+        Assembly coreAssembly = typeof(IServiceTask).Assembly;
+        List<Type> serviceTaskTypes = coreAssembly
+            .GetTypes()
+            .Where(t => t is { IsClass: true, IsAbstract: false } && typeof(IServiceTask).IsAssignableFrom(t))
+            .ToList();
+
+        List<string> failedTaskTypes = [];
+
+        // Act & Assert - Verify each service task type returns "write" as an allowed action
+        foreach (Type serviceTaskType in serviceTaskTypes)
+        {
+            // Get the Type property
+            PropertyInfo? typeProperty = serviceTaskType.GetProperty("Type");
+            Assert.NotNull(typeProperty);
+
+            // Create an uninitialized instance (skips constructor) to read the Type property
+            object instance = RuntimeHelpers.GetUninitializedObject(serviceTaskType);
+            string? taskTypeValue = typeProperty.GetValue(instance) as string;
+            Assert.NotNull(taskTypeValue);
+
+            // Verify this task type returns "write" as an allowed action
+            string[] allowedActions = ProcessEngineAuthorizer.GetActionsThatAllowProcessNextForTaskType(taskTypeValue);
+
+            if (!allowedActions.Contains("write"))
+            {
+                failedTaskTypes.Add(
+                    $"{serviceTaskType.Name} (Type: '{taskTypeValue}') - returned actions: [{string.Join(", ", allowedActions)}]"
+                );
+            }
+        }
+
+        // Assert - All service tasks should allow "write" action
+        Assert.True(
+            failedTaskTypes.Count == 0,
+            $"The following service tasks do not return 'write' as an allowed action:\n{string.Join("\n", failedTaskTypes)}"
+        );
     }
 
     private static Instance CreateInstance(string? taskId, string? taskType = null)

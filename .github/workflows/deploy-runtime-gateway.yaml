@@ -1,0 +1,115 @@
+name: Runtime - deploy gateway
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - src/common/**
+      - src/Runtime/gateway/**
+      - infra/runtime/syncroot/base/gateway.yaml
+      - infra/runtime/flux-config/**
+      - .github/workflows/deploy-runtime-gateway.yaml
+  workflow_dispatch:
+    inputs:
+      environments:
+        description: "Runtime environments to tag. Comma-separated (e.g. at_ring1,at_ring2)."
+        required: false
+        default: "at_ring1"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  construct-rings-array:
+    uses: ./.github/workflows/template-runtime-construct-environments.yaml
+    with:
+      inputs: ${{ toJSON(github.event.inputs) }}
+
+  push-gateway-artifact:
+    name: Push gateway as OCI artifact
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      REGISTRY_NAME: altinncr
+    outputs:
+      config-repo: ${{ steps.vars.outputs.config-repo }}
+    defaults:
+      run:
+        working-directory: src/Runtime/gateway
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set vars
+        id: vars
+        run: |
+          SHA="${GITHUB_SHA::10}"
+          echo "short-sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "image-repo=altinncr.azurecr.io/studio-apps/runtime-gateway:${SHA}" >> "$GITHUB_OUTPUT"
+          echo "config-repo=altinncr.azurecr.io/studio-apps/runtime-gateway-repo:${SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name ${{ env.REGISTRY_NAME }}
+
+      - name: flux install
+        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
+
+      - name: docker build
+        working-directory: src
+        run: docker build -t ${{ steps.vars.outputs.image-repo }} -f Runtime/gateway/Dockerfile .
+
+      - name: push image
+        run: docker push ${{ steps.vars.outputs.image-repo }}
+
+      - name: patch base with image tag
+        working-directory: src/Runtime/gateway/infra/kustomize/base
+        run: |
+          export IMAGE="${{ steps.vars.outputs.image-repo }}"
+          export IMAGE_TAG="${{ steps.vars.outputs.short-sha }}"
+          yq -i '.metadata.annotations["altinn.studio/image"] = env(IMAGE)' deployment.yaml
+          yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' deployment.yaml
+
+      - name: push artifact
+        working-directory: src/Runtime/gateway/infra/kustomize
+        run: |
+          flux push artifact oci://${{ steps.vars.outputs.config-repo }} \
+            --provider=azure \
+            --reproducible \
+            --path="." \
+            --source="$(git config --get remote.origin.url)" \
+            --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
+
+  tag-gateway:
+    name: Tag gateway
+    needs: [push-gateway-artifact, construct-rings-array]
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.construct-rings-array.outputs.result) }}
+    steps:
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name altinncr
+
+      - name: flux install
+        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
+
+      - name: tag artifact
+        run: |
+          flux tag artifact oci://${{ needs.push-gateway-artifact.outputs.config-repo }} \
+            --tag ${{ matrix.ring }}

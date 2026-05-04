@@ -1,10 +1,12 @@
 #nullable disable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Mappers;
+using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Request.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -26,20 +28,22 @@ public class DeploymentRepository : IDeploymentRepository
         var dbObject = DeploymentMapper.MapToDbModel(deploymentEntity);
         _dbContext.Deployments.Add(dbObject);
         await _dbContext.SaveChangesAsync();
+        deploymentEntity.SequenceNo = dbObject.Sequenceno;
         return deploymentEntity;
     }
 
     public async Task<IEnumerable<DeploymentEntity>> Get(string org, string app, DocumentQueryModel query)
     {
-        var deploymentsQuery = _dbContext.Deployments
-            .Include(d => d.Build)
+        var deploymentsQuery = _dbContext
+            .Deployments.Include(d => d.Build)
             .Include(d => d.Events)
             .AsNoTracking()
             .Where(x => x.Org == org && x.App == app);
 
-        deploymentsQuery = query.SortDirection == SortDirection.Descending
-            ? deploymentsQuery.OrderByDescending(d => d.Created)
-            : deploymentsQuery.OrderBy(d => d.Created);
+        deploymentsQuery =
+            query.SortDirection == SortDirection.Descending
+                ? deploymentsQuery.OrderByDescending(d => d.Created)
+                : deploymentsQuery.OrderBy(d => d.Created);
 
         deploymentsQuery = deploymentsQuery.Take(query.Top ?? int.MaxValue);
 
@@ -49,8 +53,8 @@ public class DeploymentRepository : IDeploymentRepository
 
     public async Task<DeploymentEntity> Get(string org, string buildId)
     {
-        var dbObject = await _dbContext.Deployments
-            .Include(d => d.Build)
+        var dbObject = await _dbContext
+            .Deployments.Include(d => d.Build)
             .Include(d => d.Events)
             .AsNoTracking()
             .SingleAsync(d => d.Org == org && d.Buildid == buildId);
@@ -59,8 +63,8 @@ public class DeploymentRepository : IDeploymentRepository
 
     public async Task<DeploymentEntity> GetLastDeployed(string org, string app, string environment)
     {
-        var dbObject = await _dbContext.Deployments
-            .Include(d => d.Build)
+        var dbObject = await _dbContext
+            .Deployments.Include(d => d.Build)
             .Include(d => d.Events)
             .AsNoTracking()
             .Where(d => d.Org == org && d.App == app && d.EnvName == environment)
@@ -70,59 +74,105 @@ public class DeploymentRepository : IDeploymentRepository
         return DeploymentMapper.MapToModel(dbObject);
     }
 
-    public async Task<IEnumerable<DeploymentEntity>> GetSucceeded(string org, string app, string environment, DocumentQueryModel query)
+    public async Task<IEnumerable<DeploymentEntity>> GetSucceeded(
+        string org,
+        string app,
+        string environment,
+        DocumentQueryModel query
+    )
     {
         Guard.AssertArgumentNotNullOrWhiteSpace(environment, nameof(environment));
         Guard.AssertArgumentNotNullOrWhiteSpace(org, nameof(org));
         Guard.AssertArgumentNotNullOrWhiteSpace(app, nameof(app));
 
-        var deploymentsQuery = _dbContext.Deployments
-            .Include(d => d.Build)
+        var deploymentsQuery = _dbContext
+            .Deployments.Include(d => d.Build)
             .Include(d => d.Events)
             .AsNoTracking()
-            .Where(x => x.Org == org && x.App == app && x.EnvName == environment && x.Build.Result.ToLower() == "succeeded");
+            .Where(x =>
+                x.Org == org
+                && x.App == app
+                && x.EnvName == environment
+                && x.Build != null
+                && x.Build.Result.ToLower() == "succeeded"
+            );
 
-        deploymentsQuery = query.SortDirection == SortDirection.Descending
-            ? deploymentsQuery.OrderByDescending(d => d.Created)
-            : deploymentsQuery.OrderBy(d => d.Created);
+        deploymentsQuery =
+            query.SortDirection == SortDirection.Descending
+                ? deploymentsQuery.OrderByDescending(d => d.Created)
+                : deploymentsQuery.OrderBy(d => d.Created);
 
         deploymentsQuery = deploymentsQuery.Take(query.Top ?? int.MaxValue);
 
         var dbObjects = await deploymentsQuery.ToListAsync();
         return DeploymentMapper.MapToModels(dbObjects);
+    }
 
+    public async Task<IReadOnlyList<string>> GetAppsWithRecentDeployments(
+        string org,
+        string environment,
+        DateTimeOffset sinceUtc
+    )
+    {
+        Guard.AssertArgumentNotNullOrWhiteSpace(environment, nameof(environment));
+        Guard.AssertArgumentNotNullOrWhiteSpace(org, nameof(org));
+
+        return await _dbContext
+            .Deployments.AsNoTracking()
+            .Where(d =>
+                d.Org == org
+                && d.EnvName == environment
+                && d.DeploymentType == Models.DeploymentType.Deploy
+                && d.Created >= sinceUtc.UtcDateTime
+            )
+            .Select(d => d.App)
+            .Distinct()
+            .ToArrayAsync();
     }
 
     public async Task Update(DeploymentEntity deploymentEntity)
     {
-        var dbIds = await _dbContext.Deployments.Include(d => d.Build).AsNoTracking()
-            .Where(d => d.Org == deploymentEntity.Org && d.Buildid == deploymentEntity.Build.Id)
-            .Select(d => new { SequnceNo = d.Sequenceno, BuildId = d.Build.Id })
-            .SingleAsync();
+        DeploymentDbModel deployment = await _dbContext
+            .Deployments.Include(d => d.Build)
+            .FirstAsync(d => d.Sequenceno == deploymentEntity.SequenceNo);
+        DeploymentDbModel mapped = DeploymentMapper.MapToDbModel(
+            deploymentEntity,
+            deployment.Sequenceno,
+            deployment.InternalBuildId
+        );
+        _dbContext.Entry(deployment).CurrentValues.SetValues(mapped);
 
-        var mappedDbObject = DeploymentMapper.MapToDbModel(deploymentEntity, dbIds.SequnceNo, dbIds.BuildId);
+        if (deployment.Build != null && mapped.Build != null)
+        {
+            _dbContext.Entry(deployment.Build).CurrentValues.SetValues(mapped.Build);
+        }
+        else
+        {
+            deployment.Build = mapped.Build;
+        }
 
-        _dbContext.Entry(mappedDbObject).State = EntityState.Modified;
-        _dbContext.Entry(mappedDbObject.Build).State = EntityState.Modified;
         await _dbContext.SaveChangesAsync();
     }
 
     public async Task<DeploymentEntity> GetPendingDecommission(string org, string app, string environment)
     {
-        string[] finalEventTypes = [
+        string[] finalEventTypes =
+        [
             nameof(DeployEventType.UninstallSucceeded),
-            nameof(DeployEventType.UninstallFailed)
+            nameof(DeployEventType.UninstallFailed),
         ];
 
-        var dbObject = await _dbContext.Deployments
-            .Include(d => d.Build)
+        var dbObject = await _dbContext
+            .Deployments.Include(d => d.Build)
             .Include(d => d.Events)
             .AsNoTracking()
-            .Where(d => d.Org == org
+            .Where(d =>
+                d.Org == org
                 && d.App == app
                 && d.EnvName == environment
                 && d.DeploymentType == Models.DeploymentType.Decommission
-                && !d.Events.Any(e => finalEventTypes.Contains(e.EventType)))
+                && !d.Events.Any(e => finalEventTypes.Contains(e.EventType))
+            )
             .OrderByDescending(d => d.Created)
             .FirstOrDefaultAsync();
 

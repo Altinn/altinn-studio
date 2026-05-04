@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { LoggedInTitle } from './LoggedInTitle';
 import { textMock } from '@studio/testing/mocks/i18nMock';

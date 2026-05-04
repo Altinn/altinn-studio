@@ -2,26 +2,30 @@ package config
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path"
 	"reflect"
 	"time"
 
-	"altinn.studio/operator/internal/telemetry"
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/knadh/koanf/parsers/dotenv"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
-	"go.opentelemetry.io/otel"
+
+	"altinn.studio/operator/internal/telemetry"
 )
 
 var parser = dotenv.ParserEnv("", ".", func(s string) string { return s })
 
+var errConfigFilePathNotSet = errors.New("no config file path provided and OPERATOR_CONFIG_FILE not set")
+var errConfigFileDoesNotExist = errors.New("config file does not exist")
+
 // resolveConfigFilePath resolves the config file path from:
 // 1. The provided configFilePath parameter if non-empty
 // 2. The OPERATOR_CONFIG_FILE environment variable if set
-// 3. Falls back to "localtest.env" in the project root (for local development)
+// 3. Falls back to "localtest.env" in the project root (for local development).
 func resolveConfigFilePath(configFilePath string) (string, error) {
 	if configFilePath != "" {
 		return configFilePath, nil
@@ -41,18 +45,17 @@ func resolveConfigFilePath(configFilePath string) (string, error) {
 		return path.Join(rootDir, "localtest.env"), nil
 	}
 
-	return "", fmt.Errorf("no config file path provided and OPERATOR_CONFIG_FILE not set")
+	return "", errConfigFilePathNotSet
 }
 
 // loadFromKoanf loads configuration from a .env file.
 // The configFilePath must be a resolved absolute path.
 func loadFromKoanf(ctx context.Context, configFilePath string) (*Config, error) {
-	tracer := otel.Tracer(telemetry.ServiceName)
-	_, span := tracer.Start(ctx, "loadFromKoanf")
+	_, span := telemetry.Tracer().Start(ctx, "loadFromKoanf")
 	defer span.End()
 
 	if _, err := os.Stat(configFilePath); os.IsNotExist(err) {
-		return nil, fmt.Errorf("config file does not exist: '%s'", configFilePath)
+		return nil, fmt.Errorf("%w: %s", errConfigFileDoesNotExist, configFilePath)
 	}
 
 	k := koanf.New(".")
@@ -82,8 +85,8 @@ func loadFromKoanf(ctx context.Context, configFilePath string) (*Config, error) 
 
 // durationDecodeHook returns a mapstructure decode hook that parses duration strings with day support.
 func durationDecodeHook() mapstructure.DecodeHookFunc {
-	return func(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
-		if t != reflect.TypeOf(time.Duration(0)) {
+	return func(f reflect.Type, t reflect.Type, data any) (any, error) {
+		if t != reflect.TypeFor[time.Duration]() {
 			return data, nil
 		}
 

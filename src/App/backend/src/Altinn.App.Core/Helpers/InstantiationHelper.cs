@@ -1,4 +1,7 @@
 using System.Globalization;
+using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features.Auth;
+using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -216,5 +219,71 @@ public static class InstantiationHelper
             PartyId = party.PartyId.ToString(CultureInfo.InvariantCulture),
             // instanceOwnerPartyType == "unknown"
         };
+    }
+
+    /// <summary>
+    /// Get the correct <see cref="InstanceOwner" /> object from the <see cref="Party" /> object of the entity that should own the instance
+    /// Use authenticationContext to get the external identity for self identified parties
+    /// </summary>
+    public static async Task<InstanceOwner> PartyToInstanceOwner(
+        Party party,
+        IAuthenticationContext authenticationContext
+    )
+    {
+        if (!string.IsNullOrEmpty(party.SSN))
+        {
+            return new() { PartyId = party.PartyId.ToString(CultureInfo.InvariantCulture), PersonNumber = party.SSN };
+        }
+        else if (!string.IsNullOrEmpty(party.OrgNumber))
+        {
+            return new()
+            {
+                PartyId = party.PartyId.ToString(CultureInfo.InvariantCulture),
+                OrganisationNumber = party.OrgNumber,
+            };
+        }
+        else if (party.PartyTypeName.Equals(PartyType.SelfIdentified))
+        {
+            string? externalIdentifier = null;
+            if (authenticationContext is not null)
+            {
+                externalIdentifier = await GetExternalIdentityForSelfIdentifiedParty(party, authenticationContext);
+            }
+
+            externalIdentifier ??= party.Name switch
+            {
+                null or "" => null,
+                string name when name.StartsWith("epost:", StringComparison.InvariantCulture) =>
+                    $"{AltinnUrns.SelfIdentifiedEmail}:{name["epost:".Length..]}",
+                string name => $"{AltinnUrns.LegacySelfIdentified}:{name}",
+            };
+
+            return new()
+            {
+                PartyId = party.PartyId.ToString(CultureInfo.InvariantCulture),
+                Username = party.Name,
+                ExternalIdentifier = externalIdentifier,
+            };
+        }
+        return new()
+        {
+            PartyId = party.PartyId.ToString(CultureInfo.InvariantCulture),
+            // instanceOwnerPartyType == "unknown"
+        };
+    }
+
+    internal static async Task<string?> GetExternalIdentityForSelfIdentifiedParty(
+        Party party,
+        IAuthenticationContext authenticationContext
+    )
+    {
+        if (party.PartyTypeName != PartyType.SelfIdentified)
+            return null;
+
+        if (authenticationContext.Current is not Authenticated.User user)
+            return null;
+
+        UserProfile profile = await user.LookupProfile();
+        return profile.ExternalIdentity;
     }
 }

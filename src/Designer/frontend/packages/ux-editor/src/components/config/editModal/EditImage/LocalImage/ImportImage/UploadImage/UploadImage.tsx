@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioParagraph, StudioSpinner } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAddImageMutation } from 'app-shared/hooks/mutations/useAddImageMutation';

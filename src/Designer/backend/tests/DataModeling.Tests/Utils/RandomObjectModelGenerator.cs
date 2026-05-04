@@ -26,7 +26,8 @@ public static class RandomObjectModelGenerator
     /// Setup to round decimal values to 0 decimal places.
     /// Currently integers in xsd are represented as decimals in c# class.
     /// </summary>
-    public static void RoundDecimalToZeroDecimalPlaces(bool generateDecimalAsRound) => s_roundDecimalsToZeroPlaces = generateDecimalAsRound;
+    public static void RoundDecimalToZeroDecimalPlaces(bool generateDecimalAsRound) =>
+        s_roundDecimalsToZeroPlaces = generateDecimalAsRound;
 
     public static object GenerateValidRandomObject(Type type)
     {
@@ -44,8 +45,10 @@ public static class RandomObjectModelGenerator
             {
                 PopulatePrimitiveProperty(obj, property);
             }
-            else if (property.PropertyType.IsGenericType &&
-                     property.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+            else if (
+                property.PropertyType.IsGenericType
+                && property.PropertyType.GetGenericTypeDefinition() == typeof(List<>)
+            )
             {
                 PopulateList(obj, property);
             }
@@ -155,7 +158,10 @@ public static class RandomObjectModelGenerator
         var length = CalculateStringLength(minlength, maxlength);
         var allowedChars = GetAllowedCharacters().ToList();
 
-        return string.Join(string.Empty, Enumerable.Repeat(0, length).Select(_ => allowedChars[s_random.Next(0, allowedChars.Count)]));
+        return string.Join(
+            string.Empty,
+            Enumerable.Repeat(0, length).Select(_ => allowedChars[s_random.Next(0, allowedChars.Count)])
+        );
     }
 
     private static object GenerateNumberType(Type type, IEnumerable<CustomAttributeData> restrictions = null)
@@ -180,7 +186,11 @@ public static class RandomObjectModelGenerator
 
         if (type == typeof(decimal))
         {
-            return NumberRangeGenerator(lowerLimit, upperLimit, d => Convert.ToDecimal(s_roundDecimalsToZeroPlaces ? Math.Round(d, 0) : d));
+            return NumberRangeGenerator(
+                lowerLimit,
+                upperLimit,
+                d => Convert.ToDecimal(s_roundDecimalsToZeroPlaces ? Math.Round(d, 0) : d)
+            );
         }
 
         if (type == typeof(double))
@@ -212,7 +222,8 @@ public static class RandomObjectModelGenerator
 
     private static IEnumerable<char> GetAllowedCharacters()
     {
-        static IEnumerable<char> UnicodeRange(int from, int to) => Enumerable.Range(from, to - from + 1).Select(i => (char)i);
+        static IEnumerable<char> UnicodeRange(int from, int to) =>
+            Enumerable.Range(from, to - from + 1).Select(i => (char)i);
 
         return UnicodeRange(65, 90) // upper alfa
             .Union(UnicodeRange(97, 122)) // lower alfa
@@ -229,12 +240,16 @@ public static class RandomObjectModelGenerator
 
     private static TValue GetAttributeValue<TValue, TAttributeType>(this IEnumerable<CustomAttributeData> restrictions)
     {
-        return (TValue)restrictions?.FirstOrDefault(x => x.AttributeType == typeof(TAttributeType))
-            ?.ConstructorArguments.FirstOrDefault().Value;
+        return (TValue)
+            restrictions
+                ?.FirstOrDefault(x => x.AttributeType == typeof(TAttributeType))
+                ?.ConstructorArguments.FirstOrDefault()
+                .Value;
     }
 
     private static (object LowerLimit, object UpperLimit) GetRangeLimits(
-        this IEnumerable<CustomAttributeData> restrictions)
+        this IEnumerable<CustomAttributeData> restrictions
+    )
     {
         if (restrictions is null)
         {
@@ -294,12 +309,19 @@ public static class RandomObjectModelGenerator
 
     private static bool IsPrimitive(Type type)
     {
-        return type.IsPrimitive || type == typeof(string) || type == typeof(DateTime) || type == typeof(decimal) || type == typeof(Guid);
+        return type.IsPrimitive
+            || type == typeof(string)
+            || type == typeof(DateTime)
+            || type == typeof(decimal)
+            || type == typeof(Guid);
     }
 
     private static bool IsNumberType(Type type)
     {
-        return type == typeof(int) || type == typeof(short) || type == typeof(decimal) || type == typeof(double) ||
-               type == typeof(long);
+        return type == typeof(int)
+            || type == typeof(short)
+            || type == typeof(decimal)
+            || type == typeof(double)
+            || type == typeof(long);
     }
 }

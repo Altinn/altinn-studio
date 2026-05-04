@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './ConfPageToolbar.module.css';
 import type { IToolbarElement } from '../../types/global';
 import { ToolbarItem } from './ToolbarItem';

@@ -7,7 +7,7 @@ namespace Altinn.App.Core.Models.Layout.Components;
 /// <summary>
 /// This class represents multiple component types
 /// </summary>
-public sealed class TabsComponent : SimpleReferenceComponent
+public sealed class TabsComponent : ReferenceComponent
 {
     /// <summary>
     /// Parser for TabsComponent
@@ -39,7 +39,7 @@ public sealed class TabsComponent : SimpleReferenceComponent
         if (!componentElement.TryGetProperty("tabs", out JsonElement tabsElement))
         {
             var type = ParseType(componentElement);
-            throw new JsonException($"{type} component must have a \"tabs\" property.");
+            throw new JsonException($"{type} component on {layoutId}.{pageId} must have a \"tabs\" property.");
         }
 
         return tabsElement.Deserialize<List<TabsConfig>>()

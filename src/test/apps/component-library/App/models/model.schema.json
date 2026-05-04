@@ -151,6 +151,20 @@
           }
         }
       }
+    },
+    "Geometries": {
+      "type": "object",
+      "properties": {
+        "Label": {
+          "type": "string"
+        },
+        "Data": {
+          "type": "string"
+        },
+        "Editable": {
+          "type": "boolean"
+        }
+      }
     }
   },
   "properties": {
@@ -389,6 +403,12 @@
     },
     "DatepickerMinDateExample": {
       "type": "string"
+    },
+    "Geometries": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Geometries"
+      }
     }
   }
 }

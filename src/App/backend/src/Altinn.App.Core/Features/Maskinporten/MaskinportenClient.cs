@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
@@ -24,6 +25,13 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     /// </summary>
     internal static readonly TimeSpan TokenExpirationMargin = TimeSpan.FromSeconds(30);
 
+    /// <summary>
+    /// Duration to cache the OAuth well-known metadata (issuer) before refreshing.
+    /// </summary>
+    internal static readonly TimeSpan WellKnownCacheDuration = TimeSpan.FromHours(1);
+
+    private sealed record WellKnownCacheEntry(string Issuer, DateTimeOffset FetchedAt);
+
     internal MaskinportenSettings Settings =>
         _options.Get(Variant == VariantDefault ? Microsoft.Extensions.Options.Options.DefaultName : Variant);
 
@@ -43,6 +51,10 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     private readonly TimeProvider _timeProvider;
     private readonly HybridCache _tokenCache;
     private readonly Telemetry? _telemetry;
+
+    // Well-known cache with background refresh
+    private WellKnownCacheEntry? _wellKnownCache;
+    private int _wellKnownRefreshing;
 
     /// <summary>
     /// Instantiates a new <see cref="MaskinportenClient"/> object.
@@ -174,7 +186,8 @@ internal sealed class MaskinportenClient : IMaskinportenClient
         try
         {
             _logger.LogDebug("Using MaskinportenClient.Variant={Variant} for authorization", Variant);
-            string jwtGrant = GenerateJwtGrant(formattedScopes);
+            string audience = await GetAudienceFromWellKnown(cancellationToken);
+            string jwtGrant = GenerateJwtGrant(formattedScopes, audience);
             FormUrlEncodedContent payload = AuthenticationPayloadFactory(jwtGrant);
 
             _logger.LogDebug(
@@ -262,9 +275,10 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     /// Generates a JWT grant for the supplied scope claims along with the pre-configured client id and private key.
     /// </summary>
     /// <param name="formattedScopes">A space-separated list of scopes to make a claim for.</param>
+    /// <param name="audience">The audience claim value (typically the OAuth issuer from well-known metadata).</param>
     /// <returns><inheritdoc cref="JsonWebTokenHandler.CreateToken(SecurityTokenDescriptor)"/></returns>
     /// <exception cref="MaskinportenConfigurationException"></exception>
-    internal string GenerateJwtGrant(string formattedScopes)
+    internal string GenerateJwtGrant(string formattedScopes, string audience)
     {
         MaskinportenSettings? settings;
         try
@@ -284,7 +298,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient
         var jwtDescriptor = new SecurityTokenDescriptor
         {
             Issuer = settings.ClientId,
-            Audience = settings.Authority,
+            Audience = audience,
             IssuedAt = now.UtcDateTime,
             Expires = expiry.UtcDateTime,
             SigningCredentials = new SigningCredentials(settings.GetJsonWebKey(), SecurityAlgorithms.RsaSha256),
@@ -382,6 +396,92 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     /// <param name="scopes">A collection of scopes.</param>
     /// <returns>A single string containing the supplied scopes.</returns>
     internal static string GetFormattedScopes(IEnumerable<string> scopes) => string.Join(" ", scopes.Distinct());
+
+    /// <summary>
+    /// Retrieves the OAuth issuer from the well-known metadata endpoint for use as the JWT audience claim.
+    /// Uses cached value if fresh. When stale, triggers background refresh and returns stale value immediately.
+    /// Only blocks on first call (cold start).
+    /// </summary>
+    internal ValueTask<string> GetAudienceFromWellKnown(CancellationToken cancellationToken = default)
+    {
+        var cached = Volatile.Read(ref _wellKnownCache);
+        var now = _timeProvider.GetUtcNow();
+
+        // Fresh cache - return immediately
+        if (cached is not null && now - cached.FetchedAt < WellKnownCacheDuration)
+        {
+            return new ValueTask<string>(cached.Issuer);
+        }
+
+        // Stale cache - trigger background refresh, return stale immediately
+        if (cached is not null)
+        {
+            if (Interlocked.CompareExchange(ref _wellKnownRefreshing, 1, 0) == 0)
+            {
+                _ = Task.Run(() => RefreshWellKnownInBackground(), cancellationToken);
+            }
+            return new ValueTask<string>(cached.Issuer);
+        }
+
+        // No cache (cold start) - must block and fetch
+        return FetchWellKnownBlocking(cancellationToken);
+    }
+
+    private async ValueTask<string> FetchWellKnownBlocking(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var metadata = await FetchWellKnownMetadata(Settings.Authority, cancellationToken);
+            var now = _timeProvider.GetUtcNow();
+            Volatile.Write(ref _wellKnownCache, new WellKnownCacheEntry(metadata.Issuer, now));
+            return metadata.Issuer;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to fetch OAuth metadata, falling back to authority");
+            var authorityFallback = Settings.Authority;
+            if (authorityFallback[^1] != '/')
+                authorityFallback += '/';
+            return authorityFallback;
+        }
+    }
+
+    private async Task RefreshWellKnownInBackground()
+    {
+        try
+        {
+            var metadata = await FetchWellKnownMetadata(Settings.Authority, CancellationToken.None);
+            var now = _timeProvider.GetUtcNow();
+            Volatile.Write(ref _wellKnownCache, new WellKnownCacheEntry(metadata.Issuer, now));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Background refresh of OAuth metadata failed");
+        }
+        finally
+        {
+            Volatile.Write(ref _wellKnownRefreshing, 0);
+        }
+    }
+
+    private async Task<OAuthAuthorizationServerMetadata> FetchWellKnownMetadata(
+        string authority,
+        CancellationToken cancellationToken
+    )
+    {
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cts.CancelAfter(TimeSpan.FromSeconds(10));
+        cancellationToken = cts.Token;
+        var wellKnownUrl = new Uri(new Uri(authority), ".well-known/oauth-authorization-server");
+        using var client = _httpClientFactory.CreateClient();
+        using var response = await client.GetAsync(wellKnownUrl, cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        var metadata = await response.Content.ReadFromJsonAsync<OAuthAuthorizationServerMetadata>(
+            cancellationToken: cancellationToken
+        );
+        return metadata ?? throw new JsonException("Well-known metadata response was null");
+    }
 
     private TimeSpan GetTokenExpiryWithMargin(JwtToken token) =>
         token.ExpiresAt - _timeProvider.GetUtcNow() - TokenExpirationMargin;

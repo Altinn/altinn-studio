@@ -1,16 +1,15 @@
-import React, { useState } from 'react';
 import type { ReactElement } from 'react';
+import { useMemo, useCallback, useState } from 'react';
 import { StudioResizableLayout } from '@studio/components';
 import { ToolColumn } from '../ToolColumn/ToolColumn';
 import classes from './CompleteInterface.module.css';
 import { HeadingBar } from '../HeadingBar/HeadingBar';
-import type { ChatThread } from '../../types/ChatThread';
 import { ThreadColumn } from '../ThreadColumn/ThreadColumn';
 import { ThreadColumnCollapsed } from '../ThreadColumnCollapsed/ThreadColumnCollapsed';
 import { ChatColumn } from '../ChatColumn/ChatColumn';
 import { ToolColumnMode } from '../../types/ToolColumnMode';
-import { createNewChatThread, findThreadById } from '../../utils/utils';
 import type { AssistantProps } from '../../Assistant/Assistant';
+import { createNewChatThread } from '../../utils/threadUtils';
 
 export type CompleteInterfaceProps = Omit<AssistantProps, 'enableCompactInterface'>;
 
@@ -21,19 +20,38 @@ export function CompleteInterface({
   texts,
   chatThreads = [],
   onSubmitMessage,
+  onCancelWorkflow,
+  cancelledMessageContent,
+  onCancelledMessageConsumed,
+  activeThreadId,
+  connectionStatus,
+  workflowStatus,
+  onSelectThread,
+  onDeleteThread,
+  onCreateThread,
+  previewContent,
+  fileBrowserContent,
+  currentUser,
 }: CompleteInterfaceProps): ReactElement {
   const [isThreadColumnCollapsed, setIsThreadColumnCollapsed] = useState(false);
   const [toolColumnMode, setToolColumnMode] = useState<ToolColumnMode>(ToolColumnMode.Preview);
-  const [currentThread, setCurrentThread] = useState<ChatThread>(
-    chatThreads[0] ?? createNewChatThread(texts.newThread),
-  );
+
+  const currentThreadWorkflowStatus =
+    workflowStatus?.sessionId === activeThreadId ? workflowStatus : undefined;
+
+  const currentThread = useMemo(() => {
+    const thread = chatThreads.find((t) => t.id === activeThreadId);
+    return thread ?? createNewChatThread(texts.newThread);
+  }, [activeThreadId, chatThreads, texts]);
 
   const handleToggleCollapse = (): void => setIsThreadColumnCollapsed(!isThreadColumnCollapsed);
 
-  const handleChangeThread = (threadId: string): void => {
-    const thread = findThreadById(chatThreads, threadId);
-    thread && setCurrentThread(thread);
-  };
+  const handleCreateThread = useCallback(() => {
+    if (onCreateThread) {
+      onCreateThread();
+      setIsThreadColumnCollapsed(false);
+    }
+  }, [onCreateThread]);
 
   return (
     <div className={classes.container}>
@@ -41,7 +59,9 @@ export function CompleteInterface({
         texts={texts}
         selectedToolColumnMode={toolColumnMode}
         onModeChange={setToolColumnMode}
+        connectionStatus={connectionStatus}
       />
+
       <StudioResizableLayout.Container orientation='horizontal' localStorageContext='ai-chat'>
         <StudioResizableLayout.Element
           minimumSize={200}
@@ -50,13 +70,20 @@ export function CompleteInterface({
           collapsedSize={80}
         >
           {isThreadColumnCollapsed ? (
-            <ThreadColumnCollapsed texts={texts} onToggleCollapse={handleToggleCollapse} />
+            <ThreadColumnCollapsed
+              texts={texts}
+              onToggleCollapse={handleToggleCollapse}
+              onCreateThread={handleCreateThread}
+            />
           ) : (
             <ThreadColumn
               texts={texts}
               chatThreads={chatThreads}
-              selectedThreadId={currentThread.id}
-              onSelectThread={handleChangeThread}
+              selectedThreadId={activeThreadId ? currentThread.id : undefined}
+              currentSessionId={activeThreadId}
+              onSelectThread={onSelectThread}
+              onDeleteThread={onDeleteThread}
+              onCreateThread={handleCreateThread}
               onToggleCollapse={handleToggleCollapse}
             />
           )}
@@ -66,11 +93,20 @@ export function CompleteInterface({
             texts={texts}
             messages={currentThread?.messages ?? []}
             onSubmitMessage={onSubmitMessage}
+            onCancelWorkflow={onCancelWorkflow}
+            cancelledMessageContent={cancelledMessageContent}
+            onCancelledMessageConsumed={onCancelledMessageConsumed}
+            workflowStatus={currentThreadWorkflowStatus}
             enableCompactInterface={false}
+            currentUser={currentUser}
           />
         </StudioResizableLayout.Element>
         <StudioResizableLayout.Element minimumSize={200}>
-          <ToolColumn mode={toolColumnMode} />
+          <ToolColumn
+            mode={toolColumnMode}
+            previewContent={previewContent}
+            fileBrowserContent={fileBrowserContent}
+          />
         </StudioResizableLayout.Element>
       </StudioResizableLayout.Container>
     </div>

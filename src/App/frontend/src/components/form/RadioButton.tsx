@@ -6,6 +6,7 @@ import type { RadioProps } from '@digdir/designsystemet-react';
 
 import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { HelpText } from 'src/app-components/HelpText/HelpText';
+import { translationKey } from 'src/AppComponentsBridge';
 import classes from 'src/components/form/RadioButton.module.css';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
@@ -51,7 +52,7 @@ export const RadioButton = forwardRef<HTMLInputElement, IRadioButtonProps>(funct
       label={
         <div className={`${hideLabel ? 'sr-only' : ''} ${classes.radioLabelContainer}`}>
           {label}
-          {helpText ? <HelpText title={elementAsString(helpText)}>{helpText}</HelpText> : null}
+          {helpText ? <HelpText title={translationKey(elementAsString(helpText))}>{helpText}</HelpText> : null}
         </div>
       }
       className={cn(classes.radioButton, className)}

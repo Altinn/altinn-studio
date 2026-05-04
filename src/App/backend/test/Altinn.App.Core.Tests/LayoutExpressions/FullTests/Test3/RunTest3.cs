@@ -53,16 +53,9 @@ public class RunTest3
 
         // Should try to remove "some.data[0].binding2", because it is not nullable int and the parent object exists
         hidden
+            .Select(d => d.Field)
             .Should()
-            .BeEquivalentTo(
-                [
-                    new DataReference()
-                    {
-                        Field = "some.data[2]",
-                        DataElementIdentifier = state.GetDefaultDataElementId(),
-                    },
-                ]
-            );
+            .BeEquivalentTo(["some.data[2]", "some.data[2].binding", "some.data[2].binding2", "some.data[2].binding3"]);
 
         // Verify before removing data
         data.Some.Data.Should().HaveCount(3);
@@ -138,21 +131,18 @@ public class RunTest3
 
         // Should try to remove "some.data[0].binding2", because it is not nullable int and the parent object exists
         hidden
+            .Select(d => d.Field)
             .Should()
-            .BeEquivalentTo(
-                [
-                    new DataReference()
-                    {
-                        Field = "some.data[2]",
-                        DataElementIdentifier = state.GetDefaultDataElementId(),
-                    },
-                    new DataReference()
-                    {
-                        Field = "some.data[4]",
-                        DataElementIdentifier = state.GetDefaultDataElementId(),
-                    },
-                ]
-            );
+            .BeEquivalentTo([
+                "some.data[2]",
+                "some.data[2].binding",
+                "some.data[2].binding2",
+                "some.data[2].binding3",
+                "some.data[4]",
+                "some.data[4].binding",
+                "some.data[4].binding2",
+                "some.data[4].binding3",
+            ]);
 
         // Verify before removing data
         data.Some.Data.Should().HaveCount(6);

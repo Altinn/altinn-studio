@@ -1,4 +1,4 @@
-import React, { type ReactNode, type ReactElement } from 'react';
+import type { ReactNode, ReactElement } from 'react';
 import classes from './StudioPageHeaderProfileMenu.module.css';
 import { StudioDropdown } from '../../StudioDropdown';
 import { useStudioDropdownContext } from '../../StudioDropdown/context/StudioDropdownContext';
@@ -11,12 +11,14 @@ export type StudioPageHeaderProfileMenuProps = {
   triggerButtonText?: string;
   profileImage: ReactNode;
   profileMenuGroups: StudioProfileMenuGroup[];
+  profileMenuFooter?: ReactNode;
 };
 
 export const StudioPageHeaderProfileMenu = ({
   triggerButtonText,
   profileImage,
   profileMenuGroups,
+  profileMenuFooter,
 }: StudioPageHeaderProfileMenuProps): ReactElement => {
   const { variant } = useStudioPageHeaderContext();
   const isPreview = variant === 'preview';
@@ -32,7 +34,10 @@ export const StudioPageHeaderProfileMenu = ({
         iconPlacement='right'
         data-color-scheme='light'
       >
-        <StudioPageHeaderMenuContent profileMenuGroups={profileMenuGroups} />
+        <StudioPageHeaderMenuContent
+          profileMenuGroups={profileMenuGroups}
+          profileMenuFooter={profileMenuFooter}
+        />
       </StudioDropdown>
     </div>
   );
@@ -40,9 +45,11 @@ export const StudioPageHeaderProfileMenu = ({
 
 type StudioPageHeaderMenuContentProps = {
   profileMenuGroups: StudioProfileMenuGroup[];
+  profileMenuFooter?: ReactNode;
 };
 const StudioPageHeaderMenuContent = ({
   profileMenuGroups,
+  profileMenuFooter,
 }: StudioPageHeaderMenuContentProps): ReactElement => {
   const { setOpen } = useStudioDropdownContext();
   return (
@@ -54,6 +61,7 @@ const StudioPageHeaderMenuContent = ({
           onClickItem={() => setOpen(false)}
         />
       ))}
+      {profileMenuFooter && <div className={classes.profileMenuFooter}>{profileMenuFooter}</div>}
     </StudioDropdown.List>
   );
 };

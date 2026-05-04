@@ -1,4 +1,3 @@
-import React from 'react';
 import type { CompleteInterfaceProps } from './CompleteInterface';
 import { CompleteInterface } from './CompleteInterface';
 import { render, screen } from '@testing-library/react';
@@ -9,6 +8,7 @@ import { MessageAuthor } from '../../types/MessageAuthor';
 
 // Test data
 const onSubmitMessage = jest.fn();
+const onSelectThread = jest.fn();
 
 const threadTitle1 = 'Thread 1';
 const threadTitle2 = 'Thread 2';
@@ -78,21 +78,20 @@ describe('CompleteInterface', () => {
     expect(userMessage).toBeInTheDocument();
   });
 
-  it('should switch thread when a different thread is selected', async () => {
+  it('should call onSelectThread when a different thread is selected', async () => {
     const user = userEvent.setup();
-    renderCompleteInterface({ chatThreads: mockChatThreads });
-
-    expect(screen.getByText('User message')).toBeInTheDocument();
+    const mockOnSelectThread = jest.fn();
+    renderCompleteInterface({ chatThreads: mockChatThreads, onSelectThread: mockOnSelectThread });
 
     const thread2Tab = screen.getByRole('tab', { name: threadTitle2 });
     await user.click(thread2Tab);
 
-    expect(screen.queryByText('User message')).not.toBeInTheDocument();
+    expect(mockOnSelectThread).toHaveBeenCalledWith('2');
   });
 
   it('should render the chat input', () => {
     renderCompleteInterface();
-    const textarea = screen.getByPlaceholderText(mockTexts.textareaPlaceholder);
+    const textarea = screen.getByPlaceholderText(mockTexts.textarea.placeholder);
 
     expect(textarea).toBeInTheDocument();
   });
@@ -124,11 +123,39 @@ describe('CompleteInterface', () => {
 
     expect(previewPlaceholder).toBeInTheDocument();
   });
+
+  it('should render the assistant loading bubble when the active workflow belongs to the active thread', () => {
+    const loadingBubbleMessage = 'Working on it...';
+    renderCompleteInterface({
+      chatThreads: mockChatThreads,
+      activeThreadId: '1',
+      workflowStatus: { isActive: true, sessionId: '1', message: loadingBubbleMessage },
+    });
+
+    expect(screen.getByText(loadingBubbleMessage)).toBeInTheDocument();
+  });
+
+  it('should not render the assistant loading bubble when the active workflow belongs to another thread', () => {
+    const loadingBubbleMessage = 'Working on it...';
+    renderCompleteInterface({
+      chatThreads: mockChatThreads,
+      activeThreadId: '1',
+      workflowStatus: { isActive: true, sessionId: '2', message: loadingBubbleMessage },
+    });
+
+    expect(screen.queryByText(loadingBubbleMessage)).not.toBeInTheDocument();
+  });
 });
 
-const defaultProps = {
+const defaultProps: CompleteInterfaceProps = {
   texts: mockTexts,
   onSubmitMessage,
+  onSelectThread,
+  chatThreads: mockChatThreads,
+  activeThreadId: '1',
+  connectionStatus: 'connected',
+  workflowStatus: { isActive: true },
+  previewContent: <p>Preview placeholder</p>,
 };
 
 const renderCompleteInterface = (props?: Partial<CompleteInterfaceProps>): void => {

@@ -8,93 +8,108 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Moq;
 using Xunit;
 
-namespace Designer.Tests.Controllers.ResourceAdminController
+namespace Designer.Tests.Controllers.ResourceAdminController;
+
+public class GetResourceByIdTests
+    : ResourceAdminControllerTestsBaseClass<GetResourceByIdTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public class GetResourceByIdTests : ResourceAdminControllerTestsBaseClass<GetResourceByIdTests>, IClassFixture<WebApplicationFactory<Program>>
+    public GetResourceByIdTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
+
+    [Fact]
+    public async Task GetResourceById_OK()
     {
+        // Arrange
+        string uri = $"{VersionPrefix}/ttd/resources/ttd-resources/ttd_testresource";
 
-        public GetResourceByIdTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        RepositoryMock
+            .Setup(r =>
+                r.GetServiceResourceById(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<System.Threading.CancellationToken>()
+                )
+            )
+            .Returns(
+                Task.FromResult(
+                    new ServiceResource
+                    {
+                        Identifier = "testresource",
+                        Title = new Dictionary<string, string>(),
+                        Description = new Dictionary<string, string>(),
+                        RightDescription = new Dictionary<string, string>(),
+                        Homepage = "test.no",
+                        Status = string.Empty,
+                        IsPartOf = string.Empty,
+                        ThematicArea = string.Empty,
+                        ResourceReferences = GetTestResourceReferences(),
+                        Delegable = true,
+                        Visible = true,
+                        HasCompetentAuthority = new CompetentAuthority
+                        {
+                            Organization = "ttd",
+                            Orgcode = "test",
+                            Name = new Dictionary<string, string>(),
+                        },
+                        Keywords = GetTestKeywords(),
+                        ResourceType = ResourceType.Default,
+                    }
+                )
+            );
 
-        [Fact]
-        public async Task GetResourceById_OK()
-        {
-            // Arrange
-            string uri = $"{VersionPrefix}/ttd/resources/ttd-resources/ttd_testresource";
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-            RepositoryMock
-                .Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<System.Threading.CancellationToken>()))
-                .Returns(Task.FromResult(new ServiceResource
-                {
-                    Identifier = "testresource",
-                    Title = new Dictionary<string, string>(),
-                    Description = new Dictionary<string, string>(),
-                    RightDescription = new Dictionary<string, string>(),
-                    Homepage = "test.no",
-                    Status = string.Empty,
-                    IsPartOf = string.Empty,
-                    ThematicArea = string.Empty,
-                    ResourceReferences = GetTestResourceReferences(),
-                    Delegable = true,
-                    Visible = true,
-                    HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
-                    Keywords = GetTestKeywords(),
-                    ResourceType = ResourceType.Default,
-                }));
+        // Act
+        using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
 
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+    }
 
-            // Act
-            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
+    [Fact]
+    public async Task GetResourceById_NotFound()
+    {
+        // Arrange
+        string uri = $"{VersionPrefix}/orgwithoutrepo/resources/ttd-resources/ttd_test_resource";
 
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
-        }
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-        [Fact]
-        public async Task GetResourceById_NotFound()
-        {
-            // Arrange
-            string uri = $"{VersionPrefix}/orgwithoutrepo/resources/ttd-resources/ttd_test_resource";
+        // Act
+        using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
 
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+    }
 
-            // Act
-            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
+    [Fact]
+    public async Task GetResourceById_Passing_Repository_NotFound()
+    {
+        // Arrange
+        string uri = $"{VersionPrefix}/orgwithoutrepo/resources/ttd-resources";
 
-            // Assert
-            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
-        }
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-        [Fact]
-        public async Task GetResourceById_Passing_Repository_NotFound()
-        {
-            // Arrange
-            string uri = $"{VersionPrefix}/orgwithoutrepo/resources/ttd-resources";
+        // Act
+        using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
 
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+    }
 
-            // Act
-            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
+    [Fact]
+    public async Task GetResourceById_PassingNoValidArgument_NotFound()
+    {
+        // Arrange
+        string uri = $"{VersionPrefix}/orgwithoutrepo/resources/orgwithoutrepo-resources/notvalidresource";
 
-            // Assert
-            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
-        }
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-        [Fact]
-        public async Task GetResourceById_PassingNoValidArgument_NotFound()
-        {
-            // Arrange
-            string uri = $"{VersionPrefix}/orgwithoutrepo/resources/orgwithoutrepo-resources/notvalidresource";
+        // Act
+        using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
 
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
-
-            // Act
-            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
-
-            // Assert
-            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
-        }
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
     }
 }

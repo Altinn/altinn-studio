@@ -1,11 +1,8 @@
-import { type ReactNode } from 'react';
-import React, { createContext, useState, useEffect, useMemo } from 'react';
+import { type ReactNode, type JSX, createContext, useMemo, useRef, useState } from 'react';
 import type { IConfiguration, IConfig, ITelemetryPlugin } from '@microsoft/applicationinsights-web';
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
 import { ReactPlugin } from '@microsoft/applicationinsights-react-js';
-import type { AltinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
-import axios from 'axios';
-import { envFilePath } from 'app-shared/api/paths';
+import { useEnvironmentConfig } from './EnvironmentConfigContext';
 
 export type LoggerConfig = IConfiguration & IConfig;
 
@@ -20,52 +17,40 @@ export const LoggerContextProvider = ({
   config,
 }: LoggerContextProviderProps): JSX.Element => {
   const reactPlugin = useMemo(() => new ReactPlugin(), []);
-  const [environment, setEnvironment] = useState<AltinnStudioEnvironment>(null);
+  const { environment } = useEnvironmentConfig();
+  const [applicationInsights, setApplicationInsights] = useState<ApplicationInsights | null>(null);
+  const hasAttemptedInitialization = useRef(false);
 
-  const fetchConfig = async () => {
-    const response = await axios
-      .get(envFilePath())
-      .catch((error) =>
-        console.warn(
-          'Could not load environment file. This is expected for local dev environments.',
-          error,
-        ),
-      );
-    if (response) return response.data as AltinnStudioEnvironment;
-  };
+  if (environment?.aiConnectionString && !hasAttemptedInitialization.current) {
+    hasAttemptedInitialization.current = true;
+    setApplicationInsights(
+      initializeApplicationInsights(environment.aiConnectionString, config, reactPlugin),
+    );
+  }
 
-  useEffect(() => {
-    fetchConfig().then(setEnvironment);
-  }, []);
+  return <LoggerContext.Provider value={applicationInsights}>{children}</LoggerContext.Provider>;
+};
 
-  const applicationInsights = useMemo(() => {
-    // check if we have a connectionString, if not, don't initialize app insights (we do not want AI to run on localhost)
-    if (!environment?.aiConnectionString) return null;
+function initializeApplicationInsights(
+  connectionString: string | undefined,
+  config: LoggerConfig,
+  reactPlugin: ReactPlugin,
+): ApplicationInsights | null {
+  if (!connectionString) return null;
 
+  try {
     const insights = new ApplicationInsights({
       config: {
         ...config,
-        connectionString: environment.aiConnectionString,
+        connectionString,
         extensions: [reactPlugin as unknown as ITelemetryPlugin],
       },
     });
 
     insights.loadAppInsights();
     return insights;
-  }, [config, reactPlugin, environment]);
-
-  useEffect(() => {
-    const handleWindowError = (event: ErrorEvent) => {
-      applicationInsights?.trackException({ error: event.error });
-    };
-
-    if (applicationInsights) {
-      window.addEventListener('error', handleWindowError);
-
-      return () => {
-        window.removeEventListener('error', handleWindowError);
-      };
-    }
-  }, [applicationInsights]);
-  return <LoggerContext.Provider value={applicationInsights}>{children}</LoggerContext.Provider>;
-};
+  } catch (error) {
+    console.error('Failed to initialize Application Insights:', error);
+    return null;
+  }
+}

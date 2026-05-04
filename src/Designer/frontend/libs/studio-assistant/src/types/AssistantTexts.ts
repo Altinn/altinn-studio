@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 export type AssistantTexts = {
   heading: string;
   preview: string;
@@ -7,9 +9,25 @@ export type AssistantTexts = {
   newThread: string;
   previousThreads: string;
   aboutAssistant: string;
-  textareaPlaceholder: string;
+  aboutAssistantDialog: AboutAssistantDialogTexts;
+  textarea: TextAreaTexts;
   addAttachment: string;
   allowAppChangesSwitch: string;
   send: string;
+  cancel: string;
   assistantFirstMessage: string;
+};
+
+export type AboutAssistantDialogTexts = {
+  heading: string;
+  description: ReactNode;
+  branchInfo: ReactNode;
+  branchDocsLink: string;
+  disclaimer: string;
+};
+
+export type TextAreaTexts = {
+  placeholder: string;
+  wait: string;
+  waitingForConnection: string;
 };

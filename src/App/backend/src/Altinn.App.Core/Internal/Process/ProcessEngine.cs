@@ -6,6 +6,7 @@ using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
@@ -42,6 +43,7 @@ public class ProcessEngine : IProcessEngine
     private readonly ILogger<ProcessEngine> _logger;
     private readonly IValidationService _validationService;
     private readonly IInstanceClient _instanceClient;
+    private readonly IInstanceLocker _instanceLocker;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessEngine"/> class.
@@ -74,6 +76,7 @@ public class ProcessEngine : IProcessEngine
         _logger = logger;
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
+        _instanceLocker = serviceProvider.GetRequiredService<IInstanceLocker>();
     }
 
     /// <inheritdoc/>
@@ -182,7 +185,7 @@ public class ProcessEngine : IProcessEngine
             // Fetch fresh instance on subsequent iterations
             if (!firstIteration)
             {
-                instance = await _instanceClient.GetInstance(instance);
+                instance = await _instanceClient.GetInstance(instance, ct: ct);
             }
 
             // Only use action and actionOnBehalfOf on first iteration
@@ -252,6 +255,8 @@ public class ProcessEngine : IProcessEngine
             };
         }
 
+        await _instanceLocker.LockAsync();
+
         _logger.LogDebug(
             "User successfully authorized to perform process next. Task ID: {CurrentTaskId}. Task type: {AltinnTaskType}. Action: {ProcessNextAction}.",
             LogSanitizer.Sanitize(currentTaskId),
@@ -281,11 +286,10 @@ public class ProcessEngine : IProcessEngine
                 );
 
                 var serviceTaskRequiresContinue =
-                    serviceTaskResult
-                        is ServiceTaskFailedResult
-                        {
-                            ErrorHandling.Strategy: ServiceTaskErrorStrategy.ContinueProcessNext
-                        };
+                    serviceTaskResult is ServiceTaskFailedResult
+                    {
+                        ErrorHandling.Strategy: ServiceTaskErrorStrategy.ContinueProcessNext
+                    };
 
                 if (!serviceTaskProcessChangeResult.Success && !serviceTaskRequiresContinue)
                 {

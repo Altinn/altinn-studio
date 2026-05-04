@@ -96,6 +96,10 @@
           "type": "integer",
           "@xsdType": "XmlAttribute"
         },
+        "useBothRepGroups": {
+          "type": "boolean",
+          "@xsdType": "XmlAttribute"
+        },
         "sumAll": {
           "type": "number",
           "@xsdType": "XmlAttribute"

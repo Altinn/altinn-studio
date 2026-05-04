@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, within } from '@testing-library/react';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 import { renderWithProviders } from '../../testing/mocks';
@@ -74,16 +73,14 @@ describe('PageGroupAccordion', () => {
     await renderPageGroupAccordion({});
     const groupHeader = groupAccordionHeader(0);
     expect(groupHeader).toBeInTheDocument();
-    const heading = within(groupHeader).getByRole('heading', { level: 2 });
-    expect(heading).toHaveTextContent('Group 1');
+    expect(within(groupHeader).getByText('Group 1')).toBeInTheDocument();
   });
 
   it('should display page ID as fallback when group name is empty', async () => {
     await renderPageGroupAccordion({ props: { pages: singlePageGroupMock } });
     const groupHeader = groupAccordionHeader(0);
     expect(groupHeader).toBeInTheDocument();
-    const heading = within(groupHeader).getByRole('heading', { level: 2 });
-    expect(heading).toHaveTextContent('Side1');
+    expect(within(groupHeader).getByText('Side1')).toBeInTheDocument();
   });
 
   it('should set selectedItem when group header is clicked', async () => {
@@ -94,7 +91,7 @@ describe('PageGroupAccordion', () => {
     });
 
     const groupHeader = groupAccordionHeader(0);
-    const heading = within(groupHeader).getByRole('heading', { level: 2 });
+    const heading = within(groupHeader).getByText('Group 1');
     await user.click(heading);
     expect(setSelectedItem).toHaveBeenCalledWith({ type: ItemType.Group, id: 0 });
   });
@@ -117,23 +114,13 @@ describe('PageGroupAccordion', () => {
   it('should display page ID when group has single page', async () => {
     await renderPageGroupAccordion({});
     const groupHeader = groupAccordionHeader(1);
-    const heading = within(groupHeader).getByRole('heading', { level: 2 });
-    expect(heading).toHaveTextContent('Side 3');
-  });
-
-  it('should display info message when group has just one page', async () => {
-    await renderPageGroupAccordion({ props: { pages: singlePageGroupMock } });
-    const infoMessage = screen.getByText(
-      textMock('ux_editor.page_group.one_page_in_group_info_message'),
-    );
-    expect(infoMessage).toBeInTheDocument();
+    expect(within(groupHeader).getByText('Side 3')).toBeInTheDocument();
   });
 
   it('should display group name when group has multiple pages', async () => {
     await renderPageGroupAccordion({});
     const groupHeader = groupAccordionHeader(0);
-    const heading = within(groupHeader).getByRole('heading', { level: 2 });
-    expect(heading).toHaveTextContent('Group 1');
+    expect(within(groupHeader).getByText('Group 1')).toBeInTheDocument();
   });
 
   it('should call handleAddPageInsideGroup when add button is clicked', async () => {

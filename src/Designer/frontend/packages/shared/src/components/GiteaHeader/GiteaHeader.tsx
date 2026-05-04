@@ -1,5 +1,4 @@
 import type { ReactElement, ReactNode } from 'react';
-import React from 'react';
 import classes from './GiteaHeader.module.css';
 import { VersionControlButtons } from './VersionControlButtons';
 import { ThreeDotsMenu } from './ThreeDotsMenu';
@@ -10,6 +9,7 @@ type GiteaHeaderProps = {
   hasCloneModal?: boolean;
   rightContentClassName?: string;
   leftComponent?: ReactNode;
+  rightContent?: ReactNode;
   hasRepoError?: boolean;
   onPullSuccess?: () => void;
   owner: string;
@@ -20,6 +20,7 @@ export const GiteaHeader = ({
   menuOnlyHasRepository = false,
   hasCloneModal = false,
   rightContentClassName,
+  rightContent,
   leftComponent,
   hasRepoError,
   onPullSuccess,
@@ -31,6 +32,7 @@ export const GiteaHeader = ({
       <div className={classes.wrapper}>
         <div className={classes.leftContentWrapper}>{leftComponent}</div>
         <div className={`${classes.rightContentWrapper} ${rightContentClassName}`}>
+          {rightContent}
           {!hasRepoError && <VersionControlButtons onPullSuccess={onPullSuccess} />}
           <ThreeDotsMenu isClonePossible={!menuOnlyHasRepository && hasCloneModal} />
         </div>

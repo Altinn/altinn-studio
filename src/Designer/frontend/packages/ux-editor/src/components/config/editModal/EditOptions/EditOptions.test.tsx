@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import { EditOptions } from './EditOptions';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -23,7 +22,9 @@ describe('EditOptions', () => {
 
   it('should render spinner when loading data', () => {
     renderEditOptions();
-    expect(screen.getByText(textMock('ux_editor.modal_properties_loading'))).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(textMock('ux_editor.modal_properties_loading')),
+    ).toBeInTheDocument();
   });
 
   it('should render child component when loading is done', async () => {

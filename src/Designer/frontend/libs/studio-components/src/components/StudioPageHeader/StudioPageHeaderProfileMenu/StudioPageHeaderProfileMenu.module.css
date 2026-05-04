@@ -18,3 +18,11 @@
 .dropDownMenuGroup:not(:first-child) {
   padding-top: var(--ds-size-2);
 }
+
+.profileMenuFooter {
+  padding: var(--ds-size-4);
+}
+
+.dropDownMenuGroup :global([aria-checked='true']) {
+  background-color: var(--fds-semantic-surface-neutral-selected);
+}

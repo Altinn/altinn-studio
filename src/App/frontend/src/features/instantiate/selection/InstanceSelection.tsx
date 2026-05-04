@@ -1,29 +1,26 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 import { Heading, Paragraph, Table } from '@digdir/designsystemet-react';
 import { PencilIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
 import { Pagination } from 'src/app-components/Pagination/Pagination';
+import { translationKey } from 'src/AppComponentsBridge';
 import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
-import { useIsProcessing } from 'src/core/contexts/processingContext';
+import { parseInstanceId, useActiveInstances } from 'src/core/queries/instance';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import {
-  ActiveInstancesProvider,
-  useActiveInstances,
-} from 'src/features/instantiate/selection/ActiveInstancesProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import classes from 'src/features/instantiate/selection/InstanceSelection.module.css';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
-import { focusMainContent } from 'src/hooks/useNavigatePage';
+import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
+import { buildInstanceUrl } from 'src/routesBuilder';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import { getInstanceUiUrl } from 'src/utils/urls/appUrlHelper';
 import type { ISimpleInstance } from 'src/types';
@@ -41,17 +38,20 @@ function getDateDisplayString(timeStamp: string) {
   });
 }
 
-export const InstanceSelectionWrapper = () => (
-  <ActiveInstancesProvider>
+export const InstanceSelectionWrapper = () => {
+  const { instances, isLoading } = useActiveInstances(String(useSelectedParty()?.partyId ?? -1));
+  if (isLoading || !instances || instances.length === 0) {
+    return null;
+  }
+  return (
     <PresentationComponent showNavigation={false}>
-      <InstanceSelection />
+      <InstanceSelection instances={instances} />
     </PresentationComponent>
-  </ActiveInstancesProvider>
-);
+  );
+};
 
-function InstanceSelection() {
-  const _instances = useActiveInstances();
-  const applicationMetadata = useApplicationMetadata();
+function InstanceSelection({ instances: _instances }: { instances: ISimpleInstance[] }) {
+  const applicationMetadata = getApplicationMetadata();
   const instanceSelectionOptions = applicationMetadata?.onEntry.instanceSelection;
   const selectedIndex = instanceSelectionOptions?.defaultSelectedOption;
   const { langAsString } = useLanguage();
@@ -59,8 +59,9 @@ function InstanceSelection() {
   const rowsPerPageOptions = instanceSelectionOptions?.rowsPerPageOptions ?? [10, 25, 50];
   const instantiation = useInstantiation();
   const selectedParty = useSelectedParty();
-  const setNavigationEffect = useSetNavigationEffect();
-  const { performProcess, isAnyProcessing, isThisProcessing: isLoading } = useIsProcessing();
+  const performProcess = useProcessingMutation('instantiation');
+  const isLoading = useIsThisProcessing('instantiation');
+  const isAnyProcessing = useIsAnyProcessing();
   const navigate = useNavigate();
 
   const appName = useAppName();
@@ -73,7 +74,8 @@ function InstanceSelection() {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[defaultSelectedOption]);
 
-  const instances = instanceSelectionOptions?.sortDirection === 'desc' ? [..._instances].reverse() : _instances;
+  const sorted = [..._instances].sort((a, b) => new Date(a.lastChanged).getTime() - new Date(b.lastChanged).getTime());
+  const instances = instanceSelectionOptions?.sortDirection === 'desc' ? sorted.reverse() : sorted;
   const paginatedInstances = instances.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
   function handleRowsPerPageChanged(newRowsPerPage: number) {
@@ -117,9 +119,9 @@ function InstanceSelection() {
                     variant='tertiary'
                     color='second'
                     icon={true}
-                    onClick={(ev) => openInstance(instance.id, ev, navigate, setNavigationEffect)}
-                    onMouseDown={(ev) => openInstance(instance.id, ev, navigate, setNavigationEffect)}
-                    aria-label={`${langAsString('instance_selection.continue')}`}
+                    onClick={(ev) => openInstance(instance.id, ev, navigate)}
+                    onMouseDown={(ev) => openInstance(instance.id, ev, navigate)}
+                    aria-label={translationKey('instance_selection.continue')}
                   >
                     <PencilIcon fontSize='1rem' />
                   </Button>
@@ -135,11 +137,9 @@ function InstanceSelection() {
                 <div className={classes.paginationWrapperMobile}>
                   <Pagination
                     id='instance-selection'
-                    nextLabel={langAsString('list_component.nextPage')}
-                    nextLabelAriaLabel={langAsString('list_component.nextPageAriaLabel')}
-                    previousLabel={langAsString('list_component.previousPage')}
-                    previousLabelAriaLabel={langAsString('list_component.previousPageAriaLabel')}
-                    rowsPerPageText={langAsString('list_component.rowsPerPage')}
+                    nextLabel={translationKey('list_component.nextPage')}
+                    previousLabel={translationKey('list_component.previousPage')}
+                    rowsPerPageText={translationKey('list_component.rowsPerPage')}
                     size='sm'
                     numberOfRows={instances.length}
                     showRowsPerPageDropdown={true}
@@ -185,7 +185,7 @@ function InstanceSelection() {
                   <Button
                     variant='tertiary'
                     color='second'
-                    onClick={(ev) => openInstance(instance.id, ev, navigate, setNavigationEffect)}
+                    onClick={(ev) => openInstance(instance.id, ev, navigate)}
                   >
                     <Lang id='instance_selection.continue' />
                     <PencilIcon
@@ -205,11 +205,9 @@ function InstanceSelection() {
                 <div className={classes.paginationWrapper}>
                   <Pagination
                     id='instance-selection'
-                    nextLabel={langAsString('list_component.nextPage')}
-                    nextLabelAriaLabel={langAsString('list_component.nextPageAriaLabel')}
-                    previousLabel={langAsString('list_component.previousPage')}
-                    previousLabelAriaLabel={langAsString('list_component.previousPageAriaLabel')}
-                    rowsPerPageText={langAsString('list_component.rowsPerPage')}
+                    nextLabel={translationKey('list_component.nextPage')}
+                    previousLabel={translationKey('list_component.previousPage')}
+                    rowsPerPageText={translationKey('list_component.rowsPerPage')}
                     size='sm'
                     hideLabels={false}
                     currentPage={currentPage}
@@ -262,15 +260,12 @@ function InstanceSelection() {
               onClick={() =>
                 performProcess(async () => {
                   if (selectedParty) {
-                    await instantiation.instantiate(selectedParty.partyId, {
-                      force: true,
-                      onSuccess: (data) =>
-                        setNavigationEffect({
-                          targetLocation: `/instance/${data.id}`,
-                          matchStart: true,
-                          callback: focusMainContent,
-                        }),
-                    });
+                    const data = await instantiation.instantiate(selectedParty.partyId, { force: true });
+                    if (data) {
+                      const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(data.id);
+                      const url = buildInstanceUrl(instanceOwnerPartyId, instanceGuid);
+                      navigate(url);
+                    }
                   }
                 })
               }
@@ -294,7 +289,6 @@ function InstanceSelection() {
 const openInTab = (url: string, originalEvent: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
   const link = document.createElement('a');
   link.href = url;
-  // eslint-disable-next-line no-undef
   const options: MouseEventInit = {
     button: originalEvent.button,
     buttons: originalEvent.buttons,
@@ -314,7 +308,6 @@ const openInstance = (
   instanceId: string,
   originalEvent: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   navigate: ReturnType<typeof useNavigate>,
-  setNavigationEffect: ReturnType<typeof useSetNavigationEffect>,
 ) => {
   if (originalEvent.ctrlKey || originalEvent.metaKey || originalEvent.button === 1) {
     originalEvent.stopPropagation();
@@ -327,10 +320,7 @@ const openInstance = (
     return;
   }
 
-  setNavigationEffect({
-    targetLocation: `/instance/${instanceId}`,
-    matchStart: true,
-    callback: focusMainContent,
-  });
-  navigate(`/instance/${instanceId}`);
+  const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(instanceId);
+  const url = buildInstanceUrl(instanceOwnerPartyId, instanceGuid);
+  navigate(url);
 };

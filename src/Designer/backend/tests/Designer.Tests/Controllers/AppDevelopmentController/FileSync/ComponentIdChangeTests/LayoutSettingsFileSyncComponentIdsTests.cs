@@ -16,18 +16,27 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController.FileSync.ComponentIdChangeTests;
 
-public class LayoutSettingsFileSyncComponentIdsTests : DesignerEndpointsTestsBase<LayoutSettingsFileSyncComponentIdsTests>, IClassFixture<WebApplicationFactory<Program>>
+public class LayoutSettingsFileSyncComponentIdsTests
+    : DesignerEndpointsTestsBase<LayoutSettingsFileSyncComponentIdsTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development/form-layout";
+    private static string VersionPrefix(string org, string repository) =>
+        $"/designer/api/{org}/{repository}/app-development/form-layout";
 
-    public LayoutSettingsFileSyncComponentIdsTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public LayoutSettingsFileSyncComponentIdsTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     [Theory]
     [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "confirmChangeName", "aNewComponentId")]
     // The oldComponentId is present in the array of components to exclude from PDF in Settings.json
-    public async Task SaveFormLayoutWithComponentIdChanges_ShouldSyncOccurrencesInLayoutSettings(string org, string app, string developer, string layoutSetName, string oldComponentId, string newComponentId)
+    public async Task SaveFormLayoutWithComponentIdChanges_ShouldSyncOccurrencesInLayoutSettings(
+        string org,
+        string app,
+        string developer,
+        string layoutSetName,
+        string oldComponentId,
+        string newComponentId
+    )
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -42,12 +51,17 @@ public class LayoutSettingsFileSyncComponentIdsTests : DesignerEndpointsTestsBas
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
-            Content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json)
+            Content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json),
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        string layoutSettingsFromRepo = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/ui/{layoutSetName}/Settings.json");
+        string layoutSettingsFromRepo = TestDataHelper.GetFileFromRepo(
+            org,
+            targetRepository,
+            developer,
+            $"App/ui/{layoutSetName}/Settings.json"
+        );
 
         JsonNode layoutSettings = JsonNode.Parse(layoutSettingsFromRepo);
         JsonArray excludeFromPdfArray = layoutSettings["components"]?["excludeFromPdf"]?.AsArray();
@@ -59,7 +73,14 @@ public class LayoutSettingsFileSyncComponentIdsTests : DesignerEndpointsTestsBas
     [Theory]
     [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "confirmChangeName", null)]
     // The oldComponentId is present in the array of components to exclude from PDF in Settings.json
-    public async Task SaveFormLayoutWithComponentIdRemoval_ShouldRemoveOccurrencesInLayoutSettings(string org, string app, string developer, string layoutSetName, string oldComponentId, string newComponentId)
+    public async Task SaveFormLayoutWithComponentIdRemoval_ShouldRemoveOccurrencesInLayoutSettings(
+        string org,
+        string app,
+        string developer,
+        string layoutSetName,
+        string oldComponentId,
+        string newComponentId
+    )
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -72,18 +93,28 @@ public class LayoutSettingsFileSyncComponentIdsTests : DesignerEndpointsTestsBas
 
         string url = $"{VersionPrefix(org, targetRepository)}/{layoutName}?layoutSetName={layoutSetName}";
 
-        string originalLayoutSettingsString = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/ui/{layoutSetName}/Settings.json");
+        string originalLayoutSettingsString = TestDataHelper.GetFileFromRepo(
+            org,
+            targetRepository,
+            developer,
+            $"App/ui/{layoutSetName}/Settings.json"
+        );
         JsonNode originalLayoutSettings = JsonNode.Parse(originalLayoutSettingsString);
         JsonArray originalExcludeFromPdfArray = originalLayoutSettings["components"]?["excludeFromPdf"]?.AsArray();
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
-            Content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json)
+            Content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json),
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        string layoutSettingsFromRepo = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/ui/{layoutSetName}/Settings.json");
+        string layoutSettingsFromRepo = TestDataHelper.GetFileFromRepo(
+            org,
+            targetRepository,
+            developer,
+            $"App/ui/{layoutSetName}/Settings.json"
+        );
 
         JsonNode layoutSettings = JsonNode.Parse(layoutSettingsFromRepo);
         JsonArray excludeFromPdfArray = layoutSettings["components"]?["excludeFromPdf"]?.AsArray();
@@ -94,9 +125,27 @@ public class LayoutSettingsFileSyncComponentIdsTests : DesignerEndpointsTestsBas
     }
 
     [Theory]
-    [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "confirmChangeName", "aNewComponentId", "send-in-text", "aNewComponentId2")]
+    [InlineData(
+        "ttd",
+        "app-with-layoutsets",
+        "testUser",
+        "layoutSet1",
+        "confirmChangeName",
+        "aNewComponentId",
+        "send-in-text",
+        "aNewComponentId2"
+    )]
     // The oldComponentId is present in the array of components to exclude from PDF in Settings.json
-    public async Task SaveFormLayoutWithMultipleComponentIdsChange_ShouldSyncOccurrencesInLayoutSettings(string org, string app, string developer, string layoutSetName, string oldComponentId, string newComponentId, string oldComponentId2, string newComponentId2)
+    public async Task SaveFormLayoutWithMultipleComponentIdsChange_ShouldSyncOccurrencesInLayoutSettings(
+        string org,
+        string app,
+        string developer,
+        string layoutSetName,
+        string oldComponentId,
+        string newComponentId,
+        string oldComponentId2,
+        string newComponentId2
+    )
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -112,12 +161,17 @@ public class LayoutSettingsFileSyncComponentIdsTests : DesignerEndpointsTestsBas
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
-            Content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json)
+            Content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json),
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        string layoutSettingsFromRepo = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/ui/{layoutSetName}/Settings.json");
+        string layoutSettingsFromRepo = TestDataHelper.GetFileFromRepo(
+            org,
+            targetRepository,
+            developer,
+            $"App/ui/{layoutSetName}/Settings.json"
+        );
 
         JsonNode layoutSettings = JsonNode.Parse(layoutSettingsFromRepo);
         JsonArray excludeFromPdfArray = layoutSettings["components"]?["excludeFromPdf"]?.AsArray();
@@ -138,16 +192,20 @@ public class LayoutSettingsFileSyncComponentIdsTests : DesignerEndpointsTestsBas
 
         var componentIdsChangeArray = new JsonArray();
 
-        componentIdsChanges.ForEach(change => componentIdsChangeArray.Add(new JsonObject
-        {
-            ["oldComponentId"] = change.OldComponentId,
-            ["newComponentId"] = change.NewComponentId,
-        }));
+        componentIdsChanges.ForEach(change =>
+            componentIdsChangeArray.Add(
+                new JsonObject
+                {
+                    ["oldComponentId"] = change.OldComponentId,
+                    ["newComponentId"] = change.NewComponentId,
+                }
+            )
+        );
 
         var payload = new JsonObject
         {
             ["componentIdsChange"] = componentIdsChangeArray,
-            ["layout"] = JsonNode.Parse(layout)
+            ["layout"] = JsonNode.Parse(layout),
         };
 
         return payload.ToJsonString();
@@ -164,5 +222,4 @@ public class LayoutSettingsFileSyncComponentIdsTests : DesignerEndpointsTestsBas
         }
         await File.WriteAllTextAsync(filePath, fileContent);
     }
-
 }

@@ -4,7 +4,6 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Altinn.App.Core" Version="8.6.5" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="CSharpier.MsBuild" Version="1.1.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />

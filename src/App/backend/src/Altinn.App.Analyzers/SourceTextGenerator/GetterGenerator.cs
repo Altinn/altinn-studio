@@ -50,7 +50,7 @@ internal static class GetterGenerator
                 $$"""
 
                     private static object? GetRecursive(
-                        {{modelPathNode.ListType}}? model,
+                        {{modelPathNode.ListTypeWithNullable}} model,
                         global::System.ReadOnlySpan<char> path,
                         int literalIndex,
                         int offset
@@ -86,7 +86,7 @@ internal static class GetterGenerator
             $$"""
 
                 private static object? GetRecursive(
-                    {{modelPathNode.TypeName}}? model,
+                    {{modelPathNode.TypeNameWithNullable}} model,
                     global::System.ReadOnlySpan<char> path,
                     int offset
                 )

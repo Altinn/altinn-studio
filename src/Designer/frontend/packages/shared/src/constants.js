@@ -1,13 +1,15 @@
 // TODO: Extract/Centralize react-router routes (https://github.com/Altinn/altinn-studio/issues/12624)
 export const APP_DEVELOPMENT_BASENAME = '/editor';
-export const APP_DASHBOARD_BASENAME = '/app-dashboard';
+export const APP_DASHBOARD_BASENAME = 'app-dashboard';
 export const DASHBOARD_BASENAME = '/dashboard';
 export const DASHBOARD_ROOT_ROUTE = '/';
 export const ADMIN_BASENAME = '/admin';
 export const RESOURCEADM_BASENAME = '/resourceadm';
-export const ORG_LIBRARY_BASENAME = '/org-library';
+export const ORG_LIBRARY_BASENAME = 'org-library';
 export const PREVIEW_BASENAME = '/preview';
 export const STUDIO_ROOT_BASENAME = '/info';
+export const SETTINGS_BASENAME = '/settings';
+export const DISPLAY_NAME = 'Altinn Studio';
 export const DEFAULT_LANGUAGE = 'nb';
 export const BASE_CONTAINER_ID = '__base__';
 export const AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS = 400;
@@ -27,3 +29,10 @@ export const MAXIMUM_SUPPORTED_FRONTEND_VERSION = 4;
 export const MINIMUM_SUPPORTED_BACKEND_VERSION = 7;
 export const MAXIMUM_SUPPORTED_BACKEND_VERSION = 8;
 export const CODE_LIST_FOLDER = 'CodeLists';
+export const PUBLISHED_CODE_LIST_FOLDER = 'code_lists';
+export const DEFAULT_APP_BRANCH = 'master';
+export const DEFAULT_RIGHTS_DESCRIPTION = {
+  nb: 'Ved å gi tilgang til denne tjenesten gir du en annen person fullmakt til å bruke den på dine vegne. Les beskrivelsen av tjenesten for mer informasjon om hva tilgangen innebærer.',
+  nn: 'Når du gir tilgang til denne tenesta, gir du ein annan person fullmakt til å bruka ho på dine vegner. Les skildringa av tenesta for meir informasjon om kva tilgangen inneber.',
+  en: 'By granting access to this service, you are authorising another person to use it on your behalf. Please read the service description for more information about what this access entails.',
+};

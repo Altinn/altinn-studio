@@ -36,6 +36,12 @@ func (s *State) GetDb() *Db {
 	return s.db
 }
 
+// GetExpectedAudience returns the authority URL with trailing slash.
+// Maskinporten requires the audience claim to match the issuer exactly.
+func (s *State) GetExpectedAudience() string {
+	return maskinporten.EnsureTrailingSlash(s.cfg.MaskinportenApi.AuthorityUrl)
+}
+
 func (s *State) initDb() *Db {
 	db := NewDb()
 	jwk := crypto.Jwk{}

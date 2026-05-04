@@ -12,8 +12,8 @@ import {
   EMPTY_SCHEMA_NAME,
   LAYOUT_SCHEMA_NAME,
 } from 'src/features/devtools/utils/layoutSchemaValidation';
+import { FormStore } from 'src/features/form/FormContext';
 import { isDev } from 'src/utils/isDev';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 
 interface Context {
   schemaValidator: ValidateFunc | undefined;
@@ -51,18 +51,23 @@ function FetchLayoutSchema({
   const enabled = useIsLayoutValidationEnabled();
 
   const { fetchLayoutSchema } = useAppQueries();
-  const { data: layoutSchema, isSuccess } = useQuery({
+  const { data: validate, isSuccess } = useQuery({
     enabled,
     queryKey: ['fetchLayoutSchema'],
-    queryFn: () => fetchLayoutSchema(),
+    queryFn: async () => {
+      const schema = await fetchLayoutSchema();
+      if (!schema) {
+        return null;
+      }
+      return makeValidateFunc(createLayoutValidator(schema));
+    },
   });
 
   useEffect(() => {
-    if (isSuccess && layoutSchema) {
-      const ajv = createLayoutValidator(layoutSchema);
-      setSchemaValidator(() => makeValidateFunc(ajv));
+    if (isSuccess && validate) {
+      setSchemaValidator(validate);
     }
-  }, [isSuccess, layoutSchema, setSchemaValidator]);
+  }, [isSuccess, validate, setSchemaValidator]);
 
   return null;
 }
@@ -70,7 +75,7 @@ function FetchLayoutSchema({
 function useIsLayoutValidationEnabled() {
   const hasBeenEnabledBefore = useRef(false);
   const panelOpen = useDevToolsStore((s) => s.isOpen);
-  const hasErrors = NodesInternal.useHasErrors();
+  const hasErrors = FormStore.nodes.useHasErrors();
   const enabled = isDev() || hasErrors || panelOpen || hasBeenEnabledBefore.current;
   hasBeenEnabledBefore.current = enabled;
 

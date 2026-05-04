@@ -7,6 +7,7 @@ using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Models.Pdf;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Context.Propagation;
@@ -32,6 +33,7 @@ public class PdfGeneratorClient : IPdfGeneratorClient
     private readonly PlatformSettings _platformSettings;
     private readonly IUserTokenProvider _userTokenProvider;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IHostEnvironment _hostEnvironment;
     private readonly Telemetry? _telemetry;
 
     /// <summary>
@@ -45,6 +47,7 @@ public class PdfGeneratorClient : IPdfGeneratorClient
     /// <param name="platformSettings">Links to platform services</param>
     /// <param name="userTokenProvider">A service able to identify the JWT for currently authenticated user.</param>
     /// <param name="httpContextAccessor">http context</param>
+    /// <param name="hostEnvironment">The host environment.</param>
     /// <param name="telemetry">Telemetry service</param>
     public PdfGeneratorClient(
         ILogger<PdfGeneratorClient> logger,
@@ -53,6 +56,7 @@ public class PdfGeneratorClient : IPdfGeneratorClient
         IOptions<PlatformSettings> platformSettings,
         IUserTokenProvider userTokenProvider,
         IHttpContextAccessor httpContextAccessor,
+        IHostEnvironment hostEnvironment,
         Telemetry? telemetry = null
     )
     {
@@ -62,6 +66,7 @@ public class PdfGeneratorClient : IPdfGeneratorClient
         _pdfGeneratorSettings = pdfGeneratorSettings.Value;
         _platformSettings = platformSettings.Value;
         _httpContextAccessor = httpContextAccessor;
+        _hostEnvironment = hostEnvironment;
         _telemetry = telemetry;
     }
 
@@ -121,7 +126,7 @@ public class PdfGeneratorClient : IPdfGeneratorClient
         );
 
         if (
-            uri.Host.Contains("local.altinn.cloud")
+            _hostEnvironment.IsDevelopment()
             && _httpContextAccessor.HttpContext?.Request.Cookies.TryGetValue("frontendVersion", out var frontendVersion)
                 == true
             && !string.IsNullOrEmpty(frontendVersion)

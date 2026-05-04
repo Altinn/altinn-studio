@@ -17,7 +17,7 @@ export const OptionSummary = ({ targetBaseComponentId }: Summary2Props) => {
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
   const { textResourceBindings, direction } = useItemWhenType(targetBaseComponentId, 'Option');
-  const title = textResourceBindings?.title;
+  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
   const compact = (direction === 'horizontal' && isCompact == undefined) || isCompact;
 
   return (

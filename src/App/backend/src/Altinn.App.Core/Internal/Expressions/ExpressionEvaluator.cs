@@ -11,11 +11,12 @@ namespace Altinn.App.Core.Internal.Expressions;
 /// <summary>
 /// Static class used to evaluate expressions. Holds the implementation for all expression functions.
 /// </summary>
-public static class ExpressionEvaluator
+public static partial class ExpressionEvaluator
 {
     /// <summary>
     /// Shortcut for evaluating a boolean expression on a given property on a <see cref="Models.Layout.Components.Base.BaseComponent" />
     /// </summary>
+    [Obsolete("Use ComponentContext.IsHidden or ComponentContext.EvaluateExpression instead")]
     public static async Task<bool> EvaluateBooleanExpression(
         LayoutEvaluatorState state,
         ComponentContext context,
@@ -26,9 +27,12 @@ public static class ExpressionEvaluator
         try
         {
             ArgumentNullException.ThrowIfNull(context.Component);
+            if (property is "hidden")
+            {
+                return await context.IsHidden(evaluateRemoveWhenHidden: false);
+            }
             var expr = property switch
             {
-                "hidden" => context.Component.Hidden,
                 "required" => context.Component.Required,
                 "removeWhenHidden" => context.Component.RemoveWhenHidden,
                 _ => throw new ExpressionEvaluatorTypeErrorException($"unknown boolean expression property {property}"),
@@ -36,16 +40,7 @@ public static class ExpressionEvaluator
 
             var result = await EvaluateExpression_internal(state, expr, context);
 
-            return result.ValueKind switch
-            {
-                JsonValueKind.True => true,
-                JsonValueKind.False => false,
-                JsonValueKind.Null => defaultReturn,
-                JsonValueKind.Undefined => defaultReturn,
-                _ => throw new ExpressionEvaluatorTypeErrorException(
-                    $"Return was not boolean. Was {result} of type {result.ValueKind}"
-                ),
-            };
+            return result.ToBoolLoose() ?? defaultReturn;
         }
         catch (Exception e)
         {
@@ -132,6 +127,10 @@ public static class ExpressionEvaluator
             ExpressionFunction.argv => Argv(args, positionalArguments),
             ExpressionFunction.gatewayAction => state.GetGatewayAction(),
             ExpressionFunction.language => state.GetLanguage(),
+            ExpressionFunction.plus => Plus(args),
+            ExpressionFunction.minus => Minus(args),
+            ExpressionFunction.multiply => Multiply(args),
+            ExpressionFunction.divide => Divide(args),
             ExpressionFunction.INVALID => throw new ExpressionEvaluatorTypeErrorException(
                 $"Function {expr.Args.FirstOrDefault()} not implemented in backend {expr}"
             ),
@@ -203,6 +202,10 @@ public static class ExpressionEvaluator
         ModelBinding key = args switch
         {
             [{ ValueKind: JsonValueKind.String } field] => new ModelBinding { Field = field.String },
+            [{ ValueKind: JsonValueKind.String } field, { ValueKind: JsonValueKind.Null }] => new ModelBinding
+            {
+                Field = field.String,
+            },
             [{ ValueKind: JsonValueKind.String } field, { ValueKind: JsonValueKind.String } dataType] =>
                 new ModelBinding { Field = field.String, DataType = dataType.String },
             [{ ValueKind: JsonValueKind.Null }] => throw new ExpressionEvaluatorTypeErrorException(
@@ -257,7 +260,7 @@ public static class ExpressionEvaluator
             throw new ArgumentException("The component expression requires a component context");
         }
 
-        var targetContext = await state.GetComponentContext(context.Component?.PageId, componentId, context.RowIndices);
+        var targetContext = await state.GetComponentContext(componentId, relativeContext: context);
 
         if (targetContext is null)
         {
@@ -732,37 +735,8 @@ public static class ExpressionEvaluator
 
     private static bool PrepareBooleanArg(ExpressionValue arg)
     {
-        return arg.ValueKind switch
-        {
-            JsonValueKind.Null => false,
-            JsonValueKind.True => true,
-            JsonValueKind.False => false,
-
-            JsonValueKind.String => arg.String switch
-            {
-                "true" => true,
-                "false" => false,
-                "1" => true,
-                "0" => false,
-                _ => ParseNumber(arg.String, throwException: false) switch
-                {
-                    1 => true,
-                    0 => false,
-                    _ => throw new ExpressionEvaluatorTypeErrorException(
-                        $"Expected boolean, got value \"{arg.String}\""
-                    ),
-                },
-            },
-            JsonValueKind.Number => arg.Number switch
-            {
-                1 => true,
-                0 => false,
-                _ => throw new ExpressionEvaluatorTypeErrorException($"Expected boolean, got value {arg.Number}"),
-            },
-            _ => throw new ExpressionEvaluatorTypeErrorException(
-                "Unknown data type encountered in expression: " + arg.ValueKind
-            ),
-        };
+        return arg.ToBoolLoose()
+            ?? throw new ExpressionEvaluatorTypeErrorException($"Expected boolean, got value {arg}");
     }
 
     private static bool? And(ExpressionValue[] args)
@@ -840,7 +814,7 @@ public static class ExpressionEvaluator
     {
         if (args.Length != 2)
         {
-            throw new ExpressionEvaluatorTypeErrorException("Invalid number of args for compare");
+            throw new ExpressionEvaluatorTypeErrorException("Invalid number of args");
         }
 
         var a = PrepareNumericArg(args[0]);
@@ -856,7 +830,7 @@ public static class ExpressionEvaluator
         {
             JsonValueKind.True or JsonValueKind.False or JsonValueKind.Array or JsonValueKind.Object =>
                 throw new ExpressionEvaluatorTypeErrorException($"Expected number, got value {arg}"),
-            JsonValueKind.String => ParseNumber(arg.String),
+            JsonValueKind.String => ParseNumber(arg.String, throwException: true),
             JsonValueKind.Number => arg.Number,
 
             _ => null,
@@ -891,11 +865,12 @@ public static class ExpressionEvaluator
         );
     }
 
-    private static readonly Regex _numberRegex = new Regex(@"^-?\d+(\.\d+)?$");
-
-    private static double? ParseNumber(string s, bool throwException = true)
+    /// <summary>
+    /// Parses a number from a string representation.
+    /// </summary>
+    internal static double? ParseNumber(string s, bool throwException = true)
     {
-        if (_numberRegex.IsMatch(s) && double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var d))
+        if (NumberRegex().IsMatch(s) && double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var d))
         {
             return d;
         }
@@ -916,6 +891,30 @@ public static class ExpressionEvaluator
             return false; // error handeling
         }
         return a < b; // Actual implementation
+    }
+
+    private static double? Plus(ExpressionValue[] args)
+    {
+        var (a, b) = PrepareNumericArgs(args);
+        return PerformArithmetic(a, b, (x, y) => x + y);
+    }
+
+    private static double? Minus(ExpressionValue[] args)
+    {
+        var (a, b) = PrepareNumericArgs(args);
+        return PerformArithmetic(a, b, (x, y) => x - y);
+    }
+
+    private static double? Multiply(ExpressionValue[] args)
+    {
+        var (a, b) = PrepareNumericArgs(args);
+        return PerformArithmetic(a, b, (x, y) => x * y);
+    }
+
+    private static double? Divide(ExpressionValue[] args)
+    {
+        var (a, b) = PrepareNumericArgs(args);
+        return PerformArithmetic(a, b, (x, y) => x / y);
     }
 
     private static bool LessThanEq(ExpressionValue[] args)
@@ -990,4 +989,41 @@ public static class ExpressionEvaluator
 
         return positionalArguments[index.Value];
     }
+
+    /// <summary>
+    /// Performs arithmetic operation using decimal precision to avoid floating point precision issues.
+    /// Converts doubles to decimal, performs the operation, and converts back to double.
+    /// </summary>
+    /// <param name="a">First operand</param>
+    /// <param name="b">Second operand</param>
+    /// <param name="operation">Function that performs the arithmetic operation on two decimals</param>
+    /// <returns>Result of the operation as double, or null if any operand is null</returns>
+    private static double? PerformArithmetic(double? a, double? b, Func<decimal, decimal, decimal> operation)
+    {
+        if (a.HasValue is false || b.HasValue is false)
+        {
+            return null;
+        }
+
+        try
+        {
+            var aDecimal = (decimal)a.Value;
+            var bDecimal = (decimal)b.Value;
+            var result = operation(aDecimal, bDecimal);
+            return (double)result;
+        }
+        catch (OverflowException)
+        {
+            throw new ExpressionEvaluatorTypeErrorException(
+                $"Arithmetic overflow: {a.Value} and {b.Value} or operation on them exceeds the supported range"
+            );
+        }
+        catch (DivideByZeroException)
+        {
+            throw new ExpressionEvaluatorTypeErrorException("The second argument is 0, cannot divide by 0");
+        }
+    }
+
+    [GeneratedRegex(@"^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$")]
+    private static partial Regex NumberRegex();
 }

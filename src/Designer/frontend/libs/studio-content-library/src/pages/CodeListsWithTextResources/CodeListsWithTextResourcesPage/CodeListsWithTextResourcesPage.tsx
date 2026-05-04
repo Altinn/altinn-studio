@@ -87,12 +87,12 @@ export function CodeListsWithTextResourcesPage({
     'title',
   );
 
-  const handleUploadCodeList = (uploadedCodeList: File) => {
+  const handleUploadCodeList = (uploadedCodeList: File): void => {
     setCodeListInEditMode(FileNameUtils.removeExtension(uploadedCodeList.name));
     onUploadCodeList(uploadedCodeList);
   };
 
-  const handleUpdateCodeListId = (codeListId: string, newCodeListId: string) => {
+  const handleUpdateCodeListId = (codeListId: string, newCodeListId: string): void => {
     setCodeListInEditMode(newCodeListId);
     onUpdateCodeListId(codeListId, newCodeListId);
   };

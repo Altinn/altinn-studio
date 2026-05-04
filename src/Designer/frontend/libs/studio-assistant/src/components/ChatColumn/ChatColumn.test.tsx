@@ -1,4 +1,3 @@
-import React from 'react';
 import { ChatColumn } from './ChatColumn';
 import { render, screen } from '@testing-library/react';
 import type { ChatColumnProps } from './ChatColumn';
@@ -19,6 +18,7 @@ const mockMessages: Message[] = [
     author: MessageAuthor.Assistant,
     content: assistantMessageContent,
     timestamp: new Date(),
+    filesChanged: [],
   },
 ];
 
@@ -28,7 +28,7 @@ describe('ChatColumn', () => {
 
     const userMessage = screen.getByText(userMessageContent);
     const assistantMessage = screen.getByText(assistantMessageContent);
-    const textarea = screen.getByPlaceholderText(mockTexts.textareaPlaceholder);
+    const textarea = screen.getByPlaceholderText(mockTexts.textarea.placeholder);
     const sendButton = screen.getByRole('button', { name: mockTexts.send });
 
     expect(userMessage).toBeInTheDocument();

@@ -1,5 +1,6 @@
 import {
   customEncodeURI,
+  getDialogIdFromDataValues,
   getMessageBoxUrl,
   getUrlWithLanguage,
   logoutUrlAltinn,
@@ -23,13 +24,13 @@ const hostUnknown = 'www.vg.no';
 describe('Shared urlHelper.ts', () => {
   test('returnUrlToMessageBox() returning correct environemnts', () => {
     jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostTT } as Location);
-    expect(getMessageBoxUrl()).toBe('https://tt02.altinn.no/ui/messagebox');
+    expect(getMessageBoxUrl()).toBe('https://af.tt02.altinn.no/');
     jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostAT } as Location);
-    expect(getMessageBoxUrl()).toBe('https://at21.altinn.cloud/ui/messagebox');
+    expect(getMessageBoxUrl()).toBe('https://af.at21.altinn.cloud/');
     jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostYT } as Location);
-    expect(getMessageBoxUrl()).toBe('https://yt01.altinn.cloud/ui/messagebox');
+    expect(getMessageBoxUrl()).toBe('https://af.yt01.altinn.cloud/');
     jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostProd } as Location);
-    expect(getMessageBoxUrl()).toBe('https://altinn.no/ui/messagebox');
+    expect(getMessageBoxUrl()).toBe('https://af.altinn.no/');
     jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostDocker } as Location);
     expect(getMessageBoxUrl()).toBe('http://local.altinn.cloud/');
     jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostPodman } as Location);
@@ -55,12 +56,12 @@ describe('Shared urlHelper.ts', () => {
   });
 
   test('returnUrlTProfile() returning correct environments', () => {
-    expect(returnUrlToProfile(hostTT)).toBe('https://tt02.altinn.no/ui/profile');
-    expect(returnUrlToProfile(hostAT)).toBe('https://at21.altinn.cloud/ui/profile');
-    expect(returnUrlToProfile(hostYT)).toBe('https://yt01.altinn.cloud/ui/profile');
-    expect(returnUrlToProfile(hostProd)).toBe('https://altinn.no/ui/profile');
-    expect(returnUrlToProfile(hostDocker)).toBe('http://local.altinn.cloud/');
-    expect(returnUrlToProfile(hostPodman)).toBe('http://local.altinn.cloud:8000/');
+    expect(returnUrlToProfile(hostTT)).toBe('https://af.tt02.altinn.no/profile');
+    expect(returnUrlToProfile(hostAT)).toBe('https://af.at21.altinn.cloud/profile');
+    expect(returnUrlToProfile(hostYT)).toBe('https://af.yt01.altinn.cloud/profile');
+    expect(returnUrlToProfile(hostProd)).toBe('https://af.altinn.no/profile');
+    expect(returnUrlToProfile(hostDocker)).toBe('http://local.altinn.cloud/profile');
+    expect(returnUrlToProfile(hostPodman)).toBe('http://local.altinn.cloud:8000/profile');
     expect(returnUrlToProfile(hostStudio)).toBe(undefined);
     expect(returnUrlToProfile(hostStudioDev)).toBe(undefined);
     expect(returnUrlToProfile(hostUnknown)).toBe(undefined);
@@ -78,16 +79,89 @@ describe('Shared urlHelper.ts', () => {
     expect(returnUrlToAllForms(hostUnknown)).toBe(undefined);
   });
 
-  test('returnUrlToArchive() returning correct environments', () => {
-    expect(returnUrlToArchive(hostTT)).toBe('https://tt02.altinn.no/ui/messagebox/archive');
-    expect(returnUrlToArchive(hostAT)).toBe('https://at21.altinn.cloud/ui/messagebox/archive');
-    expect(returnUrlToArchive(hostYT)).toBe('https://yt01.altinn.cloud/ui/messagebox/archive');
-    expect(returnUrlToArchive(hostProd)).toBe('https://altinn.no/ui/messagebox/archive');
-    expect(returnUrlToArchive(hostDocker)).toBe('http://local.altinn.cloud/');
-    expect(returnUrlToArchive(hostPodman)).toBe('http://local.altinn.cloud:8000/');
-    expect(returnUrlToArchive(hostStudio)).toBe(undefined);
-    expect(returnUrlToArchive(hostStudioDev)).toBe(undefined);
-    expect(returnUrlToArchive(hostUnknown)).toBe(undefined);
+  test('returnUrlToArchive() returning correct environments without dialogId', () => {
+    const partyId = 12345;
+    expect(returnUrlToArchive(hostTT, partyId)).toBe(
+      'https://tt02.altinn.no/ui/Reportee/ChangeReporteeAndRedirect?goTo=https%3A%2F%2Faf.tt02.altinn.no%2F&R=12345',
+    );
+    expect(returnUrlToArchive(hostAT, partyId)).toBe(
+      'https://at21.altinn.cloud/ui/Reportee/ChangeReporteeAndRedirect?goTo=https%3A%2F%2Faf.at21.altinn.cloud%2F&R=12345',
+    );
+    expect(returnUrlToArchive(hostYT, partyId)).toBe(
+      'https://yt01.altinn.cloud/ui/Reportee/ChangeReporteeAndRedirect?goTo=https%3A%2F%2Faf.yt01.altinn.cloud%2F&R=12345',
+    );
+    expect(returnUrlToArchive(hostProd, partyId)).toBe(
+      'https://altinn.no/ui/Reportee/ChangeReporteeAndRedirect?goTo=https%3A%2F%2Faf.altinn.no%2F&R=12345',
+    );
+    expect(returnUrlToArchive(hostDocker, partyId)).toBe('http://local.altinn.cloud/');
+    expect(returnUrlToArchive(hostPodman, partyId)).toBe('http://local.altinn.cloud:8000/');
+    expect(returnUrlToArchive(hostStudio, partyId)).toBe(undefined);
+    expect(returnUrlToArchive(hostStudioDev, partyId)).toBe(undefined);
+    expect(returnUrlToArchive(hostUnknown, partyId)).toBe(undefined);
+  });
+
+  test('returnUrlToArchive() returning correct environments with dialogId', () => {
+    const partyId = 12345;
+    const dialogId = '123e4567-e89b-12d3-a456-426614174000';
+    expect(returnUrlToArchive(hostTT, partyId, dialogId)).toBe(
+      'https://tt02.altinn.no/ui/Reportee/ChangeReporteeAndRedirect?goTo=https%3A%2F%2Faf.tt02.altinn.no%2Finbox%2F123e4567-e89b-12d3-a456-426614174000&R=12345',
+    );
+    expect(returnUrlToArchive(hostAT, partyId, dialogId)).toBe(
+      'https://at21.altinn.cloud/ui/Reportee/ChangeReporteeAndRedirect?goTo=https%3A%2F%2Faf.at21.altinn.cloud%2Finbox%2F123e4567-e89b-12d3-a456-426614174000&R=12345',
+    );
+    expect(returnUrlToArchive(hostYT, partyId, dialogId)).toBe(
+      'https://yt01.altinn.cloud/ui/Reportee/ChangeReporteeAndRedirect?goTo=https%3A%2F%2Faf.yt01.altinn.cloud%2Finbox%2F123e4567-e89b-12d3-a456-426614174000&R=12345',
+    );
+    expect(returnUrlToArchive(hostProd, partyId, dialogId)).toBe(
+      'https://altinn.no/ui/Reportee/ChangeReporteeAndRedirect?goTo=https%3A%2F%2Faf.altinn.no%2Finbox%2F123e4567-e89b-12d3-a456-426614174000&R=12345',
+    );
+    expect(returnUrlToArchive(hostDocker, partyId, dialogId)).toBe('http://local.altinn.cloud/');
+    expect(returnUrlToArchive(hostPodman, partyId, dialogId)).toBe('http://local.altinn.cloud:8000/');
+  });
+
+  test('returnUrlToArchive() returning correct environments without partyId', () => {
+    expect(returnUrlToArchive(hostTT, undefined)).toBe('https://af.tt02.altinn.no/');
+    expect(returnUrlToArchive(hostAT, undefined)).toBe('https://af.at21.altinn.cloud/');
+    expect(returnUrlToArchive(hostYT, undefined)).toBe('https://af.yt01.altinn.cloud/');
+    expect(returnUrlToArchive(hostProd, undefined)).toBe('https://af.altinn.no/');
+    expect(returnUrlToArchive(hostDocker, undefined)).toBe('http://local.altinn.cloud/');
+    expect(returnUrlToArchive(hostPodman, undefined)).toBe('http://local.altinn.cloud:8000/');
+    expect(returnUrlToArchive(hostStudio, undefined)).toBe(undefined);
+    expect(returnUrlToArchive(hostStudioDev, undefined)).toBe(undefined);
+    expect(returnUrlToArchive(hostUnknown, undefined)).toBe(undefined);
+  });
+
+  test('returnUrlToArchive() returning correct environments with dialogId but without partyId', () => {
+    const dialogId = '123e4567-e89b-12d3-a456-426614174000';
+    expect(returnUrlToArchive(hostTT, undefined, dialogId)).toBe(
+      'https://af.tt02.altinn.no/inbox/123e4567-e89b-12d3-a456-426614174000',
+    );
+    expect(returnUrlToArchive(hostAT, undefined, dialogId)).toBe(
+      'https://af.at21.altinn.cloud/inbox/123e4567-e89b-12d3-a456-426614174000',
+    );
+    expect(returnUrlToArchive(hostYT, undefined, dialogId)).toBe(
+      'https://af.yt01.altinn.cloud/inbox/123e4567-e89b-12d3-a456-426614174000',
+    );
+    expect(returnUrlToArchive(hostProd, undefined, dialogId)).toBe(
+      'https://af.altinn.no/inbox/123e4567-e89b-12d3-a456-426614174000',
+    );
+  });
+
+  test('getDialogIdFromDataValues() extracts dialog.id correctly', () => {
+    expect(getDialogIdFromDataValues({ 'dialog.id': 'abc-123' })).toBe('abc-123');
+    expect(getDialogIdFromDataValues({ 'dialog.id': '019aa5f7-ac49-7a56-a824-0381f3603e38' })).toBe(
+      '019aa5f7-ac49-7a56-a824-0381f3603e38',
+    );
+    expect(getDialogIdFromDataValues({ 'dialog.id': 123456 })).toBe('123456');
+
+    // Test with invalid data
+    expect(getDialogIdFromDataValues(null)).toBe(undefined);
+    expect(getDialogIdFromDataValues(undefined)).toBe(undefined);
+    expect(getDialogIdFromDataValues({})).toBe(undefined);
+    expect(getDialogIdFromDataValues('string')).toBe(undefined);
+    expect(getDialogIdFromDataValues({ 'dialog.id': true })).toBe(undefined);
+    expect(getDialogIdFromDataValues({ 'dialog.id': null })).toBe(undefined);
+    expect(getDialogIdFromDataValues({ dialog: { id: 'nested' } })).toBe(undefined);
   });
 
   test('logoutUrlAltinn() returning correct environments', () => {

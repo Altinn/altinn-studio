@@ -24,7 +24,7 @@ export const useAddReference = (): HandleAdd<string> => {
       const target: NodePosition = { parentPointer, index };
       const { schemaPointer } = savableModel.getFinalNode(target.parentPointer);
       const refName = savableModel.generateUniqueChildName(schemaPointer, 'ref');
-      const ref = savableModel.addReference(refName, reference, target);
+      const ref = savableModel.addReferenceAndSave(refName, reference, target);
       const uniquePointer = SchemaModel.getUniquePointer(ref.schemaPointer);
       setSelectedUniquePointer(uniquePointer);
     },

@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using Altinn.Studio.DataModeling.Validator.Json;
 
-namespace DataModeling.Tests.TestDataClasses
+namespace DataModeling.Tests.TestDataClasses;
+
+public static class AltinnJsonSchemaValidationTestData
 {
-    public static class AltinnJsonSchemaValidationTestData
-    {
-        public static IEnumerable<object[]> ValidSchemas() => new List<object[]>
+    public static IEnumerable<object[]> ValidSchemas() =>
+        new List<object[]>
         {
             new object[] { "Model/JsonSchema/General/Any.json" },
             new object[] { "Model/JsonSchema/General/Attributes.json" },
@@ -37,19 +38,31 @@ namespace DataModeling.Tests.TestDataClasses
             new object[] { "Model/JsonSchema/General/SimpleSequence.json" },
             new object[] { "Model/JsonSchema/General/SimpleSequence_with_nonCompatible_XsdTypeAndType.json" },
             new object[] { "Model/JsonSchema/General/SimpleTypeList.json" },
-            new object[] { "Model/JsonSchema/General/SimpleTypeRestrictions.json" }
+            new object[] { "Model/JsonSchema/General/SimpleTypeRestrictions.json" },
         };
 
-        public static IEnumerable<object[]> InvalidSchemas() => new List<object[]>
+    public static IEnumerable<object[]> InvalidSchemas() =>
+        new List<object[]>
         {
             new object[]
             {
                 "Model/JsonSchema/Incompatible/SchemaWithEmptyObjects.json",
-                new Tuple<string, string>("#/properties/emptyObjectField", JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties),
-                new Tuple<string, string>("#/properties/emptyObjectArray/items", JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties),
-                new Tuple<string, string>("#/properties/objectField/properties/emptySubobject", JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties),
-                new Tuple<string, string>("#/$defs/emptyObjectType", JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties),
-            }
+                new Tuple<string, string>(
+                    "#/properties/emptyObjectField",
+                    JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties
+                ),
+                new Tuple<string, string>(
+                    "#/properties/emptyObjectArray/items",
+                    JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties
+                ),
+                new Tuple<string, string>(
+                    "#/properties/objectField/properties/emptySubobject",
+                    JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties
+                ),
+                new Tuple<string, string>(
+                    "#/$defs/emptyObjectType",
+                    JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties
+                ),
+            },
         };
-    }
 }

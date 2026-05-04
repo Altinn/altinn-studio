@@ -1,22 +1,22 @@
 import { useEffect } from 'react';
 
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
+import { FormStore } from 'src/features/form/FormContext';
+import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { NodeValidationProps } from 'src/layout/layout';
 
 export function SubformValidator(props: NodeValidationProps<'Subform'>) {
   const { intermediateItem, externalItem } = props;
   const { langAsString } = useLanguage();
-  const applicationMetadata = useApplicationMetadata();
+  const applicationMetadata = getApplicationMetadata();
 
-  const targetType = useDataTypeFromLayoutSet(externalItem.layoutSet);
+  const targetType = getDefaultDataTypeFromUiFolder(externalItem.layoutSet);
   const dataType = applicationMetadata.dataTypes.find(
     (x) => x.id.toLocaleLowerCase() === targetType?.toLocaleLowerCase(),
   );
 
-  const addError = NodesInternal.useAddError();
+  const addError = FormStore.nodes.useAddError();
 
   useEffect(() => {
     let error: string | null = null;

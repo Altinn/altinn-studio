@@ -16,10 +16,14 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OrgCodeListController;
 
-public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTests>, IClassFixture<WebApplicationFactory<Program>>
+public class UploadCodeListTests
+    : DesignerEndpointsTestsBase<UploadCodeListTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<ISharedContentClient> _contentClientMock;
-    public UploadCodeListTests(WebApplicationFactory<Program> factory) : base(factory)
+
+    public UploadCodeListTests(WebApplicationFactory<Program> factory)
+        : base(factory)
     {
         _contentClientMock = new Mock<ISharedContentClient>();
     }
@@ -29,7 +33,6 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
         base.ConfigureTestServices(services);
         services.AddSingleton(_contentClientMock.Object);
     }
-
 
     private const string Org = "ttd";
     private const string Repo = "org-content-empty";
@@ -44,7 +47,8 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
-        const string JsonCodeList = @"[
+        const string JsonCodeList =
+            @"[
             {""label"": ""Label1"", ""value"": ""Value1"", ""description"": ""Description1"", ""helpText"": ""helpText"" },
             {""label"": ""Label2"", ""value"": ""Value2"" }
         ]";
@@ -69,7 +73,8 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
-        const string JsonCodeList = @"[
+        const string JsonCodeList =
+            @"[
             {""label"": """", ""value"": """" },
         ]";
         var httpRequestMessage = CreateTestFile(JsonCodeList, targetOrg);
@@ -89,7 +94,8 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
-        const string JsonCodeList = @"[
+        const string JsonCodeList =
+            @"[
             {""label"": """" },
             {""value"": """" },
         ]";
@@ -110,7 +116,8 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
-        const string JsonCodeList = @"[
+        const string JsonCodeList =
+            @"[
             {""label"": null, ""value"": null }
         ]";
         var httpRequestMessage = CreateTestFile(JsonCodeList, targetOrg);
@@ -148,10 +155,7 @@ public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTest
         var codeListContent = new ByteArrayContent(codeListBytes);
         codeListContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
         content.Add(codeListContent, "file", CodeListFileName);
-        HttpRequestMessage requestMessage = new(HttpMethod.Post, apiUrl)
-        {
-            Content = content
-        };
+        HttpRequestMessage requestMessage = new(HttpMethod.Post, apiUrl) { Content = content };
         return requestMessage;
     }
 }

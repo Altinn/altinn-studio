@@ -11,8 +11,9 @@ spec:
   settings:
     httpMethod: POST
     url: "${GATEWAY_URL}/alerts"
+    authorization_scheme: Bearer
   valuesFrom:
-    - targetPath: token
+    - targetPath: authorization_credentials
       valueFrom:
         secretKeyRef:
           name: external-grafana-altinn-studio-gateway-token

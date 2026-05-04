@@ -9,52 +9,39 @@ on:
       - .github/workflows/deploy-runtime-grafana-manifests.yaml
   workflow_dispatch:
     inputs:
-      rings:
-        description: 'Rings to tag the artifact with. Format of the input object is [{"ring": "tt_ring1", "environment": "runtime_tt_ring1"}].'
+      environments:
+        description: "Runtime environments to tag. Comma-separated (e.g. tt_ring1,tt_ring2)."
         required: false
-        default: '[{"ring": "tt_ring1", "environment": "runtime_tt_ring1"}]'
+        default: "tt_ring1"
 
 permissions:
   id-token: write
   contents: read
 
 jobs:
-  get-short-sha:
-    uses: ./.github/workflows/template-short-sha.yaml
-
   construct-rings-array:
-    runs-on: ubuntu-latest
-    env:
-      default-rings: >-
-        [{"ring": "tt_ring1", "environment": "runtime_tt_ring1"},{"ring": "tt_ring2", "environment": "runtime_tt_ring2"},{"ring": "prod_ring1", "environment": "runtime_prod_ring1"},{"ring": "prod_ring2", "environment": "runtime_prod_ring2"}]
-    outputs:
-      ringsjson: ${{ steps.construct-rings.outputs.ringsjson }}
-    steps:
-      - name: Construct rings array
-        id: construct-rings
-        run: |
-          rings='${{ github.event.inputs.rings }}'
-          if [ -z "$rings" ]; then
-            rings='${{ env.default-rings }}'
-          fi
-          echo "Raw rings input: $rings"
-          echo "ringsjson=${rings}" >> $GITHUB_OUTPUT
+    uses: ./.github/workflows/template-runtime-construct-environments.yaml
+    with:
+      inputs: ${{ toJSON(github.event.inputs) }}
+      override-default-runtime-environments: tt_ring1,tt_ring2,prod_ring1,prod_ring2
 
   push-grafana-manifests-artifact:
     name: Push grafana manifests as OCI artifact
-    needs: get-short-sha
     runs-on: ubuntu-latest
     environment: dev
     env:
       REGISTRY_NAME: altinncr
-      CONFIG_REPO: altinncr.azurecr.io/studio-apps/runtime-grafana-manifests-repo:${{ needs.get-short-sha.outputs.short-sha }}
     outputs:
-      config-repo: altinncr.azurecr.io/studio-apps/runtime-grafana-manifests-repo:${{ needs.get-short-sha.outputs.short-sha }}
+      config-repo: ${{ steps.vars.outputs.config-repo }}
     defaults:
       run:
         working-directory: infra/runtime/grafana-manifests
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set vars
+        id: vars
+        run: echo "config-repo=altinncr.azurecr.io/studio-apps/runtime-grafana-manifests-repo:${GITHUB_SHA::10}" >> "$GITHUB_OUTPUT"
 
       - name: az login
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
@@ -67,12 +54,12 @@ jobs:
         run: az acr login --name ${{ env.REGISTRY_NAME }}
 
       - name: flux install
-        uses: fluxcd/flux2/action@8454b02a32e48d775b9f563cb51fdcb1787b5b93 # v2.7.5
+        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
 
       - name: push artifact
         working-directory: infra/runtime/grafana-manifests
         run: |
-          flux push artifact oci://${{ env.CONFIG_REPO }} \
+          flux push artifact oci://${{ steps.vars.outputs.config-repo }} \
             --provider=azure \
             --reproducible \
             --path="." \
@@ -86,7 +73,7 @@ jobs:
     environment: ${{ matrix.environment }}
     strategy:
       matrix:
-        include: ${{ fromJson(needs.construct-rings-array.outputs.ringsjson) }}
+        include: ${{ fromJson(needs.construct-rings-array.outputs.result) }}
     steps:
       - name: az login
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
@@ -99,7 +86,7 @@ jobs:
         run: az acr login --name altinncr
 
       - name: flux install
-        uses: fluxcd/flux2/action@8454b02a32e48d775b9f563cb51fdcb1787b5b93 # v2.7.5
+        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
 
       - name: tag artifact
         run: |

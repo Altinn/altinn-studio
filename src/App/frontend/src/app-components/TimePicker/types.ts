@@ -1,3 +1,5 @@
+import type { TranslationKey } from 'src/app-components/types';
+
 // Time format types
 export type TimeFormat = 'HH:mm' | 'HH:mm:ss' | 'hh:mm a' | 'hh:mm:ss a';
 
@@ -36,10 +38,10 @@ export interface TimePickerProps {
   disabled?: boolean;
   readOnly?: boolean;
   labels?: {
-    hours?: string;
-    minutes?: string;
-    seconds?: string;
-    amPm?: string;
+    hours?: TranslationKey;
+    minutes?: TranslationKey;
+    seconds?: TranslationKey;
+    amPm?: TranslationKey;
   };
 }
 

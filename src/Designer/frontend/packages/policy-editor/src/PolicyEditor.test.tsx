@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PolicyEditor, type PolicyEditorProps } from './PolicyEditor';
@@ -27,6 +26,7 @@ const defaultProps: PolicyEditorProps = {
   actions: mockActions,
   subjects: mockSubjects,
   resourceId: mockResourecId1,
+  accessPackages: [],
   onSave: mockOnSave,
   showAllErrors: false,
   usageType: mockUsageType,

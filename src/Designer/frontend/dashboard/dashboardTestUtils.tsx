@@ -1,8 +1,8 @@
 import type { QueryClient } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
-import React from 'react';
 import type { MemoryRouterProps } from 'react-router-dom';
 import { MemoryRouter } from 'react-router-dom';
+import type { FeatureFlagsContextValue } from '@studio/feature-flags';
 import type {
   ServicesContextProps,
   ServicesContextProviderProps,
@@ -10,17 +10,20 @@ import type {
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientConfigMock, createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 
 export type MockServicesContextWrapperProps = {
   children: ReactNode;
   customServices?: Partial<ServicesContextProps>;
   client?: QueryClient;
+  featureFlags?: FeatureFlagsContextValue['flags'];
 } & Pick<MemoryRouterProps, 'initialEntries'>;
 
 export const MockServicesContextWrapper = ({
   children,
   customServices,
   client = createQueryClientMock(),
+  featureFlags = [],
   initialEntries,
 }: MockServicesContextWrapperProps) => {
   const queries: ServicesContextProviderProps = {
@@ -32,7 +35,11 @@ export const MockServicesContextWrapper = ({
 
   return (
     <MemoryRouter initialEntries={initialEntries}>
-      <ServicesContextProvider {...queries}>{children}</ServicesContextProvider>
+      <ServicesContextProvider {...queries}>
+        <FeatureFlagsContextProvider value={{ flags: featureFlags }}>
+          {children}
+        </FeatureFlagsContextProvider>
+      </ServicesContextProvider>
     </MemoryRouter>
   );
 };

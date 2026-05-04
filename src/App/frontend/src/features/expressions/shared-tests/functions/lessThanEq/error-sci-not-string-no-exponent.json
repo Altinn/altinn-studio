@@ -1,0 +1,5 @@
+{
+  "name": "Should throw exception when string scientific notation is missing the exponent",
+  "expression": ["lessThanEq", "5e", 10],
+  "expectsFailure": "Expected number, got value \"5e\""
+}

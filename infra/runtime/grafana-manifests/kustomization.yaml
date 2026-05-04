@@ -4,5 +4,4 @@ resources:
   - alert-rules
   - contact-points
   - dashboards
-  - notification-policies
   - service-accounts

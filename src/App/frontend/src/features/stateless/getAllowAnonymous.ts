@@ -1,21 +1,15 @@
-import { ContextNotProvided } from 'src/core/contexts/context';
-import { useLaxApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { getDataTypeByLayoutSetId } from 'src/features/applicationMetadata/appMetadataUtils';
-import { useLayoutSetsQuery } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
+import { getUiFolderSettings } from 'src/features/form/ui';
 
 export const useAllowAnonymous = () => {
-  const application = useLaxApplicationMetadata();
-  const { data: layoutSets } = useLayoutSetsQuery();
+  const isStateless = useIsStateless();
 
-  if (!layoutSets || application === ContextNotProvided || !application.isStatelessApp) {
+  if (!isStateless) {
     return false;
   }
 
-  const dataTypeId = getDataTypeByLayoutSetId({
-    layoutSetId: application.onEntry.show,
-    layoutSets: layoutSets.sets,
-    appMetaData: application,
-  });
+  const application = getApplicationMetadata();
+  const dataTypeId = getUiFolderSettings(application.onEntry.show)?.defaultDataType;
   const dataType = application.dataTypes.find((d) => d.id === dataTypeId);
   const allowAnonymous = dataType?.appLogic?.allowAnonymousOnStateless;
   if (allowAnonymous !== undefined && allowAnonymous !== null) {
@@ -23,9 +17,4 @@ export const useAllowAnonymous = () => {
   }
 
   return false;
-};
-
-export const useIsAllowAnonymous = (compareWith: boolean) => {
-  const allowAnonymous = useAllowAnonymous();
-  return allowAnonymous === compareWith;
 };

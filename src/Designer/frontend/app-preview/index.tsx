@@ -1,4 +1,3 @@
-import React from 'react';
 import './App.css';
 import { createRoot } from 'react-dom/client';
 import { PreviewApp } from './src/PreviewApp';
@@ -9,16 +8,22 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import * as queries from 'app-shared/api/queries';
 import * as mutations from 'app-shared/api/mutations';
 import 'app-shared/design-tokens';
+import { EnvironmentConfigProvider } from 'app-shared/contexts/EnvironmentConfigContext/EnvironmentConfigContext';
+import { FeatureFlagsProvider } from '@studio/feature-flags';
 
 const container = document.getElementById('root');
 const root = createRoot(container);
 
 root.render(
   <ServicesContextProvider {...queries} {...mutations}>
-    <PreviewConnectionContextProvider>
-      <BrowserRouter basename={PREVIEW_BASENAME}>
-        <PreviewApp />
-      </BrowserRouter>
-    </PreviewConnectionContextProvider>
+    <EnvironmentConfigProvider>
+      <FeatureFlagsProvider>
+        <PreviewConnectionContextProvider>
+          <BrowserRouter basename={PREVIEW_BASENAME}>
+            <PreviewApp />
+          </BrowserRouter>
+        </PreviewConnectionContextProvider>
+      </FeatureFlagsProvider>
+    </EnvironmentConfigProvider>
   </ServicesContextProvider>,
 );

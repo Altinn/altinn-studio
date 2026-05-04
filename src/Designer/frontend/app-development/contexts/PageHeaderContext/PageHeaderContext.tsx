@@ -1,4 +1,5 @@
-import React, { type ReactElement, type ReactNode, createContext, useContext } from 'react';
+import type { ReactElement, ReactNode } from 'react';
+import { createContext, useContext } from 'react';
 import { type User } from 'app-shared/types/Repository';
 import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenuItem';
 import {
@@ -13,6 +14,9 @@ import { useTranslation } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { useSearchParams } from 'react-router-dom';
+import { FeatureFlag, useFeatureFlagsContext } from '@studio/feature-flags';
+import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
+import { SETTINGS_BASENAME } from 'app-shared/constants';
 
 export type PageHeaderContextProps = {
   user: User;
@@ -37,16 +41,28 @@ export const PageHeaderContextProvider = ({
 }: Partial<PageHeaderContextProviderProps>): ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
+  const { flags } = useFeatureFlagsContext();
   const { mutate: logout } = useLogoutMutation();
   const [searchParams] = useSearchParams();
   const returnTo = searchParams.get('returnTo');
 
+  const { environment } = useEnvironmentConfig();
+
   const repoType = getRepositoryType(org, app);
-  const menuItems = getTopBarMenuItems(repoType, repoOwnerIsOrg);
+  const menuItems = getTopBarMenuItems(repoType, repoOwnerIsOrg, flags);
 
   const docsMenuItem: StudioProfileMenuItem = {
     action: { type: 'link', href: altinnDocsUrl(), openInNewTab: true },
     itemName: t('sync_header.documentation'),
+  };
+
+  const settingsMenuItem: StudioProfileMenuItem = {
+    action: {
+      type: 'link',
+      href: `${SETTINGS_BASENAME}/${org}`,
+      openInNewTab: false,
+    },
+    itemName: t('settings'),
   };
 
   const logOutMenuItem: StudioProfileMenuItem = {
@@ -54,8 +70,17 @@ export const PageHeaderContextProvider = ({
     itemName: t('shared.header_logout'),
   };
 
-  const profileMenuItems: StudioProfileMenuItem[] = [docsMenuItem, logOutMenuItem];
+  const studioOidc = environment?.featureFlags?.studioOidc;
+  const isAdminEnabled = flags.includes(FeatureFlag.Admin);
+  const showSettingsLink = studioOidc || isAdminEnabled;
+
+  const profileMenuItems: StudioProfileMenuItem[] = [
+    ...(showSettingsLink ? [settingsMenuItem] : []),
+    docsMenuItem,
+    logOutMenuItem,
+  ];
   const profileMenuGroups: StudioProfileMenuGroup[] = [
+    ...(showSettingsLink ? [{ items: [settingsMenuItem] }] : []),
     { items: [docsMenuItem] },
     { items: [logOutMenuItem] },
   ];

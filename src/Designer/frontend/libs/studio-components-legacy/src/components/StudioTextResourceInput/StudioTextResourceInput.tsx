@@ -1,5 +1,5 @@
 import type { ChangeEvent, FocusEvent, HTMLAttributes, ReactElement } from 'react';
-import React, { forwardRef, useCallback, useMemo, useState } from 'react';
+import { forwardRef, useCallback, useMemo, useState } from 'react';
 import type { TextResource } from '../../types/TextResource';
 import { StudioTextResourcePicker } from '../StudioTextResourcePicker';
 import { StudioCodeFragment } from '../StudioCodeFragment';

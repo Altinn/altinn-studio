@@ -6,7 +6,7 @@ import cn from 'classnames';
 
 import { LabelContent } from 'src/components/label/LabelContent';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
@@ -38,7 +38,6 @@ import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
-import { typedBoolean } from 'src/utils/typing';
 import type {
   GridCell,
   GridCellLabelFrom,
@@ -54,7 +53,7 @@ import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types'
 export const GridSummary = ({ targetBaseComponentId }: Summary2Props) => {
   const indexedId = useIndexedId(targetBaseComponentId);
   const { rows, textResourceBindings } = useItemWhenType(targetBaseComponentId, 'Grid');
-  const { title } = textResourceBindings ?? {};
+  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
 
   const columnSettings: ITableColumnFormatting = {};
   const isMobile = useIsMobile();
@@ -197,7 +196,7 @@ function SummaryGridRowRenderer(props: GridRowProps) {
       hideWhen={hideEmptyRows}
       render={(className) => (
         <Table.Row className={cn(className, extraClassName)}>
-          {row.cells.filter(typedBoolean).map((cell, cellIdx) => (
+          {row.cells.map((cell, cellIdx) => (
             <SummaryCell
               key={cellIdx}
               cell={cell}
@@ -225,7 +224,7 @@ function SummaryGridRowRenderer(props: GridRowProps) {
 }
 
 function useFirstFormComponentId(row: GridRow): string | undefined {
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
   const canRender = useHasCapability('renderInTable');
   return useMemo(() => {
     for (const cell of row.cells) {

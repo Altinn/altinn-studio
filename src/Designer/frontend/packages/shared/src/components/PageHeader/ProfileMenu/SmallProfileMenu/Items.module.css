@@ -1,0 +1,13 @@
+.dropDownMenuGroup:not(:last-child) {
+  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
+  padding-bottom: var(--fds-spacing-2);
+}
+
+.dropDownMenuGroup:not(:first-child) {
+  padding-top: var(--fds-spacing-2);
+}
+
+.active {
+  background-color: var(--fds-semantic-surface-neutral-selected);
+  border-radius: 5px;
+}

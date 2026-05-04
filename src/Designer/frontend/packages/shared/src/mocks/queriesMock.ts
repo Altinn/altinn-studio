@@ -40,9 +40,12 @@ import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type {
   IFrontEndSettings,
   ILayoutSettings,
+  IValidationOnNavigationLayoutSettings,
+  IValidationOnNavigationPageSettings,
   ITextResourcesWithLanguage,
 } from 'app-shared/types/global';
 import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
+import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
 import type { Policy, PolicyAction, PolicySubject } from 'packages/policy-editor';
 import {
   appConfig,
@@ -81,10 +84,13 @@ import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import { emptyTextResourceListMock } from 'app-shared/mocks/emptyTextResourceListMock';
 import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
 import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
+import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
+import type { AppSettings } from 'app-shared/types/AppSettings';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
   getAppMetadataModelIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
+  getAppValidation: jest.fn().mockImplementation(() => Promise.resolve<any>({})),
   getAppReleases: jest
     .fn()
     .mockImplementation(() => Promise.resolve<AppReleasesResponse>(appReleasesResponse)),
@@ -92,6 +98,11 @@ export const queriesMock: ServicesContextProps = {
   getAvailableResourcesFromOrg: jest
     .fn()
     .mockImplementation(() => Promise.resolve<ExternalResource[]>([])),
+  getAvailableTemplates: jest
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve<CustomTemplateList>({ templates: [], totalCount: 0 }),
+    ),
   getBranchStatus: jest.fn().mockImplementation(() => Promise.resolve<BranchStatus>(branchStatus)),
   getBranches: jest.fn().mockImplementation(() => Promise.resolve<Branch[]>([])),
   getCurrentBranch: jest.fn().mockImplementation(() =>
@@ -120,6 +131,12 @@ export const queriesMock: ServicesContextProps = {
   getRepoDiff: jest.fn().mockImplementation(() => Promise.resolve<RepoDiffResponse>({})),
   getEnvironments: jest.fn().mockImplementation(() => Promise.resolve<Environment[]>([])),
   getFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
+  getValidationOnNavigationLayoutSettings: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<IValidationOnNavigationLayoutSettings[]>([])),
+  getValidationOnNavigationPageSettings: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<IValidationOnNavigationPageSettings[]>([])),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponse>({})),
   getFormLayoutsV3: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>({})),
   getFrontEndSettings: jest.fn().mockImplementation(() => Promise.resolve<IFrontEndSettings>({})),
@@ -129,6 +146,9 @@ export const queriesMock: ServicesContextProps = {
   getLayoutSetsExtended: jest
     .fn()
     .mockImplementation(() => Promise.resolve<LayoutSetModel[]>(layoutSetsExtendedMock)),
+  getValidationOnNavigationLayoutSets: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve({ show: [], page: '' })),
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getOptionList: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
   getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionListsResponse>([])),
@@ -225,22 +245,33 @@ export const queriesMock: ServicesContextProps = {
   // Queries - PrgetBpmnFile
   getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getProcessTaskType: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
-  getIsLoggedInWithAnsattporten: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve<{ isLoggedIn: false }>({ isLoggedIn: false })),
   getMaskinportenScopes: jest
     .fn()
     .mockImplementation(() => Promise.resolve<MaskinportenScope[]>([])),
   getSelectedMaskinportenScopes: jest
     .fn()
     .mockImplementation(() => Promise.resolve<MaskinportenScope[]>([])),
+  getAppSettings: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<AppSettings>({ undeployOnInactivity: false })),
   updateSelectedMaskinportenScopes: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateAppSettings: jest.fn().mockImplementation(() => Promise.resolve()),
   getConsentTemplates: jest.fn().mockImplementation(() => Promise.resolve([])),
 
   // Queries - Contact
   fetchBelongsToGiteaOrg: jest
     .fn()
     .mockImplementation(() => Promise.resolve({ belongsToOrg: true })),
+
+  // Queries - User settings
+  getUserApiKeys: jest.fn().mockImplementation(() => Promise.resolve<UserApiKey[]>([])),
+
+  // Queries - Org settings - Contact points
+  getContactPoints: jest.fn().mockImplementation(() => Promise.resolve([])),
+
+  // Queries - Org settings - Bot accounts
+  getBotAccounts: jest.fn().mockImplementation(() => Promise.resolve([])),
+  getBotAccountApiKeys: jest.fn().mockImplementation(() => Promise.resolve([])),
 
   // Mutations
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -256,6 +287,7 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
   copyApp: jest.fn().mockImplementation(() => Promise.resolve()),
   createBranch: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteBranch: jest.fn().mockImplementation(() => Promise.resolve()),
   createDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   createDeployment: jest.fn().mockImplementation(() => Promise.resolve()),
   createOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -273,6 +305,7 @@ export const queriesMock: ServicesContextProps = {
   deleteLayoutSet: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteValidationOnNavigationLayoutSets: jest.fn().mockImplementation(() => Promise.resolve()),
   discardChanges: jest.fn().mockImplementation(() => Promise.resolve()),
   generateModels: jest.fn().mockImplementation(() => Promise.resolve()),
   importCodeListFromOrgToApp: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
@@ -287,6 +320,8 @@ export const queriesMock: ServicesContextProps = {
   saveRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
   setStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
   updateTaskNavigationGroup: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateValidationOnNavigationLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateValidationOnNavigationPageSettings: jest.fn().mockImplementation(() => Promise.resolve()),
   unsetStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   updateDataType: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
@@ -297,6 +332,7 @@ export const queriesMock: ServicesContextProps = {
   updateAppPolicy: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppConfig: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateValidationOnNavigationLayoutSets: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOptionListId: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOrgCodeListId: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -340,4 +376,21 @@ export const queriesMock: ServicesContextProps = {
   // Mutations - ProcessEditor
   updateBpmnXml: jest.fn().mockImplementation(() => Promise.resolve()),
   updateProcessDataTypes: jest.fn().mockImplementation(() => Promise.resolve()),
+
+  // Mutations - User settings
+  addUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
+
+  // Mutations - Org settings - Contact points
+  addContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
+  toggleContactPointActive: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
+
+  // Mutations - Org settings - Bot accounts
+  createBotAccount: jest.fn().mockImplementation(() => Promise.resolve({})),
+  deactivateBotAccount: jest.fn().mockImplementation(() => Promise.resolve()),
+  createBotAccountApiKey: jest.fn().mockImplementation(() => Promise.resolve({})),
+  revokeBotAccountApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateBotAccount: jest.fn().mockImplementation(() => Promise.resolve()),
 };

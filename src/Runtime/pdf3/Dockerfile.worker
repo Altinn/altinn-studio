@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.25.5-trixie@sha256:5d35fb8d28b9095d123b7d96095bbf3750ff18be0a87e5a21c9cffc4351fbf96 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.26.1-trixie@sha256:ab8c4944b04c6f97c2b5bffce471b7f3d55f2228badc55eae6cce87596d5710b AS builder
 ARG TARGETOS
 ARG TARGETARCH
 
@@ -6,18 +6,18 @@ WORKDIR /app
 
 COPY go.mod go.sum ./
 
-# Remove the test fixture dependency from go.mod as it's not needed for building binaries
-# The test/harness package is only imported by test files, not by cmd/proxy or cmd/worker
-RUN sed -i '/altinn.studio\/runtime-fixture v/d' go.mod && \
-    sed -i '/replace altinn.studio\/runtime-fixture/d' go.mod
+# Remove the devenv dependency from go.mod as it's not needed for building binaries
+# The test/harness package is only imported by test files, not by cmd/worker.
+RUN sed -i '/altinn\.studio\/devenv v/d' go.mod && \
+    sed -i '/replace altinn\.studio\/devenv/d' go.mod
 
 RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -a -installsuffix cgo -o main ./cmd/worker
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o main ./cmd/worker
 
-FROM docker.io/chromedp/headless-shell:stable@sha256:de5b057849de96955de7662023420a46355abfbb24d57aa01282ec7c811aacab
+FROM docker.io/chromedp/headless-shell:stable@sha256:f7db1bdf1560201b361844f11c7da300d0c5936f8618e128a7d2c75ae221a3a3
 
 USER root
 

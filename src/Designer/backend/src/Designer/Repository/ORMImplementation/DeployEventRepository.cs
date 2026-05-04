@@ -24,15 +24,20 @@ public class DeployEventRepository : IDeployEventRepository
         _timeProvider = timeProvider;
     }
 
-    public async Task AddAsync(string org, string buildId, DeployEvent deployEvent, CancellationToken cancellationToken = default)
+    public async Task AddAsync(
+        string org,
+        string buildId,
+        DeployEvent deployEvent,
+        CancellationToken cancellationToken = default
+    )
     {
         if (!await _featureManager.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
         {
             return;
         }
 
-        long deploymentSequenceNo = await _dbContext.Deployments
-            .Include(d => d.Build)
+        long deploymentSequenceNo = await _dbContext
+            .Deployments.Include(d => d.Build)
             .AsNoTracking()
             .Where(d => d.Org == org && d.Build.ExternalId == buildId)
             .Select(d => d.Sequenceno)
@@ -45,7 +50,27 @@ public class DeployEventRepository : IDeployEventRepository
             Message = deployEvent.Message,
             Timestamp = deployEvent.Timestamp,
             Created = _timeProvider.GetUtcNow(),
-            Origin = deployEvent.Origin.ToString()
+            Origin = deployEvent.Origin.ToString(),
+        };
+
+        _dbContext.DeployEvents.Add(dbModel);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task AddBySequenceNoAsync(
+        long sequenceNo,
+        DeployEvent deployEvent,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var dbModel = new DeployEventDbModel
+        {
+            DeploymentSequenceNo = sequenceNo,
+            EventType = deployEvent.EventType.ToString(),
+            Message = deployEvent.Message,
+            Timestamp = deployEvent.Timestamp,
+            Created = _timeProvider.GetUtcNow(),
+            Origin = deployEvent.Origin.ToString(),
         };
 
         _dbContext.DeployEvents.Add(dbModel);

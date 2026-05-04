@@ -117,8 +117,7 @@ internal sealed class SigningReceiptService(
 
         altinnCdnClient ??= _altinnCdnClient;
 
-        AltinnCdnOrgs altinnCdnOrgs = await altinnCdnClient.GetOrgs(ct);
-        AltinnCdnOrgDetails? senderDetails = altinnCdnOrgs.Orgs?.GetValueOrDefault(appMetadata.Org);
+        AltinnCdnOrgDetails? senderDetails = await altinnCdnClient.GetOrgDetails(ct);
         string? senderOrgNumber = senderDetails?.Orgnr;
 
         if (senderDetails is null || string.IsNullOrEmpty(senderOrgNumber))
@@ -208,7 +207,9 @@ internal sealed class SigningReceiptService(
                         await dataClient.GetDataBytes(
                             instanceIdentifier.InstanceOwnerPartyId,
                             instanceIdentifier.InstanceGuid,
-                            Guid.Parse(element.Id)
+                            Guid.Parse(element.Id),
+                            authenticationMethod: null,
+                            CancellationToken.None
                         )
                     )
                     .Build()

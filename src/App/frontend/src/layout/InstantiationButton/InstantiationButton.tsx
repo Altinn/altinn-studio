@@ -1,14 +1,15 @@
 import React from 'react';
+import { useNavigate } from 'react-router';
 
 import { Button } from 'src/app-components/Button/Button';
 import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
-import { useIsProcessing } from 'src/core/contexts/processingContext';
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { parseInstanceId } from 'src/core/queries/instance';
+import { FormStore } from 'src/features/form/FormContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
-import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
-import { focusMainContent } from 'src/hooks/useNavigatePage';
+import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
+import { buildInstanceUrl } from 'src/routesBuilder';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import type { IInstantiationButtonComponentProvidedProps } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
 
@@ -17,10 +18,12 @@ type Props = Omit<React.PropsWithChildren<IInstantiationButtonComponentProvidedP
 // TODO(Datamodels): This uses mapping and therefore only supports the "default" data model
 export const InstantiationButton = ({ children, ...props }: Props) => {
   const instantiation = useInstantiation();
-  const { performProcess, isAnyProcessing, isThisProcessing: isLoading } = useIsProcessing();
-  const prefill = FD.useMapping(props.mapping, DataModels.useDefaultDataType());
+  const performProcess = useProcessingMutation('instantiation');
+  const isLoading = useIsThisProcessing('instantiation');
+  const isAnyProcessing = useIsAnyProcessing();
+  const prefill = FormStore.data.useMapping(props.mapping, FormBootstrap.useDefaultDataType());
   const party = useSelectedParty();
-  const setNavigationEffect = useSetNavigationEffect();
+  const navigate = useNavigate();
 
   return (
     <ErrorReport
@@ -28,28 +31,24 @@ export const InstantiationButton = ({ children, ...props }: Props) => {
       errors={instantiation.error ? <ErrorListFromInstantiation error={instantiation.error} /> : undefined}
     >
       <Button
-        {...props}
         id={useIndexedId(props.baseComponentId)}
         onClick={() =>
-          performProcess(() =>
-            instantiation.instantiateWithPrefill(
+          performProcess(async () => {
+            const data = await instantiation.instantiateWithPrefill(
               {
                 prefill,
                 instanceOwner: {
                   partyId: party?.partyId.toString(),
                 },
               },
-              {
-                force: true,
-                onSuccess: (data) =>
-                  setNavigationEffect({
-                    targetLocation: `/instance/${data.id}`,
-                    matchStart: true,
-                    callback: focusMainContent,
-                  }),
-              },
-            ),
-          )
+              { force: true },
+            );
+            if (data) {
+              const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(data.id);
+              const url = buildInstanceUrl(instanceOwnerPartyId, instanceGuid);
+              navigate(url);
+            }
+          })
         }
         disabled={isAnyProcessing}
         isLoading={isLoading}

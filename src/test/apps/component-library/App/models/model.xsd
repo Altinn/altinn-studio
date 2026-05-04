@@ -63,6 +63,13 @@
       </xs:element>
     </xs:sequence>
   </xs:complexType>
+  <xs:complexType name="Geometries">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Label" type="xs:string" />
+      <xs:element minOccurs="0" name="Data" type="xs:string" />
+      <xs:element minOccurs="0" name="Editable" type="xs:boolean" />
+    </xs:sequence>
+  </xs:complexType>
   <xs:element name="Model">
     <xs:complexType>
       <xs:sequence>
@@ -130,12 +137,19 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
-        <xs:element minOccurs="0" name="CheckboxesGroupExample">
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="CheckboxesGroupExample">
           <xs:complexType>
             <xs:sequence>
               <xs:element minOccurs="0" name="age" type="xs:long" />
               <xs:element minOccurs="0" name="profession" type="xs:string" />
               <xs:element minOccurs="0" name="surname" type="xs:string" />
+              <xs:element minOccurs="0" name="Internal">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element minOccurs="0" name="isChecked" type="xs:boolean" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
               <xs:element minOccurs="0" name="Name">
                 <xs:complexType>
                   <xs:sequence>
@@ -144,6 +158,15 @@
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="MultiselectGroupExample">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="age" type="xs:long" />
+              <xs:element minOccurs="0" name="profession" type="xs:string" />
+              <xs:element minOccurs="0" name="surname" type="xs:string" />
               <xs:element minOccurs="0" name="Internal">
                 <xs:complexType>
                   <xs:sequence>
@@ -151,15 +174,6 @@
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
-            </xs:sequence>
-          </xs:complexType>
-        </xs:element>
-        <xs:element minOccurs="0" name="MultiselectGroupExample">
-          <xs:complexType>
-            <xs:sequence>
-              <xs:element minOccurs="0" name="age" type="xs:long" />
-              <xs:element minOccurs="0" name="profession" type="xs:string" />
-              <xs:element minOccurs="0" name="surname" type="xs:string" />
               <xs:element minOccurs="0" name="Name">
                 <xs:complexType>
                   <xs:sequence>
@@ -168,19 +182,12 @@
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
-              <xs:element minOccurs="0" name="Internal">
-                <xs:complexType>
-                  <xs:sequence>
-                    <xs:element minOccurs="0" name="isChecked" type="xs:boolean" />
-                  </xs:sequence>
-                </xs:complexType>
-              </xs:element>
             </xs:sequence>
           </xs:complexType>
         </xs:element>
-      </xs:sequence>
         <xs:element minOccurs="0" name="DatepickerMaxDateExample" type="xs:string" />
         <xs:element minOccurs="0" name="DatepickerMinDateExample" type="xs:string" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="Geometries" type="Geometries" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

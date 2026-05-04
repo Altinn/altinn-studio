@@ -6,8 +6,9 @@ import type { IParty } from 'src/types/shared';
 export function signingTestLogin(user: CyUser) {
   const appFrontend = new AppFrontend();
   cy.waitUntilSaved();
+
   cy.url().then((url) => {
-    const instanceSuffix = new URL(url).hash;
+    const instanceSuffix = url && url !== 'about:blank' ? `/instance/${url.split('/instance/')[1]}` : undefined;
     const partyId = Cypress.env('signingPartyId');
 
     if (partyId) {
@@ -60,7 +61,7 @@ export function signingTestLogin(user: CyUser) {
 
     cy.startAppInstance(appFrontend.apps.signingTest, { cyUser: user, urlSuffix: instanceSuffix });
 
-    if (Cypress.env('type') === 'production-like' && instanceSuffix) {
+    if (Cypress.env('type') === 'production-like') {
       // We need to reload after re-logging in on tt02 when we already had a session, because the startAppInstance
       // command will not reload the page if we already are visiting the correct URL.
       cy.reloadAndWait();

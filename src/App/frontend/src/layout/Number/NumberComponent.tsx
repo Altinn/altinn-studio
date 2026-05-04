@@ -4,9 +4,10 @@ import cn from 'classnames';
 
 import { DisplayNumber } from 'src/app-components/Number/DisplayNumber';
 import classes from 'src/app-components/Number/Number.module.css';
+import { translationKey } from 'src/AppComponentsBridge';
 import { getLabelId } from 'src/components/label/Label';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useLanguage } from 'src/features/language/useLanguage';
+import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
@@ -21,7 +22,6 @@ export const NumberComponent = ({ baseComponentId }: PropsFromGenericComponent<'
     formatting,
   } = useItemWhenType(baseComponentId, 'Number');
   const direction = _direction ?? 'horizontal';
-  const { langAsString } = useLanguage();
   const currentLanguage = useCurrentLanguage();
   const indexedId = useIndexedId(baseComponentId);
 
@@ -29,12 +29,13 @@ export const NumberComponent = ({ baseComponentId }: PropsFromGenericComponent<'
     return null;
   }
 
+  const numberFormatting = getMapToReactNumberConfig(formatting, value.toString(), currentLanguage);
+
   if (!textResourceBindings?.title) {
     return (
       <DisplayNumber
         value={value}
-        currentLanguage={currentLanguage}
-        formatting={formatting}
+        formatting={numberFormatting}
       />
     );
   }
@@ -54,11 +55,10 @@ export const NumberComponent = ({ baseComponentId }: PropsFromGenericComponent<'
     >
       <DisplayNumber
         value={value}
-        currentLanguage={currentLanguage}
         iconUrl={icon}
-        iconAltText={langAsString(textResourceBindings.title)}
+        iconAltText={translationKey(textResourceBindings.title)}
         labelId={getLabelId(indexedId)}
-        formatting={formatting}
+        formatting={numberFormatting}
       />
     </ComponentStructureWrapper>
   );

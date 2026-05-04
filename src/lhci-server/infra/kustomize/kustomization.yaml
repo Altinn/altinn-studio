@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - deployment.yaml
+  - service.yaml
+
+namespace: lhci
+
+replacements:
+- source:
+    kind: Deployment
+    name: lhci-server
+    fieldPath: metadata.annotations.[altinn.studio/image]
+  targets:
+  - select:
+      kind: Deployment
+      name: lhci-server
+    fieldPaths:
+      - spec.template.spec.containers.[name=lhci-server].image

@@ -145,9 +145,9 @@ public class TelemetryConfigurationTests
         services.AddSingleton<IHostingEnvironment>(env);
 
         var config = new ConfigurationBuilder()
-            .AddInMemoryCollection(
-                [new KeyValuePair<string, string?>("ApplicationInsights:InstrumentationKey", "test")]
-            )
+            .AddInMemoryCollection([
+                new KeyValuePair<string, string?>("ApplicationInsights:InstrumentationKey", "test"),
+            ])
             .Build();
 
         Altinn.App.Api.Extensions.ServiceCollectionExtensions.AddAltinnAppServices(services, config, env);

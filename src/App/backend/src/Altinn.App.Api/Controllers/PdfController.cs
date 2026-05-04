@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -19,11 +18,6 @@ namespace Altinn.App.Api.Controllers;
 [ApiController]
 public class PdfController : ControllerBase
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
-
     private readonly IInstanceClient _instanceClient;
 #pragma warning disable CS0618 // Type or member is obsolete
     private readonly IPdfFormatter _pdfFormatter;
@@ -73,7 +67,14 @@ public class PdfController : ControllerBase
         [FromRoute] Guid instanceGuid
     )
     {
-        var instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+        var instance = await _instanceClient.GetInstance(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceGuid,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
         string? taskId = instance.Process?.CurrentTask?.ElementId;
         if (instance == null || taskId == null)
         {
@@ -100,7 +101,14 @@ public class PdfController : ControllerBase
         [FromRoute] Guid dataGuid
     )
     {
-        Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+        Instance instance = await _instanceClient.GetInstance(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceGuid,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
         if (instance == null)
         {
             return NotFound("Did not find instance");
@@ -121,32 +129,13 @@ public class PdfController : ControllerBase
         string appModelclassRef = _resources.GetClassRefForLogicDataType(dataElement.DataType);
         Type dataType = _appModel.GetModelType(appModelclassRef);
 
-        string layoutSetsString = _resources.GetLayoutSets();
-        LayoutSets? layoutSets = null;
-        LayoutSet? layoutSet = null;
-        if (!string.IsNullOrEmpty(layoutSetsString))
+        var uiConfiguration = _resources.GetUiConfiguration();
+        if (uiConfiguration is null)
         {
-            layoutSets =
-                JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions)
-                ?? throw new JsonException("Could not deserialize LayoutSets");
-            layoutSet = layoutSets.Sets?.FirstOrDefault(t =>
-                t.DataType.Equals(dataElement.DataType, StringComparison.Ordinal) && t.Tasks?.Contains(taskId) is true
-            );
+            return NotFound("Did not find ui configuration");
         }
 
-        string? layoutSettingsFileContent =
-            layoutSet == null
-                ? _resources.GetLayoutSettingsString()
-                : _resources.GetLayoutSettingsStringForSet(layoutSet.Id);
-
-        LayoutSettings? layoutSettings = null;
-        if (!string.IsNullOrEmpty(layoutSettingsFileContent))
-        {
-            layoutSettings = JsonSerializer.Deserialize<LayoutSettings>(
-                layoutSettingsFileContent,
-                _jsonSerializerOptions
-            );
-        }
+        uiConfiguration.Folders.TryGetValue(taskId, out LayoutSettings? layoutSettings);
 
         // Ensure layoutsettings are initialized in FormatPdf
         layoutSettings ??= new();
@@ -164,7 +153,7 @@ public class PdfController : ControllerBase
             new Guid(dataElement.Id)
         );
 
-        layoutSettings = await _pdfFormatter.FormatPdf(layoutSettings, data, instance, layoutSet);
+        layoutSettings = await _pdfFormatter.FormatPdf(layoutSettings, data, instance);
 
         var result = new
         {

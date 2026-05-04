@@ -35,7 +35,7 @@ export function MultipleSelectSummary({ targetBaseComponentId }: Summary2Props) 
       }
     >
       <MultipleValueSummary
-        title={<Lang id={textResourceBindings?.title} />}
+        title={<Lang id={textResourceBindings?.summaryTitle || textResourceBindings?.title} />}
         baseComponentId={targetBaseComponentId}
         displayValues={displayValues}
         showAsList={showAsList}

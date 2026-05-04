@@ -1,9 +1,10 @@
-import React from 'react';
 import classes from './VersionHelpText.module.css';
 import { Paragraph } from '@digdir/designsystemet-react';
 import { StudioHelpText } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
+
+import type { JSX } from 'react';
 
 /**
  * @component
@@ -13,7 +14,7 @@ import { useBpmnContext } from '../../../contexts/BpmnContext';
  */
 export const VersionHelpText = (): JSX.Element => {
   const { t } = useTranslation();
-  const { appLibVersion } = useBpmnContext();
+  const { appVersion } = useBpmnContext();
 
   return (
     <div className={classes.helpTextWrapper}>
@@ -23,7 +24,9 @@ export const VersionHelpText = (): JSX.Element => {
         placement='bottom'
       >
         <Paragraph spacing size='small' className={classes.helpTextContent}>
-          {t('process_editor.too_old_version_helptext_content', { version: appLibVersion })}
+          {t('process_editor.too_old_version_helptext_content', {
+            version: appVersion?.backendVersion,
+          })}
         </Paragraph>
         {/*
           Temporarily hidden until v8 becomes available.

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigation } from 'react-router-dom';
+import { useNavigation } from 'react-router';
 
 import { Table } from '@digdir/designsystemet-react';
 import { PencilIcon, PlusIcon, TrashIcon } from '@navikt/aksel-icons';
@@ -9,10 +9,10 @@ import { Button } from 'src/app-components/Button/Button';
 import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
+import { translationKey } from 'src/AppComponentsBridge';
 import { Caption } from 'src/components/form/caption/Caption';
-import { useIsProcessing } from 'src/core/contexts/processingContext';
-import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
+import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -21,6 +21,7 @@ import { isSubformValidation } from 'src/features/validation';
 import { useComponentValidationsFor } from 'src/features/validation/selectors/componentValidationsForNode';
 import { useIsSubformPage } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { ComponentErrorList } from 'src/layout/GenericComponent';
 import { SubformCellContent } from 'src/layout/Subform/SubformCellContent';
@@ -44,7 +45,7 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
   } = useItemWhenType(baseComponentId, 'Subform');
 
   const isSubformPage = useIsSubformPage();
-  const dataType = useDataTypeFromLayoutSet(layoutSet);
+  const dataType = getDefaultDataTypeFromUiFolder(layoutSet);
   const navigation = useNavigation();
 
   if (!dataType) {
@@ -57,8 +58,10 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
   const subformEntries = useInstanceDataElements(dataType);
 
   const { enterSubform } = useNavigatePage();
-  const lock = FD.useLocking(id);
-  const { performProcess, isAnyProcessing: isAddingDisabled, isThisProcessing: isAdding } = useIsProcessing();
+  const lock = FormStore.data.useLocking(id);
+  const performProcess = useProcessingMutation('add-subform');
+  const isAdding = useIsThisProcessing('add-subform');
+  const isAddingDisabled = useIsAnyProcessing();
   const nodeId = useIndexedId(baseComponentId);
 
   const subformIdsWithError =
@@ -274,7 +277,7 @@ function SubformTableRow({
             variant='tertiary'
             color='second'
             onClick={async () => enterSubform({ nodeId, dataElementId: id, validate: hasErrors })}
-            aria-label={editButtonText}
+            aria-label={translationKey(editButtonText)}
             className={classes.tableButton}
           >
             {editButtonText}
@@ -293,7 +296,7 @@ function SubformTableRow({
               variant='tertiary'
               color='danger'
               onClick={() => deleteSubformEntry(id)}
-              aria-label={deleteButtonText}
+              aria-label={translationKey(deleteButtonText)}
               className={classes.tableButton}
             >
               {deleteButtonText}

@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react';
-import React from 'react';
 import {
   PolicyRuleSubjectSummary,
   type PolicyRuleSubjectSummaryProps,
@@ -10,6 +9,7 @@ import {
 } from '../../../contexts/PolicyEditorContext';
 import { mockAction1, mockAction2 } from '../../../../test/mocks/policyActionMocks';
 import type { PolicySubject } from '../../../types';
+import { INTERNAL_ACCESS_PACKAGE_PROVIDER_CODE } from '@altinn/policy-editor/constants';
 
 const mockSubjects: PolicySubject[] = [
   {
@@ -33,7 +33,7 @@ const mockSubjects: PolicySubject[] = [
     urn: 'urn:altinn:org:[org]',
     legacyUrn: 'urn:altinn:org:[org]',
     provider: {
-      code: 'sys-internal',
+      code: INTERNAL_ACCESS_PACKAGE_PROVIDER_CODE,
       id: '277ebf42-f5b6-4724-a753-15cd24f1703b',
       name: 'Intern',
     },

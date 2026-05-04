@@ -37,7 +37,11 @@ public sealed class FormatMaximumKeyword : IJsonSchemaKeyword, IEquatable<Format
         Value = value;
     }
 
-    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
+    public KeywordConstraint GetConstraint(
+        SchemaConstraint schemaConstraint,
+        IReadOnlyList<KeywordConstraint> localConstraints,
+        EvaluationContext context
+    )
     {
         return new KeywordConstraint(Name, (e, c) => { });
     }
@@ -73,7 +77,11 @@ public sealed class FormatMaximumKeyword : IJsonSchemaKeyword, IEquatable<Format
         /// <summary>
         /// Read formatMaximum keyword from json schema
         /// </summary>
-        public override FormatMaximumKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override FormatMaximumKeyword Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options
+        )
         {
             if (reader.TokenType != JsonTokenType.String)
             {

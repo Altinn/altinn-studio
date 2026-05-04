@@ -22,15 +22,15 @@ export const grafanaPodLogsUrl = ({
   env,
   app,
   isProduction,
-  buildStartTime,
-  buildFinishTime,
+  deployStartTime,
+  deployFinishTime,
 }: {
   org: string;
   env: string;
   app: string;
   isProduction: boolean;
-  buildStartTime?: number;
-  buildFinishTime?: number;
+  deployStartTime?: number;
+  deployFinishTime?: number;
 }) => {
   const baseDomain = isProduction
     ? `https://${org}.apps.altinn.no`
@@ -41,8 +41,8 @@ export const grafanaPodLogsUrl = ({
   const queryParams = new URLSearchParams({
     'var-rg': `altinnapps-${org}-${isProduction ? 'prod' : env}-rg`,
     'var-PodName': `${org}-${app}-deployment-v2`,
-    ...(buildStartTime ? { from: buildStartTime.toString() } : {}),
-    ...(buildFinishTime ? { to: buildFinishTime.toString() } : {}),
+    ...(deployStartTime ? { from: deployStartTime.toString() } : {}),
+    ...(deployFinishTime ? { to: deployFinishTime.toString() } : {}),
   }).toString();
 
   return `${baseDomain}${path}?${queryParams}`;

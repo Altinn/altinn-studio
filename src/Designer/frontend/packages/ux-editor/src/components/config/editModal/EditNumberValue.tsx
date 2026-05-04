@@ -1,4 +1,3 @@
-import React from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { FormField } from '../../FormField';
 import { setComponentProperty } from '@altinn/ux-editor/utils/component';
@@ -17,8 +16,10 @@ import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 type NumberKeys<ObjectType extends KeyValuePairs> = FilterKeysOfType<ObjectType, number>;
 
-export interface EditNumberValueProps<T extends ComponentType, K extends NumberKeys<FormItem<T>>>
-  extends IGenericEditComponent<T> {
+export interface EditNumberValueProps<
+  T extends ComponentType,
+  K extends NumberKeys<FormItem<T>>,
+> extends IGenericEditComponent<T> {
   propertyKey: K;
   enumValues?: number[];
 }

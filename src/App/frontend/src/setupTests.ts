@@ -4,7 +4,7 @@ import 'core-js/stable/structured-clone'; // https://github.com/jsdom/jsdom/issu
 import 'jest';
 // Importing CSS for jest-preview to look nicer
 import '@digdir/designsystemet-css';
-import '@digdir/designsystemet-theme';
+import '@digdir/designsystemet-css/theme';
 
 import { jest } from '@jest/globals';
 import { configure as testingLibraryConfigure } from '@testing-library/dom';
@@ -13,19 +13,16 @@ import { jestPreviewConfigure } from 'jest-preview';
 import { TextDecoder, TextEncoder } from 'util';
 import type { AxiosResponse } from 'axios';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
-// Importing CSS for jest-preview to look nicer
-import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationSettingsMock } from 'src/__mocks__/getApplicationSettingsMock';
+import { getFooterLayoutMock } from 'src/__mocks__/getFooterLayoutMock';
+import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
-import type {
-  doProcessNext,
-  doUpdateAttachmentTags,
-  fetchApplicationMetadata,
-  fetchInstanceData,
-  fetchProcessState,
-  fetchUserProfile,
-} from 'src/queries/queries';
+import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
+import { getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
+import { GlobalData } from 'src/GlobalData';
+import type { doProcessNext, doUpdateAttachmentTags, fetchProcessState } from 'src/queries/queries';
 import type { AppQueries } from 'src/queries/types';
 import type { IProcess } from 'src/types/shared';
 
@@ -72,6 +69,28 @@ window.inUnitTest = true;
 window.org = 'ttd';
 window.app = 'test';
 
+// Set up altinnAppGlobalData with default mocks before each test to prevent pollution between tests
+
+beforeEach(() => {
+  GlobalData.setSelectedParty(undefined);
+  window.altinnAppGlobalData = {
+    applicationMetadata: getApplicationMetadataMock(),
+    frontendSettings: getApplicationSettingsMock(),
+    platformFrontendSettings: {
+      postalCodesUrl: 'https://altinncdn.no/postcodes/registry.json',
+      appFrontendCdnBaseUrl: 'https://altinncdn.no/toolkits/altinn-app-frontend',
+      altinnLogoUrl: 'https://altinncdn.no/img/Altinn-logo-blue.svg',
+      helpCircleIllustrationUrl: 'https://altinncdn.no/img/illustration-help-circle.svg',
+    },
+    footer: getFooterLayoutMock(),
+    ui: getUiConfigMock(),
+    userProfile: getProfileMock(),
+    availableLanguages: [{ language: 'nb' }],
+    selectedParty: getPartyMock(),
+    textResources: { language: 'nb', resources: getTextResourcesMock() },
+  };
+});
+
 window.logError = (...args) => {
   throw new Error(args.join(' '));
 };
@@ -97,10 +116,16 @@ jest.mock('axios');
 if (!globalThis.Request) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (globalThis as any).Request = class Request {
-    constructor(
-      public url: string,
-      public options?: unknown,
-    ) {}
+    url: string;
+    method: string;
+    headers: Record<string, string>;
+    signal?: AbortSignal;
+    constructor(url: string, init?: { method?: string; signal?: AbortSignal }) {
+      this.url = url;
+      this.method = init?.method ?? 'GET';
+      this.headers = {};
+      this.signal = init?.signal;
+    }
   };
 }
 
@@ -116,13 +141,8 @@ testingLibraryConfigure({
 
 jest.mock('src/queries/queries', () => ({
   ...jest.requireActual<AppQueries>('src/queries/queries'),
-  fetchApplicationMetadata: jest
-    .fn<typeof fetchApplicationMetadata>()
-    .mockImplementation(async () => getIncomingApplicationMetadataMock()),
   fetchProcessState: jest.fn<typeof fetchProcessState>(async () => getProcessDataMock()),
   doProcessNext: jest.fn<typeof doProcessNext>(async () => ({ data: getProcessDataMock() }) as AxiosResponse<IProcess>),
-  fetchUserProfile: jest.fn<typeof fetchUserProfile>(async () => getProfileMock()),
-  fetchInstanceData: jest.fn<typeof fetchInstanceData>(async () => getInstanceDataMock()),
   doUpdateAttachmentTags: jest.fn<typeof doUpdateAttachmentTags>(async ({ setTagsRequest }) => ({
     tags: setTagsRequest.tags,
   })),

@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -13,7 +12,7 @@ const defaultProps = {
     name: 'Lufttransport',
     description: 'Luft',
     urn: 'urn',
-    isDelegable: true,
+    isResourcePolicyAvailable: true,
   },
   isChecked: false,
   handleSelectChange: jest.fn(),

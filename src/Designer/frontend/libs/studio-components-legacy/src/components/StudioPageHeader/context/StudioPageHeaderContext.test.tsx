@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import {
   StudioPageHeaderContextProvider,
@@ -32,7 +31,6 @@ describe('StudioPageHeaderContext', () => {
   });
 
   it('should throw an error when useStudioPageHeaderContext is used outside of a StudioPageHeaderContextProvider', () => {
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     const TestComponent = () => {
       useStudioPageHeaderContext();
       return <div data-testid='context'>Test</div>;
@@ -41,6 +39,5 @@ describe('StudioPageHeaderContext', () => {
     expect(() => render(<TestComponent />)).toThrow(
       'useStudioPageHeaderContext must be used within a StudioPageHeaderContextProvider',
     );
-    expect(consoleError).toHaveBeenCalled();
   });
 });

@@ -1,11 +1,11 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
+import React, { ReactElement } from 'react';
+import { useParams } from 'react-router';
 
-import { jest } from '@jest/globals';
 import { screen } from '@testing-library/dom';
-import { render } from '@testing-library/react';
+import { render as renderRtl, RenderOptions } from '@testing-library/react';
 import { randomUUID } from 'crypto';
 
+import { AppComponentsBridge } from 'src/AppComponentsBridge';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -21,14 +21,13 @@ import { SigningActionsComponent } from 'src/layout/SigningActions/SigningAction
 import { CurrentUserStatus, getCurrentUserStatus } from 'src/layout/SigningActions/utils';
 
 jest.mock('src/utils/layout/useNodeItem');
-jest.mock('react-router-dom');
+jest.mock('react-router');
 jest.mock('src/features/instance/useProcessNext.tsx');
 jest.mock('src/core/contexts/AppQueriesProvider');
 jest.mock('src/features/profile/ProfileProvider');
 jest.mock('src/features/language/useLanguage');
 jest.mock('src/features/language/Lang');
 jest.mock('src/features/instance/useProcessQuery');
-jest.mock('src/features/validation/backendValidation/backendValidationQuery');
 jest.mock('src/layout/SigneeList/api');
 jest.mock('src/layout/SigningActions/api');
 jest.mock('src/layout/SigningActions/utils');
@@ -316,3 +315,6 @@ describe('SigningActionsComponent', () => {
     },
   );
 });
+
+const render = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) =>
+  renderRtl(<AppComponentsBridge>{ui}</AppComponentsBridge>, options);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import type { PropsWithChildren, ReactElement } from 'react';
 
 import { Divider, Paragraph } from '@digdir/designsystemet-react';
@@ -9,6 +9,7 @@ import { nb } from 'date-fns/locale/nb';
 import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import { Label } from 'src/app-components/Label/Label';
 import { LoadingWrapper } from 'src/app-components/loading/LoadingWrapper/LoadingWrapper';
+import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { Lang } from 'src/features/language/Lang';
 import { type SigneeState, useSigneeList } from 'src/layout/SigneeList/api';
 import classes from 'src/layout/SigneeList/SigneeListSummary.module.css';
@@ -22,8 +23,14 @@ interface SigneeListSummaryProps extends Summary2Props {
 }
 
 export function SigneeListSummary({ targetBaseComponentId, titleOverride }: SigneeListSummaryProps) {
-  const { instanceOwnerPartyId, instanceGuid, taskId } = useParams();
-  const { data, isLoading, error } = useSigneeList(instanceOwnerPartyId, instanceGuid, taskId);
+  const { instanceOwnerPartyId, instanceGuid, taskId: taskIdFromQuery } = useParams();
+  const taskOverrides = useTaskOverrides();
+  const taskIdFromTaskOverrides = taskOverrides?.taskId;
+  const { data, isLoading, error } = useSigneeList(
+    instanceOwnerPartyId,
+    instanceGuid,
+    taskIdFromTaskOverrides ?? taskIdFromQuery,
+  );
 
   const originalTitle = useItemWhenType(targetBaseComponentId, 'SigneeList').textResourceBindings?.title;
   const title = titleOverride === undefined ? originalTitle : titleOverride;

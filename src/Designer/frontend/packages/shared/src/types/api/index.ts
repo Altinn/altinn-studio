@@ -1,6 +1,7 @@
 export * from './AddLanguagePayload';
 export * from './AddRepoParams';
 export * from './AppReleasesResponse';
+export * from './BranchTypes';
 export * from './CreateDataModelPayload';
 export * from './CreateDeploymentPayload';
 export * from './CreateReleasePayload';

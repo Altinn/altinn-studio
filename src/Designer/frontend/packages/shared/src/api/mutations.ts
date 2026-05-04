@@ -3,6 +3,7 @@ import {
   appMetadataAttachmentPath,
   branchesPath,
   checkoutBranchPath,
+  branchPath,
   discardChangesPath,
   copyAppPath,
   createRepoPath,
@@ -48,6 +49,7 @@ import {
   optionListIdUpdatePath,
   processEditorPath,
   selectedMaskinportenScopesPath,
+  appSettingsPath,
   createInstancePath,
   dataTypePath,
   optionListPath,
@@ -64,6 +66,19 @@ import {
   orgCodeListUpdateIdPath,
   orgLibraryUpdatePath,
   orgCodeListPublishPath,
+  layoutSetsPath,
+  userApiKeyPath,
+  userApiKeysPath,
+  validateNavigationLayoutSettingsPath,
+  contactPointsPath,
+  contactPointPath,
+  contactPointActivePath,
+  validateNavigationPageSettingsPath,
+  botAccountsPath,
+  botAccountPath,
+  botAccountDeactivatePath,
+  botAccountApiKeysPath,
+  botAccountApiKeyPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -72,10 +87,9 @@ import type { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploym
 import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
 import type { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
 import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
-import type { ILayoutSettings, ITextResourcesObjectFormat, ITextResourcesWithLanguage } from 'app-shared/types/global';
+import type { ILayoutSettings, ITextResourcesObjectFormat, ITextResourcesWithLanguage, IValidationOnNavigationLayoutSets, IValidationOnNavigationLayoutSettings, IValidationOnNavigationPageSettings } from 'app-shared/types/global';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
-import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { CreateDataModelPayload } from 'app-shared/types/api/CreateDataModelPayload';
 import type { Policy } from '../types/Policy';
@@ -100,6 +114,11 @@ import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigatio
 import type { ImportCodeListResponse } from 'app-shared/types/api/ImportCodeListResponse';
 import type { UpdateSharedResourcesRequest } from 'app-shared/types/api/UpdateSharedResourcesRequest';
 import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
+import type { AppSettings } from 'app-shared/types/AppSettings';
+import type { AddUserApiKeyRequest } from 'app-shared/types/api/AddUserApiKeyRequest';
+import type { AddUserApiKeyResponse } from 'app-shared/types/api/AddUserApiKeyResponse';
+import type { ContactPoint, ContactPointPayload } from 'app-shared/types/ContactPoint';
+import type { CreateBotAccountRequest, CreateBotAccountResponse, CreateBotAccountApiKeyRequest, CreateBotAccountApiKeyResponse } from 'app-shared/types/BotAccount';
 
 const headers = {
   Accept: 'application/json',
@@ -115,7 +134,7 @@ export const deleteImage = (org: string, app: string, imageName: string) => del(
 export const deleteLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string) => del(layoutSetPath(org, app, layoutSetIdToUpdate));
 export const deleteOptionList = (org: string, app: string, optionListId: string) => del(optionListPath(org, app, optionListId));
 export const updateLayoutSetId = (org: string, app: string, layoutSetIdToUpdate: string, newLayoutSetId: string) => put(layoutSetPath(org, app, layoutSetIdToUpdate), newLayoutSetId, { headers: { 'Content-Type': 'application/json' } });
-export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(`${createRepoPath()}${buildQueryParams(repoToAdd)}`);
+export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(createRepoPath(), repoToAdd);
 export const addXsdFromRepo = (org: string, app: string, modelPath: string) => post<JsonSchema>(dataModelAddXsdFromRepoPath(org, app, modelPath));
 export const commitAndPushChanges = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPushPath(org, app), payload, { headers });
 export const copyApp = (org: string, app: string, newRepoName: string, newOrg: string) => post(copyAppPath(org, app, newRepoName, newOrg));
@@ -133,7 +152,7 @@ export const deleteDataModel = (org: string, app: string, modelPath: string) => 
 export const deleteFormLayout = (org: string, app: string, layoutName: string, layoutSetName: string) => del(formLayoutPath(org, app, layoutName, layoutSetName));
 export const deleteLanguageCode = (org: string, app: string, language: string) => del(textResourcesPath(org, app, language));
 export const generateModels = (org: string, app: string, modelPath: string, payload: JsonSchema) => put<void, JsonSchema>(dataModelPath(org, app, modelPath, false), payload);
-export const logout = () => post(userLogoutPath());
+export const logout = () => get(userLogoutPath());
 export const publishCodeList = (org: string, payload: PublishCodeListPayload) => post<void, PublishCodeListPayload>(orgCodeListPublishPath(org), payload);
 export const pushRepoChanges = (org: string, app: string) => post(repoPushPath(org, app));
 export const resetRepoChanges = (org: string, app: string) => get(repoResetPath(org, app)); //Technically a mutation, but currently only implemented as a GET
@@ -157,6 +176,8 @@ export const uploadOptionList = (org: string, app: string, payload: FormData) =>
 export const updateOptionList = (org: string, app: string, optionsListId: string, payload: Option[]) => put<Option[]>(optionListUpdatePath(org, app, optionsListId), payload);
 export const updateOptionListId = (org: string, app: string, optionsListId: string, newOptionsListId: string) => put<void, string>(optionListIdUpdatePath(org, app, optionsListId), JSON.stringify(newOptionsListId), { headers: { 'Content-Type': 'application/json' } });
 export const updateTaskNavigationGroup = (org: string, app: string, payload: TaskNavigationGroup[]) => post<TaskNavigationGroup[]>(taskNavigationGroupPath(org, app), payload);
+export const updateValidationOnNavigationLayoutSettings = (org: string, app: string, payload: IValidationOnNavigationLayoutSettings[]) => post<IValidationOnNavigationLayoutSettings[]>(validateNavigationLayoutSettingsPath(org, app), payload);
+export const updateValidationOnNavigationPageSettings = (org: string, app: string, payload: IValidationOnNavigationPageSettings[]) => post<void, IValidationOnNavigationPageSettings[]>(validateNavigationPageSettingsPath(org, app), payload);
 export const importCodeListFromOrgToApp = (org: string, app: string, codeListId: string): Promise<ImportCodeListResponse> => post<ImportCodeListResponse>(importCodeListFromOrgPath(org, app, codeListId));
 export const upsertTextResources = (org: string, app: string, language: string, payload: ITextResourcesObjectFormat): Promise<ITextResourcesWithLanguage> => put<ITextResourcesWithLanguage, ITextResourcesObjectFormat>(textResourcesPath(org, app, language), payload);
 export const createPage = (org: string, app: string, layoutSetName: string, payload: PageModel) => post(layoutPagesPath(org, app, layoutSetName), payload);
@@ -166,6 +187,8 @@ export const changePageOrder = (org: string, app: string, layoutSetName: string,
 export const changePageGroups = (org: string, app: string, layoutSetName: string, pageGroups: PagesModel) => put(layoutPageGroupsPath(org, app, layoutSetName), pageGroups);
 export const convertToPageGroups = (org: string, app: string, layoutSetName: string) => post(layoutConvertToPageGroupsPath(org, app, layoutSetName));
 export const convertToPageOrder = (org: string, app: string, layoutSetName: string) => post(layoutConvertToPageOrderPath(org, app, layoutSetName));
+export const updateValidationOnNavigationLayoutSets = (org: string, app: string, payload: IValidationOnNavigationLayoutSets) => post<IValidationOnNavigationLayoutSets>(`${layoutSetsPath(org, app)}/validation-on-navigation`, payload);
+export const deleteValidationOnNavigationLayoutSets = (org: string, app: string) => del(`${layoutSetsPath(org, app)}/validation-on-navigation`);
 
 // Resourceadm
 export const createResource = (org: string, payload: NewResource) => post(resourceCreatePath(org), payload);
@@ -202,6 +225,7 @@ export const updateProcessDataTypes = (org: string, app: string, dataTypesChange
 
 // Maskinporten
 export const updateSelectedMaskinportenScopes = (org: string, app: string, appScopesUpsertRequest: MaskinportenScopes) => put(selectedMaskinportenScopesPath(org, app), appScopesUpsertRequest);
+export const updateAppSettings = (org: string, app: string, payload: AppSettings) => put(appSettingsPath(org, app), payload);
 
 // Organisation library
 export const updateSharedResources = async (org: string, payload: UpdateSharedResourcesRequest): Promise<void> => put(orgLibraryUpdatePath(org), payload);
@@ -220,4 +244,22 @@ export const updateOrgTextResources = async (org: string, language: string, payl
 // Branches:
 export const createBranch = async (org: string, app: string, branchName: string): Promise<Branch> => post(branchesPath(org, app), { branchName });
 export const checkoutBranch = async (org: string, app: string, branchName: string): Promise<RepoStatus> => post(checkoutBranchPath(org, app), { branchName });
+export const deleteBranch = async (org: string, app: string, branchName: string): Promise<void> => del(branchPath(org, app, branchName));
 export const discardChanges = async (org: string, app: string): Promise<RepoStatus> => post(discardChangesPath(org, app), {});
+
+// User settings
+export const addUserApiKey = (payload: AddUserApiKeyRequest) => post<AddUserApiKeyResponse, AddUserApiKeyRequest>(userApiKeysPath(), payload);
+export const deleteUserApiKey = (id: number) => del(userApiKeyPath(id));
+
+// Org settings - Contact points
+export const addContactPoint = async (org: string, payload: ContactPointPayload): Promise<ContactPoint> => post(contactPointsPath(org), payload);
+export const updateContactPoint = async (org: string, id: string, payload: ContactPointPayload): Promise<ContactPoint> => put(contactPointPath(org, id), payload);
+export const toggleContactPointActive = async (org: string, id: string, isActive: boolean): Promise<void> => patch(contactPointActivePath(org, id), { isActive });
+export const deleteContactPoint = async (org: string, id: string): Promise<void> => del(contactPointPath(org, id));
+
+// Org settings - Bot accounts
+export const createBotAccount = (org: string, payload: CreateBotAccountRequest): Promise<CreateBotAccountResponse> => post(botAccountsPath(org), payload);
+export const deactivateBotAccount = (org: string, id: string): Promise<void> => post(botAccountDeactivatePath(org, id), {});
+export const createBotAccountApiKey = (org: string, botAccountId: string, payload: CreateBotAccountApiKeyRequest): Promise<CreateBotAccountApiKeyResponse> => post(botAccountApiKeysPath(org, botAccountId), payload);
+export const revokeBotAccountApiKey = (org: string, botAccountId: string, keyId: number): Promise<void> => del(botAccountApiKeyPath(org, botAccountId, keyId));
+export const updateBotAccount = (org: string, botAccountId: string, deployEnvironments: string[]): Promise<void> => put(botAccountPath(org, botAccountId), { deployEnvironments });

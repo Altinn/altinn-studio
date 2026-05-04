@@ -24,7 +24,9 @@ export const UndeployConsequenceDialog = ({
             {t('app_deployment.unpublish_consequence_dialog_title')}
           </StudioHeading>
         </StudioDialog.Block>
-        <DialogContent environment={environment} />
+        <StudioDialog.Block>
+          <DialogContent environment={environment} />
+        </StudioDialog.Block>
       </StudioDialog>
     </>
   );

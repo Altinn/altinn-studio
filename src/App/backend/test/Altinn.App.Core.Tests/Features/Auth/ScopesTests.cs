@@ -83,4 +83,28 @@ public class ScopesTests
         }
         Assert.Equal(i, expectedScopes.Length);
     }
+
+    [Theory]
+    [InlineData("altinn:instances.read", true)]
+    [InlineData("altinn:instances.write", true)]
+    [InlineData("altinn:serviceowner/instances.read", true)]
+    [InlineData("altinn:serviceowner/instances.write", true)]
+    [InlineData("altinn:instances.read altinn:instances.write", true)]
+    [InlineData("other:scope altinn:instances.read", true)]
+    [InlineData("altinn:instances.read other:scope", true)]
+    [InlineData("ALTINN:instances.read", false)] // case sensitive
+    [InlineData("altinn:instance.read", false)] // typo
+    [InlineData("altinn:serviceowner/instance.read", false)] // typo
+    [InlineData("digdir:dd:probatedeclarations", false)]
+    [InlineData("custom:instances.read", false)]
+    [InlineData("altinn:correspondence.write", false)]
+    [InlineData("altinn:portal/enduser", false)]
+    [InlineData(null, false)]
+    [InlineData("", false)]
+    [InlineData("  ", false)]
+    public void HasAltinnInstanceScope_Returns(string? inputScopes, bool expected)
+    {
+        var scopes = new Scopes(inputScopes);
+        Assert.Equal(expected, scopes.HasAltinnInstanceScope());
+    }
 }

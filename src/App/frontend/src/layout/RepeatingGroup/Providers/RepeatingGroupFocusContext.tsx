@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
 import { SearchParams } from 'src/core/routing/types';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { isRepeatingComponentType } from 'src/features/form/layout/utils/repeating';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import {
   RepGroupContext,
   useRepeatingGroupComponentId,
@@ -109,8 +109,8 @@ function useNavigateToRepeatingGroupPageAndFocusRow() {
   const openForEditing = RepGroupContext.useOpenForEditing();
   const changePageToRow = RepGroupContext.useChangePageToRow();
   const { dataModelBindings, pagination, tableColumns, edit } = useIntermediateItem(baseComponentId, 'RepeatingGroup');
-  const rowsSelector = FD.useDebouncedRowsSelector();
-  const layoutLookups = useLayoutLookups();
+  const rowsSelector = FormStore.data.useDebouncedRowsSelector();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
@@ -148,8 +148,9 @@ function useNavigateToRepeatingGroupPageAndFocusRow() {
     const { depth } = splitDashedKey(targetIndexedId);
     const row = rows.find((r) => r.index === depth.at(negativeRowIndex));
 
-    if (pagination) {
-      row && changePageToRow(row);
+    if (pagination && row) {
+      changePageToRow(row);
+      openForEditing(row);
       return;
     }
     if (edit?.mode === 'showAll' || edit?.mode === 'onlyTable') {

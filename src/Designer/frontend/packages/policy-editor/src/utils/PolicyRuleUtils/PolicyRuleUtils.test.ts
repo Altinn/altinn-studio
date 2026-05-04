@@ -5,6 +5,7 @@ import {
   getCcrSubjects,
   getAltinnSubjects,
   getOtherSubjects,
+  getPersonSubjects,
 } from './index';
 import {
   mockActionId1,
@@ -148,7 +149,7 @@ describe('PolicyRuleUtils', () => {
   });
 
   describe('getAltinnSubjects', () => {
-    it('should return ccr subjects', () => {
+    it('should return altinn subjects', () => {
       const ccrSubjects = getAltinnSubjects(testSubjects);
 
       expect(ccrSubjects.map((x) => x.legacyUrn)).toEqual(['urn:altinn:rolecode:UILUF']);
@@ -156,13 +157,20 @@ describe('PolicyRuleUtils', () => {
   });
 
   describe('getOtherSubjects', () => {
-    it('should return ccr subjects', () => {
+    it('should return other subjects', () => {
       const ccrSubjects = getOtherSubjects(testSubjects);
+
+      expect(ccrSubjects.map((x) => x.legacyUrn)).toEqual([policySubjectOrg.urn]);
+    });
+  });
+
+  describe('getPersonSubjects', () => {
+    it('should return person subjects', () => {
+      const ccrSubjects = getPersonSubjects(testSubjects);
 
       expect(ccrSubjects.map((x) => x.legacyUrn)).toEqual([
         'urn:altinn:rolecode:PRIV',
         'urn:altinn:rolecode:SELN',
-        policySubjectOrg.urn,
       ]);
     });
   });

@@ -1,12 +1,9 @@
 import React from 'react';
 
-import { expect, jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
-import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
-import { fetchApplicationMetadata } from 'src/queries/queries';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 
 const TestComponent = () => {
@@ -15,8 +12,8 @@ const TestComponent = () => {
 };
 
 const render = async (stateless: boolean, allowAnonymous: boolean) => {
-  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () => ({
-    ...getIncomingApplicationMetadataMock(),
+  window.altinnAppGlobalData.applicationMetadata = {
+    ...getApplicationMetadataMock(),
     ...(stateless
       ? {
           onEntry: {
@@ -24,13 +21,10 @@ const render = async (stateless: boolean, allowAnonymous: boolean) => {
           },
         }
       : {}),
-  }));
+  };
 
   return await renderWithoutInstanceAndLayout({
     renderer: () => <TestComponent />,
-    queries: {
-      fetchLayoutSets: () => Promise.resolve(getLayoutSetsMock()),
-    },
   });
 };
 

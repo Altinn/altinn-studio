@@ -1,5 +1,4 @@
 import type { ReactElement, ReactNode } from 'react';
-import React from 'react';
 import type { RenderOptions } from '@testing-library/react';
 import { render, renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';

@@ -1,16 +1,15 @@
 import type { ForwardedRef } from 'react';
-import React from 'react';
 import { textResourcesMock } from '../../test-data/textResourcesMock';
 import type { StudioTextResourcePickerProps } from './StudioTextResourcePicker';
 import { StudioTextResourcePicker } from './StudioTextResourcePicker';
 import type { RenderResult } from '@testing-library/react';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 import { getFirstBySelector } from '../../test-utils/selectors';
 import userEvent from '@testing-library/user-event';
-import type { TextResource } from '../../../../studio-pure-functions/src/types/TextResource';
+import type { TextResource } from '@studio/pure-functions';
 
 // Test data:
 const textResources = textResourcesMock;
@@ -24,11 +23,18 @@ const defaultProps: StudioTextResourcePickerProps = {
   label: 'Text Resource',
 };
 const arbitraryTextResourceIndex = 129;
-const textSelector = '.ds-chip';
 const textMissingValueId = 'missing-value-id';
 
 describe('StudioTextResourcePicker', () => {
-  beforeEach(jest.clearAllMocks);
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
 
   it('Renders a studio suggestion', () => {
     renderTextResourcePicker();
@@ -37,11 +43,11 @@ describe('StudioTextResourcePicker', () => {
   it('Renders with the given label', () => {
     const label = 'Test label';
     renderTextResourcePicker({ label });
-    expect(getInput()).toHaveAccessibleName(label);
+    expect(getInput()).toHaveAccessibleName(RegExp('^' + label)); // Todo: Replace "RegExp('^' + label)" with "label" when https://github.com/digdir/designsystemet/issues/4626 is fixed
   });
 
   it('Displays the given text resources when the user clicks', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     const testTextResources: TextResource[] = [
       { id: '1', value: 'Test 1' },
       { id: '2', value: 'Test 2' },
@@ -50,17 +56,26 @@ describe('StudioTextResourcePicker', () => {
     await user.click(getInput());
     testTextResources.forEach((textResource) => {
       const expectedName = expectedOptionName(textResource);
-      expect(screen.getByRole('option', { name: expectedName })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: expectedName, hidden: true })).toBeInTheDocument();
     });
   });
 
-  it('Calls the onValueChange when the user picks a text resource', async () => {
-    const user = userEvent.setup();
+  it('Calls the onValueChange when comboboxbeforeselect is fired', async () => {
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     renderTextResourcePicker();
-    await user.click(getInput());
     const textResourceToPick = textResources[arbitraryTextResourceIndex];
-    await user.click(screen.getByRole('option', { name: expectedOptionName(textResourceToPick) }));
-    await waitFor(expect(onValueChange).toBeCalled);
+    await user.click(getInput());
+    const mockOption = {
+      value: textResourceToPick.id,
+      textContent: textResourceToPick.value,
+      isConnected: false,
+    };
+    const event = new CustomEvent('comboboxbeforeselect', {
+      detail: mockOption,
+      bubbles: true,
+    });
+    screen.getByRole('combobox').dispatchEvent(event);
+    await waitFor(() => expect(onValueChange).toHaveBeenCalled());
     expect(onValueChange).toHaveBeenCalledTimes(1);
     expect(onValueChange).toHaveBeenCalledWith(textResourceToPick.id);
   });
@@ -68,22 +83,19 @@ describe('StudioTextResourcePicker', () => {
   it("Renders with the text of the text resource of which the ID is given by the component's value prop", () => {
     const pickedTextResource = textResources[arbitraryTextResourceIndex];
     renderTextResourcePicker({ value: pickedTextResource.id });
-    const text = screen.getByText(pickedTextResource.value, { selector: textSelector });
-    expect(text).toBeInTheDocument();
-    expect(text).toHaveAttribute('value', pickedTextResource.id);
+    expect(getInput()).toHaveValue(pickedTextResource.value);
   });
 
   it('Displays the no text resource option when the user clicks', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     renderTextResourcePicker();
     await user.click(getInput());
-    const listbox = screen.getByRole('listbox');
-    const options = within(listbox).getAllByRole('option');
+    const options = screen.getAllByRole('option', { hidden: true });
     expect(options.some((opt) => opt.getAttribute('value') === '')).toBe(true);
   });
 
   it('Does not display the no text resource option when the user clicks and the text resource is required', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     renderTextResourcePicker({ required: true });
     await user.click(getInput());
     const noTextResourceOption = screen.queryByRole('option', { name: noTextResourceOptionLabel });
@@ -102,7 +114,7 @@ describe('StudioTextResourcePicker', () => {
   });
 
   it('Does not apply other changes to the textfield than the ones triggered by the user when the user changes from a valid to an invalid value', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     const chosenTextResource = textResources[arbitraryTextResourceIndex];
     renderTextResourcePicker({ value: chosenTextResource.id });
     const textBox = getInput();
@@ -138,13 +150,11 @@ describe('StudioTextResourcePicker', () => {
   });
 
   it('Calls onValueChange with null when selection is cleared', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     const pickedTextResource = textResources[arbitraryTextResourceIndex];
     renderTextResourcePicker({ value: pickedTextResource.id });
-    const removableChip = screen.getByText(pickedTextResource.value, {
-      selector: textSelector,
-    });
-    await user.click(removableChip);
+    await user.click(screen.getByRole('button', { name: 'Tøm' }));
+    await user.tab();
     await waitFor(() => expect(onValueChange).toHaveBeenCalledWith(null));
   });
 
@@ -157,8 +167,7 @@ describe('StudioTextResourcePicker', () => {
       textResources: textResourcesWithMissingValue,
       value: textMissingValueId,
     });
-    const text = screen.getByText(textMissingValueId, { selector: textSelector });
-    expect(text).toBeInTheDocument();
+    expect(getInput()).toHaveValue(textMissingValueId);
   });
 });
 
@@ -166,11 +175,13 @@ function renderTextResourcePicker(
   props: Partial<StudioTextResourcePickerProps> = {},
   ref?: ForwardedRef<HTMLInputElement>,
 ): RenderResult {
-  return render(<StudioTextResourcePicker {...defaultProps} {...props} ref={ref} />);
+  const view = render(<StudioTextResourcePicker {...defaultProps} {...props} ref={ref} />);
+  jest.runAllTimers();
+  return view;
 }
 
 function getInput(): HTMLInputElement {
-  return screen.getByRole('textbox') as HTMLInputElement;
+  return screen.getByRole('combobox') as HTMLInputElement;
 }
 
 function expectedOptionName(textResource: TextResource): string {

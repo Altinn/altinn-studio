@@ -1,10 +1,11 @@
 using System.Globalization;
 using System.Text.Json;
 using Altinn.App.Core.Internal.Expressions;
+using Xunit.Abstractions;
 
 namespace Altinn.App.Core.Tests.LayoutExpressions.ExpressionEvaluatorTests;
 
-public class ExpressionValueTests
+public class ExpressionValueTests(ITestOutputHelper outputHelper)
 {
     [Fact]
     public void TestNull()
@@ -170,7 +171,7 @@ public class ExpressionValueTests
     {
         ExpressionValue undefinedValue = default;
         Assert.Equal(JsonValueKind.Undefined, undefinedValue.ValueKind);
-        Assert.Throws<InvalidOperationException>(() => undefinedValue.ToString());
+        Assert.Equal("undefined", undefinedValue.ToString());
         Assert.Throws<InvalidOperationException>(() => undefinedValue.ToObject());
         Assert.Throws<InvalidCastException>(() => undefinedValue.Bool);
         Assert.Throws<InvalidCastException>(() => undefinedValue.Number);
@@ -221,5 +222,84 @@ public class ExpressionValueTests
         {
             JsonSerializer.Deserialize<ExpressionValue>("{\"key\": 123}");
         });
+    }
+
+    [Fact]
+    public void TestTryDeserializeVariousTypes()
+    {
+        TestTryDeserialize(2, 2.0, true);
+        TestTryDeserialize(2.5, 2.5, true);
+        TestTryDeserialize(3.0, "3", true);
+        TestTryDeserialize(3.1, "3.1", true);
+        TestTryDeserialize("test", "test", true);
+        TestTryDeserialize(0, false, true);
+        TestTryDeserialize(1, true, true);
+        TestTryDeserialize(2, false, false);
+        TestTryDeserialize(-1, false, false);
+        TestTryDeserialize(0.1, false, false);
+        TestTryDeserialize<bool?>(0, false, true);
+        TestTryDeserialize<bool?>(1, true, true);
+        TestTryDeserialize<bool?>(2, null, false);
+        TestTryDeserialize<bool?>(-1, null, false);
+        TestTryDeserialize<bool?>(0.1, null, false);
+        TestTryDeserialize("0", false, true);
+        TestTryDeserialize("1", true, true);
+        TestTryDeserialize("2", false, false);
+        TestTryDeserialize("-1", false, false);
+        TestTryDeserialize("0.1", false, false);
+        TestTryDeserialize("false", false, true);
+        TestTryDeserialize("true", true, true);
+        TestTryDeserialize("trUe", true, true);
+        TestTryDeserialize("falSe", false, true);
+
+        TestTryDeserialize<bool?>("0", false, true);
+        TestTryDeserialize<bool?>("1", true, true);
+        TestTryDeserialize<bool?>("2", null, false);
+        TestTryDeserialize<bool?>("-1", null, false);
+        TestTryDeserialize<bool?>("0.1", null, false);
+        TestTryDeserialize<bool?>("false", false, true);
+        TestTryDeserialize<bool?>("true", true, true);
+        TestTryDeserialize<bool?>("faLse", false, true);
+        TestTryDeserialize<bool?>("trUe", true, true);
+        TestTryDeserialize(true, true, true);
+        TestTryDeserialize(false, false, true);
+        TestTryDeserialize(ExpressionValue.Null, (string?)null, true);
+        TestTryDeserialize(ExpressionValue.False, (bool?)false, true);
+        TestTryDeserialize(ExpressionValue.True, (bool?)true, true);
+        TestTryDeserialize("3.4", 3.4, true);
+        TestTryDeserialize("not a number", 0, false);
+        TestTryDeserialize<int?>("not a number", null, false);
+        TestTryDeserialize<int?>(ExpressionValue.Null, null, true);
+        TestTryDeserialize<int?>(ExpressionValue.False, 0, true);
+        TestTryDeserialize<int?>(ExpressionValue.True, 1, true);
+        // Not sure what the correct string representation should be for JsonTokenType.True and JsonTokenType.False:
+        // There are many possibilites "true", "True", "sann", "ja", "ok", "1"
+        TestTryDeserialize<string?>(ExpressionValue.False, null, false);
+        TestTryDeserialize<string?>(ExpressionValue.True, null, false);
+        TestTryDeserialize<string?>(ExpressionValue.Null, null, true);
+        TestTryDeserialize("2020-02-03T12:34:56Z", DateTime.Parse("2020-02-03T12:34:56Z").ToUniversalTime(), true);
+        TestTryDeserialize("2020-02-03T12:34:56Z", DateTimeOffset.Parse("2020-02-03T12:34:56Z"), true);
+        TestTryDeserialize("2020-02-03T13:34:56+01:00", DateTimeOffset.Parse("2020-02-03T12:34:56Z"), true);
+        TestTryDeserialize("invalid date", DateTime.MinValue, false);
+        TestTryDeserialize(int.MaxValue, int.MaxValue, true);
+        TestTryDeserialize(int.MinValue, int.MinValue, true);
+        var biggestLongRepresentableAsDouble = long.MaxValue - 1023;
+        TestTryDeserialize(biggestLongRepresentableAsDouble, biggestLongRepresentableAsDouble, true);
+        TestTryDeserialize(long.MinValue, long.MinValue, true);
+    }
+
+    private void TestTryDeserialize<T>(ExpressionValue value, T? expected, bool success)
+    {
+        outputHelper.WriteLine($"{value} -> {typeof(T).Name} {expected}: expects {(success ? "success" : "failure")}");
+        if (value.TryDeserialize(out T? result))
+        {
+            Assert.True(success);
+            Assert.Equal(expected, result);
+        }
+        else
+        {
+            Assert.Equal(expected, result);
+            Assert.False(success);
+        }
     }
 }

@@ -16,7 +16,6 @@ import {
   ORG_LIBRARY_BASENAME,
 } from 'app-shared/constants';
 import { OrgContentLibraryPage } from '../pages/OrgContentLibraryPage';
-import { useSubroute } from '../hooks/useSubRoute';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import type { Organization } from 'app-shared/types/Organization';
 import type { User } from 'app-shared/types/Repository';
@@ -81,23 +80,20 @@ function AppWithData(props: AppWithDataProps): React.ReactElement {
     <div className={classes.root}>
       <Routes>
         <Route path={DASHBOARD_ROOT_ROUTE} element={<PageLayout />}>
-          <Route path='/:subroute/:selectedContext?' element={<SubrouteGuard {...props} />} />
-          <Route path='/:subroute/:selectedContext/new' element={<CreateService {...props} />} />
+          <Route
+            path={`${APP_DASHBOARD_BASENAME}/:selectedContext?`}
+            element={<Dashboard {...props} />}
+          />
+          <Route
+            path={`${APP_DASHBOARD_BASENAME}/:selectedContext/new`}
+            element={<CreateService {...props} />}
+          />
+          <Route
+            path={`${ORG_LIBRARY_BASENAME}/:selectedContext?/:elementType?`}
+            element={<OrgContentLibraryPage />}
+          />
         </Route>
       </Routes>
     </div>
   );
-}
-
-function SubrouteGuard(props: AppWithDataProps): React.ReactElement {
-  const subroute = useSubroute();
-  const subrouteWithLeadingSlash = '/' + subroute;
-
-  switch (subrouteWithLeadingSlash) {
-    case APP_DASHBOARD_BASENAME:
-      return <Dashboard {...props} />;
-
-    case ORG_LIBRARY_BASENAME:
-      return <OrgContentLibraryPage />;
-  }
 }

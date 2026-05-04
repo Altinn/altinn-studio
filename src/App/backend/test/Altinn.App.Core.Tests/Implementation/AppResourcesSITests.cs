@@ -73,7 +73,7 @@ public class AppResourcesSITests
     }
 
     [Fact]
-    public void GetApplication_handles_onEntry_null()
+    public void GetApplication_sets_default_value_when_onEntry_null()
     {
         AppSettings appSettings = GetAppSettings("AppMetadata", "no-on-entry.applicationmetadata.json");
         var settings = Options.Create(appSettings);
@@ -92,6 +92,7 @@ public class AppResourcesSITests
             Created = DateTime.Parse("2019-09-16T22:22:22"),
             CreatedBy = "username",
             Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
+            OnEntry = new OnEntry { Show = "new-instance" },
             DataTypes =
             [
                 new()
@@ -283,6 +284,114 @@ public class AppResourcesSITests
         actual.Should().BeNull();
     }
 
+    [Fact]
+    public void GetUiConfiguration_loads_folder_settings_and_global_settings()
+    {
+        var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-UiConfig-");
+        try
+        {
+            var uiDir = Path.Join(tempDir.FullName, "ui");
+            Directory.CreateDirectory(Path.Join(uiDir, "Task_1"));
+            Directory.CreateDirectory(Path.Join(uiDir, "subform"));
+
+            File.WriteAllText(
+                Path.Join(uiDir, "Task_1", "Settings.json"),
+                """{ "defaultDataType": "main", "pages": { "order": ["page1"] } }"""
+            );
+            File.WriteAllText(Path.Join(uiDir, "subform", "Settings.json"), """{ "pages": { "order": ["sub1"] } }""");
+            File.WriteAllText(Path.Join(uiDir, "Settings.json"), """{ "showProgress": true }""");
+
+            var appSettings = new AppSettings { AppBasePath = tempDir.FullName, UiFolder = "ui" };
+            var appMetadata = new Mock<IAppMetadata>();
+            appMetadata
+                .Setup(m => m.GetApplicationMetadata())
+                .ReturnsAsync(
+                    new ApplicationMetadata("ttd/app")
+                    {
+                        DataTypes =
+                        [
+                            new()
+                            {
+                                Id = "main",
+                                AppLogic = new() { ClassRef = "Model.Main" },
+                            },
+                        ],
+                    }
+                );
+
+            AppResourcesSI appResources = new(
+                Options.Create(appSettings),
+                appMetadata.Object,
+                null,
+                new NullLogger<AppResourcesSI>(),
+                _telemetry.Object
+            );
+
+            var ui = appResources.GetUiConfiguration();
+
+            ui.Settings.Should().NotBeNull();
+            ui.Settings!.ShowProgress.Should().BeTrue();
+            ui.Folders.Keys.Should().BeEquivalentTo(["Task_1", "subform"]);
+            ui.Folders["Task_1"].DefaultDataType.Should().Be("main");
+        }
+        finally
+        {
+            Directory.Delete(tempDir.FullName, true);
+        }
+    }
+
+    [Fact]
+    public void GetLayoutModelForFolder_returns_null_when_folder_does_not_exist()
+    {
+        var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-LayoutModel-");
+        try
+        {
+            var uiDir = Path.Join(tempDir.FullName, "ui");
+            Directory.CreateDirectory(Path.Join(uiDir, "Task_1"));
+            Directory.CreateDirectory(Path.Join(uiDir, "Task_1", "layouts"));
+
+            File.WriteAllText(
+                Path.Join(uiDir, "Task_1", "Settings.json"),
+                """{ "defaultDataType": "main", "pages": { "order": ["page1"] } }"""
+            );
+            File.WriteAllText(Path.Join(uiDir, "Task_1", "layouts", "page1.json"), """{ "data": [] }""");
+
+            var appSettings = new AppSettings { AppBasePath = tempDir.FullName, UiFolder = "ui" };
+            var appMetadata = new Mock<IAppMetadata>();
+            appMetadata
+                .Setup(m => m.GetApplicationMetadata())
+                .ReturnsAsync(
+                    new ApplicationMetadata("ttd/app")
+                    {
+                        DataTypes =
+                        [
+                            new()
+                            {
+                                Id = "main",
+                                AppLogic = new() { ClassRef = "Model.Main" },
+                            },
+                        ],
+                    }
+                );
+
+            AppResourcesSI appResources = new(
+                Options.Create(appSettings),
+                appMetadata.Object,
+                null,
+                new NullLogger<AppResourcesSI>(),
+                _telemetry.Object
+            );
+
+            var model = appResources.GetLayoutModelForFolder("Task_PDF_Auto");
+
+            model.Should().BeNull();
+        }
+        finally
+        {
+            Directory.Delete(tempDir.FullName, true);
+        }
+    }
+
     private AppSettings GetAppSettings(
         string subfolder,
         string appMetadataFilename = "",
@@ -309,6 +418,7 @@ public class AppResourcesSITests
     )
     {
         var featureManagerMock = new Mock<IFeatureManager>();
+        featureManagerMock.Setup(m => m.GetFeatureNamesAsync()).Returns(AsyncEnumerable.Empty<string>());
         var serviceProvider = new ServiceCollection()
             .AddSingleton(Mock.Of<IExternalApiFactory>())
             .BuildStrictServiceProvider();

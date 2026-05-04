@@ -1,4 +1,5 @@
-import React, { useState, type MouseEvent } from 'react';
+import type { MouseEvent } from 'react';
+import { useState } from 'react';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 import { PencilIcon } from '@studio/icons';
 import { getLayoutSetTypeTranslationKey } from 'app-shared/utils/layoutSetsUtils';

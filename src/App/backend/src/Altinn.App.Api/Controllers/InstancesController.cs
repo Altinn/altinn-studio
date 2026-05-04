@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Net;
 using System.Text;
+using System.Text.Encodings.Web;
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers.Patch;
 using Altinn.App.Api.Helpers.RequestHandling;
@@ -12,6 +13,7 @@ using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Features.Notifications;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
@@ -24,6 +26,7 @@ using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
@@ -70,6 +73,7 @@ public class InstancesController : ControllerBase
     private readonly IHostEnvironment _env;
     private readonly ModelSerializationService _serializationService;
     private readonly InternalPatchService _patchService;
+    private readonly INotificationService _notificationService;
     private readonly ITranslationService _translationService;
     private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
     private readonly IAuthenticationContext _authenticationContext;
@@ -96,6 +100,7 @@ public class InstancesController : ControllerBase
         IHostEnvironment env,
         ModelSerializationService serializationService,
         InternalPatchService patchService,
+        INotificationService notificationService,
         ITranslationService translationService,
         IServiceProvider serviceProvider
     )
@@ -117,6 +122,7 @@ public class InstancesController : ControllerBase
         _env = env;
         _serializationService = serializationService;
         _patchService = patchService;
+        _notificationService = notificationService;
         _translationService = translationService;
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _authenticationContext = authenticationContext;
@@ -160,14 +166,25 @@ public class InstancesController : ControllerBase
 
         try
         {
-            Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            Instance instance = await _instanceClient.GetInstance(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                ct: cancellationToken
+            );
             SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
             string? userOrgClaim = User.GetOrg();
 
             if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.OrdinalIgnoreCase))
             {
-                await _instanceClient.UpdateReadStatus(instanceOwnerPartyId, instanceGuid, "read");
+                await _instanceClient.UpdateReadStatus(
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    "read",
+                    ct: cancellationToken
+                );
             }
 
             var instanceOwnerParty = await _registerClient.GetPartyUnchecked(instanceOwnerPartyId, cancellationToken);
@@ -233,6 +250,7 @@ public class InstancesController : ControllerBase
         var requestParts = readResult.Ok;
 
         Instance? instanceTemplate = ExtractInstanceTemplate(requestParts);
+        InstantiationNotification? notification = ExtractInstantiationNotification(requestParts);
 
         if (instanceOwnerPartyId is null && instanceTemplate is null)
         {
@@ -250,11 +268,17 @@ public class InstancesController : ControllerBase
 
         if (instanceTemplate is not null)
         {
-            InstanceOwner lookup = instanceTemplate.InstanceOwner;
+            InstanceOwner? lookup = instanceTemplate.InstanceOwner;
 
             if (
                 lookup == null
-                || (lookup.PersonNumber == null && lookup.OrganisationNumber == null && lookup.PartyId == null)
+                || (
+                    lookup.PersonNumber == null
+                    && lookup.OrganisationNumber == null
+                    && lookup.PartyId == null
+                    && lookup.ExternalIdentifier == null
+                    && lookup.Username == null
+                )
             )
             {
                 return BadRequest(
@@ -291,7 +315,10 @@ public class InstancesController : ControllerBase
         try
         {
             party = await LookupParty(instanceTemplate.InstanceOwner) ?? throw new Exception("Unknown party");
-            instanceTemplate.InstanceOwner = InstantiationHelper.PartyToInstanceOwner(party);
+            instanceTemplate.InstanceOwner = await InstantiationHelper.PartyToInstanceOwner(
+                party,
+                _authenticationContext
+            );
         }
         catch (Exception partyLookupException)
         {
@@ -350,7 +377,13 @@ public class InstancesController : ControllerBase
             change = result.ProcessStateChange;
 
             // create the instance
-            instance = await _instanceClient.CreateInstance(org, app, instanceTemplate);
+            instance = await _instanceClient.CreateInstance(
+                org,
+                app,
+                instanceTemplate,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
         }
         catch (Exception exception)
         {
@@ -368,7 +401,9 @@ public class InstancesController : ControllerBase
                 await _instanceClient.DeleteInstance(
                     int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture),
                     Guid.Parse(instance.Id.Split("/")[1]),
-                    hard: true
+                    hard: true,
+                    authenticationMethod: null,
+                    CancellationToken.None
                 );
                 return StatusCode(prefillProblem.Status ?? 500, prefillProblem);
             }
@@ -378,7 +413,9 @@ public class InstancesController : ControllerBase
                 app,
                 org,
                 int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture),
-                Guid.Parse(instance.Id.Split("/")[1])
+                Guid.Parse(instance.Id.Split("/")[1]),
+                authenticationMethod: null,
+                CancellationToken.None
             );
 
             // notify app and store events
@@ -394,6 +431,29 @@ public class InstancesController : ControllerBase
         }
 
         await RegisterEvent("app.instance.created", instance);
+
+        if (notification is not null)
+        {
+            try
+            {
+                CancellationToken doNotCancelNotification = CancellationToken.None;
+                await _notificationService.NotifyInstanceOwnerOnInstantiation(
+                    instance,
+                    party,
+                    notification,
+                    doNotCancelNotification
+                );
+            }
+            catch (Exception ex)
+            {
+                // TODO: retry with workflow engine
+                _logger.LogError(
+                    ex,
+                    "Failed to send instantiation notification for instance {InstanceId}",
+                    instance.Id
+                );
+            }
+        }
 
         SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
         string url = instance.SelfLinks.Apps;
@@ -475,11 +535,17 @@ public class InstancesController : ControllerBase
             );
         }
 
-        InstanceOwner lookup = instansiationInstance.InstanceOwner;
+        InstanceOwner? lookup = instansiationInstance.InstanceOwner;
 
         if (
             lookup == null
-            || (lookup.PersonNumber == null && lookup.OrganisationNumber == null && lookup.PartyId == null)
+            || (
+                lookup.PersonNumber == null
+                && lookup.OrganisationNumber == null
+                && lookup.PartyId == null
+                && lookup.ExternalIdentifier == null
+                && lookup.Username == null
+            )
         )
         {
             return BadRequest(
@@ -491,7 +557,11 @@ public class InstancesController : ControllerBase
         try
         {
             party = await LookupParty(instansiationInstance.InstanceOwner) ?? throw new Exception("Unknown party");
-            instansiationInstance.InstanceOwner = InstantiationHelper.PartyToInstanceOwner(party);
+
+            instansiationInstance.InstanceOwner = await InstantiationHelper.PartyToInstanceOwner(
+                party,
+                _authenticationContext
+            );
         }
         catch (Exception partyLookupException)
         {
@@ -499,6 +569,10 @@ public class InstancesController : ControllerBase
             {
                 if (sexp.StatusCode.Equals(HttpStatusCode.Unauthorized))
                 {
+                    _logger.LogWarning(
+                        "Party lookup returned Unauthorized (401) for InstanceOwner={@InstanceOwner}",
+                        instansiationInstance.InstanceOwner
+                    );
                     return StatusCode(StatusCodes.Status403Forbidden);
                 }
             }
@@ -509,7 +583,7 @@ public class InstancesController : ControllerBase
         if (
             isCopyRequest
             && party.PartyId.ToString(CultureInfo.InvariantCulture)
-                != instansiationInstance.SourceInstanceId.Split("/")[0]
+                != instansiationInstance?.SourceInstanceId?.Split("/")[0]
         )
         {
             return BadRequest("It is not possible to copy instances between instance owners.");
@@ -517,13 +591,35 @@ public class InstancesController : ControllerBase
 
         EnforcementResult enforcementResult = await AuthorizeAction(org, app, party.PartyId, null, "instantiate");
 
+        _logger.LogInformation(
+            "Authorization details for party {PartyId}: Authorized={Authorized}, FailedObligations={FailedObligations}",
+            party.PartyId,
+            enforcementResult.Authorized,
+            enforcementResult.FailedObligations == null
+                ? "(null)"
+                : string.Join(", ", enforcementResult.FailedObligations.Select(kv => $"{kv.Key}={kv.Value}"))
+        );
+
         if (!enforcementResult.Authorized)
         {
+            _logger.LogWarning(
+                "Party {PartyId} was denied 'instantiate' on {Org}/{App}. EnforcementResult: {@EnforcementResult}",
+                party.PartyId,
+                org,
+                app,
+                enforcementResult
+            );
             return Forbidden(enforcementResult);
         }
 
         if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
         {
+            _logger.LogWarning(
+                "Party {PartyId} (PartyTypeName={PartyTypeName}) is not in partyTypesAllowed. PartyTypesAllowed={@PartyTypesAllowed}",
+                party.PartyId,
+                party.PartyTypeName,
+                application.PartyTypesAllowed
+            );
             return StatusCode(
                 StatusCodes.Status403Forbidden,
                 $"Party {party.PartyId} is not allowed to instantiate this application {org}/{app}"
@@ -543,8 +639,14 @@ public class InstancesController : ControllerBase
         // Run custom app logic to validate instantiation
         var instantiationValidator = _appImplementationFactory.GetRequired<IInstantiationValidator>();
         InstantiationValidationResult? validationResult = await instantiationValidator.Validate(instanceTemplate);
+
         if (validationResult != null && !validationResult.Valid)
         {
+            _logger.LogWarning(
+                "InstantiationValidator rejected instantiation for party {PartyId}: {@ValidationResult}",
+                party.PartyId,
+                validationResult
+            );
             await TranslateValidationResult(validationResult, language);
             return StatusCode(StatusCodes.Status403Forbidden, validationResult);
         }
@@ -569,12 +671,21 @@ public class InstancesController : ControllerBase
 
             if (isCopyRequest)
             {
-                string[] sourceSplit = instansiationInstance.SourceInstanceId.Split("/");
+                string[] sourceSplit =
+                    instansiationInstance?.SourceInstanceId?.Split("/")
+                    ?? throw new ArgumentException("SourceInstanceId is null or not in the correct format");
                 Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
 
                 try
                 {
-                    source = await _instanceClient.GetInstance(app, org, party.PartyId, sourceInstanceGuid);
+                    source = await _instanceClient.GetInstance(
+                        app,
+                        org,
+                        party.PartyId,
+                        sourceInstanceGuid,
+                        authenticationMethod: null,
+                        CancellationToken.None
+                    );
                 }
                 catch (PlatformHttpException exception)
                 {
@@ -590,14 +701,20 @@ public class InstancesController : ControllerBase
                 }
             }
 
-            instance = await _instanceClient.CreateInstance(org, app, instanceTemplate);
+            instance = await _instanceClient.CreateInstance(
+                org,
+                app,
+                instanceTemplate,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
 
             if (isCopyRequest && source is not null)
             {
                 await CopyDataFromSourceInstance(application, instance, source);
             }
 
-            instance = await _instanceClient.GetInstance(instance);
+            instance = await _instanceClient.GetInstance(instance, authenticationMethod: null, CancellationToken.None);
             await _processEngine.HandleEventsAndUpdateStorage(
                 instance,
                 instansiationInstance.Prefill,
@@ -613,6 +730,29 @@ public class InstancesController : ControllerBase
         }
 
         await RegisterEvent("app.instance.created", instance);
+
+        if (instansiationInstance.Notification is not null)
+        {
+            try
+            {
+                CancellationToken doNotCancelNotification = CancellationToken.None;
+                await _notificationService.NotifyInstanceOwnerOnInstantiation(
+                    instance,
+                    party,
+                    instansiationInstance.Notification,
+                    doNotCancelNotification
+                );
+            }
+            catch (Exception ex)
+            {
+                // TODO: retry with workflow engine
+                _logger.LogError(
+                    ex,
+                    "Failed to send instantiation notification for instance {InstanceId}",
+                    instance.Id
+                );
+            }
+        }
 
         SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
         string url = instance.SelfLinks.Apps;
@@ -718,11 +858,21 @@ public class InstancesController : ControllerBase
 
         ProcessChangeResult startResult = await _processEngine.GenerateProcessStartEvents(processStartRequest);
 
-        targetInstance = await _instanceClient.CreateInstance(org, app, targetInstance);
+        targetInstance = await _instanceClient.CreateInstance(
+            org,
+            app,
+            targetInstance,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
 
         await CopyDataFromSourceInstance(application, targetInstance, sourceInstance);
 
-        targetInstance = await _instanceClient.GetInstance(targetInstance);
+        targetInstance = await _instanceClient.GetInstance(
+            targetInstance,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
 
         await _processEngine.HandleEventsAndUpdateStorage(targetInstance, null, startResult.ProcessStateChange?.Events);
 
@@ -755,7 +905,12 @@ public class InstancesController : ControllerBase
     {
         try
         {
-            Instance instance = await _instanceClient.AddCompleteConfirmation(instanceOwnerPartyId, instanceGuid);
+            Instance instance = await _instanceClient.AddCompleteConfirmation(
+                instanceOwnerPartyId,
+                instanceGuid,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
             SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
             return Ok(instance);
@@ -798,7 +953,14 @@ public class InstancesController : ControllerBase
             );
         }
 
-        Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+        Instance instance = await _instanceClient.GetInstance(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceGuid,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
 
         string? orgClaim = User.GetOrg();
         if (!instance.Org.Equals(orgClaim, StringComparison.OrdinalIgnoreCase))
@@ -811,7 +973,9 @@ public class InstancesController : ControllerBase
             Instance updatedInstance = await _instanceClient.UpdateSubstatus(
                 instanceOwnerPartyId,
                 instanceGuid,
-                substatus
+                substatus,
+                authenticationMethod: null,
+                CancellationToken.None
             );
             SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
@@ -847,7 +1011,13 @@ public class InstancesController : ControllerBase
     {
         try
         {
-            Instance deletedInstance = await _instanceClient.DeleteInstance(instanceOwnerPartyId, instanceGuid, hard);
+            Instance deletedInstance = await _instanceClient.DeleteInstance(
+                instanceOwnerPartyId,
+                instanceGuid,
+                hard,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
             SelfLinkHelper.SetInstanceAppSelfLinks(deletedInstance, Request);
 
             return Ok(deletedInstance);
@@ -883,7 +1053,11 @@ public class InstancesController : ControllerBase
             { "status.isSoftDeleted", "false" },
         };
 
-        List<Instance> activeInstances = await _instanceClient.GetInstances(queryParams);
+        List<Instance> activeInstances = await _instanceClient.GetInstances(
+            queryParams,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
 
         if (activeInstances.Count == 0)
         {
@@ -921,7 +1095,14 @@ public class InstancesController : ControllerBase
     {
         try
         {
-            return await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            return await _instanceClient.GetInstance(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
         }
         catch (PlatformHttpException platformHttpException)
         {
@@ -981,7 +1162,12 @@ public class InstancesController : ControllerBase
             {
                 DataType dt = dts.First(dt => dt.Id.Equals(de.DataType, StringComparison.Ordinal));
 
-                object data = await _dataClient.GetFormData(sourceInstance, de);
+                object data = await _dataClient.GetFormData(
+                    sourceInstance,
+                    de,
+                    authenticationMethod: null,
+                    CancellationToken.None
+                );
 
                 if (application.CopyInstanceSettings.ExcludedDataFields != null)
                 {
@@ -999,7 +1185,13 @@ public class InstancesController : ControllerBase
 
                 ObjectUtils.InitializeAltinnRowId(data);
 
-                await _dataClient.InsertFormData(targetInstance, dt.Id, data);
+                await _dataClient.InsertFormData(
+                    targetInstance,
+                    dt.Id,
+                    data,
+                    authenticationMethod: null,
+                    CancellationToken.None
+                );
 
                 await UpdatePresentationTextsOnInstance(application.PresentationFields, targetInstance, dt.Id, data);
                 await UpdateDataValuesOnInstance(application.DataFields, targetInstance, dt.Id, data);
@@ -1034,7 +1226,9 @@ public class InstancesController : ControllerBase
                 using var binaryDataStream = await _dataClient.GetBinaryData(
                     instanceOwnerPartyId,
                     sourceInstanceGuid,
-                    Guid.Parse(de.Id)
+                    Guid.Parse(de.Id),
+                    authenticationMethod: null,
+                    CancellationToken.None
                 );
 
                 await _dataClient.InsertBinaryData(
@@ -1042,7 +1236,10 @@ public class InstancesController : ControllerBase
                     de.DataType,
                     de.ContentType,
                     de.Filename,
-                    binaryDataStream
+                    binaryDataStream,
+                    generatedFromTask: null,
+                    authenticationMethod: null,
+                    CancellationToken.None
                 );
             }
         }
@@ -1132,6 +1329,18 @@ public class InstancesController : ControllerBase
             string personOrOrganisationNumber = instanceOwner.PersonNumber ?? instanceOwner.OrganisationNumber;
             try
             {
+                if (!string.IsNullOrEmpty(instanceOwner.ExternalIdentifier))
+                {
+                    var partyId = await _altinnPartyClient.GetPartyIdByUrn(instanceOwner.ExternalIdentifier);
+                    if (partyId == null)
+                    {
+                        throw new ServiceException(
+                            HttpStatusCode.BadRequest,
+                            $"Failed to lookup party by external identifier: {instanceOwner.ExternalIdentifier}. No partyId found for the provided external identifier."
+                        );
+                    }
+                    return await _registerClient.GetPartyUnchecked(partyId.Value, this.HttpContext.RequestAborted);
+                }
                 if (!string.IsNullOrEmpty(instanceOwner.PersonNumber))
                 {
                     lookupNumber = "personNumber";
@@ -1143,6 +1352,22 @@ public class InstancesController : ControllerBase
                     return await _altinnPartyClient.LookupParty(
                         new PartyLookup { OrgNo = instanceOwner.OrganisationNumber }
                     );
+                }
+                else if (!string.IsNullOrEmpty(instanceOwner.Username))
+                {
+                    var email = instanceOwner.Username.StartsWith("epost:", StringComparison.InvariantCultureIgnoreCase)
+                        ? instanceOwner.Username[6..]
+                        : instanceOwner.Username;
+                    var urn = $"{AltinnUrns.SelfIdentifiedEmail}:{UrlEncoder.Default.Encode(email)}";
+                    var partyId = await _altinnPartyClient.GetPartyIdByUrn(urn);
+                    if (partyId == null)
+                    {
+                        throw new ServiceException(
+                            HttpStatusCode.BadRequest,
+                            $"Failed to lookup party by username: {instanceOwner.Username}. No partyId found for the provided idporten self identified email address."
+                        );
+                    }
+                    return await _registerClient.GetPartyUnchecked(partyId.Value, this.HttpContext.RequestAborted);
                 }
                 else
                 {
@@ -1290,6 +1515,29 @@ public class InstancesController : ControllerBase
         return null;
     }
 
+    private static InstantiationNotification? ExtractInstantiationNotification(List<RequestPart> parts)
+    {
+        RequestPart? notificationPart = parts.Find(part => part.Name == "notification");
+
+        if (notificationPart is not null)
+        {
+            parts.Remove(notificationPart);
+
+            // Some clients might set contentType to application/json even if the body is empty
+            if (
+                notificationPart is { Bytes.Length: > 0 }
+                && notificationPart.ContentType.Contains("application/json", StringComparison.Ordinal)
+            )
+            {
+                return JsonConvert.DeserializeObject<InstantiationNotification>(
+                    Encoding.UTF8.GetString(notificationPart.Bytes)
+                );
+            }
+        }
+
+        return null;
+    }
+
     private async Task RegisterEvent(string eventType, Instance instance)
     {
         if (_appSettings.RegisterEventsWithEventsComponent)
@@ -1334,7 +1582,9 @@ public class InstancesController : ControllerBase
             await _instanceClient.UpdatePresentationTexts(
                 int.Parse(instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
                 Guid.Parse(instance.Id.Split("/")[1]),
-                new PresentationTexts { Texts = updatedValues }
+                new PresentationTexts { Texts = updatedValues },
+                authenticationMethod: null,
+                CancellationToken.None
             );
         }
     }
@@ -1353,7 +1603,9 @@ public class InstancesController : ControllerBase
             await _instanceClient.UpdateDataValues(
                 int.Parse(instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
                 Guid.Parse(instance.Id.Split("/")[1]),
-                new DataValues { Values = updatedValues }
+                new DataValues { Values = updatedValues },
+                authenticationMethod: null,
+                CancellationToken.None
             );
         }
     }

@@ -1,0 +1,46 @@
+name: devenv - Lint
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'src/Runtime/devenv/**'
+      - '.github/workflows/runtime-devenv-build.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Check formatting and lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: src/Runtime/devenv
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: src/Runtime/devenv/go.mod
+          cache-dependency-path: src/Runtime/devenv/go.sum
+
+      - name: Check formatting
+        run: |
+          make fmt
+          git diff --exit-code -- .
+
+      - name: Lint
+        run: make lint
+
+      - name: Run tests
+        run: make test
+
+      - name: Run e2e tests
+        run: make test-e2e

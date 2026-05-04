@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { app, org } from '@studio/testing/testids';
 import { componentMocks } from '../../../../../../../../testing/componentMocks';
@@ -56,17 +55,12 @@ describe('LibraryOptionEditor', () => {
   });
 
   it('should close Dialog', async () => {
-    const consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => {});
     const user = userEvent.setup();
     renderLibraryOptionsEditorWithData();
     await user.click(getEditButton());
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Lukk dialogvindu' }));
-    const dialog = screen.getByRole('dialog') as HTMLDialogElement;
-    dialog.close();
-    dialog.dispatchEvent(new Event('close', { bubbles: true }));
-    consoleErrorMock.mockRestore();
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import type { SetURLSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
+import type { SetURLSearchParams } from 'react-router';
 
 import classNames from 'classnames';
 
@@ -11,7 +11,9 @@ import { SearchParams } from 'src/core/routing/types';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { ExprVal } from 'src/features/expressions/types';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
+import { replaceAndPreventResetOptions } from 'src/features/navigation/navigationOptions';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import classes from 'src/layout/GenericComponent.module.css';
 import { getComponentDef } from 'src/layout/index';
@@ -23,7 +25,6 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { EvalExprOptions } from 'src/features/expressions';
 import type { IGridStyling } from 'src/layout/common.generated';
 import type { GenericComponentOverrideDisplay, IFormComponentContext } from 'src/layout/FormComponentContext';
@@ -43,7 +44,7 @@ function NonMemoGenericComponent<Type extends CompTypes = CompTypes>({
   overrideDisplay,
 }: IGenericComponentProps<Type>) {
   const nodeId = useIndexedId(baseComponentId);
-  const generatorErrors = NodesInternal.useNodeData(nodeId, undefined, (node) => node.errors);
+  const generatorErrors = FormStore.nodes.useNodeData(nodeId, undefined, (node) => node.errors);
 
   if (generatorErrors && Object.keys(generatorErrors).length > 0) {
     return (
@@ -221,7 +222,7 @@ function useHandleFocusComponent(nodeId: string, containerDivRef: React.RefObjec
   const errorBinding = searchParams.get(SearchParams.FocusErrorBinding);
 
   const abortController = useRef(new AbortController());
-  const hashWas = window.location.hash;
+  const pathnameWas = window.location.pathname;
   const isNavigating = useIsNavigating();
   const shouldFocus = indexedId && indexedId == nodeId && !isNavigating;
 
@@ -238,8 +239,8 @@ function useHandleFocusComponent(nodeId: string, containerDivRef: React.RefObjec
           field.focus();
         }
       } finally {
-        if (!abortController.current.signal.aborted && hashWas === window.location.hash) {
-          // Only cleanup when hash is the same as what it was during render. Navigation might have occurred, especially
+        if (!abortController.current.signal.aborted && pathnameWas === window.location.pathname) {
+          // Only cleanup when pathname is the same as what it was during render. Navigation might have occurred, especially
           // in Cypress tests where state changes will happen rapidly. These search params are cleaned up in
           // useNavigatePage() automatically, so it shouldn't be a problem if the page has been changed. If something
           // else happens, we'll re-render and get a new chance to clean up later.
@@ -247,7 +248,7 @@ function useHandleFocusComponent(nodeId: string, containerDivRef: React.RefObjec
         }
       }
     }
-  }, [containerDivRef, errorBinding, hashWas, nodeId, searchParams, setSearchParams, shouldFocus]);
+  }, [containerDivRef, errorBinding, pathnameWas, nodeId, searchParams, setSearchParams, shouldFocus]);
 
   useEffect(
     () => () => {
@@ -263,7 +264,7 @@ function cleanupQuery(searchParams: URLSearchParams, setSearchParams: SetURLSear
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.delete(SearchParams.FocusComponentId);
     newSearchParams.delete(SearchParams.FocusErrorBinding);
-    setSearchParams(newSearchParams, { replace: true });
+    setSearchParams(newSearchParams, replaceAndPreventResetOptions);
   }
 }
 
@@ -275,7 +276,7 @@ function findElementToFocus(div: HTMLDivElement | null, binding: string | null) 
 
   if (targetHtmlElements?.length > 0) {
     const elementWithBinding = binding
-      ? Array.from(targetHtmlElements).find((htmlElement) => htmlElement && htmlElement.dataset.bindingkey === binding)
+      ? Array.from(targetHtmlElements).find((htmlElement) => htmlElement?.dataset.bindingkey === binding)
       : undefined;
 
     return elementWithBinding ?? targetHtmlElements[0];

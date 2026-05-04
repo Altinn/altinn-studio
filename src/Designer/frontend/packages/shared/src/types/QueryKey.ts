@@ -4,12 +4,14 @@ export enum QueryKey {
   AppMetadataModelIds = 'AppMetadataModelIds',
   AppPolicy = 'AppPolicy',
   AppReleases = 'AppReleases',
+  AppValidation = 'AppValidation',
   AppVersion = 'AppVersion',
   AvailableOrgResources = 'AvailableOrgResources',
   BelongsToOrg = 'BelongsToOrg',
   BranchStatus = 'BranchStatus',
   CanUseFeature = 'CanUseFeature',
   CurrentUser = 'CurrentUser',
+  CustomTemplates = 'CustomTemplates',
   DataModelMetadata = 'DataModelMetadata',
   DataModelsJson = 'DataModelsJson',
   DataModelsMetadata = 'DataModelsMetadata',
@@ -19,6 +21,8 @@ export enum QueryKey {
   FetchBpmn = 'FetchBpmn',
   FormComponent = 'FormComponent',
   FormLayoutSettings = 'FormLayoutSettings',
+  ValidationOnNavigationLayoutSettings = 'ValidationOnNavigationLayoutSettings',
+  ValidationOnNavigationPageSettings = 'ValidationOnNavigationPageSettings',
   FormLayouts = 'FormLayouts',
   FrontEndSettings = 'FrontEndSettings',
   ImageFileNames = 'ImageFileNames',
@@ -55,21 +59,27 @@ export enum QueryKey {
   TextResources = 'TextResources',
   Widgets = 'Widgets',
   AppConfig = 'AppConfig',
-  IsLoggedInWithAnsattporten = 'IsLoggedInWithAnsattporten',
+  AppSettings = 'AppSettings',
   AppScopes = 'AppScopes',
   SelectedAppScopes = 'SelectedAppScopes',
   UserOrgPermissions = 'UserOrgPermissions',
   DataType = 'DataType',
   Pages = 'Pages',
   TaskNavigationGroup = 'TaskNavigationGroup',
+  ValidationOnNavigationLayoutSets = 'ValidationOnNavigationLayoutSets',
 
   // Admin
+  ErrorMetrics = 'ErrorMetrics',
+  AppMetrics = 'AppMetrics',
+  AppErrorMetrics = 'AppErrorMetrics',
+  AppHealthMetrics = 'AppHealthMetrics',
   AppInstances = 'AppInstances',
   AppInstanceDetails = 'AppInstanceDetails',
-  AppProcessTasks = 'AppProcessTasks',
+  AppProcessMetadata = 'AppProcessMetadata',
   ProcessHistory = 'ProcessHistory',
   InstanceEvents = 'InstanceEvents',
   PublishedApps = 'PublishedApps',
+  PublishedAppDetails = 'PublishedAppDetails',
 
   // Resourceadm
   ResourceList = 'ResourceList',
@@ -95,4 +105,12 @@ export enum QueryKey {
   Altinn2DelegationCount = 'Altinn2DelegationCount',
   UpdateDataType = 'UpdateDataType',
   ConsentResourceTemplates = 'ConsentResourceTemplates',
+
+  // User settings
+  UserApiKeys = 'UserApiKeys',
+
+  // Org settings
+  ContactPoints = 'ContactPoints',
+  BotAccounts = 'BotAccounts',
+  BotAccountApiKeys = 'BotAccountApiKeys',
 }

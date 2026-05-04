@@ -185,6 +185,15 @@
         }
       },
       {
+        endpoint: GET {org}/{app}/api/bootstrap-form/{uiFolder},
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
+        }
+      },
+      {
         endpoint: GET {org}/{app}/api/datalists/{id},
         metadata: {
           errorMessageTextResourceKeyUser: null,
@@ -195,15 +204,6 @@
       },
       {
         endpoint: GET {org}/{app}/api/jsonschema/{id},
-        metadata: {
-          errorMessageTextResourceKeyUser: null,
-          errorMessageTextResourceKeyServiceOwner: null,
-          requiredScopesUsers: null,
-          requiredScopesServiceOwners: null
-        }
-      },
-      {
-        endpoint: GET {org}/{app}/api/layouts,
         metadata: {
           errorMessageTextResourceKeyUser: null,
           errorMessageTextResourceKeyServiceOwner: null,
@@ -230,15 +230,6 @@
         }
       },
       {
-        endpoint: GET {org}/{app}/api/layoutsettings,
-        metadata: {
-          errorMessageTextResourceKeyUser: null,
-          errorMessageTextResourceKeyServiceOwner: null,
-          requiredScopesUsers: null,
-          requiredScopesServiceOwners: null
-        }
-      },
-      {
         endpoint: GET {org}/{app}/api/layoutsettings/{id},
         metadata: {
           errorMessageTextResourceKeyUser: null,
@@ -248,25 +239,7 @@
         }
       },
       {
-        endpoint: GET {org}/{app}/api/options/{optionsId},
-        metadata: {
-          errorMessageTextResourceKeyUser: null,
-          errorMessageTextResourceKeyServiceOwner: null,
-          requiredScopesUsers: null,
-          requiredScopesServiceOwners: null
-        }
-      },
-      {
-        endpoint: GET {org}/{app}/api/ruleconfiguration/{id},
-        metadata: {
-          errorMessageTextResourceKeyUser: null,
-          errorMessageTextResourceKeyServiceOwner: null,
-          requiredScopesUsers: null,
-          requiredScopesServiceOwners: null
-        }
-      },
-      {
-        endpoint: GET {org}/{app}/api/rulehandler/{id},
+        endpoint: GET {org}/{app}/api/options/{optionsIdOrLibraryRef},
         metadata: {
           errorMessageTextResourceKeyUser: null,
           errorMessageTextResourceKeyServiceOwner: null,
@@ -338,6 +311,15 @@
         }
       },
       {
+        endpoint: GET {org}/{app}/api/v1/notification-webhook-listener/{instanceOwnerPartyId:int}/{instanceGuid:guid},
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
+        }
+      },
+      {
         endpoint: GET {org}/{app}/api/v1/parties,
         metadata: {
           errorMessageTextResourceKeyUser: null,
@@ -383,6 +365,33 @@
         }
       },
       {
+        endpoint: GET {org}/{app}/instance-selection,
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
+        }
+      },
+      {
+        endpoint: GET {org}/{app}/instance/{partyId}/{instanceGuid},
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
+        }
+      },
+      {
+        endpoint: GET {org}/{app}/instance/{partyId}/{instanceGuid}/{*rest},
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
+        }
+      },
+      {
         endpoint: GET {org}/{app}/instances/{instanceOwnerId:int}/{instanceId:guid}/data/{dataGuid:guid}/validate,
         metadata: {
           errorMessageTextResourceKeyUser: null,
@@ -411,6 +420,15 @@
       },
       {
         endpoint: GET {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/api/external/{externalApiId},
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
+        }
+      },
+      {
+        endpoint: GET {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/bootstrap-form/{uiFolder},
         metadata: {
           errorMessageTextResourceKeyUser: null,
           errorMessageTextResourceKeyServiceOwner: null,
@@ -482,7 +500,7 @@
         }
       },
       {
-        endpoint: GET {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/options/{optionsId},
+        endpoint: GET {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/options/{optionsIdOrLibraryRef},
         metadata: {
           errorMessageTextResourceKeyUser: null,
           errorMessageTextResourceKeyServiceOwner: null,
@@ -590,6 +608,24 @@
         }
       },
       {
+        endpoint: GET {org}/{app}/party-selection,
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
+        }
+      },
+      {
+        endpoint: GET {org}/{app}/party-selection/{errorCode},
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
+        }
+      },
+      {
         endpoint: GET {org}/{app}/set-query-params,
         metadata: {
           errorMessageTextResourceKeyUser: null,
@@ -618,6 +654,15 @@
       },
       {
         endpoint: GET {org}/{app}/v1/data/anonymous,
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
+        }
+      },
+      {
+        endpoint: GET {org}/{app}/{pageName:int},
         metadata: {
           errorMessageTextResourceKeyUser: null,
           errorMessageTextResourceKeyServiceOwner: null,
@@ -761,15 +806,6 @@
         }
       },
       {
-        endpoint: POST {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/pages/order,
-        metadata: {
-          errorMessageTextResourceKeyUser: null,
-          errorMessageTextResourceKeyServiceOwner: null,
-          requiredScopesUsers: null,
-          requiredScopesServiceOwners: null
-        }
-      },
-      {
         endpoint: POST {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/start,
         metadata: {
           errorMessageTextResourceKeyUser: null,
@@ -789,15 +825,6 @@
       },
       {
         endpoint: POST {org}/{app}/v1/data/anonymous,
-        metadata: {
-          errorMessageTextResourceKeyUser: null,
-          errorMessageTextResourceKeyServiceOwner: null,
-          requiredScopesUsers: null,
-          requiredScopesServiceOwners: null
-        }
-      },
-      {
-        endpoint: POST {org}/{app}/v1/pages/order,
         metadata: {
           errorMessageTextResourceKeyUser: null,
           errorMessageTextResourceKeyServiceOwner: null,

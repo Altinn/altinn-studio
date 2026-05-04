@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { EditBooleanValue } from './EditBooleanValue';
 import { renderWithProviders } from '../../../testing/mocks';
@@ -47,7 +46,7 @@ describe('EditBooleanValue', () => {
     renderEditBooleanValue({ handleComponentChange });
     const inputElement = screen.getByLabelText(textMock('ux_editor.component_properties.required'));
 
-    user.click(inputElement);
+    await user.click(inputElement);
 
     await waitFor(() => {
       expect(handleComponentChange).toHaveBeenCalledWith({

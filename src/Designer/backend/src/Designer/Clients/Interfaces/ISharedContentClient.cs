@@ -15,7 +15,27 @@ public interface ISharedContentClient
     /// <param name="codeList">The code list.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The current version string of the published code list.</returns>
-    Task<string> PublishCodeList(string orgName, string codeListId, CodeList codeList, CancellationToken cancellationToken = default);
+    Task<string> PublishCodeList(
+        string orgName,
+        string codeListId,
+        CodeList codeList,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Gets a published code list for an organisation.
+    /// </summary>
+    /// <param name="orgName">Organisation name.</param>
+    /// <param name="codeListId">The code list id.</param>
+    /// <param name="version">The code list version.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>The published code list.</returns>
+    Task<CodeList?> GetPublishedCodeListForOrg(
+        string orgName,
+        string codeListId,
+        string? version = null,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Gets all the published library elements for the organisation.
@@ -24,6 +44,9 @@ public interface ISharedContentClient
     /// <param name="path">Path to a folder.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The published library elements from mentioned path.</returns>
-    Task<List<string>> GetPublishedResourcesForOrg(string orgName, string path = "", CancellationToken cancellationToken = default);
+    Task<List<string>> GetPublishedResourcesForOrg(
+        string orgName,
+        string path = "",
+        CancellationToken cancellationToken = default
+    );
 }
-

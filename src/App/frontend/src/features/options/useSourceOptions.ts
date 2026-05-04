@@ -3,8 +3,8 @@ import dot from 'dot-object';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
-import { useCurrentLayoutSet } from 'src/features/form/layoutSets/useCurrentLayoutSet';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
+import { useCurrentUiFolderSettings } from 'src/features/form/ui/hooks';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { getKeyWithoutIndexIndicators } from 'src/utils/databindings';
@@ -20,7 +20,7 @@ export const useSourceOptions = (source: IOptionSource): IOptionInternal[] => {
   const langTools = useLanguage();
   const groupReference = useGroupReference(source);
   const valueSubPath = getValueSubPath(source);
-  const rawValues = FD.useDebouncedSelect((pick) => {
+  const rawValues = FormStore.data.useDebouncedSelect((pick) => {
     if (!groupReference || !valueSubPath) {
       return [];
     }
@@ -92,14 +92,14 @@ export const useSourceOptions = (source: IOptionSource): IOptionInternal[] => {
  */
 function useGroupReference(source: IOptionSource | undefined): IDataModelReference | undefined {
   const currentLocation = useCurrentDataModelLocation();
-  const currentLayoutSet = useCurrentLayoutSet();
+  const currentLayoutSettings = useCurrentUiFolderSettings();
   if (!source) {
     return undefined;
   }
 
   const { group, dataType } = source;
   const cleanGroup = getKeyWithoutIndexIndicators(group);
-  const groupDataType = dataType ?? currentLayoutSet?.dataType;
+  const groupDataType = dataType ?? currentLayoutSettings?.defaultDataType;
   if (!groupDataType) {
     return undefined;
   }

@@ -1,5 +1,4 @@
 import type { ForwardedRef } from 'react';
-import React from 'react';
 import type { StudioTextResourceInputProps } from './StudioTextResourceInput';
 import { StudioTextResourceInput } from './StudioTextResourceInput';
 import type { RenderResult } from '@testing-library/react';
@@ -130,7 +129,7 @@ describe('StudioTextResourceInput', () => {
     renderTextResourceInput();
 
     await switchToSearchMode(user);
-    const chipButton = screen.getByRole('button', { name: /Press to remove/i });
+    const chipButton = screen.getByRole('option', { name: /Press to remove/i });
     await user.click(chipButton);
     await waitFor(() => expect(onChangeCurrentId).toHaveBeenCalled());
 
@@ -217,5 +216,5 @@ function switchToEditMode(user: UserEvent): Promise<void> {
 }
 
 function getTextResourcePicker(): HTMLInputElement {
-  return screen.getByRole('combobox', { name: texts.textResourcePickerLabel });
+  return screen.getByRole('combobox', { name: new RegExp(texts.textResourcePickerLabel) });
 }

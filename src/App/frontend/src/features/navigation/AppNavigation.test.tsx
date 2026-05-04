@@ -3,19 +3,19 @@ import React from 'react';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
+import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
+import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
+import { NavigationReceipt, NavigationTask } from 'src/features/form/ui/types';
 import { AppNavigation } from 'src/features/navigation/AppNavigation';
 import { BackendValidationSeverity } from 'src/features/validation';
 import * as UseNavigatePage from 'src/hooks/useNavigatePage';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type {
   ILayoutFile,
-  ILayoutSets,
   ILayoutSettings,
   NavigationPageGroupMultiple,
   NavigationPageGroupSingle,
-  NavigationReceipt,
-  NavigationTask,
 } from 'src/layout/common.generated';
 
 const user = userEvent.setup({ delay: 100 });
@@ -39,76 +39,84 @@ describe('AppNavigation', () => {
     overrideTaskNavigation?: (Omit<NavigationTask, 'id'> | Omit<NavigationReceipt, 'id'>)[];
   }) {
     const rawOrder = order ?? groups?.flatMap((g) => g.order) ?? [];
+
+    window.altinnAppGlobalData.ui = getUiConfigMock((ui) => {
+      if (taskNavigation) {
+        ui.settings = {
+          ...ui.settings,
+          taskNavigation: taskNavigation as (NavigationTask | NavigationReceipt)[],
+        };
+      }
+      ui.folders.Task_1 = {
+        defaultDataType: defaultDataTypeMock,
+        pages: {
+          ...(order && { order }),
+          ...(groups && { groups }),
+          ...(overrideTaskNavigation && { taskNavigation: overrideTaskNavigation }),
+        },
+      } as ILayoutSettings;
+    });
+
     return renderWithInstanceAndLayout({
       renderer: () => <AppNavigation />,
       initialPage: initialPage ?? order?.[0] ?? groups?.[0].order[0],
       queries: {
-        fetchLayoutSettings: async () =>
-          ({
-            pages: {
-              ...(order && { order }),
-              ...(groups && { groups }),
-              ...(overrideTaskNavigation && { taskNavigation: overrideTaskNavigation }),
-            },
-          }) as ILayoutSettings,
-        fetchLayoutSets: async () =>
-          ({
-            ...getLayoutSetsMock(),
-            ...(taskNavigation && {
-              uiSettings: { taskNavigation },
-            }),
-          }) as ILayoutSets,
-        fetchLayouts: async () =>
-          Object.fromEntries(
-            rawOrder.map((page) => [
-              page,
-              {
-                data: {
-                  hidden: !!hiddenPages?.includes(page),
-                  layout: [
-                    {
-                      id: `page-title-${page}`,
-                      type: 'Header',
-                      textResourceBindings: {
-                        title: `Title for ${page}`,
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = Object.fromEntries(
+              rawOrder.map((page) => [
+                page,
+                {
+                  data: {
+                    hidden: !!hiddenPages?.includes(page),
+                    layout: [
+                      {
+                        id: `page-title-${page}`,
+                        type: 'Header',
+                        textResourceBindings: {
+                          title: `Title for ${page}`,
+                        },
+                        size: 'L',
                       },
-                      size: 'L',
-                    },
-                    {
-                      id: `input-${page}`,
-                      type: 'Input',
-                      textResourceBindings: {
-                        title: `Input for ${page}`,
+                      {
+                        id: `input-${page}`,
+                        type: 'Input',
+                        textResourceBindings: {
+                          title: `Input for ${page}`,
+                        },
+                        dataModelBindings: {
+                          simpleBinding: `field-${page}`,
+                        },
+                        showValidations: ['All'],
                       },
-                      dataModelBindings: {
-                        simpleBinding: `field-${page}`,
-                      },
-                      showValidations: ['All'],
-                    },
-                  ],
-                },
-              } as ILayoutFile,
-            ]),
-          ),
-        fetchBackendValidations: async () =>
-          pagesWithError?.map((page) => ({
-            code: 'wrong format',
-            severity: BackendValidationSeverity.Error,
-            source: 'SomeCustomValidator',
-            field: `field-${page}`,
-          })) ?? [],
-        fetchDataModelSchema: async () => ({
-          type: 'object',
-          properties: Object.fromEntries(
-            rawOrder.map((page) => [
-              `field-${page}`,
-              {
-                type: 'string',
-              },
-            ]),
-          ),
-        }),
-        fetchFormData: async () => Object.fromEntries(rawOrder.map((page) => [`field-${page}`, 'some value'])),
+                    ],
+                  },
+                } as ILayoutFile,
+              ]),
+            );
+            obj.dataModels[defaultDataTypeMock].schema = {
+              type: 'object',
+              properties: Object.fromEntries(
+                rawOrder.map((page) => [
+                  `field-${page}`,
+                  {
+                    type: 'string',
+                  },
+                ]),
+              ),
+            };
+            obj.dataModels[defaultDataTypeMock].initialValidationIssues =
+              pagesWithError?.map((page) => ({
+                code: 'wrong format',
+                severity: BackendValidationSeverity.Error,
+                source: 'SomeCustomValidator',
+                field: `field-${page}`,
+                dataElementId: defaultMockDataElementId,
+              })) ?? [];
+            obj.dataModels[defaultDataTypeMock].initialData = Object.fromEntries(
+              rawOrder.map((page) => [`field-${page}`, 'some value']),
+            );
+          }),
       },
     });
   }

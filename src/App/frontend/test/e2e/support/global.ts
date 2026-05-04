@@ -6,9 +6,7 @@ import type { CyUser, TenorUser } from 'test/e2e/support/auth';
 
 import type { IFeatureToggles } from 'src/features/toggles';
 import type { BackendValidationIssue, BackendValidationIssuesWithSource } from 'src/features/validation';
-import type { ILayoutSets } from 'src/layout/common.generated';
 import type { CompExternal, ILayoutCollection, ILayouts } from 'src/layout/layout';
-import type { LooseAutocomplete } from 'src/types';
 
 export type FrontendTestTask = 'message' | 'changename' | 'group' | 'likert' | 'datalist' | 'confirm';
 export type FillableFrontendTasks = Exclude<FrontendTestTask, 'message' | 'confirm'>;
@@ -149,7 +147,7 @@ declare global {
        * Must be called in the beginning of your test.
        */
       interceptLayout(
-        taskName: LooseAutocomplete<FrontendTestTask>,
+        taskId: string,
         mutator?: (component: CompExternal) => void,
         wholeLayoutMutator?: (layoutSet: ILayoutCollection) => void,
         options?: { times?: number },
@@ -165,8 +163,6 @@ declare global {
         allLayoutsMutator?: (layouts: ILayouts) => void,
       ): Chainable<null>;
 
-      interceptLayoutSetsUiSettings(uiSettings: Partial<ILayoutSets['uiSettings']>): Chainable<null>;
-
       iframeCustom(): Chainable<null>;
 
       assertUser(user: CyUser): Chainable<null>;
@@ -178,19 +174,6 @@ declare global {
        * using reloadAndWait())
        */
       waitUntilSaved(): Chainable<null>;
-
-      /**
-       * Check a checkbox/radio from the design system.
-       * Our design system radios/checkboxes are a little special, as they hide the HTML input element and provide
-       * their own stylized variant. Cypress can't check/uncheck a hidden input field, and although we can tell
-       * cypress to force it, that just circumvents a lot of other checks that we want cypress to run.
-       */
-      dsCheck(): Chainable<null>;
-
-      /**
-       * Uncheck a checkbox/radio from the design system. See the comment above for dsCheck()
-       */
-      dsUncheck(): Chainable<null>;
 
       /**
        * Waits until a design system element (Combobox, etc) is ready to be clicked.
@@ -205,7 +188,7 @@ declare global {
       /**
        * Select from a dropdown in the design system
        */
-      dsSelect(selector: string, value: string, debounce?: boolean): Chainable<null>;
+      dsSelect(selector: string, value: string | RegExp, debounce?: boolean): Chainable<null>;
 
       /**
        * Shortcut for clicking an element and waiting for it to disappear
@@ -245,10 +228,8 @@ declare global {
 
       /**
        * Runs a snapshot test on something, to compare it with a known good value
-       * @see https://www.cypress.io/blog/end-to-end-snapshot-testing
        */
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      snapshot(options?: any): Chainable<null>;
+      toMatchSnapshot(): Chainable<unknown>;
 
       /**
        * Useful when taking snapshots; clear all selections and wait for the app to finish loading and stabilizing.

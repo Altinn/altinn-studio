@@ -1,5 +1,4 @@
 import { Link } from '@digdir/designsystemet-react';
-import React from 'react';
 import classes from './FormDesignerNavigation.module.css';
 import { useTranslation } from 'react-i18next';
 import { TaskCardBar } from '../../components/TaskNavigation/TaskCardBar';

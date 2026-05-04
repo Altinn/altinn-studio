@@ -20,6 +20,11 @@
   gap: var(--ds-size-1);
 }
 
+.linkButton.primary:link,
+.linkButton.primary:visited {
+  color: var(--color);
+}
+
 .secondaryAndTertiary {
   --background--active: var(--ds-color-surface-active);
   --background--hover: var(--ds-color-surface-hover);

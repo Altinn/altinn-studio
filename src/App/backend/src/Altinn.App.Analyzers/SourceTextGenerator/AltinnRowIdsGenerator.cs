@@ -57,7 +57,10 @@ internal static class AltinnRowIdsGenerator
         builder.Append(
             $$"""
 
-                private static void SetAltinnRowIds({{property.Node.TypeName}} dataModel, bool initialize)
+                private static void SetAltinnRowIds(
+                    {{property.Node.TypeName}} dataModel,
+                    bool initialize
+                )
                 {
 
             """
@@ -85,7 +88,7 @@ internal static class AltinnRowIdsGenerator
             {
                 builder.Append(
                     $$"""
-                            if(dataModel.{{child.Node.CSharpName}} is not null)
+                            if (dataModel.{{child.Node.CSharpName}} is not null)
                             {
                                 SetAltinnRowIds(dataModel.{{child.Node.CSharpName}}, initialize);
                             }
@@ -97,7 +100,7 @@ internal static class AltinnRowIdsGenerator
             {
                 builder.Append(
                     $$"""
-                            if(dataModel.{{child.Node.CSharpName}} is not null)
+                            if (dataModel.{{child.Node.CSharpName}} is not null)
                             {
                                 foreach (var item in dataModel.{{child.Node.CSharpName}})
                                 {

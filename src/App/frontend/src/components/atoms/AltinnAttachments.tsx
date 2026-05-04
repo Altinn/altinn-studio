@@ -5,7 +5,6 @@ import { Link, List } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import classes from 'src/components/atoms/AltinnAttachment.module.css';
-import { MainAttachmentHeader } from 'src/components/atoms/AttachmentHeader';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -17,7 +16,7 @@ import type { IDisplayAttachment } from 'src/types/shared';
 interface IAltinnAttachmentsProps {
   attachments?: IDisplayAttachment[];
   id?: string;
-  title?: React.ReactNode;
+  title?: React.ReactElement;
   showLinks: boolean | undefined;
   showDescription?: boolean;
 }
@@ -39,7 +38,7 @@ export function AltinnAttachments({
       id={id}
       data-testid='attachment-list'
     >
-      <MainAttachmentHeader title={title} />
+      {title}
       <List.Unordered
         className={classes.attachmentList}
         data-size='sm'

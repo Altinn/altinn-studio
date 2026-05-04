@@ -23,7 +23,7 @@
 
 .page-button {
   font-family: var(--font-family);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: normal;
   color: var(--ds-color-accent-text-subtle);
   background-color: transparent;
@@ -66,14 +66,14 @@
 }
 
 .page-symbol-error {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--ds-color-danger-text-default);
   border-color: var(--ds-color-danger-border-default);
   background-color: var(--ds-color-danger-surface-tinted);
 }
 
 .page-symbol-complete {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: white;
   border-color: var(--ds-color-accent-base-default);
   background-color: var(--ds-color-accent-base-default);

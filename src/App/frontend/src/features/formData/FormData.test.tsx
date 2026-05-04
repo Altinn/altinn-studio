@@ -1,27 +1,22 @@
 import React, { useState } from 'react';
-import { MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useNavigate } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
-import { afterAll, beforeAll, expect, jest } from '@jest/globals';
 import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import dot from 'dot-object';
 import type { JSONSchema7 } from 'json-schema';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { defaultDataTypeMock, statelessDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
-import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
-import { LayoutsProvider } from 'src/features/form/layout/LayoutsContext';
-import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { LayoutSettingsProvider } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { defaultDataTypeMock, statelessDataTypeMock } from 'src/__mocks__/getUiConfigMock';
+import { FormStore } from 'src/features/form/FormContext';
+import { FormProvider } from 'src/features/form/FormProvider';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
-import { FD, FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { fetchApplicationMetadata } from 'src/queries/queries';
 import {
   makeFormDataMethodProxies,
   renderWithInstanceAndLayout,
@@ -100,13 +95,11 @@ const mockSchema: JSONSchema7 = {
 type MinimalRenderProps = Partial<Omit<Parameters<typeof renderWithInstanceAndLayout>[0], 'renderer'>>;
 type RenderProps = MinimalRenderProps & { renderer: React.ReactElement };
 async function statelessRender(props: RenderProps) {
-  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
-    getIncomingApplicationMetadataMock({
-      onEntry: {
-        show: 'stateless',
-      },
-    }),
-  );
+  window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock({
+    onEntry: {
+      show: 'stateless',
+    },
+  });
   const initialRenderRef = { current: true };
   const { mocks: formDataMethods, proxies: formDataProxies } = makeFormDataMethodProxies(initialRenderRef);
   return {
@@ -115,7 +108,7 @@ async function statelessRender(props: RenderProps) {
       ...props,
       initialRenderRef,
       router: ({ children }: PropsWithChildren) => (
-        <MemoryRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+        <MemoryRouter>
           <Routes>
             <Route
               path='/'
@@ -134,44 +127,42 @@ async function statelessRender(props: RenderProps) {
         </MemoryRouter>
       ),
       renderer: () => (
-        <ApplicationMetadataProvider>
-          <GlobalFormDataReadersProvider>
-            <LayoutSetsProvider>
-              <LayoutsProvider>
-                <DataModelsProvider>
-                  <LayoutSettingsProvider>
-                    <FormDataWriteProxyProvider value={formDataProxies}>
-                      <FormDataWriteProvider>{props.renderer}</FormDataWriteProvider>
-                    </FormDataWriteProxyProvider>
-                  </LayoutSettingsProvider>
-                </DataModelsProvider>
-              </LayoutsProvider>
-            </LayoutSetsProvider>
-          </GlobalFormDataReadersProvider>
-        </ApplicationMetadataProvider>
+        <GlobalFormDataReadersProvider>
+          <FormDataWriteProxyProvider value={formDataProxies}>
+            <FormProvider uiFolderOverride='stateless'>{props.renderer}</FormProvider>
+          </FormDataWriteProxyProvider>
+        </GlobalFormDataReadersProvider>
       ),
       queries: {
-        fetchDataModelSchema: async () => mockSchema,
-        fetchFormData: async () => ({}),
-        fetchLayouts: async () => ({}),
         ...props.queries,
+        fetchFormBootstrapForStateless: async (...args) => {
+          const obj = (await props.queries?.fetchFormBootstrapForStateless?.(...args)) ?? getFormBootstrapMock();
+          if (!obj.dataModels[statelessDataTypeMock]) {
+            obj.dataModels[statelessDataTypeMock] = getDataModelBootstrapMock();
+          }
+          obj.dataModels[statelessDataTypeMock].dataElementId = null;
+          obj.dataModels[statelessDataTypeMock].schema = mockSchema;
+          obj.layouts = {};
+          return obj;
+        },
       },
     })),
   };
 }
 
 async function statefulRender(props: RenderProps) {
-  jest
-    .mocked(fetchApplicationMetadata)
-    .mockImplementationOnce(() => Promise.resolve(getIncomingApplicationMetadataMock()));
+  window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock();
   return await renderWithInstanceAndLayout({
     ...props,
     alwaysRouteToChildren: true,
     queries: {
-      fetchDataModelSchema: async () => mockSchema,
-      fetchFormData: async () => ({}),
-      fetchLayouts: async () => ({}),
       ...props.queries,
+      fetchFormBootstrapForInstance: async (...args) => {
+        const obj = (await props.queries?.fetchFormBootstrapForInstance?.(...args)) ?? getFormBootstrapMock();
+        obj.dataModels[defaultDataTypeMock].schema = mockSchema;
+        obj.layouts = {};
+        return obj;
+      },
     },
   });
 }
@@ -256,16 +247,20 @@ describe('FormData', () => {
           </>
         ),
         queries: {
-          fetchFormData: async () => ({
-            obj1: {
-              prop1: 'value1',
-              prop2: 'value2',
-            },
-            obj2: {
-              prop1: 'value3',
-            },
-          }),
           ...props.queries,
+          fetchFormBootstrapForStateless: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[statelessDataTypeMock] = getDataModelBootstrapMock();
+              obj.dataModels[statelessDataTypeMock].initialData = {
+                obj1: {
+                  prop1: 'value1',
+                  prop2: 'value2',
+                },
+                obj2: {
+                  prop1: 'value3',
+                },
+              };
+            }),
         },
         ...props,
       });
@@ -323,7 +318,7 @@ describe('FormData', () => {
   }
 
   function HasUnsavedChanges() {
-    const hasUnsavedChanges = FD.useHasUnsavedChanges();
+    const hasUnsavedChanges = FormStore.data.useHasUnsavedChanges();
     return <div data-testid='hasUnsavedChanges'>{hasUnsavedChanges ? 'true' : 'false'}</div>;
   }
 
@@ -344,8 +339,8 @@ describe('FormData', () => {
     });
 
     function LockActionButton({ lockId, renderInfo }: { lockId: string; renderInfo: boolean }) {
-      const lock = FD.useLocking(lockId);
-      const { isLocked, lockedBy } = FD.useLockStatus();
+      const lock = FormStore.data.useLocking(lockId);
+      const { isLocked, lockedBy } = FormStore.data.useLockStatus();
       const [currentLock, setCurrentLock] = useState<Awaited<ReturnType<typeof lock>> | undefined>();
 
       return (
@@ -403,12 +398,16 @@ describe('FormData', () => {
           </>
         ),
         queries: {
-          fetchFormData: async () => ({
-            obj1: {
-              prop1: 'value1',
-            },
-          }),
           ...props.queries,
+          fetchFormBootstrapForInstance: async () => {
+            const obj = getFormBootstrapMock();
+            obj.dataModels[defaultDataTypeMock].initialData = {
+              obj1: {
+                prop1: 'value1',
+              },
+            };
+            return obj;
+          },
         },
         ...props,
       });
@@ -617,8 +616,13 @@ describe('FormData', () => {
           </>
         ),
         queries: {
-          fetchFormData: async () => ({}),
           ...props.queries,
+          fetchFormBootstrapForStateless: async () => {
+            const obj = getFormBootstrapMock();
+            obj.dataModels[statelessDataTypeMock] = getDataModelBootstrapMock();
+            obj.dataModels[statelessDataTypeMock].initialData = {};
+            return obj;
+          },
         },
         ...props,
       });
@@ -661,7 +665,7 @@ describe('FormData', () => {
       expect(screen.getByTestId('obj2.prop1')).toHaveValue('a');
       expect(screen.getByTestId('hasUnsavedChanges')).toHaveTextContent('true');
 
-      expect(queries.fetchFormData).toHaveBeenCalledTimes(1);
+      expect(queries.fetchFormBootstrapForStateless).toHaveBeenCalledTimes(1);
       await user.click(screen.getByRole('button', { name: 'Navigate to a different page' }));
       await screen.findByText('something different');
 
@@ -676,13 +680,60 @@ describe('FormData', () => {
 
       // We tried to cache the form data, however that broke back button functionality for some apps.
       // See this issue: https://github.com/Altinn/app-frontend-react/issues/2564
-      // Also see src/features/formData/useFormDataQuery.tsx where we prevent caching for statless apps
-      expect(queries.fetchFormData).toHaveBeenCalledTimes(2);
+      expect(queries.fetchFormBootstrapForStateless).toHaveBeenCalledTimes(2);
 
       // Our mock fetchFormData returns an empty object, so the form data should be reset. Realistically, the form data
       // would be restored when fetching it from the server, as we asserted that it was saved before navigating away.
       expect(screen.getByTestId('obj2.prop1')).toHaveValue('');
       expect(screen.getByTestId('hasUnsavedChanges')).toHaveTextContent('false');
+    });
+
+    it('Navigating away and back again should keep using the same stateless prefill', async () => {
+      const user = userEvent.setup({ delay: null });
+      sessionStorage.setItem(
+        'queryParams',
+        JSON.stringify([
+          {
+            dataModelName: statelessDataTypeMock,
+            appId: window.altinnAppGlobalData.applicationMetadata.id,
+            prefillFields: {
+              JobTitle: 'designer',
+            },
+            created: new Date().toISOString(),
+          },
+        ]),
+      );
+
+      const { mutations, queries } = await render();
+      const fetchBootstrapMock = queries.fetchFormBootstrapForStateless as unknown as jest.Mock;
+      const fetchBootstrapCalls = fetchBootstrapMock.mock.calls as [{ prefill?: string }][];
+      const firstPrefill = JSON.parse(fetchBootstrapCalls[0][0].prefill as string) as Record<
+        string,
+        Record<string, string>
+      >;
+
+      expect(queries.fetchFormBootstrapForStateless).toHaveBeenCalledTimes(1);
+      expect(firstPrefill).toEqual({
+        [statelessDataTypeMock]: { JobTitle: 'designer' },
+      });
+
+      await user.click(screen.getByRole('button', { name: 'Navigate to a different page' }));
+      await screen.findByText('something different');
+      mutations.doPostStatelessFormData.resolve();
+
+      await user.click(screen.getByRole('button', { name: 'Navigate back' }));
+      await screen.findByTestId('obj2.prop1');
+      const secondPrefill = JSON.parse(fetchBootstrapCalls[1][0].prefill as string) as Record<
+        string,
+        Record<string, string>
+      >;
+
+      expect(queries.fetchFormBootstrapForStateless).toHaveBeenCalledTimes(2);
+      expect(secondPrefill).toEqual({
+        [statelessDataTypeMock]: { JobTitle: 'designer' },
+      });
+
+      sessionStorage.removeItem('queryParams');
     });
   });
 
@@ -700,8 +751,8 @@ describe('FormData', () => {
       } = useDataModelBindings({
         simpleBinding: { field: path, dataType },
       });
-      const validValue = dot.pick(path, FD.useDebounced(dataType));
-      const invalidValue = dot.pick(path, FD.useInvalidDebounced(dataType));
+      const validValue = dot.pick(path, FormStore.data.useDebounced(dataType));
+      const invalidValue = dot.pick(path, FormStore.data.useInvalidDebounced(dataType));
 
       return (
         <>
@@ -725,20 +776,22 @@ describe('FormData', () => {
     }
 
     async function render(props: MinimalRenderProps = {}) {
-      const utils = await statelessRender({
+      return await statelessRender({
         renderer: <InvalidReadWrite path='obj3.prop1' />,
         queries: {
-          fetchFormData: async () => ({
-            obj3: {
-              prop1: null,
-            },
-          }),
           ...props.queries,
+          fetchFormBootstrapForStateless: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[statelessDataTypeMock] = getDataModelBootstrapMock();
+              obj.dataModels[statelessDataTypeMock].initialData = {
+                obj3: {
+                  prop1: null,
+                },
+              };
+            }),
         },
         ...props,
       });
-
-      return utils;
     }
 
     it('Clearing an invalid value should remove invalid data', async () => {

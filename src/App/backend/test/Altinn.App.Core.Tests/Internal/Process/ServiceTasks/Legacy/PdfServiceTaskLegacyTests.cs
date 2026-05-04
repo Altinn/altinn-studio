@@ -18,17 +18,15 @@ public class PdfServiceTaskLegacyTests
     public async Task Execute_calls_pdf_service()
     {
         Instance i = new() { Data = [new DataElement() { DataType = "DataType_1" }] };
-        SetupAppMetadataWithDataTypes(
-            [
-                new DataType
-                {
-                    Id = "DataType_1",
-                    TaskId = "Task_1",
-                    AppLogic = new ApplicationLogic() { ClassRef = "DataType_1" },
-                    EnablePdfCreation = true,
-                },
-            ]
-        );
+        SetupAppMetadataWithDataTypes([
+            new DataType
+            {
+                Id = "DataType_1",
+                TaskId = "Task_1",
+                AppLogic = new ApplicationLogic() { ClassRef = "DataType_1" },
+                EnablePdfCreation = true,
+            },
+        ]);
 
         PdfServiceTaskLegacy pst = new(_appMetadata.Object, _pdfService.Object);
         await pst.Execute("Task_1", i);
@@ -53,24 +51,22 @@ public class PdfServiceTaskLegacyTests
                 new DataElement() { DataType = "DataType_2" },
             ],
         };
-        SetupAppMetadataWithDataTypes(
-            [
-                new DataType
-                {
-                    Id = "DataType_1",
-                    TaskId = "Task_1",
-                    AppLogic = new ApplicationLogic() { ClassRef = "DataType_1" },
-                    EnablePdfCreation = true,
-                },
-                new DataType
-                {
-                    Id = "DataType_2",
-                    TaskId = "Task_1",
-                    AppLogic = new ApplicationLogic() { ClassRef = "DataType_2" },
-                    EnablePdfCreation = true,
-                },
-            ]
-        );
+        SetupAppMetadataWithDataTypes([
+            new DataType
+            {
+                Id = "DataType_1",
+                TaskId = "Task_1",
+                AppLogic = new ApplicationLogic() { ClassRef = "DataType_1" },
+                EnablePdfCreation = true,
+            },
+            new DataType
+            {
+                Id = "DataType_2",
+                TaskId = "Task_1",
+                AppLogic = new ApplicationLogic() { ClassRef = "DataType_2" },
+                EnablePdfCreation = true,
+            },
+        ]);
 
         PdfServiceTaskLegacy pst = new(_appMetadata.Object, _pdfService.Object);
         await pst.Execute("Task_1", i);
@@ -86,24 +82,22 @@ public class PdfServiceTaskLegacyTests
     public async Task Execute_pdf_generation_is_never_called_if_no_dataelements_for_datatype()
     {
         Instance i = new() { Data = [] };
-        SetupAppMetadataWithDataTypes(
-            [
-                new DataType
-                {
-                    Id = "DataType_1",
-                    TaskId = "Task_1",
-                    AppLogic = new ApplicationLogic() { ClassRef = "DataType_1" },
-                    EnablePdfCreation = true,
-                },
-                new DataType
-                {
-                    Id = "DataType_2",
-                    TaskId = "Task_1",
-                    AppLogic = new ApplicationLogic() { ClassRef = "DataType_2" },
-                    EnablePdfCreation = true,
-                },
-            ]
-        );
+        SetupAppMetadataWithDataTypes([
+            new DataType
+            {
+                Id = "DataType_1",
+                TaskId = "Task_1",
+                AppLogic = new ApplicationLogic() { ClassRef = "DataType_1" },
+                EnablePdfCreation = true,
+            },
+            new DataType
+            {
+                Id = "DataType_2",
+                TaskId = "Task_1",
+                AppLogic = new ApplicationLogic() { ClassRef = "DataType_2" },
+                EnablePdfCreation = true,
+            },
+        ]);
 
         PdfServiceTaskLegacy pst = new(_appMetadata.Object, _pdfService.Object);
         await pst.Execute("Task_1", i);
@@ -119,20 +113,18 @@ public class PdfServiceTaskLegacyTests
     {
         DataElement d = new() { Id = "DataElement_1", DataType = "DataType_1" };
         Instance i = new() { Data = [d] };
-        SetupAppMetadataWithDataTypes(
-            [
-                new DataType
+        SetupAppMetadataWithDataTypes([
+            new DataType
+            {
+                Id = "DataType_1",
+                TaskId = "Task_1",
+                AppLogic = new ApplicationLogic()
                 {
-                    Id = "DataType_1",
-                    TaskId = "Task_1",
-                    AppLogic = new ApplicationLogic()
-                    {
-                        ClassRef = "Altinn.App.Core.Tests.Internal.Process.ServiceTasks.TestData.DummyDataType",
-                    },
-                    EnablePdfCreation = false,
+                    ClassRef = "Altinn.App.Core.Tests.Internal.Process.ServiceTasks.TestData.DummyDataType",
                 },
-            ]
-        );
+                EnablePdfCreation = false,
+            },
+        ]);
 
         PdfServiceTaskLegacy pst = new(_appMetadata.Object, _pdfService.Object);
         await pst.Execute("Task_1", i);
@@ -148,20 +140,18 @@ public class PdfServiceTaskLegacyTests
     {
         DataElement d = new() { Id = "DataElement_1", DataType = "DataType_1" };
         Instance i = new() { Data = [d] };
-        SetupAppMetadataWithDataTypes(
-            [
-                new DataType
+        SetupAppMetadataWithDataTypes([
+            new DataType
+            {
+                Id = "DataType_1",
+                TaskId = "Task_1",
+                AppLogic = new ApplicationLogic()
                 {
-                    Id = "DataType_1",
-                    TaskId = "Task_1",
-                    AppLogic = new ApplicationLogic()
-                    {
-                        ClassRef = "Altinn.App.Core.Tests.Internal.Process.ServiceTasks.TestData.DummyDataType",
-                    },
-                    EnablePdfCreation = false,
+                    ClassRef = "Altinn.App.Core.Tests.Internal.Process.ServiceTasks.TestData.DummyDataType",
                 },
-            ]
-        );
+                EnablePdfCreation = false,
+            },
+        ]);
 
         PdfServiceTaskLegacy pst = new(_appMetadata.Object, _pdfService.Object);
         await pst.Execute("Task_1", i);

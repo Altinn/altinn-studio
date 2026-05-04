@@ -1,0 +1,79 @@
+name: App Frontend - K6 Browser Tests
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - 'src/App/backend/**'
+      - 'src/App/codelists/**'
+      - 'src/App/fileanalyzers/**'
+      - 'src/Runtime/localtest/**'
+      - 'src/Runtime/pdf3/**'
+      - 'src/App/frontend/src/**'
+      - 'src/App/frontend/test/**'
+      - 'src/App/frontend/package.json'
+      - 'src/test/apps/**'
+      - '.github/actions/**'
+      - '.github/workflows/app-frontend-k6-browser.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+jobs:
+  build-frontend:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Build Frontend
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Build frontend
+        uses: ./.github/actions/app-build-frontend
+
+  k6-browser:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: K6 Browser
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    needs: [build-frontend]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Run Local Environment
+        uses: ./.github/actions/app-run-local-env
+        with:
+          run-frontend: true
+          run-localtest: true
+          app-run-targets-json: |
+            [{ "path": "src/test/apps/frontend-test" }]
+
+      - name: Create screenshots directory
+        run: sudo mkdir -p k6-browser-screenshots && sudo chmod 777 k6-browser-screenshots
+
+      - name: Run k6 browser test
+        run: |
+          docker run --rm -i --security-opt seccomp=./src/App/frontend/test/e2e/k6-browser/chrome.json \
+            --network host --cap-add=SYS_ADMIN \
+            -v ${{ github.workspace }}:/github/workspace \
+            -w /github/workspace \
+            -e K6_BROWSER_TIMEOUT=120000 \
+            grafana/k6:1.6.1-with-browser \
+            run ./src/App/frontend/test/e2e/k6-browser/browser-script.ts
+        timeout-minutes: 10
+
+      - name: Fix screenshots ownership for artifact upload
+        run: sudo chown -R runner:runner k6-browser-screenshots/ || echo "No screenshots to fix ownership"
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        if: always()
+        with:
+          name: k6-browser-screenshots
+          path: k6-browser-screenshots
+          retention-days: 30
+
+      - name: Stop localtest
+        if: always()
+        uses: ./.github/actions/app-stop-local-env

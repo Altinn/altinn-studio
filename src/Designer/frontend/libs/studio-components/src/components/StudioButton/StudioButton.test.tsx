@@ -1,4 +1,3 @@
-import React from 'react';
 import type { Ref } from 'react';
 import type { StudioButtonProps } from './StudioButton';
 import { StudioButton } from './StudioButton';

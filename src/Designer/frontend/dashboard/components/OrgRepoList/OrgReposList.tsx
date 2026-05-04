@@ -1,4 +1,3 @@
-import React from 'react';
 import { RepoList } from '../RepoList';
 import { getReposLabel } from '../../utils/repoUtils';
 import { getUidFilter } from '../../utils/filterUtils';

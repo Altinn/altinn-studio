@@ -4,12 +4,12 @@ import { PREVIEW_MOCK_PARTY_ID, PREVIEW_MOCK_INSTANCE_GUID } from '../constants'
 // Base path
 const basePath = '/designer';
 const apiBasePath = `${basePath}/api`;
+const apiBasePathV1 = `${apiBasePath}/v1`;
 
-// Ansattporten
-export const authStatusAnsattporten = () => `${apiBasePath}/ansattporten/auth-status`; // Get
-export const loginWithAnsattPorten = (redirectTo) => `${apiBasePath}/ansattporten/login?redirect_to=${redirectTo}`;
+// Maskinporten
 export const availableMaskinportenScopesPath = (org, app) => `${apiBasePath}/${org}/${app}/app-scopes/maskinporten`; // Get
 export const selectedMaskinportenScopesPath = (org, app) => `${apiBasePath}/${org}/${app}/app-scopes`; // Get, Put
+export const appSettingsPath = (org, app) => `${apiBasePathV1}/${org}/${app}/app-settings`; // Get, Put
 
 // ApplicationMetadata
 export const appMetadataPath = (org, app) => `${apiBasePath}/${org}/${app}/metadata`; // Get, Put, Post
@@ -62,6 +62,8 @@ export const layoutSetsPath = (org, app) => `${apiBasePath}/${org}/${app}/app-de
 export const layoutSetsExtendedPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-sets/extended`; // Get
 export const layoutSetPath = (org, app, layoutSetIdToUpdate) => `${apiBasePath}/${org}/${app}/app-development/layout-set/${layoutSetIdToUpdate}`; // Put, Delete
 export const layoutSettingsPath = (org, app, layoutSetName) => `${apiBasePath}/${org}/${app}/app-development/layout-settings?${s({ layoutSetName })}`; // Get, Post
+export const validateNavigationLayoutSettingsPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-settings/validation-on-navigation`; // Get, Post
+export const validateNavigationPageSettingsPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-settings/validation-on-navigation/pages`; // Get, Post
 export const formLayoutsPath = (org, app, layoutSetName) => `${apiBasePath}/${org}/${app}/app-development/form-layouts?${s({ layoutSetName })}`; // Get
 export const formLayoutPath = (org, app, layout, layoutSetName) => `${apiBasePath}/${org}/${app}/app-development/form-layout/${layout}?${s({ layoutSetName })}`; // Post, Delete
 export const formLayoutNamePath = (org, app, layoutName, layoutSetName) => `${apiBasePath}/${org}/${app}/app-development/form-layout-name/${layoutName}?${s({ layoutSetName })}`; // Put
@@ -119,9 +121,11 @@ export const deploymentsPath = (org, app, sortDirection) => `${apiBasePath}/${or
 export const deployPermissionsPath = (org, app) => `${apiBasePath}/${org}/${app}/deployments/permissions`; // Get
 export const envConfigPath = () => `${apiBasePath}/environments`; // Get
 export const undeployAppFromEnvPath = (org, app) => `${apiBasePath}/${org}/${app}/deployments/undeploy`;
+export const appValidationPath = (org, app) => `${apiBasePath}/${org}/${app}/validation`;
 
 // Repositories
 export const branchStatusPath = (org, app, branch) => `${apiBasePath}/repos/repo/${org}/${app}/branches/branch?${s({ branch })}`; // Get
+export const branchPath = (org, app, branchName) => `${apiBasePath}/repos/repo/${org}/${app}/branches/${branchName}`; // Delete
 export const branchesPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/branches`; // Get, Post
 export const checkoutBranchPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/checkout`; // Post
 export const currentBranchPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/current-branch`; // Get
@@ -207,10 +211,32 @@ export const envFilePath = () => `${basePath}/config/env.json`;
 // Event Hubs
 export const syncEventsWebSocketHub = () => '/hubs/sync';
 export const syncEntityUpdateWebSocketHub = () => '/hubs/entity-updated';
+export const syncAlertsUpdateWebSocketHub = () => '/hubs/alerts-updated';
 export const previewWebSocketHub = () => `/hubs/preview`;
+export const altinityWebSocketHub = () => '/hubs/altinity';
+export const altinityAttachmentsUploadPath = () => `/designer/api/altinity/attachments`;
 
 // Contact
 export const belongsToOrg = () => `${apiBasePath}/contact/belongs-to-org`;
 
 // Can use feature
 export const canUseFeaturePath = (featureName) => `${apiBasePath}/canUseFeature?featureName=${featureName}`;
+
+// Custom Templates
+export const customTemplatesPath = () => `${apiBasePath}/customtemplates`; // GET
+
+// User settings
+export const userApiKeyPath = (id) => `${apiBasePath}/v1/user/api-keys/${id}`; // DELETE
+export const userApiKeysPath = () => `${apiBasePath}/v1/user/api-keys`; // GET, POST
+
+// Org settings - Contact points
+export const contactPointsPath = (org) => `${apiBasePath}/v1/orgs/${org}/contact-points`; // Get, Post
+export const contactPointPath = (org, id) => `${apiBasePath}/v1/orgs/${org}/contact-points/${id}`; // Put, Delete
+export const contactPointActivePath = (org, id) => `${apiBasePath}/v1/orgs/${org}/contact-points/${id}/active`; // Patch
+
+// Org settings - Bot accounts
+export const botAccountsPath = (org) => `${apiBasePathV1}/orgs/${org}/bot-accounts`; // Get, Post
+export const botAccountPath = (org, id) => `${apiBasePathV1}/orgs/${org}/bot-accounts/${id}`; // Get, Put
+export const botAccountDeactivatePath = (org, id) => `${apiBasePathV1}/orgs/${org}/bot-accounts/${id}/deactivate`; // Post
+export const botAccountApiKeysPath = (org, id) => `${apiBasePathV1}/orgs/${org}/bot-accounts/${id}/api-keys`; // Get, Post
+export const botAccountApiKeyPath = (org, id, keyId) => `${apiBasePathV1}/orgs/${org}/bot-accounts/${id}/api-keys/${keyId}`; // Delete

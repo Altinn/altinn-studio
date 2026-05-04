@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"testing"
 	"time"
 
@@ -44,7 +44,7 @@ func Test_Networking(t *testing.T) {
 		Timeout: 3 * time.Second,
 	}
 
-	httpReq, err := http.NewRequest("GET", url, nil)
+	httpReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
 	if err != nil {
 		t.Fatalf("Failed to create HTTP request: %v", err)
 	}
@@ -55,17 +55,17 @@ func Test_Networking(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unexpected error reaching jumpbox: %v", err)
 	}
-	defer func() { _ = resp.Body.Close() }()
-	if resp.StatusCode != 504 { // 504 = gateway timeout, means it can't connect
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			t.Fatalf("Failed to close response body: %v", closeErr)
+		}
+	}()
+	if resp.StatusCode != http.StatusGatewayTimeout { // 504 = gateway timeout, means it can't connect
 		t.Fatalf("Unexpectedly reached pdf3-worker from jumpbox: %d", resp.StatusCode)
 	}
 
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatalf("Error reading resp body: %v", err)
-	}
-	content := fmt.Sprintf("%d\n\n%s", resp.StatusCode, string(bodyBytes))
-	harness.Snapshot(t, []byte(content), "error", "txt")
+	// Body content is infrastructure-dependent (nginx error text varies by environment),
+	// so we only assert the status code above.
 }
 
 // Test_CompareOldAndNew generates a PDF and saves snapshots.
@@ -202,6 +202,8 @@ func Test_WithCleanupDelay(t *testing.T) {
 }
 
 func requestPDFWithCancellation(t *testing.T, req *types.PdfRequest, cancelAfter time.Duration) {
+	t.Helper()
+
 	// Marshal the request
 	reqBody, err := json.Marshal(req)
 	if err != nil {
@@ -221,7 +223,7 @@ func requestPDFWithCancellation(t *testing.T, req *types.PdfRequest, cancelAfter
 
 	// Create the HTTP request with the cancellable context
 	url := harness.JumpboxURL + "/pdf"
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(reqBody))
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
 	if err != nil {
 		t.Fatalf("Failed to create HTTP request: %v", err)
 	}
@@ -267,10 +269,17 @@ func requestPDFWithCancellation(t *testing.T, req *types.PdfRequest, cancelAfter
 		t.Logf("System recovered successfully - follow-up PDF generated (%d bytes)", len(followupResp.Data))
 		return
 	}
-	defer func() { _ = resp.Body.Close() }()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			t.Fatalf("Failed to close response body: %v", closeErr)
+		}
+	}()
 
 	// If we get here, the request completed before cancellation
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("Failed to read response body: %v", err)
+	}
 	t.Fatalf("Request completed before cancellation (status %d, body length %d bytes)", resp.StatusCode, len(body))
 }
 
@@ -368,6 +377,50 @@ func Test_TADFormWaitFor(t *testing.T) {
 	pdf := harness.MakePdfDeterministic(t, resp.Data)
 	harness.Snapshot(t, pdf, "output", "pdf")
 	harness.Snapshot(t, pdf, "output", "txt")
+
+	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
+}
+
+func Test_TracestateWithSemicolons(t *testing.T) {
+	req := harness.GetDefaultPdfRequest(t)
+	req.URL = harness.TestServerURL + "/app/?render=light"
+
+	parsedUrl, err := url.Parse(req.URL)
+	if err != nil {
+		t.Fatalf("Failed to parse URL: %v", err)
+	}
+
+	// Add test cookies: one valid, one tracestate with semicolons (should be filtered)
+	req.Cookies = append(req.Cookies,
+		types.Cookie{
+			Name:     "normalCookie",
+			Value:    "validValue",
+			Domain:   parsedUrl.Hostname(),
+			SameSite: "Lax",
+		},
+		types.Cookie{
+			Name:     "baggage-tracestate",
+			Value:    "dd=s:1;o:rum",
+			Domain:   parsedUrl.Hostname(),
+			SameSite: "Lax",
+		},
+	)
+
+	resp, err := harness.RequestNewPDF(t, req)
+	if err != nil {
+		t.Fatalf("Failed to generate PDF: %v", err)
+	}
+
+	if !harness.IsPDF(resp.Data) {
+		t.Error("Response is not a valid PDF")
+	}
+
+	output, err := resp.LoadOutput(t)
+	if err != nil {
+		t.Errorf("Failed loading test output: %v", err)
+	} else {
+		harness.Snapshot(t, []byte(output.SnapshotString()), "testoutput", "json")
+	}
 
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
 }

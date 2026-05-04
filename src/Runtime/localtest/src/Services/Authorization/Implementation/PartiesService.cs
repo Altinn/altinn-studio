@@ -20,9 +20,27 @@ namespace LocalTest.Services.Authorization.Implementation
             return data.Authorization.PartyList.TryGetValue(userId.ToString(), out var result) ? result : null;
         }
 
-        public Task<bool> ValidateSelectedParty(int userId, int partyId)
+        public async Task<bool> ValidateSelectedParty(int userId, int partyId)
         {
-            return Task.FromResult(true);
+            var parties = await GetParties(userId);
+            if (parties == null)
+                return false;
+
+            return ContainsParty(parties, partyId);
+        }
+
+        private static bool ContainsParty(List<Party> parties, int partyId)
+        {
+            foreach (var party in parties)
+            {
+                if (party.PartyId == partyId)
+                    return true;
+
+                // Check child parties (sub-units)
+                if (party.ChildParties != null && ContainsParty(party.ChildParties, partyId))
+                    return true;
+            }
+            return false;
         }
 
     }

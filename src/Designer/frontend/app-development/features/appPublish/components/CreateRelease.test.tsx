@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { CreateRelease } from './CreateRelease';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -12,6 +11,7 @@ import userEvent from '@testing-library/user-event';
 import { app, org } from '@studio/testing/testids';
 import { BuildResult } from 'app-shared/types/Build';
 import { TestAppRouter } from '@studio/testing/testRoutingUtils';
+import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 
 const renderCreateRelease = (queries?: Partial<ServicesContextProps>) => {
   const allQueries: ServicesContextProps = {
@@ -20,11 +20,13 @@ const renderCreateRelease = (queries?: Partial<ServicesContextProps>) => {
   };
 
   render(
-    <TestAppRouter>
-      <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-        <CreateRelease />
-      </ServicesContextProvider>
-    </TestAppRouter>,
+    <FeatureFlagsContextProvider value={{ flags: [] }}>
+      <TestAppRouter>
+        <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
+          <CreateRelease />
+        </ServicesContextProvider>
+      </TestAppRouter>
+    </FeatureFlagsContextProvider>,
   );
 };
 
@@ -126,6 +128,44 @@ describe('CreateRelease', () => {
     await waitFor(() => {
       expect(
         screen.getByText(textMock('app_create_release.release_version_number_already_exists')),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('shows critical validation message when app has critical validation errors', async () => {
+    const mockAppValidationResult = {
+      isValid: false,
+      errors: {
+        'title.nb': ['error1'],
+      },
+    };
+    renderCreateRelease({ getAppValidation: () => Promise.resolve(mockAppValidationResult) });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(textMock('app_create_release.validation_errors')),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(textMock('app_create_release.validation_error_message')),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('shows warning validation message when app has non-critical validation errors', async () => {
+    const mockAppValidationResult = {
+      isValid: false,
+      errors: {
+        'title.en': ['error1'],
+      },
+    };
+    renderCreateRelease({ getAppValidation: () => Promise.resolve(mockAppValidationResult) });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(textMock('app_create_release.validation_warning')),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(textMock('app_create_release.validation_warning_message')),
       ).toBeInTheDocument();
     });
   });

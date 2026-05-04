@@ -1,27 +1,24 @@
 import { useTextResourceOr } from 'src/core/texts/appTexts';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { useOrgs } from 'src/features/orgs/OrgsProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 
 export function useAppLogoUrl() {
-  const orgs = useOrgs();
-  const application = useApplicationMetadata();
-  const org = application?.org;
+  const application = getApplicationMetadata();
 
-  const useOrgAsSource = (application.logoOptions?.source ?? 'org') === 'org';
-  const fromOrg = useOrgAsSource && orgs && org ? orgs[org]?.logo : undefined;
+  const useOrgAsSource = (application.logo?.source ?? 'org') === 'org';
+  const fromOrg = useOrgAsSource ? window.altinnAppGlobalData?.orgLogoUrl : undefined;
   const fromTextResources = useTextResourceOr('appLogo.url', undefined);
 
   return fromOrg || fromTextResources;
 }
 
 export function useDisplayAppOwnerNameInHeader() {
-  const application = useApplicationMetadata();
-  return application.logoOptions?.displayAppOwnerNameInHeader === true;
+  const application = getApplicationMetadata();
+  return application.logo?.displayAppOwnerNameInHeader === true;
 }
 
 export function useAppLogoSize() {
-  const application = useApplicationMetadata();
-  const size = application.logoOptions?.size;
+  const application = getApplicationMetadata();
+  const size = application.logo?.size;
 
   if (size !== 'small' && size !== 'medium' && size !== 'large') {
     return 'small';

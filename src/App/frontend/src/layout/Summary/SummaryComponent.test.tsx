@@ -2,8 +2,9 @@ import React from 'react';
 
 import { act, fireEvent, screen } from '@testing-library/react';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -124,17 +125,24 @@ describe('SummaryComponent', () => {
       componentRef,
     });
 
+    window.altinnAppGlobalData.ui = getUiConfigMock((ui) => {
+      ui.folders.Task_1 = {
+        defaultDataType: defaultDataTypeMock,
+        pages: {
+          order: currentPageId ? ['FormLayout', currentPageId] : ['FormLayout'],
+        },
+      };
+    });
+
     return await renderWithInstanceAndLayout({
       renderer: <SummaryComponent summaryBaseId='mySummary' />,
       initialPage: currentPageId,
       queries: {
-        fetchLayouts: async () => layout,
-        fetchBackendValidations: async () => validationIssues,
-        fetchLayoutSettings: async () => ({
-          pages: {
-            order: currentPageId ? ['FormLayout', currentPageId] : ['FormLayout'],
-          },
-        }),
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = layout;
+            obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
+          }),
       },
     });
   };

@@ -1,0 +1,10 @@
+.editing {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: var(--ds-size-3);
+}
+
+.propertyButton span {
+  white-space: normal;
+}

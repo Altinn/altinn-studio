@@ -7,10 +7,11 @@ import cn from 'classnames';
 
 import { Button } from 'src/app-components/Button/Button';
 import { Flex } from 'src/app-components/Flex/Flex';
+import { translationKey } from 'src/AppComponentsBridge';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import { useDisplayData, useDisplayDataFor } from 'src/features/displayData/useDisplayData';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
@@ -43,6 +44,7 @@ export interface IRepeatingGroupTableRowProps {
   mobileView: boolean;
   displayEditColumn: boolean;
   displayDeleteColumn: boolean;
+  hiddenColumns: string[];
 }
 
 function getTableTitle(textResourceBindings: ITextResourceBindings) {
@@ -83,6 +85,7 @@ export function RepeatingGroupTableRow({
   mobileView,
   displayEditColumn,
   displayDeleteColumn,
+  hiddenColumns,
 }: IRepeatingGroupTableRowProps): JSX.Element | null {
   const mobileViewSmall = useIsMobile();
   const { refSetter } = useRepeatingGroupsFocusContext();
@@ -94,18 +97,21 @@ export function RepeatingGroupTableRow({
   const langTools = useLanguage();
   const { langAsString } = langTools;
   const { edit: editForGroup, tableColumns: columnSettings } = useItemWhenType(baseComponentId, 'RepeatingGroup');
+  const compactButtons = Boolean(editForGroup?.compactButtons);
   const rowExpressions = RepGroupHooks.useRowWithExpressions(baseComponentId, { uuid });
   const editForRow = rowExpressions?.edit;
   const trbForRow = rowExpressions?.textResourceBindings;
 
   const alertOnDelete = useAlertOnChange(Boolean(editForRow?.alertOnDelete), deleteRow);
 
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
   const rawTableIds = useTableComponentIds(baseComponentId);
-  const tableItems = rawTableIds.map((baseId) => ({
-    baseId,
-    type: layoutLookups.getComponent(baseId).type,
-  }));
+  const tableItems = rawTableIds
+    .filter((id) => !hiddenColumns.includes(id))
+    .map((baseId) => ({
+      baseId,
+      type: layoutLookups.getComponent(baseId).type,
+    }));
   const isEditingRow = RepGroupContext.useIsEditingRow(uuid);
   const isDeletingRow = RepGroupContext.useIsDeletingRow(uuid);
 
@@ -115,6 +121,7 @@ export function RepeatingGroupTableRow({
     : getEditButtonText(isEditingRow, langTools, trbForRow);
 
   const deleteButtonText = langAsString('general.delete');
+  const togleDeletebuttonText = isEditingRow || !mobileViewSmall ? deleteButtonText : null;
 
   return (
     <Table.Row
@@ -136,24 +143,13 @@ export function RepeatingGroupTableRow({
       {!mobileView ? (
         tableItems.map((item) =>
           shouldEditInTable(editForGroup?.mode, item.baseId, item.type, columnSettings) ? (
-            <Table.Cell
+            <EditableCell
               key={item.baseId}
-              className={classes.tableCell}
-            >
-              <div ref={(ref) => refSetter && refSetter(index, `component-${item.baseId}`, ref)}>
-                <GenericComponent
-                  baseComponentId={item.baseId}
-                  overrideDisplay={{
-                    renderedInTable: true,
-                    renderLabel: false,
-                    renderLegend: false,
-                  }}
-                  overrideItemProps={{
-                    grid: {},
-                  }}
-                />
-              </div>
-            </Table.Cell>
+              index={index}
+              refSetter={refSetter}
+              baseComponentId={item.baseId}
+              columnSettings={columnSettings}
+            />
           ) : (
             <NonEditableCell
               key={item.baseId}
@@ -234,6 +230,7 @@ export function RepeatingGroupTableRow({
                   onClick={() => toggleEditing({ index, uuid })}
                   editButtonText={editButtonText}
                   rowHasErrors={rowHasErrors}
+                  compactButtons={compactButtons}
                 />
               </div>
             </Table.Cell>
@@ -254,7 +251,7 @@ export function RepeatingGroupTableRow({
                   alertOnDeleteProps={alertOnDelete}
                   langAsString={langAsString}
                 >
-                  {deleteButtonText}
+                  {compactButtons ? (isEditingRow ? deleteButtonText : null) : deleteButtonText}
                 </DeleteElement>
               </div>
             </Table.Cell>
@@ -275,6 +272,7 @@ export function RepeatingGroupTableRow({
                 onClick={() => toggleEditing({ index, uuid })}
                 editButtonText={editButtonText}
                 rowHasErrors={rowHasErrors}
+                compactButtons={compactButtons}
               />
             )}
             {editForRow?.deleteButton !== false && (
@@ -289,7 +287,7 @@ export function RepeatingGroupTableRow({
                   alertOnDeleteProps={alertOnDelete}
                   langAsString={langAsString}
                 >
-                  {isEditingRow || !mobileViewSmall ? deleteButtonText : null}
+                  {compactButtons ? (isEditingRow ? deleteButtonText : null) : togleDeletebuttonText}
                 </DeleteElement>
               </>
             )}
@@ -327,6 +325,7 @@ function EditElement({
   onClick,
   rowHasErrors,
   uuid,
+  compactButtons,
 }: {
   ariaExpanded: boolean;
   indexedId: string;
@@ -335,8 +334,10 @@ function EditElement({
   onClick: () => void;
   editButtonText: string;
   rowHasErrors: boolean;
+  compactButtons: boolean;
 }) {
   const ariaLabel = useAriaLabel(editButtonText);
+  const showText = compactButtons ? ariaExpanded : ariaExpanded || !mobileViewSmall;
   return (
     <Button
       aria-expanded={ariaExpanded}
@@ -345,10 +346,10 @@ function EditElement({
       color='second'
       icon={!ariaExpanded && mobileViewSmall}
       onClick={onClick}
-      aria-label={ariaLabel}
+      aria-label={translationKey(ariaLabel)}
       className={classes.tableButton}
     >
-      {(ariaExpanded || !mobileViewSmall) && editButtonText}
+      {showText && editButtonText}
       {rowHasErrors ? (
         <span style={{ color: '#C30000' }}>
           <XMarkOctagonFillIcon
@@ -409,7 +410,7 @@ function DeleteElement({
         popoverTarget={`delete-warning-popover-${uuid}`}
         disabled={isDeletingRow || disabled}
         onClick={() => handleDelete({ index, uuid })}
-        aria-label={ariaLabel}
+        aria-label={translationKey(ariaLabel)}
         icon={!children}
         className={classes.tableButton}
       >
@@ -420,6 +421,42 @@ function DeleteElement({
         />
       </Button>
     </>
+  );
+}
+
+function EditableCell({
+  baseComponentId,
+  columnSettings,
+  refSetter,
+  index,
+}: {
+  baseComponentId: string;
+  columnSettings: ITableColumnFormatting | undefined;
+  index: number;
+  refSetter: ((index: number, id: string, ref: HTMLDivElement | null) => void) | undefined;
+}) {
+  const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings);
+
+  return (
+    <Table.Cell className={classes.tableCell}>
+      <div
+        className={cn(classes.contentFormatting, classes.contentFormattingEditable)}
+        style={style}
+        ref={(ref) => refSetter && refSetter(index, `component-${baseComponentId}`, ref)}
+      >
+        <GenericComponent
+          baseComponentId={baseComponentId}
+          overrideDisplay={{
+            renderedInTable: true,
+            renderLabel: false,
+            renderLegend: false,
+          }}
+          overrideItemProps={{
+            grid: {},
+          }}
+        />
+      </div>
+    </Table.Cell>
   );
 }
 
@@ -477,7 +514,7 @@ function FindDeepValidations({
   columnSettings: CompRepeatingGroupExternal['tableColumns'];
 }) {
   const baseComponentId = useRepeatingGroupComponentId();
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
   const rawTableIds = useTableComponentIds(baseComponentId);
   const tableItems = rawTableIds.map((baseId) => ({
     baseId,

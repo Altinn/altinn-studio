@@ -55,7 +55,8 @@ public static class TestingApis
                         configuration["PlatformSettings:ApiPdf2Endpoint"]
                         ?? throw new Exception("PlatformSettings.ApiPdf2Endpoint not configured");
 
-                    var activeEndpoint = pdfServiceUrl.Replace("/pdf", "/config");
+                    var uri = new Uri(pdfServiceUrl);
+                    var activeEndpoint = $"{uri.Scheme}://{uri.Authority}/health/startup";
 
                     var response = await httpClient.GetAsync(activeEndpoint);
                     var content = await response.Content.ReadAsStringAsync();
@@ -171,6 +172,17 @@ public static class TestingApis
             }
         );
 
+        app.MapPost(
+                "/test/fixture-configuration/reload",
+                () =>
+                {
+                    FixtureConfigurationService.Instance.Reload();
+                    return Results.Ok();
+                }
+            )
+            .AllowAnonymous()
+            .WithName("API testing - POST - reload fixture configuration");
+
         // AUTHZ
         // Minimal API endpoints that should be protected by scopes
         app.MapGet(
@@ -179,10 +191,11 @@ public static class TestingApis
                 {
                     var service =
                         serviceProvider.GetRequiredService<Altinn.App.Api.Infrastructure.Middleware.ScopeAuthorizationService>();
+                    var metadata = service
+                        .Metadata.Where(endpoint => endpoint.Endpoint != "POST /test/fixture-configuration/reload")
+                        .ToArray();
 
-                    return Results.Ok(
-                        new { hasDefinedCustomScopes = service.HasDefinedCustomScopes, metadata = service.Metadata }
-                    );
+                    return Results.Ok(new { hasDefinedCustomScopes = service.HasDefinedCustomScopes, metadata });
                 }
             )
             .WithName("API testing - GET - metadata");

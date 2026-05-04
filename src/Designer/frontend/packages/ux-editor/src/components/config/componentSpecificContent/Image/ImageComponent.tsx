@@ -1,4 +1,3 @@
-import React from 'react';
 import { Fieldset } from '@digdir/designsystemet-react';
 import classes from './ImageComponent.module.css';
 import { useText } from '../../../../hooks';
@@ -8,6 +7,8 @@ import type { ComponentType } from 'app-shared/types/ComponentType';
 import { StudioSelect, StudioTextfield } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import cn from 'classnames';
+
+import type { JSX } from 'react';
 
 type ImageComponentProps = IGenericEditComponent<ComponentType.Image> & {
   className?: string;

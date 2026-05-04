@@ -3,7 +3,7 @@ export type PolicyAccessPackage = {
   urn: string;
   name: string;
   description: string;
-  isDelegable: boolean;
+  isResourcePolicyAvailable: boolean;
 };
 
 export type PolicyAccessPackageArea = {

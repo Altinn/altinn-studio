@@ -3,13 +3,15 @@ import React from 'react';
 import { PencilIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
+import { translationKey } from 'src/AppComponentsBridge';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
-import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { useCurrentView, useNavigateToComponent } from 'src/hooks/useNavigatePage';
+import { useIsEditableInRepGroup } from 'src/layout/RepeatingGroup/Summary2/RepGroupSummaryEditableContext';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden, useIsHiddenMulti } from 'src/utils/layout/hidden';
@@ -22,24 +24,26 @@ export type EditButtonProps = {
 } & React.HTMLAttributes<HTMLButtonElement>;
 
 /**
- * Render an edit button for the first visible (non-hidden) node in a list of possible IDs
+ * Render an edit button for the first visible (non-hidden) and editable component in a list of possible IDs
  */
-export function EditButtonFirstVisible({
+export function EditButtonFirstVisibleAndEditable({
   ids,
   fallback,
   ...rest
-}: { ids: string[]; fallback: string } & Omit<EditButtonProps, 'targetBaseComponentId'>) {
+}: { ids: string[]; fallback: string | undefined } & Omit<EditButtonProps, 'targetBaseComponentId'>) {
   const hiddenIds = useIsHiddenMulti(ids);
   const first = ids.find((id) => hiddenIds[id] === false);
   const isFallbackHidden = useIsHidden(fallback);
-  if (!first && isFallbackHidden) {
+  const target = first ?? (isFallbackHidden ? undefined : fallback);
+
+  if (!target) {
     return null;
   }
 
   return (
     <EditButton
-      targetBaseComponentId={first ?? fallback}
-      skipLastIdMutator={!first}
+      targetBaseComponentId={target}
+      skipLastIdMutator={target === fallback}
       {...rest}
     />
   );
@@ -53,8 +57,8 @@ export function EditButton({
 }: EditButtonProps) {
   const navigateToComponent = useNavigateToComponent();
   const { langAsString } = useLanguage();
-  const setReturnToView = useSetReturnToView();
-  const setNodeOfOrigin = useSetSummaryNodeOfOrigin();
+  const setReturnToView = FormStore.pageNavigation.useSetReturnToView();
+  const setNodeOfOrigin = FormStore.pageNavigation.useSetSummaryNodeOfOrigin();
   const currentPageId = useCurrentView();
   const pdfModeActive = usePdfModeActive();
   const isMobile = useIsMobile();
@@ -71,6 +75,12 @@ export function EditButton({
   const overriddenDataElementId = overrides?.dataModelElementId;
   const indexedId = useIndexedId(targetBaseComponentId, skipLastIdMutator);
   const summary2Id = useSummaryProp('id');
+
+  // Check if we're in a repeating group row and if this component is editable
+  const editableInRepGroup = useIsEditableInRepGroup(targetBaseComponentId);
+  if (!editableInRepGroup) {
+    return null;
+  }
 
   if (isReadOnly) {
     return null;
@@ -100,10 +110,11 @@ export function EditButton({
   };
   return (
     <Button
-      aria-label={isMobile ? langAsString('general.edit') : undefined}
+      aria-label={isMobile ? translationKey('general.edit') : undefined}
       onClick={onChangeClick}
       variant='tertiary'
       className={className}
+      data-target-id={indexedId}
     >
       {!isMobile && <Lang id='general.edit' />}
       <PencilIcon

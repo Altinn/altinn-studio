@@ -1,0 +1,13 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: gateway
+spec:
+  entryPoints:
+    - https
+  routes:
+    - match: Host(`${SERVICEOWNER_ID}.apps.altinn.no`) && PathPrefix(`/runtime/gateway/api/v1`)
+      kind: Rule
+      services:
+        - name: gateway
+          port: 80

@@ -1,5 +1,7 @@
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
+
 import { PartyType } from 'src/types/shared';
-import type { IncomingApplicationMetadata, ShowTypes } from 'src/features/applicationMetadata/types';
+import type { ApplicationMetadata, ShowTypes } from 'src/features/applicationMetadata/types';
 import type { ISimpleInstance } from 'src/types';
 import type { IParty } from 'src/types/shared';
 
@@ -99,8 +101,8 @@ interface Mockable {
   selectedParty?: IParty;
   allowedToInstantiate?: IParty[] | ((parties: IParty[]) => IParty[]);
   doNotPromptForParty?: boolean;
-  appPromptForPartyOverride?: IncomingApplicationMetadata['promptForParty'];
-  partyTypesAllowed?: IncomingApplicationMetadata['partyTypesAllowed'];
+  appPromptForPartyOverride?: ApplicationMetadata['promptForParty'];
+  partyTypesAllowed?: ApplicationMetadata['partyTypesAllowed'];
   activeInstances?: false | ISimpleInstance[]; // Defaults to false
   onEntryShow?: ShowTypes;
 }
@@ -131,52 +133,28 @@ export function cyMockResponses(whatToMock: Mockable) {
       });
     });
   }
-  if (whatToMock.doNotPromptForParty !== undefined) {
-    cy.intercept('GET', '**/api/v1/profile/user', {
-      body: {
-        profileSettingPreference: {
-          doNotPromptForParty: whatToMock.doNotPromptForParty,
-        },
-      },
-    });
-  }
   if (
     whatToMock.appPromptForPartyOverride !== undefined ||
     whatToMock.partyTypesAllowed !== undefined ||
-    whatToMock.onEntryShow !== undefined
+    whatToMock.onEntryShow !== undefined ||
+    whatToMock.doNotPromptForParty !== undefined
   ) {
-    cy.intercept('GET', '**/api/v1/applicationmetadata', (req) => {
-      req.on('response', (res) => {
-        const body = res.body as IncomingApplicationMetadata;
-        if (whatToMock.appPromptForPartyOverride !== undefined) {
-          body.promptForParty = whatToMock.appPromptForPartyOverride;
-        }
-        if (whatToMock.partyTypesAllowed !== undefined) {
-          body.partyTypesAllowed = whatToMock.partyTypesAllowed;
-        }
-        if (whatToMock.onEntryShow !== undefined) {
-          body.onEntry = { show: whatToMock.onEntryShow };
-        }
-      });
+    interceptAltinnAppGlobalData((globalData) => {
+      if (whatToMock.appPromptForPartyOverride !== undefined) {
+        globalData.applicationMetadata.promptForParty = whatToMock.appPromptForPartyOverride;
+      }
+      if (whatToMock.partyTypesAllowed !== undefined) {
+        globalData.applicationMetadata.partyTypesAllowed = whatToMock.partyTypesAllowed;
+      }
+      if (whatToMock.onEntryShow !== undefined) {
+        globalData.applicationMetadata.onEntry = { show: whatToMock.onEntryShow };
+      }
+
+      if (whatToMock.doNotPromptForParty !== undefined && globalData.userProfile !== undefined) {
+        globalData.userProfile.profileSettingPreference.doNotPromptForParty = whatToMock.doNotPromptForParty;
+      }
     });
   }
 
   cy.intercept('**/active', whatToMock.activeInstances || []).as('activeInstances');
-}
-
-export function removeAllButOneOrg(parties: IParty[]): IParty[] {
-  // Some users in tt02 have so many valid parties that we get pagination. Remove all
-  // except the first organisation, but keep all the persons.
-  const toKeep: IParty[] = [];
-  let foundOrganisation = false;
-  for (const party of parties) {
-    if (party.partyTypeName === PartyType.Organisation && !foundOrganisation) {
-      toKeep.push(party);
-      foundOrganisation = true;
-    }
-    if (party.partyTypeName === PartyType.Person) {
-      toKeep.push(party);
-    }
-  }
-  return toKeep;
 }

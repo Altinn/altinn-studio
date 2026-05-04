@@ -1,46 +1,61 @@
 name: App Frontend - CodeQL
 
 on:
-  pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+  push:
+    branches: [main]
     paths:
       - 'src/App/frontend/**'
+      - '.github/actions/codeql-config/**'
+      - '.github/codeql/**'
+      - '.github/workflows/app-frontend-codeql.yml'
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - 'src/App/frontend/**'
+      - '.github/actions/codeql-config/**'
+      - '.github/codeql/**'
       - '.github/workflows/app-frontend-codeql.yml'
   workflow_dispatch:
   schedule:
-    - cron: "5 12 * * 0"
+    - cron: '35 1 * * 0'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   analyze:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Analyze
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: src/App/frontend/
+    timeout-minutes: 30
     permissions:
       actions: read
       contents: read
       security-events: write
 
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ javascript ]
-
     steps:
       - name: Checkout
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+
+      - name: Generate CodeQL config
+        id: codeql-config
+        uses: ./.github/actions/codeql-config
+        with:
+          language: javascript
+          paths: |
+            src/App/frontend
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@45c373516f557556c15d420e3f5e0aa3d64366bc # v3
+        uses: github/codeql-action/init@5c8a8a642e79153f5d047b10ec1cba1d1cc65699 # v3
         with:
-          languages: ${{ matrix.language }}
-          queries: +security-and-quality
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@45c373516f557556c15d420e3f5e0aa3d64366bc # v3
+          languages: javascript
+          queries: ${{ steps.codeql-config.outputs.queries }}
+          config-file: ${{ steps.codeql-config.outputs.config-file }}
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@45c373516f557556c15d420e3f5e0aa3d64366bc # v3
+        uses: github/codeql-action/analyze@5c8a8a642e79153f5d047b10ec1cba1d1cc65699 # v3
         with:
-          category: "/language:${{ matrix.language }}"
+          category: "/codeql/app/frontend/javascript"

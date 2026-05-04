@@ -1,4 +1,3 @@
-import React from 'react';
 import { fireEvent, screen } from '@testing-library/react';
 import { renderWithMockStore } from '../../../testing/mocks';
 import { appDataMock, textResourcesMock } from '../../../testing/stateMocks';
@@ -233,7 +232,7 @@ describe('EditDataModelBindings', () => {
     const dataModelText = screen.getByText(dataModelBindingKey);
     expect(dataModelText).toBeInTheDocument();
 
-    user.hover(dataModelText);
+    await user.hover(dataModelText);
 
     const editIcon = await screen.findByRole('button', { name: textMock('general.edit') });
     expect(editIcon).toBeInTheDocument();

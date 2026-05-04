@@ -27,7 +27,7 @@ describe('Title tag updates', () => {
     ]);
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
     cy.location('origin').then((origin) => {
-      const newUrl = `${origin}/ttd/component-library/#/instance-selection`;
+      const newUrl = `${origin}/ttd/component-library/instance-selection`;
       cy.visit(newUrl);
       cy.title().should('eq', 'Fortsett der du slapp - altinn-apps-all-components - Testdepartementet');
     });

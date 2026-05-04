@@ -22,6 +22,16 @@ public class AltinnPartyClientMock : IAltinnPartyClient
         return await JsonSerializer.DeserializeAsync<Party>(fileHandle, _jsonSerializerOptions);
     }
 
+    public Task<int?> GetPartyIdByUrn(string urn)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<Guid?> GetPartyUuidByUrn(string urn)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<Party> LookupParty(PartyLookup partyLookup)
     {
         var files = Directory.GetFiles(_partyFolder, "*.json");

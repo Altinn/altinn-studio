@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './DeploymentEnvironment.module.css';
 import { DeploymentEnvironmentStatus } from './DeploymentEnvironmentStatus';
 import { Deploy } from './Deploy';
@@ -36,7 +35,7 @@ export const DeploymentEnvironment = ({
           isDeploymentInProgress={isDeploymentInProgress}
           lastPublishedDate={
             pipelineDeploymentList.find((item) => item.tagName === kubernetesDeployment?.version)
-              ?.build.finished
+              ?.build?.finished
           }
           envName={envName}
           isProduction={isProduction}

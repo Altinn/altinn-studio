@@ -7,44 +7,51 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
 
-namespace Designer.Tests.Controllers.PreviewController
+namespace Designer.Tests.Controllers.PreviewController;
+
+public class DatamodelTests : PreviewControllerTestsBase<DatamodelTests>, IClassFixture<WebApplicationFactory<Program>>
 {
-    public class DatamodelTests : PreviewControllerTestsBase<DatamodelTests>, IClassFixture<WebApplicationFactory<Program>>
+    public DatamodelTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
+
+    [Fact]
+    public async Task Get_Datamodel_Ok()
     {
+        string expectedDatamodel = TestDataHelper.GetFileFromRepo(
+            Org,
+            PreviewApp,
+            Developer,
+            "App/models/custom-dm-name.schema.json"
+        );
 
-        public DatamodelTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        string dataPathWithData = $"{Org}/{PreviewApp}/api/jsonschema/custom-dm-name";
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-        [Fact]
-        public async Task Get_Datamodel_Ok()
-        {
-            string expectedDatamodel = TestDataHelper.GetFileFromRepo(Org, PreviewApp, Developer, "App/models/custom-dm-name.schema.json");
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            string dataPathWithData = $"{Org}/{PreviewApp}/api/jsonschema/custom-dm-name";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+        string responseBody = await response.Content.ReadAsStringAsync();
+        Assert.True(JsonUtils.DeepEquals(expectedDatamodel, responseBody));
+    }
 
-            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    [Fact]
+    public async Task Get_Datamodel_MockedDataTypeId_OkWithDefaultDataModel()
+    {
+        // Expects to get a response that is a datamodel, but does not matter which, so returns the first data type in app metadata with a classRef
+        string expectedDatamodel = TestDataHelper.GetFileFromRepo(
+            Org,
+            AppV4,
+            Developer,
+            "App/models/datamodel.schema.json"
+        );
 
-            string responseBody = await response.Content.ReadAsStringAsync();
-            Assert.True(JsonUtils.DeepEquals(expectedDatamodel, responseBody));
-        }
+        string dataPathWithData = $"{Org}/{AppV4}/api/jsonschema/{PreviewService.MockDataModelIdPrefix}";
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-        [Fact]
-        public async Task Get_Datamodel_MockedDataTypeId_OkWithDefaultDataModel()
-        {
-            // Expects to get a response that is a datamodel, but does not matter which, so returns the first data type in app metadata with a classRef
-            string expectedDatamodel = TestDataHelper.GetFileFromRepo(Org, AppV4, Developer, "App/models/datamodel.schema.json");
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            string dataPathWithData = $"{Org}/{AppV4}/api/jsonschema/{PreviewService.MockDataModelIdPrefix}";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-
-            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            Assert.True(JsonUtils.DeepEquals(expectedDatamodel, responseBody));
-        }
+        string responseBody = await response.Content.ReadAsStringAsync();
+        Assert.True(JsonUtils.DeepEquals(expectedDatamodel, responseBody));
     }
 }

@@ -45,20 +45,6 @@ export const getNodeByPointer = (
   }
 };
 
-/**
- * Returns the index or undefined.
- *
- * @param uiSchemaNodes
- * @param schemaPointer
- */
-export const getNodeIndexByPointer = (
-  uiSchemaNodes: UiSchemaNodes,
-  schemaPointer: string,
-): number | undefined => {
-  const index = uiSchemaNodes.findIndex((node) => node.schemaPointer === schemaPointer);
-  return index > -1 ? index : undefined;
-};
-
 export const getChildNodesByFieldPointer = (
   uiSchemaNodes: UiSchemaNodes,
   schemaPointer: string,

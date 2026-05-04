@@ -1,6 +1,8 @@
 import React, { type FormEvent, type ChangeEvent, useState } from 'react';
+import { CreateFromTemplate } from '../CreateFromTemplate/CreateFromTemplate';
+import type { CustomTemplate } from 'app-shared/types/CustomTemplate';
 import classes from './NewApplicationForm.module.css';
-import { StudioButton, StudioSpinner } from '@studio/components';
+import { StudioButton, StudioHeading, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { ServiceOwnerSelector } from '../ServiceOwnerSelector';
 import { RepoNameInput } from '../RepoNameInput';
@@ -11,7 +13,9 @@ import { SelectedContextType } from '../../enums/SelectedContextType';
 import { type NewAppForm } from '../../types/NewAppForm';
 import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
 import { Link } from 'react-router-dom';
-import { useUserOrgPermissionQuery } from '../../hooks/queries/useUserOrgPermissionsQuery';
+import { useUserOrgPermissionsQuery } from 'app-shared/hooks/queries/useUserOrgPermissionsQuery';
+import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
+import type { CreateServiceFormError } from 'dashboard/pages/CreateService/CreateService';
 
 type CancelButton = {
   onClick: () => void;
@@ -29,9 +33,10 @@ export type NewApplicationFormProps = {
   user: User;
   organizations: Organization[];
   isLoading: boolean;
+  shouldUseCustomTemplate?: boolean;
   submitButtonText: string;
-  formError: NewAppForm;
-  setFormError: React.Dispatch<React.SetStateAction<NewAppForm>>;
+  formError: CreateServiceFormError;
+  setFormError: React.Dispatch<React.SetStateAction<CreateServiceFormError>>;
   actionableElement: ActionableElement;
 };
 
@@ -40,6 +45,7 @@ export const NewApplicationForm = ({
   user,
   organizations,
   isLoading,
+  shouldUseCustomTemplate = true,
   submitButtonText,
   formError,
   setFormError,
@@ -47,13 +53,15 @@ export const NewApplicationForm = ({
 }: NewApplicationFormProps): React.JSX.Element => {
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
+  const isCustomTemplatesEnabled = useFeatureFlag(FeatureFlag.CustomTemplates);
   const { validateRepoOwnerName, validateRepoName } = useCreateAppFormValidation();
   const defaultSelectedOrgOrUser: string =
     selectedContext === SelectedContextType.Self || selectedContext === SelectedContextType.All
       ? user.login
       : selectedContext;
   const [currentSelectedOrg, setCurrentSelectedOrg] = useState<string>(defaultSelectedOrgOrUser);
-  const { data: userOrgPermission, isFetching } = useUserOrgPermissionQuery(currentSelectedOrg, {
+  const [selectedTemplate, setSelectedTemplate] = useState<CustomTemplate>();
+  const { data: userOrgPermissions, isFetching } = useUserOrgPermissionsQuery(currentSelectedOrg, {
     enabled: Boolean(currentSelectedOrg),
   });
 
@@ -75,6 +83,7 @@ export const NewApplicationForm = ({
     const newAppForm: NewAppForm = {
       org: formData.get('org') as string,
       repoName: formData.get('repoName') as string,
+      template: selectedTemplate || undefined,
     };
 
     const isFormValid: boolean = validateNewAppForm(newAppForm);
@@ -101,7 +110,7 @@ export const NewApplicationForm = ({
   };
 
   const createRepoAccessError: string =
-    !userOrgPermission?.canCreateOrgRepo && !isFetching
+    !userOrgPermissions?.canCreateOrgRepo && !isFetching
       ? t('dashboard.missing_service_owner_rights_error_message')
       : '';
 
@@ -109,6 +118,9 @@ export const NewApplicationForm = ({
 
   return (
     <form onSubmit={handleSubmit} className={classes.form}>
+      <StudioHeading level={1} spacing>
+        {t('dashboard.new_service')}
+      </StudioHeading>
       <ServiceOwnerSelector
         name='org'
         user={user}
@@ -122,6 +134,15 @@ export const NewApplicationForm = ({
         errorMessage={formError.repoName}
         onChange={validateTextValue}
       />
+      {isCustomTemplatesEnabled && shouldUseCustomTemplate && (
+        <CreateFromTemplate
+          selectedTemplate={selectedTemplate}
+          onChange={setSelectedTemplate}
+          username={user.login}
+          organizations={organizations}
+          error={formError.template}
+        />
+      )}
       <div className={classes.actionContainer}>
         {isLoading ? (
           <StudioSpinner aria-hidden spinnerTitle={t('dashboard.creating_your_service')} />

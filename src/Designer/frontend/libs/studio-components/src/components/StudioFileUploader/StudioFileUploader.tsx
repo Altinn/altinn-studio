@@ -1,4 +1,4 @@
-import React, { forwardRef, useRef, useImperativeHandle } from 'react';
+import { forwardRef, useRef, useImperativeHandle } from 'react';
 import type { InputHTMLAttributes, ReactElement, Ref, RefObject, FormEvent } from 'react';
 import { UploadIcon } from '@studio/icons';
 import type { StudioButtonProps } from '../StudioButton';
@@ -72,11 +72,11 @@ function StudioFileUploader(
   );
 }
 
-const getFile = (fileRef: RefObject<HTMLInputElement>): File | null | undefined => {
+const getFile = (fileRef: RefObject<HTMLInputElement | null>): File | null | undefined => {
   return fileRef?.current?.files?.item(0);
 };
 
-const resetRef = (fileRef: RefObject<HTMLInputElement>): void => {
+const resetRef = (fileRef: RefObject<HTMLInputElement | null>): void => {
   if (fileRef.current) {
     fileRef.current.value = '';
   }

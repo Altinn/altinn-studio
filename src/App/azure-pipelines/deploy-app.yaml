@@ -22,6 +22,9 @@ variables:
   # GITEA_ENVIRONMENT: ''
   # HOSTNAME: ''
   # TAGNAME: ''
+  # APP_AUTH_HEADER_NAME: '' # Optional header name for token auth (e.g. "X-Api-Key"). When set, uses header instead of URL-embedded token.
+  # TRACEPARENT: '' # Optional W3C traceparent for correlation
+  # TRACESTATE: '' # Optional W3C tracestate for correlation
   # PUSH_SYNCROOT_GITOPS_IMAGE: 'false' # Set to 'true' to enable pushing sync-root artifact
   # PUSH_APPS_OCI_IMAGE: 'true' # Set to 'false' to skip pushing app OCI image
 
@@ -32,6 +35,7 @@ variables:
   VALUES_FILE: 'deployment/values.yaml'
   NORMALIZED_VALUES: 'values.normalized.yaml'
   MERGED_VALUES: 'values.merged.yaml'
+  MASKINPORTEN_CR_FILE: 'maskinportenclient.yaml'
 
   AI_SERVICE_CONNECTION_ID_TEST: 'c3cabb67-2cf6-4114-acd3-e1f0e32eea82'
   AI_SERVICE_CONNECTION_ID_PROD: '4c145755-0ab0-4c62-b182-4d2fbb9563ed'
@@ -130,9 +134,12 @@ steps:
     condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
       script: |
-        # Should use oauth token when authenticating to private repo
-
-        git clone --recurse-submodules https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO $APP_COMMIT_ID
+        # Clone private repo using either header-based or URL-embedded token auth
+        if [ -n "$(APP_AUTH_HEADER_NAME)" ]; then
+          git -c http.extraHeader="$(APP_AUTH_HEADER_NAME): $(APP_DEPLOY_TOKEN)" clone --recurse-submodules https://$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO $APP_COMMIT_ID
+        else
+          git clone --recurse-submodules https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO $APP_COMMIT_ID
+        fi
         cd $APP_COMMIT_ID
 
         ## Ensure we use correct commit
@@ -144,16 +151,64 @@ steps:
             echo "Already using latest commit on this branch, moving on."
         else
             echo "Target commit ID is not latest commit on this branch. Fetching target commit"
-            git fetch origin $APP_COMMIT_ID
+            if [ -n "$(APP_AUTH_HEADER_NAME)" ]; then
+              git -c http.extraHeader="$(APP_AUTH_HEADER_NAME): $(APP_DEPLOY_TOKEN)" fetch origin $APP_COMMIT_ID
+            else
+              git fetch origin $APP_COMMIT_ID
+            fi
             git reset --hard FETCH_HEAD
         fi
+
+  - task: AzureCLI@2
+    displayName: 'Extract app scopes from docker image'
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
+    continueOnError: true
+    inputs:
+      azureSubscription: 'altinn-studio-apps-deploy'
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        set +e  # Don't exit on errors, this needs testing
+
+        ACR_NAME="${APP_OWNER}altinnregistry01"
+        IMAGE_REF="${ACR_NAME}.azurecr.io/${RELEASE_NAME}:${TAGNAME}"
+
+        echo "Extracting Maskinporten scopes from image: ${IMAGE_REF}"
+
+        az acr login --name ${ACR_NAME}
+
+        docker pull ${IMAGE_REF}
+
+        SCOPES_JSON=$(docker inspect ${IMAGE_REF} --format='{{index .Config.Labels "studio.altinn.maskinporten.scopes"}}' 2>/dev/null || echo "[]")
+
+        if [ "$SCOPES_JSON" == "<no value>" ] || [ "$SCOPES_JSON" == "null" ] || [ -z "$SCOPES_JSON" ]; then
+          echo "No Maskinporten scopes label found on image, defaulting to empty array"
+          SCOPES_JSON="[]"
+        fi
+
+        if ! echo "${SCOPES_JSON}" | jq empty 2>/dev/null; then
+          echo "##[warning]Invalid JSON in Maskinporten scopes label: ${SCOPES_JSON}"
+          echo "##[warning]Defaulting to empty array"
+          SCOPES_JSON="[]"
+        fi
+
+        echo "##vso[task.setvariable variable=APP_MASKINPORTEN_SCOPES_JSON;]${SCOPES_JSON}"
+
+        echo "Extracted Maskinporten scopes: ${SCOPES_JSON}"
+
+        exit 0  # Always succeed, this needs testing
+      failOnStderr: false
 
   - task: CmdLine@2
     displayName: Pull GitOps directory
     condition: and(succeeded(), eq(variables['PUSH_SYNCROOT_GITOPS_IMAGE'], 'true'))
     inputs:
       script: |
-        git clone https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$GITOPS_ORGANIZATION/$APP_OWNER$GITOPS_REPO_SUFFIX $GITOPS_REPO_CLONE_DIR
+        if [ -n "$(APP_AUTH_HEADER_NAME)" ]; then
+          git -c http.extraHeader="$(APP_AUTH_HEADER_NAME): $(APP_DEPLOY_TOKEN)" clone https://$GITEA_ENVIRONMENT/$GITOPS_ORGANIZATION/$APP_OWNER$GITOPS_REPO_SUFFIX $GITOPS_REPO_CLONE_DIR
+        else
+          git clone https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$GITOPS_ORGANIZATION/$APP_OWNER$GITOPS_REPO_SUFFIX $GITOPS_REPO_CLONE_DIR
+        fi
 
   - task: Bash@3
     displayName: 'Process custom IngressRoute for staf org'
@@ -351,6 +406,7 @@ steps:
         # PLEASE DON'T USE PIPELINE VARIABLES PAST THIS LINE.
 
         Write-Host "`nPowerShell script output START`n"
+        Write-Host "Using Az.Accounts $((Get-Module -Name Az.Accounts).Version) from $((Get-Module -Name Az.Accounts).Path)"
 
         $apimSubscriptionId = "$appOwner-$appName"
 
@@ -391,7 +447,8 @@ steps:
 
         Write-Host "`nPowerShell script output END`n"
       FailOnStandardError: true
-      CustomTargetAzurePs: 12.1.0
+      azurePowerShellVersion: LatestVersion
+      TargetAzurePs: LatestVersion
       pwsh: true
 
   - task: AzurePowerShell@4
@@ -413,6 +470,7 @@ steps:
         # PLEASE DON'T USE PIPELINE VARIABLES PAST THIS LINE.
 
         Write-Host "`nPowerShell script output START`n"
+        Write-Host "Using Az.Accounts $((Get-Module -Name Az.Accounts).Version) from $((Get-Module -Name Az.Accounts).Path)"
 
         $apimSubscriptionId = "$appOwner-$appName"
 
@@ -453,7 +511,8 @@ steps:
 
         Write-Host "`nPowerShell script output END`n"
       FailOnStandardError: true
-      CustomTargetAzurePs: 12.1.0
+      azurePowerShellVersion: LatestVersion
+      TargetAzurePs: LatestVersion
       pwsh: true
 
   - task: AzurePowerShell@4
@@ -466,6 +525,7 @@ steps:
         # THIS SCRIPT WILL ONLY BE RUN IF DEPLOYING TO PROD ENV. SEE CONTROL OPTIONS.
 
         if ("$(APP_ENVIRONMENT)" -eq "production"){
+            Write-Host "Using Az.Accounts $((Get-Module -Name Az.Accounts).Version) from $((Get-Module -Name Az.Accounts).Path)"
 
             $apimContext = New-AzApiManagementContext -ResourceId $(APIM_RESOURCE_ID_PROD)
 
@@ -491,7 +551,8 @@ steps:
             Write-Host "##vso[task.setvariable variable=SUBSCRIPTION_KEY;]$subscriptionKey"
         }
       FailOnStandardError: true
-      CustomTargetAzurePs: 12.1.0
+      azurePowerShellVersion: LatestVersion
+      TargetAzurePs: LatestVersion
       pwsh: true
 
   - task: Bash@3
@@ -536,7 +597,7 @@ steps:
               retries: 1
           chart:
             spec:
-              version: 3.8.0
+              version: 3.10.0
               chart: deployment
               sourceRef:
                 kind: HelmRepository
@@ -544,6 +605,14 @@ steps:
                 namespace: default
           values: {}
         EOF
+
+        if [ -n "$TRACEPARENT" ]; then
+          yq eval '.metadata.annotations."altinn.studio/traceparent" = env(TRACEPARENT)' --inplace "${HELMRELEASE_FILE}"
+        fi
+
+        if [ -n "$TRACESTATE" ]; then
+          yq eval '.metadata.annotations."altinn.studio/tracestate" = env(TRACESTATE)' --inplace "${HELMRELEASE_FILE}"
+        fi
 
 
   - task: Bash@3
@@ -554,15 +623,11 @@ steps:
       targetType: inline
       script: |
 
-        # Determine base URL prefix and environment
+        # Determine host name used for ingress route
         if [ "$APP_ENVIRONMENT" = "production" ]; then
-          BASE_URL="https://platform.${ALTINN_HOST}"
           HOST_NAME="${ALTINN_HOST}"
-          ENVIRONMENT="Production"
         else
-          BASE_URL="https://platform.${APP_ENVIRONMENT}.${ALTINN_HOST}"
           HOST_NAME="${APP_ENVIRONMENT}.${ALTINN_HOST}"
-          ENVIRONMENT="Staging"
         fi
 
         # Start writing to overrides file
@@ -571,60 +636,21 @@ steps:
           pullSecrets: []
           repository: ${APP_OWNER}altinnregistry01.azurecr.io/${RELEASE_NAME}
           tag: "${TAGNAME}"
+          envFrom:
+            - configMapRef:
+                name: apps-runtime-common-config-env
+            - secretRef:
+                name: apps-runtime-common-secrets-env
           environment:
-            - name: ServiceRepositorySettings__BaseResourceFolderContainer
-              value: /AltinnService/
-            - name: ServiceRepositorySettings__RepositoryLocation
-              value: /AltinnService/
-            - name: PlatformSettings__ApiStorageEndpoint
-              value: ${BASE_URL}/storage/api/v1/
-            - name: PlatformSettings__ApiRegisterEndpoint
-              value: ${BASE_URL}/register/api/v1/
-            - name: PlatformSettings__ApiProfileEndpoint
-              value: ${BASE_URL}/profile/api/v1/
-            - name: PlatformSettings__ApiAuthenticationEndpoint
-              value: ${BASE_URL}/authentication/api/v1/
-            - name: PlatformSettings__ApiAuthorizationEndpoint
-              value: ${BASE_URL}/authorization/api/v1/
-            - name: PlatformSettings__ApiEventsEndpoint
-              value: ${BASE_URL}/events/api/v1/
-            - name: PlatformSettings__ApiNotificationEndpoint
-              value: ${BASE_URL}/notifications/api/v1/
-            - name: GeneralSettings__HostName
-              value: ${HOST_NAME}
-            - name: AppSettings__OpenIdWellKnownEndpoint
-              value: ${BASE_URL}/authentication/api/v1/openid/
             - name: PlatformSettings__SubscriptionKey
               value: ${SUBSCRIPTION_KEY}
-            - name: PlatformSettings__ApiAccessManagementEndpoint
-              value: ${BASE_URL}/accessmanagement/api/v1/
-            - name: PlatformSettings__ApiCorrespondenceEndpoint
-              value: ${BASE_URL}/correspondence/api/v1/
             - name: AppSettings__AppInsightsRoleName
               value: ${APP_REPO}
             - name: ApplicationInsights__InstrumentationKey
               value: ${AI_INSTR_KEY}
-            - name: ASPNETCORE_ENVIRONMENT
-              value: ${ENVIRONMENT}
             - name: AppSettings__AppVersion
               value: "${TAGNAME}"
-            - name: PdfGeneratorSettings__ServiceEndpointUri
-              value: http://pdf-generator.pdf.svc.cluster.local/pdf
-            - name: PlatformSettings__ApiPdf2Endpoint
-              value: http://pdf-generator.pdf.svc.cluster.local/pdf
-            - name: GeneralSettings__ExternalAppBaseUrl
-              value: https://{org}.apps.{hostName}/{org}/{app}/
         EOF
-
-        # Add tt02 and production-specific settings
-        if [ "$APP_ENVIRONMENT" = "tt02" ] || [ "$APP_ENVIRONMENT" = "production" ]; then
-          cat << EOF >> "$OVERRIDES_FILE"
-            - name: AppSettings__EFormidlingSender
-              value: "991825827"
-            - name: EFormidlingClientSettings__BaseUrl
-              value: ${BASE_URL}/eformidling/api/
-        EOF
-        fi
 
         # Add service and ingressRoute
         cat << EOF >> "$OVERRIDES_FILE"
@@ -687,6 +713,54 @@ steps:
 
         # --- Cleanup non used files---
         rm -f "${OVERRIDES_FILE}" "${NORMALIZED_VALUES}" "${MERGED_VALUES}"
+
+  - task: Bash@3
+    displayName: 'Generate MaskinportenClient CR'
+    condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
+    continueOnError: true
+    inputs:
+      workingDirectory: '$(FLUX_ARTIFACT_DIR)'
+      targetType: inline
+      script: |
+        set +e  # Don't exit on errors, this needs testing
+
+        SCOPES_ARRAY="${APP_MASKINPORTEN_SCOPES_JSON:-[]}"
+
+        SCOPE_COUNT=$(echo "${SCOPES_ARRAY}" | jq 'length' 2>/dev/null || echo "0")
+
+        if [ "${SCOPE_COUNT}" -eq 0 ]; then
+          echo "No Maskinporten scopes configured, skipping MaskinportenClient CR generation"
+          exit 0
+        fi
+
+        echo "Generating MaskinportenClient CR with ${SCOPE_COUNT} scopes"
+
+        yq eval --null-input '{
+          "apiVersion": "resources.altinn.studio/v1alpha1",
+          "kind": "MaskinportenClient",
+          "metadata": {
+            "name": env(RELEASE_NAME),
+            "namespace": "default",
+            "labels": {
+              "altinn.studio/managed-by": "altinn-studio",
+              "altinn.studio/source-environment": env(STUDIO_ENVIRONMENT),
+              "altinn.studio/build-id": env(BUILD_BUILDID),
+              "altinn.studio/org": env(APP_OWNER),
+              "altinn.studio/app": env(APP_REPO)
+            }
+          },
+          "spec": {
+            "scopes": []
+          }
+        }' > "${MASKINPORTEN_CR_FILE}"
+
+        yq eval --inplace ".spec.scopes = $(echo "${SCOPES_ARRAY}" | yq eval --input-format json --output-format json '.')" "${MASKINPORTEN_CR_FILE}"
+
+        echo "Generated MaskinportenClient CR:"
+        cat "${MASKINPORTEN_CR_FILE}"
+
+        exit 0  # Always succeed, this needs testing
+      failOnStderr: false
 
   - task: AzureCLI@2
     displayName: 'Push OCI artifact to ACR'

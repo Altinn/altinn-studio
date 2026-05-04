@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { CodeListsCounterMessage } from './CodeListsCounterMessage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -29,6 +28,6 @@ describe('CodeListsCounterMessage', () => {
   });
 });
 
-const renderCodeListsCounterMessage = (codeListsCount: number) => {
+const renderCodeListsCounterMessage = (codeListsCount: number): void => {
   render(<CodeListsCounterMessage codeListsCount={codeListsCount} />);
 };

@@ -2,6 +2,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -14,37 +16,44 @@ namespace Altinn.App.Api.Controllers;
 /// <summary>
 /// Provides access to the default home view.
 /// </summary>
+[Route("{org}/{app}")]
 public class HomeController : Controller
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
-
     private readonly IAntiforgery _antiforgery;
     private readonly PlatformSettings _platformSettings;
     private readonly IWebHostEnvironment _env;
     private readonly AppSettings _appSettings;
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
+    private readonly AppIdentifier _appId;
+    private readonly ILogger<HomeController> _logger;
     private readonly List<string> _onEntryWithInstance = new List<string> { "new-instance", "select-instance" };
+    private readonly BootstrapGlobalService _bootstrapGlobalService;
+    private readonly IIndexPageGenerator _indexPageGenerator;
+    private readonly IAuthenticationContext _authenticationContext;
 
     /// <summary>
     /// Initialize a new instance of the <see cref="HomeController"/> class.
     /// </summary>
+    /// <param name="serviceProvider">The serviceProvider service used to inject internal services.</param>
     /// <param name="antiforgery">The anti forgery service.</param>
     /// <param name="platformSettings">The platform settings.</param>
     /// <param name="env">The current environment.</param>
-    /// <param name="appSettings">The application settings</param>
-    /// <param name="appResources">The application resources service</param>
-    /// <param name="appMetadata">The application metadata service</param>
+    /// <param name="appSettings">The application settings.</param>
+    /// <param name="appResources">The application resources service.</param>
+    /// <param name="appMetadata">The application metadata service.</param>
+    /// <param name="appId">The configured AppId</param>
+    /// <param name="logger">The logger for the controller.</param>
     public HomeController(
+        IServiceProvider serviceProvider,
         IAntiforgery antiforgery,
         IOptions<PlatformSettings> platformSettings,
         IWebHostEnvironment env,
         IOptions<AppSettings> appSettings,
         IAppResources appResources,
-        IAppMetadata appMetadata
+        IAppMetadata appMetadata,
+        AppIdentifier appId,
+        ILogger<HomeController> logger
     )
     {
         _antiforgery = antiforgery;
@@ -53,20 +62,31 @@ public class HomeController : Controller
         _appSettings = appSettings.Value;
         _appResources = appResources;
         _appMetadata = appMetadata;
+        _appId = appId;
+        _bootstrapGlobalService = serviceProvider.GetRequiredService<BootstrapGlobalService>();
+        _indexPageGenerator = serviceProvider.GetRequiredService<IIndexPageGenerator>();
+        _authenticationContext = serviceProvider.GetRequiredService<IAuthenticationContext>();
+        _logger = logger;
     }
 
     /// <summary>
     /// Returns the index view with references to the React app.
     /// </summary>
-    /// <param name="org">The application owner short name.</param>
-    /// <param name="app">The name of the app</param>
     /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
+    /// <param name="returnUrl">Custom returnUrl param that will be verified</param>
+    /// <param name="lang">The chosen language to use for default text resources</param>
     [HttpGet]
-    [Route("{org}/{app}/")]
+    [Route("")]
+    [Route("instance-selection")]
+    [Route("party-selection")]
+    [Route("party-selection/{errorCode}")]
+    [Route("{pageName:int}")]
+    [Route("instance/{partyId}/{instanceGuid}")]
+    [Route("instance/{partyId}/{instanceGuid}/{*rest}")]
     public async Task<IActionResult> Index(
-        [FromRoute] string org,
-        [FromRoute] string app,
-        [FromQuery] bool dontChooseReportee
+        [FromQuery] bool dontChooseReportee,
+        [FromQuery] string? returnUrl,
+        [FromQuery] string? lang = null
     )
     {
         // See comments in the configuration of Antiforgery in MvcConfiguration.cs.
@@ -85,13 +105,37 @@ public class HomeController : Controller
 
         if (await ShouldShowAppView())
         {
-            ViewBag.org = org;
-            ViewBag.app = app;
-            return PartialView("Index");
+            var partyRedirect = await GetPartySelectionRedirect();
+            if (partyRedirect is not null)
+            {
+                return partyRedirect;
+            }
+
+            if (_indexPageGenerator.HasLegacyIndexCshtml)
+            {
+                ViewBag.org = _appId.Org;
+                ViewBag.app = _appId.App;
+                return PartialView("Index");
+            }
+
+            string? frontendVersionOverride = null;
+            if (_env.IsDevelopment() && HttpContext.Request.Cookies.TryGetValue("frontendVersion", out var cookie))
+            {
+                frontendVersionOverride = cookie.TrimEnd('/');
+            }
+
+            var appGlobalState = await _bootstrapGlobalService.GetGlobalState(_appId.Org, _appId.App, returnUrl, lang);
+            var html = await _indexPageGenerator.Generate(
+                _appId.Org,
+                _appId.App,
+                appGlobalState,
+                frontendVersionOverride
+            );
+            return Content(html, "text/html; charset=utf-8");
         }
 
         string scheme = _env.IsDevelopment() ? "http" : "https";
-        string goToUrl = HttpUtility.UrlEncode($"{scheme}://{Request.Host}/{org}/{app}");
+        string goToUrl = HttpUtility.UrlEncode($"{scheme}://{Request.Host}/{_appId.Org}/{_appId.App}");
 
         string redirectUrl = $"{_platformSettings.ApiAuthenticationEndpoint}authentication?goto={goToUrl}";
 
@@ -130,8 +174,8 @@ public class HomeController : Controller
     [HttpGet]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK, "text/html")]
     [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest, "text/plain")]
-    [Route("{org}/{app}/set-query-params")]
-    public async Task<IActionResult> SetQueryParams(string org, string app)
+    [Route("set-query-params")]
+    public async Task<IActionResult> SetQueryParams()
     {
         ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
         if (!IsStatelessApp(application))
@@ -196,6 +240,86 @@ public class HomeController : Controller
         return Content(htmlContent, "text/html");
     }
 
+    private async Task<IActionResult?> GetPartySelectionRedirect()
+    {
+        // Only redirect for authenticated users
+        if (_authenticationContext.Current is not Authenticated.User user)
+        {
+            return null;
+        }
+
+        // Don't redirect if the user is already on a party-selection or instance route
+        var path = HttpContext.Request.Path.Value ?? "";
+        if (
+            path.Contains("/party-selection/", StringComparison.OrdinalIgnoreCase)
+            || path.EndsWith("/party-selection", StringComparison.OrdinalIgnoreCase)
+            || path.Contains("/instance/", StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            return null;
+        }
+
+        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+
+        if (IsStatelessApp(application))
+        {
+            DataType? dataType = GetStatelessDataType(application);
+            if (dataType?.AppLogic?.AllowAnonymousOnStateless == true)
+            {
+                return null;
+            }
+        }
+
+        Authenticated.User.Details details;
+        try
+        {
+            details = await user.LoadDetails(validateSelectedParty: true);
+        }
+        catch (AuthenticationContextException)
+        {
+            // Selected party doesn't exist or couldn't be loaded - redirect to party selection with error
+            return Redirect($"/{_appId.Org}/{_appId.App}/party-selection/403");
+        }
+
+        // If the selected party is not valid, redirect to party-selection/403
+        if (details.CanRepresent is null or false)
+        {
+            return Redirect($"/{_appId.Org}/{_appId.App}/party-selection/403");
+        }
+
+        // If no valid parties, redirect to party-selection error
+        if (details.PartiesAllowedToInstantiate.Count == 0)
+        {
+            return Redirect($"/{_appId.Org}/{_appId.App}/party-selection/403");
+        }
+
+        // If only one valid party, no need to prompt
+        if (details.PartiesAllowedToInstantiate.Count == 1)
+        {
+            return null;
+        }
+
+        // If promptForParty is "always", always redirect regardless of user preference
+        if (string.Equals(application.PromptForParty, "always", StringComparison.OrdinalIgnoreCase))
+        {
+            return Redirect($"/{_appId.Org}/{_appId.App}/party-selection/explained");
+        }
+
+        // If promptForParty is "never", skip party selection
+        if (string.Equals(application.PromptForParty, "never", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        if (details.Profile.ProfileSettingPreference?.DoNotPromptForParty == true)
+        {
+            return null;
+        }
+
+        // Default behavior with multiple parties: redirect to party selection
+        return Redirect($"/{_appId.Org}/{_appId.App}/party-selection/explained");
+    }
+
     private async Task<bool> ShouldShowAppView()
     {
         if (User?.Identity?.IsAuthenticated == true)
@@ -231,16 +355,20 @@ public class HomeController : Controller
 
     private DataType? GetStatelessDataType(ApplicationMetadata application)
     {
-        string layoutSetsString = _appResources.GetLayoutSets();
-
-        // Stateless apps only work with layousets
-        if (!string.IsNullOrEmpty(layoutSetsString))
+        var ui = _appResources.GetUiConfiguration();
+        if (ui is null)
         {
-            LayoutSets? layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions);
-            string? dataTypeId = layoutSets?.Sets?.Find(set => set.Id == application.OnEntry?.Show)?.DataType;
-            return application.DataTypes.Find(d => d.Id == dataTypeId);
+            return null;
         }
 
-        return null;
+        var onEntryFolderId = application.OnEntry?.Show;
+        if (onEntryFolderId is null || !ui.Folders.TryGetValue(onEntryFolderId, out var layoutSettings))
+        {
+            return null;
+        }
+
+        return application.DataTypes.Find(d => d.Id == layoutSettings.DefaultDataType)
+            ?? application.DataTypes.Find(d => d.TaskId == onEntryFolderId && d.AppLogic?.ClassRef is not null)
+            ?? application.DataTypes.Find(d => d.AppLogic?.ClassRef is not null);
     }
 }

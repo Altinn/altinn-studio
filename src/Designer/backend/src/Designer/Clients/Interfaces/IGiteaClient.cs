@@ -113,7 +113,13 @@ public interface IGiteaClient
     /// <param name="filePath">Path to a file, may start with full commit sha</param>
     /// <param name="reference">The short hash of a commit id</param>
     /// <param name="cancellationToken">The cancellation token</param>
-    Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken = default);
+    Task<FileSystemObject> GetFileAsync(
+        string org,
+        string app,
+        string filePath,
+        string reference,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Takes in a ServiceResource-object and uses it to create a ListviewServiceResource-object that contains some additional fields not stored in the resourceregistry
@@ -123,7 +129,12 @@ public interface IGiteaClient
     /// <param name="serviceResource">The ServiceResource that is to be converted into a ListviewServiceResource</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Returns the ListviewServiceResource based on the information from input and additional fields</returns>
-    Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource, CancellationToken cancellationToken);
+    Task<ListviewServiceResource> MapServiceResourceToListViewResource(
+        string org,
+        string repo,
+        ServiceResource serviceResource,
+        CancellationToken cancellationToken
+    );
 
     /// <summary>
     /// Gets a list of files in a folder from a folder path. Note that the file content is not returned, only metadata.
@@ -134,7 +145,13 @@ public interface IGiteaClient
     /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>a list of files in the given directory</returns>
-    Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string reference = null, CancellationToken cancellationToken = default);
+    Task<List<FileSystemObject>> GetDirectoryAsync(
+        string org,
+        string app,
+        string directoryPath,
+        string reference = null,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Gets the files in the CodeLists directory of a given repository.
@@ -145,7 +162,12 @@ public interface IGiteaClient
     /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A list of <see cref="FileSystemObject"/>.</returns>
-    Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(string org, string repository, string reference = null, CancellationToken cancellationToken = default);
+    Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(
+        string org,
+        string repository,
+        string reference = null,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Gets a file from a filepath at a specific reference (commit/branch/tag) along
@@ -156,7 +178,13 @@ public interface IGiteaClient
     /// <param name="filePath">Path to a file, may start with full commit sha</param>
     /// <param name="reference">The short hash of a commit id</param>
     /// <param name="cancellationToken">The cancellation token</param>
-    Task<(FileSystemObject, ProblemDetails)> GetFileAndErrorAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken = default);
+    Task<(FileSystemObject, ProblemDetails)> GetFileAndErrorAsync(
+        string org,
+        string app,
+        string filePath,
+        string reference,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Returns list of the teams the user is member of.
@@ -188,5 +216,51 @@ public interface IGiteaClient
     /// <param name="branchName">The name of the branch. If null or empty, the default branch (master) will be used.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The latest commit SHA as a string.</returns>
-    Task<string> GetLatestCommitOnBranch(string org, string repository, string branchName = null, CancellationToken cancellationToken = default);
+    Task<string> GetLatestCommitOnBranch(
+        string org,
+        string repository,
+        string branchName = null,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Returns a list of teams for the given organization.
+    /// </summary>
+    /// <param name="org">The organization name.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A list of teams in the organization.</returns>
+    Task<List<Team>> GetOrgTeamsAsync(string org, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a user as a member of a team.
+    /// </summary>
+    /// <param name="teamId">The team id.</param>
+    /// <param name="username">The username to add.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    Task AddTeamMemberAsync(long teamId, string username, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Removes a user from a team.
+    /// </summary>
+    /// <param name="teamId">The team id.</param>
+    /// <param name="username">The username to remove.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    Task RemoveTeamMemberAsync(long teamId, string username, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Checks whether a user is a member of a team.
+    /// </summary>
+    /// <param name="teamId">The team id.</param>
+    /// <param name="username">The username to check.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>True if the user is a member of the team, false otherwise.</returns>
+    Task<bool> IsTeamMemberAsync(long teamId, string username, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the members of a team.
+    /// </summary>
+    /// <param name="teamId">The team id.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A list of team members.</returns>
+    Task<List<User>> GetTeamMembersAsync(long teamId, CancellationToken cancellationToken = default);
 }

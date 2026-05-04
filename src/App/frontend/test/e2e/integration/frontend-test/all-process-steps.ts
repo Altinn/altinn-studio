@@ -1,9 +1,10 @@
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { customReceiptPageAnother, customReceiptPageReceipt } from 'test/e2e/support/customReceipt';
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
-import type { ILayoutCollection } from 'src/layout/layout';
+import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import type { IInstance } from 'src/types/shared';
 
 const appFrontend = new AppFrontend();
@@ -107,7 +108,7 @@ function interceptAndAddInstanceSubstatus() {
 function testReceipt() {
   cy.get(appFrontend.receipt.container).should('be.visible');
   cy.findByText('Skjemaet er sendt inn').should('be.visible');
-  cy.findByRole('link', { name: 'Kopi av din kvittering er sendt til ditt arkiv' }).should('be.visible');
+  cy.findByRole('link', { name: 'Din kvittering er lagret og tilgjengelig i din innboks' }).should('be.visible');
 
   cy.findAllByRole('link', { name: 'Nedlasting frontend-test.pdf' }).should('have.length', 5);
   cy.findAllByRole('link', { name: /^Nedlasting attachment-in-.*?\.pdf$/ }).should('have.length', 4);
@@ -128,29 +129,23 @@ function testReceiptSubStatus() {
 }
 
 function interceptAndAddCustomReceipt() {
-  cy.intercept('**/layoutsets', (req) => {
-    req.on('response', (res) => {
-      const layoutSets = JSON.parse(res.body);
-      layoutSets.sets.push({
-        id: 'custom-receipt',
-        dataType: 'likert',
-        tasks: ['CustomReceipt'],
-      });
-      res.body = JSON.stringify(layoutSets);
-    });
-  }).as('LayoutSets');
+  interceptAltinnAppGlobalData((globalData) => {
+    globalData.ui.folders.CustomReceipt = {
+      defaultDataType: 'likert', // TODO: Make it possible to remove this (https://github.com/Altinn/altinn-studio/issues/16621)
+      pages: { order: ['receipt', 'another'] },
+    };
+  });
 
-  cy.intercept('**/layoutsettings/custom-receipt**', { pages: { order: ['receipt', 'another'] } }).as('LayoutSettings');
-
-  cy.intercept('**/layouts/custom-receipt', (req) => {
-    req.on('response', (res) => {
-      // Layouts are returned as text/plain for some reason
-      const layouts = JSON.parse(res.body) as ILayoutCollection;
-      layouts.receipt = { data: { layout: customReceiptPageReceipt } };
-      layouts.another = { data: { layout: customReceiptPageAnother } };
-      res.body = JSON.stringify(layouts);
-    });
-  }).as('FormLayout');
+  cy.intercept('**/bootstrap-form/CustomReceipt?language=nb', (req) => {
+    req.reply({
+      layouts: {
+        receipt: { data: { layout: customReceiptPageReceipt } },
+        another: { data: { layout: customReceiptPageAnother } },
+      },
+      dataModels: {},
+      staticOptions: {},
+    } satisfies FormBootstrapResponse);
+  }).as('FormBootstrap');
 }
 
 export function testCustomReceiptPage() {
@@ -188,23 +183,24 @@ function testInstanceData() {
     const instanceId = maybeInstanceId ? maybeInstanceId[1] : 'instance-id-not-found';
 
     const host = Cypress.env('type') === 'localtest' ? urlParsed.origin : 'https://ttd.apps.tt02.altinn.no';
-    const instanceUrl = [host, urlParsed.pathname, `/instances/`, instanceId].join('');
+    const instanceUrl = `${host}/ttd/${appFrontend.apps.frontendTest}/instances/${instanceId}`;
 
     cy.request({ url: instanceUrl }).then((response) => {
       const instanceData = response.body as IInstance;
-      for (const dataElement of instanceData.data) {
-        if (dataElement.contentType === 'application/xml') {
-          const dataModelUrlParsed = new URL(dataElement.selfLinks!.apps);
-          const dataModelUrl =
-            Cypress.env('type') === 'localtest' ? dataModelUrlParsed.pathname : dataElement.selfLinks!.apps;
-          cy.request({
-            url: dataModelUrl,
-          }).then((response) => {
-            cy.log(`Testing data model "${dataElement.dataType}"`);
-            cy.wrap(replaceVariableData(response.body)).snapshot({ name: dataElement.dataType });
-          });
-        }
+      const xmlElements = instanceData.data.filter((el) => el.contentType === 'application/xml');
+      const dataModels: Record<string, unknown> = {};
+
+      for (const dataElement of xmlElements) {
+        const parsed = new URL(dataElement.selfLinks!.apps);
+        const url = Cypress.env('type') === 'localtest' ? parsed.pathname : dataElement.selfLinks!.apps;
+
+        cy.request({ url }).then((res) => {
+          cy.log(`Collecting data model "${dataElement.dataType}"`);
+          dataModels[dataElement.dataType] = replaceVariableData(res.body);
+        });
       }
+
+      cy.then(() => cy.wrap(dataModels).toMatchSnapshot());
     });
   });
 }

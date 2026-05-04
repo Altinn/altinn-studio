@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { jest } from '@jest/globals';
 import { render, screen } from '@testing-library/react';
 
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
@@ -68,12 +67,6 @@ jest.mock('src/features/instance/useProcessQuery', () => ({
   })),
 }));
 
-jest.mock('src/features/applicationMetadata/ApplicationMetadataProvider', () => ({
-  useApplicationMetadata: jest.fn(() => ({
-    dataTypes: mockDataTypes,
-  })),
-}));
-
 jest.mock('src/features/language/Lang', () => ({
   Lang: ({ id }) => <span data-testid='lang-component'>{id}</span>,
 }));
@@ -136,6 +129,11 @@ describe('AttachmentListComponent', () => {
     jest.clearAllMocks();
     // Set up default mock implementation
     setupMockUseNodeItem();
+
+    window.altinnAppGlobalData.applicationMetadata = {
+      ...window.altinnAppGlobalData.applicationMetadata,
+      dataTypes: mockDataTypes,
+    };
   });
 
   it('should render AltinnAttachments when groupByDataTypeGrouping is false', () => {

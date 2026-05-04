@@ -36,7 +36,11 @@ public sealed class XsdNillableKeyword : IJsonSchemaKeyword, IEquatable<XsdNilla
         Value = value;
     }
 
-    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
+    public KeywordConstraint GetConstraint(
+        SchemaConstraint schemaConstraint,
+        IReadOnlyList<KeywordConstraint> localConstraints,
+        EvaluationContext context
+    )
     {
         return new KeywordConstraint(Name, (e, c) => { });
     }
@@ -70,7 +74,11 @@ public sealed class XsdNillableKeyword : IJsonSchemaKeyword, IEquatable<XsdNilla
     internal class XsdNillableKeywordJsonConverter : JsonConverter<XsdNillableKeyword>
     {
         /// <inheritdoc/>
-        public override XsdNillableKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override XsdNillableKeyword Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options
+        )
         {
             if (reader.TokenType != JsonTokenType.True && reader.TokenType != JsonTokenType.False)
             {

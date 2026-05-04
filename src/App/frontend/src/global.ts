@@ -1,15 +1,43 @@
 import type { QueryClient } from '@tanstack/react-query';
 
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IAttachmentsMap } from 'src/features/attachments';
+import type { IFooterLayout } from 'src/features/footer/types';
+import type { UiConfig } from 'src/features/form/ui/types';
+import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { IFeatureTogglesOptionalMap } from 'src/features/toggles';
+import type { ILayoutCollection } from 'src/layout/layout';
+import type { IAppLanguage, IApplicationSettings, IParty, IPlatformFrontendSettings, IProfile } from 'src/types/shared';
 
 ///<reference types="cypress-iframe" />
+
+export interface OrgName {
+  nb?: string;
+  nn?: string;
+  en?: string;
+}
+
+export type AltinnAppGlobalData = {
+  applicationMetadata: ApplicationMetadata;
+  footer: IFooterLayout;
+  ui: UiConfig;
+  frontendSettings: IApplicationSettings;
+  platformFrontendSettings: IPlatformFrontendSettings;
+  availableLanguages: IAppLanguage[];
+  userProfile?: IProfile;
+  returnUrl?: string;
+  selectedParty?: IParty;
+  textResources?: ITextResourceResult;
+  orgName?: OrgName;
+  orgLogoUrl?: string;
+};
 
 declare global {
   interface Window {
     app: string;
     org: string;
     featureToggles: IFeatureTogglesOptionalMap;
+    altinnAppGlobalData: AltinnAppGlobalData;
 
     // Exposes our global query client, which is used to cache data from API calls. This is exposed so that Cypress
     // can inject data into the cache, and so that we can access the cache in tests. It is also used by Studio
@@ -17,6 +45,10 @@ declare global {
     // in the app preview. We cannot simply remove/rename this without making sure the Studio team has a plan to
     // replace that functionality with something else.
     queryClient: QueryClient;
+
+    // This can be used to override the current layouts. In the future this is what will be used by Studio as well.
+    changeLayouts: (mutator: (existingLayouts: ILayoutCollection) => ILayoutCollection) => void;
+    resetLayouts: () => void;
 
     // Useful tooling and state when running in Cypress. We need to update state here in order for Cypress to be able
     // to read it in some tests.

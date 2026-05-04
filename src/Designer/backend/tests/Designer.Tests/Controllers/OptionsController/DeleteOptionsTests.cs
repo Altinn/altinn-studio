@@ -9,11 +9,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OptionsController;
 
-public class DeleteOptionsTests : DesignerEndpointsTestsBase<DeleteOptionsTests>, IClassFixture<WebApplicationFactory<Program>>
+public class DeleteOptionsTests
+    : DesignerEndpointsTestsBase<DeleteOptionsTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public DeleteOptionsTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public DeleteOptionsTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     private const string Org = "ttd";
     private const string Developer = "testUser";
@@ -38,7 +39,10 @@ public class DeleteOptionsTests : DesignerEndpointsTestsBase<DeleteOptionsTests>
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-        Assert.Equal($"The options file {OptionsListId}.json has been deleted.", responseDocument.RootElement.ToString());
+        Assert.Equal(
+            $"The options file {OptionsListId}.json has been deleted.",
+            responseDocument.RootElement.ToString()
+        );
     }
 
     [Fact]
@@ -61,6 +65,9 @@ public class DeleteOptionsTests : DesignerEndpointsTestsBase<DeleteOptionsTests>
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-        Assert.Equal($"The options file {OptionsListId}.json has been deleted.", responseDocument.RootElement.ToString());
+        Assert.Equal(
+            $"The options file {OptionsListId}.json has been deleted.",
+            responseDocument.RootElement.ToString()
+        );
     }
 }

@@ -59,9 +59,7 @@ public class PagesDto
         {
             PagesWithOrder pagesWithOrder => new PagesDto
             {
-                Pages = pagesWithOrder
-                    .Order?.Select(pageId => new PageDto { Id = pageId })
-                    .ToList(),
+                Pages = pagesWithOrder.Order?.Select(pageId => new PageDto { Id = pageId }).ToList(),
             },
             PagesWithGroups pagesWithGroups => new PagesDto
             {
@@ -96,16 +94,11 @@ public class PagesDto
     {
         if (Pages != null && Groups != null)
         {
-            throw new InvalidOperationException(
-                "Cannot convert to business object: `Pages` and `Groups` are defined"
-            );
+            throw new InvalidOperationException("Cannot convert to business object: `Pages` and `Groups` are defined");
         }
         Pages pages = this switch
         {
-            { Pages: not null } => new PagesWithOrder
-            {
-                Order = Pages.Select(page => page.Id).ToList(),
-            },
+            { Pages: not null } => new PagesWithOrder { Order = Pages.Select(page => page.Id).ToList() },
             { Groups: not null } => new PagesWithGroups
             {
                 Groups = Groups

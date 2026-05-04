@@ -1,20 +1,19 @@
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Internal.Language;
 
 namespace Altinn.App.Core.Internal.AltinnCdn;
-
-internal sealed record AltinnCdnOrgs
-{
-    [JsonPropertyName("orgs")]
-    public IReadOnlyDictionary<string, AltinnCdnOrgDetails>? Orgs { get; init; }
-}
 
 internal sealed record AltinnCdnOrgDetails
 {
     [JsonPropertyName("name")]
-    public AltinnCdnOrgName? Name { get; init; }
+    [JsonRequired]
+    public required AltinnCdnOrgName Name { get; init; }
 
     [JsonPropertyName("logo")]
     public string? Logo { get; init; }
+
+    [JsonPropertyName("emblem")]
+    public string? Emblem { get; init; }
 
     [JsonPropertyName("orgnr")]
     public string? Orgnr { get; set; }
@@ -23,17 +22,43 @@ internal sealed record AltinnCdnOrgDetails
     public string? Homepage { get; init; }
 
     [JsonPropertyName("environments")]
-    public List<string>? Environments { get; init; }
+    [JsonRequired]
+    public required List<string> Environments { get; init; }
+
+    [JsonPropertyName("contact")]
+    public AltinnCdnOrgContact? Contact { get; init; }
 }
 
 internal sealed record AltinnCdnOrgName
 {
     [JsonPropertyName("nb")]
-    public string? Nb { get; init; }
+    [JsonRequired]
+    public required string Nb { get; init; }
 
     [JsonPropertyName("nn")]
-    public string? Nn { get; init; }
+    [JsonRequired]
+    public required string Nn { get; init; }
 
     [JsonPropertyName("en")]
-    public string? En { get; init; }
+    [JsonRequired]
+    public required string En { get; init; }
+
+    public string? GetByLanguage(string? language)
+    {
+        return language switch
+        {
+            LanguageConst.Nn => Nn ?? Nb ?? En,
+            LanguageConst.En => En ?? Nb ?? Nn,
+            _ => Nb ?? Nn ?? En,
+        };
+    }
+}
+
+internal sealed record AltinnCdnOrgContact
+{
+    [JsonPropertyName("phone")]
+    public string? Phone { get; init; }
+
+    [JsonPropertyName("url")]
+    public string? Url { get; init; }
 }

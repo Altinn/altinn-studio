@@ -1,18 +1,18 @@
 import React from 'react';
-import { Form } from 'react-router-dom';
+import { Form } from 'react-router';
 
-import { jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock, getServiceOwnerPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
-import { FormProvider } from 'src/features/form/FormContext';
+import { FormProvider } from 'src/features/form/FormProvider';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
-import { fetchApplicationMetadata, fetchInstanceData, fetchProcessState } from 'src/queries/queries';
+import { fetchProcessState } from 'src/queries/queries';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { AppQueries } from 'src/queries/types';
 
@@ -25,27 +25,28 @@ enum RenderAs {
 }
 
 const render = async (renderAs: RenderAs, queriesOverride?: Partial<AppQueries>) => {
-  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
-    getIncomingApplicationMetadataMock((m) => {
-      m.org = 'brg';
-      m.partyTypesAllowed.person = true;
-      m.partyTypesAllowed.organisation = true;
-    }),
-  );
+  window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock((m) => {
+    m.org = 'brg';
+    m.partyTypesAllowed.person = true;
+    m.partyTypesAllowed.organisation = true;
+  });
   jest.mocked(fetchProcessState).mockImplementation(async () =>
     getProcessDataMock((p) => {
       p.processTasks = [p.currentTask!];
     }),
   );
-  jest.mocked(fetchInstanceData).mockImplementation(async () => {
+  const getInstanceMock = jest.fn(async () => {
     const instanceOwnerParty = renderAs === RenderAs.User ? getPartyMock() : getServiceOwnerPartyMock();
-    return getInstanceDataMock(
-      undefined,
-      instanceOwnerParty.partyId,
-      undefined,
-      instanceOwnerParty.orgNumber,
-      instanceOwnerParty,
-    );
+    return {
+      ...getInstanceDataMock(
+        undefined,
+        instanceOwnerParty.partyId,
+        undefined,
+        instanceOwnerParty.orgNumber,
+        instanceOwnerParty,
+      ),
+      process: getProcessDataMock(),
+    };
   });
 
   return await renderWithoutInstanceAndLayout({
@@ -71,8 +72,16 @@ const render = async (renderAs: RenderAs, queriesOverride?: Partial<AppQueries>)
       </InstanceRouter>
     ),
     queries: {
-      fetchLayouts: async () => ({}),
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.layouts = {};
+        }),
       ...queriesOverride,
+    },
+    apis: {
+      instanceApi: {
+        getInstance: getInstanceMock,
+      },
     },
   });
 };

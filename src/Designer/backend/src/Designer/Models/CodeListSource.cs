@@ -5,7 +5,11 @@ using Altinn.Studio.Designer.Helpers.Extensions;
 
 namespace Altinn.Studio.Designer.Models;
 
-public sealed record CodeListSource(string Name, string? Version = null, Dictionary<string, string>? QueryParameters = null)
+public sealed record CodeListSource(
+    string Name,
+    string? Version = null,
+    Dictionary<string, string>? QueryParameters = null
+)
 {
     public bool Equals(CodeListSource? other)
     {

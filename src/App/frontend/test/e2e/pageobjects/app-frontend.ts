@@ -63,6 +63,7 @@ export class AppFrontend {
   public helpText = {
     button: 'button[class^="ds-helptext"]',
     alert: 'div[data-testid="helptext"]',
+    alertOpen: 'div[data-testid="helptext"]:popover-open',
   };
 
   public deleteWarningPopover = 'div[data-testid="delete-warning-popover"]';

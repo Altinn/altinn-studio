@@ -13,6 +13,20 @@ describe('useHasMergeConflict', () => {
     expect(result.current.hasMergeConflict).toBe(true);
   });
 
+  it('should set hasMergeConflict to true when repositoryStatus is MergeConflict', () => {
+    const { result } = renderHook(() =>
+      useHasMergeConflict({ ...mockRepoStatus, repositoryStatus: 'MergeConflict' }),
+    );
+    expect(result.current.hasMergeConflict).toBe(true);
+  });
+
+  it('should set hasMergeConflict to true when repositoryStatus is CheckoutConflict', () => {
+    const { result } = renderHook(() =>
+      useHasMergeConflict({ ...mockRepoStatus, repositoryStatus: 'CheckoutConflict' }),
+    );
+    expect(result.current.hasMergeConflict).toBe(true);
+  });
+
   it('should set hasMergeConflict to false when repoStatus.hasMergeConflict is false', () => {
     const { result } = renderHook(() => useHasMergeConflict(mockRepoStatus));
     expect(result.current.hasMergeConflict).toBe(false);

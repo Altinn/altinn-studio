@@ -1,6 +1,7 @@
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Common } from 'test/e2e/pageobjects/common';
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 import type { PageValidation } from 'src/layout/common.generated';
 import type { ILayout } from 'src/layout/layout';
@@ -10,7 +11,7 @@ const common = new Common();
 
 describe('Summary', () => {
   it('Summary of change name form', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'changeNameFrom') {
         component.hidden = ['equals', ['component', 'newFirstName'], 'hidePrevName'];
       }
@@ -339,7 +340,7 @@ describe('Summary', () => {
   });
 
   it('Can exclude children from group summary', () => {
-    cy.interceptLayout('group', (component) => {
+    cy.interceptLayout('Task_3', (component) => {
       if (component.type === 'Summary' && component.id === 'summary1') {
         component.excludedChildren = ['comments-0-1', 'hideComment'];
       }
@@ -489,6 +490,7 @@ describe('Summary', () => {
       cy.get(exampleSummary).should('exist');
       assertErrorReport();
       cy.findByRole('button', { name: 'Forrige' }).click();
+      cy.get(appFrontend.changeOfName.newFirstName).should('exist');
       assertErrorReport();
       cy.gotoNavPage('summary');
       cy.get(exampleSummary).should('exist');
@@ -646,7 +648,7 @@ describe('Summary', () => {
  */
 function injectExtraPageAndSetTriggers(pageValidationConfig?: PageValidation | undefined) {
   cy.interceptLayout(
-    'changename',
+    'Task_2',
     (component) => {
       if (component.type === 'NavigationButtons') {
         component.validateOnNext = pageValidationConfig;
@@ -694,15 +696,9 @@ function injectExtraPageAndSetTriggers(pageValidationConfig?: PageValidation | u
       layoutSet['lastPage'] = { data: { layout } };
     },
   );
-  cy.log(`Reloading page with trigger: ${pageValidationConfig?.page ?? 'undefined'}`);
-  cy.waitUntilSaved();
-  cy.get('#finishedLoading').then(() => {
-    cy.reload();
-  });
-  cy.intercept('GET', '**/api/layoutsettings/changename', {
-    statusCode: 200,
-    body: {
-      $schema: 'https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json',
+  interceptAltinnAppGlobalData((data) => {
+    data.ui.folders.Task_2 = {
+      defaultDataType: data.ui.folders.Task_2.defaultDataType,
       pages: {
         order: ['form', 'summary', 'grid', 'lastPage'],
         excludeFromPdf: ['summary'],
@@ -711,6 +707,11 @@ function injectExtraPageAndSetTriggers(pageValidationConfig?: PageValidation | u
       components: {
         excludeFromPdf: [],
       },
-    },
+    };
+  });
+  cy.log(`Reloading page with trigger: ${pageValidationConfig?.page ?? 'undefined'}`);
+  cy.waitUntilSaved();
+  cy.get('#finishedLoading').then(() => {
+    cy.reload();
   });
 }

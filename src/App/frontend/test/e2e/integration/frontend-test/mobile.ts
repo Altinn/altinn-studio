@@ -33,13 +33,11 @@ function testChangeName() {
   cy.goto('changename');
 
   cy.fillOut('changename');
-  cy.intercept('**/api/layoutsettings/group').as('getLayoutGroup');
   cy.get(appFrontend.sendinButton).should('be.visible');
   sendIn();
 }
 
 function testGroup(mode: Mode) {
-  cy.wait('@getLayoutGroup');
   cy.findByRole('checkbox', { name: appFrontend.group.prefill.liten }).check();
   cy.findByRole('checkbox', { name: appFrontend.group.prefill.middels }).check();
   cy.findByRole('checkbox', { name: appFrontend.group.prefill.stor }).check();
@@ -127,7 +125,7 @@ function testConfirm() {
   cy.get(appFrontend.confirm.sendIn).click();
   cy.get(appFrontend.confirm.sendIn).should('not.exist');
   cy.get(appFrontend.receipt.container).should('be.visible');
-  cy.findByRole('link', { name: 'Kopi av din kvittering er sendt til ditt arkiv' }).should('be.visible');
+  cy.findByRole('link', { name: 'Din kvittering er lagret og tilgjengelig i din innboks' }).should('be.visible');
 }
 
 function sendIn() {

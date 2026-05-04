@@ -1,4 +1,4 @@
-import React, { type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { fireEvent, renderHook, screen, waitFor } from '@testing-library/react';
 import type { ServicesContextProps } from './ServicesContext';
 import { ServicesContextProvider, useServicesContext } from './ServicesContext';
@@ -6,6 +6,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { useQuery } from '@tanstack/react-query';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
+import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 const unknownErrorCode = 'unknownErrorCode';
@@ -58,45 +59,14 @@ describe('ServicesContext', () => {
     mockConsoleError.mockRestore();
   });
 
-  it('logs the user out after displaying a toast for a given time when the api says unauthorized', async () => {
+  it('logs the user out after displaying a toast when the api returns 401 with SessionExpired error code', async () => {
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
-    jest.spyOn(global, 'setTimeout');
+    const logout = jest.fn().mockImplementation(() => Promise.resolve());
     renderHook(
       () =>
         useQuery({
           queryKey: ['fetchData'],
-          queryFn: () => Promise.reject(createApiErrorMock(401)),
-          retry: false,
-        }),
-      {
-        wrapper: ({ children }) => {
-          return wrapper({ children });
-        },
-      },
-    );
-
-    const progressBar = await screen.findByRole('progressbar');
-    fireEvent.animationEnd(progressBar);
-
-    const container = await screen.findByText(textMock('api_errors.Unauthorized'));
-    expect(container).toBeInTheDocument();
-    fireEvent.animationEnd(container);
-
-    await waitFor(() => {
-      expect(queriesMock.logout).toHaveBeenCalled();
-    });
-
-    expect(mockConsoleError).toHaveBeenCalled();
-  });
-
-  it('displays the api error when the session is invalid or expired', async () => {
-    const logout = jest.fn().mockImplementation(() => Promise.resolve());
-
-    const { result } = renderHook(
-      () =>
-        useQuery({
-          queryKey: ['fetchData'],
-          queryFn: () => Promise.reject(createApiErrorMock(401, 'GT_03')),
+          queryFn: () => Promise.reject(createApiErrorMock(401, ApiErrorCodes.SessionExpired)),
           retry: false,
         }),
       {
@@ -106,8 +76,62 @@ describe('ServicesContext', () => {
       },
     );
 
-    await waitFor(() => result.current.isError);
-    expect(await screen.findByText(textMock('api_errors.GT_03'))).toBeInTheDocument();
+    const progressBar = await screen.findByRole('progressbar');
+    fireEvent.animationEnd(progressBar);
+
+    const container = await screen.findByText(textMock('api_errors.SessionExpired'));
+    expect(container).toBeInTheDocument();
+    fireEvent.animationEnd(container);
+
+    await waitFor(() => {
+      expect(logout).toHaveBeenCalled();
+    });
+
+    mockConsoleError.mockRestore();
+  });
+
+  it('does not log the user out when the api returns a plain 401 with no error code', async () => {
+    const logout = jest.fn().mockImplementation(() => Promise.resolve());
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(401)),
+          retry: false,
+        }),
+      {
+        wrapper: ({ children }) => {
+          return wrapper({ children, queries: { logout } });
+        },
+      },
+    );
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(logout).not.toHaveBeenCalled();
+  });
+
+  it('displays the api error when the session is invalid or expired', async () => {
+    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
+    const logout = jest.fn().mockImplementation(() => Promise.resolve());
+
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(401, ApiErrorCodes.SessionExpired)),
+          retry: false,
+        }),
+      {
+        wrapper: ({ children }) => {
+          return wrapper({ children, queries: { logout } });
+        },
+      },
+    );
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText(textMock('api_errors.SessionExpired'));
+    expect(errorMessage).toBeInTheDocument();
+    mockConsoleError.mockRestore();
   });
 
   it('Displays a toast message for "GT_01" error code', async () => {
@@ -121,8 +145,10 @@ describe('ServicesContext', () => {
         }),
       { wrapper },
     );
-    await waitFor(() => result.current.isError);
-    expect(await screen.findByText(textMock('api_errors.GT_01'))).toBeInTheDocument();
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText(textMock('api_errors.GT_01'));
+    expect(errorMessage).toBeInTheDocument();
   });
 
   it('displays a specific error message if API returns error code DM_01', async () => {
@@ -136,9 +162,9 @@ describe('ServicesContext', () => {
       { wrapper },
     );
 
-    await waitFor(() => result.current.isError);
-
-    expect(await screen.findByText(textMock('api_errors.DM_01'))).toBeInTheDocument();
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText(textMock('api_errors.DM_01'));
+    expect(errorMessage).toBeInTheDocument();
   });
 
   it('displays a specific error message if API returns error code DM_03', async () => {
@@ -152,9 +178,9 @@ describe('ServicesContext', () => {
       { wrapper },
     );
 
-    await waitFor(() => result.current.isError);
-
-    expect(await screen.findByText(textMock('api_errors.DM_03'))).toBeInTheDocument();
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText(textMock('api_errors.DM_03'));
+    expect(errorMessage).toBeInTheDocument();
   });
 
   it('displays a specific error message if API returns error code DM_05', async () => {
@@ -168,9 +194,9 @@ describe('ServicesContext', () => {
       { wrapper },
     );
 
-    await waitFor(() => result.current.isError);
-
-    expect(await screen.findByText(textMock('api_errors.DM_05'))).toBeInTheDocument();
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText(textMock('api_errors.DM_05'));
+    expect(errorMessage).toBeInTheDocument();
   });
 
   it('displays a default error message if API returns an error code but the error message does not exist', async () => {
@@ -184,13 +210,11 @@ describe('ServicesContext', () => {
       { wrapper },
     );
 
-    await waitFor(() => result.current.isError);
-
-    expect(
-      await screen.findByText((content, element) =>
-        content.includes(textMock('general.error_message')),
-      ),
-    ).toBeInTheDocument();
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText((content) =>
+      content.includes(textMock('general.error_message')),
+    );
+    expect(errorMessage).toBeInTheDocument();
   });
 
   it('displays a default error message if an API call fails', async () => {
@@ -204,16 +228,37 @@ describe('ServicesContext', () => {
       { wrapper },
     );
 
-    await waitFor(() => result.current.isError);
-
-    expect(await screen.findByText(textMock('general.error_message'))).toBeInTheDocument();
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText(textMock('general.error_message'));
+    expect(errorMessage).toBeInTheDocument();
   });
 
   it('Throws an error if used outside a ServiceContextProvider', () => {
     const renderHookFn = () => renderHook(() => useServicesContext());
     jest.spyOn(console, 'error').mockImplementation();
-    expect(renderHookFn).toThrowError(
+    expect(renderHookFn).toThrow(
       'useServicesContext must be used within a ServicesContextProvider.',
     );
+  });
+
+  it('does not display error toast when request is cancelled', async () => {
+    const cancelledError = new Error('Request cancelled');
+    cancelledError.name = 'CanceledError';
+    Object.defineProperty(cancelledError, '__CANCEL__', { value: true });
+
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchCancelled'],
+          queryFn: () => Promise.reject(cancelledError),
+          retry: false,
+        }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    const toastElements = screen.queryAllByRole('alert');
+    expect(toastElements).toHaveLength(0);
   });
 });

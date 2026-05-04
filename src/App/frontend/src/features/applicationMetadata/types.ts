@@ -7,7 +7,7 @@ type ILogoOptions = {
   size?: 'small' | 'medium' | 'large';
 };
 
-export interface IncomingApplicationMetadata {
+export interface ApplicationMetadata {
   id: string;
   title: ITitle;
   org: string;
@@ -17,17 +17,18 @@ export interface IncomingApplicationMetadata {
   features?: Partial<IBackendFeaturesState>;
   promptForParty?: 'always' | 'never';
   externalApiIds?: string[];
-
-  onEntry?: IOnEntry;
+  onEntry: IOnEntry;
   altinnNugetVersion?: string;
   logo?: ILogoOptions;
+  messageBoxConfig?: MessageBoxConfig;
 }
 
-export type ApplicationMetadata = Omit<IncomingApplicationMetadata, 'onEntry' | 'logo'> & {
-  onEntry: IOnEntry;
-  isValidVersion: boolean;
-  isStatelessApp: boolean;
-  logoOptions?: ILogoOptions;
+type HideAlwaysSettings = {
+  hideAlways: boolean;
+};
+
+export type MessageBoxConfig = {
+  hideSettings?: HideAlwaysSettings;
 };
 
 export interface IOnEntry {
@@ -52,4 +53,5 @@ export interface IPartyTypesAllowed {
 
 export interface IBackendFeaturesState {
   jsonObjectInDataResponse: boolean; // Extended attachment validation
+  addInstanceIdentifierToLayoutRequests: boolean; // Add instance identifier to layout requests
 }

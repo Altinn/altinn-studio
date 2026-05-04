@@ -1,7 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import type { CodeListUsagesProps } from './CodeListUsages';
 import { CodeListUsages } from './CodeListUsages';
-import React from 'react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { CodeListUsageTaskType } from '../../../../../../types/CodeListUsageTaskType';
 
@@ -101,7 +100,7 @@ const defaultCodeListUsagesProps: CodeListUsagesProps = {
   codeListSources: [{ taskType, taskId, layoutName, componentIds }],
 };
 
-const renderCodeListUsages = (props: Partial<CodeListUsagesProps> = {}) => {
+const renderCodeListUsages = (props: Partial<CodeListUsagesProps> = {}): void => {
   render(<CodeListUsages {...defaultCodeListUsagesProps} {...props} />);
 };
 

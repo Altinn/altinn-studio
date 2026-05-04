@@ -1,5 +1,5 @@
 import type { HTMLAttributes, ReactElement } from 'react';
-import React, { useCallback, useEffect, useId, useLayoutEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useState } from 'react';
 import { StudioTreeViewRootContext } from './';
 import classes from './StudioTreeViewRoot.module.css';
 import { findFirstNodeId } from '../utils/domUtils';

@@ -1,15 +1,14 @@
+//nolint:funlen,govet,nestif,nilnil // Production controller behavior is kept close to the pre-refactor implementation; suppress controller-local lint findings rather than riskier rewrites.
 package azurekeyvaultsync
 
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
-	"altinn.studio/operator/internal/assert"
-	"altinn.studio/operator/internal/config"
-	"altinn.studio/operator/internal/operatorcontext"
-	rt "altinn.studio/operator/internal/runtime"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
@@ -22,17 +21,21 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	"altinn.studio/operator/internal/assert"
+	"altinn.studio/operator/internal/config"
+	"altinn.studio/operator/internal/operatorcontext"
+	rt "altinn.studio/operator/internal/runtime"
 )
 
 // KeyVaultSecretMapping defines which Azure Key Vault secrets map to a K8s secret.
 type KeyVaultSecretMapping struct {
-	Name      string   // K8s secret name
-	Namespace string   // K8s secret namespace
-	FileName  string   // Key name in the K8s secret (e.g., "secrets.json")
-	Secrets   []string // Azure Key Vault secret names to fetch
-	// BuildOutput transforms resolved secrets into the JSON structure.
-	// If nil, secrets are serialized as map[string]string.
 	BuildOutput func(secrets map[string]string) any
+	Name        string
+	Namespace   string
+	FileName    string
+	Secrets     []string
+	Raw         bool
 }
 
 func DefaultMappings(runtime rt.Runtime) []KeyVaultSecretMapping {
@@ -64,6 +67,26 @@ func DefaultMappings(runtime rt.Runtime) []KeyVaultSecretMapping {
 				}
 			},
 		},
+		{
+			Name:      "control-plane-azure-monitor-secret",
+			Namespace: "runtime-obs",
+			FileName:  "connection-string",
+			Secrets:   []string{"AzureMonitor--ControlPlane--ConnectionString"},
+			Raw:       true,
+			BuildOutput: func(secrets map[string]string) any {
+				return secrets["AzureMonitor--ControlPlane--ConnectionString"]
+			},
+		},
+		{
+			Name:      "data-plane-azure-monitor-secret",
+			Namespace: "runtime-obs",
+			FileName:  "connection-string",
+			Secrets:   []string{"AzureMonitor--DataPlane--ConnectionString"},
+			Raw:       true,
+			BuildOutput: func(secrets map[string]string) any {
+				return secrets["AzureMonitor--DataPlane--ConnectionString"]
+			},
+		},
 	}
 }
 
@@ -78,6 +101,10 @@ type AzureKeyVaultReconciler struct {
 	runtime   rt.Runtime
 	mappings  []KeyVaultSecretMapping
 }
+
+var ErrDisabledInLocalEnv = errors.New("key vault sync is disabled in local environment")
+var errRawMappingOutputMustBeString = errors.New("raw mapping requires BuildOutput to return string")
+var errKeyVaultSecretNotFound = errors.New("secret not found in Key Vault")
 
 // NewReconciler creates a new KeyVaultSync controller.
 // Returns nil if running in local environment (no Key Vault access).
@@ -235,16 +262,27 @@ func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVa
 		secretData[kvSecretName] = value
 	}
 
-	var output any = secretData
-	if mapping.BuildOutput != nil {
-		output = mapping.BuildOutput(secretData)
+	var outputBytes []byte
+	if mapping.Raw {
+		rawStr, ok := mapping.BuildOutput(secretData).(string)
+		if !ok {
+			return errRawMappingOutputMustBeString
+		}
+		outputBytes = []byte(rawStr)
+	} else {
+		var output any = secretData
+		if mapping.BuildOutput != nil {
+			output = mapping.BuildOutput(secretData)
+		}
+		var marshalErr error
+		outputBytes, marshalErr = json.Marshal(output)
+		if marshalErr != nil {
+			span.RecordError(marshalErr)
+			return fmt.Errorf("failed to marshal secrets to JSON: %w", marshalErr)
+		}
 	}
 
-	jsonBytes, err := json.Marshal(output)
-	if err != nil {
-		span.RecordError(err)
-		return fmt.Errorf("failed to marshal secrets to JSON: %w", err)
-	}
+	var err error
 
 	secret := &corev1.Secret{}
 	secretKey := client.ObjectKey{Name: mapping.Name, Namespace: mapping.Namespace}
@@ -260,7 +298,7 @@ func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVa
 				},
 			},
 			Data: map[string][]byte{
-				mapping.FileName: jsonBytes,
+				mapping.FileName: outputBytes,
 			},
 		}
 		if err := c.k8sClient.Create(ctx, secret); err != nil {
@@ -280,7 +318,7 @@ func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVa
 	if secret.Data == nil {
 		secret.Data = make(map[string][]byte)
 	}
-	secret.Data[mapping.FileName] = jsonBytes
+	secret.Data[mapping.FileName] = outputBytes
 
 	if err := c.k8sClient.Update(ctx, secret); err != nil {
 		span.RecordError(err)
@@ -305,14 +343,15 @@ func (c *AzureKeyVaultReconciler) getSecret(ctx context.Context, name string) (s
 
 	value, err := c.kvClient.GetSecret(ctx, name, "")
 	if err != nil {
-		if respErr, ok := err.(*azcore.ResponseError); ok {
-			if respErr.StatusCode == 404 {
+		respErr := &azcore.ResponseError{}
+		if errors.As(err, &respErr) {
+			if respErr.StatusCode == http.StatusNotFound {
 				span.SetStatus(codes.Error, "secret not found")
-				return "", fmt.Errorf("secret %q not found in Key Vault", name)
+				return "", fmt.Errorf("%w: %q", errKeyVaultSecretNotFound, name)
 			}
 		}
 		span.RecordError(err)
-		return "", err
+		return "", fmt.Errorf("get Key Vault secret %q: %w", name, err)
 	}
 
 	return value, nil

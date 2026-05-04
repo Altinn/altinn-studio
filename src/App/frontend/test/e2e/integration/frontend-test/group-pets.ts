@@ -186,7 +186,7 @@ describe('Group (Pets)', () => {
   });
 
   it('innerGrid should be ignored when editing in table', () => {
-    cy.interceptLayout('group', (comp) => {
+    cy.interceptLayout('Task_3', (comp) => {
       if (comp.id === 'pets' && comp.type === 'RepeatingGroup') {
         comp.tableColumns = {
           ...comp.tableColumns,

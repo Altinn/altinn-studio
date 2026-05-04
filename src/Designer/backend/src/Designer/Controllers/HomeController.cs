@@ -1,8 +1,8 @@
-#nullable disable
 using System;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
@@ -11,105 +11,120 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
 
-namespace Altinn.Studio.Designer.Controllers
+namespace Altinn.Studio.Designer.Controllers;
+
+/// <summary>
+/// The default MVC controller in the application
+/// </summary>
+[Route("[action]/{id?}")]
+[Route("[controller]/[action]/{id?}")]
+public class HomeController : Controller
 {
+    private readonly ILogger<HomeController> _logger;
+    private readonly ServiceRepositorySettings _settings;
+    private readonly ISourceControl _sourceControl;
+    private readonly GeneralSettings _generalSettings;
+    private readonly IFeatureManager _featureManager;
+    private readonly StudioOidcLoginSettings _studioOidcLoginSettings;
+
     /// <summary>
-    /// The default MVC controller in the application
+    /// Initializes a new instance of the <see cref="HomeController"/> class
     /// </summary>
-    [Route("[action]/{id?}")]
-    [Route("[controller]/[action]/{id?}")]
-    public class HomeController : Controller
+    /// <param name="logger">The logger</param>
+    /// <param name="repositorySettings">settings for the repository</param>
+    /// <param name="generalSettings">the general settings</param>
+    /// <param name="sourceControl">the source control</param>
+    /// <param name="featureManager">the feature manager</param>
+    /// <param name="studioOidcLoginSettings">the studio oidc login settings</param>
+    public HomeController(
+        ILogger<HomeController> logger,
+        ServiceRepositorySettings repositorySettings,
+        GeneralSettings generalSettings,
+        ISourceControl sourceControl,
+        IFeatureManager featureManager,
+        StudioOidcLoginSettings studioOidcLoginSettings
+    )
     {
-        private readonly ILogger<HomeController> _logger;
-        private readonly ServiceRepositorySettings _settings;
-        private readonly ISourceControl _sourceControl;
-        private readonly GeneralSettings _generalSettings;
-        private readonly ApplicationInsightsSettings _applicationInsightsSettings;
+        _logger = logger;
+        _settings = repositorySettings;
+        _generalSettings = generalSettings;
+        _sourceControl = sourceControl;
+        _featureManager = featureManager;
+        _studioOidcLoginSettings = studioOidcLoginSettings;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="HomeController"/> class
-        /// </summary>
-        /// <param name="logger">The logger</param>
-        /// <param name="repositorySettings">settings for the repository</param>
-        /// <param name="generalSettings">the general settings</param>
-        /// <param name="sourceControl">the source control</param>
-        /// <param name="applicationInsightsSettings">An <see cref="ApplicationInsightsSettings"/></param>
-        public HomeController(
-            ILogger<HomeController> logger,
-            ServiceRepositorySettings repositorySettings,
-            GeneralSettings generalSettings,
-            ISourceControl sourceControl,
-            ApplicationInsightsSettings applicationInsightsSettings
-        )
+    /// <summary>
+    /// the default page for altinn studio when the user is not logged in
+    /// </summary>
+    /// <returns>The start page</returns>
+    [Route("/")]
+    [Route("/[controller]")]
+    [Route("/[controller]/[action]/{id?}", Name = "DefaultNotLoggedIn")]
+    public async Task<ActionResult> StartPage()
+    {
+        bool isUserLoggedIn = User.Identity?.IsAuthenticated ?? false;
+
+        if (isUserLoggedIn)
         {
-            _logger = logger;
-            _settings = repositorySettings;
-            _generalSettings = generalSettings;
-            _sourceControl = sourceControl;
-            _applicationInsightsSettings = applicationInsightsSettings;
+            return LocalRedirect("/dashboard");
         }
 
-        /// <summary>
-        /// the default page for altinn studio when the user is not logged in
-        /// </summary>
-        /// <returns>The start page</returns>
-        [Route("/")]
-        [Route("/[controller]")]
-        [Route("/[controller]/[action]/{id?}", Name = "DefaultNotLoggedIn")]
-        public async Task<ActionResult> StartPage()
+        ViewBag.StudioOidc = await _featureManager.IsEnabledAsync(StudioFeatureFlags.StudioOidc);
+
+        Response.Cookies.Delete(General.DesignerCookieName);
+        Response.Cookies.Delete(_settings.GiteaCookieName);
+        return View("StartPage");
+    }
+
+    /// <summary>
+    /// Login
+    /// </summary>
+    /// <returns>The login page</returns>
+    public async Task<IActionResult> Login()
+    {
+        if (User.Identity?.IsAuthenticated == true)
         {
-            await Task.CompletedTask;
-            bool isUserLoggedIn = User.Identity?.IsAuthenticated ?? false;
-
-            if (isUserLoggedIn)
-            {
-                return LocalRedirect("/dashboard");
-            }
-
-            Response.Cookies.Delete(General.DesignerCookieName);
-            Response.Cookies.Delete(_settings.GiteaCookieName);
-            return View("StartPage");
-        }
-
-        /// <summary>
-        /// Login
-        /// </summary>
-        /// <returns>The login page</returns>
-        [Authorize]
-        public async Task<IActionResult> Login()
-        {
-            await Task.CompletedTask;
             return LocalRedirect("/");
         }
 
-        /// <summary>
-        /// Logout
-        /// </summary>
-        /// <returns>The logout page</returns>
-        public async Task<IActionResult> Logout()
+        if (await _featureManager.IsEnabledAsync(StudioFeatureFlags.StudioOidc))
         {
-            HttpContext.Response.Cookies.Append(
-                _generalSettings.SessionTimeoutCookieName,
-                string.Empty,
-                new CookieOptions { HttpOnly = true, Expires = DateTime.Now.AddDays(-10) }
-            );
-
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return LocalRedirect("/");
+            string callbackUrl = "/designer/api/v1/studio-oidc/callback?redirect_to=" + Uri.EscapeDataString("/");
+            return Challenge(new AuthenticationProperties { RedirectUri = callbackUrl });
         }
 
-        /// <summary>
-        /// Store app token for user
-        /// </summary>
-        /// <param name="appKey">the app key</param>
-        /// <returns>redirects user</returns>
-        [Authorize]
-        [HttpPost]
-        public IActionResult AppToken(AppKey appKey)
-        {
-            _sourceControl.StoreAppTokenForUser(appKey.Key);
-            return Redirect("/");
-        }
+        return Challenge(new AuthenticationProperties { RedirectUri = "/" });
+    }
+
+    /// <summary>
+    /// Logout
+    /// </summary>
+    /// <returns>The logout page</returns>
+    public async Task<IActionResult> Logout()
+    {
+        HttpContext.Response.Cookies.Append(
+            _generalSettings.SessionTimeoutCookieName,
+            string.Empty,
+            new CookieOptions { HttpOnly = true, Expires = DateTime.Now.AddDays(-10) }
+        );
+
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return LocalRedirect("/");
+    }
+
+    /// <summary>
+    /// Store app token for user
+    /// </summary>
+    /// <param name="appKey">the app key</param>
+    /// <returns>redirects user</returns>
+    [Authorize]
+    [HttpPost]
+    public IActionResult AppToken(AppKey appKey)
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        _sourceControl.StoreAppTokenForUser(appKey.Key, developer);
+        return Redirect("/");
     }
 }

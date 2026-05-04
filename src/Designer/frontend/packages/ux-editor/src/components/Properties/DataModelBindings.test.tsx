@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DataModelBindings } from './DataModelBindings';
@@ -122,7 +121,7 @@ describe('DataModelBindings', () => {
     });
 
     await waitForElementToBeRemoved(() =>
-      screen.queryAllByTitle(textMock('ux_editor.modal_properties_loading')),
+      screen.queryAllByLabelText(textMock('ux_editor.modal_properties_loading')),
     );
 
     ['address', 'careOf'].forEach((prop) => {

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Serialization;
@@ -20,12 +19,6 @@ namespace Altinn.App.Core.Tests.Internal.Process;
 
 public class ExpressionsExclusiveGatewayTests
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = true,
-    };
-
     private readonly Mock<IAppResources> _resources = new(MockBehavior.Strict);
     private readonly Mock<IAppModel> _appModel = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadata = new(MockBehavior.Strict);
@@ -160,12 +153,6 @@ public class ExpressionsExclusiveGatewayTests
             },
         };
         object formData = new DummyModel() { Amount = 1000, Submitter = "test" };
-        LayoutSet layoutSet = new()
-        {
-            Id = "test",
-            Tasks = new() { "Task_1" },
-            DataType = DefaultDataTypeName,
-        };
         var outgoingFlows = new List<SequenceFlow>
         {
             new SequenceFlow { Id = "1", ConditionExpression = "[\"notEquals\", [\"dataModel\", \"Amount\"], 1000]" },
@@ -192,7 +179,7 @@ public class ExpressionsExclusiveGatewayTests
         var (gateway, dataAccessor) = SetupExpressionsGateway(
             instance,
             dataTypes: dataTypes,
-            layoutSet: layoutSet,
+            defaultDataType: DefaultDataTypeName,
             formData: formData
         );
 
@@ -223,12 +210,6 @@ public class ExpressionsExclusiveGatewayTests
         };
 
         object formData = new DummyModel() { Amount = 1000, Submitter = "test" };
-        LayoutSet layoutSet = new()
-        {
-            Id = "test",
-            Tasks = new() { "Task_1" },
-            DataType = DefaultDataTypeName,
-        };
         var outgoingFlows = new List<SequenceFlow>
         {
             new SequenceFlow { Id = "1", ConditionExpression = "[\"notEquals\", [\"dataModel\", \"Amount\"], 1000]" },
@@ -252,7 +233,12 @@ public class ExpressionsExclusiveGatewayTests
         };
         var processGatewayInformation = new ProcessGatewayInformation { Action = "confirm", DataTypeId = "aa" };
 
-        var (gateway, dataAccessor) = SetupExpressionsGateway(instance, dataTypes, layoutSet, formData);
+        var (gateway, dataAccessor) = SetupExpressionsGateway(
+            instance,
+            dataTypes,
+            defaultDataType: DefaultDataTypeName,
+            formData: formData
+        );
 
         // Act
         var result = await gateway.FilterAsync(outgoingFlows, instance, dataAccessor, processGatewayInformation);
@@ -265,11 +251,18 @@ public class ExpressionsExclusiveGatewayTests
     private (ExpressionsExclusiveGateway gateway, IInstanceDataAccessor dataAccessor) SetupExpressionsGateway(
         Instance instance,
         List<DataType> dataTypes,
-        LayoutSet? layoutSet = null,
+        string? defaultDataType = null,
         object? formData = null
     )
     {
-        _resources.Setup(r => r.GetLayoutSetForTask(TaskId)).Returns(layoutSet);
+        var folders = new Dictionary<string, LayoutSettings>();
+        if (defaultDataType is not null)
+        {
+            folders[TaskId] = new LayoutSettings { DefaultDataType = defaultDataType };
+        }
+        _resources
+            .Setup(r => r.GetUiConfiguration())
+            .Returns(new UiConfiguration { Folders = folders, Settings = null });
         var appMetadata = new ApplicationMetadata(AppId) { DataTypes = dataTypes };
         var modelSerializationService = new ModelSerializationService(_appModel.Object);
         _appMetadata.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(appMetadata).Verifiable(Times.AtLeastOnce);
@@ -314,7 +307,4 @@ public class ExpressionsExclusiveGatewayTests
         );
         return (new ExpressionsExclusiveGateway(layoutStateInit, _resources.Object), dataAccessor);
     }
-
-    private static string LayoutSetsToString(LayoutSets layoutSets) =>
-        JsonSerializer.Serialize(layoutSets, _jsonSerializerOptions);
 }

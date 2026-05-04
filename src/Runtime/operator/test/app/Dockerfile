@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine@sha256:95e1421e741ac2bc9722271c61e0f10d106fe0d5240fcfe6184ec943f2a134e7 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine@sha256:608d8a4b570b88bd8b1fbb792f00cee88d557eee3a56ebf06b359fdea05a50ed AS build
 WORKDIR /App
 
 COPY /App/App.csproj .
@@ -8,7 +8,7 @@ COPY /App .
 
 RUN dotnet publish App.csproj --configuration Release --output /app_output
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine@sha256:263b689158ccdd6882d29b96b3f7a907a6659592dc097fd7a9564b8b987ef187 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine@sha256:354c2fcfb3c23abc60d98f0380cdb403fba844a62a123b6343a8c9611209995c AS final
 EXPOSE 5005
 WORKDIR /App
 COPY --from=build /app_output .

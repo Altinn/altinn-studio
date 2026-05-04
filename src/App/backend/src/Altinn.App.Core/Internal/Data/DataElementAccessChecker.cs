@@ -2,6 +2,7 @@ using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
+using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
@@ -96,6 +97,16 @@ internal class DataElementAccessChecker : IDataElementAccessChecker
     {
         auth ??= _authenticationContext.Current;
 
+        if (dataType.Id.Equals(PdfService.PdfElementType, StringComparison.OrdinalIgnoreCase))
+        {
+            return new ProblemDetails
+            {
+                Title = "Forbidden",
+                Detail = $"Data element of type {dataType.Id} cannot be modified",
+                Status = StatusCodes.Status403Forbidden,
+            };
+        }
+
         if (await HasRequiredActionAuthorization(instance, dataType.ActionRequiredToWrite) is false)
         {
             return new ProblemDetails
@@ -122,6 +133,7 @@ internal class DataElementAccessChecker : IDataElementAccessChecker
             {
                 Title = "Forbidden",
                 Detail = "User is not a valid contributor to the data type",
+                Status = StatusCodes.Status403Forbidden,
             };
         }
 

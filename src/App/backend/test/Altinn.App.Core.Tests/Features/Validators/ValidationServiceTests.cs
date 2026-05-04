@@ -441,30 +441,28 @@ public class ValidationServiceTests : IAsyncLifetime
             },
         ];
 
-        var changes = new DataElementChanges(
-            [
-                new FormDataChange(
-                    type: ChangeType.Updated,
-                    dataElement: dataElement,
-                    dataType: _instanceDataAccessor.GetDataType(dataElement),
-                    contentType: "text/plain",
-                    currentFormDataWrapper: FormDataWrapperFactory.Create("currentValue"),
-                    previousFormDataWrapper: FormDataWrapperFactory.Create("previousValue"),
-                    currentBinaryData: null,
-                    previousBinaryData: default
-                ),
-                new FormDataChange(
-                    type: ChangeType.Updated,
-                    dataElement: dataElementNoValidation,
-                    dataType: _instanceDataAccessor.GetDataType(dataElement),
-                    contentType: "text/plain",
-                    currentFormDataWrapper: FormDataWrapperFactory.Create("currentValue"),
-                    previousFormDataWrapper: FormDataWrapperFactory.Create("previousValue"),
-                    currentBinaryData: null,
-                    previousBinaryData: null
-                ),
-            ]
-        );
+        var changes = new DataElementChanges([
+            new FormDataChange(
+                type: ChangeType.Updated,
+                dataElement: dataElement,
+                dataType: _instanceDataAccessor.GetDataType(dataElement),
+                contentType: "text/plain",
+                currentFormDataWrapper: FormDataWrapperFactory.Create("currentValue"),
+                previousFormDataWrapper: FormDataWrapperFactory.Create("previousValue"),
+                currentBinaryData: null,
+                previousBinaryData: default
+            ),
+            new FormDataChange(
+                type: ChangeType.Updated,
+                dataElement: dataElementNoValidation,
+                dataType: _instanceDataAccessor.GetDataType(dataElement),
+                contentType: "text/plain",
+                currentFormDataWrapper: FormDataWrapperFactory.Create("currentValue"),
+                previousFormDataWrapper: FormDataWrapperFactory.Create("previousValue"),
+                currentBinaryData: null,
+                previousBinaryData: null
+            ),
+        ]);
 
         var genericValidator = new GenericValidatorFake(defaultDataType, validatorIssues, hasRelevantChanges: true);
         _services.AddSingleton<IFormDataValidator>(genericValidator);

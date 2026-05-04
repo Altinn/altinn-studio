@@ -1,4 +1,5 @@
-import React, { type ReactNode, useState } from 'react';
+import type { ReactNode } from 'react';
+import { useState } from 'react';
 import { StudioCallToActionBar } from '@studio/components';
 import type { IInternalLayout } from '../../types/global';
 import classes from './WithHoverAddButton.module.css';

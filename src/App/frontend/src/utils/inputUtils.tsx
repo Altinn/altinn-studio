@@ -18,3 +18,37 @@ export const useCharacterLimit = (maxLength: number | undefined): FieldCounterPr
     over: langAsString('input_components.exceeded_max_limit'),
   };
 };
+
+type BuildAriaDescribedByArgs = {
+  renderedInTable?: boolean;
+  hasTitle: boolean;
+  descriptionId?: string;
+  hasDescription: boolean;
+  validationsId?: string;
+  hasValidations: boolean;
+};
+
+export function buildAriaDescribedBy({
+  renderedInTable,
+  hasTitle,
+  descriptionId,
+  hasDescription,
+  validationsId,
+  hasValidations,
+}: BuildAriaDescribedByArgs): string | undefined {
+  if (renderedInTable === true || !hasTitle) {
+    return undefined;
+  }
+
+  const ids: string[] = [];
+
+  if (descriptionId && hasDescription) {
+    ids.push(descriptionId);
+  }
+
+  if (validationsId && hasValidations) {
+    ids.push(validationsId);
+  }
+
+  return ids.length > 0 ? ids.join(' ') : undefined;
+}

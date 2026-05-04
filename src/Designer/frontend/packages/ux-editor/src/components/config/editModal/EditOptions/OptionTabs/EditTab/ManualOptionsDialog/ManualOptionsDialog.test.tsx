@@ -17,7 +17,7 @@ import {
 } from 'app-shared/mocks/textResourcesMock';
 
 import type { MutableRefObject } from 'react';
-import React, { createRef } from 'react';
+import { createRef } from 'react';
 import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import { userEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -84,17 +84,16 @@ describe('ManualOptionsDialog', () => {
   });
 
   it('Calls handleComponentChange with correct parameters when the user closes the dialog and there are no options', async () => {
-    const consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => {});
     const user = userEvent.setup();
     const componentWithoutOptions: FormItem<ComponentType.RadioButtons> = {
       ...component,
       options: [],
     };
 
-    await renderAndShowCodeListDialog({ props: { component: componentWithoutOptions } });
-    await user.click(screen.getByRole('button', { name: 'Lukk dialogvindu' }));
-    screen.getByRole('dialog').dispatchEvent(new Event('close', { bubbles: true }));
-    consoleErrorMock.mockRestore();
+    await renderAndShowCodeListDialog({
+      props: { component: componentWithoutOptions },
+    });
+    await user.click(screen.getByRole('button', { name: /Lukk dialogvindu/ }));
 
     await waitFor(() => expect(handleComponentChange).toHaveBeenCalledTimes(1));
     expect(handleComponentChange).toHaveBeenCalledWith({

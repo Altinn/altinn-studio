@@ -1,6 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import type { LinkProps } from 'react-router-dom';
+import { Link } from 'react-router';
+import type { LinkProps } from 'react-router';
 
 import { SearchParams } from 'src/core/routing/types';
 import { useIsHidden } from 'src/utils/layout/hidden';

@@ -102,6 +102,7 @@ public sealed record GetCorrespondenceStatusResponse
     /// <summary>
     /// The date for when Altinn can remove the correspondence from its database.
     /// </summary>
+    [Obsolete("AllowSystemDeleteAfter is no longer returned by the Correspondence API.")]
     [JsonPropertyName("allowSystemDeleteAfter")]
     public DateTimeOffset? AllowSystemDeleteAfter { get; init; }
 
@@ -147,4 +148,10 @@ public sealed record GetCorrespondenceStatusResponse
     /// </summary>
     [JsonPropertyName("isConfirmationNeeded")]
     public bool IsConfirmationNeeded { get; init; }
+
+    /// <summary>
+    /// Specifies whether the correspondence is confidential.
+    /// </summary>
+    [JsonPropertyName("isConfidential")]
+    public bool IsConfidential { get; init; }
 }

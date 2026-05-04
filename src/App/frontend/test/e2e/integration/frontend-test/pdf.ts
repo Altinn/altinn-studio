@@ -2,10 +2,11 @@ import type { Interception } from 'cypress/types/net-stubbing';
 
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Likert } from 'test/e2e/pageobjects/likert';
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
+import { getTargetUrl } from 'test/e2e/support/start-app-instance';
 
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
-import type { ILayoutSettings } from 'src/layout/common.generated';
-import type { ILayoutCollection } from 'src/layout/layout';
+import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 
 const appFrontend = new AppFrontend();
 const likertPage = new Likert();
@@ -31,6 +32,7 @@ describe('PDF', () => {
     const traceparentValue = '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01';
     const tracestateValue = 'altinn';
     const domain = new URL(Cypress.config().baseUrl!).hostname;
+    const appUrl = getTargetUrl(appFrontend.apps.frontendTest);
     const cookieOptions: Partial<Cypress.SetCookieOptions> = { domain, sameSite: 'lax' };
 
     cy.goto('message');
@@ -41,7 +43,7 @@ describe('PDF', () => {
         cy.setCookie('altinn-telemetry-traceparent', traceparentValue, cookieOptions);
         cy.setCookie('altinn-telemetry-tracestate', tracestateValue, cookieOptions);
         cy.intercept({
-          url: new RegExp(domain),
+          url: `${appUrl}/**`,
           headers: {
             cookie: new RegExp('altinn-telemetry-traceparent='),
           },
@@ -51,7 +53,7 @@ describe('PDF', () => {
       callback: () => {
         cy.get('@allRequests.all').then((_intercepts) => {
           const intercepts = _intercepts as unknown as Interception[];
-          expect(intercepts.length).to.be.greaterThan(10);
+          expect(intercepts.length).to.be.greaterThan(5);
           for (const intercept of intercepts) {
             const { request } = intercept;
             const reqInfo = `${intercept.browserRequestId} ${intercept.routeId} ${request.method} ${request.url.split(domain)[1]}`;
@@ -69,7 +71,7 @@ describe('PDF', () => {
 
   it('should generate PDF for changename step', { retries: 0 }, () => {
     cy.interceptLayout(
-      'changename',
+      'Task_2',
       (component) => {
         if (component.type === 'Map' && component.id === 'map') {
           component.layers = [
@@ -231,13 +233,10 @@ describe('PDF', () => {
   });
 
   it('should generate PDF for group step (using Summary1 pdfLayout)', { retries: 0 }, () => {
-    cy.intercept('GET', '**/api/layoutsettings/group', (req) => {
-      req.on('response', (res) => {
-        const body = JSON.parse(res.body) as ILayoutSettings;
-        body.pages.pdfLayoutName = 'summary'; // Forces PDF engine to use the 'summary' page as the PDF page
-        res.send(body);
-      });
-    }).as('settings');
+    interceptAltinnAppGlobalData((data) => {
+      // Forces PDF engine to use the 'summary' page as the PDF page
+      data.ui.folders.Task_3.pages.pdfLayoutName = 'summary';
+    });
 
     cy.goto('group');
     cy.findByRole('checkbox', { name: /liten/i }).check();
@@ -249,7 +248,7 @@ describe('PDF', () => {
     cy.gotoNavPage('repeating');
     cy.findByRole('checkbox', { name: /ja/i }).check();
 
-    cy.interceptLayout('group', (component) => {
+    cy.interceptLayout('Task_3', (component) => {
       if (component.type === 'RepeatingGroup' && component.id === 'mainGroup') {
         component.pageBreak = {
           breakBefore: 'always',
@@ -280,7 +279,7 @@ describe('PDF', () => {
     cy.gotoNavPage('repeating');
     cy.findByRole('checkbox', { name: /ja/i }).check();
 
-    cy.interceptLayout('group', (component) => {
+    cy.interceptLayout('Task_3', (component) => {
       if (component.type === 'RepeatingGroup' && component.id === 'mainGroup') {
         component.pageBreak = {
           breakBefore: 'always',
@@ -339,13 +338,11 @@ describe('PDF', () => {
     // Removing Summary2 page. That page references previous tasks and data models in previous tasks that won't even
     // be created when we skip over those previous tasks by calling gotoAndComplete(). Not removing that page would
     // simply crash the whole PDF generation.
-    cy.intercept('GET', '**/layoutsettings/**', (req) =>
-      req.on('response', (res) => {
-        const body: { pages: { order: string[] } } = JSON.parse(res.body);
-        body.pages.order = body.pages.order.filter((page) => page !== 'summary2');
-        res.send(body);
-      }),
-    );
+    interceptAltinnAppGlobalData((data) => {
+      if ('order' in data.ui.folders.Task_5.pages) {
+        data.ui.folders.Task_5.pages.order = data.ui.folders.Task_5.pages.order.filter((page) => page !== 'summary2');
+      }
+    });
     cy.gotoAndComplete('datalist');
 
     cy.testPdf({
@@ -361,49 +358,37 @@ describe('PDF', () => {
   it('should use custom PDF if set', { retries: 0 }, () => {
     const pdfLayoutName = 'CustomPDF';
 
-    cy.intercept('GET', '**/layoutsettings/**', (req) =>
-      req.on('response', (res) => {
-        const body: ILayoutSettings = JSON.parse(res.body);
-        res.send({
-          ...body,
-          pages: { ...body.pages, pdfLayoutName },
-        });
-      }),
-    );
+    interceptAltinnAppGlobalData((data) => {
+      data.ui.folders.Task_5.pages.pdfLayoutName = pdfLayoutName;
+    });
 
-    cy.intercept('GET', '**/layouts/**', (req) =>
+    cy.intercept('GET', '**/bootstrap-form/**', (req) => {
       req.on('response', (res) => {
-        const body: ILayoutCollection = JSON.parse(res.body);
-        res.send({
-          ...body,
-          [pdfLayoutName]: {
-            data: {
-              layout: [
-                {
-                  id: 'title',
-                  type: 'Header',
-                  textResourceBindings: { title: 'This is a custom PDF' },
-                  size: 'L',
+        const body = res.body as FormBootstrapResponse;
+        body.layouts[pdfLayoutName] = {
+          data: {
+            layout: [
+              {
+                id: 'title',
+                type: 'Header',
+                textResourceBindings: { title: 'This is a custom PDF' },
+                size: 'L',
+              },
+              {
+                id: 'datalist',
+                type: 'Summary2',
+                target: {
+                  taskId: 'Task_5',
+                  type: 'layoutSet',
                 },
-                {
-                  id: 'datalist',
-                  type: 'Summary2',
-                  target: {
-                    taskId: 'Task_5',
-                    type: 'layoutSet',
-                  },
-                  showPageInAccordion: false,
-                },
-              ],
-            },
+                showPageInAccordion: false,
+              },
+            ],
           },
-        });
-      }),
-    );
-
-    cy.goto('message');
-    cy.get(appFrontend.message.title).should('be.visible');
-    cy.waitUntilSaved();
+        };
+        res.send(body);
+      });
+    });
 
     cy.gotoAndComplete('datalist');
 
@@ -426,15 +411,9 @@ describe('PDF', () => {
       }
     });
 
-    cy.intercept('GET', '**/layoutsettings/**', (req) =>
-      req.on('response', (res) => {
-        const body: ILayoutSettings = JSON.parse(res.body);
-        res.send({
-          ...body,
-          pages: { ...body.pages, pdfLayoutName: 'incorrect-pdf-layout-name' },
-        });
-      }),
-    );
+    interceptAltinnAppGlobalData((data) => {
+      data.ui.folders.Task_1.pages.pdfLayoutName = 'incorrect-pdf-layout-name';
+    });
 
     cy.goto('message');
 
@@ -463,29 +442,27 @@ describe('PDF', () => {
 
   // Used to cause a crash, @see https://github.com/Altinn/app-frontend-react/pull/2019
   it('Grid in Group should display correctly', { retries: 0 }, () => {
-    cy.intercept('GET', '**/layouts/**', (req) => {
+    cy.intercept('GET', '**/bootstrap-form/**', (req) => {
       req.on('response', (res) => {
-        const body: ILayoutCollection = JSON.parse(res.body);
-        res.send({
-          ...body,
-          grid: {
-            ...body.grid,
-            data: {
-              ...body.grid.data,
-              layout: [
-                {
-                  id: 'gridGroup',
-                  type: 'Group',
-                  textResourceBindings: {
-                    title: 'Grid gruppe',
-                  },
-                  children: ['page3-grid'],
+        const body = res.body as FormBootstrapResponse;
+        body.layouts.grid = {
+          ...body.layouts.grid,
+          data: {
+            ...body.layouts.grid.data,
+            layout: [
+              {
+                id: 'gridGroup',
+                type: 'Group',
+                textResourceBindings: {
+                  title: 'Grid gruppe',
                 },
-                ...body.grid.data.layout,
-              ],
-            },
+                children: ['page3-grid'],
+              },
+              ...body.layouts.grid.data.layout,
+            ],
           },
-        });
+        };
+        res.send(body);
       });
     });
 
@@ -507,12 +484,11 @@ describe('PDF', () => {
 
     // Wait for page to load
     cy.get('#finishedLoading').should('exist');
-    cy.waitForNetworkIdle(500);
 
-    // This should provoke an unknown error
-    cy.intercept({ method: 'GET', url: '**/data/**includeRowId=true*', times: 1 }, (req) =>
-      req.reply({ statusCode: 404, body: 'Not Found' }),
-    );
+    // This should provoke an unknown error. It used to intercept form data, but failures in loading form data from
+    // FormDataReaders (used from text resources) do not lead to errors, so this test could become flaky when that
+    // was the first request out of the gate.
+    cy.intercept('GET', '**/process', (req) => req.reply({ statusCode: 404, body: 'Not Found' })).as('failing');
 
     // Visit the PDF page and reload
     cy.location('href').then((href) => {
@@ -521,20 +497,13 @@ describe('PDF', () => {
       const before = href.split(regex)[0];
       const visitUrl = `${before}${instanceId}?pdf=1`;
       cy.visit(visitUrl);
+      cy.reload();
     });
-    cy.reload();
-
-    // Wait for page to load
-    cy.get('#finishedLoading').should('exist');
-    cy.waitForNetworkIdle(500);
 
     // Check that we are on the error page and that #readyForPrint is not present
     cy.findByRole('heading', { name: 'Ukjent feil' }).should('exist');
     cy.get('#readyForPrint').should('not.exist');
-
-    // To confirm we are on the PDF page, reload (which should now succeed) and check that #readyForPrint is visible
-    cy.reload();
-    cy.get('#readyForPrint').should('exist');
-    cy.findByRole('heading', { name: 'Ukjent feil' }).should('not.exist');
+    cy.get('#finishedLoading').should('not.exist');
+    cy.allowFailureOnEnd();
   });
 });

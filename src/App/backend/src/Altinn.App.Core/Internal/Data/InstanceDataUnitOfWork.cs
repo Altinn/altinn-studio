@@ -188,11 +188,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         }
 
         // Could use a double lock here, but a deadlock is more problematic than creating the state twice
-        var layouts = _appResources.GetLayoutModelForTask(TaskId);
-        if (layouts is null)
-        {
-            return null;
-        }
+        var layouts = _appResources.GetLayoutModelForFolder(TaskId);
 
         _layoutEvaluatorStateCache = new LayoutEvaluatorState(
             this,
@@ -450,8 +446,27 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             }
         }
 
-        // Include the change for data elements that have been added
-        changes.AddRange(_changesForCreation);
+        foreach (var creationChange in _changesForCreation)
+        {
+            if (creationChange is FormDataChange formDataChange)
+            {
+                if (initializeAltinnRowId)
+                {
+                    formDataChange.CurrentFormDataWrapper.InitializeAltinnRowIds();
+                }
+                var (updatedBinary, _) = _modelSerializationService.SerializeToStorage(
+                    formDataChange.CurrentFormDataWrapper.BackingData<object>(),
+                    formDataChange.DataType,
+                    null
+                );
+                formDataChange.CurrentBinaryData = updatedBinary;
+                changes.Add(creationChange);
+            }
+            else
+            {
+                changes.Add(creationChange);
+            }
+        }
         changes.AddRange(_changesForDeletion);
 
         return new DataElementChanges(changes);
@@ -526,13 +541,13 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         // Updating is done in SaveChanges and happen in parallel with validation.
 
         // Upload added data elements
-        foreach (var change in _changesForCreation)
+        foreach (var change in changes.AllChanges.Where(c => c.Type == ChangeType.Created))
         {
             tasks.Add(CreateDataElement(createdDataElements, change));
         }
 
         // Delete data elements
-        foreach (var change in _changesForDeletion)
+        foreach (var change in changes.AllChanges.Where(c => c.Type == ChangeType.Deleted))
         {
             async Task DeleteData()
             {
@@ -551,7 +566,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         await Task.WhenAll(tasks);
 
         // Remove deleted data elements from instance.Data
-        Instance.Data.RemoveAll(dataElement => _changesForDeletion.Any(d => d.DataElement?.Id == dataElement.Id));
+        Instance.Data.RemoveAll(dataElement =>
+            changes.AllChanges.Where(c => c.Type == ChangeType.Deleted).Any(d => d.DataElement?.Id == dataElement.Id)
+        );
 
         // Add Created data elements to instance
         Instance.Data.AddRange(createdDataElements.Values);
@@ -679,7 +696,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             await _instanceClient.UpdatePresentationTexts(
                 int.Parse(Instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
                 Guid.Parse(Instance.Id.Split("/")[1]),
-                new PresentationTexts { Texts = updatedTexts }
+                new PresentationTexts { Texts = updatedTexts },
+                authenticationMethod: null,
+                CancellationToken.None
             );
 
             // Maintain local copy of presentation texts
@@ -708,7 +727,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             await _instanceClient.UpdateDataValues(
                 int.Parse(Instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
                 Guid.Parse(Instance.Id.Split("/")[1]),
-                new DataValues { Values = updatedValues }
+                new DataValues { Values = updatedValues },
+                authenticationMethod: null,
+                CancellationToken.None
             );
 
             // Maintain local copy of data values

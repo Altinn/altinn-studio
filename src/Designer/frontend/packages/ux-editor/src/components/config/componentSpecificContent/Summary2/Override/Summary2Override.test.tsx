@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { Summary2Override, type Summary2OverrideProps } from './Summary2Override';
@@ -96,7 +95,7 @@ describe('Summary2Override', () => {
 
     expect(
       screen.queryByRole('combobox', {
-        name: textMock('ux_editor.component_properties.summary.override.display_type'),
+        name: /ux_editor\.component_properties\.summary\.override\.display_type/,
       }),
     ).not.toBeInTheDocument();
   });
@@ -361,12 +360,12 @@ const removeOverrideButton = () =>
 
 const overrideComponentSelect = () =>
   screen.getByRole('combobox', {
-    name: textMock('ux_editor.component_properties.summary.override.choose_component'),
+    name: /ux_editor\.component_properties\.summary\.override\.choose_component/,
   });
 
 const overrideDisplaySelector = () =>
   screen.getByRole('combobox', {
-    name: textMock('ux_editor.component_properties.summary.override.display'),
+    name: /ux_editor\.component_properties\.summary\.override\.display(?!_type)/,
   });
 
 const overrideDisplaySelectType = (type: OverrideDisplay) =>
@@ -376,7 +375,7 @@ const overrideDisplaySelectType = (type: OverrideDisplay) =>
 
 const overrideDisplayTypeSelector = () =>
   screen.getByRole('combobox', {
-    name: textMock('ux_editor.component_properties.summary.override.display_type'),
+    name: /ux_editor\.component_properties\.summary\.override\.display_type/,
   });
 
 const overrideDisplayType = (type: OverrideDisplayType) =>

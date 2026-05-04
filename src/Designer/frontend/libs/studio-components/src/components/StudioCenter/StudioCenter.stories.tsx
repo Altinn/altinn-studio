@@ -1,16 +1,16 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioCenter } from './StudioCenter';
 
-type Story = StoryFn<typeof StudioCenter>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioCenter',
   component: StudioCenter,
-};
-export const Preview: Story = (args): React.ReactElement => <StudioCenter {...args} />;
-
-Preview.args = {
-  children: 'This text is centered vertically and horizontally',
-};
+} satisfies Meta<typeof StudioCenter>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    children: 'This text is centered vertically and horizontally',
+  },
+};

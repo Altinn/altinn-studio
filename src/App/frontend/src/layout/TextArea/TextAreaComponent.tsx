@@ -2,13 +2,14 @@ import React from 'react';
 
 import { Label } from 'src/app-components/Label/Label';
 import { TextArea } from 'src/app-components/TextArea/TextArea';
+import { translationKey } from 'src/AppComponentsBridge';
 import { getDescriptionId } from 'src/components/label/Label';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
+import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { useCharacterLimit } from 'src/utils/inputUtils';
+import { buildAriaDescribedBy, useCharacterLimit } from 'src/utils/inputUtils';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -18,7 +19,6 @@ import 'src/styles/shared.css';
 export type ITextAreaProps = Readonly<PropsFromGenericComponent<'TextArea'>>;
 
 export function TextAreaComponent({ baseComponentId, overrideDisplay }: ITextAreaProps) {
-  const { langAsString } = useLanguage();
   const isValid = useIsValid(baseComponentId);
   const {
     id,
@@ -36,10 +36,24 @@ export function TextAreaComponent({ baseComponentId, overrideDisplay }: ITextAre
     formData: { simpleBinding: value },
     setValue,
   } = useDataModelBindings(dataModelBindings, saveWhileTyping);
-  const debounce = FD.useDebounceImmediately();
+  const debounce = FormStore.data.useDebounceImmediately();
 
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
     useLabel({ baseComponentId, overrideDisplay });
+
+  const descriptionId = getDescriptionId(id);
+  const validationsId = `${baseComponentId}-validations`;
+  const validations = useUnifiedValidationsForNode(baseComponentId);
+  const hasValidations = validations.length > 0;
+
+  const textAreaDescribedBy = buildAriaDescribedBy({
+    renderedInTable: overrideDisplay?.renderedInTable,
+    hasTitle: !!textResourceBindings?.title,
+    descriptionId,
+    hasDescription: !!textResourceBindings?.description,
+    validationsId,
+    hasValidations,
+  });
 
   return (
     <Label
@@ -62,14 +76,10 @@ export function TextAreaComponent({ baseComponentId, overrideDisplay }: ITextAre
           characterLimit={!readOnly ? characterLimit : undefined}
           error={!isValid}
           dataTestId={id}
-          ariaDescribedBy={
-            overrideDisplay?.renderedInTable !== true &&
-            textResourceBindings?.title &&
-            textResourceBindings?.description
-              ? getDescriptionId(id)
-              : undefined
+          ariaDescribedBy={textAreaDescribedBy}
+          ariaLabel={
+            overrideDisplay?.renderedInTable === true ? translationKey(textResourceBindings?.title) : undefined
           }
-          ariaLabel={overrideDisplay?.renderedInTable === true ? langAsString(textResourceBindings?.title) : undefined}
           autoComplete={autocomplete}
           style={{ minHeight: '150px', height: '150px', width: '100%' }}
         />

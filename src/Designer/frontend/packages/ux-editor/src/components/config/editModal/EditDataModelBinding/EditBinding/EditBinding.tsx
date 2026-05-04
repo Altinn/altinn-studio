@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import type { FormItem } from '../../../../../types/FormItem';
 import { SelectDataModelBinding } from './SelectDataModelBinding';
 import { SelectDataFieldBinding } from './SelectDataFieldBinding';
@@ -10,8 +10,7 @@ import {
 import { useAppContext } from '@altinn/ux-editor/hooks';
 import type { UpdateFormMutateOptions } from '@altinn/ux-editor/containers/FormItemContext';
 import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
-import { StudioSpinner } from '@studio/components-legacy';
-import { StudioConfigCard } from '@studio/components';
+import { StudioConfigCard, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { formItemConfigs } from '@altinn/ux-editor/data/formItemConfig';
 import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';
@@ -34,7 +33,7 @@ export const EditBinding = ({
   onSetDataModelSelectVisible,
   internalBindingFormat,
 }: EditBindingProps) => {
-  const [binding, setBinding] = React.useState<ExplicitDataModelBinding | undefined>(
+  const [binding, setBinding] = useState<ExplicitDataModelBinding | undefined>(
     internalBindingFormat,
   );
   const { t } = useTranslation();
@@ -109,7 +108,7 @@ export const EditBinding = ({
       />
       <StudioConfigCard.Body>
         {isLoadingDataModels ? (
-          <StudioSpinner spinnerTitle={t('ux_editor.modal_properties_loading')} />
+          <StudioSpinner aria-label={t('ux_editor.modal_properties_loading')} />
         ) : (
           <>
             <SelectDataModelBinding

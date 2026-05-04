@@ -1,22 +1,15 @@
 import { createHookContext } from 'src/core/contexts/hookContext';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
 import { useInstanceDataSources } from 'src/features/instance/InstanceContext';
 
 const { Provider, hooks } = createHookContext({
   useLaxInstanceDataSources: () => useInstanceDataSources(),
-  useDefaultDataType: () => DataModels.useDefaultDataType(),
-  useReadableDataTypes: () => DataModels.useReadableDataTypes(),
-  useExternalApis: () => useExternalApis(useApplicationMetadata().externalApiIds ?? []),
-  useGetDataElementIdForDataType: () => DataModels.useGetDataElementIdForDataType(),
+  useExternalApis: () => useExternalApis(getApplicationMetadata().externalApiIds ?? []),
 });
 
 export const GeneratorData = {
   Provider,
-  useDefaultDataType: hooks.useDefaultDataType,
-  useGetDataElementIdForDataType: hooks.useGetDataElementIdForDataType,
   useLaxInstanceDataSources: hooks.useLaxInstanceDataSources,
-  useReadableDataTypes: hooks.useReadableDataTypes,
   useExternalApis: hooks.useExternalApis,
 };
