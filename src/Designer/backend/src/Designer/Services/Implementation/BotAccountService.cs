@@ -179,7 +179,7 @@ public class BotAccountService(
     )
     {
         var botAccount = await GetBotAccountModelAsync(botAccountId, org, cancellationToken);
-        return await apiKeyService.ListAsync(botAccount.Username, cancellationToken: cancellationToken);
+        return await apiKeyService.ListAsync(botAccount.Username, ApiKeyType.User, cancellationToken);
     }
 
     public async Task RevokeApiKeyAsync(
