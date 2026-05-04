@@ -162,7 +162,9 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
 
     private HttpClient CreateAuthorizedClient(AppWorkflowContext workflowContext)
     {
+#pragma warning disable S1075
         var baseUrl = _settings.CommandEndpoint.FormatWith(workflowContext).TrimEnd('/') + '/';
+#pragma warning restore S1075
         var client = _httpClientFactory.CreateClient();
         client.BaseAddress = new Uri(baseUrl);
 
@@ -173,7 +175,7 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
 internal static partial class AppCommandDescriptorLogs
 {
     [LoggerMessage(LogLevel.Information, "Sending AppCommand to {Endpoint} with payload: {Payload}")]
-    public static partial void SendingAppCommand(
+    internal static partial void SendingAppCommand(
         this ILogger<AppCommand> logger,
         Uri endpoint,
         AppCallbackPayload payload

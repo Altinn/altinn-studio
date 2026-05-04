@@ -13,6 +13,7 @@ import (
 	"altinn.studio/studioctl/internal/auth"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/install"
+	"altinn.studio/studioctl/internal/osutil"
 )
 
 func (s *Service) buildDisk() *Disk {
@@ -407,7 +408,7 @@ func (s *Service) checkAppManagerBinaryState() DiskCheck {
 			Message: "path exists but is a directory",
 		}
 	}
-	if runtime.GOOS != osWindows && info.Mode()&0o111 == 0 {
+	if runtime.GOOS != osutil.OSWindows && info.Mode()&0o111 == 0 {
 		return DiskCheck{
 			ID:      "appmgr_binary",
 			Level:   diskLevelWarn,
@@ -426,7 +427,7 @@ func (s *Service) checkAppManagerBinaryState() DiskCheck {
 
 func (s *Service) checkAppManagerRuntimeState() DiskCheck {
 	pidPath := s.cfg.AppManagerPIDPath()
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == osutil.OSWindows {
 		return checkAppManagerRuntimeStateWindows(s.cfg.Home, pidPath)
 	}
 
@@ -458,7 +459,7 @@ func (s *Service) checkAppManagerRuntimeState() DiskCheck {
 		return *check
 	}
 
-	if runtime.GOOS != osWindows && socketInfo.Mode()&os.ModeSocket == 0 {
+	if runtime.GOOS != osutil.OSWindows && socketInfo.Mode()&os.ModeSocket == 0 {
 		return DiskCheck{
 			ID:      "appmgr_state",
 			Level:   diskLevelWarn,
@@ -677,7 +678,7 @@ func readTrustedFile(path string) ([]byte, error) {
 }
 
 func ownerOnlyPermissionsWarning(mode os.FileMode) string {
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == osutil.OSWindows {
 		return ""
 	}
 	if mode.Perm()&0o077 != 0 {

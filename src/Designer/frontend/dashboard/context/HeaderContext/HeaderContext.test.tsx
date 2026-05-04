@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { HeaderContextProvider, useHeaderContext } from './HeaderContext';
 import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { FeatureFlag } from '@studio/feature-flags';
 
 const mockEnvironment = { environment: null, isLoading: false, error: null };
 
@@ -17,11 +18,12 @@ const SettingsLinkConsumer = () => {
   return <div data-testid='settings-href'>{href ?? 'none'}</div>;
 };
 
-const renderHeaderContext = () =>
+const renderHeaderContext = (options?: Parameters<typeof renderWithProviders>[1]) =>
   renderWithProviders(
     <HeaderContextProvider>
       <SettingsLinkConsumer />
     </HeaderContextProvider>,
+    options,
   );
 
 describe('HeaderContext', () => {
@@ -69,7 +71,15 @@ describe('HeaderContext', () => {
     expect(screen.getByTestId('settings-href')).not.toHaveTextContent(/^none$/);
   });
 
-  it('should not include user settings link in profile menu when studioOidc feature flag is disabled', () => {
+  it('should include user settings link in profile menu when Admin feature flag is enabled', () => {
+    mockEnvironment.environment = { featureFlags: { studioOidc: false } };
+
+    renderHeaderContext({ featureFlags: [FeatureFlag.Admin] });
+
+    expect(screen.getByTestId('settings-href')).not.toHaveTextContent(/^none$/);
+  });
+
+  it('should not include user settings link in profile menu when neither studioOidc nor Admin flag is enabled', () => {
     mockEnvironment.environment = { featureFlags: { studioOidc: false } };
 
     renderHeaderContext();

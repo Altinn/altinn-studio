@@ -4,6 +4,10 @@ using WorkflowEngine.Core.Endpoints;
 
 namespace WorkflowEngine.Core.Extensions;
 
+/// <summary>
+/// Top-level pipeline composition for the workflow engine. Hosts call <c>UseWorkflowEngine</c> on their
+/// <see cref="WebApplication"/> to wire middleware, endpoints, and database migrations in a single step.
+/// </summary>
 public static class WorkflowEngineAppExtensions
 {
     extension(WebApplication app)

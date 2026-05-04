@@ -1,5 +1,13 @@
 namespace WorkflowEngine.Models;
 
+/// <summary>
+/// The outcome of a single command execution. Returned by <see cref="Abstractions.ICommand.Execute"/>
+/// and consumed by the engine to decide whether to advance, retry, or fail the step.
+/// </summary>
+/// <param name="Status">The classification of the outcome.</param>
+/// <param name="Message">Optional message describing the outcome (used for logs and step error history).</param>
+/// <param name="Exception">Optional exception associated with a failed outcome.</param>
+/// <param name="HttpStatusCode">Optional HTTP status code captured from the underlying transport.</param>
 public record struct ExecutionResult(
     ExecutionStatus Status,
     string? Message = null,

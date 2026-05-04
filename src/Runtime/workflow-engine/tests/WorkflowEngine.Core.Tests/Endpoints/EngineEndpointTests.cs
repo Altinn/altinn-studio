@@ -307,6 +307,54 @@ public class EngineEndpointTests
         Assert.True(capturedMetadata.CreatedAt > DateTimeOffset.MinValue);
     }
 
+    [Fact]
+    public async Task Enqueue_CollectionKeyIsBuiltFromQueryMetadata()
+    {
+        // Arrange
+        WorkflowRequestMetadata? capturedMetadata = null;
+        var engineMock = new Mock<IEngine>();
+        engineMock
+            .Setup(e =>
+                e.EnqueueWorkflow(
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<WorkflowRequestMetadata>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<WorkflowEnqueueRequest, WorkflowRequestMetadata, CancellationToken>(
+                (_, meta, _) => capturedMetadata = meta
+            )
+            .ReturnsAsync(
+                new WorkflowEnqueueResponse.Accepted.Created([
+                    new WorkflowEnqueueResponse.WorkflowResult
+                    {
+                        Ref = "wf-1",
+                        DatabaseId = Guid.NewGuid(),
+                        Namespace = DefaultNamespace,
+                    },
+                ])
+            );
+
+        var httpContext = CreateHttpContext();
+        httpContext.Request.QueryString = new QueryString(
+            $"?{WorkflowMetadataConstants.QueryParams.CollectionKey}=test-collection"
+        );
+
+        // Act
+        await EngineRequestHandlers.EnqueueWorkflows(
+            DefaultNamespace,
+            _defaultWorkflowRequest,
+            engineMock.Object,
+            TimeProvider.System,
+            httpContext,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.NotNull(capturedMetadata);
+        Assert.Equal("test-collection", capturedMetadata.CollectionKey);
+    }
+
     // === ListWorkflows Handler Tests ===
 
     [Fact]

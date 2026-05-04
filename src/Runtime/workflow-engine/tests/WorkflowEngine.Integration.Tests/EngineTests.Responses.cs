@@ -197,12 +197,12 @@ public partial class EngineTests
     }
 
     [Fact]
-    public async Task Response_GetWorkflowHierarchy_IncludesDependentsAcrossCorrelationIds()
+    public async Task Response_GetWorkflowHierarchy_IncludesDependentsAcrossCollectionKeys()
     {
         var rootWorkflow = _testHelpers.CreateWorkflow("wf-root", [_testHelpers.CreateWebhookStep("/ping-root")]);
         var rootAccepted = await _client.Enqueue(
             _testHelpers.CreateEnqueueRequest(rootWorkflow),
-            correlationId: Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+            collectionKey: "collection-a"
         );
         var rootWorkflowId = rootAccepted.Workflows.Single().DatabaseId;
         await _client.WaitForWorkflowStatus(rootWorkflowId, PersistentItemStatus.Completed);
@@ -210,7 +210,7 @@ public partial class EngineTests
         var childWorkflow = _testHelpers.CreateWorkflow("wf-child", [_testHelpers.CreateWebhookStep("/ping-child")]);
         var childAccepted = await _client.Enqueue(
             _testHelpers.CreateEnqueueRequest(childWorkflow with { DependsOn = [rootWorkflowId] }),
-            correlationId: Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")
+            collectionKey: "collection-b"
         );
         var childWorkflowId = childAccepted.Workflows.Single().DatabaseId;
         await _client.WaitForWorkflowStatus(childWorkflowId, PersistentItemStatus.Completed);

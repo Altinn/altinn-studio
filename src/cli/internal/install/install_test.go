@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/osutil"
 )
 
 const releaseMarkerV1 = "release-version:studioctl/v1.0.0\n"
@@ -536,7 +537,7 @@ func TestExtractTarGz_ReplacesWrongTypePaths(t *testing.T) {
 
 func TestExtractTarGz_PreservesFileModeWhenEnabled(t *testing.T) {
 	t.Parallel()
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == osutil.OSWindows {
 		t.Skip("Windows does not preserve POSIX executable bits")
 	}
 

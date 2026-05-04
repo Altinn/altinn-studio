@@ -18,7 +18,7 @@ namespace WorkflowEngine.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("engine")
-                .HasAnnotation("ProductVersion", "10.0.5")
+                .HasAnnotation("ProductVersion", "10.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -123,6 +123,33 @@ namespace WorkflowEngine.Data.Migrations
                     b.ToTable("Steps", "engine");
                 });
 
+            modelBuilder.Entity("WorkflowEngine.Data.Entities.WorkflowCollectionEntity", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Namespace")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.PrimitiveCollection<Guid[]>("Heads")
+                        .IsRequired()
+                        .HasColumnType("uuid[]");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Key", "Namespace");
+
+                    b.HasIndex("Namespace");
+
+                    b.ToTable("WorkflowCollections", "engine");
+                });
+
             modelBuilder.Entity("WorkflowEngine.Data.Entities.WorkflowEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -134,11 +161,12 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<DateTimeOffset?>("CancellationRequestedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("CollectionKey")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<string>("ContextJson")
                         .HasColumnType("jsonb");
-
-                    b.Property<Guid?>("CorrelationId")
-                        .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -191,7 +219,7 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CorrelationId");
+                    b.HasIndex("CollectionKey");
 
                     b.HasIndex("CreatedAt");
 

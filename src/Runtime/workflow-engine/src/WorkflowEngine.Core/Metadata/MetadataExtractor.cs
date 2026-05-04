@@ -10,17 +10,16 @@ namespace WorkflowEngine.Core.Metadata;
 internal static class MetadataExtractor
 {
     /// <summary>
-    /// Extracts metadata fields needed for workflow enqueue: idempotency key and correlation ID.
+    /// Extracts metadata fields needed for workflow enqueue: idempotency key and collection key.
     /// Namespace is provided from the URL route parameter.
-    /// Returns 400 if idempotency key is missing, if both header and query param are supplied for any field,
-    /// or if correlation ID is present but not a valid GUID.
+    /// Returns 400 if idempotency key is missing or if both header and query param are supplied for any field.
     /// </summary>
     public static InboundMetadata ExtractEnqueueMetadata(HttpContext httpContext, string @namespace)
     {
-        var correlationId = ExtractCorrelationId(httpContext);
+        var collectionKey = ExtractCollectionKey(httpContext);
         var idempotencyKey = ExtractIdempotencyKey(httpContext);
 
-        return new InboundMetadata(@namespace, idempotencyKey, correlationId);
+        return new InboundMetadata(@namespace, idempotencyKey, collectionKey);
     }
 
     public static string ExtractIdempotencyKey(HttpContext httpContext)
@@ -42,23 +41,20 @@ internal static class MetadataExtractor
         return value;
     }
 
-    public static Guid? ExtractCorrelationId(HttpContext httpContext)
+    /// <summary>
+    /// Extracts the collection key from the request header or query string.
+    /// </summary>
+    /// <param name="httpContext">The HTTP context to read metadata from.</param>
+    /// <returns>The collection key, or <see langword="null"/> when it is missing or whitespace.</returns>
+    public static string? ExtractCollectionKey(HttpContext httpContext)
     {
         var raw = ExtractSingleValue(
             httpContext,
-            WorkflowMetadataConstants.Headers.CorrelationId,
-            WorkflowMetadataConstants.QueryParams.CorrelationId
+            WorkflowMetadataConstants.Headers.CollectionKey,
+            WorkflowMetadataConstants.QueryParams.CollectionKey
         );
 
-        if (string.IsNullOrWhiteSpace(raw))
-            return null;
-
-        if (!Guid.TryParse(raw, out var parsed))
-        {
-            throw new BadHttpRequestException($"Correlation ID '{raw}' is not a valid GUID.");
-        }
-
-        return parsed;
+        return string.IsNullOrWhiteSpace(raw) ? null : raw.Trim();
     }
 
     /// <summary>

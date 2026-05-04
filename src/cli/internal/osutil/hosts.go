@@ -18,11 +18,11 @@ type HostsTarget struct {
 // LocalHostsFileTargets returns hosts files that should be updated on the current system.
 func LocalHostsFileTargets() ([]HostsTarget, error) {
 	switch runtime.GOOS {
-	case "darwin":
+	case OSDarwin:
 		return []HostsTarget{{Label: "macOS", Path: "/etc/hosts", Required: true}}, nil
-	case "linux":
+	case OSLinux:
 		return []HostsTarget{{Label: "Linux", Path: "/etc/hosts", Required: true}}, nil
-	case "windows":
+	case OSWindows:
 		path, err := windowsHostsPathNative()
 		if err != nil {
 			return nil, err

@@ -18,8 +18,6 @@ var (
 	errUnsupportedURLScheme  = errors.New("unsupported browser url scheme")
 )
 
-const goosLinux = "linux"
-
 // OpenContext opens the given URL in the default browser with context support.
 func OpenContext(ctx context.Context, rawURL string) error {
 	safeURL, err := validateBrowserURL(rawURL)
@@ -27,17 +25,17 @@ func OpenContext(ctx context.Context, rawURL string) error {
 		return err
 	}
 
-	if runtime.GOOS == goosLinux && IsWSL() {
+	if runtime.GOOS == OSLinux && IsWSL() {
 		return openWSL(ctx, safeURL)
 	}
 
 	var cmd *exec.Cmd
 	switch runtime.GOOS {
-	case goosLinux:
+	case OSLinux:
 		cmd = processutil.CommandContext(ctx, "xdg-open", safeURL)
-	case "darwin":
+	case OSDarwin:
 		cmd = processutil.CommandContext(ctx, "open", safeURL)
-	case "windows":
+	case OSWindows:
 		cmd = processutil.CommandContext(ctx, "cmd", "/c", "start", "", safeURL)
 	default:
 		return fmt.Errorf("%w: %s", ErrUnsupportedPlatform, runtime.GOOS)

@@ -18,10 +18,10 @@ const (
 	BoundTopologyConfigDirName = "generated/topology"
 
 	// BoundTopologyBaseConfigFileName is the app-manager input config file.
-	BoundTopologyBaseConfigFileName = "base.json"
+	BoundTopologyBaseConfigFileName = "env.json"
 
 	// BoundTopologyConfigFileName is the bound config consumed by localtest.
-	BoundTopologyConfigFileName = "bound.json"
+	BoundTopologyConfigFileName = "result.json"
 
 	// BoundTopologyContainerDir is the localtest mount point for generated topology config.
 	BoundTopologyContainerDir = "/studioctl/topology"
