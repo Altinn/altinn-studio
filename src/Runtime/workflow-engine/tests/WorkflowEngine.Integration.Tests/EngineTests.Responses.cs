@@ -196,6 +196,36 @@ public partial class EngineTests
         await VerifyJson(body).ScrubInlineGuids();
     }
 
+    [Fact]
+    public async Task Response_GetWorkflowHierarchy_IncludesDependentsAcrossCorrelationIds()
+    {
+        var rootWorkflow = _testHelpers.CreateWorkflow("wf-root", [_testHelpers.CreateWebhookStep("/ping-root")]);
+        var rootAccepted = await _client.Enqueue(
+            _testHelpers.CreateEnqueueRequest(rootWorkflow),
+            correlationId: Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+        );
+        var rootWorkflowId = rootAccepted.Workflows.Single().DatabaseId;
+        await _client.WaitForWorkflowStatus(rootWorkflowId, PersistentItemStatus.Completed);
+
+        var childWorkflow = _testHelpers.CreateWorkflow("wf-child", [_testHelpers.CreateWebhookStep("/ping-child")]);
+        var childAccepted = await _client.Enqueue(
+            _testHelpers.CreateEnqueueRequest(childWorkflow with { DependsOn = [rootWorkflowId] }),
+            correlationId: Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")
+        );
+        var childWorkflowId = childAccepted.Workflows.Single().DatabaseId;
+        await _client.WaitForWorkflowStatus(childWorkflowId, PersistentItemStatus.Completed);
+
+        var hierarchy = await _client.GetWorkflowHierarchy(rootWorkflowId);
+
+        Assert.NotNull(hierarchy);
+        Assert.Equal(rootWorkflowId, hierarchy.WorkflowId);
+        Assert.Collection(
+            hierarchy.Workflows,
+            workflow => Assert.Equal(rootWorkflowId, workflow.DatabaseId),
+            workflow => Assert.Equal(childWorkflowId, workflow.DatabaseId)
+        );
+    }
+
     // ── ListWorkflows endpoint responses ────────────────────────────────
 
     [Fact]

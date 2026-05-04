@@ -628,13 +628,25 @@ internal sealed partial class EngineRepository
                 return null;
             }
 
-            if (root.CorrelationId is null)
+            List<Guid> hierarchyWorkflowIds = [];
+            await ExecuteWithRetry(
+                async ct =>
+                {
+                    await using var conn = await dataSource.OpenConnectionAsync(ct);
+                    hierarchyWorkflowIds = await GetWorkflowHierarchyIds(conn, workflowId, ns, ct);
+                },
+                cancellationToken
+            );
+            if (hierarchyWorkflowIds.Count == 0)
             {
                 return [root.ToDomainModel()];
             }
 
             var workflows = await context
-                .GetWorkflowsByCorrelationId(root.CorrelationId.Value, namespaceFilter: ns)
+                .GetWorkflowsByIds(hierarchyWorkflowIds, namespaceFilter: ns)
+                .AsNoTracking()
+                .OrderBy(wf => wf.CreatedAt)
+                .ThenBy(wf => wf.Id)
                 .ToDomainModel()
                 .ToListAsync(cancellationToken);
 
@@ -650,6 +662,44 @@ internal sealed partial class EngineRepository
             logger.FailedToFetchWorkflows(ex.Message, ex);
             throw;
         }
+    }
+
+    private static async Task<List<Guid>> GetWorkflowHierarchyIds(
+        NpgsqlConnection conn,
+        Guid workflowId,
+        string ns,
+        CancellationToken cancellationToken
+    )
+    {
+        const string sql = """
+            WITH RECURSIVE hierarchy AS (
+                SELECT w."Id"
+                FROM engine."Workflows" w
+                WHERE w."Id" = @id
+                  AND w."Namespace" = @ns
+                UNION
+                SELECT wd."WorkflowId"
+                FROM engine."WorkflowDependency" wd
+                JOIN engine."Workflows" w ON w."Id" = wd."WorkflowId"
+                JOIN hierarchy h ON wd."DependsOnWorkflowId" = h."Id"
+                WHERE w."Namespace" = @ns
+            )
+            SELECT "Id"
+            FROM hierarchy
+            """;
+
+        var workflowIds = new List<Guid>();
+        await using var cmd = new NpgsqlCommand(sql, conn);
+        cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
+        cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
+
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            workflowIds.Add(reader.GetGuid(0));
+        }
+
+        return workflowIds;
     }
 
     private static List<Workflow> BuildWorkflowHierarchy(Guid workflowId, IReadOnlyList<Workflow> workflows)

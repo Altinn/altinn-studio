@@ -150,6 +150,22 @@ internal static class EngineRepositoryQueryExtensions
                 )
                 .MaybeFilterByNamespace(namespaceFilter)
                 .Where(wf => wf.CorrelationId == correlationId);
+
+        public IQueryable<WorkflowEntity> GetWorkflowsByIds(
+            IReadOnlyCollection<Guid> workflowIds,
+            bool includeSteps = true,
+            bool includeDependencies = true,
+            bool includeLinks = true,
+            string? namespaceFilter = null
+        ) =>
+            dbContext
+                .Workflows.IncludeRelatedEntities(
+                    steps: includeSteps,
+                    dependencies: includeDependencies,
+                    links: includeLinks
+                )
+                .MaybeFilterByNamespace(namespaceFilter)
+                .Where(wf => workflowIds.Contains(wf.Id));
     }
 
     extension(IQueryable<WorkflowEntity> entityQuery)

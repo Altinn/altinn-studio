@@ -231,7 +231,7 @@ public sealed class EngineApiClient : IDisposable
         if (statuses is not null)
         {
             foreach (var status in statuses)
-                qs.Add($"statuses={status}");
+                qs.Add($"status={status}");
         }
 
         var path = qs.Count > 0 ? $"{GetBasePath(ns)}?{string.Join("&", qs)}" : GetBasePath(ns);

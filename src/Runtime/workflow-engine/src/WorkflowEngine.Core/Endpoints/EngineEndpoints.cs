@@ -134,7 +134,7 @@ internal static class EngineRequestHandlers
         [FromRoute] string @namespace,
         [FromQuery] Guid? correlationId,
         [FromQuery(Name = "label")] string[]? labels,
-        [FromQuery] PersistentItemStatus[]? statuses,
+        [FromQuery(Name = "status")] PersistentItemStatus[]? statuses,
         [FromQuery] Guid? cursor,
         [FromQuery] int? pageSize,
         [FromServices] IEngineRepository repository,
