@@ -211,88 +211,139 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     // --- Seed data ---
 
     /// <summary>
-    /// Seeds representative data across various statuses so the query planner has
-    /// realistic statistics. Followed by ANALYZE to refresh planner stats.
+    /// Seeds representative data across all statuses at sufficient volume that the planner's
+    /// cost estimates land off the cost-borderline knife-edge. With only a handful of
+    /// workflow_dependency rows (the prior shape of this seed), the planner's choice between
+    /// Hash Join and Merge Join for this table was a tie, leaving plan selection at the mercy
+    /// of background autoanalyze timing and producing different snapshots across CI vs local
+    /// runs (and across consecutive local runs of the same test). Bulking the seed up by ~100×
+    /// gives the planner clear cost differentials and converges on a single deterministic plan
+    /// in every environment, which is what these snapshot tests need to be a useful regression
+    /// gate. Status distribution is preserved at scale.
     /// </summary>
     private async Task SeedData(CancellationToken ct)
     {
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
-        // Insert workflows across all statuses
-        var statuses = new[] { 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 6, 6 };
-        var workflowIds = new List<Guid>();
+        const int workflowCount = 2800; // 100× the original 28-workflow shape
 
-        for (int i = 0; i < statuses.Length; i++)
-        {
-            var id = Guid.NewGuid();
-            workflowIds.Add(id);
-
-            var status = statuses[i];
-            var createdAt = _now.AddHours(-(statuses.Length - i));
-            var updatedAt = createdAt.AddMinutes(5);
-
-            // Processing workflows get a heartbeat; some are stale
-            DateTimeOffset? heartbeatAt = status == 2 ? updatedAt : null;
-            DateTimeOffset? backoffUntil = status == 1 ? _now.AddSeconds(-10) : null;
-
-            await using var cmd = dataSource.CreateCommand(
+        // Bulk insert all workflows in a single statement using generate_series. Status mapping
+        // mirrors the original 28-element array so the same proportions carry through:
+        //   0..2 → Enqueued (0)        3..5  → Processing (1)
+        //   6..8 → Requeued (2)        9..18 → Completed (3)
+        //   19..23 → Failed (4)       24..25 → Canceled (5)
+        //   26..27 → DependencyFailed (6)
+        // heartbeat_at is set on Requeued (status=2) rows; backoff_until on Processing (status=1).
+        await using (
+            var cmd = dataSource.CreateCommand(
                 """
                 INSERT INTO engine.workflows
                     (id, operation_id, idempotency_key, namespace, status,
                      created_at, updated_at, reclaim_count, heartbeat_at, backoff_until)
-                VALUES (@id, 'test-op', @idemKey, 'test-ns', @status,
-                        @createdAt, @updatedAt, 0, @heartbeatAt, @backoffUntil)
+                SELECT
+                    gen_random_uuid(),
+                    'test-op',
+                    md5(g::text),
+                    'test-ns',
+                    s.status,
+                    s.created_at,
+                    s.updated_at,
+                    0,
+                    CASE WHEN s.status = 2 THEN s.updated_at ELSE NULL END,
+                    CASE WHEN s.status = 1 THEN @backoffMoment ELSE NULL END
+                FROM generate_series(0, @count - 1) AS g
+                CROSS JOIN LATERAL (
+                    SELECT
+                        (ARRAY[0,0,0,1,1,1,2,2,2,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,5,5,6,6])[(g % 28) + 1] AS status,
+                        @baseTime - (INTERVAL '1 minute' * (@count - g))                              AS created_at,
+                        @baseTime - (INTERVAL '1 minute' * (@count - g)) + INTERVAL '5 minutes'       AS updated_at
+                ) AS s
                 """
-            );
-            cmd.Parameters.AddWithValue("id", id);
-            cmd.Parameters.AddWithValue("idemKey", id.ToString("N"));
-            cmd.Parameters.AddWithValue("status", status);
-            cmd.Parameters.AddWithValue("createdAt", createdAt);
-            cmd.Parameters.AddWithValue("updatedAt", updatedAt);
-            cmd.Parameters.AddWithValue("heartbeatAt", heartbeatAt.HasValue ? heartbeatAt.Value : DBNull.Value);
-            cmd.Parameters.AddWithValue("backoffUntil", backoffUntil.HasValue ? backoffUntil.Value : DBNull.Value);
+            )
+        )
+        {
+            cmd.Parameters.AddWithValue("count", workflowCount);
+            cmd.Parameters.AddWithValue("baseTime", _now);
+            cmd.Parameters.AddWithValue("backoffMoment", _now.AddSeconds(-10));
             await cmd.ExecuteNonQueryAsync(ct);
-
-            // Add steps for each workflow
-            for (int s = 0; s < 2; s++)
-            {
-                await using var stepCmd = dataSource.CreateCommand(
-                    """
-                    INSERT INTO engine.steps
-                        (id, job_id, operation_id, command_json,
-                         status, created_at, processing_order, requeue_count)
-                    VALUES (@id, @jobId, 'step-op', '{"type":"webhook"}',
-                            @status, @createdAt, @order, 0)
-                    """
-                );
-                stepCmd.Parameters.AddWithValue("id", Guid.NewGuid());
-                stepCmd.Parameters.AddWithValue("jobId", id);
-                stepCmd.Parameters.AddWithValue("status", status);
-                stepCmd.Parameters.AddWithValue("createdAt", createdAt);
-                stepCmd.Parameters.AddWithValue("order", s);
-                await stepCmd.ExecuteNonQueryAsync(ct);
-            }
         }
 
-        // Add some dependencies between workflows
-        if (workflowIds.Count >= 4)
+        // Two steps per workflow, copying the workflow's own status/created_at.
+        await using (
+            var cmd = dataSource.CreateCommand(
+                """
+                INSERT INTO engine.steps
+                    (id, job_id, operation_id, command_json,
+                     status, created_at, processing_order, requeue_count)
+                SELECT
+                    gen_random_uuid(),
+                    w.id,
+                    'step-op',
+                    '{"type":"webhook"}'::jsonb,
+                    w.status,
+                    w.created_at,
+                    s.ord,
+                    0
+                FROM engine.workflows w
+                CROSS JOIN generate_series(0, 1) AS s(ord)
+                """
+            )
+        )
         {
-            await InsertDependency(dataSource, workflowIds[0], workflowIds[1], ct);
-            await InsertDependency(dataSource, workflowIds[2], workflowIds[3], ct);
+            await cmd.ExecuteNonQueryAsync(ct);
         }
 
-        // Add idempotency keys
-        for (int i = 0; i < 10; i++)
+        // Dependencies: two outgoing edges per workflow using stride-1 and stride-7 row offsets.
+        // That gives 2 × workflowCount rows (~5600) — well past the cost-borderline regime —
+        // while keeping the (workflow_id, depends_on_workflow_id) pairs unique. The strides
+        // distribute target workflows across statuses since rows are ordered by created_at.
+        await using (
+            var cmd = dataSource.CreateCommand(
+                """
+                INSERT INTO engine.workflow_dependency (workflow_id, depends_on_workflow_id)
+                WITH ordered AS (
+                    SELECT id, (row_number() OVER (ORDER BY created_at, id) - 1) AS rn
+                    FROM engine.workflows
+                )
+                SELECT a.id, b.id
+                FROM ordered a
+                JOIN ordered b ON b.rn = (a.rn + 1) % @count
+                UNION ALL
+                SELECT a.id, b.id
+                FROM ordered a
+                JOIN ordered b ON b.rn = (a.rn + 7) % @count
+                """
+            )
+        )
         {
-            var refIds = new[] { workflowIds[i % workflowIds.Count] };
-            await InsertIdempotencyKey(
-                dataSource,
-                key: $"seed-key-{i}",
-                ns: "test-ns",
-                workflowIds: refIds,
-                createdAt: _now.AddHours(-i),
-                ct
-            );
+            cmd.Parameters.AddWithValue("count", workflowCount);
+            await cmd.ExecuteNonQueryAsync(ct);
+        }
+
+        // Idempotency keys at proportional scale (was 10, now 1000), each referencing one workflow.
+        await using (
+            var cmd = dataSource.CreateCommand(
+                """
+                INSERT INTO engine.idempotency_keys
+                    (idempotency_key, namespace, request_body_hash, workflow_ids, created_at)
+                SELECT
+                    'seed-key-' || g,
+                    'test-ns',
+                    '\x01'::bytea,
+                    ARRAY[w.id],
+                    @baseTime - (INTERVAL '1 hour' * g)
+                FROM generate_series(0, @keys - 1) AS g
+                JOIN LATERAL (
+                    SELECT id FROM engine.workflows ORDER BY created_at, id OFFSET (g % @count) LIMIT 1
+                ) AS w ON TRUE
+                """
+            )
+        )
+        {
+            cmd.Parameters.AddWithValue("keys", 1000);
+            cmd.Parameters.AddWithValue("count", workflowCount);
+            cmd.Parameters.AddWithValue("baseTime", _now);
+            await cmd.ExecuteNonQueryAsync(ct);
         }
 
         // Refresh planner statistics
@@ -300,46 +351,5 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
             "ANALYZE engine.workflows, engine.steps, engine.workflow_dependency, engine.idempotency_keys"
         );
         await analyzeCmd.ExecuteNonQueryAsync(ct);
-    }
-
-    private static async Task InsertDependency(
-        NpgsqlDataSource dataSource,
-        Guid workflowId,
-        Guid dependsOnId,
-        CancellationToken ct
-    )
-    {
-        await using var cmd = dataSource.CreateCommand(
-            """
-            INSERT INTO engine.workflow_dependency (workflow_id, depends_on_workflow_id)
-            VALUES (@workflowId, @dependsOnId)
-            """
-        );
-        cmd.Parameters.AddWithValue("workflowId", workflowId);
-        cmd.Parameters.AddWithValue("dependsOnId", dependsOnId);
-        await cmd.ExecuteNonQueryAsync(ct);
-    }
-
-    private static async Task InsertIdempotencyKey(
-        NpgsqlDataSource dataSource,
-        string key,
-        string ns,
-        Guid[] workflowIds,
-        DateTimeOffset createdAt,
-        CancellationToken ct
-    )
-    {
-        await using var cmd = dataSource.CreateCommand(
-            """
-            INSERT INTO engine.idempotency_keys (idempotency_key, namespace, request_body_hash, workflow_ids, created_at)
-            VALUES (@key, @ns, @hash, @workflowIds, @createdAt)
-            """
-        );
-        cmd.Parameters.AddWithValue("key", key);
-        cmd.Parameters.AddWithValue("ns", ns);
-        cmd.Parameters.AddWithValue("hash", new byte[] { 0x01 });
-        cmd.Parameters.AddWithValue("workflowIds", workflowIds);
-        cmd.Parameters.AddWithValue("createdAt", createdAt);
-        await cmd.ExecuteNonQueryAsync(ct);
     }
 }

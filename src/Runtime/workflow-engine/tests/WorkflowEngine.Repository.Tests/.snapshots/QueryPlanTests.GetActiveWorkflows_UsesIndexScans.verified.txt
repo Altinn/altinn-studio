@@ -13,7 +13,7 @@
       Inner Unique: true,
       Plans: [
         {
-          Node Type: Nested Loop,
+          Node Type: Merge Join,
           Parent Relationship: Outer,
           Parallel Aware: {Scrubbed},
           Async Capable: {Scrubbed},
@@ -24,6 +24,7 @@
           Plan Width: {Scrubbed},
           Disabled: false,
           Inner Unique: false,
+          Merge Cond: (w.id = w2.workflow_id),
           Plans: [
             {
               Node Type: Limit,
@@ -37,37 +38,20 @@
               Disabled: false,
               Plans: [
                 {
-                  Node Type: Sort,
+                  Node Type: Index Scan,
                   Parent Relationship: Outer,
                   Parallel Aware: {Scrubbed},
                   Async Capable: {Scrubbed},
+                  Scan Direction: Forward,
+                  Index Name: pk_workflows,
+                  Relation Name: workflows,
+                  Alias: w,
                   Startup Cost: {Scrubbed},
                   Total Cost: {Scrubbed},
                   Plan Rows: {Scrubbed},
                   Plan Width: {Scrubbed},
                   Disabled: false,
-                  Sort Key: [
-                    w.id
-                  ],
-                  Plans: [
-                    {
-                      Node Type: Index Scan,
-                      Parent Relationship: Outer,
-                      Parallel Aware: {Scrubbed},
-                      Async Capable: {Scrubbed},
-                      Scan Direction: Forward,
-                      Index Name: ix_workflows_status,
-                      Relation Name: workflows,
-                      Alias: w,
-                      Startup Cost: {Scrubbed},
-                      Total Cost: {Scrubbed},
-                      Plan Rows: {Scrubbed},
-                      Plan Width: {Scrubbed},
-                      Disabled: false,
-                      Index Cond: (status = ANY ('{0,1,2}'::integer[])),
-                      Filter: ((start_at IS NULL) OR (start_at <= now()))
-                    }
-                  ]
+                  Filter: ((status = ANY ('{0,1,2}'::integer[])) AND ((start_at IS NULL) OR (start_at <= now())))
                 }
               ]
             },
@@ -84,8 +68,7 @@
               Total Cost: {Scrubbed},
               Plan Rows: {Scrubbed},
               Plan Width: {Scrubbed},
-              Disabled: false,
-              Index Cond: (workflow_id = w.id)
+              Disabled: false
             }
           ]
         },
