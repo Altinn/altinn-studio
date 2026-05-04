@@ -9,10 +9,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ChatController;
 
-public class GetMessagesTests
-    : ChatControllerTestsBase<GetMessagesTests>,
-        IClassFixture<WebApplicationFactory<Program>>,
-        IClassFixture<DesignerDbFixture>
+public class GetMessagesTests : ChatControllerTestsBase<GetMessagesTests>
 {
     public GetMessagesTests(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture)
         : base(factory, designerDbFixture) { }

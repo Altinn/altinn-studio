@@ -9,10 +9,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ChatController;
 
-public class DeleteMessageTests
-    : ChatControllerTestsBase<DeleteMessageTests>,
-        IClassFixture<WebApplicationFactory<Program>>,
-        IClassFixture<DesignerDbFixture>
+public class DeleteMessageTests : ChatControllerTestsBase<DeleteMessageTests>
 {
     public DeleteMessageTests(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture)
         : base(factory, designerDbFixture) { }

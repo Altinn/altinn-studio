@@ -8,10 +8,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ChatController;
 
-public class GetThreadsTests
-    : ChatControllerTestsBase<GetThreadsTests>,
-        IClassFixture<WebApplicationFactory<Program>>,
-        IClassFixture<DesignerDbFixture>
+public class GetThreadsTests : ChatControllerTestsBase<GetThreadsTests>
 {
     public GetThreadsTests(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture)
         : base(factory, designerDbFixture) { }

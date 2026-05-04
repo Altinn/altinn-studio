@@ -12,10 +12,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ChatController;
 
-public class ThreadOwnershipTests
-    : ChatControllerTestsBase<ThreadOwnershipTests>,
-        IClassFixture<WebApplicationFactory<Program>>,
-        IClassFixture<DesignerDbFixture>
+public class ThreadOwnershipTests : ChatControllerTestsBase<ThreadOwnershipTests>
 {
     private const string OtherDeveloper = "otherDeveloper";
 

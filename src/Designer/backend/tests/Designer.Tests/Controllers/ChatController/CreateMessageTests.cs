@@ -3,7 +3,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
-using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
 using Designer.Tests.Fixtures;
@@ -13,10 +12,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ChatController;
 
-public class CreateMessageTests
-    : ChatControllerTestsBase<CreateMessageTests>,
-        IClassFixture<WebApplicationFactory<Program>>,
-        IClassFixture<DesignerDbFixture>
+public class CreateMessageTests : ChatControllerTestsBase<CreateMessageTests>
 {
     public CreateMessageTests(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture)
         : base(factory, designerDbFixture) { }
@@ -71,7 +67,7 @@ public class CreateMessageTests
         var dbRecord = await DesignerDbFixture.DbContext.ChatMessages.SingleAsync(m => m.Id == created.Id);
         Assert.Equal(request.Content, dbRecord.Content);
         Assert.Equal(Role.Assistant, dbRecord.Role);
-        Assert.Equal(true, dbRecord.AllowAppChanges);
+        Assert.True(dbRecord.AllowAppChanges);
     }
 
     [Fact]

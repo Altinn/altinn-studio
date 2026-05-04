@@ -2,7 +2,6 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Fixtures;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -11,10 +10,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ChatController;
 
-public class UpdateThreadTests
-    : ChatControllerTestsBase<UpdateThreadTests>,
-        IClassFixture<WebApplicationFactory<Program>>,
-        IClassFixture<DesignerDbFixture>
+public class UpdateThreadTests : ChatControllerTestsBase<UpdateThreadTests>
 {
     public UpdateThreadTests(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture)
         : base(factory, designerDbFixture) { }

@@ -30,27 +30,27 @@ public class ChatServiceTests
     }
 
     [Fact]
-    public async Task GetThreadsAsync_DelegatesToRepository()
+    public async Task GetThreadsAsync_ReturnsThreads()
     {
         var expected = new List<ChatThreadEntity> { CreateThreadEntity() };
         _repositoryMock.Setup(r => r.GetThreadsAsync(_context, It.IsAny<CancellationToken>())).ReturnsAsync(expected);
 
         var result = await _chatService.GetThreadsAsync(_context);
 
-        Assert.Equal(expected, result);
+        Assert.Equivalent(expected, result, strict: true);
     }
 
     [Fact]
     public async Task CreateThreadAsync_BuildsEntityFromContextAndTitle()
     {
-        const string title = "My thread";
+        const string Title = "My thread";
         _repositoryMock
             .Setup(r => r.CreateThreadAsync(It.IsAny<ChatThreadEntity>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((ChatThreadEntity t, CancellationToken _) => t);
 
-        var result = await _chatService.CreateThreadAsync(title, _context);
+        var result = await _chatService.CreateThreadAsync(Title, _context);
 
-        Assert.Equal(title, result.Title);
+        Assert.Equal(Title, result.Title);
         Assert.Equal(_context.Org, result.Org);
         Assert.Equal(_context.Repo, result.App);
         Assert.Equal(_context.Developer, result.CreatedBy);
@@ -130,7 +130,7 @@ public class ChatServiceTests
 
         var result = await _chatService.GetMessagesAsync(thread.Id, _context);
 
-        Assert.Equal(expected, result);
+        Assert.Equivalent(expected, result, strict: true);
     }
 
     [Fact]
