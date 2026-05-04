@@ -68,7 +68,7 @@
                       Filter: ((start_at > now()) OR (ANY (id = (hashed SubPlan 2).col1))),
                       Plans: [
                         {
-                          Node Type: Merge Join,
+                          Node Type: Hash Join,
                           Parent Relationship: SubPlan,
                           Subplan Name: SubPlan 2,
                           Parallel Aware: {Scrubbed},
@@ -80,38 +80,63 @@
                           Plan Width: {Scrubbed},
                           Disabled: false,
                           Inner Unique: true,
-                          Merge Cond: (w0.depends_on_workflow_id = w1.id),
+                          Hash Cond: (w0.depends_on_workflow_id = w1.id),
                           Plans: [
                             {
-                              Node Type: Index Scan,
+                              Node Type: Bitmap Heap Scan,
                               Parent Relationship: Outer,
                               Parallel Aware: {Scrubbed},
                               Async Capable: {Scrubbed},
-                              Scan Direction: Forward,
-                              Index Name: ix_workflow_dependency_depends_on_workflow_id,
                               Relation Name: workflow_dependency,
                               Alias: w0,
                               Startup Cost: {Scrubbed},
                               Total Cost: {Scrubbed},
                               Plan Rows: {Scrubbed},
                               Plan Width: {Scrubbed},
-                              Disabled: false
+                              Disabled: false,
+                              Plans: [
+                                {
+                                  Node Type: Bitmap Index Scan,
+                                  Parent Relationship: Outer,
+                                  Parallel Aware: {Scrubbed},
+                                  Async Capable: {Scrubbed},
+                                  Index Name: pk_workflow_dependency,
+                                  Startup Cost: {Scrubbed},
+                                  Total Cost: {Scrubbed},
+                                  Plan Rows: {Scrubbed},
+                                  Plan Width: {Scrubbed},
+                                  Disabled: false
+                                }
+                              ]
                             },
                             {
-                              Node Type: Index Scan,
+                              Node Type: Hash,
                               Parent Relationship: Inner,
                               Parallel Aware: {Scrubbed},
                               Async Capable: {Scrubbed},
-                              Scan Direction: Forward,
-                              Index Name: pk_workflows,
-                              Relation Name: workflows,
-                              Alias: w1,
                               Startup Cost: {Scrubbed},
                               Total Cost: {Scrubbed},
                               Plan Rows: {Scrubbed},
                               Plan Width: {Scrubbed},
                               Disabled: false,
-                              Filter: (status = ANY ('{0,1,2}'::integer[]))
+                              Plans: [
+                                {
+                                  Node Type: Index Scan,
+                                  Parent Relationship: Outer,
+                                  Parallel Aware: {Scrubbed},
+                                  Async Capable: {Scrubbed},
+                                  Scan Direction: Forward,
+                                  Index Name: ix_workflows_status,
+                                  Relation Name: workflows,
+                                  Alias: w1,
+                                  Startup Cost: {Scrubbed},
+                                  Total Cost: {Scrubbed},
+                                  Plan Rows: {Scrubbed},
+                                  Plan Width: {Scrubbed},
+                                  Disabled: false,
+                                  Index Cond: (status = ANY ('{0,1,2}'::integer[]))
+                                }
+                              ]
                             }
                           ]
                         }
