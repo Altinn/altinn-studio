@@ -128,15 +128,15 @@ public sealed class EngineApiClient : IDisposable
     /// <summary>
     /// Gets a workflow status and returns the raw <see cref="HttpResponseMessage"/>.
     /// </summary>
-    public Task<HttpResponseMessage> GetWorkflowRaw(Guid workflowId) =>
-        _client.GetAsync($"{GetBasePath()}/{workflowId}", CancellationToken.None);
+    public Task<HttpResponseMessage> GetWorkflowRaw(Guid workflowId, string? ns = null) =>
+        _client.GetAsync($"{GetBasePath(ns)}/{workflowId}", CancellationToken.None);
 
     /// <summary>
     /// Gets a workflow status and returns either a parsed result or <c>null</c> on 404.
     /// </summary>
-    public async Task<WorkflowStatusResponse?> GetWorkflow(Guid workflowId)
+    public async Task<WorkflowStatusResponse?> GetWorkflow(Guid workflowId, string? ns = null)
     {
-        using var response = await GetWorkflowRaw(workflowId);
+        using var response = await GetWorkflowRaw(workflowId, ns);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
             return null;
@@ -157,15 +157,15 @@ public sealed class EngineApiClient : IDisposable
     /// <summary>
     /// Gets a workflow hierarchy and returns the raw <see cref="HttpResponseMessage"/>.
     /// </summary>
-    public Task<HttpResponseMessage> GetWorkflowHierarchyRaw(Guid workflowId) =>
-        _client.GetAsync($"{GetBasePath()}/{workflowId}/hierarchy", CancellationToken.None);
+    public Task<HttpResponseMessage> GetWorkflowHierarchyRaw(Guid workflowId, string? ns = null) =>
+        _client.GetAsync($"{GetBasePath(ns)}/{workflowId}/hierarchy", CancellationToken.None);
 
     /// <summary>
     /// Gets a workflow hierarchy and returns either a parsed result or <c>null</c> on 404.
     /// </summary>
-    public async Task<WorkflowHierarchyResponse?> GetWorkflowHierarchy(Guid workflowId)
+    public async Task<WorkflowHierarchyResponse?> GetWorkflowHierarchy(Guid workflowId, string? ns = null)
     {
-        using var response = await GetWorkflowHierarchyRaw(workflowId);
+        using var response = await GetWorkflowHierarchyRaw(workflowId, ns);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
             return null;

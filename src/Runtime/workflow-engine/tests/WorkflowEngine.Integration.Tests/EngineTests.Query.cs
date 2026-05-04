@@ -108,8 +108,20 @@ public partial class EngineTests
         // Act
         var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var enqueuedFromApi = await _client.ListWorkflows([PersistentItemStatus.Enqueued]);
-        var scheduledFromDb = await context.GetScheduledWorkflows().ToListAsync(TestContext.Current.CancellationToken);
+        var enqueuedFromApi = await PollUntilFound(
+            async () => await _client.ListWorkflows([PersistentItemStatus.Enqueued]),
+            workflowId,
+            wf => wf.DatabaseId
+        );
+        var scheduledFromDb = await PollUntilFound(
+            async () =>
+                await context
+                    .GetScheduledWorkflows()
+                    .Select(wf => wf.ToDomainModel())
+                    .ToListAsync(TestContext.Current.CancellationToken),
+            workflowId,
+            wf => wf.DatabaseId
+        );
 
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
@@ -118,10 +130,31 @@ public partial class EngineTests
 
         Assert.Single(enqueuedFromApi);
         Assert.Equal(workflowId, enqueuedFromApi[0].DatabaseId);
-        Assert.Equal(workflowId, scheduledFromDb.Single().Id);
+        Assert.Equal(workflowId, scheduledFromDb.Single().DatabaseId);
 
         var logs = fixture.WireMock.LogEntries;
         Assert.Single(logs);
         Assert.Contains("/scheduled", logs[0].RequestMessage.AbsolutePath, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static async Task<List<T>> PollUntilFound<T>(
+        Func<Task<List<T>>> getWorkflows,
+        Guid workflowId,
+        Func<T, Guid> getDatabaseId
+    )
+    {
+        while (!TestContext.Current.CancellationToken.IsCancellationRequested)
+        {
+            List<T> workflows = await getWorkflows();
+            if (workflows.Any(wf => getDatabaseId(wf) == workflowId))
+            {
+                return workflows;
+            }
+
+            await Task.Delay(100, TestContext.Current.CancellationToken);
+        }
+
+        TestContext.Current.CancellationToken.ThrowIfCancellationRequested();
+        throw new InvalidOperationException("Cancellation should have thrown.");
     }
 }
