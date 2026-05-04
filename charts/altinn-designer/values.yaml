@@ -265,7 +265,7 @@ environmentVariables:
     - name: MaskinPortenHttpClientSettings__BaseUrl
       value: "https://api.samarbeid.digdir.no"
     - name: FeatureManagement__StudioOidc
-      value: "false"
+      value: "true"
     - name: FeatureManagement__GitOpsDeploy
       value: "false"
     - name: RedisCacheSettings__UseRedisCache
