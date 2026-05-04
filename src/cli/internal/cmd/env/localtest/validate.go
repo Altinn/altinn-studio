@@ -7,48 +7,26 @@ import (
 
 	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/devenv/pkg/resource"
-	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 )
 
-// CheckForLegacyLocaltest checks if legacy localtest containers are running.
-// Returns an error if containers exist without the studioctl management label.
-// TODO: we should do something else for this. Need a smooth migration path
-// and we can probably check docker/podman compose labels or something
-// instead of matching on container names.
+const localtestContainerName = "localtest"
+
+// CheckForLegacyLocaltest checks if the localtest container name is owned by
+// something other than studioctl.
 func CheckForLegacyLocaltest(
 	ctx context.Context,
 	client container.ContainerClient,
-	resources []resource.Resource,
 ) error {
-	containers := components.EnabledContainerNames(resources)
-	var legacyContainers []string
-
-	for _, name := range containers {
-		info, err := client.ContainerInspect(ctx, name)
-		if errors.Is(err, container.ErrContainerNotFound) {
-			continue
-		}
-		if err != nil {
-			return fmt.Errorf("inspect container %s: %w", name, err)
-		}
-
-		if !info.State.Running {
-			continue
-		}
-
-		if isStudioctlManagedContainer(info.Labels) {
-			continue
-		}
-
-		legacyContainers = append(legacyContainers, name)
+	info, err := client.ContainerInspect(ctx, localtestContainerName)
+	if errors.Is(err, container.ErrContainerNotFound) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("inspect container %s: %w", localtestContainerName, err)
 	}
 
-	if len(legacyContainers) > 0 {
-		return fmt.Errorf("%w: %v", ErrLegacyLocaltestRunning, legacyContainers)
+	if !info.State.Running || info.Labels[resource.GraphIDLabel] == graphID {
+		return nil
 	}
-	return nil
-}
-
-func isStudioctlManagedContainer(labels map[string]string) bool {
-	return labels[resource.GraphIDLabel] == graphID
+	return fmt.Errorf("%w: %s", ErrLegacyLocaltestRunning, localtestContainerName)
 }
