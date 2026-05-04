@@ -17,6 +17,7 @@ import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAppName } from '../../utils/stringUtils';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
+import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 
 interface ResourceAdmHeaderProps {
   organizations: Organization[];
@@ -60,6 +61,8 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
   const selectableOrgs = organizations;
   const { environment } = useEnvironmentConfig();
   const studioOidc = environment?.featureFlags?.studioOidc;
+  const isAdminEnabled = useFeatureFlag(FeatureFlag.Admin);
+  const showSettingsLink = studioOidc || isAdminEnabled;
 
   const triggerButtonText = t('shared.header_user_for_org', {
     user: user?.full_name || user?.login,
@@ -100,7 +103,7 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
 
   const profileMenuGroups: StudioProfileMenuGroup[] = [
     { items: selectableOrgMenuItems },
-    ...(studioOidc ? [{ items: [settingsMenuItem] }] : []),
+    ...(showSettingsLink ? [{ items: [settingsMenuItem] }] : []),
     { items: [giteaMenuItem] },
     { items: [logOutMenuItem] },
   ];

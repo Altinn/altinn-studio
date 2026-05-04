@@ -16,23 +16,27 @@ import (
 	"altinn.studio/studioctl/internal/ui"
 )
 
-const selfMigrateSubcmd = "__migrate"
+const (
+	selfMigrateSubcmd = "__migrate"
+)
 
 // SelfCommand implements the 'self' subcommand.
 type SelfCommand struct {
-	cfg        *config.Config
-	out        *ui.Output
-	service    *selfsvc.Service
-	transition *selfsvc.Transition
+	cfg              *config.Config
+	out              *ui.Output
+	service          *selfsvc.Service
+	transition       *selfsvc.Transition
+	interactiveInput func() (io.Reader, func() error, error)
 }
 
 // NewSelfCommand creates a new self command.
 func NewSelfCommand(cfg *config.Config, out *ui.Output) *SelfCommand {
 	return &SelfCommand{
-		cfg:        cfg,
-		out:        out,
-		service:    selfsvc.NewService(cfg),
-		transition: selfsvc.NewTransition(cfg, out),
+		cfg:              cfg,
+		out:              out,
+		service:          selfsvc.NewService(cfg),
+		transition:       selfsvc.NewTransition(cfg, out),
+		interactiveInput: ui.InteractiveInput,
 	}
 }
 
@@ -327,7 +331,7 @@ func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == osutil.OSWindows {
 		return fmt.Errorf("%w: windows executable is locked while running", selfsvc.ErrUpdateUnsupported)
 	}
 
@@ -428,6 +432,10 @@ func (c *SelfCommand) runMigrate(ctx context.Context, args []string) error {
 	return nil
 }
 
+type selfUninstallFlags struct {
+	yes bool
+}
+
 func (c *SelfCommand) runUninstall(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("self uninstall", flag.ContinueOnError)
 	fs.Usage = func() {
@@ -437,9 +445,14 @@ func (c *SelfCommand) runUninstall(ctx context.Context, args []string) error {
 			fmt.Sprintf("Remove the installed %s.", osutil.CurrentBin()),
 			"",
 			"Options:",
+			"  -y, --yes   Skip confirmation prompt",
 			"  -h, --help  Show this help message",
 		))
 	}
+
+	var flags selfUninstallFlags
+	fs.BoolVar(&flags.yes, "y", false, "Skip confirmation prompt")
+	fs.BoolVar(&flags.yes, "yes", false, "Skip confirmation prompt")
 
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
@@ -448,10 +461,16 @@ func (c *SelfCommand) runUninstall(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == osutil.OSWindows {
 		c.out.Error("Self-uninstall while running is not supported on Windows.")
 		c.out.Println("Run this after studioctl has exited:")
 		c.out.Println(`  Remove-Item "<path-to-studioctl.exe>"`)
+		return nil
+	}
+
+	if proceed, err := c.confirmUninstallIfNeeded(ctx, flags); err != nil {
+		return err
+	} else if !proceed {
 		return nil
 	}
 
@@ -466,6 +485,18 @@ func (c *SelfCommand) runUninstall(ctx context.Context, args []string) error {
 		}
 	}()
 
+	if resetErr := c.transition.ResetEnvs(ctx); resetErr != nil {
+		return fmt.Errorf("reset environments before uninstall: %w", resetErr)
+	}
+	if validateErr := c.service.ValidateHomeRemoval(); validateErr != nil {
+		return fmt.Errorf("validate home directory removal: %w", validateErr)
+	}
+
+	removedHome, err := c.service.RemoveHome()
+	if err != nil {
+		return fmt.Errorf("remove home directory: %w", err)
+	}
+
 	result, err := c.service.UninstallBinary()
 	if err != nil {
 		return fmt.Errorf("self uninstall: %w", err)
@@ -473,6 +504,44 @@ func (c *SelfCommand) runUninstall(ctx context.Context, args []string) error {
 	removed = true
 
 	c.out.Successf("Removed %s", result.RemovedPath)
-	c.out.Println("Localtest resources and configuration were not removed.")
+	c.out.Successf("Removed %s", removedHome)
 	return nil
+}
+
+func (c *SelfCommand) confirmUninstallIfNeeded(
+	ctx context.Context,
+	flags selfUninstallFlags,
+) (bool, error) {
+	if flags.yes {
+		return true, nil
+	}
+
+	input, cleanup, err := c.interactiveInput()
+	if err != nil {
+		return false, fmt.Errorf(
+			"%w: --yes is required when no terminal input is available",
+			ErrInvalidFlagValue,
+		)
+	}
+	defer func() {
+		if cleanupErr := cleanup(); cleanupErr != nil {
+			c.out.Verbosef("failed to close terminal input: %v", cleanupErr)
+		}
+	}()
+
+	confirmed, err := ui.Confirm(
+		ctx,
+		c.out,
+		input,
+		fmt.Sprintf("Uninstall %s and delete local data? [y/N]: ", osutil.CurrentBin()),
+	)
+	if err != nil {
+		return false, fmt.Errorf("confirm uninstall: %w", err)
+	}
+	if !confirmed {
+		c.out.Println("Uninstall cancelled")
+		return false, nil
+	}
+
+	return true, nil
 }

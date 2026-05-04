@@ -1,4 +1,4 @@
-FROM gitea/act_runner:0.3.0@sha256:8368754bb612a1deb07ed604e3b955338aefc01576d4d0d92e8dd82f29250fcd AS gitea-basic
+FROM gitea/act_runner:0.6.0@sha256:b2df7d04d17334ff8e741c32b0df099d5df046d96599cb330d4ed7c097cb087f AS gitea-basic
 
 FROM ghcr.io/renovatebot/renovate:42.34.1@sha256:76265a40295d41facff1967a60e893fbce7de39e4975bc2b63884a8482170e39 AS renovate
 

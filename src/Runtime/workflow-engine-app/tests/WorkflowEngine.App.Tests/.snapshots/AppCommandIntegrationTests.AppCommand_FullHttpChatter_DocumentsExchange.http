@@ -2,7 +2,7 @@
 ### 1. Client → Engine: Enqueue workflow
 ###
 
-POST /api/v1/chatter-app-test/workflows?idempotencyKey=app-chatter-idem&correlationId=Guid_1 HTTP/1.1
+POST /api/v1/chatter-app-test/workflows?idempotencyKey=app-chatter-idem&collectionKey=Guid_1 HTTP/1.1
 Content-Type: application/json; charset=utf-8
 
 {
@@ -56,7 +56,9 @@ Content-Type: application/json; charset=utf-8
       "startAt": null,
       "state": "initial-workflow-state",
       "dependsOn": null,
-      "links": null
+      "links": null,
+      "dependsOnHeads": true,
+      "isHead": null
     }
   ]
 }
@@ -80,8 +82,8 @@ Content-Type: application/json; charset=utf-8
 
 POST http://localhost:{PORT}/ttd/e2e-tests/instances/50001/Guid_2/workflow-engine-callbacks/chatter-step-1 HTTP/1.1
 Host: localhost
+Collection-Key: Guid_1
 Content-Type: application/json; charset=utf-8
-Correlation-Id: Guid_1
 Idempotency-Key: Guid_4
 Namespace: chatter-app-test
 Operation-Id: chatter-step-1
@@ -112,8 +114,8 @@ Content-Type: application/json
 
 POST http://localhost:{PORT}/ttd/e2e-tests/instances/50001/Guid_2/workflow-engine-callbacks/chatter-step-2 HTTP/1.1
 Host: localhost
+Collection-Key: Guid_1
 Content-Type: application/json; charset=utf-8
-Correlation-Id: Guid_1
 Idempotency-Key: Guid_5
 Namespace: chatter-app-test
 Operation-Id: chatter-step-2
@@ -149,7 +151,7 @@ Content-Type: application/json; charset=utf-8
 
 {
   "databaseId": "Guid_3",
-  "correlationId": "Guid_1",
+  "collectionKey": "Guid_1",
   "operationId": "op-chatter-wf",
   "idempotencyKey": "app-chatter-idem",
   "namespace": "chatter-app-test",

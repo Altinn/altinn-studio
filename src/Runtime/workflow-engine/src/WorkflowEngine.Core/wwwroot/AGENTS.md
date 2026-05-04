@@ -73,14 +73,14 @@ Some modules have circular call dependencies (e.g., `filters.js` calls `loadQuer
 
 ## Patterns
 
-- Cards use `data-*` attributes for filter matching (avoids re-parsing): `data-namespace`, `data-correlationid`, `data-labels`, `data-status`, `data-filter`
+- Cards use `data-*` attributes for filter matching (avoids reparsing): `data-namespace`, `data-collectionkey`, `data-labels`, `data-status`, `data-filter`
 - Workflow fingerprinting (`status + step statuses + retry counts`) to skip unchanged DOM updates
 - Pulse animation sync after card re-render prevents CSS animation flicker
 - Pipeline scroll-on-change: only scrolls to active step when the processing step index changes
 - Inline `onclick` handlers exposed via `window.*` for cards generated as HTML strings
 - URL state sync via `syncUrl()`/`restoreUrl()` — shareable URLs capture full dashboard state
 - Grafana trace links built from workflow `traceId` for Tempo integration
-- Label filters use `toggleLabelFilter(key, value)` from clickable card segments (namespace, correlationId, labels)
+- Label filters use `toggleLabelFilter(key, value)` from clickable card segments (namespace, collectionKey, labels)
 - Retry button on failed pipeline steps, skip-backoff button on requeued steps with backoff timer
 
 For full behavioral spec (sections, endpoint contracts, card anatomy, filtering mechanics, modal behavior, URL state sync), see `DASHBOARD_SPEC.md` (same directory).

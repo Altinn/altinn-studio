@@ -52,12 +52,21 @@ public abstract record WorkflowEnqueueResponse
     /// </summary>
     public sealed record WorkflowResult
     {
+        /// <summary>
+        /// Echo of the request-scoped <see cref="WorkflowRequest.Ref"/>, when one was supplied.
+        /// </summary>
         [JsonPropertyName("ref")]
         public string? Ref { get; init; }
 
+        /// <summary>
+        /// Database ID assigned to the workflow row.
+        /// </summary>
         [JsonPropertyName("databaseId")]
         public required Guid DatabaseId { get; init; }
 
+        /// <summary>
+        /// Namespace the workflow was registered in.
+        /// </summary>
         [JsonPropertyName("namespace")]
         public required string Namespace { get; init; }
     }

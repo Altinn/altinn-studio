@@ -372,7 +372,7 @@ internal static class DashboardEndpoints
                     DateTimeOffset? since,
                     bool? retried,
                     string? labels,
-                    string? correlationId,
+                    string? collectionKey,
                     string? @namespace,
                     CancellationToken ct
                 ) =>
@@ -382,6 +382,7 @@ internal static class DashboardEndpoints
                     int maxResults = Math.Min(limit ?? 100, 200);
 
                     string? nsFilter = string.IsNullOrWhiteSpace(@namespace) ? null : @namespace;
+                    collectionKey = string.IsNullOrWhiteSpace(collectionKey) ? null : collectionKey;
 
                     PersistentItemStatus[] statuses = string.IsNullOrWhiteSpace(status)
                         ? [PersistentItemStatus.Completed, PersistentItemStatus.Failed, PersistentItemStatus.Requeued]
@@ -417,7 +418,7 @@ internal static class DashboardEndpoints
                         retriedOnly: retriedOnly,
                         labelFilters: labelFilters,
                         namespaceFilter: nsFilter,
-                        correlationId: correlationId,
+                        collectionKey: collectionKey,
                         cancellationToken: ct
                     );
 

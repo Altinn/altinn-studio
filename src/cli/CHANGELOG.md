@@ -8,6 +8,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- Keep running apps visible in localtest after restarting the localtest environment.
+- Improve localtest resource reconciliation so `env up` removes managed resources that are no longer requested, such as pgAdmin or monitoring, without restarting unchanged core containers.
+
 ## [0.1.0-preview.7] - 2026-04-29
 
 ### Added
@@ -19,6 +24,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Make `--random-host-port` default to `true` for `run` and `app run`.
 - Stop running apps, localtest, and app-manager before `self update`, `self uninstall`, and installer replacement.
+- Make `self uninstall` remove studioctl home data and env runtime resources.
 
 ### Fixed
 

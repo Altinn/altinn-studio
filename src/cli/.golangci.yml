@@ -21,6 +21,7 @@ linters:
     - gomoddirectives
     - depguard
     - godox
+    - ireturn
 
   settings:
     errcheck:

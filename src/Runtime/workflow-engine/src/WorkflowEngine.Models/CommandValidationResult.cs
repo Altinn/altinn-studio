@@ -1,5 +1,9 @@
 namespace WorkflowEngine.Models;
 
+/// <summary>
+/// Outcome of <see cref="Abstractions.ICommand.Validate"/>.
+/// A closed hierarchy with two cases: <see cref="Valid"/> and <see cref="Invalid"/>.
+/// </summary>
 public abstract record CommandValidationResult
 {
     private CommandValidationResult() { }

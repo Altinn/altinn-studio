@@ -1,5 +1,8 @@
 namespace WorkflowEngine.Models.Extensions;
 
+/// <summary>
+/// Helpers for projecting <see cref="Step"/> data into telemetry tags.
+/// </summary>
 public static class StepExtensions
 {
     extension(Step step)
@@ -17,7 +20,7 @@ public static class StepExtensions
         /// <summary>
         /// Step metadata useful for enriching telemetry histograms.
         /// </summary>
-        public (string key, object? value)[] GetHistorgramTags() =>
+        public (string key, object? value)[] GetHistogramTags() =>
             [
                 ("operation.type", step.Command.Type),
                 ("operation.id", step.OperationId),

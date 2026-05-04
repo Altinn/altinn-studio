@@ -10,8 +10,14 @@ namespace WorkflowEngine.Models.Exceptions;
 /// </summary>
 public sealed class LeaseLostException : EngineException
 {
+    /// <summary>
+    /// Database ID of the workflow whose lease was revoked.
+    /// </summary>
     public Guid WorkflowId { get; }
 
+    /// <summary>
+    /// Creates a new <see cref="LeaseLostException"/> for the given workflow.
+    /// </summary>
     public LeaseLostException(Guid workflowId)
         : base($"Lease lost for workflow {workflowId} — another host has reclaimed it.")
     {

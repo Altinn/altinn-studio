@@ -1,5 +1,8 @@
 namespace WorkflowEngine.Models.Extensions;
 
+/// <summary>
+/// Convenience predicates over <see cref="ExecutionResult"/>.
+/// </summary>
 public static class ExecutionStatusExtensions
 {
     extension(ExecutionResult result)

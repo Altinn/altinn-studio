@@ -5,10 +5,13 @@ import (
 	"context"
 	"errors"
 	"io"
+	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 
 	containerruntime "altinn.studio/devenv/pkg/container"
+	containermock "altinn.studio/devenv/pkg/container/mock"
 	"altinn.studio/studioctl/internal/appmanager"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/ui"
@@ -189,6 +192,34 @@ func TestSelfTransitionRunsMigrationsBeforeRestart(t *testing.T) {
 	}
 }
 
+func TestSelfTransitionResetEnvsRemovesLocaltestData(t *testing.T) {
+	t.Parallel()
+
+	cfg := testConfig(t)
+	localtestDataDir := filepath.Join(cfg.DataDir, "AltinnPlatformLocal")
+	if err := os.MkdirAll(localtestDataDir, 0o755); err != nil {
+		t.Fatalf("create localtest data dir: %v", err)
+	}
+
+	client := containermock.New()
+	transition := &Transition{
+		cfg: cfg,
+		out: ui.NewOutput(&bytes.Buffer{}, io.Discard, true),
+		containerClient: func(context.Context) (containerruntime.ContainerClient, error) {
+			return client, nil
+		},
+	}
+
+	if err := transition.ResetEnvs(t.Context()); err != nil {
+		t.Fatalf("ResetEnvs() error = %v", err)
+	}
+
+	if _, err := os.Stat(localtestDataDir); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("localtest data still exists after ResetEnvs(): %v", err)
+	}
+	assertSelfTransitionCallRecorded(t, client.Calls, "VolumeRemove")
+}
+
 func TestSelfTransitionMigrationFailureDoesNotRestart(t *testing.T) {
 	t.Parallel()
 
@@ -263,4 +294,14 @@ func testConfig(t *testing.T) *config.Config {
 		t.Fatalf("config.New() error = %v", err)
 	}
 	return cfg
+}
+
+func assertSelfTransitionCallRecorded(t *testing.T, calls []containermock.Call, method string) {
+	t.Helper()
+	for _, call := range calls {
+		if call.Method == method {
+			return
+		}
+	}
+	t.Fatalf("%s not recorded in calls: %+v", method, calls)
 }

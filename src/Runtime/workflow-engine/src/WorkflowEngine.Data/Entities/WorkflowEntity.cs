@@ -40,7 +40,8 @@ internal sealed class WorkflowEntity
     [Column(TypeName = "jsonb")]
     public Dictionary<string, string>? Labels { get; set; }
 
-    public Guid? CorrelationId { get; set; }
+    [MaxLength(200)]
+    public string? CollectionKey { get; set; }
 
     [MaxLength(100)]
     public string? DistributedTraceContext { get; set; }
@@ -64,7 +65,7 @@ internal sealed class WorkflowEntity
         var entity = new WorkflowEntity
         {
             Id = workflow.DatabaseId,
-            CorrelationId = workflow.CorrelationId,
+            CollectionKey = workflow.CollectionKey,
             OperationId = workflow.OperationId,
             IdempotencyKey = workflow.IdempotencyKey,
             Namespace = workflow.Namespace,
@@ -99,7 +100,7 @@ internal sealed class WorkflowEntity
         new()
         {
             DatabaseId = Id,
-            CorrelationId = CorrelationId,
+            CollectionKey = CollectionKey,
             IdempotencyKey = IdempotencyKey,
             OperationId = OperationId,
             Namespace = Namespace,

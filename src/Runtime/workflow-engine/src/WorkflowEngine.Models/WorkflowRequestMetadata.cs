@@ -6,13 +6,13 @@ namespace WorkflowEngine.Models;
 /// </summary>
 /// <param name="Namespace">Isolation boundary. Always resolved — defaults to "default".</param>
 /// <param name="IdempotencyKey">Idempotency key for deduplication (unique within namespace).</param>
-/// <param name="CorrelationId">Optional correlation ID shared by all workflows in the batch.</param>
+/// <param name="CollectionKey">Optional collection key shared by all workflows in the batch.</param>
 /// <param name="CreatedAt">The time this request was created (eg. now).</param>
 /// <param name="TraceContext">The trace context for distributed tracing, if available.</param>
 public sealed record WorkflowRequestMetadata(
     string Namespace,
     string IdempotencyKey,
-    Guid? CorrelationId,
+    string? CollectionKey,
     DateTimeOffset CreatedAt,
     string? TraceContext
 );

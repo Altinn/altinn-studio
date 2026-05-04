@@ -659,7 +659,7 @@ func writeHostsFileAtomic(path, content string, mode fs.FileMode) (retErr error)
 }
 
 func replacePathAtomic(src, dst string) error {
-	if runtime.GOOS != "windows" {
+	if runtime.GOOS != osutil.OSWindows {
 		if err := os.Rename(src, dst); err != nil {
 			return fmt.Errorf("rename %q to %q: %w", src, dst, err)
 		}
@@ -732,7 +732,7 @@ func reserveReplaceBackupPath(dst string) (string, error) {
 }
 
 func syncDirIfSupported(path string) error {
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == osutil.OSWindows {
 		return nil
 	}
 

@@ -21,6 +21,7 @@ src/core/contexts/processingContext.tsx
 src/core/errorHandling/DisplayErrorProvider.tsx
 src/core/loading/LoadingRegistry.tsx
 src/core/queries/useQueryWithStaleData.ts
+src/core/ui/RenderStart.tsx
 src/features/applicationMetadata/
 src/features/applicationSettings/ApplicationSettingsProvider.tsx
 src/features/attachments/hooks.ts
@@ -45,6 +46,7 @@ src/features/language/LangDataSourcesProvider.tsx
 src/features/language/LangToolsStore.tsx
 src/features/language/LanguageProvider.tsx
 src/features/language/textResources/
+src/features/navigation/NavigationEffectContext.tsx
 src/features/navigation/useNavigateToPageWithValidation.ts
 src/features/options/CodeListsProvider.tsx
 src/features/orgs/OrgsProvider.tsx
@@ -60,6 +62,8 @@ src/hooks/usePageValidation.ts
 src/hooks/useWaitForState.ts
 src/index.tsx
 src/layout/GenericComponent.test.tsx
+src/layout/Grid/GridComponent.test.tsx
+src/layout/Grid/tools.test.ts
 src/layout/Group/SummaryGroupComponent.test.tsx
 src/layout/Group/__snapshots__/SummaryGroupComponent.test.tsx.snap
 src/layout/NavigationButtons/NavigationButtonsComponent.test.tsx

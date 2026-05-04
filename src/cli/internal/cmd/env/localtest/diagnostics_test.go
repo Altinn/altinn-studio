@@ -11,6 +11,7 @@ import (
 	containermock "altinn.studio/devenv/pkg/container/mock"
 	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/studioctl/internal/cmd/env/localtest"
+	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 	"altinn.studio/studioctl/internal/envtopology"
 )
 
@@ -170,7 +171,7 @@ func TestDiagnoseSkipsHTTPForStoppedServiceContainer(t *testing.T) {
 		func(context.Context) (container.ContainerClient, error) {
 			client := containermock.New()
 			client.ContainerStateFunc = func(_ context.Context, name string) (types.ContainerState, error) {
-				if name == localtest.ContainerPDF3 {
+				if name == components.ContainerPDF3 {
 					return types.ContainerState{Status: "exited", Running: false}, nil
 				}
 				return types.ContainerState{Status: "running", Running: true}, nil
@@ -337,9 +338,9 @@ func assertDiagnosticCheckMissing(t *testing.T, report *localtest.DiagnosticRepo
 
 func knownDiagnosticContainer(name string) bool {
 	switch name {
-	case localtest.ContainerLocaltest,
-		localtest.ContainerPDF3,
-		localtest.ContainerWorkflowEngine:
+	case components.ContainerLocaltest,
+		components.ContainerPDF3,
+		components.ContainerWorkflowEngine:
 		return true
 	default:
 		return false
