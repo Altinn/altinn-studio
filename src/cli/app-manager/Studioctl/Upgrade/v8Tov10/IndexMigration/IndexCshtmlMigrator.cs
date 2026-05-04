@@ -26,7 +26,7 @@ internal sealed class IndexCshtmlMigrator
     {
         if (!File.Exists(_indexCshtmlPath))
         {
-            Console.WriteLine("Index.cshtml not found - nothing to migrate");
+            UpgradeConsole.WriteLine("Index.cshtml not found - nothing to migrate");
             return 0;
         }
 
@@ -36,12 +36,12 @@ internal sealed class IndexCshtmlMigrator
         // Check for Razor directives FIRST - these block migration
         if (parser.HasRazorDirectives)
         {
-            Console.WriteLine("Keeping Index.cshtml due to Razor directives:");
+            UpgradeConsole.WriteLine("Keeping Index.cshtml due to Razor directives:");
             foreach (var directive in parser.DetectedRazorDirectives)
             {
-                Console.WriteLine($"  - {directive}");
+                UpgradeConsole.WriteLine($"  - {directive}");
             }
-            Console.WriteLine(
+            UpgradeConsole.WriteLine(
                 "(Razor directives like @if/@else, @Html., @{ } cannot be migrated to a static config file)"
             );
             return 1;
@@ -50,7 +50,7 @@ internal sealed class IndexCshtmlMigrator
         var document = parser.GetDocument();
         if (document == null)
         {
-            Console.WriteLine("Failed to parse Index.cshtml, document is null");
+            UpgradeConsole.WriteLine("Failed to parse Index.cshtml, document is null");
             return 1;
         }
 
@@ -59,7 +59,7 @@ internal sealed class IndexCshtmlMigrator
 
         if (!categorizationResult.IsSafeToMigrate)
         {
-            Console.WriteLine(
+            UpgradeConsole.WriteLine(
                 "Keeping Index.cshtml due to unexpected elements (please review it manually and delete it if you want the auto-generated one)"
             );
             return 1;
@@ -68,7 +68,7 @@ internal sealed class IndexCshtmlMigrator
         var frameworkValidationError = ValidateFrameworkFileConsistency(categorizationResult);
         if (frameworkValidationError != null)
         {
-            Console.WriteLine($"Keeping Index.cshtml: {frameworkValidationError}");
+            UpgradeConsole.WriteLine($"Keeping Index.cshtml: {frameworkValidationError}");
             return 1;
         }
 
@@ -122,12 +122,16 @@ internal sealed class IndexCshtmlMigrator
 
                 if (cssFiles.Count > 0)
                 {
-                    Console.WriteLine($"Extracted {cssFiles.Count} inline CSS block(s) to /App/wwwroot/custom-css/");
+                    UpgradeConsole.WriteLine(
+                        $"Extracted {cssFiles.Count} inline CSS block(s) to /App/wwwroot/custom-css/"
+                    );
                 }
 
                 if (jsFiles.Count > 0)
                 {
-                    Console.WriteLine($"Extracted {jsFiles.Count} inline JS block(s) to /App/wwwroot/custom-js/");
+                    UpgradeConsole.WriteLine(
+                        $"Extracted {jsFiles.Count} inline JS block(s) to /App/wwwroot/custom-js/"
+                    );
                 }
             }
 
@@ -140,7 +144,7 @@ internal sealed class IndexCshtmlMigrator
             {
                 await configGenerator.WriteToFile(_configOutputPath);
                 var urlCount = config.Stylesheets.Count + config.Scripts.Count;
-                Console.WriteLine($"Generated assets.json with {urlCount} external URL(s)");
+                UpgradeConsole.WriteLine($"Generated assets.json with {urlCount} external URL(s)");
             }
 
             if (File.Exists(_indexCshtmlPath))
@@ -148,12 +152,12 @@ internal sealed class IndexCshtmlMigrator
                 var fileName = Path.GetFileName(_indexCshtmlPath);
                 if (fileName != "Index.cshtml")
                 {
-                    Console.WriteLine($"Warning: Refusing to delete file with unexpected name: {fileName}");
+                    UpgradeConsole.WriteLine($"Warning: Refusing to delete file with unexpected name: {fileName}");
                     return 1;
                 }
 
                 File.Delete(_indexCshtmlPath);
-                Console.WriteLine("Deleted Index.cshtml");
+                UpgradeConsole.WriteLine("Deleted Index.cshtml");
             }
 
             CleanupEmptyDirectories();
@@ -162,7 +166,7 @@ internal sealed class IndexCshtmlMigrator
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Index.cshtml migration failed: {ex.Message}");
+            UpgradeConsole.WriteLine($"Index.cshtml migration failed: {ex.Message}");
 
             foreach (var file in createdFiles)
             {
@@ -199,7 +203,7 @@ internal sealed class IndexCshtmlMigrator
         catch (Exception ex)
         {
             // Log warning but don't fail migration
-            Console.WriteLine($"Warning: Failed to clean up empty directories: {ex.Message}");
+            UpgradeConsole.WriteLine($"Warning: Failed to clean up empty directories: {ex.Message}");
         }
     }
 
