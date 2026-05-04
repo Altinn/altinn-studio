@@ -20,7 +20,7 @@ namespace Altinn.Studio.Designer.Controllers;
 [ApiController]
 [AllowApiKey]
 [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/releases")]
-[AutoValidateAntiforgeryToken]
+[TypeFilter(typeof(ConditionalAntiforgeryFilter))]
 public class ReleasesController : ControllerBase
 {
     private readonly IReleaseService _releaseService;
