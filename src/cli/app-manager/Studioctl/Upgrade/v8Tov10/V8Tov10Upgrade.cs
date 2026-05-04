@@ -14,6 +14,8 @@ internal sealed record V8Tov10UpgradeOptions(
     string ProjectFile,
     string TargetFramework,
     bool SkipCsprojUpgrade,
+    bool ConvertPackageReferences,
+    string? StudioRoot,
     TextWriter Output,
     TextWriter Error,
     CancellationToken CancellationToken
@@ -43,8 +45,18 @@ internal static class V8Tov10Upgrade
         };
         var skipCsprojUpgradeOption = new Option<bool>("--skip-csproj-upgrade")
         {
-            Description = "Skip csproj file upgrade",
+            Description = "Skip csproj target framework/package cleanup",
             DefaultValueFactory = _ => false,
+        };
+        var convertPackageReferencesOption = new Option<bool>("--convert-package-references")
+        {
+            Description =
+                "Convert Altinn package references to project references. Only valid inside an Altinn Studio repo.",
+            DefaultValueFactory = _ => false,
+        };
+        var studioRootOption = new Option<string>("--studio-root")
+        {
+            Description = "Altinn Studio repo root used when converting package references",
         };
 
         var upgradeCommand = new Command("v10")
@@ -55,6 +67,8 @@ internal static class V8Tov10Upgrade
         upgradeCommand.Add(projectFileOption);
         upgradeCommand.Add(targetFrameworkOption);
         upgradeCommand.Add(skipCsprojUpgradeOption);
+        upgradeCommand.Add(convertPackageReferencesOption);
+        upgradeCommand.Add(studioRootOption);
 
         upgradeCommand.SetAction(
             async (parseResult) =>
@@ -65,6 +79,8 @@ internal static class V8Tov10Upgrade
                         parseResult.GetValue(projectFileOption) ?? "App/App.csproj",
                         parseResult.GetValue(targetFrameworkOption) ?? "net8.0",
                         parseResult.GetValue(skipCsprojUpgradeOption),
+                        parseResult.GetValue(convertPackageReferencesOption),
+                        parseResult.GetValue(studioRootOption),
                         Console.Out,
                         Console.Error,
                         CancellationToken.None
@@ -110,7 +126,17 @@ internal static class V8Tov10Upgrade
         var returnCode = 0;
         options.CancellationToken.ThrowIfCancellationRequested();
         if (!options.SkipCsprojUpgrade)
-            returnCode = await ConvertToProjectReferences(projectFile, options.TargetFramework);
+        {
+            if (options.ConvertPackageReferences)
+                returnCode = await ConvertToProjectReferences(
+                    projectFolder,
+                    projectFile,
+                    options.TargetFramework,
+                    options.StudioRoot
+                );
+            else
+                returnCode = await UpgradeProjectFile(projectFile, options.TargetFramework);
+        }
 
         options.CancellationToken.ThrowIfCancellationRequested();
         if (returnCode == 0)
@@ -144,6 +170,21 @@ internal static class V8Tov10Upgrade
         return returnCode;
     }
 
+    static async Task<int> UpgradeProjectFile(string projectFile, string targetFramework)
+    {
+        try
+        {
+            var rewriter = new ProjectFileRewriter(projectFile, targetFramework: targetFramework);
+            await rewriter.SetTargetFramework();
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error upgrading project file: {ex.Message}");
+            return 1;
+        }
+    }
+
     static async Task<int> RemoveSwashbucklePackage(string projectFile)
     {
         var rewriter = new ProjectFileRewriter(projectFile);
@@ -152,19 +193,54 @@ internal static class V8Tov10Upgrade
         return 0;
     }
 
-    static async Task<int> ConvertToProjectReferences(string projectFile, string targetFramework)
+    static async Task<int> ConvertToProjectReferences(
+        string projectFolder,
+        string projectFile,
+        string targetFramework,
+        string? studioRoot
+    )
     {
         try
         {
-            var rewriter = new ProjectFileRewriter(projectFile, targetFramework: targetFramework);
-            await rewriter.ConvertToProjectReferences();
-            return 0;
+            if (string.IsNullOrWhiteSpace(studioRoot))
+            {
+                await UpgradeConsole.Error.WriteLineAsync(
+                    "studioRoot is required when convertPackageReferences is enabled"
+                );
+                return 1;
+            }
+
+            studioRoot = Path.GetFullPath(studioRoot);
+            if (!Directory.Exists(Path.Combine(studioRoot, "src", "App")))
+            {
+                await UpgradeConsole.Error.WriteLineAsync($"studioRoot does not contain src/App: {studioRoot}");
+                return 1;
+            }
+
+            if (IsSubPathOf(studioRoot, projectFolder))
+            {
+                var rewriter = new ProjectFileRewriter(projectFile, targetFramework: targetFramework);
+                await rewriter.ConvertToProjectReferences(studioRoot);
+                return 0;
+            }
+
+            await UpgradeConsole.Error.WriteLineAsync(
+                "convertPackageReferences is only valid for apps inside the Altinn Studio repo root"
+            );
+            return 1;
         }
         catch (Exception ex)
         {
             await UpgradeConsole.Error.WriteLineAsync($"Error converting to project references: {ex.Message}");
             return 1;
         }
+    }
+
+    static bool IsSubPathOf(string parentPath, string childPath)
+    {
+        var relative = Path.GetRelativePath(parentPath, childPath);
+        return relative == "."
+            || (!relative.StartsWith("..", StringComparison.Ordinal) && !Path.IsPathRooted(relative));
     }
 
     /// <summary>
