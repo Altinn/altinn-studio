@@ -13,10 +13,13 @@ public abstract class Command<TData, TContext> : ICommand
     where TData : class
     where TContext : class
 {
+    /// <inheritdoc/>
     public abstract string CommandType { get; }
 
+    /// <inheritdoc/>
     public Type CommandDataType => typeof(TData);
 
+    /// <inheritdoc/>
     public Type WorkflowContextType => typeof(TContext);
 
     CommandValidationResult ICommand.Validate(object? commandData, object? workflowContext) =>
@@ -50,10 +53,13 @@ public abstract class Command<TData, TContext> : ICommand
 public abstract class Command<TData> : ICommand
     where TData : class
 {
+    /// <inheritdoc/>
     public abstract string CommandType { get; }
 
+    /// <inheritdoc/>
     public Type CommandDataType => typeof(TData);
 
+    /// <inheritdoc/>
     public Type? WorkflowContextType => null;
 
     CommandValidationResult ICommand.Validate(object? commandData, object? workflowContext) =>

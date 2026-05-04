@@ -40,7 +40,9 @@ public sealed class TestHelpers(EngineAppFixture fixture)
             Labels = labels,
         };
 
-    /// <summary>Builds a <see cref="WorkflowRequest"/> with the supplied steps.</summary>
+    /// <summary>
+    /// Builds a <see cref="WorkflowRequest"/> with the supplied steps.
+    /// </summary>
     public WorkflowRequest CreateWorkflow(
         string wfRef,
         IEnumerable<StepRequest> steps,

@@ -276,7 +276,7 @@ const linkCypressUserToFakeAnsattporten = (cypressUser) =>
 const setupRunnersToken = async (env) => {
   const runnersToken = await giteaApi({
     path: `/api/v1/orgs/${env.GITEA_ORG_USER}/actions/runners/registration-token`,
-    method: 'GET',
+    method: 'POST',
     user: env.GITEA_ADMIN_USER,
     pass: env.GITEA_ADMIN_PASS,
   });

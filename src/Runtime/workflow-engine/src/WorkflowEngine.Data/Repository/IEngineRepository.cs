@@ -17,7 +17,7 @@ internal interface IEngineRepository
         int pageSize,
         Guid? cursor = null,
         bool includeTotalCount = false,
-        Guid? correlationId = null,
+        string? collectionKey = null,
         string? ns = null,
         IReadOnlyDictionary<string, string>? labelFilters = null,
         CancellationToken cancellationToken = default
@@ -50,7 +50,7 @@ internal interface IEngineRepository
         bool retriedOnly = false,
         Dictionary<string, string>? labelFilters = null,
         string? namespaceFilter = null,
-        string? correlationId = null,
+        string? collectionKey = null,
         CancellationToken cancellationToken = default
     );
 
@@ -159,7 +159,7 @@ internal interface IEngineRepository
 
     /// <summary>
     /// Returns the subset of <paramref name="inFlightIds"/> that have a non-null <c>CancellationRequestedAt</c>.
-    /// Used by <see cref="WorkflowEngine.Core.CancellationWatcherService"/> for cross-pod cancellation propagation.
+    /// Used by <c>WorkflowEngine.Core.CancellationWatcherService</c> for cross-pod cancellation propagation.
     /// </summary>
     Task<IReadOnlyList<Guid>> GetPendingCancellations(
         IReadOnlyList<Guid> inFlightIds,
@@ -214,4 +214,21 @@ internal interface IEngineRepository
     /// Returns true if the workflow was found, is Requeued, and had a non-null BackoffUntil.
     /// </summary>
     Task<bool> SkipBackoff(Guid workflowId, string ns, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets all workflow collections in a namespace.
+    /// </summary>
+    Task<IReadOnlyList<WorkflowCollectionResponse>> GetCollections(
+        string ns,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Gets a single workflow collection by key and namespace, including head workflow statuses.
+    /// </summary>
+    Task<WorkflowCollectionDetailResponse?> GetCollection(
+        string key,
+        string ns,
+        CancellationToken cancellationToken = default
+    );
 }

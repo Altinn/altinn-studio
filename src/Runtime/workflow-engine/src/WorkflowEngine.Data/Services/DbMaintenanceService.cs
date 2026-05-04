@@ -259,13 +259,13 @@ internal sealed class DbMaintenanceService(
 internal static partial class DbMaintenanceServiceLogs
 {
     [LoggerMessage(LogLevel.Information, "DbMaintenanceService starting")]
-    public static partial void StartingUp(this ILogger<DbMaintenanceService> logger);
+    internal static partial void StartingUp(this ILogger<DbMaintenanceService> logger);
 
     [LoggerMessage(
         LogLevel.Error,
         "Database maintenance failed (attempt {ConsecutiveFailures}, backing off {Delay}): {ErrorMessage}"
     )]
-    public static partial void MaintenanceFailed(
+    internal static partial void MaintenanceFailed(
         this ILogger<DbMaintenanceService> logger,
         int consecutiveFailures,
         TimeSpan delay,
@@ -274,20 +274,20 @@ internal static partial class DbMaintenanceServiceLogs
     );
 
     [LoggerMessage(LogLevel.Information, "DbMaintenanceService shutting down")]
-    public static partial void ShuttingDown(this ILogger<DbMaintenanceService> logger);
+    internal static partial void ShuttingDown(this ILogger<DbMaintenanceService> logger);
 
     [LoggerMessage(LogLevel.Information, "Retention: deleted {Count} terminal workflow(s)")]
-    public static partial void RetentionDeletedWorkflows(this ILogger<DbMaintenanceService> logger, int count);
+    internal static partial void RetentionDeletedWorkflows(this ILogger<DbMaintenanceService> logger, int count);
 
     [LoggerMessage(LogLevel.Information, "Retention: deleted {Count} orphaned idempotency key(s)")]
-    public static partial void RetentionDeletedKeys(this ILogger<DbMaintenanceService> logger, int count);
+    internal static partial void RetentionDeletedKeys(this ILogger<DbMaintenanceService> logger, int count);
 
     [LoggerMessage(LogLevel.Warning, "Reclaimed {Count} stale workflows from crashed/unresponsive workers")]
-    public static partial void ReclaimedStaleWorkflows(this ILogger<DbMaintenanceService> logger, int count);
+    internal static partial void ReclaimedStaleWorkflows(this ILogger<DbMaintenanceService> logger, int count);
 
     [LoggerMessage(
         LogLevel.Error,
         "Abandoned {Count} stale workflows that exceeded the reclaim limit — marked as Failed"
     )]
-    public static partial void AbandonedStaleWorkflows(this ILogger<DbMaintenanceService> logger, int count);
+    internal static partial void AbandonedStaleWorkflows(this ILogger<DbMaintenanceService> logger, int count);
 }

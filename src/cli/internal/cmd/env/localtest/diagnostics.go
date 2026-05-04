@@ -13,6 +13,7 @@ import (
 
 	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/devenv/pkg/container/types"
+	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
 )
@@ -100,7 +101,7 @@ func Diagnose(ctx context.Context, opts DiagnosticOptions) *DiagnosticReport {
 	services := make([]DiagnosticService, 0, len(serviceDefs))
 
 	containerStates := checkDiagnosticContainerStates(ctx, opts, serviceDefs)
-	localtestRunning := containerStates[ContainerLocaltest].Running
+	localtestRunning := containerStates[components.ContainerLocaltest].Running
 	for _, def := range serviceDefs {
 		state := containerStates[def.Container]
 		service := DiagnosticService{
@@ -121,7 +122,7 @@ func Diagnose(ctx context.Context, opts DiagnosticOptions) *DiagnosticReport {
 		}
 		if localtestRunning && state.Running {
 			tcpProbes := def.TCPProbes
-			if def.Container == ContainerLocaltest && ipv6Enabled && hostHasLoopbackIPv6 {
+			if def.Container == components.ContainerLocaltest && ipv6Enabled && hostHasLoopbackIPv6 {
 				tcpProbes = append(tcpProbes, localtestIPv6TCPProbes(opts.Topology)...)
 			}
 			service.Checks = append(service.Checks, checkDiagnosticTCP(ctx, opts, tcpProbes)...)
@@ -158,14 +159,14 @@ func diagnosticServiceDefinitions(topology envtopology.Local) []diagnosticServic
 	services := []diagnosticServiceDefinition{
 		{
 			Name:       "localtest",
-			Container:  ContainerLocaltest,
+			Container:  components.ContainerLocaltest,
 			Host:       app.Host(),
 			HTTPProbes: localtestHTTPProbes(topology),
 			TCPProbes:  localtestTCPProbes(topology),
 		},
 		{
 			Name:      "pdf",
-			Container: ContainerPDF3,
+			Container: components.ContainerPDF3,
 			Host:      pdf.Host(),
 			HTTPProbes: []diagnosticHTTPProbe{
 				{ID: "pdf_health", Label: "HTTP: health", Path: "/health/ready", Host: "", Port: ""},
@@ -174,7 +175,7 @@ func diagnosticServiceDefinitions(topology envtopology.Local) []diagnosticServic
 		},
 		{
 			Name:      "workflow-engine",
-			Container: ContainerWorkflowEngine,
+			Container: components.ContainerWorkflowEngine,
 			Host:      workflowEngine.Host(),
 			HTTPProbes: []diagnosticHTTPProbe{
 				{ID: "workflow_health", Label: "HTTP: health", Path: "/api/v1/health/ready", Host: "", Port: ""},
@@ -202,10 +203,10 @@ func localtestHTTPProbes(topology envtopology.Local) []diagnosticHTTPProbe {
 			Port:  "",
 		},
 		{
-			ID:    "localtest_health_" + localtestServicePort,
-			Label: "HTTP: " + localtestServicePort,
+			ID:    "localtest_health_" + components.LocaltestServicePort,
+			Label: "HTTP: " + components.LocaltestServicePort,
 			Host:  "127.0.0.1",
-			Port:  localtestServicePort,
+			Port:  components.LocaltestServicePort,
 			Path:  "/health",
 		},
 	}
@@ -221,11 +222,11 @@ func localtestTCPProbes(topology envtopology.Local) []diagnosticTCPProbe {
 			topology.IngressPort(),
 		),
 		newDiagnosticTCPProbe(
-			"tcp_"+localtestServicePort+"_ipv4",
-			"TCP: "+localtestServicePort+" IPv4",
+			"tcp_"+components.LocaltestServicePort+"_ipv4",
+			"TCP: "+components.LocaltestServicePort+" IPv4",
 			"tcp4",
 			"127.0.0.1",
-			localtestServicePort,
+			components.LocaltestServicePort,
 		),
 	}
 }
@@ -240,11 +241,11 @@ func localtestIPv6TCPProbes(topology envtopology.Local) []diagnosticTCPProbe {
 			topology.IngressPort(),
 		),
 		newDiagnosticTCPProbe(
-			"tcp_"+localtestServicePort+"_ipv6",
-			"TCP: "+localtestServicePort+" IPv6",
+			"tcp_"+components.LocaltestServicePort+"_ipv6",
+			"TCP: "+components.LocaltestServicePort+" IPv6",
 			"tcp6",
 			"::1",
-			localtestServicePort,
+			components.LocaltestServicePort,
 		),
 	}
 }

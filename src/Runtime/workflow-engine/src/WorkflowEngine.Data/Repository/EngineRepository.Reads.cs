@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using NpgsqlTypes;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
@@ -10,11 +11,106 @@ namespace WorkflowEngine.Data.Repository;
 internal sealed partial class EngineRepository
 {
     /// <inheritdoc/>
+    public async Task<IReadOnlyList<WorkflowCollectionResponse>> GetCollections(
+        string ns,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.GetCollections");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var normalizedNs = WorkflowNamespace.Normalize(ns);
+
+            var entities = await context
+                .WorkflowCollections.Where(c => c.Namespace == normalizedNs)
+                .OrderByDescending(c => c.UpdatedAt ?? c.CreatedAt)
+                .ToListAsync(cancellationToken);
+
+            return entities
+                .Select(e => new WorkflowCollectionResponse
+                {
+                    Key = e.Key,
+                    Namespace = e.Namespace,
+                    Heads = e.Heads,
+                    CreatedAt = e.CreatedAt,
+                    UpdatedAt = e.UpdatedAt,
+                })
+                .ToList();
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<WorkflowCollectionDetailResponse?> GetCollection(
+        string key,
+        string ns,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.GetCollection");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var normalizedNs = WorkflowNamespace.Normalize(ns);
+
+            var entity = await context.WorkflowCollections.FirstOrDefaultAsync(
+                c => c.Key == key && c.Namespace == normalizedNs,
+                cancellationToken
+            );
+
+            if (entity is null)
+                return null;
+
+            // Fetch statuses for the head workflow IDs
+            var headStatuses =
+                entity.Heads.Length > 0
+                    ? await context
+                        .Workflows.Where(w => entity.Heads.Contains(w.Id))
+                        .Select(w => new CollectionHeadStatus { DatabaseId = w.Id, Status = w.Status })
+                        .ToListAsync(cancellationToken)
+                    : [];
+
+            return new WorkflowCollectionDetailResponse
+            {
+                Key = entity.Key,
+                Namespace = entity.Namespace,
+                Heads = headStatuses,
+                CreatedAt = entity.CreatedAt,
+                UpdatedAt = entity.UpdatedAt,
+            };
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
     public async Task<CursorPaginatedResult> GetActiveWorkflows(
         int pageSize,
         Guid? cursor = null,
         bool includeTotalCount = false,
-        Guid? correlationId = null,
+        string? collectionKey = null,
         string? ns = null,
         IReadOnlyDictionary<string, string>? labelFilters = null,
         CancellationToken cancellationToken = default
@@ -29,7 +125,7 @@ internal sealed partial class EngineRepository
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var baseQuery = context.GetActiveWorkflows(
-                correlationIdFilter: correlationId,
+                collectionKeyFilter: collectionKey,
                 namespaceFilter: ns,
                 labelFilter: labelFilters
             );
@@ -228,7 +324,7 @@ internal sealed partial class EngineRepository
         bool retriedOnly = false,
         Dictionary<string, string>? labelFilters = null,
         string? namespaceFilter = null,
-        string? correlationId = null,
+        string? collectionKey = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -245,7 +341,7 @@ internal sealed partial class EngineRepository
                 search,
                 since,
                 retriedOnly,
-                correlationIdFilter: correlationId != null ? Guid.Parse(correlationId) : null,
+                collectionKeyFilter: collectionKey,
                 namespaceFilter: namespaceFilter,
                 labelFilter: labelFilters
             );

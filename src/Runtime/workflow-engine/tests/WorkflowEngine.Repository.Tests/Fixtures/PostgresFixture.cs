@@ -174,6 +174,8 @@ public sealed class PostgresFixture : IAsyncLifetime
     public async Task Reset()
     {
         await using var context = CreateDbContext();
-        await context.Database.ExecuteSqlRawAsync("""TRUNCATE "engine"."Workflows", "engine"."Steps" CASCADE""");
+        await context.Database.ExecuteSqlRawAsync(
+            """TRUNCATE "engine"."Workflows", "engine"."Steps", "engine"."WorkflowCollections" CASCADE"""
+        );
     }
 }

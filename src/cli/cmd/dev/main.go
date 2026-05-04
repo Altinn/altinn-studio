@@ -225,11 +225,11 @@ func installWindowsHostMode() error {
 		return fmt.Errorf("create windows staging directory: %w", mkdirErr)
 	}
 
-	binaryPathWSL, err := buildStudioctl("windows", stageDirWSL)
+	binaryPathWSL, err := buildStudioctl(osutil.OSWindows, stageDirWSL)
 	if err != nil {
 		return err
 	}
-	appManagerPathWSL, err := publishAppManager("windows", runtime.GOARCH, stageDirWSL)
+	appManagerPathWSL, err := publishAppManager(osutil.OSWindows, runtime.GOARCH, stageDirWSL)
 	if err != nil {
 		return err
 	}
@@ -350,7 +350,7 @@ Removes build/ and bin/ directories.
 }
 
 func binaryNameWithExt(name, goos string) string {
-	if goos == "windows" {
+	if goos == osutil.OSWindows {
 		return name + ".exe"
 	}
 	return name
@@ -412,21 +412,21 @@ func publishAppManager(goos, goarch, outputDir string) (string, error) {
 
 func dotnetRuntimeIdentifier(goos, goarch string) (string, error) {
 	switch goos {
-	case "linux":
+	case osutil.OSLinux:
 		switch goarch {
 		case goArchAMD64:
 			return "linux-x64", nil
 		case goArchARM64:
 			return "linux-arm64", nil
 		}
-	case "darwin":
+	case osutil.OSDarwin:
 		switch goarch {
 		case goArchAMD64:
 			return "osx-x64", nil
 		case goArchARM64:
 			return "osx-arm64", nil
 		}
-	case "windows":
+	case osutil.OSWindows:
 		switch goarch {
 		case goArchAMD64:
 			return "win-x64", nil

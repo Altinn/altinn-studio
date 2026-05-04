@@ -736,6 +736,60 @@ func (c *Client) NetworkInspect(ctx context.Context, nameOrID string) (types.Net
 	}, nil
 }
 
+type podmanNetworkListInfo struct {
+	Labels      map[string]string `json:"labels"`
+	LabelsTitle map[string]string `json:"Labels"`
+	ID          string            `json:"id"`
+	IDTitle     string            `json:"ID"`
+	Name        string            `json:"name"`
+	NameTitle   string            `json:"Name"`
+	Driver      string            `json:"driver"`
+	DriverTitle string            `json:"Driver"`
+}
+
+// ListNetworks returns networks matching the provided filters.
+func (c *Client) ListNetworks(ctx context.Context, filter types.NetworkListFilter) ([]types.NetworkInfo, error) {
+	args := make([]string, 0, 4+2*len(filter.Labels))
+	args = append(args, "network", "ls", "--format", "json")
+	for key, value := range filter.Labels {
+		label := key
+		if value != "" {
+			label += "=" + value
+		}
+		args = append(args, "--filter", "label="+label)
+	}
+
+	output, err := runPodmanCommand(ctx, args)
+	if err != nil {
+		return nil, fmt.Errorf("podman list networks failed: %w\nOutput: %s", err, string(output))
+	}
+
+	var networks []podmanNetworkListInfo
+	if err := json.Unmarshal(bytes.TrimSpace(output), &networks); err != nil {
+		return nil, fmt.Errorf("failed to parse podman network list output: %w", err)
+	}
+
+	result := make([]types.NetworkInfo, 0, len(networks))
+	for _, net := range networks {
+		result = append(result, types.NetworkInfo{
+			ID:     firstNonEmpty(net.ID, net.IDTitle),
+			Name:   firstNonEmpty(net.Name, net.NameTitle),
+			Driver: firstNonEmpty(net.Driver, net.DriverTitle),
+			Labels: firstNonNilMap(net.Labels, net.LabelsTitle),
+		})
+	}
+	return result, nil
+}
+
+func firstNonNilMap(values ...map[string]string) map[string]string {
+	for _, value := range values {
+		if value != nil {
+			return value
+		}
+	}
+	return nil
+}
+
 // NetworkRemove removes a network.
 func (c *Client) NetworkRemove(ctx context.Context, nameOrID string) error {
 	cmd := processutil.CommandContext(ctx, "podman", "network", "rm", nameOrID)

@@ -828,6 +828,34 @@ func (c *Client) NetworkInspect(ctx context.Context, nameOrID string) (types.Net
 	}, nil
 }
 
+// ListNetworks returns networks matching the provided filters.
+func (c *Client) ListNetworks(ctx context.Context, filter types.NetworkListFilter) ([]types.NetworkInfo, error) {
+	args := filters.NewArgs()
+	for key, value := range filter.Labels {
+		label := key
+		if value != "" {
+			label += "=" + value
+		}
+		args.Add("label", label)
+	}
+
+	networks, err := c.cli.NetworkList(ctx, network.ListOptions{Filters: args})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list networks: %w", err)
+	}
+
+	result := make([]types.NetworkInfo, 0, len(networks))
+	for _, net := range networks {
+		result = append(result, types.NetworkInfo{
+			ID:     net.ID,
+			Name:   net.Name,
+			Driver: net.Driver,
+			Labels: net.Labels,
+		})
+	}
+	return result, nil
+}
+
 // NetworkRemove removes a network.
 func (c *Client) NetworkRemove(ctx context.Context, nameOrID string) error {
 	if err := c.cli.NetworkRemove(ctx, nameOrID); err != nil {
