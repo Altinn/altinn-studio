@@ -2,6 +2,8 @@ package appmanager
 
 import (
 	"context"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,6 +12,60 @@ import (
 
 	"altinn.studio/studioctl/internal/config"
 )
+
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
+}
+
+func TestUpgradeAppUsesUpgradeTimeoutOnly(t *testing.T) {
+	t.Parallel()
+
+	deadlines := make(map[string]time.Duration)
+	client := &Client{
+		http: &http.Client{
+			Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+				deadline, ok := req.Context().Deadline()
+				if !ok {
+					t.Fatalf("%s request has no deadline", req.URL.Path)
+				}
+				deadlines[req.URL.Path] = time.Until(deadline)
+
+				body := `{}`
+				if req.URL.Path == upgradePath {
+					body = `{"message":"upgrade completed","output":"ok","error":"","exitCode":0}`
+				}
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Status:     "200 OK",
+					Body:       io.NopCloser(strings.NewReader(body)),
+					Header:     make(http.Header),
+					Request:    req,
+				}, nil
+			}),
+		},
+	}
+
+	result, err := client.UpgradeApp(t.Context(), AppUpgrade{Kind: "v10", ProjectFolder: "/tmp/app"})
+	if err != nil {
+		t.Fatalf("UpgradeApp() error = %v", err)
+	}
+	if result.Output != "ok" {
+		t.Fatalf("Output = %q, want ok", result.Output)
+	}
+
+	if _, err := client.Status(t.Context()); err != nil {
+		t.Fatalf("Status() error = %v", err)
+	}
+
+	if deadlines[upgradePath] < 20*time.Second {
+		t.Fatalf("upgrade deadline = %s, want near %s", deadlines[upgradePath], appManagerUpgradeTimeout)
+	}
+	if deadlines[statusPath] > 3*time.Second {
+		t.Fatalf("status deadline = %s, want short app-manager request timeout", deadlines[statusPath])
+	}
+}
 
 func TestLatestAppManagerLogPath_ReturnsNewestMatchingFile(t *testing.T) {
 	t.Parallel()
