@@ -5,8 +5,8 @@
       Operation: Delete,
       Parallel Aware: {Scrubbed},
       Async Capable: {Scrubbed},
-      Relation Name: IdempotencyKeys,
-      Alias: IdempotencyKeys,
+      Relation Name: idempotency_keys,
+      Alias: idempotency_keys,
       Startup Cost: {Scrubbed},
       Total Cost: {Scrubbed},
       Plan Rows: {Scrubbed},
@@ -32,15 +32,15 @@
               Parallel Aware: {Scrubbed},
               Async Capable: {Scrubbed},
               Scan Direction: Forward,
-              Index Name: IX_IdempotencyKeys_CreatedAt,
-              Relation Name: IdempotencyKeys,
-              Alias: IdempotencyKeys,
+              Index Name: ix_idempotency_keys_created_at,
+              Relation Name: idempotency_keys,
+              Alias: idempotency_keys,
               Startup Cost: {Scrubbed},
               Total Cost: {Scrubbed},
               Plan Rows: {Scrubbed},
               Plan Width: {Scrubbed},
               Disabled: false,
-              Index Cond: ("CreatedAt" < '2026-02-17 12:00:00+00'::timestamp with time zone)
+              Index Cond: (created_at < '2026-02-17 12:00:00+00'::timestamp with time zone)
             },
             {
               Node Type: Index Scan,
@@ -48,15 +48,15 @@
               Parallel Aware: {Scrubbed},
               Async Capable: {Scrubbed},
               Scan Direction: Forward,
-              Index Name: PK_Workflows,
-              Relation Name: Workflows,
+              Index Name: pk_workflows,
+              Relation Name: workflows,
               Alias: w,
               Startup Cost: {Scrubbed},
               Total Cost: {Scrubbed},
               Plan Rows: {Scrubbed},
               Plan Width: {Scrubbed},
               Disabled: false,
-              Index Cond: ("Id" = ANY ("IdempotencyKeys"."WorkflowIds"))
+              Index Cond: (id = ANY (idempotency_keys.workflow_ids))
             }
           ]
         }

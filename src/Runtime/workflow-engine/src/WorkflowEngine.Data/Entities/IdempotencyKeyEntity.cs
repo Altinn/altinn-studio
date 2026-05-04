@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WorkflowEngine.Data.Entities;
 
-[Table("IdempotencyKeys", Schema = Constants.SchemaNames.Engine)]
+[Table("idempotency_keys", Schema = Constants.SchemaNames.Engine)]
 internal sealed class IdempotencyKeyEntity
 {
     public required string IdempotencyKey { get; set; }

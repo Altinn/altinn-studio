@@ -18,7 +18,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         await fixture.Reset();
         await using var ctx = fixture.CreateDbContext();
         await ctx.Database.ExecuteSqlRawAsync(
-            """TRUNCATE "engine"."IdempotencyKeys" """,
+            "TRUNCATE engine.idempotency_keys",
             TestContext.Current.CancellationToken
         );
         await SeedData(TestContext.Current.CancellationToken);
@@ -44,7 +44,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
         var plan = await QueryPlanHelper.ExplainAsync(dataSource, fetchQuery, ct);
 
-        QueryPlanHelper.AssertNoSeqScan(plan, "Workflows");
+        QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
         await VerifyJson(plan.GetRawText());
     }
 
@@ -59,15 +59,14 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
 
         // The active workflows query filters on Status with Incomplete statuses
         var query = interceptor.Queries.LastOrDefault(q =>
-            q.Sql.Contains("\"Workflows\"", StringComparison.Ordinal)
-            && q.Sql.Contains("\"Status\"", StringComparison.Ordinal)
+            q.Sql.Contains("workflows", StringComparison.Ordinal) && q.Sql.Contains("status", StringComparison.Ordinal)
         );
         Assert.NotNull(query);
 
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
         var plan = await QueryPlanHelper.ExplainAsync(dataSource, query, ct);
 
-        QueryPlanHelper.AssertNoSeqScan(plan, "Workflows");
+        QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
         await VerifyJson(plan.GetRawText());
     }
 
@@ -81,15 +80,14 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         await repo.GetScheduledWorkflows(pageSize: 100, cancellationToken: ct);
 
         var query = interceptor.Queries.LastOrDefault(q =>
-            q.Sql.Contains("\"Workflows\"", StringComparison.Ordinal)
-            && q.Sql.Contains("\"Status\"", StringComparison.Ordinal)
+            q.Sql.Contains("workflows", StringComparison.Ordinal) && q.Sql.Contains("status", StringComparison.Ordinal)
         );
         Assert.NotNull(query);
 
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
         var plan = await QueryPlanHelper.ExplainAsync(dataSource, query, ct);
 
-        QueryPlanHelper.AssertNoSeqScan(plan, "Workflows");
+        QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
         await VerifyJson(plan.GetRawText());
     }
 
@@ -107,15 +105,14 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         );
 
         var query = interceptor.Queries.LastOrDefault(q =>
-            q.Sql.Contains("\"Workflows\"", StringComparison.Ordinal)
-            && q.Sql.Contains("\"Status\"", StringComparison.Ordinal)
+            q.Sql.Contains("workflows", StringComparison.Ordinal) && q.Sql.Contains("status", StringComparison.Ordinal)
         );
         Assert.NotNull(query);
 
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
         var plan = await QueryPlanHelper.ExplainAsync(dataSource, query, ct);
 
-        QueryPlanHelper.AssertNoSeqScan(plan, "Workflows");
+        QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
         await VerifyJson(plan.GetRawText());
     }
 
@@ -138,7 +135,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         );
 
         // The retention query should use the UpdatedAt filtered index on terminal statuses
-        QueryPlanHelper.AssertNoSeqScan(plan, "Workflows");
+        QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
         await VerifyJson(plan.GetRawText());
     }
 
@@ -159,7 +156,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
             ct
         );
 
-        QueryPlanHelper.AssertNoSeqScan(plan, "Workflows");
+        QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
         await VerifyJson(plan.GetRawText());
     }
 
@@ -180,7 +177,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
             ct
         );
 
-        QueryPlanHelper.AssertNoSeqScan(plan, "Workflows");
+        QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
         await VerifyJson(plan.GetRawText());
     }
 
@@ -197,8 +194,8 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
             ct
         );
 
-        QueryPlanHelper.AssertNoSeqScan(plan, "IdempotencyKeys");
-        QueryPlanHelper.AssertNoSeqScan(plan, "Workflows");
+        QueryPlanHelper.AssertNoSeqScan(plan, "idempotency_keys");
+        QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
         await VerifyJson(plan.GetRawText());
     }
 
@@ -231,9 +228,9 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
 
             await using var cmd = dataSource.CreateCommand(
                 """
-                INSERT INTO engine."Workflows"
-                    ("Id", "OperationId", "IdempotencyKey", "Namespace", "Status",
-                     "CreatedAt", "UpdatedAt", "ReclaimCount", "HeartbeatAt", "BackoffUntil")
+                INSERT INTO engine.workflows
+                    (id, operation_id, idempotency_key, namespace, status,
+                     created_at, updated_at, reclaim_count, heartbeat_at, backoff_until)
                 VALUES (@id, 'test-op', @idemKey, 'test-ns', @status,
                         @createdAt, @updatedAt, 0, @heartbeatAt, @backoffUntil)
                 """
@@ -252,9 +249,9 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
             {
                 await using var stepCmd = dataSource.CreateCommand(
                     """
-                    INSERT INTO engine."Steps"
-                        ("Id", "JobId", "OperationId", "CommandJson",
-                         "Status", "CreatedAt", "ProcessingOrder", "RequeueCount")
+                    INSERT INTO engine.steps
+                        (id, job_id, operation_id, command_json,
+                         status, created_at, processing_order, requeue_count)
                     VALUES (@id, @jobId, 'step-op', '{"type":"webhook"}',
                             @status, @createdAt, @order, 0)
                     """
@@ -291,7 +288,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
 
         // Refresh planner statistics
         await using var analyzeCmd = dataSource.CreateCommand(
-            """ANALYZE engine."Workflows", engine."Steps", engine."IdempotencyKeys" """
+            "ANALYZE engine.workflows, engine.steps, engine.idempotency_keys"
         );
         await analyzeCmd.ExecuteNonQueryAsync(ct);
     }
@@ -305,7 +302,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var cmd = dataSource.CreateCommand(
             """
-            INSERT INTO engine."WorkflowDependency" ("WorkflowId", "DependsOnWorkflowId")
+            INSERT INTO engine.workflow_dependency (workflow_id, depends_on_workflow_id)
             VALUES (@workflowId, @dependsOnId)
             """
         );
@@ -325,7 +322,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var cmd = dataSource.CreateCommand(
             """
-            INSERT INTO engine."IdempotencyKeys" ("IdempotencyKey", "Namespace", "RequestBodyHash", "WorkflowIds", "CreatedAt")
+            INSERT INTO engine.idempotency_keys (idempotency_key, namespace, request_body_hash, workflow_ids, created_at)
             VALUES (@key, @ns, @hash, @workflowIds, @createdAt)
             """
         );
