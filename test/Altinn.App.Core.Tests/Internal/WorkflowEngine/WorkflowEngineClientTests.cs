@@ -87,11 +87,11 @@ public class WorkflowEngineClientTests
         Assert.Equal("second-workflow", workflows[1].OperationId);
 
         Assert.Equal(
-            $"http://workflow-engine/api/v1/ttd%2Fapp/workflows?correlationId={correlationId}&label=org:ttd&statuses=Enqueued&statuses=Failed",
+            $"http://workflow-engine/api/v1/ttd%2Fapp/workflows?correlationId={correlationId}&label=org:ttd&status=Enqueued&status=Failed",
             requestUris[0]!.ToString()
         );
         Assert.Equal(
-            $"http://workflow-engine/api/v1/ttd%2Fapp/workflows?correlationId={correlationId}&label=org:ttd&statuses=Enqueued&statuses=Failed&cursor={nextCursor}",
+            $"http://workflow-engine/api/v1/ttd%2Fapp/workflows?correlationId={correlationId}&label=org:ttd&status=Enqueued&status=Failed&cursor={nextCursor}",
             requestUris[1]!.ToString()
         );
 

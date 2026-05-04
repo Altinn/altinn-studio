@@ -240,7 +240,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
         {
             foreach (var status in statuses)
             {
-                queryParams.Add($"statuses={Uri.EscapeDataString(status.ToString())}");
+                queryParams.Add($"status={Uri.EscapeDataString(status.ToString())}");
             }
         }
         if (cursor.HasValue)
