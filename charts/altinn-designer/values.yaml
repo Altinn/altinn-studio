@@ -85,7 +85,7 @@ environmentVariables:
     - name: StudioOidcLoginSettings__AuthorizationDetails__1__Resource
       value: "urn:altinn:resource:5613:1"
     - name: MaskinPortenHttpClientSettings__BaseUrl
-      value: "https://api.samarbeid.digdir.no"
+      value: "https://api.test.samarbeid.digdir.no"
     - name: FeatureManagement__StudioOidc
       value: "true"
     - name: FeatureManagement__GitOpsDeploy
@@ -175,7 +175,7 @@ environmentVariables:
     - name: StudioOidcLoginSettings__AuthorizationDetails__1__Resource
       value: "urn:altinn:resource:5613:1"
     - name: MaskinPortenHttpClientSettings__BaseUrl
-      value: "https://api.samarbeid.digdir.no"
+      value: "https://api.test.samarbeid.digdir.no"
     - name: FeatureManagement__StudioOidc
       value: "true"
     - name: FeatureManagement__GitOpsDeploy
