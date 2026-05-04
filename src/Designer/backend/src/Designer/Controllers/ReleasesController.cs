@@ -69,7 +69,7 @@ public class ReleasesController : ControllerBase
     /// <param name="createRelease">Release model</param>
     /// <returns>Created release</returns>
     [HttpPost]
-    [Authorize(Policy = AltinnPolicy.MustHaveGiteaPushPermission)]
+    [Authorize(Policy = AltinnPolicy.MustBelongToOrganization)]
     [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
     public async Task<ActionResult<ReleaseEntity>> Create(
         string org,
