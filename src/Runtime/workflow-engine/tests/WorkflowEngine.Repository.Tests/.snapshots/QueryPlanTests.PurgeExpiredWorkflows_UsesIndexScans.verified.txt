@@ -197,10 +197,12 @@
                                   Inner Unique: true,
                                   Plans: [
                                     {
-                                      Node Type: Bitmap Heap Scan,
+                                      Node Type: Index Scan,
                                       Parent Relationship: Outer,
                                       Parallel Aware: {Scrubbed},
                                       Async Capable: {Scrubbed},
+                                      Scan Direction: Forward,
+                                      Index Name: ix_workflow_dependency_depends_on_workflow_id,
                                       Relation Name: workflow_dependency,
                                       Alias: dep,
                                       Startup Cost: {Scrubbed},
@@ -208,39 +210,39 @@
                                       Plan Rows: {Scrubbed},
                                       Plan Width: {Scrubbed},
                                       Disabled: false,
-                                      Recheck Cond: (depends_on_workflow_id = w.id),
-                                      Plans: [
-                                        {
-                                          Node Type: Bitmap Index Scan,
-                                          Parent Relationship: Outer,
-                                          Parallel Aware: {Scrubbed},
-                                          Async Capable: {Scrubbed},
-                                          Index Name: ix_workflow_dependency_depends_on_workflow_id,
-                                          Startup Cost: {Scrubbed},
-                                          Total Cost: {Scrubbed},
-                                          Plan Rows: {Scrubbed},
-                                          Plan Width: {Scrubbed},
-                                          Disabled: false,
-                                          Index Cond: (depends_on_workflow_id = w.id)
-                                        }
-                                      ]
+                                      Index Cond: (depends_on_workflow_id = w.id)
                                     },
                                     {
-                                      Node Type: Index Scan,
+                                      Node Type: Memoize,
                                       Parent Relationship: Inner,
                                       Parallel Aware: {Scrubbed},
                                       Async Capable: {Scrubbed},
-                                      Scan Direction: Forward,
-                                      Index Name: pk_workflows,
-                                      Relation Name: workflows,
-                                      Alias: d,
                                       Startup Cost: {Scrubbed},
                                       Total Cost: {Scrubbed},
                                       Plan Rows: {Scrubbed},
                                       Plan Width: {Scrubbed},
                                       Disabled: false,
-                                      Index Cond: (id = dep.workflow_id),
-                                      Filter: ((status = ANY ('{0,1,2}'::integer[])) OR (updated_at >= '2026-02-17 12:00:00+00'::timestamp with time zone))
+                                      Cache Key: dep.workflow_id,
+                                      Cache Mode: logical,
+                                      Plans: [
+                                        {
+                                          Node Type: Index Scan,
+                                          Parent Relationship: Outer,
+                                          Parallel Aware: {Scrubbed},
+                                          Async Capable: {Scrubbed},
+                                          Scan Direction: Forward,
+                                          Index Name: pk_workflows,
+                                          Relation Name: workflows,
+                                          Alias: d,
+                                          Startup Cost: {Scrubbed},
+                                          Total Cost: {Scrubbed},
+                                          Plan Rows: {Scrubbed},
+                                          Plan Width: {Scrubbed},
+                                          Disabled: false,
+                                          Index Cond: (id = dep.workflow_id),
+                                          Filter: ((status = ANY ('{0,1,2}'::integer[])) OR (updated_at >= '2026-02-17 12:00:00+00'::timestamp with time zone))
+                                        }
+                                      ]
                                     }
                                   ]
                                 }

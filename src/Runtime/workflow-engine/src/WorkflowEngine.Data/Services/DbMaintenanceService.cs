@@ -126,7 +126,7 @@ internal sealed class DbMaintenanceService(
             using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))
             {
                 await using var analyzeCmd = dataSource.CreateCommand(
-                    "ANALYZE engine.workflows, engine.steps, engine.idempotency_keys"
+                    "ANALYZE engine.workflows, engine.steps, engine.workflow_dependency, engine.idempotency_keys"
                 );
                 await analyzeCmd.ExecuteNonQueryAsync(ct);
             }

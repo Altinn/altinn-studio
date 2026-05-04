@@ -62,6 +62,7 @@
                       Plan Width: {Scrubbed},
                       Disabled: false,
                       Inner Unique: false,
+                      Join Filter: (wd.workflow_id = w.id),
                       Plans: [
                         {
                           Node Type: Index Scan,
@@ -81,63 +82,62 @@
                           Filter: ((backoff_until IS NULL) OR (backoff_until <= '2026-03-19 12:00:00+00'::timestamp with time zone))
                         },
                         {
-                          Node Type: Nested Loop,
+                          Node Type: Materialize,
                           Parent Relationship: Inner,
                           Parallel Aware: {Scrubbed},
                           Async Capable: {Scrubbed},
-                          Join Type: Inner,
                           Startup Cost: {Scrubbed},
                           Total Cost: {Scrubbed},
                           Plan Rows: {Scrubbed},
                           Plan Width: {Scrubbed},
                           Disabled: false,
-                          Inner Unique: true,
                           Plans: [
                             {
-                              Node Type: Bitmap Heap Scan,
+                              Node Type: Merge Join,
                               Parent Relationship: Outer,
                               Parallel Aware: {Scrubbed},
                               Async Capable: {Scrubbed},
-                              Relation Name: workflow_dependency,
-                              Alias: wd,
+                              Join Type: Inner,
                               Startup Cost: {Scrubbed},
                               Total Cost: {Scrubbed},
                               Plan Rows: {Scrubbed},
                               Plan Width: {Scrubbed},
                               Disabled: false,
-                              Recheck Cond: (workflow_id = w.id),
+                              Inner Unique: true,
+                              Merge Cond: (wd.depends_on_workflow_id = dep.id),
                               Plans: [
                                 {
-                                  Node Type: Bitmap Index Scan,
+                                  Node Type: Index Scan,
                                   Parent Relationship: Outer,
                                   Parallel Aware: {Scrubbed},
                                   Async Capable: {Scrubbed},
-                                  Index Name: pk_workflow_dependency,
+                                  Scan Direction: Forward,
+                                  Index Name: ix_workflow_dependency_depends_on_workflow_id,
+                                  Relation Name: workflow_dependency,
+                                  Alias: wd,
+                                  Startup Cost: {Scrubbed},
+                                  Total Cost: {Scrubbed},
+                                  Plan Rows: {Scrubbed},
+                                  Plan Width: {Scrubbed},
+                                  Disabled: false
+                                },
+                                {
+                                  Node Type: Index Scan,
+                                  Parent Relationship: Inner,
+                                  Parallel Aware: {Scrubbed},
+                                  Async Capable: {Scrubbed},
+                                  Scan Direction: Forward,
+                                  Index Name: pk_workflows,
+                                  Relation Name: workflows,
+                                  Alias: dep,
                                   Startup Cost: {Scrubbed},
                                   Total Cost: {Scrubbed},
                                   Plan Rows: {Scrubbed},
                                   Plan Width: {Scrubbed},
                                   Disabled: false,
-                                  Index Cond: (workflow_id = w.id)
+                                  Filter: ((status <> 3) AND (status <> 4) AND (status <> 6) AND (status <> 5))
                                 }
                               ]
-                            },
-                            {
-                              Node Type: Index Scan,
-                              Parent Relationship: Inner,
-                              Parallel Aware: {Scrubbed},
-                              Async Capable: {Scrubbed},
-                              Scan Direction: Forward,
-                              Index Name: pk_workflows,
-                              Relation Name: workflows,
-                              Alias: dep,
-                              Startup Cost: {Scrubbed},
-                              Total Cost: {Scrubbed},
-                              Plan Rows: {Scrubbed},
-                              Plan Width: {Scrubbed},
-                              Disabled: false,
-                              Index Cond: (id = wd.depends_on_workflow_id),
-                              Filter: ((status <> 3) AND (status <> 4) AND (status <> 6) AND (status <> 5))
                             }
                           ]
                         }
@@ -165,7 +165,7 @@
           Disabled: false,
           Plans: [
             {
-              Node Type: Nested Loop,
+              Node Type: Merge Join,
               Parent Relationship: Outer,
               Parallel Aware: {Scrubbed},
               Async Capable: {Scrubbed},
@@ -175,15 +175,18 @@
               Plan Rows: {Scrubbed},
               Plan Width: {Scrubbed},
               Disabled: false,
-              Inner Unique: true,
+              Inner Unique: false,
+              Merge Cond: (w_1.id = r.id),
               Plans: [
                 {
-                  Node Type: CTE Scan,
+                  Node Type: Index Scan,
                   Parent Relationship: Outer,
                   Parallel Aware: {Scrubbed},
                   Async Capable: {Scrubbed},
-                  CTE Name: ready,
-                  Alias: r,
+                  Scan Direction: Forward,
+                  Index Name: pk_workflows,
+                  Relation Name: workflows,
+                  Alias: w_1,
                   Startup Cost: {Scrubbed},
                   Total Cost: {Scrubbed},
                   Plan Rows: {Scrubbed},
@@ -191,7 +194,7 @@
                   Disabled: false
                 },
                 {
-                  Node Type: Memoize,
+                  Node Type: Sort,
                   Parent Relationship: Inner,
                   Parallel Aware: {Scrubbed},
                   Async Capable: {Scrubbed},
@@ -200,24 +203,22 @@
                   Plan Rows: {Scrubbed},
                   Plan Width: {Scrubbed},
                   Disabled: false,
-                  Cache Key: r.id,
-                  Cache Mode: logical,
+                  Sort Key: [
+                    r.id
+                  ],
                   Plans: [
                     {
-                      Node Type: Index Scan,
+                      Node Type: CTE Scan,
                       Parent Relationship: Outer,
                       Parallel Aware: {Scrubbed},
                       Async Capable: {Scrubbed},
-                      Scan Direction: Forward,
-                      Index Name: pk_workflows,
-                      Relation Name: workflows,
-                      Alias: w_1,
+                      CTE Name: ready,
+                      Alias: r,
                       Startup Cost: {Scrubbed},
                       Total Cost: {Scrubbed},
                       Plan Rows: {Scrubbed},
                       Plan Width: {Scrubbed},
-                      Disabled: false,
-                      Index Cond: (id = r.id)
+                      Disabled: false
                     }
                   ]
                 }

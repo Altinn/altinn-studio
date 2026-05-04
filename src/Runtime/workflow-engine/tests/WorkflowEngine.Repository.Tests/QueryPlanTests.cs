@@ -57,9 +57,12 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
 
         await repo.GetActiveWorkflows(pageSize: 100, cancellationToken: ct);
 
-        // The active workflows query filters on Status with Incomplete statuses
+        // The active workflows query filters on Incomplete statuses + StartAt; anchor the matcher
+        // on the FROM clause and the start_at predicate so an unrelated captured statement (e.g.
+        // a different split include) cannot be mistaken for it.
         var query = interceptor.Queries.LastOrDefault(q =>
-            q.Sql.Contains("workflows", StringComparison.Ordinal) && q.Sql.Contains("status", StringComparison.Ordinal)
+            q.Sql.Contains("FROM engine.workflows", StringComparison.Ordinal)
+            && q.Sql.Contains("start_at", StringComparison.Ordinal)
         );
         Assert.NotNull(query);
 
@@ -79,8 +82,11 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
 
         await repo.GetScheduledWorkflows(pageSize: 100, cancellationToken: ct);
 
+        // The scheduled query has the same shape as Active but additionally references
+        // workflow_dependency via the Dependencies.Any sub-query — anchor on that to disambiguate.
         var query = interceptor.Queries.LastOrDefault(q =>
-            q.Sql.Contains("workflows", StringComparison.Ordinal) && q.Sql.Contains("status", StringComparison.Ordinal)
+            q.Sql.Contains("FROM engine.workflows", StringComparison.Ordinal)
+            && q.Sql.Contains("workflow_dependency", StringComparison.Ordinal)
         );
         Assert.NotNull(query);
 
@@ -104,8 +110,11 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
             cancellationToken: ct
         );
 
+        // QueryWorkflows uses Include(Steps) without AsSplitQuery, so the main query JOINs
+        // engine.steps inline — anchor on that to pick the right captured statement.
         var query = interceptor.Queries.LastOrDefault(q =>
-            q.Sql.Contains("workflows", StringComparison.Ordinal) && q.Sql.Contains("status", StringComparison.Ordinal)
+            q.Sql.Contains("FROM engine.workflows", StringComparison.Ordinal)
+            && q.Sql.Contains("JOIN engine.steps", StringComparison.Ordinal)
         );
         Assert.NotNull(query);
 
@@ -288,7 +297,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
 
         // Refresh planner statistics
         await using var analyzeCmd = dataSource.CreateCommand(
-            "ANALYZE engine.workflows, engine.steps, engine.idempotency_keys"
+            "ANALYZE engine.workflows, engine.steps, engine.workflow_dependency, engine.idempotency_keys"
         );
         await analyzeCmd.ExecuteNonQueryAsync(ct);
     }
