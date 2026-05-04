@@ -83,7 +83,7 @@ func (c *appLogsCommand) usageFor(commandPath string) string {
 		"Options:",
 		"  -p, --path PATH       Specify app directory (overrides auto-detect)",
 		"  --id ID              Select process ID or container ID from 'app ps'",
-		"  -f, --follow         Follow log output (default: true)",
+		"  -f, --follow         Follow log output (default: false)",
 		fmt.Sprintf("  --tail N|all        Number of log lines to show (default: %d)", defaultServersLogTailLines),
 		"  --json              Output as newline-delimited JSON",
 		"  -h, --help          Show this help",
@@ -142,14 +142,14 @@ func (c *appLogsCommand) parseFlags(args []string, commandPath string) (appLogsF
 		id:         "",
 		tail:       defaultServersLogTailLines,
 		tailAll:    false,
-		follow:     true,
+		follow:     defaultLogFollow,
 		jsonOutput: false,
 	}
 	fs.StringVar(&flags.appPath, "p", "", "App directory path")
 	fs.StringVar(&flags.appPath, "path", "", "App directory path")
 	fs.StringVar(&flags.id, "id", "", "Process ID or container ID from app ps")
-	fs.BoolVar(&flags.follow, "f", true, "Follow log output")
-	fs.BoolVar(&flags.follow, "follow", true, "Follow log output")
+	fs.BoolVar(&flags.follow, "f", defaultLogFollow, "Follow log output")
+	fs.BoolVar(&flags.follow, "follow", defaultLogFollow, "Follow log output")
 	fs.Var(appLogsTailFlag{all: &flags.tailAll, value: &flags.tail}, "tail", "Number of log lines to show")
 	fs.BoolVar(&flags.jsonOutput, "json", false, "Output as newline-delimited JSON")
 

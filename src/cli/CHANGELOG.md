@@ -8,6 +8,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- Breaking: make `--follow` default to `false` for log commands.
+
 ### Fixed
 
 - Keep running apps visible in localtest after restarting the localtest environment.

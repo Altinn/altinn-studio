@@ -1024,8 +1024,8 @@ func (c *EnvCommand) parseLogsFlags(args []string) (envLogsFlags, bool, error) {
 	fs.StringVar(&f.runtime, "runtime", runtimeLocaltest, "Runtime to use")
 	fs.StringVar(&f.component, "c", "", "Filter by component")
 	fs.StringVar(&f.component, "component", "", "Filter by component")
-	fs.BoolVar(&f.follow, "f", true, "Follow log output")
-	fs.BoolVar(&f.follow, "follow", true, "Follow log output")
+	fs.BoolVar(&f.follow, "f", defaultLogFollow, "Follow log output")
+	fs.BoolVar(&f.follow, "follow", defaultLogFollow, "Follow log output")
 	fs.BoolVar(&f.jsonOutput, "json", false, "Output as newline-delimited JSON")
 
 	if err := fs.Parse(args); err != nil {
