@@ -70,6 +70,7 @@ class AgentState(BaseModel):
     session_id: str
     user_goal: str
     repo_path: str
+    app_name: str
     developer: str
     org: str
     designer_api_key: Optional[str] = None  # Designer API key for git operations through Gitea proxy
