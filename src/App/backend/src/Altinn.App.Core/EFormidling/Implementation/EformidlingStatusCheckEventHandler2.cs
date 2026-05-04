@@ -20,7 +20,7 @@ namespace Altinn.App.Core.EFormidling.Implementation;
 /// <summary>
 /// Handles status checking of messages sent through the Eformidling integration point.
 /// </summary>
-internal class EformidlingStatusCheckEventHandler2 : IEventHandler
+internal sealed class EformidlingStatusCheckEventHandler2 : IEventHandler
 {
     private readonly IEFormidlingClient _eFormidlingClient;
     private readonly ILogger<EformidlingStatusCheckEventHandler2> _logger;
