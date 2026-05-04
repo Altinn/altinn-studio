@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,7 +32,6 @@ public class AlertsServiceTests
     private readonly Mock<IAltinnNotificationClient> _notificationClient = new();
     private readonly Mock<IContactPointsRepository> _contactPointsRepository = new();
     private readonly AlertsSettings _alertsSettings;
-    private readonly GeneralSettings _generalSettings;
 
     private static readonly Uri s_internalSlackWebhook = new("https://hooks.slack.com/services/internal");
     private static readonly Uri s_contactSlackWebhook = new("https://hooks.slack.com/services/contact");
@@ -49,8 +49,6 @@ public class AlertsServiceTests
             Test = s_internalSlackWebhook,
             Prod = new Uri("https://hooks.slack.com/services/internal-prod"),
         };
-
-        _generalSettings = new GeneralSettings { HostName = "studio.localhost" };
     }
 
     [Fact]
@@ -101,6 +99,7 @@ public class AlertsServiceTests
     {
         var service = CreateService();
         var contactPointId = Guid.NewGuid();
+        var methodId = Guid.NewGuid();
         var alert = BuildAlert([new AlertInstance { Status = "firing", App = "app1" }]);
         var environment = AltinnEnvironment.FromName("tt02");
 
@@ -110,7 +109,14 @@ public class AlertsServiceTests
             [
                 BuildContactPoint(
                     contactPointId,
-                    [new ContactMethodEntity { MethodType = ContactMethodType.Email, Value = "owner@example.com" }]
+                    [
+                        new ContactMethodEntity
+                        {
+                            Id = methodId,
+                            MethodType = ContactMethodType.Email,
+                            Value = "owner@example.com",
+                        },
+                    ]
                 ),
             ]
         );
@@ -120,9 +126,9 @@ public class AlertsServiceTests
         _notificationClient.Verify(
             c =>
                 c.SendEmailNotification(
-                    $"{alert.Id}-email-{contactPointId}",
+                    $"{contactPointId}-{methodId}-{ContactMethodType.Email}-{alert.Id}",
                     "owner@example.com",
-                    "Alert fired",
+                    $"❌ {alert.Name}",
                     It.IsAny<string>(),
                     EmailContentType.Html,
                     It.IsAny<SendingTime>()
@@ -136,6 +142,7 @@ public class AlertsServiceTests
     {
         var service = CreateService();
         var contactPointId = Guid.NewGuid();
+        var methodId = Guid.NewGuid();
         var alert = BuildAlert([new AlertInstance { Status = "firing", App = "app1" }]);
         var environment = AltinnEnvironment.FromName("tt02");
 
@@ -145,7 +152,14 @@ public class AlertsServiceTests
             [
                 BuildContactPoint(
                     contactPointId,
-                    [new ContactMethodEntity { MethodType = ContactMethodType.Sms, Value = "+4700000002" }]
+                    [
+                        new ContactMethodEntity
+                        {
+                            Id = methodId,
+                            MethodType = ContactMethodType.Sms,
+                            Value = "+4700000002",
+                        },
+                    ]
                 ),
             ]
         );
@@ -155,7 +169,7 @@ public class AlertsServiceTests
         _notificationClient.Verify(
             c =>
                 c.SendSmsNotification(
-                    $"{alert.Id}-sms-{contactPointId}",
+                    $"{contactPointId}-{methodId}-{ContactMethodType.Sms}-{alert.Id}",
                     "+4700000002",
                     It.IsAny<string>(),
                     It.IsAny<SendingTime>()
@@ -203,6 +217,8 @@ public class AlertsServiceTests
         var service = CreateService();
         var contactPointId1 = Guid.NewGuid();
         var contactPointId2 = Guid.NewGuid();
+        var emailMethodId = Guid.NewGuid();
+        var smsMethodId = Guid.NewGuid();
         var alert = BuildAlert([new AlertInstance { Status = "firing", App = "app1" }]);
         var environment = AltinnEnvironment.FromName("tt02");
 
@@ -212,11 +228,25 @@ public class AlertsServiceTests
             [
                 BuildContactPoint(
                     contactPointId1,
-                    [new ContactMethodEntity { MethodType = ContactMethodType.Email, Value = "owner1@example.com" }]
+                    [
+                        new ContactMethodEntity
+                        {
+                            Id = emailMethodId,
+                            MethodType = ContactMethodType.Email,
+                            Value = "owner1@example.com",
+                        },
+                    ]
                 ),
                 BuildContactPoint(
                     contactPointId2,
-                    [new ContactMethodEntity { MethodType = ContactMethodType.Sms, Value = "+4700000001" }]
+                    [
+                        new ContactMethodEntity
+                        {
+                            Id = smsMethodId,
+                            MethodType = ContactMethodType.Sms,
+                            Value = "+4700000001",
+                        },
+                    ]
                 ),
             ]
         );
@@ -226,7 +256,7 @@ public class AlertsServiceTests
         _notificationClient.Verify(
             c =>
                 c.SendEmailNotification(
-                    $"{alert.Id}-email-{contactPointId1}",
+                    $"{contactPointId1}-{emailMethodId}-{ContactMethodType.Email}-{alert.Id}",
                     "owner1@example.com",
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -238,7 +268,7 @@ public class AlertsServiceTests
         _notificationClient.Verify(
             c =>
                 c.SendSmsNotification(
-                    $"{alert.Id}-sms-{contactPointId2}",
+                    $"{contactPointId2}-{smsMethodId}-{ContactMethodType.Sms}-{alert.Id}",
                     "+4700000001",
                     It.IsAny<string>(),
                     It.IsAny<SendingTime>()
@@ -344,14 +374,224 @@ public class AlertsServiceTests
         _hubClient.Verify(c => c.AlertsUpdated(It.IsAny<AlertsUpdated>()), Times.Once);
     }
 
-    private AlertsService CreateService() =>
+    [Fact]
+    public async Task NotifyAlertsUpdatedAsync_WhenNonProdStudioEnv_ShouldIncludeStudioMiljøInEmailBody()
+    {
+        var service = CreateService(hostName: "dev.altinn.studio");
+        var alert = BuildAlert([new AlertInstance { Status = "firing", App = "app1" }]);
+        var environment = AltinnEnvironment.FromName("tt02");
+
+        SetupContactPoints(
+            "ttd",
+            "tt02",
+            [
+                BuildContactPoint(
+                    Guid.NewGuid(),
+                    [
+                        new ContactMethodEntity
+                        {
+                            Id = Guid.NewGuid(),
+                            MethodType = ContactMethodType.Email,
+                            Value = "owner@example.com",
+                        },
+                    ]
+                ),
+            ]
+        );
+
+        await service.NotifyAlertsUpdatedAsync("ttd", environment, alert, CancellationToken.None);
+
+        _notificationClient.Verify(
+            c =>
+                c.SendEmailNotification(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.Is<string>(body => body.Contains("Studio-milj")),
+                    It.IsAny<EmailContentType>(),
+                    It.IsAny<SendingTime>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task NotifyAlertsUpdatedAsync_WhenProdStudioEnv_ShouldNotIncludeStudioMiljøInEmailBody()
+    {
+        var service = CreateService(hostName: "altinn.studio");
+        var alert = BuildAlert([new AlertInstance { Status = "firing", App = "app1" }]);
+        var environment = AltinnEnvironment.FromName("tt02");
+
+        SetupContactPoints(
+            "ttd",
+            "tt02",
+            [
+                BuildContactPoint(
+                    Guid.NewGuid(),
+                    [
+                        new ContactMethodEntity
+                        {
+                            Id = Guid.NewGuid(),
+                            MethodType = ContactMethodType.Email,
+                            Value = "owner@example.com",
+                        },
+                    ]
+                ),
+            ]
+        );
+
+        await service.NotifyAlertsUpdatedAsync("ttd", environment, alert, CancellationToken.None);
+
+        _notificationClient.Verify(
+            c =>
+                c.SendEmailNotification(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.Is<string>(body => !body.Contains("Studio-milj")),
+                    It.IsAny<EmailContentType>(),
+                    It.IsAny<SendingTime>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task NotifyAlertsUpdatedAsync_WhenNonProdStudioEnv_ShouldIncludeStudioMiljøInSmsBody()
+    {
+        var service = CreateService(hostName: "dev.altinn.studio");
+        var alert = BuildAlert([new AlertInstance { Status = "firing", App = "app1" }]);
+        var environment = AltinnEnvironment.FromName("tt02");
+
+        SetupContactPoints(
+            "ttd",
+            "tt02",
+            [
+                BuildContactPoint(
+                    Guid.NewGuid(),
+                    [
+                        new ContactMethodEntity
+                        {
+                            Id = Guid.NewGuid(),
+                            MethodType = ContactMethodType.Sms,
+                            Value = "+4700000001",
+                        },
+                    ]
+                ),
+            ]
+        );
+
+        await service.NotifyAlertsUpdatedAsync("ttd", environment, alert, CancellationToken.None);
+
+        _notificationClient.Verify(
+            c =>
+                c.SendSmsNotification(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.Is<string>(body => body.Contains("Studio-milj")),
+                    It.IsAny<SendingTime>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task NotifyAlertsUpdatedAsync_WhenProdStudioEnv_ShouldNotIncludeStudioMiljøInSmsBody()
+    {
+        var service = CreateService(hostName: "altinn.studio");
+        var alert = BuildAlert([new AlertInstance { Status = "firing", App = "app1" }]);
+        var environment = AltinnEnvironment.FromName("tt02");
+
+        SetupContactPoints(
+            "ttd",
+            "tt02",
+            [
+                BuildContactPoint(
+                    Guid.NewGuid(),
+                    [
+                        new ContactMethodEntity
+                        {
+                            Id = Guid.NewGuid(),
+                            MethodType = ContactMethodType.Sms,
+                            Value = "+4700000001",
+                        },
+                    ]
+                ),
+            ]
+        );
+
+        await service.NotifyAlertsUpdatedAsync("ttd", environment, alert, CancellationToken.None);
+
+        _notificationClient.Verify(
+            c =>
+                c.SendSmsNotification(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.Is<string>(body => !body.Contains("Studio-milj")),
+                    It.IsAny<SendingTime>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task NotifyAlertsUpdatedAsync_WhenNonProdStudioEnv_ShouldIncludeStudioMiljøInSlackMessage()
+    {
+        var service = CreateService(hostName: "dev.altinn.studio");
+        var alert = BuildAlert([new AlertInstance { Status = "firing", App = "app1" }]);
+        var environment = AltinnEnvironment.FromName("tt02");
+
+        SetupNoContactPoints("ttd", "tt02");
+
+        await service.NotifyAlertsUpdatedAsync("ttd", environment, alert, CancellationToken.None);
+
+        _slackClient.Verify(
+            c =>
+                c.SendMessageAsync(
+                    It.IsAny<Uri>(),
+                    It.Is<SlackMessage>(m =>
+                        m.Blocks.Any(b => b.Elements != null && b.Elements.Any(e => e.Text.Contains("Studio-miljø")))
+                    ),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task NotifyAlertsUpdatedAsync_WhenProdStudioEnv_ShouldNotIncludeStudioMiljøInSlackMessage()
+    {
+        var service = CreateService(hostName: "altinn.studio");
+        var alert = BuildAlert([new AlertInstance { Status = "firing", App = "app1" }]);
+        var environment = AltinnEnvironment.FromName("tt02");
+
+        SetupNoContactPoints("ttd", "tt02");
+
+        await service.NotifyAlertsUpdatedAsync("ttd", environment, alert, CancellationToken.None);
+
+        _slackClient.Verify(
+            c =>
+                c.SendMessageAsync(
+                    It.IsAny<Uri>(),
+                    It.Is<SlackMessage>(m =>
+                        m.Blocks.All(b => b.Elements == null || b.Elements.All(e => !e.Text.Contains("Studio-miljø")))
+                    ),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    private AlertsService CreateService() => CreateService(hostName: "studio.localhost");
+
+    private AlertsService CreateService(string hostName) =>
         new(
             _runtimeGatewayClient.Object,
             _hubContext.Object,
             _slackClient.Object,
             _alertsSettings,
             _notificationClient.Object,
-            _generalSettings,
+            new GeneralSettings { HostName = hostName },
             _contactPointsRepository.Object,
             NullLogger<AlertsService>.Instance
         );

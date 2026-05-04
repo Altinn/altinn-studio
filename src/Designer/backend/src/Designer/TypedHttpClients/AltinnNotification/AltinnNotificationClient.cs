@@ -68,10 +68,9 @@ public class AltinnNotificationClient(
 
     private async Task<Uri> CreateNotificationOrderUri()
     {
-        var baseUrl =
-            _generalSettings.OriginEnvironment == "prod"
-                ? await _environmentsService.CreatePlatformUri("production")
-                : await _environmentsService.CreatePlatformUri("tt02");
+        var baseUrl = _generalSettings.IsProd
+            ? await _environmentsService.CreatePlatformUri("production")
+            : await _environmentsService.CreatePlatformUri("tt02");
 
         return new Uri($"{baseUrl}{_platformSettings.ApiNotificationOrdersUri}");
     }

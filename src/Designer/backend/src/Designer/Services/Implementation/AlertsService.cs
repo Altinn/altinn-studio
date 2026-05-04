@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
@@ -137,17 +138,18 @@ internal sealed class AlertsService(
             switch (method.MethodType)
             {
                 case ContactMethodType.Email:
+                    var alertTitle = $"❌ {alert.Name}";
                     await altinnNotificationsClient.SendEmailNotification(
-                        $"{alert.Id}-email-{contactPoint.Id}",
+                        $"{contactPoint.Id}-{method.Id}-{method.MethodType}-{alert.Id}",
                         method.Value,
-                        "Alert fired",
-                        FormatEmailBody(org, environment, apps, alert.Name, alert.Url, alert.LogsUrl),
+                        alertTitle,
+                        FormatEmailBody(org, environment, apps, alertTitle, alert.Url, alert.LogsUrl),
                         EmailContentType.Html
                     );
                     break;
                 case ContactMethodType.Sms:
                     await altinnNotificationsClient.SendSmsNotification(
-                        $"{alert.Id}-sms-{contactPoint.Id}",
+                        $"{contactPoint.Id}-{method.Id}-{method.MethodType}-{alert.Id}",
                         method.Value,
                         FormatSmsBody(org, environment, apps, alert.Name)
                     );
@@ -178,47 +180,63 @@ internal sealed class AlertsService(
         }
     }
 
-    private string FormatSmsBody(string org, AltinnEnvironment environment, List<string> apps, string alertName)
+    private string FormatSmsBody(string org, AltinnEnvironment environment, List<string> apps, string alertTitle)
     {
-        string studioEnv = generalSettings.OriginEnvironment;
         string appsFormatted = string.Join(", ", apps);
+        string studioMiljø = !generalSettings.IsProd ? $"\nStudio-miljø: {generalSettings.OriginEnvironment}" : "";
 
-        return $@"❌ {alertName}
-Org: {org}
-Env: {environment.Name}
-Apps: {appsFormatted}
-StudioEnv: {studioEnv}";
+        return $@"{alertTitle}
+Organisasjon: {org}
+Miljø: {environment.Name}
+Applikasjoner: {appsFormatted}{studioMiljø}";
     }
 
     private string FormatEmailBody(
         string org,
         AltinnEnvironment environment,
         List<string> apps,
-        string alertName,
+        string alertTitle,
         Uri grafanaUrl,
         Uri appInsightsUrl
     )
     {
-        string studioEnv = generalSettings.OriginEnvironment;
-        string appsFormatted = string.Join(", ", apps);
+        string appsFormatted = string.Join(", ", apps.Select(a => $"<b>{WebUtility.HtmlEncode(a)}</b>"));
 
-        return $@"
-<h1>❌ {alertName}</h1>
-<table style=""width: 100%; text-align: center;"">
-    <tbody>
-        <tr>
-            <td>Org: {org}</td>
-            <td>Env: {environment.Name}</td>
-            <td>Apps: {appsFormatted}</td>
-            <td>StudioEnv: {studioEnv}</td>
-        </tr>
-        <tr>
-            <td colspan=""2""><a href=""{grafanaUrl}"">Grafana</a></td>
-            <td colspan=""2""><a href=""{appInsightsUrl}"">Application Insights</a></td>
-        </tr>
-    </tbody>
-</table>
-";
+        var mailBody = $"""
+            <h1>{WebUtility.HtmlEncode(alertTitle)}</h1>
+            <table>
+                <tbody>
+                    <tr>
+                        <td>Organisasjon:</td>
+                        <td><b>{WebUtility.HtmlEncode(org)}</b></td>
+                    </tr>
+                    <tr>
+                        <td>Miljø:</td>
+                        <td><b>{WebUtility.HtmlEncode(environment.Name)}</b></td>
+                    </tr>
+                    <tr>
+                        <td>Applikasjoner:</td>
+                        <td>{appsFormatted}</td>
+                    </tr>
+                    {(!generalSettings.IsProd ? $"""
+                        <tr>
+                            <td>Studio-miljø:</td>
+                            <td><b>{WebUtility.HtmlEncode(generalSettings.OriginEnvironment)}</b></td>
+                        </tr>
+                    """ : "")}
+                    <tr>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td><a href="{grafanaUrl}">Grafana</a></td>
+                        <td><a href="{appInsightsUrl}">Application Insights</a></td>
+                    </tr>
+                </tbody>
+            </table>
+            """;
+
+        return mailBody;
     }
 
     private async Task SendToSlackAsync(
@@ -232,7 +250,6 @@ StudioEnv: {studioEnv}";
         CancellationToken cancellationToken
     )
     {
-        string studioEnv = generalSettings.OriginEnvironment;
         string appsFormatted = string.Join(", ", apps.Select(a => $"`{a}`"));
         const string Emoji = ":x:";
 
@@ -241,6 +258,18 @@ StudioEnv: {studioEnv}";
             new() { Type = "mrkdwn", Text = $"<{grafanaUrl}|Grafana>" },
             new() { Type = "mrkdwn", Text = $"<{appInsightsUrl.OriginalString}|Application Insights>" },
         };
+
+        var info = new List<SlackText>
+        {
+            new() { Type = "mrkdwn", Text = $"Organisasjon: `{org}`" },
+            new() { Type = "mrkdwn", Text = $"Miljø: `{environment.Name}`" },
+            new() { Type = "mrkdwn", Text = $"Applikasjoner: {appsFormatted}" },
+        };
+
+        if (!generalSettings.IsProd)
+        {
+            info.Add(new SlackText { Type = "mrkdwn", Text = $"Studio-miljø: `{generalSettings.OriginEnvironment}`" });
+        }
 
         var message = new SlackMessage
         {
@@ -252,17 +281,7 @@ StudioEnv: {studioEnv}";
                     Type = "section",
                     Text = new SlackText { Type = "mrkdwn", Text = $"{Emoji} *{alertName}*" },
                 },
-                new SlackBlock
-                {
-                    Type = "context",
-                    Elements = new List<SlackText>
-                    {
-                        new() { Type = "mrkdwn", Text = $"Org: `{org}`" },
-                        new() { Type = "mrkdwn", Text = $"Env: `{environment.Name}`" },
-                        new() { Type = "mrkdwn", Text = $"Apps: {appsFormatted}" },
-                        new() { Type = "mrkdwn", Text = $"Studio env: `{studioEnv}`" },
-                    },
-                },
+                new SlackBlock { Type = "context", Elements = info },
                 new SlackBlock { Type = "context", Elements = links },
             ],
         };

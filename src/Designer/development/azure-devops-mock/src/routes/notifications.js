@@ -1,13 +1,18 @@
 import { v4 as uuid } from 'uuid';
 
-const idempotencyIds = {};
+const idempotencyIds = new Map();
 
 export const notificationRoute = async (req, res) => {
-  const id = req.body.idempotencyId;
+  const id = req.body?.idempotencyId;
 
-  if (id in idempotencyIds) {
+  if (!id || typeof id !== 'string') {
+    res.status(400).json({ error: 'Missing or invalid idempotencyId' });
+    return;
+  }
+
+  if (idempotencyIds.has(id)) {
     console.log(`[${id}]: Notification order was created previously.`);
-    res.status(200).json(idempotencyIds[id]);
+    res.status(200).json(idempotencyIds.get(id));
     return;
   }
 
@@ -31,7 +36,7 @@ export const notificationRoute = async (req, res) => {
     );
   }
 
-  idempotencyIds[id] = {
+  const order = {
     notificationOrderId: uuid(),
     notification: {
       shipmentId: uuid(),
@@ -39,5 +44,6 @@ export const notificationRoute = async (req, res) => {
       // reminders: not used
     },
   };
-  res.status(201).json(idempotencyIds[id]);
+  idempotencyIds.set(id, order);
+  res.status(201).json(order);
 };
