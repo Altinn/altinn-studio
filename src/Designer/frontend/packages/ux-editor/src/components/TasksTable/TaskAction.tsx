@@ -39,7 +39,7 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
   const { data: taskNavigationGroups } = useTaskNavigationGroupQuery(org, app);
   const { data: layoutSets } = useLayoutSetsExtendedQuery(org, app);
   const layoutSetPath = useLayoutSetPath(org, app, getLayoutSetIdForTask(task, layoutSets));
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   const addTaskToNavigationGroup = () => {
     const updatedNavigationTasks = [...taskNavigationGroups, task];
