@@ -35,7 +35,7 @@ export const formBootstrapHooks = {
   },
   useLaxReadableDataTypes: () => {
     const models = FormStore.raw.useLaxSelector((s) => s.bootstrap.dataModels);
-    return useMemo(() => (models ? Object.keys(models) : ContextNotProvided), [models]);
+    return useMemo(() => (models === ContextNotProvided ? ContextNotProvided : Object.keys(models)), [models]);
   },
   useWritableDataTypes: () => {
     const dataModels = FormStore.raw.useSelector((s) => s.bootstrap.dataModels);
