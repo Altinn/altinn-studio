@@ -66,7 +66,6 @@ export class TimePicker extends TimePickerDef implements ValidateComponent, Vali
   useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'TimePicker'>): string[] {
     const lookupBinding = FormStore.bootstrap.useLookupBinding();
     const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-    const _component = FormStore.bootstrap.useLayoutLookups().getComponent(baseComponentId, 'TimePicker');
     const validation = validateDataModelBindingsAny(
       baseComponentId,
       bindings,
