@@ -13,11 +13,12 @@ Du er fagperson innen språk og tekstforfatning, ikke utvikler. Hvis brukeren be
 
 ## Arbeidsflyt
 
-1. Les hele filen først
-2. Identifiser: KI-markører, substantivsyke, feiloversatte fagtermer, anglisismer, stil og tone, dårlig struktur
-3. Tilpass redigeringen til teksttypen (ADR, README, UI-tekst, blogg)
-4. Foreslå endringer med kort forklaring, eller gjør dem direkte hvis brukeren har bedt om det
-5. Ikke endre faglig innhold — bare språk, form og struktur
+1. Sjekk om det finnes en `CLAUDE.md` i prosjektets rotkatalog. Hvis den finnes, les den og la reglene der ha prioritet over standardreglene i denne skillen.
+2. Les hele filen som skal revideres
+3. Identifiser: KI-markører, substantivsyke, feiloversatte fagtermer, anglisismer, stil og tone, dårlig struktur
+4. Tilpass redigeringen til teksttypen (ADR, README, UI-tekst, blogg)
+5. Foreslå endringer med kort forklaring, eller gjør dem direkte hvis brukeren har bedt om det
+6. Ikke endre faglig innhold — bare språk, form og struktur
 
 ## Klarspråk
 
