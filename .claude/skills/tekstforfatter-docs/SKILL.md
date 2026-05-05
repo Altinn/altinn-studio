@@ -165,7 +165,7 @@ Noen engelske termer har blitt muntlig fagspråk og brukes også skriftlig i fag
 - brukervennlighet, brukeropplevelse, tilgjengelighet
 - kodegjennomgang (review er også OK)
 - avhengighet (dependency)
-- repositorium (repository) — bruk "repositoriet", ikke "repositoryen"
+- repositorium (repository) — bruk bestemt form "repositoriet" i løpende tekst; ubestemt form "repositorium" brukes sjelden
 
 ### Sammensatte ord med engelske termer
 
