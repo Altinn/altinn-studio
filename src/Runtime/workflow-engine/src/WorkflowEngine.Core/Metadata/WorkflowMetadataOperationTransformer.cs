@@ -26,7 +26,7 @@ internal sealed class WorkflowMetadataOperationTransformer : IOpenApiOperationTr
         if (_enqueueOperations.Contains(operationId))
         {
             AddIdempotencyKeyParameter(operation);
-            AddCorrelationIdParameter(operation);
+            AddCollectionKeyParameter(operation);
         }
 
         return Task.CompletedTask;
@@ -49,19 +49,19 @@ internal sealed class WorkflowMetadataOperationTransformer : IOpenApiOperationTr
         );
     }
 
-    private static void AddCorrelationIdParameter(OpenApiOperation operation)
+    private static void AddCollectionKeyParameter(OpenApiOperation operation)
     {
         operation.Parameters ??= [];
         operation.Parameters.Add(
             new OpenApiParameter
             {
-                Name = WorkflowMetadataConstants.Headers.CorrelationId,
+                Name = WorkflowMetadataConstants.Headers.CollectionKey,
                 In = ParameterLocation.Header,
                 Required = false,
                 Description =
-                    $"Correlation ID (GUID) to group related workflows. Can also be supplied as query parameter '{WorkflowMetadataConstants.QueryParams.CorrelationId}'. "
+                    $"Collection key to group related workflows. Can also be supplied as query parameter '{WorkflowMetadataConstants.QueryParams.CollectionKey}'. "
                     + "Must not be supplied as both header and query parameter.",
-                Schema = new OpenApiSchema { Type = JsonSchemaType.String, Format = "uuid" },
+                Schema = new OpenApiSchema { Type = JsonSchemaType.String },
             }
         );
     }

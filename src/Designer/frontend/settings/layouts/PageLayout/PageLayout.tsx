@@ -14,7 +14,6 @@ export const PageLayout = () => {
   const ownerMatch = useMatch(`/${RoutePaths.Owner}/*`);
   const subPath = ownerMatch?.params['*'] || '';
   const owner = ownerMatch?.params.owner;
-
   const buildPath = (username: string, validPaths: string[]) => {
     const page = validPaths.includes(subPath) ? subPath : '';
     return page ? `/${username}/${page}` : `/${username}`;

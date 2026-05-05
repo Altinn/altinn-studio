@@ -8,6 +8,7 @@ import { app, org } from '@studio/testing/testids';
 import { repository } from 'app-shared/mocks/mocks';
 import { renderWithProviders } from '../../../test/mocks';
 import { StudioPageHeaderContextProvider } from '@studio/components/src/components/StudioPageHeader/context';
+import { FeatureFlag, FeatureFlagsContextProvider } from '@studio/feature-flags';
 
 const mockEnvironment: { environment: { featureFlags: { studioOidc: boolean } } | null } = {
   environment: null,
@@ -97,7 +98,18 @@ describe('UserProfileMenu', () => {
     expect(screen.getByRole('menuitem', { name: textMock('settings') })).toBeInTheDocument();
   });
 
-  it('should not include user settings link in profile menu when studioOidc is disabled', async () => {
+  it('should include user settings link in profile menu when Admin feature flag is enabled', async () => {
+    const user = userEvent.setup();
+    mockEnvironment.environment = { featureFlags: { studioOidc: false } };
+
+    renderUserProfileMenu({ flags: [FeatureFlag.Admin] });
+
+    await user.click(screen.getByRole('button'));
+
+    expect(screen.getByRole('menuitem', { name: textMock('settings') })).toBeInTheDocument();
+  });
+
+  it('should not include user settings link in profile menu when neither studioOidc nor Admin flag is enabled', async () => {
     const user = userEvent.setup();
     mockEnvironment.environment = { featureFlags: { studioOidc: false } };
 
@@ -109,10 +121,17 @@ describe('UserProfileMenu', () => {
   });
 });
 
-const renderUserProfileMenu = (props?: Partial<UserProfileMenuProps>) => {
+type RenderOptions = {
+  props?: Partial<UserProfileMenuProps>;
+  flags?: FeatureFlag[];
+};
+
+const renderUserProfileMenu = ({ props, flags = [] }: RenderOptions = {}) => {
   return renderWithProviders()(
-    <StudioPageHeaderContextProvider variant='preview'>
-      <UserProfileMenu {...defaultProps} {...props} />
-    </StudioPageHeaderContextProvider>,
+    <FeatureFlagsContextProvider value={{ flags }}>
+      <StudioPageHeaderContextProvider variant='preview'>
+        <UserProfileMenu {...defaultProps} {...props} />
+      </StudioPageHeaderContextProvider>
+    </FeatureFlagsContextProvider>,
   );
 };

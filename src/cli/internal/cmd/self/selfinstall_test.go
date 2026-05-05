@@ -6,11 +6,12 @@ import (
 	"testing"
 
 	"altinn.studio/studioctl/internal/cmd/self"
+	"altinn.studio/studioctl/internal/osutil"
 )
 
 func TestPathInstructionsWindowsUsesTrailingBackslash(t *testing.T) {
 	t.Parallel()
-	if runtime.GOOS != "windows" {
+	if runtime.GOOS != osutil.OSWindows {
 		t.Skip("windows-specific PATH instructions")
 	}
 

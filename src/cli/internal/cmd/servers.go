@@ -149,7 +149,7 @@ func (c *ServersCommand) Usage() string {
 		"  logs    Stream server logs (app-manager)",
 		"",
 		"Options for 'servers logs':",
-		"  -f, --follow  Follow log output (default: true)",
+		"  -f, --follow  Follow log output (default: false)",
 		"  --tail        Number of log lines to show (default: 100)",
 		"  --json        Output as newline-delimited JSON",
 		"",
@@ -283,8 +283,8 @@ func (c *ServersCommand) runLogs(ctx context.Context, args []string) error {
 	var follow bool
 	var jsonOutput bool
 	var tail int
-	fs.BoolVar(&follow, "f", true, "Follow log output")
-	fs.BoolVar(&follow, "follow", true, "Follow log output")
+	fs.BoolVar(&follow, "f", defaultLogFollow, "Follow log output")
+	fs.BoolVar(&follow, "follow", defaultLogFollow, "Follow log output")
 	fs.BoolVar(&jsonOutput, "json", false, "Output as newline-delimited JSON")
 	fs.IntVar(&tail, "tail", defaultServersLogTailLines, "Number of log lines to show")
 	if err := fs.Parse(args); err != nil {

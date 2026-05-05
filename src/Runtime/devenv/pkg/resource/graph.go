@@ -18,20 +18,31 @@ var (
 	errGraphDisabledDependency = errors.New("enabled resource depends on disabled resource")
 	errGraphNilDependency      = errors.New("resource depends on nil resource")
 	errGraphDependencyCycle    = errors.New("dependency cycle detected")
+	errGraphEmptyID            = errors.New("resource graph ID is empty")
 )
 
 // Graph manages a DAG of resources with dependency tracking.
 // Graph is a pure data structure - use Executor to apply resources.
 type Graph struct {
 	resources map[ResourceID]Resource
+	id        GraphID
 	mu        sync.RWMutex
 }
 
 // NewGraph creates an empty resource graph.
-func NewGraph() *Graph {
+func NewGraph(id GraphID) *Graph {
 	return &Graph{
+		id:        id,
 		resources: make(map[ResourceID]Resource),
 	}
+}
+
+// ID returns the stable graph identity.
+func (g *Graph) ID() GraphID {
+	if g == nil {
+		return ""
+	}
+	return g.id
 }
 
 // Add registers a resource in the graph.
@@ -62,29 +73,20 @@ func (g *Graph) Get(id ResourceID) Resource {
 	return g.resources[id]
 }
 
-// All returns all resources in the graph (unordered).
+// All returns all resources sorted by resource ID.
 func (g *Graph) All() []Resource {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
-	result := make([]Resource, 0, len(g.resources))
-	for _, r := range g.resources {
-		result = append(result, r)
-	}
-	return result
+	return sortedResources(g.resources)
 }
 
-// Enabled returns all enabled resources in the graph (unordered).
+// Enabled returns all enabled resources sorted by resource ID.
 func (g *Graph) Enabled() []Resource {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
-	resources := g.enabledResourcesLocked()
-	result := make([]Resource, 0, len(resources))
-	for _, r := range resources {
-		result = append(result, r)
-	}
-	return result
+	return sortedResources(g.enabledResourcesLocked())
 }
 
 // Validate checks the graph for errors:
@@ -97,18 +99,20 @@ func (g *Graph) Validate() error {
 	defer g.mu.RUnlock()
 
 	resources := g.enabledResourcesLocked()
+	order := sortedResourceIDs(resources)
 
-	if err := g.validateEnabledDependenciesLocked(resources); err != nil {
+	if err := g.validateEnabledDependenciesLocked(resources, order); err != nil {
 		return err
 	}
 
 	// Check for cycles
-	if err := detectCycle(resources); err != nil {
+	if err := detectCycle(resources, order); err != nil {
 		return err
 	}
 
 	// Validate individual enabled resources.
-	for _, r := range resources {
+	for _, id := range order {
+		r := resources[id]
 		if v, ok := r.(Validator); ok {
 			if err := v.Validate(); err != nil {
 				return fmt.Errorf("resource %q validation failed: %w", r.ID(), err)
@@ -127,20 +131,44 @@ func (g *Graph) TopologicalOrder() ([][]Resource, error) {
 	defer g.mu.RUnlock()
 
 	resources := g.enabledResourcesLocked()
-	if err := g.validateEnabledDependenciesLocked(resources); err != nil {
+	order := sortedResourceIDs(resources)
+	if err := g.validateEnabledDependenciesLocked(resources, order); err != nil {
 		return nil, err
 	}
-	if err := detectCycle(resources); err != nil {
+	if err := detectCycle(resources, order); err != nil {
 		return nil, err
 	}
 
-	return topologicalLevels(resources)
+	return topologicalLevels(resources, order)
+}
+
+// TopologicalOrderSubset returns selected resources in dependency order.
+// Dependencies outside the selected set are ignored.
+func (g *Graph) TopologicalOrderSubset(ids []ResourceID) ([][]Resource, error) {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+
+	resources, err := g.subsetLocked(ids)
+	if err != nil {
+		return nil, err
+	}
+	return topologicalLevels(resources, sortedResourceIDs(resources))
 }
 
 // ReverseTopologicalOrder returns resources in reverse dependency order.
 // Used for destroy operations (dependents before dependencies).
 func (g *Graph) ReverseTopologicalOrder() ([][]Resource, error) {
 	levels, err := g.TopologicalOrder()
+	if err != nil {
+		return nil, err
+	}
+	slices.Reverse(levels)
+	return levels, nil
+}
+
+// ReverseTopologicalOrderSubset returns selected resources in reverse dependency order.
+func (g *Graph) ReverseTopologicalOrderSubset(ids []ResourceID) ([][]Resource, error) {
+	levels, err := g.TopologicalOrderSubset(ids)
 	if err != nil {
 		return nil, err
 	}
@@ -158,8 +186,39 @@ func (g *Graph) enabledResourcesLocked() map[ResourceID]Resource {
 	return result
 }
 
-func (g *Graph) validateEnabledDependenciesLocked(resources map[ResourceID]Resource) error {
-	for id, r := range resources {
+func (g *Graph) subsetLocked(ids []ResourceID) (map[ResourceID]Resource, error) {
+	resources := make(map[ResourceID]Resource, len(ids))
+	for _, id := range ids {
+		r, exists := g.resources[id]
+		if !exists {
+			return nil, fmt.Errorf("%w: %q", errGraphResourceNotFound, id)
+		}
+		resources[id] = r
+	}
+	return resources, nil
+}
+
+func sortedResources(resources map[ResourceID]Resource) []Resource {
+	ids := sortedResourceIDs(resources)
+	result := make([]Resource, 0, len(resources))
+	for _, id := range ids {
+		result = append(result, resources[id])
+	}
+	return result
+}
+
+func sortedResourceIDs(resources map[ResourceID]Resource) []ResourceID {
+	ids := make([]ResourceID, 0, len(resources))
+	for id := range resources {
+		ids = append(ids, id)
+	}
+	slices.Sort(ids)
+	return ids
+}
+
+func (g *Graph) validateEnabledDependenciesLocked(resources map[ResourceID]Resource, order []ResourceID) error {
+	for _, id := range order {
+		r := resources[id]
 		for _, ref := range r.Dependencies() {
 			depID := ref.ID()
 			dep, exists := g.resources[depID]
@@ -175,12 +234,11 @@ func (g *Graph) validateEnabledDependenciesLocked(resources map[ResourceID]Resou
 }
 
 func resourceEnabled(r Resource) bool {
-	provider, ok := r.(EnablementProvider)
-	return !ok || provider.IsEnabled()
+	return IsEnabled(r)
 }
 
 // detectCycle uses DFS to find cycles among enabled resources.
-func detectCycle(resources map[ResourceID]Resource) error {
+func detectCycle(resources map[ResourceID]Resource, order []ResourceID) error {
 	const (
 		white = iota // unvisited
 		gray         // visiting (in current path)
@@ -226,7 +284,7 @@ func detectCycle(resources map[ResourceID]Resource) error {
 		}
 	}
 
-	for id := range resources {
+	for _, id := range order {
 		if colors[id] == white {
 			if err := visit(id); err != nil {
 				return err
@@ -272,7 +330,7 @@ func cyclePathError(path []ResourceID, depID ResourceID) error {
 // Caller must hold read lock.
 //
 //nolint:gocognit // Kahn's algorithm is simpler to follow inline.
-func topologicalLevels(resources map[ResourceID]Resource) ([][]Resource, error) {
+func topologicalLevels(resources map[ResourceID]Resource, order []ResourceID) ([][]Resource, error) {
 	if len(resources) == 0 {
 		return nil, nil
 	}
@@ -280,11 +338,16 @@ func topologicalLevels(resources map[ResourceID]Resource) ([][]Resource, error) 
 	// Calculate in-degree (number of dependencies)
 	inDegree := make(map[ResourceID]int, len(resources))
 	dependents := make(map[ResourceID][]ResourceID, len(resources))
-	for id, resource := range resources {
+	for _, id := range order {
+		resource := resources[id]
 		deps := resource.Dependencies()
-		inDegree[id] = len(deps)
+		inDegree[id] = 0
 		for _, dep := range deps {
 			depID := dep.ID()
+			if _, exists := resources[depID]; !exists {
+				continue
+			}
+			inDegree[id]++
 			dependents[depID] = append(dependents[depID], id)
 		}
 	}
@@ -296,7 +359,11 @@ func topologicalLevels(resources map[ResourceID]Resource) ([][]Resource, error) 
 	for remaining > 0 {
 		// Find all resources with in-degree 0
 		var level []Resource
-		for id, degree := range inDegree {
+		for _, id := range order {
+			degree, ok := inDegree[id]
+			if !ok {
+				continue
+			}
 			if degree == 0 {
 				level = append(level, resources[id])
 			}

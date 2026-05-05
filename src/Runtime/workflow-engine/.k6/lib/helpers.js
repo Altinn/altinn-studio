@@ -37,7 +37,7 @@ export const BASE_URL = __ENV.BASE_URL || `http://localhost:8080/api/v1/${NAMESP
 export const HEALTH_URL = __ENV.HEALTH_URL || 'http://localhost:8080/api/v1/health';
 /**
  * Builds request params with unique metadata headers for each request.
- * Returns a k6 params object with Content-Type, Idempotency-Key, and Correlation-Id headers.
+ * Returns a k6 params object with Content-Type, Idempotency-Key, and Collection-Key headers.
  */
 export function buildRequestParams() {
     const guid = uuidv4();
@@ -45,7 +45,7 @@ export function buildRequestParams() {
         headers: {
             'Content-Type': 'application/json',
             'Idempotency-Key': `k6-${guid}`,
-            'Correlation-Id': guid,
+            'Collection-Key': guid,
         },
     };
 }

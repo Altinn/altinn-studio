@@ -15,10 +15,6 @@ import (
 )
 
 const (
-	osLinux   = "linux"
-	osWindows = "windows"
-	osDarwin  = "darwin"
-
 	exeSuffix = ".exe"
 
 	executablePerm = 0o755
@@ -87,9 +83,9 @@ func DetectCandidates(out *ui.Output) []Candidate {
 	var candidates []Candidate
 
 	switch runtime.GOOS {
-	case osLinux, osDarwin:
+	case osutil.OSLinux, osutil.OSDarwin:
 		candidates = unixCandidates(inPath, out)
-	case osWindows:
+	case osutil.OSWindows:
 		candidates = windowsCandidates(inPath, out)
 	default:
 		home, err := os.UserHomeDir()
@@ -261,7 +257,7 @@ func Install(targetDir string) (string, error) {
 	}
 
 	binaryName := "studioctl"
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == osutil.OSWindows {
 		binaryName += exeSuffix
 	}
 	targetPath := filepath.Join(targetDir, binaryName)
@@ -305,7 +301,7 @@ func InstallFile(srcPath, targetPath string) (string, error) {
 	if err := copyFile(absSource, absTarget); err != nil {
 		return "", fmt.Errorf("copy binary: %w", err)
 	}
-	if runtime.GOOS != osWindows {
+	if runtime.GOOS != osutil.OSWindows {
 		if err := os.Chmod(absTarget, executablePerm); err != nil {
 			return "", fmt.Errorf("make binary executable: %w", err)
 		}
@@ -352,7 +348,7 @@ func copyFile(src, dst string) (err error) {
 }
 
 func replacePath(src, dst string) error {
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == osutil.OSWindows {
 		return retryReplacePathWindows(src, dst)
 	}
 	return replacePathOnce(src, dst)
@@ -467,7 +463,7 @@ func PathInstructions(dir string) string {
 
 func pathInstructions(goos, dir string) string {
 	switch goos {
-	case "linux":
+	case osutil.OSLinux:
 		return joinLines(
 			fmt.Sprintf("Add %s to your PATH by adding this to your shell profile:", dir),
 			"",
@@ -483,7 +479,7 @@ func pathInstructions(goos, dir string) string {
 			"Then restart your shell or run: source ~/.bashrc (or equivalent)",
 		)
 
-	case "darwin":
+	case osutil.OSDarwin:
 		return joinLines(
 			fmt.Sprintf("Add %s to your PATH by adding this to your shell profile:", dir),
 			"",
@@ -496,7 +492,7 @@ func pathInstructions(goos, dir string) string {
 			"Then restart your shell or run: source ~/.zshrc",
 		)
 
-	case osWindows:
+	case osutil.OSWindows:
 		displayDir := strings.TrimRight(dir, `\/`) + `\`
 		return joinLines(
 			fmt.Sprintf("Add %s to your PATH:", displayDir),

@@ -17,11 +17,7 @@ func EnsureBoundTopology(
 	bindings []envtopology.RuntimeBinding,
 ) error {
 	if err := topology.WriteBoundTopologyBaseConfig(cfg.BoundTopologyBaseConfigPath(), bindings); err != nil {
-		return fmt.Errorf("write base bound topology config: %w", err)
-	}
-
-	if err := topology.WriteBoundTopologyConfig(cfg.BoundTopologyConfigPath(), bindings); err != nil {
-		return fmt.Errorf("write bound topology config: %w", err)
+		return fmt.Errorf("write environment topology config: %w", err)
 	}
 
 	if err := appmanager.EnsureStarted(ctx, cfg, topology.IngressPort()); err != nil {

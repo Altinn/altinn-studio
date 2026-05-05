@@ -59,7 +59,7 @@ func rawStateLabel(model *renderModel, row *progressRow) string {
 	switch {
 	case isTerminalUnsuccessfulState(row.state):
 		return "[!!] " + row.state
-	case row.state == model.operation.successState():
+	case isSuccessfulState(row.state):
 		return "[ok] " + row.state
 	case row.state == stateImageReady:
 		return "[~] image"

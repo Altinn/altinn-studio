@@ -6,6 +6,7 @@ import { type Organization } from 'app-shared/types/Organization';
 import { type User } from 'app-shared/types/Repository';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { dashboardHeaderMenuItems } from '../../utils/headerUtils/headerUtils';
+import { useFeatureFlagsContext, FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { useRepoPath } from '../../hooks/useRepoPath';
 import { useSubroute } from '../../hooks/useSubRoute';
@@ -45,6 +46,7 @@ export const HeaderContextProvider = ({
   const subroute = useSubroute();
 
   const { environment } = useEnvironmentConfig();
+  const { flags } = useFeatureFlagsContext();
 
   const handleSetSelectedContext = (context: string | SelectedContextType) => {
     navigate(`${subroute}/${context}${location.search}`);
@@ -89,6 +91,8 @@ export const HeaderContextProvider = ({
   };
 
   const studioOidc = environment?.featureFlags?.studioOidc;
+  const isAdminEnabled = useFeatureFlag(FeatureFlag.Admin);
+  const showSettingsLink = studioOidc || isAdminEnabled;
 
   const selectableOrgMenuGroup: NavigationMenuGroup = {
     name: t('top_bar.group_organizations'),
@@ -96,14 +100,14 @@ export const HeaderContextProvider = ({
     items: [allMenuItem, ...selectableOrgMenuItems, selfMenuItem],
   };
   const profileMenuItems: NavigationMenuItem[] = [
-    ...(studioOidc ? [settingsMenuItem] : []),
+    ...(showSettingsLink ? [settingsMenuItem] : []),
     giteaMenuItem,
     logOutMenuItem,
   ];
 
   const profileMenuGroups: NavigationMenuGroup[] = [
     selectableOrgMenuGroup,
-    ...(studioOidc ? [{ items: [settingsMenuItem] }] : []),
+    ...(showSettingsLink ? [{ items: [settingsMenuItem] }] : []),
     { items: [giteaMenuItem] },
     { items: [logOutMenuItem] },
   ];
@@ -113,7 +117,9 @@ export const HeaderContextProvider = ({
       value={{
         user,
         selectableOrgs,
-        menuItems: dashboardHeaderMenuItems.map((item) => ({ name: t(item.name), ...item })),
+        menuItems: dashboardHeaderMenuItems
+          .filter((item) => !item.featureFlag || flags.includes(item.featureFlag))
+          .map((item) => ({ ...item, name: t(item.name) })),
         profileMenuItems,
         profileMenuGroups,
       }}
