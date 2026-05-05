@@ -77,7 +77,8 @@ public class ThreadOwnershipTests : ChatControllerTestsBase<ThreadOwnershipTests
         var thread = await SeedThreadAsync(createdBy: OtherDeveloper);
         using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, ThreadUrl(thread.Id));
 
-        await HttpClient.SendAsync(httpRequest);
+        using var response = await HttpClient.SendAsync(httpRequest);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
         DesignerDbFixture.DbContext.ChangeTracker.Clear();
         var dbRecord = await DesignerDbFixture.DbContext.ChatThreads.SingleOrDefaultAsync(t => t.Id == thread.Id);
@@ -91,7 +92,8 @@ public class ThreadOwnershipTests : ChatControllerTestsBase<ThreadOwnershipTests
         var message = await SeedMessageAsync(thread.Id);
         using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, MessageUrl(thread.Id, message.Id));
 
-        await HttpClient.SendAsync(httpRequest);
+        using var response = await HttpClient.SendAsync(httpRequest);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
         DesignerDbFixture.DbContext.ChangeTracker.Clear();
         var dbRecord = await DesignerDbFixture.DbContext.ChatMessages.SingleOrDefaultAsync(m => m.Id == message.Id);

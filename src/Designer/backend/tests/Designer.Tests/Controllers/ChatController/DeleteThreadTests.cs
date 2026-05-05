@@ -31,7 +31,8 @@ public class DeleteThreadTests : ChatControllerTestsBase<DeleteThreadTests>
         var seeded = await SeedThreadAsync();
         using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, ThreadUrl(seeded.Id));
 
-        await HttpClient.SendAsync(httpRequest);
+        using var response = await HttpClient.SendAsync(httpRequest);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
         DesignerDbFixture.DbContext.ChangeTracker.Clear();
         var dbRecord = await DesignerDbFixture.DbContext.ChatThreads.SingleOrDefaultAsync(t => t.Id == seeded.Id);

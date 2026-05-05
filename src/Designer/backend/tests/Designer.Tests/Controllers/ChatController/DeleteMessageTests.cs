@@ -33,7 +33,8 @@ public class DeleteMessageTests : ChatControllerTestsBase<DeleteMessageTests>
         var message = await SeedMessageAsync(thread.Id);
         using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, MessageUrl(thread.Id, message.Id));
 
-        await HttpClient.SendAsync(httpRequest);
+        using var response = await HttpClient.SendAsync(httpRequest);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
         DesignerDbFixture.DbContext.ChangeTracker.Clear();
         var dbRecord = await DesignerDbFixture.DbContext.ChatMessages.SingleOrDefaultAsync(m => m.Id == message.Id);
