@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -25,6 +24,10 @@ public class OrgAccessHandlerTests
     private const string TestOrgIdentifier = "ttd";
     private const string TestOrgNumber = "991825827";
     private const string OtherOrgNumber = "310461598";
+    private const string AccessTokenWithReportee =
+        "eyJraWQiOiJiZFhMRVduRGpMSGpwRThPZnl5TUp4UlJLbVo3MUxCOHUxeUREbVBpdVQwIiwiYWxnIjoiUlMyNTYifQ."
+        + "eyJzdWIiOiIyOTkwNjI5Njc2MiIsImNsbSI6WyIhd0FBQyJdLCJpc3MiOiJodHRwczovL3Rlc3QuYW5zYXR0cG9ydGVuLm5vIiwiY2xpZW50X2FtciI6ImNsaWVudF9zZWNyZXRfYmFzaWMiLCJwaWQiOiIyOTkwNjI5Njc2MiIsImNsaWVudF9pZCI6IjlhOTllOTZkLWI1NmMtNGY3NC1hNjg5LWY5MzZmNzFjODgxOSIsImFjciI6InN1YnN0YW50aWFsIiwic2lrIjoiZk84NmpoaHNVU0t4YWRpTXgtSmJ2czFGdkdqNFI0emtkaEx6M0JEYng4MCIsImF1dGhvcml6YXRpb25fZGV0YWlscyI6W3sicmVzb3VyY2UiOiJ1cm46YWx0aW5uOnJlc291cmNlOjI0ODA6NDAiLCJ0eXBlIjoiYW5zYXR0cG9ydGVuOmFsdGlubjpzZXJ2aWNlIiwicmVzb3VyY2VfbmFtZSI6IlByb2R1a3RlciBvZyB0amVuZXN0ZXIgZnJhIEJyw7hubsO4eXN1bmRyZWdpc3RyZW5lIiwicmVwb3J0ZWVzIjpbeyJSaWdodHMiOlsiUmVhZCIsIkFyY2hpdmVEZWxldGUiLCJBcmNoaXZlUmVhZCJdLCJBdXRob3JpdHkiOiJpc282NTIzLWFjdG9yaWQtdXBpcyIsIklEIjoiMDE5MjozMTA4ODgxNjgiLCJOYW1lIjoiREVESUtFUlQgVkVOU1RSRSBUSUdFUiBBUyJ9XX1dLCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIiwiZXhwIjoxNzc3OTY3Mzc5LCJpYXQiOjE3Nzc5NjY3NzksImp0aSI6IjNuQmJ2V0hwN19vIiwiY29uc3VtZXIiOnsiYXV0aG9yaXR5IjoiaXNvNjUyMy1hY3RvcmlkLXVwaXMiLCJJRCI6IjAxOTI6OTkxODI1ODI3In19."
+        + "NkvxfzaTkQ5EdfaBBFBedM1NFJSE7d7i4QSk9RLYsCNloUn4rKMZ0Itss3vesBqr-bx44iXqVHFqWPBXak0KcTdT7ZcSyyeAvzS5hLelrlb-h4hBn8X6cyatKp6yhYJ67BH0ZiAaxFAVSnZul3xjr49wmOQoIqU2au_xGW97P1GsTEzHvmxzHnIYRDdot6ueWOPtR89tKk1rY4W4MT9Rb_T6Ia5UhKYweywp0rc3An-UbxFVFf-idomx8ukzntk9Hh7a0vU0DGt-7YhwCNzjHyaN9ZD_ZWttUSJTBBcxMkFLF9DiMouXp9jrTSXcNmiY5CsNRxkR0mLT8C58LYWRAX2PjWkk_v7hqDQOwx70V0sO16trxuU-riN6ai72q-R7Sxw0ca7OIcjbtd4cFhcr0FFI2xgZ4csd-x7b9cKGvnZzQGOaQKo1aTfc7MLzZ_VWX_muMxUUnAIzRySSxuw-DvKMAUjHdVCi4HVPjZtWHvQU2ebUzO_xdNNT9_bWMw7J";
 
     [Fact]
     public async Task HandleRequirementAsync_ShouldFail_WhenHttpContextIsNull()
@@ -38,6 +41,16 @@ public class OrgAccessHandlerTests
         await handler.HandleAsync(context);
 
         Assert.False(context.HasSucceeded);
+    }
+
+    [Fact]
+    public void ExtractReporteeOrgNumbers_ShouldReturnReportees_FromAnsattportenAccessToken()
+    {
+        var handler = CreateHandler(null);
+
+        var orgNumbers = handler.ExtractReporteeOrgNumbers(AccessTokenWithReportee);
+
+        Assert.Equal(["310888168"], orgNumbers);
     }
 
     [Fact]
@@ -414,8 +427,7 @@ public class OrgAccessHandlerTests
 
     private static OrgAccessHandler CreateHandler(
         HttpContext? httpContext,
-        Action<Mock<IEnvironmentsService>>? configureEnvironmentsService = null,
-        bool isProduction = true
+        Action<Mock<IEnvironmentsService>>? configureEnvironmentsService = null
     )
     {
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
@@ -424,16 +436,8 @@ public class OrgAccessHandlerTests
         var environmentsServiceMock = new Mock<IEnvironmentsService>();
         configureEnvironmentsService?.Invoke(environmentsServiceMock);
 
-        var hostEnvironmentMock = new Mock<IHostEnvironment>();
-        hostEnvironmentMock.Setup(x => x.EnvironmentName).Returns(isProduction ? "Production" : "Development");
-
         var loggerMock = new Mock<ILogger<OrgAccessHandler>>();
 
-        return new OrgAccessHandler(
-            httpContextAccessorMock.Object,
-            environmentsServiceMock.Object,
-            hostEnvironmentMock.Object,
-            loggerMock.Object
-        );
+        return new OrgAccessHandler(httpContextAccessorMock.Object, environmentsServiceMock.Object, loggerMock.Object);
     }
 }

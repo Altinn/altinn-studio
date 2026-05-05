@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
@@ -26,19 +25,16 @@ public sealed class OrgAccessHandler : AuthorizationHandler<OrgAccessRequirement
     private const int PrefixLength = 5;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IEnvironmentsService _environmentsService;
-    private readonly IHostEnvironment _hostEnvironment;
     private readonly ILogger<OrgAccessHandler> _logger;
 
     public OrgAccessHandler(
         IHttpContextAccessor httpContextAccessor,
         IEnvironmentsService environmentsService,
-        IHostEnvironment hostEnvironment,
         ILogger<OrgAccessHandler> logger
     )
     {
         _httpContextAccessor = httpContextAccessor;
         _environmentsService = environmentsService;
-        _hostEnvironment = hostEnvironment;
         _logger = logger;
     }
 
@@ -69,42 +65,40 @@ public sealed class OrgAccessHandler : AuthorizationHandler<OrgAccessRequirement
 
         if (string.IsNullOrWhiteSpace(accessToken))
         {
+            LogOrgAccessDecision(org, null, [], false, "MissingAccessToken", accessToken);
             context.Fail();
             return;
         }
 
-        if (_hostEnvironment.IsProduction())
+        var reporteeOrgNumbers = ExtractReporteeOrgNumbers(accessToken);
+        if (reporteeOrgNumbers.Length == 0)
         {
-            var reporteeOrgNumbers = ExtractReporteeOrgNumbers(accessToken);
-            if (reporteeOrgNumbers.Length == 0)
-            {
-                context.Fail();
-                return;
-            }
+            LogOrgAccessDecision(org, null, reporteeOrgNumbers, false, "MissingReportees", accessToken);
+            context.Fail();
+            return;
+        }
 
-            var orgNr = await _environmentsService.GetAltinnOrgNumber(org);
-            if (orgNr is null)
-            {
-                context.Fail();
-                return;
-            }
+        var orgNr = await _environmentsService.GetAltinnOrgNumber(org);
+        if (orgNr is null)
+        {
+            LogOrgAccessDecision(org, orgNr, reporteeOrgNumbers, false, "UnknownOrgNumber", accessToken);
+            context.Fail();
+            return;
+        }
 
-            if (!string.IsNullOrWhiteSpace(orgNr) && reporteeOrgNumbers.Contains(orgNr))
-            {
-                context.Succeed(requirement);
-            }
-            else
-            {
-                context.Fail();
-            }
+        if (!string.IsNullOrWhiteSpace(orgNr) && reporteeOrgNumbers.Contains(orgNr))
+        {
+            LogOrgAccessDecision(org, orgNr, reporteeOrgNumbers, true, "Granted", accessToken);
+            context.Succeed(requirement);
         }
         else
         {
-            context.Succeed(requirement);
+            LogOrgAccessDecision(org, orgNr, reporteeOrgNumbers, false, "OrgNumberMismatch", accessToken);
+            context.Fail();
         }
     }
 
-    private string[] ExtractReporteeOrgNumbers(string accessToken)
+    internal string[] ExtractReporteeOrgNumbers(string accessToken)
     {
         try
         {
@@ -151,20 +145,56 @@ public sealed class OrgAccessHandler : AuthorizationHandler<OrgAccessRequirement
                 .Distinct()
                 .ToArray();
         }
-        catch (SecurityTokenException ex)
+        catch (SecurityTokenException)
         {
-            _logger.LogWarning(ex, "Invalid JWT token format in access token");
             return [];
         }
-        catch (JsonException ex)
+        catch (JsonException)
         {
-            _logger.LogWarning(ex, "Failed to parse authorization_details JSON from access token");
             return [];
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            _logger.LogError(ex, "Unexpected error extracting reportee organization numbers from access token");
             return [];
         }
     }
+
+    private void LogOrgAccessDecision(
+        string org,
+        string? orgNumber,
+        string[] reporteeOrgNumbers,
+        bool granted,
+        string reason,
+        string? accessToken
+    )
+    {
+        _logger.LogWarning(
+            "Org access decision. Granted={Granted}, Reason={Reason}, Org={Org}, OrgNumber={OrgNumber}, ReporteeOrgNumbers={ReporteeOrgNumbers}, JwtPayload={JwtPayload}",
+            granted,
+            reason,
+            org,
+            orgNumber,
+            FormatOrgNumbers(reporteeOrgNumbers),
+            GetJwtPayloadForLogging(accessToken)
+        );
+    }
+
+    private static string GetJwtPayloadForLogging(string? accessToken)
+    {
+        if (string.IsNullOrWhiteSpace(accessToken))
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            return JsonSerializer.Serialize(new JwtSecurityTokenHandler().ReadJwtToken(accessToken).Payload);
+        }
+        catch
+        {
+            return "Unable to parse JWT payload";
+        }
+    }
+
+    private static string FormatOrgNumbers(string[] orgNumbers) => string.Join(",", orgNumbers);
 }
