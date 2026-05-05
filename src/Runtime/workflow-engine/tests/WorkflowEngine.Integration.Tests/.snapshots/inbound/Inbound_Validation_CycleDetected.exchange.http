@@ -1,4 +1,4 @@
-POST /api/v1/ttd%3Ae2e-tests/workflows HTTP/1.1
+POST /api/v1/ttd-e2e-tests/workflows HTTP/1.1
 Idempotency-Key: idem-Guid_1
 Content-Type: application/json; charset=utf-8
 
@@ -72,5 +72,5 @@ Content-Type: application/problem+json
   "title": "Bad Request",
   "status": 400,
   "detail": "Invalid request. Workflow graph did not validate: Dependency cycle detected in batch involving refs: wf-a, wf-b",
-  "traceId": "00-4bee44d78bd5c7072dc73569ac348d6e-7a0b28fa5343a8b6-01"
+  "traceId": "00-4abc4bfa25b371346b8eddf1edf1b253-ff9da256fdd94ab6-01"
 }

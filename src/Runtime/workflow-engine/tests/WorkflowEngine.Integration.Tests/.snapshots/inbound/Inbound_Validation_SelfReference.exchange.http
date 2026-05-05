@@ -1,4 +1,4 @@
-POST /api/v1/ttd%3Ae2e-tests/workflows HTTP/1.1
+POST /api/v1/ttd-e2e-tests/workflows HTTP/1.1
 Idempotency-Key: idem-Guid_1
 Content-Type: application/json; charset=utf-8
 
@@ -46,5 +46,5 @@ Content-Type: application/problem+json
   "title": "Bad Request",
   "status": 400,
   "detail": "Invalid request. Workflow graph did not validate: Workflow \u0027wf-a\u0027 has a self-reference in DependsOn.",
-  "traceId": "00-e62370232f1b05ddd1671d245982a994-5e5665279349f286-01"
+  "traceId": "00-04eebea52a03cf200c9fec02d2d79aa8-90815c7530fe85c7-01"
 }

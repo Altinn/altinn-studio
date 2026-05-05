@@ -1,4 +1,4 @@
-POST /api/v1/ttd%3Ae2e-tests/workflows HTTP/1.1
+POST /api/v1/ttd-e2e-tests/workflows HTTP/1.1
 Idempotency-Key: idem-Guid_1
 Content-Type: application/json; charset=utf-8
 
