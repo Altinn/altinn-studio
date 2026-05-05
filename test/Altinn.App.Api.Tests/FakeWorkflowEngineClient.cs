@@ -131,7 +131,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         return Task.FromResult<WorkflowStatusResponse?>(null);
     }
 
-    public Task<WorkflowHierarchyResponse?> GetWorkflowHierarchy(
+    public Task<WorkflowDependencyGraphResponse?> GetWorkflowDependencyGraph(
         string ns,
         Guid workflowId,
         CancellationToken cancellationToken = default
@@ -139,16 +139,16 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     {
         if (!_workflows.TryGetValue(workflowId, out StoredWorkflow? workflow) || workflow.Namespace != ns)
         {
-            return Task.FromResult<WorkflowHierarchyResponse?>(null);
+            return Task.FromResult<WorkflowDependencyGraphResponse?>(null);
         }
 
-        var hierarchy = new WorkflowHierarchyResponse
+        var dependencyGraph = new WorkflowDependencyGraphResponse
         {
             WorkflowId = workflowId,
-            Workflows = GetStoredWorkflowHierarchy(workflowId, ns).Select(ToWorkflowStatusResponse).ToList(),
+            Workflows = GetStoredWorkflowDependencyGraph(workflowId, ns).Select(ToWorkflowStatusResponse).ToList(),
         };
 
-        return Task.FromResult<WorkflowHierarchyResponse?>(hierarchy);
+        return Task.FromResult<WorkflowDependencyGraphResponse?>(dependencyGraph);
     }
 
     public Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
@@ -489,7 +489,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         return true;
     }
 
-    private IReadOnlyList<StoredWorkflow> GetStoredWorkflowHierarchy(Guid workflowId, string ns)
+    private IReadOnlyList<StoredWorkflow> GetStoredWorkflowDependencyGraph(Guid workflowId, string ns)
     {
         if (!_workflows.TryGetValue(workflowId, out StoredWorkflow? root) || root.Namespace != ns)
         {
@@ -513,11 +513,11 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
 
         HashSet<Guid> visited = [workflowId];
         Queue<Guid> queue = new([workflowId]);
-        List<StoredWorkflow> hierarchy = [];
+        List<StoredWorkflow> dependencyGraph = [];
 
         while (queue.TryDequeue(out Guid currentWorkflowId))
         {
-            hierarchy.Add(_workflows[currentWorkflowId]);
+            dependencyGraph.Add(_workflows[currentWorkflowId]);
 
             if (!reverseDependencies.TryGetValue(currentWorkflowId, out List<StoredWorkflow>? dependents))
             {
@@ -533,7 +533,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             }
         }
 
-        return hierarchy;
+        return dependencyGraph;
     }
 
     private static string CreateBatchKey(string ns, string idempotencyKey) => $"{ns}|{idempotencyKey}";

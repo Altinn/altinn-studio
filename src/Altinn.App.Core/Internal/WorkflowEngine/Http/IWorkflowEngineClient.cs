@@ -36,10 +36,10 @@ internal interface IWorkflowEngineClient
     );
 
     /// <summary>
-    /// Gets the workflow hierarchy rooted at the requested workflow.
+    /// Gets the workflow dependency graph rooted at the requested workflow.
     /// Returns <see langword="null"/> when the workflow does not exist.
     /// </summary>
-    Task<WorkflowHierarchyResponse?> GetWorkflowHierarchy(
+    Task<WorkflowDependencyGraphResponse?> GetWorkflowDependencyGraph(
         string ns,
         Guid workflowId,
         CancellationToken cancellationToken = default

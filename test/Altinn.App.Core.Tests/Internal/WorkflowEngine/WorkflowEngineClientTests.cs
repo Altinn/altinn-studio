@@ -106,7 +106,7 @@ public class WorkflowEngineClientTests
     }
 
     [Fact]
-    public async Task GetWorkflowHierarchy_UsesHierarchyEndpoint()
+    public async Task GetWorkflowDependencyGraph_UsesDependencyGraphEndpoint()
     {
         var requestUris = new List<Uri?>();
         Guid workflowId = Guid.NewGuid();
@@ -125,10 +125,10 @@ public class WorkflowEngineClientTests
                     requestUris.Add(request.RequestUri);
                     return Task.FromResult(
                         CreateJsonResponse(
-                            new WorkflowHierarchyResponse
+                            new WorkflowDependencyGraphResponse
                             {
                                 WorkflowId = workflowId,
-                                Workflows = [CreateWorkflowStatusResponse("hierarchy-root")],
+                                Workflows = [CreateWorkflowStatusResponse("dependency-graph-root")],
                             }
                         )
                     );
@@ -143,13 +143,16 @@ public class WorkflowEngineClientTests
             Mock.Of<ILogger<WorkflowEngineClient>>()
         );
 
-        WorkflowHierarchyResponse? hierarchy = await client.GetWorkflowHierarchy("ttd/app", workflowId);
+        WorkflowDependencyGraphResponse? dependencyGraph = await client.GetWorkflowDependencyGraph(
+            "ttd/app",
+            workflowId
+        );
 
-        Assert.NotNull(hierarchy);
-        Assert.Equal(workflowId, hierarchy.WorkflowId);
-        Assert.Single(hierarchy.Workflows);
+        Assert.NotNull(dependencyGraph);
+        Assert.Equal(workflowId, dependencyGraph.WorkflowId);
+        Assert.Single(dependencyGraph.Workflows);
         Assert.Equal(
-            $"http://workflow-engine/api/v1/ttd%2Fapp/workflows/{workflowId}/hierarchy",
+            $"http://workflow-engine/api/v1/ttd%2Fapp/workflows/{workflowId}/dependency-graph",
             requestUris[0]!.ToString()
         );
     }

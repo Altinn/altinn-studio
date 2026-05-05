@@ -102,13 +102,13 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
     }
 
     /// <inheritdoc />
-    public async Task<WorkflowHierarchyResponse?> GetWorkflowHierarchy(
+    public async Task<WorkflowDependencyGraphResponse?> GetWorkflowDependencyGraph(
         string ns,
         Guid workflowId,
         CancellationToken cancellationToken = default
     )
     {
-        var url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/workflows/{workflowId}/hierarchy";
+        var url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/workflows/{workflowId}/dependency-graph";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Get, url);
 
         using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, cancellationToken);
@@ -120,9 +120,11 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
 
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<WorkflowHierarchyResponse>(cancellationToken: cancellationToken)
+        return await response.Content.ReadFromJsonAsync<WorkflowDependencyGraphResponse>(
+                cancellationToken: cancellationToken
+            )
             ?? throw new InvalidOperationException(
-                "The expected workflow hierarchy was not found in the response content."
+                "The expected workflow dependency graph was not found in the response content."
             );
     }
 

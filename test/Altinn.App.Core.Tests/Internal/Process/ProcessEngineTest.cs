@@ -183,8 +183,10 @@ public sealed class ProcessEngineTest
                 }
             );
         processEngineClientMock
-            .Setup(c => c.GetWorkflowHierarchy(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateWorkflowHierarchyResponse(workflowId, "Process next: Task_1 -> Task_2"));
+            .Setup(c =>
+                c.GetWorkflowDependencyGraph(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(CreateWorkflowDependencyGraphResponse(workflowId, "Process next: Task_1 -> Task_2"));
         processEngineClientMock
             .Setup(c =>
                 c.ListWorkflows(
@@ -334,8 +336,10 @@ public sealed class ProcessEngineTest
                 }
             );
         processEngineClientMock
-            .Setup(c => c.GetWorkflowHierarchy(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateWorkflowHierarchyResponse(workflowId, "Process next: Task_1 -> Task_2"));
+            .Setup(c =>
+                c.GetWorkflowDependencyGraph(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(CreateWorkflowDependencyGraphResponse(workflowId, "Process next: Task_1 -> Task_2"));
         processEngineClientMock
             .Setup(c =>
                 c.ListWorkflows(
@@ -478,8 +482,10 @@ public sealed class ProcessEngineTest
                 }
             );
         processEngineClientMock
-            .Setup(c => c.GetWorkflowHierarchy(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateWorkflowHierarchyResponse(workflowId, "Process next: Task_2 -> EndEvent_1"));
+            .Setup(c =>
+                c.GetWorkflowDependencyGraph(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(CreateWorkflowDependencyGraphResponse(workflowId, "Process next: Task_2 -> EndEvent_1"));
         processEngineClientMock
             .Setup(c =>
                 c.ListWorkflows(
@@ -1277,9 +1283,9 @@ public sealed class ProcessEngineTest
                 ),
             ]);
         processEngineClientMock
-            .Setup(c => c.GetWorkflowHierarchy(It.IsAny<string>(), workflowId, It.IsAny<CancellationToken>()))
+            .Setup(c => c.GetWorkflowDependencyGraph(It.IsAny<string>(), workflowId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(
-                CreateWorkflowHierarchyResponse(
+                CreateWorkflowDependencyGraphResponse(
                     workflowId,
                     CreateWorkflowStatusResponse(
                         workflowId,
@@ -1334,9 +1340,9 @@ public sealed class ProcessEngineTest
                 ),
             ]);
         processEngineClientMock
-            .Setup(c => c.GetWorkflowHierarchy(It.IsAny<string>(), workflowId, It.IsAny<CancellationToken>()))
+            .Setup(c => c.GetWorkflowDependencyGraph(It.IsAny<string>(), workflowId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(
-                CreateWorkflowHierarchyResponse(
+                CreateWorkflowDependencyGraphResponse(
                     workflowId,
                     CreateWorkflowStatusResponse(
                         workflowId,
@@ -1391,9 +1397,11 @@ public sealed class ProcessEngineTest
                 ),
             ]);
         processEngineClientMock
-            .SetupSequence(c => c.GetWorkflowHierarchy(It.IsAny<string>(), workflowId, It.IsAny<CancellationToken>()))
+            .SetupSequence(c =>
+                c.GetWorkflowDependencyGraph(It.IsAny<string>(), workflowId, It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(
-                CreateWorkflowHierarchyResponse(
+                CreateWorkflowDependencyGraphResponse(
                     workflowId,
                     CreateWorkflowStatusResponse(
                         workflowId,
@@ -1403,7 +1411,7 @@ public sealed class ProcessEngineTest
                 )
             )
             .ReturnsAsync(
-                CreateWorkflowHierarchyResponse(
+                CreateWorkflowDependencyGraphResponse(
                     workflowId,
                     CreateWorkflowStatusResponse(
                         workflowId,
@@ -1477,10 +1485,16 @@ public sealed class ProcessEngineTest
             Steps = [],
         };
 
-    private static WorkflowHierarchyResponse CreateWorkflowHierarchyResponse(Guid workflowId, string operationId) =>
-        CreateWorkflowHierarchyResponse(workflowId, CreateCompletedWorkflowStatusResponse(workflowId, operationId));
+    private static WorkflowDependencyGraphResponse CreateWorkflowDependencyGraphResponse(
+        Guid workflowId,
+        string operationId
+    ) =>
+        CreateWorkflowDependencyGraphResponse(
+            workflowId,
+            CreateCompletedWorkflowStatusResponse(workflowId, operationId)
+        );
 
-    private static WorkflowHierarchyResponse CreateWorkflowHierarchyResponse(
+    private static WorkflowDependencyGraphResponse CreateWorkflowDependencyGraphResponse(
         Guid workflowId,
         params WorkflowStatusResponse[] workflows
     ) => new() { WorkflowId = workflowId, Workflows = workflows };
@@ -1695,8 +1709,10 @@ public sealed class ProcessEngineTest
                     }
                 );
             processEngineClientMock
-                .Setup(c => c.GetWorkflowHierarchy(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(CreateWorkflowHierarchyResponse(workflowId, "Process next"));
+                .Setup(c =>
+                    c.GetWorkflowDependencyGraph(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>())
+                )
+                .ReturnsAsync(CreateWorkflowDependencyGraphResponse(workflowId, "Process next"));
             processEngineClientMock
                 .Setup(c =>
                     c.ListWorkflows(

@@ -3,12 +3,12 @@ using System.Text.Json.Serialization;
 namespace Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 
 /// <summary>
-/// Response model for a workflow hierarchy rooted at a specific workflow.
+/// Response model for a workflow dependency graph rooted at a specific workflow.
 /// </summary>
-internal sealed record WorkflowHierarchyResponse
+internal sealed record WorkflowDependencyGraphResponse
 {
     /// <summary>
-    /// The workflow ID used as the hierarchy root.
+    /// The workflow ID used as the dependency graph root.
     /// </summary>
     [JsonPropertyName("workflowId")]
     public Guid WorkflowId { get; init; }

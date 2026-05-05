@@ -99,7 +99,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             ct: ct
         );
 
-        return await WaitForWorkflowHierarchyAndRefetchInstance(instance, rootWorkflowId, ct);
+        return await WaitForWorkflowDependencyGraphAndRefetchInstance(instance, rootWorkflowId, ct);
     }
 
     public Task<Guid> EnqueueDependentProcessNext(
@@ -153,19 +153,19 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             return new CurrentTaskWorkflowState(null);
         }
 
-        WorkflowHierarchyResponse? hierarchy = await _workflowEngineClient.GetWorkflowHierarchy(
+        WorkflowDependencyGraphResponse? dependencyGraph = await _workflowEngineClient.GetWorkflowDependencyGraph(
             GetNamespace(),
             rootWorkflow.DatabaseId,
             cancellationToken: ct
         );
-        IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows = hierarchy?.Workflows ?? [rootWorkflow];
+        IReadOnlyList<WorkflowStatusResponse> graphWorkflows = dependencyGraph?.Workflows ?? [rootWorkflow];
 
-        if (hierarchyWorkflows.Any(IsActiveWorkflowStatus))
+        if (graphWorkflows.Any(IsActiveWorkflowStatus))
         {
             return new CurrentTaskWorkflowState(ProcessNextState.Retrying, rootWorkflow.DatabaseId);
         }
 
-        if (hierarchyWorkflows.Any(IsRecoveryRequiredWorkflowStatus))
+        if (graphWorkflows.Any(IsRecoveryRequiredWorkflowStatus))
         {
             return new CurrentTaskWorkflowState(ProcessNextState.RecoveryRequired, rootWorkflow.DatabaseId);
         }
@@ -180,7 +180,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     )
     {
         await _workflowEngineClient.ResumeWorkflow(GetNamespace(), workflowId, cancellationToken: ct);
-        return await WaitForWorkflowHierarchyAndRefetchInstance(instance, workflowId, ct);
+        return await WaitForWorkflowDependencyGraphAndRefetchInstance(instance, workflowId, ct);
     }
 
     private async Task<Guid> CreateAndEnqueueWorkflow(
@@ -219,7 +219,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         return response.Workflows[0].DatabaseId;
     }
 
-    private async Task<ProcessNextWorkflowResult> WaitForWorkflowHierarchyAndRefetchInstance(
+    private async Task<ProcessNextWorkflowResult> WaitForWorkflowDependencyGraphAndRefetchInstance(
         Instance instance,
         Guid rootWorkflowId,
         CancellationToken ct
@@ -227,25 +227,25 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     {
         var stopwatch = Stopwatch.StartNew();
         int currentDelayMs = InitialWorkflowPollingDelayMs;
-        IReadOnlyList<WorkflowStatusResponse> lastObservedHierarchy = [];
+        IReadOnlyList<WorkflowStatusResponse> lastObservedDependencyGraph = [];
 
         while (!ct.IsCancellationRequested)
         {
-            WorkflowHierarchyResponse? hierarchy = await _workflowEngineClient.GetWorkflowHierarchy(
+            WorkflowDependencyGraphResponse? dependencyGraph = await _workflowEngineClient.GetWorkflowDependencyGraph(
                 GetNamespace(),
                 rootWorkflowId,
                 cancellationToken: ct
             );
-            IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows = hierarchy?.Workflows ?? [];
-            if (hierarchyWorkflows.Count > 0)
+            IReadOnlyList<WorkflowStatusResponse> graphWorkflows = dependencyGraph?.Workflows ?? [];
+            if (graphWorkflows.Count > 0)
             {
-                lastObservedHierarchy = hierarchyWorkflows;
+                lastObservedDependencyGraph = graphWorkflows;
 
-                if (!hierarchyWorkflows.Any(IsActiveWorkflowStatus))
+                if (!graphWorkflows.Any(IsActiveWorkflowStatus))
                 {
                     Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
-                    WorkflowFailure? workflowFailure = BuildWorkflowFailure(hierarchyWorkflows);
-                    bool processStateChanged = HasCommittedProcessState(hierarchyWorkflows);
+                    WorkflowFailure? workflowFailure = BuildWorkflowFailure(graphWorkflows);
+                    bool processStateChanged = HasCommittedProcessState(graphWorkflows);
                     return new ProcessNextWorkflowResult(freshInstance, workflowFailure, processStateChanged);
                 }
             }
@@ -256,7 +256,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 return new ProcessNextWorkflowResult(
                     freshInstance,
                     new WorkflowFailure { Kind = WorkflowFailureKind.Timeout },
-                    HasCommittedProcessState(lastObservedHierarchy)
+                    HasCommittedProcessState(lastObservedDependencyGraph)
                 );
             }
 
