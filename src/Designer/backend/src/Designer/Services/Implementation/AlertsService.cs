@@ -204,7 +204,7 @@ Applikasjoner: {appsFormatted}{studioMiljø}";
 
         var mailBody = $"""
             <h1>{WebUtility.HtmlEncode(alertTitle)}</h1>
-            <table>
+            <table cellpadding="4">
                 <tbody>
                     <tr>
                         <td>Organisasjon:</td>
@@ -224,13 +224,13 @@ Applikasjoner: {appsFormatted}{studioMiljø}";
                             <td><b>{WebUtility.HtmlEncode(generalSettings.OriginEnvironment)}</b></td>
                         </tr>
                     """ : "")}
+                </tbody>
+            </table>
+            <table cellpadding="4">
+                <tbody>
                     <tr>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td><a href="{grafanaUrl}">Grafana</a></td>
-                        <td><a href="{appInsightsUrl}">Application Insights</a></td>
+                        <td><a href="{grafanaUrl.OriginalString}">Grafana</a></td>
+                        <td><a href="{appInsightsUrl.OriginalString}">Application Insights</a></td>
                     </tr>
                 </tbody>
             </table>
@@ -255,7 +255,7 @@ Applikasjoner: {appsFormatted}{studioMiljø}";
 
         var links = new List<SlackText>
         {
-            new() { Type = "mrkdwn", Text = $"<{grafanaUrl}|Grafana>" },
+            new() { Type = "mrkdwn", Text = $"<{grafanaUrl.OriginalString}|Grafana>" },
             new() { Type = "mrkdwn", Text = $"<{appInsightsUrl.OriginalString}|Application Insights>" },
         };
 
