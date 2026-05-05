@@ -30,10 +30,6 @@ export class UiEditorPage extends BasePage {
     await this.page.waitForURL(pageUrl.toString());
   }
 
-  public getCurrentUrl(): string {
-    return this.page.url();
-  }
-
   public async clickOnPageAccordion(pageName: string): Promise<void> {
     await this.page.getByRole('button', { name: pageName, exact: true }).click();
   }
