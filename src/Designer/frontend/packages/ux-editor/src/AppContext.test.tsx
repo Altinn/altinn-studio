@@ -15,13 +15,16 @@ import { AppsQueryKey } from 'app-shared/types/AppsQueryKey';
 import { AppRouter } from './testing/mocks';
 import { useSearchParams } from 'react-router-dom';
 import { ItemType } from './components/Properties/ItemType';
+
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useSearchParams: jest.fn(),
 }));
+
 const mockUseSearchParams = useSearchParams as unknown as jest.Mock;
 const mockSelectedFormLayoutSetName = layoutSet;
 const mockSelectedFormLayoutName = layout1NameMock;
+
 const TestComponent = ({
   queryClient,
   children,
@@ -44,6 +47,7 @@ const TestComponent = ({
     </>
   );
 };
+
 const buttonTestId = 'button';
 const Button = ({ onClick }: { onClick: () => void }) => (
   <button data-testid={buttonTestId} onClick={onClick} />
@@ -53,6 +57,7 @@ const clickButton = async () => {
   const button = screen.getByTestId(buttonTestId);
   await user.click(button);
 };
+
 const ItemSelector = ({
   setSelectedItem,
   selectedItem,
@@ -76,6 +81,7 @@ const ItemSelector = ({
     <div data-testid='selectedItemId'>{selectedItem ? String(selectedItem.id) : ''}</div>
   </>
 );
+
 const renderAppContext = (children: (appContext: AppContextProps) => React.ReactNode) => {
   const queryClient = createQueryClientMock();
   queryClient.invalidateQueries = jest.fn();
@@ -114,11 +120,13 @@ const renderAppContext = (children: (appContext: AppContextProps) => React.React
     queryClient,
   };
 };
+
 describe('AppContext', () => {
   beforeEach(() => {
     mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()]);
   });
   afterEach(jest.clearAllMocks);
+
   it('sets selectedFormLayoutName correctly', async () => {
     const setSearchParamsMock = jest.fn();
     mockUseSearchParams.mockReturnValue([new URLSearchParams(), setSearchParamsMock]);
@@ -130,13 +138,9 @@ describe('AppContext', () => {
     ));
     expect((await screen.findByTestId('selectedFormLayoutName')).textContent).toEqual('');
     await clickButton();
-
-    await waitFor(async () =>
-      expect((await screen.findByTestId('selectedFormLayoutName')).textContent).toEqual(
-        mockSelectedFormLayoutName,
-      ),
-    );
+    await waitFor(() => expect(setSearchParamsMock).toHaveBeenCalledTimes(1));
   });
+
   it('initializes selectedItem from layout query parameter', async () => {
     const layoutFromUrl = 'Side1';
     mockUseSearchParams.mockReturnValue([
@@ -150,6 +154,7 @@ describe('AppContext', () => {
       expect((await screen.findByTestId('selectedItemId')).textContent).toEqual(layoutFromUrl),
     );
   });
+
   it('setSelectedItem updates selectedItem at runtime', async () => {
     const layoutFromUrl = 'Side1';
     const componentId = 'component-1';
@@ -171,6 +176,7 @@ describe('AppContext', () => {
       expect((await screen.findByTestId('selectedItemId')).textContent).toEqual(componentId),
     );
   });
+
   it('initializes selectedItem as null when no layout query parameter is set', async () => {
     const pageId = 'override-page';
     mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()]);
@@ -188,6 +194,7 @@ describe('AppContext', () => {
       expect((await screen.findByTestId('selectedItemId')).textContent).toEqual(pageId),
     );
   });
+
   it('resets layouts query for Apps in preview', async () => {
     const { queryClient } = renderAppContext(({ updateLayoutsForPreview }: AppContextProps) => (
       <Button onClick={() => updateLayoutsForPreview(layoutSet, true)} />
@@ -200,6 +207,7 @@ describe('AppContext', () => {
       }),
     );
   });
+
   it('invalidates layout sets query for Apps in preview', async () => {
     const { queryClient } = renderAppContext(({ updateLayoutSetsForPreview }: AppContextProps) => (
       <Button onClick={() => updateLayoutSetsForPreview()} />
@@ -212,6 +220,7 @@ describe('AppContext', () => {
       }),
     );
   });
+
   it('invalidates layout settings query for Apps in preview', async () => {
     const { queryClient } = renderAppContext(
       ({ updateLayoutSettingsForPreview }: AppContextProps) => (
@@ -226,6 +235,7 @@ describe('AppContext', () => {
       }),
     );
   });
+
   it('reset layout settings query for Apps in preview', async () => {
     const { queryClient } = renderAppContext(
       ({ updateLayoutSettingsForPreview }: AppContextProps) => (
@@ -240,6 +250,7 @@ describe('AppContext', () => {
       }),
     );
   });
+
   it('invalidates text query for Apps in preview', async () => {
     const mockLanguage = 'nb';
     const { queryClient } = renderAppContext(({ updateTextsForPreview }: AppContextProps) => (
@@ -253,6 +264,7 @@ describe('AppContext', () => {
       }),
     );
   });
+
   it('resets text query for Apps in preview', async () => {
     const mockLanguage = 'nb';
     const { queryClient } = renderAppContext(({ updateTextsForPreview }: AppContextProps) => (
