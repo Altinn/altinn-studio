@@ -138,10 +138,10 @@ public static class HttpChatterHelpers
     }
 
     /// <summary>
-    /// Writes a captured <see cref="HttpExchange"/> (from <see cref="HttpExchangeRecorder"/>)
-    /// as HTTP plaintext, auto-discovering all request and response headers.
+    /// Writes the request portion of a captured <see cref="HttpExchange"/> as HTTP plaintext.
+    /// Use this to document inbound payload contracts in <c>*.inbound.http</c> snapshot files.
     /// </summary>
-    public static void WriteExchange(StringBuilder http, HttpExchange exchange)
+    public static void WriteInboundRequest(StringBuilder http, HttpExchange exchange)
     {
         var req = exchange.Request;
 
@@ -173,7 +173,13 @@ public static class HttpChatterHelpers
             http.AppendLine(FormatJsonOrRaw(exchange.RequestBody));
             http.AppendLine();
         }
+    }
 
+    /// <summary>
+    /// Writes the response portion of a captured <see cref="HttpExchange"/> as HTTP plaintext.
+    /// </summary>
+    public static void WriteInboundResponse(StringBuilder http, HttpExchange exchange)
+    {
         var resp = exchange.Response;
 
         // Response status line
@@ -201,6 +207,17 @@ public static class HttpChatterHelpers
         http.AppendLine();
         if (exchange.ResponseBody is { Length: > 0 })
             http.AppendLine(FormatJsonOrRaw(exchange.ResponseBody));
+    }
+
+    /// <summary>
+    /// Writes a captured <see cref="HttpExchange"/> (from <see cref="HttpExchangeRecorder"/>)
+    /// as HTTP plaintext, auto-discovering all request and response headers. Use this for
+    /// <c>*.exchange.http</c> snapshot files that document a full request/response pair.
+    /// </summary>
+    public static void WriteExchange(StringBuilder http, HttpExchange exchange)
+    {
+        WriteInboundRequest(http, exchange);
+        WriteInboundResponse(http, exchange);
     }
 
     /// <summary>
