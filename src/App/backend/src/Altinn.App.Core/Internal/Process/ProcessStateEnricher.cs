@@ -47,6 +47,7 @@ public sealed class ProcessStateEnricher
                 actions.AddRange(
                     processTask.ExtensionElements?.TaskExtension?.AltinnActions ?? new List<AltinnAction>()
                 );
+                actions = actions.DistinctBy(a => a.Value, StringComparer.Ordinal).ToList();
                 var authDecisions = await _authorization.AuthorizeActions(instance, user, actions);
                 appProcessState.CurrentTask.Actions = authDecisions
                     .Where(a => a.ActionType == ActionType.ProcessAction)
