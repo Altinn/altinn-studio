@@ -6,5 +6,6 @@ export enum FeatureFlag {
   CustomTemplates = 'customTemplates',
   Maskinporten = 'maskinporten',
   NewCodeLists = 'newCodeLists',
+  NextV9 = 'nextV9',
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
 }

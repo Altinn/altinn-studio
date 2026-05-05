@@ -11,55 +11,44 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLocalStorage } from '@studio/components-legacy';
-import {
-  MAXIMUM_SUPPORTED_BACKEND_VERSION,
-  MAXIMUM_SUPPORTED_FRONTEND_VERSION,
-  MINIMUM_SUPPORTED_BACKEND_VERSION,
-  MINIMUM_SUPPORTED_FRONTEND_VERSION,
-} from 'app-shared/constants';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import classes from './VersionDialog.module.css';
 import cn from 'classnames';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import { RemindChoiceDialog } from 'app-shared/components/RemindChoiceDialog/RemindChoiceDialog';
-import { isBelowSupportedVersion } from 'app-shared/utils/compareFunctions';
 import { VersionDialogTableRow } from './VersionDialogTableRow';
+import { useVersionStatus, type VersionStatus } from './useVersionStatus';
 
 export const VersionDialog = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { data } = useAppVersionQuery(org, app);
   const { t } = useTranslation();
+  const versionStatus = useVersionStatus(data);
 
-  if (!data) {
+  if (!versionStatus) {
     return;
   }
 
-  const isUnsupported =
-    isBelowSupportedVersion(data.frontendVersion, MINIMUM_SUPPORTED_FRONTEND_VERSION) ||
-    isBelowSupportedVersion(data.backendVersion, MINIMUM_SUPPORTED_BACKEND_VERSION);
-
-  if (isUnsupported) {
+  if (versionStatus.isUnsupported) {
     return (
       <Dialog
         title={t('version_dialog.unsupported_version_title')}
         frontendVersion={data.frontendVersion}
         backendVersion={data.backendVersion}
+        versionStatus={versionStatus}
       >
         {t('version_dialog.unsupported_version_content')}
       </Dialog>
     );
   }
 
-  const isOutdated =
-    isBelowSupportedVersion(data.frontendVersion, MAXIMUM_SUPPORTED_FRONTEND_VERSION) ||
-    isBelowSupportedVersion(data.backendVersion, MAXIMUM_SUPPORTED_BACKEND_VERSION);
-
-  if (isOutdated) {
+  if (versionStatus.isOutdated) {
     return (
       <Dialog
         title={t('version_dialog.outdated_version_title')}
         frontendVersion={data.frontendVersion}
         backendVersion={data.backendVersion}
+        versionStatus={versionStatus}
       >
         <StudioParagraph>{t('version_dialog.outdated_version_description')}</StudioParagraph>
         <StudioParagraph>{t('version_dialog.outdated_version_recommendation')}</StudioParagraph>
@@ -76,9 +65,17 @@ type DialogProps = {
   frontendVersion: string;
   backendVersion: string;
   className?: string;
+  versionStatus: VersionStatus;
 };
 
-const Dialog = ({ title, children, frontendVersion, backendVersion, className }: DialogProps) => {
+const Dialog = ({
+  title,
+  children,
+  frontendVersion,
+  backendVersion,
+  className,
+  versionStatus,
+}: DialogProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
 
@@ -105,15 +102,6 @@ const Dialog = ({ title, children, frontendVersion, backendVersion, className }:
     return;
   }
 
-  const isFrontendVersionOutdated = isBelowSupportedVersion(
-    frontendVersion,
-    MAXIMUM_SUPPORTED_FRONTEND_VERSION,
-  );
-  const isBackendVersionOutdated = isBelowSupportedVersion(
-    backendVersion,
-    MAXIMUM_SUPPORTED_BACKEND_VERSION,
-  );
-
   return (
     <StudioDialog data-color='warning' open={opened} className={classes.dialog} closeButton={false}>
       <RemindChoiceDialog closeDialog={handleCloseDialog} />
@@ -135,11 +123,11 @@ const Dialog = ({ title, children, frontendVersion, backendVersion, className }:
               </StudioTable.Row>
             </StudioTable.Head>
             <StudioTable.Body>
-              {isFrontendVersionOutdated && (
+              {versionStatus.isFrontendOutdated && (
                 <VersionDialogTableRow
                   devTypeLabel={t('version_dialog.frontend')}
                   currentVersion={frontendVersion}
-                  latestVersion={MAXIMUM_SUPPORTED_FRONTEND_VERSION}
+                  latestVersion={versionStatus.maxFrontendVersion}
                   link={{
                     href: altinnDocsUrl({
                       relativeUrl: 'community/changelog/app-frontend/',
@@ -148,11 +136,11 @@ const Dialog = ({ title, children, frontendVersion, backendVersion, className }:
                   }}
                 />
               )}
-              {isBackendVersionOutdated && (
+              {versionStatus.isBackendOutdated && (
                 <VersionDialogTableRow
                   devTypeLabel={t('version_dialog.backend')}
                   currentVersion={backendVersion}
-                  latestVersion={MAXIMUM_SUPPORTED_BACKEND_VERSION}
+                  latestVersion={versionStatus.maxBackendVersion}
                   link={{
                     href: altinnDocsUrl({
                       relativeUrl: 'community/changelog/app-nuget/',
