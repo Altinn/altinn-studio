@@ -165,6 +165,7 @@ Noen engelske termer har blitt muntlig fagspråk og brukes også skriftlig i fag
 - brukervennlighet, brukeropplevelse, tilgjengelighet
 - kodegjennomgang (review er også OK)
 - avhengighet (dependency)
+- repositorium (repository) — bruk "repositoriet", ikke "repositoryen"
 
 ### Sammensatte ord med engelske termer
 
@@ -222,6 +223,18 @@ Digdir skrives med stor forbokstav og små bokstaver. Ikke "DIGDIR" eller "digdi
 - Hovedspråkene er bokmål, nynorsk og engelsk. Ikke bland bokmål og nynorsk i samme tekst.
 - Moderne, men konservativt bokmål for tekniske dokumenter: "fremtid" i stedet for "framtid", "husene" i stedet for "husa", "tjenesten din" i stedet for "din tjeneste"
 - Ikke veksle mellom former (stein/sten) — vær konsekvent gjennom hele teksten
+
+### Etterstilte pronomen
+
+Bruk etterstilt pronomen på norsk — pronomenet kommer etter substantivet, ikke foran.
+
+| Feil | Rett |
+|------|------|
+| "din tjeneste" | "tjenesten din" |
+| "din organisasjon" | "organisasjonen din" |
+| "din org-kode" | "org-koden din" |
+| "ditt system" | "systemet ditt" |
+| "dine data" | "dataene dine" |
 
 ### Tone
 
