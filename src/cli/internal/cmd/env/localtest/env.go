@@ -80,9 +80,8 @@ func (e *Env) Name() string {
 }
 
 // Preflight validates prerequisites before startup.
-func (e *Env) Preflight(ctx context.Context, opts envtypes.UpOptions) error {
-	manifest := components.NewManifest(e.releaseOptions(false, opts.PgAdmin))
-	return CheckForLegacyLocaltest(ctx, e.client, manifest.Resources)
+func (e *Env) Preflight(ctx context.Context, _ envtypes.UpOptions) error {
+	return CheckForLegacyLocaltest(ctx, e.client)
 }
 
 // Up starts the localtest environment.
@@ -165,8 +164,7 @@ func (e *Env) Reset(ctx context.Context) error {
 	toolchain := e.client.Toolchain()
 	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 
-	manifest := components.NewManifest(e.releaseOptions(false, true))
-	if err := CheckForLegacyLocaltest(ctx, e.client, manifest.Resources); err != nil {
+	if err := CheckForLegacyLocaltest(ctx, e.client); err != nil {
 		return err
 	}
 
