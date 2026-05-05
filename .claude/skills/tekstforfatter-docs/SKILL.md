@@ -27,7 +27,7 @@ Språkloven pålegger offentlige organer å bruke klart, korrekt språk tilpassa
 
 Start med konklusjonen eller det leseren trenger å vite. Bakgrunn og kontekst kommer etterpå.
 
-```
+```text
 ❌ Etter en grundig evaluering av flere alternativer, der vi vurderte
    både ytelse, kompleksitet og kostnad, har vi besluttet å
    gå videre med Azure.
@@ -43,7 +43,7 @@ Tenk: Hva trenger leseren å gjøre etter å ha lest dette? Kutt alt som ikke hj
 
 Bruk verb, ikke substantiv laget av verb. De gjør teksten tung. Eksempel: ing + av: vurdering av sikkerheten → vurdere sikkerheten.
 
-```
+```text
 ❌ Vi foretar en gjennomgang av implementasjonen.
 ✅ Vi gjennomgår implementasjonen.
 
@@ -169,7 +169,7 @@ Noen engelske termer har blitt muntlig fagspråk og brukes også skriftlig i fag
 
 Bruk bindestrek mellom et engelsk og et norsk ord, og mellom akronymer og norsk ord:
 
-```
+```text
 ✅ image-bygg, backlog-oversikt, Gitea-området
 ✅ GitHub-repoet, Microsoft-programmer
 ❌ GitHub repoet, Microsoft programmer
@@ -179,7 +179,7 @@ Bruk bindestrek mellom et engelsk og et norsk ord, og mellom akronymer og norsk 
 
 På norsk samskriver vi substantiver som utgjør ett ord. Engelsk har særskriving.
 
-```
+```text
 ✅ byggeplassikkerhet
 ❌ byggeplass sikkerhet, building site safety
 ```
@@ -211,7 +211,7 @@ En anglisisme er et norsk ord eller uttrykk som er direkte oversatt fra engelsk 
 
 Digdir skrives med stor forbokstav og små bokstaver. Ikke "DIGDIR" eller "digdir". Rett opp feilstavinger konsekvent.
 
-```
+```text
 ❌ DIGDIR har utviklet en ny plattform.
 ✅ Digdir har utviklet et nytt nettsted for hele Norge.
 ```
@@ -267,7 +267,7 @@ Følg Designsystemets tverretatlige retningslinjer for tekst i digitale tjeneste
 
 ### KI-språk → rett på sak
 
-```
+```text
 ❌ Det er viktig å påpeke at Kubernetes representerer et betydelig skritt
    fremover innen container-orkestrering, og spiller en avgjørende rolle
    i moderne skyinfrastruktur.
@@ -278,7 +278,7 @@ Følg Designsystemets tverretatlige retningslinjer for tekst i digitale tjeneste
 
 ### Substantivsyke → verb
 
-```
+```text
 ❌ Gjennomføring av en evaluering av ytelseskarakteristikkene til
    de ulike databasealternativene er nødvendig.
 
@@ -287,7 +287,7 @@ Følg Designsystemets tverretatlige retningslinjer for tekst i digitale tjeneste
 
 ### Feiloversatt fagterm → behold engelsk
 
-```
+```text
 ❌ Vi må rulle tilbake avbildet og opprette en ny hemmelighet
    i navnerommet.
 
@@ -297,7 +297,7 @@ Følg Designsystemets tverretatlige retningslinjer for tekst i digitale tjeneste
 
 ### Anglisisme → naturlig norsk
 
-```
+```text
 ❌ Vi må adressere dette problemet og ta eierskap til prosessen
    for å levere en løsning som er på linje med forventningene.
 
@@ -306,7 +306,7 @@ Følg Designsystemets tverretatlige retningslinjer for tekst i digitale tjeneste
 
 ### For stiv tone → kollegial
 
-```
+```text
 ❌ Det benyttes en hendelsesdrevet arkitektur der meldinger
    publiseres til en meldingskø for videre prosessering.
 
@@ -316,14 +316,14 @@ Følg Designsystemets tverretatlige retningslinjer for tekst i digitale tjeneste
 
 ### GUI-tekst → klarspråk
 
-```
+```text
 ❌ Operasjonen kunne ikke gjennomføres grunnet manglende
    obligatoriske feltverdier i skjemaet.
 
 ✅ Du må fylle ut alle felt merket med "Må fylles ut" før du kan sende inn.
 ```
 
-```
+```xml
 ❌ <Button>Klikk her for å navigere til oversikten</Button>
 
 ✅ <Button>Gå til oversikten</Button>
@@ -331,7 +331,7 @@ Følg Designsystemets tverretatlige retningslinjer for tekst i digitale tjeneste
 
 ### README → rett på sak
 
-```
+```text
 ❌ Dette prosjektet representerer et innovativt verktøy som
    muliggjør effektiv håndtering av søknader. Det er utviklet
    med tanke på å sette brukeren i sentrum.
@@ -341,7 +341,7 @@ Følg Designsystemets tverretatlige retningslinjer for tekst i digitale tjeneste
 
 ### PR-beskrivelse → konkret
 
-```
+```text
 ❌ Denne PR-en adresserer behovet for å implementere en mer
    robust og helhetlig løsning for autentisering som
    tilrettelegger for en sømløs brukeropplevelse.
@@ -353,7 +353,7 @@ Følg Designsystemets tverretatlige retningslinjer for tekst i digitale tjeneste
 
 ### Unødvendig oppsummering → kutt
 
-```
+```text
 ❌ Vi har nå gjennomgått de ulike aspektene ved migrasjonen.
    Som vi har sett, er det flere viktige hensyn å ta. Oppsummert
    kan man si at en vellykket migrering krever grundig planlegging.
