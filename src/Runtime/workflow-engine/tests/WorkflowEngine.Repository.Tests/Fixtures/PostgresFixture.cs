@@ -175,7 +175,7 @@ public sealed class PostgresFixture : IAsyncLifetime
     {
         await using var context = CreateDbContext();
         await context.Database.ExecuteSqlRawAsync(
-            """TRUNCATE "engine"."Workflows", "engine"."Steps", "engine"."WorkflowCollections" CASCADE"""
+            "TRUNCATE engine.workflows, engine.steps, engine.workflow_collections CASCADE"
         );
     }
 }

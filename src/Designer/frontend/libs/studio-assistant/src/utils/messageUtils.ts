@@ -4,10 +4,9 @@ import { MessageAuthor } from '../types/MessageAuthor';
 
 export function createAssistantMessage(content: string): AssistantMessage {
   return {
-    author: MessageAuthor.Assistant,
+    role: MessageAuthor.Assistant,
     content,
-    timestamp: new Date(),
-    filesChanged: [],
+    createdAt: new Date().toISOString(),
   };
 }
 
@@ -17,9 +16,9 @@ export function createUserMessage(
   attachments?: UserAttachment[],
 ): UserMessage {
   return {
-    author: MessageAuthor.User,
+    role: MessageAuthor.User,
     content,
-    timestamp: new Date(),
+    createdAt: new Date().toISOString(),
     allowAppChanges,
     attachments,
   };

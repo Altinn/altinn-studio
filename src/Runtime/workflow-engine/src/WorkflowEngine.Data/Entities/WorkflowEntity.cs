@@ -6,7 +6,7 @@ using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Data.Entities;
 
-[Table("Workflows", Schema = SchemaNames.Engine)]
+[Table("workflows", Schema = SchemaNames.Engine)]
 internal sealed class WorkflowEntity
 {
     [Key]

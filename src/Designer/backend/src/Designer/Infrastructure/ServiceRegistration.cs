@@ -85,6 +85,7 @@ public static class ServiceRegistration
         services.AddTransient<IAppScopesService, AppScopesService>();
         services.AddTransient<IAppSettingsService, AppSettingsService>();
         services.AddTransient<IContactPointsService, ContactPointsService>();
+        services.AddTransient<IChatService, ChatService>();
         services.AddTransient<IAppInactivityUndeployService, AppInactivityUndeployService>();
         services.AddTransient<IKubernetesDeploymentsService, KubernetesDeploymentsService>();
         services.AddTransient<IAppResourcesService, AppResourcesService>();
