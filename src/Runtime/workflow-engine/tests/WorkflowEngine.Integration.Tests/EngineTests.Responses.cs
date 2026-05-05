@@ -197,6 +197,46 @@ public partial class EngineTests
     }
 
     [Fact]
+    public async Task Response_GetWorkflow_WithDependents_ShowsDependentStatus()
+    {
+        // Arrange — wf-b depends on wf-a, so wf-a should expose wf-b as a dependent.
+        var workflowA = _testHelpers.CreateWorkflow("wf-a", [_testHelpers.CreateWebhookStep("/ping-a")]);
+        var workflowB = _testHelpers.CreateWorkflow(
+            "wf-b",
+            [_testHelpers.CreateWebhookStep("/ping-b")],
+            dependsOn: ["wf-a"]
+        );
+        var request = _testHelpers.CreateEnqueueRequest([workflowA, workflowB]);
+
+        var accepted = await _client.Enqueue(request);
+        var workflowAId = accepted.Workflows.First(w => w.Ref == "wf-a").DatabaseId;
+        var workflowBId = accepted.Workflows.First(w => w.Ref == "wf-b").DatabaseId;
+
+        await _client.WaitForWorkflowStatus(
+            accepted.Workflows.Select(w => w.DatabaseId),
+            PersistentItemStatus.Completed
+        );
+
+        // Act
+        var workflowAResponse = await _client.GetWorkflow(workflowAId);
+        var workflowBResponse = await _client.GetWorkflow(workflowBId);
+
+        // Assert
+        Assert.NotNull(workflowAResponse);
+        Assert.NotNull(workflowBResponse);
+
+        Assert.NotNull(workflowAResponse.Dependents);
+        var dependentEntry = Assert.Single(workflowAResponse.Dependents);
+        Assert.Equal(workflowBId, dependentEntry.Key);
+        Assert.Equal(PersistentItemStatus.Completed, dependentEntry.Value);
+
+        // Inverse: wf-b has dependencies but no dependents
+        Assert.NotNull(workflowBResponse.Dependencies);
+        Assert.Single(workflowBResponse.Dependencies);
+        Assert.True(workflowBResponse.Dependents is null || workflowBResponse.Dependents.Count == 0);
+    }
+
+    [Fact]
     public async Task Response_GetWorkflowDependencyGraph_IncludesDependentsAcrossCollectionKeys()
     {
         var rootWorkflow = _testHelpers.CreateWorkflow("wf-root", [_testHelpers.CreateWebhookStep("/ping-root")]);

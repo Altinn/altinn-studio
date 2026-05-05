@@ -94,6 +94,14 @@ public sealed record WorkflowStatusResponse
     public IReadOnlyDictionary<Guid, PersistentItemStatus>? Dependencies { get; init; }
 
     /// <summary>
+    /// Optional dependents (inverse of <see cref="Dependencies"/>) — workflows that declare this one as a dependency,
+    /// presented as a dictionary of workflow ID and corresponding processing status.
+    /// </summary>
+    [JsonPropertyName("dependents")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyDictionary<Guid, PersistentItemStatus>? Dependents { get; init; }
+
+    /// <summary>
     /// Optional links for this workflow, presented as a dictionary of workflow ID and corresponding processing status.
     /// </summary>
     [JsonPropertyName("links")]
@@ -133,6 +141,7 @@ public sealed record WorkflowStatusResponse
             OverallStatus = workflow.Status,
             InitialState = workflow.InitialState,
             Dependencies = workflow.Dependencies?.ToDictionary(x => x.DatabaseId, x => x.Status),
+            Dependents = workflow.Dependents?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Links = workflow.Links?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Steps = workflow.Steps.Select(StepStatusResponse.FromStep).ToList(),
         };

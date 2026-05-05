@@ -166,7 +166,9 @@ internal static class EngineRepositoryQueryExtensions
                 entityQuery = entityQuery.Include(wf => wf.Steps);
 
             if (dependencies)
-                entityQuery = entityQuery.Include(wf => wf.Dependencies);
+            {
+                entityQuery = entityQuery.Include(wf => wf.Dependencies).Include(wf => wf.Dependents);
+            }
 
             if (links)
                 entityQuery = entityQuery.Include(wf => wf.Links);
