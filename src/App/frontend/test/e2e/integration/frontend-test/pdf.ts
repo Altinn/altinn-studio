@@ -487,9 +487,9 @@ describe('PDF', () => {
 
     // This should provoke an unknown error. Process data is now embedded in the instance response,
     // so we intercept the instance endpoint instead of the removed /process endpoint.
-    cy.intercept('GET', /\/instances\/\d+\/[a-f0-9-]+$/, (req) => req.reply({ statusCode: 404, body: 'Not Found' })).as(
-      'failing',
-    );
+    cy.intercept('GET', /\/instances\/\d+\/[a-f0-9-]+\/enriched$/, (req) =>
+      req.reply({ statusCode: 404, body: 'Not Found' }),
+    ).as('failing');
 
     // Visit the PDF page and reload
     cy.location('href').then((href) => {
