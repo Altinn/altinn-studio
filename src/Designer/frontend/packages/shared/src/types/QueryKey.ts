@@ -109,6 +109,10 @@ export enum QueryKey {
   // User settings
   UserApiKeys = 'UserApiKeys',
 
+  // Assistant chat
+  ChatThreads = 'ChatThreads',
+  ChatMessages = 'ChatMessages',
+
   // Org settings
   ContactPoints = 'ContactPoints',
   BotAccounts = 'BotAccounts',

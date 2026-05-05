@@ -70,7 +70,7 @@ public sealed class EngineLeaseTokenTests : IAsyncLifetime
                         using var ctx = CreateDbContext();
 #pragma warning disable CA1849 // WireMock callback is sync; async alternative requires a different overload
                         ctx.Database.ExecuteSqlInterpolated(
-                            $"""UPDATE "engine"."Workflows" SET "LeaseToken" = {swappedInToken} WHERE "Id" = {id}"""
+                            $"UPDATE engine.workflows SET lease_token = {swappedInToken} WHERE id = {id}"
                         );
 #pragma warning restore CA1849
                         webhookHit.TrySetResult();

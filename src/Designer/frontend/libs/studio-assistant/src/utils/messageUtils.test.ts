@@ -13,9 +13,9 @@ describe('messageUtils', () => {
       const content = 'Hello, how can I help you?';
       const message = createAssistantMessage(content);
 
-      expect(message.author).toBe(MessageAuthor.Assistant);
+      expect(message.role).toBe(MessageAuthor.Assistant);
       expect(message.content).toBe(content);
-      expect(message.timestamp).toBeInstanceOf(Date);
+      expect(message.createdAt).toEqual(expect.any(String));
     });
   });
 
@@ -33,10 +33,10 @@ describe('messageUtils', () => {
       ];
       const message = createUserMessage(content, allowAppChanges, attachments);
 
-      expect(message.author).toBe(MessageAuthor.User);
+      expect(message.role).toBe(MessageAuthor.User);
       expect(message.content).toBe(content);
       expect(message.allowAppChanges).toBe(allowAppChanges);
-      expect(message.timestamp).toBeInstanceOf(Date);
+      expect(message.createdAt).toEqual(expect.any(String));
       expect(message.attachments).toEqual(attachments);
     });
   });
