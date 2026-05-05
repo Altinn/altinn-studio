@@ -40,9 +40,9 @@ internal static class EngineEndpoints
             .WithDescription("Gets details of a single workflow by database ID");
 
         group
-            .MapGet("/{workflowId:guid}/hierarchy", EngineRequestHandlers.GetWorkflowHierarchy)
-            .WithName("GetWorkflowHierarchy")
-            .WithDescription("Gets the workflow hierarchy rooted at the requested workflow");
+            .MapGet("/{workflowId:guid}/dependency-graph", EngineRequestHandlers.GetWorkflowDependencyGraph)
+            .WithName("GetWorkflowDependencyGraph")
+            .WithDescription("Gets the workflow dependency graph rooted at the requested workflow");
 
         group
             .MapPost("/{workflowId:guid}/cancel", EngineRequestHandlers.CancelWorkflow)
@@ -200,26 +200,26 @@ internal static class EngineRequestHandlers
         return TypedResults.Ok(WorkflowStatusResponse.FromWorkflow(workflow));
     }
 
-    public static async Task<Results<Ok<WorkflowHierarchyResponse>, NotFound>> GetWorkflowHierarchy(
+    public static async Task<Results<Ok<WorkflowDependencyGraphResponse>, NotFound>> GetWorkflowDependencyGraph(
         [FromRoute] string @namespace,
         [FromRoute] Guid workflowId,
         [FromServices] IEngineRepository repository,
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "hierarchy"));
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "dependency-graph"));
 
         var ns = NormalizeNamespace(@namespace);
-        var hierarchy = await repository.GetWorkflowHierarchy(workflowId, ns, cancellationToken);
+        var dependencyGraph = await repository.GetWorkflowDependencyGraph(workflowId, ns, cancellationToken);
 
-        if (hierarchy is null)
+        if (dependencyGraph is null)
             return TypedResults.NotFound();
 
         return TypedResults.Ok(
-            new WorkflowHierarchyResponse
+            new WorkflowDependencyGraphResponse
             {
                 WorkflowId = workflowId,
-                Workflows = hierarchy.Select(WorkflowStatusResponse.FromWorkflow).ToList(),
+                Workflows = dependencyGraph.Select(WorkflowStatusResponse.FromWorkflow).ToList(),
             }
         );
     }

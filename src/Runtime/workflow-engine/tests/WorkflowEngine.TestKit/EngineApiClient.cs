@@ -175,17 +175,17 @@ public sealed class EngineApiClient : IDisposable
     }
 
     /// <summary>
-    /// Gets a workflow hierarchy and returns the raw <see cref="HttpResponseMessage"/>.
+    /// Gets a workflow dependency graph and returns the raw <see cref="HttpResponseMessage"/>.
     /// </summary>
-    public Task<HttpResponseMessage> GetWorkflowHierarchyRaw(Guid workflowId, string? ns = null) =>
-        _client.GetAsync($"{GetBasePath(ns)}/{workflowId}/hierarchy", CancellationToken.None);
+    public Task<HttpResponseMessage> GetWorkflowDependencyGraphRaw(Guid workflowId, string? ns = null) =>
+        _client.GetAsync($"{GetBasePath(ns)}/{workflowId}/dependency-graph", CancellationToken.None);
 
     /// <summary>
-    /// Gets a workflow hierarchy and returns either a parsed result or <c>null</c> on 404.
+    /// Gets a workflow dependency graph and returns either a parsed result or <c>null</c> on 404.
     /// </summary>
-    public async Task<WorkflowHierarchyResponse?> GetWorkflowHierarchy(Guid workflowId, string? ns = null)
+    public async Task<WorkflowDependencyGraphResponse?> GetWorkflowDependencyGraph(Guid workflowId, string? ns = null)
     {
-        using var response = await GetWorkflowHierarchyRaw(workflowId, ns);
+        using var response = await GetWorkflowDependencyGraphRaw(workflowId, ns);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
             return null;
@@ -194,13 +194,13 @@ public sealed class EngineApiClient : IDisposable
         {
             var body = await response.Content.ReadAsStringAsync();
             throw new HttpRequestException(
-                $"GetWorkflowHierarchy returned {(int)response.StatusCode} {response.StatusCode}: {body}",
+                $"GetWorkflowDependencyGraph returned {(int)response.StatusCode} {response.StatusCode}: {body}",
                 inner: null,
                 statusCode: response.StatusCode
             );
         }
 
-        return await AssertSuccessAndDeserialize<WorkflowHierarchyResponse>(response);
+        return await AssertSuccessAndDeserialize<WorkflowDependencyGraphResponse>(response);
     }
 
     /// <summary>

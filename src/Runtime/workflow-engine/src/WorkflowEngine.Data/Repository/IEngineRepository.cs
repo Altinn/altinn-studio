@@ -111,10 +111,10 @@ internal interface IEngineRepository
     Task<Workflow?> GetWorkflow(Guid workflowId, string ns, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets the workflow hierarchy reachable from the requested workflow through dependency relationships,
+    /// Gets the workflow dependency graph reachable from the requested workflow through dependency relationships,
     /// or null if the workflow does not exist in the given namespace.
     /// </summary>
-    Task<IReadOnlyList<Workflow>?> GetWorkflowHierarchy(
+    Task<IReadOnlyList<Workflow>?> GetWorkflowDependencyGraph(
         Guid workflowId,
         string ns,
         CancellationToken cancellationToken = default

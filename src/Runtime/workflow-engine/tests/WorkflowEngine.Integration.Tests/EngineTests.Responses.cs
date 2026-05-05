@@ -197,7 +197,7 @@ public partial class EngineTests
     }
 
     [Fact]
-    public async Task Response_GetWorkflowHierarchy_IncludesDependentsAcrossCollectionKeys()
+    public async Task Response_GetWorkflowDependencyGraph_IncludesDependentsAcrossCollectionKeys()
     {
         var rootWorkflow = _testHelpers.CreateWorkflow("wf-root", [_testHelpers.CreateWebhookStep("/ping-root")]);
         var rootAccepted = await _client.Enqueue(
@@ -215,12 +215,12 @@ public partial class EngineTests
         var childWorkflowId = childAccepted.Workflows.Single().DatabaseId;
         await _client.WaitForWorkflowStatus(childWorkflowId, PersistentItemStatus.Completed);
 
-        var hierarchy = await _client.GetWorkflowHierarchy(rootWorkflowId);
+        var dependencyGraph = await _client.GetWorkflowDependencyGraph(rootWorkflowId);
 
-        Assert.NotNull(hierarchy);
-        Assert.Equal(rootWorkflowId, hierarchy.WorkflowId);
+        Assert.NotNull(dependencyGraph);
+        Assert.Equal(rootWorkflowId, dependencyGraph.WorkflowId);
         Assert.Collection(
-            hierarchy.Workflows,
+            dependencyGraph.Workflows,
             workflow => Assert.Equal(rootWorkflowId, workflow.DatabaseId),
             workflow => Assert.Equal(childWorkflowId, workflow.DatabaseId)
         );

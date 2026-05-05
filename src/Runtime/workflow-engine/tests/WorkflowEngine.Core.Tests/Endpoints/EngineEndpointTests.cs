@@ -679,7 +679,7 @@ public class EngineEndpointTests
     }
 
     [Fact]
-    public async Task GetWorkflowHierarchy_Found_ReturnsOk()
+    public async Task GetWorkflowDependencyGraph_Found_ReturnsOk()
     {
         var step = WorkflowEngineTestFixture.CreateStep(new CommandDefinition { Type = "noop" });
         var workflow = new Workflow
@@ -693,31 +693,33 @@ public class EngineEndpointTests
         var workflowGuid = Guid.NewGuid();
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
-            .Setup(r => r.GetWorkflowHierarchy(workflowGuid, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetWorkflowDependencyGraph(workflowGuid, It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([workflow]);
 
-        var result = await EngineRequestHandlers.GetWorkflowHierarchy(
+        var result = await EngineRequestHandlers.GetWorkflowDependencyGraph(
             DefaultNamespace,
             workflowGuid,
             repositoryMock.Object,
             CancellationToken.None
         );
 
-        var ok = Assert.IsType<Ok<WorkflowHierarchyResponse>>(result.Result);
+        var ok = Assert.IsType<Ok<WorkflowDependencyGraphResponse>>(result.Result);
         Assert.NotNull(ok.Value);
         Assert.Equal(workflowGuid, ok.Value.WorkflowId);
         Assert.Single(ok.Value.Workflows);
     }
 
     [Fact]
-    public async Task GetWorkflowHierarchy_NotFound_Returns404()
+    public async Task GetWorkflowDependencyGraph_NotFound_Returns404()
     {
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
-            .Setup(r => r.GetWorkflowHierarchy(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(r =>
+                r.GetWorkflowDependencyGraph(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync((IReadOnlyList<Workflow>?)null);
 
-        var result = await EngineRequestHandlers.GetWorkflowHierarchy(
+        var result = await EngineRequestHandlers.GetWorkflowDependencyGraph(
             DefaultNamespace,
             Guid.NewGuid(),
             repositoryMock.Object,
