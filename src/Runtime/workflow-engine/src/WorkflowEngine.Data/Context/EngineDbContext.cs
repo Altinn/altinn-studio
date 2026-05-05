@@ -18,6 +18,11 @@ internal sealed class EngineDbContext : DbContext
     public DbSet<StepEntity> Steps { get; set; }
     public DbSet<IdempotencyKeyEntity> IdempotencyKeys { get; set; }
 
+    /// <summary>
+    /// Gets or sets the workflow collection entities stored in the database.
+    /// </summary>
+    public DbSet<WorkflowCollectionEntity> WorkflowCollections { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -30,7 +35,7 @@ internal sealed class EngineDbContext : DbContext
             // Indexes
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.CreatedAt);
-            entity.HasIndex(e => e.CorrelationId);
+            entity.HasIndex(e => e.CollectionKey);
             entity.HasIndex(e => new { e.Namespace, e.Status });
 
             entity
@@ -108,6 +113,13 @@ internal sealed class EngineDbContext : DbContext
             entity.HasKey(e => new { e.IdempotencyKey, e.Namespace });
             entity.HasIndex(e => e.CreatedAt);
         });
+
+        // Configure WorkflowCollection entity
+        modelBuilder.Entity<WorkflowCollectionEntity>(entity =>
+        {
+            entity.HasKey(e => new { e.Key, e.Namespace });
+            entity.HasIndex(e => e.Namespace);
+        });
     }
 
     /// <summary>
@@ -122,18 +134,17 @@ internal sealed class EngineDbContext : DbContext
         // EF expression trees don't support throw expressions; value is never null (serialized by us)
 #pragma warning disable NX0003
         public static readonly ValueConverter<T?, string> Converter = new(
-            v => JsonSerializer.Serialize(v, JsonSerializerOptions.Default),
-            v => JsonSerializer.Deserialize<T>(v, JsonSerializerOptions.Default)!
+            v => JsonSerializer.Serialize(v, JsonOptions.Default),
+            v => JsonSerializer.Deserialize<T>(v, JsonOptions.Default)!
         );
 #pragma warning restore NX0003
 
         public static readonly ValueComparer<T?> Comparer = new(
             equalsExpression: (a, b) => Serialize(a) == Serialize(b),
             hashCodeExpression: v => Serialize(v).GetHashCode(),
-            snapshotExpression: v =>
-                v == null ? null : JsonSerializer.Deserialize<T>(Serialize(v), JsonSerializerOptions.Default)
+            snapshotExpression: v => v == null ? null : JsonSerializer.Deserialize<T>(Serialize(v), JsonOptions.Default)
         );
 
-        private static string Serialize(T? value) => JsonSerializer.Serialize(value, JsonSerializerOptions.Default);
+        private static string Serialize(T? value) => JsonSerializer.Serialize(value, JsonOptions.Default);
     }
 }

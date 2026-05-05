@@ -1,11 +1,3 @@
-import type { IOption } from '../types/global';
-import { generateRandomId } from 'app-shared/utils/generateRandomId';
-import type {
-  FormCheckboxesComponent,
-  FormComponent,
-  FormRadioButtonsComponent,
-  SelectionComponentType,
-} from '../types/FormComponent';
 import { ComponentType, type CustomComponentType } from 'app-shared/types/ComponentType';
 import { formItemConfigs } from '../data/formItemConfig';
 import type { FormItem } from '../types/FormItem';
@@ -30,18 +22,6 @@ export const propertyKeysToExcludeFromComponentConfig = [
   'options',
   'optionsId',
 ];
-
-export const changeTextResourceBinding = (
-  component: FormComponent,
-  bindingKey: string,
-  resourceKey: string,
-): FormComponent => ({
-  ...component,
-  textResourceBindings: {
-    ...component.textResourceBindings,
-    [bindingKey]: resourceKey,
-  },
-});
 
 /**
  * Function that returns true if the given property matches the required
@@ -99,37 +79,6 @@ export const getSupportedPropertyKeysForPropertyType = (
     return propertyTypes.find((propertyType) => propertyTypeMatcher(properties[key], propertyType));
   });
 };
-
-export const changeTitleBinding = (component: FormComponent, resourceKey: string): FormComponent =>
-  changeTextResourceBinding(component, 'title', resourceKey);
-
-export const changeDescriptionBinding = (
-  component: FormComponent,
-  resourceKey: string,
-): FormComponent => changeTextResourceBinding(component, 'description', resourceKey);
-
-export const addOptionToComponent = <T extends FormComponent<SelectionComponentType>>(
-  component: T,
-  option: IOption,
-): T => ({
-  ...component,
-  options: [...(component.options || []), option],
-});
-
-export const changeComponentOptionLabel = <
-  T extends FormCheckboxesComponent | FormRadioButtonsComponent,
->(
-  component: T,
-  value: string,
-  label: string,
-): T => ({
-  ...component,
-  options: component.options?.map((option) => {
-    return option.value === value ? { ...option, label } : option;
-  }),
-});
-
-export const generateRandomOption = (): IOption => ({ label: '', value: generateRandomId(4) });
 
 /**
  * Generates a component with the given type and id and all the required properties set to some default values.

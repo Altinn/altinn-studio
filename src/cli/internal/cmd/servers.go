@@ -8,9 +8,9 @@ import (
 	"strconv"
 
 	"altinn.studio/studioctl/internal/appmanager"
-	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	serverspkg "altinn.studio/studioctl/internal/cmd/servers"
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -149,7 +149,7 @@ func (c *ServersCommand) Usage() string {
 		"  logs    Stream server logs (app-manager)",
 		"",
 		"Options for 'servers logs':",
-		"  -f, --follow  Follow log output (default: true)",
+		"  -f, --follow  Follow log output (default: false)",
 		"  --tail        Number of log lines to show (default: 100)",
 		"  --json        Output as newline-delimited JSON",
 		"",
@@ -195,11 +195,27 @@ func (c *ServersCommand) runUp(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	wasRunning := c.client.Health(ctx) == nil
+	before, beforeErr := c.client.Status(ctx)
+	if beforeErr != nil && !errors.Is(beforeErr, appmanager.ErrNotRunning) {
+		return fmt.Errorf("get app-manager status before start: %w", beforeErr)
+	}
 	if err := c.startAppManager(ctx); err != nil {
 		return fmt.Errorf("start app-manager: %w", err)
 	}
-	return serversUpOutput{Running: true, Started: !wasRunning, JSONOutput: jsonOutput}.Print(c.out)
+	after, afterErr := c.client.Status(ctx)
+	if afterErr != nil {
+		return fmt.Errorf("get app-manager status after start: %w", afterErr)
+	}
+
+	return serversUpOutput{
+		Running:    true,
+		Started:    serverStarted(before, after),
+		JSONOutput: jsonOutput,
+	}.Print(c.out)
+}
+
+func serverStarted(before, after *appmanager.Status) bool {
+	return before == nil || before.ProcessID != after.ProcessID
 }
 
 func (c *ServersCommand) runStatus(ctx context.Context, args []string) error {
@@ -267,8 +283,8 @@ func (c *ServersCommand) runLogs(ctx context.Context, args []string) error {
 	var follow bool
 	var jsonOutput bool
 	var tail int
-	fs.BoolVar(&follow, "f", true, "Follow log output")
-	fs.BoolVar(&follow, "follow", true, "Follow log output")
+	fs.BoolVar(&follow, "f", defaultLogFollow, "Follow log output")
+	fs.BoolVar(&follow, "follow", defaultLogFollow, "Follow log output")
 	fs.BoolVar(&jsonOutput, "json", false, "Output as newline-delimited JSON")
 	fs.IntVar(&tail, "tail", defaultServersLogTailLines, "Number of log lines to show")
 	if err := fs.Parse(args); err != nil {
@@ -308,7 +324,8 @@ func (c *ServersCommand) startAppManager(ctx context.Context) error {
 	if ensureStarted == nil {
 		ensureStarted = appmanager.EnsureStarted
 	}
-	return ensureStarted(ctx, c.cfg, envlocaltest.DefaultLoadBalancerPortString())
+	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
+	return ensureStarted(ctx, c.cfg, topology.IngressPort())
 }
 
 func (c *ServersCommand) stopAppManager(ctx context.Context) (<-chan error, error) {

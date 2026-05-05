@@ -17,6 +17,7 @@ type (
 	PortMapping         = types.PortMapping
 	PublishedPort       = types.PublishedPort
 	ContainerListFilter = types.ContainerListFilter
+	NetworkListFilter   = types.NetworkListFilter
 	VolumeMount         = types.VolumeMount
 	ContainerConfig     = types.ContainerConfig
 	ImageInfo           = types.ImageInfo
@@ -37,6 +38,9 @@ var ErrNetworkInUse = types.ErrNetworkInUse
 
 // ErrImageNotFound is returned when an image does not exist.
 var ErrImageNotFound = types.ErrImageNotFound
+
+// ErrVolumeNotFound is returned when a volume does not exist.
+var ErrVolumeNotFound = types.ErrVolumeNotFound
 
 // Re-exported platform, access mode, and detection source constants.
 const (
@@ -128,8 +132,15 @@ type ContainerClient interface {
 	// Returns ErrNetworkNotFound if the network does not exist.
 	NetworkInspect(ctx context.Context, nameOrID string) (types.NetworkInfo, error)
 
+	// ListNetworks returns networks matching the provided filters.
+	ListNetworks(ctx context.Context, filter types.NetworkListFilter) ([]types.NetworkInfo, error)
+
 	// NetworkRemove removes a network.
 	NetworkRemove(ctx context.Context, nameOrID string) error
+
+	// VolumeRemove removes a named volume.
+	// If force is true, the volume is removed even if the runtime supports forced removal.
+	VolumeRemove(ctx context.Context, name string, force bool) error
 
 	// ContainerLogs returns a stream of container logs.
 	// If follow is true, the stream will continue until the context is cancelled.

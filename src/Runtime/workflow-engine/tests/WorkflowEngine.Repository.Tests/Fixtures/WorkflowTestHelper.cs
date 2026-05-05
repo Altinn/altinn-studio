@@ -90,16 +90,25 @@ internal static class WorkflowTestHelper
             Links = links?.Select(id => (WorkflowRef)id).ToList(),
         };
 
-        var metadata = new WorkflowRequestMetadata(
-            ns,
-            Guid.NewGuid().ToString("N"),
-            Guid.NewGuid(),
-            DateTimeOffset.UtcNow,
-            null
-        );
+        var metadata = new WorkflowRequestMetadata(ns, Guid.NewGuid().ToString("N"), null, DateTimeOffset.UtcNow, null);
         var labels = new Dictionary<string, string> { ["org"] = org, ["app"] = app };
 
         return (request, metadata, ns, labels);
+    }
+
+    /// <summary>
+    /// Stamps a fresh <see cref="Workflow.LeaseToken"/> on both the DB row and the in-memory
+    /// workflow, mirroring what <c>FetchAndLockWorkflows</c> does to the column. Use this for
+    /// tests that bypass the fetch path but still call write-back APIs that assert the token.
+    /// </summary>
+    public static async Task AssignLeaseToken(EngineDbContext context, Workflow workflow)
+    {
+        var leaseToken = Guid.NewGuid();
+        await context.Database.ExecuteSqlAsync(
+            $"""UPDATE "engine"."Workflows" SET "LeaseToken" = {leaseToken} WHERE "Id" = {workflow.DatabaseId}""",
+            TestContext.Current.CancellationToken
+        );
+        workflow.LeaseToken = leaseToken;
     }
 
     public static async Task<Workflow> InsertAndSetStatus(
@@ -116,12 +125,30 @@ internal static class WorkflowTestHelper
 
         var workflow = await EnqueueWorkflow(repository, context, request, metadata, ns: tid, labels: labels);
 
-        // Update status directly via raw SQL
+        // Update status directly via raw SQL. Non-Enqueued rows in production have a LeaseToken
+        // (issued by the fetch CTE when they first transitioned out of Enqueued), so mirror that
+        // invariant here by stamping one whenever we synthesize a non-Enqueued row.
         var statusInt = (int)status;
-        await context.Database.ExecuteSqlAsync(
-            $"""UPDATE "engine"."Workflows" SET "Status" = {statusInt} WHERE "Id" = {workflow.DatabaseId}""",
-            TestContext.Current.CancellationToken
-        );
+        if (status == PersistentItemStatus.Enqueued)
+        {
+            await context.Database.ExecuteSqlAsync(
+                $"""UPDATE "engine"."Workflows" SET "Status" = {statusInt} WHERE "Id" = {workflow.DatabaseId}""",
+                TestContext.Current.CancellationToken
+            );
+        }
+        else
+        {
+            var leaseToken = Guid.NewGuid();
+            await context.Database.ExecuteSqlAsync(
+                $"""
+                UPDATE "engine"."Workflows"
+                SET "Status" = {statusInt}, "LeaseToken" = {leaseToken}
+                WHERE "Id" = {workflow.DatabaseId}
+                """,
+                TestContext.Current.CancellationToken
+            );
+            workflow.LeaseToken = leaseToken;
+        }
 
         return workflow;
     }

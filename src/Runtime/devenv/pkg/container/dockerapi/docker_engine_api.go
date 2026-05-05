@@ -362,13 +362,20 @@ func buildBindMounts(volumes []types.VolumeMount) []dockermount.Mount {
 	mounts := make([]dockermount.Mount, 0, len(volumes))
 	for _, v := range volumes {
 		mounts = append(mounts, dockermount.Mount{
-			Type:     dockermount.TypeBind,
+			Type:     dockerMountType(v.Type),
 			Source:   v.HostPath,
 			Target:   v.ContainerPath,
 			ReadOnly: v.ReadOnly,
 		})
 	}
 	return mounts
+}
+
+func dockerMountType(mountType types.VolumeMountType) dockermount.Type {
+	if mountType == types.VolumeMountTypeVolume {
+		return dockermount.TypeVolume
+	}
+	return dockermount.TypeBind
 }
 
 func detectPlatform(ctx context.Context, hostHint string, opts ...client.Opt) (types.ContainerPlatform, error) {
@@ -821,6 +828,34 @@ func (c *Client) NetworkInspect(ctx context.Context, nameOrID string) (types.Net
 	}, nil
 }
 
+// ListNetworks returns networks matching the provided filters.
+func (c *Client) ListNetworks(ctx context.Context, filter types.NetworkListFilter) ([]types.NetworkInfo, error) {
+	args := filters.NewArgs()
+	for key, value := range filter.Labels {
+		label := key
+		if value != "" {
+			label += "=" + value
+		}
+		args.Add("label", label)
+	}
+
+	networks, err := c.cli.NetworkList(ctx, network.ListOptions{Filters: args})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list networks: %w", err)
+	}
+
+	result := make([]types.NetworkInfo, 0, len(networks))
+	for _, net := range networks {
+		result = append(result, types.NetworkInfo{
+			ID:     net.ID,
+			Name:   net.Name,
+			Driver: net.Driver,
+			Labels: net.Labels,
+		})
+	}
+	return result, nil
+}
+
 // NetworkRemove removes a network.
 func (c *Client) NetworkRemove(ctx context.Context, nameOrID string) error {
 	if err := c.cli.NetworkRemove(ctx, nameOrID); err != nil {
@@ -831,6 +866,17 @@ func (c *Client) NetworkRemove(ctx context.Context, nameOrID string) error {
 			return types.ErrNetworkInUse
 		}
 		return fmt.Errorf("failed to remove network: %w", err)
+	}
+	return nil
+}
+
+// VolumeRemove removes a named volume.
+func (c *Client) VolumeRemove(ctx context.Context, name string, force bool) error {
+	if err := c.cli.VolumeRemove(ctx, name, force); err != nil {
+		if cerrdefs.IsNotFound(err) {
+			return types.ErrVolumeNotFound
+		}
+		return fmt.Errorf("remove volume %s: %w", name, err)
 	}
 	return nil
 }

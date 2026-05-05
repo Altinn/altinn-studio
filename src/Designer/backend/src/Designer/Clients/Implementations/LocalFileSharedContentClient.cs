@@ -14,6 +14,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.SharedContent;
 using Microsoft.Extensions.Logging;
 using Quartz.Util;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Altinn.Studio.Designer.Clients.Implementations;
 
@@ -23,6 +24,7 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
     private const string CodeListsSegment = "code_lists";
     private const string IndexFileName = "_index.json";
     private const string LatestCodeListFileName = "_latest.json";
+    private const string JsonExtension = ".json";
     private readonly string _basePath = Path.Join(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "altinn",
@@ -70,6 +72,33 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
 
         await UploadFiles(cancellationToken);
         return CurrentVersion;
+    }
+
+    public async Task<CodeList?> GetPublishedCodeListForOrg(
+        string orgName,
+        string codeListId,
+        string? version = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        version = string.IsNullOrWhiteSpace(version) ? LatestCodeListFileName : version.Trim();
+        string url = CombineWithDelimiter(
+            orgName,
+            CodeListsSegment,
+            codeListId,
+            version.EndsWith(JsonExtension, StringComparison.OrdinalIgnoreCase) ? version : JsonFileName(version)
+        );
+        try
+        {
+            string? jsonString = await ReadFileByRelativePathAsync(url, cancellationToken);
+            return !string.IsNullOrWhiteSpace(jsonString)
+                ? JsonSerializer.Deserialize<CodeList>(jsonString, s_jsonOptions)
+                : null;
+        }
+        catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
+        {
+            return null;
+        }
     }
 
     private async Task PrepareOrganisationIndexFile(string content, CancellationToken cancellationToken = default)
@@ -275,7 +304,7 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         return string.Join('/', nonNulls.Select(segment => segment?.Trim('/')));
     }
 
-    internal static string JsonFileName(string filename) => $"{filename}.json";
+    internal static string JsonFileName(string filename) => $"{filename}{JsonExtension}";
 
     internal void SetCurrentVersion(List<string> versionPrefixes)
     {

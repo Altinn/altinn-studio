@@ -12,6 +12,10 @@ using WorkflowEngine.Telemetry.Extensions;
 
 namespace WorkflowEngine.Core.Extensions;
 
+/// <summary>
+/// Top-level host composition for the workflow engine. Hosts call <c>AddWorkflowEngine</c> on their
+/// <see cref="WebApplicationBuilder"/> to register all core services in a single step.
+/// </summary>
 public static class WorkflowEngineBuilderExtensions
 {
     extension(WebApplicationBuilder builder)

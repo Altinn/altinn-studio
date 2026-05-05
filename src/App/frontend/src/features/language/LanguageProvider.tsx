@@ -1,6 +1,7 @@
 import { useSearchParams } from 'react-router';
 
 import { SearchParams } from 'src/core/routing/types';
+import { preventFocusAndScrollResetOptions } from 'src/features/navigation/navigationOptions';
 import { useProfile } from 'src/features/profile/ProfileProvider';
 import { useCookieState } from 'src/hooks/useCookieState';
 
@@ -27,7 +28,7 @@ export function useSetCurrentLanguage() {
 
     if (searchParams.has(SearchParams.Language)) {
       searchParams.delete(SearchParams.Language);
-      setSearchParams(searchParams);
+      setSearchParams(searchParams, preventFocusAndScrollResetOptions);
     }
   };
 }

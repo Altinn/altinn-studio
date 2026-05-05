@@ -27,6 +27,8 @@ iwr https://altinn.studio/designer/api/v1/studioctl/install.ps1 -useb | iex
 ```
 
 The install flow also installs `app-manager` and localtest resources by default.
+If no terminal prompt is available, the installer uses the recommended writable user location.
+It stops running apps and localtest before replacement, and restarts `app-manager` if it was running.
 
 Pin to a specific version:
 
@@ -58,7 +60,7 @@ studioctl app run
 - `studioctl env status`: show runtime/container status
 - `studioctl env logs`: stream logs from localtest containers
 - `studioctl run`: alias for `studioctl app run`
-- `studioctl doctor --checks`: diagnose prerequisites and environment issues
+- `studioctl doctor`: diagnose prerequisites and environment issues
 
 ## Install from source (for contributors)
 
@@ -68,6 +70,7 @@ make user-install
 ```
 
 That installs `studioctl`, `app-manager`, and localtest resources into your user setup.
+It uses the same upgrade-safe flow as the release install scripts.
 
 Development loop:
 

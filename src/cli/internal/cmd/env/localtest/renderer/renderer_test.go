@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -237,6 +238,64 @@ func TestTableRenderer_DestroyUsesRemovedState(t *testing.T) {
 	}
 }
 
+func TestDestroyRenderer_OmitsAlreadyDestroyedRows(t *testing.T) {
+	t.Parallel()
+
+	image := &resource.RemoteImage{Ref: "ghcr.io/altinn/test:latest"}
+	running := &resource.Container{Name: "localtest", Image: resource.Ref(image)}
+	destroyed := &resource.Container{Name: "localtest-pgadmin", Image: resource.Ref(image)}
+	resources := []resource.PlannedResource{
+		{Resource: running, ID: running.ID()},
+		{Resource: destroyed, ID: destroyed.ID()},
+	}
+	statuses := map[resource.ResourceID]resource.Status{
+		running.ID():   resource.StatusReady,
+		destroyed.ID(): resource.StatusDestroyed,
+	}
+
+	renderer := NewTableWithPlan(
+		ui.NewOutput(io.Discard, io.Discard, false),
+		resources,
+		OperationDestroy,
+		statuses,
+	)
+
+	if renderer.model.rows[running.Name] == nil {
+		t.Fatalf("expected row for %q", running.Name)
+	}
+	if renderer.model.rows[destroyed.Name] != nil {
+		t.Fatalf("unexpected row for already destroyed resource %q", destroyed.Name)
+	}
+}
+
+func TestApplyRenderer_InitializesReadyRowsFromStatus(t *testing.T) {
+	t.Parallel()
+
+	image := &resource.RemoteImage{Ref: "ghcr.io/altinn/test:latest"}
+	container := &resource.Container{Name: "localtest", Image: resource.Ref(image)}
+	resources := []resource.PlannedResource{
+		{Resource: container, ID: container.ID()},
+	}
+	statuses := map[resource.ResourceID]resource.Status{
+		container.ID(): resource.StatusReady,
+	}
+
+	renderer := NewTableWithPlan(
+		ui.NewOutput(io.Discard, io.Discard, false),
+		resources,
+		OperationApply,
+		statuses,
+	)
+
+	row := renderer.model.rows[container.Name]
+	if row == nil {
+		t.Fatalf("expected row for %q", container.Name)
+	}
+	if row.state != stateReady || row.current != rowProgressComplete || row.total != rowProgressComplete {
+		t.Fatalf("unexpected initial row state: state=%q current=%d total=%d", row.state, row.current, row.total)
+	}
+}
+
 func TestTableRenderer_DestroyGlobalFailureAppearsInFooter(t *testing.T) {
 	t.Setenv("NO_COLOR", "1")
 	restoreTermFuncs := stubTerminalFuncsForTest(
@@ -383,6 +442,32 @@ func TestLogRenderer_DeduplicatesProgressMilestones(t *testing.T) {
 	}
 }
 
+func TestLogRenderer_PrintsPlannedResourceWithoutDesiredResource(t *testing.T) {
+	id := resource.ContainerID("stale-container")
+	out := &bytes.Buffer{}
+	renderer := NewLogWithPlan(
+		ui.NewOutput(out, io.Discard, false),
+		[]resource.PlannedResource{{
+			Resource: nil,
+			ID:       id,
+		}},
+		OperationApply,
+		nil,
+		"",
+	)
+
+	renderer.OnEvent(resource.Event{Type: resource.EventDestroyStart, Resource: id})
+	renderer.OnEvent(resource.Event{Type: resource.EventDestroyDone, Resource: id})
+
+	rendered := out.String()
+	if !strings.Contains(rendered, "stale-container: stopping") {
+		t.Fatalf("log output %q missing stopping line", rendered)
+	}
+	if !strings.Contains(rendered, "stale-container: removed") {
+		t.Fatalf("log output %q missing removed line", rendered)
+	}
+}
+
 func TestStatsIncludeEtaAndRate(t *testing.T) {
 	t.Parallel()
 
@@ -448,7 +533,8 @@ func TestScreenRenderer_StopLeavesCursorAtLineStartForFollowupOutput(t *testing.
 	output.Success("Environment started")
 
 	got := out.String()
-	if !strings.Contains(got, "\rEnvironment started"+osutil.LineBreak) {
+	ansiSGR := regexp.MustCompile(`\x1b\[[0-9;]*m`)
+	if !strings.Contains(ansiSGR.ReplaceAllString(got, ""), "\rEnvironment started"+osutil.LineBreak) {
 		t.Fatalf("output %q missing flush-left follow-up success line", got)
 	}
 }
@@ -486,12 +572,7 @@ func TestDetectMode(t *testing.T) {
 func TestTerminalWidth_UsesOutputFD(t *testing.T) {
 	restoreTermFuncs := stubTerminalFuncsForTest(
 		func(int) bool { return true },
-		func(fd int) (int, int, error) {
-			if fd != 99 {
-				t.Fatalf("unexpected fd %d", fd)
-			}
-			return 123, 45, nil
-		},
+		func(int) (int, int, error) { return 123, 45, nil },
 	)
 	defer restoreTermFuncs()
 
@@ -514,13 +595,21 @@ func stubTerminalFuncsForTest(
 	isTerminal func(int) bool,
 	getSize func(int) (int, int, error),
 ) func() {
-	prevIsTerminal := termIsTerminalFn
-	prevGetSize := termGetSizeFn
-	termIsTerminalFn = isTerminal
-	termGetSizeFn = getSize
+	prevIsTerminal := outputIsTTYFn
+	prevGetSize := outputTerminalSizeFn
+	outputIsTTYFn = func(*ui.Output) bool {
+		return isTerminal(0)
+	}
+	outputTerminalSizeFn = func(*ui.Output) (int, int, bool) {
+		width, height, err := getSize(0)
+		if err != nil || width <= 0 || height <= 0 {
+			return 0, 0, false
+		}
+		return width, height, true
+	}
 	return func() {
-		termIsTerminalFn = prevIsTerminal
-		termGetSizeFn = prevGetSize
+		outputIsTTYFn = prevIsTerminal
+		outputTerminalSizeFn = prevGetSize
 	}
 }
 

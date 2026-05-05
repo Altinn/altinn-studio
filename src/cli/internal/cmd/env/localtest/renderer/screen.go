@@ -17,13 +17,12 @@ func DetectMode(out *ui.Output, verbose bool) Mode {
 		return ModeLog
 	}
 
-	fd, ok := out.FD()
-	if !ok || !termIsTerminalFn(fd) {
+	if !outputIsTTYFn(out) {
 		return ModeLog
 	}
 
-	width, _, err := termGetSizeFn(fd)
-	if err == nil && width >= minProgressWidth {
+	width, _, ok := outputTerminalSizeFn(out)
+	if ok && width >= minProgressWidth {
 		return ModeTable
 	}
 
@@ -34,11 +33,31 @@ func newScreenRenderer(
 	out *ui.Output,
 	resources []resource.Resource,
 	operation Operation,
+	statuses map[resource.ResourceID]resource.Status,
 	rendererLayout layout,
 ) *screenRenderer {
 	return &screenRenderer{
 		out:           out,
-		model:         newRenderModel(resources, operation),
+		model:         newRenderModel(resources, operation, statuses),
+		layout:        rendererLayout,
+		done:          nil,
+		mu:            sync.Mutex{},
+		renderedLines: 0,
+		running:       false,
+		dirty:         false,
+	}
+}
+
+func newScreenRendererPlanned(
+	out *ui.Output,
+	resources []resource.PlannedResource,
+	operation Operation,
+	statuses map[resource.ResourceID]resource.Status,
+	rendererLayout layout,
+) *screenRenderer {
+	return &screenRenderer{
+		out:           out,
+		model:         newRenderModelPlanned(resources, operation, statuses),
 		layout:        rendererLayout,
 		done:          nil,
 		mu:            sync.Mutex{},
@@ -169,13 +188,8 @@ func (r *screenRenderer) printLinesLocked(lines []string) {
 func terminalWidth(out *ui.Output) int {
 	const defaultTermWidth = 100
 
-	fd, ok := out.FD()
+	width, _, ok := outputTerminalSizeFn(out)
 	if !ok {
-		return defaultTermWidth
-	}
-
-	width, _, err := termGetSizeFn(fd)
-	if err != nil || width <= 0 {
 		return defaultTermWidth
 	}
 	return width

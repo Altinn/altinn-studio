@@ -27,7 +27,7 @@ import { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
-import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
+import { NavigationFocusStateProvider } from 'src/features/navigation/NavigationFocusStateContext';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { fetchFormBootstrapForInstance } from 'src/queries/queries';
@@ -327,11 +327,11 @@ function DefaultProviders({ children, queries, apis, queryClient, Router = Defau
         <UiConfigProvider>
           <Router>
             <AppComponentsBridge>
-              <NavigationEffectProvider>
+              <NavigationFocusStateProvider>
                 <GlobalFormDataReadersProvider>
                   <PartyProvider>{children}</PartyProvider>
                 </GlobalFormDataReadersProvider>
-              </NavigationEffectProvider>
+              </NavigationFocusStateProvider>
             </AppComponentsBridge>
           </Router>
         </UiConfigProvider>
@@ -362,9 +362,9 @@ function MinimalProviders({ children, queries, apis, queryClient, Router = Defau
         queryClient={queryClient}
       >
         <Router>
-          <NavigationEffectProvider>
+          <NavigationFocusStateProvider>
             <AppComponentsBridge>{children}</AppComponentsBridge>
-          </NavigationEffectProvider>
+          </NavigationFocusStateProvider>
         </Router>
       </AppQueriesProvider>
     </ApiProvider>

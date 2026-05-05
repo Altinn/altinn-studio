@@ -62,7 +62,8 @@
     "src/Designer/frontend/packages/ux-editor-v3",
     "src/Designer/frontend/packages/process-editor",
     "src/Designer/frontend/packages/policy-editor",
-    "src/Designer/frontend/libs/**"
+    "src/Designer/frontend/libs/**",
+    "libs/**"
   ],
   "resolutions": {
     "jsdom@npm:^26.1.0": "patch:jsdom@npm%3A26.1.0#~/.yarn/patches/jsdom-npm-26.1.0-3857255f02.patch"

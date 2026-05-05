@@ -42,7 +42,9 @@ type Client struct {
 	ContainerRemoveFunc  func(ctx context.Context, nameOrID string, force bool) error
 	NetworkCreateFunc    func(ctx context.Context, cfg types.NetworkConfig) (string, error)
 	NetworkInspectFunc   func(ctx context.Context, nameOrID string) (types.NetworkInfo, error)
+	ListNetworksFunc     func(ctx context.Context, filter types.NetworkListFilter) ([]types.NetworkInfo, error)
 	NetworkRemoveFunc    func(ctx context.Context, nameOrID string) error
+	VolumeRemoveFunc     func(ctx context.Context, name string, force bool) error
 	ContainerLogsFunc    func(ctx context.Context, nameOrID string, follow bool, tail string) (io.ReadCloser, error)
 	ContainerWaitFunc    func(ctx context.Context, nameOrID string) (int, error)
 
@@ -267,11 +269,29 @@ func (c *Client) NetworkInspect(ctx context.Context, nameOrID string) (types.Net
 	return types.NetworkInfo{}, types.ErrNetworkNotFound
 }
 
+// ListNetworks implements ContainerClient.
+func (c *Client) ListNetworks(ctx context.Context, filter types.NetworkListFilter) ([]types.NetworkInfo, error) {
+	c.recordCall("ListNetworks", filter)
+	if c.ListNetworksFunc != nil {
+		return c.ListNetworksFunc(ctx, filter)
+	}
+	return nil, nil
+}
+
 // NetworkRemove implements ContainerClient.
 func (c *Client) NetworkRemove(ctx context.Context, nameOrID string) error {
 	c.recordCall("NetworkRemove", nameOrID)
 	if c.NetworkRemoveFunc != nil {
 		return c.NetworkRemoveFunc(ctx, nameOrID)
+	}
+	return nil
+}
+
+// VolumeRemove implements ContainerClient.
+func (c *Client) VolumeRemove(ctx context.Context, name string, force bool) error {
+	c.recordCall("VolumeRemove", name, force)
+	if c.VolumeRemoveFunc != nil {
+		return c.VolumeRemoveFunc(ctx, name, force)
 	}
 	return nil
 }

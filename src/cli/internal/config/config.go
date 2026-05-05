@@ -13,6 +13,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
+	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
@@ -125,15 +126,7 @@ func NewDoctorFallback(flags Flags, version string) (*Config, error) {
 		return nil, fmt.Errorf("load embedded defaults: %w", err)
 	}
 
-	images := defaults.Images
-	if images.Utility.Busybox.Image == "" {
-		images.Utility.Busybox = ImageSpec{
-			Image: "busybox",
-			Tag:   "stable",
-		}
-	}
-
-	return newResolvedConfig(flags, version, home, socketDir, images, false)
+	return newResolvedConfig(flags, version, home, socketDir, defaults.Images, false)
 }
 
 func newResolvedConfig(
@@ -249,7 +242,7 @@ func (c *Config) AppLogDir(appID string) string {
 // On Windows, the .exe suffix is automatically appended.
 func (c *Config) AppManagerBinaryPath() string {
 	name := "app-manager"
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == osutil.OSWindows {
 		name += ".exe"
 	}
 	return filepath.Join(c.AppManagerInstallDir(), name)
@@ -258,6 +251,21 @@ func (c *Config) AppManagerBinaryPath() string {
 // AppManagerInstallDir returns the directory containing the installed app-manager payload.
 func (c *Config) AppManagerInstallDir() string {
 	return filepath.Join(c.BinDir, "app-manager")
+}
+
+// BoundTopologyConfigDir returns the directory containing generated bound topology files.
+func (c *Config) BoundTopologyConfigDir() string {
+	return filepath.Join(c.DataDir, envtopology.BoundTopologyConfigDirName)
+}
+
+// BoundTopologyConfigPath returns the path to the generated bound topology.
+func (c *Config) BoundTopologyConfigPath() string {
+	return filepath.Join(c.BoundTopologyConfigDir(), envtopology.BoundTopologyConfigFileName)
+}
+
+// BoundTopologyBaseConfigPath returns the path to the generated base topology.
+func (c *Config) BoundTopologyBaseConfigPath() string {
+	return filepath.Join(c.BoundTopologyConfigDir(), envtopology.BoundTopologyBaseConfigFileName)
 }
 
 // persistedConfigPath returns the path to the optional user override file.
@@ -326,16 +334,10 @@ type MonitoringImages struct {
 	Grafana       ImageSpec `yaml:"grafana"`
 }
 
-// UtilityImages holds image configuration for utility containers.
-type UtilityImages struct {
-	Busybox ImageSpec `yaml:"busybox"`
-}
-
 // ImagesConfig holds all image configuration grouped by purpose.
 type ImagesConfig struct {
 	Core       CoreImages       `yaml:"core"`
 	Monitoring MonitoringImages `yaml:"monitoring"`
-	Utility    UtilityImages    `yaml:"utility"`
 }
 
 // PersistedConfig is the root structure for the optional user override file.
@@ -434,9 +436,6 @@ func merge(defaults, user PersistedConfig) PersistedConfig {
 		defaults.Images.Monitoring.Grafana,
 		user.Images.Monitoring.Grafana,
 	)
-
-	// Utility images
-	result.Images.Utility.Busybox = mergeImageSpec(defaults.Images.Utility.Busybox, user.Images.Utility.Busybox)
 
 	return result
 }

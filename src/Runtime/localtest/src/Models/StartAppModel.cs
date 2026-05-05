@@ -7,24 +7,8 @@ using System.Threading.Tasks;
 
 namespace LocalTest.Models
 {
-    public enum AppMode
-    {
-        Http,
-        File
-    }
-
     public class StartAppModel
     {
-        /// <summary>
-        /// Defines if a app has defined invalid path
-        /// </summary>
-        public bool InvalidAppPath { get; set; }
-
-        /// <summary>
-        /// _localPlatformSettings.AppRepositoryBasePath
-        /// </summary>
-        public string AppPath { get; set; }
-
         /// <summary>
         /// Path to TestData form localPlatformSettings
         /// </summary>
@@ -34,11 +18,6 @@ namespace LocalTest.Models
         /// Signals that no TestUsers could be found in TestData
         /// </summary>
         public bool InvalidTestDataPath { get; set; }
-
-        /// <summary>
-        /// LocalAppUrl from localPlatformSettings
-        /// </summary>
-        public string LocalAppUrl { get; set; }
 
         /// <summary>
         /// HttpRequestException that might have resultet from _localApp.GetApplications()
@@ -77,6 +56,11 @@ namespace LocalTest.Models
         public string LocalFrontendUrl { get; set; }
 
         /// <summary>
+        /// Human-readable description of the configured frontend source.
+        /// </summary>
+        public string LocalFrontendDescription { get; set; }
+
+        /// <summary>
         /// List of TestUsers for dropdown
         /// </summary>
         public IEnumerable<SelectListItem> TestUsers { get; set; }
@@ -90,10 +74,5 @@ namespace LocalTest.Models
         /// List of possible authentication levels
         /// </summary>
         public IEnumerable<SelectListItem> AuthenticationLevels { get; set; }
-
-        /// <summary>
-        /// The current app mode
-        /// </summary>
-        public AppMode AppMode { get; set; }
     }
 }

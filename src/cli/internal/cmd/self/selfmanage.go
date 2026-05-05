@@ -46,6 +46,8 @@ var (
 	ErrUpdateUnsupported = errors.New("self update not supported on this platform")
 	// ErrUninstallUnsupported is returned when uninstall cannot be performed safely on current OS.
 	ErrUninstallUnsupported = errors.New("self uninstall not supported on this platform")
+	// ErrUnsafeHomeRemoval is returned when the configured home path is unsafe to remove recursively.
+	ErrUnsafeHomeRemoval = errors.New("unsafe studioctl home directory")
 	// ErrUnexpectedHTTPStatus is returned when a release endpoint returns non-200 status.
 	ErrUnexpectedHTTPStatus = errors.New("unexpected HTTP status")
 	// ErrStudioctlReleaseNotFound is returned when no studioctl release tags are found.
@@ -87,7 +89,7 @@ func (s *Service) UpdateBinary(ctx context.Context, opts UpdateOptions) (result 
 		return UpdateResult{}, fmt.Errorf("resolve current executable path: %w", err)
 	}
 
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == osutil.OSWindows {
 		return UpdateResult{}, fmt.Errorf(
 			"%w: windows executable is locked while running",
 			ErrUpdateUnsupported,
@@ -392,7 +394,7 @@ func downloadUpdateBinary(
 	}
 
 	binaryPath = filepath.Join(tmpDir, "studioctl-download")
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == osutil.OSWindows {
 		binaryPath += exeSuffix
 	}
 
@@ -400,7 +402,7 @@ func downloadUpdateBinary(
 		return "", cleanup, err
 	}
 
-	if runtime.GOOS != osWindows {
+	if runtime.GOOS != osutil.OSWindows {
 		if err := os.Chmod(binaryPath, executablePerm); err != nil {
 			return "", cleanup, fmt.Errorf("make downloaded binary executable: %w", err)
 		}
@@ -413,7 +415,7 @@ func installFromDownloadedBinary(downloadedBinaryPath, targetPath string) error 
 	if err := copyFile(downloadedBinaryPath, targetPath); err != nil {
 		return fmt.Errorf("replace installed binary: %w", err)
 	}
-	if runtime.GOOS != osWindows {
+	if runtime.GOOS != osutil.OSWindows {
 		if err := os.Chmod(targetPath, executablePerm); err != nil {
 			return fmt.Errorf("make installed binary executable: %w", err)
 		}
@@ -428,7 +430,7 @@ func (s *Service) UninstallBinary() (UninstallResult, error) {
 		return UninstallResult{}, fmt.Errorf("resolve current executable path: %w", err)
 	}
 
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == osutil.OSWindows {
 		return UninstallResult{}, fmt.Errorf(
 			"%w: remove manually after process exits",
 			ErrUninstallUnsupported,
@@ -440,6 +442,91 @@ func (s *Service) UninstallBinary() (UninstallResult, error) {
 	}
 
 	return UninstallResult{RemovedPath: execPath}, nil
+}
+
+// RemoveHome removes the studioctl home directory.
+func (s *Service) RemoveHome() (string, error) {
+	home, err := safeHomeRemovalPath(s.cfg.Home)
+	if err != nil {
+		return "", err
+	}
+	if err := os.RemoveAll(home); err != nil {
+		return "", fmt.Errorf("remove home directory %q: %w", home, err)
+	}
+	return home, nil
+}
+
+// ValidateHomeRemoval checks whether the studioctl home directory can be removed safely.
+func (s *Service) ValidateHomeRemoval() error {
+	_, err := safeHomeRemovalPath(s.cfg.Home)
+	return err
+}
+
+func safeHomeRemovalPath(home string) (string, error) {
+	if strings.TrimSpace(home) == "" {
+		return "", fmt.Errorf("%w: empty path", ErrUnsafeHomeRemoval)
+	}
+
+	absHome, err := filepath.Abs(home)
+	if err != nil {
+		return "", fmt.Errorf("resolve home directory: %w", err)
+	}
+	cleanHome := filepath.Clean(absHome)
+	if isPathRoot(cleanHome) {
+		return "", fmt.Errorf("%w: %s", ErrUnsafeHomeRemoval, cleanHome)
+	}
+
+	userHome, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("%w: resolve user home directory: %w", ErrUnsafeHomeRemoval, err)
+	}
+	if samePath(cleanHome, userHome) {
+		return "", fmt.Errorf("%w: %s", ErrUnsafeHomeRemoval, cleanHome)
+	}
+	userConfigDir, err := os.UserConfigDir()
+	if err != nil {
+		return "", fmt.Errorf("%w: resolve user config directory: %w", ErrUnsafeHomeRemoval, err)
+	}
+	if samePath(cleanHome, userConfigDir) {
+		return "", fmt.Errorf("%w: %s", ErrUnsafeHomeRemoval, cleanHome)
+	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("%w: resolve current directory: %w", ErrUnsafeHomeRemoval, err)
+	}
+	if pathContains(cleanHome, cwd) {
+		return "", fmt.Errorf("%w: %s contains current directory %s", ErrUnsafeHomeRemoval, cleanHome, cwd)
+	}
+
+	return cleanHome, nil
+}
+
+func isPathRoot(path string) bool {
+	volume := filepath.VolumeName(path)
+	root := volume + string(os.PathSeparator)
+	return path == root
+}
+
+func samePath(left, right string) bool {
+	left = filepath.Clean(left)
+	right = filepath.Clean(right)
+	if runtime.GOOS == osutil.OSWindows {
+		return strings.EqualFold(left, right)
+	}
+	return left == right
+}
+
+func pathContains(parent, child string) bool {
+	parent = filepath.Clean(parent)
+	child = filepath.Clean(child)
+	if samePath(parent, child) {
+		return true
+	}
+	rel, err := filepath.Rel(parent, child)
+	if err != nil {
+		return false
+	}
+	return rel != ".." && !strings.HasPrefix(rel, ".."+string(os.PathSeparator))
 }
 
 func currentExecutablePath() (string, error) {
@@ -484,7 +571,7 @@ func defaultAssetName(baseName, goos, goarch string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if goos == osWindows {
+	if goos == osutil.OSWindows {
 		asset += exeSuffix
 	}
 	return asset, nil
@@ -493,12 +580,12 @@ func defaultAssetName(baseName, goos, goarch string) (string, error) {
 func baseAssetName(baseName, goos, goarch string) (string, error) {
 	var osPart string
 	switch goos {
-	case osLinux:
-		osPart = osLinux
-	case osDarwin:
-		osPart = osDarwin
-	case osWindows:
-		osPart = osWindows
+	case osutil.OSLinux:
+		osPart = osutil.OSLinux
+	case osutil.OSDarwin:
+		osPart = osutil.OSDarwin
+	case osutil.OSWindows:
+		osPart = osutil.OSWindows
 	default:
 		return "", fmt.Errorf("%w: %s", ErrUnsupportedPlatform, goos)
 	}

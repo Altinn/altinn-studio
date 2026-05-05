@@ -103,28 +103,28 @@ internal sealed class DbMigrationService
 internal static partial class DatabaseMigrationServiceLogs
 {
     [LoggerMessage(LogLevel.Information, "Applying {Count} pending migration(s): {Migrations}")]
-    public static partial void ApplyingPendingMigrations(
+    internal static partial void ApplyingPendingMigrations(
         this ILogger<DbMigrationService> logger,
         int count,
         string migrations
     );
 
     [LoggerMessage(LogLevel.Information, "Migrations applied successfully")]
-    public static partial void MigrationsAppliedSuccessfully(this ILogger<DbMigrationService> logger);
+    internal static partial void MigrationsAppliedSuccessfully(this ILogger<DbMigrationService> logger);
 
     [LoggerMessage(LogLevel.Information, "No pending migrations")]
-    public static partial void NoPendingMigrations(this ILogger<DbMigrationService> logger);
+    internal static partial void NoPendingMigrations(this ILogger<DbMigrationService> logger);
 
     [LoggerMessage(LogLevel.Critical, "Error applying migrations: {ErrorMessage}")]
-    public static partial void MigrationError(
+    internal static partial void MigrationError(
         this ILogger<DbMigrationService> logger,
         string errorMessage,
         Exception ex
     );
 
     [LoggerMessage(LogLevel.Information, "Registering SQL function: {ResourceName}")]
-    public static partial void RegisteringFunction(this ILogger<DbMigrationService> logger, string resourceName);
+    internal static partial void RegisteringFunction(this ILogger<DbMigrationService> logger, string resourceName);
 
     [LoggerMessage(LogLevel.Information, "SQL function registered: {ResourceName}")]
-    public static partial void FunctionRegistered(this ILogger<DbMigrationService> logger, string resourceName);
+    internal static partial void FunctionRegistered(this ILogger<DbMigrationService> logger, string resourceName);
 }

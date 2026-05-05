@@ -77,38 +77,27 @@ public sealed class AppTunnelClient
         }
     }
 
-    public async Task<HttpResponseMessage> Send(
+    public async Task<HttpResponseMessage> SendToTarget(
         HttpRequestMessage request,
-        string? appId,
+        string target,
+        int targetPort,
         CancellationToken cancellationToken
     )
     {
         var session = GetSession();
-        return await session.Send(request, appId, cancellationToken);
+        return await session.Send(request, target, targetPort, cancellationToken);
     }
 
-    public async Task Proxy(
+    public async Task ProxyToTarget(
         HttpRequestMessage request,
-        string? appId,
+        string target,
+        int targetPort,
         HttpContext context,
         CancellationToken cancellationToken
     )
     {
         var session = GetSession();
-        await session.Proxy(request, appId, context, cancellationToken);
-    }
-
-    public async Task<IReadOnlyList<TunnelDiscoveredApp>> GetDiscoveredApps(CancellationToken cancellationToken)
-    {
-        if (!IsConnected)
-            return [];
-
-        using var request = new HttpRequestMessage(HttpMethod.Get, TunnelDefaults.DiscoveredAppsPath);
-        using var response = await Send(request, appId: null, cancellationToken);
-        response.EnsureSuccessStatusCode();
-
-        await using var content = await response.Content.ReadAsStreamAsync(cancellationToken);
-        return (await TunnelProtocol.Deserialize<TunnelDiscoveredAppsResponse>(content, cancellationToken)).Apps;
+        await session.Proxy(request, target, targetPort, context, cancellationToken);
     }
 
     private void Stop()
@@ -179,7 +168,8 @@ public sealed class AppTunnelClient
 
         public async Task<HttpResponseMessage> Send(
             HttpRequestMessage request,
-            string? appId,
+            string target,
+            int targetPort,
             CancellationToken cancellationToken
         )
         {
@@ -192,7 +182,7 @@ public sealed class AppTunnelClient
 
             try
             {
-                await SendRequest(request, appId, requestId, cancellationToken);
+                await SendRequest(request, target, targetPort, requestId, cancellationToken);
 
                 var start = await pending.Start.WaitAsync(cancellationToken);
                 var body = await ReadBufferedBody(pending, cancellationToken);
@@ -209,7 +199,8 @@ public sealed class AppTunnelClient
 
         public async Task Proxy(
             HttpRequestMessage request,
-            string? appId,
+            string target,
+            int targetPort,
             HttpContext context,
             CancellationToken cancellationToken
         )
@@ -223,7 +214,7 @@ public sealed class AppTunnelClient
 
             try
             {
-                await SendRequest(request, appId, requestId, cancellationToken);
+                await SendRequest(request, target, targetPort, requestId, cancellationToken);
 
                 var start = await pending.Start.WaitAsync(cancellationToken);
                 context.Response.StatusCode = start.StatusCode;
@@ -349,18 +340,20 @@ public sealed class AppTunnelClient
 
         private async Task SendRequest(
             HttpRequestMessage request,
-            string? appId,
+            string target,
+            int targetPort,
             long requestId,
             CancellationToken cancellationToken
         )
         {
             var requestStart = new RequestStartFrame(
                 requestId,
-                appId,
                 request.Method.Method,
                 GetPathAndQuery(request.RequestUri),
                 CollectHeaders(request),
-                request.Content is not null
+                request.Content is not null,
+                target,
+                targetPort
             );
 
             await SendFrame(
@@ -473,6 +466,9 @@ public sealed class AppTunnelClient
         private static Dictionary<string, string[]> CollectHeaders(HttpRequestMessage request)
         {
             var headers = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
+            if (!string.IsNullOrWhiteSpace(request.Headers.Host))
+                headers[HeaderNames.Host] = [request.Headers.Host];
+
             foreach (var header in request.Headers)
             {
                 if (!TunnelHttpHeaders.ShouldSkipRequestHeader(header.Key))

@@ -203,14 +203,14 @@ export const applyFilter = () => {
             if (labelF.size > 0) {
                 const cardLabels = card.dataset.labels || '';
                 const cardNs = card.dataset.namespace || '';
-                const cardCorr = card.dataset.correlationid || '';
+                const cardCorr = card.dataset.collectionkey || '';
                 for (const [key, values] of labelF) {
                     if (key === 'namespace') {
                         if (!values.has(cardNs)) {
                             labelHidden = true;
                             break;
                         }
-                    } else if (key === 'correlationId') {
+                    } else if (key === 'collectionKey') {
                         if (!values.has(cardCorr)) {
                             labelHidden = true;
                             break;

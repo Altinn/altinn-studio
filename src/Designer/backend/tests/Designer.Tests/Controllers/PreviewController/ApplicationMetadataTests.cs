@@ -2,12 +2,10 @@
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
-using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
@@ -34,6 +32,11 @@ public class ApplicationMetadataTests
     protected override void ConfigureTestServices(IServiceCollection services)
     {
         services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
+        services.Configure<SharedContentClientSettings>(c =>
+        {
+            c.StorageAccountUrl = "http://test.no";
+            c.StorageContainerName = "storageAccountName";
+        });
         services.AddSingleton<IGiteaClient, IGiteaClientMock>();
         services.AddSingleton(_appDevelopmentServiceMock.Object);
     }

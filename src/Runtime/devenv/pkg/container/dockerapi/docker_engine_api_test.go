@@ -34,6 +34,11 @@ func TestBuildBindMounts(t *testing.T) {
 			ContainerPath: "/etc/config.yaml",
 			ReadOnly:      true,
 		},
+		{
+			HostPath:      "localtest-workflow-engine-db-data",
+			ContainerPath: "/var/lib/postgresql",
+			Type:          types.VolumeMountTypeVolume,
+		},
 	})
 
 	want := []dockermount.Mount{
@@ -48,6 +53,12 @@ func TestBuildBindMounts(t *testing.T) {
 			Source:   "/tmp/config.yaml",
 			Target:   "/etc/config.yaml",
 			ReadOnly: true,
+		},
+		{
+			Type:     dockermount.TypeVolume,
+			Source:   "localtest-workflow-engine-db-data",
+			Target:   "/var/lib/postgresql",
+			ReadOnly: false,
 		},
 	}
 

@@ -62,14 +62,14 @@ func (l *FileLock) Close() error {
 		return nil
 	}
 
-	err := windows.UnlockFileEx(windows.Handle(l.file.Fd()), 0, 1, 0, &l.overlapped)
+	unlockErr := windows.UnlockFileEx(windows.Handle(l.file.Fd()), 0, 1, 0, &l.overlapped)
 	closeErr := l.file.Close()
 	l.file = nil
-	if err != nil {
-		return fmt.Errorf("unlock file: %w", err)
+	if unlockErr != nil {
+		unlockErr = fmt.Errorf("unlock file: %w", unlockErr)
 	}
 	if closeErr != nil {
-		return fmt.Errorf("close lock file: %w", closeErr)
+		closeErr = fmt.Errorf("close lock file: %w", closeErr)
 	}
-	return nil
+	return errors.Join(unlockErr, closeErr)
 }

@@ -2,7 +2,6 @@
 
 using System.Buffers;
 using System.Buffers.Binary;
-using System.IO;
 using System.Net.WebSockets;
 using System.Text.Json;
 
@@ -21,11 +20,12 @@ public enum TunnelFrameKind : byte
 
 public sealed record RequestStartFrame(
     long RequestId,
-    string? AppId,
     string Method,
     string PathAndQuery,
     Dictionary<string, string[]> Headers,
-    bool HasBody
+    bool HasBody,
+    string Target,
+    int TargetPort
 );
 
 public sealed record ResponseStartFrame(
@@ -40,20 +40,10 @@ public sealed record ErrorFrame(long RequestId, string Message);
 
 public readonly record struct BodyFrame(long RequestId, bool IsFinal, byte[] Payload);
 
-public sealed record TunnelDiscoveredApp(
-    string AppId,
-    string BaseUrl,
-    string Source,
-    int? ProcessId,
-    string Description
-);
-
-public sealed record TunnelDiscoveredAppsResponse(IReadOnlyList<TunnelDiscoveredApp> Apps);
-
 public static class TunnelDefaults
 {
     public const string EndpointPath = "/internal/tunnel/app";
-    public const string DiscoveredAppsPath = "/internal/tunnel/apps";
+    public const int FrontendDevServerPort = 8080;
 
     // 64 KiB keeps websocket messages reasonably sized while still amortizing framing overhead.
     public const int MaxFramePayloadBytes = 64 * 1024;
@@ -93,14 +83,6 @@ public static class TunnelProtocol
 
         return JsonSerializer.Deserialize<T>(message[1..], _jsonOptions)
             ?? throw new InvalidDataException("invalid tunnel json frame");
-    }
-
-    public static byte[] Serialize<T>(T payload) => JsonSerializer.SerializeToUtf8Bytes(payload, _jsonOptions);
-
-    public static async Task<T> Deserialize<T>(Stream json, CancellationToken cancellationToken)
-    {
-        return await JsonSerializer.DeserializeAsync<T>(json, _jsonOptions, cancellationToken)
-            ?? throw new InvalidDataException("invalid tunnel json payload");
     }
 
     public static byte[] WriteBodyFrame(

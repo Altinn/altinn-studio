@@ -15,6 +15,12 @@ type Env interface {
 	Up(ctx context.Context, opts UpOptions) error
 	Down(ctx context.Context) error
 	Logs(ctx context.Context, opts LogsOptions) error
+	Name() string
+}
+
+// Resetter optionally extends Env with destructive persisted-data reset support.
+type Resetter interface {
+	Reset(ctx context.Context) error
 }
 
 // UpOptions configures environment startup.

@@ -1,7 +1,0 @@
-﻿{
-  Success: true,
-  StatusCode: 200,
-  Url: http://pdf-service:5031/health/startup,
-  ResponseContent: OK,
-  Message: PDF service connectivity verified
-}

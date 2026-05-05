@@ -23,7 +23,7 @@ internal sealed record DashboardWorkflowDto(
     string OperationId,
     string Status,
     string? TraceId,
-    Guid? CorrelationId,
+    string? CollectionKey,
     string Namespace,
     Dictionary<string, string>? Labels,
     DateTimeOffset CreatedAt,
@@ -73,7 +73,7 @@ internal static class DashboardMapper
             workflow.Status.ToString(),
             Metrics.ParseTraceContext(workflow.EngineTraceContext)?.TraceId.ToString()
                 ?? workflow.EngineActivity?.TraceId.ToString(),
-            workflow.CorrelationId,
+            workflow.CollectionKey,
             workflow.Namespace,
             workflow.Labels,
             workflow.CreatedAt,

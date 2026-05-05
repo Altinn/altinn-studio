@@ -4,8 +4,42 @@ All notable changes to studioctl will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
+
+### Changed
+
+- Breaking: make `--follow` default to `false` for log commands.
+
+### Fixed
+
+- Keep running apps visible in localtest after restarting the localtest environment.
+- Improve localtest resource reconciliation so `env up` removes managed resources that are no longer requested, such as pgAdmin or monitoring, without restarting unchanged core containers.
+
+## [0.1.0-preview.7] - 2026-04-29
+
+### Added
+
+- Add `env reset` for localtest to delete persisted localtest and workflow-engine database data, with interactive confirmation.
+- Add `env hosts add`, `env hosts remove`, and `env hosts status` for localtest, including managed hosts-file blocks, backup creation, and `--json` output.
+
+### Changed
+
+- Make `--random-host-port` default to `true` for `run` and `app run`.
+- Stop running apps, localtest, and app-manager before `self update`, `self uninstall`, and installer replacement.
+- Make `self uninstall` remove studioctl home data and env runtime resources.
+
+### Fixed
+
+- Fix install and update flows when no interactive terminal prompt is available.
+- Fix workflow-engine database persistence cross-platform support by using a named/managed volume instead of host bind mount.
+- Fix app-manager shutdown waits incorrectly reporting that an exited process is still running on Linux systems.
+- Reading password input when using `studioctl auth` now works on macOS with bracketed paste enabled.
+
+### Removed
+
+- Breaking: remove `--checks` from `studioctl doctor`; `studioctl doctor` now always runs localtest environment diagnostics and reports localtest, PDF, and workflow-engine health in text and JSON output.
 
 ## [0.1.0-preview.6] - 2026-04-20
 

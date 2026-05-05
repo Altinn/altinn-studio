@@ -1,14 +1,8 @@
-using System.Buffers;
 using System.Diagnostics;
-using System.IO.Pipelines;
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Configurations;
-using DotNet.Testcontainers.Containers;
-using DotNet.Testcontainers.Images;
-using DotNet.Testcontainers.Networks;
+using System.Text.Json.Nodes;
 using Microsoft.Extensions.Logging;
 using TestApp.Shared;
 using Xunit.Abstractions;
@@ -17,36 +11,16 @@ namespace Altinn.App.Integration.Tests;
 
 public sealed partial class AppFixture : IAsyncDisposable
 {
-    private const ushort LocaltestPort = 5101;
-    private const ushort AppPort = 5005;
-    private const ushort ConfigPort = 5006;
-    private const ushort PdfServicePort = 5031;
-    private const string LocaltestHostname = "localtest";
-    private const string AppHostname = "app";
-    private const string PdfServiceHostname = "pdf-service";
-    private static readonly string _localtestUrl = $"http://{LocaltestHostname}:{LocaltestPort}";
-    private static readonly bool _reuseContainers = !string.IsNullOrWhiteSpace(
-        Environment.GetEnvironmentVariable("TEST_REUSE_CONTAINERS")
-    );
-    private static readonly bool _keepContainers = !string.IsNullOrWhiteSpace(
-        Environment.GetEnvironmentVariable("TEST_KEEP_CONTAINERS")
-    );
-    private static readonly bool _logFromTestContainers = !string.IsNullOrWhiteSpace(
-        Environment.GetEnvironmentVariable("TEST_LOG_FROM_TEST_CONTAINERS")
-    );
-    private static readonly bool _forceRebuild = !string.IsNullOrWhiteSpace(
-        Environment.GetEnvironmentVariable("TEST_FORCE_REBUILD")
-    );
+    private const ushort StudioctlLocaltestHostPort = 8000;
+    private const ushort PdfServiceHostPort = 5300;
     private static readonly string _projectDirectory = ModuleInitializer.GetProjectDirectory();
     private static readonly string _repoSourceDirectory = ModuleInitializer.GetRepoSourceDirectory();
+    private static readonly string _generatedAppsDirectory = Path.Join(_projectDirectory, "_testapps", "generated");
+    private static readonly string _nugetPackagesDirectory = Path.Join(_generatedAppsDirectory, ".nuget", "packages");
 
     private static long _fixtureInstance = -1;
-    private static readonly SemaphoreSlim _localtestBuildLock = new(1, 1);
-    private static readonly SemaphoreSlim _appBuildLock = new(1, 1);
     private static readonly SemaphoreSlim _packLibrariesLock = new(1, 1);
     private static readonly SemaphoreSlim _buildFrontendLock = new(1, 1);
-    private static IFutureDockerImage? _localtestContainerImage;
-    private static readonly Dictionary<string, IFutureDockerImage> _appContainerImages = new();
     private static bool _librariesPacked;
     private static bool _frontendBuilt;
     private static Exception? _frontendBuildException;
@@ -59,59 +33,79 @@ public sealed partial class AppFixture : IAsyncDisposable
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
     private static readonly JsonSerializerOptions _jsonSerializerOptionsIndented = new() { WriteIndented = true };
 
+    private readonly record struct AppIdentity(string Org, string App)
+    {
+        public static AppIdentity Create(string appId)
+        {
+            var parts = appId.Split('/', 2);
+            if (parts.Length != 2 || string.IsNullOrWhiteSpace(parts[0]) || string.IsNullOrWhiteSpace(parts[1]))
+                throw new InvalidOperationException($"Invalid application id '{appId}'");
+
+            return new AppIdentity(parts[0], parts[1]);
+        }
+    }
+
     private readonly ILogger _logger;
     private long _currentFixtureInstance;
     private readonly string _app;
     private readonly string _scenario;
+    private readonly string _appId;
+    private readonly string _originalAppId;
+    private readonly string _org;
+    private readonly string _effectiveApp;
+    private readonly string _generatedAppDirectory;
+    private readonly string _fixtureConfigurationPath;
+    private int _appLogLineOffset;
 
     public string App => _app;
-    private readonly INetwork _network;
-    private readonly IContainer _localtestContainer;
-    private readonly IContainer _appContainer;
-    private readonly IContainer _pdfContainer;
+    internal string EffectiveApp => _effectiveApp;
     private readonly bool _isClassFixture;
-    private readonly LogsConsumer _localtestLogsConsumer;
-    private readonly LogsConsumer _appLogsConsumer;
-    private readonly LogsConsumer _pdfLogsConsumer;
+    private readonly StudioctlEnvironmentLease _studioctlEnvironmentLease;
+    private StudioctlAppProcess _appProcess;
 
     internal ScopedVerifier ScopedVerifier { get; private set; }
 
     private HttpClient? _appClient;
     private HttpClient? _localtestClient;
+    private HttpClient? _directAppClient;
+
+    private string AppPath => $"/{_org}/{_effectiveApp}";
+
+    private string OriginalAppPath => $"/{_org}/{_app}";
 
     public bool TestErrored { get; set; }
 
-    public ushort? PdfHostPort => _pdfContainer?.GetMappedPublicPort(PdfServicePort);
-    public ushort? LocaltestHostPort => _localtestContainer?.GetMappedPublicPort(LocaltestPort);
-    public ushort? AppHostPort => _appContainer?.GetMappedPublicPort(AppPort);
+    public ushort? PdfHostPort => PdfServiceHostPort;
 
     private AppFixture(
         ILogger logger,
         long currentFixtureInstance,
         string app,
         string scenario,
-        INetwork network,
-        IContainer localtestContainer,
-        IContainer appContainer,
-        IContainer pdfContainer,
+        string appId,
+        string originalAppId,
+        string org,
+        string effectiveApp,
+        string generatedAppDirectory,
+        string fixtureConfigurationPath,
         bool isClassFixture,
-        LogsConsumer localtestLogsConsumer,
-        LogsConsumer appLogsConsumer,
-        LogsConsumer pdfLogsConsumer
+        StudioctlEnvironmentLease studioctlEnvironmentLease,
+        StudioctlAppProcess appProcess
     )
     {
         _logger = logger;
         _currentFixtureInstance = currentFixtureInstance;
         _app = app;
         _scenario = scenario;
-        _network = network;
-        _localtestContainer = localtestContainer;
-        _appContainer = appContainer;
-        _pdfContainer = pdfContainer;
+        _appId = appId;
+        _originalAppId = originalAppId;
+        _org = org;
+        _effectiveApp = effectiveApp;
+        _generatedAppDirectory = generatedAppDirectory;
+        _fixtureConfigurationPath = fixtureConfigurationPath;
         _isClassFixture = isClassFixture;
-        _localtestLogsConsumer = localtestLogsConsumer;
-        _appLogsConsumer = appLogsConsumer;
-        _pdfLogsConsumer = pdfLogsConsumer;
+        _studioctlEnvironmentLease = studioctlEnvironmentLease;
+        _appProcess = appProcess;
         ScopedVerifier = new ScopedVerifier(this);
     }
 
@@ -130,54 +124,53 @@ public sealed partial class AppFixture : IAsyncDisposable
         // When running as a class fixture we can just log to stdout immediately,
         // but when running as a test-local fixture we need to use the ITestOutputHelper
         // to let xUnit capture and scope the output to the test itself.
-        ILogger testContainersLogger = isClassFixture
-            ? new FixtureLogger(fixtureInstance, app, scenario, true)
-            : new TestOutputLogger(output, fixtureInstance, app, scenario, true);
         ILogger logger = isClassFixture
-            ? new FixtureLogger(fixtureInstance, app, scenario, false)
-            : new TestOutputLogger(output, fixtureInstance, app, scenario, false);
+            ? new FixtureLogger(fixtureInstance, app, scenario)
+            : new TestOutputLogger(output, fixtureInstance, app, scenario);
 
         logger.LogInformation("Creating fixture..");
 
+        StudioctlEnvironmentLease? studioctlEnvironmentLease = null;
+        StudioctlAppProcess? appProcess = null;
+        string? generatedAppDirectory = null;
         try
         {
-            // Build images in parallel for better performance
-            // Cloning localtest repo has to occur before building the localtest image since
-            // the image build relies on the repository being present.
-            // Packing has to occur before building the app image since
-            // the app image rely on local nupkg's and built frontend files to be present.
-            // The rest can happen in parallel
-            var frontendBuildTask = EnsureFrontendBuilt(logger, cancellationToken);
-            var librariesPackedTask = EnsureLibrariesPacked(logger, cancellationToken);
-            await Task.WhenAll(frontendBuildTask, librariesPackedTask);
-
-            var localtestImageTask = EnsureLocaltestImageBuilt(logger, testContainersLogger, cancellationToken);
-            await EnsureLibrariesPacked(logger, cancellationToken);
-            var appImageTask = EnsureAppImageBuilt(app, logger, testContainersLogger, cancellationToken);
-
-            await Task.WhenAll(localtestImageTask, appImageTask);
-            var localtestContainerImage = await localtestImageTask;
-            var appContainerImage = await appImageTask;
-
-            // Initialize containers (including network creation and PDF service)
-            var (
-                network,
-                localtestContainer,
-                appContainer,
-                pdfContainer,
-                localtestLogsConsumer,
-                appLogsConsumer,
-                pdfLogsConsumer
-            ) = await InitializeContainers(
-                fixtureInstance,
+            await Task.WhenAll(
+                EnsureLibrariesPacked(logger, cancellationToken),
+                EnsureFrontendBuilt(logger, cancellationToken)
+            );
+            var originalAppId = GetAppId(app);
+            var appIdentity = AppIdentity.Create(originalAppId);
+            var effectiveApp = $"{appIdentity.App}-f{fixtureInstance:0000}";
+            var appId = $"{appIdentity.Org}/{effectiveApp}";
+            generatedAppDirectory = GetGeneratedAppDirectory(app, fixtureInstance);
+            studioctlEnvironmentLease = await StudioctlEnvironmentLease.Acquire(logger, cancellationToken);
+            await StudioctlAppProcess.StopByPathBestEffort(generatedAppDirectory, logger);
+            generatedAppDirectory = await GenerateAppDirectory(
                 app,
                 scenario,
-                localtestContainerImage,
-                appContainerImage,
+                appId,
+                generatedAppDirectory,
                 logger,
-                testContainersLogger,
                 cancellationToken
             );
+            var fixtureConfigurationPath = Path.Join(generatedAppDirectory, ".fixture", "configuration.json");
+            await WriteFixtureConfiguration(
+                fixtureConfigurationPath,
+                app,
+                scenario,
+                fixtureInstance,
+                cancellationToken
+            );
+            appProcess = await StudioctlAppProcess.Start(
+                generatedAppDirectory,
+                fixtureConfigurationPath,
+                _nugetPackagesDirectory,
+                logger,
+                cancellationToken
+            );
+            // studioctl run performs readiness checks. This only catches an immediate post-start crash.
+            EnsureAppStillRunning(appProcess);
 
             logger.LogInformation("Fixture created in {ElapsedSeconds}s", timer.Elapsed.TotalSeconds.ToString("0.00"));
             return new AppFixture(
@@ -185,42 +178,54 @@ public sealed partial class AppFixture : IAsyncDisposable
                 fixtureInstance,
                 app,
                 scenario,
-                network,
-                localtestContainer,
-                appContainer,
-                pdfContainer,
+                appId,
+                originalAppId,
+                appIdentity.Org,
+                effectiveApp,
+                generatedAppDirectory,
+                fixtureConfigurationPath,
                 isClassFixture,
-                localtestLogsConsumer,
-                appLogsConsumer,
-                pdfLogsConsumer
+                studioctlEnvironmentLease,
+                appProcess
             );
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to create fixture");
+            if (appProcess is not null)
+                await appProcess.DisposeAsync();
+            if (studioctlEnvironmentLease is not null)
+                await studioctlEnvironmentLease.DisposeAsync();
+            DeleteDirectoryBestEffort(logger, generatedAppDirectory);
             throw;
         }
     }
+
+    private static void EnsureAppStillRunning(StudioctlAppProcess appProcess)
+    {
+        if (!appProcess.IsRunning())
+            throw new InvalidOperationException(
+                $"App process exited after studioctl reported it ready.\n{GetAppLogs(appProcess)}"
+            );
+    }
+
+    private static string GetAppLogs(StudioctlAppProcess appProcess) => string.Join('\n', appProcess.GetLogLines());
 
     public HttpClient GetAppClient()
     {
         if (_appClient == null)
         {
             var cookieContainer = new CookieContainer();
-            var handler = new HttpClientHandler() { CookieContainer = cookieContainer };
+            var handler = new HttpClientHandler { CookieContainer = cookieContainer };
 
             _appClient = new HttpClient(handler)
             {
-                BaseAddress = new Uri(
-                    $"http://local.altinn.cloud:{_localtestContainer.GetMappedPublicPort(LocaltestPort)}"
-                ),
+                BaseAddress = new Uri($"http://local.altinn.cloud:{StudioctlLocaltestHostPort}"),
             };
             _appClient.DefaultRequestHeaders.Add("User-Agent", "Altinn.App.Integration.Tests");
 
-            // Add frontendVersion cookie with the app's external URL
-            var appExternalUrl = $"/ttd/{_app}/altinn-app-frontend/";
-            var baseUri = _appClient.BaseAddress!;
-            cookieContainer.Add(baseUri, new Cookie("frontendVersion", appExternalUrl));
+            var appFrontendUrl = $"{AppPath}/altinn-app-frontend/";
+            cookieContainer.Add(_appClient.BaseAddress, new Cookie("frontendVersion", appFrontendUrl));
         }
 
         return _appClient;
@@ -232,7 +237,7 @@ public sealed partial class AppFixture : IAsyncDisposable
         {
             _localtestClient = new HttpClient
             {
-                BaseAddress = new Uri($"http://localhost:{_localtestContainer.GetMappedPublicPort(LocaltestPort)}"),
+                BaseAddress = new Uri($"http://localhost:{StudioctlLocaltestHostPort}"),
             };
             _localtestClient.DefaultRequestHeaders.Add("User-Agent", "Altinn.App.Integration.Tests");
         }
@@ -240,14 +245,25 @@ public sealed partial class AppFixture : IAsyncDisposable
         return _localtestClient;
     }
 
+    public HttpClient GetDirectAppClient()
+    {
+        if (_directAppClient == null)
+        {
+            _directAppClient = new HttpClient { BaseAddress = _appProcess.BaseUri };
+            _directAppClient.DefaultRequestHeaders.Add("User-Agent", "Altinn.App.Integration.Tests");
+        }
+
+        return _directAppClient;
+    }
+
     public string GetSnapshotAppLogs()
     {
-        // Gets logs from the app container
+        // Gets logs from the app process
         // - Log messages from `SnapshotLogger` in the app
         // - Error logs (`fail:` prefix in the default M.E.L log format)
 
         var expectedPrefix = $"[{_currentFixtureInstance:00}/{_app}/{_scenario}";
-        var allLines = _appLogsConsumer.GetLines();
+        var allLines = _appProcess.GetLogLines(_appLogLineOffset);
 
         var data = new List<string>(allLines.Count);
         static bool IsStartOfLogMessage(
@@ -312,16 +328,20 @@ public sealed partial class AppFixture : IAsyncDisposable
 
     public string GetAppLogs()
     {
-        var allLines = _appLogsConsumer.GetLines();
+        var allLines = _appProcess.GetLogLines(_appLogLineOffset);
         var result = string.Join('\n', allLines);
         return result;
     }
 
-    public string GetLocaltestLogs()
+    public Task<string> GetLocaltestLogs(CancellationToken cancellationToken = default) =>
+        _studioctlEnvironmentLease.GetLogs(cancellationToken);
+
+    private string ResolveAppEndpoint(string endpoint)
     {
-        var allLines = _localtestLogsConsumer.GetLines();
-        var result = string.Join('\n', allLines);
-        return result;
+        if (endpoint.StartsWith(OriginalAppPath, StringComparison.Ordinal))
+            return AppPath + endpoint[OriginalAppPath.Length..];
+
+        return endpoint;
     }
 
     public async Task ResetBetweenTestsAsync(
@@ -332,28 +352,20 @@ public sealed partial class AppFixture : IAsyncDisposable
         Assert.True(_isClassFixture);
 
         _currentFixtureInstance = NextFixtureInstance();
+        _appLogLineOffset = _appProcess.GetLogLineCount();
 
         // Update logger with new test output helper and fixture instance
         if (output is not null && _logger is TestOutputLogger logger)
             logger.UpdateOutput(output, _currentFixtureInstance);
 
-        _localtestLogsConsumer.SetCurrentFixtureInstance(_currentFixtureInstance);
-        _appLogsConsumer.SetCurrentFixtureInstance(_currentFixtureInstance);
-
-        // Update fixture configuration in the container with new fixture instance
-        await SendFixtureConfiguration(
+        await WriteFixtureConfiguration(
+            _fixtureConfigurationPath,
             _app,
             _scenario,
-            _appContainer,
             _currentFixtureInstance,
-            _logger,
             cancellationToken
         );
 
-        // Reset error state
-        TestErrored = false;
-
-        // Dispose and reset HTTP clients to clear cookies, headers, and cached state
         if (_localtestClient is not null)
         {
             _localtestClient.Dispose();
@@ -365,331 +377,146 @@ public sealed partial class AppFixture : IAsyncDisposable
             _appClient = null;
         }
 
-        // Recreate ScopedVerifier to reset index counter and test case state
+        await ReloadFixtureConfiguration(cancellationToken);
+
+        TestErrored = false;
+
         ScopedVerifier = new ScopedVerifier(this);
-
-        // Note: We intentionally keep containers running as they are expensive to restart
-        // and provide good isolation between tests through the HTTP layer
     }
 
-    private static readonly Dictionary<string, string> _localtestEnv = new()
+    private async Task ReloadFixtureConfiguration(CancellationToken cancellationToken)
     {
-        { "DOTNET_ENVIRONMENT", "Docker" },
-        { "LocalPlatformSettings__LocalAppUrl", $"http://{AppHostname}:{AppPort}" },
-    };
+        if (!_appProcess.IsRunning())
+            throw new InvalidOperationException($"App process exited before fixture reset.\n{GetAppLogs(_appProcess)}");
 
-    private static Dictionary<string, string?> CreateAppEnv()
-    {
-        return new()
-        {
-            { "DOTNET_ENVIRONMENT", "Development" },
-            { "AppSettings__OpenIdWellKnownEndpoint", $"{_localtestUrl}/authentication/api/v1/openid/" },
-            { "PlatformSettings__ApiStorageEndpoint", $"{_localtestUrl}/storage/api/v1/" },
-            { "PlatformSettings__ApiRegisterEndpoint", $"{_localtestUrl}/register/api/v1/" },
-            { "PlatformSettings__ApiProfileEndpoint", $"{_localtestUrl}/profile/api/v1/" },
-            { "PlatformSettings__ApiAuthenticationEndpoint", $"{_localtestUrl}/authentication/api/v1/" },
-            { "PlatformSettings__ApiAuthorizationEndpoint", $"{_localtestUrl}/authorization/api/v1/" },
-            { "PlatformSettings__ApiEventsEndpoint", $"{_localtestUrl}/events/api/v1/" },
-            { "PlatformSettings__ApiPdf2Endpoint", $"http://{PdfServiceHostname}:{PdfServicePort}/pdf" },
-            { "PlatformSettings__ApiNotificationEndpoint", $"{_localtestUrl}/notifications/api/v1/" },
-            { "PlatformSettings__ApiCorrespondenceEndpoint", $"{_localtestUrl}/correspondence/api/v1/" },
-        };
+        using var response = await GetDirectAppClient()
+            .PostAsync("/test/fixture-configuration/reload", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
     }
 
-    private static async Task<IFutureDockerImage> EnsureLocaltestImageBuilt(
-        ILogger logger,
-        ILogger testContainersLogger,
-        CancellationToken cancellationToken
-    )
-    {
-        if (_localtestContainerImage is not null)
-            return _localtestContainerImage;
-
-        await _localtestBuildLock.WaitAsync(cancellationToken);
-        try
-        {
-            if (_localtestContainerImage is not null)
-                return _localtestContainerImage;
-
-            logger.LogInformation("Building localtest container image");
-            var localtestBuilder = new ImageFromDockerfileBuilder()
-                .WithName($"applib-localtest:latest")
-                .WithContextDirectory(_repoSourceDirectory)
-                .WithDockerfileDirectory(_repoSourceDirectory)
-                .WithDockerfile(Path.Join("Runtime", "localtest", "Dockerfile"))
-                .WithCleanUp(false)
-                .WithDeleteIfExists(_forceRebuild);
-
-            if (_logFromTestContainers)
-                localtestBuilder = localtestBuilder.WithLogger(testContainersLogger);
-
-            var localtestContainerImage = localtestBuilder.Build();
-
-            await localtestContainerImage.CreateAsync(cancellationToken);
-            logger.LogInformation("Built localtest container image..");
-            _localtestContainerImage = localtestContainerImage;
-            return _localtestContainerImage;
-        }
-        finally
-        {
-            _localtestBuildLock.Release();
-        }
-    }
-
-    private static async Task<IFutureDockerImage> EnsureAppImageBuilt(
-        string name,
-        ILogger logger,
-        ILogger testContainersLogger,
-        CancellationToken cancellationToken
-    )
-    {
-        await _appBuildLock.WaitAsync(cancellationToken);
-        try
-        {
-            if (_appContainerImages.TryGetValue(name, out var existingImage))
-                return existingImage;
-
-            logger.LogInformation("Building app container image");
-
-            var appDirectory = GetAppDir(name);
-            await Task.WhenAll(SyncPackages(name), SyncShared(name), SyncFrontend(name, logger));
-
-            var appBuilder = new ImageFromDockerfileBuilder()
-                .WithName($"applib-{name}:latest")
-                .WithDockerfileDirectory(Directory.GetParent(appDirectory)!.FullName)
-                .WithCleanUp(false)
-                .WithDeleteIfExists(_forceRebuild);
-
-            if (_logFromTestContainers)
-                appBuilder = appBuilder.WithLogger(testContainersLogger);
-
-            var appContainerImage = appBuilder.Build();
-
-            await appContainerImage.CreateAsync(cancellationToken);
-            _appContainerImages[name] = appContainerImage;
-
-            logger.LogInformation("Built app container image");
-            return appContainerImage;
-        }
-        finally
-        {
-            _appBuildLock.Release();
-        }
-    }
-
-    private static async Task<(
-        INetwork network,
-        IContainer localtestContainer,
-        IContainer appContainer,
-        IContainer pdfContainer,
-        LogsConsumer localtestLogsConsumer,
-        LogsConsumer appLogsConsumer,
-        LogsConsumer pdfLogsConsumer
-    )> InitializeContainers(
-        long fixtureInstance,
+    private static async Task<string> GenerateAppDirectory(
         string name,
         string scenario,
-        IFutureDockerImage localtestContainerImage,
-        IFutureDockerImage appContainerImage,
+        string appId,
+        string generatedDirectory,
         ILogger logger,
-        ILogger testContainersLogger,
         CancellationToken cancellationToken
     )
     {
-        var timer = Stopwatch.StartNew();
+        var sourceDirectory = Path.GetFullPath(Path.Join(GetAppDir(name), ".."));
+        DeleteDirectoryBestEffort(logger, generatedDirectory);
+        Directory.CreateDirectory(generatedDirectory);
+
+        CopyDirectory(
+            sourceDirectory,
+            generatedDirectory,
+            static relativePath =>
+                ContainsPathSegment(relativePath, "_packages")
+                || ContainsPathSegment(relativePath, "_shared")
+                || ContainsPathSegment(relativePath, "bin")
+                || ContainsPathSegment(relativePath, "obj")
+        );
+
+        await SyncPackages(generatedDirectory, cancellationToken);
+        await SyncShared(generatedDirectory, cancellationToken);
+        await SyncFrontend(generatedDirectory, logger, cancellationToken);
+        CopyScenarioOverrides(name, scenario, generatedDirectory);
+
+        foreach (
+            var metadataPath in Directory.GetFiles(
+                generatedDirectory,
+                "applicationmetadata.json",
+                SearchOption.AllDirectories
+            )
+        )
+        {
+            PatchApplicationId(metadataPath, appId);
+        }
+
+        return generatedDirectory;
+    }
+
+    private static string GetGeneratedAppDirectory(string name, long fixtureInstance) =>
+        Path.Join(_generatedAppsDirectory, $"{name}-f{fixtureInstance:0000}");
+
+    private static async Task WriteFixtureConfiguration(
+        string path,
+        string name,
+        string scenario,
+        long fixtureInstance,
+        CancellationToken cancellationToken
+    )
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        var fixtureConfig = new FixtureConfiguration(name, scenario, fixtureInstance);
+
+        var configJson = JsonSerializer.Serialize(fixtureConfig, _jsonSerializerOptionsIndented);
+        await File.WriteAllTextAsync(path, configJson, cancellationToken);
+    }
+
+    private static void CopyScenarioOverrides(string name, string scenario, string generatedDirectory)
+    {
+        if (scenario == "default")
+            return;
+
         var scenarioDirectory = GetScenarioDir(name, scenario);
+        var targetDirectory = Path.Join(generatedDirectory, "App", "scenario-overrides");
+        CopyDirectory(scenarioDirectory, targetDirectory, static _ => false);
+    }
 
-        INetwork? network = null;
-        IContainer? localtestContainer = null;
-        IContainer? appContainer = null;
-        IContainer? pdfContainer = null;
+    private static void PatchApplicationId(string metadataPath, string appId)
+    {
+        var metadata =
+            JsonNode.Parse(File.ReadAllText(metadataPath))?.AsObject()
+            ?? throw new InvalidOperationException($"Invalid application metadata JSON in {metadataPath}");
+        metadata["id"] = appId;
+        File.WriteAllText(metadataPath, metadata.ToJsonString(_jsonSerializerOptionsIndented));
+    }
 
-        var localtestLogsConsumer = new LogsConsumer(logger, fixtureInstance, cancellationToken);
-        var appLogsConsumer = new LogsConsumer(logger, fixtureInstance, cancellationToken);
-        var pdfLogsConsumer = new LogsConsumer(logger, fixtureInstance, cancellationToken);
+    private static void CopyDirectory(string sourceDirectory, string targetDirectory, Func<string, bool> skip)
+    {
+        Directory.CreateDirectory(targetDirectory);
+        foreach (var directory in Directory.GetDirectories(sourceDirectory, "*", SearchOption.AllDirectories))
+        {
+            var relativePath = Path.GetRelativePath(sourceDirectory, directory);
+            if (skip(relativePath))
+                continue;
+
+            Directory.CreateDirectory(Path.Join(targetDirectory, relativePath));
+        }
+
+        foreach (var file in Directory.GetFiles(sourceDirectory, "*", SearchOption.AllDirectories))
+        {
+            var relativePath = Path.GetRelativePath(sourceDirectory, file);
+            if (skip(relativePath))
+                continue;
+
+            var targetPath = Path.Join(targetDirectory, relativePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
+            File.Copy(file, targetPath, overwrite: true);
+        }
+    }
+
+    private static bool ContainsPathSegment(string path, string segment)
+    {
+        foreach (var part in path.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
+            if (string.Equals(part, segment, StringComparison.OrdinalIgnoreCase))
+                return true;
+        return false;
+    }
+
+    private static void DeleteDirectoryBestEffort(ILogger logger, string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path))
+            return;
+
         try
         {
-            logger.LogInformation("Starting containers");
-            var networkBuilder = new NetworkBuilder()
-                .WithName($"applib-{name}-network-{fixtureInstance:00}")
-                .WithReuse(false)
-                .WithCleanUp(true);
-
-            if (_logFromTestContainers)
-                networkBuilder = networkBuilder.WithLogger(testContainersLogger);
-
-            network = networkBuilder.Build();
-
-            await network.CreateAsync(cancellationToken);
-
-            var localtestContainerBuilder = new ContainerBuilder()
-                .WithName($"applib-{name}-localtest-{fixtureInstance:00}")
-                .WithImage(localtestContainerImage)
-                .WithHostname(LocaltestHostname)
-                .WithNetwork(network)
-                .WithEnvironment(_localtestEnv)
-                .WithPortBinding(LocaltestPort, true)
-                .WithWaitStrategy(Wait.ForUnixContainer().UntilContainerIsHealthy(failingStreak: 20))
-                .WithOutputConsumer(localtestLogsConsumer)
-                .WithReuse(_reuseContainers)
-                .WithCleanUp(!_keepContainers);
-
-            if (_logFromTestContainers)
-                localtestContainerBuilder = localtestContainerBuilder.WithLogger(testContainersLogger);
-
-            localtestContainer = localtestContainerBuilder.Build();
-
-            var appEnv = CreateAppEnv();
-            var appContainerBuilder = new ContainerBuilder()
-                .WithName($"applib-{name}-app-{fixtureInstance:00}")
-                .WithImage(appContainerImage)
-                .WithHostname(AppHostname)
-                .WithNetwork(network)
-                .WithEnvironment(appEnv)
-                .WithPortBinding(AppPort, assignRandomHostPort: true)
-                .WithPortBinding(ConfigPort, assignRandomHostPort: true)
-                .WithWaitStrategy(Wait.ForUnixContainer().UntilContainerIsHealthy(failingStreak: 20))
-                .WithOutputConsumer(appLogsConsumer)
-                .WithReuse(_reuseContainers)
-                .WithCleanUp(!_keepContainers);
-
-            if (_logFromTestContainers)
-                appContainerBuilder = appContainerBuilder.WithLogger(testContainersLogger);
-
-            // Only bind mount scenario directory if it exists (not for "default" scenario)
-            if (scenario != "default" && Directory.Exists(scenarioDirectory))
-            {
-                logger.LogInformation("Mounting scenario directory: {ScenarioDirectory}", scenarioDirectory);
-                appContainerBuilder = appContainerBuilder.WithBindMount(scenarioDirectory, "/App/scenario-overrides");
-            }
-
-            var pdfContainerBuilder = new ContainerBuilder()
-                .WithName($"applib-{name}-pdf-{fixtureInstance:00}")
-                .WithImage("ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:55a277005d")
-                .WithHostname(PdfServiceHostname)
-                .WithNetwork(network)
-                .WithEnvironment("TZ", "Europe/Oslo")
-                .WithEnvironment("PDF3_ENVIRONMENT", "localtest")
-                .WithEnvironment("PDF3_QUEUE_SIZE", "3")
-                .WithPortBinding(PdfServicePort, assignRandomHostPort: true)
-                .WithWaitStrategy(
-                    Wait.ForUnixContainer()
-                        .UntilHttpRequestIsSucceeded(r => r.ForPort(PdfServicePort).ForPath("/health/startup"))
-                )
-                .WithOutputConsumer(pdfLogsConsumer)
-                .WithReuse(_reuseContainers)
-                .WithCleanUp(!_keepContainers);
-
-            if (_logFromTestContainers)
-                pdfContainerBuilder = pdfContainerBuilder.WithLogger(testContainersLogger);
-
-            pdfContainer = pdfContainerBuilder.Build();
-
-            // Configuration is now sent via HTTP once the container reaches the `Starting` state
-            appContainer = appContainerBuilder.Build();
-            var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            appContainer.Starting += (sender, args) =>
-            {
-                logger.LogInformation("App container starting with ID: {ContainerId}", appContainer.Id);
-                tcs.TrySetResult();
-            };
-
-            var localtestStartup = localtestContainer.StartAsync(cancellationToken);
-            var appStartup = appContainer.StartAsync(cancellationToken);
-            var pdfStartup = pdfContainer.StartAsync(cancellationToken);
-
-            // When the `Starting` event is raised we can proceed by writing fixture configuration
-            await tcs.Task.WaitAsync(cancellationToken);
-            await SendFixtureConfiguration(name, scenario, appContainer, fixtureInstance, logger, cancellationToken);
-
-            await Task.WhenAll(localtestStartup, appStartup, pdfStartup);
-            logger.LogInformation("Started fixture in {ElapsedSeconds}s", timer.Elapsed.TotalSeconds.ToString("0.0"));
-            return (
-                network,
-                localtestContainer,
-                appContainer,
-                pdfContainer,
-                localtestLogsConsumer,
-                appLogsConsumer,
-                pdfLogsConsumer
-            );
+            Directory.Delete(path, recursive: true);
         }
         catch (Exception ex)
         {
-            logger.LogInformation(ex, "Failed to create fixture");
-
-            try
-            {
-                logger.LogError("Crashed during fixture creation, dumping logs:");
-                LogContainerLogs(logger, localtestLogsConsumer, appLogsConsumer, pdfLogsConsumer);
-            }
-            catch (Exception lex)
-            {
-                logger.LogError(lex, "Failed to retrieve app container logs");
-            }
-
-            await TryDispose(logger, pdfContainer);
-            await TryDispose(logger, appContainer);
-            await TryDispose(logger, localtestContainer);
-            await TryDispose(logger, network);
-            throw;
-        }
-    }
-
-    private static async Task SendFixtureConfiguration(
-        string name,
-        string scenario,
-        IContainer appContainer,
-        long fixtureInstance,
-        ILogger logger,
-        CancellationToken cancellationToken
-    )
-    {
-        const int retries = 20;
-        var appPort = appContainer.GetMappedPublicPort(AppPort);
-        var configPort = appContainer.GetMappedPublicPort(ConfigPort);
-        var configUrl = $"http://localhost:{configPort}/configure";
-        logger.LogInformation("Sending fixture configuration to app at: {ConfigUrl}", configUrl);
-        for (int i = 0; i < retries; i++)
-        {
-            try
-            {
-                var fixtureConfig = new FixtureConfiguration(
-                    name,
-                    scenario,
-                    fixtureInstance,
-                    appPort,
-                    $"http://{LocaltestHostname}:{LocaltestPort}/{{org}}/{{app}}/"
-                );
-
-                var configJson = JsonSerializer.Serialize(fixtureConfig, _jsonSerializerOptionsIndented);
-
-                using var httpClient = new HttpClient();
-                httpClient.Timeout = TimeSpan.FromSeconds(10);
-
-                using var content = new StringContent(configJson, Encoding.UTF8, "application/json");
-                using var response = await httpClient.PostAsync(configUrl, content, cancellationToken);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-                    throw new HttpRequestException(
-                        $"Failed to send configuration to app: {response.StatusCode} - {errorContent}"
-                    );
-                }
-
-                logger.LogInformation("Sent fixture configuration to {ConfigUrl}, attempt {Attempt}", configUrl, i + 1);
-                break;
-            }
-            catch (Exception ex)
-            {
-                if (i == retries - 1)
-                {
-                    logger.LogError(ex, "Failed to send fixture configuration to app");
-                    throw;
-                }
-                await Task.Delay(Math.Min(100 * i, 500));
-            }
+            logger.LogWarning(ex, "Failed to delete generated app directory {Path}", path);
         }
     }
 
@@ -705,66 +532,35 @@ public sealed partial class AppFixture : IAsyncDisposable
             _appClient.Dispose();
             _appClient = null;
         }
+        if (_directAppClient is not null)
+        {
+            _directAppClient.Dispose();
+            _directAppClient = null;
+        }
 
         if (TestErrored && !_isClassFixture)
         {
             // TestErrored is set to true for test/snapshot failures.
-            // When this happens we might not reach the stage of the test where
-            // we snapshot app logs. So we have additional code here
-            // to output container logs at the end so that test failures in CI for example
-            // is easier to debug.
-            await _localtestContainer.StopAsync();
-            await _appContainer.StopAsync();
-            await _pdfContainer.StopAsync();
-
-            _logger.LogError("Test errored, logging container output");
-            LogContainerLogs();
+            // When this happens we might not reach the stage of the test where we snapshot app logs.
+            _logger.LogError("Test errored, logging app output");
+            LogAppLogs();
         }
 
-        await TryDispose(_pdfContainer);
-        await TryDispose(_appContainer);
-        await TryDispose(_localtestContainer);
-        await TryDispose(_network);
+        await _appProcess.DisposeAsync();
+        DeleteDirectoryBestEffort(_logger, _generatedAppDirectory);
+        await _studioctlEnvironmentLease.DisposeAsync();
     }
 
-    internal void LogContainerLogs() =>
-        LogContainerLogs(_logger, _localtestLogsConsumer, _appLogsConsumer, _pdfLogsConsumer);
+    internal void LogAppLogs() => LogAppLogs(_logger, _appProcess);
 
-    private static void LogContainerLogs(
-        ILogger logger,
-        LogsConsumer localtestLogs,
-        LogsConsumer appLogs,
-        LogsConsumer pdfLogs
-    )
+    private static void LogAppLogs(ILogger logger, StudioctlAppProcess appProcess)
     {
+        logger.LogError(
+            "Localtest is managed by studioctl. Run 'studioctl env logs --follow=false' for localtest logs."
+        );
         {
-            var logs = string.Join("\n", localtestLogs.GetLines());
-            logger.LogError("Localtest container logs:\n{Logs}", logs);
-        }
-        {
-            var logs = string.Join("\n", appLogs.GetLines());
-            logger.LogError("App container logs:\n{Logs}", logs);
-        }
-        {
-            var logs = string.Join("\n", pdfLogs.GetLines());
-            logger.LogError("PDF container logs:\n{Logs}", logs);
-        }
-    }
-
-    private async Task TryDispose(IAsyncDisposable? disposable) => await TryDispose(_logger, disposable);
-
-    private static async Task TryDispose(ILogger logger, IAsyncDisposable? disposable)
-    {
-        if (disposable is null)
-            return;
-
-        try
-        {
-            await disposable.DisposeAsync();
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to dispose {Type}", disposable.GetType().FullName);
+            var logs = string.Join("\n", appProcess.GetLogLines());
+            logger.LogError("App logs:\n{Logs}", logs);
         }
     }
 
@@ -781,16 +577,24 @@ public sealed partial class AppFixture : IAsyncDisposable
         return info.FullName;
     }
 
+    private static string GetAppId(string name)
+    {
+        var metadataPath = Path.Join(GetAppDir(name), "config", "applicationmetadata.json");
+        using var metadata = JsonDocument.Parse(File.ReadAllText(metadataPath));
+        if (!metadata.RootElement.TryGetProperty("id", out var idElement))
+            throw new InvalidOperationException($"Missing application id in {metadataPath}");
+
+        var appId = idElement.GetString();
+        if (string.IsNullOrWhiteSpace(appId))
+            throw new InvalidOperationException($"Empty application id in {metadataPath}");
+
+        return appId;
+    }
+
     private static string GetScenarioDir(string name, string scenario)
     {
         var scenarioDirectory = Path.Join(_projectDirectory, $"_testapps/{name}/_scenarios/{scenario}");
         var info = new DirectoryInfo(scenarioDirectory);
-
-        // For "default" scenario, we don't expect a _scenarios directory to exist
-        if (scenario == "default")
-        {
-            return scenarioDirectory; // Return the path even if it doesn't exist
-        }
 
         if (!info.Exists)
         {
@@ -799,6 +603,108 @@ public sealed partial class AppFixture : IAsyncDisposable
             );
         }
         return info.FullName;
+    }
+
+    private static async Task EnsureYarnAvailable(ILogger logger, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await new Command(
+                "yarn",
+                "--version",
+                _repoSourceDirectory,
+                logger,
+                CancellationToken: cancellationToken
+            );
+
+            logger.LogInformation("Yarn version: {YarnVersion}", result.StdOut.Trim());
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                $"""
+                Failed to check if yarn is available: {ex.Message}.
+                Yarn is required to build the frontend for integration tests.
+                To fix: Install yarn by running 'npm install -g yarn' or 'corepack enable'.
+                Alternatively, set SKIP_FRONTEND_BUILD=true to use pre-built files.
+                """,
+                ex
+            );
+        }
+    }
+
+    private static void VerifyFrontendBuilt(ILogger logger)
+    {
+        var frontendBuildDirectory = Path.Join(_repoSourceDirectory, "App", "frontend", "dist");
+        if (!Directory.Exists(frontendBuildDirectory))
+        {
+            throw new InvalidOperationException(
+                $"""
+                Frontend build completed but dist directory '{frontendBuildDirectory}' does not exist.
+                This may indicate a problem with the build process.
+                """
+            );
+        }
+
+        string[] requiredFiles = ["altinn-app-frontend.js", "altinn-app-frontend.css"];
+        var missingFiles = requiredFiles.Where(file => !File.Exists(Path.Join(frontendBuildDirectory, file))).ToList();
+
+        if (missingFiles.Count > 0)
+        {
+            throw new InvalidOperationException(
+                $"""
+                Frontend build completed but expected files not found in {frontendBuildDirectory}.
+                Missing files: {string.Join(", ", missingFiles)}
+                """
+            );
+        }
+
+        logger.LogInformation("Frontend build verified successfully");
+    }
+
+    private static async Task EnsureFrontendBuilt(ILogger logger, CancellationToken cancellationToken)
+    {
+        if (_skipFrontendBuild)
+        {
+            logger.LogInformation("Skipping frontend build because SKIP_FRONTEND_BUILD is set");
+            return;
+        }
+
+        if (_frontendBuildException is not null)
+            throw _frontendBuildException;
+
+        if (_frontendBuilt)
+            return;
+
+        await _buildFrontendLock.WaitAsync(cancellationToken);
+        try
+        {
+            if (_frontendBuildException is not null)
+                throw _frontendBuildException;
+
+            if (_frontendBuilt)
+                return;
+
+            logger.LogInformation("Building frontend");
+            await EnsureYarnAvailable(logger, cancellationToken);
+
+            var frontendDirectory = Path.Join(_repoSourceDirectory, "App", "frontend");
+            await new Command("yarn", "build", frontendDirectory, logger, CancellationToken: cancellationToken);
+
+            VerifyFrontendBuilt(logger);
+            _frontendBuilt = true;
+            logger.LogInformation("Frontend built successfully");
+        }
+        catch (Exception ex)
+        {
+            _frontendBuildException = ex;
+            logger.LogError(ex, "Frontend build failed");
+            throw;
+        }
+        finally
+        {
+            _buildFrontendLock.Release();
+        }
     }
 
     private static async Task EnsureLibrariesPacked(ILogger logger, CancellationToken cancellationToken)
@@ -816,6 +722,8 @@ public sealed partial class AppFixture : IAsyncDisposable
 
             var output = Path.Join(ModuleInitializer.GetProjectDirectory(), "_testapps", "_packages");
             await NuGetPackaging.PackLibraries(output, logger, cancellationToken);
+            DeleteDirectoryBestEffort(logger, Path.GetDirectoryName(_nugetPackagesDirectory));
+            Directory.CreateDirectory(_nugetPackagesDirectory);
             _librariesPacked = true;
 
             logger.LogInformation("Packed libraries");
@@ -826,11 +734,10 @@ public sealed partial class AppFixture : IAsyncDisposable
         }
     }
 
-    private static async Task SyncPackages(string name)
+    private static async Task SyncPackages(string appDirectory, CancellationToken cancellationToken)
     {
-        var appDirectory = GetAppDir(name);
         var packagesDirectory = Path.Join(_projectDirectory, "_testapps", "_packages");
-        var appPackagesDirectory = Path.Join(appDirectory, "..", "_packages");
+        var appPackagesDirectory = Path.Join(appDirectory, "_packages");
         if (Directory.Exists(appPackagesDirectory))
             Directory.Delete(appPackagesDirectory, true);
         Directory.CreateDirectory(appPackagesDirectory);
@@ -840,15 +747,14 @@ public sealed partial class AppFixture : IAsyncDisposable
             var destFile = Path.Join(appPackagesDirectory, fileName);
             await using var source = File.OpenRead(file);
             await using var destination = File.Create(destFile);
-            await source.CopyToAsync(destination);
+            await source.CopyToAsync(destination, cancellationToken);
         }
     }
 
-    private static async Task SyncShared(string name)
+    private static async Task SyncShared(string appDirectory, CancellationToken cancellationToken)
     {
-        var appDirectory = GetAppDir(name);
         var sharedDirectory = Path.Join(_projectDirectory, "_testapps", "_shared");
-        var appSharedDirectory = Path.Join(appDirectory, "..", "_shared");
+        var appSharedDirectory = Path.Join(appDirectory, "_shared");
         if (Directory.Exists(appSharedDirectory))
             Directory.Delete(appSharedDirectory, true);
         Directory.CreateDirectory(appSharedDirectory);
@@ -858,295 +764,48 @@ public sealed partial class AppFixture : IAsyncDisposable
             var destFile = Path.Join(appSharedDirectory, fileName);
             await using var source = File.OpenRead(file);
             await using var destination = File.Create(destFile);
-            await source.CopyToAsync(destination);
+            await source.CopyToAsync(destination, cancellationToken);
         }
     }
 
-    private static async Task SyncFrontend(string name, ILogger logger)
+    private static async Task SyncFrontend(
+        string generatedDirectory,
+        ILogger logger,
+        CancellationToken cancellationToken
+    )
     {
-        var appDirectory = GetAppDir(name);
-        var frontendBuildDir = Path.Join(_repoSourceDirectory, "App", "frontend", "dist");
+        var frontendBuildDirectory = Path.Join(_repoSourceDirectory, "App", "frontend", "dist");
 
-        var missingFilesErrorMessage =
-            @"The frontend should have been built automatically during test setup.
-            If you see this error, it likely means:
-            1. Yarn is not installed or not in PATH.
-            2. The frontend build failed earlier (check test output for errors).
-            3. SKIP_FRONTEND_BUILD was set but no pre-built files exist.
-
-
-            To fix: install yarn and run 'cd src/App/frontend && yarn build' manually or remove the environment variable SKIP_FRONTEND_BUILD.";
-        if (!Directory.Exists(frontendBuildDir))
+        const string missingFilesErrorMessage =
+            "The frontend should have been built during test setup. Install yarn and run "
+            + "'cd src/App/frontend && yarn build', or set SKIP_FRONTEND_BUILD=true to use pre-built files.";
+        if (!Directory.Exists(frontendBuildDirectory))
+        {
             throw new DirectoryNotFoundException(
-                $"Expected frontend build directory '{frontendBuildDir}' to exist, but no directory was found. {missingFilesErrorMessage}"
+                $"Expected frontend build directory '{frontendBuildDirectory}' to exist. {missingFilesErrorMessage}"
             );
+        }
 
-        var appStaticFrontendDir = Path.Join(appDirectory, "wwwroot", "altinn-app-frontend");
-        if (Directory.Exists(appStaticFrontendDir))
-            Directory.Delete(appStaticFrontendDir, true);
-        Directory.CreateDirectory(appStaticFrontendDir);
+        var appStaticFrontendDirectory = Path.Join(generatedDirectory, "App", "wwwroot", "altinn-app-frontend");
+        if (Directory.Exists(appStaticFrontendDirectory))
+            Directory.Delete(appStaticFrontendDirectory, true);
+        Directory.CreateDirectory(appStaticFrontendDirectory);
 
-        List<string> fileNamesToCopy = ["altinn-app-frontend.js", "altinn-app-frontend.css"];
-        var frontendBuildFiles = Directory.GetFiles(frontendBuildDir);
+        string[] fileNamesToCopy = ["altinn-app-frontend.js", "altinn-app-frontend.css"];
+        var frontendBuildFiles = Directory.GetFiles(frontendBuildDirectory);
         foreach (var fileName in fileNamesToCopy)
         {
-            string sourceFile =
-                frontendBuildFiles.FirstOrDefault(df => Path.GetFileName(df) == fileName)
+            var sourceFile =
+                frontendBuildFiles.FirstOrDefault(file => Path.GetFileName(file) == fileName)
                 ?? throw new FileNotFoundException(
-                    $"Expected frontend file '{fileName}' not found in '{frontendBuildDir}'. {missingFilesErrorMessage}"
+                    $"Expected frontend file '{fileName}' not found in '{frontendBuildDirectory}'. {missingFilesErrorMessage}"
                 );
 
-            var destFile = Path.Join(appStaticFrontendDir, fileName);
+            var destFile = Path.Join(appStaticFrontendDirectory, fileName);
             logger.LogInformation("Copying {SourceFile} to {DestFile}", sourceFile, destFile);
             await using var source = File.OpenRead(sourceFile);
             await using var destination = File.Create(destFile);
-            await source.CopyToAsync(destination);
-        }
-    }
-
-    private static async Task EnsureYarnAvailable(ILogger logger, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var result = await new Command(
-                "yarn",
-                "--version",
-                _repoSourceDirectory,
-                logger,
-                ThrowOnNonZero: false,
-                CancellationToken: cancellationToken
-            );
-
-            if (result.IsSuccess)
-            {
-                logger.LogInformation("Yarn version: {YarnVersion}", result.StdOut.Trim());
-                return;
-            }
-
-            throw new Exception(
-                $"""
-                Yarn is not available (exit code: {result.ExitCode}).
-                Yarn is required to build the frontend for integration tests.
-                To fix: Install yarn by running 'npm install -g yarn' or 'corepack enable'.
-                Alternatively, set SKIP_FRONTEND_BUILD = true to use pre - built files.
-                """
-            );
-        }
-        catch (Exception ex)
-            when (ex is not Exception exWithMessage || !exWithMessage.Message.Contains("Yarn is not available"))
-        {
-            throw new Exception(
-                $"""
-                Failed to check if yarn is available: {ex.Message}.
-                Yarn is required to build the frontend for integration tests.
-                To fix: Install yarn by running 'npm install -g yarn' or 'corepack enable'.
-                Alternatively, set SKIP_FRONTEND_BUILD=true to use pre-built files.
-                """
-            );
-        }
-    }
-
-    private static void VerifyFrontendBuilt(ILogger logger)
-    {
-        var frontendBuildDir = Path.Join(_repoSourceDirectory, "App", "frontend", "dist");
-        if (!Directory.Exists(frontendBuildDir))
-        {
-            throw new Exception(
-                $"""
-                Frontend build completed but dist directory '{frontendBuildDir}' does not exist.
-                This may indicate a problem with the build process.
-                """
-            );
-        }
-
-        string[] requiredFiles = ["altinn-app-frontend.js", "altinn-app-frontend.css"];
-        var missingFiles = requiredFiles.Where(file => !File.Exists(Path.Join(frontendBuildDir, file))).ToList();
-
-        if (missingFiles.Count > 0)
-        {
-            throw new Exception(
-                $"""
-                Frontend build completed but expected files not found in {frontendBuildDir}.
-                Missing files: {string.Join(", ", missingFiles)}
-                """
-            );
-        }
-
-        logger.LogInformation("Frontend build verified successfully");
-    }
-
-    private static async Task EnsureFrontendBuilt(ILogger logger, CancellationToken cancellationToken)
-    {
-        if (_skipFrontendBuild)
-        {
-            logger.LogInformation("Skipping frontend build (SKIP_FRONTEND_BUILD is set)");
-            return;
-        }
-
-        if (_frontendBuildException != null)
-        {
-            logger.LogError("Frontend build failed previously, re-throwing exception");
-            throw _frontendBuildException;
-        }
-
-        if (_frontendBuilt)
-        {
-            logger.LogInformation("Frontend already built in this test run, skipping build");
-            return;
-        }
-
-        await _buildFrontendLock.WaitAsync(cancellationToken);
-        try
-        {
-            if (_frontendBuildException != null)
-            {
-                logger.LogError("Frontend build failed previously, re-throwing exception");
-                throw _frontendBuildException;
-            }
-
-            if (_frontendBuilt)
-            {
-                logger.LogInformation("Frontend already built in this test run, skipping build");
-                return;
-            }
-
-            logger.LogInformation("Building frontend...");
-
-            // Check if yarn is available
-            await EnsureYarnAvailable(logger, cancellationToken);
-
-            var frontendDirectory = Path.Join(_repoSourceDirectory, "App", "frontend");
-
-            // Build the frontend
-            await new Command(
-                "yarn",
-                "build",
-                frontendDirectory,
-                logger,
-                ThrowOnNonZero: true,
-                CancellationToken: cancellationToken
-            );
-
-            VerifyFrontendBuilt(logger);
-
-            _frontendBuilt = true;
-            logger.LogInformation("Frontend built successfully");
-        }
-        catch (Exception ex)
-        {
-            // Store the exception so all other tests fail with the same error
-            _frontendBuildException = ex;
-            logger.LogError(ex, "Frontend build failed");
-            throw;
-        }
-        finally
-        {
-            _buildFrontendLock.Release();
-        }
-    }
-
-    internal sealed class LogsConsumer : IOutputConsumer
-    {
-        // This is a rather complicated way to actually recombine stdout and stderr
-        // into a single stream. It seems like Testcontainers takes Docker.Dotnet's
-        // multiplexed stream and splits it into 2.
-        // We could use Docker.Dotnet directly but then we would probably get other issues to solve..
-        // NOTE: even though we try to read every line in the order they were printed, it seems thats
-        // not possible due to the way Testcontainers works. See the LogsConsumer test in the fixture tests.
-        private readonly Pipe _pipe;
-        private readonly SynchronizedWriteStream _writeStream;
-        private long _currentFixtureInstance;
-        private readonly Dictionary<long, List<string>> _lines = new(4);
-        private readonly object _lock = new();
-        private readonly ILogger _logger;
-        private readonly CancellationToken _cancellationToken;
-
-        public bool Enabled => true;
-
-        public Stream Stdout => _writeStream;
-
-        public Stream Stderr => _writeStream;
-
-        public LogsConsumer(ILogger logger, long fixtureInstance, CancellationToken cancellationToken)
-        {
-            _pipe = new();
-            _writeStream = new SynchronizedWriteStream(_pipe.Writer.AsStream());
-
-            _logger = logger;
-            _currentFixtureInstance = fixtureInstance;
-            _cancellationToken = cancellationToken;
-            _ = Task.Run(ReadLines);
-        }
-
-        public void SetCurrentFixtureInstance(long fixtureInstance) => _currentFixtureInstance = fixtureInstance;
-
-        public IReadOnlyList<string> GetLines(long? forFixtureInstance = null)
-        {
-            lock (_lock)
-            {
-                if (_lines.TryGetValue(forFixtureInstance ?? _currentFixtureInstance, out var lines))
-                    return lines.ToArray();
-            }
-            return Array.Empty<string>();
-        }
-
-        private async Task ReadLines()
-        {
-            var cancellationToken = _cancellationToken;
-            try
-            {
-                var reader = _pipe.Reader;
-                while (!cancellationToken.IsCancellationRequested)
-                {
-                    var result = await reader.ReadAsync(cancellationToken);
-                    if (result.IsCanceled)
-                        break;
-
-                    var buffer = result.Buffer;
-                    while (buffer.Length > 0)
-                    {
-                        var eol = buffer.PositionOf((byte)'\n');
-                        if (eol == null)
-                            break;
-
-                        var line = buffer.Slice(0, eol.Value);
-                        var lineStr = Encoding.UTF8.GetString(line.ToArray());
-                        var currentInstance = _currentFixtureInstance;
-                        lock (_lock)
-                        {
-                            if (!_lines.TryGetValue(currentInstance, out var lines))
-                                _lines[currentInstance] = lines = new List<string>(32);
-                            lines.Add(lineStr);
-                        }
-
-                        buffer = buffer.Slice(buffer.GetPosition(1, eol.Value));
-                    }
-
-                    reader.AdvanceTo(buffer.Start, buffer.End);
-
-                    if (result.IsCompleted)
-                        break;
-                }
-
-                await reader.CompleteAsync();
-            }
-            catch (OperationCanceledException)
-            {
-                // Ignore
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while reading logs");
-                Environment.FailFast("Fatal error in LogsConsumer", ex);
-            }
-
-            _logger.LogInformation("Log reading task is exiting");
-        }
-
-        public void Dispose()
-        {
-            _pipe.Writer.Complete();
-            _writeStream.Dispose();
+            await source.CopyToAsync(destination, cancellationToken);
         }
     }
 }

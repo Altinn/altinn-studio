@@ -13,7 +13,7 @@ import (
 	"altinn.studio/studioctl/internal/auth"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/install"
-	"altinn.studio/studioctl/internal/networking"
+	"altinn.studio/studioctl/internal/osutil"
 )
 
 func (s *Service) buildDisk() *Disk {
@@ -25,7 +25,6 @@ func (s *Service) buildDisk() *Disk {
 		s.checkDirState("bin_dir", s.cfg.BinDir, false),
 		s.checkConfigFileState(),
 		s.checkCredentialsFileState(),
-		s.checkNetworkCacheState(),
 		s.checkResourcesState(),
 		s.checkAppManagerBinaryState(),
 		s.checkAppManagerRuntimeState(),
@@ -248,43 +247,6 @@ func (s *Service) checkCredentialsFileState() DiskCheck {
 	return summarizeCredentialsState(path, creds)
 }
 
-func (s *Service) checkNetworkCacheState() DiskCheck {
-	path := filepath.Join(s.cfg.Home, doctorNetworkCacheFileName)
-	status := networking.GetCacheStatus(s.cfg.Home)
-	if !status.Exists {
-		return DiskCheck{
-			ID:      "network_cache",
-			Level:   diskLevelInfo,
-			Path:    path,
-			Message: "missing (will be created by probe)",
-		}
-	}
-
-	level := diskLevelOK
-	message := "valid and fresh"
-	if status.IP == "" {
-		level = diskLevelWarn
-		message = "invalid or unreadable content"
-	} else if !status.Fresh {
-		level = diskLevelWarn
-		message = "stale cache (" + formatDuration(status.Age) + " old)"
-	}
-
-	if info, err := os.Stat(path); err == nil {
-		if warning := ownerOnlyPermissionsWarning(info.Mode()); warning != "" {
-			level = worstDiskLevel(level, diskLevelWarn)
-			message = warning
-		}
-	}
-
-	return DiskCheck{
-		ID:      "network_cache",
-		Level:   level,
-		Path:    path,
-		Message: message,
-	}
-}
-
 func (s *Service) checkResourcesState() DiskCheck {
 	platformPath := filepath.Join(s.cfg.DataDir, doctorResourcesPlatformDir)
 	installStatus := install.CheckInstallStatus(s.cfg.DataDir, s.cfg.Version)
@@ -446,7 +408,7 @@ func (s *Service) checkAppManagerBinaryState() DiskCheck {
 			Message: "path exists but is a directory",
 		}
 	}
-	if runtime.GOOS != osWindows && info.Mode()&0o111 == 0 {
+	if runtime.GOOS != osutil.OSWindows && info.Mode()&0o111 == 0 {
 		return DiskCheck{
 			ID:      "appmgr_binary",
 			Level:   diskLevelWarn,
@@ -465,7 +427,7 @@ func (s *Service) checkAppManagerBinaryState() DiskCheck {
 
 func (s *Service) checkAppManagerRuntimeState() DiskCheck {
 	pidPath := s.cfg.AppManagerPIDPath()
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == osutil.OSWindows {
 		return checkAppManagerRuntimeStateWindows(s.cfg.Home, pidPath)
 	}
 
@@ -497,7 +459,7 @@ func (s *Service) checkAppManagerRuntimeState() DiskCheck {
 		return *check
 	}
 
-	if runtime.GOOS != osWindows && socketInfo.Mode()&os.ModeSocket == 0 {
+	if runtime.GOOS != osutil.OSWindows && socketInfo.Mode()&os.ModeSocket == 0 {
 		return DiskCheck{
 			ID:      "appmgr_state",
 			Level:   diskLevelWarn,
@@ -716,31 +678,11 @@ func readTrustedFile(path string) ([]byte, error) {
 }
 
 func ownerOnlyPermissionsWarning(mode os.FileMode) string {
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == osutil.OSWindows {
 		return ""
 	}
 	if mode.Perm()&0o077 != 0 {
 		return fmt.Sprintf("permissions %03o are broader than owner-only", mode.Perm())
 	}
 	return ""
-}
-
-func worstDiskLevel(current, candidate string) string {
-	if diskLevelPriority(candidate) > diskLevelPriority(current) {
-		return candidate
-	}
-	return current
-}
-
-func diskLevelPriority(level string) diskLevelRank {
-	switch level {
-	case diskLevelOK:
-		return diskRankOK
-	case diskLevelWarn:
-		return diskRankWarn
-	case diskLevelError:
-		return diskRankError
-	default:
-		return diskRankInfo
-	}
 }

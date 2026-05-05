@@ -724,7 +724,7 @@ public class AppDevelopmentController : Controller
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="app">Application identifier which is unique within an organisation.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>A string array of all layout names without file extension in all sets</returns>
     [HttpGet]
     [UseSystemTextJson]
@@ -800,7 +800,7 @@ public class AppDevelopmentController : Controller
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="app">Application identifier which is unique within an organisation.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The layout-sets.json</returns>
     [HttpGet]
     [UseSystemTextJson]
