@@ -273,8 +273,7 @@ public partial class EngineTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        body = Regex.Replace(body, @"""[0-9a-f\-]{36}"":", @"""{Scrubbed}"":"); // Scrub workflow GUIDs in dict keys
-        await VerifyJson(body).ScrubInlineGuids();
+        await VerifyJson(body);
     }
 
     [Fact]

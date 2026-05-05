@@ -11,13 +11,13 @@
   },
   overallStatus: Completed,
   dependencies: {
-    {Scrubbed}: Completed
+    Guid_2: Completed
   },
   dependents: {
-    {Scrubbed}: Completed
+    Guid_3: Completed
   },
   links: {
-    {Scrubbed}: Completed
+    Guid_4: Completed
   },
   steps: [
     {
