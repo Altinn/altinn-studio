@@ -126,7 +126,7 @@ public class AlertsServiceTests
         _notificationClient.Verify(
             c =>
                 c.SendEmailNotification(
-                    $"{contactPointId}-{methodId}-{ContactMethodType.Email}-{alert.Id}",
+                    It.IsAny<string>(),
                     "owner@example.com",
                     $"❌ {alert.Name}",
                     It.IsAny<string>(),
@@ -167,13 +167,7 @@ public class AlertsServiceTests
         await service.NotifyAlertsUpdatedAsync("ttd", environment, alert, CancellationToken.None);
 
         _notificationClient.Verify(
-            c =>
-                c.SendSmsNotification(
-                    $"{contactPointId}-{methodId}-{ContactMethodType.Sms}-{alert.Id}",
-                    "+4700000002",
-                    It.IsAny<string>(),
-                    It.IsAny<SendingTime>()
-                ),
+            c => c.SendSmsNotification(It.IsAny<string>(), "+4700000002", It.IsAny<string>(), It.IsAny<SendingTime>()),
             Times.Once
         );
     }
@@ -256,7 +250,7 @@ public class AlertsServiceTests
         _notificationClient.Verify(
             c =>
                 c.SendEmailNotification(
-                    $"{contactPointId1}-{emailMethodId}-{ContactMethodType.Email}-{alert.Id}",
+                    It.IsAny<string>(),
                     "owner1@example.com",
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -266,13 +260,7 @@ public class AlertsServiceTests
             Times.Once
         );
         _notificationClient.Verify(
-            c =>
-                c.SendSmsNotification(
-                    $"{contactPointId2}-{smsMethodId}-{ContactMethodType.Sms}-{alert.Id}",
-                    "+4700000001",
-                    It.IsAny<string>(),
-                    It.IsAny<SendingTime>()
-                ),
+            c => c.SendSmsNotification(It.IsAny<string>(), "+4700000001", It.IsAny<string>(), It.IsAny<SendingTime>()),
             Times.Once
         );
     }
