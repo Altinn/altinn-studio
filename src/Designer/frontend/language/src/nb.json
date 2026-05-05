@@ -1602,6 +1602,8 @@
   "settings.orgs.not_org_owner_alert": "Du er ikke eier av denne organisasjonen og har begrenset tilgang til innstillingene. Be eierne i {{orgName}} om å gi deg tilgang.",
   "settings.user.api_keys.api_keys": "API-nøkler",
   "settings.user.api_keys.description": "Opprett og administrer dine API-nøkler. Disse nøklene gir tilgang til kontoen din via Studio API.",
+  "settings.user.coming_soon": "Brukerinnstillinger er ikke tilgjengelig ennå, men kommer snart.",
+  "settings.user.coming_soon_use_org": "Velg en organisasjon i menyen øverst til høyre for å få tilgang til organisasjonsinnstillinger.",
   "settings.user.heading": "Innstillinger",
   "settings.user.heading.description": "Her finner du innstillinger som gjelder for din bruker.",
   "shared.header_all": "Alle",

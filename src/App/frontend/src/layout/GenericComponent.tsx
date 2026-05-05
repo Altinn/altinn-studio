@@ -13,6 +13,7 @@ import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { ExprVal } from 'src/features/expressions/types';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
+import { replaceAndPreventResetOptions } from 'src/features/navigation/navigationOptions';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import classes from 'src/layout/GenericComponent.module.css';
 import { getComponentDef } from 'src/layout/index';
@@ -263,7 +264,7 @@ function cleanupQuery(searchParams: URLSearchParams, setSearchParams: SetURLSear
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.delete(SearchParams.FocusComponentId);
     newSearchParams.delete(SearchParams.FocusErrorBinding);
-    setSearchParams(newSearchParams, { replace: true });
+    setSearchParams(newSearchParams, replaceAndPreventResetOptions);
   }
 }
 

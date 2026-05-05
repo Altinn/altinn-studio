@@ -18,7 +18,7 @@ internal static class ServiceCollectionExtensions
                 }
             });
         services.AddSingleton(sp => sp.GetRequiredService<IOptions<TunnelOptions>>().Value);
-        services.AddBoundTopology(configuration);
+        services.AddBoundTopology(configuration, optionalBoundConfig: true);
         services.AddSingleton<TunnelState>();
         services.AddSingleton<BoundTopologyConfigReconciler>();
         services.AddHostedService(static sp => sp.GetRequiredService<BoundTopologyConfigReconciler>());

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 	"sync"
 
 	"altinn.studio/devenv/pkg/container"
@@ -18,8 +19,9 @@ const (
 )
 
 type logStreamer struct {
-	client container.ContainerClient
-	out    *ui.Output
+	client     container.ContainerClient
+	out        *ui.Output
+	containers []string
 }
 
 type logLine struct {
@@ -43,19 +45,18 @@ func (l logLine) Print(out *ui.Output) error {
 	return nil
 }
 
-func newLogStreamer(client container.ContainerClient, out *ui.Output) *logStreamer {
+func newLogStreamer(client container.ContainerClient, out *ui.Output, containers []string) *logStreamer {
 	return &logStreamer{
-		client: client,
-		out:    out,
+		client:     client,
+		out:        out,
+		containers: containers,
 	}
 }
 
 func (s *logStreamer) Stream(ctx context.Context, component string, follow, jsonOutput bool) error {
-	allContainers := AllContainerNames(true)
-
 	var containers []string
 	if component != "" {
-		for _, name := range allContainers {
+		for _, name := range s.containers {
 			if name == component {
 				containers = []string{name}
 				break
@@ -63,15 +64,14 @@ func (s *logStreamer) Stream(ctx context.Context, component string, follow, json
 		}
 		if len(containers) == 0 {
 			return fmt.Errorf(
-				"%w: %s (available: %s, %s, monitoring_*)",
+				"%w: %s (available: %s)",
 				ErrUnknownComponent,
 				component,
-				ContainerLocaltest,
-				ContainerPDF3,
+				strings.Join(s.containers, ", "),
 			)
 		}
 	} else {
-		containers = allContainers
+		containers = s.containers
 	}
 
 	var runningContainers []string

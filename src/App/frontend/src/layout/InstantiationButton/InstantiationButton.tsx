@@ -7,9 +7,7 @@ import { parseInstanceId } from 'src/core/queries/instance';
 import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
-import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
-import { focusMainContent } from 'src/hooks/useNavigatePage';
 import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { buildInstanceUrl } from 'src/routesBuilder';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
@@ -25,7 +23,6 @@ export const InstantiationButton = ({ children, ...props }: Props) => {
   const isAnyProcessing = useIsAnyProcessing();
   const prefill = FormStore.data.useMapping(props.mapping, FormBootstrap.useDefaultDataType());
   const party = useSelectedParty();
-  const setNavigationEffect = useSetNavigationEffect();
   const navigate = useNavigate();
 
   return (
@@ -49,11 +46,6 @@ export const InstantiationButton = ({ children, ...props }: Props) => {
             if (data) {
               const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(data.id);
               const url = buildInstanceUrl(instanceOwnerPartyId, instanceGuid);
-              setNavigationEffect({
-                targetLocation: url,
-                matchStart: true,
-                callback: focusMainContent,
-              });
               navigate(url);
             }
           })

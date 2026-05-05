@@ -35,14 +35,18 @@ public sealed class EngineApiClient : IDisposable
     /// Uses <see cref="DefaultNamespace"/> and a unique idempotency key if not specified.
     /// Pass an explicit <paramref name="idempotencyKey"/> when testing idempotent resubmission.
     /// </summary>
+    /// <param name="request">The workflow batch to enqueue.</param>
+    /// <param name="ns">Optional namespace override. Uses <see cref="DefaultNamespace"/> when omitted.</param>
+    /// <param name="idempotencyKey">Optional request key for idempotent enqueue semantics. Distinct from <paramref name="collectionKey"/>.</param>
+    /// <param name="collectionKey">Optional collection identifier used to group batches into the same workflow collection. Omit or pass <see langword="null"/> for no collection.</param>
     public async Task<WorkflowEnqueueResponse.Accepted> Enqueue(
         WorkflowEnqueueRequest request,
         string? ns = null,
         string? idempotencyKey = null,
-        Guid? correlationId = null
+        string? collectionKey = null
     )
     {
-        using var response = await EnqueueRaw(request, ns, idempotencyKey, correlationId);
+        using var response = await EnqueueRaw(request, ns, idempotencyKey, collectionKey);
         return await AssertSuccessAndDeserialize<WorkflowEnqueueResponse.Accepted>(response);
     }
 
@@ -51,18 +55,22 @@ public sealed class EngineApiClient : IDisposable
     /// Uses <see cref="DefaultNamespace"/> and a unique idempotency key if not specified.
     /// Pass an explicit <paramref name="idempotencyKey"/> when testing idempotent resubmission.
     /// </summary>
+    /// <param name="jsonRequest">The raw JSON payload to enqueue.</param>
+    /// <param name="ns">Optional namespace override. Uses <see cref="DefaultNamespace"/> when omitted.</param>
+    /// <param name="idempotencyKey">Optional request key for idempotent enqueue semantics. Distinct from <paramref name="collectionKey"/>.</param>
+    /// <param name="collectionKey">Optional collection identifier used to group batches into the same workflow collection. Omit or pass <see langword="null"/> for no collection.</param>
     public async Task<WorkflowEnqueueResponse.Accepted> Enqueue(
         string jsonRequest,
         string? ns = null,
         string? idempotencyKey = null,
-        Guid? correlationId = null
+        string? collectionKey = null
     )
     {
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, GetBasePath(ns))
         {
             Content = new StringContent(jsonRequest, Encoding.UTF8, "application/json"),
         };
-        AddMetadataHeaders(httpRequest.Headers, idempotencyKey, correlationId);
+        AddMetadataHeaders(httpRequest.Headers, idempotencyKey, collectionKey);
 
         using var response = await _client.SendAsync(httpRequest);
         return await AssertSuccessAndDeserialize<WorkflowEnqueueResponse.Accepted>(response);
@@ -72,18 +80,22 @@ public sealed class EngineApiClient : IDisposable
     /// Enqueues a batch and returns the raw <see cref="HttpResponseMessage"/>.
     /// Uses <see cref="DefaultNamespace"/> and a unique idempotency key if not specified.
     /// </summary>
+    /// <param name="request">The workflow batch to enqueue.</param>
+    /// <param name="ns">Optional namespace override. Uses <see cref="DefaultNamespace"/> when omitted.</param>
+    /// <param name="idempotencyKey">Optional request key for idempotent enqueue semantics. Distinct from <paramref name="collectionKey"/>.</param>
+    /// <param name="collectionKey">Optional collection identifier used to group batches into the same workflow collection. Omit or pass <see langword="null"/> for no collection.</param>
     public async Task<HttpResponseMessage> EnqueueRaw(
         WorkflowEnqueueRequest request,
         string? ns = null,
         string? idempotencyKey = null,
-        Guid? correlationId = null
+        string? collectionKey = null
     )
     {
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, GetBasePath(ns))
         {
             Content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"),
         };
-        AddMetadataHeaders(httpRequest.Headers, idempotencyKey, correlationId);
+        AddMetadataHeaders(httpRequest.Headers, idempotencyKey, collectionKey);
 
         return await _client.SendAsync(httpRequest);
     }
@@ -92,14 +104,18 @@ public sealed class EngineApiClient : IDisposable
     /// Enqueues a batch using query parameters (instead of headers) for metadata.
     /// Produces more copy-pastable HTTP exchanges for developer documentation.
     /// </summary>
+    /// <param name="request">The workflow batch to enqueue.</param>
+    /// <param name="ns">Optional namespace override. Uses <see cref="DefaultNamespace"/> when omitted.</param>
+    /// <param name="idempotencyKey">Optional request key for idempotent enqueue semantics. Distinct from <paramref name="collectionKey"/>.</param>
+    /// <param name="collectionKey">Optional collection identifier used to group batches into the same workflow collection. Omit or pass <see langword="null"/> for no collection.</param>
     public async Task<WorkflowEnqueueResponse.Accepted> EnqueueWithQueryParams(
         WorkflowEnqueueRequest request,
         string? ns = null,
         string? idempotencyKey = null,
-        Guid? correlationId = null
+        string? collectionKey = null
     )
     {
-        using var response = await EnqueueRawWithQueryParams(request, ns, idempotencyKey, correlationId);
+        using var response = await EnqueueRawWithQueryParams(request, ns, idempotencyKey, collectionKey);
         return await AssertSuccessAndDeserialize<WorkflowEnqueueResponse.Accepted>(response);
     }
 
@@ -107,14 +123,18 @@ public sealed class EngineApiClient : IDisposable
     /// Enqueues a batch using query parameters (instead of headers) for metadata.
     /// Returns the raw <see cref="HttpResponseMessage"/>.
     /// </summary>
+    /// <param name="request">The workflow batch to enqueue.</param>
+    /// <param name="ns">Optional namespace override. Uses <see cref="DefaultNamespace"/> when omitted.</param>
+    /// <param name="idempotencyKey">Optional request key for idempotent enqueue semantics. Distinct from <paramref name="collectionKey"/>.</param>
+    /// <param name="collectionKey">Optional collection identifier used to group batches into the same workflow collection. Omit or pass <see langword="null"/> for no collection.</param>
     public async Task<HttpResponseMessage> EnqueueRawWithQueryParams(
         WorkflowEnqueueRequest request,
         string? ns = null,
         string? idempotencyKey = null,
-        Guid? correlationId = null
+        string? collectionKey = null
     )
     {
-        var qs = BuildMetadataQueryString(idempotencyKey, correlationId);
+        var qs = BuildMetadataQueryString(idempotencyKey, collectionKey);
         var path = string.IsNullOrEmpty(qs) ? GetBasePath(ns) : $"{GetBasePath(ns)}?{qs}";
 
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, path)
@@ -272,21 +292,21 @@ public sealed class EngineApiClient : IDisposable
         return [.. await Task.WhenAll(tasks)];
     }
 
-    private static void AddMetadataHeaders(HttpRequestHeaders headers, string? idempotencyKey, Guid? correlationId)
+    private static void AddMetadataHeaders(HttpRequestHeaders headers, string? idempotencyKey, string? collectionKey)
     {
         headers.Add(WorkflowMetadataConstants.Headers.IdempotencyKey, idempotencyKey ?? $"idem-{Guid.NewGuid()}");
-        if (correlationId.HasValue)
-            headers.Add(WorkflowMetadataConstants.Headers.CorrelationId, correlationId.Value.ToString());
+        if (collectionKey is not null)
+            headers.Add(WorkflowMetadataConstants.Headers.CollectionKey, collectionKey);
     }
 
-    private static string BuildMetadataQueryString(string? idempotencyKey, Guid? correlationId)
+    private static string BuildMetadataQueryString(string? idempotencyKey, string? collectionKey)
     {
         var qs = new List<string>
         {
             $"{WorkflowMetadataConstants.QueryParams.IdempotencyKey}={Uri.EscapeDataString(idempotencyKey ?? $"idem-{Guid.NewGuid()}")}",
         };
-        if (correlationId.HasValue)
-            qs.Add($"{WorkflowMetadataConstants.QueryParams.CorrelationId}={correlationId.Value}");
+        if (collectionKey is not null)
+            qs.Add($"{WorkflowMetadataConstants.QueryParams.CollectionKey}={Uri.EscapeDataString(collectionKey)}");
         return string.Join("&", qs);
     }
 

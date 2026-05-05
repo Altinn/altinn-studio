@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"altinn.studio/devenv/pkg/processutil"
+	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -36,11 +37,11 @@ func buildSystem(ctx context.Context) *System {
 // getOSVersion returns the OS name and version.
 func getOSVersion(ctx context.Context) (osName, osVersion string) {
 	switch runtime.GOOS {
-	case "linux":
+	case osutil.OSLinux:
 		return getLinuxVersion(ctx)
-	case "darwin":
+	case osutil.OSDarwin:
 		return getDarwinVersion(ctx)
-	case osWindows:
+	case osutil.OSWindows:
 		return getWindowsVersion(ctx)
 	default:
 		return "", ""

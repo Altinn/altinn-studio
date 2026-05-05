@@ -11,6 +11,7 @@ import (
 
 	"altinn.studio/studioctl/internal/config"
 	installpkg "altinn.studio/studioctl/internal/install"
+	"altinn.studio/studioctl/internal/osutil"
 )
 
 const appManagerAssetBaseName = "app-manager"
@@ -138,7 +139,7 @@ func (s *Service) validatePayloadDir(payloadDir string) error {
 	if info.IsDir() {
 		return fmt.Errorf("%w: %s", errAppManagerExecutablePathDirectory, binaryPath)
 	}
-	if runtime.GOOS != "windows" && info.Mode()&0o111 == 0 {
+	if runtime.GOOS != osutil.OSWindows && info.Mode()&0o111 == 0 {
 		return fmt.Errorf("%w: %s", errAppManagerExecutableNotExecutable, binaryPath)
 	}
 	return nil

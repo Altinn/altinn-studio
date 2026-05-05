@@ -233,7 +233,7 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
     /// </summary>
     /// <remarks>
     /// Completing superseded entries with <c>TrySetResult()</c> before the final item is
-    /// flushed cannot mis-signal a real caller: the handler is single-threaded per workflow,
+    /// flushed cannot incorrectly signal a real caller: the handler is single-threaded per workflow,
     /// so an awaited <see cref="Submit"/> never has a concurrent second <see cref="Submit"/>
     /// in flight for the same workflow id. Only <see cref="SubmitAndForget"/> entries (which
     /// carry a null <c>Completion</c> and are safe under <c>?.TrySetResult</c>) can precede

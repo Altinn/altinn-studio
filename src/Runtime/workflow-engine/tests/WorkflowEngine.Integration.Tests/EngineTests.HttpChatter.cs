@@ -18,7 +18,7 @@ public partial class EngineTests
     public async Task WebhookCommand_FullHttpChatter_DocumentsExchange()
     {
         var output = TestContext.Current.TestOutputHelper!;
-        var correlationId = Guid.NewGuid();
+        var collectionKey = Guid.NewGuid().ToString();
 
         // Arrange — 2-step workflow: POST with payload, then GET without payload.
         var step1 = _testHelpers.CreateWebhookStep("/step-1", payload: "step-1-data", contentType: "text/plain");
@@ -37,7 +37,7 @@ public partial class EngineTests
         var response = await client.EnqueueWithQueryParams(
             request,
             idempotencyKey: "chatter-idem-key",
-            correlationId: correlationId
+            collectionKey: collectionKey
         );
         var workflowId = response.Workflows.Single().DatabaseId;
         var status = await client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
@@ -134,8 +134,8 @@ public partial class EngineTests
                 HttpChatterHelpers.GetHeader(headers, WorkflowMetadataConstants.Headers.Namespace)
             );
             Assert.Equal(
-                correlationId.ToString(),
-                HttpChatterHelpers.GetHeader(headers, WorkflowMetadataConstants.Headers.CorrelationId)
+                collectionKey,
+                HttpChatterHelpers.GetHeader(headers, WorkflowMetadataConstants.Headers.CollectionKey)
             );
         }
     }

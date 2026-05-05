@@ -14,14 +14,17 @@ import (
 
 	containermock "altinn.studio/devenv/pkg/container/mock"
 	containertypes "altinn.studio/devenv/pkg/container/types"
+	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
 
 func TestReset_RemovesPersistedDataWhenAlreadyStopped(t *testing.T) {
 	dataDir := t.TempDir()
 	localtestDataDir := filepath.Join(dataDir, "AltinnPlatformLocal")
-	workflowEngineDataDir := workflowEngineDbDataPath(dataDir)
+	workflowEngineDataDir := components.WorkflowEngineDbDataPath(dataDir)
 	createDir(t, localtestDataDir)
 	createDir(t, workflowEngineDataDir)
 
@@ -47,16 +50,20 @@ func TestReset_RemovesPersistedDataWhenAlreadyStopped(t *testing.T) {
 func TestReset_StopsManagedResourcesBeforeRemovingPersistedData(t *testing.T) {
 	dataDir := t.TempDir()
 	localtestDataDir := filepath.Join(dataDir, "AltinnPlatformLocal")
-	workflowEngineDataDir := workflowEngineDbDataPath(dataDir)
+	workflowEngineDataDir := components.WorkflowEngineDbDataPath(dataDir)
 	createDir(t, localtestDataDir)
 	createDir(t, workflowEngineDataDir)
 
 	client := containermock.New()
 	client.ContainerInspectFunc = func(context.Context, string) (containertypes.ContainerInfo, error) {
-		return containertypes.ContainerInfo{}, nil
+		return containertypes.ContainerInfo{
+			Labels: map[string]string{resource.GraphIDLabel: graphID},
+		}, nil
 	}
 	client.NetworkInspectFunc = func(context.Context, string) (containertypes.NetworkInfo, error) {
-		return containertypes.NetworkInfo{}, nil
+		return containertypes.NetworkInfo{
+			Labels: map[string]string{resource.GraphIDLabel: graphID},
+		}, nil
 	}
 
 	env := NewEnv(
@@ -87,8 +94,8 @@ func TestReset_RemovesWorkflowEngineDbVolumeWithoutLegacyDataDir(t *testing.T) {
 
 	client := containermock.New()
 	client.VolumeRemoveFunc = func(_ context.Context, name string, force bool) error {
-		if name != workflowEngineDbVolume {
-			t.Fatalf("VolumeRemove() name = %q, want %q", name, workflowEngineDbVolume)
+		if name != components.WorkflowEngineDbVolume {
+			t.Fatalf("VolumeRemove() name = %q, want %q", name, components.WorkflowEngineDbVolume)
 		}
 		if !force {
 			t.Fatal("VolumeRemove() force = false, want true")
@@ -138,13 +145,13 @@ func TestReset_IgnoresMissingWorkflowEngineDbVolume(t *testing.T) {
 func TestReset_RefusesLegacyLocaltest(t *testing.T) {
 	dataDir := t.TempDir()
 	createDir(t, filepath.Join(dataDir, "AltinnPlatformLocal"))
-	createDir(t, workflowEngineDbDataPath(dataDir))
+	createDir(t, components.WorkflowEngineDbDataPath(dataDir))
 
 	client := containermock.New()
 	client.ContainerInspectFunc = func(_ context.Context, name string) (containertypes.ContainerInfo, error) {
-		if name == ContainerLocaltest {
+		if name == components.ContainerLocaltest {
 			return containertypes.ContainerInfo{
-				Name:   ContainerLocaltest,
+				Name:   components.ContainerLocaltest,
 				Labels: map[string]string{},
 				State:  containertypes.ContainerState{Running: true},
 			}, nil
@@ -169,7 +176,7 @@ func TestReset_RefusesLegacyLocaltest(t *testing.T) {
 func TestReset_IgnoresLegacyWorkflowEngineDbDataCleanupFailure(t *testing.T) {
 	dataDir := t.TempDir()
 	createDir(t, filepath.Join(dataDir, "AltinnPlatformLocal"))
-	createDir(t, workflowEngineDbDataPath(dataDir))
+	createDir(t, components.WorkflowEngineDbDataPath(dataDir))
 	var stderr bytes.Buffer
 
 	client := containermock.New()
@@ -209,13 +216,13 @@ func TestReset_IgnoresLegacyWorkflowEngineDbDataCleanupFailure(t *testing.T) {
 }
 
 func TestRemoveResetDataPath_RejectsSymlink(t *testing.T) {
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == osutil.OSWindows {
 		t.Skip("symlink creation requires elevated privileges on some Windows setups")
 	}
 
 	dataDir := t.TempDir()
 	targetDir := t.TempDir()
-	linkPath := filepath.Join(dataDir, workflowEngineDbDataDir)
+	linkPath := components.WorkflowEngineDbDataPath(dataDir)
 	if err := os.Symlink(targetDir, linkPath); err != nil {
 		t.Fatalf("Symlink() error = %v", err)
 	}

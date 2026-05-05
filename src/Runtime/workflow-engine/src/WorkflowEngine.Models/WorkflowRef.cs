@@ -49,13 +49,26 @@ public readonly record struct WorkflowRef
     /// </summary>
     public Guid Id => _id ?? throw new InvalidOperationException("WorkflowRef is a ref string, not an ID.");
 
+    /// <summary>
+    /// Implicit conversion from a batch-scoped alias string.
+    /// </summary>
     public static implicit operator WorkflowRef(string @ref) => new(@ref);
 
+    /// <summary>
+    /// Implicit conversion from a persisted database ID.
+    /// </summary>
     public static implicit operator WorkflowRef(Guid id) => new(id);
 
+    /// <summary>
+    /// Creates a <see cref="WorkflowRef"/> from a batch-scoped alias string.
+    /// </summary>
     public static WorkflowRef FromRefString(string @ref) => new(@ref);
 
+    /// <summary>
+    /// Creates a <see cref="WorkflowRef"/> from a persisted database ID.
+    /// </summary>
     public static WorkflowRef FromDatabaseId(Guid id) => new(id);
 
+    /// <inheritdoc/>
     public override string ToString() => IsRef ? $"ref:{_ref}" : $"id:{_id}";
 }

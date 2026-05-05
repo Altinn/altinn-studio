@@ -89,7 +89,7 @@ func (s *Service) UpdateBinary(ctx context.Context, opts UpdateOptions) (result 
 		return UpdateResult{}, fmt.Errorf("resolve current executable path: %w", err)
 	}
 
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == osutil.OSWindows {
 		return UpdateResult{}, fmt.Errorf(
 			"%w: windows executable is locked while running",
 			ErrUpdateUnsupported,
@@ -394,7 +394,7 @@ func downloadUpdateBinary(
 	}
 
 	binaryPath = filepath.Join(tmpDir, "studioctl-download")
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == osutil.OSWindows {
 		binaryPath += exeSuffix
 	}
 
@@ -402,7 +402,7 @@ func downloadUpdateBinary(
 		return "", cleanup, err
 	}
 
-	if runtime.GOOS != osWindows {
+	if runtime.GOOS != osutil.OSWindows {
 		if err := os.Chmod(binaryPath, executablePerm); err != nil {
 			return "", cleanup, fmt.Errorf("make downloaded binary executable: %w", err)
 		}
@@ -415,7 +415,7 @@ func installFromDownloadedBinary(downloadedBinaryPath, targetPath string) error 
 	if err := copyFile(downloadedBinaryPath, targetPath); err != nil {
 		return fmt.Errorf("replace installed binary: %w", err)
 	}
-	if runtime.GOOS != osWindows {
+	if runtime.GOOS != osutil.OSWindows {
 		if err := os.Chmod(targetPath, executablePerm); err != nil {
 			return fmt.Errorf("make installed binary executable: %w", err)
 		}
@@ -430,7 +430,7 @@ func (s *Service) UninstallBinary() (UninstallResult, error) {
 		return UninstallResult{}, fmt.Errorf("resolve current executable path: %w", err)
 	}
 
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == osutil.OSWindows {
 		return UninstallResult{}, fmt.Errorf(
 			"%w: remove manually after process exits",
 			ErrUninstallUnsupported,
@@ -510,7 +510,7 @@ func isPathRoot(path string) bool {
 func samePath(left, right string) bool {
 	left = filepath.Clean(left)
 	right = filepath.Clean(right)
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == osutil.OSWindows {
 		return strings.EqualFold(left, right)
 	}
 	return left == right
@@ -571,7 +571,7 @@ func defaultAssetName(baseName, goos, goarch string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if goos == osWindows {
+	if goos == osutil.OSWindows {
 		asset += exeSuffix
 	}
 	return asset, nil
@@ -580,12 +580,12 @@ func defaultAssetName(baseName, goos, goarch string) (string, error) {
 func baseAssetName(baseName, goos, goarch string) (string, error) {
 	var osPart string
 	switch goos {
-	case osLinux:
-		osPart = osLinux
-	case osDarwin:
-		osPart = osDarwin
-	case osWindows:
-		osPart = osWindows
+	case osutil.OSLinux:
+		osPart = osutil.OSLinux
+	case osutil.OSDarwin:
+		osPart = osutil.OSDarwin
+	case osutil.OSWindows:
+		osPart = osutil.OSWindows
 	default:
 		return "", fmt.Errorf("%w: %s", ErrUnsupportedPlatform, goos)
 	}

@@ -9,6 +9,10 @@ using WorkflowEngine.Resilience;
 
 namespace WorkflowEngine.Core.Extensions;
 
+/// <summary>
+/// Service collection extensions for composing the workflow engine into a host (DI registration of
+/// core services, command plugins, settings binding, and engine health checks).
+/// </summary>
 public static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
@@ -142,6 +146,9 @@ public static class ServiceCollectionExtensions
     }
 }
 
+/// <summary>
+/// Extensions over <see cref="OptionsBuilder{TOptions}"/> for <see cref="EngineSettings"/> default-fill and validation.
+/// </summary>
 public static class OptionsBuilderExtensions
 {
     extension(OptionsBuilder<EngineSettings> builder)

@@ -242,7 +242,7 @@ func (c *Config) AppLogDir(appID string) string {
 // On Windows, the .exe suffix is automatically appended.
 func (c *Config) AppManagerBinaryPath() string {
 	name := "app-manager"
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == osutil.OSWindows {
 		name += ".exe"
 	}
 	return filepath.Join(c.AppManagerInstallDir(), name)
