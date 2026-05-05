@@ -212,41 +212,37 @@ public partial class EngineTests
         await CaptureValidationFailure(request, "Inbound_Validation_SelfReference");
     }
 
-    // ── DAG roundtrips (enqueue + hierarchy GET in one file) ─────────────────
+    // ── DAG roundtrip (enqueue + hierarchy GET in one file) ──────────────────
 
     [Fact]
-    public async Task DagRoundtrip_DependsOnGraph_FullExchange()
+    public async Task DagRoundtrip_AllRelations_FullExchange()
     {
-        // Arrange — chain wf-up → wf-mid → wf-down
-        var wfUp = _testHelpers.CreateWorkflow("wf-up", [_testHelpers.CreateWebhookStep("/ping-up")]);
-        var wfMid = _testHelpers.CreateWorkflow(
-            "wf-mid",
-            [_testHelpers.CreateWebhookStep("/ping-mid")],
-            dependsOn: ["wf-up"]
+        // Arrange — bootstrap an out-of-batch workflow so it can be referenced by
+        // GUID from both `dependsOn` and `links` in the main batch.
+        var bootstrap = await _client.Enqueue(
+            _testHelpers.CreateEnqueueRequest(
+                _testHelpers.CreateWorkflow("wf-existing", [_testHelpers.CreateWebhookStep("/ping-existing")]),
+                includeContext: false
+            )
         );
-        var wfDown = _testHelpers.CreateWorkflow(
-            "wf-down",
-            [_testHelpers.CreateWebhookStep("/ping-down")],
-            dependsOn: ["wf-mid"]
-        );
-        var request = _testHelpers.CreateEnqueueRequest([wfUp, wfMid, wfDown], includeContext: false);
+        var existingId = bootstrap.Workflows.Single().DatabaseId;
+        await _client.WaitForWorkflowStatus(existingId, PersistentItemStatus.Completed);
 
-        await CaptureDagRoundtrip(request, "wf-up", "DagRoundtrip_DependsOnGraph_FullExchange");
-    }
-
-    [Fact]
-    public async Task DagRoundtrip_WithLinks_FullExchange()
-    {
-        // Arrange — wf-mid depends on wf-up, links to wf-side, and wf-down depends on wf-mid
+        // Main batch — exercises everything in one shot:
+        //   • chain depth (wf-up ← wf-mid ← wf-down) so the hierarchy walks transitively
+        //   • multi-target `dependsOn` mixing in-batch ref + pre-existing GUID
+        //   • multi-target `links`     mixing in-batch ref + pre-existing GUID
+        //   • a pure soft-link target (wf-side) that should appear in `links`
+        //     but NOT be pulled into the response `workflows[]` array
         var wfUp = _testHelpers.CreateWorkflow("wf-up", [_testHelpers.CreateWebhookStep("/ping-up")]);
         var wfSide = _testHelpers.CreateWorkflow("wf-side", [_testHelpers.CreateWebhookStep("/ping-side")]);
         var wfMid = _testHelpers.CreateWorkflow(
             "wf-mid",
             [_testHelpers.CreateWebhookStep("/ping-mid")],
-            dependsOn: ["wf-up"]
+            dependsOn: [(WorkflowRef)"wf-up", existingId]
         ) with
         {
-            Links = [(WorkflowRef)"wf-side"],
+            Links = [(WorkflowRef)"wf-side", existingId],
         };
         var wfDown = _testHelpers.CreateWorkflow(
             "wf-down",
@@ -255,7 +251,7 @@ public partial class EngineTests
         );
         var request = _testHelpers.CreateEnqueueRequest([wfUp, wfSide, wfMid, wfDown], includeContext: false);
 
-        await CaptureDagRoundtrip(request, "wf-up", "DagRoundtrip_WithLinks_FullExchange");
+        await CaptureDagRoundtrip(request, "wf-up", "DagRoundtrip_AllRelations_FullExchange");
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
