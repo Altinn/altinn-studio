@@ -106,6 +106,10 @@ const openPageAccordionAndVerifyUpdatedUrl = async (
   uiEditorPage: UiEditorPage,
   pageName: string,
 ): Promise<void> => {
+  const currentUrl = new URL(uiEditorPage.getCurrentUrl());
+  if (currentUrl.searchParams.get('layout') === pageName) {
+    return;
+  }
   await uiEditorPage.clickOnPageAccordion(pageName);
   await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, pageName); // When clicking the page, the url is updated to include the layout
 };
