@@ -19,7 +19,6 @@ import classes from './TaskCard.module.css';
 import { ExportForm } from '../Elements/ExportForm';
 import { useNavigate } from 'react-router-dom';
 import { useLayoutSetPath } from 'app-shared/hooks/queries/useLayoutSetPath';
-import { usePagesQuery } from '@altinn/ux-editor/hooks/queries/usePagesQuery';
 
 type TaskCardProps = {
   layoutSetModel: LayoutSetModel;
@@ -33,7 +32,6 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
   const taskIcon = getLayoutSetIcon(layoutSetModel);
   const navigate = useNavigate();
   const layoutSetPath = useLayoutSetPath(org, app, layoutSetModel.id);
-  const { isPending: isLayoutSetPending } = usePagesQuery(org, app, layoutSetModel.id);
 
   const [editing, setEditing] = useState(false);
 
@@ -87,7 +85,7 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
           {layoutSetModel.dataType && ' ' + layoutSetModel.dataType}
         </StudioParagraph>
       </div>
-      <StudioButton onClick={goToFormEditor} variant='primary' disabled={isLayoutSetPending}>
+      <StudioButton onClick={goToFormEditor} variant='primary'>
         {t('ux_editor.task_card.ux_editor')}
       </StudioButton>
     </StudioIconCard>
