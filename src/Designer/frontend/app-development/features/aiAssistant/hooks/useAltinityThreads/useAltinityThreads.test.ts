@@ -1,4 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
+import { MessageAuthor } from '@studio/assistant';
+import type { AssistantMessage, UserMessage } from '@studio/assistant';
 import { useAltinityThreads } from './useAltinityThreads';
 import { useChatThreadsQuery } from 'app-shared/hooks/queries/useChatThreadsQuery';
 import { useCreateChatThreadMutation } from 'app-shared/hooks/mutations/useCreateChatThreadMutation';
@@ -60,6 +62,96 @@ describe('useAltinityThreads', () => {
 
     expect(result.current.currentSessionId).toBe(threadId);
     expect(result.current.currentSessionIdRef.current).toBe(threadId);
+  });
+
+  it('returns the new thread id from createThread', async () => {
+    const createMutateAsync = jest.fn().mockResolvedValue({ id: 'new-thread-id' });
+    mockUseCreateChatThreadMutation.mockReturnValue({ mutateAsync: createMutateAsync } as any);
+
+    const { result } = renderUseAltinityThreads();
+
+    let createdId: string | undefined;
+    await act(async () => {
+      createdId = await result.current.createThread('My title');
+    });
+
+    expect(createMutateAsync).toHaveBeenCalledWith({ title: 'My title' });
+    expect(createdId).toBe('new-thread-id');
+  });
+
+  it('forwards messageId to deleteMessage mutation', () => {
+    const deleteMessageMutate = jest.fn();
+    mockUseDeleteChatMessageMutation.mockReturnValue({ mutate: deleteMessageMutate } as any);
+
+    const { result } = renderUseAltinityThreads();
+
+    act(() => {
+      result.current.deleteMessage(threadId, 'message-1');
+    });
+
+    expect(deleteMessageMutate).toHaveBeenCalledWith({ threadId, messageId: 'message-1' });
+  });
+
+  it('createMessage forwards user fields and omits assistant fields', () => {
+    const createMessageMutate = jest.fn();
+    mockUseCreateChatMessageMutation.mockReturnValue({ mutate: createMessageMutate } as any);
+
+    const userMessage: UserMessage = {
+      role: MessageAuthor.User,
+      content: 'Hello',
+      createdAt: '2025-01-01T00:00:00Z',
+      allowAppChanges: true,
+      attachments: [{ name: 'file-a.pdf' }, { name: 'file-b.png' }],
+    };
+
+    const { result } = renderUseAltinityThreads();
+
+    act(() => {
+      result.current.createMessage(threadId, userMessage);
+    });
+
+    expect(createMessageMutate).toHaveBeenCalledWith({
+      threadId,
+      payload: {
+        role: MessageAuthor.User,
+        content: 'Hello',
+        allowAppChanges: true,
+        attachmentFileNames: ['file-a.pdf', 'file-b.png'],
+        filesChanged: undefined,
+        sources: undefined,
+      },
+    });
+  });
+
+  it('createMessage forwards assistant fields and omits user fields', () => {
+    const createMessageMutate = jest.fn();
+    mockUseCreateChatMessageMutation.mockReturnValue({ mutate: createMessageMutate } as any);
+
+    const assistantMessage: AssistantMessage = {
+      role: MessageAuthor.Assistant,
+      content: 'Reply',
+      createdAt: '2025-01-01T00:00:00Z',
+      filesChanged: ['src/a.ts'],
+      sources: [{ tool: 'search', title: 'Doc' }],
+    };
+
+    const { result } = renderUseAltinityThreads();
+
+    act(() => {
+      result.current.createMessage(threadId, assistantMessage);
+    });
+
+    expect(createMessageMutate).toHaveBeenCalledWith({
+      threadId,
+      payload: {
+        role: MessageAuthor.Assistant,
+        content: 'Reply',
+        allowAppChanges: undefined,
+        attachmentFileNames: undefined,
+        filesChanged: ['src/a.ts'],
+        sources: [{ tool: 'search', title: 'Doc' }],
+      },
+    });
   });
 
   it('clears current session when deleting active thread succeeds', () => {

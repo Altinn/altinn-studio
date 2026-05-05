@@ -1,6 +1,9 @@
-import { mapChatMessageToFrontend } from './useChatMessagesQuery';
+import { mapChatMessageToFrontend, useChatMessagesQuery } from './useChatMessagesQuery';
 import { MessageAuthor } from 'app-shared/types/api';
 import type { ChatMessage } from 'app-shared/types/api';
+import { renderHookWithProviders } from 'app-development/test/mocks';
+import { app, org } from '@studio/testing/testids';
+import { waitFor } from '@testing-library/react';
 
 const baseMessage: ChatMessage = {
   id: 'msg-1',
@@ -9,6 +12,30 @@ const baseMessage: ChatMessage = {
   content: 'Hello',
   role: MessageAuthor.User,
 };
+
+describe('useChatMessagesQuery', () => {
+  afterEach(jest.clearAllMocks);
+
+  it('does not fetch messages when threadId is null', () => {
+    const getChatMessages = jest.fn();
+    renderHookWithProviders({ getChatMessages })(() => useChatMessagesQuery(null));
+
+    expect(getChatMessages).not.toHaveBeenCalled();
+  });
+
+  it('fetches messages and maps them to the frontend shape when threadId is set', async () => {
+    const threadId = 'thread-1';
+    const getChatMessages = jest.fn().mockResolvedValue([baseMessage]);
+    const result = renderHookWithProviders({ getChatMessages })(() =>
+      useChatMessagesQuery(threadId),
+    ).renderHookResult.result;
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(getChatMessages).toHaveBeenCalledWith(org, app, threadId);
+    expect(result.current.data).toEqual([mapChatMessageToFrontend(baseMessage)]);
+  });
+});
 
 describe('mapChatMessageToFrontend', () => {
   describe('user message', () => {
