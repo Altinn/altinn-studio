@@ -26,8 +26,27 @@ export class UiEditorPage extends BasePage {
       baseRoute + (layoutSet ? `/layoutSet/${layoutSet}` : ''),
       this.page.url(),
     );
-    if (layout) pageUrl.searchParams.append('layout', layout);
-    await this.page.waitForURL(pageUrl.toString());
+    if (!layout) {
+      const pageUrlPattern = new RegExp(
+        `^${pageUrl.toString().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\?.*)?$`,
+      );
+      await this.page.waitForURL(pageUrlPattern);
+      return;
+    }
+
+    const pageUrlWithLayout = new URL(pageUrl.toString());
+    pageUrlWithLayout.searchParams.append('layout', layout);
+
+    const urlPattern = new RegExp(
+      `${pageUrl.toString().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\?layout=${layout})?$`,
+    );
+    await this.page.waitForURL(urlPattern);
+
+    const currentUrl = new URL(this.page.url());
+    if (currentUrl.searchParams.get('layout') !== layout) {
+      await this.clickOnPageAccordion(layout);
+      await this.page.waitForURL(pageUrlWithLayout.toString());
+    }
   }
 
   public getCurrentUrl(): string {
