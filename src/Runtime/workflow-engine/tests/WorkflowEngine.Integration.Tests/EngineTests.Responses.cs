@@ -209,8 +209,8 @@ public partial class EngineTests
         var request = _testHelpers.CreateEnqueueRequest([workflowA, workflowB]);
 
         var accepted = await _client.Enqueue(request);
-        var workflowAId = accepted.Workflows.First(w => w.Ref == "wf-a").DatabaseId;
-        var workflowBId = accepted.Workflows.First(w => w.Ref == "wf-b").DatabaseId;
+        var workflowAId = accepted.Workflows.Single(w => w.Ref == "wf-a").DatabaseId;
+        var workflowBId = accepted.Workflows.Single(w => w.Ref == "wf-b").DatabaseId;
 
         await _client.WaitForWorkflowStatus(
             accepted.Workflows.Select(w => w.DatabaseId),
