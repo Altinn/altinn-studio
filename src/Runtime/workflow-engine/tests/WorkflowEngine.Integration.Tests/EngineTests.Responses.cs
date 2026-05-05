@@ -237,6 +237,47 @@ public partial class EngineTests
     }
 
     [Fact]
+    public async Task Response_GetWorkflow_WithAllRelations_ReturnsFullRelationsShape()
+    {
+        // Arrange — fetch wf-mid, which sits in the middle of a graph that exercises all three
+        // relation types: dependencies (wf-up), dependents (wf-down), and links (wf-side).
+        var upstream = _testHelpers.CreateWorkflow("wf-up", [_testHelpers.CreateWebhookStep("/ping-up")]);
+        var sibling = _testHelpers.CreateWorkflow("wf-side", [_testHelpers.CreateWebhookStep("/ping-side")]);
+        var middle = _testHelpers.CreateWorkflow(
+            "wf-mid",
+            [_testHelpers.CreateWebhookStep("/ping-mid")],
+            dependsOn: ["wf-up"]
+        ) with
+        {
+            Links = [(WorkflowRef)"wf-side"],
+        };
+        var downstream = _testHelpers.CreateWorkflow(
+            "wf-down",
+            [_testHelpers.CreateWebhookStep("/ping-down")],
+            dependsOn: ["wf-mid"]
+        );
+        var request = _testHelpers.CreateEnqueueRequest([upstream, sibling, middle, downstream]);
+
+        var accepted = await _client.Enqueue(request);
+        var middleId = accepted.Workflows.Single(w => w.Ref == "wf-mid").DatabaseId;
+
+        await _client.WaitForWorkflowStatus(
+            accepted.Workflows.Select(w => w.DatabaseId),
+            PersistentItemStatus.Completed
+        );
+
+        // Act
+        using var response = await _client.GetWorkflowRaw(middleId);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        body = Regex.Replace(body, @"""[0-9a-f\-]{36}"":", @"""{Scrubbed}"":"); // Scrub workflow GUIDs in dict keys
+        await VerifyJson(body).ScrubInlineGuids();
+    }
+
+    [Fact]
     public async Task Response_GetWorkflowDependencyGraph_IncludesDependentsAcrossCollectionKeys()
     {
         var rootWorkflow = _testHelpers.CreateWorkflow("wf-root", [_testHelpers.CreateWebhookStep("/ping-root")]);
