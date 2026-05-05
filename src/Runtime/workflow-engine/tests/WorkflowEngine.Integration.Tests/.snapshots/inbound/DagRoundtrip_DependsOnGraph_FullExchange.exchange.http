@@ -1,0 +1,226 @@
+###
+### 1. Client → Engine: Enqueue workflow batch
+###
+
+POST /api/v1/ttd%3Ae2e-tests/workflows HTTP/1.1
+Idempotency-Key: idem-Guid_1
+Content-Type: application/json; charset=utf-8
+
+{
+  "labels": {
+    "org": "ttd",
+    "app": "e2e-tests"
+  },
+  "context": null,
+  "workflows": [
+    {
+      "ref": "wf-up",
+      "operationId": "op-wf-up",
+      "steps": [
+        {
+          "operationId": "/ping-up",
+          "command": {
+            "type": "webhook",
+            "maxExecutionTime": null,
+            "data": {
+              "uri": "http://localhost:{PORT}/ping-up",
+              "payload": null,
+              "contentType": null
+            }
+          },
+          "retryStrategy": null,
+          "labels": null
+        }
+      ],
+      "startAt": null,
+      "state": null,
+      "dependsOn": null,
+      "links": null
+    },
+    {
+      "ref": "wf-mid",
+      "operationId": "op-wf-mid",
+      "steps": [
+        {
+          "operationId": "/ping-mid",
+          "command": {
+            "type": "webhook",
+            "maxExecutionTime": null,
+            "data": {
+              "uri": "http://localhost:{PORT}/ping-mid",
+              "payload": null,
+              "contentType": null
+            }
+          },
+          "retryStrategy": null,
+          "labels": null
+        }
+      ],
+      "startAt": null,
+      "state": null,
+      "dependsOn": [
+        "wf-up"
+      ],
+      "links": null
+    },
+    {
+      "ref": "wf-down",
+      "operationId": "op-wf-down",
+      "steps": [
+        {
+          "operationId": "/ping-down",
+          "command": {
+            "type": "webhook",
+            "maxExecutionTime": null,
+            "data": {
+              "uri": "http://localhost:{PORT}/ping-down",
+              "payload": null,
+              "contentType": null
+            }
+          },
+          "retryStrategy": null,
+          "labels": null
+        }
+      ],
+      "startAt": null,
+      "state": null,
+      "dependsOn": [
+        "wf-mid"
+      ],
+      "links": null
+    }
+  ]
+}
+
+HTTP/1.1 201 Created
+Content-Type: application/json; charset=utf-8
+
+{
+  "workflows": [
+    {
+      "ref": "wf-up",
+      "databaseId": "Guid_2",
+      "namespace": "ttd:e2e-tests"
+    },
+    {
+      "ref": "wf-mid",
+      "databaseId": "Guid_3",
+      "namespace": "ttd:e2e-tests"
+    },
+    {
+      "ref": "wf-down",
+      "databaseId": "Guid_4",
+      "namespace": "ttd:e2e-tests"
+    }
+  ]
+}
+
+###
+### 2. Client → Engine: Get workflow hierarchy
+###
+
+GET /api/v1/ttd%3Ae2e-tests/workflows/Guid_2/hierarchy HTTP/1.1
+
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{
+  "workflowId": "Guid_2",
+  "workflows": [
+    {
+      "databaseId": "Guid_2",
+      "operationId": "op-wf-up",
+      "idempotencyKey": "idem-Guid_1",
+      "namespace": "ttd:e2e-tests",
+      "createdAt": "{Scrubbed}",
+      "updatedAt": "{Scrubbed}",
+      "labels": {
+        "app": "e2e-tests",
+        "org": "ttd"
+      },
+      "overallStatus": "Completed",
+      "dependencies": {},
+      "dependents": {
+        "Guid_3": "Completed"
+      },
+      "links": {},
+      "steps": [
+        {
+          "databaseId": "Guid_5",
+          "operationId": "/ping-up",
+          "processingOrder": 0,
+          "updatedAt": "{Scrubbed}",
+          "command": {
+            "type": "webhook"
+          },
+          "status": "Completed",
+          "retryCount": 0
+        }
+      ]
+    },
+    {
+      "databaseId": "Guid_3",
+      "operationId": "op-wf-mid",
+      "idempotencyKey": "idem-Guid_1",
+      "namespace": "ttd:e2e-tests",
+      "createdAt": "{Scrubbed}",
+      "updatedAt": "{Scrubbed}",
+      "labels": {
+        "app": "e2e-tests",
+        "org": "ttd"
+      },
+      "overallStatus": "Completed",
+      "dependencies": {
+        "Guid_2": "Completed"
+      },
+      "dependents": {
+        "Guid_4": "Completed"
+      },
+      "links": {},
+      "steps": [
+        {
+          "databaseId": "Guid_6",
+          "operationId": "/ping-mid",
+          "processingOrder": 0,
+          "updatedAt": "{Scrubbed}",
+          "command": {
+            "type": "webhook"
+          },
+          "status": "Completed",
+          "retryCount": 0
+        }
+      ]
+    },
+    {
+      "databaseId": "Guid_4",
+      "operationId": "op-wf-down",
+      "idempotencyKey": "idem-Guid_1",
+      "namespace": "ttd:e2e-tests",
+      "createdAt": "{Scrubbed}",
+      "updatedAt": "{Scrubbed}",
+      "labels": {
+        "app": "e2e-tests",
+        "org": "ttd"
+      },
+      "overallStatus": "Completed",
+      "dependencies": {
+        "Guid_3": "Completed"
+      },
+      "dependents": {},
+      "links": {},
+      "steps": [
+        {
+          "databaseId": "Guid_7",
+          "operationId": "/ping-down",
+          "processingOrder": 0,
+          "updatedAt": "{Scrubbed}",
+          "command": {
+            "type": "webhook"
+          },
+          "status": "Completed",
+          "retryCount": 0
+        }
+      ]
+    }
+  ]
+}

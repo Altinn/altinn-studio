@@ -255,6 +255,8 @@ public static class HttpChatterHelpers
 
     /// <summary>
     /// Scrubs and persists HTTP chatter text to a .http snapshot file in the test project's .snapshots/ directory.
+    /// <paramref name="snapshotFileName"/> may include a subdirectory (e.g. <c>"inbound/Foo.inbound.http"</c>);
+    /// intermediate directories are created as needed.
     /// </summary>
     public static async Task PersistSnapshot(
         string httpText,
@@ -264,7 +266,8 @@ public static class HttpChatterHelpers
     {
         var scrubbed = Scrub(httpText);
         var snapshotDir = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".snapshots");
-        Directory.CreateDirectory(snapshotDir);
-        await File.WriteAllTextAsync(Path.Combine(snapshotDir, snapshotFileName), scrubbed, cancellationToken);
+        var fullPath = Path.Combine(snapshotDir, snapshotFileName);
+        Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
+        await File.WriteAllTextAsync(fullPath, scrubbed, cancellationToken);
     }
 }
