@@ -2,16 +2,20 @@ import type { StoreApi } from 'zustand';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
 import { createZustandHooks } from 'src/core/contexts/zustandContext';
+import { processLayouts } from 'src/features/form/layout/LayoutsContext';
+import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { pageNavigationHooks } from 'src/features/form/layout/PageNavigationContext';
+import { getUiFolderSettings } from 'src/features/form/ui';
 import { formBootstrapHooks } from 'src/features/formBootstrap/FormBootstrap';
 import { formDataHooks } from 'src/features/formData/FormDataWrite';
 import { validationHooks } from 'src/features/validation/validationContext';
 import { nodesHooks } from 'src/utils/layout/NodesContext';
 import type { PageNavigationSliceState } from 'src/features/form/layout/PageNavigationContext';
-import type { FormBootstrapContextValue } from 'src/features/formBootstrap/types';
+import type { FormBootstrapBase, FormBootstrapContextValue } from 'src/features/formBootstrap/types';
 import type { FormDataMethods, FormDataSliceState } from 'src/features/formData/FormDataWriteStateMachine';
 import type { ValidationSliceState } from 'src/features/validation';
 import type { ValidationInternals } from 'src/features/validation/validationContext';
+import type { ILayoutCollection } from 'src/layout/layout';
 import type { NodesSliceState } from 'src/utils/layout/NodesContext';
 
 const { Provider, useLaxCtx, useCtx } = createContext<FormStoreApi>({
@@ -77,19 +81,45 @@ export type FormStoreSet = (
   replace?: boolean,
 ) => void;
 
-export interface FormBootstrapSliceState extends FormBootstrapContextValue {
-  update: (bootstrap: FormBootstrapContextValue) => void;
+interface FormBootstrapSliceState extends FormBootstrapContextValue {
+  initialLayouts: ILayoutCollection;
+  changeLayouts: (mutator: (existingLayouts: ILayoutCollection) => ILayoutCollection) => void;
+  resetLayouts: () => void;
 }
 
-export function createFormBootstrapSlice(
-  bootstrap: FormBootstrapContextValue,
-  set: FormStoreSet,
-): FormBootstrapSliceState {
+export function processBootstrap(bootstrap: FormBootstrapBase): FormBootstrapContextValue {
+  const defaultDataType = getUiFolderSettings(bootstrap.uiFolder)?.defaultDataType;
+  if (!defaultDataType) {
+    throw new Error(`Expected defaultDataType to be defined for uiFolder: ${bootstrap.uiFolder}`);
+  }
+
+  const processedLayouts = processLayouts(bootstrap.layouts, defaultDataType);
+  const layoutLookups = makeLayoutLookups(processedLayouts.processedLayouts);
+
   return {
     ...bootstrap,
-    update: (nextBootstrap) =>
+    ...processedLayouts,
+    layoutLookups,
+  };
+}
+
+export function createFormBootstrapSlice(bootstrap: FormBootstrapBase, set: FormStoreSet): FormBootstrapSliceState {
+  const processedBootstrap = processBootstrap(bootstrap);
+
+  return {
+    ...processedBootstrap,
+    initialLayouts: bootstrap.layouts,
+    changeLayouts: (mutator) =>
       set((state) => {
-        Object.assign(state.bootstrap, nextBootstrap);
+        const nextLayouts = mutator(structuredClone(state.bootstrap.initialLayouts));
+        Object.assign(state.bootstrap, processBootstrap({ ...state.bootstrap, layouts: nextLayouts }));
+      }),
+    resetLayouts: () =>
+      set((state) => {
+        Object.assign(
+          state.bootstrap,
+          processBootstrap({ ...state.bootstrap, layouts: state.bootstrap.initialLayouts }),
+        );
       }),
   };
 }

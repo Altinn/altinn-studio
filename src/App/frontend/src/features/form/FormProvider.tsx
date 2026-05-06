@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { createStore } from 'zustand';
@@ -14,13 +14,15 @@ import { UpdateDataElementIdsForCypress } from 'src/features/form/DataElementIds
 import {
   createFormBootstrapSlice,
   FormStore,
+  type FormStoreApi,
   FormStoreProvider,
+  type FormStoreSet,
+  type FormStoreState,
   getRootFormStore,
+  processBootstrap,
 } from 'src/features/form/FormContext';
 import { getPrefillFromSessionStorage } from 'src/features/form/getPrefillFromSessionStorage';
 import { useLayoutOverrides } from 'src/features/form/layout/layoutOverrides';
-import { processLayouts } from 'src/features/form/layout/LayoutsContext';
-import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { createPageNavigationSlice } from 'src/features/form/layout/PageNavigationContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { getUiFolderSettings } from 'src/features/form/ui';
@@ -42,8 +44,7 @@ import { useNavigationParam } from 'src/hooks/navigation';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { createNodesSlice, NodesProvider } from 'src/utils/layout/NodesContext';
 import { HttpStatusCodes } from 'src/utils/network/networking';
-import type { FormStoreApi, FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
-import type { FormBootstrapBase, FormBootstrapContextValue } from 'src/features/formBootstrap/types';
+import type { FormBootstrapBase } from 'src/features/formBootstrap/types';
 import type { FormDataSliceProps } from 'src/features/formData/FormDataWrite';
 
 interface FormProviderProps {
@@ -59,28 +60,21 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
   const parentFromContext = FormStore.raw.useLaxStore();
   const parent = parentFromContext === ContextNotProvided ? undefined : parentFromContext;
   const hasProcess = useHasProcess();
-  const { error, bootstrap: bootstrapBase, layouts: bootstrapLayouts, enabled } = useBoostrapQuery(props);
-  const layouts = useLayoutOverrides(bootstrapLayouts);
-
-  const bootstrap = useMemo<FormBootstrapContextValue | null>(() => {
-    if (bootstrapBase && layouts) {
-      const defaultDataType = getUiFolderSettings(bootstrapBase.uiFolder)?.defaultDataType;
-      if (!defaultDataType) {
-        throw new Error(`Expected defaultDataType to be defined for uiFolder: ${bootstrapBase.uiFolder}`);
-      }
-
-      const processedLayouts = processLayouts(layouts, defaultDataType);
-      const layoutLookups = makeLayoutLookups(processedLayouts.processedLayouts);
-
-      return { ...bootstrapBase, ...processedLayouts, layoutLookups };
-    }
-
-    return null;
-  }, [bootstrapBase, layouts]);
+  const { error, bootstrap, enabled } = useBoostrapQuery(props);
+  const previousBootstrap = useRef<FormBootstrapBase | null>(bootstrap);
 
   const dataSliceProps = useFormDataSliceProps(bootstrap);
-  const bootstrapBaseRef = useRef(bootstrapBase);
   const storeRef = useRef<FormStoreApi | undefined>(undefined);
+
+  if (enabled && bootstrap && dataSliceProps && (!storeRef.current || previousBootstrap.current !== bootstrap)) {
+    // When the bootstrap query changes, or if it's the first render, we should wipe the store and restart. This usually
+    // means we're moved to another task while keeping a similar enough render-tree to cause this to be re-used. The
+    // layouts can change without all of this being reset, however.
+    storeRef.current = createFormStore({ parent, readOnly, data: dataSliceProps, bootstrap });
+    previousBootstrap.current = bootstrap;
+  }
+
+  useLayoutOverrides(storeRef);
 
   useEffect(() => {
     // This injects validations for subform data elements into the top-most form store. They are maintained by
@@ -96,12 +90,6 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
       }
     }
   }, [bootstrap, parent, props.dataElementIdOverride]);
-
-  useLayoutEffect(() => {
-    if (bootstrap) {
-      storeRef.current?.getState().bootstrap.update(bootstrap);
-    }
-  }, [bootstrap]);
 
   if (!enabled) {
     // No point in trying to render a form here, but this can still happen when FormProvider is applied for all tasks
@@ -122,16 +110,8 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
     return <Loader reason='bootstrap-form' />;
   }
 
-  if (!storeRef.current || bootstrapBaseRef.current !== bootstrapBase) {
-    // When the bootstrap query changes, or if it's the first render, we should wipe the store and restart. This usually
-    // means we're moved to another task while keeping a similar enough render-tree to cause this to be re-used. The
-    // layouts can change without all of this being reset, however.
-    storeRef.current = createFormStore({ parent, readOnly, data: dataSliceProps, bootstrap });
-    bootstrapBaseRef.current = bootstrapBase;
-  }
-
   return (
-    <FormStoreProvider value={storeRef.current}>
+    <FormStoreProvider value={storeRef.current!}>
       {window.Cypress && <UpdateDataElementIdsForCypress />}
       <FormDataWriteEffects />
       <ValidationEffects />
@@ -199,7 +179,7 @@ function useBoostrapQuery({ uiFolderOverride, dataElementIdOverride }: FormProvi
     [data, uiFolder],
   );
 
-  return { error, bootstrap, layouts: data?.layouts, enabled };
+  return { error, bootstrap, enabled };
 }
 
 function createFormStore({
@@ -211,14 +191,14 @@ function createFormStore({
   parent: FormStoreApi | undefined;
   data: FormDataSliceProps;
   readOnly: boolean;
-  bootstrap: FormBootstrapContextValue;
+  bootstrap: FormBootstrapBase;
 }): FormStoreApi {
   return createStore<FormStoreState>()(
     immer((set: FormStoreSet) => ({
       parent,
       readOnly,
       data: createFormDataWriteSlice(data, set),
-      validation: createValidationSlice(bootstrap, set),
+      validation: createValidationSlice(processBootstrap(bootstrap), set),
       nodes: createNodesSlice(set),
       pageNavigation: createPageNavigationSlice(set),
       bootstrap: createFormBootstrapSlice(bootstrap, set),
@@ -226,7 +206,7 @@ function createFormStore({
   );
 }
 
-export function useFormDataSliceProps(bootstrap: FormBootstrapContextValue | null): FormDataSliceProps | undefined {
+export function useFormDataSliceProps(bootstrap: FormBootstrapBase | null): FormDataSliceProps | undefined {
   const proxies = useFormDataWriteProxies();
   const selectFromInstance = useSelectFromInstanceData();
   const autoSaveBehavior = usePageSettings().autoSaveBehavior;
