@@ -140,7 +140,7 @@ internal sealed class AlertsService(
                 case ContactMethodType.Email:
                     var alertTitle = $"❌ {alert.Name}";
                     await altinnNotificationsClient.SendEmailNotification(
-                        Guid.NewGuid().ToString(),
+                        $"{contactPoint.Id}-{method.Id}-{alert.Id}",
                         method.Value,
                         alertTitle,
                         FormatEmailBody(org, environment, apps, alertTitle, alert.Url, alert.LogsUrl),
@@ -149,7 +149,7 @@ internal sealed class AlertsService(
                     break;
                 case ContactMethodType.Sms:
                     await altinnNotificationsClient.SendSmsNotification(
-                        Guid.NewGuid().ToString(),
+                        $"{contactPoint.Id}-{method.Id}-{alert.Id}",
                         method.Value,
                         FormatSmsBody(org, environment, apps, alert.Name)
                     );
