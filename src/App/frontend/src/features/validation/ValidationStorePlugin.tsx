@@ -4,7 +4,6 @@ import dot from 'dot-object';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { getRepeatingBinding, isRepeatingComponentType } from 'src/features/form/layout/utils/repeating';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation/index';
 import { getInitialMaskFromItem, selectValidations } from 'src/features/validation/utils';
@@ -93,7 +92,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
   extraHooks(): ValidationStorePluginConfig['extraHooks'] {
     return {
       useValidationVisibility: (nodeId) => {
-        const lookups = FormBootstrap.useLayoutLookups();
+        const lookups = FormStore.bootstrap.useLayoutLookups();
         return FormStore.raw.useSelector((state) => {
           if (!nodeId) {
             return 0;
@@ -102,7 +101,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
         });
       },
       useValidationVisibilityBreakdown: (nodeId) => {
-        const lookups = FormBootstrap.useLayoutLookups();
+        const lookups = FormStore.bootstrap.useLayoutLookups();
         return FormStore.raw.useShallowSelector((state) => {
           if (!nodeId) {
             return emptyVisibilityBreakdown;
