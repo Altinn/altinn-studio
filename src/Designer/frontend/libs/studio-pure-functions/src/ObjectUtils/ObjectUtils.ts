@@ -58,5 +58,5 @@ export class ObjectUtils {
   static deleteUndefined = <T>(obj: { [s: string]: T }): { [s: string]: T } =>
     Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined));
 
-  static shallowMutableCopy = <T>(obj: T): Mutable<T> => ({ ...obj }) as Mutable<T>;
+  static shallowMutableCopy = <T extends object>(obj: T): Mutable<T> => ({ ...obj }) as Mutable<T>;
 }
