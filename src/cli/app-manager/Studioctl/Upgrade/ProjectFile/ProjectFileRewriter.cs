@@ -2,7 +2,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.ProjectRewriters;
+namespace Altinn.Studio.Cli.Upgrade.ProjectFile;
 
 /// <summary>
 /// Upgrade the csproj file

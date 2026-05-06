@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.CodeRewriters;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.DockerfileRewriters;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.ProcessRewriter;
-using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.ProjectRewriters;
+using Altinn.Studio.Cli.Upgrade.ProjectFile;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;

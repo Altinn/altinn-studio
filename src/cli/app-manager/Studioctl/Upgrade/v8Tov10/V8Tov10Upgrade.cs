@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.ProjectRewriters;
+using Altinn.Studio.Cli.Upgrade.ProjectFile;
 using Altinn.Studio.Cli.Upgrade.v8Tov10.IndexMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov10.LayoutSetsMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov10.RuleConfiguration;
