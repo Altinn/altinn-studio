@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Scheduling;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Moq;
@@ -15,9 +16,8 @@ public class ChatInactivityCleanupJobTests
     public async Task Execute_InvokesChatService_DeleteInactiveThreadsAsync()
     {
         var chatServiceMock = new Mock<IChatService>();
-        chatServiceMock.Setup(s => s.DeleteInactiveThreadsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(3);
 
-        var job = new ChatInactivityCleanupJob(chatServiceMock.Object);
+        var job = new ChatInactivityCleanupJob(chatServiceMock.Object, new SchedulingSettings());
 
         var jobExecutionContextMock = new Mock<IJobExecutionContext>();
         jobExecutionContextMock.SetupGet(c => c.CancellationToken).Returns(CancellationToken.None);
@@ -35,7 +35,7 @@ public class ChatInactivityCleanupJobTests
             .Setup(s => s.DeleteInactiveThreadsAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("error"));
 
-        var job = new ChatInactivityCleanupJob(chatServiceMock.Object);
+        var job = new ChatInactivityCleanupJob(chatServiceMock.Object, new SchedulingSettings());
 
         var jobExecutionContextMock = new Mock<IJobExecutionContext>();
         jobExecutionContextMock.SetupGet(c => c.CancellationToken).Returns(CancellationToken.None);

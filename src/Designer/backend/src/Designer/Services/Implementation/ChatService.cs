@@ -2,16 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
-using Altinn.Studio.Designer.Scheduling;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
-public class ChatService(IChatRepository repository) : IChatService
+public class ChatService(IChatRepository repository, TimeProvider timeProvider, SchedulingSettings schedulingSettings)
+    : IChatService
 {
     public async Task<List<ChatThreadEntity>> GetThreadsAsync(
         AltinnRepoEditingContext context,
@@ -71,7 +72,9 @@ public class ChatService(IChatRepository repository) : IChatService
 
     public Task<int> DeleteInactiveThreadsAsync(CancellationToken cancellationToken = default)
     {
-        DateTime cutoff = DateTime.UtcNow.AddDays(-ChatInactivityCleanupJobConstants.MaxInactivityDays);
+        DateTime cutoff = timeProvider
+            .GetUtcNow()
+            .UtcDateTime.AddDays(-schedulingSettings.ChatInactivityCleanup.InactivityRetentionDays);
         return repository.DeleteInactiveThreadsAsync(cutoff, cancellationToken);
     }
 

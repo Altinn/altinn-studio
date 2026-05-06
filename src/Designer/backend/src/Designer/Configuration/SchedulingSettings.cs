@@ -7,6 +7,12 @@ public class SchedulingSettings
     public bool UsePersistentScheduling { get; set; } = true;
     public bool AddHostedService { get; set; } = true;
     public InactivityUndeployJobTimeoutSettings InactivityUndeployJobTimeouts { get; set; } = new();
+    public ChatInactivityCleanupSettings ChatInactivityCleanup { get; set; } = new();
+}
+
+public class ChatInactivityCleanupSettings
+{
+    public int InactivityRetentionDays { get; set; } = 30;
 }
 
 public class InactivityUndeployJobTimeoutSettings

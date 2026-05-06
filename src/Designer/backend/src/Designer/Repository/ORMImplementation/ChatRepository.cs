@@ -88,9 +88,9 @@ public class ChatRepository : IChatRepository
     }
 
     /// <inheritdoc />
-    public Task<int> DeleteInactiveThreadsAsync(DateTime cutoff, CancellationToken cancellationToken = default)
+    public async Task<int> DeleteInactiveThreadsAsync(DateTime cutoff, CancellationToken cancellationToken = default)
     {
-        return _dbContext
+        return await _dbContext
             .ChatThreads.Where(thread =>
                 thread.CreatedAt < cutoff
                 && _dbContext

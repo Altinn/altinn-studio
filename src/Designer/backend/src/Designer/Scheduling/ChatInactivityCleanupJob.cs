@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Telemetry;
 using Quartz;
@@ -11,10 +12,12 @@ namespace Altinn.Studio.Designer.Scheduling;
 public class ChatInactivityCleanupJob : IJob
 {
     private readonly IChatService _chatService;
+    private readonly SchedulingSettings _schedulingSettings;
 
-    public ChatInactivityCleanupJob(IChatService chatService)
+    public ChatInactivityCleanupJob(IChatService chatService, SchedulingSettings schedulingSettings)
     {
         _chatService = chatService;
+        _schedulingSettings = schedulingSettings;
     }
 
     public async Task Execute(IJobExecutionContext context)
@@ -24,7 +27,7 @@ public class ChatInactivityCleanupJob : IJob
             ActivityKind.Internal
         );
         activity?.SetAlwaysSample();
-        activity?.SetTag("retention.days", ChatInactivityCleanupJobConstants.MaxInactivityDays);
+        activity?.SetTag("retention.days", _schedulingSettings.ChatInactivityCleanup.InactivityRetentionDays);
 
         try
         {
