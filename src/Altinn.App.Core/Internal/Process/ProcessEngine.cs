@@ -45,7 +45,7 @@ internal class ProcessEngine : IProcessEngine
     private readonly IProcessEngineAuthorizer _processEngineAuthorizer;
     private readonly ILogger<ProcessEngine> _logger;
     private readonly IValidationService _validationService;
-    private readonly InstanceStateService _instanceStateService;
+    private readonly WorkflowCallbackStateService _workflowCallbackStateService;
     private readonly IWorkflowEngineService _workflowEngineService;
     private readonly IInstanceClient _instanceClient;
     private readonly IInstanceLocker _instanceLocker;
@@ -75,7 +75,7 @@ internal class ProcessEngine : IProcessEngine
         _validationService = validationService;
         _logger = logger;
         _workflowEngineService = workflowEngineService;
-        _instanceStateService = serviceProvider.GetRequiredService<InstanceStateService>();
+        _workflowCallbackStateService = serviceProvider.GetRequiredService<WorkflowCallbackStateService>();
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _instanceClient = serviceProvider.GetRequiredService<IInstanceClient>();
@@ -167,7 +167,7 @@ internal class ProcessEngine : IProcessEngine
             language: null,
             StorageAuthenticationMethod.ServiceOwner()
         );
-        string state = await _instanceStateService.CaptureState(unitOfWork);
+        string state = await _workflowCallbackStateService.CaptureState(unitOfWork);
 
         ProcessNextWorkflowResult result = await _workflowEngineService.EnqueueAndWaitForProcessNext(
             instance,
@@ -786,8 +786,8 @@ internal class ProcessEngine : IProcessEngine
         CancellationToken ct = default
     )
     {
-        // Capture state BEFORE mutation — commands that run before SaveProcessStateToStorage
-        // need to see the old process state, mirroring how they'd read it from Storage.
+        // Compute the transition without mutating instance.Process, then capture the old instance/form-data
+        // snapshot before mutating instance.Process so the callback starts from the task being left.
         string? currentTaskId = instance.Process?.CurrentTask?.ElementId;
         InstanceDataUnitOfWork unitOfWork = await _instanceDataUnitOfWorkInitializer.Init(
             instance,
@@ -796,12 +796,11 @@ internal class ProcessEngine : IProcessEngine
             StorageAuthenticationMethod.ServiceOwner()
         );
 
-        string state = await _instanceStateService.CaptureState(unitOfWork);
+        string state = await _workflowCallbackStateService.CaptureState(unitOfWork);
         ProcessStateChange? processStateChange = await MoveProcessStateToNextAndGenerateEvents(instance, action);
-
         if (processStateChange is null)
         {
-            return new MoveToNextResult(instance, null);
+            throw new InvalidOperationException("Process state was unexpectedly null when moving to the next task.");
         }
 
         ProcessNextWorkflowResult result = await _workflowEngineService.EnqueueAndWaitForProcessNext(

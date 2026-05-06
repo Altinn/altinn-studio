@@ -21,7 +21,7 @@ namespace Altinn.App.Api.Controllers;
 public class WorkflowEngineCallbackController : ControllerBase
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly InstanceStateService _instanceStateService;
+    private readonly WorkflowCallbackStateService _workflowCallbackStateService;
     private readonly ILogger<WorkflowEngineCallbackController> _logger;
     private readonly Telemetry? _telemetry;
 
@@ -35,7 +35,7 @@ public class WorkflowEngineCallbackController : ControllerBase
     )
     {
         _serviceProvider = serviceProvider;
-        _instanceStateService = serviceProvider.GetRequiredService<InstanceStateService>();
+        _workflowCallbackStateService = serviceProvider.GetRequiredService<WorkflowCallbackStateService>();
         _logger = logger;
         _telemetry = telemetry;
     }
@@ -82,7 +82,7 @@ public class WorkflowEngineCallbackController : ControllerBase
             );
         }
 
-        // Restore instance + form data from the opaque state blob.
+        // Restore instance and form data from the opaque state blob.
         // State must always be provided — every workflow is enqueued with a captured state blob.
         if (payload.State is null)
         {
@@ -99,7 +99,7 @@ public class WorkflowEngineCallbackController : ControllerBase
             );
         }
 
-        InstanceDataUnitOfWork instanceDataUnitOfWork = await _instanceStateService.RestoreState(
+        InstanceDataUnitOfWork instanceDataUnitOfWork = await _workflowCallbackStateService.RestoreState(
             payload.State,
             payload.Actor.Language
         );
@@ -144,7 +144,7 @@ public class WorkflowEngineCallbackController : ControllerBase
                 await instanceDataUnitOfWork.SaveChanges(changes);
 
                 // Capture updated state (includes Storage-assigned IDs for newly created data elements)
-                string updatedState = await _instanceStateService.CaptureState(instanceDataUnitOfWork);
+                string updatedState = await _workflowCallbackStateService.CaptureState(instanceDataUnitOfWork);
 
                 // If the command signals auto-advance, enqueue a dependent process-next workflow.
                 // This happens AFTER save so the state blob includes Storage-assigned IDs.

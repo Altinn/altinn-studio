@@ -1740,7 +1740,7 @@ public sealed class ProcessEngineTest
                 )
             );
             services.TryAddTransient<ProcessNextRequestFactory>();
-            services.TryAddTransient<InstanceStateService>();
+            services.TryAddTransient<WorkflowCallbackStateService>();
 
             if (registerProcessEnd)
                 services.AddSingleton<IProcessEnd>(_ => new Mock<IProcessEnd>().Object);

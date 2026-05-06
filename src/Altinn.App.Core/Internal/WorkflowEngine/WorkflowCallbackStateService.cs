@@ -11,16 +11,16 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// Service for capturing and restoring instance state for transport between app and workflow engine.
+/// Service for capturing and restoring workflow callback state for transport between app and workflow engine.
 /// </summary>
-internal sealed class InstanceStateService
+internal sealed class WorkflowCallbackStateService
 {
     private readonly InstanceDataUnitOfWorkInitializer _unitOfWorkInitializer;
     private readonly ModelSerializationService _modelSerializationService;
     private readonly IAppMetadata _appMetadata;
     private readonly IAppModel _appModel;
 
-    public InstanceStateService(
+    public WorkflowCallbackStateService(
         InstanceDataUnitOfWorkInitializer unitOfWorkInitializer,
         ModelSerializationService modelSerializationService,
         IAppMetadata appMetadata,
@@ -47,20 +47,22 @@ internal sealed class InstanceStateService
                 Data = x.Data,
             })
             .ToList();
-        var instanceState = new InstanceState { Instance = unitOfWork.Instance, FormData = formData };
-        return JsonSerializer.Serialize(instanceState);
+        var callbackState = new WorkflowCallbackState { Instance = unitOfWork.Instance, FormData = formData };
+        return JsonSerializer.Serialize(callbackState);
     }
 
     /// <summary>
-    /// Restores an InstanceDataUnitOfWork from a previously captured state string.
+    /// Restores workflow callback state from a previously captured state string.
     /// </summary>
     public async Task<InstanceDataUnitOfWork> RestoreState(string state, string? language)
     {
-        InstanceState instanceState =
-            JsonSerializer.Deserialize<InstanceState>(state)
-            ?? throw new InvalidOperationException("Failed to deserialize instance state from callback payload");
+        WorkflowCallbackState callbackState =
+            JsonSerializer.Deserialize<WorkflowCallbackState>(state)
+            ?? throw new InvalidOperationException(
+                "Failed to deserialize workflow callback state from callback payload"
+            );
 
-        Instance instance = instanceState.Instance;
+        Instance instance = callbackState.Instance;
         string? taskId = instance.Process?.CurrentTask?.ElementId;
 
         InstanceDataUnitOfWork unitOfWork = await _unitOfWorkInitializer.Init(
@@ -72,7 +74,7 @@ internal sealed class InstanceStateService
 
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
 
-        foreach (FormDataEntry entry in instanceState.FormData)
+        foreach (FormDataEntry entry in callbackState.FormData)
         {
             DataElement? dataElement = instance.Data.Find(d => d.Id == entry.Id);
             if (dataElement is null)

@@ -12,7 +12,7 @@ The Workflow Engine service (external, .NET, PostgreSQL-backed) orchestrates pro
 
 ```
 App ProcessNext API
-  → Capture instance + form data into opaque state blob (InstanceStateService)
+  → Capture workflow callback state into opaque state blob (WorkflowCallbackStateService)
   → ProcessNextRequestFactory.Create()     (builds WorkflowEnqueueRequest from ProcessStateChange)
   → WorkflowEngineClient.EnqueueWorkflow() (HTTP POST to engine, returns WorkflowEnqueueResponse.Accepted)
   → Extract workflowId from response for status polling
@@ -22,7 +22,7 @@ Engine (external service)
   → For each AppCommand: POST to /workflow-engine-callbacks/{commandKey} (echoes state blob)
 
 WorkflowEngineCallbackController.ExecuteCommand()
-  → Restore InstanceDataUnitOfWork from state blob (InstanceStateService)
+  → Restore workflow callback state from state blob (WorkflowCallbackStateService)
   → Resolve IWorkflowEngineCommand by key
   → command.Execute(context)
   → Save data changes on success, capture updated state blob, return to engine
@@ -100,8 +100,8 @@ WorkflowEngine/
 │   ├── WorkflowStatusResponse.cs            - Full status response (databaseId, operationId, steps as StepStatusResponse)
 │   ├── CallbackErrorResponse.cs             - Error response from callback controller
 │   ├── AppCallbackResponse.cs               - Success response with updated state blob (nullable)
-│   └── InstanceState.cs                     - Internal DTO for transported instance + form data state
-├── InstanceStateService.cs                  - Captures/restores InstanceDataUnitOfWork to/from opaque state blob
+│   └── WorkflowCallbackState.cs             - Internal DTO for transported instance + form data callback state
+├── WorkflowCallbackStateService.cs          - Captures/restores workflow callback state to/from opaque state blob
 ├── ProcessNextRequestFactory.cs             - Maps ProcessStateChange → WorkflowEnqueueRequest
 └── WorkflowCommandSet.cs                    - Defines command sequences per event type
 ```
@@ -201,15 +201,15 @@ The engine service (separate repo at `altinn-studio/src/Runtime/workflow-engine`
 
 ## State Passthrough
 
-Each callback needs an `InstanceDataUnitOfWork` (instance + form data). Rather than fetching from Storage on every callback (which would see stale process state), the app captures instance + form data into an opaque `JsonElement` blob that the engine stores and echoes back with each callback.
+Each callback needs the app's workflow callback state (`instance` + `formData`). Rather than fetching from Storage on every callback (which would see stale process state), the app captures that state into an opaque `JsonElement` blob that the engine stores and echoes back with each callback.
 
 **Capture point**: `ProcessEngine.HandleMoveToNext` captures state BEFORE `MoveProcessStateToNextAndGenerateEvents` mutates `instance.Process`. This means the blob carries the OLD process state (CurrentTask = the task being left). `MutateProcessState` transitions the in-memory state to the new task between the two command groups.
 
 **Flow**:
-1. `InstanceStateService.CaptureState` → serializes instance + form data into `InstanceState` → `JsonElement`
+1. `WorkflowCallbackStateService.CaptureState` → serializes instance + form data into `WorkflowCallbackState` → `JsonElement`
 2. State blob is included in `WorkflowRequest.State`
 3. Engine echoes it back in `AppCallbackPayload.State` for each callback
-4. `InstanceStateService.RestoreState` → deserializes, creates `InstanceDataUnitOfWork` with preloaded form data
+4. `WorkflowCallbackStateService.RestoreState` → deserializes, creates `InstanceDataUnitOfWork` with preloaded form data
 5. After command execution, updated state is captured and returned in `AppCallbackResponse.State`
 6. Engine uses the returned state for the next callback — state evolves command by command
 

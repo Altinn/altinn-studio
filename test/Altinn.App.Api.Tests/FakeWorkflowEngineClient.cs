@@ -31,10 +31,13 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     private readonly object _gate = new();
     private bool _isProcessing;
 
-    public FakeWorkflowEngineClient(IServiceProvider serviceProvider, InstanceStateService instanceStateService)
+    public FakeWorkflowEngineClient(
+        IServiceProvider serviceProvider,
+        WorkflowCallbackStateService workflowCallbackStateService
+    )
     {
         _serviceProvider = serviceProvider;
-        _ = instanceStateService;
+        _ = workflowCallbackStateService;
     }
 
     public async Task<WorkflowEnqueueResponse.Accepted> EnqueueWorkflows(

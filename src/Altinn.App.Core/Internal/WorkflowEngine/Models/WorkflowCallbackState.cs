@@ -5,10 +5,10 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Internal.WorkflowEngine.Models;
 
 /// <summary>
-/// Internal DTO representing the transported instance state.
+/// Internal DTO representing transported workflow callback state.
 /// The workflow engine never inspects this — it's serialized into an opaque string.
 /// </summary>
-internal sealed record InstanceState
+internal sealed record WorkflowCallbackState
 {
     [JsonPropertyName("instance")]
     public required Instance Instance { get; init; }

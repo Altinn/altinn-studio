@@ -1,16 +1,17 @@
 using System.Text.Json;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
+using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 
-public class InstanceStateServiceTests
+public class WorkflowCallbackStateTests
 {
     [Fact]
-    public void InstanceState_SerializeDeserialize_PreservesInstance()
+    public void WorkflowCallbackState_SerializeDeserialize_PreservesInstance()
     {
         // Arrange
-        var instanceState = new InstanceState
+        var instanceState = new WorkflowCallbackState
         {
             Instance = new Instance
             {
@@ -27,7 +28,7 @@ public class InstanceStateServiceTests
 
         // Act
         string json = JsonSerializer.Serialize(instanceState);
-        var deserialized = JsonSerializer.Deserialize<InstanceState>(json);
+        var deserialized = JsonSerializer.Deserialize<WorkflowCallbackState>(json);
 
         // Assert
         Assert.NotNull(deserialized);
@@ -42,7 +43,7 @@ public class InstanceStateServiceTests
     }
 
     [Fact]
-    public void InstanceState_SerializeDeserialize_PreservesFormData()
+    public void WorkflowCallbackState_SerializeDeserialize_PreservesFormData()
     {
         // Arrange
         var formDataObject = new
@@ -53,7 +54,7 @@ public class InstanceStateServiceTests
         };
         var dataElement = JsonSerializer.SerializeToElement(formDataObject);
 
-        var instanceState = new InstanceState
+        var instanceState = new WorkflowCallbackState
         {
             Instance = new Instance { Org = "ttd", AppId = "ttd/test-app" },
             FormData = new List<FormDataEntry>
@@ -69,7 +70,7 @@ public class InstanceStateServiceTests
 
         // Act
         string json = JsonSerializer.Serialize(instanceState);
-        var deserialized = JsonSerializer.Deserialize<InstanceState>(json);
+        var deserialized = JsonSerializer.Deserialize<WorkflowCallbackState>(json);
 
         // Assert
         Assert.NotNull(deserialized);
@@ -84,14 +85,14 @@ public class InstanceStateServiceTests
     }
 
     [Fact]
-    public void InstanceState_SerializeDeserialize_MultipleDataElements()
+    public void WorkflowCallbackState_SerializeDeserialize_MultipleDataElements()
     {
         // Arrange
         var data1 = JsonSerializer.SerializeToElement(new { Field1 = "value1" });
         var data2 = JsonSerializer.SerializeToElement(new { Field2 = 100, Nested = new { Inner = "deep" } });
         var data3 = JsonSerializer.SerializeToElement(new int[] { 1, 2, 3 });
 
-        var instanceState = new InstanceState
+        var instanceState = new WorkflowCallbackState
         {
             Instance = new Instance { Org = "ttd", AppId = "ttd/test-app" },
             FormData = new List<FormDataEntry>
@@ -119,7 +120,7 @@ public class InstanceStateServiceTests
 
         // Act
         string json = JsonSerializer.Serialize(instanceState);
-        var deserialized = JsonSerializer.Deserialize<InstanceState>(json);
+        var deserialized = JsonSerializer.Deserialize<WorkflowCallbackState>(json);
 
         // Assert
         Assert.NotNull(deserialized);
@@ -144,10 +145,10 @@ public class InstanceStateServiceTests
     }
 
     [Fact]
-    public void InstanceState_SerializeDeserialize_EmptyFormData()
+    public void WorkflowCallbackState_SerializeDeserialize_EmptyFormData()
     {
         // Arrange
-        var instanceState = new InstanceState
+        var instanceState = new WorkflowCallbackState
         {
             Instance = new Instance
             {
@@ -160,7 +161,7 @@ public class InstanceStateServiceTests
 
         // Act
         string json = JsonSerializer.Serialize(instanceState);
-        var deserialized = JsonSerializer.Deserialize<InstanceState>(json);
+        var deserialized = JsonSerializer.Deserialize<WorkflowCallbackState>(json);
 
         // Assert
         Assert.NotNull(deserialized);
@@ -173,10 +174,10 @@ public class InstanceStateServiceTests
     }
 
     [Fact]
-    public void InstanceState_SerializeDeserialize_PreservesDataElementsOnInstance()
+    public void WorkflowCallbackState_SerializeDeserialize_PreservesDataElementsOnInstance()
     {
         // Arrange
-        var instanceState = new InstanceState
+        var instanceState = new WorkflowCallbackState
         {
             Instance = new Instance
             {
@@ -203,7 +204,7 @@ public class InstanceStateServiceTests
 
         // Act
         string json = JsonSerializer.Serialize(instanceState);
-        var deserialized = JsonSerializer.Deserialize<InstanceState>(json);
+        var deserialized = JsonSerializer.Deserialize<WorkflowCallbackState>(json);
 
         // Assert
         Assert.NotNull(deserialized);
