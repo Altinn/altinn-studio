@@ -1,4 +1,3 @@
-#nullable disable
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
@@ -248,13 +247,13 @@ public class OptionsController : ControllerBase
     public async Task<IActionResult> UploadFile(
         string org,
         string repo,
-        [FromForm] IFormFile file,
+        [FromForm] IFormFile? file,
         CancellationToken cancellationToken
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        string fileName = file.FileName.Replace(".json", "");
+        string fileName = file!.FileName.Replace(".json", "");
 
         try
         {

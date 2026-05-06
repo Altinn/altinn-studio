@@ -30,7 +30,7 @@
  *   status:         string,
  *   traceId:        string | null,
  *   namespace:      string,
- *   correlationId:  string | null,
+ *   collectionKey:  string | null,
  *   labels:         Record<string, string> | null,
  *   backoffUntil:   string | null,
  *   createdAt:      string,

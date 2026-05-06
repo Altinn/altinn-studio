@@ -1,0 +1,42 @@
+name: "App Stop Local Environment"
+description: "Stops localtest and app containers"
+runs:
+  using: "composite"
+  steps:
+    - name: Log localtest diagnostics
+      if: failure()
+      shell: bash
+      run: |
+        if command -v studioctl > /dev/null 2>&1; then
+          studioctl servers status || true
+          studioctl app ps || true
+
+          apps_json="$(mktemp)"
+          if studioctl app ps --json > "$apps_json"; then
+            node -e '
+              const fs = require("fs");
+              const data = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+              for (const app of data.apps ?? []) {
+                if (app.id) console.log(app.id);
+              }
+            ' "$apps_json" | while IFS= read -r id; do
+              echo "::group::studioctl app logs --id $id"
+              studioctl app logs --id "$id" --tail 200 --follow=false || true
+              echo "::endgroup::"
+            done || true
+          fi
+          rm -f "$apps_json"
+
+          echo "::group::app-manager logs"
+          studioctl servers logs --tail 200 --follow=false || true
+          echo "::endgroup::"
+        fi
+
+    - name: Stop localtest
+      shell: bash
+      run: |
+        if command -v studioctl > /dev/null 2>&1; then
+          studioctl app stop --all || true
+          studioctl env down || true
+          studioctl servers down || true
+        fi

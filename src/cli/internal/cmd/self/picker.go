@@ -3,6 +3,7 @@ package self
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -20,14 +21,20 @@ type PickerOption struct {
 // Picker handles interactive selection of install location.
 type Picker struct {
 	out               *ui.Output
+	input             io.Reader
 	candidates        []Candidate
 	recommendedOption int // Index in filtered options, -1 if none
 }
 
 // NewPicker creates a new picker with the given candidates.
-func NewPicker(out *ui.Output, candidates []Candidate) *Picker {
+func NewPicker(out *ui.Output, input io.Reader, candidates []Candidate) *Picker {
+	if input == nil {
+		input = os.Stdin
+	}
+
 	return &Picker{
 		out:               out,
+		input:             input,
 		candidates:        candidates,
 		recommendedOption: -1,
 	}
@@ -40,13 +47,13 @@ func (p *Picker) Run(ctx context.Context) (string, error) {
 		return "", ErrNoWritableLocation
 	}
 
-	p.out.Printf("Where would you like to install %s?\n", osutil.CurrentBin())
+	p.out.Printlnf("Where would you like to install %s?", osutil.CurrentBin())
 	p.out.Println("")
 
 	options := p.buildOptions()
 
 	for i, opt := range options {
-		p.out.Printf("  [%d] %s\n", i+1, opt.Label)
+		p.out.Printlnf("  [%d] %s", i+1, opt.Label)
 	}
 	p.out.Println("")
 
@@ -107,7 +114,7 @@ func (p *Picker) hasRecommended() bool {
 
 func (p *Picker) readSelection(ctx context.Context, numOptions int) (int, error) {
 	for {
-		line, err := ui.ReadLine(ctx, os.Stdin)
+		line, err := ui.ReadLine(ctx, p.input)
 		if err != nil {
 			p.out.Println("") // newline after interrupt
 			return 0, fmt.Errorf("read selection: %w", err)

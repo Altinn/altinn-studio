@@ -366,11 +366,11 @@ function useMaybeValidateRow() {
 
   return () => {
     const { editingAll, editingId, editingNone } = store.getState();
-    const index = produceStateFromRows(getRows() ?? []).editableRows.find((row) => row.uuid === editingId)?.index;
-    if (!validateOnSaveRow || editingAll || editingNone || editingId === undefined || index === undefined) {
+    const row = produceStateFromRows(getRows() ?? []).editableRows.find((row) => row.uuid === editingId);
+    if (!validateOnSaveRow || editingAll || editingNone || editingId === undefined || !row) {
       return Promise.resolve(false);
     }
-    return onGroupCloseValidation(baseComponentId, index, validateOnSaveRow);
+    return onGroupCloseValidation(baseComponentId, row, validateOnSaveRow);
   };
 }
 
@@ -451,11 +451,13 @@ export const RepGroupContext = {
   useCloseForEditing() {
     const rawCloseForEditing = ZStore.useStaticSelector((state) => state.closeForEditing);
     const maybeValidateRow = useMaybeValidateRow();
+    const setRowValidationMask = FormStore.validation.useSetRowValidationMask();
 
     return async (row: BaseRow) => {
       if (await maybeValidateRow()) {
         return;
       }
+      setRowValidationMask(row.uuid, undefined);
       rawCloseForEditing(row);
     };
   },
@@ -554,6 +556,7 @@ export const RepGroupContext = {
 
     const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup')?.group;
     const removeFromList = FormStore.data.useRemoveFromListCallback();
+    const setRowValidationMask = FormStore.validation.useSetRowValidationMask();
     const onBeforeRowDeletion = useAttachmentDeletionInRepGroups(baseComponentId);
     const getRows = RepGroupHooks.useGetFreshRowsWithButtons(baseComponentId);
     const getState = () => produceStateFromRows(getRows() ?? []);
@@ -574,6 +577,7 @@ export const RepGroupContext = {
           callback: (item) => item[ALTINN_ROW_ID] === row.uuid,
         });
 
+        setRowValidationMask(row.uuid, undefined);
         rawEndDeletingRow(row, true);
         return true;
       }

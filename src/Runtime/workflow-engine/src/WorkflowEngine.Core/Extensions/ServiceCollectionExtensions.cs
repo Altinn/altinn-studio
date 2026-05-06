@@ -9,6 +9,10 @@ using WorkflowEngine.Resilience;
 
 namespace WorkflowEngine.Core.Extensions;
 
+/// <summary>
+/// Service collection extensions for composing the workflow engine into a host (DI registration of
+/// core services, command plugins, settings binding, and engine health checks).
+/// </summary>
 public static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
@@ -142,6 +146,9 @@ public static class ServiceCollectionExtensions
     }
 }
 
+/// <summary>
+/// Extensions over <see cref="OptionsBuilder{TOptions}"/> for <see cref="EngineSettings"/> default-fill and validation.
+/// </summary>
 public static class OptionsBuilderExtensions
 {
     extension(OptionsBuilder<EngineSettings> builder)
@@ -153,6 +160,9 @@ public static class OptionsBuilderExtensions
         {
             builder.PostConfigure(config =>
             {
+                config.DefaultStepRetryStrategy ??= Defaults.EngineSettings.DefaultStepRetryStrategy;
+                config.DatabaseRetryStrategy ??= Defaults.EngineSettings.DatabaseRetryStrategy;
+
                 if (config.MetricsCollectionInterval <= TimeSpan.Zero)
                     config.MetricsCollectionInterval = Defaults.EngineSettings.MetricsCollectionInterval;
 
@@ -161,9 +171,6 @@ public static class OptionsBuilderExtensions
 
                 if (config.DatabaseCommandTimeout <= TimeSpan.Zero)
                     config.DatabaseCommandTimeout = Defaults.EngineSettings.DatabaseCommandTimeout;
-
-                config.DefaultStepRetryStrategy ??= Defaults.EngineSettings.DefaultStepRetryStrategy;
-                config.DatabaseRetryStrategy ??= Defaults.EngineSettings.DatabaseRetryStrategy;
 
                 if (config.HeartbeatInterval <= TimeSpan.Zero)
                     config.HeartbeatInterval = Defaults.EngineSettings.HeartbeatInterval;
@@ -201,9 +208,6 @@ public static class OptionsBuilderExtensions
                         .Concurrency
                         .BackpressureThreshold;
 
-                ApplyBufferDefaults(config.WriteBuffer, Defaults.EngineSettings.WriteBuffer);
-                ApplyBufferDefaults(config.UpdateBuffer, Defaults.EngineSettings.UpdateBuffer);
-
                 if (config.Retention.RetentionPeriod <= TimeSpan.Zero)
                     config.Retention.RetentionPeriod = Defaults.EngineSettings.Retention.RetentionPeriod;
 
@@ -213,17 +217,20 @@ public static class OptionsBuilderExtensions
                 if (config.Retention.Interval <= TimeSpan.Zero)
                     config.Retention.Interval = Defaults.EngineSettings.Retention.Interval;
 
-                static void ApplyBufferDefaults(BufferSettings target, BufferSettings defaults)
-                {
-                    if (target.MaxBatchSize <= 0)
-                        target.MaxBatchSize = defaults.MaxBatchSize;
+                if (config.WriteBuffer.MaxBatchSize <= 0)
+                    config.WriteBuffer.MaxBatchSize = Defaults.EngineSettings.WriteBuffer.MaxBatchSize;
 
-                    if (target.MaxQueueSize <= 0)
-                        target.MaxQueueSize = defaults.MaxQueueSize;
+                if (config.WriteBuffer.MaxQueueSize <= 0)
+                    config.WriteBuffer.MaxQueueSize = Defaults.EngineSettings.WriteBuffer.MaxQueueSize;
 
-                    if (target.FlushConcurrency <= 0)
-                        target.FlushConcurrency = defaults.FlushConcurrency;
-                }
+                if (config.WriteBuffer.FlushConcurrency <= 0)
+                    config.WriteBuffer.FlushConcurrency = Defaults.EngineSettings.WriteBuffer.FlushConcurrency;
+
+                if (config.UpdateBuffer.MaxBatchSize <= 0)
+                    config.UpdateBuffer.MaxBatchSize = Defaults.EngineSettings.UpdateBuffer.MaxBatchSize;
+
+                if (config.UpdateBuffer.MaxQueueSize <= 0)
+                    config.UpdateBuffer.MaxQueueSize = Defaults.EngineSettings.UpdateBuffer.MaxQueueSize;
             });
 
             return builder;

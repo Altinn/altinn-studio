@@ -1,6 +1,4 @@
-﻿[basic/default] [INIT WARN] No scenario config directory found at /App/scenario-overrides/config
-[basic/default] [INIT INFO] Fixture configuration updated
-[basic/default] [INFO] ### Request: Instances.Post - User: ServiceOwner/405003309, AuthLevel: 3, AuthMethod: maskinporten
+﻿[basic/default] [INFO] ### Request: Instances.Post - User: ServiceOwner/405003309, AuthLevel: 3, AuthMethod: maskinporten
 [basic/default] [INFO] IInstantiationValidator.Validate
 [basic/default] [INFO] IInstantiationProcessor.DataCreation
 [basic/default] [INFO] IDataWriteProcessor.ProcessDataWrite

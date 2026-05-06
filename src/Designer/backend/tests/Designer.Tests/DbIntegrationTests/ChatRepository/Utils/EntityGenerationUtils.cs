@@ -35,9 +35,10 @@ public static partial class EntityGenerationUtils
         public static ChatMessageEntity GenerateChatMessageEntity(
             Guid? threadId = null,
             Role role = Role.User,
-            ActionMode? actionMode = null,
+            bool? allowAppChanges = null,
             List<string> attachmentFileNames = null,
             List<string> filesChanged = null,
+            List<ChatSourceEntity> sources = null,
             DateTime? createdAt = null
         )
         {
@@ -48,9 +49,10 @@ public static partial class EntityGenerationUtils
                 CreatedAt = createdAt ?? DateTime.UtcNow,
                 Role = role,
                 Content = $"Message-{Guid.NewGuid()}",
-                ActionMode = actionMode,
+                AllowAppChanges = allowAppChanges,
                 AttachmentFileNames = attachmentFileNames,
                 FilesChanged = filesChanged,
+                Sources = sources,
             };
         }
     }

@@ -1,10 +1,18 @@
 package self_test
 
 import (
+	"context"
 	"errors"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	self "altinn.studio/studioctl/internal/cmd/self"
+	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/osutil"
+	"altinn.studio/studioctl/internal/ui"
 )
 
 func TestNormalizeReleaseVersion(t *testing.T) {
@@ -48,11 +56,11 @@ func TestDefaultAssetName(t *testing.T) {
 		goarch      string
 		want        string
 	}{
-		{name: "linux amd64", goos: "linux", goarch: "amd64", want: "studioctl-linux-amd64"},
-		{name: "darwin arm64", goos: "darwin", goarch: "arm64", want: "studioctl-darwin-arm64"},
-		{name: "windows amd64", goos: "windows", goarch: "amd64", want: "studioctl-windows-amd64.exe"},
+		{name: "linux amd64", goos: osutil.OSLinux, goarch: "amd64", want: "studioctl-linux-amd64"},
+		{name: "darwin arm64", goos: osutil.OSDarwin, goarch: "arm64", want: "studioctl-darwin-arm64"},
+		{name: "windows amd64", goos: osutil.OSWindows, goarch: "amd64", want: "studioctl-windows-amd64.exe"},
 		{name: "unsupported os", goos: "plan9", goarch: "amd64", wantErrType: self.ErrUnsupportedPlatform},
-		{name: "unsupported arch", goos: "linux", goarch: "386", wantErrType: self.ErrUnsupportedArchitecture},
+		{name: "unsupported arch", goos: osutil.OSLinux, goarch: "386", wantErrType: self.ErrUnsupportedArchitecture},
 	}
 
 	for _, tc := range tests {
@@ -76,6 +84,94 @@ func TestDefaultAssetName(t *testing.T) {
 	}
 }
 
+func TestAppManagerAssetName(t *testing.T) {
+	t.Parallel()
+
+	got, err := self.AppManagerAssetName(osutil.OSWindows, "amd64")
+	if err != nil {
+		t.Fatalf("AppManagerAssetName() unexpected error: %v", err)
+	}
+	if got != "app-manager-windows-amd64.tar.gz" {
+		t.Fatalf("AppManagerAssetName() = %q, want %q", got, "app-manager-windows-amd64.tar.gz")
+	}
+}
+
+func TestPickerUsesProvidedInput(t *testing.T) {
+	t.Parallel()
+
+	const installDir = "/tmp/studioctl-bin"
+	out := ui.NewOutput(io.Discard, io.Discard, false)
+	picker := self.NewPicker(
+		out,
+		strings.NewReader("\n"),
+		[]self.Candidate{
+			{
+				Path:        installDir,
+				Writable:    true,
+				Recommended: true,
+			},
+		},
+	)
+
+	got, err := picker.Run(context.Background())
+	if err != nil {
+		t.Fatalf("Picker.Run() error = %v", err)
+	}
+	if got != installDir {
+		t.Fatalf("Picker.Run() = %q, want %q", got, installDir)
+	}
+}
+
+func TestDefaultInstallLocation(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		want       string
+		candidates []self.Candidate
+		wantOK     bool
+	}{
+		{
+			name: "uses recommended writable candidate",
+			candidates: []self.Candidate{
+				{Path: "/not-selected", Writable: true},
+				{Path: "/selected", Writable: true, Recommended: true},
+			},
+			want:   "/selected",
+			wantOK: true,
+		},
+		{
+			name: "falls back to first writable candidate",
+			candidates: []self.Candidate{
+				{Path: "/not-writable", Writable: false, Recommended: true},
+				{Path: "/selected", Writable: true},
+			},
+			want:   "/selected",
+			wantOK: true,
+		},
+		{
+			name: "returns false when no writable candidates exist",
+			candidates: []self.Candidate{
+				{Path: "/not-writable", Writable: false, Recommended: true},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, ok := self.DefaultInstallLocation(tc.candidates)
+			if ok != tc.wantOK {
+				t.Fatalf("DefaultInstallLocation() ok = %v, want %v", ok, tc.wantOK)
+			}
+			if got != tc.want {
+				t.Fatalf("DefaultInstallLocation() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
 func TestChecksumForAsset(t *testing.T) {
 	t.Parallel()
 
@@ -93,6 +189,58 @@ func TestChecksumForAsset(t *testing.T) {
 	_, err = self.ChecksumForAsset(checksums, "missing")
 	if !errors.Is(err, self.ErrChecksumAssetNotFound) {
 		t.Fatalf("ChecksumForAsset() error = %v, want %v", err, self.ErrChecksumAssetNotFound)
+	}
+}
+
+func TestRemoveHomeRemovesConfiguredHome(t *testing.T) {
+	t.Parallel()
+
+	home := filepath.Join(t.TempDir(), "studioctl-home")
+	cfg, err := config.New(config.Flags{Home: home}, "test-version")
+	if err != nil {
+		t.Fatalf("config.New() error = %v", err)
+	}
+	if writeErr := os.WriteFile(filepath.Join(cfg.Home, "config.yaml"), []byte("test"), 0o600); writeErr != nil {
+		t.Fatalf("write config: %v", writeErr)
+	}
+
+	removed, err := self.NewService(cfg).RemoveHome()
+	if err != nil {
+		t.Fatalf("RemoveHome() error = %v", err)
+	}
+	if removed != home {
+		t.Fatalf("RemoveHome() = %q, want %q", removed, home)
+	}
+	if _, err := os.Stat(home); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("home still exists after RemoveHome(): %v", err)
+	}
+}
+
+func TestRemoveHomeRejectsUserHome(t *testing.T) {
+	t.Parallel()
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		t.Skipf("user home unavailable: %v", err)
+	}
+
+	err = self.NewService(&config.Config{Home: home}).ValidateHomeRemoval()
+	if !errors.Is(err, self.ErrUnsafeHomeRemoval) {
+		t.Fatalf("ValidateHomeRemoval() error = %v, want ErrUnsafeHomeRemoval", err)
+	}
+}
+
+func TestRemoveHomeRejectsCurrentDirectory(t *testing.T) {
+	t.Parallel()
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("get cwd: %v", err)
+	}
+
+	err = self.NewService(&config.Config{Home: cwd}).ValidateHomeRemoval()
+	if !errors.Is(err, self.ErrUnsafeHomeRemoval) {
+		t.Fatalf("ValidateHomeRemoval() error = %v, want ErrUnsafeHomeRemoval", err)
 	}
 }
 

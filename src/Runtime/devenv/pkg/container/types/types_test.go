@@ -107,3 +107,46 @@ func TestContainerPlatformBuildCLI(t *testing.T) {
 		}
 	}
 }
+
+func TestContainerPlatformPushArgs(t *testing.T) {
+	tests := []struct {
+		name     string
+		image    string
+		want     []string
+		platform ContainerPlatform
+	}{
+		{
+			name:     "docker remote registry",
+			platform: PlatformDocker,
+			image:    "ghcr.io/altinn/altinn-studio/app:test",
+			want:     []string{"push", "ghcr.io/altinn/altinn-studio/app:test"},
+		},
+		{
+			name:     "docker local registry",
+			platform: PlatformDocker,
+			image:    "localhost:5001/app:test",
+			want:     []string{"push", "localhost:5001/app:test"},
+		},
+		{
+			name:     "podman remote registry",
+			platform: PlatformPodman,
+			image:    "ghcr.io/altinn/altinn-studio/app:test",
+			want:     []string{"push", "ghcr.io/altinn/altinn-studio/app:test"},
+		},
+		{
+			name:     "podman local registry",
+			platform: PlatformPodman,
+			image:    "localhost:5001/app:test",
+			want:     []string{"push", "--tls-verify=false", "localhost:5001/app:test"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.platform.PushArgs(tt.image)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("%v.PushArgs(%q) = %#v, want %#v", tt.platform, tt.image, got, tt.want)
+			}
+		})
+	}
+}

@@ -7,11 +7,26 @@ using OpenTelemetry.Trace;
 
 namespace WorkflowEngine.Telemetry.Extensions;
 
+/// <summary>
+/// Service collection extensions for registering the engine's OpenTelemetry pipeline.
+/// </summary>
 public static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {
-        public IServiceCollection AddTelemetry(bool emitQueryParameters = false)
+        /// <summary>
+        /// Registers the engine's OpenTelemetry pipeline (tracing, metrics, logs) and the OTLP exporter.
+        /// </summary>
+        /// <param name="emitQueryParameters">Include EF Core SQL parameter values on database spans. Disable in production to avoid PII leakage.</param>
+        /// <param name="enableDatabaseInstrumentation">Enable EF Core and Npgsql tracing instrumentation. Implies <paramref name="enableDatabaseMetrics"/>.</param>
+        /// <param name="enableDatabaseMetrics">Enable Npgsql connection pool and command metrics.</param>
+        /// <param name="traceSamplingRate">Trace sampling rate between 0.0 (drop all) and 1.0 (keep all). Metrics and logs are always exported at full fidelity.</param>
+        public IServiceCollection AddTelemetry(
+            bool emitQueryParameters = false,
+            bool enableDatabaseInstrumentation = false,
+            bool enableDatabaseMetrics = true,
+            double traceSamplingRate = 1.0
+        )
         {
             services
                 .AddOpenTelemetry()
@@ -24,6 +39,15 @@ public static class ServiceCollectionExtensions
                 )
                 .WithTracing(builder =>
                 {
+                    if (traceSamplingRate < 1.0)
+                    {
+                        builder.SetSampler(
+                            new ParentBasedSampler(
+                                new TraceIdRatioBasedSampler(Math.Clamp(traceSamplingRate, 0.0, 1.0))
+                            )
+                        );
+                    }
+
                     builder
                         .AddSource(Metrics.ServiceName)
                         .AddHttpClientInstrumentation(opts =>
@@ -39,8 +63,12 @@ public static class ServiceCollectionExtensions
                                 string[] excludedPaths = ["/health", "/dashboard"];
                                 return !excludedPaths.Any(p => path.Contains(p, StringComparison.OrdinalIgnoreCase));
                             };
-                        })
-                        .AddEntityFrameworkCoreInstrumentation(opts =>
+                        });
+
+                    if (enableDatabaseInstrumentation)
+                    {
+                        builder.AddSource("Npgsql");
+                        builder.AddEntityFrameworkCoreInstrumentation(opts =>
                         {
                             opts.EnrichWithIDbCommand = (activity, command) =>
                             {
@@ -71,22 +99,30 @@ public static class ServiceCollectionExtensions
                                     );
                                 }
                             };
-                        })
-                        .AddOtlpExporter(opts =>
-                        {
-                            opts.BatchExportProcessorOptions.MaxQueueSize = 2048;
-                            opts.BatchExportProcessorOptions.MaxExportBatchSize = 512;
-                            opts.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 2000;
-                            opts.BatchExportProcessorOptions.ExporterTimeoutMilliseconds = 5000;
                         });
+                    }
+
+                    builder.AddOtlpExporter(opts =>
+                    {
+                        opts.BatchExportProcessorOptions.MaxQueueSize = 2048;
+                        opts.BatchExportProcessorOptions.MaxExportBatchSize = 512;
+                        opts.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 2000;
+                        opts.BatchExportProcessorOptions.ExporterTimeoutMilliseconds = 5000;
+                    });
                 })
                 .WithMetrics(builder =>
                 {
                     // Bucket boundaries (in seconds) for workflow/step/mainloop timing histograms.
-                    // The default OTel boundaries (0, 5, 10, 25, ...) have no resolution below 5s,
-                    // causing histogram_quantile to report ~4.8s for sub-second workflows.
+                    // Spans sub-millisecond (per-step DB write overhead) up to multi-minute workflows.
+                    // Without sub-ms boundaries, histogram_quantile linearly interpolates inside the
+                    // lowest bucket and pins to a constant value — e.g. P95 = 0.95 × 5ms = 4.75ms when
+                    // all samples land in (0, 5ms].
                     double[] durationBuckets =
                     [
+                        0.0001,
+                        0.0005,
+                        0.001,
+                        0.0025,
                         0.005,
                         0.01,
                         0.025,
@@ -105,10 +141,19 @@ public static class ServiceCollectionExtensions
                     ];
                     var durationView = new ExplicitBucketHistogramConfiguration { Boundaries = durationBuckets };
 
+                    builder.AddMeter(Metrics.ServiceName);
+
+                    if (enableDatabaseInstrumentation)
+                    {
+                        builder.AddMeter("Microsoft.EntityFrameworkCore");
+                    }
+
+                    if (enableDatabaseMetrics)
+                    {
+                        builder.AddMeter("Npgsql");
+                    }
+
                     builder
-                        .AddMeter(Metrics.ServiceName)
-                        .AddMeter("Microsoft.EntityFrameworkCore")
-                        .AddMeter("Npgsql")
                         .AddView("engine.workflows.time.queue", durationView)
                         .AddView("engine.workflows.time.service", durationView)
                         .AddView("engine.workflows.time.total", durationView)

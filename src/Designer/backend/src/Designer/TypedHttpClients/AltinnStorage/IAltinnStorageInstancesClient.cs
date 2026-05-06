@@ -1,5 +1,3 @@
-#nullable enable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,9 +20,11 @@ public interface IAltinnStorageInstancesClient
         bool? isArchivedFilter,
         string? archiveReferenceFilter,
         bool? confirmedFilter,
+        bool? isProcessComplete,
         bool? isSoftDeletedFilter,
         bool? isHardDeletedFilter,
         DateOnly? createdBeforeFilter,
+        int? size,
         CancellationToken ct
     );
 

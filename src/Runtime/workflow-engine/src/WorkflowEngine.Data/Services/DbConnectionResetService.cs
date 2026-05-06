@@ -37,13 +37,13 @@ internal sealed class DbConnectionResetService(ILogger<DbConnectionResetService>
 internal static partial class DbConnectionResetServiceLogs
 {
     [LoggerMessage(LogLevel.Information, "Terminating existing connections to database '{DatabaseName}'")]
-    public static partial void TerminatingConnections(
+    internal static partial void TerminatingConnections(
         this ILogger<DbConnectionResetService> logger,
         string databaseName
     );
 
     [LoggerMessage(LogLevel.Information, "Terminated {Count} connection(s) to database '{DatabaseName}'")]
-    public static partial void TerminatedConnections(
+    internal static partial void TerminatedConnections(
         this ILogger<DbConnectionResetService> logger,
         long count,
         string databaseName

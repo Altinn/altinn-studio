@@ -13,12 +13,13 @@ import (
 // All methods can be configured with custom behavior via function fields.
 type Client struct {
 	// Method implementations - set these to customize behavior
-	BuildFunc             func(ctx context.Context, contextPath, dockerfile, tag string) error
+	BuildFunc             func(ctx context.Context, contextPath, dockerfile, tag string, opts ...types.BuildOptions) error
 	ToolchainFunc         func() types.ContainerToolchain
 	BuildWithProgressFunc func(
 		ctx context.Context,
 		contextPath, dockerfile, tag string,
 		onProgress types.ProgressHandler,
+		opts ...types.BuildOptions,
 	) error
 	PushFunc                  func(ctx context.Context, image string) error
 	CreateContainerFunc       func(ctx context.Context, cfg types.ContainerConfig) (string, error)
@@ -35,12 +36,15 @@ type Client struct {
 		onProgress types.ProgressHandler,
 	) error
 	ContainerInspectFunc func(ctx context.Context, nameOrID string) (types.ContainerInfo, error)
+	ListContainersFunc   func(ctx context.Context, filter types.ContainerListFilter) ([]types.ContainerInfo, error)
 	ContainerStartFunc   func(ctx context.Context, nameOrID string) error
 	ContainerStopFunc    func(ctx context.Context, nameOrID string, timeout *int) error
 	ContainerRemoveFunc  func(ctx context.Context, nameOrID string, force bool) error
 	NetworkCreateFunc    func(ctx context.Context, cfg types.NetworkConfig) (string, error)
 	NetworkInspectFunc   func(ctx context.Context, nameOrID string) (types.NetworkInfo, error)
+	ListNetworksFunc     func(ctx context.Context, filter types.NetworkListFilter) ([]types.NetworkInfo, error)
 	NetworkRemoveFunc    func(ctx context.Context, nameOrID string) error
+	VolumeRemoveFunc     func(ctx context.Context, name string, force bool) error
 	ContainerLogsFunc    func(ctx context.Context, nameOrID string, follow bool, tail string) (io.ReadCloser, error)
 	ContainerWaitFunc    func(ctx context.Context, nameOrID string) (int, error)
 
@@ -68,13 +72,13 @@ func (c *Client) recordCall(method string, args ...any) {
 }
 
 // Build implements ContainerClient.
-func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string) error {
-	c.recordCall("Build", contextPath, dockerfile, tag)
+func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string, opts ...types.BuildOptions) error {
+	c.recordCall("Build", contextPath, dockerfile, tag, opts)
 	if c.BuildFunc != nil {
-		return c.BuildFunc(ctx, contextPath, dockerfile, tag)
+		return c.BuildFunc(ctx, contextPath, dockerfile, tag, opts...)
 	}
 	if c.BuildWithProgressFunc != nil {
-		return c.BuildWithProgressFunc(ctx, contextPath, dockerfile, tag, nil)
+		return c.BuildWithProgressFunc(ctx, contextPath, dockerfile, tag, nil, opts...)
 	}
 	return nil
 }
@@ -84,13 +88,14 @@ func (c *Client) BuildWithProgress(
 	ctx context.Context,
 	contextPath, dockerfile, tag string,
 	onProgress types.ProgressHandler,
+	opts ...types.BuildOptions,
 ) error {
-	c.recordCall("BuildWithProgress", contextPath, dockerfile, tag)
+	c.recordCall("BuildWithProgress", contextPath, dockerfile, tag, opts)
 	if c.BuildWithProgressFunc != nil {
-		return c.BuildWithProgressFunc(ctx, contextPath, dockerfile, tag, onProgress)
+		return c.BuildWithProgressFunc(ctx, contextPath, dockerfile, tag, onProgress, opts...)
 	}
 	if c.BuildFunc != nil {
-		return c.BuildFunc(ctx, contextPath, dockerfile, tag)
+		return c.BuildFunc(ctx, contextPath, dockerfile, tag, opts...)
 	}
 	return nil
 }
@@ -210,6 +215,15 @@ func (c *Client) ContainerInspect(ctx context.Context, nameOrID string) (types.C
 	return types.ContainerInfo{}, types.ErrContainerNotFound
 }
 
+// ListContainers implements ContainerClient.
+func (c *Client) ListContainers(ctx context.Context, filter types.ContainerListFilter) ([]types.ContainerInfo, error) {
+	c.recordCall("ListContainers", filter)
+	if c.ListContainersFunc != nil {
+		return c.ListContainersFunc(ctx, filter)
+	}
+	return nil, nil
+}
+
 // ContainerStart implements ContainerClient.
 func (c *Client) ContainerStart(ctx context.Context, nameOrID string) error {
 	c.recordCall("ContainerStart", nameOrID)
@@ -255,11 +269,29 @@ func (c *Client) NetworkInspect(ctx context.Context, nameOrID string) (types.Net
 	return types.NetworkInfo{}, types.ErrNetworkNotFound
 }
 
+// ListNetworks implements ContainerClient.
+func (c *Client) ListNetworks(ctx context.Context, filter types.NetworkListFilter) ([]types.NetworkInfo, error) {
+	c.recordCall("ListNetworks", filter)
+	if c.ListNetworksFunc != nil {
+		return c.ListNetworksFunc(ctx, filter)
+	}
+	return nil, nil
+}
+
 // NetworkRemove implements ContainerClient.
 func (c *Client) NetworkRemove(ctx context.Context, nameOrID string) error {
 	c.recordCall("NetworkRemove", nameOrID)
 	if c.NetworkRemoveFunc != nil {
 		return c.NetworkRemoveFunc(ctx, nameOrID)
+	}
+	return nil
+}
+
+// VolumeRemove implements ContainerClient.
+func (c *Client) VolumeRemove(ctx context.Context, name string, force bool) error {
+	c.recordCall("VolumeRemove", name, force)
+	if c.VolumeRemoveFunc != nil {
+		return c.VolumeRemoveFunc(ctx, name, force)
 	}
 	return nil
 }

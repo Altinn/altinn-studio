@@ -9,7 +9,9 @@ import (
 	"sort"
 
 	"altinn.studio/devenv/pkg/container"
+	"altinn.studio/devenv/pkg/processutil"
 	"altinn.studio/studioctl/internal/auth"
+	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 )
@@ -25,12 +27,8 @@ const (
 	// minWindowsVersionParts is the minimum number of parts in a Windows version string (major.minor.build).
 	minWindowsVersionParts = 3
 
-	// osWindows is the runtime.GOOS value for Windows.
-	osWindows = "windows"
-
 	// On-disk state file names used by CLI components.
 	doctorConfigFileName       = "config.yaml"
-	doctorNetworkCacheFileName = "network-metadata.yaml"
 	doctorResourcesPlatformDir = "AltinnPlatformLocal"
 
 	// Disk check levels.
@@ -38,8 +36,6 @@ const (
 	diskLevelInfo  = "info"
 	diskLevelWarn  = "warn"
 	diskLevelError = "error"
-
-	networkModeChecks = "checks"
 )
 
 var (
@@ -48,15 +44,6 @@ var (
 	errUnsupportedCommand  = errors.New("unsupported command")
 	errWindowsVersionOld   = errors.New("windows version too old")
 	errWindowsVersionUnk   = errors.New("windows version unknown")
-)
-
-type diskLevelRank uint8
-
-const (
-	diskRankInfo diskLevelRank = iota
-	diskRankOK
-	diskRankWarn
-	diskRankError
 )
 
 // Service contains doctor application logic.
@@ -70,13 +57,13 @@ type Service struct {
 
 // Report is the doctor application-layer output model.
 type Report struct {
-	CLI           *CLI           `json:"cli"`
-	Prerequisites *Prerequisites `json:"prerequisites"`
-	Network       *Network       `json:"network"`
-	Auth          *Auth          `json:"auth"`
-	App           *App           `json:"app"`
-	Disk          *Disk          `json:"disk"`
-	System        *System        `json:"system"`
+	CLI           *CLI                           `json:"cli"`
+	Prerequisites *Prerequisites                 `json:"prerequisites"`
+	Auth          *Auth                          `json:"auth"`
+	App           *App                           `json:"app"`
+	Disk          *Disk                          `json:"disk"`
+	LocaltestEnv  *envlocaltest.DiagnosticReport `json:"localtestEnv"`
+	System        *System                        `json:"system"`
 }
 
 // CLI contains CLI version metadata for doctor output.
@@ -118,19 +105,6 @@ type Prerequisites struct {
 type ContainerTool struct {
 	Name    string `json:"name"`
 	Version string `json:"version,omitempty"`
-}
-
-// Network contains network diagnostics and cache/probe data.
-type Network struct {
-	Mode         string `json:"mode"`
-	HostGateway  string `json:"hostGateway,omitempty"`
-	HostDNS      string `json:"hostDns,omitempty"`
-	ContainerDNS string `json:"containerDns,omitempty"`
-	PingOK       *bool  `json:"pingOk,omitempty"`
-	CacheExists  *bool  `json:"cacheExists,omitempty"`
-	CacheFresh   *bool  `json:"cacheFresh,omitempty"`
-	CacheAge     string `json:"cacheAge,omitempty"`
-	Error        string `json:"error,omitempty"`
 }
 
 // Auth contains authentication status summary for configured environments.
@@ -184,15 +158,15 @@ func New(cfg *config.Config, debugf func(format string, args ...any)) *Service {
 }
 
 // BuildReport builds a doctor report from system state.
-func (s *Service) BuildReport(ctx context.Context, runChecks bool) Report {
+func (s *Service) BuildReport(ctx context.Context) Report {
 	return Report{
 		CLI:           &CLI{Version: s.cfg.Version},
 		System:        buildSystem(ctx),
 		Prerequisites: s.collectPrerequisites(ctx),
-		Network:       s.buildNetwork(ctx, runChecks),
 		Auth:          s.buildAuth(),
 		App:           s.buildApp(ctx),
 		Disk:          s.buildDisk(),
+		LocaltestEnv:  s.buildLocaltestEnv(ctx),
 	}
 }
 
@@ -213,7 +187,10 @@ func (s *Service) HasIssues(report Report) bool {
 	if report.App.Error != "" {
 		return true
 	}
-	return report.Disk != nil && report.Disk.HasIssues
+	if report.Disk != nil && report.Disk.HasIssues {
+		return true
+	}
+	return report.LocaltestEnv == nil || report.LocaltestEnv.HasIssues
 }
 
 func (s *Service) lookupPath(file string) (string, error) {
@@ -239,7 +216,7 @@ func (s *Service) runVersionOutput(ctx context.Context, name string) ([]byte, er
 func commandVersionOutput(ctx context.Context, name string) ([]byte, error) {
 	switch name {
 	case "dotnet", "docker", "podman", "colima":
-		output, err := exec.CommandContext(ctx, name, "--version").Output()
+		output, err := processutil.CommandContext(ctx, name, "--version").Output()
 		if err != nil {
 			return nil, fmt.Errorf("run %s --version: %w", name, err)
 		}

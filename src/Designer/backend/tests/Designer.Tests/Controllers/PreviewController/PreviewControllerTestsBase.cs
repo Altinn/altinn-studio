@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.Designer.Configuration;
 using Designer.Tests.Controllers.ApiTests;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Caching.Distributed;
@@ -33,6 +34,11 @@ public class PreviewControllerTestsBase<TTestClass>(WebApplicationFactory<Progra
     protected override void ConfigureTestServices(IServiceCollection services)
     {
         base.ConfigureTestServices(services);
+        services.Configure<SharedContentClientSettings>(c =>
+        {
+            c.StorageAccountUrl = "http://test.no";
+            c.StorageContainerName = "storageAccountName";
+        });
         var cacheServices = services.Where(d => d.ServiceType == typeof(IDistributedCache)).ToList();
         foreach (ServiceDescriptor serviceDescriptor in cacheServices)
         {

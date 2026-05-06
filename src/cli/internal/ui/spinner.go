@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"sync"
 	"time"
-
-	"github.com/charmbracelet/lipgloss"
 )
 
 const (
@@ -20,7 +18,7 @@ func spinnerFrames() []string {
 // Spinner provides a terminal spinner for long-running operations.
 type Spinner struct {
 	out     *Output
-	style   lipgloss.Style
+	style   Style
 	done    chan struct{}
 	message string
 	mu      sync.Mutex
@@ -32,8 +30,8 @@ func NewSpinner(out *Output, message string) *Spinner {
 	return &Spinner{
 		out:     out,
 		message: message,
-		style:   lipgloss.NewStyle().Foreground(lipgloss.Color("12")), // blue
-		done:    nil,                                                  // initialized on Start()
+		style:   ColorStyle(ColorBlue),
+		done:    nil, // initialized on Start()
 		mu:      sync.Mutex{},
 		running: false,
 	}

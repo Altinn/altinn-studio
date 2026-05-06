@@ -3,7 +3,7 @@ import { ChatColumn } from '../ChatColumn/ChatColumn';
 import classes from './CompactInterface.module.css';
 import type { ReactElement } from 'react';
 import { HeadingBar } from '../HeadingBar/HeadingBar';
-import { createAssistantMessage } from '../../utils/utils';
+import { createAssistantMessage } from '../../utils/messageUtils';
 import type { AssistantProps } from '../../Assistant/Assistant';
 import type { AssistantTexts } from '../../types/AssistantTexts';
 import type { User } from '../../types/User';

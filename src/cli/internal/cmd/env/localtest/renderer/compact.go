@@ -11,26 +11,36 @@ import (
 // NewCompact creates the narrow interactive row renderer.
 func NewCompact(out *ui.Output, resources []resource.Resource, operation Operation) *CompactRenderer {
 	return &CompactRenderer{
-		screenRenderer: newScreenRenderer(out, resources, operation, compactLayout{}),
+		screenRenderer: newScreenRenderer(out, resources, operation, nil, compactLayout{}),
+	}
+}
+
+// NewCompactWithPlan creates the narrow interactive row renderer from planned resources.
+func NewCompactWithPlan(
+	out *ui.Output,
+	resources []resource.PlannedResource,
+	operation Operation,
+	statuses map[resource.ResourceID]resource.Status,
+) *CompactRenderer {
+	return &CompactRenderer{
+		screenRenderer: newScreenRendererPlanned(out, resources, operation, statuses, compactLayout{}),
 	}
 }
 
 func (compactLayout) renderLines(model *renderModel, width int, now time.Time) []string {
 	lines := make([]string, 0, len(model.order)+1)
 	readyCount, failedCount, canceledCount, activeCount := 0, 0, 0, 0
-	successState := model.operation.successState()
-
 	for _, name := range model.order {
 		row := model.rows[name]
 		if row == nil {
 			continue
 		}
-		switch row.state {
-		case successState:
+		switch {
+		case isSuccessfulState(row.state):
 			readyCount++
-		case stateFailed:
+		case row.state == stateFailed:
 			failedCount++
-		case stateCanceled:
+		case row.state == stateCanceled:
 			canceledCount++
 		}
 		if isActiveState(row.state) {
@@ -52,7 +62,7 @@ func renderCompactRow(model *renderModel, row *progressRow, width int) string {
 
 	nameWidth := min(nameColumnWidth, max(width/compactNameDivisor, compactMinNameWidth))
 	nameCell := fmt.Sprintf("%-*s", nameWidth, fitWidth(row.name, nameWidth))
-	stateRaw := compactStateLabel(model, row)
+	stateRaw := rawStateLabel(model, row)
 	stateCell := stateRaw
 	if ui.Colors() {
 		stateCell = styleStateLabel(row, stateRaw)
@@ -65,8 +75,4 @@ func renderCompactRow(model *renderModel, row *progressRow, width int) string {
 		line += " " + fitWidth(message, messageWidth)
 	}
 	return line
-}
-
-func compactStateLabel(model *renderModel, row *progressRow) string {
-	return rawStateLabel(model, row)
 }

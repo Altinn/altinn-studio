@@ -12,7 +12,7 @@ data:
       },
       "PlatformSettings": {
         "ApiPdf2Endpoint": "http://pdf-generator.pdf.svc.cluster.local/pdf",
-        "ApiWorkflowEngineEndpoint": "http://workflow-engine-app.runtime-workflow-engine-app.svc.cluster.local/api/v1/workflows/"
+        "ApiWorkflowEngineEndpoint": "http://workflow-engine-app.runtime-workflow-engine-app.svc.cluster.local/api/v1/"
       },
       "GeneralSettings": {
         "ExternalAppBaseUrl": "https://{org}.apps.{hostName}/{org}/{app}/"

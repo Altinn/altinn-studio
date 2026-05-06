@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using NpgsqlTypes;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
@@ -10,27 +11,34 @@ namespace WorkflowEngine.Data.Repository;
 internal sealed partial class EngineRepository
 {
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<Workflow>> GetActiveWorkflows(
-        string? ns = null,
+    public async Task<IReadOnlyList<WorkflowCollectionResponse>> GetCollections(
+        string ns,
         CancellationToken cancellationToken = default
     )
     {
-        using var activity = Metrics.Source.StartActivity("EngineRepository.GetActiveWorkflows");
+        using var activity = Metrics.Source.StartActivity("EngineRepository.GetCollections");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         try
         {
-            logger.FetchingWorkflows("active");
-
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-            var result = await context
-                .GetActiveWorkflows(namespaceFilter: ns)
-                .ToDomainModel()
+            var normalizedNs = WorkflowNamespace.Normalize(ns);
+
+            var entities = await context
+                .WorkflowCollections.Where(c => c.Namespace == normalizedNs)
+                .OrderByDescending(c => c.UpdatedAt ?? c.CreatedAt)
                 .ToListAsync(cancellationToken);
 
-            logger.SuccessfullyFetchedWorkflows(result.Count);
-
-            return result;
+            return entities
+                .Select(e => new WorkflowCollectionResponse
+                {
+                    Key = e.Key,
+                    Namespace = e.Namespace,
+                    Heads = e.Heads,
+                    CreatedAt = e.CreatedAt,
+                    UpdatedAt = e.UpdatedAt,
+                })
+                .ToList();
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -45,7 +53,126 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<Workflow>> GetScheduledWorkflows(
+    public async Task<WorkflowCollectionDetailResponse?> GetCollection(
+        string key,
+        string ns,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.GetCollection");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var normalizedNs = WorkflowNamespace.Normalize(ns);
+
+            var entity = await context.WorkflowCollections.FirstOrDefaultAsync(
+                c => c.Key == key && c.Namespace == normalizedNs,
+                cancellationToken
+            );
+
+            if (entity is null)
+                return null;
+
+            // Fetch statuses for the head workflow IDs
+            var headStatuses =
+                entity.Heads.Length > 0
+                    ? await context
+                        .Workflows.Where(w => entity.Heads.Contains(w.Id))
+                        .Select(w => new CollectionHeadStatus { DatabaseId = w.Id, Status = w.Status })
+                        .ToListAsync(cancellationToken)
+                    : [];
+
+            return new WorkflowCollectionDetailResponse
+            {
+                Key = entity.Key,
+                Namespace = entity.Namespace,
+                Heads = headStatuses,
+                CreatedAt = entity.CreatedAt,
+                UpdatedAt = entity.UpdatedAt,
+            };
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<CursorPaginatedResult> GetActiveWorkflows(
+        int pageSize,
+        Guid? cursor = null,
+        bool includeTotalCount = false,
+        string? collectionKey = null,
+        string? ns = null,
+        IReadOnlyDictionary<string, string>? labelFilters = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.GetActiveWorkflows");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            logger.FetchingWorkflows("active");
+
+            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var baseQuery = context.GetActiveWorkflows(
+                collectionKeyFilter: collectionKey,
+                namespaceFilter: ns,
+                labelFilter: labelFilters
+            );
+
+            int? totalCount = includeTotalCount ? await baseQuery.CountAsync(cancellationToken) : null;
+
+            if (totalCount == 0)
+            {
+                logger.SuccessfullyFetchedWorkflows(0);
+                return new CursorPaginatedResult([], null, totalCount);
+            }
+
+            IQueryable<Entities.WorkflowEntity> query = baseQuery.OrderBy(wf => wf.Id);
+
+            if (cursor.HasValue)
+                query = query.Where(wf => wf.Id > cursor.Value);
+
+            // Fetch one extra to determine if there's a next page
+            var workflows = await query.Take(pageSize + 1).ToDomainModel().ToListAsync(cancellationToken);
+
+            Guid? nextCursor = null;
+            if (workflows.Count > pageSize)
+            {
+                workflows.RemoveAt(workflows.Count - 1);
+                nextCursor = workflows[^1].DatabaseId;
+            }
+
+            logger.SuccessfullyFetchedWorkflows(workflows.Count);
+
+            return new CursorPaginatedResult(workflows, nextCursor, totalCount);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<CursorPaginatedResult> GetScheduledWorkflows(
+        int pageSize,
+        Guid? cursor = null,
         string? ns = null,
         CancellationToken cancellationToken = default
     )
@@ -58,14 +185,25 @@ internal sealed partial class EngineRepository
             logger.FetchingWorkflows("scheduled");
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-            var result = await context
+            IQueryable<Entities.WorkflowEntity> query = context
                 .GetScheduledWorkflows(namespaceFilter: ns)
-                .ToDomainModel()
-                .ToListAsync(cancellationToken);
+                .OrderBy(wf => wf.Id);
 
-            logger.SuccessfullyFetchedWorkflows(result.Count);
+            if (cursor.HasValue)
+                query = query.Where(wf => wf.Id > cursor.Value);
 
-            return result;
+            var workflows = await query.Take(pageSize + 1).ToDomainModel().ToListAsync(cancellationToken);
+
+            Guid? nextCursor = null;
+            if (workflows.Count > pageSize)
+            {
+                workflows.RemoveAt(workflows.Count - 1);
+                nextCursor = workflows[^1].DatabaseId;
+            }
+
+            logger.SuccessfullyFetchedWorkflows(workflows.Count);
+
+            return new CursorPaginatedResult(workflows, nextCursor);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -104,16 +242,16 @@ internal sealed partial class EngineRepository
             // Extract distinct values for the given label key from JSONB
             var sql = ns is null
                 ? """
-                    SELECT DISTINCT "Labels"->>@key AS val
-                    FROM "engine"."Workflows"
-                    WHERE "Labels" IS NOT NULL AND "Labels" ? @key
+                    SELECT DISTINCT labels->>@key AS val
+                    FROM engine.workflows
+                    WHERE labels IS NOT NULL AND labels ? @key
                     ORDER BY val
                     """
                 : """
-                    SELECT DISTINCT "Labels"->>@key AS val
-                    FROM "engine"."Workflows"
-                    WHERE "Labels" IS NOT NULL AND "Labels" ? @key
-                      AND "Namespace" = @ns
+                    SELECT DISTINCT labels->>@key AS val
+                    FROM engine.workflows
+                    WHERE labels IS NOT NULL AND labels ? @key
+                      AND namespace = @ns
                     ORDER BY val
                     """;
 
@@ -176,111 +314,63 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<Workflow>> GetFinishedWorkflows(
+    public async Task<CursorPaginatedResult> QueryWorkflows(
+        int pageSize,
+        IReadOnlyCollection<PersistentItemStatus> statuses,
+        Guid? cursor = null,
+        bool includeTotalCount = false,
         string? search = null,
-        int? take = null,
-        DateTimeOffset? before = null,
         DateTimeOffset? since = null,
         bool retriedOnly = false,
         Dictionary<string, string>? labelFilters = null,
         string? namespaceFilter = null,
-        string? correlationId = null,
+        string? collectionKey = null,
         CancellationToken cancellationToken = default
     )
     {
-        using var activity = Metrics.Source.StartActivity("EngineRepository.GetFinishedWorkflows");
+        using var activity = Metrics.Source.StartActivity("EngineRepository.QueryWorkflows");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         try
         {
-            logger.FetchingWorkflows("finished");
+            logger.FetchingWorkflows("query");
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-            var result = await context
-                .GetWorkflowsByStatus(
-                    PersistentItemStatusMap.Finished,
-                    search,
-                    take,
-                    before,
-                    since,
-                    retriedOnly,
-                    correlationIdFilter: correlationId != null ? Guid.Parse(correlationId) : null,
-                    namespaceFilter: namespaceFilter,
-                    labelFilter: labelFilters
-                )
-                .ToDomainModel()
-                .ToListAsync(cancellationToken);
-
-            logger.SuccessfullyFetchedWorkflows(result.Count);
-
-            return result;
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            activity?.Errored(ex);
-            logger.FailedToFetchWorkflows(ex.Message, ex);
-            throw;
-        }
-    }
-
-    /// <inheritdoc/>
-    public async Task<(IReadOnlyList<Workflow> Workflows, int TotalCount)> QueryWorkflowsWithCount(
-        IReadOnlyList<PersistentItemStatus> statuses,
-        string? search = null,
-        int? take = null,
-        DateTimeOffset? before = null,
-        DateTimeOffset? since = null,
-        bool retriedOnly = false,
-        Dictionary<string, string>? labelFilters = null,
-        string? namespaceFilter = null,
-        string? correlationId = null,
-        CancellationToken cancellationToken = default
-    )
-    {
-        using var activity = Metrics.Source.StartActivity("EngineRepository.QueryWorkflowsWithCount");
-        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
-
-        try
-        {
-            logger.FetchingWorkflows("query (with count)");
-
-            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-
-            // Count uses the base filters (statuses, search, since, retried) but not cursor/take
             var baseQuery = context.GetWorkflowsByStatus(
                 statuses,
                 search,
-                take: null,
-                before: null,
-                since: since,
-                retriedOnly,
-                correlationIdFilter: correlationId != null ? Guid.Parse(correlationId) : null,
-                namespaceFilter: namespaceFilter,
-                labelFilter: labelFilters
-            );
-            var totalCount = await baseQuery.CountAsync(cancellationToken);
-
-            // Data query adds cursor and limit
-            var dataQuery = context.GetWorkflowsByStatus(
-                statuses,
-                search,
-                take,
-                before,
                 since,
                 retriedOnly,
-                correlationIdFilter: correlationId != null ? Guid.Parse(correlationId) : null,
+                collectionKeyFilter: collectionKey,
                 namespaceFilter: namespaceFilter,
                 labelFilter: labelFilters
             );
-            var workflows = await dataQuery.ToDomainModel().ToListAsync(cancellationToken);
+
+            int? totalCount = includeTotalCount ? await baseQuery.CountAsync(cancellationToken) : null;
+
+            if (totalCount == 0)
+            {
+                logger.SuccessfullyFetchedWorkflows(0);
+                return new CursorPaginatedResult([], null, totalCount);
+            }
+
+            IQueryable<Entities.WorkflowEntity> query = baseQuery.OrderByDescending(wf => wf.Id);
+
+            if (cursor.HasValue)
+                query = query.Where(wf => wf.Id < cursor.Value);
+
+            var workflows = await query.Take(pageSize + 1).ToDomainModel().ToListAsync(cancellationToken);
+
+            Guid? nextCursor = null;
+            if (workflows.Count > pageSize)
+            {
+                workflows.RemoveAt(workflows.Count - 1);
+                nextCursor = workflows[^1].DatabaseId;
+            }
 
             logger.SuccessfullyFetchedWorkflows(workflows.Count);
 
-            return (workflows, totalCount);
+            return new CursorPaginatedResult(workflows, nextCursor, totalCount);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -542,8 +632,8 @@ internal sealed partial class EngineRepository
                 {
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
                     const string sql = """
-                    SELECT "Id" FROM "engine"."Workflows"
-                    WHERE "Id" = ANY(@ids) AND "CancellationRequestedAt" IS NOT NULL
+                    SELECT id FROM engine.workflows
+                    WHERE id = ANY(@ids) AND cancellation_requested_at IS NOT NULL
                     """;
 
                     await using var cmd = new NpgsqlCommand(sql, conn);
@@ -557,43 +647,6 @@ internal sealed partial class EngineRepository
                 },
                 cancellationToken
             );
-
-            return result;
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            activity?.Errored(ex);
-            logger.FailedToFetchWorkflows(ex.Message, ex);
-            throw;
-        }
-    }
-
-    /// <inheritdoc/>
-    public async Task<IReadOnlyList<Workflow>> GetActiveWorkflowsByCorrelationId(
-        Guid? correlationId = null,
-        string? ns = null,
-        IReadOnlyDictionary<string, string>? labelFilters = null,
-        CancellationToken cancellationToken = default
-    )
-    {
-        using var activity = Metrics.Source.StartActivity("EngineRepository.GetActiveWorkflowsByCorrelationId");
-        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
-
-        try
-        {
-            logger.FetchingWorkflows("active (by correlationId)");
-
-            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-            var result = await context
-                .GetActiveWorkflows(correlationIdFilter: correlationId, namespaceFilter: ns, labelFilter: labelFilters)
-                .ToDomainModel()
-                .ToListAsync(cancellationToken);
-
-            logger.SuccessfullyFetchedWorkflows(result.Count);
 
             return result;
         }
@@ -632,39 +685,6 @@ internal sealed partial class EngineRepository
             }
 
             return entity.ToDomainModel();
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            activity?.Errored(ex);
-            logger.FailedToFetchWorkflows(ex.Message, ex);
-            throw;
-        }
-    }
-
-    /// <inheritdoc/>
-    public async Task<Workflow?> GetWorkflow(
-        string idempotencyKey,
-        DateTimeOffset createdAt,
-        CancellationToken cancellationToken = default
-    )
-    {
-        using var activity = Metrics.Source.StartActivity("EngineRepository.GetWorkflow");
-        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
-
-        try
-        {
-            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-            var entity = await context
-                .Workflows.Include(w => w.Steps)
-                .FirstOrDefaultAsync(
-                    w => w.IdempotencyKey == idempotencyKey && w.CreatedAt == createdAt,
-                    cancellationToken
-                );
-            return entity?.ToDomainModel();
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

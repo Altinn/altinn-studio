@@ -1,15 +1,16 @@
-import React, { Fragment, useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import deepEqual from 'fast-deep-equal';
 import type { Draft } from 'immer';
 
+import { useGetCachedInitialValidations, useRefetchInitialValidations } from 'src/core/queries/backendValidation';
 import { hasPendingAttachments } from 'src/features/attachments/utils';
 import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import {
+  type BackendValidationIssue,
   type BaseValidation,
-  type DataModelValidations,
   type FieldValidations,
   ValidationMask,
   type ValidationsProcessedLast,
@@ -17,37 +18,27 @@ import {
 } from 'src/features/validation';
 import { BackendValidation } from 'src/features/validation/backendValidation/BackendValidation';
 import {
-  useGetCachedInitialValidations,
-  useRefetchInitialValidations,
-} from 'src/features/validation/backendValidation/backendValidationQuery';
-import {
   mapBackendIssuesToTaskValidations,
   mapBackendValidationsToValidatorGroups,
   mapValidatorGroupsToDataModelValidations,
 } from 'src/features/validation/backendValidation/backendValidationUtils';
-import { InvalidDataValidation } from 'src/features/validation/invalidDataValidation/InvalidDataValidation';
 import { useWaitForNodesToValidate } from 'src/features/validation/nodeValidation/waitForNodesToValidate';
-import { SchemaValidation } from 'src/features/validation/schemaValidation/SchemaValidation';
-import { hasValidationErrors, mergeFieldValidations, selectValidations } from 'src/features/validation/utils';
+import { hasValidationErrors, selectValidations } from 'src/features/validation/utils';
+import { pruneBoundaryMasks } from 'src/features/validation/ValidationStorePlugin';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
 import type { FormBootstrapContextValue } from 'src/features/formBootstrap/types';
+import type { DataModelValidationState } from 'src/features/formData/FormDataWriteStateMachine';
 
 export interface ValidationInternals {
-  individualValidations: {
-    backend: DataModelValidations;
-    expression: DataModelValidations;
-    schema: DataModelValidations;
-    invalidData: DataModelValidations;
-  };
   processedLast: ValidationsProcessedLast; // This should only be used to check if we have finished processing the last validations from backend so that we know if the validation state is up to date
   /**
    * updateDataModelValidations
    * if validations is undefined, nothing will be changed
    */
   updateDataModelValidations: (
-    key: Exclude<keyof ValidationInternals['individualValidations'], 'backend'>,
-    dataElementId: string,
+    key: Exclude<keyof DataModelValidationState, 'backend'>,
+    dataType: string,
     validations?: FieldValidations,
   ) => void;
   updateBackendValidations: (
@@ -55,6 +46,7 @@ export interface ValidationInternals {
     processedLast?: Partial<ValidationsProcessedLast>,
     taskValidations?: BaseValidation[],
   ) => void;
+  setOtherDataElementBackendValidations: (dataElementId: string, validationIssues: BackendValidationIssue[]) => void;
 }
 
 export function createValidationSlice(
@@ -66,43 +58,71 @@ export function createValidationSlice(
     // Publicly exposed state
     state: {
       task: mapBackendIssuesToTaskValidations(bootstrap.validationIssues ?? []),
-      dataModels: {},
     },
-    setShowAllBackendErrors: (newValue) =>
+    otherDataElementBackendValidations: {},
+    formMask: 0,
+    pageMasks: {},
+    rowMasks: {},
+    setFormMask: (mask) =>
       set((state) => {
-        state.validation.showAllBackendErrors = newValue;
+        state.validation.formMask = mask ?? 0;
       }),
-    showAllBackendErrors: false,
+    setPageMask: (pageKey, mask) =>
+      set((state) => {
+        if (mask === undefined) {
+          delete state.validation.pageMasks[pageKey];
+        } else {
+          state.validation.pageMasks[pageKey] = mask;
+        }
+      }),
+    setRowMask: (rowId, mask) =>
+      set((state) => {
+        if (mask === undefined) {
+          delete state.validation.rowMasks[rowId];
+        } else {
+          state.validation.rowMasks[rowId] = mask;
+        }
+      }),
+    setShowAllUnboundValidations: (newValue) =>
+      set((state) => {
+        state.validation.showAllUnboundValidations = newValue;
+      }),
+    showAllUnboundValidations: false,
 
     // =======
     // Internal state
-    individualValidations: {
-      backend: mapValidatorGroupsToDataModelValidations(
-        mapBackendValidationsToValidatorGroups(bootstrap.allInitialValidations),
-      ),
-      expression: {},
-      schema: {},
-      invalidData: {},
-    },
     processedLast: {
       initial: bootstrap.allInitialValidations,
       incremental: undefined,
     },
-    updateDataModelValidations: (key, dataElementId, validations) =>
+    updateDataModelValidations: (key, dataType, validations) =>
       set((state) => {
-        if (validations) {
-          state.validation.individualValidations[key][dataElementId] = validations;
-          state.validation.state.dataModels[dataElementId] = mergeFieldValidations(
-            state.validation.individualValidations.backend[dataElementId],
-            state.validation.individualValidations.invalidData[dataElementId],
-            state.validation.individualValidations.schema[dataElementId],
-            state.validation.individualValidations.expression[dataElementId],
-          );
+        const dataModel = state.data.models[dataType];
+        if (dataModel && validations) {
+          dataModel.validations[key] = validations;
+          pruneBoundaryMasks(state);
         }
       }),
     updateBackendValidations: (backendValidations, processedLast, taskValidations) =>
       set((state) => {
         updateBackendValidations(state)(backendValidations, processedLast, taskValidations);
+        pruneBoundaryMasks(state);
+      }),
+    setOtherDataElementBackendValidations: (dataElementId, validationIssues) =>
+      set((state) => {
+        if (!getMountedDataElementIds(state).has(dataElementId)) {
+          const validations = mapValidatorGroupsToDataModelValidations(
+            mapBackendValidationsToValidatorGroups(validationIssues),
+          )[dataElementId];
+
+          if (validations && Object.keys(validations).length > 0) {
+            state.validation.otherDataElementBackendValidations[dataElementId] = validations;
+          } else {
+            delete state.validation.otherDataElementBackendValidations[dataElementId];
+          }
+
+          pruneBoundaryMasks(state);
+        }
       }),
   };
 }
@@ -124,39 +144,38 @@ export function updateBackendValidations(
       state.validation.state.task = taskValidations;
     }
     if (backendValidations) {
-      /**
-       * If a data model no longer has any backend validations, the key will not exist in the new object,
-       * we therefore need to make sure we update data model validations for any model that
-       * previously had validations as well.
-       */
-      const keys = new Set([
-        ...Object.keys(backendValidations),
-        ...Object.keys(state.validation.individualValidations.backend),
-      ]);
+      for (const [dataType, model] of Object.entries(state.data.models)) {
+        const dataModelKey = model.dataElementId ?? dataType;
+        model.validations.backend = backendValidations[dataModelKey] ?? {};
+      }
 
-      state.validation.individualValidations.backend = backendValidations;
-      for (const dataElementId of keys) {
-        state.validation.state.dataModels[dataElementId] = mergeFieldValidations(
-          state.validation.individualValidations.backend[dataElementId],
-          state.validation.individualValidations.invalidData[dataElementId],
-          state.validation.individualValidations.schema[dataElementId],
-          state.validation.individualValidations.expression[dataElementId],
-        );
+      if (!state.parent) {
+        const mountedDataElementIds = getMountedDataElementIds(state);
+        const isFullSnapshotUpdate = Boolean(processedLast?.initial);
+        if (isFullSnapshotUpdate) {
+          state.validation.otherDataElementBackendValidations = {};
+        }
+        for (const [dataElementId, validations] of Object.entries(backendValidations)) {
+          if (!mountedDataElementIds.has(dataElementId)) {
+            state.validation.otherDataElementBackendValidations[dataElementId] = validations;
+          }
+        }
       }
     }
   };
 }
 
+function getMountedDataElementIds(state: Pick<FormStoreState, 'data'>): Set<string> {
+  const mountedDataElementIds = new Set<string>();
+  for (const [dataType, model] of Object.entries(state.data.models)) {
+    mountedDataElementIds.add(model.dataElementId ?? dataType);
+  }
+  return mountedDataElementIds;
+}
+
 export function ValidationEffects() {
-  const writableDataTypes = FormBootstrap.useWritableDataTypes();
   return (
     <>
-      {writableDataTypes.map((dataType) => (
-        <Fragment key={dataType}>
-          <SchemaValidation dataType={dataType} />
-          <InvalidDataValidation dataType={dataType} />
-        </Fragment>
-      ))}
       <BackendValidation />
       <ManageShowAllErrors />
     </>
@@ -213,15 +232,15 @@ export function useWaitForValidation(): WaitForValidation {
 }
 
 function ManageShowAllErrors() {
-  const showAllErrors = FormStore.raw.useSelector((state) => state.validation.showAllBackendErrors);
+  const showAllErrors = FormStore.raw.useSelector((state) => state.validation.showAllUnboundValidations);
   return showAllErrors ? <UpdateShowAllErrors /> : null;
 }
 
 function UpdateShowAllErrors() {
-  const [taskValidations, dataModelValidations, setShowAllErrors] = FormStore.raw.useShallowSelector((state) => [
+  const [taskValidations, dataModels, setShowAllErrors] = FormStore.raw.useShallowSelector((state) => [
     state.validation.state.task,
-    state.validation.state.dataModels,
-    state.validation.setShowAllBackendErrors,
+    state.data.models,
+    state.validation.setShowAllUnboundValidations,
   ]);
 
   const isFirstRender = useRef(true);
@@ -258,40 +277,41 @@ function UpdateShowAllErrors() {
   useEffect(() => {
     const backendMask = ValidationMask.Backend | ValidationMask.CustomBackend;
     const hasFieldErrors =
-      Object.values(dataModelValidations)
-        .flatMap((fields) => Object.values(fields))
+      Object.values(dataModels)
+        .map((model) => model.validations.backend)
+        .flatMap((validations) => Object.values(validations))
         .flatMap((field) => selectValidations(field, backendMask, 'error')).length > 0;
 
     if (!hasFieldErrors && !hasValidationErrors(taskValidations)) {
       setShowAllErrors(false);
     }
-  }, [dataModelValidations, setShowAllErrors, taskValidations]);
+  }, [dataModels, setShowAllErrors, taskValidations]);
 
   return null;
 }
 
 export const validationHooks = {
-  useDataElementsWithErrors: (elementIds: string[]) =>
-    FormStore.raw.useMemoSelector((state) => {
-      const out: string[] = [];
-      for (const elementId of elementIds) {
-        const dataElementValidations = state.validation.state.dataModels[elementId];
-        for (const fieldValidations of Object.values(dataElementValidations ?? {})) {
-          for (const validation of fieldValidations) {
-            if (validation.severity === 'error') {
-              out.push(elementId);
-              break;
-            }
-          }
+  useDataElementsWithErrors: (dataElementIds: string[]) =>
+    FormStore.raw.useShallowSelector((state) => {
+      const elementsWithErrors: string[] = [];
+      for (const dataElementId of Object.keys(state.validation.otherDataElementBackendValidations)) {
+        if (!dataElementIds.includes(dataElementId)) {
+          continue;
+        }
+        const validations = state.validation.otherDataElementBackendValidations[dataElementId];
+        if (Object.values(validations).some((v) => hasValidationErrors(v))) {
+          elementsWithErrors.push(dataElementId);
         }
       }
-      return out;
+      return elementsWithErrors;
     }),
 
-  useShowAllBackendErrors: () => FormStore.raw.useSelector((state) => state.validation.showAllBackendErrors),
-  useSetShowAllBackendErrors: () => {
+  useShowAllUnboundValidations: () => FormStore.raw.useSelector((state) => state.validation.showAllUnboundValidations),
+  useSetShowAllUnboundValidations: () => {
     const validating = useWaitForValidation();
-    const setShowAllBackendErrors = FormStore.raw.useShallowSelector((s) => s.validation.setShowAllBackendErrors);
+    const setShowAllUnboundValidations = FormStore.raw.useStaticSelector(
+      (s) => s.validation.setShowAllUnboundValidations,
+    );
 
     return useMemo(
       () => async () => {
@@ -299,13 +319,14 @@ export const validationHooks = {
         // This is because we automatically turn off this state as soon as possible.
         // If the validations to show have not finished processing, this could get turned off before they ever became visible.
         await validating();
-        setShowAllBackendErrors(true);
+        setShowAllUnboundValidations(true);
       },
-      [setShowAllBackendErrors, validating],
+      [setShowAllUnboundValidations, validating],
     );
   },
-  useUpdateDataModelValidations: () =>
-    FormStore.raw.useStaticSelector((state) => state.validation.updateDataModelValidations),
+  useSetFormValidationMask: () => FormStore.raw.useStaticSelector((state) => state.validation.setFormMask),
+  useSetPageValidationMask: () => FormStore.raw.useStaticSelector((state) => state.validation.setPageMask),
+  useSetRowValidationMask: () => FormStore.raw.useStaticSelector((state) => state.validation.setRowMask),
   useUpdateBackendValidations: () =>
     FormStore.raw.useStaticSelector((state) => state.validation.updateBackendValidations),
 };

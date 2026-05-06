@@ -25,6 +25,7 @@ public class CancellationTests
                 b.Submit(
                     It.IsAny<Workflow>(),
                     It.IsAny<CancellationToken>(),
+                    It.IsAny<IReadOnlyList<Step>?>(),
                     It.IsAny<string?>(),
                     It.IsAny<Activity?>()
                 )
@@ -77,7 +78,6 @@ public class CancellationTests
         new()
         {
             OperationId = operationId,
-            IdempotencyKey = $"test-step-key/{operationId}",
             ProcessingOrder = processingOrder,
             Command = CommandDefinition.Create("webhook"),
         };
@@ -101,7 +101,7 @@ public class CancellationTests
     /// Creates a mock executor where the specified step index cancels the CTS and throws
     /// <see cref="OperationCanceledException"/>. If a <paramref name="workflow"/> is provided,
     /// its <see cref="Workflow.CancellationRequestedAt"/> is stamped before cancellation
-    /// (simulating <see cref="InFlightTracker.TryCancel"/>). If null, only the CTS is
+    /// (simulating <see cref="InFlightTracker.TryCancel(System.Guid)"/>). If null, only the CTS is
     /// cancelled (simulating host shutdown).
     /// </summary>
     private static Mock<IWorkflowExecutor> MockExecutorWithCancellation(
@@ -277,7 +277,7 @@ public class CancellationTests
         using var cts = new CancellationTokenSource();
 
         tracker.TryAdd(id, cts, workflow);
-        tracker.TryRemove(id, out _);
+        tracker.Remove(id);
 
         var result = tracker.TryCancel(id);
         Assert.False(result);

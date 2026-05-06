@@ -16,7 +16,6 @@
   steps: [
     {
       databaseId: {Scrubbed},
-      idempotencyKey: idem-Guid_1//ping-b,
       operationId: /ping-b,
       processingOrder: 0,
       updatedAt: {Scrubbed},

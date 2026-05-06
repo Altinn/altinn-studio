@@ -258,4 +258,8 @@ export class ArrayUtils {
   public static filterNotNull<T>(array: (T | null)[]): T[] {
     return array.filter((item): item is T => item !== null);
   }
+
+  public static isNotEmpty<T>(array: T[]): array is [T, ...T[]] {
+    return !!array.length;
+  }
 }

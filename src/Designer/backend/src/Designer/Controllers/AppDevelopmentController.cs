@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -75,7 +74,7 @@ public class AppDevelopmentController : Controller
     public async Task<IActionResult> GetFormLayouts(
         string org,
         string app,
-        [FromQuery] string layoutSetName,
+        [FromQuery] string? layoutSetName,
         CancellationToken cancellationToken
     )
     {
@@ -116,7 +115,7 @@ public class AppDevelopmentController : Controller
     public async Task<ActionResult> SaveFormLayout(
         string org,
         string app,
-        [FromQuery] string layoutSetName,
+        [FromQuery] string? layoutSetName,
         [FromRoute] string layoutName,
         [FromBody] FormLayoutPayload formLayoutPayload,
         CancellationToken cancellationToken
@@ -210,7 +209,7 @@ public class AppDevelopmentController : Controller
     public async Task<ActionResult> DeleteFormLayout(
         string org,
         string app,
-        [FromQuery] string layoutSetName,
+        [FromQuery] string? layoutSetName,
         [FromRoute] string layoutName,
         CancellationToken cancellationToken
     )
@@ -255,7 +254,7 @@ public class AppDevelopmentController : Controller
     public async Task<ActionResult> UpdateFormLayoutName(
         string org,
         string app,
-        [FromQuery] string layoutSetName,
+        [FromQuery] string? layoutSetName,
         [FromRoute] string layoutName,
         [FromBody] string newName,
         CancellationToken cancellationToken
@@ -299,7 +298,7 @@ public class AppDevelopmentController : Controller
     public async Task<ActionResult> SaveLayoutSettings(
         string org,
         string app,
-        [FromQuery] string layoutSetName,
+        [FromQuery] string? layoutSetName,
         [FromBody] JsonNode layoutSettings,
         CancellationToken cancellationToken
     )
@@ -336,7 +335,7 @@ public class AppDevelopmentController : Controller
     public async Task<IActionResult> GetLayoutSettings(
         string org,
         string app,
-        [FromQuery] string layoutSetName,
+        [FromQuery] string? layoutSetName,
         CancellationToken cancellationToken
     )
     {
@@ -454,8 +453,8 @@ public class AppDevelopmentController : Controller
     }
 
     private static bool HasValidationSettingsChanged(
-        ValidationOnNavigation existingSettings,
-        ValidationOnNavigation incomingSettings
+        ValidationOnNavigation? existingSettings,
+        ValidationOnNavigation? incomingSettings
     )
     {
         if (existingSettings == null && incomingSettings == null)
@@ -528,15 +527,15 @@ public class AppDevelopmentController : Controller
                 .Select(item => new
                 {
                     item.Id,
-                    Show = item.Settings.Pages.ValidationOnNavigation.Show,
+                    Show = item.Settings.Pages!.ValidationOnNavigation!.Show,
                     Page = item.Settings.Pages.ValidationOnNavigation.Page,
                 })
                 .GroupBy(x => new { ShowKey = x.Show != null ? string.Join(",", x.Show.OrderBy(s => s)) : "", x.Page })
                 .Select(group => new ValidationOnNavigationDto
                 {
                     Tasks = group.Select(x => x.Id).ToList(),
-                    Show = group.First().Show,
-                    Page = group.First().Page,
+                    Show = group.First().Show!,
+                    Page = group.First().Page!,
                 })
                 .ToList();
 
@@ -594,19 +593,19 @@ public class AppDevelopmentController : Controller
                     .Select(kvp => new
                     {
                         PageName = kvp.Key,
-                        Nav = kvp.Value["data"]["validationOnNavigation"].Deserialize<ValidationOnNavigation>(),
+                        Nav = kvp.Value["data"]!["validationOnNavigation"].Deserialize<ValidationOnNavigation>(),
                     })
                     .GroupBy(x => new
                     {
-                        Page = x.Nav.Page ?? string.Empty,
+                        Page = x.Nav!.Page ?? string.Empty,
                         ShowKey = x.Nav.Show != null ? string.Join(",", x.Nav.Show.OrderBy(s => s)) : string.Empty,
                     })
                     .Select(group => new PageValidationOnNavigationDto
                     {
                         Task = layoutSet.Id,
                         Pages = [.. group.Select(x => x.PageName)],
-                        Page = group.First().Nav.Page,
-                        Show = group.First().Nav.Show?.OrderBy(s => s).ToList(),
+                        Page = group.First().Nav!.Page!,
+                        Show = group.First().Nav!.Show!.OrderBy(s => s).ToList(),
                     });
 
                 result.AddRange(groups);
@@ -663,19 +662,19 @@ public class AppDevelopmentController : Controller
 
                 foreach ((string pageName, JsonNode layoutNode) in layouts)
                 {
-                    PageValidationOnNavigationDto matchingGroupForPage = validationGroupsForLayoutSet.FirstOrDefault(
+                    PageValidationOnNavigationDto? matchingGroupForPage = validationGroupsForLayoutSet.FirstOrDefault(
                         g => g.Pages.Contains(pageName)
                     );
 
-                    JsonObject dataNode = layoutNode?["data"]?.AsObject();
+                    JsonObject? dataNode = layoutNode?["data"]?.AsObject();
                     if (dataNode == null)
                     {
                         continue;
                     }
 
-                    ValidationOnNavigation existingValidation = dataNode["validationOnNavigation"]
+                    ValidationOnNavigation? existingValidation = dataNode["validationOnNavigation"]
                         ?.Deserialize<ValidationOnNavigation>();
-                    ValidationOnNavigation newValidation =
+                    ValidationOnNavigation? newValidation =
                         matchingGroupForPage != null
                             ? new ValidationOnNavigation
                             {
@@ -725,7 +724,7 @@ public class AppDevelopmentController : Controller
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="app">Application identifier which is unique within an organisation.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>A string array of all layout names without file extension in all sets</returns>
     [HttpGet]
     [UseSystemTextJson]
@@ -780,8 +779,8 @@ public class AppDevelopmentController : Controller
     public async Task<IActionResult> GetModelMetadata(
         string org,
         string app,
-        [FromQuery] string layoutSetName,
-        [FromQuery] string dataModelName,
+        [FromQuery] string? layoutSetName,
+        [FromQuery] string? dataModelName,
         CancellationToken cancellationToken
     )
     {
@@ -801,7 +800,7 @@ public class AppDevelopmentController : Controller
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="app">Application identifier which is unique within an organisation.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The layout-sets.json</returns>
     [HttpGet]
     [UseSystemTextJson]
@@ -835,11 +834,11 @@ public class AppDevelopmentController : Controller
                 async (layoutSet) =>
                 {
                     LayoutSetDto layoutSetDto = layoutSet.ToDto();
-                    string layoutSetId = layoutSet?.Id;
+                    string? layoutSetId = layoutSet?.Id;
                     LayoutSettings layoutSettings = await _layoutService.GetLayoutSettings(editingContext, layoutSetId);
                     PagesDto pages = PagesDto.From(layoutSettings);
                     layoutSetDto.PageCount =
-                        pages.Groups != null ? pages.Groups.Sum(group => group.Pages.Count) : pages.Pages.Count;
+                        pages.Groups != null ? pages.Groups.Sum(group => group.Pages.Count) : pages.Pages!.Count;
 
                     return layoutSetDto;
                 }
@@ -1017,7 +1016,7 @@ public class AppDevelopmentController : Controller
     public async Task<IActionResult> GetRuleHandler(
         string org,
         string app,
-        [FromQuery] string layoutSetName,
+        [FromQuery] string? layoutSetName,
         CancellationToken cancellationToken
     )
     {
@@ -1055,7 +1054,7 @@ public class AppDevelopmentController : Controller
     public async Task<IActionResult> SaveRuleHandler(
         string org,
         string app,
-        [FromQuery] string layoutSetName,
+        [FromQuery] string? layoutSetName,
         CancellationToken cancellationToken
     )
     {
@@ -1093,7 +1092,7 @@ public class AppDevelopmentController : Controller
         string org,
         string app,
         [FromBody] JsonNode ruleConfig,
-        [FromQuery] string layoutSetName,
+        [FromQuery] string? layoutSetName,
         CancellationToken cancellationToken
     )
     {
@@ -1123,7 +1122,7 @@ public class AppDevelopmentController : Controller
     public async Task<IActionResult> GetRuleConfig(
         string org,
         string app,
-        [FromQuery] string layoutSetName,
+        [FromQuery] string? layoutSetName,
         CancellationToken cancellationToken
     )
     {

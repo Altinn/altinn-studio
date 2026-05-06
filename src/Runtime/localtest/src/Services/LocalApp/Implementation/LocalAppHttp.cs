@@ -2,16 +2,16 @@
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Caching.Memory;
 
+using Altinn.Studio.EnvTopology;
 using Altinn.Platform.Storage.Interface.Models;
 
 using LocalTest.Configuration;
 using LocalTest.Services.LocalApp.Interface;
 using LocalTest.Services.TestData;
-using LocalTest.Services.AppRegistry;
 using LocalTest.Helpers;
+using LocalTest.Tunnel;
 
 namespace LocalTest.Services.LocalApp.Implementation
 {
@@ -34,41 +34,51 @@ namespace LocalTest.Services.LocalApp.Implementation
         public const string APPLICATION_METADATA_CACHE_KEY = "/api/v1/applicationmetadata?checkOrgApp=false";
         public const string TEXT_RESOURCE_CACE_KEY = "/api/v1/texts";
         public const string TEST_DATA_CACHE_KEY = "TEST_DATA_CACHE_KEY";
-        private readonly GeneralSettings _generalSettings;
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly string _defaultAppUrl;
+        private static readonly TimeSpan ApplicationMetadataRequestTimeout = TimeSpan.FromSeconds(5);
         private readonly IMemoryCache _cache;
         private readonly ILogger<LocalAppHttp> _logger;
-        private readonly AppRegistryService _appRegistryService;
+        private readonly AppTunnelClient _appTunnelClient;
+        private readonly BoundTopologyIndexAccessor _boundTopologyIndex;
 
-        public LocalAppHttp(IOptions<GeneralSettings> generalSettings, IHttpClientFactory httpClientFactory, IOptions<LocalPlatformSettings> localPlatformSettings, IMemoryCache cache, ILogger<LocalAppHttp> logger, AppRegistryService appRegistryService)
+        public LocalAppHttp(
+            IMemoryCache cache,
+            ILogger<LocalAppHttp> logger,
+            AppTunnelClient appTunnelClient,
+            BoundTopologyIndexAccessor boundTopologyIndex
+        )
         {
-            _generalSettings = generalSettings.Value;
-            _httpClientFactory = httpClientFactory;
-            _defaultAppUrl = localPlatformSettings.Value.LocalAppUrl;
             _cache = cache;
             _logger = logger;
-            _appRegistryService = appRegistryService;
+            _appTunnelClient = appTunnelClient;
+            _boundTopologyIndex = boundTopologyIndex;
         }
 
-        private HttpClient CreateClient(string? appId = null)
+        private async Task<string> GetStringAsync(string requestUri, string? appId, CancellationToken cancellationToken)
         {
-            var client = _httpClientFactory.CreateClient();
+            using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            using var response = await Send(request, appId, cancellationToken);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync(cancellationToken);
+        }
 
-            // Try to get registered app first
-            if (appId != null)
+        private async Task<HttpResponseMessage> Send(HttpRequestMessage request, string? appId, CancellationToken cancellationToken)
+        {
+            if (!_appTunnelClient.IsConnected)
             {
-                var appUrl = _appRegistryService.GetUrl(appId);
-                if (appUrl != null)
-                {
-                    client.BaseAddress = new Uri(appUrl);
-                    return client;
-                }
+                throw new InvalidOperationException("app tunnel is not connected");
             }
 
-            // Fallback to default URL (port 5005)
-            client.BaseAddress = new Uri(_defaultAppUrl);
-            return client;
+            var resolvedRoute = ResolveAppRoute(appId);
+            if (resolvedRoute is null)
+            {
+                throw new InvalidOperationException("local app request requires an app id");
+            }
+            return await _appTunnelClient.SendToTarget(
+                request,
+                resolvedRoute.TargetHost,
+                resolvedRoute.TargetPort,
+                cancellationToken
+            );
         }
 
         public async Task<string?> GetXACMLPolicy(string appId, CancellationToken cancellationToken = default)
@@ -77,14 +87,35 @@ namespace LocalTest.Services.LocalApp.Implementation
             {
                 // Cache with very short duration to not slow down page load, where this file can be accessed many many times
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
-                using var client = CreateClient(appId);
-                return await client.GetStringAsync($"{appId}/api/v1/meta/authorizationpolicy", cancellationToken);
+                return await GetStringAsync($"{appId}/api/v1/meta/authorizationpolicy", appId, cancellationToken);
             });
         }
         public async Task<Application?> GetApplicationMetadata(string? appId, CancellationToken cancellationToken = default)
         {
-            var content = await GetApplicationMetadataContent(appId, cancellationToken);
-            return JsonSerializer.Deserialize<Application>(content!, JSON_OPTIONS);
+            appId = ResolveAppRoute(appId)?.AppId;
+            if (string.IsNullOrWhiteSpace(appId))
+            {
+                return null;
+            }
+
+            var content = await _cache.GetOrCreateAsync(APPLICATION_METADATA_CACHE_KEY + appId, async cacheEntry =>
+            {
+                // Cache with very short duration to not slow down page load, where this file can be accessed many many times
+                cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
+                using var timeoutCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                timeoutCancellationTokenSource.CancelAfter(ApplicationMetadataRequestTimeout);
+                return await GetStringAsync(
+                    $"{appId}/api/v1/applicationmetadata?checkOrgApp=false",
+                    appId,
+                    timeoutCancellationTokenSource.Token
+                );
+            });
+            if (content is null)
+            {
+                throw new InvalidOperationException("application metadata response is missing");
+            }
+
+            return JsonSerializer.Deserialize<Application>(content, JSON_OPTIONS);
         }
 
         public async Task<Version?> GetAppVersion(string? appId, CancellationToken cancellationToken = default)
@@ -100,8 +131,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             var content = await _cache.GetOrCreateAsync(TEXT_RESOURCE_CACE_KEY + org + app + language, async cacheEntry =>
             {
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
-                using var client = CreateClient(appId);
-                return await client.GetStringAsync($"{appId}/api/v1/texts/{language}", cancellationToken);
+                return await GetStringAsync($"{appId}/api/v1/texts/{language}", appId, cancellationToken);
             });
 
             var textResource = JsonSerializer.Deserialize<TextResource>(content!, JSON_OPTIONS);
@@ -120,13 +150,11 @@ namespace LocalTest.Services.LocalApp.Implementation
         {
             var ret = new Dictionary<string, Application>();
 
-            // Get all registered apps
-            var registrations = _appRegistryService.GetAll();
-            foreach (var registration in registrations.Values)
+            foreach (var appRoute in GetBoundAppRoutes())
             {
                 try
                 {
-                    var app = await GetApplicationMetadata(registration.AppId, cancellationToken);
+                    var app = await GetApplicationMetadata(appRoute.AppId, cancellationToken);
                     if (app != null)
                     {
                         ret.Add(app.Id, app);
@@ -134,23 +162,8 @@ namespace LocalTest.Services.LocalApp.Implementation
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to get metadata for registered app {AppId}", registration.AppId);
+                    _logger.LogWarning(ex, "Failed to get metadata for discovered app {AppId}", appRoute.AppId);
                 }
-            }
-
-            // Always try to get app from default port 5005
-            // This allows both registered apps and the default app to coexist
-            try
-            {
-                var app = await GetApplicationMetadata(null, cancellationToken);
-                if (app != null && !ret.ContainsKey(app.Id))
-                {
-                    ret.Add(app.Id, app);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogDebug(ex, "No app found on default port 5005");
             }
 
             return ret;
@@ -194,11 +207,10 @@ namespace LocalTest.Services.LocalApp.Implementation
                 content.Add(new StringContent(xmlPrefill, System.Text.Encoding.UTF8, "application/xml"), xmlDataId);
             }
 
-            using var client = CreateClient(appId);
             using var message = new HttpRequestMessage(HttpMethod.Post, requestUri);
             message.Content = content;
             message.Headers.Authorization = new ("Bearer", token);
-            var response = await client.SendAsync(message, cancellationToken);
+            using var response = await Send(message, appId, cancellationToken);
             var stringResponse = await response.Content.ReadAsStringAsync(cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
@@ -219,12 +231,11 @@ namespace LocalTest.Services.LocalApp.Implementation
                 int reachableApps = 0;
                 int appsWithData = 0;
 
-                var registrations = _appRegistryService.GetAll();
-                foreach (var registration in registrations.Values)
+                foreach (var appRoute in GetBoundAppRoutes())
                 {
                     try
                     {
-                        var result = await FetchAndMergeTestData(registration.AppId, $"{registration.AppId}/testData.json", merged, cancellationToken);
+                        var result = await FetchAndMergeTestData(appRoute.AppId, $"{appRoute.AppId}/testData.json", merged, cancellationToken);
                         if (result.AppWasReachable)
                         {
                             reachableApps++;
@@ -237,38 +248,9 @@ namespace LocalTest.Services.LocalApp.Implementation
                     }
                     catch (InvalidOperationException ex)
                     {
-                        _logger.LogCritical(ex, "Test data conflict detected when loading from app {AppId}", registration.AppId);
+                        _logger.LogCritical(ex, "Test data conflict detected when loading from app {AppId}", appRoute.AppId);
                         throw;
                     }
-                }
-
-                // Also try default app (port 5005) as fallback
-                try
-                {
-                    var defaultAppMetadata = await GetApplicationMetadata("dummyOrg/dummyApp", cancellationToken);
-                    if (defaultAppMetadata != null)
-                    {
-                        var defaultResult = await FetchAndMergeTestData(defaultAppMetadata.Id, $"{defaultAppMetadata.Id}/testData.json", merged, cancellationToken);
-
-                        if (defaultResult.AppWasReachable)
-                        {
-                            reachableApps++;
-                            if (defaultResult.AppHadData)
-                            {
-                                appsWithData++;
-                            }
-                            merged = defaultResult.MergedData;
-                        }
-                    }
-                }
-                catch (InvalidOperationException ex)
-                {
-                    _logger.LogCritical(ex, "Test data conflict detected when loading from default app");
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogDebug(ex, "No default app found on port 5005");
                 }
 
                 var allHaveData = merged != null && reachableApps > 0 && appsWithData == reachableApps;
@@ -285,8 +267,8 @@ namespace LocalTest.Services.LocalApp.Implementation
         {
             try
             {
-                using var client = CreateClient(appId);
-                var response = await client.GetAsync(requestUri, cancellationToken);
+                using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+                using var response = await Send(request, appId, cancellationToken);
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
                     return new FetchResult(merged, AppWasReachable: true, AppHadData: false);
@@ -307,7 +289,7 @@ namespace LocalTest.Services.LocalApp.Implementation
                     var targetModel = merged.GetTestDataModel();
 
                     // MergeTestData will detect conflicts and throw if any already exist
-                    TestDataMerger.MergeTestData(sourceModel, targetModel, appId ?? "default app");
+                    TestDataMerger.MergeTestData(sourceModel, targetModel, appId ?? "unknown app");
                     merged = AppTestDataModel.FromTestDataModel(targetModel);
                     return new FetchResult(merged, AppWasReachable: true, AppHadData: true);
                 }
@@ -324,6 +306,22 @@ namespace LocalTest.Services.LocalApp.Implementation
         public void InvalidateTestDataCache()
         {
             _cache.Remove(TEST_DATA_CACHE_KEY);
+        }
+
+        private IReadOnlyList<BoundTopologyAppRoute> GetBoundAppRoutes()
+        {
+            return _boundTopologyIndex.Current.GetApps();
+        }
+
+        private BoundTopologyAppRoute? ResolveAppRoute(string? appId)
+        {
+            var index = _boundTopologyIndex.Current;
+            if (!string.IsNullOrWhiteSpace(appId))
+            {
+                return index.TryGetApp(appId);
+            }
+
+            return index.TryGetSingleApp();
         }
     }
 }
