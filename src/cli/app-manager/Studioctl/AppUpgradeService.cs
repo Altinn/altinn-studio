@@ -7,6 +7,20 @@ namespace Altinn.Studio.AppManager.Studioctl;
 
 internal sealed class AppUpgradeService : IDisposable
 {
+    // TODO: split into per-version, separate tfm for v9 etc...
+    private const string DefaultProjectFile = "App/App.csproj";
+    private const string DefaultProcessFile = "App/config/process/process.bpmn";
+    private const string DefaultAppSettingsFolder = "App";
+    private const string DefaultTargetFramework = "net8.0";
+    private const string DefaultFrontendTargetVersion = "4";
+    private const string DefaultBackendTargetVersion = "8.7.0";
+    private const string DefaultIndexFile = "App/views/Home/Index.cshtml";
+    private const string DefaultUiFolder = "App/ui/";
+    private const string DefaultTextsFolder = "App/config/texts/";
+    private const string DefaultLayoutSetName = "form";
+    private const string DefaultApplicationMetadataFile = "App/config/applicationmetadata.json";
+    private const string DefaultReceiptLayoutSetName = "receipt";
+
     private readonly SemaphoreSlim _upgradeLock = new(1, 1);
 
     public async Task<AppUpgradeResult> RunAsync(AppUpgradeRequest request, CancellationToken cancellationToken)
@@ -67,22 +81,22 @@ internal sealed class AppUpgradeService : IDisposable
             UpgradeKinds.FrontendV4 => FrontendUpgrade.RunAsync(
                 new FrontendUpgradeOptions(
                     ProjectFolder: request.ProjectFolder,
-                    TargetVersion: request.TargetVersion ?? "4",
-                    IndexFile: request.IndexFile ?? "App/views/Home/Index.cshtml",
-                    UiFolder: request.UiFolder ?? "App/ui/",
-                    TextsFolder: request.TextsFolder ?? "App/config/texts/",
-                    LayoutSetName: request.LayoutSetName ?? "form",
-                    ApplicationMetadataFile: request.ApplicationMetadataFile ?? "App/config/applicationmetadata.json",
-                    ReceiptLayoutSetName: request.ReceiptLayoutSetName ?? "receipt",
-                    SkipIndexFileUpgrade: request.SkipIndexFileUpgrade ?? false,
-                    SkipLayoutSetUpgrade: request.SkipLayoutSetUpgrade ?? false,
-                    SkipSettingsUpgrade: request.SkipSettingsUpgrade ?? false,
-                    SkipLayoutUpgrade: request.SkipLayoutUpgrade ?? false,
-                    ConvertGroupTitles: request.ConvertGroupTitles ?? false,
-                    SkipSchemaRefUpgrade: request.SkipSchemaRefUpgrade ?? false,
-                    SkipFooterUpgrade: request.SkipFooterUpgrade ?? false,
-                    SkipCustomReceiptUpgrade: request.SkipCustomReceiptUpgrade ?? false,
-                    SkipChecks: request.SkipChecks ?? false,
+                    TargetVersion: DefaultFrontendTargetVersion,
+                    IndexFile: DefaultIndexFile,
+                    UiFolder: DefaultUiFolder,
+                    TextsFolder: DefaultTextsFolder,
+                    LayoutSetName: DefaultLayoutSetName,
+                    ApplicationMetadataFile: DefaultApplicationMetadataFile,
+                    ReceiptLayoutSetName: DefaultReceiptLayoutSetName,
+                    SkipIndexFileUpgrade: false,
+                    SkipLayoutSetUpgrade: false,
+                    SkipSettingsUpgrade: false,
+                    SkipLayoutUpgrade: false,
+                    ConvertGroupTitles: false,
+                    SkipSchemaRefUpgrade: false,
+                    SkipFooterUpgrade: false,
+                    SkipCustomReceiptUpgrade: false,
+                    SkipChecks: false,
                     Output: output,
                     Error: error,
                     CancellationToken: cancellationToken
@@ -91,16 +105,16 @@ internal sealed class AppUpgradeService : IDisposable
             UpgradeKinds.BackendV8 => BackendUpgrade.RunAsync(
                 new BackendUpgradeOptions(
                     ProjectFolder: request.ProjectFolder,
-                    ProjectFile: request.Project ?? "App/App.csproj",
-                    ProcessFile: request.Process ?? "App/config/process/process.bpmn",
-                    AppSettingsFolder: request.AppSettingsFolder ?? "App",
-                    TargetVersion: request.TargetVersion ?? "8.7.0",
-                    TargetFramework: request.TargetFramework ?? "net8.0",
-                    SkipCodeUpgrade: request.SkipCodeUpgrade ?? false,
-                    SkipProcessUpgrade: request.SkipProcessUpgrade ?? false,
-                    SkipCsprojUpgrade: request.SkipCsprojUpgrade ?? false,
-                    SkipDockerfileUpgrade: request.SkipDockerfileUpgrade ?? false,
-                    SkipAppSettingsUpgrade: request.SkipAppSettingsUpgrade ?? false,
+                    ProjectFile: DefaultProjectFile,
+                    ProcessFile: DefaultProcessFile,
+                    AppSettingsFolder: DefaultAppSettingsFolder,
+                    TargetVersion: DefaultBackendTargetVersion,
+                    TargetFramework: DefaultTargetFramework,
+                    SkipCodeUpgrade: false,
+                    SkipProcessUpgrade: false,
+                    SkipCsprojUpgrade: false,
+                    SkipDockerfileUpgrade: false,
+                    SkipAppSettingsUpgrade: false,
                     Output: output,
                     Error: error,
                     CancellationToken: cancellationToken
@@ -109,17 +123,17 @@ internal sealed class AppUpgradeService : IDisposable
             UpgradeKinds.V10 => V8Tov10Upgrade.RunAsync(
                 new V8Tov10UpgradeOptions(
                     ProjectFolder: request.ProjectFolder,
-                    ProjectFile: request.Project ?? "App/App.csproj",
-                    TargetFramework: request.TargetFramework ?? "net8.0",
-                    SkipCsprojUpgrade: request.SkipCsprojUpgrade ?? false,
-                    ConvertPackageReferences: request.ConvertPackageReferences ?? false,
+                    ProjectFile: DefaultProjectFile,
+                    TargetFramework: DefaultTargetFramework,
+                    SkipCsprojUpgrade: false,
+                    ConvertPackageReferences: request.ConvertPackageReferences,
                     StudioRoot: request.StudioRoot,
                     Output: output,
                     Error: error,
                     CancellationToken: cancellationToken
                 )
             ),
-            _ => Task.FromResult(-1),
+            _ => throw new InvalidOperationException($"Unsupported upgrade kind: {request.Kind}"),
         };
     }
 
@@ -141,33 +155,8 @@ internal static class UpgradeKinds
 internal sealed record AppUpgradeRequest(
     string Kind,
     string ProjectFolder,
-    string? Project,
-    string? Process,
-    string? AppSettingsFolder,
     string? StudioRoot,
-    string? TargetVersion,
-    string? TargetFramework,
-    string? IndexFile,
-    string? UiFolder,
-    string? TextsFolder,
-    string? LayoutSetName,
-    string? ApplicationMetadataFile,
-    string? ReceiptLayoutSetName,
-    bool? SkipCodeUpgrade,
-    bool? SkipProcessUpgrade,
-    bool? SkipCsprojUpgrade,
-    bool? ConvertPackageReferences,
-    bool? SkipDockerfileUpgrade,
-    bool? SkipAppSettingsUpgrade,
-    bool? SkipIndexFileUpgrade,
-    bool? SkipLayoutSetUpgrade,
-    bool? SkipSettingsUpgrade,
-    bool? SkipLayoutUpgrade,
-    bool? ConvertGroupTitles,
-    bool? SkipSchemaRefUpgrade,
-    bool? SkipFooterUpgrade,
-    bool? SkipCustomReceiptUpgrade,
-    bool? SkipChecks
+    bool ConvertPackageReferences
 );
 
 internal sealed record AppUpgradeResult(bool IsValid, int ExitCode, string Message, string Output, string Error)

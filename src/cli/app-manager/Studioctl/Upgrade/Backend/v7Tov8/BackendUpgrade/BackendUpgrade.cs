@@ -1,4 +1,3 @@
-using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.CodeRewriters;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.DockerfileRewriters;
@@ -28,131 +27,25 @@ internal sealed record BackendUpgradeOptions(
     CancellationToken CancellationToken
 );
 
-/// <summary>
-/// Defines the upgrade command for upgrading app-lib-dotnet in an Altinn 3 application
-/// </summary>
 internal static class BackendUpgrade
 {
-    /// <summary>
-    /// Get the actual upgrade command
-    /// </summary>
-    /// <param name="projectFolderOption">Option for setting the root folder of the project</param>
-    /// <returns></returns>
-    public static Command GetUpgradeCommand(Option<string> projectFolderOption)
-    {
-        var projectFileOption = new Option<string>(name: "--project")
-        {
-            Description = "The project file to read relative to --folder",
-            DefaultValueFactory = _ => "App/App.csproj",
-        };
-        var processFileOption = new Option<string>(name: "--process")
-        {
-            Description = "The process file to read relative to --folder",
-            DefaultValueFactory = _ => "App/config/process/process.bpmn",
-        };
-        var appSettingsFolderOption = new Option<string>(name: "--appsettings-folder")
-        {
-            Description = "The folder where the appsettings.*.json files are located",
-            DefaultValueFactory = _ => "App",
-        };
-        var targetVersionOption = new Option<string>(name: "--target-version")
-        {
-            Description = "The target version to upgrade to",
-            DefaultValueFactory = _ => "8.7.0",
-        };
-        var targetFrameworkOption = new Option<string>(name: "--target-framework")
-        {
-            Description = "The target dotnet framework version to upgrade to",
-            DefaultValueFactory = _ => "net8.0",
-        };
-        var skipCsprojUpgradeOption = new Option<bool>(name: "--skip-csproj-upgrade")
-        {
-            Description = "Skip csproj file upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var skipDockerUpgradeOption = new Option<bool>(name: "--skip-dockerfile-upgrade")
-        {
-            Description = "Skip Dockerfile upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var skipCodeUpgradeOption = new Option<bool>(name: "--skip-code-upgrade")
-        {
-            Description = "Skip code upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var skipProcessUpgradeOption = new Option<bool>(name: "--skip-process-upgrade")
-        {
-            Description = "Skip process file upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var skipAppSettingsUpgradeOption = new Option<bool>(name: "--skip-appsettings-upgrade")
-        {
-            Description = "Skip appsettings file upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var upgradeCommand = new Command("backend-v8", "Upgrade an app from app-lib-dotnet v7 to v8")
-        {
-            projectFolderOption,
-            projectFileOption,
-            processFileOption,
-            appSettingsFolderOption,
-            targetVersionOption,
-            targetFrameworkOption,
-            skipCsprojUpgradeOption,
-            skipDockerUpgradeOption,
-            skipCodeUpgradeOption,
-            skipProcessUpgradeOption,
-            skipAppSettingsUpgradeOption,
-        };
-        upgradeCommand.SetAction(async result =>
-        {
-            var returnCode = await RunAsync(
-                new BackendUpgradeOptions(
-                    result.GetValue(projectFolderOption) ?? "CurrentDirectory",
-                    result.GetValue(projectFileOption) ?? "App/App.csproj",
-                    result.GetValue(processFileOption) ?? "App/config/process/process.bpmn",
-                    result.GetValue(appSettingsFolderOption) ?? "App",
-                    result.GetValue(targetVersionOption) ?? "8.7.0",
-                    result.GetValue(targetFrameworkOption) ?? "net8.0",
-                    result.GetValue(skipCodeUpgradeOption),
-                    result.GetValue(skipProcessUpgradeOption),
-                    result.GetValue(skipCsprojUpgradeOption),
-                    result.GetValue(skipDockerUpgradeOption),
-                    result.GetValue(skipAppSettingsUpgradeOption),
-                    Console.Out,
-                    Console.Error,
-                    CancellationToken.None
-                )
-            );
-            Environment.Exit(returnCode);
-        });
-
-        return upgradeCommand;
-    }
-
     internal static async Task<int> RunAsync(BackendUpgradeOptions options)
     {
         using var outputScope = UpgradeConsole.Use(options.Output, options.Error);
-        var projectFolder = ResolveProjectFolder(options.ProjectFolder);
+        var projectFolder = options.ProjectFolder;
         if (!Directory.Exists(projectFolder))
-            return WriteError(
-                $"{projectFolder} does not exist. Please supply location of project with --folder [path/to/project]"
-            );
+            return WriteError($"Project folder does not exist: {projectFolder}");
 
         FileAttributes attr = File.GetAttributes(projectFolder);
         if ((attr & FileAttributes.Directory) != FileAttributes.Directory)
-            return WriteError(
-                $"Project folder {projectFolder} is a file. Please supply location of project with --folder [path/to/project]"
-            );
+            return WriteError($"Project folder is not a directory: {projectFolder}");
 
         var projectFile = Path.Combine(projectFolder, options.ProjectFile);
         var processFile = Path.Combine(projectFolder, options.ProcessFile);
         var appSettingsFolder = Path.Combine(projectFolder, options.AppSettingsFolder);
 
         if (!File.Exists(projectFile))
-            return WriteError(
-                $"Project file {projectFile} does not exist. Please supply location of project with --project [path/to/project.csproj]"
-            );
+            return WriteError($"Project file does not exist: {projectFile}");
 
         var projectChecks = new ProjectChecks.ProjectChecks(projectFile);
         if (!projectChecks.SupportedSourceVersion())
@@ -203,9 +96,7 @@ internal static class BackendUpgrade
     {
         if (!File.Exists(dockerFile))
         {
-            await UpgradeConsole.Error.WriteLineAsync(
-                $"Dockerfile {dockerFile} does not exist. Please supply location of project with --dockerfile [path/to/Dockerfile]"
-            );
+            await UpgradeConsole.Error.WriteLineAsync($"Dockerfile does not exist: {dockerFile}");
             return 1;
         }
         await UpgradeConsole.Out.WriteLineAsync("Trying to upgrade dockerfile");
@@ -289,9 +180,7 @@ internal static class BackendUpgrade
     {
         if (!File.Exists(processFile))
         {
-            await UpgradeConsole.Error.WriteLineAsync(
-                $"Process file {processFile} does not exist. Please supply location of project with --process [path/to/project.csproj]"
-            );
+            await UpgradeConsole.Error.WriteLineAsync($"Process file does not exist: {processFile}");
             return 1;
         }
 
@@ -318,9 +207,7 @@ internal static class BackendUpgrade
     {
         if (!Directory.Exists(appSettingsFolder))
         {
-            await UpgradeConsole.Error.WriteLineAsync(
-                $"App settings folder {appSettingsFolder} does not exist. Please supply location with --appsettings-folder [path/to/appsettings]"
-            );
+            await UpgradeConsole.Error.WriteLineAsync($"App settings folder does not exist: {appSettingsFolder}");
             return 1;
         }
 
@@ -350,16 +237,6 @@ internal static class BackendUpgrade
         );
 
         return 0;
-    }
-
-    private static string ResolveProjectFolder(string projectFolder)
-    {
-        if (projectFolder == "CurrentDirectory")
-            return Directory.GetCurrentDirectory();
-
-        return Path.IsPathRooted(projectFolder)
-            ? projectFolder
-            : Path.Combine(Directory.GetCurrentDirectory(), projectFolder);
     }
 
     private static int WriteError(string message, int exitCode = 1)

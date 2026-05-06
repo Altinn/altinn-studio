@@ -1,4 +1,3 @@
-using System.CommandLine;
 using Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.Checks;
 using Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.CustomReceiptRewriter;
 using Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.FooterRewriter;
@@ -45,153 +44,13 @@ internal static class FrontendUpgrade
         UpgradeConsole.WriteLine(message);
     }
 
-    public static Command GetUpgradeCommand(Option<string> projectFolderOption)
-    {
-        var targetVersionOption = new Option<string>(name: "--target-version")
-        {
-            Description = "The target version to upgrade to",
-            DefaultValueFactory = _ => "4",
-        };
-        var indexFileOption = new Option<string>(name: "--index-file")
-        {
-            Description = "The name of the Index.cshtml file relative to --folder",
-            DefaultValueFactory = _ => "App/views/Home/Index.cshtml",
-        };
-        var skipIndexFileUpgradeOption = new Option<bool>(name: "--skip-index-file-upgrade")
-        {
-            Description = "Skip Index.cshtml upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var uiFolderOption = new Option<string>(name: "--ui-folder")
-        {
-            Description = "The folder containing layout files relative to --folder",
-            DefaultValueFactory = _ => "App/ui/",
-        };
-        var textsFolderOption = new Option<string>(name: "--texts-folder")
-        {
-            Description = "The folder containing text files relative to --folder",
-            DefaultValueFactory = _ => "App/config/texts/",
-        };
-        var layoutSetNameOption = new Option<string>(name: "--layout-set-name")
-        {
-            Description = "The name of the layout set to be created",
-            DefaultValueFactory = _ => "form",
-        };
-        var applicationMetadataFileOption = new Option<string>(name: "--application-metadata")
-        {
-            Description = "The path of the applicationmetadata.json file relative to --folder",
-            DefaultValueFactory = _ => "App/config/applicationmetadata.json",
-        };
-        var skipLayoutSetUpgradeOption = new Option<bool>(name: "--skip-layout-set-upgrade")
-        {
-            Description = "Skip layout set upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var skipSettingsUpgradeOption = new Option<bool>(name: "--skip-settings-upgrade")
-        {
-            Description = "Skip layout settings upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var skipLayoutUpgradeOption = new Option<bool>(name: "--skip-layout-upgrade")
-        {
-            Description = "Skip layout files upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var convertGroupTitlesOption = new Option<bool>(name: "--convert-group-titles")
-        {
-            Description = "Convert 'title' in repeating groups to 'summaryTitle'",
-            DefaultValueFactory = _ => false,
-        };
-        var skipSchemaRefUpgradeOption = new Option<bool>(name: "--skip-schema-ref-upgrade")
-        {
-            Description = "Skip schema reference upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var skipFooterUpgradeOption = new Option<bool>(name: "--skip-footer-upgrade")
-        {
-            Description = "Skip footer upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var receiptLayoutSetNameOption = new Option<string>(name: "--receipt-layout-set-name")
-        {
-            Description = "The name of the layout set to be created for the custom receipt",
-            DefaultValueFactory = _ => "receipt",
-        };
-        var skipCustomReceiptUpgradeOption = new Option<bool>(name: "--skip-custom-receipt-upgrade")
-        {
-            Description = "Skip custom receipt upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var skipChecksOption = new Option<bool>(name: "--skip-checks")
-        {
-            Description = "Skip checks",
-            DefaultValueFactory = _ => false,
-        };
-
-        var upgradeCommand = new Command("frontend-v4", "Upgrade an app from using App-Frontend v3 to v4")
-        {
-            projectFolderOption,
-            targetVersionOption,
-            indexFileOption,
-            skipIndexFileUpgradeOption,
-            uiFolderOption,
-            textsFolderOption,
-            layoutSetNameOption,
-            applicationMetadataFileOption,
-            skipLayoutSetUpgradeOption,
-            skipSettingsUpgradeOption,
-            skipLayoutUpgradeOption,
-            convertGroupTitlesOption,
-            skipSchemaRefUpgradeOption,
-            skipFooterUpgradeOption,
-            skipCustomReceiptUpgradeOption,
-            receiptLayoutSetNameOption,
-            skipChecksOption,
-        };
-
-        upgradeCommand.SetAction(
-            async (ParseResult result) =>
-            {
-                var returnCode = await RunAsync(
-                    new FrontendUpgradeOptions(
-                        result.GetValue(projectFolderOption) ?? "CurrentDirectory",
-                        result.GetValue(targetVersionOption) ?? "4",
-                        result.GetValue(indexFileOption) ?? "App/views/Home/Index.cshtml",
-                        result.GetValue(uiFolderOption) ?? "App/ui/",
-                        result.GetValue(textsFolderOption) ?? "App/config/texts/",
-                        result.GetValue(layoutSetNameOption) ?? "form",
-                        result.GetValue(applicationMetadataFileOption) ?? "App/config/applicationmetadata.json",
-                        result.GetValue(receiptLayoutSetNameOption) ?? "receipt",
-                        result.GetValue(skipIndexFileUpgradeOption),
-                        result.GetValue(skipLayoutSetUpgradeOption),
-                        result.GetValue(skipSettingsUpgradeOption),
-                        result.GetValue(skipLayoutUpgradeOption),
-                        result.GetValue(convertGroupTitlesOption),
-                        result.GetValue(skipSchemaRefUpgradeOption),
-                        result.GetValue(skipFooterUpgradeOption),
-                        result.GetValue(skipCustomReceiptUpgradeOption),
-                        result.GetValue(skipChecksOption),
-                        Console.Out,
-                        Console.Error,
-                        CancellationToken.None
-                    )
-                );
-                Environment.Exit(returnCode);
-            }
-        );
-
-        return upgradeCommand;
-    }
-
     internal static async Task<int> RunAsync(FrontendUpgradeOptions options)
     {
         using var outputScope = UpgradeConsole.Use(options.Output, options.Error);
-        var projectFolder = ResolveProjectFolder(options.ProjectFolder);
+        var projectFolder = options.ProjectFolder;
         if (!Directory.Exists(projectFolder))
         {
-            PrintError(
-                $"{projectFolder} does not exist. Please supply location of project with --folder [path/to/project]"
-            );
+            PrintError($"Project folder does not exist: {projectFolder}");
             return 1;
         }
 
@@ -519,15 +378,5 @@ internal static class FrontendUpgrade
                 : "Checks finished without warnings"
         );
         return 0;
-    }
-
-    private static string ResolveProjectFolder(string projectFolder)
-    {
-        if (projectFolder == "CurrentDirectory")
-            return Directory.GetCurrentDirectory();
-
-        return Path.IsPathRooted(projectFolder)
-            ? projectFolder
-            : Path.Combine(Directory.GetCurrentDirectory(), projectFolder);
     }
 }

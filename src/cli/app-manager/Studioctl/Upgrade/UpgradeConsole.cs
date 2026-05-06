@@ -6,9 +6,12 @@ internal static class UpgradeConsole
 {
     private static readonly AsyncLocal<Writers?> Current = new();
 
-    public static TextWriter Out => Current.Value?.StandardOutput ?? Console.Out;
+    public static TextWriter Out =>
+        Current.Value?.StandardOutput
+        ?? throw new InvalidOperationException("Upgrade output writer is not configured.");
 
-    public static TextWriter Error => Current.Value?.StandardError ?? Console.Error;
+    public static TextWriter Error =>
+        Current.Value?.StandardError ?? throw new InvalidOperationException("Upgrade error writer is not configured.");
 
     public static IDisposable Use(TextWriter output, TextWriter error)
     {

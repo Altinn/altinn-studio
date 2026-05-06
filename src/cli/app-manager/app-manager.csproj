@@ -12,7 +12,6 @@
   <ItemGroup>
     <Compile Include="../../Shared/AppTunnel/**/*.cs" LinkBase="AppTunnel" />
     <Compile Include="../../Shared/EnvTopology/**/*.cs" LinkBase="EnvTopology" />
-    <Compile Remove="Studioctl/Version/**/*.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,6 +26,5 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
     <PackageReference Include="Microsoft.NET.StringTools" ExcludeAssets="runtime" PrivateAssets="all" />
-    <PackageReference Include="System.CommandLine" />
   </ItemGroup>
 </Project>

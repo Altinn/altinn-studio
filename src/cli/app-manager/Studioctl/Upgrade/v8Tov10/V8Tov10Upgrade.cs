@@ -1,4 +1,3 @@
-using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.ProjectRewriters;
 using Altinn.Studio.Cli.Upgrade.v8Tov10.IndexMigration;
@@ -21,98 +20,22 @@ internal sealed record V8Tov10UpgradeOptions(
     CancellationToken CancellationToken
 );
 
-/// <summary>
-/// Defines the upgrade command for upgrading both backend and frontend from v8 to v10
-/// </summary>
 internal static class V8Tov10Upgrade
 {
-    /// <summary>
-    /// Get the v8Tov10 upgrade command
-    /// </summary>
-    /// <param name="projectFolderOption">Option for setting the root folder of the project</param>
-    /// <returns>The command for upgrading from v8 to v10</returns>
-    public static Command GetUpgradeCommand(Option<string> projectFolderOption)
-    {
-        var projectFileOption = new Option<string>("--project")
-        {
-            Description = "The project file to read relative to --folder",
-            DefaultValueFactory = _ => "App/App.csproj",
-        };
-        var targetFrameworkOption = new Option<string>("--target-framework")
-        {
-            Description = "The target dotnet framework version to upgrade to",
-            DefaultValueFactory = _ => "net8.0",
-        };
-        var skipCsprojUpgradeOption = new Option<bool>("--skip-csproj-upgrade")
-        {
-            Description = "Skip csproj target framework/package cleanup",
-            DefaultValueFactory = _ => false,
-        };
-        var convertPackageReferencesOption = new Option<bool>("--convert-package-references")
-        {
-            Description =
-                "Convert Altinn package references to project references. Only valid inside an Altinn Studio repo.",
-            DefaultValueFactory = _ => false,
-        };
-        var studioRootOption = new Option<string>("--studio-root")
-        {
-            Description = "Altinn Studio repo root used when converting package references",
-        };
-
-        var upgradeCommand = new Command("v10")
-        {
-            Description = "Upgrade an app from v8 to v10 (both backend and frontend)",
-        };
-        upgradeCommand.Add(projectFolderOption);
-        upgradeCommand.Add(projectFileOption);
-        upgradeCommand.Add(targetFrameworkOption);
-        upgradeCommand.Add(skipCsprojUpgradeOption);
-        upgradeCommand.Add(convertPackageReferencesOption);
-        upgradeCommand.Add(studioRootOption);
-
-        upgradeCommand.SetAction(
-            async (parseResult) =>
-            {
-                var returnCode = await RunAsync(
-                    new V8Tov10UpgradeOptions(
-                        parseResult.GetValue(projectFolderOption) ?? "CurrentDirectory",
-                        parseResult.GetValue(projectFileOption) ?? "App/App.csproj",
-                        parseResult.GetValue(targetFrameworkOption) ?? "net8.0",
-                        parseResult.GetValue(skipCsprojUpgradeOption),
-                        parseResult.GetValue(convertPackageReferencesOption),
-                        parseResult.GetValue(studioRootOption),
-                        Console.Out,
-                        Console.Error,
-                        CancellationToken.None
-                    )
-                );
-                Environment.Exit(returnCode);
-            }
-        );
-
-        return upgradeCommand;
-    }
-
     internal static async Task<int> RunAsync(V8Tov10UpgradeOptions options)
     {
         using var outputScope = UpgradeConsole.Use(options.Output, options.Error);
-        var projectFolder = ResolveProjectFolder(options.ProjectFolder);
+        var projectFolder = options.ProjectFolder;
         if (!Directory.Exists(projectFolder))
-            return WriteError(
-                $"{projectFolder} does not exist. Please supply location of project with --folder [path/to/project]"
-            );
+            return WriteError($"Project folder does not exist: {projectFolder}");
 
         FileAttributes attr = File.GetAttributes(projectFolder);
         if ((attr & FileAttributes.Directory) != FileAttributes.Directory)
-            return WriteError(
-                $"Project folder {projectFolder} is a file. Please supply location of project with --folder [path/to/project]"
-            );
+            return WriteError($"Project folder is not a directory: {projectFolder}");
 
         var projectFile = Path.Combine(projectFolder, options.ProjectFile);
         if (!File.Exists(projectFile))
-            return WriteError(
-                $"Project file {projectFile} does not exist. Please supply location of project with --project [path/to/project.csproj]"
-            );
+            return WriteError($"Project file does not exist: {projectFile}");
 
         var projectChecks = new ProjectChecks.ProjectChecks(projectFile);
         if (!projectChecks.SupportedSourceVersion())
@@ -489,16 +412,6 @@ internal static class V8Tov10Upgrade
             await UpgradeConsole.Error.WriteLineAsync($"Error migrating Index.cshtml: {ex.Message}");
             return 1;
         }
-    }
-
-    private static string ResolveProjectFolder(string projectFolder)
-    {
-        if (projectFolder == "CurrentDirectory")
-            return Directory.GetCurrentDirectory();
-
-        return Path.IsPathRooted(projectFolder)
-            ? projectFolder
-            : Path.Combine(Directory.GetCurrentDirectory(), projectFolder);
     }
 
     private static int WriteError(string message, int exitCode = 1)
