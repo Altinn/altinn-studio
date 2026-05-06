@@ -1,169 +1,155 @@
-import fs from "node:fs";
-import path from "node:path";
-import { pathToFileURL } from "node:url";
+import fs from 'node:fs';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
-const OUTPUT_PATH = ".github/CODEOWNERS";
-const GENERATED_BY = ".github/scripts/codeowners-generate.mjs";
+const OUTPUT_PATH = '.github/CODEOWNERS';
+const GENERATED_BY = '.github/scripts/codeowners-generate.mjs';
 const ROOT_FILE_ENTRIES = [
   {
-    path: "/.github/CODEOWNERS",
-    owner: "@altinn/team-altinn-studio",
+    path: '/.github/CODEOWNERS',
+    owner: '@altinn/team-altinn-studio',
   },
 ];
 const EXACT_SOURCE_FILES = [
-  "package.json",
-  "yarn.lock",
-  "package-lock.json",
-  "go.mod",
-  "go.sum",
-  "Directory.Packages.props",
-  "global.json",
-  "Chart.yaml",
-  "pyproject.toml",
-  "requirements.txt",
-  "requirements-dev.txt",
-  "uv.lock",
+  'package.json',
+  'yarn.lock',
+  'package-lock.json',
+  'go.mod',
+  'go.sum',
+  'Directory.Packages.props',
+  'global.json',
+  'Chart.yaml',
+  'pyproject.toml',
+  'requirements.txt',
+  'requirements-dev.txt',
+  'uv.lock',
 ];
 const SOURCE_TYPES = [
   ...EXACT_SOURCE_FILES.map(createExactSourceType),
-  createDottedPrefixSourceType("Dockerfile"),
-  createDottedPrefixSourceType("dockerfile"),
-  ...createComposeSourceTypes("compose"),
-  ...createComposeSourceTypes("docker-compose", { allowDottedVariants: true }),
-  ...createComposeSourceTypes("podman-compose", { allowDottedVariants: true }),
-  createExtensionSourceType(".csproj", "**/*.csproj"),
+  createDottedPrefixSourceType('Dockerfile'),
+  createDottedPrefixSourceType('dockerfile'),
+  ...createComposeSourceTypes('compose'),
+  ...createComposeSourceTypes('docker-compose', { allowDottedVariants: true }),
+  ...createComposeSourceTypes('podman-compose', { allowDottedVariants: true }),
+  createExtensionSourceType('.csproj', '**/*.csproj'),
 ];
 const GROUPS = [
   {
-    title: "Team Core",
-    owner: "@altinn/team-core",
-    roots: [
-      "src/test/K6",
+    title: 'Team Core',
+    owner: '@altinn/team-core',
+    roots: ['src/test/K6'],
+  },
+  {
+    title: 'Team Utforming',
+    owner: '@altinn/team-altinn-studio-utforming',
+    roots: ['src/App/frontend', 'src/Designer/frontend'],
+    extraPaths: [
+      '.github/workflows/app-frontend-codeql.yml',
+      '.github/workflows/app-frontend-compare-repos.yml',
+      '.github/workflows/app-frontend-cypress.yml',
+      '.github/workflows/app-frontend-k6-browser.yml',
+      '.github/workflows/app-frontend-lighthouse-ci.yml',
+      '.github/workflows/app-frontend-unit-tests.yml',
+      '.github/workflows/designer-frontend-codeql.yml',
+      '.github/workflows/designer-frontend-config-coverage.yml',
+      '.github/workflows/designer-frontend-playwright-staging.yml',
+      '.github/workflows/designer-frontend-run-playwright-on-pr.yaml',
+      '.github/workflows/designer-frontend-unit-tests.yml',
+      '.github/workflows/storybook-to-github-pages.yaml',
+      '.github/workflows/studio-components-deploy.yaml',
+      '.github/workflows/studio-components-legacy-deploy.yaml',
     ],
   },
   {
-    title: "Team Utforming",
-    owner: "@altinn/team-altinn-studio-utforming",
-    roots: [
-      "src/App/frontend",
-      "src/Designer/frontend",
-    ],
+    title: 'Team Access Info',
+    owner: '@altinn/team-access-info',
+    roots: ['src/Designer/frontend/resourceadm'],
     extraPaths: [
-      ".github/workflows/app-frontend-codeql.yml",
-      ".github/workflows/app-frontend-compare-repos.yml",
-      ".github/workflows/app-frontend-cypress.yml",
-      ".github/workflows/app-frontend-k6-browser.yml",
-      ".github/workflows/app-frontend-lighthouse-ci.yml",
-      ".github/workflows/app-frontend-unit-tests.yml",
-      ".github/workflows/designer-frontend-codeql.yml",
-      ".github/workflows/designer-frontend-config-coverage.yml",
-      ".github/workflows/designer-frontend-playwright-staging.yml",
-      ".github/workflows/designer-frontend-run-playwright-on-pr.yaml",
-      ".github/workflows/designer-frontend-unit-tests.yml",
-      ".github/workflows/storybook-to-github-pages.yaml",
-      ".github/workflows/studio-components-deploy.yaml",
-      ".github/workflows/studio-components-legacy-deploy.yaml",
+      '.github/workflows/playwright-resourceadm.yml',
+      '.github/workflows/run-playwright-resourceadm-on-pr.yml',
     ],
   },
   {
-    title: "Team Access Info",
-    owner: "@altinn/team-access-info",
-    roots: [
-      "src/Designer/frontend/resourceadm",
-    ],
+    title: 'AI',
+    owner: '@ErlingHauan',
+    roots: ['src/AI/agents', 'src/AI/augmenter-agent', 'src/AI/mcp'],
     extraPaths: [
-      ".github/workflows/playwright-resourceadm.yml",
-      ".github/workflows/run-playwright-resourceadm-on-pr.yml",
+      '.github/workflows/deploy-studio-mcp-server.yaml',
+      '.github/workflows/mcp-build.yaml',
+      '.github/workflows/mcp-test.yaml',
     ],
   },
   {
-    title: "AI",
-    owner: "@ErlingHauan",
+    title: 'Squad Kjøring',
+    owner: '@altinn/team-altinn-studio-kjoring',
     roots: [
-      "src/AI/agents",
-      "src/AI/augmenter-agent",
-      "src/AI/mcp",
+      'src/cli',
+      'src/gitea',
+      'src/gitea-runner',
+      'src/gitea-proxy',
+      'src/load-balancer',
+      'src/lhci-server',
+      'src/Runtime/kubernetes-wrapper',
+      'src/Runtime/localtest',
+      'src/Runtime/operator',
+      'src/Runtime/pdf3',
+      'src/Runtime/gateway',
+      'src/Runtime/devenv',
+      'src/tools/health',
+      'src/tools/releaser',
+      'charts/altinn-loadbalancer',
+      'charts/altinn-loadbalancer-config',
+      'charts/gitea-org-runner',
+      'charts/gitea-org-runner-config',
     ],
     extraPaths: [
-      ".github/workflows/deploy-studio-mcp-server.yaml",
-      ".github/workflows/mcp-build.yaml",
-      ".github/workflows/mcp-test.yaml",
+      '.github/workflows/cli-build-test.yaml',
+      '.github/workflows/construct-environments-script-test.yaml',
+      '.github/workflows/deploy-gitea-runners.yaml',
+      '.github/workflows/deploy-lhci-server.yaml',
+      '.github/workflows/deploy-loadbalancer.yaml',
+      '.github/workflows/deploy-repositories.yaml',
+      '.github/workflows/deploy-runtime-apps-config.yaml',
+      '.github/workflows/deploy-runtime-flux-config.yaml',
+      '.github/workflows/deploy-runtime-gateway.yaml',
+      '.github/workflows/deploy-runtime-grafana-manifests.yaml',
+      '.github/workflows/deploy-runtime-kubernetes-wrapper.yaml',
+      '.github/workflows/deploy-runtime-localtest.yaml',
+      '.github/workflows/deploy-runtime-observability.yaml',
+      '.github/workflows/deploy-runtime-operator.yaml',
+      '.github/workflows/deploy-runtime-pdf3.yaml',
+      '.github/workflows/deploy-runtime-syncroot.yaml',
+      '.github/workflows/deploy-studio-observability.yaml',
+      '.github/workflows/deploy-studio-otel-operator.yaml',
+      '.github/workflows/deploy-studio-syncroot.yaml',
+      '.github/workflows/deployer-check.yaml',
+      '.github/workflows/gitea-check-texts-file.yml',
+      '.github/workflows/gitea-runner-test.yml',
+      '.github/workflows/release-studioctl.yaml',
+      '.github/workflows/releaser-build-test.yml',
+      '.github/workflows/repositories-scan.yml',
+      '.github/workflows/runtime-devenv-build.yml',
+      '.github/workflows/runtime-gateway-tests.yaml',
+      '.github/workflows/runtime-health-build.yml',
+      '.github/workflows/runtime-kubernetes-wrapper-build.yaml',
+      '.github/workflows/runtime-localtest-build.yml',
+      '.github/workflows/runtime-operator-build.yml',
+      '.github/workflows/runtime-pdf3-build.yml',
+      '.github/workflows/template-runtime-construct-environments.yaml',
+      '.github/workflows/template-studio-construct-environments.yaml',
+      '.github/workflows/validate-renovate.yaml',
     ],
   },
   {
-    title: "Squad Kjøring",
-    owner: "@altinn/team-altinn-studio-kjoring",
-    roots: [
-      "src/cli",
-      "src/gitea",
-      "src/gitea-runner",
-      "src/gitea-proxy",
-      "src/load-balancer",
-      "src/lhci-server",
-      "src/Runtime/kubernetes-wrapper",
-      "src/Runtime/localtest",
-      "src/Runtime/operator",
-      "src/Runtime/pdf3",
-      "src/Runtime/gateway",
-      "src/Runtime/devenv",
-      "src/tools/health",
-      "src/tools/releaser",
-      "charts/altinn-loadbalancer",
-      "charts/altinn-loadbalancer-config",
-      "charts/gitea-org-runner",
-      "charts/gitea-org-runner-config",
-    ],
+    title: 'Squad Flyt',
+    owner: '@altinn/team-altinn-studio-flyt',
+    roots: ['src/Runtime/workflow-engine', 'src/Runtime/workflow-engine-app'],
     extraPaths: [
-      ".github/workflows/cli-build-test.yaml",
-      ".github/workflows/construct-environments-script-test.yaml",
-      ".github/workflows/deploy-gitea-runners.yaml",
-      ".github/workflows/deploy-lhci-server.yaml",
-      ".github/workflows/deploy-loadbalancer.yaml",
-      ".github/workflows/deploy-repositories.yaml",
-      ".github/workflows/deploy-runtime-apps-config.yaml",
-      ".github/workflows/deploy-runtime-flux-config.yaml",
-      ".github/workflows/deploy-runtime-gateway.yaml",
-      ".github/workflows/deploy-runtime-grafana-manifests.yaml",
-      ".github/workflows/deploy-runtime-kubernetes-wrapper.yaml",
-      ".github/workflows/deploy-runtime-localtest.yaml",
-      ".github/workflows/deploy-runtime-observability.yaml",
-      ".github/workflows/deploy-runtime-operator.yaml",
-      ".github/workflows/deploy-runtime-pdf3.yaml",
-      ".github/workflows/deploy-runtime-syncroot.yaml",
-      ".github/workflows/deploy-studio-observability.yaml",
-      ".github/workflows/deploy-studio-otel-operator.yaml",
-      ".github/workflows/deploy-studio-syncroot.yaml",
-      ".github/workflows/deployer-check.yaml",
-      ".github/workflows/gitea-check-texts-file.yml",
-      ".github/workflows/gitea-runner-test.yml",
-      ".github/workflows/release-studioctl.yaml",
-      ".github/workflows/releaser-build-test.yml",
-      ".github/workflows/repositories-scan.yml",
-      ".github/workflows/runtime-devenv-build.yml",
-      ".github/workflows/runtime-gateway-tests.yaml",
-      ".github/workflows/runtime-health-build.yml",
-      ".github/workflows/runtime-kubernetes-wrapper-build.yaml",
-      ".github/workflows/runtime-localtest-build.yml",
-      ".github/workflows/runtime-operator-build.yml",
-      ".github/workflows/runtime-pdf3-build.yml",
-      ".github/workflows/template-runtime-construct-environments.yaml",
-      ".github/workflows/template-studio-construct-environments.yaml",
-      ".github/workflows/validate-renovate.yaml",
+      '.github/workflows/deploy-runtime-workflow-engine-app.yaml',
+      '.github/workflows/runtime-workflow-engine-app-tests.yaml',
+      '.github/workflows/runtime-workflow-engine-tests.yaml',
     ],
   },
-  {
-    title: "Squad Flyt",
-    owner: "@altinn/team-altinn-studio-flyt",
-    roots: [
-      "src/Runtime/workflow-engine",
-      "src/Runtime/workflow-engine-app",
-    ],
-    extraPaths: [
-      ".github/workflows/deploy-runtime-workflow-engine-app.yaml",
-      ".github/workflows/runtime-workflow-engine-app-tests.yaml",
-      ".github/workflows/runtime-workflow-engine-tests.yaml",
-    ],
-  }
 ];
 
 /**
@@ -183,7 +169,7 @@ export function generateCodeowners(options = {}) {
     return false;
   }
 
-  fs.writeFileSync(OUTPUT_PATH, generated, "utf8");
+  fs.writeFileSync(OUTPUT_PATH, generated, 'utf8');
   return true;
 }
 
@@ -193,15 +179,15 @@ export function renderCodeowners() {
   const width = Math.max(...allEntries.map((entry) => entry.path.length)) + 2;
 
   const lines = ROOT_FILE_ENTRIES.map((entry) => formatEntry(entry, width));
-  lines.push("#");
+  lines.push('#');
   lines.push(`# This file is generated by ${GENERATED_BY}.`);
-  lines.push("# Keep CODEOWNERS narrow by default");
-  lines.push("# so unrelated diffs do not trigger owner review requests.");
-  lines.push("#");
+  lines.push('# Keep CODEOWNERS narrow by default');
+  lines.push('# so unrelated diffs do not trigger owner review requests.');
+  lines.push('#');
 
   for (const section of sections) {
     if (section.title) {
-      lines.push("");
+      lines.push('');
       lines.push(`# ${section.title}`);
     }
 
@@ -210,7 +196,7 @@ export function renderCodeowners() {
     }
   }
 
-  return `${lines.join("\n")}\n`;
+  return `${lines.join('\n')}\n`;
 }
 
 function buildSections() {
@@ -225,7 +211,9 @@ function buildSections() {
     for (const entry of entries) {
       const existingOwner = seen.get(entry.path);
       if (existingOwner) {
-        throw new Error(`duplicate CODEOWNERS entry for '${entry.path}' (${existingOwner}, ${entry.owner}).`);
+        throw new Error(
+          `duplicate CODEOWNERS entry for '${entry.path}' (${existingOwner}, ${entry.owner}).`,
+        );
       }
       seen.set(entry.path, entry.owner);
     }
@@ -272,11 +260,11 @@ function buildRootEntries(root) {
     throw new Error(`root '${root}' matched no supported source types.`);
   }
 
-  return SOURCE_TYPES
-    .filter((sourceType) => presentSourceGlobs.has(sourceType.glob))
-    .map((sourceType) => ({
+  return SOURCE_TYPES.filter((sourceType) => presentSourceGlobs.has(sourceType.glob)).map(
+    (sourceType) => ({
       path: `${normalizePath(root)}/${sourceType.glob}`,
-    }));
+    }),
+  );
 }
 
 /**
@@ -331,11 +319,11 @@ function createComposeSourceTypes(baseName, options = {}) {
   return sourceTypes.concat([
     {
       glob: `**/${baseName}.*.yaml`,
-      matches: (candidate) => matchesDottedVariant(candidate, baseName, ".yaml"),
+      matches: (candidate) => matchesDottedVariant(candidate, baseName, '.yaml'),
     },
     {
       glob: `**/${baseName}.*.yml`,
-      matches: (candidate) => matchesDottedVariant(candidate, baseName, ".yml"),
+      matches: (candidate) => matchesDottedVariant(candidate, baseName, '.yml'),
     },
   ]);
 }
@@ -355,10 +343,10 @@ function matchesDottedVariant(candidate, baseName, extension) {
 function walkDirectory(absolutePath, onFile) {
   const entries = fs.readdirSync(absolutePath, { withFileTypes: true });
   for (const entry of entries) {
-    if (entry.name === "node_modules") {
+    if (entry.name === 'node_modules') {
       continue;
     }
-    if (entry.isDirectory() && entry.name.startsWith(".")) {
+    if (entry.isDirectory() && entry.name.startsWith('.')) {
       continue;
     }
 
@@ -382,22 +370,22 @@ function formatEntry(entry, width) {
 
 function readFileOrEmpty(filePath) {
   try {
-    return fs.readFileSync(filePath, "utf8");
+    return fs.readFileSync(filePath, 'utf8');
   } catch (error) {
-    if (error instanceof Error && "code" in error && error.code === "ENOENT") {
-      return "";
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+      return '';
     }
     throw error;
   }
 }
 
 function normalizePath(filePath) {
-  return filePath.split(path.sep).join("/");
+  return filePath.split(path.sep).join('/');
 }
 
 function parseArgs(argv) {
   return {
-    check: argv.includes("--check"),
+    check: argv.includes('--check'),
   };
 }
 

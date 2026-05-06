@@ -1,46 +1,38 @@
 import { useState, useRef, useCallback } from 'react';
-import type {
-  ChatThread,
-  UserMessage,
-  AssistantMessage,
-  AssistantMessageData,
-} from '@studio/assistant';
-import { MessageAuthor } from '@studio/assistant';
 import type { MutableRefObject } from 'react';
-import { useThreadStorage } from '../useThreadStorage/useThreadStorage';
+import type { ChatThread, UserMessage, AssistantMessage, Message } from '@studio/assistant';
+import { MessageAuthor } from '@studio/assistant';
+import { useChatThreadsQuery } from 'app-shared/hooks/queries/useChatThreadsQuery';
+import { useCreateChatThreadMutation } from 'app-shared/hooks/mutations/useCreateChatThreadMutation';
+import { useDeleteChatThreadMutation } from 'app-shared/hooks/mutations/useDeleteChatThreadMutation';
+import { useChatMessagesQuery } from 'app-shared/hooks/queries/useChatMessagesQuery';
+import { useCreateChatMessageMutation } from 'app-shared/hooks/mutations/useCreateChatMessageMutation';
+import { useDeleteChatMessageMutation } from 'app-shared/hooks/mutations/useDeleteChatMessageMutation';
 
 export interface AltinityThreadState {
   chatThreads: ChatThread[];
   currentSessionId: string | null;
   currentSessionIdRef: MutableRefObject<string | null>;
+  chatMessages: Message[];
   setCurrentSession: (sessionId: string | null) => void;
   selectThread: (threadId: string | null) => void;
-  createNewThread: () => void;
+  createThread: (title: string) => Promise<string>;
   deleteThread: (threadId: string) => void;
-  addMessageToThread: (threadId: string, message: UserMessage | AssistantMessage) => void;
-  removeLoadingMessage: (threadId: string) => void;
-  replaceLoadingWithMessage: (threadId: string, message: AssistantMessage) => void;
-  removeLastUserMessage: (threadId: string) => string | null;
-  removeCancelledMessages: (threadId: string) => string | null;
-  upsertAssistantMessage: (
-    sessionId: string,
-    assistantMessage: AssistantMessageData,
-    content: string,
-    timestamp: Date,
-  ) => void;
-  updateWorkflowStatusMessage: (sessionId: string, statusMessage: string) => void;
+  deleteMessage: (threadId: string, messageId: string) => void;
+  createMessage: (threadId: string, message: UserMessage | AssistantMessage) => void;
 }
 
 export const useAltinityThreads = (): AltinityThreadState => {
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const currentSessionIdRef = useRef<string | null>(null);
-  const {
-    threads: chatThreads,
-    addThread,
-    updateThread,
-    getThread,
-    deleteThread: deleteThreadFromStorage,
-  } = useThreadStorage();
+
+  const { data: chatThreads } = useChatThreadsQuery();
+  const { mutateAsync: createChatThread } = useCreateChatThreadMutation();
+  const { mutate: deleteChatThread } = useDeleteChatThreadMutation();
+
+  const { data: chatMessages } = useChatMessagesQuery(currentSessionId);
+  const { mutate: createChatMessage } = useCreateChatMessageMutation();
+  const { mutate: deleteChatMessage } = useDeleteChatMessageMutation();
 
   const setCurrentSession = useCallback((sessionId: string | null) => {
     setCurrentSessionId(sessionId);
@@ -54,185 +46,62 @@ export const useAltinityThreads = (): AltinityThreadState => {
     [setCurrentSession],
   );
 
-  const createNewThread = useCallback(() => {
-    setCurrentSession(null);
-  }, [setCurrentSession]);
+  const createThread = useCallback(
+    async (title: string): Promise<string> => {
+      const result = await createChatThread({ title });
+      return result.id;
+    },
+    [createChatThread],
+  );
 
   const deleteThread = useCallback(
     (threadId: string) => {
-      deleteThreadFromStorage(threadId);
-      if (currentSessionIdRef.current === threadId) {
-        setCurrentSession(null);
-      }
+      deleteChatThread(threadId, {
+        onSuccess: () => {
+          if (currentSessionIdRef.current === threadId) {
+            setCurrentSession(null);
+          }
+        },
+      });
     },
-    [deleteThreadFromStorage, setCurrentSession],
+    [deleteChatThread, setCurrentSession],
   );
 
-  const addMessageToThread = useCallback(
+  const createMessage = useCallback(
     (threadId: string, message: UserMessage | AssistantMessage) => {
-      const existingThread = getThread(threadId);
-      if (existingThread) {
-        const updatedMessages = [...existingThread.messages, message];
-        updateThread(threadId, {
-          messages: updatedMessages,
-        });
-      } else {
-        const newThread: ChatThread = {
-          id: threadId,
-          title:
-            message.author === MessageAuthor.User
-              ? message.content.slice(0, 50) + (message.content.length > 50 ? '...' : '')
-              : `Session ${threadId}`,
-          messages: [message],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        addThread(newThread);
-      }
-    },
-    [addThread, updateThread, getThread],
-  );
-
-  const removeLastUserMessage = useCallback(
-    (threadId: string): string | null => {
-      const existingThread = getThread(threadId);
-      if (!existingThread) return null;
-      const lastUserIndex = existingThread.messages.reduceRight(
-        (found, msg, index) => (found === -1 && msg.author === MessageAuthor.User ? index : found),
-        -1,
-      );
-      if (lastUserIndex === -1) return null;
-      const content = existingThread.messages[lastUserIndex].content;
-      updateThread(threadId, {
-        messages: existingThread.messages.filter((_, i) => i !== lastUserIndex),
+      const isUser = message.role === MessageAuthor.User;
+      createChatMessage({
+        threadId,
+        payload: {
+          role: message.role,
+          content: message.content,
+          allowAppChanges: isUser ? message.allowAppChanges : undefined,
+          attachmentFileNames: isUser ? message.attachments?.map((a) => a.name) : undefined,
+          filesChanged: isUser ? undefined : message.filesChanged,
+          sources: isUser ? undefined : message.sources,
+        },
       });
-      return content;
     },
-    [getThread, updateThread],
+    [createChatMessage],
   );
 
-  const removeCancelledMessages = useCallback(
-    (threadId: string): string | null => {
-      const existingThread = getThread(threadId);
-      if (!existingThread) return null;
-
-      const messages = existingThread.messages;
-
-      const lastUserIndex = messages.reduceRight(
-        (found, msg, index) => (found === -1 && msg.author === MessageAuthor.User ? index : found),
-        -1,
-      );
-      const restoredContent = lastUserIndex !== -1 ? messages[lastUserIndex].content : null;
-
-      const filtered = messages.filter((msg, index) => {
-        const isLastLoadingAssistant =
-          msg.author === MessageAuthor.Assistant &&
-          index === messages.length - 1 &&
-          (msg as AssistantMessage).isLoading;
-        return index !== lastUserIndex && !isLastLoadingAssistant;
-      });
-
-      updateThread(threadId, { messages: filtered });
-      return restoredContent;
+  const deleteMessage = useCallback(
+    (threadId: string, messageId: string): void => {
+      deleteChatMessage({ threadId, messageId });
     },
-    [getThread, updateThread],
-  );
-
-  const removeLoadingMessage = useCallback(
-    (threadId: string) => {
-      const existingThread = getThread(threadId);
-      if (!existingThread) return;
-      const updatedMessages = existingThread.messages.filter(
-        (msg, index) =>
-          !(
-            msg.author === MessageAuthor.Assistant &&
-            index === existingThread.messages.length - 1 &&
-            (msg as AssistantMessage).isLoading
-          ),
-      );
-      updateThread(threadId, { messages: updatedMessages });
-    },
-    [getThread, updateThread],
-  );
-
-  const replaceLoadingWithMessage = useCallback(
-    (threadId: string, message: AssistantMessage) => {
-      const existingThread = getThread(threadId);
-      if (!existingThread) return;
-      const withoutLoading = existingThread.messages.filter(
-        (msg, index) =>
-          !(
-            msg.author === MessageAuthor.Assistant &&
-            index === existingThread.messages.length - 1 &&
-            (msg as AssistantMessage).isLoading
-          ),
-      );
-      updateThread(threadId, { messages: [...withoutLoading, message] });
-    },
-    [getThread, updateThread],
-  );
-
-  const upsertAssistantMessage = useCallback(
-    (
-      sessionId: string,
-      assistantMessage: AssistantMessageData,
-      content: string,
-      timestamp: Date,
-    ) => {
-      const existingThread = getThread(sessionId);
-      if (!existingThread) return;
-
-      const lastMessage = existingThread.messages[existingThread.messages.length - 1];
-      const assistantUpdate: AssistantMessage = {
-        author: MessageAuthor.Assistant,
-        content,
-        timestamp,
-        filesChanged: assistantMessage.filesChanged || [],
-        sources: assistantMessage.sources || [],
-        isLoading: false,
-      };
-      const updatedMessages =
-        lastMessage && lastMessage.author === MessageAuthor.Assistant
-          ? [...existingThread.messages.slice(0, -1), { ...lastMessage, ...assistantUpdate }]
-          : [...existingThread.messages, assistantUpdate];
-      updateThread(sessionId, { messages: updatedMessages });
-    },
-    [getThread, updateThread],
-  );
-
-  const updateWorkflowStatusMessage = useCallback(
-    (sessionId: string, statusMessage: string) => {
-      const existingThread = getThread(sessionId);
-      if (!existingThread) return;
-
-      const updatedMessages = existingThread.messages.map((msg, index) => {
-        if (
-          msg.author === MessageAuthor.Assistant &&
-          index === existingThread.messages.length - 1
-        ) {
-          return { ...msg, content: `${statusMessage}` };
-        }
-        return msg;
-      });
-      updateThread(sessionId, { messages: updatedMessages });
-    },
-    [getThread, updateThread],
+    [deleteChatMessage],
   );
 
   return {
-    chatThreads,
+    chatThreads: chatThreads ?? [],
+    chatMessages: chatMessages ?? [],
     currentSessionId,
     currentSessionIdRef,
     setCurrentSession,
     selectThread,
-    createNewThread,
+    createThread,
     deleteThread,
-    addMessageToThread,
-    removeLoadingMessage,
-    replaceLoadingWithMessage,
-    removeLastUserMessage,
-    removeCancelledMessages,
-    upsertAssistantMessage,
-    updateWorkflowStatusMessage,
+    deleteMessage,
+    createMessage,
   };
 };

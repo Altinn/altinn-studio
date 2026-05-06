@@ -85,7 +85,7 @@ environmentVariables:
     - name: StudioOidcLoginSettings__AuthorizationDetails__1__Resource
       value: "urn:altinn:resource:5613:1"
     - name: MaskinPortenHttpClientSettings__BaseUrl
-      value: "https://api.samarbeid.digdir.no"
+      value: "https://api.test.samarbeid.digdir.no"
     - name: FeatureManagement__StudioOidc
       value: "true"
     - name: FeatureManagement__GitOpsDeploy
@@ -98,6 +98,8 @@ environmentVariables:
       value: "true"
     - name: SchedulingSettings__AddHostedService
       value: "true"
+    - name: AltinitySettings__AgentUrl
+      value: http://altinn-altinity-agents
     - name: AI_CONNECTION_STRING
       valueFrom:
         secretKeyRef:
@@ -173,7 +175,7 @@ environmentVariables:
     - name: StudioOidcLoginSettings__AuthorizationDetails__1__Resource
       value: "urn:altinn:resource:5613:1"
     - name: MaskinPortenHttpClientSettings__BaseUrl
-      value: "https://api.samarbeid.digdir.no"
+      value: "https://api.test.samarbeid.digdir.no"
     - name: FeatureManagement__StudioOidc
       value: "true"
     - name: FeatureManagement__GitOpsDeploy
@@ -186,6 +188,8 @@ environmentVariables:
       value: "true"
     - name: SchedulingSettings__AddHostedService
       value: "true"
+    - name: AltinitySettings__AgentUrl
+      value: http://altinn-altinity-agents
     - name: AI_CONNECTION_STRING
       valueFrom:
         secretKeyRef:
@@ -239,7 +243,7 @@ environmentVariables:
     - name: StudioOidcLoginSettings__RequireHttpsMetadata
       value: "true"
     - name: StudioOidcLoginSettings__CookieExpiryTimeInMinutes
-      value: "59"
+      value: "359"
     - name: StudioOidcLoginSettings__Scopes__0
       value: openid
     - name: StudioOidcLoginSettings__Scopes__1
@@ -261,7 +265,7 @@ environmentVariables:
     - name: MaskinPortenHttpClientSettings__BaseUrl
       value: "https://api.samarbeid.digdir.no"
     - name: FeatureManagement__StudioOidc
-      value: "false"
+      value: "true"
     - name: FeatureManagement__GitOpsDeploy
       value: "false"
     - name: RedisCacheSettings__UseRedisCache
@@ -272,6 +276,8 @@ environmentVariables:
       value: "true"
     - name: SchedulingSettings__AddHostedService
       value: "true"
+    - name: AltinitySettings__AgentUrl
+      value: http://altinn-altinity-agents
     - name: AI_CONNECTION_STRING
       valueFrom:
         secretKeyRef:

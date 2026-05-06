@@ -40,17 +40,15 @@ public interface IBotAccountService
 
     Task RevokeApiKeyAsync(Guid botAccountId, long apiKeyId, string org, CancellationToken cancellationToken = default);
 
-    Task AddToDeployTeamAsync(
+    Task UpdateAsync(
         Guid botAccountId,
         string org,
-        string environment,
+        IEnumerable<string> desiredEnvironments,
         CancellationToken cancellationToken = default
     );
 
-    Task RemoveFromDeployTeamAsync(
-        Guid botAccountId,
-        string org,
-        string environment,
+    Task<Dictionary<Guid, int>> GetApiKeyCountsByBotIdsAsync(
+        IEnumerable<Guid> botAccountIds,
         CancellationToken cancellationToken = default
     );
 }

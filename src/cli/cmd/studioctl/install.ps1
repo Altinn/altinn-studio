@@ -59,11 +59,6 @@ if (-not $Asset) {
     $Asset = "studioctl-$os-$arch.exe"
 }
 
-if (-not $InstallDir -and [Console]::IsInputRedirected) {
-    if (-not $env:LOCALAPPDATA) { throw "LOCALAPPDATA not set and -InstallDir not provided" }
-    $InstallDir = Join-Path (Join-Path $env:LOCALAPPDATA "Programs") "studioctl"
-}
-
 if ($Version -eq "latest") {
     $baseUrl = "https://github.com/$Repo/releases/latest/download"
 } else {

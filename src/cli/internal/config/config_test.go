@@ -18,6 +18,40 @@ func newTestFlagsWithVerbose(home string, verbose bool) config.Flags {
 	return config.Flags{Home: home, SocketDir: "", Verbose: verbose}
 }
 
+func TestIsTruthyEnv(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		value string
+		want  bool
+	}{
+		{value: "", want: false},
+		{value: "0", want: false},
+		{value: "false", want: false},
+		{value: "1", want: true},
+		{value: "true", want: true},
+		{value: "TRUE", want: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.value, func(t *testing.T) {
+			t.Parallel()
+			got := config.IsTruthyEnv(tt.value)
+			if got != tt.want {
+				t.Fatalf("IsTruthyEnv(%q) = %v, want %v", tt.value, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestIsCI(t *testing.T) {
+	t.Setenv(config.EnvCI, "true")
+
+	if !config.IsCI() {
+		t.Fatalf("IsCI() = false, want true")
+	}
+}
+
 func TestNew(t *testing.T) {
 	t.Parallel()
 
@@ -118,6 +152,29 @@ func TestNewWithEnvSocketDir(t *testing.T) {
 	if cfg.SocketDir != socketDir {
 		t.Errorf("SocketDir = %q, want %q", cfg.SocketDir, socketDir)
 	}
+	if cfg.AppManagerLockPath() != filepath.Join(socketDir, "app-manager.lock") {
+		t.Errorf("AppManagerLockPath() = %q, want lock in socket dir", cfg.AppManagerLockPath())
+	}
+	if cfg.BoundTopologyConfigDir() != filepath.Join(cfg.DataDir, "generated", "topology") {
+		t.Errorf("BoundTopologyConfigDir() = %q, want generated topology dir in data dir", cfg.BoundTopologyConfigDir())
+	}
+	if cfg.BoundTopologyConfigPath() != filepath.Join(cfg.DataDir, "generated", "topology", "result.json") {
+		t.Errorf(
+			"BoundTopologyConfigPath() = %q, want generated topology config in data dir",
+			cfg.BoundTopologyConfigPath(),
+		)
+	}
+	if cfg.BoundTopologyBaseConfigPath() != filepath.Join(
+		cfg.DataDir,
+		"generated",
+		"topology",
+		"env.json",
+	) {
+		t.Errorf(
+			"BoundTopologyBaseConfigPath() = %q, want generated base topology config in data dir",
+			cfg.BoundTopologyBaseConfigPath(),
+		)
+	}
 }
 
 func TestNewDoctorFallback(t *testing.T) {
@@ -136,10 +193,6 @@ func TestNewDoctorFallback(t *testing.T) {
 		if cfg.SocketDir != home {
 			t.Errorf("SocketDir = %q, want %q (same as Home)", cfg.SocketDir, home)
 		}
-		if cfg.Images.Utility.Busybox.Image == "" {
-			t.Error("expected fallback Busybox image to be set")
-		}
-
 		if _, err := os.Stat(home); !os.IsNotExist(err) {
 			t.Errorf("home directory should not be created in fallback mode, stat err = %v", err)
 		}

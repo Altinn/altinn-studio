@@ -31,33 +31,46 @@ import (
 
 //nolint:containedctx // The session owns a shared cancellation context for its long-lived browser connection.
 type browserSession struct {
-	conn           cdp.Connection
-	tracer         trace.Tracer
-	ctx            context.Context
-	currentRequest atomic.Pointer[workerRequest]
-	logger         *slog.Logger
-	browser        *browser.Process
-	cancel         context.CancelFunc
-	queue          chan workerRequest
-	targetID       string
-	id             int
-	consoleErrors  atomic.Int32
-	browserErrors  atomic.Int32
-	jsExceptions   atomic.Int32
-	cdpEventsSent  atomic.Int32
-	cdpEventsDrop  atomic.Int32
-	state          atomic.Uint32
+	conn                    cdp.Connection
+	tracer                  trace.Tracer
+	ctx                     context.Context
+	currentRequest          atomic.Pointer[workerRequest]
+	cleanupNavigationWaiter atomic.Pointer[cleanupNavigationWaiter]
+	logger                  *slog.Logger
+	browser                 *browser.Process
+	cancel                  context.CancelFunc
+	queue                   chan workerRequest
+	targetID                string
+	id                      int
+	consoleErrors           atomic.Int32
+	browserErrors           atomic.Int32
+	jsExceptions            atomic.Int32
+	cdpEventsSent           atomic.Int32
+	cdpEventsDrop           atomic.Int32
+	state                   atomic.Uint32
 }
 
 const (
 	maxCDPEventsPerRequest  = 24
 	maxCDPPayloadJSONLength = 4096
+	cleanupBlankURL         = "about:blank"
 )
 
+type cleanupNavigationWaiter struct {
+	loaded    chan struct{}
+	committed atomic.Bool
+}
+
 var (
-	errRecoveredPanic     = errors.New("recovered panic")
-	errWaitTimedOut       = errors.New("timeout")
-	errWaitConditionError = errors.New("wait condition failed")
+	errRecoveredPanic              = errors.New("recovered panic")
+	errWaitTimedOut                = errors.New("timeout")
+	errWaitConditionError          = errors.New("wait condition failed")
+	errBlankNavigationLoadTimedOut = errors.New("about:blank navigation did not finish loading during cleanup")
+	errBrowserCleanupFailed        = errors.New("browser cleanup failed")
+	errInvalidEvaluateResult       = errors.New("invalid runtime evaluate response format")
+	errEvaluateException           = errors.New("javascript exception during runtime evaluate")
+	errInvalidEvaluateResultObject = errors.New("missing or invalid runtime evaluate result object")
+	errEvaluateResultNotBoolean    = errors.New("runtime evaluate result value is not boolean")
 )
 
 func newBrowserSession(logger *slog.Logger, id int) (*browserSession, error) {
@@ -156,7 +169,56 @@ func (w *browserSession) handleEvent(method string, params any) {
 			w.logger.Warn("Runtime exception observed")
 			w.emitCDPEvent("cdp.runtime.exception", method, p)
 		}
+	case "Page.frameNavigated":
+		w.trySignalCleanupBlankCommitted(params)
+	case "Page.loadEventFired":
+		w.trySignalCleanupBlankLoaded()
 	}
+}
+
+func (w *browserSession) trySignalCleanupBlankCommitted(params any) {
+	waiter := w.cleanupNavigationWaiter.Load()
+	if waiter == nil {
+		return
+	}
+
+	frame, ok := extractFrameNavigatedFrame(params)
+	if !ok || !isTopFrame(frame) {
+		return
+	}
+
+	url, ok := frame["url"].(string)
+	if !ok || url != cleanupBlankURL {
+		return
+	}
+
+	waiter.committed.Store(true)
+}
+
+func (w *browserSession) trySignalCleanupBlankLoaded() {
+	waiter := w.cleanupNavigationWaiter.Load()
+	if waiter == nil || !waiter.committed.Load() {
+		return
+	}
+
+	select {
+	case waiter.loaded <- struct{}{}:
+	default:
+	}
+}
+
+func extractFrameNavigatedFrame(params any) (map[string]any, bool) {
+	payload, ok := params.(map[string]any)
+	if !ok {
+		return nil, false
+	}
+	frame, ok := payload["frame"].(map[string]any)
+	return frame, ok
+}
+
+func isTopFrame(frame map[string]any) bool {
+	_, hasParentID := frame["parentId"]
+	return !hasParentID
 }
 
 func (w *browserSession) handleRequests() {
@@ -406,35 +468,86 @@ func (w *browserSession) cleanupAfterRequest(req *workerRequest, startedProcessi
 func (w *browserSession) navigateToBlankForCleanup() error {
 	var err error
 	for range 3 {
-		// Not using the request context here: the client may already be gone, but
-		// the browser session must still reset itself before the next request.
-		_, err = w.conn.SendCommand(w.ctx, "Page.navigate", map[string]any{"url": "about:blank"})
+		waiter := &cleanupNavigationWaiter{loaded: make(chan struct{}, 1)}
+		err = func() error {
+			ctx, cancel := context.WithTimeout(w.ctx, 2*time.Second)
+			defer cancel()
+
+			w.cleanupNavigationWaiter.Store(waiter)
+			defer w.cleanupNavigationWaiter.Store(nil)
+
+			// Not using the request context here: the client may already be gone, but
+			// the browser session must still reset itself before the next request.
+			_, navigateErr := w.conn.SendCommand(ctx, "Page.navigate", map[string]any{"url": cleanupBlankURL})
+			if navigateErr != nil {
+				if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+					return errBlankNavigationLoadTimedOut
+				}
+				return fmt.Errorf("send about:blank navigation: %w", navigateErr)
+			}
+
+			select {
+			case <-waiter.loaded:
+				return nil
+			case <-ctx.Done():
+				if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+					return errBlankNavigationLoadTimedOut
+				}
+				return fmt.Errorf("wait for about:blank load event: %w", ctx.Err())
+			}
+		}()
 		if err == nil {
 			return nil
 		}
-		w.logger.Warn("Failed to navigate back to about:blank, retrying")
+		w.logger.Warn("Failed to navigate back to about:blank, retrying", "error", err)
 	}
 	return fmt.Errorf("navigate to about:blank: %w", err)
 }
 
+func parseEvaluateBooleanResult(resp *cdp.CDPResponse) (bool, any, error) {
+	result, ok := resp.Result.(map[string]any)
+	if !ok {
+		return false, resp.Result, errInvalidEvaluateResult
+	}
+
+	if errorObj, hasExceptionDetails := result["exceptionDetails"]; hasExceptionDetails {
+		return false, errorObj, fmt.Errorf("%w: %v", errEvaluateException, errorObj)
+	}
+
+	resultObj, ok := result["result"].(map[string]any)
+	if !ok {
+		return false, result, errInvalidEvaluateResultObject
+	}
+
+	value, ok := resultObj["value"].(bool)
+	if !ok {
+		return false, resultObj, errEvaluateResultNotBoolean
+	}
+
+	return value, nil, nil
+}
+
 func (w *browserSession) cleanupBrowserWithRetry(req *workerRequest) int {
 	cleanupAttempts := 0
-	w.cleanupBrowser(req)
+	var err error
+
+	err = w.cleanupBrowser(req)
 	cleanupAttempts++
 	if req.cleanedUp {
+		w.assertA(err == nil, "Got error but reports successful cleanup", "error", err)
 		return cleanupAttempts
 	}
 
-	w.logger.Warn("Failed to cleanup storage, retrying")
+	w.logger.Warn("Failed to cleanup storage, retrying", "error", err)
 	for range 3 {
-		w.cleanupBrowser(req)
+		err = w.cleanupBrowser(req)
 		cleanupAttempts++
 		if req.cleanedUp {
 			return cleanupAttempts
 		}
 	}
 
-	w.assert(req.cleanedUp, "Failed to cleanup storage, we're in an unsafe state and can't proceed")
+	w.assertA(req.cleanedUp, "Failed to cleanup storage, we're in an unsafe state and can't proceed", "error", err)
 	return cleanupAttempts
 }
 
@@ -770,23 +883,20 @@ func (w *browserSession) waitForElement(
 }
 
 func (w *browserSession) processWaitResult(req *workerRequest, resp *cdp.CDPResponse) error {
-	result, ok := resp.Result.(map[string]any)
-	if !ok {
-		return w.handleWaitError(req, "invalid response format", resp.Result, "malformed CDP response")
-	}
-
-	if errorObj, hasExceptionDetails := result["exceptionDetails"]; hasExceptionDetails {
-		return w.handleWaitError(req, "JavaScript exception during wait", errorObj, "exception in wait expression")
-	}
-
-	resultObj, ok := result["result"].(map[string]any)
-	if !ok {
-		return w.handleWaitError(req, "missing or invalid result object", result, "malformed result object")
-	}
-
-	value, ok := resultObj["value"].(bool)
-	if !ok {
-		return w.handleWaitError(req, "result value is not boolean", resultObj, "expected boolean result")
+	value, errorData, err := parseEvaluateBooleanResult(resp)
+	if err != nil {
+		switch {
+		case errors.Is(err, errInvalidEvaluateResult):
+			return w.handleWaitError(req, "invalid response format", errorData, "malformed CDP response")
+		case errors.Is(err, errEvaluateException):
+			return w.handleWaitError(req, "JavaScript exception during wait", errorData, "exception in wait expression")
+		case errors.Is(err, errInvalidEvaluateResultObject):
+			return w.handleWaitError(req, "missing or invalid result object", errorData, "malformed result object")
+		case errors.Is(err, errEvaluateResultNotBoolean):
+			return w.handleWaitError(req, "result value is not boolean", errorData, "expected boolean result")
+		default:
+			return w.handleWaitError(req, "unexpected runtime evaluate error", errorData, err.Error())
+		}
 	}
 
 	if !value {
@@ -1095,9 +1205,9 @@ func (w *browserSession) tryUpdateTestModeOutput(req *workerRequest, state strin
 	})
 }
 
-func (w *browserSession) cleanupBrowser(req *workerRequest) {
+func (w *browserSession) cleanupBrowser(req *workerRequest) error {
 	if req.cleanedUp {
-		return
+		return nil
 	}
 
 	u, err := url.ParseRequestURI(req.request.URL)
@@ -1106,7 +1216,7 @@ func (w *browserSession) cleanupBrowser(req *workerRequest) {
 	now := time.Now()
 	w.logger.Info("Sending cleanup batch command")
 	// Not using request context here, the client might have dropped out already and we should always complete cleanup
-	responses := w.conn.SendCommandBatch(w.ctx, []cdp.Command{
+	commands := []cdp.Command{
 		{Method: "Storage.clearDataForOrigin", Params: map[string]any{
 			"origin":       fmt.Sprintf("%s://%s", u.Scheme, u.Host),
 			"storageTypes": "all",
@@ -1114,30 +1224,37 @@ func (w *browserSession) cleanupBrowser(req *workerRequest) {
 		{Method: "Storage.clearCookies", Params: nil},
 		{Method: "Network.clearBrowserCache", Params: nil},
 		{Method: "Page.resetNavigationHistory", Params: nil},
-	})
+	}
+	responses := w.conn.SendCommandBatch(w.ctx, commands)
 	w.logger.Info("Cleanup batch command completed", "duration", time.Since(now))
 
-	var errors strings.Builder
-	for _, response := range responses {
+	var cleanupErrors strings.Builder
+	for i, response := range responses {
+		method := commands[i].Method
 		if response.Err != nil {
-			errors.WriteString(response.Err.Error())
-			errors.WriteByte('\n')
+			cleanupErrors.WriteString(method)
+			cleanupErrors.WriteString(": ")
+			cleanupErrors.WriteString(response.Err.Error())
+			cleanupErrors.WriteByte('\n')
 		}
-		if response.Resp.Error != nil {
+		if response.Resp != nil && response.Resp.Error != nil {
+			cleanupErrors.WriteString(method)
+			cleanupErrors.WriteString(": ")
 			if responseErrJSON, marshalErr := json.Marshal(response.Resp.Error); marshalErr == nil {
-				errors.Write(responseErrJSON)
+				cleanupErrors.Write(responseErrJSON)
 			} else {
-				errors.WriteString(marshalErr.Error())
+				cleanupErrors.WriteString(marshalErr.Error())
 			}
-			errors.WriteByte('\n')
+			cleanupErrors.WriteByte('\n')
 		}
 	}
 
-	if errors.Len() != 0 {
-		w.assertA(false, "Errors from browser cleanup", "error", errors.String())
+	if cleanupErrors.Len() != 0 {
+		return fmt.Errorf("%w: %s", errBrowserCleanupFailed, cleanupErrors.String())
 	}
 
 	req.cleanedUp = true
+	return nil
 }
 
 func (w *browserSession) assert(condition bool, message string) {

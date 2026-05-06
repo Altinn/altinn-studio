@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioTable, StudioSwitch, StudioHeading, StudioParagraph } from '@studio/components';
-import { EnvironmentsCell } from '../EnvironmentsCell/EnvironmentsCell';
+import { EnvironmentsCell } from '../../../../../../components/EnvironmentsCell/EnvironmentsCell';
 import { ActionsCell } from '../ActionsCell/ActionsCell';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
 import { PersonDialog } from './PersonDialog/PersonDialog';
@@ -11,7 +11,7 @@ import { contactPointToPerson } from './personUtils';
 import { useToggleContactPointActiveMutation } from '../../../../hooks/useToggleContactPointActiveMutation';
 import { useDeleteContactPointMutation } from '../../../../hooks/useDeleteContactPointMutation';
 import { useOrgListQuery } from 'app-shared/hooks/queries/useOrgListQuery';
-import { AddButton } from '../AddButton/AddButton';
+import { AddButton } from '../../../../../../components/AddButton/AddButton';
 
 type PersonsListProps = {
   org: string;

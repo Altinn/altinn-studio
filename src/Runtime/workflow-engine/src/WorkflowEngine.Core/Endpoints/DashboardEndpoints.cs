@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
@@ -257,12 +258,19 @@ internal static class DashboardEndpoints
                             using IServiceScope scope = sp.CreateScope();
                             var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
 
-                            IReadOnlyList<Workflow> active = await repo.GetActiveWorkflows(nsFilter, ct);
-                            IReadOnlyList<Workflow> recent = await repo.GetFinishedWorkflows(
-                                take: 100,
+                            var activeResult = await repo.GetActiveWorkflows(
+                                pageSize: 200,
+                                ns: nsFilter,
+                                cancellationToken: ct
+                            );
+                            IReadOnlyList<Workflow> active = activeResult.Workflows;
+                            var recentResult = await repo.QueryWorkflows(
+                                pageSize: 100,
+                                statuses: PersistentItemStatusMap.Finished,
                                 namespaceFilter: nsFilter,
                                 cancellationToken: ct
                             );
+                            IReadOnlyList<Workflow> recent = recentResult.Workflows;
 
                             List<DashboardWorkflowDto> activeMapped = active
                                 .Select(DashboardMapper.MapWorkflow)
@@ -360,11 +368,11 @@ internal static class DashboardEndpoints
                     string? status,
                     string? search,
                     int? limit,
-                    DateTimeOffset? before,
+                    Guid? cursor,
                     DateTimeOffset? since,
                     bool? retried,
                     string? labels,
-                    string? correlationId,
+                    string? collectionKey,
                     string? @namespace,
                     CancellationToken ct
                 ) =>
@@ -374,6 +382,7 @@ internal static class DashboardEndpoints
                     int maxResults = Math.Min(limit ?? 100, 200);
 
                     string? nsFilter = string.IsNullOrWhiteSpace(@namespace) ? null : @namespace;
+                    collectionKey = string.IsNullOrWhiteSpace(collectionKey) ? null : collectionKey;
 
                     PersistentItemStatus[] statuses = string.IsNullOrWhiteSpace(status)
                         ? [PersistentItemStatus.Completed, PersistentItemStatus.Failed, PersistentItemStatus.Requeued]
@@ -399,20 +408,26 @@ internal static class DashboardEndpoints
                     // Parse label filters from comma-separated "key:value" pairs
                     Dictionary<string, string>? labelFilters = ParseLabelFilters(labels);
 
-                    (IReadOnlyList<Workflow> workflows, int totalCount) = await repo.QueryWorkflowsWithCount(
+                    var queryResult = await repo.QueryWorkflows(
+                        pageSize: maxResults,
                         statuses: statuses,
+                        cursor: cursor,
+                        includeTotalCount: true,
                         search: search,
-                        take: maxResults,
-                        before: before,
                         since: since,
                         retriedOnly: retriedOnly,
                         labelFilters: labelFilters,
                         namespaceFilter: nsFilter,
-                        correlationId: correlationId,
+                        collectionKey: collectionKey,
                         cancellationToken: ct
                     );
 
-                    var result = new { totalCount, workflows = workflows.Select(DashboardMapper.MapWorkflow) };
+                    var result = new
+                    {
+                        totalCount = queryResult.TotalCount ?? 0,
+                        nextCursor = queryResult.NextCursor,
+                        workflows = queryResult.Workflows.Select(DashboardMapper.MapWorkflow),
+                    };
 
                     return Results.Json(result, _jsonCompact);
                 }
@@ -427,8 +442,12 @@ internal static class DashboardEndpoints
 
                     using IServiceScope scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                    IReadOnlyList<Workflow> workflows = await repo.GetScheduledWorkflows(nsFilter, ct);
-                    return Results.Json(workflows.Select(DashboardMapper.MapWorkflow), _jsonCompact);
+                    var scheduledResult = await repo.GetScheduledWorkflows(
+                        pageSize: 200,
+                        ns: nsFilter,
+                        cancellationToken: ct
+                    );
+                    return Results.Json(scheduledResult.Workflows.Select(DashboardMapper.MapWorkflow), _jsonCompact);
                 }
             )
             .ExcludeFromDescription();
@@ -444,7 +463,7 @@ internal static class DashboardEndpoints
                     if (workflow is null)
                         return Results.NotFound();
 
-                    Step? s = workflow.Steps.FirstOrDefault(st => st.IdempotencyKey == step);
+                    Step? s = workflow.Steps.FirstOrDefault(st => st.DatabaseId.ToString() == step);
                     if (s is null)
                         return Results.NotFound();
 
@@ -460,7 +479,7 @@ internal static class DashboardEndpoints
                     return Results.Json(
                         new
                         {
-                            idempotencyKey = s.IdempotencyKey,
+                            idempotencyKey = s.DatabaseId.ToString(),
                             operationId = s.OperationId,
                             status = s.Status.ToString(),
                             processingOrder = s.ProcessingOrder,

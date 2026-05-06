@@ -1,5 +1,4 @@
-﻿#nullable disable
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
@@ -197,7 +196,7 @@ public class PolicyController : ControllerBase
         }
 
         int ruleIndex = 0;
-        foreach (PolicyRule rule in policy.Rules)
+        foreach (PolicyRule rule in policy.Rules!)
         {
             if (
                 (rule.Subject == null || rule.Subject.Count == 0)

@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +20,7 @@ namespace Altinn.Studio.Designer.Controllers;
 [ApiController]
 [AllowApiKey]
 [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/releases")]
-[AutoValidateAntiforgeryToken]
+[TypeFilter(typeof(ConditionalAntiforgeryFilter))]
 public class ReleasesController : ControllerBase
 {
     private readonly IReleaseService _releaseService;
@@ -50,7 +49,7 @@ public class ReleasesController : ControllerBase
 
         List<ReleaseEntity> laggingReleases = releases
             .Results.Where(d =>
-                d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.Value.AddMinutes(2) < DateTime.UtcNow
+                d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started!.Value.AddMinutes(2) < DateTime.UtcNow
             )
             .ToList();
 
@@ -70,7 +69,7 @@ public class ReleasesController : ControllerBase
     /// <param name="createRelease">Release model</param>
     /// <returns>Created release</returns>
     [HttpPost]
-    [Authorize(Policy = AltinnPolicy.MustHaveGiteaPushPermission)]
+    [Authorize(Policy = AltinnPolicy.MustBelongToOrganization)]
     [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
     public async Task<ActionResult<ReleaseEntity>> Create(
         string org,

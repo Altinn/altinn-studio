@@ -2,10 +2,11 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export type AppValidationResult = {
   isValid: boolean;
-  errors: Map<string, string[]>;
+  errors: KeyValuePairs<string[]>;
 };
 
 export const useAppValidationQuery = (

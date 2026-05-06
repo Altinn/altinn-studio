@@ -172,6 +172,17 @@ public static class TestingApis
             }
         );
 
+        app.MapPost(
+                "/test/fixture-configuration/reload",
+                () =>
+                {
+                    FixtureConfigurationService.Instance.Reload();
+                    return Results.Ok();
+                }
+            )
+            .AllowAnonymous()
+            .WithName("API testing - POST - reload fixture configuration");
+
         // AUTHZ
         // Minimal API endpoints that should be protected by scopes
         app.MapGet(
@@ -180,10 +191,11 @@ public static class TestingApis
                 {
                     var service =
                         serviceProvider.GetRequiredService<Altinn.App.Api.Infrastructure.Middleware.ScopeAuthorizationService>();
+                    var metadata = service
+                        .Metadata.Where(endpoint => endpoint.Endpoint != "POST /test/fixture-configuration/reload")
+                        .ToArray();
 
-                    return Results.Ok(
-                        new { hasDefinedCustomScopes = service.HasDefinedCustomScopes, metadata = service.Metadata }
-                    );
+                    return Results.Ok(new { hasDefinedCustomScopes = service.HasDefinedCustomScopes, metadata });
                 }
             )
             .WithName("API testing - GET - metadata");

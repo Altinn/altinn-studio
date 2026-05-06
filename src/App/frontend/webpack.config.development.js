@@ -74,6 +74,9 @@ module.exports = {
       return middlewares.filter((middleware) => middleware.name !== 'cross-origin-header-check');
     },
     client: {
+      webSocketURL: {
+        hostname: 'localhost',
+      },
       overlay: {
         errors: enableErrorsOverlay,
         warnings: false,

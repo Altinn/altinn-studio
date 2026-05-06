@@ -10,11 +10,11 @@ description: Run k6 load tests against the workflow engine. Use when performance
 
 ## Available scripts
 
-| Script | Purpose |
-|---|---|
-| `.k6/stress-test.js` | Ramp-up stress test with increasing VUs |
-| `.k6/continuous-process-next.js` | Continuous processing throughput test |
-| `.k6/constant-rate.js` | Fixed request rate test |
+| Script                           | Purpose                                 |
+| -------------------------------- | --------------------------------------- |
+| `.k6/stress-test.js`             | Ramp-up stress test with increasing VUs |
+| `.k6/continuous-process-next.js` | Continuous processing throughput test   |
+| `.k6/constant-rate.js`           | Fixed request rate test                 |
 
 ## Run a script
 

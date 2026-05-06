@@ -76,7 +76,12 @@ beforeEach(() => {
   window.altinnAppGlobalData = {
     applicationMetadata: getApplicationMetadataMock(),
     frontendSettings: getApplicationSettingsMock(),
-    platformFrontendSettings: { postalCodesUrl: 'https://altinncdn.no/postcodes/registry.json' },
+    platformFrontendSettings: {
+      postalCodesUrl: 'https://altinncdn.no/postcodes/registry.json',
+      appFrontendCdnBaseUrl: 'https://altinncdn.no/toolkits/altinn-app-frontend',
+      altinnLogoUrl: 'https://altinncdn.no/img/Altinn-logo-blue.svg',
+      helpCircleIllustrationUrl: 'https://altinncdn.no/img/illustration-help-circle.svg',
+    },
     footer: getFooterLayoutMock(),
     ui: getUiConfigMock(),
     userProfile: getProfileMock(),

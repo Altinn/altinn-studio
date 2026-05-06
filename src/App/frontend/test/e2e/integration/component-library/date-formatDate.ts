@@ -29,11 +29,9 @@ function id(row: Row, col: Col) {
 
 const tzNewYork = 'America/New_York' as const;
 const tzOslo = 'Europe/Oslo' as const;
-const tzUtc = 'UTC' as const;
 const browserTimezones = [tzNewYork, tzOslo] as const;
 
-type ValidTimezones = typeof tzNewYork | typeof tzOslo | typeof tzUtc;
-type TZ = { browser: ValidTimezones; backend: ValidTimezones };
+type BrowserTimezone = typeof tzNewYork | typeof tzOslo;
 
 type Test = {
   [key in keyof typeof Rows]: {
@@ -85,16 +83,11 @@ describe('Date component and formatDate expression', () => {
       cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
       cy.gotoNavPage('DateAndFormatDate');
 
-      const timezone: TZ = {
-        browser: tz,
-        backend: Cypress.env('type') === 'localtest' ? tzOslo : tzUtc,
-      };
-
       testEmpty();
       testLeapYearDay();
       testCloseTo2022();
-      midnightOtherTz(timezone);
-      midnightUtc(timezone);
+      midnightOtherTz(tz);
+      midnightUtc(tz);
     });
   });
 });
@@ -166,53 +159,50 @@ function testCloseTo2022() {
  * At this point the browser timezone starts to matter, because the date/time has specified a timezone. Thus
  * it needs to be converted to the local timezone before being displayed.
  */
-function midnightOtherTz(tz: TZ) {
+function midnightOtherTz(browserTimezone: BrowserTimezone) {
   cy.dsSelect('#datesDate', 'Midnatt i en annen tidssone');
 
   const rawString = '2020-05-17 00:00:00-08:00';
-  const rawDateTime = tz.backend === tzOslo ? '2020-05-17T10:00:00+02:00' : '2020-05-17T08:00:00+00:00';
+  const rawDateTime = '2020-05-17T08:00:00+00:00';
   const rawDateOnly = '2020-05-17';
 
   const zeroed = '17.05.2020 00:00:00';
 
-  // Backend local time is Europe/Oslo, so the date will be converted to that timezone
   const inOslo = '17.05.2020 10:00:00';
-  const inUtc = '17.05.2020 08:00:00';
-  const beLocal = tz.backend === tzOslo ? inOslo : inUtc;
+  const backendLocal = '17.05.2020 08:00:00';
 
   const date = '17.05.2020';
-  const dependsOnTimezone = tz.browser === tzNewYork ? '17.05.2020 04:00:00' : inOslo;
+  const dependsOnTimezone = browserTimezone === tzNewYork ? '17.05.2020 04:00:00' : inOslo;
 
   testAll({
     Raw: { String: rawString, DateTime: rawDateTime, DateOnly: rawDateOnly },
     Date: { String: dependsOnTimezone, DateTime: dependsOnTimezone, DateOnly: zeroed },
     FormatDate: { String: dependsOnTimezone, DateTime: dependsOnTimezone, DateOnly: zeroed },
-    FormatDateBackend: { String: beLocal, DateTime: beLocal, DateOnly: zeroed },
+    FormatDateBackend: { String: backendLocal, DateTime: backendLocal, DateOnly: zeroed },
     DatePicker: { String: date, DateTime: date, DateOnly: date },
   });
 }
 
-function midnightUtc(tz: TZ) {
+function midnightUtc(browserTimezone: BrowserTimezone) {
   cy.dsSelect('#datesDate', 'Midnatt i UTC');
 
   const rawString = '2020-05-17T00:00:00Z';
-  const rawDateTime = tz.backend === tzOslo ? '2020-05-17T02:00:00+02:00' : '2020-05-17T00:00:00+00:00';
+  const rawDateTime = '2020-05-17T00:00:00+00:00';
   const rawDateOnly = '2020-05-17';
 
   const date = '17.05.2020';
   const zeroed = '17.05.2020 00:00:00';
 
   const utcInOslo = '17.05.2020 02:00:00';
-  const beLocal = tz.backend === tzOslo ? utcInOslo : zeroed;
 
-  const utcInBrowser = tz.browser === tzNewYork ? '16.05.2020 20:00:00' : utcInOslo;
-  const dateInUtc = tz.browser === tzNewYork ? '16.05.2020' : date;
+  const utcInBrowser = browserTimezone === tzNewYork ? '16.05.2020 20:00:00' : utcInOslo;
+  const dateInUtc = browserTimezone === tzNewYork ? '16.05.2020' : date;
 
   testAll({
     Raw: { String: rawString, DateTime: rawDateTime, DateOnly: rawDateOnly },
     Date: { String: utcInBrowser, DateTime: utcInBrowser, DateOnly: zeroed },
     FormatDate: { String: utcInBrowser, DateTime: utcInBrowser, DateOnly: zeroed },
-    FormatDateBackend: { String: beLocal, DateTime: beLocal, DateOnly: zeroed },
+    FormatDateBackend: { String: zeroed, DateTime: zeroed, DateOnly: zeroed },
     DatePicker: { String: dateInUtc, DateTime: dateInUtc, DateOnly: date },
   });
 }

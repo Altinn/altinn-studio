@@ -11,6 +11,7 @@ import { TabDataError } from '../../TabDataError';
 import { AppConfigForm } from './AppConfigForm';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations/useAppMetadataMutation';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import { Infobox } from './Infobox/Infobox';
 
 export function AboutTab(): ReactElement {
   const { t } = useTranslation();
@@ -61,6 +62,7 @@ function AboutTabContent(): ReactElement {
               setApplicationMetadata(updatedAppConfig)
             }
           />
+          <Infobox />
         </div>
       );
     }

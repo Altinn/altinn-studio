@@ -157,28 +157,54 @@ async def _validate_intent(state: AgentState):
         state.session_id, parsed.action, parsed.component, parsed.confidence,
     )
 
-async def _evaluate_intent_match(user_goal: str, final_state: dict, trace_id: str) -> None:
+async def _evaluate_intent_match(user_goal: str, final_state: AgentState, trace_id: str) -> bool:
     try:
         from agents.services.evaluation.intent_judge import run_intent_judge
-        step_plan = final_state.get("step_plan") or []
-        await run_intent_judge(
+        step_plan = final_state.step_plan or []
+        return await run_intent_judge(
             user_goal=user_goal,
-            agent_plan=step_plan[0] if isinstance(step_plan, list) and step_plan else None,
+            agent_plan=step_plan[0] if step_plan else None,
             trace_id=trace_id,
         )
     except asyncio.CancelledError:
         raise
     except Exception:
         log.exception("Evaluation pipeline error (intent_match)")
+        return False
 
 
-async def _evaluate_no_hallucination(user_goal: str, final_state: dict, trace_id: str) -> None:
+async def _evaluate_implementation_match(final_state: AgentState, trace_id: str) -> None:
+    try:
+        from agents.services.evaluation.implementation_judge import run_implementation_judge
+        step_plan = final_state.step_plan or []
+        await run_implementation_judge(
+            implementation_plan=final_state.implementation_plan,
+            step_plan=step_plan[0] if step_plan else None,
+            changed_files=final_state.changed_files or [],
+            patch_data=final_state.patch_data,
+            trace_id=trace_id,
+            planning_guidance=str(final_state.planning_guidance or ""),
+        )
+    except asyncio.CancelledError:
+        raise
+    except Exception:
+        log.exception("Evaluation pipeline error (implementation_match)")
+
+
+async def _evaluate_intent_then_implementation(user_goal: str, final_state: AgentState, trace_id: str) -> None:
+    """Run intent_match; if it passes, also run implementation_match."""
+    intent_passed = await _evaluate_intent_match(user_goal, final_state, trace_id)
+    if intent_passed:
+        await _evaluate_implementation_match(final_state, trace_id)
+
+
+async def _evaluate_no_hallucination(user_goal: str, final_state: AgentState, trace_id: str) -> None:
     try:
         from agents.services.evaluation.hallucination_judge import run_hallucination_judge
-        step_plan = final_state.get("step_plan") or []
-        implementation_plan = final_state.get("implementation_plan")
+        step_plan = final_state.step_plan or []
+        implementation_plan = final_state.implementation_plan
         response_parts = []
-        if isinstance(step_plan, list) and step_plan:
+        if step_plan:
             response_parts.append("\n".join(str(step) for step in step_plan))
         if implementation_plan:
             response_parts.append(
@@ -187,7 +213,7 @@ async def _evaluate_no_hallucination(user_goal: str, final_state: dict, trace_id
                 else str(implementation_plan)
             )
         agent_response = "\n\n".join(response_parts)
-        sources = str(final_state.get("planning_guidance") or "")
+        sources = str(final_state.planning_guidance or "")
         await run_hallucination_judge(
             user_goal=user_goal,
             agent_response=agent_response,
@@ -241,13 +267,20 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
                     })
 
                     # LLM-as-a-judge evaluations — run after workflow, failures must not affect the main flow
-                    for coro in (
-                        _evaluate_intent_match(state.user_goal, final_state, root_span.trace_id),
-                        _evaluate_no_hallucination(state.user_goal, final_state, root_span.trace_id),
-                    ):
-                        task = asyncio.create_task(coro)
-                        _active_tasks.add(task)
-                        task.add_done_callback(_active_tasks.discard)
+                    try:
+                        typed_state = AgentState.model_validate(final_state)
+                    except Exception:
+                        log.exception("Failed to validate final state for judge evaluations — skipping")
+                        typed_state = None
+
+                    if typed_state is not None:
+                        for coro in (
+                            _evaluate_intent_then_implementation(state.user_goal, typed_state, root_span.trace_id),
+                            _evaluate_no_hallucination(state.user_goal, typed_state, root_span.trace_id),
+                        ):
+                            task = asyncio.create_task(coro)
+                            _active_tasks.add(task)
+                            task.add_done_callback(_active_tasks.discard)
 
                 except Exception as e:
                     root_span.update(

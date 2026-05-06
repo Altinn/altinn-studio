@@ -52,8 +52,8 @@ export function StudioLanguagePicker({
 
   const handleDelete = useCallback((): void => {
     onRemove(value);
-    setValue(ArrayUtils.removeItemByValue(languageCodes, value)[0] || '');
-  }, [setValue, value, languageCodes, onRemove]);
+    select(ArrayUtils.removeItemByValue(languageCodes, value)[0] || '');
+  }, [select, value, languageCodes, onRemove]);
 
   const handleAdd = useCallback(
     (code: string) => {

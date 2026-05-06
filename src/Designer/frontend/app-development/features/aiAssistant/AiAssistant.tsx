@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import type { AssistantTexts } from '@studio/assistant';
 import { Assistant } from '@studio/assistant';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { useAltinityAssistant, useAltinityPermissions } from './hooks';
 import { Preview } from './components/Preview';
 import { FileBrowser } from './components/FileBrowser';
@@ -18,13 +18,14 @@ function AiAssistant(): ReactElement {
     connectionStatus,
     workflowStatus,
     chatThreads,
+    messages,
     currentSessionId,
     onSubmitMessage,
     cancelCurrentWorkflow,
     cancelledMessageContent,
     clearCancelledMessageContent,
     selectThread,
-    createNewThread,
+    clearCurrentSession,
     deleteThread,
   } = useAltinityAssistant();
 
@@ -37,6 +38,23 @@ function AiAssistant(): ReactElement {
     newThread: t('ai_assistant.new_thread'),
     previousThreads: t('ai_assistant.threads'),
     aboutAssistant: t('ai_assistant.about_assistant'),
+    aboutAssistantDialog: {
+      heading: t('ai_assistant.about_assistant_heading'),
+      description: (
+        <Trans
+          i18nKey='ai_assistant.about_assistant_description'
+          components={{ strong: <strong /> }}
+        />
+      ),
+      branchInfo: (
+        <Trans
+          i18nKey='ai_assistant.about_assistant_branch_info'
+          components={{ strong: <strong /> }}
+        />
+      ),
+      branchDocsLink: t('ai_assistant.about_assistant_branch_docs_link'),
+      disclaimer: t('ai_assistant.about_assistant_disclaimer'),
+    },
     textarea: {
       placeholder: t('ai_assistant.textarea_placeholder'),
       wait: 'Vent litt ...',
@@ -66,13 +84,14 @@ function AiAssistant(): ReactElement {
         texts={texts}
         enableCompactInterface={false}
         chatThreads={chatThreads}
+        messages={messages}
         activeThreadId={currentSessionId}
         onSubmitMessage={onSubmitMessage}
         onCancelWorkflow={cancelCurrentWorkflow}
         cancelledMessageContent={cancelledMessageContent}
         onCancelledMessageConsumed={clearCancelledMessageContent}
         onSelectThread={selectThread}
-        onCreateThread={createNewThread}
+        onCreateThread={clearCurrentSession}
         onDeleteThread={deleteThread}
         connectionStatus={connectionStatus}
         workflowStatus={workflowStatus}

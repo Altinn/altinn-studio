@@ -60,7 +60,6 @@ internal sealed record AppCommandTestFixture(
 
         appCommandSettings ??= new AppCommandSettings
         {
-            ApiKey = "test-api-key",
             CommandEndpoint = "https://app.example.com/{Org}/{App}/commands/",
         };
 
@@ -133,7 +132,7 @@ internal sealed record AppCommandTestFixture(
     public static Workflow CreateWorkflow(Step step) =>
         new()
         {
-            CorrelationId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"),
+            CollectionKey = EngineAppFixture.DefaultCollectionKey,
             OperationId = "test-operation",
             IdempotencyKey = "test-wf-key",
             Namespace = "test-namespace",
@@ -145,7 +144,6 @@ internal sealed record AppCommandTestFixture(
         new()
         {
             OperationId = operationId,
-            IdempotencyKey = $"test-step-key/{operationId}",
             ProcessingOrder = 0,
             Command = command,
         };

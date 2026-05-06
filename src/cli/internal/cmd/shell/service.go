@@ -7,18 +7,16 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
 
+	"altinn.studio/devenv/pkg/processutil"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
 const (
-	osWindows = "windows"
-
 	shellBash       = "bash"
 	shellZsh        = "zsh"
 	shellFish       = "fish"
@@ -116,7 +114,7 @@ func (s *Service) ConfigureAlias(ctx context.Context, opts AliasOptions) (AliasR
 	}
 
 	exists, existingLine, err := aliasExists(configPath, opts.AliasName, shell)
-	if err != nil && !os.IsNotExist(err) {
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return AliasResult{}, fmt.Errorf("checking existing alias: %w", err)
 	}
 	if exists {
@@ -170,7 +168,7 @@ func getBinaryPath() (string, error) {
 }
 
 func detectShell() string {
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == osutil.OSWindows {
 		return shellPowerShell
 	}
 
@@ -224,13 +222,14 @@ func getPowerShellProfilePath(ctx context.Context) (string, error) {
 	ctx, cancel := context.WithTimeout(ctx, powerShellProfileTimeout)
 	defer cancel()
 
-	if output, err := exec.CommandContext(ctx, "pwsh", "-NoProfile", "-Command", "echo $PROFILE").Output(); err == nil {
+	if output, err := processutil.CommandContext(ctx, "pwsh", "-NoProfile", "-Command", "echo $PROFILE").
+		Output(); err == nil {
 		if profile := strings.TrimSpace(string(output)); profile != "" {
 			return profile, nil
 		}
 	}
 
-	if output, err := exec.CommandContext(ctx, "powershell", "-NoProfile", "-Command", "echo $PROFILE").
+	if output, err := processutil.CommandContext(ctx, "powershell", "-NoProfile", "-Command", "echo $PROFILE").
 		Output(); err == nil {
 		if profile := strings.TrimSpace(string(output)); profile != "" {
 			return profile, nil
@@ -390,9 +389,9 @@ func appendToFile(path, line string) error {
 func getReloadCommand(shell, configPath string) string {
 	switch shell {
 	case shellBash, shellZsh, shellFish:
-		return "source " + configPath
+		return "source " + quotePOSIXSingle(configPath)
 	case shellPowerShell:
-		return ". " + configPath
+		return ". " + quotePowerShellSingle(configPath)
 	default:
 		return "Restart your shell"
 	}

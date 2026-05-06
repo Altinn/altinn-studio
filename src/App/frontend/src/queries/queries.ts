@@ -24,19 +24,16 @@ import {
   getProcessNextUrl,
   getProcessStateUrl,
   getUpdateFileTagsUrl,
-  getValidationUrl,
   refreshJwtTokenUrl,
-  textResourcesUrl,
 } from 'src/utils/urls/appUrlHelper';
 import { customEncodeURI } from 'src/utils/urls/urlHelper';
 import type { DataPostResponse } from 'src/features/attachments';
 import type { IDataList } from 'src/features/dataLists';
 import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import type { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
-import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { OrderDetails, PaymentResponsePayload } from 'src/features/payment/types';
 import type { IPdfFormat } from 'src/features/pdf/types';
-import type { BackendValidationIssue, BackendValidationIssuesWithSource } from 'src/features/validation';
+import type { BackendValidationIssuesWithSource } from 'src/features/validation';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { IActionType, IData, IProcess, PostalCodesRegistry } from 'src/types/shared';
@@ -167,7 +164,7 @@ export const doPostStatelessFormData = async (
  */
 
 export const fetchLogo = async (): Promise<string> =>
-  (await axios.get('https://altinncdn.no/img/Altinn-logo-blue.svg')).data;
+  (await axios.get(GlobalData.platformFrontendSettings.altinnLogoUrl)).data;
 
 export const fetchProcessState = (instanceId: string): Promise<IProcess> => httpGet(getProcessStateUrl(instanceId));
 
@@ -183,20 +180,11 @@ export const fetchFormData = (url: string, options?: AxiosRequestConfig): Promis
 export const fetchPdfFormat = (instanceId: string, dataElementId: string): Promise<IPdfFormat> =>
   httpGet(getPdfFormatUrl(instanceId, dataElementId));
 
-export const fetchTextResources = (selectedLanguage: string): Promise<ITextResourceResult> =>
-  httpGet(textResourcesUrl(selectedLanguage));
-
 export const fetchPaymentInformation = (instanceId: string, language?: string): Promise<PaymentResponsePayload> =>
   httpGet(getPaymentInformationUrl(instanceId, language));
 
 export const fetchOrderDetails = (instanceId: string, language?: string): Promise<OrderDetails> =>
   httpGet(getOrderDetailsUrl(instanceId, language));
-
-export const fetchBackendValidations = (
-  instanceId: string,
-  language: string,
-  onlyIncrementalValidators?: boolean,
-): Promise<BackendValidationIssue[]> => httpGet(getValidationUrl(instanceId, language, onlyIncrementalValidators));
 
 export const fetchLayoutSchema = async (): Promise<JSONSchema7 | undefined> => {
   // Hacky (and only) way to get the correct CDN url

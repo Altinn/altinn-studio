@@ -7,7 +7,7 @@ using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Data.Entities;
 
-[Table("Steps", Schema = SchemaNames.Engine)]
+[Table("steps", Schema = SchemaNames.Engine)]
 internal sealed class StepEntity
 {
     [Key]
@@ -16,8 +16,6 @@ internal sealed class StepEntity
 
     [MaxLength(100)]
     public required string OperationId { get; set; }
-
-    public required string IdempotencyKey { get; set; }
 
     [MaxLength(100)]
     public string? EngineTraceContext { get; set; }
@@ -57,7 +55,6 @@ internal sealed class StepEntity
         {
             Id = step.DatabaseId,
             OperationId = step.OperationId,
-            IdempotencyKey = step.IdempotencyKey,
             EngineTraceContext = step.EngineTraceContext,
             Status = step.Status,
             CreatedAt = step.CreatedAt,
@@ -87,7 +84,6 @@ internal sealed class StepEntity
         {
             DatabaseId = Id,
             OperationId = OperationId,
-            IdempotencyKey = IdempotencyKey,
             EngineTraceContext = EngineTraceContext,
             Status = Status,
             ProcessingOrder = ProcessingOrder,

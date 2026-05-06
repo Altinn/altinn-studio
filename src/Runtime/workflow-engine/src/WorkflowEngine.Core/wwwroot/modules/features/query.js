@@ -76,8 +76,8 @@ const fetchQuery = async (opts) => {
                 if (key === 'namespace') {
                     // Send as dedicated namespace param when a single namespace is selected
                     if (values.size === 1) params.set('namespace', [...values][0]);
-                } else if (key === 'correlationId') {
-                    for (const v of values) params.set('correlationId', v);
+                } else if (key === 'collectionKey') {
+                    for (const v of values) params.set('collectionKey', v);
                 } else {
                     for (const v of values) labelPairs.push(`${key}:${v}`);
                 }
@@ -85,10 +85,9 @@ const fetchQuery = async (opts) => {
             if (labelPairs.length > 0) params.set('labels', labelPairs.join(','));
         }
         const cursor = queryPageCursors[page] ?? null;
-        if (cursor) params.set('before', cursor);
+        if (cursor) params.set('cursor', cursor);
         if (effectiveCustom) {
             params.set('since', effectiveCustom.from);
-            if (page === 0 && !cursor) params.set('before', effectiveCustom.to);
         } else if (effectiveTimeRange > 0) {
             params.set('since', new Date(Date.now() - effectiveTimeRange * 60000).toISOString());
         }
@@ -146,8 +145,8 @@ const fetchQuery = async (opts) => {
                 setCardFilterData(card, wf);
                 dom.queryContainer.appendChild(card);
             }
-            if (workflows.length >= QUERY_PAGE) {
-                queryPageCursors[page + 1] = workflows[workflows.length - 1].updatedAt ?? null;
+            if (body.nextCursor) {
+                queryPageCursors[page + 1] = body.nextCursor;
             }
             updatePager(workflows.length, totalCount);
             applyFilter();

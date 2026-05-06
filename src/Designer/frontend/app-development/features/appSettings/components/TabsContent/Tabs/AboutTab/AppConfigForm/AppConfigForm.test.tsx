@@ -6,6 +6,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from 'app-development/test/mocks';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
 import type { ApplicationMetadata, ContactPoint } from 'app-shared/types/ApplicationMetadata';
+import { DEFAULT_RIGHTS_DESCRIPTION } from 'app-shared/constants';
 
 jest.mock('../hooks/useScrollIntoView', () => ({
   useScrollIntoView: jest.fn(),
@@ -119,7 +120,7 @@ describe('AppConfigForm', () => {
     expect(homepage).toHaveValue(`${mockHomepage}${newText}`);
   });
 
-  it('displays correct value in delegation when app is hidden, and updates the value on change', async () => {
+  it('displays correct value in delegation when both delegable and visible are false, and updates the value on change', async () => {
     const user = userEvent.setup();
     renderAppConfigForm({
       appConfig: { ...mockAppConfig, access: { visible: false, delegable: false } },
@@ -128,12 +129,112 @@ describe('AppConfigForm', () => {
     const delegableSwitch = getSwitch(
       textMock('app_settings.about_tab_visibility_and_delegation_delegable_label'),
     );
+    const visibleSwitch = getSwitch(
+      textMock('app_settings.about_tab_visibility_and_delegation_visible_label'),
+    );
     expect(delegableSwitch).not.toBeChecked();
-    expect(delegableSwitch).not.toBeDisabled();
+    expect(visibleSwitch).not.toBeChecked();
+    expect(visibleSwitch).toBeDisabled();
 
     await user.click(delegableSwitch);
 
     expect(delegableSwitch).toBeChecked();
+    expect(visibleSwitch).toBeChecked();
+    expect(visibleSwitch).not.toBeDisabled();
+  });
+
+  it('displays correct value in delegation when both delegable and visible are true, and updates the value on change', async () => {
+    const user = userEvent.setup();
+    renderAppConfigForm({
+      appConfig: { ...mockAppConfig, access: { visible: true, delegable: true } },
+    });
+
+    const delegableSwitch = getSwitch(
+      textMock('app_settings.about_tab_visibility_and_delegation_delegable_label'),
+    );
+    const visibleSwitch = getSwitch(
+      textMock('app_settings.about_tab_visibility_and_delegation_visible_label'),
+    );
+    expect(delegableSwitch).toBeChecked();
+    expect(visibleSwitch).toBeChecked();
+    expect(visibleSwitch).not.toBeDisabled();
+
+    await user.click(delegableSwitch);
+
+    expect(delegableSwitch).not.toBeChecked();
+    expect(visibleSwitch).not.toBeChecked();
+    expect(visibleSwitch).toBeDisabled();
+  });
+
+  it('sets default right description when delegable is toggled on and there is no right description set', async () => {
+    const user = userEvent.setup();
+    const saveAppConfig = jest.fn();
+    renderAppConfigForm({
+      appConfig: { ...mockAppConfig, access: { visible: false, delegable: false } },
+      saveAppConfig,
+    });
+
+    const delegableSwitch = getSwitch(
+      textMock('app_settings.about_tab_visibility_and_delegation_delegable_label'),
+    );
+    await user.click(delegableSwitch);
+
+    const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
+    await user.click(saveButton);
+
+    expect(saveAppConfig).toHaveBeenCalledTimes(1);
+
+    expect(saveAppConfig).toHaveBeenCalledWith(
+      expect.objectContaining({
+        access: expect.objectContaining({
+          delegable: true,
+          rightDescription: {
+            nb: DEFAULT_RIGHTS_DESCRIPTION.nb,
+            nn: DEFAULT_RIGHTS_DESCRIPTION.nn,
+            en: DEFAULT_RIGHTS_DESCRIPTION.en,
+          },
+        }),
+      }),
+    );
+  });
+
+  it('resets right description when delegable is toggled off and there is a right description set', async () => {
+    const user = userEvent.setup();
+    const saveAppConfig = jest.fn();
+    renderAppConfigForm({
+      appConfig: {
+        ...mockAppConfig,
+        access: {
+          visible: false,
+          delegable: true,
+          rightDescription: { nb: 'NB', nn: 'NN', en: 'EN' },
+        },
+      },
+      saveAppConfig,
+    });
+
+    const delegableSwitch = getSwitch(
+      textMock('app_settings.about_tab_visibility_and_delegation_delegable_label'),
+    );
+    await user.click(delegableSwitch);
+
+    const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
+    await user.click(saveButton);
+
+    expect(saveAppConfig).toHaveBeenCalledTimes(1);
+
+    expect(saveAppConfig).toHaveBeenCalledWith(
+      expect.objectContaining({
+        access: expect.objectContaining({
+          delegable: false,
+          rightDescription: {
+            nb: '',
+            nn: '',
+            en: '',
+          },
+        }),
+      }),
+    );
   });
 
   it('updates "keywords" input field with correct value on change', async () => {

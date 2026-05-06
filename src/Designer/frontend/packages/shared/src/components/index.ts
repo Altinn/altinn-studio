@@ -1,4 +1,3 @@
 export { AltinnConfirmDialog } from './AltinnConfirmDialog';
-export { CreateBranchDialog } from './CreateBranchDialog';
-export { UncommittedChangesDialog } from './UncommittedChangesDialog';
+export { StudioPageError } from './StudioPageError';
 export { ConsentBanner } from './ConsentBanner';
