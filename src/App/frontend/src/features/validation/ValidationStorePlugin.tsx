@@ -385,7 +385,7 @@ export function pruneBoundaryMasks(state: FormStoreState) {
 
   const pageMatches = new Set<string>();
   const rowMatches = new Set<string>();
-  let hasFormErrors = formMask === 0;
+  let hasFormErrors = false;
 
   for (const node of Object.values(state.nodes.nodeData)) {
     if (!node || !('validations' in node) || node.hidden || !node.isValid) {

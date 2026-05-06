@@ -79,8 +79,8 @@ export type ValidationSliceState = {
   setRowMask: (rowId: string, mask: number | undefined) => void;
 
   /**
-   * If there are no frontend errors, but process next still returns validation errors,
-   * this will show all backend errors.
+   * If there are no frontend errors, but process/next still returns validation errors,
+   * this will show all unbound backend errors (i.e., validations we could not tie to a specific component).
    */
   setShowAllUnboundValidations: (showAllErrors: boolean) => void;
   showAllUnboundValidations: boolean;

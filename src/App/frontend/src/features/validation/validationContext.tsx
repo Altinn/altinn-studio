@@ -309,7 +309,7 @@ export const validationHooks = {
   useShowAllUnboundValidations: () => FormStore.raw.useSelector((state) => state.validation.showAllUnboundValidations),
   useSetShowAllUnboundValidations: () => {
     const validating = useWaitForValidation();
-    const setShowAllUnboundValidations = FormStore.raw.useShallowSelector(
+    const setShowAllUnboundValidations = FormStore.raw.useStaticSelector(
       (s) => s.validation.setShowAllUnboundValidations,
     );
 
@@ -324,12 +324,9 @@ export const validationHooks = {
       [setShowAllUnboundValidations, validating],
     );
   },
-  useFormValidationMask: () => FormStore.raw.useSelector((state) => state.validation.formMask),
-  usePageValidationMasks: () => FormStore.raw.useSelector((state) => state.validation.pageMasks),
-  useRowValidationMasks: () => FormStore.raw.useSelector((state) => state.validation.rowMasks),
-  useSetFormValidationMask: () => FormStore.raw.useSelector((state) => state.validation.setFormMask),
-  useSetPageValidationMask: () => FormStore.raw.useSelector((state) => state.validation.setPageMask),
-  useSetRowValidationMask: () => FormStore.raw.useSelector((state) => state.validation.setRowMask),
+  useSetFormValidationMask: () => FormStore.raw.useStaticSelector((state) => state.validation.setFormMask),
+  useSetPageValidationMask: () => FormStore.raw.useStaticSelector((state) => state.validation.setPageMask),
+  useSetRowValidationMask: () => FormStore.raw.useStaticSelector((state) => state.validation.setRowMask),
   useUpdateBackendValidations: () =>
     FormStore.raw.useStaticSelector((state) => state.validation.updateBackendValidations),
 };
