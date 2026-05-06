@@ -66,7 +66,7 @@ internal sealed class FileLoggerProvider : ILoggerProvider
             if (!_failed)
             {
                 _failed = true;
-                Debug.WriteLine($"app-manager file logger failed: {ex}");
+                Trace.TraceError($"app-manager file logger failed: {ex}");
             }
         }
     }
