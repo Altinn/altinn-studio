@@ -24,6 +24,7 @@ export const dashboardHeaderMenuItems: HeaderMenuItem[] = [
     group: HeaderMenuGroupKey.Tools,
     featureFlag: FeatureFlag.Admin,
     isExternalLink: true,
+    isBeta: true,
   },
   {
     key: HeaderMenuItemKey.OrgLibrary,
