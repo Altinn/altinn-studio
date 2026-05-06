@@ -91,7 +91,7 @@ public class BotAccountService(
     {
         return await dbContext
             .ApiKeys.AsNoTracking()
-            .Where(k => botAccountIds.Contains(k.UserAccount.Id) && !k.Revoked)
+            .Where(k => botAccountIds.Contains(k.UserAccount.Id) && !k.Revoked && k.TokenType == ApiKeyType.User)
             .GroupBy(k => k.UserAccount.Id)
             .ToDictionaryAsync(g => g.Key, g => g.Count(), cancellationToken);
     }
