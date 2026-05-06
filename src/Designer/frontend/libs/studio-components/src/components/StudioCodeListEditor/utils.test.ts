@@ -204,6 +204,12 @@ describe('StudioCodelistEditor utils', () => {
     it('Does not override existing texts', () => {
       expect(addLanguage(testCodeList, 'nb')).toEqual(testCodeList);
     });
+
+    it('Adds label property to items if it does not exist', () => {
+      const codeListWithoutLabel: CodeList = [{ value: 'test' }];
+      const result = addLanguage(codeListWithoutLabel, 'nb');
+      expect(result).toEqual([{ value: 'test', label: { nb: '' } }]);
+    });
   });
 
   describe('removeLanguage', () => {
