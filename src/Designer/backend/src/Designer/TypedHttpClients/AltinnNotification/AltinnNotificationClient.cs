@@ -1,6 +1,7 @@
 using System;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -9,10 +10,10 @@ using Altinn.Studio.Designer.TypedHttpClients.AltinnNotification.Models;
 namespace Altinn.Studio.Designer.TypedHttpClients.AltinnNotification;
 
 public class AltinnNotificationClient(
-    HttpClient _httpClient,
-    IEnvironmentsService _environmentsService,
-    GeneralSettings _generalSettings,
-    PlatformSettings _platformSettings
+    HttpClient httpClient,
+    IEnvironmentsService environmentsService,
+    GeneralSettings generalSettings,
+    PlatformSettings platformSettings
 ) : IAltinnNotificationClient
 {
     // Must be one of the predefined MailFrom addresses in Azure Communications Services
@@ -27,11 +28,12 @@ public class AltinnNotificationClient(
         string subject,
         string body,
         EmailContentType contentType = EmailContentType.Plain,
-        SendingTime sendingTimePolicy = SendingTime.Anytime
+        SendingTime sendingTimePolicy = SendingTime.Anytime,
+        CancellationToken cancellationToken = default
     )
     {
         var uri = await CreateNotificationOrderUri();
-        using var response = await _httpClient.PostAsync(
+        using var response = await httpClient.PostAsync(
             uri,
             JsonContent.Create(
                 NotificationOrder.Email(
@@ -43,7 +45,8 @@ public class AltinnNotificationClient(
                     contentType,
                     sendingTimePolicy
                 )
-            )
+            ),
+            cancellationToken
         );
         response.EnsureSuccessStatusCode();
     }
@@ -53,25 +56,27 @@ public class AltinnNotificationClient(
         string idempotencyId,
         string phoneNumber,
         string body,
-        SendingTime sendingTimePolicy = SendingTime.Anytime
+        SendingTime sendingTimePolicy = SendingTime.Anytime,
+        CancellationToken cancellationToken = default
     )
     {
         var uri = await CreateNotificationOrderUri();
-        using var response = await _httpClient.PostAsync(
+        using var response = await httpClient.PostAsync(
             uri,
             JsonContent.Create(
                 NotificationOrder.Sms(idempotencyId, AltinnSmsSender, phoneNumber, body, sendingTimePolicy)
-            )
+            ),
+            cancellationToken
         );
         response.EnsureSuccessStatusCode();
     }
 
     private async Task<Uri> CreateNotificationOrderUri()
     {
-        var baseUrl = _generalSettings.IsProd
-            ? await _environmentsService.CreatePlatformUri("production")
-            : await _environmentsService.CreatePlatformUri("tt02");
+        var baseUrl = generalSettings.IsProd
+            ? await environmentsService.CreatePlatformUri("production")
+            : await environmentsService.CreatePlatformUri("tt02");
 
-        return new Uri($"{baseUrl}{_platformSettings.ApiNotificationOrdersUri}");
+        return new Uri($"{baseUrl}{platformSettings.ApiNotificationOrdersUri}");
     }
 }

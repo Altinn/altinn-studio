@@ -167,7 +167,14 @@ public class AlertsServiceTests
         await service.NotifyAlertsUpdatedAsync("ttd", environment, alert, CancellationToken.None);
 
         _notificationClient.Verify(
-            c => c.SendSmsNotification(It.IsAny<string>(), "+4700000002", It.IsAny<string>(), It.IsAny<SendingTime>()),
+            c =>
+                c.SendSmsNotification(
+                    It.IsAny<string>(),
+                    "+4700000002",
+                    It.IsAny<string>(),
+                    It.IsAny<SendingTime>(),
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
     }
@@ -255,12 +262,20 @@ public class AlertsServiceTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<EmailContentType>(),
-                    It.IsAny<SendingTime>()
+                    It.IsAny<SendingTime>(),
+                    It.IsAny<CancellationToken>()
                 ),
             Times.Once
         );
         _notificationClient.Verify(
-            c => c.SendSmsNotification(It.IsAny<string>(), "+4700000001", It.IsAny<string>(), It.IsAny<SendingTime>()),
+            c =>
+                c.SendSmsNotification(
+                    It.IsAny<string>(),
+                    "+4700000001",
+                    It.IsAny<string>(),
+                    It.IsAny<SendingTime>(),
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
     }
@@ -291,7 +306,8 @@ public class AlertsServiceTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<EmailContentType>(),
-                    It.IsAny<SendingTime>()
+                    It.IsAny<SendingTime>(),
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ThrowsAsync(new HttpRequestException("downstream error"));
@@ -381,7 +397,9 @@ public class AlertsServiceTests
         );
 
         _slackClient
-            .Setup(c => c.SendMessageAsync(s_internalSlackWebhook, It.IsAny<SlackMessage>(), It.IsAny<CancellationToken>()))
+            .Setup(c =>
+                c.SendMessageAsync(s_internalSlackWebhook, It.IsAny<SlackMessage>(), It.IsAny<CancellationToken>())
+            )
             .ThrowsAsync(new HttpRequestException("Slack unavailable"));
 
         await service.NotifyAlertsUpdatedAsync("ttd", environment, alert, CancellationToken.None);
@@ -394,7 +412,8 @@ public class AlertsServiceTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<EmailContentType>(),
-                    It.IsAny<SendingTime>()
+                    It.IsAny<SendingTime>(),
+                    It.IsAny<CancellationToken>()
                 ),
             Times.Once
         );
@@ -410,7 +429,9 @@ public class AlertsServiceTests
         SetupNoContactPoints("ttd", "tt02");
 
         _slackClient
-            .Setup(c => c.SendMessageAsync(s_internalSlackWebhook, It.IsAny<SlackMessage>(), It.IsAny<CancellationToken>()))
+            .Setup(c =>
+                c.SendMessageAsync(s_internalSlackWebhook, It.IsAny<SlackMessage>(), It.IsAny<CancellationToken>())
+            )
             .ThrowsAsync(new HttpRequestException("Slack unavailable"));
 
         await service.NotifyAlertsUpdatedAsync("ttd", environment, alert, CancellationToken.None);
@@ -453,7 +474,8 @@ public class AlertsServiceTests
                     It.IsAny<string>(),
                     It.Is<string>(body => body.Contains("Studio-milj")),
                     It.IsAny<EmailContentType>(),
-                    It.IsAny<SendingTime>()
+                    It.IsAny<SendingTime>(),
+                    It.IsAny<CancellationToken>()
                 ),
             Times.Once
         );
@@ -494,7 +516,8 @@ public class AlertsServiceTests
                     It.IsAny<string>(),
                     It.Is<string>(body => !body.Contains("Studio-milj")),
                     It.IsAny<EmailContentType>(),
-                    It.IsAny<SendingTime>()
+                    It.IsAny<SendingTime>(),
+                    It.IsAny<CancellationToken>()
                 ),
             Times.Once
         );
@@ -533,7 +556,8 @@ public class AlertsServiceTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.Is<string>(body => body.Contains("Studio-milj")),
-                    It.IsAny<SendingTime>()
+                    It.IsAny<SendingTime>(),
+                    It.IsAny<CancellationToken>()
                 ),
             Times.Once
         );
@@ -572,7 +596,8 @@ public class AlertsServiceTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.Is<string>(body => !body.Contains("Studio-milj")),
-                    It.IsAny<SendingTime>()
+                    It.IsAny<SendingTime>(),
+                    It.IsAny<CancellationToken>()
                 ),
             Times.Once
         );

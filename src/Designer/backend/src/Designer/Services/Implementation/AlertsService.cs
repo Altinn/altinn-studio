@@ -126,11 +126,13 @@ internal sealed class AlertsService(
             return;
         }
 
-        IEnumerable<Task> notificationTasks = contactPoints.SelectMany(contactPoint =>
-            contactPoint.Methods.Select(method =>
-                SendContactMethodAsync(contactPoint, method, org, environment, apps, alert, cancellationToken)
+        List<Task> notificationTasks = contactPoints
+            .SelectMany(contactPoint =>
+                contactPoint.Methods.Select(method =>
+                    SendContactMethodAsync(contactPoint, method, org, environment, apps, alert, cancellationToken)
+                )
             )
-        );
+            .ToList();
 
         await Task.WhenAll(notificationTasks);
     }
@@ -156,14 +158,16 @@ internal sealed class AlertsService(
                         method.Value,
                         alertTitle,
                         FormatEmailBody(org, environment, apps, alertTitle, alert.Url, alert.LogsUrl),
-                        EmailContentType.Html
+                        EmailContentType.Html,
+                        cancellationToken: cancellationToken
                     );
                     break;
                 case ContactMethodType.Sms:
                     await altinnNotificationsClient.SendSmsNotification(
                         $"{contactPoint.Id}-{method.Id}-{alert.Id}",
                         method.Value,
-                        FormatSmsBody(org, environment, apps, alert.Name)
+                        FormatSmsBody(org, environment, apps, alert.Name),
+                        cancellationToken: cancellationToken
                     );
                     break;
                 case ContactMethodType.Slack:
@@ -297,13 +301,6 @@ Applikasjoner: {appsFormatted}{studioMiljø}";
                 new SlackBlock { Type = "context", Elements = links },
             ],
         };
-        try
-        {
-            await slackClient.SendMessageAsync(webhookUrl, message, cancellationToken);
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            logger.LogError(ex, "Failed to send Slack alert notification. Alert Name: {AlertName}", alertName);
-        }
+        await slackClient.SendMessageAsync(webhookUrl, message, cancellationToken);
     }
 }

@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnNotification.Models;
 
@@ -11,13 +12,15 @@ public interface IAltinnNotificationClient
         string subject,
         string body,
         EmailContentType contentType = EmailContentType.Plain,
-        SendingTime sendingTimePolicy = SendingTime.Anytime
+        SendingTime sendingTimePolicy = SendingTime.Anytime,
+        CancellationToken cancellationToken = default
     );
 
     Task SendSmsNotification(
         string idempotencyId,
         string phoneNumber,
         string body,
-        SendingTime sendingTimePolicy = SendingTime.Anytime
+        SendingTime sendingTimePolicy = SendingTime.Anytime,
+        CancellationToken cancellationToken = default
     );
 }
