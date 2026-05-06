@@ -126,7 +126,7 @@ internal sealed class DbMaintenanceService(
             using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))
             {
                 await using var analyzeCmd = dataSource.CreateCommand(
-                    """ANALYZE engine."Workflows", engine."Steps", engine."IdempotencyKeys" """
+                    "ANALYZE engine.workflows, engine.steps, engine.workflow_dependency, engine.idempotency_keys"
                 );
                 await analyzeCmd.ExecuteNonQueryAsync(ct);
             }
@@ -197,23 +197,23 @@ internal sealed class DbMaintenanceService(
     internal static class Sql
     {
         internal const string PurgeExpiredWorkflows = """
-            DELETE FROM engine."Workflows"
-            WHERE "Id" IN (
-                SELECT w."Id"
-                FROM engine."Workflows" w
-                WHERE w."Status" IN (3, 4, 5, 6)
-                  AND w."UpdatedAt" < @cutoff
+            DELETE FROM engine.workflows
+            WHERE id IN (
+                SELECT w.id
+                FROM engine.workflows w
+                WHERE w.status IN (3, 4, 5, 6)
+                  AND w.updated_at < @cutoff
                   AND NOT EXISTS (
-                      SELECT 1 FROM engine."WorkflowDependency" dep
-                      JOIN engine."Workflows" d ON dep."WorkflowId" = d."Id"
-                      WHERE dep."DependsOnWorkflowId" = w."Id"
-                        AND (d."Status" IN (0, 1, 2) OR d."UpdatedAt" >= @cutoff)
+                      SELECT 1 FROM engine.workflow_dependency dep
+                      JOIN engine.workflows d ON dep.workflow_id = d.id
+                      WHERE dep.depends_on_workflow_id = w.id
+                        AND (d.status IN (0, 1, 2) OR d.updated_at >= @cutoff)
                   )
                   AND NOT EXISTS (
-                      SELECT 1 FROM engine."WorkflowLink" lnk
-                      JOIN engine."Workflows" l ON lnk."WorkflowId" = l."Id"
-                      WHERE lnk."LinkedWorkflowId" = w."Id"
-                        AND (l."Status" IN (0, 1, 2) OR l."UpdatedAt" >= @cutoff)
+                      SELECT 1 FROM engine.workflow_link lnk
+                      JOIN engine.workflows l ON lnk.workflow_id = l.id
+                      WHERE lnk.linked_workflow_id = w.id
+                        AND (l.status IN (0, 1, 2) OR l.updated_at >= @cutoff)
                   )
                 LIMIT @batchSize
                 FOR UPDATE SKIP LOCKED
@@ -221,37 +221,37 @@ internal sealed class DbMaintenanceService(
             """;
 
         internal const string DeleteOrphanedIdempotencyKeys = """
-            DELETE FROM engine."IdempotencyKeys"
-            WHERE "CreatedAt" < @cutoff
+            DELETE FROM engine.idempotency_keys
+            WHERE created_at < @cutoff
               AND NOT EXISTS (
-                  SELECT 1 FROM engine."Workflows" w
-                  WHERE w."Id" = ANY("WorkflowIds")
+                  SELECT 1 FROM engine.workflows w
+                  WHERE w.id = ANY(workflow_ids)
               )
             """;
 
         internal static readonly string AbandonStaleWorkflows = $"""
-            UPDATE engine."Workflows"
-            SET "Status" = {(int)PersistentItemStatus.Failed},
-                "UpdatedAt" = @now,
-                "HeartbeatAt" = NULL,
-                "LeaseToken" = NULL
-            WHERE "Status" = {(int)PersistentItemStatus.Processing}
-              AND "HeartbeatAt" IS NOT NULL
-              AND "HeartbeatAt" < @staleDeadline
-              AND "ReclaimCount" >= @maxReclaimCount
+            UPDATE engine.workflows
+            SET status = {(int)PersistentItemStatus.Failed},
+                updated_at = @now,
+                heartbeat_at = NULL,
+                lease_token = NULL
+            WHERE status = {(int)PersistentItemStatus.Processing}
+              AND heartbeat_at IS NOT NULL
+              AND heartbeat_at < @staleDeadline
+              AND reclaim_count >= @maxReclaimCount
             """;
 
         internal static readonly string ReclaimStaleWorkflows = $"""
-            UPDATE engine."Workflows"
-            SET "Status" = {(int)PersistentItemStatus.Enqueued},
-                "UpdatedAt" = @now,
-                "HeartbeatAt" = NULL,
-                "LeaseToken" = NULL,
-                "ReclaimCount" = "ReclaimCount" + 1
-            WHERE "Status" = {(int)PersistentItemStatus.Processing}
-              AND "HeartbeatAt" IS NOT NULL
-              AND "HeartbeatAt" < @staleDeadline
-              AND "ReclaimCount" < @maxReclaimCount
+            UPDATE engine.workflows
+            SET status = {(int)PersistentItemStatus.Enqueued},
+                updated_at = @now,
+                heartbeat_at = NULL,
+                lease_token = NULL,
+                reclaim_count = reclaim_count + 1
+            WHERE status = {(int)PersistentItemStatus.Processing}
+              AND heartbeat_at IS NOT NULL
+              AND heartbeat_at < @staleDeadline
+              AND reclaim_count < @maxReclaimCount
             """;
     }
 }

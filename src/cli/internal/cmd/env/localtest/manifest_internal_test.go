@@ -324,12 +324,7 @@ func assertLocaltestCoreContainer(
 
 	assertEnvValue(t, spec.Environment, "ASPNETCORE_URLS", "http://*:5101/;http://*:8000/")
 	assertEnvValue(t, spec.Environment, "DOTNET_ENVIRONMENT", "Development")
-	assertEnvValue(
-		t,
-		spec.Environment,
-		envtopology.BoundTopologyOptionsBaseConfigPathEnv,
-		envtopology.BoundTopologyBaseConfigContainerPath,
-	)
+	assertEnvMissing(t, spec.Environment, envtopology.BoundTopologyOptionsBaseConfigPathEnv)
 	assertEnvValue(
 		t,
 		spec.Environment,

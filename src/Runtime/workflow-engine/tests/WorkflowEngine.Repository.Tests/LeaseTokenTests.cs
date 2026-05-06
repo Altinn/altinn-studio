@@ -48,9 +48,9 @@ public sealed class LeaseTokenTests(PostgresFixture fixture) : IAsyncLifetime
         var staleHeartbeat = DateTimeOffset.UtcNow.AddSeconds(-30);
         await context.Database.ExecuteSqlAsync(
             $"""
-            UPDATE "engine"."Workflows"
-            SET "HeartbeatAt" = {staleHeartbeat}, "ReclaimCount" = 1
-            WHERE "Id" = {wf.DatabaseId}
+            UPDATE engine.workflows
+            SET heartbeat_at = {staleHeartbeat}, reclaim_count = 1
+            WHERE id = {wf.DatabaseId}
             """,
             TestContext.Current.CancellationToken
         );
@@ -85,9 +85,9 @@ public sealed class LeaseTokenTests(PostgresFixture fixture) : IAsyncLifetime
         var pastTime = DateTimeOffset.UtcNow.AddMinutes(-5);
         await context.Database.ExecuteSqlAsync(
             $"""
-            UPDATE "engine"."Workflows"
-            SET "HeartbeatAt" = {pastTime}, "UpdatedAt" = {pastTime}
-            WHERE "Id" = {wf.DatabaseId}
+            UPDATE engine.workflows
+            SET heartbeat_at = {pastTime}, updated_at = {pastTime}
+            WHERE id = {wf.DatabaseId}
             """,
             TestContext.Current.CancellationToken
         );
@@ -114,9 +114,9 @@ public sealed class LeaseTokenTests(PostgresFixture fixture) : IAsyncLifetime
         var pastTime = DateTimeOffset.UtcNow.AddMinutes(-5);
         await context.Database.ExecuteSqlAsync(
             $"""
-            UPDATE "engine"."Workflows"
-            SET "HeartbeatAt" = {pastTime}, "UpdatedAt" = {pastTime}
-            WHERE "Id" = {wf.DatabaseId}
+            UPDATE engine.workflows
+            SET heartbeat_at = {pastTime}, updated_at = {pastTime}
+            WHERE id = {wf.DatabaseId}
             """,
             TestContext.Current.CancellationToken
         );

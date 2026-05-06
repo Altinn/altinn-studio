@@ -87,7 +87,6 @@ func localtestEnv(topology envtopology.Local, ingressPort string) map[string]str
 		"GeneralSettings__HostName":                             topology.AppHostName(),
 		"LocalPlatformSettings__LocalTestingStorageBasePath":    "/AltinnPlatformLocal/",
 		"LocalPlatformSettings__LocalTestingStaticTestDataPath": "/testdata/",
-		envtopology.BoundTopologyOptionsBaseConfigPathEnv:       envtopology.BoundTopologyBaseConfigContainerPath,
 		envtopology.BoundTopologyOptionsConfigPathEnv:           envtopology.BoundTopologyConfigContainerPath,
 	}
 }

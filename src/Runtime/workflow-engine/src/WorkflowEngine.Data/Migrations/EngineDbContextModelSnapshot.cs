@@ -23,256 +23,308 @@ namespace WorkflowEngine.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("WorkflowDependency", b =>
-                {
-                    b.Property<Guid>("WorkflowId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("DependsOnWorkflowId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("WorkflowId", "DependsOnWorkflowId");
-
-                    b.HasIndex("DependsOnWorkflowId");
-
-                    b.ToTable("WorkflowDependency", "engine");
-                });
-
             modelBuilder.Entity("WorkflowEngine.Data.Entities.IdempotencyKeyEntity", b =>
                 {
                     b.Property<string>("IdempotencyKey")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("idempotency_key");
 
                     b.Property<string>("Namespace")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("namespace");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<byte[]>("RequestBodyHash")
                         .IsRequired()
-                        .HasColumnType("bytea");
+                        .HasColumnType("bytea")
+                        .HasColumnName("request_body_hash");
 
                     b.PrimitiveCollection<Guid[]>("WorkflowIds")
                         .IsRequired()
-                        .HasColumnType("uuid[]");
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("workflow_ids");
 
-                    b.HasKey("IdempotencyKey", "Namespace");
+                    b.HasKey("IdempotencyKey", "Namespace")
+                        .HasName("pk_idempotency_keys");
 
-                    b.HasIndex("CreatedAt");
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_idempotency_keys_created_at");
 
-                    b.ToTable("IdempotencyKeys", "engine");
+                    b.ToTable("idempotency_keys", "engine");
                 });
 
             modelBuilder.Entity("WorkflowEngine.Data.Entities.StepEntity", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<string>("CommandJson")
                         .IsRequired()
-                        .HasColumnType("jsonb");
+                        .HasColumnType("jsonb")
+                        .HasColumnName("command_json");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<string>("EngineTraceContext")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("engine_trace_context");
 
                     b.Property<string>("ErrorHistory")
-                        .HasColumnType("jsonb");
+                        .HasColumnType("jsonb")
+                        .HasColumnName("error_history");
 
                     b.Property<Guid>("JobId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("job_id");
 
                     b.Property<string>("Labels")
-                        .HasColumnType("jsonb");
+                        .HasColumnType("jsonb")
+                        .HasColumnName("labels");
 
                     b.Property<string>("OperationId")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("operation_id");
 
                     b.Property<int>("ProcessingOrder")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("processing_order");
 
                     b.Property<int>("RequeueCount")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("requeue_count");
 
                     b.Property<string>("RetryStrategyJson")
-                        .HasColumnType("jsonb");
+                        .HasColumnType("jsonb")
+                        .HasColumnName("retry_strategy_json");
 
                     b.Property<string>("StateOut")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("state_out");
 
                     b.Property<int>("Status")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_steps");
 
-                    b.HasIndex("Labels");
+                    b.HasIndex("Labels")
+                        .HasDatabaseName("ix_steps_labels");
 
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Labels"), "gin");
 
-                    b.HasIndex("JobId", "Status");
+                    b.HasIndex("JobId", "Status")
+                        .HasDatabaseName("ix_steps_job_id_status");
 
-                    b.ToTable("Steps", "engine");
+                    b.ToTable("steps", "engine");
                 });
 
             modelBuilder.Entity("WorkflowEngine.Data.Entities.WorkflowCollectionEntity", b =>
                 {
                     b.Property<string>("Key")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("key");
 
                     b.Property<string>("Namespace")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("namespace");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.PrimitiveCollection<Guid[]>("Heads")
                         .IsRequired()
-                        .HasColumnType("uuid[]");
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("heads");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
-                    b.HasKey("Key", "Namespace");
+                    b.HasKey("Key", "Namespace")
+                        .HasName("pk_workflow_collections");
 
-                    b.HasIndex("Namespace");
+                    b.HasIndex("Namespace")
+                        .HasDatabaseName("ix_workflow_collections_namespace");
 
-                    b.ToTable("WorkflowCollections", "engine");
+                    b.ToTable("workflow_collections", "engine");
                 });
 
             modelBuilder.Entity("WorkflowEngine.Data.Entities.WorkflowEntity", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<DateTimeOffset?>("BackoffUntil")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("backoff_until");
 
                     b.Property<DateTimeOffset?>("CancellationRequestedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancellation_requested_at");
 
                     b.Property<string>("CollectionKey")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("collection_key");
 
                     b.Property<string>("ContextJson")
-                        .HasColumnType("jsonb");
+                        .HasColumnType("jsonb")
+                        .HasColumnName("context_json");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<string>("DistributedTraceContext")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("distributed_trace_context");
 
                     b.Property<string>("EngineTraceContext")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("engine_trace_context");
 
                     b.Property<DateTimeOffset?>("HeartbeatAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("heartbeat_at");
 
                     b.Property<string>("IdempotencyKey")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("idempotency_key");
 
                     b.Property<string>("InitialState")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("initial_state");
 
                     b.Property<string>("Labels")
-                        .HasColumnType("jsonb");
+                        .HasColumnType("jsonb")
+                        .HasColumnName("labels");
 
                     b.Property<Guid?>("LeaseToken")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("lease_token");
 
                     b.Property<string>("Namespace")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("namespace");
 
                     b.Property<string>("OperationId")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("operation_id");
 
                     b.Property<int>("ReclaimCount")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("reclaim_count");
 
                     b.Property<DateTimeOffset?>("StartAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("start_at");
 
                     b.Property<int>("Status")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_workflows");
 
-                    b.HasIndex("CollectionKey");
+                    b.HasIndex("CollectionKey")
+                        .HasDatabaseName("ix_workflows_collection_key");
 
-                    b.HasIndex("CreatedAt");
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_workflows_created_at");
 
                     b.HasIndex("HeartbeatAt")
-                        .HasFilter("\"Status\" = 1");
+                        .HasDatabaseName("ix_workflows_heartbeat_at")
+                        .HasFilter("status = 1");
 
-                    b.HasIndex("Labels");
+                    b.HasIndex("Labels")
+                        .HasDatabaseName("ix_workflows_labels");
 
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Labels"), "gin");
 
-                    b.HasIndex("Status");
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_workflows_status");
 
                     b.HasIndex("UpdatedAt")
-                        .HasFilter("\"Status\" IN (3, 4, 5, 6)");
+                        .HasDatabaseName("ix_workflows_updated_at")
+                        .HasFilter("status IN (3, 4, 5, 6)");
 
                     b.HasIndex("BackoffUntil", "CreatedAt")
-                        .HasFilter("\"Status\" IN (0, 2)");
+                        .HasDatabaseName("ix_workflows_backoff_until_created_at")
+                        .HasFilter("status IN (0, 2)");
 
                     NpgsqlIndexBuilderExtensions.HasNullSortOrder(b.HasIndex("BackoffUntil", "CreatedAt"), new[] { NullSortOrder.NullsFirst, NullSortOrder.NullsLast });
 
-                    b.HasIndex("Namespace", "Status");
+                    b.HasIndex("Namespace", "Status")
+                        .HasDatabaseName("ix_workflows_namespace_status");
 
-                    b.ToTable("Workflows", "engine");
+                    b.ToTable("workflows", "engine");
                 });
 
-            modelBuilder.Entity("WorkflowLink", b =>
+            modelBuilder.Entity("workflow_dependency", b =>
                 {
                     b.Property<Guid>("WorkflowId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("workflow_id");
 
-                    b.Property<Guid>("LinkedWorkflowId")
-                        .HasColumnType("uuid");
+                    b.Property<Guid>("DependsOnWorkflowId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("depends_on_workflow_id");
 
-                    b.HasKey("WorkflowId", "LinkedWorkflowId");
+                    b.HasKey("WorkflowId", "DependsOnWorkflowId")
+                        .HasName("pk_workflow_dependency");
 
-                    b.HasIndex("LinkedWorkflowId");
+                    b.HasIndex("DependsOnWorkflowId")
+                        .HasDatabaseName("ix_workflow_dependency_depends_on_workflow_id");
 
-                    b.ToTable("WorkflowLink", "engine");
+                    b.ToTable("workflow_dependency", "engine");
                 });
 
-            modelBuilder.Entity("WorkflowDependency", b =>
+            modelBuilder.Entity("workflow_link", b =>
                 {
-                    b.HasOne("WorkflowEngine.Data.Entities.WorkflowEntity", null)
-                        .WithMany()
-                        .HasForeignKey("DependsOnWorkflowId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Property<Guid>("WorkflowId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("workflow_id");
 
-                    b.HasOne("WorkflowEngine.Data.Entities.WorkflowEntity", null)
-                        .WithMany()
-                        .HasForeignKey("WorkflowId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Property<Guid>("LinkedWorkflowId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("linked_workflow_id");
+
+                    b.HasKey("WorkflowId", "LinkedWorkflowId")
+                        .HasName("pk_workflow_link");
+
+                    b.HasIndex("LinkedWorkflowId")
+                        .HasDatabaseName("ix_workflow_link_linked_workflow_id");
+
+                    b.ToTable("workflow_link", "engine");
                 });
 
             modelBuilder.Entity("WorkflowEngine.Data.Entities.StepEntity", b =>
@@ -281,24 +333,44 @@ namespace WorkflowEngine.Data.Migrations
                         .WithMany("Steps")
                         .HasForeignKey("JobId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_steps_workflows_job_id");
 
                     b.Navigation("Job");
                 });
 
-            modelBuilder.Entity("WorkflowLink", b =>
+            modelBuilder.Entity("workflow_dependency", b =>
                 {
                     b.HasOne("WorkflowEngine.Data.Entities.WorkflowEntity", null)
                         .WithMany()
-                        .HasForeignKey("LinkedWorkflowId")
+                        .HasForeignKey("DependsOnWorkflowId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_workflow_dependency_workflows_depends_on_workflow_id");
 
                     b.HasOne("WorkflowEngine.Data.Entities.WorkflowEntity", null)
                         .WithMany()
                         .HasForeignKey("WorkflowId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_workflow_dependency_workflows_workflow_id");
+                });
+
+            modelBuilder.Entity("workflow_link", b =>
+                {
+                    b.HasOne("WorkflowEngine.Data.Entities.WorkflowEntity", null)
+                        .WithMany()
+                        .HasForeignKey("LinkedWorkflowId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_workflow_link_workflows_linked_workflow_id");
+
+                    b.HasOne("WorkflowEngine.Data.Entities.WorkflowEntity", null)
+                        .WithMany()
+                        .HasForeignKey("WorkflowId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_workflow_link_workflows_workflow_id");
                 });
 
             modelBuilder.Entity("WorkflowEngine.Data.Entities.WorkflowEntity", b =>

@@ -31,14 +31,14 @@ internal sealed partial class EngineRepository
         CancellationToken,
         Task
     > _insertDependencies = SqlBulkInserter.CreateForJoinTable(
-        "WorkflowDependency",
-        "WorkflowId",
-        "DependsOnWorkflowId",
+        "workflow_dependency",
+        "workflow_id",
+        "depends_on_workflow_id",
         SchemaNames.Engine
     );
 
     private static readonly Func<NpgsqlConnection, IEnumerable<(Guid, Guid)>, CancellationToken, Task> _insertLinks =
-        SqlBulkInserter.CreateForJoinTable("WorkflowLink", "WorkflowId", "LinkedWorkflowId", SchemaNames.Engine);
+        SqlBulkInserter.CreateForJoinTable("workflow_link", "workflow_id", "linked_workflow_id", SchemaNames.Engine);
 
     /// <inheritdoc/>
     public async Task UpdateWorkflow(
@@ -285,19 +285,19 @@ internal sealed partial class EngineRepository
                     WITH input AS (
                         SELECT * FROM unnest({arrays.Keys}, {arrays.Namespaces}, {hashesParam}, {arrays.WfIdTexts}, {arrays.CreationDates})
                             WITH ORDINALITY
-                            AS t("IdempotencyKey", "Namespace", "RequestBodyHash", wf_id_text, "CreatedAt", idx)
+                            AS t(idempotency_key, namespace, request_body_hash, wf_id_text, created_at, idx)
                     ),
                     inserted AS (
-                        INSERT INTO "engine"."IdempotencyKeys" ("IdempotencyKey", "Namespace", "RequestBodyHash", "WorkflowIds", "CreatedAt")
-                        SELECT "IdempotencyKey", "Namespace", "RequestBodyHash", wf_id_text::uuid[], "CreatedAt"
+                        INSERT INTO engine.idempotency_keys (idempotency_key, namespace, request_body_hash, workflow_ids, created_at)
+                        SELECT idempotency_key, namespace, request_body_hash, wf_id_text::uuid[], created_at
                         FROM input
-                        ORDER BY "IdempotencyKey", "Namespace"
-                        ON CONFLICT ("IdempotencyKey", "Namespace") DO NOTHING
-                        RETURNING "IdempotencyKey", "Namespace"
+                        ORDER BY idempotency_key, namespace
+                        ON CONFLICT (idempotency_key, namespace) DO NOTHING
+                        RETURNING idempotency_key, namespace
                     )
                     SELECT (i.idx - 1)::int AS "Value"
                     FROM inserted ins
-                    JOIN input i USING ("IdempotencyKey", "Namespace")
+                    JOIN input i USING (idempotency_key, namespace)
                     """
                 )
                 .ToListAsync(cancellationToken)
@@ -343,8 +343,8 @@ internal sealed partial class EngineRepository
                 $"""
                 SELECT ik.*
                 FROM unnest({keys}, {namespaces})
-                    AS t("IdempotencyKey", "Namespace")
-                JOIN "engine"."IdempotencyKeys" ik USING ("IdempotencyKey", "Namespace")
+                    AS t(idempotency_key, namespace)
+                JOIN engine.idempotency_keys ik USING (idempotency_key, namespace)
                 """
             )
             .AsNoTracking()
@@ -693,16 +693,16 @@ internal sealed partial class EngineRepository
         var (keys, namespaces) = collectionKeys.ToArray().Unzip();
 
         const string sql = """
-            INSERT INTO "engine"."WorkflowCollections" ("Key", "Namespace", "Heads", "CreatedAt")
-            SELECT "Key", "Namespace", ARRAY[]::uuid[], @now
-            FROM unnest(@keys, @namespaces) AS t("Key", "Namespace")
-            ORDER BY "Key", "Namespace"
-            ON CONFLICT ("Key", "Namespace") DO NOTHING;
+            INSERT INTO engine.workflow_collections (key, namespace, heads, created_at)
+            SELECT key, namespace, ARRAY[]::uuid[], @now
+            FROM unnest(@keys, @namespaces) AS t(key, namespace)
+            ORDER BY key, namespace
+            ON CONFLICT (key, namespace) DO NOTHING;
 
-            SELECT wc."Key", wc."Namespace", wc."Heads"
-            FROM unnest(@keys, @namespaces) AS t("Key", "Namespace")
-            JOIN "engine"."WorkflowCollections" wc USING ("Key", "Namespace")
-            ORDER BY wc."Key", wc."Namespace"
+            SELECT wc.key, wc.namespace, wc.heads
+            FROM unnest(@keys, @namespaces) AS t(key, namespace)
+            JOIN engine.workflow_collections wc USING (key, namespace)
+            ORDER BY wc.key, wc.namespace
             FOR UPDATE
             """;
 
@@ -911,13 +911,13 @@ internal sealed partial class EngineRepository
         }
 
         const string sql = """
-            UPDATE "engine"."WorkflowCollections" AS wc
-            SET "Heads" = t.heads_text::uuid[],
-                "UpdatedAt" = @now
+            UPDATE engine.workflow_collections AS wc
+            SET heads = t.heads_text::uuid[],
+                updated_at = @now
             FROM unnest(@keys, @namespaces, @heads_texts)
-                AS t("Key", "Namespace", heads_text)
-            WHERE wc."Key" = t."Key"
-              AND wc."Namespace" = t."Namespace"
+                AS t(key, namespace, heads_text)
+            WHERE wc.key = t.key
+              AND wc.namespace = t.namespace
             """;
 
         await using var cmd = new NpgsqlCommand(sql, conn);
@@ -951,34 +951,34 @@ internal sealed partial class EngineRepository
             .Database.SqlQuery<Guid>(
                 $"""
                 WITH ready AS (
-                    SELECT w."Id"
-                    FROM "engine"."Workflows" w
-                    WHERE w."Status" IN ({PersistentItemStatus.Enqueued}, {PersistentItemStatus.Requeued})
-                      AND (w."BackoffUntil" IS NULL OR w."BackoffUntil" <= {now})
+                    SELECT w.id
+                    FROM engine.workflows w
+                    WHERE w.status IN ({PersistentItemStatus.Enqueued}, {PersistentItemStatus.Requeued})
+                      AND (w.backoff_until IS NULL OR w.backoff_until <= {now})
                       AND NOT EXISTS (
-                          SELECT 1 FROM "engine"."WorkflowDependency" wd
-                          JOIN "engine"."Workflows" dep ON dep."Id" = wd."DependsOnWorkflowId"
-                          WHERE wd."WorkflowId" = w."Id"
-                            AND dep."Status" <> {PersistentItemStatus.Completed}
-                            AND dep."Status" <> {PersistentItemStatus.Failed}
-                            AND dep."Status" <> {PersistentItemStatus.DependencyFailed}
-                            AND dep."Status" <> {PersistentItemStatus.Canceled}
+                          SELECT 1 FROM engine.workflow_dependency wd
+                          JOIN engine.workflows dep ON dep.id = wd.depends_on_workflow_id
+                          WHERE wd.workflow_id = w.id
+                            AND dep.status <> {PersistentItemStatus.Completed}
+                            AND dep.status <> {PersistentItemStatus.Failed}
+                            AND dep.status <> {PersistentItemStatus.DependencyFailed}
+                            AND dep.status <> {PersistentItemStatus.Canceled}
                       )
-                    ORDER BY w."BackoffUntil" NULLS FIRST, w."CreatedAt"
+                    ORDER BY w.backoff_until NULLS FIRST, w.created_at
                     FOR UPDATE SKIP LOCKED
                     LIMIT {count}
                 ),
                 updated AS (
-                    UPDATE "engine"."Workflows" w
-                    SET "Status"      = {PersistentItemStatus.Processing},
-                        "UpdatedAt"   = {now},
-                        "HeartbeatAt" = {now},
-                        "LeaseToken"  = gen_random_uuid()
+                    UPDATE engine.workflows w
+                    SET status       = {PersistentItemStatus.Processing},
+                        updated_at   = {now},
+                        heartbeat_at = {now},
+                        lease_token  = gen_random_uuid()
                     FROM ready r
-                    WHERE w."Id" = r."Id"
-                    RETURNING w."Id"
+                    WHERE w.id = r.id
+                    RETURNING w.id
                 )
-                SELECT "Id" AS "Value" FROM updated
+                SELECT id AS "Value" FROM updated
                 """
             )
             .ToListAsync(cancellationToken);
@@ -1025,12 +1025,12 @@ internal sealed partial class EngineRepository
                 {
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
                     const string sql = """
-                    UPDATE "engine"."Workflows"
-                    SET "CancellationRequestedAt" = @requestedAt, "UpdatedAt" = @now
-                    WHERE "Id" = @id
-                      AND "Namespace" = @ns
-                      AND "Status" != ALL(@terminalStatuses)
-                      AND "CancellationRequestedAt" IS NULL
+                    UPDATE engine.workflows
+                    SET cancellation_requested_at = @requestedAt, updated_at = @now
+                    WHERE id = @id
+                      AND namespace = @ns
+                      AND status != ALL(@terminalStatuses)
+                      AND cancellation_requested_at IS NULL
                     """;
 
                     await using var cmd = new NpgsqlCommand(sql, conn);
@@ -1093,13 +1093,13 @@ internal sealed partial class EngineRepository
                     // Stale-token rows silently no-op: the new owner's lease token is on the row,
                     // the old worker's heartbeat write skips it, and the row keeps aging normally.
                     const string sql = """
-                    UPDATE "engine"."Workflows" w
-                    SET "HeartbeatAt" = @now
+                    UPDATE engine.workflows w
+                    SET heartbeat_at = @now
                     FROM unnest(@ids, @lease_tokens) AS i(id, lease_token)
-                    WHERE w."Id" = i.id
-                      AND w."LeaseToken" = i.lease_token
-                      AND w."Status" = @status
-                      AND w."UpdatedAt" < @updatedBefore
+                    WHERE w.id = i.id
+                      AND w.lease_token = i.lease_token
+                      AND w.status = @status
+                      AND w.updated_at < @updatedBefore
                     """;
 
                     await using var cmd = new NpgsqlCommand(sql, conn);
@@ -1185,22 +1185,22 @@ internal sealed partial class EngineRepository
                     // worker's later CAS could match a row that has since moved on under the
                     // same token.
                     const string updateWorkflowsSql = """
-                    UPDATE "engine"."Workflows" AS w
-                    SET "Status"             = v.status,
-                        "UpdatedAt"          = @now,
-                        "BackoffUntil"       = v.backoff_until,
-                        "HeartbeatAt"        = CASE WHEN v.status = @processing THEN @now ELSE NULL END,
-                        "LeaseToken"         = CASE WHEN v.status = @processing THEN w."LeaseToken" ELSE NULL END,
-                        "EngineTraceContext" = v.engine_trace_context
+                    UPDATE engine.workflows AS w
+                    SET status               = v.status,
+                        updated_at           = @now,
+                        backoff_until        = v.backoff_until,
+                        heartbeat_at         = CASE WHEN v.status = @processing THEN @now ELSE NULL END,
+                        lease_token          = CASE WHEN v.status = @processing THEN w.lease_token ELSE NULL END,
+                        engine_trace_context = v.engine_trace_context
                     FROM (
                         SELECT *
                         FROM unnest(@ids, @statuses, @backoff_deadlines, @engine_trace_contexts, @lease_tokens)
                             AS t(id, status, backoff_until, engine_trace_context, lease_token)
                         ORDER BY t.id
                     ) AS v
-                    WHERE w."Id" = v.id
-                      AND w."LeaseToken" = v.lease_token
-                    RETURNING w."Id"
+                    WHERE w.id = v.id
+                      AND w.lease_token = v.lease_token
+                    RETURNING w.id
                     """;
 
                     await using (var cmd = new NpgsqlCommand(updateWorkflowsSql, conn, tx))
@@ -1265,20 +1265,20 @@ internal sealed partial class EngineRepository
                         }
 
                         const string updateStepsSql = """
-                        UPDATE "engine"."Steps" AS s
-                        SET "Status"             = v.status,
-                            "RequeueCount"       = v.requeue_count,
-                            "ErrorHistory"       = v.error_history,
-                            "StateOut"           = v.state_out,
-                            "EngineTraceContext" = v.engine_trace_context,
-                            "UpdatedAt"          = @now
+                        UPDATE engine.steps AS s
+                        SET status               = v.status,
+                            requeue_count        = v.requeue_count,
+                            error_history        = v.error_history,
+                            state_out            = v.state_out,
+                            engine_trace_context = v.engine_trace_context,
+                            updated_at           = @now
                         FROM (
                             SELECT *
                             FROM unnest(@ids, @statuses, @requeue_counts, @error_histories, @engine_trace_contexts, @state_outs)
                                 AS t(id, status, requeue_count, error_history, engine_trace_context, state_out)
                             ORDER BY t.id
                         ) AS v
-                        WHERE s."Id" = v.id
+                        WHERE s.id = v.id
                         """;
 
                         await using var cmd = new NpgsqlCommand(updateStepsSql, conn, tx);
@@ -1385,18 +1385,18 @@ internal sealed partial class EngineRepository
                     // Reset from terminal + Requeued (Requeued skips the backoff wait). Clearing
                     // LeaseToken preserves the "NOT NULL iff Processing" invariant.
                     const string resetPrimarySql = """
-                    UPDATE engine."Workflows"
-                    SET "Status" = @enqueued,
-                        "CancellationRequestedAt" = NULL,
-                        "BackoffUntil" = NULL,
-                        "HeartbeatAt" = NULL,
-                        "LeaseToken" = NULL,
-                        "ReclaimCount" = 0,
-                        "UpdatedAt" = @now
-                    WHERE "Id" = @id
-                      AND "Namespace" = @ns
-                      AND "Status" IN (@failed, @canceled, @depFailed, @requeued)
-                    RETURNING "Id"
+                    UPDATE engine.workflows
+                    SET status = @enqueued,
+                        cancellation_requested_at = NULL,
+                        backoff_until = NULL,
+                        heartbeat_at = NULL,
+                        lease_token = NULL,
+                        reclaim_count = 0,
+                        updated_at = @now
+                    WHERE id = @id
+                      AND namespace = @ns
+                      AND status IN (@failed, @canceled, @depFailed, @requeued)
+                    RETURNING id
                     """;
                     await using (var cmd = new NpgsqlCommand(resetPrimarySql, conn, tx))
                     {
@@ -1427,29 +1427,29 @@ internal sealed partial class EngineRepository
                     {
                         const string cascadeSql = """
                         WITH RECURSIVE dependents AS (
-                            SELECT wd."WorkflowId" AS "Id"
-                            FROM engine."WorkflowDependency" wd
-                            JOIN engine."Workflows" w ON w."Id" = wd."WorkflowId"
-                            WHERE wd."DependsOnWorkflowId" = @id
-                              AND w."Status" = @depFailed
+                            SELECT wd.workflow_id AS id
+                            FROM engine.workflow_dependency wd
+                            JOIN engine.workflows w ON w.id = wd.workflow_id
+                            WHERE wd.depends_on_workflow_id = @id
+                              AND w.status = @depFailed
                             UNION
-                            SELECT wd."WorkflowId"
-                            FROM engine."WorkflowDependency" wd
-                            JOIN engine."Workflows" w ON w."Id" = wd."WorkflowId"
-                            JOIN dependents d ON wd."DependsOnWorkflowId" = d."Id"
-                            WHERE w."Status" = @depFailed
+                            SELECT wd.workflow_id
+                            FROM engine.workflow_dependency wd
+                            JOIN engine.workflows w ON w.id = wd.workflow_id
+                            JOIN dependents d ON wd.depends_on_workflow_id = d.id
+                            WHERE w.status = @depFailed
                         )
-                        UPDATE engine."Workflows" w
-                        SET "Status" = @enqueued,
-                            "CancellationRequestedAt" = NULL,
-                            "BackoffUntil" = NULL,
-                            "HeartbeatAt" = NULL,
-                            "LeaseToken" = NULL,
-                            "ReclaimCount" = 0,
-                            "UpdatedAt" = @now
+                        UPDATE engine.workflows w
+                        SET status = @enqueued,
+                            cancellation_requested_at = NULL,
+                            backoff_until = NULL,
+                            heartbeat_at = NULL,
+                            lease_token = NULL,
+                            reclaim_count = 0,
+                            updated_at = @now
                         FROM dependents d
-                        WHERE w."Id" = d."Id"
-                        RETURNING w."Id"
+                        WHERE w.id = d.id
+                        RETURNING w.id
                         """;
                         await using var cmd = new NpgsqlCommand(cascadeSql, conn, tx);
                         cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
@@ -1466,10 +1466,10 @@ internal sealed partial class EngineRepository
 
                     // Reset non-completed steps for all resumed workflows
                     const string resetStepsSql = """
-                    UPDATE engine."Steps"
-                    SET "Status" = @enqueued, "RequeueCount" = 0, "UpdatedAt" = @now
-                    WHERE "JobId" = ANY(@ids)
-                      AND "Status" != @completed
+                    UPDATE engine.steps
+                    SET status = @enqueued, requeue_count = 0, updated_at = @now
+                    WHERE job_id = ANY(@ids)
+                      AND status != @completed
                     """;
                     await using (var cmd = new NpgsqlCommand(resetStepsSql, conn, tx))
                     {
@@ -1517,9 +1517,9 @@ internal sealed partial class EngineRepository
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
 
                     const string sql = """
-                    UPDATE engine."Workflows"
-                    SET "BackoffUntil" = NULL, "UpdatedAt" = @now
-                    WHERE "Id" = @id AND "Namespace" = @ns AND "Status" = @requeued AND "BackoffUntil" IS NOT NULL
+                    UPDATE engine.workflows
+                    SET backoff_until = NULL, updated_at = @now
+                    WHERE id = @id AND namespace = @ns AND status = @requeued AND backoff_until IS NOT NULL
                     """;
                     await using var cmd = new NpgsqlCommand(sql, conn);
                     cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));

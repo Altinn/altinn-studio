@@ -78,7 +78,7 @@ export function CodeListDataEditor({
         <StudioCodeListEditor
           className={classes.codes}
           codeList={data.codes}
-          language={DEFAULT_LANGUAGE}
+          fallbackLanguage={DEFAULT_LANGUAGE}
           onUpdateCodeList={handleCodeListUpdate}
           texts={texts}
         />

@@ -2,29 +2,11 @@ import { ThreadColumn } from './ThreadColumn';
 import { render, screen } from '@testing-library/react';
 import type { ThreadColumnProps } from './ThreadColumn';
 import { mockTexts } from '../../mocks/mockTexts';
-import type { ChatThread } from '../../types/ChatThread';
+import { mockChatThreads } from '../../mocks/mockChatThreads';
 
 // Test data
 const onSelectThread = jest.fn();
 const onToggleCollapse = jest.fn();
-
-const mockChatThreads: ChatThread[] = [
-  {
-    id: '1',
-    title: 'Thread 1',
-    messages: [],
-  },
-  {
-    id: '2',
-    title: 'Thread 2',
-    messages: [],
-  },
-  {
-    id: '3',
-    title: 'Thread 3',
-    messages: [],
-  },
-];
 
 describe('ThreadColumn', () => {
   it('should render the hide threads button', () => {
@@ -57,13 +39,11 @@ describe('ThreadColumn', () => {
 
   it('should render all chat threads', () => {
     renderThreadColumn({ chatThreads: mockChatThreads });
-    const thread1 = screen.getByRole('tab', { name: 'Thread 1' });
-    const thread2 = screen.getByRole('tab', { name: 'Thread 2' });
-    const thread3 = screen.getByRole('tab', { name: 'Thread 3' });
+    const thread1 = screen.getByRole('tab', { name: mockChatThreads[0].title });
+    const thread2 = screen.getByRole('tab', { name: mockChatThreads[1].title });
 
     expect(thread1).toBeInTheDocument();
     expect(thread2).toBeInTheDocument();
-    expect(thread3).toBeInTheDocument();
   });
 
   it('should render no threads when chatThreads is empty', () => {

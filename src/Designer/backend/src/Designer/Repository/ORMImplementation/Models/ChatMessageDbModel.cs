@@ -32,9 +32,9 @@ public class ChatMessageDbModel
     public required string Content { get; set; }
 
     /// <summary>
-    /// Assistant action mode, set by the user.
+    /// Can assistant make changes to app, set by the user.
     /// </summary>
-    public ActionMode? ActionMode { get; set; }
+    public bool? AllowAppChanges { get; set; }
 
     /// <summary>
     /// Names of attached files.
@@ -45,4 +45,9 @@ public class ChatMessageDbModel
     /// App files changed by assistant.
     /// </summary>
     public List<string>? FilesChanged { get; set; }
+
+    /// <summary>
+    /// Sources referenced by the assistant, serialized as JSON.
+    /// </summary>
+    public string? Sources { get; set; }
 }
