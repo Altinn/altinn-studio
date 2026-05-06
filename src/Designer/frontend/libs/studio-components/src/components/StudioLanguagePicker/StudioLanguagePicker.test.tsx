@@ -47,16 +47,21 @@ describe('StudioLanguagePicker', () => {
     expect(onRemove).toHaveBeenCalledWith(twoLetterCodes[1]);
   });
 
-  it('Selects another language when the user clicks the delete button and accepts', async () => {
+  it('Selects another language and calls onSelect with it when the user clicks the delete button and accepts', async () => {
     const user = setupUser();
-    const onRemove = jest.fn();
-    renderLanguagePicker({ onRemove });
+    const onSelect = jest.fn();
+    renderLanguagePicker({ onSelect });
 
     await user.pickLanguage(twoLetterCodes[1]);
     studioTest.mockNextConfirmDialog(true);
     await user.clickRemove();
 
-    expect(getLanguageInput()).toHaveValue(twoLetterCodes[0]);
+    const expectedValueAfterRemove = twoLetterCodes[0];
+    const numberOfManualSelections = 1;
+    const numberOfRemovals = 1;
+    expect(getLanguageInput()).toHaveValue(expectedValueAfterRemove);
+    expect(onSelect).toHaveBeenCalledTimes(numberOfManualSelections + numberOfRemovals);
+    expect(onSelect).toHaveBeenLastCalledWith(expectedValueAfterRemove);
   });
 
   it('Renders the combobox as disabled when the list of languages is empty', async () => {
