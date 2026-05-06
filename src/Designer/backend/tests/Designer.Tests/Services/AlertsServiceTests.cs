@@ -363,6 +363,62 @@ public class AlertsServiceTests
     }
 
     [Fact]
+    public async Task NotifyAlertsUpdatedAsync_WhenInternalSlackThrows_ShouldStillNotifyServiceOwners()
+    {
+        var service = CreateService();
+        var alert = BuildAlert([new AlertInstance { Status = "firing", App = "app1" }]);
+        var environment = AltinnEnvironment.FromName("tt02");
+
+        SetupContactPoints(
+            "ttd",
+            "tt02",
+            [
+                BuildContactPoint(
+                    Guid.NewGuid(),
+                    [new ContactMethodEntity { MethodType = ContactMethodType.Email, Value = "owner@example.com" }]
+                ),
+            ]
+        );
+
+        _slackClient
+            .Setup(c => c.SendMessageAsync(s_internalSlackWebhook, It.IsAny<SlackMessage>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("Slack unavailable"));
+
+        await service.NotifyAlertsUpdatedAsync("ttd", environment, alert, CancellationToken.None);
+
+        _notificationClient.Verify(
+            c =>
+                c.SendEmailNotification(
+                    It.IsAny<string>(),
+                    "owner@example.com",
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<EmailContentType>(),
+                    It.IsAny<SendingTime>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task NotifyAlertsUpdatedAsync_WhenInternalSlackThrows_ShouldStillNotifyHub()
+    {
+        var service = CreateService();
+        var alert = BuildAlert([new AlertInstance { Status = "firing", App = "app1" }]);
+        var environment = AltinnEnvironment.FromName("tt02");
+
+        SetupNoContactPoints("ttd", "tt02");
+
+        _slackClient
+            .Setup(c => c.SendMessageAsync(s_internalSlackWebhook, It.IsAny<SlackMessage>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("Slack unavailable"));
+
+        await service.NotifyAlertsUpdatedAsync("ttd", environment, alert, CancellationToken.None);
+
+        _hubClient.Verify(c => c.AlertsUpdated(It.IsAny<AlertsUpdated>()), Times.Once);
+    }
+
+    [Fact]
     public async Task NotifyAlertsUpdatedAsync_WhenNonProdStudioEnv_ShouldIncludeStudioMiljøInEmailBody()
     {
         var service = CreateService(hostName: "dev.altinn.studio");

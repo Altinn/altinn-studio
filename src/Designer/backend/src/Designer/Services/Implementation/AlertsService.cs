@@ -74,16 +74,28 @@ internal sealed class AlertsService(
         CancellationToken cancellationToken
     )
     {
-        await SendToSlackAsync(
-            org,
-            environment,
-            apps,
-            alert.Name,
-            alert.Url,
-            alert.LogsUrl,
-            alertsSettings.GetSlackWebhookUrl(environment),
-            cancellationToken
-        );
+        try
+        {
+            await SendToSlackAsync(
+                org,
+                environment,
+                apps,
+                alert.Name,
+                alert.Url,
+                alert.LogsUrl,
+                alertsSettings.GetSlackWebhookUrl(environment),
+                cancellationToken
+            );
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogError(
+                ex,
+                "Failed to send internal Slack alert for org {Org} in environment {Environment}",
+                org,
+                environment.Name
+            );
+        }
     }
 
     private async Task NotifyServiceOwnersAsync(
