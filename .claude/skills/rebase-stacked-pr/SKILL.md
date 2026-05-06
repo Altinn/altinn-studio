@@ -121,7 +121,7 @@ Always `--force-with-lease`, never plain `--force` — lease protects against ov
 
 ## Edge cases
 
-- **Parent branch was force-pushed during review**: `gh pr view --json commits` returns the _final_ commit list of the PR at merge time, which is what you want. Don't use the local `origin/parent-branch` ref — it may point at an obsolete tip.
+- **Parent branch was force-pushed during review**: `gh pr view --json commits` returns the *final* commit list of the PR at merge time, which is what you want. Don't use the local `origin/parent-branch` ref — it may point at an obsolete tip.
 - **Deep stack (3+ levels)**: rebase bottom-up, one level at a time. After the bottom child is rebased and pushed, treat the next level up as a new child whose parent is now the rebased branch.
 - **`gh` not authenticated**: fall back to asking the user for the pre-squash tip SHA, which is visible on the closed PR page as the last commit before the merge event.
 

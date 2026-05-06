@@ -3,7 +3,6 @@
 Analyser handlingstekstene nedenfor (knapper, lenker, menypunkter).
 
 Sjekk for hvert element:
-
 1. Er teksten handlingsorientert (helst verb + objekt,
    f.eks. «Last ned rapport»)?
 2. Er teksten unik og beskrivende (ikke «Klikk her», «Les mer»

@@ -1,7 +1,6 @@
 # Beskrivelse
 
 Analyser tekstene nedenfor og identifiser:
-
 1. Termer som brukes inkonsekvent (samme begrep, ulike ord)
 2. Teknisk sjargong som bør erstattes med vanligere ord
 3. Fremmedord eller faguttrykk uten forklaring

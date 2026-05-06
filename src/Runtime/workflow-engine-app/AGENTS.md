@@ -15,7 +15,7 @@ Core conventions (architecture, command pattern, code style, tests, dashboard) a
 ## Projects
 
 | Project                    | Purpose                                                        |
-| -------------------------- | -------------------------------------------------------------- |
+|----------------------------|----------------------------------------------------------------|
 | `WorkflowEngine.App`       | Web host: `Program.cs`, config files, Dockerfile               |
 | `WorkflowEngine.App.Tests` | Unit + integration tests for AppCommand, config, enqueue flows |
 
@@ -57,7 +57,7 @@ Run with `dotnet test`.
 Includes the core `workflow-engine/docker-compose.yaml` and adds the engine container. Profiles: `app` (engine + postgres), `full` (everything). See core for the supporting services.
 
 | Container         | Port       | Purpose                      |
-| ----------------- | ---------- | ---------------------------- |
+|-------------------|------------|------------------------------|
 | `workflow-engine` | 8080, 8081 | App runtime (8081 = metrics) |
 
 **Deploy engine**: `docker compose build workflow-engine && docker compose --profile app up -d --no-deps workflow-engine`
