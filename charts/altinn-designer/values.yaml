@@ -243,7 +243,7 @@ environmentVariables:
     - name: StudioOidcLoginSettings__RequireHttpsMetadata
       value: "true"
     - name: StudioOidcLoginSettings__CookieExpiryTimeInMinutes
-      value: "59"
+      value: "359"
     - name: StudioOidcLoginSettings__Scopes__0
       value: openid
     - name: StudioOidcLoginSettings__Scopes__1
