@@ -1,10 +1,10 @@
 {
   "name": "establish form-engine lib",
-  "description": "Create a basic form engin lib in @../libs",
+  "description": "Create a basic form engine lib in @../libs",
   "acceptance_criteria": [
     "should be importable in other apps in the monorepo, most importantly @../src/App/frontend",
     "testing and linting scripts should work and follow conventions in the monorepo",
     "exposes a dummy FormEngine class that can be imported in apps"
   ],
-  "isDone": false
+  "isDone": true
 }
