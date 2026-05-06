@@ -131,7 +131,8 @@ public class AlertsServiceTests
                     $"❌ {alert.Name}",
                     It.IsAny<string>(),
                     EmailContentType.Html,
-                    It.IsAny<SendingTime>()
+                    It.IsAny<SendingTime>(),
+                    It.IsAny<CancellationToken>()
                 ),
             Times.Once
         );
