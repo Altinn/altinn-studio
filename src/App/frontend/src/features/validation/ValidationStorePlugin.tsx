@@ -1,22 +1,26 @@
 import { useCallback } from 'react';
 
+import dot from 'dot-object';
+
 import { FormStore } from 'src/features/form/FormContext';
+import { getRepeatingBinding, isRepeatingComponentType } from 'src/features/form/layout/utils/repeating';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation/index';
-import { selectValidations } from 'src/features/validation/utils';
-import { nodesProduce } from 'src/utils/layout/nodesProduce';
+import { getInitialMaskFromItem, selectValidations } from 'src/features/validation/utils';
 import { NodeDataPlugin } from 'src/utils/layout/plugins/NodeDataPlugin';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 import type { ContextNotProvided } from 'src/core/contexts/context';
-import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
+import type { FormStoreState } from 'src/features/form/FormContext';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type {
   AnyValidation,
-  AttachmentValidation,
   NodeRefValidation,
   NodeVisibility,
   ValidationSeverity,
 } from 'src/features/validation/index';
+import type { IDataModelReference } from 'src/layout/common.generated';
+import type { IDataModelBindings } from 'src/layout/layout';
 
 export type ValidationsSelector = (
   nodeId: string,
@@ -33,14 +37,11 @@ export type LaxValidationsSelector = (
 ) => typeof ContextNotProvided | AnyValidation[];
 
 export interface ValidationStorePluginConfig {
-  extraFunctions: {
-    setNodeVisibility: (nodeIds: string[], newVisibility: number) => void;
-    setAttachmentVisibility: (attachmentId: string, nodeId: string, newVisibility: number) => void;
-  };
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  extraFunctions: {};
   extraHooks: {
-    useSetNodeVisibility: () => ValidationStorePluginConfig['extraFunctions']['setNodeVisibility'];
-    useSetAttachmentVisibility: () => ValidationStorePluginConfig['extraFunctions']['setAttachmentVisibility'];
-    useRawValidationVisibility: (nodeId: string | undefined) => number;
+    useValidationVisibility: (nodeId: string | undefined) => number;
+    useValidationVisibilityBreakdown: (nodeId: string | undefined) => ValidationVisibilityBreakdown;
     useRawValidations: (nodeId: string | undefined) => AnyValidation[];
     useVisibleValidations: (indexedId: string, showAll?: boolean) => AnyValidation[];
     useVisibleValidationsDeep: (
@@ -61,64 +62,54 @@ export interface ValidationStorePluginConfig {
       mask: NodeVisibility,
       severity?: ValidationSeverity,
       includeHidden?: boolean, // Defaults to false
-    ) => [string[], AnyValidation[]];
+    ) => AnyValidation[];
     usePageHasVisibleRequiredValidations: (pageKey: string | undefined) => boolean;
   };
 }
 
 const emptyArray: never[] = [];
 
-export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginConfig> {
-  extraFunctions(set: FormStoreSet) {
-    const out: ValidationStorePluginConfig['extraFunctions'] = {
-      setNodeVisibility: (nodes, newVisibility) => {
-        set(
-          nodesProduce((state) => {
-            for (const nodeId of nodes) {
-              const nodeData = state.nodeData[nodeId];
-              if (nodeData && 'validationVisibility' in nodeData && 'initialVisibility' in nodeData) {
-                nodeData.validationVisibility = newVisibility | nodeData.initialVisibility;
-              }
-            }
-          }),
-        );
-      },
-      setAttachmentVisibility: (attachmentId, nodeId, newVisibility) => {
-        set(
-          nodesProduce((state) => {
-            const nodeData = state.nodeData[nodeId];
-            if (nodeData && 'validations' in nodeData) {
-              for (const validation of nodeData.validations) {
-                if ('attachmentId' in validation && validation.attachmentId === attachmentId) {
-                  const v = validation as AttachmentValidation;
-                  v.visibility = newVisibility;
-                }
-              }
-            }
-          }),
-        );
-      },
-    };
+export interface ValidationVisibilityBreakdown {
+  initial: number;
+  form: number;
+  page: number;
+  row: number;
+  effective: number;
+}
 
-    return { ...out };
+const emptyVisibilityBreakdown: ValidationVisibilityBreakdown = {
+  initial: 0,
+  form: 0,
+  page: 0,
+  row: 0,
+  effective: 0,
+};
+
+export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginConfig> {
+  extraFunctions() {
+    return {};
   }
 
   extraHooks(): ValidationStorePluginConfig['extraHooks'] {
     return {
-      useSetNodeVisibility: () => FormStore.raw.useSelector((state) => state.nodes.setNodeVisibility),
-      useSetAttachmentVisibility: () => FormStore.raw.useSelector((state) => state.nodes.setAttachmentVisibility),
-      useRawValidationVisibility: (nodeId) =>
-        FormStore.raw.useSelector((state) => {
-          const nodes = state.nodes;
+      useValidationVisibility: (nodeId) => {
+        const lookups = FormBootstrap.useLayoutLookups();
+        return FormStore.raw.useSelector((state) => {
           if (!nodeId) {
             return 0;
           }
-          const nodeData = nodes.nodeData[nodeId];
-          if (!nodeData) {
-            return 0;
+          return getEffectiveValidationMask(state, nodeId, lookups);
+        });
+      },
+      useValidationVisibilityBreakdown: (nodeId) => {
+        const lookups = FormBootstrap.useLayoutLookups();
+        return FormStore.raw.useShallowSelector((state) => {
+          if (!nodeId) {
+            return emptyVisibilityBreakdown;
           }
-          return 'validationVisibility' in nodeData ? nodeData.validationVisibility : 0;
-        }),
+          return getValidationVisibilityBreakdown(state, nodeId, lookups);
+        });
+      },
       useRawValidations: (nodeId) =>
         FormStore.raw.useShallowSelector((state) => {
           if (!nodeId) {
@@ -239,7 +230,6 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
             // constantly recompute this.
             const state = zustand.getState();
 
-            const outNodes: string[] = [];
             const outValidations: AnyValidation[] = [];
             for (const id of Object.keys(state.nodes.nodeData)) {
               const data = state.nodes.nodeData[id];
@@ -253,11 +243,10 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
                 lookups,
               });
               if (validations.length > 0) {
-                outNodes.push(id);
                 outValidations.push(...validations);
               }
             }
-            return [outNodes, outValidations];
+            return outValidations;
           },
           [zustand, lookups],
         );
@@ -304,7 +293,7 @@ interface GetValidationsProps {
   mask: NodeVisibility;
   severity?: ValidationSeverity;
   includeHidden?: boolean;
-  lookups: LayoutLookups | undefined;
+  lookups: LayoutLookups;
 }
 
 function getValidations({
@@ -316,7 +305,7 @@ function getValidations({
   lookups,
 }: GetValidationsProps): AnyValidation[] {
   const nodeData = state.nodes.nodeData[id];
-  if (!nodeData || !('validations' in nodeData) || !('validationVisibility' in nodeData) || !nodeData.isValid) {
+  if (!nodeData || !('validations' in nodeData) || !nodeData.isValid) {
     return emptyArray;
   }
 
@@ -324,7 +313,7 @@ function getValidations({
     return emptyArray;
   }
 
-  const nodeVisibility = nodeData.validationVisibility;
+  const nodeVisibility = getEffectiveValidationMask(state, id, lookups);
   const visibilityMask =
     mask === 'visible'
       ? nodeVisibility
@@ -334,6 +323,158 @@ function getValidations({
 
   const validations = selectValidations(nodeData.validations, visibilityMask, severity);
   return validations.length > 0 ? validations : emptyArray;
+}
+
+export function getEffectiveValidationMask(state: FormStoreState, nodeId: string, lookups: LayoutLookups) {
+  return getValidationVisibilityBreakdown(state, nodeId, lookups).effective;
+}
+
+export function getValidationVisibilityBreakdown(
+  state: FormStoreState,
+  nodeId: string,
+  lookups: LayoutLookups,
+): ValidationVisibilityBreakdown {
+  const nodeData = state.nodes.nodeData[nodeId];
+  if (!nodeData) {
+    return emptyVisibilityBreakdown;
+  }
+
+  const initialMask = getInitialVisibilityMask(nodeData.baseId, lookups);
+  const formMask = state.validation?.formMask ?? 0;
+  const pageMask = state.validation?.pageMasks?.[nodeData.pageKey] ?? 0;
+  const rowMask = getRowMaskForNode(state, nodeId);
+
+  return {
+    initial: initialMask,
+    form: formMask,
+    page: pageMask,
+    row: rowMask,
+    effective: initialMask | formMask | pageMask | rowMask,
+  };
+}
+
+export function getInitialVisibilityMask(baseId: string, lookups: LayoutLookups) {
+  if (!lookups) {
+    return 0;
+  }
+
+  return getInitialMaskFromItem(lookups.allComponents[baseId]);
+}
+
+export function getRowMaskForNode(state: FormStoreState, nodeId: string) {
+  let mask = 0;
+  for (const rowId of getRowIdsForNode(state, nodeId)) {
+    mask |= state.validation?.rowMasks?.[rowId] ?? 0;
+  }
+  return mask;
+}
+
+/**
+ * Pruning boundary masks happens when validation state change. This will remove any masks that force validations to
+ * be visible (in the entire form, on a page, in a row). We do this on validation state change to clean up masks
+ * so that the visibility resets when the user fixes validation errors after getting the 'you need to fix these errors'
+ * message on the bottom of the form.
+ *
+ * @see ErrorReport
+ */
+export function pruneBoundaryMasks(state: FormStoreState) {
+  const { formMask, pageMasks, rowMasks } = state.validation;
+  if (!formMask && Object.keys(pageMasks).length === 0 && Object.keys(rowMasks).length === 0) {
+    return;
+  }
+
+  const pageMatches = new Set<string>();
+  const rowMatches = new Set<string>();
+  let hasFormErrors = false;
+
+  for (const node of Object.values(state.nodes.nodeData)) {
+    if (!node || !('validations' in node) || node.hidden || !node.isValid) {
+      continue;
+    }
+
+    if (formMask && !hasFormErrors && selectValidations(node.validations, formMask, 'error').length > 0) {
+      hasFormErrors = true;
+    }
+
+    const pageMask = pageMasks[node.pageKey];
+    if (
+      pageMask &&
+      !pageMatches.has(node.pageKey) &&
+      selectValidations(node.validations, pageMask, 'error').length > 0
+    ) {
+      pageMatches.add(node.pageKey);
+    }
+
+    if (Object.keys(rowMasks).length === 0) {
+      continue;
+    }
+
+    for (const rowId of getRowIdsForNode(state, node.id)) {
+      const rowMask = rowMasks[rowId];
+      if (!rowMask || rowMatches.has(rowId)) {
+        continue;
+      }
+      if (selectValidations(node.validations, rowMask, 'error').length > 0) {
+        rowMatches.add(rowId);
+      }
+    }
+  }
+
+  if (formMask && !hasFormErrors) {
+    state.validation.formMask = 0;
+  }
+
+  for (const [pageKey, pageMask] of Object.entries(pageMasks)) {
+    if (pageMask && !pageMatches.has(pageKey)) {
+      delete state.validation.pageMasks[pageKey];
+    }
+  }
+
+  for (const [rowId, rowMask] of Object.entries(rowMasks)) {
+    if (rowMask && !rowMatches.has(rowId)) {
+      delete state.validation.rowMasks[rowId];
+    }
+  }
+}
+
+export function getRowIdsForNode(state: FormStoreState, nodeId: string): string[] {
+  const rowIds: string[] = [];
+  let childId = nodeId;
+  let parentId = state.nodes.nodeData[childId]?.parentId;
+
+  while (parentId) {
+    const child = state.nodes.nodeData[childId];
+    const parent = state.nodes.nodeData[parentId];
+    if (!child || !parent) {
+      break;
+    }
+
+    if (isRepeatingComponentType(parent.nodeType) && child.rowIndex !== undefined) {
+      const groupBinding = getRepeatingBinding(
+        parent.nodeType,
+        parent.dataModelBindings as IDataModelBindings<typeof parent.nodeType>,
+      );
+      const rowId = groupBinding ? getRowIdForIndex(state, groupBinding, child.rowIndex) : undefined;
+      if (rowId) {
+        rowIds.push(rowId);
+      }
+    }
+
+    childId = parentId;
+    parentId = state.nodes.nodeData[childId]?.parentId;
+  }
+
+  return rowIds;
+}
+
+function getRowIdForIndex(state: FormStoreState, groupBinding: IDataModelReference, rowIndex: number) {
+  const rawRows = dot.pick(groupBinding.field, state.data.models[groupBinding.dataType]?.currentData);
+  if (!Array.isArray(rawRows)) {
+    return undefined;
+  }
+
+  const rowId = rawRows[rowIndex]?.[ALTINN_ROW_ID];
+  return typeof rowId === 'string' ? rowId : undefined;
 }
 
 interface GetDeepValidationsProps extends GetValidationsProps {

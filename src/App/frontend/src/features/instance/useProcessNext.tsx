@@ -118,7 +118,7 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
 export function useProcessNext({ action }: ProcessNextProps = {}) {
   const onFormSubmitValidation = useOnFormSubmitValidation();
   const updateInitialValidations = useUpdateInitialValidations();
-  const setShowAllBackendErrors = FormStore.validation.useSetShowAllBackendErrors();
+  const setShowAllUnboundValidations = FormStore.validation.useSetShowAllUnboundValidations();
 
   return useProcessNextInternal({
     action,
@@ -129,7 +129,7 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
 
       const hasValidationErrors = await onFormSubmitValidation(true);
       if (!hasValidationErrors) {
-        await setShowAllBackendErrors();
+        await setShowAllUnboundValidations();
       }
     },
   });
