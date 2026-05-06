@@ -1,4 +1,5 @@
 import { type KeyValuePairs } from '../types/KeyValuePairs';
+import type { Mutable } from '../types/Mutable';
 
 export class ObjectUtils {
   static deepCopy = <T>(value: T) => JSON.parse(JSON.stringify(value)) as T;
@@ -56,4 +57,6 @@ export class ObjectUtils {
 
   static deleteUndefined = <T>(obj: { [s: string]: T }): { [s: string]: T } =>
     Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined));
+
+  static shallowMutableCopy = <T extends object>(obj: T): Mutable<T> => ({ ...obj }) as Mutable<T>;
 }
