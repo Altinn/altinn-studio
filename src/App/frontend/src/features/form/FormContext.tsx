@@ -111,7 +111,7 @@ export function createFormBootstrapSlice(bootstrap: FormBootstrapBase, set: Form
     initialLayouts: bootstrap.layouts,
     changeLayouts: (mutator) =>
       set((state) => {
-        const nextLayouts = mutator(structuredClone(state.bootstrap.initialLayouts));
+        const nextLayouts = mutator(structuredClone(state.bootstrap.layouts));
         Object.assign(state.bootstrap, processBootstrap({ ...state.bootstrap, layouts: nextLayouts }));
       }),
     resetLayouts: () =>
