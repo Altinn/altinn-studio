@@ -172,7 +172,7 @@ describe('StudioCodelistEditor utils', () => {
       expect(extractLanguageCodes(codeList)).toEqual(['en', 'nb', 'nn']);
     });
 
-    it('Inludes all codes when different languages are present for different items', () => {
+    it('Includes all codes when different languages are present for different items', () => {
       const codeList: CodeList = [
         { value: 'test1', label: { en: 'Label 1', nb: 'Ledetekst 1' } },
         { value: 'test2', label: { nb: 'Ledetekst 1', nn: 'Ledetekst 1' } },
