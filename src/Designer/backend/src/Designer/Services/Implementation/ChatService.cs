@@ -74,7 +74,7 @@ public class ChatService(IChatRepository repository, TimeProvider timeProvider, 
     {
         DateTime cutoff = timeProvider
             .GetUtcNow()
-            .UtcDateTime.AddDays(-schedulingSettings.ChatInactivityCleanup.InactivityRetentionDays);
+            .UtcDateTime.AddDays(-schedulingSettings.ChatInactivityCleanup.RetentionDays);
         return repository.DeleteInactiveThreadsAsync(cutoff, cancellationToken);
     }
 

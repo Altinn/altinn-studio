@@ -127,7 +127,7 @@ public class ChatServiceTests
         var fakeTimeProvider = new FakeTimeProvider(fixedNow);
         var schedulingSettings = new SchedulingSettings
         {
-            ChatInactivityCleanup = new ChatInactivityCleanupSettings { InactivityRetentionDays = 30 },
+            ChatInactivityCleanup = new ChatInactivityCleanupSettings { RetentionDays = 30 },
         };
         var chatService = new ChatService(_repositoryMock.Object, fakeTimeProvider, schedulingSettings);
         DateTime expectedCutoff = fixedNow.UtcDateTime.AddDays(-30);

@@ -17,6 +17,7 @@ public static class SchedulingDependencyInjectionExtensions
         SchedulingSettings schedulingSettings =
             configuration.GetSection(nameof(SchedulingSettings)).Get<SchedulingSettings>() ?? new SchedulingSettings();
         ValidateInactivityUndeployJobTimeouts(schedulingSettings.InactivityUndeployJobTimeouts);
+        ValidateChatInactivityCleanup(schedulingSettings.ChatInactivityCleanup);
 
         services.AddSingleton(schedulingSettings);
         services.AddSingleton<IAppInactivityUndeployJobQueue, AppInactivityUndeployJobQueue>();
@@ -89,6 +90,16 @@ public static class SchedulingDependencyInjectionExtensions
         {
             throw new InvalidOperationException(
                 $"SchedulingSettings:InactivityUndeployJobTimeouts:{propertyName} must be greater than zero."
+            );
+        }
+    }
+
+    private static void ValidateChatInactivityCleanup(ChatInactivityCleanupSettings settings)
+    {
+        if (settings.RetentionDays <= 0)
+        {
+            throw new InvalidOperationException(
+                $"SchedulingSettings:ChatInactivityCleanup:{nameof(settings.RetentionDays)} must be greater than zero."
             );
         }
     }

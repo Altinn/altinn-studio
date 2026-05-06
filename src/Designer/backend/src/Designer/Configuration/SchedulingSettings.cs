@@ -12,7 +12,7 @@ public class SchedulingSettings
 
 public class ChatInactivityCleanupSettings
 {
-    public int InactivityRetentionDays { get; set; } = 30;
+    public int RetentionDays { get; set; } = 30;
 }
 
 public class InactivityUndeployJobTimeoutSettings

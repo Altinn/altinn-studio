@@ -27,7 +27,7 @@ public class ChatInactivityCleanupJob : IJob
             ActivityKind.Internal
         );
         activity?.SetAlwaysSample();
-        activity?.SetTag("retention.days", _schedulingSettings.ChatInactivityCleanup.InactivityRetentionDays);
+        activity?.SetTag("retention.days", _schedulingSettings.ChatInactivityCleanup.RetentionDays);
 
         try
         {
