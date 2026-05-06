@@ -70,38 +70,6 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
     }
 
     /// <inheritdoc />
-    public async Task<WorkflowStatusResponse?> GetWorkflow(
-        string ns,
-        Guid workflowId,
-        CancellationToken cancellationToken = default
-    )
-    {
-        var url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/workflows/{workflowId}";
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Get, url);
-
-        HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, cancellationToken);
-
-        if (response.StatusCode == HttpStatusCode.NotFound)
-        {
-            return null;
-        }
-
-        response.EnsureSuccessStatusCode();
-
-        if (response.StatusCode == HttpStatusCode.OK)
-        {
-            return await response.Content.ReadFromJsonAsync<WorkflowStatusResponse>(
-                    cancellationToken: cancellationToken
-                )
-                ?? throw new InvalidOperationException(
-                    "The expected workflow status was not found in the response content."
-                );
-        }
-
-        return null;
-    }
-
-    /// <inheritdoc />
     public async Task<WorkflowDependencyGraphResponse?> GetWorkflowDependencyGraph(
         string ns,
         Guid workflowId,

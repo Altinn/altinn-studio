@@ -117,20 +117,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         return new WorkflowEnqueueResponse.Accepted { Workflows = createdWorkflows.Select(ToWorkflowResult).ToList() };
     }
 
-    public Task<WorkflowStatusResponse?> GetWorkflow(
-        string ns,
-        Guid workflowId,
-        CancellationToken cancellationToken = default
-    )
-    {
-        if (_workflows.TryGetValue(workflowId, out StoredWorkflow? workflow) && workflow.Namespace == ns)
-        {
-            return Task.FromResult<WorkflowStatusResponse?>(ToWorkflowStatusResponse(workflow));
-        }
-
-        return Task.FromResult<WorkflowStatusResponse?>(null);
-    }
-
     public Task<WorkflowDependencyGraphResponse?> GetWorkflowDependencyGraph(
         string ns,
         Guid workflowId,

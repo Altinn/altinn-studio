@@ -24,18 +24,6 @@ internal interface IWorkflowEngineClient
     );
 
     /// <summary>
-    /// Gets the details of a specific workflow by its database ID.
-    /// </summary>
-    /// <param name="ns">Namespace (URL path segment)</param>
-    /// <param name="workflowId">The workflow database ID</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    Task<WorkflowStatusResponse?> GetWorkflow(
-        string ns,
-        Guid workflowId,
-        CancellationToken cancellationToken = default
-    );
-
-    /// <summary>
     /// Gets the workflow dependency graph rooted at the requested workflow.
     /// Returns <see langword="null"/> when the workflow does not exist.
     /// </summary>
