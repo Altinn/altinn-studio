@@ -39,6 +39,23 @@ public static class SchedulingDependencyInjectionExtensions
                     .WithCronSchedule(AppInactivityUndeployJobConstants.CronScheduleNightlyMidnight)
             );
 
+            configure.AddJob<ChatInactivityCleanupJob>(options =>
+                options.WithIdentity(
+                    ChatInactivityCleanupJobConstants.JobName,
+                    ChatInactivityCleanupJobConstants.JobGroup
+                )
+            );
+
+            configure.AddTrigger(options =>
+                options
+                    .ForJob(ChatInactivityCleanupJobConstants.JobName, ChatInactivityCleanupJobConstants.JobGroup)
+                    .WithIdentity(
+                        ChatInactivityCleanupJobConstants.TriggerName,
+                        ChatInactivityCleanupJobConstants.TriggerGroup
+                    )
+                    .WithCronSchedule(ChatInactivityCleanupJobConstants.CronScheduleNightly)
+            );
+
             if (schedulingSettings.UsePersistentScheduling)
             {
                 PostgreSQLSettings postgresSettings = configuration
