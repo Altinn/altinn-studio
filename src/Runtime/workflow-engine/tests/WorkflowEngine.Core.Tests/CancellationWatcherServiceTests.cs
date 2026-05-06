@@ -79,7 +79,7 @@ public class CancellationWatcherServiceTests
         finally
         {
             await cts.CancelAsync();
-            tracker.TryRemove(id, out _);
+            tracker.Remove(id);
             using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await service.StopAsync(stopCts.Token);
         }
@@ -166,7 +166,7 @@ public class CancellationWatcherServiceTests
         finally
         {
             await cts.CancelAsync();
-            tracker.TryRemove(id, out _);
+            tracker.Remove(id);
             using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await service.StopAsync(stopCts.Token);
         }

@@ -6,6 +6,11 @@ using System.Diagnostics.Metrics;
 
 namespace WorkflowEngine.Telemetry.Extensions;
 
+/// <summary>
+/// Extensions over <see cref="ActivitySource"/>, <see cref="Activity"/>, <see cref="Counter{T}"/>,
+/// and <see cref="Histogram{T}"/> that adapt the engine's tuple-based tag conventions to the
+/// underlying OTEL key/value APIs.
+/// </summary>
 public static class TelemetryExtensions
 {
     extension(ActivitySource source)
@@ -126,22 +131,34 @@ public static class TelemetryExtensions
             activity.SetStatus(ActivityStatusCode.Ok);
         }
 
+        /// <summary>
+        /// Marks the activity as not requesting tag/event data, suppressing detail collection on this span.
+        /// </summary>
         public void NoData()
         {
             activity.IsAllDataRequested = false;
         }
 
+        /// <summary>
+        /// Marks the activity as requesting tag/event data, enabling detail collection on this span.
+        /// </summary>
         public void HasData()
         {
             activity.IsAllDataRequested = true;
         }
 
+        /// <summary>
+        /// Suppresses both data collection and the recorded flag, ensuring this span is not exported.
+        /// </summary>
         public void DontRecord()
         {
             activity.NoData();
             activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
         }
 
+        /// <summary>
+        /// Enables data collection and the recorded flag, ensuring this span is exported.
+        /// </summary>
         public void Record()
         {
             activity.HasData();
@@ -151,11 +168,17 @@ public static class TelemetryExtensions
 
     extension(Counter<long> counter)
     {
+        /// <summary>
+        /// Adds <paramref name="value"/> to the counter, attaching a single tuple-encoded tag.
+        /// </summary>
         public void Add(long value, (string tag, object? value) tag)
         {
             counter.Add(value, new KeyValuePair<string, object?>(tag.tag, tag.value));
         }
 
+        /// <summary>
+        /// Adds <paramref name="value"/> to the counter, attaching tuple-encoded tags.
+        /// </summary>
         public void Add(long value, params (string tag, object? value)[] tags)
         {
             counter.Add(value, tags.Select(t => new KeyValuePair<string, object?>(t.tag, t.value)).ToArray());
@@ -164,11 +187,17 @@ public static class TelemetryExtensions
 
     extension(Histogram<double> histogram)
     {
+        /// <summary>
+        /// Records <paramref name="value"/> on the histogram, attaching a single tuple-encoded tag.
+        /// </summary>
         public void Record(double value, (string tag, object? value) tag)
         {
             histogram.Record(value, new KeyValuePair<string, object?>(tag.tag, tag.value));
         }
 
+        /// <summary>
+        /// Records <paramref name="value"/> on the histogram, attaching tuple-encoded tags.
+        /// </summary>
         public void Record(double value, params (string tag, object? value)[] tags)
         {
             histogram.Record(value, tags.Select(t => new KeyValuePair<string, object?>(t.tag, t.value)).ToArray());

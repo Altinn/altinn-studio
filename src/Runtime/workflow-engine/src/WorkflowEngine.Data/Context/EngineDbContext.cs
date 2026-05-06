@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WorkflowEngine.Data.Constants;
+using WorkflowEngine.Data.Conventions;
 using WorkflowEngine.Data.Entities;
 using WorkflowEngine.Models;
 
@@ -18,6 +19,11 @@ internal sealed class EngineDbContext : DbContext
     public DbSet<StepEntity> Steps { get; set; }
     public DbSet<IdempotencyKeyEntity> IdempotencyKeys { get; set; }
 
+    /// <summary>
+    /// Gets or sets the workflow collection entities stored in the database.
+    /// </summary>
+    public DbSet<WorkflowCollectionEntity> WorkflowCollections { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -30,22 +36,20 @@ internal sealed class EngineDbContext : DbContext
             // Indexes
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.CreatedAt);
-            entity.HasIndex(e => e.CorrelationId);
+            entity.HasIndex(e => e.CollectionKey);
             entity.HasIndex(e => new { e.Namespace, e.Status });
 
             entity
                 .HasIndex(e => new { e.BackoffUntil, e.CreatedAt })
-                .HasFilter(
-                    $"\"Status\" IN ({(int)PersistentItemStatus.Enqueued}, {(int)PersistentItemStatus.Requeued})"
-                )
+                .HasFilter($"status IN ({(int)PersistentItemStatus.Enqueued}, {(int)PersistentItemStatus.Requeued})")
                 .HasNullSortOrder(NullSortOrder.NullsFirst, NullSortOrder.NullsLast);
 
-            entity.HasIndex(e => e.HeartbeatAt).HasFilter($"\"Status\" = {(int)PersistentItemStatus.Processing}");
+            entity.HasIndex(e => e.HeartbeatAt).HasFilter($"status = {(int)PersistentItemStatus.Processing}");
 
             entity
                 .HasIndex(e => e.UpdatedAt)
                 .HasFilter(
-                    $"\"Status\" IN ({(int)PersistentItemStatus.Completed}, {(int)PersistentItemStatus.Failed}, {(int)PersistentItemStatus.Canceled}, {(int)PersistentItemStatus.DependencyFailed})"
+                    $"status IN ({(int)PersistentItemStatus.Completed}, {(int)PersistentItemStatus.Failed}, {(int)PersistentItemStatus.Canceled}, {(int)PersistentItemStatus.DependencyFailed})"
                 );
             entity.HasIndex(e => e.Labels).HasMethod("gin");
             entity
@@ -60,7 +64,7 @@ internal sealed class EngineDbContext : DbContext
                 .HasMany(e => e.Dependencies)
                 .WithMany()
                 .UsingEntity(
-                    "WorkflowDependency",
+                    "workflow_dependency",
                     l => l.HasOne(typeof(WorkflowEntity)).WithMany().HasForeignKey("DependsOnWorkflowId"),
                     r => r.HasOne(typeof(WorkflowEntity)).WithMany().HasForeignKey("WorkflowId"),
                     j =>
@@ -75,7 +79,7 @@ internal sealed class EngineDbContext : DbContext
                 .HasMany(e => e.Links)
                 .WithMany()
                 .UsingEntity(
-                    "WorkflowLink",
+                    "workflow_link",
                     l => l.HasOne(typeof(WorkflowEntity)).WithMany().HasForeignKey("LinkedWorkflowId"),
                     r => r.HasOne(typeof(WorkflowEntity)).WithMany().HasForeignKey("WorkflowId"),
                     j =>
@@ -108,6 +112,15 @@ internal sealed class EngineDbContext : DbContext
             entity.HasKey(e => new { e.IdempotencyKey, e.Namespace });
             entity.HasIndex(e => e.CreatedAt);
         });
+
+        // Configure WorkflowCollection entity
+        modelBuilder.Entity<WorkflowCollectionEntity>(entity =>
+        {
+            entity.HasKey(e => new { e.Key, e.Namespace });
+            entity.HasIndex(e => e.Namespace);
+        });
+
+        SnakeCaseNamingConvention.Apply(modelBuilder);
     }
 
     /// <summary>

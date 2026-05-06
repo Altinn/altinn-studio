@@ -16,6 +16,13 @@ jest.mock('react-toastify', () => ({
   toast: { success: jest.fn(), error: jest.fn() },
 }));
 
+const mockEnvironment: { environment: { featureFlags: { studioOidc: boolean } } | null } = {
+  environment: { featureFlags: { studioOidc: true } },
+};
+jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+  useEnvironmentConfig: () => mockEnvironment,
+}));
+
 const today = formatLocalDate(new Date());
 
 const maxExpiresAt = (() => {
@@ -80,7 +87,19 @@ const getDeleteButton = (name: string) =>
   screen.getByRole('button', { name: textMock('settings.api_keys.delete', { name }) });
 
 describe('ApiKeys', () => {
+  beforeEach(() => {
+    mockEnvironment.environment = { featureFlags: { studioOidc: true } };
+  });
+
   afterEach(() => jest.clearAllMocks());
+
+  it('renders the not-found page when studioOidc is disabled', () => {
+    mockEnvironment.environment = { featureFlags: { studioOidc: false } };
+    renderApiKeys();
+    expect(
+      screen.getByRole('heading', { name: textMock('not_found_page.heading') }),
+    ).toBeInTheDocument();
+  });
 
   it('renders the open dialog button', () => {
     renderApiKeys();

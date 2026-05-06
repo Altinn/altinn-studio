@@ -13,7 +13,7 @@
       Inner Unique: true,
       Plans: [
         {
-          Node Type: Nested Loop,
+          Node Type: Merge Join,
           Parent Relationship: Outer,
           Parallel Aware: {Scrubbed},
           Async Capable: {Scrubbed},
@@ -24,6 +24,7 @@
           Plan Width: {Scrubbed},
           Disabled: false,
           Inner Unique: false,
+          Merge Cond: (w.id = w2.workflow_id),
           Plans: [
             {
               Node Type: Limit,
@@ -37,37 +38,20 @@
               Disabled: false,
               Plans: [
                 {
-                  Node Type: Sort,
+                  Node Type: Index Scan,
                   Parent Relationship: Outer,
                   Parallel Aware: {Scrubbed},
                   Async Capable: {Scrubbed},
+                  Scan Direction: Forward,
+                  Index Name: pk_workflows,
+                  Relation Name: workflows,
+                  Alias: w,
                   Startup Cost: {Scrubbed},
                   Total Cost: {Scrubbed},
                   Plan Rows: {Scrubbed},
                   Plan Width: {Scrubbed},
                   Disabled: false,
-                  Sort Key: [
-                    w."Id"
-                  ],
-                  Plans: [
-                    {
-                      Node Type: Index Scan,
-                      Parent Relationship: Outer,
-                      Parallel Aware: {Scrubbed},
-                      Async Capable: {Scrubbed},
-                      Scan Direction: Forward,
-                      Index Name: IX_Workflows_Status,
-                      Relation Name: Workflows,
-                      Alias: w,
-                      Startup Cost: {Scrubbed},
-                      Total Cost: {Scrubbed},
-                      Plan Rows: {Scrubbed},
-                      Plan Width: {Scrubbed},
-                      Disabled: false,
-                      Index Cond: ("Status" = ANY ('{0,1,2}'::integer[])),
-                      Filter: (("StartAt" IS NULL) OR ("StartAt" <= now()))
-                    }
-                  ]
+                  Filter: ((status = ANY ('{0,1,2}'::integer[])) AND ((start_at IS NULL) OR (start_at <= now())))
                 }
               ]
             },
@@ -77,15 +61,14 @@
               Parallel Aware: {Scrubbed},
               Async Capable: {Scrubbed},
               Scan Direction: Forward,
-              Index Name: PK_WorkflowLink,
-              Relation Name: WorkflowLink,
+              Index Name: pk_workflow_link,
+              Relation Name: workflow_link,
               Alias: w2,
               Startup Cost: {Scrubbed},
               Total Cost: {Scrubbed},
               Plan Rows: {Scrubbed},
               Plan Width: {Scrubbed},
-              Disabled: false,
-              Index Cond: ("WorkflowId" = w."Id")
+              Disabled: false
             }
           ]
         },
@@ -95,15 +78,15 @@
           Parallel Aware: {Scrubbed},
           Async Capable: {Scrubbed},
           Scan Direction: Forward,
-          Index Name: PK_Workflows,
-          Relation Name: Workflows,
+          Index Name: pk_workflows,
+          Relation Name: workflows,
           Alias: w3,
           Startup Cost: {Scrubbed},
           Total Cost: {Scrubbed},
           Plan Rows: {Scrubbed},
           Plan Width: {Scrubbed},
           Disabled: false,
-          Index Cond: ("Id" = w2."LinkedWorkflowId")
+          Index Cond: (id = w2.linked_workflow_id)
         }
       ]
     }

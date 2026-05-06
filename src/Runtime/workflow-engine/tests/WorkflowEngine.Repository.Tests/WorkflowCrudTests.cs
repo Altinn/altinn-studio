@@ -569,7 +569,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var metadata1 = new WorkflowRequestMetadata(
             "test-namespace",
             Guid.NewGuid().ToString("N"),
-            Guid.NewGuid(),
+            null,
             DateTimeOffset.UtcNow,
             null
         );
@@ -590,11 +590,15 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var metadata2 = new WorkflowRequestMetadata(
             "test-namespace",
             Guid.NewGuid().ToString("N"),
-            Guid.NewGuid(),
+            null,
             DateTimeOffset.UtcNow,
             null
         );
         var workflow2 = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request2, metadata2);
+
+        // Stamp a lease token on each row so write-back's compare-and-swap matches.
+        await WorkflowTestHelper.AssignLeaseToken(context, workflow1);
+        await WorkflowTestHelper.AssignLeaseToken(context, workflow2);
 
         // Act: mutate in-memory state and call the new batch method
         workflow1.Status = PersistentItemStatus.Completed;
@@ -729,7 +733,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var metadata = new WorkflowRequestMetadata(
             "test-namespace",
             Guid.NewGuid().ToString("N"),
-            Guid.NewGuid(),
+            null,
             DateTimeOffset.UtcNow,
             null
         );

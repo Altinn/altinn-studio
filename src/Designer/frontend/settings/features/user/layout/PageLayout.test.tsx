@@ -50,7 +50,7 @@ describe('PageLayout', () => {
       queryClient: localQueryClient,
       queries: { getUser: () => new Promise<never>(() => {}) },
     });
-    expect(screen.getByRole('img', { name: textMock('repo_status.loading') })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: textMock('general.loading') })).toBeInTheDocument();
   });
 
   it('does not render the settings heading when user data is missing', () => {

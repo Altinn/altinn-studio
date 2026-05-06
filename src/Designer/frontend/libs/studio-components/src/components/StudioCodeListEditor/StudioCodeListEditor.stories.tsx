@@ -14,7 +14,7 @@ type Story = StoryObj<typeof StudioCodeListEditor>;
 export const Preview: Story = {
   args: {
     codeList,
-    language: 'nb',
+    fallbackLanguage: 'nb',
     texts,
   },
 };
@@ -22,7 +22,7 @@ export const Preview: Story = {
 export const Empty: Story = {
   args: {
     codeList: [],
-    language: 'nb',
+    fallbackLanguage: 'nb',
     texts,
   },
 };

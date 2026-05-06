@@ -44,7 +44,7 @@ func (s *Service) InstallBinary(targetPath string) (InstallBinaryResult, error) 
 	if err != nil {
 		if errors.Is(err, ErrAlreadyInstalled) {
 			return InstallBinaryResult{
-				InstalledPath:    targetPath,
+				InstalledPath:    installedPath,
 				AlreadyInstalled: true,
 			}, nil
 		}

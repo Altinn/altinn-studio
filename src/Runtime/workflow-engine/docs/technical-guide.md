@@ -354,15 +354,13 @@ Real-time monitoring UI (vanilla JS, no build step), embedded in `WorkflowEngine
 ### Enqueue Workflows
 
 ```
-POST /api/v1/{namespace}/workflows
+POST /api/v1/{namespace}/workflows?idempotencyKey=process-next-abc123&collectionKey=a1b2c3d4-e5f6-7890-abcd-ef1234567890
 ```
 
 **Request:**
 
 ```json
 {
-    "idempotencyKey": "process-next-abc123",
-    "correlationId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
     "labels": {
         "org": "ttd",
         "app": "my-app",
@@ -455,7 +453,7 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
 ```json
 {
     "databaseId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-    "correlationId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "collectionKey": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
     "operationId": "process-task-2",
     "idempotencyKey": "process-next-abc123",
     "namespace": "ttd:my-app",
@@ -514,10 +512,10 @@ Filter by labels:
 GET /api/v1/ttd:my-app/workflows?labels.org=ttd&labels.app=my-app
 ```
 
-Find all workflows for a specific instance via correlationId (instanceGuid):
+Find all workflows for a specific collection via collectionKey:
 
 ```http
-GET /api/v1/ttd:my-app/workflows?correlationId=a1b2c3d4-e5f6-7890-abcd-ef1234567890
+GET /api/v1/ttd:my-app/workflows?collectionKey=a1b2c3d4-e5f6-7890-abcd-ef1234567890
 ```
 
 Or combine filters — e.g. all workflows for a specific instance owner:

@@ -62,6 +62,17 @@ jobs:
         run: |
           node src/Designer/development/setup.js
 
+      # Co-located with Playwright setup to reuse the compose stack rather than booting it again in a dedicated workflow.
+      - name: Verify gitea-runner registered
+        run: |
+          if ! docker logs gitea-runner 2>&1 | grep -qE "registered successfully|listening to tasks"; then
+            echo "::error::gitea-runner did not register"
+            docker ps -a --filter name=gitea-runner
+            docker logs gitea-runner 2>&1 | tail -100
+            exit 1
+          fi
+          echo "Runner registered"
+
       - name: 'Installing Dependencies'
         uses: ./.github/actions/yarn-install
 

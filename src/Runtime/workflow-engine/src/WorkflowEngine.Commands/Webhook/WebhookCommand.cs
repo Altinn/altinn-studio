@@ -24,8 +24,13 @@ public sealed class WebhookCommand : Command<WebhookCommandData>
     private readonly ILogger<WebhookCommand> _logger;
 
     private const string CommandTypeId = "webhook";
+
+    /// <inheritdoc/>
     public override string CommandType => CommandTypeId;
 
+    /// <summary>
+    /// Creates a new <see cref="WebhookCommand"/> with the supplied HTTP client factory, concurrency limiter, and logger.
+    /// </summary>
     public WebhookCommand(
         IHttpClientFactory httpClientFactory,
         IConcurrencyLimiter limiter,
@@ -137,8 +142,8 @@ public sealed class WebhookCommand : Command<WebhookCommandData>
 internal static partial class WebhookCommandDescriptorLogs
 {
     [LoggerMessage(LogLevel.Information, "[POST] Sending Webhook to {Endpoint} with payload: {Payload}")]
-    public static partial void SendingWebhookPost(this ILogger<WebhookCommand> logger, Uri endpoint, string payload);
+    internal static partial void SendingWebhookPost(this ILogger<WebhookCommand> logger, Uri endpoint, string payload);
 
     [LoggerMessage(LogLevel.Information, "[GET] Sending Webhook to {Endpoint} without payload")]
-    public static partial void SendingWebhookGet(this ILogger<WebhookCommand> logger, Uri endpoint);
+    internal static partial void SendingWebhookGet(this ILogger<WebhookCommand> logger, Uri endpoint);
 }

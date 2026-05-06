@@ -23,6 +23,18 @@ public interface IChatRepository
     );
 
     /// <summary>
+    /// Gets a single thread
+    /// </summary>
+    /// <param name="threadId">The thread id.</param>
+    /// <param name="context">An <see cref="AltinnRepoEditingContext"/>.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
+    Task<ChatThreadEntity?> GetThreadAsync(
+        Guid threadId,
+        AltinnRepoEditingContext context,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Creates a new chat thread.
     /// </summary>
     /// <param name="thread">The thread to create.</param>
@@ -61,4 +73,12 @@ public interface IChatRepository
         ChatMessageEntity message,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Deletes a message from a given thread.
+    /// </summary>
+    /// <param name="threadId">The thread id.</param>
+    /// <param name="messageId">The message id.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
+    Task DeleteMessageAsync(Guid threadId, Guid messageId, CancellationToken cancellationToken = default);
 }

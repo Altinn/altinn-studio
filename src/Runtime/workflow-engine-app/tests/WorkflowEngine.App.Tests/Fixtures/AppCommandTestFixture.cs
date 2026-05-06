@@ -132,7 +132,7 @@ internal sealed record AppCommandTestFixture(
     public static Workflow CreateWorkflow(Step step) =>
         new()
         {
-            CorrelationId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"),
+            CollectionKey = EngineAppFixture.DefaultCollectionKey,
             OperationId = "test-operation",
             IdempotencyKey = "test-wf-key",
             Namespace = "test-namespace",

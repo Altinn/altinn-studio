@@ -149,6 +149,9 @@ public sealed record EngineSettings
     public PaginationSettings Pagination { get; set; } = new();
 }
 
+/// <summary>
+/// Settings for the workflow enqueue write buffer (channel-based batched insert pipeline).
+/// </summary>
 public sealed record WriteBufferSettings
 {
     /// <summary>
@@ -170,6 +173,9 @@ public sealed record WriteBufferSettings
     public int FlushConcurrency { get; set; }
 }
 
+/// <summary>
+/// Settings for the in-flight status update buffer used by the processor write-back path.
+/// </summary>
 public sealed record UpdateBufferSettings
 {
     /// <summary>
@@ -185,6 +191,9 @@ public sealed record UpdateBufferSettings
     public int MaxQueueSize { get; set; }
 }
 
+/// <summary>
+/// Settings for the background data retention job that purges terminal workflows.
+/// </summary>
 public sealed record RetentionSettings
 {
     /// <summary>
@@ -206,6 +215,9 @@ public sealed record RetentionSettings
     public TimeSpan Interval { get; set; }
 }
 
+/// <summary>
+/// Settings for paginated list endpoints.
+/// </summary>
 public sealed record PaginationSettings
 {
     /// <summary>
@@ -221,6 +233,9 @@ public sealed record PaginationSettings
     public int MaxPageSize { get; set; } = 100;
 }
 
+/// <summary>
+/// Settings for the engine's concurrency limits across workers, database operations, and outbound HTTP calls.
+/// </summary>
 public sealed record ConcurrencySettings
 {
     /// <summary>

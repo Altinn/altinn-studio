@@ -158,7 +158,7 @@ func TestNewWithEnvSocketDir(t *testing.T) {
 	if cfg.BoundTopologyConfigDir() != filepath.Join(cfg.DataDir, "generated", "topology") {
 		t.Errorf("BoundTopologyConfigDir() = %q, want generated topology dir in data dir", cfg.BoundTopologyConfigDir())
 	}
-	if cfg.BoundTopologyConfigPath() != filepath.Join(cfg.DataDir, "generated", "topology", "bound.json") {
+	if cfg.BoundTopologyConfigPath() != filepath.Join(cfg.DataDir, "generated", "topology", "result.json") {
 		t.Errorf(
 			"BoundTopologyConfigPath() = %q, want generated topology config in data dir",
 			cfg.BoundTopologyConfigPath(),
@@ -168,7 +168,7 @@ func TestNewWithEnvSocketDir(t *testing.T) {
 		cfg.DataDir,
 		"generated",
 		"topology",
-		"base.json",
+		"env.json",
 	) {
 		t.Errorf(
 			"BoundTopologyBaseConfigPath() = %q, want generated base topology config in data dir",

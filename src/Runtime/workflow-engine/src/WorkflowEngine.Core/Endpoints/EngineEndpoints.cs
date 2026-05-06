@@ -32,7 +32,7 @@ internal static class EngineEndpoints
         group
             .MapGet("", EngineRequestHandlers.ListActiveWorkflows)
             .WithName("ListActiveWorkflows")
-            .WithDescription("Lists all active workflows, optionally filtered by correlation ID");
+            .WithDescription("Lists all active workflows, optionally filtered by collection key");
 
         group
             .MapGet("/{workflowId:guid}", EngineRequestHandlers.GetWorkflow)
@@ -48,6 +48,13 @@ internal static class EngineEndpoints
             .MapPost("/{workflowId:guid}/resume", EngineRequestHandlers.ResumeWorkflow)
             .WithName("ResumeWorkflow")
             .WithDescription("Resumes a terminal workflow (failed, canceled, dependency-failed) for re-processing");
+
+        var collectionGroup = app.MapGroup("/api/v1/{namespace}/collections").WithTags("Collections");
+
+        collectionGroup
+            .MapGet("/{key}", EngineRequestHandlers.GetCollection)
+            .WithName("GetCollection")
+            .WithDescription("Gets a single workflow collection by key, including head workflow statuses");
 
         return app;
     }
@@ -84,14 +91,14 @@ internal static class EngineRequestHandlers
         var ns = NormalizeNamespace(@namespace);
         var inbound = MetadataExtractor.ExtractEnqueueMetadata(httpContext, ns);
 
-        Activity.Current?.SetTag("workflow.correlation.id", inbound.CorrelationId);
+        Activity.Current?.SetTag("workflow.collection.key", inbound.CollectionKey);
         Activity.Current?.SetTag("workflow.idempotency.key", inbound.IdempotencyKey);
         Activity.Current?.SetTag("workflow.namespace", inbound.Namespace);
 
         var metadata = new WorkflowRequestMetadata(
             inbound.Namespace,
             inbound.IdempotencyKey,
-            inbound.CorrelationId,
+            inbound.CollectionKey,
             timeProvider.GetUtcNow(),
             Activity.Current?.Id
         );
@@ -127,7 +134,7 @@ internal static class EngineRequestHandlers
 
     public static async Task<Results<Ok<PaginatedResponse<WorkflowStatusResponse>>, NoContent>> ListActiveWorkflows(
         [FromRoute] string @namespace,
-        [FromQuery] Guid? correlationId,
+        [FromQuery] string? collectionKey,
         [FromQuery(Name = "label")] string[]? labels,
         [FromQuery] Guid? cursor,
         [FromQuery] int? pageSize,
@@ -147,7 +154,7 @@ internal static class EngineRequestHandlers
             effectivePageSize,
             cursor,
             includeTotalCount: true,
-            correlationId,
+            collectionKey,
             ns,
             labelFilters,
             cancellationToken
@@ -295,5 +302,28 @@ internal static class EngineRequestHandlers
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Gets a single workflow collection by <paramref name="key"/> within the requested namespace.
+    /// Normalizes <paramref name="ns"/>, records the query metric, and returns 404 when the collection is missing.
+    /// </summary>
+    public static async Task<Results<Ok<WorkflowCollectionDetailResponse>, NotFound>> GetCollection(
+        [FromRoute(Name = "namespace")] string ns,
+        [FromRoute] string key,
+        [FromServices] IEngineRepository repository,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "get-collection"));
+
+        ns = NormalizeNamespace(ns);
+
+        var collection = await repository.GetCollection(key, ns, cancellationToken);
+
+        if (collection is null)
+            return TypedResults.NotFound();
+
+        return TypedResults.Ok(collection);
     }
 }

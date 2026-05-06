@@ -400,7 +400,7 @@ public class EngineSettingsConfigurationTests
 }
 
 /// <summary>
-/// Helper to convert a JSON string to a stream for <see cref="ConfigurationBuilder.AddJsonStream"/>.
+/// Helper to convert a JSON string to a stream for <c>ConfigurationBuilder.AddJsonStream</c>.
 /// </summary>
 internal static class JsonStreamHelper
 {

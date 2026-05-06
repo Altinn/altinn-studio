@@ -81,4 +81,29 @@ describe('EditBooleanValue', () => {
       }),
     ).toBeInTheDocument();
   });
+
+  it('should update value when propertyPath is set', async () => {
+    const handleComponentChange = jest.fn();
+    renderEditBooleanValue({
+      handleComponentChange,
+      componentOverrides: {
+        propertyPath: 'definitions/inputComponent',
+      },
+    });
+    const inputElement = screen.getByLabelText(textMock('ux_editor.component_properties.required'));
+    await user.click(inputElement);
+    await waitFor(() => {
+      expect(handleComponentChange).toHaveBeenCalledWith({
+        id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
+        type: ComponentType.Input,
+        textResourceBindings: {
+          title: 'ServiceName',
+        },
+        required: true,
+        itemType: 'COMPONENT',
+        dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
+        propertyPath: 'definitions/inputComponent',
+      });
+    });
+  });
 });

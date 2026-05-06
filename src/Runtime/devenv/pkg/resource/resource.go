@@ -9,6 +9,14 @@ func (id ResourceID) String() string {
 	return string(id)
 }
 
+// GraphID identifies a desired-state resource graph across invocations.
+type GraphID string
+
+// String returns the string representation of the ID.
+func (id GraphID) String() string {
+	return string(id)
+}
+
 // ResourceRef references a resource either by ID or by direct reference.
 // Use Ref() or RefID() to construct.
 type ResourceRef struct {
@@ -84,6 +92,12 @@ type EnablementProvider interface {
 	IsEnabled() bool
 }
 
+// IsEnabled reports whether a resource participates in graph validation and execution.
+func IsEnabled(r Resource) bool {
+	provider, ok := r.(EnablementProvider)
+	return !ok || provider.IsEnabled()
+}
+
 // ErrorDecision describes how an executor should handle a lifecycle error.
 type ErrorDecision int
 
@@ -100,6 +114,7 @@ type ErrorHandler func(error) ErrorDecision
 // LifecycleOptions customizes resource lifecycle behavior.
 type LifecycleOptions struct {
 	HandleDestroyError ErrorHandler
+	RetainOnDestroy    bool
 }
 
 // ContainerLifecycleOptions customizes container-specific lifecycle behavior.

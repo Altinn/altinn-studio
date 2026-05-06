@@ -30,8 +30,3 @@
   overflow-y: auto;
   max-width: 1500px;
 }
-
-.notOrgOwnerAlert {
-  margin: var(--ds-size-4);
-  max-width: 1200px;
-}

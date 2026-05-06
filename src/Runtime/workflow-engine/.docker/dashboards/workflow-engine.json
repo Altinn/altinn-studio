@@ -407,8 +407,8 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(engine_errors_total[5m]))",
-          "legendFormat": "Errors (total)",
+          "expr": "sum by (operation) (rate(engine_errors_total[5m]))",
+          "legendFormat": "Errors ({{operation}})",
           "refId": "A"
         },
         {
@@ -416,8 +416,8 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(engine_workflows_execution_failed_total[5m]))",
-          "legendFormat": "Workflow Failures",
+          "expr": "sum by (reason) (rate(engine_workflows_execution_failed_total[5m]))",
+          "legendFormat": "Workflow Failures ({{reason}})",
           "refId": "B"
         },
         {
@@ -449,7 +449,7 @@
         }
       ],
       "title": "Failures",
-      "description": "All failure signals: general errors, workflow/step/DB failures (rate/s), and maintenance consecutive failure count (right axis).",
+      "description": "All failure signals: errors broken down by subsystem, workflow failures by reason, plus step/DB failures and maintenance consecutive failure count (right axis).",
       "type": "timeseries"
     },
     {
@@ -827,13 +827,13 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "(sum(rate(engine_steps_execution_requeued_total[1m])) or vector(0)) + (sum(rate(engine_workflows_execution_requeued_total[1m])) or vector(0))",
+          "expr": "(sum(rate(engine_steps_execution_requeued_total[1m])) or vector(0)) + (sum(rate(engine_workflows_execution_requeued_total{reason=\"shutdown\"}[1m])) or vector(0))",
           "legendFormat": "Retries",
           "refId": "A"
         }
       ],
       "title": "Retries",
-      "description": "Combined workflow + step requeue rate per second (1m avg). Non-zero means commands are failing and being retried.",
+      "description": "Total retry events per second (1m avg): every step retry plus every shutdown-driven workflow requeue. Step retries already imply a workflow requeue with reason=step_retry, so that path is counted once via the step counter only.",
       "type": "stat"
     },
     {
@@ -1064,6 +1064,21 @@
                 }
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Queries"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
           }
         ]
       },
@@ -1107,10 +1122,19 @@
           "expr": "sum(rate(engine_workflows_request_accepted_total[5m]))",
           "legendFormat": "Accepted",
           "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(engine_workflows_query_received_total[5m]))",
+          "legendFormat": "Queries",
+          "refId": "C"
         }
       ],
       "title": "Workflow Requests",
-      "description": "Rate of incoming workflow requests vs accepted (5m avg)",
+      "description": "Rate of incoming workflow write requests vs accepted, plus read-side query traffic (5m avg)",
       "type": "timeseries"
     },
     {
@@ -1175,8 +1199,8 @@
           },
           {
             "matcher": {
-              "id": "byName",
-              "options": "Failed"
+              "id": "byRegexp",
+              "options": "^Failed"
             },
             "properties": [
               {
@@ -1213,6 +1237,21 @@
                 "id": "color",
                 "value": {
                   "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Resumed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
                   "mode": "fixed"
                 }
               }
@@ -1257,8 +1296,8 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(engine_workflows_execution_failed_total[5m]))",
-          "legendFormat": "Failed",
+          "expr": "sum by (reason) (rate(engine_workflows_execution_failed_total[5m]))",
+          "legendFormat": "Failed ({{reason}})",
           "refId": "B"
         },
         {
@@ -1266,8 +1305,8 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(engine_workflows_execution_canceled_total[5m]))",
-          "legendFormat": "Canceled",
+          "expr": "sum by (reason) (rate(engine_workflows_execution_canceled_total[5m]))",
+          "legendFormat": "Canceled ({{reason}})",
           "refId": "C"
         },
         {
@@ -1275,13 +1314,22 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(engine_workflows_execution_requeued_total[5m]))",
-          "legendFormat": "Requeued",
+          "expr": "sum by (reason) (rate(engine_workflows_execution_requeued_total[5m]))",
+          "legendFormat": "Requeued ({{reason}})",
           "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(engine_workflows_execution_resumed_total[5m]))",
+          "legendFormat": "Resumed",
+          "refId": "E"
         }
       ],
       "title": "Workflow Outcomes",
-      "description": "Rate of workflow completions by outcome (5m avg)",
+      "description": "Rate of workflow lifecycle events (5m avg). Failed/Canceled/Requeued broken down by reason \u2014 failed: execution / dependency_failed / poison; canceled: before_processing / during_processing; requeued: step_retry / shutdown.",
       "type": "timeseries"
     },
     {
@@ -1387,6 +1435,21 @@
                 }
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Finished"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#8e8e8e",
+                  "mode": "fixed"
+                }
+              }
+            ]
           }
         ]
       },
@@ -1447,10 +1510,19 @@
           "expr": "sum(engine_workflows_successful)",
           "legendFormat": "Successful",
           "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(engine_workflows_finished)",
+          "legendFormat": "Finished",
+          "refId": "E"
         }
       ],
       "title": "Workflow Inventory",
-      "description": "Current workflow counts by state (gauge values over time)",
+      "description": "Current workflow counts by state (gauge values over time). Finished = all terminal (success + failed + canceled + dep-failed).",
       "type": "timeseries"
     },
     {
@@ -1559,7 +1631,7 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
+        "w": 6,
         "x": 0,
         "y": 19
       },
@@ -1607,8 +1679,8 @@
           "refId": "C"
         }
       ],
-      "title": "Workflow Duration (E2E)",
-      "description": "End-to-end workflow duration percentiles including queue and retry time",
+      "title": "Workflow Duration (per attempt)",
+      "description": "Workflow duration percentiles for a single attempt (queue + service). Retries land as separate samples; see Outcomes for retry rate.",
       "type": "timeseries"
     },
     {
@@ -1690,8 +1762,8 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 8,
+        "w": 6,
+        "x": 6,
         "y": 19
       },
       "id": 22,
@@ -1730,8 +1802,8 @@
           "refId": "B"
         }
       ],
-      "title": "Workflow Time Breakdown (P95)",
-      "description": "Where workflows spend their time: waiting in queue vs active execution (P95 stacked)",
+      "title": "Workflow Time Breakdown (P95, per attempt)",
+      "description": "Per-attempt P95 of queue wait and active execution, stacked. Stack height is the sum of two marginal P95s \u2014 useful for seeing where tail latency is concentrated, but it does not reconcile arithmetically with the Workflow Duration panel's P95(total) because percentiles are not additive across the queue/service decomposition. Within a single attempt, queue + service does equal total by construction.",
       "type": "timeseries"
     },
     {
@@ -1828,8 +1900,8 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 16,
+        "w": 6,
+        "x": 12,
         "y": 19
       },
       "id": 23,
@@ -1876,8 +1948,131 @@
           "refId": "C"
         }
       ],
-      "title": "Step Duration (E2E)",
-      "description": "End-to-end step duration percentiles including queue and retry time",
+      "title": "Step Duration (per attempt)",
+      "description": "Step duration percentiles for a single attempt (queue + service). Step retries land as separate samples \u2014 see Step Failures for retry rate.",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 30,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "unit": "s",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Queue Wait"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Execution"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 19
+      },
+      "id": 53,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "histogram_quantile(0.95, sum(rate(engine_steps_time_queue_seconds_bucket[5m])) by (le))",
+          "legendFormat": "Queue Wait",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "histogram_quantile(0.95, sum(rate(engine_steps_time_service_seconds_bucket[5m])) by (le))",
+          "legendFormat": "Execution",
+          "refId": "B"
+        }
+      ],
+      "title": "Step Time Breakdown (P95, per attempt)",
+      "description": "Per-attempt P95 of step queue wait (engine/DB overhead between steps) and active execution, stacked. Stack height is the sum of two marginal P95s \u2014 useful for seeing whether queue or service drives tail latency, but it does not reconcile arithmetically with the Step Duration panel's P95(total) because percentiles are not additive across the queue/service decomposition. Within a single attempt, queue + service does equal total by construction.",
       "type": "timeseries"
     },
     {
@@ -2668,7 +2863,7 @@
         }
       ],
       "title": "Main Loop Time (P95)",
-      "description": "How the main loop spends each iteration: waiting for work vs actively processing (P95 stacked)",
+      "description": "P95 of each main-loop iteration broken down: Queue (post-fetch wait \u2014 debounce or ~500ms idle ceiling) and Active Work (fetch + dispatch). Stacked sum of two marginal P95s \u2014 won't reconcile with a hypothetical joint P95 because percentiles are not additive. For iteration throughput see Main Loop Rate.",
       "type": "timeseries"
     },
     {
@@ -3100,7 +3295,7 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
+        "w": 12,
         "x": 0,
         "y": 47
       },
@@ -3209,8 +3404,8 @@
         "overrides": [
           {
             "matcher": {
-              "id": "byName",
-              "options": "Errors"
+              "id": "byRegexp",
+              "options": "^Errors"
             },
             "properties": [
               {
@@ -3241,8 +3436,8 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 8,
+        "w": 12,
+        "x": 12,
         "y": 47
       },
       "id": 52,
@@ -3268,8 +3463,8 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(engine_errors_total[5m]))",
-          "legendFormat": "Errors",
+          "expr": "sum by (operation) (rate(engine_errors_total[5m]))",
+          "legendFormat": "Errors ({{operation}})",
           "refId": "A"
         },
         {
@@ -3283,130 +3478,7 @@
         }
       ],
       "title": "Errors & Recovery",
-      "description": "General error rate and stale workflow reclaims (crashed worker recovery)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "drawStyle": "line",
-            "fillOpacity": 30,
-            "gradientMode": "none",
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "showPoints": "never",
-            "spanNulls": true,
-            "stacking": {
-              "group": "A",
-              "mode": "normal"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "unit": "s",
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Queue Wait"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "light-orange",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Execution"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "light-blue",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 47
-      },
-      "id": 53,
-      "options": {
-        "legend": {
-          "calcs": [
-            "mean",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "histogram_quantile(0.95, sum(rate(engine_steps_time_queue_seconds_bucket[5m])) by (le))",
-          "legendFormat": "Queue Wait",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "histogram_quantile(0.95, sum(rate(engine_steps_time_service_seconds_bucket[5m])) by (le))",
-          "legendFormat": "Execution",
-          "refId": "B"
-        }
-      ],
-      "title": "Step Time Breakdown (P95)",
-      "description": "Where steps spend their time: waiting in queue vs active execution (P95 stacked)",
+      "description": "Error rate broken down by subsystem (workflowProcessing / fetchAndLock / dbMaintenance / metricsCollector) plus stale-workflow reclaim rate.",
       "type": "timeseries"
     },
     {
@@ -3803,6 +3875,217 @@
       "title": "Connections & Pool Limits",
       "description": "Currently executing commands, total open connections, and pool max boundary. Executing near pool limit = saturation.",
       "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 64
+      },
+      "id": 70,
+      "panels": [],
+      "title": "Lease & Recovery Signals",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.01
+              }
+            ]
+          },
+          "unit": "ops",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 65
+      },
+      "id": 71,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true,
+        "orientation": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(engine_workflows_execution_lease_lost_total[5m]))",
+          "legendFormat": "Lease Lost",
+          "refId": "A"
+        }
+      ],
+      "title": "Lease Lost",
+      "description": "Rate of in-flight workflows abandoned because the row's lease token no longer matches at write-back. Non-zero indicates heartbeat lag or aggressive maintenance reclaim \u2014 workflows self-heal via reclaim, but downstream side effects may have been duplicated.",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.01
+              }
+            ]
+          },
+          "unit": "ops",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 65
+      },
+      "id": 72,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true,
+        "orientation": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(engine_workflows_fetch_race_dropped_total[5m]))",
+          "legendFormat": "Fetch Race Dropped",
+          "refId": "A"
+        }
+      ],
+      "title": "Fetch Race Dropped",
+      "description": "Rate of fetched workflows skipped because they were already in-flight on this host \u2014 same-host DbMaintenance reclaim raced the main fetch loop. Self-heals on the next maintenance sweep.",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 0.01
+              }
+            ]
+          },
+          "unit": "ops",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 65
+      },
+      "id": 73,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true,
+        "orientation": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(engine_update_buffer_dropped_total[5m]))",
+          "legendFormat": "Update Buffer Dropped",
+          "refId": "A"
+        }
+      ],
+      "title": "Update Buffer Dropped",
+      "description": "Rate of fire-and-forget status updates dropped because the update-buffer channel was full. These are real losses (intermediate progress updates) \u2014 non-zero signals backpressure exceeding the buffer's capacity.",
+      "type": "stat"
     }
   ],
   "preload": false,
