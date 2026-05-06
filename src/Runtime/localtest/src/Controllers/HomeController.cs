@@ -7,6 +7,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using LocalTest.Configuration;
 using LocalTest.Models;
+using LocalTest.Services.Authentication.Implementation;
 using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.LocalApp.Interface;
 using LocalTest.Services.LocalFrontend.Interface;
@@ -35,6 +36,7 @@ namespace LocalTest.Controllers
 
         private readonly ILocalApp _localApp;
         private readonly ILocalFrontendService _localFrontendService;
+        private readonly TestAuthenticationService _testAuthenticationService;
         private readonly TestDataService _testDataService;
         private readonly ILogger<HomeController> _logger;
 
@@ -47,6 +49,7 @@ namespace LocalTest.Controllers
             IParties partiesService,
             ILocalApp localApp,
             ILocalFrontendService localFrontendService,
+            TestAuthenticationService testAuthenticationService,
             TestDataService testDataService,
             ILogger<HomeController> logger
         )
@@ -59,6 +62,7 @@ namespace LocalTest.Controllers
             _partiesService = partiesService;
             _localApp = localApp;
             _localFrontendService = localFrontendService;
+            _testAuthenticationService = testAuthenticationService;
             _testDataService = testDataService;
             _logger = logger;
         }
@@ -132,16 +136,11 @@ namespace LocalTest.Controllers
         {
             if (startAppModel.AuthenticationLevel != "-1")
             {
-                UserProfile profile = await _userProfileService.GetUser(startAppModel.UserId);
-                if (profile == null)
-                {
-                    return BadRequest("User not found");
-                }
-
                 int authenticationLevel = Convert.ToInt32(startAppModel.AuthenticationLevel);
 
-                string token = await _authenticationService.GenerateTokenForProfile(
-                    profile,
+                string token = await _testAuthenticationService.GetUserToken(
+                    startAppModel.UserId,
+                    startAppModel.PartyId,
                     authenticationLevel
                 );
                 CreateJwtCookieAndAppendToResponse(
@@ -184,8 +183,11 @@ namespace LocalTest.Controllers
 
                 using var reader = new StreamReader(prefill.OpenReadStream());
                 var content = await reader.ReadToEndAsync();
-                var token = await _authenticationService.GenerateTokenForOrg(
-                    app.Id.Split("/")[0]
+                // TODO: app might not support service owner instantiation,
+                // try with user token as well? based on chosen user
+                // or some other mechanism to find out which token to use
+                var token = await _testAuthenticationService.GetServiceOwnerToken(
+                    org: app.Id.Split("/")[0]
                 );
                 var newInstance = await _localApp.Instantiate(
                     app.Id,
@@ -194,13 +196,13 @@ namespace LocalTest.Controllers
                     xmlDataId,
                     token
                 );
-                    var appVersion = await _localApp.GetAppVersion(
-                        startAppModel.AppPathSelection
-                    );
-                    var instancePath =
-                        appVersion is not null && appVersion < BrowserRoutingAppVersion
-                            ? $"/{app.Id}/#/instance/{newInstance.Id}"
-                            : $"/{app.Id}/instance/{newInstance.Id}";
+                var appVersion = await _localApp.GetAppVersion(
+                    startAppModel.AppPathSelection
+                );
+                var instancePath =
+                    appVersion is not null && appVersion < BrowserRoutingAppVersion
+                        ? $"/{app.Id}/#/instance/{newInstance.Id}"
+                        : $"/{app.Id}/instance/{newInstance.Id}";
 
                 return Redirect(instancePath);
             }
