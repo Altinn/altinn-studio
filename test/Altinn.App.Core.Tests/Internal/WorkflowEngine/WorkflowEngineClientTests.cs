@@ -127,8 +127,17 @@ public class WorkflowEngineClientTests
                         CreateJsonResponse(
                             new WorkflowDependencyGraphResponse
                             {
-                                WorkflowId = workflowId,
+                                RootWorkflowId = workflowId,
                                 Workflows = [CreateWorkflowStatusResponse("dependency-graph-root")],
+                                Edges =
+                                [
+                                    new WorkflowDependencyGraphEdgeResponse
+                                    {
+                                        From = workflowId,
+                                        To = Guid.NewGuid(),
+                                        Kind = "dependency",
+                                    },
+                                ],
                             }
                         )
                     );
@@ -149,8 +158,9 @@ public class WorkflowEngineClientTests
         );
 
         Assert.NotNull(dependencyGraph);
-        Assert.Equal(workflowId, dependencyGraph.WorkflowId);
+        Assert.Equal(workflowId, dependencyGraph.RootWorkflowId);
         Assert.Single(dependencyGraph.Workflows);
+        Assert.Single(dependencyGraph.Edges);
         Assert.Equal(
             $"http://workflow-engine/api/v1/ttd%2Fapp/workflows/{workflowId}/dependency-graph",
             requestUris[0]!.ToString()

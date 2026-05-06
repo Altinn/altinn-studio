@@ -10,8 +10,8 @@ internal sealed record WorkflowDependencyGraphResponse
     /// <summary>
     /// The workflow ID used as the dependency graph root.
     /// </summary>
-    [JsonPropertyName("workflowId")]
-    public Guid WorkflowId { get; init; }
+    [JsonPropertyName("rootWorkflowId")]
+    public Guid RootWorkflowId { get; init; }
 
     /// <summary>
     /// All workflows reachable from the requested workflow through dependency relationships.
@@ -19,4 +19,10 @@ internal sealed record WorkflowDependencyGraphResponse
     /// </summary>
     [JsonPropertyName("workflows")]
     public required IReadOnlyList<WorkflowStatusResponse> Workflows { get; init; }
+
+    /// <summary>
+    /// The relationships between workflows in the returned dependency graph.
+    /// </summary>
+    [JsonPropertyName("edges")]
+    public required IReadOnlyList<WorkflowDependencyGraphEdgeResponse> Edges { get; init; }
 }

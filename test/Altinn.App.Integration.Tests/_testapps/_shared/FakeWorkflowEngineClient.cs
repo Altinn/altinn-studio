@@ -143,10 +143,12 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             return Task.FromResult<WorkflowDependencyGraphResponse?>(null);
         }
 
+        IReadOnlyList<StoredWorkflow> dependencyGraphWorkflows = GetStoredWorkflowDependencyGraph(workflowId, ns);
         var dependencyGraph = new WorkflowDependencyGraphResponse
         {
-            WorkflowId = workflowId,
-            Workflows = GetStoredWorkflowDependencyGraph(workflowId, ns).Select(ToWorkflowStatusResponse).ToList(),
+            RootWorkflowId = workflowId,
+            Workflows = dependencyGraphWorkflows.Select(ToWorkflowStatusResponse).ToList(),
+            Edges = BuildDependencyGraphEdges(dependencyGraphWorkflows),
         };
 
         return Task.FromResult<WorkflowDependencyGraphResponse?>(dependencyGraph);
@@ -535,6 +537,29 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         }
 
         return dependencyGraph;
+    }
+
+    private static IReadOnlyList<WorkflowDependencyGraphEdgeResponse> BuildDependencyGraphEdges(
+        IReadOnlyList<StoredWorkflow> workflows
+    )
+    {
+        HashSet<Guid> workflowIds = [.. workflows.Select(workflow => workflow.DatabaseId)];
+
+        return workflows
+            .SelectMany(workflow =>
+                workflow
+                    .DependencyIds.Where(workflowIds.Contains)
+                    .Select(dependencyId => new WorkflowDependencyGraphEdgeResponse
+                    {
+                        From = dependencyId,
+                        To = workflow.DatabaseId,
+                        Kind = "dependency",
+                    })
+            )
+            .OrderBy(edge => edge.From)
+            .ThenBy(edge => edge.To)
+            .ThenBy(edge => edge.Kind, StringComparer.Ordinal)
+            .ToList();
     }
 
     private static string CreateBatchKey(string ns, string idempotencyKey) => $"{ns}|{idempotencyKey}";

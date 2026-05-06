@@ -1497,7 +1497,13 @@ public sealed class ProcessEngineTest
     private static WorkflowDependencyGraphResponse CreateWorkflowDependencyGraphResponse(
         Guid workflowId,
         params WorkflowStatusResponse[] workflows
-    ) => new() { WorkflowId = workflowId, Workflows = workflows };
+    ) =>
+        new()
+        {
+            RootWorkflowId = workflowId,
+            Workflows = workflows,
+            Edges = [],
+        };
 
     private static ClaimsPrincipal CreateUserClaimsPrincipal() =>
         new(
