@@ -1,8 +1,8 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Scheduling;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Quartz;
 using Xunit;
@@ -17,7 +17,7 @@ public class ChatInactivityCleanupJobTests
         var chatServiceMock = new Mock<IChatService>();
         chatServiceMock.Setup(s => s.DeleteInactiveThreadsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(3);
 
-        var job = new ChatInactivityCleanupJob(chatServiceMock.Object, NullLogger<ChatInactivityCleanupJob>.Instance);
+        var job = new ChatInactivityCleanupJob(chatServiceMock.Object);
 
         var jobExecutionContextMock = new Mock<IJobExecutionContext>();
         jobExecutionContextMock.SetupGet(c => c.CancellationToken).Returns(CancellationToken.None);
@@ -25,5 +25,21 @@ public class ChatInactivityCleanupJobTests
         await job.Execute(jobExecutionContextMock.Object);
 
         chatServiceMock.Verify(s => s.DeleteInactiveThreadsAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Execute_WhenChatServiceThrows_PropagatesException()
+    {
+        var chatServiceMock = new Mock<IChatService>();
+        chatServiceMock
+            .Setup(s => s.DeleteInactiveThreadsAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("error"));
+
+        var job = new ChatInactivityCleanupJob(chatServiceMock.Object);
+
+        var jobExecutionContextMock = new Mock<IJobExecutionContext>();
+        jobExecutionContextMock.SetupGet(c => c.CancellationToken).Returns(CancellationToken.None);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => job.Execute(jobExecutionContextMock.Object));
     }
 }

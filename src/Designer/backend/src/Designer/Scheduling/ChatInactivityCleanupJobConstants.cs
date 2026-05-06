@@ -6,6 +6,6 @@ public static class ChatInactivityCleanupJobConstants
     public const string JobGroup = "ChatInactivityCleanupJobGroup";
     public const string TriggerName = $"{JobName}Trigger";
     public const string TriggerGroup = JobGroup;
-    public const string CronScheduleNightly = "0 0 0 * * ?";
+    public const string CronScheduleNightlyMidnight = "0 0 0 * * ?";
     public const int MaxInactivityDays = 30;
 }

@@ -53,7 +53,7 @@ public static class SchedulingDependencyInjectionExtensions
                         ChatInactivityCleanupJobConstants.TriggerName,
                         ChatInactivityCleanupJobConstants.TriggerGroup
                     )
-                    .WithCronSchedule(ChatInactivityCleanupJobConstants.CronScheduleNightly)
+                    .WithCronSchedule(ChatInactivityCleanupJobConstants.CronScheduleNightlyMidnight)
             );
 
             if (schedulingSettings.UsePersistentScheduling)
