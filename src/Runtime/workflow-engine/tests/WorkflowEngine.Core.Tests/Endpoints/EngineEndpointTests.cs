@@ -682,11 +682,30 @@ public class EngineEndpointTests
     public async Task GetWorkflowDependencyGraph_Found_ReturnsOk()
     {
         var step = WorkflowEngineTestFixture.CreateStep(new CommandDefinition { Type = "noop" });
+        var dependency = new Workflow
+        {
+            DatabaseId = Guid.NewGuid(),
+            OperationId = "dependency-op",
+            IdempotencyKey = "dependency-key",
+            Namespace = DefaultNamespace,
+            Steps = [step],
+        };
+        var linked = new Workflow
+        {
+            DatabaseId = Guid.NewGuid(),
+            OperationId = "link-op",
+            IdempotencyKey = "link-key",
+            Namespace = DefaultNamespace,
+            Steps = [step],
+        };
         var workflow = new Workflow
         {
+            DatabaseId = Guid.NewGuid(),
             OperationId = "test-op",
             IdempotencyKey = "wf-key",
             Namespace = DefaultNamespace,
+            Dependencies = [dependency],
+            Links = [linked],
             Steps = [step],
         };
 
@@ -694,7 +713,7 @@ public class EngineEndpointTests
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
             .Setup(r => r.GetWorkflowDependencyGraph(workflowGuid, It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync([workflow]);
+            .ReturnsAsync([dependency, workflow, linked]);
 
         var result = await EngineRequestHandlers.GetWorkflowDependencyGraph(
             DefaultNamespace,
@@ -705,8 +724,16 @@ public class EngineEndpointTests
 
         var ok = Assert.IsType<Ok<WorkflowDependencyGraphResponse>>(result.Result);
         Assert.NotNull(ok.Value);
-        Assert.Equal(workflowGuid, ok.Value.WorkflowId);
-        Assert.Single(ok.Value.Workflows);
+        Assert.Equal(workflowGuid, ok.Value.RootWorkflowId);
+        Assert.Equal(3, ok.Value.Workflows.Count);
+        Assert.Contains(
+            ok.Value.Edges,
+            edge => edge.From == dependency.DatabaseId && edge.To == workflow.DatabaseId && edge.Kind == "dependency"
+        );
+        Assert.Contains(
+            ok.Value.Edges,
+            edge => edge.From == workflow.DatabaseId && edge.To == linked.DatabaseId && edge.Kind == "link"
+        );
     }
 
     [Fact]

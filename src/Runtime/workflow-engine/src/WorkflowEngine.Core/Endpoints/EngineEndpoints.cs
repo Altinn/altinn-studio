@@ -215,11 +215,14 @@ internal static class EngineRequestHandlers
         if (dependencyGraph is null)
             return TypedResults.NotFound();
 
+        var workflows = dependencyGraph.ToList();
+
         return TypedResults.Ok(
             new WorkflowDependencyGraphResponse
             {
-                WorkflowId = workflowId,
-                Workflows = dependencyGraph.Select(WorkflowStatusResponse.FromWorkflow).ToList(),
+                RootWorkflowId = workflowId,
+                Workflows = workflows.Select(WorkflowStatusResponse.FromWorkflow).ToList(),
+                Edges = BuildDependencyGraphEdges(workflows),
             }
         );
     }
@@ -342,6 +345,59 @@ internal static class EngineRequestHandlers
             return statuses;
 
         return Enum.GetValues<PersistentItemStatus>();
+    }
+
+    private static List<WorkflowDependencyGraphEdgeResponse> BuildDependencyGraphEdges(
+        IReadOnlyList<Workflow> workflows
+    )
+    {
+        HashSet<Guid> workflowIds = [.. workflows.Select(workflow => workflow.DatabaseId)];
+        List<WorkflowDependencyGraphEdgeResponse> edges = [];
+
+        foreach (Workflow workflow in workflows)
+        {
+            if (workflow.Dependencies is not null)
+            {
+                foreach (Workflow dependency in workflow.Dependencies)
+                {
+                    if (!workflowIds.Contains(dependency.DatabaseId))
+                        continue;
+
+                    edges.Add(
+                        new WorkflowDependencyGraphEdgeResponse
+                        {
+                            From = dependency.DatabaseId,
+                            To = workflow.DatabaseId,
+                            Kind = "dependency",
+                        }
+                    );
+                }
+            }
+
+            if (workflow.Links is not null)
+            {
+                foreach (Workflow link in workflow.Links)
+                {
+                    if (!workflowIds.Contains(link.DatabaseId))
+                        continue;
+
+                    edges.Add(
+                        new WorkflowDependencyGraphEdgeResponse
+                        {
+                            From = workflow.DatabaseId,
+                            To = link.DatabaseId,
+                            Kind = "link",
+                        }
+                    );
+                }
+            }
+        }
+
+        return edges
+            .OrderBy(edge => edge.From)
+            .ThenBy(edge => edge.To)
+            .ThenBy(edge => edge.Kind, StringComparer.Ordinal)
+            .ToList();
     }
 
     /// <summary>

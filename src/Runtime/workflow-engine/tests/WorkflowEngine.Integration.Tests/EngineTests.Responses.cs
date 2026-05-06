@@ -218,11 +218,20 @@ public partial class EngineTests
         var dependencyGraph = await _client.GetWorkflowDependencyGraph(rootWorkflowId);
 
         Assert.NotNull(dependencyGraph);
-        Assert.Equal(rootWorkflowId, dependencyGraph.WorkflowId);
+        Assert.Equal(rootWorkflowId, dependencyGraph.RootWorkflowId);
         Assert.Collection(
             dependencyGraph.Workflows,
             workflow => Assert.Equal(rootWorkflowId, workflow.DatabaseId),
             workflow => Assert.Equal(childWorkflowId, workflow.DatabaseId)
+        );
+        Assert.Collection(
+            dependencyGraph.Edges,
+            edge =>
+            {
+                Assert.Equal(rootWorkflowId, edge.From);
+                Assert.Equal(childWorkflowId, edge.To);
+                Assert.Equal("dependency", edge.Kind);
+            }
         );
     }
 
