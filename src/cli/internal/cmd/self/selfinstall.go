@@ -8,19 +8,19 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
 
 const (
-	osLinux   = "linux"
-	osWindows = "windows"
-	osDarwin  = "darwin"
-
 	exeSuffix = ".exe"
 
 	executablePerm = 0o755
+
+	windowsReplaceRetryDelay   = 100 * time.Millisecond
+	windowsReplaceRetryTimeout = 5 * time.Second
 )
 
 // Sentinel errors for self-install operations.
@@ -33,6 +33,10 @@ var (
 
 	// ErrAlreadyInstalled is returned when the binary is already at the target location.
 	ErrAlreadyInstalled = errors.New("binary already installed at this location")
+
+	errInstallFileSourceRequired     = errors.New("install file: empty source path")
+	errInstallFileTargetRequired     = errors.New("install file: empty target path")
+	errInstallFileSourceNotDirectory = errors.New("install file: source is not a directory")
 )
 
 // Candidate represents a potential installation directory.
@@ -79,9 +83,9 @@ func DetectCandidates(out *ui.Output) []Candidate {
 	var candidates []Candidate
 
 	switch runtime.GOOS {
-	case osLinux, osDarwin:
+	case osutil.OSLinux, osutil.OSDarwin:
 		candidates = unixCandidates(inPath, out)
-	case osWindows:
+	case osutil.OSWindows:
 		candidates = windowsCandidates(inPath, out)
 	default:
 		home, err := os.UserHomeDir()
@@ -182,6 +186,21 @@ func markRecommended(candidates []Candidate) {
 	}
 }
 
+// DefaultInstallLocation returns the candidate to use when prompting is unavailable.
+func DefaultInstallLocation(candidates []Candidate) (string, bool) {
+	for _, candidate := range candidates {
+		if candidate.Recommended && candidate.Writable {
+			return candidate.Path, true
+		}
+	}
+	for _, candidate := range candidates {
+		if candidate.Writable {
+			return candidate.Path, true
+		}
+	}
+	return "", false
+}
+
 func isWritable(dir string, out *ui.Output) bool {
 	if dir == "" {
 		return false
@@ -238,7 +257,7 @@ func Install(targetDir string) (string, error) {
 	}
 
 	binaryName := "studioctl"
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == osutil.OSWindows {
 		binaryName += exeSuffix
 	}
 	targetPath := filepath.Join(targetDir, binaryName)
@@ -251,17 +270,44 @@ func Install(targetDir string) (string, error) {
 		return "", fmt.Errorf("create target directory: %w", err)
 	}
 
-	if err := copyFile(execPath, targetPath); err != nil {
-		return "", fmt.Errorf("copy binary: %w", err)
+	return InstallFile(execPath, targetPath)
+}
+
+// InstallFile copies an external executable to the target path.
+func InstallFile(srcPath, targetPath string) (string, error) {
+	if srcPath == "" {
+		return "", errInstallFileSourceRequired
+	}
+	if targetPath == "" {
+		return "", errInstallFileTargetRequired
 	}
 
-	if runtime.GOOS != osWindows {
-		if err := os.Chmod(targetPath, executablePerm); err != nil {
+	absSource, err := filepath.Abs(srcPath)
+	if err != nil {
+		return "", fmt.Errorf("resolve source path: %w", err)
+	}
+	absTarget, err := filepath.Abs(targetPath)
+	if err != nil {
+		return "", fmt.Errorf("resolve target path: %w", err)
+	}
+
+	if filepath.Clean(absSource) == filepath.Clean(absTarget) {
+		return absTarget, ErrAlreadyInstalled
+	}
+
+	if err := os.MkdirAll(filepath.Dir(absTarget), osutil.DirPermDefault); err != nil {
+		return "", fmt.Errorf("create target directory: %w", err)
+	}
+	if err := copyFile(absSource, absTarget); err != nil {
+		return "", fmt.Errorf("copy binary: %w", err)
+	}
+	if runtime.GOOS != osutil.OSWindows {
+		if err := os.Chmod(absTarget, executablePerm); err != nil {
 			return "", fmt.Errorf("make binary executable: %w", err)
 		}
 	}
 
-	return targetPath, nil
+	return absTarget, nil
 }
 
 func copyFile(src, dst string) (err error) {
@@ -294,14 +340,36 @@ func copyFile(src, dst string) (err error) {
 		return cleanupTempFile(tmpPath, err)
 	}
 
-	if err := replaceFile(tmpPath, dst); err != nil {
+	if err := replacePath(tmpPath, dst); err != nil {
 		return cleanupTempFile(tmpPath, err)
 	}
 
 	return nil
 }
 
-func replaceFile(src, dst string) error {
+func replacePath(src, dst string) error {
+	if runtime.GOOS == osutil.OSWindows {
+		return retryReplacePathWindows(src, dst)
+	}
+	return replacePathOnce(src, dst)
+}
+
+func retryReplacePathWindows(src, dst string) error {
+	deadline := time.Now().Add(windowsReplaceRetryTimeout)
+	for {
+		err := replacePathOnce(src, dst)
+		if err == nil {
+			return nil
+		}
+		if !isRetryableWindowsReplaceError(err) || time.Now().After(deadline) {
+			return err
+		}
+		time.Sleep(windowsReplaceRetryDelay)
+	}
+}
+
+func replacePathOnce(src, dst string) error {
+	//nolint:gosec // G304/G703: both paths are resolved inside the staged install flow.
 	initialRenameErr := os.Rename(src, dst)
 	if initialRenameErr == nil {
 		return nil
@@ -309,15 +377,12 @@ func replaceFile(src, dst string) error {
 
 	renameErr := fmt.Errorf("replace destination: rename %q to %q: %w", src, dst, initialRenameErr)
 
-	if runtime.GOOS != osWindows {
-		return renameErr
-	}
-
 	backupPath, err := reserveBackupPath(dst)
 	if err != nil {
 		return errors.Join(renameErr, err)
 	}
 
+	//nolint:gosec // G304/G703: both paths are resolved inside the staged install flow.
 	moveToBackupErr := os.Rename(dst, backupPath)
 	if moveToBackupErr != nil {
 		if errors.Is(moveToBackupErr, os.ErrNotExist) {
@@ -334,6 +399,7 @@ func replaceFile(src, dst string) error {
 		)
 	}
 
+	//nolint:gosec // G304/G703: both paths are resolved inside the staged install flow.
 	if err := os.Rename(src, dst); err != nil {
 		restoreErr := os.Rename(backupPath, dst)
 		if restoreErr != nil {
@@ -345,11 +411,19 @@ func replaceFile(src, dst string) error {
 		return fmt.Errorf("replace destination: rename %q to %q: %w", src, dst, err)
 	}
 
-	if removeErr := os.Remove(backupPath); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
+	//nolint:gosec // G304/G703: backup paths are created within the staged install flow.
+	if removeErr := os.RemoveAll(backupPath); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
 		return fmt.Errorf("replace destination: remove backup %q: %w", backupPath, removeErr)
 	}
 
 	return nil
+}
+
+func isRetryableWindowsReplaceError(err error) bool {
+	if errors.Is(err, os.ErrPermission) {
+		return true
+	}
+	return strings.Contains(strings.ToLower(err.Error()), "access is denied")
 }
 
 func reserveBackupPath(dst string) (string, error) {
@@ -363,6 +437,7 @@ func reserveBackupPath(dst string) (string, error) {
 		return "", cleanupTempFile(backupPath, err)
 	}
 
+	//nolint:gosec // G304/G703: backup paths are created within the staged install flow.
 	if err := os.Remove(backupPath); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return "", fmt.Errorf("replace destination: prepare backup path %q: %w", backupPath, err)
 	}
@@ -373,6 +448,7 @@ func reserveBackupPath(dst string) (string, error) {
 func cleanupTempFile(path string, errs ...error) error {
 	joined := errors.Join(errs...)
 
+	//nolint:gosec // G304/G703: temp paths are created within the staged install flow.
 	if removeErr := os.Remove(path); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
 		return errors.Join(joined, fmt.Errorf("remove temp file %q: %w", path, removeErr))
 	}
@@ -382,42 +458,53 @@ func cleanupTempFile(path string, errs ...error) error {
 
 // PathInstructions returns platform-specific instructions for adding a directory to PATH.
 func PathInstructions(dir string) string {
-	switch runtime.GOOS {
-	case "linux":
-		return fmt.Sprintf(`Add %s to your PATH by adding this to your shell profile:
+	return pathInstructions(runtime.GOOS, dir)
+}
 
-  # For bash (~/.bashrc):
-  export PATH="$PATH:%s"
+func pathInstructions(goos, dir string) string {
+	switch goos {
+	case osutil.OSLinux:
+		return joinLines(
+			fmt.Sprintf("Add %s to your PATH by adding this to your shell profile:", dir),
+			"",
+			"  # For bash (~/.bashrc):",
+			fmt.Sprintf("  export PATH=\"$PATH:%s\"", dir),
+			"",
+			"  # For zsh (~/.zshrc):",
+			fmt.Sprintf("  export PATH=\"$PATH:%s\"", dir),
+			"",
+			"  # For fish (~/.config/fish/config.fish):",
+			"  fish_add_path "+dir,
+			"",
+			"Then restart your shell or run: source ~/.bashrc (or equivalent)",
+		)
 
-  # For zsh (~/.zshrc):
-  export PATH="$PATH:%s"
+	case osutil.OSDarwin:
+		return joinLines(
+			fmt.Sprintf("Add %s to your PATH by adding this to your shell profile:", dir),
+			"",
+			"  # For zsh (~/.zshrc) - default on macOS:",
+			fmt.Sprintf("  export PATH=\"$PATH:%s\"", dir),
+			"",
+			"  # For bash (~/.bash_profile):",
+			fmt.Sprintf("  export PATH=\"$PATH:%s\"", dir),
+			"",
+			"Then restart your shell or run: source ~/.zshrc",
+		)
 
-  # For fish (~/.config/fish/config.fish):
-  fish_add_path %s
-
-Then restart your shell or run: source ~/.bashrc (or equivalent)`, dir, dir, dir, dir)
-
-	case "darwin":
-		return fmt.Sprintf(`Add %s to your PATH by adding this to your shell profile:
-
-  # For zsh (~/.zshrc) - default on macOS:
-  export PATH="$PATH:%s"
-
-  # For bash (~/.bash_profile):
-  export PATH="$PATH:%s"
-
-Then restart your shell or run: source ~/.zshrc`, dir, dir, dir)
-
-	case osWindows:
-		return fmt.Sprintf(`Add %s to your PATH:
-
-  1. Open System Properties > Environment Variables
-  2. Under "User variables", select "Path" and click "Edit"
-  3. Click "New" and add: %s
-  4. Click OK and restart your terminal
-
-Or run this in PowerShell (as Administrator):
-  [Environment]::SetEnvironmentVariable("Path", $env:Path + ";%s", "User")`, dir, dir, dir)
+	case osutil.OSWindows:
+		displayDir := strings.TrimRight(dir, `\/`) + `\`
+		return joinLines(
+			fmt.Sprintf("Add %s to your PATH:", displayDir),
+			"",
+			"  1. Open System Properties > Environment Variables",
+			`  2. Under "User variables", select "Path" and click "Edit"`,
+			"  3. Click \"New\" and add: "+displayDir,
+			"  4. Click OK and restart your terminal",
+			"",
+			"Or run this in PowerShell (as Administrator):",
+			fmt.Sprintf(`  [Environment]::SetEnvironmentVariable("Path", $env:Path + ";%s", "User")`, displayDir),
+		)
 
 	default:
 		return fmt.Sprintf("Add %s to your PATH environment variable.", dir)

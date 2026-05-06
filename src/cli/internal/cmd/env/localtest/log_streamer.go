@@ -3,12 +3,13 @@ package localtest
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 	"sync"
 
 	"altinn.studio/devenv/pkg/container"
-	"altinn.studio/studioctl/internal/docker"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -18,23 +19,44 @@ const (
 )
 
 type logStreamer struct {
-	client container.ContainerClient
-	out    *ui.Output
+	client     container.ContainerClient
+	out        *ui.Output
+	containers []string
 }
 
-func newLogStreamer(client container.ContainerClient, out *ui.Output) *logStreamer {
+type logLine struct {
+	Component string `json:"component"`
+	Line      string `json:"line"`
+	Prefix    string `json:"-"`
+	JSON      bool   `json:"-"`
+}
+
+func (l logLine) Print(out *ui.Output) error {
+	if !l.JSON {
+		out.Println(l.Prefix + l.Line)
+		return nil
+	}
+
+	payload, err := json.Marshal(l)
+	if err != nil {
+		return fmt.Errorf("marshal log line json: %w", err)
+	}
+	out.Println(string(payload))
+	return nil
+}
+
+func newLogStreamer(client container.ContainerClient, out *ui.Output, containers []string) *logStreamer {
 	return &logStreamer{
-		client: client,
-		out:    out,
+		client:     client,
+		out:        out,
+		containers: containers,
 	}
 }
 
-func (s *logStreamer) Stream(ctx context.Context, component string, follow bool) error {
-	allContainers := AllContainerNames(true)
-
+func (s *logStreamer) Stream(ctx context.Context, component string, follow, jsonOutput bool) error {
 	var containers []string
 	if component != "" {
-		for _, name := range allContainers {
+		for _, name := range s.containers {
 			if name == component {
 				containers = []string{name}
 				break
@@ -42,15 +64,14 @@ func (s *logStreamer) Stream(ctx context.Context, component string, follow bool)
 		}
 		if len(containers) == 0 {
 			return fmt.Errorf(
-				"%w: %s (available: %s, %s, monitoring_*)",
+				"%w: %s (available: %s)",
 				ErrUnknownComponent,
 				component,
-				ContainerLocaltest,
-				ContainerPDF3,
+				strings.Join(s.containers, ", "),
 			)
 		}
 	} else {
-		containers = allContainers
+		containers = s.containers
 	}
 
 	var runningContainers []string
@@ -79,7 +100,7 @@ func (s *logStreamer) Stream(ctx context.Context, component string, follow bool)
 		}
 
 		wg.Add(1)
-		go s.streamContainerLogs(ctx, &wg, logs, name, i)
+		go s.streamContainerLogs(ctx, &wg, logs, name, i, jsonOutput)
 	}
 
 	wg.Wait()
@@ -92,6 +113,7 @@ func (s *logStreamer) streamContainerLogs(
 	logs io.ReadCloser,
 	name string,
 	colorIdx int,
+	jsonOutput bool,
 ) {
 	defer wg.Done()
 	defer func() {
@@ -111,8 +133,14 @@ func (s *logStreamer) streamContainerLogs(
 		case <-ctx.Done():
 			return
 		default:
-			line := docker.StripMultiplexedHeader(scanner.Text())
-			s.out.Println(prefix + line)
+			if err := (logLine{
+				Component: name,
+				Line:      scanner.Text(),
+				Prefix:    prefix,
+				JSON:      jsonOutput,
+			}).Print(s.out); err != nil {
+				s.out.Warningf("Failed to print log line for %s: %v", name, err)
+			}
 		}
 	}
 }

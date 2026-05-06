@@ -13,7 +13,6 @@ namespace Altinn.Studio.Designer.Repository.Implementation;
 public class ResourceRegistryRepository(
     PlatformSettings platformSettings,
     IMaskinportenService maskinPortenService,
-    IClientDefinition maskinportenClientDefinition,
     IOptions<ResourceRegistryIntegrationSettings> resourceRegistrySettings,
     IOptions<ResourceRegistryMaskinportenIntegrationSettings> maskinportenIntegrationSettings
 ) : IResourceRegistryRepository
@@ -24,8 +23,7 @@ public class ResourceRegistryRepository(
         bool includeAltinn2 = false
     )
     {
-        maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(env);
-        TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
+        TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten(GetMaskinportenIntegrationSettings(env));
 
         using (HttpClient httpClient = new HttpClient())
         {
@@ -52,15 +50,15 @@ public class ResourceRegistryRepository(
         return $"{GetResourceRegistryBaseUrl(env)}/resourcelist?includeApps={includeApps}&includeAltinn2={includeAltinn2}";
     }
 
-    private async Task<TokenResponse> GetBearerTokenFromMaskinporten()
+    private async Task<TokenResponse> GetBearerTokenFromMaskinporten(IMaskinportenSettings settings)
     {
         return await maskinPortenService.GetToken(
-            maskinportenClientDefinition.ClientSettings.EncodedJwk,
-            maskinportenClientDefinition.ClientSettings.Environment,
-            maskinportenClientDefinition.ClientSettings.ClientId,
-            maskinportenClientDefinition.ClientSettings.Scope,
-            maskinportenClientDefinition.ClientSettings.Resource,
-            maskinportenClientDefinition.ClientSettings.ConsumerOrgNo
+            settings.EncodedJwk,
+            settings.Environment,
+            settings.ClientId,
+            settings.Scope,
+            settings.Resource,
+            settings.ConsumerOrgNo
         );
     }
 

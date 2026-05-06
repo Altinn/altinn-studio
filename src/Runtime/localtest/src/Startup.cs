@@ -1,6 +1,7 @@
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
 
+using Altinn.Studio.EnvTopology;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
@@ -28,7 +29,6 @@ using LocalTest.Clients.CdnAltinnOrgs;
 using LocalTest.Configuration;
 using LocalTest.Filters;
 using LocalTest.Helpers;
-using LocalTest.Services.AppRegistry;
 using LocalTest.Services.LocalApp.Interface;
 using LocalTest.Services.TestData;
 using LocalTest.Notifications.LocalTestNotifications;
@@ -46,6 +46,7 @@ using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.Register.Implementation;
 using LocalTest.Services.Register.Interface;
 using LocalTest.Services.Storage.Implementation;
+using LocalTest.Tunnel;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.FileProviders;
@@ -81,6 +82,7 @@ namespace LocalTest
             services.Configure<Altinn.Common.PEP.Configuration.PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 
             services.Configure<LocalPlatformSettings>(Configuration.GetSection("LocalPlatformSettings"));
+            services.AddBoundTopology(Configuration);
             services.AddControllersWithViews();
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
@@ -203,19 +205,12 @@ namespace LocalTest
 
             services.AddDirectoryBrowser();
 
-            services.AddSingleton<AppRegistryService>();
-
-            // Access local app details depending on LocalAppMode ("file" or "http")
-            if ("http".Equals(Configuration["LocalPlatformSettings:LocalAppMode"], StringComparison.InvariantCultureIgnoreCase))
-            {
-                services.AddTransient<ILocalApp, LocalAppHttp>();
-            }
-            else
-            {
-                services.AddTransient<ILocalApp, LocalAppFile>();
-            }
+            services.AddTransient<ILocalApp, LocalAppHttp>();
 
             services.AddTransient<ILocalFrontendService, LocalFrontendService>();
+            services.AddSingleton<AppTunnelClient>();
+            services.AddSingleton<EnvProxy>();
+            services.AddSingleton<HostProxy>();
 
             services.AddHttpForwarder();
 
@@ -227,14 +222,9 @@ namespace LocalTest
             IApplicationBuilder app,
             IWebHostEnvironment env,
             IOptions<LocalPlatformSettings> localPlatformSettings,
-            AppRegistryService appRegistry,
             ILocalApp localApp,
             TestDataService testDataService)
         {
-            // Register cache invalidation callbacks
-            appRegistry.RegisterCacheInvalidationCallback(() => localApp.InvalidateTestDataCache());
-            appRegistry.RegisterCacheInvalidationCallback(() => testDataService.InvalidateCache());
-
             if (env.IsDevelopment() || env.IsEnvironment("docker") || env.IsEnvironment("podman"))
             {
                 app.UseDeveloperExceptionPage();
@@ -251,6 +241,7 @@ namespace LocalTest
 
             app.UseHealthChecks("/health");
             app.UseMiddleware<ProxyMiddleware>();
+            app.UseWebSockets();
 
             var storagePath = new DirectoryInfo(localPlatformSettings.Value.LocalTestingStorageBasePath);
             if (!storagePath.Exists)
@@ -278,6 +269,12 @@ namespace LocalTest
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.Map(Altinn.Studio.AppTunnel.TunnelDefaults.EndpointPath, async context =>
+                {
+                    var appTunnelClient = context.RequestServices.GetRequiredService<AppTunnelClient>();
+                    await appTunnelClient.Accept(context, context.RequestAborted);
+                });
+
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");

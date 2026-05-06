@@ -18,42 +18,40 @@ internal static class EngineRepositoryQueryExtensions
         public IQueryable<WorkflowEntity> GetActiveWorkflows(
             bool includeDependencies = true,
             bool includeLinks = true,
-            Guid? correlationIdFilter = null,
+            string? collectionKeyFilter = null,
             string? namespaceFilter = null,
             IReadOnlyDictionary<string, string>? labelFilter = null
         ) =>
             dbContext
                 .Workflows.IncludeRelatedEntities(steps: true, dependencies: includeDependencies, links: includeLinks)
-                .MaybeFilterByCorrelationId(correlationIdFilter)
+                .MaybeFilterByCollectionKey(collectionKeyFilter)
                 .MaybeFilterByNamespace(namespaceFilter)
                 .MaybeFilterByLabels(labelFilter)
                 .Where(wf => PersistentItemStatusMap.Incomplete.Contains(wf.Status))
-                .Where(wf => wf.StartAt == null || wf.StartAt <= DateTime.UtcNow)
-                .Where(wf => wf.Steps.Any(step => PersistentItemStatusMap.Incomplete.Contains(step.Status)));
+                .Where(wf => wf.StartAt == null || wf.StartAt <= DateTime.UtcNow);
 
         public IQueryable<WorkflowEntity> GetScheduledWorkflows(
             bool includeLinks = true,
-            Guid? correlationIdFilter = null,
+            string? collectionKeyFilter = null,
             string? namespaceFilter = null,
             IReadOnlyDictionary<string, string>? labelFilter = null
         ) =>
             dbContext
                 .Workflows.IncludeRelatedEntities(steps: true, dependencies: true, links: includeLinks)
-                .MaybeFilterByCorrelationId(correlationIdFilter)
+                .MaybeFilterByCollectionKey(collectionKeyFilter)
                 .MaybeFilterByNamespace(namespaceFilter)
                 .MaybeFilterByLabels(labelFilter)
                 .Where(wf => PersistentItemStatusMap.Incomplete.Contains(wf.Status))
                 .Where(wf =>
                     wf.StartAt > DateTime.UtcNow
                     || wf.Dependencies.Any(dep => PersistentItemStatusMap.Incomplete.Contains(dep.Status))
-                )
-                .Where(wf => wf.Steps.Any(step => PersistentItemStatusMap.Incomplete.Contains(step.Status)));
+                );
 
         public IQueryable<WorkflowEntity> GetFailedWorkflows(
             bool includeSteps = true,
             bool includeDependencies = true,
             bool includeLinks = true,
-            Guid? correlationIdFilter = null,
+            string? collectionKeyFilter = null,
             string? namespaceFilter = null,
             IReadOnlyDictionary<string, string>? labelFilter = null
         ) =>
@@ -63,7 +61,7 @@ internal static class EngineRepositoryQueryExtensions
                     dependencies: includeDependencies,
                     links: includeLinks
                 )
-                .MaybeFilterByCorrelationId(correlationIdFilter)
+                .MaybeFilterByCollectionKey(collectionKeyFilter)
                 .MaybeFilterByNamespace(namespaceFilter)
                 .MaybeFilterByLabels(labelFilter)
                 .Where(wf => PersistentItemStatusMap.Failed.Contains(wf.Status));
@@ -72,7 +70,7 @@ internal static class EngineRepositoryQueryExtensions
             bool includeSteps = true,
             bool includeDependencies = true,
             bool includeLinks = true,
-            Guid? correlationIdFilter = null,
+            string? collectionKeyFilter = null,
             string? namespaceFilter = null,
             IReadOnlyDictionary<string, string>? labelFilter = null
         ) =>
@@ -82,7 +80,7 @@ internal static class EngineRepositoryQueryExtensions
                     dependencies: includeDependencies,
                     links: includeLinks
                 )
-                .MaybeFilterByCorrelationId(correlationIdFilter)
+                .MaybeFilterByCollectionKey(collectionKeyFilter)
                 .MaybeFilterByNamespace(namespaceFilter)
                 .MaybeFilterByLabels(labelFilter)
                 .Where(wf => PersistentItemStatusMap.Successful.Contains(wf.Status));
@@ -90,11 +88,9 @@ internal static class EngineRepositoryQueryExtensions
         public IQueryable<WorkflowEntity> GetWorkflowsByStatus(
             IReadOnlyCollection<PersistentItemStatus> statuses,
             string? search = null,
-            int? take = null,
-            DateTimeOffset? before = null,
             DateTimeOffset? since = null,
             bool retriedOnly = false,
-            Guid? correlationIdFilter = null,
+            string? collectionKeyFilter = null,
             string? namespaceFilter = null,
             IReadOnlyDictionary<string, string>? labelFilter = null
         )
@@ -103,11 +99,8 @@ internal static class EngineRepositoryQueryExtensions
                 .Workflows.Include(j => j.Steps)
                 .MaybeFilterByNamespace(namespaceFilter)
                 .MaybeFilterByLabels(labelFilter)
-                .MaybeFilterByCorrelationId(correlationIdFilter)
+                .MaybeFilterByCollectionKey(collectionKeyFilter)
                 .Where(x => statuses.Contains(x.Status));
-
-            if (before.HasValue)
-                query = query.Where(x => x.UpdatedAt < before.Value);
 
             if (since.HasValue)
                 query = query.Where(x => x.UpdatedAt >= since.Value);
@@ -121,14 +114,9 @@ internal static class EngineRepositoryQueryExtensions
                     EF.Functions.ILike(x.Namespace, $"%{search}%")
                     || EF.Functions.ILike(x.OperationId, $"%{search}%")
                     || x.Steps.Any(st => EF.Functions.ILike(st.OperationId, $"%{search}%"))
-                    || (x.CorrelationId.HasValue && x.CorrelationId.Value.ToString().Contains(search))
+                    || (x.CollectionKey != null && EF.Functions.ILike(x.CollectionKey, $"%{search}%"))
                 );
             }
-
-            query = query.OrderByDescending(x => x.UpdatedAt);
-
-            if (take.HasValue)
-                query = query.Take(take.Value);
 
             return query;
         }
@@ -178,10 +166,10 @@ internal static class EngineRepositoryQueryExtensions
             return entityQuery;
         }
 
-        private IQueryable<WorkflowEntity> MaybeFilterByCorrelationId(Guid? correlationId)
+        private IQueryable<WorkflowEntity> MaybeFilterByCollectionKey(string? collectionKey)
         {
-            if (correlationId is not null)
-                entityQuery = entityQuery.Where(wf => wf.CorrelationId == correlationId.Value);
+            if (!string.IsNullOrWhiteSpace(collectionKey))
+                entityQuery = entityQuery.Where(wf => wf.CollectionKey == collectionKey);
 
             return entityQuery;
         }

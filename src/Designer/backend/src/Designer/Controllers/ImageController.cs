@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -82,7 +81,7 @@ public class ImageController : ControllerBase
     /// <returns>NotAnImage if url does not point at an image or NotValidUrl if url is invalid for any other reason</returns>
     [HttpGet("validate")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult> ValidateExternalImageUrl([FromQuery] string url)
+    public async Task<ActionResult> ValidateExternalImageUrl([FromQuery] string? url)
     {
         ImageUrlValidationResult imageUrlValidationResult = await _imageUrlValidationService.ValidateUrlAsync(url);
 
@@ -107,7 +106,7 @@ public class ImageController : ControllerBase
     public async Task<ActionResult> UploadImage(
         string org,
         string app,
-        [FromForm(Name = "file")] IFormFile image,
+        [FromForm(Name = "file")] IFormFile? image,
         [FromForm(Name = "overrideExisting")] bool overrideExisting = false
     )
     {

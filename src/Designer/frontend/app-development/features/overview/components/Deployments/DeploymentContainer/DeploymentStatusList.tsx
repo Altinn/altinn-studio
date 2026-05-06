@@ -43,7 +43,7 @@ export const DeploymentStatusList = ({
             lastPublishedDate={
               pipelineDeploymentEnvList.find(
                 (item) => item.tagName === kubernetesDeployment?.version,
-              )?.build.finished
+              )?.build?.finished
             }
             envName={orgEnvironment.name}
             isProduction={orgEnvironment.type.toLowerCase() === PROD_ENV_TYPE}

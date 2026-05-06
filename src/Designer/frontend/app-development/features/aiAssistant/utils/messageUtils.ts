@@ -1,8 +1,6 @@
 import type { AgentResponse, AssistantMessageData } from '@studio/assistant';
 import { ErrorMessages } from '@studio/assistant';
 
-// To do: Improve message formatting code.
-
 export function formatRejectionMessage(result: AgentResponse): string {
   const suggestions = result.parsed_intent?.suggestions
     ? 'Suggestions:\n' + result.parsed_intent.suggestions.join('\n')

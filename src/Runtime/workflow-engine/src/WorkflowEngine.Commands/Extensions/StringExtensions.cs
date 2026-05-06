@@ -3,6 +3,9 @@ using System.Text.RegularExpressions;
 
 namespace WorkflowEngine.Commands.Extensions;
 
+/// <summary>
+/// String helpers used by command handlers (lightweight templating and URI parsing).
+/// </summary>
 public static partial class StringExtensions
 {
     private static readonly Regex _curlyBracedWordPattern = CurlyBracedWordPattern();

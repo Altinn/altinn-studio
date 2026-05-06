@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 import { InputfieldsWithTranslation } from './InputfieldsWithTranslation';
 import type { InputfieldsWithTranslationProps } from './InputfieldsWithTranslation';
 import userEvent from '@testing-library/user-event';
@@ -40,6 +40,13 @@ describe('InputfieldsWithTranslation', () => {
       nb: value.nb + newText,
     });
   });
+
+  it('clears focus query param when switching language tab', async () => {
+    const user = userEvent.setup();
+    renderInputfieldsWithTranslation({ route: '/?focus=test-id-nb' });
+    await user.click(screen.getByRole('tab', { name: `${textMock('language.nn')} ${label}` }));
+    expect(getLocationSearch()).toBeEmptyDOMElement();
+  });
 });
 
 const label = textMock('label');
@@ -57,13 +64,27 @@ const defaultProps: InputfieldsWithTranslationProps = {
   required: true,
 };
 
-function renderInputfieldsWithTranslation(props: Partial<InputfieldsWithTranslationProps> = {}) {
+type RenderInputfieldsWithTranslationArgs = Partial<InputfieldsWithTranslationProps> & {
+  route?: string;
+};
+
+function renderInputfieldsWithTranslation({
+  route = '/',
+  ...props
+}: RenderInputfieldsWithTranslationArgs = {}) {
   return render(
-    <MemoryRouter initialEntries={['/']}>
+    <MemoryRouter initialEntries={[route]}>
       <InputfieldsWithTranslation {...defaultProps} {...props} />
+      <TestLocationSearch />
     </MemoryRouter>,
   );
 }
 
 const getTextbox = (name: string): HTMLInputElement => screen.getByRole('textbox', { name });
 const getText = (name: string): HTMLElement => screen.getByText(name);
+const getLocationSearch = (): HTMLElement => screen.getByTestId('location-search');
+
+function TestLocationSearch() {
+  const location = useLocation();
+  return <div data-testid='location-search'>{location.search}</div>;
+}

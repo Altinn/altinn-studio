@@ -18,8 +18,3 @@ export const useAllowAnonymous = () => {
 
   return false;
 };
-
-export const useIsAllowAnonymous = (compareWith: boolean) => {
-  const allowAnonymous = useAllowAnonymous();
-  return allowAnonymous === compareWith;
-};

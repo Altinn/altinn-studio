@@ -9,16 +9,31 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 
+	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
 )
+
+// IsTruthyEnv reports whether an environment variable value is enabled.
+func IsTruthyEnv(value string) bool {
+	return value == "1" || strings.EqualFold(value, "true")
+}
+
+// IsCI reports whether the process is running in CI.
+func IsCI() bool {
+	return IsTruthyEnv(os.Getenv(EnvCI))
+}
 
 //go:embed config.yaml
 var embeddedConfig []byte
 
 const (
+	// EnvCI is the common CI marker used by GitHub Actions and other CI systems.
+	EnvCI = "CI"
+
 	// AppName is the application name used for platform-specific directories.
 	AppName = "altinn-studio"
 
@@ -31,9 +46,17 @@ const (
 	// EnvInternalDevMode enables local internal dev image mode.
 	EnvInternalDevMode = "STUDIOCTL_INTERNAL_DEV"
 
+	// EnvRegistryCacheWrite enables pushing BuildKit registry cache entries.
+	EnvRegistryCacheWrite = "STUDIOCTL_REGISTRY_CACHE_WRITE"
+
 	// EnvResourcesTarball overrides resource install source with a local tarball path.
 	// Intended for development/tooling, not normal end-user flows.
 	EnvResourcesTarball = "STUDIOCTL_RESOURCES_TARBALL"
+
+	// EnvAppManagerBinary overrides app-manager install source with a local payload path.
+	// The payload may be a published directory, a tar.gz archive, or a legacy single binary.
+	// Intended for development/tooling, not normal end-user flows.
+	EnvAppManagerBinary = "STUDIOCTL_APP_MANAGER_BINARY"
 )
 
 // Sentinel errors for configuration validation.
@@ -51,7 +74,7 @@ type Config struct {
 	SocketDir string       // Directory for Unix domain sockets
 	LogDir    string       // Directory for log files
 	DataDir   string       // Directory for container volumes
-	BinDir    string       // Directory for binaries (app-manager)
+	BinDir    string       // Directory for binaries and installed payloads
 	Images    ImagesConfig // Container image configuration
 	Version   string       // Build version (embedded at build time)
 	Verbose   bool         // Verbose output (-v)
@@ -103,15 +126,7 @@ func NewDoctorFallback(flags Flags, version string) (*Config, error) {
 		return nil, fmt.Errorf("load embedded defaults: %w", err)
 	}
 
-	images := defaults.Images
-	if images.Utility.Busybox.Image == "" {
-		images.Utility.Busybox = ImageSpec{
-			Image: "busybox",
-			Tag:   "stable",
-		}
-	}
-
-	return newResolvedConfig(flags, version, home, socketDir, images, false)
+	return newResolvedConfig(flags, version, home, socketDir, defaults.Images, false)
 }
 
 func newResolvedConfig(
@@ -198,19 +213,59 @@ func (c *Config) AppManagerSocketPath() string {
 	return filepath.Join(c.SocketDir, "app-manager.sock")
 }
 
-// AppManagerPIDPath returns the path to the app-manager PID file.
+// AppManagerPIDPath returns the path to the persisted app-manager runtime state file.
 func (c *Config) AppManagerPIDPath() string {
 	return filepath.Join(c.Home, "app-manager.pid")
+}
+
+// AppManagerLockPath returns the path to the app-manager lifecycle lock file.
+func (c *Config) AppManagerLockPath() string {
+	return filepath.Join(c.SocketDir, "app-manager.lock")
+}
+
+// AppManagerLogDir returns the directory containing app-manager log files.
+func (c *Config) AppManagerLogDir() string {
+	return filepath.Join(c.LogDir, "app-manager")
+}
+
+// AppLogsDir returns the directory containing app log directories.
+func (c *Config) AppLogsDir() string {
+	return filepath.Join(c.LogDir, "apps")
+}
+
+// AppLogDir returns the directory containing logs for one app.
+func (c *Config) AppLogDir(appID string) string {
+	return filepath.Join(c.AppLogsDir(), appID)
 }
 
 // AppManagerBinaryPath returns the path to the app-manager binary.
 // On Windows, the .exe suffix is automatically appended.
 func (c *Config) AppManagerBinaryPath() string {
 	name := "app-manager"
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == osutil.OSWindows {
 		name += ".exe"
 	}
-	return filepath.Join(c.BinDir, name)
+	return filepath.Join(c.AppManagerInstallDir(), name)
+}
+
+// AppManagerInstallDir returns the directory containing the installed app-manager payload.
+func (c *Config) AppManagerInstallDir() string {
+	return filepath.Join(c.BinDir, "app-manager")
+}
+
+// BoundTopologyConfigDir returns the directory containing generated bound topology files.
+func (c *Config) BoundTopologyConfigDir() string {
+	return filepath.Join(c.DataDir, envtopology.BoundTopologyConfigDirName)
+}
+
+// BoundTopologyConfigPath returns the path to the generated bound topology.
+func (c *Config) BoundTopologyConfigPath() string {
+	return filepath.Join(c.BoundTopologyConfigDir(), envtopology.BoundTopologyConfigFileName)
+}
+
+// BoundTopologyBaseConfigPath returns the path to the generated base topology.
+func (c *Config) BoundTopologyBaseConfigPath() string {
+	return filepath.Join(c.BoundTopologyConfigDir(), envtopology.BoundTopologyBaseConfigFileName)
 }
 
 // persistedConfigPath returns the path to the optional user override file.
@@ -263,8 +318,11 @@ func (s ImageSpec) Ref() string {
 
 // CoreImages holds image configuration for core studioctl containers.
 type CoreImages struct {
-	Localtest ImageSpec `yaml:"localtest"`
-	PDF3      ImageSpec `yaml:"pdf3"`
+	Localtest        ImageSpec `yaml:"localtest"`
+	PDF3             ImageSpec `yaml:"pdf3"`
+	WorkflowEngineDb ImageSpec `yaml:"workflow-engine-db"` //nolint:tagliatelle // kebab-case for YAML consistency
+	WorkflowEngine   ImageSpec `yaml:"workflow-engine"`    //nolint:tagliatelle // kebab-case for YAML consistency
+	PgAdmin          ImageSpec `yaml:"pgadmin"`
 }
 
 // MonitoringImages holds image configuration for monitoring stack containers.
@@ -276,16 +334,10 @@ type MonitoringImages struct {
 	Grafana       ImageSpec `yaml:"grafana"`
 }
 
-// UtilityImages holds image configuration for utility containers.
-type UtilityImages struct {
-	Busybox ImageSpec `yaml:"busybox"`
-}
-
 // ImagesConfig holds all image configuration grouped by purpose.
 type ImagesConfig struct {
 	Core       CoreImages       `yaml:"core"`
 	Monitoring MonitoringImages `yaml:"monitoring"`
-	Utility    UtilityImages    `yaml:"utility"`
 }
 
 // PersistedConfig is the root structure for the optional user override file.
@@ -362,6 +414,15 @@ func merge(defaults, user PersistedConfig) PersistedConfig {
 	// Core images
 	result.Images.Core.Localtest = mergeImageSpec(defaults.Images.Core.Localtest, user.Images.Core.Localtest)
 	result.Images.Core.PDF3 = mergeImageSpec(defaults.Images.Core.PDF3, user.Images.Core.PDF3)
+	result.Images.Core.WorkflowEngineDb = mergeImageSpec(
+		defaults.Images.Core.WorkflowEngineDb,
+		user.Images.Core.WorkflowEngineDb,
+	)
+	result.Images.Core.WorkflowEngine = mergeImageSpec(
+		defaults.Images.Core.WorkflowEngine,
+		user.Images.Core.WorkflowEngine,
+	)
+	result.Images.Core.PgAdmin = mergeImageSpec(defaults.Images.Core.PgAdmin, user.Images.Core.PgAdmin)
 
 	// Monitoring images
 	result.Images.Monitoring.Tempo = mergeImageSpec(defaults.Images.Monitoring.Tempo, user.Images.Monitoring.Tempo)
@@ -375,9 +436,6 @@ func merge(defaults, user PersistedConfig) PersistedConfig {
 		defaults.Images.Monitoring.Grafana,
 		user.Images.Monitoring.Grafana,
 	)
-
-	// Utility images
-	result.Images.Utility.Busybox = mergeImageSpec(defaults.Images.Utility.Busybox, user.Images.Utility.Busybox)
 
 	return result
 }

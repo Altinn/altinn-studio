@@ -17,6 +17,7 @@ import {
 } from '@studio/components';
 import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValidationQuery';
 import { AppValidationDialog } from 'app-shared/components/AppValidationDialog/AppValidationDialog';
+import { appHasCriticalValidationErrors } from 'app-shared/utils/appValidationUtils';
 
 export function CreateRelease() {
   const { org, app } = useStudioEnvironmentParams();
@@ -47,15 +48,32 @@ export function CreateRelease() {
     }
   };
 
+  const appHasCriticalErrors = appHasCriticalValidationErrors(
+    Object.keys(appValidationResult?.errors ?? {}),
+  );
   const validVersionName = tagName && versionNameValid(releases, tagName);
   const canBuild = validVersionName;
   return (
     <div className={classes.createReleaseForm}>
-      {appValidationResult?.isValid === false && (
-        <StudioAlert data-color='warning'>
-          <StudioHeading data-size='xs'>{t('app_create_release.warning')}</StudioHeading>
+      {appValidationResult?.isValid === false && appHasCriticalErrors && (
+        <StudioAlert data-color='danger'>
+          <StudioHeading data-size='xs'>{t('app_create_release.validation_errors')}</StudioHeading>
           <StudioDialog.TriggerContext>
-            <Trans i18nKey='app_create_release.warning_message'>
+            <Trans i18nKey='app_create_release.validation_error_message'>
+              <StudioDialog.Trigger
+                className={classes.validationDialogTrigger}
+                variant='tertiary'
+              ></StudioDialog.Trigger>
+            </Trans>
+            <AppValidationDialog />
+          </StudioDialog.TriggerContext>
+        </StudioAlert>
+      )}
+      {appValidationResult?.isValid === false && !appHasCriticalErrors && (
+        <StudioAlert data-color='warning'>
+          <StudioHeading data-size='xs'>{t('app_create_release.validation_warning')}</StudioHeading>
+          <StudioDialog.TriggerContext>
+            <Trans i18nKey='app_create_release.validation_warning_message'>
               <StudioDialog.Trigger
                 className={classes.validationDialogTrigger}
                 variant='tertiary'

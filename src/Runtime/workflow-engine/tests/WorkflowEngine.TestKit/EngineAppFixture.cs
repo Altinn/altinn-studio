@@ -26,7 +26,7 @@ public abstract class EngineAppFixture : IAsyncLifetime
     public const string DefaultApp = "e2e-tests";
     public const string DefaultPartyId = "50001";
     public static readonly Guid DefaultInstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
-    public static readonly Guid DefaultCorrelationId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc");
+    public const string DefaultCollectionKey = "cccccccc-cccc-cccc-cccc-cccccccccccc";
 
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:18").Build();
     private int _wireMockPort;
@@ -128,7 +128,7 @@ public abstract class EngineAppFixture : IAsyncLifetime
         await WaitForDbIdle();
 
         await using var context = GetDbContext();
-        await context.Database.ExecuteSqlRawAsync("""TRUNCATE "engine"."Workflows", "engine"."Steps" CASCADE""");
+        await context.Database.ExecuteSqlRawAsync("TRUNCATE engine.workflows, engine.steps CASCADE");
 
         // Start a fresh instance of WireMock, recycling the port (which has already been sent to the factory)
         WireMock = WireMockServer.Start(port: _wireMockPort);

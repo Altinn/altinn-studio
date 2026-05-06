@@ -157,7 +157,7 @@ public interface ICommand
     Type? WorkflowContextType { get; }    // typed workflow context
 
     CommandValidationResult Validate(object? data, object? context);
-    Task<ExecutionResult> ExecuteAsync(CommandExecutionContext context, CancellationToken ct);
+    Task<ExecutionResult> Execute(CommandExecutionContext context, CancellationToken ct);
 }
 ```
 
@@ -249,10 +249,10 @@ When `ActiveWorkflowCount` ≥ `BackpressureThreshold` (default: 500,000), the e
 
 If a worker crashes mid-processing, the `HeartbeatService` enables recovery:
 
-1. Workers update `HeartbeatAt` for all in-flight workflows on a regular interval (default: 3s)
-2. The processor detects stale workflows where the heartbeat has expired (default threshold: 15s)
+1. Workers update `HeartbeatAt` for all in-flight workflows on a regular interval (default: 10s)
+2. The processor detects stale workflows where the heartbeat has expired (default threshold: 30s)
 3. Stale workflows are reclaimed — reset to `Enqueued` and retried
-4. After `MaxReclaimCount` (default: 3) reclaim attempts, the workflow is marked `Failed`
+4. After `MaxReclaimCount` (default: 5) reclaim attempts, the workflow is marked `Failed`
 
 This enables safe horizontal scaling: if Instance A crashes, Instance B reclaims its work.
 
@@ -354,15 +354,13 @@ Real-time monitoring UI (vanilla JS, no build step), embedded in `WorkflowEngine
 ### Enqueue Workflows
 
 ```
-POST /api/v1/{namespace}/workflows
+POST /api/v1/{namespace}/workflows?idempotencyKey=process-next-abc123&collectionKey=a1b2c3d4-e5f6-7890-abcd-ef1234567890
 ```
 
 **Request:**
 
 ```json
 {
-    "idempotencyKey": "process-next-abc123",
-    "correlationId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
     "labels": {
         "org": "ttd",
         "app": "my-app",
@@ -455,7 +453,7 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
 ```json
 {
     "databaseId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-    "correlationId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "collectionKey": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
     "operationId": "process-task-2",
     "idempotencyKey": "process-next-abc123",
     "namespace": "ttd:my-app",
@@ -514,10 +512,10 @@ Filter by labels:
 GET /api/v1/ttd:my-app/workflows?labels.org=ttd&labels.app=my-app
 ```
 
-Find all workflows for a specific instance via correlationId (instanceGuid):
+Find all workflows for a specific collection via collectionKey:
 
 ```http
-GET /api/v1/ttd:my-app/workflows?correlationId=a1b2c3d4-e5f6-7890-abcd-ef1234567890
+GET /api/v1/ttd:my-app/workflows?collectionKey=a1b2c3d4-e5f6-7890-abcd-ef1234567890
 ```
 
 Or combine filters — e.g. all workflows for a specific instance owner:
@@ -587,16 +585,16 @@ All via `EngineSettings` (bound from `appsettings.json`):
 | `MaxWorkflowsPerRequest`    | —                        | Max workflows in a single enqueue call |
 | `MaxStepsPerWorkflow`       | —                        | Max steps per workflow                 |
 | `MaxLabels`                 | —                        | Max label key-value pairs              |
-| `DefaultStepCommandTimeout` | 30s                      | Per-step execution timeout             |
+| `DefaultStepCommandTimeout` | 100s                     | Per-step execution timeout             |
 | `DefaultStepRetryStrategy`  | Exponential(1s, 5m, 24h) | Default retry strategy                 |
 
 ### Heartbeat & Recovery
 
 | Setting                       | Default | Description                                |
 | ----------------------------- | ------- | ------------------------------------------ |
-| `HeartbeatInterval`           | 3s      | Worker liveness proof interval             |
-| `StaleWorkflowThreshold`      | 15s     | Time before a workflow is considered stale |
-| `MaxReclaimCount`             | 3       | Reclaim attempts before marking as failed  |
+| `HeartbeatInterval`           | 10s     | Worker liveness proof interval             |
+| `StaleWorkflowThreshold`      | 30s     | Time before a workflow is considered stale |
+| `MaxReclaimCount`             | 5       | Reclaim attempts before marking as failed  |
 | `CancellationWatcherInterval` | 2s      | Cross-pod cancellation poll interval       |
 
 ### Concurrency
@@ -613,8 +611,8 @@ All via `EngineSettings` (bound from `appsettings.json`):
 | Setting                        | Default | Description                |
 | ------------------------------ | ------- | -------------------------- |
 | `WriteBuffer.MaxBatchSize`     | 100     | Workflows per batch insert |
-| `WriteBuffer.MaxQueueSize`     | 1,000   | Channel buffer size        |
-| `WriteBuffer.FlushConcurrency` | 4       | Concurrent batch flushers  |
+| `WriteBuffer.MaxQueueSize`     | 10,000  | Channel buffer size        |
+| `WriteBuffer.FlushConcurrency` | 10      | Concurrent batch flushers  |
 
 ## Testing
 
@@ -684,7 +682,7 @@ public sealed class MyCommand : Command<MyCommandData>
         return CommandValidationResult.Valid();
     }
 
-    public override async Task<ExecutionResult> ExecuteAsync(
+    public override async Task<ExecutionResult> Execute(
         CommandExecutionContext context, CancellationToken ct)
     {
         var response = await httpClient.PostAsync(data.Target, content, ct);
@@ -755,7 +753,7 @@ AppCommand reads `{ "state": "..." }` from the response body and stores it as `s
 {
     "AppCommandSettings": {
         "ApiKey": "your-api-key",
-        "CommandEndpoint": "http://host/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/process-engine-callbacks"
+        "CommandEndpoint": "http://host/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks"
     }
 }
 ```

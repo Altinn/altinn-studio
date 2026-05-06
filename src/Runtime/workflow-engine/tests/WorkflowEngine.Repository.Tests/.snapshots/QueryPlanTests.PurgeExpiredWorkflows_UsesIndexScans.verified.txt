@@ -5,8 +5,8 @@
       Operation: Delete,
       Parallel Aware: {Scrubbed},
       Async Capable: {Scrubbed},
-      Relation Name: Workflows,
-      Alias: Workflows,
+      Relation Name: workflows,
+      Alias: workflows,
       Startup Cost: {Scrubbed},
       Total Cost: {Scrubbed},
       Plan Rows: {Scrubbed},
@@ -39,7 +39,7 @@
               Plan Width: {Scrubbed},
               Disabled: false,
               Group Key: [
-                "ANY_subquery"."Id"
+                "ANY_subquery".id
               ],
               Planned Partitions: 0,
               Plans: [
@@ -109,16 +109,16 @@
                                       Parallel Aware: {Scrubbed},
                                       Async Capable: {Scrubbed},
                                       Scan Direction: Forward,
-                                      Index Name: IX_Workflows_UpdatedAt,
-                                      Relation Name: Workflows,
+                                      Index Name: ix_workflows_updated_at,
+                                      Relation Name: workflows,
                                       Alias: w,
                                       Startup Cost: {Scrubbed},
                                       Total Cost: {Scrubbed},
                                       Plan Rows: {Scrubbed},
                                       Plan Width: {Scrubbed},
                                       Disabled: false,
-                                      Index Cond: ("UpdatedAt" < '2026-02-17 12:00:00+00'::timestamp with time zone),
-                                      Filter: ("Status" = ANY ('{3,4,5,6}'::integer[]))
+                                      Index Cond: (updated_at < '2026-02-17 12:00:00+00'::timestamp with time zone),
+                                      Filter: (status = ANY ('{3,4,5,6}'::integer[]))
                                     },
                                     {
                                       Node Type: Nested Loop,
@@ -138,27 +138,27 @@
                                           Parent Relationship: Outer,
                                           Parallel Aware: {Scrubbed},
                                           Async Capable: {Scrubbed},
-                                          Relation Name: WorkflowLink,
+                                          Relation Name: workflow_link,
                                           Alias: lnk,
                                           Startup Cost: {Scrubbed},
                                           Total Cost: {Scrubbed},
                                           Plan Rows: {Scrubbed},
                                           Plan Width: {Scrubbed},
                                           Disabled: false,
-                                          Recheck Cond: ("LinkedWorkflowId" = w."Id"),
+                                          Recheck Cond: (linked_workflow_id = w.id),
                                           Plans: [
                                             {
                                               Node Type: Bitmap Index Scan,
                                               Parent Relationship: Outer,
                                               Parallel Aware: {Scrubbed},
                                               Async Capable: {Scrubbed},
-                                              Index Name: IX_WorkflowLink_LinkedWorkflowId,
+                                              Index Name: ix_workflow_link_linked_workflow_id,
                                               Startup Cost: {Scrubbed},
                                               Total Cost: {Scrubbed},
                                               Plan Rows: {Scrubbed},
                                               Plan Width: {Scrubbed},
                                               Disabled: false,
-                                              Index Cond: ("LinkedWorkflowId" = w."Id")
+                                              Index Cond: (linked_workflow_id = w.id)
                                             }
                                           ]
                                         },
@@ -168,16 +168,16 @@
                                           Parallel Aware: {Scrubbed},
                                           Async Capable: {Scrubbed},
                                           Scan Direction: Forward,
-                                          Index Name: PK_Workflows,
-                                          Relation Name: Workflows,
+                                          Index Name: pk_workflows,
+                                          Relation Name: workflows,
                                           Alias: l,
                                           Startup Cost: {Scrubbed},
                                           Total Cost: {Scrubbed},
                                           Plan Rows: {Scrubbed},
                                           Plan Width: {Scrubbed},
                                           Disabled: false,
-                                          Index Cond: ("Id" = lnk."WorkflowId"),
-                                          Filter: (("Status" = ANY ('{0,1,2}'::integer[])) OR ("UpdatedAt" >= '2026-02-17 12:00:00+00'::timestamp with time zone))
+                                          Index Cond: (id = lnk.workflow_id),
+                                          Filter: ((status = ANY ('{0,1,2}'::integer[])) OR (updated_at >= '2026-02-17 12:00:00+00'::timestamp with time zone))
                                         }
                                       ]
                                     }
@@ -201,27 +201,27 @@
                                       Parent Relationship: Outer,
                                       Parallel Aware: {Scrubbed},
                                       Async Capable: {Scrubbed},
-                                      Relation Name: WorkflowDependency,
+                                      Relation Name: workflow_dependency,
                                       Alias: dep,
                                       Startup Cost: {Scrubbed},
                                       Total Cost: {Scrubbed},
                                       Plan Rows: {Scrubbed},
                                       Plan Width: {Scrubbed},
                                       Disabled: false,
-                                      Recheck Cond: ("DependsOnWorkflowId" = w."Id"),
+                                      Recheck Cond: (depends_on_workflow_id = w.id),
                                       Plans: [
                                         {
                                           Node Type: Bitmap Index Scan,
                                           Parent Relationship: Outer,
                                           Parallel Aware: {Scrubbed},
                                           Async Capable: {Scrubbed},
-                                          Index Name: IX_WorkflowDependency_DependsOnWorkflowId,
+                                          Index Name: ix_workflow_dependency_depends_on_workflow_id,
                                           Startup Cost: {Scrubbed},
                                           Total Cost: {Scrubbed},
                                           Plan Rows: {Scrubbed},
                                           Plan Width: {Scrubbed},
                                           Disabled: false,
-                                          Index Cond: ("DependsOnWorkflowId" = w."Id")
+                                          Index Cond: (depends_on_workflow_id = w.id)
                                         }
                                       ]
                                     },
@@ -231,16 +231,16 @@
                                       Parallel Aware: {Scrubbed},
                                       Async Capable: {Scrubbed},
                                       Scan Direction: Forward,
-                                      Index Name: PK_Workflows,
-                                      Relation Name: Workflows,
+                                      Index Name: pk_workflows,
+                                      Relation Name: workflows,
                                       Alias: d,
                                       Startup Cost: {Scrubbed},
                                       Total Cost: {Scrubbed},
                                       Plan Rows: {Scrubbed},
                                       Plan Width: {Scrubbed},
                                       Disabled: false,
-                                      Index Cond: ("Id" = dep."WorkflowId"),
-                                      Filter: (("Status" = ANY ('{0,1,2}'::integer[])) OR ("UpdatedAt" >= '2026-02-17 12:00:00+00'::timestamp with time zone))
+                                      Index Cond: (id = dep.workflow_id),
+                                      Filter: ((status = ANY ('{0,1,2}'::integer[])) OR (updated_at >= '2026-02-17 12:00:00+00'::timestamp with time zone))
                                     }
                                   ]
                                 }
@@ -260,15 +260,15 @@
               Parallel Aware: {Scrubbed},
               Async Capable: {Scrubbed},
               Scan Direction: Forward,
-              Index Name: PK_Workflows,
-              Relation Name: Workflows,
-              Alias: Workflows,
+              Index Name: pk_workflows,
+              Relation Name: workflows,
+              Alias: workflows,
               Startup Cost: {Scrubbed},
               Total Cost: {Scrubbed},
               Plan Rows: {Scrubbed},
               Plan Width: {Scrubbed},
               Disabled: false,
-              Index Cond: ("Id" = "ANY_subquery"."Id")
+              Index Cond: (id = "ANY_subquery".id)
             }
           ]
         }

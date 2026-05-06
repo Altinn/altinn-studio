@@ -1201,64 +1201,190 @@ body {
 }
 
 /* ── Error history ───────────────────────────────────────── */
-.error-history { margin-bottom: 16px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.error-history {
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+}
 .error-history-header {
-    padding: 8px 12px; font-size: 12px; font-weight: 700; color: var(--red); cursor: pointer;
-    background: rgba(var(--red-rgb), 0.06); display: flex; align-items: center; gap: 6px;
-    user-select: none; transition: background 0.15s;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--red);
+    cursor: pointer;
+    background: rgba(var(--red-rgb), 0.06);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+    transition: background 0.15s;
 }
-.error-history-header:hover { background: rgba(var(--red-rgb), 0.1); }
-.error-history-chevron { display: inline-block; transition: transform 0.2s; font-size: 14px; }
-.error-history.expanded .error-history-chevron { transform: rotate(90deg); }
-.error-history-list { display: none; height: 300px; overflow-y: auto; }
-.error-history.expanded .error-history-list { display: block; }
-.error-entry { padding: 10px 12px; border-top: 1px solid var(--border); font-size: 12px; }
-.error-entry-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.error-history-header:hover {
+    background: rgba(var(--red-rgb), 0.1);
+}
+.error-history-chevron {
+    display: inline-block;
+    transition: transform 0.2s;
+    font-size: 14px;
+}
+.error-history.expanded .error-history-chevron {
+    transform: rotate(90deg);
+}
+.error-history-list {
+    display: none;
+    height: 300px;
+    overflow-y: auto;
+}
+.error-history.expanded .error-history-list {
+    display: block;
+}
+.error-entry {
+    padding: 10px 12px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+}
+.error-entry-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
 .error-entry-badge {
-    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
-    padding: 2px 6px; border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 6px;
+    border-radius: 4px;
 }
-.error-entry-badge.retryable { color: var(--orange); background: rgba(var(--orange-rgb), 0.1); border: 1px solid rgba(var(--orange-rgb), 0.3); }
-.error-entry-badge.non-retryable { color: var(--red); background: rgba(var(--red-rgb), 0.1); border: 1px solid rgba(var(--red-rgb), 0.3); }
-.error-entry-time { font-size: 11px; color: var(--text-dim); }
-.error-entry-message { color: var(--text); line-height: 1.5; word-break: break-word; }
+.error-entry-badge.retryable {
+    color: var(--orange);
+    background: rgba(var(--orange-rgb), 0.1);
+    border: 1px solid rgba(var(--orange-rgb), 0.3);
+}
+.error-entry-badge.non-retryable {
+    color: var(--red);
+    background: rgba(var(--red-rgb), 0.1);
+    border: 1px solid rgba(var(--red-rgb), 0.3);
+}
+.error-entry-time {
+    font-size: 11px;
+    color: var(--text-dim);
+}
+.error-entry-message {
+    color: var(--text);
+    line-height: 1.5;
+    word-break: break-word;
+}
 
 /* ── Retry / skip-backoff action badges (inline in status row) */
 .step-retry-badge {
-    font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; cursor: pointer;
-    background: rgba(var(--orange-rgb), 0.1); color: var(--orange);
-    border: 1px solid rgba(var(--orange-rgb), 0.3); transition: all 0.15s; white-space: nowrap;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    background: rgba(var(--orange-rgb), 0.1);
+    color: var(--orange);
+    border: 1px solid rgba(var(--orange-rgb), 0.3);
+    transition: all 0.15s;
+    white-space: nowrap;
 }
-.step-retry-badge:hover { background: rgba(var(--orange-rgb), 0.2); border-color: var(--orange); }
-.step-retry-badge[disabled] { opacity: 0.5; cursor: not-allowed; }
-.retry-success { color: var(--green) !important; border-color: var(--green) !important; background: rgba(var(--green-rgb), 0.1) !important; }
-.retry-failed, .skip-failed { color: var(--red) !important; border-color: var(--red) !important; background: rgba(var(--red-rgb), 0.1) !important; }
-.skip-success { color: var(--green) !important; border-color: var(--green) !important; }
+.step-retry-badge:hover {
+    background: rgba(var(--orange-rgb), 0.2);
+    border-color: var(--orange);
+}
+.step-retry-badge[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.retry-success {
+    color: var(--green) !important;
+    border-color: var(--green) !important;
+    background: rgba(var(--green-rgb), 0.1) !important;
+}
+.retry-failed,
+.skip-failed {
+    color: var(--red) !important;
+    border-color: var(--red) !important;
+    background: rgba(var(--red-rgb), 0.1) !important;
+}
+.skip-success {
+    color: var(--green) !important;
+    border-color: var(--green) !important;
+}
 
 /* ── Card retry button ───────────────────────────────────── */
 .retry-btn {
-    background: rgba(var(--orange-rgb), 0.1); color: var(--orange); border: 1px solid rgba(var(--orange-rgb), 0.3);
-    font-family: var(--font); font-size: 11px; font-weight: 700;
-    padding: 2px 8px; border-radius: 4px; cursor: pointer; transition: all 0.15s;
-    white-space: nowrap; margin-top: 4px;
+    background: rgba(var(--orange-rgb), 0.1);
+    color: var(--orange);
+    border: 1px solid rgba(var(--orange-rgb), 0.3);
+    font-family: var(--font);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    margin-top: 4px;
 }
-.retry-btn:hover { background: rgba(var(--orange-rgb), 0.2); border-color: var(--orange); }
-.retry-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.retry-btn.retry-success { color: var(--green); border-color: var(--green); background: rgba(var(--green-rgb), 0.1); }
-.retry-btn.retry-failed { color: var(--red); border-color: var(--red); background: rgba(var(--red-rgb), 0.1); }
-.compact-retry { padding: 1px 5px; font-size: 10px; }
+.retry-btn:hover {
+    background: rgba(var(--orange-rgb), 0.2);
+    border-color: var(--orange);
+}
+.retry-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.retry-btn.retry-success {
+    color: var(--green);
+    border-color: var(--green);
+    background: rgba(var(--green-rgb), 0.1);
+}
+.retry-btn.retry-failed {
+    color: var(--red);
+    border-color: var(--red);
+    background: rgba(var(--red-rgb), 0.1);
+}
+.compact-retry {
+    padding: 1px 5px;
+    font-size: 10px;
+}
 
 /* ── Skip backoff button (on step pipeline) ─────────────── */
 .skip-backoff-btn {
-    background: none; color: var(--orange); border: 1px solid rgba(var(--orange-rgb), 0.3);
-    font-family: var(--font); font-size: 10px; font-weight: 600;
-    padding: 1px 6px; border-radius: 3px; cursor: pointer; transition: all 0.15s;
-    text-transform: uppercase; letter-spacing: 0.3px; margin-top: 4px;
+    background: none;
+    color: var(--orange);
+    border: 1px solid rgba(var(--orange-rgb), 0.3);
+    font-family: var(--font);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-top: 4px;
 }
-.skip-backoff-btn:hover { background: rgba(var(--orange-rgb), 0.1); border-color: var(--orange); }
-.skip-backoff-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.skip-backoff-btn.skip-success { color: var(--green); border-color: var(--green); }
-.skip-backoff-btn.skip-failed { color: var(--red); border-color: var(--red); }
+.skip-backoff-btn:hover {
+    background: rgba(var(--orange-rgb), 0.1);
+    border-color: var(--orange);
+}
+.skip-backoff-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.skip-backoff-btn.skip-success {
+    color: var(--green);
+    border-color: var(--green);
+}
+.skip-backoff-btn.skip-failed {
+    color: var(--red);
+    border-color: var(--red);
+}
 
 /* ── Step command-type badges ─────────────────────────────── */
 .step-type {

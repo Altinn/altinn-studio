@@ -12,7 +12,19 @@ import (
 // NewTable creates the wide interactive table renderer.
 func NewTable(out *ui.Output, resources []resource.Resource, operation Operation) *TableRenderer {
 	return &TableRenderer{
-		screenRenderer: newScreenRenderer(out, resources, operation, tableLayout{}),
+		screenRenderer: newScreenRenderer(out, resources, operation, nil, tableLayout{}),
+	}
+}
+
+// NewTableWithPlan creates the wide interactive table renderer from planned resources.
+func NewTableWithPlan(
+	out *ui.Output,
+	resources []resource.PlannedResource,
+	operation Operation,
+	statuses map[resource.ResourceID]resource.Status,
+) *TableRenderer {
+	return &TableRenderer{
+		screenRenderer: newScreenRendererPlanned(out, resources, operation, statuses, tableLayout{}),
 	}
 }
 
@@ -24,19 +36,17 @@ func (tableLayout) renderLines(model *renderModel, width int, now time.Time) []s
 
 	lines := make([]string, 0, len(model.order)+1)
 	readyCount, failedCount, canceledCount, activeCount := 0, 0, 0, 0
-	successState := model.operation.successState()
-
 	for _, name := range model.order {
 		row := model.rows[name]
 		if row == nil {
 			continue
 		}
-		switch row.state {
-		case successState:
+		switch {
+		case isSuccessfulState(row.state):
 			readyCount++
-		case stateFailed:
+		case row.state == stateFailed:
 			failedCount++
-		case stateCanceled:
+		case row.state == stateCanceled:
 			canceledCount++
 		}
 		if isActiveState(row.state) {

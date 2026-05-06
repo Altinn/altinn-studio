@@ -83,7 +83,7 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
     }
 
     /// <inheritdoc/>
-    protected override async Task<ExecutionResult> ExecuteAsync(
+    protected override async Task<ExecutionResult> Execute(
         CommandExecutionContext context,
         CancellationToken cancellationToken
     )
@@ -162,9 +162,10 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
 
     private HttpClient CreateAuthorizedClient(AppWorkflowContext workflowContext)
     {
-        var baseUrl = _settings.CommandEndpoint.FormatWith(workflowContext);
+#pragma warning disable S1075
+        var baseUrl = _settings.CommandEndpoint.FormatWith(workflowContext).TrimEnd('/') + '/';
+#pragma warning restore S1075
         var client = _httpClientFactory.CreateClient();
-        client.DefaultRequestHeaders.Add(_settings.ApiKeyHeaderName, _settings.ApiKey);
         client.BaseAddress = new Uri(baseUrl);
 
         return client;
@@ -174,7 +175,7 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
 internal static partial class AppCommandDescriptorLogs
 {
     [LoggerMessage(LogLevel.Information, "Sending AppCommand to {Endpoint} with payload: {Payload}")]
-    public static partial void SendingAppCommand(
+    internal static partial void SendingAppCommand(
         this ILogger<AppCommand> logger,
         Uri endpoint,
         AppCallbackPayload payload

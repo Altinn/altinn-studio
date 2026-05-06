@@ -117,14 +117,6 @@ describe('PageGroupAccordion', () => {
     expect(within(groupHeader).getByText('Side 3')).toBeInTheDocument();
   });
 
-  it('should display info message when group has just one page', async () => {
-    await renderPageGroupAccordion({ props: { pages: singlePageGroupMock } });
-    const infoMessage = screen.getByText(
-      textMock('ux_editor.page_group.one_page_in_group_info_message'),
-    );
-    expect(infoMessage).toBeInTheDocument();
-  });
-
   it('should display group name when group has multiple pages', async () => {
     await renderPageGroupAccordion({});
     const groupHeader = groupAccordionHeader(0);

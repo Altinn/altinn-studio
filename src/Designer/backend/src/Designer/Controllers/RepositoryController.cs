@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -40,6 +39,7 @@ public class RepositoryController : ControllerBase
     private readonly ISourceControl _sourceControl;
     private readonly IRepository _repository;
     private readonly IHubContext<SyncHub, ISyncClient> _syncHub;
+    private readonly IBranchService _branchService;
 
     /// <summary>
     /// This is the API controller for functionality related to repositories.
@@ -51,17 +51,20 @@ public class RepositoryController : ControllerBase
     /// <param name="sourceControl">the source control</param>
     /// <param name="repository">the repository control</param>
     /// <param name="syncHub">websocket syncHub</param>
+    /// <param name="branchService">the branch service</param>
     public RepositoryController(
         IGiteaClient giteaClient,
         ISourceControl sourceControl,
         IRepository repository,
-        IHubContext<SyncHub, ISyncClient> syncHub
+        IHubContext<SyncHub, ISyncClient> syncHub,
+        IBranchService branchService
     )
     {
         _giteaClient = giteaClient;
         _sourceControl = sourceControl;
         _repository = repository;
         _syncHub = syncHub;
+        _branchService = branchService;
     }
 
     /// <summary>
@@ -74,10 +77,10 @@ public class RepositoryController : ControllerBase
     [HttpGet]
     [Route("search")]
     public async Task<SearchResults> Search(
-        [FromQuery] string keyword,
+        [FromQuery] string? keyword,
         [FromQuery] int uId,
-        [FromQuery] string sortBy,
-        [FromQuery] string order,
+        [FromQuery] string? sortBy,
+        [FromQuery] string? order,
         [FromQuery] int page,
         [FromQuery] int limit
     )
@@ -110,12 +113,12 @@ public class RepositoryController : ControllerBase
     [Route("repo/{org}/copy-app")]
     public async Task<IActionResult> CopyApp(
         string org,
-        [FromQuery] string sourceRepository,
-        [FromQuery] string targetRepository,
-        [FromQuery] string targetOrg = null
+        [FromQuery] string? sourceRepository,
+        [FromQuery] string? targetRepository,
+        [FromQuery] string? targetOrg
     )
     {
-        (bool isValid, IActionResult errorResponse) = await IsValidCopyAppRequestAsync(
+        (bool isValid, IActionResult? errorResponse) = await IsValidCopyAppRequestAsync(
             org,
             sourceRepository,
             targetRepository,
@@ -123,7 +126,7 @@ public class RepositoryController : ControllerBase
         );
         if (!isValid)
         {
-            return errorResponse;
+            return errorResponse!;
         }
 
         targetOrg ??= org;
@@ -155,11 +158,11 @@ public class RepositoryController : ControllerBase
         }
     }
 
-    private async Task<(bool IsValid, IActionResult ErrorResponse)> IsValidCopyAppRequestAsync(
+    private async Task<(bool IsValid, IActionResult? ErrorResponse)> IsValidCopyAppRequestAsync(
         string org,
-        string sourceRepository,
-        string targetRepository,
-        string targetOrg
+        string? sourceRepository,
+        string? targetRepository,
+        string? targetOrg
     )
     {
         if (!string.IsNullOrWhiteSpace(targetOrg) && !AltinnRegexes.AltinnOrganizationNameRegex().IsMatch(targetOrg))
@@ -381,7 +384,7 @@ public class RepositoryController : ControllerBase
         {
             RepoStatus repoStatus = _sourceControl.PullRemoteChanges(authenticatedContext);
             _sourceControl.Push(authenticatedContext);
-            foreach (RepositoryContent repoContent in repoStatus?.ContentStatus)
+            foreach (RepositoryContent repoContent in repoStatus.ContentStatus)
             {
                 Source source = new(Path.GetFileName(repoContent.FilePath), repoContent.FilePath);
                 SyncSuccess syncSuccess = new(source);
@@ -464,7 +467,7 @@ public class RepositoryController : ControllerBase
     /// <returns>The branch info</returns>
     [HttpGet]
     [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches/branch")]
-    public async Task<Branch> Branch(string org, string repository, [FromQuery] string branch) =>
+    public async Task<Branch> Branch(string org, string repository, [FromQuery] string? branch) =>
         await _giteaClient.GetBranch(org, repository, branch);
 
     /// <summary>
@@ -529,6 +532,37 @@ public class RepositoryController : ControllerBase
         );
         var branch = await _sourceControl.CreateBranch(editingContext, request.BranchName);
         return Ok(branch);
+    }
+
+    /// <summary>
+    /// Deletes a branch from the repository
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="repository">The name of repository</param>
+    /// <param name="branchName">The name of the branch to delete</param>
+    [HttpDelete]
+    [Route(
+        "repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches/{**branchName}"
+    )]
+    public async Task<ActionResult> DeleteBranch(string org, string repository, [FromRoute] string branchName)
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        string token = await HttpContext.GetDeveloperAppTokenAsync();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext =
+            AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
+
+        DeleteBranchResult result = _branchService.DeleteBranch(authenticatedContext, branchName);
+
+        return result switch
+        {
+            DeleteBranchResult.Success => NoContent(),
+            DeleteBranchResult.InvalidBranchName => BadRequest($"{branchName} is an invalid branch name."),
+            DeleteBranchResult.DefaultBranchProtected => BadRequest("Cannot delete the default branch."),
+            DeleteBranchResult.CheckedOutBranchProtected => BadRequest(
+                "Cannot delete the currently checked out branch."
+            ),
+            _ => StatusCode(500),
+        };
     }
 
     /// <summary>

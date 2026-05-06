@@ -87,12 +87,17 @@ export const DeploymentEnvironmentLogList = ({
             <Table.Body>
               {pipelineDeploymentList.map((deploy: PipelineDeployment) => {
                 const deploymentStatus = getDeployStatus(deploy);
-                const areLogsAvailable = DateUtils.isDateWithinDays(deploy.build.started, 30);
+                const areLogsAvailable =
+                  deploy.build?.started != null &&
+                  DateUtils.isDateWithinDays(deploy.build.started, 30);
 
                 const tableCellStatusClassName = classes[deploymentStatus];
 
                 return (
-                  <Table.Row key={deploy.build.id} className={tableCellStatusClassName}>
+                  <Table.Row
+                    key={deploy.build?.id ?? deploy.created}
+                    className={tableCellStatusClassName}
+                  >
                     <Table.Cell
                       className={classNames(
                         classes.tableCell,
@@ -118,11 +123,11 @@ export const DeploymentEnvironmentLogList = ({
                             components={{
                               grafana: (() => {
                                 const deployStart =
-                                  deploy.events.at(0)?.created ?? deploy.build.started;
+                                  deploy.events.at(0)?.created ?? deploy.build?.started;
                                 const deployStartTime = new Date(deployStart).getTime();
 
                                 const deployFinish =
-                                  deploy.events.at(-1)?.created ?? deploy.build.finished;
+                                  deploy.events.at(-1)?.created ?? deploy.build?.finished;
                                 const deployFinishTime = deployFinish
                                   ? new Date(deployFinish).getTime()
                                   : undefined;
@@ -150,7 +155,7 @@ export const DeploymentEnvironmentLogList = ({
                                   </StudioLink>
                                 );
                               })(),
-                              buildLog: (
+                              buildLog: deploy.build?.id ? (
                                 <StudioLink
                                   href={getAzureDevopsBuildResultUrl(deploy.build.id)}
                                   rel='noopener noreferrer'
@@ -162,7 +167,7 @@ export const DeploymentEnvironmentLogList = ({
                                 >
                                   Build log
                                 </StudioLink>
-                              ),
+                              ) : null,
                             }}
                           />
                         </span>
@@ -201,7 +206,8 @@ export const DeploymentEnvironmentLogList = ({
                         classes.finishedDateCell,
                       )}
                     >
-                      {deploy.build.finished && DateUtils.formatDateTime(deploy.build.finished)}
+                      {(deploy.build?.finished ?? deploy.created) &&
+                        DateUtils.formatDateTime(deploy.build?.finished ?? deploy.created)}
                     </Table.Cell>
                     <Table.Cell
                       className={classNames(
@@ -219,7 +225,7 @@ export const DeploymentEnvironmentLogList = ({
                         classes.buildLogCell,
                       )}
                     >
-                      {deploy.build.started &&
+                      {deploy.build?.started &&
                         (areLogsAvailable ? (
                           <Link
                             href={getAzureDevopsBuildResultUrl(deploy.build.id)}

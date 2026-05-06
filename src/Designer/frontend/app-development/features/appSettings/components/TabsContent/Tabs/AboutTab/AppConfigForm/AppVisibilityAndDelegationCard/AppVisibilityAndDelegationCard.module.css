@@ -2,6 +2,11 @@
   font-weight: var(--ds-font-weight-medium);
 }
 
+.headerDescription {
+  margin-top: var(--ds-size-1);
+  color: var(--ds-color-neutral-text-subtle);
+}
+
 .switchRow {
   display: flex;
   align-items: center;

@@ -15,12 +15,6 @@ public sealed record StepStatusResponse
     public Guid DatabaseId { get; init; }
 
     /// <summary>
-    /// An idempotency key for this workflow.
-    /// </summary>
-    [JsonPropertyName("idempotencyKey")]
-    public string? IdempotencyKey { get; init; }
-
-    /// <summary>
     /// An identifier for this operation.
     /// </summary>
     [JsonPropertyName("operationId")]
@@ -72,15 +66,24 @@ public sealed record StepStatusResponse
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? StateOut { get; init; }
 
+    /// <summary>
+    /// Retry strategy applied to this step. Omitted when the step uses the engine default.
+    /// </summary>
     [JsonPropertyName("retryStrategy")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public RetryStrategy? RetryStrategy { get; init; }
+
+    /// <summary>
+    /// History of errors recorded across this step's execution attempts. Omitted when no errors have occurred.
+    /// </summary>
+    [JsonPropertyName("errorHistory")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<ErrorEntry>? ErrorHistory { get; init; }
 
     internal static StepStatusResponse FromStep(Step step) =>
         new()
         {
             DatabaseId = step.DatabaseId,
-            IdempotencyKey = step.IdempotencyKey,
             OperationId = step.OperationId,
             Command = new CommandDetails { Type = step.Command.Type },
             ProcessingOrder = step.ProcessingOrder,
@@ -90,8 +93,12 @@ public sealed record StepStatusResponse
             RetryCount = step.RequeueCount,
             StateOut = step.StateOut,
             RetryStrategy = step.RetryStrategy,
+            ErrorHistory = step.ErrorHistory.Count > 0 ? step.ErrorHistory : null,
         };
 
+    /// <summary>
+    /// Public-surface projection of <see cref="CommandDefinition"/>: only the type discriminator is exposed.
+    /// </summary>
     public sealed record CommandDetails
     {
         /// <summary>

@@ -12,6 +12,7 @@ import {
   EventType,
   SucceededEventType,
   type PipelineDeployment,
+  WarningEventType,
 } from 'app-shared/types/api/PipelineDeployment';
 import { deployEvent } from 'app-shared/mocks/mocks';
 import { app, org } from '@studio/testing/testids';
@@ -292,6 +293,38 @@ describe('DeploymentEnvironmentLogList', () => {
           screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.succeeded')),
         ).toBeInTheDocument();
       });
+    });
+  });
+
+  describe('when resource registry fails', () => {
+    const deploySuceeded: PipelineDeployment = {
+      ...pipelineDeployment,
+      build: {
+        ...pipelineDeployment.build,
+        result: BuildResult.succeeded,
+      },
+      events: [
+        {
+          ...deployEvent,
+          eventType: WarningEventType.ResourceRegistryPublishFailed,
+          message: 'Resource Registry publish failed: Validation errors',
+        },
+        {
+          ...deployEvent,
+          eventType: SucceededEventType.InstallSucceeded,
+        },
+      ],
+    };
+
+    it('renders warning status from event', () => {
+      render({
+        pipelineDeploymentList: [deploySuceeded],
+      });
+      expect(
+        screen.getByText(
+          textMock('app_deployment.pipeline_deployment.build_result.partiallySucceeded'),
+        ),
+      ).toBeInTheDocument();
     });
   });
 

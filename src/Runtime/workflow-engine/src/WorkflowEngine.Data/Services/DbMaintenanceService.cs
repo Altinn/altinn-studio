@@ -45,13 +45,16 @@ internal sealed class DbMaintenanceService(
             try
             {
                 var now = timeProvider.GetUtcNow();
-                var settings = options.Value.Retention;
+                var settings = options.Value;
 
-                if (now - _lastRetentionRun >= settings.Interval)
+                if (now - _lastRetentionRun >= settings.Retention.Interval)
                 {
                     _lastRetentionRun = now;
-                    await PurgeExpiredWorkflows(now, settings, stoppingToken);
+                    await PurgeExpiredWorkflows(now, settings.Retention, stoppingToken);
                 }
+
+                await AbandonStaleWorkflows(now, settings, stoppingToken);
+                await ReclaimStaleWorkflows(now, settings, stoppingToken);
 
                 consecutiveFailures = 0;
                 Metrics.SetMaintenanceConsecutiveFailures(0);
@@ -123,33 +126,94 @@ internal sealed class DbMaintenanceService(
             using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))
             {
                 await using var analyzeCmd = dataSource.CreateCommand(
-                    """ANALYZE engine."Workflows", engine."Steps", engine."IdempotencyKeys" """
+                    "ANALYZE engine.workflows, engine.steps, engine.workflow_dependency, engine.idempotency_keys"
                 );
                 await analyzeCmd.ExecuteNonQueryAsync(ct);
             }
         }
     }
 
+    /// <summary>
+    /// Finalizes poison workflows — rows that have exceeded <see cref="EngineSettings.MaxReclaimCount"/>
+    /// and whose heartbeat is stale — by marking them as <see cref="PersistentItemStatus.Failed"/>
+    /// and clearing LeaseToken. Idempotent across concurrent sweeps from multiple pods:
+    /// a zombie worker that completes the row before this sweep lands will transition it out
+    /// of Processing, causing the WHERE clause to skip it.
+    /// </summary>
+    internal async Task AbandonStaleWorkflows(DateTimeOffset now, EngineSettings settings, CancellationToken ct)
+    {
+        using var activity = Metrics.Source.StartActivity("DbMaintenanceService.AbandonStaleWorkflows");
+
+        var staleDeadline = now - settings.StaleWorkflowThreshold;
+
+        int abandoned;
+        using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))
+        {
+            await using var cmd = dataSource.CreateCommand(Sql.AbandonStaleWorkflows);
+            cmd.Parameters.AddWithValue("now", now);
+            cmd.Parameters.AddWithValue("staleDeadline", staleDeadline);
+            cmd.Parameters.AddWithValue("maxReclaimCount", settings.MaxReclaimCount);
+
+            abandoned = await cmd.ExecuteNonQueryAsync(ct);
+        }
+
+        if (abandoned > 0)
+        {
+            Metrics.WorkflowsFailed.Add(abandoned, ("reason", "poison"));
+            logger.AbandonedStaleWorkflows(abandoned);
+        }
+    }
+
+    /// <summary>
+    /// Reclaims stale <see cref="PersistentItemStatus.Processing"/> rows whose owning worker has
+    /// gone silent, by resetting them to <see cref="PersistentItemStatus.Enqueued"/> and bumping
+    /// ReclaimCount. The next fetch cycle picks them up like any enqueued workflow.
+    /// Idempotent: rows already reclaimed (no longer Processing) are skipped.
+    /// </summary>
+    internal async Task ReclaimStaleWorkflows(DateTimeOffset now, EngineSettings settings, CancellationToken ct)
+    {
+        using var activity = Metrics.Source.StartActivity("DbMaintenanceService.ReclaimStaleWorkflows");
+
+        var staleDeadline = now - settings.StaleWorkflowThreshold;
+
+        int reclaimed;
+        using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))
+        {
+            await using var cmd = dataSource.CreateCommand(Sql.ReclaimStaleWorkflows);
+            cmd.Parameters.AddWithValue("now", now);
+            cmd.Parameters.AddWithValue("staleDeadline", staleDeadline);
+            cmd.Parameters.AddWithValue("maxReclaimCount", settings.MaxReclaimCount);
+
+            reclaimed = await cmd.ExecuteNonQueryAsync(ct);
+        }
+
+        if (reclaimed > 0)
+        {
+            Metrics.WorkflowsReclaimed.Add(reclaimed);
+            logger.ReclaimedStaleWorkflows(reclaimed);
+        }
+    }
+
     internal static class Sql
     {
         internal const string PurgeExpiredWorkflows = """
-            DELETE FROM engine."Workflows"
-            WHERE "Id" IN (
-                SELECT w."Id"
-                FROM engine."Workflows" w
-                WHERE w."Status" IN (3, 4, 5, 6)
-                  AND w."UpdatedAt" < @cutoff
+            DELETE FROM engine.workflows
+            WHERE id IN (
+                SELECT w.id
+                FROM engine.workflows w
+                WHERE w.status IN (3, 4, 5, 6)
+                  AND w.updated_at < @cutoff
                   AND NOT EXISTS (
-                      SELECT 1 FROM engine."WorkflowDependency" dep
-                      JOIN engine."Workflows" d ON dep."WorkflowId" = d."Id"
-                      WHERE dep."DependsOnWorkflowId" = w."Id"
-                        AND (d."Status" IN (0, 1, 2) OR d."UpdatedAt" >= @cutoff)
+                      SELECT 1 FROM engine.workflow_dependency dep
+                      JOIN engine.workflows d ON dep.workflow_id = d.id
+                      WHERE dep.depends_on_workflow_id = w.id
+                        AND (d.status IN (0, 1, 2) OR d.updated_at >= @cutoff)
                   )
                   AND NOT EXISTS (
-                      SELECT 1 FROM engine."WorkflowLink" lnk
-                      JOIN engine."Workflows" l ON lnk."WorkflowId" = l."Id"
-                      WHERE lnk."LinkedWorkflowId" = w."Id"
-                        AND (l."Status" IN (0, 1, 2) OR l."UpdatedAt" >= @cutoff)
+                      SELECT 1 FROM engine.workflow_link lnk
+                      JOIN engine.workflows l ON lnk.workflow_id = l.id
+                      WHERE lnk.linked_workflow_id = w.id
+                        AND (l.status IN (0, 1, 2) OR l.updated_at >= @cutoff)
                   )
                 LIMIT @batchSize
                 FOR UPDATE SKIP LOCKED
@@ -157,12 +221,37 @@ internal sealed class DbMaintenanceService(
             """;
 
         internal const string DeleteOrphanedIdempotencyKeys = """
-            DELETE FROM engine."IdempotencyKeys"
-            WHERE "CreatedAt" < @cutoff
+            DELETE FROM engine.idempotency_keys
+            WHERE created_at < @cutoff
               AND NOT EXISTS (
-                  SELECT 1 FROM engine."Workflows" w
-                  WHERE w."Id" = ANY("WorkflowIds")
+                  SELECT 1 FROM engine.workflows w
+                  WHERE w.id = ANY(workflow_ids)
               )
+            """;
+
+        internal static readonly string AbandonStaleWorkflows = $"""
+            UPDATE engine.workflows
+            SET status = {(int)PersistentItemStatus.Failed},
+                updated_at = @now,
+                heartbeat_at = NULL,
+                lease_token = NULL
+            WHERE status = {(int)PersistentItemStatus.Processing}
+              AND heartbeat_at IS NOT NULL
+              AND heartbeat_at < @staleDeadline
+              AND reclaim_count >= @maxReclaimCount
+            """;
+
+        internal static readonly string ReclaimStaleWorkflows = $"""
+            UPDATE engine.workflows
+            SET status = {(int)PersistentItemStatus.Enqueued},
+                updated_at = @now,
+                heartbeat_at = NULL,
+                lease_token = NULL,
+                reclaim_count = reclaim_count + 1
+            WHERE status = {(int)PersistentItemStatus.Processing}
+              AND heartbeat_at IS NOT NULL
+              AND heartbeat_at < @staleDeadline
+              AND reclaim_count < @maxReclaimCount
             """;
     }
 }
@@ -170,13 +259,13 @@ internal sealed class DbMaintenanceService(
 internal static partial class DbMaintenanceServiceLogs
 {
     [LoggerMessage(LogLevel.Information, "DbMaintenanceService starting")]
-    public static partial void StartingUp(this ILogger<DbMaintenanceService> logger);
+    internal static partial void StartingUp(this ILogger<DbMaintenanceService> logger);
 
     [LoggerMessage(
         LogLevel.Error,
         "Database maintenance failed (attempt {ConsecutiveFailures}, backing off {Delay}): {ErrorMessage}"
     )]
-    public static partial void MaintenanceFailed(
+    internal static partial void MaintenanceFailed(
         this ILogger<DbMaintenanceService> logger,
         int consecutiveFailures,
         TimeSpan delay,
@@ -185,11 +274,20 @@ internal static partial class DbMaintenanceServiceLogs
     );
 
     [LoggerMessage(LogLevel.Information, "DbMaintenanceService shutting down")]
-    public static partial void ShuttingDown(this ILogger<DbMaintenanceService> logger);
+    internal static partial void ShuttingDown(this ILogger<DbMaintenanceService> logger);
 
     [LoggerMessage(LogLevel.Information, "Retention: deleted {Count} terminal workflow(s)")]
-    public static partial void RetentionDeletedWorkflows(this ILogger<DbMaintenanceService> logger, int count);
+    internal static partial void RetentionDeletedWorkflows(this ILogger<DbMaintenanceService> logger, int count);
 
     [LoggerMessage(LogLevel.Information, "Retention: deleted {Count} orphaned idempotency key(s)")]
-    public static partial void RetentionDeletedKeys(this ILogger<DbMaintenanceService> logger, int count);
+    internal static partial void RetentionDeletedKeys(this ILogger<DbMaintenanceService> logger, int count);
+
+    [LoggerMessage(LogLevel.Warning, "Reclaimed {Count} stale workflows from crashed/unresponsive workers")]
+    internal static partial void ReclaimedStaleWorkflows(this ILogger<DbMaintenanceService> logger, int count);
+
+    [LoggerMessage(
+        LogLevel.Error,
+        "Abandoned {Count} stale workflows that exceeded the reclaim limit — marked as Failed"
+    )]
+    internal static partial void AbandonedStaleWorkflows(this ILogger<DbMaintenanceService> logger, int count);
 }
