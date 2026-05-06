@@ -68,7 +68,7 @@ public class ApplicationMetadata : Application
 
     static ApplicationMetadata()
     {
-        LibVersion = "10.0.0.0";
+        LibVersion = "9.0.0.0";
     }
 
     /// <summary>

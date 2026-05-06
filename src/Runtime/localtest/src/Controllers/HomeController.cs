@@ -24,7 +24,7 @@ namespace LocalTest.Controllers
     [Route("/Home/[action]")]
     public class HomeController : Controller
     {
-        private static readonly Version BrowserRoutingAppVersion = new(10, 0, 0, 0);
+        private static readonly Version BrowserRoutingAppVersion = new(9, 0, 0, 0);
         private static readonly TimeSpan LocalAppViewTimeout = TimeSpan.FromSeconds(5);
         private readonly GeneralSettings _generalSettings;
         private readonly LocalPlatformSettings _localPlatformSettings;
