@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import { EXPERIMENTAL_Suggestion as Suggestion, ValidationMessage } from '@digdir/designsystemet-react';
 import deepEqual from 'fast-deep-equal';
@@ -272,11 +272,9 @@ function useResettingErrorState(chosenTags: string[]) {
   const [showMissingTagError, setShowMissingTagError] = useState(false);
   const finalState = showMissingTagError && chosenTags.length === 0;
 
-  useEffect(() => {
-    if (chosenTags.length > 0 && showMissingTagError) {
-      setShowMissingTagError(false);
-    }
-  }, [chosenTags.length, showMissingTagError]);
+  if (chosenTags.length > 0 && showMissingTagError) {
+    setShowMissingTagError(false);
+  }
 
   return [finalState, setShowMissingTagError] as const;
 }
