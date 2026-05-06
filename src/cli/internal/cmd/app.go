@@ -35,6 +35,8 @@ type AppCommand struct {
 
 const appLogsSubcommand = "logs"
 
+var errAppUpgradeFailed = errors.New("upgrade failed")
+
 type appBuildOutput struct {
 	ImageTag   string `json:"imageTag"`
 	Pushed     bool   `json:"pushed"`
@@ -298,13 +300,15 @@ func (c *AppCommand) runUpgrade(ctx context.Context, args []string) error {
 		return fmt.Errorf("%w: run from an app directory or use -p to specify path", ErrNoAppFound)
 	}
 
-	if err := c.manager.ensure(ctx); err != nil {
-		return startAppManagerError(err)
+	if ensureErr := c.manager.ensure(ctx); ensureErr != nil {
+		return startAppManagerError(ensureErr)
 	}
 
 	upgrade := appmanager.AppUpgrade{
-		Kind:          flags.kind,
-		ProjectFolder: detection.AppRoot,
+		ProjectFolder:            detection.AppRoot,
+		StudioRoot:               "",
+		Kind:                     flags.kind,
+		ConvertPackageReferences: false,
 	}
 	if flags.kind == appUpgradeKindV10 && detection.InStudioRepo {
 		upgrade.ConvertPackageReferences = true
@@ -322,7 +326,7 @@ func (c *AppCommand) runUpgrade(ctx context.Context, args []string) error {
 		c.out.Error(result.Error)
 	}
 	if result.ExitCode != 0 {
-		return fmt.Errorf("upgrade failed with exit code %d", result.ExitCode)
+		return fmt.Errorf("%w with exit code %d", errAppUpgradeFailed, result.ExitCode)
 	}
 	return nil
 }
@@ -378,7 +382,7 @@ func isSupportedAppUpgradeKind(kind string) bool {
 }
 
 func (c *AppCommand) appUpgradeUsageLine() string {
-	return fmt.Sprintf("%s app upgrade [frontend-v4|backend-v8|v10] [-p PATH]", osutil.CurrentBin())
+	return osutil.CurrentBin() + " app upgrade [frontend-v4|backend-v8|v10] [-p PATH]"
 }
 
 func (c *AppCommand) appUpgradeUsage() string {

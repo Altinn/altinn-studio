@@ -2,6 +2,7 @@ package appmanager
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -47,7 +48,15 @@ func TestUpgradeAppUsesUpgradeTimeoutOnly(t *testing.T) {
 		},
 	}
 
-	result, err := client.UpgradeApp(t.Context(), AppUpgrade{Kind: "v10", ProjectFolder: "/tmp/app"})
+	result, err := client.UpgradeApp(
+		t.Context(),
+		AppUpgrade{
+			ProjectFolder:            "/tmp/app",
+			StudioRoot:               "",
+			Kind:                     "v10",
+			ConvertPackageReferences: false,
+		},
+	)
 	if err != nil {
 		t.Fatalf("UpgradeApp() error = %v", err)
 	}
@@ -64,6 +73,40 @@ func TestUpgradeAppUsesUpgradeTimeoutOnly(t *testing.T) {
 	}
 	if deadlines[statusPath] > 3*time.Second {
 		t.Fatalf("status deadline = %s, want short app-manager request timeout", deadlines[statusPath])
+	}
+}
+
+func TestUpgradeAppIncludesResponseMessageOnFailure(t *testing.T) {
+	t.Parallel()
+
+	client := &Client{
+		http: &http.Client{
+			Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+				return &http.Response{
+					StatusCode: http.StatusBadRequest,
+					Status:     "400 Bad Request",
+					Body:       io.NopCloser(strings.NewReader(`{"message":"unsupported upgrade kind"}`)),
+					Header:     make(http.Header),
+					Request:    req,
+				}, nil
+			}),
+		},
+	}
+
+	_, err := client.UpgradeApp(
+		t.Context(),
+		AppUpgrade{
+			ProjectFolder:            "/tmp/app",
+			StudioRoot:               "",
+			Kind:                     "unknown",
+			ConvertPackageReferences: false,
+		},
+	)
+	if !errors.Is(err, errUnexpectedUpgradeStatus) {
+		t.Fatalf("UpgradeApp() error = %v, want %v", err, errUnexpectedUpgradeStatus)
+	}
+	if !strings.Contains(err.Error(), "unsupported upgrade kind") {
+		t.Fatalf("UpgradeApp() error = %v, want response message", err)
 	}
 }
 

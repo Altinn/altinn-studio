@@ -29,17 +29,25 @@ internal sealed class AppUpgradeService : IDisposable
         {
             var output = new StringWriter(CultureInfo.InvariantCulture);
             var error = new StringWriter(CultureInfo.InvariantCulture);
-            var exitCode = await RunUpgradeAsync(
-                request with
-                {
-                    ProjectFolder = projectFolder,
-                },
-                output,
-                error,
-                cancellationToken
-            );
+            try
+            {
+                var exitCode = await RunUpgradeAsync(
+                    request with
+                    {
+                        ProjectFolder = projectFolder,
+                    },
+                    output,
+                    error,
+                    cancellationToken
+                );
 
-            return AppUpgradeResult.Completed(exitCode, output.ToString(), error.ToString());
+                return AppUpgradeResult.Completed(exitCode, output.ToString(), error.ToString());
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                await error.WriteLineAsync(ex.Message);
+                return AppUpgradeResult.Completed(exitCode: 1, output.ToString(), error.ToString());
+            }
         }
         finally
         {

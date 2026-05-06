@@ -30,7 +30,7 @@ const (
 	healthPath   = "/api/v1/healthz"
 	statusPath   = "/api/v1/studioctl/status"
 	registerPath = "/api/v1/studioctl/apps"
-	upgradePath  = "/api/v1/studioctl/upgrades"
+	upgradePath  = "/api/v1/studioctl/apps/upgrades"
 	shutdownPath = "/api/v1/studioctl/shutdown"
 
 	appManagerUnixSocketEnv   = "APP_MANAGER_UNIX_SOCKET_PATH"
@@ -38,6 +38,7 @@ const (
 	appManagerLocaltestURLEnv = "Localtest__Url"
 	appManagerStudioctlEnv    = "Studioctl__Path"
 
+	appManagerRequestTimeout        = 2 * time.Second
 	appManagerStartTimeout          = 10 * time.Second
 	appManagerRegisterTimeoutMargin = 2 * time.Second
 	appManagerUpgradeTimeout        = 30 * time.Second
@@ -172,10 +173,6 @@ func appRegistrationTimeout(registration AppRegistration) time.Duration {
 	return time.Duration(registration.TimeoutSeconds)*time.Second + appManagerRegisterTimeoutMargin
 }
 
-func appManagerRequestContext(ctx context.Context) (context.Context, context.CancelFunc) {
-	return context.WithTimeout(ctx, 2*time.Second)
-}
-
 // Shutdown stops app-manager and returns a completion channel that resolves when shutdown is fully complete.
 func Shutdown(ctx context.Context, cfg *config.Config) (<-chan error, error) {
 	lock, err := osutil.AcquireFileLock(ctx, cfg.AppManagerLockPath())
@@ -227,7 +224,7 @@ func shutdownError(err error, pid int) error {
 
 // Health checks whether app-manager is reachable.
 func (c *Client) Health(ctx context.Context) error {
-	ctx, cancel := appManagerRequestContext(ctx)
+	ctx, cancel := context.WithTimeout(ctx, appManagerRequestTimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, controlBaseURL+healthPath, nil)
@@ -250,7 +247,7 @@ func (c *Client) Health(ctx context.Context) error {
 
 // Status returns the current app-manager status fields.
 func (c *Client) Status(ctx context.Context) (*Status, error) {
-	ctx, cancel := appManagerRequestContext(ctx)
+	ctx, cancel := context.WithTimeout(ctx, appManagerRequestTimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, controlBaseURL+statusPath, nil)
@@ -379,7 +376,7 @@ func (c *Client) RegisterApp(ctx context.Context, registration AppRegistration) 
 
 // UnregisterApp notifies app-manager that studioctl stopped an app.
 func (c *Client) UnregisterApp(ctx context.Context, appID string) error {
-	ctx, cancel := appManagerRequestContext(ctx)
+	ctx, cancel := context.WithTimeout(ctx, appManagerRequestTimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(
@@ -433,6 +430,10 @@ func (c *Client) UpgradeApp(ctx context.Context, upgrade AppUpgrade) (AppUpgrade
 	defer closeResponseBody(resp)
 
 	if resp.StatusCode != http.StatusOK {
+		var result AppUpgradeResult
+		if err := json.NewDecoder(resp.Body).Decode(&result); err == nil && result.Message != "" {
+			return AppUpgradeResult{}, fmt.Errorf("%w: %s: %s", errUnexpectedUpgradeStatus, resp.Status, result.Message)
+		}
 		return AppUpgradeResult{}, fmt.Errorf("%w: %s", errUnexpectedUpgradeStatus, resp.Status)
 	}
 
@@ -446,7 +447,7 @@ func (c *Client) UpgradeApp(ctx context.Context, upgrade AppUpgrade) (AppUpgrade
 
 // shutdown asks app-manager to stop itself.
 func (c *Client) shutdown(ctx context.Context) error {
-	ctx, cancel := appManagerRequestContext(ctx)
+	ctx, cancel := context.WithTimeout(ctx, appManagerRequestTimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, controlBaseURL+shutdownPath, nil)
