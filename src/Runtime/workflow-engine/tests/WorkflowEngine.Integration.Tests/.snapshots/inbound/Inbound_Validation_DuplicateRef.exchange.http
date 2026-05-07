@@ -31,7 +31,9 @@ Content-Type: application/json; charset=utf-8
       "startAt": null,
       "state": null,
       "dependsOn": null,
-      "links": null
+      "links": null,
+      "dependsOnHeads": true,
+      "isHead": null
     },
     {
       "ref": "wf-dup",
@@ -55,7 +57,9 @@ Content-Type: application/json; charset=utf-8
       "startAt": null,
       "state": null,
       "dependsOn": null,
-      "links": null
+      "links": null,
+      "dependsOnHeads": true,
+      "isHead": null
     }
   ]
 }
@@ -68,5 +72,5 @@ Content-Type: application/problem+json
   "title": "Bad Request",
   "status": 400,
   "detail": "Invalid request. Workflow graph did not validate: Duplicate ref \u0027wf-dup\u0027 in batch.",
-  "traceId": "00-e54bacdaa79c57d11ee9f11bd9f09534-7d80e2bab2bb8598-01"
+  "traceId": "{Scrubbed}"
 }

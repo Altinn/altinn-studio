@@ -33,7 +33,9 @@ Content-Type: application/json; charset=utf-8
       "dependsOn": [
         "wf-b"
       ],
-      "links": null
+      "links": null,
+      "dependsOnHeads": true,
+      "isHead": null
     },
     {
       "ref": "wf-b",
@@ -59,7 +61,9 @@ Content-Type: application/json; charset=utf-8
       "dependsOn": [
         "wf-a"
       ],
-      "links": null
+      "links": null,
+      "dependsOnHeads": true,
+      "isHead": null
     }
   ]
 }
@@ -72,5 +76,5 @@ Content-Type: application/problem+json
   "title": "Bad Request",
   "status": 400,
   "detail": "Invalid request. Workflow graph did not validate: Dependency cycle detected in batch involving refs: wf-a, wf-b",
-  "traceId": "00-4abc4bfa25b371346b8eddf1edf1b253-ff9da256fdd94ab6-01"
+  "traceId": "{Scrubbed}"
 }

@@ -33,7 +33,9 @@ Content-Type: application/json; charset=utf-8
       "dependsOn": [
         "wf-a"
       ],
-      "links": null
+      "links": null,
+      "dependsOnHeads": true,
+      "isHead": null
     }
   ]
 }
@@ -46,5 +48,5 @@ Content-Type: application/problem+json
   "title": "Bad Request",
   "status": 400,
   "detail": "Invalid request. Workflow graph did not validate: Workflow \u0027wf-a\u0027 has a self-reference in DependsOn.",
-  "traceId": "00-04eebea52a03cf200c9fec02d2d79aa8-90815c7530fe85c7-01"
+  "traceId": "{Scrubbed}"
 }

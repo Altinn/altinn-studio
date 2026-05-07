@@ -46,6 +46,13 @@ public static class HttpChatterHelpers
     // localhost:{port} — dynamic port numbers from WireMock / test servers
     private static readonly Regex LocalhostPortPattern = new(@"localhost:\d+");
 
+    // W3C traceparent / ProblemDetails traceId: version-traceId-spanId-flags (e.g. "00-{32 hex}-{16 hex}-01").
+    // Surfaces in 4xx ProblemDetails responses regardless of whether the traceparent header was scrubbed.
+    private static readonly Regex TraceParentPattern = new(
+        @"\b[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}\b",
+        RegexOptions.IgnoreCase
+    );
+
     /// <summary>
     /// Extracts a single header value from a WireMock headers dictionary (case-insensitive).
     /// Returns "(missing)" if not found.
@@ -228,10 +235,13 @@ public static class HttpChatterHelpers
     /// </summary>
     public static string Scrub(string httpText)
     {
-        // 1. Replace GUIDs with stable sequential tokens (same GUID → same token)
+        // 1. Replace W3C trace IDs (different shape from UUIDs — no internal dashes in the 32-hex block).
+        var result = TraceParentPattern.Replace(httpText, "{Scrubbed}");
+
+        // 2. Replace GUIDs with stable sequential tokens (same GUID → same token)
         var guidMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        var result = GuidPattern.Replace(
-            httpText,
+        result = GuidPattern.Replace(
+            result,
             match =>
             {
                 var raw = match.Value;
@@ -244,10 +254,10 @@ public static class HttpChatterHelpers
             }
         );
 
-        // 2. Replace ISO 8601 timestamps
+        // 3. Replace ISO 8601 timestamps
         result = TimestampPattern.Replace(result, "{Scrubbed}");
 
-        // 3. Replace dynamic port numbers
+        // 4. Replace dynamic port numbers
         result = LocalhostPortPattern.Replace(result, "localhost:{PORT}");
 
         return result;

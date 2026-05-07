@@ -33,7 +33,9 @@ Content-Type: application/json; charset=utf-8
       "dependsOn": [
         "wf-nonexistent"
       ],
-      "links": null
+      "links": null,
+      "dependsOnHeads": true,
+      "isHead": null
     }
   ]
 }
@@ -46,5 +48,5 @@ Content-Type: application/problem+json
   "title": "Bad Request",
   "status": 400,
   "detail": "Invalid request. Workflow graph did not validate: DependsOn ref \u0027wf-nonexistent\u0027 in workflow \u0027wf-a\u0027 is not present in the batch.",
-  "traceId": "00-ba2d693b8960aac36bf498e86902b17c-775ec62f577226ee-01"
+  "traceId": "{Scrubbed}"
 }
