@@ -175,6 +175,14 @@ describe('convertDataBindingToInternalFormat', () => {
     const internalFormat = convertDataBindingToInternalFormat('', undefined);
     expect(internalFormat).toEqual({ dataType: '', field: '' });
   });
+
+  it('should convert invalid object values to safe strings', () => {
+    const internalFormat = convertDataBindingToInternalFormat('defaultModel', {
+      dataType: { model: 'invalid' } as unknown as string,
+      field: { field: 'invalid' } as unknown as string,
+    });
+    expect(internalFormat).toEqual({ dataType: 'defaultModel', field: '' });
+  });
 });
 
 describe('validateSelectedDataModel', () => {
