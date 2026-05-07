@@ -9,6 +9,7 @@ import (
 
 	containermock "altinn.studio/devenv/pkg/container/mock"
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/osutil"
 )
 
 func TestResetLocaltestDataRemovesPersistedData(t *testing.T) {
@@ -29,6 +30,34 @@ func TestResetLocaltestDataRemovesPersistedData(t *testing.T) {
 		t.Fatalf("localtest data still exists after migration: %v", err)
 	}
 	assertMigrationCallRecorded(t, client.Calls, "VolumeRemove")
+}
+
+func TestSkipResetLocaltestDataMigration(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		goos string
+		ci   string
+		want bool
+	}{
+		{name: "macos ci", goos: osutil.OSDarwin, ci: "true", want: true},
+		{name: "windows ci", goos: osutil.OSWindows, ci: "true", want: true},
+		{name: "linux ci", goos: osutil.OSLinux, ci: "true", want: false},
+		{name: "macos local", goos: osutil.OSDarwin, ci: "", want: false},
+		{name: "windows local", goos: osutil.OSWindows, ci: "", want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := skipResetLocaltestDataMigration(tt.goos, tt.ci)
+			if got != tt.want {
+				t.Fatalf("skipResetLocaltestDataMigration(%q, %q) = %v, want %v", tt.goos, tt.ci, got, tt.want)
+			}
+		})
+	}
 }
 
 func testMigrationConfig(t *testing.T) *config.Config {

@@ -5,15 +5,22 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
+	"runtime"
 
 	"altinn.studio/devenv/pkg/container"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	envregistry "altinn.studio/studioctl/internal/cmd/env/registry"
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
 
 func resetLocaltestData(ctx context.Context, cfg *config.Config) (err error) {
+	if skipResetLocaltestDataMigration(runtime.GOOS, os.Getenv("CI")) {
+		return nil
+	}
+
 	client, err := container.Detect(ctx)
 	if err != nil {
 		return fmt.Errorf("connect to container runtime: %w", err)
@@ -25,6 +32,14 @@ func resetLocaltestData(ctx context.Context, cfg *config.Config) (err error) {
 	}()
 
 	return resetLocaltestDataWithClient(ctx, cfg, client)
+}
+
+func skipResetLocaltestDataMigration(goos, ci string) bool {
+	if ci == "" {
+		return false
+	}
+	// CI on windows and mac doesnt have a container runtime currently.
+	return goos == osutil.OSDarwin || goos == osutil.OSWindows
 }
 
 func resetLocaltestDataWithClient(
