@@ -160,6 +160,90 @@ public partial class EngineTests
         await PersistInboundSnapshot(recorder, "Inbound_Workflow_FullyPopulated");
     }
 
+    // ── Collection head controls ────────────────────────────────────────────
+
+    [Fact]
+    public async Task Inbound_Workflow_DependsOnHeadsFalse()
+    {
+        // Arrange — bootstrap an existing head into the collection so the request payload's
+        // `dependsOnHeads: false` opt-out has something concrete to opt out of.
+        const string collectionKey = "head-ctrl-deps-on-heads-false";
+        var bootstrap = await _client.Enqueue(
+            _testHelpers.CreateEnqueueRequest(
+                _testHelpers.CreateWorkflow("wf-existing-head", [_testHelpers.CreateWebhookStep("/ping-existing")]),
+                includeContext: false
+            ),
+            collectionKey: collectionKey
+        );
+        await _client.WaitForWorkflowStatus(bootstrap.Workflows.Single().DatabaseId, PersistentItemStatus.Completed);
+
+        var workflow = _testHelpers.CreateWorkflow("wf-orphan", [_testHelpers.CreateWebhookStep("/ping-orphan")]) with
+        {
+            DependsOnHeads = false,
+        };
+        var request = _testHelpers.CreateEnqueueRequest(workflow, includeContext: false);
+
+        // Act
+        var (recorder, accepted) = await EnqueueAndCapture(request, collectionKey: collectionKey);
+
+        // Assert
+        Assert.Single(accepted.Workflows);
+        await PersistInboundSnapshot(recorder, "Inbound_Workflow_DependsOnHeadsFalse");
+        await _client.WaitForWorkflowStatus(
+            accepted.Workflows.Select(w => w.DatabaseId),
+            PersistentItemStatus.Completed
+        );
+    }
+
+    [Fact]
+    public async Task Inbound_Workflow_IsHeadForceInclude()
+    {
+        // Arrange — A → B chain with `isHead: true` on the non-leaf A. Without the override,
+        // only B (the leaf) would be a head; with it, both A and B end up in the collection's head set.
+        const string collectionKey = "head-ctrl-is-head-include";
+        var wfA = _testHelpers.CreateWorkflow("wf-a", [_testHelpers.CreateWebhookStep("/ping-a")]) with
+        {
+            IsHead = true,
+        };
+        var wfB = _testHelpers.CreateWorkflow("wf-b", [_testHelpers.CreateWebhookStep("/ping-b")], dependsOn: ["wf-a"]);
+        var request = _testHelpers.CreateEnqueueRequest([wfA, wfB], includeContext: false);
+
+        // Act
+        var (recorder, accepted) = await EnqueueAndCapture(request, collectionKey: collectionKey);
+
+        // Assert
+        Assert.Equal(2, accepted.Workflows.Count);
+        await PersistInboundSnapshot(recorder, "Inbound_Workflow_IsHeadForceInclude");
+        await _client.WaitForWorkflowStatus(
+            accepted.Workflows.Select(w => w.DatabaseId),
+            PersistentItemStatus.Completed
+        );
+    }
+
+    [Fact]
+    public async Task Inbound_Workflow_IsHeadForceExclude()
+    {
+        // Arrange — single workflow with `isHead: false`. Without the override it would naturally
+        // be a head (it's a leaf); with it the workflow runs but stays invisible to head tracking.
+        const string collectionKey = "head-ctrl-is-head-exclude";
+        var workflow = _testHelpers.CreateWorkflow("wf-shadow", [_testHelpers.CreateWebhookStep("/ping-shadow")]) with
+        {
+            IsHead = false,
+        };
+        var request = _testHelpers.CreateEnqueueRequest(workflow, includeContext: false);
+
+        // Act
+        var (recorder, accepted) = await EnqueueAndCapture(request, collectionKey: collectionKey);
+
+        // Assert
+        Assert.Single(accepted.Workflows);
+        await PersistInboundSnapshot(recorder, "Inbound_Workflow_IsHeadForceExclude");
+        await _client.WaitForWorkflowStatus(
+            accepted.Workflows.Select(w => w.DatabaseId),
+            PersistentItemStatus.Completed
+        );
+    }
+
     // ── Validation 400s (full exchange) ──────────────────────────────────────
 
     [Fact]
@@ -257,12 +341,13 @@ public partial class EngineTests
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private async Task<(HttpExchangeRecorder Recorder, WorkflowEnqueueResponse.Accepted Accepted)> EnqueueAndCapture(
-        WorkflowEnqueueRequest request
+        WorkflowEnqueueRequest request,
+        string? collectionKey = null
     )
     {
         var recorder = new HttpExchangeRecorder();
         using var client = new EngineApiClient(fixture, recorder);
-        var accepted = await client.Enqueue(request);
+        var accepted = await client.Enqueue(request, collectionKey: collectionKey);
         return (recorder, accepted);
     }
 
