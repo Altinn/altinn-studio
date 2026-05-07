@@ -55,14 +55,19 @@ export const getPolicyRuleIdString = (policyRule: PolicyRuleCard) => {
 };
 
 const isPersonSubject = (subjectUrn: string) => {
-  return subjectUrn === 'urn:altinn:rolecode:PRIV' || subjectUrn === 'urn:altinn:rolecode:SELN';
+  return (
+    subjectUrn?.toLocaleLowerCase() === 'urn:altinn:rolecode:priv' ||
+    subjectUrn?.toLowerCase() === 'urn:altinn:rolecode:seln'
+  );
 };
 export const getCcrSubjects = (subjects: PolicySubject[]) => {
-  return subjects.filter((s) => s.provider?.code === 'sys-ccr');
+  return subjects.filter((s) => s.provider?.code?.toLowerCase() === 'sys-ccr');
 };
 export const getAltinnSubjects = (subjects: PolicySubject[]) => {
   return subjects.filter((s) => {
-    const isAltinn = s.provider?.code === 'sys-altinn2' || s.provider?.code === 'sys-altinn3';
+    const isAltinn =
+      s.provider?.code?.toLowerCase() === 'sys-altinn2' ||
+      s.provider?.code?.toLowerCase() === 'sys-altinn3';
     const isPersonRole = isPersonSubject(s.legacyUrn);
     return isAltinn && !isPersonRole;
   });
