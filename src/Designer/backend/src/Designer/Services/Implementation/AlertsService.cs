@@ -202,6 +202,7 @@ internal sealed class AlertsService(
         string studioMiljø = !generalSettings.IsProd ? $"\nStudio-miljø: {generalSettings.OriginEnvironment}" : "";
 
         return $@"{alertTitle}
+
 Organisasjon: {org}
 Miljø: {environment.Name}
 Applikasjoner: {appsFormatted}{studioMiljø}";
