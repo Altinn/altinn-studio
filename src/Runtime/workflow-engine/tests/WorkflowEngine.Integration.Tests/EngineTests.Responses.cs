@@ -282,6 +282,45 @@ public partial class EngineTests
         Assert.Equal(2, dependencyGraph.Edges.Count);
     }
 
+    [Fact]
+    public async Task Response_GetWorkflowDependencyGraph_WorkflowWithoutRelations_ReturnsRootOnlyWithNoEdges()
+    {
+        var accepted = await _client.Enqueue(
+            _testHelpers.CreateEnqueueRequest(
+                _testHelpers.CreateWorkflow("solo", [_testHelpers.CreateWebhookStep("/ping")])
+            )
+        );
+        var workflowId = accepted.Workflows.Single().DatabaseId;
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+
+        var dependencyGraph = await _client.GetWorkflowDependencyGraph(workflowId);
+
+        Assert.NotNull(dependencyGraph);
+        Assert.Equal(workflowId, dependencyGraph.RootWorkflowId);
+        Assert.Single(dependencyGraph.Workflows);
+        Assert.Equal(workflowId, dependencyGraph.Workflows[0].DatabaseId);
+        Assert.Empty(dependencyGraph.Edges);
+    }
+
+    [Fact]
+    public async Task Response_GetWorkflowDependencyGraph_DifferentNamespace_ReturnsNotFound()
+    {
+        // Workflow exists in namespace "ttd:other" but is queried via the default namespace.
+        // Both the seed and the recursive arms of the CTE filter on namespace, so the response
+        // must be 404 even though the workflow row exists.
+        var accepted = await _client.Enqueue(
+            _testHelpers.CreateEnqueueRequest(
+                _testHelpers.CreateWorkflow("solo", [_testHelpers.CreateWebhookStep("/ping")])
+            ),
+            ns: "ttd:other"
+        );
+        var workflowId = accepted.Workflows.Single().DatabaseId;
+
+        using var response = await _client.GetWorkflowDependencyGraphRaw(workflowId);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     // ── ListWorkflows endpoint responses ────────────────────────────────
 
     [Fact]

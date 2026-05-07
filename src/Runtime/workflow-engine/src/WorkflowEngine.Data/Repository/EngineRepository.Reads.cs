@@ -712,41 +712,32 @@ internal sealed partial class EngineRepository
         {
             logger.FetchingWorkflowById(workflowId);
 
-            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-            var root = await context
-                .GetWorkflowById(workflowId)
-                .Where(wf => wf.Namespace == ns)
-                .SingleOrDefaultAsync(cancellationToken);
-
-            if (root is null)
-            {
-                logger.WorkflowNotFound(workflowId);
-                return null;
-            }
-
-            List<Guid> dependencyGraphWorkflowIds = [];
+            List<Guid> graphWorkflowIds = [];
             await ExecuteWithRetry(
                 async ct =>
                 {
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
-                    dependencyGraphWorkflowIds = await GetWorkflowDependencyGraphIds(conn, workflowId, ns, ct);
+                    graphWorkflowIds = await GetWorkflowDependencyGraphIds(conn, workflowId, ns, ct);
                 },
                 cancellationToken
             );
-            if (dependencyGraphWorkflowIds.Count == 0)
+
+            if (graphWorkflowIds.Count == 0)
             {
-                return [root.ToDomainModel()];
+                // CTE seed filters by id + namespace, so an empty result means the
+                // workflow does not exist in this namespace.
+                logger.WorkflowNotFound(workflowId);
+                return null;
             }
 
-            var workflows = await context
-                .GetWorkflowsByIds(dependencyGraphWorkflowIds, namespaceFilter: ns)
+            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            return await context
+                .GetWorkflowsByIds(graphWorkflowIds, namespaceFilter: ns)
                 .AsNoTracking()
                 .OrderBy(wf => wf.CreatedAt)
                 .ThenBy(wf => wf.Id)
                 .ToDomainModel()
                 .ToListAsync(cancellationToken);
-
-            return BuildWorkflowDependencyGraph(workflowId, workflows);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -812,59 +803,5 @@ internal sealed partial class EngineRepository
         }
 
         return workflowIds;
-    }
-
-    private static List<Workflow> BuildWorkflowDependencyGraph(Guid workflowId, IReadOnlyList<Workflow> workflows)
-    {
-        var workflowsById = workflows.ToDictionary(workflow => workflow.DatabaseId);
-        if (!workflowsById.ContainsKey(workflowId))
-        {
-            return [];
-        }
-
-        // Build undirected adjacency over both relations so BFS visits every workflow
-        // returned by the recursive CTE, regardless of edge direction or kind.
-        var adjacency = new Dictionary<Guid, HashSet<Guid>>();
-        foreach (Workflow workflow in workflows)
-        {
-            foreach (Workflow neighbor in (workflow.Dependencies ?? []).Concat(workflow.Links ?? []))
-            {
-                if (!workflowsById.ContainsKey(neighbor.DatabaseId))
-                    continue;
-
-                AddAdjacency(adjacency, workflow.DatabaseId, neighbor.DatabaseId);
-                AddAdjacency(adjacency, neighbor.DatabaseId, workflow.DatabaseId);
-            }
-        }
-
-        HashSet<Guid> visited = [workflowId];
-        Queue<Guid> queue = new([workflowId]);
-        List<Workflow> dependencyGraph = [];
-
-        while (queue.TryDequeue(out Guid currentWorkflowId))
-        {
-            dependencyGraph.Add(workflowsById[currentWorkflowId]);
-
-            if (!adjacency.TryGetValue(currentWorkflowId, out HashSet<Guid>? neighbors))
-                continue;
-
-            foreach (Guid neighborId in neighbors.OrderBy(id => id))
-            {
-                if (visited.Add(neighborId))
-                    queue.Enqueue(neighborId);
-            }
-        }
-
-        return dependencyGraph;
-    }
-
-    private static void AddAdjacency(Dictionary<Guid, HashSet<Guid>> adjacency, Guid from, Guid to)
-    {
-        if (!adjacency.TryGetValue(from, out HashSet<Guid>? neighbors))
-        {
-            neighbors = [];
-            adjacency[from] = neighbors;
-        }
-        neighbors.Add(to);
     }
 }

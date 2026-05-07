@@ -217,14 +217,12 @@ internal static class EngineRequestHandlers
         if (dependencyGraph is null)
             return TypedResults.NotFound();
 
-        var workflows = dependencyGraph.ToList();
-
         return TypedResults.Ok(
             new WorkflowDependencyGraphResponse
             {
                 RootWorkflowId = workflowId,
-                Workflows = workflows.Select(WorkflowStatusResponse.FromWorkflow).ToList(),
-                Edges = BuildDependencyGraphEdges(workflows),
+                Workflows = dependencyGraph.Select(WorkflowStatusResponse.FromWorkflow).ToList(),
+                Edges = BuildDependencyGraphEdges(dependencyGraph),
             }
         );
     }
@@ -341,13 +339,10 @@ internal static class EngineRequestHandlers
         return result;
     }
 
-    private static PersistentItemStatus[] GetQueryStatuses(PersistentItemStatus[]? statuses)
-    {
-        if (statuses is { Length: > 0 })
-            return statuses;
+    private static readonly PersistentItemStatus[] AllPersistentItemStatuses = Enum.GetValues<PersistentItemStatus>();
 
-        return Enum.GetValues<PersistentItemStatus>();
-    }
+    private static PersistentItemStatus[] GetQueryStatuses(PersistentItemStatus[]? statuses) =>
+        statuses is { Length: > 0 } ? statuses : AllPersistentItemStatuses;
 
     private static List<WorkflowDependencyGraphEdgeResponse> BuildDependencyGraphEdges(
         IReadOnlyList<Workflow> workflows
