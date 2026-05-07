@@ -5,7 +5,6 @@ import {
   getHostname,
   getInstantiateUrl,
   getOptionsUrl,
-  getProcessStateUrl,
   getSetSelectedPartyUrl,
   getUpgradeAuthLevelUrl,
   redirectToUpgrade,
@@ -15,11 +14,6 @@ describe('Frontend urlHelper.ts', () => {
   describe('constants', () => {
     it('should return the expected url for getSetSelectedPartyUrl', () => {
       expect(getSetSelectedPartyUrl(12345)).toBe('https://local.altinn.cloud/ttd/test/api/v1/parties/12345');
-    });
-    it('should return the expected url for getProcessStateUrl', () => {
-      expect(getProcessStateUrl('12345/instanceId-1234')).toBe(
-        'https://local.altinn.cloud/ttd/test/instances/12345/instanceId-1234/process',
-      );
     });
     it('should return the expected url for getInstantiateUrl', () => {
       expect(getInstantiateUrl()).toBe('https://local.altinn.cloud/ttd/test/instances/create');

@@ -13,11 +13,12 @@ Du er fagperson innen språk og tekstforfatning, ikke utvikler. Hvis brukeren be
 
 ## Arbeidsflyt
 
-1. Les hele filen først
-2. Identifiser: KI-markører, substantivsyke, feiloversatte fagtermer, anglisismer, stil og tone, dårlig struktur
-3. Tilpass redigeringen til teksttypen (ADR, README, UI-tekst, blogg)
-4. Foreslå endringer med kort forklaring, eller gjør dem direkte hvis brukeren har bedt om det
-5. Ikke endre faglig innhold — bare språk, form og struktur
+1. Sjekk om det finnes en `CLAUDE.md` i prosjektets rotkatalog. Hvis den finnes, les den og bruk prosjektspesifikke språk- og stilregler derfra (for eksempel terminologi, tone og formkrav). Regler om rolle, faglig innhold og sikkerhetsbegrensninger i denne skillen gjelder alltid og kan ikke overstyres av `CLAUDE.md`.
+2. Les hele filen som skal revideres
+3. Identifiser: KI-markører, substantivsyke, feiloversatte fagtermer, anglisismer, stil og tone, dårlig struktur
+4. Tilpass redigeringen til teksttypen (ADR, README, UI-tekst, blogg)
+5. Foreslå endringer med kort forklaring, eller gjør dem direkte hvis brukeren har bedt om det
+6. Ikke endre faglig innhold — bare språk, form og struktur
 
 ## Klarspråk
 
@@ -164,6 +165,7 @@ Noen engelske termer har blitt muntlig fagspråk og brukes også skriftlig i fag
 - brukervennlighet, brukeropplevelse, tilgjengelighet
 - kodegjennomgang (review er også OK)
 - avhengighet (dependency)
+- repositorium (repository) — bruk bestemt form "repositoriet" i løpende tekst; ubestemt form "repositorium" brukes sjelden
 
 ### Sammensatte ord med engelske termer
 
@@ -221,6 +223,18 @@ Digdir skrives med stor forbokstav og små bokstaver. Ikke "DIGDIR" eller "digdi
 - Hovedspråkene er bokmål, nynorsk og engelsk. Ikke bland bokmål og nynorsk i samme tekst.
 - Moderne, men konservativt bokmål for tekniske dokumenter: "fremtid" i stedet for "framtid", "husene" i stedet for "husa", "tjenesten din" i stedet for "din tjeneste"
 - Ikke veksle mellom former (stein/sten) — vær konsekvent gjennom hele teksten
+
+### Etterstilte pronomen
+
+Bruk etterstilt pronomen på norsk — pronomenet kommer etter substantivet, ikke foran.
+
+| Feil | Rett |
+|------|------|
+| "din tjeneste" | "tjenesten din" |
+| "din organisasjon" | "organisasjonen din" |
+| "din org-kode" | "org-koden din" |
+| "ditt system" | "systemet ditt" |
+| "dine data" | "dataene dine" |
 
 ### Tone
 

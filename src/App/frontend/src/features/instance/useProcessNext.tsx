@@ -4,10 +4,15 @@ import { toast } from 'react-toastify';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useUpdateInitialValidations } from 'src/core/queries/backendValidation';
+import { instanceQueryKeys, useCurrentInstance } from 'src/core/queries/instance';
 import { FormStore } from 'src/features/form/FormContext';
 import { invalidateFormDataQueries } from 'src/features/formData/useFormDataQuery';
-import { useHasPendingScans, useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
-import { useOptimisticallyUpdateProcess, useProcessQuery } from 'src/features/instance/useProcessQuery';
+import {
+  useHasPendingScans,
+  useInstanceDataQuery,
+  useInstanceDataQueryArgs,
+  useLaxInstanceId,
+} from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
@@ -15,7 +20,7 @@ import { useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { doProcessNext } from 'src/queries/queries';
 import { TaskKeys } from 'src/routesBuilder';
 import type { BackendValidationIssue } from 'src/features/validation';
-import type { IActionType, IProcess, ProblemDetails } from 'src/types/shared';
+import type { IActionType, IInstance, IProcess, ProblemDetails } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 interface ProcessNextProps {
@@ -37,12 +42,12 @@ export function getProcessNextMutationKey(action?: IActionType) {
 function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues }: ProcessNextInternalProps = {}) {
   const reFetchInstanceData = useInstanceDataQuery({ enabled: false }).refetch;
   const language = useCurrentLanguage();
-  const { data: process, refetch: refetchProcessData } = useProcessQuery();
+  const process = useCurrentInstance()?.process;
   const navigateToTask = useNavigateToTask();
   const instanceId = useLaxInstanceId();
+  const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
   const queryClient = useQueryClient();
   const hasPendingScans = useHasPendingScans();
-  const optimisticallyUpdateProcess = useOptimisticallyUpdateProcess();
 
   return useMutation({
     scope: { id: 'process/next' },
@@ -61,7 +66,7 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
       }
 
       return doProcessNext(instanceId, language, action)
-        .then(({ data: process }) => [process, null] as const)
+        .then(({ data: instance }) => [instance, null] as const)
         .catch((error) => {
           if (error.response?.status === 409 && error.response?.data?.['validationIssues']?.length) {
             // If process next failed due to validation, return validationIssues instead of throwing
@@ -75,17 +80,24 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
           }
         });
     },
-    onSuccess: async ([processData, validationIssues]) => {
-      if (processData) {
-        optimisticallyUpdateProcess(processData);
-        await Promise.all([refetchProcessData(), reFetchInstanceData()]);
-        await invalidateFormDataQueries(queryClient);
-
-        const task = getTargetTaskFromProcess(processData);
+    onSuccess: async ([newInstance, validationIssues]) => {
+      if (newInstance) {
+        const task = getTargetTaskFromProcess(newInstance.process);
         if (!task) {
           throw new Error('Missing task in process data. Cannot navigate to task.');
         }
+
+        // Atomic flip: cache and navigate dispatch in the same task so React 18 batches both
+        // into one commit. ProcessWrapper covers the cache/URL gap during the router's loading
+        // state via useNavigation() and the useIsMutating() guard on this mutation.
+        if (instanceOwnerPartyId && instanceGuid) {
+          queryClient.setQueryData<IInstance>(
+            instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }),
+            newInstance,
+          );
+        }
         navigateToTask(task);
+        await invalidateFormDataQueries(queryClient);
       } else if (validationIssues) {
         if (!onValidationIssues) {
           throw new Error(
@@ -99,11 +111,10 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
     onError: async (error: HttpClientError<ProblemDetails | undefined>) => {
       window.logError('Process next failed:\n', error);
 
-      const { data: newProcess } = await refetchProcessData();
-      const newCurrentTask = newProcess?.currentTask;
+      const { data: newInstance } = await reFetchInstanceData();
+      const newCurrentTask = newInstance?.process?.currentTask;
 
       if (newCurrentTask?.elementId && newCurrentTask?.elementId !== process?.currentTask?.elementId) {
-        await reFetchInstanceData();
         navigateToTask(newCurrentTask.elementId);
       }
 
