@@ -19,6 +19,7 @@ using Altinn.Studio.Designer.TypedHttpClients.AltinnNotification.Models;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Altinn.Studio.Designer.TypedHttpClients.Slack;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Hosting;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -28,7 +29,7 @@ internal sealed class AlertsService(
     ISlackClient slackClient,
     AlertsSettings alertsSettings,
     IAltinnNotificationClient altinnNotificationsClient,
-    GeneralSettings generalSettings,
+    IHostEnvironment hostEnvironment,
     IContactPointsRepository contactPointsRepository
 ) : IAlertsService
 {
@@ -207,7 +208,9 @@ internal sealed class AlertsService(
     private string FormatSmsBody(string org, AltinnEnvironment environment, List<string> apps, string alertTitle)
     {
         string appsFormatted = string.Join(", ", apps);
-        string studioMiljø = !generalSettings.IsProd ? $"\nStudio-miljø: {generalSettings.OriginEnvironment}" : "";
+        string studioMiljø = !hostEnvironment.IsProduction()
+            ? $"\nStudio-miljø: {hostEnvironment.EnvironmentName}"
+            : "";
 
         return $@"{alertTitle}
 
@@ -243,10 +246,10 @@ Applikasjoner: {appsFormatted}{studioMiljø}";
                         <td>Applikasjoner:</td>
                         <td>{appsFormatted}</td>
                     </tr>
-                    {(!generalSettings.IsProd ? $"""
+                    {(!hostEnvironment.IsProduction() ? $"""
                         <tr>
                             <td>Studio-miljø:</td>
-                            <td><b>{WebUtility.HtmlEncode(generalSettings.OriginEnvironment)}</b></td>
+                            <td><b>{WebUtility.HtmlEncode(hostEnvironment.EnvironmentName)}</b></td>
                         </tr>
                     """ : "")}
                 </tbody>
@@ -291,9 +294,9 @@ Applikasjoner: {appsFormatted}{studioMiljø}";
             new() { Type = "mrkdwn", Text = $"Applikasjoner: {appsFormatted}" },
         };
 
-        if (!generalSettings.IsProd)
+        if (!hostEnvironment.IsProduction())
         {
-            info.Add(new SlackText { Type = "mrkdwn", Text = $"Studio-miljø: `{generalSettings.OriginEnvironment}`" });
+            info.Add(new SlackText { Type = "mrkdwn", Text = $"Studio-miljø: `{hostEnvironment.EnvironmentName}`" });
         }
 
         var message = new SlackMessage

@@ -6,13 +6,14 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnNotification.Models;
+using Microsoft.Extensions.Hosting;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AltinnNotification;
 
 public class AltinnNotificationClient(
     HttpClient httpClient,
     IEnvironmentsService environmentsService,
-    GeneralSettings generalSettings,
+    IHostEnvironment hostEnvironment,
     PlatformSettings platformSettings
 ) : IAltinnNotificationClient
 {
@@ -73,7 +74,7 @@ public class AltinnNotificationClient(
 
     private async Task<Uri> CreateNotificationOrderUri()
     {
-        var baseUrl = generalSettings.IsProd
+        var baseUrl = hostEnvironment.IsProduction()
             ? await environmentsService.CreatePlatformUri("production")
             : await environmentsService.CreatePlatformUri("tt02");
 

@@ -17,6 +17,7 @@ using Altinn.Studio.Designer.TypedHttpClients.AltinnNotification.Models;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Altinn.Studio.Designer.TypedHttpClients.Slack;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Hosting;
 using Moq;
 using Xunit;
 
@@ -442,7 +443,7 @@ public class AlertsServiceTests
     [Fact]
     public async Task NotifyAlertsUpdatedAsync_WhenNonProdStudioEnv_ShouldIncludeStudioMiljøInEmailBody()
     {
-        var service = CreateService(hostName: "dev.altinn.studio");
+        var service = CreateService(isProd: false);
         var alert = BuildAlert([new AlertInstance { Status = "firing", App = "app1" }]);
         var environment = AltinnEnvironment.FromName("tt02");
 
@@ -484,7 +485,7 @@ public class AlertsServiceTests
     [Fact]
     public async Task NotifyAlertsUpdatedAsync_WhenProdStudioEnv_ShouldNotIncludeStudioMiljøInEmailBody()
     {
-        var service = CreateService(hostName: "altinn.studio");
+        var service = CreateService(isProd: true);
         var alert = BuildAlert([new AlertInstance { Status = "firing", App = "app1" }]);
         var environment = AltinnEnvironment.FromName("tt02");
 
@@ -526,7 +527,7 @@ public class AlertsServiceTests
     [Fact]
     public async Task NotifyAlertsUpdatedAsync_WhenNonProdStudioEnv_ShouldIncludeStudioMiljøInSmsBody()
     {
-        var service = CreateService(hostName: "dev.altinn.studio");
+        var service = CreateService(isProd: false);
         var alert = BuildAlert([new AlertInstance { Status = "firing", App = "app1" }]);
         var environment = AltinnEnvironment.FromName("tt02");
 
@@ -566,7 +567,7 @@ public class AlertsServiceTests
     [Fact]
     public async Task NotifyAlertsUpdatedAsync_WhenProdStudioEnv_ShouldNotIncludeStudioMiljøInSmsBody()
     {
-        var service = CreateService(hostName: "altinn.studio");
+        var service = CreateService(isProd: true);
         var alert = BuildAlert([new AlertInstance { Status = "firing", App = "app1" }]);
         var environment = AltinnEnvironment.FromName("tt02");
 
@@ -606,7 +607,7 @@ public class AlertsServiceTests
     [Fact]
     public async Task NotifyAlertsUpdatedAsync_WhenNonProdStudioEnv_ShouldIncludeStudioMiljøInSlackMessage()
     {
-        var service = CreateService(hostName: "dev.altinn.studio");
+        var service = CreateService(isProd: false);
         var alert = BuildAlert([new AlertInstance { Status = "firing", App = "app1" }]);
         var environment = AltinnEnvironment.FromName("tt02");
 
@@ -630,7 +631,7 @@ public class AlertsServiceTests
     [Fact]
     public async Task NotifyAlertsUpdatedAsync_WhenProdStudioEnv_ShouldNotIncludeStudioMiljøInSlackMessage()
     {
-        var service = CreateService(hostName: "altinn.studio");
+        var service = CreateService(isProd: true);
         var alert = BuildAlert([new AlertInstance { Status = "firing", App = "app1" }]);
         var environment = AltinnEnvironment.FromName("tt02");
 
@@ -651,18 +652,22 @@ public class AlertsServiceTests
         );
     }
 
-    private AlertsService CreateService() => CreateService(hostName: "studio.localhost");
+    private AlertsService CreateService() => CreateService(isProd: false);
 
-    private AlertsService CreateService(string hostName) =>
-        new(
+    private AlertsService CreateService(bool isProd)
+    {
+        var hostEnvironment = new Mock<IHostEnvironment>();
+        hostEnvironment.Setup(e => e.EnvironmentName).Returns(isProd ? Environments.Production : Environments.Staging);
+        return new(
             _runtimeGatewayClient.Object,
             _hubContext.Object,
             _slackClient.Object,
             _alertsSettings,
             _notificationClient.Object,
-            new GeneralSettings { HostName = hostName },
+            hostEnvironment.Object,
             _contactPointsRepository.Object
         );
+    }
 
     private void SetupNoContactPoints(string org, string environment) => SetupContactPoints(org, environment, []);
 

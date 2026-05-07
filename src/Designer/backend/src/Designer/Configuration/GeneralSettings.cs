@@ -81,6 +81,4 @@ public class GeneralSettings : ISettingsMarker
             return "prod";
         }
     }
-
-    public bool IsProd => OriginEnvironment == "prod";
 }
