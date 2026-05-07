@@ -13,7 +13,7 @@ import { codeListFileToData, updateCodes, updateName } from './utils';
 import { useTranslation } from 'react-i18next';
 import classes from './CodeListDataEditor.module.css';
 import { Publishing } from './Publishing';
-import { CodeListFile } from '../../../../types/CodeListFile';
+import type { CodeListFile } from '../../../../types/CodeListFile';
 
 export type CodeListDataEditorProps = Readonly<{
   file: CodeListFile;

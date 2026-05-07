@@ -1,6 +1,6 @@
 import type { CodeListData } from '../../../../types/CodeListData';
 import type { CodeList } from '../../../../types/CodeList';
-import { CodeListFile, OrdinaryCodeListFile } from '../../../../types/CodeListFile';
+import type { CodeListFile, OrdinaryCodeListFile } from '../../../../types/CodeListFile';
 import { isCodeListValid } from './validators/isCodelistValid';
 import { FileNameUtils } from '@studio/pure-functions';
 import { Guard } from '@studio/guard';
