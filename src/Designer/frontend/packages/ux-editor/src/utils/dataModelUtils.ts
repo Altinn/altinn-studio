@@ -100,18 +100,14 @@ export const getDataModelFields = ({
 const isExplicitDataModelBinding = (
   binding?: IDataModelBindings,
 ): binding is ExplicitDataModelBinding | undefined =>
-  typeof binding === 'object' &&
-  binding !== null &&
-  'dataType' in binding &&
-  'field' in binding;
+  typeof binding === 'object' && binding !== null && 'dataType' in binding && 'field' in binding;
 
 const normalizeExplicitDataModelBinding = (
   binding: ExplicitDataModelBinding,
   layoutDefaultDataType: string,
 ): ExplicitDataModelBinding => ({
   field: typeof binding.field === 'string' ? binding.field : '',
-  dataType:
-    typeof binding.dataType === 'string' ? binding.dataType : (layoutDefaultDataType ?? ''),
+  dataType: typeof binding.dataType === 'string' ? binding.dataType : (layoutDefaultDataType ?? ''),
 });
 
 export function convertDataBindingToInternalFormat(
