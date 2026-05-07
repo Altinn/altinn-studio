@@ -46,7 +46,7 @@ internal sealed class LegacyRuleFileCleanup
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Error cleaning up layout set {layoutSetName}: {ex.Message}");
+                UpgradeConsole.WriteErrorLine($"Error cleaning up layout set {layoutSetName}: {ex.Message}");
             }
         }
 
@@ -71,7 +71,9 @@ internal sealed class LegacyRuleFileCleanup
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Failed to delete RuleConfiguration.json in {layoutSetName}: {ex.Message}");
+                UpgradeConsole.WriteErrorLine(
+                    $"Failed to delete RuleConfiguration.json in {layoutSetName}: {ex.Message}"
+                );
             }
         }
 
@@ -86,7 +88,7 @@ internal sealed class LegacyRuleFileCleanup
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Failed to delete RuleHandler.js in {layoutSetName}: {ex.Message}");
+                UpgradeConsole.WriteErrorLine($"Failed to delete RuleHandler.js in {layoutSetName}: {ex.Message}");
             }
         }
 

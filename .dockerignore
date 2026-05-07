@@ -8,6 +8,7 @@
 !src/App/frontend/package.json
 !src/App/template/src
 !libs/form-component
+!libs/form-engine
 
 # Test-apps are built in its own container, so they need to be included
 !src/App/backend

@@ -127,6 +127,7 @@
     "webpack-dev-server": "5.2.3"
   },
   "dependencies": {
+    "@app/form-engine": "workspace:*",
     "@date-fns/tz": "1.4.1",
     "@digdir/designsystemet-css": "1.11.1",
     "@digdir/designsystemet-react": "1.11.1",

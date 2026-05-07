@@ -12,6 +12,7 @@ import (
 	containerruntime "altinn.studio/devenv/pkg/container"
 	"altinn.studio/studioctl/internal/appcontainers"
 	"altinn.studio/studioctl/internal/appimage"
+	"altinn.studio/studioctl/internal/appmanager"
 	"altinn.studio/studioctl/internal/auth"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	"altinn.studio/studioctl/internal/config"
@@ -28,10 +29,13 @@ type AppCommand struct {
 	ps      *AppPsCommand
 	run     *RunCommand
 	stop    *StopCommand
+	manager appManagerAccess
 	service *appsvc.Service
 }
 
 const appLogsSubcommand = "logs"
+
+var errAppUpgradeFailed = errors.New("upgrade failed")
 
 type appBuildOutput struct {
 	ImageTag   string `json:"imageTag"`
@@ -74,6 +78,7 @@ func NewAppCommand(cfg *config.Config, out *ui.Output) *AppCommand {
 		ps:      newAppPsCommand(cfg, out, service),
 		run:     newRunCommand(cfg, out, service),
 		stop:    newStopCommand(cfg, out, service),
+		manager: newAppManagerAccess(cfg),
 		service: service,
 	}
 }
@@ -99,6 +104,7 @@ func (c *AppCommand) Usage() string {
 		"  run       Run app locally",
 		"  stop      Stop running apps",
 		"  update    Update Altinn.App NuGet packages and frontend",
+		"  upgrade   Upgrade app structure",
 		"",
 		fmt.Sprintf("Run '%s app <subcommand> --help' for more information.", osutil.CurrentBin()),
 	)
@@ -129,6 +135,8 @@ func (c *AppCommand) Run(ctx context.Context, args []string) error {
 		return c.stop.RunWithCommandPath(ctx, subArgs, "app stop")
 	case "update":
 		return c.runUpdate(ctx, subArgs)
+	case "upgrade":
+		return c.runUpgrade(ctx, subArgs)
 	case "-h", flagHelp, helpSubcmd:
 		c.out.Print(c.Usage())
 		return nil
@@ -272,6 +280,121 @@ func (c *AppCommand) runUpdate(ctx context.Context, args []string) error {
 	c.out.Println("  2. Run 'dotnet restore'")
 
 	return nil
+}
+
+func (c *AppCommand) runUpgrade(ctx context.Context, args []string) error {
+	flags, help, err := c.parseAppUpgradeFlags(args)
+	if err != nil {
+		return err
+	}
+	if help {
+		c.out.Print(c.appUpgradeUsage())
+		return nil
+	}
+
+	detection, err := repocontext.DetectFromCwd(ctx, flags.appPath)
+	if err != nil {
+		return fmt.Errorf("detect app: %w", err)
+	}
+	if !detection.InAppRepo {
+		return fmt.Errorf("%w: run from an app directory or use -p to specify path", ErrNoAppFound)
+	}
+
+	if ensureErr := c.manager.ensure(ctx); ensureErr != nil {
+		return startAppManagerError(ensureErr)
+	}
+
+	upgrade := appmanager.AppUpgrade{
+		ProjectFolder:            detection.AppRoot,
+		StudioRoot:               "",
+		Kind:                     flags.kind,
+		ConvertPackageReferences: false,
+	}
+	if flags.kind == appUpgradeKindV10 && detection.InStudioRepo {
+		upgrade.ConvertPackageReferences = true
+		upgrade.StudioRoot = detection.StudioRoot
+	}
+
+	result, err := c.manager.client.UpgradeApp(ctx, upgrade)
+	if err != nil {
+		return fmt.Errorf("upgrade app: %w", err)
+	}
+	if result.Output != "" {
+		c.out.Print(result.Output)
+	}
+	if result.Error != "" {
+		c.out.Error(result.Error)
+	}
+	if result.ExitCode != 0 {
+		return fmt.Errorf("%w with exit code %d", errAppUpgradeFailed, result.ExitCode)
+	}
+	return nil
+}
+
+type appUpgradeFlags struct {
+	appPath string
+	kind    string
+}
+
+const (
+	appUpgradeKindFrontendV4 = "frontend-v4"
+	appUpgradeKindBackendV8  = "backend-v8"
+	appUpgradeKindV10        = "v10"
+)
+
+func (c *AppCommand) parseAppUpgradeFlags(args []string) (appUpgradeFlags, bool, error) {
+	fs := flag.NewFlagSet("app upgrade", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	var flags appUpgradeFlags
+	fs.StringVar(&flags.appPath, "p", "", "App directory path")
+	fs.StringVar(&flags.appPath, "path", "", "App directory path")
+
+	if len(args) > 0 && !strings.HasPrefix(args[0], "-") {
+		flags.kind = args[0]
+		args = args[1:]
+	}
+
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return flags, true, nil
+		}
+		return flags, false, fmt.Errorf("parsing flags: %w", err)
+	}
+
+	remaining := fs.Args()
+	if flags.kind == "" && len(remaining) == 0 {
+		flags.kind = appUpgradeKindV10
+		return flags, false, nil
+	}
+	if flags.kind == "" && len(remaining) == 1 {
+		flags.kind = remaining[0]
+	} else if len(remaining) > 0 {
+		return flags, false, fmt.Errorf("%w: usage: %s", ErrInvalidFlagValue, c.appUpgradeUsageLine())
+	}
+	if !isSupportedAppUpgradeKind(flags.kind) {
+		return flags, false, fmt.Errorf("%w: %s", ErrInvalidFlagValue, flags.kind)
+	}
+	return flags, false, nil
+}
+
+func isSupportedAppUpgradeKind(kind string) bool {
+	return kind == appUpgradeKindFrontendV4 || kind == appUpgradeKindBackendV8 || kind == appUpgradeKindV10
+}
+
+func (c *AppCommand) appUpgradeUsageLine() string {
+	return osutil.CurrentBin() + " app upgrade [frontend-v4|backend-v8|v10] [-p PATH]"
+}
+
+func (c *AppCommand) appUpgradeUsage() string {
+	return joinLines(
+		"Usage: "+c.appUpgradeUsageLine(),
+		"",
+		"Upgrades an Altinn app. Defaults to v10 when no kind is specified. Package references are converted to project references only for v10 apps inside an Altinn Studio repo.",
+		"",
+		"Options:",
+		"  -p, --path PATH             Specify app directory (overrides auto-detect)",
+		"  -h, --help                  Show this help",
+	)
 }
 
 func (c *AppCommand) runClone(ctx context.Context, args []string) error {

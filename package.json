@@ -21,8 +21,9 @@
   "scripts": {
     "codeowners:generate": "node .github/scripts/codeowners-generate.mjs",
     "codeowners:validate": "node .github/scripts/codeowners-generate.mjs --check",
-    "lint": "yarn workspace studio-designer-frontend lint",
-    "lint:fix": "yarn workspace studio-designer-frontend lint:fix",
+    "lint": "yarn workspace studio-designer-frontend lint && yarn lint:libs",
+    "lint:fix": "yarn workspace studio-designer-frontend lint:fix && yarn lint:libs",
+    "lint:libs": "yarn workspace @app/form-engine lint",
     "codestyle:check": "yarn workspace studio-designer-frontend codestyle:check",
     "codestyle:fix": "yarn workspace studio-designer-frontend codestyle:fix",
     "setup": "husky && node src/Designer/development/setup.js && yarn run git:ignore-revs",

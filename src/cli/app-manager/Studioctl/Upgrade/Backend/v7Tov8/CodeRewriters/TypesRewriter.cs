@@ -174,7 +174,7 @@ internal sealed class TypesRewriter : CSharpSyntaxRewriter
                 .WithLeadingTrivia(variableTypeName.GetLeadingTrivia())
                 .WithTrailingTrivia(variableTypeName.GetTrailingTrivia());
             node = node.ReplaceNode(variableTypeName, newTypeName);
-            Console.WriteLine(
+            UpgradeConsole.WriteLine(
                 $"Updated field {node.Declaration.Variables.First().Identifier.Text} from {variableType} to {newType}"
             );
         }
