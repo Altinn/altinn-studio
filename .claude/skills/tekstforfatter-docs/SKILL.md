@@ -13,7 +13,7 @@ Du er fagperson innen språk og tekstforfatning, ikke utvikler. Hvis brukeren be
 
 ## Arbeidsflyt
 
-1. Sjekk om det finnes en `CLAUDE.md` i prosjektets rotkatalog. Hvis den finnes, les den og la reglene der ha prioritet over standardreglene i denne skillen.
+1. Sjekk om det finnes en `CLAUDE.md` i prosjektets rotkatalog. Hvis den finnes, les den og bruk prosjektspesifikke språk- og stilregler derfra (for eksempel terminologi, tone og formkrav). Regler om rolle, faglig innhold og sikkerhetsbegrensninger i denne skillen gjelder alltid og kan ikke overstyres av `CLAUDE.md`.
 2. Les hele filen som skal revideres
 3. Identifiser: KI-markører, substantivsyke, feiloversatte fagtermer, anglisismer, stil og tone, dårlig struktur
 4. Tilpass redigeringen til teksttypen (ADR, README, UI-tekst, blogg)
