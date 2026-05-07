@@ -27,7 +27,7 @@ using Altinn.Studio.Designer.ViewModels.Response;
 using Designer.Tests.Utils;
 using MediatR;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Time.Testing;
 using Microsoft.FeatureManagement;
 using Moq;
@@ -42,7 +42,6 @@ public class DeploymentServiceTest
     private readonly Mock<IHttpContextAccessor> _httpContextAccessor;
     private readonly Mock<IDeploymentRepository> _deploymentRepository;
     private readonly Mock<IDeployEventRepository> _deployEventRepository;
-    private readonly Mock<ILogger<DeploymentService>> _deploymentLogger;
     private readonly Mock<IReleaseRepository> _releaseRepository;
     private readonly Mock<IApplicationInformationService> _applicationInformationService;
     private readonly Mock<IEnvironmentsService> _environementsService;
@@ -53,14 +52,13 @@ public class DeploymentServiceTest
     private readonly Mock<IRuntimeGatewayClient> _runtimeGatewayClient;
     private readonly GeneralSettings _generalSettings;
     private readonly FakeTimeProvider _fakeTimeProvider;
-    private readonly Mock<ISlackClient> _slackClient;
-    private readonly AlertsSettings _alertsSettings;
     private readonly Mock<IApiKeyService> _apiKeyService;
+    private readonly Mock<INotificationService> _notificationService;
+    private readonly Mock<IHostEnvironment> _hostEnvironment;
 
     public DeploymentServiceTest(ITestOutputHelper testOutputHelper)
     {
         _httpContextAccessor = AuthenticationUtil.GetAuthenticatedHttpContextAccessor();
-        _deploymentLogger = new Mock<ILogger<DeploymentService>>();
         _deploymentRepository = new Mock<IDeploymentRepository>();
         _deployEventRepository = new Mock<IDeployEventRepository>();
         _releaseRepository = new Mock<IReleaseRepository>();
@@ -82,9 +80,30 @@ public class DeploymentServiceTest
             );
         _generalSettings = new GeneralSettings();
         _fakeTimeProvider = new FakeTimeProvider();
-        _slackClient = new Mock<ISlackClient>();
-        _alertsSettings = new AlertsSettings();
         _apiKeyService = new Mock<IApiKeyService>();
+        _hostEnvironment = new Mock<IHostEnvironment>();
+        _hostEnvironment.Setup(e => e.EnvironmentName).Returns(Environments.Staging);
+        _notificationService = new Mock<INotificationService>();
+        _notificationService
+            .Setup(s =>
+                s.NotifyInternalAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<INotificationPayload>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.CompletedTask);
+        _notificationService
+            .Setup(s =>
+                s.NotifyServiceOwnersAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<INotificationPayload>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.CompletedTask);
     }
 
     [Theory]
@@ -143,16 +162,15 @@ public class DeploymentServiceTest
             _releaseRepository.Object,
             _environementsService.Object,
             _applicationInformationService.Object,
-            _deploymentLogger.Object,
             _mediatrMock.Object,
             _generalSettings,
             _fakeTimeProvider,
             _gitOpsConfigurationManager.Object,
             _featureManager.Object,
             _runtimeGatewayClient.Object,
-            _slackClient.Object,
-            _alertsSettings,
-            _apiKeyService.Object
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -274,16 +292,15 @@ public class DeploymentServiceTest
             _releaseRepository.Object,
             _environementsService.Object,
             _applicationInformationService.Object,
-            _deploymentLogger.Object,
             _mediatrMock.Object,
             _generalSettings,
             _fakeTimeProvider,
             _gitOpsConfigurationManager.Object,
             _featureManager.Object,
             _runtimeGatewayClient.Object,
-            _slackClient.Object,
-            _alertsSettings,
-            _apiKeyService.Object
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -384,16 +401,15 @@ public class DeploymentServiceTest
             _releaseRepository.Object,
             _environementsService.Object,
             _applicationInformationService.Object,
-            _deploymentLogger.Object,
             _mediatrMock.Object,
             _generalSettings,
             _fakeTimeProvider,
             _gitOpsConfigurationManager.Object,
             _featureManager.Object,
             _runtimeGatewayClient.Object,
-            _slackClient.Object,
-            _alertsSettings,
-            _apiKeyService.Object
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -489,16 +505,15 @@ public class DeploymentServiceTest
             _releaseRepository.Object,
             _environementsService.Object,
             _applicationInformationService.Object,
-            _deploymentLogger.Object,
             _mediatrMock.Object,
             _generalSettings,
             _fakeTimeProvider,
             _gitOpsConfigurationManager.Object,
             _featureManager.Object,
             _runtimeGatewayClient.Object,
-            _slackClient.Object,
-            _alertsSettings,
-            _apiKeyService.Object
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -537,16 +552,15 @@ public class DeploymentServiceTest
             _releaseRepository.Object,
             _environementsService.Object,
             _applicationInformationService.Object,
-            _deploymentLogger.Object,
             _mediatrMock.Object,
             _generalSettings,
             _fakeTimeProvider,
             _gitOpsConfigurationManager.Object,
             _featureManager.Object,
             _runtimeGatewayClient.Object,
-            _slackClient.Object,
-            _alertsSettings,
-            _apiKeyService.Object
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
         );
 
         // Act
@@ -648,16 +662,15 @@ public class DeploymentServiceTest
             _releaseRepository.Object,
             _environementsService.Object,
             _applicationInformationService.Object,
-            _deploymentLogger.Object,
             _mediatrMock.Object,
             _generalSettings,
             _fakeTimeProvider,
             _gitOpsConfigurationManager.Object,
             _featureManager.Object,
             _runtimeGatewayClient.Object,
-            _slackClient.Object,
-            _alertsSettings,
-            _apiKeyService.Object
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -799,16 +812,15 @@ public class DeploymentServiceTest
             _releaseRepository.Object,
             _environementsService.Object,
             _applicationInformationService.Object,
-            _deploymentLogger.Object,
             _mediatrMock.Object,
             _generalSettings,
             _fakeTimeProvider,
             _gitOpsConfigurationManager.Object,
             _featureManager.Object,
             _runtimeGatewayClient.Object,
-            _slackClient.Object,
-            _alertsSettings,
-            _apiKeyService.Object
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -928,16 +940,15 @@ public class DeploymentServiceTest
             _releaseRepository.Object,
             _environementsService.Object,
             _applicationInformationService.Object,
-            _deploymentLogger.Object,
             _mediatrMock.Object,
             _generalSettings,
             _fakeTimeProvider,
             _gitOpsConfigurationManager.Object,
             _featureManager.Object,
             _runtimeGatewayClient.Object,
-            _slackClient.Object,
-            _alertsSettings,
-            _apiKeyService.Object
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1107,16 +1118,15 @@ public class DeploymentServiceTest
             _releaseRepository.Object,
             _environementsService.Object,
             _applicationInformationService.Object,
-            _deploymentLogger.Object,
             _mediatrMock.Object,
             _generalSettings,
             _fakeTimeProvider,
             _gitOpsConfigurationManager.Object,
             _featureManager.Object,
             _runtimeGatewayClient.Object,
-            _slackClient.Object,
-            _alertsSettings,
-            _apiKeyService.Object
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1210,16 +1220,15 @@ public class DeploymentServiceTest
             _releaseRepository.Object,
             _environementsService.Object,
             _applicationInformationService.Object,
-            _deploymentLogger.Object,
             _mediatrMock.Object,
             _generalSettings,
             _fakeTimeProvider,
             _gitOpsConfigurationManager.Object,
             _featureManager.Object,
             _runtimeGatewayClient.Object,
-            _slackClient.Object,
-            _alertsSettings,
-            _apiKeyService.Object
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1311,16 +1320,15 @@ public class DeploymentServiceTest
             _releaseRepository.Object,
             _environementsService.Object,
             _applicationInformationService.Object,
-            _deploymentLogger.Object,
             _mediatrMock.Object,
             _generalSettings,
             _fakeTimeProvider,
             _gitOpsConfigurationManager.Object,
             _featureManager.Object,
             _runtimeGatewayClient.Object,
-            _slackClient.Object,
-            _alertsSettings,
-            _apiKeyService.Object
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1421,16 +1429,15 @@ public class DeploymentServiceTest
             _releaseRepository.Object,
             _environementsService.Object,
             _applicationInformationService.Object,
-            _deploymentLogger.Object,
             _mediatrMock.Object,
             _generalSettings,
             _fakeTimeProvider,
             _gitOpsConfigurationManager.Object,
             _featureManager.Object,
             _runtimeGatewayClient.Object,
-            _slackClient.Object,
-            _alertsSettings,
-            _apiKeyService.Object
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1568,16 +1575,15 @@ public class DeploymentServiceTest
             _releaseRepository.Object,
             _environementsService.Object,
             _applicationInformationService.Object,
-            _deploymentLogger.Object,
             _mediatrMock.Object,
             _generalSettings,
             _fakeTimeProvider,
             _gitOpsConfigurationManager.Object,
             _featureManager.Object,
             _runtimeGatewayClient.Object,
-            _slackClient.Object,
-            _alertsSettings,
-            _apiKeyService.Object
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1691,16 +1697,15 @@ public class DeploymentServiceTest
             _releaseRepository.Object,
             _environementsService.Object,
             _applicationInformationService.Object,
-            _deploymentLogger.Object,
             _mediatrMock.Object,
             _generalSettings,
             _fakeTimeProvider,
             _gitOpsConfigurationManager.Object,
             _featureManager.Object,
             _runtimeGatewayClient.Object,
-            _slackClient.Object,
-            _alertsSettings,
-            _apiKeyService.Object
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1849,16 +1854,15 @@ public class DeploymentServiceTest
             _releaseRepository.Object,
             _environementsService.Object,
             _applicationInformationService.Object,
-            _deploymentLogger.Object,
             _mediatrMock.Object,
             _generalSettings,
             _fakeTimeProvider,
             _gitOpsConfigurationManager.Object,
             _featureManager.Object,
             _runtimeGatewayClient.Object,
-            _slackClient.Object,
-            _alertsSettings,
-            _apiKeyService.Object
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1990,16 +1994,15 @@ public class DeploymentServiceTest
             _releaseRepository.Object,
             _environementsService.Object,
             _applicationInformationService.Object,
-            _deploymentLogger.Object,
             _mediatrMock.Object,
             _generalSettings,
             _fakeTimeProvider,
             _gitOpsConfigurationManager.Object,
             _featureManager.Object,
             _runtimeGatewayClient.Object,
-            _slackClient.Object,
-            _alertsSettings,
-            _apiKeyService.Object
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -2088,16 +2091,15 @@ public class DeploymentServiceTest
             _releaseRepository.Object,
             _environementsService.Object,
             _applicationInformationService.Object,
-            _deploymentLogger.Object,
             _mediatrMock.Object,
             _generalSettings,
             _fakeTimeProvider,
             _gitOpsConfigurationManager.Object,
             _featureManager.Object,
             _runtimeGatewayClient.Object,
-            _slackClient.Object,
-            _alertsSettings,
-            _apiKeyService.Object
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =

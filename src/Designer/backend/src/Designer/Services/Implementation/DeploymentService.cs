@@ -20,13 +20,12 @@ using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
-using Altinn.Studio.Designer.TypedHttpClients.Slack;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
 using Microsoft.FeatureManagement;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
@@ -47,7 +46,6 @@ public class DeploymentService : IDeploymentService
     private readonly HttpContext _httpContext;
     private readonly IApplicationInformationService _applicationInformationService;
     private readonly IEnvironmentsService _environmentsService;
-    private readonly ILogger<DeploymentService> _logger;
     private readonly IPublisher _mediatr;
     private readonly GeneralSettings _generalSettings;
     private readonly GitOpsSettings _gitOpsSettings;
@@ -55,9 +53,9 @@ public class DeploymentService : IDeploymentService
     private readonly IGitOpsConfigurationManager _gitOpsConfigurationManager;
     private readonly IFeatureManager _featureManager;
     private readonly IRuntimeGatewayClient _runtimeGatewayClient;
-    private readonly ISlackClient _slackClient;
-    private readonly AlertsSettings _alertsSettings;
     private readonly IApiKeyService _apiKeyService;
+    private readonly INotificationService _notificationService;
+    private readonly IHostEnvironment _hostEnvironment;
 
     /// <summary>
     /// Constructor
@@ -71,16 +69,15 @@ public class DeploymentService : IDeploymentService
         IReleaseRepository releaseRepository,
         IEnvironmentsService environmentsService,
         IApplicationInformationService applicationInformationService,
-        ILogger<DeploymentService> logger,
         IPublisher mediatr,
         GeneralSettings generalSettings,
         TimeProvider timeProvider,
         IGitOpsConfigurationManager gitOpsConfigurationManager,
         IFeatureManager featureManager,
         IRuntimeGatewayClient runtimeGatewayClient,
-        ISlackClient slackClient,
-        AlertsSettings alertsSettings,
         IApiKeyService apiKeyService,
+        INotificationService notificationService,
+        IHostEnvironment hostEnvironment,
         GitOpsSettings gitOpsSettings = null
     )
     {
@@ -92,7 +89,6 @@ public class DeploymentService : IDeploymentService
         _environmentsService = environmentsService;
         _azureDevOpsSettings = azureDevOpsOptions;
         _httpContext = httpContextAccessor.HttpContext;
-        _logger = logger;
         _mediatr = mediatr;
         _generalSettings = generalSettings;
         _gitOpsSettings = gitOpsSettings ?? new GitOpsSettings();
@@ -100,9 +96,9 @@ public class DeploymentService : IDeploymentService
         _gitOpsConfigurationManager = gitOpsConfigurationManager;
         _featureManager = featureManager;
         _runtimeGatewayClient = runtimeGatewayClient;
-        _slackClient = slackClient;
-        _alertsSettings = alertsSettings;
         _apiKeyService = apiKeyService;
+        _notificationService = notificationService;
+        _hostEnvironment = hostEnvironment;
     }
 
     /// <inheritdoc/>
@@ -677,74 +673,33 @@ public class DeploymentService : IDeploymentService
             return;
         }
 
-        string studioEnv = _generalSettings.OriginEnvironment;
-
-        var links = new List<SlackText>
-        {
-            new()
-            {
-                Type = "mrkdwn",
-                Text = $"<{GrafanaPodLogsUrl(org, environment, app, startedDate, _timeProvider.GetUtcNow())}|Grafana>",
-            },
-        };
-
-        if (!string.IsNullOrWhiteSpace(buildId))
-        {
-            links.Add(
-                new SlackText
-                {
-                    Type = "mrkdwn",
-                    Text =
-                        $"<https://dev.azure.com/brreg/altinn-studio/_build/results?buildId={buildId}&view=logs|Build log>",
-                }
-            );
-        }
-
-        string emoji = ":x:";
-        var status = eventType switch
+        string status = eventType switch
         {
             DeployEventType.InstallFailed or DeployEventType.UpgradeFailed => "Deploy failed",
             DeployEventType.UninstallFailed => "Undeploy failed",
             _ => eventType.ToString(),
         };
 
-        var message = new SlackMessage
-        {
-            Text = $"{emoji} `{org}` - `{environment.Name}` - `{app}` - *{status}*",
-            Blocks =
-            [
-                new SlackBlock
-                {
-                    Type = "section",
-                    Text = new SlackText { Type = "mrkdwn", Text = $"{emoji} *{status}*" },
-                },
-                new SlackBlock
-                {
-                    Type = "context",
-                    Elements = new List<SlackText>
-                    {
-                        new() { Type = "mrkdwn", Text = $"Org: `{org}`" },
-                        new() { Type = "mrkdwn", Text = $"Env: `{environment.Name}`" },
-                        new() { Type = "mrkdwn", Text = $"App: `{app}`" },
-                        new() { Type = "mrkdwn", Text = $"Studio env: `{studioEnv}`" },
-                    },
-                },
-                new SlackBlock { Type = "context", Elements = links },
-            ],
-        };
+        Uri grafanaUrl = new(GrafanaPodLogsUrl(org, environment, app, startedDate, _timeProvider.GetUtcNow()));
+        string buildLogUrl = !string.IsNullOrWhiteSpace(buildId)
+            ? $"https://dev.azure.com/brreg/altinn-studio/_build/results?buildId={buildId}&view=logs"
+            : null;
 
-        try
-        {
-            await _slackClient.SendMessageAsync(
-                _alertsSettings.GetSlackWebhookUrl(environment),
-                message,
-                cancellationToken
-            );
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            _logger.LogError(ex, "Failed to send Slack deploy notification");
-        }
+        var payload = new DeploymentNotificationPayload(
+            org,
+            environment.Name,
+            app,
+            status,
+            buildId ?? string.Empty,
+            grafanaUrl,
+            buildLogUrl,
+            _hostEnvironment
+        );
+
+        await Task.WhenAll(
+            _notificationService.NotifyInternalAsync(org, environment, payload, cancellationToken),
+            _notificationService.NotifyServiceOwnersAsync(org, environment, payload, cancellationToken)
+        );
     }
 
     private static string GrafanaPodLogsUrl(
