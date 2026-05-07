@@ -131,10 +131,6 @@ namespace Altinn.App.Core.EFormidling.Extensions
     {
         public static void AddEFormidlingServices<TM>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, Microsoft.Extensions.Configuration.IConfiguration configuration)
             where TM : Altinn.App.Core.EFormidling.Interface.IEFormidlingMetadata { }
-        [System.Obsolete("Use AddEformidlingServices2 instead. This method will be removed in V9.")]
-        public static void AddEFormidlingServices<TM, TR>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, Microsoft.Extensions.Configuration.IConfiguration configuration)
-            where TM : Altinn.App.Core.EFormidling.Interface.IEFormidlingMetadata
-            where TR : Altinn.App.Core.EFormidling.Interface.IEFormidlingReceivers { }
         public static void AddEFormidlingServices2<TM, TR>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, Microsoft.Extensions.Configuration.IConfiguration configuration)
             where TM : Altinn.App.Core.EFormidling.Interface.IEFormidlingMetadata
             where TR : Altinn.App.Core.EFormidling.Interface.IEFormidlingReceivers { }
@@ -159,19 +155,6 @@ namespace Altinn.App.Core.EFormidling.Implementation
         public EformidlingDeliveryException() { }
         public EformidlingDeliveryException(string message) { }
         public EformidlingDeliveryException(string message, System.Exception inner) { }
-    }
-    [System.Obsolete("UseEformidlingStatusCheckEventHandler2 instead. This class will be removed in V9.")]
-    public class EformidlingStatusCheckEventHandler : Altinn.App.Core.Features.IEventHandler
-    {
-        public EformidlingStatusCheckEventHandler(Altinn.Common.EFormidlingClient.IEFormidlingClient eFormidlingClient, System.Net.Http.IHttpClientFactory httpClientFactory, Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.EFormidling.Implementation.EformidlingStatusCheckEventHandler> logger, Altinn.ApiClients.Maskinporten.Interfaces.IMaskinportenService maskinportenService, Microsoft.Extensions.Options.IOptions<Altinn.ApiClients.Maskinporten.Config.MaskinportenSettings> maskinportenSettings, Altinn.App.Core.Infrastructure.Clients.Maskinporten.IX509CertificateProvider x509CertificateProvider, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings> platformSettings, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.GeneralSettings> generalSettings) { }
-        public string EventType { get; }
-        public System.Threading.Tasks.Task<bool> ProcessEvent(Altinn.App.Core.Models.CloudEvent cloudEvent) { }
-    }
-    public class EformidlingStatusCheckEventHandler2 : Altinn.App.Core.Features.IEventHandler
-    {
-        public EformidlingStatusCheckEventHandler2(Altinn.Common.EFormidlingClient.IEFormidlingClient eFormidlingClient, System.Net.Http.IHttpClientFactory httpClientFactory, Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.EFormidling.Implementation.EformidlingStatusCheckEventHandler2> logger, Altinn.App.Core.Internal.Maskinporten.IMaskinportenTokenProvider maskinportenTokenProvider, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings> platformSettings, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.GeneralSettings> generalSettings) { }
-        public string EventType { get; }
-        public System.Threading.Tasks.Task<bool> ProcessEvent(Altinn.App.Core.Models.CloudEvent cloudEvent) { }
     }
     public interface IEFormidlingLegacyConfigurationProvider
     {
@@ -2578,15 +2561,6 @@ namespace Altinn.App.Core.Infrastructure.Clients.KeyVault
         public System.Threading.Tasks.Task<string> GetSecretAsync(string secretName) { }
     }
 }
-namespace Altinn.App.Core.Infrastructure.Clients.Maskinporten
-{
-    [System.Obsolete("This should only have been used to get an accesstoken from Maskinporten, and has " +
-        "been replaced by IMaskinportenTokenProvider.")]
-    public interface IX509CertificateProvider
-    {
-        System.Threading.Tasks.Task<System.Security.Cryptography.X509Certificates.X509Certificate2> GetCertificate();
-    }
-}
 namespace Altinn.App.Core.Infrastructure.Clients.Pdf
 {
     public class PdfGeneratorClient : Altinn.App.Core.Internal.Pdf.IPdfGeneratorClient
@@ -3381,30 +3355,6 @@ namespace Altinn.App.Core.Internal.Language
     public interface IApplicationLanguage
     {
         System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.ApplicationLanguage>> GetApplicationLanguages();
-    }
-}
-namespace Altinn.App.Core.Internal.Maskinporten
-{
-    [System.Obsolete("Use Altinn.App.Api.ServiceCollectionExtensions.ConfigureMaskinportenClient instea" +
-        "d. This interface will be removed in V9.")]
-    public interface IMaskinportenTokenProvider
-    {
-        System.Threading.Tasks.Task<string> GetAltinnExchangedToken(string scopes);
-        System.Threading.Tasks.Task<string> GetToken(string scopes);
-    }
-    public static class MaskinportenExtensions
-    {
-        [System.Obsolete("Use Altinn.App.Api.ServiceCollectionExtensions.ConfigureMaskinportenClient instea" +
-            "d. This method will be removed in V9.")]
-        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddMaskinportenJwkTokenProvider(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, string secretKeyName) { }
-    }
-    [System.Obsolete("Use Altinn.App.Api.ServiceCollectionExtensions.ConfigureMaskinportenClient instea" +
-        "d. This service will be removed in V9.")]
-    public class MaskinportenJwkTokenProvider : Altinn.App.Core.Internal.Maskinporten.IMaskinportenTokenProvider
-    {
-        public MaskinportenJwkTokenProvider(Altinn.ApiClients.Maskinporten.Interfaces.IMaskinportenService maskinportenService, Microsoft.Extensions.Options.IOptions<Altinn.ApiClients.Maskinporten.Config.MaskinportenSettings> maskinportenSettings, Altinn.App.Core.Internal.Secrets.ISecretsClient secretsClient, string secretKeyName) { }
-        public System.Threading.Tasks.Task<string> GetAltinnExchangedToken(string scopes) { }
-        public System.Threading.Tasks.Task<string> GetToken(string scopes) { }
     }
 }
 namespace Altinn.App.Core.Internal.Pdf
