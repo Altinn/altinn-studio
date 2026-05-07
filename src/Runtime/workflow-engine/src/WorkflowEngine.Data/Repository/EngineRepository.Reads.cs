@@ -751,6 +751,10 @@ internal sealed partial class EngineRepository
         }
     }
 
+    /// <summary>
+    /// Returns workflow IDs in the connected component reachable from the root workflow
+    /// through dependency and link relations in either direction, scoped to the namespace.
+    /// </summary>
     private static async Task<List<Guid>> GetWorkflowDependencyGraphIds(
         NpgsqlConnection conn,
         Guid workflowId,
@@ -758,10 +762,8 @@ internal sealed partial class EngineRepository
         CancellationToken cancellationToken
     )
     {
-        // Connected component reachable from the root through dependency or link relations
-        // in either direction. The neighbor subquery flattens both relations into an undirected
-        // edge list so the recursive term can stay a single UNION (Postgres only permits one
-        // recursive UNION). The result is suitable for diagram rendering.
+        // Postgres only permits a single recursive UNION; flatten both relations and both
+        // directions into one neighbor subquery rather than four parallel recursive arms.
         const string sql = """
             WITH RECURSIVE graph AS (
                 SELECT w.id
