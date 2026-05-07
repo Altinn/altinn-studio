@@ -118,14 +118,6 @@ function atobUTF8(data: string): string {
   return decoder.decode(utf8data);
 }
 
-export function btoaUTF8(data: string): string {
-  const encoder = new TextEncoder();
-  const utf8data = encoder.encode(data);
-  const binary = utf8data.reduce((acc, byte) => acc + String.fromCharCode(byte), '');
-
-  return btoa(binary);
-}
-
 export function libraryCodeListsToUpdatePayload(
   currentData: SharedResourcesResponse,
   updatedCodeListFiles: LibraryCodeListFile[],
