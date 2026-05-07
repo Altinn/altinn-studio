@@ -20,7 +20,7 @@ import type { CodeListFileMap } from './types/CodeListFileMap';
 
 export type CodeListsPageProps = {
   codeLists: CodeListFile[];
-  isPublishing: (codeListName: string) => boolean;
+  isPublishing: (fileName: string) => boolean;
   publishedCodeLists: string[];
   onPublish: (data: CodeListData) => void;
   onSave: (data: CodeListFile[]) => void;
@@ -98,7 +98,7 @@ export function CodeListsPage({
 
 type ListOfCodeListsProps = Readonly<{
   codeListMap: CodeListFileMap;
-  isPublishing: (codeListName: string) => boolean;
+  isPublishing: (fileName: string) => boolean;
   onDeleteCodeList: (key: string) => void;
   onPublish: (data: CodeListData) => void;
   onUpdateCodeListFile: (key: string, newFile: CodeListFile) => void;

@@ -60,6 +60,7 @@ import { usePublishCodeList } from './usePublishCodeList';
 import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
 import { usePublishedResourcesQuery } from 'app-shared/hooks/queries/usePublishedResourcesQuery';
 import { useContentLibraryRouter } from 'app-shared/hooks/useContentLibraryRouter';
+import { FileNameUtils } from '@studio/pure-functions';
 
 export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -247,7 +248,8 @@ function useCodeListsProps(orgName: string): PagesConfig['codeLists'] {
 
   return {
     codeLists: libraryCodeLists,
-    isPublishing,
+    isPublishing: (fileName: string): boolean =>
+      isPublishing(FileNameUtils.removeExtension(fileName)),
     onPublish: handlePublish,
     onSave: handleSave,
     publishedCodeLists,
