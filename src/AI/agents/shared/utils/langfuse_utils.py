@@ -225,13 +225,19 @@ class _NoopSpan:
         pass
 
 
+def get_current_trace_id() -> str | None:
+    """Return the active Langfuse trace ID, or None if no trace context is active."""
+    if not is_langfuse_enabled():
+        return None
+    try:
+        return get_client().get_current_trace_id()
+    except Exception:
+        return None
+
+
 def _has_active_trace() -> bool:
     """Return True when a Langfuse trace context is currently active."""
-    try:
-        trace_id = get_client().get_current_trace_id()
-        return trace_id is not None
-    except Exception:
-        return False
+    return get_current_trace_id() is not None
 
 
 @contextmanager

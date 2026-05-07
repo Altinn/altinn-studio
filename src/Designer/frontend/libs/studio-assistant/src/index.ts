@@ -3,7 +3,16 @@ export { ErrorMessages } from './types/AssistantConfig';
 export { MessageAuthor } from './types/MessageAuthor';
 export type { ChatThread, UserMessage, UserAttachment, Source, Message } from './types/ChatThread';
 export { Assistant } from './Assistant/Assistant';
-export type { AssistantTexts, AboutAssistantDialogTexts } from './types/AssistantTexts';
+export type {
+  AssistantTexts,
+  AboutAssistantDialogTexts,
+  MessageFeedbackTexts,
+} from './types/AssistantTexts';
+export type {
+  MessageFeedbackHandler,
+  MessagesProps,
+} from './components/ChatColumn/Messages/Messages';
+export type { FeedbackVote } from './components/ChatColumn/Messages/MessageFeedback';
 export type { AssistantMessage } from './types/ChatThread';
 export type { User } from './types/User';
 export type { WorkflowStatus } from './types/WorkflowStatus';

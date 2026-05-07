@@ -1,6 +1,6 @@
 """Agent workflow API routes"""
 import re
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field, field_validator
 from agents.graph.state import AgentState
 from agents.graph.runner import run_in_background
@@ -10,6 +10,7 @@ from agents.services.events import sink, AgentEvent
 from agents.services.git.repo_manager import get_repo_manager
 from api.dependencies import get_designer_api_key
 from shared.config import get_config
+from shared.utils.langfuse_utils import score_validation
 from shared.utils.logging_utils import get_logger
 from pathlib import Path
 from typing import Optional, List
@@ -339,3 +340,46 @@ async def get_session_status(session_id: str):
     if status is None:
         return {"session_id": session_id, "status": "unknown"}
     return {"session_id": session_id, **status}
+
+
+_FEEDBACK_SCORE_NAME = "user_feedback"
+_FEEDBACK_COMMENT_MAX_LENGTH = 4000
+
+
+class FeedbackReq(BaseModel):
+    """User feedback (thumbs up/down) on an assistant message, recorded as a Langfuse score."""
+
+    trace_id: str
+    thumbs_up: bool
+    comment: Optional[str] = None
+
+    @field_validator("trace_id")
+    @classmethod
+    def _validate_trace_id(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("trace_id must be non-empty")
+        return v
+
+    @field_validator("comment")
+    @classmethod
+    def _validate_comment(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and len(v) > _FEEDBACK_COMMENT_MAX_LENGTH:
+            raise ValueError(
+                f"comment must not exceed {_FEEDBACK_COMMENT_MAX_LENGTH} characters"
+            )
+        return v
+
+
+@router.post("/api/agent/feedback", status_code=204)
+async def submit_feedback(
+    req: FeedbackReq,
+    designer_api_key: str = Depends(get_designer_api_key),
+):
+    """Record a thumbs-up/thumbs-down user feedback as a Langfuse score on the given trace."""
+    score_validation(
+        name=_FEEDBACK_SCORE_NAME,
+        passed=req.thumbs_up,
+        trace_id=req.trace_id,
+        comment=req.comment,
+    )
+    return Response(status_code=204)

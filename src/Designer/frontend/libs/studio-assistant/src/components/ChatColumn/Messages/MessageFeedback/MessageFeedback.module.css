@@ -1,0 +1,25 @@
+.feedbackBar {
+  display: flex;
+  gap: var(--ds-size-1, 0.25rem);
+  margin-top: var(--ds-size-2, 0.5rem);
+}
+
+.feedbackButton {
+  padding: var(--ds-size-1, 0.25rem);
+  min-height: auto;
+}
+
+.feedbackButtonSelected {
+  color: var(--ds-color-accent-base-default, currentColor);
+}
+
+.dialog {
+  max-width: 28rem;
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ds-size-2, 0.5rem);
+  margin-top: var(--ds-size-3, 0.75rem);
+}

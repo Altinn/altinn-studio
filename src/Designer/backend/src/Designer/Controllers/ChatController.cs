@@ -7,6 +7,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Interfaces.Altinity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,7 +17,7 @@ namespace Altinn.Studio.Designer.Controllers;
 [Authorize]
 [AutoValidateAntiforgeryToken]
 [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/chat")]
-public class ChatController(IChatService chatService) : ControllerBase
+public class ChatController(IChatService chatService, IAltinityAgentClient altinityAgentClient) : ControllerBase
 {
     [HttpGet("threads")]
     public async Task<ActionResult<List<ChatThreadEntity>>> GetThreads(
@@ -131,6 +132,31 @@ public class ChatController(IChatService chatService) : ControllerBase
     {
         AltinnRepoEditingContext editingContext = GetEditingContext(org, app);
         await chatService.DeleteMessageAsync(threadId, messageId, editingContext, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpPost("feedback")]
+    [RequestSizeLimit(20_000)]
+    public async Task<IActionResult> SubmitFeedback(
+        string org,
+        string app,
+        [FromBody] ChatFeedbackRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        if (string.IsNullOrWhiteSpace(request.TraceId))
+        {
+            return BadRequest("traceId is required");
+        }
+
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        await altinityAgentClient.SendFeedbackAsync(
+            developer,
+            request.TraceId,
+            request.ThumbsUp,
+            request.Comment,
+            cancellationToken
+        );
         return NoContent();
     }
 

@@ -413,6 +413,7 @@ export const queriesMock: ServicesContextProps = {
   deleteChatThread: jest.fn().mockImplementation(() => Promise.resolve()),
   createChatMessage: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteChatMessage: jest.fn().mockImplementation(() => Promise.resolve()),
+  sendChatFeedback: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Org settings - Contact points
   addContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),

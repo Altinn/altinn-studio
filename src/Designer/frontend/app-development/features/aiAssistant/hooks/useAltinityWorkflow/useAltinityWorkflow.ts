@@ -36,11 +36,13 @@ export interface UseAltinityWorkflowResult {
   cancelCurrentWorkflow: () => Promise<void>;
   cancelledMessageContent: string | null;
   clearCancelledMessageContent: () => void;
+  traceIdsByMessageId: Record<string, string>;
 }
 
 export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWorkflowResult => {
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowStatus>({ isActive: false });
   const [cancelledMessageContent, setCancelledMessageContent] = useState<string | null>(null);
+  const [traceIdsByMessageId, setTraceIdsByMessageId] = useState<Record<string, string>>({});
   const {
     connectionStatus,
     sessionId: backendSessionId,
@@ -106,7 +108,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   );
 
   const handleAssistantMessage = useCallback(
-    (event: WorkflowEvent & { type: 'assistant_message' }) => {
+    async (event: WorkflowEvent & { type: 'assistant_message' }) => {
       const assistantMessage = event.data;
       const messageContent = getAssistantMessageContent(assistantMessage);
       const messageTimestamp = getAssistantMessageTimestamp(assistantMessage);
@@ -122,7 +124,11 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         filesChanged: assistantMessage.filesChanged || [],
         sources: assistantMessage.sources || [],
       };
-      createMessage(threadId, finalAssistantMessage);
+      const persisted = await createMessage(threadId, finalAssistantMessage);
+
+      if (assistantMessage.traceId && persisted?.id) {
+        setTraceIdsByMessageId((prev) => ({ ...prev, [persisted.id]: assistantMessage.traceId! }));
+      }
 
       if (event.session_id && !shouldSkipBranchOps(assistantMessage)) {
         resetRepoForSession(event.session_id);
@@ -134,7 +140,9 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   const handleWorkflowEvent = useCallback(
     (event: WorkflowEvent) => {
       if (event.type === 'assistant_message') {
-        handleAssistantMessage(event);
+        handleAssistantMessage(event).catch((error) =>
+          console.error('Failed to handle assistant message:', error),
+        );
       } else if (event.type === 'status') {
         const isTerminal =
           event.data?.status === 'completed' ||
@@ -157,7 +165,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
           content: WORKFLOW_ERROR_MESSAGE,
           createdAt: new Date().toISOString(),
           filesChanged: [],
-        });
+        }).catch((error) => console.error('Failed to persist error message:', error));
       }
     },
     [applyStatusMessage, handleAssistantMessage, currentSessionIdRef, createMessage],
@@ -215,7 +223,9 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   const runWorkflowForSession = useCallback(
     async (threadId: string, userMessage: UserMessage): Promise<void> => {
       activeWorkflowThreadId.current = threadId;
-      createMessage(threadId, userMessage);
+      createMessage(threadId, userMessage).catch((error) =>
+        console.error('Failed to persist user message:', error),
+      );
       try {
         const result = await startAgentWorkflow(
           threadId,
@@ -229,7 +239,9 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
             content: formatRejectionMessage(result),
             createdAt: new Date().toISOString(),
             filesChanged: [],
-          });
+          }).catch((persistError) =>
+            console.error('Failed to persist rejection message:', persistError),
+          );
         }
       } catch (error) {
         console.error('Workflow request failed:', error);
@@ -238,7 +250,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
           content: WORKFLOW_ERROR_MESSAGE,
           createdAt: new Date().toISOString(),
           filesChanged: [],
-        });
+        }).catch((persistError) => console.error('Failed to persist error message:', persistError));
       }
     },
     [createMessage, startAgentWorkflow],
@@ -307,6 +319,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     cancelCurrentWorkflow,
     cancelledMessageContent,
     clearCancelledMessageContent,
+    traceIdsByMessageId,
   };
 };
 

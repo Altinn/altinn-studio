@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react';
-import type { AssistantTexts } from '@studio/assistant';
+import { useCallback } from 'react';
+import type { AssistantTexts, FeedbackVote } from '@studio/assistant';
 import { Assistant } from '@studio/assistant';
 import { Trans, useTranslation } from 'react-i18next';
 import { useAltinityAssistant, useAltinityPermissions } from './hooks';
@@ -7,12 +8,21 @@ import { Preview } from './components/Preview';
 import { FileBrowser } from './components/FileBrowser';
 import classes from './AiAssistant.module.css';
 import { useUserQuery } from 'app-shared/hooks/queries';
+import { useChatFeedbackMutation } from 'app-shared/hooks/mutations/useChatFeedbackMutation';
 import { StudioCenter, StudioAlert, StudioParagraph } from '@studio/components';
 
 function AiAssistant(): ReactElement {
   const { t } = useTranslation();
   const { data: currentUser } = useUserQuery();
   const userHasAccessToAssistant = useAltinityPermissions();
+  const { mutate: sendChatFeedback } = useChatFeedbackMutation();
+
+  const handleMessageFeedback = useCallback(
+    (traceId: string, vote: FeedbackVote, comment?: string) => {
+      sendChatFeedback({ traceId, thumbsUp: vote === 'up', comment });
+    },
+    [sendChatFeedback],
+  );
 
   const {
     connectionStatus,
@@ -65,6 +75,14 @@ function AiAssistant(): ReactElement {
     send: t('ai_assistant.send'),
     cancel: 'Avbryt',
     assistantFirstMessage: t('ai_assistant.assistant_first_message'),
+    feedback: {
+      thumbsUp: t('ai_assistant.feedback_thumbs_up'),
+      thumbsDown: t('ai_assistant.feedback_thumbs_down'),
+      thanksHeading: t('ai_assistant.feedback_thanks_heading'),
+      elaboratePrompt: t('ai_assistant.feedback_elaborate_prompt'),
+      commentPlaceholder: t('ai_assistant.feedback_comment_placeholder'),
+      submit: t('ai_assistant.feedback_submit'),
+    },
   };
 
   if (!userHasAccessToAssistant) {
@@ -98,6 +116,7 @@ function AiAssistant(): ReactElement {
         previewContent={<Preview />}
         fileBrowserContent={<FileBrowser />}
         currentUser={currentUser}
+        onMessageFeedback={handleMessageFeedback}
       />
     </div>
   );

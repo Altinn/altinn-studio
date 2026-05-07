@@ -118,6 +118,7 @@ function registerAgentMessageHandler(
   messageCallbackRef: React.MutableRefObject<((message: WorkflowEvent) => void) | null>,
 ): void {
   connection.on(AltinityClientsName.ReceiveAgentMessage, (message: WorkflowEvent) => {
+    console.log('[WS frame]', message.type, JSON.stringify(message.data));
     if (
       message.type === 'workflow_status' &&
       message.data?.message?.toLowerCase() === 'session created'

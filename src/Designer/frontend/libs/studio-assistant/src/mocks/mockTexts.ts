@@ -1,6 +1,7 @@
 import type {
   AboutAssistantDialogTexts,
   AssistantTexts,
+  MessageFeedbackTexts,
   TextAreaTexts,
 } from '../types/AssistantTexts';
 
@@ -16,6 +17,15 @@ const textAreaTexts: TextAreaTexts = {
   placeholder: 'placeholder',
   wait: 'wait',
   waitingForConnection: 'waitingForConnection',
+};
+
+const messageFeedbackTexts: MessageFeedbackTexts = {
+  thumbsUp: 'feedbackThumbsUp',
+  thumbsDown: 'feedbackThumbsDown',
+  thanksHeading: 'feedbackThanksHeading',
+  elaboratePrompt: 'feedbackElaboratePrompt',
+  commentPlaceholder: 'feedbackCommentPlaceholder',
+  submit: 'feedbackSubmit',
 };
 
 export const mockTexts: AssistantTexts = {
@@ -34,4 +44,5 @@ export const mockTexts: AssistantTexts = {
   send: 'send',
   cancel: 'cancel',
   assistantFirstMessage: 'Hva kan jeg hjelpe med?',
+  feedback: messageFeedbackTexts,
 };
