@@ -767,21 +767,37 @@ internal sealed partial class EngineRepository
         CancellationToken cancellationToken
     )
     {
+        // Connected component reachable from the root through dependency or link relations
+        // in either direction. The neighbor subquery flattens both relations into an undirected
+        // edge list so the recursive term can stay a single UNION (Postgres only permits one
+        // recursive UNION). The result is suitable for diagram rendering.
         const string sql = """
-            WITH RECURSIVE hierarchy AS (
+            WITH RECURSIVE graph AS (
                 SELECT w.id
                 FROM engine.workflows w
                 WHERE w.id = @id
                   AND w.namespace = @ns
                 UNION
-                SELECT wd.workflow_id
-                FROM engine.workflow_dependency wd
-                JOIN engine.workflows w ON w.id = wd.workflow_id
-                JOIN hierarchy h ON wd.depends_on_workflow_id = h.id
+                SELECT n.neighbor_id
+                FROM (
+                    SELECT wd.workflow_id AS neighbor_id, wd.depends_on_workflow_id AS from_id
+                    FROM engine.workflow_dependency wd
+                    UNION ALL
+                    SELECT wd.depends_on_workflow_id AS neighbor_id, wd.workflow_id AS from_id
+                    FROM engine.workflow_dependency wd
+                    UNION ALL
+                    SELECT wl.linked_workflow_id AS neighbor_id, wl.workflow_id AS from_id
+                    FROM engine.workflow_link wl
+                    UNION ALL
+                    SELECT wl.workflow_id AS neighbor_id, wl.linked_workflow_id AS from_id
+                    FROM engine.workflow_link wl
+                ) n
+                JOIN engine.workflows w ON w.id = n.neighbor_id
+                JOIN graph g ON n.from_id = g.id
                 WHERE w.namespace = @ns
             )
             SELECT id
-            FROM hierarchy
+            FROM graph
             """;
 
         var workflowIds = new List<Guid>();
@@ -806,23 +822,18 @@ internal sealed partial class EngineRepository
             return [];
         }
 
-        var dependentsByDependencyId = new Dictionary<Guid, List<Workflow>>();
+        // Build undirected adjacency over both relations so BFS visits every workflow
+        // returned by the recursive CTE, regardless of edge direction or kind.
+        var adjacency = new Dictionary<Guid, HashSet<Guid>>();
         foreach (Workflow workflow in workflows)
         {
-            if (workflow.Dependencies is null)
+            foreach (Workflow neighbor in (workflow.Dependencies ?? []).Concat(workflow.Links ?? []))
             {
-                continue;
-            }
+                if (!workflowsById.ContainsKey(neighbor.DatabaseId))
+                    continue;
 
-            foreach (Workflow dependency in workflow.Dependencies)
-            {
-                if (!dependentsByDependencyId.TryGetValue(dependency.DatabaseId, out List<Workflow>? dependents))
-                {
-                    dependents = [];
-                    dependentsByDependencyId[dependency.DatabaseId] = dependents;
-                }
-
-                dependents.Add(workflow);
+                AddAdjacency(adjacency, workflow.DatabaseId, neighbor.DatabaseId);
+                AddAdjacency(adjacency, neighbor.DatabaseId, workflow.DatabaseId);
             }
         }
 
@@ -834,20 +845,26 @@ internal sealed partial class EngineRepository
         {
             dependencyGraph.Add(workflowsById[currentWorkflowId]);
 
-            if (!dependentsByDependencyId.TryGetValue(currentWorkflowId, out List<Workflow>? dependents))
-            {
+            if (!adjacency.TryGetValue(currentWorkflowId, out HashSet<Guid>? neighbors))
                 continue;
-            }
 
-            foreach (Workflow dependent in dependents)
+            foreach (Guid neighborId in neighbors.OrderBy(id => id))
             {
-                if (visited.Add(dependent.DatabaseId))
-                {
-                    queue.Enqueue(dependent.DatabaseId);
-                }
+                if (visited.Add(neighborId))
+                    queue.Enqueue(neighborId);
             }
         }
 
         return dependencyGraph;
+    }
+
+    private static void AddAdjacency(Dictionary<Guid, HashSet<Guid>> adjacency, Guid from, Guid to)
+    {
+        if (!adjacency.TryGetValue(from, out HashSet<Guid>? neighbors))
+        {
+            neighbors = [];
+            adjacency[from] = neighbors;
+        }
+        neighbors.Add(to);
     }
 }

@@ -219,11 +219,12 @@ public partial class EngineTests
 
         Assert.NotNull(dependencyGraph);
         Assert.Equal(rootWorkflowId, dependencyGraph.RootWorkflowId);
-        Assert.Collection(
-            dependencyGraph.Workflows,
-            workflow => Assert.Equal(rootWorkflowId, workflow.DatabaseId),
-            workflow => Assert.Equal(childWorkflowId, workflow.DatabaseId)
-        );
+
+        var workflowIds = dependencyGraph.Workflows.Select(workflow => workflow.DatabaseId).ToHashSet();
+        Assert.Equal(2, workflowIds.Count);
+        Assert.Contains(rootWorkflowId, workflowIds);
+        Assert.Contains(childWorkflowId, workflowIds);
+
         Assert.Collection(
             dependencyGraph.Edges,
             edge =>
@@ -233,6 +234,52 @@ public partial class EngineTests
                 Assert.Equal("dependency", edge.Kind);
             }
         );
+    }
+
+    [Fact]
+    public async Task Response_GetWorkflowDependencyGraph_TraversesDependenciesAndLinksBidirectionally()
+    {
+        // Three workflows enqueued separately so DependsOn / Links resolve via persisted GUIDs:
+        //   c — independent (enqueued first)
+        //   a — links to c       (link edge a → c)
+        //   b — depends on a     (dependency edge a → b)
+        // Querying the graph rooted at b must walk upward to a, then sideways via the link to c.
+        var acceptedC = await _client.Enqueue(
+            _testHelpers.CreateEnqueueRequest(
+                _testHelpers.CreateWorkflow("c", [_testHelpers.CreateWebhookStep("/ping-c")])
+            )
+        );
+        var idC = acceptedC.Workflows.Single().DatabaseId;
+
+        var workflowA = _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/ping-a")]) with
+        {
+            Links = [idC],
+        };
+        var acceptedA = await _client.Enqueue(_testHelpers.CreateEnqueueRequest(workflowA));
+        var idA = acceptedA.Workflows.Single().DatabaseId;
+
+        var workflowB = _testHelpers.CreateWorkflow("b", [_testHelpers.CreateWebhookStep("/ping-b")], dependsOn: [idA]);
+        var acceptedB = await _client.Enqueue(_testHelpers.CreateEnqueueRequest(workflowB));
+        var idB = acceptedB.Workflows.Single().DatabaseId;
+
+        await _client.WaitForWorkflowStatus(idA, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(idB, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(idC, PersistentItemStatus.Completed);
+
+        var dependencyGraph = await _client.GetWorkflowDependencyGraph(idB);
+
+        Assert.NotNull(dependencyGraph);
+        Assert.Equal(idB, dependencyGraph.RootWorkflowId);
+
+        var workflowIds = dependencyGraph.Workflows.Select(wf => wf.DatabaseId).ToHashSet();
+        Assert.Equal(3, workflowIds.Count);
+        Assert.Contains(idA, workflowIds);
+        Assert.Contains(idB, workflowIds);
+        Assert.Contains(idC, workflowIds);
+
+        Assert.Contains(dependencyGraph.Edges, edge => edge.From == idA && edge.To == idB && edge.Kind == "dependency");
+        Assert.Contains(dependencyGraph.Edges, edge => edge.From == idA && edge.To == idC && edge.Kind == "link");
+        Assert.Equal(2, dependencyGraph.Edges.Count);
     }
 
     // ── ListWorkflows endpoint responses ────────────────────────────────

@@ -42,7 +42,9 @@ internal static class EngineEndpoints
         group
             .MapGet("/{workflowId:guid}/dependency-graph", EngineRequestHandlers.GetWorkflowDependencyGraph)
             .WithName("GetWorkflowDependencyGraph")
-            .WithDescription("Gets the workflow dependency graph rooted at the requested workflow");
+            .WithDescription(
+                "Gets the connected dependency graph reachable from the requested workflow through dependency or link relations in either direction"
+            );
 
         group
             .MapPost("/{workflowId:guid}/cancel", EngineRequestHandlers.CancelWorkflow)

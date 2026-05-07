@@ -156,6 +156,11 @@ public abstract class EngineAppFixture : IAsyncLifetime
 
                 await Task.Delay(100, cts.Token);
             }
+
+            // Guard against the narrow race where the token fires between Task.Delay
+            // returning and the next loop-condition check, which would otherwise let
+            // Reset proceed with active workflows still holding transactions.
+            cts.Token.ThrowIfCancellationRequested();
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
