@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Text.Json;
@@ -15,7 +16,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace Altinn.Studio.Designer.Infrastructure.Authorization;
 
 /// <summary>
-/// Authorization handler that validates authenticated users have reportee access
+/// Authorization handler that validates authenticated users have authorized party access
 /// to the organization for the current app.
 /// </summary>
 public sealed class OrgAccessHandler : AuthorizationHandler<OrgAccessRequirement>
@@ -70,10 +71,10 @@ public sealed class OrgAccessHandler : AuthorizationHandler<OrgAccessRequirement
             return;
         }
 
-        var reporteeOrgNumbers = ExtractReporteeOrgNumbers(accessToken);
-        if (reporteeOrgNumbers.Length == 0)
+        var authorizedPartyOrgNumbers = ExtractAuthorizedPartyOrgNumbers(accessToken);
+        if (authorizedPartyOrgNumbers.Length == 0)
         {
-            LogOrgAccessDecision(org, null, reporteeOrgNumbers, false, "MissingReportees", accessToken);
+            LogOrgAccessDecision(org, null, authorizedPartyOrgNumbers, false, "MissingAuthorizedParties", accessToken);
             context.Fail();
             return;
         }
@@ -81,24 +82,24 @@ public sealed class OrgAccessHandler : AuthorizationHandler<OrgAccessRequirement
         var orgNr = await _environmentsService.GetAltinnOrgNumber(org);
         if (orgNr is null)
         {
-            LogOrgAccessDecision(org, orgNr, reporteeOrgNumbers, false, "UnknownOrgNumber", accessToken);
+            LogOrgAccessDecision(org, orgNr, authorizedPartyOrgNumbers, false, "UnknownOrgNumber", accessToken);
             context.Fail();
             return;
         }
 
-        if (!string.IsNullOrWhiteSpace(orgNr) && reporteeOrgNumbers.Contains(orgNr))
+        if (!string.IsNullOrWhiteSpace(orgNr) && authorizedPartyOrgNumbers.Contains(orgNr))
         {
-            LogOrgAccessDecision(org, orgNr, reporteeOrgNumbers, true, "Granted", accessToken);
+            LogOrgAccessDecision(org, orgNr, authorizedPartyOrgNumbers, true, "Granted", accessToken);
             context.Succeed(requirement);
         }
         else
         {
-            LogOrgAccessDecision(org, orgNr, reporteeOrgNumbers, false, "OrgNumberMismatch", accessToken);
+            LogOrgAccessDecision(org, orgNr, authorizedPartyOrgNumbers, false, "OrgNumberMismatch", accessToken);
             context.Fail();
         }
     }
 
-    internal string[] ExtractReporteeOrgNumbers(string accessToken)
+    internal string[] ExtractAuthorizedPartyOrgNumbers(string accessToken)
     {
         try
         {
@@ -125,25 +126,7 @@ public sealed class OrgAccessHandler : AuthorizationHandler<OrgAccessRequirement
                     ? authDetailsElement.EnumerateArray()
                     : new[] { authDetailsElement }.AsEnumerable();
 
-            return detailsArray
-                .Where(detail => detail.TryGetProperty("reportees", out _))
-                .SelectMany(detail => detail.GetProperty("reportees").EnumerateArray())
-                .SelectMany(reportee =>
-                {
-                    // Try both "ID" (current standard) and "id" (fallback) for resilience
-                    if (
-                        (reportee.TryGetProperty("ID", out var id) || reportee.TryGetProperty("id", out id))
-                        && id.GetString() is string idStr
-                        && idStr.StartsWith(OrgNumberPrefix)
-                        && idStr.Length > PrefixLength
-                    )
-                    {
-                        return [idStr[PrefixLength..]];
-                    }
-                    return Array.Empty<string>();
-                })
-                .Distinct()
-                .ToArray();
+            return detailsArray.SelectMany(ExtractAuthorizedPartyIds).SelectMany(ExtractOrgNumber).Distinct().ToArray();
         }
         catch (SecurityTokenException)
         {
@@ -159,22 +142,61 @@ public sealed class OrgAccessHandler : AuthorizationHandler<OrgAccessRequirement
         }
     }
 
+    private static IEnumerable<string> ExtractAuthorizedPartyIds(JsonElement authorizationDetail)
+    {
+        if (authorizationDetail.TryGetProperty("authorized_parties", out var authorizedParties))
+        {
+            foreach (var authorizedParty in authorizedParties.EnumerateArray())
+            {
+                if (authorizedParty.TryGetProperty("orgno", out var orgNo) && TryGetId(orgNo, out var id))
+                {
+                    yield return id;
+                }
+            }
+        }
+    }
+
+    private static bool TryGetId(JsonElement element, out string id)
+    {
+        if (
+            (element.TryGetProperty("ID", out var idElement) || element.TryGetProperty("id", out idElement))
+            && idElement.GetString() is string idValue
+        )
+        {
+            id = idValue;
+            return true;
+        }
+
+        id = string.Empty;
+        return false;
+    }
+
+    private static IEnumerable<string> ExtractOrgNumber(string id)
+    {
+        if (id.StartsWith(OrgNumberPrefix) && id.Length > PrefixLength)
+        {
+            return [id[PrefixLength..]];
+        }
+
+        return [];
+    }
+
     private void LogOrgAccessDecision(
         string org,
         string? orgNumber,
-        string[] reporteeOrgNumbers,
+        string[] authorizedPartyOrgNumbers,
         bool granted,
         string reason,
         string? accessToken
     )
     {
         _logger.LogWarning(
-            "Org access decision. Granted={Granted}, Reason={Reason}, Org={Org}, OrgNumber={OrgNumber}, ReporteeOrgNumbers={ReporteeOrgNumbers}, JwtPayload={JwtPayload}",
+            "Org access decision. Granted={Granted}, Reason={Reason}, Org={Org}, OrgNumber={OrgNumber}, AuthorizedPartyOrgNumbers={AuthorizedPartyOrgNumbers}, JwtPayload={JwtPayload}",
             granted,
             reason,
             org,
             orgNumber,
-            FormatOrgNumbers(reporteeOrgNumbers),
+            FormatOrgNumbers(authorizedPartyOrgNumbers),
             GetJwtPayloadForLogging(accessToken)
         );
     }
