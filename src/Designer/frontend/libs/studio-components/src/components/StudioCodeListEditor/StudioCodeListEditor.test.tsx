@@ -1,21 +1,23 @@
 import type { RenderResult } from '@testing-library/react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import type { StudioCodeListEditorProps } from './StudioCodeListEditor';
 import { StudioCodeListEditor } from './StudioCodeListEditor';
 import type { CodeList } from './types/CodeList';
+import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import { texts } from './test-data/texts';
 import { codeList } from './test-data/codeList';
 import { CodeListItemTextProperty } from './enums/CodeListItemTextProperty';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
+import { studioTest } from '@studio/ui-test';
 
 // Test data:
 const onInvalid = jest.fn();
 const onUpdateCodeList = jest.fn();
-const language = 'nb';
+const fallbackLanguage = 'nb';
 const defaultProps: StudioCodeListEditorProps = {
   codeList,
-  language,
+  fallbackLanguage,
   texts,
   onInvalid,
   onUpdateCodeList,
@@ -100,7 +102,7 @@ describe('StudioCodeListEditor', () => {
         expect(onUpdateCodeList).toHaveBeenLastCalledWith(
           expect.arrayContaining([
             expect.objectContaining({
-              [property]: expect.objectContaining({ [language]: newText }),
+              [property]: expect.objectContaining({ en: newText }),
             }),
           ]),
         );
@@ -247,10 +249,124 @@ describe('StudioCodeListEditor', () => {
   it('Appends the class to the root element when given', () => {
     testRootClassNameAppending((className) => renderCodeListEditor({ className }));
   });
+
+  it('Renders the language picker', () => {
+    renderCodeListEditor();
+    expect(getLanguagePicker()).toBeInTheDocument();
+  });
+
+  it('Renders an option for each given language', () => {
+    renderCodeListEditor();
+    expect(getLanguageOption('en')).toBeInTheDocument();
+    expect(getLanguageOption('nb')).toBeInTheDocument();
+    expect(getLanguageOption('nn')).toBeInTheDocument();
+  });
+
+  it('Displays the code list in the selected language', async () => {
+    const user = setupUser();
+    const firstLanguageToSelect = 'nb';
+    const secondLanguageToSelect = 'en';
+    renderCodeListEditor();
+    await user.selectLanguage(firstLanguageToSelect);
+    expect(getTextInput([1, CodeListItemTextProperty.Label])).toHaveValue(
+      codeList[0].label![firstLanguageToSelect],
+    );
+    await user.selectLanguage(secondLanguageToSelect);
+    expect(getTextInput([1, CodeListItemTextProperty.Label])).toHaveValue(
+      codeList[0].label![secondLanguageToSelect],
+    );
+  });
+
+  it('Calls onChangeCodeList with the new language when the user adds a language', async () => {
+    const user = setupUser();
+    const newLanguageCode = 'fr';
+    renderCodeListEditor();
+
+    await user.addLanguage(newLanguageCode);
+
+    expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
+    expect(onUpdateCodeList).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        {
+          ...codeList[0],
+          label: {
+            ...codeList[0].label,
+            [newLanguageCode]: '',
+          },
+        },
+      ]),
+    );
+  });
+
+  it('Adds the new language as an option when the user adds a language', async () => {
+    const user = setupUser();
+    const newLanguageCode = 'fr';
+    renderCodeListEditor();
+    await user.addLanguage(newLanguageCode);
+    expect(getLanguageOption(newLanguageCode)).toBeInTheDocument();
+  });
+
+  it('Calls onChangeCodeList without the removed language when the user removes a language', async () => {
+    const user = setupUser();
+    const languageToRemove = 'en';
+    renderCodeListEditor();
+
+    await user.removeLanguage(languageToRemove);
+
+    expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
+    const updatedCodeList = onUpdateCodeList.mock.calls[0][0] as CodeList;
+    expect(Object.keys(updatedCodeList[0].label!)).not.toContain(languageToRemove);
+  });
+
+  it('Removes the removed language from the options when the user removes a language', async () => {
+    const user = setupUser();
+    const languageToRemove = 'en';
+    renderCodeListEditor();
+    await user.removeLanguage(languageToRemove);
+    expect(queryLanguageOption(languageToRemove)).not.toBeInTheDocument();
+  });
+
+  it('Allows adding a language when the code list is empty', async () => {
+    const user = setupUser();
+    const languageToAdd = 'nb';
+    renderCodeListEditor({ codeList: [] });
+    await user.addLanguage(languageToAdd);
+    expect(getLanguageOption(languageToAdd)).toBeInTheDocument();
+  });
+
+  it('Selects the fallback language when there are no texts in the code list', () => {
+    renderCodeListEditor({ codeList: [{ value: 'test', label: {} }] });
+    expect(getLanguagePicker()).toHaveValue(fallbackLanguage);
+  });
 });
 
 function renderCodeListEditor(props: Partial<StudioCodeListEditorProps> = {}): RenderResult {
   return render(<StudioCodeListEditor {...defaultProps} {...props} />);
+}
+
+interface ExtendedUserEvent extends UserEvent {
+  selectLanguage(languageCode: string): Promise<void>;
+  addLanguage(languageCode: string): Promise<void>;
+  removeLanguage(languageCode: string): Promise<void>;
+}
+
+function setupUser(): ExtendedUserEvent {
+  return {
+    ...userEvent.setup(),
+    async selectLanguage(languageCode: string): Promise<void> {
+      await this.selectOptions(getLanguagePicker(), getLanguageOption(languageCode));
+    },
+    async addLanguage(languageCode: string): Promise<void> {
+      await this.click(getAddLanguageButton());
+      await this.type(getAddLanguageInput(), languageCode);
+      await this.click(getAddLanguageButton());
+    },
+    async removeLanguage(languageCode: string): Promise<void> {
+      await this.selectLanguage(languageCode);
+      studioTest.mockNextConfirmDialog(true);
+      await this.click(getRemoveLanguageButton());
+    },
+  };
 }
 
 type TextPropertyCoords = [number, CodeListItemTextProperty];
@@ -273,3 +389,21 @@ function textInputNameKey<P extends CodeListItemTextProperty>(property: P): `ite
   };
   return keyMap[property];
 }
+
+const getLanguagePicker = (): HTMLElement =>
+  screen.getByRole('combobox', { name: texts.languagePickerTexts.label });
+
+const getLanguageOption = (name: string): HTMLElement =>
+  within(getLanguagePicker()).getByRole('option', { name });
+
+const queryLanguageOption = (name: string): HTMLElement | null =>
+  within(getLanguagePicker()).queryByRole('option', { name });
+
+const getAddLanguageButton = (): HTMLElement =>
+  screen.getByRole('button', { name: texts.languagePickerTexts.add });
+
+const getAddLanguageInput = (): HTMLElement =>
+  screen.getByRole('textbox', { name: texts.languagePickerTexts.newLanguageCode });
+
+const getRemoveLanguageButton = (): HTMLElement =>
+  screen.getByRole('button', { name: texts.languagePickerTexts.remove });

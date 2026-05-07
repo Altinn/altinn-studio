@@ -1,3 +1,5 @@
+import type { CyHttpMessages } from 'cypress/types/net-stubbing';
+
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { customReceiptPageAnother, customReceiptPageReceipt } from 'test/e2e/support/customReceipt';
@@ -92,7 +94,7 @@ function testConfirmationPage() {
 }
 
 function interceptAndAddInstanceSubstatus() {
-  cy.intercept('**/instances/*/*', (req) => {
+  const addSubstatus = (req: CyHttpMessages.IncomingHttpRequest) => {
     req.on('response', (res) => {
       const instance = res.body as IInstance;
       instance.status = {
@@ -102,7 +104,9 @@ function interceptAndAddInstanceSubstatus() {
         },
       };
     });
-  }).as('Instance');
+  };
+  cy.intercept('**/instances/*/*/enriched', addSubstatus).as('Instance');
+  cy.intercept('PUT', '**/instances/*/*/process/next*', addSubstatus).as('ProcessNext');
 }
 
 function testReceipt() {

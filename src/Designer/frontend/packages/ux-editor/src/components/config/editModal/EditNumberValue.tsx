@@ -48,13 +48,17 @@ export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<Fo
     );
   };
 
+  const schemaPropertyPath = component.propertyPath
+    ? `${component.propertyPath}/properties/${String(propertyKey)}`
+    : undefined;
+
   return (
     <FormField
       id={component.id}
       label={componentPropertyLabel(String(propertyKey))}
       value={component[propertyKey]}
       onChange={handleValueChange}
-      propertyPath={component.propertyPath}
+      propertyPath={schemaPropertyPath}
       helpText={componentPropertyHelpText(String(propertyKey))}
       renderField={({ fieldProps }) =>
         enumValues ? (
