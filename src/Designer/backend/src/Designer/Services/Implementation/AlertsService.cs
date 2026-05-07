@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -12,12 +13,12 @@ using Altinn.Studio.Designer.Models.ContactPoints;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models.ContactPoint;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnNotification;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnNotification.Models;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Altinn.Studio.Designer.TypedHttpClients.Slack;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -28,8 +29,7 @@ internal sealed class AlertsService(
     AlertsSettings alertsSettings,
     IAltinnNotificationClient altinnNotificationsClient,
     GeneralSettings generalSettings,
-    IContactPointsRepository contactPointsRepository,
-    ILogger<AlertsService> logger
+    IContactPointsRepository contactPointsRepository
 ) : IAlertsService
 {
     /// <inheritdoc />
@@ -74,6 +74,12 @@ internal sealed class AlertsService(
         CancellationToken cancellationToken
     )
     {
+        using var activity = ServiceTelemetry.Source.StartActivity(
+            $"{nameof(AlertsService)}.{nameof(NotifyInternalAsync)}"
+        );
+        activity?.SetTag("org", org);
+        activity?.SetTag("environment", environment.Name);
+
         try
         {
             await SendToSlackAsync(
@@ -89,12 +95,8 @@ internal sealed class AlertsService(
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            logger.LogError(
-                ex,
-                "Failed to send internal Slack alert for org {Org} in environment {Environment}",
-                org,
-                environment.Name
-            );
+            activity?.SetStatus(ActivityStatusCode.Error, "Failed to send internal Slack alert.");
+            activity?.AddException(ex);
         }
     }
 
@@ -106,6 +108,12 @@ internal sealed class AlertsService(
         CancellationToken cancellationToken
     )
     {
+        using var activity = ServiceTelemetry.Source.StartActivity(
+            $"{nameof(AlertsService)}.{nameof(NotifyServiceOwnersAsync)}"
+        );
+        activity?.SetTag("org", org);
+        activity?.SetTag("environment", environment.Name);
+
         IReadOnlyList<ContactPointEntity> contactPoints;
         try
         {
@@ -117,12 +125,8 @@ internal sealed class AlertsService(
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            logger.LogError(
-                ex,
-                "Failed to retrieve contact points for org {Org} in environment {Environment}",
-                org,
-                environment.Name
-            );
+            activity?.SetStatus(ActivityStatusCode.Error, "Failed to retrieve contact points.");
+            activity?.AddException(ex);
             return;
         }
 
@@ -147,6 +151,15 @@ internal sealed class AlertsService(
         CancellationToken cancellationToken
     )
     {
+        using var activity = ServiceTelemetry.Source.StartActivity(
+            $"{nameof(AlertsService)}.{nameof(SendContactMethodAsync)}"
+        );
+        activity?.SetTag("org", org);
+        activity?.SetTag("environment", environment.Name);
+        activity?.SetTag("contact_point.id", contactPoint.Id);
+        activity?.SetTag("contact_method.type", method.MethodType.ToString());
+        activity?.SetTag("alert.name", alert.Name);
+
         try
         {
             switch (method.MethodType)
@@ -186,13 +199,8 @@ internal sealed class AlertsService(
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            logger.LogError(
-                ex,
-                "Failed to send alert notification to contact point {ContactPointId} via {MethodType}. Alert: {AlertName}",
-                contactPoint.Id,
-                method.MethodType,
-                alert.Name
-            );
+            activity?.SetStatus(ActivityStatusCode.Error, "Failed to send alert notification.");
+            activity?.AddException(ex);
         }
     }
 

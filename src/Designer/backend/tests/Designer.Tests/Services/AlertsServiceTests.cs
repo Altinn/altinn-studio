@@ -17,7 +17,6 @@ using Altinn.Studio.Designer.TypedHttpClients.AltinnNotification.Models;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Altinn.Studio.Designer.TypedHttpClients.Slack;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -662,8 +661,7 @@ public class AlertsServiceTests
             _alertsSettings,
             _notificationClient.Object,
             new GeneralSettings { HostName = hostName },
-            _contactPointsRepository.Object,
-            NullLogger<AlertsService>.Instance
+            _contactPointsRepository.Object
         );
 
     private void SetupNoContactPoints(string org, string environment) => SetupContactPoints(org, environment, []);
