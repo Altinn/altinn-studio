@@ -101,12 +101,12 @@ We have Architecture Decision Records in the `/doc/adr/` folder.
 - **Manual testing** requires localtest environment integration
 - All telemetry changes are considered **breaking changes**
 - **Integration tests** use studioctl with generated app folders for isolated, reproducible environments:
-  - **AppFixture pattern** - Central orchestrator managing test lifecycle with feature-specific operations
-  - **Snapshot testing** - Verify both HTTP response and response body content with port/data normalization
-  - **Test apps** - Complete Altinn apps in `_testapps/{app}/` with config, models, and UI
-  - **Scenario-based testing** - Override config and inject custom services via `_testapps/{app}/_scenarios/{scenario}/` folders
-  - **studioctl orchestration** - Shared localtest environment, generated app ids, and process-mode app runs
-  - Follow existing `AppFixture.{Feature}.cs` pattern for new API operations (see `InstancesOperations`)
+    - **AppFixture pattern** - Central orchestrator managing test lifecycle with feature-specific operations
+    - **Snapshot testing** - Verify both HTTP response and response body content with port/data normalization
+    - **Test apps** - Complete Altinn apps in `_testapps/{app}/` with config, models, and UI
+    - **Scenario-based testing** - Override config and inject custom services via `_testapps/{app}/_scenarios/{scenario}/` folders
+    - **studioctl orchestration** - Shared localtest environment, generated app ids, and process-mode app runs
+    - Follow existing `AppFixture.{Feature}.cs` pattern for new API operations (see `InstancesOperations`)
 
 ### Versioning
 

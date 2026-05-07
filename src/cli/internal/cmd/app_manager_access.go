@@ -16,6 +16,7 @@ import (
 type appRuntimeClient interface {
 	Status(ctx context.Context) (*appmanager.Status, error)
 	UnregisterApp(ctx context.Context, appID string) error
+	UpgradeApp(ctx context.Context, upgrade appmanager.AppUpgrade) (appmanager.AppUpgradeResult, error)
 }
 
 type appManagerAccess struct {

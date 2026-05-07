@@ -1,4 +1,5 @@
 import type { ValueError } from './ValueError';
+import type { StudioLanguagePickerTexts } from '../../StudioLanguagePicker';
 
 export type CodeListEditorTexts = Readonly<{
   add: string;
@@ -14,6 +15,7 @@ export type CodeListEditorTexts = Readonly<{
   itemLabel: (number: number) => string;
   itemValue: (number: number) => string;
   label: string;
+  languagePickerTexts: StudioLanguagePickerTexts;
   value: string;
   valueErrors: ValueErrorMessages;
 }>;

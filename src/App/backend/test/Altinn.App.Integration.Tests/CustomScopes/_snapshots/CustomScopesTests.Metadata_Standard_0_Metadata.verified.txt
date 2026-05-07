@@ -491,6 +491,15 @@
         }
       },
       {
+        endpoint: GET {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/enriched,
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
+        }
+      },
+      {
         endpoint: GET {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/filescanresult,
         metadata: {
           errorMessageTextResourceKeyUser: null,

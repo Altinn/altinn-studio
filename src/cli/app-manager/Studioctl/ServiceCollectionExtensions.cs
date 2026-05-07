@@ -4,6 +4,7 @@ internal static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddStudioctlServices(this IServiceCollection services)
     {
+        services.AddSingleton<AppUpgradeService>();
         services.AddSingleton<RegisterApp>();
         services.AddSingleton<UnregisterApp>();
         return services;

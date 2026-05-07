@@ -382,6 +382,13 @@ func (f *fakeAppRuntimeClient) UnregisterApp(_ context.Context, appID string) er
 	return nil
 }
 
+func (f *fakeAppRuntimeClient) UpgradeApp(
+	context.Context,
+	appmanager.AppUpgrade,
+) (appmanager.AppUpgradeResult, error) {
+	return appmanager.AppUpgradeResult{}, nil
+}
+
 func testConfig(t *testing.T) *config.Config {
 	t.Helper()
 

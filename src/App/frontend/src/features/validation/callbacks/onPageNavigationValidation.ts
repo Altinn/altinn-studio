@@ -14,7 +14,7 @@ import type { PageValidation } from 'src/layout/common.generated';
  *
  */
 export function useOnPageNavigationValidation() {
-  const setNodeVisibility = FormStore.nodes.useSetNodeVisibility();
+  const setPageValidationMask = FormStore.validation.useSetPageValidationMask();
   const getNodeValidations = FormStore.nodes.useValidationsSelector();
   const validating = useWaitForValidation();
   const pageOrder = usePageOrder();
@@ -37,7 +37,7 @@ export function useOnPageNavigationValidation() {
     }
 
     const state = formStore.getState();
-    const nodeIds: string[] = [];
+    const nodeIdsPerPage = new Map<string, string[]>();
     const nodesOnCurrentOrPreviousPages = new Set<string>();
     let hasSubform = false;
 
@@ -58,7 +58,9 @@ export function useOnPageNavigationValidation() {
       if (nodeData.nodeType === 'Subform') {
         hasSubform = true;
       }
-      nodeIds.push(nodeData.id);
+      const nodes = nodeIdsPerPage.get(nodeData.pageKey) ?? [];
+      nodes.push(nodeData.id);
+      nodeIdsPerPage.set(nodeData.pageKey, nodes);
     }
 
     // We need to get updated validations from backend to validate subform
@@ -69,27 +71,22 @@ export function useOnPageNavigationValidation() {
 
     // Get nodes with errors along with their errors
     let onCurrentOrPreviousPage = false;
-    const nodeErrors = nodeIds
-      .map((id) => {
+    let hasErrors = false;
+    for (const [pageKey, nodeIds] of nodeIdsPerPage.entries()) {
+      const hasErrorsOnPage = nodeIds.some((id) => {
         const validations = getNodeValidations(id, mask, 'error');
         if (validations.length > 0) {
           onCurrentOrPreviousPage = onCurrentOrPreviousPage || nodesOnCurrentOrPreviousPages.has(id);
+          return true;
         }
-        return [id, validations.length > 0] as const;
-      })
-      .filter(([_, e]) => e);
+        return false;
+      });
 
-    if (nodeErrors.length > 0) {
-      setNodeVisibility(
-        nodeErrors.map(([n]) => n),
-        mask,
-      );
-
-      // Only block navigation if there are errors on the current or previous pages
-      return onCurrentOrPreviousPage;
+      setPageValidationMask(pageKey, hasErrorsOnPage ? mask : undefined);
+      hasErrors = hasErrors || hasErrorsOnPage;
     }
 
-    return false;
+    return hasErrors ? onCurrentOrPreviousPage : false;
   });
 
   return useCallback(

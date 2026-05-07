@@ -55,14 +55,14 @@ internal sealed class ConditionalRenderingConverter
                 // Log summary for this layout set if there were rules to process
                 if (result.RulesProcessed > 0)
                 {
-                    Console.WriteLine(
+                    UpgradeConsole.WriteLine(
                         $"Successfully converted {result.SuccessfulConversions} of {result.RulesProcessed} conditional rendering rules into hidden-expressions in layout-set {layoutSetName}. Please manually review the expressions and test functionality."
                     );
                 }
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Error processing layout set {layoutSetName}: {ex.Message}");
+                UpgradeConsole.WriteErrorLine($"Error processing layout set {layoutSetName}: {ex.Message}");
             }
         }
 
@@ -102,7 +102,9 @@ internal sealed class ConditionalRenderingConverter
         }
         catch (FileNotFoundException)
         {
-            Console.Error.WriteLine($"RuleHandler.js not found for layout set {layoutSetName}, cannot convert rules");
+            UpgradeConsole.WriteErrorLine(
+                $"RuleHandler.js not found for layout set {layoutSetName}, cannot convert rules"
+            );
             result.RulesProcessed = rules.Count;
             result.FailedConversions = rules.Count;
             return result;
@@ -112,7 +114,7 @@ internal sealed class ConditionalRenderingConverter
         var layoutsPath = Path.Combine(layoutSetPath, "layouts");
         if (!Directory.Exists(layoutsPath))
         {
-            Console.Error.WriteLine($"Layouts directory not found for layout set {layoutSetName}: {layoutsPath}");
+            UpgradeConsole.WriteErrorLine($"Layouts directory not found for layout set {layoutSetName}: {layoutsPath}");
             result.RulesProcessed = rules.Count;
             result.FailedConversions = rules.Count;
             return result;
@@ -125,7 +127,7 @@ internal sealed class ConditionalRenderingConverter
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Failed to load layouts for {layoutSetName}: {ex.Message}");
+            UpgradeConsole.WriteErrorLine($"Failed to load layouts for {layoutSetName}: {ex.Message}");
             result.RulesProcessed = rules.Count;
             result.FailedConversions = rules.Count;
             return result;
@@ -162,7 +164,7 @@ internal sealed class ConditionalRenderingConverter
                 if (injectionResult.Status == InjectionStatus.ComponentNotFound)
                 {
                     result.ComponentsNotFound++;
-                    Console.Error.WriteLine(
+                    UpgradeConsole.WriteErrorLine(
                         $"Failed to find component '{injectionResult.ComponentId}' in layouts when converting conditional rendering rules"
                     );
                 }
@@ -172,7 +174,7 @@ internal sealed class ConditionalRenderingConverter
                 }
                 else if (injectionResult.Status == InjectionStatus.ConversionFailed)
                 {
-                    Console.Error.WriteLine(
+                    UpgradeConsole.WriteErrorLine(
                         $"Failed to convert rule for component '{injectionResult.ComponentId}': {injectionResult.Message}"
                     );
                 }
@@ -194,23 +196,23 @@ internal sealed class ConditionalRenderingConverter
 
                 foreach (var warning in restorationResult.Warnings)
                 {
-                    Console.WriteLine($"Warning: {warning}");
+                    UpgradeConsole.WriteLine($"Warning: {warning}");
                 }
 
                 foreach (var error in restorationResult.Errors)
                 {
-                    Console.Error.WriteLine($"Error: {error}");
+                    UpgradeConsole.WriteErrorLine($"Error: {error}");
                 }
             }
             catch (Exception ex)
             {
                 // Non-fatal: Log warning but continue
-                Console.Error.WriteLine($"Warning: Could not restore whitespace formatting: {ex.Message}");
+                UpgradeConsole.WriteErrorLine($"Warning: Could not restore whitespace formatting: {ex.Message}");
             }
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Failed to save layouts for {layoutSetName}: {ex.Message}");
+            UpgradeConsole.WriteErrorLine($"Failed to save layouts for {layoutSetName}: {ex.Message}");
         }
 
         return result;

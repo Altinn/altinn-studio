@@ -2,7 +2,7 @@ import { axiosInstance } from 'src/core/axiosInstance';
 import type { ISimpleInstance } from 'src/types';
 import type { IInstance, IProcess } from 'src/types/shared';
 
-interface IInstanceWithProcess extends IInstance {
+export interface IInstanceWithProcess extends IInstance {
   process: IProcess;
 }
 
@@ -28,7 +28,7 @@ export const instanceApi = {
     instanceGuid: string;
   }): Promise<IInstanceWithProcess> {
     const { data: instance } = await axiosInstance.get<IInstanceWithProcess>(
-      `/instances/${instanceOwnerPartyId}/${instanceGuid}`,
+      `/instances/${instanceOwnerPartyId}/${instanceGuid}/enriched`,
     );
     return instance;
   },

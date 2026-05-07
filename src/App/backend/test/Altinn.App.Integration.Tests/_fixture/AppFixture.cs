@@ -256,8 +256,13 @@ public sealed partial class AppFixture : IAsyncDisposable
         return _directAppClient;
     }
 
-    public string GetSnapshotAppLogs()
+    public async Task<string> GetSnapshotAppLogs()
     {
+        // Logs travel a slower path (container stdout → Docker daemon → Testcontainers → pipe → background reader)
+        // than HTTP responses (direct TCP), so a response can arrive before its log line is captured.
+        // This delay gives the log consumer time to drain pending data under CI load.
+        await Task.Delay(50);
+
         // Gets logs from the app process
         // - Log messages from `SnapshotLogger` in the app
         // - Error logs (`fail:` prefix in the default M.E.L log format)

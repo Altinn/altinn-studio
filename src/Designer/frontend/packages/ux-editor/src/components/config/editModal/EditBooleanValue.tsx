@@ -20,10 +20,10 @@ export const EditBooleanValue = ({
   const componentPropertyLabel = useComponentPropertyLabel();
   const componentPropertyHelpText = useComponentPropertyHelpText();
 
-  const handleChange = () => {
+  const handleChange = (newValue: boolean) => {
     handleComponentChange({
       ...component,
-      [propertyKey]: getNewBooleanValue(),
+      [propertyKey]: newValue,
     });
   };
 
@@ -31,18 +31,20 @@ export const EditBooleanValue = ({
     return Array.isArray(value);
   };
 
-  const getNewBooleanValue = () => !(component[propertyKey] ?? defaultValue);
-
   const helpText = isValueExpression(component[propertyKey])
     ? t('ux_editor.component_properties.config_is_expression_message')
     : componentPropertyHelpText(propertyKey);
+
+  const schemaPropertyPath = component.propertyPath
+    ? `${component.propertyPath}/properties/${propertyKey}`
+    : undefined;
 
   return (
     <FormField
       id={component.id}
       value={component[propertyKey]}
       onChange={handleChange}
-      propertyPath={component.propertyPath}
+      propertyPath={schemaPropertyPath}
       componentType={component.type}
       helpText={helpText}
       className={className}
