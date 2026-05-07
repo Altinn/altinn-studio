@@ -16,11 +16,11 @@ import 'src/features/logging';
 import 'src/features/styleInjection';
 import 'src/features/toggles';
 
+import { createAppQueryClient } from 'src/appQueryClient';
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import * as queries from 'src/queries/queries';
-import { createDefaultQueryClient } from 'src/queryClient';
 import { createRouter } from 'src/router';
 
 import 'leaflet/dist/leaflet.css';
@@ -28,7 +28,7 @@ import 'leaflet-draw/dist/leaflet.draw.css';
 import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
 
-const queryClient = createDefaultQueryClient();
+const queryClient = createAppQueryClient();
 
 document.addEventListener('DOMContentLoaded', () => {
   if (isRedirectingFromHashRoute) {
