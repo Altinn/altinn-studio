@@ -1,5 +1,5 @@
 import React from 'react';
-import { createMemoryRouter, RouterProvider } from 'react-router';
+import { createMemoryRouter, LoaderFunctionArgs, RouterProvider } from 'react-router';
 
 export const PageNavigationRouter =
   ({ currentPageId = 'layout1', currentTaskId = 'Task_1' } = {}) =>
@@ -22,3 +22,7 @@ export const PageNavigationRouter =
 
     return <RouterProvider router={router} />;
   };
+
+export function createLoaderArgs(partialArgs: Partial<LoaderFunctionArgs>): LoaderFunctionArgs {
+  return partialArgs as unknown as LoaderFunctionArgs;
+}

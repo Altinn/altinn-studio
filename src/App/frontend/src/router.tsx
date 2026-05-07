@@ -40,7 +40,7 @@ export function createRouter(queryClient: QueryClient) {
           {
             path: routes.instanceSelection,
             Component: InstanceSelectionRoute,
-            loader: instanceSelectionLoader(queryClient, partyApi, instanceApi),
+            loader: instanceSelectionLoader(partyApi, instanceApi),
           },
           {
             path: routes.partySelection,

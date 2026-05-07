@@ -236,7 +236,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['src/routes/**/*.{ts,tsx}'],
+    files: ['src/routes/**/*.{ts,tsx}', 'src/router.tsx'],
     rules: {
       '@typescript-eslint/no-restricted-imports': [
         'warn',

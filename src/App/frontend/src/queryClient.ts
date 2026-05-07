@@ -14,3 +14,20 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+/**
+ * Shared query client for the application.
+ *
+ * Do not use in unit tests — provide your own QueryClient to avoid shared cache issues.
+ */
+export function createDefaultQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        staleTime: 10 * 60 * 1000,
+        refetchOnWindowFocus: false,
+      },
+    },
+  });
+}
