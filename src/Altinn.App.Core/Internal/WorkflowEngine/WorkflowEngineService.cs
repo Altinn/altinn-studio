@@ -55,6 +55,7 @@ internal sealed record CurrentTaskWorkflowState(ProcessNextState? ProcessNextSta
 
 internal sealed class WorkflowEngineService : IWorkflowEngineService
 {
+    private const string DependencyEdgeKind = "dependency";
     private const int WorkflowPollingTimeoutMs = 100_000;
     private const int InitialWorkflowPollingDelayMs = 100;
     private const int MaxWorkflowPollingDelayMs = 2_000;
@@ -158,7 +159,11 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             rootWorkflow.DatabaseId,
             cancellationToken: ct
         );
-        IReadOnlyList<WorkflowStatusResponse> graphWorkflows = dependencyGraph?.Workflows ?? [rootWorkflow];
+        IReadOnlyList<WorkflowStatusResponse> graphWorkflows = GetProcessNextDependencyChain(
+            dependencyGraph,
+            rootWorkflow.DatabaseId,
+            rootWorkflow
+        );
 
         if (graphWorkflows.Any(IsActiveWorkflowStatus))
         {
@@ -236,7 +241,10 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 rootWorkflowId,
                 cancellationToken: ct
             );
-            IReadOnlyList<WorkflowStatusResponse> graphWorkflows = dependencyGraph?.Workflows ?? [];
+            IReadOnlyList<WorkflowStatusResponse> graphWorkflows = GetProcessNextDependencyChain(
+                dependencyGraph,
+                rootWorkflowId
+            );
             if (graphWorkflows.Count > 0)
             {
                 lastObservedDependencyGraph = graphWorkflows;
@@ -269,6 +277,84 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     }
 
     private string GetNamespace() => $"{_appIdentifier.Org}/{_appIdentifier.App}";
+
+    private static IReadOnlyList<WorkflowStatusResponse> GetProcessNextDependencyChain(
+        WorkflowDependencyGraphResponse? dependencyGraph,
+        Guid rootWorkflowId,
+        WorkflowStatusResponse? fallbackRootWorkflow = null
+    )
+    {
+        if (dependencyGraph is null)
+        {
+            return fallbackRootWorkflow is null ? [] : [fallbackRootWorkflow];
+        }
+
+        if (dependencyGraph.Workflows.Count == 0)
+        {
+            return fallbackRootWorkflow is null ? [] : [fallbackRootWorkflow];
+        }
+
+        if (dependencyGraph.Edges.Count == 0)
+        {
+            return dependencyGraph.Workflows;
+        }
+
+        HashSet<Guid> reachableWorkflowIds = GetReachableDependencyWorkflowIds(dependencyGraph, rootWorkflowId);
+        List<WorkflowStatusResponse> processNextWorkflows = dependencyGraph
+            .Workflows.Where(workflow => reachableWorkflowIds.Contains(workflow.DatabaseId))
+            .ToList();
+
+        if (processNextWorkflows.Count > 0)
+        {
+            return processNextWorkflows;
+        }
+
+        return fallbackRootWorkflow is null ? [] : [fallbackRootWorkflow];
+    }
+
+    private static HashSet<Guid> GetReachableDependencyWorkflowIds(
+        WorkflowDependencyGraphResponse dependencyGraph,
+        Guid rootWorkflowId
+    )
+    {
+        Dictionary<Guid, List<Guid>> outgoingDependencyEdges = [];
+        foreach (WorkflowDependencyGraphEdgeResponse edge in dependencyGraph.Edges)
+        {
+            if (!string.Equals(edge.Kind, DependencyEdgeKind, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (!outgoingDependencyEdges.TryGetValue(edge.From, out List<Guid>? dependents))
+            {
+                dependents = [];
+                outgoingDependencyEdges[edge.From] = dependents;
+            }
+
+            dependents.Add(edge.To);
+        }
+
+        HashSet<Guid> reachable = [rootWorkflowId];
+        Queue<Guid> queue = new([rootWorkflowId]);
+
+        while (queue.TryDequeue(out Guid workflowId))
+        {
+            if (!outgoingDependencyEdges.TryGetValue(workflowId, out List<Guid>? dependents))
+            {
+                continue;
+            }
+
+            foreach (Guid dependentId in dependents)
+            {
+                if (reachable.Add(dependentId))
+                {
+                    queue.Enqueue(dependentId);
+                }
+            }
+        }
+
+        return reachable;
+    }
 
     private static bool IsActiveWorkflowStatus(WorkflowStatusResponse workflow) =>
         workflow.OverallStatus

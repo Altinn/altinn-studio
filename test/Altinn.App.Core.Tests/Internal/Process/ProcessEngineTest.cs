@@ -1375,6 +1375,151 @@ public sealed class ProcessEngineTest
     }
 
     [Fact]
+    public async Task GetCurrentTaskWorkflowState_ignores_non_descendant_workflows_in_dependency_graph()
+    {
+        Guid workflowId = Guid.NewGuid();
+        Guid ancestorWorkflowId = Guid.NewGuid();
+        Guid linkedWorkflowId = Guid.NewGuid();
+        var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<Guid?>(),
+                    It.Is<Dictionary<string, string>>(labels => labels["processNextId"] == "Task_1:2"),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatusResponse(
+                    workflowId,
+                    "Process next: StartEvent_1 -> Task_1",
+                    PersistentItemStatus.Completed
+                ),
+            ]);
+        processEngineClientMock
+            .Setup(c => c.GetWorkflowDependencyGraph(It.IsAny<string>(), workflowId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                CreateWorkflowDependencyGraphResponse(
+                    workflowId,
+                    [
+                        CreateDependencyGraphEdge(ancestorWorkflowId, workflowId),
+                        CreateLinkGraphEdge(workflowId, linkedWorkflowId),
+                    ],
+                    CreateWorkflowStatusResponse(
+                        workflowId,
+                        "Process next: StartEvent_1 -> Task_1",
+                        PersistentItemStatus.Completed
+                    ),
+                    CreateWorkflowStatusResponse(ancestorWorkflowId, "Ancestor workflow", PersistentItemStatus.Failed),
+                    CreateWorkflowStatusResponse(linkedWorkflowId, "Linked workflow", PersistentItemStatus.Failed)
+                )
+            );
+
+        var services = new ServiceCollection();
+        services.AddSingleton(processEngineClientMock.Object);
+
+        await using var fixture = Fixture.Create(services);
+        IWorkflowEngineService workflowEngineService =
+            fixture.ServiceProvider.GetRequiredService<IWorkflowEngineService>();
+
+        CurrentTaskWorkflowState result = await workflowEngineService.GetCurrentTaskWorkflowState(
+            CreateTask1Instance()
+        );
+
+        result.ProcessNextState.Should().BeNull();
+        result.WorkflowId.Should().Be(workflowId);
+    }
+
+    [Fact]
+    public async Task EnqueueAndWaitForProcessNext_ignores_non_descendant_workflows_in_dependency_graph()
+    {
+        Guid workflowId = Guid.NewGuid();
+        Guid childWorkflowId = Guid.NewGuid();
+        Guid ancestorWorkflowId = Guid.NewGuid();
+        Guid linkedWorkflowId = Guid.NewGuid();
+        var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        processEngineClientMock
+            .Setup(c =>
+                c.EnqueueWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new WorkflowEnqueueResponse.Accepted
+                {
+                    Workflows = [new WorkflowResult { DatabaseId = workflowId, Namespace = "org/app" }],
+                }
+            );
+        processEngineClientMock
+            .Setup(c => c.GetWorkflowDependencyGraph(It.IsAny<string>(), workflowId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                CreateWorkflowDependencyGraphResponse(
+                    workflowId,
+                    [
+                        CreateDependencyGraphEdge(ancestorWorkflowId, workflowId),
+                        CreateDependencyGraphEdge(workflowId, childWorkflowId),
+                        CreateLinkGraphEdge(workflowId, linkedWorkflowId),
+                    ],
+                    CreateWorkflowStatusResponse(
+                        workflowId,
+                        "Process next: Task_1 -> Task_2",
+                        PersistentItemStatus.Completed
+                    ),
+                    CreateWorkflowStatusResponse(
+                        childWorkflowId,
+                        "Auto-continue child",
+                        PersistentItemStatus.Completed
+                    ),
+                    CreateWorkflowStatusResponse(ancestorWorkflowId, "Ancestor workflow", PersistentItemStatus.Failed),
+                    CreateWorkflowStatusResponse(linkedWorkflowId, "Linked workflow", PersistentItemStatus.Failed)
+                )
+            );
+
+        Mock<IInstanceClient> instanceClientMock = new(MockBehavior.Strict);
+        Instance instance = CreateTask1Instance();
+        Instance updatedInstance = CreateTask2Instance();
+        instanceClientMock
+            .Setup(c =>
+                c.GetInstance(
+                    It.IsAny<Instance>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(updatedInstance);
+
+        var services = new ServiceCollection();
+        services.AddSingleton(processEngineClientMock.Object);
+        services.AddSingleton(instanceClientMock.Object);
+
+        await using var fixture = Fixture.Create(services);
+        IWorkflowEngineService workflowEngineService =
+            fixture.ServiceProvider.GetRequiredService<IWorkflowEngineService>();
+
+        ProcessNextWorkflowResult result = await workflowEngineService.EnqueueAndWaitForProcessNext(
+            instance,
+            new ProcessStateChange
+            {
+                OldProcessState = instance.Process,
+                NewProcessState = updatedInstance.Process,
+                Events = [],
+            },
+            resolvedAction: "complete",
+            lockToken: "lock-token"
+        );
+
+        result.WorkflowFailure.Should().BeNull();
+        result.ProcessStateChanged.Should().BeFalse();
+        result.Instance.Should().BeSameAs(updatedInstance);
+    }
+
+    [Fact]
     public async Task RecoverCurrentTask_resumes_failed_workflow_and_returns_updated_instance()
     {
         Guid workflowId = Guid.NewGuid();
@@ -1503,6 +1648,34 @@ public sealed class ProcessEngineTest
             RootWorkflowId = workflowId,
             Workflows = workflows,
             Edges = [],
+        };
+
+    private static WorkflowDependencyGraphResponse CreateWorkflowDependencyGraphResponse(
+        Guid workflowId,
+        IReadOnlyList<WorkflowDependencyGraphEdgeResponse> edges,
+        params WorkflowStatusResponse[] workflows
+    ) =>
+        new()
+        {
+            RootWorkflowId = workflowId,
+            Workflows = workflows,
+            Edges = edges,
+        };
+
+    private static WorkflowDependencyGraphEdgeResponse CreateDependencyGraphEdge(Guid from, Guid to) =>
+        new()
+        {
+            From = from,
+            To = to,
+            Kind = "dependency",
+        };
+
+    private static WorkflowDependencyGraphEdgeResponse CreateLinkGraphEdge(Guid from, Guid to) =>
+        new()
+        {
+            From = from,
+            To = to,
+            Kind = "link",
         };
 
     private static ClaimsPrincipal CreateUserClaimsPrincipal() =>

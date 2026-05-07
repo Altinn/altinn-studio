@@ -14,8 +14,8 @@ internal sealed record WorkflowDependencyGraphResponse
     public Guid RootWorkflowId { get; init; }
 
     /// <summary>
-    /// All workflows reachable from the requested workflow through dependency relationships.
-    /// Includes the requested workflow itself.
+    /// All workflows in the connected component reachable from the requested workflow
+    /// through dependency and link relationships in either direction.
     /// </summary>
     [JsonPropertyName("workflows")]
     public required IReadOnlyList<WorkflowStatusResponse> Workflows { get; init; }

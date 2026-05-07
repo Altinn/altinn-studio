@@ -84,7 +84,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                     Context = context,
                     InitialState = workflow.State,
                     State = workflow.State,
-                    DependencyIds = ResolveDependencies(workflow.DependsOn, refMap),
+                    DependencyIds = ResolveWorkflowRefs(workflow.DependsOn, refMap),
+                    LinkIds = ResolveWorkflowRefs(workflow.Links, refMap),
                     Steps = workflow
                         .Steps.Select(
                             (step, index) =>
@@ -424,31 +425,31 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     private static bool IsNonRetryable(ProblemDetails problem) =>
         problem.Extensions.TryGetValue("nonRetryable", out object? value) && value is true;
 
-    private static List<Guid> ResolveDependencies(
-        IEnumerable<WorkflowRef>? dependencies,
+    private static List<Guid> ResolveWorkflowRefs(
+        IEnumerable<WorkflowRef>? workflowRefs,
         Dictionary<string, Guid> refMap
     )
     {
-        if (dependencies is null)
+        if (workflowRefs is null)
         {
             return [];
         }
 
         List<Guid> resolved = [];
-        foreach (WorkflowRef dependency in dependencies)
+        foreach (WorkflowRef workflowRef in workflowRefs)
         {
-            if (dependency.IsId)
+            if (workflowRef.IsId)
             {
-                resolved.Add(dependency.Id);
+                resolved.Add(workflowRef.Id);
                 continue;
             }
 
-            if (!refMap.TryGetValue(dependency.Ref, out Guid dependencyId))
+            if (!refMap.TryGetValue(workflowRef.Ref, out Guid referencedWorkflowId))
             {
-                throw new InvalidOperationException($"Unknown workflow ref dependency '{dependency.Ref}'.");
+                throw new InvalidOperationException($"Unknown workflow ref '{workflowRef.Ref}'.");
             }
 
-            resolved.Add(dependencyId);
+            resolved.Add(referencedWorkflowId);
         }
 
         return resolved;
@@ -486,6 +487,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         }
 
         var reverseDependencies = new Dictionary<Guid, List<StoredWorkflow>>();
+        var reverseLinks = new Dictionary<Guid, List<StoredWorkflow>>();
         foreach (StoredWorkflow workflow in _workflows.Values.Where(candidate => candidate.Namespace == ns))
         {
             foreach (Guid dependencyId in workflow.DependencyIds)
@@ -498,6 +500,17 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
 
                 dependents.Add(workflow);
             }
+
+            foreach (Guid linkId in workflow.LinkIds)
+            {
+                if (!reverseLinks.TryGetValue(linkId, out List<StoredWorkflow>? linkedWorkflows))
+                {
+                    linkedWorkflows = [];
+                    reverseLinks[linkId] = linkedWorkflows;
+                }
+
+                linkedWorkflows.Add(workflow);
+            }
         }
 
         HashSet<Guid> visited = [workflowId];
@@ -506,18 +519,48 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
 
         while (queue.TryDequeue(out Guid currentWorkflowId))
         {
-            dependencyGraph.Add(_workflows[currentWorkflowId]);
+            StoredWorkflow currentWorkflow = _workflows[currentWorkflowId];
+            dependencyGraph.Add(currentWorkflow);
+
+            foreach (Guid dependencyId in currentWorkflow.DependencyIds)
+            {
+                if (visited.Add(dependencyId))
+                {
+                    queue.Enqueue(dependencyId);
+                }
+            }
 
             if (!reverseDependencies.TryGetValue(currentWorkflowId, out List<StoredWorkflow>? dependents))
             {
-                continue;
+                dependents = null;
             }
 
-            foreach (StoredWorkflow dependent in dependents)
+            foreach (StoredWorkflow dependent in dependents ?? [])
             {
                 if (visited.Add(dependent.DatabaseId))
                 {
                     queue.Enqueue(dependent.DatabaseId);
+                }
+            }
+
+            foreach (Guid linkId in currentWorkflow.LinkIds)
+            {
+                if (visited.Add(linkId))
+                {
+                    queue.Enqueue(linkId);
+                }
+            }
+
+            if (!reverseLinks.TryGetValue(currentWorkflowId, out List<StoredWorkflow>? linkedWorkflows))
+            {
+                continue;
+            }
+
+            foreach (StoredWorkflow linkedWorkflow in linkedWorkflows)
+            {
+                if (visited.Add(linkedWorkflow.DatabaseId))
+                {
+                    queue.Enqueue(linkedWorkflow.DatabaseId);
                 }
             }
         }
@@ -541,6 +584,16 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                         To = workflow.DatabaseId,
                         Kind = "dependency",
                     })
+                    .Concat(
+                        workflow
+                            .LinkIds.Where(workflowIds.Contains)
+                            .Select(linkId => new WorkflowDependencyGraphEdgeResponse
+                            {
+                                From = workflow.DatabaseId,
+                                To = linkId,
+                                Kind = "link",
+                            })
+                    )
             )
             .OrderBy(edge => edge.From)
             .ThenBy(edge => edge.To)
@@ -580,6 +633,12 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                                 ? dependency.Status
                                 : PersistentItemStatus.DependencyFailed
                     ),
+            Links =
+                workflow.LinkIds.Count == 0
+                    ? null
+                    : workflow
+                        .LinkIds.Where(linkId => _workflows.ContainsKey(linkId))
+                        .ToDictionary(linkId => linkId, linkId => _workflows[linkId].Status),
             InitialState = workflow.InitialState,
             Steps = workflow.Steps.Select(ToStepStatusResponse).ToList(),
         };
@@ -644,6 +703,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         public required IReadOnlyDictionary<string, string>? Labels { get; init; }
 
         public required List<Guid> DependencyIds { get; init; }
+
+        public required List<Guid> LinkIds { get; init; }
 
         public required List<StoredStep> Steps { get; init; }
 
