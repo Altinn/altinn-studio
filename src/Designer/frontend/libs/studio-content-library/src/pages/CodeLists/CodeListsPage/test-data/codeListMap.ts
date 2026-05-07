@@ -1,6 +1,6 @@
 import { coloursFile, countriesFile, fruitsFile } from './codeLists';
-import { CodeListFileMap } from '../types/CodeListFileMap';
-import { CodeListFile } from '../../../../types/CodeListFile';
+import type { CodeListFileMap } from '../types/CodeListFileMap';
+import type { CodeListFile } from '../../../../types/CodeListFile';
 
 export const coloursKey = '779c7233-f0c8-449e-84ae-24cf6340e8bc';
 export const fruitsKey = '001b2353-bc35-4e48-968d-d95cec09b0bc';

@@ -15,8 +15,8 @@ import classes from './CodeListsPage.module.css';
 import { FloppydiskIcon, PlusIcon } from '@studio/icons';
 import type { CodeListMapError } from './types/CodeListMapError';
 import { Errors } from './Errors';
-import { CodeListFile } from '../../../types/CodeListFile';
-import { CodeListFileMap } from './types/CodeListFileMap';
+import type { CodeListFile } from '../../../types/CodeListFile';
+import type { CodeListFileMap } from './types/CodeListFileMap';
 
 export type CodeListsPageProps = {
   codeLists: CodeListFile[];

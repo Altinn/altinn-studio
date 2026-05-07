@@ -1,3 +1,3 @@
-import { CodeListFile } from '../../../../types/CodeListFile';
+import type { CodeListFile } from '../../../../types/CodeListFile';
 
 export type CodeListFileMap = ReadonlyMap<string, CodeListFile>;
