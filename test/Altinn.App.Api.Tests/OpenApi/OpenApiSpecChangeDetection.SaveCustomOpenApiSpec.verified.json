@@ -3177,6 +3177,10 @@
             "type": "boolean",
             "default": false
           },
+          "enableUserSuppliedDialogId": {
+            "type": "boolean",
+            "default": false
+          },
           "disableCreate": {
             "type": "boolean",
             "default": false
@@ -3201,11 +3205,23 @@
             "type": "boolean",
             "default": false
           },
+          "disableMarkCompletedWhenConfirmed": {
+            "type": "boolean",
+            "default": false
+          },
           "disableSyncContentTitle": {
             "type": "boolean",
             "default": false
           },
           "disableSyncContentSummary": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableSyncContentAdditionalInformation": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableSyncContentExtendedStatus": {
             "type": "boolean",
             "default": false
           },
@@ -3290,6 +3306,62 @@
             "$ref": "#/components/schemas/ApiScopes"
           },
           "errorMessageTextResourceKey": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Keyword": {
+        "type": "object",
+        "properties": {
+          "word": {
+            "type": "string",
+            "nullable": true
+          },
+          "language": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppMetadataAccess": {
+        "type": "object",
+        "properties": {
+          "rightDescription": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "nullable": true
+            },
+            "nullable": true
+          },
+          "delegable": {
+            "type": "boolean"
+          },
+          "visible": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppMetadataContactPoint": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "telephone": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactPage": {
             "type": "string",
             "nullable": true
           }
@@ -3461,6 +3533,35 @@
           },
           "disallowUserInstantiation": {
             "type": "boolean"
+          },
+          "homepage": {
+            "type": "string",
+            "nullable": true
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Keyword"
+            },
+            "nullable": true
+          },
+          "description": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "nullable": true
+            },
+            "nullable": true
+          },
+          "access": {
+            "$ref": "#/components/schemas/AppMetadataAccess"
+          },
+          "contactPoints": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AppMetadataContactPoint"
+            },
+            "nullable": true
           },
           "id": {
             "type": "string"

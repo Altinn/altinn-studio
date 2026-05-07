@@ -578,6 +578,56 @@ public class PaymentControllerTests
         _services.VerifyMocks();
     }
 
+    [Fact]
+    public void Constructor_NetsWebhookSecretProviderNotRegistered_DoesNotThrow()
+    {
+        var services = new MockedServiceCollection();
+        services.Mock<IProcessReader>();
+        services.Services.AddSingleton<IPaymentService, PaymentService>();
+        services.Services.AddSingleton<PaymentController>();
+        // Deliberately not registering INetsWebhookSecretProvider
+        services.Storage.AddInstance(_instance);
+
+        using var sp = services.BuildServiceProvider();
+
+        // Must not throw — the controller should be constructable without Nets configured
+        var controller = sp.GetRequiredService<PaymentController>();
+        Assert.NotNull(controller);
+    }
+
+    [Fact]
+    public async Task PaymentWebhookListener_NetsNotConfigured_ThrowsPaymentException()
+    {
+        var services = new MockedServiceCollection();
+        services.Mock<IProcessReader>();
+        services.Services.AddSingleton<IPaymentService, PaymentService>();
+        services.Services.AddSingleton<PaymentController>();
+        // Deliberately not registering INetsWebhookSecretProvider
+        services.Storage.AddInstance(_instance);
+
+        await using var sp = services.BuildServiceProvider();
+        var controller = sp.GetRequiredService<PaymentController>();
+
+        var exception = await Assert.ThrowsAsync<PaymentException>(async () =>
+            await controller.PaymentWebhookListener(
+                "org",
+                "app",
+                PartyId,
+                _instanceGuid,
+                new()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Data = new() { PaymentId = Guid.NewGuid().ToString() },
+                    EventName = "PaymentCreated",
+                    Timestamp = DateTime.UtcNow,
+                    MerchantId = 222,
+                },
+                "somekey"
+            )
+        );
+        Assert.Contains("INetsWebhookSecretProvider", exception.Message);
+    }
+
     private void SetupAltinnTaskExtensionMock(string taskId, AltinnTaskExtension? taskExtension, Times times)
     {
         _services

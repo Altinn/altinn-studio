@@ -29,7 +29,7 @@ public class PaymentController : ControllerBase
     private readonly IPaymentService _paymentService;
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly ILogger<PaymentController> _logger;
-    private readonly INetsWebhookSecretProvider _netsWebhookSecretProvider;
+    private readonly INetsWebhookSecretProvider? _netsWebhookSecretProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PaymentController"/> class.
@@ -44,7 +44,7 @@ public class PaymentController : ControllerBase
         _instanceClient = instanceClient;
         _processReader = processReader;
         _logger = logger;
-        _netsWebhookSecretProvider = serviceProvider.GetRequiredService<INetsWebhookSecretProvider>();
+        _netsWebhookSecretProvider = serviceProvider.GetService<INetsWebhookSecretProvider>();
         _paymentService = serviceProvider.GetRequiredService<IPaymentService>();
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
@@ -232,6 +232,13 @@ public class PaymentController : ControllerBase
         [FromHeader(Name = "Authorization")] string authorizationHeader
     )
     {
+        if (_netsWebhookSecretProvider is null)
+        {
+            throw new PaymentException(
+                "No INetsWebhookSecretProvider is registered. Ensure the Nets payment provider is correctly configured."
+            );
+        }
+
         if (!_netsWebhookSecretProvider.IsValidIncomingSecret(authorizationHeader))
         {
             _logger.LogWarning(
