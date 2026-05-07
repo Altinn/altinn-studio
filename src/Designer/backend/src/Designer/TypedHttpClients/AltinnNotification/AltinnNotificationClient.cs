@@ -23,6 +23,14 @@ public class AltinnNotificationClient(
     // Either a phone number with country code prefix (no `x` or spaces), or up to 11 alphanumeric characters, see https://wiki.pswin.com/Gateway%20HTTP%20API.ashx#Sender_Number_SND_15
     private const string AltinnSmsSender = "Altinn";
 
+    private readonly Lazy<Task<Uri>> _notificationOrderUri = new(async () =>
+    {
+        var baseUrl = hostEnvironment.IsProduction()
+            ? await environmentsService.CreatePlatformUri("production")
+            : await environmentsService.CreatePlatformUri("tt02");
+        return new Uri($"{baseUrl}{platformSettings.ApiNotificationOrdersUri}");
+    });
+
     public async Task SendEmailNotification(
         string idempotencyId,
         string emailAddress,
@@ -33,7 +41,7 @@ public class AltinnNotificationClient(
         CancellationToken cancellationToken = default
     )
     {
-        var uri = await CreateNotificationOrderUri();
+        var uri = await _notificationOrderUri.Value;
         using var response = await httpClient.PostAsync(
             uri,
             JsonContent.Create(
@@ -61,7 +69,7 @@ public class AltinnNotificationClient(
         CancellationToken cancellationToken = default
     )
     {
-        var uri = await CreateNotificationOrderUri();
+        var uri = await _notificationOrderUri.Value;
         using var response = await httpClient.PostAsync(
             uri,
             JsonContent.Create(
@@ -70,14 +78,5 @@ public class AltinnNotificationClient(
             cancellationToken
         );
         response.EnsureSuccessStatusCode();
-    }
-
-    private async Task<Uri> CreateNotificationOrderUri()
-    {
-        var baseUrl = hostEnvironment.IsProduction()
-            ? await environmentsService.CreatePlatformUri("production")
-            : await environmentsService.CreatePlatformUri("tt02");
-
-        return new Uri($"{baseUrl}{platformSettings.ApiNotificationOrdersUri}");
     }
 }

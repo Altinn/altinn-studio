@@ -44,7 +44,24 @@ internal sealed class AlertsService(
 
         if (apps.Count > 0)
         {
-            var payload = new AlertNotificationPayload(org, environment, apps, alert, hostEnvironment);
+            var fields = new List<(string, string)>
+            {
+                ("Organisasjon", org),
+                ("Miljø", environment.Name),
+                (apps.Count == 1 ? "Applikasjon" : "Applikasjoner", string.Join(", ", apps)),
+            };
+            if (!hostEnvironment.IsProduction())
+            {
+                fields.Add(("Studio-miljø", hostEnvironment.EnvironmentName));
+            }
+
+            var links = new List<(string, string)>
+            {
+                (alert.Url.OriginalString, "Grafana"),
+                (alert.LogsUrl.OriginalString, "Application Insights"),
+            };
+
+            var payload = new NotificationPayload(alert.Id, alert.Name, fields, links);
             await Task.WhenAll(
                 notificationService.NotifyInternalAsync(org, environment, payload, cancellationToken),
                 notificationService.NotifyServiceOwnersAsync(org, environment, payload, cancellationToken)

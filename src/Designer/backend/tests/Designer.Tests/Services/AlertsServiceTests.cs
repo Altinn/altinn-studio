@@ -35,7 +35,7 @@ public class AlertsServiceTests
                 s.NotifyInternalAsync(
                     It.IsAny<string>(),
                     It.IsAny<AltinnEnvironment>(),
-                    It.IsAny<INotificationPayload>(),
+                    It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -45,7 +45,7 @@ public class AlertsServiceTests
                 s.NotifyServiceOwnersAsync(
                     It.IsAny<string>(),
                     It.IsAny<AltinnEnvironment>(),
-                    It.IsAny<INotificationPayload>(),
+                    It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -70,7 +70,7 @@ public class AlertsServiceTests
                 s.NotifyInternalAsync(
                     It.IsAny<string>(),
                     It.IsAny<AltinnEnvironment>(),
-                    It.IsAny<INotificationPayload>(),
+                    It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Never
@@ -80,7 +80,7 @@ public class AlertsServiceTests
                 s.NotifyServiceOwnersAsync(
                     It.IsAny<string>(),
                     It.IsAny<AltinnEnvironment>(),
-                    It.IsAny<INotificationPayload>(),
+                    It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Never
@@ -117,7 +117,7 @@ public class AlertsServiceTests
                 s.NotifyInternalAsync(
                     "ttd",
                     environment,
-                    It.IsAny<INotificationPayload>(),
+                    It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -138,7 +138,7 @@ public class AlertsServiceTests
                 s.NotifyServiceOwnersAsync(
                     "ttd",
                     environment,
-                    It.IsAny<INotificationPayload>(),
+                    It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once

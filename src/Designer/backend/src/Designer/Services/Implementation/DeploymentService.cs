@@ -675,8 +675,8 @@ public class DeploymentService : IDeploymentService
 
         string status = eventType switch
         {
-            DeployEventType.InstallFailed or DeployEventType.UpgradeFailed => "Deploy failed",
-            DeployEventType.UninstallFailed => "Undeploy failed",
+            DeployEventType.InstallFailed or DeployEventType.UpgradeFailed => "Publisering feilet",
+            DeployEventType.UninstallFailed => "Avpublisering feilet",
             _ => eventType.ToString(),
         };
 
@@ -685,16 +685,24 @@ public class DeploymentService : IDeploymentService
             ? $"https://dev.azure.com/brreg/altinn-studio/_build/results?buildId={buildId}&view=logs"
             : null;
 
-        var payload = new DeploymentNotificationPayload(
-            org,
-            environment.Name,
-            app,
-            status,
-            buildId ?? string.Empty,
-            grafanaUrl,
-            buildLogUrl,
-            _hostEnvironment
-        );
+        var fields = new List<(string, string)>
+        {
+            ("Organisasjon", org),
+            ("Miljø", environment.Name),
+            ("Applikasjon", app),
+        };
+        if (!_hostEnvironment.IsProduction())
+        {
+            fields.Add(("Studio-miljø", _hostEnvironment.EnvironmentName));
+        }
+
+        var links = new List<(string, string)> { (grafanaUrl.OriginalString, "Grafana") };
+        if (buildLogUrl is not null)
+        {
+            links.Add((buildLogUrl, "Bygglogg"));
+        }
+
+        var payload = new NotificationPayload(buildId, status, fields, links);
 
         await Task.WhenAll(
             _notificationService.NotifyInternalAsync(org, environment, payload, cancellationToken),

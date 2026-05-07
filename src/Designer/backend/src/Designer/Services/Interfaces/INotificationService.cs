@@ -9,14 +9,14 @@ public interface INotificationService
     Task NotifyInternalAsync(
         string org,
         AltinnEnvironment environment,
-        INotificationPayload payload,
+        NotificationPayload payload,
         CancellationToken cancellationToken
     );
 
     Task NotifyServiceOwnersAsync(
         string org,
         AltinnEnvironment environment,
-        INotificationPayload payload,
+        NotificationPayload payload,
         CancellationToken cancellationToken
     );
 }

@@ -9,7 +9,6 @@ using Altinn.Studio.Designer.Models.ContactPoints;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models.ContactPoint;
 using Altinn.Studio.Designer.Services.Implementation;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnNotification;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnNotification.Models;
 using Altinn.Studio.Designer.TypedHttpClients.Slack;
@@ -438,21 +437,6 @@ public class NotificationServiceTests
             Methods = methods,
         };
 
-    private static INotificationPayload BuildPayload(string uniqueId = "payload-id-1") => new StubPayload(uniqueId);
-
-    private sealed class StubPayload(string uniqueId) : INotificationPayload
-    {
-        public string UniqueId => uniqueId;
-        public string NotificationName => "Test notification";
-
-        public string GetEmailSubject() => "Test subject";
-
-        public string GetEmailBody() => "<p>Test body</p>";
-
-        public EmailContentType EmailContentType => EmailContentType.Html;
-
-        public string GetSmsBody() => "Test SMS body";
-
-        public SlackMessage GetSlackMessage() => new() { Text = "Test Slack message" };
-    }
+    private static NotificationPayload BuildPayload(string uniqueId = "payload-id-1") =>
+        new(uniqueId, "Test notification", [("Label", "Value")], [("https://example.com", "Link")]);
 }

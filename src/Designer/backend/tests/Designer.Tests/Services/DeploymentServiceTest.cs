@@ -89,7 +89,7 @@ public class DeploymentServiceTest
                 s.NotifyInternalAsync(
                     It.IsAny<string>(),
                     It.IsAny<AltinnEnvironment>(),
-                    It.IsAny<INotificationPayload>(),
+                    It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -99,7 +99,7 @@ public class DeploymentServiceTest
                 s.NotifyServiceOwnersAsync(
                     It.IsAny<string>(),
                     It.IsAny<AltinnEnvironment>(),
-                    It.IsAny<INotificationPayload>(),
+                    It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 )
             )
