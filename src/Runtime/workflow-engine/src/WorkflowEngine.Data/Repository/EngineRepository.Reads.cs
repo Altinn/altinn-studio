@@ -769,18 +769,18 @@ internal sealed partial class EngineRepository
     {
         const string sql = """
             WITH RECURSIVE hierarchy AS (
-                SELECT w."Id"
-                FROM engine."Workflows" w
-                WHERE w."Id" = @id
-                  AND w."Namespace" = @ns
+                SELECT w.id
+                FROM engine.workflows w
+                WHERE w.id = @id
+                  AND w.namespace = @ns
                 UNION
-                SELECT wd."WorkflowId"
-                FROM engine."WorkflowDependency" wd
-                JOIN engine."Workflows" w ON w."Id" = wd."WorkflowId"
-                JOIN hierarchy h ON wd."DependsOnWorkflowId" = h."Id"
-                WHERE w."Namespace" = @ns
+                SELECT wd.workflow_id
+                FROM engine.workflow_dependency wd
+                JOIN engine.workflows w ON w.id = wd.workflow_id
+                JOIN hierarchy h ON wd.depends_on_workflow_id = h.id
+                WHERE w.namespace = @ns
             )
-            SELECT "Id"
+            SELECT id
             FROM hierarchy
             """;
 
