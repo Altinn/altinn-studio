@@ -79,6 +79,7 @@ export interface IInstance {
   status?: IInstanceStatus | null;
   title?: ITitle | null;
   visibleAfter?: string;
+  process?: IProcess;
   completeConfirmations?: unknown;
   presentationTexts?: unknown;
   dataValues?: unknown;

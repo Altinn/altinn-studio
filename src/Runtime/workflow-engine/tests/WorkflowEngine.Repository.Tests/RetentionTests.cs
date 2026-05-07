@@ -19,7 +19,7 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
         await fixture.Reset();
         await using var ctx = fixture.CreateDbContext();
         await ctx.Database.ExecuteSqlRawAsync(
-            """TRUNCATE "engine"."IdempotencyKeys" """,
+            "TRUNCATE engine.idempotency_keys",
             TestContext.Current.CancellationToken
         );
     }
@@ -250,7 +250,7 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var cmd = dataSource.CreateCommand(
             """
-            INSERT INTO engine."Workflows" ("Id", "OperationId", "IdempotencyKey", "Namespace", "Status", "CreatedAt", "UpdatedAt", "ReclaimCount")
+            INSERT INTO engine.workflows (id, operation_id, idempotency_key, namespace, status, created_at, updated_at, reclaim_count)
             VALUES (@id, 'test-op', @id::text, 'test-ns', @status, @createdAt, @updatedAt, 0)
             """
         );
@@ -265,7 +265,7 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var cmd = dataSource.CreateCommand(
             """
-            INSERT INTO engine."Steps" ("Id", "JobId", "OperationId", "CommandJson", "Status", "CreatedAt", "ProcessingOrder", "RequeueCount")
+            INSERT INTO engine.steps (id, job_id, operation_id, command_json, status, created_at, processing_order, requeue_count)
             VALUES (@id, @jobId, 'test-step', '{"type":"webhook"}', 3, @createdAt, 0, 0)
             """
         );
@@ -284,7 +284,7 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var cmd = dataSource.CreateCommand(
             """
-            INSERT INTO engine."WorkflowDependency" ("WorkflowId", "DependsOnWorkflowId")
+            INSERT INTO engine.workflow_dependency (workflow_id, depends_on_workflow_id)
             VALUES (@workflowId, @dependsOnId)
             """
         );
@@ -302,7 +302,7 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var cmd = dataSource.CreateCommand(
             """
-            INSERT INTO engine."WorkflowLink" ("WorkflowId", "LinkedWorkflowId")
+            INSERT INTO engine.workflow_link (workflow_id, linked_workflow_id)
             VALUES (@workflowId, @linkedWorkflowId)
             """
         );
@@ -322,7 +322,7 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var cmd = dataSource.CreateCommand(
             """
-            INSERT INTO engine."IdempotencyKeys" ("IdempotencyKey", "Namespace", "RequestBodyHash", "WorkflowIds", "CreatedAt")
+            INSERT INTO engine.idempotency_keys (idempotency_key, namespace, request_body_hash, workflow_ids, created_at)
             VALUES (@key, @ns, @hash, @workflowIds, @createdAt)
             """
         );

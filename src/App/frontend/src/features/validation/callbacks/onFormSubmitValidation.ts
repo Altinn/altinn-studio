@@ -16,26 +16,20 @@ import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
  */
 export function useOnFormSubmitValidation() {
   const validate = useWaitForValidation();
-  const setNodeVisibility = FormStore.nodes.useSetNodeVisibility();
+  const setFormValidationMask = FormStore.validation.useSetFormValidationMask();
   const getNodesWithErrors = FormStore.nodes.useGetNodesWithErrors();
 
   const callback = useOurEffectEvent((includeNonIncrementalValidations: boolean): boolean => {
     /*
      * Check if there are any frontend validation errors, and if so, show them now and block submit
      */
-    const nodesWithFrontendErrors = getNodesWithErrors(ValidationMask.All, 'error', false);
-
-    const [nodes, validations] = nodesWithFrontendErrors;
+    const validations = getNodesWithErrors(ValidationMask.All, 'error', false);
     if (
       includeNonIncrementalValidations
         ? validations.length > 0
         : validations.filter((v) => !v.noIncrementalUpdates).length > 0
     ) {
-      // Currently, SubForm is the only type of non-incremental validation that has a visibility included in All,
-      // non-incremental validations from backend gets a StandardBackend visibility set. Therefore we want to show
-      // errors in SubForm even if it only has an incremental validation which is why we don't filter on the nodes that get visibility,
-      // even if the validation itself is filtered out for being non-incremental. We only need it not to block process/next.
-      setNodeVisibility(nodes, ValidationMask.All);
+      setFormValidationMask(ValidationMask.All);
       return true;
     }
 

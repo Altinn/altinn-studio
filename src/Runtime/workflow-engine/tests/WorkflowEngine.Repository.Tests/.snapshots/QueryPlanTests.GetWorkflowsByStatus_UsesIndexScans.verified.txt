@@ -1,90 +1,61 @@
 ﻿[
   {
     Plan: {
-      Node Type: Sort,
+      Node Type: Nested Loop,
       Parallel Aware: {Scrubbed},
       Async Capable: {Scrubbed},
+      Join Type: Left,
       Startup Cost: {Scrubbed},
       Total Cost: {Scrubbed},
       Plan Rows: {Scrubbed},
       Plan Width: {Scrubbed},
       Disabled: false,
-      Sort Key: [
-        w."Id" DESC
-      ],
+      Inner Unique: false,
       Plans: [
         {
-          Node Type: Hash Join,
+          Node Type: Limit,
           Parent Relationship: Outer,
           Parallel Aware: {Scrubbed},
           Async Capable: {Scrubbed},
-          Join Type: Right,
           Startup Cost: {Scrubbed},
           Total Cost: {Scrubbed},
           Plan Rows: {Scrubbed},
           Plan Width: {Scrubbed},
           Disabled: false,
-          Inner Unique: false,
-          Hash Cond: (s."JobId" = w."Id"),
           Plans: [
             {
               Node Type: Index Scan,
               Parent Relationship: Outer,
               Parallel Aware: {Scrubbed},
               Async Capable: {Scrubbed},
-              Scan Direction: Forward,
-              Index Name: IX_Steps_JobId_Status,
-              Relation Name: Steps,
-              Alias: s,
-              Startup Cost: {Scrubbed},
-              Total Cost: {Scrubbed},
-              Plan Rows: {Scrubbed},
-              Plan Width: {Scrubbed},
-              Disabled: false
-            },
-            {
-              Node Type: Hash,
-              Parent Relationship: Inner,
-              Parallel Aware: {Scrubbed},
-              Async Capable: {Scrubbed},
+              Scan Direction: Backward,
+              Index Name: pk_workflows,
+              Relation Name: workflows,
+              Alias: w,
               Startup Cost: {Scrubbed},
               Total Cost: {Scrubbed},
               Plan Rows: {Scrubbed},
               Plan Width: {Scrubbed},
               Disabled: false,
-              Plans: [
-                {
-                  Node Type: Limit,
-                  Parent Relationship: Outer,
-                  Parallel Aware: {Scrubbed},
-                  Async Capable: {Scrubbed},
-                  Startup Cost: {Scrubbed},
-                  Total Cost: {Scrubbed},
-                  Plan Rows: {Scrubbed},
-                  Plan Width: {Scrubbed},
-                  Disabled: false,
-                  Plans: [
-                    {
-                      Node Type: Index Scan,
-                      Parent Relationship: Outer,
-                      Parallel Aware: {Scrubbed},
-                      Async Capable: {Scrubbed},
-                      Scan Direction: Backward,
-                      Index Name: PK_Workflows,
-                      Relation Name: Workflows,
-                      Alias: w,
-                      Startup Cost: {Scrubbed},
-                      Total Cost: {Scrubbed},
-                      Plan Rows: {Scrubbed},
-                      Plan Width: {Scrubbed},
-                      Disabled: false,
-                      Filter: ("Status" = ANY ('{3,4}'::integer[]))
-                    }
-                  ]
-                }
-              ]
+              Filter: (status = ANY ('{3,4}'::integer[]))
             }
           ]
+        },
+        {
+          Node Type: Index Scan,
+          Parent Relationship: Inner,
+          Parallel Aware: {Scrubbed},
+          Async Capable: {Scrubbed},
+          Scan Direction: Forward,
+          Index Name: ix_steps_job_id_status,
+          Relation Name: steps,
+          Alias: s,
+          Startup Cost: {Scrubbed},
+          Total Cost: {Scrubbed},
+          Plan Rows: {Scrubbed},
+          Plan Width: {Scrubbed},
+          Disabled: false,
+          Index Cond: (job_id = w.id)
         }
       ]
     }

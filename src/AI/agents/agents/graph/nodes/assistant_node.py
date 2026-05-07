@@ -626,9 +626,9 @@ def _extract_sources(tool_results: Dict[str, Any]) -> List[Dict[str, Any]]:
                     sources.append({
                         "title": title,
                         "url": url,
-                        "preview": preview,
+                        "previewText": preview,
                         "relevance": float(relevance),
-                        "matched_terms": matched_terms,
+                        "matchedTerms": matched_terms,
                         "tool": tool_name,
                     })
 

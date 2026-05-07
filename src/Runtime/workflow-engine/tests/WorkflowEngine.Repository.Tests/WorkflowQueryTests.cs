@@ -286,7 +286,7 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
 
         // Set one step to have RequeueCount > 0
         await context.Database.ExecuteSqlAsync(
-            $"""UPDATE "engine"."Steps" SET "RequeueCount" = 3 WHERE "JobId" = {wf1.DatabaseId}""",
+            $"UPDATE engine.steps SET requeue_count = 3 WHERE job_id = {wf1.DatabaseId}",
             TestContext.Current.CancellationToken
         );
 
@@ -700,11 +700,11 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
     {
         var utc = updatedAt.UtcDateTime;
         await context.Database.ExecuteSqlAsync(
-            $"""UPDATE "engine"."Workflows" SET "UpdatedAt" = {utc} WHERE "Id" = {workflowId}""",
+            $"UPDATE engine.workflows SET updated_at = {utc} WHERE id = {workflowId}",
             TestContext.Current.CancellationToken
         );
         await context.Database.ExecuteSqlAsync(
-            $"""UPDATE "engine"."Steps" SET "UpdatedAt" = {utc} WHERE "JobId" = {workflowId}""",
+            $"UPDATE engine.steps SET updated_at = {utc} WHERE job_id = {workflowId}",
             TestContext.Current.CancellationToken
         );
     }

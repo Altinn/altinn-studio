@@ -242,16 +242,16 @@ internal sealed partial class EngineRepository
             // Extract distinct values for the given label key from JSONB
             var sql = ns is null
                 ? """
-                    SELECT DISTINCT "Labels"->>@key AS val
-                    FROM "engine"."Workflows"
-                    WHERE "Labels" IS NOT NULL AND "Labels" ? @key
+                    SELECT DISTINCT labels->>@key AS val
+                    FROM engine.workflows
+                    WHERE labels IS NOT NULL AND labels ? @key
                     ORDER BY val
                     """
                 : """
-                    SELECT DISTINCT "Labels"->>@key AS val
-                    FROM "engine"."Workflows"
-                    WHERE "Labels" IS NOT NULL AND "Labels" ? @key
-                      AND "Namespace" = @ns
+                    SELECT DISTINCT labels->>@key AS val
+                    FROM engine.workflows
+                    WHERE labels IS NOT NULL AND labels ? @key
+                      AND namespace = @ns
                     ORDER BY val
                     """;
 
@@ -632,8 +632,8 @@ internal sealed partial class EngineRepository
                 {
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
                     const string sql = """
-                    SELECT "Id" FROM "engine"."Workflows"
-                    WHERE "Id" = ANY(@ids) AND "CancellationRequestedAt" IS NOT NULL
+                    SELECT id FROM engine.workflows
+                    WHERE id = ANY(@ids) AND cancellation_requested_at IS NOT NULL
                     """;
 
                     await using var cmd = new NpgsqlCommand(sql, conn);

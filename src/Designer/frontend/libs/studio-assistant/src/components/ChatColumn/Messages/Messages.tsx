@@ -82,7 +82,7 @@ type MessageItemProps = {
 };
 
 function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemProps): ReactElement {
-  const isUser = message.author === MessageAuthor.User;
+  const isUser = message.role === MessageAuthor.User;
   const userLabel = currentUser?.full_name ?? DEFAULT_USER_LABEL;
 
   const renderUserAttachments = (attachments: UserAttachment[]): ReactElement | null => {
@@ -140,7 +140,7 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
   }
 
   const renderFilesChanged = (): ReactElement | null => {
-    if (message.author !== MessageAuthor.Assistant) return null;
+    if (message.role !== MessageAuthor.Assistant) return null;
 
     const assistantMessage = message;
     if (!assistantMessage.filesChanged || assistantMessage.filesChanged.length === 0) return null;
@@ -203,21 +203,21 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
             {source.relevance !== undefined && (
               <span className={classes.sourceRelevance}>{Math.round(source.relevance * 100)}%</span>
             )}
-            {source.content_length !== undefined && (
-              <span className={classes.sourceSize}>{formatFileSize(source.content_length)}</span>
+            {source.contentLength && (
+              <span className={classes.sourceSize}>{formatFileSize(source.contentLength)}</span>
             )}
           </div>
         </div>
-        {source.matched_terms && (
-          <div className={classes.sourceMatched}>Matched: {source.matched_terms}</div>
+        {source.matchedTerms && (
+          <div className={classes.sourceMatched}>Matched: {source.matchedTerms}</div>
         )}
-        {source.preview && <div className={classes.sourcePreview}>{source.preview}</div>}
+        {source.previewText && <div className={classes.sourcePreview}>{source.previewText}</div>}
       </div>
     );
   };
 
   const renderSources = (): ReactElement | null => {
-    if (message.author !== MessageAuthor.Assistant) return null;
+    if (message.role !== MessageAuthor.Assistant) return null;
 
     const assistantMessage = message;
     if (!assistantMessage.sources || assistantMessage.sources.length === 0) return null;

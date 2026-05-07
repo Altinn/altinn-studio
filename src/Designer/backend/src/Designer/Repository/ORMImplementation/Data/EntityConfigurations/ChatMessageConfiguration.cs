@@ -26,10 +26,12 @@ public class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMessageDbMo
 
         builder.Property(e => e.Content).HasColumnType("character varying").HasColumnName("content").IsRequired();
 
-        builder.Property(e => e.ActionMode).HasColumnType("integer").HasColumnName("action_mode");
+        builder.Property(e => e.AllowAppChanges).HasColumnType("boolean").HasColumnName("allow_app_changes");
 
         builder.Property(e => e.FilesChanged).HasColumnType("text[]").HasColumnName("files_changed");
 
         builder.Property(e => e.AttachmentFileNames).HasColumnType("text[]").HasColumnName("attachment_file_names");
+
+        builder.Property(e => e.Sources).HasColumnType("jsonb").HasColumnName("sources");
     }
 }

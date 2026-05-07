@@ -216,6 +216,12 @@ export const previewWebSocketHub = () => `/hubs/preview`;
 export const altinityWebSocketHub = () => '/hubs/altinity';
 export const altinityAttachmentsUploadPath = () => `/designer/api/altinity/attachments`;
 
+// Assistant Chat
+export const chatThreadsPath = (org, app) => `${apiBasePath}/${org}/${app}/chat/threads`; // Get, Post
+export const chatThreadPath = (org, app, threadId) => `${apiBasePath}/${org}/${app}/chat/threads/${threadId}`; // Put, Delete
+export const chatMessagesPath = (org, app, threadId) => `${apiBasePath}/${org}/${app}/chat/threads/${threadId}/messages`; // Get, Post
+export const chatMessagePath = (org, app, threadId, messageId) => `${apiBasePath}/${org}/${app}/chat/threads/${threadId}/messages/${messageId}`; // Delete
+
 // Contact
 export const belongsToOrg = () => `${apiBasePath}/contact/belongs-to-org`;
 

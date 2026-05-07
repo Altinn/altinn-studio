@@ -11,7 +11,7 @@ import { UpdateAttachmentsForCypress } from 'src/features/attachments/UpdateAtta
 import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
-import { ValidationStorePlugin } from 'src/features/validation/ValidationStorePlugin';
+import { pruneBoundaryMasks, ValidationStorePlugin } from 'src/features/validation/ValidationStorePlugin';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { TaskKeys } from 'src/routesBuilder';
 import { GeneratorGlobalProvider, GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
@@ -118,11 +118,9 @@ export function createNodesSlice(props: NodesSliceProps, set: FormStoreSet): For
       }),
     removeNodes: (requests) =>
       set((state) => {
-        const nodeData = { ...state.nodes.nodeData };
-
         let count = 0;
         for (const { nodeId, layouts } of requests) {
-          if (!nodeData[nodeId]) {
+          if (!state.nodes.nodeData[nodeId]) {
             continue;
           }
 
@@ -132,36 +130,35 @@ export function createNodesSlice(props: NodesSliceProps, set: FormStoreSet): For
             continue;
           }
 
-          delete nodeData[nodeId];
+          delete state.nodes.nodeData[nodeId];
           count += 1;
         }
 
-        if (count === 0) {
-          return {};
+        if (count > 0) {
+          pruneBoundaryMasks(state);
         }
-
-        return { nodes: { ...state.nodes, nodeData } };
       }),
     setNodeProps: (requests) =>
       set((state) => {
         let changes = false;
-        const nodeData = { ...state.nodes.nodeData };
         for (const { nodeId, prop, value } of requests) {
-          if (!nodeData[nodeId]) {
+          if (!state.nodes.nodeData[nodeId]) {
             continue;
           }
 
-          const thisNode = { ...nodeData[nodeId] };
+          const thisNode = { ...state.nodes.nodeData[nodeId] };
 
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           thisNode[prop as any] = value;
 
-          if (!deepEqual(nodeData[nodeId][prop], thisNode[prop])) {
+          if (!deepEqual(state.nodes.nodeData[nodeId][prop], thisNode[prop])) {
             changes = true;
-            nodeData[nodeId] = thisNode;
+            state.nodes.nodeData[nodeId] = thisNode;
           }
         }
-        return changes ? { nodes: { ...state.nodes, nodeData } } : {};
+        if (changes) {
+          pruneBoundaryMasks(state);
+        }
       }),
     addError: (error, id, type) =>
       set(

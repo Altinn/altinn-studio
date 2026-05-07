@@ -180,7 +180,9 @@ internal sealed class CSharpCodeGenerator
 
             if (rule.InputParams == null || rule.InputParams.Count == 0)
             {
-                Console.WriteLine($"[Warning] Rule '{ruleId}' has no input parameters - cannot generate invocation");
+                UpgradeConsole.WriteLine(
+                    $"[Warning] Rule '{ruleId}' has no input parameters - cannot generate invocation"
+                );
                 continue;
             }
 
@@ -909,7 +911,7 @@ internal sealed class CSharpCodeGenerator
         }
 
         // If type resolution fails, log a warning and return null
-        Console.WriteLine($"Warning: Could not resolve type for path '{jsonPath}'");
+        UpgradeConsole.WriteLine($"Warning: Could not resolve type for path '{jsonPath}'");
         return null;
     }
 }

@@ -13,6 +13,7 @@ import { getComponentDef, implementsAnyValidation } from 'src/layout';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import type { AttachmentValidation, NodeRefValidation, ValidationSeverity } from 'src/features/validation';
+import type { ValidationVisibilityBreakdown } from 'src/features/validation/ValidationStorePlugin';
 
 interface ValidationInspectorProps {
   baseComponentId: string;
@@ -30,7 +31,8 @@ const categories = [
 export const ValidationInspector = ({ baseComponentId }: ValidationInspectorProps) => {
   const indexedId = useIndexedId(baseComponentId);
   const validations = FormStore.nodes.useRawValidations(indexedId);
-  const nodeVisibility = FormStore.nodes.useRawValidationVisibility(indexedId);
+  const rawVisibility = FormStore.nodes.useValidationVisibilityBreakdown(indexedId);
+  const nodeVisibility = rawVisibility.effective;
   const dataModelBindings = useDataModelBindingsFor(baseComponentId);
   const type = useExternalItem(baseComponentId).type;
   const attachments = useAttachmentsFor(baseComponentId);
@@ -54,7 +56,7 @@ export const ValidationInspector = ({ baseComponentId }: ValidationInspectorProp
 
   // Validations for attachments
   const attachmentValidations: {
-    [key: string]: { attachmentVisibility: number; validations: NodeRefValidation<AttachmentValidation>[] };
+    [key: string]: NodeRefValidation<AttachmentValidation>[];
   } = componentValidations.reduce((obj, val) => {
     const attachmentValidation = 'attachmentId' in val ? val : undefined;
     if (attachmentValidation) {
@@ -62,10 +64,9 @@ export const ValidationInspector = ({ baseComponentId }: ValidationInspectorProp
       const attachment = attachments.find((a) => isAttachmentUploaded(a) && a.data.id === attachmentId);
       const key = `Vedlegg ${attachment?.data.filename ?? attachmentId}`;
       if (!obj[key]) {
-        const attachmentVisibility = nodeVisibility | (attachmentValidation.visibility ?? 0);
-        obj[key] = { attachmentVisibility, validations: [] };
+        obj[key] = [];
       }
-      obj[key].validations.push(val);
+      obj[key].push(val);
     }
     return obj;
   }, {});
@@ -85,7 +86,7 @@ export const ValidationInspector = ({ baseComponentId }: ValidationInspectorProp
 
   return (
     <div style={{ padding: 4 }}>
-      <CategoryVisibility mask={nodeVisibility} />
+      <CategoryVisibility visibility={rawVisibility} />
       <ValidationItems
         grouping='Komponent'
         validations={unboundComponentValidations}
@@ -99,30 +100,36 @@ export const ValidationInspector = ({ baseComponentId }: ValidationInspectorProp
           visibility={nodeVisibility}
         />
       ))}
-      {Object.entries(attachmentValidations).map(([attachment, { attachmentVisibility, validations }]) => (
+      {Object.entries(attachmentValidations).map(([attachment, validations]) => (
         <ValidationItems
           key={attachment}
           grouping={attachment}
           validations={validations}
-          visibility={attachmentVisibility}
+          visibility={nodeVisibility}
         />
       ))}
     </div>
   );
 };
 
-const CategoryVisibility = ({ mask }: { mask: number }) => (
+const CategoryVisibility = ({ visibility }: { visibility: ValidationVisibilityBreakdown }) => (
   <>
     <b>Synlige valideringstyper på noden:</b>
     <div className={classes.categoryList}>
       {categories.map(({ name, category }) => {
-        const isVisible = (mask & category) > 0;
+        const isVisible = (visibility.effective & category) > 0;
+        const visibleBy = [
+          visibility.initial & category ? 'konfigurasjon' : undefined,
+          visibility.form & category ? 'skjema' : undefined,
+          visibility.page & category ? 'side' : undefined,
+          visibility.row & category ? 'rad' : undefined,
+        ].filter(Boolean);
         return (
           <div
             key={name}
             className={classes.category}
             style={{ backgroundColor: isVisible ? 'lightgreen' : 'lightgray' }}
-            title={isVisible ? 'Valideringstypen er synlig' : 'Valideringstypen er skjult'}
+            title={isVisible ? `Synlig via: ${visibleBy.join(', ')}` : 'Valideringstypen er skjult'}
           >
             {name}
           </div>

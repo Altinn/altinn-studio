@@ -179,7 +179,6 @@ export class AppFrontend {
       tagsDropDown: 'input[id^="attachment-tag-dropdown"]',
       saveTag: '[id^="attachment-save-tag-button"]',
       uploaded: '#tagFile',
-      error: '[data-componentid="fileUploadWithTags-changename"] [data-validation]',
       unwantedChar: String.fromCharCode(31),
     },
     reasonRelationship: '#reasonRelationship',
