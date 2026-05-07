@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -524,8 +523,6 @@ public class OrgAccessHandlerTests
         var environmentsServiceMock = new Mock<IEnvironmentsService>();
         configureEnvironmentsService?.Invoke(environmentsServiceMock);
 
-        var loggerMock = new Mock<ILogger<OrgAccessHandler>>();
-
-        return new OrgAccessHandler(httpContextAccessorMock.Object, environmentsServiceMock.Object, loggerMock.Object);
+        return new OrgAccessHandler(httpContextAccessorMock.Object, environmentsServiceMock.Object);
     }
 }

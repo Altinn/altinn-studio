@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Studio.Designer.Infrastructure.Authorization;
@@ -26,17 +25,11 @@ public sealed class OrgAccessHandler : AuthorizationHandler<OrgAccessRequirement
     private const int PrefixLength = 5;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IEnvironmentsService _environmentsService;
-    private readonly ILogger<OrgAccessHandler> _logger;
 
-    public OrgAccessHandler(
-        IHttpContextAccessor httpContextAccessor,
-        IEnvironmentsService environmentsService,
-        ILogger<OrgAccessHandler> logger
-    )
+    public OrgAccessHandler(IHttpContextAccessor httpContextAccessor, IEnvironmentsService environmentsService)
     {
         _httpContextAccessor = httpContextAccessor;
         _environmentsService = environmentsService;
-        _logger = logger;
     }
 
     /// <inheritdoc/>
@@ -66,7 +59,6 @@ public sealed class OrgAccessHandler : AuthorizationHandler<OrgAccessRequirement
 
         if (string.IsNullOrWhiteSpace(accessToken))
         {
-            LogOrgAccessDecision(org, null, [], false, "MissingAccessToken", accessToken);
             context.Fail();
             return;
         }
@@ -74,7 +66,6 @@ public sealed class OrgAccessHandler : AuthorizationHandler<OrgAccessRequirement
         var authorizedPartyOrgNumbers = ExtractAuthorizedPartyOrgNumbers(accessToken);
         if (authorizedPartyOrgNumbers.Length == 0)
         {
-            LogOrgAccessDecision(org, null, authorizedPartyOrgNumbers, false, "MissingAuthorizedParties", accessToken);
             context.Fail();
             return;
         }
@@ -82,19 +73,16 @@ public sealed class OrgAccessHandler : AuthorizationHandler<OrgAccessRequirement
         var orgNr = await _environmentsService.GetAltinnOrgNumber(org);
         if (orgNr is null)
         {
-            LogOrgAccessDecision(org, orgNr, authorizedPartyOrgNumbers, false, "UnknownOrgNumber", accessToken);
             context.Fail();
             return;
         }
 
         if (!string.IsNullOrWhiteSpace(orgNr) && authorizedPartyOrgNumbers.Contains(orgNr))
         {
-            LogOrgAccessDecision(org, orgNr, authorizedPartyOrgNumbers, true, "Granted", accessToken);
             context.Succeed(requirement);
         }
         else
         {
-            LogOrgAccessDecision(org, orgNr, authorizedPartyOrgNumbers, false, "OrgNumberMismatch", accessToken);
             context.Fail();
         }
     }
@@ -180,43 +168,4 @@ public sealed class OrgAccessHandler : AuthorizationHandler<OrgAccessRequirement
 
         return [];
     }
-
-    private void LogOrgAccessDecision(
-        string org,
-        string? orgNumber,
-        string[] authorizedPartyOrgNumbers,
-        bool granted,
-        string reason,
-        string? accessToken
-    )
-    {
-        _logger.LogWarning(
-            "Org access decision. Granted={Granted}, Reason={Reason}, Org={Org}, OrgNumber={OrgNumber}, AuthorizedPartyOrgNumbers={AuthorizedPartyOrgNumbers}, JwtPayload={JwtPayload}",
-            granted,
-            reason,
-            org,
-            orgNumber,
-            FormatOrgNumbers(authorizedPartyOrgNumbers),
-            GetJwtPayloadForLogging(accessToken)
-        );
-    }
-
-    private static string GetJwtPayloadForLogging(string? accessToken)
-    {
-        if (string.IsNullOrWhiteSpace(accessToken))
-        {
-            return string.Empty;
-        }
-
-        try
-        {
-            return JsonSerializer.Serialize(new JwtSecurityTokenHandler().ReadJwtToken(accessToken).Payload);
-        }
-        catch
-        {
-            return "Unable to parse JWT payload";
-        }
-    }
-
-    private static string FormatOrgNumbers(string[] orgNumbers) => string.Join(",", orgNumbers);
 }
