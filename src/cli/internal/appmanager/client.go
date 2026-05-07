@@ -30,6 +30,7 @@ const (
 	healthPath   = "/api/v1/healthz"
 	statusPath   = "/api/v1/studioctl/status"
 	registerPath = "/api/v1/studioctl/apps"
+	upgradePath  = "/api/v1/studioctl/apps/upgrades"
 	shutdownPath = "/api/v1/studioctl/shutdown"
 
 	appManagerUnixSocketEnv   = "APP_MANAGER_UNIX_SOCKET_PATH"
@@ -37,8 +38,10 @@ const (
 	appManagerLocaltestURLEnv = "Localtest__Url"
 	appManagerStudioctlEnv    = "Studioctl__Path"
 
+	appManagerRequestTimeout        = 2 * time.Second
 	appManagerStartTimeout          = 10 * time.Second
 	appManagerRegisterTimeoutMargin = 2 * time.Second
+	appManagerUpgradeTimeout        = 30 * time.Second
 	appManagerShutdownWait          = 3 * time.Second
 	appManagerPollInterval          = 100 * time.Millisecond
 	appTunnelEndpointPath           = "/internal/tunnel/app"
@@ -111,6 +114,7 @@ var (
 	errUnexpectedRegisterStatus   = errors.New("unexpected app-manager register response")
 	errUnexpectedUnregisterStatus = errors.New("unexpected app-manager unregister response")
 	errUnexpectedStatusStatus     = errors.New("unexpected app-manager status response")
+	errUnexpectedUpgradeStatus    = errors.New("unexpected app-manager upgrade response")
 	errUnexpectedShutdownStatus   = errors.New("unexpected app-manager shutdown response")
 	errAppManagerStartTimedOut    = errors.New("app-manager start timed out")
 	errInvalidPIDFile             = errors.New("pid file does not contain a positive pid")
@@ -136,13 +140,28 @@ type AppRegistration struct {
 	TimeoutSeconds int    `json:"timeoutSeconds"`
 }
 
+// AppUpgrade describes an app upgrade request for app-manager.
+type AppUpgrade struct {
+	ProjectFolder            string `json:"projectFolder"`
+	StudioRoot               string `json:"studioRoot,omitempty"`
+	Kind                     string `json:"kind"`
+	ConvertPackageReferences bool   `json:"convertPackageReferences,omitempty"`
+}
+
+// AppUpgradeResult describes an app-manager upgrade result.
+type AppUpgradeResult struct {
+	Message  string `json:"message"`
+	Output   string `json:"output"`
+	Error    string `json:"error"`
+	ExitCode int    `json:"exitCode"`
+}
+
 // NewClient constructs an app-manager control-plane client.
 func NewClient(cfg *config.Config) *Client {
 	return &Client{
 		cfg: cfg,
 		http: &http.Client{
 			Transport: transportForConfig(cfg),
-			Timeout:   2 * time.Second,
 		},
 	}
 }
@@ -205,6 +224,9 @@ func shutdownError(err error, pid int) error {
 
 // Health checks whether app-manager is reachable.
 func (c *Client) Health(ctx context.Context) error {
+	ctx, cancel := context.WithTimeout(ctx, appManagerRequestTimeout)
+	defer cancel()
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, controlBaseURL+healthPath, nil)
 	if err != nil {
 		return fmt.Errorf("build health request: %w", err)
@@ -225,6 +247,9 @@ func (c *Client) Health(ctx context.Context) error {
 
 // Status returns the current app-manager status fields.
 func (c *Client) Status(ctx context.Context) (*Status, error) {
+	ctx, cancel := context.WithTimeout(ctx, appManagerRequestTimeout)
+	defer cancel()
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, controlBaseURL+statusPath, nil)
 	if err != nil {
 		return nil, fmt.Errorf("build status request: %w", err)
@@ -351,6 +376,9 @@ func (c *Client) RegisterApp(ctx context.Context, registration AppRegistration) 
 
 // UnregisterApp notifies app-manager that studioctl stopped an app.
 func (c *Client) UnregisterApp(ctx context.Context, appID string) error {
+	ctx, cancel := context.WithTimeout(ctx, appManagerRequestTimeout)
+	defer cancel()
+
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodDelete,
@@ -374,8 +402,54 @@ func (c *Client) UnregisterApp(ctx context.Context, appID string) error {
 	return nil
 }
 
+// UpgradeApp runs an app upgrade through app-manager.
+func (c *Client) UpgradeApp(ctx context.Context, upgrade AppUpgrade) (AppUpgradeResult, error) {
+	body, err := json.Marshal(upgrade)
+	if err != nil {
+		return AppUpgradeResult{}, fmt.Errorf("encode app upgrade: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, appManagerUpgradeTimeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		controlBaseURL+upgradePath,
+		bytes.NewReader(body),
+	)
+	if err != nil {
+		return AppUpgradeResult{}, fmt.Errorf("build app upgrade request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return AppUpgradeResult{}, classifyClientError(err)
+	}
+	defer closeResponseBody(resp)
+
+	if resp.StatusCode != http.StatusOK {
+		var result AppUpgradeResult
+		if err := json.NewDecoder(resp.Body).Decode(&result); err == nil && result.Message != "" {
+			return AppUpgradeResult{}, fmt.Errorf("%w: %s: %s", errUnexpectedUpgradeStatus, resp.Status, result.Message)
+		}
+		return AppUpgradeResult{}, fmt.Errorf("%w: %s", errUnexpectedUpgradeStatus, resp.Status)
+	}
+
+	var result AppUpgradeResult
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return AppUpgradeResult{}, fmt.Errorf("decode app upgrade response: %w", err)
+	}
+
+	return result, nil
+}
+
 // shutdown asks app-manager to stop itself.
 func (c *Client) shutdown(ctx context.Context) error {
+	ctx, cancel := context.WithTimeout(ctx, appManagerRequestTimeout)
+	defer cancel()
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, controlBaseURL+shutdownPath, nil)
 	if err != nil {
 		return fmt.Errorf("build shutdown request: %w", err)
