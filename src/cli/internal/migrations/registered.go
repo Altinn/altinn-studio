@@ -10,5 +10,9 @@ func registeredMigrations() []Migration {
 			ID: "002-remove-legacy-topology-files",
 			Up: legacyTopologyFiles,
 		},
+		{
+			ID: "003-reset-localtest-data",
+			Up: resetLocaltestData,
+		},
 	}
 }
