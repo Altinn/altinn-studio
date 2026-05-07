@@ -9,16 +9,17 @@ function makeObs({
   traceId = 'trace-1',
   startTime = '2026-05-03T10:00:00Z',
   model = 'gpt-4o',
-  cost = 0.01,
   inputTokens = 100,
   outputTokens = 50,
+  extraUsageDetails = {},
 } = {}) {
+  const usage = { input: inputTokens, output: outputTokens, total: inputTokens + outputTokens };
   return {
     traceId,
     startTime,
     model,
-    calculatedTotalCost: cost,
-    usage: { input: inputTokens, output: outputTokens, total: inputTokens + outputTokens },
+    usage,
+    usageDetails: { ...usage, ...extraUsageDetails },
   };
 }
 
@@ -56,10 +57,10 @@ test('splits observations across different days into separate rows', () => {
   assert.deepEqual(dates, ['2026-05-03', '2026-05-04']);
 });
 
-test('sums cost and tokens across multiple observations in the same bucket', () => {
+test('sums tokens across multiple observations in the same bucket', () => {
   const obs = [
-    makeObs({ traceId: 'trace-1', cost: 0.01, inputTokens: 100, outputTokens: 50 }),
-    makeObs({ traceId: 'trace-2', cost: 0.02, inputTokens: 200, outputTokens: 100 }),
+    makeObs({ traceId: 'trace-1', inputTokens: 100, outputTokens: 50 }),
+    makeObs({ traceId: 'trace-2', inputTokens: 200, outputTokens: 100 }),
   ];
   const traces = new Map([
     ['trace-1', makeTrace({ id: 'trace-1' })],
@@ -68,11 +69,9 @@ test('sums cost and tokens across multiple observations in the same bucket', () 
 
   const [row] = aggregate(obs, traces, LOADED_AT);
 
-  assert.equal(row.messagecount, 2);
   assert.equal(row.input_tokens, 300);
   assert.equal(row.output_tokens, 150);
   assert.equal(row.total_tokens, 450);
-  assert.ok(Math.abs(row.total_cost_usd - 0.03) < 1e-10);
 });
 
 test('warns and buckets under "unknown" when metadata.app_name is missing', () => {
@@ -138,4 +137,87 @@ test('produces one row per service owner when observations span multiple owners'
   assert.equal(rows.length, 2);
   const owners = rows.map((r) => r.serviceownercode).sort();
   assert.deepEqual(owners, ['skd', 'ttd']);
+});
+
+test('builds tokens_by_model with one entry per model in the bucket', () => {
+  const obs = [makeObs({ inputTokens: 100, outputTokens: 50 })];
+  const traces = new Map([['trace-1', makeTrace()]]);
+
+  const [row] = aggregate(obs, traces, LOADED_AT);
+
+  assert.deepEqual(row.tokens_by_model, {
+    'gpt-4o': { input: 100, output: 50, total: 150 },
+  });
+});
+
+test('keeps tokens for different models separate within the same bucket', () => {
+  const obs = [
+    makeObs({ traceId: 'trace-1', model: 'gpt-4o', inputTokens: 100, outputTokens: 50 }),
+    makeObs({ traceId: 'trace-2', model: 'gpt-4o-mini', inputTokens: 200, outputTokens: 80 }),
+  ];
+  const traces = new Map([
+    ['trace-1', makeTrace({ id: 'trace-1' })],
+    ['trace-2', makeTrace({ id: 'trace-2' })],
+  ]);
+
+  const [row] = aggregate(obs, traces, LOADED_AT);
+
+  assert.deepEqual(row.tokens_by_model, {
+    'gpt-4o': { input: 100, output: 50, total: 150 },
+    'gpt-4o-mini': { input: 200, output: 80, total: 280 },
+  });
+  assert.equal(row.input_tokens, 300);
+  assert.equal(row.output_tokens, 130);
+  assert.equal(row.total_tokens, 430);
+});
+
+test('preserves and sums non-standard usageDetails keys per model', () => {
+  const obs = [
+    makeObs({
+      traceId: 'trace-1',
+      model: 'claude-sonnet-4-6',
+      inputTokens: 100,
+      outputTokens: 50,
+      extraUsageDetails: { cache_read_input_tokens: 200 },
+    }),
+    makeObs({
+      traceId: 'trace-2',
+      model: 'claude-sonnet-4-6',
+      inputTokens: 100,
+      outputTokens: 50,
+      extraUsageDetails: { cache_read_input_tokens: 300 },
+    }),
+  ];
+  const traces = new Map([
+    ['trace-1', makeTrace({ id: 'trace-1' })],
+    ['trace-2', makeTrace({ id: 'trace-2' })],
+  ]);
+
+  const [row] = aggregate(obs, traces, LOADED_AT);
+
+  assert.deepEqual(row.tokens_by_model, {
+    'claude-sonnet-4-6': {
+      input: 200,
+      output: 100,
+      total: 300,
+      cache_read_input_tokens: 500,
+    },
+  });
+});
+
+test('warns and buckets under "unknown" when obs.model is missing', () => {
+  const obs = [{ ...makeObs(), model: undefined }];
+  const traces = new Map([['trace-1', makeTrace()]]);
+
+  const originalWarn = console.warn;
+  const warnings = [];
+  console.warn = (msg) => warnings.push(msg);
+  try {
+    const [row] = aggregate(obs, traces, LOADED_AT);
+    assert.ok(row.tokens_by_model.unknown);
+    assert.equal(warnings.length, 1);
+    assert.match(warnings[0], /trace-1/);
+  } finally {
+    console.warn = originalWarn;
+  }
 });

@@ -57,27 +57,27 @@ Options:
 All rows include the full schema. Columns not derivable from LLM traces are
 emitted as `null`.
 
-| Column                   | Value                                         |
-| ------------------------ | --------------------------------------------- |
-| `date`                   | YYYY-MM-DD of observation                     |
-| `year` / `month` / `day` | Parts of `date`                               |
-| `serviceownerorgnr`      | _(empty)_                                     |
-| `serviceownercode`       | `--serviceOwner` argument                     |
-| `messagesender`          | Same as `serviceownercode`                    |
-| `serviceresourceid`      | App name from trace `repo_path` (best effort) |
-| `serviceresourcetitle`   | _(empty)_                                     |
-| `recipienttype`          | _(empty)_                                     |
-| `costcenter`             | _(empty)_                                     |
-| `messagecount`           | Distinct trace count in bucket                |
-| `instancecount`          | Same as `messagecount`                        |
-| `databasestoragebytes`   | _(empty)_                                     |
-| `attachmentstoragebytes` | _(empty)_                                     |
-| `loaded_at`              | Script run timestamp (ISO 8601 UTC)           |
-| `source_file`            | `langfuse:<host>`                             |
-| `total_cost_usd`         | Summed `calculatedTotalCost`                  |
-| `input_tokens`           | Summed input tokens                           |
-| `output_tokens`          | Summed output tokens                          |
-| `total_tokens`           | Summed total tokens                           |
+| Column                   | Value                                                                                                                                                                                                     |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `date`                   | YYYY-MM-DD of observation                                                                                                                                                                                 |
+| `year` / `month` / `day` | Parts of `date`                                                                                                                                                                                           |
+| `serviceownerorgnr`      | _(empty)_                                                                                                                                                                                                 |
+| `serviceownercode`       | `--serviceOwner` argument                                                                                                                                                                                 |
+| `messagesender`          | Same as `serviceownercode`                                                                                                                                                                                |
+| `serviceresourceid`      | App name from trace `repo_path` (best effort)                                                                                                                                                             |
+| `serviceresourcetitle`   | _(empty)_                                                                                                                                                                                                 |
+| `recipienttype`          | _(empty)_                                                                                                                                                                                                 |
+| `costcenter`             | _(empty)_                                                                                                                                                                                                 |
+| `messagecount`           | Distinct trace count in bucket                                                                                                                                                                            |
+| `instancecount`          | Same as `messagecount`                                                                                                                                                                                    |
+| `databasestoragebytes`   | _(empty)_                                                                                                                                                                                                 |
+| `attachmentstoragebytes` | _(empty)_                                                                                                                                                                                                 |
+| `loaded_at`              | Script run timestamp (ISO 8601 UTC)                                                                                                                                                                       |
+| `source_file`            | `langfuse:<host>`                                                                                                                                                                                         |
+| `input_tokens`           | Summed input tokens                                                                                                                                                                                       |
+| `output_tokens`          | Summed output tokens                                                                                                                                                                                      |
+| `total_tokens`           | Summed total tokens                                                                                                                                                                                       |
+| `tokens_by_model`        | `{ <model>: { ...usageDetails } }` — per-model breakdown summed from each observation's `usageDetails` (input/output/total plus any provider-specific keys like `cache_read_input_tokens`, `image`, etc.) |
 
 ## Running tests
 

@@ -35,19 +35,31 @@ export function aggregate(observations, tracesByTraceId, loadedAt) {
         serviceOwnerCode,
         appName,
         traceIds: new Set(),
-        totalCostUsd: 0,
         inputTokens: 0,
         outputTokens: 0,
         totalTokens: 0,
+        tokensByModel: new Map(),
       });
     }
 
     const bucket = buckets.get(key);
     if (obs.traceId) bucket.traceIds.add(obs.traceId);
-    bucket.totalCostUsd += obs.calculatedTotalCost ?? 0;
     bucket.inputTokens += obs.usage?.input ?? 0;
     bucket.outputTokens += obs.usage?.output ?? 0;
     bucket.totalTokens += obs.usage?.total ?? 0;
+
+    let model = obs.model;
+    if (!model) {
+      console.warn(
+        `Missing model for observation on trace ${obs.traceId} — bucketing under 'unknown'`,
+      );
+      model = 'unknown';
+    }
+    if (!bucket.tokensByModel.has(model)) bucket.tokensByModel.set(model, {});
+    const modelTokens = bucket.tokensByModel.get(model);
+    for (const [usageKey, usageValue] of Object.entries(obs.usageDetails ?? {})) {
+      modelTokens[usageKey] = (modelTokens[usageKey] ?? 0) + usageValue;
+    }
   }
 
   return Array.from(buckets.values()).map((bucket) => {
@@ -70,10 +82,10 @@ export function aggregate(observations, tracesByTraceId, loadedAt) {
       attachmentstoragebytes: null,
       loaded_at: loadedAt,
       source_file: `${LANGFUSE_HOST}`,
-      total_cost_usd: bucket.totalCostUsd,
       input_tokens: bucket.inputTokens,
       output_tokens: bucket.outputTokens,
       total_tokens: bucket.totalTokens,
+      tokens_by_model: Object.fromEntries(bucket.tokensByModel),
     };
   });
 }
