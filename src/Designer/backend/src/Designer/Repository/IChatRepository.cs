@@ -57,8 +57,7 @@ public interface IChatRepository
     Task DeleteThreadAsync(Guid id, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Deletes all chat threads with no activity since <paramref name="cutoff"/>,
-    /// along with their messages.
+    /// Deletes all chat threads with no activity since <paramref name="cutoff"/>, along with their messages.
     /// </summary>
     /// <param name="cutoff">Threads with last activity strictly before this timestamp are deleted.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>

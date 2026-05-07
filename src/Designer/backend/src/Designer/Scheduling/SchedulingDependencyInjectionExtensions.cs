@@ -78,7 +78,8 @@ public static class SchedulingDependencyInjectionExtensions
 
     private static void ValidateInactivityUndeployJobTimeouts(InactivityUndeployJobTimeoutSettings settings)
     {
-        const string SectionPath = $"{nameof(SchedulingSettings)}:{nameof(SchedulingSettings.InactivityUndeployJobTimeouts)}";
+        const string SectionPath =
+            $"{nameof(SchedulingSettings)}:{nameof(SchedulingSettings.InactivityUndeployJobTimeouts)}";
         ValidatePositive(settings.RootJobMinutes, $"{SectionPath}:{nameof(settings.RootJobMinutes)}");
         ValidatePositive(settings.PerOrgJobMinutes, $"{SectionPath}:{nameof(settings.PerOrgJobMinutes)}");
         ValidatePositive(settings.PerAppJobMinutes, $"{SectionPath}:{nameof(settings.PerAppJobMinutes)}");

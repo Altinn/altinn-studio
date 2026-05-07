@@ -10,11 +10,6 @@ public class SchedulingSettings
     public ChatInactivityCleanupSettings ChatInactivityCleanup { get; set; } = new();
 }
 
-public class ChatInactivityCleanupSettings
-{
-    public int RetentionDays { get; set; } = 30;
-}
-
 public class InactivityUndeployJobTimeoutSettings
 {
     public int RootJobMinutes { get; set; } = 2;
@@ -24,4 +19,9 @@ public class InactivityUndeployJobTimeoutSettings
     public TimeSpan RootJobTimeout => TimeSpan.FromMinutes(RootJobMinutes);
     public TimeSpan PerOrgJobTimeout => TimeSpan.FromMinutes(PerOrgJobMinutes);
     public TimeSpan PerAppJobTimeout => TimeSpan.FromMinutes(PerAppJobMinutes);
+}
+
+public class ChatInactivityCleanupSettings
+{
+    public int RetentionDays { get; set; } = 30;
 }
