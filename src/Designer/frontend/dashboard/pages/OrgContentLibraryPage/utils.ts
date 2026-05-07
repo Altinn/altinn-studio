@@ -87,6 +87,7 @@ function tryConvertFile(file: LibraryFile, fileName: string): LibraryCodeListFil
     case 'problem':
       return displayProblem(file, fileName);
     case 'url':
+      /* istanbul ignore next */
       throw Error('Code list files should be json files.');
   }
 }

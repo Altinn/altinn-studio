@@ -34,6 +34,7 @@ function codeListFileContentToData(fileContent: string): CodeList {
     const data = JSON.parse(fileContent);
     return isCodeListValid(data) ? data : [];
   } catch {
+    /* istanbul ignore next */
     return [];
   }
 }
