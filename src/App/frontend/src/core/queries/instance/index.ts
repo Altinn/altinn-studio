@@ -52,16 +52,49 @@ function prefetchInstanceData(
   return queryClient.prefetchQuery(instanceDataQuery(params));
 }
 
+function ensureInstanceData(
+  queryClient: QueryClient,
+  params: { instanceOwnerPartyId: string; instanceGuid: string; instanceApi: InstanceApi },
+) {
+  return queryClient.ensureQueryData(instanceDataQuery(params));
+}
+
+function fetchFreshInstanceData(
+  queryClient: QueryClient,
+  params: { instanceOwnerPartyId: string; instanceGuid: string; instanceApi: InstanceApi },
+) {
+  return queryClient.fetchQuery({ ...instanceDataQuery(params), staleTime: 0 });
+}
+
 function invalidateInstanceData(queryClient: QueryClient) {
   return queryClient.invalidateQueries({ queryKey: instanceQueryKeys.all() });
+}
+
+function useOptimisticallyUpdateInstance() {
+  const queryClient = useQueryClient();
+
+  return (updater: (oldData: IInstance) => IInstance) => {
+    const cached = queryClient.getQueriesData<IInstance>({ queryKey: instanceQueryKeys.all() });
+    const entry = cached.find(([key, data]) => data && key.length === 2 && typeof key[1] === 'object');
+    if (entry) {
+      const [queryKey, oldData] = entry;
+      if (oldData) {
+        queryClient.setQueryData(queryKey, updater(oldData));
+      }
+    }
+  };
 }
 
 export {
   parseInstanceId,
   invalidateInstanceData,
   prefetchActiveInstances,
+  fetchFreshInstanceData,
   prefetchInstanceData,
+  ensureInstanceData,
+  instanceQueryKeys,
   useActiveInstances,
   useCreateInstance,
   useCurrentInstance,
+  useOptimisticallyUpdateInstance,
 };

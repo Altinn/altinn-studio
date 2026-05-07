@@ -32,7 +32,7 @@ internal sealed class ProgramCsUpdater
 
         if (!File.Exists(programCsPath))
         {
-            Console.WriteLine($"Warning: Program.cs not found at {programCsPath}");
+            UpgradeConsole.WriteLine($"Warning: Program.cs not found at {programCsPath}");
             return false;
         }
 
@@ -48,8 +48,10 @@ internal sealed class ProgramCsUpdater
 
         if (!rewriter.RegistrationAdded)
         {
-            Console.WriteLine($"Warning: Could not find RegisterCustomAppServices method in {programCsPath}");
-            Console.WriteLine($"Please manually add: services.AddTransient<IDataWriteProcessor, {className}>();");
+            UpgradeConsole.WriteLine($"Warning: Could not find RegisterCustomAppServices method in {programCsPath}");
+            UpgradeConsole.WriteLine(
+                $"Please manually add: services.AddTransient<IDataWriteProcessor, {className}>();"
+            );
             return false;
         }
 
@@ -91,7 +93,7 @@ internal sealed class ProgramCsUpdater
         // Write back the updated content
         // Use ToFullString() to preserve original formatting as much as possible
         File.WriteAllText(programCsPath, newRoot.ToFullString());
-        Console.WriteLine($"  Registered {className} in Program.cs");
+        UpgradeConsole.WriteLine($"  Registered {className} in Program.cs");
 
         return true;
     }

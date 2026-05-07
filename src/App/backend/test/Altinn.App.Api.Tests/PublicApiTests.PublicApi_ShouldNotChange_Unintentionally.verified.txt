@@ -346,6 +346,12 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.Produces("application/json", new string[0])]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<System.Collections.Generic.List<Altinn.App.Api.Models.SimpleInstance>>> GetActiveInstances([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, int instanceOwnerPartyId) { }
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [Microsoft.AspNetCore.Mvc.HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}/enriched")]
+        [Microsoft.AspNetCore.Mvc.Produces("application/json", new string[0])]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(400)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.EnrichedInstanceResponse), 200)]
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetEnriched([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, System.Threading.CancellationToken cancellationToken) { }
         [Altinn.App.Api.Controllers.DisableFormValueModelBinding]
         [Microsoft.AspNetCore.Mvc.HttpPost]
         [Microsoft.AspNetCore.Mvc.Produces("application/json", new string[0])]
@@ -499,7 +505,7 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process")]
     public class ProcessController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        public ProcessController(Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.ProcessController> logger, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Process.IProcessClient processClient, Altinn.App.Core.Internal.Validation.IValidationService validationService, Altinn.App.Core.Internal.Auth.IAuthorizationService authorization, Altinn.App.Core.Internal.Process.IProcessReader processReader, Altinn.App.Core.Internal.Process.IProcessEngine processEngine, System.IServiceProvider serviceProvider, Altinn.App.Core.Internal.Process.IProcessEngineAuthorizer processEngineAuthorizer) { }
+        public ProcessController(Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.ProcessController> logger, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Process.IProcessClient processClient, Altinn.App.Core.Internal.Validation.IValidationService validationService, Altinn.App.Core.Internal.Process.IProcessReader processReader, Altinn.App.Core.Internal.Process.IProcessEngine processEngine, System.IServiceProvider serviceProvider, Altinn.App.Core.Internal.Process.IProcessEngineAuthorizer processEngineAuthorizer, Altinn.App.Core.Internal.Process.ProcessStateEnricher processStateEnricher) { }
         [Microsoft.AspNetCore.Mvc.HttpPut("completeProcess")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
@@ -522,10 +528,11 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Core.Internal.Process.Elements.AppProcessState>> GetProcessState([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid) { }
         [Microsoft.AspNetCore.Mvc.HttpPut("next")]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(409)]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Core.Internal.Process.Elements.AppProcessState>> NextElement([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, System.Threading.CancellationToken ct, [Microsoft.AspNetCore.Mvc.FromQuery] string? elementId = null, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null, [Microsoft.AspNetCore.Mvc.FromBody] Altinn.App.Api.Models.ProcessNext? processNext = null) { }
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.EnrichedInstanceResponse), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Core.Internal.Process.Elements.AppProcessState), 200)]
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> NextElement([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, System.Threading.CancellationToken ct, [Microsoft.AspNetCore.Mvc.FromQuery] string? elementId = null, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null, [Microsoft.AspNetCore.Mvc.FromQuery] bool returnInstance = false, [Microsoft.AspNetCore.Mvc.FromBody] Altinn.App.Api.Models.ProcessNext? processNext = null) { }
         [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceInstantiate")]
         [Microsoft.AspNetCore.Mvc.HttpPost("start")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
@@ -1004,6 +1011,28 @@ namespace Altinn.App.Api.Models
         [System.ComponentModel.DataAnnotations.Required]
         [System.Text.Json.Serialization.JsonPropertyName("validationIssues")]
         public required System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationSourcePair> ValidationIssues { get; init; }
+    }
+    public sealed class EnrichedInstanceResponse
+    {
+        public EnrichedInstanceResponse() { }
+        public required string AppId { get; init; }
+        public required System.Collections.Generic.IReadOnlyList<Altinn.Platform.Storage.Interface.Models.CompleteConfirmation> CompleteConfirmations { get; init; }
+        public required System.DateTime? Created { get; init; }
+        public required string CreatedBy { get; init; }
+        public required System.Collections.Generic.IReadOnlyList<Altinn.Platform.Storage.Interface.Models.DataElement> Data { get; init; }
+        public required System.Collections.Generic.IReadOnlyDictionary<string, string> DataValues { get; init; }
+        public required System.DateTime? DueBefore { get; init; }
+        public required string Id { get; init; }
+        public required Altinn.App.Api.Models.InstanceOwnerResponse InstanceOwner { get; init; }
+        public required System.DateTime? LastChanged { get; init; }
+        public required string LastChangedBy { get; init; }
+        public required string Org { get; init; }
+        public required System.Collections.Generic.IReadOnlyDictionary<string, string> PresentationTexts { get; init; }
+        public required Altinn.App.Core.Internal.Process.Elements.AppProcessState Process { get; init; }
+        public required Altinn.Platform.Storage.Interface.Models.ResourceLinks SelfLinks { get; init; }
+        public required Altinn.Platform.Storage.Interface.Models.InstanceStatus Status { get; init; }
+        public required System.DateTime? VisibleAfter { get; init; }
+        public override string ToString() { }
     }
     public class InstanceFileScanResult
     {

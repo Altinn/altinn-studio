@@ -17,16 +17,16 @@ describe('useAltinityAssistant', () => {
     jest.clearAllMocks();
   });
 
-  it('exposes thread data and resets workflow on new thread', () => {
+  it('exposes thread data and delegates new thread to workflow', () => {
     const threads = createThreadState();
-    const resetWorkflowStatus = jest.fn();
+    const clearCurrentSession = jest.fn();
 
     mockUseAltinityThreads.mockReturnValue(threads);
     mockUseAltinityWorkflow.mockReturnValue({
       connectionStatus: 'connected',
       workflowStatus: { isActive: false },
       onSubmitMessage: jest.fn(),
-      resetWorkflowStatus,
+      clearCurrentSession,
       cancelCurrentWorkflow: jest.fn(),
       cancelledMessageContent: null,
       clearCancelledMessageContent: jest.fn(),
@@ -35,13 +35,12 @@ describe('useAltinityAssistant', () => {
     const { result } = renderUseAltinityAssistant();
 
     act(() => {
-      result.current.createNewThread();
+      result.current.clearCurrentSession();
     });
 
     expect(result.current.chatThreads).toBe(threads.chatThreads);
     expect(result.current.currentSessionId).toBe(threads.currentSessionId);
-    expect(threads.createNewThread).toHaveBeenCalledTimes(1);
-    expect(resetWorkflowStatus).toHaveBeenCalledTimes(1);
+    expect(clearCurrentSession).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -49,12 +48,13 @@ const createThreadState = (): AltinityThreadState => ({
   chatThreads: [],
   currentSessionId: null,
   currentSessionIdRef: { current: null },
+  chatMessages: [],
   setCurrentSession: jest.fn(),
   selectThread: jest.fn(),
-  createNewThread: jest.fn(),
+  createThread: jest.fn().mockResolvedValue('new-thread-id'),
   deleteThread: jest.fn(),
-  removeLastUserMessage: jest.fn(),
-  persistMessage: jest.fn(),
+  deleteMessage: jest.fn(),
+  createMessage: jest.fn(),
 });
 
 const renderUseAltinityAssistant = () => renderHook(() => useAltinityAssistant());

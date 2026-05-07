@@ -8,7 +8,7 @@ import type { ComponentValidation, NodeRefValidation } from 'src/features/valida
  * Get only the component validations which are not bound to any data model fields.
  */
 export function useComponentValidationsFor(baseComponentId: string): NodeRefValidation<ComponentValidation>[] {
-  const showAll = FormStore.validation.useShowAllBackendErrors();
+  const showAll = FormStore.validation.useShowAllUnboundValidations();
   const indexedId = useIndexedId(baseComponentId);
   const component = FormStore.nodes.useVisibleValidations(indexedId, showAll);
 

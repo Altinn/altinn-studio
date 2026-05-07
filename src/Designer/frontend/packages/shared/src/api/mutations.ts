@@ -79,9 +79,13 @@ import {
   botAccountDeactivatePath,
   botAccountApiKeysPath,
   botAccountApiKeyPath,
+  chatThreadsPath,
+  chatThreadPath,
+  chatMessagesPath,
+  chatMessagePath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
-import type { AddRepoParams } from 'app-shared/types/api';
+import type { AddRepoParams, ChatThread, CreateChatMessagePayload, CreateChatThreadPayload } from 'app-shared/types/api';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
 import type { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploymentPayload';
 import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
@@ -263,3 +267,10 @@ export const deactivateBotAccount = (org: string, id: string): Promise<void> => 
 export const createBotAccountApiKey = (org: string, botAccountId: string, payload: CreateBotAccountApiKeyRequest): Promise<CreateBotAccountApiKeyResponse> => post(botAccountApiKeysPath(org, botAccountId), payload);
 export const revokeBotAccountApiKey = (org: string, botAccountId: string, keyId: number): Promise<void> => del(botAccountApiKeyPath(org, botAccountId, keyId));
 export const updateBotAccount = (org: string, botAccountId: string, deployEnvironments: string[]): Promise<void> => put(botAccountPath(org, botAccountId), { deployEnvironments });
+
+// Assistant Chat
+export const createChatThread = (org: string, app: string, payload: CreateChatThreadPayload) => post<ChatThread>(chatThreadsPath(org, app), payload);
+export const updateChatThread = (org: string, app: string, threadId: string, payload: { title: string }) => put(chatThreadPath(org, app, threadId), payload);
+export const deleteChatThread = (org: string, app: string, threadId: string) => del(chatThreadPath(org, app, threadId));
+export const createChatMessage = (org: string, app: string, threadId: string, payload: CreateChatMessagePayload) => post(chatMessagesPath(org, app, threadId), payload);
+export const deleteChatMessage = (org: string, app: string, threadId: string, messageId: string) => del(chatMessagePath(org, app, threadId, messageId));

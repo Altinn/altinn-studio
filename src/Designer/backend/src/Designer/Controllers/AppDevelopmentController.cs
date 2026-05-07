@@ -1172,7 +1172,17 @@ public class AppDevelopmentController : Controller
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
         var backendVersion = _appDevelopmentService.GetAppLibVersion(editingContext);
-        _appDevelopmentService.TryGetFrontendVersion(editingContext, out string frontendVersion);
+        string frontendVersion;
+
+        // For v9 apps and onwards, Index.cshtml no longer exists and frontend major version aligns with backend major version.
+        if (backendVersion?.Major >= 9)
+        {
+            frontendVersion = backendVersion.Major.ToString();
+        }
+        else
+        {
+            _appDevelopmentService.TryGetFrontendVersion(editingContext, out frontendVersion);
+        }
 
         return new VersionResponse { BackendVersion = backendVersion, FrontendVersion = frontendVersion };
     }

@@ -13,7 +13,7 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 const emptyArray = [];
 export function useUnifiedValidationsForNode(baseComponentId: string): NodeRefValidation[] {
   const nodeId = useIndexedId(baseComponentId);
-  const showAll = FormStore.validation.useShowAllBackendErrors();
+  const showAll = FormStore.validation.useShowAllUnboundValidations();
   const validations = FormStore.nodes.useVisibleValidations(nodeId, showAll);
 
   return useMemo(() => {

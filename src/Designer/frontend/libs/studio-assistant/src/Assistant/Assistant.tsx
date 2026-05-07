@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ReactElement } from 'react';
-import type { ChatThread, UserMessage } from '../types/ChatThread';
+import type { ChatThread, UserMessage, Message } from '../types/ChatThread';
 import { CompactInterface } from '../components/CompactInterface/CompactInterface';
 import { CompleteInterface } from '../components/CompleteInterface/CompleteInterface';
 import type { AssistantTexts } from '../types/AssistantTexts';
@@ -11,6 +11,7 @@ import type { User } from '../types/User';
 export type AssistantProps = {
   texts: AssistantTexts;
   chatThreads?: ChatThread[];
+  messages?: Message[];
   enableCompactInterface?: boolean;
   activeThreadId: string;
   connectionStatus: ConnectionStatus;
@@ -30,6 +31,7 @@ export type AssistantProps = {
 export function Assistant({
   texts,
   chatThreads,
+  messages,
   enableCompactInterface = false,
   activeThreadId,
   connectionStatus,
@@ -51,6 +53,7 @@ export function Assistant({
     <CompleteInterface
       texts={texts}
       chatThreads={chatThreads}
+      messages={messages}
       activeThreadId={activeThreadId}
       connectionStatus={connectionStatus}
       workflowStatus={workflowStatus}

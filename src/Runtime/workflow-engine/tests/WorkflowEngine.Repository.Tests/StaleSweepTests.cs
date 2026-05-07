@@ -28,9 +28,9 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
         var staleHeartbeat = DateTimeOffset.UtcNow.AddSeconds(-30);
         await context.Database.ExecuteSqlAsync(
             $"""
-            UPDATE "engine"."Workflows"
-            SET "HeartbeatAt" = {staleHeartbeat}, "ReclaimCount" = 0
-            WHERE "Id" = {wf.DatabaseId}
+            UPDATE engine.workflows
+            SET heartbeat_at = {staleHeartbeat}, reclaim_count = 0
+            WHERE id = {wf.DatabaseId}
             """,
             TestContext.Current.CancellationToken
         );
@@ -61,9 +61,9 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
         var freshHeartbeat = DateTimeOffset.UtcNow;
         await context.Database.ExecuteSqlAsync(
             $"""
-            UPDATE "engine"."Workflows"
-            SET "HeartbeatAt" = {freshHeartbeat}
-            WHERE "Id" = {wf.DatabaseId}
+            UPDATE engine.workflows
+            SET heartbeat_at = {freshHeartbeat}
+            WHERE id = {wf.DatabaseId}
             """,
             TestContext.Current.CancellationToken
         );
@@ -113,9 +113,9 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
         var staleHeartbeat = DateTimeOffset.UtcNow.AddSeconds(-30);
         await context.Database.ExecuteSqlAsync(
             $"""
-            UPDATE "engine"."Workflows"
-            SET "HeartbeatAt" = {staleHeartbeat}, "ReclaimCount" = {fixture.Settings.MaxReclaimCount}
-            WHERE "Id" = {wf.DatabaseId}
+            UPDATE engine.workflows
+            SET heartbeat_at = {staleHeartbeat}, reclaim_count = {fixture.Settings.MaxReclaimCount}
+            WHERE id = {wf.DatabaseId}
             """,
             TestContext.Current.CancellationToken
         );
@@ -144,9 +144,9 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
         var staleHeartbeat = DateTimeOffset.UtcNow.AddSeconds(-30);
         await context.Database.ExecuteSqlAsync(
             $"""
-            UPDATE "engine"."Workflows"
-            SET "HeartbeatAt" = {staleHeartbeat}, "ReclaimCount" = {fixture.Settings.MaxReclaimCount}
-            WHERE "Id" = {wf.DatabaseId}
+            UPDATE engine.workflows
+            SET heartbeat_at = {staleHeartbeat}, reclaim_count = {fixture.Settings.MaxReclaimCount}
+            WHERE id = {wf.DatabaseId}
             """,
             TestContext.Current.CancellationToken
         );
@@ -176,9 +176,9 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
         var staleHeartbeat = DateTimeOffset.UtcNow.AddSeconds(-30);
         await context.Database.ExecuteSqlAsync(
             $"""
-            UPDATE "engine"."Workflows"
-            SET "HeartbeatAt" = {staleHeartbeat}, "ReclaimCount" = 0
-            WHERE "Id" = {wf.DatabaseId}
+            UPDATE engine.workflows
+            SET heartbeat_at = {staleHeartbeat}, reclaim_count = 0
+            WHERE id = {wf.DatabaseId}
             """,
             TestContext.Current.CancellationToken
         );
@@ -206,9 +206,9 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
         var staleHeartbeat = DateTimeOffset.UtcNow.AddSeconds(-30);
         await context.Database.ExecuteSqlAsync(
             $"""
-            UPDATE "engine"."Workflows"
-            SET "HeartbeatAt" = {staleHeartbeat}, "ReclaimCount" = 0
-            WHERE "Id" = {wf.DatabaseId}
+            UPDATE engine.workflows
+            SET heartbeat_at = {staleHeartbeat}, reclaim_count = 0
+            WHERE id = {wf.DatabaseId}
             """,
             TestContext.Current.CancellationToken
         );
@@ -243,9 +243,9 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
         var staleHeartbeat = DateTimeOffset.UtcNow.AddSeconds(-30);
         await context.Database.ExecuteSqlAsync(
             $"""
-            UPDATE "engine"."Workflows"
-            SET "HeartbeatAt" = {staleHeartbeat}, "ReclaimCount" = 1
-            WHERE "Id" = {wf.DatabaseId}
+            UPDATE engine.workflows
+            SET heartbeat_at = {staleHeartbeat}, reclaim_count = 1
+            WHERE id = {wf.DatabaseId}
             """,
             TestContext.Current.CancellationToken
         );
@@ -280,11 +280,11 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
             var staleHeartbeat = DateTimeOffset.UtcNow.AddSeconds(-30);
             await context.Database.ExecuteSqlAsync(
                 $"""
-                UPDATE "engine"."Workflows"
-                SET "Status" = {PersistentItemStatus.Processing},
-                    "HeartbeatAt" = {staleHeartbeat},
-                    "ReclaimCount" = {i - 1}
-                WHERE "Id" = {wf.DatabaseId}
+                UPDATE engine.workflows
+                SET status = {PersistentItemStatus.Processing},
+                    heartbeat_at = {staleHeartbeat},
+                    reclaim_count = {i - 1}
+                WHERE id = {wf.DatabaseId}
                 """,
                 TestContext.Current.CancellationToken
             );
@@ -305,10 +305,10 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
         var finalStaleHeartbeat = DateTimeOffset.UtcNow.AddSeconds(-30);
         await context.Database.ExecuteSqlAsync(
             $"""
-            UPDATE "engine"."Workflows"
-            SET "Status" = {PersistentItemStatus.Processing},
-                "HeartbeatAt" = {finalStaleHeartbeat}
-            WHERE "Id" = {wf.DatabaseId}
+            UPDATE engine.workflows
+            SET status = {PersistentItemStatus.Processing},
+                heartbeat_at = {finalStaleHeartbeat}
+            WHERE id = {wf.DatabaseId}
             """,
             TestContext.Current.CancellationToken
         );

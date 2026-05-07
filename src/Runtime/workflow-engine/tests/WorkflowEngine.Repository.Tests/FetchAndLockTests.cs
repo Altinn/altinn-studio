@@ -75,9 +75,9 @@ public sealed class FetchAndLockTests(PostgresFixture fixture) : IAsyncLifetime
         var staleHeartbeat = DateTimeOffset.UtcNow.AddSeconds(-30);
         await context.Database.ExecuteSqlAsync(
             $"""
-            UPDATE "engine"."Workflows"
-            SET "HeartbeatAt" = {staleHeartbeat}
-            WHERE "Id" = {wf.DatabaseId}
+            UPDATE engine.workflows
+            SET heartbeat_at = {staleHeartbeat}
+            WHERE id = {wf.DatabaseId}
             """,
             TestContext.Current.CancellationToken
         );
@@ -103,9 +103,9 @@ public sealed class FetchAndLockTests(PostgresFixture fixture) : IAsyncLifetime
         var pastTime = DateTimeOffset.UtcNow.AddMinutes(-5);
         await context.Database.ExecuteSqlAsync(
             $"""
-            UPDATE "engine"."Workflows"
-            SET "HeartbeatAt" = {pastTime}, "UpdatedAt" = {pastTime}
-            WHERE "Id" = {wf.DatabaseId}
+            UPDATE engine.workflows
+            SET heartbeat_at = {pastTime}, updated_at = {pastTime}
+            WHERE id = {wf.DatabaseId}
             """,
             TestContext.Current.CancellationToken
         );
@@ -136,9 +136,9 @@ public sealed class FetchAndLockTests(PostgresFixture fixture) : IAsyncLifetime
         var pastTime = DateTimeOffset.UtcNow.AddMinutes(-5);
         await context.Database.ExecuteSqlAsync(
             $"""
-            UPDATE "engine"."Workflows"
-            SET "HeartbeatAt" = {pastTime}, "UpdatedAt" = {pastTime}
-            WHERE "Id" IN ({processing.DatabaseId}, {completed.DatabaseId})
+            UPDATE engine.workflows
+            SET heartbeat_at = {pastTime}, updated_at = {pastTime}
+            WHERE id IN ({processing.DatabaseId}, {completed.DatabaseId})
             """,
             TestContext.Current.CancellationToken
         );

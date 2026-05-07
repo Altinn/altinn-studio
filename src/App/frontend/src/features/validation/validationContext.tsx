@@ -24,6 +24,7 @@ import {
 } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { useWaitForNodesToValidate } from 'src/features/validation/nodeValidation/waitForNodesToValidate';
 import { hasValidationErrors, selectValidations } from 'src/features/validation/utils';
+import { pruneBoundaryMasks } from 'src/features/validation/ValidationStorePlugin';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
 import type { FormBootstrapContextValue } from 'src/features/formBootstrap/types';
@@ -59,11 +60,34 @@ export function createValidationSlice(
       task: mapBackendIssuesToTaskValidations(bootstrap.validationIssues ?? []),
     },
     otherDataElementBackendValidations: {},
-    setShowAllBackendErrors: (newValue) =>
+    formMask: 0,
+    pageMasks: {},
+    rowMasks: {},
+    setFormMask: (mask) =>
       set((state) => {
-        state.validation.showAllBackendErrors = newValue;
+        state.validation.formMask = mask ?? 0;
       }),
-    showAllBackendErrors: false,
+    setPageMask: (pageKey, mask) =>
+      set((state) => {
+        if (mask === undefined) {
+          delete state.validation.pageMasks[pageKey];
+        } else {
+          state.validation.pageMasks[pageKey] = mask;
+        }
+      }),
+    setRowMask: (rowId, mask) =>
+      set((state) => {
+        if (mask === undefined) {
+          delete state.validation.rowMasks[rowId];
+        } else {
+          state.validation.rowMasks[rowId] = mask;
+        }
+      }),
+    setShowAllUnboundValidations: (newValue) =>
+      set((state) => {
+        state.validation.showAllUnboundValidations = newValue;
+      }),
+    showAllUnboundValidations: false,
 
     // =======
     // Internal state
@@ -76,11 +100,13 @@ export function createValidationSlice(
         const dataModel = state.data.models[dataType];
         if (dataModel && validations) {
           dataModel.validations[key] = validations;
+          pruneBoundaryMasks(state);
         }
       }),
     updateBackendValidations: (backendValidations, processedLast, taskValidations) =>
       set((state) => {
         updateBackendValidations(state)(backendValidations, processedLast, taskValidations);
+        pruneBoundaryMasks(state);
       }),
     setOtherDataElementBackendValidations: (dataElementId, validationIssues) =>
       set((state) => {
@@ -94,6 +120,8 @@ export function createValidationSlice(
           } else {
             delete state.validation.otherDataElementBackendValidations[dataElementId];
           }
+
+          pruneBoundaryMasks(state);
         }
       }),
   };
@@ -204,18 +232,16 @@ export function useWaitForValidation(): WaitForValidation {
 }
 
 function ManageShowAllErrors() {
-  const showAllErrors = FormStore.raw.useSelector((state) => state.validation.showAllBackendErrors);
+  const showAllErrors = FormStore.raw.useSelector((state) => state.validation.showAllUnboundValidations);
   return showAllErrors ? <UpdateShowAllErrors /> : null;
 }
 
 function UpdateShowAllErrors() {
-  const [taskValidations, dataModels, otherDataElementBackendValidations, setShowAllErrors] =
-    FormStore.raw.useShallowSelector((state) => [
-      state.validation.state.task,
-      state.data.models,
-      state.validation.otherDataElementBackendValidations,
-      state.validation.setShowAllBackendErrors,
-    ]);
+  const [taskValidations, dataModels, setShowAllErrors] = FormStore.raw.useShallowSelector((state) => [
+    state.validation.state.task,
+    state.data.models,
+    state.validation.setShowAllUnboundValidations,
+  ]);
 
   const isFirstRender = useRef(true);
 
@@ -251,17 +277,15 @@ function UpdateShowAllErrors() {
   useEffect(() => {
     const backendMask = ValidationMask.Backend | ValidationMask.CustomBackend;
     const hasFieldErrors =
-      [
-        ...Object.values(dataModels).map((model) => model.validations.backend),
-        ...Object.values(otherDataElementBackendValidations),
-      ]
+      Object.values(dataModels)
+        .map((model) => model.validations.backend)
         .flatMap((validations) => Object.values(validations))
         .flatMap((field) => selectValidations(field, backendMask, 'error')).length > 0;
 
     if (!hasFieldErrors && !hasValidationErrors(taskValidations)) {
       setShowAllErrors(false);
     }
-  }, [dataModels, otherDataElementBackendValidations, setShowAllErrors, taskValidations]);
+  }, [dataModels, setShowAllErrors, taskValidations]);
 
   return null;
 }
@@ -282,10 +306,12 @@ export const validationHooks = {
       return elementsWithErrors;
     }),
 
-  useShowAllBackendErrors: () => FormStore.raw.useSelector((state) => state.validation.showAllBackendErrors),
-  useSetShowAllBackendErrors: () => {
+  useShowAllUnboundValidations: () => FormStore.raw.useSelector((state) => state.validation.showAllUnboundValidations),
+  useSetShowAllUnboundValidations: () => {
     const validating = useWaitForValidation();
-    const setShowAllBackendErrors = FormStore.raw.useShallowSelector((s) => s.validation.setShowAllBackendErrors);
+    const setShowAllUnboundValidations = FormStore.raw.useStaticSelector(
+      (s) => s.validation.setShowAllUnboundValidations,
+    );
 
     return useMemo(
       () => async () => {
@@ -293,11 +319,14 @@ export const validationHooks = {
         // This is because we automatically turn off this state as soon as possible.
         // If the validations to show have not finished processing, this could get turned off before they ever became visible.
         await validating();
-        setShowAllBackendErrors(true);
+        setShowAllUnboundValidations(true);
       },
-      [setShowAllBackendErrors, validating],
+      [setShowAllUnboundValidations, validating],
     );
   },
+  useSetFormValidationMask: () => FormStore.raw.useStaticSelector((state) => state.validation.setFormMask),
+  useSetPageValidationMask: () => FormStore.raw.useStaticSelector((state) => state.validation.setPageMask),
+  useSetRowValidationMask: () => FormStore.raw.useStaticSelector((state) => state.validation.setRowMask),
   useUpdateBackendValidations: () =>
     FormStore.raw.useStaticSelector((state) => state.validation.updateBackendValidations),
 };

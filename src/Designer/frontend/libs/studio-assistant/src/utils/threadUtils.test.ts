@@ -17,7 +17,6 @@ describe('threadUtils', () => {
 
       expect(thread.id).toBeTruthy();
       expect(thread.title).toBe(title);
-      expect(thread.messages).toEqual([]);
     });
 
     it('should generate unique ids for every thread', () => {

@@ -15,7 +15,7 @@ internal static class Endpoints
         studioctl.MapPost("/apps", RegisterApp);
         studioctl.MapDelete("/apps", UnregisterApp);
         studioctl.MapPost("/shutdown", Shutdown);
-        studioctl.MapPost("/upgrades", NotImplemented);
+        studioctl.MapPost("/apps/upgrades", RunUpgrade);
         return studioctl;
     }
 
@@ -103,9 +103,20 @@ internal static class Endpoints
         return Results.Accepted(value: new CommandResponse("shutdown requested"));
     }
 
-    private static IResult NotImplemented()
+    private static async Task<IResult> RunUpgrade(
+        AppUpgradeService upgrades,
+        AppUpgradeRequest? request,
+        CancellationToken cancellationToken
+    )
     {
-        return Results.StatusCode(StatusCodes.Status501NotImplemented);
+        if (request is null)
+            return Results.BadRequest(new CommandResponse("request body is required"));
+
+        var result = await upgrades.RunAsync(request, cancellationToken);
+        if (!result.IsValid)
+            return Results.BadRequest(new CommandResponse(result.Message));
+
+        return Results.Ok(new UpgradeResponse(result.Message, result.ExitCode, result.Output, result.Error));
     }
 
     private sealed record StatusResponse(
@@ -146,4 +157,6 @@ internal static class Endpoints
     );
 
     private sealed record CommandResponse(string Message);
+
+    private sealed record UpgradeResponse(string Message, int ExitCode, string Output, string Error);
 }

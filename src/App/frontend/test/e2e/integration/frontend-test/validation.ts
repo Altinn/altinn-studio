@@ -172,7 +172,7 @@ describe('Validation', () => {
     cy.wait('@upload');
     cy.dsReady(appFrontend.changeOfName.uploadWithTag.saveTag);
     cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click();
-    cy.get(appFrontend.changeOfName.uploadWithTag.error).should(
+    cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).should(
       'not.contain.text',
       appFrontend.changeOfName.uploadWithTag.unwantedChar,
     );

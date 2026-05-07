@@ -12,7 +12,6 @@ import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/g
 import { FormStore } from 'src/features/form/FormContext';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
-import { fetchProcessState } from 'src/queries/queries';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ExternalAppUiFolder } from 'src/test/allApps';
@@ -143,8 +142,6 @@ describe('All known UI folders should render successfully', () => {
 
     window.altinnAppGlobalData.applicationMetadata = uiFolder.app.getAppMetadata();
     window.altinnAppGlobalData.ui = uiFolder.app.getUiConfig();
-    jest.mocked(fetchProcessState).mockImplementation(async () => mainFolder.simulateProcessData());
-
     const children = env.parsed?.ALTINN_ALL_APPS_RENDER_COMPONENTS === 'true' ? <RenderAllComponents /> : <TestApp />;
     await renderWithInstanceAndLayout({
       taskId: mainFolder.getTaskId(),

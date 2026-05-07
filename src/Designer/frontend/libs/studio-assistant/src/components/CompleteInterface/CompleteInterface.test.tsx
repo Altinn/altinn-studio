@@ -3,31 +3,23 @@ import { CompleteInterface } from './CompleteInterface';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { mockTexts } from '../../mocks/mockTexts';
-import type { ChatThread } from '../../types/ChatThread';
+import type { Message } from '../../types/ChatThread';
 import { MessageAuthor } from '../../types/MessageAuthor';
+import { mockChatThreads } from '../../mocks/mockChatThreads';
 
 // Test data
 const onSubmitMessage = jest.fn();
 const onSelectThread = jest.fn();
 
-const threadTitle1 = 'Thread 1';
-const threadTitle2 = 'Thread 2';
-const mockChatThreads: ChatThread[] = [
+const threadTitle1 = mockChatThreads[0].title;
+const threadTitle2 = mockChatThreads[1].title;
+
+const mockMessages: Message[] = [
   {
-    id: '1',
-    title: threadTitle1,
-    messages: [
-      {
-        author: MessageAuthor.User,
-        content: 'User message',
-        timestamp: new Date(),
-      },
-    ],
-  },
-  {
-    id: '2',
-    title: threadTitle2,
-    messages: [],
+    role: MessageAuthor.User,
+    content: 'User message',
+    createdAt: new Date().toISOString(),
+    allowAppChanges: false,
   },
 ];
 
@@ -72,7 +64,7 @@ describe('CompleteInterface', () => {
   });
 
   it('should render messages from the first thread by default', () => {
-    renderCompleteInterface({ chatThreads: mockChatThreads });
+    renderCompleteInterface({ messages: mockMessages });
     const userMessage = screen.getByText('User message');
 
     expect(userMessage).toBeInTheDocument();
@@ -127,7 +119,7 @@ describe('CompleteInterface', () => {
   it('should render the assistant loading bubble when the active workflow belongs to the active thread', () => {
     const loadingBubbleMessage = 'Working on it...';
     renderCompleteInterface({
-      chatThreads: mockChatThreads,
+      messages: mockMessages,
       activeThreadId: '1',
       workflowStatus: { isActive: true, sessionId: '1', message: loadingBubbleMessage },
     });
@@ -138,7 +130,7 @@ describe('CompleteInterface', () => {
   it('should not render the assistant loading bubble when the active workflow belongs to another thread', () => {
     const loadingBubbleMessage = 'Working on it...';
     renderCompleteInterface({
-      chatThreads: mockChatThreads,
+      messages: mockMessages,
       activeThreadId: '1',
       workflowStatus: { isActive: true, sessionId: '2', message: loadingBubbleMessage },
     });

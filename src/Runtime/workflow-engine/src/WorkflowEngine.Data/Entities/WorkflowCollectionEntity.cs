@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WorkflowEngine.Data.Entities;
 
-[Table("WorkflowCollections", Schema = Constants.SchemaNames.Engine)]
+[Table("workflow_collections", Schema = Constants.SchemaNames.Engine)]
 internal sealed class WorkflowCollectionEntity
 {
     [MaxLength(200)]
