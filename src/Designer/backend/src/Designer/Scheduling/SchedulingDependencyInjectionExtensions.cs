@@ -40,19 +40,13 @@ public static class SchedulingDependencyInjectionExtensions
             );
 
             configure.AddJob<ChatInactivityCleanupJob>(options =>
-                options.WithIdentity(
-                    ChatInactivityCleanupJobConstants.JobName,
-                    ChatInactivityCleanupJobConstants.JobGroup
-                )
+                options.WithIdentity(ChatInactivityCleanupJobConstants.JobName)
             );
 
             configure.AddTrigger(options =>
                 options
-                    .ForJob(ChatInactivityCleanupJobConstants.JobName, ChatInactivityCleanupJobConstants.JobGroup)
-                    .WithIdentity(
-                        ChatInactivityCleanupJobConstants.TriggerName,
-                        ChatInactivityCleanupJobConstants.JobGroup
-                    )
+                    .ForJob(ChatInactivityCleanupJobConstants.JobName)
+                    .WithIdentity(ChatInactivityCleanupJobConstants.TriggerName)
                     .WithCronSchedule(ChatInactivityCleanupJobConstants.CronScheduleNightly)
             );
 
