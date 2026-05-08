@@ -29,6 +29,17 @@ HTTP 200
 [Asserts]
 jsonpath "$.headers['x-webauth-user']" not contains "attacker"
 
+# No Designer session (401): forward to Gitea with X-WEBAUTH-* cleared,
+# so alternate Gitea auth (PAT, basic) can still take over.
+GET {{proxy_on_pub}}/api/v1/repos
+Cookie: scenario=expired
+Authorization: token pat-abc
+HTTP 200
+[Asserts]
+jsonpath "$.headers['authorization']"      == "token pat-abc"
+jsonpath "$.headers['x-webauth-user']"     == ""
+jsonpath "$.headers['x-webauth-fullname']" == ""
+
 # Designer 403: forward to Gitea without leaking client X-WEBAUTH-USER
 GET {{proxy_on_pub}}/foo
 Cookie: scenario=forbidden
@@ -45,6 +56,11 @@ HTTP 502
 # Designer malformed JSON surfaces as 502
 GET {{proxy_on_pub}}/foo
 Cookie: scenario=malformed
+HTTP 502
+
+# Designer 404 surfaces as 502 (any non-2xx-non-{401,403} hits the catch-all branch)
+GET {{proxy_on_pub}}/foo
+Cookie: scenario=not_found
 HTTP 502
 
 # ApiKey auth is rejected on web UI paths
@@ -73,9 +89,32 @@ HTTP 200
 [Asserts]
 jsonpath "$.headers['x-webauth-user']" == "{{APIKEY_USERNAME}}"
 
+# ApiKey auth allowed on git-receive-pack (push, POSTed by real git client)
+POST {{proxy_on_pub}}/owner/repo.git/git-receive-pack
+Cookie: scenario=apikey_user
+HTTP 200
+[Asserts]
+jsonpath "$.method"                    == "POST"
+jsonpath "$.headers['x-webauth-user']" == "{{APIKEY_USERNAME}}"
+
+# ApiKey auth allowed on /info/refs?service=... (real git smart-HTTP path; regex `?` branch)
+GET {{proxy_on_pub}}/owner/repo.git/info/refs?service=git-upload-pack
+Cookie: scenario=apikey_user
+HTTP 200
+[Asserts]
+jsonpath "$.headers['x-webauth-user']" == "{{APIKEY_USERNAME}}"
+
 # ApiKey auth allowed on /api/v1/
 GET {{proxy_on_pub}}/api/v1/repos
 Cookie: scenario=apikey_user
+HTTP 200
+[Asserts]
+jsonpath "$.headers['x-webauth-user']" == "{{APIKEY_USERNAME}}"
+
+# X-Api-Key (no Cookie) drives the ApiKey scenario via Designer subrequest:
+# verifies the proxy actually forwards X-Api-Key to /_internal/userinfo
+GET {{proxy_on_pub}}/api/v1/repos
+X-Api-Key: apikey_user
 HTTP 200
 [Asserts]
 jsonpath "$.headers['x-webauth-user']" == "{{APIKEY_USERNAME}}"
@@ -100,6 +139,14 @@ GET {{proxy_on_pub}}/owner/repo/info/refs/extra
 Cookie: scenario=apikey_user
 HTTP 403
 
+# Cookie auth bypasses the ApiKey path allowlist (positive control):
+# a Cookie-authed user can hit a git endpoint and gets X-WEBAUTH-USER injected
+GET {{proxy_on_pub}}/owner/repo.git/info/refs
+Cookie: scenario=valid_user
+HTTP 200
+[Asserts]
+jsonpath "$.headers['x-webauth-user']" == "{{VALID_USERNAME}}"
+
 # Missing given/family name yields fullname " "  (auth.js: '' + ' ' + '')
 GET {{proxy_on_pub}}/foo
 Cookie: scenario=no_names
@@ -116,3 +163,14 @@ X-WEBAUTH-USER: attacker
 HTTP 200
 [Asserts]
 jsonpath "$.headers['x-webauth-user']" not contains "attacker"
+
+# === Internal endpoint boundary (independent of feature flag) ===============
+
+# /_internal/userinfo is nginx-internal-only; external calls must 404
+# (regression: removing the `internal;` directive would expose Designer auth proxying)
+GET {{proxy_on_pub}}/_internal/userinfo
+HTTP 404
+
+# Same boundary holds with OIDC off
+GET {{proxy_off_pub}}/_internal/userinfo
+HTTP 404

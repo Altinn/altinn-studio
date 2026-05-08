@@ -26,8 +26,8 @@ services:
       OTEL_SERVICE_NAME: "test"
       OTEL_TRACE: "off"
     ports:
-      - "8080:80"
-      - "8081:81"
+      - "18080:80"
+      - "18081:81"
     depends_on:
       - gitea-mock
       - designer-mock
@@ -44,8 +44,8 @@ services:
       OTEL_SERVICE_NAME: "test"
       OTEL_TRACE: "off"
     ports:
-      - "8090:80"
-      - "8091:81"
+      - "18090:80"
+      - "18091:81"
     depends_on:
       - gitea-mock
       - designer-mock

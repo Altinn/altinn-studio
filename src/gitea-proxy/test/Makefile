@@ -1,10 +1,10 @@
 COMPOSE := docker compose -f docker-compose.test.yml
 HURL    := hurl
 
-PROXY_ON_PUB  ?= http://localhost:8080
-PROXY_ON_INT  ?= http://localhost:8081
-PROXY_OFF_PUB ?= http://localhost:8090
-PROXY_OFF_INT ?= http://localhost:8091
+PROXY_ON_PUB  ?= http://localhost:18080
+PROXY_ON_INT  ?= http://localhost:18081
+PROXY_OFF_PUB ?= http://localhost:18090
+PROXY_OFF_INT ?= http://localhost:18091
 
 HURL_ARGS := \
   --variables-file fixtures.env \

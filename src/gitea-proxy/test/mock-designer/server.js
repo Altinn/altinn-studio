@@ -36,6 +36,7 @@ const scenarios = {
   },
   expired: { status: 401, body: '' },
   forbidden: { status: 403, body: '' },
+  not_found: { status: 404, body: '' },
   server_error: { status: 500, body: '' },
   malformed: { status: 200, body: 'not-json', raw: true },
 };
@@ -56,8 +57,10 @@ const server = http.createServer((req, res) => {
     res.end();
     return;
   }
-  const cookies = parseCookies(req.headers.cookie);
-  const name = cookies.scenario || 'expired';
+  // Scenario routing prefers Cookie (browser flow), falls back to X-Api-Key
+  // (which is what real ApiKey-authed callers send, and the proxy forwards it
+  // to /_internal/userinfo via `proxy_set_header X-Api-Key`).
+  const name = parseCookies(req.headers.cookie).scenario || req.headers['x-api-key'] || 'expired';
   const scenario = scenarios[name] || scenarios.expired;
   res.writeHead(scenario.status, { 'Content-Type': 'application/json' });
   if (scenario.status !== 200) {
