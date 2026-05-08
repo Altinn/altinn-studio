@@ -219,6 +219,8 @@ export function useNavigatePage() {
     await waitForSave(autoSaveBehavior === 'onChangePage');
   }, [autoSaveBehavior, waitForSave]);
 
+  const [_, setVisitedPages] = useVisitedPages();
+
   const navigateToPage = useCallback(
     async (page?: string, options?: NavigateToPageOptions) => {
       const preventScrollReset = options?.searchParams?.has(SearchParams.FocusComponentId);
@@ -243,6 +245,14 @@ export function useNavigatePage() {
         await refetchInitialValidations();
       }
 
+      setVisitedPages((visitedPages) => {
+        const currentPage = navParams.current.pageKey;
+        if (!currentPage || visitedPages.includes(currentPage)) {
+          return visitedPages;
+        }
+        return [...visitedPages, currentPage];
+      });
+
       const searchParams = options?.searchParams ? `?${options.searchParams.toString()}` : '';
       if (isStateless) {
         const url = `/${page}${searchParams}`;
@@ -260,10 +270,9 @@ export function useNavigatePage() {
       const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page}${searchParams}`;
       navigate(url, options, navOptions);
     },
-    [orderRef, isStateless, navParams, navigate, maybeSaveOnPageChange, refetchInitialValidations],
+    [orderRef, isStateless, navParams, navigate, maybeSaveOnPageChange, refetchInitialValidations, setVisitedPages],
   );
 
-  const [_, setVisitedPages] = useVisitedPages();
   /**
    * This function fetch the next page index on function
    * invocation and then navigates to the next page. This is
@@ -278,20 +287,9 @@ export function useNavigatePage() {
         return;
       }
 
-      setVisitedPages((prev) => {
-        const visitedPages = [...prev];
-        if (currentPage && !prev.includes(currentPage)) {
-          visitedPages.push(currentPage);
-        }
-        if (!prev.includes(nextPage)) {
-          visitedPages.push(nextPage);
-        }
-        return visitedPages;
-      });
-
       await navigateToPage(nextPage, options);
     },
-    [navParams, navigateToPage, orderRef, setVisitedPages],
+    [navParams, navigateToPage, orderRef],
   );
 
   /**

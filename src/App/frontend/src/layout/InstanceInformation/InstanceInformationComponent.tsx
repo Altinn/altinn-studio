@@ -74,10 +74,11 @@ export function InstanceInformation({ elements }: Pick<CompInternal<'InstanceInf
   const instanceDateSent =
     lastChanged && dateSent !== false && formatDate(toTimeZonedDate(formatISO(lastChanged)), PrettyDateAndTime);
 
+  const identifier = instanceOwnerParty?.ssn ?? instanceOwnerParty?.orgNumber;
   const instanceSender =
     sender !== false &&
     instanceOwnerParty &&
-    `${instanceOwnerParty.ssn ?? instanceOwnerParty.orgNumber}-${instanceOwnerParty.name}`;
+    (identifier ? `${identifier}-${instanceOwnerParty.name}` : instanceOwnerParty.name);
 
   const instanceReceiver = receiver !== false ? (appReceiver ?? 'Error: Receiver org not found') : undefined;
 

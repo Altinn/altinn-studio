@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Text.Json;
@@ -9,14 +10,12 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Studio.Designer.Infrastructure.Authorization;
 
 /// <summary>
-/// Authorization handler that validates authenticated users have reportee access
+/// Authorization handler that validates authenticated users have authorized party access
 /// to the organization for the current app.
 /// </summary>
 public sealed class OrgAccessHandler : AuthorizationHandler<OrgAccessRequirement>
@@ -26,20 +25,11 @@ public sealed class OrgAccessHandler : AuthorizationHandler<OrgAccessRequirement
     private const int PrefixLength = 5;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IEnvironmentsService _environmentsService;
-    private readonly IHostEnvironment _hostEnvironment;
-    private readonly ILogger<OrgAccessHandler> _logger;
 
-    public OrgAccessHandler(
-        IHttpContextAccessor httpContextAccessor,
-        IEnvironmentsService environmentsService,
-        IHostEnvironment hostEnvironment,
-        ILogger<OrgAccessHandler> logger
-    )
+    public OrgAccessHandler(IHttpContextAccessor httpContextAccessor, IEnvironmentsService environmentsService)
     {
         _httpContextAccessor = httpContextAccessor;
         _environmentsService = environmentsService;
-        _hostEnvironment = hostEnvironment;
-        _logger = logger;
     }
 
     /// <inheritdoc/>
@@ -73,38 +63,31 @@ public sealed class OrgAccessHandler : AuthorizationHandler<OrgAccessRequirement
             return;
         }
 
-        if (_hostEnvironment.IsProduction())
+        var authorizedPartyOrgNumbers = ExtractAuthorizedPartyOrgNumbers(accessToken);
+        if (authorizedPartyOrgNumbers.Length == 0)
         {
-            var reporteeOrgNumbers = ExtractReporteeOrgNumbers(accessToken);
-            if (reporteeOrgNumbers.Length == 0)
-            {
-                context.Fail();
-                return;
-            }
-
-            var orgNr = await _environmentsService.GetAltinnOrgNumber(org);
-            if (orgNr is null)
-            {
-                context.Fail();
-                return;
-            }
-
-            if (!string.IsNullOrWhiteSpace(orgNr) && reporteeOrgNumbers.Contains(orgNr))
-            {
-                context.Succeed(requirement);
-            }
-            else
-            {
-                context.Fail();
-            }
+            context.Fail();
+            return;
         }
-        else
+
+        var orgNr = await _environmentsService.GetAltinnOrgNumber(org);
+        if (orgNr is null)
+        {
+            context.Fail();
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(orgNr) && authorizedPartyOrgNumbers.Contains(orgNr))
         {
             context.Succeed(requirement);
         }
+        else
+        {
+            context.Fail();
+        }
     }
 
-    private string[] ExtractReporteeOrgNumbers(string accessToken)
+    internal string[] ExtractAuthorizedPartyOrgNumbers(string accessToken)
     {
         try
         {
@@ -131,40 +114,58 @@ public sealed class OrgAccessHandler : AuthorizationHandler<OrgAccessRequirement
                     ? authDetailsElement.EnumerateArray()
                     : new[] { authDetailsElement }.AsEnumerable();
 
-            return detailsArray
-                .Where(detail => detail.TryGetProperty("reportees", out _))
-                .SelectMany(detail => detail.GetProperty("reportees").EnumerateArray())
-                .SelectMany(reportee =>
+            return detailsArray.SelectMany(ExtractAuthorizedPartyIds).SelectMany(ExtractOrgNumber).Distinct().ToArray();
+        }
+        catch (SecurityTokenException)
+        {
+            return [];
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
+        catch (Exception)
+        {
+            return [];
+        }
+    }
+
+    private static IEnumerable<string> ExtractAuthorizedPartyIds(JsonElement authorizationDetail)
+    {
+        if (authorizationDetail.TryGetProperty("authorized_parties", out var authorizedParties))
+        {
+            foreach (var authorizedParty in authorizedParties.EnumerateArray())
+            {
+                if (authorizedParty.TryGetProperty("orgno", out var orgNo) && TryGetId(orgNo, out var id))
                 {
-                    // Try both "ID" (current standard) and "id" (fallback) for resilience
-                    if (
-                        (reportee.TryGetProperty("ID", out var id) || reportee.TryGetProperty("id", out id))
-                        && id.GetString() is string idStr
-                        && idStr.StartsWith(OrgNumberPrefix)
-                        && idStr.Length > PrefixLength
-                    )
-                    {
-                        return [idStr[PrefixLength..]];
-                    }
-                    return Array.Empty<string>();
-                })
-                .Distinct()
-                .ToArray();
+                    yield return id;
+                }
+            }
         }
-        catch (SecurityTokenException ex)
+    }
+
+    private static bool TryGetId(JsonElement element, out string id)
+    {
+        if (
+            (element.TryGetProperty("ID", out var idElement) || element.TryGetProperty("id", out idElement))
+            && idElement.GetString() is string idValue
+        )
         {
-            _logger.LogWarning(ex, "Invalid JWT token format in access token");
-            return [];
+            id = idValue;
+            return true;
         }
-        catch (JsonException ex)
+
+        id = string.Empty;
+        return false;
+    }
+
+    private static IEnumerable<string> ExtractOrgNumber(string id)
+    {
+        if (id.StartsWith(OrgNumberPrefix) && id.Length > PrefixLength)
         {
-            _logger.LogWarning(ex, "Failed to parse authorization_details JSON from access token");
-            return [];
+            return [id[PrefixLength..]];
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error extracting reportee organization numbers from access token");
-            return [];
-        }
+
+        return [];
     }
 }

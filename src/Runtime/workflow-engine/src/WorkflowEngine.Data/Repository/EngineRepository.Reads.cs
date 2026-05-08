@@ -697,4 +697,114 @@ internal sealed partial class EngineRepository
             throw;
         }
     }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<Workflow>?> GetWorkflowDependencyGraph(
+        Guid workflowId,
+        string ns,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.GetWorkflowDependencyGraph");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            logger.FetchingWorkflowById(workflowId);
+
+            List<Guid> graphWorkflowIds = [];
+            await ExecuteWithRetry(
+                async ct =>
+                {
+                    await using var conn = await dataSource.OpenConnectionAsync(ct);
+                    graphWorkflowIds = await GetWorkflowDependencyGraphIds(conn, workflowId, ns, ct);
+                },
+                cancellationToken
+            );
+
+            if (graphWorkflowIds.Count == 0)
+            {
+                // CTE seed filters by id + namespace, so an empty result means the
+                // workflow does not exist in this namespace.
+                logger.WorkflowNotFound(workflowId);
+                return null;
+            }
+
+            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            return await context
+                .GetWorkflowsByIds(graphWorkflowIds, namespaceFilter: ns)
+                .AsNoTracking()
+                .OrderBy(wf => wf.CreatedAt)
+                .ThenBy(wf => wf.OperationId)
+                .ThenBy(wf => wf.Id)
+                .ToDomainModel()
+                .ToListAsync(cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Returns workflow IDs in the connected component reachable from the root workflow
+    /// through dependency and link relations in either direction, scoped to the namespace.
+    /// </summary>
+    private static async Task<List<Guid>> GetWorkflowDependencyGraphIds(
+        NpgsqlConnection conn,
+        Guid workflowId,
+        string ns,
+        CancellationToken cancellationToken
+    )
+    {
+        // Postgres only permits a single recursive UNION; flatten both relations and both
+        // directions into one neighbor subquery rather than four parallel recursive arms.
+        const string sql = """
+            WITH RECURSIVE graph AS (
+                SELECT w.id
+                FROM engine.workflows w
+                WHERE w.id = @id
+                  AND w.namespace = @ns
+                UNION
+                SELECT n.neighbor_id
+                FROM (
+                    SELECT wd.workflow_id AS neighbor_id, wd.depends_on_workflow_id AS from_id
+                    FROM engine.workflow_dependency wd
+                    UNION ALL
+                    SELECT wd.depends_on_workflow_id AS neighbor_id, wd.workflow_id AS from_id
+                    FROM engine.workflow_dependency wd
+                    UNION ALL
+                    SELECT wl.linked_workflow_id AS neighbor_id, wl.workflow_id AS from_id
+                    FROM engine.workflow_link wl
+                    UNION ALL
+                    SELECT wl.workflow_id AS neighbor_id, wl.linked_workflow_id AS from_id
+                    FROM engine.workflow_link wl
+                ) n
+                JOIN engine.workflows w ON w.id = n.neighbor_id
+                JOIN graph g ON n.from_id = g.id
+                WHERE w.namespace = @ns
+            )
+            SELECT id
+            FROM graph
+            """;
+
+        var workflowIds = new List<Guid>();
+        await using var cmd = new NpgsqlCommand(sql, conn);
+        cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
+        cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
+
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            workflowIds.Add(reader.GetGuid(0));
+        }
+
+        return workflowIds;
+    }
 }

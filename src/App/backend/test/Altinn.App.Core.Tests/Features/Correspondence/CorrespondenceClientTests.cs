@@ -298,12 +298,11 @@ public class CorrespondenceClientTests
             )
             .ReturnsAsync(
                 (HttpRequestMessage request, CancellationToken _) =>
-                    request.RequestUri!.AbsolutePath switch
+                    (request.Method, request.RequestUri!.AbsolutePath) switch
                     {
-                        var path when path.EndsWith("/correspondence/upload") => TestHelpers.ResponseMessageFactory(
-                            TestHelpers.DummySendCorrespondenceResponse
-                        ),
-                        var path when path.EndsWith("/details") => TestHelpers.ResponseMessageFactory(
+                        (var m, var path) when m == HttpMethod.Post && path.EndsWith("/correspondence") =>
+                            TestHelpers.ResponseMessageFactory(TestHelpers.DummySendCorrespondenceResponse),
+                        (_, var path) when path.EndsWith("/details") => TestHelpers.ResponseMessageFactory(
                             TestHelpers.DummyGetCorrespondenceStatusResponse
                         ),
                         _ => throw FailException.ForFailure($"Unknown mock endpoint: {request.RequestUri}"),
@@ -323,6 +322,139 @@ public class CorrespondenceClientTests
         {
             mockMaskinportenClient.Verify();
         }
+    }
+
+    [Fact]
+    public async Task Send_WithAttachments_SuccessfulFlow_CallsAllFourEndpoints()
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var mockHttpClientFactory = fixture.HttpClientFactoryMock;
+        var mockHttpClient = new Mock<HttpClient>();
+
+        mockHttpClientFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(mockHttpClient.Object);
+        mockHttpClient
+            .Setup(c => c.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                (HttpRequestMessage request, CancellationToken _) =>
+                    (request.Method, request.RequestUri!.AbsolutePath) switch
+                    {
+                        (var m, var path) when m == HttpMethod.Post && path.EndsWith("attachment") =>
+                            TestHelpers.ResponseMessageFactory(TestHelpers.DummyAttachmentId),
+                        (var m, var path) when m == HttpMethod.Post && path.EndsWith("/upload") =>
+                            TestHelpers.ResponseMessageFactory(
+                                TestHelpers.DummyAttachmentOverviewResponse(
+                                    CorrespondenceAttachmentStatusResponse.UploadProcessing
+                                )
+                            ),
+                        (var m, var path) when m == HttpMethod.Get && path.Contains("attachment/") =>
+                            TestHelpers.ResponseMessageFactory(
+                                TestHelpers.DummyAttachmentOverviewResponse(
+                                    CorrespondenceAttachmentStatusResponse.Published
+                                )
+                            ),
+                        (var m, var path) when m == HttpMethod.Post && path.EndsWith("correspondence") =>
+                            TestHelpers.ResponseMessageFactory(TestHelpers.DummySendCorrespondenceResponse),
+                        _ => throw FailException.ForFailure(
+                            $"Unknown mock endpoint: {request.Method} {request.RequestUri}"
+                        ),
+                    }
+            );
+
+        // Act
+        var result = await fixture.CorrespondenceClient.Send(PayloadFactory.Send(withAttachment: true));
+
+        // Assert
+        Assert.NotNull(result);
+        result.Correspondences.Should().HaveCount(1);
+        mockHttpClient.Verify(
+            c => c.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()),
+            Times.Exactly(4)
+        );
+    }
+
+    [Fact]
+    public async Task Send_WithAttachments_AttachmentFailed_ThrowsCorrespondenceRequestException()
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var mockHttpClientFactory = fixture.HttpClientFactoryMock;
+        var mockHttpClient = new Mock<HttpClient>();
+
+        mockHttpClientFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(mockHttpClient.Object);
+        mockHttpClient
+            .Setup(c => c.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                (HttpRequestMessage request, CancellationToken _) =>
+                    (request.Method, request.RequestUri!.AbsolutePath) switch
+                    {
+                        (var m, var path) when m == HttpMethod.Post && path.EndsWith("attachment") =>
+                            TestHelpers.ResponseMessageFactory(TestHelpers.DummyAttachmentId),
+                        (var m, var path) when m == HttpMethod.Post && path.EndsWith("/upload") =>
+                            TestHelpers.ResponseMessageFactory(
+                                TestHelpers.DummyAttachmentOverviewResponse(
+                                    CorrespondenceAttachmentStatusResponse.UploadProcessing
+                                )
+                            ),
+                        (var m, var path) when m == HttpMethod.Get && path.Contains("attachment/") =>
+                            TestHelpers.ResponseMessageFactory(
+                                TestHelpers.DummyAttachmentOverviewResponse(
+                                    CorrespondenceAttachmentStatusResponse.Failed
+                                )
+                            ),
+                        _ => throw FailException.ForFailure(
+                            $"Unknown mock endpoint: {request.Method} {request.RequestUri}"
+                        ),
+                    }
+            );
+
+        // Act
+        Func<Task> act = () => fixture.CorrespondenceClient.Send(PayloadFactory.Send(withAttachment: true));
+
+        // Assert
+        await act.Should().ThrowAsync<CorrespondenceRequestException>();
+    }
+
+    [Fact]
+    public async Task Send_WithAttachments_AttachmentPurged_ThrowsCorrespondenceRequestException()
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var mockHttpClientFactory = fixture.HttpClientFactoryMock;
+        var mockHttpClient = new Mock<HttpClient>();
+
+        mockHttpClientFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(mockHttpClient.Object);
+        mockHttpClient
+            .Setup(c => c.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                (HttpRequestMessage request, CancellationToken _) =>
+                    (request.Method, request.RequestUri!.AbsolutePath) switch
+                    {
+                        (var m, var path) when m == HttpMethod.Post && path.EndsWith("attachment") =>
+                            TestHelpers.ResponseMessageFactory(TestHelpers.DummyAttachmentId),
+                        (var m, var path) when m == HttpMethod.Post && path.EndsWith("/upload") =>
+                            TestHelpers.ResponseMessageFactory(
+                                TestHelpers.DummyAttachmentOverviewResponse(
+                                    CorrespondenceAttachmentStatusResponse.UploadProcessing
+                                )
+                            ),
+                        (var m, var path) when m == HttpMethod.Get && path.Contains("attachment/") =>
+                            TestHelpers.ResponseMessageFactory(
+                                TestHelpers.DummyAttachmentOverviewResponse(
+                                    CorrespondenceAttachmentStatusResponse.Purged
+                                )
+                            ),
+                        _ => throw FailException.ForFailure(
+                            $"Unknown mock endpoint: {request.Method} {request.RequestUri}"
+                        ),
+                    }
+            );
+
+        // Act
+        Func<Task> act = () => fixture.CorrespondenceClient.Send(PayloadFactory.Send(withAttachment: true));
+
+        // Assert
+        await act.Should().ThrowAsync<CorrespondenceRequestException>();
     }
 
     private sealed record Fixture(WebApplication App) : IAsyncDisposable
@@ -380,10 +512,11 @@ public class CorrespondenceClientTests
         public static SendCorrespondencePayload Send(
             Func<Task<JwtToken>>? tokenFactory = null,
             CorrespondenceAuthorisation? authorisation = null,
-            CorrespondenceAuthenticationMethod? authenticationMethod = null
+            CorrespondenceAuthenticationMethod? authenticationMethod = null,
+            bool withAttachment = false
         )
         {
-            var request = CorrespondenceRequestBuilder
+            var builder = CorrespondenceRequestBuilder
                 .Create()
                 .WithResourceId("resource-id")
                 .WithSender(OrganisationNumber.Parse("991825827"))
@@ -396,8 +529,18 @@ public class CorrespondenceClientTests
                         .WithTitle("message-title")
                         .WithSummary("message-summary")
                         .WithBody("message-body")
-                )
-                .Build();
+                );
+
+            if (withAttachment)
+                builder = builder.WithAttachment(
+                    CorrespondenceAttachmentBuilder
+                        .Create()
+                        .WithFilename("test-file.txt")
+                        .WithSendersReference("attachment-ref")
+                        .WithData(new MemoryStream("test content"u8.ToArray()))
+                );
+
+            var request = builder.Build();
 
             if (tokenFactory is not null)
                 return new SendCorrespondencePayload(request, tokenFactory);

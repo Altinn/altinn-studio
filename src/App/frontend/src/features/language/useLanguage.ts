@@ -15,7 +15,6 @@ import { smartLowerCaseFirst } from 'src/utils/formComponentUtils';
 import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
 import type { DataModelReader, useDataModelReaders } from 'src/features/formData/FormDataReaders';
 import type { TextResourceMap } from 'src/features/language/textResources';
-import type { LimitedTextResourceVariablesDataSources } from 'src/features/language/useLangToolsDataSources';
 import type { FormDataSelector } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { LooseAutocomplete } from 'src/types';
@@ -63,12 +62,15 @@ export interface IUseLanguage {
   elementAsString(element: ReactNode): string;
 }
 
-export interface TextResourceVariablesDataSources {
+export interface BaseTextResourceVariablesDataSources {
   applicationSettings: IApplicationSettings | null;
   instanceDataSources: IInstanceDataSources | null;
   customTextParameters: Record<string, string> | null;
   dataModelPath?: IDataModelReference;
   dataModels: ReturnType<typeof useDataModelReaders>;
+}
+
+export interface TextResourceVariablesDataSources extends BaseTextResourceVariablesDataSources {
   defaultDataType: string | undefined | typeof ContextNotProvided;
   formDataTypes: string[] | typeof ContextNotProvided;
   formDataSelector: FormDataSelector | typeof ContextNotProvided;
@@ -99,7 +101,7 @@ export function useLanguageWithForcedPath(dataModelPath: IDataModelReference | u
     const { textResources, language, selectedLanguage, ...dataSources } = sources;
 
     return staticUseLanguage(textResources, language, selectedLanguage, {
-      ...(dataSources as LimitedTextResourceVariablesDataSources),
+      ...dataSources,
       dataModelPath,
       defaultDataType,
       formDataTypes,

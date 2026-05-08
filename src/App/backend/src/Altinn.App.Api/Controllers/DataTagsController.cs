@@ -3,9 +3,12 @@ using System.Text.RegularExpressions;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Validation;
+using Altinn.App.Core.Models.Result;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -26,7 +29,10 @@ public partial class DataTagsController : ControllerBase
     private readonly IInstanceClient _instanceClient;
     private readonly IDataClient _dataClient;
     private readonly IValidationService _validationService;
+    private readonly IAuthenticationContext _authenticationContext;
     private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
+    private readonly IDataElementAccessChecker _dataElementAccessChecker;
+    private readonly IAppMetadata _applicationMetadata;
 
     /// <summary>
     /// Initialize a new instance of <see cref="DataTagsController"/> with the given services.
@@ -45,7 +51,10 @@ public partial class DataTagsController : ControllerBase
         _instanceClient = instanceClient;
         _dataClient = dataClient;
         _validationService = validationService;
+        _authenticationContext = serviceProvider.GetRequiredService<IAuthenticationContext>();
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
+        _dataElementAccessChecker = serviceProvider.GetRequiredService<IDataElementAccessChecker>();
+        _applicationMetadata = serviceProvider.GetRequiredService<IAppMetadata>();
     }
 
     /// <summary>
@@ -134,35 +143,13 @@ public partial class DataTagsController : ControllerBase
             );
         }
 
-        Instance instance = await _instanceClient.GetInstance(
-            app,
-            org,
-            instanceOwnerPartyId,
-            instanceGuid,
-            authenticationMethod: null,
-            CancellationToken.None
-        );
-        if (instance is null)
+        var accessCheck = await GetDataElementAndCheckAccess(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
+        if (!accessCheck.Success)
         {
-            return Problem(
-                title: "Instance not found",
-                detail: "Unable to find instance based on the given parameters.",
-                statusCode: StatusCodes.Status404NotFound
-            );
+            return StatusCode(accessCheck.Error.Status ?? 500, accessCheck.Error);
         }
 
-        DataElement? dataElement = instance.Data.FirstOrDefault(m =>
-            m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal)
-        );
-
-        if (dataElement is null)
-        {
-            return Problem(
-                title: "Data element not found",
-                detail: "Unable to find data element based on the given parameters.",
-                statusCode: StatusCodes.Status404NotFound
-            );
-        }
+        var (instance, dataElement) = accessCheck.Ok;
 
         if (!dataElement.Tags.Contains(tag))
         {
@@ -210,35 +197,13 @@ public partial class DataTagsController : ControllerBase
         [FromRoute] string tag
     )
     {
-        Instance instance = await _instanceClient.GetInstance(
-            app,
-            org,
-            instanceOwnerPartyId,
-            instanceGuid,
-            authenticationMethod: null,
-            CancellationToken.None
-        );
-        if (instance is null)
+        var accessCheck = await GetDataElementAndCheckAccess(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
+        if (!accessCheck.Success)
         {
-            return Problem(
-                title: "Instance not found",
-                detail: "Unable to find instance based on the given parameters.",
-                statusCode: StatusCodes.Status404NotFound
-            );
+            return StatusCode(accessCheck.Error.Status ?? 500, accessCheck.Error);
         }
 
-        DataElement? dataElement = instance.Data.FirstOrDefault(m =>
-            m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal)
-        );
-
-        if (dataElement is null)
-        {
-            return Problem(
-                title: "Data element not found",
-                detail: "Unable to find data element based on the given parameters.",
-                statusCode: StatusCodes.Status404NotFound
-            );
-        }
+        var (instance, dataElement) = accessCheck.Ok;
 
         if (dataElement.Tags.Remove(tag))
         {
@@ -286,35 +251,13 @@ public partial class DataTagsController : ControllerBase
             );
         }
 
-        Instance instance = await _instanceClient.GetInstance(
-            app,
-            org,
-            instanceOwnerPartyId,
-            instanceGuid,
-            authenticationMethod: null,
-            CancellationToken.None
-        );
-        if (instance is null)
+        var accessCheck = await GetDataElementAndCheckAccess(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
+        if (!accessCheck.Success)
         {
-            return Problem(
-                title: "Instance not found",
-                detail: "Unable to find instance based on the given parameters.",
-                statusCode: StatusCodes.Status404NotFound
-            );
+            return StatusCode(accessCheck.Error.Status ?? 500, accessCheck.Error);
         }
 
-        DataElement? dataElement = instance.Data.FirstOrDefault(it =>
-            it.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal)
-        );
-
-        if (dataElement is null)
-        {
-            return Problem(
-                title: "Data element not found",
-                detail: "Unable to find data element based on the given parameters.",
-                statusCode: StatusCodes.Status404NotFound
-            );
-        }
+        var (instance, dataElement) = accessCheck.Ok;
 
         // Set dataElement tags to be the new tags
         dataElement.Tags = [.. tags.Distinct(StringComparer.Ordinal)];
@@ -362,6 +305,57 @@ public partial class DataTagsController : ControllerBase
             );
         }
         return validationIssues;
+    }
+
+    private async Task<
+        ServiceResult<(Instance instance, DataElement dataElement), ProblemDetails>
+    > GetDataElementAndCheckAccess(string org, string app, int instanceOwnerPartyId, Guid instanceId, Guid dataId)
+    {
+        var dataIdString = dataId.ToString();
+        var instance = await _instanceClient.GetInstance(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceId,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
+        var dataElement = instance.Data.FirstOrDefault(dt => dt.Id == dataIdString);
+        if (dataElement is null)
+        {
+            return new ProblemDetails()
+            {
+                Title = "Data element not found",
+                Detail =
+                    $"The instance {instanceOwnerPartyId}/{instanceId} doesn't have a data element with id '{dataIdString}'.",
+                Status = StatusCodes.Status404NotFound,
+            };
+        }
+
+        var applicationMetadata = await _applicationMetadata.GetApplicationMetadata();
+        var dataType = applicationMetadata.DataTypes.FirstOrDefault(dt => dt.Id == dataElement.DataType);
+        if (dataType is null)
+        {
+            return new ProblemDetails()
+            {
+                Title = "Data type not found",
+                Detail =
+                    $"Unable to find data type \"{dataElement.DataType}\" in applicationmetadata for data element {dataIdString}.",
+                Status = StatusCodes.Status500InternalServerError,
+            };
+        }
+
+        var accessCheck = await _dataElementAccessChecker.GetUpdateProblem(
+            instance,
+            dataType,
+            _authenticationContext.Current
+        );
+        if (accessCheck is not null)
+        {
+            return accessCheck;
+        }
+
+        return (instance, dataElement);
     }
 
     [GeneratedRegex("^[\\p{L}\\-_]+$")]
