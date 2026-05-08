@@ -231,9 +231,13 @@ public partial class EngineTests
             {
                 Assert.Equal(rootWorkflowId, edge.From);
                 Assert.Equal(childWorkflowId, edge.To);
-                Assert.Equal("dependency", edge.Kind);
+                Assert.Equal(WorkflowDependencyGraphEdgeKind.Dependency, edge.Kind);
             }
         );
+
+        using var rawResponse = await _client.GetWorkflowDependencyGraphRaw(rootWorkflowId);
+        var body = await rawResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await VerifyJson(body);
     }
 
     [Fact]
@@ -277,9 +281,19 @@ public partial class EngineTests
         Assert.Contains(idB, workflowIds);
         Assert.Contains(idC, workflowIds);
 
-        Assert.Contains(dependencyGraph.Edges, edge => edge.From == idA && edge.To == idB && edge.Kind == "dependency");
-        Assert.Contains(dependencyGraph.Edges, edge => edge.From == idA && edge.To == idC && edge.Kind == "link");
+        Assert.Contains(
+            dependencyGraph.Edges,
+            edge => edge.From == idA && edge.To == idB && edge.Kind == WorkflowDependencyGraphEdgeKind.Dependency
+        );
+        Assert.Contains(
+            dependencyGraph.Edges,
+            edge => edge.From == idA && edge.To == idC && edge.Kind == WorkflowDependencyGraphEdgeKind.Link
+        );
         Assert.Equal(2, dependencyGraph.Edges.Count);
+
+        using var rawResponse = await _client.GetWorkflowDependencyGraphRaw(idB);
+        var body = await rawResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await VerifyJson(body);
     }
 
     [Fact]
@@ -300,6 +314,10 @@ public partial class EngineTests
         Assert.Single(dependencyGraph.Workflows);
         Assert.Equal(workflowId, dependencyGraph.Workflows[0].DatabaseId);
         Assert.Empty(dependencyGraph.Edges);
+
+        using var rawResponse = await _client.GetWorkflowDependencyGraphRaw(workflowId);
+        var body = await rawResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await VerifyJson(body);
     }
 
     [Fact]

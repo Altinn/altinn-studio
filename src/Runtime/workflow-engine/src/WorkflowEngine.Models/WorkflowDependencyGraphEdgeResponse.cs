@@ -23,5 +23,5 @@ public sealed record WorkflowDependencyGraphEdgeResponse
     /// The relationship type.
     /// </summary>
     [JsonPropertyName("kind")]
-    public required string Kind { get; init; }
+    public required WorkflowDependencyGraphEdgeKind Kind { get; init; }
 }

@@ -728,11 +728,17 @@ public class EngineEndpointTests
         Assert.Equal(3, ok.Value.Workflows.Count);
         Assert.Contains(
             ok.Value.Edges,
-            edge => edge.From == dependency.DatabaseId && edge.To == workflow.DatabaseId && edge.Kind == "dependency"
+            edge =>
+                edge.From == dependency.DatabaseId
+                && edge.To == workflow.DatabaseId
+                && edge.Kind == WorkflowDependencyGraphEdgeKind.Dependency
         );
         Assert.Contains(
             ok.Value.Edges,
-            edge => edge.From == workflow.DatabaseId && edge.To == linked.DatabaseId && edge.Kind == "link"
+            edge =>
+                edge.From == workflow.DatabaseId
+                && edge.To == linked.DatabaseId
+                && edge.Kind == WorkflowDependencyGraphEdgeKind.Link
         );
     }
 

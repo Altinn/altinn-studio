@@ -365,7 +365,7 @@ internal static class EngineRequestHandlers
                         {
                             From = dependency.DatabaseId,
                             To = workflow.DatabaseId,
-                            Kind = "dependency",
+                            Kind = WorkflowDependencyGraphEdgeKind.Dependency,
                         }
                     );
                 }
@@ -383,18 +383,14 @@ internal static class EngineRequestHandlers
                         {
                             From = workflow.DatabaseId,
                             To = link.DatabaseId,
-                            Kind = "link",
+                            Kind = WorkflowDependencyGraphEdgeKind.Link,
                         }
                     );
                 }
             }
         }
 
-        return edges
-            .OrderBy(edge => edge.From)
-            .ThenBy(edge => edge.To)
-            .ThenBy(edge => edge.Kind, StringComparer.Ordinal)
-            .ToList();
+        return edges.OrderBy(edge => edge.From).ThenBy(edge => edge.To).ThenBy(edge => edge.Kind).ToList();
     }
 
     /// <summary>
