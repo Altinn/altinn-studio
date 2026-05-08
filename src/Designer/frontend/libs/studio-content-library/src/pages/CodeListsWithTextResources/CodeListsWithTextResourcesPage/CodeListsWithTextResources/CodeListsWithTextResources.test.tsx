@@ -1,5 +1,5 @@
 import type { RenderResult } from '@testing-library/react';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import type { CodeListsWithTextResourcesProps } from './CodeListsWithTextResources';
 import { CodeListsWithTextResources } from './CodeListsWithTextResources';
 import { updateCodeListWithMetadata } from './EditCodeList/EditCodeList';
@@ -13,6 +13,7 @@ import { CodeListUsageTaskType } from '../../../../types/CodeListUsageTaskType';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 import { textResourcesNb } from '../../../../test-data/textResources';
 import { Guard } from '@studio/guard';
+import { screen } from '@studio/ui-test';
 
 const onDeleteCodeListMock = jest.fn();
 const onUpdateCodeListIdMock = jest.fn();
@@ -49,17 +50,15 @@ describe('CodeListsWithTextResources', () => {
 
   it('renders the code list details closed by default', () => {
     renderCodeLists();
-    const isExpanded = false;
-    const codeListDetails = getButton(codeListName, isExpanded);
-    expect(codeListDetails).toBeInTheDocument();
-    expect(codeListDetails).toHaveAttribute('aria-expanded', 'false');
+    const details = screen.getDetailsBySummary(codeListName);
+
+    expect(details).not.toHaveAttribute('open');
   });
 
   it('renders the code list details open by default if code list title is equal to codeListInEditMode', () => {
     renderCodeLists({ codeListInEditMode: codeListName });
-    const isExpanded = true;
-    const codeListDetails = getButton(codeListName, isExpanded);
-    expect(codeListDetails).toHaveAttribute('aria-expanded', 'true');
+    const details = screen.getDetailsBySummary(codeListName);
+    expect(details).toHaveAttribute('open');
   });
 
   it('renders the details header title without usage information if not in use', () => {

@@ -61,7 +61,7 @@ export function Feedback() {
   );
 }
 
-function useBackoff(callback: () => Promise<void>) {
+export function useBackoff(callback: () => Promise<void>) {
   // The backoff algorithm is used to check the process data, and slow down the requests after a while.
   // At first, it starts off once a second (every 1000ms) for 10 seconds.
   // After that, it slows down by one more second for every request.

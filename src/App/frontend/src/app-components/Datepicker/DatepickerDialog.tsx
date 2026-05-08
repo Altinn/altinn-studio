@@ -1,10 +1,16 @@
-import React, { useEffect, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useRef } from 'react';
 import type { PropsWithChildren, ReactNode } from 'react';
 
 import { Dialog, Popover } from '@digdir/designsystemet-react';
 
 import styles from 'src/app-components/Datepicker/Calendar.module.css';
 import { useIsMobile } from 'src/app-components/hooks/useDeviceWidths';
+
+const DatePickerCloseContext = createContext<(() => void) | null>(null);
+
+export function useDatePickerClose() {
+  return useContext(DatePickerCloseContext);
+}
 
 type DatePickerDialogProps = {
   id: string;
@@ -26,6 +32,7 @@ export function DatePickerDialog({
 }: PropsWithChildren<DatePickerDialogProps>) {
   const isMobile = useIsMobile();
   const modalRef = useRef<HTMLDialogElement>(null);
+  const closeDatepicker = () => setIsDialogOpen(false);
 
   useEffect(() => {
     isDialogOpen && modalRef.current?.showModal();
@@ -46,17 +53,20 @@ export function DatePickerDialog({
         >
           {trigger}
         </Dialog.Trigger>
-        <Dialog
-          ref={modalRef}
-          role='dialog'
-          aria-hidden={!isDialogOpen}
-          closedby='any'
-          modal
-          style={{ width: 'fit-content', minWidth: 'fit-content' }}
-          onClose={() => setIsDialogOpen(false)}
-        >
-          {children}
-        </Dialog>
+        <DatePickerCloseContext.Provider value={closeDatepicker}>
+          <Dialog
+            ref={modalRef}
+            role='dialog'
+            aria-hidden={!isDialogOpen}
+            closedby='any'
+            modal
+            closeButton={false}
+            className={styles.datepickerModal}
+            onClose={closeDatepicker}
+          >
+            <div className={styles.datepickerModalContent}>{children}</div>
+          </Dialog>
+        </DatePickerCloseContext.Provider>
       </Dialog.TriggerContext>
     );
   }
@@ -82,7 +92,7 @@ export function DatePickerDialog({
         data-size='lg'
         placement='top'
         autoFocus={true}
-        onClose={() => setIsDialogOpen(false)}
+        onClose={closeDatepicker}
       >
         {children}
       </Popover>

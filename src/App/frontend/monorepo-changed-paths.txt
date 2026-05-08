@@ -2,7 +2,6 @@
 .github/
 .husky/
 .yarn/patches/jsdom-npm-26.1.0-3857255f02.patch
-.yarn/releases/yarn-4.13.0.cjs
 .yarnrc.yml
 LICENSE.md
 adr/001-component-library.md
@@ -17,6 +16,7 @@ src/app-components/Datepicker/DatePickerHelpers.ts
 src/app-components/Text/DisplayText.tsx
 src/codegen/schemas/layout-sets.schema.v1.ts
 src/components/presentation/Header.tsx
+src/core/contexts/hookContext.tsx
 src/core/contexts/processingContext.tsx
 src/core/errorHandling/DisplayErrorProvider.tsx
 src/core/loading/LoadingRegistry.tsx
@@ -48,7 +48,6 @@ src/features/language/LangToolsStore.tsx
 src/features/language/LanguageProvider.tsx
 src/features/language/textResources/
 src/features/navigation/NavigationEffectContext.tsx
-src/features/navigation/useNavigateToPageWithValidation.ts
 src/features/options/CodeListsProvider.tsx
 src/features/orgs/OrgsProvider.tsx
 src/features/profile/ProfileProvider.tsx
@@ -61,21 +60,17 @@ src/features/validation/nodeValidation/waitForNodesToValidate.ts
 src/features/validation/schemaValidation/SchemaValidation.tsx
 src/features/validation/selectors/attachmentValidations.ts
 src/features/validation/validationContext.tsx
-src/hooks/usePageValidation.ts
 src/hooks/useWaitForState.ts
 src/index.tsx
-src/layout/GenericComponent.test.tsx
-src/layout/Grid/GridComponent.test.tsx
-src/layout/Grid/tools.test.ts
 src/layout/Group/SummaryGroupComponent.test.tsx
 src/layout/Group/__snapshots__/SummaryGroupComponent.test.tsx.snap
-src/layout/NavigationButtons/NavigationButtonsComponent.test.tsx
 src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup.test.tsx
 src/layout/RepeatingGroup/Summary/__snapshots__/SummaryRepeatingGroup.test.tsx.snap
 src/queries/appPrefetcher.ts
 src/queries/formPrefetcher.ts
 src/utils/formLayout.test.ts
 src/utils/formLayout.ts
+src/utils/layout/generator/GeneratorDataSources.tsx
 src/utils/refs/
 src/utils/versioning/versions.ts
 test/e2e/config/

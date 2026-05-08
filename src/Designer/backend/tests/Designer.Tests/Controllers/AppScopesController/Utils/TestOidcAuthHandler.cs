@@ -26,9 +26,17 @@ public class TestOidcAuthHandler : AuthenticationHandler<AuthenticationSchemeOpt
         {
             new
             {
-                type = "ansattporten:altinn:service",
-                resource = "urn:altinn:resource:5613:1",
-                reportees = new[] { new { ID = "0192:991825827" } },
+                type = "ansattporten:altinn:resource",
+                resource = "urn:altinn:resource:digdir-selvbetjening-klienter",
+                authorized_parties = new[]
+                {
+                    new
+                    {
+                        orgno = new { authority = "iso6523-actorid-upis", ID = "0192:991825827" },
+                        resource = "digdir-selvbetjening-klienter",
+                        name = "Test org",
+                    },
+                },
             },
         };
 

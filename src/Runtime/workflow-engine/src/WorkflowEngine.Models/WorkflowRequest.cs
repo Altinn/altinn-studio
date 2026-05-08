@@ -40,15 +40,18 @@ public sealed record WorkflowRequest
 
     /// <summary>
     /// Workflows that must complete before this one can execute.
-    /// Each entry is either a batch-scoped ref string (e.g. <c>"step-a"</c>) or an already-persisted
-    /// database ID (e.g. <c>1234</c>), allowing mixed arrays such as <c>["step-a", 1234, "step-b"]</c>.
+    /// Each entry is either a batch-scoped ref string (e.g. <c>"wf-a"</c>) or an already-persisted
+    /// database ID as a GUID (e.g. <c>"d4e5f6a7-1234-4abc-9def-0123456789ab"</c>), allowing mixed
+    /// arrays such as <c>["wf-a", "d4e5f6a7-...", "wf-b"]</c>.
     /// </summary>
     [JsonPropertyName("dependsOn")]
     public IEnumerable<WorkflowRef>? DependsOn { get; init; }
 
     /// <summary>
     /// Workflows that are soft-linked to this one (association without execution dependency).
-    /// Each entry is either a batch-scoped ref string or an already-persisted database ID.
+    /// Each entry is either a batch-scoped ref string (e.g. <c>"wf-a"</c>) or an already-persisted
+    /// database ID as a GUID (e.g. <c>"d4e5f6a7-1234-4abc-9def-0123456789ab"</c>), allowing mixed
+    /// arrays such as <c>["wf-a", "d4e5f6a7-...", "wf-b"]</c>.
     /// </summary>
     [JsonPropertyName("links")]
     public IEnumerable<WorkflowRef>? Links { get; init; }

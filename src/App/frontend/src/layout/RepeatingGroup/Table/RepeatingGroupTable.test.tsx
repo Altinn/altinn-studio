@@ -9,6 +9,7 @@ import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getFormLayoutRepeatingGroupMock } from 'src/__mocks__/getFormLayoutGroupMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
+import { IRawTextResource } from 'src/features/language/textResources';
 import {
   RepeatingGroupProvider,
   useRepeatingGroupRowState,
@@ -18,7 +19,7 @@ import { RepeatingGroupTable } from 'src/layout/RepeatingGroup/Table/RepeatingGr
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompCheckboxesExternal } from 'src/layout/Checkboxes/config.generated';
-import type { IRawOption } from 'src/layout/common.generated';
+import type { GridRow, IRawOption } from 'src/layout/common.generated';
 import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
 import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/config.generated';
 
@@ -93,6 +94,24 @@ describe('RepeatingGroupTable', () => {
     } as CompCheckboxesExternal,
   ];
 
+  const extraRowHeaderCells: GridRow = {
+    header: true,
+    readOnly: false,
+    cells: [
+      { text: 'extra.row.hdr0' },
+      { text: 'extra.row.hdr1', columnOptions: { hidden: true } },
+      { text: 'extra.row.hdr2' },
+      { text: 'extra.row.hdr3' },
+    ],
+  };
+
+  const extraRowTextResources = [
+    { id: 'extra.row.hdr0', value: 'Extra0' },
+    { id: 'extra.row.hdr1', value: 'Extra1Hidden' },
+    { id: 'extra.row.hdr2', value: 'Extra2' },
+    { id: 'extra.row.hdr3', value: 'Extra3' },
+  ];
+
   describe('popOver warning', () => {
     it('should open and close delete-warning on delete click when alertOnDelete is active', async () => {
       const group = getFormLayoutRepeatingGroupMock({
@@ -149,6 +168,38 @@ describe('RepeatingGroupTable', () => {
       expect(screen.getByTestId('editIndex')).toHaveTextContent('0');
     });
 
+    it('should keep table header visible when editing a single row with editInTable', async () => {
+      const groupWithEditInTableAndStickyHeader = getFormLayoutRepeatingGroupMock({
+        id: 'mock-container-id',
+        stickyHeader: true,
+        tableColumns: { field1: { editInTable: true } },
+      });
+
+      await render(getLayout(groupWithEditInTableAndStickyHeader, components), {
+        'some-group': [{ [ALTINN_ROW_ID]: uuidv4(), checkboxBinding: 'option.value', prop1: 'test row 0' }],
+      });
+      expect(document.getElementById('group-mock-container-id-table-header')).toBeInTheDocument();
+      await userEvent.click(screen.getAllByRole('button', { name: /rediger/i })[0]);
+      expect(screen.getByTestId('editIndex')).toHaveTextContent('0');
+      expect(document.getElementById('group-mock-container-id-table-header')).toBeInTheDocument();
+    });
+
+    it('should hide table header when editing a single row without editInTable', async () => {
+      const groupWithoutEditInTable = getFormLayoutRepeatingGroupMock({
+        id: 'mock-container-id',
+        stickyHeader: true,
+      });
+
+      await render(getLayout(groupWithoutEditInTable, components), {
+        'some-group': [{ [ALTINN_ROW_ID]: uuidv4(), checkboxBinding: 'option.value', prop1: 'test row 0' }],
+      });
+
+      expect(document.getElementById('group-mock-container-id-table-header')).toBeInTheDocument();
+      await userEvent.click(screen.getAllByRole('button', { name: /rediger/i })[0]);
+      expect(screen.getByTestId('editIndex')).toHaveTextContent('0');
+      expect(document.getElementById('group-mock-container-id-table-header')).not.toBeInTheDocument();
+    });
+
     it('should render EditableCell when editInTable is enabled for a column', async () => {
       const groupWithEditInTable = getFormLayoutRepeatingGroupMock({
         id: 'mock-container-id',
@@ -174,6 +225,47 @@ describe('RepeatingGroupTable', () => {
       expect(inputs.length).toBeGreaterThan(0);
       const field1Inputs = inputs.filter((input) => input.getAttribute('id')?.includes('field1'));
       expect(field1Inputs.length).toBeGreaterThan(0);
+    });
+
+    it('should align numeric editInTable header to left', async () => {
+      const groupWithNumericColumn = getFormLayoutRepeatingGroupMock({
+        id: 'mock-container-id',
+        tableColumns: { field1: { editInTable: true } },
+      });
+      const componentsWithNumericInput: CompExternal[] = components.map((component) =>
+        component.id === 'field1'
+          ? {
+              ...component,
+              formatting: { number: { thousandSeparator: ' ' } },
+            }
+          : component,
+      );
+      const layout = getLayout(groupWithNumericColumn, componentsWithNumericInput);
+      await render(layout);
+      expect(screen.getByRole('columnheader', { name: 'Title1' })).toHaveStyle({ '--cell-text-alignment': 'left' });
+    });
+
+    async function renderExtraRowsWithHiddenSecondColumn(
+      extra: Pick<Partial<CompRepeatingGroupExternal>, 'rowsBefore' | 'rowsAfter'>,
+    ) {
+      const groupWithExtraRows = getFormLayoutRepeatingGroupMock({
+        id: 'mock-container-id',
+        tableHeaders: ['field1', 'field2', 'field3', 'field4'],
+        ...extra,
+      });
+      await render(getLayout(groupWithExtraRows, components), undefined, extraRowTextResources);
+
+      expect(screen.getByText('Extra0')).toBeInTheDocument();
+      expect(screen.queryByText('Extra1Hidden')).not.toBeInTheDocument();
+      expect(screen.getByText('Extra2')).toBeInTheDocument();
+      expect(screen.getByText('Extra3')).toBeInTheDocument();
+    }
+
+    it.each([
+      ['rowsAfter', { rowsAfter: [extraRowHeaderCells] }],
+      ['rowsBefore', { rowsBefore: [extraRowHeaderCells] }],
+    ])('hides column from %s when header cell has columnOptions.hidden', async (_label, extraRowsProp) => {
+      await renderExtraRowsWithHiddenSecondColumn(extraRowsProp);
     });
   });
 
@@ -243,8 +335,20 @@ describe('RepeatingGroupTable', () => {
     });
   });
 
-  const render = (layout = getLayout(group, components)) =>
-    renderWithInstanceAndLayout({
+  const render = (
+    layout = getLayout(group, components),
+    formData: object = {
+      'some-group': [
+        { [ALTINN_ROW_ID]: uuidv4(), checkboxBinding: 'option.value', prop1: 'test row 0' },
+        { [ALTINN_ROW_ID]: uuidv4(), checkboxBinding: 'option.value', prop1: 'test row 1' },
+        { [ALTINN_ROW_ID]: uuidv4(), checkboxBinding: 'option.value', prop1: 'test row 2' },
+        { [ALTINN_ROW_ID]: uuidv4(), checkboxBinding: 'option.value', prop1: 'test row 3' },
+      ],
+    },
+    extraTextResources: IRawTextResource[] = [],
+  ) => {
+    window.altinnAppGlobalData.textResources!.resources = extraTextResources;
+    return renderWithInstanceAndLayout({
       renderer: (
         <RepeatingGroupProvider baseComponentId={group.id}>
           <LeakEditIndex />
@@ -255,17 +359,11 @@ describe('RepeatingGroupTable', () => {
         fetchFormBootstrapForInstance: async () =>
           getFormBootstrapMock((obj) => {
             obj.layouts = layout;
-            obj.dataModels[defaultDataTypeMock].initialData = {
-              'some-group': [
-                { [ALTINN_ROW_ID]: uuidv4(), checkBoxBinding: 'option.value', prop1: 'test row 0' },
-                { [ALTINN_ROW_ID]: uuidv4(), checkBoxBinding: 'option.value', prop1: 'test row 1' },
-                { [ALTINN_ROW_ID]: uuidv4(), checkBoxBinding: 'option.value', prop1: 'test row 2' },
-                { [ALTINN_ROW_ID]: uuidv4(), checkBoxBinding: 'option.value', prop1: 'test row 3' },
-              ],
-            };
+            obj.dataModels[defaultDataTypeMock].initialData = formData;
           }),
       },
     });
+  };
 });
 
 function LeakEditIndex() {

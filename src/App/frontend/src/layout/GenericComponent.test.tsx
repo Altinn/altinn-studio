@@ -3,7 +3,7 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
-import { GenericComponent } from 'src/layout/GenericComponent';
+import { findElementToFocus, GenericComponent } from 'src/layout/GenericComponent';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompExternal } from 'src/layout/layout';
 
@@ -75,5 +75,65 @@ describe('GenericComponent', () => {
 
     expect(screen.getByRole('textbox')).toBeInTheDocument();
     expect(screen.queryByText(/unknown component type/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('findElementToFocus', () => {
+  function createContainer(innerHtml: string) {
+    const div = document.createElement('div');
+    div.innerHTML = innerHtml;
+    return div as HTMLDivElement;
+  }
+
+  it('returns undefined when there are no focusable elements', () => {
+    const div = createContainer('<p>test</p>');
+    const result = findElementToFocus(div, null);
+    expect(result).toBeUndefined();
+  });
+
+  it('prefers input/textarea/select over other focusable elements when no binding is provided', () => {
+    const div = createContainer(
+      '<button id="button">Click me</button><input id="input" type="text" /><div tabindex="0" id="tabindex-div"></div>',
+    );
+
+    const result = findElementToFocus(div, null);
+    expect(result).toBeInstanceOf(HTMLInputElement);
+    expect(result?.id).toBe('input');
+  });
+
+  it('prefers element matching binding on an input-like element', () => {
+    const div = createContainer(
+      [
+        '<input id="input1" type="text" data-bindingkey="otherBinding" />',
+        '<button id="button" data-bindingkey="targetBinding"></button>',
+        '<textarea id="textarea" data-bindingkey="targetBinding"></textarea>',
+      ].join(''),
+    );
+    const result = findElementToFocus(div, 'targetBinding');
+    expect(result).toBeInstanceOf(HTMLTextAreaElement);
+    expect(result?.id).toBe('textarea');
+  });
+
+  it('falls back to any element matching binding when no input-like element matches', () => {
+    const div = createContainer(
+      [
+        '<button id="button1" data-bindingkey="targetBinding"></button>',
+        '<div id="div" tabindex="0" data-bindingkey="targetBinding"></div>',
+      ].join(''),
+    );
+
+    const result = findElementToFocus(div, 'targetBinding');
+    expect(result).toBeInstanceOf(HTMLButtonElement);
+    expect(result?.id).toBe('button1');
+  });
+
+  it('falls back to the first focusable element when there is no binding match', () => {
+    const div = createContainer(
+      '<button id="button1"></button><div id="div" tabindex="0"></div><button id="button2"></button>',
+    );
+
+    const result = findElementToFocus(div, 'nonExistingBinding');
+    expect(result).toBeInstanceOf(HTMLButtonElement);
+    expect(result?.id).toBe('button1');
   });
 });

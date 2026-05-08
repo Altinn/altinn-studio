@@ -1,5 +1,6 @@
 import { BasePage } from '../../helpers/BasePage';
-import { expect, type Page } from '@playwright/test';
+import { expect } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import path from 'path';
 
 export class CodeLists extends BasePage {
@@ -82,23 +83,19 @@ export class CodeLists extends BasePage {
   }
 
   public async verifyThatCodeListIsVisible(title: string): Promise<void> {
-    const codeList = this.page.getByTitle(
-      this.textMock('app_content_library.code_lists_with_text_resources.code_list_details_title', {
-        codeListTitle: title,
-      }),
-    );
-
-    await expect(codeList).toBeVisible();
+    await expect(this.getCodeListTitle(title)).toBeVisible();
   }
 
   public async codeListTitleExists(title: string): Promise<boolean> {
-    const codeList = this.page.getByTitle(
+    return this.getCodeListTitle(title).isVisible();
+  }
+
+  private getCodeListTitle(title: string): Locator {
+    return this.page.getByTitle(
       this.textMock('app_content_library.code_lists_with_text_resources.code_list_details_title', {
         codeListTitle: title,
       }),
     );
-
-    return codeList.isVisible();
   }
 
   public async clickOnAddItemButton(): Promise<void> {
@@ -110,7 +107,7 @@ export class CodeLists extends BasePage {
   }
 
   public async clickOnCodeListDetails(codeListTitle: string): Promise<void> {
-    await this.page.getByRole('button', { name: codeListTitle }).click();
+    await this.getCodeListTitle(codeListTitle).click();
   }
 
   public async clickOnDeleteCodelistButton(): Promise<void> {
@@ -179,7 +176,7 @@ export class CodeLists extends BasePage {
     numberOfItems: number,
     codeListTitle: string,
   ): Promise<void> {
-    const detailsTitle = this.page.getByRole('button', { name: codeListTitle });
+    const detailsTitle = this.getCodeListTitle(codeListTitle);
     const details = detailsTitle.locator('xpath=..');
     const table = details.getByRole('table');
     const rows = table.getByRole('row');

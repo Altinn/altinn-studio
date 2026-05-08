@@ -20,11 +20,35 @@ internal interface IPaymentService
 
     /// <summary>
     /// Check updated payment information from payment provider and store the updated data.
+    /// Operates on the instance's current task.
     /// </summary>
     Task<PaymentInformation> CheckAndStorePaymentStatus(
         Instance instance,
         ValidAltinnPaymentConfiguration paymentConfiguration,
         string? language
+    );
+
+    /// <summary>
+    /// Check updated payment information from the payment provider for the given task without persisting any changes.
+    /// Use when reading payment status for a task that is not the instance's current task.
+    /// </summary>
+    Task<PaymentInformation> CheckPaymentStatus(
+        Instance instance,
+        ValidAltinnPaymentConfiguration paymentConfiguration,
+        string taskId,
+        string? language
+    );
+
+    /// <summary>
+    /// Handle webhook callback from the payment provider indicating that the payment is completed.
+    /// Calls the provider for status, not trusting the webhook alone.
+    /// </summary>
+    /// <returns>A string with info about the callback success. Can be used for logging or return
+    /// </returns>
+    Task<string> HandlePaymentCompletedWebhook(
+        Instance instance,
+        ValidAltinnPaymentConfiguration paymentConfiguration,
+        StorageAuthenticationMethod storageAuthenticationMethod
     );
 
     /// <summary>

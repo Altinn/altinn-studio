@@ -11,8 +11,7 @@ import type { PageValidation } from 'src/layout/common.generated';
 /**
  * Checks if a page has validation errors as specified by the config.
  * If there are errors, the visibility of the page is set to the specified mask.
- *
- */
+ **/
 export function useOnPageNavigationValidation() {
   const setPageValidationMask = FormStore.validation.useSetPageValidationMask();
   const getNodeValidations = FormStore.nodes.useValidationsSelector();
@@ -31,6 +30,7 @@ export function useOnPageNavigationValidation() {
     if (!pageOrder || currentIndex === -1) {
       return false;
     }
+
     const currentOrPreviousPages = new Set<string>();
     for (const pageKey of pageOrder.slice(0, currentIndex + 1)) {
       currentOrPreviousPages.add(pageKey);

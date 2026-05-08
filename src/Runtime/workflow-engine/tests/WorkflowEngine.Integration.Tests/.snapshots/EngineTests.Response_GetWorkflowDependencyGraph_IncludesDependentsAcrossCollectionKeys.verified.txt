@@ -1,0 +1,72 @@
+﻿{
+  rootWorkflowId: Guid_1,
+  workflows: [
+    {
+      databaseId: {Scrubbed},
+      collectionKey: collection-a,
+      operationId: op-wf-root,
+      idempotencyKey: idem-Guid_2,
+      namespace: ttd-e2e-tests,
+      createdAt: {Scrubbed},
+      updatedAt: {Scrubbed},
+      labels: {
+        app: e2e-tests,
+        org: ttd
+      },
+      overallStatus: Completed,
+      dependents: {
+        Guid_3: Completed
+      },
+      steps: [
+        {
+          databaseId: {Scrubbed},
+          operationId: /ping-root,
+          processingOrder: 0,
+          updatedAt: {Scrubbed},
+          command: {
+            type: webhook
+          },
+          status: Completed,
+          retryCount: 0
+        }
+      ]
+    },
+    {
+      databaseId: {Scrubbed},
+      collectionKey: collection-b,
+      operationId: op-wf-child,
+      idempotencyKey: idem-Guid_4,
+      namespace: ttd-e2e-tests,
+      createdAt: {Scrubbed},
+      updatedAt: {Scrubbed},
+      labels: {
+        app: e2e-tests,
+        org: ttd
+      },
+      overallStatus: Completed,
+      dependencies: {
+        Guid_1: Completed
+      },
+      steps: [
+        {
+          databaseId: {Scrubbed},
+          operationId: /ping-child,
+          processingOrder: 0,
+          updatedAt: {Scrubbed},
+          command: {
+            type: webhook
+          },
+          status: Completed,
+          retryCount: 0
+        }
+      ]
+    }
+  ],
+  edges: [
+    {
+      from: Guid_1,
+      to: Guid_3,
+      kind: Dependency
+    }
+  ]
+}

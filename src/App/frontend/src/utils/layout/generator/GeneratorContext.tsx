@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import type { PropsWithChildren, RefObject } from 'react';
 
-import { ContextNotProvided, createContext } from 'src/core/contexts/context';
+import { createContext } from 'src/core/contexts/context';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompIntermediate, CompIntermediateExact, CompTypes, ILayouts } from 'src/layout/layout';
@@ -59,7 +59,7 @@ interface GeneratorContext {
   setNodeProp: (request: SetNodePropRequest) => void;
 }
 
-const { Provider, useCtx, useLaxCtx } = createContext<GeneratorContext>({
+const { Provider, useCtx } = createContext<GeneratorContext>({
   name: 'Generator',
   required: true,
 });
@@ -178,10 +178,6 @@ export function GeneratorGlobalProvider({ children, ...rest }: PropsWithChildren
 }
 
 export const GeneratorInternal = {
-  useIsInsideGenerator: () => {
-    const ctx = useLaxCtx();
-    return ctx === ContextNotProvided ? false : ctx.depth > 0;
-  },
   useRegistry: () => useCtx().registry,
   useIdMutators: () => useCtx().idMutators ?? emptyArray,
   useRecursiveMutators: () => useCtx().recursiveMutators ?? emptyArray,
