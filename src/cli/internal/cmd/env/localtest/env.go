@@ -312,7 +312,7 @@ func (e *Env) runForeground(
 }
 
 func (e *Env) logStreamer() *logStreamer {
-	manifest := components.NewManifest(e.buildDestroyOptions())
+	manifest := components.NewManifest(e.releaseOptions(true, true, e.devWorkflowEngineFromEnvironmentTopology()))
 	return newLogStreamer(e.client, e.out, components.EnabledContainerNames(manifest.Resources))
 }
 

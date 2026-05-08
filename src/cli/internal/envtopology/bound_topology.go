@@ -214,7 +214,7 @@ func WriteBoundTopologyConfig(path string, config BoundTopologyConfig) error {
 
 // ReadBoundTopologyConfig reads a bound topology configuration from disk.
 func ReadBoundTopologyConfig(path string) (BoundTopologyConfig, error) {
-	data, err := os.ReadFile(path) //nolint:gosec // G304: path is the resolved studioctl-managed topology config path.
+	data, err := os.ReadFile(filepath.Clean(path))
 	if err != nil {
 		return BoundTopologyConfig{}, fmt.Errorf("read bound topology config: %w", err)
 	}

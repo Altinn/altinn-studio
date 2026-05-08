@@ -128,6 +128,9 @@ func assertWorkflowEngineContainerConfig(t *testing.T, workflowEngine components
 	if got := workflowEngine.Environment["ASPNETCORE_HTTP_PORTS"]; got != "9090" {
 		t.Fatalf("workflowEngine.Environment[ASPNETCORE_HTTP_PORTS] = %q, want 9090", got)
 	}
+	if got := workflowEngine.Environment["ASPNETCORE_ENVIRONMENT"]; got != "Development" {
+		t.Fatalf("workflowEngine.Environment[ASPNETCORE_ENVIRONMENT] = %q, want Development", got)
+	}
 	if !slices.Equal(
 		workflowEngine.Dependencies,
 		[]string{components.ContainerWorkflowEngineDb, components.ContainerLocaltest},

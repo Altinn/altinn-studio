@@ -134,7 +134,7 @@ func workflowEngineContainer(ctx *Options) *ContainerSpec {
 
 func workflowEngineEnv(topology envtopology.Local) map[string]string {
 	return map[string]string{
-		"ASPNETCORE_ENVIRONMENT":              "Docker",
+		"ASPNETCORE_ENVIRONMENT":              "Development",
 		"ASPNETCORE_HTTP_PORTS":               workflowEngineHTTPPort,
 		"ConnectionStrings__WorkflowEngine":   "Host=" + ContainerWorkflowEngineDb + ";Port=" + postgresPort + ";Database=" + workflowEngineDB + ";Username=" + postgresUser + ";Password=" + postgresPassword,
 		"AppCommandSettings__CommandEndpoint": topology.LocaltestBaseURL() + "/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/",
