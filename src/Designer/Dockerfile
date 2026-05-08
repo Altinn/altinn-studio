@@ -34,7 +34,7 @@ COPY src/Designer/frontend/packages/schema-editor/package.json ./src/Designer/fr
 COPY src/Designer/frontend/packages/schema-model/package.json ./src/Designer/frontend/packages/schema-model/
 COPY src/Designer/frontend/packages/shared/package.json ./src/Designer/frontend/packages/shared/
 COPY src/Designer/frontend/packages/text-editor/package.json ./src/Designer/frontend/packages/text-editor/
-COPY src/Designer/frontend/packages/ux-editor/package.json ./src/Designer/frontend/packages/ux-editor/
+COPY src/Designer/frontend/packages/ux-editor-v4/package.json ./src/Designer/frontend/packages/ux-editor-v4/
 COPY src/Designer/frontend/packages/ux-editor-v3/package.json ./src/Designer/frontend/packages/ux-editor-v3/
 COPY src/Designer/frontend/resourceadm/package.json ./src/Designer/frontend/resourceadm/
 COPY src/Designer/frontend/resourceadm/testing/playwright/package.json ./src/Designer/frontend/resourceadm/testing/playwright/
