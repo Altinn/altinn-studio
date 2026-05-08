@@ -199,6 +199,19 @@ describe('convertDataBindingToInternalFormat', () => {
     });
     expect(internalFormat).toEqual({ dataType: 'validDataType', field: '' });
   });
+
+  it('should keep string binding in old format', () => {
+    const internalFormat = convertDataBindingToInternalFormat('defaultModel', 'simple.path');
+    expect(internalFormat).toEqual({ dataType: 'defaultModel', field: 'simple.path' });
+  });
+
+  it('should fallback to empty dataType when default type is undefined', () => {
+    const internalFormat = convertDataBindingToInternalFormat(undefined, {
+      field: 'validField',
+      dataType: { model: 'invalid' } as unknown as string,
+    });
+    expect(internalFormat).toEqual({ dataType: '', field: 'validField' });
+  });
 });
 
 describe('validateSelectedDataModel', () => {
