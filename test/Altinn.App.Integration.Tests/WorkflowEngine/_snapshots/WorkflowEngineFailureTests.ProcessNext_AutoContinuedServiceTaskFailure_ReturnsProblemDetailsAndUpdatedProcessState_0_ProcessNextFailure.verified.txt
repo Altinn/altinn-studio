@@ -43,7 +43,7 @@
       Method: {
         Method: PUT
       },
-      RequestUri: http://local.altinn.cloud:<localtestPort>/ttd/basic/instances/501337/51fbad88-dd36-40c8-9aaa-76916c6e97f2/process/next,
+      RequestUri: http://local.altinn.cloud:<localtestPort>/ttd/basic/instances/501337/d60b15a8-50bd-4a5b-bf21-d762167dbdaa/process/next,
       Headers: {
         Authorization: [
           Bearer <token>

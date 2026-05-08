@@ -12,6 +12,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -30,6 +31,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     private readonly IServiceProvider _serviceProvider;
     private readonly ConcurrentDictionary<Guid, StoredWorkflow> _workflows = new();
     private readonly ConcurrentDictionary<string, Guid[]> _workflowsByIdempotencyKey = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, List<Guid>> _collectionHeadsByKey = new(StringComparer.Ordinal);
     private readonly object _gate = new();
     private bool _isProcessing;
 
@@ -42,6 +44,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         string ns,
         string idempotencyKey,
         Guid? correlationId,
+        string? collectionKey,
         WorkflowEnqueueRequest request,
         CancellationToken cancellationToken = default
     )
@@ -62,6 +65,11 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
 
         Dictionary<string, Guid> refMap = new(StringComparer.Ordinal);
         List<StoredWorkflow> createdWorkflows = [];
+        Guid[] currentCollectionHeads =
+            !string.IsNullOrWhiteSpace(collectionKey)
+            && _collectionHeadsByKey.TryGetValue(CreateCollectionLookupKey(ns, collectionKey), out List<Guid>? heads)
+                ? [.. heads]
+                : [];
 
         foreach (WorkflowRequest workflow in request.Workflows)
         {
@@ -71,6 +79,19 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                 refMap[workflow.Ref] = databaseId;
             }
 
+            bool isCollectionRoot = workflow.DependsOn is null || workflow.DependsOn.All(dependency => dependency.IsId);
+            List<Guid> dependencyIds = ResolveWorkflowRefs(workflow.DependsOn, refMap);
+            if (isCollectionRoot)
+            {
+                foreach (Guid headId in currentCollectionHeads)
+                {
+                    if (!dependencyIds.Contains(headId))
+                    {
+                        dependencyIds.Add(headId);
+                    }
+                }
+            }
+
             createdWorkflows.Add(
                 new StoredWorkflow
                 {
@@ -78,13 +99,14 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                     Ref = workflow.Ref,
                     Namespace = ns,
                     CorrelationId = correlationId,
+                    CollectionKey = collectionKey,
                     IdempotencyKey = idempotencyKey,
                     OperationId = workflow.OperationId,
                     Labels = request.Labels,
                     Context = context,
                     InitialState = workflow.State,
                     State = workflow.State,
-                    DependencyIds = ResolveWorkflowRefs(workflow.DependsOn, refMap),
+                    DependencyIds = dependencyIds,
                     LinkIds = ResolveWorkflowRefs(workflow.Links, refMap),
                     Steps = workflow
                         .Steps.Select(
@@ -113,37 +135,57 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         }
 
         _workflowsByIdempotencyKey[batchKey] = createdWorkflows.Select(workflow => workflow.DatabaseId).ToArray();
+        if (!string.IsNullOrWhiteSpace(collectionKey))
+        {
+            UpdateCollectionHeads(ns, collectionKey, currentCollectionHeads, createdWorkflows);
+        }
 
         await ProcessAvailableWorkflows(cancellationToken);
 
         return new WorkflowEnqueueResponse.Accepted { Workflows = createdWorkflows.Select(ToWorkflowResult).ToList() };
     }
 
-    public Task<WorkflowDependencyGraphResponse?> GetWorkflowDependencyGraph(
+    public Task<WorkflowCollectionDetailResponse?> GetCollection(
         string ns,
-        Guid workflowId,
+        string key,
         CancellationToken cancellationToken = default
     )
     {
-        if (!_workflows.TryGetValue(workflowId, out StoredWorkflow? workflow) || workflow.Namespace != ns)
+        if (!_collectionHeadsByKey.TryGetValue(CreateCollectionLookupKey(ns, key), out List<Guid>? headIds))
         {
-            return Task.FromResult<WorkflowDependencyGraphResponse?>(null);
+            return Task.FromResult<WorkflowCollectionDetailResponse?>(null);
         }
 
-        IReadOnlyList<StoredWorkflow> dependencyGraphWorkflows = GetStoredWorkflowDependencyGraph(workflowId, ns);
-        var dependencyGraph = new WorkflowDependencyGraphResponse
+        List<StoredWorkflow> collectionWorkflows = _workflows
+            .Values.Where(workflow => workflow.Namespace == ns && workflow.CollectionKey == key)
+            .OrderBy(workflow => workflow.CreatedAt)
+            .ToList();
+        if (collectionWorkflows.Count == 0)
         {
-            RootWorkflowId = workflowId,
-            Workflows = dependencyGraphWorkflows.Select(ToWorkflowStatusResponse).ToList(),
-            Edges = BuildDependencyGraphEdges(dependencyGraphWorkflows),
+            return Task.FromResult<WorkflowCollectionDetailResponse?>(null);
+        }
+
+        WorkflowCollectionDetailResponse collection = new()
+        {
+            Key = key,
+            Namespace = ns,
+            Heads = headIds
+                .Where(headId =>
+                    _workflows.TryGetValue(headId, out StoredWorkflow? workflow) && workflow.Namespace == ns
+                )
+                .Select(headId => new CollectionHeadStatus { DatabaseId = headId, Status = _workflows[headId].Status })
+                .ToList(),
+            CreatedAt = collectionWorkflows[0].CreatedAt,
+            UpdatedAt = collectionWorkflows.Max(workflow => workflow.UpdatedAt),
         };
 
-        return Task.FromResult<WorkflowDependencyGraphResponse?>(dependencyGraph);
+        return Task.FromResult<WorkflowCollectionDetailResponse?>(collection);
     }
 
     public Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
         string ns,
         Guid? correlationId = null,
+        string? collectionKey = null,
         Dictionary<string, string>? labels = null,
         IReadOnlyList<PersistentItemStatus>? statuses = null,
         CancellationToken cancellationToken = default
@@ -154,6 +196,11 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         if (correlationId.HasValue)
         {
             matching = matching.Where(workflow => workflow.CorrelationId == correlationId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(collectionKey))
+        {
+            matching = matching.Where(workflow => workflow.CollectionKey == collectionKey);
         }
 
         if (labels is not null)
@@ -315,6 +362,11 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             _serviceProvider.GetRequiredService<ILogger<WorkflowEngineCallbackController>>(),
             _serviceProvider.GetService<Telemetry>()
         );
+        controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
+        if (!string.IsNullOrWhiteSpace(workflow.CollectionKey))
+        {
+            controller.HttpContext.Request.Headers["Collection-Key"] = workflow.CollectionKey;
+        }
 
         foreach (StoredStep step in workflow.Steps)
         {
@@ -479,129 +531,36 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         return true;
     }
 
-    private IReadOnlyList<StoredWorkflow> GetStoredWorkflowDependencyGraph(Guid workflowId, string ns)
-    {
-        if (!_workflows.TryGetValue(workflowId, out StoredWorkflow? root) || root.Namespace != ns)
-        {
-            return [];
-        }
-
-        var reverseDependencies = new Dictionary<Guid, List<StoredWorkflow>>();
-        var reverseLinks = new Dictionary<Guid, List<StoredWorkflow>>();
-        foreach (StoredWorkflow workflow in _workflows.Values.Where(candidate => candidate.Namespace == ns))
-        {
-            foreach (Guid dependencyId in workflow.DependencyIds)
-            {
-                if (!reverseDependencies.TryGetValue(dependencyId, out List<StoredWorkflow>? dependents))
-                {
-                    dependents = [];
-                    reverseDependencies[dependencyId] = dependents;
-                }
-
-                dependents.Add(workflow);
-            }
-
-            foreach (Guid linkId in workflow.LinkIds)
-            {
-                if (!reverseLinks.TryGetValue(linkId, out List<StoredWorkflow>? linkedWorkflows))
-                {
-                    linkedWorkflows = [];
-                    reverseLinks[linkId] = linkedWorkflows;
-                }
-
-                linkedWorkflows.Add(workflow);
-            }
-        }
-
-        HashSet<Guid> visited = [workflowId];
-        Queue<Guid> queue = new([workflowId]);
-        List<StoredWorkflow> dependencyGraph = [];
-
-        while (queue.TryDequeue(out Guid currentWorkflowId))
-        {
-            StoredWorkflow currentWorkflow = _workflows[currentWorkflowId];
-            dependencyGraph.Add(currentWorkflow);
-
-            foreach (Guid dependencyId in currentWorkflow.DependencyIds)
-            {
-                if (visited.Add(dependencyId))
-                {
-                    queue.Enqueue(dependencyId);
-                }
-            }
-
-            if (!reverseDependencies.TryGetValue(currentWorkflowId, out List<StoredWorkflow>? dependents))
-            {
-                dependents = null;
-            }
-
-            foreach (StoredWorkflow dependent in dependents ?? [])
-            {
-                if (visited.Add(dependent.DatabaseId))
-                {
-                    queue.Enqueue(dependent.DatabaseId);
-                }
-            }
-
-            foreach (Guid linkId in currentWorkflow.LinkIds)
-            {
-                if (visited.Add(linkId))
-                {
-                    queue.Enqueue(linkId);
-                }
-            }
-
-            if (!reverseLinks.TryGetValue(currentWorkflowId, out List<StoredWorkflow>? linkedWorkflows))
-            {
-                continue;
-            }
-
-            foreach (StoredWorkflow linkedWorkflow in linkedWorkflows)
-            {
-                if (visited.Add(linkedWorkflow.DatabaseId))
-                {
-                    queue.Enqueue(linkedWorkflow.DatabaseId);
-                }
-            }
-        }
-
-        return dependencyGraph;
-    }
-
-    private static IReadOnlyList<WorkflowDependencyGraphEdgeResponse> BuildDependencyGraphEdges(
-        IReadOnlyList<StoredWorkflow> workflows
+    private void UpdateCollectionHeads(
+        string ns,
+        string collectionKey,
+        IReadOnlyCollection<Guid> previousHeads,
+        IReadOnlyList<StoredWorkflow> createdWorkflows
     )
     {
-        HashSet<Guid> workflowIds = [.. workflows.Select(workflow => workflow.DatabaseId)];
-
-        return workflows
-            .SelectMany(workflow =>
-                workflow
-                    .DependencyIds.Where(workflowIds.Contains)
-                    .Select(dependencyId => new WorkflowDependencyGraphEdgeResponse
-                    {
-                        From = dependencyId,
-                        To = workflow.DatabaseId,
-                        Kind = "dependency",
-                    })
-                    .Concat(
-                        workflow
-                            .LinkIds.Where(workflowIds.Contains)
-                            .Select(linkId => new WorkflowDependencyGraphEdgeResponse
-                            {
-                                From = workflow.DatabaseId,
-                                To = linkId,
-                                Kind = "link",
-                            })
-                    )
-            )
-            .OrderBy(edge => edge.From)
-            .ThenBy(edge => edge.To)
-            .ThenBy(edge => edge.Kind, StringComparer.Ordinal)
+        HashSet<Guid> previousHeadSet = [.. previousHeads];
+        HashSet<Guid> consumedHeads =
+        [
+            .. createdWorkflows.SelectMany(workflow => workflow.DependencyIds).Where(previousHeadSet.Contains),
+        ];
+        HashSet<Guid> dependedOnWithinBatch = [.. createdWorkflows.SelectMany(workflow => workflow.DependencyIds)];
+        List<Guid> newHeads = createdWorkflows
+            .Where(workflow => !dependedOnWithinBatch.Contains(workflow.DatabaseId))
+            .Select(workflow => workflow.DatabaseId)
             .ToList();
+
+        List<Guid> updatedHeads = previousHeads
+            .Where(headId => !consumedHeads.Contains(headId))
+            .Concat(newHeads)
+            .Distinct()
+            .ToList();
+
+        _collectionHeadsByKey[CreateCollectionLookupKey(ns, collectionKey)] = updatedHeads;
     }
 
     private static string CreateBatchKey(string ns, string idempotencyKey) => $"{ns}|{idempotencyKey}";
+
+    private static string CreateCollectionLookupKey(string ns, string collectionKey) => $"{ns}|{collectionKey}";
 
     private static WorkflowResult ToWorkflowResult(StoredWorkflow workflow) =>
         new()
@@ -619,6 +578,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             OperationId = workflow.OperationId,
             IdempotencyKey = workflow.IdempotencyKey,
             Namespace = workflow.Namespace,
+            CollectionKey = workflow.CollectionKey,
             CreatedAt = workflow.CreatedAt,
             UpdatedAt = workflow.UpdatedAt,
             Labels = workflow.Labels is null ? null : new Dictionary<string, string>(workflow.Labels),
@@ -693,6 +653,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         public required string Namespace { get; init; }
 
         public required Guid? CorrelationId { get; init; }
+
+        public required string? CollectionKey { get; init; }
 
         public required string IdempotencyKey { get; init; }
 

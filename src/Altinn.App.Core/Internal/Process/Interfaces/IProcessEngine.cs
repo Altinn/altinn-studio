@@ -49,6 +49,7 @@ internal interface IProcessEngine
         Actor actor,
         string lockToken,
         Guid dependsOnWorkflowId,
+        string collectionKey,
         string state,
         string? action = null,
         CancellationToken ct = default

@@ -39,6 +39,13 @@ internal sealed record WorkflowStatusResponse
     public required string Namespace { get; init; }
 
     /// <summary>
+    /// The collection key for this workflow, if one was provided.
+    /// </summary>
+    [JsonPropertyName("collectionKey")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? CollectionKey { get; init; }
+
+    /// <summary>
     /// When the workflow was created.
     /// </summary>
     [JsonPropertyName("createdAt")]

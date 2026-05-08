@@ -71,10 +71,10 @@
         Source: TestApp.Shared.Validator-Task_1
       },
       {
-        Source: TestApp.Shared.FormDataValidator-*
+        Source: DataAnnotations
       },
       {
-        Source: DataAnnotations
+        Source: TestApp.Shared.FormDataValidator-*
       }
     ],
     NewDataModels: [

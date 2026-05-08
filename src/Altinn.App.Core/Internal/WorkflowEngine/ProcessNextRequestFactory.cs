@@ -25,7 +25,8 @@ internal sealed record WorkflowEnqueueBundle(
     WorkflowEnqueueRequest Request,
     string Namespace,
     string IdempotencyKey,
-    Guid? CorrelationId
+    Guid? CorrelationId,
+    string? CollectionKey
 );
 
 /// <summary>
@@ -101,6 +102,7 @@ internal sealed class ProcessNextRequestFactory
 
         string ns = $"{_appIdentifier.Org}/{_appIdentifier.App}";
         Guid correlationId = instanceId.InstanceGuid;
+        string? collectionKey = CreateProcessNextCollectionKey(instance, processStateChange);
         Dictionary<string, string>? labels = null;
         if (CreateProcessNextId(processStateChange.NewProcessState?.CurrentTask) is { } processNextId)
         {
@@ -123,13 +125,29 @@ internal sealed class ProcessNextRequestFactory
             ],
         };
 
-        return new WorkflowEnqueueBundle(request, ns, effectiveIdempotencyKey, correlationId);
+        return new WorkflowEnqueueBundle(request, ns, effectiveIdempotencyKey, correlationId, collectionKey);
     }
 
     internal static string? CreateProcessNextId(ProcessElementInfo? currentTask) =>
         currentTask?.ElementId is { Length: > 0 } taskId ? CreateProcessNextId(taskId, currentTask.Flow ?? 0) : null;
 
     internal static string CreateProcessNextId(string taskId, int flow) => $"{taskId}:{flow}";
+
+    internal static string? CreateProcessNextCollectionKey(Instance instance, ProcessStateChange processStateChange)
+    {
+        ProcessElementInfo? scopeTask =
+            processStateChange.OldProcessState?.CurrentTask ?? processStateChange.NewProcessState?.CurrentTask;
+        if (scopeTask?.ElementId is not { Length: > 0 } taskId)
+        {
+            return null;
+        }
+
+        InstanceIdentifier instanceId = new(instance);
+        return CreateProcessNextCollectionKey(instanceId.InstanceGuid, taskId, scopeTask.Flow ?? 0);
+    }
+
+    internal static string CreateProcessNextCollectionKey(Guid instanceGuid, string taskId, int flow) =>
+        $"process-next:{instanceGuid:N}:{taskId}:{flow}";
 
     private async Task<List<StepRequest>> AssembleCommandSequence(
         ProcessStateChange processStateChange,

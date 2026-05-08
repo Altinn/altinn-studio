@@ -82,7 +82,7 @@ WorkflowEngine/
 │   ├── ServiceCollectionExtensions.cs       - Registers all commands + client + helpers
 │   └── WorkflowEngineCommandValidator.cs    - Startup check: all keys in WorkflowCommandSet are registered
 ├── Http/
-│   ├── IWorkflowEngineClient.cs             - Enqueue, list, dependency-graph, cancel, and resume operations
+│   ├── IWorkflowEngineClient.cs             - Enqueue, list, collection, cancel, and resume operations
 │   └── WorkflowEngineClient.cs              - HTTP impl with X-Api-Key auth
 ├── Models/
 │   ├── WorkflowEnqueueRequest.cs            - Batch request body (labels, context, list of WorkflowRequest)
@@ -194,7 +194,7 @@ The engine service (separate repo at `altinn-studio/src/Runtime/workflow-engine`
 
 ### URL Patterns
 - Enqueue: `POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows` with `Idempotency-Key` header (required) and `Correlation-Id` header (optional)
-- Dependency graph: `GET {ApiWorkflowEngineEndpoint}/{namespace}/workflows/{workflowId}/dependency-graph`
+- Collection detail: `GET {ApiWorkflowEngineEndpoint}/{namespace}/collections/{collectionKey}`
 - List active: `GET {ApiWorkflowEngineEndpoint}/{namespace}/workflows?correlationId={correlationId}` — returns `PaginatedResponse<WorkflowStatusResponse>`
 - Cancel: `POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows/{workflowId}/cancel`
 - Resume: `POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows/{workflowId}/resume?cascade={bool}`

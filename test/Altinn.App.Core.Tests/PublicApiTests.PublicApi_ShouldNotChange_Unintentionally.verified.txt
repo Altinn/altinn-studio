@@ -5358,6 +5358,7 @@ namespace Altinn.App.Core.Models.Process
         public string? ErrorMessage { get; init; }
         public string? ErrorTitle { get; set; }
         public Altinn.App.Core.Models.Process.ProcessErrorType? ErrorType { get; init; }
+        public Altinn.App.Core.Models.Process.ProcessNextState? ProcessNextState { get; init; }
         public Altinn.App.Core.Models.Process.ProcessStateChange? ProcessStateChange { get; init; }
         public Altinn.Platform.Storage.Interface.Models.ProcessState? ProcessStateOnFailure { get; init; }
         [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(false, new string?[]?[] {
@@ -5397,6 +5398,11 @@ namespace Altinn.App.Core.Models.Process
         public required Altinn.Platform.Storage.Interface.Models.Instance Instance { get; init; }
         public required string? Language { get; init; }
         public required System.Security.Claims.ClaimsPrincipal User { get; init; }
+    }
+    public enum ProcessNextState
+    {
+        Retrying = 0,
+        RecoveryRequired = 1,
     }
     public class ProcessStartRequest
     {

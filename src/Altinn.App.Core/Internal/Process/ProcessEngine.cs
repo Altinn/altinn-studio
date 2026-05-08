@@ -319,6 +319,7 @@ internal class ProcessEngine : IProcessEngine
         if (
             currentTaskWorkflowState.ProcessNextState != ProcessNextState.RecoveryRequired
             || currentTaskWorkflowState.WorkflowId is not Guid workflowId
+            || currentTaskWorkflowState.CollectionKey is not { Length: > 0 } collectionKey
         )
         {
             var result = new ProcessChangeResult
@@ -335,6 +336,7 @@ internal class ProcessEngine : IProcessEngine
         ProcessNextWorkflowResult workflowResult = await _workflowEngineService.ResumeAndWaitForWorkflow(
             instance,
             workflowId,
+            collectionKey,
             ct
         );
 
@@ -826,6 +828,7 @@ internal class ProcessEngine : IProcessEngine
         Actor actor,
         string lockToken,
         Guid dependsOnWorkflowId,
+        string collectionKey,
         string state,
         string? action = null,
         CancellationToken ct = default
@@ -839,6 +842,7 @@ internal class ProcessEngine : IProcessEngine
             processStateChange,
             lockToken,
             dependsOnWorkflowId,
+            collectionKey,
             state,
             actor,
             ct: ct

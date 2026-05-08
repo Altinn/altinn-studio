@@ -31,6 +31,7 @@ internal interface IWorkflowEngineService
     Task<ProcessNextWorkflowResult> ResumeAndWaitForWorkflow(
         Instance instance,
         Guid workflowId,
+        string collectionKey,
         CancellationToken ct = default
     );
 
@@ -39,6 +40,7 @@ internal interface IWorkflowEngineService
         ProcessStateChange processStateChange,
         string lockToken,
         Guid dependsOnWorkflowId,
+        string collectionKey,
         string state,
         Actor actor,
         CancellationToken ct = default
@@ -51,11 +53,14 @@ internal sealed record ProcessNextWorkflowResult(
     bool ProcessStateChanged
 );
 
-internal sealed record CurrentTaskWorkflowState(ProcessNextState? ProcessNextState, Guid? WorkflowId = null);
+internal sealed record CurrentTaskWorkflowState(
+    ProcessNextState? ProcessNextState,
+    Guid? WorkflowId = null,
+    string? CollectionKey = null
+);
 
 internal sealed class WorkflowEngineService : IWorkflowEngineService
 {
-    private const string DependencyEdgeKind = "dependency";
     private const int WorkflowPollingTimeoutMs = 100_000;
     private const int InitialWorkflowPollingDelayMs = 100;
     private const int MaxWorkflowPollingDelayMs = 2_000;
@@ -89,7 +94,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         CancellationToken ct = default
     )
     {
-        Guid rootWorkflowId = await CreateAndEnqueueWorkflow(
+        (_, string? collectionKey) = await CreateAndEnqueueWorkflow(
             instance,
             processStateChange,
             CreateProcessNextIdempotencyKey(instance, resolvedAction),
@@ -100,7 +105,12 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             ct: ct
         );
 
-        return await WaitForWorkflowDependencyGraphAndRefetchInstance(instance, rootWorkflowId, ct);
+        if (string.IsNullOrWhiteSpace(collectionKey))
+        {
+            throw new InvalidOperationException("Process-next workflow collection key was not created.");
+        }
+
+        return await WaitForWorkflowCollectionAndRefetchInstance(instance, collectionKey, ct);
     }
 
     public Task<Guid> EnqueueDependentProcessNext(
@@ -108,19 +118,20 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         ProcessStateChange processStateChange,
         string lockToken,
         Guid dependsOnWorkflowId,
+        string collectionKey,
         string state,
         Actor actor,
         CancellationToken ct = default
     ) =>
-        CreateAndEnqueueWorkflow(
+        EnqueueDependentWorkflow(
             instance,
             processStateChange,
-            CreateDependentWorkflowIdempotencyKey(dependsOnWorkflowId),
             lockToken,
+            dependsOnWorkflowId,
+            collectionKey,
             state,
-            actor: actor,
-            dependsOn: [WorkflowRef.FromDatabaseId(dependsOnWorkflowId)],
-            ct: ct
+            actor,
+            ct
         );
 
     public async Task<CurrentTaskWorkflowState> GetCurrentTaskWorkflowState(
@@ -137,7 +148,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         InstanceIdentifier instanceIdentifier = new(instance);
         IReadOnlyList<WorkflowStatusResponse> matchingWorkflows = await _workflowEngineClient.ListWorkflows(
             GetNamespace(),
-            instanceIdentifier.InstanceGuid,
+            correlationId: instanceIdentifier.InstanceGuid,
             labels: new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 [ProcessNextRequestFactory.ProcessNextIdLabel] = processNextId,
@@ -145,50 +156,86 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             cancellationToken: ct
         );
 
-        WorkflowStatusResponse? rootWorkflow = matchingWorkflows
+        WorkflowStatusResponse? currentTaskWorkflow = matchingWorkflows
             .OrderByDescending(workflow => workflow.CreatedAt)
             .FirstOrDefault();
-
-        if (rootWorkflow is null)
+        if (currentTaskWorkflow?.CollectionKey is not { Length: > 0 } collectionKey)
         {
-            return new CurrentTaskWorkflowState(null);
+            return new CurrentTaskWorkflowState(null, currentTaskWorkflow?.DatabaseId);
         }
 
-        WorkflowDependencyGraphResponse? dependencyGraph = await _workflowEngineClient.GetWorkflowDependencyGraph(
+        WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
             GetNamespace(),
-            rootWorkflow.DatabaseId,
+            collectionKey,
             cancellationToken: ct
         );
-        IReadOnlyList<WorkflowStatusResponse> graphWorkflows = GetProcessNextDependencyChain(
-            dependencyGraph,
-            rootWorkflow.DatabaseId,
-            rootWorkflow
+        if (collection is null || collection.Heads.Count == 0)
+        {
+            return new CurrentTaskWorkflowState(null, currentTaskWorkflow.DatabaseId, collectionKey);
+        }
+
+        CollectionHeadStatus? activeHead = collection.Heads.FirstOrDefault(IsActiveCollectionHeadStatus);
+        if (activeHead is not null)
+        {
+            return new CurrentTaskWorkflowState(ProcessNextState.Retrying, activeHead.DatabaseId, collectionKey);
+        }
+
+        CollectionHeadStatus? recoveryRequiredHead = collection.Heads.FirstOrDefault(
+            IsRecoveryRequiredCollectionHeadStatus
         );
-
-        if (graphWorkflows.Any(IsActiveWorkflowStatus))
+        if (recoveryRequiredHead is not null)
         {
-            return new CurrentTaskWorkflowState(ProcessNextState.Retrying, rootWorkflow.DatabaseId);
+            Guid retryTargetWorkflowId =
+                await GetRecoveryTargetWorkflowId(collectionKey, recoveryRequiredHead.DatabaseId, ct)
+                ?? recoveryRequiredHead.DatabaseId;
+            return new CurrentTaskWorkflowState(
+                ProcessNextState.RecoveryRequired,
+                retryTargetWorkflowId,
+                collectionKey
+            );
         }
 
-        if (graphWorkflows.Any(IsRecoveryRequiredWorkflowStatus))
-        {
-            return new CurrentTaskWorkflowState(ProcessNextState.RecoveryRequired, rootWorkflow.DatabaseId);
-        }
-
-        return new CurrentTaskWorkflowState(null, rootWorkflow.DatabaseId);
+        return new CurrentTaskWorkflowState(null, currentTaskWorkflow.DatabaseId, collectionKey);
     }
 
     public async Task<ProcessNextWorkflowResult> ResumeAndWaitForWorkflow(
         Instance instance,
         Guid workflowId,
+        string collectionKey,
         CancellationToken ct = default
     )
     {
         await _workflowEngineClient.ResumeWorkflow(GetNamespace(), workflowId, cancellationToken: ct);
-        return await WaitForWorkflowDependencyGraphAndRefetchInstance(instance, workflowId, ct);
+        return await WaitForWorkflowCollectionAndRefetchInstance(instance, collectionKey, ct);
     }
 
-    private async Task<Guid> CreateAndEnqueueWorkflow(
+    private async Task<Guid> EnqueueDependentWorkflow(
+        Instance instance,
+        ProcessStateChange processStateChange,
+        string lockToken,
+        Guid dependsOnWorkflowId,
+        string collectionKey,
+        string state,
+        Actor actor,
+        CancellationToken ct
+    )
+    {
+        (Guid workflowId, _) = await CreateAndEnqueueWorkflow(
+            instance,
+            processStateChange,
+            CreateDependentWorkflowIdempotencyKey(dependsOnWorkflowId),
+            lockToken,
+            state,
+            actor: actor,
+            dependsOn: [WorkflowRef.FromDatabaseId(dependsOnWorkflowId)],
+            collectionKey: collectionKey,
+            ct: ct
+        );
+
+        return workflowId;
+    }
+
+    private async Task<(Guid WorkflowId, string? CollectionKey)> CreateAndEnqueueWorkflow(
         Instance instance,
         ProcessStateChange processStateChange,
         string idempotencyKey,
@@ -196,6 +243,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         string? state = null,
         Actor? actor = null,
         IEnumerable<WorkflowRef>? dependsOn = null,
+        string? collectionKey = null,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
         CancellationToken ct = default
@@ -212,48 +260,51 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             notification: notification,
             idempotencyKey: idempotencyKey
         );
+        string? effectiveCollectionKey = collectionKey ?? bundle.CollectionKey;
 
         WorkflowEnqueueResponse.Accepted response = await _workflowEngineClient.EnqueueWorkflows(
             bundle.Namespace,
             bundle.IdempotencyKey,
             bundle.CorrelationId,
+            effectiveCollectionKey,
             bundle.Request,
             ct
         );
 
-        return response.Workflows[0].DatabaseId;
+        return (response.Workflows[0].DatabaseId, effectiveCollectionKey);
     }
 
-    private async Task<ProcessNextWorkflowResult> WaitForWorkflowDependencyGraphAndRefetchInstance(
+    private async Task<ProcessNextWorkflowResult> WaitForWorkflowCollectionAndRefetchInstance(
         Instance instance,
-        Guid rootWorkflowId,
+        string collectionKey,
         CancellationToken ct
     )
     {
         var stopwatch = Stopwatch.StartNew();
         int currentDelayMs = InitialWorkflowPollingDelayMs;
-        IReadOnlyList<WorkflowStatusResponse> lastObservedDependencyGraph = [];
+        IReadOnlyList<WorkflowStatusResponse> lastObservedCollectionWorkflows = [];
 
         while (!ct.IsCancellationRequested)
         {
-            WorkflowDependencyGraphResponse? dependencyGraph = await _workflowEngineClient.GetWorkflowDependencyGraph(
+            WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
                 GetNamespace(),
-                rootWorkflowId,
+                collectionKey,
                 cancellationToken: ct
             );
-            IReadOnlyList<WorkflowStatusResponse> graphWorkflows = GetProcessNextDependencyChain(
-                dependencyGraph,
-                rootWorkflowId
-            );
-            if (graphWorkflows.Count > 0)
+            if (collection?.Heads.Count > 0)
             {
-                lastObservedDependencyGraph = graphWorkflows;
-
-                if (!graphWorkflows.Any(IsActiveWorkflowStatus))
+                if (!collection.Heads.Any(IsActiveCollectionHeadStatus))
                 {
                     Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
-                    WorkflowFailure? workflowFailure = BuildWorkflowFailure(graphWorkflows);
-                    bool processStateChanged = HasCommittedProcessState(graphWorkflows);
+                    IReadOnlyList<WorkflowStatusResponse> collectionWorkflows =
+                        await _workflowEngineClient.ListWorkflows(
+                            GetNamespace(),
+                            collectionKey: collectionKey,
+                            cancellationToken: ct
+                        );
+                    lastObservedCollectionWorkflows = collectionWorkflows;
+                    WorkflowFailure? workflowFailure = BuildWorkflowFailure(collectionWorkflows);
+                    bool processStateChanged = HasCommittedProcessState(collectionWorkflows);
                     return new ProcessNextWorkflowResult(freshInstance, workflowFailure, processStateChanged);
                 }
             }
@@ -261,10 +312,18 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             if (stopwatch.ElapsedMilliseconds > WorkflowPollingTimeoutMs)
             {
                 Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
+                if (lastObservedCollectionWorkflows.Count == 0)
+                {
+                    lastObservedCollectionWorkflows = await _workflowEngineClient.ListWorkflows(
+                        GetNamespace(),
+                        collectionKey: collectionKey,
+                        cancellationToken: ct
+                    );
+                }
                 return new ProcessNextWorkflowResult(
                     freshInstance,
                     new WorkflowFailure { Kind = WorkflowFailureKind.Timeout },
-                    HasCommittedProcessState(lastObservedDependencyGraph)
+                    HasCommittedProcessState(lastObservedCollectionWorkflows)
                 );
             }
 
@@ -278,86 +337,14 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
     private string GetNamespace() => $"{_appIdentifier.Org}/{_appIdentifier.App}";
 
-    private static IReadOnlyList<WorkflowStatusResponse> GetProcessNextDependencyChain(
-        WorkflowDependencyGraphResponse? dependencyGraph,
-        Guid rootWorkflowId,
-        WorkflowStatusResponse? fallbackRootWorkflow = null
-    )
-    {
-        if (dependencyGraph is null)
-        {
-            return fallbackRootWorkflow is null ? [] : [fallbackRootWorkflow];
-        }
-
-        if (dependencyGraph.Workflows.Count == 0)
-        {
-            return fallbackRootWorkflow is null ? [] : [fallbackRootWorkflow];
-        }
-
-        if (dependencyGraph.Edges.Count == 0)
-        {
-            return dependencyGraph.Workflows;
-        }
-
-        HashSet<Guid> reachableWorkflowIds = GetReachableDependencyWorkflowIds(dependencyGraph, rootWorkflowId);
-        List<WorkflowStatusResponse> processNextWorkflows = dependencyGraph
-            .Workflows.Where(workflow => reachableWorkflowIds.Contains(workflow.DatabaseId))
-            .ToList();
-
-        if (processNextWorkflows.Count > 0)
-        {
-            return processNextWorkflows;
-        }
-
-        return fallbackRootWorkflow is null ? [] : [fallbackRootWorkflow];
-    }
-
-    private static HashSet<Guid> GetReachableDependencyWorkflowIds(
-        WorkflowDependencyGraphResponse dependencyGraph,
-        Guid rootWorkflowId
-    )
-    {
-        Dictionary<Guid, List<Guid>> outgoingDependencyEdges = [];
-        foreach (WorkflowDependencyGraphEdgeResponse edge in dependencyGraph.Edges)
-        {
-            if (!string.Equals(edge.Kind, DependencyEdgeKind, StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            if (!outgoingDependencyEdges.TryGetValue(edge.From, out List<Guid>? dependents))
-            {
-                dependents = [];
-                outgoingDependencyEdges[edge.From] = dependents;
-            }
-
-            dependents.Add(edge.To);
-        }
-
-        HashSet<Guid> reachable = [rootWorkflowId];
-        Queue<Guid> queue = new([rootWorkflowId]);
-
-        while (queue.TryDequeue(out Guid workflowId))
-        {
-            if (!outgoingDependencyEdges.TryGetValue(workflowId, out List<Guid>? dependents))
-            {
-                continue;
-            }
-
-            foreach (Guid dependentId in dependents)
-            {
-                if (reachable.Add(dependentId))
-                {
-                    queue.Enqueue(dependentId);
-                }
-            }
-        }
-
-        return reachable;
-    }
-
     private static bool IsActiveWorkflowStatus(WorkflowStatusResponse workflow) =>
         workflow.OverallStatus
+            is PersistentItemStatus.Enqueued
+                or PersistentItemStatus.Processing
+                or PersistentItemStatus.Requeued;
+
+    private static bool IsActiveCollectionHeadStatus(CollectionHeadStatus workflow) =>
+        workflow.Status
             is PersistentItemStatus.Enqueued
                 or PersistentItemStatus.Processing
                 or PersistentItemStatus.Requeued;
@@ -367,6 +354,27 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             is PersistentItemStatus.Failed
                 or PersistentItemStatus.Canceled
                 or PersistentItemStatus.DependencyFailed;
+
+    private static bool IsRecoveryRequiredCollectionHeadStatus(CollectionHeadStatus workflow) =>
+        workflow.Status
+            is PersistentItemStatus.Failed
+                or PersistentItemStatus.Canceled
+                or PersistentItemStatus.DependencyFailed;
+
+    private async Task<Guid?> GetRecoveryTargetWorkflowId(
+        string collectionKey,
+        Guid fallbackWorkflowId,
+        CancellationToken ct
+    )
+    {
+        IReadOnlyList<WorkflowStatusResponse> collectionWorkflows = await _workflowEngineClient.ListWorkflows(
+            GetNamespace(),
+            collectionKey: collectionKey,
+            cancellationToken: ct
+        );
+        WorkflowFailure? workflowFailure = BuildWorkflowFailure(collectionWorkflows);
+        return workflowFailure?.RetryTargetWorkflowId ?? workflowFailure?.WorkflowId ?? fallbackWorkflowId;
+    }
 
     private static bool HasCommittedProcessState(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows) =>
         hierarchyWorkflows.Any(workflow =>

@@ -20,6 +20,8 @@ namespace Altinn.App.Api.Controllers;
 [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/workflow-engine-callbacks")]
 public class WorkflowEngineCallbackController : ControllerBase
 {
+    private const string CollectionKeyHeader = "Collection-Key";
+
     private readonly IServiceProvider _serviceProvider;
     private readonly WorkflowCallbackStateService _workflowCallbackStateService;
     private readonly ILogger<WorkflowEngineCallbackController> _logger;
@@ -152,12 +154,21 @@ public class WorkflowEngineCallbackController : ControllerBase
                 // The enqueue uses an idempotency key, so duplicates are safe.
                 if (success.AutoAdvanceProcess)
                 {
+                    string collectionKey = Request.Headers[CollectionKeyHeader].ToString();
+                    if (string.IsNullOrWhiteSpace(collectionKey))
+                    {
+                        throw new InvalidOperationException(
+                            "Workflow callback is missing Collection-Key header required for auto-advance process next."
+                        );
+                    }
+
                     var processEngine = _serviceProvider.GetRequiredService<IProcessEngine>();
                     await processEngine.EnqueueProcessNext(
                         instanceDataUnitOfWork.Instance,
                         payload.Actor,
                         payload.LockToken,
                         payload.WorkflowId,
+                        collectionKey,
                         updatedState,
                         success.AutoAdvanceAction,
                         cancellationToken

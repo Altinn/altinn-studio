@@ -19,7 +19,7 @@
 [basic/workflow-engine-failure] [INFO] IProcessTaskEnd.End
 [basic/workflow-engine-failure] [INFO] IProcessTaskStart.Start
 fail: Altinn.App.Api.Controllers.WorkflowEngineCallbackController[0]
-      Callback handler failed. CommandKey: ExecuteServiceTask, Instance: 501337/51fbad88-dd36-40c8-9aaa-76916c6e97f2, Task: Task_Service, Error: Service task 'failing-service' failed: Scenario service task failed permanently., ExceptionType: ServiceTaskFailedException
+      Callback handler failed. CommandKey: ExecuteServiceTask, Instance: 501337/d60b15a8-50bd-4a5b-bf21-d762167dbdaa, Task: Task_Service, Error: Service task 'failing-service' failed: Scenario service task failed permanently., ExceptionType: ServiceTaskFailedException
 [basic/workflow-engine-failure] [INFO] ### Response: Process.NextElement - ObjectResult, StatusCode: 500
 [basic/workflow-engine-failure] [INFO] ### Request: Instances.Get - User: User/1337/501337, AuthLevel: 2, AuthMethod: BankID
 [basic/workflow-engine-failure] [INFO] ### Response: Instances.Get - OkObjectResult, StatusCode: 200

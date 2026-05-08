@@ -77,6 +77,7 @@ public class WorkflowEngineClientTests
         IReadOnlyList<WorkflowStatusResponse> workflows = await client.ListWorkflows(
             "ttd/app",
             correlationId,
+            null,
             new Dictionary<string, string> { ["org"] = "ttd" },
             [PersistentItemStatus.Enqueued, PersistentItemStatus.Failed]
         );
@@ -106,10 +107,9 @@ public class WorkflowEngineClientTests
     }
 
     [Fact]
-    public async Task GetWorkflowDependencyGraph_UsesDependencyGraphEndpoint()
+    public async Task GetCollection_UsesCollectionEndpoint()
     {
         var requestUris = new List<Uri?>();
-        Guid workflowId = Guid.NewGuid();
 
         var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
         handlerMock
@@ -125,19 +125,20 @@ public class WorkflowEngineClientTests
                     requestUris.Add(request.RequestUri);
                     return Task.FromResult(
                         CreateJsonResponse(
-                            new WorkflowDependencyGraphResponse
+                            new WorkflowCollectionDetailResponse
                             {
-                                RootWorkflowId = workflowId,
-                                Workflows = [CreateWorkflowStatusResponse("dependency-graph-root")],
-                                Edges =
+                                Key = "process-next:abc:Task_1:2",
+                                Namespace = "ttd/app",
+                                Heads =
                                 [
-                                    new WorkflowDependencyGraphEdgeResponse
+                                    new CollectionHeadStatus
                                     {
-                                        From = workflowId,
-                                        To = Guid.NewGuid(),
-                                        Kind = "dependency",
+                                        DatabaseId = Guid.NewGuid(),
+                                        Status = PersistentItemStatus.Completed,
                                     },
                                 ],
+                                CreatedAt = DateTimeOffset.UtcNow,
+                                UpdatedAt = DateTimeOffset.UtcNow,
                             }
                         )
                     );
@@ -152,19 +153,66 @@ public class WorkflowEngineClientTests
             Mock.Of<ILogger<WorkflowEngineClient>>()
         );
 
-        WorkflowDependencyGraphResponse? dependencyGraph = await client.GetWorkflowDependencyGraph(
+        WorkflowCollectionDetailResponse? collection = await client.GetCollection(
             "ttd/app",
-            workflowId
+            "process-next:abc:Task_1:2"
         );
 
-        Assert.NotNull(dependencyGraph);
-        Assert.Equal(workflowId, dependencyGraph.RootWorkflowId);
-        Assert.Single(dependencyGraph.Workflows);
-        Assert.Single(dependencyGraph.Edges);
+        Assert.NotNull(collection);
+        Assert.Equal("process-next:abc:Task_1:2", collection.Key);
         Assert.Equal(
-            $"http://workflow-engine/api/v1/ttd%2Fapp/workflows/{workflowId}/dependency-graph",
+            "http://workflow-engine/api/v1/ttd%2Fapp/collections/process-next%3Aabc%3ATask_1%3A2",
             requestUris[0]!.ToString()
         );
+    }
+
+    [Fact]
+    public async Task EnqueueWorkflows_SendsCollectionKeyHeader()
+    {
+        HttpRequestMessage? capturedRequest = null;
+
+        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .Returns<HttpRequestMessage, CancellationToken>(
+                (request, _) =>
+                {
+                    capturedRequest = request;
+                    return Task.FromResult(
+                        CreateJsonResponse(
+                            new WorkflowEnqueueResponse.Accepted
+                            {
+                                Workflows = [new WorkflowResult { DatabaseId = Guid.NewGuid(), Namespace = "ttd/app" }],
+                            }
+                        )
+                    );
+                }
+            );
+        handlerMock.Protected().Setup("Dispose", ItExpr.IsAny<bool>());
+
+        using var httpClient = new HttpClient(handlerMock.Object);
+        var client = new WorkflowEngineClient(
+            httpClient,
+            Options.Create(new PlatformSettings { ApiWorkflowEngineEndpoint = "http://workflow-engine/api/v1/" }),
+            Mock.Of<ILogger<WorkflowEngineClient>>()
+        );
+
+        await client.EnqueueWorkflows(
+            "ttd/app",
+            "idempotency-key",
+            Guid.NewGuid(),
+            "process-next:abc:Task_1:2",
+            new WorkflowEnqueueRequest { Workflows = [] }
+        );
+
+        Assert.NotNull(capturedRequest);
+        Assert.True(capturedRequest!.Headers.TryGetValues("Collection-Key", out IEnumerable<string>? headerValues));
+        Assert.Equal(["process-next:abc:Task_1:2"], headerValues);
     }
 
     private static HttpResponseMessage CreateJsonResponse<T>(T body) =>

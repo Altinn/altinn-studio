@@ -14,6 +14,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
 {
     private const string IdempotencyKeyHeader = "Idempotency-Key";
     private const string CorrelationIdHeader = "Correlation-Id";
+    private const string CollectionKeyHeader = "Collection-Key";
 
     private readonly HttpClient _httpClient;
     private readonly PlatformSettings _platformSettings;
@@ -35,6 +36,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
         string ns,
         string idempotencyKey,
         Guid? correlationId,
+        string? collectionKey,
         WorkflowEnqueueRequest request,
         CancellationToken cancellationToken = default
     )
@@ -46,6 +48,10 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
         if (correlationId.HasValue)
         {
             httpRequest.Headers.Add(CorrelationIdHeader, correlationId.Value.ToString());
+        }
+        if (!string.IsNullOrWhiteSpace(collectionKey))
+        {
+            httpRequest.Headers.Add(CollectionKeyHeader, collectionKey);
         }
 
         HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, cancellationToken);
@@ -70,13 +76,14 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
     }
 
     /// <inheritdoc />
-    public async Task<WorkflowDependencyGraphResponse?> GetWorkflowDependencyGraph(
+    public async Task<WorkflowCollectionDetailResponse?> GetCollection(
         string ns,
-        Guid workflowId,
+        string key,
         CancellationToken cancellationToken = default
     )
     {
-        var url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/workflows/{workflowId}/dependency-graph";
+        string url =
+            $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/collections/{Uri.EscapeDataString(key)}";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Get, url);
 
         using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, cancellationToken);
@@ -88,11 +95,11 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
 
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<WorkflowDependencyGraphResponse>(
+        return await response.Content.ReadFromJsonAsync<WorkflowCollectionDetailResponse>(
                 cancellationToken: cancellationToken
             )
             ?? throw new InvalidOperationException(
-                "The expected workflow dependency graph was not found in the response content."
+                "The expected workflow collection detail was not found in the response content."
             );
     }
 
@@ -100,6 +107,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
     public async Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
         string ns,
         Guid? correlationId = null,
+        string? collectionKey = null,
         Dictionary<string, string>? labels = null,
         IReadOnlyList<PersistentItemStatus>? statuses = null,
         CancellationToken cancellationToken = default
@@ -110,7 +118,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
 
         while (true)
         {
-            var url = BuildListWorkflowsUrl(ns, correlationId, labels, statuses, cursor);
+            var url = BuildListWorkflowsUrl(ns, correlationId, collectionKey, labels, statuses, cursor);
             using var httpRequest = new HttpRequestMessage(HttpMethod.Get, url);
             using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, cancellationToken);
 
@@ -187,6 +195,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
     private string BuildListWorkflowsUrl(
         string ns,
         Guid? correlationId,
+        string? collectionKey,
         Dictionary<string, string>? labels,
         IReadOnlyList<PersistentItemStatus>? statuses,
         Guid? cursor
@@ -198,6 +207,10 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
         if (correlationId.HasValue)
         {
             queryParams.Add($"correlationId={correlationId.Value}");
+        }
+        if (!string.IsNullOrWhiteSpace(collectionKey))
+        {
+            queryParams.Add($"collectionKey={Uri.EscapeDataString(collectionKey)}");
         }
         if (labels is not null)
         {
