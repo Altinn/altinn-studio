@@ -12,7 +12,9 @@ export const Privacy = (): ReactElement => {
   const { setConsentPreferences, denyAllConsent } = useConsentMutation();
 
   const [analytics, setAnalytics] = useState(hasAnalyticsConsent);
-  const [sessionRecording, setSessionRecording] = useState(hasSessionRecordingConsent);
+  const [sessionRecording, setSessionRecording] = useState(
+    hasAnalyticsConsent && hasSessionRecordingConsent,
+  );
 
   const handleAnalyticsChange = (checked: boolean): void => {
     setAnalytics(checked);
@@ -22,7 +24,7 @@ export const Privacy = (): ReactElement => {
   };
 
   const handleSave = (): void => {
-    setConsentPreferences({ analytics, sessionRecording });
+    setConsentPreferences({ analytics, sessionRecording: analytics && sessionRecording });
     toast.success(t('settings.user.privacy.saved'), { toastId: 'privacy-saved' });
   };
 
