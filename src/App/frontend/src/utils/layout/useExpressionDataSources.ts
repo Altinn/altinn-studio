@@ -8,36 +8,30 @@ import { ExprFunctionDefinitions } from 'src/features/expressions/expression-fun
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
 import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
-import { useDataElementsSelectorProps, useInstanceDataSources } from 'src/features/instance/InstanceContext';
+import { useDataElementsSelector, useInstanceDataSources } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useInnerLanguageWithForcedPathSelector } from 'src/features/language/useLanguage';
-import { useMultipleDelayedSelectors } from 'src/hooks/delayedSelectors';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
-import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
-import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
 import { useIsHiddenMulti } from 'src/utils/layout/hidden';
-import type { AttachmentsSelector } from 'src/features/attachments/tools';
 import type { ExprFunctionName } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
-import type { DSProps, DSPropsMatching } from 'src/hooks/delayedSelectors';
 import type { FormDataSelectorLax } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IApplicationSettings, IInstanceDataSources, IProcess } from 'src/types/shared';
 
 export interface ExpressionDataSources {
   applicationSettings: IApplicationSettings | null;
-  attachmentsSelector: AttachmentsSelector;
   codeListSelector: (optionsId: string) => IOptionInternal[] | undefined;
   currentDataModelPath: IDataModelReference | undefined;
   currentLanguage: string;
   currentPage: string | undefined;
-  dataElementSelector: ReturnType<typeof useDataElementsSelectorProps>;
+  dataElementSelector: ReturnType<typeof useDataElementsSelector>;
   dataModelNames: string[];
   defaultDataType: string | null;
   displayValues: Record<string, string | undefined>;
@@ -47,17 +41,17 @@ export interface ExpressionDataSources {
   instanceDataSources: IInstanceDataSources | null;
   langToolsSelector: (dataModelPath: IDataModelReference | undefined) => IUseLanguage;
   layoutLookups: LayoutLookups;
-  process?: IProcess;
+  process: IProcess | undefined;
 }
 
-const multiSelectors = {
-  formDataSelector: () => FormStore.data.useLaxDebouncedSelectorProps(),
-  attachmentsSelector: () => FormStore.nodes.useAttachmentsSelectorProps(),
-} satisfies {
-  [K in keyof Omit<ExpressionDataSources, 'dataElementSelector'>]?: DSPropsMatching<ExpressionDataSources[K]>;
-};
+type HookBackedDataSource = Exclude<keyof ExpressionDataSources, 'displayValues' | 'hiddenComponents'>;
+type DerivedDataSource = Exclude<keyof ExpressionDataSources, HookBackedDataSource>;
 
-const directHooks = {
+function typedKeys<T extends Record<string, unknown>>(obj: T): (keyof T)[] {
+  return Object.keys(obj) as (keyof T)[];
+}
+
+const hooks: { [K in HookBackedDataSource]: () => ExpressionDataSources[K] } = {
   process: () => useProcessQuery().data,
   applicationSettings: () => useApplicationSettings(),
   currentLanguage: () => useCurrentLanguage(),
@@ -67,25 +61,30 @@ const directHooks = {
     const staticOptions = FormBootstrap.useStaticOptionsMap();
     return useCallback((optionsId: string) => staticOptions[optionsId]?.options, [staticOptions]);
   },
-  dataElementSelector: () => useDataElementsSelectorProps(),
-  instanceDataSources: (isInGenerator) =>
-    isInGenerator ? GeneratorData.useLaxInstanceDataSources() : useInstanceDataSources(),
+  formDataSelector: () => FormStore.data.useLaxDebouncedSelector(),
+  dataElementSelector: () => useDataElementsSelector(),
+  instanceDataSources: () => useInstanceDataSources(),
   defaultDataType: () => FormBootstrap.useDefaultDataType() ?? null,
   dataModelNames: () => FormBootstrap.useReadableDataTypes(),
-  externalApis: (isInGenerator) =>
-    isInGenerator ? GeneratorData.useExternalApis() : useExternalApis(getApplicationMetadata().externalApiIds ?? []),
+  externalApis: () => useExternalApis(getApplicationMetadata().externalApiIds ?? []),
   langToolsSelector: () =>
     useInnerLanguageWithForcedPathSelector(
       FormBootstrap.useDefaultDataType(),
       FormBootstrap.useReadableDataTypes(),
       FormStore.data.useDebouncedSelector(),
     ),
-  currentPage: (_isInGenerator) => useNavigationParam('pageKey'),
-} satisfies {
-  [K in keyof Omit<ExpressionDataSources, 'dataElementSelector'>]?: (
-    isInGenerator: boolean,
-  ) => ExpressionDataSources[K];
-} & { dataElementSelector: () => ReturnType<typeof useDataElementsSelectorProps> };
+  currentPage: () => useNavigationParam('pageKey'),
+};
+
+const derivedDataSources: { [K in DerivedDataSource]: true } = {
+  displayValues: true,
+  hiddenComponents: true,
+};
+
+export const ExpressionDataSourcesKeys = [
+  ...typedKeys(hooks),
+  ...typedKeys(derivedDataSources),
+] as const satisfies readonly (keyof ExpressionDataSources)[];
 
 export type DataSourceOverrides = {
   dataSources?: { [K in keyof ExpressionDataSources]?: () => ExpressionDataSources[K] };
@@ -124,33 +123,14 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: DataSo
     return { functionCalls, displayValueLookups, componentLookups, neededDataSources };
   }, [toEvaluate, unsupportedDataSources, errorSuffix]);
 
-  // Build a multiple delayed selector for each needed data source
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const toMultipleSelectors: DSProps<any>[] = [];
-  for (const key of neededDataSources) {
-    if (key in multiSelectors && !(overrides?.dataSources && key in overrides.dataSources)) {
-      toMultipleSelectors.push(multiSelectors[key]());
-    }
-  }
-
-  let combinedIndex = 0;
-  const combined = useMultipleDelayedSelectors(...toMultipleSelectors);
-  const isInGenerator = GeneratorInternal.useIsInsideGenerator();
   const output: Partial<ExpressionDataSources> = {};
 
   for (const key of neededDataSources) {
     if (overriddenDataSources && key in overriddenDataSources) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       output[key] = overriddenDataSources[key]!() as unknown as any;
-    } else if (key in multiSelectors) {
-      // Ignoring the typing here because it becomes too complex quickly. We don't really need the typing here, as we
-      // have already checked the types in `multiSelectors`, so there's no point in doing it again here.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      output[key] = combined[combinedIndex++] as unknown as any;
-    } else if (key === 'dataElementSelector') {
-      output[key] = directHooks[key]();
-    } else if (key in directHooks) {
-      output[key] = directHooks[key](isInGenerator);
+    } else if (key in hooks) {
+      output[key] = hooks[key]();
     } else if (key === 'displayValues') {
       output[key] = useDisplayDataFor([...displayValueLookups.values()]);
     } else if (key === 'hiddenComponents') {

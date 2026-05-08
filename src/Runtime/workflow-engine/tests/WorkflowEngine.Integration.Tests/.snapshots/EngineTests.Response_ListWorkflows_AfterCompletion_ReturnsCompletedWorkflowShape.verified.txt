@@ -4,24 +4,24 @@
       databaseId: {Scrubbed},
       operationId: op-wf-1,
       idempotencyKey: idem-Guid_1,
-      namespace: ttd:e2e-tests,
+      namespace: ttd-e2e-tests,
       createdAt: {Scrubbed},
       updatedAt: {Scrubbed},
       labels: {
         app: e2e-tests,
         org: ttd
       },
-      overallStatus: Processing,
+      overallStatus: Completed,
       steps: [
         {
           databaseId: {Scrubbed},
-          operationId: /slow,
+          operationId: /ping,
           processingOrder: 0,
           updatedAt: {Scrubbed},
           command: {
             type: webhook
           },
-          status: Processing,
+          status: Completed,
           retryCount: 0
         }
       ]

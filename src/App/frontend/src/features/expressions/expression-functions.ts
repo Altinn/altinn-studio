@@ -797,6 +797,9 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     if (!dataType) {
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup dataType undefined`);
     }
+    if (this.dataSources.formDataSelector === ContextNotProvided) {
+      return '';
+    }
     const array = this.dataSources.formDataSelector({ field: path, dataType });
     if (typeof array != 'object' || !Array.isArray(array)) {
       return '';
@@ -889,11 +892,11 @@ function pickSimpleValue(
   if (!isValidDataType) {
     throw new ExprRuntimeError(params.expr, params.path, `Data model with type ${path.dataType} not found`);
   }
-
-  const value = params.dataSources.formDataSelector(path);
-  if (value === ContextNotProvided) {
+  if (params.dataSources.formDataSelector === ContextNotProvided) {
     return null;
   }
+
+  const value = params.dataSources.formDataSelector(path);
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
     return value;
   }

@@ -125,6 +125,14 @@
             },
             "taskId": "Task_1",
             "actionRequiredToWrite": "customWriteAction"
+        },
+        {
+            "id": "task2DataType",
+            "allowedContentTypes": [
+                "image/png"
+            ],
+            "maxCount": 10,
+            "taskId": "Task_2"
         }
     ],
     "presentationFields": [

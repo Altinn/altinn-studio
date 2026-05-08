@@ -24,7 +24,7 @@
           Plan Width: {Scrubbed},
           Disabled: false,
           Inner Unique: false,
-          Merge Cond: (w.id = w4.workflow_id),
+          Merge Cond: (w.id = w6.workflow_id),
           Plans: [
             {
               Node Type: Limit,
@@ -151,7 +151,7 @@
               Scan Direction: Forward,
               Index Name: pk_workflow_link,
               Relation Name: workflow_link,
-              Alias: w4,
+              Alias: w6,
               Startup Cost: {Scrubbed},
               Total Cost: {Scrubbed},
               Plan Rows: {Scrubbed},
@@ -168,13 +168,13 @@
           Scan Direction: Forward,
           Index Name: pk_workflows,
           Relation Name: workflows,
-          Alias: w5,
+          Alias: w7,
           Startup Cost: {Scrubbed},
           Total Cost: {Scrubbed},
           Plan Rows: {Scrubbed},
           Plan Width: {Scrubbed},
           Disabled: false,
-          Index Cond: (id = w4.linked_workflow_id)
+          Index Cond: (id = w6.linked_workflow_id)
         }
       ]
     }

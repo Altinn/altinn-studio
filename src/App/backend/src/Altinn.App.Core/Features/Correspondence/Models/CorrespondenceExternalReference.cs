@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models;
 /// <summary>
 /// Represents a reference to another item in the Altinn ecosystem.
 /// </summary>
-public sealed record CorrespondenceExternalReference : MultipartCorrespondenceListItem
+public sealed record CorrespondenceExternalReference
 {
     /// <summary>
     /// The reference type.
@@ -18,10 +18,4 @@ public sealed record CorrespondenceExternalReference : MultipartCorrespondenceLi
     /// </summary>
     [JsonPropertyName("referenceValue")]
     public required string ReferenceValue { get; init; }
-
-    internal override void Serialise(MultipartFormDataContent content, int index)
-    {
-        AddRequired(content, ReferenceType.ToString(), $"Correspondence.ExternalReferences[{index}].ReferenceType");
-        AddRequired(content, ReferenceValue, $"Correspondence.ExternalReferences[{index}].ReferenceValue");
-    }
 }

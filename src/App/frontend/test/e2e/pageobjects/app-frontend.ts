@@ -217,7 +217,7 @@ export class AppFrontend {
     secondGroup_table: '[id^="group-group2-table"]',
     subGroup: '[id^="group-subGroup"]',
     currentValue: 'input[id^="currentValue"]',
-    navigationBarButton: '#form-content-nav2 > div > nav > button',
+    navigationBarButton: '#form-content-nav2 [data-testid="NavigationBar"] > button[aria-controls="navigation-menu"]',
     newValue: 'input[id^="newValue"]',
     newValueLabel: 'label[for^="newValue"]',
     addNewItem: '[id^="add-button-mainGroup"]',

@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Altinn.App.Core.Features.Correspondence.Models;
+using Altinn.App.Core.Features.Correspondence.Models.Response;
 using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Models;
 
@@ -13,11 +14,6 @@ public static class TestHelpers
 
     public static NationalIdentityNumber GetNationalIdentityNumber(int index) =>
         IdentificationNumberProvider.NationalIdentityNumbers.GetValidNumber(index);
-
-    public static HttpContent? GetItem(this MultipartFormDataContent content, string name)
-    {
-        return content.FirstOrDefault(item => item.Headers.ContentDisposition?.Name?.Trim('\"') == name);
-    }
 
     public static HttpResponseMessage ResponseMessageFactory<T>(
         T content,
@@ -58,6 +54,21 @@ public static class TestHelpers
                     Recipient = OrganisationOrPersonIdentifier.Create(GetOrganisationNumber(0)),
                 },
             },
+        };
+
+    internal static Guid DummyAttachmentId { get; } = Guid.Parse("11111111-2222-3333-4444-555555555555");
+
+    internal static AttachmentOverviewResponse DummyAttachmentOverviewResponse(
+        CorrespondenceAttachmentStatusResponse status
+    ) =>
+        new()
+        {
+            AttachmentId = DummyAttachmentId,
+            Status = status,
+            StatusText = status.ToString(),
+            StatusChanged = DateTimeOffset.MinValue,
+            ResourceId = "test-resource-id",
+            SendersReference = "attachment-ref",
         };
 
     public static GetCorrespondenceStatusResponse DummyGetCorrespondenceStatusResponse =>
