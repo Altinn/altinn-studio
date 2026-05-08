@@ -1,7 +1,7 @@
 #nullable enable
 using Altinn.Platform.Storage.Interface.Models;
 using LocalTest.Services.TestData;
-using LocalTest.Services.LocalApp.Implementation;
+using LocalTest.Services.LocalApp.Models;
 
 namespace LocalTest.Services.LocalApp.Interface
 {
@@ -9,7 +9,9 @@ namespace LocalTest.Services.LocalApp.Interface
     {
         Task<string?> GetXACMLPolicy(string appId, CancellationToken cancellationToken = default);
 
-        Task<Application?> GetApplicationMetadata(string? appId, CancellationToken cancellationToken = default);
+        Task<ApplicationMetadata?> GetApplicationMetadata(string? appId, CancellationToken cancellationToken = default);
+
+        Task<Version?> GetAppVersion(string? appId, CancellationToken cancellationToken = default);
 
         Task<Dictionary<string, Application>> GetApplications(CancellationToken cancellationToken = default);
 
