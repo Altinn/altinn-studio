@@ -5,7 +5,7 @@ import { StudioButton, StudioParagraph, StudioPopover, StudioSpinner } from '@st
 import { useTranslation } from 'react-i18next';
 import { usePostHog } from '@posthog/react';
 
-const DEPLOY_CONFIRMED_EVENT = 'user_confirmed_app_deploy';
+export const DEPLOY_EVENT_NAME = 'user_confirmed_app_deploy';
 
 export type DeployPopoverProps = {
   appDeployedVersion: string;
@@ -28,8 +28,8 @@ export const DeployPopover = ({
   const [isConfirmDeployDialogOpen, setIsConfirmDeployDialogOpen] = useState<boolean>();
 
   const handleDeployConfirm = () => {
-    posthog?.capture(DEPLOY_CONFIRMED_EVENT);
     onConfirm();
+    posthog.capture(DEPLOY_EVENT_NAME);
     setIsConfirmDeployDialogOpen(false);
   };
 
