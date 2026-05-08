@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
@@ -63,6 +64,7 @@ public partial class EngineTests
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         await VerifyJson(body).ScrubMembers("databaseId");
+        await WaitForAcceptedWorkflowsToComplete(body);
     }
 
     [Fact]
@@ -81,6 +83,7 @@ public partial class EngineTests
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         await VerifyJson(body).ScrubMembers("databaseId");
+        await WaitForAcceptedWorkflowsToComplete(body);
     }
 
     // ── GetWorkflow endpoint responses ────────────────────────────────────────
@@ -193,10 +196,153 @@ public partial class EngineTests
         await VerifyJson(body).ScrubInlineGuids();
     }
 
-    // ── ListActiveWorkflows endpoint responses ────────────────────────────────
+    [Fact]
+    public async Task Response_GetWorkflowDependencyGraph_IncludesDependentsAcrossCollectionKeys()
+    {
+        var rootWorkflow = _testHelpers.CreateWorkflow("wf-root", [_testHelpers.CreateWebhookStep("/ping-root")]);
+        var rootAccepted = await _client.Enqueue(
+            _testHelpers.CreateEnqueueRequest(rootWorkflow),
+            collectionKey: "collection-a"
+        );
+        var rootWorkflowId = rootAccepted.Workflows.Single().DatabaseId;
+        await _client.WaitForWorkflowStatus(rootWorkflowId, PersistentItemStatus.Completed);
+
+        var childWorkflow = _testHelpers.CreateWorkflow("wf-child", [_testHelpers.CreateWebhookStep("/ping-child")]);
+        var childAccepted = await _client.Enqueue(
+            _testHelpers.CreateEnqueueRequest(childWorkflow with { DependsOn = [rootWorkflowId] }),
+            collectionKey: "collection-b"
+        );
+        var childWorkflowId = childAccepted.Workflows.Single().DatabaseId;
+        await _client.WaitForWorkflowStatus(childWorkflowId, PersistentItemStatus.Completed);
+
+        var dependencyGraph = await _client.GetWorkflowDependencyGraph(rootWorkflowId);
+
+        Assert.NotNull(dependencyGraph);
+        Assert.Equal(rootWorkflowId, dependencyGraph.RootWorkflowId);
+
+        var workflowIds = dependencyGraph.Workflows.Select(workflow => workflow.DatabaseId).ToHashSet();
+        Assert.Equal(2, workflowIds.Count);
+        Assert.Contains(rootWorkflowId, workflowIds);
+        Assert.Contains(childWorkflowId, workflowIds);
+
+        Assert.Collection(
+            dependencyGraph.Edges,
+            edge =>
+            {
+                Assert.Equal(rootWorkflowId, edge.From);
+                Assert.Equal(childWorkflowId, edge.To);
+                Assert.Equal(WorkflowDependencyGraphEdgeKind.Dependency, edge.Kind);
+            }
+        );
+
+        using var rawResponse = await _client.GetWorkflowDependencyGraphRaw(rootWorkflowId);
+        var body = await rawResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await VerifyJson(body);
+    }
 
     [Fact]
-    public async Task Response_ListActiveWorkflows_WhileProcessing_ReturnsWorkflowsShape()
+    public async Task Response_GetWorkflowDependencyGraph_TraversesDependenciesAndLinksBidirectionally()
+    {
+        // Three workflows enqueued separately so DependsOn / Links resolve via persisted GUIDs:
+        //   c — independent (enqueued first)
+        //   a — links to c       (link edge a → c)
+        //   b — depends on a     (dependency edge a → b)
+        // Querying the graph rooted at b must walk upward to a, then sideways via the link to c.
+        var acceptedC = await _client.Enqueue(
+            _testHelpers.CreateEnqueueRequest(
+                _testHelpers.CreateWorkflow("c", [_testHelpers.CreateWebhookStep("/ping-c")])
+            )
+        );
+        var idC = acceptedC.Workflows.Single().DatabaseId;
+
+        var workflowA = _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/ping-a")]) with
+        {
+            Links = [idC],
+        };
+        var acceptedA = await _client.Enqueue(_testHelpers.CreateEnqueueRequest(workflowA));
+        var idA = acceptedA.Workflows.Single().DatabaseId;
+
+        var workflowB = _testHelpers.CreateWorkflow("b", [_testHelpers.CreateWebhookStep("/ping-b")], dependsOn: [idA]);
+        var acceptedB = await _client.Enqueue(_testHelpers.CreateEnqueueRequest(workflowB));
+        var idB = acceptedB.Workflows.Single().DatabaseId;
+
+        await _client.WaitForWorkflowStatus(idA, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(idB, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(idC, PersistentItemStatus.Completed);
+
+        var dependencyGraph = await _client.GetWorkflowDependencyGraph(idB);
+
+        Assert.NotNull(dependencyGraph);
+        Assert.Equal(idB, dependencyGraph.RootWorkflowId);
+
+        var workflowIds = dependencyGraph.Workflows.Select(wf => wf.DatabaseId).ToHashSet();
+        Assert.Equal(3, workflowIds.Count);
+        Assert.Contains(idA, workflowIds);
+        Assert.Contains(idB, workflowIds);
+        Assert.Contains(idC, workflowIds);
+
+        Assert.Contains(
+            dependencyGraph.Edges,
+            edge => edge.From == idA && edge.To == idB && edge.Kind == WorkflowDependencyGraphEdgeKind.Dependency
+        );
+        Assert.Contains(
+            dependencyGraph.Edges,
+            edge => edge.From == idA && edge.To == idC && edge.Kind == WorkflowDependencyGraphEdgeKind.Link
+        );
+        Assert.Equal(2, dependencyGraph.Edges.Count);
+
+        using var rawResponse = await _client.GetWorkflowDependencyGraphRaw(idB);
+        var body = await rawResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await VerifyJson(body);
+    }
+
+    [Fact]
+    public async Task Response_GetWorkflowDependencyGraph_WorkflowWithoutRelations_ReturnsRootOnlyWithNoEdges()
+    {
+        var accepted = await _client.Enqueue(
+            _testHelpers.CreateEnqueueRequest(
+                _testHelpers.CreateWorkflow("solo", [_testHelpers.CreateWebhookStep("/ping")])
+            )
+        );
+        var workflowId = accepted.Workflows.Single().DatabaseId;
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+
+        var dependencyGraph = await _client.GetWorkflowDependencyGraph(workflowId);
+
+        Assert.NotNull(dependencyGraph);
+        Assert.Equal(workflowId, dependencyGraph.RootWorkflowId);
+        Assert.Single(dependencyGraph.Workflows);
+        Assert.Equal(workflowId, dependencyGraph.Workflows[0].DatabaseId);
+        Assert.Empty(dependencyGraph.Edges);
+
+        using var rawResponse = await _client.GetWorkflowDependencyGraphRaw(workflowId);
+        var body = await rawResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await VerifyJson(body);
+    }
+
+    [Fact]
+    public async Task Response_GetWorkflowDependencyGraph_DifferentNamespace_ReturnsNotFound()
+    {
+        // Workflow exists in namespace "ttd:other" but is queried via the default namespace.
+        // Both the seed and the recursive arms of the CTE filter on namespace, so the response
+        // must be 404 even though the workflow row exists.
+        var accepted = await _client.Enqueue(
+            _testHelpers.CreateEnqueueRequest(
+                _testHelpers.CreateWorkflow("solo", [_testHelpers.CreateWebhookStep("/ping")])
+            ),
+            ns: "ttd:other"
+        );
+        var workflowId = accepted.Workflows.Single().DatabaseId;
+
+        using var response = await _client.GetWorkflowDependencyGraphRaw(workflowId);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    // ── ListWorkflows endpoint responses ────────────────────────────────
+
+    [Fact]
+    public async Task Response_ListWorkflows_WhileProcessing_ReturnsWorkflowsShape()
     {
         // Arrange - slow WireMock so workflow stays active
         fixture.WireMock.Reset();
@@ -233,10 +379,13 @@ public partial class EngineTests
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         await VerifyJson(body);
+
+        var activeWorkflowId = active.Single(w => w.OverallStatus == PersistentItemStatus.Processing).DatabaseId;
+        await _client.WaitForWorkflowStatus(activeWorkflowId, PersistentItemStatus.Completed);
     }
 
     [Fact]
-    public async Task Response_ListActiveWorkflows_NoWorkflows_Returns204()
+    public async Task Response_ListWorkflows_NoWorkflows_Returns204()
     {
         using var client = fixture.CreateEngineClient();
         using var response = await client.GetAsync(
@@ -312,6 +461,9 @@ public partial class EngineTests
         using var response = await _client.EnqueueRaw(request);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await WaitForAcceptedWorkflowsToComplete(body, TimeSpan.FromSeconds(90));
     }
 
     [Fact]
@@ -345,6 +497,9 @@ public partial class EngineTests
         using var response = await _client.EnqueueRaw(request);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await WaitForAcceptedWorkflowsToComplete(body);
     }
 
     [Fact]
@@ -400,10 +555,10 @@ public partial class EngineTests
         await VerifyJson(body);
     }
 
-    // ── ListActiveWorkflows endpoint responses ────────────────────────────────
+    // ── ListWorkflows endpoint responses ────────────────────────────────
 
     [Fact]
-    public async Task Response_ListActiveWorkflows_AfterCompletion_Returns204()
+    public async Task Response_ListWorkflows_AfterCompletion_ReturnsCompletedWorkflowShape()
     {
         var request = _testHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow("wf-1", [_testHelpers.CreateWebhookStep("/ping")])
@@ -419,6 +574,21 @@ public partial class EngineTests
             TestContext.Current.CancellationToken
         );
 
-        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await VerifyJson(body);
+    }
+
+    private async Task WaitForAcceptedWorkflowsToComplete(string responseBody, TimeSpan? timeout = null)
+    {
+        var accepted = JsonSerializer.Deserialize<WorkflowEnqueueResponse.Accepted>(responseBody);
+        Assert.NotNull(accepted);
+
+        await _client.WaitForWorkflowStatus(
+            accepted.Workflows.Select(workflow => workflow.DatabaseId),
+            PersistentItemStatus.Completed,
+            timeout ?? TimeSpan.FromSeconds(30)
+        );
     }
 }

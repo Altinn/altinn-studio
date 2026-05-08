@@ -134,6 +134,22 @@ internal static class EngineRepositoryQueryExtensions
                     links: includeLinks
                 )
                 .Where(wf => wf.Id == workflowId);
+
+        public IQueryable<WorkflowEntity> GetWorkflowsByIds(
+            IReadOnlyCollection<Guid> workflowIds,
+            bool includeSteps = true,
+            bool includeDependencies = true,
+            bool includeLinks = true,
+            string? namespaceFilter = null
+        ) =>
+            dbContext
+                .Workflows.IncludeRelatedEntities(
+                    steps: includeSteps,
+                    dependencies: includeDependencies,
+                    links: includeLinks
+                )
+                .MaybeFilterByNamespace(namespaceFilter)
+                .Where(wf => workflowIds.Contains(wf.Id));
     }
 
     extension(IQueryable<WorkflowEntity> entityQuery)
