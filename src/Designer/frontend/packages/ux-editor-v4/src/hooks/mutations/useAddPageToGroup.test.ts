@@ -1,10 +1,10 @@
 import { useAddPageToGroup } from './useAddPageToGroup';
 import type { PagesModel, PagesModelWithPageGroups } from 'app-shared/types/api/dto/PagesModel';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { renderHookWithProviders } from '../../../../ux-editor/src/testing/mocks';
+import { renderHookWithProviders } from '../../../../ux-editor-v4/src/testing/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
 
 describe('useAddPageToGroup', () => {
   beforeEach(() => {

@@ -4,12 +4,12 @@ import userEvent from '@testing-library/user-event';
 import { subformLayoutMock } from '../../../../../testing/subformLayoutMock';
 import { EditColumnElement, type EditColumnElementProps } from './EditColumnElement';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
+import { componentMocks } from '@altinn/ux-editor-v4/testing/componentMocks';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
-import { convertDataBindingToInternalFormat } from '@altinn/ux-editor/utils/dataModelUtils';
+import { convertDataBindingToInternalFormat } from '@altinn/ux-editor-v4/utils/dataModelUtils';
 
 const subformComponentMock = componentMocks[ComponentType.Subform];
 

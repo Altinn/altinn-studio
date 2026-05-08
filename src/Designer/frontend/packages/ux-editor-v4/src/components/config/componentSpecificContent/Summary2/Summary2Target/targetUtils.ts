@@ -1,5 +1,5 @@
-import type { IFormLayouts, IInternalLayout } from '@altinn/ux-editor/types/global';
-import type { FormComponent } from '@altinn/ux-editor/types/FormComponent';
+import type { IFormLayouts, IInternalLayout } from '@altinn/ux-editor-v4/types/global';
+import type { FormComponent } from '@altinn/ux-editor-v4/types/FormComponent';
 import { getAllLayoutComponents } from '../../../../../utils/formLayoutUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { Summary2TargetConfig } from 'app-shared/types/ComponentSpecificConfig';

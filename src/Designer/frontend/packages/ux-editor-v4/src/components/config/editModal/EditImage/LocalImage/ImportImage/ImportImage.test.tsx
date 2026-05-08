@@ -8,7 +8,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { app, org } from '@studio/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { MAX_FILE_SIZE_MB } from '@altinn/ux-editor/components/config/editModal/EditImage/constants';
+import { MAX_FILE_SIZE_MB } from '@altinn/ux-editor-v4/components/config/editModal/EditImage/constants';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const onImageChangeMock = jest.fn();

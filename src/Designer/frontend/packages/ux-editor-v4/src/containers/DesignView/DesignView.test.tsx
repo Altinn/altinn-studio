@@ -17,13 +17,13 @@ import {
   layout2NameMock,
   pagesModelMock,
 } from '../../testing/layoutMock';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { appContextMock } from '../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import type { FormLayoutsResponse } from 'app-shared/types/api';
-import { AppContext } from '@altinn/ux-editor/AppContext';
+import { AppContext } from '@altinn/ux-editor-v4/AppContext';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 
 const mockSelectedLayoutSet = layoutSet1NameMock;

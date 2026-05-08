@@ -13,7 +13,7 @@ import {
   duplicatedIdsExistsInLayout,
   findLayoutsContainingDuplicateComponents,
 } from '../../utils/formLayoutUtils';
-import { PdfLayoutAccordion } from '@altinn/ux-editor/containers/DesignView/PdfLayout/PdfLayoutAccordion';
+import { PdfLayoutAccordion } from '@altinn/ux-editor-v4/containers/DesignView/PdfLayout/PdfLayoutAccordion';
 import { PlusIcon } from '@studio/icons';
 import { usePdf } from '../../hooks/usePdf/usePdf';
 import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
@@ -22,12 +22,12 @@ import type { PageModel } from 'app-shared/types/api/dto/PageModel';
 import { DesignViewNavigation } from '../DesignViewNavigation';
 import { PageGroupAccordion } from './PageGroupAccordion';
 import { useAddGroupMutation } from '../../hooks/mutations/useAddGroupMutation';
-import { ItemType } from '../../../../ux-editor/src/components/Properties/ItemType';
+import { ItemType } from '../../../../ux-editor-v4/src/components/Properties/ItemType';
 import {
   isPagesModelWithGroups,
   type PagesModelWithPageOrder,
 } from 'app-shared/types/api/dto/PagesModel';
-import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts

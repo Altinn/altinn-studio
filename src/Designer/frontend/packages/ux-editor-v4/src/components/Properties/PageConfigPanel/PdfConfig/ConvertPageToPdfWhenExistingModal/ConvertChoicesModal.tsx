@@ -3,11 +3,11 @@ import { StudioDialog, StudioHeading } from '@studio/components';
 import { useForwardedRef } from '@studio/hooks';
 import { OverrideCurrentPdfByConversionChoices } from './OverrideCurrentPdfByConversionChoices';
 import { useTranslation } from 'react-i18next';
-import { usePdf } from '@altinn/ux-editor/hooks/usePdf/usePdf';
+import { usePdf } from '@altinn/ux-editor-v4/hooks/usePdf/usePdf';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useDeleteLayoutMutation } from '@altinn/ux-editor/hooks/mutations/useDeleteLayoutMutation';
-import { useSavableFormLayoutSettings } from '@altinn/ux-editor/hooks/useSavableFormLayoutSettings';
-import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import { useDeleteLayoutMutation } from '@altinn/ux-editor-v4/hooks/mutations/useDeleteLayoutMutation';
+import { useSavableFormLayoutSettings } from '@altinn/ux-editor-v4/hooks/useSavableFormLayoutSettings';
+import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
 
 type ConvertChoicesModalProps = {
   handleModalAction: () => void;

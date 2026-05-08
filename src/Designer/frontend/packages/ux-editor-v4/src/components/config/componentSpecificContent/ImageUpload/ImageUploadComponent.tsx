@@ -3,7 +3,7 @@ import type { FormItem } from '../../../../types/FormItem';
 import type { ComponentType } from '../../../../../../shared/src/types/ComponentType';
 import { StudioProperty } from '@studio/components';
 import { PlusCircleIcon } from '@studio/icons';
-import { useComponentPropertyLabel } from '@altinn/ux-editor/hooks';
+import { useComponentPropertyLabel } from '@altinn/ux-editor-v4/hooks';
 import { useDisplayCropValues } from './useDisplayCropValues';
 import { ImageUploadCard } from './ImageUploadCard.tsx/ImageUploadCard';
 import type { ExternalCrop } from './ImageUploadTypes';

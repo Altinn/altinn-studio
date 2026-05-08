@@ -9,7 +9,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
 import { StudioSpinner, StudioSectionHeader, StudioButton } from '@studio/components';
-import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
 
 export const DesignViewNavigation = () => {
   const { t } = useTranslation();

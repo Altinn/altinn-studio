@@ -18,7 +18,7 @@ import {
   updateGroupNames,
 } from '../../utils/pageGroupUtils';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
-import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
 
 type PageGroupMoveToExistingGroupDialogProps = {
   pageName: string;

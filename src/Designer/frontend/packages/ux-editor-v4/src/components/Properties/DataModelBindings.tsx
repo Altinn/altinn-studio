@@ -8,7 +8,7 @@ import { useText, useSelectedFormLayout } from '../../hooks';
 import classes from './DataModelBindings.module.css';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { isItemChildOfContainer } from '../../utils/formLayoutUtils';
-import type { FormComponent } from '@altinn/ux-editor/types/FormComponent';
+import type { FormComponent } from '@altinn/ux-editor-v4/types/FormComponent';
 
 export const DataModelBindings = (): React.JSX.Element => {
   const layout = useSelectedFormLayout();

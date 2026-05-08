@@ -11,12 +11,12 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { StudioDropdown } from '@studio/components';
 import { usePagesQuery } from '../../../../hooks/queries/usePagesQuery';
 import { useChangePageOrderMutation } from '../../../../hooks/mutations/useChangePageOrderMutation';
-import { useChangePageGroupOrder } from '@altinn/ux-editor/hooks/mutations/useChangePageGroupOrder';
+import { useChangePageGroupOrder } from '@altinn/ux-editor-v4/hooks/mutations/useChangePageGroupOrder';
 import type { GroupModel } from 'app-shared/types/api/dto/PageModel';
-import { PageGroupMoveToExistingGroupDialog } from '@altinn/ux-editor/components/Pages/PageGroupMoveDialog';
+import { PageGroupMoveToExistingGroupDialog } from '@altinn/ux-editor-v4/components/Pages/PageGroupMoveDialog';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
 import classes from './NavigationMenu.module.css';
-import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
 
 export type NavigationMenuProps = {
   pageName: string;

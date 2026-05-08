@@ -18,24 +18,24 @@ import {
   ArrowUpIcon,
   ArrowDownIcon,
 } from '@studio/icons';
-import type { IFormLayouts } from '@altinn/ux-editor/types/global';
+import type { IFormLayouts } from '@altinn/ux-editor-v4/types/global';
 import {
   duplicatedIdsExistsInLayout,
   findLayoutsContainingDuplicateComponents,
-} from '@altinn/ux-editor/utils/formLayoutUtils';
+} from '@altinn/ux-editor-v4/utils/formLayoutUtils';
 import type { PagesModelWithPageGroups } from 'app-shared/types/api/dto/PagesModel';
-import { useDeletePageGroupMutation } from '@altinn/ux-editor/hooks/mutations/useDeletePageGroupMutation';
+import { useDeletePageGroupMutation } from '@altinn/ux-editor-v4/hooks/mutations/useDeletePageGroupMutation';
 import { useChangePageGroupOrder } from '../../hooks/mutations/useChangePageGroupOrder';
 import { useAppContext } from '../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { pageGroupAccordionHeader } from '@studio/testing/testids';
 import { Accordion } from '@digdir/designsystemet-react';
 import cn from 'classnames';
-import { ItemType } from '../../../../ux-editor/src/components/Properties/ItemType';
+import { ItemType } from '../../../../ux-editor-v4/src/components/Properties/ItemType';
 import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
 import { useAddPageToGroup } from '../../hooks/mutations/useAddPageToGroup';
-import { pageGroupDisplayName } from '@altinn/ux-editor/utils/pageGroupUtils';
-import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import { pageGroupDisplayName } from '@altinn/ux-editor-v4/utils/pageGroupUtils';
+import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
 
 export interface PageGroupAccordionProps {
   pages: PagesModelWithPageGroups;

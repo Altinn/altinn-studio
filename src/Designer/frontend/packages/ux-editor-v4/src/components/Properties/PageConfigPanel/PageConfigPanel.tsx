@@ -15,8 +15,8 @@ import {
 import { PageConfigWarning } from './PageConfigWarning';
 import classes from './PageConfigPanel.module.css';
 import { PageConfigWarningModal } from './PageConfigWarningModal';
-import type { IInternalLayout } from '@altinn/ux-editor/types/global';
-import { PdfConfig } from '@altinn/ux-editor/components/Properties/PageConfigPanel/PdfConfig';
+import type { IInternalLayout } from '@altinn/ux-editor-v4/types/global';
+import { PdfConfig } from '@altinn/ux-editor-v4/components/Properties/PageConfigPanel/PdfConfig';
 import type { ItemType } from '../ItemType';
 import type { SelectedItem } from '../../../AppContext';
 import { EditPageId } from './EditPageId';

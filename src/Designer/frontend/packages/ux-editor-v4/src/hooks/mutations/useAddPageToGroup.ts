@@ -4,7 +4,7 @@ import { useUpdateGroupsMutation } from './useUpdateGroupsMutation';
 import type { PagesModelWithPageGroups } from 'app-shared/types/api/dto/PagesModel';
 import { useAppContext } from '../useAppContext';
 import type { PageModel } from 'app-shared/types/api/dto/PageModel';
-import { ItemType } from '@altinn/ux-editor/components/Properties/ItemType';
+import { ItemType } from '@altinn/ux-editor-v4/components/Properties/ItemType';
 import useUxEditorParams from '../useUxEditorParams';
 
 export const useAddPageToGroup = (pagesModel: PagesModelWithPageGroups) => {

@@ -7,12 +7,12 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { componentSchemaMocks } from '../../../testing/componentSchemaMocks';
-import { layoutSet1NameMock, layoutSetsMock } from '@altinn/ux-editor/testing/layoutSetsMock';
-import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
-import type { IFormLayouts } from '@altinn/ux-editor/types/global';
+import { layoutSet1NameMock, layoutSetsMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
+import { layout1NameMock, layoutMock } from '@altinn/ux-editor-v4/testing/layoutMock';
+import type { IFormLayouts } from '@altinn/ux-editor-v4/types/global';
 import { app, org } from '@studio/testing/testids';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
+import { componentMocks } from '@altinn/ux-editor-v4/testing/componentMocks';
 
 const mockHandleComponentUpdate = jest.fn();
 

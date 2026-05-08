@@ -18,7 +18,7 @@ import {
 
 import type { MutableRefObject } from 'react';
 import { createRef } from 'react';
-import type { FormItem } from '@altinn/ux-editor/types/FormItem';
+import type { FormItem } from '@altinn/ux-editor-v4/types/FormItem';
 import { userEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';

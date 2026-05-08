@@ -1,5 +1,5 @@
 import React from 'react';
-import type { FormItem } from '@altinn/ux-editor/types/FormItem';
+import type { FormItem } from '@altinn/ux-editor-v4/types/FormItem';
 import { TextResource } from '../../TextResource/TextResource';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../../../hooks';

@@ -8,7 +8,7 @@ import { formItemConfigs } from '../../../../data/formItemConfig';
 import { useTranslation } from 'react-i18next';
 import { UnknownReferencedItem } from '../UnknownReferencedItem';
 import { QuestionmarkDiamondIcon } from '@studio/icons';
-import { useComponentTitle } from '@altinn/ux-editor/hooks';
+import { useComponentTitle } from '@altinn/ux-editor-v4/hooks';
 import { useFeatureFlag, FeatureFlag } from '@studio/feature-flags';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { WithHoverAddButton } from '../../../../components/WithHoverAddButton/WithHoverAddButton';

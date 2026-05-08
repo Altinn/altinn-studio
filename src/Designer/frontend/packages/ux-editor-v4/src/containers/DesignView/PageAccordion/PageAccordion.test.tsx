@@ -6,14 +6,14 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { groupsPagesModelMock, layout1NameMock, pagesModelMock } from '../../../testing/layoutMock';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { PagesModel, PagesModelWithPageGroups } from 'app-shared/types/api/dto/PagesModel';
-import type { useAppContext } from '@altinn/ux-editor/hooks';
-import { ItemType } from '@altinn/ux-editor/components/Properties/ItemType';
+import type { useAppContext } from '@altinn/ux-editor-v4/hooks';
+import { ItemType } from '@altinn/ux-editor-v4/components/Properties/ItemType';
 
 const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = layoutSet1NameMock;

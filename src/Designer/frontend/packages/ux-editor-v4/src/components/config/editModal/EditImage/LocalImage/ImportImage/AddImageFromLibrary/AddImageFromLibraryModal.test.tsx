@@ -1,6 +1,6 @@
 import { createRef } from 'react';
 import { screen } from '@testing-library/react';
-import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
+import { renderWithProviders } from '@altinn/ux-editor-v4/testing/mocks';
 import { AddImageFromLibraryModal } from './AddImageFromLibraryModal';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

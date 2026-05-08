@@ -1,5 +1,5 @@
 import React from 'react';
-import type { FormItem } from '@altinn/ux-editor/types/FormItem';
+import type { FormItem } from '@altinn/ux-editor-v4/types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { EditSubformTableColumns } from '../../EditSubformTableColumns';
 

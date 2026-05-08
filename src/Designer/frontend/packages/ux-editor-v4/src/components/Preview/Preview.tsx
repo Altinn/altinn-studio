@@ -17,7 +17,7 @@ import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { PreviewActions } from './PreviewActions/PreviewActions';
-import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
 
 export type PreviewProps = {
   collapsed: boolean;

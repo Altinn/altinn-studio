@@ -18,7 +18,7 @@ import { GroupType } from 'app-shared/types/api/dto/PageModel';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
 import { changeGroupName } from '../../../utils/pageGroupUtils';
 import { EditName } from '../../config/EditName';
-import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
 import { ConfigPanelHeader } from '../CommonElements/ConfigPanelHeader/ConfigPanelHeader';
 import { MainSettingsHeader } from '../CommonElements/MainSettingsHeader/MainSettingsHeader';
 

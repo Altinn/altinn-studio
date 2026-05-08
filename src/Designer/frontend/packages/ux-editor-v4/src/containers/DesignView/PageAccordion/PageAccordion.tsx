@@ -16,7 +16,7 @@ import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
 import { useTextResourceValue } from '../../../components/TextResource/hooks/useTextResourceValue';
 
 import cn from 'classnames';
-import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
 
 export type PageAccordionProps = {
   pageId: string;

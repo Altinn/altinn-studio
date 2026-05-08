@@ -4,7 +4,7 @@ import { formLayoutSettingsMock, renderWithProviders } from '../../testing/mocks
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
 import type { IFormLayouts } from '../../types/global';
 import { layout1NameMock, groupsPagesModelMock, layoutMock } from '../../testing/layoutMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';

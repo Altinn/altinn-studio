@@ -8,7 +8,7 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { Accordion } from '@digdir/designsystemet-react';
 import { getCollapsableMenuTitleByType } from '../../utils/language';
 import { ToolbarItem } from './ToolbarItem';
-import { useComponentTitle } from '@altinn/ux-editor/hooks';
+import { useComponentTitle } from '@altinn/ux-editor-v4/hooks';
 
 export const DefaultToolbar = () => {
   const { t } = useTranslation();

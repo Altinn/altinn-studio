@@ -9,7 +9,7 @@ import { Trans } from 'react-i18next';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { useDebounce } from '@studio/hooks';
 import classes from './HiddenExpressionOnLayout.module.css';
-import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
 
 export const HiddenExpressionOnLayout = () => {
   const { app, org } = useStudioEnvironmentParams();

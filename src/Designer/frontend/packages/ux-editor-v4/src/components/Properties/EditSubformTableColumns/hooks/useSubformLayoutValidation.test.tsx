@@ -1,10 +1,10 @@
 import { useSubformLayoutValidation } from './useSubformLayoutValidation';
-import { renderHookWithProviders } from '@altinn/ux-editor/testing/mocks';
+import { renderHookWithProviders } from '@altinn/ux-editor-v4/testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
-import type { IFormLayouts } from '@altinn/ux-editor/types/global';
-import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
+import type { IFormLayouts } from '@altinn/ux-editor-v4/types/global';
+import { componentMocks } from '@altinn/ux-editor-v4/testing/componentMocks';
 
 const emptyLayout: IFormLayouts = {
   page1: {

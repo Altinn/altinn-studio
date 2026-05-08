@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { isContainer } from '../../../../../utils/formItemUtils';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import type { FormContainer } from '../../../../../types/FormContainer';
-import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
 
 export const useDeleteItem = (formItem: FormComponent | FormContainer) => {
   const { org, app } = useStudioEnvironmentParams();

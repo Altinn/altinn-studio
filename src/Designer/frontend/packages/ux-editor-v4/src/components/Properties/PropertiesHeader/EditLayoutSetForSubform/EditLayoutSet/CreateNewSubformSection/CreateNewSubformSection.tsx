@@ -5,7 +5,7 @@ import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { SubformDataModel } from './SubformDataModel';
 import { CreateNewSubformButtons } from './CreateNewSubformButtons';
 import { SubformInstructions } from './SubformInstructions';
-import { useCreateSubform } from '@altinn/ux-editor/hooks/useCreateSubform';
+import { useCreateSubform } from '@altinn/ux-editor-v4/hooks/useCreateSubform';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';

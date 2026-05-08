@@ -1,4 +1,4 @@
-import { layoutMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layoutMock } from '@altinn/ux-editor-v4/testing/layoutMock';
 import {
   convertToExternalConfig,
   getAvailablePages,

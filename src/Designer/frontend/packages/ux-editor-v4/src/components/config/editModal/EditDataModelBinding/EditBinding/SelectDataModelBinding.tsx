@@ -6,8 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useGetBindableDataTypes } from '../../../../../hooks/useGetBindableDataTypes';
 import { useValidDataModels } from '../../../../../hooks/useValidDataModels';
-import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';
-import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import type { ExplicitDataModelBinding } from '@altinn/ux-editor-v4/types/global';
+import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
 
 type SelectDataModelProps = {
   currentDataModel: string;

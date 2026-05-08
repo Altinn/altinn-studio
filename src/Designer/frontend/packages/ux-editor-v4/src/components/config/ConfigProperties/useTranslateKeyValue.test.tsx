@@ -3,7 +3,7 @@ import { useTranslateKeyValue } from './useTranslateKeyValue';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useComponentPropertyEnumValue, useComponentPropertyLabel } from '../../../hooks';
 
-jest.mock('@altinn/ux-editor/hooks');
+jest.mock('@altinn/ux-editor-v4/hooks');
 
 describe('useTranslateKeyValue', () => {
   beforeEach(() => {

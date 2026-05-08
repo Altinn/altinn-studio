@@ -1,5 +1,5 @@
-import { useComponentPropertyLabel } from '@altinn/ux-editor/hooks';
-import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks/useComponentPropertyEnumValue';
+import { useComponentPropertyLabel } from '@altinn/ux-editor-v4/hooks';
+import { useComponentPropertyEnumValue } from '@altinn/ux-editor-v4/hooks/useComponentPropertyEnumValue';
 
 type Primitive = string | number | boolean;
 type PropertyValue = Primitive | Primitive[] | Record<string, unknown>;

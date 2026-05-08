@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { FormField } from '../../FormField';
 import { Combobox } from '@digdir/designsystemet-react';
 import { useComponentPropertyLabel } from '../../../hooks/useComponentPropertyLabel';
-import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks/useComponentPropertyEnumValue';
+import { useComponentPropertyEnumValue } from '@altinn/ux-editor-v4/hooks/useComponentPropertyEnumValue';
 import { StudioSelect, StudioTextfield } from '@studio/components';
 import { useComponentPropertyHelpText } from '../../../hooks';
 

@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { useConvertToInternalConfig } from './useConvertToInternalConfig';
 
-jest.mock('@altinn/ux-editor/hooks', () => ({
+jest.mock('@altinn/ux-editor-v4/hooks', () => ({
   useComponentPropertyEnumValue: () => (value: string) => value,
 }));
 

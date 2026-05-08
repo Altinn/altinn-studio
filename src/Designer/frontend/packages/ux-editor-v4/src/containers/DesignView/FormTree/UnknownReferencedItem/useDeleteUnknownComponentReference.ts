@@ -3,7 +3,7 @@ import { useSelectedFormLayoutWithName, useAppContext } from '../../../../hooks'
 import { useFormLayoutMutation } from '../../../../hooks/mutations/useFormLayoutMutation';
 import { removeComponent } from '../../../../utils/formLayoutUtils';
 import type { IInternalLayout } from '../../../../types/global';
-import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
 
 export const useDeleteUnknownComponentReference = () => {
   const { org, app } = useStudioEnvironmentParams();

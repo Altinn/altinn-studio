@@ -1,6 +1,6 @@
 import type { IGenericEditComponent } from '../componentConfig';
 import { FormField } from '../../FormField';
-import { setComponentProperty } from '@altinn/ux-editor/utils/component';
+import { setComponentProperty } from '@altinn/ux-editor-v4/utils/component';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../../types/FormItem';
 import type { FilterKeysOfType } from 'app-shared/types/FilterKeysOfType';
@@ -12,7 +12,7 @@ import {
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { useTranslation } from 'react-i18next';
 import { StudioDecimalInput, StudioSelect } from '@studio/components';
-import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
 
 type NumberKeys<ObjectType extends KeyValuePairs> = FilterKeysOfType<ObjectType, number>;
 

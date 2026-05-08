@@ -6,7 +6,7 @@ import { XMarkIcon } from '@studio/icons';
 import type { AddedItem } from './types';
 import { ComponentButton } from './ComponentButton';
 import { useFormLayouts } from '../../../hooks';
-import { generateComponentId } from '@altinn/ux-editor/utils/generateId';
+import { generateComponentId } from '@altinn/ux-editor-v4/utils/generateId';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { getTitleByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';

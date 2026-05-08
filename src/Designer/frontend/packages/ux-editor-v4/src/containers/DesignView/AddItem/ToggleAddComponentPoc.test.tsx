@@ -3,7 +3,7 @@ import type { RenderResult } from '@testing-library/react';
 import { ToggleAddComponentPoc } from './ToggleAddComponentPoc';
 import { FeatureFlag } from '@studio/feature-flags';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
+import { renderWithProviders } from '@altinn/ux-editor-v4/testing/mocks';
 
 // Mocks:
 const addFlag = jest.fn();

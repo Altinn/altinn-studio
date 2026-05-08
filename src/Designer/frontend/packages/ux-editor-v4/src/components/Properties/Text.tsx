@@ -5,7 +5,7 @@ import type { FormComponent } from '../../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useAppContext } from '../../hooks';
 import { EditSubformTableColumns } from './EditSubformTableColumns';
-import { type FormContainer } from '@altinn/ux-editor/types/FormContainer';
+import { type FormContainer } from '@altinn/ux-editor-v4/types/FormContainer';
 
 export const Text = () => {
   const { formItemId: formId, formItem: form, handleUpdate, debounceSave } = useFormItemContext();

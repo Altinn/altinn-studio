@@ -1,6 +1,6 @@
 import { TextComponent, type TextComponentProps } from './TextComponent';
 import { renderWithProviders } from '../../../../testing/mocks';
-import { componentMocks } from '../../../../../../ux-editor/src/testing/componentMocks';
+import { componentMocks } from '../../../../../../ux-editor-v4/src/testing/componentMocks';
 import { screen } from '@testing-library/react';
 import { DataLookupFuncName, type StringExpression } from '@studio/components';
 import userEvent from '@testing-library/user-event';

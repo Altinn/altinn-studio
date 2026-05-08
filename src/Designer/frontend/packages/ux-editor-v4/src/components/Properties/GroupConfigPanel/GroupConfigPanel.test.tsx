@@ -6,7 +6,7 @@ import { GroupConfigPanel, type GroupConfigPanelProps } from './GroupConfigPanel
 import { renderWithProviders } from '../../../testing/mocks';
 import { ItemType } from '../ItemType';
 import type { SelectedItem } from '../../../AppContext';
-import { groupsPagesModelMock } from '@altinn/ux-editor/testing/layoutMock';
+import { groupsPagesModelMock } from '@altinn/ux-editor-v4/testing/layoutMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { layoutSet1NameMock } from '../../../testing/layoutSetsMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';

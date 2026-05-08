@@ -1,6 +1,6 @@
-import { SavableFormLayoutSettings } from '@altinn/ux-editor/classes/SavableFormLayoutSettings';
+import { SavableFormLayoutSettings } from '@altinn/ux-editor-v4/classes/SavableFormLayoutSettings';
 import { formLayoutSettingsMock } from '../testing/mocks';
-import { FormLayoutSettings } from '@altinn/ux-editor/classes/FormLayoutSettings';
+import { FormLayoutSettings } from '@altinn/ux-editor-v4/classes/FormLayoutSettings';
 
 const saveFormLayoutSettings = jest.fn();
 

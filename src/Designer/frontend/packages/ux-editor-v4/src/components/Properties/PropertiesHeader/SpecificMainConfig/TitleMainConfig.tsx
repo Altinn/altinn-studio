@@ -1,7 +1,7 @@
 import type { FormItem } from '../../../../types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { useComponentSchemaQuery } from '@altinn/ux-editor/hooks/queries/useComponentSchemaQuery';
-import { ConfigStringProperties } from '@altinn/ux-editor/components/config/ConfigProperties';
+import { useComponentSchemaQuery } from '@altinn/ux-editor-v4/hooks/queries/useComponentSchemaQuery';
+import { ConfigStringProperties } from '@altinn/ux-editor-v4/components/config/ConfigProperties';
 import type { properties } from '../../../../testing/schemas/json/component/Header.schema.v1.json';
 
 import type { JSX } from 'react';

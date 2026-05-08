@@ -1,5 +1,5 @@
 import React from 'react';
-import { useComponentPropertyLabel } from '@altinn/ux-editor/hooks';
+import { useComponentPropertyLabel } from '@altinn/ux-editor-v4/hooks';
 import { StudioSelect } from '@studio/components';
 import type { InternalCrop, ShapeOptions } from '../ImageUploadTypes';
 

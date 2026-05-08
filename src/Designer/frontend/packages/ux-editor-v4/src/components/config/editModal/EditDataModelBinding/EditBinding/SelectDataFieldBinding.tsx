@@ -2,15 +2,15 @@ import React from 'react';
 import {
   getDataModelFields,
   validateSelectedDataField,
-} from '@altinn/ux-editor/utils/dataModelUtils';
+} from '@altinn/ux-editor-v4/utils/dataModelUtils';
 import { useTranslation } from 'react-i18next';
 import { FormField } from 'app-shared/components/FormField';
 import { StudioSelect } from '@studio/components';
-import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
+import { useValidDataModels } from '@altinn/ux-editor-v4/hooks/useValidDataModels';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import classes from './SelectDataFieldBinding.module.css';
 import { useComponentPropertyHelpText } from '../../../../../hooks';
-import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';
+import type { ExplicitDataModelBinding } from '@altinn/ux-editor-v4/types/global';
 
 type SelectDataFieldProps = {
   internalBindingFormat: ExplicitDataModelBinding;

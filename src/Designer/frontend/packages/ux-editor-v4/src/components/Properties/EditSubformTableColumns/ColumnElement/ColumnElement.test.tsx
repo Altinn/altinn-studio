@@ -10,7 +10,7 @@ import { layoutSet3SubformNameMock } from '../../../../testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { subformLayoutMock } from '../../../../testing/subformLayoutMock';
-import { convertDataBindingToInternalFormat } from '@altinn/ux-editor/utils/dataModelUtils';
+import { convertDataBindingToInternalFormat } from '@altinn/ux-editor-v4/utils/dataModelUtils';
 
 const headerContentMock: string = 'Header';
 const cellContentQueryMock: string = 'Query';

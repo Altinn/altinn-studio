@@ -1,10 +1,10 @@
-import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
+import { renderWithProviders } from '@altinn/ux-editor-v4/testing/mocks';
 import { app, org } from '@studio/testing/testids';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
+import { componentMocks } from '@altinn/ux-editor-v4/testing/componentMocks';
 import { EditLayoutSet } from './EditLayoutSet';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';

@@ -16,7 +16,7 @@ import { componentSchemaMocks } from '../../testing/componentSchemaMocks';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { app, org } from '@studio/testing/testids';
-import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
+import { componentMocks } from '@altinn/ux-editor-v4/testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 

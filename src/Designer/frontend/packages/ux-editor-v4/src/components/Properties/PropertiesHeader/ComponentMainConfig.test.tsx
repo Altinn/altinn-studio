@@ -1,15 +1,15 @@
-import type { FormItem } from '@altinn/ux-editor/types/FormItem';
+import type { FormItem } from '@altinn/ux-editor-v4/types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { screen } from '@testing-library/react';
 import { ComponentMainConfig } from './ComponentMainConfig';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { component1Mock } from '@altinn/ux-editor/testing/layoutMock';
+import { component1Mock } from '@altinn/ux-editor-v4/testing/layoutMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
-import { layoutSetsExtendedMock } from '@altinn/ux-editor/testing/layoutSetsMock';
-import { componentSchemaMocks } from '@altinn/ux-editor/testing/componentSchemaMocks';
+import { layoutSetsExtendedMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
+import { componentSchemaMocks } from '@altinn/ux-editor-v4/testing/componentSchemaMocks';
 
 const mainConfigComponentMock = (type: ComponentType) =>
   ({

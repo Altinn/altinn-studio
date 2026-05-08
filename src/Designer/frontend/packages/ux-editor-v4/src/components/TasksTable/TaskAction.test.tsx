@@ -7,9 +7,9 @@ import userEvent from '@testing-library/user-event';
 import { app, org } from '@studio/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { layoutSetsExtendedMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { layoutSetsExtendedMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
 import { TaskType } from '../Settings/SettingsUtils';
-import type { AppContextProps } from '@altinn/ux-editor/AppContext';
+import type { AppContextProps } from '@altinn/ux-editor-v4/AppContext';
 
 const mockTask = [
   {

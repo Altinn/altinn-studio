@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { usePdf } from '../../../../hooks/usePdf/usePdf';
 import { ConvertChoicesModal } from './ConvertPageToPdfWhenExistingModal/ConvertChoicesModal';
-import { useSavableFormLayoutSettings } from '@altinn/ux-editor/hooks/useSavableFormLayoutSettings';
+import { useSavableFormLayoutSettings } from '@altinn/ux-editor-v4/hooks/useSavableFormLayoutSettings';
 import { PdfConfigCard } from './PdfConfigCard';
 
 export const PdfConfig = () => {

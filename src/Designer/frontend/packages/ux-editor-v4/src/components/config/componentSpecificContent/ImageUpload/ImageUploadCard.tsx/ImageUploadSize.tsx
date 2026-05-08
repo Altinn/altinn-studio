@@ -1,5 +1,5 @@
 import React from 'react';
-import { useComponentPropertyLabel } from '@altinn/ux-editor/hooks';
+import { useComponentPropertyLabel } from '@altinn/ux-editor-v4/hooks';
 import type { ErrorProps, InternalCrop } from '../ImageUploadTypes';
 import { isRectangleShape, SizeOptions } from '../ImageUploadUtils';
 import { StudioTextfield } from '@studio/components';

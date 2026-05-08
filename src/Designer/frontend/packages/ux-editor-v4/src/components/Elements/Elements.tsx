@@ -14,7 +14,7 @@ import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQ
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import { ElementsUtils } from './ElementsUtils';
 import type { ConfPageType } from './types/ConfigPageType';
-import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
 
 export interface ElementsProps {
   collapsed: boolean;

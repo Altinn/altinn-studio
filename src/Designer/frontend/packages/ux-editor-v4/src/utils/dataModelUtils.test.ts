@@ -10,7 +10,7 @@ import {
   validateSelectedDataField,
   validateSelectedDataModel,
 } from './dataModelUtils';
-import { dataModelMetadataMock } from '@altinn/ux-editor/testing/dataModelMock';
+import { dataModelMetadataMock } from '@altinn/ux-editor-v4/testing/dataModelMock';
 
 describe('getMinOccursFromDataModelFields', () => {
   it('should be truthy if minOccurs is bigger than 0', () => {

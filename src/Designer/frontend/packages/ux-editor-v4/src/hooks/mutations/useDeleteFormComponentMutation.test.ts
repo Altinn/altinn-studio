@@ -2,7 +2,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useDeleteFormComponentMutation } from './useDeleteFormComponentMutation';
 import { component2IdMock, externalLayoutsMock, layout1NameMock } from '../../testing/layoutMock';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { componentMocks } from '../../testing/componentMocks';

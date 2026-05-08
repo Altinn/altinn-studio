@@ -5,7 +5,7 @@ import type { FormItem } from '../../../../types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { SelectionComponentType } from '@altinn/ux-editor/types/FormComponent';
+import type { SelectionComponentType } from '@altinn/ux-editor-v4/types/FormComponent';
 
 const optionsComponent: FormItem = {
   id: '0',

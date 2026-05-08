@@ -4,7 +4,7 @@ import { Scope } from '../utils/ValidateNavigationUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { selectSuggestionOption } from '../utils/ValidateNavigationTestUtils';
-import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
+import { renderWithProviders } from '@altinn/ux-editor-v4/testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
