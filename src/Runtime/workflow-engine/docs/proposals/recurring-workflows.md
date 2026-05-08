@@ -48,7 +48,7 @@ At least one of `maxOccurrences` or `until` must be specified. Unbounded recurre
 
 "Failure" in this context means the workflow's retry strategy has been fully exhausted — not a transient blip, but a genuine failure.
 
-| Value        | Behavior                                                                                                                |
+| Value        | Behavior                                                                                                               |
 | ------------ | ----------------------------------------------------------------------------------------------------------------------- |
 | **Stop**     | Chain ends. No successor is scheduled. This is the default.                                                             |
 | **Continue** | Schedule the next occurrence anyway. The failed workflow is recorded in the chain but does not block future executions. |
