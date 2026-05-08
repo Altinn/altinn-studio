@@ -109,21 +109,10 @@ describe('Frontend urlHelper.ts', () => {
         );
       });
 
-      it('should throw error when host has too many subdomains', () => {
-        const oldWindowLocation = window.location;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        delete (window as any).location;
-        // @ts-expect-error: can be removed when this issue is fixed: https://github.com/microsoft/TypeScript/issues/61335
-        window.location = {
-          ...oldWindowLocation,
-          origin: 'https://ttd.apps.altinn.no',
-          pathname: '/ttd/jesttest/',
-          host: 'https://ttd.apps.too.many.domains.altinn.no',
-          href: 'https://ttd.apps.altinn.no/ttd/test',
-        };
-        const oidcProvider = '';
+      it('should throw error when authenticationUrl is missing', () => {
+        window.altinnAppGlobalData.platformFrontendSettings.authenticationUrl = '';
 
-        expect(() => getEnvironmentLoginUrl(oidcProvider)).toThrow('Unknown domain');
+        expect(() => getEnvironmentLoginUrl('')).toThrow('Unknown domain');
       });
     });
 

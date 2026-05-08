@@ -48,6 +48,25 @@ func newScreenRenderer(
 	}
 }
 
+func newScreenRendererPlanned(
+	out *ui.Output,
+	resources []resource.PlannedResource,
+	operation Operation,
+	statuses map[resource.ResourceID]resource.Status,
+	rendererLayout layout,
+) *screenRenderer {
+	return &screenRenderer{
+		out:           out,
+		model:         newRenderModelPlanned(resources, operation, statuses),
+		layout:        rendererLayout,
+		done:          nil,
+		mu:            sync.Mutex{},
+		renderedLines: 0,
+		running:       false,
+		dirty:         false,
+	}
+}
+
 func (r *screenRenderer) Start() {
 	r.mu.Lock()
 	defer r.mu.Unlock()

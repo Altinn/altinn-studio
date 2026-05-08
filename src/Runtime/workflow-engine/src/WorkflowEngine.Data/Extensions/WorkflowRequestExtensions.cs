@@ -21,7 +21,7 @@ internal static class WorkflowRequestExtensions
         return new Workflow
         {
             DatabaseId = Guid.CreateVersion7(),
-            CorrelationId = metadata.CorrelationId,
+            CollectionKey = metadata.CollectionKey,
             OperationId = workflowRequest.OperationId,
             IdempotencyKey = idempotencyKey,
             Namespace = WorkflowNamespace.Normalize(metadata.Namespace),

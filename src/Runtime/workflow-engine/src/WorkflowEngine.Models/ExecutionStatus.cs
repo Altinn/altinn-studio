@@ -1,5 +1,8 @@
 namespace WorkflowEngine.Models;
 
+/// <summary>
+/// Classification of an <see cref="ExecutionResult"/>. Determines whether the engine advances, retries, or fails the step.
+/// </summary>
 public enum ExecutionStatus
 {
     /// <summary>

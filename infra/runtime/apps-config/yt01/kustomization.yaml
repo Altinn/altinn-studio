@@ -21,6 +21,7 @@ patches:
         PlatformSettings__ApiNotificationEndpoint: https://platform.yt01.altinn.cloud/notifications/api/v1/
         PlatformSettings__ApiAccessManagementEndpoint: https://platform.yt01.altinn.cloud/accessmanagement/api/v1/
         PlatformSettings__ApiCorrespondenceEndpoint: https://platform.yt01.altinn.cloud/correspondence/api/v1/
+        PlatformFrontendSettings__AuthenticationUrl: https://platform.yt01.altinn.cloud/authentication/api/v1/authentication
         GeneralSettings__HostName: yt01.altinn.cloud
         AppSettings__OpenIdWellKnownEndpoint: https://platform.yt01.altinn.cloud/authentication/api/v1/openid/
         ASPNETCORE_ENVIRONMENT: Staging

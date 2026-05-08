@@ -1,4 +1,6 @@
-package localtest
+package components
+
+import "altinn.studio/devenv/pkg/resource"
 
 // Container name constants - single source of truth for all container names.
 const (
@@ -25,42 +27,15 @@ const (
 	ContainerMonitoringGrafana = "monitoring_grafana"
 )
 
-// coreContainerNames returns the core container names in order.
-func coreContainerNames(includePgAdmin bool) []string {
-	names := []string{
-		ContainerLocaltest,
-		ContainerPDF3,
-		ContainerWorkflowEngineDb,
-		ContainerWorkflowEngine,
-	}
-	if includePgAdmin {
-		names = append(names, ContainerPgAdmin)
+// EnabledContainerNames returns enabled container names in manifest order.
+func EnabledContainerNames(resources []resource.Resource) []string {
+	names := make([]string, 0, len(resources))
+	for _, res := range resources {
+		containerResource, ok := res.(*resource.Container)
+		if !ok || !resource.IsEnabled(containerResource) {
+			continue
+		}
+		names = append(names, containerResource.Name)
 	}
 	return names
-}
-
-// monitoringContainerNames returns monitoring container names in order.
-func monitoringContainerNames() []string {
-	return []string{
-		ContainerMonitoringTempo,
-		ContainerMonitoringMimir,
-		ContainerMonitoringLoki,
-		ContainerMonitoringOtelCollector,
-		ContainerMonitoringGrafana,
-	}
-}
-
-// AllContainerNames returns all container names in order (for log streaming).
-// If includeMonitoring is true, monitoring containers are included.
-func AllContainerNames(includeMonitoring bool) []string {
-	core := coreContainerNames(true)
-	if !includeMonitoring {
-		return core
-	}
-
-	monitoring := monitoringContainerNames()
-	result := make([]string, 0, len(core)+len(monitoring))
-	result = append(result, core...)
-	result = append(result, monitoring...)
-	return result
 }

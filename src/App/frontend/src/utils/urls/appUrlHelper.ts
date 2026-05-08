@@ -94,28 +94,15 @@ export const getUpgradeAuthLevelUrl = (reqAuthLevel: string) => {
 };
 
 export const getEnvironmentLoginUrl = (oidcProvider: string | null) => {
-  // First split away the protocol 'https://' and take the last part. Then split on dots.
-  const domainSplitted: string[] = window.location.host.split('.');
   const encodedGoToUrl = encodeURIComponent(window.location.href);
   let issParam = '';
   if (oidcProvider != null && oidcProvider != '') {
     issParam = `&iss=${oidcProvider}`;
   }
-
-  if (domainSplitted.length === 5) {
-    return (
-      `https://platform.${domainSplitted[2]}.${domainSplitted[3]}.${domainSplitted[4]}` +
-      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}${issParam}`
-    );
+  const authenticationUrl = GlobalData.platformFrontendSettings.authenticationUrl;
+  if (authenticationUrl) {
+    return `${authenticationUrl}?goto=${encodedGoToUrl}${issParam}`;
   }
-
-  if (domainSplitted.length === 4) {
-    return (
-      `https://platform.${domainSplitted[2]}.${domainSplitted[3]}` +
-      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}${issParam}`
-    );
-  }
-
   // TODO: what if altinn3?
   throw new Error('Unknown domain');
 };

@@ -11,6 +11,7 @@ data:
   PlatformSettings__ApiWorkflowEngineEndpoint: http://workflow-engine-app.runtime-workflow-engine-app.svc.cluster.local/api/v1/
   GeneralSettings__ExternalAppBaseUrl: https://{org}.apps.{hostName}/{org}/{app}/
   PlatformFrontendSettings__PostalCodesUrl: https://altinncdn.no/postcodes/registry.json
+  PlatformFrontendSettings__AuthenticationUrl: https://platform.altinn.no/authentication/api/v1/authentication
   PlatformFrontendSettings__AppFrontendCdnBaseUrl: https://altinncdn.no/toolkits/altinn-app-frontend
   PlatformFrontendSettings__AltinnLogoUrl: https://altinncdn.no/img/Altinn-logo-blue.svg
   PlatformFrontendSettings__HelpCircleIllustrationUrl: https://altinncdn.no/img/illustration-help-circle.svg

@@ -28,12 +28,14 @@ const useRefreshJwtTokenQuery = (appOidcProvider: string | null | undefined, all
   });
 
   useEffect(() => {
-    if (utils.error) {
-      try {
-        redirectToLogin(appOidcProvider || null);
-      } catch {
-        console.error(utils.error);
-      }
+    if (!utils.error) {
+      return;
+    }
+
+    try {
+      redirectToLogin(appOidcProvider || null);
+    } catch {
+      console.error(utils.error);
     }
   }, [appOidcProvider, utils.error]);
 

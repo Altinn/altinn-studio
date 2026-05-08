@@ -21,6 +21,7 @@ patches:
         PlatformSettings__ApiNotificationEndpoint: https://platform.altinn.no/notifications/api/v1/
         PlatformSettings__ApiAccessManagementEndpoint: https://platform.altinn.no/accessmanagement/api/v1/
         PlatformSettings__ApiCorrespondenceEndpoint: https://platform.altinn.no/correspondence/api/v1/
+        PlatformFrontendSettings__AuthenticationUrl: https://platform.altinn.no/authentication/api/v1/authentication
         GeneralSettings__HostName: altinn.no
         AppSettings__OpenIdWellKnownEndpoint: https://platform.altinn.no/authentication/api/v1/openid/
         ASPNETCORE_ENVIRONMENT: Production

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Exceptions;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap.Models;
@@ -76,6 +77,12 @@ internal sealed class BootstrapGlobalService(
 
         var (orgName, orgLogoUrl) = await orgDataTask;
 
+        var platformFrontendSettings = _platformFrontendSettings.CurrentValue;
+        if (platformFrontendSettings.AuthenticationUrl is null)
+        {
+            throw new ConfigurationException("PlatformFrontendSettings.AuthenticationUrl must be configured.");
+        }
+
         return new BootstrapGlobalResponse
         {
             AvailableLanguages = await availableLanguagesTask,
@@ -89,7 +96,7 @@ internal sealed class BootstrapGlobalService(
             OrgName = orgName,
             OrgLogoUrl = orgLogoUrl,
             SelectedParty = await currentPartyTask,
-            PlatformFrontendSettings = _platformFrontendSettings.CurrentValue,
+            PlatformFrontendSettings = platformFrontendSettings,
         };
     }
 

@@ -62,6 +62,9 @@ builder.Configuration.AddJsonFile(
     Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction", "appsettings.json")
 );
 builder.Configuration.GetSection("MetricsSettings:Enabled").Value = "false";
+builder.Configuration.GetSection("PlatformFrontendSettings:AuthenticationUrl").Value =
+    "http://localhost:5101/authentication/api/v1/authentication";
+
 builder.Configuration.GetSection("AppSettings:UseOpenTelemetry").Value = "true";
 builder.Services.Configure<ApplicationInsightsServiceOptions>(options =>
     options.RequestCollectionOptions.InjectResponseHeaders = false

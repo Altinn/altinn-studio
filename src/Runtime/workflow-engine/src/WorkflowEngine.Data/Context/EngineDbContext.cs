@@ -18,6 +18,11 @@ internal sealed class EngineDbContext : DbContext
     public DbSet<StepEntity> Steps { get; set; }
     public DbSet<IdempotencyKeyEntity> IdempotencyKeys { get; set; }
 
+    /// <summary>
+    /// Gets or sets the workflow collection entities stored in the database.
+    /// </summary>
+    public DbSet<WorkflowCollectionEntity> WorkflowCollections { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -30,7 +35,7 @@ internal sealed class EngineDbContext : DbContext
             // Indexes
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.CreatedAt);
-            entity.HasIndex(e => e.CorrelationId);
+            entity.HasIndex(e => e.CollectionKey);
             entity.HasIndex(e => new { e.Namespace, e.Status });
 
             entity
@@ -107,6 +112,13 @@ internal sealed class EngineDbContext : DbContext
         {
             entity.HasKey(e => new { e.IdempotencyKey, e.Namespace });
             entity.HasIndex(e => e.CreatedAt);
+        });
+
+        // Configure WorkflowCollection entity
+        modelBuilder.Entity<WorkflowCollectionEntity>(entity =>
+        {
+            entity.HasKey(e => new { e.Key, e.Namespace });
+            entity.HasIndex(e => e.Namespace);
         });
     }
 

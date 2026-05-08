@@ -33,7 +33,7 @@ Reusable class library for async workflow processing. Provides the core engine, 
 
 - `GET /api/v1/namespaces` — list distinct namespaces
 - `POST /api/v1/{namespace}/workflows` — enqueue workflows, supports batch with dependency graphs
-- `GET /api/v1/{namespace}/workflows` — paginated list of active workflows (optional page, pageSize, correlationId, label filters)
+- `GET /api/v1/{namespace}/workflows` — paginated list of active workflows (optional page, pageSize, collectionKey, label filters)
 - `GET /api/v1/{namespace}/workflows/{workflowId:guid}` — get single workflow with all steps
 - `POST /api/v1/{namespace}/workflows/{workflowId:guid}/cancel` — request cancellation (idempotent)
 - `POST /api/v1/{namespace}/workflows/{workflowId:guid}/resume` — resume a terminal workflow for re-processing

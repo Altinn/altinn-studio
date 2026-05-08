@@ -185,9 +185,6 @@ internal sealed class WorkflowProcessor(
     }
 }
 
-/// <summary>
-/// Source-generated log messages for <see cref="WorkflowProcessor"/>.
-/// </summary>
 internal static partial class WorkflowProcessorLogs
 {
     [LoggerMessage(LogLevel.Information, "WorkflowProcessor started (MaxWorkers={MaxWorkers})")]

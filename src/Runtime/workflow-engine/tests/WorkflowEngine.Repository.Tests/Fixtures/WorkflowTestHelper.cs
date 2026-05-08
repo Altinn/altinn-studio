@@ -90,13 +90,7 @@ internal static class WorkflowTestHelper
             Links = links?.Select(id => (WorkflowRef)id).ToList(),
         };
 
-        var metadata = new WorkflowRequestMetadata(
-            ns,
-            Guid.NewGuid().ToString("N"),
-            Guid.NewGuid(),
-            DateTimeOffset.UtcNow,
-            null
-        );
+        var metadata = new WorkflowRequestMetadata(ns, Guid.NewGuid().ToString("N"), null, DateTimeOffset.UtcNow, null);
         var labels = new Dictionary<string, string> { ["org"] = org, ["app"] = app };
 
         return (request, metadata, ns, labels);

@@ -290,6 +290,7 @@ export interface IPlatformFrontendSettings {
   altinnLogoUrl: string;
   helpCircleIllustrationUrl: string;
   postalCodesUrl: string;
+  authenticationUrl: string;
 }
 
 export type InstanceOwnerPartyType = 'unknown' | 'org' | 'person' | 'selfIdentified';

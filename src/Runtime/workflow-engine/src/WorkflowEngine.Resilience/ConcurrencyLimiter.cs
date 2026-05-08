@@ -4,6 +4,10 @@ using WorkflowEngine.Telemetry.Extensions;
 
 namespace WorkflowEngine.Resilience;
 
+/// <summary>
+/// Bounds concurrent access to scarce resources via three independent semaphore pools:
+/// database connections, outbound HTTP calls, and worker tasks.
+/// </summary>
 public interface IConcurrencyLimiter
 {
     /// <summary>
@@ -49,6 +53,9 @@ public interface IConcurrencyLimiter
     void ReleaseWorkerSlot();
 }
 
+/// <summary>
+/// Default <see cref="IConcurrencyLimiter"/> implementation backed by three <see cref="SemaphoreSlim"/> instances.
+/// </summary>
 public sealed class ConcurrencyLimiter : IDisposable, IConcurrencyLimiter
 {
     private readonly SemaphoreSlim _dbSemaphore;
@@ -78,6 +85,9 @@ public sealed class ConcurrencyLimiter : IDisposable, IConcurrencyLimiter
     public SlotStatus WorkerSlotStatus =>
         new(_workerSemaphore.CurrentCount, _maxWorkers - _workerSemaphore.CurrentCount, _maxWorkers);
 
+    /// <summary>
+    /// Creates a new <see cref="ConcurrencyLimiter"/> with the supplied per-pool capacities.
+    /// </summary>
     public ConcurrencyLimiter(int maxConcurrentDbOperations, int maxConcurrentHttpCalls, int maxWorkers)
     {
         _maxConcurrentDbOperations = maxConcurrentDbOperations;
@@ -131,6 +141,7 @@ public sealed class ConcurrencyLimiter : IDisposable, IConcurrencyLimiter
         _workerSemaphore.Release();
     }
 
+    /// <inheritdoc/>
     public void Dispose()
     {
         _dbSemaphore.Dispose();
@@ -151,5 +162,11 @@ public sealed class ConcurrencyLimiter : IDisposable, IConcurrencyLimiter
         }
     }
 
+    /// <summary>
+    /// Snapshot of a semaphore pool's slot accounting at a single point in time.
+    /// </summary>
+    /// <param name="Available">Slots currently free.</param>
+    /// <param name="Used">Slots currently in use.</param>
+    /// <param name="Total">Total slot capacity of the pool.</param>
     public sealed record SlotStatus(int Available, int Used, int Total);
 }

@@ -25,10 +25,11 @@ var (
 )
 
 const (
-	flagHelp      = "--help"
-	flagVersion   = "--version"
-	helpSubcmd    = "help"
-	versionSubcmd = "version"
+	defaultLogFollow = false
+	flagHelp         = "--help"
+	flagVersion      = "--version"
+	helpSubcmd       = "help"
+	versionSubcmd    = "version"
 )
 
 // Command represents a subcommand.

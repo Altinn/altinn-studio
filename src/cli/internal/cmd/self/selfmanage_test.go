@@ -11,6 +11,7 @@ import (
 
 	self "altinn.studio/studioctl/internal/cmd/self"
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -55,11 +56,11 @@ func TestDefaultAssetName(t *testing.T) {
 		goarch      string
 		want        string
 	}{
-		{name: "linux amd64", goos: "linux", goarch: "amd64", want: "studioctl-linux-amd64"},
-		{name: "darwin arm64", goos: "darwin", goarch: "arm64", want: "studioctl-darwin-arm64"},
-		{name: "windows amd64", goos: "windows", goarch: "amd64", want: "studioctl-windows-amd64.exe"},
+		{name: "linux amd64", goos: osutil.OSLinux, goarch: "amd64", want: "studioctl-linux-amd64"},
+		{name: "darwin arm64", goos: osutil.OSDarwin, goarch: "arm64", want: "studioctl-darwin-arm64"},
+		{name: "windows amd64", goos: osutil.OSWindows, goarch: "amd64", want: "studioctl-windows-amd64.exe"},
 		{name: "unsupported os", goos: "plan9", goarch: "amd64", wantErrType: self.ErrUnsupportedPlatform},
-		{name: "unsupported arch", goos: "linux", goarch: "386", wantErrType: self.ErrUnsupportedArchitecture},
+		{name: "unsupported arch", goos: osutil.OSLinux, goarch: "386", wantErrType: self.ErrUnsupportedArchitecture},
 	}
 
 	for _, tc := range tests {
@@ -86,7 +87,7 @@ func TestDefaultAssetName(t *testing.T) {
 func TestAppManagerAssetName(t *testing.T) {
 	t.Parallel()
 
-	got, err := self.AppManagerAssetName("windows", "amd64")
+	got, err := self.AppManagerAssetName(osutil.OSWindows, "amd64")
 	if err != nil {
 		t.Fatalf("AppManagerAssetName() unexpected error: %v", err)
 	}

@@ -14,7 +14,7 @@ import (
 	"altinn.studio/studioctl/internal/appcontainers"
 	"altinn.studio/studioctl/internal/appimage"
 	"altinn.studio/studioctl/internal/appnaming"
-	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
+	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/envtopology"
 )
@@ -216,7 +216,7 @@ func (s *Service) BuildDockerRunSpec(
 			NetworkAliases: nil,
 			Volumes:        nil,
 			Networks: []string{
-				envlocaltest.NetworkName,
+				components.NetworkName,
 			},
 			Ports: []types.PortMapping{
 				{

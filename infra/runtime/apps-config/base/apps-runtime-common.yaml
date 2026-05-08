@@ -22,6 +22,7 @@ data:
       },
       "PlatformFrontendSettings": {
         "PostalCodesUrl": "https://altinncdn.no/postcodes/registry.json",
+        "AuthenticationUrl": "https://platform.altinn.no/authentication/api/v1/authentication",
         "AppFrontendCdnBaseUrl": "https://altinncdn.no/toolkits/altinn-app-frontend",
         "AltinnLogoUrl": "https://altinncdn.no/img/Altinn-logo-blue.svg",
         "HelpCircleIllustrationUrl": "https://altinncdn.no/img/illustration-help-circle.svg"

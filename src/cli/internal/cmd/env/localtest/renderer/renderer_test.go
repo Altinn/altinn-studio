@@ -244,13 +244,16 @@ func TestDestroyRenderer_OmitsAlreadyDestroyedRows(t *testing.T) {
 	image := &resource.RemoteImage{Ref: "ghcr.io/altinn/test:latest"}
 	running := &resource.Container{Name: "localtest", Image: resource.Ref(image)}
 	destroyed := &resource.Container{Name: "localtest-pgadmin", Image: resource.Ref(image)}
-	resources := []resource.Resource{image, running, destroyed}
+	resources := []resource.PlannedResource{
+		{Resource: running, ID: running.ID()},
+		{Resource: destroyed, ID: destroyed.ID()},
+	}
 	statuses := map[resource.ResourceID]resource.Status{
 		running.ID():   resource.StatusReady,
 		destroyed.ID(): resource.StatusDestroyed,
 	}
 
-	renderer := NewTableWithStatus(
+	renderer := NewTableWithPlan(
 		ui.NewOutput(io.Discard, io.Discard, false),
 		resources,
 		OperationDestroy,
@@ -262,6 +265,34 @@ func TestDestroyRenderer_OmitsAlreadyDestroyedRows(t *testing.T) {
 	}
 	if renderer.model.rows[destroyed.Name] != nil {
 		t.Fatalf("unexpected row for already destroyed resource %q", destroyed.Name)
+	}
+}
+
+func TestApplyRenderer_InitializesReadyRowsFromStatus(t *testing.T) {
+	t.Parallel()
+
+	image := &resource.RemoteImage{Ref: "ghcr.io/altinn/test:latest"}
+	container := &resource.Container{Name: "localtest", Image: resource.Ref(image)}
+	resources := []resource.PlannedResource{
+		{Resource: container, ID: container.ID()},
+	}
+	statuses := map[resource.ResourceID]resource.Status{
+		container.ID(): resource.StatusReady,
+	}
+
+	renderer := NewTableWithPlan(
+		ui.NewOutput(io.Discard, io.Discard, false),
+		resources,
+		OperationApply,
+		statuses,
+	)
+
+	row := renderer.model.rows[container.Name]
+	if row == nil {
+		t.Fatalf("expected row for %q", container.Name)
+	}
+	if row.state != stateReady || row.current != rowProgressComplete || row.total != rowProgressComplete {
+		t.Fatalf("unexpected initial row state: state=%q current=%d total=%d", row.state, row.current, row.total)
 	}
 }
 
@@ -408,6 +439,32 @@ func TestLogRenderer_DeduplicatesProgressMilestones(t *testing.T) {
 	rendered := out.String()
 	if strings.Count(rendered, "20%") != 1 {
 		t.Fatalf("log output %q should contain exactly one deduped 20%% milestone", rendered)
+	}
+}
+
+func TestLogRenderer_PrintsPlannedResourceWithoutDesiredResource(t *testing.T) {
+	id := resource.ContainerID("stale-container")
+	out := &bytes.Buffer{}
+	renderer := NewLogWithPlan(
+		ui.NewOutput(out, io.Discard, false),
+		[]resource.PlannedResource{{
+			Resource: nil,
+			ID:       id,
+		}},
+		OperationApply,
+		nil,
+		"",
+	)
+
+	renderer.OnEvent(resource.Event{Type: resource.EventDestroyStart, Resource: id})
+	renderer.OnEvent(resource.Event{Type: resource.EventDestroyDone, Resource: id})
+
+	rendered := out.String()
+	if !strings.Contains(rendered, "stale-container: stopping") {
+		t.Fatalf("log output %q missing stopping line", rendered)
+	}
+	if !strings.Contains(rendered, "stale-container: removed") {
+		t.Fatalf("log output %q missing removed line", rendered)
 	}
 }
 

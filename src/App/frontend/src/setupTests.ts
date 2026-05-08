@@ -81,6 +81,7 @@ beforeEach(() => {
       appFrontendCdnBaseUrl: 'https://altinncdn.no/toolkits/altinn-app-frontend',
       altinnLogoUrl: 'https://altinncdn.no/img/Altinn-logo-blue.svg',
       helpCircleIllustrationUrl: 'https://altinncdn.no/img/illustration-help-circle.svg',
+      authenticationUrl: 'https://platform.altinn.no/authentication/api/v1/authentication',
     },
     footer: getFooterLayoutMock(),
     ui: getUiConfigMock(),
