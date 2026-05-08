@@ -330,6 +330,11 @@ Content-Type: application/json; charset=utf-8
   ],
   "edges": [
     {
+      "from": "Guid_5",
+      "to": "Guid_6",
+      "kind": "Dependency"
+    },
+    {
       "from": "Guid_2",
       "to": "Guid_5",
       "kind": "Dependency"
@@ -348,11 +353,6 @@ Content-Type: application/json; charset=utf-8
       "from": "Guid_5",
       "to": "Guid_4",
       "kind": "Link"
-    },
-    {
-      "from": "Guid_5",
-      "to": "Guid_6",
-      "kind": "Dependency"
     }
   ]
 }
