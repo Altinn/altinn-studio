@@ -14,6 +14,7 @@ func TestRunRemovesLegacyTopologyFiles(t *testing.T) {
 	t.Parallel()
 
 	cfg := testConfig(t)
+	markOtherMigrationsApplied(t, cfg, "002-remove-legacy-topology-files")
 	topologyDir := cfg.BoundTopologyConfigDir()
 	if err := os.MkdirAll(topologyDir, 0o700); err != nil {
 		t.Fatalf("create topology dir: %v", err)

@@ -1,6 +1,6 @@
 package migrations
 
-func registeredMigrations() []Migration {
+func (r *Runner) registeredMigrations() []Migration {
 	return []Migration{
 		{
 			ID: "001-remove-legacy-network-metadata",
@@ -12,7 +12,7 @@ func registeredMigrations() []Migration {
 		},
 		{
 			ID: "003-reset-localtest-data",
-			Up: resetLocaltestData,
+			Up: r.resetLocaltestData,
 		},
 	}
 }
