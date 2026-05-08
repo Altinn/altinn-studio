@@ -31,6 +31,18 @@ describe('GroupConfigPanel', () => {
     expect(changePageGroups).toHaveBeenCalledTimes(1);
   });
 
+  it('should call mutation when clicking expandedByDefault toggle', async () => {
+    const user = userEvent.setup();
+    const selectedItem: SelectedItem = { type: ItemType.Group, id: 0 };
+    const changePageGroups = jest.fn();
+    const getPages = jest.fn().mockResolvedValue(groupsPagesModelMock);
+    renderGroupConfigPanel({ props: { selectedItem }, queries: { changePageGroups, getPages } });
+
+    expect(expandedByDefaultSwitch()).toBeInTheDocument();
+    await user.click(expandedByDefaultSwitch());
+    expect(changePageGroups).toHaveBeenCalledTimes(1);
+  });
+
   it('should not throw an error and show a spinner if queries are pending', () => {
     const selectedItem: SelectedItem = { type: ItemType.Group, id: 0 };
     const queryClientMock = createQueryClientMock();
@@ -43,41 +55,63 @@ describe('GroupConfigPanel', () => {
     expect(spinner()).toBeInTheDocument();
   });
 
-  it.each([GroupType.Info, GroupType.Data])(
-    'should call changePageGroups mutation when changing group type to %s',
-    async (groupType) => {
-      const user = userEvent.setup();
-      const selectedItem: SelectedItem = { type: ItemType.Group, id: 0 };
-      const changePageGroups = jest.fn();
-      const getPages = jest.fn().mockResolvedValue(groupsPagesModelMock);
+  it('should call changePageGroups mutation when changing group type to info', async () => {
+    const user = userEvent.setup();
+    const selectedItem: SelectedItem = { type: ItemType.Group, id: 0 };
+    const changePageGroups = jest.fn();
+    const getPages = jest.fn().mockResolvedValue(groupsPagesModelMock);
 
-      renderGroupConfigPanel({
-        props: { selectedItem },
-        queries: { changePageGroups, getPages },
-      });
+    renderGroupConfigPanel({ props: { selectedItem }, queries: { changePageGroups, getPages } });
 
-      const textValue = groupType === GroupType.Data ? 'data' : groupType;
-      const radio = await screen.findByRole('radio', {
-        name: textMock(`ux_editor.page_group.select_${textValue}_type`),
-      });
-      await user.click(radio);
+    const radio = await screen.findByRole('radio', {
+      name: textMock('ux_editor.page_group.select_info_type'),
+    });
+    await user.click(radio);
 
-      const expectedGroupsModel = {
-        ...groupsPagesModelMock,
-        groups: groupsPagesModelMock.groups.map((group, index) =>
-          index === 0 ? { ...group, type: groupType } : group,
-        ),
-      };
+    const expectedGroupsModel = {
+      ...groupsPagesModelMock,
+      groups: groupsPagesModelMock.groups.map((group, index) =>
+        index === 0 ? { ...group, type: GroupType.Info } : group,
+      ),
+    };
 
-      expect(changePageGroups).toHaveBeenCalledTimes(1);
-      expect(changePageGroups).toHaveBeenCalledWith(
-        org,
-        app,
-        layoutSet1NameMock,
-        expectedGroupsModel,
-      );
-    },
-  );
+    expect(changePageGroups).toHaveBeenCalledTimes(1);
+    expect(changePageGroups).toHaveBeenCalledWith(org, app, layoutSet1NameMock, expectedGroupsModel);
+  });
+
+  it('should call changePageGroups mutation when changing group type to default', async () => {
+    const user = userEvent.setup();
+    const selectedItem: SelectedItem = { type: ItemType.Group, id: 0 };
+    const changePageGroups = jest.fn();
+    const pagesWithInfoType = {
+      ...groupsPagesModelMock,
+      groups: groupsPagesModelMock.groups.map((group, index) =>
+        index === 0 ? { ...group, type: GroupType.Info } : group,
+      ),
+    };
+    const getPages = jest.fn().mockResolvedValue(pagesWithInfoType);
+
+    renderGroupConfigPanel({
+      props: { selectedItem },
+      queries: { changePageGroups, getPages },
+      initialPagesData: pagesWithInfoType,
+    });
+
+    const radio = await screen.findByRole('radio', {
+      name: textMock('ux_editor.page_group.select_data_type'),
+    });
+    await user.click(radio);
+
+    const expectedGroupsModel = {
+      ...pagesWithInfoType,
+      groups: pagesWithInfoType.groups.map((group, index) =>
+        index === 0 ? { ...group, type: GroupType.Data } : group,
+      ),
+    };
+
+    expect(changePageGroups).toHaveBeenCalledTimes(1);
+    expect(changePageGroups).toHaveBeenCalledWith(org, app, layoutSet1NameMock, expectedGroupsModel);
+  });
 
   it('should render edit group name when group has multiple pages', () => {
     const selectedItem: SelectedItem = { type: ItemType.Group, id: 0 };
@@ -107,21 +141,28 @@ const markAsCompletedSwitch = (): HTMLElement =>
     name: textMock('ux_editor.page_group.markAsCompleted_switch'),
   });
 
+const expandedByDefaultSwitch = (): HTMLElement =>
+  screen.getByRole('switch', {
+    name: textMock('ux_editor.page_group.expandedByDefault_switch'),
+  });
+
 const spinner = (): HTMLElement => screen.getByRole('img', { name: textMock('general.loading') });
 
 type renderGroupConfigPanelParams = {
   props: GroupConfigPanelProps;
   queries?: Partial<ServicesContextProps>;
   queryClientMock?: QueryClient;
+  initialPagesData?: typeof groupsPagesModelMock;
 };
 
 const renderGroupConfigPanel = ({
   props,
   queries,
   queryClientMock,
+  initialPagesData = groupsPagesModelMock,
 }: renderGroupConfigPanelParams) => {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.Pages, org, app, layoutSet1NameMock], groupsPagesModelMock);
+  queryClient.setQueryData([QueryKey.Pages, org, app, layoutSet1NameMock], initialPagesData);
 
   return renderWithProviders(<GroupConfigPanel {...props} />, {
     queryClient: queryClientMock || queryClient,
