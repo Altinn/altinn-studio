@@ -12,6 +12,7 @@ import {
   RouteErrorBoundary,
 } from './PageRouterErrorBoundary';
 import { ApiKeys } from '../features/user/pages/ApiKeys/ApiKeys';
+import { Privacy } from '../features/user/pages/Privacy/Privacy';
 import { BotAccounts } from '../features/orgs/pages/BotAccounts/BotAccounts';
 import { ContactPoints } from '../features/orgs/pages/ContactPoints/ContactPoints';
 import { NotFound } from '../components/NotFound/NotFound';
@@ -34,6 +35,11 @@ const router = createBrowserRouter(
           <Route
             path={UserRoutePaths.ApiKeys}
             element={<ApiKeys />}
+            errorElement={<RouteErrorBoundary />}
+          />
+          <Route
+            path={UserRoutePaths.Privacy}
+            element={<Privacy />}
             errorElement={<RouteErrorBoundary />}
           />
         </Route>
