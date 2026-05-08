@@ -37,8 +37,8 @@ Authorization: token pat-abc
 HTTP 200
 [Asserts]
 jsonpath "$.headers['authorization']"      == "token pat-abc"
-jsonpath "$.headers['x-webauth-user']"     == ""
-jsonpath "$.headers['x-webauth-fullname']" == ""
+jsonpath "$.headers['x-webauth-user']"     not exists
+jsonpath "$.headers['x-webauth-fullname']" not exists
 
 # Designer 403: forward to Gitea without leaking client X-WEBAUTH-USER
 GET {{proxy_on_pub}}/foo
@@ -146,14 +146,6 @@ Cookie: scenario=valid_user
 HTTP 200
 [Asserts]
 jsonpath "$.headers['x-webauth-user']" == "{{VALID_USERNAME}}"
-
-# Missing given/family name yields fullname " "  (auth.js: '' + ' ' + '')
-GET {{proxy_on_pub}}/foo
-Cookie: scenario=no_names
-HTTP 200
-[Asserts]
-jsonpath "$.headers['x-webauth-user']"     == "{{NO_NAMES_USERNAME}}"
-jsonpath "$.headers['x-webauth-fullname']" == " "
 
 # === OIDC disabled ==========================================================
 

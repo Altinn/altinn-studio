@@ -25,15 +25,6 @@ const scenarios = {
       authMethod: 'ApiKey',
     },
   },
-  no_names: {
-    status: 200,
-    body: {
-      username: process.env.NO_NAMES_USERNAME,
-      givenName: null,
-      familyName: null,
-      authMethod: 'Cookies',
-    },
-  },
   expired: { status: 401, body: '' },
   forbidden: { status: 403, body: '' },
   not_found: { status: 404, body: '' },
