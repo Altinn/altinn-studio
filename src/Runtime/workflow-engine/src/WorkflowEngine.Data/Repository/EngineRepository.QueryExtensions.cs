@@ -156,6 +156,13 @@ internal static class EngineRepositoryQueryExtensions
     {
         public IQueryable<Workflow> ToDomainModel() => entityQuery.Select(wf => wf.ToDomainModel());
 
+        /// <summary>
+        /// Applies eager-load includes to a workflow query.
+        /// </summary>
+        /// <remarks>
+        /// When <paramref name="dependencies"/> is <c>true</c>, both <see cref="WorkflowEntity.Dependencies"/>
+        /// and <see cref="WorkflowEntity.Dependents"/> are populated.
+        /// </remarks>
         private IQueryable<WorkflowEntity> IncludeRelatedEntities(
             bool steps = true,
             bool dependencies = true,
@@ -166,7 +173,9 @@ internal static class EngineRepositoryQueryExtensions
                 entityQuery = entityQuery.Include(wf => wf.Steps);
 
             if (dependencies)
-                entityQuery = entityQuery.Include(wf => wf.Dependencies);
+            {
+                entityQuery = entityQuery.Include(wf => wf.Dependencies).Include(wf => wf.Dependents);
+            }
 
             if (links)
                 entityQuery = entityQuery.Include(wf => wf.Links);

@@ -25,7 +25,7 @@ public sealed class EngineApiClient : IDisposable
         _client = handlers.Length > 0 ? fixture.CreateEngineClient(handlers) : fixture.CreateEngineClient();
     }
 
-    public static string DefaultNamespace => $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}";
+    public static string DefaultNamespace => $"{EngineAppFixture.DefaultOrg}-{EngineAppFixture.DefaultApp}";
 
     private string GetBasePath(string? ns = null) =>
         $"/api/v1/{Uri.EscapeDataString(ns ?? _defaultNamespace)}/workflows";

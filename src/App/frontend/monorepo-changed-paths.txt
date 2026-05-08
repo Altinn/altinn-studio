@@ -16,6 +16,7 @@ src/app-components/Datepicker/DatePickerHelpers.ts
 src/app-components/Text/DisplayText.tsx
 src/codegen/schemas/layout-sets.schema.v1.ts
 src/components/presentation/Header.tsx
+src/core/contexts/hookContext.tsx
 src/core/contexts/processingContext.tsx
 src/core/errorHandling/DisplayErrorProvider.tsx
 src/core/loading/LoadingRegistry.tsx
@@ -69,6 +70,7 @@ src/queries/appPrefetcher.ts
 src/queries/formPrefetcher.ts
 src/utils/formLayout.test.ts
 src/utils/formLayout.ts
+src/utils/layout/generator/GeneratorDataSources.tsx
 src/utils/refs/
 src/utils/versioning/versions.ts
 test/e2e/config/
