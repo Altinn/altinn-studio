@@ -111,8 +111,11 @@ internal interface IEngineRepository
     Task<Workflow?> GetWorkflow(Guid workflowId, string ns, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets the workflow connected component reachable from the requested workflow through dependency
-    /// or link relations in either direction, or null if the workflow does not exist in the given namespace.
+    /// Returns the root workflow plus every workflow it can reach — directly or transitively,
+    /// upstream or downstream — through dependency or link relations within <paramref name="ns"/>.
+    /// Each returned <see cref="Workflow"/> has its steps, dependencies, dependents, and links
+    /// eagerly loaded. Ordered by <c>CreatedAt</c>, then <c>Id</c>. Returns <c>null</c> if the
+    /// root workflow does not exist in the given namespace.
     /// </summary>
     Task<IReadOnlyList<Workflow>?> GetWorkflowDependencyGraph(
         Guid workflowId,
