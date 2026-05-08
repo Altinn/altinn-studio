@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	frontendDevServerTunnelTargetPort = 8080
+	frontendDevServerTunnelTargetPort = "8080"
 	hostLoopbackAddress               = "127.0.0.1"
 )
 
@@ -59,9 +59,10 @@ func registerTopologyComponents(manifest *Manifest, opts *Options) {
 	})
 }
 
-func hostHTTPURL(port int) string {
-	if port <= 0 {
+func hostHTTPURL(port string) string {
+	parsed, err := strconv.Atoi(port)
+	if err != nil || parsed <= 0 {
 		panic("localtest: host HTTP destination requires a positive port")
 	}
-	return "http://" + hostLoopbackAddress + ":" + strconv.Itoa(port)
+	return "http://" + hostLoopbackAddress + ":" + port
 }

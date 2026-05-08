@@ -10,7 +10,7 @@ For app-specific load tests (AppCommand), see `workflow-engine-app/.k6/`.
 brew install k6
 ```
 
-The workflow engine must be running locally on `http://localhost:8080` with WireMock on `http://localhost:6060` (Docker Compose provides both).
+The workflow engine must be running locally on `http://localhost:9090` with WireMock on `http://localhost:6060` (Docker Compose provides both).
 
 ## Scripts
 
@@ -31,8 +31,8 @@ k6 run .k6/stress-test.js -e ITERATIONS=1000 -e VUS=25
 | `ITERATIONS` | `5000`                                               | Total number of requests        |
 | `VUS`        | `100`                                                | Concurrent virtual users        |
 | `NAMESPACE`  | `default`                                            | Namespace path segment          |
-| `BASE_URL`   | `http://localhost:8080/api/v1/{NAMESPACE}/workflows` | Workflow engine enqueue URL     |
-| `HEALTH_URL` | `http://localhost:8080/api/v1/health`                | Health endpoint for queue drain |
+| `BASE_URL`   | `http://localhost:9090/api/v1/{NAMESPACE}/workflows` | Workflow engine enqueue URL     |
+| `HEALTH_URL` | `http://localhost:9090/api/v1/health`                | Health endpoint for queue drain |
 
 ### constant-rate.js
 
@@ -50,8 +50,8 @@ k6 run .k6/constant-rate.js -e RATE=500 -e MAX_VUS=1000 -e POLL_INTERVAL=5
 | `MAX_VUS`       | `2000`                                               | Max virtual users            |
 | `POLL_INTERVAL` | `2`                                                  | Seconds between health polls |
 | `NAMESPACE`     | `default`                                            | Namespace path segment       |
-| `BASE_URL`      | `http://localhost:8080/api/v1/{NAMESPACE}/workflows` | Workflow engine URL          |
-| `HEALTH_URL`    | `http://localhost:8080/api/v1/health`                | Health endpoint              |
+| `BASE_URL`      | `http://localhost:9090/api/v1/{NAMESPACE}/workflows` | Workflow engine URL          |
+| `HEALTH_URL`    | `http://localhost:9090/api/v1/health`                | Health endpoint              |
 
 ## Payload
 

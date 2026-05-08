@@ -52,12 +52,12 @@ Uses `WorkflowEngine.TestKit` from the core project for shared infrastructure:
 
 Run with `dotnet test`.
 
-## Docker Compose
+## Local Harness
 
-Includes the core `workflow-engine/docker-compose.yaml` and adds the engine container. Profiles: `app` (engine + postgres), `full` (everything). See core for the supporting services.
+Use `studioctl env up --dev-workflow-engine` to start localtest with the workflow-engine route bound to the host, then run `dotnet run --project src/WorkflowEngine.App`.
 
-| Container         | Port       | Purpose                      |
+| Service           | Port       | Purpose                      |
 |-------------------|------------|------------------------------|
-| `workflow-engine` | 8080, 8081 | App runtime (8081 = metrics) |
+| `workflow-engine` | 9090       | Host app runtime             |
 
-**Deploy engine**: `docker compose build workflow-engine && docker compose --profile app up -d --no-deps workflow-engine`
+The app project does not own a Docker Compose harness.

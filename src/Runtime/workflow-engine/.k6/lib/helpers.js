@@ -33,8 +33,8 @@ export function trackStatus(status) {
 
 // --- Configuration ---
 const NAMESPACE = __ENV.NAMESPACE || 'default';
-export const BASE_URL = __ENV.BASE_URL || `http://localhost:8080/api/v1/${NAMESPACE}/workflows`;
-export const HEALTH_URL = __ENV.HEALTH_URL || 'http://localhost:8080/api/v1/health';
+export const BASE_URL = __ENV.BASE_URL || `http://localhost:9090/api/v1/${NAMESPACE}/workflows`;
+export const HEALTH_URL = __ENV.HEALTH_URL || 'http://localhost:9090/api/v1/health';
 /**
  * Builds request params with unique metadata headers for each request.
  * Returns a k6 params object with Content-Type, Idempotency-Key, and Collection-Key headers.
