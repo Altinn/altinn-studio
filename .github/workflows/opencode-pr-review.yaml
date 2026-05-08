@@ -1,0 +1,257 @@
+name: OpenCode PR Review
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to review'
+        required: true
+        type: string
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.issue.number || github.run_id }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: read
+
+env:
+  CLAUDE_MODEL: claude-sonnet-4-6
+  OPENAI_MODEL: gpt-5.5
+  OPENCODE_VERSION: '0.16.7'
+  MAX_DIFF_BYTES: '1048576'
+  AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+  AZURE_OPENAI_RESOURCE: ${{ secrets.AZURE_OPENAI_RESOURCE }}
+  AZURE_ANTHROPIC_API_KEY: ${{ secrets.AZURE_ANTHROPIC_API_KEY }}
+  AZURE_FOUNDRY_RESOURCE: ${{ secrets.AZURE_FOUNDRY_RESOURCE }}
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  trigger-check:
+    name: Check trigger conditions
+    if: >-
+      (github.event_name == 'pull_request' && github.event.pull_request.draft != true) ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request != null)
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      should_run: ${{ steps.gate.outputs.should_run }}
+      pr_number: ${{ steps.gate.outputs.pr_number }}
+    steps:
+      - id: gate
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const event = context.eventName;
+            if (event === 'pull_request') {
+              const trustedAssociations = ['OWNER', 'MEMBER', 'COLLABORATOR'];
+              const association = context.payload.pull_request.author_association;
+              if (!trustedAssociations.includes(association)) {
+                core.info(`Author association ${association} is not trusted — skipping. A maintainer can run \`@opencode review\` to trigger.`);
+                core.setOutput('should_run', 'false');
+                return;
+              }
+              core.setOutput('should_run', 'true');
+              core.setOutput('pr_number', String(context.payload.pull_request.number));
+              return;
+            }
+            if (event === 'workflow_dispatch') {
+              const prNumber = context.payload.inputs?.pr_number;
+              if (!prNumber) {
+                core.setFailed('pr_number input is required');
+                return;
+              }
+              core.setOutput('should_run', 'true');
+              core.setOutput('pr_number', String(prNumber));
+              return;
+            }
+            // issue_comment
+            const body = (context.payload.comment?.body ?? '').trim().toLowerCase();
+            if (!body.startsWith('@opencode review')) {
+              core.info('Comment does not start with "@opencode review" — skipping.');
+              core.setOutput('should_run', 'false');
+              return;
+            }
+            const author = context.payload.comment.user.login;
+            const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: author,
+            });
+            if (!['admin', 'write', 'maintain'].includes(permission.permission)) {
+              core.info(`User ${author} lacks write permission (${permission.permission}) — skipping.`);
+              core.setOutput('should_run', 'false');
+              return;
+            }
+            core.setOutput('should_run', 'true');
+            core.setOutput('pr_number', String(context.payload.issue.number));
+
+  review:
+    name: Run dual-reviewer
+    needs: trigger-check
+    if: needs.trigger-check.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PR_NUMBER: ${{ needs.trigger-check.outputs.pr_number }}
+    steps:
+      - name: Resolve PR head and base SHAs
+        id: pr
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: Number(process.env.PR_NUMBER),
+            });
+            core.setOutput('head_sha', pr.head.sha);
+            core.setOutput('base_sha', pr.base.sha);
+            core.setOutput('head_ref', pr.head.ref);
+            core.setOutput('base_ref', pr.base.ref);
+            core.setOutput('repo_full_name', pr.head.repo.full_name);
+
+      - name: Checkout PR head
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          repository: ${{ steps.pr.outputs.repo_full_name }}
+          ref: ${{ steps.pr.outputs.head_sha }}
+          fetch-depth: 0
+
+      - name: Fetch base ref
+        run: |
+          git remote add upstream "https://github.com/${{ github.repository }}.git" || true
+          git fetch upstream "${{ steps.pr.outputs.base_sha }}" --depth=1
+
+      - name: Compute diff and enforce size cap
+        id: diff
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/opencode-review
+          git diff "${{ steps.pr.outputs.base_sha }}" "${{ steps.pr.outputs.head_sha }}" > /tmp/pr.diff
+          size=$(stat -c%s /tmp/pr.diff)
+          echo "diff_size=$size" >> "$GITHUB_OUTPUT"
+          if [ "$size" -gt "$MAX_DIFF_BYTES" ]; then
+            echo "Diff is $size bytes (cap: $MAX_DIFF_BYTES) — skipping review."
+            echo "too_large=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "too_large=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment and exit if diff too large
+        if: steps.diff.outputs.too_large == 'true'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number(process.env.PR_NUMBER),
+              body: `🤖 OpenCode dual reviewer: skipping — diff is ${{ steps.diff.outputs.diff_size }} bytes (cap ${process.env.MAX_DIFF_BYTES}). Split the PR or run manually with a higher cap.`,
+            });
+
+      - name: Stop if diff too large
+        if: steps.diff.outputs.too_large == 'true'
+        run: exit 0
+
+      - name: Install OpenCode
+        if: steps.diff.outputs.too_large != 'true'
+        run: |
+          set -euo pipefail
+          curl -fsSL https://opencode.ai/install | OPENCODE_VERSION="$OPENCODE_VERSION" bash
+          echo "$HOME/.opencode/bin" >> "$GITHUB_PATH"
+
+      - name: Stage OpenCode config at repo root
+        if: steps.diff.outputs.too_large != 'true'
+        run: cp .github/opencode-review/opencode.json ./opencode.json
+
+      - name: Round 1 — Claude review
+        if: steps.diff.outputs.too_large != 'true'
+        run: |
+          set -euo pipefail
+          opencode run \
+            -m "azure-anthropic/${CLAUDE_MODEL}" \
+            "$(cat .github/opencode-review/reviewer-prompt.md)" \
+            > /tmp/opencode-review/claude-round1.raw
+
+      - name: Round 1 — OpenAI review
+        if: steps.diff.outputs.too_large != 'true'
+        run: |
+          set -euo pipefail
+          opencode run \
+            -m "azure-openai/${OPENAI_MODEL}" \
+            "$(cat .github/opencode-review/reviewer-prompt.md)" \
+            > /tmp/opencode-review/openai-round1.raw
+
+      - name: Extract JSON from round 1 outputs
+        if: steps.diff.outputs.too_large != 'true'
+        run: node .github/opencode-review/extract-json.js /tmp/opencode-review/claude-round1.raw /tmp/opencode-review/claude-round1.json && node .github/opencode-review/extract-json.js /tmp/opencode-review/openai-round1.raw /tmp/opencode-review/openai-round1.json
+
+      - name: Build round-2 prompts
+        if: steps.diff.outputs.too_large != 'true'
+        run: node .github/opencode-review/build-prompt.js critique /tmp/opencode-review/claude-round1.json /tmp/opencode-review/openai-round1.json /tmp/opencode-review/claude-round2-prompt.md && node .github/opencode-review/build-prompt.js critique /tmp/opencode-review/openai-round1.json /tmp/opencode-review/claude-round1.json /tmp/opencode-review/openai-round2-prompt.md
+
+      - name: Round 2 — Claude critique
+        if: steps.diff.outputs.too_large != 'true'
+        run: |
+          set -euo pipefail
+          opencode run \
+            -m "azure-anthropic/${CLAUDE_MODEL}" \
+            "$(cat /tmp/opencode-review/claude-round2-prompt.md)" \
+            > /tmp/opencode-review/claude-round2.raw
+
+      - name: Round 2 — OpenAI critique
+        if: steps.diff.outputs.too_large != 'true'
+        run: |
+          set -euo pipefail
+          opencode run \
+            -m "azure-openai/${OPENAI_MODEL}" \
+            "$(cat /tmp/opencode-review/openai-round2-prompt.md)" \
+            > /tmp/opencode-review/openai-round2.raw
+
+      - name: Extract JSON from round 2 outputs
+        if: steps.diff.outputs.too_large != 'true'
+        run: node .github/opencode-review/extract-json.js /tmp/opencode-review/claude-round2.raw /tmp/opencode-review/claude-round2.json && node .github/opencode-review/extract-json.js /tmp/opencode-review/openai-round2.raw /tmp/opencode-review/openai-round2.json
+
+      - name: Build synthesis prompt
+        if: steps.diff.outputs.too_large != 'true'
+        run: node .github/opencode-review/build-prompt.js synthesis /tmp/opencode-review/claude-round2.json /tmp/opencode-review/openai-round2.json /tmp/opencode-review/synthesis-prompt.md
+
+      - name: Synthesis — final consolidated review
+        if: steps.diff.outputs.too_large != 'true'
+        run: |
+          set -euo pipefail
+          opencode run \
+            -m "azure-anthropic/${CLAUDE_MODEL}" \
+            "$(cat /tmp/opencode-review/synthesis-prompt.md)" \
+            > /tmp/opencode-review/final.raw
+          node .github/opencode-review/extract-json.js /tmp/opencode-review/final.raw /tmp/opencode-review/final.json
+
+      - name: Post inline review
+        if: steps.diff.outputs.too_large != 'true'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
+          FINAL_JSON_PATH: /tmp/opencode-review/final.json
+        with:
+          script: |
+            const post = require('${{ github.workspace }}/.github/opencode-review/post-review.js');
+            await post({ github, context, core });
+
+      - name: Post failure comment
+        if: failure() && steps.diff.outputs.too_large != 'true'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number(process.env.PR_NUMBER),
+              body: `🤖 OpenCode dual reviewer failed — see [run log](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}).`,
+            });
