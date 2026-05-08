@@ -7,3 +7,5 @@ export type {
 } from './types/FormComponentAction';
 export { FormComponentActionType } from './types/FormComponentActionType';
 export type { DataModelBinding } from './types/DataModelBinding';
+
+export * from './app-components';

@@ -1,7 +1,8 @@
 import React from 'react';
 import type { CSSProperties } from 'react';
 
-import { AppCard } from 'src/app-components/Card/Card';
+import { AppCard } from '@app/form-component';
+
 import { Flex } from 'src/app-components/Flex/Flex';
 import { translationKey } from 'src/AppComponentsBridge';
 import { CardProvider } from 'src/layout/Cards/CardContext';
