@@ -13,16 +13,20 @@ HURL_ARGS := \
   --variable proxy_off_pub=$(PROXY_OFF_PUB) \
   --variable proxy_off_int=$(PROXY_OFF_INT)
 
+HURL_FILES := public.hurl trusted.hurl
+
 .DEFAULT_GOAL := test
-.PHONY: test up down build cases wait logs shell clean help
+.PHONY: test up down build cases public trusted wait logs shell clean help
 
 help:
 	@echo "Targets:"
-	@echo "  test       up + run cases + down (default)"
+	@echo "  test       up + run all cases + down (default)"
 	@echo "  up         bring stack up and wait until reachable"
 	@echo "  down       tear down stack"
 	@echo "  build      rebuild images"
-	@echo "  cases      run cases against the running stack"
+	@echo "  cases      run all cases against the running stack"
+	@echo "  public     run only public.hurl (port 80)"
+	@echo "  trusted    run only trusted.hurl (port 81)"
 	@echo "  logs       tail compose logs"
 	@echo "  shell      open a shell in proxy-oidc-on"
 	@echo "  clean      alias for down"
@@ -30,7 +34,7 @@ help:
 test:
 	@$(COMPOSE) up -d --build && \
 	  $(MAKE) -s wait && \
-	  $(HURL) --test $(HURL_ARGS) cases.hurl; rc=$$?; \
+	  $(HURL) --test $(HURL_ARGS) $(HURL_FILES); rc=$$?; \
 	  $(COMPOSE) down -v --remove-orphans; \
 	  exit $$rc
 
@@ -45,7 +49,13 @@ build:
 	$(COMPOSE) build
 
 cases:
-	@$(HURL) --test $(HURL_ARGS) cases.hurl
+	@$(HURL) --test $(HURL_ARGS) $(HURL_FILES)
+
+public:
+	@$(HURL) --test $(HURL_ARGS) public.hurl
+
+trusted:
+	@$(HURL) --test $(HURL_ARGS) trusted.hurl
 
 wait:
 	@for url in $(PROXY_ON_PUB) $(PROXY_ON_INT) $(PROXY_OFF_PUB) $(PROXY_OFF_INT); do \

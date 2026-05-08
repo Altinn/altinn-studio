@@ -1,10 +1,9 @@
-# Black-box security cases for the gitea-proxy.
+# Cases for the public listener (port 80).
+# Trust model: untrusted callers; auth is enforced via the Designer subrequest.
 # Mock backend (mendhak/http-https-echo) echoes the request as JSON,
 # so we assert on the headers Gitea would have seen.
 
-# ============================================================
-# port 80, OIDC enabled
-# ============================================================
+# === OIDC enabled ===========================================================
 
 # Designer-resolved username is injected as X-WEBAUTH-USER
 GET {{proxy_on_pub}}/foo
@@ -86,6 +85,21 @@ GET {{proxy_on_pub}}/api/v2/anything
 Cookie: scenario=apikey_user
 HTTP 403
 
+# ApiKey rejected on arbitrary non-git, non-API URLs (default-deny)
+GET {{proxy_on_pub}}/some/random/path
+Cookie: scenario=apikey_user
+HTTP 403
+
+# ApiKey rejected on look-alike git path (regex must anchor at endpoint terminator)
+GET {{proxy_on_pub}}/owner/repo.git/git-upload-pack-evil
+Cookie: scenario=apikey_user
+HTTP 403
+
+# ApiKey rejected on git endpoint with extra trailing path
+GET {{proxy_on_pub}}/owner/repo/info/refs/extra
+Cookie: scenario=apikey_user
+HTTP 403
+
 # Missing given/family name yields fullname " "  (auth.js: '' + ' ' + '')
 GET {{proxy_on_pub}}/foo
 Cookie: scenario=no_names
@@ -94,40 +108,10 @@ HTTP 200
 jsonpath "$.headers['x-webauth-user']"     == "{{NO_NAMES_USERNAME}}"
 jsonpath "$.headers['x-webauth-fullname']" == " "
 
-# ============================================================
-# port 81, OIDC enabled (trusted, designer-only via NetworkPolicy)
-# ============================================================
+# === OIDC disabled ==========================================================
 
-# Trusts caller-supplied X-WEBAUTH-USER
-GET {{proxy_on_int}}/foo
-X-WEBAUTH-USER: designer-user
-X-WEBAUTH-FULLNAME: Designer User
-HTTP 200
-[Asserts]
-jsonpath "$.headers['x-webauth-user']"     == "designer-user"
-jsonpath "$.headers['x-webauth-fullname']" == "Designer User"
-
-# Passthrough preserves other auth, omits X-WEBAUTH-USER
-GET {{proxy_on_int}}/api/v1/repos
-Authorization: token abc
-HTTP 200
-[Asserts]
-jsonpath "$.headers['authorization']"  == "token abc"
-jsonpath "$.headers['x-webauth-user']" not exists
-
-# ============================================================
-# OIDC disabled
-# ============================================================
-
-# port 80: client X-WEBAUTH-USER is stripped
+# Client X-WEBAUTH-USER is stripped even with OIDC off
 GET {{proxy_off_pub}}/foo
-X-WEBAUTH-USER: attacker
-HTTP 200
-[Asserts]
-jsonpath "$.headers['x-webauth-user']" not contains "attacker"
-
-# port 81: client X-WEBAUTH-USER is stripped
-GET {{proxy_off_int}}/foo
 X-WEBAUTH-USER: attacker
 HTTP 200
 [Asserts]
