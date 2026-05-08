@@ -18,7 +18,7 @@ import {
 } from '../../../../../../test/mocks/bpmnModelerMock';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import {
-  getMockBpmnElementForTask,
+  getMockBpmnElementForSigningTask,
   mockBpmnDetails,
 } from '../../../../../../test/mocks/bpmnDetailsMock';
 
@@ -68,7 +68,7 @@ const availableDataTypeIds = [
 ];
 const existingDataTypeIds = ['dataType3'];
 
-const element = getMockBpmnElementForTask('signing');
+const element = getMockBpmnElementForSigningTask({ dataTypesToSign: { dataTypes: [] } });
 
 const existingDataTypesProps = {
   bpmnApiContextProps: { availableDataTypeIds },

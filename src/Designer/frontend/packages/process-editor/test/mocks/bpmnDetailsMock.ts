@@ -1,7 +1,8 @@
 import type { BpmnDetails } from '../../src/types/BpmnDetails';
 import { BpmnTypeEnum } from '../../src/enum/BpmnTypeEnum';
-import type { ModdleElement } from 'bpmn-js/lib/model/Types';
-import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
+import type { Element, ModdleElement } from 'bpmn-js/lib/model/Types';
+import type { BpmnTaskType } from '../../src/types/BpmnTaskType';
+import type { SignatureConfig } from '../../src/types/SignatureConfig';
 
 export const mockBpmnId: string = 'testTaskId';
 export const mockBpmnName: string = 'testTaskName';
@@ -31,6 +32,32 @@ export const mockBpmnElementForDataTask: ModdleElement = {
       ],
     },
   },
+};
+
+export const getMockBpmnElementForSigningTask = (
+  signatureConfig?: Partial<SignatureConfig>,
+): ModdleElement => {
+  const defaultSignatureConfig: SignatureConfig = {
+    signatureDataType: 'signature-123',
+    dataTypesToSign: { dataTypes: [] },
+  };
+  const extensionElements = {
+    values: [
+      {
+        taskType: 'signing',
+        actions: signingActions,
+        signatureConfig: {
+          ...defaultSignatureConfig,
+          ...signatureConfig,
+        },
+      },
+    ],
+  };
+  return {
+    businessObject: {
+      extensionElements,
+    },
+  } as Element;
 };
 
 export const getMockBpmnElementForTask = (taskType: BpmnTaskType) => {

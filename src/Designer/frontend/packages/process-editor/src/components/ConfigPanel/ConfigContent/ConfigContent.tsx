@@ -30,7 +30,6 @@ export const ConfigContent = (): React.ReactElement => {
   const existingDataTypeForTask = layoutSet?.dataType;
   const isSigningTask = bpmnDetails.taskType === 'signing';
   const isUserControlledSigningTask = TaskUtils.isUserControlledSigning(bpmnDetails.element);
-  const shouldDisplayEditDataTypesToSign = isSigningTask || isUserControlledSigningTask;
 
   const taskHasConnectedLayoutSet = layoutSets?.sets?.some(
     (set) => set.tasks && set.tasks[0] == bpmnDetails.id,
@@ -65,19 +64,20 @@ export const ConfigContent = (): React.ReactElement => {
           className={classes.displayTile}
           showPadlock={false}
         />
-        {shouldDisplayEditDataTypesToSign && (
+        {isSigningTask && (
           <>
             <EditDataTypesToSign key={`${bpmnDetails.id}-dataTypes`} />
             {!isFirstSigningTask && (
               <EditUniqueFromSignaturesInDataTypes key={`${bpmnDetails.id}-uniqueSignature`} />
             )}
+            <EditCorrespondenceResource
+              isUserControlledSigningTask={isUserControlledSigningTask}
+              key={`${bpmnDetails.id}-correspondenceResource`}
+            />
           </>
         )}
         {isUserControlledSigningTask && (
-          <>
-            <EditUserControlledImplementation key={`${bpmnDetails.id}-interfaceImplementation`} />
-            <EditCorrespondenceResource key={`${bpmnDetails.id}-correspondenceResource`} />
-          </>
+          <EditUserControlledImplementation key={`${bpmnDetails.id}-interfaceImplementation`} />
         )}
         <div>
           {taskHasConnectedLayoutSet && (
