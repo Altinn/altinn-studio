@@ -735,6 +735,7 @@ internal sealed partial class EngineRepository
                 .GetWorkflowsByIds(graphWorkflowIds, namespaceFilter: ns)
                 .AsNoTracking()
                 .OrderBy(wf => wf.CreatedAt)
+                .ThenBy(wf => wf.OperationId)
                 .ThenBy(wf => wf.Id)
                 .ToDomainModel()
                 .ToListAsync(cancellationToken);
