@@ -31,7 +31,9 @@ Content-Type: application/json; charset=utf-8
       "startAt": null,
       "state": null,
       "dependsOn": null,
-      "links": null
+      "links": null,
+      "dependsOnHeads": true,
+      "isHead": null
     },
     {
       "ref": "wf-b",
@@ -59,7 +61,9 @@ Content-Type: application/json; charset=utf-8
         "Guid_2",
         "wf-c"
       ],
-      "links": null
+      "links": null,
+      "dependsOnHeads": true,
+      "isHead": null
     },
     {
       "ref": "wf-c",
@@ -83,7 +87,9 @@ Content-Type: application/json; charset=utf-8
       "startAt": null,
       "state": null,
       "dependsOn": null,
-      "links": null
+      "links": null,
+      "dependsOnHeads": true,
+      "isHead": null
     }
   ]
 }

@@ -31,7 +31,9 @@ Content-Type: application/json; charset=utf-8
       "startAt": null,
       "state": null,
       "dependsOn": null,
-      "links": null
+      "links": null,
+      "dependsOnHeads": true,
+      "isHead": null
     },
     {
       "ref": "wf-side",
@@ -55,7 +57,9 @@ Content-Type: application/json; charset=utf-8
       "startAt": null,
       "state": null,
       "dependsOn": null,
-      "links": null
+      "links": null,
+      "dependsOnHeads": true,
+      "isHead": null
     },
     {
       "ref": "wf-main",
@@ -83,7 +87,9 @@ Content-Type: application/json; charset=utf-8
       ],
       "links": [
         "wf-side"
-      ]
+      ],
+      "dependsOnHeads": true,
+      "isHead": null
     }
   ]
 }

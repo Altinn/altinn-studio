@@ -11,7 +11,7 @@ using WorkflowEngine.TestKit;
 namespace WorkflowEngine.Integration.Tests;
 
 /// <summary>
-/// Documents the inbound payload contract for the enqueue and hierarchy endpoints
+/// Documents the inbound payload contract for the enqueue and dependency-graph endpoints
 /// via plain-text <c>.http</c> snapshot files. Each test enqueues a real payload,
 /// asserts the resulting behavior, and pins the wire format under
 /// <c>tests/WorkflowEngine.Integration.Tests/.snapshots/inbound/</c>.
@@ -402,9 +402,9 @@ public partial class EngineTests
     private static async Task PersistDagRoundtripSnapshot(HttpExchangeRecorder recorder, string snapshotName)
     {
         var enqueue = recorder.Exchanges.First(e => e.Request.Method == HttpMethod.Post);
-        var hierarchy = recorder.Exchanges.First(e =>
+        var dependencyGraph = recorder.Exchanges.First(e =>
             e.Request.Method == HttpMethod.Get
-            && e.Request.RequestUri?.PathAndQuery.Contains("/hierarchy", StringComparison.Ordinal) == true
+            && e.Request.RequestUri?.PathAndQuery.Contains("/dependency-graph", StringComparison.Ordinal) == true
         );
 
         var http = new StringBuilder();
@@ -416,10 +416,10 @@ public partial class EngineTests
 
         http.AppendLine();
         http.AppendLine("###");
-        http.AppendLine("### 2. Client → Engine: Get workflow hierarchy");
+        http.AppendLine("### 2. Client → Engine: Get workflow dependency graph");
         http.AppendLine("###");
         http.AppendLine();
-        HttpChatterHelpers.WriteExchange(http, hierarchy);
+        HttpChatterHelpers.WriteExchange(http, dependencyGraph);
 
         await HttpChatterHelpers.PersistSnapshot(
             http.ToString(),

@@ -335,6 +335,11 @@ Content-Type: application/json; charset=utf-8
       "kind": "Dependency"
     },
     {
+      "from": "Guid_3",
+      "to": "Guid_5",
+      "kind": "Dependency"
+    },
+    {
       "from": "Guid_5",
       "to": "Guid_2",
       "kind": "Link"
@@ -347,11 +352,6 @@ Content-Type: application/json; charset=utf-8
     {
       "from": "Guid_5",
       "to": "Guid_6",
-      "kind": "Dependency"
-    },
-    {
-      "from": "Guid_3",
-      "to": "Guid_5",
       "kind": "Dependency"
     }
   ]
