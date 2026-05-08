@@ -1,5 +1,5 @@
 import React from 'react';
-import { createMemoryRouter, LoaderFunctionArgs, RouterProvider } from 'react-router';
+import { createMemoryRouter, LoaderFunctionArgs, RouterContextProvider, RouterProvider } from 'react-router';
 
 export const PageNavigationRouter =
   ({ currentPageId = 'layout1', currentTaskId = 'Task_1' } = {}) =>
@@ -24,5 +24,10 @@ export const PageNavigationRouter =
   };
 
 export function createLoaderArgs(partialArgs: Partial<LoaderFunctionArgs>): LoaderFunctionArgs {
-  return partialArgs as unknown as LoaderFunctionArgs;
+  return {
+    request: partialArgs.request ?? new Request('http://localhost/'),
+    params: partialArgs.params ?? {},
+    context: partialArgs.context ?? new RouterContextProvider(),
+    unstable_pattern: partialArgs.unstable_pattern ?? '',
+  };
 }
