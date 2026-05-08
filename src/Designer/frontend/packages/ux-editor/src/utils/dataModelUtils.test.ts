@@ -183,6 +183,22 @@ describe('convertDataBindingToInternalFormat', () => {
     });
     expect(internalFormat).toEqual({ dataType: 'defaultModel', field: '' });
   });
+
+  it('should keep field when string and fallback dataType when invalid', () => {
+    const internalFormat = convertDataBindingToInternalFormat('defaultModel', {
+      field: 'validField',
+      dataType: { model: 'invalid' } as unknown as string,
+    });
+    expect(internalFormat).toEqual({ dataType: 'defaultModel', field: 'validField' });
+  });
+
+  it('should keep dataType when string and fallback field when invalid', () => {
+    const internalFormat = convertDataBindingToInternalFormat('defaultModel', {
+      field: { field: 'invalid' } as unknown as string,
+      dataType: 'validDataType',
+    });
+    expect(internalFormat).toEqual({ dataType: 'validDataType', field: '' });
+  });
 });
 
 describe('validateSelectedDataModel', () => {
