@@ -14,6 +14,9 @@
         org: ttd
       },
       overallStatus: Completed,
+      dependents: {
+        Guid_3: Completed
+      },
       steps: [
         {
           databaseId: {Scrubbed},
@@ -32,7 +35,7 @@
       databaseId: {Scrubbed},
       collectionKey: collection-b,
       operationId: op-wf-child,
-      idempotencyKey: idem-Guid_3,
+      idempotencyKey: idem-Guid_4,
       namespace: ttd:e2e-tests,
       createdAt: {Scrubbed},
       updatedAt: {Scrubbed},
@@ -62,7 +65,7 @@
   edges: [
     {
       from: Guid_1,
-      to: Guid_4,
+      to: Guid_3,
       kind: Dependency
     }
   ]

@@ -39,6 +39,9 @@
         org: ttd
       },
       overallStatus: Completed,
+      dependents: {
+        Guid_1: Completed
+      },
       links: {
         Guid_4: Completed
       },
