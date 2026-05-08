@@ -10,7 +10,7 @@
   justify-content: center;
   padding: var(--ds-size-7);
   border-width: 2px;
-  border-color: var(--colors-primary-blue);
+  border-color: var(--ds-color-border-strong);
   border-style: dotted;
   cursor: pointer;
   background: transparent;
@@ -18,8 +18,8 @@
 
 .fileUploadInvalid:focus {
   border-style: solid !important;
-  outline-color: #e23b53 !important;
-  border-color: #e23b53 !important;
+  outline-color: var(--ds-color-danger-border-default) !important;
+  border-color: var(--ds-color-danger-border-default) !important;
 }
 
 .fileUpload:hover {

@@ -5,6 +5,7 @@ using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Clients.Fiks.FiksIO;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -267,7 +268,7 @@ internal sealed class FiksArkivHost : BackgroundService, IFiksArkivHost
     /// </summary>
     private static bool CurrentTaskIsFiksArkiv(Instance? instance) =>
         instance?.Process?.CurrentTask?.AltinnTaskType?.Equals(
-            FiksArkivServiceTask.Identifier,
+            AltinnTaskTypes.FiksArkiv,
             StringComparison.OrdinalIgnoreCase
         )
             is true;

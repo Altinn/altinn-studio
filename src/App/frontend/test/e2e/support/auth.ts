@@ -310,6 +310,7 @@ function tenorTt02Login({ appName, tenorUser }: Omit<TenorLoginParams, 'authenti
   cy.visit(`https://ttd.apps.${Cypress.config('baseUrl')?.slice(8)}/ttd/${appName}`);
 
   cy.findByRole('link', { name: /testid lag din egen testbruker/i }).click();
+  cy.findByRole('textbox', { name: /personidentifikator \(syntetisk\)/i }).clear();
   cy.findByRole('textbox', { name: /personidentifikator \(syntetisk\)/i }).type(tenorUser.ssn);
 
   cy.get<AppResponseRef>('@appResponse').then((ref) => {

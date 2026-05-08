@@ -93,7 +93,7 @@ public sealed class PatchServiceTests : IDisposable
                     It.IsAny<string>(),
                     It.IsAny<Guid>(),
                     It.IsAny<Stream>(),
-                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -330,7 +330,7 @@ public sealed class PatchServiceTests : IDisposable
                     It.IsAny<int>(),
                     It.IsAny<Guid>(),
                     It.IsAny<Guid>(),
-                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
             )

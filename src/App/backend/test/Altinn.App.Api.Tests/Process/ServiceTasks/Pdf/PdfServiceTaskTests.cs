@@ -2,6 +2,7 @@
 using System.Text;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.Platform.Storage.Interface.Models;
@@ -85,7 +86,7 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
         // Double check that process moved back to the data task
         Instance instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
         instance.Process.CurrentTask.ElementId.Should().Be("Task_1");
-        instance.Process.CurrentTask.AltinnTaskType.Should().Be("data");
+        instance.Process.CurrentTask.AltinnTaskType.Should().Be(AltinnTaskTypes.Data);
     }
 
     [Fact]

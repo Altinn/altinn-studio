@@ -71,6 +71,16 @@ public class Dummy
     [JsonProperty("hiddenNotRemove")]
     [JsonPropertyName("hiddenNotRemove")]
     public string? HiddenNotRemove { get; set; }
+
+    [XmlElement("hiddenPage", Order = 11)]
+    [JsonProperty("hiddenPage")]
+    [JsonPropertyName("hiddenPage")]
+    public string? HiddenPage { get; set; }
+
+    [XmlElement("hiddenPageNotRemove", Order = 12)]
+    [JsonProperty("hiddenPageNotRemove")]
+    [JsonPropertyName("hiddenPageNotRemove")]
+    public string? HiddenPageNotRemove { get; set; }
 }
 
 public class TagWithAttribute

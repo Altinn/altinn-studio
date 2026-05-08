@@ -98,6 +98,8 @@ public sealed class PageComponent : Base.BaseComponent
             component.ClaimChildren(pageComponentLookup, claimedComponentIds);
         }
 
+        var childComponentList = componentList.Where(c => !claimedComponentIds.ContainsKey(c.Id)).ToList();
+
         // Preserve order but remove components that have been claimed
         return new PageComponent()
         {
@@ -109,11 +111,11 @@ public sealed class PageComponent : Base.BaseComponent
             Required = Expression.False,
             ReadOnly = Expression.False,
             Hidden = hidden,
-            RemoveWhenHidden = Expression.Null,
+            RemoveWhenHidden = Expression.Undefined,
             DataModelBindings = ImmutableDictionary<string, ModelBinding>.Empty,
             TextResourceBindings = ImmutableDictionary<string, Expression>.Empty,
             // Custom properties
-            ChildComponents = componentList.Where(c => !claimedComponentIds.ContainsKey(c.Id)).ToList(),
+            ChildComponents = childComponentList,
             AllComponents = componentList,
         };
     }

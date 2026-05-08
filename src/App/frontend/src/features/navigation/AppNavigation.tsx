@@ -7,6 +7,7 @@ import { Button } from 'src/app-components/Button/Button';
 import { translationKey } from 'src/AppComponentsBridge';
 import { useIsReceiptPage } from 'src/core/routing/useIsReceiptPage';
 import { useIsStateless } from 'src/features/applicationMetadata';
+import { ExprVal } from 'src/features/expressions/types';
 import { usePageGroups, usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { Lang } from 'src/features/language/Lang';
@@ -14,6 +15,7 @@ import classes from 'src/features/navigation/AppNavigation.module.css';
 import { PageGroup } from 'src/features/navigation/components/PageGroup';
 import { TaskGroup } from 'src/features/navigation/components/TaskGroup';
 import { useIsSubformPage } from 'src/hooks/navigation';
+import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
 import type { NavigationReceipt, NavigationTask } from 'src/features/form/ui/types';
 
 export function AppNavigation({ onNavigate }: { onNavigate?: () => void }) {
@@ -97,6 +99,12 @@ export function AppNavigationHeading({
   showClose,
   onClose,
 }: { showClose?: undefined; onClose?: undefined } | { showClose: boolean; onClose: () => void }) {
+  const { navigationTitle: navigationTitleExpr } = usePageSettings();
+  const navigationTitle = useEvalExpression(navigationTitleExpr, {
+    returnType: ExprVal.String,
+    defaultValue: 'navigation.form_pages',
+    errorIntroText: 'Invalid expression for navigationTitle in Settings.json',
+  });
   return (
     <div
       id={appNavigationHeadingId}
@@ -107,7 +115,7 @@ export function AppNavigationHeading({
         level={2}
         data-size='xs'
       >
-        <Lang id='navigation.form_pages' />
+        <Lang id={navigationTitle} />
       </Heading>
       {showClose && (
         <Button

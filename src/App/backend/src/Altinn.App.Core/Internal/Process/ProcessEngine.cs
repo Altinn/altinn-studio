@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
@@ -790,15 +791,15 @@ public class ProcessEngine : IProcessEngine
     {
         switch (actionOrTaskType)
         {
-            case "data":
-            case "feedback":
-            case "pdf":
-            case "eFormidling":
-            case "fiksArkiv":
+            case AltinnTaskTypes.Data:
+            case AltinnTaskTypes.Feedback:
+            case AltinnTaskTypes.Pdf:
+            case AltinnTaskTypes.EFormidling:
+            case AltinnTaskTypes.FiksArkiv:
                 return "write";
-            case "confirmation":
+            case AltinnTaskTypes.Confirmation:
                 return "confirm";
-            case "signing":
+            case AltinnTaskTypes.Signing:
                 return "sign";
             default:
                 // Not any known task type, so assume it is an action type
