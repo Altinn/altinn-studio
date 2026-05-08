@@ -6,7 +6,7 @@
       collectionKey: collection-a,
       operationId: op-wf-root,
       idempotencyKey: idem-Guid_2,
-      namespace: ttd-e2e-tests,
+      namespace: ttd:e2e-tests,
       createdAt: {Scrubbed},
       updatedAt: {Scrubbed},
       labels: {
@@ -14,9 +14,6 @@
         org: ttd
       },
       overallStatus: Completed,
-      dependents: {
-        Guid_3: Completed
-      },
       steps: [
         {
           databaseId: {Scrubbed},
@@ -35,8 +32,8 @@
       databaseId: {Scrubbed},
       collectionKey: collection-b,
       operationId: op-wf-child,
-      idempotencyKey: idem-Guid_4,
-      namespace: ttd-e2e-tests,
+      idempotencyKey: idem-Guid_3,
+      namespace: ttd:e2e-tests,
       createdAt: {Scrubbed},
       updatedAt: {Scrubbed},
       labels: {
@@ -65,7 +62,7 @@
   edges: [
     {
       from: Guid_1,
-      to: Guid_3,
+      to: Guid_4,
       kind: Dependency
     }
   ]
