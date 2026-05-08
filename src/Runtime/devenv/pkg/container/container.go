@@ -17,6 +17,7 @@ type (
 	PortMapping         = types.PortMapping
 	PublishedPort       = types.PublishedPort
 	ContainerListFilter = types.ContainerListFilter
+	NetworkListFilter   = types.NetworkListFilter
 	VolumeMount         = types.VolumeMount
 	ContainerConfig     = types.ContainerConfig
 	ImageInfo           = types.ImageInfo
@@ -130,6 +131,9 @@ type ContainerClient interface {
 	// NetworkInspect returns information about a network.
 	// Returns ErrNetworkNotFound if the network does not exist.
 	NetworkInspect(ctx context.Context, nameOrID string) (types.NetworkInfo, error)
+
+	// ListNetworks returns networks matching the provided filters.
+	ListNetworks(ctx context.Context, filter types.NetworkListFilter) ([]types.NetworkInfo, error)
 
 	// NetworkRemove removes a network.
 	NetworkRemove(ctx context.Context, nameOrID string) error

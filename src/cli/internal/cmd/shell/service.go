@@ -17,8 +17,6 @@ import (
 )
 
 const (
-	osWindows = "windows"
-
 	shellBash       = "bash"
 	shellZsh        = "zsh"
 	shellFish       = "fish"
@@ -170,7 +168,7 @@ func getBinaryPath() (string, error) {
 }
 
 func detectShell() string {
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == osutil.OSWindows {
 		return shellPowerShell
 	}
 

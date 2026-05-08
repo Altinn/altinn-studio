@@ -31,6 +31,10 @@ internal interface IDataElementAccessChecker
     /// Convenience alias for <see cref="GetCreateProblem"/>.
     /// Determines if the current request user can create the given data type
     /// </summary>
+    /// <param name="instance">The instance to check access for</param>
+    /// <param name="dataType">The data type the new element will have</param>
+    /// <param name="auth">The authenticated user information, or it will be fetched from context</param>
+    /// <param name="contentLength">The content length of the data in bytes if it should be checked here</param>
     Task<bool> CanCreate(Instance instance, DataType dataType, Authenticated? auth = null, long? contentLength = null);
 
     /// <summary>
@@ -48,6 +52,10 @@ internal interface IDataElementAccessChecker
     /// <summary>
     /// Checks if the user has access to create a data element of a given data type on an instance.
     /// </summary>
+    /// <param name="instance">The instance to check access for</param>
+    /// <param name="dataType">The data type the new element will have</param>
+    /// <param name="auth">The authenticated user information, or it will be fetched from context</param>
+    /// <param name="contentLength">The content length of the data in bytes if it should be checked here</param>
     /// <returns>null for success or ProblemDetails that can be an error response in the Apis</returns>
     Task<ProblemDetails?> GetCreateProblem(
         Instance instance,

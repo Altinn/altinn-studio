@@ -26,6 +26,10 @@ type Executor struct {
 }
 
 const containerSpecHashLabel = "altinn.studio/devenv-spec-hash"
+
+// GraphIDLabel is the runtime label used to identify resources owned by a graph.
+const GraphIDLabel = "altinn.studio/devenv.graph"
+
 const networkResourceIDPrefix = "network:"
 const containerReadyTimeout = 2 * time.Minute
 const containerReadyPollInterval = 500 * time.Millisecond
@@ -33,13 +37,14 @@ const containerStatusExited = "exited"
 const containerStatusDead = "dead"
 
 var (
-	errUnknownResourceType      = errors.New("unknown resource type")
-	errImageNotResolved         = errors.New("image not resolved")
-	errNetworkNameUnresolvable  = errors.New("cannot resolve network name")
-	errImageMissingForPullNever = errors.New("image not found locally and pull policy is Never")
-	errContainerExited          = errors.New("container exited before becoming ready")
-	errContainerUnhealthy       = errors.New("container healthcheck failed")
-	errContainerReadyTimeout    = errors.New("container did not become ready before timeout")
+	errUnknownResourceType       = errors.New("unknown resource type")
+	errImageNotResolved          = errors.New("image not resolved")
+	errNetworkNameUnresolvable   = errors.New("cannot resolve network name")
+	errResourceOwnershipConflict = errors.New("resource exists but is not managed by this graph")
+	errImageMissingForPullNever  = errors.New("image not found locally and pull policy is Never")
+	errContainerExited           = errors.New("container exited before becoming ready")
+	errContainerUnhealthy        = errors.New("container healthcheck failed")
+	errContainerReadyTimeout     = errors.New("container did not become ready before timeout")
 )
 
 // NewExecutor creates an executor with the given container client.
@@ -57,20 +62,102 @@ func (e *Executor) SetObserver(o Observer) {
 
 // Apply creates/updates all resources in the graph in dependency order.
 // Resources at the same dependency level are applied in parallel.
-func (e *Executor) Apply(ctx context.Context, g *Graph) (Outputs, error) {
+func (e *Executor) Apply(ctx context.Context, g *Graph, opts ...ApplyOption) (Outputs, error) {
+	if err := validateGraphID(g); err != nil {
+		return Outputs{}, err
+	}
+	options := newApplyOptions(opts)
 	levels, err := g.TopologicalOrder()
 	if err != nil {
 		return Outputs{}, err
 	}
+	actual, err := e.Status(ctx, g)
+	if err != nil {
+		return Outputs{}, err
+	}
+	plan := buildApplyPlan(g, actual)
+	if err := validateNoOwnershipConflicts(plan, actual); err != nil {
+		return Outputs{}, err
+	}
+	if err := notifyApplyPlan(options, g, actual, plan); err != nil {
+		return Outputs{}, err
+	}
+	if err := e.executeDestroyPlan(ctx, actual, plan.destroy); err != nil {
+		return Outputs{}, err
+	}
+
+	return e.executeApplyPlan(ctx, g, levels, plan)
+}
+
+// Destroy removes all resources in the graph in reverse dependency order.
+// Resources at the same dependency level are destroyed in parallel.
+func (e *Executor) Destroy(ctx context.Context, g *Graph, opts ...DestroyOption) error {
+	if err := validateGraphID(g); err != nil {
+		return err
+	}
+	options := newDestroyOptions(opts)
+
+	actual, err := e.Status(ctx, g)
+	if err != nil {
+		return err
+	}
+	plan := buildDestroyPlan(g, actual)
+	if err := notifyDestroyPlan(options, g, actual, plan); err != nil {
+		return err
+	}
+	return e.executeDestroyPlan(ctx, actual, plan.destroy)
+}
+
+// Status returns observed state for the requested graph and any labelled runtime resources it owns.
+func (e *Executor) Status(ctx context.Context, g *Graph, opts ...StatusOption) (Snapshot, error) {
+	if err := validateGraphID(g); err != nil {
+		return Snapshot{}, err
+	}
+
+	options := newStatusOptions(opts)
+	resources := g.All()
+	snapshot := Snapshot{
+		GraphID:   g.ID(),
+		Resources: make(map[ResourceID]ObservedResource, len(resources)),
+	}
+
+	for _, r := range resources {
+		if options.skipResource(r) {
+			continue
+		}
+		observed, err := e.observeResource(ctx, g.ID(), r)
+		if err != nil {
+			return Snapshot{}, fmt.Errorf("status %s: %w", r.ID(), err)
+		}
+		snapshot.Resources[r.ID()] = observed
+	}
+
+	if err := e.discoverGraphResources(ctx, &snapshot); err != nil {
+		return Snapshot{}, err
+	}
+
+	return snapshot, nil
+}
+
+func (e *Executor) executeApplyPlan(
+	ctx context.Context,
+	g *Graph,
+	levels [][]Resource,
+	plan applyPlan,
+) (Outputs, error) {
+	applyIDs := resourceIDSet(plan.reconcile)
 
 	e.outputs.Reset()
 
 	for _, level := range levels {
 		eg, groupCtx := errgroup.WithContext(ctx)
 		for _, r := range level {
+			if _, ok := applyIDs[r.ID()]; !ok {
+				continue
+			}
 			eg.Go(func() error {
 				e.notify(EventApplyStart, r.ID(), nil)
-				output, err := e.applyResource(groupCtx, r)
+				output, err := e.applyResource(groupCtx, g.ID(), r)
 				if err != nil {
 					e.notify(EventApplyFailed, r.ID(), err)
 					return fmt.Errorf("apply %s: %w", r.ID(), err)
@@ -89,29 +176,27 @@ func (e *Executor) Apply(ctx context.Context, g *Graph) (Outputs, error) {
 	return e.outputs.Snapshot(), nil
 }
 
-// Destroy removes all resources in the graph in reverse dependency order.
-// Resources at the same dependency level are destroyed in parallel.
-func (e *Executor) Destroy(ctx context.Context, g *Graph) error {
-	levels, err := g.ReverseTopologicalOrder()
+func (e *Executor) executeDestroyPlan(ctx context.Context, actual Snapshot, ids []ResourceID) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	graph, err := buildObservedGraph(actual)
 	if err != nil {
 		return err
 	}
-
+	levels, err := graph.ReverseTopologicalOrderSubset(ids)
+	if err != nil {
+		return err
+	}
 	for _, level := range levels {
 		eg, groupCtx := errgroup.WithContext(ctx)
 		for _, r := range level {
 			eg.Go(func() error {
-				e.notify(EventDestroyStart, r.ID(), nil)
-				if err := e.destroyResource(groupCtx, r); err != nil {
-					if handleDestroyError(r, err) == ErrorDecisionIgnore {
-						e.notify(EventDestroyDone, r.ID(), nil)
-						return nil
-					}
-					e.notify(EventDestroyFailed, r.ID(), err)
-					return fmt.Errorf("destroy %s: %w", r.ID(), err)
+				observed, ok := actual.Resources[r.ID()]
+				if !ok {
+					return fmt.Errorf("%w: %q", errGraphResourceNotFound, r.ID())
 				}
-				e.notify(EventDestroyDone, r.ID(), nil)
-				return nil
+				return e.destroyObservedResource(groupCtx, r.ID(), observed)
 			})
 		}
 		if err := eg.Wait(); err != nil {
@@ -121,71 +206,240 @@ func (e *Executor) Destroy(ctx context.Context, g *Graph) error {
 	return nil
 }
 
-// Status returns the current status of all resources in the graph that are not skipped.
-func (e *Executor) Status(ctx context.Context, g *Graph, opts ...StatusOption) (map[ResourceID]Status, error) {
-	options := newStatusOptions(opts)
-	resources := g.Enabled()
-	result := make(map[ResourceID]Status, len(resources))
-
-	for _, r := range resources {
-		if options.skipResource(r) {
-			continue
-		}
-		status, err := e.resourceStatus(ctx, r)
-		if err != nil {
-			return nil, fmt.Errorf("status %s: %w", r.ID(), err)
-		}
-		result[r.ID()] = status
+func resourceIDSet(ids []ResourceID) map[ResourceID]struct{} {
+	set := make(map[ResourceID]struct{}, len(ids))
+	for _, id := range ids {
+		set[id] = struct{}{}
 	}
-
-	return result, nil
+	return set
 }
 
-func (e *Executor) applyResource(ctx context.Context, r Resource) (Output, error) {
+func validateGraphID(g *Graph) error {
+	if g == nil || g.ID() == "" {
+		return errGraphEmptyID
+	}
+	return nil
+}
+
+func (e *Executor) discoverGraphResources(ctx context.Context, snapshot *Snapshot) error {
+	containers, err := e.client.ListContainers(ctx, types.ContainerListFilter{
+		All:    true,
+		Labels: map[string]string{GraphIDLabel: snapshot.GraphID.String()},
+	})
+	if err != nil {
+		return fmt.Errorf("list graph containers: %w", err)
+	}
+	for _, info := range containers {
+		if info.Name == "" {
+			continue
+		}
+		id := ContainerID(info.Name)
+		if observed, ok := snapshot.Resources[id]; ok && observed.Resource != nil {
+			observed.RuntimeID = firstNonEmptyString(info.ID, info.Name)
+			observed.Managed = true
+			snapshot.Resources[id] = observed
+			continue
+		}
+		dependencies, depErr := e.discoveredContainerDependencies(ctx, info)
+		if depErr != nil {
+			return depErr
+		}
+		snapshot.Resources[id] = ObservedResource{
+			RuntimeID:    firstNonEmptyString(info.ID, info.Name),
+			Type:         resourceTypeContainer,
+			Status:       containerInfoStatus(info),
+			Managed:      true,
+			Dependencies: dependencies,
+		}
+	}
+
+	networks, err := e.client.ListNetworks(ctx, types.NetworkListFilter{
+		Labels: map[string]string{GraphIDLabel: snapshot.GraphID.String()},
+	})
+	if err != nil {
+		return fmt.Errorf("list graph networks: %w", err)
+	}
+	for _, network := range networks {
+		if network.Name == "" {
+			continue
+		}
+		id := ResourceID(networkResourceIDPrefix + network.Name)
+		if observed, ok := snapshot.Resources[id]; ok && observed.Resource != nil {
+			observed.Managed = true
+			snapshot.Resources[id] = observed
+			continue
+		}
+		snapshot.Resources[id] = ObservedResource{
+			RuntimeID: firstNonEmptyString(network.ID, network.Name),
+			Type:      resourceTypeNetwork,
+			Status:    StatusReady,
+			Managed:   true,
+		}
+	}
+	return nil
+}
+
+func (e *Executor) discoveredContainerDependencies(
+	ctx context.Context,
+	info types.ContainerInfo,
+) ([]ResourceRef, error) {
+	name := firstNonEmptyString(info.ID, info.Name)
+	networks, err := e.client.ContainerNetworks(ctx, name)
+	if errors.Is(err, types.ErrContainerNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("list container networks %s: %w", name, err)
+	}
+
+	dependencies := make([]ResourceRef, 0, len(networks))
+	for _, network := range networks {
+		if network != "" {
+			dependencies = append(dependencies, RefID(ResourceID(networkResourceIDPrefix+network)))
+		}
+	}
+	return dependencies, nil
+}
+
+func (e *Executor) destroyObservedRuntimeResource(
+	ctx context.Context,
+	id ResourceID,
+	observed ObservedResource,
+) error {
+	name := firstNonEmptyString(observed.RuntimeID, id.String())
+	switch observed.Type {
+	case resourceTypeContainer:
+		return e.stopAndRemoveContainer(ctx, name)
+	case resourceTypeNetwork:
+		err := e.client.NetworkRemove(ctx, name)
+		if err != nil && !errors.Is(err, types.ErrNetworkNotFound) {
+			return fmt.Errorf("remove network %s: %w", name, err)
+		}
+		return nil
+	case resourceTypeImage:
+		return nil
+	case resourceTypeUnknown:
+		return fmt.Errorf("%w: %v", errUnknownResourceType, observed.Type)
+	default:
+		return fmt.Errorf("%w: %v", errUnknownResourceType, observed.Type)
+	}
+}
+
+func (e *Executor) destroyObservedResource(ctx context.Context, id ResourceID, observed ObservedResource) error {
+	e.notify(EventDestroyStart, id, nil)
+	if err := e.destroyObservedRuntimeResource(ctx, id, observed); err != nil {
+		if observed.Resource != nil && handleDestroyError(observed.Resource, err) == ErrorDecisionIgnore {
+			e.notify(EventDestroyDone, id, nil)
+			return nil
+		}
+		e.notify(EventDestroyFailed, id, err)
+		return fmt.Errorf("destroy %s: %w", id, err)
+	}
+	e.notify(EventDestroyDone, id, nil)
+	return nil
+}
+
+func resourceManagedByGraph(labels map[string]string, graphID GraphID) bool {
+	return labels[GraphIDLabel] == graphID.String()
+}
+
+func firstNonEmptyString(values ...string) string {
+	for _, value := range values {
+		if value != "" {
+			return value
+		}
+	}
+	return ""
+}
+
+func (e *Executor) applyResource(ctx context.Context, graphID GraphID, r Resource) (Output, error) {
 	switch res := r.(type) {
 	case *RemoteImage:
 		return e.applyRemoteImage(ctx, res)
 	case *LocalImage:
 		return e.applyLocalImage(ctx, res)
 	case *Network:
-		return e.applyNetwork(ctx, res)
+		return e.applyNetwork(ctx, graphID, res)
 	case *Container:
-		return e.applyContainer(ctx, res)
+		return e.applyContainer(ctx, graphID, res)
 	default:
 		return nil, fmt.Errorf("%w: %T", errUnknownResourceType, r)
 	}
 }
 
-func (e *Executor) destroyResource(ctx context.Context, r Resource) error {
+func (e *Executor) observeResource(ctx context.Context, graphID GraphID, r Resource) (ObservedResource, error) {
 	switch res := r.(type) {
 	case *RemoteImage:
-		// Images are shared, don't delete
-		return nil
+		status, err := e.imageStatus(ctx, res.Ref)
+		return ObservedResource{
+			Resource:  r,
+			Type:      resourceTypeImage,
+			RuntimeID: res.Ref,
+			Status:    status,
+			Managed:   false,
+		}, err
 	case *LocalImage:
-		// Images are shared, don't delete
-		return nil
+		status, err := e.imageStatus(ctx, res.Tag)
+		return ObservedResource{
+			Resource:  r,
+			Type:      resourceTypeImage,
+			RuntimeID: res.Tag,
+			Status:    status,
+			Managed:   false,
+		}, err
 	case *Network:
-		return e.destroyNetwork(ctx, res)
+		return e.observeNetwork(ctx, graphID, res)
 	case *Container:
-		return e.destroyContainer(ctx, res)
+		return e.observeContainer(ctx, graphID, res)
 	default:
-		return fmt.Errorf("%w: %T", errUnknownResourceType, r)
+		return ObservedResource{}, fmt.Errorf("%w: %T", errUnknownResourceType, r)
 	}
 }
 
-func (e *Executor) resourceStatus(ctx context.Context, r Resource) (Status, error) {
-	switch res := r.(type) {
-	case *RemoteImage:
-		return e.imageStatus(ctx, res.Ref)
-	case *LocalImage:
-		return e.imageStatus(ctx, res.Tag)
-	case *Network:
-		return e.networkStatus(ctx, res)
-	case *Container:
-		return e.containerStatus(ctx, res)
-	default:
-		return StatusUnknown, fmt.Errorf("%w: %T", errUnknownResourceType, r)
+func (e *Executor) observeNetwork(ctx context.Context, graphID GraphID, net *Network) (ObservedResource, error) {
+	observed := ObservedResource{
+		Resource:  net,
+		Type:      resourceTypeNetwork,
+		RuntimeID: net.Name,
+		Status:    StatusDestroyed,
+		Managed:   false,
 	}
+
+	info, err := e.client.NetworkInspect(ctx, net.Name)
+	if errors.Is(err, types.ErrNetworkNotFound) {
+		return observed, nil
+	}
+	if err != nil {
+		return observed, fmt.Errorf("inspect network %s: %w", net.Name, err)
+	}
+
+	observed.Status = StatusReady
+	observed.RuntimeID = firstNonEmptyString(info.ID, net.Name)
+	observed.Managed = resourceManagedByGraph(info.Labels, graphID)
+	return observed, nil
+}
+
+func (e *Executor) observeContainer(ctx context.Context, graphID GraphID, c *Container) (ObservedResource, error) {
+	observed := ObservedResource{
+		Resource:  c,
+		Type:      resourceTypeContainer,
+		RuntimeID: c.Name,
+		Status:    StatusDestroyed,
+		Managed:   false,
+	}
+
+	info, err := e.client.ContainerInspect(ctx, c.Name)
+	if errors.Is(err, types.ErrContainerNotFound) {
+		return observed, nil
+	}
+	if err != nil {
+		return observed, fmt.Errorf("inspect container %s: %w", c.Name, err)
+	}
+
+	observed.RuntimeID = firstNonEmptyString(info.ID, info.Name, c.Name)
+	observed.Status = containerInfoStatus(info)
+	observed.Managed = resourceManagedByGraph(info.Labels, graphID)
+	return observed, nil
 }
 
 // Image operations
@@ -262,7 +516,7 @@ func (e *Executor) imageStatus(ctx context.Context, ref string) (Status, error) 
 
 // Network operations
 
-func (e *Executor) applyNetwork(ctx context.Context, net *Network) (Output, error) {
+func (e *Executor) applyNetwork(ctx context.Context, graphID GraphID, net *Network) (Output, error) {
 	_, err := e.client.NetworkInspect(ctx, net.Name)
 	if err == nil {
 		// Network exists
@@ -283,7 +537,7 @@ func (e *Executor) applyNetwork(ctx context.Context, net *Network) (Output, erro
 	cfg := types.NetworkConfig{
 		Name:   net.Name,
 		Driver: driver,
-		Labels: net.Labels,
+		Labels: normalizedResourceLabels(net.Labels, graphID),
 	}
 
 	if _, err := e.client.NetworkCreate(ctx, cfg); err != nil {
@@ -291,14 +545,6 @@ func (e *Executor) applyNetwork(ctx context.Context, net *Network) (Output, erro
 	}
 
 	return noOutput{}, nil
-}
-
-func (e *Executor) destroyNetwork(ctx context.Context, net *Network) error {
-	err := e.client.NetworkRemove(ctx, net.Name)
-	if err != nil && !errors.Is(err, types.ErrNetworkNotFound) {
-		return fmt.Errorf("remove network %s: %w", net.Name, err)
-	}
-	return nil
 }
 
 func handleDestroyError(r Resource, err error) ErrorDecision {
@@ -315,20 +561,26 @@ func handleDestroyError(r Resource, err error) ErrorDecision {
 	return options.HandleDestroyError(err)
 }
 
-func (e *Executor) networkStatus(ctx context.Context, net *Network) (Status, error) {
-	_, err := e.client.NetworkInspect(ctx, net.Name)
-	if err != nil {
-		if errors.Is(err, types.ErrNetworkNotFound) {
-			return StatusDestroyed, nil
-		}
-		return StatusUnknown, fmt.Errorf("inspect network %s: %w", net.Name, err)
+func retainOnDestroy(r Resource) bool {
+	provider, ok := r.(LifecycleOptionsProvider)
+	if !ok {
+		return defaultRetainOnDestroy(r)
 	}
-	return StatusReady, nil
+	return provider.LifecycleOptions().RetainOnDestroy
+}
+
+func defaultRetainOnDestroy(r Resource) bool {
+	switch r.(type) {
+	case *RemoteImage, *LocalImage:
+		return true
+	default:
+		return false
+	}
 }
 
 // Container operations
 
-func (e *Executor) applyContainer(ctx context.Context, c *Container) (Output, error) {
+func (e *Executor) applyContainer(ctx context.Context, graphID GraphID, c *Container) (Output, error) {
 	imageOutput, ok := e.outputs.Image(c.Image.ID())
 	if !ok {
 		return nil, fmt.Errorf("%w: %s", errImageNotResolved, c.Image.ID())
@@ -340,7 +592,7 @@ func (e *Executor) applyContainer(ctx context.Context, c *Container) (Output, er
 		return nil, err
 	}
 
-	desiredLabels := normalizedContainerLabels(c, imageID, networks)
+	desiredLabels := normalizedContainerLabels(c, graphID, imageID, networks)
 
 	needsCreate, err := e.reconcileExistingContainer(ctx, c.Name, imageID, desiredLabels, networks)
 	if err != nil {
@@ -445,10 +697,6 @@ func (e *Executor) reconcileExistingContainer(
 	return false, nil
 }
 
-func (e *Executor) destroyContainer(ctx context.Context, c *Container) error {
-	return e.stopAndRemoveContainer(ctx, c.Name)
-}
-
 func (e *Executor) stopAndRemoveContainer(ctx context.Context, name string) error {
 	timeout := 10
 	stopErr := e.client.ContainerStop(ctx, name, &timeout)
@@ -477,28 +725,20 @@ func (e *Executor) stopAndRemoveContainer(ctx context.Context, name string) erro
 	return nil
 }
 
-func (e *Executor) containerStatus(ctx context.Context, c *Container) (Status, error) {
-	info, err := e.client.ContainerInspect(ctx, c.Name)
-	if err != nil {
-		if errors.Is(err, types.ErrContainerNotFound) {
-			return StatusDestroyed, nil
-		}
-		return StatusUnknown, fmt.Errorf("inspect container %s: %w", c.Name, err)
-	}
-
+func containerInfoStatus(info types.ContainerInfo) Status {
 	switch {
 	case info.State.Running && containerHealthReady(info.State.HealthStatus):
-		return StatusReady, nil
+		return StatusReady
 	case info.State.Running && containerHealthFailed(info.State.HealthStatus):
-		return StatusFailed, nil
+		return StatusFailed
 	case info.State.Running:
-		return StatusPending, nil
+		return StatusPending
 	case info.State.Status == "created":
-		return StatusPending, nil
+		return StatusPending
 	case info.State.Status == containerStatusExited:
-		return StatusFailed, nil
+		return StatusFailed
 	default:
-		return StatusUnknown, nil
+		return StatusUnknown
 	}
 }
 
@@ -627,11 +867,17 @@ func networksMatch(desired, actual []string) bool {
 	return slices.Equal(sortedDesired, sortedActual)
 }
 
-func normalizedContainerLabels(c *Container, imageID string, networks []string) map[string]string {
-	labels := make(map[string]string, len(c.Labels)+1)
-	maps.Copy(labels, c.Labels)
+func normalizedContainerLabels(c *Container, graphID GraphID, imageID string, networks []string) map[string]string {
+	labels := normalizedResourceLabels(c.Labels, graphID)
 	labels[containerSpecHashLabel] = containerSpecHash(c, imageID, networks)
 	return labels
+}
+
+func normalizedResourceLabels(labels map[string]string, graphID GraphID) map[string]string {
+	normalized := make(map[string]string, len(labels)+1)
+	maps.Copy(normalized, labels)
+	normalized[GraphIDLabel] = graphID.String()
+	return normalized
 }
 
 func containerSpecHash(c *Container, imageID string, networks []string) string {

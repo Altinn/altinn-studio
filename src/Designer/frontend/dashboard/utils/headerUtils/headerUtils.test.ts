@@ -9,8 +9,47 @@ import { HeaderMenuItemKey } from '../../enums/HeaderMenuItemKey';
 import type { NavigationMenuGroup } from '../../types/NavigationMenuGroup';
 import type { StudioProfileMenuGroup } from '@studio/components';
 import type { NavigationMenuItem } from '../../types/NavigationMenuItem';
+import { ADMIN_BASENAME, DASHBOARD_BASENAME } from 'app-shared/constants';
 
 describe('headerMenuUtils', () => {
+  describe('dashboardHeaderMenuItems', () => {
+    it('should return app dashboard base link when selected context is omitted', () => {
+      const appDashboardMenuItem = dashboardHeaderMenuItems.find(
+        (item) => item.key === HeaderMenuItemKey.AppDashboard,
+      );
+
+      expect(appDashboardMenuItem).toBeDefined();
+      expect(appDashboardMenuItem?.getLink()).toBe('/app-dashboard/');
+    });
+
+    it('should return org specific admin link when selected context is an organization', () => {
+      const adminMenuItem = dashboardHeaderMenuItems.find(
+        (item) => item.key === HeaderMenuItemKey.Admin,
+      );
+
+      expect(adminMenuItem).toBeDefined();
+      expect(adminMenuItem?.getLink('ttd')).toBe(`${ADMIN_BASENAME}/ttd`);
+    });
+
+    it('should return base admin link when selected context is not an organization', () => {
+      const adminMenuItem = dashboardHeaderMenuItems.find(
+        (item) => item.key === HeaderMenuItemKey.Admin,
+      );
+
+      expect(adminMenuItem).toBeDefined();
+      expect(adminMenuItem?.getLink('self')).toBe(`${ADMIN_BASENAME}/`);
+    });
+
+    it('should return base admin link when selected context is omitted', () => {
+      const adminMenuItem = dashboardHeaderMenuItems.find(
+        (item) => item.key === HeaderMenuItemKey.Admin,
+      );
+
+      expect(adminMenuItem).toBeDefined();
+      expect(adminMenuItem?.getLink()).toBe(`${ADMIN_BASENAME}/`);
+    });
+  });
+
   describe('groupMenuItemsByGroup', () => {
     it('should group items by their group key', () => {
       const groupedItems = groupMenuItemsByGroup(dashboardHeaderMenuItems);
@@ -26,16 +65,53 @@ describe('headerMenuUtils', () => {
 
   describe('mapHeaderMenuGroupToNavigationMenu', () => {
     it('should correctly map header menu group to navigation menu group', () => {
+      const appDashboardMenuItem = dashboardHeaderMenuItems.find(
+        (item) => item.key === HeaderMenuItemKey.AppDashboard,
+      )!;
       const group = {
         groupName: HeaderMenuGroupKey.Tools,
-        menuItems: [
-          dashboardHeaderMenuItems.find((item) => item.key === HeaderMenuItemKey.AppDashboard)!,
-        ],
+        menuItems: [appDashboardMenuItem],
       };
-      const mappedGroup = mapHeaderMenuGroupToNavigationMenu(group);
+      const mappedGroup = mapHeaderMenuGroupToNavigationMenu(group, 'ttd');
       expect(mappedGroup.name).toBe(HeaderMenuGroupKey.Tools);
       expect(mappedGroup.items.length).toBe(1);
       expect(mappedGroup.items[0].itemName).toBe('dashboard.header_item_dashboard');
+      expect(mappedGroup.items[0].action).toEqual({
+        type: 'link',
+        href: DASHBOARD_BASENAME + appDashboardMenuItem.getLink('ttd'),
+      });
+    });
+
+    it('should use base routes when selected context is omitted', () => {
+      const orgLibraryMenuItem = dashboardHeaderMenuItems.find(
+        (item) => item.key === HeaderMenuItemKey.OrgLibrary,
+      )!;
+      const group = {
+        groupName: HeaderMenuGroupKey.Tools,
+        menuItems: [orgLibraryMenuItem],
+      };
+      const mappedGroup = mapHeaderMenuGroupToNavigationMenu(group);
+
+      expect(mappedGroup.items[0].action).toEqual({
+        type: 'link',
+        href: DASHBOARD_BASENAME + orgLibraryMenuItem.getLink(),
+      });
+    });
+
+    it('should not prefix dashboard base path for external links', () => {
+      const adminMenuItem = dashboardHeaderMenuItems.find(
+        (item) => item.key === HeaderMenuItemKey.Admin,
+      )!;
+      const group = {
+        groupName: HeaderMenuGroupKey.Tools,
+        menuItems: [adminMenuItem],
+      };
+      const mappedGroup = mapHeaderMenuGroupToNavigationMenu(group, 'ttd');
+
+      expect(mappedGroup.items[0].action).toEqual({
+        type: 'link',
+        href: adminMenuItem.getLink('ttd'),
+      });
     });
   });
 

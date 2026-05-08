@@ -78,6 +78,75 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task GetWorkflow_DependencyExists_PopulatesDependentsOnTarget()
+    {
+        // Arrange
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+
+        var (_, metadata, ns, labels) = WorkflowTestHelper.CreateRequest();
+
+        var requests = new List<WorkflowRequest>
+        {
+            new()
+            {
+                Ref = "wf-a",
+                OperationId = "op-a",
+                Steps =
+                [
+                    new StepRequest
+                    {
+                        OperationId = "step-a",
+                        Command = new CommandDefinition { Type = "app" },
+                    },
+                ],
+            },
+            new()
+            {
+                Ref = "wf-b",
+                OperationId = "op-b",
+                Steps =
+                [
+                    new StepRequest
+                    {
+                        OperationId = "step-b",
+                        Command = new CommandDefinition { Type = "app" },
+                    },
+                ],
+                DependsOn = [(WorkflowRef)"wf-a"],
+            },
+        };
+
+        var results = await WorkflowTestHelper.EnqueueWorkflows(repo, metadata, requests, ns: ns, labels: labels);
+        var result = Assert.Single(results);
+        Assert.Equal(BatchEnqueueResultStatus.Created, result.Status);
+        Assert.NotNull(result.WorkflowIds);
+        Assert.Equal(2, result.WorkflowIds.Length);
+
+        var (idA, idB) = (result.WorkflowIds[0], result.WorkflowIds[1]);
+
+        // Act — fetch via the production read path (which includes both Dependencies and Dependents)
+        var wfA = await repo.GetWorkflow(idA, ns, TestContext.Current.CancellationToken);
+        var wfB = await repo.GetWorkflow(idB, ns, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.NotNull(wfA);
+        Assert.NotNull(wfB);
+
+        Assert.NotNull(wfB.Dependencies);
+        var dependency = Assert.Single(wfB.Dependencies);
+        Assert.Equal(idA, dependency.DatabaseId);
+
+        Assert.NotNull(wfA.Dependents);
+        var dependent = Assert.Single(wfA.Dependents);
+        Assert.Equal(idB, dependent.DatabaseId);
+
+        // Inverse pairs should not bleed across — A has no dependencies, B has no dependents
+        Assert.True(wfA.Dependencies is null || !wfA.Dependencies.Any());
+        Assert.True(wfB.Dependents is null || !wfB.Dependents.Any());
+    }
+
+    [Fact]
     public async Task EnqueueBatch_WithCrossNamespaceLink_ReturnsInvalidReference()
     {
         await using var context = fixture.CreateDbContext();
@@ -569,7 +638,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var metadata1 = new WorkflowRequestMetadata(
             "test-namespace",
             Guid.NewGuid().ToString("N"),
-            Guid.NewGuid(),
+            null,
             DateTimeOffset.UtcNow,
             null
         );
@@ -590,7 +659,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var metadata2 = new WorkflowRequestMetadata(
             "test-namespace",
             Guid.NewGuid().ToString("N"),
-            Guid.NewGuid(),
+            null,
             DateTimeOffset.UtcNow,
             null
         );
@@ -733,7 +802,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var metadata = new WorkflowRequestMetadata(
             "test-namespace",
             Guid.NewGuid().ToString("N"),
-            Guid.NewGuid(),
+            null,
             DateTimeOffset.UtcNow,
             null
         );

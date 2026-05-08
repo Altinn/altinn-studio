@@ -6,9 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
+	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/osutil"
 )
@@ -34,13 +36,61 @@ type stateFile struct {
 	Applied []string `json:"applied"`
 }
 
+// Runner applies migrations with injectable process dependencies.
+type Runner struct {
+	containerClient func(context.Context) (container.ContainerClient, error)
+	stderr          io.Writer
+	stdout          io.Writer
+}
+
+// RunnerOption configures a migration runner.
+type RunnerOption func(*Runner)
+
 // Run applies all pending migrations.
 func Run(ctx context.Context, cfg *config.Config) error {
-	return RunAll(ctx, cfg, registeredMigrations())
+	return NewRunner().Run(ctx, cfg)
 }
 
 // RunAll applies the provided migrations.
 func RunAll(ctx context.Context, cfg *config.Config, migrations []Migration) error {
+	return NewRunner().RunAll(ctx, cfg, migrations)
+}
+
+// NewRunner creates a migration runner with production defaults.
+func NewRunner(opts ...RunnerOption) *Runner {
+	runner := &Runner{
+		containerClient: container.Detect,
+		stderr:          io.Discard,
+		stdout:          io.Discard,
+	}
+	for _, opt := range opts {
+		opt(runner)
+	}
+	return runner
+}
+
+// WithContainerClient sets the container client factory used by migrations.
+func WithContainerClient(client func(context.Context) (container.ContainerClient, error)) RunnerOption {
+	return func(r *Runner) {
+		r.containerClient = client
+	}
+}
+
+// WithOutput sets stdout and stderr used by migrations.
+func WithOutput(stdout, stderr io.Writer) RunnerOption {
+	return func(r *Runner) {
+		r.stdout = stdout
+		r.stderr = stderr
+	}
+}
+
+// Run applies all pending registered migrations.
+func (r *Runner) Run(ctx context.Context, cfg *config.Config) error {
+	return r.RunAll(ctx, cfg, r.registeredMigrations())
+}
+
+// RunAll applies the provided migrations.
+func (r *Runner) RunAll(ctx context.Context, cfg *config.Config, migrations []Migration) error {
 	if len(migrations) == 0 {
 		return nil
 	}

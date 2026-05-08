@@ -105,7 +105,13 @@ public abstract class BaseComponent
         var removeWhenHidden = await context.EvaluateExpression(RemoveWhenHidden);
         // The default return should match AppSettings.RemoveHiddenData,
         // but currently we only run removal when it is true, so we set it to true here
-        return removeWhenHidden.ToBoolLoose() ?? true;
+        bool defaultShouldRemove = true;
+        if (removeWhenHidden.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+        {
+            // ToBoolLoose returns false when the value is null, but we want to return the default value in that case, so we check for null before calling ToBoolLoose()
+            return defaultShouldRemove;
+        }
+        return removeWhenHidden.ToBoolLoose() ?? defaultShouldRemove;
     }
 
     /// <summary>

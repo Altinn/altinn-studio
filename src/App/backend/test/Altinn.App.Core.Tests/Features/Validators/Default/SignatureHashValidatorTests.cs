@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
@@ -297,7 +298,7 @@ public class SignatureHashValidatorTests
     [Fact]
     public void ShouldRunForTask_WithNonSigningTask_ReturnsFalse()
     {
-        AltinnTaskExtension taskConfig = new() { TaskType = "data" };
+        AltinnTaskExtension taskConfig = new() { TaskType = AltinnTaskTypes.Data };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("data-task")).Returns(taskConfig);
 
         bool result = _validator.ShouldRunForTask("data-task");

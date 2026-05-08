@@ -48,6 +48,8 @@ public sealed class MockedServiceCollection
 
     public StorageClientInterceptor Storage { get; }
 
+    public FakeHttpMessageHandler FakeHttpMessageHandler { get; } = new FakeHttpMessageHandler();
+
     public List<Activity> Traces { get; } = new();
 
     public List<Metric> Metrics { get; } = new();
@@ -56,74 +58,62 @@ public sealed class MockedServiceCollection
 
     public ITestOutputHelper? OutputHelper { get; set; }
 
-    public Mock<IAppResources> AppResourcesMock { get; } = new(MockBehavior.Strict);
-    public Mock<IAppMetadata> AppMetadataMock { get; } = new(MockBehavior.Strict);
-    public Mock<IAppModel> AppModelMock { get; } = new(MockBehavior.Strict);
-
-    internal Mock<IAuthenticationTokenResolver> AuthenticationTokenResolverMock { get; } = new(MockBehavior.Strict);
-
-    public Mock<IUserTokenProvider> UserTokenProviderMock { get; } = new(MockBehavior.Strict);
-
-    private readonly IServiceCollection _services = new ServiceCollection();
+    public readonly IServiceCollection Services = new ServiceCollection();
 
     public MockedServiceCollection()
     {
-        Storage = new StorageClientInterceptor();
-        _services.AddSingleton(this);
+        Storage = new StorageClientInterceptor(new($"{Org}/{App}"));
+        Services.AddSingleton(this);
+        Services.AddSingleton(Storage);
+        Services.AddSingleton(FakeHttpMessageHandler);
     }
 
-    public void TryAddCommonServices()
+    private void TryAddCommonServices()
     {
-        _services.AddAppImplementationFactory();
+        Services.ConfigureHttpClientDefaults(builder =>
+        {
+            builder.ConfigurePrimaryHttpMessageHandler(() => FakeHttpMessageHandler);
+        });
+        Services.AddAppImplementationFactory();
 
         // Adding options
-        _services.TryAddSingleton(Options.Create(PlatformSettings));
-        _services.TryAddSingleton(Options.Create(AppSettings));
-        _services.TryAddSingleton(Options.Create(GeneralSettings));
+        Services.TryAddSingleton(Options.Create(PlatformSettings));
+        Services.TryAddSingleton(Options.Create(AppSettings));
+        Services.TryAddSingleton(Options.Create(GeneralSettings));
 
-        _services.TryAddSingleton(new AppIdentifier(Org, App));
+        Services.TryAddSingleton(new AppIdentifier(Org, App));
 
         // Adding Validation infrastructure
-        _services.TryAddSingleton<IValidationService, ValidationService>();
-        _services.TryAddSingleton<IValidatorFactory, ValidatorFactory>();
+        Services.TryAddSingleton<IValidationService, ValidationService>();
+        Services.TryAddSingleton<IValidatorFactory, ValidatorFactory>();
 
         // Adding Translation infrastructure
-        _services.TryAddSingleton<ITranslationService, TranslationService>();
+        Services.TryAddSingleton<ITranslationService, TranslationService>();
 
         // InstanceDataUnitOfWork
-        _services.TryAddSingleton<InstanceDataUnitOfWorkInitializer>();
-        _services.TryAddSingleton<ModelSerializationService>();
+        Services.TryAddSingleton<InstanceDataUnitOfWorkInitializer>();
+        Services.TryAddSingleton<ModelSerializationService>();
 
+        // Adding Data infrastructure
+        Services.AddSingleton(Storage);
         // There is no TryAddHttpClient, but these are the core of the mocked service collection
-        _services.AddHttpClient<IDataClient, DataClient>().ConfigurePrimaryHttpMessageHandler(() => Storage);
-        _services.AddHttpClient<IInstanceClient, InstanceClient>().ConfigurePrimaryHttpMessageHandler(() => Storage);
+        Services.AddHttpClient<IDataClient, DataClient>().ConfigurePrimaryHttpMessageHandler(() => Storage);
+        Services.AddHttpClient<IInstanceClient, InstanceClient>().ConfigurePrimaryHttpMessageHandler(() => Storage);
+        Services.TryAddTransient<IDataService, DataService>();
 
-        _services.TryAddSingleton<Telemetry>();
-        _services.AddLogging(builder =>
-        {
-            builder.AddOpenTelemetry(options =>
-            {
-                options.AddInMemoryExporter(Logs);
-                options.IncludeFormattedMessage = true;
-                options.IncludeScopes = true;
-            });
-        });
+        // Adding Telemetry and logging infrastructure
+        Services.TryAddSingleton<Telemetry>();
 
         // Add standard mocks
-        _services.TryAddSingleton(AppResourcesMock.Object);
-        _services.TryAddSingleton(AppMetadataMock.Object);
-        _services.TryAddSingleton(AppModelMock.Object);
-        _services.TryAddSingleton(AuthenticationTokenResolverMock.Object);
-        _services.TryAddSingleton(UserTokenProviderMock.Object);
 
         // Setup default mock behaviours
-        AppMetadataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(AppMetadata);
-        AuthenticationTokenResolverMock
+        Mock<IAppMetadata>().Setup(a => a.GetApplicationMetadata()).ReturnsAsync(AppMetadata);
+        Mock<IAuthenticationTokenResolver>()
             .Setup(a => a.GetAccessToken(It.IsAny<AuthenticationMethod>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new JwtToken());
-        UserTokenProviderMock.Setup(utp => utp.GetUserToken()).Returns("[userToken]");
+        Mock<IUserTokenProvider>().Setup(utp => utp.GetUserToken()).Returns("[userToken]");
         // Setup AppResources to return text resources from the internal dictionary
-        AppResourcesMock
+        Mock<IAppResources>()
             .Setup(a => a.GetTexts(Org, App, It.IsAny<string>()))
             .ReturnsAsync(
                 (string _, string _, string language) =>
@@ -134,7 +124,7 @@ public sealed class MockedServiceCollection
                     }
                 }
             );
-        AppResourcesMock
+        Mock<IAppResources>()
             .Setup(a => a.GetLayoutModelForFolder(It.IsAny<string>()))
             .Returns(
                 (string taskid) =>
@@ -143,6 +133,32 @@ public sealed class MockedServiceCollection
                     return new LayoutModel(layouts, taskid);
                 }
             );
+        // Just ensure that there exists a mock for IAppModel
+        Mock<IAppModel>();
+    }
+
+    private readonly Dictionary<Type, Mock> _mocks = [];
+
+    /// <summary>
+    /// Get or create a strict mock of the specified type and register it as a singleton service.
+    /// </summary>
+    /// <typeparam name="T">The interface to mock</typeparam>
+    /// <returns>A Mock of the specified interface ready for setup</returns>
+    public Mock<T> Mock<T>()
+        where T : class
+    {
+        lock (_mocks)
+        {
+            var type = typeof(T);
+            if (_mocks.TryGetValue(type, out var existingMock))
+            {
+                return (Mock<T>)existingMock;
+            }
+            var mock = new Mock<T>(MockBehavior.Strict);
+            _mocks[type] = mock;
+            Services.TryAddSingleton(mock.Object);
+            return mock;
+        }
     }
 
     public void AddDataType(DataType dataType)
@@ -173,8 +189,8 @@ public sealed class MockedServiceCollection
             TaskId = taskId ?? "Task_1",
         };
 
-        AppModelMock.Setup(a => a.GetModelType(classRef)).Returns(typeof(T));
-        AppModelMock.Setup(a => a.Create(classRef)).Returns(() => new T());
+        Mock<IAppModel>().Setup(a => a.GetModelType(classRef)).Returns(typeof(T));
+        Mock<IAppModel>().Setup(a => a.Create(classRef)).Returns(() => new T());
 
         AddDataType(dataType);
         return dataType;
@@ -237,14 +253,22 @@ public sealed class MockedServiceCollection
         }
     }
 
-    public WrappedServiceProvider BuildServiceProvider() => new(this, _services.BuildServiceProvider());
+    public WrappedServiceProvider BuildServiceProvider()
+    {
+        TryAddCommonServices();
+        return new WrappedServiceProvider(this);
+    }
 
     public void VerifyMocks()
     {
-        AppMetadataMock.Verify();
-        AppModelMock.Verify();
-        AuthenticationTokenResolverMock.Verify();
-        AppResourcesMock.Verify();
+        lock (_mocks)
+        {
+            foreach (var mock in _mocks.Values)
+            {
+                mock.Verify();
+            }
+        }
+        FakeHttpMessageHandler.Verify();
     }
 }
 
@@ -260,20 +284,30 @@ public sealed class WrappedServiceProvider : IKeyedServiceProvider, IDisposable,
     private readonly LoggerProvider _loggerProvider;
     private readonly MockedServiceCollection _serviceCollection;
 
-    public WrappedServiceProvider(MockedServiceCollection serviceCollection, ServiceProvider serviceProvider)
+    public WrappedServiceProvider(MockedServiceCollection serviceCollection)
     {
-        _serviceProvider = serviceProvider;
+        serviceCollection.Services.AddLogging(builder =>
+        {
+            builder.AddOpenTelemetry(options =>
+            {
+                options.AddInMemoryExporter(Logs);
+                options.IncludeFormattedMessage = true;
+                options.IncludeScopes = true;
+            });
+        });
+        _serviceProvider = serviceCollection.Services.BuildServiceProvider();
         _serviceCollection = serviceCollection;
-        var telemetry = serviceProvider.GetRequiredService<Telemetry>();
+        var telemetry = _serviceProvider.GetRequiredService<Telemetry>();
         _tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddSource(telemetry.ActivitySource.Name)
+            .AddSource(FakeHttpMessageHandler.ActivitySource.Name)
             .AddInMemoryExporter(Traces)
             .Build();
         _meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddMeter(telemetry.ActivitySource.Name)
             .AddInMemoryExporter(Metrics)
             .Build();
-        _loggerProvider = serviceProvider.GetRequiredService<LoggerProvider>();
+        _loggerProvider = _serviceProvider.GetRequiredService<LoggerProvider>();
     }
 
     public void DumpTracesAndMetrics()

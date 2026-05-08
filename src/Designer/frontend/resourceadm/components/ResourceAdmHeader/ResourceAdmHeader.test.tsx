@@ -6,7 +6,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { ResourceAdmHeader } from './ResourceAdmHeader';
-import { FeatureFlagsContextProvider } from '@studio/feature-flags';
+import { FeatureFlag, FeatureFlagsContextProvider } from '@studio/feature-flags';
 
 const mainOrganization = {
   avatar_url: '',
@@ -102,7 +102,25 @@ describe('ResourceAdmHeader', () => {
     expect(screen.getByRole('menuitem', { name: textMock('settings') })).toBeInTheDocument();
   });
 
-  it('should not include user settings link in profile menu when studioOidc is disabled', async () => {
+  it('should include user settings link in profile menu when Admin feature flag is enabled', async () => {
+    const user = userEvent.setup();
+    mockEnvironment.environment = { featureFlags: { studioOidc: false } };
+
+    renderResourceAdmHeader({ featureFlags: [FeatureFlag.Admin] });
+
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('shared.header_user_for_org', {
+          user: testUser.full_name,
+          org: mainOrganization.full_name,
+        }),
+      }),
+    );
+
+    expect(screen.getByRole('menuitem', { name: textMock('settings') })).toBeInTheDocument();
+  });
+
+  it('should not include user settings link in profile menu when neither studioOidc nor Admin flag is enabled', async () => {
     const user = userEvent.setup();
     mockEnvironment.environment = { featureFlags: { studioOidc: false } };
 
@@ -121,10 +139,14 @@ describe('ResourceAdmHeader', () => {
   });
 });
 
-const renderResourceAdmHeader = () => {
+type RenderOptions = {
+  featureFlags?: FeatureFlag[];
+};
+
+const renderResourceAdmHeader = ({ featureFlags = [] }: RenderOptions = {}) => {
   return render(
     <MemoryRouter>
-      <FeatureFlagsContextProvider value={{ flags: [] }}>
+      <FeatureFlagsContextProvider value={{ flags: featureFlags }}>
         <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
           <ResourceAdmHeader organizations={organizations} user={testUser} />
         </ServicesContextProvider>

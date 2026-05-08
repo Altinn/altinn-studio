@@ -228,7 +228,7 @@ public sealed class DataAccessorFixture
                     InstanceOwnerPartyId,
                     InstanceGuid,
                     dataGuid,
-                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
             )

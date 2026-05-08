@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	containertypes "altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
+	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 	localtestrenderer "altinn.studio/studioctl/internal/cmd/env/localtest/renderer"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
@@ -46,22 +48,30 @@ const cleanupHelperLogTail = "100"
 
 const stoppingEnvironmentMessage = "Stopping localtest environment..."
 
+// graphID scopes devenv ownership labels to studioctl's localtest graph.
+const graphID = "studioctl-localtest"
+
 // Env implements envtypes.Env for the localtest runtime.
 type Env struct {
 	cfg    *config.Config
 	out    *ui.Output
 	client container.ContainerClient
 	logs   *logStreamer
+	paths  components.Paths
 }
 
 // NewEnv creates a new localtest environment manager.
 func NewEnv(cfg *config.Config, out *ui.Output, client container.ContainerClient) *Env {
-	return &Env{
+	env := &Env{
 		cfg:    cfg,
 		out:    out,
 		client: client,
-		logs:   newLogStreamer(client, out),
+		logs:   nil,
+		paths:  components.NewPaths(cfg.DataDir),
 	}
+	manifest := components.NewManifest(env.buildDestroyOptions())
+	env.logs = newLogStreamer(client, out, components.EnabledContainerNames(manifest.Resources))
+	return env
 }
 
 // Name returns the runtime name.
@@ -70,8 +80,8 @@ func (e *Env) Name() string {
 }
 
 // Preflight validates prerequisites before startup.
-func (e *Env) Preflight(ctx context.Context, opts envtypes.UpOptions) error {
-	return CheckForLegacyLocaltest(ctx, e.client, opts.PgAdmin)
+func (e *Env) Preflight(ctx context.Context, _ envtypes.UpOptions) error {
+	return CheckForLegacyLocaltest(ctx, e.client)
 }
 
 // Up starts the localtest environment.
@@ -79,27 +89,29 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	toolchain := e.client.Toolchain()
 	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 
-	runtimeCfg := newRuntimeConfig()
+	runtimeUser := ""
+	// Keep empty on Windows because os.Getuid/getgid are unsupported there.
+	if runtime.GOOS != osutil.OSWindows {
+		runtimeUser = fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid())
+	}
 	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
 
-	buildOpts, err := e.buildResourceOptions(ctx, runtimeCfg, topology, opts.Monitoring, opts.PgAdmin)
+	buildOpts, err := e.buildResourceOptions(ctx, runtimeUser, topology, opts.Monitoring, opts.PgAdmin)
 	if err != nil {
 		return err
 	}
 	e.out.Verbosef("Image mode: %s", buildOpts.ImageMode)
 
-	if err := envtypes.EnsureBoundTopology(ctx, e.cfg, topology, RuntimeBindings(BindingOptions{
-		IncludeMonitoring: buildOpts.IncludeMonitoring,
-		IncludePgAdmin:    buildOpts.IncludePgAdmin,
-	})); err != nil {
+	manifest := components.NewManifest(buildOpts)
+	if err := envtypes.EnsureBoundTopology(ctx, e.cfg, topology, manifest.Bindings); err != nil {
 		return fmt.Errorf("ensure bound topology: %w", err)
 	}
 
-	if err := e.ensureResources(ctx, buildOpts); err != nil {
+	if err := e.ensureResources(ctx, manifest); err != nil {
 		return err
 	}
 
-	if err := e.applyResources(ctx, buildOpts); err != nil {
+	if err := e.applyResources(ctx, manifest.Resources, buildOpts.ImageMode); err != nil {
 		return err
 	}
 
@@ -138,7 +150,8 @@ func (e *Env) Down(ctx context.Context) error {
 		return envtypes.ErrAlreadyStopped
 	}
 
-	if err := e.destroyResources(ctx, e.buildDestroyOptions(), stoppingEnvironmentMessage); err != nil {
+	destroyManifest := components.NewManifest(e.buildDestroyOptions())
+	if err := e.destroyResources(ctx, destroyManifest.Resources, stoppingEnvironmentMessage); err != nil {
 		return fmt.Errorf("stop environment: %w", err)
 	}
 
@@ -151,7 +164,7 @@ func (e *Env) Reset(ctx context.Context) error {
 	toolchain := e.client.Toolchain()
 	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 
-	if err := CheckForLegacyLocaltest(ctx, e.client, true); err != nil {
+	if err := CheckForLegacyLocaltest(ctx, e.client); err != nil {
 		return err
 	}
 
@@ -160,7 +173,8 @@ func (e *Env) Reset(ctx context.Context) error {
 		return err
 	}
 	if hasResources {
-		if err := e.destroyResources(ctx, e.buildDestroyOptions(), stoppingEnvironmentMessage); err != nil {
+		destroyManifest := components.NewManifest(e.buildDestroyOptions())
+		if err := e.destroyResources(ctx, destroyManifest.Resources, stoppingEnvironmentMessage); err != nil {
 			return fmt.Errorf("stop environment: %w", err)
 		}
 	}
@@ -176,12 +190,20 @@ func (e *Env) Reset(ctx context.Context) error {
 
 // Status returns the localtest environment status.
 func (e *Env) Status(ctx context.Context) (*Status, error) {
-	return e.status(ctx, false)
+	return e.status(ctx, statusOptions{
+		IncludeMonitoring: false,
+		IncludePgAdmin:    false,
+		RequireDesired:    false,
+	})
 }
 
 // StatusForUp returns status for the containers requested by env up.
 func (e *Env) StatusForUp(ctx context.Context, opts envtypes.UpOptions) (*Status, error) {
-	return e.status(ctx, opts.PgAdmin)
+	return e.status(ctx, statusOptions{
+		IncludeMonitoring: opts.Monitoring,
+		IncludePgAdmin:    opts.PgAdmin,
+		RequireDesired:    true,
+	})
 }
 
 // Logs streams localtest environment logs.
@@ -189,55 +211,49 @@ func (e *Env) Logs(ctx context.Context, opts envtypes.LogsOptions) error {
 	return e.logs.Stream(ctx, opts.Component, opts.Follow, opts.JSON)
 }
 
-func (e *Env) status(ctx context.Context, includePgAdmin bool) (*Status, error) {
-	resources := buildResources(ResourceBuildOptions{
-		DevConfig:         nil,
-		DataDir:           e.cfg.DataDir,
-		Images:            e.cfg.Images,
-		RuntimeConfig:     RuntimeConfig{User: ""},
-		Topology:          envtopology.NewLocal(envtopology.DefaultIngressPortString()),
-		ImageMode:         ReleaseMode,
-		IncludeMonitoring: false,
-		IncludePgAdmin:    includePgAdmin,
-	})
-	graph, err := buildResourceGraph(resources)
+type statusOptions struct {
+	IncludeMonitoring bool
+	IncludePgAdmin    bool
+	RequireDesired    bool
+}
+
+func (e *Env) status(ctx context.Context, opts statusOptions) (*Status, error) {
+	manifest := components.NewManifest(e.releaseOptions(opts.IncludeMonitoring, opts.IncludePgAdmin))
+	graph, err := buildResourceGraph(manifest.Resources)
 	if err != nil {
 		return nil, fmt.Errorf("build resource graph: %w", err)
 	}
 
 	executor := resource.NewExecutor(e.client)
-	statuses, err := executor.Status(ctx, graph, resource.SkipResource(isImageResource))
+	snapshot, err := executor.Status(ctx, graph, resource.SkipResource(isImageResource))
 	if err != nil {
 		return nil, fmt.Errorf("get resource status: %w", err)
 	}
 
-	return localtestStatus(graph.Enabled(), statuses), nil
+	return localtestStatus(graph.All(), snapshot, opts.RequireDesired), nil
 }
 
 func (e *Env) hasManagedResources(ctx context.Context) (bool, error) {
-	resources := buildResources(e.buildDestroyOptions())
-	graph, err := buildResourceGraph(resources)
+	manifest := components.NewManifest(e.buildDestroyOptions())
+	graph, err := buildResourceGraph(manifest.Resources)
 	if err != nil {
 		return false, fmt.Errorf("build resource graph: %w", err)
 	}
 
 	executor := resource.NewExecutor(e.client)
-	statuses, err := executor.Status(ctx, graph, resource.SkipResource(isImageResource))
+	snapshot, err := executor.Status(ctx, graph, resource.SkipResource(isImageResource))
 	if err != nil {
 		return false, fmt.Errorf("get resource status: %w", err)
 	}
 
-	for _, res := range graph.Enabled() {
-		if !isRuntimeResource(res) {
+	for _, observed := range snapshot.Resources {
+		if !observed.Managed || observed.Status == resource.StatusDestroyed {
 			continue
 		}
-		status, ok := statuses[res.ID()]
-		if !ok {
-			return true, nil
+		if observed.Resource != nil && !isRuntimeResource(observed.Resource) {
+			continue
 		}
-		if status != resource.StatusDestroyed {
-			return true, nil
-		}
+		return true, nil
 	}
 
 	return false, nil
@@ -261,10 +277,10 @@ func (e *Env) runForeground(
 	teardownCtx, cancel := context.WithTimeout(context.Background(), teardownTimeout)
 	defer cancel()
 
-	destroyOpts := e.buildDestroyOptions()
+	destroyManifest := components.NewManifest(e.buildDestroyOptions())
 
 	//nolint:contextcheck // intentionally using new context for cleanup after cancellation
-	if err := e.destroyResources(teardownCtx, destroyOpts, ""); err != nil {
+	if err := e.destroyResources(teardownCtx, destroyManifest.Resources, ""); err != nil {
 		e.out.Warningf("Failed to stop environment cleanly: %v", err)
 		return err
 	}
@@ -272,8 +288,7 @@ func (e *Env) runForeground(
 	return nil
 }
 
-func (e *Env) applyResources(ctx context.Context, opts ResourceBuildOptions) error {
-	resources := buildResources(opts)
+func (e *Env) applyResources(ctx context.Context, resources []resource.Resource, imageMode components.ImageMode) error {
 	graph, err := buildResourceGraph(resources)
 	if err != nil {
 		return err
@@ -281,88 +296,117 @@ func (e *Env) applyResources(ctx context.Context, opts ResourceBuildOptions) err
 
 	executor := resource.NewExecutor(e.client)
 	spinnerMsg := "Starting localtest environment..."
-	if opts.ImageMode == DevMode {
+	if imageMode == components.DevMode {
 		spinnerMsg = "Building and starting localtest environment (dev mode)..."
 	}
 
 	var renderer localtestrenderer.Renderer
-	switch localtestrenderer.DetectMode(e.out, e.cfg.Verbose) {
-	case localtestrenderer.ModeTable:
-		renderer = localtestrenderer.NewTable(e.out, graph.Enabled(), localtestrenderer.OperationApply)
-	case localtestrenderer.ModeCompact:
-		renderer = localtestrenderer.NewCompact(e.out, graph.Enabled(), localtestrenderer.OperationApply)
-	case localtestrenderer.ModeLog:
-		renderer = localtestrenderer.NewLog(e.out, graph.Enabled(), localtestrenderer.OperationApply, spinnerMsg)
-	}
-	renderer.Start()
-	executor.SetObserver(renderer)
-
-	if _, err := executor.Apply(ctx, graph); err != nil {
-		renderer.FailAll(err.Error())
-		renderer.Stop()
+	if _, err := executor.Apply(ctx, graph, resource.WithApplyPlan(func(plan resource.ApplyPlan) error {
+		e.startRenderer(
+			executor,
+			&renderer,
+			applyPlannedResources(plan),
+			localtestrenderer.OperationApply,
+			plan.Snapshot.Statuses(),
+			spinnerMsg,
+		)
+		return nil
+	})); err != nil {
+		if renderer != nil {
+			renderer.FailAll(err.Error())
+			renderer.Stop()
+		}
 		return fmt.Errorf("start environment: %w", err)
 	}
 
-	renderer.Stop()
+	if renderer != nil {
+		renderer.Stop()
+	}
 	e.out.Success("Environment started")
 	return nil
 }
 
-func (e *Env) destroyResources(ctx context.Context, opts ResourceBuildOptions, logStartMessage string) error {
-	resources := buildResources(opts)
+func (e *Env) destroyResources(ctx context.Context, resources []resource.Resource, logStartMessage string) error {
 	graph, err := buildResourceGraph(resources)
 	if err != nil {
 		return err
 	}
 
-	executor := resource.NewExecutor(e.client)
-	statuses, statusErr := executor.Status(ctx, graph, resource.SkipResource(isImageResource))
-	if statusErr != nil {
-		e.out.Verbosef("Failed to probe current resource status for destroy rendering: %v", statusErr)
-		statuses = nil
-	}
-	renderResources := graph.Enabled()
 	var renderer localtestrenderer.Renderer
-	switch localtestrenderer.DetectMode(e.out, e.cfg.Verbose) {
-	case localtestrenderer.ModeTable:
-		renderer = localtestrenderer.NewTableWithStatus(
-			e.out,
-			renderResources,
+	executor := resource.NewExecutor(e.client)
+	if err := executor.Destroy(ctx, graph, resource.WithDestroyPlan(func(plan resource.DestroyPlan) error {
+		e.startRenderer(
+			executor,
+			&renderer,
+			plan.Destroy,
 			localtestrenderer.OperationDestroy,
-			statuses,
-		)
-	case localtestrenderer.ModeCompact:
-		renderer = localtestrenderer.NewCompactWithStatus(
-			e.out,
-			renderResources,
-			localtestrenderer.OperationDestroy,
-			statuses,
-		)
-	case localtestrenderer.ModeLog:
-		renderer = localtestrenderer.NewLogWithStatus(
-			e.out,
-			renderResources,
-			localtestrenderer.OperationDestroy,
-			statuses,
+			plan.Snapshot.Statuses(),
 			logStartMessage,
 		)
-	}
-	renderer.Start()
-	executor.SetObserver(renderer)
-
-	if err := executor.Destroy(ctx, graph); err != nil {
-		renderer.FailAll(err.Error())
-		renderer.Stop()
+		return nil
+	})); err != nil {
+		if renderer != nil {
+			renderer.FailAll(err.Error())
+			renderer.Stop()
+		}
 		return fmt.Errorf("destroy resources: %w", err)
 	}
 
-	renderer.Stop()
+	if renderer != nil {
+		renderer.Stop()
+	}
 	return nil
+}
+
+func (e *Env) startRenderer(
+	executor *resource.Executor,
+	renderer *localtestrenderer.Renderer,
+	resources []resource.PlannedResource,
+	operation localtestrenderer.Operation,
+	statuses map[resource.ResourceID]resource.Status,
+	logStartMessage string,
+) {
+	switch localtestrenderer.DetectMode(e.out, e.cfg.Verbose) {
+	case localtestrenderer.ModeTable:
+		*renderer = localtestrenderer.NewTableWithPlan(
+			e.out,
+			resources,
+			operation,
+			statuses,
+		)
+	case localtestrenderer.ModeCompact:
+		*renderer = localtestrenderer.NewCompactWithPlan(
+			e.out,
+			resources,
+			operation,
+			statuses,
+		)
+	case localtestrenderer.ModeLog:
+		*renderer = localtestrenderer.NewLogWithPlan(
+			e.out,
+			resources,
+			operation,
+			statuses,
+			logStartMessage,
+		)
+	default:
+		*renderer = localtestrenderer.NewLogWithPlan(e.out, resources, operation, statuses, logStartMessage)
+	}
+	(*renderer).Start()
+	executor.SetObserver(*renderer)
+}
+
+func applyPlannedResources(plan resource.ApplyPlan) []resource.PlannedResource {
+	resources := make([]resource.PlannedResource, 0, len(plan.Destroy)+len(plan.Reconcile))
+	resources = append(resources, plan.Destroy...)
+	resources = append(resources, plan.Reconcile...)
+	return resources
 }
 
 func localtestStatus(
 	resources []resource.Resource,
-	statuses map[resource.ResourceID]resource.Status,
+	snapshot resource.Snapshot,
+	requireDesired bool,
 ) *Status {
 	status := Status{
 		Containers: []ContainerStatus{},
@@ -370,7 +414,7 @@ func localtestStatus(
 		AnyRunning: false,
 	}
 	containerCount := 0
-	readyContainers := 0
+	convergedContainers := 0
 
 	for _, res := range resources {
 		containerResource, ok := res.(*resource.Container)
@@ -378,22 +422,47 @@ func localtestStatus(
 			continue
 		}
 
-		resourceStatus := statuses[containerResource.ID()]
+		resourceStatus := managedResourceStatus(snapshot, containerResource.ID())
+		if !resource.IsEnabled(containerResource) && resourceStatus == resource.StatusDestroyed {
+			continue
+		}
 		status.Containers = append(
 			status.Containers,
 			ContainerStatus{Name: containerResource.Name, Status: localtestStatusString(resourceStatus)},
 		)
 		containerCount++
-		if resourceStatus.IsHealthy() {
-			readyContainers++
+		if containerConverged(containerResource, resourceStatus, requireDesired) {
+			convergedContainers++
 		}
 		if resourceStatus != resource.StatusDestroyed {
 			status.AnyRunning = true
 		}
 	}
 
-	status.Running = containerCount > 0 && readyContainers == containerCount
+	status.Running = containerCount > 0 && convergedContainers == containerCount
 	return &status
+}
+
+func managedResourceStatus(snapshot resource.Snapshot, id resource.ResourceID) resource.Status {
+	if !managedResourcePresent(snapshot, id) {
+		return resource.StatusDestroyed
+	}
+	return snapshot.Resources[id].Status
+}
+
+func managedResourcePresent(snapshot resource.Snapshot, id resource.ResourceID) bool {
+	observed, ok := snapshot.Resources[id]
+	return ok && observed.Managed && observed.Status != resource.StatusDestroyed
+}
+
+func containerConverged(containerResource *resource.Container, status resource.Status, requireDesired bool) bool {
+	if resource.IsEnabled(containerResource) {
+		return status.IsHealthy()
+	}
+	if !requireDesired {
+		return status.IsHealthy()
+	}
+	return status == resource.StatusDestroyed
 }
 
 func localtestStatusString(status resource.Status) string {
@@ -420,65 +489,34 @@ func isImageResource(res resource.Resource) bool {
 	return ok
 }
 
-func (e *Env) buildDestroyOptions() ResourceBuildOptions {
-	return ResourceBuildOptions{
+func (e *Env) buildDestroyOptions() *components.Options {
+	return e.releaseOptions(true, true) // include all for cleanup
+}
+
+func (e *Env) releaseOptions(includeMonitoring, includePgAdmin bool) *components.Options {
+	return &components.Options{
 		DevConfig:         nil,
-		DataDir:           e.cfg.DataDir,
+		Paths:             e.paths,
 		Images:            e.cfg.Images,
-		RuntimeConfig:     RuntimeConfig{User: ""},
+		RuntimeUser:       "",
 		Topology:          envtopology.NewLocal(envtopology.DefaultIngressPortString()),
-		ImageMode:         ReleaseMode,
-		IncludeMonitoring: true, // include all for cleanup
-		IncludePgAdmin:    true,
+		ImageMode:         components.ReleaseMode,
+		IncludeMonitoring: includeMonitoring,
+		IncludePgAdmin:    includePgAdmin,
 	}
 }
 
-func (e *Env) ensureResources(ctx context.Context, buildOpts ResourceBuildOptions) error {
+func (e *Env) ensureResources(ctx context.Context, manifest *components.Manifest) error {
 	if !install.IsInstalled(e.cfg.DataDir, e.cfg.Version) {
 		if err := e.installResources(ctx, false); err != nil {
 			return err
 		}
 	}
 
-	if err := ensurePgpass(e.cfg.DataDir); err != nil {
-		return err
-	}
-	if err := ensureLocaltestStorageDir(e.cfg.DataDir); err != nil {
-		return err
+	if err := manifest.Prepare(ctx); err != nil {
+		return fmt.Errorf("prepare resources: %w", err)
 	}
 
-	if err := ValidateResourceHostPaths(buildOpts); err != nil {
-		return e.reinstallResourcesAfterValidationFailure(ctx, buildOpts, err)
-	}
-
-	return nil
-}
-
-func (e *Env) reinstallResourcesAfterValidationFailure(
-	ctx context.Context,
-	buildOpts ResourceBuildOptions,
-	cause error,
-) error {
-	e.out.Verbosef("Resource layout invalid, forcing reinstall: %v", cause)
-	if err := e.installResources(ctx, true); err != nil {
-		return err
-	}
-	if err := ensurePgpass(e.cfg.DataDir); err != nil {
-		return err
-	}
-	if err := ensureLocaltestStorageDir(e.cfg.DataDir); err != nil {
-		return err
-	}
-	if err := ValidateResourceHostPaths(buildOpts); err != nil {
-		return fmt.Errorf("validate resources after reinstall: %w", err)
-	}
-	return nil
-}
-
-func ensureLocaltestStorageDir(dataDir string) error {
-	if err := os.MkdirAll(filepath.Join(dataDir, "AltinnPlatformLocal"), osutil.DirPermDefault); err != nil {
-		return fmt.Errorf("create localtest storage directory: %w", err)
-	}
 	return nil
 }
 
@@ -486,7 +524,7 @@ func (e *Env) deletePersistedData(ctx context.Context) error {
 	if err := removeResetDataPath(e.cfg.DataDir, filepath.Join(e.cfg.DataDir, "AltinnPlatformLocal")); err != nil {
 		return err
 	}
-	if err := e.removeLegacyWorkflowEngineDbData(ctx, workflowEngineDbDataPath(e.cfg.DataDir)); err != nil {
+	if err := e.removeLegacyWorkflowEngineDbData(ctx, components.WorkflowEngineDbDataPath(e.cfg.DataDir)); err != nil {
 		e.out.Verbosef("Failed to remove legacy workflow-engine database data: %v", err)
 	}
 	return e.removeWorkflowEngineDbVolume(ctx)
@@ -509,11 +547,11 @@ func (e *Env) removeLegacyWorkflowEngineDbData(ctx context.Context, target strin
 }
 
 func (e *Env) removeWorkflowEngineDbVolume(ctx context.Context) error {
-	if err := e.client.VolumeRemove(ctx, workflowEngineDbVolume, true); err != nil {
+	if err := e.client.VolumeRemove(ctx, components.WorkflowEngineDbVolume, true); err != nil {
 		if errors.Is(err, containertypes.ErrVolumeNotFound) {
 			return nil
 		}
-		return fmt.Errorf("remove workflow-engine database volume %q: %w", workflowEngineDbVolume, err)
+		return fmt.Errorf("remove workflow-engine database volume %q: %w", components.WorkflowEngineDbVolume, err)
 	}
 	return nil
 }
@@ -646,31 +684,8 @@ func resetTargetPath(dataDir, target string) (string, bool, error) {
 	return targetAbs, true, nil
 }
 
-func ensurePgpass(dataDir string) error {
-	content := fmt.Sprintf(
-		"%s:%s:*:%s:%s\n",
-		ContainerWorkflowEngineDb,
-		postgresPort,
-		postgresUser,
-		postgresPassword,
-	)
-	if err := os.MkdirAll(workflowEngineInfraPath(dataDir), osutil.DirPermDefault); err != nil {
-		return fmt.Errorf("create workflow-engine infra directory: %w", err)
-	}
-
-	path := workflowEngineInfraFilePath(dataDir, "pgpass")
-	// PgAdmin's entrypoint runs as the image user and must read this bind mount before it copies it to a private 0600 file.
-	if err := os.WriteFile(path, []byte(content), osutil.FilePermDefault); err != nil {
-		return fmt.Errorf("write pgpass: %w", err)
-	}
-	if err := os.Chmod(path, osutil.FilePermDefault); err != nil {
-		return fmt.Errorf("chmod pgpass: %w", err)
-	}
-	return nil
-}
-
 func buildResourceGraph(resources []resource.Resource) (*resource.Graph, error) {
-	graph := resource.NewGraph()
+	graph := resource.NewGraph(resource.GraphID(graphID))
 	for _, res := range resources {
 		if err := graph.Add(res); err != nil {
 			return nil, fmt.Errorf("add resource %q to graph: %w", res.ID(), err)
@@ -698,28 +713,28 @@ func (e *Env) installResources(ctx context.Context, force bool) error {
 
 func (e *Env) buildResourceOptions(
 	ctx context.Context,
-	runtimeCfg RuntimeConfig,
+	runtimeUser string,
 	topology envtopology.Local,
 	monitoring bool,
 	pgAdmin bool,
-) (ResourceBuildOptions, error) {
+) (*components.Options, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
-		return ResourceBuildOptions{}, fmt.Errorf("get working directory: %w", err)
+		return nil, fmt.Errorf("get working directory: %w", err)
 	}
 
 	imageMode, devConfig, note := detectImageMode(ctx, cwd)
 	if note != "" {
-		if imageMode == DevMode {
+		if imageMode == components.DevMode {
 			e.out.Verbosef("%s", note)
 		} else {
 			e.out.Warning(note)
 		}
 	}
 
-	return ResourceBuildOptions{
-		DataDir:           e.cfg.DataDir,
-		RuntimeConfig:     runtimeCfg,
+	return &components.Options{
+		Paths:             e.paths,
+		RuntimeUser:       runtimeUser,
 		Topology:          topology,
 		IncludeMonitoring: monitoring,
 		IncludePgAdmin:    pgAdmin,
@@ -729,9 +744,9 @@ func (e *Env) buildResourceOptions(
 	}, nil
 }
 
-func detectImageMode(ctx context.Context, cwd string) (ImageMode, *DevImageConfig, string) {
+func detectImageMode(ctx context.Context, cwd string) (components.ImageMode, *components.DevImageConfig, string) {
 	if !config.IsTruthyEnv(os.Getenv(config.EnvInternalDevMode)) {
-		return ReleaseMode, nil, ""
+		return components.ReleaseMode, nil, ""
 	}
 
 	detection, err := repocontext.Detect(ctx, cwd, "")
@@ -739,19 +754,20 @@ func detectImageMode(ctx context.Context, cwd string) (ImageMode, *DevImageConfi
 		return resolveDevImageMode(detection.StudioRoot)
 	}
 
-	return ReleaseMode, nil,
+	return components.ReleaseMode, nil,
 		"STUDIOCTL_INTERNAL_DEV is set, but studioctl could not detect a Studio repo from the current directory; using release images"
 }
 
-func resolveDevImageMode(studioRoot string) (ImageMode, *DevImageConfig, string) {
-	devCfg := DevImageConfig{RepoRoot: studioRoot}
-	if _, err := os.Stat(devCfg.LocaltestDockerfile()); err != nil {
-		return ReleaseMode, nil,
+func resolveDevImageMode(studioRoot string) (components.ImageMode, *components.DevImageConfig, string) {
+	devCfg := components.DevImageConfig{RepoRoot: studioRoot}
+	localtestDockerfile := filepath.ToSlash(filepath.Join(studioRoot, "src/Runtime/localtest/Dockerfile"))
+	if _, err := os.Stat(localtestDockerfile); err != nil {
+		return components.ReleaseMode, nil,
 			fmt.Sprintf(
 				"STUDIOCTL_INTERNAL_DEV is set, but %s was not found; using release images",
-				devCfg.LocaltestDockerfile(),
+				localtestDockerfile,
 			)
 	}
 
-	return DevMode, &devCfg, ""
+	return components.DevMode, &devCfg, ""
 }

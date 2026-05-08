@@ -57,6 +57,32 @@ func TestAppPsJSONListsApps(t *testing.T) {
 	}
 }
 
+func TestAppPsJSONReportsNotRunningWhenNoApps(t *testing.T) {
+	t.Parallel()
+
+	var out bytes.Buffer
+	command := &AppPsCommand{
+		out: ui.NewOutput(&out, io.Discard, false),
+		manager: appManagerAccess{
+			client: &fakeAppRuntimeClient{
+				status: &appmanager.Status{},
+			},
+		},
+	}
+
+	if err := command.RunWithCommandPath(t.Context(), []string{"--json"}, "app ps"); err != nil {
+		t.Fatalf("RunWithCommandPath() error = %v", err)
+	}
+
+	var got appPsOutput
+	if err := json.Unmarshal([]byte(strings.TrimSpace(out.String())), &got); err != nil {
+		t.Fatalf("json.Unmarshal() error = %v", err)
+	}
+	if got.Running || len(got.Apps) != 0 {
+		t.Fatalf("output = %+v, want no running apps", got)
+	}
+}
+
 func TestAppPsTableUsesProcessModeAndRuntimeID(t *testing.T) {
 	t.Parallel()
 
@@ -354,6 +380,13 @@ func (f *fakeAppRuntimeClient) Status(context.Context) (*appmanager.Status, erro
 func (f *fakeAppRuntimeClient) UnregisterApp(_ context.Context, appID string) error {
 	f.unregistered = append(f.unregistered, appID)
 	return nil
+}
+
+func (f *fakeAppRuntimeClient) UpgradeApp(
+	context.Context,
+	appmanager.AppUpgrade,
+) (appmanager.AppUpgradeResult, error) {
+	return appmanager.AppUpgradeResult{}, nil
 }
 
 func testConfig(t *testing.T) *config.Config {

@@ -49,9 +49,8 @@ public static class OtelVisualizers
             {
                 firstOrphanedLog = false;
                 sb.AppendLine();
-                sb.AppendLine("Orphaned Logs:");
+                sb.AppendLine("Logs not contained in any activity:");
             }
-            sb.AppendLine($"Logs for ActivitySpanId: {activitySpanId}");
             foreach (var log in activityLogs)
             {
                 sb.AppendLine($"[{log.LogLevel}] {log.FormattedMessage}");

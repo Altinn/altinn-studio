@@ -6,12 +6,15 @@ import { BulletListIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 import type { Button } from '@digdir/designsystemet-react';
 
+import { ExprVal } from 'src/features/expressions/types';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
+import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { Lang } from 'src/features/language/Lang';
 import { AppNavigation, AppNavigationHeading } from 'src/features/navigation/AppNavigation';
 import classes from 'src/features/navigation/PopoverNavigation.module.css';
 import { SIDEBAR_BREAKPOINT, useHasGroupedNavigation } from 'src/features/navigation/utils';
 import { useBrowserWidth, useIsMobile } from 'src/hooks/useDeviceWidths';
+import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
 
 export function PopoverNavigation(props: Parameters<typeof Button>[0]) {
   const hasGroupedNavigation = useHasGroupedNavigation();
@@ -26,6 +29,12 @@ export function PopoverNavigation(props: Parameters<typeof Button>[0]) {
 }
 
 function InnerPopoverNavigation(props: Parameters<typeof Button>[0]) {
+  const { navigationTitle: navigationTitleExpr } = usePageSettings();
+  const navigationTitle = useEvalExpression(navigationTitleExpr, {
+    returnType: ExprVal.String,
+    defaultValue: 'navigation.form_pages',
+    errorIntroText: 'Invalid expression for navigationTitle in Settings.json',
+  });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const modalRef = useRef<HTMLDialogElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -57,7 +66,7 @@ function InnerPopoverNavigation(props: Parameters<typeof Button>[0]) {
               className={cn(classes.popoverButtonIcon, classes.popoverButtonIconMargin)}
               aria-hidden
             />
-            <Lang id='navigation.form_pages' />
+            <Lang id={navigationTitle} />
           </Dropdown.Trigger>
           <Dropdown
             ref={dropdownRef}
@@ -99,7 +108,7 @@ function InnerPopoverNavigation(props: Parameters<typeof Button>[0]) {
           className={cn(classes.popoverButtonIcon, classes.popoverButtonIconMargin)}
           aria-hidden
         />
-        <Lang id='navigation.form_pages' />
+        <Lang id={navigationTitle} />
       </Dialog.Trigger>
       <Dialog
         aria-labelledby='app-navigation-heading'

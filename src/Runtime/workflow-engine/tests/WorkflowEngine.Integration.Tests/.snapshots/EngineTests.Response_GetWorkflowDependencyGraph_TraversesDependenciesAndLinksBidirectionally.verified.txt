@@ -1,0 +1,104 @@
+﻿{
+  rootWorkflowId: Guid_1,
+  workflows: [
+    {
+      databaseId: {Scrubbed},
+      operationId: op-c,
+      idempotencyKey: idem-Guid_2,
+      namespace: ttd-e2e-tests,
+      createdAt: {Scrubbed},
+      updatedAt: {Scrubbed},
+      labels: {
+        app: e2e-tests,
+        org: ttd
+      },
+      overallStatus: Completed,
+      steps: [
+        {
+          databaseId: {Scrubbed},
+          operationId: /ping-c,
+          processingOrder: 0,
+          updatedAt: {Scrubbed},
+          command: {
+            type: webhook
+          },
+          status: Completed,
+          retryCount: 0
+        }
+      ]
+    },
+    {
+      databaseId: {Scrubbed},
+      operationId: op-a,
+      idempotencyKey: idem-Guid_3,
+      namespace: ttd-e2e-tests,
+      createdAt: {Scrubbed},
+      updatedAt: {Scrubbed},
+      labels: {
+        app: e2e-tests,
+        org: ttd
+      },
+      overallStatus: Completed,
+      dependents: {
+        Guid_1: Completed
+      },
+      links: {
+        Guid_4: Completed
+      },
+      steps: [
+        {
+          databaseId: {Scrubbed},
+          operationId: /ping-a,
+          processingOrder: 0,
+          updatedAt: {Scrubbed},
+          command: {
+            type: webhook
+          },
+          status: Completed,
+          retryCount: 0
+        }
+      ]
+    },
+    {
+      databaseId: {Scrubbed},
+      operationId: op-b,
+      idempotencyKey: idem-Guid_5,
+      namespace: ttd-e2e-tests,
+      createdAt: {Scrubbed},
+      updatedAt: {Scrubbed},
+      labels: {
+        app: e2e-tests,
+        org: ttd
+      },
+      overallStatus: Completed,
+      dependencies: {
+        Guid_6: Completed
+      },
+      steps: [
+        {
+          databaseId: {Scrubbed},
+          operationId: /ping-b,
+          processingOrder: 0,
+          updatedAt: {Scrubbed},
+          command: {
+            type: webhook
+          },
+          status: Completed,
+          retryCount: 0
+        }
+      ]
+    }
+  ],
+  edges: [
+    {
+      from: Guid_6,
+      to: Guid_4,
+      kind: Link
+    },
+    {
+      from: Guid_6,
+      to: Guid_1,
+      kind: Dependency
+    }
+  ]
+}

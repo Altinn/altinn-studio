@@ -24,6 +24,7 @@ import classes from './StudioCodeListEditorRow.module.css';
 type StudioCodeListEditorRowProps = {
   error?: ValueError | null;
   item: CodeListItem;
+  language: string;
   number: number;
   onDeleteButtonClick: () => void;
   onChangeCodeListItem: (newItem: CodeListItem) => void;
@@ -32,11 +33,12 @@ type StudioCodeListEditorRowProps = {
 export function StudioCodeListEditorRow({
   error,
   item,
+  language,
   number,
   onDeleteButtonClick,
   onChangeCodeListItem,
 }: StudioCodeListEditorRowProps): ReactElement {
-  const { language, texts } = useStudioCodeListEditorContext();
+  const { texts } = useStudioCodeListEditorContext();
 
   const handleChangeValue = useCallback(
     (value: string) => {

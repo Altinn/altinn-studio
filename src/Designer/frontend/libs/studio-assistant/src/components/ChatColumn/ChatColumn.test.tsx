@@ -10,14 +10,15 @@ const userMessageContent = 'User message';
 const assistantMessageContent = 'Assistant response';
 const mockMessages: Message[] = [
   {
-    author: MessageAuthor.User,
+    role: MessageAuthor.User,
     content: userMessageContent,
-    timestamp: new Date(),
+    createdAt: new Date().toISOString(),
+    allowAppChanges: false,
   },
   {
-    author: MessageAuthor.Assistant,
+    role: MessageAuthor.Assistant,
     content: assistantMessageContent,
-    timestamp: new Date(),
+    createdAt: new Date().toISOString(),
     filesChanged: [],
   },
 ];

@@ -38,7 +38,19 @@ export function createRouter(queryClient: QueryClient) {
         HydrateFallback: () => null,
         children: [
           {
-            path: routes.root,
+            path: routes.instanceSelection,
+            Component: InstanceSelectionRoute,
+            loader: instanceSelectionLoader(queryClient, partyApi, instanceApi),
+          },
+          {
+            path: routes.partySelection,
+            loader: partySelectionLoader(queryClient, partyApi),
+            children: [
+              { index: true, Component: PartySelectionRoute },
+              { path: '*', Component: PartySelectionRoute },
+            ],
+          },
+          {
             Component: IndexRoute,
             loader: indexLoader(queryClient, instanceApi),
             children: [
@@ -64,7 +76,7 @@ export function createRouter(queryClient: QueryClient) {
             children: [
               {
                 index: true,
-                loader: instanceIndexLoader(queryClient),
+                loader: instanceIndexLoader(queryClient, instanceApi),
                 Component: () => <Loader reason='instance-redirect' />,
               },
               { path: 'ProcessEnd', Component: ProcessEndRoute },
@@ -75,7 +87,7 @@ export function createRouter(queryClient: QueryClient) {
                 children: [
                   {
                     index: true,
-                    loader: taskIndexLoader(queryClient),
+                    loader: taskIndexLoader(queryClient, instanceApi),
                     Component: () => <Loader reason='task-redirect' />,
                   },
                   {
@@ -96,19 +108,6 @@ export function createRouter(queryClient: QueryClient) {
                   },
                 ],
               },
-            ],
-          },
-          {
-            path: routes.instanceSelection,
-            Component: InstanceSelectionRoute,
-            loader: instanceSelectionLoader(queryClient, partyApi, instanceApi),
-          },
-          {
-            path: routes.partySelection,
-            loader: partySelectionLoader(queryClient, partyApi),
-            children: [
-              { index: true, Component: PartySelectionRoute },
-              { path: '*', Component: PartySelectionRoute },
             ],
           },
         ],

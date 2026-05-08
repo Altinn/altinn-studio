@@ -91,7 +91,7 @@ public class BotAccountService(
     {
         return await dbContext
             .ApiKeys.AsNoTracking()
-            .Where(k => botAccountIds.Contains(k.UserAccount.Id) && !k.Revoked)
+            .Where(k => botAccountIds.Contains(k.UserAccount.Id) && !k.Revoked && k.TokenType == ApiKeyType.User)
             .GroupBy(k => k.UserAccount.Id)
             .ToDictionaryAsync(g => g.Key, g => g.Count(), cancellationToken);
     }
@@ -179,7 +179,7 @@ public class BotAccountService(
     )
     {
         var botAccount = await GetBotAccountModelAsync(botAccountId, org, cancellationToken);
-        return await apiKeyService.ListAsync(botAccount.Username, cancellationToken: cancellationToken);
+        return await apiKeyService.ListAsync(botAccount.Username, ApiKeyType.User, cancellationToken);
     }
 
     public async Task RevokeApiKeyAsync(

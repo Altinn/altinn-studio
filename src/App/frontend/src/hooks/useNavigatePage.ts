@@ -10,7 +10,10 @@ import { usePageSettings, useRawPageOrder } from 'src/features/form/layoutSettin
 import { getUiConfig } from 'src/features/form/ui';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
-import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
+import {
+  preventFocusAndScrollResetOptions,
+  replaceAndPreventResetOptions,
+} from 'src/features/navigation/navigationOptions';
 import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
@@ -18,7 +21,6 @@ import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { computeStartUrl } from 'src/utils/computeStartUrl';
 import { useHiddenPages } from 'src/utils/layout/hidden';
-import type { NavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import type { NodeRefValidation } from 'src/features/validation';
 
 export interface NavigateToPageOptions {
@@ -35,24 +37,20 @@ export interface NavigateToPageOptions {
  */
 
 const useOurNavigate = () => {
-  const storeCallback = useSetNavigationEffect();
   const setReturnToView = FormStore.pageNavigation.useSetReturnToView();
   const setSummaryNodeOfOrigin = FormStore.pageNavigation.useSetSummaryNodeOfOrigin();
   const navigate = useNavigate();
 
   return useCallback(
-    (path: string, ourOptions?: NavigateToPageOptions, theirOptions?: NavigateOptions, effect?: NavigationEffect) => {
+    (path: string, ourOptions?: Pick<NavigateToPageOptions, 'resetReturnToView'>, theirOptions?: NavigateOptions) => {
       const resetReturnToView = ourOptions?.resetReturnToView ?? true;
       if (resetReturnToView) {
         setReturnToView?.(undefined);
         setSummaryNodeOfOrigin?.(undefined);
       }
-      if (effect) {
-        storeCallback(effect);
-      }
       navigate(path, theirOptions);
     },
-    [navigate, setReturnToView, setSummaryNodeOfOrigin, storeCallback],
+    [navigate, setReturnToView, setSummaryNodeOfOrigin],
   );
 };
 
@@ -141,8 +139,7 @@ export function useNavigateToTask() {
   const uiFolders = getUiConfig().folders;
 
   return useCallback(
-    (newTaskId: string, options?: NavigateOptions & { runEffect?: boolean }) => {
-      const { runEffect = true } = options ?? {};
+    (newTaskId: string, options?: NavigateOptions) => {
       const { instanceOwnerPartyId, instanceGuid, taskId } = navParams.current;
       if (newTaskId === taskId) {
         return;
@@ -153,12 +150,7 @@ export function useNavigateToTask() {
         realTaskId = TaskKeys.CustomReceipt in uiFolders ? TaskKeys.CustomReceipt : TaskKeys.ProcessEnd;
       }
       const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${realTaskId}${queryKeysRef.current}`;
-      navigate(
-        url,
-        undefined,
-        options,
-        runEffect ? { callback: () => focusMainContent(options), targetLocation: url, matchStart: true } : undefined,
-      );
+      navigate(url, undefined, options);
     },
     [navParams, navigate, queryKeysRef, uiFolders],
   );
@@ -218,7 +210,7 @@ export function useNavigatePage() {
   useEffect(() => {
     const currentPageId = navParams.current.pageKey ?? '';
     if (isStateless && orderRef.current[0] !== undefined && (!currentPageId || !isValidPageId(currentPageId))) {
-      navigate(`/${orderRef.current[0]}?${searchParamsRef.current}`, { replace: true });
+      navigate(`/${orderRef.current[0]}?${searchParamsRef.current}`, undefined, replaceAndPreventResetOptions);
     }
   }, [isStateless, orderRef, navigate, isValidPageId, navParams, searchParamsRef]);
 
@@ -227,10 +219,16 @@ export function useNavigatePage() {
     await waitForSave(autoSaveBehavior === 'onChangePage');
   }, [autoSaveBehavior, waitForSave]);
 
+  const [_, setVisitedPages] = useVisitedPages();
+
   const navigateToPage = useCallback(
     async (page?: string, options?: NavigateToPageOptions) => {
+      const preventScrollReset = options?.searchParams?.has(SearchParams.FocusComponentId);
       const shouldExitSubform = options?.searchParams?.has(SearchParams.ExitSubform, 'true') ?? false;
-      const replace = options?.replace ?? false;
+      const navOptions: NavigateOptions = {
+        replace: options?.replace ?? false,
+        ...(preventScrollReset ? preventFocusAndScrollResetOptions : undefined),
+      };
       if (!page) {
         window.logWarn('navigateToPage called without page');
         return;
@@ -247,10 +245,18 @@ export function useNavigatePage() {
         await refetchInitialValidations();
       }
 
+      setVisitedPages((visitedPages) => {
+        const currentPage = navParams.current.pageKey;
+        if (!currentPage || visitedPages.includes(currentPage)) {
+          return visitedPages;
+        }
+        return [...visitedPages, currentPage];
+      });
+
       const searchParams = options?.searchParams ? `?${options.searchParams.toString()}` : '';
       if (isStateless) {
         const url = `/${page}${searchParams}`;
-        return navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
+        return navigate(url, options, navOptions);
       }
 
       const { instanceOwnerPartyId, instanceGuid, taskId, mainPageKey, componentId, dataElementId } = navParams.current;
@@ -258,16 +264,15 @@ export function useNavigatePage() {
       // Subform
       if (mainPageKey && componentId && dataElementId && !shouldExitSubform) {
         const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}/${componentId}/${dataElementId}/${page}${searchParams}`;
-        return navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
+        return navigate(url, options, navOptions);
       }
 
       const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page}${searchParams}`;
-      navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
+      navigate(url, options, navOptions);
     },
-    [orderRef, isStateless, navParams, navigate, maybeSaveOnPageChange, refetchInitialValidations],
+    [orderRef, isStateless, navParams, navigate, maybeSaveOnPageChange, refetchInitialValidations, setVisitedPages],
   );
 
-  const [_, setVisitedPages] = useVisitedPages();
   /**
    * This function fetch the next page index on function
    * invocation and then navigates to the next page. This is
@@ -282,20 +287,9 @@ export function useNavigatePage() {
         return;
       }
 
-      setVisitedPages((prev) => {
-        const visitedPages = [...prev];
-        if (currentPage && !prev.includes(currentPage)) {
-          visitedPages.push(currentPage);
-        }
-        if (!prev.includes(nextPage)) {
-          visitedPages.push(nextPage);
-        }
-        return visitedPages;
-      });
-
       await navigateToPage(nextPage, options);
     },
-    [navParams, navigateToPage, orderRef, setVisitedPages],
+    [navParams, navigateToPage, orderRef],
   );
 
   /**
@@ -352,7 +346,7 @@ export function useNavigatePage() {
 
     await maybeSaveOnPageChange();
     refetchInitialValidations();
-    return navigate(url, undefined, undefined, { targetLocation: url, callback: () => focusMainContent() });
+    return navigate(url);
   };
 
   return {
@@ -365,13 +359,6 @@ export function useNavigatePage() {
     exitSubform,
     enterSubform,
   };
-}
-
-export function focusMainContent(options?: NavigateToPageOptions) {
-  if (!options?.searchParams?.has(SearchParams.FocusComponentId)) {
-    document.getElementById('main-content')?.focus();
-    window.scrollTo(0, 0);
-  }
 }
 
 export function useVisitedPages() {
@@ -415,7 +402,7 @@ export function useNavigateToComponent() {
           !!newSearchParams.get(SearchParams.FocusComponentId) || !!newSearchParams.get(SearchParams.ExitSubform),
       });
     } else {
-      setSearchParams(newSearchParams);
+      setSearchParams(newSearchParams, preventFocusAndScrollResetOptions);
     }
   };
 }

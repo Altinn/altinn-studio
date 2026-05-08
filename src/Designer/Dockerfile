@@ -42,6 +42,8 @@ COPY src/Designer/frontend/studio-root/package.json ./src/Designer/frontend/stud
 COPY src/Designer/frontend/testing/cypress/package.json ./src/Designer/frontend/testing/cypress/
 COPY src/Designer/frontend/testing/playwright/package.json ./src/Designer/frontend/testing/playwright/
 COPY src/Designer/frontend/settings/package.json ./src/Designer/frontend/settings/
+COPY libs/form-component/package.json ./libs/form-component/
+COPY libs/form-engine/package.json ./libs/form-engine/
 
 RUN yarn --immutable
 

@@ -17,6 +17,7 @@ const renderEditNumberValue = async ({
   enumValues = null,
   maxLength = undefined,
   handleComponentChange = jest.fn(),
+  componentOverrides = {},
 } = {}) => {
   await waitForData();
 
@@ -34,6 +35,7 @@ const renderEditNumberValue = async ({
         maxLength,
         itemType: 'COMPONENT',
         dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
+        ...componentOverrides,
       }}
     />,
   );
@@ -131,5 +133,26 @@ describe('EditNumberValue', () => {
     mockHandleComponentChange.mockClear();
     await user.clear(input);
     expect(mockHandleComponentChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('should update value when propertyPath is set', async () => {
+    const user = userEvent.setup();
+    const mockHandleComponentChange = jest.fn((componentProperties, _) => componentProperties);
+    await renderEditNumberValue({
+      handleComponentChange: mockHandleComponentChange,
+      componentOverrides: { propertyPath: 'definitions/inputComponent' },
+    });
+    await user.type(screen.getByRole('textbox'), '2');
+    expect(mockHandleComponentChange).toHaveReturnedWith({
+      id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
+      type: ComponentType.Input,
+      textResourceBindings: {
+        title: 'ServiceName',
+      },
+      maxLength: 2,
+      itemType: 'COMPONENT',
+      dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
+      propertyPath: 'definitions/inputComponent',
+    });
   });
 });

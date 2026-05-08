@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.ModelBinding.Constants;
@@ -17,6 +18,7 @@ using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.FeatureManagement;
 
 namespace Altinn.Studio.Designer.Controllers;
 
@@ -33,16 +35,19 @@ public class DeploymentsController : ControllerBase
     private readonly IDeploymentService _deploymentService;
     private readonly IGiteaClient _giteaClient;
     private readonly IKubernetesDeploymentsService _kubernetesDeploymentsService;
+    private readonly IFeatureManager _featureManager;
 
     public DeploymentsController(
         IDeploymentService deploymentService,
         IGiteaClient giteaClient,
-        IKubernetesDeploymentsService kubernetesDeploymentsService
+        IKubernetesDeploymentsService kubernetesDeploymentsService,
+        IFeatureManager featureManager
     )
     {
         _deploymentService = deploymentService;
         _giteaClient = giteaClient;
         _kubernetesDeploymentsService = kubernetesDeploymentsService;
+        _featureManager = featureManager;
     }
 
     /// <summary>
@@ -125,7 +130,11 @@ public class DeploymentsController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        string token = await HttpContext.GetDeveloperAppTokenAsync();
+        // TODO(#18666): DeveloperAppToken is unused when StudioOidc is enabled; placeholder satisfies
+        // the AltinnAuthenticatedRepoEditingContext guard until that model is reworked.
+        string token = await _featureManager.IsEnabledAsync(StudioFeatureFlags.StudioOidc)
+            ? "studio-oidc-auth"
+            : await HttpContext.GetDeveloperAppTokenAsync();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
             AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, developer, token);
