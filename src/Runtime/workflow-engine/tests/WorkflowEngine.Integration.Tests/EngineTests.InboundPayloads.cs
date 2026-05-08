@@ -128,7 +128,7 @@ public partial class EngineTests
         var workflow = _testHelpers.CreateWorkflow("wf-full", [step]) with
         {
             StartAt = DateTimeOffset.Parse(
-                "2026-06-01T08:00:00+00:00",
+                "2099-06-01T08:00:00+00:00",
                 System.Globalization.CultureInfo.InvariantCulture
             ),
             State = """{"initial":"state"}""",
