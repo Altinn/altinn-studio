@@ -1,4 +1,4 @@
-FROM gitea/act_runner:0.6.0@sha256:b2df7d04d17334ff8e741c32b0df099d5df046d96599cb330d4ed7c097cb087f AS gitea-basic
+FROM gitea/runner:1.0.0@sha256:2198bd3bf2d31059ecd27e845569aa4d666f26d15a0a3cc9abb85898368a0eab AS gitea-basic
 
 FROM ghcr.io/renovatebot/renovate:42.34.1@sha256:76265a40295d41facff1967a60e893fbce7de39e4975bc2b63884a8482170e39 AS renovate
 
@@ -11,7 +11,7 @@ RUN apt update && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy binary and run script from basic gitea image and setup entrypoint
-COPY --from=gitea-basic /usr/local/bin/act_runner /usr/local/bin/act_runner
+COPY --from=gitea-basic /usr/local/bin/gitea-runner /usr/local/bin/gitea-runner
 # COPY --from=gitea-basic /usr/local/bin/run.sh /usr/local/bin/run.sh
 COPY ./run.sh /usr/local/bin/run.sh
 
