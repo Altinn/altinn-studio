@@ -5,7 +5,7 @@
       databaseId: {Scrubbed},
       operationId: op-c,
       idempotencyKey: idem-Guid_2,
-      namespace: ttd:e2e-tests,
+      namespace: ttd-e2e-tests,
       createdAt: {Scrubbed},
       updatedAt: {Scrubbed},
       labels: {
@@ -31,7 +31,7 @@
       databaseId: {Scrubbed},
       operationId: op-a,
       idempotencyKey: idem-Guid_3,
-      namespace: ttd:e2e-tests,
+      namespace: ttd-e2e-tests,
       createdAt: {Scrubbed},
       updatedAt: {Scrubbed},
       labels: {
@@ -63,7 +63,7 @@
       databaseId: {Scrubbed},
       operationId: op-b,
       idempotencyKey: idem-Guid_5,
-      namespace: ttd:e2e-tests,
+      namespace: ttd-e2e-tests,
       createdAt: {Scrubbed},
       updatedAt: {Scrubbed},
       labels: {

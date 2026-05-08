@@ -200,66 +200,6 @@ Content-Type: application/json; charset=utf-8
       ]
     },
     {
-      "databaseId": "Guid_3",
-      "operationId": "op-wf-up",
-      "idempotencyKey": "idem-Guid_1",
-      "namespace": "ttd-e2e-tests",
-      "createdAt": "{Scrubbed}",
-      "updatedAt": "{Scrubbed}",
-      "labels": {
-        "app": "e2e-tests",
-        "org": "ttd"
-      },
-      "overallStatus": "Completed",
-      "dependencies": {},
-      "dependents": {
-        "Guid_5": "Completed"
-      },
-      "links": {},
-      "steps": [
-        {
-          "databaseId": "Guid_9",
-          "operationId": "/ping-up",
-          "processingOrder": 0,
-          "updatedAt": "{Scrubbed}",
-          "command": {
-            "type": "webhook"
-          },
-          "status": "Completed",
-          "retryCount": 0
-        }
-      ]
-    },
-    {
-      "databaseId": "Guid_4",
-      "operationId": "op-wf-side",
-      "idempotencyKey": "idem-Guid_1",
-      "namespace": "ttd-e2e-tests",
-      "createdAt": "{Scrubbed}",
-      "updatedAt": "{Scrubbed}",
-      "labels": {
-        "app": "e2e-tests",
-        "org": "ttd"
-      },
-      "overallStatus": "Completed",
-      "dependencies": {},
-      "dependents": {},
-      "links": {},
-      "steps": [
-        {
-          "databaseId": "Guid_10",
-          "operationId": "/ping-side",
-          "processingOrder": 0,
-          "updatedAt": "{Scrubbed}",
-          "command": {
-            "type": "webhook"
-          },
-          "status": "Completed",
-          "retryCount": 0
-        }
-      ]
-    },
-    {
       "databaseId": "Guid_6",
       "operationId": "op-wf-down",
       "idempotencyKey": "idem-Guid_1",
@@ -278,7 +218,7 @@ Content-Type: application/json; charset=utf-8
       "links": {},
       "steps": [
         {
-          "databaseId": "Guid_11",
+          "databaseId": "Guid_9",
           "operationId": "/ping-down",
           "processingOrder": 0,
           "updatedAt": "{Scrubbed}",
@@ -315,8 +255,68 @@ Content-Type: application/json; charset=utf-8
       },
       "steps": [
         {
-          "databaseId": "Guid_12",
+          "databaseId": "Guid_10",
           "operationId": "/ping-mid",
+          "processingOrder": 0,
+          "updatedAt": "{Scrubbed}",
+          "command": {
+            "type": "webhook"
+          },
+          "status": "Completed",
+          "retryCount": 0
+        }
+      ]
+    },
+    {
+      "databaseId": "Guid_4",
+      "operationId": "op-wf-side",
+      "idempotencyKey": "idem-Guid_1",
+      "namespace": "ttd-e2e-tests",
+      "createdAt": "{Scrubbed}",
+      "updatedAt": "{Scrubbed}",
+      "labels": {
+        "app": "e2e-tests",
+        "org": "ttd"
+      },
+      "overallStatus": "Completed",
+      "dependencies": {},
+      "dependents": {},
+      "links": {},
+      "steps": [
+        {
+          "databaseId": "Guid_11",
+          "operationId": "/ping-side",
+          "processingOrder": 0,
+          "updatedAt": "{Scrubbed}",
+          "command": {
+            "type": "webhook"
+          },
+          "status": "Completed",
+          "retryCount": 0
+        }
+      ]
+    },
+    {
+      "databaseId": "Guid_3",
+      "operationId": "op-wf-up",
+      "idempotencyKey": "idem-Guid_1",
+      "namespace": "ttd-e2e-tests",
+      "createdAt": "{Scrubbed}",
+      "updatedAt": "{Scrubbed}",
+      "labels": {
+        "app": "e2e-tests",
+        "org": "ttd"
+      },
+      "overallStatus": "Completed",
+      "dependencies": {},
+      "dependents": {
+        "Guid_5": "Completed"
+      },
+      "links": {},
+      "steps": [
+        {
+          "databaseId": "Guid_12",
+          "operationId": "/ping-up",
           "processingOrder": 0,
           "updatedAt": "{Scrubbed}",
           "command": {
@@ -332,27 +332,27 @@ Content-Type: application/json; charset=utf-8
     {
       "from": "Guid_2",
       "to": "Guid_5",
-      "kind": "dependency"
-    },
-    {
-      "from": "Guid_3",
-      "to": "Guid_5",
-      "kind": "dependency"
+      "kind": "Dependency"
     },
     {
       "from": "Guid_5",
       "to": "Guid_2",
-      "kind": "link"
+      "kind": "Link"
     },
     {
       "from": "Guid_5",
       "to": "Guid_4",
-      "kind": "link"
+      "kind": "Link"
     },
     {
       "from": "Guid_5",
       "to": "Guid_6",
-      "kind": "dependency"
+      "kind": "Dependency"
+    },
+    {
+      "from": "Guid_3",
+      "to": "Guid_5",
+      "kind": "Dependency"
     }
   ]
 }

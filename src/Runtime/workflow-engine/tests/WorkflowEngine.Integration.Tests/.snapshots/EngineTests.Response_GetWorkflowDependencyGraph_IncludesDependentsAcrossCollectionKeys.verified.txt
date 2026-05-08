@@ -6,7 +6,7 @@
       collectionKey: collection-a,
       operationId: op-wf-root,
       idempotencyKey: idem-Guid_2,
-      namespace: ttd:e2e-tests,
+      namespace: ttd-e2e-tests,
       createdAt: {Scrubbed},
       updatedAt: {Scrubbed},
       labels: {
@@ -36,7 +36,7 @@
       collectionKey: collection-b,
       operationId: op-wf-child,
       idempotencyKey: idem-Guid_4,
-      namespace: ttd:e2e-tests,
+      namespace: ttd-e2e-tests,
       createdAt: {Scrubbed},
       updatedAt: {Scrubbed},
       labels: {
