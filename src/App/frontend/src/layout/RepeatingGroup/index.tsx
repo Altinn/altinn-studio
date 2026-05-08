@@ -146,16 +146,11 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
     // It's most likely done by mistake, but we still need to respect it when checking if the component is hidden,
     // because it doesn't make sense to validate a component that is hidden in the UI and the
     // user cannot interact with.
-    let hiddenImplicitly =
+    const hiddenImplicitly =
       tableColSetup?.showInExpandedEdit === false &&
       !tableColSetup?.editInTable &&
       mode !== 'onlyTable' &&
       mode !== 'showAll';
-
-    if (mode === 'onlyTable' && tableColSetup?.editInTable === false) {
-      // This is also a way to hide a component implicitly
-      hiddenImplicitly = true;
-    }
 
     // TODO: Comment this in. It will be a breaking change, and may break some
     // apps (for example the PDF view in ssb/ra0760-01) which rely on this.

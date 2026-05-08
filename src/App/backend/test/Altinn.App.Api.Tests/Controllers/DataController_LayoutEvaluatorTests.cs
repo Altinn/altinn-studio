@@ -52,6 +52,8 @@ public class DataController_LayoutEvaluatorTests : ApiTestBase, IClassFixture<We
                     .BeEquivalentTo([
                         new DataReference() { DataElementIdentifier = id, Field = "melding.hidden" },
                         new DataReference() { DataElementIdentifier = id, Field = "melding.hiddenNotRemove" },
+                        new DataReference() { DataElementIdentifier = id, Field = "melding.hiddenPage" },
+                        new DataReference() { DataElementIdentifier = id, Field = "melding.hiddenPageNotRemove" },
                     ]);
                 if (data is Skjema { Melding: { } melding })
                 {

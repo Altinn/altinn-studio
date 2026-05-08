@@ -47,7 +47,7 @@ internal sealed class RuleHandlerParser
         {
             // Log or handle parsing errors if needed
             // For now, we'll silently fail to maintain backward compatibility
-            Console.Error.WriteLine($"[Error] Failed to parse {_ruleHandlerPath}: {ex.Message}");
+            UpgradeConsole.WriteErrorLine($"[Error] Failed to parse {_ruleHandlerPath}: {ex.Message}");
         }
     }
 

@@ -1,3 +1,4 @@
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Payment.Exceptions;
 using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Payment.Services;
@@ -48,7 +49,7 @@ internal sealed class PaymentProcessTask : IProcessTask
     }
 
     /// <inheritdoc/>
-    public string Type => "payment";
+    public string Type => AltinnTaskTypes.Payment;
 
     /// <inheritdoc/>
     public async Task Start(string taskId, Instance instance)

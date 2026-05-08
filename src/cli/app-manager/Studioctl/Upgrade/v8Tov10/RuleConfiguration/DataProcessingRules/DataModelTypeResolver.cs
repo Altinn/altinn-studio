@@ -127,7 +127,7 @@ internal sealed class DataModelTypeResolver
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[Warning] Failed to load data model type from source: {ex.Message}");
+            UpgradeConsole.WriteLine($"[Warning] Failed to load data model type from source: {ex.Message}");
             return false;
         }
     }
@@ -343,7 +343,7 @@ internal sealed class DataModelTypeResolver
         var modelsDir = Path.Combine(_appBasePath, "App", "models");
         if (!Directory.Exists(modelsDir))
         {
-            Console.WriteLine($"[Warning] Models directory not found: {modelsDir}");
+            UpgradeConsole.WriteLine($"[Warning] Models directory not found: {modelsDir}");
             return null;
         }
 
@@ -371,7 +371,7 @@ internal sealed class DataModelTypeResolver
             return csFiles[0];
         }
 
-        Console.WriteLine($"[Warning] Could not find model source file for class '{className}'");
+        UpgradeConsole.WriteLine($"[Warning] Could not find model source file for class '{className}'");
         return null;
     }
 }

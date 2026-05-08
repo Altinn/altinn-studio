@@ -350,7 +350,7 @@
   "app_settings.about_tab_visibility_and_delegation_info_visible_can_delegate": "Sluttbruker kan delegere fullmakt direkte til appen, og appen er synlig i tilgangsstyring på Altinn.no",
   "app_settings.about_tab_visibility_and_delegation_title": "Synlighet og fullmakter i Altinn",
   "app_settings.about_tab_visibility_and_delegation_visible_label": "Vis appen i tilgangsstyring på Altinn.no",
-  "app_settings.about_tab_visibility_and_delegation_warning_hidden_delegate_via_api": "Sluttbruker kan delegere fullmakt direkte til appen. Sluttbruker kan kun delegere fullmakt til appen via API, appen ikke er synlig i tilgangsstyring på Altinn.no",
+  "app_settings.about_tab_visibility_and_delegation_warning_hidden_delegate_via_api": "Sluttbruker kan kun delegere fullmakt til appen via API, appen er ikke synlig i tilgangsstyring på Altinn.no",
   "app_settings.access_control_tab_checkbox_description": "Her velger du hvem som eier og kan starte appen. “Alle” er valgt som standard. Du må minst velge én.",
   "app_settings.access_control_tab_checkbox_legend_label": "Velg hvem som kan starte appen",
   "app_settings.access_control_tab_heading": "Oppstartskontroll for appen",

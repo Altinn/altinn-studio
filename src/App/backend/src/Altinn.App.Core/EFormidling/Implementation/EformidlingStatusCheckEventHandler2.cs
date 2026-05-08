@@ -6,7 +6,7 @@ using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
-using Altinn.App.Core.Internal.Maskinporten;
+using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
 using Altinn.Common.EFormidlingClient;
 using Altinn.Common.EFormidlingClient.Models;
@@ -20,16 +20,12 @@ namespace Altinn.App.Core.EFormidling.Implementation;
 /// <summary>
 /// Handles status checking of messages sent through the Eformidling integration point.
 /// </summary>
-public class EformidlingStatusCheckEventHandler2 : IEventHandler
+internal sealed class EformidlingStatusCheckEventHandler2 : IEventHandler
 {
     private readonly IEFormidlingClient _eFormidlingClient;
     private readonly ILogger<EformidlingStatusCheckEventHandler2> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
-
-#pragma warning disable CS0618 // 'member' is obsolete:
-    private readonly IMaskinportenTokenProvider _maskinportenTokenProvider;
-#pragma warning restore CS0618
-
+    private readonly IAuthenticationTokenResolver _authenticationTokenResolver;
     private readonly PlatformSettings _platformSettings;
     private readonly GeneralSettings _generalSettings;
 
@@ -40,9 +36,7 @@ public class EformidlingStatusCheckEventHandler2 : IEventHandler
         IEFormidlingClient eFormidlingClient,
         IHttpClientFactory httpClientFactory,
         ILogger<EformidlingStatusCheckEventHandler2> logger,
-#pragma warning disable CS0618 // 'member' is obsolete:
-        IMaskinportenTokenProvider maskinportenTokenProvider,
-#pragma warning restore CS0618
+        IAuthenticationTokenResolver authenticationTokenResolver,
         IOptions<PlatformSettings> platformSettings,
         IOptions<GeneralSettings> generalSettings
     )
@@ -50,7 +44,7 @@ public class EformidlingStatusCheckEventHandler2 : IEventHandler
         _eFormidlingClient = eFormidlingClient;
         _logger = logger;
         _httpClientFactory = httpClientFactory;
-        _maskinportenTokenProvider = maskinportenTokenProvider;
+        _authenticationTokenResolver = authenticationTokenResolver;
         _platformSettings = platformSettings.Value;
         _generalSettings = generalSettings.Value;
     }
@@ -164,9 +158,7 @@ public class EformidlingStatusCheckEventHandler2 : IEventHandler
 
     private async Task<string> GetOrganizationToken()
     {
-        string scopes = "altinn:serviceowner/instances.read altinn:serviceowner/instances.write";
-
-        return await _maskinportenTokenProvider.GetAltinnExchangedToken(scopes);
+        return await _authenticationTokenResolver.GetAccessToken(AuthenticationMethod.ServiceOwner());
     }
 
     private async Task<Statuses> GetStatusesForShipment(string shipmentId)

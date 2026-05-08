@@ -1,9 +1,8 @@
-using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.CodeRewriters;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.DockerfileRewriters;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.ProcessRewriter;
-using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.ProjectRewriters;
+using Altinn.Studio.Cli.Upgrade.ProjectFile;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -11,206 +10,85 @@ using Microsoft.CodeAnalysis.MSBuild;
 
 namespace Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.BackendUpgrade;
 
-/// <summary>
-/// Defines the upgrade command for upgrading app-lib-dotnet in an Altinn 3 application
-/// </summary>
+internal sealed record BackendUpgradeOptions(
+    string ProjectFolder,
+    string ProjectFile,
+    string ProcessFile,
+    string AppSettingsFolder,
+    string TargetVersion,
+    string TargetFramework,
+    bool SkipCodeUpgrade,
+    bool SkipProcessUpgrade,
+    bool SkipCsprojUpgrade,
+    bool SkipDockerfileUpgrade,
+    bool SkipAppSettingsUpgrade,
+    TextWriter Output,
+    TextWriter Error,
+    CancellationToken CancellationToken
+);
+
 internal static class BackendUpgrade
 {
-    /// <summary>
-    /// Get the actual upgrade command
-    /// </summary>
-    /// <param name="projectFolderOption">Option for setting the root folder of the project</param>
-    /// <returns></returns>
-    public static Command GetUpgradeCommand(Option<string> projectFolderOption)
+    internal static async Task<int> RunAsync(BackendUpgradeOptions options)
     {
-        var projectFileOption = new Option<string>(name: "--project")
-        {
-            Description = "The project file to read relative to --folder",
-            DefaultValueFactory = _ => "App/App.csproj",
-        };
-        var processFileOption = new Option<string>(name: "--process")
-        {
-            Description = "The process file to read relative to --folder",
-            DefaultValueFactory = _ => "App/config/process/process.bpmn",
-        };
-        var appSettingsFolderOption = new Option<string>(name: "--appsettings-folder")
-        {
-            Description = "The folder where the appsettings.*.json files are located",
-            DefaultValueFactory = _ => "App",
-        };
-        var targetVersionOption = new Option<string>(name: "--target-version")
-        {
-            Description = "The target version to upgrade to",
-            DefaultValueFactory = _ => "8.7.0",
-        };
-        var targetFrameworkOption = new Option<string>(name: "--target-framework")
-        {
-            Description = "The target dotnet framework version to upgrade to",
-            DefaultValueFactory = _ => "net8.0",
-        };
-        var skipCsprojUpgradeOption = new Option<bool>(name: "--skip-csproj-upgrade")
-        {
-            Description = "Skip csproj file upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var skipDockerUpgradeOption = new Option<bool>(name: "--skip-dockerfile-upgrade")
-        {
-            Description = "Skip Dockerfile upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var skipCodeUpgradeOption = new Option<bool>(name: "--skip-code-upgrade")
-        {
-            Description = "Skip code upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var skipProcessUpgradeOption = new Option<bool>(name: "--skip-process-upgrade")
-        {
-            Description = "Skip process file upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var skipAppSettingsUpgradeOption = new Option<bool>(name: "--skip-appsettings-upgrade")
-        {
-            Description = "Skip appsettings file upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var upgradeCommand = new Command("backend-v8", "Upgrade an app from app-lib-dotnet v7 to v8")
-        {
-            projectFolderOption,
-            projectFileOption,
-            processFileOption,
-            appSettingsFolderOption,
-            targetVersionOption,
-            targetFrameworkOption,
-            skipCsprojUpgradeOption,
-            skipDockerUpgradeOption,
-            skipCodeUpgradeOption,
-            skipProcessUpgradeOption,
-            skipAppSettingsUpgradeOption,
-        };
-        int returnCode = 0;
-        upgradeCommand.SetAction(async result =>
-        {
-            var projectFolder = result.GetValue(projectFolderOption);
-            var projectFile = result.GetValue(projectFileOption);
-            var processFile = result.GetValue(processFileOption);
-            var appSettingsFolder = result.GetValue(appSettingsFolderOption);
-            var targetVersion = result.GetValue(targetVersionOption);
-            var targetFramework = result.GetValue(targetFrameworkOption);
-            var skipCodeUpgrade = result.GetValue(skipCodeUpgradeOption);
-            var skipProcessUpgrade = result.GetValue(skipProcessUpgradeOption);
-            var skipCsprojUpgrade = result.GetValue(skipCsprojUpgradeOption);
-            var skipDockerUpgrade = result.GetValue(skipDockerUpgradeOption);
-            var skipAppSettingsUpgrade = result.GetValue(skipAppSettingsUpgradeOption);
+        using var outputScope = UpgradeConsole.Use(options.Output, options.Error);
+        var projectFolder = options.ProjectFolder;
+        if (!Directory.Exists(projectFolder))
+            return WriteError($"Project folder does not exist: {projectFolder}");
 
-            if (projectFolder is null or "CurrentDirectory")
-                projectFolder = Directory.GetCurrentDirectory();
+        FileAttributes attr = File.GetAttributes(projectFolder);
+        if ((attr & FileAttributes.Directory) != FileAttributes.Directory)
+            return WriteError($"Project folder is not a directory: {projectFolder}");
 
-            if (projectFile is null)
-                ExitWithError("Project file option is required but was not provided");
+        var projectFile = Path.Combine(projectFolder, options.ProjectFile);
+        var processFile = Path.Combine(projectFolder, options.ProcessFile);
+        var appSettingsFolder = Path.Combine(projectFolder, options.AppSettingsFolder);
 
-            if (processFile is null)
-                ExitWithError("Process file option is required but was not provided");
+        if (!File.Exists(projectFile))
+            return WriteError($"Project file does not exist: {projectFile}");
 
-            if (appSettingsFolder is null)
-                ExitWithError("App settings folder option is required but was not provided");
+        var projectChecks = new ProjectChecks.ProjectChecks(projectFile);
+        if (!projectChecks.SupportedSourceVersion())
+            return WriteError(
+                $"Version(s) in project file {projectFile} is not supported. Please upgrade to version 7.0.0 or higher.",
+                exitCode: 2
+            );
 
-            if (targetVersion is null)
-                ExitWithError("Target version option is required but was not provided");
+        var returnCode = 0;
+        options.CancellationToken.ThrowIfCancellationRequested();
+        if (!options.SkipCodeUpgrade)
+            returnCode = await UpgradeCode(projectFile);
 
-            if (targetFramework is null)
-                ExitWithError("Target framework option is required but was not provided");
+        options.CancellationToken.ThrowIfCancellationRequested();
+        if (!options.SkipCsprojUpgrade && returnCode == 0)
+            returnCode = await UpgradeProjectFile(projectFile, options.TargetVersion, options.TargetFramework);
 
-            if (!Directory.Exists(projectFolder))
-            {
-                ExitWithError(
-                    $"{projectFolder} does not exist. Please supply location of project with --folder [path/to/project]"
-                );
-            }
+        options.CancellationToken.ThrowIfCancellationRequested();
+        if (!options.SkipDockerfileUpgrade && returnCode == 0)
+            returnCode = await UpgradeDockerfile(Path.Combine(projectFolder, "Dockerfile"), options.TargetFramework);
 
-            FileAttributes attr = File.GetAttributes(projectFolder);
-            if ((attr & FileAttributes.Directory) != FileAttributes.Directory)
-            {
-                ExitWithError(
-                    $"Project folder {projectFolder} is a file. Please supply location of project with --folder [path/to/project]"
-                );
-            }
+        options.CancellationToken.ThrowIfCancellationRequested();
+        if (!options.SkipProcessUpgrade && returnCode == 0)
+            returnCode = await UpgradeProcess(processFile);
 
-            if (!Path.IsPathRooted(projectFolder))
-            {
-                projectFile = Path.Combine(Directory.GetCurrentDirectory(), projectFolder, projectFile);
-                processFile = Path.Combine(Directory.GetCurrentDirectory(), projectFolder, processFile);
-                appSettingsFolder = Path.Combine(Directory.GetCurrentDirectory(), projectFolder, appSettingsFolder);
-            }
-            else
-            {
-                projectFile = Path.Combine(projectFolder, projectFile);
-                processFile = Path.Combine(projectFolder, processFile);
-                appSettingsFolder = Path.Combine(projectFolder, appSettingsFolder);
-            }
+        options.CancellationToken.ThrowIfCancellationRequested();
+        if (!options.SkipAppSettingsUpgrade && returnCode == 0)
+            returnCode = await UpgradeAppSettings(appSettingsFolder);
 
-            if (!File.Exists(projectFile))
-            {
-                ExitWithError(
-                    $"Project file {projectFile} does not exist. Please supply location of project with --project [path/to/project.csproj]"
-                );
-            }
-
-            var projectChecks = new ProjectChecks.ProjectChecks(projectFile);
-            if (!projectChecks.SupportedSourceVersion())
-            {
-                ExitWithError(
-                    $"Version(s) in project file {projectFile} is not supported. Please upgrade to version 7.0.0 or higher.",
-                    exitCode: 2
-                );
-            }
-
-            if (!skipCodeUpgrade)
-            {
-                returnCode = await UpgradeCode(projectFile);
-            }
-
-            if (!skipCsprojUpgrade && returnCode == 0)
-            {
-                returnCode = await UpgradeProjectFile(projectFile, targetVersion, targetFramework);
-            }
-
-            if (!skipDockerUpgrade && returnCode == 0)
-            {
-                returnCode = await UpgradeDockerfile(Path.Combine(projectFolder, "Dockerfile"), targetFramework);
-            }
-
-            if (!skipProcessUpgrade && returnCode == 0)
-            {
-                returnCode = await UpgradeProcess(processFile);
-            }
-
-            if (!skipAppSettingsUpgrade && returnCode == 0)
-            {
-                returnCode = await UpgradeAppSettings(appSettingsFolder);
-            }
-
-            if (returnCode == 0)
-            {
-                Console.WriteLine(
-                    "Upgrade completed without errors. Please verify that the application is still working as expected."
-                );
-            }
-            else
-            {
-                Console.WriteLine("Upgrade completed with errors. Please check for errors in the log above.");
-            }
-            Environment.Exit(returnCode);
-        });
-
-        return upgradeCommand;
+        UpgradeConsole.WriteLine(
+            returnCode == 0
+                ? "Upgrade completed without errors. Please verify that the application is still working as expected."
+                : "Upgrade completed with errors. Please check for errors in the log above."
+        );
+        return returnCode;
     }
 
     static async Task<int> UpgradeProjectFile(string projectFile, string targetVersion, string targetFramework)
     {
-        await Console.Out.WriteLineAsync("Trying to upgrade nuget versions in project file");
+        await UpgradeConsole.Out.WriteLineAsync("Trying to upgrade nuget versions in project file");
         var rewriter = new ProjectFileRewriter(projectFile, targetVersion, targetFramework);
         await rewriter.Upgrade();
-        await Console.Out.WriteLineAsync("Nuget versions upgraded");
+        await UpgradeConsole.Out.WriteLineAsync("Nuget versions upgraded");
         return 0;
     }
 
@@ -218,29 +96,28 @@ internal static class BackendUpgrade
     {
         if (!File.Exists(dockerFile))
         {
-            await Console.Error.WriteLineAsync(
-                $"Dockerfile {dockerFile} does not exist. Please supply location of project with --dockerfile [path/to/Dockerfile]"
-            );
+            await UpgradeConsole.Error.WriteLineAsync($"Dockerfile does not exist: {dockerFile}");
             return 1;
         }
-        await Console.Out.WriteLineAsync("Trying to upgrade dockerfile");
+        await UpgradeConsole.Out.WriteLineAsync("Trying to upgrade dockerfile");
         var rewriter = new DockerfileRewriter(dockerFile, targetFramework);
         await rewriter.Upgrade();
-        await Console.Out.WriteLineAsync("Dockerfile upgraded");
+        await UpgradeConsole.Out.WriteLineAsync("Dockerfile upgraded");
         return 0;
     }
 
     static async Task<int> UpgradeCode(string projectFile)
     {
-        await Console.Out.WriteLineAsync("Trying to upgrade references and using in code");
+        await UpgradeConsole.Out.WriteLineAsync("Trying to upgrade references and using in code");
 
-        MSBuildLocator.RegisterDefaults();
+        if (!MSBuildLocator.IsRegistered)
+            MSBuildLocator.RegisterDefaults();
         var workspace = MSBuildWorkspace.Create();
         var project = await workspace.OpenProjectAsync(projectFile);
         var comp = await project.GetCompilationAsync();
         if (comp is null)
         {
-            await Console.Error.WriteLineAsync("Could not get compilation");
+            await UpgradeConsole.Error.WriteLineAsync("Could not get compilation");
             return 1;
         }
         foreach (var sourceTree in comp.SyntaxTrees)
@@ -295,7 +172,7 @@ internal static class BackendUpgrade
             }
         }
 
-        await Console.Out.WriteLineAsync("References and using upgraded");
+        await UpgradeConsole.Out.WriteLineAsync("References and using upgraded");
         return 0;
     }
 
@@ -303,23 +180,21 @@ internal static class BackendUpgrade
     {
         if (!File.Exists(processFile))
         {
-            await Console.Error.WriteLineAsync(
-                $"Process file {processFile} does not exist. Please supply location of project with --process [path/to/project.csproj]"
-            );
+            await UpgradeConsole.Error.WriteLineAsync($"Process file does not exist: {processFile}");
             return 1;
         }
 
-        await Console.Out.WriteLineAsync("Trying to upgrade process file");
+        await UpgradeConsole.Out.WriteLineAsync("Trying to upgrade process file");
         ProcessUpgrader parser = new(processFile);
         parser.Upgrade();
         await parser.Write();
         var warnings = parser.GetWarnings();
         foreach (var warning in warnings)
         {
-            await Console.Out.WriteLineAsync(warning);
+            await UpgradeConsole.Out.WriteLineAsync(warning);
         }
 
-        await Console.Out.WriteLineAsync(
+        await UpgradeConsole.Out.WriteLineAsync(
             warnings.Any()
                 ? "Process file upgraded with warnings. Review the warnings above and make sure that the process file is still valid."
                 : "Process file upgraded"
@@ -332,9 +207,7 @@ internal static class BackendUpgrade
     {
         if (!Directory.Exists(appSettingsFolder))
         {
-            await Console.Error.WriteLineAsync(
-                $"App settings folder {appSettingsFolder} does not exist. Please supply location with --appsettings-folder [path/to/appsettings]"
-            );
+            await UpgradeConsole.Error.WriteLineAsync($"App settings folder does not exist: {appSettingsFolder}");
             return 1;
         }
 
@@ -343,21 +216,21 @@ internal static class BackendUpgrade
             == 0
         )
         {
-            await Console.Error.WriteLineAsync($"No appsettings*.json files found in {appSettingsFolder}");
+            await UpgradeConsole.Error.WriteLineAsync($"No appsettings*.json files found in {appSettingsFolder}");
             return 1;
         }
 
-        await Console.Out.WriteLineAsync("Trying to upgrade appsettings*.json files");
+        await UpgradeConsole.Out.WriteLineAsync("Trying to upgrade appsettings*.json files");
         AppSettingsRewriter.AppSettingsRewriter rewriter = new(appSettingsFolder);
         rewriter.Upgrade();
         await rewriter.Write();
         var warnings = rewriter.GetWarnings();
         foreach (var warning in warnings)
         {
-            await Console.Out.WriteLineAsync(warning);
+            await UpgradeConsole.Out.WriteLineAsync(warning);
         }
 
-        await Console.Out.WriteLineAsync(
+        await UpgradeConsole.Out.WriteLineAsync(
             warnings.Any()
                 ? "AppSettings files upgraded with warnings. Review the warnings above and make sure that the appsettings files are still valid."
                 : "AppSettings files upgraded"
@@ -366,10 +239,9 @@ internal static class BackendUpgrade
         return 0;
     }
 
-    [DoesNotReturn]
-    private static void ExitWithError(string message, int exitCode = 1)
+    private static int WriteError(string message, int exitCode = 1)
     {
-        Console.Error.WriteLine(message);
-        Environment.Exit(exitCode);
+        UpgradeConsole.WriteErrorLine(message);
+        return exitCode;
     }
 }

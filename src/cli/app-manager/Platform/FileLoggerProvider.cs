@@ -29,7 +29,7 @@ internal sealed class FileLoggerProvider : ILoggerProvider
         _channel = Channel.CreateBounded<LogEntry>(
             new BoundedChannelOptions(Capacity)
             {
-                // Console logging still captures everything; the file sink should never stall the process.
+                // The primary logging pipeline still captures everything; the file sink should never stall the process.
                 FullMode = BoundedChannelFullMode.DropWrite,
                 SingleReader = true,
                 SingleWriter = false,
@@ -66,14 +66,7 @@ internal sealed class FileLoggerProvider : ILoggerProvider
             if (!_failed)
             {
                 _failed = true;
-                try
-                {
-                    await Console.Error.WriteLineAsync($"app-manager file logger failed: {ex}");
-                }
-                catch (Exception reportException)
-                {
-                    Debug.WriteLine(reportException);
-                }
+                Trace.TraceError($"app-manager file logger failed: {ex}");
             }
         }
     }

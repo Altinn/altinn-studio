@@ -125,12 +125,7 @@ export function RepeatingGroupTableRow({
 
   return (
     <Table.Row
-      className={cn(
-        {
-          [classes.tableRowError]: rowHasErrors,
-        },
-        className,
-      )}
+      className={cn({ [classes.tableRowError]: rowHasErrors }, className)}
       data-row-num={index}
       data-row-uuid={uuid}
     >

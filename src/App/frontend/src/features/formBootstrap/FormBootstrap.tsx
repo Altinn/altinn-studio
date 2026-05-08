@@ -7,11 +7,12 @@ import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import type { IDataModelReference } from 'src/layout/common.generated';
 
 export const formBootstrapHooks = {
-  useLayouts: () => FormStore.raw.useSelector((s) => s.bootstrap.layouts),
+  useLayouts: () => FormStore.raw.useSelector((s) => s.bootstrap.processedLayouts),
   useLaxLayouts: () => {
-    const out = FormStore.raw.useLaxSelector((s) => s.bootstrap.layouts);
+    const out = FormStore.raw.useLaxSelector((s) => s.bootstrap.processedLayouts);
     return out === ContextNotProvided ? undefined : out;
   },
+  useLayoutCollection: () => FormStore.raw.useSelector((s) => s.bootstrap.layoutLookups),
   useLayoutLookups: () => FormStore.raw.useSelector((s) => s.bootstrap.layoutLookups),
   useHiddenLayoutsExpressions: () => FormStore.raw.useSelector((s) => s.bootstrap.hiddenLayoutsExpressions),
   useLaxHiddenLayoutsExpressions: () => {

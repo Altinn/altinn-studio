@@ -1,6 +1,5 @@
-using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
-using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.ProjectRewriters;
+using Altinn.Studio.Cli.Upgrade.ProjectFile;
 using Altinn.Studio.Cli.Upgrade.v8Tov10.IndexMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov10.LayoutSetsMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov10.RuleConfiguration;
@@ -9,182 +8,162 @@ using Altinn.Studio.Cli.Upgrade.v8Tov10.RuleConfiguration.DataProcessingRules;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov10;
 
-/// <summary>
-/// Defines the upgrade command for upgrading both backend and frontend from v8 to v10
-/// </summary>
+internal sealed record V8Tov10UpgradeOptions(
+    string ProjectFolder,
+    string ProjectFile,
+    string TargetFramework,
+    bool SkipCsprojUpgrade,
+    bool ConvertPackageReferences,
+    string? StudioRoot,
+    TextWriter Output,
+    TextWriter Error,
+    CancellationToken CancellationToken
+);
+
 internal static class V8Tov10Upgrade
 {
-    /// <summary>
-    /// Get the v8Tov10 upgrade command
-    /// </summary>
-    /// <param name="projectFolderOption">Option for setting the root folder of the project</param>
-    /// <returns>The command for upgrading from v8 to v10</returns>
-    public static Command GetUpgradeCommand(Option<string> projectFolderOption)
+    internal static async Task<int> RunAsync(V8Tov10UpgradeOptions options)
     {
-        var projectFileOption = new Option<string>("--project")
+        using var outputScope = UpgradeConsole.Use(options.Output, options.Error);
+        var projectFolder = options.ProjectFolder;
+        if (!Directory.Exists(projectFolder))
+            return WriteError($"Project folder does not exist: {projectFolder}");
+
+        FileAttributes attr = File.GetAttributes(projectFolder);
+        if ((attr & FileAttributes.Directory) != FileAttributes.Directory)
+            return WriteError($"Project folder is not a directory: {projectFolder}");
+
+        var projectFile = Path.Combine(projectFolder, options.ProjectFile);
+        if (!File.Exists(projectFile))
+            return WriteError($"Project file does not exist: {projectFile}");
+
+        var projectChecks = new ProjectChecks.ProjectChecks(projectFile);
+        if (!projectChecks.SupportedSourceVersion())
+            return WriteError(
+                $"Version(s) in project file {projectFile} are not supported for the 'v8Tov10' upgrade. "
+                    + "This upgrade is for apps on version 8.x.x. "
+                    + "Please ensure both Altinn.App.Core and Altinn.App.Api are version 8.0.0 or higher (but below 9.0.0).",
+                exitCode: 2
+            );
+
+        var returnCode = 0;
+        options.CancellationToken.ThrowIfCancellationRequested();
+        if (!options.SkipCsprojUpgrade)
         {
-            Description = "The project file to read relative to --folder",
-            DefaultValueFactory = _ => "App/App.csproj",
-        };
-        var targetFrameworkOption = new Option<string>("--target-framework")
-        {
-            Description = "The target dotnet framework version to upgrade to",
-            DefaultValueFactory = _ => "net8.0",
-        };
-        var skipCsprojUpgradeOption = new Option<bool>("--skip-csproj-upgrade")
-        {
-            Description = "Skip csproj file upgrade",
-            DefaultValueFactory = _ => false,
-        };
+            if (options.ConvertPackageReferences)
+                returnCode = await ConvertToProjectReferences(
+                    projectFolder,
+                    projectFile,
+                    options.TargetFramework,
+                    options.StudioRoot
+                );
+            else
+                returnCode = await UpgradeProjectFile(projectFile, options.TargetFramework);
+        }
 
-        var upgradeCommand = new Command("v10")
-        {
-            Description = "Upgrade an app from v8 to v10 (both backend and frontend)",
-        };
-        upgradeCommand.Add(projectFolderOption);
-        upgradeCommand.Add(projectFileOption);
-        upgradeCommand.Add(targetFrameworkOption);
-        upgradeCommand.Add(skipCsprojUpgradeOption);
+        options.CancellationToken.ThrowIfCancellationRequested();
+        if (returnCode == 0)
+            returnCode = await RemoveSwashbucklePackage(projectFile);
 
-        int returnCode = 0;
-        upgradeCommand.SetAction(
-            async (parseResult) =>
-            {
-                var projectFolder = parseResult.GetValue(projectFolderOption);
-                var projectFile = parseResult.GetValue(projectFileOption);
-                var targetFramework = parseResult.GetValue(targetFrameworkOption);
-                var skipCsprojUpgrade = parseResult.GetValue(skipCsprojUpgradeOption);
+        options.CancellationToken.ThrowIfCancellationRequested();
+        if (returnCode == 0)
+            returnCode = await ConvertConditionalRenderingRules(projectFolder);
 
-                if (projectFolder is null or "CurrentDirectory")
-                    projectFolder = Directory.GetCurrentDirectory();
+        options.CancellationToken.ThrowIfCancellationRequested();
+        if (returnCode == 0)
+            returnCode = await GenerateDataProcessors(projectFolder);
 
-                if (projectFile is null)
-                    ExitWithError("Project file option is required but was not provided");
+        options.CancellationToken.ThrowIfCancellationRequested();
+        if (returnCode == 0)
+            returnCode = await CleanupLegacyRuleFiles(projectFolder);
 
-                if (targetFramework is null)
-                    ExitWithError("Target framework option is required but was not provided");
+        options.CancellationToken.ThrowIfCancellationRequested();
+        if (returnCode == 0)
+            returnCode = await MigrateLayoutSetsToTaskUi(projectFolder);
 
-                if (!Directory.Exists(projectFolder))
-                {
-                    ExitWithError(
-                        $"{projectFolder} does not exist. Please supply location of project with --folder [path/to/project]"
-                    );
-                }
+        options.CancellationToken.ThrowIfCancellationRequested();
+        if (returnCode == 0)
+            returnCode = await MigrateIndexCshtml(projectFolder);
 
-                FileAttributes attr = File.GetAttributes(projectFolder);
-                if ((attr & FileAttributes.Directory) != FileAttributes.Directory)
-                {
-                    ExitWithError(
-                        $"Project folder {projectFolder} is a file. Please supply location of project with --folder [path/to/project]"
-                    );
-                }
-
-                if (!Path.IsPathRooted(projectFolder))
-                {
-                    projectFile = Path.Combine(Directory.GetCurrentDirectory(), projectFolder, projectFile);
-                }
-                else
-                {
-                    projectFile = Path.Combine(projectFolder, projectFile);
-                }
-
-                if (!File.Exists(projectFile))
-                {
-                    ExitWithError(
-                        $"Project file {projectFile} does not exist. Please supply location of project with --project [path/to/project.csproj]"
-                    );
-                }
-
-                // Validate version before processing
-                var projectChecks = new ProjectChecks.ProjectChecks(projectFile);
-                if (!projectChecks.SupportedSourceVersion())
-                {
-                    ExitWithError(
-                        $"Version(s) in project file {projectFile} are not supported for the 'v8Tov10' upgrade. "
-                            + $"This upgrade is for apps on version 8.x.x. "
-                            + $"Please ensure both Altinn.App.Core and Altinn.App.Api are version 8.0.0 or higher (but below 9.0.0).",
-                        exitCode: 2
-                    );
-                }
-
-                // Job 1: Convert to project references and upgrade target framework
-                if (!skipCsprojUpgrade && returnCode == 0)
-                {
-                    returnCode = await ConvertToProjectReferences(projectFile, targetFramework);
-                }
-
-                // Job 2: Remove Swashbuckle.AspNetCore dependency
-                if (returnCode == 0)
-                {
-                    returnCode = await RemoveSwashbucklePackage(projectFile);
-                }
-
-                // Job 3: Convert conditional rendering rules to layout hidden expressions
-                if (returnCode == 0)
-                {
-                    returnCode = await ConvertConditionalRenderingRules(projectFolder);
-                }
-
-                // Job 4: Generate data processors for data processing rules
-                if (returnCode == 0)
-                {
-                    returnCode = await GenerateDataProcessors(projectFolder);
-                }
-
-                // Job 5: Cleanup legacy rule files
-                if (returnCode == 0)
-                {
-                    returnCode = await CleanupLegacyRuleFiles(projectFolder);
-                }
-
-                // Job 6: Migrate layout-sets.json to task-folder based UI settings
-                if (returnCode == 0)
-                {
-                    returnCode = await MigrateLayoutSetsToTaskUi(projectFolder);
-                }
-
-                // Job 7: Migrate Index.cshtml to assets.json configuration
-                if (returnCode == 0)
-                {
-                    returnCode = await MigrateIndexCshtml(projectFolder);
-                }
-
-                if (returnCode == 0)
-                {
-                    Console.WriteLine("Please verify that the application is still working as expected.");
-                }
-                else
-                {
-                    Console.WriteLine("Upgrade completed with errors. Please check for errors in the log above.");
-                }
-                Environment.Exit(returnCode);
-            }
+        UpgradeConsole.WriteLine(
+            returnCode == 0
+                ? "Please verify that the application is still working as expected."
+                : "Upgrade completed with errors. Please check for errors in the log above."
         );
+        return returnCode;
+    }
 
-        return upgradeCommand;
+    static async Task<int> UpgradeProjectFile(string projectFile, string targetFramework)
+    {
+        try
+        {
+            var rewriter = new ProjectFileRewriter(projectFile, targetFramework: targetFramework);
+            await rewriter.SetTargetFramework();
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error upgrading project file: {ex.Message}");
+            return 1;
+        }
     }
 
     static async Task<int> RemoveSwashbucklePackage(string projectFile)
     {
         var rewriter = new ProjectFileRewriter(projectFile);
         await rewriter.RemovePackageReference("Swashbuckle.AspNetCore");
-        await Console.Out.WriteLineAsync("Swashbuckle.AspNetCore package reference removed");
+        await UpgradeConsole.Out.WriteLineAsync("Swashbuckle.AspNetCore package reference removed");
         return 0;
     }
 
-    static async Task<int> ConvertToProjectReferences(string projectFile, string targetFramework)
+    static async Task<int> ConvertToProjectReferences(
+        string projectFolder,
+        string projectFile,
+        string targetFramework,
+        string? studioRoot
+    )
     {
         try
         {
-            var rewriter = new ProjectFileRewriter(projectFile, targetFramework: targetFramework);
-            await rewriter.ConvertToProjectReferences();
-            return 0;
+            if (string.IsNullOrWhiteSpace(studioRoot))
+            {
+                await UpgradeConsole.Error.WriteLineAsync(
+                    "studioRoot is required when convertPackageReferences is enabled"
+                );
+                return 1;
+            }
+
+            studioRoot = Path.GetFullPath(studioRoot);
+            if (!Directory.Exists(Path.Combine(studioRoot, "src", "App")))
+            {
+                await UpgradeConsole.Error.WriteLineAsync($"studioRoot does not contain src/App: {studioRoot}");
+                return 1;
+            }
+
+            if (IsSubPathOf(studioRoot, projectFolder))
+            {
+                var rewriter = new ProjectFileRewriter(projectFile, targetFramework: targetFramework);
+                await rewriter.ConvertToProjectReferences(studioRoot);
+                return 0;
+            }
+
+            await UpgradeConsole.Error.WriteLineAsync(
+                "convertPackageReferences is only valid for apps inside the Altinn Studio repo root"
+            );
+            return 1;
         }
         catch (Exception ex)
         {
-            await Console.Error.WriteLineAsync($"Error converting to project references: {ex.Message}");
+            await UpgradeConsole.Error.WriteLineAsync($"Error converting to project references: {ex.Message}");
             return 1;
         }
+    }
+
+    static bool IsSubPathOf(string parentPath, string childPath)
+    {
+        var relative = Path.GetRelativePath(parentPath, childPath);
+        return relative == "."
+            || (!relative.StartsWith("..", StringComparison.Ordinal) && !Path.IsPathRooted(relative));
     }
 
     /// <summary>
@@ -194,20 +173,22 @@ internal static class V8Tov10Upgrade
     {
         try
         {
-            await Console.Out.WriteLineAsync("Converting conditional rendering rules to layout hidden expressions...");
+            await UpgradeConsole.Out.WriteLineAsync(
+                "Converting conditional rendering rules to layout hidden expressions..."
+            );
 
             var converter = new ConditionalRenderingConverter(projectFolder);
             var stats = converter.ConvertAllLayoutSets();
             if (stats.TotalRules == 0)
             {
-                await Console.Out.WriteLineAsync("No conditional rendering rules found to convert");
+                await UpgradeConsole.Out.WriteLineAsync("No conditional rendering rules found to convert");
             }
 
             return 0;
         }
         catch (Exception ex)
         {
-            await Console.Error.WriteLineAsync($"Error converting conditional rendering rules: {ex.Message}");
+            await UpgradeConsole.Error.WriteLineAsync($"Error converting conditional rendering rules: {ex.Message}");
             return 1;
         }
     }
@@ -219,7 +200,7 @@ internal static class V8Tov10Upgrade
     {
         try
         {
-            await Console.Out.WriteLineAsync("Generating data processors for data processing rules...");
+            await UpgradeConsole.Out.WriteLineAsync("Generating data processors for data processing rules...");
 
             var uiPath = Path.Combine(projectFolder, "App", "ui");
             if (!Directory.Exists(uiPath))
@@ -227,7 +208,9 @@ internal static class V8Tov10Upgrade
                 uiPath = Path.Combine(projectFolder, "ui");
                 if (!Directory.Exists(uiPath))
                 {
-                    await Console.Out.WriteLineAsync("No UI directory found, skipping data processor generation");
+                    await UpgradeConsole.Out.WriteLineAsync(
+                        "No UI directory found, skipping data processor generation"
+                    );
                     return 0;
                 }
             }
@@ -259,7 +242,7 @@ internal static class V8Tov10Upgrade
                 var ruleHandlerPath = Path.Combine(layoutSetPath, "RuleHandler.js");
                 if (!File.Exists(ruleHandlerPath))
                 {
-                    await Console.Error.WriteLineAsync(
+                    await UpgradeConsole.Error.WriteLineAsync(
                         $"Warning: RuleHandler.js not found for layout set '{layoutSetName}', skipping data processor generation"
                     );
                     continue;
@@ -275,7 +258,7 @@ internal static class V8Tov10Upgrade
 
                 if (dataModelInfo == null)
                 {
-                    await Console.Error.WriteLineAsync(
+                    await UpgradeConsole.Error.WriteLineAsync(
                         $"Warning: Could not resolve data model for layout set '{layoutSetName}', skipping data processor generation"
                     );
                     continue;
@@ -301,12 +284,12 @@ internal static class V8Tov10Upgrade
                     || generationResult.ClassName == null
                 )
                 {
-                    await Console.Error.WriteLineAsync(
+                    await UpgradeConsole.Error.WriteLineAsync(
                         $"Failed to generate data processor for layout set '{layoutSetName}'"
                     );
                     foreach (var error in generationResult.Errors)
                     {
-                        await Console.Error.WriteLineAsync($"  Error: {error}");
+                        await UpgradeConsole.Error.WriteLineAsync($"  Error: {error}");
                     }
                     continue;
                 }
@@ -317,7 +300,7 @@ internal static class V8Tov10Upgrade
                     generationResult.ClassName,
                     generationResult.GeneratedCode
                 );
-                await Console.Out.WriteLineAsync($"Generated data processor: {filePath}");
+                await UpgradeConsole.Out.WriteLineAsync($"Generated data processor: {filePath}");
 
                 // Register in Program.cs
                 var programUpdater = new ProgramCsUpdater(projectFolder);
@@ -325,7 +308,7 @@ internal static class V8Tov10Upgrade
 
                 if (generationResult.FailedConversions > 0)
                 {
-                    await Console.Out.WriteLineAsync(
+                    await UpgradeConsole.Out.WriteLineAsync(
                         $"  Warning: {generationResult.FailedConversions} of {generationResult.TotalRules} rules failed to convert to C# code"
                     );
                 }
@@ -335,14 +318,14 @@ internal static class V8Tov10Upgrade
 
             if (totalProcessed == 0)
             {
-                await Console.Out.WriteLineAsync("No data processing rules found to convert");
+                await UpgradeConsole.Out.WriteLineAsync("No data processing rules found to convert");
             }
 
             return 0;
         }
         catch (Exception ex)
         {
-            await Console.Error.WriteLineAsync($"Error generating data processors: {ex.Message}");
+            await UpgradeConsole.Error.WriteLineAsync($"Error generating data processors: {ex.Message}");
             return 1;
         }
     }
@@ -354,25 +337,27 @@ internal static class V8Tov10Upgrade
     {
         try
         {
-            await Console.Out.WriteLineAsync("Cleaning up legacy rule files...");
+            await UpgradeConsole.Out.WriteLineAsync("Cleaning up legacy rule files...");
 
             var cleanup = new LegacyRuleFileCleanup(projectFolder);
             var stats = cleanup.CleanupAllLayoutSets();
 
             if (stats.RuleConfigFilesDeleted == 0 && stats.RuleHandlerFilesDeleted == 0)
             {
-                await Console.Out.WriteLineAsync("No legacy rule files found to cleanup");
+                await UpgradeConsole.Out.WriteLineAsync("No legacy rule files found to cleanup");
                 return 0;
             }
 
-            await Console.Out.WriteLineAsync($"Deleted {stats.RuleConfigFilesDeleted} RuleConfiguration.json files");
-            await Console.Out.WriteLineAsync($"Deleted {stats.RuleHandlerFilesDeleted} RuleHandler.js files");
+            await UpgradeConsole.Out.WriteLineAsync(
+                $"Deleted {stats.RuleConfigFilesDeleted} RuleConfiguration.json files"
+            );
+            await UpgradeConsole.Out.WriteLineAsync($"Deleted {stats.RuleHandlerFilesDeleted} RuleHandler.js files");
 
             return 0;
         }
         catch (Exception ex)
         {
-            await Console.Error.WriteLineAsync($"Error cleaning up legacy rule files: {ex.Message}");
+            await UpgradeConsole.Error.WriteLineAsync($"Error cleaning up legacy rule files: {ex.Message}");
             return 1;
         }
     }
@@ -384,30 +369,30 @@ internal static class V8Tov10Upgrade
     {
         try
         {
-            await Console.Out.WriteLineAsync("Migrating layout-sets.json to task-folder UI settings...");
+            await UpgradeConsole.Out.WriteLineAsync("Migrating layout-sets.json to task-folder UI settings...");
             using var migrator = new LayoutSetsToTaskUiMigrator(projectFolder);
             var result = migrator.Migrate();
 
             if (!result.LayoutSetsDeleted)
             {
-                await Console.Out.WriteLineAsync("No layout-sets.json found, skipping migration");
+                await UpgradeConsole.Out.WriteLineAsync("No layout-sets.json found, skipping migration");
                 return 0;
             }
 
-            await Console.Out.WriteLineAsync($"Migrated {result.MigratedFolderCount} UI folder(s)");
-            await Console.Out.WriteLineAsync(
+            await UpgradeConsole.Out.WriteLineAsync($"Migrated {result.MigratedFolderCount} UI folder(s)");
+            await UpgradeConsole.Out.WriteLineAsync(
                 $"Folder operations: {result.RenamedFolderCount} renamed, {result.CopiedFolderCount} copied, {result.DeletedSourceFolderCount} deleted source folder(s)"
             );
             if (result.MigratedGlobalSettings)
             {
-                await Console.Out.WriteLineAsync("Migrated global uiSettings to App/ui/Settings.json");
+                await UpgradeConsole.Out.WriteLineAsync("Migrated global uiSettings to App/ui/Settings.json");
             }
 
             return 0;
         }
         catch (Exception ex)
         {
-            await Console.Error.WriteLineAsync($"Error migrating layout-sets.json: {ex.Message}");
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating layout-sets.json: {ex.Message}");
             return 1;
         }
     }
@@ -424,15 +409,14 @@ internal static class V8Tov10Upgrade
         }
         catch (Exception ex)
         {
-            await Console.Error.WriteLineAsync($"Error migrating Index.cshtml: {ex.Message}");
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating Index.cshtml: {ex.Message}");
             return 1;
         }
     }
 
-    [DoesNotReturn]
-    private static void ExitWithError(string message, int exitCode = 1)
+    private static int WriteError(string message, int exitCode = 1)
     {
-        Console.Error.WriteLine(message);
-        Environment.Exit(exitCode);
+        UpgradeConsole.WriteErrorLine(message);
+        return exitCode;
     }
 }

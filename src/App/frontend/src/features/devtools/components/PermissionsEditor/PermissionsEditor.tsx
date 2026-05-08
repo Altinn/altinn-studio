@@ -2,26 +2,24 @@ import React from 'react';
 
 import { Checkbox, Fieldset } from '@digdir/designsystemet-react';
 
+import { useCurrentInstance, useOptimisticallyUpdateInstance } from 'src/core/queries/instance';
 import classes from 'src/features/devtools/components/PermissionsEditor/PermissionsEditor.module.css';
-import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
-import { processQueries, useProcessQuery } from 'src/features/instance/useProcessQuery';
-import type { IProcess, ITask } from 'src/types/shared';
+import type { ITask } from 'src/types/shared';
 
 export const PermissionsEditor = () => {
-  const instanceId = useLaxInstanceId();
-  const { write, actions } = useProcessQuery().data?.currentTask || {};
+  const instance = useCurrentInstance();
+  const updateInstance = useOptimisticallyUpdateInstance();
+  const { write, actions } = instance?.process?.currentTask || {};
 
   function handleChange(mutator: (obj: ITask) => ITask) {
-    if (instanceId) {
-      window.queryClient.setQueryData<IProcess>(processQueries.processStateKey(instanceId), (_queryData) => {
-        const queryData = structuredClone(_queryData);
-        if (!queryData?.currentTask) {
-          return _queryData;
-        }
-        queryData.currentTask = mutator(queryData.currentTask);
-        return queryData;
-      });
-    }
+    updateInstance((oldData) => {
+      const process = structuredClone(oldData.process);
+      if (!process?.currentTask) {
+        return oldData;
+      }
+      process.currentTask = mutator(process.currentTask);
+      return { ...oldData, process };
+    });
   }
 
   return (

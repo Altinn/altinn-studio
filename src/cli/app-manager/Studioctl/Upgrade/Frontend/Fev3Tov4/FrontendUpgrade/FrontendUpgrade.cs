@@ -1,4 +1,3 @@
-using System.CommandLine;
 using Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.Checks;
 using Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.CustomReceiptRewriter;
 using Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.FooterRewriter;
@@ -10,275 +9,90 @@ using Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.SettingsWriter;
 
 namespace Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.FrontendUpgrade;
 
+internal sealed record FrontendUpgradeOptions(
+    string ProjectFolder,
+    string TargetVersion,
+    string IndexFile,
+    string UiFolder,
+    string TextsFolder,
+    string LayoutSetName,
+    string ApplicationMetadataFile,
+    string ReceiptLayoutSetName,
+    bool SkipIndexFileUpgrade,
+    bool SkipLayoutSetUpgrade,
+    bool SkipSettingsUpgrade,
+    bool SkipLayoutUpgrade,
+    bool ConvertGroupTitles,
+    bool SkipSchemaRefUpgrade,
+    bool SkipFooterUpgrade,
+    bool SkipCustomReceiptUpgrade,
+    bool SkipChecks,
+    TextWriter Output,
+    TextWriter Error,
+    CancellationToken CancellationToken
+);
+
 internal static class FrontendUpgrade
 {
     private static void PrintError(string message)
     {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine(message);
-        Console.ResetColor();
+        UpgradeConsole.WriteErrorLine(message);
     }
 
     private static void PrintWarning(string message)
     {
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine(message);
-        Console.ResetColor();
+        UpgradeConsole.WriteLine(message);
     }
 
-    public static Command GetUpgradeCommand(Option<string> projectFolderOption)
+    internal static async Task<int> RunAsync(FrontendUpgradeOptions options)
     {
-        var targetVersionOption = new Option<string>(name: "--target-version")
+        using var outputScope = UpgradeConsole.Use(options.Output, options.Error);
+        var projectFolder = options.ProjectFolder;
+        if (!Directory.Exists(projectFolder))
         {
-            Description = "The target version to upgrade to",
-            DefaultValueFactory = _ => "4",
-        };
-        var indexFileOption = new Option<string>(name: "--index-file")
-        {
-            Description = "The name of the Index.cshtml file relative to --folder",
-            DefaultValueFactory = _ => "App/views/Home/Index.cshtml",
-        };
-        var skipIndexFileUpgradeOption = new Option<bool>(name: "--skip-index-file-upgrade")
-        {
-            Description = "Skip Index.cshtml upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var uiFolderOption = new Option<string>(name: "--ui-folder")
-        {
-            Description = "The folder containing layout files relative to --folder",
-            DefaultValueFactory = _ => "App/ui/",
-        };
-        var textsFolderOption = new Option<string>(name: "--texts-folder")
-        {
-            Description = "The folder containing text files relative to --folder",
-            DefaultValueFactory = _ => "App/config/texts/",
-        };
-        var layoutSetNameOption = new Option<string>(name: "--layout-set-name")
-        {
-            Description = "The name of the layout set to be created",
-            DefaultValueFactory = _ => "form",
-        };
-        var applicationMetadataFileOption = new Option<string>(name: "--application-metadata")
-        {
-            Description = "The path of the applicationmetadata.json file relative to --folder",
-            DefaultValueFactory = _ => "App/config/applicationmetadata.json",
-        };
-        var skipLayoutSetUpgradeOption = new Option<bool>(name: "--skip-layout-set-upgrade")
-        {
-            Description = "Skip layout set upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var skipSettingsUpgradeOption = new Option<bool>(name: "--skip-settings-upgrade")
-        {
-            Description = "Skip layout settings upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var skipLayoutUpgradeOption = new Option<bool>(name: "--skip-layout-upgrade")
-        {
-            Description = "Skip layout files upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var convertGroupTitlesOption = new Option<bool>(name: "--convert-group-titles")
-        {
-            Description = "Convert 'title' in repeating groups to 'summaryTitle'",
-            DefaultValueFactory = _ => false,
-        };
-        var skipSchemaRefUpgradeOption = new Option<bool>(name: "--skip-schema-ref-upgrade")
-        {
-            Description = "Skip schema reference upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var skipFooterUpgradeOption = new Option<bool>(name: "--skip-footer-upgrade")
-        {
-            Description = "Skip footer upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var receiptLayoutSetNameOption = new Option<string>(name: "--receipt-layout-set-name")
-        {
-            Description = "The name of the layout set to be created for the custom receipt",
-            DefaultValueFactory = _ => "receipt",
-        };
-        var skipCustomReceiptUpgradeOption = new Option<bool>(name: "--skip-custom-receipt-upgrade")
-        {
-            Description = "Skip custom receipt upgrade",
-            DefaultValueFactory = _ => false,
-        };
-        var skipChecksOption = new Option<bool>(name: "--skip-checks")
-        {
-            Description = "Skip checks",
-            DefaultValueFactory = _ => false,
-        };
+            PrintError($"Project folder does not exist: {projectFolder}");
+            return 1;
+        }
 
-        var upgradeCommand = new Command("frontend-v4", "Upgrade an app from using App-Frontend v3 to v4")
-        {
-            projectFolderOption,
-            targetVersionOption,
-            indexFileOption,
-            skipIndexFileUpgradeOption,
-            uiFolderOption,
-            textsFolderOption,
-            layoutSetNameOption,
-            applicationMetadataFileOption,
-            skipLayoutSetUpgradeOption,
-            skipSettingsUpgradeOption,
-            skipLayoutUpgradeOption,
-            convertGroupTitlesOption,
-            skipSchemaRefUpgradeOption,
-            skipFooterUpgradeOption,
-            skipCustomReceiptUpgradeOption,
-            receiptLayoutSetNameOption,
-            skipChecksOption,
-        };
+        var applicationMetadataFile = Path.Combine(projectFolder, options.ApplicationMetadataFile);
+        var uiFolder = Path.Combine(projectFolder, options.UiFolder);
+        var textsFolder = Path.Combine(projectFolder, options.TextsFolder);
+        var indexFile = Path.Combine(projectFolder, options.IndexFile);
 
-        upgradeCommand.SetAction(
-            async (ParseResult result) =>
-            {
-                var returnCode = 0;
+        var returnCode = 0;
+        options.CancellationToken.ThrowIfCancellationRequested();
+        if (!options.SkipIndexFileUpgrade)
+            returnCode = await IndexFileUpgrade(indexFile, options.TargetVersion);
 
-                // Get simple options
-                var skipIndexFileUpgrade = result.GetValue(skipIndexFileUpgradeOption);
-                var skipLayoutSetUpgrade = result.GetValue(skipLayoutSetUpgradeOption);
-                var skipSettingsUpgrade = result.GetValue(skipSettingsUpgradeOption);
-                var skipLayoutUpgrade = result.GetValue(skipLayoutUpgradeOption);
-                var skipSchemaRefUpgrade = result.GetValue(skipSchemaRefUpgradeOption);
-                var skipFooterUpgrade = result.GetValue(skipFooterUpgradeOption);
-                var skipCustomReceiptUpgrade = result.GetValue(skipCustomReceiptUpgradeOption);
-                var skipChecks = result.GetValue(skipChecksOption);
-                var layoutSetName = result.GetValue(layoutSetNameOption);
-                var receiptLayoutSetName = result.GetValue(receiptLayoutSetNameOption);
-                var convertGroupTitles = result.GetValue(convertGroupTitlesOption);
-                var targetVersion = result.GetValue(targetVersionOption);
+        options.CancellationToken.ThrowIfCancellationRequested();
+        if (!options.SkipLayoutSetUpgrade && returnCode == 0)
+            returnCode = await LayoutSetUpgrade(uiFolder, options.LayoutSetName, applicationMetadataFile);
 
-                var projectFolder = result.GetValue(projectFolderOption);
-                if (projectFolder is null)
-                {
-                    PrintError("Project folder option is required.");
-                    Environment.Exit(1);
-                    return;
-                }
-                if (projectFolder == "CurrentDirectory")
-                {
-                    projectFolder = Directory.GetCurrentDirectory();
-                }
-                if (!Path.IsPathRooted(projectFolder))
-                {
-                    projectFolder = Path.Combine(Directory.GetCurrentDirectory(), projectFolder);
-                }
-                if (!Directory.Exists(projectFolder))
-                {
-                    PrintError(
-                        $"{projectFolder} does not exist. Please supply location of project with --folder [path/to/project]"
-                    );
-                    Environment.Exit(1);
-                    return;
-                }
+        options.CancellationToken.ThrowIfCancellationRequested();
+        if (!options.SkipCustomReceiptUpgrade && returnCode == 0)
+            returnCode = await CustomReceiptUpgrade(uiFolder, options.ReceiptLayoutSetName);
 
-                // Get options requiring project folder
-                var applicationMetadataFile = result.GetValue(applicationMetadataFileOption);
-                if (applicationMetadataFile is null)
-                {
-                    PrintError("Application metadata file option is required.");
-                    Environment.Exit(1);
-                    return;
-                }
-                applicationMetadataFile = Path.Combine(projectFolder, applicationMetadataFile);
+        options.CancellationToken.ThrowIfCancellationRequested();
+        if (!options.SkipSettingsUpgrade && returnCode == 0)
+            returnCode = await CreateMissingSettings(uiFolder);
 
-                var uiFolder = result.GetValue(uiFolderOption);
-                if (uiFolder is null)
-                {
-                    PrintError("UI folder option is required.");
-                    Environment.Exit(1);
-                    return;
-                }
-                uiFolder = Path.Combine(projectFolder, uiFolder);
+        options.CancellationToken.ThrowIfCancellationRequested();
+        if (!options.SkipLayoutUpgrade && returnCode == 0)
+            returnCode = await LayoutUpgrade(uiFolder, options.ConvertGroupTitles);
 
-                var textsFolder = result.GetValue(textsFolderOption);
-                if (textsFolder is null)
-                {
-                    PrintError("Texts folder option is required.");
-                    Environment.Exit(1);
-                    return;
-                }
-                textsFolder = Path.Combine(projectFolder, textsFolder);
+        options.CancellationToken.ThrowIfCancellationRequested();
+        if (!options.SkipFooterUpgrade && returnCode == 0)
+            returnCode = await FooterUpgrade(uiFolder);
 
-                var indexFile = result.GetValue(indexFileOption);
-                if (indexFile is null)
-                {
-                    PrintError("Index file option is required.");
-                    Environment.Exit(1);
-                    return;
-                }
-                indexFile = Path.Combine(projectFolder, indexFile);
+        options.CancellationToken.ThrowIfCancellationRequested();
+        if (!options.SkipSchemaRefUpgrade && returnCode == 0)
+            returnCode = await SchemaRefUpgrade(options.TargetVersion, uiFolder, applicationMetadataFile, textsFolder);
 
-                if (!skipIndexFileUpgrade && returnCode == 0)
-                {
-                    if (targetVersion is null)
-                    {
-                        PrintError("Target version option is required.");
-                        Environment.Exit(1);
-                        return;
-                    }
-                    returnCode = await IndexFileUpgrade(indexFile, targetVersion);
-                }
+        options.CancellationToken.ThrowIfCancellationRequested();
+        if (!options.SkipChecks && returnCode == 0)
+            returnCode = RunChecks(textsFolder);
 
-                if (!skipLayoutSetUpgrade && returnCode == 0)
-                {
-                    if (layoutSetName is null)
-                    {
-                        PrintError("Layout set name option is required.");
-                        Environment.Exit(1);
-                        return;
-                    }
-                    returnCode = await LayoutSetUpgrade(uiFolder, layoutSetName, applicationMetadataFile);
-                }
-
-                if (!skipCustomReceiptUpgrade && returnCode == 0)
-                {
-                    if (receiptLayoutSetName is null)
-                    {
-                        PrintError("Receipt layout set name option is required.");
-                        Environment.Exit(1);
-                        return;
-                    }
-                    returnCode = await CustomReceiptUpgrade(uiFolder, receiptLayoutSetName);
-                }
-
-                if (!skipSettingsUpgrade && returnCode == 0)
-                {
-                    returnCode = await CreateMissingSettings(uiFolder);
-                }
-
-                if (!skipLayoutUpgrade && returnCode == 0)
-                {
-                    returnCode = await LayoutUpgrade(uiFolder, convertGroupTitles);
-                }
-
-                if (!skipFooterUpgrade && returnCode == 0)
-                {
-                    returnCode = await FooterUpgrade(uiFolder);
-                }
-
-                if (!skipSchemaRefUpgrade && returnCode == 0)
-                {
-                    if (targetVersion is null)
-                    {
-                        PrintError("Target version option is required.");
-                        Environment.Exit(1);
-                        return;
-                    }
-                    returnCode = await SchemaRefUpgrade(targetVersion, uiFolder, applicationMetadataFile, textsFolder);
-                }
-
-                if (!skipChecks && returnCode == 0)
-                {
-                    returnCode = RunChecks(textsFolder);
-                }
-
-                Environment.Exit(returnCode);
-            }
-        );
-
-        return upgradeCommand;
+        return returnCode;
     }
 
     private static async Task<int> IndexFileUpgrade(string indexFile, string targetVersion)
@@ -301,7 +115,7 @@ internal static class FrontendUpgrade
             PrintWarning(warning);
         }
 
-        Console.WriteLine(
+        UpgradeConsole.WriteLine(
             warnings.Any() ? "Index.cshtml upgraded with warnings. Review the warnings above." : "Index.cshtml upgraded"
         );
         return 0;
@@ -315,7 +129,7 @@ internal static class FrontendUpgrade
     {
         if (File.Exists(Path.Combine(uiFolder, "layout-sets.json")))
         {
-            Console.WriteLine("Project already using layout sets. Skipping layout set upgrade.");
+            UpgradeConsole.WriteLine("Project already using layout sets. Skipping layout set upgrade.");
             return 0;
         }
 
@@ -344,7 +158,7 @@ internal static class FrontendUpgrade
         {
             PrintWarning(warning);
         }
-        Console.WriteLine(
+        UpgradeConsole.WriteLine(
             warnings.Any() ? "Layout-sets upgraded with warnings. Review the warnings above." : "Layout sets upgraded"
         );
         return 0;
@@ -368,7 +182,7 @@ internal static class FrontendUpgrade
 
         if (Directory.Exists(Path.Combine(uiFolder, receiptLayoutSetName)))
         {
-            Console.WriteLine(
+            UpgradeConsole.WriteLine(
                 $"A layout set with the name {receiptLayoutSetName} already exists. Skipping custom receipt upgrade."
             );
             return 0;
@@ -383,7 +197,7 @@ internal static class FrontendUpgrade
         {
             PrintWarning(warning);
         }
-        Console.WriteLine(
+        UpgradeConsole.WriteLine(
             warnings.Any()
                 ? "Custom receipt upgraded with warnings. Review the warnings above."
                 : "Custom receipt upgraded"
@@ -416,7 +230,7 @@ internal static class FrontendUpgrade
         {
             PrintWarning(warning);
         }
-        Console.WriteLine(
+        UpgradeConsole.WriteLine(
             warnings.Any()
                 ? "Layout settings upgraded with warnings. Review the warnings above."
                 : "Layout settings upgraded"
@@ -450,7 +264,7 @@ internal static class FrontendUpgrade
             PrintWarning(warning);
         }
 
-        Console.WriteLine(
+        UpgradeConsole.WriteLine(
             warnings.Any() ? "Layout files upgraded with warnings. Review the warnings above." : "Layout files upgraded"
         );
         return 0;
@@ -476,7 +290,7 @@ internal static class FrontendUpgrade
             PrintWarning(warning);
         }
 
-        Console.WriteLine(
+        UpgradeConsole.WriteLine(
             warnings.Any() ? "Footer upgraded with warnings. Review the warnings above." : "Footer upgraded"
         );
         return 0;
@@ -529,7 +343,7 @@ internal static class FrontendUpgrade
             PrintWarning(warning);
         }
 
-        Console.WriteLine(
+        UpgradeConsole.WriteLine(
             warnings.Any()
                 ? "Schema references upgraded with warnings. Review the warnings above."
                 : "Schema references upgraded"
@@ -547,7 +361,7 @@ internal static class FrontendUpgrade
             return 1;
         }
 
-        Console.WriteLine("Running checks...");
+        UpgradeConsole.WriteLine("Running checks...");
         var checker = new Checker(textsFolder);
 
         checker.CheckTextDataModelReferences();
@@ -558,7 +372,7 @@ internal static class FrontendUpgrade
             PrintWarning(warning);
         }
 
-        Console.WriteLine(
+        UpgradeConsole.WriteLine(
             warnings.Any()
                 ? "Checks finished with warnings. Review the warnings above."
                 : "Checks finished without warnings"
