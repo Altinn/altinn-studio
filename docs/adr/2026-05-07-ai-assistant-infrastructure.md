@@ -1,6 +1,6 @@
 # Studio AI assistant infrastructure
 
-- Status: Proposed
+- Status: Accepted
 - Deciders: Team
 - Date: 07.05.2026
 
@@ -26,13 +26,13 @@ The assistant is composed of two services:
 - Can answer general questions or make changes to repos.
 - Gathers Studio context from the MCP.
 - Uses the Designer API key for access through the Gitea proxy. The agent has the same authentication level as a logged-in developer.
-- Currently follows a workflow with well-defined steps, but may become more autonomous in the future.
+- Currently, it follows a workflow with well-defined steps, but may become more autonomous in the future.
 - Capabilities are limited to predefined `git clone`, `git commit`, `git push` commands and read/write access to its own internal file system.
 
 ## Decision drivers
 
 - D1: Resource allocation of the assistant should not affect other services.
-- D2: The agent should be securely locked to its intended scope, due to it having write-access and the prompt injection risk.
+- D2: The agent should be securely locked to its intended scope because it has write access and is exposed to prompt-injection risk.
 
 ## Alternatives considered
 
