@@ -22,27 +22,19 @@ describe('ConfigEndEvent', () => {
 
   it('should hide the custom receipt content behind closed accordion initially', () => {
     renderConfigEndEventPanel();
-
-    const accordion = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_accordion_header'),
-    });
-
-    expect(accordion).toHaveAttribute('aria-expanded', 'false');
+    expect(getReceiptInfoText()).not.toBeVisible();
   });
 
   it('should display the informal text, the link to read more, and the custom receipt content when opening the accordion', async () => {
     const user = userEvent.setup();
     renderConfigEndEventPanel();
 
-    const accordion = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_accordion_header'),
-    });
+    const accordion = screen.getByText(
+      textMock('process_editor.configuration_panel_custom_receipt_accordion_header'),
+    );
     await user.click(accordion);
 
-    const informationTextDefaultReceipt = screen.getByText(
-      textMock('process_editor.configuration_panel_custom_receipt_default_receipt_info'),
-    );
-    expect(informationTextDefaultReceipt).toBeVisible();
+    expect(getReceiptInfoText()).toBeVisible();
 
     const link = screen.getByRole('link', {
       name: textMock('process_editor.configuration_panel_custom_receipt_default_receipt_link'),
@@ -79,3 +71,6 @@ const renderConfigEndEventPanel = (props: Partial<RenderProps> = {}) => {
     </BpmnApiContext.Provider>,
   );
 };
+
+const receiptInfoTextKey = 'process_editor.configuration_panel_custom_receipt_default_receipt_info';
+const getReceiptInfoText = () => screen.getByText(textMock(receiptInfoTextKey));

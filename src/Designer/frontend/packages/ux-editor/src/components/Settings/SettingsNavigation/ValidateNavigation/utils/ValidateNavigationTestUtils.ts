@@ -12,7 +12,9 @@ export const selectSuggestionOption = async ({
   selectorLabel,
   optionLabel,
 }: SelectOption) => {
-  const selector = screen.getByRole('textbox', { name: selectorLabel });
+  const selector = await screen.findByRole('combobox', {
+    name: (name) => name.startsWith(selectorLabel),
+  }); // Todo: Use selectorLabel directly when https://github.com/digdir/designsystemet/issues/4626 is fixed
   await user.click(selector);
   const option = await screen.findByRole('option', { name: optionLabel });
   await user.click(option);

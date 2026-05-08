@@ -2,6 +2,7 @@ import 'jest';
 import 'whatwg-fetch';
 import '@testing-library/jest-dom/jest-globals';
 import '@testing-library/jest-dom';
+import '@oddbird/popover-polyfill';
 import failOnConsole from 'jest-fail-on-console';
 import { textMock } from './mocks/i18nMock';
 import { SignalR } from './mocks/signalr';
