@@ -78,7 +78,7 @@ public sealed class InstanceClientMockSi : IInstanceClient
         int instanceOwnerId = int.Parse(instance.InstanceOwner.PartyId);
         Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
-        return await GetInstance(app, org, instanceOwnerId, instanceGuid);
+        return await GetInstance(app, org, instanceOwnerId, instanceGuid, authenticationMethod, ct);
     }
 
     public async Task<Instance> GetInstance(
@@ -146,7 +146,7 @@ public sealed class InstanceClientMockSi : IInstanceClient
         CancellationToken ct = default
     )
     {
-        return UpdateProcess(instance);
+        return UpdateProcess(instance, authenticationMethod, ct);
     }
 
     private static async Task<Instance> GetTestInstance(string app, string org, int instanceOwnerId, Guid instanceId)

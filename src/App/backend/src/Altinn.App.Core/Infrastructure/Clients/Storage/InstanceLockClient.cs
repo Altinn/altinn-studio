@@ -8,37 +8,27 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Infrastructure.Clients.Storage;
 
-internal sealed class InstanceLockClient
+internal sealed class InstanceLockClient(
+    IOptionsMonitor<PlatformSettings> _platformSettings,
+    IAuthenticationTokenResolver _authenticationTokenResolver,
+    IHttpClientFactory _httpClientFactory,
+    Telemetry? _telemetry = null
+)
 {
-    private readonly ILogger<InstanceLockClient> _logger;
-    private readonly HttpClient _client;
-    private readonly Telemetry? _telemetry;
-    private readonly IAuthenticationTokenResolver _authenticationTokenResolver;
-
     private readonly AuthenticationMethod _defaultAuthenticationMethod = StorageAuthenticationMethod.CurrentUser();
 
-    private const string LockTokenHeaderName = "Altinn-Storage-Lock-Token";
-
-    public InstanceLockClient(
-        IOptions<PlatformSettings> platformSettings,
-        ILogger<InstanceLockClient> logger,
-        IAuthenticationTokenResolver authenticationTokenResolver,
-        HttpClient httpClient,
-        Telemetry? telemetry = null
-    )
+    private HttpClient CreateHttpClient()
     {
-        _logger = logger;
-        _authenticationTokenResolver = authenticationTokenResolver;
-        httpClient.BaseAddress = new Uri(platformSettings.Value.ApiStorageEndpoint);
-        httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
+        var settings = _platformSettings.CurrentValue;
+        var httpClient = _httpClientFactory.CreateClient();
+        httpClient.BaseAddress = new Uri(settings.ApiStorageEndpoint);
+        httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, settings.SubscriptionKey);
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        _client = httpClient;
-        _telemetry = telemetry;
+        return httpClient;
     }
 
     public async Task<string> AcquireInstanceLock(
@@ -60,7 +50,8 @@ internal sealed class InstanceLockClient
         var request = new InstanceLockRequest { TtlSeconds = (int)expiration.TotalSeconds };
         var content = JsonContent.Create(request);
 
-        using var response = await _client.PostAsync(token, apiUrl, content, cancellationToken: cancellationToken);
+        using var client = CreateHttpClient();
+        using var response = await client.PostAsync(token, apiUrl, content, cancellationToken: cancellationToken);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -77,7 +68,7 @@ internal sealed class InstanceLockClient
         }
         catch (Exception e) when (e is JsonException || e is InvalidOperationException)
         {
-            _logger.LogError(e, "Error reading response from the lock acquisition endpoint.");
+            activity?.Errored(e, "Error reading response from the lock acquisition endpoint.");
         }
 
         if (string.IsNullOrEmpty(lockToken))
@@ -91,17 +82,18 @@ internal sealed class InstanceLockClient
         return lockToken;
     }
 
-    public async Task ReleaseInstanceLock(
+    public async Task UpdateInstanceLock(
         Guid instanceGuid,
         int instanceOwnerPartyId,
         string lockToken,
+        TimeSpan ttl,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
     )
     {
-        using var activity = _telemetry?.StartReleaseInstanceLockActivity(instanceGuid, instanceOwnerPartyId);
+        using var activity = _telemetry?.StartUpdateInstanceLockActivity(instanceGuid, instanceOwnerPartyId, ttl);
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/lock";
-        var instanceLockRequest = new InstanceLockRequest { TtlSeconds = 0 };
+        var instanceLockRequest = new InstanceLockRequest { TtlSeconds = (int)ttl.TotalSeconds };
 
         var userToken = await _authenticationTokenResolver.GetAccessToken(
             authenticationMethod ?? _defaultAuthenticationMethod,
@@ -111,9 +103,10 @@ internal sealed class InstanceLockClient
         using HttpRequestMessage request = new(HttpMethod.Patch, apiUrl);
         request.Content = JsonContent.Create(instanceLockRequest);
         request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, userToken);
-        request.Headers.Add(LockTokenHeaderName, lockToken);
+        request.Headers.Add(General.LockTokenHeaderName, lockToken);
 
-        using var response = await _client.SendAsync(request, cancellationToken);
+        using var client = CreateHttpClient();
+        using var response = await client.SendAsync(request, cancellationToken);
 
         if (!response.IsSuccessStatusCode)
         {

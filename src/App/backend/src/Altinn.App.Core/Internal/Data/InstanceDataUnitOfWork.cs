@@ -14,6 +14,7 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Options;
+using KeyValueEntry = Altinn.Platform.Storage.Interface.Models.KeyValueEntry;
 
 namespace Altinn.App.Core.Internal.Data;
 
@@ -275,7 +276,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         string dataTypeId,
         string contentType,
         string? filename,
-        ReadOnlyMemory<byte> bytes
+        ReadOnlyMemory<byte> bytes,
+        string? generatedFromTask = null,
+        List<KeyValueEntry>? metadata = null
     )
     {
         var dataType = GetDataTypeByString(dataTypeId);
@@ -306,7 +309,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             dataType: dataType,
             fileName: filename,
             contentType: contentType,
-            currentBinaryData: bytes
+            currentBinaryData: bytes,
+            generatedFromTask: generatedFromTask,
+            metadata: metadata
         );
         _changesForCreation.Add(change);
         return change;
@@ -358,6 +363,49 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                 )
             );
         }
+    }
+
+    /// <summary>
+    /// Preload form data into the cache so that it doesn't need to be fetched from Storage.
+    /// </summary>
+    internal void PreloadFormData(DataElementIdentifier id, IFormDataWrapper wrapper)
+    {
+        _formDataCache.Set(id, wrapper);
+    }
+
+    /// <summary>
+    /// Preload binary data into the cache so that it doesn't need to be fetched from Storage.
+    /// </summary>
+    internal void PreloadBinaryData(DataElementIdentifier id, ReadOnlyMemory<byte> data)
+    {
+        _binaryCache.Set(id, data);
+    }
+
+    /// <summary>
+    /// Captures all form data from the cache for state transport.
+    /// Iterates Instance.Data, finds form data elements (via DataTypes where AppLogic.ClassRef is set),
+    /// ensures each is loaded, and serializes to JSON.
+    /// </summary>
+    internal async Task<List<(string Id, string DataType, System.Text.Json.JsonElement Data)>> CaptureFormData(
+        ModelSerializationService modelSerializationService
+    )
+    {
+        var result = new List<(string Id, string DataType, System.Text.Json.JsonElement Data)>();
+
+        foreach (var dataElement in Instance.Data)
+        {
+            var dataType = DataTypes.FirstOrDefault(dt => dt.Id == dataElement.DataType);
+            if (dataType?.AppLogic?.ClassRef is null)
+                continue;
+
+            DataElementIdentifier identifier = dataElement;
+            var wrapper = await GetFormDataWrapper(identifier);
+            var jsonBytes = modelSerializationService.SerializeToJson(wrapper.BackingData<object>());
+            var jsonElement = System.Text.Json.JsonDocument.Parse(jsonBytes).RootElement.Clone();
+            result.Add((dataElement.Id, dataElement.DataType, jsonElement));
+        }
+
+        return result;
     }
 
     internal List<ValidationIssue> AbandonIssues { get; } = [];
@@ -491,8 +539,17 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             change.ContentType,
             (change as BinaryDataChange)?.FileName,
             new MemoryAsStream(bytes),
+            generatedFromTask: (change as BinaryDataChange)?.GeneratedFromTask,
             authenticationMethod: GetAuthenticationMethod(change.DataType)
         );
+
+        // Apply metadata if specified
+        if (change is BinaryDataChange { Metadata: { Count: > 0 } metadata })
+        {
+            dataElement.Metadata = metadata;
+            dataElement = await _dataClient.Update(Instance, dataElement);
+        }
+
         // Update caches
         _binaryCache.Set(dataElement, bytes);
         change.DataElement = dataElement; // Set the data element so that it can be referenced later in the save process
@@ -697,7 +754,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                 int.Parse(Instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
                 Guid.Parse(Instance.Id.Split("/")[1]),
                 new PresentationTexts { Texts = updatedTexts },
-                authenticationMethod: null,
+                GetAuthenticationMethod(dataType),
                 CancellationToken.None
             );
 
@@ -728,7 +785,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                 int.Parse(Instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
                 Guid.Parse(Instance.Id.Split("/")[1]),
                 new DataValues { Values = updatedValues },
-                authenticationMethod: null,
+                GetAuthenticationMethod(dataType),
                 CancellationToken.None
             );
 

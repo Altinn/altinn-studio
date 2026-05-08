@@ -79,7 +79,7 @@ public class PaymentProcessTaskTests
         await _paymentProcessTask.End(taskId, instance);
 
         // Assert
-        _pdfServiceMock.Verify(x => x.GeneratePdf(instance, taskId, false, CancellationToken.None));
+        _pdfServiceMock.Verify(x => x.GeneratePdf(instance, taskId, false, null, CancellationToken.None));
         _dataClientMock.Verify(x =>
             x.InsertBinaryData(
                 instance.Id,
@@ -113,7 +113,7 @@ public class PaymentProcessTaskTests
         await _paymentProcessTask.End(taskId, instance);
 
         // Assert
-        _pdfServiceMock.Verify(x => x.GeneratePdf(instance, taskId, false, CancellationToken.None), Times.Never);
+        _pdfServiceMock.Verify(x => x.GeneratePdf(instance, taskId, false, null, CancellationToken.None), Times.Never);
         _dataClientMock.Verify(
             x =>
                 x.InsertBinaryData(
@@ -146,7 +146,7 @@ public class PaymentProcessTaskTests
             .ReturnsAsync(PaymentStatus.Created);
 
         // Act and assert
-        _pdfServiceMock.Verify(x => x.GeneratePdf(instance, taskId, false, CancellationToken.None), Times.Never);
+        _pdfServiceMock.Verify(x => x.GeneratePdf(instance, taskId, false, null, CancellationToken.None), Times.Never);
         _dataClientMock.Verify(
             x =>
                 x.InsertBinaryData(
@@ -226,7 +226,9 @@ public class PaymentProcessTaskTests
 
         using var memoryStream = new MemoryStream();
         _pdfServiceMock
-            .Setup(ps => ps.GeneratePdf(It.IsAny<Instance>(), It.IsAny<string>(), false, It.IsAny<CancellationToken>()))
+            .Setup(ps =>
+                ps.GeneratePdf(It.IsAny<Instance>(), It.IsAny<string>(), false, null, It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(memoryStream);
 
         Func<Task> act = async () => await _paymentProcessTask.End("taskId", new Instance());

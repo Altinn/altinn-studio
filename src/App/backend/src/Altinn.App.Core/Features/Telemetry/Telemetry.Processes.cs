@@ -106,6 +106,14 @@ partial class Telemetry
         return activity;
     }
 
+    internal Activity? StartProcessEngineCallbackActivity(Guid instanceGuid, string commandKey)
+    {
+        var activity = ActivitySource.StartActivity($"{Prefix}.Callback");
+        activity?.SetInstanceId(instanceGuid);
+        activity?.SetTag(InternalLabels.ProcessCallbackCommand, commandKey);
+        return activity;
+    }
+
     internal static class Processes
     {
         internal const string Prefix = "Process";

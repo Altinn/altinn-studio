@@ -16,6 +16,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Tests.Infrastructure.Clients.Storage.TestData;
 using Altinn.App.PlatformServices.Tests.Data;
@@ -1174,6 +1175,7 @@ public class DataClientTests
             services.AddSingleton(mocks.MaskinportenClientMock.Object);
             services.AddSingleton(mocks.AppMetadataMock.Object);
             services.AddSingleton(mocks.AuthenticationContextMock.Object);
+            services.AddSingleton<IInstanceLocker>(Mock.Of<IInstanceLocker>());
             services.AddLogging(logging => logging.AddProvider(NullLoggerProvider.Instance));
 
             if (telemetrySink is not null)

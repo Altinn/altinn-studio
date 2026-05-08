@@ -1,8 +1,10 @@
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -45,6 +47,9 @@ public class PdfServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
+        var pdfDataType = new DataType { Id = "ref-data-as-pdf" };
+        instanceMutatorMock.Setup(x => x.DataTypes).Returns(new List<DataType> { pdfDataType });
+
         var parameters = new ServiceTaskContext { InstanceDataMutator = instanceMutatorMock.Object };
 
         // Act
@@ -54,10 +59,10 @@ public class PdfServiceTaskTests
         _pdfServiceMock.Verify(
             x =>
                 x.GenerateAndStorePdf(
-                    instance,
-                    instance.Process.CurrentTask.ElementId,
+                    instanceMutatorMock.Object,
                     FileName,
                     It.IsAny<List<string>?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -92,6 +97,9 @@ public class PdfServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
+        var pdfDataType = new DataType { Id = "ref-data-as-pdf" };
+        instanceMutatorMock.Setup(x => x.DataTypes).Returns(new List<DataType> { pdfDataType });
+
         var parameters = new ServiceTaskContext { InstanceDataMutator = instanceMutatorMock.Object };
 
         var serviceTask = new PdfServiceTask(_pdfServiceMock.Object, _processReaderMock.Object, _loggerMock.Object);
@@ -103,10 +111,10 @@ public class PdfServiceTaskTests
         _pdfServiceMock.Verify(
             x =>
                 x.GenerateAndStorePdf(
-                    instance,
-                    "pdfTask",
+                    instanceMutatorMock.Object,
                     "customFilenameTextResourceKey",
                     taskIds,
+                    It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once

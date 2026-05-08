@@ -223,55 +223,6 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     }
 
     [Fact]
-    public async Task RunProcessNext_PdfFails_DataIsUnlocked()
-    {
-        this.OverrideServicesForThisTest = (services) =>
-        {
-            services.AddTelemetrySink(
-                additionalActivitySources: source => source.Name == "Microsoft.AspNetCore",
-                additionalMeters: source => source.Name == "Microsoft.AspNetCore.Hosting",
-                filterMetrics: metric => metric.Name == "http.server.request.duration"
-            );
-        };
-
-        bool sendAsyncCalled = false;
-        var dataElementPath = TestData.GetDataElementPath(Org, App, InstanceOwnerPartyId, _instanceGuid, _dataGuid);
-
-        SendAsync = async message =>
-        {
-            message.RequestUri!.PathAndQuery.Should().Be($"/pdf");
-            var content = await message.Content!.ReadAsStringAsync();
-
-            OutputHelper.WriteLine("pdf request content:");
-            OutputHelper.WriteLine(content);
-            OutputHelper.WriteLine("");
-
-            // Verify that data element is locked while pdf is being generated
-            var lockedInstanceString = await File.ReadAllTextAsync(dataElementPath);
-            var lockedInstance = JsonSerializer.Deserialize<DataElement>(lockedInstanceString, JsonSerializerOptions)!;
-            lockedInstance.Locked.Should().BeTrue();
-
-            sendAsyncCalled = true;
-
-            // Return a 429 to simulate pdf generation failure
-            return new HttpResponseMessage(HttpStatusCode.TooManyRequests);
-        };
-        using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
-        var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
-        var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        OutputHelper.WriteLine(nextResponseContent);
-        nextResponse.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
-        sendAsyncCalled.Should().BeTrue();
-
-        // Verify that the instance is not locked after pdf failed
-        var unLockedInstanceString = await File.ReadAllTextAsync(dataElementPath);
-        var unLockedInstance = JsonSerializer.Deserialize<DataElement>(unLockedInstanceString, JsonSerializerOptions)!;
-        unLockedInstance.Locked.Should().BeFalse();
-
-        await Verify(await GetTelemetrySnapshot(numberOfActivities: 1, numberOfMetrics: 1));
-    }
-
-    [Fact]
     public async Task RunProcessNext_FailingValidator_ReturnsValidationErrors()
     {
         var dataValidator = new Mock<IFormDataValidator>(MockBehavior.Strict);

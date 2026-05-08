@@ -64,9 +64,9 @@ public sealed class SigningServiceTests : IDisposable
         );
 
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
+            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
             .ReturnsAsync(
-                (PartyLookup lookup) =>
+                (PartyLookup lookup, StorageAuthenticationMethod? _) =>
                 {
                     return lookup.Ssn is not null
                         ? new Party { SSN = lookup.Ssn }
@@ -220,9 +220,9 @@ public sealed class SigningServiceTests : IDisposable
             .ReturnsAsync(synchronizedSigneeContexts);
 
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
+            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
             .ReturnsAsync(
-                (PartyLookup lookup) =>
+                (PartyLookup lookup, StorageAuthenticationMethod? _) =>
                 {
                     return lookup.Ssn is not null
                         ? new Party { SSN = lookup.Ssn, Name = "A person" }
@@ -409,7 +409,7 @@ public sealed class SigningServiceTests : IDisposable
             .ReturnsAsync((signeeContexts, true));
 
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
+            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
             .ReturnsAsync(new Party { PartyUuid = Guid.NewGuid() });
 
         // Act
@@ -692,7 +692,9 @@ public sealed class SigningServiceTests : IDisposable
             .ReturnsAsync(new ApplicationMetadata("ttd/app") { Org = "ttd" });
 
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.Is<PartyLookup>(p => p.OrgNo == "991825827")))
+            .Setup(x =>
+                x.LookupParty(It.Is<PartyLookup>(p => p.OrgNo == "991825827"), It.IsAny<StorageAuthenticationMethod?>())
+            )
             .ReturnsAsync(
                 new Party
                 {
@@ -777,7 +779,7 @@ public sealed class SigningServiceTests : IDisposable
         // Setup to throw exception during party lookup
         _altinnPartyClient.Reset();
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
+            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
             .ThrowsAsync(new Exception("Party lookup failed"));
 
         // Act & Assert

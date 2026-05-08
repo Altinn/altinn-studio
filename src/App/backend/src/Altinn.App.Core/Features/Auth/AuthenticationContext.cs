@@ -88,11 +88,11 @@ internal sealed class AuthenticationContext : IAuthenticationContext
                         isAuthenticated: !string.IsNullOrWhiteSpace(token),
                         _appConfigurationCache.ApplicationMetadata,
                         () => _httpContext.Request.Cookies[_generalSettings.CurrentValue.GetAltinnPartyCookieName],
-                        _profileClient.GetUserProfile,
-                        _altinnPartyClient.GetParty,
+                        (int userId) => _profileClient.GetUserProfile(userId),
+                        (int partyId) => _altinnPartyClient.GetParty(partyId),
                         (string orgNr) => _altinnPartyClient.LookupParty(new PartyLookup { OrgNo = orgNr }),
-                        _authorizationClient.GetPartyList,
-                        _authorizationClient.ValidateSelectedParty
+                        (int userId) => _authorizationClient.GetPartyList(userId),
+                        (int userId, int partyId) => _authorizationClient.ValidateSelectedParty(userId, partyId)
                     );
                 }
                 else
@@ -104,11 +104,11 @@ internal sealed class AuthenticationContext : IAuthenticationContext
                         isAuthenticated: isAuthenticated,
                         _appConfigurationCache.ApplicationMetadata,
                         () => _httpContext.Request.Cookies[_generalSettings.CurrentValue.GetAltinnPartyCookieName],
-                        _profileClient.GetUserProfile,
-                        _altinnPartyClient.GetParty,
+                        (int userId) => _profileClient.GetUserProfile(userId),
+                        (int partyId) => _altinnPartyClient.GetParty(partyId),
                         (string orgNr) => _altinnPartyClient.LookupParty(new PartyLookup { OrgNo = orgNr }),
-                        _authorizationClient.GetPartyList,
-                        _authorizationClient.ValidateSelectedParty
+                        (int userId) => _authorizationClient.GetPartyList(userId),
+                        (int userId, int partyId) => _authorizationClient.ValidateSelectedParty(userId, partyId)
                     );
                 }
 

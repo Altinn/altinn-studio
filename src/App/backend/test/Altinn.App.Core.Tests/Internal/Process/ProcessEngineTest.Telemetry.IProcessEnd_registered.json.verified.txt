@@ -11,36 +11,6 @@
       HasParent: true
     },
     {
-      Name: Process.EndHandler.Castle.Proxies.IProcessEndProxy,
-      IdFormat: W3C,
-      Tags: [
-        {
-          instance.guid: Guid_1
-        }
-      ],
-      HasParent: true
-    },
-    {
-      Name: Process.EndHandlers,
-      IdFormat: W3C,
-      Tags: [
-        {
-          instance.guid: Guid_1
-        }
-      ],
-      HasParent: true
-    },
-    {
-      Name: Process.HandleEvents,
-      IdFormat: W3C,
-      Tags: [
-        {
-          instance.guid: Guid_1
-        }
-      ],
-      HasParent: true
-    },
-    {
       Name: Process.Next,
       IdFormat: W3C,
       Status: Ok,
@@ -71,11 +41,31 @@
       HasParent: false
     },
     {
-      Name: Process.StoreEvents,
+      Name: Process.Next,
       IdFormat: W3C,
+      Status: Ok,
       Tags: [
         {
           instance.guid: Guid_1
+        }
+      ],
+      Events: [
+        {
+          Name: change,
+          Timestamp: DateTimeOffset_2,
+          Tags: [
+            {
+              events: [
+                Type=process_EndTask DataId=,
+                Type=process_EndEvent DataId=,
+                Type=Submited DataId=
+              ]
+            },
+            {},
+            {},
+            {},
+            {}
+          ]
         }
       ],
       HasParent: true

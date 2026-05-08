@@ -1,5 +1,6 @@
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling.Interface;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;

@@ -7,6 +7,7 @@ using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Models.Pdf;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -31,10 +32,12 @@ public class PdfGeneratorClient : IPdfGeneratorClient
     private readonly HttpClient _httpClient;
     private readonly PdfGeneratorSettings _pdfGeneratorSettings;
     private readonly PlatformSettings _platformSettings;
-    private readonly IUserTokenProvider _userTokenProvider;
+    private readonly Func<AuthenticationMethod, CancellationToken, Task<string>> _getAccessToken;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IHostEnvironment _hostEnvironment;
     private readonly Telemetry? _telemetry;
+
+    private readonly AuthenticationMethod _defaultAuthenticationMethod = StorageAuthenticationMethod.CurrentUser();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfGeneratorClient"/> class.
@@ -45,7 +48,7 @@ public class PdfGeneratorClient : IPdfGeneratorClient
     /// All generic settings needed for communication with the PDF generator service.
     /// </param>
     /// <param name="platformSettings">Links to platform services</param>
-    /// <param name="userTokenProvider">A service able to identify the JWT for currently authenticated user.</param>
+    /// <param name="userTokenProvider">Provides the current user token.</param>
     /// <param name="httpContextAccessor">http context</param>
     /// <param name="hostEnvironment">The host environment.</param>
     /// <param name="telemetry">Telemetry service</param>
@@ -59,25 +62,92 @@ public class PdfGeneratorClient : IPdfGeneratorClient
         IHostEnvironment hostEnvironment,
         Telemetry? telemetry = null
     )
+        : this(
+            logger,
+            httpClient,
+            pdfGeneratorSettings,
+            platformSettings,
+            httpContextAccessor,
+            hostEnvironment,
+            (authenticationMethod, cancellationToken) => Task.FromResult(userTokenProvider.GetUserToken()),
+            telemetry
+        ) { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PdfGeneratorClient"/> class.
+    /// </summary>
+    /// <param name="logger">The logger.</param>
+    /// <param name="httpClient">The HttpClient to use in communication with the PDF generator service.</param>
+    /// <param name="pdfGeneratorSettings">
+    /// All generic settings needed for communication with the PDF generator service.
+    /// </param>
+    /// <param name="platformSettings">Links to platform services</param>
+    /// <param name="httpContextAccessor">http context</param>
+    /// <param name="serviceProvider">The service provider for resolving internal services.</param>
+    /// <param name="telemetry">Telemetry service</param>
+    public PdfGeneratorClient(
+        ILogger<PdfGeneratorClient> logger,
+        HttpClient httpClient,
+        IOptions<PdfGeneratorSettings> pdfGeneratorSettings,
+        IOptions<PlatformSettings> platformSettings,
+        IHttpContextAccessor httpContextAccessor,
+        IServiceProvider serviceProvider,
+        Telemetry? telemetry = null
+    )
+        : this(
+            logger,
+            httpClient,
+            pdfGeneratorSettings,
+            platformSettings,
+            httpContextAccessor,
+            serviceProvider.GetRequiredService<IHostEnvironment>(),
+            async (authenticationMethod, cancellationToken) =>
+                await serviceProvider
+                    .GetRequiredService<IAuthenticationTokenResolver>()
+                    .GetAccessToken(authenticationMethod, cancellationToken),
+            telemetry
+        ) { }
+
+    private PdfGeneratorClient(
+        ILogger<PdfGeneratorClient> logger,
+        HttpClient httpClient,
+        IOptions<PdfGeneratorSettings> pdfGeneratorSettings,
+        IOptions<PlatformSettings> platformSettings,
+        IHttpContextAccessor httpContextAccessor,
+        IHostEnvironment hostEnvironment,
+        Func<AuthenticationMethod, CancellationToken, Task<string>> getAccessToken,
+        Telemetry? telemetry
+    )
     {
         _logger = logger;
         _httpClient = httpClient;
-        _userTokenProvider = userTokenProvider;
         _pdfGeneratorSettings = pdfGeneratorSettings.Value;
         _platformSettings = platformSettings.Value;
         _httpContextAccessor = httpContextAccessor;
         _hostEnvironment = hostEnvironment;
+        _getAccessToken = getAccessToken;
         _telemetry = telemetry;
     }
 
     /// <inheritdoc/>
     public async Task<Stream> GeneratePdf(Uri uri, CancellationToken ct)
     {
-        return await GeneratePdf(uri, null, ct);
+        return await GeneratePdf(uri, null, null, ct);
     }
 
     /// <inheritdoc/>
     public async Task<Stream> GeneratePdf(Uri uri, string? footerContent, CancellationToken ct)
+    {
+        return await GeneratePdf(uri, footerContent, null, ct);
+    }
+
+    /// <inheritdoc/>
+    public async Task<Stream> GeneratePdf(
+        Uri uri,
+        string? footerContent,
+        StorageAuthenticationMethod? authenticationMethod,
+        CancellationToken ct
+    )
     {
         using var activity = _telemetry?.StartGeneratePdfClientActivity();
 
@@ -121,9 +191,8 @@ public class PdfGeneratorClient : IPdfGeneratorClient
             );
         }
 
-        generatorRequest.Cookies.Add(
-            new PdfGeneratorCookieOptions { Value = _userTokenProvider.GetUserToken(), Domain = uri.Host }
-        );
+        string tokenValue = await _getAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
+        generatorRequest.Cookies.Add(new PdfGeneratorCookieOptions { Value = tokenValue, Domain = uri.Host });
 
         if (
             _hostEnvironment.IsDevelopment()

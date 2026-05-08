@@ -14,6 +14,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -37,7 +38,6 @@ public class PdfControllerTests
     private readonly Mock<IInstanceClient> _instanceClient = new();
     private readonly Mock<IPdfFormatter> _pdfFormatter = new();
     private readonly Mock<IAppModel> _appModel = new();
-    private readonly Mock<IUserTokenProvider> _userTokenProvider = new();
 
     private readonly IOptions<PdfGeneratorSettings> _pdfGeneratorSettingsOptions = Options.Create<PdfGeneratorSettings>(
         new() { }
@@ -83,7 +83,6 @@ public class PdfControllerTests
     )
     {
         var pdfService = new PdfService(
-            _dataClient.Object,
             httpContextAccessor.Object,
             pdfGeneratorClient,
             _pdfGeneratorSettingsOptions,
@@ -121,9 +120,8 @@ public class PdfControllerTests
             httpClient,
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
-            _userTokenProvider.Object,
             httpContextAccessor.Object,
-            hostEnvironment.Object
+            BuildServiceProvider(hostEnvironment.Object)
         );
         var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
         var pdfController = new PdfController(
@@ -197,9 +195,8 @@ public class PdfControllerTests
             httpClient,
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
-            _userTokenProvider.Object,
             httpContextAccessor.Object,
-            hostEnvironment.Object
+            BuildServiceProvider(hostEnvironment.Object)
         );
         var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
         var pdfController = new PdfController(
@@ -275,9 +272,8 @@ public class PdfControllerTests
             httpClient,
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
-            _userTokenProvider.Object,
             httpContextAccessor.Object,
-            hostEnvironment.Object
+            BuildServiceProvider(hostEnvironment.Object)
         );
         var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
         var pdfController = new PdfController(
@@ -323,5 +319,13 @@ public class PdfControllerTests
                 @"url"":""http://org.apps.tt02.altinn.no/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
             );
         requestBody.Should().NotContain(@"name"":""frontendVersion");
+    }
+
+    private static IServiceProvider BuildServiceProvider(IHostEnvironment hostEnvironment)
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton(hostEnvironment);
+        services.AddSingleton(new Mock<IAuthenticationTokenResolver>().Object);
+        return services.BuildServiceProvider();
     }
 }

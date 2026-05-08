@@ -93,7 +93,7 @@ internal sealed class SigningProcessTask : IProcessTask
 
         if (signingPdfDataType is not null)
         {
-            using Stream pdfStream = await _pdfService.GeneratePdf(instance, taskId, false, CancellationToken.None);
+            using Stream pdfStream = await _pdfService.GeneratePdf(instance, taskId, false, ct: CancellationToken.None);
 
             await _dataClient.InsertBinaryData(
                 instance.Id,

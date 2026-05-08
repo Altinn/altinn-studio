@@ -6,6 +6,7 @@ namespace Altinn.App.Core.Features;
 /// IProcessTaskStart defines a implementation for running logic when a task starts in the apps process
 /// </summary>
 [ImplementableByApps]
+[Obsolete("Use IOnTaskStartingHandler hook interface instead. This interface will be removed in a future release.")]
 public interface IProcessTaskStart
 {
     /// <summary>

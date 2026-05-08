@@ -2,7 +2,7 @@ using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Clients.Fiks.FiksArkiv;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+using Altinn.App.Core.Features.Process;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -66,17 +66,13 @@ public class FiksArkivServiceTaskTest
         Assert.IsType<ServiceTaskSuccessResult>(result);
     }
 
-    [Theory]
-    [InlineData(true, "reject")]
-    [InlineData(true, "something-custom")]
-    [InlineData(true, null)]
-    [InlineData(false, null)]
-    public async Task Execute_FailedSend_ReturnsFailedResult(bool moveToNextTask, string? action)
+    [Fact]
+    public async Task Execute_FailedSend_WhenMoveToNextTask_ReturnsSuccessWithAction()
     {
         // Arrange
         var fiksArkivSettings = new FiksArkivSettings
         {
-            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = moveToNextTask, Action = action },
+            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = true, Action = "reject" },
         };
         await using var fixture = TestFixture.Create(
             services => services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings"),
@@ -87,17 +83,30 @@ public class FiksArkivServiceTaskTest
         var result = await fixture.FiksArkivServiceTask.Execute(null!);
 
         // Assert
-        Assert.NotNull(result);
-        var errorResult = Assert.IsType<ServiceTaskFailedResult>(result);
-        var expectedErrorStrategy = moveToNextTask
-            ? ServiceTaskErrorStrategy.ContinueProcessNext
-            : ServiceTaskErrorStrategy.AbortProcessNext;
-        Assert.Equal(expectedErrorStrategy, errorResult.ErrorHandling.Strategy);
+        var successResult = Assert.IsType<ServiceTaskSuccessResult>(result);
+        Assert.True(successResult.AutoAdvanceProcess);
+        Assert.Equal("reject", successResult.Action);
+    }
 
-        // NOTE: Because of TestFixture serialization reasons, the `Action` property will be set to its default value if
-        // null was provided in the test case. The default value is "reject".
-        if (moveToNextTask)
-            Assert.Equal(action ?? "reject", errorResult.ErrorHandling.Action);
+    [Fact]
+    public async Task Execute_FailedSend_WhenNotMoveToNextTask_ReturnsRetryableFailure()
+    {
+        // Arrange
+        var fiksArkivSettings = new FiksArkivSettings
+        {
+            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = false },
+        };
+        await using var fixture = TestFixture.Create(
+            services => services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings"),
+            [("CustomFiksArkivSettings", fiksArkivSettings)]
+        );
+
+        // Act
+        var result = await fixture.FiksArkivServiceTask.Execute(null!);
+
+        // Assert
+        var failedResult = Assert.IsType<ServiceTaskFailedResult>(result);
+        Assert.False(failedResult.NonRetryable);
     }
 
     private static Mock<IInstanceDataMutator> InstanceDataMutatorMockFactory(Instance instance)

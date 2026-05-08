@@ -1,45 +1,83 @@
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Core.Internal.InstanceLocking;
 
-internal sealed partial class InstanceLocker(
+internal sealed class InstanceLocker(
     InstanceLockClient client,
-    ILogger<InstanceLocker> logger,
-    IHttpContextAccessor httpContextAccessor
+    IHttpContextAccessor httpContextAccessor,
+    Telemetry? telemetry = null
 ) : IInstanceLocker
 {
-    private readonly HttpContext _httpContext =
-        httpContextAccessor.HttpContext ?? throw new InvalidOperationException("HttpContext cannot be null.");
+    private static readonly AsyncLocal<InstanceLockHolder> _currentLock = new();
 
-    private InstanceLock? _lock;
-
-    public ValueTask LockAsync()
+    public IInstanceLock InitLock()
     {
-        return LockAsync(TimeSpan.FromMinutes(5));
-    }
-
-    public async ValueTask LockAsync(TimeSpan ttl)
-    {
-        if (_lock is not null)
-        {
-            return;
-        }
+        var httpContext =
+            httpContextAccessor.HttpContext ?? throw new InvalidOperationException("HttpContext cannot be null.");
 
         var (instanceOwnerPartyId, instanceGuid) =
-            GetInstanceIdentifiers() ?? throw new InvalidOperationException("Unable to extract instance identifiers.");
+            GetInstanceIdentifiers(httpContext)
+            ?? throw new InvalidOperationException("Unable to extract instance identifiers.");
 
-        var lockToken = await client.AcquireInstanceLock(instanceGuid, instanceOwnerPartyId, ttl);
-
-        LogLockAcquired(logger, instanceGuid);
-
-        _lock = new InstanceLock(instanceGuid, instanceOwnerPartyId, lockToken);
+        return InitLock(instanceOwnerPartyId, instanceGuid);
     }
 
-    private (int instanceOwnerPartyId, Guid instanceGuid)? GetInstanceIdentifiers()
+    public IInstanceLock InitLock(int instanceOwnerPartyId, Guid instanceGuid)
     {
-        var routeValues = _httpContext.Request.RouteValues;
+        var holder = _currentLock.Value;
+        if (holder?.LockToken is not null)
+        {
+            throw new InvalidOperationException(
+                "A lock is already held in the current async context. Use UpdateTtl on the existing lock to extend it."
+            );
+        }
+
+        if (holder is null)
+        {
+            holder = new InstanceLockHolder();
+            _currentLock.Value = holder;
+        }
+
+        return new InstanceLockHandle(client, telemetry, holder, instanceGuid, instanceOwnerPartyId);
+    }
+
+    public Task<IInstanceLock> Lock()
+    {
+        var handle = InitLock();
+        return AcquireAndReturn(handle, ttl: null);
+    }
+
+    public Task<IInstanceLock> Lock(TimeSpan ttl)
+    {
+        var handle = InitLock();
+        return AcquireAndReturn(handle, ttl);
+    }
+
+    private static async Task<IInstanceLock> AcquireAndReturn(IInstanceLock handle, TimeSpan? ttl)
+    {
+        await handle.Lock(ttl);
+        return handle;
+    }
+
+    public string? CurrentLockToken => _currentLock.Value?.LockToken;
+
+    public void UseExternalLockToken(string lockToken)
+    {
+        var holder = _currentLock.Value;
+        if (holder is null)
+        {
+            holder = new InstanceLockHolder();
+            _currentLock.Value = holder;
+        }
+
+        holder.LockToken = lockToken;
+    }
+
+    private static (int instanceOwnerPartyId, Guid instanceGuid)? GetInstanceIdentifiers(HttpContext httpContext)
+    {
+        var routeValues = httpContext.Request.RouteValues;
 
         if (
             routeValues.TryGetValue("instanceOwnerPartyId", out var partyIdObj)
@@ -54,36 +92,58 @@ internal sealed partial class InstanceLocker(
         return null;
     }
 
-    public async ValueTask DisposeAsync()
+    private sealed class InstanceLockHolder
     {
-        if (_lock is null)
-        {
-            return;
-        }
-
-        try
-        {
-            await client.ReleaseInstanceLock(_lock.InstanceGuid, _lock.InstanceOwnerPartyId, _lock.LockToken);
-        }
-        catch (Exception e)
-        {
-            LogLockReleaseFailed(logger, _lock.InstanceGuid, e);
-            return;
-        }
-
-        LogLockReleased(logger, _lock.InstanceGuid);
-
-        _lock = null;
+        public string? LockToken { get; set; }
     }
 
-    private sealed record InstanceLock(Guid InstanceGuid, int InstanceOwnerPartyId, string LockToken);
+    private sealed class InstanceLockHandle(
+        InstanceLockClient client,
+        Telemetry? telemetry,
+        InstanceLockHolder holder,
+        Guid instanceGuid,
+        int instanceOwnerPartyId
+    ) : IInstanceLock
+    {
+        private static readonly TimeSpan _defaultTtl = TimeSpan.FromMinutes(5);
 
-    [LoggerMessage(1, LogLevel.Debug, "Acquired lock for instance {InstanceGuid}.")]
-    private static partial void LogLockAcquired(ILogger logger, Guid instanceGuid);
+        public async Task Lock(TimeSpan? ttl = null)
+        {
+            if (holder.LockToken is not null)
+            {
+                return;
+            }
 
-    [LoggerMessage(2, LogLevel.Debug, "Released lock for instance {InstanceGuid}.")]
-    private static partial void LogLockReleased(ILogger logger, Guid instanceGuid);
+            var lockToken = await client.AcquireInstanceLock(instanceGuid, instanceOwnerPartyId, ttl ?? _defaultTtl);
+            holder.LockToken = lockToken;
+        }
 
-    [LoggerMessage(3, LogLevel.Error, "Failed to release lock for instance {InstanceGuid}.")]
-    private static partial void LogLockReleaseFailed(ILogger logger, Guid instanceGuid, Exception e);
+        public async Task UpdateTtl(TimeSpan ttl)
+        {
+            var lockToken = holder.LockToken ?? throw new InvalidOperationException("No lock held.");
+            await client.UpdateInstanceLock(instanceGuid, instanceOwnerPartyId, lockToken, ttl);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            var lockToken = holder.LockToken;
+            if (lockToken is null)
+            {
+                return;
+            }
+
+            using var activity = telemetry?.StartReleaseInstanceLockActivity(instanceGuid, instanceOwnerPartyId);
+
+            try
+            {
+                await client.UpdateInstanceLock(instanceGuid, instanceOwnerPartyId, lockToken, TimeSpan.Zero);
+
+                holder.LockToken = null;
+            }
+            catch (Exception e)
+            {
+                activity?.Errored(e);
+            }
+        }
+    }
 }

@@ -6,6 +6,7 @@ namespace Altinn.App.Core.Features;
 /// IProcessTaskEnd defines a implementation for running logic when a task ends in the apps process
 /// </summary>
 [ImplementableByApps]
+[Obsolete("Use IOnTaskEndingHandler hook interface instead. This interface will be removed in a future release.")]
 public interface IProcessTaskEnd
 {
     /// <summary>

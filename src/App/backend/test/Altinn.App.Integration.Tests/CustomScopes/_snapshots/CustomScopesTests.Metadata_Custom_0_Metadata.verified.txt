@@ -1049,7 +1049,7 @@
         }
       },
       {
-        endpoint: POST {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/start,
+        endpoint: POST {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/recover,
         metadata: {
           errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
           errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
@@ -1060,6 +1060,15 @@
           requiredScopesServiceOwners: [
             custom:serviceowner/instances.write
           ]
+        }
+      },
+      {
+        endpoint: POST {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/workflow-engine-callbacks/{commandKey},
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
         }
       },
       {
