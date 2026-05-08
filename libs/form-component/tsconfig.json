@@ -10,6 +10,11 @@
     "strict": true,
     "resolveJsonModule": true,
     "noUnusedLocals": true,
+    "plugins": [
+      {
+        "name": "typescript-plugin-css-modules"
+      }
+    ],
     "types": ["vitest/globals", "@testing-library/jest-dom"]
   },
   "include": ["src/**/*", "vitest.config.ts"],
