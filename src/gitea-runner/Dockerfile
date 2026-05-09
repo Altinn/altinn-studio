@@ -36,5 +36,10 @@ COPY --from=renovate /tmp/containerbase /tmp/containerbase
 # dockerd will not see studioctl's testdata and localtest bind mounts will fail.
 ENV PATH="/root/.local/bin:/root/.cache/act/studioctl/bin:${PATH}"
 ENV STUDIOCTL_HOME="/root/.cache/act/studioctl"
+# STUDIOCTL_INSTALL_DIR makes the install script land the binary at a known
+# path without prompting. Newer gitea-runner images allocate a pseudo-TTY
+# for `run:` steps which breaks the install script's `! -t 0` non-interactive
+# detection, so it would otherwise prompt for an install location.
+ENV STUDIOCTL_INSTALL_DIR="/root/.local/bin"
 
 ENTRYPOINT ["/usr/bin/tini","--","/usr/local/bin/run.sh"]
