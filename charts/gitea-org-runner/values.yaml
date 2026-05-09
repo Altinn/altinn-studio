@@ -35,7 +35,7 @@ dockerInDocker:
     repository: docker
     tag: "dind"
     pullPolicy: IfNotPresent
-  diskSize: "10G"
+  diskSize: "15G"
 
 # Shared workspace: mounts a shared emptyDir at act_runner's cache dir in both
 # the runner and the dockerd sidecar. This makes any bind mount from the tenant's

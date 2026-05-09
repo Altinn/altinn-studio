@@ -36,11 +36,11 @@ spec:
       requests:
         cpu: 500m
         memory: 2Gi
-        ephemeral-storage: 10Gi
+        ephemeral-storage: 16Gi
       limits:
         cpu: "2"
         memory: 2Gi
-        ephemeral-storage: 14Gi
+        ephemeral-storage: 20Gi
     runners:
     {{- $giteaUrl := .Values.giteaInstanceUrl }}
     {{- range index .Values.runners .Values.environment }}
