@@ -46,7 +46,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         Guid? correlationId,
         string? collectionKey,
         WorkflowEnqueueRequest request,
-        CancellationToken cancellationToken = default
+        CancellationToken ct = default
     )
     {
         string batchKey = CreateBatchKey(ns, idempotencyKey);
@@ -140,7 +140,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             UpdateCollectionHeads(ns, collectionKey, currentCollectionHeads, createdWorkflows);
         }
 
-        await ProcessAvailableWorkflows(cancellationToken);
+        await ProcessAvailableWorkflows(ct);
 
         return new WorkflowEnqueueResponse.Accepted { Workflows = createdWorkflows.Select(ToWorkflowResult).ToList() };
     }
@@ -148,7 +148,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     public Task<WorkflowCollectionDetailResponse?> GetCollection(
         string ns,
         string key,
-        CancellationToken cancellationToken = default
+        CancellationToken ct = default
     )
     {
         if (!_collectionHeadsByKey.TryGetValue(CreateCollectionLookupKey(ns, key), out List<Guid>? headIds))
@@ -188,7 +188,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         string? collectionKey = null,
         Dictionary<string, string>? labels = null,
         IReadOnlyList<PersistentItemStatus>? statuses = null,
-        CancellationToken cancellationToken = default
+        CancellationToken ct = default
     )
     {
         IEnumerable<StoredWorkflow> matching = _workflows.Values.Where(workflow => workflow.Namespace == ns);
@@ -225,7 +225,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     public Task<CancelWorkflowResponse> CancelWorkflow(
         string ns,
         Guid workflowId,
-        CancellationToken cancellationToken = default
+        CancellationToken ct = default
     )
     {
         if (_workflows.TryGetValue(workflowId, out StoredWorkflow? workflow))
@@ -241,7 +241,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         string ns,
         Guid workflowId,
         bool cascade = false,
-        CancellationToken cancellationToken = default
+        CancellationToken ct = default
     )
     {
         if (_workflows.TryGetValue(workflowId, out StoredWorkflow? workflow))
@@ -260,7 +260,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                 }
             }
 
-            await ProcessAvailableWorkflows(cancellationToken);
+            await ProcessAvailableWorkflows(ct);
         }
 
         return new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []);

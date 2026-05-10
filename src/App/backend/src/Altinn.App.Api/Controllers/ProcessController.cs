@@ -341,10 +341,7 @@ public class ProcessController : ControllerBase
                 );
                 SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
-                var instanceOwnerPartyTask = _registerClient.GetPartyUnchecked(
-                    instanceOwnerPartyId,
-                    cancellationToken: ct
-                );
+                var instanceOwnerPartyTask = _registerClient.GetPartyUnchecked(instanceOwnerPartyId, ct: ct);
                 var processStateTask = _processStateEnricher.Enrich(
                     instance,
                     result.ProcessStateChange.NewProcessState,

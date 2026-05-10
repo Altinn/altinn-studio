@@ -38,7 +38,7 @@ internal interface IRegisterClient
     Task<Party?> GetPartyUnchecked(
         int partyId,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken cancellationToken = default
+        CancellationToken ct = default
     );
 
     /// <summary>
@@ -48,7 +48,7 @@ internal interface IRegisterClient
     Task<IReadOnlyList<Party>> GetPartyListUnchecked(
         IReadOnlyList<int> partyIds,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken cancellationToken = default
+        CancellationToken ct = default
     );
 }
 
@@ -87,18 +87,18 @@ internal sealed class RegisterClient : IRegisterClient
     public async Task<Party?> GetPartyUnchecked(
         int partyId,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken cancellationToken = default
+        CancellationToken ct = default
     )
     {
         int[] partyIds = [partyId];
-        var partyList = await GetPartyListUnchecked(partyIds, authenticationMethod, cancellationToken);
+        var partyList = await GetPartyListUnchecked(partyIds, authenticationMethod, ct);
         return partyList.SingleOrDefault(p => p.PartyId == partyId);
     }
 
     public async Task<IReadOnlyList<Party>> GetPartyListUnchecked(
         IReadOnlyList<int> partyIds,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken cancellationToken = default
+        CancellationToken ct = default
     )
     {
         using var activity = _telemetry?.StartGetPartyListForPartyIds(partyIds);
@@ -106,7 +106,7 @@ internal sealed class RegisterClient : IRegisterClient
         string endpointUrl = $"parties/partylist?fetchSubUnits=true";
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
             authenticationMethod ?? _defaultAuthenticationMethod,
-            cancellationToken
+            ct
         );
         ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
         var platformAccessToken = _accessTokenGenerator.GenerateAccessToken(
@@ -119,14 +119,11 @@ internal sealed class RegisterClient : IRegisterClient
 
         request.Content = new StringContent(JsonSerializer.Serialize(partyIds), Encoding.UTF8, "application/json");
 
-        using var response = await _client.SendAsync(request, cancellationToken);
+        using var response = await _client.SendAsync(request, ct);
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            return await JsonSerializerPermissive.DeserializeAsync<IReadOnlyList<Party>>(
-                    response.Content,
-                    cancellationToken
-                ) ?? [];
+            return await JsonSerializerPermissive.DeserializeAsync<IReadOnlyList<Party>>(response.Content, ct) ?? [];
         }
         else if (response.StatusCode == HttpStatusCode.NotFound)
         {
@@ -134,7 +131,7 @@ internal sealed class RegisterClient : IRegisterClient
         }
         else
         {
-            var errorMessage = await response.Content.ReadAsStringAsync(cancellationToken);
+            var errorMessage = await response.Content.ReadAsStringAsync(ct);
             _logger.LogError(
                 "Getting partylist from party IDs failed with statuscode {StatusCode} and error message: {ErrorMessage}",
                 response.StatusCode,

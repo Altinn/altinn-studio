@@ -156,7 +156,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             {
                 [ProcessNextRequestFactory.ProcessNextIdLabel] = processNextId,
             },
-            cancellationToken: ct
+            ct: ct
         );
 
         WorkflowStatusResponse? currentTaskWorkflow = matchingWorkflows
@@ -170,7 +170,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
             GetNamespace(),
             collectionKey,
-            cancellationToken: ct
+            ct: ct
         );
         if (collection is null || collection.Heads.Count == 0)
         {
@@ -208,7 +208,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         CancellationToken ct = default
     )
     {
-        await _workflowEngineClient.ResumeWorkflow(GetNamespace(), workflowId, cancellationToken: ct);
+        await _workflowEngineClient.ResumeWorkflow(GetNamespace(), workflowId, ct: ct);
         return await WaitForWorkflowCollectionAndRefetchInstance(instance, collectionKey, ct);
     }
 
@@ -294,7 +294,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
                 GetNamespace(),
                 collectionKey,
-                cancellationToken: ct
+                ct: ct
             );
             if (collection?.Heads.Count > 0)
             {
@@ -302,11 +302,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 {
                     Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
                     IReadOnlyList<WorkflowStatusResponse> collectionWorkflows =
-                        await _workflowEngineClient.ListWorkflows(
-                            GetNamespace(),
-                            collectionKey: collectionKey,
-                            cancellationToken: ct
-                        );
+                        await _workflowEngineClient.ListWorkflows(GetNamespace(), collectionKey: collectionKey, ct: ct);
                     lastObservedCollectionWorkflows = collectionWorkflows;
                     WorkflowFailure? workflowFailure = BuildWorkflowFailure(collectionWorkflows);
                     bool processStateChanged = HasCommittedProcessState(collectionWorkflows);
@@ -322,7 +318,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     lastObservedCollectionWorkflows = await _workflowEngineClient.ListWorkflows(
                         GetNamespace(),
                         collectionKey: collectionKey,
-                        cancellationToken: ct
+                        ct: ct
                     );
                 }
                 return new ProcessNextWorkflowResult(
@@ -375,7 +371,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         IReadOnlyList<WorkflowStatusResponse> collectionWorkflows = await _workflowEngineClient.ListWorkflows(
             GetNamespace(),
             collectionKey: collectionKey,
-            cancellationToken: ct
+            ct: ct
         );
         WorkflowFailure? workflowFailure = BuildWorkflowFailure(collectionWorkflows);
         return workflowFailure?.RetryTargetWorkflowId ?? workflowFailure?.WorkflowId ?? fallbackWorkflowId;

@@ -190,7 +190,7 @@ public class InstancesController : ControllerBase
 
             var instanceOwnerParty = await _registerClient.GetPartyUnchecked(
                 instanceOwnerPartyId,
-                cancellationToken: cancellationToken
+                ct: cancellationToken
             );
 
             var dto = InstanceResponse.From(
@@ -265,10 +265,7 @@ public class InstancesController : ControllerBase
                 );
             }
 
-            var instanceOwnerPartyTask = _registerClient.GetPartyUnchecked(
-                instanceOwnerPartyId,
-                cancellationToken: cancellationToken
-            );
+            var instanceOwnerPartyTask = _registerClient.GetPartyUnchecked(instanceOwnerPartyId, ct: cancellationToken);
             var processStateTask = _processStateEnricher.Enrich(instance, instance.Process, User);
 
             await Task.WhenAll(instanceOwnerPartyTask, processStateTask);
@@ -1394,7 +1391,7 @@ public class InstancesController : ControllerBase
             {
                 return await _registerClient.GetPartyUnchecked(
                     int.Parse(instanceOwner.PartyId, CultureInfo.InvariantCulture),
-                    cancellationToken: this.HttpContext.RequestAborted
+                    ct: this.HttpContext.RequestAborted
                 );
             }
             catch (Exception e) when (e is not ServiceException)
@@ -1423,10 +1420,7 @@ public class InstancesController : ControllerBase
                             $"Failed to lookup party by external identifier: {instanceOwner.ExternalIdentifier}. No partyId found for the provided external identifier."
                         );
                     }
-                    return await _registerClient.GetPartyUnchecked(
-                        partyId.Value,
-                        cancellationToken: this.HttpContext.RequestAborted
-                    );
+                    return await _registerClient.GetPartyUnchecked(partyId.Value, ct: this.HttpContext.RequestAborted);
                 }
                 if (!string.IsNullOrEmpty(instanceOwner.PersonNumber))
                 {
@@ -1454,10 +1448,7 @@ public class InstancesController : ControllerBase
                             $"Failed to lookup party by username: {instanceOwner.Username}. No partyId found for the provided idporten self identified email address."
                         );
                     }
-                    return await _registerClient.GetPartyUnchecked(
-                        partyId.Value,
-                        cancellationToken: this.HttpContext.RequestAborted
-                    );
+                    return await _registerClient.GetPartyUnchecked(partyId.Value, ct: this.HttpContext.RequestAborted);
                 }
                 else
                 {

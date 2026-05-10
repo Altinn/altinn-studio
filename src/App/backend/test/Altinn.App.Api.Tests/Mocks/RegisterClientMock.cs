@@ -19,17 +19,17 @@ public class RegisterClientMock : IRegisterClient
     public async Task<Party?> GetPartyUnchecked(
         int partyId,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken cancellationToken = default
+        CancellationToken ct = default
     )
     {
-        var partyList = await GetPartyListUnchecked([partyId], authenticationMethod, cancellationToken);
+        var partyList = await GetPartyListUnchecked([partyId], authenticationMethod, ct);
         return partyList.SingleOrDefault(p => p.PartyId == partyId);
     }
 
     public async Task<IReadOnlyList<Party>> GetPartyListUnchecked(
         IReadOnlyList<int> partyIds,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken cancellationToken = default
+        CancellationToken ct = default
     )
     {
         List<Party> parties = [];
