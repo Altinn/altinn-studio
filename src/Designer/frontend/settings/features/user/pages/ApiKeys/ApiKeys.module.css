@@ -10,7 +10,7 @@
 }
 
 .heading {
-  gap: var(--fds-spacing-6);
+  gap: var(--ds-size-7);
 }
 
 .content {

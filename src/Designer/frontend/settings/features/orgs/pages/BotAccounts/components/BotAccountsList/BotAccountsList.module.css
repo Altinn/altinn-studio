@@ -29,26 +29,7 @@
   word-break: break-all;
 }
 
-.apiKeysCell {
-  display: flex;
-  align-items: center;
-  gap: var(--ds-size-2);
-}
-
-.apiKeysPreview {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--ds-size-2);
-  min-height: var(--ds-size-8);
-}
-
-.apiKeysPlaceholder {
-  color: var(--fds-semantic-text-neutral-subtle);
-  white-space: nowrap;
-}
-
 .detailsCell {
-  background-color: var(--fds-semantic-surface-neutral-subtle);
-  padding: var(--fds-spacing-4);
+  background-color: var(--ds-color-neutral-background-tinted);
+  padding: var(--ds-size-5);
 }

@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { renderAndRunTimers } from '@studio/ui-test';
 import { ValidateRuleConfig, type ValidateRuleConfigProps } from './ValidateRuleConfig';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -24,5 +24,5 @@ const renderValidateRuleConfig = (props: Partial<ValidateRuleConfigProps> = {}) 
     selectedPageScope: null,
     onChange: jest.fn(),
   };
-  return render(<ValidateRuleConfig {...defaultProps} {...props} />);
+  return renderAndRunTimers(<ValidateRuleConfig {...defaultProps} {...props} />);
 };

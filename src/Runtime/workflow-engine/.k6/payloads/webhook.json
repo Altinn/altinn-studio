@@ -10,7 +10,7 @@
           "operationId": "callback",
           "command": {
             "type": "webhook",
-            "data": { "uri": "http://localhost:6060/webhook-callback" }
+            "data": { "uri": "http://wiremock:8080/webhook-callback" }
           }
         }
       ]

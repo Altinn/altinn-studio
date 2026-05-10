@@ -1,4 +1,4 @@
-import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { waitForElementToBeRemoved } from '@testing-library/react';
 import { componentMocks } from '../../../../../../../testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -23,6 +23,7 @@ import {
   latestVersionString,
 } from '../../utils/published-code-list-reference-utils';
 import { FeatureFlag } from '@studio/feature-flags';
+import { screen } from '@studio/ui-test';
 
 // Mocks:
 jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
@@ -89,7 +90,7 @@ describe('OptionListEditor', () => {
     renderOptionListEditorWithPublishedCodeList();
     await user.click(getEditButton());
     const formLegend = textMock('ux_editor.options.published_code_list.choose');
-    expect(screen.getByRole('group', { name: formLegend })).toBeInTheDocument();
+    expect(screen.getFieldsetByLegend(formLegend)).toBeInTheDocument();
   });
 
   it('Removes the optionsId setting when it refers to a published code list and the user clicks the delete button', async () => {
