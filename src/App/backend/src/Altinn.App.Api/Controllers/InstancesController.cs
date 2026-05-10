@@ -137,7 +137,7 @@ public class InstancesController : ControllerBase
     /// <param name="app">application identifier which is unique within an organisation</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
-    /// <param name="cancellationToken">cancellation token</param>
+    /// <param name="ct">cancellation token</param>
     /// <returns>the instance</returns>
     [Authorize]
     [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
@@ -149,7 +149,7 @@ public class InstancesController : ControllerBase
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
-        CancellationToken cancellationToken
+        CancellationToken ct
     )
     {
         EnforcementResult enforcementResult = await AuthorizeAction(
@@ -167,31 +167,17 @@ public class InstancesController : ControllerBase
 
         try
         {
-            Instance instance = await _instanceClient.GetInstance(
-                app,
-                org,
-                instanceOwnerPartyId,
-                instanceGuid,
-                ct: cancellationToken
-            );
+            Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid, ct: ct);
             SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
             string? userOrgClaim = User.GetOrg();
 
             if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.OrdinalIgnoreCase))
             {
-                await _instanceClient.UpdateReadStatus(
-                    instanceOwnerPartyId,
-                    instanceGuid,
-                    "read",
-                    ct: cancellationToken
-                );
+                await _instanceClient.UpdateReadStatus(instanceOwnerPartyId, instanceGuid, "read", ct: ct);
             }
 
-            var instanceOwnerParty = await _registerClient.GetPartyUnchecked(
-                instanceOwnerPartyId,
-                ct: cancellationToken
-            );
+            var instanceOwnerParty = await _registerClient.GetPartyUnchecked(instanceOwnerPartyId, ct: ct);
 
             var dto = InstanceResponse.From(
                 await instance.WithOnlyAccessibleDataElements(_dataElementAccessChecker),
@@ -214,7 +200,7 @@ public class InstancesController : ControllerBase
     /// <param name="app">application identifier which is unique within an organisation</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
-    /// <param name="cancellationToken">cancellation token</param>
+    /// <param name="ct">cancellation token</param>
     /// <returns>the instance with enriched process state</returns>
     [Authorize]
     [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}/enriched")]
@@ -226,7 +212,7 @@ public class InstancesController : ControllerBase
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
-        CancellationToken cancellationToken
+        CancellationToken ct
     )
     {
         EnforcementResult enforcementResult = await AuthorizeAction(
@@ -244,28 +230,17 @@ public class InstancesController : ControllerBase
 
         try
         {
-            Instance instance = await _instanceClient.GetInstance(
-                app,
-                org,
-                instanceOwnerPartyId,
-                instanceGuid,
-                ct: cancellationToken
-            );
+            Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid, ct: ct);
             SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
             string? userOrgClaim = User.GetOrg();
 
             if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.OrdinalIgnoreCase))
             {
-                await _instanceClient.UpdateReadStatus(
-                    instanceOwnerPartyId,
-                    instanceGuid,
-                    "read",
-                    ct: cancellationToken
-                );
+                await _instanceClient.UpdateReadStatus(instanceOwnerPartyId, instanceGuid, "read", ct: ct);
             }
 
-            var instanceOwnerPartyTask = _registerClient.GetPartyUnchecked(instanceOwnerPartyId, ct: cancellationToken);
+            var instanceOwnerPartyTask = _registerClient.GetPartyUnchecked(instanceOwnerPartyId, ct: ct);
             var processStateTask = _processStateEnricher.Enrich(instance, instance.Process, User);
 
             await Task.WhenAll(instanceOwnerPartyTask, processStateTask);
@@ -293,6 +268,7 @@ public class InstancesController : ControllerBase
     /// <param name="org">unique identifier of the organisation responsible for the app</param>
     /// <param name="app">application identifier which is unique within an organisation</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
+    /// <param name="ct">cancellation token</param>
     /// <param name="language">The currently active user language</param>
     /// <returns>the created instance</returns>
     [HttpPost]
@@ -305,6 +281,7 @@ public class InstancesController : ControllerBase
         [FromRoute] string org,
         [FromRoute] string app,
         [FromQuery] int? instanceOwnerPartyId,
+        CancellationToken ct,
         [FromQuery] string? language = null
     )
     {
@@ -396,7 +373,7 @@ public class InstancesController : ControllerBase
         Party party;
         try
         {
-            party = await LookupParty(instanceTemplate.InstanceOwner) ?? throw new Exception("Unknown party");
+            party = await LookupParty(instanceTemplate.InstanceOwner, ct) ?? throw new Exception("Unknown party");
             instanceTemplate.InstanceOwner = await InstantiationHelper.PartyToInstanceOwner(
                 party,
                 _authenticationContext
@@ -565,6 +542,7 @@ public class InstancesController : ControllerBase
     /// <param name="org">unique identifier of the organisation responsible for the app</param>
     /// <param name="app">application identifier which is unique within an organisation</param>
     /// <param name="instansiationInstance">instansiation information</param>
+    /// <param name="ct">cancellation token</param>
     /// <param name="language">The currently active user language</param>
     /// <returns>The new instance</returns>
     [HttpPost("create")]
@@ -577,6 +555,7 @@ public class InstancesController : ControllerBase
         [FromRoute] string org,
         [FromRoute] string app,
         [FromBody] InstansiationInstance instansiationInstance,
+        CancellationToken ct,
         [FromQuery] string? language = null
     )
     {
@@ -626,7 +605,7 @@ public class InstancesController : ControllerBase
         Party party;
         try
         {
-            party = await LookupParty(instansiationInstance.InstanceOwner) ?? throw new Exception("Unknown party");
+            party = await LookupParty(instansiationInstance.InstanceOwner, ct) ?? throw new Exception("Unknown party");
 
             instansiationInstance.InstanceOwner = await InstantiationHelper.PartyToInstanceOwner(
                 party,
@@ -1383,7 +1362,7 @@ public class InstancesController : ControllerBase
         return enforcementResult;
     }
 
-    private async Task<Party?> LookupParty(InstanceOwner instanceOwner)
+    private async Task<Party?> LookupParty(InstanceOwner instanceOwner, CancellationToken ct)
     {
         if (instanceOwner.PartyId != null)
         {
@@ -1391,7 +1370,7 @@ public class InstancesController : ControllerBase
             {
                 return await _registerClient.GetPartyUnchecked(
                     int.Parse(instanceOwner.PartyId, CultureInfo.InvariantCulture),
-                    ct: this.HttpContext.RequestAborted
+                    ct: ct
                 );
             }
             catch (Exception e) when (e is not ServiceException)
@@ -1420,7 +1399,7 @@ public class InstancesController : ControllerBase
                             $"Failed to lookup party by external identifier: {instanceOwner.ExternalIdentifier}. No partyId found for the provided external identifier."
                         );
                     }
-                    return await _registerClient.GetPartyUnchecked(partyId.Value, ct: this.HttpContext.RequestAborted);
+                    return await _registerClient.GetPartyUnchecked(partyId.Value, ct: ct);
                 }
                 if (!string.IsNullOrEmpty(instanceOwner.PersonNumber))
                 {
@@ -1448,7 +1427,7 @@ public class InstancesController : ControllerBase
                             $"Failed to lookup party by username: {instanceOwner.Username}. No partyId found for the provided idporten self identified email address."
                         );
                     }
-                    return await _registerClient.GetPartyUnchecked(partyId.Value, ct: this.HttpContext.RequestAborted);
+                    return await _registerClient.GetPartyUnchecked(partyId.Value, ct: ct);
                 }
                 else
                 {

@@ -53,7 +53,7 @@ public class WorkflowEngineCallbackController : ControllerBase
         [FromRoute] Guid instanceGuid,
         [FromRoute] string commandKey,
         [FromBody] AppCallbackPayload payload,
-        CancellationToken cancellationToken
+        CancellationToken ct
     )
     {
         using Activity? activity = _telemetry?.StartProcessEngineCallbackActivity(instanceGuid, commandKey);
@@ -114,7 +114,7 @@ public class WorkflowEngineCallbackController : ControllerBase
                 AppId = appId,
                 InstanceId = instanceId,
                 InstanceDataMutator = instanceDataUnitOfWork,
-                CancellationToken = cancellationToken,
+                CancellationToken = ct,
                 Payload = payload,
             }
         );
@@ -171,7 +171,7 @@ public class WorkflowEngineCallbackController : ControllerBase
                         collectionKey,
                         updatedState,
                         success.AutoAdvanceAction,
-                        cancellationToken
+                        ct
                     );
                 }
 
