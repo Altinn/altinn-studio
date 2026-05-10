@@ -3,7 +3,6 @@ using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
@@ -21,30 +20,24 @@ internal sealed class SigningProcessTask : IProcessTask
     private readonly IProcessReader _processReader;
     private readonly IAppMetadata _appMetadata;
     private readonly IHostEnvironment _hostEnvironment;
-    private readonly IDataClient _dataClient;
     private readonly IPdfService _pdfService;
     private readonly ISigneeContextsManager _signeeContextsManager;
-    private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
 
     public SigningProcessTask(
         ISigningService signingService,
         IProcessReader processReader,
         IAppMetadata appMetadata,
         IHostEnvironment hostEnvironment,
-        IDataClient dataClient,
         IPdfService pdfService,
-        ISigneeContextsManager signeeContextsManager,
-        InstanceDataUnitOfWorkInitializer instanceDataUnitOfWorkInitializer
+        ISigneeContextsManager signeeContextsManager
     )
     {
         _signingService = signingService;
         _processReader = processReader;
         _appMetadata = appMetadata;
         _hostEnvironment = hostEnvironment;
-        _dataClient = dataClient;
         _pdfService = pdfService;
         _signeeContextsManager = signeeContextsManager;
-        _instanceDataUnitOfWorkInitializer = instanceDataUnitOfWorkInitializer;
     }
 
     public string Type => "signing";
@@ -52,20 +45,13 @@ internal sealed class SigningProcessTask : IProcessTask
     private const string PdfContentType = "application/pdf";
 
     /// <inheritdoc/>
-    public async Task Start(string taskId, Instance instance)
+    public async Task Start(IInstanceDataMutator dataMutator)
     {
-        using var cts = new CancellationTokenSource();
-
+        string taskId = GetTaskId(dataMutator);
         AltinnSignatureConfiguration signingConfiguration = GetAltinnSignatureConfiguration(taskId);
         ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
 
         ValidateSigningConfiguration(appMetadata, signingConfiguration);
-
-        InstanceDataUnitOfWork cachedDataMutator = await _instanceDataUnitOfWorkInitializer.Init(
-            instance,
-            taskId,
-            null
-        );
 
         // Initialize delegated signing if configured
         if (
@@ -73,18 +59,16 @@ internal sealed class SigningProcessTask : IProcessTask
             && signingConfiguration.SigneeStatesDataTypeId is not null
         )
         {
-            await InitialiseRuntimeDelegatedSigning(cachedDataMutator, signingConfiguration, cts.Token);
+            await InitialiseRuntimeDelegatedSigning(dataMutator, signingConfiguration, CancellationToken.None);
         }
-
-        DataElementChanges changes = cachedDataMutator.GetDataElementChanges(false);
-        await cachedDataMutator.UpdateInstanceData(changes);
-        await cachedDataMutator.SaveChanges(changes);
     }
 
     /// <inheritdoc/>
     /// <remarks> Generates a PDF if the signature configuration specifies a signature data type. </remarks>
-    public async Task End(string taskId, Instance instance)
+    public async Task End(IInstanceDataMutator dataMutator)
     {
+        Instance instance = dataMutator.Instance;
+        string taskId = GetTaskId(dataMutator);
         AltinnSignatureConfiguration? signatureConfiguration = _processReader
             .GetAltinnTaskExtension(taskId)
             ?.SignatureConfiguration;
@@ -93,35 +77,31 @@ internal sealed class SigningProcessTask : IProcessTask
 
         if (signingPdfDataType is not null)
         {
-            using Stream pdfStream = await _pdfService.GeneratePdf(instance, taskId, false, ct: CancellationToken.None);
+            await using Stream pdfStream = await _pdfService.GeneratePdf(
+                instance,
+                taskId,
+                false,
+                ct: CancellationToken.None
+            );
+            using var memoryStream = new MemoryStream();
+            await pdfStream.CopyToAsync(memoryStream, CancellationToken.None);
 
-            await _dataClient.InsertBinaryData(
-                instance.Id,
+            dataMutator.AddBinaryDataElement(
                 signingPdfDataType,
                 PdfContentType,
                 signingPdfDataType + ".pdf",
-                pdfStream,
-                taskId,
-                authenticationMethod: null,
-                CancellationToken.None
+                memoryStream.ToArray(),
+                generatedFromTask: taskId
             );
         }
     }
 
     /// <inheritdoc/>
-    public async Task Abandon(string taskId, Instance instance)
+    public async Task Abandon(IInstanceDataMutator dataMutator)
     {
-        using var cts = new CancellationTokenSource();
-
+        string taskId = GetTaskId(dataMutator);
         AltinnSignatureConfiguration signatureConfiguration = GetAltinnSignatureConfiguration(taskId);
-
-        var cachedDataMutator = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, null);
-
-        await _signingService.AbortRuntimeDelegatedSigning(cachedDataMutator, signatureConfiguration, cts.Token);
-
-        DataElementChanges changes = cachedDataMutator.GetDataElementChanges(false);
-        await cachedDataMutator.UpdateInstanceData(changes);
-        await cachedDataMutator.SaveChanges(changes);
+        await _signingService.AbortRuntimeDelegatedSigning(dataMutator, signatureConfiguration, CancellationToken.None);
     }
 
     private async Task InitialiseRuntimeDelegatedSigning(
@@ -190,4 +170,9 @@ internal sealed class SigningProcessTask : IProcessTask
             AllowedContributorsHelper.EnsureDataTypeIsAppOwned(appMetadata, signeeStatesDataTypeId);
         }
     }
+
+    private static string GetTaskId(IInstanceDataAccessor dataAccessor) =>
+        dataAccessor.TaskId
+        ?? dataAccessor.Instance.Process?.CurrentTask?.ElementId
+        ?? throw new InvalidOperationException("Process task requires a current task id.");
 }

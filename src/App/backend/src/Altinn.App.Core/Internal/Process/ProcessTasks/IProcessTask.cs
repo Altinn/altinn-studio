@@ -1,5 +1,4 @@
 using Altinn.App.Core.Features;
-using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 
@@ -17,57 +16,30 @@ public interface IProcessTask
     /// <summary>
     /// Any logic to be executed when a task is started should be put in this method.
     /// </summary>
-    Task Start(string taskId, Instance instance)
-    {
-        return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// Any logic to be executed when a task is ended should be put in this method.
-    /// </summary>
-    Task End(string taskId, Instance instance)
-    {
-        return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// Any logic to be executed when a task is abandoned should be put in this method.
-    /// </summary>
-    Task Abandon(string taskId, Instance instance)
-    {
-        return Task.CompletedTask;
-    }
-
     /// <summary>
     /// Any logic to be executed when a task is started should be put in this method.
-    /// This overload provides access to the data mutator for unit of work pattern.
     /// </summary>
     /// <param name="dataMutator">The data mutator providing access to instance data and mutations.</param>
     Task Start(IInstanceDataMutator dataMutator)
     {
-        string taskId = dataMutator.Instance.Process?.CurrentTask?.ElementId ?? string.Empty;
-        return Start(taskId, dataMutator.Instance);
+        return Task.CompletedTask;
     }
 
     /// <summary>
     /// Any logic to be executed when a task is ended should be put in this method.
-    /// This overload provides access to the data mutator for unit of work pattern.
     /// </summary>
     /// <param name="dataMutator">The data mutator providing access to instance data and mutations.</param>
     Task End(IInstanceDataMutator dataMutator)
     {
-        string taskId = dataMutator.Instance.Process?.CurrentTask?.ElementId ?? string.Empty;
-        return End(taskId, dataMutator.Instance);
+        return Task.CompletedTask;
     }
 
     /// <summary>
     /// Any logic to be executed when a task is abandoned should be put in this method.
-    /// This overload provides access to the data mutator for unit of work pattern.
     /// </summary>
     /// <param name="dataMutator">The data mutator providing access to instance data and mutations.</param>
     Task Abandon(IInstanceDataMutator dataMutator)
     {
-        string taskId = dataMutator.Instance.Process?.CurrentTask?.ElementId ?? string.Empty;
-        return Abandon(taskId, dataMutator.Instance);
+        return Task.CompletedTask;
     }
 }

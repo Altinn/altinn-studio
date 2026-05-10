@@ -1,5 +1,5 @@
 using Altinn.App.Core.Constants;
-using Altinn.Platform.Storage.Interface.Models;
+using Altinn.App.Core.Features;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 
@@ -12,20 +12,11 @@ public class ConfirmationProcessTask : IProcessTask
     public string Type => AltinnTaskTypes.Confirmation;
 
     /// <inheritdoc/>
-    public async Task Abandon(string taskId, Instance instance)
-    {
-        await Task.CompletedTask;
-    }
+    public Task Abandon(IInstanceDataMutator dataMutator) => Task.CompletedTask;
 
     /// <inheritdoc/>
-    public async Task End(string taskId, Instance instance)
-    {
-        await Task.CompletedTask;
-    }
+    public Task End(IInstanceDataMutator dataMutator) => Task.CompletedTask;
 
     /// <inheritdoc/>
-    public async Task Start(string taskId, Instance instance)
-    {
-        await Task.CompletedTask;
-    }
+    public Task Start(IInstanceDataMutator dataMutator) => Task.CompletedTask;
 }

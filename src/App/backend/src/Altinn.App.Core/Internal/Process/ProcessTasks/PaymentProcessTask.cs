@@ -1,10 +1,10 @@
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Payment.Exceptions;
 using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Payment.Services;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
@@ -19,7 +19,6 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 internal sealed class PaymentProcessTask : IProcessTask
 {
     private readonly IPdfService _pdfService;
-    private readonly IDataClient _dataClient;
     private readonly IProcessReader _processReader;
     private readonly IPaymentService _paymentService;
     private readonly IAppMetadata _appMetadata;
@@ -33,7 +32,6 @@ internal sealed class PaymentProcessTask : IProcessTask
     /// </summary>
     public PaymentProcessTask(
         IPdfService pdfService,
-        IDataClient dataClient,
         IProcessReader processReader,
         IPaymentService paymentService,
         IAppMetadata appMetadata,
@@ -41,7 +39,6 @@ internal sealed class PaymentProcessTask : IProcessTask
     )
     {
         _pdfService = pdfService;
-        _dataClient = dataClient;
         _processReader = processReader;
         _paymentService = paymentService;
         _appMetadata = appMetadata;
@@ -52,8 +49,10 @@ internal sealed class PaymentProcessTask : IProcessTask
     public string Type => AltinnTaskTypes.Payment;
 
     /// <inheritdoc/>
-    public async Task Start(string taskId, Instance instance)
+    public async Task Start(IInstanceDataMutator dataMutator)
     {
+        Instance instance = dataMutator.Instance;
+        string taskId = GetTaskId(dataMutator);
         ValidAltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId).Validate();
 
         if (_hostEnvironment.IsDevelopment())
@@ -66,8 +65,10 @@ internal sealed class PaymentProcessTask : IProcessTask
     }
 
     /// <inheritdoc/>
-    public async Task End(string taskId, Instance instance)
+    public async Task End(IInstanceDataMutator dataMutator)
     {
+        Instance instance = dataMutator.Instance;
+        string taskId = GetTaskId(dataMutator);
         AltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId);
 
         PaymentStatus paymentStatus = await _paymentService.GetPaymentStatus(instance, paymentConfiguration.Validate());
@@ -84,27 +85,32 @@ internal sealed class PaymentProcessTask : IProcessTask
             false,
             ct: CancellationToken.None
         );
+        using var memoryStream = new MemoryStream();
+        await pdfStream.CopyToAsync(memoryStream, CancellationToken.None);
 
         ValidAltinnPaymentConfiguration validatedPaymentConfiguration = paymentConfiguration.Validate();
-
-        await _dataClient.InsertBinaryData(
-            instance.Id,
+        dataMutator.AddBinaryDataElement(
             validatedPaymentConfiguration.PaymentReceiptPdfDataType,
             PdfContentType,
             ReceiptFileName,
-            pdfStream,
-            taskId,
-            authenticationMethod: null,
-            CancellationToken.None
+            memoryStream.ToArray(),
+            generatedFromTask: taskId
         );
     }
 
     /// <inheritdoc/>
-    public async Task Abandon(string taskId, Instance instance)
+    public async Task Abandon(IInstanceDataMutator dataMutator)
     {
+        Instance instance = dataMutator.Instance;
+        string taskId = GetTaskId(dataMutator);
         AltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId);
         await _paymentService.CancelAndDeleteAnyExistingPayment(instance, paymentConfiguration.Validate());
     }
+
+    private static string GetTaskId(IInstanceDataAccessor dataAccessor) =>
+        dataAccessor.TaskId
+        ?? dataAccessor.Instance.Process?.CurrentTask?.ElementId
+        ?? throw new InvalidOperationException("Process task requires a current task id.");
 
     private AltinnPaymentConfiguration GetAltinnPaymentConfiguration(string taskId)
     {
