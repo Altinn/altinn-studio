@@ -396,6 +396,3 @@ test/Altinn.App.Integration.Tests/_testapps/*/**/wwwroot/altinn-app-frontend/
 
 **/_snapshots/_local/
 
-# Claude Code temporary files
-tmpclaude-*-cwd
-.claude/settings.local.json
