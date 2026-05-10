@@ -21,6 +21,7 @@ internal interface IWorkflowEngineService
         string resolvedAction,
         string lockToken,
         string? state = null,
+        bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
         CancellationToken ct = default
@@ -89,6 +90,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         string resolvedAction,
         string lockToken,
         string? state = null,
+        bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
         CancellationToken ct = default
@@ -100,6 +102,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             CreateProcessNextIdempotencyKey(instance, resolvedAction),
             lockToken,
             state,
+            isInstantiation: isInstantiation,
             prefill: prefill,
             notification: notification,
             ct: ct
@@ -241,6 +244,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         string idempotencyKey,
         string lockToken,
         string? state = null,
+        bool isInstantiation = false,
         Actor? actor = null,
         IEnumerable<WorkflowRef>? dependsOn = null,
         string? collectionKey = null,
@@ -254,6 +258,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             processStateChange,
             lockToken,
             state,
+            isInstantiation: isInstantiation,
             actor: actor,
             dependsOn: dependsOn,
             prefill: prefill,

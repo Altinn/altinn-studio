@@ -719,7 +719,14 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     {
         var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
         pdfMock
-            .Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .Setup(p =>
+                p.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(new MemoryStream());
         return pdfMock;
     }

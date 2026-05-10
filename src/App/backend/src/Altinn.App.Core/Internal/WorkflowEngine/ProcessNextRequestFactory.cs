@@ -68,6 +68,7 @@ internal sealed class ProcessNextRequestFactory
         ProcessStateChange processStateChange,
         string lockToken,
         string? state = null,
+        bool isInstantiation = false,
         Actor? actor = null,
         IEnumerable<WorkflowRef>? dependsOn = null,
         Dictionary<string, string>? prefill = null,
@@ -75,7 +76,12 @@ internal sealed class ProcessNextRequestFactory
         string? idempotencyKey = null
     )
     {
-        List<StepRequest> commands = await AssembleCommandSequence(processStateChange, prefill, notification);
+        List<StepRequest> commands = await AssembleCommandSequence(
+            processStateChange,
+            isInstantiation,
+            prefill,
+            notification
+        );
         string effectiveIdempotencyKey = idempotencyKey ?? lockToken;
 
         string fromTaskId =
@@ -151,6 +157,7 @@ internal sealed class ProcessNextRequestFactory
 
     private async Task<List<StepRequest>> AssembleCommandSequence(
         ProcessStateChange processStateChange,
+        bool isInstantiation,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null
     )
@@ -172,6 +179,7 @@ internal sealed class ProcessNextRequestFactory
                 instanceEventType,
                 altinnTaskType,
                 isInitialTaskStart,
+                isInstantiation,
                 prefill,
                 notification
             );
@@ -210,6 +218,7 @@ internal sealed class ProcessNextRequestFactory
         InstanceEventType eventType,
         string? altinnTaskType,
         bool isInitialTaskStart,
+        bool isInstantiation,
         Dictionary<string, string>? prefill,
         InstantiationNotification? notification
     )
@@ -224,6 +233,7 @@ internal sealed class ProcessNextRequestFactory
                     {
                         ServiceTaskType = GetServiceTaskType(altinnTaskType),
                         IsInitialTaskStart = isInitialTaskStart,
+                        IsInstantiation = isInstantiation,
                         Prefill = isInitialTaskStart ? prefill : null,
                         Notification = isInitialTaskStart ? notification : null,
                         RegisterEvents = _appSettings.RegisterEventsWithEventsComponent,

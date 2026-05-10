@@ -10,11 +10,11 @@ using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Texts;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -113,6 +113,7 @@ public class PdfControllerTests
 
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
         var hostEnvironment = new Mock<IHostEnvironment>();
+        var authenticationTokenResolver = BuildAuthenticationTokenResolver();
         hostEnvironment.Setup(x => x.EnvironmentName).Returns(Environments.Development);
 
         var pdfGeneratorClient = new PdfGeneratorClient(
@@ -120,8 +121,9 @@ public class PdfControllerTests
             httpClient,
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
+            authenticationTokenResolver.Object,
             httpContextAccessor.Object,
-            BuildServiceProvider(hostEnvironment.Object)
+            hostEnvironment.Object
         );
         var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
         var pdfController = new PdfController(
@@ -188,6 +190,7 @@ public class PdfControllerTests
 
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
         var hostEnvironment = new Mock<IHostEnvironment>();
+        var authenticationTokenResolver = BuildAuthenticationTokenResolver();
         hostEnvironment.Setup(x => x.EnvironmentName).Returns(Environments.Development);
 
         var pdfGeneratorClient = new PdfGeneratorClient(
@@ -195,8 +198,9 @@ public class PdfControllerTests
             httpClient,
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
+            authenticationTokenResolver.Object,
             httpContextAccessor.Object,
-            BuildServiceProvider(hostEnvironment.Object)
+            hostEnvironment.Object
         );
         var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
         var pdfController = new PdfController(
@@ -265,6 +269,7 @@ public class PdfControllerTests
 
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
         var hostEnvironment = new Mock<IHostEnvironment>();
+        var authenticationTokenResolver = BuildAuthenticationTokenResolver();
         hostEnvironment.Setup(x => x.EnvironmentName).Returns(Environments.Production);
 
         var pdfGeneratorClient = new PdfGeneratorClient(
@@ -272,8 +277,9 @@ public class PdfControllerTests
             httpClient,
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
+            authenticationTokenResolver.Object,
             httpContextAccessor.Object,
-            BuildServiceProvider(hostEnvironment.Object)
+            hostEnvironment.Object
         );
         var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
         var pdfController = new PdfController(
@@ -321,11 +327,12 @@ public class PdfControllerTests
         requestBody.Should().NotContain(@"name"":""frontendVersion");
     }
 
-    private static IServiceProvider BuildServiceProvider(IHostEnvironment hostEnvironment)
+    private static Mock<IAuthenticationTokenResolver> BuildAuthenticationTokenResolver()
     {
-        var services = new ServiceCollection();
-        services.AddSingleton(hostEnvironment);
-        services.AddSingleton(new Mock<IAuthenticationTokenResolver>().Object);
-        return services.BuildServiceProvider();
+        var authenticationTokenResolver = new Mock<IAuthenticationTokenResolver>();
+        authenticationTokenResolver
+            .Setup(a => a.GetAccessToken(It.IsAny<AuthenticationMethod>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JwtToken.Parse(TestAuthentication.GetUserToken()));
+        return authenticationTokenResolver;
     }
 }

@@ -298,7 +298,7 @@ public static class ServiceCollectionExtensions
 
     private static void AddPdfServices(IServiceCollection services)
     {
-        services.TryAddTransient<IPdfGeneratorClient, PdfGeneratorClient>();
+        services.AddHttpClient<IPdfGeneratorClient, PdfGeneratorClient>();
         services.TryAddTransient<IPdfService, PdfService>();
 #pragma warning disable CS0618 // Type or member is obsolete
         services.TryAddTransient<IPdfFormatter, NullPdfFormatter>();

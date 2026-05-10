@@ -30,6 +30,7 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
             new InstansiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
         );
         using var readInstantiationResponse = await instantiationResponse.Read<Instance>();
+        var scrubbers = new Scrubbers(StringScrubber: Scrubbers.InstanceStringScrubber(readInstantiationResponse));
 
         Guid dataElementId = Guid.Parse(
             readInstantiationResponse.Data.Model!.Data.Single(d => d.DataType == "model").Id
@@ -88,8 +89,15 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
                 .GetString()
         );
 
-        await verifier.Verify<ProblemDetails>(readProblem, snapshotName: "ProcessNextFailure");
-        await verifier.Verify<Instance>(refreshedInstance, snapshotName: "InstanceAfterFailure");
-        await verifier.Verify(fixture.GetSnapshotAppLogs(), snapshotName: "Logs");
+        await verifier.Verify(readProblem, snapshotName: "ProcessNextFailure", scrubbers: scrubbers);
+        await verifier.Verify(refreshedInstance, snapshotName: "InstanceAfterFailure", scrubbers: scrubbers);
+        await verifier
+            .Verify(await fixture.GetSnapshotAppLogs(), snapshotName: "Logs")
+            .AddScrubber(sb =>
+            {
+                var scrubbed = scrubbers.StringScrubber!(sb.ToString());
+                sb.Clear();
+                sb.Append(scrubbed);
+            });
     }
 }

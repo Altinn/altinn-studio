@@ -51,6 +51,7 @@ public class ProcessEngineCommandValidatorTests
         services.AddTransient<IWorkflowEngineCommand, MovedToAltinnEvent>();
         services.AddTransient<IWorkflowEngineCommand, InstanceCreatedAltinnEvent>();
         services.AddTransient<IWorkflowEngineCommand, ExecuteServiceTask>();
+        services.AddTransient<IWorkflowEngineCommand, NotifyInstanceOwnerOnInstantiation>();
         services.AddTransient<IWorkflowEngineCommand, EndTask>();
         services.AddTransient<IWorkflowEngineCommand, CommonTaskFinalization>();
         services.AddTransient<IWorkflowEngineCommand, EndTaskLegacyHook>();

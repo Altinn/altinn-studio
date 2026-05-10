@@ -15,6 +15,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Tests.Common.Auth;
 using Altinn.Platform.Storage.Interface.Enums;
@@ -329,7 +330,7 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart();
 
         // Act
-        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}", isInstantiation: true);
 
         // Assert
         var keys = ExtractCommandKeys(bundle);
@@ -352,6 +353,22 @@ public class ProcessNextRequestFactoryTests
             InstanceCreatedAltinnEvent.Key,
         };
         Assert.Equal(expected, keys);
+    }
+
+    [Fact]
+    public async Task Create_InitialTaskStart_NotInstantiation_DoesNotIncludeInstanceCreatedEvent()
+    {
+        // Arrange
+        var factory = CreateFactory();
+        var stateChange = CreateInitialTaskStart();
+
+        // Act
+        var bundle = await factory.Create(TestInstance, stateChange, "lock-token", "{}");
+
+        // Assert
+        var keys = ExtractCommandKeys(bundle);
+        Assert.DoesNotContain(InstanceCreatedAltinnEvent.Key, keys);
+        Assert.DoesNotContain(NotifyInstanceOwnerOnInstantiation.Key, keys);
     }
 
     [Fact]
@@ -556,6 +573,31 @@ public class ProcessNextRequestFactoryTests
         var keys = ExtractCommandKeys(bundle);
         Assert.DoesNotContain(MovedToAltinnEvent.Key, keys);
         Assert.DoesNotContain(InstanceCreatedAltinnEvent.Key, keys);
+    }
+
+    [Fact]
+    public async Task Create_RegisterEventsDisabled_InstantiationWithNotification_IncludesNotificationCommand()
+    {
+        // Arrange
+        var factory = CreateFactory(registerEvents: false);
+        var stateChange = CreateInitialTaskStart();
+        var notification = new InstantiationNotification();
+
+        // Act
+        var bundle = await factory.Create(
+            TestInstance,
+            stateChange,
+            "lock-token",
+            "{}",
+            isInstantiation: true,
+            notification: notification
+        );
+
+        // Assert
+        var keys = ExtractCommandKeys(bundle);
+        Assert.DoesNotContain(MovedToAltinnEvent.Key, keys);
+        Assert.DoesNotContain(InstanceCreatedAltinnEvent.Key, keys);
+        Assert.Contains(NotifyInstanceOwnerOnInstantiation.Key, keys);
     }
 
     [Fact]

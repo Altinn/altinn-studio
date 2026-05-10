@@ -3,6 +3,7 @@ using System.Reflection;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
+using Altinn.App.Core.Models.Notifications.Future;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine.DependencyInjection;
@@ -55,7 +56,21 @@ internal static class ProcessEngineCommandValidator
                 {
                     ServiceTaskType = null,
                     IsInitialTaskStart = true,
+                    IsInstantiation = true,
                     RegisterEvents = true,
+                }
+            ),
+            keys
+        );
+        CollectCommandKeys(
+            WorkflowCommandSet.GetTaskStartSteps(
+                new TaskStartContext
+                {
+                    ServiceTaskType = null,
+                    IsInitialTaskStart = true,
+                    IsInstantiation = true,
+                    Notification = new InstantiationNotification(),
+                    RegisterEvents = false,
                 }
             ),
             keys

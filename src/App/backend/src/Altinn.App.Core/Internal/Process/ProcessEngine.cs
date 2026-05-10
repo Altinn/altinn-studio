@@ -154,6 +154,7 @@ internal class ProcessEngine : IProcessEngine
         Instance instance,
         ProcessStateChange processStateChange,
         string lockToken,
+        bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
         CancellationToken ct = default
@@ -175,6 +176,7 @@ internal class ProcessEngine : IProcessEngine
             resolvedAction: "start",
             lockToken,
             state,
+            isInstantiation,
             prefill: prefill,
             notification: notification,
             ct: ct

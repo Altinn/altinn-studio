@@ -18,7 +18,6 @@ using Altinn.App.PlatformServices.Tests.Mocks;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -88,13 +87,15 @@ public class PdfServiceTests
         var httpClient = new HttpClient(delegatingHandler);
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
         var hostEnvironment = new Mock<IHostEnvironment>();
+        var authenticationTokenResolver = CreateAuthenticationTokenResolver(TestAuthentication.GetUserToken());
         var pdfGeneratorClient = new PdfGeneratorClient(
             logger.Object,
             httpClient,
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
+            authenticationTokenResolver.Object,
             _httpContextAccessor.Object,
-            BuildServiceProvider(hostEnvironment.Object)
+            hostEnvironment.Object
         );
 
         Stream pdf = await pdfGeneratorClient.GeneratePdf(
@@ -119,13 +120,15 @@ public class PdfServiceTests
         var httpClient = new HttpClient(delegatingHandler);
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
         var hostEnvironment = new Mock<IHostEnvironment>();
+        var authenticationTokenResolver = CreateAuthenticationTokenResolver(TestAuthentication.GetUserToken());
         var pdfGeneratorClient = new PdfGeneratorClient(
             logger.Object,
             httpClient,
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
+            authenticationTokenResolver.Object,
             _httpContextAccessor.Object,
-            BuildServiceProvider(hostEnvironment.Object)
+            hostEnvironment.Object
         );
 
         var func = async () =>
@@ -135,6 +138,60 @@ public class PdfServiceTests
             );
 
         await func.Should().ThrowAsync<PdfGenerationException>();
+    }
+
+    [Fact]
+    public async Task GeneratePdf_WithServiceOwnerAuthentication_UsesServiceOwnerToken()
+    {
+        string serviceOwnerToken = TestAuthentication.GetServiceOwnerToken();
+        var authTokenResolver = new Mock<IAuthenticationTokenResolver>(MockBehavior.Strict);
+        authTokenResolver
+            .Setup(r =>
+                r.GetAccessToken(
+                    It.Is<AuthenticationMethod>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(JwtToken.Parse(serviceOwnerToken));
+
+        string? requestBody = null;
+        DelegatingHandlerStub delegatingHandler = new(
+            async (HttpRequestMessage request, CancellationToken token) =>
+            {
+                requestBody = await request.Content!.ReadAsStringAsync(token);
+                return new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent("PDF") };
+            }
+        );
+
+        var httpClient = new HttpClient(delegatingHandler);
+        var logger = new Mock<ILogger<PdfGeneratorClient>>();
+        var hostEnvironment = new Mock<IHostEnvironment>();
+        var pdfGeneratorClient = new PdfGeneratorClient(
+            logger.Object,
+            httpClient,
+            _pdfGeneratorSettingsOptions,
+            _platformSettingsOptions,
+            authTokenResolver.Object,
+            _httpContextAccessor.Object,
+            hostEnvironment.Object
+        );
+
+        using Stream pdf = await pdfGeneratorClient.GeneratePdf(
+            new Uri(@"https://org.apps.hostName/appId/instance/instanceId"),
+            null,
+            StorageAuthenticationMethod.ServiceOwner(),
+            CancellationToken.None
+        );
+
+        requestBody.Should().Contain(serviceOwnerToken);
+        authTokenResolver.Verify(
+            r =>
+                r.GetAccessToken(
+                    It.Is<AuthenticationMethod>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -610,11 +667,12 @@ public class PdfServiceTests
         );
     }
 
-    private static IServiceProvider BuildServiceProvider(IHostEnvironment hostEnvironment)
+    private static Mock<IAuthenticationTokenResolver> CreateAuthenticationTokenResolver(string tokenValue)
     {
-        var services = new ServiceCollection();
-        services.AddSingleton(hostEnvironment);
-        services.AddSingleton(new Mock<IAuthenticationTokenResolver>().Object);
-        return services.BuildServiceProvider();
+        var authenticationTokenResolver = new Mock<IAuthenticationTokenResolver>();
+        authenticationTokenResolver
+            .Setup(a => a.GetAccessToken(It.IsAny<AuthenticationMethod>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JwtToken.Parse(tokenValue));
+        return authenticationTokenResolver;
     }
 }

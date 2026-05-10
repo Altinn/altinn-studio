@@ -515,6 +515,7 @@ public class InstancesController : ControllerBase
                     processStateChange,
                     _instanceLocker.CurrentLockToken
                         ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock"),
+                    isInstantiation: true,
                     notification: notification
                 );
             }
@@ -806,7 +807,8 @@ public class InstancesController : ControllerBase
                     processStateChange,
                     _instanceLocker.CurrentLockToken
                         ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock"),
-                    instansiationInstance.Prefill,
+                    isInstantiation: true,
+                    prefill: instansiationInstance.Prefill,
                     notification: instansiationInstance.Notification
                 );
             }
@@ -955,7 +957,8 @@ public class InstancesController : ControllerBase
                 targetInstance,
                 startResult.ProcessStateChange,
                 _instanceLocker.CurrentLockToken
-                    ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock")
+                    ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock"),
+                isInstantiation: true
             );
         }
 

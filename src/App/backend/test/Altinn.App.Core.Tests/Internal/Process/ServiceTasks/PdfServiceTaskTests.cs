@@ -62,7 +62,7 @@ public class PdfServiceTaskTests
                     instanceMutatorMock.Object,
                     FileName,
                     It.IsAny<List<string>?>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -114,7 +114,7 @@ public class PdfServiceTaskTests
                     instanceMutatorMock.Object,
                     "customFilenameTextResourceKey",
                     taskIds,
-                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once

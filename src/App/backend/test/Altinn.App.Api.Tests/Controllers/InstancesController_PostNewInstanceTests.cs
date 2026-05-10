@@ -524,7 +524,14 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
         using var pdfReturnStream = new MemoryStream();
         pdfMock
-            .Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .Setup(p =>
+                p.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(pdfReturnStream);
 
         // Setup test data

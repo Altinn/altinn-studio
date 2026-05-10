@@ -52,17 +52,17 @@ internal sealed class WorkflowCommandSet
             );
         }
 
-        if (context.IsInitialTaskStart && context.RegisterEvents)
+        if (context.IsInstantiation && context.RegisterEvents)
         {
             group.AddPostProcessNextCommittedCommand(InstanceCreatedAltinnEvent.Key);
+        }
 
-            if (context.Notification is not null)
-            {
-                group.AddPostProcessNextCommittedCommand(
-                    NotifyInstanceOwnerOnInstantiation.Key,
-                    new NotifyInstanceOwnerOnInstantiationPayload(context.Notification)
-                );
-            }
+        if (context.IsInstantiation && context.Notification is not null)
+        {
+            group.AddPostProcessNextCommittedCommand(
+                NotifyInstanceOwnerOnInstantiation.Key,
+                new NotifyInstanceOwnerOnInstantiationPayload(context.Notification)
+            );
         }
 
         return group;

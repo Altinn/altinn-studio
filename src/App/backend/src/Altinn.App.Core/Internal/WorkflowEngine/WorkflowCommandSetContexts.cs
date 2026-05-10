@@ -19,6 +19,11 @@ internal sealed record TaskStartContext
     public required bool IsInitialTaskStart { get; init; }
 
     /// <summary>
+    /// True when this task start is part of instance creation and should emit instantiation side effects.
+    /// </summary>
+    public bool IsInstantiation { get; init; }
+
+    /// <summary>
     /// Prefill data for initial task start. Only relevant when <see cref="IsInitialTaskStart"/> is true.
     /// </summary>
     public Dictionary<string, string>? Prefill { get; init; }

@@ -23,6 +23,7 @@ internal interface IProcessEngine
         Instance instance,
         ProcessStateChange processStateChange,
         string lockToken,
+        bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
         CancellationToken ct = default

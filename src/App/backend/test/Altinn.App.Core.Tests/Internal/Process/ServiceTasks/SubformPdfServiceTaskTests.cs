@@ -85,7 +85,7 @@ public class SubformPdfServiceTaskTests
                     It.Is<string?>(filename => filename == FileName),
                     It.Is<SubformPdfContext>(ctx => ctx.ComponentId == SubformComponentId),
                     It.IsAny<List<KeyValueEntry>?>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Exactly(2) // Should be called twice for the two data elements
@@ -142,7 +142,7 @@ public class SubformPdfServiceTaskTests
                         ctx.DataElementId == "data-element-1" || ctx.DataElementId == "data-element-2"
                     ),
                     It.IsAny<List<KeyValueEntry>?>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Exactly(2)
@@ -214,7 +214,7 @@ public class SubformPdfServiceTaskTests
                             && (m.Value == "data-element-1" || m.Value == "data-element-2")
                         )
                     ),
-                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Exactly(2)
