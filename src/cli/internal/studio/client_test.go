@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"altinn.studio/studioctl/internal/config"
@@ -177,16 +178,64 @@ func TestClient_buildCloneURL_DoesNotEmbedCredentials(t *testing.T) {
 	}
 }
 
-func TestClient_gitHTTPExtraHeaderConfigKey_ScopesToReposProxy(t *testing.T) {
+func TestClient_gitCredentialConfigKeys_ScopeToReposProxy(t *testing.T) {
 	t.Parallel()
 	client := &Client{
 		host:   "altinn.studio",
 		scheme: "https",
 	}
 
-	key := client.gitHTTPExtraHeaderConfigKey()
-	expected := "http.https://altinn.studio/repos/.extraHeader"
-	if key != expected {
-		t.Errorf("expected %s, got %s", expected, key)
+	helperKey := client.gitCredentialHelperConfigKey()
+	expectedHelperKey := "credential.https://altinn.studio/repos.helper"
+	if helperKey != expectedHelperKey {
+		t.Errorf("expected %s, got %s", expectedHelperKey, helperKey)
+	}
+
+	useHTTPPathKey := client.gitCredentialUseHTTPPathConfigKey()
+	expectedUseHTTPPathKey := "credential.https://altinn.studio/repos.useHttpPath"
+	if useHTTPPathKey != expectedUseHTTPPathKey {
+		t.Errorf("expected %s, got %s", expectedUseHTTPPathKey, useHTTPPathKey)
+	}
+}
+
+func TestClient_gitCredentialHelperCommand_DoesNotEmbedAPIKey(t *testing.T) {
+	t.Parallel()
+	client := &Client{
+		env:             "dev",
+		credentialsHome: "/tmp/studioctl home",
+		host:            "altinn.studio",
+		apiKey:          "secret-api-key",
+		scheme:          "https",
+	}
+
+	command := client.gitCredentialHelperCommand()
+	if strings.Contains(command, client.apiKey) {
+		t.Fatalf("credential helper command must not include API key: %s", command)
+	}
+	if !strings.Contains(command, " --home '/tmp/studioctl home' auth git-credential --env 'dev'") {
+		t.Fatalf("credential helper command = %q, want studioctl auth git-credential invocation", command)
+	}
+}
+
+func TestClient_gitCredentialConfigArgs_ResetHelpersBeforeStudioctlHelper(t *testing.T) {
+	t.Parallel()
+	client := &Client{
+		env:    "dev",
+		host:   "altinn.studio",
+		scheme: "https",
+	}
+
+	args := client.gitCredentialConfigArgs()
+	helperKey := client.gitCredentialHelperConfigKey()
+	expected := []string{
+		"-c",
+		helperKey + "=",
+		"-c",
+		helperKey + "=" + client.gitCredentialHelperCommand(),
+		"-c",
+		client.gitCredentialUseHTTPPathConfigKey() + "=true",
+	}
+	if strings.Join(args, "\n") != strings.Join(expected, "\n") {
+		t.Fatalf("git credential config args = %#v, want %#v", args, expected)
 	}
 }

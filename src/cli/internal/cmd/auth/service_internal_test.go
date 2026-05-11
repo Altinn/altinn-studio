@@ -152,7 +152,7 @@ func TestRevokeAllAPIKeysKeepsCredentialsWhenRevokeFails(t *testing.T) {
 	}
 }
 
-func TestRevokeAllAPIKeysKeepsCredentialsWhenRevokeIsUnauthorized(t *testing.T) {
+func TestRevokeAllAPIKeysRemovesCredentialsWhenRevokeIsUnauthorized(t *testing.T) {
 	ctx := context.Background()
 
 	oldTransport := http.DefaultTransport
@@ -180,13 +180,13 @@ func TestRevokeAllAPIKeysKeepsCredentialsWhenRevokeIsUnauthorized(t *testing.T) 
 	}
 
 	removed, err := revokeAllAPIKeys(ctx, creds)
-	if err == nil {
-		t.Fatal("expected revoke error")
+	if err != nil {
+		t.Fatalf("expected no revoke error, got %v", err)
 	}
-	if removed {
-		t.Fatal("expected no credentials to be removed")
+	if !removed {
+		t.Fatal("expected credentials to be removed")
 	}
-	if _, err := creds.Get("prod"); err != nil {
-		t.Error("expected unauthorized credentials to be kept for retry")
+	if _, err := creds.Get("prod"); err == nil {
+		t.Error("expected unauthorized credentials to be removed")
 	}
 }

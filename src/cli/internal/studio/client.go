@@ -19,6 +19,7 @@ import (
 	"altinn.studio/studioctl/internal/auth"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/httpclient"
+	"altinn.studio/studioctl/internal/osutil"
 )
 
 const (
@@ -76,20 +77,29 @@ type Repository struct {
 
 // Client is an API client for Altinn Studio.
 type Client struct {
-	host       string
-	version    config.Version
-	apiKey     string
-	httpClient *http.Client
-	scheme     string // "https" or "http" (http only for testing)
+	env             string
+	credentialsHome string
+	host            string
+	version         config.Version
+	apiKey          string
+	httpClient      *http.Client
+	scheme          string // "https" or "http" (http only for testing)
 }
 
 // NewClient creates a new Studio API client from credentials.
 func NewClient(creds *auth.EnvCredentials, version config.Version) *Client {
+	return NewClientForEnv(auth.DefaultEnv, "", creds, version)
+}
+
+// NewClientForEnv creates a new Studio API client for a named environment.
+func NewClientForEnv(env, credentialsHome string, creds *auth.EnvCredentials, version config.Version) *Client {
 	return &Client{
-		host:    creds.Host,
-		apiKey:  creds.ApiKey,
-		version: version,
-		scheme:  "https",
+		env:             env,
+		credentialsHome: credentialsHome,
+		host:            creds.Host,
+		apiKey:          creds.ApiKey,
+		version:         version,
+		scheme:          "https",
 		httpClient: &http.Client{
 			Timeout: httpTimeout,
 		},
@@ -205,7 +215,7 @@ func (c *Client) CloneRepo(ctx context.Context, org, repo, destPath string) erro
 		return err
 	}
 
-	return c.configureGitExtraHeader(ctx, absPath)
+	return c.configureGitCredentialHelper(ctx, absPath)
 }
 
 // buildCloneURL constructs the HTTPS clone URL.
@@ -227,12 +237,11 @@ func (c *Client) execGitClone(ctx context.Context, cloneURL, destPath string) er
 	args := []string{
 		"-c",
 		"http.userAgent=" + c.version.UserAgent(),
-		"-c",
-		c.gitHTTPExtraHeaderConfigKey() + "=X-Api-Key: " + c.apiKey,
 		"clone",
 		cloneURL,
 		destPath,
 	}
+	args = append(c.gitCredentialConfigArgs(), args...)
 
 	cmd := processutil.CommandContext(ctx, gitPath, args...)
 
@@ -245,38 +254,95 @@ func (c *Client) execGitClone(ctx context.Context, cloneURL, destPath string) er
 	return nil
 }
 
-func (c *Client) configureGitExtraHeader(ctx context.Context, repoPath string) error {
+func (c *Client) configureGitCredentialHelper(ctx context.Context, repoPath string) error {
 	gitPath, err := exec.LookPath("git")
 	if err != nil {
 		return ErrGitNotFound
 	}
 
-	cmd := processutil.CommandContext(
-		ctx,
-		gitPath,
-		"-C",
-		repoPath,
-		"config",
-		"--local",
-		c.gitHTTPExtraHeaderConfigKey(),
-		"X-Api-Key: "+c.apiKey,
-	)
+	commands := [][]string{
+		{
+			"-C",
+			repoPath,
+			"config",
+			"--local",
+			"--replace-all",
+			c.gitCredentialHelperConfigKey(),
+			"",
+		},
+		{
+			"-C",
+			repoPath,
+			"config",
+			"--local",
+			"--add",
+			c.gitCredentialHelperConfigKey(),
+			c.gitCredentialHelperCommand(),
+		},
+		{
+			"-C",
+			repoPath,
+			"config",
+			"--local",
+			"--replace-all",
+			c.gitCredentialUseHTTPPathConfigKey(),
+			"true",
+		},
+	}
 
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		sanitized := sanitizeGitOutput(string(output), c.secret())
-		return fmt.Errorf("configure git auth header: %w: %s", err, sanitized)
+	for _, args := range commands {
+		cmd := processutil.CommandContext(ctx, gitPath, args...)
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			sanitized := sanitizeGitOutput(string(output), c.secret())
+			return fmt.Errorf("configure git credential helper: %w: %s", err, sanitized)
+		}
 	}
 
 	return nil
 }
 
-func (c *Client) gitHTTPExtraHeaderConfigKey() string {
+func (c *Client) gitCredentialHelperConfigKey() string {
 	var u url.URL
 	u.Scheme = c.scheme
 	u.Host = c.host
-	u.Path = "/repos/"
-	return "http." + u.String() + ".extraHeader"
+	u.Path = "/repos"
+	return "credential." + u.String() + ".helper"
+}
+
+func (c *Client) gitCredentialUseHTTPPathConfigKey() string {
+	var u url.URL
+	u.Scheme = c.scheme
+	u.Host = c.host
+	u.Path = "/repos"
+	return "credential." + u.String() + ".useHttpPath"
+}
+
+func (c *Client) gitCredentialConfigArgs() []string {
+	helperKey := c.gitCredentialHelperConfigKey()
+	return []string{
+		"-c", helperKey + "=",
+		"-c", helperKey + "=" + c.gitCredentialHelperCommand(),
+		"-c", c.gitCredentialUseHTTPPathConfigKey() + "=true",
+	}
+}
+
+func (c *Client) gitCredentialHelperCommand() string {
+	args := []string{
+		"!" + shellQuote(osutil.CurrentBinPath()),
+	}
+	if c.credentialsHome != "" {
+		args = append(args, "--home", shellQuote(c.credentialsHome))
+	}
+	args = append(args, "auth", "git-credential", "--env", shellQuote(c.env))
+	return strings.Join(args, " ")
+}
+
+func shellQuote(value string) string {
+	if value == "" {
+		return "''"
+	}
+	return "'" + strings.ReplaceAll(value, "'", "'\\''") + "'"
 }
 
 // setRequestHeaders sets the shared headers for API requests.

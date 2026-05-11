@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
@@ -9,10 +10,12 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	authstore "altinn.studio/studioctl/internal/auth"
@@ -94,12 +97,101 @@ func (c *AuthCommand) Run(ctx context.Context, args []string) error {
 		return c.runStatus(ctx, subArgs)
 	case "logout":
 		return c.runLogout(ctx, subArgs)
+	case "git-credential":
+		return c.runGitCredential(subArgs)
 	case "-h", flagHelp, helpSubcmd:
 		c.out.Print(c.Usage())
 		return nil
 	default:
 		return fmt.Errorf("%w: %s", ErrUnknownSubcommand, subCmd)
 	}
+}
+
+type gitCredentialRequest struct {
+	Protocol string
+	Host     string
+	Path     string
+}
+
+func (c *AuthCommand) runGitCredential(args []string) error {
+	fs := flag.NewFlagSet("auth git-credential", flag.ContinueOnError)
+	var env string
+	fs.StringVar(&env, "env", authstore.DefaultEnv, "Environment name")
+
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return nil
+		}
+		return fmt.Errorf("parsing flags: %w", err)
+	}
+
+	operation := "get"
+	if fs.NArg() > 0 {
+		operation = fs.Arg(0)
+	}
+	if operation != "get" {
+		return nil
+	}
+
+	request, err := readGitCredentialRequest(os.Stdin)
+	if err != nil {
+		//nolint:nilerr // Git credential helpers fail closed by producing no credentials.
+		return nil
+	}
+
+	creds, err := authstore.LoadCredentials(c.credentialsHome)
+	if err != nil {
+		//nolint:nilerr // Git credential helpers fail closed by producing no credentials.
+		return nil
+	}
+	envCreds, err := creds.Get(env)
+	if err != nil {
+		//nolint:nilerr // Git credential helpers fail closed by producing no credentials.
+		return nil
+	}
+	if !matchesGitCredentialRequest(request, envCreds.Host) {
+		return nil
+	}
+
+	c.out.Printlnf("username=%s", envCreds.Username)
+	c.out.Printlnf("password=%s", envCreds.ApiKey)
+	c.out.Println("")
+	return nil
+}
+
+func readGitCredentialRequest(input io.Reader) (gitCredentialRequest, error) {
+	var request gitCredentialRequest
+	scanner := bufio.NewScanner(input)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == "" {
+			break
+		}
+		key, value, ok := strings.Cut(line, "=")
+		if !ok {
+			continue
+		}
+		switch key {
+		case "protocol":
+			request.Protocol = value
+		case "host":
+			request.Host = value
+		case "path":
+			request.Path = value
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return gitCredentialRequest{}, fmt.Errorf("read git credential request: %w", err)
+	}
+	return request, nil
+}
+
+func matchesGitCredentialRequest(request gitCredentialRequest, host string) bool {
+	if request.Protocol != "https" || request.Host != host {
+		return false
+	}
+	path := strings.TrimPrefix(request.Path, "/")
+	return path == "repos" || strings.HasPrefix(path, "repos/")
 }
 
 // loginFlags holds parsed flags for the auth login command.

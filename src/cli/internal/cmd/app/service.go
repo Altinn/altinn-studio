@@ -99,7 +99,7 @@ func (s *Service) Clone(ctx context.Context, req CloneRequest) (CloneResult, err
 		return CloneResult{}, fmt.Errorf("get credentials for %s: %w", req.Env, err)
 	}
 
-	client := studio.NewClient(envCreds, s.cfg.Version)
+	client := studio.NewClientForEnv(req.Env, s.cfg.Home, envCreds, s.cfg.Version)
 	cloneErr := client.CloneRepo(ctx, req.Org, req.Repo, req.Destination)
 	if cloneErr != nil {
 		return CloneResult{}, fmt.Errorf("clone repo: %w", cloneErr)

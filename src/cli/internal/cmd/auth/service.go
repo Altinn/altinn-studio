@@ -24,6 +24,8 @@ var (
 	ErrLoginCodeRequired = errors.New("login code is required")
 	// ErrInvalidToken indicates that the login code or API key validation failed.
 	ErrInvalidToken = errors.New("invalid token")
+	// ErrRevokeUnauthorized indicates that stored credentials can no longer authorize revocation.
+	ErrRevokeUnauthorized = errors.New("revoke unauthorized")
 )
 
 const (
@@ -128,25 +130,44 @@ func (s *Service) ExchangeCode(ctx context.Context, req CodeExchangeRequest) (Lo
 		Username:  response.Username,
 	}
 
-	if existing != nil {
-		if err := revokeAPIKey(ctx, existing); err != nil {
-			cleanupErr := revokeAPIKey(ctx, &newCreds)
-			if cleanupErr != nil {
-				return LoginResult{}, errors.Join(
-					fmt.Errorf("revoke previous api key: %w", err),
-					fmt.Errorf("revoke new api key: %w", cleanupErr),
-				)
-			}
-			return LoginResult{}, fmt.Errorf("revoke previous api key: %w", err)
-		}
+	if err := replaceExistingAPIKey(ctx, existing, &newCreds); err != nil {
+		return LoginResult{}, err
 	}
 
 	creds.Set(req.Env, newCreds)
 	if err := authstore.SaveCredentials(s.cfg.Home, creds); err != nil {
-		return LoginResult{}, fmt.Errorf("save credentials: %w", err)
+		saveErr := fmt.Errorf("save credentials: %w", err)
+		if revokeErr := revokeAPIKey(ctx, &newCreds); revokeErr != nil {
+			return LoginResult{}, errors.Join(saveErr, fmt.Errorf("revoke new api key: %w", revokeErr))
+		}
+		return LoginResult{}, saveErr
 	}
 
 	return LoginResult{Username: response.Username}, nil
+}
+
+func replaceExistingAPIKey(
+	ctx context.Context,
+	existing *authstore.EnvCredentials,
+	newCreds *authstore.EnvCredentials,
+) error {
+	if existing == nil {
+		return nil
+	}
+
+	err := revokeAPIKey(ctx, existing)
+	if err == nil || errors.Is(err, ErrRevokeUnauthorized) {
+		return nil
+	}
+
+	cleanupErr := revokeAPIKey(ctx, newCreds)
+	if cleanupErr != nil {
+		return errors.Join(
+			fmt.Errorf("revoke previous api key: %w", err),
+			fmt.Errorf("revoke new api key: %w", cleanupErr),
+		)
+	}
+	return fmt.Errorf("revoke previous api key: %w", err)
 }
 
 func exchangeCode(ctx context.Context, host, code, codeVerifier string) (studioctlTokenResponse, error) {
@@ -304,7 +325,7 @@ func (s *Service) Logout(ctx context.Context, req LogoutRequest) (LogoutResult, 
 	}
 
 	revokeErr := revokeAPIKey(ctx, envCreds)
-	if revokeErr != nil {
+	if revokeErr != nil && !errors.Is(revokeErr, ErrRevokeUnauthorized) {
 		return LogoutResult{Removed: false, RevokeError: errorString(revokeErr)}, nil
 	}
 
@@ -325,8 +346,10 @@ func revokeAllAPIKeys(ctx context.Context, creds *authstore.Credentials) (bool, 
 			continue
 		}
 		if err := revokeAPIKey(ctx, envCreds); err != nil {
-			revokeErr = errors.Join(revokeErr, fmt.Errorf("%s: %w", envName, err))
-			continue
+			if !errors.Is(err, ErrRevokeUnauthorized) {
+				revokeErr = errors.Join(revokeErr, fmt.Errorf("%s: %w", envName, err))
+				continue
+			}
 		}
 		creds.Delete(envName)
 		removed = true
@@ -356,6 +379,8 @@ func revokeAPIKey(ctx context.Context, creds *authstore.EnvCredentials) error {
 	switch resp.StatusCode {
 	case http.StatusNoContent, http.StatusNotFound:
 		return nil
+	case http.StatusUnauthorized, http.StatusForbidden:
+		return fmt.Errorf("%w %d", ErrRevokeUnauthorized, resp.StatusCode)
 	default:
 		return fmt.Errorf("%w %d", studio.ErrUnexpectedStatus, resp.StatusCode)
 	}

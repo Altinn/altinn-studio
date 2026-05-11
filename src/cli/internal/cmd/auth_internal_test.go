@@ -2,14 +2,20 @@ package cmd
 
 import (
 	"net/url"
+	"strings"
 	"testing"
+)
+
+const (
+	testHTTPS      = "https"
+	testStudioHost = "altinn.studio"
 )
 
 func TestBuildStudioctlLoginURL(t *testing.T) {
 	t.Parallel()
 
 	loginURL := buildStudioctlLoginURL(
-		"altinn.studio",
+		testStudioHost,
 		"http://127.0.0.1:12345/callback",
 		"state-value",
 		"challenge-value",
@@ -20,7 +26,7 @@ func TestBuildStudioctlLoginURL(t *testing.T) {
 	if err != nil {
 		t.Fatalf("parse login url: %v", err)
 	}
-	if parsed.Scheme != "https" || parsed.Host != "altinn.studio" || parsed.Path != "/Login" {
+	if parsed.Scheme != testHTTPS || parsed.Host != testStudioHost || parsed.Path != "/Login" {
 		t.Fatalf("login URL = %s, want https://altinn.studio/Login", loginURL)
 	}
 
@@ -58,5 +64,64 @@ func TestCreateCodeChallenge(t *testing.T) {
 
 	if got := createCodeChallenge(verifier); got != want {
 		t.Fatalf("code challenge = %q, want %q", got, want)
+	}
+}
+
+func TestReadGitCredentialRequest(t *testing.T) {
+	t.Parallel()
+
+	request, err := readGitCredentialRequest(strings.NewReader(
+		"protocol=" + testHTTPS + "\nhost=" + testStudioHost + "\npath=repos/org/repo.git\n\n",
+	))
+	if err != nil {
+		t.Fatalf("read git credential request: %v", err)
+	}
+	if request.Protocol != testHTTPS || request.Host != testStudioHost || request.Path != "repos/org/repo.git" {
+		t.Fatalf("request = %+v", request)
+	}
+}
+
+func TestMatchesGitCredentialRequest(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		request gitCredentialRequest
+		want    bool
+	}{
+		{
+			name:    "repos clone path",
+			request: gitCredentialRequest{Protocol: testHTTPS, Host: testStudioHost, Path: "repos/org/repo.git"},
+			want:    true,
+		},
+		{
+			name:    "leading slash repos clone path",
+			request: gitCredentialRequest{Protocol: testHTTPS, Host: testStudioHost, Path: "/repos/org/repo.git"},
+			want:    true,
+		},
+		{
+			name:    "wrong host",
+			request: gitCredentialRequest{Protocol: testHTTPS, Host: "example.com", Path: "repos/org/repo.git"},
+			want:    false,
+		},
+		{
+			name:    "wrong protocol",
+			request: gitCredentialRequest{Protocol: "http", Host: testStudioHost, Path: "repos/org/repo.git"},
+			want:    false,
+		},
+		{
+			name:    "non repos path",
+			request: gitCredentialRequest{Protocol: testHTTPS, Host: testStudioHost, Path: "org/repo.git"},
+			want:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := matchesGitCredentialRequest(tt.request, testStudioHost); got != tt.want {
+				t.Fatalf("matchesGitCredentialRequest() = %t, want %t", got, tt.want)
+			}
+		})
 	}
 }
