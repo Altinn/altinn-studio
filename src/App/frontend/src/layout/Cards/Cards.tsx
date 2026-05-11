@@ -47,9 +47,9 @@ export const Cards = ({ baseComponentId }: PropsFromGenericComponent<'Cards'>) =
         {cards.map((card, idx) => (
           <AppCard
             key={idx}
-            title={card.title && <TranslateComponent tKey={card.title} />}
-            description={card.description && <TranslateComponent tKey={card.description} />}
-            footer={card.footer && <TranslateComponent tKey={card.footer} />}
+            title={<TranslateComponent tKey={card.title} />}
+            description={<TranslateComponent tKey={card.description} />}
+            footer={<TranslateComponent tKey={card.footer} />}
             variant={colorVariantMap[color]}
             mediaPosition={mediaPosition}
             media={
