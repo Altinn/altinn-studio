@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="../../Shared/AppTunnel/**/*.cs" LinkBase="AppTunnel" />
+    <Compile Include="../../Shared/HostBridge/**/*.cs" LinkBase="HostBridge" />
     <Compile Include="../../Shared/EnvTopology/**/*.cs" LinkBase="EnvTopology" />
   </ItemGroup>
 

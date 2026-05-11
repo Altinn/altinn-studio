@@ -5,9 +5,9 @@ using System.Buffers.Binary;
 using System.Net.WebSockets;
 using System.Text.Json;
 
-namespace Altinn.Studio.AppTunnel;
+namespace Altinn.Studio.HostBridge;
 
-public enum TunnelFrameKind : byte
+public enum HostBridgeFrameKind : byte
 {
     RequestStart = 1,
     RequestBody = 2,
@@ -40,9 +40,9 @@ public sealed record ErrorFrame(long RequestId, string Message);
 
 public readonly record struct BodyFrame(long RequestId, bool IsFinal, byte[] Payload);
 
-public static class TunnelDefaults
+public static class HostBridgeDefaults
 {
-    public const string EndpointPath = "/internal/tunnel/app";
+    public const string EndpointPath = "/internal/host-bridge";
     public const int FrontendDevServerPort = 8080;
 
     // 64 KiB keeps websocket messages reasonably sized while still amortizing framing overhead.
@@ -50,21 +50,21 @@ public static class TunnelDefaults
     public const int BodyChannelCapacity = 8;
 }
 
-public static class TunnelProtocol
+public static class HostBridgeProtocol
 {
     private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
 
-    public static TunnelFrameKind ReadKind(ReadOnlySpan<byte> message)
+    public static HostBridgeFrameKind ReadKind(ReadOnlySpan<byte> message)
     {
         if (message.Length < 1)
         {
-            throw new InvalidDataException("empty tunnel frame");
+            throw new InvalidDataException("empty host bridge frame");
         }
 
-        return (TunnelFrameKind)message[0];
+        return (HostBridgeFrameKind)message[0];
     }
 
-    public static byte[] WriteJsonFrame<T>(TunnelFrameKind kind, T payload)
+    public static byte[] WriteJsonFrame<T>(HostBridgeFrameKind kind, T payload)
     {
         var json = JsonSerializer.SerializeToUtf8Bytes(payload, _jsonOptions);
         var frame = new byte[json.Length + 1];
@@ -73,20 +73,20 @@ public static class TunnelProtocol
         return frame;
     }
 
-    public static T ReadJsonFrame<T>(TunnelFrameKind expectedKind, ReadOnlySpan<byte> message)
+    public static T ReadJsonFrame<T>(HostBridgeFrameKind expectedKind, ReadOnlySpan<byte> message)
     {
         var kind = ReadKind(message);
         if (kind != expectedKind)
         {
-            throw new InvalidDataException($"unexpected tunnel frame kind {kind}, expected {expectedKind}");
+            throw new InvalidDataException($"unexpected host bridge frame kind {kind}, expected {expectedKind}");
         }
 
         return JsonSerializer.Deserialize<T>(message[1..], _jsonOptions)
-            ?? throw new InvalidDataException("invalid tunnel json frame");
+            ?? throw new InvalidDataException("invalid host bridge json frame");
     }
 
     public static byte[] WriteBodyFrame(
-        TunnelFrameKind kind,
+        HostBridgeFrameKind kind,
         long requestId,
         bool isFinal,
         ReadOnlySpan<byte> payload
@@ -100,17 +100,17 @@ public static class TunnelProtocol
         return frame;
     }
 
-    public static BodyFrame ReadBodyFrame(TunnelFrameKind expectedKind, ReadOnlySpan<byte> message)
+    public static BodyFrame ReadBodyFrame(HostBridgeFrameKind expectedKind, ReadOnlySpan<byte> message)
     {
         var kind = ReadKind(message);
         if (kind != expectedKind)
         {
-            throw new InvalidDataException($"unexpected tunnel frame kind {kind}, expected {expectedKind}");
+            throw new InvalidDataException($"unexpected host bridge frame kind {kind}, expected {expectedKind}");
         }
 
         if (message.Length < 10)
         {
-            throw new InvalidDataException("invalid tunnel body frame");
+            throw new InvalidDataException("invalid host bridge body frame");
         }
 
         var requestId = BinaryPrimitives.ReadInt64LittleEndian(message.Slice(1, 8));
@@ -134,7 +134,7 @@ public static class TunnelProtocol
                 return false;
 
             if (result.MessageType != WebSocketMessageType.Binary)
-                throw new InvalidDataException("app tunnel only supports binary websocket messages");
+                throw new InvalidDataException("host bridge only supports binary websocket messages");
 
             if (result.Count > 0)
             {
@@ -158,10 +158,10 @@ public static class TunnelProtocol
 
     public static void EnsureFrameWithinLimit(int bodyLength)
     {
-        if (bodyLength > TunnelDefaults.MaxFramePayloadBytes)
+        if (bodyLength > HostBridgeDefaults.MaxFramePayloadBytes)
         {
             throw new InvalidDataException(
-                $"tunnel frame exceeds limit of {TunnelDefaults.MaxFramePayloadBytes} bytes"
+                $"host bridge frame exceeds limit of {HostBridgeDefaults.MaxFramePayloadBytes} bytes"
             );
         }
     }

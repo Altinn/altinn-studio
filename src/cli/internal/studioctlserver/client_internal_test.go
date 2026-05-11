@@ -325,7 +325,7 @@ func TestLiveConfig_UsesStatusBoundTopologyPaths(t *testing.T) {
 	}
 
 	got := liveConfig(cfg, &Status{
-		Tunnel:                      TunnelStatus{URL: TunnelURL("8000")},
+		HostBridge:                  HostBridgeStatus{URL: HostBridgeURL("8000")},
 		LocaltestURL:                LocaltestURL("8000"),
 		StudioctlPath:               "/path/to/studioctl",
 		BoundTopologyBaseConfigPath: "",

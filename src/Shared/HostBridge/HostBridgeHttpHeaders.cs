@@ -3,9 +3,9 @@
 using System.Collections.Frozen;
 using Microsoft.Net.Http.Headers;
 
-namespace Altinn.Studio.AppTunnel;
+namespace Altinn.Studio.HostBridge;
 
-public static class TunnelHttpHeaders
+public static class HostBridgeHttpHeaders
 {
     private static readonly FrozenSet<string> HeadersToExclude = new HashSet<string>(
         17,

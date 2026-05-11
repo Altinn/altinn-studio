@@ -35,10 +35,10 @@ const (
 	upgradePath  = "/api/v1/studioctl/apps/upgrades"
 	shutdownPath = "/api/v1/studioctl/shutdown"
 
-	studioctlServerUnixSocketEnv   = "STUDIOCTL_SERVER_UNIX_SOCKET_PATH"
-	studioctlServerTunnelURLEnv    = "Tunnel__Url"
-	studioctlServerLocaltestURLEnv = "Localtest__Url"
-	studioctlServerStudioctlEnv    = "Studioctl__Path"
+	studioctlServerUnixSocketEnv    = "STUDIOCTL_SERVER_UNIX_SOCKET_PATH"
+	studioctlServerHostBridgeURLEnv = "HostBridge__Url"
+	studioctlServerLocaltestURLEnv  = "Localtest__Url"
+	studioctlServerStudioctlEnv     = "Studioctl__Path"
 
 	studioctlServerRequestTimeout        = 2 * time.Second
 	studioctlServerStartTimeout          = 10 * time.Second
@@ -46,7 +46,7 @@ const (
 	studioctlServerUpgradeTimeout        = 30 * time.Second
 	studioctlServerShutdownWait          = 3 * time.Second
 	studioctlServerPollInterval          = 100 * time.Millisecond
-	appTunnelEndpointPath                = "/internal/tunnel/app"
+	hostBridgeEndpointPath               = "/internal/host-bridge"
 	studioctlServerLogTailLines          = 40
 	studioctlServerLogSuffix             = ".log"
 )
@@ -55,7 +55,7 @@ type startConfig struct {
 	BinaryPath                  string `json:"binaryPath"`
 	WorkingDir                  string `json:"workingDir"`
 	UnixSocketPath              string `json:"unixSocketPath,omitempty"`
-	TunnelURL                   string `json:"tunnelUrl"`
+	HostBridgeURL               string `json:"hostBridgeUrl"`
 	LocaltestURL                string `json:"localtestUrl"`
 	StudioctlPath               string `json:"studioctlPath"`
 	BoundTopologyBaseConfigPath string `json:"boundTopologyBaseConfigPath,omitempty"`
@@ -69,20 +69,20 @@ type runtimeState struct {
 
 // Status describes the current studioctl-server status.
 type Status struct {
-	StudioctlServerVersion      string          `json:"studioctlServerVersion"`
-	DotnetVersion               string          `json:"dotnetVersion"`
-	StudioctlPath               string          `json:"studioctlPath"`
-	LocaltestURL                string          `json:"localtestUrl"`
-	BoundTopologyBaseConfigPath string          `json:"boundTopologyBaseConfigPath"`
-	BoundTopologyConfigPath     string          `json:"boundTopologyConfigPath"`
-	Tunnel                      TunnelStatus    `json:"tunnel"`
-	Apps                        []DiscoveredApp `json:"apps"`
-	ProcessID                   int             `json:"processId"`
-	InternalDev                 bool            `json:"internalDev"`
+	StudioctlServerVersion      string           `json:"studioctlServerVersion"`
+	DotnetVersion               string           `json:"dotnetVersion"`
+	StudioctlPath               string           `json:"studioctlPath"`
+	LocaltestURL                string           `json:"localtestUrl"`
+	BoundTopologyBaseConfigPath string           `json:"boundTopologyBaseConfigPath"`
+	BoundTopologyConfigPath     string           `json:"boundTopologyConfigPath"`
+	HostBridge                  HostBridgeStatus `json:"hostBridge"`
+	Apps                        []DiscoveredApp  `json:"apps"`
+	ProcessID                   int              `json:"processId"`
+	InternalDev                 bool             `json:"internalDev"`
 }
 
-// TunnelStatus describes the configured app tunnel.
-type TunnelStatus struct {
+// HostBridgeStatus describes the configured host bridge.
+type HostBridgeStatus struct {
 	URL       string `json:"url"`
 	Enabled   bool   `json:"enabled"`
 	Connected bool   `json:"connected"`
@@ -274,11 +274,11 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 		LocaltestURL                string `json:"localtestUrl"`
 		BoundTopologyBaseConfigPath string `json:"boundTopologyBaseConfigPath"`
 		BoundTopologyConfigPath     string `json:"boundTopologyConfigPath"`
-		Tunnel                      struct {
+		HostBridge                  struct {
 			URL       string `json:"url"`
 			Enabled   bool   `json:"enabled"`
 			Connected bool   `json:"connected"`
-		} `json:"tunnel"`
+		} `json:"hostBridge"`
 		Apps []struct {
 			ProcessID   *int   `json:"processId"`
 			HostPort    *int   `json:"hostPort"`
@@ -305,10 +305,10 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 		BoundTopologyBaseConfigPath: status.BoundTopologyBaseConfigPath,
 		BoundTopologyConfigPath:     status.BoundTopologyConfigPath,
 		InternalDev:                 status.InternalDev,
-		Tunnel: TunnelStatus{
-			Enabled:   status.Tunnel.Enabled,
-			Connected: status.Tunnel.Connected,
-			URL:       status.Tunnel.URL,
+		HostBridge: HostBridgeStatus{
+			Enabled:   status.HostBridge.Enabled,
+			Connected: status.HostBridge.Connected,
+			URL:       status.HostBridge.URL,
 		},
 		Apps: make([]DiscoveredApp, 0, len(status.Apps)),
 	}
@@ -599,9 +599,9 @@ func restartFromPersistedState(
 	return startProcess(ctx, cfg, desired)
 }
 
-// TunnelURL returns the studioctl-server tunnel URL for a localtest host port.
-func TunnelURL(port string) string {
-	return "ws://127.0.0.1:" + port + appTunnelEndpointPath
+// HostBridgeURL returns the studioctl-server host bridge URL for a localtest host port.
+func HostBridgeURL(port string) string {
+	return "ws://127.0.0.1:" + port + hostBridgeEndpointPath
 }
 
 // LocaltestURL returns the localtest HTTP URL for a host port.
@@ -698,8 +698,8 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 
 func studioctlServerEnvironment(startConfig startConfig) []string {
 	env := append(os.Environ(), studioctlServerUnixSocketEnv+"="+startConfig.UnixSocketPath)
-	if startConfig.TunnelURL != "" {
-		env = append(env, studioctlServerTunnelURLEnv+"="+startConfig.TunnelURL)
+	if startConfig.HostBridgeURL != "" {
+		env = append(env, studioctlServerHostBridgeURLEnv+"="+startConfig.HostBridgeURL)
 	}
 	if startConfig.LocaltestURL != "" {
 		env = append(env, studioctlServerLocaltestURLEnv+"="+startConfig.LocaltestURL)
@@ -910,7 +910,7 @@ func buildStartConfig(cfg *config.Config, loadBalancerPort, studioctlPath string
 		BinaryPath:                  cfg.StudioctlServerBinaryPath(),
 		WorkingDir:                  cfg.Home,
 		UnixSocketPath:              cfg.StudioctlServerSocketPath(),
-		TunnelURL:                   TunnelURL(loadBalancerPort),
+		HostBridgeURL:               HostBridgeURL(loadBalancerPort),
 		LocaltestURL:                LocaltestURL(loadBalancerPort),
 		StudioctlPath:               studioctlPath,
 		BoundTopologyBaseConfigPath: boundTopologyBaseConfigPath,
@@ -923,7 +923,7 @@ func liveConfig(cfg *config.Config, status *Status) startConfig {
 		BinaryPath:                  cfg.StudioctlServerBinaryPath(),
 		WorkingDir:                  cfg.Home,
 		UnixSocketPath:              cfg.StudioctlServerSocketPath(),
-		TunnelURL:                   status.Tunnel.URL,
+		HostBridgeURL:               status.HostBridge.URL,
 		LocaltestURL:                status.LocaltestURL,
 		StudioctlPath:               status.StudioctlPath,
 		BoundTopologyBaseConfigPath: status.BoundTopologyBaseConfigPath,
@@ -1162,7 +1162,7 @@ func zeroRuntimeState() runtimeState {
 			BinaryPath:                  "",
 			WorkingDir:                  "",
 			UnixSocketPath:              "",
-			TunnelURL:                   "",
+			HostBridgeURL:               "",
 			LocaltestURL:                "",
 			StudioctlPath:               "",
 			BoundTopologyBaseConfigPath: "",

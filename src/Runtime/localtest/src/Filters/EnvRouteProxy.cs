@@ -7,7 +7,7 @@ using Yarp.ReverseProxy.Forwarder;
 
 namespace LocalTest.Filters;
 
-public sealed class EnvProxy
+public sealed class EnvRouteProxy
 {
     private static readonly HttpMessageInvoker HttpClient = new(
         new SocketsHttpHandler
@@ -25,9 +25,9 @@ public sealed class EnvProxy
     );
 
     private readonly IHttpForwarder _forwarder;
-    private readonly ILogger<EnvProxy> _logger;
+    private readonly ILogger<EnvRouteProxy> _logger;
 
-    public EnvProxy(IHttpForwarder forwarder, ILogger<EnvProxy> logger)
+    public EnvRouteProxy(IHttpForwarder forwarder, ILogger<EnvRouteProxy> logger)
     {
         _forwarder = forwarder;
         _logger = logger;

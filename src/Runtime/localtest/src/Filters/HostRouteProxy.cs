@@ -1,23 +1,23 @@
 #nullable enable
 
 using System.Web;
-using Altinn.Studio.AppTunnel;
-using LocalTest.Tunnel;
+using Altinn.Studio.HostBridge;
+using LocalTest.HostBridge;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Net.Http.Headers;
 
 namespace LocalTest.Filters;
 
-public sealed class HostProxy
+public sealed class HostRouteProxy
 {
     private const string AppComponent = "app";
 
-    private readonly AppTunnelClient _appTunnelClient;
-    private readonly ILogger<HostProxy> _logger;
+    private readonly HostBridgeClient _hostBridgeClient;
+    private readonly ILogger<HostRouteProxy> _logger;
 
-    public HostProxy(AppTunnelClient appTunnelClient, ILogger<HostProxy> logger)
+    public HostRouteProxy(HostBridgeClient hostBridgeClient, ILogger<HostRouteProxy> logger)
     {
-        _appTunnelClient = appTunnelClient;
+        _hostBridgeClient = hostBridgeClient;
         _logger = logger;
     }
 
@@ -86,13 +86,13 @@ public sealed class HostProxy
     private async Task ProxyRequest(HttpContext context, string target, int targetPort)
     {
         using var request = CreateRequest(context);
-        await _appTunnelClient.ProxyToTarget(request, target, targetPort, context, context.RequestAborted);
+        await _hostBridgeClient.ProxyToTarget(request, target, targetPort, context, context.RequestAborted);
     }
 
     private static HttpRequestMessage CreateRequest(HttpContext context)
     {
         if (RequestRequiresUpgrade(context.Request))
-            throw new InvalidOperationException("upgrade requests are not supported by the app tunnel");
+            throw new InvalidOperationException("upgrade requests are not supported by the host bridge");
 
         var request = new HttpRequestMessage(
             new HttpMethod(context.Request.Method),
@@ -119,10 +119,10 @@ public sealed class HostProxy
                 continue;
             }
 
-            if (TunnelHttpHeaders.ShouldSkipRequestHeader(header.Key))
+            if (HostBridgeHttpHeaders.ShouldSkipRequestHeader(header.Key))
                 continue;
 
-            if (TunnelHttpHeaders.IsContentHeader(header.Key))
+            if (HostBridgeHttpHeaders.IsContentHeader(header.Key))
             {
                 if (target.Content is not null)
                     target.Content.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
@@ -193,7 +193,7 @@ public sealed class HostProxy
 
     private async Task HandleProxyError(HttpContext context, Exception exception, string targetDescription)
     {
-        _logger.LogWarning(exception, "Tunnel proxy failed for {TargetDescription}", targetDescription);
+        _logger.LogWarning(exception, "Host route proxy failed for {TargetDescription}", targetDescription);
 
         if (context.Response.HasStarted)
         {
@@ -203,7 +203,13 @@ public sealed class HostProxy
         context.Response.Clear();
         context.Response.StatusCode = 502;
         context.Response.ContentType = "text/html; charset=utf-8";
-        await context.Response.WriteAsync(GetAppErrorPage(targetDescription));
+        if (string.Equals(targetDescription, AppComponent, StringComparison.OrdinalIgnoreCase))
+        {
+            await context.Response.WriteAsync(GetAppErrorPage(targetDescription));
+            return;
+        }
+
+        await context.Response.WriteAsync(GetServiceErrorPage(targetDescription));
     }
 
     private static string GetAppErrorPage(string appId)
@@ -228,6 +234,28 @@ public sealed class HostProxy
                 <pre>dotnet run --project App/App.csproj</pre>
                 <p>Or use studioctl:</p>
                 <pre>studioctl run</pre>
+            </body>
+            </html>
+            """;
+    }
+
+    private static string GetServiceErrorPage(string service)
+    {
+        return $$"""
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <title>Host service unavailable</title>
+                <style>
+                    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+                    h1 { color: #c00; }
+                </style>
+            </head>
+            <body>
+                <h1>502 Bad Gateway</h1>
+                <h2>Host service unavailable</h2>
+                <p>Could not proxy requests for {{HttpUtility.HtmlEncode(service)}} through the host bridge.</p>
             </body>
             </html>
             """;

@@ -33,7 +33,7 @@ func TestServerStatusJSON_Running(t *testing.T) {
 				DotnetVersion:          "10.0.0",
 				StudioctlPath:          "/tmp/studioctl",
 				InternalDev:            true,
-				Tunnel: studioctlserver.TunnelStatus{
+				HostBridge: studioctlserver.HostBridgeStatus{
 					Enabled:   true,
 					Connected: true,
 					URL:       "https://example.test",

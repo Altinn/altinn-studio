@@ -4,15 +4,15 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.WebSockets;
 using System.Threading.Channels;
-using Altinn.Studio.AppTunnel;
 using Altinn.Studio.EnvTopology;
+using Altinn.Studio.HostBridge;
 using Altinn.Studio.StudioctlServer.Platform;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 
-namespace Altinn.Studio.StudioctlServer.Tunnel;
+namespace Altinn.Studio.StudioctlServer.HostBridge;
 
-internal sealed class TunnelWorker : BackgroundService
+internal sealed class HostBridgeConnector : BackgroundService
 {
     private static readonly HttpClient HttpClient = new(
         new SocketsHttpHandler
@@ -30,15 +30,15 @@ internal sealed class TunnelWorker : BackgroundService
         DefaultRequestHeaders = { UserAgent = { ProductInfoHeaderValue.Parse(StudioctlUserAgent.Value) } },
     };
 
-    private readonly TunnelOptions _options;
-    private readonly TunnelState _state;
-    private readonly ILogger<TunnelWorker> _logger;
+    private readonly HostBridgeOptions _options;
+    private readonly HostBridgeState _state;
+    private readonly ILogger<HostBridgeConnector> _logger;
     private readonly BoundTopologyIndexAccessor _boundTopologyIndex;
 
-    public TunnelWorker(
-        IOptions<TunnelOptions> options,
-        TunnelState state,
-        ILogger<TunnelWorker> logger,
+    public HostBridgeConnector(
+        IOptions<HostBridgeOptions> options,
+        HostBridgeState state,
+        ILogger<HostBridgeConnector> logger,
         BoundTopologyIndexAccessor boundTopologyIndex
     )
     {
@@ -52,7 +52,7 @@ internal sealed class TunnelWorker : BackgroundService
     {
         if (string.IsNullOrWhiteSpace(_options.Url))
         {
-            _logger.LogInformation("App tunnel disabled");
+            _logger.LogInformation("Host bridge disabled");
             return;
         }
 
@@ -70,7 +70,7 @@ internal sealed class TunnelWorker : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "App tunnel connection failed");
+                _logger.LogError(ex, "Host bridge connection failed");
             }
 
             await Task.Delay(delay, stoppingToken);
@@ -80,16 +80,16 @@ internal sealed class TunnelWorker : BackgroundService
 
     private async Task RunConnection(CancellationToken cancellationToken)
     {
-        var tunnelUrl = _options.Url;
-        if (string.IsNullOrWhiteSpace(tunnelUrl))
+        var hostBridgeUrl = _options.Url;
+        if (string.IsNullOrWhiteSpace(hostBridgeUrl))
             return;
 
         using var socket = new ClientWebSocket();
         if (_logger.IsEnabled(LogLevel.Information))
-            _logger.LogInformation("Connecting app tunnel to {Url}", tunnelUrl);
-        await ConnectTunnelSocket(socket, tunnelUrl, cancellationToken);
+            _logger.LogInformation("Connecting host bridge to {Url}", hostBridgeUrl);
+        await ConnectHostBridgeSocket(socket, hostBridgeUrl, cancellationToken);
         _state.SetConnected(true);
-        _logger.LogInformation("App tunnel connected");
+        _logger.LogInformation("Host bridge connected");
 
         var sendLock = new SemaphoreSlim(1, 1);
         var pending = new ConcurrentDictionary<long, PendingRequest>();
@@ -100,7 +100,7 @@ internal sealed class TunnelWorker : BackgroundService
         {
             while (socket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
             {
-                if (!await TunnelProtocol.ReadMessage(socket, receiveBuffer, messageBuffer, cancellationToken))
+                if (!await HostBridgeProtocol.ReadMessage(socket, receiveBuffer, messageBuffer, cancellationToken))
                     break;
 
                 await HandleMessage(socket, sendLock, pending, messageBuffer.WrittenMemory, cancellationToken);
@@ -114,13 +114,13 @@ internal sealed class TunnelWorker : BackgroundService
 
             _state.SetConnected(false);
             sendLock.Dispose();
-            _logger.LogInformation("App tunnel disconnected");
+            _logger.LogInformation("Host bridge disconnected");
         }
     }
 
-    private async Task ConnectTunnelSocket(
+    private async Task ConnectHostBridgeSocket(
         ClientWebSocket socket,
-        string tunnelUrl,
+        string hostBridgeUrl,
         CancellationToken cancellationToken
     )
     {
@@ -133,13 +133,13 @@ internal sealed class TunnelWorker : BackgroundService
         try
         {
             socket.Options.SetRequestHeader(HeaderNames.UserAgent, StudioctlUserAgent.Value);
-            await socket.ConnectAsync(new Uri(tunnelUrl, UriKind.Absolute), linkedCancellation.Token);
+            await socket.ConnectAsync(new Uri(hostBridgeUrl, UriKind.Absolute), linkedCancellation.Token);
         }
         catch (OperationCanceledException)
             when (!cancellationToken.IsCancellationRequested && connectTimeout.IsCancellationRequested)
         {
             throw new TimeoutException(
-                $"timed out connecting app tunnel to {tunnelUrl} after {_options.ConnectTimeout}"
+                $"timed out connecting host bridge to {hostBridgeUrl} after {_options.ConnectTimeout}"
             );
         }
     }
@@ -152,22 +152,25 @@ internal sealed class TunnelWorker : BackgroundService
         CancellationToken cancellationToken
     )
     {
-        switch (TunnelProtocol.ReadKind(message.Span))
+        switch (HostBridgeProtocol.ReadKind(message.Span))
         {
-            case TunnelFrameKind.RequestStart:
+            case HostBridgeFrameKind.RequestStart:
             {
-                var frame = TunnelProtocol.ReadJsonFrame<RequestStartFrame>(TunnelFrameKind.RequestStart, message.Span);
+                var frame = HostBridgeProtocol.ReadJsonFrame<RequestStartFrame>(
+                    HostBridgeFrameKind.RequestStart,
+                    message.Span
+                );
                 var request = new PendingRequest(frame);
                 if (!pending.TryAdd(frame.RequestId, request))
                 {
                     request.Cancel();
-                    throw new InvalidDataException($"duplicate app tunnel request id {frame.RequestId}");
+                    throw new InvalidDataException($"duplicate host bridge request id {frame.RequestId}");
                 }
 
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
                     _logger.LogDebug(
-                        "Accepted tunnel request {RequestId} for target {Target}:{TargetPort} path {Path}",
+                        "Accepted host bridge request {RequestId} for target {Target}:{TargetPort} path {Path}",
                         frame.RequestId,
                         frame.Target,
                         frame.TargetPort,
@@ -176,9 +179,9 @@ internal sealed class TunnelWorker : BackgroundService
                 }
                 break;
             }
-            case TunnelFrameKind.RequestBody:
+            case HostBridgeFrameKind.RequestBody:
             {
-                var frame = TunnelProtocol.ReadBodyFrame(TunnelFrameKind.RequestBody, message.Span);
+                var frame = HostBridgeProtocol.ReadBodyFrame(HostBridgeFrameKind.RequestBody, message.Span);
                 if (pending.TryGetValue(frame.RequestId, out var request))
                 {
                     if (!request.IsStarted)
@@ -190,15 +193,15 @@ internal sealed class TunnelWorker : BackgroundService
                 }
                 break;
             }
-            case TunnelFrameKind.Cancel:
+            case HostBridgeFrameKind.Cancel:
             {
-                var frame = TunnelProtocol.ReadJsonFrame<ErrorFrame>(TunnelFrameKind.Cancel, message.Span);
+                var frame = HostBridgeProtocol.ReadJsonFrame<ErrorFrame>(HostBridgeFrameKind.Cancel, message.Span);
                 if (pending.TryRemove(frame.RequestId, out var request))
                     request.Cancel();
                 break;
             }
             default:
-                throw new InvalidDataException("unexpected app tunnel request frame");
+                throw new InvalidDataException("unexpected host bridge request frame");
         }
     }
 
@@ -229,22 +232,22 @@ internal sealed class TunnelWorker : BackgroundService
             await SendFrame(
                 socket,
                 sendLock,
-                TunnelProtocol.WriteJsonFrame(TunnelFrameKind.ResponseStart, responseStart),
+                HostBridgeProtocol.WriteJsonFrame(HostBridgeFrameKind.ResponseStart, responseStart),
                 cancellationToken
             );
             await SendBodyFrames(
                 socket,
                 sendLock,
                 response.Content,
-                TunnelFrameKind.ResponseBody,
+                HostBridgeFrameKind.ResponseBody,
                 pendingRequest.RequestId,
                 requestCancellationToken
             );
             await SendFrame(
                 socket,
                 sendLock,
-                TunnelProtocol.WriteJsonFrame(
-                    TunnelFrameKind.ResponseTrailers,
+                HostBridgeProtocol.WriteJsonFrame(
+                    HostBridgeFrameKind.ResponseTrailers,
                     new HeadersFrame(pendingRequest.RequestId, CollectResponseTrailers(response))
                 ),
                 requestCancellationToken
@@ -252,7 +255,7 @@ internal sealed class TunnelWorker : BackgroundService
             if (_logger.IsEnabled(LogLevel.Debug))
             {
                 _logger.LogDebug(
-                    "Completed tunnel request {RequestId} for target {Target}:{TargetPort} with status {StatusCode}",
+                    "Completed host bridge request {RequestId} for target {Target}:{TargetPort} with status {StatusCode}",
                     pendingRequest.RequestId,
                     pendingRequest.Target,
                     pendingRequest.TargetPort,
@@ -266,7 +269,7 @@ internal sealed class TunnelWorker : BackgroundService
             {
                 _logger.LogDebug(
                     ex,
-                    "App tunnel request {RequestId} for target {Target}:{TargetPort} cancelled",
+                    "Host bridge request {RequestId} for target {Target}:{TargetPort} cancelled",
                     pendingRequest.RequestId,
                     pendingRequest.Target,
                     pendingRequest.TargetPort
@@ -275,12 +278,12 @@ internal sealed class TunnelWorker : BackgroundService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "App tunnel request {RequestId} failed", pendingRequest.RequestId);
+            _logger.LogError(ex, "Host bridge request {RequestId} failed", pendingRequest.RequestId);
             await SendFrame(
                 socket,
                 sendLock,
-                TunnelProtocol.WriteJsonFrame(
-                    TunnelFrameKind.Error,
+                HostBridgeProtocol.WriteJsonFrame(
+                    HostBridgeFrameKind.Error,
                     new ErrorFrame(pendingRequest.RequestId, ex.Message)
                 ),
                 cancellationToken
@@ -315,7 +318,7 @@ internal sealed class TunnelWorker : BackgroundService
         ClientWebSocket socket,
         SemaphoreSlim sendLock,
         HttpContent? content,
-        TunnelFrameKind kind,
+        HostBridgeFrameKind kind,
         long requestId,
         CancellationToken cancellationToken
     )
@@ -325,20 +328,20 @@ internal sealed class TunnelWorker : BackgroundService
             await SendFrame(
                 socket,
                 sendLock,
-                TunnelProtocol.WriteBodyFrame(kind, requestId, isFinal: true, []),
+                HostBridgeProtocol.WriteBodyFrame(kind, requestId, isFinal: true, []),
                 cancellationToken
             );
             return;
         }
 
         await using var body = await content.ReadAsStreamAsync(cancellationToken);
-        var buffer = ArrayPool<byte>.Shared.Rent(TunnelDefaults.MaxFramePayloadBytes);
+        var buffer = ArrayPool<byte>.Shared.Rent(HostBridgeDefaults.MaxFramePayloadBytes);
         try
         {
             while (true)
             {
                 var bytesRead = await body.ReadAsync(
-                    buffer.AsMemory(0, TunnelDefaults.MaxFramePayloadBytes),
+                    buffer.AsMemory(0, HostBridgeDefaults.MaxFramePayloadBytes),
                     cancellationToken
                 );
                 if (bytesRead == 0)
@@ -347,7 +350,7 @@ internal sealed class TunnelWorker : BackgroundService
                 await SendFrame(
                     socket,
                     sendLock,
-                    TunnelProtocol.WriteBodyFrame(kind, requestId, isFinal: false, buffer.AsSpan(0, bytesRead)),
+                    HostBridgeProtocol.WriteBodyFrame(kind, requestId, isFinal: false, buffer.AsSpan(0, bytesRead)),
                     cancellationToken
                 );
             }
@@ -355,7 +358,7 @@ internal sealed class TunnelWorker : BackgroundService
             await SendFrame(
                 socket,
                 sendLock,
-                TunnelProtocol.WriteBodyFrame(kind, requestId, isFinal: true, []),
+                HostBridgeProtocol.WriteBodyFrame(kind, requestId, isFinal: true, []),
                 cancellationToken
             );
         }
@@ -375,7 +378,7 @@ internal sealed class TunnelWorker : BackgroundService
         await sendLock.WaitAsync(cancellationToken);
         try
         {
-            await TunnelProtocol.SendFrame(socket, frame, cancellationToken);
+            await HostBridgeProtocol.SendFrame(socket, frame, cancellationToken);
         }
         finally
         {
@@ -386,10 +389,10 @@ internal sealed class TunnelWorker : BackgroundService
     private static Dictionary<string, string[]> CollectResponseHeaders(HttpResponseMessage response)
     {
         var headers = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
-        CopyHeaders(response.Headers, headers, TunnelHttpHeaders.ShouldSkipResponseHeader);
+        CopyHeaders(response.Headers, headers, HostBridgeHttpHeaders.ShouldSkipResponseHeader);
 
         if (response.Content is not null)
-            CopyHeaders(response.Content.Headers, headers, TunnelHttpHeaders.ShouldSkipResponseHeader);
+            CopyHeaders(response.Content.Headers, headers, HostBridgeHttpHeaders.ShouldSkipResponseHeader);
 
         if (
             response.Content is not null
@@ -402,7 +405,7 @@ internal sealed class TunnelWorker : BackgroundService
 
         if (
             response.Content is not null
-            && TunnelHttpHeaders.IsBodylessStatusCode((int)response.StatusCode)
+            && HostBridgeHttpHeaders.IsBodylessStatusCode((int)response.StatusCode)
             && headers.TryGetValue(HeaderNames.ContentLength, out var contentLength)
             && contentLength.Length == 1
             && contentLength[0] == "0"
@@ -417,7 +420,7 @@ internal sealed class TunnelWorker : BackgroundService
     private static Dictionary<string, string[]> CollectResponseTrailers(HttpResponseMessage response)
     {
         var headers = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
-        CopyHeaders(response.TrailingHeaders, headers, TunnelHttpHeaders.ShouldSkipResponseHeader);
+        CopyHeaders(response.TrailingHeaders, headers, HostBridgeHttpHeaders.ShouldSkipResponseHeader);
         return headers;
     }
 
@@ -431,7 +434,7 @@ internal sealed class TunnelWorker : BackgroundService
             return upstream;
         }
 
-        throw new InvalidDataException("unsupported app tunnel target");
+        throw new InvalidDataException("unsupported host bridge target");
     }
 
     private static void CopyHeaders(
@@ -451,7 +454,7 @@ internal sealed class TunnelWorker : BackgroundService
     {
         private readonly RequestStartFrame _start;
         private readonly Channel<byte[]> _body = Channel.CreateBounded<byte[]>(
-            new BoundedChannelOptions(TunnelDefaults.BodyChannelCapacity)
+            new BoundedChannelOptions(HostBridgeDefaults.BodyChannelCapacity)
             {
                 SingleReader = true,
                 SingleWriter = true,
@@ -489,7 +492,7 @@ internal sealed class TunnelWorker : BackgroundService
 
                 if (payload.Length > 0)
                 {
-                    TunnelProtocol.EnsureFrameWithinLimit(payload.Length);
+                    HostBridgeProtocol.EnsureFrameWithinLimit(payload.Length);
                     await _body.Writer.WriteAsync(payload, cancellationToken);
                 }
 
@@ -533,10 +536,10 @@ internal sealed class TunnelWorker : BackgroundService
                     continue;
                 }
 
-                if (TunnelHttpHeaders.ShouldSkipRequestHeader(header.Key))
+                if (HostBridgeHttpHeaders.ShouldSkipRequestHeader(header.Key))
                     continue;
 
-                if (TunnelHttpHeaders.IsContentHeader(header.Key))
+                if (HostBridgeHttpHeaders.IsContentHeader(header.Key))
                 {
                     if (request.Content is not null)
                         request.Content.Headers.TryAddWithoutValidation(header.Key, header.Value);

@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using Altinn.Studio.StudioctlServer.Discovery;
+using Altinn.Studio.StudioctlServer.HostBridge;
 using Altinn.Studio.StudioctlServer.Platform;
 using Altinn.Studio.StudioctlServer.Studioctl;
-using Altinn.Studio.StudioctlServer.Tunnel;
 
 namespace Altinn.Studio.StudioctlServer;
 
@@ -30,7 +30,7 @@ internal static class Program
 
         builder.Services.AddDiscoveryServices(builder.Configuration);
         builder.Services.AddStudioctlServices();
-        builder.Services.AddTunnelServices(builder.Configuration);
+        builder.Services.AddHostBridgeServices(builder.Configuration);
 
         builder.WebHost.ConfigureKestrel((context, options) => IpcListener.Configure(context.Configuration, options));
 

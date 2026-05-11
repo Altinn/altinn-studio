@@ -1,6 +1,6 @@
-namespace Altinn.Studio.StudioctlServer.Tunnel;
+namespace Altinn.Studio.StudioctlServer.HostBridge;
 
-internal sealed class TunnelOptions
+internal sealed class HostBridgeOptions
 {
     public string? Url { get; set; }
 

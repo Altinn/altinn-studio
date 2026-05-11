@@ -1,7 +1,7 @@
 using Altinn.Studio.EnvTopology;
 using Altinn.Studio.StudioctlServer.Discovery;
+using Altinn.Studio.StudioctlServer.HostBridge;
 using Altinn.Studio.StudioctlServer.Platform;
-using Altinn.Studio.StudioctlServer.Tunnel;
 
 namespace Altinn.Studio.StudioctlServer.Studioctl;
 
@@ -20,7 +20,7 @@ internal static class Endpoints
 
     private static IResult GetStatus(
         AppRegistry registry,
-        TunnelState tunnelState,
+        HostBridgeState hostBridgeState,
         IConfiguration configuration,
         BoundTopologyOptions boundTopologyOptions
     )
@@ -36,7 +36,7 @@ internal static class Endpoints
                 configuration["Localtest:Url"] ?? "",
                 boundTopologyOptions.BaseConfigPath ?? "",
                 boundTopologyOptions.ConfigPath ?? "",
-                new TunnelStatusResponse(tunnelState.Enabled, tunnelState.IsConnected, tunnelState.Url),
+                new HostBridgeStatusResponse(hostBridgeState.Enabled, hostBridgeState.IsConnected, hostBridgeState.Url),
                 [
                     .. registry
                         .GetAll()
@@ -128,11 +128,11 @@ internal static class Endpoints
         string LocaltestUrl,
         string BoundTopologyBaseConfigPath,
         string BoundTopologyConfigPath,
-        TunnelStatusResponse Tunnel,
+        HostBridgeStatusResponse HostBridge,
         IReadOnlyList<DiscoveredAppResponse> Apps
     );
 
-    private sealed record TunnelStatusResponse(bool Enabled, bool Connected, string? Url);
+    private sealed record HostBridgeStatusResponse(bool Enabled, bool Connected, string? Url);
 
     private sealed record RegisterAppRequest(
         string AppId,

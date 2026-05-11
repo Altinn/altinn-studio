@@ -88,15 +88,15 @@ func (o serverStatusOutput) Print(out *ui.Output) error {
 	table.Row(ui.Text("Process ID"), ui.Text(strconv.Itoa(o.Status.ProcessID)))
 	table.Row(ui.Text("studioctl-server version"), ui.Text(o.Status.StudioctlServerVersion))
 	table.Row(ui.Text(".NET version"), ui.Text(o.Status.DotnetVersion))
-	if o.Status.Tunnel.Enabled {
+	if o.Status.HostBridge.Enabled {
 		state := "disconnected"
-		if o.Status.Tunnel.Connected {
+		if o.Status.HostBridge.Connected {
 			state = "connected"
 		}
-		table.Row(ui.Text("tunnel"), ui.Text(state))
-		table.Row(ui.Text("tunnel url"), ui.Text(o.Status.Tunnel.URL))
+		table.Row(ui.Text("host bridge"), ui.Text(state))
+		table.Row(ui.Text("host bridge url"), ui.Text(o.Status.HostBridge.URL))
 	} else {
-		table.Row(ui.Text("tunnel"), ui.Text("disabled"))
+		table.Row(ui.Text("host bridge"), ui.Text("disabled"))
 	}
 	table.Row(ui.Text("discovered apps"), ui.Text(strconv.Itoa(len(o.Status.Apps))))
 	out.RenderTable(table)

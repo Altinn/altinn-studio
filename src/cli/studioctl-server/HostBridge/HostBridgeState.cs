@@ -1,11 +1,11 @@
-namespace Altinn.Studio.StudioctlServer.Tunnel;
+namespace Altinn.Studio.StudioctlServer.HostBridge;
 
-internal sealed class TunnelState
+internal sealed class HostBridgeState
 {
     private readonly object _lock = new();
     private bool _connected;
 
-    public TunnelState(TunnelOptions options)
+    public HostBridgeState(HostBridgeOptions options)
     {
         Url = options.Url;
     }

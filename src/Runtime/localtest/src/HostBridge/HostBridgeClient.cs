@@ -7,20 +7,20 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.WebSockets;
 using System.Threading.Channels;
-using Altinn.Studio.AppTunnel;
+using Altinn.Studio.HostBridge;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Net.Http.Headers;
 
-namespace LocalTest.Tunnel;
+namespace LocalTest.HostBridge;
 
-public sealed class AppTunnelClient
+public sealed class HostBridgeClient
 {
-    private readonly ILogger<AppTunnelClient> _logger;
+    private readonly ILogger<HostBridgeClient> _logger;
     private readonly object _sessionLock = new();
-    private TunnelSession? _session;
+    private HostBridgeSession? _session;
 
-    public AppTunnelClient(
-        ILogger<AppTunnelClient> logger,
+    public HostBridgeClient(
+        ILogger<HostBridgeClient> logger,
         IHostApplicationLifetime applicationLifetime
     )
     {
@@ -47,8 +47,8 @@ public sealed class AppTunnelClient
             return;
         }
 
-        var session = new TunnelSession(await context.WebSockets.AcceptWebSocketAsync(), _logger);
-        TunnelSession? previousSession;
+        var session = new HostBridgeSession(await context.WebSockets.AcceptWebSocketAsync(), _logger);
+        HostBridgeSession? previousSession;
         lock (_sessionLock)
         {
             previousSession = _session;
@@ -58,7 +58,7 @@ public sealed class AppTunnelClient
         if (previousSession is not null)
             await previousSession.CloseAsync();
 
-        _logger.LogInformation("App tunnel connected");
+        _logger.LogInformation("Host bridge connected");
 
         try
         {
@@ -73,7 +73,7 @@ public sealed class AppTunnelClient
             }
 
             await session.CloseAsync();
-            _logger.LogInformation("App tunnel disconnected");
+            _logger.LogInformation("Host bridge disconnected");
         }
     }
 
@@ -102,7 +102,7 @@ public sealed class AppTunnelClient
 
     private void Stop()
     {
-        TunnelSession? session;
+        HostBridgeSession? session;
         lock (_sessionLock)
         {
             session = _session;
@@ -112,15 +112,15 @@ public sealed class AppTunnelClient
         session?.Abort();
     }
 
-    private TunnelSession GetSession()
+    private HostBridgeSession GetSession()
     {
         lock (_sessionLock)
         {
-            return _session ?? throw new InvalidOperationException("app tunnel is not connected");
+            return _session ?? throw new InvalidOperationException("host bridge is not connected");
         }
     }
 
-    private sealed class TunnelSession
+    private sealed class HostBridgeSession
     {
         private readonly WebSocket _socket;
         private readonly ILogger _logger;
@@ -129,7 +129,7 @@ public sealed class AppTunnelClient
         private long _nextRequestId;
         private int _disposed;
 
-        public TunnelSession(WebSocket socket, ILogger logger)
+        public HostBridgeSession(WebSocket socket, ILogger logger)
         {
             _socket = socket;
             _logger = logger;
@@ -144,7 +144,7 @@ public sealed class AppTunnelClient
             {
                 while (_socket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
                 {
-                    if (!await TunnelProtocol.ReadMessage(_socket, receiveBuffer, messageBuffer, cancellationToken))
+                    if (!await HostBridgeProtocol.ReadMessage(_socket, receiveBuffer, messageBuffer, cancellationToken))
                         break;
 
                     await HandleMessage(messageBuffer.WrittenMemory, cancellationToken);
@@ -155,11 +155,11 @@ public sealed class AppTunnelClient
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "App tunnel receive loop failed");
+                _logger.LogError(ex, "Host bridge receive loop failed");
             }
             finally
             {
-                var error = new HttpRequestException("app tunnel disconnected");
+                var error = new HttpRequestException("host bridge disconnected");
                 foreach (var entry in _pending)
                     if (_pending.TryRemove(entry.Key, out var pending))
                         pending.TrySetException(error);
@@ -176,7 +176,7 @@ public sealed class AppTunnelClient
             var requestId = Interlocked.Increment(ref _nextRequestId);
             var pending = new PendingResponse();
             if (!_pending.TryAdd(requestId, pending))
-                throw new InvalidOperationException("duplicate app tunnel request id");
+                throw new InvalidOperationException("duplicate host bridge request id");
 
             using var registration = RegisterCancellation(cancellationToken, requestId);
 
@@ -208,7 +208,7 @@ public sealed class AppTunnelClient
             var requestId = Interlocked.Increment(ref _nextRequestId);
             var pending = new PendingResponse();
             if (!_pending.TryAdd(requestId, pending))
-                throw new InvalidOperationException("duplicate app tunnel request id");
+                throw new InvalidOperationException("duplicate host bridge request id");
 
             using var registration = RegisterCancellation(cancellationToken, requestId);
 
@@ -252,7 +252,7 @@ public sealed class AppTunnelClient
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to close app tunnel session gracefully");
+                _logger.LogWarning(ex, "Failed to close host bridge session gracefully");
             }
             finally
             {
@@ -271,7 +271,7 @@ public sealed class AppTunnelClient
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to abort app tunnel session");
+                _logger.LogWarning(ex, "Failed to abort host bridge session");
             }
 
             DisposeResources();
@@ -285,44 +285,44 @@ public sealed class AppTunnelClient
 
         private async Task HandleMessage(ReadOnlyMemory<byte> message, CancellationToken cancellationToken)
         {
-            switch (TunnelProtocol.ReadKind(message.Span))
+            switch (HostBridgeProtocol.ReadKind(message.Span))
             {
-                case TunnelFrameKind.ResponseStart:
+                case HostBridgeFrameKind.ResponseStart:
                 {
-                    var frame = TunnelProtocol.ReadJsonFrame<ResponseStartFrame>(
-                        TunnelFrameKind.ResponseStart,
+                    var frame = HostBridgeProtocol.ReadJsonFrame<ResponseStartFrame>(
+                        HostBridgeFrameKind.ResponseStart,
                         message.Span
                     );
                     if (_pending.TryGetValue(frame.RequestId, out var pending))
                         pending.SetStart(frame);
                     break;
                 }
-                case TunnelFrameKind.ResponseBody:
+                case HostBridgeFrameKind.ResponseBody:
                 {
-                    var frame = TunnelProtocol.ReadBodyFrame(TunnelFrameKind.ResponseBody, message.Span);
+                    var frame = HostBridgeProtocol.ReadBodyFrame(HostBridgeFrameKind.ResponseBody, message.Span);
                     if (_pending.TryGetValue(frame.RequestId, out var pending))
                         await pending.AppendBody(frame.Payload, frame.IsFinal, cancellationToken);
                     break;
                 }
-                case TunnelFrameKind.ResponseTrailers:
+                case HostBridgeFrameKind.ResponseTrailers:
                 {
-                    var frame = TunnelProtocol.ReadJsonFrame<HeadersFrame>(
-                        TunnelFrameKind.ResponseTrailers,
+                    var frame = HostBridgeProtocol.ReadJsonFrame<HeadersFrame>(
+                        HostBridgeFrameKind.ResponseTrailers,
                         message.Span
                     );
                     if (_pending.TryGetValue(frame.RequestId, out var pending))
                         pending.SetTrailers(frame.Headers);
                     break;
                 }
-                case TunnelFrameKind.Error:
+                case HostBridgeFrameKind.Error:
                 {
-                    var frame = TunnelProtocol.ReadJsonFrame<ErrorFrame>(TunnelFrameKind.Error, message.Span);
+                    var frame = HostBridgeProtocol.ReadJsonFrame<ErrorFrame>(HostBridgeFrameKind.Error, message.Span);
                     if (_pending.TryRemove(frame.RequestId, out var pending))
                         pending.TrySetException(new HttpRequestException(frame.Message));
                     break;
                 }
                 default:
-                    throw new InvalidDataException("unexpected app tunnel response frame");
+                    throw new InvalidDataException("unexpected host bridge response frame");
             }
         }
 
@@ -331,7 +331,7 @@ public sealed class AppTunnelClient
             return cancellationToken.Register(
                 static state =>
                 {
-                    var tuple = ((TunnelSession Session, long RequestId))state!;
+                    var tuple = ((HostBridgeSession Session, long RequestId))state!;
                     _ = tuple.Session.SendCancel(tuple.RequestId);
                 },
                 (this, requestId)
@@ -357,15 +357,15 @@ public sealed class AppTunnelClient
             );
 
             await SendFrame(
-                TunnelProtocol.WriteJsonFrame(TunnelFrameKind.RequestStart, requestStart),
+                HostBridgeProtocol.WriteJsonFrame(HostBridgeFrameKind.RequestStart, requestStart),
                 cancellationToken
             );
-            await SendBodyFrames(request.Content, TunnelFrameKind.RequestBody, requestId, cancellationToken);
+            await SendBodyFrames(request.Content, HostBridgeFrameKind.RequestBody, requestId, cancellationToken);
         }
 
         private async Task SendBodyFrames(
             HttpContent? content,
-            TunnelFrameKind kind,
+            HostBridgeFrameKind kind,
             long requestId,
             CancellationToken cancellationToken
         )
@@ -373,33 +373,33 @@ public sealed class AppTunnelClient
             if (content is null)
             {
                 await SendFrame(
-                    TunnelProtocol.WriteBodyFrame(kind, requestId, isFinal: true, []),
+                    HostBridgeProtocol.WriteBodyFrame(kind, requestId, isFinal: true, []),
                     cancellationToken
                 );
                 return;
             }
 
             await using var body = await content.ReadAsStreamAsync(cancellationToken);
-            var buffer = ArrayPool<byte>.Shared.Rent(TunnelDefaults.MaxFramePayloadBytes);
+            var buffer = ArrayPool<byte>.Shared.Rent(HostBridgeDefaults.MaxFramePayloadBytes);
             try
             {
                 while (true)
                 {
                     var bytesRead = await body.ReadAsync(
-                        buffer.AsMemory(0, TunnelDefaults.MaxFramePayloadBytes),
+                        buffer.AsMemory(0, HostBridgeDefaults.MaxFramePayloadBytes),
                         cancellationToken
                     );
                     if (bytesRead == 0)
                         break;
 
                     await SendFrame(
-                        TunnelProtocol.WriteBodyFrame(kind, requestId, isFinal: false, buffer.AsSpan(0, bytesRead)),
+                        HostBridgeProtocol.WriteBodyFrame(kind, requestId, isFinal: false, buffer.AsSpan(0, bytesRead)),
                         cancellationToken
                     );
                 }
 
                 await SendFrame(
-                    TunnelProtocol.WriteBodyFrame(kind, requestId, isFinal: true, []),
+                    HostBridgeProtocol.WriteBodyFrame(kind, requestId, isFinal: true, []),
                     cancellationToken
                 );
             }
@@ -417,8 +417,8 @@ public sealed class AppTunnelClient
                 try
                 {
                     await SendFrame(
-                        TunnelProtocol.WriteJsonFrame(
-                            TunnelFrameKind.Cancel,
+                        HostBridgeProtocol.WriteJsonFrame(
+                            HostBridgeFrameKind.Cancel,
                             new ErrorFrame(requestId, "cancelled")
                         ),
                         CancellationToken.None
@@ -426,7 +426,7 @@ public sealed class AppTunnelClient
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to send app tunnel cancel frame for request {RequestId}", requestId);
+                    _logger.LogWarning(ex, "Failed to send host bridge cancel frame for request {RequestId}", requestId);
                 }
             }
         }
@@ -436,7 +436,7 @@ public sealed class AppTunnelClient
             await _sendLock.WaitAsync(cancellationToken);
             try
             {
-                await TunnelProtocol.SendFrame(_socket, frame, cancellationToken);
+                await HostBridgeProtocol.SendFrame(_socket, frame, cancellationToken);
             }
             finally
             {
@@ -458,7 +458,7 @@ public sealed class AppTunnelClient
         private static string GetPathAndQuery(Uri? requestUri)
         {
             if (requestUri is null)
-                throw new InvalidOperationException("tunnel request is missing uri");
+                throw new InvalidOperationException("host bridge request is missing uri");
 
             return requestUri.IsAbsoluteUri ? requestUri.PathAndQuery : requestUri.OriginalString;
         }
@@ -471,7 +471,7 @@ public sealed class AppTunnelClient
 
             foreach (var header in request.Headers)
             {
-                if (!TunnelHttpHeaders.ShouldSkipRequestHeader(header.Key))
+                if (!HostBridgeHttpHeaders.ShouldSkipRequestHeader(header.Key))
                     headers[header.Key] = [.. header.Value];
             }
 
@@ -479,7 +479,7 @@ public sealed class AppTunnelClient
             {
                 foreach (var header in request.Content.Headers)
                 {
-                    if (!TunnelHttpHeaders.ShouldSkipRequestHeader(header.Key))
+                    if (!HostBridgeHttpHeaders.ShouldSkipRequestHeader(header.Key))
                         headers[header.Key] = [.. header.Value];
                 }
             }
@@ -500,7 +500,7 @@ public sealed class AppTunnelClient
 
             foreach (var header in response.Headers)
             {
-                if (TunnelHttpHeaders.IsContentHeader(header.Key))
+                if (HostBridgeHttpHeaders.IsContentHeader(header.Key))
                 {
                     message.Content.Headers.TryAddWithoutValidation(header.Key, header.Value);
                 }
@@ -523,7 +523,7 @@ public sealed class AppTunnelClient
 
             foreach (var header in response.Headers)
             {
-                if (TunnelHttpHeaders.ShouldSkipResponseHeader(header.Key))
+                if (HostBridgeHttpHeaders.ShouldSkipResponseHeader(header.Key))
                     continue;
 
                 context.Response.Headers[header.Key] = header.Value;
@@ -537,7 +537,7 @@ public sealed class AppTunnelClient
                 context.Response.Headers.Remove(HeaderNames.ContentLength);
 
             if (
-                TunnelHttpHeaders.IsBodylessStatusCode(response.StatusCode)
+                HostBridgeHttpHeaders.IsBodylessStatusCode(response.StatusCode)
                 && context.Response.Headers[HeaderNames.ContentLength] == "0"
             )
             {
@@ -565,7 +565,7 @@ public sealed class AppTunnelClient
         private readonly TaskCompletionSource<Dictionary<string, string[]>> _trailers =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly Channel<byte[]> _body = Channel.CreateBounded<byte[]>(
-            new BoundedChannelOptions(TunnelDefaults.BodyChannelCapacity)
+            new BoundedChannelOptions(HostBridgeDefaults.BodyChannelCapacity)
             {
                 SingleReader = true,
                 SingleWriter = true,
@@ -586,7 +586,7 @@ public sealed class AppTunnelClient
         {
             if (payload.Length > 0)
             {
-                TunnelProtocol.EnsureFrameWithinLimit(payload.Length);
+                HostBridgeProtocol.EnsureFrameWithinLimit(payload.Length);
                 await _body.Writer.WriteAsync(payload, cancellationToken);
             }
 
