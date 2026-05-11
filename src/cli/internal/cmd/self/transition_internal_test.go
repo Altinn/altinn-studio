@@ -152,12 +152,11 @@ func TestSelfTransitionAppStopFailureFails(t *testing.T) {
 	}
 }
 
-func TestSelfTransitionRunsMigrationsBeforeRestart(t *testing.T) {
+func TestSelfTransitionRunsMigrations(t *testing.T) {
 	t.Parallel()
 
 	cfg := selfTransitionTestConfig(t)
 	var order []string
-	var restartedPath string
 	transition := &Transition{
 		cfg: cfg,
 		out: ui.NewOutput(&bytes.Buffer{}, io.Discard, true),
@@ -165,30 +164,15 @@ func TestSelfTransitionRunsMigrationsBeforeRestart(t *testing.T) {
 			order = append(order, "migrations")
 			return nil
 		},
-		start: func(_ context.Context, _ *config.Config, _ string, studioctlPath string) error {
-			order = append(order, "app-manager")
-			restartedPath = studioctlPath
-			return nil
-		},
 	}
 
 	if err := transition.RunMigrations(t.Context()); err != nil {
 		t.Fatalf("RunMigrations() error = %v", err)
 	}
-	if err := transition.RestartIfNeeded(
-		t.Context(),
-		TransitionState{appManagerWasRunning: true, previousStudioctlPath: "/old/studioctl"},
-		"/new/studioctl",
-	); err != nil {
-		t.Fatalf("RestartIfNeeded() error = %v", err)
-	}
 
-	wantOrder := []string{"migrations", "app-manager"}
+	wantOrder := []string{"migrations"}
 	if !reflect.DeepEqual(order, wantOrder) {
 		t.Fatalf("order = %+v, want %+v", order, wantOrder)
-	}
-	if restartedPath != "/new/studioctl" {
-		t.Fatalf("restartedPath = %q, want new path", restartedPath)
 	}
 }
 
@@ -220,29 +204,21 @@ func TestSelfTransitionResetEnvsRemovesLocaltestData(t *testing.T) {
 	assertSelfTransitionCallRecorded(t, client.Calls, "VolumeRemove")
 }
 
-func TestSelfTransitionMigrationFailureDoesNotRestart(t *testing.T) {
+func TestSelfTransitionMigrationFailureReturnsError(t *testing.T) {
 	t.Parallel()
 
 	cfg := selfTransitionTestConfig(t)
-	var restarted bool
 	transition := &Transition{
 		cfg: cfg,
 		out: ui.NewOutput(&bytes.Buffer{}, io.Discard, true),
 		runMigrations: func(context.Context, *config.Config) error {
 			return errMigrationFailed
 		},
-		start: func(context.Context, *config.Config, string, string) error {
-			restarted = true
-			return nil
-		},
 	}
 
 	err := transition.RunMigrations(t.Context())
 	if !errors.Is(err, errMigrationFailed) {
 		t.Fatalf("RunMigrations() error = %v, want migration failure", err)
-	}
-	if restarted {
-		t.Fatal("app-manager restarted after migration failure")
 	}
 }
 

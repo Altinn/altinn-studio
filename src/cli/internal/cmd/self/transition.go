@@ -167,21 +167,6 @@ func (t *Transition) Restore(
 	}
 }
 
-// RestartIfNeeded restarts app-manager after a successful self operation when it was previously running.
-func (t *Transition) RestartIfNeeded(
-	ctx context.Context,
-	state TransitionState,
-	studioctlPath string,
-) error {
-	if !state.appManagerWasRunning {
-		return nil
-	}
-	if err := t.restartAppManager(ctx, restartStudioctlPath(state, studioctlPath)); err != nil {
-		return fmt.Errorf("restart app-manager: %w", err)
-	}
-	return nil
-}
-
 func (t *Transition) stopApps(ctx context.Context) (bool, string, error) {
 	status, err := t.appClient.Status(ctx)
 	if err != nil {

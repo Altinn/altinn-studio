@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -18,6 +19,8 @@ type StudioctlBuilder struct {
 }
 
 const distManifestFile = ".dist-manifest.json"
+
+var errDistManifestArtifactPathMissing = errors.New("dist manifest contains artifact without path")
 
 type studioctlDistManifest struct {
 	Artifacts []string `json:"artifacts"`
@@ -89,7 +92,10 @@ func (b *StudioctlBuilder) buildDistribution(ctx context.Context, ver, buildDir,
 	cmd.Stderr = os.Stderr
 	cmd.Dir = buildDir
 
-	return cmd.Run()
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("run studioctl dist command: %w", err)
+	}
+	return nil
 }
 
 func readStudioctlDistManifest(path string) ([]string, error) {
@@ -106,7 +112,7 @@ func readStudioctlDistManifest(path string) ([]string, error) {
 	var artifacts []string
 	for _, artifact := range manifest.Artifacts {
 		if artifact == "" {
-			return nil, fmt.Errorf("dist manifest contains artifact without path")
+			return nil, errDistManifestArtifactPathMissing
 		}
 		artifacts = append(artifacts, artifact)
 	}

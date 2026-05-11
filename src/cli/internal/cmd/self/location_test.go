@@ -26,8 +26,9 @@ func TestExistingInstallDirUsesPath(t *testing.T) {
 	if !ok {
 		t.Fatal("ExistingInstallDir() ok = false, want true")
 	}
-	if got != dir {
-		t.Fatalf("ExistingInstallDir() = %q, want %q", got, dir)
+	want := canonicalPath(t, dir)
+	if got != want {
+		t.Fatalf("ExistingInstallDir() = %q, want %q", got, want)
 	}
 }
 
@@ -51,8 +52,9 @@ func TestExistingInstallDirResolvesSymlink(t *testing.T) {
 	if !ok {
 		t.Fatal("ExistingInstallDir() ok = false, want true")
 	}
-	if got != targetDir {
-		t.Fatalf("ExistingInstallDir() = %q, want %q", got, targetDir)
+	want := canonicalPath(t, targetDir)
+	if got != want {
+		t.Fatalf("ExistingInstallDir() = %q, want %q", got, want)
 	}
 }
 
@@ -63,4 +65,14 @@ func TestLocationInPathFallsBackToEnvironment(t *testing.T) {
 	if !selfcmd.LocationInPath(dir, nil) {
 		t.Fatal("LocationInPath() = false, want true")
 	}
+}
+
+func canonicalPath(t *testing.T, path string) string {
+	t.Helper()
+
+	canonical, err := filepath.EvalSymlinks(path)
+	if err != nil {
+		t.Fatalf("EvalSymlinks(%q): %v", path, err)
+	}
+	return canonical
 }

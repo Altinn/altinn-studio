@@ -280,9 +280,6 @@ func (c *SelfCommand) applyBundle(
 		return fmt.Errorf("complete install: %w", err)
 	}
 	restoreOnFailure = false
-	if err := c.transition.RestartIfNeeded(ctx, state, installedPath); err != nil {
-		return fmt.Errorf("restart after install: %w", err)
-	}
 	return nil
 }
 

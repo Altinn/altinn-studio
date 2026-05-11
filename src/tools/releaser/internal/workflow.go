@@ -104,6 +104,7 @@ func NewWorkflow(
 		tag:              nil,
 		changelogContent: "",
 		parsedChangelog:  nil,
+		artifacts:        nil,
 	}, nil
 }
 
