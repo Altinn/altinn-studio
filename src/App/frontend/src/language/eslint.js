@@ -44,7 +44,6 @@ const functionCalls = [
   'langAsNonProcessedString',
   'langAsNonProcessedStringUsingPathInDataModel',
   'translationKey',
-  'translate',
 ];
 
 module.exports = {

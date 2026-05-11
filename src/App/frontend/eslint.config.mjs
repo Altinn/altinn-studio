@@ -19,6 +19,8 @@ import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
 
 // eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
+import appComponentsTranslationKey from './src/app-components/eslint.js';
+// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
 import langKey from './src/language/eslint.js';
 
 // eslint-disable-next-line import/no-default-export
@@ -56,6 +58,7 @@ export default defineConfig([
       local: {
         rules: {
           'language-key': langKey,
+          'app-components-translation-key': appComponentsTranslationKey,
         },
       },
     },
@@ -204,6 +207,7 @@ export default defineConfig([
   {
     files: ['src/app-components/**/*.{ts,tsx}'],
     rules: {
+      'local/app-components-translation-key': ['error'],
       'no-restricted-imports': [
         'error',
         {
