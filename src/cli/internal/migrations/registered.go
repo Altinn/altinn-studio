@@ -23,5 +23,9 @@ func (r *Runner) RegisteredMigrations() []Migration {
 			ID: "005-remove-legacy-app-manager-files",
 			Up: legacyAppManagerFiles,
 		},
+		{
+			ID: "006-remove-studio-credentials",
+			Up: studioCredentials,
+		},
 	}
 }

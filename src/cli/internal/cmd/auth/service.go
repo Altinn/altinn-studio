@@ -2,10 +2,15 @@
 package auth
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"sort"
+	"strconv"
+	"time"
 
 	authstore "altinn.studio/studioctl/internal/auth"
 	"altinn.studio/studioctl/internal/config"
@@ -15,10 +20,16 @@ import (
 var (
 	// ErrUnknownEnvironment indicates that no host mapping exists for the provided environment.
 	ErrUnknownEnvironment = errors.New("unknown environment")
-	// ErrTokenRequired indicates missing login token input.
-	ErrTokenRequired = errors.New("token is required")
-	// ErrInvalidToken indicates that token validation failed with unauthorized response.
+	// ErrLoginCodeRequired indicates missing login code input.
+	ErrLoginCodeRequired = errors.New("login code is required")
+	// ErrInvalidToken indicates that the login code or API key validation failed.
 	ErrInvalidToken = errors.New("invalid token")
+)
+
+const (
+	studioctlTokenPath   = "/designer/api/v1/studioctl/auth/token"
+	studioctlRevokePath  = "/designer/api/v1/studioctl/auth/api-key/"
+	tokenExchangeTimeout = 30 * time.Second
 )
 
 // AlreadyLoggedInError indicates credentials already exist for the environment.
@@ -54,23 +65,38 @@ func (s *Service) ResolveHost(env, override string) (string, error) {
 	return host, nil
 }
 
-// LoginRequest contains login inputs.
-type LoginRequest struct {
-	Env            string
-	Host           string
-	Token          string
-	AllowOverwrite bool
-}
-
 // LoginResult contains login output details.
 type LoginResult struct {
 	Username string
 }
 
-// Login validates/stores credentials for one environment.
-func (s *Service) Login(ctx context.Context, req LoginRequest) (LoginResult, error) {
-	if req.Token == "" {
-		return LoginResult{}, ErrTokenRequired
+// CodeExchangeRequest contains the one-time browser login code.
+type CodeExchangeRequest struct {
+	Env            string
+	Host           string
+	Code           string
+	CodeVerifier   string
+	AllowOverwrite bool
+}
+
+// studioctlTokenRequest is the Designer token exchange payload.
+type studioctlTokenRequest struct {
+	Code         string `json:"code"`
+	CodeVerifier string `json:"codeVerifier"`
+}
+
+// studioctlTokenResponse is returned by Designer after a successful browser login.
+type studioctlTokenResponse struct {
+	Username  string `json:"username"`
+	Key       string `json:"key"`
+	ExpiresAt string `json:"expiresAt"`
+	KeyID     int64  `json:"keyId"`
+}
+
+// ExchangeCode validates/stores credentials created by the Designer browser login flow.
+func (s *Service) ExchangeCode(ctx context.Context, req CodeExchangeRequest) (LoginResult, error) {
+	if req.Code == "" {
+		return LoginResult{}, ErrLoginCodeRequired
 	}
 
 	creds, err := authstore.LoadCredentials(s.cfg.Home)
@@ -78,32 +104,87 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (LoginResult, err
 		return LoginResult{}, fmt.Errorf("load credentials: %w", err)
 	}
 
-	if existing, existingErr := creds.Get(req.Env); existingErr == nil && !req.AllowOverwrite {
-		return LoginResult{}, AlreadyLoggedInError{
-			Env:      req.Env,
-			Username: existing.Username,
+	var existing *authstore.EnvCredentials
+	if existingCreds, existingErr := creds.Get(req.Env); existingErr == nil {
+		if !req.AllowOverwrite {
+			return LoginResult{}, AlreadyLoggedInError{
+				Env:      req.Env,
+				Username: existingCreds.Username,
+			}
 		}
+		existing = existingCreds
 	}
 
-	client := studio.NewClientWithHTTP(req.Host, req.Token, "", s.cfg.Version, nil)
-	user, err := client.GetUser(ctx)
+	response, err := exchangeCode(ctx, req.Host, req.Code, req.CodeVerifier)
 	if err != nil {
-		if errors.Is(err, studio.ErrUnauthorized) {
-			return LoginResult{}, fmt.Errorf("%w: authentication failed", ErrInvalidToken)
-		}
-		return LoginResult{}, fmt.Errorf("validate token: %w", err)
+		return LoginResult{}, err
 	}
 
-	creds.Set(req.Env, authstore.EnvCredentials{
-		Host:     req.Host,
-		Token:    req.Token,
-		Username: user.Login,
-	})
+	newCreds := authstore.EnvCredentials{
+		ApiKeyID:  response.KeyID,
+		Host:      req.Host,
+		ApiKey:    response.Key,
+		ExpiresAt: response.ExpiresAt,
+		Username:  response.Username,
+	}
+
+	if existing != nil {
+		if err := revokeAPIKey(ctx, existing); err != nil {
+			cleanupErr := revokeAPIKey(ctx, &newCreds)
+			if cleanupErr != nil {
+				return LoginResult{}, errors.Join(
+					fmt.Errorf("revoke previous api key: %w", err),
+					fmt.Errorf("revoke new api key: %w", cleanupErr),
+				)
+			}
+			return LoginResult{}, fmt.Errorf("revoke previous api key: %w", err)
+		}
+	}
+
+	creds.Set(req.Env, newCreds)
 	if err := authstore.SaveCredentials(s.cfg.Home, creds); err != nil {
 		return LoginResult{}, fmt.Errorf("save credentials: %w", err)
 	}
 
-	return LoginResult{Username: user.Login}, nil
+	return LoginResult{Username: response.Username}, nil
+}
+
+func exchangeCode(ctx context.Context, host, code, codeVerifier string) (studioctlTokenResponse, error) {
+	body, err := json.Marshal(studioctlTokenRequest{Code: code, CodeVerifier: codeVerifier})
+	if err != nil {
+		return studioctlTokenResponse{}, fmt.Errorf("marshal token request: %w", err)
+	}
+
+	httpClient := &http.Client{Timeout: tokenExchangeTimeout}
+	endpoint := "https://" + host + studioctlTokenPath
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(body))
+	if err != nil {
+		return studioctlTokenResponse{}, fmt.Errorf("create token request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return studioctlTokenResponse{}, fmt.Errorf("exchange login code: %w", err)
+	}
+	defer resp.Body.Close() //nolint:errcheck // Best effort close on error path
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return studioctlTokenResponse{}, ErrInvalidToken
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return studioctlTokenResponse{}, fmt.Errorf("%w %d", studio.ErrUnexpectedStatus, resp.StatusCode)
+	}
+
+	var response studioctlTokenResponse
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return studioctlTokenResponse{}, fmt.Errorf("decode token response: %w", err)
+	}
+	if response.Key == "" || response.Username == "" || response.KeyID == 0 {
+		return studioctlTokenResponse{}, ErrInvalidToken
+	}
+	return response, nil
 }
 
 // StatusRequest contains filters for status query.
@@ -195,37 +276,96 @@ type LogoutRequest struct {
 
 // LogoutResult contains logout output details.
 type LogoutResult struct {
-	Removed bool
+	RevokeError string
+	Removed     bool
 }
 
 // Logout clears credentials for one/all environments.
-func (s *Service) Logout(req LogoutRequest) (LogoutResult, error) {
+func (s *Service) Logout(ctx context.Context, req LogoutRequest) (LogoutResult, error) {
 	creds, err := authstore.LoadCredentials(s.cfg.Home)
 	if err != nil {
 		return LogoutResult{}, fmt.Errorf("load credentials: %w", err)
 	}
 
 	if req.All {
-		creds.DeleteAll()
-		if err := authstore.SaveCredentials(s.cfg.Home, creds); err != nil {
-			return LogoutResult{}, fmt.Errorf("save credentials: %w", err)
+		removed, revokeErr := revokeAllAPIKeys(ctx, creds)
+		if saveErr := authstore.SaveCredentials(s.cfg.Home, creds); saveErr != nil {
+			return LogoutResult{}, fmt.Errorf("save credentials: %w", saveErr)
 		}
-		return LogoutResult{Removed: true}, nil
+		return LogoutResult{Removed: removed, RevokeError: errorString(revokeErr)}, nil
 	}
 
-	if _, err := creds.Get(req.Env); err != nil {
+	envCreds, err := creds.Get(req.Env)
+	if err != nil {
 		if errors.Is(err, authstore.ErrNotLoggedIn) {
-			return LogoutResult{Removed: false}, nil
+			return LogoutResult{Removed: false, RevokeError: ""}, nil
 		}
 		return LogoutResult{}, fmt.Errorf("get credentials for %s: %w", req.Env, err)
 	}
 
-	creds.Delete(req.Env)
-	if err := authstore.SaveCredentials(s.cfg.Home, creds); err != nil {
-		return LogoutResult{}, fmt.Errorf("save credentials: %w", err)
+	revokeErr := revokeAPIKey(ctx, envCreds)
+	if revokeErr != nil {
+		return LogoutResult{Removed: false, RevokeError: errorString(revokeErr)}, nil
 	}
 
-	return LogoutResult{Removed: true}, nil
+	creds.Delete(req.Env)
+	if saveErr := authstore.SaveCredentials(s.cfg.Home, creds); saveErr != nil {
+		return LogoutResult{}, fmt.Errorf("save credentials: %w", saveErr)
+	}
+
+	return LogoutResult{Removed: true, RevokeError: errorString(revokeErr)}, nil
+}
+
+func revokeAllAPIKeys(ctx context.Context, creds *authstore.Credentials) (bool, error) {
+	var revokeErr error
+	removed := false
+	for _, envName := range creds.EnvNames() {
+		envCreds, err := creds.Get(envName)
+		if err != nil {
+			continue
+		}
+		if err := revokeAPIKey(ctx, envCreds); err != nil {
+			revokeErr = errors.Join(revokeErr, fmt.Errorf("%s: %w", envName, err))
+			continue
+		}
+		creds.Delete(envName)
+		removed = true
+	}
+	return removed, revokeErr
+}
+
+func revokeAPIKey(ctx context.Context, creds *authstore.EnvCredentials) error {
+	if creds.ApiKey == "" || creds.ApiKeyID == 0 {
+		return nil
+	}
+
+	httpClient := &http.Client{Timeout: tokenExchangeTimeout}
+	endpoint := "https://" + creds.Host + studioctlRevokePath + strconv.FormatInt(creds.ApiKeyID, 10)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, endpoint, nil)
+	if err != nil {
+		return fmt.Errorf("create revoke request: %w", err)
+	}
+	req.Header.Set("X-Api-Key", creds.ApiKey)
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("revoke api key: %w", err)
+	}
+	defer resp.Body.Close() //nolint:errcheck // Best effort close on error path
+
+	switch resp.StatusCode {
+	case http.StatusNoContent, http.StatusNotFound:
+		return nil
+	default:
+		return fmt.Errorf("%w %d", studio.ErrUnexpectedStatus, resp.StatusCode)
+	}
+}
+
+func errorString(err error) string {
+	if err == nil {
+		return ""
+	}
+	return err.Error()
 }
 
 func validateToken(ctx context.Context, creds *authstore.EnvCredentials, version config.Version) string {

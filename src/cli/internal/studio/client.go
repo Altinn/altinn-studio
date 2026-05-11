@@ -1,4 +1,4 @@
-// Package studio provides an API client for Altinn Studio (Gitea).
+// Package studio provides an API client for Altinn Studio.
 package studio
 
 import (
@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	// apiBasePath is the base path for the Gitea API.
+	// apiBasePath is the base path for the Altinn Studio repos API.
 	apiBasePath = "/repos/api/v1"
 
 	// httpTimeout is the default timeout for HTTP requests.
@@ -34,8 +34,8 @@ var (
 	// ErrRepoNotFound is returned when a repository doesn't exist.
 	ErrRepoNotFound = errors.New("repository not found")
 
-	// ErrUnauthorized is returned when the token is invalid or expired.
-	ErrUnauthorized = errors.New("unauthorized: invalid or expired token")
+	// ErrUnauthorized is returned when the API key is invalid or expired.
+	ErrUnauthorized = errors.New("unauthorized: invalid or expired API key")
 
 	// ErrDestinationExists is returned when the clone destination already exists.
 	ErrDestinationExists = errors.New("destination already exists")
@@ -50,9 +50,9 @@ var (
 	ErrUnexpectedStatus = errors.New("unexpected HTTP status")
 )
 
-// User represents a Gitea user.
+// User represents a repos API user.
 //
-//nolint:tagliatelle,govet // JSON tags match Gitea API; field order matches API doc
+//nolint:tagliatelle,govet // JSON tags match the repos API; field order matches API doc
 type User struct {
 	ID       int64  `json:"id"`
 	Login    string `json:"login"`
@@ -60,9 +60,9 @@ type User struct {
 	Email    string `json:"email"`
 }
 
-// Repository represents a Gitea repository.
+// Repository represents a repos API repository.
 //
-//nolint:tagliatelle,govet // JSON tags match Gitea API; field order matches API doc
+//nolint:tagliatelle,govet // JSON tags match the repos API; field order matches API doc
 type Repository struct {
 	ID          int64  `json:"id"`
 	Owner       *User  `json:"owner"`
@@ -77,9 +77,8 @@ type Repository struct {
 // Client is an API client for Altinn Studio.
 type Client struct {
 	host       string
-	token      string
-	username   string
 	version    config.Version
+	apiKey     string
 	httpClient *http.Client
 	scheme     string // "https" or "http" (http only for testing)
 }
@@ -87,11 +86,10 @@ type Client struct {
 // NewClient creates a new Studio API client from credentials.
 func NewClient(creds *auth.EnvCredentials, version config.Version) *Client {
 	return &Client{
-		host:     creds.Host,
-		token:    creds.Token,
-		username: creds.Username,
-		version:  version,
-		scheme:   "https",
+		host:    creds.Host,
+		apiKey:  creds.ApiKey,
+		version: version,
+		scheme:  "https",
 		httpClient: &http.Client{
 			Timeout: httpTimeout,
 		},
@@ -99,27 +97,20 @@ func NewClient(creds *auth.EnvCredentials, version config.Version) *Client {
 }
 
 // NewClientWithHTTP creates a new client with a custom HTTP client (for testing).
-func NewClientWithHTTP(
-	host,
-	token,
-	username string,
-	version config.Version,
-	httpClient *http.Client,
-) *Client {
+func NewClientWithHTTP(host, apiKey string, version config.Version, httpClient *http.Client) *Client {
 	if httpClient == nil {
 		httpClient = &http.Client{Timeout: httpTimeout}
 	}
 	return &Client{
 		host:       host,
-		token:      token,
-		username:   username,
+		apiKey:     apiKey,
 		version:    version,
 		scheme:     "https",
 		httpClient: httpClient,
 	}
 }
 
-// GetUser validates the token and returns the current user.
+// GetUser validates the API key and returns the current user.
 func (c *Client) GetUser(ctx context.Context) (*User, error) {
 	endpoint := fmt.Sprintf("%s://%s%s/user", c.scheme, c.host, apiBasePath)
 
@@ -210,16 +201,19 @@ func (c *Client) CloneRepo(ctx context.Context, org, repo, destPath string) erro
 
 	cloneURL := c.buildCloneURL(org, repo)
 
-	return c.execGitClone(ctx, cloneURL, absPath)
+	if err := c.execGitClone(ctx, cloneURL, absPath); err != nil {
+		return err
+	}
+
+	return c.configureGitExtraHeader(ctx, absPath)
 }
 
-// buildCloneURL constructs the HTTPS clone URL with embedded credentials.
+// buildCloneURL constructs the HTTPS clone URL.
 func (c *Client) buildCloneURL(org, repo string) string {
 	var u url.URL
 	u.Scheme = c.scheme
 	u.Host = c.host
 	u.Path = fmt.Sprintf("/repos/%s/%s.git", org, repo)
-	u.User = url.UserPassword(c.username, c.token)
 	return u.String()
 }
 
@@ -230,28 +224,64 @@ func (c *Client) execGitClone(ctx context.Context, cloneURL, destPath string) er
 		return ErrGitNotFound
 	}
 
-	cmd := processutil.CommandContext(
-		ctx,
-		gitPath,
+	args := []string{
 		"-c",
-		"http.userAgent="+c.version.UserAgent(),
+		"http.userAgent=" + c.version.UserAgent(),
+		"-c",
+		c.gitHTTPExtraHeaderConfigKey() + "=X-Api-Key: " + c.apiKey,
 		"clone",
 		cloneURL,
 		destPath,
-	)
+	}
+
+	cmd := processutil.CommandContext(ctx, gitPath, args...)
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		sanitized := sanitizeGitOutput(string(output), c.token)
+		sanitized := sanitizeGitOutput(string(output), c.secret())
 		return fmt.Errorf("%w: %s", ErrGitCloneFailed, sanitized)
 	}
 
 	return nil
 }
 
+func (c *Client) configureGitExtraHeader(ctx context.Context, repoPath string) error {
+	gitPath, err := exec.LookPath("git")
+	if err != nil {
+		return ErrGitNotFound
+	}
+
+	cmd := processutil.CommandContext(
+		ctx,
+		gitPath,
+		"-C",
+		repoPath,
+		"config",
+		"--local",
+		c.gitHTTPExtraHeaderConfigKey(),
+		"X-Api-Key: "+c.apiKey,
+	)
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		sanitized := sanitizeGitOutput(string(output), c.secret())
+		return fmt.Errorf("configure git auth header: %w: %s", err, sanitized)
+	}
+
+	return nil
+}
+
+func (c *Client) gitHTTPExtraHeaderConfigKey() string {
+	var u url.URL
+	u.Scheme = c.scheme
+	u.Host = c.host
+	u.Path = "/repos/"
+	return "http." + u.String() + ".extraHeader"
+}
+
 // setRequestHeaders sets the shared headers for API requests.
 func (c *Client) setRequestHeaders(req *http.Request) {
-	req.Header.Set("Authorization", "token "+c.token)
+	req.Header.Set("X-Api-Key", c.apiKey)
 	httpclient.SetUserAgent(req, c.version)
 }
 
@@ -262,9 +292,13 @@ func pathExists(path string) bool {
 }
 
 // sanitizeGitOutput removes sensitive data from git output.
-func sanitizeGitOutput(output, token string) string {
-	if token != "" {
-		output = strings.ReplaceAll(output, token, "****")
+func sanitizeGitOutput(output, secret string) string {
+	if secret != "" {
+		output = strings.ReplaceAll(output, secret, "****")
 	}
 	return output
+}
+
+func (c *Client) secret() string {
+	return c.apiKey
 }

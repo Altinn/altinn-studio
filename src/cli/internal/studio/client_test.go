@@ -15,16 +15,16 @@ import (
 func TestClient_GetUser_Success(t *testing.T) {
 	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Verify auth header
-		authHeader := r.Header.Get("Authorization")
-		if authHeader != "token test-token" {
-			t.Errorf("expected Authorization header 'token test-token', got %q", authHeader)
+		if authHeader := r.Header.Get("Authorization"); authHeader != "" {
+			t.Errorf("expected no Authorization header, got %q", authHeader)
+		}
+		if apiKey := r.Header.Get("X-Api-Key"); apiKey != "test-api-key" {
+			t.Errorf("expected X-Api-Key header, got %q", apiKey)
 		}
 		if userAgent := r.Header.Get("User-Agent"); userAgent != "studioctl/test-version" {
 			t.Errorf("expected User-Agent 'studioctl/test-version', got %q", userAgent)
 		}
 
-		// Verify path
 		if r.URL.Path != "/repos/api/v1/user" {
 			t.Errorf("expected path /repos/api/v1/user, got %s", r.URL.Path)
 		}
@@ -49,8 +49,7 @@ func TestClient_GetUser_Success(t *testing.T) {
 
 	client := &Client{
 		host:       host,
-		token:      "test-token",
-		username:   "testuser",
+		apiKey:     "test-api-key",
 		version:    config.NewVersion("test-version"),
 		scheme:     "http",
 		httpClient: server.Client(),
@@ -75,8 +74,7 @@ func TestClient_GetUser_Unauthorized(t *testing.T) {
 	host := server.URL[7:]
 	client := &Client{
 		host:       host,
-		token:      "bad-token",
-		username:   "",
+		apiKey:     "bad-api-key",
 		version:    config.NewVersion("test-version"),
 		scheme:     "http",
 		httpClient: server.Client(),
@@ -119,8 +117,7 @@ func TestClient_GetRepo_Success(t *testing.T) {
 	host := server.URL[7:]
 	client := &Client{
 		host:       host,
-		token:      "test-token",
-		username:   "testuser",
+		apiKey:     "test-api-key",
 		version:    config.NewVersion("test-version"),
 		scheme:     "http",
 		httpClient: server.Client(),
@@ -149,8 +146,7 @@ func TestClient_GetRepo_NotFound(t *testing.T) {
 	host := server.URL[7:]
 	client := &Client{
 		host:       host,
-		token:      "test-token",
-		username:   "testuser",
+		apiKey:     "test-api-key",
 		version:    config.NewVersion("test-version"),
 		scheme:     "http",
 		httpClient: server.Client(),
@@ -166,20 +162,31 @@ func TestClient_GetRepo_NotFound(t *testing.T) {
 	}
 }
 
-func TestClient_buildCloneURL_SpecialChars(t *testing.T) {
+func TestClient_buildCloneURL_DoesNotEmbedCredentials(t *testing.T) {
 	t.Parallel()
 	client := &Client{
-		host:       "altinn.studio",
-		token:      "token/with+special=chars",
-		username:   "user@example.com",
-		version:    config.NewVersion("test-version"),
-		httpClient: nil,
-		scheme:     "https",
+		host:   "altinn.studio",
+		apiKey: "secret-api-key",
+		scheme: "https",
 	}
 
 	url := client.buildCloneURL("org", "repo")
-	expected := "https://user%40example.com:token%2Fwith+special=chars@altinn.studio/repos/org/repo.git"
+	expected := "https://altinn.studio/repos/org/repo.git"
 	if url != expected {
 		t.Errorf("expected %s, got %s", expected, url)
+	}
+}
+
+func TestClient_gitHTTPExtraHeaderConfigKey_ScopesToReposProxy(t *testing.T) {
+	t.Parallel()
+	client := &Client{
+		host:   "altinn.studio",
+		scheme: "https",
+	}
+
+	key := client.gitHTTPExtraHeaderConfigKey()
+	expected := "http.https://altinn.studio/repos/.extraHeader"
+	if key != expected {
+		t.Errorf("expected %s, got %s", expected, key)
 	}
 }

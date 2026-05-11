@@ -37,12 +37,14 @@ func TestSaveAndLoadCredentials(t *testing.T) {
 		Envs: map[string]auth.EnvCredentials{
 			"prod": {
 				Host:     "altinn.studio",
-				Token:    "test-token",
+				ApiKey:   "test-api-key",
+				ApiKeyID: 1,
 				Username: "testuser",
 			},
 			"dev": {
 				Host:     "dev.altinn.studio",
-				Token:    "dev-token",
+				ApiKey:   "dev-api-key",
+				ApiKeyID: 2,
 				Username: "devuser",
 			},
 		},
@@ -83,8 +85,11 @@ func TestSaveAndLoadCredentials(t *testing.T) {
 	if prod.Host != "altinn.studio" {
 		t.Errorf("expected host altinn.studio, got %s", prod.Host)
 	}
-	if prod.Token != "test-token" {
-		t.Errorf("expected token test-token, got %s", prod.Token)
+	if prod.ApiKey != "test-api-key" {
+		t.Errorf("expected API key test-api-key, got %s", prod.ApiKey)
+	}
+	if prod.ApiKeyID != 1 {
+		t.Errorf("expected API key id 1, got %d", prod.ApiKeyID)
 	}
 	if prod.Username != "testuser" {
 		t.Errorf("expected username testuser, got %s", prod.Username)
@@ -105,8 +110,8 @@ func TestCredentials_Delete(t *testing.T) {
 	t.Parallel()
 	creds := &auth.Credentials{
 		Envs: map[string]auth.EnvCredentials{
-			"prod": {Host: "altinn.studio", Token: "token", Username: "user"},
-			"dev":  {Host: "dev.altinn.studio", Token: "token2", Username: "user2"},
+			"prod": {Host: "altinn.studio", ApiKey: "api-key", ApiKeyID: 1, Username: "user"},
+			"dev":  {Host: "dev.altinn.studio", ApiKey: "api-key2", ApiKeyID: 2, Username: "user2"},
 		},
 	}
 

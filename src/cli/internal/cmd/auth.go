@@ -2,12 +2,18 @@ package cmd
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
+	"net"
+	"net/http"
+	"net/url"
 	"os"
-	"strings"
+	"time"
 
 	authstore "altinn.studio/studioctl/internal/auth"
 	authsvc "altinn.studio/studioctl/internal/cmd/auth"
@@ -23,19 +29,29 @@ type authStatusFlags struct {
 
 const authStatusSubcommand = "status"
 
+const (
+	loginStateBytes              = 24
+	loginCodeVerifierBytes       = 48
+	loginCallbackHeaderTimeout   = 5 * time.Second
+	loginCallbackShutdownTimeout = 2 * time.Second
+	loginCallbackSuccessHTML     = "<!doctype html><title>studioctl login</title><p>Login complete. You can close this window.</p>"
+)
+
 var errLoginCancelled = errors.New("login cancelled")
 
 // AuthCommand implements the 'auth' subcommand.
 type AuthCommand struct {
-	out     *ui.Output
-	service *authsvc.Service
+	out             *ui.Output
+	service         *authsvc.Service
+	credentialsHome string
 }
 
 // NewAuthCommand creates a new auth command.
 func NewAuthCommand(cfg *config.Config, out *ui.Output) *AuthCommand {
 	return &AuthCommand{
-		out:     out,
-		service: authsvc.NewService(cfg),
+		out:             out,
+		service:         authsvc.NewService(cfg),
+		credentialsHome: cfg.Home,
 	}
 }
 
@@ -53,8 +69,7 @@ func (c *AuthCommand) Usage() string {
 		"Manage authentication with Altinn Studio.",
 		"",
 		"Subcommands:",
-		"  login     Authenticate with Altinn Studio using a Personal Access Token",
-		"            (requires 'read:user' and 'repo' scopes)",
+		"  login     Authenticate with Altinn Studio using Ansattporten",
 		"  status    Show authentication status",
 		"  logout    Clear stored credentials",
 		"",
@@ -89,24 +104,21 @@ func (c *AuthCommand) Run(ctx context.Context, args []string) error {
 
 // loginFlags holds parsed flags for the auth login command.
 type loginFlags struct {
-	env         string
-	host        string
-	token       string
-	openBrowser bool
+	env       string
+	host      string
+	noBrowser bool
 }
 
 func (c *AuthCommand) parseLoginFlags(args []string) (loginFlags, bool, error) {
 	fs := flag.NewFlagSet("auth login", flag.ContinueOnError)
 	f := loginFlags{
-		env:         authstore.DefaultEnv,
-		host:        "",
-		token:       "",
-		openBrowser: false,
+		env:       authstore.DefaultEnv,
+		host:      "",
+		noBrowser: false,
 	}
 	fs.StringVar(&f.env, "env", authstore.DefaultEnv, "Environment name (prod, dev, staging)")
 	fs.StringVar(&f.host, "host", "", "Altinn Studio host (default: based on env)")
-	fs.StringVar(&f.token, "token", "", "Personal Access Token (not recommended, use interactive prompt)")
-	fs.BoolVar(&f.openBrowser, "open", false, "Open browser to create a new Personal Access Token")
+	fs.BoolVar(&f.noBrowser, "no-browser", false, "Print login URL instead of opening a browser")
 
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
@@ -115,25 +127,6 @@ func (c *AuthCommand) parseLoginFlags(args []string) (loginFlags, bool, error) {
 		return f, false, fmt.Errorf("parsing flags: %w", err)
 	}
 	return f, false, nil
-}
-
-func (c *AuthCommand) openPATPage(ctx context.Context, host string) {
-	patURL := fmt.Sprintf("https://%s/repos/user/settings/applications", host)
-	c.out.Verbosef("Opening browser to: %s", patURL)
-	if err := osutil.OpenContext(ctx, patURL); err != nil {
-		c.out.Warningf("Failed to open browser: %v", err)
-		c.out.Printlnf("Please open manually: %s", patURL)
-	}
-}
-
-func (c *AuthCommand) promptForToken(ctx context.Context, env, host string) (string, error) {
-	c.out.Printf("Enter Personal Access Token for %s (%s): ", env, host)
-	tokenBytes, err := ui.ReadPassword(ctx, c.out)
-	c.out.Println("")
-	if err != nil {
-		return "", fmt.Errorf("read token: %w", err)
-	}
-	return strings.TrimSpace(string(tokenBytes)), nil
 }
 
 func (c *AuthCommand) runLogin(ctx context.Context, args []string) error {
@@ -150,16 +143,7 @@ func (c *AuthCommand) runLogin(ctx context.Context, args []string) error {
 		return err
 	}
 
-	if flags.openBrowser {
-		c.openPATPage(ctx, host)
-	}
-
-	token, err := c.resolveLoginToken(ctx, flags, host)
-	if err != nil {
-		return err
-	}
-
-	result, err := c.loginWithOverwrite(ctx, flags.env, host, token)
+	result, err := c.loginWithBrowser(ctx, flags, host)
 	if err != nil {
 		if errors.Is(err, errLoginCancelled) {
 			return nil
@@ -168,7 +152,6 @@ func (c *AuthCommand) runLogin(ctx context.Context, args []string) error {
 	}
 
 	c.out.Successf("Logged in to %s as %s", flags.env, result.Username)
-	c.out.Warning("NOTE: for this login method, `app clone` stores your username/token in the repository origin URL.")
 	return nil
 }
 
@@ -187,67 +170,164 @@ func (c *AuthCommand) resolveLoginHost(flags loginFlags) (string, error) {
 	return host, nil
 }
 
-func (c *AuthCommand) resolveLoginToken(ctx context.Context, flags loginFlags, host string) (string, error) {
-	if flags.token != "" {
-		return flags.token, nil
-	}
-	return c.promptForToken(ctx, flags.env, host)
-}
-
-func (c *AuthCommand) loginWithOverwrite(
+func (c *AuthCommand) loginWithBrowser(
 	ctx context.Context,
-	env, host, token string,
+	flags loginFlags,
+	host string,
 ) (authsvc.LoginResult, error) {
-	result, err := c.loginOnce(ctx, env, host, token, false)
-	if err == nil {
-		return result, nil
-	}
-
-	var alreadyLoggedIn authsvc.AlreadyLoggedInError
-	if !errors.As(err, &alreadyLoggedIn) {
-		return authsvc.LoginResult{}, mapLoginError(err, env)
-	}
-
-	c.out.Warningf("Already logged in to %s as %s", alreadyLoggedIn.Env, alreadyLoggedIn.Username)
-	confirmed, confirmErr := c.confirmOverwrite(ctx)
-	if confirmErr != nil {
-		return authsvc.LoginResult{}, confirmErr
-	}
-	if !confirmed {
-		c.out.Println("Login cancelled")
-		return authsvc.LoginResult{}, errLoginCancelled
-	}
-
-	result, err = c.loginOnce(ctx, env, host, token, true)
+	allowOverwrite := false
+	existing, err := authstore.LoadCredentials(c.credentialsHome)
 	if err != nil {
-		return authsvc.LoginResult{}, mapLoginError(err, env)
+		return authsvc.LoginResult{}, fmt.Errorf("load credentials: %w", err)
+	}
+	if envCreds, getErr := existing.Get(flags.env); getErr == nil {
+		c.out.Warningf("Already logged in to %s as %s", flags.env, envCreds.Username)
+		confirmed, confirmErr := c.confirmOverwrite(ctx)
+		if confirmErr != nil {
+			return authsvc.LoginResult{}, confirmErr
+		}
+		if !confirmed {
+			c.out.Println("Login cancelled")
+			return authsvc.LoginResult{}, errLoginCancelled
+		}
+		allowOverwrite = true
 	}
 
-	return result, nil
-}
+	code, codeVerifier, err := c.waitForBrowserLogin(ctx, flags, host)
+	if err != nil {
+		return authsvc.LoginResult{}, err
+	}
 
-func (c *AuthCommand) loginOnce(
-	ctx context.Context,
-	env, host, token string,
-	allowOverwrite bool,
-) (authsvc.LoginResult, error) {
-	c.out.Verbose("Validating token...")
-	result, err := c.service.Login(ctx, authsvc.LoginRequest{
-		Env:            env,
+	result, err := c.service.ExchangeCode(ctx, authsvc.CodeExchangeRequest{
+		Env:            flags.env,
 		Host:           host,
-		Token:          token,
+		Code:           code,
+		CodeVerifier:   codeVerifier,
 		AllowOverwrite: allowOverwrite,
 	})
 	if err != nil {
-		return authsvc.LoginResult{}, fmt.Errorf("login: %w", err)
+		return authsvc.LoginResult{}, mapLoginError(err, flags.env)
 	}
 	return result, nil
+}
+
+func (c *AuthCommand) waitForBrowserLogin(ctx context.Context, flags loginFlags, host string) (string, string, error) {
+	var listenConfig net.ListenConfig
+	listener, err := listenConfig.Listen(ctx, "tcp", "127.0.0.1:0")
+	if err != nil {
+		return "", "", fmt.Errorf("start login callback server: %w", err)
+	}
+	defer listener.Close() //nolint:errcheck // Best effort cleanup after server shutdown
+
+	state, err := randomBase64URL(loginStateBytes)
+	if err != nil {
+		return "", "", fmt.Errorf("generate login state: %w", err)
+	}
+	codeVerifier, err := randomBase64URL(loginCodeVerifierBytes)
+	if err != nil {
+		return "", "", fmt.Errorf("generate code verifier: %w", err)
+	}
+	codeChallenge := createCodeChallenge(codeVerifier)
+
+	codeCh := make(chan string, 1)
+	errCh := make(chan error, 1)
+	//nolint:exhaustruct // Only non-zero settings are relevant for this short-lived callback server.
+	server := &http.Server{
+		ReadHeaderTimeout: loginCallbackHeaderTimeout,
+		Handler:           loginCallbackHandler(state, codeCh, errCh),
+	}
+
+	go func() {
+		if serveErr := server.Serve(listener); serveErr != nil && !errors.Is(serveErr, http.ErrServerClosed) {
+			errCh <- fmt.Errorf("serve login callback: %w", serveErr)
+		}
+	}()
+	defer func() {
+		shutdownCtx, cancel := context.WithTimeout(ctx, loginCallbackShutdownTimeout)
+		defer cancel()
+		if err := server.Shutdown(shutdownCtx); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			c.out.Verbosef("failed to shutdown login callback server: %v", err)
+		}
+	}()
+
+	callbackURL := "http://" + listener.Addr().String() + "/callback"
+	loginURL := buildStudioctlLoginURL(host, callbackURL, state, codeChallenge, flags.env)
+
+	c.out.Println("Opening browser for Ansattporten login...")
+	if flags.noBrowser {
+		c.out.Printlnf("Open this URL to continue: %s", loginURL)
+	} else if err := osutil.OpenContext(ctx, loginURL); err != nil {
+		c.out.Warningf("Failed to open browser: %v", err)
+		c.out.Printlnf("Open this URL to continue: %s", loginURL)
+	}
+
+	select {
+	case code := <-codeCh:
+		return code, codeVerifier, nil
+	case err := <-errCh:
+		return "", "", err
+	case <-ctx.Done():
+		return "", "", fmt.Errorf("login cancelled: %w", ctx.Err())
+	}
+}
+
+func loginCallbackHandler(state string, codeCh chan<- string, errCh chan<- error) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/callback" {
+			http.NotFound(w, r)
+			return
+		}
+		if got := r.URL.Query().Get("state"); got != state {
+			http.Error(w, "Invalid login state.", http.StatusBadRequest)
+			errCh <- ErrInvalidToken
+			return
+		}
+		code := r.URL.Query().Get("code")
+		if code == "" {
+			http.Error(w, "Missing login code.", http.StatusBadRequest)
+			errCh <- ErrLoginCodeRequired
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		if _, err := w.Write([]byte(loginCallbackSuccessHTML)); err != nil {
+			errCh <- fmt.Errorf("write login response: %w", err)
+			return
+		}
+		codeCh <- code
+	})
+}
+
+func buildStudioctlLoginURL(host, callbackURL, state, codeChallenge, env string) string {
+	authorizeValues := url.Values{}
+	authorizeValues.Set("redirect_uri", callbackURL)
+	authorizeValues.Set("state", state)
+	authorizeValues.Set("code_challenge", codeChallenge)
+	authorizeValues.Set("client_name", "studioctl "+env)
+
+	authorizePath := "/designer/api/v1/studioctl/auth/authorize?" + authorizeValues.Encode()
+	loginValues := url.Values{}
+	loginValues.Set("redirect_to", authorizePath)
+
+	return "https://" + host + "/Login?" + loginValues.Encode()
+}
+
+func randomBase64URL(size int) (string, error) {
+	buf := make([]byte, size)
+	if _, err := rand.Read(buf); err != nil {
+		return "", fmt.Errorf("read random bytes: %w", err)
+	}
+	return base64.RawURLEncoding.EncodeToString(buf), nil
+}
+
+func createCodeChallenge(codeVerifier string) string {
+	sum := sha256.Sum256([]byte(codeVerifier))
+	return base64.RawURLEncoding.EncodeToString(sum[:])
 }
 
 func mapLoginError(err error, env string) error {
 	switch {
-	case errors.Is(err, authsvc.ErrTokenRequired):
-		return ErrTokenRequired
+	case errors.Is(err, authsvc.ErrLoginCodeRequired):
+		return ErrLoginCodeRequired
 	case errors.Is(err, authsvc.ErrInvalidToken):
 		return fmt.Errorf("%w: authentication failed", ErrInvalidToken)
 	default:
@@ -338,7 +418,7 @@ func (c *AuthCommand) printAuthStatusJSON(status authsvc.StatusResult) error {
 	return nil
 }
 
-func (c *AuthCommand) runLogout(_ context.Context, args []string) error {
+func (c *AuthCommand) runLogout(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("auth logout", flag.ContinueOnError)
 	var env string
 	var all bool
@@ -352,7 +432,7 @@ func (c *AuthCommand) runLogout(_ context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	result, err := c.service.Logout(authsvc.LogoutRequest{
+	result, err := c.service.Logout(ctx, authsvc.LogoutRequest{
 		Env: env,
 		All: all,
 	})
@@ -361,14 +441,33 @@ func (c *AuthCommand) runLogout(_ context.Context, args []string) error {
 	}
 
 	if all {
-		c.out.Success("Logged out from all environments")
+		if result.RevokeError != "" {
+			c.out.Warningf(
+				"Some API keys could not be revoked; local credentials were kept for retry: %s",
+				result.RevokeError,
+			)
+		}
+		if !result.Removed {
+			return nil
+		}
+		c.out.Success("Logged out from environments with revoked credentials")
 		return nil
 	}
 
 	if !result.Removed {
+		if result.RevokeError != "" {
+			c.out.Warningf(
+				"Failed to revoke API key for %s; local credentials were kept for retry: %s",
+				env,
+				result.RevokeError,
+			)
+		}
 		return nil
 	}
 
+	if result.RevokeError != "" {
+		c.out.Warningf("Failed to revoke API key: %s", result.RevokeError)
+	}
 	c.out.Successf("Logged out from %s", env)
 	return nil
 }

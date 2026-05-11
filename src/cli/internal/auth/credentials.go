@@ -37,8 +37,8 @@ var (
 	// ErrNotLoggedIn is returned when credentials are not found for an environment.
 	ErrNotLoggedIn = errors.New("not logged in")
 
-	// ErrInvalidToken is returned when a token is invalid or expired.
-	ErrInvalidToken = errors.New("invalid or expired token")
+	// ErrInvalidToken is returned when an API key is invalid or expired.
+	ErrInvalidToken = errors.New("invalid or expired API key")
 )
 
 // Credentials is the root structure for the credentials file.
@@ -48,9 +48,11 @@ type Credentials struct {
 
 // EnvCredentials holds credentials for a specific environment.
 type EnvCredentials struct {
-	Host     string `yaml:"host"`     // e.g., "altinn.studio"
-	Token    string `yaml:"token"`    // Personal Access Token
-	Username string `yaml:"username"` // Retrieved from API validation
+	Host      string `yaml:"host"`                // e.g., "altinn.studio"
+	ApiKey    string `yaml:"apiKey"`              // Designer API key
+	ExpiresAt string `yaml:"expiresAt,omitempty"` // API key expiration timestamp
+	Username  string `yaml:"username"`            // Retrieved from API validation
+	ApiKeyID  int64  `yaml:"apiKeyId"`            // Designer API key identifier
 }
 
 // CredentialsPath returns the full path to the credentials file.
@@ -134,11 +136,6 @@ func (c *Credentials) Delete(env string) {
 	if c.Envs != nil {
 		delete(c.Envs, env)
 	}
-}
-
-// DeleteAll removes all stored credentials.
-func (c *Credentials) DeleteAll() {
-	c.Envs = make(map[string]EnvCredentials)
 }
 
 // HasCredentials returns true if any credentials are stored.
