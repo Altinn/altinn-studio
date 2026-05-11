@@ -1,10 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$Version,
-    [string]$Repo,
-    [string]$Asset,
     [string]$InstallDir,
-    [switch]$SkipResources,
     [switch]$SkipChecksum
 )
 
@@ -16,16 +13,8 @@ if ($DefaultVersion -eq "__STUDIOCTL_DEFAULT_VERSION__") { $DefaultVersion = "la
 
 if (-not $Version) { $Version = $env:STUDIOCTL_VERSION }
 if (-not $Version) { $Version = $DefaultVersion }
-if (-not $Repo) { $Repo = $env:STUDIOCTL_REPO }
-if (-not $Repo) { $Repo = "Altinn/altinn-studio" }
-if (-not $Asset) { $Asset = $env:STUDIOCTL_ASSET }
 if (-not $InstallDir) { $InstallDir = $env:STUDIOCTL_INSTALL_DIR }
 
-if (-not $SkipResources -and $env:STUDIOCTL_SKIP_RESOURCES) {
-    if ($env:STUDIOCTL_SKIP_RESOURCES -match "^(1|true|TRUE|True)$") {
-        $SkipResources = $true
-    }
-}
 if (-not $SkipChecksum -and $env:STUDIOCTL_SKIP_CHECKSUM) {
     if ($env:STUDIOCTL_SKIP_CHECKSUM -match "^(1|true|TRUE|True)$") {
         $SkipChecksum = $true
@@ -33,12 +22,10 @@ if (-not $SkipChecksum -and $env:STUDIOCTL_SKIP_CHECKSUM) {
 }
 
 if ($Version -ne "latest") {
-    # Strip studioctl/ prefix if present
     if ($Version.StartsWith("studioctl/")) {
         $Version = $Version.Substring("studioctl/".Length)
     }
 
-    # Validate and normalize to tag format
     if (-not $Version.StartsWith("v")) {
         throw "Invalid version format: $Version (expected vX.Y.Z or studioctl/vX.Y.Z)"
     }
@@ -53,19 +40,16 @@ switch ($arch) {
     default { throw "Unsupported architecture: $arch" }
 }
 
-$os = "windows"
-
-if (-not $Asset) {
-    $Asset = "studioctl-$os-$arch.exe"
-}
+$asset = "studioctl-windows-$arch.exe"
+$repo = "Altinn/altinn-studio"
 
 if ($Version -eq "latest") {
-    $baseUrl = "https://github.com/$Repo/releases/latest/download"
+    $baseUrl = "https://github.com/$repo/releases/latest/download"
 } else {
-    $baseUrl = "https://github.com/$Repo/releases/download/$Version"
+    $baseUrl = "https://github.com/$repo/releases/download/$Version"
 }
 
-$url = "$baseUrl/$Asset"
+$url = "$baseUrl/$asset"
 $checksumsUrl = "$baseUrl/SHA256SUMS"
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -100,11 +84,9 @@ function Test-Checksum {
         throw "Failed to download SHA256SUMS"
     }
 
-    # Parse checksums file to find our asset
     $checksumLines = Get-Content $checksumsPath
     $expected = $null
     foreach ($line in $checksumLines) {
-        # Format: checksum  filename or checksum filename
         if ($line -match "^([a-f0-9]{64})\s+(.+)$") {
             $name = $Matches[2].Trim().TrimStart('*')
             if ($name -eq $Asset) {
@@ -137,11 +119,10 @@ Use -SkipChecksum to bypass this check (not recommended).
 try {
     Invoke-WebRequest -Uri $url -OutFile $binPath -UseBasicParsing
 
-    Test-Checksum -BinaryPath $binPath -Asset $Asset -ChecksumsUrl $checksumsUrl
+    Test-Checksum -BinaryPath $binPath -Asset $asset -ChecksumsUrl $checksumsUrl
 
     $selfInstallArgs = @("self", "install")
     if ($InstallDir) { $selfInstallArgs += @("--path", $InstallDir) }
-    if ($SkipResources) { $selfInstallArgs += "--skip-resources" }
 
     & $binPath @selfInstallArgs
 } finally {

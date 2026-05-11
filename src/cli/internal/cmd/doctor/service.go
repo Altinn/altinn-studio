@@ -27,10 +27,6 @@ const (
 	// minWindowsVersionParts is the minimum number of parts in a Windows version string (major.minor.build).
 	minWindowsVersionParts = 3
 
-	// On-disk state file names used by CLI components.
-	doctorConfigFileName       = "config.yaml"
-	doctorResourcesPlatformDir = "AltinnPlatformLocal"
-
 	// Disk check levels.
 	diskLevelOK    = "ok"
 	diskLevelInfo  = "info"

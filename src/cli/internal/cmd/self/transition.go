@@ -21,25 +21,26 @@ import (
 
 const (
 	appShutdownTimeout = 10 * time.Second
-	// TODO: this code should not know about run-modes...
-	runModeContainer = "container"
-	runModeProcess   = "process"
+	runModeProcess     = "process"
+	runModeContainer   = "container"
 )
+
+type appManagerShutdownFunc func(context.Context, *config.Config) (<-chan error, error)
+type appManagerStartFunc func(context.Context, *config.Config, string, string) error
+type migrationRunnerFunc func(context.Context, *config.Config) error
+type containerClientFactory func(context.Context) (container.ContainerClient, error)
+type stopProcessFunc func(context.Context, int) error
+
+type appRuntimeClient interface {
+	Status(ctx context.Context) (*appmanager.Status, error)
+	UnregisterApp(ctx context.Context, appID string) error
+	UpgradeApp(ctx context.Context, upgrade appmanager.AppUpgrade) (appmanager.AppUpgradeResult, error)
+}
 
 var (
 	errAppContainerIDMissing = errors.New("app container id or name missing")
 	errAppProcessIDMissing   = errors.New("app process id missing")
 )
-
-type appManagerShutdownFunc func(context.Context, *config.Config) (<-chan error, error)
-type appManagerStartFunc func(context.Context, *config.Config, string, string) error
-type appRuntimeClient interface {
-	Status(ctx context.Context) (*appmanager.Status, error)
-	UnregisterApp(ctx context.Context, appID string) error
-}
-type containerClientFactory func(context.Context) (container.ContainerClient, error)
-type migrationRunnerFunc func(context.Context, *config.Config) error
-type stopProcessFunc func(context.Context, int) error
 
 // TransitionState captures process state needed after a self operation.
 type TransitionState struct {
@@ -358,11 +359,11 @@ func (t *Transition) ensureContainerRuntime(
 		return nil
 	}
 
-	containerClientFactory := t.containerClient
-	if containerClientFactory == nil {
-		containerClientFactory = container.Detect
+	factory := t.containerClient
+	if factory == nil {
+		factory = container.Detect
 	}
-	client, err := containerClientFactory(ctx)
+	client, err := factory(ctx)
 	if err != nil {
 		return fmt.Errorf("connect to container runtime: %w", err)
 	}
@@ -376,16 +377,6 @@ func (t *Transition) unregisterBestEffort(ctx context.Context, app appmanager.Di
 	}
 }
 
-func sortDiscoveredApps(apps []appmanager.DiscoveredApp) []appmanager.DiscoveredApp {
-	sort.Slice(apps, func(i, j int) bool {
-		if apps[i].AppID != apps[j].AppID {
-			return apps[i].AppID < apps[j].AppID
-		}
-		return apps[i].BaseURL < apps[j].BaseURL
-	})
-	return apps
-}
-
 func filterManagedApps(apps []appmanager.DiscoveredApp) []appmanager.DiscoveredApp {
 	filtered := make([]appmanager.DiscoveredApp, 0, len(apps))
 	for _, app := range apps {
@@ -396,22 +387,28 @@ func filterManagedApps(apps []appmanager.DiscoveredApp) []appmanager.DiscoveredA
 	return filtered
 }
 
+func sortDiscoveredApps(apps []appmanager.DiscoveredApp) []appmanager.DiscoveredApp {
+	sort.Slice(apps, func(i, j int) bool {
+		if apps[i].AppID != apps[j].AppID {
+			return apps[i].AppID < apps[j].AppID
+		}
+		return apps[i].BaseURL < apps[j].BaseURL
+	})
+	return apps
+}
+
 func hasStopHandle(app appmanager.DiscoveredApp) bool {
 	return appProcessID(app) > 0 || app.ContainerID != "" || app.Name != ""
 }
 
 func appStopMode(app appmanager.DiscoveredApp) string {
-	if appHasContainerHandle(app) {
+	if app.ContainerID != "" || (app.Name != "" && appProcessID(app) == 0) {
 		return runModeContainer
 	}
 	if appProcessID(app) > 0 {
 		return runModeProcess
 	}
 	return app.Source
-}
-
-func appHasContainerHandle(app appmanager.DiscoveredApp) bool {
-	return app.ContainerID != "" || (app.Name != "" && appProcessID(app) == 0)
 }
 
 func appProcessID(app appmanager.DiscoveredApp) int {

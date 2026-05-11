@@ -49,14 +49,9 @@ const (
 	// EnvRegistryCacheWrite enables pushing BuildKit registry cache entries.
 	EnvRegistryCacheWrite = "STUDIOCTL_REGISTRY_CACHE_WRITE"
 
-	// EnvResourcesTarball overrides resource install source with a local tarball path.
+	// EnvResourcesArchive overrides resources install source with a local archive path.
 	// Intended for development/tooling, not normal end-user flows.
-	EnvResourcesTarball = "STUDIOCTL_RESOURCES_TARBALL"
-
-	// EnvAppManagerBinary overrides app-manager install source with a local payload path.
-	// The payload may be a published directory, a tar.gz archive, or a legacy single binary.
-	// Intended for development/tooling, not normal end-user flows.
-	EnvAppManagerBinary = "STUDIOCTL_APP_MANAGER_BINARY"
+	EnvResourcesArchive = "STUDIOCTL_RESOURCES_ARCHIVE"
 )
 
 // Sentinel errors for configuration validation.

@@ -1,4 +1,4 @@
-package self
+package install
 
 import (
 	"context"

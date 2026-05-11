@@ -1,9 +1,7 @@
-package self
+package install
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -23,7 +21,6 @@ const (
 	defaultUpdateRepo     = "Altinn/altinn-studio"
 	githubAPIReposBaseURL = "https://api.github.com/repos"
 	httpTimeout           = 5 * time.Minute
-	sha256HexLength       = 64
 	studioctlTagPrefix    = "studioctl/v"
 	studioctlPreview      = "-preview."
 	releasePageSize       = 100
@@ -32,26 +29,16 @@ const (
 )
 
 var (
-	// ErrInvalidReleaseVersion is returned when the version flag format is invalid.
-	ErrInvalidReleaseVersion = errors.New("invalid release version format")
-	// ErrUnsupportedPlatform is returned when there is no release asset for current platform.
-	ErrUnsupportedPlatform = errors.New("unsupported platform for self update")
-	// ErrUnsupportedArchitecture is returned when there is no release asset for current architecture.
-	ErrUnsupportedArchitecture = errors.New("unsupported architecture for self update")
-	// ErrChecksumVerificationFailed is returned when downloaded asset checksum does not match.
-	ErrChecksumVerificationFailed = errors.New("checksum verification failed")
-	// ErrChecksumAssetNotFound is returned when target asset is missing from checksum file.
-	ErrChecksumAssetNotFound = errors.New("asset checksum not found")
+	errInvalidReleaseVersion      = errors.New("invalid release version format")
+	errUnsupportedPlatform        = errors.New("unsupported platform for self update")
+	errUnsupportedArchitecture    = errors.New("unsupported architecture for self update")
+	errChecksumVerificationFailed = errors.New("checksum verification failed")
 	// ErrUpdateUnsupported is returned when self update cannot be performed on current OS.
-	ErrUpdateUnsupported = errors.New("self update not supported on this platform")
-	// ErrUninstallUnsupported is returned when uninstall cannot be performed safely on current OS.
-	ErrUninstallUnsupported = errors.New("self uninstall not supported on this platform")
-	// ErrUnsafeHomeRemoval is returned when the configured home path is unsafe to remove recursively.
-	ErrUnsafeHomeRemoval = errors.New("unsafe studioctl home directory")
-	// ErrUnexpectedHTTPStatus is returned when a release endpoint returns non-200 status.
-	ErrUnexpectedHTTPStatus = errors.New("unexpected HTTP status")
-	// ErrStudioctlReleaseNotFound is returned when no studioctl release tags are found.
-	ErrStudioctlReleaseNotFound = errors.New("studioctl release not found")
+	ErrUpdateUnsupported        = errors.New("self update not supported on this platform")
+	errUninstallUnsupported     = errors.New("self uninstall not supported on this platform")
+	errUnsafeHomeRemoval        = errors.New("unsafe studioctl home directory")
+	errUnexpectedHTTPStatus     = errors.New("unexpected HTTP status")
+	errStudioctlReleaseNotFound = errors.New("studioctl release not found")
 )
 
 // UpdateOptions controls self update behavior.
@@ -60,17 +47,15 @@ type UpdateOptions struct {
 	SkipChecksum bool
 }
 
-// UpdateResult describes a completed self update.
-type UpdateResult struct {
-	Asset         string
-	TargetPath    string
-	ReleaseSource string
-	Version       string
-}
-
 // UninstallResult describes a completed self uninstall.
 type UninstallResult struct {
 	RemovedPath string
+}
+
+// ResolvedBundle describes a downloaded update bundle and its install target.
+type ResolvedBundle struct {
+	Cleanup func() error
+	Bundle  Bundle
 }
 
 type resolvedUpdate struct {
@@ -82,15 +67,18 @@ type resolvedUpdate struct {
 	skipCheck  bool
 }
 
-// UpdateBinary downloads a release binary and installs it over the current binary path.
-func (s *Service) UpdateBinary(ctx context.Context, opts UpdateOptions) (result UpdateResult, err error) {
+// ResolveUpdateBundle downloads an update bundle and returns the current install target.
+func (s *Service) ResolveUpdateBundle(
+	ctx context.Context,
+	opts UpdateOptions,
+) (ResolvedBundle, error) {
 	execPath, err := currentExecutablePath()
 	if err != nil {
-		return UpdateResult{}, fmt.Errorf("resolve current executable path: %w", err)
+		return ResolvedBundle{}, fmt.Errorf("resolve current executable path: %w", err)
 	}
 
 	if runtime.GOOS == osutil.OSWindows {
-		return UpdateResult{}, fmt.Errorf(
+		return ResolvedBundle{}, fmt.Errorf(
 			"%w: windows executable is locked while running",
 			ErrUpdateUnsupported,
 		)
@@ -98,40 +86,39 @@ func (s *Service) UpdateBinary(ctx context.Context, opts UpdateOptions) (result 
 
 	resolved, err := resolveUpdateOptions(ctx, opts, execPath)
 	if err != nil {
-		return UpdateResult{}, err
+		return ResolvedBundle{}, err
 	}
 
 	tmpBinaryPath, cleanup, err := downloadUpdateBinary(ctx, resolved)
-	if cleanup != nil {
-		defer func() {
-			err = errors.Join(err, cleanup())
-		}()
-	}
 	if err != nil {
-		return UpdateResult{}, err
+		if cleanup != nil {
+			err = errors.Join(err, cleanup())
+		}
+		return ResolvedBundle{}, err
 	}
 
 	if !resolved.skipCheck {
 		if verifyErr := verifyAssetChecksum(ctx, resolved.checksums, resolved.asset, tmpBinaryPath); verifyErr != nil {
-			return UpdateResult{}, verifyErr
+			if cleanup != nil {
+				verifyErr = errors.Join(verifyErr, cleanup())
+			}
+			return ResolvedBundle{}, verifyErr
 		}
 	}
 
-	if installErr := installFromDownloadedBinary(tmpBinaryPath, resolved.targetPath); installErr != nil {
-		return UpdateResult{}, installErr
-	}
-
-	result = UpdateResult{
-		Asset:         resolved.asset,
-		TargetPath:    resolved.targetPath,
-		ReleaseSource: resolved.binaryBase,
-		Version:       resolved.version,
-	}
-	return result, nil
+	return ResolvedBundle{
+		Cleanup: cleanup,
+		Bundle: Bundle{
+			Version:              strings.TrimPrefix(resolved.version, "studioctl/"),
+			BinaryPath:           tmpBinaryPath,
+			ResourcesArchivePath: "",
+			installPath:          resolved.targetPath,
+		},
+	}, nil
 }
 
 func resolveUpdateOptions(ctx context.Context, opts UpdateOptions, execPath string) (resolvedUpdate, error) {
-	version, err := NormalizeReleaseVersion(opts.Version)
+	version, err := normalizeReleaseVersion(opts.Version)
 	if err != nil {
 		return resolvedUpdate{}, err
 	}
@@ -142,12 +129,12 @@ func resolveUpdateOptions(ctx context.Context, opts UpdateOptions, execPath stri
 		}
 	}
 
-	asset, err := DefaultAssetName(runtime.GOOS, runtime.GOARCH)
+	asset, err := defaultAssetName(runtime.GOOS, runtime.GOARCH)
 	if err != nil {
 		return resolvedUpdate{}, err
 	}
 
-	binaryBase, checksums := ReleaseURLs(defaultUpdateRepo, version)
+	binaryBase, checksums := releaseURLs(defaultUpdateRepo, version)
 
 	return resolvedUpdate{
 		asset:      asset,
@@ -302,7 +289,7 @@ func resolveLatestStudioctlVersionFromBase(ctx context.Context, repo, baseURL st
 		return tag, nil
 	}
 
-	return "", fmt.Errorf("%w: repo=%s", ErrStudioctlReleaseNotFound, repo)
+	return "", fmt.Errorf("%w: repo=%s", errStudioctlReleaseNotFound, repo)
 }
 
 type githubRelease struct {
@@ -411,18 +398,6 @@ func downloadUpdateBinary(
 	return binaryPath, cleanup, nil
 }
 
-func installFromDownloadedBinary(downloadedBinaryPath, targetPath string) error {
-	if err := copyFile(downloadedBinaryPath, targetPath); err != nil {
-		return fmt.Errorf("replace installed binary: %w", err)
-	}
-	if runtime.GOOS != osutil.OSWindows {
-		if err := os.Chmod(targetPath, executablePerm); err != nil {
-			return fmt.Errorf("make installed binary executable: %w", err)
-		}
-	}
-	return nil
-}
-
 // UninstallBinary removes the current executable from disk.
 func (s *Service) UninstallBinary() (UninstallResult, error) {
 	execPath, err := currentExecutablePath()
@@ -433,7 +408,7 @@ func (s *Service) UninstallBinary() (UninstallResult, error) {
 	if runtime.GOOS == osutil.OSWindows {
 		return UninstallResult{}, fmt.Errorf(
 			"%w: remove manually after process exits",
-			ErrUninstallUnsupported,
+			errUninstallUnsupported,
 		)
 	}
 
@@ -464,7 +439,7 @@ func (s *Service) ValidateHomeRemoval() error {
 
 func safeHomeRemovalPath(home string) (string, error) {
 	if strings.TrimSpace(home) == "" {
-		return "", fmt.Errorf("%w: empty path", ErrUnsafeHomeRemoval)
+		return "", fmt.Errorf("%w: empty path", errUnsafeHomeRemoval)
 	}
 
 	absHome, err := filepath.Abs(home)
@@ -473,29 +448,29 @@ func safeHomeRemovalPath(home string) (string, error) {
 	}
 	cleanHome := filepath.Clean(absHome)
 	if isPathRoot(cleanHome) {
-		return "", fmt.Errorf("%w: %s", ErrUnsafeHomeRemoval, cleanHome)
+		return "", fmt.Errorf("%w: %s", errUnsafeHomeRemoval, cleanHome)
 	}
 
 	userHome, err := os.UserHomeDir()
 	if err != nil {
-		return "", fmt.Errorf("%w: resolve user home directory: %w", ErrUnsafeHomeRemoval, err)
+		return "", fmt.Errorf("%w: resolve user home directory: %w", errUnsafeHomeRemoval, err)
 	}
 	if samePath(cleanHome, userHome) {
-		return "", fmt.Errorf("%w: %s", ErrUnsafeHomeRemoval, cleanHome)
+		return "", fmt.Errorf("%w: %s", errUnsafeHomeRemoval, cleanHome)
 	}
 	userConfigDir, err := os.UserConfigDir()
 	if err != nil {
-		return "", fmt.Errorf("%w: resolve user config directory: %w", ErrUnsafeHomeRemoval, err)
+		return "", fmt.Errorf("%w: resolve user config directory: %w", errUnsafeHomeRemoval, err)
 	}
 	if samePath(cleanHome, userConfigDir) {
-		return "", fmt.Errorf("%w: %s", ErrUnsafeHomeRemoval, cleanHome)
+		return "", fmt.Errorf("%w: %s", errUnsafeHomeRemoval, cleanHome)
 	}
 	cwd, err := os.Getwd()
 	if err != nil {
-		return "", fmt.Errorf("%w: resolve current directory: %w", ErrUnsafeHomeRemoval, err)
+		return "", fmt.Errorf("%w: resolve current directory: %w", errUnsafeHomeRemoval, err)
 	}
 	if pathContains(cleanHome, cwd) {
-		return "", fmt.Errorf("%w: %s contains current directory %s", ErrUnsafeHomeRemoval, cleanHome, cwd)
+		return "", fmt.Errorf("%w: %s contains current directory %s", errUnsafeHomeRemoval, cleanHome, cwd)
 	}
 
 	return cleanHome, nil
@@ -543,30 +518,28 @@ func currentExecutablePath() (string, error) {
 	return resolvedPath, nil
 }
 
-// NormalizeReleaseVersion normalizes user-provided release version input.
-func NormalizeReleaseVersion(raw string) (string, error) {
+func normalizeReleaseVersion(raw string) (string, error) {
 	version := strings.TrimSpace(raw)
 	if version == "" {
 		return "", nil
 	}
 
 	if strings.EqualFold(version, "latest") {
-		return "", fmt.Errorf("%w: expected vX.Y.Z or studioctl/vX.Y.Z", ErrInvalidReleaseVersion)
+		return "", fmt.Errorf("%w: expected vX.Y.Z or studioctl/vX.Y.Z", errInvalidReleaseVersion)
 	}
 
 	version = strings.TrimPrefix(version, "studioctl/")
 	if !strings.HasPrefix(version, "v") {
-		return "", fmt.Errorf("%w: expected vX.Y.Z or studioctl/vX.Y.Z", ErrInvalidReleaseVersion)
+		return "", fmt.Errorf("%w: expected vX.Y.Z or studioctl/vX.Y.Z", errInvalidReleaseVersion)
 	}
 	return "studioctl/" + version, nil
 }
 
-// DefaultAssetName returns the default release asset name for an OS/architecture pair.
-func DefaultAssetName(goos, goarch string) (string, error) {
-	return defaultAssetName("studioctl", goos, goarch)
+func defaultAssetName(goos, goarch string) (string, error) {
+	return assetNameWithBase("studioctl", goos, goarch)
 }
 
-func defaultAssetName(baseName, goos, goarch string) (string, error) {
+func assetNameWithBase(baseName, goos, goarch string) (string, error) {
 	asset, err := baseAssetName(baseName, goos, goarch)
 	if err != nil {
 		return "", err
@@ -587,7 +560,7 @@ func baseAssetName(baseName, goos, goarch string) (string, error) {
 	case osutil.OSWindows:
 		osPart = osutil.OSWindows
 	default:
-		return "", fmt.Errorf("%w: %s", ErrUnsupportedPlatform, goos)
+		return "", fmt.Errorf("%w: %s", errUnsupportedPlatform, goos)
 	}
 
 	var archPart string
@@ -597,16 +570,15 @@ func baseAssetName(baseName, goos, goarch string) (string, error) {
 	case "arm64":
 		archPart = "arm64"
 	default:
-		return "", fmt.Errorf("%w: %s", ErrUnsupportedArchitecture, goarch)
+		return "", fmt.Errorf("%w: %s", errUnsupportedArchitecture, goarch)
 	}
 
 	return baseName + "-" + osPart + "-" + archPart, nil
 }
 
-// ReleaseURLs returns binary and checksum URLs for the given repository and release.
-func ReleaseURLs(repo, version string) (binaryBaseURL, checksumsURL string) {
+func releaseURLs(repo, version string) (binaryBaseURL, checksumsURL string) {
 	base := "https://github.com/" + repo + "/releases/download/" + version
-	return base, base + "/SHA256SUMS"
+	return base, base + "/" + checksumAssetName
 }
 
 func downloadToFile(ctx context.Context, url, path string) (err error) {
@@ -615,7 +587,7 @@ func downloadToFile(ctx context.Context, url, path string) (err error) {
 		return err
 	}
 	defer func() {
-		err = errors.Join(err, closeWithError(resp.Body, "close response body"))
+		err = errors.Join(err, closeWithError(resp.Body, "close response body", nil))
 	}()
 
 	//nolint:gosec // G304: path points to a temp file path under process control.
@@ -624,7 +596,7 @@ func downloadToFile(ctx context.Context, url, path string) (err error) {
 		return fmt.Errorf("create download file %q: %w", path, err)
 	}
 	defer func() {
-		err = errors.Join(err, closeWithError(file, "close download file"))
+		err = errors.Join(err, closeWithError(file, "close download file", nil))
 	}()
 
 	if _, err := io.Copy(file, resp.Body); err != nil {
@@ -640,7 +612,7 @@ func verifyAssetChecksum(ctx context.Context, checksumsURL, asset, binaryPath st
 		return err
 	}
 
-	expected, err := ChecksumForAsset(checksums, asset)
+	expected, err := checksumForAsset(checksums, asset)
 	if err != nil {
 		return err
 	}
@@ -653,7 +625,7 @@ func verifyAssetChecksum(ctx context.Context, checksumsURL, asset, binaryPath st
 	if expected != actual {
 		return fmt.Errorf(
 			"%w: expected %s, got %s",
-			ErrChecksumVerificationFailed,
+			errChecksumVerificationFailed,
 			expected,
 			actual,
 		)
@@ -667,7 +639,7 @@ func downloadToMemory(ctx context.Context, url string) (data []byte, err error) 
 		return nil, err
 	}
 	defer func() {
-		err = errors.Join(err, closeWithError(resp.Body, "close response body"))
+		err = errors.Join(err, closeWithError(resp.Body, "close response body", nil))
 	}()
 
 	data, err = io.ReadAll(resp.Body)
@@ -690,54 +662,9 @@ func getURL(ctx context.Context, url string) (*http.Response, error) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		statusErr := fmt.Errorf("%w: GET %s returned %d", ErrUnexpectedHTTPStatus, url, resp.StatusCode)
-		return nil, errors.Join(statusErr, closeWithError(resp.Body, "close response body"))
+		statusErr := fmt.Errorf("%w: GET %s returned %d", errUnexpectedHTTPStatus, url, resp.StatusCode)
+		return nil, errors.Join(statusErr, closeWithError(resp.Body, "close response body", nil))
 	}
 
 	return resp, nil
-}
-
-// ChecksumForAsset returns SHA256 checksum for the specified asset from a SHA256SUMS file.
-func ChecksumForAsset(checksumFile []byte, asset string) (string, error) {
-	for line := range strings.SplitSeq(string(checksumFile), "\n") {
-		fields := strings.Fields(strings.TrimSpace(line))
-		if len(fields) < 2 {
-			continue
-		}
-
-		sum := strings.ToLower(fields[0])
-		name := strings.TrimPrefix(fields[len(fields)-1], "*")
-		if name == asset {
-			if len(sum) != sha256HexLength {
-				break
-			}
-			return sum, nil
-		}
-	}
-
-	return "", fmt.Errorf("%w: %s", ErrChecksumAssetNotFound, asset)
-}
-
-func fileSHA256(path string) (hashValue string, err error) {
-	//nolint:gosec // G304: path points to a freshly downloaded temp file
-	file, err := os.Open(path)
-	if err != nil {
-		return "", fmt.Errorf("open file for checksum %q: %w", path, err)
-	}
-	defer func() {
-		err = errors.Join(err, closeWithError(file, "close checksum file"))
-	}()
-
-	hash := sha256.New()
-	if _, err := io.Copy(hash, file); err != nil {
-		return "", fmt.Errorf("hash file %q: %w", path, err)
-	}
-	return hex.EncodeToString(hash.Sum(nil)), nil
-}
-
-func closeWithError(closer io.Closer, action string) error {
-	if err := closer.Close(); err != nil {
-		return fmt.Errorf("%s: %w", action, err)
-	}
-	return nil
 }

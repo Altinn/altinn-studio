@@ -20,7 +20,6 @@ import (
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/envtopology"
-	"altinn.studio/studioctl/internal/install"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -75,6 +74,14 @@ func (e *Env) Name() string {
 	return "localtest"
 }
 
+// OnInstall prepares localtest-owned filesystem state after bundled resources are installed.
+func (e *Env) OnInstall(_ context.Context) error {
+	if err := components.EnsureLocaltestStorageDir(e.cfg.DataDir); err != nil {
+		return fmt.Errorf("ensure localtest storage dir: %w", err)
+	}
+	return nil
+}
+
 // Preflight validates prerequisites before startup.
 func (e *Env) Preflight(ctx context.Context, _ envtypes.UpOptions) error {
 	return CheckForLegacyLocaltest(ctx, e.client)
@@ -103,8 +110,8 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 		return fmt.Errorf("ensure bound topology: %w", err)
 	}
 
-	if err := e.ensureResources(ctx, manifest); err != nil {
-		return err
+	if err := manifest.Prepare(ctx); err != nil {
+		return fmt.Errorf("prepare resources: %w", err)
 	}
 
 	if err := e.applyResources(ctx, manifest.Resources, buildOpts.ImageMode); err != nil {
@@ -535,22 +542,8 @@ func (e *Env) releaseOptions(includeMonitoring, includePgAdmin, devWorkflowEngin
 	}
 }
 
-func (e *Env) ensureResources(ctx context.Context, manifest *components.Manifest) error {
-	if !install.IsInstalled(e.cfg.DataDir, e.cfg.Version) {
-		if err := e.installResources(ctx, false); err != nil {
-			return err
-		}
-	}
-
-	if err := manifest.Prepare(ctx); err != nil {
-		return fmt.Errorf("prepare resources: %w", err)
-	}
-
-	return nil
-}
-
 func (e *Env) deletePersistedData(ctx context.Context) error {
-	if err := removeResetDataPath(e.cfg.DataDir, filepath.Join(e.cfg.DataDir, "AltinnPlatformLocal")); err != nil {
+	if err := removeResetDataPath(e.cfg.DataDir, components.LocaltestStoragePath(e.cfg.DataDir)); err != nil {
 		return err
 	}
 	if err := e.removeLegacyWorkflowEngineDbData(ctx, components.WorkflowEngineDbDataPath(e.cfg.DataDir)); err != nil {
@@ -724,20 +717,6 @@ func buildResourceGraph(resources []resource.Resource) (*resource.Graph, error) 
 		return nil, fmt.Errorf("validate resource graph: %w", err)
 	}
 	return graph, nil
-}
-
-func (e *Env) installResources(ctx context.Context, force bool) error {
-	e.out.Println("Installing localtest resources...")
-	installOpts := install.Options{
-		DataDir: e.cfg.DataDir,
-		Version: e.cfg.Version,
-		Force:   force,
-	}
-	if err := install.Install(ctx, installOpts); err != nil {
-		return fmt.Errorf("install resources: %w", err)
-	}
-	e.out.Verbosef("Resources installed to: %s", e.cfg.DataDir)
-	return nil
 }
 
 func (e *Env) buildResourceOptions(
