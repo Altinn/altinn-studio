@@ -107,8 +107,7 @@ func (c *AuthCommand) runGitCredential(args []string) error {
 
 	result, err := c.service.GitCredential(os.Stdin, env)
 	if err != nil {
-		//nolint:nilerr // Git credential helpers fail closed by producing no credentials.
-		return nil
+		return fmt.Errorf("resolve git credentials: %w", err)
 	}
 	if !result.Found {
 		return nil
