@@ -4,11 +4,10 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 
 import { createContext } from 'src/core/contexts/context';
-import { queryClient as defaultQueryClient } from 'src/queryClient';
 import type { AppMutations, AppQueries, AppQueriesContext } from 'src/queries/types';
 
 export interface AppQueriesProps extends AppQueriesContext {
-  queryClient?: QueryClient;
+  queryClient: QueryClient;
 }
 
 interface ContextData {
@@ -20,7 +19,7 @@ const { Provider, useCtx } = createContext<ContextData>({ name: 'AppQueriesConte
 
 export const AppQueriesProvider = ({
   children,
-  queryClient = defaultQueryClient,
+  queryClient,
   ...allQueries
 }: React.PropsWithChildren<AppQueriesProps>) => {
   const queries = Object.fromEntries(

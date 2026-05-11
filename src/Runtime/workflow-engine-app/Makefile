@@ -7,18 +7,17 @@ help: ## Show this help message
 	@echo 'Available targets:'
 	@grep -E '^[a-zA-Z_-]+( [a-zA-Z_-]+)*:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {gsub(/ /, " | ", $$1); printf "  %-20s %s\n", $$1, $$2}'
 
-run start: ## Run full stack (engine + dependencies) in Docker
-	docker compose --profile app up -d --build
+run start: run-deps ## Run the workflow-engine app locally
+	dotnet run --project src/WorkflowEngine.App
 
-dev run-deps: ## Start dependencies only (for local engine development)
-	docker compose up -d
+dev run-deps: ## Start localtest dependencies for local engine development
+	studioctl env up --dev-workflow-engine
 
-stop: ## Stop all services
-	docker compose --profile app down
+stop: ## Stop localtest dependencies
+	studioctl env down
 
-reset db-reset: ## Stop all services and delete the database volume
-	docker compose --profile app down
-	docker volume rm workflow-engine-app_postgres_data 2>/dev/null || true
+reset db-reset: ## Stop localtest dependencies and delete persisted localtest data
+	studioctl env reset
 
 test: ## Run all tests
 	dotnet test

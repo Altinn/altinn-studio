@@ -109,9 +109,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@altinn/ux-editor@workspace:src/Designer/frontend/packages/ux-editor":
+"@altinn/ux-editor-v4@workspace:src/Designer/frontend/packages/ux-editor-v4":
   version: 0.0.0-use.local
-  resolution: "@altinn/ux-editor@workspace:src/Designer/frontend/packages/ux-editor"
+  resolution: "@altinn/ux-editor-v4@workspace:src/Designer/frontend/packages/ux-editor-v4"
   dependencies:
     "@studio/icons": "workspace:^"
     "@studio/ui-test": "workspace:^"

@@ -56,7 +56,6 @@ type Env struct {
 	cfg    *config.Config
 	out    *ui.Output
 	client container.ContainerClient
-	logs   *logStreamer
 	paths  components.Paths
 }
 
@@ -66,11 +65,8 @@ func NewEnv(cfg *config.Config, out *ui.Output, client container.ContainerClient
 		cfg:    cfg,
 		out:    out,
 		client: client,
-		logs:   nil,
 		paths:  components.NewPaths(cfg.DataDir),
 	}
-	manifest := components.NewManifest(env.buildDestroyOptions())
-	env.logs = newLogStreamer(client, out, components.EnabledContainerNames(manifest.Resources))
 	return env
 }
 
@@ -96,7 +92,7 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	}
 	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
 
-	buildOpts, err := e.buildResourceOptions(ctx, runtimeUser, topology, opts.Monitoring, opts.PgAdmin)
+	buildOpts, err := e.buildResourceOptions(ctx, runtimeUser, topology, opts)
 	if err != nil {
 		return err
 	}
@@ -125,7 +121,7 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	}
 
 	if !opts.Detach {
-		return e.runForeground(ctx, localtestURL)
+		return e.runForeground(ctx, localtestURL, manifest.Resources)
 	}
 
 	e.out.Println("")
@@ -191,6 +187,7 @@ func (e *Env) Reset(ctx context.Context) error {
 // Status returns the localtest environment status.
 func (e *Env) Status(ctx context.Context) (*Status, error) {
 	return e.status(ctx, statusOptions{
+		DevWorkflowEngine: e.devWorkflowEngineFromEnvironmentTopology(),
 		IncludeMonitoring: false,
 		IncludePgAdmin:    false,
 		RequireDesired:    false,
@@ -200,6 +197,7 @@ func (e *Env) Status(ctx context.Context) (*Status, error) {
 // StatusForUp returns status for the containers requested by env up.
 func (e *Env) StatusForUp(ctx context.Context, opts envtypes.UpOptions) (*Status, error) {
 	return e.status(ctx, statusOptions{
+		DevWorkflowEngine: opts.DevWorkflowEngine,
 		IncludeMonitoring: opts.Monitoring,
 		IncludePgAdmin:    opts.PgAdmin,
 		RequireDesired:    true,
@@ -208,17 +206,24 @@ func (e *Env) StatusForUp(ctx context.Context, opts envtypes.UpOptions) (*Status
 
 // Logs streams localtest environment logs.
 func (e *Env) Logs(ctx context.Context, opts envtypes.LogsOptions) error {
-	return e.logs.Stream(ctx, opts.Component, opts.Follow, opts.JSON)
+	return e.logStreamer().Stream(ctx, opts.Component, opts.Follow, opts.JSON)
 }
 
 type statusOptions struct {
+	DevWorkflowEngine bool
 	IncludeMonitoring bool
 	IncludePgAdmin    bool
 	RequireDesired    bool
 }
 
 func (e *Env) status(ctx context.Context, opts statusOptions) (*Status, error) {
-	manifest := components.NewManifest(e.releaseOptions(opts.IncludeMonitoring, opts.IncludePgAdmin))
+	resourceOpts := e.releaseOptions(
+		opts.IncludeMonitoring,
+		opts.IncludePgAdmin,
+		opts.DevWorkflowEngine,
+	)
+
+	manifest := components.NewManifest(resourceOpts)
 	graph, err := buildResourceGraph(manifest.Resources)
 	if err != nil {
 		return nil, fmt.Errorf("build resource graph: %w", err)
@@ -231,6 +236,22 @@ func (e *Env) status(ctx context.Context, opts statusOptions) (*Status, error) {
 	}
 
 	return localtestStatus(graph.All(), snapshot, opts.RequireDesired), nil
+}
+
+func (e *Env) devWorkflowEngineFromEnvironmentTopology() bool {
+	envConfig, err := envtopology.ReadBoundTopologyConfig(e.cfg.BoundTopologyBaseConfigPath())
+	if err != nil {
+		e.out.Verbosef("Failed to read environment topology config: %v", err)
+		return false
+	}
+
+	for _, route := range envConfig.Routes {
+		if route.Component != envtopology.ComponentWorkflowEngine {
+			continue
+		}
+		return route.Destination.Location == envtopology.DestinationLocationHost
+	}
+	return false
 }
 
 func (e *Env) hasManagedResources(ctx context.Context) (bool, error) {
@@ -262,12 +283,14 @@ func (e *Env) hasManagedResources(ctx context.Context) (bool, error) {
 func (e *Env) runForeground(
 	ctx context.Context,
 	localtestURL string,
+	resources []resource.Resource,
 ) error {
 	e.out.Println("")
 	e.out.Println("Localtest is running. Press Ctrl+C to stop.")
 	e.out.Printlnf("Access the platform at: %s", localtestURL)
 
-	if err := e.logs.Stream(ctx, "", true, false); err != nil {
+	streamer := newLogStreamer(e.client, e.out, components.EnabledContainerNames(resources))
+	if err := streamer.Stream(ctx, "", true, false); err != nil {
 		e.out.Verbosef("log streaming ended: %v", err)
 	}
 
@@ -286,6 +309,11 @@ func (e *Env) runForeground(
 	}
 	e.out.Println("Environment stopped.")
 	return nil
+}
+
+func (e *Env) logStreamer() *logStreamer {
+	manifest := components.NewManifest(e.releaseOptions(true, true, e.devWorkflowEngineFromEnvironmentTopology()))
+	return newLogStreamer(e.client, e.out, components.EnabledContainerNames(manifest.Resources))
 }
 
 func (e *Env) applyResources(ctx context.Context, resources []resource.Resource, imageMode components.ImageMode) error {
@@ -490,10 +518,10 @@ func isImageResource(res resource.Resource) bool {
 }
 
 func (e *Env) buildDestroyOptions() *components.Options {
-	return e.releaseOptions(true, true) // include all for cleanup
+	return e.releaseOptions(true, true, false) // include all for cleanup
 }
 
-func (e *Env) releaseOptions(includeMonitoring, includePgAdmin bool) *components.Options {
+func (e *Env) releaseOptions(includeMonitoring, includePgAdmin, devWorkflowEngine bool) *components.Options {
 	return &components.Options{
 		DevConfig:         nil,
 		Paths:             e.paths,
@@ -501,6 +529,7 @@ func (e *Env) releaseOptions(includeMonitoring, includePgAdmin bool) *components
 		RuntimeUser:       "",
 		Topology:          envtopology.NewLocal(envtopology.DefaultIngressPortString()),
 		ImageMode:         components.ReleaseMode,
+		DevWorkflowEngine: devWorkflowEngine,
 		IncludeMonitoring: includeMonitoring,
 		IncludePgAdmin:    includePgAdmin,
 	}
@@ -715,8 +744,7 @@ func (e *Env) buildResourceOptions(
 	ctx context.Context,
 	runtimeUser string,
 	topology envtopology.Local,
-	monitoring bool,
-	pgAdmin bool,
+	upOpts envtypes.UpOptions,
 ) (*components.Options, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -735,12 +763,13 @@ func (e *Env) buildResourceOptions(
 	return &components.Options{
 		Paths:             e.paths,
 		RuntimeUser:       runtimeUser,
-		Topology:          topology,
-		IncludeMonitoring: monitoring,
-		IncludePgAdmin:    pgAdmin,
-		ImageMode:         imageMode,
-		Images:            e.cfg.Images,
 		DevConfig:         devConfig,
+		Images:            e.cfg.Images,
+		Topology:          topology,
+		ImageMode:         imageMode,
+		DevWorkflowEngine: upOpts.DevWorkflowEngine,
+		IncludeMonitoring: upOpts.Monitoring,
+		IncludePgAdmin:    upOpts.PgAdmin,
 	}, nil
 }
 

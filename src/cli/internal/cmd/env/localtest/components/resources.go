@@ -28,11 +28,12 @@ type ContainerSpec struct {
 // Options holds options for building the resource graph.
 type Options struct {
 	DevConfig         *DevImageConfig
+	RuntimeUser       string // "uid:gid" to run containers as (prevents root-owned bind mount files)
 	Images            config.ImagesConfig
 	Paths             Paths
-	RuntimeUser       string // "uid:gid" to run containers as (prevents root-owned bind mount files)
 	Topology          envtopology.Local
 	ImageMode         ImageMode
+	DevWorkflowEngine bool
 	IncludeMonitoring bool
 	IncludePgAdmin    bool
 }
