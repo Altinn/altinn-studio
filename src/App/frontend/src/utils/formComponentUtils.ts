@@ -1,7 +1,7 @@
 import type React from 'react';
 
 import { isAttachmentUploaded } from 'src/features/attachments';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import printStyles from 'src/styles/print.module.css';
 import type { IAttachment } from 'src/features/attachments';
 import type { ExprResolved } from 'src/features/expressions/types';
@@ -123,7 +123,7 @@ export const pageBreakStyles = (pageBreak: ExprResolved<IPageBreak> | undefined)
 };
 
 function useTextAlignment(baseComponentId: string, isTitle: boolean): 'left' | 'center' | 'right' {
-  const component = FormBootstrap.useLayoutLookups().getComponent(baseComponentId);
+  const component = FormStore.bootstrap.useLayoutLookups().getComponent(baseComponentId);
   const formatting = component.type === 'Input' ? component.formatting : undefined;
   if (!formatting || isTitle) {
     return 'left';

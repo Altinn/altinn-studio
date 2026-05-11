@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { ExprVal } from 'src/features/expressions/types';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useRepeatingGroupComponentId } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
@@ -42,7 +42,9 @@ export const RepeatingGroupTableTitle = ({ baseComponentId, columnSettings }: IP
 };
 
 export function useTableTitle(baseComponentId: string): string {
-  const textResourceBindings = FormBootstrap.useLayoutLookups().getComponent(baseComponentId).textResourceBindings;
+  const textResourceBindings = FormStore.bootstrap
+    .useLayoutLookups()
+    .getComponent(baseComponentId).textResourceBindings;
   const exprOptions: EvalExprOptions<ExprVal.String> = {
     returnType: ExprVal.String,
     defaultValue: '',

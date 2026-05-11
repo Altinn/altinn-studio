@@ -57,6 +57,68 @@ describe('ConfigGridProperties', () => {
     );
   });
 
+  it('should keep latest component from parent when saving grid changes', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdate = jest.fn();
+    const initialComponent = {
+      ...componentMocks.Input,
+      dataModelBindings: { simpleBinding: { field: 'oldField', dataType: 'oldType' } },
+    };
+    const { rerender } = render(
+      <ConfigGridProperties
+        component={initialComponent}
+        handleComponentUpdate={handleComponentUpdate}
+      />,
+    );
+    await openConfigAndVerify({ user, property: propertyKey });
+    const updatedComponent = {
+      ...componentMocks.Input,
+      dataModelBindings: { simpleBinding: { field: 'newField', dataType: 'newType' } },
+    };
+    rerender(
+      <ConfigGridProperties
+        component={updatedComponent}
+        handleComponentUpdate={handleComponentUpdate}
+      />,
+    );
+    const switchDefaultGrid = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.modal_properties_grid_use_default'),
+    });
+    await user.click(switchDefaultGrid);
+    await saveConfigChanges(user);
+    expect(handleComponentUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dataModelBindings: { simpleBinding: { field: 'newField', dataType: 'newType' } },
+        grid: { xs: 12 },
+      }),
+    );
+  });
+
+  it('should remove grid when user clears all grid values before saving', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdate = jest.fn();
+    const componentWithGrid = {
+      ...componentMocks.Input,
+      grid: { xs: 6 as const },
+    };
+    renderConfigGridProperties({
+      props: { component: componentWithGrid, handleComponentUpdate },
+    });
+    await openConfigAndVerify({ user, property: propertyKey });
+    const switchDefaultGrid = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.modal_properties_grid_use_default'),
+    });
+    expect(switchDefaultGrid).not.toBeChecked();
+    await user.click(switchDefaultGrid);
+    expect(switchDefaultGrid).toBeChecked();
+    await saveConfigChanges(user);
+    expect(handleComponentUpdate).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        grid: expect.anything(),
+      }),
+    );
+  });
+
   type RenderConfigGridPropertiesProps = {
     props?: Partial<ConfigGridPropertiesProps>;
   };

@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { shouldValidateNode } from 'src/features/validation/StoreValidationsInNode';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import type { CompExternal, CompTypes } from 'src/layout/layout';
@@ -10,7 +9,7 @@ import type { NodeData } from 'src/utils/layout/types';
 export function useWaitForNodesToValidate() {
   const registry = GeneratorInternal.useRegistry();
   const formStore = FormStore.raw.useStore();
-  const lookups = FormBootstrap.useLayoutLookups();
+  const lookups = FormStore.bootstrap.useLayoutLookups();
 
   return useCallback(async (): Promise<void> => {
     let callbackId: ReturnType<typeof requestIdleCallback | typeof requestAnimationFrame> | undefined;

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -135,9 +135,7 @@ export function useFetchOptions({ item }: FetchOptionsProps) {
   }
 
   if (optionsId) {
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const staticOptions = FormBootstrap.useStaticOptionsMap();
+    const staticOptions = FormStore.bootstrap.useStaticOptionsMap();
     const bootstrapOptions = staticOptions[optionsId];
     const shouldFetchFromApi = hasDynamicOptionsConfig(item);
 

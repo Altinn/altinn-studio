@@ -5,8 +5,8 @@ import { screen } from '@testing-library/dom';
 import { render } from '@testing-library/react';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
+import { FormStore } from 'src/features/form/FormContext';
 import { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { Lang } from 'src/features/language/Lang';
 import { CompInternal } from 'src/layout/layout';
 import { NotificationStatus, SigneeState, useSigneeList } from 'src/layout/SigneeList/api';
@@ -24,7 +24,7 @@ jest.mock('src/core/contexts/TaskOverrides');
 
 describe('SigneeListSummary', () => {
   const mockedUseSigneeList = jest.mocked(useSigneeList);
-  const mockedUseLayoutLookups = jest.mocked(FormBootstrap.useLayoutLookups);
+  const mockedUseLayoutLookups = jest.mocked(FormStore.bootstrap.useLayoutLookups);
   const mockedUseTaskOverrides = jest.mocked(useTaskOverrides);
   const mockedUseItemWhenType = jest.mocked(useItemWhenType);
   const mockedUseItemFor = jest.mocked(useItemFor);

@@ -6,7 +6,6 @@ import { SearchParams } from 'src/core/routing/types';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useHasPendingAttachments } from 'src/features/attachments/hooks';
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
@@ -30,7 +29,7 @@ type Props = Pick<PropsFromGenericComponent<'NavigationButtons'>, 'baseComponent
 export function NavigationButtonsComponent({ baseComponentId }: Props) {
   const summaryNodeId = FormStore.pageNavigation.useSummaryNodeIdOfOrigin();
   const { baseComponentId: summaryBaseComponentId } = splitDashedKey(summaryNodeId ?? '');
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const origin = summaryBaseComponentId ? layoutLookups.getComponent(summaryBaseComponentId) : undefined;
 
   // TODO: Support returning to Summary2
@@ -106,7 +105,7 @@ function NavigationButtonsComponentInner({
   const showNextButton = showBackToSummaryButton ? showNextButtonSummary : hasNext;
 
   const onPageNavigationValidation = useOnPageNavigationValidation();
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
 
   const attachmentsPending = useHasPendingAttachments();
 
