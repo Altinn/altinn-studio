@@ -97,7 +97,11 @@ internal static class ValidationUtils
 
         if (processed != requests.Count)
         {
-            var cycleRefs = requests.Where((_, i) => inDegree[i] > 0).Select((r, i) => WorkflowLabel(r, i)).ToList();
+            var cycleRefs = Enumerable
+                .Range(0, requests.Count)
+                .Where(i => inDegree[i] > 0)
+                .Select(i => WorkflowLabel(requests[i], i))
+                .ToList();
 
             throw new ArgumentException(
                 $"Dependency cycle detected in batch involving refs: {string.Join(", ", cycleRefs)}"
