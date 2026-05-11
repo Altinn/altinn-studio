@@ -28,7 +28,8 @@ iwr https://altinn.studio/designer/api/v1/studioctl/install.ps1 -useb | iex
 
 The install flow also installs `app-manager` and localtest resources by default.
 If no terminal prompt is available, the installer uses the recommended writable user location.
-It stops running apps and localtest before replacement, and restarts `app-manager` if it was running.
+It stops running apps, localtest, and `app-manager` before replacement.
+`app-manager` starts later when a command needs it.
 
 Pin to a specific version:
 

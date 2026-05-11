@@ -18,6 +18,7 @@ type PreviewCompatibilityOptions struct {
 
 // CreatePreviewCompatibilityAssets creates assets required by previous preview updaters.
 func CreatePreviewCompatibilityAssets(opts PreviewCompatibilityOptions) ([]string, error) {
+	// TODO: Remove the legacy app-manager archive after previews that fetch app-manager-*.tar.gz are unsupported.
 	legacyAppManagerArchive, err := createLegacyAppManagerArchive(opts)
 	if err != nil {
 		return nil, err

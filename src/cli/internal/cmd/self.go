@@ -147,6 +147,8 @@ func (c *SelfCommand) runInstall(ctx context.Context, args []string) error {
 
 	var targetPath string
 	fs.StringVar(&targetPath, "path", "", "Install to specific directory")
+	// TODO: Remove --skip-resources after releases that passed it from install scripts are no longer supported.
+	fs.Bool("skip-resources", false, "Deprecated no-op compatibility flag")
 
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
