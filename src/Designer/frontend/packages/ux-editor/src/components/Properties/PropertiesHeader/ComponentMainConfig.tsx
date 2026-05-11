@@ -1,6 +1,6 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { SummaryMainConfig } from './SpecificMainConfig/SummaryMainConfig';
-import type { FormItem } from '@altinn/ux-editor-v4/types/FormItem';
+import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import { SubformMainConfig } from './SpecificMainConfig/SubformMainConfig';
 import { OptionsMainConfig } from './SpecificMainConfig/OptionsMainConfig';
 import { ImageMainConfig } from './SpecificMainConfig/ImageMainConfig';

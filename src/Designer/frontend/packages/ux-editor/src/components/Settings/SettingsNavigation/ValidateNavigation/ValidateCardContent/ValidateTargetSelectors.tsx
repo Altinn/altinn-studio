@@ -2,10 +2,10 @@ import { StudioSuggestion, type StudioSuggestionItem } from '@studio/components'
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import { useFormLayoutsQuery } from '@altinn/ux-editor-v4/hooks/queries/useFormLayoutsQuery';
+import { useFormLayoutsQuery } from '@altinn/ux-editor/hooks/queries/useFormLayoutsQuery';
 import { getAvailablePages, getAvailableTasks } from '../utils/ValidateNavigationUtils';
-import { useValidationOnNavigationGroupedSettingsQuery } from '@altinn/ux-editor-v4/hooks/queries/useValidationOnNavigationGroupedSettingsQuery';
-import { useValidationOnNavigationPageSettingsQuery } from '@altinn/ux-editor-v4/hooks/queries/usePageValidationOnNavigationLayoutSettingsQuery';
+import { useValidationOnNavigationGroupedSettingsQuery } from '@altinn/ux-editor/hooks/queries/useValidationOnNavigationGroupedSettingsQuery';
+import { useValidationOnNavigationPageSettingsQuery } from '@altinn/ux-editor/hooks/queries/usePageValidationOnNavigationLayoutSettingsQuery';
 
 type RenderTaskOptionsProps = {
   tasksWithRules?: string[];

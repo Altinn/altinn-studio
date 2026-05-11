@@ -8,7 +8,7 @@ import {
 import { StudioDragAndDropTree } from '@studio/components';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ConfPageType } from './types/ConfigPageType';
-import { renderWithProviders } from '@altinn/ux-editor-v4/testing/mocks';
+import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 
 describe('ConfPageToolbar', () => {
   it('should render', () => {

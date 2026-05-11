@@ -3,7 +3,7 @@ import classes from './BreadcrumbsTaskNavigation.module.css';
 import { StudioBreadcrumbs } from '@studio/components';
 import { UrlUtils } from '@studio/pure-functions';
 import { useTranslation } from 'react-i18next';
-import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export const BreadcrumbsTaskNavigation = () => {
   const navigate = useNavigate();

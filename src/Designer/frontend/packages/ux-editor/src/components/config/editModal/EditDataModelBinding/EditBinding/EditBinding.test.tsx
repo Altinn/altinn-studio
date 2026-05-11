@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { dataModelMetadataResponseMock } from '@altinn/ux-editor-v4/testing/dataModelMock';
+import { dataModelMetadataResponseMock } from '@altinn/ux-editor/testing/dataModelMock';
 import { EditBinding, type EditBindingProps } from './EditBinding';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { componentMocks } from '@altinn/ux-editor-v4/testing/componentMocks';
+import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
@@ -12,8 +12,8 @@ import userEvent from '@testing-library/user-event';
 import { layoutSet1NameMock } from '../../../../../testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
-import type { ExplicitDataModelBinding } from '@altinn/ux-editor-v4/types/global';
-import { convertDataBindingToInternalFormat } from '@altinn/ux-editor-v4/utils/dataModelUtils';
+import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';
+import { convertDataBindingToInternalFormat } from '@altinn/ux-editor/utils/dataModelUtils';
 
 const defaultLabel = 'label';
 const defaultBindingKey = 'simpleBinding';

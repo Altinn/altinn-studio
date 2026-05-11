@@ -3,7 +3,7 @@ import { EditNumberValue } from '../editModal/EditNumberValue';
 import type { SchemaConfigProps } from './types';
 import { componentComparison } from './ConfigPropertiesUtils';
 import { useConfigProperty } from './useConfigProperty';
-import { useComponentPropertyLabel } from '@altinn/ux-editor-v4/hooks';
+import { useComponentPropertyLabel } from '@altinn/ux-editor/hooks';
 
 export interface ConfigNumberPropertiesProps extends SchemaConfigProps {
   numberPropertyKeys: string[];

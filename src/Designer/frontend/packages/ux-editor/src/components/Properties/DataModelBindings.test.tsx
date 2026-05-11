@@ -10,12 +10,8 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { componentSchemaMocks } from '../../testing/componentSchemaMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { componentMocks } from '../../testing/componentMocks';
-import {
-  component3IdMock,
-  component3Mock,
-  layoutMock,
-} from '@altinn/ux-editor-v4/testing/layoutMock';
-import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
+import { component3IdMock, component3Mock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 import type { DataModelMetadataResponse } from 'app-shared/types/api';
 

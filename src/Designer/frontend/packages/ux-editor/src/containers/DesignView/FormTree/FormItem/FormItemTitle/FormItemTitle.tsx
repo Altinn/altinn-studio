@@ -11,8 +11,8 @@ import { isContainer } from '../../../../../utils/formItemUtils';
 import { useFormItemContext } from '../../../../FormItemContext';
 import { useAppContext } from '../../../../../hooks';
 import classNames from 'classnames';
-import { isComponentDeprecated } from '@altinn/ux-editor-v4/utils/component';
-import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
+import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export interface FormItemTitleProps {
   children: ReactNode;

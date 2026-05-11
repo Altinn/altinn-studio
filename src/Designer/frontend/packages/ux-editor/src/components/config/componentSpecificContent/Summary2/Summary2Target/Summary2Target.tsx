@@ -19,7 +19,7 @@ import {
 } from './targetUtils';
 import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
 import cn from 'classnames';
-import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 type Summary2TargetProps = {
   target: Summary2TargetConfig;

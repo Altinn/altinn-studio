@@ -1,7 +1,7 @@
-import { SavableFormLayoutSettings } from '@altinn/ux-editor-v4/classes/SavableFormLayoutSettings';
+import { SavableFormLayoutSettings } from '@altinn/ux-editor/classes/SavableFormLayoutSettings';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutSettingsMutation } from './mutations/useFormLayoutSettingsMutation';
-import { FormLayoutSettings } from '@altinn/ux-editor-v4/classes/FormLayoutSettings';
+import { FormLayoutSettings } from '@altinn/ux-editor/classes/FormLayoutSettings';
 import { useFormLayoutSettingsQuery } from './queries/useFormLayoutSettingsQuery';
 import useUxEditorParams from './useUxEditorParams';
 

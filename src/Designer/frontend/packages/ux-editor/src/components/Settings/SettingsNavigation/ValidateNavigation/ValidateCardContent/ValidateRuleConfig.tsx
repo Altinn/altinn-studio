@@ -1,5 +1,5 @@
 import { StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
-import { useComponentPropertyEnumValue } from '@altinn/ux-editor-v4/hooks';
+import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks';
 import { useTranslation } from 'react-i18next';
 import { getRuleEnums, RuleType } from '../utils/ValidateNavigationUtils';
 

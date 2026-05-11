@@ -23,7 +23,7 @@ import {
   RenderDataModelOptions,
   type NewSubformProps,
 } from './AddSubformCardUtils';
-import { useCreateSubform } from '@altinn/ux-editor-v4/hooks/useCreateSubform';
+import { useCreateSubform } from '@altinn/ux-editor/hooks/useCreateSubform';
 
 enum Tabs {
   Choose = 'choose',

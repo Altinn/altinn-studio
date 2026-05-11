@@ -8,8 +8,8 @@ import {
   component1IdMock,
   externalLayoutsMock,
   layout1NameMock,
-} from '@altinn/ux-editor-v4/testing/layoutMock';
-import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
+} from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import type {
   FormCheckboxesComponent,
   FormComponent,

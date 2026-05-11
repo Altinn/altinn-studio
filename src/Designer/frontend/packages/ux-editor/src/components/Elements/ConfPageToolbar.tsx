@@ -8,7 +8,7 @@ import {
 } from '../../data/formItemConfig';
 import { mapComponentToToolbarElement } from '../../utils/formLayoutUtils';
 import type { ConfPageType } from './types/ConfigPageType';
-import { useComponentTitle } from '@altinn/ux-editor-v4/hooks';
+import { useComponentTitle } from '@altinn/ux-editor/hooks';
 
 const getAvailableComponentList = (confPageType: ConfPageType) => {
   switch (confPageType) {

@@ -12,9 +12,9 @@ import { useComponentTitle } from '../../../../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
 import { getComponentOptions, getTargetLayoutSetName } from '../Summary2Target/targetUtils';
-import type { FormItem } from '@altinn/ux-editor-v4/types/FormItem';
+import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 import classes from './Summary2Override.module.css';
 import cn from 'classnames';
 

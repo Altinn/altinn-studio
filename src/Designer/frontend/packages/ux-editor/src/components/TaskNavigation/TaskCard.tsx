@@ -18,7 +18,7 @@ import { TaskCardEditing } from './TaskCardEditing';
 import classes from './TaskCard.module.css';
 import { ExportForm } from '../Elements/ExportForm';
 import { useNavigate } from 'react-router-dom';
-import getLayoutSetPath from '@altinn/ux-editor-v4/utils/routeUtils';
+import getLayoutSetPath from '@altinn/ux-editor/utils/routeUtils';
 
 type TaskCardProps = {
   layoutSetModel: LayoutSetModel;

@@ -6,15 +6,15 @@ import {
   getMaxOccursFromDataModelFields,
   getMinOccursFromDataModelFields,
   getXsdDataTypeFromDataModelFields,
-} from '@altinn/ux-editor-v4/utils/dataModelUtils';
-import { useAppContext } from '@altinn/ux-editor-v4/hooks';
-import type { UpdateFormMutateOptions } from '@altinn/ux-editor-v4/containers/FormItemContext';
-import { useValidDataModels } from '@altinn/ux-editor-v4/hooks/useValidDataModels';
+} from '@altinn/ux-editor/utils/dataModelUtils';
+import { useAppContext } from '@altinn/ux-editor/hooks';
+import type { UpdateFormMutateOptions } from '@altinn/ux-editor/containers/FormItemContext';
+import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
 import { StudioConfigCard, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { formItemConfigs } from '@altinn/ux-editor-v4/data/formItemConfig';
-import type { ExplicitDataModelBinding } from '@altinn/ux-editor-v4/types/global';
-import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
+import { formItemConfigs } from '@altinn/ux-editor/data/formItemConfig';
+import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export type EditBindingProps = {
   bindingKey: string;

@@ -10,7 +10,7 @@ import { Paragraph } from '@digdir/designsystemet-react';
 import classes from './ExpressionContent.module.css';
 import { Expression as ExpressionWithTexts } from './Expression';
 import { useText } from '../../../hooks';
-import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export interface ExpressionContentProps {
   expression: Expression;

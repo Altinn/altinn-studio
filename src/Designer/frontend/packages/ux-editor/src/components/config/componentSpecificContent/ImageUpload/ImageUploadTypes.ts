@@ -1,5 +1,5 @@
-import type { FormComponentBase } from '@altinn/ux-editor-v4/types/FormComponent';
-import type { FormItem } from '@altinn/ux-editor-v4/types/FormItem';
+import type { FormComponentBase } from '@altinn/ux-editor/types/FormComponent';
+import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 
 export type ExternalCrop = FormItem<ComponentType.ImageUpload>['crop'];

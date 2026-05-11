@@ -1,7 +1,7 @@
-import type { FormItem } from '@altinn/ux-editor-v4/types/FormItem';
+import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import React from 'react';
 import { EditDataModelBinding } from '../../config/editModal/EditDataModelBinding/EditDataModelBinding';
-import { useFormItemContext } from '@altinn/ux-editor-v4/containers/FormItemContext';
+import { useFormItemContext } from '@altinn/ux-editor/containers/FormItemContext';
 
 type DataModelMainConfigProps = {
   component: FormItem;

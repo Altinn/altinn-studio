@@ -8,7 +8,7 @@ import { addOrRemoveNavigationButtons, firstAvailableLayout } from '../../utils/
 import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
 import { useAppContext } from '../';
-import { useSavableFormLayoutSettings } from '@altinn/ux-editor-v4/hooks/useSavableFormLayoutSettings';
+import { useSavableFormLayoutSettings } from '@altinn/ux-editor/hooks/useSavableFormLayoutSettings';
 
 export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName: string) => {
   const { deleteFormLayout, saveFormLayout } = useServicesContext();

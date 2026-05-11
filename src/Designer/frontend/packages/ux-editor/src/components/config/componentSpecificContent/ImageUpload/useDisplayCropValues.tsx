@@ -1,4 +1,4 @@
-import { useComponentPropertyLabel } from '@altinn/ux-editor-v4/hooks';
+import { useComponentPropertyLabel } from '@altinn/ux-editor/hooks';
 import type { ExternalCrop } from './ImageUploadTypes';
 
 export const useDisplayCropValues = (cropValues?: ExternalCrop) => {

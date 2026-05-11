@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { useConfigProperty } from './useConfigProperty';
 import { useComponentPropertyLabel } from '../../../hooks';
-import { componentMocks } from '@altinn/ux-editor-v4/testing/componentMocks';
+import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
 jest.mock('../../../hooks', () => ({ useComponentPropertyLabel: jest.fn() }));

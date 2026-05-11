@@ -1,6 +1,6 @@
 import type { StudioSuggestionItem } from '@studio/components';
 import type { ExternalConfigState, InternalConfigState } from './ValidateNavigationTypes';
-import { useComponentPropertyEnumValue } from '@altinn/ux-editor-v4/hooks';
+import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks';
 
 export function useConvertToInternalConfig(externalConfig: null): null;
 

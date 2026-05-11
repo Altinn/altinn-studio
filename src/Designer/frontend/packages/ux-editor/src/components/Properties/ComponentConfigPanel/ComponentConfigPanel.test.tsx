@@ -12,7 +12,7 @@ import type { IFormLayouts } from '../../../types/global';
 import { layoutSet1NameMock, layoutSetsExtendedMock } from '../../../testing/layoutSetsMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { componentSchemaMocks } from '@altinn/ux-editor-v4/testing/componentSchemaMocks';
+import { componentSchemaMocks } from '@altinn/ux-editor/testing/componentSchemaMocks';
 import { org, app } from '@studio/testing/testids';
 import { renderWithProviders } from '../../../testing/mocks';
 import type { AppContextProps } from '../../../AppContext';

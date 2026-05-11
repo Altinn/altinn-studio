@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { EyeClosedIcon, EyeIcon, PlayFillIcon } from '@studio/icons';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useTaskNavigationGroupMutation } from '@altinn/ux-editor-v4/hooks/mutations/useTaskNavigationGroupMutation';
+import { useTaskNavigationGroupMutation } from '@altinn/ux-editor/hooks/mutations/useTaskNavigationGroupMutation';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 
 export type TasksTableProps = {

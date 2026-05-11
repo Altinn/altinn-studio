@@ -3,12 +3,12 @@ import {
   filterOutTableColumn,
   getComponentsForSubformTable,
 } from './editSubformTableColumnsUtils';
-import type { FormItem } from '@altinn/ux-editor-v4/types/FormItem';
+import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { TableColumn } from '../types/TableColumn';
 import { componentMocks } from '../../../../testing/componentMocks';
-import type { IFormLayouts } from '@altinn/ux-editor-v4/types/global';
-import { layoutMock } from '@altinn/ux-editor-v4/testing/layoutMock';
+import type { IFormLayouts } from '@altinn/ux-editor/types/global';
+import { layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 
 // Mock data for testing
 const mockTableColumn1: TableColumn = {

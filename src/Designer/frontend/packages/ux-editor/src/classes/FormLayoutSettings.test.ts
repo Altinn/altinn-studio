@@ -1,5 +1,5 @@
-import { FormLayoutSettings } from '@altinn/ux-editor-v4/classes/FormLayoutSettings';
-import { formLayoutSettingsMock } from '@altinn/ux-editor-v4/testing/mocks';
+import { FormLayoutSettings } from '@altinn/ux-editor/classes/FormLayoutSettings';
+import { formLayoutSettingsMock } from '@altinn/ux-editor/testing/mocks';
 import type { ILayoutSettings } from 'app-shared/types/global';
 
 describe('FormLayoutSettings', () => {

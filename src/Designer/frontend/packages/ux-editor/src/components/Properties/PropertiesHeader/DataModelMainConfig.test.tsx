@@ -5,11 +5,11 @@ import userEvent from '@testing-library/user-event';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { DataModelMainConfig } from './DataModelMainConfig';
-import { component1Mock } from '@altinn/ux-editor-v4/testing/layoutMock';
+import { component1Mock } from '@altinn/ux-editor/testing/layoutMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { dataModelMetadataResponseMock } from '@altinn/ux-editor-v4/testing/dataModelMock';
-import { FormItemContext } from '@altinn/ux-editor-v4/containers/FormItemContext';
-import { formItemContextProviderMock } from '@altinn/ux-editor-v4/testing/formItemContextMocks';
+import { dataModelMetadataResponseMock } from '@altinn/ux-editor/testing/dataModelMock';
+import { FormItemContext } from '@altinn/ux-editor/containers/FormItemContext';
+import { formItemContextProviderMock } from '@altinn/ux-editor/testing/formItemContextMocks';
 
 const mockHandleComponentUpdate = jest.fn();
 

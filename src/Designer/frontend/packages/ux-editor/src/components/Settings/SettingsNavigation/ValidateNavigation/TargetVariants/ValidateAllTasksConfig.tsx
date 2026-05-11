@@ -3,9 +3,9 @@ import { convertToExternalConfig, Scope } from '../utils/ValidateNavigationUtils
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { InternalConfigState } from '../utils/ValidateNavigationTypes';
 import { useConvertToInternalConfig } from '../utils/useConvertToInternalConfig';
-import { useSaveValidationOnNavigationLayoutSets } from '@altinn/ux-editor-v4/hooks/mutations/useSaveValidationOnNavigationLayoutSets';
-import { useDeleteValidationOnNavigationLayoutSets } from '@altinn/ux-editor-v4/hooks/mutations/useDeleteValidationOnNavigationLayoutSets';
-import { useValidationOnNavigationLayoutSetsQuery } from '@altinn/ux-editor-v4/hooks/queries/useValidationOnNavigationLayoutSetsQuery';
+import { useSaveValidationOnNavigationLayoutSets } from '@altinn/ux-editor/hooks/mutations/useSaveValidationOnNavigationLayoutSets';
+import { useDeleteValidationOnNavigationLayoutSets } from '@altinn/ux-editor/hooks/mutations/useDeleteValidationOnNavigationLayoutSets';
+import { useValidationOnNavigationLayoutSetsQuery } from '@altinn/ux-editor/hooks/queries/useValidationOnNavigationLayoutSetsQuery';
 
 export const ValidateAllTasksConfig = () => {
   const { org, app } = useStudioEnvironmentParams();

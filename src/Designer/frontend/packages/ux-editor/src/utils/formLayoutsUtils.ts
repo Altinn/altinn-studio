@@ -12,7 +12,7 @@ import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import { externalLayoutToInternal } from '../converters/formLayoutConverters';
-import type { FormLayoutPage } from '@altinn/ux-editor-v4/types/FormLayoutPage';
+import type { FormLayoutPage } from '@altinn/ux-editor/types/FormLayoutPage';
 
 /**
  * Update layouts to have navigation buttons if there are multiple layouts, or remove them if this is the only one.

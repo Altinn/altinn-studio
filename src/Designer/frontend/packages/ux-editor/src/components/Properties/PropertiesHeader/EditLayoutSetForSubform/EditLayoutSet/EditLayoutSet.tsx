@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { CreateNewSubformSection } from './CreateNewSubformSection';
-import { SubformUtilsImpl } from '@altinn/ux-editor-v4/classes/SubformUtils';
+import { SubformUtilsImpl } from '@altinn/ux-editor/classes/SubformUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import type { IGenericEditComponent } from '@altinn/ux-editor-v4/components/config/componentConfig';
+import type { IGenericEditComponent } from '@altinn/ux-editor/components/config/componentConfig';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { SelectSubformSection } from './SelectSubformSection/SelectSubformSection';
 

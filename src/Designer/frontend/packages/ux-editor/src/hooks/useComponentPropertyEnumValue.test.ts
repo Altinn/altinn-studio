@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { useComponentPropertyEnumValue } from '@altinn/ux-editor-v4/hooks/useComponentPropertyEnumValue';
+import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks/useComponentPropertyEnumValue';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 const enumValueWithoutText = 'enumValueWithoutText';

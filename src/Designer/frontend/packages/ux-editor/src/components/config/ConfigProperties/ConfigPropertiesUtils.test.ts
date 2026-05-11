@@ -1,4 +1,4 @@
-import { componentMocks } from '@altinn/ux-editor-v4/testing/componentMocks';
+import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { componentComparison, propHasValues } from './ConfigPropertiesUtils';
 
 describe('ConfigPropertiesUtils', () => {

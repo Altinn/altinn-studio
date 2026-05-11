@@ -1,5 +1,5 @@
-import { useFormLayoutsQuery } from '@altinn/ux-editor-v4/hooks/queries/useFormLayoutsQuery';
-import { getAllLayoutComponents } from '@altinn/ux-editor-v4/utils/formLayoutUtils';
+import { useFormLayoutsQuery } from '@altinn/ux-editor/hooks/queries/useFormLayoutsQuery';
+import { getAllLayoutComponents } from '@altinn/ux-editor/utils/formLayoutUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { ComponentType } from 'app-shared/types/ComponentType';
 

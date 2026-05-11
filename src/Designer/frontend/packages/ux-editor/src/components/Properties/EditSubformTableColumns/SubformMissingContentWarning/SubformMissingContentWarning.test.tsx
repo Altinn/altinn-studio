@@ -1,4 +1,4 @@
-import { renderWithProviders } from '@altinn/ux-editor-v4/testing/mocks';
+import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 import { SubformMissingContentWarning } from './SubformMissingContentWarning';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

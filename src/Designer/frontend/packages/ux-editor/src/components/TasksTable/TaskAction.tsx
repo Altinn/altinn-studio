@@ -11,7 +11,7 @@ import { StudioPopover, StudioButton, StudioDivider } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './TaskAction.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useTaskNavigationGroupMutation } from '@altinn/ux-editor-v4/hooks/mutations/useTaskNavigationGroupMutation';
+import { useTaskNavigationGroupMutation } from '@altinn/ux-editor/hooks/mutations/useTaskNavigationGroupMutation';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import { useTaskNavigationGroupQuery } from 'app-shared/hooks/queries/useTaskNavigationGroupQuery';
 import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';

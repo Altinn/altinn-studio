@@ -5,10 +5,10 @@ import { useTranslation } from 'react-i18next';
 import {
   getDataModelFields,
   validateSelectedDataField,
-} from '@altinn/ux-editor-v4/utils/dataModelUtils';
+} from '@altinn/ux-editor/utils/dataModelUtils';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { useValidDataModels } from '@altinn/ux-editor-v4/hooks/useValidDataModels';
-import type { ExplicitDataModelBinding } from '@altinn/ux-editor-v4/types/global';
+import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
+import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';
 
 export type DefinedBindingProps = {
   onClick: () => void;
