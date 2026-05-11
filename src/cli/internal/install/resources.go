@@ -99,6 +99,7 @@ func (b Bundle) downloadResourcesArchive(ctx context.Context) (path string, clea
 	}
 
 	assetBaseURL, checksumsURL := releaseURLs(defaultUpdateRepo, version)
+	downloads := newHTTPDownloader(config.NewVersion(b.Version))
 	tempDir, err := os.MkdirTemp("", "studioctl-resources-*")
 	if err != nil {
 		return "", nil, fmt.Errorf("create resources temp dir: %w", err)
@@ -111,10 +112,10 @@ func (b Bundle) downloadResourcesArchive(ctx context.Context) (path string, clea
 	}
 
 	tmpPath := filepath.Join(tempDir, assetName)
-	if err := downloadToFile(ctx, assetBaseURL+"/"+assetName, tmpPath, config.NewVersion(b.Version)); err != nil {
+	if err := downloads.downloadToFile(ctx, assetBaseURL+"/"+assetName, tmpPath); err != nil {
 		return "", cleanup, fmt.Errorf("download resources archive: %w", err)
 	}
-	if err := verifyAssetChecksum(ctx, checksumsURL, assetName, tmpPath, config.NewVersion(b.Version)); err != nil {
+	if err := downloads.verifyAssetChecksum(ctx, checksumsURL, assetName, tmpPath); err != nil {
 		return "", cleanup, fmt.Errorf("verify resources archive checksum: %w", err)
 	}
 

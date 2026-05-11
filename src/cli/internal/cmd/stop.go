@@ -57,7 +57,7 @@ type appStopOutput struct {
 
 // NewStopCommand creates a new top-level stop alias command.
 func NewStopCommand(cfg *config.Config, out *ui.Output) *StopCommand {
-	return newStopCommand(cfg, out, appsvc.NewService(cfg.Home, cfg.Version))
+	return newStopCommand(cfg, out, appsvc.NewService(cfg))
 }
 
 func newStopCommand(cfg *config.Config, out *ui.Output, service *appsvc.Service) *StopCommand {

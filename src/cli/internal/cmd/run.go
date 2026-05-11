@@ -60,7 +60,7 @@ type RunCommand struct {
 
 // NewRunCommand creates a new top-level run alias command.
 func NewRunCommand(cfg *config.Config, out *ui.Output) *RunCommand {
-	return newRunCommand(cfg, out, appsvc.NewService(cfg.Home, cfg.Version))
+	return newRunCommand(cfg, out, appsvc.NewService(cfg))
 }
 
 func newRunCommand(cfg *config.Config, out *ui.Output, service *appsvc.Service) *RunCommand {

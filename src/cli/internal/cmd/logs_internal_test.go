@@ -269,7 +269,7 @@ func TestAppLogsStoredIDUsesCurrentAppDirectory(t *testing.T) {
 	command := &appLogsCommand{
 		out:     ui.NewOutput(&out, io.Discard, false),
 		cfg:     cfg,
-		service: appsvc.NewService("", config.NewVersion("test-version")),
+		service: appsvc.NewService(&config.Config{Version: config.NewVersion("test-version")}),
 		server: studioctlServerAccess{
 			client: &fakeStudioctlServerClient{status: &studioctlserver.Status{}},
 		},

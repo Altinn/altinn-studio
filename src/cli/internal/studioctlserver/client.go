@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -228,11 +229,10 @@ func (c *Client) Health(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, studioctlServerRequestTimeout)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, controlBaseURL+healthPath, nil)
+	req, err := c.newRequest(ctx, http.MethodGet, healthPath, nil)
 	if err != nil {
 		return fmt.Errorf("build health request: %w", err)
 	}
-	httpclient.SetUserAgent(req, c.cfg.Version)
 
 	resp, err := c.http.Do(req)
 	if err != nil {
@@ -252,11 +252,10 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 	ctx, cancel := context.WithTimeout(ctx, studioctlServerRequestTimeout)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, controlBaseURL+statusPath, nil)
+	req, err := c.newRequest(ctx, http.MethodGet, statusPath, nil)
 	if err != nil {
 		return nil, fmt.Errorf("build status request: %w", err)
 	}
-	httpclient.SetUserAgent(req, c.cfg.Version)
 
 	resp, err := c.http.Do(req)
 	if err != nil {
@@ -336,17 +335,16 @@ func (c *Client) RegisterApp(ctx context.Context, registration AppRegistration) 
 		return "", fmt.Errorf("encode app registration: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(
+	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,
-		controlBaseURL+registerPath,
+		registerPath,
 		bytes.NewReader(body),
 	)
 	if err != nil {
 		return "", fmt.Errorf("build register app request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
-	httpclient.SetUserAgent(req, c.cfg.Version)
 
 	client := &http.Client{
 		Transport: transportForConfig(c.cfg),
@@ -383,16 +381,15 @@ func (c *Client) UnregisterApp(ctx context.Context, appID string) error {
 	ctx, cancel := context.WithTimeout(ctx, studioctlServerRequestTimeout)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(
+	req, err := c.newRequest(
 		ctx,
 		http.MethodDelete,
-		controlBaseURL+registerPath+"?appId="+url.QueryEscape(appID),
+		registerPath+"?appId="+url.QueryEscape(appID),
 		nil,
 	)
 	if err != nil {
 		return fmt.Errorf("build unregister app request: %w", err)
 	}
-	httpclient.SetUserAgent(req, c.cfg.Version)
 
 	resp, err := c.http.Do(req)
 	if err != nil {
@@ -417,17 +414,16 @@ func (c *Client) UpgradeApp(ctx context.Context, upgrade AppUpgrade) (AppUpgrade
 	ctx, cancel := context.WithTimeout(ctx, studioctlServerUpgradeTimeout)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(
+	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,
-		controlBaseURL+upgradePath,
+		upgradePath,
 		bytes.NewReader(body),
 	)
 	if err != nil {
 		return AppUpgradeResult{}, fmt.Errorf("build app upgrade request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
-	httpclient.SetUserAgent(req, c.cfg.Version)
 
 	resp, err := c.http.Do(req)
 	if err != nil {
@@ -451,16 +447,29 @@ func (c *Client) UpgradeApp(ctx context.Context, upgrade AppUpgrade) (AppUpgrade
 	return result, nil
 }
 
+func (c *Client) newRequest(
+	ctx context.Context,
+	method,
+	path string,
+	body io.Reader,
+) (*http.Request, error) {
+	req, err := http.NewRequestWithContext(ctx, method, controlBaseURL+path, body)
+	if err != nil {
+		return nil, fmt.Errorf("create request: %w", err)
+	}
+	httpclient.SetUserAgent(req, c.cfg.Version)
+	return req, nil
+}
+
 // shutdown asks studioctl-server to stop itself.
 func (c *Client) shutdown(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, studioctlServerRequestTimeout)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, controlBaseURL+shutdownPath, nil)
+	req, err := c.newRequest(ctx, http.MethodPost, shutdownPath, nil)
 	if err != nil {
 		return fmt.Errorf("build shutdown request: %w", err)
 	}
-	httpclient.SetUserAgent(req, c.cfg.Version)
 
 	resp, err := c.http.Do(req)
 	if err != nil {

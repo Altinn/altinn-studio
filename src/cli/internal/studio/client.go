@@ -234,7 +234,7 @@ func (c *Client) execGitClone(ctx context.Context, cloneURL, destPath string) er
 		ctx,
 		gitPath,
 		"-c",
-		"http.userAgent="+httpclient.UserAgent(c.version),
+		"http.userAgent="+c.version.UserAgent(),
 		"clone",
 		cloneURL,
 		destPath,

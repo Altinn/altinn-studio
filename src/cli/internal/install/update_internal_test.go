@@ -67,11 +67,10 @@ func TestResolveLatestStudioctlVersion(t *testing.T) {
 			)
 			defer server.Close()
 
-			got, err := resolveLatestStudioctlVersionFromBase(
+			got, err := newHTTPDownloader(config.NewVersion("test-version")).resolveLatestStudioctlVersionFromBase(
 				context.Background(),
 				"Altinn/altinn-studio",
 				server.URL+"/repos",
-				config.NewVersion("test-version"),
 			)
 			if (err != nil) != tc.wantErr {
 				t.Fatalf("resolveLatestStudioctlVersion() error = %v, wantErr %v", err, tc.wantErr)
@@ -130,11 +129,10 @@ func TestResolveLatestStudioctlVersion_Paginates(t *testing.T) {
 	)
 	defer server.Close()
 
-	got, err := resolveLatestStudioctlVersionFromBase(
+	got, err := newHTTPDownloader(config.NewVersion("test-version")).resolveLatestStudioctlVersionFromBase(
 		context.Background(),
 		"Altinn/altinn-studio",
 		server.URL+"/repos",
-		config.NewVersion("test-version"),
 	)
 	if err != nil {
 		t.Fatalf("resolveLatestStudioctlVersion() error = %v", err)
