@@ -22,7 +22,10 @@ export default [
     find: '@altinn/text-editor',
     replacement: path.resolve(__dirname, './packages/text-editor/src'),
   },
-  { find: '@altinn/ux-editor', replacement: path.resolve(__dirname, './packages/ux-editor/src') },
+  {
+    find: '@altinn/ux-editor-v4',
+    replacement: path.resolve(__dirname, './packages/ux-editor-v4/src'),
+  },
   {
     find: '@altinn/ux-editor-v3',
     replacement: path.resolve(__dirname, './packages/ux-editor-v3/src'),

@@ -28,17 +28,15 @@ public class StorageClientInterceptor : HttpMessageHandler
     private ConcurrentDictionary<string, Instance> _instances = new();
     private ConcurrentDictionary<Guid, byte[]> _data = new();
 
-    public StorageClientInterceptor(string org = "ttd", string app = "mocked-test-app")
+    public StorageClientInterceptor(ApplicationMetadata appMetadata)
     {
-        AppMetadata = new($"{org}/{app}")
+        AppMetadata = appMetadata;
+        AppMetadata.Title ??= new()
         {
-            Title = new Dictionary<string, string>
-            {
-                { LanguageConst.Nb, "Testapplikasjon" },
-                { LanguageConst.En, "Mocked Test App" },
-            },
-            DataTypes = [],
+            { LanguageConst.Nb, "Testapplikasjon" },
+            { LanguageConst.En, "Mocked Test App" },
         };
+        AppMetadata.DataTypes ??= [];
     }
 
     public ConcurrentBag<RequestResponse> RequestsResponses { get; } = new();
@@ -46,8 +44,30 @@ public class StorageClientInterceptor : HttpMessageHandler
 
     public void AddInstance(Instance instance)
     {
+        int defaultPartyId = 123456;
+        Guid defaultInstanceGuid = Guid.Parse("00000000-DEAD-FACE-BABE-000000000001");
+        instance.InstanceOwner ??= new InstanceOwner() { };
+        if (instance.InstanceOwner.PartyId is null && instance.Id is not null)
+        {
+            var idParts = instance.Id.Split('/');
+            Assert.Equal(2, idParts.Length);
+            instance.InstanceOwner.PartyId = idParts[0];
+        }
+        instance.InstanceOwner.PartyId ??= defaultPartyId.ToString();
+        instance.Id ??= $"{instance.InstanceOwner.PartyId}/{defaultInstanceGuid}";
         instance.Data ??= [];
-        _instances[instance.Id] = instance;
+        instance.AppId ??= AppMetadata.Id;
+        _instances[instance.Id.ToLowerInvariant()] = instance;
+    }
+
+    public (Instance instance, Dictionary<string, byte[]> data) GetInstanceAndData(
+        int instanceOwnerPartyId,
+        Guid instanceGuid
+    )
+    {
+        var instance = _instances[$"{instanceOwnerPartyId}/{instanceGuid}"];
+        var data = instance.Data.ToDictionary(d => d.Id, d => _data[Guid.Parse(d.Id)]);
+        return (instance, data);
     }
 
     public void AddDataRaw(Guid dataId, byte[] data)
@@ -81,10 +101,8 @@ public class StorageClientInterceptor : HttpMessageHandler
 
         var response = (request.Method.Method, request.RequestUri?.AbsolutePath.Trim('/').Split('/')) switch
         {
-            ("GET", { } path) when TryParseInstanceUrl(path, out int partyId, out Guid instanceGuid) => GetInstance(
-                partyId,
-                instanceGuid
-            ),
+            ("GET", { } path) when TryParseInstanceUrl(path, out int partyId, out Guid instanceGuid) =>
+                GetInstanceResponse(partyId, instanceGuid),
             ("GET", { } path) when TryParseDataUrl(path, out int partyId, out Guid instanceGuid, out Guid dataId) =>
                 GetData(partyId, instanceGuid, dataId),
             ("POST", { } path) when TryParseDataPostUrl(path, out int partyId, out Guid instanceGuid) => PostData(
@@ -175,7 +193,7 @@ public class StorageClientInterceptor : HttpMessageHandler
         return false;
     }
 
-    private HttpResponseMessage GetInstance(int partyId, Guid instanceGuid)
+    private HttpResponseMessage GetInstanceResponse(int partyId, Guid instanceGuid)
     {
         if (!_instances.TryGetValue($"{partyId}/{instanceGuid}", out Instance? instance))
         {

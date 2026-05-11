@@ -171,7 +171,7 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
     {
         const string request = """
             {
-                "namespace": "ttd:e2e-tests",
+                "namespace": "ttd-e2e-tests",
                 "idempotencyKey": "missing-context-test",
                 "workflows": [
                     {
@@ -192,7 +192,7 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
     {
         const string request = $$"""
             {
-                "namespace": "ttd:e2e-tests",
+                "namespace": "ttd-e2e-tests",
                 "idempotencyKey": "incomplete-context-test",
                 "context": {
                     "lockToken": "{{AppTestFixture.DefaultInstanceLockToken}}",

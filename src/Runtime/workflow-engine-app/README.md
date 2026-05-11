@@ -11,37 +11,36 @@ Altinn-specific host for the [Workflow Engine](../workflow-engine/README.md). Th
 
 ### Running locally
 
-> [!TIP]
-> All Docker Compose commands below have `make` equivalents. Run `make help` to see available targets.
-
-Start infrastructure and the engine in Docker:
+This project uses localtest as its local harness. Start localtest with the workflow-engine route bound to the host, then run the app:
 
 ```sh
-docker compose --profile app up -d
+make run
 ```
 
-Or run the engine from source against Dockerized infrastructure:
+Or run the steps separately:
 
 ```sh
-# Start infrastructure only
-docker compose up -d
-
-# Run the app
+studioctl env up --dev-workflow-engine
 dotnet run --project src/WorkflowEngine.App
+```
+
+To include the localtest monitoring stack, start localtest with:
+
+```sh
+studioctl env up --dev-workflow-engine --monitoring
 ```
 
 The database is migrated automatically on startup.
 
 ### Ports & URLs
 
-| Service    | URL                   | Notes                       |
-| ---------- | --------------------- | --------------------------- |
-| Engine API | http://localhost:8080 | Swagger UI at `/swagger`    |
-| Dashboard  | http://localhost:8080 | Real-time monitoring at `/` |
-| Grafana    | http://localhost:7070 | Metrics, logs, traces       |
-| WireMock   | http://localhost:6060 | Mock app callbacks          |
-| PgAdmin    | http://localhost:5050 | Password: `postgres123`     |
-| PostgreSQL | localhost:5433        |                             |
+| Service    | URL                               | Notes                       |
+| ---------- | --------------------------------- | --------------------------- |
+| Engine API | http://localhost:9090             | Swagger UI at `/swagger`    |
+| Dashboard  | http://localhost:9090             | Real-time monitoring at `/` |
+| Localtest  | http://local.altinn.cloud:8000    | Platform and app callbacks  |
+| PostgreSQL | localhost:9543                    | Localtest workflow database |
+| Public API | http://workflow-engine.local.altinn.cloud:8000 | Proxied through localtest |
 
 ### Running tests
 

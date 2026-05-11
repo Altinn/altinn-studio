@@ -17,6 +17,7 @@ import (
 	"altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -233,6 +234,55 @@ func TestStatusForUp_IncludesMonitoringWhenRequested(t *testing.T) {
 	assertContainerStatus(t, status, components.ContainerMonitoringGrafana, "not found")
 }
 
+func TestStatus_UsesDevWorkflowEngineFromEnvironmentTopology(t *testing.T) {
+	t.Parallel()
+
+	cfg := &config.Config{
+		DataDir: t.TempDir(),
+		Images:  testImages(),
+	}
+	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
+	if err := topology.WriteBoundTopologyBaseConfig(
+		cfg.BoundTopologyBaseConfigPath(),
+		[]envtopology.RuntimeBinding{
+			{
+				ComponentID: envtopology.ComponentWorkflowEngine,
+				Destination: envtopology.BoundTopologyDestination{
+					Location: envtopology.DestinationLocationHost,
+					Kind:     envtopology.DestinationKindHTTP,
+					URL:      "http://127.0.0.1:9090",
+				},
+				Enabled: true,
+			},
+		},
+	); err != nil {
+		t.Fatalf("WriteBoundTopologyBaseConfig() error = %v", err)
+	}
+
+	client := mock.New()
+	client.ContainerInspectFunc = func(_ context.Context, nameOrID string) (types.ContainerInfo, error) {
+		switch nameOrID {
+		case components.ContainerLocaltest,
+			components.ContainerPDF3,
+			components.ContainerWorkflowEngineDb:
+			return managedContainerInfo(types.ContainerState{Status: "running", Running: true}), nil
+		default:
+			return types.ContainerInfo{}, types.ErrContainerNotFound
+		}
+	}
+
+	env := newTestEnvWithConfig(client, cfg)
+	status, err := env.Status(context.Background())
+	if err != nil {
+		t.Fatalf("Status() error = %v", err)
+	}
+	if !status.Running {
+		t.Fatal("Status().Running = false, want true when workflow-engine is host-bound")
+	}
+	assertContainerStatusAbsent(t, status, components.ContainerWorkflowEngine)
+	assertContainerStatusAbsent(t, status, components.ContainerMonitoringGrafana)
+}
+
 func TestStatus_IgnoresUnmanagedNameCollisions(t *testing.T) {
 	t.Parallel()
 
@@ -392,11 +442,11 @@ func assertContainerStatusAbsent(t *testing.T, status *localtest.Status, name st
 }
 
 func newTestEnv(client container.ContainerClient) *localtest.Env {
-	return localtest.NewEnv(
-		&config.Config{Images: testImages()},
-		ui.NewOutput(io.Discard, io.Discard, false),
-		client,
-	)
+	return newTestEnvWithConfig(client, &config.Config{Images: testImages()})
+}
+
+func newTestEnvWithConfig(client container.ContainerClient, cfg *config.Config) *localtest.Env {
+	return localtest.NewEnv(cfg, ui.NewOutput(io.Discard, io.Discard, false), client)
 }
 
 func testImages() config.ImagesConfig {

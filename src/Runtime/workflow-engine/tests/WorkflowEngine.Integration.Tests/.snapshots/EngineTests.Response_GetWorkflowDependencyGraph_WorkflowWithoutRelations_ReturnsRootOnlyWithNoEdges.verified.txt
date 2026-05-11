@@ -5,7 +5,7 @@
       databaseId: {Scrubbed},
       operationId: op-solo,
       idempotencyKey: idem-Guid_2,
-      namespace: ttd:e2e-tests,
+      namespace: ttd-e2e-tests,
       createdAt: {Scrubbed},
       updatedAt: {Scrubbed},
       labels: {

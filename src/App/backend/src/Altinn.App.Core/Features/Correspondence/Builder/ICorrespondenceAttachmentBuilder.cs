@@ -32,9 +32,20 @@ public interface ICorrespondenceAttachmentBuilderSendersReference
 public interface ICorrespondenceAttachmentBuilderData
 {
     /// <summary>
-    /// Sets the data content of the attachment.
+    /// Sets the stream of the data content of the attachment.
+    /// Is more efficient if the attachment is large in size.
+    /// The stream must be open (not disposed) when the correspondence is sent.
+    /// Ownership of the stream is transferred to the client: the client will dispose the stream
+    /// after the upload completes.
+    /// </summary>
+    /// <param name="data">The data stream</param>
+    ICorrespondenceAttachmentBuilder WithData(Stream data);
+
+    /// <summary>
+    /// Sets the byte array of the data content of the attachment.
     /// </summary>
     /// <param name="data">The data</param>
+    [Obsolete("This method is inefficient for large attachments. Consider using WithData(Stream) instead.")]
     ICorrespondenceAttachmentBuilder WithData(ReadOnlyMemory<byte> data);
 }
 

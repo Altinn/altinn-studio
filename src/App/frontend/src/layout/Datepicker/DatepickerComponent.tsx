@@ -74,7 +74,13 @@ export function DatepickerComponent({ baseComponentId, overrideDisplay }: PropsF
             locale={languageLocale}
             minDate={calculatedMinDate}
             maxDate={calculatedMaxDate}
-            DropdownCaption={DropdownCaption}
+            DropdownCaption={(props) => (
+              <DropdownCaption
+                {...props}
+                minDate={calculatedMinDate}
+                maxDate={calculatedMaxDate}
+              />
+            )}
             buttonAriaLabel={langAsString('date_picker.aria_label_icon')}
             calendarIconTitle={langAsString('date_picker.aria_label_icon')}
             autoComplete={autocomplete}

@@ -89,7 +89,7 @@ export interface ValidationFilter {
 }
 
 export type FormDataSelector = (reference: IDataModelReference) => unknown;
-export type FormDataSelectorLax = (reference: IDataModelReference) => unknown | typeof ContextNotProvided;
+export type FormDataSelectorLax = ((reference: IDataModelReference) => unknown) | typeof ContextNotProvided;
 export type FormDataRowsSelector = (reference: IDataModelReference) => BaseRow[];
 
 export function implementsDisplayData<Def extends CompDef>(def: Def): def is Def & DisplayData {

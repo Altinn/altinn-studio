@@ -77,6 +77,8 @@ export const ControlledRadioGroup = (props: PropsFromGenericComponent<'RadioButt
   );
 
   const hideLabel = overrideDisplay?.renderedInTable === true && calculatedOptions.length === 1 && !showLabelsInTable;
+  const renderLegend = overrideDisplay?.renderLegend !== false;
+  const fieldsetAriaLabel = !renderLegend ? langAsString(textResourceBindings?.title) : undefined;
   const shouldDisplayHorizontally = shouldUseRowLayout({
     layout,
     optionsCount: calculatedOptions.length,
@@ -93,12 +95,11 @@ export const ControlledRadioGroup = (props: PropsFromGenericComponent<'RadioButt
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <div id={id}>
-        <Fieldset role='radiogroup'>
-          <Fieldset.Legend
-            className={cn(classes.legend, { [utilClasses.visuallyHidden]: overrideDisplay?.renderLegend === false })}
-          >
-            {labelText}
-          </Fieldset.Legend>
+        <Fieldset
+          role='radiogroup'
+          aria-label={fieldsetAriaLabel}
+        >
+          {renderLegend && <Fieldset.Legend className={classes.legend}>{labelText}</Fieldset.Legend>}
           {textResourceBindings?.description && (
             <Fieldset.Description
               className={cn({ [utilClasses.visuallyHidden]: overrideDisplay?.renderLegend === false })}

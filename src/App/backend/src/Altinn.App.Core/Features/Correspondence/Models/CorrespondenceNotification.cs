@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models;
 /// <summary>
 /// Represents a notification to be sent to the recipient of a correspondence.
 /// </summary>
-public sealed record CorrespondenceNotification : MultipartCorrespondenceItem
+public sealed record CorrespondenceNotification
 {
     /// <summary>
     /// The notification template for use for notifications.
@@ -97,33 +97,4 @@ public sealed record CorrespondenceNotification : MultipartCorrespondenceItem
     /// <remarks> Only the first recipient in the list will be used for sending the notification. </remarks>
     [Obsolete("This property is deprecated and will be removed in a future version. Use CustomRecipient instead.")]
     public IReadOnlyList<CorrespondenceNotificationRecipientWrapper>? CustomNotificationRecipients { get; init; }
-
-    internal void Serialise(MultipartFormDataContent content)
-    {
-        ValidateAllProperties(nameof(CorrespondenceNotification));
-
-        AddRequired(content, NotificationTemplate.ToString(), "Correspondence.Notification.NotificationTemplate");
-        AddIfNotNull(content, EmailSubject, "Correspondence.Notification.EmailSubject");
-        AddIfNotNull(content, EmailBody, "Correspondence.Notification.EmailBody");
-        AddIfNotNull(content, SmsBody, "Correspondence.Notification.SmsBody");
-        AddIfNotNull(content, SendReminder?.ToString(), "Correspondence.Notification.SendReminder");
-        AddIfNotNull(content, ReminderEmailSubject, "Correspondence.Notification.ReminderEmailSubject");
-        AddIfNotNull(content, ReminderEmailBody, "Correspondence.Notification.ReminderEmailBody");
-        AddIfNotNull(content, ReminderSmsBody, "Correspondence.Notification.ReminderSmsBody");
-        AddIfNotNull(content, NotificationChannel.ToString(), "Correspondence.Notification.NotificationChannel");
-        AddIfNotNull(content, SendersReference, "Correspondence.Notification.SendersReference");
-        CustomRecipient?.Serialise(content);
-        if (CustomRecipient is null)
-        {
-#pragma warning disable CS0618 // Type or member is obsolete
-            CustomNotificationRecipients?[0]?.Serialise(content, 0);
-#pragma warning restore CS0618 // Type or member is obsolete
-        }
-
-        AddIfNotNull(
-            content,
-            ReminderNotificationChannel.ToString(),
-            "Correspondence.Notification.ReminderNotificationChannel"
-        );
-    }
 }

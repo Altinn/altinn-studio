@@ -141,7 +141,7 @@ const defaultQueryMocks: AppQueries = {
   fetchDataList: async () => getDataListMock(),
   fetchPdfFormat: async () => ({ excludedPages: [], excludedComponents: [] }),
   fetchLayoutSchema: async () => ({}) as JSONSchema7,
-  fetchPaymentInformation: async () => paymentResponsePayload,
+  fetchPaymentInformationForTask: async () => paymentResponsePayload,
   fetchOrderDetails: async () => orderDetailsResponsePayload,
   fetchPostalCodes: async () => defaultPostalCodesMock,
   fetchFormBootstrapForInstance: async () => getFormBootstrapMock(),
@@ -713,13 +713,18 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
       (!inInstance ? await rest.queries?.fetchFormBootstrapForStateless?.(...args) : undefined) ??
       getFormBootstrapMock();
 
-    mock.layouts = {
-      [initialPage]: {
-        data: {
-          layout: [realComponentDef],
+    if (
+      !Object.hasOwn(mock.layouts, initialPage) ||
+      !mock.layouts[initialPage]?.data.layout.some((c) => c.id === realComponentDef.id)
+    ) {
+      mock.layouts = {
+        [initialPage]: {
+          data: {
+            layout: [realComponentDef],
+          },
         },
-      },
-    };
+      };
+    }
 
     return mock;
   }

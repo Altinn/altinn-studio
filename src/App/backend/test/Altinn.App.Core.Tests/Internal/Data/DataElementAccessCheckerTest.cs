@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
@@ -7,6 +8,7 @@ using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.Data;
@@ -248,15 +250,20 @@ public class DataElementAccessCheckerTest
         var instance = fixture.Data.DefaultInstance;
         var dataType = fixture.Data.DataTypeA;
 
-        dataType.MaxSize = 1024;
+        dataType.MaxSize = 1; // 1 MB
+        long contentLength = 2 * 1024 * 1024; // 2 MB
 
         // Act
         var createResult = await fixture.DataElementAccessChecker.GetCreateProblem(
             instance,
             dataType,
-            contentLength: 2048
+            contentLength: contentLength // 2 MB
         );
-        var canCreate = await fixture.DataElementAccessChecker.CanCreate(instance, dataType, contentLength: 2048);
+        var canCreate = await fixture.DataElementAccessChecker.CanCreate(
+            instance,
+            dataType,
+            contentLength: contentLength
+        );
 
         // Assert
         Assert.NotNull(createResult);
@@ -392,7 +399,8 @@ public class DataElementAccessCheckerTest
                     mocks.AuthorizationServiceMock.Object,
                     mocks.HttpContextAccessorMock.Object,
                     mocks.AuthenticationContextMock.Object,
-                    mocks.AppMetadataMock.Object
+                    mocks.AppMetadataMock.Object,
+                    Options.Create(data.AppSettings)
                 ),
             };
         }
@@ -413,6 +421,8 @@ public class DataElementAccessCheckerTest
             public DataElement DataElementA { get; }
             public DataElement DataElementB { get; }
             public ApplicationMetadata AppMetadata { get; }
+
+            public AppSettings AppSettings { get; } = new() { EnforceDataTypeTaskId = true };
 
             public FixtureData()
             {
