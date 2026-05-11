@@ -105,6 +105,18 @@ describe('Privacy', () => {
     });
   });
 
+  it('calls setConsentPreferences with session recording enabled when both toggles are on', async () => {
+    const user = userEvent.setup();
+    renderPrivacy();
+    await user.click(getAnalyticsSwitch());
+    await user.click(getSessionRecordingSwitch());
+    await user.click(getSaveButton());
+    expect(mockSetConsentPreferences).toHaveBeenCalledWith({
+      analytics: true,
+      sessionRecording: true,
+    });
+  });
+
   it('shows a success toast after saving', async () => {
     const user = userEvent.setup();
     renderPrivacy();
