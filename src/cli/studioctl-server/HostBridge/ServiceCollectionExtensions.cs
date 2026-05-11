@@ -1,4 +1,3 @@
-using Altinn.Studio.EnvTopology;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.StudioctlServer.HostBridge;
@@ -22,10 +21,7 @@ internal static class ServiceCollectionExtensions
                 }
             });
         services.AddSingleton(sp => sp.GetRequiredService<IOptions<HostBridgeOptions>>().Value);
-        services.AddBoundTopology(configuration, optionalBoundConfig: true);
         services.AddSingleton<HostBridgeState>();
-        services.AddSingleton<BoundTopologyConfigReconciler>();
-        services.AddHostedService(static sp => sp.GetRequiredService<BoundTopologyConfigReconciler>());
         services.AddHostedService<HostBridgeConnector>();
         return services;
     }

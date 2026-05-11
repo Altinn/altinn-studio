@@ -5,7 +5,7 @@ using Altinn.Studio.EnvTopology;
 using Altinn.Studio.StudioctlServer.Discovery;
 using Microsoft.Extensions.Options;
 
-namespace Altinn.Studio.StudioctlServer.HostBridge;
+namespace Altinn.Studio.StudioctlServer.Topology;
 
 internal sealed class BoundTopologyConfigReconciler : BackgroundService
 {
