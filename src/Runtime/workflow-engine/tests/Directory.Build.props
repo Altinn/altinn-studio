@@ -5,10 +5,7 @@
   <PropertyGroup>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <!--
-      NX0003 (Nullable.Extended.Analyzer): null-forgiving operator without justification.
-      In tests we frequently follow `Assert.NotNull(x)` with `x!.Foo` to satisfy the
-      compiler's nullable flow analysis — the assertion is the justification. Requiring
-      a `// null-forgiving: ...` comment on every test assertion is noise.
+      NX0003: null-forgiving operator without justification.
     -->
     <NoWarn>$(NoWarn);NX0003</NoWarn>
   </PropertyGroup>
