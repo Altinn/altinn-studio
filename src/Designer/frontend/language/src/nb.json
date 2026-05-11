@@ -2413,7 +2413,7 @@
   "ux_editor.page_config_pdf_exclude_components_from_default_pdf": "Velg hvilke komponenter fra siden som skal skjules i standard PDF",
   "ux_editor.page_config_pdf_exclude_page_from_default_pdf": "Ekskluder siden fra standard PDF",
   "ux_editor.page_delete_text": "Er du sikker på at du vil slette siden?\nAlle avhengigheter til den blir også slettet.",
-  "ux_editor.page_group.expandedByDefault_switch": "Vis gruppen utvidet som standard i navigasjonsmenyen",
+  "ux_editor.page_group.expandedByDefault_switch": "Vis alltid gruppen som utvidet i navigasjonsmenyen",
   "ux_editor.page_group.markAsCompleted_switch": "Vis status “ferdig utfylt” på gruppen når alle obligatoriske felt er fylt ut eller sidene er lest",
   "ux_editor.page_group.name": "Gruppenavn",
   "ux_editor.page_group.select_data_type": "Oppgaver utfyller skal svare på",
