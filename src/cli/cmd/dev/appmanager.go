@@ -36,7 +36,7 @@ func publishAppManagerToDir(goos, goarch, publishDir string) (string, error) {
 
 	args := []string{
 		"publish",
-		"./app-manager/app-manager.csproj",
+		"./studioctl-server/studioctl-server.csproj",
 		"-c", "Release",
 		"-o", publishDir,
 		"-r", rid,
