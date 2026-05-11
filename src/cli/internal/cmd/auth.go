@@ -320,7 +320,11 @@ func (c *AuthCommand) loginWithBrowser(
 	return result, nil
 }
 
-func (c *AuthCommand) waitForBrowserLogin(ctx context.Context, flags loginFlags, target loginTarget) (string, string, error) {
+func (c *AuthCommand) waitForBrowserLogin(
+	ctx context.Context,
+	flags loginFlags,
+	target loginTarget,
+) (string, string, error) {
 	var listenConfig net.ListenConfig
 	listener, err := listenConfig.Listen(ctx, "tcp", "127.0.0.1:0")
 	if err != nil {

@@ -11,7 +11,9 @@ import (
 
 const (
 	testHTTPS      = "https"
+	testHTTP       = "http"
 	testStudioHost = "altinn.studio"
+	testLocalHost  = "studio.localhost"
 )
 
 func TestBuildStudioctlLoginURL(t *testing.T) {
@@ -68,7 +70,7 @@ func TestResolveLoginTargetLocal(t *testing.T) {
 	if err != nil {
 		t.Fatalf("resolveLoginTarget() error = %v", err)
 	}
-	if target.scheme != "http" || target.host != "studio.localhost" {
+	if target.scheme != testHTTP || target.host != testLocalHost {
 		t.Fatalf("target = %+v, want http studio.localhost", target)
 	}
 }
@@ -79,12 +81,12 @@ func TestResolveLoginTargetHostURLOverride(t *testing.T) {
 	command := NewAuthCommand(testConfig(t), nil)
 	target, err := command.resolveLoginTarget(loginFlags{
 		env:  "dev",
-		host: "http://studio.localhost",
+		host: "http://" + testLocalHost,
 	})
 	if err != nil {
 		t.Fatalf("resolveLoginTarget() error = %v", err)
 	}
-	if target.scheme != "http" || target.host != "studio.localhost" {
+	if target.scheme != testHTTP || target.host != testLocalHost {
 		t.Fatalf("target = %+v, want http studio.localhost", target)
 	}
 }
@@ -106,7 +108,12 @@ func TestLoginCallbackHandlerCancelled(t *testing.T) {
 	codeCh := make(chan string, 1)
 	errCh := make(chan error, 1)
 	handler := loginCallbackHandler("state-value", codeCh, errCh)
-	request := httptest.NewRequest(http.MethodGet, "/callback?state=state-value&error=access_denied", nil)
+	request := httptest.NewRequestWithContext(
+		t.Context(),
+		http.MethodGet,
+		"/callback?state=state-value&error=access_denied",
+		nil,
+	)
 	response := httptest.NewRecorder()
 
 	handler.ServeHTTP(response, request)
@@ -189,8 +196,8 @@ func TestMatchesGitCredentialRequest(t *testing.T) {
 func TestMatchesGitCredentialRequestHTTP(t *testing.T) {
 	t.Parallel()
 
-	request := gitCredentialRequest{Protocol: "http", Host: "studio.localhost", Path: "repos/org/repo.git"}
-	if !matchesGitCredentialRequest(request, "http", "studio.localhost") {
+	request := gitCredentialRequest{Protocol: testHTTP, Host: testLocalHost, Path: "repos/org/repo.git"}
+	if !matchesGitCredentialRequest(request, testHTTP, testLocalHost) {
 		t.Fatal("expected local http credential request to match")
 	}
 }

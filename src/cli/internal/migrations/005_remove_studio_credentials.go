@@ -34,6 +34,7 @@ func studioCredentials(_ context.Context, cfg *config.Config) error {
 		}
 		currentCredentials.Envs[envName] = auth.EnvCredentials{
 			Host:      envCreds.Host,
+			Scheme:    envCreds.Scheme,
 			ApiKey:    envCreds.ApiKey,
 			ExpiresAt: envCreds.ExpiresAt,
 			Username:  envCreds.Username,
@@ -60,6 +61,7 @@ type legacyCredentials struct {
 
 type legacyEnvCredentials struct {
 	Host      string `yaml:"host"`
+	Scheme    string `yaml:"scheme,omitempty"`
 	ApiKey    string `yaml:"apiKey"`
 	ExpiresAt string `yaml:"expiresAt,omitempty"`
 	Token     string `yaml:"token,omitempty"`

@@ -371,7 +371,8 @@ func revokeAPIKey(ctx context.Context, creds *authstore.EnvCredentials) error {
 	}
 
 	httpClient := &http.Client{Timeout: tokenExchangeTimeout}
-	endpoint := creds.SchemeOrDefault() + "://" + creds.Host + studioctlRevokePath + strconv.FormatInt(creds.ApiKeyID, 10)
+	endpoint :=
+		creds.SchemeOrDefault() + "://" + creds.Host + studioctlRevokePath + strconv.FormatInt(creds.ApiKeyID, 10)
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, endpoint, nil)
 	if err != nil {
 		return fmt.Errorf("create revoke request: %w", err)

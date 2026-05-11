@@ -10,6 +10,11 @@ import (
 	"altinn.studio/studioctl/internal/osutil"
 )
 
+const (
+	testHTTP  = "http"
+	testHTTPS = "https"
+)
+
 func TestLoadCredentials_EmptyWhenFileNotExists(t *testing.T) {
 	t.Parallel()
 	homeDir := t.TempDir()
@@ -43,7 +48,7 @@ func TestSaveAndLoadCredentials(t *testing.T) {
 			},
 			"dev": {
 				Host:     "dev.altinn.studio",
-				Scheme:   "http",
+				Scheme:   testHTTP,
 				ApiKey:   "dev-api-key",
 				ApiKeyID: 2,
 				Username: "devuser",
@@ -100,7 +105,7 @@ func TestSaveAndLoadCredentials(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Get dev failed: %v", err)
 	}
-	if dev.Scheme != "http" {
+	if dev.Scheme != testHTTP {
 		t.Errorf("expected scheme http, got %s", dev.Scheme)
 	}
 }
@@ -111,10 +116,10 @@ func TestEnvironmentDefaults(t *testing.T) {
 	if got := auth.HostForEnv("local"); got != "studio.localhost" {
 		t.Errorf("expected local host studio.localhost, got %s", got)
 	}
-	if got := auth.SchemeForEnv("local"); got != "http" {
+	if got := auth.SchemeForEnv("local"); got != testHTTP {
 		t.Errorf("expected local scheme http, got %s", got)
 	}
-	if got := auth.SchemeForEnv("prod"); got != "https" {
+	if got := auth.SchemeForEnv("prod"); got != testHTTPS {
 		t.Errorf("expected prod scheme https, got %s", got)
 	}
 }
@@ -122,10 +127,10 @@ func TestEnvironmentDefaults(t *testing.T) {
 func TestEnvCredentialsSchemeOrDefault(t *testing.T) {
 	t.Parallel()
 
-	if got := (auth.EnvCredentials{}).SchemeOrDefault(); got != "https" {
+	if got := (auth.EnvCredentials{}).SchemeOrDefault(); got != testHTTPS {
 		t.Errorf("expected default scheme https, got %s", got)
 	}
-	if got := (auth.EnvCredentials{Scheme: "http"}).SchemeOrDefault(); got != "http" {
+	if got := (auth.EnvCredentials{Scheme: testHTTP}).SchemeOrDefault(); got != testHTTP {
 		t.Errorf("expected explicit scheme http, got %s", got)
 	}
 }
