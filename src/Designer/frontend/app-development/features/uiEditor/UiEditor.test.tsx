@@ -35,7 +35,7 @@ describe('UiEditor', () => {
     expect(screen.queryByTestId('latest version')).not.toBeInTheDocument();
   });
 
-  type FrontendVersion = null | '3.0.0' | '4.0.0';
+  type FrontendVersion = null | '3.0.0' | '4.0.0' | '9.0.0';
   type PackageVersion = 'version 3' | 'latest version';
   type TestCase = [PackageVersion, FrontendVersion];
 
