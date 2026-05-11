@@ -86,7 +86,7 @@ func WithOutput(stdout, stderr io.Writer) RunnerOption {
 
 // Run applies all pending registered migrations.
 func (r *Runner) Run(ctx context.Context, cfg *config.Config) error {
-	return r.RunAll(ctx, cfg, r.registeredMigrations())
+	return r.RunAll(ctx, cfg, r.RegisteredMigrations())
 }
 
 // RunAll applies the provided migrations.

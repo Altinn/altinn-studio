@@ -1,6 +1,7 @@
 package migrations
 
-func (r *Runner) registeredMigrations() []Migration {
+// RegisteredMigrations returns the production migration sequence.
+func (r *Runner) RegisteredMigrations() []Migration {
 	return []Migration{
 		{
 			ID: "001-remove-legacy-network-metadata",
@@ -13,6 +14,10 @@ func (r *Runner) registeredMigrations() []Migration {
 		{
 			ID: "003-reset-localtest-data",
 			Up: r.resetLocaltestData,
+		},
+		{
+			ID: "004-remove-legacy-resource-markers",
+			Up: legacyResourceMarkers,
 		},
 	}
 }
