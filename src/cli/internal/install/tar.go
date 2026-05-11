@@ -77,7 +77,7 @@ func addToTar(tw *tar.Writer, baseDir, path string) error {
 	return nil
 }
 
-func addEntryToTar(tw *tar.Writer, baseDir, filePath string, info os.FileInfo) error {
+func addEntryToTar(tw *tar.Writer, baseDir, filePath string, info os.FileInfo) (err error) {
 	relPath, err := filepath.Rel(baseDir, filePath)
 	if err != nil {
 		return fmt.Errorf("compute relative path: %w", err)
@@ -104,8 +104,8 @@ func addEntryToTar(tw *tar.Writer, baseDir, filePath string, info os.FileInfo) e
 	}
 	defer func() { err = closeWithError(srcFile, "close source", err) }()
 
-	if _, err := io.Copy(tw, srcFile); err != nil {
-		return fmt.Errorf("copy file content: %w", err)
+	if _, copyErr := io.Copy(tw, srcFile); copyErr != nil {
+		return fmt.Errorf("copy file content: %w", copyErr)
 	}
 	return nil
 }

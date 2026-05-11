@@ -1,11 +1,19 @@
 package install
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 )
+
+const (
+	releaseInstallScriptShell      = "cmd/studioctl/install.sh"
+	releaseInstallScriptPowerShell = "cmd/studioctl/install.ps1"
+)
+
+var errUnexpectedReleaseInstallScript = errors.New("unexpected release install script")
 
 func studioctlReleaseTag(buildVersion string) (string, error) {
 	releaseTag, err := normalizeReleaseVersion(buildVersion)
@@ -23,13 +31,9 @@ func studioctlReleaseTag(buildVersion string) (string, error) {
 
 func copyInstallScript(src, outputDir, releaseTag string) (string, error) {
 	dst := filepath.Join(outputDir, filepath.Base(src))
-	content, err := os.ReadFile(src) //nolint:gosec // G304: src is a fixed dev tool path.
+	content, info, err := readReleaseInstallScript(src)
 	if err != nil {
-		return "", fmt.Errorf("read install script %s: %w", src, err)
-	}
-	info, err := os.Stat(src)
-	if err != nil {
-		return "", fmt.Errorf("stat install script %s: %w", src, err)
+		return "", err
 	}
 
 	stamped := strings.Replace(string(content), "__STUDIOCTL_DEFAULT_VERSION__", releaseTag, 1)
@@ -37,4 +41,31 @@ func copyInstallScript(src, outputDir, releaseTag string) (string, error) {
 		return "", fmt.Errorf("write install script %s: %w", filepath.Base(dst), err)
 	}
 	return dst, nil
+}
+
+func readReleaseInstallScript(src string) ([]byte, os.FileInfo, error) {
+	switch filepath.ToSlash(filepath.Clean(src)) {
+	case releaseInstallScriptShell:
+		content, err := os.ReadFile(releaseInstallScriptShell)
+		if err != nil {
+			return nil, nil, fmt.Errorf("read install script %s: %w", releaseInstallScriptShell, err)
+		}
+		info, err := os.Stat(releaseInstallScriptShell)
+		if err != nil {
+			return nil, nil, fmt.Errorf("stat install script %s: %w", releaseInstallScriptShell, err)
+		}
+		return content, info, nil
+	case releaseInstallScriptPowerShell:
+		content, err := os.ReadFile(releaseInstallScriptPowerShell)
+		if err != nil {
+			return nil, nil, fmt.Errorf("read install script %s: %w", releaseInstallScriptPowerShell, err)
+		}
+		info, err := os.Stat(releaseInstallScriptPowerShell)
+		if err != nil {
+			return nil, nil, fmt.Errorf("stat install script %s: %w", releaseInstallScriptPowerShell, err)
+		}
+		return content, info, nil
+	default:
+		return nil, nil, fmt.Errorf("%w: %s", errUnexpectedReleaseInstallScript, src)
+	}
 }

@@ -117,6 +117,7 @@ func (c *SelfCommand) Run(ctx context.Context, args []string) error {
 	case "uninstall":
 		return c.runUninstall(ctx, subArgs)
 	case selfCompleteInstallSubcmd, selfMigrateSubcmd:
+		// __migrate is a preview.7 compatibility alias used by old updaters after replacing the binary.
 		return c.runCompleteInstall(ctx, subArgs)
 	case "-h", flagHelp, helpSubcmd:
 		c.out.Print(c.Usage())

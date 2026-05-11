@@ -313,14 +313,18 @@ func buildPlatformResources(
 	includePreviewCompatibility bool,
 ) (result platformResourcesResult, err error) {
 	appManagerDir := filepath.Join(outputDir, ".app-manager-"+goos+"-"+goarch)
-	if _, publishErr := publishAppManagerToDir(goos, goarch, appManagerDir); publishErr != nil {
-		return platformResourcesResult{}, publishErr
+	if removeErr := os.RemoveAll(appManagerDir); removeErr != nil {
+		return platformResourcesResult{}, fmt.Errorf("clean app-manager staging dir: %w", removeErr)
 	}
 	defer func() {
 		if removeErr := os.RemoveAll(appManagerDir); removeErr != nil && err == nil {
 			err = fmt.Errorf("remove app-manager staging dir: %w", removeErr)
 		}
 	}()
+
+	if _, publishErr := publishAppManagerToDir(goos, goarch, appManagerDir); publishErr != nil {
+		return platformResourcesResult{}, publishErr
+	}
 
 	fmt.Println("Creating resources archive...")
 	archivePath, err := installpkg.CreateResourcesArchive(installpkg.ResourcesArchiveOptions{

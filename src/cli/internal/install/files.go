@@ -311,7 +311,6 @@ func writeFileWithMode(path, content string, mode os.FileMode) error {
 	if err := os.MkdirAll(filepath.Dir(path), osutil.DirPermDefault); err != nil {
 		return fmt.Errorf("create file parent: %w", err)
 	}
-	//nolint:gosec // G306/G703: path and mode are controlled by install/package callers.
 	if err := os.WriteFile(path, []byte(content), mode); err != nil {
 		return fmt.Errorf("write file: %w", err)
 	}
