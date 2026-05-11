@@ -5,7 +5,6 @@ import { Button } from '@app/form-component';
 import { Tabs } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 
-import { translationKey } from 'src/AppComponentsBridge';
 import reusedClasses from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
 import { NodeHierarchy } from 'src/features/devtools/components/NodeInspector/NodeHierarchy';
 import classes from 'src/features/devtools/components/NodeInspector/NodeInspector.module.css';
@@ -14,12 +13,14 @@ import { ValidationInspector } from 'src/features/devtools/components/NodeInspec
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { FormStore } from 'src/features/form/FormContext';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { getComponentDef, implementsAnyValidation } from 'src/layout';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 
 export const NodeInspector = () => {
+  const { langAsString } = useLanguage();
   const pageKey = useCurrentView();
   const selectedId = useDevToolsStore((state) => state.nodeInspector.selectedNodeId);
   const { baseComponentId } = splitDashedKey(selectedId ?? '');
@@ -50,7 +51,7 @@ export const NodeInspector = () => {
                 onClick={() => setSelected(undefined)}
                 variant='tertiary'
                 color='second'
-                aria-label={translationKey('general.close')}
+                aria-label={langAsString('general.close')}
                 icon={true}
               >
                 <XMarkIcon

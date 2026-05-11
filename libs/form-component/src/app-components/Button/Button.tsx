@@ -14,6 +14,7 @@ export type ButtonProps = {
   variant?: ButtonVariant;
   color?: ButtonColor;
   isLoading?: boolean;
+  loadingLabel?: string;
   size?: 'sm' | 'md' | 'lg';
   fullWidth?: boolean;
   textAlign?: TextAlign;
@@ -53,6 +54,7 @@ export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProp
     fullWidth,
     style,
     textAlign,
+    loadingLabel,
     ...rest
   },
   ref,
@@ -71,7 +73,12 @@ export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProp
     >
       {isLoading ? (
         <>
-          <Spinner aria-hidden='true' data-color={color} data-size={size === 'lg' ? 'sm' : 'xs'} />
+          <Spinner
+            aria-hidden='true'
+            aria-label={loadingLabel}
+            data-color={color}
+            data-size={size === 'lg' ? 'sm' : 'xs'}
+          />
           {children}
         </>
       ) : (

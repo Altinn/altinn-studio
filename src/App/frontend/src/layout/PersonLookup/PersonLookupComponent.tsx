@@ -312,6 +312,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
                 onClick={handleSubmit}
                 variant='secondary'
                 isLoading={isFetching}
+                loadingLabel={langAsString('general.loading')}
               >
                 <Lang id='person_lookup.submit_button' />
               </Button>

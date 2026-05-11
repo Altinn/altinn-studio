@@ -195,6 +195,7 @@ function NavigationButtonsComponentInner({
           <Button
             disabled={isAnyProcessing}
             isLoading={currentProcessKey === 'backToPage'}
+            loadingLabel={langAsString('general.loading')}
             onClick={onClickBackToPage}
           >
             <Lang
@@ -207,6 +208,7 @@ function NavigationButtonsComponentInner({
           <Button
             disabled={isAnyProcessing}
             isLoading={currentProcessKey === 'backToSummary'}
+            loadingLabel={langAsString('general.loading')}
             onClick={onClickBackToSummary}
           >
             <Lang id={returnToViewText} />
@@ -216,6 +218,7 @@ function NavigationButtonsComponentInner({
           <Button
             disabled={isAnyProcessing || attachmentsPending}
             isLoading={currentProcessKey === 'next'}
+            loadingLabel={langAsString('general.loading')}
             onClick={onClickNext}
             // If we are showing a back to summary button, we want the "next" button to be secondary
             variant={showBackToSummaryButton || showBackToPageButton ? 'secondary' : 'primary'}
@@ -227,6 +230,7 @@ function NavigationButtonsComponentInner({
           <Button
             disabled={isAnyProcessing}
             isLoading={currentProcessKey === 'previous'}
+            loadingLabel={langAsString('general.loading')}
             variant={showNextButton || showBackToSummaryButton ? 'secondary' : 'primary'}
             onClick={onClickPrevious}
           >

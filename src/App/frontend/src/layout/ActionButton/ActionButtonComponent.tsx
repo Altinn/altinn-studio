@@ -7,6 +7,7 @@ import type { PropsFromGenericComponent } from '..';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsSubformPage } from 'src/hooks/navigation';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
@@ -20,6 +21,7 @@ export const buttonStyles: { [style in ActionButtonStyle]: { color: ButtonColor;
 export type IActionButton = PropsFromGenericComponent<'ActionButton'>;
 
 export function ActionButtonComponent({ baseComponentId }: IActionButton) {
+  const { langAsString } = useLanguage();
   const { action, buttonStyle, id, textResourceBindings } = useItemWhenType(baseComponentId, 'ActionButton');
   const { mutate: processNext, isPending: isPerformingProcessNext } = useProcessNext({ action });
   const isAuthorized = useIsAuthorized();
@@ -39,6 +41,7 @@ export function ActionButtonComponent({ baseComponentId }: IActionButton) {
         color={color}
         disabled={!isAuthorized(action)}
         isLoading={isPerformingProcessNext}
+        loadingLabel={langAsString('general.loading')}
         onClick={() => processNext()}
       >
         <Lang id={textResourceBindings?.title ?? `actions.${action}`} />

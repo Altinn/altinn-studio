@@ -184,6 +184,7 @@ export function OrganisationLookupComponent({
                 onClick={handleSubmit}
                 variant='secondary'
                 isLoading={isFetching}
+                loadingLabel={langAsString('general.loading')}
               >
                 <Lang id='organisation_lookup.submit_button' />
               </Button>

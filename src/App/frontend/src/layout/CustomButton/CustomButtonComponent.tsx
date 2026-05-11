@@ -13,6 +13,7 @@ import { FormStore } from 'src/features/form/FormContext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetNavigationIsPrevented } from 'src/features/navigation/utils';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useIsSubformPage, useNavigationParam } from 'src/hooks/navigation';
@@ -197,6 +198,7 @@ function toShorthandSize(size?: CBTypes.CustomButtonSize): 'sm' | 'md' | 'lg' {
 }
 
 export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericComponent<'CustomButton'>) => {
+  const { langAsString } = useLanguage();
   const { textResourceBindings, actions, id, buttonColor, buttonSize, buttonStyle } = useItemWhenType(
     baseComponentId,
     'CustomButton',
@@ -301,6 +303,7 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
         color={buttonColor ?? style.color}
         variant={style.variant}
         isLoading={isThisProcessing}
+        loadingLabel={langAsString('general.loading')}
       >
         <Lang id={buttonText} />
       </Button>

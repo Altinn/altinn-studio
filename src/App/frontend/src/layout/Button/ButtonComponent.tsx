@@ -82,6 +82,7 @@ export const ButtonComponent = ({ baseComponentId, ...componentProps }: PropsFro
         id={item.id}
         onClick={submitTask}
         isLoading={isProcessingNext || isConfirming}
+        loadingLabel={langAsString('general.loading')}
         disabled={disabled}
         color='success'
       >

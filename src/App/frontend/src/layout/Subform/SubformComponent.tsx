@@ -8,7 +8,6 @@ import cn from 'classnames';
 
 import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import { Flex } from 'src/app-components/Flex/Flex';
-import { translationKey } from 'src/AppComponentsBridge';
 import { Caption } from 'src/components/form/caption/Caption';
 import { FormStore } from 'src/features/form/FormContext';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
@@ -161,6 +160,7 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
               size='md'
               disabled={isAddingDisabled}
               isLoading={isAdding}
+              loadingLabel={langAsString('general.loading')}
               onClick={async () => await addEntry()}
               onKeyUp={async (event: React.KeyboardEvent<HTMLButtonElement>) => {
                 const allowedKeys = ['enter', ' ', 'spacebar'];
@@ -276,7 +276,7 @@ function SubformTableRow({
             variant='tertiary'
             color='second'
             onClick={async () => enterSubform({ nodeId, dataElementId: id, validate: hasErrors })}
-            aria-label={translationKey(editButtonText)}
+            aria-label={editButtonText}
             className={classes.tableButton}
           >
             {editButtonText}
@@ -295,7 +295,7 @@ function SubformTableRow({
               variant='tertiary'
               color='danger'
               onClick={() => deleteSubformEntry(id)}
-              aria-label={translationKey(deleteButtonText)}
+              aria-label={deleteButtonText}
               className={classes.tableButton}
             >
               {deleteButtonText}

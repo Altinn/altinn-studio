@@ -7,6 +7,7 @@ import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { useOptimisticallyUpdateProcess, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { usePaymentInformation } from 'src/features/payment/PaymentInformationProvider';
 import { usePayment } from 'src/features/payment/PaymentProvider';
 import { PaymentStatus } from 'src/features/payment/types';
@@ -22,6 +23,7 @@ import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<'Payment'>) => {
+  const { langAsString } = useLanguage();
   const { mutate: processConfirm, isPending: isConfirming } = useProcessNext({ action: 'confirm' });
   const { mutate: processReject, isPending: isRejecting } = useProcessNext({ action: 'reject' });
   const isAnyProcessing = useIsAnyProcessing();
@@ -115,6 +117,7 @@ export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<
                 variant='secondary'
                 disabled={disabled}
                 isLoading={isRejecting}
+                loadingLabel={langAsString('general.loading')}
                 onClick={() => processReject()}
               >
                 <Lang id='general.back' />
@@ -132,6 +135,7 @@ export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<
               variant='secondary'
               disabled={disabled}
               isLoading={isConfirming}
+              loadingLabel={langAsString('general.loading')}
               onClick={handleNextClick}
             >
               <Lang id='general.next' />

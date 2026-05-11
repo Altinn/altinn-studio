@@ -75,6 +75,7 @@ export const ConfirmPage = ({ instance, instanceOwnerParty, appName, application
 };
 
 const ConfirmButton = () => {
+  const { langAsString } = useLanguage();
   const canConfirm = useIsAuthorized()('confirm');
   const { mutateAsync: processConfirm, isPending: isConfirming } = useProcessNextOutsideFormProvider({
     action: 'confirm',
@@ -87,6 +88,7 @@ const ConfirmButton = () => {
         onClick={() => processConfirm()}
         disabled={!canConfirm}
         isLoading={isConfirming}
+        loadingLabel={langAsString('general.loading')}
         color='success'
       >
         <Lang id='confirm.button_text' />

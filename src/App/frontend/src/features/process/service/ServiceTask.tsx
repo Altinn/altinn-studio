@@ -55,6 +55,7 @@ export function ServiceTask() {
 }
 
 const RetryButton = () => {
+  const { langAsString } = useLanguage();
   const canRetry = useIsAuthorized()('write');
   const { mutateAsync: processRetry, isPending: isRetrying } = useProcessNextOutsideFormProvider();
 
@@ -64,6 +65,7 @@ const RetryButton = () => {
       onClick={() => processRetry()}
       disabled={!canRetry}
       isLoading={isRetrying}
+      loadingLabel={langAsString('general.loading')}
       color='success'
     >
       <Lang id='service_task.retry_button' />
@@ -72,6 +74,7 @@ const RetryButton = () => {
 };
 
 const BackButton = () => {
+  const { langAsString } = useLanguage();
   const canReject = useIsAuthorized()('reject');
   const { mutateAsync: processReject, isPending: isRejecting } = useProcessNextOutsideFormProvider({
     action: 'reject',
@@ -87,6 +90,7 @@ const BackButton = () => {
       onClick={() => processReject()}
       disabled={isRejecting}
       isLoading={isRejecting}
+      loadingLabel={langAsString('general.loading')}
       color='second'
     >
       <Lang id='service_task.back_button' />

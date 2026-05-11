@@ -121,7 +121,7 @@ function InstanceSelection({ instances: _instances }: { instances: ISimpleInstan
                     icon={true}
                     onClick={(ev) => openInstance(instance.id, ev, navigate)}
                     onMouseDown={(ev) => openInstance(instance.id, ev, navigate)}
-                    aria-label={translationKey('instance_selection.continue')}
+                    aria-label={langAsString('instance_selection.continue')}
                   >
                     <PencilIcon fontSize='1rem' />
                   </Button>
@@ -256,6 +256,7 @@ function InstanceSelection({ instances: _instances }: { instances: ISimpleInstan
             <Button
               disabled={isAnyProcessing}
               isLoading={isLoading}
+              loadingLabel={langAsString('general.loading')}
               size='md'
               onClick={() =>
                 performProcess(async () => {
