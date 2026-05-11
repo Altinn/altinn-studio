@@ -1,22 +1,12 @@
 package cmd
 
 import (
-	"bufio"
 	"context"
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
-	"io"
-	"net"
-	"net/http"
-	"net/url"
 	"os"
-	"strings"
-	"time"
 
 	authstore "altinn.studio/studioctl/internal/auth"
 	authsvc "altinn.studio/studioctl/internal/cmd/auth"
@@ -32,30 +22,17 @@ type authStatusFlags struct {
 
 const authStatusSubcommand = "status"
 
-const (
-	loginStateBytes              = 24
-	loginCodeVerifierBytes       = 48
-	loginCallbackHeaderTimeout   = 5 * time.Second
-	loginCallbackShutdownTimeout = 2 * time.Second
-	loginCallbackSuccessHTML     = "<!doctype html><title>studioctl login</title><p>Login complete. You can close this window.</p>"
-	loginCallbackCancelledHTML   = "<!doctype html><title>studioctl login</title><p>Login cancelled. You can close this window.</p>"
-)
-
-var errLoginCancelled = errors.New("login cancelled")
-
 // AuthCommand implements the 'auth' subcommand.
 type AuthCommand struct {
-	out             *ui.Output
-	service         *authsvc.Service
-	credentialsHome string
+	out     *ui.Output
+	service *authsvc.Service
 }
 
 // NewAuthCommand creates a new auth command.
 func NewAuthCommand(cfg *config.Config, out *ui.Output) *AuthCommand {
 	return &AuthCommand{
-		out:             out,
-		service:         authsvc.NewService(cfg),
-		credentialsHome: cfg.Home,
+		out:     out,
+		service: authsvc.NewService(cfg),
 	}
 }
 
@@ -108,12 +85,6 @@ func (c *AuthCommand) Run(ctx context.Context, args []string) error {
 	}
 }
 
-type gitCredentialRequest struct {
-	Protocol string
-	Host     string
-	Path     string
-}
-
 func (c *AuthCommand) runGitCredential(args []string) error {
 	fs := flag.NewFlagSet("auth git-credential", flag.ContinueOnError)
 	var env string
@@ -134,76 +105,25 @@ func (c *AuthCommand) runGitCredential(args []string) error {
 		return nil
 	}
 
-	request, err := readGitCredentialRequest(os.Stdin)
+	result, err := c.service.GitCredential(os.Stdin, env)
 	if err != nil {
 		//nolint:nilerr // Git credential helpers fail closed by producing no credentials.
+		return nil
+	}
+	if !result.Found {
 		return nil
 	}
 
-	creds, err := authstore.LoadCredentials(c.credentialsHome)
-	if err != nil {
-		//nolint:nilerr // Git credential helpers fail closed by producing no credentials.
-		return nil
-	}
-	envCreds, err := creds.Get(env)
-	if err != nil {
-		//nolint:nilerr // Git credential helpers fail closed by producing no credentials.
-		return nil
-	}
-	if !matchesGitCredentialRequest(request, envCreds.SchemeOrDefault(), envCreds.Host) {
-		return nil
-	}
-
-	c.out.Printlnf("username=%s", envCreds.Username)
-	c.out.Printlnf("password=%s", envCreds.ApiKey)
+	c.out.Printlnf("username=%s", result.Username)
+	c.out.Printlnf("password=%s", result.Password)
 	c.out.Println("")
 	return nil
-}
-
-func readGitCredentialRequest(input io.Reader) (gitCredentialRequest, error) {
-	var request gitCredentialRequest
-	scanner := bufio.NewScanner(input)
-	for scanner.Scan() {
-		line := scanner.Text()
-		if line == "" {
-			break
-		}
-		key, value, ok := strings.Cut(line, "=")
-		if !ok {
-			continue
-		}
-		switch key {
-		case "protocol":
-			request.Protocol = value
-		case "host":
-			request.Host = value
-		case "path":
-			request.Path = value
-		}
-	}
-	if err := scanner.Err(); err != nil {
-		return gitCredentialRequest{}, fmt.Errorf("read git credential request: %w", err)
-	}
-	return request, nil
-}
-
-func matchesGitCredentialRequest(request gitCredentialRequest, scheme, host string) bool {
-	if request.Protocol != scheme || request.Host != host {
-		return false
-	}
-	path := strings.TrimPrefix(request.Path, "/")
-	return path == "repos" || strings.HasPrefix(path, "repos/")
 }
 
 // loginFlags holds parsed flags for the auth login command.
 type loginFlags struct {
 	env       string
 	noBrowser bool
-}
-
-type loginTarget struct {
-	scheme string
-	host   string
 }
 
 func (c *AuthCommand) parseLoginFlags(args []string) (loginFlags, bool, error) {
@@ -233,14 +153,17 @@ func (c *AuthCommand) runLogin(ctx context.Context, args []string) error {
 		return nil
 	}
 
-	target, err := c.resolveLoginTarget(flags)
+	target, err := c.service.ResolveLoginTarget(flags.env)
 	if err != nil {
-		return err
+		if errors.Is(err, authsvc.ErrUnknownEnvironment) {
+			return fmt.Errorf("%w: %q", ErrUnknownEnvironment, flags.env)
+		}
+		return fmt.Errorf("resolve host: %w", err)
 	}
 
 	result, err := c.loginWithBrowser(ctx, flags, target)
 	if err != nil {
-		if errors.Is(err, errLoginCancelled) {
+		if errors.Is(err, authsvc.ErrLoginCancelled) {
 			c.out.Println("Login cancelled")
 			return nil
 		}
@@ -251,36 +174,24 @@ func (c *AuthCommand) runLogin(ctx context.Context, args []string) error {
 	return nil
 }
 
-func (c *AuthCommand) resolveLoginTarget(flags loginFlags) (loginTarget, error) {
-	host, err := c.service.ResolveHost(flags.env)
-	if err != nil {
-		if errors.Is(err, authsvc.ErrUnknownEnvironment) {
-			return loginTarget{}, fmt.Errorf("%w: %q", ErrUnknownEnvironment, flags.env)
-		}
-		return loginTarget{}, fmt.Errorf("resolve host: %w", err)
-	}
-
-	return loginTarget{scheme: authstore.SchemeForEnv(flags.env), host: host}, nil
-}
-
 func (c *AuthCommand) loginWithBrowser(
 	ctx context.Context,
 	flags loginFlags,
-	target loginTarget,
+	target authsvc.LoginTarget,
 ) (authsvc.LoginResult, error) {
 	allowOverwrite := false
-	existing, err := authstore.LoadCredentials(c.credentialsHome)
+	existing, err := c.service.ExistingLogin(flags.env)
 	if err != nil {
-		return authsvc.LoginResult{}, fmt.Errorf("load credentials: %w", err)
+		return authsvc.LoginResult{}, fmt.Errorf("check existing login: %w", err)
 	}
-	if envCreds, getErr := existing.Get(flags.env); getErr == nil {
-		c.out.Warningf("Already logged in to %s as %s", flags.env, envCreds.Username)
+	if existing.Exists {
+		c.out.Warningf("Already logged in to %s as %s", flags.env, existing.Username)
 		confirmed, confirmErr := c.confirmOverwrite(ctx)
 		if confirmErr != nil {
 			return authsvc.LoginResult{}, confirmErr
 		}
 		if !confirmed {
-			return authsvc.LoginResult{}, errLoginCancelled
+			return authsvc.LoginResult{}, authsvc.ErrLoginCancelled
 		}
 		allowOverwrite = true
 	}
@@ -292,8 +203,8 @@ func (c *AuthCommand) loginWithBrowser(
 
 	result, err := c.service.ExchangeCode(ctx, authsvc.CodeExchangeRequest{
 		Env:            flags.env,
-		Scheme:         target.scheme,
-		Host:           target.host,
+		Scheme:         target.Scheme,
+		Host:           target.Host,
 		Code:           code,
 		CodeVerifier:   codeVerifier,
 		AllowOverwrite: allowOverwrite,
@@ -310,132 +221,31 @@ func (c *AuthCommand) loginWithBrowser(
 func (c *AuthCommand) waitForBrowserLogin(
 	ctx context.Context,
 	flags loginFlags,
-	target loginTarget,
+	target authsvc.LoginTarget,
 ) (string, string, error) {
-	var listenConfig net.ListenConfig
-	listener, err := listenConfig.Listen(ctx, "tcp", "127.0.0.1:0")
+	session, err := c.service.StartBrowserLogin(ctx, flags.env, target)
 	if err != nil {
-		return "", "", fmt.Errorf("start login callback server: %w", err)
+		return "", "", fmt.Errorf("start browser login: %w", err)
 	}
-	defer listener.Close() //nolint:errcheck // Best effort cleanup after server shutdown
-
-	state, err := randomBase64URL(loginStateBytes)
-	if err != nil {
-		return "", "", fmt.Errorf("generate login state: %w", err)
-	}
-	codeVerifier, err := randomBase64URL(loginCodeVerifierBytes)
-	if err != nil {
-		return "", "", fmt.Errorf("generate code verifier: %w", err)
-	}
-	codeChallenge := createCodeChallenge(codeVerifier)
-
-	codeCh := make(chan string, 1)
-	errCh := make(chan error, 1)
-	//nolint:exhaustruct // Only non-zero settings are relevant for this short-lived callback server.
-	server := &http.Server{
-		ReadHeaderTimeout: loginCallbackHeaderTimeout,
-		Handler:           loginCallbackHandler(state, codeCh, errCh),
-	}
-
-	go func() {
-		if serveErr := server.Serve(listener); serveErr != nil && !errors.Is(serveErr, http.ErrServerClosed) {
-			errCh <- fmt.Errorf("serve login callback: %w", serveErr)
-		}
-	}()
 	defer func() {
-		shutdownCtx, cancel := context.WithTimeout(ctx, loginCallbackShutdownTimeout)
-		defer cancel()
-		if err := server.Shutdown(shutdownCtx); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			c.out.Verbosef("failed to shutdown login callback server: %v", err)
+		if closeErr := session.Close(ctx); closeErr != nil {
+			c.out.Verbosef("failed to shutdown login callback server: %v", closeErr)
 		}
 	}()
-
-	callbackURL := "http://" + listener.Addr().String() + "/callback"
-	loginURL := buildStudioctlLoginURL(target.scheme, target.host, callbackURL, state, codeChallenge, flags.env)
 
 	c.out.Println("Opening browser for Ansattporten login...")
 	if flags.noBrowser {
-		c.out.Printlnf("Open this URL to continue: %s", loginURL)
-	} else if err := osutil.OpenContext(ctx, loginURL); err != nil {
-		c.out.Warningf("Failed to open browser: %v", err)
-		c.out.Printlnf("Open this URL to continue: %s", loginURL)
+		c.out.Printlnf("Open this URL to continue: %s", session.LoginURL)
+	} else if openErr := osutil.OpenContext(ctx, session.LoginURL); openErr != nil {
+		c.out.Warningf("Failed to open browser: %v", openErr)
+		c.out.Printlnf("Open this URL to continue: %s", session.LoginURL)
 	}
 
-	select {
-	case code := <-codeCh:
-		return code, codeVerifier, nil
-	case err := <-errCh:
-		return "", "", err
-	case <-ctx.Done():
-		return "", "", fmt.Errorf("login cancelled: %w", ctx.Err())
+	result, err := session.Wait(ctx)
+	if err != nil {
+		return "", "", fmt.Errorf("wait for browser login: %w", err)
 	}
-}
-
-func loginCallbackHandler(state string, codeCh chan<- string, errCh chan<- error) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/callback" {
-			http.NotFound(w, r)
-			return
-		}
-		if got := r.URL.Query().Get("state"); got != state {
-			http.Error(w, "Invalid login state.", http.StatusBadRequest)
-			errCh <- ErrInvalidToken
-			return
-		}
-		if errorCode := r.URL.Query().Get("error"); errorCode != "" {
-			if errorCode == "access_denied" {
-				w.Header().Set("Content-Type", "text/html; charset=utf-8")
-				if _, err := w.Write([]byte(loginCallbackCancelledHTML)); err != nil {
-					errCh <- fmt.Errorf("write login response: %w", err)
-					return
-				}
-				errCh <- errLoginCancelled
-				return
-			}
-			http.Error(w, "Login failed.", http.StatusBadRequest)
-			errCh <- ErrInvalidToken
-			return
-		}
-		code := r.URL.Query().Get("code")
-		if code == "" {
-			http.Error(w, "Missing login code.", http.StatusBadRequest)
-			errCh <- ErrLoginCodeRequired
-			return
-		}
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		if _, err := w.Write([]byte(loginCallbackSuccessHTML)); err != nil {
-			errCh <- fmt.Errorf("write login response: %w", err)
-			return
-		}
-		codeCh <- code
-	})
-}
-
-func buildStudioctlLoginURL(scheme, host, callbackURL, state, codeChallenge, env string) string {
-	authorizeValues := url.Values{}
-	authorizeValues.Set("redirect_uri", callbackURL)
-	authorizeValues.Set("state", state)
-	authorizeValues.Set("code_challenge", codeChallenge)
-	authorizeValues.Set("client_name", "studioctl "+env)
-
-	authorizePath := "/designer/api/v1/studioctl/auth/authorize?" + authorizeValues.Encode()
-	loginValues := url.Values{}
-	loginValues.Set("redirect_to", authorizePath)
-
-	return scheme + "://" + host + "/Login?" + loginValues.Encode()
-}
-
-func randomBase64URL(size int) (string, error) {
-	buf := make([]byte, size)
-	if _, err := rand.Read(buf); err != nil {
-		return "", fmt.Errorf("read random bytes: %w", err)
-	}
-	return base64.RawURLEncoding.EncodeToString(buf), nil
-}
-
-func createCodeChallenge(codeVerifier string) string {
-	sum := sha256.Sum256([]byte(codeVerifier))
-	return base64.RawURLEncoding.EncodeToString(sum[:])
+	return result.Code, result.CodeVerifier, nil
 }
 
 func mapLoginError(err error, env string) error {

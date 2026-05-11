@@ -19,11 +19,7 @@ const (
 	// DefaultEnv is the default environment name.
 	DefaultEnv = "prod"
 
-	// DefaultHost is the default Altinn Studio host.
-	DefaultHost = "altinn.studio"
-
-	// DefaultScheme is the default Altinn Studio URL scheme.
-	DefaultScheme = "https"
+	defaultScheme = "https"
 )
 
 // Known environments with their default hosts.
@@ -34,13 +30,6 @@ var knownEnvHosts = map[string]string{
 	"dev":     "dev.altinn.studio",
 	"local":   "studio.localhost",
 	"staging": "staging.altinn.studio",
-}
-
-// Known environments with non-default schemes.
-//
-//nolint:gochecknoglobals // Acts as constant lookup table for known environments
-var knownEnvSchemes = map[string]string{
-	"local": "http",
 }
 
 // Sentinel errors for authentication.
@@ -178,16 +167,21 @@ func HostForEnv(env string) string {
 
 // SchemeForEnv returns the default scheme for a known environment.
 func SchemeForEnv(env string) string {
-	if scheme, ok := knownEnvSchemes[env]; ok {
-		return scheme
+	if env == "local" {
+		return "http"
 	}
-	return DefaultScheme
+	return defaultScheme
 }
 
 // SchemeOrDefault returns the credential scheme, defaulting old credentials to HTTPS.
 func (c EnvCredentials) SchemeOrDefault() string {
-	if c.Scheme != "" {
-		return c.Scheme
+	return SchemeOrDefault(c.Scheme)
+}
+
+// SchemeOrDefault returns the provided scheme or the default HTTPS scheme.
+func SchemeOrDefault(scheme string) string {
+	if scheme != "" {
+		return scheme
 	}
-	return DefaultScheme
+	return defaultScheme
 }

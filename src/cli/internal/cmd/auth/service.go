@@ -54,13 +54,45 @@ func NewService(cfg *config.Config) *Service {
 	return &Service{cfg: cfg}
 }
 
-// ResolveHost resolves the configured host for an environment.
-func (s *Service) ResolveHost(env string) (string, error) {
+func resolveHost(env string) (string, error) {
 	host := authstore.HostForEnv(env)
 	if host == "" {
 		return "", fmt.Errorf("%w: %q", ErrUnknownEnvironment, env)
 	}
 	return host, nil
+}
+
+// ResolveLoginTarget resolves the browser login target for an environment.
+func (s *Service) ResolveLoginTarget(env string) (LoginTarget, error) {
+	host, err := resolveHost(env)
+	if err != nil {
+		return LoginTarget{}, err
+	}
+	return LoginTarget{Scheme: authstore.SchemeForEnv(env), Host: host}, nil
+}
+
+// ExistingLogin contains stored login details for an environment.
+type ExistingLogin struct {
+	Username string
+	Exists   bool
+}
+
+// ExistingLogin returns stored login details for an environment, if present.
+func (s *Service) ExistingLogin(env string) (ExistingLogin, error) {
+	creds, err := authstore.LoadCredentials(s.cfg.Home)
+	if err != nil {
+		return ExistingLogin{}, fmt.Errorf("load credentials: %w", err)
+	}
+
+	envCreds, err := creds.Get(env)
+	if err != nil {
+		if errors.Is(err, authstore.ErrNotLoggedIn) {
+			return ExistingLogin{Exists: false, Username: ""}, nil
+		}
+		return ExistingLogin{}, fmt.Errorf("get credentials for %s: %w", env, err)
+	}
+
+	return ExistingLogin{Exists: true, Username: envCreds.Username}, nil
 }
 
 // LoginResult contains login output details.
@@ -115,14 +147,14 @@ func (s *Service) ExchangeCode(ctx context.Context, req CodeExchangeRequest) (Lo
 		existing = existingCreds
 	}
 
-	response, err := exchangeCode(ctx, schemeOrDefault(req.Scheme), req.Host, req.Code, req.CodeVerifier)
+	response, err := exchangeCode(ctx, authstore.SchemeOrDefault(req.Scheme), req.Host, req.Code, req.CodeVerifier)
 	if err != nil {
 		return LoginResult{}, err
 	}
 
 	newCreds := authstore.EnvCredentials{
 		ApiKeyID:  response.KeyID,
-		Scheme:    schemeOrDefault(req.Scheme),
+		Scheme:    authstore.SchemeOrDefault(req.Scheme),
 		Host:      req.Host,
 		ApiKey:    response.Key,
 		ExpiresAt: response.ExpiresAt,
@@ -386,13 +418,6 @@ func errorString(err error) string {
 		return ""
 	}
 	return err.Error()
-}
-
-func schemeOrDefault(scheme string) string {
-	if scheme != "" {
-		return scheme
-	}
-	return authstore.DefaultScheme
 }
 
 func validateToken(ctx context.Context, creds *authstore.EnvCredentials, version config.Version) string {
