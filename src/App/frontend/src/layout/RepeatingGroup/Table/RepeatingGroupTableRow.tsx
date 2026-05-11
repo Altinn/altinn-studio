@@ -11,7 +11,7 @@ import { translationKey } from 'src/AppComponentsBridge';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import { useDisplayData, useDisplayDataFor } from 'src/features/displayData/useDisplayData';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
@@ -104,7 +104,7 @@ export function RepeatingGroupTableRow({
 
   const alertOnDelete = useAlertOnChange(Boolean(editForRow?.alertOnDelete), deleteRow);
 
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const rawTableIds = useTableComponentIds(baseComponentId);
   const tableItems = rawTableIds
     .filter((id) => !hiddenColumns.includes(id))
@@ -509,7 +509,7 @@ function FindDeepValidations({
   columnSettings: CompRepeatingGroupExternal['tableColumns'];
 }) {
   const baseComponentId = useRepeatingGroupComponentId();
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const rawTableIds = useTableComponentIds(baseComponentId);
   const tableItems = rawTableIds.map((baseId) => ({
     baseId,

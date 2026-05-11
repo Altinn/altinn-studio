@@ -4,7 +4,6 @@ import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { getComponentDef } from 'src/layout';
 import { CompCategory } from 'src/layout/common';
@@ -335,7 +334,7 @@ export const RepGroupHooks = {
 
   useEditableChildren(baseComponentId: string, rowWithExpressions: RepGroupRowWithExpressions | undefined): string[] {
     const childrenBaseIds = RepGroupHooks.useChildIds(baseComponentId);
-    const layoutLookups = FormBootstrap.useLayoutLookups();
+    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
     const component = layoutLookups.getComponent(baseComponentId, 'RepeatingGroup');
     const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup')?.group;
     const readOnlyExpressions = useMemo(

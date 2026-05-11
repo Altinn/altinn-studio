@@ -2,7 +2,7 @@ import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
@@ -55,8 +55,8 @@ export class RadioButtons extends RadioButtonsDef {
   }
 
   useDataModelBindingValidation(baseComponentId: string, dmb: IDataModelBindings<'RadioButtons'>): string[] {
-    const lookupBinding = FormBootstrap.useLookupBinding();
-    const layoutLookups = FormBootstrap.useLayoutLookups();
+    const lookupBinding = FormStore.bootstrap.useLookupBinding();
+    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
     return validateDataModelBindingsSimple(baseComponentId, dmb, lookupBinding, layoutLookups);
   }
 }

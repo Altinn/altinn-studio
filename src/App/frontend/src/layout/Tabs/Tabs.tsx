@@ -5,7 +5,7 @@ import { Tabs as DesignsystemetTabs } from '@digdir/designsystemet-react';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { SearchParams } from 'src/core/routing/types';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -26,7 +26,7 @@ export const Tabs = ({ baseComponentId }: PropsFromGenericComponent<'Tabs'>) => 
   const { size: _size, defaultTab, tabs } = useExternalItem(baseComponentId, 'Tabs');
   const size = _size ?? 'medium';
   const [activeTab, setActiveTab] = useState<string | undefined>(defaultTab ?? tabs.at(0)?.id);
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
 
   const [searchParams] = useSearchParams();
 
