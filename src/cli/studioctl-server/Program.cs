@@ -59,7 +59,6 @@ internal static class Program
         var api = app.MapGroup("/api/v1");
         api.MapGet("/healthz", () => Results.Ok(new HealthResponse("ok")));
         api.MapStudioctlEndpoints();
-        api.MapTunnelEndpoints();
 
         return app.RunAsync();
     }
