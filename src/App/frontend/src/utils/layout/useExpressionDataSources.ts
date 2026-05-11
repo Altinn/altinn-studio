@@ -25,22 +25,35 @@ import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IApplicationSettings, IInstanceDataSources, IProcess } from 'src/types/shared';
 
 export interface ExpressionDataSources {
+  // Static
   applicationSettings: IApplicationSettings | null;
-  codeListSelector: (optionsId: string) => IOptionInternal[] | undefined;
-  currentDataModelPath: IDataModelReference | undefined;
+
+  // Navigation/cookies
   currentLanguage: string;
   currentPage: string | undefined;
+
+  // Instance/process
   dataElementSelector: ReturnType<typeof useDataElementsSelector>;
+  instanceDataSources: IInstanceDataSources | null;
+  process: IProcess | undefined;
+
+  // Query
+  externalApis: ExternalApisResult;
+
+  // FormStore
+  codeListSelector: (optionsId: string) => IOptionInternal[] | undefined;
+  formDataSelector: FormDataSelectorLax;
   dataModelNames: string[];
   defaultDataType: string | null;
-  displayValues: Record<string, string | undefined>;
-  externalApis: ExternalApisResult;
-  formDataSelector: FormDataSelectorLax;
-  hiddenComponents: Record<string, boolean | undefined>;
-  instanceDataSources: IInstanceDataSources | null;
-  langToolsSelector: (dataModelPath: IDataModelReference | undefined) => IUseLanguage;
   layoutLookups: LayoutLookups;
-  process: IProcess | undefined;
+
+  // Complex/Other
+  currentDataModelPath: IDataModelReference | undefined;
+  langToolsSelector: (dataModelPath: IDataModelReference | undefined) => IUseLanguage;
+
+  // Solves themselves if we always have all expression data sources?
+  displayValues: Record<string, string | undefined>;
+  hiddenComponents: Record<string, boolean | undefined>;
 }
 
 type HookBackedDataSource = Exclude<keyof ExpressionDataSources, 'displayValues' | 'hiddenComponents'>;
