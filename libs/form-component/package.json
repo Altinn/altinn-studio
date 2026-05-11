@@ -3,12 +3,18 @@
   "packageManager": "yarn@4.12.0",
   "version": "0.1.0",
   "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles/global.css": "./src/styles/global.css"
+  },
   "private": true,
   "scripts": {
     "test": "vitest",
     "test:ci": "vitest run",
     "lint": "eslint \"src/**/*.ts*\"",
-    "typecheck": "tsc --noEmit -p ./"
+    "typecheck": "tsc --noEmit -p ./",
+    "storybook": "storybook dev -p 6008",
+    "build-storybook": "storybook build"
   },
   "peerDependencies": {
     "@digdir/designsystemet-react": "^1.11.1",
@@ -16,7 +22,13 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@chromatic-com/storybook": "^5.0.1",
+    "@digdir/designsystemet-css": "1.11.1",
     "@digdir/designsystemet-react": "1.11.1",
+    "@storybook/addon-docs": "10.2.16",
+    "@storybook/addon-links": "10.2.16",
+    "@storybook/builder-vite": "10.2.16",
+    "@storybook/react-vite": "10.2.16",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
     "@testing-library/user-event": "14.6.1",
@@ -24,6 +36,7 @@
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "^5.0.0",
     "jsdom": "^26.1.0",
+    "storybook": "^10.2.11",
     "typescript": "5.9.3",
     "typescript-plugin-css-modules": "5.2.0",
     "vitest": "^3.0.0"
