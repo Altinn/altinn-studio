@@ -148,6 +148,7 @@ __metadata:
     vitest: "npm:^4.1.5"
   peerDependencies:
     "@digdir/designsystemet-react": ^1.11.1
+    classnames: 2.5.1
     react: ^19.0.0
     react-dom: ^19.0.0
   languageName: unknown

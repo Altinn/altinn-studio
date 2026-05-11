@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Details } from '@digdir/designsystemet-react';
+import cn from 'classnames';
 
 import classes from './AccordionItem.module.css';
 
@@ -38,7 +39,7 @@ export function AccordionItem({
     <Details
       open={currentOpen}
       onToggle={handleToggle}
-      className={[className, classes.accordion].filter(Boolean).join(' ')}
+      className={cn(className, classes.accordion)}
     >
       <Details.Summary>{title}</Details.Summary>
       <Details.Content>{children}</Details.Content>
