@@ -19,5 +19,9 @@ func (r *Runner) RegisteredMigrations() []Migration {
 			ID: "004-remove-legacy-resource-markers",
 			Up: legacyResourceMarkers,
 		},
+		{
+			ID: "005-remove-legacy-app-manager-files",
+			Up: legacyAppManagerFiles,
+		},
 	}
 }
