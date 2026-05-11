@@ -1,7 +1,8 @@
 """
 Altinity Agent API Server
-Provides API interface for Altinn Studio AI agents
+Provides API interface for the Studio Assistant agent
 """
+
 import asyncio
 import logging
 import sys
@@ -19,13 +20,10 @@ from shared.config import get_config
 
 # Get configuration
 config = get_config()
-from api.routes import register_websocket_routes, agent_router
+from api.routes import agent_router, metrics_router, register_websocket_routes
 
 # Configure logging
-logging.basicConfig(
-    level=getattr(logging, config.LOG_LEVEL),
-    format=config.LOG_FORMAT
-)
+logging.basicConfig(level=getattr(logging, config.LOG_LEVEL), format=config.LOG_FORMAT)
 
 
 class SuppressLangfuseTimeouts(logging.Filter):
@@ -38,7 +36,9 @@ class SuppressLangfuseTimeouts(logging.Filter):
 
     def filter(self, record: logging.LogRecord) -> bool:  # type: ignore[override]
         msg = record.getMessage()
-        if ("cloud.langfuse.com" in msg or "langfuse.digdir.cloud" in msg) and "ReadTimeout" in msg:
+        if (
+            "cloud.langfuse.com" in msg or "langfuse.digdir.cloud" in msg
+        ) and "ReadTimeout" in msg:
             return False
         return True
 
@@ -66,8 +66,11 @@ async def lifespan(app: FastAPI):
     if config.LANGFUSE_ENABLED:
         try:
             from shared.utils.langfuse_utils import init_langfuse
+
             init_langfuse()
-            logger.info(f"✅ Langfuse initialized - view traces at {config.LANGFUSE_HOST}")
+            logger.info(
+                f"✅ Langfuse initialized - view traces at {config.LANGFUSE_HOST}"
+            )
         except Exception as e:
             logger.warning(f"⚠️  Failed to initialize Langfuse: {e}")
 
@@ -107,6 +110,7 @@ app.add_middleware(
 # Register routes
 register_websocket_routes(app)
 app.include_router(agent_router)
+app.include_router(metrics_router)
 
 
 @app.get("/favicon.ico")
@@ -146,10 +150,11 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
+
     logger.info(f"Starting Altinity Agent API on {config.API_HOST}:{config.API_PORT}")
     uvicorn.run(
         app,
         host=config.API_HOST,
         port=config.API_PORT,
-        log_level=config.LOG_LEVEL.lower()
+        log_level=config.LOG_LEVEL.lower(),
     )
