@@ -1,0 +1,18 @@
+.sectionHeader {
+  background-color: var(--ds-color-surface-neutral);
+  padding-inline: var(--ds-size-4);
+  height: var(--ds-size-15);
+  align-items: center;
+}
+
+.menu {
+  align-items: center;
+  font-size: var(--ds-size-4);
+}
+
+.changeTaskIcon,
+.groupPagesIcon,
+.deleteGroupIcon {
+  font-size: var(--fds-sizing-4);
+  padding-right: var(--fds-sizing-1);
+}
