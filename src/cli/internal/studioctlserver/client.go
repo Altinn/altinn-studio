@@ -21,6 +21,7 @@ import (
 
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
+	"altinn.studio/studioctl/internal/httpclient"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
@@ -231,6 +232,7 @@ func (c *Client) Health(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("build health request: %w", err)
 	}
+	httpclient.SetUserAgent(req, c.cfg.Version)
 
 	resp, err := c.http.Do(req)
 	if err != nil {
@@ -254,6 +256,7 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 	if err != nil {
 		return nil, fmt.Errorf("build status request: %w", err)
 	}
+	httpclient.SetUserAgent(req, c.cfg.Version)
 
 	resp, err := c.http.Do(req)
 	if err != nil {
@@ -343,6 +346,7 @@ func (c *Client) RegisterApp(ctx context.Context, registration AppRegistration) 
 		return "", fmt.Errorf("build register app request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
+	httpclient.SetUserAgent(req, c.cfg.Version)
 
 	client := &http.Client{
 		Transport: transportForConfig(c.cfg),
@@ -388,6 +392,7 @@ func (c *Client) UnregisterApp(ctx context.Context, appID string) error {
 	if err != nil {
 		return fmt.Errorf("build unregister app request: %w", err)
 	}
+	httpclient.SetUserAgent(req, c.cfg.Version)
 
 	resp, err := c.http.Do(req)
 	if err != nil {
@@ -422,6 +427,7 @@ func (c *Client) UpgradeApp(ctx context.Context, upgrade AppUpgrade) (AppUpgrade
 		return AppUpgradeResult{}, fmt.Errorf("build app upgrade request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
+	httpclient.SetUserAgent(req, c.cfg.Version)
 
 	resp, err := c.http.Do(req)
 	if err != nil {
@@ -454,6 +460,7 @@ func (c *Client) shutdown(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("build shutdown request: %w", err)
 	}
+	httpclient.SetUserAgent(req, c.cfg.Version)
 
 	resp, err := c.http.Do(req)
 	if err != nil {

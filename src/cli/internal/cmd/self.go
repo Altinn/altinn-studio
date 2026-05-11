@@ -387,7 +387,7 @@ func (c *SelfCommand) runCompleteInstall(ctx context.Context, args []string) err
 		return fmt.Errorf("%w: %s", ErrInvalidFlagValue, strings.Join(args, " "))
 	}
 	bundle := installpkg.Bundle{
-		Version:              c.cfg.Version,
+		Version:              c.cfg.Version.String(),
 		BinaryPath:           "",
 		ResourcesArchivePath: os.Getenv(config.EnvResourcesArchive),
 	}

@@ -17,6 +17,8 @@ import (
 
 	"altinn.studio/devenv/pkg/processutil"
 	"altinn.studio/studioctl/internal/auth"
+	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/httpclient"
 )
 
 const (
@@ -77,16 +79,18 @@ type Client struct {
 	host       string
 	token      string
 	username   string
+	version    config.Version
 	httpClient *http.Client
 	scheme     string // "https" or "http" (http only for testing)
 }
 
 // NewClient creates a new Studio API client from credentials.
-func NewClient(creds *auth.EnvCredentials) *Client {
+func NewClient(creds *auth.EnvCredentials, version config.Version) *Client {
 	return &Client{
 		host:     creds.Host,
 		token:    creds.Token,
 		username: creds.Username,
+		version:  version,
 		scheme:   "https",
 		httpClient: &http.Client{
 			Timeout: httpTimeout,
@@ -95,7 +99,13 @@ func NewClient(creds *auth.EnvCredentials) *Client {
 }
 
 // NewClientWithHTTP creates a new client with a custom HTTP client (for testing).
-func NewClientWithHTTP(host, token, username string, httpClient *http.Client) *Client {
+func NewClientWithHTTP(
+	host,
+	token,
+	username string,
+	version config.Version,
+	httpClient *http.Client,
+) *Client {
 	if httpClient == nil {
 		httpClient = &http.Client{Timeout: httpTimeout}
 	}
@@ -103,6 +113,7 @@ func NewClientWithHTTP(host, token, username string, httpClient *http.Client) *C
 		host:       host,
 		token:      token,
 		username:   username,
+		version:    version,
 		scheme:     "https",
 		httpClient: httpClient,
 	}
@@ -117,7 +128,7 @@ func (c *Client) GetUser(ctx context.Context) (*User, error) {
 		return nil, fmt.Errorf("create request: %w", err)
 	}
 
-	c.setAuthHeader(req)
+	c.setRequestHeaders(req)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -153,7 +164,7 @@ func (c *Client) GetRepo(ctx context.Context, org, repo string) (*Repository, er
 		return nil, fmt.Errorf("create request: %w", err)
 	}
 
-	c.setAuthHeader(req)
+	c.setRequestHeaders(req)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -219,7 +230,15 @@ func (c *Client) execGitClone(ctx context.Context, cloneURL, destPath string) er
 		return ErrGitNotFound
 	}
 
-	cmd := processutil.CommandContext(ctx, gitPath, "clone", cloneURL, destPath)
+	cmd := processutil.CommandContext(
+		ctx,
+		gitPath,
+		"-c",
+		"http.userAgent="+httpclient.UserAgent(c.version),
+		"clone",
+		cloneURL,
+		destPath,
+	)
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -230,9 +249,10 @@ func (c *Client) execGitClone(ctx context.Context, cloneURL, destPath string) er
 	return nil
 }
 
-// setAuthHeader sets the authorization header for API requests.
-func (c *Client) setAuthHeader(req *http.Request) {
+// setRequestHeaders sets the shared headers for API requests.
+func (c *Client) setRequestHeaders(req *http.Request) {
 	req.Header.Set("Authorization", "token "+c.token)
+	httpclient.SetUserAgent(req, c.version)
 }
 
 // pathExists checks if a file or directory exists.

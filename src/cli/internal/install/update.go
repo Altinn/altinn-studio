@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 
+	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/httpclient"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
@@ -63,6 +65,7 @@ type resolvedUpdate struct {
 	binaryBase string
 	checksums  string
 	targetPath string
+	userAgent  config.Version
 	version    string
 	skipCheck  bool
 }
@@ -84,7 +87,7 @@ func (s *Service) ResolveUpdateBundle(
 		)
 	}
 
-	resolved, err := resolveUpdateOptions(ctx, opts, execPath)
+	resolved, err := resolveUpdateOptions(ctx, opts, execPath, s.cfg.Version)
 	if err != nil {
 		return ResolvedBundle{}, err
 	}
@@ -98,7 +101,13 @@ func (s *Service) ResolveUpdateBundle(
 	}
 
 	if !resolved.skipCheck {
-		if verifyErr := verifyAssetChecksum(ctx, resolved.checksums, resolved.asset, tmpBinaryPath); verifyErr != nil {
+		if verifyErr := verifyAssetChecksum(
+			ctx,
+			resolved.checksums,
+			resolved.asset,
+			tmpBinaryPath,
+			resolved.userAgent,
+		); verifyErr != nil {
 			if cleanup != nil {
 				verifyErr = errors.Join(verifyErr, cleanup())
 			}
@@ -117,13 +126,18 @@ func (s *Service) ResolveUpdateBundle(
 	}, nil
 }
 
-func resolveUpdateOptions(ctx context.Context, opts UpdateOptions, execPath string) (resolvedUpdate, error) {
+func resolveUpdateOptions(
+	ctx context.Context,
+	opts UpdateOptions,
+	execPath string,
+	userAgentVersion config.Version,
+) (resolvedUpdate, error) {
 	version, err := normalizeReleaseVersion(opts.Version)
 	if err != nil {
 		return resolvedUpdate{}, err
 	}
 	if version == "" {
-		version, err = resolveLatestStudioctlVersion(ctx, defaultUpdateRepo)
+		version, err = resolveLatestStudioctlVersion(ctx, defaultUpdateRepo, userAgentVersion)
 		if err != nil {
 			return resolvedUpdate{}, err
 		}
@@ -141,13 +155,14 @@ func resolveUpdateOptions(ctx context.Context, opts UpdateOptions, execPath stri
 		binaryBase: binaryBase,
 		checksums:  checksums,
 		targetPath: execPath,
+		userAgent:  userAgentVersion,
 		version:    version,
 		skipCheck:  opts.SkipChecksum,
 	}, nil
 }
 
-func resolveLatestStudioctlVersion(ctx context.Context, repo string) (string, error) {
-	return resolveLatestStudioctlVersionFromBase(ctx, repo, githubAPIReposBaseURL)
+func resolveLatestStudioctlVersion(ctx context.Context, repo string, userAgentVersion config.Version) (string, error) {
+	return resolveLatestStudioctlVersionFromBase(ctx, repo, githubAPIReposBaseURL, userAgentVersion)
 }
 
 type studioctlTagVersion struct {
@@ -271,11 +286,16 @@ func compareInt(a, b int) int {
 	return 0
 }
 
-func resolveLatestStudioctlVersionFromBase(ctx context.Context, repo, baseURL string) (string, error) {
+func resolveLatestStudioctlVersionFromBase(
+	ctx context.Context,
+	repo,
+	baseURL string,
+	userAgentVersion config.Version,
+) (string, error) {
 	var candidates releaseCandidates
 
 	for page := 1; page <= releaseMaxPages; page++ {
-		releases, err := fetchReleasesPage(ctx, repo, baseURL, page)
+		releases, err := fetchReleasesPage(ctx, repo, baseURL, page, userAgentVersion)
 		if err != nil {
 			return "", err
 		}
@@ -298,7 +318,13 @@ type githubRelease struct {
 	Prerelease bool   `json:"prerelease"`
 }
 
-func fetchReleasesPage(ctx context.Context, repo, baseURL string, page int) ([]githubRelease, error) {
+func fetchReleasesPage(
+	ctx context.Context,
+	repo,
+	baseURL string,
+	page int,
+	userAgentVersion config.Version,
+) ([]githubRelease, error) {
 	releasesURL := fmt.Sprintf(
 		"%s/%s/releases?per_page=%d&page=%d",
 		baseURL,
@@ -306,7 +332,7 @@ func fetchReleasesPage(ctx context.Context, repo, baseURL string, page int) ([]g
 		releasePageSize,
 		page,
 	)
-	data, err := downloadToMemory(ctx, releasesURL)
+	data, err := downloadToMemory(ctx, releasesURL, userAgentVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -385,7 +411,7 @@ func downloadUpdateBinary(
 		binaryPath += exeSuffix
 	}
 
-	if err := downloadToFile(ctx, plan.binaryBase+"/"+plan.asset, binaryPath); err != nil {
+	if err := downloadToFile(ctx, plan.binaryBase+"/"+plan.asset, binaryPath, plan.userAgent); err != nil {
 		return "", cleanup, err
 	}
 
@@ -581,8 +607,8 @@ func releaseURLs(repo, version string) (binaryBaseURL, checksumsURL string) {
 	return base, base + "/" + checksumAssetName
 }
 
-func downloadToFile(ctx context.Context, url, path string) (err error) {
-	resp, err := getURL(ctx, url)
+func downloadToFile(ctx context.Context, url, path string, userAgentVersion config.Version) (err error) {
+	resp, err := getURL(ctx, url, userAgentVersion)
 	if err != nil {
 		return err
 	}
@@ -606,8 +632,14 @@ func downloadToFile(ctx context.Context, url, path string) (err error) {
 	return nil
 }
 
-func verifyAssetChecksum(ctx context.Context, checksumsURL, asset, binaryPath string) error {
-	checksums, err := downloadToMemory(ctx, checksumsURL)
+func verifyAssetChecksum(
+	ctx context.Context,
+	checksumsURL,
+	asset,
+	binaryPath string,
+	userAgentVersion config.Version,
+) error {
+	checksums, err := downloadToMemory(ctx, checksumsURL, userAgentVersion)
 	if err != nil {
 		return err
 	}
@@ -633,8 +665,8 @@ func verifyAssetChecksum(ctx context.Context, checksumsURL, asset, binaryPath st
 	return nil
 }
 
-func downloadToMemory(ctx context.Context, url string) (data []byte, err error) {
-	resp, err := getURL(ctx, url)
+func downloadToMemory(ctx context.Context, url string, userAgentVersion config.Version) (data []byte, err error) {
+	resp, err := getURL(ctx, url, userAgentVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -649,11 +681,12 @@ func downloadToMemory(ctx context.Context, url string) (data []byte, err error) 
 	return data, nil
 }
 
-func getURL(ctx context.Context, url string) (*http.Response, error) {
+func getURL(ctx context.Context, url string, userAgentVersion config.Version) (*http.Response, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("create request: %w", err)
 	}
+	httpclient.SetUserAgent(req, userAgentVersion)
 
 	client := &http.Client{Timeout: httpTimeout}
 	resp, err := client.Do(req)

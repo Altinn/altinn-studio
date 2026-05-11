@@ -266,7 +266,7 @@ func newEphemeralConfig(flags config.Flags, version string) *config.Config {
 		DataDir:   "",
 		BinDir:    "",
 		Images:    images,
-		Version:   version,
+		Version:   config.NewVersion(version),
 		Verbose:   flags.Verbose,
 	}
 }

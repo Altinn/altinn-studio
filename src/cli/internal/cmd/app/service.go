@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"altinn.studio/studioctl/internal/auth"
+	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/studio"
 )
@@ -18,11 +19,15 @@ var ErrNotLoggedIn = errors.New("not logged in")
 // Service contains app command logic.
 type Service struct {
 	credentialsHome string
+	version         config.Version
 }
 
 // NewService creates a new app command service.
-func NewService(credentialsHome string) *Service {
-	return &Service{credentialsHome: credentialsHome}
+func NewService(credentialsHome string, version config.Version) *Service {
+	return &Service{
+		credentialsHome: credentialsHome,
+		version:         version,
+	}
 }
 
 // UpdateResult contains detected app location for update flow.
@@ -98,7 +103,7 @@ func (s *Service) Clone(ctx context.Context, req CloneRequest) (CloneResult, err
 		return CloneResult{}, fmt.Errorf("get credentials for %s: %w", req.Env, err)
 	}
 
-	client := studio.NewClient(envCreds)
+	client := studio.NewClient(envCreds, s.version)
 	cloneErr := client.CloneRepo(ctx, req.Org, req.Repo, req.Destination)
 	if cloneErr != nil {
 		return CloneResult{}, fmt.Errorf("clone repo: %w", cloneErr)

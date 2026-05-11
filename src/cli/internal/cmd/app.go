@@ -71,7 +71,7 @@ func (o appBuildOutput) PrintFinal(out *ui.Output) error {
 
 // NewAppCommand creates a new app command.
 func NewAppCommand(cfg *config.Config, out *ui.Output) *AppCommand {
-	service := appsvc.NewService(cfg.Home)
+	service := appsvc.NewService(cfg.Home, cfg.Version)
 	return &AppCommand{
 		out:     out,
 		logs:    newAppLogsCommand(cfg, out, service),

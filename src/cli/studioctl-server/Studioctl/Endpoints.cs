@@ -1,4 +1,3 @@
-using System.Reflection;
 using Altinn.Studio.EnvTopology;
 using Altinn.Studio.StudioctlServer.Discovery;
 using Altinn.Studio.StudioctlServer.Platform;
@@ -31,7 +30,7 @@ internal static class Endpoints
                 "ok",
                 Environment.ProcessId,
                 Environment.Version.ToString(),
-                Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "unknown",
+                StudioctlUserAgent.Version,
                 EnvironmentValues.IsTruthy(Environment.GetEnvironmentVariable("STUDIOCTL_INTERNAL_DEV")),
                 Environment.GetEnvironmentVariable("Studioctl__Path") ?? "",
                 configuration["Localtest:Url"] ?? "",

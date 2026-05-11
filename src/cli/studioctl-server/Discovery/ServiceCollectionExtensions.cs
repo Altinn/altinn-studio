@@ -1,5 +1,6 @@
 using Altinn.Studio.StudioctlServer.Discovery.Container;
 using Altinn.Studio.StudioctlServer.Discovery.Process;
+using Altinn.Studio.StudioctlServer.Platform;
 using Altinn.Studio.StudioctlServer.Platform.PortListeners;
 
 namespace Altinn.Studio.StudioctlServer.Discovery;
@@ -16,6 +17,7 @@ internal static class ServiceCollectionExtensions
             static client =>
             {
                 client.Timeout = TimeSpan.FromSeconds(1);
+                client.DefaultRequestHeaders.UserAgent.ParseAdd(StudioctlUserAgent.Value);
             }
         );
         services.AddHttpClient(
@@ -23,6 +25,7 @@ internal static class ServiceCollectionExtensions
             static client =>
             {
                 client.Timeout = TimeSpan.FromSeconds(2);
+                client.DefaultRequestHeaders.UserAgent.ParseAdd(StudioctlUserAgent.Value);
             }
         );
         services.AddSingleton<IPortListenerSource, LinuxPortListeners>();

@@ -19,7 +19,7 @@ const (
 
 var errUnsupportedStudioctlServerRID = errors.New("unsupported " + config.StudioctlServerName + " runtime")
 
-func publishStudioctlServerToDir(goos, goarch, publishDir string) (string, error) {
+func publishStudioctlServerToDir(goos, goarch, publishDir, buildVersion string) (string, error) {
 	fmt.Printf("Publishing %s...\n", config.StudioctlServerName)
 
 	rid, err := dotnetRuntimeIdentifier(goos, goarch)
@@ -43,6 +43,7 @@ func publishStudioctlServerToDir(goos, goarch, publishDir string) (string, error
 		"--self-contained", "true",
 		"-p:DebugType=None",
 		"-p:DebugSymbols=false",
+		"-p:InformationalVersion=" + buildVersion,
 	}
 
 	cmd := processutil.CommandContext(context.Background(), "dotnet", args...)

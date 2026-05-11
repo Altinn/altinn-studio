@@ -35,7 +35,7 @@ type AuthCommand struct {
 func NewAuthCommand(cfg *config.Config, out *ui.Output) *AuthCommand {
 	return &AuthCommand{
 		out:     out,
-		service: authsvc.NewService(cfg.Home),
+		service: authsvc.NewService(cfg.Home, cfg.Version),
 	}
 }
 

@@ -16,6 +16,7 @@ import (
 	containermock "altinn.studio/devenv/pkg/container/mock"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	appsupport "altinn.studio/studioctl/internal/cmd/apps"
+	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/studioctlserver"
 	"altinn.studio/studioctl/internal/ui"
@@ -268,7 +269,7 @@ func TestAppLogsStoredIDUsesCurrentAppDirectory(t *testing.T) {
 	command := &appLogsCommand{
 		out:     ui.NewOutput(&out, io.Discard, false),
 		cfg:     cfg,
-		service: appsvc.NewService(""),
+		service: appsvc.NewService("", config.NewVersion("test-version")),
 		server: studioctlServerAccess{
 			client: &fakeStudioctlServerClient{status: &studioctlserver.Status{}},
 		},

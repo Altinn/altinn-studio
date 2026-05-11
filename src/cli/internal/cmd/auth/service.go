@@ -8,6 +8,7 @@ import (
 	"sort"
 
 	authstore "altinn.studio/studioctl/internal/auth"
+	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/studio"
 )
 
@@ -33,11 +34,15 @@ func (e AlreadyLoggedInError) Error() string {
 // Service contains auth command logic.
 type Service struct {
 	credentialsHome string
+	version         config.Version
 }
 
 // NewService creates a new auth command service.
-func NewService(credentialsHome string) *Service {
-	return &Service{credentialsHome: credentialsHome}
+func NewService(credentialsHome string, version config.Version) *Service {
+	return &Service{
+		credentialsHome: credentialsHome,
+		version:         version,
+	}
 }
 
 // ResolveHost resolves the effective host based on env and explicit override.
@@ -84,7 +89,7 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (LoginResult, err
 		}
 	}
 
-	client := studio.NewClientWithHTTP(req.Host, req.Token, "", nil)
+	client := studio.NewClientWithHTTP(req.Host, req.Token, "", s.version, nil)
 	user, err := client.GetUser(ctx)
 	if err != nil {
 		if errors.Is(err, studio.ErrUnauthorized) {
@@ -157,7 +162,7 @@ func (s *Service) Status(ctx context.Context, req StatusRequest) (StatusResult, 
 					Env:      req.Env,
 					Host:     envCreds.Host,
 					Username: envCreds.Username,
-					Status:   validateToken(ctx, envCreds),
+					Status:   validateToken(ctx, envCreds, s.version),
 				},
 			},
 		}, nil
@@ -176,7 +181,7 @@ func (s *Service) Status(ctx context.Context, req StatusRequest) (StatusResult, 
 			Env:      envName,
 			Host:     envCreds.Host,
 			Username: envCreds.Username,
-			Status:   validateToken(ctx, envCreds),
+			Status:   validateToken(ctx, envCreds, s.version),
 		})
 	}
 
@@ -227,8 +232,8 @@ func (s *Service) Logout(req LogoutRequest) (LogoutResult, error) {
 	return LogoutResult{Removed: true}, nil
 }
 
-func validateToken(ctx context.Context, creds *authstore.EnvCredentials) string {
-	client := studio.NewClient(creds)
+func validateToken(ctx context.Context, creds *authstore.EnvCredentials, version config.Version) string {
+	client := studio.NewClient(creds, version)
 	_, err := client.GetUser(ctx)
 	if err != nil {
 		if errors.Is(err, studio.ErrUnauthorized) {

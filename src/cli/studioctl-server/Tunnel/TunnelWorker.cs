@@ -6,6 +6,7 @@ using System.Net.WebSockets;
 using System.Threading.Channels;
 using Altinn.Studio.AppTunnel;
 using Altinn.Studio.EnvTopology;
+using Altinn.Studio.StudioctlServer.Platform;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 
@@ -24,7 +25,10 @@ internal sealed class TunnelWorker : BackgroundService
             PooledConnectionLifetime = TimeSpan.FromMinutes(2),
             ConnectTimeout = TimeSpan.FromSeconds(5),
         }
-    );
+    )
+    {
+        DefaultRequestHeaders = { UserAgent = { ProductInfoHeaderValue.Parse(StudioctlUserAgent.Value) } },
+    };
 
     private readonly TunnelOptions _options;
     private readonly TunnelState _state;
@@ -128,6 +132,7 @@ internal sealed class TunnelWorker : BackgroundService
 
         try
         {
+            socket.Options.SetRequestHeader(HeaderNames.UserAgent, StudioctlUserAgent.Value);
             await socket.ConnectAsync(new Uri(tunnelUrl, UriKind.Absolute), linkedCancellation.Token);
         }
         catch (OperationCanceledException)

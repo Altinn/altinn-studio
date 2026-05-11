@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"altinn.studio/studioctl/internal/config"
 )
 
 func TestResolveLatestStudioctlVersion(t *testing.T) {
@@ -69,6 +71,7 @@ func TestResolveLatestStudioctlVersion(t *testing.T) {
 				context.Background(),
 				"Altinn/altinn-studio",
 				server.URL+"/repos",
+				config.NewVersion("test-version"),
 			)
 			if (err != nil) != tc.wantErr {
 				t.Fatalf("resolveLatestStudioctlVersion() error = %v, wantErr %v", err, tc.wantErr)
@@ -131,6 +134,7 @@ func TestResolveLatestStudioctlVersion_Paginates(t *testing.T) {
 		context.Background(),
 		"Altinn/altinn-studio",
 		server.URL+"/repos",
+		config.NewVersion("test-version"),
 	)
 	if err != nil {
 		t.Fatalf("resolveLatestStudioctlVersion() error = %v", err)

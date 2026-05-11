@@ -25,6 +25,7 @@ func TestUpgradeAppUsesUpgradeTimeoutOnly(t *testing.T) {
 
 	deadlines := make(map[string]time.Duration)
 	client := &Client{
+		cfg: testConfig(t),
 		http: &http.Client{
 			Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
 				deadline, ok := req.Context().Deadline()
@@ -80,6 +81,7 @@ func TestUpgradeAppIncludesResponseMessageOnFailure(t *testing.T) {
 	t.Parallel()
 
 	client := &Client{
+		cfg: testConfig(t),
 		http: &http.Client{
 			Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
 				return &http.Response{

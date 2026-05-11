@@ -165,6 +165,7 @@ func buildDist(opts distOptions) (distResult, error) {
 			platform.GOOS,
 			platform.GOARCH,
 			opts.OutputDir,
+			opts.Version,
 		)
 		if err != nil {
 			return distResult{}, err
@@ -303,7 +304,7 @@ func buildStudioctlFor(goos, goarch, outputDir, binaryName, buildVersion string)
 }
 
 func buildPlatformResources(
-	goos, goarch, outputDir string,
+	goos, goarch, outputDir, buildVersion string,
 ) (archivePath string, err error) {
 	serverDir := filepath.Join(outputDir, "."+config.StudioctlServerName+"-"+goos+"-"+goarch)
 	if removeErr := os.RemoveAll(serverDir); removeErr != nil {
@@ -315,7 +316,7 @@ func buildPlatformResources(
 		}
 	}()
 
-	if _, publishErr := publishStudioctlServerToDir(goos, goarch, serverDir); publishErr != nil {
+	if _, publishErr := publishStudioctlServerToDir(goos, goarch, serverDir, buildVersion); publishErr != nil {
 		return "", publishErr
 	}
 
@@ -379,7 +380,7 @@ func installWindowsHostMode() error {
 	if err != nil {
 		return err
 	}
-	resourcesArchivePath, err := buildPlatformResources(osutil.OSWindows, runtime.GOARCH, stageDirWSL)
+	resourcesArchivePath, err := buildPlatformResources(osutil.OSWindows, runtime.GOARCH, stageDirWSL, version)
 	if err != nil {
 		return err
 	}

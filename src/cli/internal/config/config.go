@@ -80,7 +80,7 @@ type Config struct {
 	DataDir   string       // Directory for container volumes
 	BinDir    string       // Directory for binaries and installed payloads
 	Images    ImagesConfig // Container image configuration
-	Version   string       // Build version (embedded at build time)
+	Version   Version      // Build version (embedded at build time)
 	Verbose   bool         // Verbose output (-v)
 }
 
@@ -148,7 +148,7 @@ func newResolvedConfig(
 		DataDir:   filepath.Join(home, "data"),
 		BinDir:    filepath.Join(home, "bin"),
 		Images:    images,
-		Version:   version,
+		Version:   NewVersion(version),
 		Verbose:   flags.Verbose,
 	}
 
