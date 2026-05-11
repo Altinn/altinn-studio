@@ -198,7 +198,6 @@ func matchesGitCredentialRequest(request gitCredentialRequest, scheme, host stri
 // loginFlags holds parsed flags for the auth login command.
 type loginFlags struct {
 	env       string
-	host      string
 	noBrowser bool
 }
 
@@ -211,11 +210,9 @@ func (c *AuthCommand) parseLoginFlags(args []string) (loginFlags, bool, error) {
 	fs := flag.NewFlagSet("auth login", flag.ContinueOnError)
 	f := loginFlags{
 		env:       authstore.DefaultEnv,
-		host:      "",
 		noBrowser: false,
 	}
-	fs.StringVar(&f.env, "env", authstore.DefaultEnv, "Environment name (prod, dev, staging)")
-	fs.StringVar(&f.host, "host", "", "Altinn Studio host (default: based on env)")
+	fs.StringVar(&f.env, "env", authstore.DefaultEnv, "Environment name (prod, dev, staging, local)")
 	fs.BoolVar(&f.noBrowser, "no-browser", false, "Print login URL instead of opening a browser")
 
 	if err := fs.Parse(args); err != nil {
@@ -255,28 +252,15 @@ func (c *AuthCommand) runLogin(ctx context.Context, args []string) error {
 }
 
 func (c *AuthCommand) resolveLoginTarget(flags loginFlags) (loginTarget, error) {
-	host, err := c.service.ResolveHost(flags.env, flags.host)
+	host, err := c.service.ResolveHost(flags.env)
 	if err != nil {
 		if errors.Is(err, authsvc.ErrUnknownEnvironment) {
-			return loginTarget{}, fmt.Errorf(
-				"%w: %q (use --host to specify the Altinn Studio host)",
-				ErrUnknownEnvironment,
-				flags.env,
-			)
+			return loginTarget{}, fmt.Errorf("%w: %q", ErrUnknownEnvironment, flags.env)
 		}
 		return loginTarget{}, fmt.Errorf("resolve host: %w", err)
 	}
 
-	scheme := authstore.SchemeForEnv(flags.env)
-	if parsed, parseErr := url.Parse(host); parseErr == nil && parsed.Scheme != "" {
-		if parsed.Scheme != "http" && parsed.Scheme != "https" {
-			return loginTarget{}, fmt.Errorf("%w: unsupported host scheme %q", ErrInvalidFlagValue, parsed.Scheme)
-		}
-		scheme = parsed.Scheme
-		host = parsed.Host
-	}
-
-	return loginTarget{scheme: scheme, host: host}, nil
+	return loginTarget{scheme: authstore.SchemeForEnv(flags.env), host: host}, nil
 }
 
 func (c *AuthCommand) loginWithBrowser(
@@ -316,6 +300,9 @@ func (c *AuthCommand) loginWithBrowser(
 	})
 	if err != nil {
 		return authsvc.LoginResult{}, mapLoginError(err, flags.env)
+	}
+	if result.RevokePreviousError != "" {
+		c.out.Warningf("Logged in, but failed to revoke previous API key: %s", result.RevokePreviousError)
 	}
 	return result, nil
 }

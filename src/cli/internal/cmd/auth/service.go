@@ -54,12 +54,8 @@ func NewService(cfg *config.Config) *Service {
 	return &Service{cfg: cfg}
 }
 
-// ResolveHost resolves the effective host based on env and explicit override.
-func (s *Service) ResolveHost(env, override string) (string, error) {
-	if override != "" {
-		return override, nil
-	}
-
+// ResolveHost resolves the configured host for an environment.
+func (s *Service) ResolveHost(env string) (string, error) {
 	host := authstore.HostForEnv(env)
 	if host == "" {
 		return "", fmt.Errorf("%w: %q", ErrUnknownEnvironment, env)
@@ -69,7 +65,8 @@ func (s *Service) ResolveHost(env, override string) (string, error) {
 
 // LoginResult contains login output details.
 type LoginResult struct {
-	Username string
+	Username            string
+	RevokePreviousError string
 }
 
 // CodeExchangeRequest contains the one-time browser login code.
@@ -132,10 +129,6 @@ func (s *Service) ExchangeCode(ctx context.Context, req CodeExchangeRequest) (Lo
 		Username:  response.Username,
 	}
 
-	if err := replaceExistingAPIKey(ctx, existing, &newCreds); err != nil {
-		return LoginResult{}, err
-	}
-
 	creds.Set(req.Env, newCreds)
 	if err := authstore.SaveCredentials(s.cfg.Home, creds); err != nil {
 		saveErr := fmt.Errorf("save credentials: %w", err)
@@ -145,14 +138,15 @@ func (s *Service) ExchangeCode(ctx context.Context, req CodeExchangeRequest) (Lo
 		return LoginResult{}, saveErr
 	}
 
-	return LoginResult{Username: response.Username}, nil
+	result := LoginResult{Username: response.Username, RevokePreviousError: ""}
+	if err := revokeExistingAPIKey(ctx, existing); err != nil {
+		result.RevokePreviousError = err.Error()
+	}
+
+	return result, nil
 }
 
-func replaceExistingAPIKey(
-	ctx context.Context,
-	existing *authstore.EnvCredentials,
-	newCreds *authstore.EnvCredentials,
-) error {
+func revokeExistingAPIKey(ctx context.Context, existing *authstore.EnvCredentials) error {
 	if existing == nil {
 		return nil
 	}
@@ -160,14 +154,6 @@ func replaceExistingAPIKey(
 	err := revokeAPIKey(ctx, existing)
 	if err == nil || errors.Is(err, ErrRevokeUnauthorized) {
 		return nil
-	}
-
-	cleanupErr := revokeAPIKey(ctx, newCreds)
-	if cleanupErr != nil {
-		return errors.Join(
-			fmt.Errorf("revoke previous api key: %w", err),
-			fmt.Errorf("revoke new api key: %w", cleanupErr),
-		)
 	}
 	return fmt.Errorf("revoke previous api key: %w", err)
 }

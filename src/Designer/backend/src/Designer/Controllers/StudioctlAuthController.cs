@@ -219,6 +219,7 @@ public class StudioctlAuthController(IApiKeyService apiKeyService, IDistributedC
 
     [Authorize]
     [AllowApiKey]
+    [TypeFilter(typeof(ConditionalAntiforgeryFilter))]
     [HttpDelete("api-key/{id:long}")]
     public async Task<IActionResult> RevokeApiKey(long id, CancellationToken cancellationToken)
     {

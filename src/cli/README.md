@@ -53,7 +53,7 @@ studioctl app run
 
 ## Core commands
 
-- `studioctl auth login`: login with Ansattporten for `prod`, `dev`, or `staging`
+- `studioctl auth login`: login with Ansattporten for `prod`, `dev`, `staging`, or `local`
 - `studioctl app clone`: clone `org/repo` from the selected Altinn Studio environment
 - `studioctl app run`: run app locally
 - `studioctl env up`: start localtest

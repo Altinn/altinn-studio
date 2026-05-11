@@ -12,7 +12,7 @@ import (
 	"altinn.studio/studioctl/internal/config"
 )
 
-func TestExchangeCodeRevokesPreviousAPIKeyBeforeSavingNewCredentials(t *testing.T) {
+func TestExchangeCodeRevokesPreviousAPIKeyAfterSavingNewCredentials(t *testing.T) {
 	home := t.TempDir()
 	ctx := context.Background()
 
@@ -37,30 +37,7 @@ func TestExchangeCodeRevokesPreviousAPIKeyBeforeSavingNewCredentials(t *testing.
 	}()
 
 	revokeCalled := false
-	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch {
-		case r.Method == http.MethodPost && r.URL.Path == studioctlTokenPath:
-			w.Header().Set("Content-Type", "application/json")
-			encodeErr := json.NewEncoder(w).Encode(studioctlTokenResponse{
-				Username:  "new-user",
-				Key:       "new-key",
-				ExpiresAt: "2026-01-01T00:00:00Z",
-				KeyID:     2,
-			})
-			if encodeErr != nil {
-				t.Errorf("encode response: %v", encodeErr)
-			}
-		case r.Method == http.MethodDelete && r.URL.Path == studioctlRevokePath+"1":
-			revokeCalled = true
-			if got := r.Header.Get("X-Api-Key"); got != "old-key" {
-				t.Errorf("expected old API key for revoke, got %q", got)
-			}
-			w.WriteHeader(http.StatusNoContent)
-		default:
-			t.Errorf("unexpected request %s %s", r.Method, r.URL.Path)
-			w.WriteHeader(http.StatusNotFound)
-		}
-	}))
+	server := httptest.NewTLSServer(exchangeCodeOverwriteHandler(t, home, &revokeCalled))
 	defer server.Close()
 	http.DefaultTransport = server.Client().Transport
 
@@ -92,6 +69,64 @@ func TestExchangeCodeRevokesPreviousAPIKeyBeforeSavingNewCredentials(t *testing.
 	}
 	if envCreds.ApiKey != "new-key" || envCreds.ApiKeyID != 2 {
 		t.Errorf("expected new credentials to be saved, got key=%q id=%d", envCreds.ApiKey, envCreds.ApiKeyID)
+	}
+}
+
+func exchangeCodeOverwriteHandler(t *testing.T, home string, revokeCalled *bool) http.Handler {
+	t.Helper()
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == http.MethodPost && r.URL.Path == studioctlTokenPath:
+			writeExchangeCodeResponse(t, w)
+		case r.Method == http.MethodDelete && r.URL.Path == studioctlRevokePath+"1":
+			*revokeCalled = true
+			assertOldAPIKeyRevokedAfterNewCredentialsSaved(t, home, r)
+			w.WriteHeader(http.StatusNoContent)
+		default:
+			t.Errorf("unexpected request %s %s", r.Method, r.URL.Path)
+			w.WriteHeader(http.StatusNotFound)
+		}
+	})
+}
+
+func writeExchangeCodeResponse(t *testing.T, w http.ResponseWriter) {
+	t.Helper()
+
+	w.Header().Set("Content-Type", "application/json")
+	encodeErr := json.NewEncoder(w).Encode(studioctlTokenResponse{
+		Username:  "new-user",
+		Key:       "new-key",
+		ExpiresAt: "2026-01-01T00:00:00Z",
+		KeyID:     2,
+	})
+	if encodeErr != nil {
+		t.Errorf("encode response: %v", encodeErr)
+	}
+}
+
+func assertOldAPIKeyRevokedAfterNewCredentialsSaved(t *testing.T, home string, r *http.Request) {
+	t.Helper()
+
+	if got := r.Header.Get("X-Api-Key"); got != "old-key" {
+		t.Errorf("expected old API key for revoke, got %q", got)
+	}
+	creds, err := authstore.LoadCredentials(home)
+	if err != nil {
+		t.Errorf("load credentials during revoke: %v", err)
+		return
+	}
+	envCreds, err := creds.Get("prod")
+	if err != nil {
+		t.Errorf("get prod credentials during revoke: %v", err)
+		return
+	}
+	if envCreds.ApiKey != "new-key" || envCreds.ApiKeyID != 2 {
+		t.Errorf(
+			"expected new credentials to be saved before revoke, got key=%q id=%d",
+			envCreds.ApiKey,
+			envCreds.ApiKeyID,
+		)
 	}
 }
 

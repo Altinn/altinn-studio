@@ -37,9 +37,15 @@ function handleRequest(r) {
     return;
   }
 
-  r.variables.auth_api_key = getApiKey(r);
+  var apiKey = getApiKey(r);
+  r.variables.auth_api_key = apiKey;
   r.subrequest('/_internal/userinfo', { method: 'GET' }, function (reply) {
     if (reply.status === 401 || reply.status === 403) {
+      if (apiKey) {
+        r.return(401, 'Invalid API key');
+        return;
+      }
+
       r.internalRedirect('@proxy_to_gitea_clean');
       return;
     }

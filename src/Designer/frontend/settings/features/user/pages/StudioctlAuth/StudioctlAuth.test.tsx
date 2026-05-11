@@ -117,4 +117,13 @@ describe('StudioctlAuth', () => {
     await waitFor(() => expect(cancelStudioctlAuthRequest).toHaveBeenCalledWith(requestId));
     expect(window.location.assign).toHaveBeenCalledWith(callbackUrl);
   });
+
+  it('renders not found when studio OIDC is disabled', async () => {
+    mockEnvironment.environment = { featureFlags: { studioOidc: false } };
+    renderStudioctlAuth();
+
+    expect(
+      await screen.findByRole('heading', { name: textMock('not_found_page.heading') }),
+    ).toBeInTheDocument();
+  });
 });

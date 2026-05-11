@@ -75,19 +75,13 @@ func TestResolveLoginTargetLocal(t *testing.T) {
 	}
 }
 
-func TestResolveLoginTargetHostURLOverride(t *testing.T) {
+func TestResolveLoginTargetUnknownEnvironment(t *testing.T) {
 	t.Parallel()
 
 	command := NewAuthCommand(testConfig(t), nil)
-	target, err := command.resolveLoginTarget(loginFlags{
-		env:  "dev",
-		host: "http://" + testLocalHost,
-	})
-	if err != nil {
-		t.Fatalf("resolveLoginTarget() error = %v", err)
-	}
-	if target.scheme != testHTTP || target.host != testLocalHost {
-		t.Fatalf("target = %+v, want http studio.localhost", target)
+	_, err := command.resolveLoginTarget(loginFlags{env: "unknown"})
+	if !errors.Is(err, ErrUnknownEnvironment) {
+		t.Fatalf("resolveLoginTarget() error = %v, want %v", err, ErrUnknownEnvironment)
 	}
 }
 

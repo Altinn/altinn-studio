@@ -38,7 +38,7 @@ export const StudioctlAuth = (): React.ReactElement => {
   const { mutate: cancelRequest, isPending: isCancelling } =
     useCancelStudioctlAuthRequestMutation();
 
-  if (isEnvironmentPending || isUserPending || (requestId && isRequestPending)) {
+  if (isEnvironmentPending || isUserPending || (canLoadRequest && isRequestPending)) {
     return (
       <StudioCenter>
         <StudioPageSpinner spinnerTitle={t('general.loading')} />
