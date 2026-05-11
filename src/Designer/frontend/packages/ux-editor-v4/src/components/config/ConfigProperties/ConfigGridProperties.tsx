@@ -43,9 +43,7 @@ export const ConfigGridProperties = ({
 
   const handleSave = () => {
     const updatedComponent = { ...initialComponent };
-    if (currentComponent.grid) updatedComponent.grid = currentComponent.grid;
-    else delete updatedComponent.grid;
-    handleComponentUpdate(updatedComponent);
+    handleComponentUpdate({ ...updatedComponent, grid: currentComponent.grid });
     setShowGrid(false);
   };
 
