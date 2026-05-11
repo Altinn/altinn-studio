@@ -28,6 +28,9 @@ func TestUpgradeAppUsesUpgradeTimeoutOnly(t *testing.T) {
 		cfg: testConfig(t),
 		http: &http.Client{
 			Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+				if got := req.Header.Get("User-Agent"); got != "studioctl/test-version" {
+					t.Fatalf("%s User-Agent = %q, want studioctl/test-version", req.URL.Path, got)
+				}
 				deadline, ok := req.Context().Deadline()
 				if !ok {
 					t.Fatalf("%s request has no deadline", req.URL.Path)
@@ -357,6 +360,7 @@ func testConfig(t *testing.T) *config.Config {
 		LogDir:    filepath.Join(dir, "logs"),
 		DataDir:   filepath.Join(dir, "data"),
 		BinDir:    filepath.Join(dir, "bin"),
+		Version:   config.NewVersion("test-version"),
 	}
 }
 
