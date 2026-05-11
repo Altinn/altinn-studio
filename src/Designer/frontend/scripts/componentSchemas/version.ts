@@ -11,7 +11,7 @@ export const versionSettings = {
       'https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json',
     expressionSchemaUrl:
       'https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/expression.schema.v1.json',
-    componentSchemaPath: '../../packages/ux-editor/src/testing/schemas/json/component',
+    componentSchemaPath: '../../packages/ux-editor-v4/src/testing/schemas/json/component',
   },
 };
 export const isValidVersion = (version: string) =>

@@ -1,0 +1,100 @@
+import { Fragment } from 'react';
+import { Accordion } from '@digdir/designsystemet-react';
+import { FileIcon } from '@studio/icons';
+import { useText, useFormLayouts } from '../../../hooks';
+import { useTextResourcesSelector } from 'app-shared/hooks';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { HiddenExpressionOnLayout } from './HiddenExpressionOnLayout';
+import { TextResource } from '../../TextResource/TextResource';
+import { textResourceByLanguageAndIdSelector } from 'app-shared/selectors/textResourceSelectors';
+import type { ITextResource } from 'app-shared/types/global';
+import {
+  duplicatedIdsExistsInLayout,
+  findLayoutsContainingDuplicateComponents,
+} from '../../../utils/formLayoutUtils';
+import { PageConfigWarning } from './PageConfigWarning';
+import classes from './PageConfigPanel.module.css';
+import { PageConfigWarningModal } from './PageConfigWarningModal';
+import type { IInternalLayout } from '@altinn/ux-editor-v4/types/global';
+import { PdfConfig } from '@altinn/ux-editor-v4/components/Properties/PageConfigPanel/PdfConfig';
+import type { ItemType } from '../ItemType';
+import type { SelectedItem } from '../../../AppContext';
+import { EditPageId } from './EditPageId';
+import { ConfigPanelHeader } from '../CommonElements/ConfigPanelHeader/ConfigPanelHeader';
+import { MainSettingsHeader } from '../CommonElements/MainSettingsHeader/MainSettingsHeader';
+
+type PageConfigPanelProps = {
+  selectedItem: Extract<SelectedItem, { type: ItemType.Page }>;
+};
+
+export const PageConfigPanel = ({ selectedItem }: PageConfigPanelProps) => {
+  const t = useText();
+  const layoutNameTextResourceSelector = textResourceByLanguageAndIdSelector(
+    DEFAULT_LANGUAGE,
+    selectedItem.id,
+  );
+  const layoutNameTextResource = useTextResourcesSelector<ITextResource>(
+    layoutNameTextResourceSelector,
+  );
+  const layoutNameText = layoutNameTextResource?.value;
+  const headingTitle = layoutNameText || selectedItem.id;
+
+  const layouts: Record<string, IInternalLayout> = useFormLayouts();
+  const layout = layouts[selectedItem.id];
+  const hasDuplicatedIds = duplicatedIdsExistsInLayout(layout);
+
+  const duplicateLayouts: string[] =
+    findLayoutsContainingDuplicateComponents(layouts).duplicateLayouts;
+  const hasDuplicatedIdsInAllLayouts = duplicateLayouts?.length > 0;
+
+  if (hasDuplicatedIds) {
+    return <PageConfigWarning selectedFormLayoutName={selectedItem.id} layout={layout} />;
+  }
+
+  return (
+    <>
+      <ConfigPanelHeader icon={<FileIcon />} title={headingTitle} />
+      <Fragment key={selectedItem.id}>
+        <MainSettingsHeader />
+        <div className={classes.mainConfig}>
+          <EditPageId layoutName={selectedItem.id} />
+          <NameConfig selectedItem={selectedItem} />
+        </div>
+        <Accordion>
+          <Accordion.Item>
+            <Accordion.Header>{t('right_menu.text')}</Accordion.Header>
+            <Accordion.Content className={classes.text}>
+              <NameConfig selectedItem={selectedItem} />
+            </Accordion.Content>
+          </Accordion.Item>
+          <Accordion.Item>
+            <Accordion.Header>{t('right_menu.dynamics')}</Accordion.Header>
+            <Accordion.Content>
+              <HiddenExpressionOnLayout />
+            </Accordion.Content>
+          </Accordion.Item>
+          <Accordion.Item>
+            <Accordion.Header>{t('right_menu.pdf')}</Accordion.Header>
+            <Accordion.Content className={classes.pdf}>
+              <PdfConfig />
+            </Accordion.Content>
+          </Accordion.Item>
+        </Accordion>
+      </Fragment>
+      <PageConfigWarningModal open={hasDuplicatedIdsInAllLayouts} />
+    </>
+  );
+};
+
+const NameConfig = ({ selectedItem }: PageConfigPanelProps) => {
+  const t = useText();
+
+  return (
+    <TextResource
+      handleIdChange={() => {}} // The id is not editable in this context, as it must match the layout name
+      label={t('ux_editor.modal_properties_textResourceBindings_page_name')}
+      textResourceId={selectedItem.id}
+      disableSearch={true}
+    />
+  );
+};
