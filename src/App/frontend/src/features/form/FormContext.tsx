@@ -94,11 +94,11 @@ export function processBootstrap(bootstrap: FormBootstrapBase): FormBootstrapCon
   }
 
   const processedLayouts = processLayouts(bootstrap.layouts, defaultDataType);
-  const layoutLookups = makeLayoutLookups(processedLayouts.processedLayouts);
+  const layoutLookups = makeLayoutLookups(processedLayouts);
 
   return {
     ...bootstrap,
-    ...processedLayouts,
+    processedLayouts,
     layoutLookups,
   };
 }

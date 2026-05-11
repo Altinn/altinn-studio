@@ -10,7 +10,6 @@ import type {
   IExpressionValidations,
 } from 'src/features/validation';
 import type { ILayoutCollection, ILayouts } from 'src/layout/layout';
-import type { IExpandedWidthLayouts, IHiddenLayoutsExternal } from 'src/types';
 
 export interface RawDataModelInfo {
   schema: JSONSchema7;
@@ -45,6 +44,4 @@ export interface FormBootstrapBase extends Omit<FormBootstrapQueryResponse, 'sta
 export interface FormBootstrapContextValue extends FormBootstrapBase {
   processedLayouts: ILayouts;
   layoutLookups: LayoutLookups;
-  hiddenLayoutsExpressions: IHiddenLayoutsExternal;
-  expandedWidthLayouts: IExpandedWidthLayouts;
 }

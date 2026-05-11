@@ -176,19 +176,15 @@ function useRedirectToStoredPage() {
  */
 function useSetExpandedWidth() {
   const currentPageId = useCurrentView();
-  const expandedPagesFromLayout = FormStore.bootstrap.useExpandedWidthLayouts();
+  const layoutCollection = FormStore.bootstrap.useLayoutCollection();
+  const expandedWidthFromLayout = currentPageId ? layoutCollection[currentPageId]?.data.expandedWidth : undefined;
   const expandedWidthFromSettings = usePageSettings().expandedWidth;
+  const expandedWidth = expandedWidthFromLayout ?? expandedWidthFromSettings ?? false;
   const { setExpandedWidth } = useUiConfigContext();
 
   useEffect(() => {
-    let defaultExpandedWidth = false;
-    if (currentPageId && expandedPagesFromLayout[currentPageId] !== undefined) {
-      defaultExpandedWidth = !!expandedPagesFromLayout[currentPageId];
-    } else if (expandedWidthFromSettings !== undefined) {
-      defaultExpandedWidth = expandedWidthFromSettings;
-    }
-    setExpandedWidth(defaultExpandedWidth);
-  }, [currentPageId, expandedPagesFromLayout, expandedWidthFromSettings, setExpandedWidth]);
+    setExpandedWidth(expandedWidth);
+  }, [expandedWidth, setExpandedWidth]);
 }
 
 const emptyArray = [];

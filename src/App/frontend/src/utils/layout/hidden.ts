@@ -14,8 +14,7 @@ import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSour
 import type { EvalExprOptions } from 'src/features/expressions';
 import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import type { CompExternal } from 'src/layout/layout';
-import type { IHiddenLayoutsExternal } from 'src/types';
+import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 export interface IsHiddenOptions<Reason extends boolean = false> {
@@ -49,8 +48,8 @@ export function useIsHidden<Reason extends boolean = false>(
   }
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const hiddenPages = FormStore.bootstrap.useHiddenLayoutsExpressions();
-  const hiddenSources = findHiddenSources(baseComponentId, layoutLookups, hiddenPages).reverse();
+  const layoutCollection = FormStore.bootstrap.useLayoutCollection();
+  const hiddenSources = findHiddenSources(baseComponentId, layoutLookups, layoutCollection).reverse();
   const dataSources = useExpressionDataSources(hiddenSources);
   const forcedVisible = useIsForcedVisibleByDevTools();
   const pageOrder = useRawPageOrder();
@@ -88,13 +87,13 @@ export function useIsHiddenMulti(
   }
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const hiddenPages = FormStore.bootstrap.useHiddenLayoutsExpressions();
+  const layoutCollection = FormStore.bootstrap.useLayoutCollection();
   const hiddenSources = useMemo(
     () =>
       baseComponentIds.map((baseComponentId) =>
-        findHiddenSources(baseComponentId, layoutLookups, hiddenPages).reverse(),
+        findHiddenSources(baseComponentId, layoutLookups, layoutCollection).reverse(),
       ),
-    [baseComponentIds, hiddenPages, layoutLookups],
+    [baseComponentIds, layoutCollection, layoutLookups],
   );
   const dataSources = useExpressionDataSources(hiddenSources);
   const forcedVisible = useIsForcedVisibleByDevTools();
@@ -137,12 +136,12 @@ export function useIsHiddenPage(pageKey: string | undefined, options: Omit<IsHid
     throw new Error("useIsHiddenPage doesn't support changing the pageKey, that would break the rule of hooks");
   }
 
-  const hiddenExpressions = FormStore.bootstrap.useHiddenLayoutsExpressions();
-  const dataSources = useExpressionDataSources(hiddenExpressions);
+  const layoutCollection = FormStore.bootstrap.useLayoutCollection();
+  const dataSources = useExpressionDataSources(layoutCollection);
   const pageOrder = useRawPageOrder();
   const forcedVisible = useIsForcedVisibleByDevTools();
 
-  const hidden = isHiddenPage({ pageKey, dataSources, pageOrder, hiddenExpressions, ...options });
+  const hidden = isHiddenPage({ pageKey, dataSources, pageOrder, layoutCollection, ...options });
 
   if (hidden && forcedVisible && options.respectDevTools !== false) {
     return false;
@@ -155,14 +154,14 @@ export function useIsHiddenPage(pageKey: string | undefined, options: Omit<IsHid
  * Check which pages are hidden, returning a Set with the ones that are hidden
  */
 export function useHiddenPages(options: Omit<IsHiddenOptions, 'includeReason'> = {}): Set<string> {
-  const pages = Object.keys(FormStore.bootstrap.useLaxLayouts() || {});
-  const hiddenExpressions = FormStore.bootstrap.useLaxHiddenLayoutsExpressions() || {};
-  const dataSources = useExpressionDataSources(hiddenExpressions);
+  const layoutCollection = FormStore.bootstrap.useLaxLayoutCollection();
+  const pages = Object.keys(layoutCollection || {});
+  const dataSources = useExpressionDataSources(layoutCollection);
   const pageOrder = useRawPageOrder();
 
   const out = new Set<string>();
   for (const pageKey of pages) {
-    const hidden = isHiddenPage({ pageKey, dataSources, pageOrder, hiddenExpressions, ...options });
+    const hidden = isHiddenPage({ pageKey, dataSources, pageOrder, layoutCollection: layoutCollection!, ...options });
     if (hidden) {
       out.add(pageKey);
     }
@@ -248,7 +247,7 @@ type HiddenSource = Expr | Callback;
 function findHiddenSources(
   baseComponentId: string | undefined,
   layoutLookups: LayoutLookups,
-  hiddenPages: IHiddenLayoutsExternal,
+  layoutCollection: ILayoutCollection,
 ): HiddenSource[] {
   const out: HiddenSource[] = [];
   if (baseComponentId === undefined) {
@@ -286,7 +285,7 @@ function findHiddenSources(
   }
 
   const page = layoutLookups.componentToPage[baseComponentId];
-  const hiddenExpr = page === undefined ? undefined : hiddenPages[page];
+  const hiddenExpr = page === undefined ? undefined : layoutCollection[page]?.data.hidden;
   if (hiddenExpr !== undefined) {
     out.push({ type: 'hiddenPage', expr: hiddenExpr, id: page! });
   }
@@ -318,7 +317,7 @@ function useIsForcedVisibleByDevTools() {
 
 interface IsHiddenPageProps extends Pick<IsHiddenOptions<boolean>, 'respectPageOrder'> {
   pageKey: string | undefined;
-  hiddenExpressions: IHiddenLayoutsExternal;
+  layoutCollection: ILayoutCollection;
   dataSources: ExpressionDataSources;
   pageOrder: string[];
 }
@@ -326,7 +325,7 @@ interface IsHiddenPageProps extends Pick<IsHiddenOptions<boolean>, 'respectPageO
 function isHiddenPage({
   pageOrder,
   pageKey,
-  hiddenExpressions,
+  layoutCollection,
   dataSources,
   respectPageOrder = false,
 }: IsHiddenPageProps) {
@@ -336,7 +335,7 @@ function isHiddenPage({
   if (respectPageOrder && !pageOrder.includes(pageKey)) {
     return true;
   }
-  const hiddenExpr = hiddenExpressions[pageKey];
+  const hiddenExpr = layoutCollection[pageKey]?.data.hidden;
   if (hiddenExpr === undefined) {
     return false;
   }

@@ -8,18 +8,12 @@ import type { IDataModelReference } from 'src/layout/common.generated';
 
 export const formBootstrapHooks = {
   useLayouts: () => FormStore.raw.useSelector((s) => s.bootstrap.processedLayouts),
-  useLaxLayouts: () => {
-    const out = FormStore.raw.useLaxSelector((s) => s.bootstrap.processedLayouts);
+  useLayoutCollection: () => FormStore.raw.useSelector((s) => s.bootstrap.layouts),
+  useLaxLayoutCollection: () => {
+    const out = FormStore.raw.useLaxSelector((s) => s.bootstrap.layouts);
     return out === ContextNotProvided ? undefined : out;
   },
-  useLayoutCollection: () => FormStore.raw.useSelector((s) => s.bootstrap.layoutLookups),
   useLayoutLookups: () => FormStore.raw.useSelector((s) => s.bootstrap.layoutLookups),
-  useHiddenLayoutsExpressions: () => FormStore.raw.useSelector((s) => s.bootstrap.hiddenLayoutsExpressions),
-  useLaxHiddenLayoutsExpressions: () => {
-    const out = FormStore.raw.useLaxSelector((s) => s.bootstrap.hiddenLayoutsExpressions);
-    return out === ContextNotProvided ? undefined : out;
-  },
-  useExpandedWidthLayouts: () => FormStore.raw.useSelector((s) => s.bootstrap.expandedWidthLayouts),
   useDataModels: () => FormStore.raw.useSelector((s) => s.bootstrap.dataModels),
 
   useDefaultDataType: () => {
