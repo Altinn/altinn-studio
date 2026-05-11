@@ -10,24 +10,24 @@ var apiKeyAllowedPattern =
 function getApiKey(r) {
   var headerApiKey = r.headersIn['X-Api-Key'];
   if (headerApiKey) {
-    return { value: headerApiKey, source: 'header' };
+    return headerApiKey;
   }
 
   var authorization = r.headersIn.Authorization || r.headersIn.authorization;
   if (!authorization || authorization.slice(0, 6).toLowerCase() !== 'basic ') {
-    return { value: '', source: '' };
+    return '';
   }
 
   try {
     var decoded = Buffer.from(authorization.slice(6), 'base64').toString();
     var separatorIndex = decoded.indexOf(':');
     if (separatorIndex < 0) {
-      return { value: '', source: '' };
+      return '';
     }
-    return { value: decoded.slice(separatorIndex + 1), source: 'basic' };
+    return decoded.slice(separatorIndex + 1);
   } catch (e) {
     r.warn('Failed to decode Basic auth: ' + e.message);
-    return { value: '', source: '' };
+    return '';
   }
 }
 
@@ -38,14 +38,9 @@ function handleRequest(r) {
   }
 
   var apiKey = getApiKey(r);
-  r.variables.auth_api_key = apiKey.value;
+  r.variables.auth_api_key = apiKey;
   r.subrequest('/_internal/userinfo', { method: 'GET' }, function (reply) {
     if (reply.status === 401 || reply.status === 403) {
-      if (apiKey.source === 'header') {
-        r.return(401, 'Invalid API key');
-        return;
-      }
-
       r.internalRedirect('@proxy_to_gitea_clean');
       return;
     }

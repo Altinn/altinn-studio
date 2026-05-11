@@ -120,10 +120,13 @@ HTTP 200
 jsonpath "$.headers['x-webauth-user']" == "{{APIKEY_USERNAME}}"
 jsonpath "$.headers['x-api-key']"      not exists
 
-# Rejected X-Api-Key returns 401 instead of falling through to Gitea.
+# Rejected X-Api-Key falls through to Gitea with X-Api-Key preserved.
 GET {{proxy_on_pub}}/api/v1/repos
 X-Api-Key: invalid
-HTTP 401
+HTTP 200
+[Asserts]
+jsonpath "$.headers['x-api-key']" == "invalid"
+jsonpath "$.headers['x-webauth-user']" not exists
 
 # Basic auth password drives the ApiKey scenario for Git credential helpers.
 # The original Authorization header is cleared before proxying to Gitea.
