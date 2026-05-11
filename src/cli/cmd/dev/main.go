@@ -305,27 +305,27 @@ func buildStudioctlFor(goos, goarch, outputDir, binaryName, buildVersion string)
 func buildPlatformResources(
 	goos, goarch, outputDir string,
 ) (archivePath string, err error) {
-	appManagerDir := filepath.Join(outputDir, ".app-manager-"+goos+"-"+goarch)
-	if removeErr := os.RemoveAll(appManagerDir); removeErr != nil {
-		return "", fmt.Errorf("clean app-manager staging dir: %w", removeErr)
+	serverDir := filepath.Join(outputDir, "."+config.StudioctlServerName+"-"+goos+"-"+goarch)
+	if removeErr := os.RemoveAll(serverDir); removeErr != nil {
+		return "", fmt.Errorf("clean %s staging dir: %w", config.StudioctlServerName, removeErr)
 	}
 	defer func() {
-		if removeErr := os.RemoveAll(appManagerDir); removeErr != nil && err == nil {
-			err = fmt.Errorf("remove app-manager staging dir: %w", removeErr)
+		if removeErr := os.RemoveAll(serverDir); removeErr != nil && err == nil {
+			err = fmt.Errorf("remove %s staging dir: %w", config.StudioctlServerName, removeErr)
 		}
 	}()
 
-	if _, publishErr := publishAppManagerToDir(goos, goarch, appManagerDir); publishErr != nil {
+	if _, publishErr := publishAppManagerToDir(goos, goarch, serverDir); publishErr != nil {
 		return "", publishErr
 	}
 
 	fmt.Println("Creating resources archive...")
 	archivePath, err = installpkg.CreateResourcesArchive(installpkg.ResourcesArchiveOptions{
-		GOOS:          goos,
-		GOARCH:        goarch,
-		OutputDir:     outputDir,
-		AppManagerDir: appManagerDir,
-		LocaltestDir:  localtestDir,
+		GOOS:         goos,
+		GOARCH:       goarch,
+		OutputDir:    outputDir,
+		ServerDir:    serverDir,
+		LocaltestDir: localtestDir,
 	})
 	if err != nil {
 		return "", fmt.Errorf("create resources archive: %w", err)

@@ -8,12 +8,13 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
 const (
 	resourcesArchiveAssetBaseName = "studioctl-resources"
-	resourcesAppManagerDir        = "app-manager"
+	resourcesServerDir            = config.StudioctlServerResourcesDirName
 	resourcesLocaltestDir         = "localtest"
 	resourcesTestdataDir          = "testdata"
 	resourcesInfraDir             = "infra"
@@ -25,10 +26,12 @@ const (
 )
 
 var errResourcesVersionRequired = errors.New("version required for resources install")
-var errAppManagerExecutablePathDirectory = errors.New("validate app-manager payload: executable path is a directory")
+var errAppManagerExecutablePathDirectory = errors.New(
+	"validate " + config.StudioctlServerName + " payload: executable path is a directory",
+)
 
 var errAppManagerExecutableNotExecutable = errors.New(
-	"validate app-manager payload: executable is not marked executable",
+	"validate " + config.StudioctlServerName + " payload: executable is not marked executable",
 )
 
 // InstallBundleResources installs the bundle resources.
@@ -65,9 +68,9 @@ func (s *Service) InstallBundleResources(ctx context.Context, bundle Bundle) (er
 		return fmt.Errorf("extract resources archive: %w", err)
 	}
 
-	appManagerDir := filepath.Join(stagingDir, resourcesAppManagerDir)
-	if _, err := installDir(appManagerDir, s.cfg.AppManagerInstallDir(), s.validatePayloadDir); err != nil {
-		return fmt.Errorf("install app-manager: %w", err)
+	serverDir := filepath.Join(stagingDir, resourcesServerDir)
+	if _, err := installDir(serverDir, s.cfg.AppManagerInstallDir(), s.validatePayloadDir); err != nil {
+		return fmt.Errorf("install %s: %w", resourcesServerDir, err)
 	}
 
 	if err := copyDir(filepath.Join(stagingDir, resourcesLocaltestDir), s.cfg.DataDir); err != nil {
@@ -122,7 +125,7 @@ func (s *Service) validatePayloadDir(payloadDir string) error {
 	binaryPath := filepath.Join(payloadDir, filepath.Base(s.cfg.AppManagerBinaryPath()))
 	info, err := os.Stat(binaryPath)
 	if err != nil {
-		return fmt.Errorf("validate app-manager payload: missing executable %q: %w", binaryPath, err)
+		return fmt.Errorf("validate %s payload: missing executable %q: %w", config.StudioctlServerName, binaryPath, err)
 	}
 	if info.IsDir() {
 		return fmt.Errorf("%w: %s", errAppManagerExecutablePathDirectory, binaryPath)

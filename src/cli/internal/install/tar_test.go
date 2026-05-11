@@ -314,7 +314,7 @@ func TestExtractTarGz_PreservesFileModeWhenEnabled(t *testing.T) {
 
 	dst := t.TempDir()
 	tarData := createTestTarGzRaw(t, []tarEntry{
-		{name: "bin/app-manager", content: "binary", mode: 0o755},
+		{name: "bin/executable", content: "binary", mode: 0o755},
 	})
 
 	err := extractTarGzWithOptions(bytes.NewReader(tarData), dst, extractTarGzOptions{PreserveFileMode: true})
@@ -322,7 +322,7 @@ func TestExtractTarGz_PreservesFileModeWhenEnabled(t *testing.T) {
 		t.Fatalf("extractTarGzWithOptions() error = %v", err)
 	}
 
-	info, err := os.Stat(filepath.Join(dst, "bin", "app-manager"))
+	info, err := os.Stat(filepath.Join(dst, "bin", "executable"))
 	if err != nil {
 		t.Fatalf("stat extracted file: %v", err)
 	}

@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"altinn.studio/devenv/pkg/processutil"
+	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
@@ -16,10 +17,10 @@ const (
 	goArchARM64 = "arm64"
 )
 
-var errUnsupportedAppManagerRID = errors.New("unsupported app-manager runtime")
+var errUnsupportedAppManagerRID = errors.New("unsupported " + config.StudioctlServerName + " runtime")
 
 func publishAppManagerToDir(goos, goarch, publishDir string) (string, error) {
-	fmt.Println("Publishing app-manager...")
+	fmt.Printf("Publishing %s...\n", config.StudioctlServerName)
 
 	rid, err := dotnetRuntimeIdentifier(goos, goarch)
 	if err != nil {
@@ -27,10 +28,10 @@ func publishAppManagerToDir(goos, goarch, publishDir string) (string, error) {
 	}
 
 	if err := os.RemoveAll(publishDir); err != nil {
-		return "", fmt.Errorf("clean app-manager publish dir: %w", err)
+		return "", fmt.Errorf("clean %s publish dir: %w", config.StudioctlServerName, err)
 	}
 	if err := os.MkdirAll(publishDir, dirPermDefault); err != nil {
-		return "", fmt.Errorf("create app-manager publish dir: %w", err)
+		return "", fmt.Errorf("create %s publish dir: %w", config.StudioctlServerName, err)
 	}
 
 	args := []string{

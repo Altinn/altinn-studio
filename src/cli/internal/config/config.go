@@ -37,6 +37,15 @@ const (
 	// AppName is the application name used for platform-specific directories.
 	AppName = "altinn-studio"
 
+	// StudioctlServerName is the host service identity used in runtime files and logs.
+	StudioctlServerName = "app-manager"
+
+	// StudioctlServerBinaryName is the executable name of the installed host service.
+	StudioctlServerBinaryName = StudioctlServerName
+
+	// StudioctlServerResourcesDirName is the resources archive directory containing the host service payload.
+	StudioctlServerResourcesDirName = StudioctlServerName
+
 	// EnvHome overrides the home directory.
 	EnvHome = "STUDIOCTL_HOME"
 
@@ -203,24 +212,24 @@ func resolveSocketDir(flagValue, home string) (string, error) {
 	return home, nil
 }
 
-// AppManagerSocketPath returns the path to the app-manager Unix socket.
+// AppManagerSocketPath returns the path to the studioctl server Unix socket.
 func (c *Config) AppManagerSocketPath() string {
-	return filepath.Join(c.SocketDir, "app-manager.sock")
+	return filepath.Join(c.SocketDir, StudioctlServerName+".sock")
 }
 
-// AppManagerPIDPath returns the path to the persisted app-manager runtime state file.
+// AppManagerPIDPath returns the path to the persisted studioctl server runtime state file.
 func (c *Config) AppManagerPIDPath() string {
-	return filepath.Join(c.Home, "app-manager.pid")
+	return filepath.Join(c.Home, StudioctlServerName+".pid")
 }
 
-// AppManagerLockPath returns the path to the app-manager lifecycle lock file.
+// AppManagerLockPath returns the path to the studioctl server lifecycle lock file.
 func (c *Config) AppManagerLockPath() string {
-	return filepath.Join(c.SocketDir, "app-manager.lock")
+	return filepath.Join(c.SocketDir, StudioctlServerName+".lock")
 }
 
-// AppManagerLogDir returns the directory containing app-manager log files.
+// AppManagerLogDir returns the directory containing studioctl server log files.
 func (c *Config) AppManagerLogDir() string {
-	return filepath.Join(c.LogDir, "app-manager")
+	return filepath.Join(c.LogDir, StudioctlServerName)
 }
 
 // AppLogsDir returns the directory containing app log directories.
@@ -233,19 +242,19 @@ func (c *Config) AppLogDir(appID string) string {
 	return filepath.Join(c.AppLogsDir(), appID)
 }
 
-// AppManagerBinaryPath returns the path to the app-manager binary.
+// AppManagerBinaryPath returns the path to the studioctl server binary.
 // On Windows, the .exe suffix is automatically appended.
 func (c *Config) AppManagerBinaryPath() string {
-	name := "app-manager"
+	name := StudioctlServerBinaryName
 	if runtime.GOOS == osutil.OSWindows {
 		name += ".exe"
 	}
 	return filepath.Join(c.AppManagerInstallDir(), name)
 }
 
-// AppManagerInstallDir returns the directory containing the installed app-manager payload.
+// AppManagerInstallDir returns the directory containing the installed studioctl server payload.
 func (c *Config) AppManagerInstallDir() string {
-	return filepath.Join(c.BinDir, "app-manager")
+	return filepath.Join(c.BinDir, StudioctlServerName)
 }
 
 // BoundTopologyConfigDir returns the directory containing generated bound topology files.

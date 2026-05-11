@@ -12,11 +12,11 @@ const releaseNotesFileName = "release-notes.md"
 
 // ResourcesArchiveOptions describes the inputs needed to create a resources archive.
 type ResourcesArchiveOptions struct {
-	GOOS          string
-	GOARCH        string
-	OutputDir     string
-	AppManagerDir string
-	LocaltestDir  string
+	GOOS         string
+	GOARCH       string
+	OutputDir    string
+	ServerDir    string
+	LocaltestDir string
 }
 
 // CreateResourcesArchive creates a studioctl resources archive for a target platform.
@@ -41,8 +41,8 @@ func CreateResourcesArchive(opts ResourcesArchiveOptions) (path string, err erro
 	}
 
 	archivePath := filepath.Join(opts.OutputDir, archiveName)
-	if err := copyDir(opts.AppManagerDir, filepath.Join(stagingDir, resourcesAppManagerDir)); err != nil {
-		return "", fmt.Errorf("stage app-manager: %w", err)
+	if err := copyDir(opts.ServerDir, filepath.Join(stagingDir, resourcesServerDir)); err != nil {
+		return "", fmt.Errorf("stage %s: %w", resourcesServerDir, err)
 	}
 	if err := stageLocaltestResources(
 		opts.LocaltestDir,
@@ -50,7 +50,7 @@ func CreateResourcesArchive(opts ResourcesArchiveOptions) (path string, err erro
 	); err != nil {
 		return "", err
 	}
-	if err := createTarGz(archivePath, stagingDir, resourcesAppManagerDir, resourcesLocaltestDir); err != nil {
+	if err := createTarGz(archivePath, stagingDir, resourcesServerDir, resourcesLocaltestDir); err != nil {
 		return "", fmt.Errorf("create resources archive: %w", err)
 	}
 	return archivePath, nil

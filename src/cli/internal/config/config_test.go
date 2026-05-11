@@ -152,7 +152,7 @@ func TestNewWithEnvSocketDir(t *testing.T) {
 	if cfg.SocketDir != socketDir {
 		t.Errorf("SocketDir = %q, want %q", cfg.SocketDir, socketDir)
 	}
-	if cfg.AppManagerLockPath() != filepath.Join(socketDir, "app-manager.lock") {
+	if cfg.AppManagerLockPath() != filepath.Join(socketDir, config.StudioctlServerName+".lock") {
 		t.Errorf("AppManagerLockPath() = %q, want lock in socket dir", cfg.AppManagerLockPath())
 	}
 	if cfg.BoundTopologyConfigDir() != filepath.Join(cfg.DataDir, "generated", "topology") {
