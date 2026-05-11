@@ -53,9 +53,7 @@ internal static class HandleAlerts
         CancellationToken cancellationToken
     )
     {
-        string? designerEnvironmentLabel = alertPayload
-            .Alerts.Select(a => a.Labels.GetValueOrDefault("DesignerEnvironment"))
-            .FirstOrDefault();
+        string? designerEnvironmentLabel = alertPayload.CommonLabels.GetValueOrDefault("DesignerEnvironment");
         string designerEnvironment =
             !string.IsNullOrWhiteSpace(designerEnvironmentLabel)
             && environments.CurrentValue.ContainsKey(designerEnvironmentLabel)
@@ -67,13 +65,12 @@ internal static class HandleAlerts
         );
         var currentGatewayContext = gatewayContext.CurrentValue;
 
-        var firstAlert = alertPayload.Alerts.FirstOrDefault();
-        if (firstAlert is null)
+        if (!alertPayload.Alerts.Any())
         {
             return Results.BadRequest();
         }
 
-        var ruleId = firstAlert.Annotations.GetValueOrDefault("ruleId");
+        var ruleId = alertPayload.CommonAnnotations.GetValueOrDefault("ruleId");
         if (string.IsNullOrEmpty(ruleId) || !AzureMonitorClient.OperationNameKeys.Contains(ruleId))
         {
             return Results.BadRequest();
@@ -94,7 +91,7 @@ internal static class HandleAlerts
         }
 
         int? intervalInMinutes = int.TryParse(
-            firstAlert.Annotations.GetValueOrDefault("intervalInMinutes"),
+            alertPayload.CommonAnnotations.GetValueOrDefault("intervalInMinutes"),
             out var interval
         )
             ? interval
@@ -115,11 +112,12 @@ internal static class HandleAlerts
 
         var alert = new Alert
         {
-            Id = $"{firstAlert.Fingerprint}-{firstAlert.StartsAt.ToUnixTimeSeconds()}",
+            Id =
+                $"{currentGatewayContext.ServiceOwner}-{currentGatewayContext.Environment}-{string.Join("-", alertPayload.Alerts.Select(a => $"{a.Fingerprint}:{a.StartsAt.ToUnixTimeSeconds()}").Order())}",
             RuleId = ruleId,
-            Name = firstAlert.Labels.GetValueOrDefault("alertname", string.Empty),
+            Name = alertPayload.CommonLabels.GetValueOrDefault("alertname", string.Empty),
             Alerts = alerts,
-            Url = firstAlert.GeneratorURL,
+            Url = alertPayload.Alerts.First().GeneratorURL,
             LogsUrl = logsUrl,
         };
 
