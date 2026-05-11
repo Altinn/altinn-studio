@@ -170,6 +170,8 @@ public class StudioctlAuthService(IApiKeyService apiKeyService, IDistributedCach
             return Unauthorized<StudioctlTokenResponse>();
         }
 
+        // TODO: IDistributedCache does not expose atomic get-and-delete semantics. The short TTL and PKCE verifier
+        // limit replay risk; we should consider replacing these with atomic operations.
         await cache.RemoveAsync(cacheKey, cancellationToken);
 
         StudioctlAuthCode? authCode = JsonSerializer.Deserialize<StudioctlAuthCode>(serializedAuthCode);

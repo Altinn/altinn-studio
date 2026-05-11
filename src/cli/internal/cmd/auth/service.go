@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"sort"
 	"strconv"
@@ -214,7 +215,7 @@ func exchangeCode(
 	if err != nil {
 		return studioctlTokenResponse{}, fmt.Errorf("exchange login code: %w", err)
 	}
-	defer resp.Body.Close() //nolint:errcheck // Best effort close on error path
+	defer closeResponseBody(resp.Body)
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		return studioctlTokenResponse{}, ErrInvalidToken
@@ -401,7 +402,7 @@ func revokeAPIKey(ctx context.Context, creds *authstore.EnvCredentials) error {
 	if err != nil {
 		return fmt.Errorf("revoke api key: %w", err)
 	}
-	defer resp.Body.Close() //nolint:errcheck // Best effort close on error path
+	defer closeResponseBody(resp.Body)
 
 	switch resp.StatusCode {
 	case http.StatusNoContent, http.StatusNotFound:
@@ -418,6 +419,12 @@ func errorString(err error) string {
 		return ""
 	}
 	return err.Error()
+}
+
+func closeResponseBody(body io.Closer) {
+	if err := body.Close(); err != nil {
+		return
+	}
 }
 
 func validateToken(ctx context.Context, creds *authstore.EnvCredentials, version config.Version) string {

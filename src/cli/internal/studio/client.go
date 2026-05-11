@@ -135,7 +135,7 @@ func (c *Client) GetUser(ctx context.Context) (*User, error) {
 	if err != nil {
 		return nil, fmt.Errorf("execute request: %w", err)
 	}
-	defer resp.Body.Close() //nolint:errcheck // Best effort close on error path
+	defer closeResponseBody(resp.Body)
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		return nil, ErrUnauthorized
@@ -171,7 +171,7 @@ func (c *Client) GetRepo(ctx context.Context, org, repo string) (*Repository, er
 	if err != nil {
 		return nil, fmt.Errorf("execute request: %w", err)
 	}
-	defer resp.Body.Close() //nolint:errcheck // Best effort close on error path
+	defer closeResponseBody(resp.Body)
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		return nil, ErrUnauthorized
@@ -215,7 +215,14 @@ func (c *Client) CloneRepo(ctx context.Context, org, repo, destPath string) erro
 		return err
 	}
 
-	return c.configureGitCredentialHelper(ctx, absPath)
+	if err := c.configureGitCredentialHelper(ctx, absPath); err != nil {
+		if cleanupErr := os.RemoveAll(absPath); cleanupErr != nil {
+			return errors.Join(err, fmt.Errorf("remove failed clone destination: %w", cleanupErr))
+		}
+		return err
+	}
+
+	return nil
 }
 
 // buildCloneURL constructs the HTTPS clone URL.
@@ -224,6 +231,7 @@ func (c *Client) buildCloneURL(org, repo string) string {
 	u.Scheme = c.scheme
 	u.Host = c.host
 	u.Path = fmt.Sprintf("/repos/%s/%s.git", org, repo)
+	u.RawPath = fmt.Sprintf("/repos/%s/%s.git", url.PathEscape(org), url.PathEscape(repo))
 	return u.String()
 }
 
@@ -355,6 +363,12 @@ func (c *Client) setRequestHeaders(req *http.Request) {
 func pathExists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
+}
+
+func closeResponseBody(body io.Closer) {
+	if err := body.Close(); err != nil {
+		return
+	}
 }
 
 // sanitizeGitOutput removes sensitive data from git output.

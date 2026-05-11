@@ -194,6 +194,20 @@ func TestClient_buildCloneURL_UsesCredentialScheme(t *testing.T) {
 	}
 }
 
+func TestClient_buildCloneURL_EscapesPathSegments(t *testing.T) {
+	t.Parallel()
+	client := &Client{
+		host:   "altinn.studio",
+		scheme: "https",
+	}
+
+	url := client.buildCloneURL("org/name", "repo name")
+	expected := "https://altinn.studio/repos/org%2Fname/repo%20name.git"
+	if url != expected {
+		t.Errorf("expected %s, got %s", expected, url)
+	}
+}
+
 func TestClient_gitCredentialConfigKeys_ScopeToReposProxy(t *testing.T) {
 	t.Parallel()
 	client := &Client{

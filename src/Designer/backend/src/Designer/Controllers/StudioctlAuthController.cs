@@ -6,6 +6,7 @@ using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.FeatureManagement.Mvc;
 
@@ -121,6 +122,6 @@ public class StudioctlAuthController(StudioctlAuthService studioctlAuthService) 
             StudioctlAuthStatus.NotFound => NotFound(),
             StudioctlAuthStatus.Forbidden => Forbid(),
             StudioctlAuthStatus.Unauthorized => Unauthorized(),
-            _ => StatusCode(500),
+            _ => StatusCode(StatusCodes.Status500InternalServerError),
         };
 }

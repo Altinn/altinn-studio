@@ -3,6 +3,9 @@ package auth
 import (
 	"strings"
 	"testing"
+
+	authstore "altinn.studio/studioctl/internal/auth"
+	"altinn.studio/studioctl/internal/config"
 )
 
 func TestReadGitCredentialRequest(t *testing.T) {
@@ -70,5 +73,39 @@ func TestMatchesGitCredentialRequestHTTP(t *testing.T) {
 	request := gitCredentialRequest{Protocol: testHTTP, Host: testLocalHost, Path: "repos/org/repo.git"}
 	if !matchesGitCredentialRequest(request, testHTTP, testLocalHost) {
 		t.Fatal("expected local http credential request to match")
+	}
+}
+
+func TestGitCredentialUsesStoredUsername(t *testing.T) {
+	t.Parallel()
+
+	home := t.TempDir()
+	if err := authstore.SaveCredentials(home, &authstore.Credentials{
+		Envs: map[string]authstore.EnvCredentials{
+			"prod": {
+				Host:     testStudioHost,
+				ApiKey:   "api-key",
+				Username: "actual-user",
+			},
+		},
+	}); err != nil {
+		t.Fatalf("save credentials: %v", err)
+	}
+
+	result, err := NewService(&config.Config{Home: home}).GitCredential(
+		strings.NewReader("protocol="+testHTTPS+"\nhost="+testStudioHost+"\npath=repos/org/repo.git\n\n"),
+		"prod",
+	)
+	if err != nil {
+		t.Fatalf("GitCredential() error = %v", err)
+	}
+	if !result.Found {
+		t.Fatal("expected credentials to be found")
+	}
+	if result.Username != "actual-user" {
+		t.Fatalf("GitCredential().Username = %q, want actual-user", result.Username)
+	}
+	if result.Password != "api-key" {
+		t.Fatalf("GitCredential().Password = %q, want api-key", result.Password)
 	}
 }

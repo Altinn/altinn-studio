@@ -39,13 +39,18 @@ const authRequest: StudioctlAuthRequest = {
 };
 const callback: StudioctlAuthCallback = { callbackUrl };
 
-const renderStudioctlAuth = (queries: Parameters<typeof renderWithProviders>[1]['queries'] = {}) =>
+type RenderStudioctlAuthOptions = {
+  initialEntries?: string[];
+  queries?: Parameters<typeof renderWithProviders>[1]['queries'];
+};
+
+const renderStudioctlAuth = ({ initialEntries, queries = {} }: RenderStudioctlAuthOptions = {}) =>
   renderWithProviders(
     <Routes>
       <Route path='/:owner/studioctl-auth' element={<StudioctlAuth />} />
     </Routes>,
     {
-      initialEntries: [`/${owner}/studioctl-auth?requestId=${requestId}`],
+      initialEntries: initialEntries ?? [`/${owner}/studioctl-auth?requestId=${requestId}`],
       queries: {
         getUser: jest.fn().mockImplementation(() => Promise.resolve(currentUser)),
         getStudioctlAuthRequest: jest.fn().mockImplementation(() => Promise.resolve(authRequest)),
@@ -93,7 +98,7 @@ describe('StudioctlAuth', () => {
     const confirmStudioctlAuthRequest = jest
       .fn()
       .mockImplementation(() => Promise.resolve(callback));
-    renderStudioctlAuth({ confirmStudioctlAuthRequest });
+    renderStudioctlAuth({ queries: { confirmStudioctlAuthRequest } });
 
     await user.click(
       await screen.findByRole('button', { name: textMock('settings.studioctl_auth.confirm') }),
@@ -108,7 +113,7 @@ describe('StudioctlAuth', () => {
     const cancelStudioctlAuthRequest = jest
       .fn()
       .mockImplementation(() => Promise.resolve(callback));
-    renderStudioctlAuth({ cancelStudioctlAuthRequest });
+    renderStudioctlAuth({ queries: { cancelStudioctlAuthRequest } });
 
     await user.click(
       await screen.findByRole('button', { name: textMock('settings.studioctl_auth.cancel') }),
@@ -124,6 +129,62 @@ describe('StudioctlAuth', () => {
 
     expect(
       await screen.findByRole('heading', { name: textMock('not_found_page.heading') }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders a spinner while user data is loading', () => {
+    renderStudioctlAuth({
+      queries: { getUser: jest.fn().mockImplementation(() => new Promise(() => {})) },
+    });
+
+    expect(screen.getByRole('img', { name: textMock('general.loading') })).toBeInTheDocument();
+  });
+
+  it('renders a page error when user data cannot be loaded', async () => {
+    renderStudioctlAuth({
+      queries: { getUser: jest.fn().mockImplementation(() => Promise.reject(new Error())) },
+    });
+
+    expect(
+      await screen.findByRole('heading', { name: textMock('general.page_error_title') }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders not found when the request id is missing', async () => {
+    const getStudioctlAuthRequest = jest.fn();
+    renderStudioctlAuth({
+      initialEntries: [`/${owner}/studioctl-auth`],
+      queries: { getStudioctlAuthRequest },
+    });
+
+    expect(
+      await screen.findByRole('heading', { name: textMock('not_found_page.heading') }),
+    ).toBeInTheDocument();
+    expect(getStudioctlAuthRequest).not.toHaveBeenCalled();
+  });
+
+  it('renders not found when the route owner is not the logged-in user', async () => {
+    const getStudioctlAuthRequest = jest.fn();
+    renderStudioctlAuth({
+      initialEntries: [`/other-user/studioctl-auth?requestId=${requestId}`],
+      queries: { getStudioctlAuthRequest },
+    });
+
+    expect(
+      await screen.findByRole('heading', { name: textMock('not_found_page.heading') }),
+    ).toBeInTheDocument();
+    expect(getStudioctlAuthRequest).not.toHaveBeenCalled();
+  });
+
+  it('renders a page error when the auth request cannot be loaded', async () => {
+    renderStudioctlAuth({
+      queries: {
+        getStudioctlAuthRequest: jest.fn().mockImplementation(() => Promise.reject(new Error())),
+      },
+    });
+
+    expect(
+      await screen.findByRole('heading', { name: textMock('general.page_error_title') }),
     ).toBeInTheDocument();
   });
 });
