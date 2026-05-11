@@ -9,7 +9,7 @@ import { ContextNotProvided, createContext } from 'src/core/contexts/context';
 import { SelectorStrictness, useDelayedSelector } from 'src/hooks/delayedSelectors';
 import { useShallow } from 'src/hooks/useShallowMemo';
 import type { CreateContextProps } from 'src/core/contexts/context';
-import type { DSConfig, DSMode, DSProps, DSReturn } from 'src/hooks/delayedSelectors';
+import type { DSConfig, DSMode, DSReturn } from 'src/hooks/delayedSelectors';
 import type { ObjectOrArray } from 'src/hooks/useShallowMemo';
 
 type ExtractFromStoreApi<T> = T extends StoreApi<infer U> ? Exclude<U, void> : never;
@@ -173,26 +173,6 @@ export function createZustandHooks<Store extends StoreApi<Type>, Type = ExtractF
       deps,
     });
 
-  const useDSProps = <Mode extends DSMode<Type>>(
-    mode: Mode,
-    deps?: unknown[],
-  ): DSProps<DSConfig<Type, Mode, SelectorStrictness.throwWhenNotProvided>> => ({
-    store: useStoreHook(),
-    strictness: SelectorStrictness.throwWhenNotProvided,
-    mode,
-    deps,
-  });
-
-  const useLaxDSProps = <Mode extends DSMode<Type>>(
-    mode: Mode,
-    deps?: unknown[],
-  ): DSProps<DSConfig<Type, Mode, SelectorStrictness.returnWhenNotProvided>> => ({
-    store: useLaxStoreHook(),
-    strictness: SelectorStrictness.returnWhenNotProvided,
-    mode,
-    deps,
-  });
-
   return {
     useSelector,
     useSelectorAsRef,
@@ -204,8 +184,6 @@ export function createZustandHooks<Store extends StoreApi<Type>, Type = ExtractF
     useLaxSelector,
     useDelayedSelector: useDS,
     useLaxDelayedSelector: useLaxDS,
-    useDelayedSelectorProps: useDSProps,
-    useLaxDelayedSelectorProps: useLaxDSProps,
     useStore: useStoreHook,
     useLaxStore: useLaxStoreHook,
     useStaticSelector,

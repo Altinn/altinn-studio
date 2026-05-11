@@ -1,7 +1,7 @@
 using System.Globalization;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.BackendUpgrade;
 using Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.FrontendUpgrade;
-using Altinn.Studio.Cli.Upgrade.v8Tov10;
+using Altinn.Studio.Cli.Upgrade.v8Tov9;
 
 namespace Altinn.Studio.AppManager.Studioctl;
 
@@ -120,8 +120,8 @@ internal sealed class AppUpgradeService : IDisposable
                     CancellationToken: cancellationToken
                 )
             ),
-            UpgradeKinds.V10 => V8Tov10Upgrade.RunAsync(
-                new V8Tov10UpgradeOptions(
+            UpgradeKinds.V9 => V8Tov9Upgrade.RunAsync(
+                new V8Tov9UpgradeOptions(
                     ProjectFolder: request.ProjectFolder,
                     ProjectFile: DefaultProjectFile,
                     TargetFramework: DefaultTargetFramework,
@@ -147,9 +147,9 @@ internal static class UpgradeKinds
 {
     public const string FrontendV4 = "frontend-v4";
     public const string BackendV8 = "backend-v8";
-    public const string V10 = "v10";
+    public const string V9 = "v9";
 
-    public static bool IsSupported(string kind) => kind is FrontendV4 or BackendV8 or V10;
+    public static bool IsSupported(string kind) => kind is FrontendV4 or BackendV8 or V9;
 }
 
 internal sealed record AppUpgradeRequest(

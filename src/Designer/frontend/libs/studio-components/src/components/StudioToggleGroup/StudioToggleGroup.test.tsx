@@ -19,7 +19,7 @@ describe('StudioToggleGroup', () => {
 
 const renderStudioToggleGroup = (props: StudioToggleGroupProps): RenderResult => {
   return render(
-    <StudioToggleGroup {...props}>
+    <StudioToggleGroup data-toggle-group='Name' {...props}>
       <StudioToggleGroup.Item>{mockItemText}</StudioToggleGroup.Item>
     </StudioToggleGroup>,
   );

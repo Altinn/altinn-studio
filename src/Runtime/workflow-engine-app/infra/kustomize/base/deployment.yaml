@@ -70,11 +70,8 @@ spec:
               drop:
                 - ALL
           ports:
-            - containerPort: 8080
+            - containerPort: 9090
               name: http
-              protocol: TCP
-            - containerPort: 8081
-              name: http-metrics
               protocol: TCP
           env:
             - name: POD_UID
@@ -93,6 +90,8 @@ spec:
                 configMapKeyRef:
                   name: runtime-environment
                   key: environment
+            - name: ASPNETCORE_HTTP_PORTS
+              value: "9090"
           volumeMounts:
             - name: secrets
               mountPath: /app/secrets
@@ -100,7 +99,7 @@ spec:
           livenessProbe:
             httpGet:
               path: /health/live
-              port: 8080
+              port: 9090
             initialDelaySeconds: 2
             periodSeconds: 10
             timeoutSeconds: 3
@@ -108,7 +107,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /health/ready
-              port: 8080
+              port: 9090
             initialDelaySeconds: 2
             periodSeconds: 5
             timeoutSeconds: 3

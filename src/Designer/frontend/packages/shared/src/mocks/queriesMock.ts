@@ -77,7 +77,7 @@ import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 import type { OptionList } from 'app-shared/types/OptionList';
 import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
 import type { LayoutSetModel } from '../types/api/dto/LayoutSetModel';
-import { layoutSetsExtendedMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { layoutSetsExtendedMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
 import type { OptionListsResponse } from 'app-shared/types/api/OptionListsResponse';
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';

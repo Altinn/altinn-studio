@@ -10,7 +10,7 @@ import type { BooleanExpression, StringExpression } from '@studio/components';
 import type {
   ExplicitDataModelBinding,
   IDataModelBindingsKeyValueExplicit,
-} from '@altinn/ux-editor/types/global';
+} from '@altinn/ux-editor-v4/types/global';
 
 type DataModelBindingsForAddress = {
   address: ExplicitDataModelBinding;

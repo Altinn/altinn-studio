@@ -103,7 +103,7 @@ export function useInstanceDataSources(): IInstanceDataSources | null {
   );
 }
 
-export const useDataElementsSelectorProps = () => {
+export const useDataElementsSelector = () => {
   const dataElements = useInstanceDataQuery({ select: (instance) => instance.data }).data;
 
   return <U,>(selectDataElements: (data: IData[]) => U) =>

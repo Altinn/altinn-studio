@@ -1,7 +1,7 @@
 import { useSearchParamsState } from 'app-shared/hooks/useSearchParamsState';
-import { useFormLayoutSettingsQuery } from '../../../ux-editor/src/hooks/queries/useFormLayoutSettingsQuery';
+import { useFormLayoutSettingsQuery } from '../../../ux-editor-v4/src/hooks/queries/useFormLayoutSettingsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useGetPageByName } from '@altinn/ux-editor/hooks/useGetPageByName';
+import { useGetPageByName } from '@altinn/ux-editor-v4/hooks/useGetPageByName';
 
 export type UseSelectedFormLayoutNameResult = {
   selectedFormLayoutName: string;

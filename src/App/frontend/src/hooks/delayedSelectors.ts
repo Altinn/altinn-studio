@@ -28,9 +28,9 @@ type ModeFromConf<C extends DSConfig> = C extends DSConfig<any, infer M> ? M : n
  * will not be able to be used as a cache key.
  */
 export function useDelayedSelector<C extends DSConfig>(props: DSProps<C>): DSReturn<C> {
-  const state = useRef<SingleDelayedSelectorController<C>>(undefined);
+  const state = useRef<DelayedSelectorController<C>>(undefined);
   if (!state.current) {
-    state.current = new SingleDelayedSelectorController(props);
+    state.current = new DelayedSelectorController(props);
   }
 
   // Check if any deps have changed
@@ -39,19 +39,7 @@ export function useDelayedSelector<C extends DSConfig>(props: DSProps<C>): DSRet
   return useSyncExternalStore(state.current.subscribe, state.current.getSnapshot);
 }
 
-export function useMultipleDelayedSelectors<P extends MultiDSProps>(...props: P): { [I in keyof P]: DSReturn<P[I]> } {
-  const state = useRef<MultiDelayedSelectorController<P>>(undefined);
-  if (!state.current) {
-    state.current = new MultiDelayedSelectorController(props);
-  }
-
-  // Check if any deps have changed
-  state.current.checkDeps(props);
-
-  return useSyncExternalStore(state.current.subscribe, state.current.getSnapshot);
-}
-
-abstract class BaseDelayedSelector<C extends DSConfig> {
+class DelayedSelectorController<C extends DSConfig> {
   private store: C['store'];
   private strictness: C['strictness'];
   private mode: C['mode'];
@@ -60,7 +48,9 @@ abstract class BaseDelayedSelector<C extends DSConfig> {
   private equalityFn: (a: any, b: any) => boolean;
   private deps: unknown[] | undefined;
 
-  protected selectorFunc = ((...args: unknown[]) => this.selector(...args)) as DSReturn<C>;
+  private triggerRender: (() => void) | null = null;
+  private shouldTriggerOnSubscribe = false;
+  private selectorFunc = ((...args: unknown[]) => this.selector(...args)) as DSReturn<C>;
   private selectorsCalled: SelectorMap<C> | null = null;
   private unsubscribeMethod: (() => void) | null = null;
 
@@ -105,14 +95,25 @@ abstract class BaseDelayedSelector<C extends DSConfig> {
     }
   }
 
-  protected abstract onUpdateSelector(): void;
-  protected onCallSelector() {}
+  public getSnapshot = () => this.selectorFunc;
+  public subscribe = (callback: () => void) => {
+    this.triggerRender = callback;
+    if (this.shouldTriggerOnSubscribe) {
+      this.triggerRender();
+      this.shouldTriggerOnSubscribe = false;
+    }
+    return () => this.unsubscribeFromStore();
+  };
 
   private updateSelector() {
     this.selectorsCalled = null;
     this.unsubscribeFromStore();
     this.selectorFunc = ((...args: unknown[]) => this.selector(...args)) as DSReturn<C>;
-    this.onUpdateSelector();
+    if (this.triggerRender) {
+      this.triggerRender();
+    } else {
+      this.shouldTriggerOnSubscribe = true;
+    }
   }
 
   public unsubscribeFromStore() {
@@ -155,8 +156,6 @@ abstract class BaseDelayedSelector<C extends DSConfig> {
       return ContextNotProvided;
     }
 
-    this.onCallSelector();
-
     const cacheKey = this.makeCacheKey(args);
     const prev = this.selectorsCalled?.get(cacheKey);
     if (prev) {
@@ -194,95 +193,6 @@ abstract class BaseDelayedSelector<C extends DSConfig> {
     const value = fullSelector(this.store.getState());
     this.selectorsCalled.set(cacheKey, { fullSelector, value });
     return value;
-  }
-}
-
-class SingleDelayedSelectorController<C extends DSConfig> extends BaseDelayedSelector<C> {
-  // Subscription does not happen synchronously, but as an effect, meaning that there is a window of time
-  // where selectors could be used (and updated) before we have the ability to trigger a re-render.
-  // See: https://github.com/facebook/react/blob/92c0f5f85fed42024b17bf6595291f9f5d6e8734/packages/react-reconciler/src/ReactFiberHooks.js#L1715-L1716
-  private triggerRender: (() => void) | null = null;
-  private shouldTriggerOnSubscribe = false;
-
-  public getSnapshot = () => this.selectorFunc;
-  public subscribe = (callback: () => void) => {
-    this.triggerRender = callback;
-    if (this.shouldTriggerOnSubscribe) {
-      this.triggerRender();
-      this.shouldTriggerOnSubscribe = false;
-    }
-    return () => this.unsubscribeFromStore();
-  };
-
-  protected onUpdateSelector(): void {
-    if (this.triggerRender) {
-      this.triggerRender();
-    } else {
-      this.shouldTriggerOnSubscribe = true;
-    }
-  }
-}
-
-class MultiDelayedSelector<C extends DSConfig> extends BaseDelayedSelector<C> {
-  private readonly onChange: () => void;
-
-  constructor(props: DSProps<C>, onChange: () => void) {
-    super(props);
-    this.onChange = onChange;
-  }
-
-  public getSelectorFunc() {
-    return this.selectorFunc;
-  }
-
-  protected onUpdateSelector(): void {
-    this.onChange();
-  }
-}
-
-class MultiDelayedSelectorController<P extends MultiDSProps> {
-  // Subscription does not happen synchronously, but as an effect, meaning that there is a window of time
-  // where selectors could be used (and updated) before we have the ability to trigger a re-render.
-  // See: https://github.com/facebook/react/blob/92c0f5f85fed42024b17bf6595291f9f5d6e8734/packages/react-reconciler/src/ReactFiberHooks.js#L1715-L1716
-  private triggerRender: (() => void) | null = null;
-  private shouldTriggerOnSubscribe = false;
-
-  private controllers: MultiDelayedSelector<DSConfig>[] = [];
-  private selectorFuncs: DSReturn<DSConfig>[] = [];
-
-  constructor(props: P) {
-    for (let i = 0; i < props.length; i++) {
-      const MDS = new MultiDelayedSelector(props[i], () => this.onUpdateSelector(i));
-      this.controllers.push(MDS);
-      this.selectorFuncs.push(MDS.getSelectorFunc());
-    }
-  }
-
-  public getSnapshot = () => this.selectorFuncs as { [I in keyof P]: DSReturn<P[I]> };
-
-  public subscribe = (callback: () => void) => {
-    this.triggerRender = callback;
-    if (this.shouldTriggerOnSubscribe) {
-      this.triggerRender();
-      this.shouldTriggerOnSubscribe = false;
-    }
-    return () => this.controllers.forEach((c) => c.unsubscribeFromStore());
-  };
-
-  public checkDeps(newProps: P) {
-    for (let i = 0; i < newProps.length; i++) {
-      this.controllers[i].checkDeps(newProps[i]);
-    }
-  }
-
-  private onUpdateSelector(index: number): void {
-    this.selectorFuncs[index] = this.controllers[index].getSelectorFunc();
-    this.selectorFuncs = [...this.selectorFuncs];
-    if (this.triggerRender) {
-      this.triggerRender();
-    } else {
-      this.shouldTriggerOnSubscribe = true;
-    }
   }
 }
 
@@ -360,35 +270,6 @@ export interface DSProps<C extends DSConfig> {
   // selector should be re-created.
   deps?: unknown[];
 }
-
-type MultiDSProps = DSProps<DSConfig>[];
-
-export type DSPropsForSimpleSelector<
-  Type,
-  SimpleSelector extends (...args: unknown[]) => unknown,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Strictness extends SelectorStrictness = any,
-> = DSProps<DSConfig<Type, SimpleArgMode<Type, Parameters<SimpleSelector>, ReturnType<SimpleSelector>>, Strictness>>;
-
-type DSPropsMatchingSimple<Selector extends (...args: unknown[]) => unknown> = DSProps<
-  DSConfig<unknown, SimpleArgMode<unknown, Parameters<Selector>, ReturnType<Selector>>>
->;
-type DSPropsMatchingInnerSelector<Args extends unknown[]> = DSProps<
-  DSConfig<
-    unknown,
-    InnerSelectorMode<unknown, Args>,
-    SelectorStrictness.returnWhenNotProvided | SelectorStrictness.throwWhenNotProvided
-  >
->;
-
-export type DSPropsMatching<Selector> = Selector extends (
-  selector: (...args: infer Args) => unknown,
-  deps: unknown[],
-) => unknown
-  ? () => DSPropsMatchingInnerSelector<Args>
-  : Selector extends (...args: infer _Args) => unknown
-    ? () => DSPropsMatchingSimple<Selector>
-    : never;
 
 export type DSReturn<C extends DSConfig> =
   ModeFromConf<C> extends SimpleArgMode

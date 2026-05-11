@@ -15,7 +15,6 @@ import { pruneBoundaryMasks, ValidationStorePlugin } from 'src/features/validati
 import { useNavigationParam } from 'src/hooks/navigation';
 import { TaskKeys } from 'src/routesBuilder';
 import { GeneratorGlobalProvider, GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
-import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
 import { useRegistry } from 'src/utils/layout/generator/GeneratorStages';
 import { LayoutSetGenerator } from 'src/utils/layout/generator/LayoutSetGenerator';
 import { GeneratorValidationProvider } from 'src/utils/layout/generator/validation/GenerationValidationContext';
@@ -216,9 +215,7 @@ export const NodesProvider = ({ children }: PropsWithChildren) => {
   return (
     <ProvideGlobalContext registry={registry}>
       <GeneratorValidationProvider>
-        <GeneratorData.Provider>
-          <LayoutSetGenerator />
-        </GeneratorData.Provider>
+        <LayoutSetGenerator />
       </GeneratorValidationProvider>
       {window.Cypress && <UpdateAttachmentsForCypress />}
       {children}

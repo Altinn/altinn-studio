@@ -13,7 +13,7 @@ import { renderWithProviders } from '../../test/testUtils';
 jest.mock('@altinn/ux-editor-v3/SubApp', () => ({
   SubApp: () => <div data-testid='version 3' />,
 }));
-jest.mock('@altinn/ux-editor/SubApp', () => ({
+jest.mock('@altinn/ux-editor-v4/SubApp', () => ({
   SubApp: ({ onLayoutSetNameChange }: { onLayoutSetNameChange: (name: string) => void }) => {
     useEffect(() => {
       onLayoutSetNameChange('test-layout');

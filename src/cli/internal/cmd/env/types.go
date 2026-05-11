@@ -25,10 +25,11 @@ type Resetter interface {
 
 // UpOptions configures environment startup.
 type UpOptions struct {
-	Detach      bool
-	Monitoring  bool
-	OpenBrowser bool
-	PgAdmin     bool
+	Detach            bool
+	DevWorkflowEngine bool
+	Monitoring        bool
+	OpenBrowser       bool
+	PgAdmin           bool
 }
 
 // LogsOptions configures log streaming.
