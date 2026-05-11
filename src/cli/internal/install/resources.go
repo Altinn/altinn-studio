@@ -35,17 +35,21 @@ var errAppManagerExecutableNotExecutable = errors.New(
 func (s *Service) InstallBundleResources(ctx context.Context, bundle Bundle) (err error) {
 	resourcesArchivePath := bundle.ResourcesArchivePath
 	cleanup := func() error { return nil }
-	if resourcesArchivePath == "" {
-		resourcesArchivePath, cleanup, err = bundle.downloadResourcesArchive(ctx)
-		if err != nil {
-			return err
-		}
-	}
 	defer func() {
 		if cleanupErr := cleanup(); cleanupErr != nil {
 			err = errors.Join(err, cleanupErr)
 		}
 	}()
+	if resourcesArchivePath == "" {
+		var downloadCleanup func() error
+		resourcesArchivePath, downloadCleanup, err = bundle.downloadResourcesArchive(ctx)
+		if downloadCleanup != nil {
+			cleanup = downloadCleanup
+		}
+		if err != nil {
+			return err
+		}
+	}
 
 	stagingDir, err := os.MkdirTemp("", "studioctl-resources-*")
 	if err != nil {

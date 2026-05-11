@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"time"
 
 	"altinn.studio/studioctl/internal/osutil"
@@ -276,13 +275,6 @@ func replacePathOnce(src, dst string) error {
 	}
 
 	return nil
-}
-
-func isRetryableWindowsReplaceError(err error) bool {
-	if errors.Is(err, os.ErrPermission) {
-		return true
-	}
-	return strings.Contains(strings.ToLower(err.Error()), "access is denied")
 }
 
 func reserveBackupPath(dst string) (string, error) {

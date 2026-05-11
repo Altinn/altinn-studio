@@ -64,6 +64,9 @@ func TestValidateArchivePath(t *testing.T) {
 			wantErr: errInvalidArchivePath,
 			setup: func(t *testing.T) string {
 				t.Helper()
+				if runtime.GOOS == osutil.OSWindows {
+					t.Skip("symlink setup requires elevated privileges on some Windows hosts")
+				}
 				dir := t.TempDir()
 				target := filepath.Join(dir, "target.tar.gz")
 				if err := os.WriteFile(target, []byte("test"), 0o644); err != nil {
