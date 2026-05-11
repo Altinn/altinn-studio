@@ -1,3 +1,4 @@
+using Altinn.App.Core.Constants;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks;
@@ -8,7 +9,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 public class DataProcessTask : IProcessTask
 {
     /// <inheritdoc/>
-    public string Type => "data";
+    public string Type => AltinnTaskTypes.Data;
 
     /// <inheritdoc/>
     public async Task Abandon(string taskId, Instance instance)

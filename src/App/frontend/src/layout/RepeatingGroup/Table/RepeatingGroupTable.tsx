@@ -1,15 +1,18 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import { Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import { Caption } from 'src/components/form/caption/Caption';
+import { evalExpr } from 'src/features/expressions';
+import { ExprVal } from 'src/features/expressions/types';
+import { ExprValidation } from 'src/features/expressions/validation';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { Lang } from 'src/features/language/Lang';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { GridRowsRenderer } from 'src/layout/Grid/GridComponent';
-import { useBaseIdsFromGridRows } from 'src/layout/Grid/tools';
+import { getGridCellHiddenExpr, useBaseIdsFromGridRows } from 'src/layout/Grid/tools';
 import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/EditContainer/RepeatingGroupsEditContainer';
 import { RepeatingGroupPagination } from 'src/layout/RepeatingGroup/Pagination/RepeatingGroupPagination';
 import {
@@ -27,6 +30,7 @@ import utilClasses from 'src/styles/utils.module.css';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useExternalItem } from 'src/utils/layout/hooks';
+import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { GridCell, ITableColumnFormatting } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
@@ -61,7 +65,10 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
 
   const isEmpty = numRows === 0;
   const isEditingFirstRow = RepGroupContext.useIsEditingRow(firstRowId);
-  const showTableHeader = numRows > 0 && !(numRows == 1 && firstRowId !== undefined && isEditingFirstRow);
+  const hasColumnsWithEditInTable =
+    tableColumns && Object.keys(tableColumns).some((colId) => tableColumns[colId].editInTable);
+  const showTableHeader =
+    numRows > 0 && (hasColumnsWithEditInTable || !(numRows == 1 && firstRowId !== undefined && isEditingFirstRow));
 
   const showDeleteButtonColumns = new Set<boolean>();
   const showEditButtonColumns = new Set<boolean>();
@@ -254,6 +261,32 @@ function ExtraRows({ where, extraCells, columnSettings, hiddenColumnIndices }: E
   const isNested = parent?.type === 'node';
 
   const rows = where === 'Before' ? rowsBefore : rowsAfter;
+  const columnHiddenExprs = useMemo(() => rows?.find((r) => r.header)?.cells?.map(getGridCellHiddenExpr) ?? [], [rows]);
+  const expressionDataSources = useExpressionDataSources(columnHiddenExprs);
+  const hiddenFromExtraRows = useMemo(
+    () =>
+      columnHiddenExprs.reduce<number[]>((indices, hiddenExpr, cellIdx) => {
+        if (!ExprValidation.isValidOrScalar(hiddenExpr, ExprVal.Boolean)) {
+          return indices;
+        }
+
+        const hidden = evalExpr(hiddenExpr, expressionDataSources, {
+          returnType: ExprVal.Boolean,
+          defaultValue: false,
+          errorIntroText: `Invalid expression for hidden in RepeatingGroup ${where} column ${cellIdx}`,
+        });
+        if (hidden) {
+          indices.push(cellIdx);
+        }
+        return indices;
+      }, []),
+    [columnHiddenExprs, expressionDataSources, where],
+  );
+  const mergedHiddenColumnIndices = useMemo(
+    () => [...new Set([...hiddenColumnIndices, ...hiddenFromExtraRows])],
+    [hiddenColumnIndices, hiddenFromExtraRows],
+  );
+
   const mobileBaseIds = useBaseIdsFromGridRows(rows, mobileView);
   if (isEmpty || !rows) {
     return null;
@@ -288,7 +321,7 @@ function ExtraRows({ where, extraCells, columnSettings, hiddenColumnIndices }: E
       extraCells={extraCells}
       isNested={isNested}
       mutableColumnSettings={columnSettings}
-      hiddenColumnIndices={hiddenColumnIndices}
+      hiddenColumnIndices={mergedHiddenColumnIndices}
     />
   );
 }
@@ -300,7 +333,7 @@ function TitleCell({
   baseComponentId: string;
   columnSettings: IGroupColumnFormatting;
 }) {
-  const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings);
+  const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings, true);
 
   return (
     <Table.HeaderCell

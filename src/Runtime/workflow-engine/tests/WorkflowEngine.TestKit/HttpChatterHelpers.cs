@@ -46,6 +46,13 @@ public static class HttpChatterHelpers
     // localhost:{port} — dynamic port numbers from WireMock / test servers
     private static readonly Regex LocalhostPortPattern = new(@"localhost:\d+");
 
+    // W3C traceparent / ProblemDetails traceId: version-traceId-spanId-flags (e.g. "00-{32 hex}-{16 hex}-01").
+    // Surfaces in 4xx ProblemDetails responses regardless of whether the traceparent header was scrubbed.
+    private static readonly Regex TraceParentPattern = new(
+        @"\b[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}\b",
+        RegexOptions.IgnoreCase
+    );
+
     /// <summary>
     /// Extracts a single header value from a WireMock headers dictionary (case-insensitive).
     /// Returns "(missing)" if not found.
@@ -138,10 +145,10 @@ public static class HttpChatterHelpers
     }
 
     /// <summary>
-    /// Writes a captured <see cref="HttpExchange"/> (from <see cref="HttpExchangeRecorder"/>)
-    /// as HTTP plaintext, auto-discovering all request and response headers.
+    /// Writes the request portion of a captured <see cref="HttpExchange"/> as HTTP plaintext.
+    /// Use this to document inbound payload contracts in <c>*.inbound.http</c> snapshot files.
     /// </summary>
-    public static void WriteExchange(StringBuilder http, HttpExchange exchange)
+    public static void WriteInboundRequest(StringBuilder http, HttpExchange exchange)
     {
         var req = exchange.Request;
 
@@ -173,7 +180,13 @@ public static class HttpChatterHelpers
             http.AppendLine(FormatJsonOrRaw(exchange.RequestBody));
             http.AppendLine();
         }
+    }
 
+    /// <summary>
+    /// Writes the response portion of a captured <see cref="HttpExchange"/> as HTTP plaintext.
+    /// </summary>
+    public static void WriteInboundResponse(StringBuilder http, HttpExchange exchange)
+    {
         var resp = exchange.Response;
 
         // Response status line
@@ -204,6 +217,17 @@ public static class HttpChatterHelpers
     }
 
     /// <summary>
+    /// Writes a captured <see cref="HttpExchange"/> (from <see cref="HttpExchangeRecorder"/>)
+    /// as HTTP plaintext, auto-discovering all request and response headers. Use this for
+    /// <c>*.exchange.http</c> snapshot files that document a full request/response pair.
+    /// </summary>
+    public static void WriteExchange(StringBuilder http, HttpExchange exchange)
+    {
+        WriteInboundRequest(http, exchange);
+        WriteInboundResponse(http, exchange);
+    }
+
+    /// <summary>
     /// Scrubs volatile values from HTTP chatter text to produce deterministic output.
     /// Replaces GUIDs with sequential tokens (Guid_1, Guid_2, ...) like Verify does,
     /// timestamps with {Scrubbed}, and dynamic port numbers with {PORT}.
@@ -211,10 +235,13 @@ public static class HttpChatterHelpers
     /// </summary>
     public static string Scrub(string httpText)
     {
-        // 1. Replace GUIDs with stable sequential tokens (same GUID → same token)
+        // 1. Replace W3C trace IDs (different shape from UUIDs — no internal dashes in the 32-hex block).
+        var result = TraceParentPattern.Replace(httpText, "{Scrubbed}");
+
+        // 2. Replace GUIDs with stable sequential tokens (same GUID → same token)
         var guidMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        var result = GuidPattern.Replace(
-            httpText,
+        result = GuidPattern.Replace(
+            result,
             match =>
             {
                 var raw = match.Value;
@@ -227,10 +254,10 @@ public static class HttpChatterHelpers
             }
         );
 
-        // 2. Replace ISO 8601 timestamps
+        // 3. Replace ISO 8601 timestamps
         result = TimestampPattern.Replace(result, "{Scrubbed}");
 
-        // 3. Replace dynamic port numbers
+        // 4. Replace dynamic port numbers
         result = LocalhostPortPattern.Replace(result, "localhost:{PORT}");
 
         return result;
@@ -238,6 +265,8 @@ public static class HttpChatterHelpers
 
     /// <summary>
     /// Scrubs and persists HTTP chatter text to a .http snapshot file in the test project's .snapshots/ directory.
+    /// <paramref name="snapshotFileName"/> may include a subdirectory (e.g. <c>"inbound/Foo.inbound.http"</c>);
+    /// intermediate directories are created as needed.
     /// </summary>
     public static async Task PersistSnapshot(
         string httpText,
@@ -247,7 +276,8 @@ public static class HttpChatterHelpers
     {
         var scrubbed = Scrub(httpText);
         var snapshotDir = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".snapshots");
-        Directory.CreateDirectory(snapshotDir);
-        await File.WriteAllTextAsync(Path.Combine(snapshotDir, snapshotFileName), scrubbed, cancellationToken);
+        var fullPath = Path.Combine(snapshotDir, snapshotFileName);
+        Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
+        await File.WriteAllTextAsync(fullPath, scrubbed, cancellationToken);
     }
 }

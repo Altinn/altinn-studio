@@ -145,7 +145,6 @@ public sealed partial class AppFixture : IAsyncDisposable
             var appId = $"{appIdentity.Org}/{effectiveApp}";
             generatedAppDirectory = GetGeneratedAppDirectory(app, fixtureInstance);
             studioctlEnvironmentLease = await StudioctlEnvironmentLease.Acquire(logger, cancellationToken);
-            await StudioctlAppProcess.StopByPathBestEffort(generatedAppDirectory, logger);
             generatedAppDirectory = await GenerateAppDirectory(
                 app,
                 scenario,
@@ -515,14 +514,27 @@ public sealed partial class AppFixture : IAsyncDisposable
         if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path))
             return;
 
-        try
+        Exception? lastException = null;
+        for (int attempt = 0; attempt < 5; attempt++)
         {
-            Directory.Delete(path, recursive: true);
+            try
+            {
+                Directory.Delete(path, recursive: true);
+                return;
+            }
+            catch (IOException ex)
+            {
+                lastException = ex;
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                lastException = ex;
+            }
+
+            Thread.Sleep(TimeSpan.FromMilliseconds(200 * (attempt + 1)));
         }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Failed to delete generated app directory {Path}", path);
-        }
+
+        logger.LogWarning(lastException, "Failed to delete generated app directory {Path}", path);
     }
 
     public async ValueTask DisposeAsync()

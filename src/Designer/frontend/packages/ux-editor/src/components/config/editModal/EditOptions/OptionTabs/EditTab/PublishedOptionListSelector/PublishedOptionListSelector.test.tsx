@@ -8,7 +8,7 @@ import type { SelectionComponentType } from '../../../../../../../types/FormComp
 import { componentMocks } from '../../../../../../../testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { RenderResult } from '@testing-library/react';
-import { screen, waitFor } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../../../testing/mocks';
 import type { ExtendedRenderOptions } from '../../../../../../../testing/mocks';
 import { FeatureFlag } from '@studio/feature-flags';
@@ -20,6 +20,7 @@ import type { PublishedCodeListReferenceValues } from '../../types/PublishedCode
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { PUBLISHED_CODE_LIST_FOLDER } from 'app-shared/constants';
+import { screen } from '@studio/ui-test';
 
 // Test data:
 const orgName = 'some-org';
@@ -73,7 +74,7 @@ describe('PublishedOptionListSelector', () => {
     await user.openForm();
 
     const formName = textMock('ux_editor.options.published_code_list.choose');
-    expect(screen.getByRole('group', { name: formName })).toBeInTheDocument();
+    expect(screen.getFieldsetByLegend(formName)).toBeInTheDocument();
   });
 
   it('Renders the latest version radio button as checked by default', async () => {

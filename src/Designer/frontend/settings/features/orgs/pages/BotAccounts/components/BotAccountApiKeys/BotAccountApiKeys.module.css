@@ -13,21 +13,3 @@
   flex-direction: column;
   gap: var(--ds-size-4);
 }
-
-.heading {
-  margin-bottom: var(--fds-spacing-2);
-}
-
-.table {
-  margin-bottom: var(--fds-spacing-2);
-}
-
-.expiredTag {
-  margin-left: var(--fds-spacing-2);
-}
-
-.actionsCell {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--ds-size-3);
-}

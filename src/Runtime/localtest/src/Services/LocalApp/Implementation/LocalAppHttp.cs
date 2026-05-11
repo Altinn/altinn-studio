@@ -9,6 +9,7 @@ using Altinn.Platform.Storage.Interface.Models;
 
 using LocalTest.Configuration;
 using LocalTest.Services.LocalApp.Interface;
+using LocalTest.Services.LocalApp.Models;
 using LocalTest.Services.TestData;
 using LocalTest.Helpers;
 using LocalTest.Tunnel;
@@ -84,7 +85,7 @@ namespace LocalTest.Services.LocalApp.Implementation
                 return await GetStringAsync($"{appId}/api/v1/meta/authorizationpolicy", appId, cancellationToken);
             });
         }
-        public async Task<Application?> GetApplicationMetadata(string? appId, CancellationToken cancellationToken = default)
+        public async Task<ApplicationMetadata?> GetApplicationMetadata(string? appId, CancellationToken cancellationToken = default)
         {
             appId = ResolveAppRoute(appId)?.AppId;
             if (string.IsNullOrWhiteSpace(appId))
@@ -109,7 +110,13 @@ namespace LocalTest.Services.LocalApp.Implementation
                 throw new InvalidOperationException("application metadata response is missing");
             }
 
-            return JsonSerializer.Deserialize<Application>(content, JSON_OPTIONS);
+            return JsonSerializer.Deserialize<ApplicationMetadata>(content, JSON_OPTIONS);
+        }
+
+        public async Task<Version?> GetAppVersion(string? appId, CancellationToken cancellationToken = default)
+        {
+            var content = await GetApplicationMetadata(appId, cancellationToken);
+            return Version.TryParse(content?.AltinnNugetVersion, out var version) ? version : null;
         }
 
         public async Task<TextResource?> GetTextResource(string org, string app, string language, CancellationToken cancellationToken = default)

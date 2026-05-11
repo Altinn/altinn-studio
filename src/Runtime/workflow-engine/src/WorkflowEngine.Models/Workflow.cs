@@ -90,6 +90,11 @@ public sealed record Workflow : PersistentItem
     public IEnumerable<Workflow>? Dependencies { get; init; }
 
     /// <summary>
+    /// Workflows that declare this one as a dependency. Inverse of <see cref="Dependencies"/>.
+    /// </summary>
+    public IEnumerable<Workflow>? Dependents { get; init; }
+
+    /// <summary>
     /// Soft-linked workflows associated with this one (for grouping and dashboard navigation, no execution effect).
     /// </summary>
     public IEnumerable<Workflow>? Links { get; init; }

@@ -69,7 +69,7 @@ export function FormProvider({
       }
 
       const processedLayouts = processLayouts(layouts, defaultDataType);
-      const layoutLookups = makeLayoutLookups(processedLayouts.layouts);
+      const layoutLookups = makeLayoutLookups(processedLayouts.processedLayouts);
 
       return { ...bootstrapBase, ...processedLayouts, layoutLookups };
     }
@@ -182,6 +182,7 @@ function useBoostrapQuery({ uiFolderOverride, dataElementIdOverride }: FormProvi
       data && uiFolder
         ? {
             uiFolder,
+            layouts: data.layouts,
             dataModels: data.dataModels,
             staticOptions: data.staticOptions,
             validationIssues: data.validationIssues,

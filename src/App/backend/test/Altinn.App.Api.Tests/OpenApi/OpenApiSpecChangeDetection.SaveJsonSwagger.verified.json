@@ -4710,7 +4710,7 @@
         "tags": [
           "Payment"
         ],
-        "summary": "Get updated payment information for the instance. Will contact the payment processor to check the status of the payment. Current task must be a payment task. See payment related documentation.",
+        "summary": "Get updated payment information for the instance. Will contact the payment processor to check the status of the payment. Current task must be a payment task, or a payment task ID must be supplied via the `taskId` query parameter. See payment related documentation.",
         "parameters": [
           {
             "name": "org",
@@ -4757,6 +4757,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "taskId",
+            "in": "query",
+            "description": "If payment information should be loaded for a different task than the current one. Useful for retrieving payment information for a completed payment task. Updates from the processor are not persisted when this is set.",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -4790,8 +4798,8 @@
               }
             }
           },
-          "404": {
-            "description": "Not Found",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "text/plain": {
                 "schema": {
@@ -7716,6 +7724,48 @@
         },
         "additionalProperties": false
       },
+      "AppMetadataAccess": {
+        "type": "object",
+        "properties": {
+          "rightDescription": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "nullable": true
+            },
+            "nullable": true
+          },
+          "delegable": {
+            "type": "boolean"
+          },
+          "visible": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppMetadataContactPoint": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "telephone": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactPage": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "AppOption": {
         "required": [
           "label",
@@ -8013,6 +8063,35 @@
           },
           "disallowUserInstantiation": {
             "type": "boolean"
+          },
+          "homepage": {
+            "type": "string",
+            "nullable": true
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Keyword"
+            },
+            "nullable": true
+          },
+          "description": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "nullable": true
+            },
+            "nullable": true
+          },
+          "access": {
+            "$ref": "#/components/schemas/AppMetadataAccess"
+          },
+          "contactPoints": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AppMetadataContactPoint"
+            },
+            "nullable": true
           },
           "id": {
             "type": "string",
@@ -9665,6 +9744,20 @@
         },
         "additionalProperties": false
       },
+      "Keyword": {
+        "type": "object",
+        "properties": {
+          "word": {
+            "type": "string",
+            "nullable": true
+          },
+          "language": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "Logo": {
         "type": "object",
         "properties": {
@@ -10908,6 +11001,10 @@
             "type": "boolean",
             "default": false
           },
+          "enableUserSuppliedDialogId": {
+            "type": "boolean",
+            "default": false
+          },
           "disableCreate": {
             "type": "boolean",
             "default": false
@@ -10932,11 +11029,23 @@
             "type": "boolean",
             "default": false
           },
+          "disableMarkCompletedWhenConfirmed": {
+            "type": "boolean",
+            "default": false
+          },
           "disableSyncContentTitle": {
             "type": "boolean",
             "default": false
           },
           "disableSyncContentSummary": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableSyncContentAdditionalInformation": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableSyncContentExtendedStatus": {
             "type": "boolean",
             "default": false
           },

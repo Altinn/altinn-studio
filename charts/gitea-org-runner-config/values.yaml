@@ -41,3 +41,6 @@ runners:
     - name: skm
       replicas: 1
       registrationTokenSecretName: altinn-gitea-runner-skm-secret
+    - name: sfvt
+      replicas: 1
+      registrationTokenSecretName: altinn-gitea-runner-sfvt-secret

@@ -10,7 +10,7 @@ For app-specific load tests (AppCommand), see `workflow-engine-app/.k6/`.
 brew install k6
 ```
 
-The workflow engine must be running locally on `http://localhost:8080` with WireMock on `http://localhost:6060` (Docker Compose provides both).
+The workflow engine must be running locally on `http://localhost:9090` with WireMock on `http://localhost:6060` (Docker Compose provides both).
 
 ## Scripts
 
@@ -22,8 +22,12 @@ Fires a configurable number of requests with high concurrency, then waits for th
 # Default: 5000 requests, 100 concurrent virtual users
 k6 run .k6/stress-test.js
 
-# Custom iteration count and concurrency
+# Custom iteration count and concurrency, for engine running in Docker
 k6 run .k6/stress-test.js -e ITERATIONS=1000 -e VUS=25
+
+# Engine running on the host with Docker Compose dependencies
+k6 run .k6/stress-test.js -e ITERATIONS=1000 -e VUS=25 \
+  -e WEBHOOK_URL=http://localhost:6060/webhook-callback
 ```
 
 | Variable     | Default                                              | Description                     |
@@ -31,8 +35,9 @@ k6 run .k6/stress-test.js -e ITERATIONS=1000 -e VUS=25
 | `ITERATIONS` | `5000`                                               | Total number of requests        |
 | `VUS`        | `100`                                                | Concurrent virtual users        |
 | `NAMESPACE`  | `default`                                            | Namespace path segment          |
-| `BASE_URL`   | `http://localhost:8080/api/v1/{NAMESPACE}/workflows` | Workflow engine enqueue URL     |
-| `HEALTH_URL` | `http://localhost:8080/api/v1/health`                | Health endpoint for queue drain |
+| `BASE_URL`   | `http://localhost:9090/api/v1/{NAMESPACE}/workflows` | Workflow engine enqueue URL     |
+| `HEALTH_URL` | `http://localhost:9090/api/v1/health`                | Health endpoint for queue drain |
+| `WEBHOOK_URL` | `http://wiremock:8080/webhook-callback`             | Webhook URL executed by the engine |
 
 ### constant-rate.js
 
@@ -50,12 +55,13 @@ k6 run .k6/constant-rate.js -e RATE=500 -e MAX_VUS=1000 -e POLL_INTERVAL=5
 | `MAX_VUS`       | `2000`                                               | Max virtual users            |
 | `POLL_INTERVAL` | `2`                                                  | Seconds between health polls |
 | `NAMESPACE`     | `default`                                            | Namespace path segment       |
-| `BASE_URL`      | `http://localhost:8080/api/v1/{NAMESPACE}/workflows` | Workflow engine URL          |
-| `HEALTH_URL`    | `http://localhost:8080/api/v1/health`                | Health endpoint              |
+| `BASE_URL`      | `http://localhost:9090/api/v1/{NAMESPACE}/workflows` | Workflow engine URL          |
+| `HEALTH_URL`    | `http://localhost:9090/api/v1/health`                | Health endpoint              |
+| `WEBHOOK_URL`   | `http://wiremock:8080/webhook-callback`              | Webhook URL executed by the engine |
 
 ## Payload
 
-Scripts use `payloads/webhook.json` — a single webhook step targeting WireMock at `http://localhost:6060/webhook-callback`. The `idempotencyKey` and `collectionKey` are replaced with unique values per request at runtime.
+Scripts use `payloads/webhook.json` — a single webhook step targeting WireMock. `WEBHOOK_URL` defaults to `http://wiremock:8080/webhook-callback` for the Dockerized engine. Use `http://localhost:6060/webhook-callback` when the engine runs on the host and only dependencies run in Docker.
 
 ## Shared Library
 

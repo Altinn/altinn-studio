@@ -74,3 +74,38 @@ func testConfig(t *testing.T) *config.Config {
 	}
 	return cfg
 }
+
+func markMigrationsApplied(t *testing.T, cfg *config.Config, ids ...string) {
+	t.Helper()
+
+	steps := make([]migrations.Migration, 0, len(ids))
+	for _, id := range ids {
+		steps = append(steps, migrations.Migration{
+			ID: id,
+			Up: func(context.Context, *config.Config) error {
+				return nil
+			},
+		})
+	}
+	if err := migrations.RunAll(t.Context(), cfg, steps); err != nil {
+		t.Fatalf("mark migrations applied: %v", err)
+	}
+}
+
+func markOtherMigrationsApplied(t *testing.T, cfg *config.Config, migrationID string) {
+	t.Helper()
+
+	allMigrations := []string{
+		"001-remove-legacy-network-metadata",
+		"002-remove-legacy-topology-files",
+		"003-reset-localtest-data",
+	}
+
+	ids := make([]string, 0, len(allMigrations)-1)
+	for _, id := range allMigrations {
+		if id != migrationID {
+			ids = append(ids, id)
+		}
+	}
+	markMigrationsApplied(t, cfg, ids...)
+}
