@@ -124,11 +124,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@app/form-component@workspace:libs/form-component":
+"@app/form-component@workspace:*, @app/form-component@workspace:libs/form-component":
   version: 0.0.0-use.local
   resolution: "@app/form-component@workspace:libs/form-component"
   dependencies:
     "@chromatic-com/storybook": "npm:^5.0.1"
+    "@digdir/designsystemet-css": "npm:1.11.1"
     "@digdir/designsystemet-react": "npm:1.11.1"
     "@storybook/addon-docs": "npm:10.2.16"
     "@storybook/addon-links": "npm:10.2.16"
@@ -9131,6 +9132,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-frontend-react@workspace:src/App/frontend"
   dependencies:
+    "@app/form-component": "workspace:*"
     "@app/form-engine": "workspace:*"
     "@babel/core": "npm:7.29.0"
     "@babel/plugin-transform-runtime": "npm:7.29.0"

@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { AppCard } from './index';
-import { Heading } from '@digdir/designsystemet-react';
 
 const meta = {
   title: 'AppComponents/Card',
