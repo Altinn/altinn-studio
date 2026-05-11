@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"altinn.studio/studioctl/internal/appmanager"
-	serverspkg "altinn.studio/studioctl/internal/cmd/servers"
+	serverpkg "altinn.studio/studioctl/internal/cmd/server"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
@@ -16,49 +16,48 @@ import (
 )
 
 const (
-	serverStatusKeyWidth       = 19
-	defaultServersLogTailLines = 100
-	maxServersLogTailLines     = 10000
+	serverStatusKeyWidth      = 19
+	defaultServerLogTailLines = 100
+	maxServerLogTailLines     = 10000
 )
 
-// ServersCommand implements the 'servers' subcommand.
-type ServersCommand struct {
+// ServerCommand implements the 'server' subcommand.
+type ServerCommand struct {
 	cfg           *config.Config
 	out           *ui.Output
-	client        serversClient
+	client        serverClient
 	ensureStarted ensureStartedFunc
 	shutdown      shutdownFunc
 }
 
-type serversClient interface {
-	Health(ctx context.Context) error
+type serverClient interface {
 	Status(ctx context.Context) (*appmanager.Status, error)
 }
 
 type ensureStartedFunc func(ctx context.Context, cfg *config.Config, loadBalancerPort string) error
 type shutdownFunc func(ctx context.Context, cfg *config.Config) (<-chan error, error)
 
-type serversUpOutput struct {
+type serverUpOutput struct {
 	Running    bool `json:"running"`
 	Started    bool `json:"started"`
 	JSONOutput bool `json:"-"`
 }
 
-type serversStatusOutput struct {
+type serverStatusOutput struct {
 	Status     *appmanager.Status `json:"status,omitempty"`
 	Running    bool               `json:"running"`
 	JSONOutput bool               `json:"-"`
 }
 
-type serversDownOutput struct {
+type serverDownOutput struct {
 	ShutdownRequested bool `json:"shutdownRequested"`
 	WasRunning        bool `json:"wasRunning"`
 	JSONOutput        bool `json:"-"`
 }
 
-func (o serversUpOutput) Print(out *ui.Output) error {
+func (o serverUpOutput) Print(out *ui.Output) error {
 	if o.JSONOutput {
-		return printJSONOutput(out, "servers up", o)
+		return printJSONOutput(out, "server up", o)
 	}
 	if o.Started {
 		out.Println("app-manager started.")
@@ -68,12 +67,12 @@ func (o serversUpOutput) Print(out *ui.Output) error {
 	return nil
 }
 
-func (o serversStatusOutput) Print(out *ui.Output) error {
+func (o serverStatusOutput) Print(out *ui.Output) error {
 	if o.Status != nil && o.Status.Apps == nil {
 		o.Status.Apps = make([]appmanager.DiscoveredApp, 0)
 	}
 	if o.JSONOutput {
-		return printJSONOutput(out, "servers status", o)
+		return printJSONOutput(out, "server status", o)
 	}
 	if !o.Running {
 		out.Println("app-manager is not running.")
@@ -104,9 +103,9 @@ func (o serversStatusOutput) Print(out *ui.Output) error {
 	return nil
 }
 
-func (o serversDownOutput) Print(out *ui.Output) error {
+func (o serverDownOutput) Print(out *ui.Output) error {
 	if o.JSONOutput {
-		return printJSONOutput(out, "servers down", o)
+		return printJSONOutput(out, "server down", o)
 	}
 	if !o.WasRunning {
 		out.Println("app-manager is not running.")
@@ -116,9 +115,9 @@ func (o serversDownOutput) Print(out *ui.Output) error {
 	return nil
 }
 
-// NewServersCommand creates a new servers command.
-func NewServersCommand(cfg *config.Config, out *ui.Output) *ServersCommand {
-	return &ServersCommand{
+// NewServerCommand creates a new server command.
+func NewServerCommand(cfg *config.Config, out *ui.Output) *ServerCommand {
+	return &ServerCommand{
 		cfg:           cfg,
 		out:           out,
 		client:        appmanager.NewClient(cfg),
@@ -128,37 +127,37 @@ func NewServersCommand(cfg *config.Config, out *ui.Output) *ServersCommand {
 }
 
 // Name returns the command name.
-func (c *ServersCommand) Name() string { return "servers" }
+func (c *ServerCommand) Name() string { return "server" }
 
 // Synopsis returns a short description.
-func (c *ServersCommand) Synopsis() string {
-	return fmt.Sprintf("Manage %s servers", osutil.CurrentBin())
+func (c *ServerCommand) Synopsis() string {
+	return fmt.Sprintf("Manage the %s server", osutil.CurrentBin())
 }
 
 // Usage returns the full help text.
-func (c *ServersCommand) Usage() string {
+func (c *ServerCommand) Usage() string {
 	return joinLines(
-		fmt.Sprintf("Usage: %s servers <subcommand> [options]", osutil.CurrentBin()),
+		fmt.Sprintf("Usage: %s server <subcommand> [options]", osutil.CurrentBin()),
 		"",
-		fmt.Sprintf("Manage %s background servers.", osutil.CurrentBin()),
+		fmt.Sprintf("Manage the %s background server.", osutil.CurrentBin()),
 		"",
 		"Subcommands:",
-		"  up      Start all servers (app-manager)",
+		"  up      Start the server (app-manager)",
 		"  status  Show server status (app-manager)",
-		"  down    Stop all servers (app-manager)",
+		"  down    Stop the server (app-manager)",
 		"  logs    Stream server logs (app-manager)",
 		"",
-		"Options for 'servers logs':",
+		"Options for 'server logs':",
 		"  -f, --follow  Follow log output (default: false)",
 		"  --tail        Number of log lines to show (default: 100)",
 		"  --json        Output as newline-delimited JSON",
 		"",
-		fmt.Sprintf("Run '%s servers <subcommand> --help' for more information.", osutil.CurrentBin()),
+		fmt.Sprintf("Run '%s server <subcommand> --help' for more information.", osutil.CurrentBin()),
 	)
 }
 
 // Run executes the command.
-func (c *ServersCommand) Run(ctx context.Context, args []string) error {
+func (c *ServerCommand) Run(ctx context.Context, args []string) error {
 	if len(args) == 0 {
 		c.out.Print(c.Usage())
 		return nil
@@ -184,15 +183,13 @@ func (c *ServersCommand) Run(ctx context.Context, args []string) error {
 	}
 }
 
-func (c *ServersCommand) runUp(ctx context.Context, args []string) error {
-	fs := flag.NewFlagSet("servers up", flag.ContinueOnError)
-	var jsonOutput bool
-	fs.BoolVar(&jsonOutput, "json", false, "Output as JSON")
-	if err := fs.Parse(args); err != nil {
-		if errors.Is(err, flag.ErrHelp) {
-			return nil
-		}
-		return fmt.Errorf("parsing flags: %w", err)
+func (c *ServerCommand) runUp(ctx context.Context, args []string) error {
+	jsonOutput, help, err := parseServerJSONFlag("server up", args)
+	if err != nil {
+		return err
+	}
+	if help {
+		return nil
 	}
 
 	before, beforeErr := c.client.Status(ctx)
@@ -207,7 +204,7 @@ func (c *ServersCommand) runUp(ctx context.Context, args []string) error {
 		return fmt.Errorf("get app-manager status after start: %w", afterErr)
 	}
 
-	return serversUpOutput{
+	return serverUpOutput{
 		Running:    true,
 		Started:    serverStarted(before, after),
 		JSONOutput: jsonOutput,
@@ -218,42 +215,38 @@ func serverStarted(before, after *appmanager.Status) bool {
 	return before == nil || before.ProcessID != after.ProcessID
 }
 
-func (c *ServersCommand) runStatus(ctx context.Context, args []string) error {
-	fs := flag.NewFlagSet("servers status", flag.ContinueOnError)
-	var jsonOutput bool
-	fs.BoolVar(&jsonOutput, "json", false, "Output as JSON")
-	if err := fs.Parse(args); err != nil {
-		if errors.Is(err, flag.ErrHelp) {
-			return nil
-		}
-		return fmt.Errorf("parsing flags: %w", err)
+func (c *ServerCommand) runStatus(ctx context.Context, args []string) error {
+	jsonOutput, help, err := parseServerJSONFlag("server status", args)
+	if err != nil {
+		return err
+	}
+	if help {
+		return nil
 	}
 
 	status, err := c.client.Status(ctx)
 	if err != nil {
 		if errors.Is(err, appmanager.ErrNotRunning) {
-			return serversStatusOutput{Status: nil, Running: false, JSONOutput: jsonOutput}.Print(c.out)
+			return serverStatusOutput{Status: nil, Running: false, JSONOutput: jsonOutput}.Print(c.out)
 		}
 		return fmt.Errorf("get app-manager status: %w", err)
 	}
-	return serversStatusOutput{Running: true, Status: status, JSONOutput: jsonOutput}.Print(c.out)
+	return serverStatusOutput{Running: true, Status: status, JSONOutput: jsonOutput}.Print(c.out)
 }
 
-func (c *ServersCommand) runDown(ctx context.Context, args []string) error {
-	fs := flag.NewFlagSet("servers down", flag.ContinueOnError)
-	var jsonOutput bool
-	fs.BoolVar(&jsonOutput, "json", false, "Output as JSON")
-	if err := fs.Parse(args); err != nil {
-		if errors.Is(err, flag.ErrHelp) {
-			return nil
-		}
-		return fmt.Errorf("parsing flags: %w", err)
+func (c *ServerCommand) runDown(ctx context.Context, args []string) error {
+	jsonOutput, help, err := parseServerJSONFlag("server down", args)
+	if err != nil {
+		return err
+	}
+	if help {
+		return nil
 	}
 
 	done, err := c.stopAppManager(ctx)
 	if err != nil {
 		if errors.Is(err, appmanager.ErrNotRunning) {
-			return serversDownOutput{
+			return serverDownOutput{
 				WasRunning:        false,
 				ShutdownRequested: false,
 				JSONOutput:        jsonOutput,
@@ -271,22 +264,34 @@ func (c *ServersCommand) runDown(ctx context.Context, args []string) error {
 		return fmt.Errorf("shutdown app-manager: %w", ctx.Err())
 	}
 
-	return serversDownOutput{
+	return serverDownOutput{
 		WasRunning:        true,
 		ShutdownRequested: true,
 		JSONOutput:        jsonOutput,
 	}.Print(c.out)
 }
 
-func (c *ServersCommand) runLogs(ctx context.Context, args []string) error {
-	fs := flag.NewFlagSet("servers logs", flag.ContinueOnError)
+func parseServerJSONFlag(commandPath string, args []string) (jsonOutput bool, help bool, err error) {
+	fs := flag.NewFlagSet(commandPath, flag.ContinueOnError)
+	fs.BoolVar(&jsonOutput, "json", false, "Output as JSON")
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return false, true, nil
+		}
+		return false, false, fmt.Errorf("parsing flags: %w", err)
+	}
+	return jsonOutput, false, nil
+}
+
+func (c *ServerCommand) runLogs(ctx context.Context, args []string) error {
+	fs := flag.NewFlagSet("server logs", flag.ContinueOnError)
 	var follow bool
 	var jsonOutput bool
 	var tail int
 	fs.BoolVar(&follow, "f", defaultLogFollow, "Follow log output")
 	fs.BoolVar(&follow, "follow", defaultLogFollow, "Follow log output")
 	fs.BoolVar(&jsonOutput, "json", false, "Output as newline-delimited JSON")
-	fs.IntVar(&tail, "tail", defaultServersLogTailLines, "Number of log lines to show")
+	fs.IntVar(&tail, "tail", defaultServerLogTailLines, "Number of log lines to show")
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return nil
@@ -296,30 +301,30 @@ func (c *ServersCommand) runLogs(ctx context.Context, args []string) error {
 	if tail < 0 {
 		return fmt.Errorf("%w: --tail must be greater than or equal to 0", ErrInvalidFlagValue)
 	}
-	if tail > maxServersLogTailLines {
-		return fmt.Errorf("%w: --tail must be less than or equal to %d", ErrInvalidFlagValue, maxServersLogTailLines)
+	if tail > maxServerLogTailLines {
+		return fmt.Errorf("%w: --tail must be less than or equal to %d", ErrInvalidFlagValue, maxServerLogTailLines)
 	}
 
 	return c.streamAppManagerLogs(ctx, tail, follow, jsonOutput)
 }
 
-func (c *ServersCommand) streamAppManagerLogs(
+func (c *ServerCommand) streamAppManagerLogs(
 	ctx context.Context,
 	tail int,
 	follow bool,
 	jsonOutput bool,
 ) error {
-	if err := serverspkg.StreamLogs(ctx, c.cfg.AppManagerLogDir(), c.out, serverspkg.LogOptions{
+	if err := serverpkg.StreamLogs(ctx, c.cfg.AppManagerLogDir(), c.out, serverpkg.LogOptions{
 		Tail:   tail,
 		Follow: follow,
 		JSON:   jsonOutput,
 	}); err != nil {
-		return fmt.Errorf("servers logs: %w", err)
+		return fmt.Errorf("server logs: %w", err)
 	}
 	return nil
 }
 
-func (c *ServersCommand) startAppManager(ctx context.Context) error {
+func (c *ServerCommand) startAppManager(ctx context.Context) error {
 	ensureStarted := c.ensureStarted
 	if ensureStarted == nil {
 		ensureStarted = appmanager.EnsureStarted
@@ -328,7 +333,7 @@ func (c *ServersCommand) startAppManager(ctx context.Context) error {
 	return ensureStarted(ctx, c.cfg, topology.IngressPort())
 }
 
-func (c *ServersCommand) stopAppManager(ctx context.Context) (<-chan error, error) {
+func (c *ServerCommand) stopAppManager(ctx context.Context) (<-chan error, error) {
 	shutdown := c.shutdown
 	if shutdown == nil {
 		shutdown = appmanager.Shutdown

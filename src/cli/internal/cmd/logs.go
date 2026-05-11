@@ -84,7 +84,7 @@ func (c *appLogsCommand) usageFor(commandPath string) string {
 		"  -p, --path PATH       Specify app directory (overrides auto-detect)",
 		"  --id ID              Select process ID or container ID from 'app ps'",
 		"  -f, --follow         Follow log output (default: false)",
-		fmt.Sprintf("  --tail N|all        Number of log lines to show (default: %d)", defaultServersLogTailLines),
+		fmt.Sprintf("  --tail N|all        Number of log lines to show (default: %d)", defaultServerLogTailLines),
 		"  --json              Output as newline-delimited JSON",
 		"  -h, --help          Show this help",
 	)
@@ -140,7 +140,7 @@ func (c *appLogsCommand) parseFlags(args []string, commandPath string) (appLogsF
 	flags := appLogsFlags{
 		appPath:    "",
 		id:         "",
-		tail:       defaultServersLogTailLines,
+		tail:       defaultServerLogTailLines,
 		tailAll:    false,
 		follow:     defaultLogFollow,
 		jsonOutput: false,
@@ -162,11 +162,11 @@ func (c *appLogsCommand) parseFlags(args []string, commandPath string) (appLogsF
 	if flags.tail < 0 {
 		return flags, false, fmt.Errorf("%w: --tail must be greater than or equal to 0", ErrInvalidFlagValue)
 	}
-	if flags.tail > maxServersLogTailLines {
+	if flags.tail > maxServerLogTailLines {
 		return flags, false, fmt.Errorf(
 			"%w: --tail must be less than or equal to %d",
 			ErrInvalidFlagValue,
-			maxServersLogTailLines,
+			maxServerLogTailLines,
 		)
 	}
 	return flags, false, nil

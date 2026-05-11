@@ -1,4 +1,4 @@
-package servers
+package server
 
 import (
 	"bytes"
@@ -58,8 +58,8 @@ func TestStreamLogsJSON(t *testing.T) {
 	if err := json.Unmarshal(bytes.TrimSpace(out.Bytes()), &got); err != nil {
 		t.Fatalf("json.Unmarshal() error = %v", err)
 	}
-	if got.Server != "app-manager" || got.Line != "line" {
-		t.Fatalf("output = %+v, want app-manager log line", got)
+	if got.Line != "line" {
+		t.Fatalf("output = %+v, want log line", got)
 	}
 }
 

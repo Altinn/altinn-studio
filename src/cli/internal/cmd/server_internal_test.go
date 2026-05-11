@@ -19,14 +19,14 @@ import (
 
 var errShutdownWaitFailed = errors.New("wait failed")
 
-func TestServersStatusJSON_Running(t *testing.T) {
+func TestServerStatusJSON_Running(t *testing.T) {
 	t.Parallel()
 
 	processID := 1234
 	var out bytes.Buffer
-	command := &ServersCommand{
+	command := &ServerCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
-		client: fakeServersClientWithStatus(
+		client: fakeServerClientWithStatus(
 			&appmanager.Status{
 				ProcessID:         42,
 				AppManagerVersion: "1.2.3",
@@ -56,7 +56,7 @@ func TestServersStatusJSON_Running(t *testing.T) {
 		t.Fatalf("Run() error = %v", err)
 	}
 
-	var got serversStatusOutput
+	var got serverStatusOutput
 	if err := json.Unmarshal([]byte(strings.TrimSpace(out.String())), &got); err != nil {
 		t.Fatalf("json.Unmarshal() error = %v", err)
 	}
@@ -75,13 +75,13 @@ func TestServersStatusJSON_Running(t *testing.T) {
 	}
 }
 
-func TestServersUpJSON_AlreadyRunning(t *testing.T) {
+func TestServerUpJSON_AlreadyRunning(t *testing.T) {
 	t.Parallel()
 
 	var out bytes.Buffer
-	command := &ServersCommand{
+	command := &ServerCommand{
 		out:    ui.NewOutput(&out, io.Discard, false),
-		client: fakeServersClientWithStatus(&appmanager.Status{ProcessID: 1}, nil),
+		client: fakeServerClientWithStatus(&appmanager.Status{ProcessID: 1}, nil),
 		ensureStarted: func(context.Context, *config.Config, string) error {
 			return nil
 		},
@@ -91,7 +91,7 @@ func TestServersUpJSON_AlreadyRunning(t *testing.T) {
 		t.Fatalf("Run() error = %v", err)
 	}
 
-	var got serversUpOutput
+	var got serverUpOutput
 	if err := json.Unmarshal([]byte(strings.TrimSpace(out.String())), &got); err != nil {
 		t.Fatalf("json.Unmarshal() error = %v", err)
 	}
@@ -100,14 +100,14 @@ func TestServersUpJSON_AlreadyRunning(t *testing.T) {
 	}
 }
 
-func TestServersUpJSON_ReconcilesWhenAlreadyRunning(t *testing.T) {
+func TestServerUpJSON_ReconcilesWhenAlreadyRunning(t *testing.T) {
 	t.Parallel()
 
 	var ensured bool
 	var out bytes.Buffer
-	command := &ServersCommand{
+	command := &ServerCommand{
 		out:    ui.NewOutput(&out, io.Discard, false),
-		client: fakeServersClientWithStatus(&appmanager.Status{ProcessID: 1}, nil),
+		client: fakeServerClientWithStatus(&appmanager.Status{ProcessID: 1}, nil),
 		ensureStarted: func(context.Context, *config.Config, string) error {
 			ensured = true
 			return nil
@@ -122,13 +122,13 @@ func TestServersUpJSON_ReconcilesWhenAlreadyRunning(t *testing.T) {
 	}
 }
 
-func TestServersUpJSON_Started(t *testing.T) {
+func TestServerUpJSON_Started(t *testing.T) {
 	t.Parallel()
 
 	var out bytes.Buffer
-	command := &ServersCommand{
+	command := &ServerCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
-		client: fakeServersClientWithStatusSequence(
+		client: fakeServerClientWithStatusSequence(
 			fakeStatusResult{err: appmanager.ErrNotRunning},
 			fakeStatusResult{status: &appmanager.Status{ProcessID: 2}},
 		),
@@ -141,7 +141,7 @@ func TestServersUpJSON_Started(t *testing.T) {
 		t.Fatalf("Run() error = %v", err)
 	}
 
-	var got serversUpOutput
+	var got serverUpOutput
 	if err := json.Unmarshal([]byte(strings.TrimSpace(out.String())), &got); err != nil {
 		t.Fatalf("json.Unmarshal() error = %v", err)
 	}
@@ -150,13 +150,13 @@ func TestServersUpJSON_Started(t *testing.T) {
 	}
 }
 
-func TestServersUpJSON_Restarted(t *testing.T) {
+func TestServerUpJSON_Restarted(t *testing.T) {
 	t.Parallel()
 
 	var out bytes.Buffer
-	command := &ServersCommand{
+	command := &ServerCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
-		client: fakeServersClientWithStatusSequence(
+		client: fakeServerClientWithStatusSequence(
 			fakeStatusResult{status: &appmanager.Status{ProcessID: 1}},
 			fakeStatusResult{status: &appmanager.Status{ProcessID: 2}},
 		),
@@ -169,7 +169,7 @@ func TestServersUpJSON_Restarted(t *testing.T) {
 		t.Fatalf("Run() error = %v", err)
 	}
 
-	var got serversUpOutput
+	var got serverUpOutput
 	if err := json.Unmarshal([]byte(strings.TrimSpace(out.String())), &got); err != nil {
 		t.Fatalf("json.Unmarshal() error = %v", err)
 	}
@@ -178,13 +178,13 @@ func TestServersUpJSON_Restarted(t *testing.T) {
 	}
 }
 
-func TestServersStatusJSON_NotRunning(t *testing.T) {
+func TestServerStatusJSON_NotRunning(t *testing.T) {
 	t.Parallel()
 
 	var out bytes.Buffer
-	command := &ServersCommand{
+	command := &ServerCommand{
 		out:    ui.NewOutput(&out, io.Discard, false),
-		client: fakeServersClientWithStatus(nil, appmanager.ErrNotRunning),
+		client: fakeServerClientWithStatus(nil, appmanager.ErrNotRunning),
 	}
 
 	if err := command.Run(context.Background(), []string{"status", "--json"}); err != nil {
@@ -197,11 +197,11 @@ func TestServersStatusJSON_NotRunning(t *testing.T) {
 	}
 }
 
-func TestServersDownJSON_NotRunning(t *testing.T) {
+func TestServerDownJSON_NotRunning(t *testing.T) {
 	t.Parallel()
 
 	var out bytes.Buffer
-	command := &ServersCommand{
+	command := &ServerCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
 		shutdown: func(context.Context, *config.Config) (<-chan error, error) {
 			return nil, appmanager.ErrNotRunning
@@ -212,7 +212,7 @@ func TestServersDownJSON_NotRunning(t *testing.T) {
 		t.Fatalf("Run() error = %v", err)
 	}
 
-	var got serversDownOutput
+	var got serverDownOutput
 	if err := json.Unmarshal([]byte(strings.TrimSpace(out.String())), &got); err != nil {
 		t.Fatalf("json.Unmarshal() error = %v", err)
 	}
@@ -221,14 +221,14 @@ func TestServersDownJSON_NotRunning(t *testing.T) {
 	}
 }
 
-func TestServersDownJSON_ShutdownRequested(t *testing.T) {
+func TestServerDownJSON_ShutdownRequested(t *testing.T) {
 	t.Parallel()
 
 	done := make(chan error)
 	close(done)
 
 	var out bytes.Buffer
-	command := &ServersCommand{
+	command := &ServerCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
 		shutdown: func(context.Context, *config.Config) (<-chan error, error) {
 			return done, nil
@@ -239,7 +239,7 @@ func TestServersDownJSON_ShutdownRequested(t *testing.T) {
 		t.Fatalf("Run() error = %v", err)
 	}
 
-	var got serversDownOutput
+	var got serverDownOutput
 	if err := json.Unmarshal([]byte(strings.TrimSpace(out.String())), &got); err != nil {
 		t.Fatalf("json.Unmarshal() error = %v", err)
 	}
@@ -248,7 +248,7 @@ func TestServersDownJSON_ShutdownRequested(t *testing.T) {
 	}
 }
 
-func TestServersDownJSON_ShutdownFailure(t *testing.T) {
+func TestServerDownJSON_ShutdownFailure(t *testing.T) {
 	t.Parallel()
 
 	done := make(chan error, 1)
@@ -256,7 +256,7 @@ func TestServersDownJSON_ShutdownFailure(t *testing.T) {
 	close(done)
 
 	var out bytes.Buffer
-	command := &ServersCommand{
+	command := &ServerCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
 		shutdown: func(context.Context, *config.Config) (<-chan error, error) {
 			return done, nil
@@ -272,14 +272,14 @@ func TestServersDownJSON_ShutdownFailure(t *testing.T) {
 	}
 }
 
-func TestServersDownJSON_ContextCancelledWhileWaiting(t *testing.T) {
+func TestServerDownJSON_ContextCancelledWhileWaiting(t *testing.T) {
 	t.Parallel()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
 	var out bytes.Buffer
-	command := &ServersCommand{
+	command := &ServerCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
 		shutdown: func(context.Context, *config.Config) (<-chan error, error) {
 			return make(chan error), nil
@@ -295,7 +295,7 @@ func TestServersDownJSON_ContextCancelledWhileWaiting(t *testing.T) {
 	}
 }
 
-func TestServersLogsJSON_TailsMatchingPIDAcrossFiles(t *testing.T) {
+func TestServerLogsJSON_TailsMatchingPIDAcrossFiles(t *testing.T) {
 	t.Parallel()
 
 	logDir := t.TempDir()
@@ -308,7 +308,7 @@ func TestServersLogsJSON_TailsMatchingPIDAcrossFiles(t *testing.T) {
 	setServerLogModTime(t, otherPath, time.Date(2026, 4, 19, 1, 0, 0, 0, time.UTC))
 
 	var out bytes.Buffer
-	command := &ServersCommand{
+	command := &ServerCommand{
 		cfg: &config.Config{LogDir: logDir},
 		out: ui.NewOutput(&out, io.Discard, false),
 	}
@@ -327,14 +327,10 @@ func TestServersLogsJSON_TailsMatchingPIDAcrossFiles(t *testing.T) {
 	want := []string{"two", "three"}
 	for i, line := range lines {
 		var got struct {
-			Server string `json:"server"`
-			Line   string `json:"line"`
+			Line string `json:"line"`
 		}
 		if err := json.Unmarshal([]byte(line), &got); err != nil {
 			t.Fatalf("json.Unmarshal(line %d) error = %v", i, err)
-		}
-		if got.Server != "app-manager" {
-			t.Fatalf("line %d server = %q, want app-manager", i, got.Server)
 		}
 		if got.Line != want[i] {
 			t.Fatalf("line %d = %q, want %q", i, got.Line, want[i])
@@ -342,11 +338,11 @@ func TestServersLogsJSON_TailsMatchingPIDAcrossFiles(t *testing.T) {
 	}
 }
 
-func TestServersLogs_MissingLogFile(t *testing.T) {
+func TestServerLogs_MissingLogFile(t *testing.T) {
 	t.Parallel()
 
 	var out bytes.Buffer
-	command := &ServersCommand{
+	command := &ServerCommand{
 		cfg: &config.Config{LogDir: t.TempDir()},
 		out: ui.NewOutput(&out, io.Discard, false),
 	}
@@ -360,7 +356,7 @@ func TestServersLogs_MissingLogFile(t *testing.T) {
 	}
 }
 
-func TestServersLogs_InvalidTail(t *testing.T) {
+func TestServerLogs_InvalidTail(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string][]string{
@@ -373,7 +369,7 @@ func TestServersLogs_InvalidTail(t *testing.T) {
 			t.Parallel()
 
 			var out bytes.Buffer
-			command := &ServersCommand{
+			command := &ServerCommand{
 				cfg: &config.Config{LogDir: t.TempDir()},
 				out: ui.NewOutput(&out, io.Discard, false),
 			}
@@ -386,7 +382,7 @@ func TestServersLogs_InvalidTail(t *testing.T) {
 	}
 }
 
-func TestServersLogs_ReadsLatestLogWithoutStatus(t *testing.T) {
+func TestServerLogs_ReadsLatestLogWithoutStatus(t *testing.T) {
 	t.Parallel()
 
 	logDir := t.TempDir()
@@ -397,7 +393,7 @@ func TestServersLogs_ReadsLatestLogWithoutStatus(t *testing.T) {
 	setServerLogModTime(t, newPath, time.Date(2026, 4, 19, 1, 0, 0, 0, time.UTC))
 
 	var out bytes.Buffer
-	command := &ServersCommand{
+	command := &ServerCommand{
 		cfg: &config.Config{LogDir: logDir},
 		out: ui.NewOutput(&out, io.Discard, false),
 	}
@@ -410,9 +406,8 @@ func TestServersLogs_ReadsLatestLogWithoutStatus(t *testing.T) {
 	}
 }
 
-type fakeServersClient struct {
+type fakeServerClient struct {
 	status func(context.Context) (*appmanager.Status, error)
-	health func(context.Context) error
 }
 
 type fakeStatusResult struct {
@@ -420,32 +415,24 @@ type fakeStatusResult struct {
 	err    error
 }
 
-func (f *fakeServersClient) Health(ctx context.Context) error {
-	if f.health == nil {
-		return nil
-	}
-	return f.health(ctx)
-}
-
-func (f *fakeServersClient) Status(ctx context.Context) (*appmanager.Status, error) {
+func (f *fakeServerClient) Status(ctx context.Context) (*appmanager.Status, error) {
 	if f.status == nil {
 		return new(appmanager.Status), nil
 	}
 	return f.status(ctx)
 }
 
-func fakeServersClientWithStatus(status *appmanager.Status, err error) *fakeServersClient {
-	return &fakeServersClient{
+func fakeServerClientWithStatus(status *appmanager.Status, err error) *fakeServerClient {
+	return &fakeServerClient{
 		status: func(context.Context) (*appmanager.Status, error) {
 			return status, err
 		},
-		health: nil,
 	}
 }
 
-func fakeServersClientWithStatusSequence(results ...fakeStatusResult) *fakeServersClient {
+func fakeServerClientWithStatusSequence(results ...fakeStatusResult) *fakeServerClient {
 	index := 0
-	return &fakeServersClient{
+	return &fakeServerClient{
 		status: func(context.Context) (*appmanager.Status, error) {
 			if index >= len(results) {
 				return new(appmanager.Status), nil
@@ -454,7 +441,6 @@ func fakeServersClientWithStatusSequence(results ...fakeStatusResult) *fakeServe
 			index++
 			return result.status, result.err
 		},
-		health: nil,
 	}
 }
 

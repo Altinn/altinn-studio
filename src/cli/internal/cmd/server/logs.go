@@ -1,5 +1,5 @@
-// Package servers contains command-specific background server logic.
-package servers
+// Package server contains command-specific studioctl server logic.
+package server
 
 import (
 	"context"
@@ -26,23 +26,7 @@ type LogOptions struct {
 }
 
 type serverLogLine struct {
-	Server string `json:"server"`
-	Line   string `json:"line"`
-	JSON   bool   `json:"-"`
-}
-
-func (l serverLogLine) Print(out *ui.Output) error {
-	if !l.JSON {
-		out.Println(l.Line)
-		return nil
-	}
-
-	payload, err := json.Marshal(l)
-	if err != nil {
-		return fmt.Errorf("marshal server log line: %w", err)
-	}
-	out.Println(string(payload))
-	return nil
+	Line string `json:"line"`
 }
 
 // StreamLogs writes app-manager log lines to the configured output.
@@ -89,9 +73,16 @@ func appManagerLogFiles(files []appmanager.LogFile) []logstream.File {
 }
 
 func printServerLogLine(out *ui.Output, line string, jsonOutput bool) error {
-	return serverLogLine{
-		Server: "app-manager",
-		Line:   strings.TrimSuffix(line, "\r"),
-		JSON:   jsonOutput,
-	}.Print(out)
+	line = strings.TrimSuffix(line, "\r")
+	if !jsonOutput {
+		out.Println(line)
+		return nil
+	}
+
+	payload, err := json.Marshal(serverLogLine{Line: line})
+	if err != nil {
+		return fmt.Errorf("marshal server log line: %w", err)
+	}
+	out.Println(string(payload))
+	return nil
 }

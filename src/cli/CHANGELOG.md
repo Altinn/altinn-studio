@@ -11,6 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Changed
 
 - Breaking: make `--follow` default to `false` for log commands.
+- Breaking: rename `studioctl servers` to `studioctl server`.
 
 ### Fixed
 
