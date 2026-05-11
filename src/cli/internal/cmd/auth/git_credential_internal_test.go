@@ -41,6 +41,11 @@ func TestMatchesGitCredentialRequest(t *testing.T) {
 			want:    true,
 		},
 		{
+			name:    "repos path without git suffix",
+			request: gitCredentialRequest{Protocol: testHTTPS, Host: testStudioHost, Path: "repos/org/repo"},
+			want:    true,
+		},
+		{
 			name:    "wrong host",
 			request: gitCredentialRequest{Protocol: testHTTPS, Host: "example.com", Path: "repos/org/repo.git"},
 			want:    false,
@@ -53,6 +58,36 @@ func TestMatchesGitCredentialRequest(t *testing.T) {
 		{
 			name:    "non repos path",
 			request: gitCredentialRequest{Protocol: testHTTPS, Host: testStudioHost, Path: "org/repo.git"},
+			want:    false,
+		},
+		{
+			name:    "repos root path",
+			request: gitCredentialRequest{Protocol: testHTTPS, Host: testStudioHost, Path: "repos"},
+			want:    false,
+		},
+		{
+			name:    "missing repo segment",
+			request: gitCredentialRequest{Protocol: testHTTPS, Host: testStudioHost, Path: "repos/org"},
+			want:    false,
+		},
+		{
+			name:    "extra path segment",
+			request: gitCredentialRequest{Protocol: testHTTPS, Host: testStudioHost, Path: "repos/org/repo.git/info"},
+			want:    false,
+		},
+		{
+			name:    "empty owner segment",
+			request: gitCredentialRequest{Protocol: testHTTPS, Host: testStudioHost, Path: "repos//repo.git"},
+			want:    false,
+		},
+		{
+			name:    "empty repo segment",
+			request: gitCredentialRequest{Protocol: testHTTPS, Host: testStudioHost, Path: "repos/org/"},
+			want:    false,
+		},
+		{
+			name:    "git suffix only",
+			request: gitCredentialRequest{Protocol: testHTTPS, Host: testStudioHost, Path: "repos/org/.git"},
 			want:    false,
 		},
 	}

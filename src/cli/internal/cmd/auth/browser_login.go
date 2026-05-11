@@ -69,11 +69,9 @@ func (s *Service) StartBrowserLogin(ctx context.Context, env string, target Logi
 
 	codeCh := make(chan string, 1)
 	errCh := make(chan error, 1)
-	//nolint:exhaustruct // Only non-zero settings are relevant for this short-lived callback server.
-	server := &http.Server{
-		ReadHeaderTimeout: loginCallbackHeaderTimeout,
-		Handler:           loginCallbackHandler(state, codeCh, errCh),
-	}
+	var server http.Server
+	server.ReadHeaderTimeout = loginCallbackHeaderTimeout
+	server.Handler = loginCallbackHandler(state, codeCh, errCh)
 
 	go func() {
 		if serveErr := server.Serve(listener); serveErr != nil && !errors.Is(serveErr, http.ErrServerClosed) {
@@ -93,7 +91,7 @@ func (s *Service) StartBrowserLogin(ctx context.Context, env string, target Logi
 		),
 		codeVerifier: codeVerifier,
 		listener:     listener,
-		server:       server,
+		server:       &server,
 		codeCh:       codeCh,
 		errCh:        errCh,
 	}, nil

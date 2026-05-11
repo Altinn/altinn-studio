@@ -4,6 +4,8 @@ import { Route, Routes } from 'react-router-dom';
 import { StudioctlAuth } from './StudioctlAuth';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
 import type { User } from 'app-shared/types/Repository';
 import type {
   StudioctlAuthCallback,
@@ -42,22 +44,37 @@ const callback: StudioctlAuthCallback = { callbackUrl };
 type RenderStudioctlAuthOptions = {
   initialEntries?: string[];
   queries?: Parameters<typeof renderWithProviders>[1]['queries'];
+  seedAuthRequest?: boolean;
+  seedUser?: boolean;
 };
 
-const renderStudioctlAuth = ({ initialEntries, queries = {} }: RenderStudioctlAuthOptions = {}) =>
-  renderWithProviders(
+const renderStudioctlAuth = ({
+  initialEntries,
+  queries = {},
+  seedAuthRequest = true,
+  seedUser = true,
+}: RenderStudioctlAuthOptions = {}) => {
+  const queryClient = createQueryClientMock();
+  if (seedUser) {
+    queryClient.setQueryData([QueryKey.CurrentUser], currentUser);
+  }
+  if (seedAuthRequest) {
+    queryClient.setQueryData([QueryKey.StudioctlAuthRequest, requestId], authRequest);
+  }
+
+  return renderWithProviders(
     <Routes>
       <Route path='/:owner/studioctl-auth' element={<StudioctlAuth />} />
     </Routes>,
     {
       initialEntries: initialEntries ?? [`/${owner}/studioctl-auth?requestId=${requestId}`],
+      queryClient,
       queries: {
-        getUser: jest.fn().mockImplementation(() => Promise.resolve(currentUser)),
-        getStudioctlAuthRequest: jest.fn().mockImplementation(() => Promise.resolve(authRequest)),
         ...queries,
       },
     },
   );
+};
 
 describe('StudioctlAuth', () => {
   beforeEach(() => {
@@ -134,6 +151,7 @@ describe('StudioctlAuth', () => {
 
   it('renders a spinner while user data is loading', () => {
     renderStudioctlAuth({
+      seedUser: false,
       queries: { getUser: jest.fn().mockImplementation(() => new Promise(() => {})) },
     });
 
@@ -142,6 +160,7 @@ describe('StudioctlAuth', () => {
 
   it('renders a page error when user data cannot be loaded', async () => {
     renderStudioctlAuth({
+      seedUser: false,
       queries: { getUser: jest.fn().mockImplementation(() => Promise.reject(new Error())) },
     });
 
@@ -154,6 +173,7 @@ describe('StudioctlAuth', () => {
     const getStudioctlAuthRequest = jest.fn();
     renderStudioctlAuth({
       initialEntries: [`/${owner}/studioctl-auth`],
+      seedAuthRequest: false,
       queries: { getStudioctlAuthRequest },
     });
 
@@ -167,6 +187,7 @@ describe('StudioctlAuth', () => {
     const getStudioctlAuthRequest = jest.fn();
     renderStudioctlAuth({
       initialEntries: [`/other-user/studioctl-auth?requestId=${requestId}`],
+      seedAuthRequest: false,
       queries: { getStudioctlAuthRequest },
     });
 
@@ -178,6 +199,7 @@ describe('StudioctlAuth', () => {
 
   it('renders a page error when the auth request cannot be loaded', async () => {
     renderStudioctlAuth({
+      seedAuthRequest: false,
       queries: {
         getStudioctlAuthRequest: jest.fn().mockImplementation(() => Promise.reject(new Error())),
       },

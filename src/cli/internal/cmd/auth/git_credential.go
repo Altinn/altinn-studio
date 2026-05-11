@@ -84,5 +84,9 @@ func matchesGitCredentialRequest(request gitCredentialRequest, scheme, host stri
 		return false
 	}
 	path := strings.TrimPrefix(request.Path, "/")
-	return path == "repos" || strings.HasPrefix(path, "repos/")
+	parts := strings.Split(path, "/")
+	if len(parts) != 3 || parts[0] != "repos" || parts[1] == "" || parts[2] == "" {
+		return false
+	}
+	return parts[2] != ".git"
 }
