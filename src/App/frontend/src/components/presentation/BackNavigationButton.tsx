@@ -1,9 +1,9 @@
 import React from 'react';
 
+import { Button } from '@app/form-component';
 import { ArrowLeftIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { Button } from 'src/app-components/Button/Button';
 import classes from 'src/components/presentation/BackNavigationButton.module.css';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { MessageBoxConfigEvaluator } from 'src/features/applicationMetadata/messageBoxConfig';

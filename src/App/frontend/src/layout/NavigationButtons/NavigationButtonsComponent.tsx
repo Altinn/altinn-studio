@@ -1,7 +1,8 @@
 import React from 'react';
 import { useSearchParams } from 'react-router';
 
-import { Button } from 'src/app-components/Button/Button';
+import { Button } from '@app/form-component';
+
 import { SearchParams } from 'src/core/routing/types';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useHasPendingAttachments } from 'src/features/attachments/hooks';

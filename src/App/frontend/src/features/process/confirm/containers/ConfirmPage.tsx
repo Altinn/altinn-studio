@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { Button } from 'src/app-components/Button/Button';
+import { Button } from '@app/form-component';
+
 import { ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppOwner } from 'src/core/texts/appTexts';

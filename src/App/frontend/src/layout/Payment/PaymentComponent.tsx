@@ -1,8 +1,8 @@
 import React, { useCallback } from 'react';
 
+import { Button } from '@app/form-component';
 import { Alert } from '@digdir/designsystemet-react';
 
-import { Button } from 'src/app-components/Button/Button';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { useOptimisticallyUpdateProcess, useProcessQuery } from 'src/features/instance/useProcessQuery';

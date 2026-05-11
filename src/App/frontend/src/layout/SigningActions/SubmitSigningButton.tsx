@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 
+import { Button } from '@app/form-component';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { Button } from 'src/app-components/Button/Button';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { Lang } from 'src/features/language/Lang';
 import { signingQueries } from 'src/layout/SigneeList/api';

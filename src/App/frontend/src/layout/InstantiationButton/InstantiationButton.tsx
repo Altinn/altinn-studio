@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
 
-import { Button } from 'src/app-components/Button/Button';
+import { Button } from '@app/form-component';
+
 import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
 import { parseInstanceId } from 'src/core/queries/instance';
 import { FormStore } from 'src/features/form/FormContext';

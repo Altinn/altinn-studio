@@ -1,9 +1,9 @@
 import React, { useRef } from 'react';
 import type { PropsWithChildren, ReactElement } from 'react';
 
+import { Button } from '@app/form-component';
 import { Dialog, Heading, Paragraph, ValidationMessage } from '@digdir/designsystemet-react';
 
-import { Button } from 'src/app-components/Button/Button';
 import { Panel } from 'src/app-components/Panel/Panel';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';

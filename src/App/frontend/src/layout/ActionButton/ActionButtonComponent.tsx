@@ -1,8 +1,9 @@
 import React from 'react';
 
+import { Button, type ButtonColor, type ButtonVariant } from '@app/form-component';
+
 import type { PropsFromGenericComponent } from '..';
 
-import { Button, type ButtonColor, type ButtonVariant } from 'src/app-components/Button/Button';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';

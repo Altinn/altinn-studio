@@ -1,8 +1,8 @@
 import React from 'react';
 
+import { Button } from '@app/form-component';
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
 
-import { Button } from 'src/app-components/Button/Button';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppOwner } from 'src/core/texts/appTexts';
 import { useProcessNextOutsideFormProvider } from 'src/features/instance/useProcessNext';
