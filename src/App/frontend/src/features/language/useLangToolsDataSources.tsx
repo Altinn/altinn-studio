@@ -7,14 +7,10 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { getLanguageFromCode } from 'src/language/languages';
 import type { TextResourceMap } from 'src/features/language/textResources';
-import type { TextResourceVariablesDataSources } from 'src/features/language/useLanguage';
+import type { BaseTextResourceVariablesDataSources } from 'src/features/language/useLanguage';
 import type { FixedLanguageList } from 'src/language/languages';
 
-export type LimitedTextResourceVariablesDataSources = Omit<
-  TextResourceVariablesDataSources,
-  'node' | 'defaultDataType' | 'formDataTypes' | 'formDataSelector' | 'transposeSelector'
->;
-export interface LangDataSources extends LimitedTextResourceVariablesDataSources {
+export interface LangDataSources extends BaseTextResourceVariablesDataSources {
   textResources: TextResourceMap;
   selectedLanguage: string;
   language: FixedLanguageList;

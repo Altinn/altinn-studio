@@ -348,6 +348,11 @@ internal static class EngineRequestHandlers
         IReadOnlyList<Workflow> workflows
     )
     {
+        // Workflows arrive ordered by (CreatedAt, OperationId, Id) from the repo, so the outer
+        // loop is already stable. The inner Dependencies/Links collections come from EF Include
+        // without ORDER BY, so we sort them by OperationId here to keep edge emission
+        // deterministic regardless of database row order. DatabaseId is the tiebreaker for the
+        // edge case where two related workflows share the same OperationId.
         HashSet<Guid> workflowIds = [.. workflows.Select(workflow => workflow.DatabaseId)];
         List<WorkflowDependencyGraphEdgeResponse> edges = [];
 
@@ -355,7 +360,9 @@ internal static class EngineRequestHandlers
         {
             if (workflow.Dependencies is not null)
             {
-                foreach (Workflow dependency in workflow.Dependencies)
+                foreach (
+                    Workflow dependency in workflow.Dependencies.OrderBy(d => d.OperationId).ThenBy(d => d.DatabaseId)
+                )
                 {
                     if (!workflowIds.Contains(dependency.DatabaseId))
                         continue;
@@ -373,7 +380,7 @@ internal static class EngineRequestHandlers
 
             if (workflow.Links is not null)
             {
-                foreach (Workflow link in workflow.Links)
+                foreach (Workflow link in workflow.Links.OrderBy(l => l.OperationId).ThenBy(l => l.DatabaseId))
                 {
                     if (!workflowIds.Contains(link.DatabaseId))
                         continue;
@@ -390,7 +397,7 @@ internal static class EngineRequestHandlers
             }
         }
 
-        return edges.OrderBy(edge => edge.From).ThenBy(edge => edge.To).ThenBy(edge => edge.Kind).ToList();
+        return edges;
     }
 
     /// <summary>

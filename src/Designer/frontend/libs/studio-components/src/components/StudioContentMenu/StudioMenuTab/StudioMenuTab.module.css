@@ -1,7 +1,7 @@
 .tabIcon {
   display: flex;
   align-items: center;
-  font-size: var(--ds-size-8);
+  --_ds-captured-length: var(--ds-size-8);
   color: var(--ds-color-neutral-text-default);
 }
 

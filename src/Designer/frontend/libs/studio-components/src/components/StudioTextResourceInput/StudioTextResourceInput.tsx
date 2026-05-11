@@ -301,11 +301,17 @@ function ModeToggle({
 }: InputModeToggleProps): ReactElement {
   const className = cn(givenClass, classes.toggle);
   return (
-    <ToggleGroup onChange={onToggle} value={inputMode} data-size='sm' className={className}>
-      <ToggleGroup.Item icon value={Mode.EditValue} title={texts.editValue}>
+    <ToggleGroup
+      className={className}
+      data-size='sm'
+      data-toggle-group=' ' // Todo: Give this element a name: https://github.com/Altinn/altinn-studio/issues/18503
+      onChange={onToggle}
+      value={inputMode}
+    >
+      <ToggleGroup.Item aria-label={texts.editValue} value={Mode.EditValue}>
         <PencilIcon />
       </ToggleGroup.Item>
-      <ToggleGroup.Item icon value={Mode.Search} title={texts.search}>
+      <ToggleGroup.Item value={Mode.Search} aria-label={texts.search}>
         <MagnifyingGlassIcon />
       </ToggleGroup.Item>
     </ToggleGroup>

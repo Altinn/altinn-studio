@@ -16,6 +16,8 @@ const (
 	devImageTagWorkflowEngine = "localtest-workflow-engine:dev"
 	workflowEngineInfraDir    = "workflow-engine"
 	workflowEngineDbDataDir   = "workflow-engine-db"
+	workflowEngineHTTPPort    = "9090"
+	workflowEngineDbHostPort  = "9543"
 
 	// WorkflowEngineDbVolume is the named volume used for workflow-engine PostgreSQL data.
 	WorkflowEngineDbVolume = "localtest-workflow-engine-db-data"
@@ -34,15 +36,11 @@ const (
 
 func registerWorkflowEngineComponents(manifest *Manifest, opts *Options) {
 	manifest.addContainer(opts, workflowEngineDbImage(opts), workflowEngineDbContainer(opts), true)
-	manifest.addContainer(opts, workflowEngineImage(opts), workflowEngineContainer(opts), true)
+	manifest.addContainer(opts, workflowEngineImage(opts), workflowEngineContainer(opts), !opts.DevWorkflowEngine)
 	manifest.addBinding(envtopology.RuntimeBinding{
 		ComponentID: envtopology.ComponentWorkflowEngine,
-		Destination: envtopology.BoundTopologyDestination{
-			Location: envtopology.DestinationLocationEnv,
-			Kind:     envtopology.DestinationKindHTTP,
-			URL:      "http://" + ContainerWorkflowEngine + ":8080",
-		},
-		Enabled: true,
+		Destination: workflowEngineDestination(opts.DevWorkflowEngine),
+		Enabled:     true,
 	})
 }
 
@@ -55,6 +53,13 @@ func workflowEngineDbImage(ctx *Options) resource.ImageResource {
 }
 
 func workflowEngineImage(ctx *Options) resource.ImageResource {
+	if ctx.DevWorkflowEngine {
+		return &resource.RemoteImage{
+			Enabled:    resourceEnabledRef(false),
+			Ref:        imageRef(ctx.Images.Core.WorkflowEngine.Ref(), ContainerWorkflowEngine, false),
+			PullPolicy: resource.PullIfNotPresent,
+		}
+	}
 	if ctx.ImageMode == DevMode && ctx.DevConfig != nil {
 		return &resource.LocalImage{
 			Enabled:     nil,
@@ -77,9 +82,13 @@ func workflowEngineImage(ctx *Options) resource.ImageResource {
 }
 
 func workflowEngineDbContainer(ctx *Options) *ContainerSpec {
+	var ports []types.PortMapping
+	if ctx.DevWorkflowEngine {
+		ports = []types.PortMapping{newPort(workflowEngineDbHostPort, postgresPort)}
+	}
 	spec := newContainerSpec(
 		ContainerWorkflowEngineDb,
-		nil,
+		ports,
 		map[string]string{
 			"POSTGRES_DB":       postgresDB,
 			"POSTGRES_USER":     postgresUser,
@@ -125,9 +134,25 @@ func workflowEngineContainer(ctx *Options) *ContainerSpec {
 
 func workflowEngineEnv(topology envtopology.Local) map[string]string {
 	return map[string]string{
-		"ASPNETCORE_ENVIRONMENT":              "Docker",
+		"ASPNETCORE_ENVIRONMENT":              "Development",
+		"ASPNETCORE_HTTP_PORTS":               workflowEngineHTTPPort,
 		"ConnectionStrings__WorkflowEngine":   "Host=" + ContainerWorkflowEngineDb + ";Port=" + postgresPort + ";Database=" + workflowEngineDB + ";Username=" + postgresUser + ";Password=" + postgresPassword,
 		"AppCommandSettings__CommandEndpoint": topology.LocaltestBaseURL() + "/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/",
+	}
+}
+
+func workflowEngineDestination(devWorkflowEngine bool) envtopology.BoundTopologyDestination {
+	if devWorkflowEngine {
+		return envtopology.BoundTopologyDestination{
+			Location: envtopology.DestinationLocationHost,
+			Kind:     envtopology.DestinationKindHTTP,
+			URL:      hostHTTPURL(workflowEngineHTTPPort),
+		}
+	}
+	return envtopology.BoundTopologyDestination{
+		Location: envtopology.DestinationLocationEnv,
+		Kind:     envtopology.DestinationKindHTTP,
+		URL:      "http://" + ContainerWorkflowEngine + ":" + workflowEngineHTTPPort,
 	}
 }
 

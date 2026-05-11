@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: postgres123
       TZ: Europe/Oslo
     ports:
-      - "5433:5432"
+      - "9543:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
       - ./.docker/postgres-init.sql:/docker-entrypoint-initdb.d/01-tuning.sql:ro
@@ -99,10 +99,10 @@ services:
     networks:
       - workflow-engine-network
     ports:
-      - "8080:8080"
-      - "8081:8081"
+      - "9090:9090"
     environment:
       ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_HTTP_PORTS: "9090"
       ConnectionStrings__WorkflowEngine: "Host=postgres;Database=workflow_engine;Username=postgres;Password=postgres123"
       OTEL_EXPORTER_OTLP_ENDPOINT: http://lgtm:4317
     volumes:

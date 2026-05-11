@@ -16,7 +16,7 @@ public static class SchedulingDependencyInjectionExtensions
     {
         SchedulingSettings schedulingSettings =
             configuration.GetSection(nameof(SchedulingSettings)).Get<SchedulingSettings>() ?? new SchedulingSettings();
-        ValidateInactivityUndeployJobTimeouts(schedulingSettings.InactivityUndeployJobTimeouts);
+        ValidateSchedulingSettings(schedulingSettings);
 
         services.AddSingleton(schedulingSettings);
         services.AddSingleton<IAppInactivityUndeployJobQueue, AppInactivityUndeployJobQueue>();
@@ -39,6 +39,17 @@ public static class SchedulingDependencyInjectionExtensions
                     .WithCronSchedule(AppInactivityUndeployJobConstants.CronScheduleNightlyMidnight)
             );
 
+            configure.AddJob<ChatInactivityCleanupJob>(options =>
+                options.WithIdentity(ChatInactivityCleanupJobConstants.JobName)
+            );
+
+            configure.AddTrigger(options =>
+                options
+                    .ForJob(ChatInactivityCleanupJobConstants.JobName)
+                    .WithIdentity(ChatInactivityCleanupJobConstants.TriggerName)
+                    .WithCronSchedule(ChatInactivityCleanupJobConstants.CronScheduleNightly)
+            );
+
             if (schedulingSettings.UsePersistentScheduling)
             {
                 PostgreSQLSettings postgresSettings = configuration
@@ -59,20 +70,34 @@ public static class SchedulingDependencyInjectionExtensions
         return services;
     }
 
-    private static void ValidateInactivityUndeployJobTimeouts(InactivityUndeployJobTimeoutSettings settings)
+    private static void ValidateSchedulingSettings(SchedulingSettings schedulingSettings)
     {
-        ValidatePositiveMinutes(settings.RootJobMinutes, nameof(settings.RootJobMinutes));
-        ValidatePositiveMinutes(settings.PerOrgJobMinutes, nameof(settings.PerOrgJobMinutes));
-        ValidatePositiveMinutes(settings.PerAppJobMinutes, nameof(settings.PerAppJobMinutes));
+        ValidateInactivityUndeployJobTimeouts(schedulingSettings.InactivityUndeployJobTimeouts);
+        ValidateChatInactivityCleanup(schedulingSettings.ChatInactivityCleanup);
     }
 
-    private static void ValidatePositiveMinutes(int value, string propertyName)
+    private static void ValidateInactivityUndeployJobTimeouts(InactivityUndeployJobTimeoutSettings settings)
+    {
+        const string SectionPath =
+            $"{nameof(SchedulingSettings)}:{nameof(SchedulingSettings.InactivityUndeployJobTimeouts)}";
+        ValidatePositive(settings.RootJobMinutes, $"{SectionPath}:{nameof(settings.RootJobMinutes)}");
+        ValidatePositive(settings.PerOrgJobMinutes, $"{SectionPath}:{nameof(settings.PerOrgJobMinutes)}");
+        ValidatePositive(settings.PerAppJobMinutes, $"{SectionPath}:{nameof(settings.PerAppJobMinutes)}");
+    }
+
+    private static void ValidateChatInactivityCleanup(ChatInactivityCleanupSettings settings)
+    {
+        ValidatePositive(
+            settings.RetentionDays,
+            $"{nameof(SchedulingSettings)}:{nameof(SchedulingSettings.ChatInactivityCleanup)}:{nameof(settings.RetentionDays)}"
+        );
+    }
+
+    private static void ValidatePositive(int value, string settingPath)
     {
         if (value <= 0)
         {
-            throw new InvalidOperationException(
-                $"SchedulingSettings:InactivityUndeployJobTimeouts:{propertyName} must be greater than zero."
-            );
+            throw new InvalidOperationException($"{settingPath} must be greater than zero.");
         }
     }
 }

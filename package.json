@@ -59,7 +59,7 @@
     "src/Designer/frontend/packages/schema-model",
     "src/Designer/frontend/packages/shared",
     "src/Designer/frontend/packages/text-editor",
-    "src/Designer/frontend/packages/ux-editor",
+    "src/Designer/frontend/packages/ux-editor-v4",
     "src/Designer/frontend/packages/ux-editor-v3",
     "src/Designer/frontend/packages/process-editor",
     "src/Designer/frontend/packages/policy-editor",

@@ -51,4 +51,8 @@ export class BasePage extends RouterRoute {
     for (let i = 0; i < numberOfTimesToHover; i++) await target.hover();
     await this.page.mouse.up();
   }
+
+  public getSummaryByText(text: string): Locator {
+    return this.page.locator('summary').filter({ hasText: text });
+  }
 }

@@ -220,7 +220,14 @@ export default defineConfig([
   },
   {
     files: ['src/**/*.{ts,tsx}'],
-    ignores: ['src/core/**', 'src/routes/**', 'src/test/**', 'src/queries/**', 'src/routerContexts/**'],
+    ignores: [
+      'src/core/**',
+      'src/routes/**',
+      'src/test/**',
+      'src/queries/**',
+      'src/routerContexts/**',
+      'src/appQueryClient.ts',
+    ],
     rules: {
       '@typescript-eslint/no-restricted-imports': [
         'warn',
@@ -236,7 +243,8 @@ export default defineConfig([
     },
   },
   {
-    files: ['src/routes/**/*.{ts,tsx}'],
+    files: ['src/routes/**/*.{ts,tsx}', 'src/router.tsx'],
+    ignores: ['src/routes/**/*.test.ts'],
     rules: {
       '@typescript-eslint/no-restricted-imports': [
         'warn',

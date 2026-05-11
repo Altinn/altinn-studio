@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen } from '@studio/ui-test';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ConfigPdfServiceTask } from './ConfigPdfServiceTask';
@@ -119,9 +119,7 @@ describe('ConfigPdfServiceTask', () => {
       renderConfigPdfServiceTask();
 
       expect(
-        screen.getByRole('group', {
-          name: textMock('process_editor.configuration_panel_pdf_mode'),
-        }),
+        screen.getFieldsetByLegend(textMock('process_editor.configuration_panel_pdf_mode')),
       ).toBeInTheDocument();
 
       expect(
