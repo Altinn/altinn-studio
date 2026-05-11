@@ -7,14 +7,10 @@ const layoutOverrideStores: RefObject<FormStoreApi | undefined>[] = [];
 let windowLayoutOverridesInstalled = false;
 
 function getInnermostStore() {
-  for (let i = layoutOverrideStores.length - 1; i >= 0; i--) {
-    const store = layoutOverrideStores[i]?.current;
-    if (store) {
-      return store;
-    }
-  }
-
-  return undefined;
+  return [...layoutOverrideStores]
+    .reverse()
+    .map((ref) => ref?.current)
+    .find((store) => store !== undefined);
 }
 
 /**
