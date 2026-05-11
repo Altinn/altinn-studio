@@ -122,10 +122,7 @@ describe('Privacy', () => {
     renderPrivacy();
     await user.click(getAnalyticsSwitch());
     await user.click(getSaveButton());
-    expect(toast.success).toHaveBeenCalledWith(
-      textMock('settings.user.privacy.saved'),
-      expect.objectContaining({ toastId: 'privacy-saved' }),
-    );
+    expect(toast.success).toHaveBeenCalledWith(textMock('settings.user.privacy.saved'));
   });
 
   it('resets both toggles and calls denyAllConsent when revoke all is clicked', async () => {
@@ -145,9 +142,6 @@ describe('Privacy', () => {
     const user = userEvent.setup();
     renderPrivacy();
     await user.click(getRevokeAllButton());
-    expect(toast.success).toHaveBeenCalledWith(
-      textMock('settings.user.privacy.revoked'),
-      expect.objectContaining({ toastId: 'privacy-revoked' }),
-    );
+    expect(toast.success).toHaveBeenCalledWith(textMock('settings.user.privacy.revoked'));
   });
 });

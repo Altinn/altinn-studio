@@ -25,14 +25,14 @@ export const Privacy = (): ReactElement => {
 
   const handleSave = (): void => {
     setConsentPreferences({ analytics, sessionRecording: analytics && sessionRecording });
-    toast.success(t('settings.user.privacy.saved'), { toastId: 'privacy-saved' });
+    toast.success(t('settings.user.privacy.saved'));
   };
 
   const handleDeclineAll = (): void => {
     setAnalytics(false);
     setSessionRecording(false);
     denyAllConsent();
-    toast.success(t('settings.user.privacy.revoked'), { toastId: 'privacy-revoked' });
+    toast.success(t('settings.user.privacy.revoked'));
   };
 
   return (
