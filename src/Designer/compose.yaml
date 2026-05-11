@@ -142,6 +142,10 @@ services:
       - StudioOidcLoginSettings:ClientSecret=${STUDIO_OIDC_CLIENT_SECRET:-fake-secret}
       - StudioOidcLoginSettings:Authority=${STUDIO_OIDC_AUTHORITY:-http://fake-ansattporten:8443}
       - StudioOidcLoginSettings:RequireHttpsMetadata=false
+      - StudioOidcLoginSettings:AuthorizationDetails:0:Type=ansattporten:altinn:resource
+      - StudioOidcLoginSettings:AuthorizationDetails:0:Resource=urn:altinn:resource:digdir-selvbetjening-klienter
+      - StudioOidcLoginSettings:AuthorizationDetails:0:OrganizationForm=enterprise
+      - StudioOidcLoginSettings:AuthorizationDetails:0:RepresentationIsRequired=false
       - FeatureManagement:Ansattporten=${FEATUREFLAGS_ANSATTPORTEN:-false}
       - FeatureManagement:GitOpsDeploy=${FEATUREFLAGS_GITOPSDEPLOY:-true}
       - FeatureManagement:StudioOidc=${FEATUREFLAGS_STUDIOOIDC:-true}
@@ -341,5 +345,4 @@ services:
         - REDIS_HOSTS=redis
     ports:
         - "8081:8081"
-
 

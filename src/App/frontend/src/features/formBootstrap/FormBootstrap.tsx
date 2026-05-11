@@ -7,8 +7,9 @@ import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import type { IDataModelReference } from 'src/layout/common.generated';
 
 export const FormBootstrap = {
-  useLayouts: () => FormProviderHooks.useBootstrap().layouts,
-  useLaxLayouts: () => FormProviderHooks.useLaxBootstrap()?.layouts,
+  useLayouts: () => FormProviderHooks.useBootstrap().processedLayouts,
+  useLaxLayouts: () => FormProviderHooks.useLaxBootstrap()?.processedLayouts,
+  useLayoutCollection: () => FormProviderHooks.useBootstrap().layouts,
   useLayoutLookups: () => FormProviderHooks.useBootstrap().layoutLookups,
   useHiddenLayoutsExpressions: () => FormProviderHooks.useBootstrap().hiddenLayoutsExpressions,
   useLaxHiddenLayoutsExpressions: () => FormProviderHooks.useLaxBootstrap()?.hiddenLayoutsExpressions,

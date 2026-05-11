@@ -1,6 +1,5 @@
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Maskinporten.Models;
-using Altinn.App.Core.Internal.Maskinporten;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -31,10 +30,6 @@ internal static class ServiceCollectionExtensions
             MaskinportenClient.VariantInternal,
             (sp, key) => ActivatorUtilities.CreateInstance<MaskinportenClient>(sp, MaskinportenClient.VariantInternal)
         );
-
-#pragma warning disable CS0618 // Type or member is obsolete
-        services.TryAddTransient<IMaskinportenTokenProvider, LegacyMaskinportenTokenProvider>();
-#pragma warning restore CS0618 // Type or member is obsolete
 
         return services;
     }

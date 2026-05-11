@@ -54,15 +54,22 @@ export const getPolicyRuleIdString = (policyRule: PolicyRuleCard) => {
   return policyRule.ruleId.toString();
 };
 
+const PRIV_SUBJECT = 'urn:altinn:rolecode:priv';
+const SELN_SUBJECT = 'urn:altinn:rolecode:seln';
 const isPersonSubject = (subjectUrn: string) => {
-  return subjectUrn === 'urn:altinn:rolecode:PRIV' || subjectUrn === 'urn:altinn:rolecode:SELN';
+  return subjectUrn?.toLowerCase() === PRIV_SUBJECT || subjectUrn?.toLowerCase() === SELN_SUBJECT;
 };
 export const getCcrSubjects = (subjects: PolicySubject[]) => {
-  return subjects.filter((s) => s.provider?.code === 'sys-ccr');
+  return subjects.filter((s) => s.provider?.code?.toLowerCase() === 'sys-ccr');
 };
+
+const ALTINN2_PROVIDER = 'sys-altinn2';
+const ALTINN3_PROVIDER = 'sys-altinn3';
 export const getAltinnSubjects = (subjects: PolicySubject[]) => {
   return subjects.filter((s) => {
-    const isAltinn = s.provider?.code === 'sys-altinn2' || s.provider?.code === 'sys-altinn3';
+    const isAltinn =
+      s.provider?.code?.toLowerCase() === ALTINN2_PROVIDER ||
+      s.provider?.code?.toLowerCase() === ALTINN3_PROVIDER;
     const isPersonRole = isPersonSubject(s.legacyUrn);
     return isAltinn && !isPersonRole;
   });

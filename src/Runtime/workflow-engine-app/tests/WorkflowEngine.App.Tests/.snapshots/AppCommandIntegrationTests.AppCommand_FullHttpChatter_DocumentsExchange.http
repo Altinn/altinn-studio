@@ -163,6 +163,7 @@ Content-Type: application/json; charset=utf-8
   },
   "overallStatus": "Completed",
   "dependencies": {},
+  "dependents": {},
   "links": {},
   "initialState": "initial-workflow-state",
   "steps": [

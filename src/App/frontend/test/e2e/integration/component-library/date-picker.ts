@@ -17,6 +17,7 @@ describe('Datepicker component', () => {
 
     cy.get(maxDatePicker).type('30.07.2025');
     cy.get(maxDatePicker).blur();
+    cy.waitUntilSaved();
 
     cy.get(datePicker).contains('button', 'Åpne datovelger').click();
 

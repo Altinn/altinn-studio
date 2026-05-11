@@ -297,12 +297,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
 
         try
         {
-            var lines = File.ReadAllLines(LogPath);
-            if (startLine <= 0)
-                return lines;
-            if (startLine >= lines.Length)
-                return [];
-            return lines[startLine..];
+            return ReadLogLines(LogPath, startLine);
         }
         catch (Exception ex)
         {
@@ -312,6 +307,22 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
     }
 
     public int GetLogLineCount() => GetLogLines().Count;
+
+    internal static IReadOnlyList<string> ReadLogLines(string path, int startLine = 0)
+    {
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+        using var reader = new StreamReader(stream);
+
+        var lines = new List<string>();
+        while (reader.ReadLine() is { } line)
+            lines.Add(line);
+
+        if (startLine <= 0)
+            return lines;
+        if (startLine >= lines.Count)
+            return [];
+        return lines[startLine..];
+    }
 
     public async ValueTask DisposeAsync()
     {

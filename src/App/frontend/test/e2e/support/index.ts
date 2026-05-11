@@ -1,6 +1,5 @@
 import '@testing-library/cypress/add-commands';
 import 'cypress-axe';
-import 'cypress-plugin-tab';
 import 'cypress-network-idle';
 import 'test/e2e/support/custom';
 import 'test/e2e/support/start-app-instance';

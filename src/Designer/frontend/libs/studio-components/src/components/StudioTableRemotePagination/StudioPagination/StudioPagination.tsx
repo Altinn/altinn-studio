@@ -29,7 +29,7 @@ export function StudioPagination({
         <Pagination.Item hidden={safeCurrent <= 1}>
           <Pagination.Button
             aria-label={previousButtonAriaLabel ?? 'Previous'}
-            variant='tertiary'
+            data-variant='tertiary'
             onClick={() => onChange(safeCurrent - 1)}
           />
         </Pagination.Item>
@@ -39,7 +39,7 @@ export function StudioPagination({
               <Pagination.Button
                 aria-label={numberButtonAriaLabel?.(pageNumber)}
                 aria-current={pageNumber === safeCurrent ? 'page' : undefined}
-                variant={pageNumber === safeCurrent ? undefined : 'tertiary'}
+                data-variant={pageNumber === safeCurrent ? undefined : 'tertiary'}
                 onClick={() => onChange(pageNumber)}
               >
                 {pageNumber}
@@ -50,7 +50,7 @@ export function StudioPagination({
         <Pagination.Item hidden={safeCurrent >= safeTotal}>
           <Pagination.Button
             aria-label={nextButtonAriaLabel ?? 'Next'}
-            variant='tertiary'
+            data-variant='tertiary'
             onClick={() => onChange(safeCurrent + 1)}
           />
         </Pagination.Item>

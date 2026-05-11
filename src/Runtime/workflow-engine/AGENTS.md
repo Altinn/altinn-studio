@@ -46,7 +46,7 @@ Infrastructure-only (no engine host). Supporting services for local development.
 
 | Container           | Port             | Purpose                                    |
 |---------------------|------------------|--------------------------------------------|
-| `postgres`          | 5433             | Database                                   |
+| `postgres`          | 9543             | Database                                   |
 | `pgadmin`           | 5050             | PostgreSQL admin UI                        |
 | `lgtm`              | 7070, 4317, 4318 | Grafana + Prometheus + Loki + Tempo + OTLP |
 | `blackbox-exporter` | —                | Prometheus blackbox exporter               |

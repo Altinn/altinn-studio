@@ -212,6 +212,20 @@ func WriteBoundTopologyConfig(path string, config BoundTopologyConfig) error {
 	return nil
 }
 
+// ReadBoundTopologyConfig reads a bound topology configuration from disk.
+func ReadBoundTopologyConfig(path string) (BoundTopologyConfig, error) {
+	data, err := os.ReadFile(filepath.Clean(path))
+	if err != nil {
+		return BoundTopologyConfig{}, fmt.Errorf("read bound topology config: %w", err)
+	}
+
+	var config BoundTopologyConfig
+	if err := json.Unmarshal(data, &config); err != nil {
+		return BoundTopologyConfig{}, fmt.Errorf("unmarshal bound topology config: %w", err)
+	}
+	return config, nil
+}
+
 // BoundTopologyHostDir returns the host directory for generated topology config.
 func BoundTopologyHostDir(dataDir string) string {
 	return filepath.Join(dataDir, BoundTopologyConfigDirName)

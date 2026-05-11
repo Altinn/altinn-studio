@@ -3,7 +3,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models;
 /// <summary>
 /// Represents an attachment to a correspondence.
 /// </summary>
-public sealed record CorrespondenceAttachment : MultipartCorrespondenceItem
+public sealed record CorrespondenceAttachment
 {
     /// <summary>
     /// The filename of the attachment.
@@ -27,20 +27,10 @@ public sealed record CorrespondenceAttachment : MultipartCorrespondenceItem
         CorrespondenceDataLocationType.ExistingCorrespondenceAttachment;
 
     /// <summary>
-    /// The data content.
+    /// The data stream for the attachment content.
+    /// The stream must be open (not disposed) when the correspondence is sent.
+    /// Ownership of the stream is transferred to the client upon sending: the client will dispose
+    /// the stream after the upload completes.
     /// </summary>
-    public required ReadOnlyMemory<byte> Data { get; init; }
-
-    internal void Serialise(MultipartFormDataContent content, int index, string? filenameOverride = null)
-    {
-        const string typePrefix = "Correspondence.Content.Attachments";
-        string prefix = $"{typePrefix}[{index}]";
-        string actualFilename = filenameOverride ?? Filename;
-
-        AddRequired(content, actualFilename, $"{prefix}.Filename");
-        AddRequired(content, SendersReference, $"{prefix}.SendersReference");
-        AddRequired(content, DataLocationType.ToString(), $"{prefix}.DataLocationType");
-        AddRequired(content, Data, "Attachments", actualFilename); // NOTE: No prefix!
-        AddIfNotNull(content, IsEncrypted?.ToString(), $"{prefix}.IsEncrypted");
-    }
+    public required Stream Data { get; init; }
 }

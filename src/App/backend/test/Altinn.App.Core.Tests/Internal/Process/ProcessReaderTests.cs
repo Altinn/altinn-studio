@@ -1,3 +1,4 @@
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
@@ -361,7 +362,7 @@ public class ProcessReaderTests
                                 new("submit", ActionType.ProcessAction),
                                 new("lookup", ActionType.ServerAction),
                             },
-                            TaskType = "data",
+                            TaskType = AltinnTaskTypes.Data,
                             SignatureConfiguration = new()
                             {
                                 DataTypesToSign = new() { "default", "default2" },

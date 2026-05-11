@@ -5,18 +5,12 @@ import type { StudioFieldProps } from './StudioField';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 
-const mockText: string = 'Test Text';
+const testInput = <input type='text' />;
 
 describe('StudioField', () => {
   it('renders children correctly', () => {
     renderField();
-    expect(getText(mockText)).toBeInTheDocument();
-  });
-
-  it('applies custom data-size correctly', () => {
-    renderField({ 'data-size': 'lg' });
-
-    expect(getText(mockText).getAttribute('data-size')).toBe('lg');
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
   });
 
   it('Appends given classname to internal classname', () => {
@@ -29,7 +23,5 @@ describe('StudioField', () => {
 });
 
 const renderField = (props: Partial<StudioFieldProps> = {}): RenderResult => {
-  return render(<StudioField {...props}>{mockText}</StudioField>);
+  return render(<StudioField {...props}>{testInput}</StudioField>);
 };
-
-const getText = (text: string): HTMLElement => screen.getByText(text);

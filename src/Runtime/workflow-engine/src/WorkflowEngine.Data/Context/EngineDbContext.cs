@@ -59,10 +59,12 @@ internal sealed class EngineDbContext : DbContext
                     JsonbConverter<Dictionary<string, string>>.Comparer
                 );
 
-            // Self-referencing many-to-many: a workflow can depend on many other workflows
+            // Self-referencing many-to-many: a workflow can depend on many other workflows.
+            // Dependents is the inverse navigation — workflows that declare this one as a dependency.
+            // The join table schema is unchanged; EF resolves Dependencies vs Dependents from the FK columns.
             entity
                 .HasMany(e => e.Dependencies)
-                .WithMany()
+                .WithMany(e => e.Dependents)
                 .UsingEntity(
                     "workflow_dependency",
                     l => l.HasOne(typeof(WorkflowEntity)).WithMany().HasForeignKey("DependsOnWorkflowId"),

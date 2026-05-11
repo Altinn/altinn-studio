@@ -13,9 +13,11 @@ import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useGetNavigationIsPrevented } from 'src/features/navigation/utils';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useIsSubformPage, useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { usePageValidation } from 'src/hooks/usePageValidation';
 import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { isSpecificClientAction } from 'src/layout/CustomButton/typeHelpers';
@@ -23,6 +25,7 @@ import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { ButtonColor, ButtonVariant } from 'src/app-components/Button/Button';
 import type { BackendValidationIssueGroups } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
+import type { PageValidation } from 'src/layout/common.generated';
 import type * as CBTypes from 'src/layout/CustomButton/config.generated';
 import type { ClientActionHandlers } from 'src/layout/CustomButton/typeHelpers';
 import type { IInstance } from 'src/types/shared';
@@ -212,6 +215,8 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
   const isThisProcessing = useIsThisProcessing('custom-action');
   const isAnyProcessing = useIsAnyProcessing();
   const layoutLookups = FormBootstrap.useLayoutLookups();
+  const { getPageValidation } = usePageValidation(baseComponentId);
+  const getNavigationIsPrevented = useGetNavigationIsPrevented();
 
   const getScrollPosition = React.useCallback(
     () => document.querySelector(`[data-componentid="${id}"]`)?.getClientRects().item(0)?.y,
@@ -222,7 +227,10 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
   const isPermittedToPerformActions = actions
     .filter((action) => action.type === 'ServerAction')
     .reduce((acc, action) => acc && isAuthorized(action.id), true);
-  const disabled = !isPermittedToPerformActions || isAnyProcessing;
+  const isPreventedByIntermediatePage = actions.some(
+    (action) => isSpecificClientAction('navigateToPage', action) && getNavigationIsPrevented(action.metadata.page),
+  );
+  const disabled = !isPermittedToPerformActions || isAnyProcessing || isPreventedByIntermediatePage;
 
   const isSubformCloseButton = actions.filter((action) => action.id === 'closeSubform').length > 0;
   let interceptedButtonStyle = buttonStyle ?? 'secondary';
@@ -249,14 +257,21 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
   const onClick = () =>
     performProcess(async () => {
       for (const action of actions) {
-        if (action.validation) {
+        const isBackwardNavigation = isClientAction(action) && action.id === 'previousPage';
+        const shouldSkipValidation = isBackwardNavigation && getPageValidation();
+
+        let validation: PageValidation | undefined;
+        if (!shouldSkipValidation && (action.validation || getPageValidation())) {
           const prevScrollPosition = getScrollPosition();
           const page = layoutLookups.componentToPage[baseComponentId];
           if (!page) {
             throw new Error('Could not find page for component');
           }
-
-          const hasErrors = await onPageNavigationValidation(page, action.validation);
+          validation = getPageValidation() ?? action.validation;
+          if (!validation) {
+            return;
+          }
+          const hasErrors = await onPageNavigationValidation(page, validation);
           if (hasErrors) {
             resetScrollPosition(prevScrollPosition);
             return;
