@@ -33,8 +33,9 @@ export function trackStatus(status) {
 
 // --- Configuration ---
 const NAMESPACE = __ENV.NAMESPACE || 'default';
-export const BASE_URL = __ENV.BASE_URL || `http://localhost:8080/api/v1/${NAMESPACE}/workflows`;
-export const HEALTH_URL = __ENV.HEALTH_URL || 'http://localhost:8080/api/v1/health';
+export const BASE_URL = __ENV.BASE_URL || `http://localhost:9090/api/v1/${NAMESPACE}/workflows`;
+export const HEALTH_URL = __ENV.HEALTH_URL || 'http://localhost:9090/api/v1/health';
+export const WEBHOOK_URL = __ENV.WEBHOOK_URL || 'http://wiremock:8080/webhook-callback';
 /**
  * Builds request params with unique metadata headers for each request.
  * Returns a k6 params object with Content-Type, Idempotency-Key, and Collection-Key headers.
@@ -55,7 +56,18 @@ export function buildRequestParams() {
  * Returns the serialized JSON string ready for POST.
  */
 export function buildPayload(template) {
-    return JSON.stringify(template);
+    const payload = JSON.parse(JSON.stringify(template));
+
+    for (const workflow of payload.workflows ?? []) {
+        for (const step of workflow.steps ?? []) {
+            if (step.command?.type === 'webhook') {
+                step.command.data = step.command.data || {};
+                step.command.data.uri = WEBHOOK_URL;
+            }
+        }
+    }
+
+    return JSON.stringify(payload);
 }
 
 /**
