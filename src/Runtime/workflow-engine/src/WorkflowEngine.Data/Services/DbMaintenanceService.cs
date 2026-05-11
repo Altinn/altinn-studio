@@ -180,6 +180,7 @@ internal sealed class DbMaintenanceService(
         }
 
         await PruneWorkflowCollectionHeads(conn, tx, deletedWorkflows, now, ct);
+        await DeleteUnreferencedWorkflowCollections(conn, tx, distinctCollectionKeys, ct);
 
         await tx.CommitAsync(ct);
         return deletedWorkflows.Count;
@@ -285,6 +286,24 @@ internal sealed class DbMaintenanceService(
         cmd.Parameters.AddWithValue("namespaces", namespaces);
         cmd.Parameters.AddWithValue("workflowIds", workflowIds);
         cmd.Parameters.AddWithValue("now", now);
+
+        await cmd.ExecuteNonQueryAsync(ct);
+    }
+
+    private static async Task DeleteUnreferencedWorkflowCollections(
+        NpgsqlConnection conn,
+        NpgsqlTransaction tx,
+        (string Key, string Namespace)[] collectionKeys,
+        CancellationToken ct
+    )
+    {
+        if (collectionKeys.Length == 0)
+            return;
+
+        var (keys, namespaces) = collectionKeys.Unzip();
+        await using var cmd = new NpgsqlCommand(Sql.DeleteUnreferencedWorkflowCollectionsCommand, conn, tx);
+        cmd.Parameters.AddWithValue("keys", keys);
+        cmd.Parameters.AddWithValue("namespaces", namespaces);
 
         await cmd.ExecuteNonQueryAsync(ct);
     }
@@ -406,6 +425,19 @@ internal sealed class DbMaintenanceService(
             WHERE wc.key = deleted.key
               AND wc.namespace = deleted.namespace
               AND wc.heads && deleted.workflow_ids
+            """;
+
+        internal const string DeleteUnreferencedWorkflowCollectionsCommand = """
+            DELETE FROM engine.workflow_collections AS wc
+            USING unnest(@keys, @namespaces) AS t(key, namespace)
+            WHERE wc.key = t.key
+              AND wc.namespace = t.namespace
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM engine.workflows w
+                  WHERE w.collection_key = wc.key
+                    AND w.namespace = wc.namespace
+              )
             """;
 
         internal const string DeleteExpiredWorkflowsCommand = """

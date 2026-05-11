@@ -196,7 +196,7 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Retention_DeletesCurrentHead_RemovesItFromCollectionHeads()
+    public async Task Retention_DeletesLastWorkflowInCollection_RemovesCollection()
     {
         // Arrange
         var ct = TestContext.Current.CancellationToken;
@@ -218,8 +218,7 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
 
         // Assert
         await using var ctx = fixture.CreateDbContext();
-        var collection = await ctx.WorkflowCollections.SingleAsync(c => c.Key == "collection", ct);
-        Assert.Empty(collection.Heads);
+        Assert.False(await ctx.WorkflowCollections.AnyAsync(c => c.Key == "collection", ct));
         Assert.False(await ctx.Workflows.AnyAsync(w => w.Id == expiredHeadId, ct));
     }
 
