@@ -115,7 +115,7 @@ internal static class HandleAlerts
 
         var alert = new Alert
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = $"{firstAlert.Fingerprint}-{firstAlert.StartsAt.ToUnixTimeSeconds()}",
             RuleId = ruleId,
             Name = firstAlert.Labels.GetValueOrDefault("alertname", string.Empty),
             Alerts = alerts,
