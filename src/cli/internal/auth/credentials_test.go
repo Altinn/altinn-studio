@@ -43,6 +43,7 @@ func TestSaveAndLoadCredentials(t *testing.T) {
 			},
 			"dev": {
 				Host:     "dev.altinn.studio",
+				Scheme:   "http",
 				ApiKey:   "dev-api-key",
 				ApiKeyID: 2,
 				Username: "devuser",
@@ -93,6 +94,39 @@ func TestSaveAndLoadCredentials(t *testing.T) {
 	}
 	if prod.Username != "testuser" {
 		t.Errorf("expected username testuser, got %s", prod.Username)
+	}
+
+	dev, err := loaded.Get("dev")
+	if err != nil {
+		t.Fatalf("Get dev failed: %v", err)
+	}
+	if dev.Scheme != "http" {
+		t.Errorf("expected scheme http, got %s", dev.Scheme)
+	}
+}
+
+func TestEnvironmentDefaults(t *testing.T) {
+	t.Parallel()
+
+	if got := auth.HostForEnv("local"); got != "studio.localhost" {
+		t.Errorf("expected local host studio.localhost, got %s", got)
+	}
+	if got := auth.SchemeForEnv("local"); got != "http" {
+		t.Errorf("expected local scheme http, got %s", got)
+	}
+	if got := auth.SchemeForEnv("prod"); got != "https" {
+		t.Errorf("expected prod scheme https, got %s", got)
+	}
+}
+
+func TestEnvCredentialsSchemeOrDefault(t *testing.T) {
+	t.Parallel()
+
+	if got := (auth.EnvCredentials{}).SchemeOrDefault(); got != "https" {
+		t.Errorf("expected default scheme https, got %s", got)
+	}
+	if got := (auth.EnvCredentials{Scheme: "http"}).SchemeOrDefault(); got != "http" {
+		t.Errorf("expected explicit scheme http, got %s", got)
 	}
 }
 

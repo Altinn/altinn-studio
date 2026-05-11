@@ -99,7 +99,7 @@ func NewClientForEnv(env, credentialsHome string, creds *auth.EnvCredentials, ve
 		host:            creds.Host,
 		apiKey:          creds.ApiKey,
 		version:         version,
-		scheme:          "https",
+		scheme:          creds.SchemeOrDefault(),
 		httpClient: &http.Client{
 			Timeout: httpTimeout,
 		},

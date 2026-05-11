@@ -75,6 +75,7 @@ type LoginResult struct {
 // CodeExchangeRequest contains the one-time browser login code.
 type CodeExchangeRequest struct {
 	Env            string
+	Scheme         string
 	Host           string
 	Code           string
 	CodeVerifier   string
@@ -117,13 +118,14 @@ func (s *Service) ExchangeCode(ctx context.Context, req CodeExchangeRequest) (Lo
 		existing = existingCreds
 	}
 
-	response, err := exchangeCode(ctx, req.Host, req.Code, req.CodeVerifier)
+	response, err := exchangeCode(ctx, schemeOrDefault(req.Scheme), req.Host, req.Code, req.CodeVerifier)
 	if err != nil {
 		return LoginResult{}, err
 	}
 
 	newCreds := authstore.EnvCredentials{
 		ApiKeyID:  response.KeyID,
+		Scheme:    schemeOrDefault(req.Scheme),
 		Host:      req.Host,
 		ApiKey:    response.Key,
 		ExpiresAt: response.ExpiresAt,
@@ -170,14 +172,20 @@ func replaceExistingAPIKey(
 	return fmt.Errorf("revoke previous api key: %w", err)
 }
 
-func exchangeCode(ctx context.Context, host, code, codeVerifier string) (studioctlTokenResponse, error) {
+func exchangeCode(
+	ctx context.Context,
+	scheme,
+	host,
+	code,
+	codeVerifier string,
+) (studioctlTokenResponse, error) {
 	body, err := json.Marshal(studioctlTokenRequest{Code: code, CodeVerifier: codeVerifier})
 	if err != nil {
 		return studioctlTokenResponse{}, fmt.Errorf("marshal token request: %w", err)
 	}
 
 	httpClient := &http.Client{Timeout: tokenExchangeTimeout}
-	endpoint := "https://" + host + studioctlTokenPath
+	endpoint := scheme + "://" + host + studioctlTokenPath
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(body))
 	if err != nil {
 		return studioctlTokenResponse{}, fmt.Errorf("create token request: %w", err)
@@ -363,7 +371,7 @@ func revokeAPIKey(ctx context.Context, creds *authstore.EnvCredentials) error {
 	}
 
 	httpClient := &http.Client{Timeout: tokenExchangeTimeout}
-	endpoint := "https://" + creds.Host + studioctlRevokePath + strconv.FormatInt(creds.ApiKeyID, 10)
+	endpoint := creds.SchemeOrDefault() + "://" + creds.Host + studioctlRevokePath + strconv.FormatInt(creds.ApiKeyID, 10)
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, endpoint, nil)
 	if err != nil {
 		return fmt.Errorf("create revoke request: %w", err)
@@ -391,6 +399,13 @@ func errorString(err error) string {
 		return ""
 	}
 	return err.Error()
+}
+
+func schemeOrDefault(scheme string) string {
+	if scheme != "" {
+		return scheme
+	}
+	return authstore.DefaultScheme
 }
 
 func validateToken(ctx context.Context, creds *authstore.EnvCredentials, version config.Version) string {

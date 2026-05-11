@@ -25,8 +25,10 @@ public class StudioctlAuthController(IApiKeyService apiKeyService, IDistributedC
     : ControllerBase
 {
     private static readonly TimeSpan _authCodeLifetime = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan _pendingRequestLifetime = TimeSpan.FromMinutes(5);
     private static readonly TimeSpan _apiKeyLifetime = TimeSpan.FromDays(90);
-    private const string CacheKeyPrefix = "studioctl-auth-code:";
+    private const string AuthCodeCacheKeyPrefix = "studioctl-auth-code:";
+    private const string PendingRequestCacheKeyPrefix = "studioctl-auth-request:";
 
     [Authorize]
     [HttpGet("authorize")]
@@ -54,22 +56,122 @@ public class StudioctlAuthController(IApiKeyService apiKeyService, IDistributedC
         }
 
         string username = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        string tokenName = CreateTokenName(clientName);
-        string code = CreateCode();
-        var exchange = new StudioctlAuthCode(username, tokenName, codeChallenge);
+        string normalizedClientName = NormalizeClientName(clientName);
+        DateTimeOffset expiresAt = timeProvider.GetUtcNow().Add(_apiKeyLifetime);
+        string requestId = CreateCode();
+        var pendingRequest = new StudioctlPendingAuthRequest(
+            username,
+            normalizedClientName,
+            CreateTokenName(normalizedClientName),
+            redirectUri,
+            state,
+            codeChallenge,
+            expiresAt
+        );
         await cache.SetStringAsync(
-            CacheKeyPrefix + code,
+            PendingRequestCacheKeyPrefix + requestId,
+            JsonSerializer.Serialize(pendingRequest),
+            new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = _pendingRequestLifetime },
+            cancellationToken
+        );
+
+        return Redirect(CreateConfirmationUrl(username, requestId));
+    }
+
+    [Authorize]
+    [HttpGet("requests/{id}")]
+    public async Task<ActionResult<StudioctlAuthRequestResponse>> GetRequest(
+        string id,
+        CancellationToken cancellationToken
+    )
+    {
+        StudioctlPendingAuthRequest? request = await GetPendingRequest(id, cancellationToken);
+        if (request is null)
+        {
+            return NotFound();
+        }
+
+        if (!IsCurrentUser(request.Username))
+        {
+            return Forbid();
+        }
+
+        return new StudioctlAuthRequestResponse(
+            request.Username,
+            request.ClientName,
+            request.TokenName,
+            request.ExpiresAt
+        );
+    }
+
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    [HttpPost("requests/{id}/confirm")]
+    public async Task<ActionResult<StudioctlAuthCallbackResponse>> ConfirmRequest(
+        string id,
+        CancellationToken cancellationToken
+    )
+    {
+        StudioctlPendingAuthRequest? request = await GetPendingRequest(id, cancellationToken);
+        if (request is null)
+        {
+            return NotFound();
+        }
+
+        if (!IsCurrentUser(request.Username))
+        {
+            return Forbid();
+        }
+
+        string code = CreateCode();
+        var exchange = new StudioctlAuthCode(
+            request.Username,
+            request.TokenName,
+            request.CodeChallenge,
+            request.ExpiresAt
+        );
+        await cache.SetStringAsync(
+            AuthCodeCacheKeyPrefix + code,
             JsonSerializer.Serialize(exchange),
             new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = _authCodeLifetime },
             cancellationToken
         );
+        await cache.RemoveAsync(PendingRequestCacheKeyPrefix + id, cancellationToken);
 
         string callbackUri = AddQuery(
-            redirectUri,
-            new Dictionary<string, string> { ["code"] = code, ["state"] = state }
+            request.RedirectUri,
+            new Dictionary<string, string> { ["code"] = code, ["state"] = request.State }
         );
 
-        return Redirect(callbackUri);
+        return new StudioctlAuthCallbackResponse(callbackUri);
+    }
+
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    [HttpPost("requests/{id}/cancel")]
+    public async Task<ActionResult<StudioctlAuthCallbackResponse>> CancelRequest(
+        string id,
+        CancellationToken cancellationToken
+    )
+    {
+        StudioctlPendingAuthRequest? request = await GetPendingRequest(id, cancellationToken);
+        if (request is null)
+        {
+            return NotFound();
+        }
+
+        if (!IsCurrentUser(request.Username))
+        {
+            return Forbid();
+        }
+
+        await cache.RemoveAsync(PendingRequestCacheKeyPrefix + id, cancellationToken);
+        string callbackUri = AddQuery(
+            request.RedirectUri,
+            new Dictionary<string, string> { ["error"] = "access_denied", ["state"] = request.State }
+        );
+
+        return new StudioctlAuthCallbackResponse(callbackUri);
     }
 
     [AllowAnonymous]
@@ -84,7 +186,7 @@ public class StudioctlAuthController(IApiKeyService apiKeyService, IDistributedC
             return BadRequest("code is required.");
         }
 
-        string cacheKey = CacheKeyPrefix + request.Code;
+        string cacheKey = AuthCodeCacheKeyPrefix + request.Code;
         string? serializedAuthCode = await cache.GetStringAsync(cacheKey, cancellationToken);
         if (serializedAuthCode is null)
         {
@@ -104,12 +206,11 @@ public class StudioctlAuthController(IApiKeyService apiKeyService, IDistributedC
             return Unauthorized();
         }
 
-        DateTimeOffset expiresAt = timeProvider.GetUtcNow().Add(_apiKeyLifetime);
         var (rawKey, apiKey) = await apiKeyService.CreateAsync(
             authCode.Username,
             authCode.TokenName,
             ApiKeyType.User,
-            expiresAt,
+            authCode.ExpiresAt,
             cancellationToken: cancellationToken
         );
 
@@ -136,7 +237,21 @@ public class StudioctlAuthController(IApiKeyService apiKeyService, IDistributedC
         return uri.Scheme == Uri.UriSchemeHttp && uri.IsLoopback;
     }
 
-    private static string CreateTokenName(string? clientName)
+    private async Task<StudioctlPendingAuthRequest?> GetPendingRequest(string id, CancellationToken cancellationToken)
+    {
+        string? serializedRequest = await cache.GetStringAsync(PendingRequestCacheKeyPrefix + id, cancellationToken);
+        return serializedRequest is null
+            ? null
+            : JsonSerializer.Deserialize<StudioctlPendingAuthRequest>(serializedRequest);
+    }
+
+    private bool IsCurrentUser(string username)
+    {
+        string currentUsername = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        return string.Equals(currentUsername, username, StringComparison.Ordinal);
+    }
+
+    private static string NormalizeClientName(string? clientName)
     {
         string prefix = string.IsNullOrWhiteSpace(clientName) ? "studioctl" : clientName.Trim();
         if (prefix.Length > 60)
@@ -144,11 +259,19 @@ public class StudioctlAuthController(IApiKeyService apiKeyService, IDistributedC
             prefix = prefix[..60];
         }
 
+        return prefix;
+    }
+
+    private static string CreateTokenName(string clientName)
+    {
         string suffix = WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(6));
-        return $"{prefix} {suffix}";
+        return $"{clientName} {suffix}";
     }
 
     private static string CreateCode() => WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(32));
+
+    private static string CreateConfirmationUrl(string username, string requestId) =>
+        $"/settings/{WebUtility.UrlEncode(username)}/studioctl-auth?requestId={WebUtility.UrlEncode(requestId)}";
 
     private static bool MatchesCodeChallenge(string codeVerifier, string codeChallenge)
     {
@@ -183,7 +306,26 @@ public class StudioctlAuthController(IApiKeyService apiKeyService, IDistributedC
         return builder.Uri.ToString();
     }
 
-    private record StudioctlAuthCode(string Username, string TokenName, string CodeChallenge);
+    private record StudioctlPendingAuthRequest(
+        string Username,
+        string ClientName,
+        string TokenName,
+        string RedirectUri,
+        string State,
+        string CodeChallenge,
+        DateTimeOffset ExpiresAt
+    );
+
+    private record StudioctlAuthCode(string Username, string TokenName, string CodeChallenge, DateTimeOffset ExpiresAt);
+
+    public record StudioctlAuthRequestResponse(
+        string Username,
+        string ClientName,
+        string TokenName,
+        DateTimeOffset ExpiresAt
+    );
+
+    public record StudioctlAuthCallbackResponse(string CallbackUrl);
 
     public record StudioctlTokenRequest(string Code, string CodeVerifier);
 

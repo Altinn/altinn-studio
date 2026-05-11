@@ -38,6 +38,7 @@ const (
 	loginCallbackHeaderTimeout   = 5 * time.Second
 	loginCallbackShutdownTimeout = 2 * time.Second
 	loginCallbackSuccessHTML     = "<!doctype html><title>studioctl login</title><p>Login complete. You can close this window.</p>"
+	loginCallbackCancelledHTML   = "<!doctype html><title>studioctl login</title><p>Login cancelled. You can close this window.</p>"
 )
 
 var errLoginCancelled = errors.New("login cancelled")
@@ -149,7 +150,7 @@ func (c *AuthCommand) runGitCredential(args []string) error {
 		//nolint:nilerr // Git credential helpers fail closed by producing no credentials.
 		return nil
 	}
-	if !matchesGitCredentialRequest(request, envCreds.Host) {
+	if !matchesGitCredentialRequest(request, envCreds.SchemeOrDefault(), envCreds.Host) {
 		return nil
 	}
 
@@ -186,8 +187,8 @@ func readGitCredentialRequest(input io.Reader) (gitCredentialRequest, error) {
 	return request, nil
 }
 
-func matchesGitCredentialRequest(request gitCredentialRequest, host string) bool {
-	if request.Protocol != "https" || request.Host != host {
+func matchesGitCredentialRequest(request gitCredentialRequest, scheme, host string) bool {
+	if request.Protocol != scheme || request.Host != host {
 		return false
 	}
 	path := strings.TrimPrefix(request.Path, "/")
@@ -199,6 +200,11 @@ type loginFlags struct {
 	env       string
 	host      string
 	noBrowser bool
+}
+
+type loginTarget struct {
+	scheme string
+	host   string
 }
 
 func (c *AuthCommand) parseLoginFlags(args []string) (loginFlags, bool, error) {
@@ -230,14 +236,15 @@ func (c *AuthCommand) runLogin(ctx context.Context, args []string) error {
 		return nil
 	}
 
-	host, err := c.resolveLoginHost(flags)
+	target, err := c.resolveLoginTarget(flags)
 	if err != nil {
 		return err
 	}
 
-	result, err := c.loginWithBrowser(ctx, flags, host)
+	result, err := c.loginWithBrowser(ctx, flags, target)
 	if err != nil {
 		if errors.Is(err, errLoginCancelled) {
+			c.out.Println("Login cancelled")
 			return nil
 		}
 		return err
@@ -247,25 +254,35 @@ func (c *AuthCommand) runLogin(ctx context.Context, args []string) error {
 	return nil
 }
 
-func (c *AuthCommand) resolveLoginHost(flags loginFlags) (string, error) {
+func (c *AuthCommand) resolveLoginTarget(flags loginFlags) (loginTarget, error) {
 	host, err := c.service.ResolveHost(flags.env, flags.host)
 	if err != nil {
 		if errors.Is(err, authsvc.ErrUnknownEnvironment) {
-			return "", fmt.Errorf(
+			return loginTarget{}, fmt.Errorf(
 				"%w: %q (use --host to specify the Altinn Studio host)",
 				ErrUnknownEnvironment,
 				flags.env,
 			)
 		}
-		return "", fmt.Errorf("resolve host: %w", err)
+		return loginTarget{}, fmt.Errorf("resolve host: %w", err)
 	}
-	return host, nil
+
+	scheme := authstore.SchemeForEnv(flags.env)
+	if parsed, parseErr := url.Parse(host); parseErr == nil && parsed.Scheme != "" {
+		if parsed.Scheme != "http" && parsed.Scheme != "https" {
+			return loginTarget{}, fmt.Errorf("%w: unsupported host scheme %q", ErrInvalidFlagValue, parsed.Scheme)
+		}
+		scheme = parsed.Scheme
+		host = parsed.Host
+	}
+
+	return loginTarget{scheme: scheme, host: host}, nil
 }
 
 func (c *AuthCommand) loginWithBrowser(
 	ctx context.Context,
 	flags loginFlags,
-	host string,
+	target loginTarget,
 ) (authsvc.LoginResult, error) {
 	allowOverwrite := false
 	existing, err := authstore.LoadCredentials(c.credentialsHome)
@@ -279,20 +296,20 @@ func (c *AuthCommand) loginWithBrowser(
 			return authsvc.LoginResult{}, confirmErr
 		}
 		if !confirmed {
-			c.out.Println("Login cancelled")
 			return authsvc.LoginResult{}, errLoginCancelled
 		}
 		allowOverwrite = true
 	}
 
-	code, codeVerifier, err := c.waitForBrowserLogin(ctx, flags, host)
+	code, codeVerifier, err := c.waitForBrowserLogin(ctx, flags, target)
 	if err != nil {
 		return authsvc.LoginResult{}, err
 	}
 
 	result, err := c.service.ExchangeCode(ctx, authsvc.CodeExchangeRequest{
 		Env:            flags.env,
-		Host:           host,
+		Scheme:         target.scheme,
+		Host:           target.host,
 		Code:           code,
 		CodeVerifier:   codeVerifier,
 		AllowOverwrite: allowOverwrite,
@@ -303,7 +320,7 @@ func (c *AuthCommand) loginWithBrowser(
 	return result, nil
 }
 
-func (c *AuthCommand) waitForBrowserLogin(ctx context.Context, flags loginFlags, host string) (string, string, error) {
+func (c *AuthCommand) waitForBrowserLogin(ctx context.Context, flags loginFlags, target loginTarget) (string, string, error) {
 	var listenConfig net.ListenConfig
 	listener, err := listenConfig.Listen(ctx, "tcp", "127.0.0.1:0")
 	if err != nil {
@@ -343,7 +360,7 @@ func (c *AuthCommand) waitForBrowserLogin(ctx context.Context, flags loginFlags,
 	}()
 
 	callbackURL := "http://" + listener.Addr().String() + "/callback"
-	loginURL := buildStudioctlLoginURL(host, callbackURL, state, codeChallenge, flags.env)
+	loginURL := buildStudioctlLoginURL(target.scheme, target.host, callbackURL, state, codeChallenge, flags.env)
 
 	c.out.Println("Opening browser for Ansattporten login...")
 	if flags.noBrowser {
@@ -374,6 +391,20 @@ func loginCallbackHandler(state string, codeCh chan<- string, errCh chan<- error
 			errCh <- ErrInvalidToken
 			return
 		}
+		if errorCode := r.URL.Query().Get("error"); errorCode != "" {
+			if errorCode == "access_denied" {
+				w.Header().Set("Content-Type", "text/html; charset=utf-8")
+				if _, err := w.Write([]byte(loginCallbackCancelledHTML)); err != nil {
+					errCh <- fmt.Errorf("write login response: %w", err)
+					return
+				}
+				errCh <- errLoginCancelled
+				return
+			}
+			http.Error(w, "Login failed.", http.StatusBadRequest)
+			errCh <- ErrInvalidToken
+			return
+		}
 		code := r.URL.Query().Get("code")
 		if code == "" {
 			http.Error(w, "Missing login code.", http.StatusBadRequest)
@@ -389,7 +420,7 @@ func loginCallbackHandler(state string, codeCh chan<- string, errCh chan<- error
 	})
 }
 
-func buildStudioctlLoginURL(host, callbackURL, state, codeChallenge, env string) string {
+func buildStudioctlLoginURL(scheme, host, callbackURL, state, codeChallenge, env string) string {
 	authorizeValues := url.Values{}
 	authorizeValues.Set("redirect_uri", callbackURL)
 	authorizeValues.Set("state", state)
@@ -400,7 +431,7 @@ func buildStudioctlLoginURL(host, callbackURL, state, codeChallenge, env string)
 	loginValues := url.Values{}
 	loginValues.Set("redirect_to", authorizePath)
 
-	return "https://" + host + "/Login?" + loginValues.Encode()
+	return scheme + "://" + host + "/Login?" + loginValues.Encode()
 }
 
 func randomBase64URL(size int) (string, error) {

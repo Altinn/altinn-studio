@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"altinn.studio/studioctl/internal/auth"
 	"altinn.studio/studioctl/internal/config"
 )
 
@@ -173,6 +174,21 @@ func TestClient_buildCloneURL_DoesNotEmbedCredentials(t *testing.T) {
 
 	url := client.buildCloneURL("org", "repo")
 	expected := "https://altinn.studio/repos/org/repo.git"
+	if url != expected {
+		t.Errorf("expected %s, got %s", expected, url)
+	}
+}
+
+func TestClient_buildCloneURL_UsesCredentialScheme(t *testing.T) {
+	t.Parallel()
+	client := NewClientForEnv("local", "", &auth.EnvCredentials{
+		Host:   "studio.localhost",
+		Scheme: "http",
+		ApiKey: "secret-api-key",
+	}, config.NewVersion("test-version"))
+
+	url := client.buildCloneURL("org", "repo")
+	expected := "http://studio.localhost/repos/org/repo.git"
 	if url != expected {
 		t.Errorf("expected %s, got %s", expected, url)
 	}

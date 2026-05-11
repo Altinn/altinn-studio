@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"errors"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
@@ -15,6 +18,7 @@ func TestBuildStudioctlLoginURL(t *testing.T) {
 	t.Parallel()
 
 	loginURL := buildStudioctlLoginURL(
+		testHTTPS,
 		testStudioHost,
 		"http://127.0.0.1:12345/callback",
 		"state-value",
@@ -56,6 +60,35 @@ func TestBuildStudioctlLoginURL(t *testing.T) {
 	}
 }
 
+func TestResolveLoginTargetLocal(t *testing.T) {
+	t.Parallel()
+
+	command := NewAuthCommand(testConfig(t), nil)
+	target, err := command.resolveLoginTarget(loginFlags{env: "local"})
+	if err != nil {
+		t.Fatalf("resolveLoginTarget() error = %v", err)
+	}
+	if target.scheme != "http" || target.host != "studio.localhost" {
+		t.Fatalf("target = %+v, want http studio.localhost", target)
+	}
+}
+
+func TestResolveLoginTargetHostURLOverride(t *testing.T) {
+	t.Parallel()
+
+	command := NewAuthCommand(testConfig(t), nil)
+	target, err := command.resolveLoginTarget(loginFlags{
+		env:  "dev",
+		host: "http://studio.localhost",
+	})
+	if err != nil {
+		t.Fatalf("resolveLoginTarget() error = %v", err)
+	}
+	if target.scheme != "http" || target.host != "studio.localhost" {
+		t.Fatalf("target = %+v, want http studio.localhost", target)
+	}
+}
+
 func TestCreateCodeChallenge(t *testing.T) {
 	t.Parallel()
 
@@ -64,6 +97,33 @@ func TestCreateCodeChallenge(t *testing.T) {
 
 	if got := createCodeChallenge(verifier); got != want {
 		t.Fatalf("code challenge = %q, want %q", got, want)
+	}
+}
+
+func TestLoginCallbackHandlerCancelled(t *testing.T) {
+	t.Parallel()
+
+	codeCh := make(chan string, 1)
+	errCh := make(chan error, 1)
+	handler := loginCallbackHandler("state-value", codeCh, errCh)
+	request := httptest.NewRequest(http.MethodGet, "/callback?state=state-value&error=access_denied", nil)
+	response := httptest.NewRecorder()
+
+	handler.ServeHTTP(response, request)
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", response.Code, http.StatusOK)
+	}
+	if !strings.Contains(response.Body.String(), "Login cancelled") {
+		t.Fatalf("response body = %q, want cancellation message", response.Body.String())
+	}
+
+	err := <-errCh
+	if !errors.Is(err, errLoginCancelled) {
+		t.Fatalf("error = %v, want %v", err, errLoginCancelled)
+	}
+	if len(codeCh) != 0 {
+		t.Fatal("unexpected login code")
 	}
 }
 
@@ -119,9 +179,18 @@ func TestMatchesGitCredentialRequest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := matchesGitCredentialRequest(tt.request, testStudioHost); got != tt.want {
+			if got := matchesGitCredentialRequest(tt.request, testHTTPS, testStudioHost); got != tt.want {
 				t.Fatalf("matchesGitCredentialRequest() = %t, want %t", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestMatchesGitCredentialRequestHTTP(t *testing.T) {
+	t.Parallel()
+
+	request := gitCredentialRequest{Protocol: "http", Host: "studio.localhost", Path: "repos/org/repo.git"}
+	if !matchesGitCredentialRequest(request, "http", "studio.localhost") {
+		t.Fatal("expected local http credential request to match")
 	}
 }
