@@ -1,31 +1,27 @@
 import React from 'react';
 
 import { Details } from '@digdir/designsystemet-react';
-import cn from 'classnames';
 
-import classes from 'src/app-components/Accordion/AccordionItem.module.css';
-import { useTranslation } from 'src/app-components/AppComponentsProvider';
-import type { TranslationKey } from 'src/app-components/types';
+import classes from './AccordionItem.module.css';
 
-interface AccordionProps {
-  title: TranslationKey;
+export type AccordionItemProps = {
+  title: React.ReactNode;
   children: React.ReactNode;
   className?: string;
   open?: boolean;
   defaultOpen?: boolean;
   onToggle?: (isOpen: boolean) => void;
-}
+};
 
-export const AccordionItem = ({
+export function AccordionItem({
   title,
   children,
   className,
   open,
   defaultOpen = false,
   onToggle,
-}: AccordionProps): React.JSX.Element => {
+}: AccordionItemProps) {
   const [isOpen, setOpen] = React.useState(defaultOpen);
-  const { TranslateComponent } = useTranslation();
 
   const isControlled = open !== undefined;
   const currentOpen = isControlled ? open : isOpen;
@@ -42,12 +38,10 @@ export const AccordionItem = ({
     <Details
       open={currentOpen}
       onToggle={handleToggle}
-      className={cn(className, classes.accordion)}
+      className={[className, classes.accordion].filter(Boolean).join(' ')}
     >
-      <Details.Summary>
-        <TranslateComponent tKey={title} />
-      </Details.Summary>
+      <Details.Summary>{title}</Details.Summary>
       <Details.Content>{children}</Details.Content>
     </Details>
   );
-};
+}
