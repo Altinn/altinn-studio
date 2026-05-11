@@ -5,7 +5,7 @@
     <RootNamespace>Altinn.Studio.StudioctlServer</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AssemblyName>app-manager</AssemblyName>
+    <AssemblyName>studioctl-server</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 

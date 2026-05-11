@@ -8,34 +8,34 @@ import (
 	"strconv"
 	"strings"
 
-	"altinn.studio/studioctl/internal/appmanager"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
+	"altinn.studio/studioctl/internal/studioctlserver"
 )
 
-type appRuntimeClient interface {
-	Status(ctx context.Context) (*appmanager.Status, error)
+type studioctlServerClient interface {
+	Status(ctx context.Context) (*studioctlserver.Status, error)
 	UnregisterApp(ctx context.Context, appID string) error
-	UpgradeApp(ctx context.Context, upgrade appmanager.AppUpgrade) (appmanager.AppUpgradeResult, error)
+	UpgradeApp(ctx context.Context, upgrade studioctlserver.AppUpgrade) (studioctlserver.AppUpgradeResult, error)
 }
 
-type appManagerAccess struct {
+type studioctlServerAccess struct {
 	cfg           *config.Config
-	client        appRuntimeClient
+	client        studioctlServerClient
 	ensureStarted ensureStartedFunc
 }
 
 const shortContainerIDLength = 12
 
-func newAppManagerAccess(cfg *config.Config) appManagerAccess {
-	return appManagerAccess{
+func newStudioctlServerAccess(cfg *config.Config) studioctlServerAccess {
+	return studioctlServerAccess{
 		cfg:           cfg,
-		client:        appmanager.NewClient(cfg),
-		ensureStarted: appmanager.EnsureStarted,
+		client:        studioctlserver.NewClient(cfg),
+		ensureStarted: studioctlserver.EnsureStarted,
 	}
 }
 
-func (a appManagerAccess) ensure(ctx context.Context) error {
+func (a studioctlServerAccess) ensure(ctx context.Context) error {
 	if a.ensureStarted == nil {
 		return nil
 	}
@@ -46,8 +46,8 @@ func (a appManagerAccess) ensure(ctx context.Context) error {
 	return a.ensureStarted(ctx, a.cfg, topology.IngressPort())
 }
 
-func filterApps(apps []appmanager.DiscoveredApp, appID string, managedOnly bool) []appmanager.DiscoveredApp {
-	filtered := make([]appmanager.DiscoveredApp, 0, len(apps))
+func filterApps(apps []studioctlserver.DiscoveredApp, appID string, managedOnly bool) []studioctlserver.DiscoveredApp {
+	filtered := make([]studioctlserver.DiscoveredApp, 0, len(apps))
 	for _, app := range apps {
 		if appID != "" && !strings.EqualFold(app.AppID, appID) {
 			continue
@@ -60,7 +60,7 @@ func filterApps(apps []appmanager.DiscoveredApp, appID string, managedOnly bool)
 	return filtered
 }
 
-func sortDiscoveredApps(apps []appmanager.DiscoveredApp) []appmanager.DiscoveredApp {
+func sortDiscoveredApps(apps []studioctlserver.DiscoveredApp) []studioctlserver.DiscoveredApp {
 	sort.Slice(apps, func(i, j int) bool {
 		if apps[i].AppID != apps[j].AppID {
 			return apps[i].AppID < apps[j].AppID
@@ -70,11 +70,11 @@ func sortDiscoveredApps(apps []appmanager.DiscoveredApp) []appmanager.Discovered
 	return apps
 }
 
-func hasStopHandle(app appmanager.DiscoveredApp) bool {
+func hasStopHandle(app studioctlserver.DiscoveredApp) bool {
 	return appProcessID(app) > 0 || app.ContainerID != "" || app.Name != ""
 }
 
-func appMode(app appmanager.DiscoveredApp) string {
+func appMode(app studioctlserver.DiscoveredApp) string {
 	if appHasContainerHandle(app) {
 		return runModeContainer
 	}
@@ -84,7 +84,7 @@ func appMode(app appmanager.DiscoveredApp) string {
 	return app.Source
 }
 
-func appStopMode(app appmanager.DiscoveredApp) string {
+func appStopMode(app studioctlserver.DiscoveredApp) string {
 	if appHasContainerHandle(app) {
 		return runModeContainer
 	}
@@ -94,11 +94,11 @@ func appStopMode(app appmanager.DiscoveredApp) string {
 	return app.Source
 }
 
-func appHasContainerHandle(app appmanager.DiscoveredApp) bool {
+func appHasContainerHandle(app studioctlserver.DiscoveredApp) bool {
 	return app.ContainerID != "" || (app.Name != "" && appProcessID(app) == 0)
 }
 
-func appProcessID(app appmanager.DiscoveredApp) int {
+func appProcessID(app studioctlserver.DiscoveredApp) int {
 	if app.ProcessID != nil {
 		return *app.ProcessID
 	}
@@ -112,7 +112,7 @@ func pidString(pid int) string {
 	return strconv.Itoa(pid)
 }
 
-func appRuntimeID(app appmanager.DiscoveredApp) string {
+func appRuntimeID(app studioctlserver.DiscoveredApp) string {
 	if app.ContainerID != "" {
 		return shortContainerID(app.ContainerID)
 	}
@@ -126,7 +126,7 @@ func shortContainerID(containerID string) string {
 	return containerID[:shortContainerIDLength]
 }
 
-func appPortNumber(app appmanager.DiscoveredApp) int {
+func appPortNumber(app studioctlserver.DiscoveredApp) int {
 	if app.HostPort != nil && *app.HostPort > 0 {
 		return *app.HostPort
 	}
@@ -142,6 +142,6 @@ func appPortNumber(app appmanager.DiscoveredApp) int {
 	return 0
 }
 
-func startAppManagerError(err error) error {
-	return fmt.Errorf("start app-manager: %w", err)
+func startStudioctlServerError(err error) error {
+	return fmt.Errorf("start studioctl-server: %w", err)
 }

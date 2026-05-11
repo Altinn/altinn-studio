@@ -20,8 +20,8 @@ func (s *Service) buildDisk() *Disk {
 		s.checkDirState("data_dir", s.cfg.DataDir, true),
 		s.checkDirState("bin_dir", s.cfg.BinDir, false),
 		s.checkCredentialsFileState(),
-		s.checkAppManagerBinaryState(),
-		s.checkAppManagerRuntimeState(),
+		s.checkStudioctlServerBinaryState(),
+		s.checkStudioctlServerRuntimeState(),
 	}
 
 	hasIssues := false
@@ -164,8 +164,8 @@ func (s *Service) checkCredentialsFileState() DiskCheck {
 	return summarizeCredentialsState(path, creds)
 }
 
-func (s *Service) checkAppManagerBinaryState() DiskCheck {
-	installDir := s.cfg.AppManagerInstallDir()
+func (s *Service) checkStudioctlServerBinaryState() DiskCheck {
+	installDir := s.cfg.StudioctlServerInstallDir()
 	if info, err := os.Stat(installDir); err == nil && !info.IsDir() {
 		return DiskCheck{
 			ID:      "appmgr_binary",
@@ -175,7 +175,7 @@ func (s *Service) checkAppManagerBinaryState() DiskCheck {
 		}
 	}
 
-	path := s.cfg.AppManagerBinaryPath()
+	path := s.cfg.StudioctlServerBinaryPath()
 	info, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -218,16 +218,16 @@ func (s *Service) checkAppManagerBinaryState() DiskCheck {
 	}
 }
 
-func (s *Service) checkAppManagerRuntimeState() DiskCheck {
-	pidPath := s.cfg.AppManagerPIDPath()
+func (s *Service) checkStudioctlServerRuntimeState() DiskCheck {
+	pidPath := s.cfg.StudioctlServerPIDPath()
 	if runtime.GOOS == osutil.OSWindows {
-		return checkAppManagerRuntimeStateWindows(s.cfg.Home, pidPath)
+		return checkStudioctlServerRuntimeStateWindows(s.cfg.Home, pidPath)
 	}
 
-	socketPath := s.cfg.AppManagerSocketPath()
+	socketPath := s.cfg.StudioctlServerSocketPath()
 	pidInfo, pidErr := os.Stat(pidPath)
 	socketInfo, socketErr := os.Stat(socketPath)
-	if check := s.checkAppManagerPresenceState(pidPath, socketPath, pidErr, socketErr); check != nil {
+	if check := s.checkStudioctlServerPresenceState(pidPath, socketPath, pidErr, socketErr); check != nil {
 		return *check
 	}
 
@@ -248,7 +248,7 @@ func (s *Service) checkAppManagerRuntimeState() DiskCheck {
 		}
 	}
 
-	if check := checkAppManagerPIDFile(pidPath); check != nil {
+	if check := checkStudioctlServerPIDFile(pidPath); check != nil {
 		return *check
 	}
 
@@ -269,7 +269,7 @@ func (s *Service) checkAppManagerRuntimeState() DiskCheck {
 	}
 }
 
-func checkAppManagerRuntimeStateWindows(home, pidPath string) DiskCheck {
+func checkStudioctlServerRuntimeStateWindows(home, pidPath string) DiskCheck {
 	if _, err := os.Stat(pidPath); err != nil {
 		if os.IsNotExist(err) {
 			return DiskCheck{
@@ -287,7 +287,7 @@ func checkAppManagerRuntimeStateWindows(home, pidPath string) DiskCheck {
 		}
 	}
 
-	if check := checkAppManagerPIDFile(pidPath); check != nil {
+	if check := checkStudioctlServerPIDFile(pidPath); check != nil {
 		return *check
 	}
 
@@ -363,7 +363,7 @@ func countInvalidCredentialEntries(envs map[string]auth.EnvCredentials) int {
 	return invalidEntries
 }
 
-func (s *Service) checkAppManagerPresenceState(
+func (s *Service) checkStudioctlServerPresenceState(
 	pidPath, socketPath string,
 	pidErr, socketErr error,
 ) *DiskCheck {
@@ -400,7 +400,7 @@ func (s *Service) checkAppManagerPresenceState(
 	}
 }
 
-func checkAppManagerPIDFile(pidPath string) *DiskCheck {
+func checkStudioctlServerPIDFile(pidPath string) *DiskCheck {
 	pidRaw, err := readTrustedFile(pidPath)
 	if err != nil {
 		check := DiskCheck{

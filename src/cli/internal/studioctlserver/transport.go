@@ -1,4 +1,4 @@
-package appmanager
+package studioctlserver
 
 import (
 	"context"
@@ -14,7 +14,7 @@ func transportForConfig(cfg *config.Config) *http.Transport {
 		var transport http.Transport
 		transport.DialContext = func(ctx context.Context, _, _ string) (net.Conn, error) {
 			var d net.Dialer
-			return d.DialContext(ctx, "unix", cfg.AppManagerSocketPath())
+			return d.DialContext(ctx, "unix", cfg.StudioctlServerSocketPath())
 		}
 		return &transport
 	}
@@ -22,7 +22,7 @@ func transportForConfig(cfg *config.Config) *http.Transport {
 	transport := baseTransport.Clone()
 	transport.DialContext = func(ctx context.Context, _, _ string) (net.Conn, error) {
 		var d net.Dialer
-		return d.DialContext(ctx, "unix", cfg.AppManagerSocketPath())
+		return d.DialContext(ctx, "unix", cfg.StudioctlServerSocketPath())
 	}
 	return transport
 }

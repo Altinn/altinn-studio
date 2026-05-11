@@ -14,13 +14,13 @@ import (
 	"time"
 
 	containerruntime "altinn.studio/devenv/pkg/container"
-	"altinn.studio/studioctl/internal/appmanager"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	appsupport "altinn.studio/studioctl/internal/cmd/apps"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/logstream"
 	"altinn.studio/studioctl/internal/osutil"
+	"altinn.studio/studioctl/internal/studioctlserver"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -33,7 +33,7 @@ const appLogsTailAllValue = "all"
 
 type appLogsCommand struct {
 	out             *ui.Output
-	manager         appManagerAccess
+	server          studioctlServerAccess
 	service         *appsvc.Service
 	cfg             *config.Config
 	containerClient containerClientFactory
@@ -68,7 +68,7 @@ func newAppLogsCommand(cfg *config.Config, out *ui.Output, service *appsvc.Servi
 	return &appLogsCommand{
 		out:             out,
 		cfg:             cfg,
-		manager:         newAppManagerAccess(cfg),
+		server:          newStudioctlServerAccess(cfg),
 		service:         service,
 		containerClient: containerruntime.Detect,
 	}
@@ -194,17 +194,17 @@ func (c *appLogsCommand) matchingRunningApps(
 	ctx context.Context,
 	appID string,
 	id string,
-) ([]appmanager.DiscoveredApp, error) {
-	if err := c.manager.ensure(ctx); err != nil {
-		return nil, startAppManagerError(err)
+) ([]studioctlserver.DiscoveredApp, error) {
+	if err := c.server.ensure(ctx); err != nil {
+		return nil, startStudioctlServerError(err)
 	}
 
-	status, err := c.manager.client.Status(ctx)
+	status, err := c.server.client.Status(ctx)
 	if err != nil {
-		if errors.Is(err, appmanager.ErrNotRunning) {
+		if errors.Is(err, studioctlserver.ErrNotRunning) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("get app-manager status: %w", err)
+		return nil, fmt.Errorf("get studioctl-server status: %w", err)
 	}
 
 	apps := filterApps(status.Apps, appID, false)
@@ -212,7 +212,7 @@ func (c *appLogsCommand) matchingRunningApps(
 		return sortDiscoveredApps(apps), nil
 	}
 
-	filtered := make([]appmanager.DiscoveredApp, 0, len(apps))
+	filtered := make([]studioctlserver.DiscoveredApp, 0, len(apps))
 	for _, app := range apps {
 		if appMatchesRuntimeID(app, id) {
 			filtered = append(filtered, app)
@@ -221,7 +221,11 @@ func (c *appLogsCommand) matchingRunningApps(
 	return sortDiscoveredApps(filtered), nil
 }
 
-func (c *appLogsCommand) streamRunningApp(ctx context.Context, app appmanager.DiscoveredApp, flags appLogsFlags) error {
+func (c *appLogsCommand) streamRunningApp(
+	ctx context.Context,
+	app studioctlserver.DiscoveredApp,
+	flags appLogsFlags,
+) error {
 	if appHasContainerHandle(app) {
 		return c.streamContainerLogs(ctx, app, flags)
 	}
@@ -337,7 +341,7 @@ func (c *appLogsCommand) streamLogFile(
 
 func (c *appLogsCommand) streamContainerLogs(
 	ctx context.Context,
-	app appmanager.DiscoveredApp,
+	app studioctlserver.DiscoveredApp,
 	flags appLogsFlags,
 ) error {
 	clientFactory := c.containerClient
@@ -426,7 +430,7 @@ func (l appLogLine) Print(out *ui.Output) error {
 	return nil
 }
 
-func appMatchesRuntimeID(app appmanager.DiscoveredApp, id string) bool {
+func appMatchesRuntimeID(app studioctlserver.DiscoveredApp, id string) bool {
 	if id == "" {
 		return true
 	}

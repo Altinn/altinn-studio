@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"altinn.studio/studioctl/internal/appmanager"
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/studioctlserver"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -27,18 +27,18 @@ func TestServerStatusJSON_Running(t *testing.T) {
 	command := &ServerCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
 		client: fakeServerClientWithStatus(
-			&appmanager.Status{
-				ProcessID:         42,
-				AppManagerVersion: "1.2.3",
-				DotnetVersion:     "10.0.0",
-				StudioctlPath:     "/tmp/studioctl",
-				InternalDev:       true,
-				Tunnel: appmanager.TunnelStatus{
+			&studioctlserver.Status{
+				ProcessID:              42,
+				StudioctlServerVersion: "1.2.3",
+				DotnetVersion:          "10.0.0",
+				StudioctlPath:          "/tmp/studioctl",
+				InternalDev:            true,
+				Tunnel: studioctlserver.TunnelStatus{
 					Enabled:   true,
 					Connected: true,
 					URL:       "https://example.test",
 				},
-				Apps: []appmanager.DiscoveredApp{
+				Apps: []studioctlserver.DiscoveredApp{
 					{
 						ProcessID:   &processID,
 						AppID:       "ttd/app",
@@ -81,7 +81,7 @@ func TestServerUpJSON_AlreadyRunning(t *testing.T) {
 	var out bytes.Buffer
 	command := &ServerCommand{
 		out:    ui.NewOutput(&out, io.Discard, false),
-		client: fakeServerClientWithStatus(&appmanager.Status{ProcessID: 1}, nil),
+		client: fakeServerClientWithStatus(&studioctlserver.Status{ProcessID: 1}, nil),
 		ensureStarted: func(context.Context, *config.Config, string) error {
 			return nil
 		},
@@ -107,7 +107,7 @@ func TestServerUpJSON_ReconcilesWhenAlreadyRunning(t *testing.T) {
 	var out bytes.Buffer
 	command := &ServerCommand{
 		out:    ui.NewOutput(&out, io.Discard, false),
-		client: fakeServerClientWithStatus(&appmanager.Status{ProcessID: 1}, nil),
+		client: fakeServerClientWithStatus(&studioctlserver.Status{ProcessID: 1}, nil),
 		ensureStarted: func(context.Context, *config.Config, string) error {
 			ensured = true
 			return nil
@@ -129,8 +129,8 @@ func TestServerUpJSON_Started(t *testing.T) {
 	command := &ServerCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
 		client: fakeServerClientWithStatusSequence(
-			fakeStatusResult{err: appmanager.ErrNotRunning},
-			fakeStatusResult{status: &appmanager.Status{ProcessID: 2}},
+			fakeStatusResult{err: studioctlserver.ErrNotRunning},
+			fakeStatusResult{status: &studioctlserver.Status{ProcessID: 2}},
 		),
 		ensureStarted: func(context.Context, *config.Config, string) error {
 			return nil
@@ -157,8 +157,8 @@ func TestServerUpJSON_Restarted(t *testing.T) {
 	command := &ServerCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
 		client: fakeServerClientWithStatusSequence(
-			fakeStatusResult{status: &appmanager.Status{ProcessID: 1}},
-			fakeStatusResult{status: &appmanager.Status{ProcessID: 2}},
+			fakeStatusResult{status: &studioctlserver.Status{ProcessID: 1}},
+			fakeStatusResult{status: &studioctlserver.Status{ProcessID: 2}},
 		),
 		ensureStarted: func(context.Context, *config.Config, string) error {
 			return nil
@@ -184,7 +184,7 @@ func TestServerStatusJSON_NotRunning(t *testing.T) {
 	var out bytes.Buffer
 	command := &ServerCommand{
 		out:    ui.NewOutput(&out, io.Discard, false),
-		client: fakeServerClientWithStatus(nil, appmanager.ErrNotRunning),
+		client: fakeServerClientWithStatus(nil, studioctlserver.ErrNotRunning),
 	}
 
 	if err := command.Run(context.Background(), []string{"status", "--json"}); err != nil {
@@ -204,7 +204,7 @@ func TestServerDownJSON_NotRunning(t *testing.T) {
 	command := &ServerCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
 		shutdown: func(context.Context, *config.Config) (<-chan error, error) {
-			return nil, appmanager.ErrNotRunning
+			return nil, studioctlserver.ErrNotRunning
 		},
 	}
 
@@ -299,10 +299,10 @@ func TestServerLogsJSON_TailsMatchingPIDAcrossFiles(t *testing.T) {
 	t.Parallel()
 
 	logDir := t.TempDir()
-	appManagerLogDir := filepath.Join(logDir, "app-manager")
-	oldPath := writeServerLog(t, appManagerLogDir, "2026-04-18-1.log", "one\n")
-	newPath := writeServerLog(t, appManagerLogDir, "2026-04-19-1.log", "two\nthree\n")
-	otherPath := writeServerLog(t, appManagerLogDir, "2026-04-19-2.log", "other\n")
+	studioctlServerLogDir := filepath.Join(logDir, "studioctl-server")
+	oldPath := writeServerLog(t, studioctlServerLogDir, "2026-04-18-1.log", "one\n")
+	newPath := writeServerLog(t, studioctlServerLogDir, "2026-04-19-1.log", "two\nthree\n")
+	otherPath := writeServerLog(t, studioctlServerLogDir, "2026-04-19-2.log", "other\n")
 	setServerLogModTime(t, oldPath, time.Date(2026, 4, 18, 1, 0, 0, 0, time.UTC))
 	setServerLogModTime(t, newPath, time.Date(2026, 4, 19, 2, 0, 0, 0, time.UTC))
 	setServerLogModTime(t, otherPath, time.Date(2026, 4, 19, 1, 0, 0, 0, time.UTC))
@@ -348,8 +348,8 @@ func TestServerLogs_MissingLogFile(t *testing.T) {
 	}
 
 	err := command.Run(context.Background(), []string{"logs", "--follow=false"})
-	if err == nil || !strings.Contains(err.Error(), "app-manager logs not found") {
-		t.Fatalf("Run() error = %v, want app-manager logs not found", err)
+	if err == nil || !strings.Contains(err.Error(), "studioctl-server logs not found") {
+		t.Fatalf("Run() error = %v, want studioctl-server logs not found", err)
 	}
 	if out.String() != "" {
 		t.Fatalf("output = %q, want empty", out.String())
@@ -386,9 +386,9 @@ func TestServerLogs_ReadsLatestLogWithoutStatus(t *testing.T) {
 	t.Parallel()
 
 	logDir := t.TempDir()
-	appManagerLogDir := filepath.Join(logDir, "app-manager")
-	oldPath := writeServerLog(t, appManagerLogDir, "2026-04-18-1.log", "old\n")
-	newPath := writeServerLog(t, appManagerLogDir, "2026-04-19-2.log", "new\n")
+	studioctlServerLogDir := filepath.Join(logDir, "studioctl-server")
+	oldPath := writeServerLog(t, studioctlServerLogDir, "2026-04-18-1.log", "old\n")
+	newPath := writeServerLog(t, studioctlServerLogDir, "2026-04-19-2.log", "new\n")
 	setServerLogModTime(t, oldPath, time.Date(2026, 4, 18, 1, 0, 0, 0, time.UTC))
 	setServerLogModTime(t, newPath, time.Date(2026, 4, 19, 1, 0, 0, 0, time.UTC))
 
@@ -407,24 +407,24 @@ func TestServerLogs_ReadsLatestLogWithoutStatus(t *testing.T) {
 }
 
 type fakeServerClient struct {
-	status func(context.Context) (*appmanager.Status, error)
+	status func(context.Context) (*studioctlserver.Status, error)
 }
 
 type fakeStatusResult struct {
-	status *appmanager.Status
+	status *studioctlserver.Status
 	err    error
 }
 
-func (f *fakeServerClient) Status(ctx context.Context) (*appmanager.Status, error) {
+func (f *fakeServerClient) Status(ctx context.Context) (*studioctlserver.Status, error) {
 	if f.status == nil {
-		return new(appmanager.Status), nil
+		return new(studioctlserver.Status), nil
 	}
 	return f.status(ctx)
 }
 
-func fakeServerClientWithStatus(status *appmanager.Status, err error) *fakeServerClient {
+func fakeServerClientWithStatus(status *studioctlserver.Status, err error) *fakeServerClient {
 	return &fakeServerClient{
-		status: func(context.Context) (*appmanager.Status, error) {
+		status: func(context.Context) (*studioctlserver.Status, error) {
 			return status, err
 		},
 	}
@@ -433,9 +433,9 @@ func fakeServerClientWithStatus(status *appmanager.Status, err error) *fakeServe
 func fakeServerClientWithStatusSequence(results ...fakeStatusResult) *fakeServerClient {
 	index := 0
 	return &fakeServerClient{
-		status: func(context.Context) (*appmanager.Status, error) {
+		status: func(context.Context) (*studioctlserver.Status, error) {
 			if index >= len(results) {
-				return new(appmanager.Status), nil
+				return new(studioctlserver.Status), nil
 			}
 			result := results[index]
 			index++

@@ -38,7 +38,7 @@ const (
 	AppName = "altinn-studio"
 
 	// StudioctlServerName is the host service identity used in runtime files and logs.
-	StudioctlServerName = "app-manager"
+	StudioctlServerName = "studioctl-server"
 
 	// StudioctlServerBinaryName is the executable name of the installed host service.
 	StudioctlServerBinaryName = StudioctlServerName
@@ -212,23 +212,23 @@ func resolveSocketDir(flagValue, home string) (string, error) {
 	return home, nil
 }
 
-// AppManagerSocketPath returns the path to the studioctl server Unix socket.
-func (c *Config) AppManagerSocketPath() string {
+// StudioctlServerSocketPath returns the path to the studioctl server Unix socket.
+func (c *Config) StudioctlServerSocketPath() string {
 	return filepath.Join(c.SocketDir, StudioctlServerName+".sock")
 }
 
-// AppManagerPIDPath returns the path to the persisted studioctl server runtime state file.
-func (c *Config) AppManagerPIDPath() string {
+// StudioctlServerPIDPath returns the path to the persisted studioctl server runtime state file.
+func (c *Config) StudioctlServerPIDPath() string {
 	return filepath.Join(c.Home, StudioctlServerName+".pid")
 }
 
-// AppManagerLockPath returns the path to the studioctl server lifecycle lock file.
-func (c *Config) AppManagerLockPath() string {
+// StudioctlServerLockPath returns the path to the studioctl server lifecycle lock file.
+func (c *Config) StudioctlServerLockPath() string {
 	return filepath.Join(c.SocketDir, StudioctlServerName+".lock")
 }
 
-// AppManagerLogDir returns the directory containing studioctl server log files.
-func (c *Config) AppManagerLogDir() string {
+// StudioctlServerLogDir returns the directory containing studioctl server log files.
+func (c *Config) StudioctlServerLogDir() string {
 	return filepath.Join(c.LogDir, StudioctlServerName)
 }
 
@@ -242,18 +242,18 @@ func (c *Config) AppLogDir(appID string) string {
 	return filepath.Join(c.AppLogsDir(), appID)
 }
 
-// AppManagerBinaryPath returns the path to the studioctl server binary.
+// StudioctlServerBinaryPath returns the path to the studioctl server binary.
 // On Windows, the .exe suffix is automatically appended.
-func (c *Config) AppManagerBinaryPath() string {
+func (c *Config) StudioctlServerBinaryPath() string {
 	name := StudioctlServerBinaryName
 	if runtime.GOOS == osutil.OSWindows {
 		name += ".exe"
 	}
-	return filepath.Join(c.AppManagerInstallDir(), name)
+	return filepath.Join(c.StudioctlServerInstallDir(), name)
 }
 
-// AppManagerInstallDir returns the directory containing the installed studioctl server payload.
-func (c *Config) AppManagerInstallDir() string {
+// StudioctlServerInstallDir returns the directory containing the installed studioctl server payload.
+func (c *Config) StudioctlServerInstallDir() string {
 	return filepath.Join(c.BinDir, StudioctlServerName)
 }
 

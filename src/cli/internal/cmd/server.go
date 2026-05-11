@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"strconv"
 
-	"altinn.studio/studioctl/internal/appmanager"
 	serverpkg "altinn.studio/studioctl/internal/cmd/server"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
+	"altinn.studio/studioctl/internal/studioctlserver"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -31,7 +31,7 @@ type ServerCommand struct {
 }
 
 type serverClient interface {
-	Status(ctx context.Context) (*appmanager.Status, error)
+	Status(ctx context.Context) (*studioctlserver.Status, error)
 }
 
 type ensureStartedFunc func(ctx context.Context, cfg *config.Config, loadBalancerPort string) error
@@ -44,9 +44,9 @@ type serverUpOutput struct {
 }
 
 type serverStatusOutput struct {
-	Status     *appmanager.Status `json:"status,omitempty"`
-	Running    bool               `json:"running"`
-	JSONOutput bool               `json:"-"`
+	Status     *studioctlserver.Status `json:"status,omitempty"`
+	Running    bool                    `json:"running"`
+	JSONOutput bool                    `json:"-"`
 }
 
 type serverDownOutput struct {
@@ -60,25 +60,25 @@ func (o serverUpOutput) Print(out *ui.Output) error {
 		return printJSONOutput(out, "server up", o)
 	}
 	if o.Started {
-		out.Println("app-manager started.")
+		out.Println("studioctl-server started.")
 		return nil
 	}
-	out.Println("app-manager is already running.")
+	out.Println("studioctl-server is already running.")
 	return nil
 }
 
 func (o serverStatusOutput) Print(out *ui.Output) error {
 	if o.Status != nil && o.Status.Apps == nil {
-		o.Status.Apps = make([]appmanager.DiscoveredApp, 0)
+		o.Status.Apps = make([]studioctlserver.DiscoveredApp, 0)
 	}
 	if o.JSONOutput {
 		return printJSONOutput(out, "server status", o)
 	}
 	if !o.Running {
-		out.Println("app-manager is not running.")
+		out.Println("studioctl-server is not running.")
 		return nil
 	}
-	out.Println("app-manager is running.")
+	out.Println("studioctl-server is running.")
 	out.Println("")
 
 	table := ui.NewTable(
@@ -86,7 +86,7 @@ func (o serverStatusOutput) Print(out *ui.Output) error {
 		ui.NewColumn(""),
 	).Indent(2)
 	table.Row(ui.Text("Process ID"), ui.Text(strconv.Itoa(o.Status.ProcessID)))
-	table.Row(ui.Text("app-manager version"), ui.Text(o.Status.AppManagerVersion))
+	table.Row(ui.Text("studioctl-server version"), ui.Text(o.Status.StudioctlServerVersion))
 	table.Row(ui.Text(".NET version"), ui.Text(o.Status.DotnetVersion))
 	if o.Status.Tunnel.Enabled {
 		state := "disconnected"
@@ -108,10 +108,10 @@ func (o serverDownOutput) Print(out *ui.Output) error {
 		return printJSONOutput(out, "server down", o)
 	}
 	if !o.WasRunning {
-		out.Println("app-manager is not running.")
+		out.Println("studioctl-server is not running.")
 		return nil
 	}
-	out.Println("app-manager shutdown requested.")
+	out.Println("studioctl-server shutdown requested.")
 	return nil
 }
 
@@ -120,9 +120,9 @@ func NewServerCommand(cfg *config.Config, out *ui.Output) *ServerCommand {
 	return &ServerCommand{
 		cfg:           cfg,
 		out:           out,
-		client:        appmanager.NewClient(cfg),
-		ensureStarted: appmanager.EnsureStarted,
-		shutdown:      appmanager.Shutdown,
+		client:        studioctlserver.NewClient(cfg),
+		ensureStarted: studioctlserver.EnsureStarted,
+		shutdown:      studioctlserver.Shutdown,
 	}
 }
 
@@ -142,10 +142,10 @@ func (c *ServerCommand) Usage() string {
 		fmt.Sprintf("Manage the %s background server.", osutil.CurrentBin()),
 		"",
 		"Subcommands:",
-		"  up      Start the server (app-manager)",
-		"  status  Show server status (app-manager)",
-		"  down    Stop the server (app-manager)",
-		"  logs    Stream server logs (app-manager)",
+		"  up      Start the server (studioctl-server)",
+		"  status  Show server status (studioctl-server)",
+		"  down    Stop the server (studioctl-server)",
+		"  logs    Stream server logs (studioctl-server)",
 		"",
 		"Options for 'server logs':",
 		"  -f, --follow  Follow log output (default: false)",
@@ -193,15 +193,15 @@ func (c *ServerCommand) runUp(ctx context.Context, args []string) error {
 	}
 
 	before, beforeErr := c.client.Status(ctx)
-	if beforeErr != nil && !errors.Is(beforeErr, appmanager.ErrNotRunning) {
-		return fmt.Errorf("get app-manager status before start: %w", beforeErr)
+	if beforeErr != nil && !errors.Is(beforeErr, studioctlserver.ErrNotRunning) {
+		return fmt.Errorf("get studioctl-server status before start: %w", beforeErr)
 	}
-	if err := c.startAppManager(ctx); err != nil {
-		return fmt.Errorf("start app-manager: %w", err)
+	if err := c.startStudioctlServer(ctx); err != nil {
+		return fmt.Errorf("start studioctl-server: %w", err)
 	}
 	after, afterErr := c.client.Status(ctx)
 	if afterErr != nil {
-		return fmt.Errorf("get app-manager status after start: %w", afterErr)
+		return fmt.Errorf("get studioctl-server status after start: %w", afterErr)
 	}
 
 	return serverUpOutput{
@@ -211,7 +211,7 @@ func (c *ServerCommand) runUp(ctx context.Context, args []string) error {
 	}.Print(c.out)
 }
 
-func serverStarted(before, after *appmanager.Status) bool {
+func serverStarted(before, after *studioctlserver.Status) bool {
 	return before == nil || before.ProcessID != after.ProcessID
 }
 
@@ -226,10 +226,10 @@ func (c *ServerCommand) runStatus(ctx context.Context, args []string) error {
 
 	status, err := c.client.Status(ctx)
 	if err != nil {
-		if errors.Is(err, appmanager.ErrNotRunning) {
+		if errors.Is(err, studioctlserver.ErrNotRunning) {
 			return serverStatusOutput{Status: nil, Running: false, JSONOutput: jsonOutput}.Print(c.out)
 		}
-		return fmt.Errorf("get app-manager status: %w", err)
+		return fmt.Errorf("get studioctl-server status: %w", err)
 	}
 	return serverStatusOutput{Running: true, Status: status, JSONOutput: jsonOutput}.Print(c.out)
 }
@@ -243,25 +243,25 @@ func (c *ServerCommand) runDown(ctx context.Context, args []string) error {
 		return nil
 	}
 
-	done, err := c.stopAppManager(ctx)
+	done, err := c.stopStudioctlServer(ctx)
 	if err != nil {
-		if errors.Is(err, appmanager.ErrNotRunning) {
+		if errors.Is(err, studioctlserver.ErrNotRunning) {
 			return serverDownOutput{
 				WasRunning:        false,
 				ShutdownRequested: false,
 				JSONOutput:        jsonOutput,
 			}.Print(c.out)
 		}
-		return fmt.Errorf("shutdown app-manager: %w", err)
+		return fmt.Errorf("shutdown studioctl-server: %w", err)
 	}
 
 	select {
 	case err := <-done:
 		if err != nil {
-			return fmt.Errorf("shutdown app-manager: %w", err)
+			return fmt.Errorf("shutdown studioctl-server: %w", err)
 		}
 	case <-ctx.Done():
-		return fmt.Errorf("shutdown app-manager: %w", ctx.Err())
+		return fmt.Errorf("shutdown studioctl-server: %w", ctx.Err())
 	}
 
 	return serverDownOutput{
@@ -305,16 +305,16 @@ func (c *ServerCommand) runLogs(ctx context.Context, args []string) error {
 		return fmt.Errorf("%w: --tail must be less than or equal to %d", ErrInvalidFlagValue, maxServerLogTailLines)
 	}
 
-	return c.streamAppManagerLogs(ctx, tail, follow, jsonOutput)
+	return c.streamStudioctlServerLogs(ctx, tail, follow, jsonOutput)
 }
 
-func (c *ServerCommand) streamAppManagerLogs(
+func (c *ServerCommand) streamStudioctlServerLogs(
 	ctx context.Context,
 	tail int,
 	follow bool,
 	jsonOutput bool,
 ) error {
-	if err := serverpkg.StreamLogs(ctx, c.cfg.AppManagerLogDir(), c.out, serverpkg.LogOptions{
+	if err := serverpkg.StreamLogs(ctx, c.cfg.StudioctlServerLogDir(), c.out, serverpkg.LogOptions{
 		Tail:   tail,
 		Follow: follow,
 		JSON:   jsonOutput,
@@ -324,19 +324,19 @@ func (c *ServerCommand) streamAppManagerLogs(
 	return nil
 }
 
-func (c *ServerCommand) startAppManager(ctx context.Context) error {
+func (c *ServerCommand) startStudioctlServer(ctx context.Context) error {
 	ensureStarted := c.ensureStarted
 	if ensureStarted == nil {
-		ensureStarted = appmanager.EnsureStarted
+		ensureStarted = studioctlserver.EnsureStarted
 	}
 	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
 	return ensureStarted(ctx, c.cfg, topology.IngressPort())
 }
 
-func (c *ServerCommand) stopAppManager(ctx context.Context) (<-chan error, error) {
+func (c *ServerCommand) stopStudioctlServer(ctx context.Context) (<-chan error, error) {
 	shutdown := c.shutdown
 	if shutdown == nil {
-		shutdown = appmanager.Shutdown
+		shutdown = studioctlserver.Shutdown
 	}
 	return shutdown(ctx, c.cfg)
 }

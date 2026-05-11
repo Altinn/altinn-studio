@@ -4,7 +4,7 @@ namespace Altinn.Studio.StudioctlServer.Platform;
 
 internal static class IpcListener
 {
-    private const string UnixSocketPathKey = "APP_MANAGER_UNIX_SOCKET_PATH";
+    private const string UnixSocketPathKey = "STUDIOCTL_SERVER_UNIX_SOCKET_PATH";
 
     public static void Configure(IConfiguration configuration, KestrelServerOptions options)
     {
@@ -18,7 +18,7 @@ internal static class IpcListener
         if (string.IsNullOrWhiteSpace(unixSocketPath))
         {
             throw new InvalidOperationException(
-                $"Missing required configuration value {UnixSocketPathKey} for app-manager Unix socket listener."
+                $"Missing required configuration value {UnixSocketPathKey} for studioctl-server Unix socket listener."
             );
         }
 

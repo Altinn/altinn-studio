@@ -26,10 +26,10 @@ Windows (PowerShell):
 iwr https://altinn.studio/designer/api/v1/studioctl/install.ps1 -useb | iex
 ```
 
-The install flow also installs `app-manager` and localtest resources by default.
+The install flow also installs `studioctl-server` and localtest resources by default.
 If no terminal prompt is available, the installer uses the recommended writable user location.
-It stops running apps, localtest, and `app-manager` before replacement.
-`app-manager` starts later when a command needs it.
+It stops running apps, localtest, and `studioctl-server` before replacement.
+`studioctl-server` starts later when a command needs it.
 
 Pin to a specific version:
 
@@ -70,7 +70,7 @@ cd src/cli
 make user-install
 ```
 
-That installs `studioctl`, `app-manager`, and localtest resources into your user setup.
+That installs `studioctl`, `studioctl-server`, and localtest resources into your user setup.
 It uses the same upgrade-safe flow as the release install scripts.
 
 Development loop:

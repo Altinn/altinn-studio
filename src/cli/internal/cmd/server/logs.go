@@ -8,17 +8,17 @@ import (
 	"fmt"
 	"strings"
 
-	"altinn.studio/studioctl/internal/appmanager"
 	"altinn.studio/studioctl/internal/logstream"
+	"altinn.studio/studioctl/internal/studioctlserver"
 	"altinn.studio/studioctl/internal/ui"
 )
 
 var (
-	errAppManagerLogsNotFound = errors.New("app-manager logs not found")
-	errLogLineTooLong         = errors.New("app-manager log line exceeds max size")
+	errStudioctlServerLogsNotFound = errors.New("studioctl-server logs not found")
+	errLogLineTooLong              = errors.New("studioctl-server log line exceeds max size")
 )
 
-// LogOptions configures app-manager log streaming.
+// LogOptions configures studioctl-server log streaming.
 type LogOptions struct {
 	Tail   int
 	Follow bool
@@ -29,15 +29,15 @@ type serverLogLine struct {
 	Line string `json:"line"`
 }
 
-// StreamLogs writes app-manager log lines to the configured output.
+// StreamLogs writes studioctl-server log lines to the configured output.
 func StreamLogs(ctx context.Context, logDir string, out *ui.Output, opts LogOptions) error {
 	streamer := logstream.Streamer{
 		ListFiles: func() ([]logstream.File, error) {
-			files, err := appmanager.LogFiles(logDir)
+			files, err := studioctlserver.LogFiles(logDir)
 			if err != nil {
-				return nil, fmt.Errorf("find app-manager logs: %w", err)
+				return nil, fmt.Errorf("find studioctl-server logs: %w", err)
 			}
-			return appManagerLogFiles(files), nil
+			return studioctlServerLogFiles(files), nil
 		},
 		Emit: func(_ string, line string) error {
 			return printServerLogLine(out, line, opts.JSON)
@@ -50,17 +50,17 @@ func StreamLogs(ctx context.Context, logDir string, out *ui.Output, opts LogOpti
 	}); err != nil {
 		switch {
 		case errors.Is(err, logstream.ErrNoLogFiles):
-			return errAppManagerLogsNotFound
+			return errStudioctlServerLogsNotFound
 		case errors.Is(err, logstream.ErrLineTooLong):
 			return errLogLineTooLong
 		default:
-			return fmt.Errorf("stream app-manager logs: %w", err)
+			return fmt.Errorf("stream studioctl-server logs: %w", err)
 		}
 	}
 	return nil
 }
 
-func appManagerLogFiles(files []appmanager.LogFile) []logstream.File {
+func studioctlServerLogFiles(files []studioctlserver.LogFile) []logstream.File {
 	result := make([]logstream.File, 0, len(files))
 	for _, file := range files {
 		result = append(result, logstream.File{

@@ -315,7 +315,7 @@ func buildPlatformResources(
 		}
 	}()
 
-	if _, publishErr := publishAppManagerToDir(goos, goarch, serverDir); publishErr != nil {
+	if _, publishErr := publishStudioctlServerToDir(goos, goarch, serverDir); publishErr != nil {
 		return "", publishErr
 	}
 

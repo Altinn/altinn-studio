@@ -24,9 +24,9 @@ Notes:
   - Without --install-dir, studioctl selects an install location.
   - Released scripts are pinned to a specific studioctl tag in this monorepo.
   - Binary integrity is verified via SHA256 checksum before execution.
-  - The install step also installs app-manager and localtest resources.
-  - The install step stops running apps, localtest, and app-manager before replacement.
-  - app-manager starts later when a command needs it.
+  - The install step also installs studioctl-server and localtest resources.
+  - The install step stops running apps, localtest, and studioctl-server before replacement.
+  - studioctl-server starts later when a command needs it.
 USAGE
 }
 

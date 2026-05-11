@@ -1,5 +1,5 @@
-// Package appmanager provides local control-plane integration with the app-manager host service.
-package appmanager
+// Package studioctlserver provides local control-plane integration with the studioctl-server host service.
+package studioctlserver
 
 import (
 	"bufio"
@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	controlBaseURL = "http://app-manager"
+	controlBaseURL = "http://studioctl-server"
 
 	healthPath   = "/api/v1/healthz"
 	statusPath   = "/api/v1/studioctl/status"
@@ -33,20 +33,20 @@ const (
 	upgradePath  = "/api/v1/studioctl/apps/upgrades"
 	shutdownPath = "/api/v1/studioctl/shutdown"
 
-	appManagerUnixSocketEnv   = "APP_MANAGER_UNIX_SOCKET_PATH"
-	appManagerTunnelURLEnv    = "Tunnel__Url"
-	appManagerLocaltestURLEnv = "Localtest__Url"
-	appManagerStudioctlEnv    = "Studioctl__Path"
+	studioctlServerUnixSocketEnv   = "STUDIOCTL_SERVER_UNIX_SOCKET_PATH"
+	studioctlServerTunnelURLEnv    = "Tunnel__Url"
+	studioctlServerLocaltestURLEnv = "Localtest__Url"
+	studioctlServerStudioctlEnv    = "Studioctl__Path"
 
-	appManagerRequestTimeout        = 2 * time.Second
-	appManagerStartTimeout          = 10 * time.Second
-	appManagerRegisterTimeoutMargin = 2 * time.Second
-	appManagerUpgradeTimeout        = 30 * time.Second
-	appManagerShutdownWait          = 3 * time.Second
-	appManagerPollInterval          = 100 * time.Millisecond
-	appTunnelEndpointPath           = "/internal/tunnel/app"
-	appManagerLogTailLines          = 40
-	appManagerLogSuffix             = ".log"
+	studioctlServerRequestTimeout        = 2 * time.Second
+	studioctlServerStartTimeout          = 10 * time.Second
+	studioctlServerRegisterTimeoutMargin = 2 * time.Second
+	studioctlServerUpgradeTimeout        = 30 * time.Second
+	studioctlServerShutdownWait          = 3 * time.Second
+	studioctlServerPollInterval          = 100 * time.Millisecond
+	appTunnelEndpointPath                = "/internal/tunnel/app"
+	studioctlServerLogTailLines          = 40
+	studioctlServerLogSuffix             = ".log"
 )
 
 type startConfig struct {
@@ -65,9 +65,9 @@ type runtimeState struct {
 	PID   int         `json:"pid"`
 }
 
-// Status describes the current app-manager status.
+// Status describes the current studioctl-server status.
 type Status struct {
-	AppManagerVersion           string          `json:"appManagerVersion"`
+	StudioctlServerVersion      string          `json:"studioctlServerVersion"`
 	DotnetVersion               string          `json:"dotnetVersion"`
 	StudioctlPath               string          `json:"studioctlPath"`
 	LocaltestURL                string          `json:"localtestUrl"`
@@ -98,7 +98,7 @@ type DiscoveredApp struct {
 	ContainerID string `json:"containerId,omitempty"`
 }
 
-// LogFile describes one app-manager log file.
+// LogFile describes one studioctl-server log file.
 type LogFile struct {
 	ModTime time.Time
 	Path    string
@@ -106,26 +106,26 @@ type LogFile struct {
 }
 
 var (
-	// ErrNotRunning is returned when app-manager is not reachable.
-	ErrNotRunning = errors.New("app-manager is not running")
-	// ErrBinaryMissing is returned when the app-manager binary is not installed.
-	ErrBinaryMissing              = errors.New("app-manager binary not found")
-	errUnexpectedHealthStatus     = errors.New("unexpected app-manager health status")
-	errUnexpectedRegisterStatus   = errors.New("unexpected app-manager register response")
-	errUnexpectedUnregisterStatus = errors.New("unexpected app-manager unregister response")
-	errUnexpectedStatusStatus     = errors.New("unexpected app-manager status response")
-	errUnexpectedUpgradeStatus    = errors.New("unexpected app-manager upgrade response")
-	errUnexpectedShutdownStatus   = errors.New("unexpected app-manager shutdown response")
-	errAppManagerStartTimedOut    = errors.New("app-manager start timed out")
-	errInvalidPIDFile             = errors.New("pid file does not contain a positive pid")
-	errAppManagerSocketDir        = errors.New("app-manager socket path is a directory")
-	errAppManagerSocketInUse      = errors.New("app-manager socket is already in use")
-	errAppManagerForceStopTimeout = errors.New("app-manager did not stop after kill")
-	// ErrAppEndpointNotFound is returned when app-manager cannot find a matching app endpoint.
+	// ErrNotRunning is returned when studioctl-server is not reachable.
+	ErrNotRunning = errors.New("studioctl-server is not running")
+	// ErrBinaryMissing is returned when the studioctl-server binary is not installed.
+	ErrBinaryMissing                   = errors.New("studioctl-server binary not found")
+	errUnexpectedHealthStatus          = errors.New("unexpected studioctl-server health status")
+	errUnexpectedRegisterStatus        = errors.New("unexpected studioctl-server register response")
+	errUnexpectedUnregisterStatus      = errors.New("unexpected studioctl-server unregister response")
+	errUnexpectedStatusStatus          = errors.New("unexpected studioctl-server status response")
+	errUnexpectedUpgradeStatus         = errors.New("unexpected studioctl-server upgrade response")
+	errUnexpectedShutdownStatus        = errors.New("unexpected studioctl-server shutdown response")
+	errStudioctlServerStartTimedOut    = errors.New("studioctl-server start timed out")
+	errInvalidPIDFile                  = errors.New("pid file does not contain a positive pid")
+	errStudioctlServerSocketDir        = errors.New("studioctl-server socket path is a directory")
+	errStudioctlServerSocketInUse      = errors.New("studioctl-server socket is already in use")
+	errStudioctlServerForceStopTimeout = errors.New("studioctl-server did not stop after kill")
+	// ErrAppEndpointNotFound is returned when studioctl-server cannot find a matching app endpoint.
 	ErrAppEndpointNotFound = errors.New("matching app endpoint not found")
 )
 
-// Client talks to the local app-manager control plane.
+// Client talks to the local studioctl-server control plane.
 type Client struct {
 	http *http.Client
 	cfg  *config.Config
@@ -140,7 +140,7 @@ type AppRegistration struct {
 	TimeoutSeconds int    `json:"timeoutSeconds"`
 }
 
-// AppUpgrade describes an app upgrade request for app-manager.
+// AppUpgrade describes an app upgrade request for studioctl-server.
 type AppUpgrade struct {
 	ProjectFolder            string `json:"projectFolder"`
 	StudioRoot               string `json:"studioRoot,omitempty"`
@@ -148,7 +148,7 @@ type AppUpgrade struct {
 	ConvertPackageReferences bool   `json:"convertPackageReferences,omitempty"`
 }
 
-// AppUpgradeResult describes an app-manager upgrade result.
+// AppUpgradeResult describes a studioctl-server upgrade result.
 type AppUpgradeResult struct {
 	Message  string `json:"message"`
 	Output   string `json:"output"`
@@ -156,7 +156,7 @@ type AppUpgradeResult struct {
 	ExitCode int    `json:"exitCode"`
 }
 
-// NewClient constructs an app-manager control-plane client.
+// NewClient constructs a studioctl-server control-plane client.
 func NewClient(cfg *config.Config) *Client {
 	return &Client{
 		cfg: cfg,
@@ -168,40 +168,40 @@ func NewClient(cfg *config.Config) *Client {
 
 func appRegistrationTimeout(registration AppRegistration) time.Duration {
 	if registration.TimeoutSeconds <= 0 {
-		return appManagerRegisterTimeoutMargin
+		return studioctlServerRegisterTimeoutMargin
 	}
-	return time.Duration(registration.TimeoutSeconds)*time.Second + appManagerRegisterTimeoutMargin
+	return time.Duration(registration.TimeoutSeconds)*time.Second + studioctlServerRegisterTimeoutMargin
 }
 
-// Shutdown stops app-manager and returns a completion channel that resolves when shutdown is fully complete.
+// Shutdown stops studioctl-server and returns a completion channel that resolves when shutdown is fully complete.
 func Shutdown(ctx context.Context, cfg *config.Config) (<-chan error, error) {
-	lock, err := osutil.AcquireFileLock(ctx, cfg.AppManagerLockPath())
+	lock, err := osutil.AcquireFileLock(ctx, cfg.StudioctlServerLockPath())
 	if err != nil {
-		return nil, fmt.Errorf("lock app-manager lifecycle: %w", err)
+		return nil, fmt.Errorf("lock studioctl-server lifecycle: %w", err)
 	}
 
 	client := NewClient(cfg)
 	pid, err := currentManagedPID(ctx, client, cfg)
 	if err != nil {
-		return nil, errors.Join(err, closeAppManagerLifecycleLock(lock))
+		return nil, errors.Join(err, closeStudioctlServerLifecycleLock(lock))
 	}
 
 	if err := shutdownError(client.shutdown(ctx), pid); err != nil {
-		return nil, errors.Join(err, closeAppManagerLifecycleLock(lock))
+		return nil, errors.Join(err, closeStudioctlServerLifecycleLock(lock))
 	}
 
 	done := make(chan error, 1)
 	go func() {
 		defer close(done)
-		done <- errors.Join(waitForManagedShutdown(ctx, cfg, client, pid), closeAppManagerLifecycleLock(lock))
+		done <- errors.Join(waitForManagedShutdown(ctx, cfg, client, pid), closeStudioctlServerLifecycleLock(lock))
 	}()
 
 	return done, nil
 }
 
-func closeAppManagerLifecycleLock(lock *osutil.FileLock) error {
+func closeStudioctlServerLifecycleLock(lock *osutil.FileLock) error {
 	if err := lock.Close(); err != nil {
-		return fmt.Errorf("close app-manager lifecycle lock: %w", err)
+		return fmt.Errorf("close studioctl-server lifecycle lock: %w", err)
 	}
 	return nil
 }
@@ -217,14 +217,14 @@ func shutdownError(err error, pid int) error {
 		return nil
 	}
 	if pid <= 0 {
-		return fmt.Errorf("shutdown app-manager: %w", err)
+		return fmt.Errorf("shutdown studioctl-server: %w", err)
 	}
 	return nil
 }
 
-// Health checks whether app-manager is reachable.
+// Health checks whether studioctl-server is reachable.
 func (c *Client) Health(ctx context.Context) error {
-	ctx, cancel := context.WithTimeout(ctx, appManagerRequestTimeout)
+	ctx, cancel := context.WithTimeout(ctx, studioctlServerRequestTimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, controlBaseURL+healthPath, nil)
@@ -245,9 +245,9 @@ func (c *Client) Health(ctx context.Context) error {
 	return nil
 }
 
-// Status returns the current app-manager status fields.
+// Status returns the current studioctl-server status fields.
 func (c *Client) Status(ctx context.Context) (*Status, error) {
-	ctx, cancel := context.WithTimeout(ctx, appManagerRequestTimeout)
+	ctx, cancel := context.WithTimeout(ctx, studioctlServerRequestTimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, controlBaseURL+statusPath, nil)
@@ -266,7 +266,7 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 	}
 
 	var status struct {
-		AppManagerVersion           string `json:"appManagerVersion"`
+		StudioctlServerVersion      string `json:"studioctlServerVersion"`
 		DotnetVersion               string `json:"dotnetVersion"`
 		StudioctlPath               string `json:"studioctlPath"`
 		LocaltestURL                string `json:"localtestUrl"`
@@ -296,7 +296,7 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 
 	result := &Status{
 		ProcessID:                   status.ProcessID,
-		AppManagerVersion:           status.AppManagerVersion,
+		StudioctlServerVersion:      status.StudioctlServerVersion,
 		DotnetVersion:               status.DotnetVersion,
 		StudioctlPath:               status.StudioctlPath,
 		LocaltestURL:                status.LocaltestURL,
@@ -326,7 +326,7 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 	return result, nil
 }
 
-// RegisterApp registers an app endpoint with app-manager and returns the resolved base URL.
+// RegisterApp registers an app endpoint with studioctl-server and returns the resolved base URL.
 func (c *Client) RegisterApp(ctx context.Context, registration AppRegistration) (string, error) {
 	body, err := json.Marshal(registration)
 	if err != nil {
@@ -374,9 +374,9 @@ func (c *Client) RegisterApp(ctx context.Context, registration AppRegistration) 
 	return result.BaseURL, nil
 }
 
-// UnregisterApp notifies app-manager that studioctl stopped an app.
+// UnregisterApp notifies studioctl-server that studioctl stopped an app.
 func (c *Client) UnregisterApp(ctx context.Context, appID string) error {
-	ctx, cancel := context.WithTimeout(ctx, appManagerRequestTimeout)
+	ctx, cancel := context.WithTimeout(ctx, studioctlServerRequestTimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(
@@ -402,14 +402,14 @@ func (c *Client) UnregisterApp(ctx context.Context, appID string) error {
 	return nil
 }
 
-// UpgradeApp runs an app upgrade through app-manager.
+// UpgradeApp runs an app upgrade through studioctl-server.
 func (c *Client) UpgradeApp(ctx context.Context, upgrade AppUpgrade) (AppUpgradeResult, error) {
 	body, err := json.Marshal(upgrade)
 	if err != nil {
 		return AppUpgradeResult{}, fmt.Errorf("encode app upgrade: %w", err)
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, appManagerUpgradeTimeout)
+	ctx, cancel := context.WithTimeout(ctx, studioctlServerUpgradeTimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(
@@ -445,9 +445,9 @@ func (c *Client) UpgradeApp(ctx context.Context, upgrade AppUpgrade) (AppUpgrade
 	return result, nil
 }
 
-// shutdown asks app-manager to stop itself.
+// shutdown asks studioctl-server to stop itself.
 func (c *Client) shutdown(ctx context.Context) error {
-	ctx, cancel := context.WithTimeout(ctx, appManagerRequestTimeout)
+	ctx, cancel := context.WithTimeout(ctx, studioctlServerRequestTimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, controlBaseURL+shutdownPath, nil)
@@ -468,24 +468,24 @@ func (c *Client) shutdown(ctx context.Context) error {
 	return nil
 }
 
-// EnsureStarted starts or reconciles app-manager for the provided localtest runtime settings.
+// EnsureStarted starts or reconciles studioctl-server for the provided localtest runtime settings.
 func EnsureStarted(ctx context.Context, cfg *config.Config, loadBalancerPort string) error {
 	return EnsureStartedWithStudioctlPath(ctx, cfg, loadBalancerPort, currentExecutablePath())
 }
 
-// EnsureStartedWithStudioctlPath starts or reconciles app-manager with an explicit studioctl path.
+// EnsureStartedWithStudioctlPath starts or reconciles studioctl-server with an explicit studioctl path.
 func EnsureStartedWithStudioctlPath(
 	ctx context.Context,
 	cfg *config.Config,
 	loadBalancerPort,
 	studioctlPath string,
 ) (err error) {
-	lock, err := osutil.AcquireFileLock(ctx, cfg.AppManagerLockPath())
+	lock, err := osutil.AcquireFileLock(ctx, cfg.StudioctlServerLockPath())
 	if err != nil {
-		return fmt.Errorf("lock app-manager lifecycle: %w", err)
+		return fmt.Errorf("lock studioctl-server lifecycle: %w", err)
 	}
 	defer func() {
-		err = errors.Join(err, closeAppManagerLifecycleLock(lock))
+		err = errors.Join(err, closeStudioctlServerLifecycleLock(lock))
 	}()
 
 	desired, err := buildStartConfig(cfg, loadBalancerPort, studioctlPath)
@@ -498,14 +498,14 @@ func EnsureStartedWithStudioctlPath(
 	switch {
 	case err == nil:
 		if liveConfig(cfg, status) == desired {
-			return writeAppManagerState(cfg, runtimeState{
+			return writeStudioctlServerState(cfg, runtimeState{
 				PID:   status.ProcessID,
 				Start: desired,
 			})
 		}
 		return restartManagedProcess(ctx, cfg, client, status.ProcessID, desired)
 	case !errors.Is(err, ErrNotRunning):
-		return fmt.Errorf("get app-manager status: %w", err)
+		return fmt.Errorf("get studioctl-server status: %w", err)
 	}
 
 	return ensureStartedFromPersistedState(ctx, cfg, client, desired)
@@ -517,9 +517,9 @@ func ensureStartedFromPersistedState(
 	client *Client,
 	desired startConfig,
 ) error {
-	state, ok, err := readAppManagerState(cfg)
+	state, ok, err := readStudioctlServerState(cfg)
 	if err != nil {
-		return fmt.Errorf("read app-manager pid file: %w", err)
+		return fmt.Errorf("read studioctl-server pid file: %w", err)
 	}
 	if !ok {
 		return startProcess(ctx, cfg, desired)
@@ -537,7 +537,7 @@ func reconcilePersistedProcess(
 ) error {
 	running, err := osutil.ProcessRunning(state.PID)
 	if err != nil {
-		return fmt.Errorf("check persisted app-manager pid %d: %w", state.PID, err)
+		return fmt.Errorf("check persisted studioctl-server pid %d: %w", state.PID, err)
 	}
 
 	if !running {
@@ -547,7 +547,7 @@ func reconcilePersistedProcess(
 	if state.Start == desired {
 		status, waitErr := waitForHealthy(ctx, cfg, client, time.Now())
 		if waitErr == nil {
-			return writeAppManagerState(cfg, runtimeState{
+			return writeStudioctlServerState(cfg, runtimeState{
 				PID:   status.ProcessID,
 				Start: desired,
 			})
@@ -565,25 +565,25 @@ func restartFromPersistedState(
 	pid int,
 ) error {
 	if pid > 0 {
-		if err := forceStopAppManager(ctx, client, pid); err != nil {
-			return fmt.Errorf("stop persisted app-manager pid %d: %w", pid, err)
+		if err := forceStopStudioctlServer(ctx, client, pid); err != nil {
+			return fmt.Errorf("stop persisted studioctl-server pid %d: %w", pid, err)
 		}
 	}
 
-	_, ok, err := readAppManagerState(cfg)
+	_, ok, err := readStudioctlServerState(cfg)
 	if err != nil {
-		return fmt.Errorf("read app-manager pid file: %w", err)
+		return fmt.Errorf("read studioctl-server pid file: %w", err)
 	}
 	if ok {
-		if err := removeAppManagerState(cfg); err != nil {
-			return fmt.Errorf("remove stale app-manager pid file: %w", err)
+		if err := removeStudioctlServerState(cfg); err != nil {
+			return fmt.Errorf("remove stale studioctl-server pid file: %w", err)
 		}
 	}
 
 	return startProcess(ctx, cfg, desired)
 }
 
-// TunnelURL returns the app-manager tunnel URL for a localtest host port.
+// TunnelURL returns the studioctl-server tunnel URL for a localtest host port.
 func TunnelURL(port string) string {
 	return "ws://127.0.0.1:" + port + appTunnelEndpointPath
 }
@@ -601,41 +601,41 @@ func restartManagedProcess(
 	desired startConfig,
 ) error {
 	if err := client.shutdown(ctx); err != nil {
-		return fmt.Errorf("shutdown app-manager for restart: %w", err)
+		return fmt.Errorf("shutdown studioctl-server for restart: %w", err)
 	}
 
 	if !waitForShutdown(ctx, client, cfg, pid) {
-		if err := forceStopAppManager(ctx, client, pid); err != nil {
-			return fmt.Errorf("force stop app-manager after shutdown timeout: %w", err)
+		if err := forceStopStudioctlServer(ctx, client, pid); err != nil {
+			return fmt.Errorf("force stop studioctl-server after shutdown timeout: %w", err)
 		}
 	}
-	if err := removeAppManagerState(cfg); err != nil {
-		return fmt.Errorf("remove stale app-manager pid file: %w", err)
+	if err := removeStudioctlServerState(cfg); err != nil {
+		return fmt.Errorf("remove stale studioctl-server pid file: %w", err)
 	}
 
 	return startProcess(ctx, cfg, desired)
 }
 
 func startProcess(ctx context.Context, cfg *config.Config, startConfig startConfig) error {
-	if _, err := os.Stat(cfg.AppManagerBinaryPath()); err != nil {
+	if _, err := os.Stat(cfg.StudioctlServerBinaryPath()); err != nil {
 		if os.IsNotExist(err) {
-			return fmt.Errorf("%w: %s", ErrBinaryMissing, cfg.AppManagerBinaryPath())
+			return fmt.Errorf("%w: %s", ErrBinaryMissing, cfg.StudioctlServerBinaryPath())
 		}
-		return fmt.Errorf("stat app-manager binary: %w", err)
+		return fmt.Errorf("stat studioctl-server binary: %w", err)
 	}
 
-	if err := removeAppManagerState(cfg); err != nil {
-		return fmt.Errorf("remove stale app-manager pid file: %w", err)
+	if err := removeStudioctlServerState(cfg); err != nil {
+		return fmt.Errorf("remove stale studioctl-server pid file: %w", err)
 	}
-	if err := prepareAppManagerSocketForStart(ctx, cfg); err != nil {
+	if err := prepareStudioctlServerSocketForStart(ctx, cfg); err != nil {
 		return err
 	}
 	startedAt := time.Now()
 
 	//nolint:gosec // G204: binary path comes from resolved studioctl config.
-	cmd := exec.CommandContext(context.WithoutCancel(ctx), cfg.AppManagerBinaryPath())
+	cmd := exec.CommandContext(context.WithoutCancel(ctx), cfg.StudioctlServerBinaryPath())
 	cmd.Dir = startConfig.WorkingDir
-	cmd.Env = appManagerEnvironment(startConfig)
+	cmd.Env = studioctlServerEnvironment(startConfig)
 	devNull, err := os.OpenFile(os.DevNull, os.O_RDWR, 0)
 	if err != nil {
 		return fmt.Errorf("open null device: %w", err)
@@ -649,47 +649,47 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 
 	err = cmd.Start()
 	if err != nil {
-		return fmt.Errorf("start app-manager: %w", err)
+		return fmt.Errorf("start studioctl-server: %w", err)
 	}
 	startedPID := cmd.Process.Pid
-	err = writeAppManagerState(cfg, runtimeState{
+	err = writeStudioctlServerState(cfg, runtimeState{
 		PID:   startedPID,
 		Start: startConfig,
 	})
 	if err != nil {
 		ignoreError(cmd.Process.Kill())
-		return fmt.Errorf("write app-manager pid file: %w", err)
+		return fmt.Errorf("write studioctl-server pid file: %w", err)
 	}
 	err = cmd.Process.Release()
 	if err != nil {
-		ignoreError(removeAppManagerState(cfg))
-		return fmt.Errorf("release app-manager process handle: %w", err)
+		ignoreError(removeStudioctlServerState(cfg))
+		return fmt.Errorf("release studioctl-server process handle: %w", err)
 	}
 
 	client := NewClient(cfg)
 	status, err := waitForHealthy(ctx, cfg, client, startedAt)
 	if err == nil {
-		return writeAppManagerState(cfg, runtimeState{
+		return writeStudioctlServerState(cfg, runtimeState{
 			PID:   status.ProcessID,
 			Start: startConfig,
 		})
 	}
 
 	ignoreError(osutil.KillProcess(startedPID))
-	ignoreError(removeAppManagerState(cfg))
+	ignoreError(removeStudioctlServerState(cfg))
 	return err
 }
 
-func appManagerEnvironment(startConfig startConfig) []string {
-	env := append(os.Environ(), appManagerUnixSocketEnv+"="+startConfig.UnixSocketPath)
+func studioctlServerEnvironment(startConfig startConfig) []string {
+	env := append(os.Environ(), studioctlServerUnixSocketEnv+"="+startConfig.UnixSocketPath)
 	if startConfig.TunnelURL != "" {
-		env = append(env, appManagerTunnelURLEnv+"="+startConfig.TunnelURL)
+		env = append(env, studioctlServerTunnelURLEnv+"="+startConfig.TunnelURL)
 	}
 	if startConfig.LocaltestURL != "" {
-		env = append(env, appManagerLocaltestURLEnv+"="+startConfig.LocaltestURL)
+		env = append(env, studioctlServerLocaltestURLEnv+"="+startConfig.LocaltestURL)
 	}
 	if startConfig.StudioctlPath != "" {
-		env = append(env, appManagerStudioctlEnv+"="+startConfig.StudioctlPath)
+		env = append(env, studioctlServerStudioctlEnv+"="+startConfig.StudioctlPath)
 	}
 	if startConfig.BoundTopologyBaseConfigPath != "" {
 		env = append(
@@ -706,43 +706,43 @@ func appManagerEnvironment(startConfig startConfig) []string {
 	return env
 }
 
-func prepareAppManagerSocketForStart(ctx context.Context, cfg *config.Config) error {
-	if err := removeStaleAppManagerSocket(ctx, cfg); err != nil {
-		return fmt.Errorf("prepare app-manager socket: %w", err)
+func prepareStudioctlServerSocketForStart(ctx context.Context, cfg *config.Config) error {
+	if err := removeStaleStudioctlServerSocket(ctx, cfg); err != nil {
+		return fmt.Errorf("prepare studioctl-server socket: %w", err)
 	}
 	return nil
 }
 
-func removeStaleAppManagerSocket(ctx context.Context, cfg *config.Config) error {
-	socketPath := cfg.AppManagerSocketPath()
+func removeStaleStudioctlServerSocket(ctx context.Context, cfg *config.Config) error {
+	socketPath := cfg.StudioctlServerSocketPath()
 	info, err := os.Lstat(socketPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil
 		}
-		return fmt.Errorf("stat app-manager socket: %w", err)
+		return fmt.Errorf("stat studioctl-server socket: %w", err)
 	}
 	if info.IsDir() {
-		return fmt.Errorf("%w: %s", errAppManagerSocketDir, socketPath)
+		return fmt.Errorf("%w: %s", errStudioctlServerSocketDir, socketPath)
 	}
 
 	client := NewClient(cfg)
 	err = client.Health(ctx)
 	switch {
 	case err == nil:
-		return fmt.Errorf("%w: %s", errAppManagerSocketInUse, socketPath)
+		return fmt.Errorf("%w: %s", errStudioctlServerSocketInUse, socketPath)
 	case !errors.Is(err, ErrNotRunning):
-		return fmt.Errorf("probe existing app-manager socket: %w", err)
+		return fmt.Errorf("probe existing studioctl-server socket: %w", err)
 	}
 
 	if err := os.Remove(socketPath); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("remove stale app-manager socket: %w", err)
+		return fmt.Errorf("remove stale studioctl-server socket: %w", err)
 	}
 	return nil
 }
 
 func waitForHealthy(ctx context.Context, cfg *config.Config, client *Client, logSince time.Time) (*Status, error) {
-	deadline := time.Now().Add(appManagerStartTimeout)
+	deadline := time.Now().Add(studioctlServerStartTimeout)
 	var lastErr error
 	for time.Now().Before(deadline) {
 		status, err := client.Status(ctx)
@@ -751,57 +751,57 @@ func waitForHealthy(ctx context.Context, cfg *config.Config, client *Client, log
 		}
 
 		lastErr = err
-		time.Sleep(appManagerPollInterval)
+		time.Sleep(studioctlServerPollInterval)
 	}
 
 	if lastErr != nil {
 		return nil, fmt.Errorf(
 			"%w after %s: %w%s",
-			errAppManagerStartTimedOut,
-			appManagerStartTimeout,
+			errStudioctlServerStartTimedOut,
+			studioctlServerStartTimeout,
 			lastErr,
-			readLatestAppManagerLogTailSince(cfg.AppManagerLogDir(), logSince),
+			readLatestStudioctlServerLogTailSince(cfg.StudioctlServerLogDir(), logSince),
 		)
 	}
 
 	return nil, fmt.Errorf(
 		"%w: %s%s",
-		errAppManagerStartTimedOut,
-		appManagerStartTimeout,
-		readLatestAppManagerLogTailSince(cfg.AppManagerLogDir(), logSince),
+		errStudioctlServerStartTimedOut,
+		studioctlServerStartTimeout,
+		readLatestStudioctlServerLogTailSince(cfg.StudioctlServerLogDir(), logSince),
 	)
 }
 
 func waitForShutdown(ctx context.Context, client *Client, cfg *config.Config, pid int) bool {
-	deadline := time.Now().Add(appManagerStartTimeout)
+	deadline := time.Now().Add(studioctlServerStartTimeout)
 	for time.Now().Before(deadline) {
-		if appManagerStopped(ctx, client, pid) {
-			ignoreError(removeAppManagerState(cfg))
+		if studioctlServerStopped(ctx, client, pid) {
+			ignoreError(removeStudioctlServerState(cfg))
 			return true
 		}
-		time.Sleep(appManagerPollInterval)
+		time.Sleep(studioctlServerPollInterval)
 	}
 
 	return false
 }
 
-func forceStopAppManager(ctx context.Context, client *Client, pid int) error {
+func forceStopStudioctlServer(ctx context.Context, client *Client, pid int) error {
 	if err := osutil.KillProcess(pid); err != nil {
-		return fmt.Errorf("kill app-manager pid %d: %w", pid, err)
+		return fmt.Errorf("kill studioctl-server pid %d: %w", pid, err)
 	}
 
-	deadline := time.Now().Add(appManagerShutdownWait)
+	deadline := time.Now().Add(studioctlServerShutdownWait)
 	for time.Now().Before(deadline) {
-		if appManagerStopped(ctx, client, pid) {
+		if studioctlServerStopped(ctx, client, pid) {
 			return nil
 		}
-		time.Sleep(appManagerPollInterval)
+		time.Sleep(studioctlServerPollInterval)
 	}
 
-	return fmt.Errorf("%w: pid %d", errAppManagerForceStopTimeout, pid)
+	return fmt.Errorf("%w: pid %d", errStudioctlServerForceStopTimeout, pid)
 }
 
-func appManagerStopped(ctx context.Context, client *Client, pid int) bool {
+func studioctlServerStopped(ctx context.Context, client *Client, pid int) bool {
 	healthStopped := errors.Is(client.Health(ctx), ErrNotRunning)
 	processStopped, err := managedProcessStopped(pid)
 	return err == nil && healthStopped && processStopped
@@ -813,19 +813,19 @@ func currentManagedPID(ctx context.Context, client *Client, cfg *config.Config) 
 		return status.ProcessID, nil
 	}
 	if !errors.Is(err, ErrNotRunning) {
-		state, ok, stateErr := readAppManagerState(cfg)
+		state, ok, stateErr := readStudioctlServerState(cfg)
 		if stateErr != nil {
-			return 0, fmt.Errorf("read persisted app-manager state after status failure: %w", stateErr)
+			return 0, fmt.Errorf("read persisted studioctl-server state after status failure: %w", stateErr)
 		}
 		if ok {
 			return state.PID, nil
 		}
-		return 0, fmt.Errorf("get app-manager status before shutdown: %w", err)
+		return 0, fmt.Errorf("get studioctl-server status before shutdown: %w", err)
 	}
 
-	state, ok, err := readAppManagerState(cfg)
+	state, ok, err := readStudioctlServerState(cfg)
 	if err != nil {
-		return 0, fmt.Errorf("read persisted app-manager state: %w", err)
+		return 0, fmt.Errorf("read persisted studioctl-server state: %w", err)
 	}
 	if !ok {
 		return 0, nil
@@ -834,15 +834,15 @@ func currentManagedPID(ctx context.Context, client *Client, cfg *config.Config) 
 }
 
 func waitForManagedShutdown(ctx context.Context, cfg *config.Config, client *Client, pid int) error {
-	deadline := time.Now().Add(appManagerShutdownWait)
+	deadline := time.Now().Add(studioctlServerShutdownWait)
 	for time.Now().Before(deadline) {
-		if appManagerStopped(ctx, client, pid) {
-			if err := removeAppManagerState(cfg); err != nil {
-				return fmt.Errorf("remove stale app-manager pid file: %w", err)
+		if studioctlServerStopped(ctx, client, pid) {
+			if err := removeStudioctlServerState(cfg); err != nil {
+				return fmt.Errorf("remove stale studioctl-server pid file: %w", err)
 			}
-			return removeStaleAppManagerSocket(ctx, cfg)
+			return removeStaleStudioctlServerSocket(ctx, cfg)
 		}
-		time.Sleep(appManagerPollInterval)
+		time.Sleep(studioctlServerPollInterval)
 	}
 
 	return stopPersistedProcess(ctx, cfg, client, pid)
@@ -850,27 +850,27 @@ func waitForManagedShutdown(ctx context.Context, cfg *config.Config, client *Cli
 
 func stopPersistedProcess(ctx context.Context, cfg *config.Config, client *Client, pid int) error {
 	if pid <= 0 {
-		return removePersistedAppManagerState(ctx, cfg)
+		return removePersistedStudioctlServerState(ctx, cfg)
 	}
 
 	running, err := osutil.ProcessRunning(pid)
 	if err != nil {
-		return fmt.Errorf("check app-manager pid %d: %w", pid, err)
+		return fmt.Errorf("check studioctl-server pid %d: %w", pid, err)
 	}
 	if running {
-		if err := forceStopAppManager(ctx, client, pid); err != nil {
+		if err := forceStopStudioctlServer(ctx, client, pid); err != nil {
 			return err
 		}
 	}
 
-	return removePersistedAppManagerState(ctx, cfg)
+	return removePersistedStudioctlServerState(ctx, cfg)
 }
 
-func removePersistedAppManagerState(ctx context.Context, cfg *config.Config) error {
-	if err := removeAppManagerState(cfg); err != nil {
-		return fmt.Errorf("remove stale app-manager pid file: %w", err)
+func removePersistedStudioctlServerState(ctx context.Context, cfg *config.Config) error {
+	if err := removeStudioctlServerState(cfg); err != nil {
+		return fmt.Errorf("remove stale studioctl-server pid file: %w", err)
 	}
-	return removeStaleAppManagerSocket(ctx, cfg)
+	return removeStaleStudioctlServerSocket(ctx, cfg)
 }
 
 func managedProcessStopped(pid int) (bool, error) {
@@ -879,7 +879,7 @@ func managedProcessStopped(pid int) (bool, error) {
 	}
 	running, err := osutil.ProcessRunning(pid)
 	if err != nil {
-		return false, fmt.Errorf("check app-manager pid %d: %w", pid, err)
+		return false, fmt.Errorf("check studioctl-server pid %d: %w", pid, err)
 	}
 	return !running, nil
 }
@@ -891,9 +891,9 @@ func buildStartConfig(cfg *config.Config, loadBalancerPort, studioctlPath string
 	}
 
 	return startConfig{
-		BinaryPath:                  cfg.AppManagerBinaryPath(),
+		BinaryPath:                  cfg.StudioctlServerBinaryPath(),
 		WorkingDir:                  cfg.Home,
-		UnixSocketPath:              cfg.AppManagerSocketPath(),
+		UnixSocketPath:              cfg.StudioctlServerSocketPath(),
 		TunnelURL:                   TunnelURL(loadBalancerPort),
 		LocaltestURL:                LocaltestURL(loadBalancerPort),
 		StudioctlPath:               studioctlPath,
@@ -904,9 +904,9 @@ func buildStartConfig(cfg *config.Config, loadBalancerPort, studioctlPath string
 
 func liveConfig(cfg *config.Config, status *Status) startConfig {
 	return startConfig{
-		BinaryPath:                  cfg.AppManagerBinaryPath(),
+		BinaryPath:                  cfg.StudioctlServerBinaryPath(),
 		WorkingDir:                  cfg.Home,
-		UnixSocketPath:              cfg.AppManagerSocketPath(),
+		UnixSocketPath:              cfg.StudioctlServerSocketPath(),
 		TunnelURL:                   status.Tunnel.URL,
 		LocaltestURL:                status.LocaltestURL,
 		StudioctlPath:               status.StudioctlPath,
@@ -934,8 +934,8 @@ func currentExecutablePath() string {
 	return path
 }
 
-func readAppManagerState(cfg *config.Config) (runtimeState, bool, error) {
-	data, err := os.ReadFile(cfg.AppManagerPIDPath())
+func readStudioctlServerState(cfg *config.Config) (runtimeState, bool, error) {
+	data, err := os.ReadFile(cfg.StudioctlServerPIDPath())
 	if err != nil {
 		if os.IsNotExist(err) {
 			return zeroRuntimeState(), false, nil
@@ -954,8 +954,8 @@ func readAppManagerState(cfg *config.Config) (runtimeState, bool, error) {
 	return state, true, nil
 }
 
-func writeAppManagerState(cfg *config.Config, state runtimeState) error {
-	if err := os.MkdirAll(filepath.Dir(cfg.AppManagerPIDPath()), osutil.DirPermDefault); err != nil {
+func writeStudioctlServerState(cfg *config.Config, state runtimeState) error {
+	if err := os.MkdirAll(filepath.Dir(cfg.StudioctlServerPIDPath()), osutil.DirPermDefault); err != nil {
 		return fmt.Errorf("create pid file parent directory: %w", err)
 	}
 
@@ -963,15 +963,15 @@ func writeAppManagerState(cfg *config.Config, state runtimeState) error {
 	if err != nil {
 		return fmt.Errorf("encode pid file: %w", err)
 	}
-	if err := os.WriteFile(cfg.AppManagerPIDPath(), append(data, '\n'), osutil.FilePermDefault); err != nil {
+	if err := os.WriteFile(cfg.StudioctlServerPIDPath(), append(data, '\n'), osutil.FilePermDefault); err != nil {
 		return fmt.Errorf("write pid file: %w", err)
 	}
 
 	return nil
 }
 
-func removeAppManagerState(cfg *config.Config) error {
-	if err := os.Remove(cfg.AppManagerPIDPath()); err != nil && !os.IsNotExist(err) {
+func removeStudioctlServerState(cfg *config.Config) error {
+	if err := os.Remove(cfg.StudioctlServerPIDPath()); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("remove pid file: %w", err)
 	}
 
@@ -997,29 +997,29 @@ func closeResponseBody(resp *http.Response) {
 func ignoreError(error) {
 }
 
-func readLatestAppManagerLogTail(dir string) string {
-	path, ok := latestAppManagerLogPath(dir)
+func readLatestStudioctlServerLogTail(dir string) string {
+	path, ok := latestStudioctlServerLogPath(dir)
 	if !ok {
 		return ""
 	}
 
-	return readAppManagerLogTail(path)
+	return readStudioctlServerLogTail(path)
 }
 
-func readLatestAppManagerLogTailSince(dir string, since time.Time) string {
+func readLatestStudioctlServerLogTailSince(dir string, since time.Time) string {
 	files, err := LogFiles(dir)
 	if err != nil {
 		return ""
 	}
 	for i := len(files) - 1; i >= 0; i-- {
 		if !files[i].ModTime.Before(since) {
-			return readAppManagerLogTail(files[i].Path)
+			return readStudioctlServerLogTail(files[i].Path)
 		}
 	}
 	return ""
 }
 
-func readAppManagerLogTail(path string) string {
+func readStudioctlServerLogTail(path string) string {
 	//nolint:gosec // G304: log path is derived from resolved STUDIOCTL_HOME and a fixed filename pattern.
 	file, err := os.Open(path)
 	if err != nil {
@@ -1029,12 +1029,12 @@ func readAppManagerLogTail(path string) string {
 		ignoreError(file.Close())
 	}()
 
-	lines := make([]string, 0, appManagerLogTailLines)
+	lines := make([]string, 0, studioctlServerLogTailLines)
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		if len(lines) == appManagerLogTailLines {
+		if len(lines) == studioctlServerLogTailLines {
 			copy(lines, lines[1:])
-			lines[appManagerLogTailLines-1] = scanner.Text()
+			lines[studioctlServerLogTailLines-1] = scanner.Text()
 			continue
 		}
 
@@ -1046,16 +1046,16 @@ func readAppManagerLogTail(path string) string {
 	}
 
 	return osutil.LineBreak +
-		"app-manager log tail:" +
+		"studioctl-server log tail:" +
 		osutil.LineBreak +
 		strings.Join(lines, osutil.LineBreak)
 }
 
-func latestAppManagerLogPath(dir string) (string, bool) {
+func latestStudioctlServerLogPath(dir string) (string, bool) {
 	return LatestLogPath(dir)
 }
 
-// LatestLogPath returns the most recently modified app-manager log path.
+// LatestLogPath returns the most recently modified studioctl-server log path.
 func LatestLogPath(dir string) (string, bool) {
 	files, err := LogFiles(dir)
 	if err != nil || len(files) == 0 {
@@ -1064,19 +1064,19 @@ func LatestLogPath(dir string) (string, bool) {
 	return files[len(files)-1].Path, true
 }
 
-// LogFiles returns app-manager log files ordered by modification time.
+// LogFiles returns studioctl-server log files ordered by modification time.
 func LogFiles(dir string) ([]LogFile, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("read app-manager log directory: %w", err)
+		return nil, fmt.Errorf("read studioctl-server log directory: %w", err)
 	}
 
 	files := make([]LogFile, 0, len(entries))
 	for _, entry := range entries {
-		if entry.IsDir() || !isAppManagerLogName(entry.Name()) {
+		if entry.IsDir() || !isStudioctlServerLogName(entry.Name()) {
 			continue
 		}
 		info, err := entry.Info()
@@ -1099,16 +1099,16 @@ func LogFiles(dir string) ([]LogFile, error) {
 	return files, nil
 }
 
-func isAppManagerLogName(name string) bool {
+func isStudioctlServerLogName(name string) bool {
 	return logIDFromName(name) != ""
 }
 
 func logIDFromName(name string) string {
 	const dateLength = len("2006-01-02")
-	if len(name) <= dateLength+len("-")+len(appManagerLogSuffix) {
+	if len(name) <= dateLength+len("-")+len(studioctlServerLogSuffix) {
 		return ""
 	}
-	if !strings.HasSuffix(name, appManagerLogSuffix) {
+	if !strings.HasSuffix(name, studioctlServerLogSuffix) {
 		return ""
 	}
 	if !isUTCDatePrefix(name[:dateLength]) {
@@ -1117,7 +1117,7 @@ func logIDFromName(name string) string {
 	if name[dateLength] != '-' {
 		return ""
 	}
-	id := name[dateLength+1 : len(name)-len(appManagerLogSuffix)]
+	id := name[dateLength+1 : len(name)-len(studioctlServerLogSuffix)]
 	value, err := strconv.Atoi(id)
 	if err != nil || value <= 0 {
 		return ""

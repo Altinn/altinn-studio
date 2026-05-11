@@ -26,11 +26,11 @@ const (
 )
 
 var errResourcesVersionRequired = errors.New("version required for resources install")
-var errAppManagerExecutablePathDirectory = errors.New(
+var errStudioctlServerExecutablePathDirectory = errors.New(
 	"validate " + config.StudioctlServerName + " payload: executable path is a directory",
 )
 
-var errAppManagerExecutableNotExecutable = errors.New(
+var errStudioctlServerExecutableNotExecutable = errors.New(
 	"validate " + config.StudioctlServerName + " payload: executable is not marked executable",
 )
 
@@ -69,7 +69,7 @@ func (s *Service) InstallBundleResources(ctx context.Context, bundle Bundle) (er
 	}
 
 	serverDir := filepath.Join(stagingDir, resourcesServerDir)
-	if _, err := installDir(serverDir, s.cfg.AppManagerInstallDir(), s.validatePayloadDir); err != nil {
+	if _, err := installDir(serverDir, s.cfg.StudioctlServerInstallDir(), s.validatePayloadDir); err != nil {
 		return fmt.Errorf("install %s: %w", resourcesServerDir, err)
 	}
 
@@ -122,16 +122,16 @@ func (b Bundle) downloadResourcesArchive(ctx context.Context) (path string, clea
 }
 
 func (s *Service) validatePayloadDir(payloadDir string) error {
-	binaryPath := filepath.Join(payloadDir, filepath.Base(s.cfg.AppManagerBinaryPath()))
+	binaryPath := filepath.Join(payloadDir, filepath.Base(s.cfg.StudioctlServerBinaryPath()))
 	info, err := os.Stat(binaryPath)
 	if err != nil {
 		return fmt.Errorf("validate %s payload: missing executable %q: %w", config.StudioctlServerName, binaryPath, err)
 	}
 	if info.IsDir() {
-		return fmt.Errorf("%w: %s", errAppManagerExecutablePathDirectory, binaryPath)
+		return fmt.Errorf("%w: %s", errStudioctlServerExecutablePathDirectory, binaryPath)
 	}
 	if runtime.GOOS != osutil.OSWindows && info.Mode()&0o111 == 0 {
-		return fmt.Errorf("%w: %s", errAppManagerExecutableNotExecutable, binaryPath)
+		return fmt.Errorf("%w: %s", errStudioctlServerExecutableNotExecutable, binaryPath)
 	}
 	return nil
 }

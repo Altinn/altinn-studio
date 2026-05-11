@@ -12,13 +12,13 @@ import (
 	containerruntime "altinn.studio/devenv/pkg/container"
 	"altinn.studio/studioctl/internal/appcontainers"
 	"altinn.studio/studioctl/internal/appimage"
-	"altinn.studio/studioctl/internal/appmanager"
 	"altinn.studio/studioctl/internal/auth"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/studio"
+	"altinn.studio/studioctl/internal/studioctlserver"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -29,7 +29,7 @@ type AppCommand struct {
 	ps      *AppPsCommand
 	run     *RunCommand
 	stop    *StopCommand
-	manager appManagerAccess
+	server  studioctlServerAccess
 	service *appsvc.Service
 }
 
@@ -78,7 +78,7 @@ func NewAppCommand(cfg *config.Config, out *ui.Output) *AppCommand {
 		ps:      newAppPsCommand(cfg, out, service),
 		run:     newRunCommand(cfg, out, service),
 		stop:    newStopCommand(cfg, out, service),
-		manager: newAppManagerAccess(cfg),
+		server:  newStudioctlServerAccess(cfg),
 		service: service,
 	}
 }
@@ -300,11 +300,11 @@ func (c *AppCommand) runUpgrade(ctx context.Context, args []string) error {
 		return fmt.Errorf("%w: run from an app directory or use -p to specify path", ErrNoAppFound)
 	}
 
-	if ensureErr := c.manager.ensure(ctx); ensureErr != nil {
-		return startAppManagerError(ensureErr)
+	if ensureErr := c.server.ensure(ctx); ensureErr != nil {
+		return startStudioctlServerError(ensureErr)
 	}
 
-	upgrade := appmanager.AppUpgrade{
+	upgrade := studioctlserver.AppUpgrade{
 		ProjectFolder:            detection.AppRoot,
 		StudioRoot:               "",
 		Kind:                     flags.kind,
@@ -315,7 +315,7 @@ func (c *AppCommand) runUpgrade(ctx context.Context, args []string) error {
 		upgrade.StudioRoot = detection.StudioRoot
 	}
 
-	result, err := c.manager.client.UpgradeApp(ctx, upgrade)
+	result, err := c.server.client.UpgradeApp(ctx, upgrade)
 	if err != nil {
 		return fmt.Errorf("upgrade app: %w", err)
 	}
@@ -481,7 +481,7 @@ func parseOrgRepo(s string) (org, repo string, err error) {
 	return parts[0], parts[1], nil
 }
 
-// AppContainersCommand is a hidden command used by app-manager for container runtime discovery.
+// AppContainersCommand is a hidden command used by studioctl-server for container runtime discovery.
 type AppContainersCommand struct {
 	out *ui.Output
 }

@@ -19,7 +19,7 @@ internal sealed class FileLoggerProvider : ILoggerProvider
     public FileLoggerProvider(string directory)
     {
         if (string.IsNullOrWhiteSpace(directory))
-            throw new InvalidOperationException("app-manager log directory is required");
+            throw new InvalidOperationException("studioctl-server log directory is required");
 
         Directory.CreateDirectory(directory);
         _directory = directory;
@@ -66,7 +66,7 @@ internal sealed class FileLoggerProvider : ILoggerProvider
             if (!_failed)
             {
                 _failed = true;
-                Trace.TraceError($"app-manager file logger failed: {ex}");
+                Trace.TraceError($"studioctl-server file logger failed: {ex}");
             }
         }
     }

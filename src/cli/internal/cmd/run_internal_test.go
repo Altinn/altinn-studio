@@ -63,7 +63,7 @@ func TestStartupOperationError_ContextCancelledReturnsRunStopped(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 
-	err := startupOperationError(ctx, "start app-manager", context.Canceled)
+	err := startupOperationError(ctx, "start studioctl-server", context.Canceled)
 	if !errors.Is(err, errAppRunStopped) {
 		t.Fatalf("startupOperationError() error = %v, want errAppRunStopped", err)
 	}

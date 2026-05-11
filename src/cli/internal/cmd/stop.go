@@ -8,11 +8,11 @@ import (
 	"io"
 
 	containerruntime "altinn.studio/devenv/pkg/container"
-	"altinn.studio/studioctl/internal/appmanager"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/osutil"
+	"altinn.studio/studioctl/internal/studioctlserver"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -27,7 +27,7 @@ var (
 // StopCommand implements `studioctl stop` and `studioctl app stop`.
 type StopCommand struct {
 	out             *ui.Output
-	manager         appManagerAccess
+	server          studioctlServerAccess
 	service         *appsvc.Service
 	containerClient containerClientFactory
 	stopProcess     stopProcessFunc
@@ -63,7 +63,7 @@ func NewStopCommand(cfg *config.Config, out *ui.Output) *StopCommand {
 func newStopCommand(cfg *config.Config, out *ui.Output, service *appsvc.Service) *StopCommand {
 	return &StopCommand{
 		out:             out,
-		manager:         newAppManagerAccess(cfg),
+		server:          newStudioctlServerAccess(cfg),
 		service:         service,
 		containerClient: containerruntime.Detect,
 		stopProcess: func(ctx context.Context, pid int) error {
@@ -88,7 +88,7 @@ func (c *StopCommand) UsageFor(commandPath string) string {
 	return joinLines(
 		fmt.Sprintf("Usage: %s %s [-p PATH] [--all]", osutil.CurrentBin(), commandPath),
 		"",
-		"Stops detached Studio apps discovered by app-manager.",
+		"Stops detached Studio apps discovered by studioctl-server.",
 		"",
 		"Options:",
 		"  -p, --path PATH       Specify app directory (overrides auto-detect)",
@@ -151,16 +151,16 @@ func (c *StopCommand) parseStopFlags(args []string, commandPath string) (appStop
 }
 
 func (c *StopCommand) stopApps(ctx context.Context, appID string, flags appStopFlags) error {
-	if err := c.manager.ensure(ctx); err != nil {
-		return startAppManagerError(err)
+	if err := c.server.ensure(ctx); err != nil {
+		return startStudioctlServerError(err)
 	}
 
-	status, err := c.manager.client.Status(ctx)
+	status, err := c.server.client.Status(ctx)
 	if err != nil {
-		if errors.Is(err, appmanager.ErrNotRunning) {
+		if errors.Is(err, studioctlserver.ErrNotRunning) {
 			return appStopOutput{Stopped: nil, Running: false, JSONOutput: flags.jsonOutput}.Print(c.out)
 		}
-		return fmt.Errorf("get app-manager status: %w", err)
+		return fmt.Errorf("get studioctl-server status: %w", err)
 	}
 
 	apps := sortDiscoveredApps(filterApps(status.Apps, appID, true))
@@ -197,7 +197,7 @@ func (c *StopCommand) stopApps(ctx context.Context, appID string, flags appStopF
 
 func (c *StopCommand) stopApp(
 	ctx context.Context,
-	app appmanager.DiscoveredApp,
+	app studioctlserver.DiscoveredApp,
 	containerClient *containerruntime.ContainerClient,
 ) (stoppedAppOutput, error) {
 	output := stoppedAppOutput{
@@ -277,9 +277,9 @@ func (c *StopCommand) ensureContainerRuntime(
 	return nil
 }
 
-func (c *StopCommand) unregisterBestEffort(ctx context.Context, app appmanager.DiscoveredApp) {
-	if err := c.manager.client.UnregisterApp(ctx, app.AppID); err != nil {
-		c.out.Verbosef("failed to unregister app %s from app-manager: %v", app.AppID, err)
+func (c *StopCommand) unregisterBestEffort(ctx context.Context, app studioctlserver.DiscoveredApp) {
+	if err := c.server.client.UnregisterApp(ctx, app.AppID); err != nil {
+		c.out.Verbosef("failed to unregister app %s from studioctl-server: %v", app.AppID, err)
 	}
 }
 
@@ -288,7 +288,7 @@ func (o appStopOutput) Print(out *ui.Output) error {
 		return printJSONOutput(out, "app stop", o)
 	}
 	if !o.Running {
-		out.Println("app-manager is not running.")
+		out.Println("studioctl-server is not running.")
 		return nil
 	}
 	if len(o.Stopped) == 0 {

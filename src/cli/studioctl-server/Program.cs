@@ -66,9 +66,9 @@ internal static class Program
 
     private static string GetLogDirectory()
     {
-        // studioctl launches app-manager with its working directory set to STUDIOCTL_HOME.
-        // Keeping the log directory relative lets app-manager own its logging without a second log-path contract.
-        return Path.Combine(Environment.CurrentDirectory, "logs", "app-manager");
+        // studioctl launches studioctl-server with its working directory set to STUDIOCTL_HOME.
+        // Keeping the log directory relative lets studioctl-server own its logging without a second log-path contract.
+        return Path.Combine(Environment.CurrentDirectory, "logs", "studioctl-server");
     }
 
     private sealed record HealthResponse(string Status);

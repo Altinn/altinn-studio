@@ -17,9 +17,9 @@ const (
 	goArchARM64 = "arm64"
 )
 
-var errUnsupportedAppManagerRID = errors.New("unsupported " + config.StudioctlServerName + " runtime")
+var errUnsupportedStudioctlServerRID = errors.New("unsupported " + config.StudioctlServerName + " runtime")
 
-func publishAppManagerToDir(goos, goarch, publishDir string) (string, error) {
+func publishStudioctlServerToDir(goos, goarch, publishDir string) (string, error) {
 	fmt.Printf("Publishing %s...\n", config.StudioctlServerName)
 
 	rid, err := dotnetRuntimeIdentifier(goos, goarch)
@@ -82,5 +82,5 @@ func dotnetRuntimeIdentifier(goos, goarch string) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("%w: %s/%s", errUnsupportedAppManagerRID, goos, goarch)
+	return "", fmt.Errorf("%w: %s/%s", errUnsupportedStudioctlServerRID, goos, goarch)
 }

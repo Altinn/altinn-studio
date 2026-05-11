@@ -91,7 +91,7 @@ func (c *SelfCommand) Usage() string {
 		fmt.Sprintf("Manage the %s installation.", osutil.CurrentBin()),
 		"",
 		"Subcommands:",
-		"  install   Install binary, app-manager, and localtest resources",
+		"  install   Install binary, studioctl-server, and localtest resources",
 		"  update    Check for and install updates",
 		"  uninstall Remove installed binary",
 		"",
@@ -133,7 +133,7 @@ func (c *SelfCommand) runInstall(ctx context.Context, args []string) error {
 		c.out.Print(joinLines(
 			fmt.Sprintf("Usage: %s self install [options]", osutil.CurrentBin()),
 			"",
-			fmt.Sprintf("Install %s, app-manager, and localtest resources.", osutil.CurrentBin()),
+			fmt.Sprintf("Install %s, studioctl-server, and localtest resources.", osutil.CurrentBin()),
 			"",
 			"Options:",
 			"  --path DIR          Install binary to specific directory (non-interactive)",
@@ -377,7 +377,7 @@ func (c *SelfCommand) runInstalledCompleteInstall(ctx context.Context, studioctl
 	}
 
 	resourcesSpinner.StopWithSuccess("Installation completed")
-	c.out.Verbosef("Installed app-manager to: %s", c.cfg.AppManagerInstallDir())
+	c.out.Verbosef("Installed studioctl-server to: %s", c.cfg.StudioctlServerInstallDir())
 	c.out.Verbosef("Installed localtest resources to: %s", c.cfg.DataDir)
 	return nil
 }

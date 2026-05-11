@@ -1,4 +1,4 @@
-package appmanager
+package studioctlserver
 
 import (
 	"context"
@@ -69,10 +69,10 @@ func TestUpgradeAppUsesUpgradeTimeoutOnly(t *testing.T) {
 	}
 
 	if deadlines[upgradePath] < 20*time.Second {
-		t.Fatalf("upgrade deadline = %s, want near %s", deadlines[upgradePath], appManagerUpgradeTimeout)
+		t.Fatalf("upgrade deadline = %s, want near %s", deadlines[upgradePath], studioctlServerUpgradeTimeout)
 	}
 	if deadlines[statusPath] > 3*time.Second {
-		t.Fatalf("status deadline = %s, want short app-manager request timeout", deadlines[statusPath])
+		t.Fatalf("status deadline = %s, want short studioctl-server request timeout", deadlines[statusPath])
 	}
 }
 
@@ -110,7 +110,7 @@ func TestUpgradeAppIncludesResponseMessageOnFailure(t *testing.T) {
 	}
 }
 
-func TestLatestAppManagerLogPath_ReturnsNewestMatchingFile(t *testing.T) {
+func TestLatestStudioctlServerLogPath_ReturnsNewestMatchingFile(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
@@ -120,16 +120,16 @@ func TestLatestAppManagerLogPath_ReturnsNewestMatchingFile(t *testing.T) {
 	setModTime(t, oldPath, time.Date(2026, 4, 18, 1, 0, 0, 0, time.UTC))
 	setModTime(t, newPath, time.Date(2026, 4, 19, 1, 0, 0, 0, time.UTC))
 
-	got, ok := latestAppManagerLogPath(dir)
+	got, ok := latestStudioctlServerLogPath(dir)
 	if !ok {
-		t.Fatal("latestAppManagerLogPath() ok = false, want true")
+		t.Fatal("latestStudioctlServerLogPath() ok = false, want true")
 	}
 	if got != newPath {
-		t.Fatalf("latestAppManagerLogPath() = %q, want %q", got, newPath)
+		t.Fatalf("latestStudioctlServerLogPath() = %q, want %q", got, newPath)
 	}
 }
 
-func TestReadLatestAppManagerLogTail_ReadsOnlyNewestMatchingFile(t *testing.T) {
+func TestReadLatestStudioctlServerLogTail_ReadsOnlyNewestMatchingFile(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
@@ -139,37 +139,37 @@ func TestReadLatestAppManagerLogTail_ReadsOnlyNewestMatchingFile(t *testing.T) {
 	setModTime(t, newPath, time.Date(2026, 4, 19, 1, 0, 0, 0, time.UTC))
 
 	assertLatestLogPath(t, dir, newPath)
-	got := readLatestAppManagerLogTail(dir)
+	got := readLatestStudioctlServerLogTail(dir)
 	if !strings.Contains(got, "new") {
-		t.Fatalf("readLatestAppManagerLogTail() = %q, want newest log line", got)
+		t.Fatalf("readLatestStudioctlServerLogTail() = %q, want newest log line", got)
 	}
 	if strings.Contains(got, "old") {
-		t.Fatalf("readLatestAppManagerLogTail() = %q, want no old log line", got)
+		t.Fatalf("readLatestStudioctlServerLogTail() = %q, want no old log line", got)
 	}
 }
 
-func TestReadLatestAppManagerLogTail_LimitsOutput(t *testing.T) {
+func TestReadLatestStudioctlServerLogTail_LimitsOutput(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
 	var content strings.Builder
-	for range appManagerLogTailLines + 1 {
+	for range studioctlServerLogTailLines + 1 {
 		content.WriteString("line\n")
 	}
 	content.WriteString("last\n")
 	path := writeTestLog(t, dir, "2026-04-19-2.log", content.String())
 
 	assertLatestLogPath(t, dir, path)
-	got := readLatestAppManagerLogTail(dir)
-	if strings.Count(got, "line") != appManagerLogTailLines-1 {
-		t.Fatalf("line count = %d, want %d", strings.Count(got, "line"), appManagerLogTailLines-1)
+	got := readLatestStudioctlServerLogTail(dir)
+	if strings.Count(got, "line") != studioctlServerLogTailLines-1 {
+		t.Fatalf("line count = %d, want %d", strings.Count(got, "line"), studioctlServerLogTailLines-1)
 	}
 	if !strings.Contains(got, "last") {
-		t.Fatalf("readLatestAppManagerLogTail() = %q, want last line", got)
+		t.Fatalf("readLatestStudioctlServerLogTail() = %q, want last line", got)
 	}
 }
 
-func TestReadLatestAppManagerLogTailSince_IgnoresOlderLogs(t *testing.T) {
+func TestReadLatestStudioctlServerLogTailSince_IgnoresOlderLogs(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
@@ -178,12 +178,12 @@ func TestReadLatestAppManagerLogTailSince_IgnoresOlderLogs(t *testing.T) {
 	setModTime(t, oldPath, time.Date(2026, 4, 19, 1, 0, 0, 0, time.UTC))
 	setModTime(t, newPath, time.Date(2026, 4, 19, 3, 0, 0, 0, time.UTC))
 
-	got := readLatestAppManagerLogTailSince(dir, time.Date(2026, 4, 19, 2, 0, 0, 0, time.UTC))
+	got := readLatestStudioctlServerLogTailSince(dir, time.Date(2026, 4, 19, 2, 0, 0, 0, time.UTC))
 	if !strings.Contains(got, "new") {
-		t.Fatalf("readLatestAppManagerLogTailSince() = %q, want new log", got)
+		t.Fatalf("readLatestStudioctlServerLogTailSince() = %q, want new log", got)
 	}
 	if strings.Contains(got, "old") {
-		t.Fatalf("readLatestAppManagerLogTailSince() = %q, want no old log", got)
+		t.Fatalf("readLatestStudioctlServerLogTailSince() = %q, want no old log", got)
 	}
 }
 
@@ -247,33 +247,33 @@ func TestLogLookup_HandlesDirectoryWithGlobMetacharacters(t *testing.T) {
 	}
 }
 
-func TestPrepareAppManagerSocketForStart_RemovesUnreachableSocket(t *testing.T) {
+func TestPrepareStudioctlServerSocketForStart_RemovesUnreachableSocket(t *testing.T) {
 	t.Parallel()
 
 	cfg := testConfig(t)
-	if err := os.WriteFile(cfg.AppManagerSocketPath(), []byte("stale"), 0o600); err != nil {
+	if err := os.WriteFile(cfg.StudioctlServerSocketPath(), []byte("stale"), 0o600); err != nil {
 		t.Fatalf("write stale socket: %v", err)
 	}
 
-	if err := prepareAppManagerSocketForStart(context.Background(), cfg); err != nil {
-		t.Fatalf("prepareAppManagerSocketForStart() error = %v", err)
+	if err := prepareStudioctlServerSocketForStart(context.Background(), cfg); err != nil {
+		t.Fatalf("prepareStudioctlServerSocketForStart() error = %v", err)
 	}
-	if _, err := os.Lstat(cfg.AppManagerSocketPath()); !os.IsNotExist(err) {
+	if _, err := os.Lstat(cfg.StudioctlServerSocketPath()); !os.IsNotExist(err) {
 		t.Fatalf("socket still exists or stat failed: %v", err)
 	}
 }
 
-func TestPrepareAppManagerSocketForStart_RejectsDirectory(t *testing.T) {
+func TestPrepareStudioctlServerSocketForStart_RejectsDirectory(t *testing.T) {
 	t.Parallel()
 
 	cfg := testConfig(t)
-	if err := os.Mkdir(cfg.AppManagerSocketPath(), 0o700); err != nil {
+	if err := os.Mkdir(cfg.StudioctlServerSocketPath(), 0o700); err != nil {
 		t.Fatalf("create socket directory: %v", err)
 	}
 
-	err := prepareAppManagerSocketForStart(context.Background(), cfg)
+	err := prepareStudioctlServerSocketForStart(context.Background(), cfg)
 	if err == nil || !strings.Contains(err.Error(), "socket path is a directory") {
-		t.Fatalf("prepareAppManagerSocketForStart() error = %v, want directory error", err)
+		t.Fatalf("prepareStudioctlServerSocketForStart() error = %v, want directory error", err)
 	}
 }
 
@@ -361,12 +361,12 @@ func testConfig(t *testing.T) *config.Config {
 func assertLatestLogPath(t *testing.T, dir, want string) {
 	t.Helper()
 
-	got, ok := latestAppManagerLogPath(dir)
+	got, ok := latestStudioctlServerLogPath(dir)
 	if !ok {
-		t.Fatal("latestAppManagerLogPath() ok = false, want true")
+		t.Fatal("latestStudioctlServerLogPath() ok = false, want true")
 	}
 	if got != want {
-		t.Fatalf("latestAppManagerLogPath() = %q, want %q", got, want)
+		t.Fatalf("latestStudioctlServerLogPath() = %q, want %q", got, want)
 	}
 }
 

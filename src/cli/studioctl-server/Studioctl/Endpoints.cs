@@ -123,7 +123,7 @@ internal static class Endpoints
         string Status,
         int ProcessId,
         string DotnetVersion,
-        string AppManagerVersion,
+        string StudioctlServerVersion,
         bool InternalDev,
         string StudioctlPath,
         string LocaltestUrl,

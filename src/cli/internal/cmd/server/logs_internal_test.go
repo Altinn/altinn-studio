@@ -71,8 +71,8 @@ func TestStreamLogsMissingLogFile(t *testing.T) {
 		Follow: false,
 		JSON:   false,
 	})
-	if !errors.Is(err, errAppManagerLogsNotFound) {
-		t.Fatalf("StreamLogs() error = %v, want errAppManagerLogsNotFound", err)
+	if !errors.Is(err, errStudioctlServerLogsNotFound) {
+		t.Fatalf("StreamLogs() error = %v, want errStudioctlServerLogsNotFound", err)
 	}
 }
 
