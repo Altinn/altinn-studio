@@ -26,7 +26,10 @@ export const ConfigGridProperties = ({
     return (
       <StudioProperty.Button
         className={cn(className)}
-        onClick={() => setShowGrid(true)}
+        onClick={() => {
+          setCurrentComponent(initialComponent);
+          setShowGrid(true);
+        }}
         property={t('ux_editor.component_properties.grid')}
         value={translatedGridValue}
       />
@@ -39,12 +42,15 @@ export const ConfigGridProperties = ({
   };
 
   const handleSave = () => {
-    handleComponentUpdate(currentComponent);
+    const updatedComponent = { ...initialComponent };
+    if (currentComponent.grid) updatedComponent.grid = currentComponent.grid;
+    else delete updatedComponent.grid;
+    handleComponentUpdate(updatedComponent);
     setShowGrid(false);
   };
 
   const handleDelete = () => {
-    const updatedComponent = { ...currentComponent };
+    const updatedComponent = { ...initialComponent };
     delete updatedComponent.grid;
     handleComponentUpdate(updatedComponent);
     setCurrentComponent(updatedComponent);
