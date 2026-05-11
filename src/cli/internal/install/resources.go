@@ -31,7 +31,8 @@ var errAppManagerExecutableNotExecutable = errors.New(
 	"validate app-manager payload: executable is not marked executable",
 )
 
-func (s *Service) installResources(ctx context.Context, bundle Bundle) (err error) {
+// InstallBundleResources installs the bundle resources.
+func (s *Service) InstallBundleResources(ctx context.Context, bundle Bundle) (err error) {
 	resourcesArchivePath := bundle.ResourcesArchivePath
 	cleanup := func() error { return nil }
 	if resourcesArchivePath == "" {

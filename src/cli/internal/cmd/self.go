@@ -182,7 +182,7 @@ func (c *SelfCommand) resolveInstallLocation(
 		return dir, nil
 	}
 
-	input, cleanup, err := ui.InteractiveInput()
+	input, cleanup, err := c.interactiveInput()
 	if err != nil {
 		c.out.Verbosef("terminal input unavailable, using default install location: %v", err)
 		return c.defaultInstallLocation(candidates)

@@ -61,16 +61,3 @@ func (s *Service) InstallBundleBinary(
 
 	return result, nil
 }
-
-// InstallBundleResources installs the bundle resources.
-func (s *Service) InstallBundleResources(
-	ctx context.Context,
-	bundle Bundle,
-) error {
-	err := s.installResources(ctx, bundle)
-	if err != nil {
-		return fmt.Errorf("install resources: %w", err)
-	}
-
-	return nil
-}

@@ -51,11 +51,6 @@ type distResult struct {
 	Artifacts                []string
 }
 
-type platformResourcesResult struct {
-	ResourcesArchivePath string
-	Artifacts            []string
-}
-
 type distManifest struct {
 	Artifacts []string `json:"artifacts"`
 }
@@ -166,22 +161,21 @@ func buildDist(opts distOptions) (distResult, error) {
 			return distResult{}, err
 		}
 
-		resources, err := buildPlatformResources(
+		resourcesArchivePath, err := buildPlatformResources(
 			platform.GOOS,
 			platform.GOARCH,
 			opts.OutputDir,
-			opts.Release,
 		)
 		if err != nil {
 			return distResult{}, err
 		}
 		result.Artifacts = append(result.Artifacts,
 			binaryPath,
+			resourcesArchivePath,
 		)
-		result.Artifacts = append(result.Artifacts, resources.Artifacts...)
 		if platform.GOOS == runtime.GOOS && platform.GOARCH == runtime.GOARCH {
 			result.HostBinaryPath = binaryPath
-			result.HostResourcesArchivePath = resources.ResourcesArchivePath
+			result.HostResourcesArchivePath = resourcesArchivePath
 		}
 	}
 
@@ -310,11 +304,10 @@ func buildStudioctlFor(goos, goarch, outputDir, binaryName, buildVersion string)
 
 func buildPlatformResources(
 	goos, goarch, outputDir string,
-	includePreviewCompatibility bool,
-) (result platformResourcesResult, err error) {
+) (archivePath string, err error) {
 	appManagerDir := filepath.Join(outputDir, ".app-manager-"+goos+"-"+goarch)
 	if removeErr := os.RemoveAll(appManagerDir); removeErr != nil {
-		return platformResourcesResult{}, fmt.Errorf("clean app-manager staging dir: %w", removeErr)
+		return "", fmt.Errorf("clean app-manager staging dir: %w", removeErr)
 	}
 	defer func() {
 		if removeErr := os.RemoveAll(appManagerDir); removeErr != nil && err == nil {
@@ -323,11 +316,11 @@ func buildPlatformResources(
 	}()
 
 	if _, publishErr := publishAppManagerToDir(goos, goarch, appManagerDir); publishErr != nil {
-		return platformResourcesResult{}, publishErr
+		return "", publishErr
 	}
 
 	fmt.Println("Creating resources archive...")
-	archivePath, err := installpkg.CreateResourcesArchive(installpkg.ResourcesArchiveOptions{
+	archivePath, err = installpkg.CreateResourcesArchive(installpkg.ResourcesArchiveOptions{
 		GOOS:          goos,
 		GOARCH:        goarch,
 		OutputDir:     outputDir,
@@ -335,28 +328,11 @@ func buildPlatformResources(
 		LocaltestDir:  localtestDir,
 	})
 	if err != nil {
-		return platformResourcesResult{}, fmt.Errorf("create resources archive: %w", err)
+		return "", fmt.Errorf("create resources archive: %w", err)
 	}
 	fmt.Printf("Created %s\n", archivePath)
 
-	result.ResourcesArchivePath = archivePath
-	result.Artifacts = append(result.Artifacts, archivePath)
-	if includePreviewCompatibility {
-		artifacts, err := installpkg.CreatePreviewCompatibilityAssets(installpkg.PreviewCompatibilityOptions{
-			GOOS:          goos,
-			GOARCH:        goarch,
-			OutputDir:     outputDir,
-			AppManagerDir: appManagerDir,
-		})
-		if err != nil {
-			return platformResourcesResult{}, fmt.Errorf("create preview compatibility assets: %w", err)
-		}
-		for _, artifact := range artifacts {
-			fmt.Printf("Created %s\n", artifact)
-		}
-		result.Artifacts = append(result.Artifacts, artifacts...)
-	}
-	return result, nil
+	return archivePath, nil
 }
 
 func validateInstallMode(userInstall, windowsHost, runningInWSL bool) error {
@@ -403,7 +379,7 @@ func installWindowsHostMode() error {
 	if err != nil {
 		return err
 	}
-	resources, err := buildPlatformResources(osutil.OSWindows, runtime.GOARCH, stageDirWSL, false)
+	resourcesArchivePath, err := buildPlatformResources(osutil.OSWindows, runtime.GOARCH, stageDirWSL)
 	if err != nil {
 		return err
 	}
@@ -411,7 +387,7 @@ func installWindowsHostMode() error {
 	if err != nil {
 		return err
 	}
-	resourcesArchiveWindows, err := windowsPath(resources.ResourcesArchivePath)
+	resourcesArchiveWindows, err := windowsPath(resourcesArchivePath)
 	if err != nil {
 		return err
 	}
