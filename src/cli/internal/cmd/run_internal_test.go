@@ -282,6 +282,15 @@ func TestDotnetRunCommandEnvDoesNotEnableAnsiColorForDetached(t *testing.T) {
 	}
 }
 
+func TestDotnetRunCommandEnvDoesNotEnableAnsiColorWhenOutputIsNotTerminal(t *testing.T) {
+	t.Parallel()
+
+	got := dotnetRunCommandEnv([]string{"PATH=/bin"}, runFlags{}, false)
+	if envContainsPrefix(got, dotnetAnsiColorRedirectionEnv+"=") {
+		t.Fatalf("env = %v, did not want %s", got, dotnetAnsiColorRedirectionEnv)
+	}
+}
+
 func TestNextAppLogPathUsesNextRunIDForDate(t *testing.T) {
 	t.Parallel()
 

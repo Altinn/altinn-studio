@@ -443,7 +443,7 @@ func (c *RunCommand) configureDotnetRunCommand(
 	flags runFlags,
 ) (string, func(), error) {
 	cmd.Dir = spec.Dir
-	cmd.Env = dotnetRunCommandEnv(spec.Env, flags, ui.Colors())
+	cmd.Env = dotnetRunCommandEnv(spec.Env, flags, ui.Colors() && c.out.IsTerminal())
 	logFile, logPath, err := c.openAppLog(target.AppID)
 	if err != nil {
 		return "", nil, err
