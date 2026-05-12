@@ -52,6 +52,7 @@
   "app_release.release_title_link": "the last commit to master",
   "app_release.release_version": "Version:",
   "app_settings.left_nav_tab_run": "Run",
+  "app_settings.maskinporten_scope_changes_deployment_notice": "Scope changes take effect the next time the app is built and deployed.",
   "app_settings.run_tab_heading": "Run",
   "app_settings.run_tab_info": "This setting is used for cost reduction. The app can be undeployed automatically in test environments when it is inactive.",
   "app_settings.run_tab_switch_undeploy_on_inactivity": "Undeploy on inactivity in test environments",

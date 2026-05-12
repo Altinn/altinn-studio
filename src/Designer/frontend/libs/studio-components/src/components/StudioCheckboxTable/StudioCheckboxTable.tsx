@@ -16,10 +16,13 @@ export function StudioCheckboxTable({
   children,
   hasError,
   errorMessage,
+  ...rest
 }: StudioCheckboxTableProps): ReactElement {
   return (
     <StudioCheckboxTableContextProvider hasError={hasError}>
-      <StudioTable className={className}>{children}</StudioTable>
+      <StudioTable className={className} {...rest}>
+        {children}
+      </StudioTable>
       {hasError && errorMessage && (
         <StudioValidationMessage id={CHECKBOX_TABLE_ERROR_ID} className={classes.errorMessage}>
           {errorMessage}
