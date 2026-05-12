@@ -69,6 +69,44 @@ public class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
+    public async Task PreviousDataAccessor_AfterUpdatingBinaryData_ReturnsOriginalBytes()
+    {
+        byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
+        byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"paid"}""");
+
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBytes);
+
+        setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, updatedBytes);
+
+        ReadOnlyMemory<byte> previousBytes = await setup
+            .DataMutator.GetPreviousDataAccessor()
+            .GetBinaryData(setup.DataElement);
+
+        Assert.True(previousBytes.Span.SequenceEqual(initialBytes));
+    }
+
+    [Fact]
+    public async Task PreviousDataAccessor_AfterSavingUpdatedBinaryData_ReturnsOriginalBytes()
+    {
+        byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
+        byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"paid"}""");
+
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(initialBytes);
+
+        setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, updatedBytes);
+        DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
+
+        await setup.DataMutator.UpdateInstanceData(changes);
+        await setup.DataMutator.SaveChanges(changes);
+
+        ReadOnlyMemory<byte> previousBytes = await setup
+            .DataMutator.GetPreviousDataAccessor()
+            .GetBinaryData(setup.DataElement);
+
+        Assert.True(previousBytes.Span.SequenceEqual(initialBytes));
+    }
+
+    [Fact]
     public async Task RemoveDataElement_AfterUpdatingBinaryData_ReplacesPendingUpdateWithDeletion()
     {
         byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");

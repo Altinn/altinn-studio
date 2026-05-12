@@ -46,7 +46,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     // Cache for the most up-to-date form data (can be mutated or replaced with SetFormData(dataElementId, data))
     private readonly DataElementCache<IFormDataWrapper> _formDataCache = new();
 
-    // Cache for the binary content of the file as currently in storage.
+    // Cache for the binary content of the file as currently in storage before changes in this unit of work.
     private readonly DataElementCache<ReadOnlyMemory<byte>> _binaryCache = new();
 
     // Data elements to delete (eg RemoveDataElement(dataElementId)), but not yet deleted from instance or storage
@@ -215,16 +215,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             return updatedBinary.CurrentBinaryData;
         }
 
-        return await _binaryCache.GetOrCreate(
-            dataElementIdentifier,
-            async () =>
-                await _dataClient.GetDataBytes(
-                    _instanceOwnerPartyId,
-                    _instanceGuid,
-                    dataElementIdentifier.Guid,
-                    authenticationMethod: GetAuthenticationMethod(dataElementIdentifier)
-                )
-        );
+        return await GetPersistedBinaryData(dataElementIdentifier);
     }
 
     /// <inheritdoc />
@@ -668,6 +659,12 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         {
             throw new InvalidOperationException("AbandonAllChanges has been called, and no changes should be saved");
         }
+
+        foreach (var change in changes.BinaryDataChanges.Where(change => change.Type == ChangeType.Updated))
+        {
+            await GetPersistedBinaryData(change.DataElementIdentifier);
+        }
+
         var tasks = new List<Task>();
 
         foreach (var change in changes.AllChanges.Where(change => change.Type == ChangeType.Updated))
@@ -683,6 +680,23 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         }
 
         await Task.WhenAll(tasks);
+    }
+
+    internal async Task<ReadOnlyMemory<byte>> GetPersistedBinaryData(DataElementIdentifier dataElementIdentifier)
+    {
+        // Verify that the data element exists on the instance
+        GetDataElement(dataElementIdentifier);
+
+        return await _binaryCache.GetOrCreate(
+            dataElementIdentifier,
+            async () =>
+                await _dataClient.GetDataBytes(
+                    _instanceOwnerPartyId,
+                    _instanceGuid,
+                    dataElementIdentifier.Guid,
+                    authenticationMethod: GetAuthenticationMethod(dataElementIdentifier)
+                )
+        );
     }
 
     /// <summary>
