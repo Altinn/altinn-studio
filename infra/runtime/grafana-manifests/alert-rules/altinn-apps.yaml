@@ -104,6 +104,10 @@ spec:
         intervalInMinutes: "5"
       labels:
         Type: Altinn
+        # Org and Env are included to ensure each deployment generates a unique fingerprint,
+        # which is used as the idempotency key for SMS/email notifications.
+        Org: ${SERVICEOWNER_ID}
+        Env: ${ENVIRONMENT}
       isPaused: false
     - uid: failed_instance_creation_requests
       title: Feilende instansieringer
@@ -201,4 +205,8 @@ spec:
         intervalInMinutes: "5"
       labels:
         Type: Altinn
+        # Org and Env are included to ensure each deployment generates a unique fingerprint,
+        # which is used as the idempotency key for SMS/email notifications.
+        Org: ${SERVICEOWNER_ID}
+        Env: ${ENVIRONMENT}
       isPaused: false

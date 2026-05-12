@@ -112,8 +112,10 @@ internal static class HandleAlerts
 
         var alert = new Alert
         {
-            Id =
-                $"{currentGatewayContext.ServiceOwner}-{currentGatewayContext.Environment}-{string.Join("-", alertPayload.Alerts.Select(a => $"{a.Fingerprint}:{a.StartsAt.ToUnixTimeSeconds()}").Order())}",
+            Id = string.Join(
+                "-",
+                alertPayload.Alerts.Select(a => $"{a.Fingerprint}:{a.StartsAt.ToUnixTimeSeconds()}").Order()
+            ),
             RuleId = ruleId,
             Name = alertPayload.CommonLabels.GetValueOrDefault("alertname", string.Empty),
             Alerts = alerts,
