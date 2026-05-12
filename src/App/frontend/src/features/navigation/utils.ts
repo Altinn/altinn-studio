@@ -17,7 +17,7 @@ import { useGetAltinnTaskType } from 'src/features/instance/useProcessQuery';
 import { ValidationMask } from 'src/features/validation';
 import { getVisibilityMask } from 'src/features/validation/utils';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { useNavigatePage, useVisitedPages } from 'src/hooks/useNavigatePage';
+import { usePageOrder, useVisitedPages } from 'src/hooks/useNavigatePage';
 import { useHiddenPages } from 'src/utils/layout/hidden';
 import type { NavigationReceipt, NavigationTask } from 'src/features/form/ui/types';
 
@@ -158,7 +158,7 @@ export function useGetNavigationIsPrevented() {
   const currentPageId = useNavigationParam('pageKey') ?? '';
   const layoutCollection = FormStore.bootstrap.useLayoutCollection();
   const globalValidationOnNavigation = usePageSettings().validationOnNavigation;
-  const { order } = useNavigatePage();
+  const order = usePageOrder();
   const validationsSelector = FormStore.nodes.useLaxValidationsSelector();
   const allNodeIds = FormStore.raw.useLaxMemoSelector((state) => {
     const result = Object.fromEntries<string[]>(order.map((page) => [page, []]));

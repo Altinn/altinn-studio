@@ -20,7 +20,7 @@ import { useAddEntryMutation, useDeleteEntryMutation } from 'src/features/subfor
 import { isSubformValidation } from 'src/features/validation';
 import { useComponentValidationsFor } from 'src/features/validation/selectors/componentValidationsForNode';
 import { useIsSubformPage } from 'src/hooks/navigation';
-import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useEnterSubform } from 'src/hooks/useNavigatePage';
 import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { ComponentErrorList } from 'src/layout/GenericComponent';
@@ -57,7 +57,7 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
   const addSubformEntryMutation = useAddEntryMutation(dataType);
   const subformEntries = useInstanceDataElements(dataType);
 
-  const { enterSubform } = useNavigatePage();
+  const enterSubform = useEnterSubform();
   const lock = FormStore.data.useLocking(id);
   const performProcess = useProcessingMutation('add-subform');
   const isAdding = useIsThisProcessing('add-subform');
@@ -215,7 +215,7 @@ function SubformTableRow({
   );
 
   const { langAsString } = useLanguage();
-  const { enterSubform } = useNavigatePage();
+  const enterSubform = useEnterSubform();
 
   const { mutate: deleteSubformEntry, isPending: isDeleting } = useDeleteEntryMutation();
   const deleteButtonText = langAsString('general.delete');

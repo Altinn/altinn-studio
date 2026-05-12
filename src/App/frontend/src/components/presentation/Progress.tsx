@@ -4,11 +4,11 @@ import { getLabelId } from 'src/components/label/Label';
 import classes from 'src/components/presentation/Progress.module.css';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { usePageOrder } from 'src/hooks/useNavigatePage';
 
 export const Progress = () => {
   const currentPageId = useNavigationParam('pageKey');
-  const { order } = useNavigatePage();
+  const order = usePageOrder();
   const { langAsString } = useLanguage();
 
   if (!currentPageId) {
