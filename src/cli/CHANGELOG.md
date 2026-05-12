@@ -12,8 +12,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Breaking: make `--follow` default to `false` for log commands.
 - Breaking: rename `studioctl servers` to `studioctl server`.
+- Breaking: simplify install scripts by removing `--repo`, `--asset`, `--skip-resources`, `STUDIOCTL_REPO`, `STUDIOCTL_ASSET`, and `STUDIOCTL_SKIP_RESOURCES`.
 - Rename `app-manager` to `studioctl-server`, including install/update migration cleanup of legacy runtime files, installed payload, and logs.
 - Show progress while `app run --mode container` pulls/builds and starts the app container.
+- `studioctl self uninstall` now asks for confirmation; use `-y` or `--yes` for non-interactive uninstall.
 
 ### Fixed
 
