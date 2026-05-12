@@ -9,7 +9,6 @@ import { Button } from 'src/app-components/Button/Button';
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -214,7 +213,7 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
   const performProcess = useProcessingMutation('custom-action');
   const isThisProcessing = useIsThisProcessing('custom-action');
   const isAnyProcessing = useIsAnyProcessing();
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const { getPageValidation } = usePageValidation(baseComponentId);
   const getNavigationIsPrevented = useGetNavigationIsPrevented();
 

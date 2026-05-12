@@ -1,0 +1,271 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/MultipleSelect.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "id": {
+      "title": "ID",
+      "description": "The component ID. Must be unique within all layouts/pages in a layout-set. Cannot end with <dash><number>.",
+      "type": "string",
+      "pattern": "^[0-9a-zA-Z][0-9a-zA-Z-]*(-?[a-zA-Z]+|[a-zA-Z][0-9]+|-[0-9]{6,})$"
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
+    "grid": {
+      "properties": {
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
+      }
+    },
+    "pageBreak": {
+      "title": "Page break",
+      "description": "Optionally insert page-break before/after component when rendered in PDF",
+      "type": "object",
+      "properties": {
+        "breakBefore": {
+          "title": "Page break before",
+          "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+          "examples": ["auto", "always", "avoid"],
+          "default": "auto",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "breakAfter": {
+          "title": "Page break after",
+          "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+          "examples": ["auto", "always", "avoid"],
+          "default": "auto",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "readOnly": {
+      "title": "Read only/disabled?",
+      "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
+    "required": {
+      "title": "Required?",
+      "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
+    "showValidations": {
+      "title": "Validation types",
+      "description": "List of validation types to show",
+      "type": "array",
+      "items": {
+        "enum": [
+          "Schema",
+          "Component",
+          "Expression",
+          "CustomBackend",
+          "Required",
+          "AllExceptRequired",
+          "All"
+        ],
+        "type": "string"
+      }
+    },
+    "renderAsSummary": {
+      "title": "Render as summary",
+      "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "type": "boolean"
+    },
+    "forceShowInSummary": {
+      "title": "Force show in summary",
+      "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
+    "optionsId": {
+      "title": "Dynamic options (fetched from server)",
+      "description": "ID of the option list to fetch from the server",
+      "type": "string"
+    },
+    "mapping": {
+      "title": "Mapping",
+      "description": "A mapping of key-value pairs (usually used for mapping a path in the data model to a query string parameter).",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": { "type": "string" }
+    },
+    "queryParameters": {
+      "title": "Query parameters",
+      "description": "A mapping of query string parameters to values. Will be appended to the URL when fetching options.",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": { "type": "string" }
+    },
+    "options": {
+      "title": "Static options",
+      "description": "List of static options",
+      "type": "array",
+      "items": {
+        "title": "IRawOption",
+        "examples": [{ "label": "", "value": "" }],
+        "type": "object",
+        "properties": {
+          "label": { "type": "string" },
+          "value": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "number" },
+              { "type": "boolean" },
+              { "const": null }
+            ]
+          },
+          "description": { "type": "string" },
+          "helpText": { "type": "string" }
+        },
+        "required": ["label", "value"],
+        "additionalProperties": false
+      }
+    },
+    "secure": {
+      "title": "Secure options (when using optionsId)",
+      "description": "Whether to call the secure API endpoint when fetching options from the server (allows for user/instance-specific options)",
+      "default": false,
+      "type": "boolean"
+    },
+    "sortOrder": {
+      "description": "Sorts the code list in either ascending or descending order by label.",
+      "enum": ["asc", "desc"],
+      "type": "string"
+    },
+    "source": {
+      "title": "Option source",
+      "description": "Allows for fetching options from the data model, pointing to a repeating group structure",
+      "type": "object",
+      "properties": {
+        "group": {
+          "title": "Group",
+          "description": "The repeating group to base options on.",
+          "examples": ["model.some.group"],
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "description": "A label of the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.",
+          "examples": ["some.text.key"],
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "value": {
+          "title": "Value",
+          "description": "Field in the group that should be used as value",
+          "examples": ["model.some.group[{0}].someField"],
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "description": "A description of the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.",
+          "examples": ["some.text.key", "My Description"],
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "helpText": {
+          "title": "Help Text",
+          "description": "A help text for the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.",
+          "examples": ["some.text.key", "My Help Text"],
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        }
+      },
+      "required": ["group", "label", "value"],
+      "additionalProperties": false
+    },
+    "preselectedOptionIndex": {
+      "title": "Preselected option index",
+      "description": "Index of the option to preselect (if no option has been selected yet)",
+      "type": "integer"
+    },
+    "labelSettings": {
+      "title": "ILabelSettings",
+      "type": "object",
+      "properties": {
+        "optionalIndicator": {
+          "title": "Optional indicator",
+          "description": "Show optional indicator on label",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "type": { "const": "MultipleSelect" },
+    "textResourceBindings": {
+      "properties": {
+        "title": {
+          "title": "Title",
+          "description": "Label text/title shown above the component",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "description": {
+          "title": "Description",
+          "description": "Label description shown above the component, below the title",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "help": {
+          "title": "Help text",
+          "description": "Help text shown in a tooltip when clicking the help button",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "tableTitle": {
+          "title": "Table title",
+          "description": "Title used in the table view (overrides the default title)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "shortName": {
+          "title": "Short name (for validation)",
+          "description": "Alternative name used for required validation messages (overrides the default title)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "requiredValidation": {
+          "title": "Required validation message",
+          "description": "Full validation message shown when the component is required and no value has been entered (overrides both the default and shortName)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "summaryTitle": {
+          "title": "Summary title",
+          "description": "Title used in the summary view (overrides the default title)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "summaryAccessibleTitle": {
+          "title": "Accessible summary title",
+          "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        }
+      }
+    },
+    "alertOnChange": {
+      "title": "Alert on change",
+      "description": "Boolean value indicating if the component should alert on change",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
+    "dataModelBindings": {
+      "title": "Data model binding",
+      "description": "Describes the location in the data model where the component should store its value(s). A simple binding is used for components that only store a single value, usually a string.",
+      "type": "object",
+      "properties": {
+        "simpleBinding": { "type": "string" },
+        "label": { "type": "string" },
+        "metadata": {
+          "description": "Describes the location where metadata for the option based component should be stored in the datamodel.",
+          "type": "string"
+        }
+      },
+      "required": ["simpleBinding"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["id", "type", "dataModelBindings"],
+  "title": "MultipleSelect component schema"
+}

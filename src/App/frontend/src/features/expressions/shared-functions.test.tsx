@@ -12,12 +12,12 @@ import { getSharedTests } from 'src/features/expressions/shared';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
+import { FormStore } from 'src/features/form/FormContext';
 import {
   getRepeatingBinding,
   isRepeatingComponent,
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
 import { AppQueries } from 'src/queries/types';
 import {
@@ -53,7 +53,7 @@ function InnerExpressionRunner({ expression, positionalArguments, valueArguments
 }
 
 function ExpressionRunner(props: Props) {
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   if (props.context === undefined || props.context.rowIndices === undefined || props.context.rowIndices.length === 0) {
     return <InnerExpressionRunner {...props} />;
   }

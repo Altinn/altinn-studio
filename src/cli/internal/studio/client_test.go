@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"altinn.studio/studioctl/internal/config"
 )
 
 func TestClient_GetUser_Success(t *testing.T) {
@@ -17,6 +19,9 @@ func TestClient_GetUser_Success(t *testing.T) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader != "token test-token" {
 			t.Errorf("expected Authorization header 'token test-token', got %q", authHeader)
+		}
+		if userAgent := r.Header.Get("User-Agent"); userAgent != "studioctl/test-version" {
+			t.Errorf("expected User-Agent 'studioctl/test-version', got %q", userAgent)
 		}
 
 		// Verify path
@@ -46,6 +51,7 @@ func TestClient_GetUser_Success(t *testing.T) {
 		host:       host,
 		token:      "test-token",
 		username:   "testuser",
+		version:    config.NewVersion("test-version"),
 		scheme:     "http",
 		httpClient: server.Client(),
 	}
@@ -67,7 +73,14 @@ func TestClient_GetUser_Unauthorized(t *testing.T) {
 	defer server.Close()
 
 	host := server.URL[7:]
-	client := &Client{host: host, token: "bad-token", username: "", scheme: "http", httpClient: server.Client()}
+	client := &Client{
+		host:       host,
+		token:      "bad-token",
+		username:   "",
+		version:    config.NewVersion("test-version"),
+		scheme:     "http",
+		httpClient: server.Client(),
+	}
 
 	_, err := client.GetUser(context.Background())
 	if !errors.Is(err, ErrUnauthorized) {
@@ -108,6 +121,7 @@ func TestClient_GetRepo_Success(t *testing.T) {
 		host:       host,
 		token:      "test-token",
 		username:   "testuser",
+		version:    config.NewVersion("test-version"),
 		scheme:     "http",
 		httpClient: server.Client(),
 	}
@@ -137,6 +151,7 @@ func TestClient_GetRepo_NotFound(t *testing.T) {
 		host:       host,
 		token:      "test-token",
 		username:   "testuser",
+		version:    config.NewVersion("test-version"),
 		scheme:     "http",
 		httpClient: server.Client(),
 	}
@@ -157,6 +172,7 @@ func TestClient_buildCloneURL_SpecialChars(t *testing.T) {
 		host:       "altinn.studio",
 		token:      "token/with+special=chars",
 		username:   "user@example.com",
+		version:    config.NewVersion("test-version"),
 		httpClient: nil,
 		scheme:     "https",
 	}

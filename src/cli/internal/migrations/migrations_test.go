@@ -95,16 +95,11 @@ func markMigrationsApplied(t *testing.T, cfg *config.Config, ids ...string) {
 func markOtherMigrationsApplied(t *testing.T, cfg *config.Config, migrationID string) {
 	t.Helper()
 
-	allMigrations := []string{
-		"001-remove-legacy-network-metadata",
-		"002-remove-legacy-topology-files",
-		"003-reset-localtest-data",
-	}
-
-	ids := make([]string, 0, len(allMigrations)-1)
-	for _, id := range allMigrations {
-		if id != migrationID {
-			ids = append(ids, id)
+	registered := migrations.NewRunner().RegisteredMigrations()
+	ids := make([]string, 0, len(registered)-1)
+	for _, migration := range registered {
+		if migration.ID != migrationID {
+			ids = append(ids, migration.ID)
 		}
 	}
 	markMigrationsApplied(t, cfg, ids...)

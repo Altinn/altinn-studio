@@ -1,39 +1,45 @@
 import { useCallback, useMemo } from 'react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { FormProviderHooks } from 'src/features/form/FormContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { getUiFolderSettings } from 'src/features/form/ui';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import type { IDataModelReference } from 'src/layout/common.generated';
 
-export const FormBootstrap = {
-  useLayouts: () => FormProviderHooks.useBootstrap().processedLayouts,
-  useLaxLayouts: () => FormProviderHooks.useLaxBootstrap()?.processedLayouts,
-  useLayoutCollection: () => FormProviderHooks.useBootstrap().layouts,
-  useLayoutLookups: () => FormProviderHooks.useBootstrap().layoutLookups,
-  useHiddenLayoutsExpressions: () => FormProviderHooks.useBootstrap().hiddenLayoutsExpressions,
-  useLaxHiddenLayoutsExpressions: () => FormProviderHooks.useLaxBootstrap()?.hiddenLayoutsExpressions,
-  useExpandedWidthLayouts: () => FormProviderHooks.useBootstrap().expandedWidthLayouts,
-  useDataModels: () => FormProviderHooks.useBootstrap().dataModels,
+export const formBootstrapHooks = {
+  useLayouts: () => FormStore.raw.useSelector((s) => s.bootstrap.processedLayouts),
+  useLaxLayouts: () => {
+    const out = FormStore.raw.useLaxSelector((s) => s.bootstrap.processedLayouts);
+    return out === ContextNotProvided ? undefined : out;
+  },
+  useLayoutCollection: () => FormStore.raw.useSelector((s) => s.bootstrap.layoutLookups),
+  useLayoutLookups: () => FormStore.raw.useSelector((s) => s.bootstrap.layoutLookups),
+  useHiddenLayoutsExpressions: () => FormStore.raw.useSelector((s) => s.bootstrap.hiddenLayoutsExpressions),
+  useLaxHiddenLayoutsExpressions: () => {
+    const out = FormStore.raw.useLaxSelector((s) => s.bootstrap.hiddenLayoutsExpressions);
+    return out === ContextNotProvided ? undefined : out;
+  },
+  useExpandedWidthLayouts: () => FormStore.raw.useSelector((s) => s.bootstrap.expandedWidthLayouts),
+  useDataModels: () => FormStore.raw.useSelector((s) => s.bootstrap.dataModels),
 
   useDefaultDataType: () => {
-    const uiFolder = FormProviderHooks.useBootstrap().uiFolder;
+    const uiFolder = FormStore.raw.useSelector((s) => s.bootstrap.uiFolder);
     return getUiFolderSettings(uiFolder)?.defaultDataType;
   },
   useLaxDefaultDataType: () => {
-    const uiFolder = FormProviderHooks.useLaxBootstrap()?.uiFolder;
-    return uiFolder ? getUiFolderSettings(uiFolder)?.defaultDataType : ContextNotProvided;
+    const uiFolder = FormStore.raw.useLaxSelector((s) => s.bootstrap.uiFolder);
+    return uiFolder === ContextNotProvided ? ContextNotProvided : getUiFolderSettings(uiFolder)?.defaultDataType;
   },
   useReadableDataTypes: () => {
-    const models = FormProviderHooks.useBootstrap().dataModels;
+    const models = FormStore.raw.useSelector((s) => s.bootstrap.dataModels);
     return useMemo(() => Object.keys(models), [models]);
   },
   useLaxReadableDataTypes: () => {
-    const models = FormProviderHooks.useLaxBootstrap()?.dataModels;
-    return useMemo(() => (models ? Object.keys(models) : ContextNotProvided), [models]);
+    const models = FormStore.raw.useLaxSelector((s) => s.bootstrap.dataModels);
+    return useMemo(() => (models === ContextNotProvided ? ContextNotProvided : Object.keys(models)), [models]);
   },
   useWritableDataTypes: () => {
-    const { dataModels } = FormProviderHooks.useBootstrap();
+    const dataModels = FormStore.raw.useSelector((s) => s.bootstrap.dataModels);
     return (
       useInstanceDataQuery({
         select: (instance) =>
@@ -49,7 +55,7 @@ export const FormBootstrap = {
     );
   },
   useSchemaLookup: () => {
-    const dataModels = FormProviderHooks.useBootstrap().dataModels;
+    const dataModels = FormStore.raw.useSelector((s) => s.bootstrap.dataModels);
     return useMemo(
       () =>
         Object.fromEntries(
@@ -59,7 +65,7 @@ export const FormBootstrap = {
     );
   },
   useLookupBinding: () => {
-    const { dataModels } = FormProviderHooks.useBootstrap();
+    const dataModels = FormStore.raw.useSelector((s) => s.bootstrap.dataModels);
     return useMemo(() => {
       if (Object.keys(dataModels).every((dataType) => dataModels[dataType])) {
         return (reference: IDataModelReference) =>
@@ -70,17 +76,20 @@ export const FormBootstrap = {
     }, [dataModels]);
   },
   useGetDataElementIdForDataType: () => {
-    const dataModels = FormProviderHooks.useBootstrap().dataModels;
+    const dataModels = FormStore.raw.useSelector((s) => s.bootstrap.dataModels);
     return useCallback((dataType: string) => dataModels[dataType]?.dataElementId, [dataModels]);
   },
   useDataElementIds: () => {
-    const dataModels = FormProviderHooks.useBootstrap().dataModels;
+    const dataModels = FormStore.raw.useSelector((s) => s.bootstrap.dataModels);
     return useMemo(
       () => Object.fromEntries(Object.entries(dataModels).map(([dataType, info]) => [dataType, info.dataElementId])),
       [dataModels],
     );
   },
 
-  useStaticOptionsMap: () => FormProviderHooks.useBootstrap().staticOptions,
-  useAllInitialValidationIssues: () => FormProviderHooks.useLaxBootstrap()?.allInitialValidations,
+  useStaticOptionsMap: () => FormStore.raw.useSelector((s) => s.bootstrap.staticOptions),
+  useAllInitialValidationIssues: () => {
+    const out = FormStore.raw.useLaxSelector((s) => s.bootstrap.allInitialValidations);
+    return out === ContextNotProvided ? undefined : out;
+  },
 };

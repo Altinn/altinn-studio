@@ -3,7 +3,6 @@ import type { JSX, ReactNode } from 'react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { DataModelReaders } from 'src/features/formData/FormDataReaders';
 import { Lang } from 'src/features/language/Lang';
 import { useLangToolsDataSources } from 'src/features/language/useLangToolsDataSources';
@@ -93,8 +92,8 @@ export function useLanguage() {
 
 export function useLanguageWithForcedPath(dataModelPath: IDataModelReference | undefined) {
   const sources = useLangToolsDataSources();
-  const defaultDataType = FormBootstrap.useLaxDefaultDataType();
-  const formDataTypes = FormBootstrap.useLaxReadableDataTypes();
+  const defaultDataType = FormStore.bootstrap.useLaxDefaultDataType();
+  const formDataTypes = FormStore.bootstrap.useLaxReadableDataTypes();
   const formDataSelector = FormStore.data.useLaxDebouncedSelector();
 
   return useMemo(() => {

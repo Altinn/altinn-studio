@@ -8,6 +8,7 @@ import (
 	"sort"
 
 	authstore "altinn.studio/studioctl/internal/auth"
+	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/studio"
 )
 
@@ -32,12 +33,12 @@ func (e AlreadyLoggedInError) Error() string {
 
 // Service contains auth command logic.
 type Service struct {
-	credentialsHome string
+	cfg *config.Config
 }
 
 // NewService creates a new auth command service.
-func NewService(credentialsHome string) *Service {
-	return &Service{credentialsHome: credentialsHome}
+func NewService(cfg *config.Config) *Service {
+	return &Service{cfg: cfg}
 }
 
 // ResolveHost resolves the effective host based on env and explicit override.
@@ -72,7 +73,7 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (LoginResult, err
 		return LoginResult{}, ErrTokenRequired
 	}
 
-	creds, err := authstore.LoadCredentials(s.credentialsHome)
+	creds, err := authstore.LoadCredentials(s.cfg.Home)
 	if err != nil {
 		return LoginResult{}, fmt.Errorf("load credentials: %w", err)
 	}
@@ -84,7 +85,7 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (LoginResult, err
 		}
 	}
 
-	client := studio.NewClientWithHTTP(req.Host, req.Token, "", nil)
+	client := studio.NewClientWithHTTP(req.Host, req.Token, "", s.cfg.Version, nil)
 	user, err := client.GetUser(ctx)
 	if err != nil {
 		if errors.Is(err, studio.ErrUnauthorized) {
@@ -98,7 +99,7 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (LoginResult, err
 		Token:    req.Token,
 		Username: user.Login,
 	})
-	if err := authstore.SaveCredentials(s.credentialsHome, creds); err != nil {
+	if err := authstore.SaveCredentials(s.cfg.Home, creds); err != nil {
 		return LoginResult{}, fmt.Errorf("save credentials: %w", err)
 	}
 
@@ -126,7 +127,7 @@ type StatusResult struct {
 
 // Status returns auth status for one/all environments.
 func (s *Service) Status(ctx context.Context, req StatusRequest) (StatusResult, error) {
-	creds, err := authstore.LoadCredentials(s.credentialsHome)
+	creds, err := authstore.LoadCredentials(s.cfg.Home)
 	if err != nil {
 		return StatusResult{}, fmt.Errorf("load credentials: %w", err)
 	}
@@ -157,7 +158,7 @@ func (s *Service) Status(ctx context.Context, req StatusRequest) (StatusResult, 
 					Env:      req.Env,
 					Host:     envCreds.Host,
 					Username: envCreds.Username,
-					Status:   validateToken(ctx, envCreds),
+					Status:   validateToken(ctx, envCreds, s.cfg.Version),
 				},
 			},
 		}, nil
@@ -176,7 +177,7 @@ func (s *Service) Status(ctx context.Context, req StatusRequest) (StatusResult, 
 			Env:      envName,
 			Host:     envCreds.Host,
 			Username: envCreds.Username,
-			Status:   validateToken(ctx, envCreds),
+			Status:   validateToken(ctx, envCreds, s.cfg.Version),
 		})
 	}
 
@@ -199,14 +200,14 @@ type LogoutResult struct {
 
 // Logout clears credentials for one/all environments.
 func (s *Service) Logout(req LogoutRequest) (LogoutResult, error) {
-	creds, err := authstore.LoadCredentials(s.credentialsHome)
+	creds, err := authstore.LoadCredentials(s.cfg.Home)
 	if err != nil {
 		return LogoutResult{}, fmt.Errorf("load credentials: %w", err)
 	}
 
 	if req.All {
 		creds.DeleteAll()
-		if err := authstore.SaveCredentials(s.credentialsHome, creds); err != nil {
+		if err := authstore.SaveCredentials(s.cfg.Home, creds); err != nil {
 			return LogoutResult{}, fmt.Errorf("save credentials: %w", err)
 		}
 		return LogoutResult{Removed: true}, nil
@@ -220,15 +221,15 @@ func (s *Service) Logout(req LogoutRequest) (LogoutResult, error) {
 	}
 
 	creds.Delete(req.Env)
-	if err := authstore.SaveCredentials(s.credentialsHome, creds); err != nil {
+	if err := authstore.SaveCredentials(s.cfg.Home, creds); err != nil {
 		return LogoutResult{}, fmt.Errorf("save credentials: %w", err)
 	}
 
 	return LogoutResult{Removed: true}, nil
 }
 
-func validateToken(ctx context.Context, creds *authstore.EnvCredentials) string {
-	client := studio.NewClient(creds)
+func validateToken(ctx context.Context, creds *authstore.EnvCredentials, version config.Version) string {
+	client := studio.NewClient(creds, version)
 	_, err := client.GetUser(ctx)
 	if err != nil {
 		if errors.Is(err, studio.ErrUnauthorized) {

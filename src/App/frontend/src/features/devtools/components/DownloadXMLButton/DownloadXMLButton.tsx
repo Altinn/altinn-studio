@@ -7,15 +7,14 @@ import axios from 'axios';
 
 import { Button } from 'src/app-components/Button/Button';
 import { useIsStateless } from 'src/features/applicationMetadata';
-import { FormProviderHooks, FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import comboboxClasses from 'src/styles/combobox.module.css';
 import { optionFilter } from 'src/utils/options';
 import { getStatefulDataModelUrl } from 'src/utils/urls/appUrlHelper';
 
 export function DownloadXMLButton() {
-  const isInForm = FormProviderHooks.useIsInContext();
+  const isInForm = FormStore.useIsInContext();
   const isStateless = useIsStateless();
   if (!isInForm || isStateless) {
     return null;
@@ -26,8 +25,8 @@ export function DownloadXMLButton() {
 
 const InnerDownloadXMLButton = () => {
   const instanceId = useLaxInstanceId();
-  const writableDataTypes = FormBootstrap.useWritableDataTypes();
-  const getDataElementIdForDataType = FormBootstrap.useGetDataElementIdForDataType();
+  const writableDataTypes = FormStore.bootstrap.useWritableDataTypes();
+  const getDataElementIdForDataType = FormStore.bootstrap.useGetDataElementIdForDataType();
   const [selectedDataType, setSelectedDataType] = useState(writableDataTypes?.at(0));
   const disabled = !selectedDataType;
 

@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { useEmptyFieldValidationOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { PersonLookupDef } from 'src/layout/PersonLookup/config.def.generated';
 import { PersonLookupComponent } from 'src/layout/PersonLookup/PersonLookupComponent';
@@ -72,8 +72,8 @@ export class PersonLookup extends PersonLookupDef {
   }
 
   useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'PersonLookup'>): string[] {
-    const lookupBinding = FormBootstrap.useLookupBinding();
-    const layoutLookups = FormBootstrap.useLayoutLookups();
+    const lookupBinding = FormStore.bootstrap.useLookupBinding();
+    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
     return (
       validateDataModelBindingsAny(baseComponentId, bindings, lookupBinding, layoutLookups, 'person_lookup_ssn', [
         'string',

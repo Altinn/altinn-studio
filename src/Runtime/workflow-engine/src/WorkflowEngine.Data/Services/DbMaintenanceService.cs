@@ -96,11 +96,7 @@ internal sealed class DbMaintenanceService(
         {
             using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))
             {
-                await using var workflowCmd = dataSource.CreateCommand(Sql.PurgeExpiredWorkflows);
-                workflowCmd.Parameters.AddWithValue("cutoff", cutoff);
-                workflowCmd.Parameters.AddWithValue("batchSize", settings.BatchSize);
-
-                deleted = await workflowCmd.ExecuteNonQueryAsync(ct);
+                deleted = await PurgeExpiredWorkflowBatch(now, cutoff, settings.BatchSize, ct);
                 totalDeletedWorkflows += deleted;
             }
         } while (deleted >= settings.BatchSize);
@@ -126,12 +122,195 @@ internal sealed class DbMaintenanceService(
             using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))
             {
                 await using var analyzeCmd = dataSource.CreateCommand(
-                    "ANALYZE engine.workflows, engine.steps, engine.workflow_dependency, engine.idempotency_keys"
+                    "ANALYZE engine.workflows, engine.steps, engine.workflow_dependency, engine.workflow_collections, engine.idempotency_keys"
                 );
                 await analyzeCmd.ExecuteNonQueryAsync(ct);
             }
         }
     }
+
+    private async Task<int> PurgeExpiredWorkflowBatch(
+        DateTimeOffset now,
+        DateTimeOffset cutoff,
+        int batchSize,
+        CancellationToken ct
+    )
+    {
+        await using var conn = await dataSource.OpenConnectionAsync(ct);
+        await using var tx = await conn.BeginTransactionAsync(ct);
+
+        // Discover candidate collection keys without locking workflows first. Enqueue locks the
+        // collection before adding dependencies to heads; taking workflow locks first here would
+        // invert that order and could deadlock with a concurrent enqueue.
+        var candidates = await SelectExpiredWorkflowCandidates(conn, tx, cutoff, batchSize, ct);
+        if (candidates.Count == 0)
+        {
+            await tx.CommitAsync(ct);
+            return 0;
+        }
+
+        var collectionKeys = new List<(string Key, string Namespace)>();
+        foreach (var candidate in candidates)
+        {
+            if (candidate.CollectionKey is { } collectionKey)
+            {
+                collectionKeys.Add((collectionKey, candidate.Namespace));
+            }
+        }
+
+        var distinctCollectionKeys = collectionKeys
+            .Distinct()
+            .OrderBy(collection => collection.Key)
+            .ThenBy(collection => collection.Namespace)
+            .ToArray();
+
+        await LockWorkflowCollections(conn, tx, distinctCollectionKeys, ct);
+
+        var deletedWorkflows = await DeleteExpiredWorkflows(
+            conn,
+            tx,
+            [.. candidates.Select(candidate => candidate.Id)],
+            cutoff,
+            ct
+        );
+        if (deletedWorkflows.Count == 0)
+        {
+            await tx.CommitAsync(ct);
+            return 0;
+        }
+
+        await PruneWorkflowCollectionHeads(conn, tx, deletedWorkflows, now, ct);
+        await DeleteUnreferencedWorkflowCollections(conn, tx, distinctCollectionKeys, ct);
+
+        await tx.CommitAsync(ct);
+        return deletedWorkflows.Count;
+    }
+
+    private static async Task<List<WorkflowPurgeCandidate>> SelectExpiredWorkflowCandidates(
+        NpgsqlConnection conn,
+        NpgsqlTransaction tx,
+        DateTimeOffset cutoff,
+        int batchSize,
+        CancellationToken ct
+    )
+    {
+        await using var cmd = new NpgsqlCommand(Sql.SelectExpiredWorkflowCandidatesCommand, conn, tx);
+        cmd.Parameters.AddWithValue("cutoff", cutoff);
+        cmd.Parameters.AddWithValue("batchSize", batchSize);
+
+        var candidates = new List<WorkflowPurgeCandidate>();
+        await using var reader = await cmd.ExecuteReaderAsync(ct);
+        while (await reader.ReadAsync(ct))
+        {
+#pragma warning disable CA1849, S6966
+            var id = reader.GetFieldValue<Guid>(0);
+            var collectionKey = reader.IsDBNull(1) ? null : reader.GetFieldValue<string>(1);
+            var ns = reader.GetFieldValue<string>(2);
+#pragma warning restore CA1849, S6966
+            candidates.Add(new WorkflowPurgeCandidate(id, collectionKey, ns));
+        }
+
+        return candidates;
+    }
+
+    private static async Task LockWorkflowCollections(
+        NpgsqlConnection conn,
+        NpgsqlTransaction tx,
+        (string Key, string Namespace)[] collectionKeys,
+        CancellationToken ct
+    )
+    {
+        if (collectionKeys.Length == 0)
+        {
+            return;
+        }
+
+        var (keys, namespaces) = collectionKeys.Unzip();
+        await using var cmd = new NpgsqlCommand(Sql.LockWorkflowCollectionsCommand, conn, tx);
+        cmd.Parameters.AddWithValue("keys", keys);
+        cmd.Parameters.AddWithValue("namespaces", namespaces);
+
+        await cmd.ExecuteNonQueryAsync(ct);
+    }
+
+    private static async Task<List<DeletedWorkflow>> DeleteExpiredWorkflows(
+        NpgsqlConnection conn,
+        NpgsqlTransaction tx,
+        Guid[] candidateIds,
+        DateTimeOffset cutoff,
+        CancellationToken ct
+    )
+    {
+        await using var cmd = new NpgsqlCommand(Sql.DeleteExpiredWorkflowsCommand, conn, tx);
+        cmd.Parameters.AddWithValue("workflowIds", candidateIds);
+        cmd.Parameters.AddWithValue("cutoff", cutoff);
+
+        var deletedWorkflows = new List<DeletedWorkflow>();
+        await using var reader = await cmd.ExecuteReaderAsync(ct);
+        while (await reader.ReadAsync(ct))
+        {
+#pragma warning disable CA1849, S6966
+            var id = reader.GetFieldValue<Guid>(0);
+            var collectionKey = reader.IsDBNull(1) ? null : reader.GetFieldValue<string>(1);
+            var ns = reader.GetFieldValue<string>(2);
+#pragma warning restore CA1849, S6966
+            deletedWorkflows.Add(new DeletedWorkflow(id, collectionKey, ns));
+        }
+
+        return deletedWorkflows;
+    }
+
+    private static async Task PruneWorkflowCollectionHeads(
+        NpgsqlConnection conn,
+        NpgsqlTransaction tx,
+        List<DeletedWorkflow> deletedWorkflows,
+        DateTimeOffset now,
+        CancellationToken ct
+    )
+    {
+        var collectionDeletes = new List<(string Key, string Namespace, Guid Id)>();
+        foreach (var workflow in deletedWorkflows)
+        {
+            if (workflow.CollectionKey is { } collectionKey)
+            {
+                collectionDeletes.Add((collectionKey, workflow.Namespace, workflow.Id));
+            }
+        }
+
+        if (collectionDeletes.Count == 0)
+            return;
+
+        var (keys, namespaces, workflowIds) = collectionDeletes.ToArray().Unzip();
+        await using var cmd = new NpgsqlCommand(Sql.PruneWorkflowCollectionHeadsCommand, conn, tx);
+        cmd.Parameters.AddWithValue("keys", keys);
+        cmd.Parameters.AddWithValue("namespaces", namespaces);
+        cmd.Parameters.AddWithValue("workflowIds", workflowIds);
+        cmd.Parameters.AddWithValue("now", now);
+
+        await cmd.ExecuteNonQueryAsync(ct);
+    }
+
+    private static async Task DeleteUnreferencedWorkflowCollections(
+        NpgsqlConnection conn,
+        NpgsqlTransaction tx,
+        (string Key, string Namespace)[] collectionKeys,
+        CancellationToken ct
+    )
+    {
+        if (collectionKeys.Length == 0)
+            return;
+
+        var (keys, namespaces) = collectionKeys.Unzip();
+        await using var cmd = new NpgsqlCommand(Sql.DeleteUnreferencedWorkflowCollectionsCommand, conn, tx);
+        cmd.Parameters.AddWithValue("keys", keys);
+        cmd.Parameters.AddWithValue("namespaces", namespaces);
+
+        await cmd.ExecuteNonQueryAsync(ct);
+    }
+
+    private sealed record WorkflowPurgeCandidate(Guid Id, string? CollectionKey, string Namespace);
+
+    private sealed record DeletedWorkflow(Guid Id, string? CollectionKey, string Namespace);
 
     /// <summary>
     /// Finalizes poison workflows — rows that have exceeded <see cref="EngineSettings.MaxReclaimCount"/>
@@ -196,12 +375,78 @@ internal sealed class DbMaintenanceService(
 
     internal static class Sql
     {
-        internal const string PurgeExpiredWorkflows = """
+        internal const string SelectExpiredWorkflowCandidatesCommand = """
+            SELECT w.id, w.collection_key, w.namespace
+            FROM engine.workflows w
+            WHERE w.id IN (
+                SELECT candidate.id
+                FROM engine.workflows candidate
+                WHERE candidate.status IN (3, 4, 5, 6)
+                  AND candidate.updated_at < @cutoff
+                  AND NOT EXISTS (
+                      SELECT 1 FROM engine.workflow_dependency dep
+                      JOIN engine.workflows d ON dep.workflow_id = d.id
+                      WHERE dep.depends_on_workflow_id = candidate.id
+                        AND (d.status IN (0, 1, 2) OR d.updated_at >= @cutoff)
+                  )
+                  AND NOT EXISTS (
+                      SELECT 1 FROM engine.workflow_link lnk
+                      JOIN engine.workflows l ON lnk.workflow_id = l.id
+                      WHERE lnk.linked_workflow_id = candidate.id
+                        AND (l.status IN (0, 1, 2) OR l.updated_at >= @cutoff)
+                  )
+                LIMIT @batchSize
+            )
+            LIMIT @batchSize
+            """;
+
+        internal const string LockWorkflowCollectionsCommand = """
+            SELECT wc.key, wc.namespace
+            FROM unnest(@keys, @namespaces) AS t(key, namespace)
+            JOIN engine.workflow_collections wc USING (key, namespace)
+            ORDER BY wc.key, wc.namespace
+            FOR UPDATE
+            """;
+
+        internal const string PruneWorkflowCollectionHeadsCommand = """
+            WITH deleted AS (
+                SELECT key, namespace, array_agg(workflow_id) AS workflow_ids
+                FROM unnest(@keys, @namespaces, @workflowIds) AS t(key, namespace, workflow_id)
+                GROUP BY key, namespace
+            )
+            UPDATE engine.workflow_collections AS wc
+            SET heads = ARRAY(
+                    SELECT head
+                    FROM unnest(wc.heads) AS heads(head)
+                    WHERE NOT (head = ANY(deleted.workflow_ids))
+                ),
+                updated_at = @now
+            FROM deleted
+            WHERE wc.key = deleted.key
+              AND wc.namespace = deleted.namespace
+              AND wc.heads && deleted.workflow_ids
+            """;
+
+        internal const string DeleteUnreferencedWorkflowCollectionsCommand = """
+            DELETE FROM engine.workflow_collections AS wc
+            USING unnest(@keys, @namespaces) AS t(key, namespace)
+            WHERE wc.key = t.key
+              AND wc.namespace = t.namespace
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM engine.workflows w
+                  WHERE w.collection_key = wc.key
+                    AND w.namespace = wc.namespace
+              )
+            """;
+
+        internal const string DeleteExpiredWorkflowsCommand = """
             DELETE FROM engine.workflows
             WHERE id IN (
                 SELECT w.id
                 FROM engine.workflows w
-                WHERE w.status IN (3, 4, 5, 6)
+                WHERE w.id = ANY(@workflowIds)
+                  AND w.status IN (3, 4, 5, 6)
                   AND w.updated_at < @cutoff
                   AND NOT EXISTS (
                       SELECT 1 FROM engine.workflow_dependency dep
@@ -215,9 +460,9 @@ internal sealed class DbMaintenanceService(
                       WHERE lnk.linked_workflow_id = w.id
                         AND (l.status IN (0, 1, 2) OR l.updated_at >= @cutoff)
                   )
-                LIMIT @batchSize
                 FOR UPDATE SKIP LOCKED
             )
+            RETURNING id, collection_key, namespace
             """;
 
         internal const string DeleteOrphanedIdempotencyKeys = """

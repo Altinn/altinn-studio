@@ -9,6 +9,11 @@ metadata:
     runner: {{ .name }}
 spec:
   replicas: {{ .replicas | default 1 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       {{- include "gitea-org-runner.selectorLabels" $ | nindent 6 }}
@@ -26,6 +31,9 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
+      {{- with $.Values.runtimeClassName }}
+      runtimeClassName: {{ . }}
+      {{- end }}
       {{- with $.Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -33,6 +41,40 @@ spec:
       {{- with $.Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if $.Values.dockerInDocker.enabled }}
+      initContainers:
+        - name: dockerd
+          image: "{{ $.Values.dockerInDocker.image.repository }}:{{ $.Values.dockerInDocker.image.tag }}"
+          imagePullPolicy: {{ $.Values.dockerInDocker.image.pullPolicy }}
+          restartPolicy: Always
+          securityContext:
+            privileged: true
+          env:
+            - name: DOCKER_TLS_CERTDIR
+              value: "/certs"
+          command: ["sh", "-c"]
+          args:
+            - |
+              if [ "$(df -PT /var/lib/docker | awk 'NR==2 {print $2}')" = "virtiofs" ]; then
+                apk add --no-cache e2fsprogs &&
+                truncate -s {{ $.Values.dockerInDocker.diskSize | default "15G" }} /tmp/docker-disk.img &&
+                mkfs.ext4 -F /tmp/docker-disk.img &&
+                mount /tmp/docker-disk.img /var/lib/docker
+              fi
+              exec dockerd-entrypoint.sh --host=tcp://0.0.0.0:2376
+          startupProbe:
+            tcpSocket:
+              port: 2376
+            periodSeconds: 2
+            failureThreshold: 45
+          volumeMounts:
+            - name: docker-certs
+              mountPath: /certs
+            {{- if $.Values.shareWorkspace.enabled }}
+            - name: act-cache
+              mountPath: {{ $.Values.shareWorkspace.path | default "/root/.cache/act" }}
+            {{- end }}
       {{- end }}
       containers:
         - name: {{ $.Chart.Name }}
@@ -43,6 +85,14 @@ spec:
           image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
           imagePullPolicy: {{ $.Values.image.pullPolicy }}
           env:
+            {{- if $.Values.dockerInDocker.enabled }}
+            - name: DOCKER_HOST
+              value: "tcp://localhost:2376"
+            - name: DOCKER_TLS_VERIFY
+              value: "1"
+            - name: DOCKER_CERT_PATH
+              value: "/certs/client"
+            {{- end }}
             {{- if .environmentVariables }}
             {{- range $variable := .environmentVariables}}
             - name: {{ $variable.name }}
@@ -62,13 +112,35 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with $.Values.volumeMounts }}
+          {{- if or $.Values.volumeMounts $.Values.dockerInDocker.enabled $.Values.shareWorkspace.enabled }}
           volumeMounts:
+            {{- with $.Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- if $.Values.dockerInDocker.enabled }}
+            - name: docker-certs
+              mountPath: /certs
+              readOnly: true
+            {{- end }}
+            {{- if $.Values.shareWorkspace.enabled }}
+            - name: act-cache
+              mountPath: {{ $.Values.shareWorkspace.path | default "/root/.cache/act" }}
+            {{- end }}
           {{- end }}
-      {{- with $.Values.volumes }}
+      {{- if or $.Values.volumes $.Values.dockerInDocker.enabled $.Values.shareWorkspace.enabled }}
       volumes:
+        {{- with $.Values.volumes }}
         {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if $.Values.dockerInDocker.enabled }}
+        - name: docker-certs
+          emptyDir: {}
+        {{- end }}
+        {{- if $.Values.shareWorkspace.enabled }}
+        - name: act-cache
+          emptyDir:
+            sizeLimit: {{ $.Values.shareWorkspace.sizeLimit | default "10Gi" }}
+        {{- end }}
       {{- end }}
       {{- with $.Values.nodeSelector }}
       nodeSelector:

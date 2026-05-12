@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import type { JSX } from 'react';
 
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import type { IDataModelReference } from 'src/layout/common.generated';
@@ -12,7 +11,7 @@ export function FileUploadLayoutValidator(
   props: NodeValidationProps<'FileUpload' | 'FileUploadWithTag'>,
 ): JSX.Element | null {
   const { intermediateItem, externalItem } = props;
-  const allPages = FormBootstrap.useLayouts();
+  const allPages = FormStore.bootstrap.useLayouts();
   const binding = extractBinding(externalItem);
   const { langAsString } = useLanguage();
   const addError = FormStore.nodes.useAddError();

@@ -11,16 +11,16 @@ public class ProxyMiddleware
     private const string DestinationLocationHost = "host";
 
     private readonly RequestDelegate _nextMiddleware;
-    private readonly EnvProxy _envProxy;
-    private readonly HostProxy _hostProxy;
+    private readonly EnvRouteProxy _envProxy;
+    private readonly HostRouteProxy _hostProxy;
     private readonly ILogger<ProxyMiddleware> _logger;
     private readonly BoundTopologyIndexAccessor _boundTopologyIndex;
 
     public ProxyMiddleware(
         RequestDelegate nextMiddleware,
         BoundTopologyIndexAccessor boundTopologyIndex,
-        EnvProxy envProxy,
-        HostProxy hostProxy,
+        EnvRouteProxy envProxy,
+        HostRouteProxy hostProxy,
         ILogger<ProxyMiddleware> logger
     )
     {

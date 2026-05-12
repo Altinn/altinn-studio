@@ -18,13 +18,13 @@ import (
 	"altinn.studio/devenv/pkg/processutil"
 	"altinn.studio/studioctl/internal/appcontainers"
 	"altinn.studio/studioctl/internal/appimage"
-	"altinn.studio/studioctl/internal/appmanager"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	appsupport "altinn.studio/studioctl/internal/cmd/apps"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
+	"altinn.studio/studioctl/internal/studioctlserver"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -33,7 +33,7 @@ const (
 	runModeContainer                  = "container"
 	foregroundContainerCleanupTimeout = 15 * time.Second
 	dotnetShutdownTimeout             = 10 * time.Second
-	appManagerCleanupTimeout          = 2 * time.Second
+	studioctlServerCleanupTimeout     = 2 * time.Second
 	appStartupTimeout                 = 15 * time.Second
 	appStartupPollInterval            = 500 * time.Millisecond
 	maxAppLogCreateAttempts           = 3
@@ -60,7 +60,7 @@ type RunCommand struct {
 
 // NewRunCommand creates a new top-level run alias command.
 func NewRunCommand(cfg *config.Config, out *ui.Output) *RunCommand {
-	return newRunCommand(cfg, out, appsvc.NewService(cfg.Home))
+	return newRunCommand(cfg, out, appsvc.NewService(cfg))
 }
 
 func newRunCommand(cfg *config.Config, out *ui.Output, service *appsvc.Service) *RunCommand {
@@ -412,7 +412,7 @@ func (c *RunCommand) registerStartedDotnetAppWithRunInfo(
 	waitErr chan error,
 	topology envtopology.Local,
 	monitor readinessMonitor,
-	runInfo appmanager.AppRegistration,
+	runInfo studioctlserver.AppRegistration,
 	flags runFlags,
 ) (string, error) {
 	var baseURL string
@@ -556,8 +556,8 @@ func (c *RunCommand) writeProcessLogMetadata(appID string, processID int, proces
 	return nil
 }
 
-func nativeAppRunInfo(processID int) appmanager.AppRegistration {
-	return appmanager.AppRegistration{
+func nativeAppRunInfo(processID int) studioctlserver.AppRegistration {
+	return studioctlserver.AppRegistration{
 		AppID:          "",
 		ContainerID:    "",
 		HostPort:       0,
@@ -633,18 +633,18 @@ func (c *RunCommand) registerPortAndWaitForApp(
 	appID string,
 	port int,
 	topology envtopology.Local,
-	runInfo appmanager.AppRegistration,
+	runInfo studioctlserver.AppRegistration,
 	monitor readinessMonitor,
 	jsonOutput bool,
 ) (string, error) {
 	if c.cfg == nil {
 		return "", errStudioctlConfigRequired
 	}
-	if err := appmanager.EnsureStarted(ctx, c.cfg, topology.IngressPort()); err != nil {
-		return "", startupOperationError(ctx, "start app-manager", err)
+	if err := studioctlserver.EnsureStarted(ctx, c.cfg, topology.IngressPort()); err != nil {
+		return "", startupOperationError(ctx, "start studioctl-server", err)
 	}
 
-	client := appmanager.NewClient(c.cfg)
+	client := studioctlserver.NewClient(c.cfg)
 	baseURL, err := registerPortAppWithStartupMonitor(ctx, client, appID, port, runInfo, monitor)
 	if err != nil {
 		return "", err
@@ -658,13 +658,13 @@ func (c *RunCommand) registerPortAndWaitForApp(
 
 func registerPortAppWithStartupMonitor(
 	ctx context.Context,
-	client *appmanager.Client,
+	client *studioctlserver.Client,
 	appID string,
 	port int,
-	runInfo appmanager.AppRegistration,
+	runInfo studioctlserver.AppRegistration,
 	monitor readinessMonitor,
 ) (string, error) {
-	registration := appmanager.AppRegistration{
+	registration := studioctlserver.AppRegistration{
 		AppID:          appID,
 		ContainerID:    "",
 		HostPort:       port,
@@ -696,18 +696,18 @@ func (c *RunCommand) registerContainerAndWaitForApp(
 	appID string,
 	hostPort int,
 	topology envtopology.Local,
-	runInfo appmanager.AppRegistration,
+	runInfo studioctlserver.AppRegistration,
 	monitor readinessMonitor,
 	jsonOutput bool,
 ) (string, error) {
 	if c.cfg == nil {
 		return "", errStudioctlConfigRequired
 	}
-	if err := appmanager.EnsureStarted(ctx, c.cfg, topology.IngressPort()); err != nil {
-		return "", startupOperationError(ctx, "start app-manager", err)
+	if err := studioctlserver.EnsureStarted(ctx, c.cfg, topology.IngressPort()); err != nil {
+		return "", startupOperationError(ctx, "start studioctl-server", err)
 	}
 
-	client := appmanager.NewClient(c.cfg)
+	client := studioctlserver.NewClient(c.cfg)
 	baseURL, err := registerPortAppWithStartupMonitor(ctx, client, appID, hostPort, runInfo, monitor)
 	if err != nil {
 		return "", err
@@ -724,18 +724,18 @@ func (c *RunCommand) registerProcessAndWaitForApp(
 	appID string,
 	processID int,
 	topology envtopology.Local,
-	runInfo appmanager.AppRegistration,
+	runInfo studioctlserver.AppRegistration,
 	monitor readinessMonitor,
 	jsonOutput bool,
 ) (string, error) {
 	if c.cfg == nil {
 		return "", errStudioctlConfigRequired
 	}
-	if err := appmanager.EnsureStarted(ctx, c.cfg, topology.IngressPort()); err != nil {
-		return "", startupOperationError(ctx, "start app-manager", err)
+	if err := studioctlserver.EnsureStarted(ctx, c.cfg, topology.IngressPort()); err != nil {
+		return "", startupOperationError(ctx, "start studioctl-server", err)
 	}
 
-	client := appmanager.NewClient(c.cfg)
+	client := studioctlserver.NewClient(c.cfg)
 	baseURL, err := registerProcessAppWithStartupMonitor(ctx, client, appID, processID, runInfo, monitor)
 	if err != nil {
 		return "", err
@@ -749,13 +749,13 @@ func (c *RunCommand) registerProcessAndWaitForApp(
 
 func registerProcessAppWithStartupMonitor(
 	ctx context.Context,
-	client *appmanager.Client,
+	client *studioctlserver.Client,
 	appID string,
 	processID int,
-	runInfo appmanager.AppRegistration,
+	runInfo studioctlserver.AppRegistration,
 	monitor readinessMonitor,
 ) (string, error) {
-	registration := appmanager.AppRegistration{
+	registration := studioctlserver.AppRegistration{
 		AppID:          appID,
 		ContainerID:    "",
 		HostPort:       0,
@@ -772,7 +772,7 @@ func registerProcessAppWithStartupMonitor(
 	)
 }
 
-func applyAppRunInfo(registration *appmanager.AppRegistration, runInfo appmanager.AppRegistration) {
+func applyAppRunInfo(registration *studioctlserver.AppRegistration, runInfo studioctlserver.AppRegistration) {
 	if runInfo.ProcessID > 0 {
 		registration.ProcessID = runInfo.ProcessID
 	}
@@ -784,8 +784,8 @@ func applyAppRunInfo(registration *appmanager.AppRegistration, runInfo appmanage
 
 func registerAppWithStartupMonitor(
 	ctx context.Context,
-	client *appmanager.Client,
-	registration appmanager.AppRegistration,
+	client *studioctlserver.Client,
+	registration studioctlserver.AppRegistration,
 	monitor readinessMonitor,
 	timeoutErr error,
 ) (string, error) {
@@ -815,7 +815,7 @@ func registerAppWithStartupMonitor(
 			if result.err == nil {
 				return result.baseURL, nil
 			}
-			if errors.Is(result.err, appmanager.ErrAppEndpointNotFound) ||
+			if errors.Is(result.err, studioctlserver.ErrAppEndpointNotFound) ||
 				errors.Is(result.err, context.DeadlineExceeded) ||
 				waitCtx.Err() != nil {
 				return "", timeoutErr
@@ -823,7 +823,7 @@ func registerAppWithStartupMonitor(
 			if ctx.Err() != nil {
 				return "", errAppRunStopped
 			}
-			return "", startupOperationError(ctx, "register app with app-manager", result.err)
+			return "", startupOperationError(ctx, "register app with studioctl-server", result.err)
 		case <-ticker.C:
 			if err := monitor(waitCtx); err != nil {
 				return "", startupMonitorError(ctx, waitCtx, err, timeoutErr)
@@ -883,11 +883,11 @@ func (c *RunCommand) unregisterAppBestEffort(ctx context.Context, appID string) 
 		return
 	}
 
-	cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), appManagerCleanupTimeout)
+	cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), studioctlServerCleanupTimeout)
 	defer cancel()
 
-	if err := appmanager.NewClient(c.cfg).UnregisterApp(cleanupCtx, appID); err != nil {
-		c.out.Verbosef("failed to unregister app %s from app-manager: %v", appID, err)
+	if err := studioctlserver.NewClient(c.cfg).UnregisterApp(cleanupCtx, appID); err != nil {
+		c.out.Verbosef("failed to unregister app %s from studioctl-server: %v", appID, err)
 	}
 }
 
@@ -1016,7 +1016,7 @@ func (c *RunCommand) waitForDockerAppReady(
 	info containerruntime.ContainerInfo,
 	appID string,
 	topology envtopology.Local,
-	runInfo appmanager.AppRegistration,
+	runInfo studioctlserver.AppRegistration,
 	jsonOutput bool,
 ) (string, error) {
 	candidate, ok := appcontainers.CandidateFromContainer(info)
@@ -1063,8 +1063,8 @@ func (c *RunCommand) detachedDockerOutput(
 	return output
 }
 
-func containerAppRunInfo(containerID string, info containerruntime.ContainerInfo) appmanager.AppRegistration {
-	runInfo := appmanager.AppRegistration{
+func containerAppRunInfo(containerID string, info containerruntime.ContainerInfo) studioctlserver.AppRegistration {
+	runInfo := studioctlserver.AppRegistration{
 		AppID:          "",
 		ContainerID:    containerID,
 		HostPort:       0,

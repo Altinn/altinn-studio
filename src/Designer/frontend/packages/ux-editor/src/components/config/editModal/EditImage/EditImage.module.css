@@ -1,0 +1,7 @@
+.urlTab {
+  padding: var(--fds-spacing-5) 0;
+}
+
+.alertImportTab {
+  margin-top: var(--fds-spacing-2);
+}
