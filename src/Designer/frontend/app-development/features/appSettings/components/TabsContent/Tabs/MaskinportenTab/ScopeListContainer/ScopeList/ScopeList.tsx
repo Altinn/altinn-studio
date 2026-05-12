@@ -184,7 +184,7 @@ function AddScopesDialog({
   const { t } = useTranslation();
   const title: string = t('app_settings.maskinporten_select_all_scopes');
   const keepSelectionOnCloseRef = useRef<boolean>(false);
-  const { saveScopes } = useSaveScopes(allAvailableScopes);
+  const { saveScopes, isSaving } = useSaveScopes(allAvailableScopes);
 
   const { getCheckboxProps, selectedValues, setSelectedValues } = useStudioCheckboxTable(
     initialValues,
@@ -303,7 +303,7 @@ function AddScopesDialog({
             onClick: saveSelectedScopes,
           }}
           secondary={{ label: t('general.cancel'), onClick: closeDialog }}
-          isLoading={false}
+          isLoading={isSaving}
           className={classes.actionsWrapper}
         />
       </StudioDialog.Block>
@@ -313,11 +313,12 @@ function AddScopesDialog({
 
 type UseSaveScopesResult = {
   saveScopes: (selectedValues: string[], onSuccess?: () => void) => void;
+  isSaving: boolean;
 };
 
 function useSaveScopes(allAvailableScopes: MaskinportenScope[]): UseSaveScopesResult {
   const { t } = useTranslation();
-  const { mutate: mutateSelectedMaskinportenScopes } =
+  const { mutate: mutateSelectedMaskinportenScopes, isPending: isSaving } =
     useUpdateSelectedMaskinportenScopesMutation();
 
   const saveScopes = (selectedValues: string[], onSuccess?: () => void): void => {
@@ -338,5 +339,5 @@ function useSaveScopes(allAvailableScopes: MaskinportenScope[]): UseSaveScopesRe
     });
   };
 
-  return { saveScopes };
+  return { saveScopes, isSaving };
 }

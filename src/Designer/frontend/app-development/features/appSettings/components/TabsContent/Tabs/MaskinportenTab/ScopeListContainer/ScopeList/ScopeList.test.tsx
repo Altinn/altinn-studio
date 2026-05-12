@@ -237,7 +237,7 @@ describe('ScopeList', () => {
     await user.click(getButton(textMock('general.delete_item', { item: scopeMock3.scope })));
 
     const successMessage = textMock('app_settings.maskinporten_tab_save_scopes_success_message');
-    expect(getText(successMessage)).toBeInTheDocument();
+    expect(await screen.findByText(successMessage)).toBeInTheDocument();
   });
 
   it('should display an error toast when the update fails', async () => {
@@ -250,7 +250,7 @@ describe('ScopeList', () => {
     await user.click(getButton(textMock('general.delete_item', { item: scopeMock3.scope })));
 
     const errorMessage = textMock('app_settings.maskinporten_tab_save_scopes_error_message');
-    expect(getText(errorMessage)).toBeInTheDocument();
+    expect(await screen.findByText(errorMessage)).toBeInTheDocument();
   });
 });
 
