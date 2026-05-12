@@ -22,13 +22,13 @@ implying that we need to support mapping and filtering.
 
 - **B1:** The solution should support projection (mapping).
 - **B2:** It should support filtering.
-- **B3:** It should theoretically (that is to say not considering memory limits) support selection of data from
+- **B3:** It should theoretically (that is to say, not considering memory limits) support selection of data from
   composite objects and lists with an unlimited number of levels.
 - **B4:** There should be no considerable risk for different outcomes in frontend and backend.
 - **B5:** There must be a way to perform the extraction based on context data in repeating groups.
 - **B6:** It should be convenient to implement and maintain.
 - **B7:** It should not need to depend on lambda functions. (This might be considered 'nice to have' since there is a
-  very good chance we will need lambda functions at some point anyway. However, that introduces a whole new area of
+  strong likelihood we will need lambda functions at some point anyway. However, that introduces a whole new area of
   decisions requiring careful consideration. Therefore, this point is crucial for finishing on time.)
 - **B8:** Nice to have: It should be easily readable.
 - **B9:** Nice to have: It should work on any list and object from any source, including hard-coded values.
