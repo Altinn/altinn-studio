@@ -137,16 +137,15 @@ type containerRunProgress struct {
 	containerID resource.ResourceID
 }
 
+type appRunDetail struct {
+	label string
+	value string
+}
+
 func (o runDetachedOutput) Print(out *ui.Output) error {
 	if o.JSONOutput {
 		return printJSONOutput(out, "run", o)
 	}
-	if o.Mode != runModeProcess {
-		return nil
-	}
-	out.Printlnf("App running in background.")
-	out.Printlnf("Process: %d", o.ProcessID)
-	out.Printlnf("URL: %s", o.URL)
 	return nil
 }
 
@@ -180,7 +179,7 @@ func (c *RunCommand) RunWithCommandPath(ctx context.Context, args []string, comm
 
 	runErr := c.runTarget(ctx, target, dotnetArgs, flags)
 	if errors.Is(runErr, errAppRunStopped) {
-		c.out.Println("App stopped.")
+		c.printAppStopped()
 		return nil
 	}
 	return runErr
@@ -247,6 +246,77 @@ func (c *RunCommand) printResolvedRunTarget(target appsvc.RunTarget) error {
 	return nil
 }
 
+func (c *RunCommand) printAppReady(baseURL string, details ...appRunDetail) {
+	printRunStatusf(c.out, "%s %s", runStatusLabel("App ready:", ui.ColorGreen), baseURL)
+	for _, detail := range details {
+		if detail.value == "" {
+			continue
+		}
+		printRunStatusf(c.out, "  - %s %s", runStatusLabel(detail.label+":", ui.ColorGray), detail.value)
+	}
+	printRunStatusf(c.out, "%s %s", runStatusLabel("Logs:", ui.ColorBlue), "studioctl app logs")
+}
+
+func (c *RunCommand) printAppStopped() {
+	printRunStatusf(c.out, "%s", runStatusLabel("App stopped.", ui.ColorGray))
+}
+
+func appRunDisplayURL(topology envtopology.Local, appID string) string {
+	baseURL := topology.AppBaseURL()
+	org, app, ok := strings.Cut(appID, "/")
+	if !ok {
+		return baseURL
+	}
+	return strings.NewReplacer(
+		"{org}", org,
+		"{app}", app,
+		"{Org}", org,
+		"{App}", app,
+	).Replace(baseURL)
+}
+
+func appRunOutputURL(registrationURL string, displayURL string, jsonOutput bool) string {
+	if jsonOutput {
+		return registrationURL
+	}
+	return displayURL
+}
+
+func processRunDetails(processID int) []appRunDetail {
+	details := []appRunDetail{{label: "Mode", value: runModeProcess}}
+	if processID > 0 {
+		details = append(details, appRunDetail{label: "PID", value: strconv.Itoa(processID)})
+	}
+	return details
+}
+
+func containerRunDetails(name string) []appRunDetail {
+	details := []appRunDetail{{label: "Mode", value: runModeContainer}}
+	if name != "" {
+		details = append(details, appRunDetail{label: "Name", value: name})
+	}
+	return details
+}
+
+func printRunStatusf(out *ui.Output, format string, args ...any) {
+	out.Println(runStatusPrefix() + fmt.Sprintf(format, args...))
+}
+
+func runStatusPrefix() string {
+	prefix := "studioctl"
+	if ui.Colors() {
+		prefix = ui.ColorStyle(ui.ColorCyan).Render(prefix)
+	}
+	return prefix + "  "
+}
+
+func runStatusLabel(label string, color ui.Color) string {
+	if !ui.Colors() {
+		return label
+	}
+	return ui.ColorStyle(color).Render(label)
+}
+
 func (c *RunCommand) runTarget(
 	ctx context.Context,
 	target appsvc.RunTarget,
@@ -302,7 +372,7 @@ func (c *RunCommand) runDotnet(
 		return runDetachedOutput{
 			AppID:       target.AppID,
 			Mode:        runModeProcess,
-			URL:         baseURL,
+			URL:         appRunOutputURL(baseURL, appRunDisplayURL(topology, target.AppID), flags.jsonOutput),
 			LogPath:     logPath,
 			ContainerID: "",
 			Name:        processName,
@@ -373,8 +443,8 @@ func (c *RunCommand) configureDotnetRunCommand(
 	flags runFlags,
 ) (string, func(), error) {
 	cmd.Dir = spec.Dir
-	cmd.Env = spec.Env
-	logFile, logPath, err := c.openAppLog(target.AppID, flags.jsonOutput)
+	cmd.Env = dotnetRunCommandEnv(spec.Env, flags, ui.Colors())
+	logFile, logPath, err := c.openAppLog(target.AppID)
 	if err != nil {
 		return "", nil, err
 	}
@@ -513,7 +583,30 @@ func lastNonEmptyLine(output []byte) string {
 	return ""
 }
 
-func (c *RunCommand) openAppLog(appID string, jsonOutput bool) (*os.File, string, error) {
+const dotnetAnsiColorRedirectionEnv = "DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION"
+
+func dotnetRunCommandEnv(env []string, flags runFlags, colors bool) []string {
+	if flags.detach || !colors {
+		return env
+	}
+	return envWithDefault(env, dotnetAnsiColorRedirectionEnv, "1")
+}
+
+func envWithDefault(env []string, key string, value string) []string {
+	prefix := key + "="
+	for _, entry := range env {
+		if strings.HasPrefix(entry, prefix) {
+			return env
+		}
+	}
+
+	result := make([]string, 0, len(env)+1)
+	result = append(result, env...)
+	result = append(result, prefix+value)
+	return result
+}
+
+func (c *RunCommand) openAppLog(appID string) (*os.File, string, error) {
 	if c.cfg == nil {
 		return nil, "", errStudioctlConfigRequired
 	}
@@ -533,9 +626,6 @@ func (c *RunCommand) openAppLog(appID string, jsonOutput bool) (*os.File, string
 		}
 		if err != nil {
 			return nil, "", fmt.Errorf("open app log: %w", err)
-		}
-		if !jsonOutput {
-			c.out.Printlnf("Log: %s", logPath)
 		}
 		return logFile, logPath, nil
 	}
@@ -660,7 +750,7 @@ func (c *RunCommand) registerPortAndWaitForApp(
 	}
 
 	if !jsonOutput {
-		c.out.Printlnf("App ready: %s", baseURL)
+		c.printAppReady(appRunDisplayURL(topology, appID), processRunDetails(runInfo.ProcessID)...)
 	}
 	return baseURL, nil
 }
@@ -704,6 +794,7 @@ func (c *RunCommand) registerContainerAndWaitForApp(
 	ctx context.Context,
 	appID string,
 	hostPort int,
+	containerName string,
 	topology envtopology.Local,
 	runInfo studioctlserver.AppRegistration,
 	monitor readinessMonitor,
@@ -723,7 +814,7 @@ func (c *RunCommand) registerContainerAndWaitForApp(
 	}
 
 	if !jsonOutput {
-		c.out.Printlnf("App ready: %s", baseURL)
+		c.printAppReady(appRunDisplayURL(topology, appID), containerRunDetails(containerName)...)
 	}
 	return baseURL, nil
 }
@@ -751,7 +842,7 @@ func (c *RunCommand) registerProcessAndWaitForApp(
 	}
 
 	if !jsonOutput {
-		c.out.Printlnf("App ready: %s", baseURL)
+		c.printAppReady(appRunDisplayURL(topology, appID), processRunDetails(processID)...)
 	}
 	return baseURL, nil
 }
@@ -1120,7 +1211,7 @@ func (c *RunCommand) runDocker(
 		return prepareErr
 	}
 
-	containerID, info, err := c.createDockerAppContainer(ctx, client, spec, quietLifecycleOutput, progress)
+	containerID, info, err := c.createDockerAppContainer(ctx, client, spec, progress)
 	if err != nil {
 		progress.Fail(err)
 		return err
@@ -1145,12 +1236,12 @@ func (c *RunCommand) runDocker(
 	progress.ApplyDone(progress.containerID)
 	progress.Stop()
 
+	displayURL := appRunDisplayURL(topology, target.AppID)
 	if !flags.jsonOutput && progress.Enabled() {
-		c.printDockerRunInfo(info)
-		c.out.Printlnf("App ready: %s", baseURL)
+		c.printAppReady(displayURL, containerRunDetails(info.Name)...)
 	}
 
-	return c.runStartedContainerApp(ctx, client, target, containerID, info, baseURL, flags)
+	return c.runStartedContainerApp(ctx, client, target, containerID, info, baseURL, displayURL, flags)
 }
 
 func (c *RunCommand) runStartedContainerApp(
@@ -1160,10 +1251,17 @@ func (c *RunCommand) runStartedContainerApp(
 	containerID string,
 	info containerruntime.ContainerInfo,
 	baseURL string,
+	displayURL string,
 	flags runFlags,
 ) error {
 	if flags.detach {
-		return c.detachedDockerOutput(target.AppID, containerID, info, baseURL, flags).Print(c.out)
+		return c.detachedDockerOutput(
+			target.AppID,
+			containerID,
+			info,
+			appRunOutputURL(baseURL, displayURL, flags.jsonOutput),
+			flags,
+		).Print(c.out)
 	}
 	defer c.unregisterAppBestEffort(ctx, target.AppID)
 
@@ -1183,7 +1281,6 @@ func (c *RunCommand) createDockerAppContainer(
 	ctx context.Context,
 	client containerruntime.ContainerClient,
 	spec appsvc.DockerRunSpec,
-	jsonOutput bool,
 	progress *containerRunProgress,
 ) (string, containerruntime.ContainerInfo, error) {
 	progress.DestroyStart(progress.containerID)
@@ -1212,10 +1309,6 @@ func (c *RunCommand) createDockerAppContainer(
 			fmt.Errorf("inspect app container: %w", err),
 		)
 	}
-	if !jsonOutput {
-		c.printDockerRunInfo(info)
-	}
-
 	return containerID, info, nil
 }
 
@@ -1253,6 +1346,7 @@ func (c *RunCommand) waitForDockerAppReady(
 		ctx,
 		appID,
 		candidate.HostPort,
+		info.Name,
 		topology,
 		runInfo,
 		containerReadinessMonitor(client, containerID),
@@ -1382,13 +1476,6 @@ func (c *RunCommand) prepareDockerRunImage(
 func cleanupGeneratedDockerfile(out *ui.Output, cleanup func() error) {
 	if err := cleanup(); err != nil && !errors.Is(err, os.ErrNotExist) {
 		out.Verbosef("failed to remove generated dockerfile: %v", err)
-	}
-}
-
-func (c *RunCommand) printDockerRunInfo(info containerruntime.ContainerInfo) {
-	c.out.Printlnf("Container: %s", info.Name)
-	if candidate, ok := appcontainers.CandidateFromContainer(info); ok {
-		c.out.Printlnf("Port: %d", candidate.HostPort)
 	}
 }
 

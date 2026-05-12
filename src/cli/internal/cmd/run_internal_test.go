@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -18,6 +19,7 @@ import (
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	appsupport "altinn.studio/studioctl/internal/cmd/apps"
 	repocontext "altinn.studio/studioctl/internal/context"
+	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -164,6 +166,122 @@ func TestRunDetachedOutputPrintJSON(t *testing.T) {
 	}
 }
 
+func TestRunDetachedOutputPrintHumanNoOutput(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+
+	var out bytes.Buffer
+	result := runDetachedOutput{
+		AppID:     "ttd/app",
+		Mode:      runModeProcess,
+		URL:       "http://local.altinn.cloud:8000/ttd/app/",
+		ProcessID: 123,
+	}
+	if err := result.Print(ui.NewOutput(&out, io.Discard, false)); err != nil {
+		t.Fatalf("Print() error = %v", err)
+	}
+
+	if got := out.String(); got != "" {
+		t.Fatalf("output = %q, want empty output", got)
+	}
+}
+
+func TestPrintAppReadyUsesStudioctlStatusLinesWithoutPortsOrLogPath(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+
+	var out bytes.Buffer
+	cmd := &RunCommand{out: ui.NewOutput(&out, io.Discard, false)}
+
+	cmd.printAppReady("http://local.altinn.cloud:8000/ttd/app/", processRunDetails(123)...)
+
+	rendered := out.String()
+	for _, want := range []string{
+		"studioctl  App ready: http://local.altinn.cloud:8000/ttd/app/",
+		"studioctl    - Mode: process",
+		"studioctl    - PID: 123",
+		"studioctl  Logs: studioctl app logs",
+	} {
+		if !strings.Contains(rendered, want) {
+			t.Fatalf("output %q missing %q", rendered, want)
+		}
+	}
+	for _, unwanted := range []string{"Log:", "Container:", "Port:", "/tmp/"} {
+		if strings.Contains(rendered, unwanted) {
+			t.Fatalf("output %q contains %q", rendered, unwanted)
+		}
+	}
+}
+
+func TestPrintAppReadyUsesContainerDetails(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+
+	var out bytes.Buffer
+	cmd := &RunCommand{out: ui.NewOutput(&out, io.Discard, false)}
+
+	cmd.printAppReady("http://local.altinn.cloud:8000/ttd/app/", containerRunDetails("localtest-app-test")...)
+
+	rendered := out.String()
+	for _, want := range []string{
+		"studioctl    - Mode: container",
+		"studioctl    - Name: localtest-app-test",
+	} {
+		if !strings.Contains(rendered, want) {
+			t.Fatalf("output %q missing %q", rendered, want)
+		}
+	}
+}
+
+func TestPrintAppStoppedUsesStudioctlStatusLine(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+
+	var out bytes.Buffer
+	cmd := &RunCommand{out: ui.NewOutput(&out, io.Discard, false)}
+
+	cmd.printAppStopped()
+
+	want := "studioctl  App stopped."
+	if got := out.String(); !strings.Contains(got, want) {
+		t.Fatalf("output = %q, want %q", got, want)
+	}
+}
+
+func TestAppRunDisplayURLUsesTopologyAppRoute(t *testing.T) {
+	t.Parallel()
+
+	got := appRunDisplayURL(envtopology.NewLocal("8000"), "ttd/app")
+	want := "http://local.altinn.cloud:8000/ttd/app/"
+	if got != want {
+		t.Fatalf("appRunDisplayURL() = %q, want %q", got, want)
+	}
+}
+
+func TestDotnetRunCommandEnvEnablesAnsiColorForForeground(t *testing.T) {
+	t.Parallel()
+
+	got := dotnetRunCommandEnv([]string{"PATH=/bin"}, runFlags{}, true)
+	if !envContains(got, dotnetAnsiColorRedirectionEnv+"=1") {
+		t.Fatalf("env = %v, want %s=1", got, dotnetAnsiColorRedirectionEnv)
+	}
+}
+
+func TestDotnetRunCommandEnvPreservesUserColorSetting(t *testing.T) {
+	t.Parallel()
+
+	env := []string{dotnetAnsiColorRedirectionEnv + "=false"}
+	got := dotnetRunCommandEnv(env, runFlags{}, true)
+	if len(got) != 1 || got[0] != env[0] {
+		t.Fatalf("env = %v, want preserved user setting %v", got, env)
+	}
+}
+
+func TestDotnetRunCommandEnvDoesNotEnableAnsiColorForDetached(t *testing.T) {
+	t.Parallel()
+
+	got := dotnetRunCommandEnv([]string{"PATH=/bin"}, runFlags{detach: true}, true)
+	if envContainsPrefix(got, dotnetAnsiColorRedirectionEnv+"=") {
+		t.Fatalf("env = %v, did not want %s", got, dotnetAnsiColorRedirectionEnv)
+	}
+}
+
 func TestNextAppLogPathUsesNextRunIDForDate(t *testing.T) {
 	t.Parallel()
 
@@ -283,7 +401,7 @@ func TestCreateDockerAppContainerRendersStartAndCanSuppressPlainInfo(t *testing.
 		return appContainerProgressTestInfo(spec), nil
 	}
 
-	_, _, err := cmd.createDockerAppContainer(t.Context(), client, spec, true, progress)
+	_, _, err := cmd.createDockerAppContainer(t.Context(), client, spec, progress)
 	if err != nil {
 		t.Fatalf("createDockerAppContainer() error = %v", err)
 	}
@@ -312,7 +430,7 @@ func TestCreateDockerAppContainerRendersExistingContainerRemoval(t *testing.T) {
 		return appContainerProgressTestInfo(spec), nil
 	}
 
-	_, _, err := cmd.createDockerAppContainer(t.Context(), client, spec, true, progress)
+	_, _, err := cmd.createDockerAppContainer(t.Context(), client, spec, progress)
 	if err != nil {
 		t.Fatalf("createDockerAppContainer() error = %v", err)
 	}
@@ -344,7 +462,7 @@ func TestCreateDockerAppContainerRendersRemoveFailure(t *testing.T) {
 		return errRemoveFailed
 	}
 
-	_, _, err := cmd.createDockerAppContainer(t.Context(), client, spec, true, progress)
+	_, _, err := cmd.createDockerAppContainer(t.Context(), client, spec, progress)
 	if err == nil {
 		t.Fatal("createDockerAppContainer() error = nil, want error")
 	}
@@ -397,4 +515,17 @@ func assertNoContainerCall(t *testing.T, calls []containermock.Call, method stri
 			t.Fatalf("container calls = %+v, did not want %s", calls, method)
 		}
 	}
+}
+
+func envContains(env []string, want string) bool {
+	return slices.Contains(env, want)
+}
+
+func envContainsPrefix(env []string, prefix string) bool {
+	for _, entry := range env {
+		if strings.HasPrefix(entry, prefix) {
+			return true
+		}
+	}
+	return false
 }
