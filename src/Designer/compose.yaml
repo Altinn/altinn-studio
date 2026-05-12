@@ -119,6 +119,7 @@ services:
       - GeneralSettings:LanguageFilesLocation=Languages/
       - GeneralSettings:TemplateLocation=/Templates
       - GeneralSettings:TemplateLocation=Templates/AspNet
+      - MaskinPortenHttpClientSettings:BaseUrl=http://studio-azure-mock:6161
       - PostgreSQLSettings:AdminConnectionString=Host=studio_db;Port=5432;Username=designer_admin;Password={0};Database=designerdb
       - PostgreSQLSettings:ConnectionString=Host=studio_db;Port=5432;Username=designer;Password={0};Database=designerdb
       - PostgreSQLSettings:DesignerDbAdminPwd=${POSTGRES_PASSWORD}
@@ -165,6 +166,8 @@ services:
       studio_db:
         condition: service_healthy
       fake_ansattporten:
+        condition: service_started
+      studio_azure_mock:
         condition: service_started
     build:
       context: ./../..
@@ -345,4 +348,3 @@ services:
         - REDIS_HOSTS=redis
     ports:
         - "8081:8081"
-

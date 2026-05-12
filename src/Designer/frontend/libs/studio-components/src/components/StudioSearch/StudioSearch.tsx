@@ -12,17 +12,20 @@ export type StudioSearchProps = WithoutAsChild<SearchProps> & {
 };
 
 export const StudioSearch = forwardRef<HTMLInputElement, StudioSearchProps>(
-  ({ label, id, value, clearButtonLabel, className, ...rest }, ref) => {
+  (
+    { label, id, value, clearButtonLabel, className, 'data-size': dataSize = 'md', ...rest },
+    ref,
+  ) => {
     const generatedId = useId();
     const searchId = id ?? generatedId;
 
     return (
       <div className={className}>
-        <Label className={classes.label} data-size='md' htmlFor={searchId}>
+        <Label className={classes.label} data-size={dataSize} htmlFor={searchId}>
           {label}
         </Label>
         <Search>
-          <Search.Input ref={ref} id={searchId} value={value} {...rest} />
+          <Search.Input ref={ref} id={searchId} value={value} data-size={dataSize} {...rest} />
           <Search.Clear aria-label={clearButtonLabel} title={clearButtonLabel} />
         </Search>
       </div>

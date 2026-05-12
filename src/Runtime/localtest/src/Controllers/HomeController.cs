@@ -71,7 +71,7 @@ namespace LocalTest.Controllers
         [HttpGet("/")]
         [HttpGet("/Home")]
         [HttpGet("/Home/Index")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index([FromQuery(Name = "goto")] string goTo = null)
         {
             StartAppModel model = new StartAppModel()
             {
@@ -79,6 +79,7 @@ namespace LocalTest.Controllers
                 LocalFrontendUrl = HttpContext.Request.Cookies[
                     FrontendVersionController.FRONTEND_URL_COOKIE_NAME
                 ],
+                RedirectUrl = goTo,
             };
             model.LocalFrontendDescription = _localFrontendService.DescribeFrontendUrl(model.LocalFrontendUrl);
 
@@ -89,8 +90,11 @@ namespace LocalTest.Controllers
                 model.TestApps = await GetAppsList(cancellationToken);
                 model.TestUsers = await GetTestUsersAndPartiesSelectList(cancellationToken);
                 model.UserSelect = Request.Cookies["Localtest_User.Party_Select"];
-                var firstAppId = model.TestApps.Count() == 1 ? model.TestApps.First().Value : null;
-                var defaultAuthLevel = await GetAppAuthLevel(firstAppId, cancellationToken);
+                model.SelectRedirectApp();
+                var selectedAppId =
+                    model.AppPathSelection
+                    ?? (model.TestApps.Count() == 1 ? model.TestApps.First().Value : null);
+                var defaultAuthLevel = await GetAppAuthLevel(selectedAppId, cancellationToken);
                 model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
             }
             catch (Exception e) when (e is HttpRequestException or OperationCanceledException)
@@ -155,6 +159,13 @@ namespace LocalTest.Controllers
                 return NoContent();
             }
 
+            var prefill = Request.Form.Files.FirstOrDefault();
+
+            if (!string.IsNullOrWhiteSpace(startAppModel.RedirectUrl) && prefill == null)
+            {
+                return Redirect(startAppModel.RedirectUrl);
+            }
+
             if (startAppModel.AppPathSelection?.Equals("accessmanagement") == true)
             {
                 return Redirect($"/accessmanagement/ui/given-api-delegations/overview");
@@ -168,7 +179,6 @@ namespace LocalTest.Controllers
                 return BadRequest("App not found");
             }
 
-            var prefill = Request.Form.Files.FirstOrDefault();
             if (prefill != null)
             {
                 var instance = new Instance
