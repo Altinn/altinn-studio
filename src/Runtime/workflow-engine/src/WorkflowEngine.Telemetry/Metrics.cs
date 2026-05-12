@@ -36,7 +36,7 @@ public static class Metrics
 
     /// <summary>
     /// Counter of generic engine-side errors that don't have a more specific instrument.
-    /// </summary>okay,
+    /// </summary>
     public static readonly Counter<long> Errors = Meter.CreateCounter<long>("engine.errors");
 
     /// <summary>
