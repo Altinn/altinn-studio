@@ -42,7 +42,8 @@ func TestExchangeCodeRevokesPreviousAPIKeyAfterSavingNewCredentials(t *testing.T
 	http.DefaultTransport = server.Client().Transport
 
 	host := strings.TrimPrefix(server.URL, "https://")
-	result, err := NewService(&config.Config{Home: home, Version: config.NewVersion("test-version")}).ExchangeCode(ctx, CodeExchangeRequest{
+	service := NewService(&config.Config{Home: home, Version: config.NewVersion("test-version")})
+	result, err := service.ExchangeCode(ctx, CodeExchangeRequest{
 		Env:            "prod",
 		Host:           host,
 		Code:           "code",

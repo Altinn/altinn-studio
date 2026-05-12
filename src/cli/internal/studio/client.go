@@ -112,11 +112,13 @@ func NewClientWithHTTP(host, apiKey string, version config.Version, httpClient *
 		httpClient = &http.Client{Timeout: httpTimeout}
 	}
 	return &Client{
-		host:       host,
-		apiKey:     apiKey,
-		version:    version,
-		scheme:     "https",
-		httpClient: httpClient,
+		env:             auth.DefaultEnv,
+		credentialsHome: "",
+		host:            host,
+		apiKey:          apiKey,
+		version:         version,
+		scheme:          "https",
+		httpClient:      httpClient,
 	}
 }
 
