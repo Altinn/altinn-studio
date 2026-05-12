@@ -17,6 +17,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- Redirect unauthenticated app URLs opened from `studioctl app run` through the localtest login page.
 - Keep running apps visible in localtest after restarting the localtest environment.
 - Improve localtest resource reconciliation so `env up` removes managed resources that are no longer requested, such as pgAdmin or monitoring, without restarting unchanged core containers.
 
