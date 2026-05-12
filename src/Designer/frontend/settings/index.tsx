@@ -13,6 +13,7 @@ import type { LoggerConfig } from 'app-shared/contexts/LoggerContext';
 import { LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
 import { PageRoutes } from './routes/PageRoutes';
 import { EnvironmentConfigProvider } from 'app-shared/contexts/EnvironmentConfigContext';
+import { FeatureFlagsProvider } from '@studio/feature-flags';
 
 const loggerConfig: LoggerConfig = {
   enableUnhandledPromiseRejectionTracking: true,
@@ -41,11 +42,13 @@ const queryClientConfig: QueryClientConfig = {
 };
 
 root.render(
-  <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
-    <EnvironmentConfigProvider>
-      <LoggerContextProvider config={loggerConfig}>
-        <PageRoutes />
-      </LoggerContextProvider>
-    </EnvironmentConfigProvider>
-  </ServicesContextProvider>,
+  <FeatureFlagsProvider>
+    <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
+      <EnvironmentConfigProvider>
+        <LoggerContextProvider config={loggerConfig}>
+          <PageRoutes />
+        </LoggerContextProvider>
+      </EnvironmentConfigProvider>
+    </ServicesContextProvider>
+  </FeatureFlagsProvider>,
 );

@@ -11,7 +11,7 @@ import { translationKey } from 'src/AppComponentsBridge';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import { useDisplayData, useDisplayDataFor } from 'src/features/displayData/useDisplayData';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
@@ -104,7 +104,7 @@ export function RepeatingGroupTableRow({
 
   const alertOnDelete = useAlertOnChange(Boolean(editForRow?.alertOnDelete), deleteRow);
 
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const rawTableIds = useTableComponentIds(baseComponentId);
   const tableItems = rawTableIds
     .filter((id) => !hiddenColumns.includes(id))
@@ -125,12 +125,7 @@ export function RepeatingGroupTableRow({
 
   return (
     <Table.Row
-      className={cn(
-        {
-          [classes.tableRowError]: rowHasErrors,
-        },
-        className,
-      )}
+      className={cn({ [classes.tableRowError]: rowHasErrors }, className)}
       data-row-num={index}
       data-row-uuid={uuid}
     >
@@ -514,7 +509,7 @@ function FindDeepValidations({
   columnSettings: CompRepeatingGroupExternal['tableColumns'];
 }) {
   const baseComponentId = useRepeatingGroupComponentId();
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const rawTableIds = useTableComponentIds(baseComponentId);
   const tableItems = rawTableIds.map((baseId) => ({
     baseId,

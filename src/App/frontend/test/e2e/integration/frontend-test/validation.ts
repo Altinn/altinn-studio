@@ -3,6 +3,7 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Datalist } from 'test/e2e/pageobjects/datalist';
 import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
+import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import type { IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import type { BackendValidationIssue } from 'src/features/validation';
 
@@ -171,7 +172,7 @@ describe('Validation', () => {
     cy.wait('@upload');
     cy.dsReady(appFrontend.changeOfName.uploadWithTag.saveTag);
     cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click();
-    cy.get(appFrontend.changeOfName.uploadWithTag.error).should(
+    cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).should(
       'not.contain.text',
       appFrontend.changeOfName.uploadWithTag.unwantedChar,
     );
@@ -497,7 +498,7 @@ describe('Validation', () => {
 
     cy.changeLayout((component) => {
       if (component.type === 'RepeatingGroup' && component.id === 'mainGroup' && component.tableColumns) {
-        // Components that are not editable in the table, when using the 'onlyTable' mode, are implicitly hidden
+        // Components with editInTable: false in onlyTable mode are shown as read-only cells are still visible and validated.
         component.tableColumns.currentValue.editInTable = false;
       }
     });
@@ -509,7 +510,7 @@ describe('Validation', () => {
     cy.get(appFrontend.group.row(2).currentValue).should('not.exist');
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('repeating').should('have.attr', 'aria-current', 'page');
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
     cy.get(appFrontend.errorReport).findByText('Du må fylle ut 2. endre verdi til').click();
     cy.get(appFrontend.group.row(2).newValue).should('be.focused');
 
@@ -920,22 +921,36 @@ describe('Validation', () => {
       });
     });
 
-    cy.window().then((win) => {
-      cy.intercept('GET', '**/validate**', (req) => {
-        req.on('response', (res) => {
-          const body = res.body as BackendValidationIssue[];
-          body.push({
-            severity: 1,
-            source: 'SomeCustomValidator',
-            field: 'NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value',
-            dataElementId: win.CypressState!.dataElementIds!['ServiceModel-test']!,
-            customTextKey: 'custom_error_too_long',
-            customTextParameters: {
-              max_length: '10',
-              current_length: '19',
-            },
-          });
+    const validationIssue: Omit<BackendValidationIssue, 'dataElementId'> = {
+      severity: 1,
+      source: 'SomeCustomValidator',
+      field: 'NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value',
+      customTextKey: 'custom_error_too_long',
+      customTextParameters: {
+        max_length: '10',
+        current_length: '19',
+      },
+    };
+
+    cy.intercept('GET', '**/bootstrap-form/**', (req) => {
+      req.on('response', (res) => {
+        const body = res.body as FormBootstrapResponse;
+        body.dataModels['ServiceModel-test'].initialValidationIssues!.push({
+          ...validationIssue,
+          dataElementId: body.dataModels['ServiceModel-test'].dataElementId!,
         });
+        res.send(body);
+      });
+    });
+
+    cy.intercept('PATCH', '**/data**', (req) => {
+      req.on('response', (res) => {
+        const body = res.body as IDataModelMultiPatchResponse;
+        body.validationIssues[0].issues.push({
+          ...validationIssue,
+          dataElementId: body.validationIssues[0].issues[0].dataElementId,
+        });
+        res.send(body);
       });
     });
 

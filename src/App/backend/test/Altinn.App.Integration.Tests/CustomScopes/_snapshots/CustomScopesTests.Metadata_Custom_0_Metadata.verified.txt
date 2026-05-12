@@ -210,6 +210,15 @@
         }
       },
       {
+        endpoint: GET {org}/{app}/api/bootstrap-form/{uiFolder},
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
+        }
+      },
+      {
         endpoint: GET {org}/{app}/api/datalists/{id},
         metadata: {
           errorMessageTextResourceKeyUser: null,
@@ -474,6 +483,20 @@
         }
       },
       {
+        endpoint: GET {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/bootstrap-form/{uiFolder},
+        metadata: {
+          errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
+          errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
+          requiredScopesUsers: [
+            custom:instances.read,
+            altinn:portal/enduser
+          ],
+          requiredScopesServiceOwners: [
+            custom:serviceowner/instances.read
+          ]
+        }
+      },
+      {
         endpoint: GET {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid},
         metadata: {
           errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
@@ -545,6 +568,20 @@
       },
       {
         endpoint: GET {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/datalists/{id},
+        metadata: {
+          errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
+          errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
+          requiredScopesUsers: [
+            custom:instances.read,
+            altinn:portal/enduser
+          ],
+          requiredScopesServiceOwners: [
+            custom:serviceowner/instances.read
+          ]
+        }
+      },
+      {
+        endpoint: GET {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/enriched,
         metadata: {
           errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
           errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
@@ -1000,6 +1037,15 @@
           requiredScopesServiceOwners: [
             custom:serviceowner/instances.write
           ]
+        }
+      },
+      {
+        endpoint: POST {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/payment/nets-webhook-listener,
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
         }
       },
       {

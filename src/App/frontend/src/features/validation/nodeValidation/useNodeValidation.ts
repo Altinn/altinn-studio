@@ -1,5 +1,5 @@
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { Validation } from 'src/features/validation/validationContext';
+import { FormStore } from 'src/features/form/FormContext';
+import { useExpressionValidation } from 'src/features/validation/expressionValidation/useExpressionValidation';
 import {
   type CompDef,
   getComponentDef,
@@ -9,7 +9,6 @@ import {
 } from 'src/layout';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
-import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { AnyValidation, BaseValidation } from 'src/features/validation';
@@ -26,7 +25,7 @@ export function useNodeValidation(baseComponentId: string): AnyValidation[] {
   const def = getComponentDef(component.type);
   const indexedId = useIndexedId(baseComponentId);
   const registry = GeneratorInternal.useRegistry();
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const dataModelBindings = GeneratorInternal.useIntermediateItem()?.dataModelBindings;
   const bindings = Object.entries((dataModelBindings ?? {}) as Record<string, IDataModelReference>);
 
@@ -44,14 +43,20 @@ export function useNodeValidation(baseComponentId: string): AnyValidation[] {
     unfiltered.push(...def.useComponentValidation(baseComponentId));
   }
 
-  const getDataElementIdForDataType = GeneratorData.useGetDataElementIdForDataType();
-  const fieldValidations = Validation.useFullState((state) => {
+  const fieldValidations = FormStore.raw.useMemoSelector((state) => {
     const validations: BaseValidation[] = [];
     for (const [bindingKey, { dataType, field }] of bindings) {
-      const dataElementId = getDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
-      const fieldValidations = state.state.dataModels[dataElementId]?.[field];
-      if (fieldValidations) {
-        validations.push(...fieldValidations.map((v) => ({ ...v, bindingKey })));
+      const dataModel = state.data.models[dataType];
+      if (dataModel) {
+        const fieldValidations = [
+          ...(dataModel.validations.backend[field] ?? []),
+          ...(dataModel.validations.invalidData[field] ?? []),
+          ...(dataModel.validations.schema[field] ?? []),
+        ];
+
+        if (fieldValidations.length > 0) {
+          validations.push(...fieldValidations.map((v) => ({ ...v, bindingKey })));
+        }
       }
     }
 
@@ -59,11 +64,15 @@ export function useNodeValidation(baseComponentId: string): AnyValidation[] {
     // If we set this during render, all components using this hook would have to re-render after saving data, but now
     // they only have to re-run the selector. The downside here is that empty validations and component validations will
     // run outside the selector, so they _may_ have new validations that are not yet processed.
-    registry.current.validationsProcessed[indexedId] = state.processedLast;
+    registry.current.validationsProcessed[indexedId] = state.validation.processedLast;
     return validations;
   });
 
   unfiltered.push(...fieldValidations);
+  const expressionValidations = useExpressionValidation(bindings);
+  for (const { bindingKey, validations } of expressionValidations) {
+    unfiltered.push(...validations.map((validation) => ({ ...validation, bindingKey })));
+  }
 
   const filtered = filter(unfiltered, baseComponentId, def, layoutLookups);
   if (filtered.length === 0) {

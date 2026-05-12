@@ -5,12 +5,12 @@ import { Button } from 'src/app-components/Button/Button';
 import { SearchParams } from 'src/core/routing/types';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useHasPendingAttachments } from 'src/features/attachments/hooks';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { useReturnToView, useSummaryNodeIdOfOrigin } from 'src/features/form/layout/PageNavigationContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useNavigatePage, useNextPageKey, usePreviousPageKey } from 'src/hooks/useNavigatePage';
+import { usePageValidation } from 'src/hooks/usePageValidation';
 import {
   useCurrentProcessKey,
   useIsAnyProcessing,
@@ -27,9 +27,9 @@ import type { PropsFromGenericComponent } from 'src/layout';
 type Props = Pick<PropsFromGenericComponent<'NavigationButtons'>, 'baseComponentId'>;
 
 export function NavigationButtonsComponent({ baseComponentId }: Props) {
-  const summaryNodeId = useSummaryNodeIdOfOrigin();
+  const summaryNodeId = FormStore.pageNavigation.useSummaryNodeIdOfOrigin();
   const { baseComponentId: summaryBaseComponentId } = splitDashedKey(summaryNodeId ?? '');
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const origin = summaryBaseComponentId ? layoutLookups.getComponent(summaryBaseComponentId) : undefined;
 
   // TODO: Support returning to Summary2
@@ -75,10 +75,17 @@ function NavigationButtonsComponentInner({
     baseComponentId,
     'NavigationButtons',
   );
+
+  const { getPageValidation } = usePageValidation(baseComponentId);
+  // Use component-level validation if set, otherwise fall back to page-level
+  // When page-level validation is set, only validate forward navigation
+  const validateOnForward = getPageValidation() ?? validateOnNext;
+  const validateOnBackward = getPageValidation() ? undefined : validateOnPrevious;
+
   const { navigateToNextPage, navigateToPreviousPage, navigateToPage, maybeSaveOnPageChange } = useNavigatePage();
   const hasNext = !!useNextPageKey();
   const hasPrevious = !!usePreviousPageKey();
-  const returnToView = useReturnToView();
+  const returnToView = FormStore.pageNavigation.useReturnToView();
   const { langAsString } = useLanguage();
 
   const [searchParams] = useSearchParams();
@@ -98,7 +105,7 @@ function NavigationButtonsComponentInner({
   const showNextButton = showBackToSummaryButton ? showNextButtonSummary : hasNext;
 
   const onPageNavigationValidation = useOnPageNavigationValidation();
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
 
   const attachmentsPending = useHasPendingAttachments();
 
@@ -118,13 +125,13 @@ function NavigationButtonsComponentInner({
       await maybeSaveOnPageChange();
 
       const prevScrollPosition = getScrollPosition();
-      if (validateOnPrevious) {
+      if (validateOnBackward) {
         const pageKey = layoutLookups.componentToPage[baseComponentId];
         if (!pageKey) {
           throw new Error(`Could not find page key for component ${baseComponentId}`);
         }
 
-        const hasErrors = await onPageNavigationValidation(pageKey, validateOnPrevious);
+        const hasErrors = await onPageNavigationValidation(pageKey, validateOnBackward);
         if (hasErrors) {
           // Block navigation if validation fails
           resetScrollPosition(prevScrollPosition);
@@ -140,12 +147,13 @@ function NavigationButtonsComponentInner({
       await maybeSaveOnPageChange();
 
       const prevScrollPosition = getScrollPosition();
-      if (validateOnNext && !returnToView) {
+
+      if (validateOnForward && !returnToView) {
         const pageKey = layoutLookups.componentToPage[baseComponentId];
         if (!pageKey) {
           throw new Error(`Could not find page key for component ${baseComponentId}`);
         }
-        const hasErrors = await onPageNavigationValidation(pageKey, validateOnNext);
+        const hasErrors = await onPageNavigationValidation(pageKey, validateOnForward);
         if (hasErrors) {
           // Block navigation if validation fails, unless returnToView is set (Back to summary)
           resetScrollPosition(prevScrollPosition);

@@ -18,7 +18,7 @@ var (
 // Components with nil Builder create changelog-only releases (YAML handles build/publish).
 type ComponentBuilder interface {
 	// Build produces release artifacts in outputDir.
-	// Returns the list of artifact paths relative to outputDir.
+	// Returns the artifact paths to include in the GitHub release.
 	Build(ctx context.Context, ver *version.Version, outputDir string) ([]string, error)
 }
 

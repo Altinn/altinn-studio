@@ -1,5 +1,5 @@
 import { screen } from '@testing-library/react';
-import { DeployPopover, type DeployPopoverProps } from './DeployPopover';
+import { DEPLOY_EVENT_NAME, DeployPopover, type DeployPopoverProps } from './DeployPopover';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import '@testing-library/jest-dom';
 import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -31,6 +31,11 @@ const appReleases: AppRelease[] = [
   },
 ];
 
+const captureMock = jest.fn();
+jest.mock('@posthog/react', () => ({
+  usePostHog: () => ({ capture: captureMock }),
+}));
+
 const defaultProps: DeployPopoverProps = {
   appDeployedVersion: '1.0.0',
   selectedImageTag: '1.1.0',
@@ -40,6 +45,10 @@ const defaultProps: DeployPopoverProps = {
 };
 
 describe('DeployPopover', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should render the deploy button with the correct text', () => {
     renderDeployPopover();
     expect(
@@ -109,6 +118,19 @@ describe('DeployPopover', () => {
 
     expect(onConfirmMock).toHaveBeenCalledTimes(1);
     expect(screen.queryByText(textMock('general.yes'))).not.toBeInTheDocument();
+  });
+
+  it('should capture a PostHog event when "Yes" button is clicked', async () => {
+    const user = userEvent.setup();
+    renderDeployPopover();
+
+    await user.click(
+      screen.getByRole('button', { name: textMock('app_deployment.btn_deploy_new_version') }),
+    );
+    await user.click(screen.getByRole('button', { name: textMock('general.yes') }));
+
+    expect(captureMock).toHaveBeenCalledTimes(1);
+    expect(captureMock).toHaveBeenCalledWith(DEPLOY_EVENT_NAME);
   });
 
   it('should close the popover when "Cancel" button is clicked', async () => {

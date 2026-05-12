@@ -61,28 +61,33 @@ export type ValidationCategory = (typeof ValidationMask)[ValidationCategoryKey] 
 /*
  * Visibility setting used for selecting errors for nodes.
  * 'visible' = Select all validations with a ValidationMask matching the nodes current visibility
- * 'showAll' = Matches both current visibility and all backend validations, needed for "showAllBackendErrors"
+ * 'showAll' = Matches both current visibility and all backend validations, needed for "showAllUnboundValidations"
  * number = Select all validations with a ValidationMask maching the mask (number, because you can OR multiple masks together in any combination)
  */
 export type NodeVisibility = 'visible' | 'showAll' | number;
 
 export type WaitForValidation = (forceSave?: boolean) => Promise<void>;
 
-export type ValidationContext = {
+export type ValidationSliceState = {
   state: ValidationState;
-  validating: WaitForValidation | undefined;
+  otherDataElementBackendValidations: DataModelValidations;
+  formMask: number;
+  pageMasks: Record<string, number>;
+  rowMasks: Record<string, number>;
+  setFormMask: (mask: number | undefined) => void;
+  setPageMask: (pageKey: string, mask: number | undefined) => void;
+  setRowMask: (rowId: string, mask: number | undefined) => void;
 
   /**
-   * If there are no frontend errors, but process next still returns validation errors,
-   * this will show all backend errors.
+   * If there are no frontend errors, but process/next still returns validation errors,
+   * this will show all unbound backend errors (i.e., validations we could not tie to a specific component).
    */
-  setShowAllBackendErrors: (showAllErrors: boolean) => void;
-  showAllBackendErrors: boolean;
+  setShowAllUnboundValidations: (showAllErrors: boolean) => void;
+  showAllUnboundValidations: boolean;
 };
 
 export type ValidationState = {
   task: BaseValidation[];
-  dataModels: DataModelValidations;
 };
 
 export type DataModelValidations = {
@@ -158,14 +163,6 @@ export type ComponentValidation<Severity extends ValidationSeverity = Validation
 export type AttachmentValidation<Severity extends ValidationSeverity = ValidationSeverity> =
   BaseValidation<Severity> & {
     attachmentId: string;
-
-    /**
-     * Attachment validations may have their own validation visibility tacked on. This is used to postpone displaying
-     * the validation for 'you have to select a tag' for FileUploadWithTag until the user has interacted with the
-     * save button.
-     * @see isValidationVisible
-     */
-    visibility?: number;
   };
 
 /**
@@ -206,7 +203,7 @@ export interface BackendValidationIssue {
   code?: string;
   description?: string;
   field?: string;
-  dataElementId?: string;
+  dataElementId: string;
   severity: BackendValidationSeverity;
   source: string;
   noIncrementalUpdates?: boolean; // true if it will not be validated on PATCH, should be ignored when trying to submit

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
@@ -6,13 +6,12 @@ import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 import deepEqual from 'fast-deep-equal';
 import type { UseQueryOptions } from '@tanstack/react-query';
 
+import { useInstanceApi } from 'src/core/contexts/ApiProvider';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
-import { invalidateInstanceData } from 'src/core/queries/instance';
+import { invalidateInstanceData, useOptimisticallyUpdateInstance } from 'src/core/queries/instance';
 import { instanceDataQuery, instanceQueryKeys } from 'src/core/queries/instance/instance.queries';
 import { FileScanResults } from 'src/features/attachments/types';
-import { removeProcessFromInstance } from 'src/features/instance/instanceUtils';
-import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
@@ -27,7 +26,6 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   const instanceGuid = useNavigationParam('instanceGuid');
   const instantiation = useInstantiation();
   const navigation = useNavigation();
-  const { isLoading: isLoadingProcess, error: processError } = useProcessQuery();
 
   const hasPendingScans = useHasPendingScans();
   const { error: instanceDataError, data } = useInstanceDataQuery({ refetchInterval: hasPendingScans ? 5000 : false });
@@ -36,16 +34,13 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
     throw new Error('Missing instanceOwnerPartyId or instanceGuid when creating instance context');
   }
 
-  const error = instantiation.error ?? instanceDataError ?? processError;
+  const error = instantiation.error ?? instanceDataError;
   if (error) {
     return <DisplayError error={error} />;
   }
 
   if (!data) {
     return <Loader reason='loading-instance' />;
-  }
-  if (isLoadingProcess) {
-    return <Loader reason='fetching-process' />;
   }
 
   if (navigation.state === 'loading') {
@@ -82,17 +77,18 @@ export function useInstanceDataQueryArgs() {
 export function useInstanceDataQuery<R = IInstance>(
   queryOptions: Omit<UseQueryOptions<IInstance, Error, R>, 'queryKey' | 'queryFn'> = {},
 ) {
+  const instanceApi = useInstanceApi();
   const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
   const hasParams = !!instanceOwnerPartyId && !!instanceGuid;
 
   return useQuery<IInstance, Error, R>({
     ...(hasParams
-      ? instanceDataQuery({ instanceOwnerPartyId, instanceGuid })
+      ? instanceDataQuery({ instanceOwnerPartyId, instanceGuid, instanceApi })
       : {
           queryKey: [...instanceQueryKeys.all(), { instanceOwnerPartyId, instanceGuid }] as const,
           queryFn: skipToken,
         }),
-    refetchOnWindowFocus: queryOptions.refetchInterval !== false,
+    refetchOnWindowFocus: !!queryOptions.refetchInterval,
     select: queryOptions.select, // FIXME: somehow TS complains if this is not here
     ...queryOptions,
   });
@@ -107,7 +103,7 @@ export function useInstanceDataSources(): IInstanceDataSources | null {
   );
 }
 
-export const useDataElementsSelectorProps = () => {
+export const useDataElementsSelector = () => {
   const dataElements = useInstanceDataQuery({ select: (instance) => instance.data }).data;
 
   return <U,>(selectDataElements: (data: IData[]) => U) =>
@@ -141,31 +137,8 @@ export function useInvalidateInstanceDataCache() {
  * OPTIMISTIC UPDATES
  *********************/
 
-const useOptimisticInstanceUpdate = () => {
-  const queryClient = useQueryClient();
-  const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
-
-  const queryKey =
-    !instanceOwnerPartyId || !instanceGuid
-      ? undefined
-      : instanceQueryKeys.instance({
-          instanceOwnerPartyId,
-          instanceGuid,
-        });
-
-  return (updater: (oldData: IInstance) => IInstance | undefined) => {
-    queryKey &&
-      queryClient.setQueryData(queryKey, (oldData: IInstance | undefined) => {
-        if (!oldData) {
-          throw new Error('Cannot update instance data cache when there is not cached data');
-        }
-        return updater(oldData);
-      });
-  };
-};
-
 export const useOptimisticallyAppendDataElements = () => {
-  const updateInstance = useOptimisticInstanceUpdate();
+  const updateInstance = useOptimisticallyUpdateInstance();
 
   return (elements: IData[]) =>
     updateInstance((oldData) => ({
@@ -174,7 +147,7 @@ export const useOptimisticallyAppendDataElements = () => {
     }));
 };
 export const useOptimisticallyUpdateDataElement = () => {
-  const updateInstance = useOptimisticInstanceUpdate();
+  const updateInstance = useOptimisticallyUpdateInstance();
 
   return (elementId: string, mutator: (element: IData) => IData) =>
     updateInstance((oldData) => ({
@@ -183,7 +156,7 @@ export const useOptimisticallyUpdateDataElement = () => {
     }));
 };
 export const useOptimisticallyRemoveDataElement = () => {
-  const updateInstance = useOptimisticInstanceUpdate();
+  const updateInstance = useOptimisticallyUpdateInstance();
 
   return (elementId: string) =>
     updateInstance((oldData) => ({
@@ -192,16 +165,37 @@ export const useOptimisticallyRemoveDataElement = () => {
     }));
 };
 export const useOptimisticallyUpdateCachedInstance = (): ChangeInstanceData => {
-  const updateInstance = useOptimisticInstanceUpdate();
+  const updateInstance = useOptimisticallyUpdateInstance();
 
   return (callback: (instance: IInstance | undefined) => IInstance | undefined) => {
     updateInstance((oldData) => {
       const next = callback(oldData);
-      const clean = next ? removeProcessFromInstance(next) : undefined;
-      if (clean && !deepEqual(oldData, clean)) {
+      if (next && !deepEqual(oldData, next)) {
         return next;
       }
       return oldData;
     });
   };
+};
+
+export type InstanceDataSelector = <T>(selector: (instance: IInstance) => T) => T | undefined;
+
+export const useSelectFromInstanceData = (): InstanceDataSelector => {
+  const queryClient = useQueryClient();
+  const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
+  const instanceQueryKey = useMemo(
+    () =>
+      instanceOwnerPartyId && instanceGuid
+        ? instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid })
+        : undefined,
+    [instanceOwnerPartyId, instanceGuid],
+  );
+
+  return useCallback(
+    <T,>(selector: (instance: IInstance) => T): T | undefined => {
+      const instance = instanceQueryKey ? queryClient.getQueryData<IInstance>(instanceQueryKey) : undefined;
+      return instance ? selector(instance) : undefined;
+    },
+    [instanceQueryKey, queryClient],
+  );
 };

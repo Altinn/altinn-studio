@@ -125,6 +125,7 @@ export const appValidationPath = (org, app) => `${apiBasePath}/${org}/${app}/val
 
 // Repositories
 export const branchStatusPath = (org, app, branch) => `${apiBasePath}/repos/repo/${org}/${app}/branches/branch?${s({ branch })}`; // Get
+export const branchPath = (org, app, branchName) => `${apiBasePath}/repos/repo/${org}/${app}/branches/${branchName}`; // Delete
 export const branchesPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/branches`; // Get, Post
 export const checkoutBranchPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/checkout`; // Post
 export const currentBranchPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/current-branch`; // Get
@@ -215,6 +216,12 @@ export const previewWebSocketHub = () => `/hubs/preview`;
 export const altinityWebSocketHub = () => '/hubs/altinity';
 export const altinityAttachmentsUploadPath = () => `/designer/api/altinity/attachments`;
 
+// Assistant Chat
+export const chatThreadsPath = (org, app) => `${apiBasePath}/${org}/${app}/chat/threads`; // Get, Post
+export const chatThreadPath = (org, app, threadId) => `${apiBasePath}/${org}/${app}/chat/threads/${threadId}`; // Put, Delete
+export const chatMessagesPath = (org, app, threadId) => `${apiBasePath}/${org}/${app}/chat/threads/${threadId}/messages`; // Get, Post
+export const chatMessagePath = (org, app, threadId, messageId) => `${apiBasePath}/${org}/${app}/chat/threads/${threadId}/messages/${messageId}`; // Delete
+
 // Contact
 export const belongsToOrg = () => `${apiBasePath}/contact/belongs-to-org`;
 
@@ -228,7 +235,14 @@ export const customTemplatesPath = () => `${apiBasePath}/customtemplates`; // GE
 export const userApiKeyPath = (id) => `${apiBasePath}/v1/user/api-keys/${id}`; // DELETE
 export const userApiKeysPath = () => `${apiBasePath}/v1/user/api-keys`; // GET, POST
 
-// Org settings
+// Org settings - Contact points
 export const contactPointsPath = (org) => `${apiBasePath}/v1/orgs/${org}/contact-points`; // Get, Post
 export const contactPointPath = (org, id) => `${apiBasePath}/v1/orgs/${org}/contact-points/${id}`; // Put, Delete
 export const contactPointActivePath = (org, id) => `${apiBasePath}/v1/orgs/${org}/contact-points/${id}/active`; // Patch
+
+// Org settings - Bot accounts
+export const botAccountsPath = (org) => `${apiBasePathV1}/orgs/${org}/bot-accounts`; // Get, Post
+export const botAccountPath = (org, id) => `${apiBasePathV1}/orgs/${org}/bot-accounts/${id}`; // Get, Put
+export const botAccountDeactivatePath = (org, id) => `${apiBasePathV1}/orgs/${org}/bot-accounts/${id}/deactivate`; // Post
+export const botAccountApiKeysPath = (org, id) => `${apiBasePathV1}/orgs/${org}/bot-accounts/${id}/api-keys`; // Get, Post
+export const botAccountApiKeyPath = (org, id, keyId) => `${apiBasePathV1}/orgs/${org}/bot-accounts/${id}/api-keys/${keyId}`; // Delete

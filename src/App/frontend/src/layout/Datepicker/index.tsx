@@ -2,9 +2,8 @@ import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { formatISOString, getDateFormat } from 'src/app-components/Datepicker/utils/dateHelpers';
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { FrontendValidationSource } from 'src/features/validation';
 import { DatepickerDef } from 'src/layout/Datepicker/config.def.generated';
@@ -112,9 +111,9 @@ export class Datepicker extends DatepickerDef implements ValidateComponent, Vali
   }
 
   useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'Datepicker'>): string[] {
-    const lookupBinding = DataModels.useLookupBinding();
-    const layoutLookups = useLayoutLookups();
-    const component = useLayoutLookups().getComponent(baseComponentId, 'Datepicker');
+    const lookupBinding = FormStore.bootstrap.useLookupBinding();
+    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
+    const component = FormStore.bootstrap.useLayoutLookups().getComponent(baseComponentId, 'Datepicker');
     const validation = validateDataModelBindingsAny(
       baseComponentId,
       bindings,

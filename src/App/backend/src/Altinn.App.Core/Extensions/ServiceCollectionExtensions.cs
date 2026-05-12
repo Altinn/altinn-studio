@@ -184,12 +184,14 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<IFrontendFeatures, FrontendFeatures>();
         services.TryAddSingleton<IIndexPageGenerator, IndexPageGenerator>();
         services.TryAddSingleton<ITranslationService, TranslationService>();
-        services.TryAddSingleton<IBootstrapGlobalService, BootstrapGlobalService>();
+        services.AddSingleton<BootstrapGlobalService>();
+        services.AddTransient<LayoutAnalysisService>();
         services.TryAddTransient<IReturnUrlService, ReturnUrlService>();
         services.TryAddTransient<IAppEvents, DefaultAppEvents>();
         services.TryAddTransient<IInstantiationProcessor, NullInstantiationProcessor>();
         services.TryAddTransient<IInstantiationValidator, NullInstantiationValidator>();
         services.TryAddTransient<IAppModel, DefaultAppModel>();
+        services.AddTransient<IFormDataReader, FormDataReader>();
         services.TryAddTransient<DataListsFactory>();
         services.TryAddTransient<InstanceDataListsFactory>();
         services.TryAddTransient<IDataElementAccessChecker, DataElementAccessChecker>();
@@ -327,6 +329,7 @@ public static class ServiceCollectionExtensions
             services.Configure<NetsPaymentSettings>(configurationSection);
             services.AddHttpClient<INetsClient, NetsClient>();
             services.AddTransient<IPaymentProcessor, NetsPaymentProcessor>();
+            services.TryAddSingleton<INetsWebhookSecretProvider, NetsWebhookSecretProvider>();
         }
     }
 
@@ -374,6 +377,7 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<IProcessEventHandlerDelegator, ProcessEventHandlingDelegator>();
         services.TryAddTransient<IProcessEventDispatcher, ProcessEventDispatcher>();
         services.TryAddTransient<ExclusiveGatewayFactory>();
+        services.AddTransient<ProcessStateEnricher>();
 
         services.AddTransient<IProcessTaskInitializer, ProcessTaskInitializer>();
         services.AddTransient<IProcessTaskFinalizer, ProcessTaskFinalizer>();

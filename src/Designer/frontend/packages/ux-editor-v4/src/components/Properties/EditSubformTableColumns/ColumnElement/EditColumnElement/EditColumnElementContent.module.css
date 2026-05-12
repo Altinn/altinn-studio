@@ -1,0 +1,9 @@
+.textResource > button,
+.textResource > fieldset {
+  margin-inline: 0px;
+  padding-inline: 0px;
+}
+
+.componentCellContent {
+  font: var(--fds-typography-label-small);
+}

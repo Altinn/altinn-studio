@@ -9,7 +9,6 @@ import { ExprRuntimeError, NodeRelationNotFound } from 'src/features/expressions
 import { ExprVal } from 'src/features/expressions/types';
 import { addError } from 'src/features/expressions/validation';
 import { makeIndexedId } from 'src/features/form/layout/utils/makeIndexedId';
-import { CodeListPending } from 'src/features/options/CodeListsProvider';
 import { buildAuthContext } from 'src/utils/authContext';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { formatDateLocale } from 'src/utils/dateUtils';
@@ -590,11 +589,6 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new ExprRuntimeError(this.expr, this.path, `Could not find options with id "${optionsId}"`);
     }
 
-    if (options === CodeListPending) {
-      // We don't have the options yet, but it's not an error to ask for them.
-      return null;
-    }
-
     // Lax comparison by design. Numbers in raw option lists will be cast to strings by useGetOptions(), so we cannot
     // be strict about the type here.
     const option = options.find((o) => o.value == value);
@@ -803,6 +797,9 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     if (!dataType) {
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup dataType undefined`);
     }
+    if (this.dataSources.formDataSelector === ContextNotProvided) {
+      return '';
+    }
     const array = this.dataSources.formDataSelector({ field: path, dataType });
     if (typeof array != 'object' || !Array.isArray(array)) {
       return '';
@@ -895,11 +892,11 @@ function pickSimpleValue(
   if (!isValidDataType) {
     throw new ExprRuntimeError(params.expr, params.path, `Data model with type ${path.dataType} not found`);
   }
-
-  const value = params.dataSources.formDataSelector(path);
-  if (value === ContextNotProvided) {
+  if (params.dataSources.formDataSelector === ContextNotProvided) {
     return null;
   }
+
+  const value = params.dataSources.formDataSelector(path);
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
     return value;
   }

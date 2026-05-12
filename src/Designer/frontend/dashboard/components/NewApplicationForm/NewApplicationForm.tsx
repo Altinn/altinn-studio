@@ -13,7 +13,7 @@ import { SelectedContextType } from '../../enums/SelectedContextType';
 import { type NewAppForm } from '../../types/NewAppForm';
 import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
 import { Link } from 'react-router-dom';
-import { useUserOrgPermissionQuery } from '../../hooks/queries/useUserOrgPermissionsQuery';
+import { useUserOrgPermissionsQuery } from 'app-shared/hooks/queries/useUserOrgPermissionsQuery';
 import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 import type { CreateServiceFormError } from 'dashboard/pages/CreateService/CreateService';
 
@@ -61,7 +61,7 @@ export const NewApplicationForm = ({
       : selectedContext;
   const [currentSelectedOrg, setCurrentSelectedOrg] = useState<string>(defaultSelectedOrgOrUser);
   const [selectedTemplate, setSelectedTemplate] = useState<CustomTemplate>();
-  const { data: userOrgPermission, isFetching } = useUserOrgPermissionQuery(currentSelectedOrg, {
+  const { data: userOrgPermissions, isFetching } = useUserOrgPermissionsQuery(currentSelectedOrg, {
     enabled: Boolean(currentSelectedOrg),
   });
 
@@ -110,7 +110,7 @@ export const NewApplicationForm = ({
   };
 
   const createRepoAccessError: string =
-    !userOrgPermission?.canCreateOrgRepo && !isFetching
+    !userOrgPermissions?.canCreateOrgRepo && !isFetching
       ? t('dashboard.missing_service_owner_rights_error_message')
       : '';
 

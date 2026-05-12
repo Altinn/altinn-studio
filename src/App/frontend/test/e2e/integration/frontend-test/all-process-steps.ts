@@ -1,10 +1,12 @@
+import type { CyHttpMessages } from 'cypress/types/net-stubbing';
+
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { customReceiptPageAnother, customReceiptPageReceipt } from 'test/e2e/support/customReceipt';
 import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
-import type { ILayoutCollection } from 'src/layout/layout';
+import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import type { IInstance } from 'src/types/shared';
 
 const appFrontend = new AppFrontend();
@@ -92,7 +94,7 @@ function testConfirmationPage() {
 }
 
 function interceptAndAddInstanceSubstatus() {
-  cy.intercept('**/instances/*/*', (req) => {
+  const addSubstatus = (req: CyHttpMessages.IncomingHttpRequest) => {
     req.on('response', (res) => {
       const instance = res.body as IInstance;
       instance.status = {
@@ -102,7 +104,9 @@ function interceptAndAddInstanceSubstatus() {
         },
       };
     });
-  }).as('Instance');
+  };
+  cy.intercept('**/instances/*/*/enriched', addSubstatus).as('Instance');
+  cy.intercept('PUT', '**/instances/*/*/process/next*', addSubstatus).as('ProcessNext');
 }
 
 function testReceipt() {
@@ -136,15 +140,16 @@ function interceptAndAddCustomReceipt() {
     };
   });
 
-  cy.intercept('**/layouts/CustomReceipt', (req) => {
-    req.on('response', (res) => {
-      // Layouts are returned as text/plain for some reason
-      const layouts = JSON.parse(res.body) as ILayoutCollection;
-      layouts.receipt = { data: { layout: customReceiptPageReceipt } };
-      layouts.another = { data: { layout: customReceiptPageAnother } };
-      res.body = JSON.stringify(layouts);
-    });
-  }).as('FormLayout');
+  cy.intercept('**/bootstrap-form/CustomReceipt?language=nb', (req) => {
+    req.reply({
+      layouts: {
+        receipt: { data: { layout: customReceiptPageReceipt } },
+        another: { data: { layout: customReceiptPageAnother } },
+      },
+      dataModels: {},
+      staticOptions: {},
+    } satisfies FormBootstrapResponse);
+  }).as('FormBootstrap');
 }
 
 export function testCustomReceiptPage() {

@@ -8,7 +8,6 @@ public class WorkflowExtensionsTests
         new()
         {
             OperationId = "op",
-            IdempotencyKey = $"step-key-{order}",
             ProcessingOrder = order,
             Command = new CommandDefinition { Type = "noop" },
             Status = status,
@@ -17,7 +16,7 @@ public class WorkflowExtensionsTests
     private static Workflow CreateWorkflow(params Step[] steps) =>
         new()
         {
-            CorrelationId = Guid.NewGuid(),
+            CollectionKey = Guid.NewGuid().ToString(),
             OperationId = "test-op",
             IdempotencyKey = "wf-key",
             Namespace = "ns-1",

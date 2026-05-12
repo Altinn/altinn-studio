@@ -60,7 +60,7 @@ func TestSaveAndLoadCredentials(t *testing.T) {
 	}
 	// Check file mode (permissions) - Unix only
 	// On Windows, permissions are enforced via ACLs, not Unix mode bits
-	if runtime.GOOS != "windows" {
+	if runtime.GOOS != osutil.OSWindows {
 		if info.Mode().Perm() != osutil.FilePermOwnerOnly {
 			t.Errorf("expected permissions 0600, got %o", info.Mode().Perm())
 		}

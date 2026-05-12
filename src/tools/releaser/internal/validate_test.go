@@ -46,6 +46,7 @@ func TestRunValidation(t *testing.T) {
 	t.Run("reject synthetic release header without removals", testRunValidationRejectsSyntheticReleaseHeader)
 	t.Run("fails when changelog not modified", testRunValidationFailsChangelogNotModified)
 	t.Run("fails when unreleased is empty without promotion", testRunValidationFailsEmptyUnreleased)
+	t.Run("fails when base changelog changed after branch diverged", testRunValidationFailsOutdatedBaseChangelog)
 }
 
 func testRunValidationValidChangelogUpdate(t *testing.T) {
@@ -211,6 +212,37 @@ func testRunValidationFailsEmptyUnreleased(t *testing.T) {
 `, "empty unreleased")
 
 	assertValidationError(t, runValidation(t, repo, base, head), changelog.ErrUnreleasedNoHeader)
+}
+
+func testRunValidationFailsOutdatedBaseChangelog(t *testing.T) {
+	repo, branchPoint := setupValidationRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Release me
+`)
+	head := commitValidationFile(t, repo, "README.md", "branch change\n", "branch change")
+
+	runGitCmd(t, repo, "checkout", branchPoint)
+	base := commitValidationFile(t, repo, "src/cli/CHANGELOG.md", `# Changelog
+
+## [Unreleased]
+
+## [1.0.0] - 2025-01-01
+
+### Added
+
+- Release me
+`, "promote release")
+	runGitCmd(t, repo, "checkout", head)
+
+	err := runValidation(t, repo, base, head)
+	assertValidationError(t, err, internal.ErrBaseChangelogOutdated)
+	if !strings.Contains(err.Error(), "rebase or merge the base branch") {
+		t.Fatalf("RunValidation() error = %v, want rebase guidance", err)
+	}
 }
 
 func setupValidationRepo(t *testing.T, initialChangelog string) (string, string) {

@@ -12,7 +12,7 @@ import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { SearchParams } from 'src/core/routing/types';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { usePdfLayoutName } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsPayment } from 'src/features/payment/utils';
@@ -30,7 +30,6 @@ import { SummaryComponent2 } from 'src/layout/Summary2/SummaryComponent2/Summary
 import { TaskSummaryWrapper } from 'src/layout/Summary2/SummaryComponent2/TaskSummaryWrapper';
 import { useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useItemIfType } from 'src/utils/layout/useNodeItem';
 import type { IPdfFormat } from 'src/features/pdf/types';
 
@@ -162,10 +161,9 @@ function PdfWrapping({ children }: PropsWithChildren) {
 }
 
 function PlainPage({ pageKey }: { pageKey: string }) {
-  const pageExists = NodesInternal.useSelector((state) =>
-    Object.values(state.pagesData.pages).some((data) => data.pageKey === pageKey),
-  );
-  const children = useLayoutLookups().topLevelComponents[pageKey] ?? [];
+  const lookups = FormStore.bootstrap.useLayoutLookups();
+  const pageExists = lookups.allPerPage[pageKey] ?? false;
+  const children = lookups.topLevelComponents[pageKey] ?? [];
 
   if (!pageExists) {
     const message = `Error using: "pdfLayoutName": ${JSON.stringify(pageKey)}, could not find a layout with that name.`;
@@ -244,7 +242,7 @@ function PdfForPage({ pageKey, pdfSettings }: { pageKey: string; pdfSettings: IP
 }
 
 function useTopLevelComponentsToAutoRender(pageKey: string, pdfSettings: IPdfFormat | undefined): string[] {
-  const lookups = useLayoutLookups();
+  const lookups = FormStore.bootstrap.useLayoutLookups();
   return useMemo(() => {
     const topLevel = lookups.topLevelComponents[pageKey] ?? [];
     return topLevel.filter((baseId) => {

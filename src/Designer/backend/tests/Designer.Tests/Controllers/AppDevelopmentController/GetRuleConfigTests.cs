@@ -8,106 +8,99 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
 
-namespace Designer.Tests.Controllers.AppDevelopmentController
+namespace Designer.Tests.Controllers.AppDevelopmentController;
+
+public class GetRuleConfigTests
+    : DesignerEndpointsTestsBase<GetRuleConfigTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public class GetRuleConfigTests
-        : DesignerEndpointsTestsBase<GetRuleConfigTests>,
-            IClassFixture<WebApplicationFactory<Program>>
+    private static string VersionPrefix(string org, string repository) =>
+        $"/designer/api/{org}/{repository}/app-development";
+
+    public GetRuleConfigTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
+
+    [Theory]
+    [InlineData(
+        "ttd",
+        "app-with-layoutsets",
+        "testUser",
+        "layoutSet1",
+        "TestData/App/ui/changename/RuleConfiguration.json"
+    )]
+    [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/App/ui/changename/RuleConfiguration.json")]
+    [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/App/ui/group/RuleConfiguration.json")]
+    public async Task GetRuleConfig_ShouldReturnOK(
+        string org,
+        string app,
+        string developer,
+        string layoutSetName,
+        string expectedRuleConfigPath
+    )
     {
-        private static string VersionPrefix(string org, string repository) =>
-            $"/designer/api/{org}/{repository}/app-development";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        public GetRuleConfigTests(WebApplicationFactory<Program> factory)
-            : base(factory) { }
+        string expectedRuleConfig = await AddRuleConfigToRepo(TestRepoPath, layoutSetName, expectedRuleConfigPath);
 
-        [Theory]
-        [InlineData(
-            "ttd",
-            "app-with-layoutsets",
-            "testUser",
-            "layoutSet1",
-            "TestData/App/ui/changename/RuleConfiguration.json"
-        )]
-        [InlineData(
-            "ttd",
-            "app-without-layoutsets",
-            "testUser",
-            null,
-            "TestData/App/ui/changename/RuleConfiguration.json"
-        )]
-        [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/App/ui/group/RuleConfiguration.json")]
-        public async Task GetRuleConfig_ShouldReturnOK(
-            string org,
-            string app,
-            string developer,
-            string layoutSetName,
-            string expectedRuleConfigPath
-        )
-        {
-            string targetRepository = TestDataHelper.GenerateTestRepoName();
-            await CopyRepositoryForTest(org, app, developer, targetRepository);
+        string url = $"{VersionPrefix(org, targetRepository)}/rule-config?layoutSetName={layoutSetName}";
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
-            string expectedRuleConfig = await AddRuleConfigToRepo(TestRepoPath, layoutSetName, expectedRuleConfigPath);
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            string url = $"{VersionPrefix(org, targetRepository)}/rule-config?layoutSetName={layoutSetName}";
-            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+        string responseContent = await response.Content.ReadAsStringAsync();
+        Assert.True(JsonUtils.DeepEquals(expectedRuleConfig, responseContent));
+    }
 
-            using var response = await HttpClient.SendAsync(httpRequestMessage);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    [Theory]
+    [InlineData("ttd", "empty-app", null)]
+    public async Task GetRuleConfig_WhenNotExists_ReturnsNotFound(string org, string app, string layoutSetName)
+    {
+        string url = $"{VersionPrefix(org, app)}/rule-config?layoutSetName={layoutSetName}";
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
-            string responseContent = await response.Content.ReadAsStringAsync();
-            Assert.True(JsonUtils.DeepEquals(expectedRuleConfig, responseContent));
-        }
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
 
-        [Theory]
-        [InlineData("ttd", "empty-app", null)]
-        public async Task GetRuleConfig_WhenNotExists_ReturnsNotFound(string org, string app, string layoutSetName)
-        {
-            string url = $"{VersionPrefix(org, app)}/rule-config?layoutSetName={layoutSetName}";
-            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    }
 
-            using var response = await HttpClient.SendAsync(httpRequestMessage);
+    [Theory]
+    [InlineData("ttd", "invalid-texts-and-ruleconfig", "testUser", null)]
+    public async Task GetRuleConfig_WhenFileMissesDataOnRoot_ReturnsFixedFile(
+        string org,
+        string app,
+        string developer,
+        string layoutSetName
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        }
+        string expectedRuleConfigPath = "TestData/App/ui/changename/RuleConfiguration.json";
+        string expectedRuleConfig = await AddRuleConfigToRepo(TestRepoPath, layoutSetName, expectedRuleConfigPath);
 
-        [Theory]
-        [InlineData("ttd", "invalid-texts-and-ruleconfig", "testUser", null)]
-        public async Task GetRuleConfig_WhenFileMissesDataOnRoot_ReturnsFixedFile(
-            string org,
-            string app,
-            string developer,
-            string layoutSetName
-        )
-        {
-            string targetRepository = TestDataHelper.GenerateTestRepoName();
-            await CopyRepositoryForTest(org, app, developer, targetRepository);
+        string url = $"{VersionPrefix(org, targetRepository)}/rule-config?layoutSetName={layoutSetName}";
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
-            string expectedRuleConfigPath = "TestData/App/ui/changename/RuleConfiguration.json";
-            string expectedRuleConfig = await AddRuleConfigToRepo(TestRepoPath, layoutSetName, expectedRuleConfigPath);
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            string url = $"{VersionPrefix(org, targetRepository)}/rule-config?layoutSetName={layoutSetName}";
-            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+        string responseContent = await response.Content.ReadAsStringAsync();
+        Assert.True(JsonUtils.DeepEquals(expectedRuleConfig, responseContent));
+    }
 
-            using var response = await HttpClient.SendAsync(httpRequestMessage);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            string responseContent = await response.Content.ReadAsStringAsync();
-            Assert.True(JsonUtils.DeepEquals(expectedRuleConfig, responseContent));
-        }
-
-        private async Task<string> AddRuleConfigToRepo(
-            string createdFolderPath,
-            string layoutSetName,
-            string expectedLayoutPath
-        )
-        {
-            string ruleConfig = SharedResourcesHelper.LoadTestDataAsString(expectedLayoutPath);
-            string filePath = string.IsNullOrEmpty(layoutSetName)
-                ? Path.Combine(createdFolderPath, "App", "ui", "RuleConfiguration.json")
-                : Path.Combine(createdFolderPath, "App", "ui", layoutSetName, "RuleConfiguration.json");
-            await File.WriteAllTextAsync(filePath, ruleConfig);
-            return ruleConfig;
-        }
+    private async Task<string> AddRuleConfigToRepo(
+        string createdFolderPath,
+        string layoutSetName,
+        string expectedLayoutPath
+    )
+    {
+        string ruleConfig = SharedResourcesHelper.LoadTestDataAsString(expectedLayoutPath);
+        string filePath = string.IsNullOrEmpty(layoutSetName)
+            ? Path.Combine(createdFolderPath, "App", "ui", "RuleConfiguration.json")
+            : Path.Combine(createdFolderPath, "App", "ui", layoutSetName, "RuleConfiguration.json");
+        await File.WriteAllTextAsync(filePath, ruleConfig);
+        return ruleConfig;
     }
 }

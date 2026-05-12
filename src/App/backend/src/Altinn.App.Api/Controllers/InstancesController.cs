@@ -78,6 +78,7 @@ public class InstancesController : ControllerBase
     private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly IDataElementAccessChecker _dataElementAccessChecker;
+    private readonly ProcessStateEnricher _processStateEnricher;
     private const long RequestSizeLimit = 2000 * 1024 * 1024;
 
     /// <summary>
@@ -127,6 +128,7 @@ public class InstancesController : ControllerBase
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _authenticationContext = authenticationContext;
         _dataElementAccessChecker = serviceProvider.GetRequiredService<IDataElementAccessChecker>();
+        _processStateEnricher = serviceProvider.GetRequiredService<ProcessStateEnricher>();
     }
 
     /// <summary>
@@ -199,6 +201,84 @@ public class InstancesController : ControllerBase
         catch (Exception exception)
         {
             return ExceptionResponse(exception, $"Get instance {instanceOwnerPartyId}/{instanceGuid} failed");
+        }
+    }
+
+    /// <summary>
+    /// Gets an instance object from storage with enriched process state including authorized actions,
+    /// read/write access, element types, and process task metadata.
+    /// </summary>
+    /// <param name="org">unique identifier of the organisation responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
+    /// <param name="instanceGuid">unique id to identify the instance</param>
+    /// <param name="cancellationToken">cancellation token</param>
+    /// <returns>the instance with enriched process state</returns>
+    [Authorize]
+    [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}/enriched")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(EnrichedInstanceResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult> GetEnriched(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int instanceOwnerPartyId,
+        [FromRoute] Guid instanceGuid,
+        CancellationToken cancellationToken
+    )
+    {
+        EnforcementResult enforcementResult = await AuthorizeAction(
+            org,
+            app,
+            instanceOwnerPartyId,
+            instanceGuid,
+            "read"
+        );
+
+        if (!enforcementResult.Authorized)
+        {
+            return Forbidden(enforcementResult);
+        }
+
+        try
+        {
+            Instance instance = await _instanceClient.GetInstance(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                ct: cancellationToken
+            );
+            SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
+
+            string? userOrgClaim = User.GetOrg();
+
+            if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.OrdinalIgnoreCase))
+            {
+                await _instanceClient.UpdateReadStatus(
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    "read",
+                    ct: cancellationToken
+                );
+            }
+
+            var instanceOwnerPartyTask = _registerClient.GetPartyUnchecked(instanceOwnerPartyId, cancellationToken);
+            var processStateTask = _processStateEnricher.Enrich(instance, instance.Process, User);
+
+            await Task.WhenAll(instanceOwnerPartyTask, processStateTask);
+
+            var dto = EnrichedInstanceResponse.From(
+                await instance.WithOnlyAccessibleDataElements(_dataElementAccessChecker),
+                await instanceOwnerPartyTask,
+                await processStateTask
+            );
+
+            return Ok(dto);
+        }
+        catch (Exception exception)
+        {
+            return ExceptionResponse(exception, $"Get enriched instance {instanceOwnerPartyId}/{instanceGuid} failed");
         }
     }
 
@@ -1425,6 +1505,19 @@ public class InstancesController : ControllerBase
                     Detail =
                         $"Data type with id {part.Name} from request part {partIndex} not found in application metadata",
                 };
+            }
+
+            if (
+                await _dataElementAccessChecker.GetCreateProblem(
+                    instance,
+                    dataType,
+                    _authenticationContext.Current,
+                    part.FileSize
+                ) is
+                { } accessProblem
+            )
+            {
+                return accessProblem;
             }
 
             if (dataType.AppLogic?.ClassRef != null)

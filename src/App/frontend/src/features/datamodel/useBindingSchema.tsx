@@ -4,7 +4,7 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
+import { FormStore } from 'src/features/form/FormContext';
 import { useCurrentUiFolderSettings } from 'src/features/form/ui/hooks';
 import { useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -122,24 +122,6 @@ export function useDataModelUrl({ dataType, dataElementId, language, prefillFrom
   });
 }
 
-export function useCurrentDataModelName() {
-  const overriddenDataModelType = useTaskOverrides()?.dataModelType;
-  const defaultDataType = useCurrentUiFolderSettings()?.defaultDataType;
-
-  if (overriddenDataModelType) {
-    return overriddenDataModelType;
-  }
-
-  return defaultDataType;
-}
-
-export function useCurrentDataModelType() {
-  const name = useCurrentDataModelName();
-  const application = getApplicationMetadata();
-
-  return application.dataTypes.find((dt) => dt.id === name);
-}
-
 export function useDataModelType(dataType: string) {
   const application = getApplicationMetadata();
 
@@ -147,7 +129,7 @@ export function useDataModelType(dataType: string) {
 }
 
 export function useBindingSchema<T extends IDataModelBindings | undefined>(bindings: T): AsSchema<T> | undefined {
-  const lookupBinding = DataModels.useLookupBinding();
+  const lookupBinding = FormStore.bootstrap.useLookupBinding();
 
   return useMemo(() => {
     const resolvedBindings = bindings && Object.values(bindings).length ? { ...bindings } : undefined;

@@ -130,13 +130,12 @@ describe('UI Components', () => {
     cy.wait('@upload');
     cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).should('be.visible');
     cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.uploadWithTag.uploadZone)).should('not.exist');
+    cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).findByText('Du må velge file type').should('not.exist');
     cy.dsReady(appFrontend.changeOfName.uploadWithTag.saveTag);
     cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click();
-    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.uploadWithTag.uploadZone)).should(
-      'contain.text',
-      'Du må velge file type',
-    );
+    cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).findByText('Du må velge file type').should('be.visible');
     cy.dsSelect(appFrontend.changeOfName.uploadWithTag.tagsDropDown, 'Adresse');
+    cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).findByText('Du må velge file type').should('not.exist');
     cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click();
     cy.wait('@saveTags');
     cy.get(appFrontend.changeOfName.uploadWithTag.uploaded).then((table) => {
@@ -479,22 +478,15 @@ describe('UI Components', () => {
     cy.gotoHiddenPage('label-data-bindings');
 
     cy.get('#form-content-colorsCheckboxes').click();
-    cy.findByRole('option', { name: /blå/i }).click();
-    cy.findAllByRole('option', { name: /added blå, blå/i })
-      .last()
-      .should('have.attr', 'aria-selected', 'true');
-    cy.findByRole('option', { name: /cyan/i }).click();
-    cy.findAllByRole('option', { name: /added cyan, cyan/i })
-      .last()
-      .should('have.attr', 'aria-selected', 'true');
-    cy.findByRole('option', { name: /grønn/i }).click();
-    cy.findAllByRole('option', { name: /added grønn, grønn/i })
-      .last()
-      .should('have.attr', 'aria-selected', 'true');
-    cy.findByRole('option', { name: /gul/i }).click();
-    cy.findAllByRole('option', { name: /added gul, gul/i })
-      .last()
-      .should('have.attr', 'aria-selected', 'true');
+
+    cy.get('u-option[label="Blå"][aria-selected="false"]').click();
+    cy.get('u-option[label="Blå"][aria-selected="true"]').should('exist');
+    cy.get('u-option[label="Cyan"][aria-selected="false"]').click();
+    cy.get('u-option[label="Cyan"][aria-selected="true"]').should('exist');
+    cy.get('u-option[label="Grønn"][aria-selected="false"]').click();
+    cy.get('u-option[label="Grønn"][aria-selected="true"]').should('exist');
+    cy.get('u-option[label="Gul"][aria-selected="false"]').click();
+    cy.get('u-option[label="Gul"][aria-selected="true"]').should('exist');
 
     cy.findByRole('option', {
       name: /Grønn, Press to remove/i,

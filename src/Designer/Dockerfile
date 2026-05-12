@@ -1,5 +1,5 @@
 # Building studio frontend
-FROM node:lts-alpine@sha256:7fddd9ddeae8196abf4a3ef2de34e11f7b1a722119f91f28ddf1e99dcafdf114 AS generate-studio-frontend
+FROM node:lts-alpine@sha256:01743339035a5c3c11a373cd7c83aeab6ed1457b55da6a69e014a95ac4e4700b AS generate-studio-frontend
 WORKDIR /build
 
 COPY ./package.json yarn.lock ./
@@ -34,7 +34,7 @@ COPY src/Designer/frontend/packages/schema-editor/package.json ./src/Designer/fr
 COPY src/Designer/frontend/packages/schema-model/package.json ./src/Designer/frontend/packages/schema-model/
 COPY src/Designer/frontend/packages/shared/package.json ./src/Designer/frontend/packages/shared/
 COPY src/Designer/frontend/packages/text-editor/package.json ./src/Designer/frontend/packages/text-editor/
-COPY src/Designer/frontend/packages/ux-editor/package.json ./src/Designer/frontend/packages/ux-editor/
+COPY src/Designer/frontend/packages/ux-editor-v4/package.json ./src/Designer/frontend/packages/ux-editor-v4/
 COPY src/Designer/frontend/packages/ux-editor-v3/package.json ./src/Designer/frontend/packages/ux-editor-v3/
 COPY src/Designer/frontend/resourceadm/package.json ./src/Designer/frontend/resourceadm/
 COPY src/Designer/frontend/resourceadm/testing/playwright/package.json ./src/Designer/frontend/resourceadm/testing/playwright/
@@ -42,6 +42,8 @@ COPY src/Designer/frontend/studio-root/package.json ./src/Designer/frontend/stud
 COPY src/Designer/frontend/testing/cypress/package.json ./src/Designer/frontend/testing/cypress/
 COPY src/Designer/frontend/testing/playwright/package.json ./src/Designer/frontend/testing/playwright/
 COPY src/Designer/frontend/settings/package.json ./src/Designer/frontend/settings/
+COPY libs/form-component/package.json ./libs/form-component/
+COPY libs/form-engine/package.json ./libs/form-engine/
 
 RUN yarn --immutable
 
@@ -53,7 +55,7 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:3ea83f1463983ba8b51babffebb8
 ARG DESIGNER_VERSION=''
 WORKDIR /build
 COPY src/Designer/backend .
-RUN dotnet publish src/Designer/Designer.csproj -c Release -o /app_output
+RUN dotnet publish src/Designer/Designer.csproj -c Release -o /app_output /p:CSharpier_Bypass=true
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
 # Create version file
 WORKDIR /version

@@ -11,12 +11,14 @@ import {
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { useIsReceiptPage } from 'src/core/routing/useIsReceiptPage';
+import { FormStore } from 'src/features/form/FormContext';
 import { usePageGroups, usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useGetAltinnTaskType } from 'src/features/instance/useProcessQuery';
 import { ValidationMask } from 'src/features/validation';
-import { useVisitedPages } from 'src/hooks/useNavigatePage';
+import { getVisibilityMask } from 'src/features/validation/utils';
+import { useNavigationParam } from 'src/hooks/navigation';
+import { useNavigatePage, useVisitedPages } from 'src/hooks/useNavigatePage';
 import { useHiddenPages } from 'src/utils/layout/hidden';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { NavigationReceipt, NavigationTask } from 'src/features/form/ui/types';
 
 export function useHasGroupedNavigation() {
@@ -87,12 +89,12 @@ export function getTaskIcon(taskType: string | undefined) {
  * 4. A group is marked as completed if all of its pages have no nodes with any validations errors (visible or not), and all of the pages are marked as 'visited'.
  */
 export function useValidationsForPages(order: string[], shouldMarkWhenCompleted = false) {
-  const validationsSelector = NodesInternal.useLaxValidationsSelector();
+  const validationsSelector = FormStore.nodes.useLaxValidationsSelector();
   const [visitedPages] = useVisitedPages();
 
-  const allNodeIds = NodesInternal.useLaxMemoSelector((state) => {
+  const allNodeIds = FormStore.raw.useLaxMemoSelector((state) => {
     const allNodeIds = Object.fromEntries<string[]>(order.map((page) => [page, []]));
-    Object.values(state.nodeData).forEach((node) => allNodeIds[node.pageKey]?.push(node.id));
+    Object.values(state.nodes.nodeData).forEach((node) => allNodeIds[node.pageKey]?.push(node.id));
     return allNodeIds;
   });
 
@@ -149,4 +151,46 @@ export function useValidationsForPages(order: string[], shouldMarkWhenCompleted 
   }
 
   return { isCompleted, hasErrors };
+}
+
+//Prevents navigation to a page if there are pages between the current page and the target page that have validateOnNavigation enabled and contain validation errors.
+export function useGetNavigationIsPrevented() {
+  const currentPageId = useNavigationParam('pageKey') ?? '';
+  const layoutCollection = FormStore.bootstrap.useLayoutCollection();
+  const globalValidationOnNavigation = usePageSettings().validationOnNavigation;
+  const { order } = useNavigatePage();
+  const validationsSelector = FormStore.nodes.useLaxValidationsSelector();
+  const allNodeIds = FormStore.raw.useLaxMemoSelector((state) => {
+    const result = Object.fromEntries<string[]>(order.map((page) => [page, []]));
+    Object.values(state.nodes.nodeData).forEach((node) => result[node.pageKey]?.push(node.id));
+    return result;
+  });
+
+  return (targetPageKey: string): boolean => {
+    if (allNodeIds === ContextNotProvided) {
+      return false;
+    }
+
+    const currentIndex = order.indexOf(currentPageId);
+    const targetIndex = order.indexOf(targetPageKey);
+
+    if (currentIndex === -1 || targetIndex === -1 || targetIndex <= currentIndex) {
+      return false;
+    }
+
+    return order.slice(currentIndex + 1, targetIndex).some((pageId) => {
+      const validationOnNavigation =
+        layoutCollection[pageId]?.data?.validationOnNavigation ?? globalValidationOnNavigation;
+
+      if (!validationOnNavigation) {
+        return false;
+      }
+
+      const mask = getVisibilityMask(validationOnNavigation.show);
+      return (allNodeIds[pageId] ?? []).some((nodeId) => {
+        const validations = validationsSelector(nodeId, mask, 'error');
+        return validations !== ContextNotProvided && validations.length > 0;
+      });
+    });
+  };
 }

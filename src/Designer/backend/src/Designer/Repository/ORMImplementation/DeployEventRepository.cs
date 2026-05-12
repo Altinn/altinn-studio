@@ -56,4 +56,24 @@ public class DeployEventRepository : IDeployEventRepository
         _dbContext.DeployEvents.Add(dbModel);
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task AddBySequenceNoAsync(
+        long sequenceNo,
+        DeployEvent deployEvent,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var dbModel = new DeployEventDbModel
+        {
+            DeploymentSequenceNo = sequenceNo,
+            EventType = deployEvent.EventType.ToString(),
+            Message = deployEvent.Message,
+            Timestamp = deployEvent.Timestamp,
+            Created = _timeProvider.GetUtcNow(),
+            Origin = deployEvent.Origin.ToString(),
+        };
+
+        _dbContext.DeployEvents.Add(dbModel);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
 }

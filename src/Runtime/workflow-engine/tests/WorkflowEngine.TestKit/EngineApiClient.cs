@@ -25,7 +25,7 @@ public sealed class EngineApiClient : IDisposable
         _client = handlers.Length > 0 ? fixture.CreateEngineClient(handlers) : fixture.CreateEngineClient();
     }
 
-    public static string DefaultNamespace => $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}";
+    public static string DefaultNamespace => $"{EngineAppFixture.DefaultOrg}-{EngineAppFixture.DefaultApp}";
 
     private string GetBasePath(string? ns = null) =>
         $"/api/v1/{Uri.EscapeDataString(ns ?? _defaultNamespace)}/workflows";
@@ -35,14 +35,18 @@ public sealed class EngineApiClient : IDisposable
     /// Uses <see cref="DefaultNamespace"/> and a unique idempotency key if not specified.
     /// Pass an explicit <paramref name="idempotencyKey"/> when testing idempotent resubmission.
     /// </summary>
+    /// <param name="request">The workflow batch to enqueue.</param>
+    /// <param name="ns">Optional namespace override. Uses <see cref="DefaultNamespace"/> when omitted.</param>
+    /// <param name="idempotencyKey">Optional request key for idempotent enqueue semantics. Distinct from <paramref name="collectionKey"/>.</param>
+    /// <param name="collectionKey">Optional collection identifier used to group batches into the same workflow collection. Omit or pass <see langword="null"/> for no collection.</param>
     public async Task<WorkflowEnqueueResponse.Accepted> Enqueue(
         WorkflowEnqueueRequest request,
         string? ns = null,
         string? idempotencyKey = null,
-        Guid? correlationId = null
+        string? collectionKey = null
     )
     {
-        using var response = await EnqueueRaw(request, ns, idempotencyKey, correlationId);
+        using var response = await EnqueueRaw(request, ns, idempotencyKey, collectionKey);
         return await AssertSuccessAndDeserialize<WorkflowEnqueueResponse.Accepted>(response);
     }
 
@@ -51,18 +55,22 @@ public sealed class EngineApiClient : IDisposable
     /// Uses <see cref="DefaultNamespace"/> and a unique idempotency key if not specified.
     /// Pass an explicit <paramref name="idempotencyKey"/> when testing idempotent resubmission.
     /// </summary>
+    /// <param name="jsonRequest">The raw JSON payload to enqueue.</param>
+    /// <param name="ns">Optional namespace override. Uses <see cref="DefaultNamespace"/> when omitted.</param>
+    /// <param name="idempotencyKey">Optional request key for idempotent enqueue semantics. Distinct from <paramref name="collectionKey"/>.</param>
+    /// <param name="collectionKey">Optional collection identifier used to group batches into the same workflow collection. Omit or pass <see langword="null"/> for no collection.</param>
     public async Task<WorkflowEnqueueResponse.Accepted> Enqueue(
         string jsonRequest,
         string? ns = null,
         string? idempotencyKey = null,
-        Guid? correlationId = null
+        string? collectionKey = null
     )
     {
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, GetBasePath(ns))
         {
             Content = new StringContent(jsonRequest, Encoding.UTF8, "application/json"),
         };
-        AddMetadataHeaders(httpRequest.Headers, idempotencyKey, correlationId);
+        AddMetadataHeaders(httpRequest.Headers, idempotencyKey, collectionKey);
 
         using var response = await _client.SendAsync(httpRequest);
         return await AssertSuccessAndDeserialize<WorkflowEnqueueResponse.Accepted>(response);
@@ -72,18 +80,22 @@ public sealed class EngineApiClient : IDisposable
     /// Enqueues a batch and returns the raw <see cref="HttpResponseMessage"/>.
     /// Uses <see cref="DefaultNamespace"/> and a unique idempotency key if not specified.
     /// </summary>
+    /// <param name="request">The workflow batch to enqueue.</param>
+    /// <param name="ns">Optional namespace override. Uses <see cref="DefaultNamespace"/> when omitted.</param>
+    /// <param name="idempotencyKey">Optional request key for idempotent enqueue semantics. Distinct from <paramref name="collectionKey"/>.</param>
+    /// <param name="collectionKey">Optional collection identifier used to group batches into the same workflow collection. Omit or pass <see langword="null"/> for no collection.</param>
     public async Task<HttpResponseMessage> EnqueueRaw(
         WorkflowEnqueueRequest request,
         string? ns = null,
         string? idempotencyKey = null,
-        Guid? correlationId = null
+        string? collectionKey = null
     )
     {
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, GetBasePath(ns))
         {
             Content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"),
         };
-        AddMetadataHeaders(httpRequest.Headers, idempotencyKey, correlationId);
+        AddMetadataHeaders(httpRequest.Headers, idempotencyKey, collectionKey);
 
         return await _client.SendAsync(httpRequest);
     }
@@ -92,14 +104,18 @@ public sealed class EngineApiClient : IDisposable
     /// Enqueues a batch using query parameters (instead of headers) for metadata.
     /// Produces more copy-pastable HTTP exchanges for developer documentation.
     /// </summary>
+    /// <param name="request">The workflow batch to enqueue.</param>
+    /// <param name="ns">Optional namespace override. Uses <see cref="DefaultNamespace"/> when omitted.</param>
+    /// <param name="idempotencyKey">Optional request key for idempotent enqueue semantics. Distinct from <paramref name="collectionKey"/>.</param>
+    /// <param name="collectionKey">Optional collection identifier used to group batches into the same workflow collection. Omit or pass <see langword="null"/> for no collection.</param>
     public async Task<WorkflowEnqueueResponse.Accepted> EnqueueWithQueryParams(
         WorkflowEnqueueRequest request,
         string? ns = null,
         string? idempotencyKey = null,
-        Guid? correlationId = null
+        string? collectionKey = null
     )
     {
-        using var response = await EnqueueRawWithQueryParams(request, ns, idempotencyKey, correlationId);
+        using var response = await EnqueueRawWithQueryParams(request, ns, idempotencyKey, collectionKey);
         return await AssertSuccessAndDeserialize<WorkflowEnqueueResponse.Accepted>(response);
     }
 
@@ -107,14 +123,18 @@ public sealed class EngineApiClient : IDisposable
     /// Enqueues a batch using query parameters (instead of headers) for metadata.
     /// Returns the raw <see cref="HttpResponseMessage"/>.
     /// </summary>
+    /// <param name="request">The workflow batch to enqueue.</param>
+    /// <param name="ns">Optional namespace override. Uses <see cref="DefaultNamespace"/> when omitted.</param>
+    /// <param name="idempotencyKey">Optional request key for idempotent enqueue semantics. Distinct from <paramref name="collectionKey"/>.</param>
+    /// <param name="collectionKey">Optional collection identifier used to group batches into the same workflow collection. Omit or pass <see langword="null"/> for no collection.</param>
     public async Task<HttpResponseMessage> EnqueueRawWithQueryParams(
         WorkflowEnqueueRequest request,
         string? ns = null,
         string? idempotencyKey = null,
-        Guid? correlationId = null
+        string? collectionKey = null
     )
     {
-        var qs = BuildMetadataQueryString(idempotencyKey, correlationId);
+        var qs = BuildMetadataQueryString(idempotencyKey, collectionKey);
         var path = string.IsNullOrEmpty(qs) ? GetBasePath(ns) : $"{GetBasePath(ns)}?{qs}";
 
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, path)
@@ -128,15 +148,15 @@ public sealed class EngineApiClient : IDisposable
     /// <summary>
     /// Gets a workflow status and returns the raw <see cref="HttpResponseMessage"/>.
     /// </summary>
-    public Task<HttpResponseMessage> GetWorkflowRaw(Guid workflowId) =>
-        _client.GetAsync($"{GetBasePath()}/{workflowId}", CancellationToken.None);
+    public Task<HttpResponseMessage> GetWorkflowRaw(Guid workflowId, string? ns = null) =>
+        _client.GetAsync($"{GetBasePath(ns)}/{workflowId}", CancellationToken.None);
 
     /// <summary>
     /// Gets a workflow status and returns either a parsed result or <c>null</c> on 404.
     /// </summary>
-    public async Task<WorkflowStatusResponse?> GetWorkflow(Guid workflowId)
+    public async Task<WorkflowStatusResponse?> GetWorkflow(Guid workflowId, string? ns = null)
     {
-        using var response = await GetWorkflowRaw(workflowId);
+        using var response = await GetWorkflowRaw(workflowId, ns);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
             return null;
@@ -152,6 +172,35 @@ public sealed class EngineApiClient : IDisposable
         }
 
         return await AssertSuccessAndDeserialize<WorkflowStatusResponse>(response);
+    }
+
+    /// <summary>
+    /// Gets a workflow dependency graph and returns the raw <see cref="HttpResponseMessage"/>.
+    /// </summary>
+    public Task<HttpResponseMessage> GetWorkflowDependencyGraphRaw(Guid workflowId, string? ns = null) =>
+        _client.GetAsync($"{GetBasePath(ns)}/{workflowId}/dependency-graph", CancellationToken.None);
+
+    /// <summary>
+    /// Gets a workflow dependency graph and returns either a parsed result or <c>null</c> on 404.
+    /// </summary>
+    public async Task<WorkflowDependencyGraphResponse?> GetWorkflowDependencyGraph(Guid workflowId, string? ns = null)
+    {
+        using var response = await GetWorkflowDependencyGraphRaw(workflowId, ns);
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+            return null;
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException(
+                $"GetWorkflowDependencyGraph returned {(int)response.StatusCode} {response.StatusCode}: {body}",
+                inner: null,
+                statusCode: response.StatusCode
+            );
+        }
+
+        return await AssertSuccessAndDeserialize<WorkflowDependencyGraphResponse>(response);
     }
 
     /// <summary>
@@ -185,17 +234,81 @@ public sealed class EngineApiClient : IDisposable
     }
 
     /// <summary>
-    /// Lists active workflows and returns either a parsed result or an empty list on 204 No Content.
+    /// Lists workflows with cursor-based pagination. Returns the full paginated response or an empty one on 204 No Content.
     /// </summary>
-    public async Task<List<WorkflowStatusResponse>> ListActiveWorkflows(string? ns = null)
+    public async Task<PaginatedResponse<WorkflowStatusResponse>> ListWorkflowsPaginated(
+        Guid? cursor = null,
+        int? pageSize = null,
+        IReadOnlyList<PersistentItemStatus>? statuses = null,
+        string? ns = null
+    )
     {
-        using var response = await _client.GetAsync(GetBasePath(ns));
+        var qs = new List<string>();
+        if (cursor.HasValue)
+            qs.Add($"cursor={cursor.Value}");
+        if (pageSize.HasValue)
+            qs.Add($"pageSize={pageSize.Value}");
+        if (statuses is not null)
+        {
+            foreach (var status in statuses)
+                qs.Add($"status={status}");
+        }
+
+        var path = qs.Count > 0 ? $"{GetBasePath(ns)}?{string.Join("&", qs)}" : GetBasePath(ns);
+        using var response = await _client.GetAsync(path);
 
         if (response.StatusCode == HttpStatusCode.NoContent)
-            return [];
+            return new PaginatedResponse<WorkflowStatusResponse>
+            {
+                Data = [],
+                PageSize = pageSize ?? 25,
+                TotalCount = 0,
+            };
 
-        return await AssertSuccessAndDeserialize<List<WorkflowStatusResponse>>(response);
+        return await AssertSuccessAndDeserialize<PaginatedResponse<WorkflowStatusResponse>>(response);
     }
+
+    /// <summary>
+    /// Lists all workflows by iterating through every page using cursor-based pagination.
+    /// Convenience wrapper around <see cref="ListWorkflowsPaginated"/> that returns the full dataset.
+    /// </summary>
+    public async Task<List<WorkflowStatusResponse>> ListWorkflows(
+        IReadOnlyList<PersistentItemStatus>? statuses = null,
+        string? ns = null
+    )
+    {
+        var all = new List<WorkflowStatusResponse>();
+        Guid? cursor = null;
+
+        while (true)
+        {
+            var result = await ListWorkflowsPaginated(cursor: cursor, statuses: statuses, ns: ns);
+            all.AddRange(result.Data);
+
+            if (result.NextCursor is null)
+                return all;
+
+            cursor = result.NextCursor;
+        }
+    }
+
+    public Task<PaginatedResponse<WorkflowStatusResponse>> ListActiveWorkflowsPaginated(
+        Guid? cursor = null,
+        int? pageSize = null,
+        string? ns = null
+    ) =>
+        ListWorkflowsPaginated(
+            cursor,
+            pageSize,
+            [PersistentItemStatus.Enqueued, PersistentItemStatus.Processing, PersistentItemStatus.Requeued],
+            ns
+        );
+
+    public Task<List<WorkflowStatusResponse>> ListActiveWorkflows(string? ns = null) =>
+        ListWorkflows(
+            [PersistentItemStatus.Enqueued, PersistentItemStatus.Processing, PersistentItemStatus.Requeued],
+            ns
+        );
 
     /// <summary>
     /// Polls <see cref="GetWorkflow(Guid)"/> every 100 ms until the workflow reaches
@@ -235,21 +348,21 @@ public sealed class EngineApiClient : IDisposable
         return [.. await Task.WhenAll(tasks)];
     }
 
-    private static void AddMetadataHeaders(HttpRequestHeaders headers, string? idempotencyKey, Guid? correlationId)
+    private static void AddMetadataHeaders(HttpRequestHeaders headers, string? idempotencyKey, string? collectionKey)
     {
         headers.Add(WorkflowMetadataConstants.Headers.IdempotencyKey, idempotencyKey ?? $"idem-{Guid.NewGuid()}");
-        if (correlationId.HasValue)
-            headers.Add(WorkflowMetadataConstants.Headers.CorrelationId, correlationId.Value.ToString());
+        if (collectionKey is not null)
+            headers.Add(WorkflowMetadataConstants.Headers.CollectionKey, collectionKey);
     }
 
-    private static string BuildMetadataQueryString(string? idempotencyKey, Guid? correlationId)
+    private static string BuildMetadataQueryString(string? idempotencyKey, string? collectionKey)
     {
         var qs = new List<string>
         {
             $"{WorkflowMetadataConstants.QueryParams.IdempotencyKey}={Uri.EscapeDataString(idempotencyKey ?? $"idem-{Guid.NewGuid()}")}",
         };
-        if (correlationId.HasValue)
-            qs.Add($"{WorkflowMetadataConstants.QueryParams.CorrelationId}={correlationId.Value}");
+        if (collectionKey is not null)
+            qs.Add($"{WorkflowMetadataConstants.QueryParams.CollectionKey}={Uri.EscapeDataString(collectionKey)}");
         return string.Join("&", qs);
     }
 

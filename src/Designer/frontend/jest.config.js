@@ -22,6 +22,7 @@ const packagesToTransform = [
   'min-dom',
   'moddle',
   'path-intersection',
+  'preact',
   'react-dnd',
   'react-dnd-html5-backend',
   'react-error-boundary',
@@ -83,6 +84,7 @@ const config = {
     '^app-shared/(.*)': path.join(__dirname, 'packages/shared/src/$1'),
     '^@altinn/text-editor/(.*)': path.join(__dirname, 'packages/text-editor/src/$1'),
     '^@altinn/ux-editor/(.*)': path.join(__dirname, 'packages/ux-editor/src/$1'),
+    '^@altinn/ux-editor-v4/(.*)': path.join(__dirname, 'packages/ux-editor-v4/src/$1'),
     '^@altinn/ux-editor-v3/(.*)': path.join(__dirname, 'packages/ux-editor-v3/src/$1'),
     '^@studio/guard/(.*)': path.join(__dirname, 'libs/studio-guard/$1'),
     '^@studio/icons/(.*)': path.join(__dirname, 'libs/studio-icons/$1'),
@@ -106,6 +108,7 @@ if (process.env.CI) {
   config.coverageReporters = ['lcov'];
   config.coveragePathIgnorePatterns = [
     'frontend/packages/ux-editor/src/testing/',
+    'frontend/packages/ux-editor-v4/src/testing/',
     'frontend/packages/ux-editor-v3/src/testing/',
     'frontend/scripts/',
   ];

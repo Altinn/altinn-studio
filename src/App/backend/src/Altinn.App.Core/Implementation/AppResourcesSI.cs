@@ -72,7 +72,10 @@ public class AppResourcesSI : IAppResources
         string pathTextsFolder = Path.Join(_settings.AppBasePath, _settings.ConfigurationFolder, _settings.TextFolder);
         string fullFileName = Path.Join(pathTextsFolder, $"resource.{language}.json");
 
-        PathHelper.EnsureLegalPath(pathTextsFolder, fullFileName);
+        if (!PathHelper.ValidateLegalFilePath(pathTextsFolder, fullFileName))
+        {
+            throw new ArgumentException("Invalid path", nameof(language));
+        }
 
         if (!File.Exists(fullFileName))
         {
@@ -262,7 +265,10 @@ public class AppResourcesSI : IAppResources
 
         string layoutsPath = Path.Join(_settings.AppBasePath, _settings.UiFolder, folderId, "layouts");
 
-        PathHelper.EnsureLegalPath(Path.Join(_settings.AppBasePath, _settings.UiFolder), layoutsPath);
+        if (!PathHelper.ValidateLegalFilePath(Path.Join(_settings.AppBasePath, _settings.UiFolder), layoutsPath))
+        {
+            throw new ArgumentException("Invalid path", nameof(folderId));
+        }
 
         if (Directory.Exists(layoutsPath))
         {
@@ -404,7 +410,10 @@ public class AppResourcesSI : IAppResources
             _settings.FormLayoutSettingsFileName
         );
 
-        PathHelper.EnsureLegalPath(Path.Join(_settings.AppBasePath, _settings.UiFolder), filename);
+        if (!PathHelper.ValidateLegalFilePath(Path.Join(_settings.AppBasePath, _settings.UiFolder), filename))
+        {
+            throw new ArgumentException("Invalid path", nameof(folder));
+        }
 
         if (File.Exists(filename))
         {

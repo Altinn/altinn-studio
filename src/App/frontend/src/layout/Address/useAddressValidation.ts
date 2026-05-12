@@ -1,12 +1,12 @@
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import type { ComponentValidation } from 'src/features/validation';
 
 export function useAddressValidation(baseComponentId: string): ComponentValidation[] {
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'Address');
-  const zipCode = FD.useDebouncedPick(dataModelBindings?.zipCode);
-  const houseNumber = FD.useDebouncedPick(dataModelBindings?.houseNumber);
+  const zipCode = FormStore.data.useDebouncedPick(dataModelBindings?.zipCode);
+  const houseNumber = FormStore.data.useDebouncedPick(dataModelBindings?.houseNumber);
   if (!dataModelBindings) {
     return [];
   }

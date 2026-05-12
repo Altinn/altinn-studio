@@ -9,6 +9,9 @@ using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Resilience.Extensions;
 
+/// <summary>
+/// Helpers that drive retry, backoff, and deadline logic from a <see cref="RetryStrategy"/>.
+/// </summary>
 public static class RetryStrategyExtensions
 {
     extension(RetryStrategy strategy)
@@ -181,19 +184,19 @@ public static class RetryStrategyExtensions
     }
 }
 
-public static partial class RetryStrategyExtensionsLogging
+internal static partial class RetryStrategyExtensionsLogs
 {
     [LoggerMessage(LogLevel.Debug, "Starting execution of operation '{OperationName}'")]
-    public static partial void StartingExecution(this ILogger logger, string operationName);
+    internal static partial void StartingExecution(this ILogger logger, string operationName);
 
     [LoggerMessage(LogLevel.Debug, "Operation '{OperationName}' succeeded on attempt {Attempt}")]
-    public static partial void ExecutionSucceeded(this ILogger logger, string operationName, int attempt);
+    internal static partial void ExecutionSucceeded(this ILogger logger, string operationName, int attempt);
 
     [LoggerMessage(
         LogLevel.Error,
         "Operation '{OperationName}' failed with error on attempt {Attempt}: {ErrorMessage}"
     )]
-    public static partial void ExecutionFailed(
+    internal static partial void ExecutionFailed(
         this ILogger logger,
         string operationName,
         int attempt,
@@ -202,25 +205,25 @@ public static partial class RetryStrategyExtensionsLogging
     );
 
     [LoggerMessage(LogLevel.Error, "Error {ErrorType} is unrecoverable, giving up")]
-    public static partial void UnrecoverableError(this ILogger logger, string errorType, Exception ex);
+    internal static partial void UnrecoverableError(this ILogger logger, string errorType, Exception ex);
 
     [LoggerMessage(
         LogLevel.Error,
         "All available retries are exhausted or the deadline for this operation has been exceeded, giving up"
     )]
-    public static partial void MaxRetriesReached(this ILogger logger, Exception ex);
+    internal static partial void MaxRetriesReached(this ILogger logger, Exception ex);
 
     [LoggerMessage(
         LogLevel.Error,
         "The next retry attempt is unreachable because it will exceed the deadline for this operation, giving up"
     )]
-    public static partial void NextRetryUnreachable(this ILogger logger, Exception ex);
+    internal static partial void NextRetryUnreachable(this ILogger logger, Exception ex);
 
     [LoggerMessage(
         LogLevel.Warning,
         "Operation '{OperationName}' failed on attempt {Attempt} of {MaxAttempts}, retrying in {Delay}ms"
     )]
-    public static partial void RetryDelay(
+    internal static partial void RetryDelay(
         this ILogger logger,
         string operationName,
         int attempt,

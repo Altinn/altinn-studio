@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using WorkflowEngine.Core.Metadata;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
@@ -29,14 +30,21 @@ internal static class EngineEndpoints
             .WithDescription("Enqueues one or more workflows, resolving their dependency graph");
 
         group
-            .MapGet("", EngineRequestHandlers.ListActiveWorkflows)
-            .WithName("ListActiveWorkflows")
-            .WithDescription("Lists all active workflows, optionally filtered by correlation ID");
+            .MapGet("", EngineRequestHandlers.ListWorkflows)
+            .WithName("ListWorkflows")
+            .WithDescription("Lists workflows, optionally filtered by collection key, labels, and statuses");
 
         group
             .MapGet("/{workflowId:guid}", EngineRequestHandlers.GetWorkflow)
             .WithName("GetWorkflow")
             .WithDescription("Gets details of a single workflow by database ID");
+
+        group
+            .MapGet("/{workflowId:guid}/dependency-graph", EngineRequestHandlers.GetWorkflowDependencyGraph)
+            .WithName("GetWorkflowDependencyGraph")
+            .WithDescription(
+                "Gets the connected dependency graph reachable from the requested workflow through dependency or link relations in either direction"
+            );
 
         group
             .MapPost("/{workflowId:guid}/cancel", EngineRequestHandlers.CancelWorkflow)
@@ -47,6 +55,13 @@ internal static class EngineEndpoints
             .MapPost("/{workflowId:guid}/resume", EngineRequestHandlers.ResumeWorkflow)
             .WithName("ResumeWorkflow")
             .WithDescription("Resumes a terminal workflow (failed, canceled, dependency-failed) for re-processing");
+
+        var collectionGroup = app.MapGroup("/api/v1/{namespace}/collections").WithTags("Collections");
+
+        collectionGroup
+            .MapGet("/{key}", EngineRequestHandlers.GetCollection)
+            .WithName("GetCollection")
+            .WithDescription("Gets a single workflow collection by key, including head workflow statuses");
 
         return app;
     }
@@ -83,14 +98,14 @@ internal static class EngineRequestHandlers
         var ns = NormalizeNamespace(@namespace);
         var inbound = MetadataExtractor.ExtractEnqueueMetadata(httpContext, ns);
 
-        Activity.Current?.SetTag("workflow.correlation.id", inbound.CorrelationId);
+        Activity.Current?.SetTag("workflow.collection.key", inbound.CollectionKey);
         Activity.Current?.SetTag("workflow.idempotency.key", inbound.IdempotencyKey);
         Activity.Current?.SetTag("workflow.namespace", inbound.Namespace);
 
         var metadata = new WorkflowRequestMetadata(
             inbound.Namespace,
             inbound.IdempotencyKey,
-            inbound.CorrelationId,
+            inbound.CollectionKey,
             timeProvider.GetUtcNow(),
             Activity.Current?.Id
         );
@@ -124,29 +139,49 @@ internal static class EngineRequestHandlers
         };
     }
 
-    public static async Task<Results<Ok<IEnumerable<WorkflowStatusResponse>>, NoContent>> ListActiveWorkflows(
+    public static async Task<Results<Ok<PaginatedResponse<WorkflowStatusResponse>>, NoContent>> ListWorkflows(
         [FromRoute] string @namespace,
-        [FromQuery] Guid? correlationId,
+        [FromQuery] string? collectionKey,
         [FromQuery(Name = "label")] string[]? labels,
+        [FromQuery(Name = "status")] PersistentItemStatus[]? statuses,
+        [FromQuery] Guid? cursor,
+        [FromQuery] int? pageSize,
         [FromServices] IEngineRepository repository,
+        [FromServices] IOptions<EngineSettings> settings,
         CancellationToken cancellationToken
     )
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list"));
 
+        var pagination = settings.Value.Pagination;
+        var effectivePageSize = Math.Clamp(pageSize ?? pagination.DefaultPageSize, 1, pagination.MaxPageSize);
+
         var ns = NormalizeNamespace(@namespace);
         var labelFilters = ParseLabelFilters(labels);
-        var workflows = await repository.GetActiveWorkflowsByCorrelationId(
-            correlationId,
-            ns,
-            labelFilters,
-            cancellationToken
+        var effectiveStatuses = GetQueryStatuses(statuses);
+        var result = await repository.QueryWorkflows(
+            effectivePageSize,
+            effectiveStatuses,
+            cursor,
+            includeTotalCount: true,
+            labelFilters: labelFilters,
+            namespaceFilter: ns,
+            collectionKey: collectionKey,
+            cancellationToken: cancellationToken
         );
 
-        if (workflows.Count == 0)
+        if (result.TotalCount == 0)
             return TypedResults.NoContent();
 
-        return TypedResults.Ok(workflows.Select(WorkflowStatusResponse.FromWorkflow));
+        return TypedResults.Ok(
+            new PaginatedResponse<WorkflowStatusResponse>
+            {
+                Data = result.Workflows.Select(WorkflowStatusResponse.FromWorkflow).ToList(),
+                PageSize = effectivePageSize,
+                TotalCount = result.TotalCount ?? 0, // always populated here (includeTotalCount: true)
+                NextCursor = result.NextCursor,
+            }
+        );
     }
 
     public static async Task<Results<Ok<WorkflowStatusResponse>, NotFound>> GetWorkflow(
@@ -165,6 +200,31 @@ internal static class EngineRequestHandlers
             return TypedResults.NotFound();
 
         return TypedResults.Ok(WorkflowStatusResponse.FromWorkflow(workflow));
+    }
+
+    public static async Task<Results<Ok<WorkflowDependencyGraphResponse>, NotFound>> GetWorkflowDependencyGraph(
+        [FromRoute] string @namespace,
+        [FromRoute] Guid workflowId,
+        [FromServices] IEngineRepository repository,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "dependency-graph"));
+
+        var ns = NormalizeNamespace(@namespace);
+        var dependencyGraph = await repository.GetWorkflowDependencyGraph(workflowId, ns, cancellationToken);
+
+        if (dependencyGraph is null)
+            return TypedResults.NotFound();
+
+        return TypedResults.Ok(
+            new WorkflowDependencyGraphResponse
+            {
+                RootWorkflowId = workflowId,
+                Workflows = dependencyGraph.Select(WorkflowStatusResponse.FromWorkflow).ToList(),
+                Edges = BuildDependencyGraphEdges(dependencyGraph),
+            }
+        );
     }
 
     public static async Task<
@@ -277,5 +337,89 @@ internal static class EngineRequestHandlers
         }
 
         return result;
+    }
+
+    private static readonly PersistentItemStatus[] AllPersistentItemStatuses = Enum.GetValues<PersistentItemStatus>();
+
+    private static PersistentItemStatus[] GetQueryStatuses(PersistentItemStatus[]? statuses) =>
+        statuses is { Length: > 0 } ? statuses : AllPersistentItemStatuses;
+
+    private static List<WorkflowDependencyGraphEdgeResponse> BuildDependencyGraphEdges(
+        IReadOnlyList<Workflow> workflows
+    )
+    {
+        // Workflows arrive ordered by (CreatedAt, OperationId, Id) from the repo, so the outer
+        // loop is already stable. The inner Dependencies/Links collections come from EF Include
+        // without ORDER BY, so we sort them by OperationId here to keep edge emission
+        // deterministic regardless of database row order. DatabaseId is the tiebreaker for the
+        // edge case where two related workflows share the same OperationId.
+        HashSet<Guid> workflowIds = [.. workflows.Select(workflow => workflow.DatabaseId)];
+        List<WorkflowDependencyGraphEdgeResponse> edges = [];
+
+        foreach (Workflow workflow in workflows)
+        {
+            if (workflow.Dependencies is not null)
+            {
+                foreach (
+                    Workflow dependency in workflow.Dependencies.OrderBy(d => d.OperationId).ThenBy(d => d.DatabaseId)
+                )
+                {
+                    if (!workflowIds.Contains(dependency.DatabaseId))
+                        continue;
+
+                    edges.Add(
+                        new WorkflowDependencyGraphEdgeResponse
+                        {
+                            From = dependency.DatabaseId,
+                            To = workflow.DatabaseId,
+                            Kind = WorkflowDependencyGraphEdgeKind.Dependency,
+                        }
+                    );
+                }
+            }
+
+            if (workflow.Links is not null)
+            {
+                foreach (Workflow link in workflow.Links.OrderBy(l => l.OperationId).ThenBy(l => l.DatabaseId))
+                {
+                    if (!workflowIds.Contains(link.DatabaseId))
+                        continue;
+
+                    edges.Add(
+                        new WorkflowDependencyGraphEdgeResponse
+                        {
+                            From = workflow.DatabaseId,
+                            To = link.DatabaseId,
+                            Kind = WorkflowDependencyGraphEdgeKind.Link,
+                        }
+                    );
+                }
+            }
+        }
+
+        return edges;
+    }
+
+    /// <summary>
+    /// Gets a single workflow collection by <paramref name="key"/> within the requested namespace.
+    /// Normalizes <paramref name="ns"/>, records the query metric, and returns 404 when the collection is missing.
+    /// </summary>
+    public static async Task<Results<Ok<WorkflowCollectionDetailResponse>, NotFound>> GetCollection(
+        [FromRoute(Name = "namespace")] string ns,
+        [FromRoute] string key,
+        [FromServices] IEngineRepository repository,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "get-collection"));
+
+        ns = NormalizeNamespace(ns);
+
+        var collection = await repository.GetCollection(key, ns, cancellationToken);
+
+        if (collection is null)
+            return TypedResults.NotFound();
+
+        return TypedResults.Ok(collection);
     }
 }

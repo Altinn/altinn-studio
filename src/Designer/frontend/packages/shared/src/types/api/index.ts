@@ -1,4 +1,6 @@
 export * from './AddLanguagePayload';
+export * from './ChatMessage';
+export * from './ChatThread';
 export * from './AddRepoParams';
 export * from './AppReleasesResponse';
 export * from './BranchTypes';

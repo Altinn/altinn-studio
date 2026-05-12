@@ -55,24 +55,44 @@ public class BotAccountsController(IBotAccountService botAccountService) : Contr
     {
         var botAccounts = await botAccountService.ListByOrgAsync(org, cancellationToken);
 
+        var apiKeyCounts = await botAccountService.GetApiKeyCountsByBotIdsAsync(
+            botAccounts.Select(b => b.Id),
+            cancellationToken
+        );
+
         var response = botAccounts
-            .Select(b => new BotAccountResponse(
-                b.Id,
-                b.Username,
-                b.OrganizationName,
-                b.Deactivated,
-                b.Created,
-                b.CreatedByUsername
+            .Select(botAccount => new BotAccountResponse(
+                botAccount.Id,
+                botAccount.Username,
+                botAccount.OrganizationName,
+                botAccount.Deactivated,
+                botAccount.Created,
+                botAccount.CreatedByUsername,
+                botAccount.DeployEnvironments,
+                apiKeyCounts.GetValueOrDefault(botAccount.Id, 0)
             ))
             .ToList();
 
         return Ok(response);
     }
 
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(
+        string org,
+        Guid id,
+        [FromBody] UpdateBotAccountRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        await botAccountService.UpdateAsync(id, org, request.DeployEnvironments, cancellationToken);
+        return NoContent();
+    }
+
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<BotAccountResponse>> Get(string org, Guid id, CancellationToken cancellationToken)
     {
         var botAccount = await botAccountService.GetAsync(id, org, cancellationToken);
+        var apiKeyCounts = await botAccountService.GetApiKeyCountsByBotIdsAsync([id], cancellationToken);
 
         return Ok(
             new BotAccountResponse(
@@ -81,7 +101,9 @@ public class BotAccountsController(IBotAccountService botAccountService) : Contr
                 botAccount.OrganizationName,
                 botAccount.Deactivated,
                 botAccount.Created,
-                botAccount.CreatedByUsername
+                botAccount.CreatedByUsername,
+                botAccount.DeployEnvironments,
+                apiKeyCounts.GetValueOrDefault(id, 0)
             )
         );
     }
@@ -138,30 +160,6 @@ public class BotAccountsController(IBotAccountService botAccountService) : Contr
     public async Task<IActionResult> RevokeApiKey(string org, Guid id, long keyId, CancellationToken cancellationToken)
     {
         await botAccountService.RevokeApiKeyAsync(id, keyId, org, cancellationToken);
-        return NoContent();
-    }
-
-    [HttpPost("{id:guid}/teams")]
-    public async Task<IActionResult> AddToTeam(
-        string org,
-        Guid id,
-        [FromBody] AddBotAccountToTeamRequest request,
-        CancellationToken cancellationToken
-    )
-    {
-        await botAccountService.AddToDeployTeamAsync(id, org, request.Environment, cancellationToken);
-        return NoContent();
-    }
-
-    [HttpDelete("{id:guid}/teams/{environment}")]
-    public async Task<IActionResult> RemoveFromTeam(
-        string org,
-        Guid id,
-        string environment,
-        CancellationToken cancellationToken
-    )
-    {
-        await botAccountService.RemoveFromDeployTeamAsync(id, org, environment, cancellationToken);
         return NoContent();
     }
 }

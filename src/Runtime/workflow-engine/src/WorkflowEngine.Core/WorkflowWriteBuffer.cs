@@ -172,9 +172,20 @@ internal class WorkflowWriteBuffer : BackgroundService
             return;
         }
 
+        var totalWorkflows = batch.Sum(x => x.Request.Workflows.Count);
+        var totalSteps = batch.Sum(x => x.Request.Workflows.Sum(w => w.Steps.Count));
+        var distinctNamespaces = batch.Select(x => x.Metadata.Namespace).Distinct().Count();
+
         using var activity = Metrics.Source.StartActivity(
             "WorkflowWriteBuffer.FlushBatch",
-            tags: [("batch.size", batch.Count)],
+            tags:
+            [
+                ("batch.size", batch.Count),
+                ("batch.workflows", totalWorkflows),
+                ("batch.steps", totalSteps),
+                ("batch.namespaces", distinctNamespaces),
+                ("db.operation", "batch_enqueue_workflows"),
+            ],
             links: batch.Select(x => Metrics.ParseTraceContext(x.Metadata.TraceContext)).ToActivityLinks()
         );
 
@@ -183,7 +194,7 @@ internal class WorkflowWriteBuffer : BackgroundService
             using var scope = _scopeFactory.CreateScope();
             var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
 
-            var results = await repo.BatchEnqueueWorkflowsAsync(batch, ct);
+            var results = await repo.BatchEnqueueWorkflows(batch, ct);
 
             // Distribute results back to each caller
             bool anyNewWorkflows = false;

@@ -1,10 +1,11 @@
 export enum FeatureFlag {
   AddComponentModal = 'addComponentModal',
+  Admin = 'admin',
+  AiAssistant = 'aiAssistant',
   ComponentConfigBeta = 'componentConfigBeta',
   CustomTemplates = 'customTemplates',
   Maskinporten = 'maskinporten',
-  ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
   NewCodeLists = 'newCodeLists',
-  ValidateNavigation = 'validateNavigation',
-  AiAssistant = 'aiAssistant',
+  NextV9 = 'nextV9',
+  ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
 }

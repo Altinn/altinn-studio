@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { useSearchParams } from 'react-router-dom';
-import { useFeatureFlagsContext } from '@studio/feature-flags';
+import { FeatureFlag, useFeatureFlagsContext } from '@studio/feature-flags';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 import { SETTINGS_BASENAME } from 'app-shared/constants';
 
@@ -59,7 +59,7 @@ export const PageHeaderContextProvider = ({
   const settingsMenuItem: StudioProfileMenuItem = {
     action: {
       type: 'link',
-      href: SETTINGS_BASENAME,
+      href: `${SETTINGS_BASENAME}/${org}`,
       openInNewTab: false,
     },
     itemName: t('settings'),
@@ -71,14 +71,17 @@ export const PageHeaderContextProvider = ({
   };
 
   const studioOidc = environment?.featureFlags?.studioOidc;
+  const isAdminEnabled = flags.includes(FeatureFlag.Admin);
+  const showSettingsLink = studioOidc || isAdminEnabled;
 
   const profileMenuItems: StudioProfileMenuItem[] = [
-    ...(studioOidc ? [settingsMenuItem] : []),
+    ...(showSettingsLink ? [settingsMenuItem] : []),
     docsMenuItem,
     logOutMenuItem,
   ];
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    { items: studioOidc ? [settingsMenuItem, docsMenuItem] : [docsMenuItem] },
+    ...(showSettingsLink ? [{ items: [settingsMenuItem] }] : []),
+    { items: [docsMenuItem] },
     { items: [logOutMenuItem] },
   ];
 

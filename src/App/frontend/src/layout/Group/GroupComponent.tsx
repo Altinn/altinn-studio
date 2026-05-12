@@ -7,12 +7,11 @@ import cn from 'classnames';
 import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { Fieldset } from 'src/app-components/Label/Fieldset';
 import { Panel } from 'src/app-components/Panel/Panel';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupComponent.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { HeadingLevel } from 'src/layout/common.generated';
 
@@ -44,8 +43,8 @@ export function GroupComponent({
   const isHidden = useIsHidden(baseComponentId);
 
   const indexedId = useIndexedId(baseComponentId);
-  const depth = NodesInternal.useSelector((state) => state.nodeData?.[indexedId]?.depth);
-  const layoutLookups = useLayoutLookups();
+  const depth = FormStore.raw.useSelector((state) => state.nodes.nodeData?.[indexedId]?.depth);
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
 
   if (isHidden || typeof depth !== 'number') {
     return null;

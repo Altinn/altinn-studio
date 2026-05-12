@@ -6,36 +6,27 @@ import (
 	"fmt"
 
 	"altinn.studio/devenv/pkg/container"
+	"altinn.studio/devenv/pkg/resource"
 )
 
-// CheckForLegacyLocaltest checks if legacy localtest containers are running.
-// Returns an error if containers exist without the studioctl management label.
-func CheckForLegacyLocaltest(ctx context.Context, client container.ContainerClient) error {
-	containers := coreContainerNames()
-	var legacyContainers []string
+const localtestContainerName = "localtest"
 
-	for _, name := range containers {
-		info, err := client.ContainerInspect(ctx, name)
-		if errors.Is(err, container.ErrContainerNotFound) {
-			continue
-		}
-		if err != nil {
-			return fmt.Errorf("inspect container %s: %w", name, err)
-		}
-
-		if !info.State.Running {
-			continue
-		}
-
-		if info.Labels[LabelKey] == LabelValue {
-			continue
-		}
-
-		legacyContainers = append(legacyContainers, name)
+// CheckForLegacyLocaltest checks if the localtest container name is owned by
+// something other than studioctl.
+func CheckForLegacyLocaltest(
+	ctx context.Context,
+	client container.ContainerClient,
+) error {
+	info, err := client.ContainerInspect(ctx, localtestContainerName)
+	if errors.Is(err, container.ErrContainerNotFound) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("inspect container %s: %w", localtestContainerName, err)
 	}
 
-	if len(legacyContainers) > 0 {
-		return fmt.Errorf("%w: %v", ErrLegacyLocaltestRunning, legacyContainers)
+	if !info.State.Running || info.Labels[resource.GraphIDLabel] == graphID {
+		return nil
 	}
-	return nil
+	return fmt.Errorf("%w: %s", ErrLegacyLocaltestRunning, localtestContainerName)
 }

@@ -5,7 +5,6 @@ import { screen } from '@testing-library/react';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyWithSubunitMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
-import { InstanceApi } from 'src/core/api-client/instance.api';
 import { Confirm } from 'src/features/process/confirm/containers/Confirm';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
@@ -28,13 +27,15 @@ describe('Confirm', () => {
       subunitParty.orgNumber,
       subunitParty,
     );
-    jest
-      .mocked(InstanceApi.getInstance)
-      .mockImplementationOnce(async () => ({ ...instance, process: getProcessDataMock() }));
 
     await renderWithInstanceAndLayout({
       renderer: () => <Confirm />,
       instanceId: instance.id,
+      apis: {
+        instanceApi: {
+          getInstance: async () => ({ ...instance, process: getProcessDataMock() }),
+        },
+      },
     });
 
     const orgNumber = screen.getByText(subunitParty.orgNumber ?? '', { exact: false });

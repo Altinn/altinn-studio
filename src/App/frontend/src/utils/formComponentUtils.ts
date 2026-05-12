@@ -1,7 +1,7 @@
 import type React from 'react';
 
 import { isAttachmentUploaded } from 'src/features/attachments';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormStore } from 'src/features/form/FormContext';
 import printStyles from 'src/styles/print.module.css';
 import type { IAttachment } from 'src/features/attachments';
 import type { ExprResolved } from 'src/features/expressions/types';
@@ -122,10 +122,10 @@ export const pageBreakStyles = (pageBreak: ExprResolved<IPageBreak> | undefined)
   };
 };
 
-function useTextAlignment(baseComponentId: string): 'left' | 'center' | 'right' {
-  const component = useLayoutLookups().getComponent(baseComponentId);
+function useTextAlignment(baseComponentId: string, isTitle: boolean): 'left' | 'center' | 'right' {
+  const component = FormStore.bootstrap.useLayoutLookups().getComponent(baseComponentId);
   const formatting = component.type === 'Input' ? component.formatting : undefined;
-  if (!formatting) {
+  if (!formatting || isTitle) {
     return 'left';
   }
   if (formatting.align) {
@@ -137,8 +137,9 @@ function useTextAlignment(baseComponentId: string): 'left' | 'center' | 'right' 
 export function useColumnStylesRepeatingGroups(
   baseComponentId: string,
   columnSettings: IGroupColumnFormatting | undefined,
+  isTitle = false,
 ) {
-  const textAlignment = useTextAlignment(baseComponentId);
+  const textAlignment = useTextAlignment(baseComponentId, isTitle);
   const column = columnSettings && columnSettings[baseComponentId];
   if (!column) {
     return;
@@ -146,7 +147,6 @@ export function useColumnStylesRepeatingGroups(
 
   const columnCopy = { ...column };
   columnCopy.alignText = columnCopy.alignText ?? textAlignment;
-
   return getColumnStyles(columnCopy);
 }
 

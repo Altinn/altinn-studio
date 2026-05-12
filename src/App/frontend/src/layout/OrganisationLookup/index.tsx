@@ -3,8 +3,7 @@ import type { JSX } from 'react';
 
 import type { PropsFromGenericComponent } from '..';
 
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { useEmptyFieldValidationOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { OrganisationLookupDef } from 'src/layout/OrganisationLookup/config.def.generated';
 import { OrganisationLookupComponent } from 'src/layout/OrganisationLookup/OrganisationLookupComponent';
@@ -45,8 +44,8 @@ export class OrganisationLookup extends OrganisationLookupDef {
   }
 
   useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'OrganisationLookup'>): string[] {
-    const lookupBinding = DataModels.useLookupBinding();
-    const layoutLookups = useLayoutLookups();
+    const lookupBinding = FormStore.bootstrap.useLookupBinding();
+    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
     return (
       validateDataModelBindingsAny(
         baseComponentId,

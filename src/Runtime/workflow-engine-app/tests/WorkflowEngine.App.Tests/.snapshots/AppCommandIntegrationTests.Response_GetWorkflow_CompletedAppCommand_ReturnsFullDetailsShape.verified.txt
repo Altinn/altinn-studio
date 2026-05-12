@@ -2,7 +2,7 @@
   databaseId: {Scrubbed},
   operationId: op-wf-1,
   idempotencyKey: idem-Guid_1,
-  namespace: ttd:e2e-tests,
+  namespace: ttd-e2e-tests,
   createdAt: {Scrubbed},
   updatedAt: {Scrubbed},
   labels: {
@@ -13,7 +13,6 @@
   steps: [
     {
       databaseId: {Scrubbed},
-      idempotencyKey: idem-Guid_1//details-shape,
       operationId: /details-shape,
       processingOrder: 0,
       updatedAt: {Scrubbed},

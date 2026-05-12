@@ -22,7 +22,7 @@ public partial class AppFixture : IAsyncDisposable
         public async Task<ApiResponse> Get()
         {
             var client = _fixture.GetAppClient();
-            var endpoint = $"/ttd/{_fixture._app}/api/v1/applicationmetadata";
+            var endpoint = $"{_fixture.AppPath}/api/v1/applicationmetadata";
             var response = await client.GetAsync(endpoint);
             return new ApiResponse(_fixture, response);
         }

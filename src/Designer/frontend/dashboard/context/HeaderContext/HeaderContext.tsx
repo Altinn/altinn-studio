@@ -6,6 +6,7 @@ import { type Organization } from 'app-shared/types/Organization';
 import { type User } from 'app-shared/types/Repository';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { dashboardHeaderMenuItems } from '../../utils/headerUtils/headerUtils';
+import { useFeatureFlagsContext, FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { useRepoPath } from '../../hooks/useRepoPath';
 import { useSubroute } from '../../hooks/useSubRoute';
@@ -15,6 +16,7 @@ import type { HeaderMenuItem } from '../../types/HeaderMenuItem';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 import { SETTINGS_BASENAME } from 'app-shared/constants';
+import { isOrg } from 'dashboard/utils/orgUtils/orgUtils';
 
 export type HeaderContextProps = {
   selectableOrgs?: Organization[];
@@ -44,6 +46,7 @@ export const HeaderContextProvider = ({
   const subroute = useSubroute();
 
   const { environment } = useEnvironmentConfig();
+  const { flags } = useFeatureFlagsContext();
 
   const handleSetSelectedContext = (context: string | SelectedContextType) => {
     navigate(`${subroute}/${context}${location.search}`);
@@ -76,7 +79,7 @@ export const HeaderContextProvider = ({
   const settingsMenuItem: NavigationMenuItem = {
     action: {
       type: 'link',
-      href: SETTINGS_BASENAME,
+      href: `${SETTINGS_BASENAME}/${isOrg(selectedContext) ? selectedContext : user?.login}`,
       openInNewTab: false,
     },
     itemName: t('settings'),
@@ -88,21 +91,24 @@ export const HeaderContextProvider = ({
   };
 
   const studioOidc = environment?.featureFlags?.studioOidc;
+  const isAdminEnabled = useFeatureFlag(FeatureFlag.Admin);
+  const showSettingsLink = studioOidc || isAdminEnabled;
 
   const selectableOrgMenuGroup: NavigationMenuGroup = {
-    name: t('dashboard.header_menu_all_orgs'),
+    name: t('top_bar.group_organizations'),
     showName: true,
     items: [allMenuItem, ...selectableOrgMenuItems, selfMenuItem],
   };
-  const otherMenuItems: NavigationMenuItem[] = [
-    ...(studioOidc ? [settingsMenuItem] : []),
+  const profileMenuItems: NavigationMenuItem[] = [
+    ...(showSettingsLink ? [settingsMenuItem] : []),
     giteaMenuItem,
+    logOutMenuItem,
   ];
-  const profileMenuItems: NavigationMenuItem[] = [...otherMenuItems, logOutMenuItem];
 
   const profileMenuGroups: NavigationMenuGroup[] = [
     selectableOrgMenuGroup,
-    { items: otherMenuItems },
+    ...(showSettingsLink ? [{ items: [settingsMenuItem] }] : []),
+    { items: [giteaMenuItem] },
     { items: [logOutMenuItem] },
   ];
 
@@ -111,7 +117,9 @@ export const HeaderContextProvider = ({
       value={{
         user,
         selectableOrgs,
-        menuItems: dashboardHeaderMenuItems.map((item) => ({ name: t(item.name), ...item })),
+        menuItems: dashboardHeaderMenuItems
+          .filter((item) => !item.featureFlag || flags.includes(item.featureFlag))
+          .map((item) => ({ ...item, name: t(item.name) })),
         profileMenuItems,
         profileMenuGroups,
       }}

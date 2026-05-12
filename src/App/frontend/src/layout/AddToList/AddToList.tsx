@@ -7,8 +7,7 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { DynamicForm } from 'src/app-components/DynamicForm/DynamicForm';
 import { translationKey } from 'src/AppComponentsBridge';
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { DropdownCaption } from 'src/layout/Datepicker/DropdownCaption';
@@ -54,11 +53,11 @@ export function AddToListModal({
   modalRef,
   DropdownCaption,
 }: ModalDynamicFormProps) {
-  const appendToList = FD.useAppendToList();
+  const appendToList = FormStore.data.useAppendToList();
   let addToListModalRef = useRef<HTMLDialogElement | null>(null);
   addToListModalRef = modalRef ?? addToListModalRef;
 
-  const schemaLookup = DataModels.useSchemaLookup();
+  const schemaLookup = FormStore.bootstrap.useSchemaLookup();
 
   const schema = schemaLookup[dataModelReference.dataType].getSchemaForPath(dataModelReference.field)[0];
 
@@ -123,7 +122,7 @@ export function AddToListModal({
 export function AddToListComponent({ baseComponentId }: PropsFromGenericComponent<'AddToList'>) {
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'AddToList');
   const { formData } = useDataModelBindings(dataModelBindings, 1, 'raw');
-  const setMultiLeafValues = FD.useSetMultiLeafValues();
+  const setMultiLeafValues = FormStore.data.useSetMultiLeafValues();
 
   const modalRef = useRef<HTMLDialogElement>(null);
   const [showForm, setShowForm] = useState(false);

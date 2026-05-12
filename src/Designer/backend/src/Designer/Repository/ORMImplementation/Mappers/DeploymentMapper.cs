@@ -42,38 +42,54 @@ public static class DeploymentMapper
 
     public static DeploymentDbModel MapToDbModel(DeploymentEntity deploymentEntity)
     {
-        return new DeploymentDbModel
+        var dbModel = new DeploymentDbModel
         {
-            Buildid = deploymentEntity.Build.Id,
             Tagname = deploymentEntity.TagName,
             Org = deploymentEntity.Org,
             App = deploymentEntity.App,
             EnvName = deploymentEntity.EnvName,
-            Buildresult = deploymentEntity.Build.Result.ToEnumMemberAttributeValue(),
             Created = deploymentEntity.Created.ToUniversalTime(),
             CreatedBy = deploymentEntity.CreatedBy,
             DeploymentType = (Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentType)
                 (int)deploymentEntity.DeploymentType,
             Entity = JsonSerializer.Serialize(deploymentEntity, s_jsonOptions),
-            Build = BuildMapper.MapToDbModel(
+        };
+
+        if (deploymentEntity.Build != null)
+        {
+            dbModel.Buildid = deploymentEntity.Build.Id;
+            dbModel.Buildresult = deploymentEntity.Build.Result.ToEnumMemberAttributeValue();
+            dbModel.Build = BuildMapper.MapToDbModel(
                 deploymentEntity.Build,
                 deploymentEntity.DeploymentType == Altinn.Studio.Designer.Repository.Models.DeploymentType.Deploy
                     ? BuildType.Deployment
                     : BuildType.Decommission
-            ),
-        };
+            );
+        }
+        else
+        {
+            dbModel.Buildresult = BuildResult.None.ToEnumMemberAttributeValue();
+        }
+
+        return dbModel;
     }
 
     public static DeploymentDbModel MapToDbModel(
         DeploymentEntity deploymentEntity,
         long deploymentSequenceNo,
-        long buildId
+        long? buildId
     )
     {
         var dbModel = MapToDbModel(deploymentEntity);
         dbModel.Sequenceno = deploymentSequenceNo;
-        dbModel.InternalBuildId = buildId;
-        dbModel.Build.Id = buildId;
+        if (buildId.HasValue)
+        {
+            dbModel.InternalBuildId = buildId.Value;
+            if (dbModel.Build != null)
+            {
+                dbModel.Build.Id = buildId.Value;
+            }
+        }
         return dbModel;
     }
 
@@ -81,11 +97,12 @@ public static class DeploymentMapper
     {
         return new DeploymentEntity
         {
+            SequenceNo = dbObject.Sequenceno,
             App = dbObject.App,
             Org = dbObject.Org,
             EnvName = dbObject.EnvName,
             TagName = dbObject.Tagname,
-            Build = BuildMapper.MapToModel(dbObject.Build),
+            Build = dbObject.Build != null ? BuildMapper.MapToModel(dbObject.Build) : null,
             Created = dbObject.Created.ToUniversalTime(),
             CreatedBy = dbObject.CreatedBy,
             DeploymentType = (Altinn.Studio.Designer.Repository.Models.DeploymentType)(int)dbObject.DeploymentType,

@@ -1,11 +1,11 @@
 import { useCallback } from 'react';
 
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { getComponentCapabilities } from 'src/layout';
 import type { CompCapabilities } from 'src/codegen/Config';
 
 export function useHasCapability(capability: keyof CompCapabilities) {
-  const lookups = useLayoutLookups();
+  const lookups = FormStore.bootstrap.useLayoutLookups();
 
   return useCallback(
     (componentId: string | undefined) => {

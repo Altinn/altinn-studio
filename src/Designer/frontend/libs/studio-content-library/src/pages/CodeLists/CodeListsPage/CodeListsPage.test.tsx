@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { CodeListsPage } from './CodeListsPage';
 import type { CodeListsPageProps } from './CodeListsPage';
@@ -6,6 +6,7 @@ import { userEvent } from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { codeLists, coloursData } from './test-data/codeLists';
+import { screen, within } from '@studio/ui-test';
 
 // Test data:
 const onPublish = jest.fn();
@@ -27,7 +28,7 @@ describe('CodeListsPage', () => {
   it('Renders with the given code lists', () => {
     renderCodeListPage();
     codeLists.forEach((codeList) => {
-      expect(getCodeListHeading(codeList.name)).toBeInTheDocument();
+      expect(screen.getDetailsBySummary(codeList.name)).toBeInTheDocument();
     });
   });
 
@@ -36,7 +37,7 @@ describe('CodeListsPage', () => {
     renderCodeListPage();
     await addNewCodeList(user);
     const nameOfNewList = textMock('app_content_library.code_lists.unnamed');
-    expect(getCodeListHeading(nameOfNewList)).toBeInTheDocument();
+    expect(screen.getDetailsBySummary(nameOfNewList)).toBeInTheDocument();
   });
 
   it('Rerenders with updated data when something is changed', async () => {
@@ -48,7 +49,7 @@ describe('CodeListsPage', () => {
     const nameInput = getNameField(textMock('app_content_library.code_lists.unnamed'));
     await user.type(nameInput, newName);
 
-    expect(getCodeListHeading(newName)).toBeInTheDocument();
+    expect(screen.getDetailsBySummary(newName)).toBeInTheDocument();
   });
 
   it('Deletes the code list when the delete button is clicked', async () => {
@@ -56,10 +57,10 @@ describe('CodeListsPage', () => {
     renderCodeListPage();
     await addNewCodeList(user);
     const nameOfNewList = textMock('app_content_library.code_lists.unnamed');
-    const details = getCodeListDetails(nameOfNewList);
+    const details = screen.getDetailsBySummary(nameOfNewList);
     const deleteButton = within(details).getByRole('button', { name: textMock('general.delete') });
     await user.click(deleteButton);
-    expect(queryCodeListHeading(nameOfNewList)).not.toBeInTheDocument();
+    expect(screen.queryDetailsBySummary(nameOfNewList)).not.toBeInTheDocument();
   });
 
   it('Displays a placeholder when the list of code lists is empty', () => {
@@ -113,21 +114,7 @@ const saveCodeLists = async (user: UserEvent): Promise<void> =>
   user.click(screen.getByRole('button', { name: textMock('general.save') }));
 
 function getNameField(name: string): HTMLElement {
-  const details = getCodeListDetails(name);
+  const details = screen.getDetailsBySummary(name);
   const nameLabel = textMock('app_content_library.code_lists.name');
   return within(details).getByRole('textbox', { name: nameLabel });
 }
-
-function getCodeListDetails(name: string): HTMLElement {
-  // The following code accesses a node directly with parentElement. This is not recommended, hence the Eslint rule, but there is no other way to access the details element.
-  // Todo: Use getByRole('group') when the role becomes correctly assigned to the component: https://github.com/digdir/designsystemet/issues/3941
-  const { parentElement } = getCodeListHeading(name); // eslint-disable-line testing-library/no-node-access
-  /* istanbul ignore else */
-  if (parentElement) return parentElement;
-  else throw new Error('Could not find code list details element.');
-}
-
-const getCodeListHeading = (name: string): HTMLElement => screen.getByRole('button', { name });
-
-const queryCodeListHeading = (name: string): HTMLElement | null =>
-  screen.queryByRole('button', { name });

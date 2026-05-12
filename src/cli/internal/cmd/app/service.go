@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"altinn.studio/studioctl/internal/auth"
+	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/studio"
 )
@@ -17,12 +18,12 @@ var ErrNotLoggedIn = errors.New("not logged in")
 
 // Service contains app command logic.
 type Service struct {
-	credentialsHome string
+	cfg *config.Config
 }
 
 // NewService creates a new app command service.
-func NewService(credentialsHome string) *Service {
-	return &Service{credentialsHome: credentialsHome}
+func NewService(cfg *config.Config) *Service {
+	return &Service{cfg: cfg}
 }
 
 // UpdateResult contains detected app location for update flow.
@@ -32,15 +33,24 @@ type UpdateResult struct {
 
 // ResolveUpdateTarget resolves the app path for the update command.
 func (s *Service) ResolveUpdateTarget(ctx context.Context, appPath string) (UpdateResult, error) {
-	detection, err := repocontext.DetectFromCwd(ctx, appPath)
+	detection, err := s.ResolveTarget(ctx, appPath)
 	if err != nil {
-		return UpdateResult{}, fmt.Errorf("detect app: %w", err)
-	}
-	if !detection.InAppRepo {
-		return UpdateResult{}, repocontext.ErrAppNotFound
+		return UpdateResult{}, err
 	}
 
 	return UpdateResult{AppPath: detection.AppRoot}, nil
+}
+
+// ResolveTarget detects a target app directory.
+func (s *Service) ResolveTarget(ctx context.Context, appPath string) (repocontext.Detection, error) {
+	detection, err := repocontext.DetectFromCwd(ctx, appPath)
+	if err != nil {
+		return repocontext.Detection{}, fmt.Errorf("detect app: %w", err)
+	}
+	if !detection.InAppRepo {
+		return repocontext.Detection{}, repocontext.ErrAppNotFound
+	}
+	return detection, nil
 }
 
 // CloneRequest contains clone inputs.
@@ -58,7 +68,7 @@ type CloneResult struct {
 
 // ResolveHost resolves the configured host for an environment.
 func (s *Service) ResolveHost(env string) (string, error) {
-	creds, err := auth.LoadCredentials(s.credentialsHome)
+	creds, err := auth.LoadCredentials(s.cfg.Home)
 	if err != nil {
 		return "", fmt.Errorf("load credentials: %w", err)
 	}
@@ -76,7 +86,7 @@ func (s *Service) ResolveHost(env string) (string, error) {
 
 // Clone clones an app repository and returns destination metadata.
 func (s *Service) Clone(ctx context.Context, req CloneRequest) (CloneResult, error) {
-	creds, err := auth.LoadCredentials(s.credentialsHome)
+	creds, err := auth.LoadCredentials(s.cfg.Home)
 	if err != nil {
 		return CloneResult{}, fmt.Errorf("load credentials: %w", err)
 	}
@@ -89,7 +99,7 @@ func (s *Service) Clone(ctx context.Context, req CloneRequest) (CloneResult, err
 		return CloneResult{}, fmt.Errorf("get credentials for %s: %w", req.Env, err)
 	}
 
-	client := studio.NewClient(envCreds)
+	client := studio.NewClient(envCreds, s.cfg.Version)
 	cloneErr := client.CloneRepo(ctx, req.Org, req.Repo, req.Destination)
 	if cloneErr != nil {
 		return CloneResult{}, fmt.Errorf("clone repo: %w", cloneErr)

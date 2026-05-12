@@ -5,7 +5,7 @@ import cn from 'classnames';
 import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import classes from 'src/components/altinnError.module.css';
 import { Lang } from 'src/features/language/Lang';
-import { altinnAppsIllustrationHelpCircleSvgUrl } from 'src/utils/urls/urlHelper';
+import { getHelpCircleIllustrationUrl } from 'src/utils/urls/appUrlHelper';
 
 export interface IAltinnErrorProps {
   statusCode?: string | React.ReactNode;
@@ -73,7 +73,7 @@ export const AltinnError = ({
     <div className={classes.imageContainer}>
       <img
         alt={imageAlt || 'Altinn Help Illustration'}
-        src={imageUrl || altinnAppsIllustrationHelpCircleSvgUrl}
+        src={imageUrl || getHelpCircleIllustrationUrl()}
       />
     </div>
   </FatalError>

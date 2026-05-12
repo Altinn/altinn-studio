@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Moq;
 using WorkflowEngine.Commands.Webhook;
 using WorkflowEngine.Core.Endpoints;
 using WorkflowEngine.Core.Tests.Fixtures;
+using WorkflowEngine.Data;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
@@ -16,6 +18,23 @@ namespace WorkflowEngine.Core.Tests.Endpoints;
 public class EngineEndpointTests
 {
     private const string DefaultNamespace = "test-namespace";
+
+    private static readonly IOptions<EngineSettings> _defaultSettings = Options.Create(
+        new EngineSettings
+        {
+            MaxWorkflowsPerRequest = 100,
+            MaxStepsPerWorkflow = 50,
+            MaxLabels = 10,
+            MetricsCollectionInterval = TimeSpan.FromSeconds(10),
+            DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
+            DefaultStepRetryStrategy = new() { MaxDelay = TimeSpan.FromMinutes(5) },
+            DatabaseCommandTimeout = TimeSpan.FromSeconds(30),
+            DatabaseRetryStrategy = new() { MaxDelay = TimeSpan.FromMinutes(1) },
+            HeartbeatInterval = TimeSpan.FromSeconds(10),
+            StaleWorkflowThreshold = TimeSpan.FromMinutes(1),
+            MaxReclaimCount = 3,
+        }
+    );
 
     private static CommandDefinition CreateWebhookCommand(string uri) =>
         WebhookCommand.Create(new WebhookCommandData { Uri = uri });
@@ -288,10 +307,58 @@ public class EngineEndpointTests
         Assert.True(capturedMetadata.CreatedAt > DateTimeOffset.MinValue);
     }
 
-    // === ListActiveWorkflows Handler Tests ===
+    [Fact]
+    public async Task Enqueue_CollectionKeyIsBuiltFromQueryMetadata()
+    {
+        // Arrange
+        WorkflowRequestMetadata? capturedMetadata = null;
+        var engineMock = new Mock<IEngine>();
+        engineMock
+            .Setup(e =>
+                e.EnqueueWorkflow(
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<WorkflowRequestMetadata>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<WorkflowEnqueueRequest, WorkflowRequestMetadata, CancellationToken>(
+                (_, meta, _) => capturedMetadata = meta
+            )
+            .ReturnsAsync(
+                new WorkflowEnqueueResponse.Accepted.Created([
+                    new WorkflowEnqueueResponse.WorkflowResult
+                    {
+                        Ref = "wf-1",
+                        DatabaseId = Guid.NewGuid(),
+                        Namespace = DefaultNamespace,
+                    },
+                ])
+            );
+
+        var httpContext = CreateHttpContext();
+        httpContext.Request.QueryString = new QueryString(
+            $"?{WorkflowMetadataConstants.QueryParams.CollectionKey}=test-collection"
+        );
+
+        // Act
+        await EngineRequestHandlers.EnqueueWorkflows(
+            DefaultNamespace,
+            _defaultWorkflowRequest,
+            engineMock.Object,
+            TimeProvider.System,
+            httpContext,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.NotNull(capturedMetadata);
+        Assert.Equal("test-collection", capturedMetadata.CollectionKey);
+    }
+
+    // === ListWorkflows Handler Tests ===
 
     [Fact]
-    public async Task ListWorkflows_HasActiveWorkflows_ReturnsOk()
+    public async Task ListWorkflows_HasWorkflows_ReturnsOk()
     {
         // Arrange
         var step = WorkflowEngineTestFixture.CreateStep(new CommandDefinition { Type = "noop" });
@@ -300,30 +367,43 @@ public class EngineEndpointTests
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
             .Setup(r =>
-                r.GetActiveWorkflowsByCorrelationId(
+                r.QueryWorkflows(
+                    It.IsAny<int>(),
+                    It.IsAny<IReadOnlyCollection<PersistentItemStatus>>(),
                     It.IsAny<Guid?>(),
+                    It.IsAny<bool>(),
                     It.IsAny<string?>(),
-                    It.IsAny<IReadOnlyDictionary<string, string>?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync([workflow]);
+            .ReturnsAsync(new CursorPaginatedResult([workflow], null, 1));
 
         // Act
-        var result = await EngineRequestHandlers.ListActiveWorkflows(
+        var result = await EngineRequestHandlers.ListWorkflows(
             DefaultNamespace,
             null,
             null,
+            null,
+            null,
+            null,
             repositoryMock.Object,
+            _defaultSettings,
             CancellationToken.None
         );
 
         // Assert
-        var ok = Assert.IsType<Ok<IEnumerable<WorkflowStatusResponse>>>(result.Result);
+        var ok = Assert.IsType<Ok<PaginatedResponse<WorkflowStatusResponse>>>(result.Result);
         Assert.NotNull(ok.Value);
-        var workflows = ok.Value.ToList();
-        Assert.Single(workflows);
-        Assert.Equal(PersistentItemStatus.Enqueued, workflows[0].OverallStatus);
+        Assert.Single(ok.Value.Data);
+        Assert.Equal(PersistentItemStatus.Enqueued, ok.Value.Data[0].OverallStatus);
+        Assert.Equal(25, ok.Value.PageSize);
+        Assert.Equal(1, ok.Value.TotalCount);
+        Assert.Null(ok.Value.NextCursor);
     }
 
     [Fact]
@@ -333,21 +413,32 @@ public class EngineEndpointTests
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
             .Setup(r =>
-                r.GetActiveWorkflowsByCorrelationId(
+                r.QueryWorkflows(
+                    It.IsAny<int>(),
+                    It.IsAny<IReadOnlyCollection<PersistentItemStatus>>(),
                     It.IsAny<Guid?>(),
+                    It.IsAny<bool>(),
                     It.IsAny<string?>(),
-                    It.IsAny<IReadOnlyDictionary<string, string>?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync([]);
+            .ReturnsAsync(new CursorPaginatedResult([], null, 0));
 
         // Act
-        var result = await EngineRequestHandlers.ListActiveWorkflows(
+        var result = await EngineRequestHandlers.ListWorkflows(
             DefaultNamespace,
             null,
             null,
+            null,
+            null,
+            null,
             repositoryMock.Object,
+            _defaultSettings,
             CancellationToken.None
         );
 
@@ -363,29 +454,171 @@ public class EngineEndpointTests
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
             .Setup(r =>
-                r.GetActiveWorkflowsByCorrelationId(
+                r.QueryWorkflows(
+                    It.IsAny<int>(),
+                    It.IsAny<IReadOnlyCollection<PersistentItemStatus>>(),
                     It.IsAny<Guid?>(),
+                    It.IsAny<bool>(),
                     It.IsAny<string?>(),
-                    It.IsAny<IReadOnlyDictionary<string, string>?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<Guid?, string?, IReadOnlyDictionary<string, string>?, CancellationToken>(
-                (_, ns, _, _) => capturedNamespace = ns
-            )
-            .ReturnsAsync([]);
+            .Callback<
+                int,
+                IReadOnlyCollection<PersistentItemStatus>,
+                Guid?,
+                bool,
+                string?,
+                DateTimeOffset?,
+                bool,
+                Dictionary<string, string>?,
+                string?,
+                string?,
+                CancellationToken
+            >((_, _, _, _, _, _, _, _, ns, _, _) => capturedNamespace = ns)
+            .ReturnsAsync(new CursorPaginatedResult([], null, 0));
 
         // Act
-        await EngineRequestHandlers.ListActiveWorkflows(
+        await EngineRequestHandlers.ListWorkflows(
             DefaultNamespace,
             null,
             null,
+            null,
+            null,
+            null,
             repositoryMock.Object,
+            _defaultSettings,
             CancellationToken.None
         );
 
-        // Assert — handler passes namespace from route to repository
+        // Assert
         Assert.Equal(DefaultNamespace, capturedNamespace);
+    }
+
+    [Fact]
+    public async Task ListWorkflows_DefaultsToAllStatuses()
+    {
+        // Arrange
+        IReadOnlyCollection<PersistentItemStatus>? capturedStatuses = null;
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r =>
+                r.QueryWorkflows(
+                    It.IsAny<int>(),
+                    It.IsAny<IReadOnlyCollection<PersistentItemStatus>>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<
+                int,
+                IReadOnlyCollection<PersistentItemStatus>,
+                Guid?,
+                bool,
+                string?,
+                DateTimeOffset?,
+                bool,
+                Dictionary<string, string>?,
+                string?,
+                string?,
+                CancellationToken
+            >((_, statuses, _, _, _, _, _, _, _, _, _) => capturedStatuses = statuses)
+            .ReturnsAsync(new CursorPaginatedResult([], null, 0));
+
+        // Act
+        await EngineRequestHandlers.ListWorkflows(
+            DefaultNamespace,
+            null,
+            null,
+            null,
+            null,
+            null,
+            repositoryMock.Object,
+            _defaultSettings,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.NotNull(capturedStatuses);
+        Assert.Equal(Enum.GetValues<PersistentItemStatus>().Length, capturedStatuses.Count);
+    }
+
+    [Fact]
+    public async Task ListWorkflows_StatusesCursorAndPageSizePassedToRepository()
+    {
+        // Arrange
+        Guid? capturedCursor = null;
+        int capturedPageSize = 0;
+        IReadOnlyCollection<PersistentItemStatus>? capturedStatuses = null;
+        var testCursor = Guid.NewGuid();
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r =>
+                r.QueryWorkflows(
+                    It.IsAny<int>(),
+                    It.IsAny<IReadOnlyCollection<PersistentItemStatus>>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<
+                int,
+                IReadOnlyCollection<PersistentItemStatus>,
+                Guid?,
+                bool,
+                string?,
+                DateTimeOffset?,
+                bool,
+                Dictionary<string, string>?,
+                string?,
+                string?,
+                CancellationToken
+            >(
+                (pageSize, statuses, cursor, _, _, _, _, _, _, _, _) =>
+                {
+                    capturedPageSize = pageSize;
+                    capturedStatuses = statuses;
+                    capturedCursor = cursor;
+                }
+            )
+            .ReturnsAsync(new CursorPaginatedResult([], null, 0));
+
+        // Act
+        await EngineRequestHandlers.ListWorkflows(
+            DefaultNamespace,
+            null,
+            null,
+            [PersistentItemStatus.Enqueued, PersistentItemStatus.Failed],
+            testCursor,
+            999,
+            repositoryMock.Object,
+            _defaultSettings,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.Equal(testCursor, capturedCursor);
+        Assert.Equal(100, capturedPageSize);
+        Assert.Equal([PersistentItemStatus.Enqueued, PersistentItemStatus.Failed], capturedStatuses);
     }
 
     // === GetWorkflow Handler Tests ===
@@ -442,6 +675,90 @@ public class EngineEndpointTests
         );
 
         // Assert
+        Assert.IsType<NotFound>(result.Result);
+    }
+
+    [Fact]
+    public async Task GetWorkflowDependencyGraph_Found_ReturnsOk()
+    {
+        var step = WorkflowEngineTestFixture.CreateStep(new CommandDefinition { Type = "noop" });
+        var dependency = new Workflow
+        {
+            DatabaseId = Guid.NewGuid(),
+            OperationId = "dependency-op",
+            IdempotencyKey = "dependency-key",
+            Namespace = DefaultNamespace,
+            Steps = [step],
+        };
+        var linked = new Workflow
+        {
+            DatabaseId = Guid.NewGuid(),
+            OperationId = "link-op",
+            IdempotencyKey = "link-key",
+            Namespace = DefaultNamespace,
+            Steps = [step],
+        };
+        var workflow = new Workflow
+        {
+            DatabaseId = Guid.NewGuid(),
+            OperationId = "test-op",
+            IdempotencyKey = "wf-key",
+            Namespace = DefaultNamespace,
+            Dependencies = [dependency],
+            Links = [linked],
+            Steps = [step],
+        };
+
+        var workflowGuid = Guid.NewGuid();
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r => r.GetWorkflowDependencyGraph(workflowGuid, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([dependency, workflow, linked]);
+
+        var result = await EngineRequestHandlers.GetWorkflowDependencyGraph(
+            DefaultNamespace,
+            workflowGuid,
+            repositoryMock.Object,
+            CancellationToken.None
+        );
+
+        var ok = Assert.IsType<Ok<WorkflowDependencyGraphResponse>>(result.Result);
+        Assert.NotNull(ok.Value);
+        Assert.Equal(workflowGuid, ok.Value.RootWorkflowId);
+        Assert.Equal(3, ok.Value.Workflows.Count);
+        Assert.Contains(
+            ok.Value.Edges,
+            edge =>
+                edge.From == dependency.DatabaseId
+                && edge.To == workflow.DatabaseId
+                && edge.Kind == WorkflowDependencyGraphEdgeKind.Dependency
+        );
+        Assert.Contains(
+            ok.Value.Edges,
+            edge =>
+                edge.From == workflow.DatabaseId
+                && edge.To == linked.DatabaseId
+                && edge.Kind == WorkflowDependencyGraphEdgeKind.Link
+        );
+    }
+
+    [Fact]
+    public async Task GetWorkflowDependencyGraph_NotFound_Returns404()
+    {
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r =>
+                r.GetWorkflowDependencyGraph(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync((IReadOnlyList<Workflow>?)null);
+
+        var result = await EngineRequestHandlers.GetWorkflowDependencyGraph(
+            DefaultNamespace,
+            Guid.NewGuid(),
+            repositoryMock.Object,
+            CancellationToken.None
+        );
+
         Assert.IsType<NotFound>(result.Result);
     }
 

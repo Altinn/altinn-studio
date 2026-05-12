@@ -14,14 +14,16 @@ describe('Message', () => {
     cy.findByRole('link', { name: /tilbake til innboks/i }).should('be.visible');
     cy.findByRole('heading', { name: /Appen for test av app frontend/i }).should('exist');
     cy.wait('@createdInstance').then((xhr) => {
-      const instanceMetadata = xhr.response?.body;
-      const instanceGuid = instanceMetadata.id.split('/')[1];
-      cy.fixture('attachment.json').then((data) => {
-        data.instanceGuid = instanceGuid;
-        instanceMetadata.data.push(data);
+      const instanceGuid = xhr.response?.body.id.split('/')[1];
+      cy.fixture('attachment.json').then((attachment) => {
+        attachment.instanceGuid = instanceGuid;
+        const interceptExpression = getInstanceIdRegExp({ postfix: 'enriched$' });
+        cy.intercept('GET', interceptExpression, (req) => {
+          req.on('response', (res) => {
+            res.body.data.push(attachment);
+          });
+        });
       });
-      const interceptExpression = getInstanceIdRegExp({ postfix: '$' });
-      cy.intercept('GET', interceptExpression, instanceMetadata);
     });
     cy.reload();
     cy.findByRole('heading', { name: /Vedlegg/i })

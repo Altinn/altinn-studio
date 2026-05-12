@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 
+import { useInstanceApi } from 'src/core/contexts/ApiProvider';
 import {
   activeInstancesQuery,
   instanceDataQuery,
@@ -8,6 +9,7 @@ import {
   useCreateInstance as useCreateInstanceInternal,
 } from 'src/core/queries/instance/instance.queries';
 import { parseInstanceId } from 'src/core/queries/instance/utils';
+import type { InstanceApi } from 'src/core/api-client/instance.api';
 import type { BaseQueryResult } from 'src/core/queries/types';
 import type { ISimpleInstance } from 'src/types';
 import type { IInstance } from 'src/types/shared';
@@ -17,7 +19,8 @@ interface UseActiveInstancesResult extends BaseQueryResult {
 }
 
 function useActiveInstances(partyId: string): UseActiveInstancesResult {
-  const query = useQuery(activeInstancesQuery(partyId));
+  const instanceApi = useInstanceApi();
+  const query = useQuery(activeInstancesQuery({ partyId, instanceApi }));
   return { instances: query.data, isLoading: query.isLoading, error: query.error };
 }
 
@@ -38,27 +41,60 @@ function useCreateInstance(language: string) {
   };
 }
 
-function prefetchActiveInstances(queryClient: QueryClient, partyId: string) {
-  return queryClient.ensureQueryData(activeInstancesQuery(partyId));
+function prefetchActiveInstances(queryClient: QueryClient, partyId: string, instanceApi: InstanceApi) {
+  return queryClient.ensureQueryData(activeInstancesQuery({ partyId, instanceApi }));
 }
 
 function prefetchInstanceData(
   queryClient: QueryClient,
-  params: { instanceOwnerPartyId: string; instanceGuid: string },
+  params: { instanceOwnerPartyId: string; instanceGuid: string; instanceApi: InstanceApi },
 ) {
   return queryClient.prefetchQuery(instanceDataQuery(params));
+}
+
+function ensureInstanceData(
+  queryClient: QueryClient,
+  params: { instanceOwnerPartyId: string; instanceGuid: string; instanceApi: InstanceApi },
+) {
+  return queryClient.ensureQueryData(instanceDataQuery(params));
+}
+
+function fetchFreshInstanceData(
+  queryClient: QueryClient,
+  params: { instanceOwnerPartyId: string; instanceGuid: string; instanceApi: InstanceApi },
+) {
+  return queryClient.fetchQuery({ ...instanceDataQuery(params), staleTime: 0 });
 }
 
 function invalidateInstanceData(queryClient: QueryClient) {
   return queryClient.invalidateQueries({ queryKey: instanceQueryKeys.all() });
 }
 
+function useOptimisticallyUpdateInstance() {
+  const queryClient = useQueryClient();
+
+  return (updater: (oldData: IInstance) => IInstance) => {
+    const cached = queryClient.getQueriesData<IInstance>({ queryKey: instanceQueryKeys.all() });
+    const entry = cached.find(([key, data]) => data && key.length === 2 && typeof key[1] === 'object');
+    if (entry) {
+      const [queryKey, oldData] = entry;
+      if (oldData) {
+        queryClient.setQueryData(queryKey, updater(oldData));
+      }
+    }
+  };
+}
+
 export {
   parseInstanceId,
   invalidateInstanceData,
   prefetchActiveInstances,
+  fetchFreshInstanceData,
   prefetchInstanceData,
+  ensureInstanceData,
+  instanceQueryKeys,
   useActiveInstances,
   useCreateInstance,
   useCurrentInstance,
+  useOptimisticallyUpdateInstance,
 };

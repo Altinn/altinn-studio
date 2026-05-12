@@ -3,8 +3,7 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import type { AxiosResponse } from 'axios';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
@@ -42,7 +41,7 @@ export const useGetOptionsUrl = (
   queryParameters?: IQueryParameters,
   secure?: boolean,
 ): string | undefined => {
-  const mappingResult = FD.useMapping(mapping, DataModels.useDefaultDataType());
+  const mappingResult = FormStore.data.useMapping(mapping, FormStore.bootstrap.useDefaultDataType());
   const language = useCurrentLanguage();
   const instanceId = useLaxInstanceId();
   const resolvedQueryParameters = useResolvedQueryParameters(queryParameters);

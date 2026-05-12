@@ -9,7 +9,7 @@ public class WorkflowEntityTests
         new()
         {
             Id = Guid.Parse("11111111-2222-3333-4444-555555555555"),
-            CorrelationId = Guid.Parse("22222222-3333-4444-5555-666666666666"),
+            CollectionKey = "test-collection-key",
             IdempotencyKey = "wf-key",
             Namespace = "test-tenant",
             OperationId = "next",
@@ -29,7 +29,6 @@ public class WorkflowEntityTests
         {
             Id = Guid.NewGuid(),
             OperationId = "noop",
-            IdempotencyKey = $"step-key-{order}",
             Status = PersistentItemStatus.Enqueued,
             ProcessingOrder = order,
             CreatedAt = new DateTimeOffset(2025, 6, 15, 10, 30, 0, TimeSpan.Zero),
@@ -48,7 +47,7 @@ public class WorkflowEntityTests
 
         // Assert
         Assert.Equal(entity.Id, roundTripped.Id);
-        Assert.Equal(entity.CorrelationId, roundTripped.CorrelationId);
+        Assert.Equal(entity.CollectionKey, roundTripped.CollectionKey);
         Assert.Equal(entity.Namespace, roundTripped.Namespace);
         Assert.Equal(entity.OperationId, roundTripped.OperationId);
         Assert.Equal(entity.CreatedAt, roundTripped.CreatedAt);
@@ -71,7 +70,7 @@ public class WorkflowEntityTests
 
         // Assert
         Assert.Equal("test-tenant", domain.Namespace);
-        Assert.Equal(Guid.Parse("22222222-3333-4444-5555-666666666666"), domain.CorrelationId);
+        Assert.Equal("test-collection-key", domain.CollectionKey);
         Assert.NotNull(domain.Labels);
         Assert.Equal("test", domain.Labels["env"]);
         Assert.NotNull(domain.Context);

@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -170,7 +169,7 @@ public class ApplicationsController : ControllerBase
             var indexFile = await indexFileTask;
             var applicationMetadata = await applicationMetadataTask;
 
-            string frontendVersion = null;
+            string? frontendVersion = null;
             if (!string.IsNullOrEmpty(indexFile?.Content))
             {
                 try
@@ -196,7 +195,7 @@ public class ApplicationsController : ControllerBase
                 }
             }
 
-            string appLibVersion = null;
+            string? appLibVersion = null;
             if (!string.IsNullOrEmpty(applicationMetadata.AltinnNugetVersion))
             {
                 try

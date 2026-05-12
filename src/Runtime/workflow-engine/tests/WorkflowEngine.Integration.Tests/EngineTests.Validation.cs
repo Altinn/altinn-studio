@@ -40,7 +40,7 @@ public partial class EngineTests
         var port = fixture.WireMock.Port;
         var request = $$"""
             {
-                "namespace": "{{EngineAppFixture.DefaultOrg}}:{{EngineAppFixture.DefaultApp}}",
+                "namespace": "{{EngineAppFixture.DefaultOrg}}-{{EngineAppFixture.DefaultApp}}",
                 "idempotencyKey": "missing-step-opid-test",
                 "workflows": [
                     {
@@ -65,7 +65,7 @@ public partial class EngineTests
         var port = fixture.WireMock.Port;
         var request = $$"""
             {
-                "namespace": "{{EngineAppFixture.DefaultOrg}}:{{EngineAppFixture.DefaultApp}}",
+                "namespace": "{{EngineAppFixture.DefaultOrg}}-{{EngineAppFixture.DefaultApp}}",
                 "idempotencyKey": "missing-opid-multi-test",
                 "workflows": [
                     {
@@ -93,7 +93,7 @@ public partial class EngineTests
         var port = fixture.WireMock.Port;
         var request = $$"""
             {
-                "namespace": "{{EngineAppFixture.DefaultOrg}}:{{EngineAppFixture.DefaultApp}}",
+                "namespace": "{{EngineAppFixture.DefaultOrg}}-{{EngineAppFixture.DefaultApp}}",
                 "idempotencyKey": "multi-webhook-steps-test",
                 "labels": { "org": "{{EngineAppFixture.DefaultOrg}}", "app": "{{EngineAppFixture.DefaultApp}}" },
                 "workflows": [

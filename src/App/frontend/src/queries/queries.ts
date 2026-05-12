@@ -4,6 +4,7 @@ import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
 import { LAYOUT_SCHEMA_NAME } from 'src/features/devtools/utils/layoutSchemaValidation';
+import { GlobalData } from 'src/GlobalData';
 import { signingQueries } from 'src/layout/SigneeList/api';
 import { getFileContentType } from 'src/utils/attachmentsUtils';
 import { httpDelete, httpGetRaw, httpPatch, httpPost } from 'src/utils/network/networking';
@@ -11,44 +12,34 @@ import { httpGet, httpPut } from 'src/utils/network/sharedNetworking';
 import {
   appPath,
   getActionsUrl,
-  getCustomValidationConfigUrl,
   getDataElementIdUrl,
   getDataElementUrl,
   getDataModelTypeUrl,
   getFileUploadUrl,
-  getInstanceLayoutsUrl,
-  getJsonSchemaUrl,
-  getLayoutsUrl,
+  getFormBootstrapUrlForInstance,
+  getFormBootstrapUrlForStateless,
   getOrderDetailsUrl,
-  getPaymentInformationUrl,
+  getPaymentInformationForTaskUrl,
   getPdfFormatUrl,
   getProcessNextUrl,
-  getProcessStateUrl,
   getUpdateFileTagsUrl,
-  getValidationUrl,
-  postalCodesUrl,
   refreshJwtTokenUrl,
-  textResourcesUrl,
 } from 'src/utils/urls/appUrlHelper';
 import { customEncodeURI } from 'src/utils/urls/urlHelper';
+import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 import type { DataPostResponse } from 'src/features/attachments';
 import type { IDataList } from 'src/features/dataLists';
+import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import type { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
-import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { OrderDetails, PaymentResponsePayload } from 'src/features/payment/types';
 import type { IPdfFormat } from 'src/features/pdf/types';
-import type {
-  BackendValidationIssue,
-  BackendValidationIssuesWithSource,
-  IExpressionValidationConfig,
-} from 'src/features/validation';
+import type { BackendValidationIssuesWithSource } from 'src/features/validation';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
-import type { ILayoutCollection } from 'src/layout/layout';
-import type { IActionType, IData, IProcess, PostalCodesRegistry } from 'src/types/shared';
+import type { IActionType, IData, PostalCodesRegistry } from 'src/types/shared';
 
 export const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
-  httpPut<IProcess>(getProcessNextUrl(instanceId, language), action ? { action } : null);
+  httpPut<IInstanceWithProcess>(getProcessNextUrl(instanceId, language, true), action ? { action } : null);
 
 export const doAttachmentUpload = async (
   instanceId: string,
@@ -173,14 +164,7 @@ export const doPostStatelessFormData = async (
  */
 
 export const fetchLogo = async (): Promise<string> =>
-  (await axios.get('https://altinncdn.no/img/Altinn-logo-blue.svg')).data;
-
-export const fetchProcessState = (instanceId: string): Promise<IProcess> => httpGet(getProcessStateUrl(instanceId));
-
-export const fetchLayouts = (uiFolder: string): Promise<ILayoutCollection> => httpGet(getLayoutsUrl(uiFolder));
-
-export const fetchLayoutsForInstance = (uiFolder: string, instanceId: string): Promise<ILayoutCollection> =>
-  httpGet(getInstanceLayoutsUrl(uiFolder, instanceId));
+  (await axios.get(GlobalData.platformFrontendSettings.altinnLogoUrl)).data;
 
 export const fetchOptions = (url: string): Promise<AxiosResponse<IRawOption[]> | null> => httpGetRaw<IRawOption[]>(url);
 
@@ -188,32 +172,20 @@ export const fetchDataList = (url: string): Promise<IDataList> => httpGet(url);
 
 export const fetchRefreshJwtToken = (): Promise<unknown> => httpGet(refreshJwtTokenUrl);
 
-export const fetchCustomValidationConfig = (dataTypeId: string): Promise<IExpressionValidationConfig | null> =>
-  httpGet(getCustomValidationConfigUrl(dataTypeId));
-
-export const fetchDataModelSchema = (dataTypeName: string): Promise<JSONSchema7> =>
-  httpGet(getJsonSchemaUrl() + dataTypeName);
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const fetchFormData = (url: string, options?: AxiosRequestConfig): Promise<any> => httpGet(url, options);
 
 export const fetchPdfFormat = (instanceId: string, dataElementId: string): Promise<IPdfFormat> =>
   httpGet(getPdfFormatUrl(instanceId, dataElementId));
 
-export const fetchTextResources = (selectedLanguage: string): Promise<ITextResourceResult> =>
-  httpGet(textResourcesUrl(selectedLanguage));
-
-export const fetchPaymentInformation = (instanceId: string, language?: string): Promise<PaymentResponsePayload> =>
-  httpGet(getPaymentInformationUrl(instanceId, language));
+export const fetchPaymentInformationForTask = (
+  instanceId: string,
+  language?: string,
+  taskId?: string,
+): Promise<PaymentResponsePayload> => httpGet(getPaymentInformationForTaskUrl(instanceId, language, taskId));
 
 export const fetchOrderDetails = (instanceId: string, language?: string): Promise<OrderDetails> =>
   httpGet(getOrderDetailsUrl(instanceId, language));
-
-export const fetchBackendValidations = (
-  instanceId: string,
-  language: string,
-  onlyIncrementalValidators?: boolean,
-): Promise<BackendValidationIssue[]> => httpGet(getValidationUrl(instanceId, language, onlyIncrementalValidators));
 
 export const fetchLayoutSchema = async (): Promise<JSONSchema7 | undefined> => {
   // Hacky (and only) way to get the correct CDN url
@@ -240,4 +212,27 @@ export function fetchExternalApi({
   return httpGet(externalApiUrl);
 }
 
-export const fetchPostalCodes = async (): Promise<PostalCodesRegistry> => (await axios.get(postalCodesUrl)).data;
+export const fetchPostalCodes = async (): Promise<PostalCodesRegistry> => {
+  const postalCodesUrl: string = GlobalData.platformFrontendSettings.postalCodesUrl;
+  return (await axios.get(postalCodesUrl)).data;
+};
+
+export const fetchFormBootstrapForInstance = (options: {
+  instanceId: string;
+  uiFolder: string;
+  dataElementId?: string;
+  pdf?: boolean;
+  language?: string;
+}): Promise<FormBootstrapResponse> => {
+  const url = getFormBootstrapUrlForInstance(options);
+  return httpGet<FormBootstrapResponse>(url);
+};
+
+export const fetchFormBootstrapForStateless = (options: {
+  uiFolder: string;
+  language?: string;
+  prefill?: string;
+}): Promise<FormBootstrapResponse> => {
+  const url = getFormBootstrapUrlForStateless(options);
+  return httpGet<FormBootstrapResponse>(url);
+};

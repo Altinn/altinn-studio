@@ -9,10 +9,6 @@ export interface IAltinnOrg {
   environments: string[];
 }
 
-export interface IAltinnOrgs {
-  [org: string]: IAltinnOrg;
-}
-
 export interface IApplicationLogic {
   allowAnonymousOnStateless?: boolean | null;
   autoCreate?: boolean | null;
@@ -83,6 +79,7 @@ export interface IInstance {
   status?: IInstanceStatus | null;
   title?: ITitle | null;
   visibleAfter?: string;
+  process?: IProcess;
   completeConfirmations?: unknown;
   presentationTexts?: unknown;
   dataValues?: unknown;
@@ -287,6 +284,13 @@ export interface IVariable {
 
 export interface IApplicationSettings {
   [source: string]: string | undefined;
+}
+
+export interface IPlatformFrontendSettings {
+  appFrontendCdnBaseUrl: string;
+  altinnLogoUrl: string;
+  helpCircleIllustrationUrl: string;
+  postalCodesUrl: string;
 }
 
 export type InstanceOwnerPartyType = 'unknown' | 'org' | 'person' | 'selfIdentified';

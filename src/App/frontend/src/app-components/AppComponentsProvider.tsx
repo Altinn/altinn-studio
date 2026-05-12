@@ -5,7 +5,7 @@ import type { PropsWithChildren } from 'react';
 type TranslationParams = (string | number | undefined)[];
 type TranslateFn = (key: string, params?: TranslationParams) => string;
 type TranslateComponent = (args: {
-  tKey: string;
+  tKey?: string;
   params?: TranslationParams;
 }) => string | React.JSX.Element | React.JSX.Element[] | null;
 

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { EffectPreselectedOptionIndex } from 'src/features/options/effects/EffectPreselectedOptionIndex';
 import { EffectRemoveStaleValues } from 'src/features/options/effects/EffectRemoveStaleValues';
 import { EffectSetDownstreamParameters } from 'src/features/options/effects/EffectSetDownstreamParameters';
@@ -9,7 +9,6 @@ import { EffectStoreLabelInGroup } from 'src/features/options/effects/EffectStor
 import { useFetchOptions, useFilteredAndSortedOptions } from 'src/features/options/useGetOptions';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { WhenParentAdded } from 'src/utils/layout/generator/GeneratorStages';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
 import type { IDataModelBindingsForGroupCheckbox } from 'src/layout/Checkboxes/config.generated';
 import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
@@ -21,10 +20,10 @@ interface RunOptionEffectsProps {
 }
 
 export function RunOptionsEffects({ valueType }: RunOptionEffectsProps) {
-  const isReadOnly = NodesInternal.useIsReadOnly();
+  const isReadOnly = FormStore.useIsReadOnly();
   const item = GeneratorInternal.useIntermediateItem() as CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
   const parent = GeneratorInternal.useParent();
-  const lookups = useLayoutLookups();
+  const lookups = FormStore.bootstrap.useLayoutLookups();
   const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
   const groupBindings = item.dataModelBindings as
     | IDataModelBindingsForGroupCheckbox

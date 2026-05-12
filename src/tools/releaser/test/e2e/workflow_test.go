@@ -292,30 +292,6 @@ func TestRunWorkflow_StudioctlLikeRepo_LocalRepo(t *testing.T) {
 	}
 
 	outputDir := filepath.Join(repo.dir, "build", "release")
-	expectedArtifacts := []string{
-		"studioctl-linux-amd64",
-		"studioctl-linux-arm64",
-		"studioctl-darwin-amd64",
-		"studioctl-darwin-arm64",
-		"studioctl-windows-amd64.exe",
-		"studioctl-windows-arm64.exe",
-		"localtest-resources.tar.gz",
-		"install.sh",
-		"install.ps1",
-		"SHA256SUMS",
-		"release-notes.md",
-	}
-	for _, name := range expectedArtifacts {
-		path := filepath.Join(outputDir, name)
-		info, statErr := os.Stat(path)
-		if statErr != nil {
-			t.Fatalf("expected artifact %s: %v", name, statErr)
-		}
-		if info.Size() == 0 {
-			t.Fatalf("artifact %s is empty", name)
-		}
-	}
-
 	notes, readErr := os.ReadFile(filepath.Join(outputDir, "release-notes.md"))
 	if readErr != nil {
 		t.Fatalf("read release notes: %v", readErr)
@@ -324,31 +300,26 @@ func TestRunWorkflow_StudioctlLikeRepo_LocalRepo(t *testing.T) {
 		t.Fatalf("release notes missing latest prerelease notes:\n%s", string(notes))
 	}
 
-	checksums, readErr := os.ReadFile(filepath.Join(outputDir, "SHA256SUMS"))
+	entries, readErr := os.ReadDir(outputDir)
 	if readErr != nil {
-		t.Fatalf("read SHA256SUMS: %v", readErr)
+		t.Fatalf("read output dir: %v", readErr)
 	}
-	lines := strings.Split(strings.TrimSpace(string(checksums)), "\n")
-	if len(lines) != 9 {
-		t.Fatalf("SHA256SUMS line count = %d, want 9", len(lines))
+	artifactCount := 0
+	for _, entry := range entries {
+		if entry.IsDir() || entry.Name() == "release-notes.md" {
+			continue
+		}
+		info, statErr := entry.Info()
+		if statErr != nil {
+			t.Fatalf("stat output artifact %s: %v", entry.Name(), statErr)
+		}
+		if info.Size() == 0 {
+			t.Fatalf("output artifact %s is empty", entry.Name())
+		}
+		artifactCount++
 	}
-	if !strings.Contains(string(checksums), "localtest-resources.tar.gz") {
-		t.Fatalf("SHA256SUMS missing localtest-resources.tar.gz entry:\n%s", string(checksums))
-	}
-
-	expectedTag := "studioctl/v1.2.0-preview.2"
-	for _, scriptName := range []string{"install.sh", "install.ps1"} {
-		scriptBytes, err := os.ReadFile(filepath.Join(outputDir, scriptName))
-		if err != nil {
-			t.Fatalf("read %s: %v", scriptName, err)
-		}
-		script := string(scriptBytes)
-		if !strings.Contains(script, expectedTag) {
-			t.Fatalf("%s missing stamped tag %q:\n%s", scriptName, expectedTag, script)
-		}
-		if !strings.Contains(script, "__STUDIOCTL_DEFAULT_VERSION__") {
-			t.Fatalf("%s missing fallback marker placeholder", scriptName)
-		}
+	if artifactCount == 0 {
+		t.Fatal("builder produced no artifacts")
 	}
 }
 
@@ -409,23 +380,52 @@ func prepareStudioctlLikeLayout(t *testing.T, log internal.Logger, repoDir, comp
 	)
 	writeFile(
 		t,
-		filepath.Join(repoDir, "src", "cli", "cmd", "studioctl", "install.sh"),
-		"#!/usr/bin/env sh\nDEFAULT_VERSION=\"__STUDIOCTL_DEFAULT_VERSION__\"\nif [ \"$DEFAULT_VERSION\" = \"__STUDIOCTL_DEFAULT_VERSION__\" ]; then\n\tDEFAULT_VERSION=\"latest\"\nfi\necho \"$DEFAULT_VERSION\"\n",
-	)
-	writeFile(
-		t,
-		filepath.Join(repoDir, "src", "cli", "cmd", "studioctl", "install.ps1"),
-		"$DefaultVersion = \"__STUDIOCTL_DEFAULT_VERSION__\"\nif ($DefaultVersion -eq \"__STUDIOCTL_DEFAULT_VERSION__\") { $DefaultVersion = \"latest\" }\nWrite-Host $DefaultVersion\n",
-	)
-	writeFile(
-		t,
-		filepath.Join(repoDir, "src", "Runtime", "localtest", "testdata", "data.txt"),
-		"data\n",
-	)
-	writeFile(
-		t,
-		filepath.Join(repoDir, "src", "Runtime", "localtest", "infra", "config.json"),
-		"{}\n",
+		filepath.Join(repoDir, "src", "cli", "cmd", "dev", "main.go"),
+		`package main
+
+import (
+	"encoding/json"
+	"flag"
+	"fmt"
+	"os"
+	"path/filepath"
+)
+
+func main() {
+	args := os.Args[1:]
+	if len(args) > 0 && args[0] == "dist" {
+		args = args[1:]
+	}
+	flag.String("version", "dev", "")
+	output := flag.String("output", "build", "")
+	platform := flag.String("platform", "all", "")
+	manifest := flag.String("manifest", "", "")
+	release := flag.Bool("release", false, "")
+	_ = flag.CommandLine.Parse(args)
+	if *platform != "all" {
+		_, _ = fmt.Fprintf(os.Stderr, "unexpected platform: %s", *platform)
+		os.Exit(2)
+	}
+	if !*release {
+		_, _ = fmt.Fprint(os.Stderr, "missing -release")
+		os.Exit(2)
+	}
+
+	_ = os.MkdirAll(*output, 0o755)
+	artifacts := []string{write(*output, "artifact-one"), write(*output, "artifact-two")}
+	if *manifest != "" {
+		_ = os.MkdirAll(filepath.Dir(*manifest), 0o755)
+		content, _ := json.Marshal(map[string]any{"artifacts": artifacts})
+		_ = os.WriteFile(*manifest, content, 0o644)
+	}
+}
+
+func write(dir, name string) string {
+	path := filepath.Join(dir, name)
+	_ = os.WriteFile(path, []byte(name+"\n"), 0o644)
+	return path
+}
+`,
 	)
 	writeFile(
 		t,

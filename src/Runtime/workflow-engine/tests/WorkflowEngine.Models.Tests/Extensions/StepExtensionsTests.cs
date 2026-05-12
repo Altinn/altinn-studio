@@ -11,7 +11,6 @@ public class StepExtensionsTests
         new()
         {
             OperationId = "test-op",
-            IdempotencyKey = "test-key",
             ProcessingOrder = 0,
             Command = new CommandDefinition { Type = "noop" },
             Status = status,

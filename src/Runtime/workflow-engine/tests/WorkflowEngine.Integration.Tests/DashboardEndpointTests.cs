@@ -213,13 +213,13 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
         var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
-        var stepKey = status.Steps[0].IdempotencyKey ?? throw new Exception("This is not null here");
+        var stepId = status.Steps[0].DatabaseId;
 
         using var client = fixture.CreateEngineClient();
 
         // Act
         using var response = await client.GetAsync(
-            $"/dashboard/step?wf={workflowId}&ns={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}&step={Uri.EscapeDataString(stepKey)}",
+            $"/dashboard/step?wf={workflowId}&ns={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}&step={stepId}",
             TestContext.Current.CancellationToken
         );
 
@@ -227,8 +227,8 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         using var doc = JsonDocument.Parse(json);
-        Assert.True(doc.RootElement.TryGetProperty("idempotencyKey", out var key));
-        Assert.Equal(stepKey, key.GetString());
+        Assert.True(doc.RootElement.TryGetProperty("idempotencyKey", out var id));
+        Assert.Equal(stepId.ToString(), id.GetString());
         Assert.True(doc.RootElement.TryGetProperty("status", out _));
     }
 

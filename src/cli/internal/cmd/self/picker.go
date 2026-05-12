@@ -3,6 +3,7 @@ package self
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -11,52 +12,56 @@ import (
 	"altinn.studio/studioctl/internal/ui"
 )
 
-// PickerOption represents a selectable option in the picker.
-type PickerOption struct {
+type pickerOption struct {
 	Label string
 	Value string
 }
 
-// Picker handles interactive selection of install location.
+// Picker handles interactive selection of an install location.
 type Picker struct {
 	out               *ui.Output
+	input             io.Reader
 	candidates        []Candidate
-	recommendedOption int // Index in filtered options, -1 if none
+	recommendedOption int
 }
 
-// NewPicker creates a new picker with the given candidates.
-func NewPicker(out *ui.Output, candidates []Candidate) *Picker {
+// NewPicker creates a picker for install location candidates.
+func NewPicker(
+	out *ui.Output,
+	input io.Reader,
+	candidates []Candidate,
+) *Picker {
+	if input == nil {
+		input = os.Stdin
+	}
+
 	return &Picker{
 		out:               out,
+		input:             input,
 		candidates:        candidates,
 		recommendedOption: -1,
 	}
 }
 
-// Run displays the picker and returns the selected directory path.
-// Returns ErrSkipped if the user chooses to skip.
+// Run prompts for and returns the selected install directory.
 func (p *Picker) Run(ctx context.Context) (string, error) {
 	if len(p.candidates) == 0 {
-		return "", ErrNoWritableLocation
+		return "", ErrNoWritableInstallLocation
 	}
 
-	p.out.Printf("Where would you like to install %s?\n", osutil.CurrentBin())
+	p.out.Printlnf("Where would you like to install %s?", osutil.CurrentBin())
 	p.out.Println("")
 
 	options := p.buildOptions()
 
 	for i, opt := range options {
-		p.out.Printf("  [%d] %s\n", i+1, opt.Label)
+		p.out.Printlnf("  [%d] %s", i+1, opt.Label)
 	}
 	p.out.Println("")
 
-	for _, c := range p.candidates {
-		if c.Recommended && c.Writable {
-			p.out.Printf("Press Enter for recommended option, or enter a number [1-%d]: ", len(options))
-			break
-		}
-	}
-	if !p.hasRecommended() {
+	if p.hasRecommended() {
+		p.out.Printf("Press Enter for recommended option, or enter a number [1-%d]: ", len(options))
+	} else {
 		p.out.Printf("Enter a number [1-%d]: ", len(options))
 	}
 
@@ -65,40 +70,31 @@ func (p *Picker) Run(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	if selection == len(options)-1 {
-		return "", ErrSkipped
-	}
-
 	return options[selection].Value, nil
 }
 
-func (p *Picker) buildOptions() []PickerOption {
-	options := make([]PickerOption, 0, len(p.candidates)+1)
+func (p *Picker) buildOptions() []pickerOption {
+	options := make([]pickerOption, 0, len(p.candidates))
 	p.recommendedOption = -1
 
-	for _, c := range p.candidates {
-		if c.Writable || c.NeedsSudo {
-			if c.Recommended && c.Writable && p.recommendedOption == -1 {
+	for _, candidate := range p.candidates {
+		if candidate.Writable || candidate.NeedsSudo {
+			if candidate.Recommended && candidate.Writable && p.recommendedOption == -1 {
 				p.recommendedOption = len(options)
 			}
-			options = append(options, PickerOption{
-				Label: c.Label(),
-				Value: c.Path,
+			options = append(options, pickerOption{
+				Label: installCandidateLabel(candidate),
+				Value: candidate.Path,
 			})
 		}
 	}
-
-	options = append(options, PickerOption{
-		Label: "Skip - I'll handle it manually",
-		Value: "",
-	})
 
 	return options
 }
 
 func (p *Picker) hasRecommended() bool {
-	for _, c := range p.candidates {
-		if c.Recommended && c.Writable {
+	for _, candidate := range p.candidates {
+		if candidate.Recommended && candidate.Writable {
 			return true
 		}
 	}
@@ -107,14 +103,13 @@ func (p *Picker) hasRecommended() bool {
 
 func (p *Picker) readSelection(ctx context.Context, numOptions int) (int, error) {
 	for {
-		line, err := ui.ReadLine(ctx, os.Stdin)
+		line, err := ui.ReadLine(ctx, p.input)
 		if err != nil {
-			p.out.Println("") // newline after interrupt
+			p.out.Println("")
 			return 0, fmt.Errorf("read selection: %w", err)
 		}
 
 		input := strings.TrimSpace(string(line))
-
 		if input == "" {
 			if p.recommendedOption >= 0 {
 				return p.recommendedOption, nil
@@ -131,6 +126,25 @@ func (p *Picker) readSelection(ctx context.Context, numOptions int) (int, error)
 			continue
 		}
 
-		return num - 1, nil // Convert to 0-indexed
+		return num - 1, nil
 	}
+}
+
+func installCandidateLabel(candidate Candidate) string {
+	parts := []string{candidate.Path}
+
+	if candidate.Recommended {
+		parts = append(parts, "(recommended)")
+	}
+	if candidate.InPath && !candidate.Recommended {
+		parts = append(parts, "(in PATH)")
+	}
+	if candidate.NeedsSudo {
+		parts = append(parts, "(requires sudo)")
+	}
+	if !candidate.Writable && !candidate.NeedsSudo {
+		parts = append(parts, "(not writable)")
+	}
+
+	return strings.Join(parts, " ")
 }

@@ -1,24 +1,23 @@
 import { useCallback } from 'react';
 
-import { useRefetchInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
+import { useRefetchInitialValidations } from 'src/core/queries/backendValidation';
+import { FormStore } from 'src/features/form/FormContext';
 import { getVisibilityMask } from 'src/features/validation/utils';
-import { Validation } from 'src/features/validation/validationContext';
+import { useWaitForValidation } from 'src/features/validation/validationContext';
 import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { PageValidation } from 'src/layout/common.generated';
 
 /**
  * Checks if a page has validation errors as specified by the config.
  * If there are errors, the visibility of the page is set to the specified mask.
- *
- */
+ **/
 export function useOnPageNavigationValidation() {
-  const setNodeVisibility = NodesInternal.useSetNodeVisibility();
-  const getNodeValidations = NodesInternal.useValidationsSelector();
-  const validating = Validation.useValidating();
+  const setPageValidationMask = FormStore.validation.useSetPageValidationMask();
+  const getNodeValidations = FormStore.nodes.useValidationsSelector();
+  const validating = useWaitForValidation();
   const pageOrder = usePageOrder();
-  const nodeStore = NodesInternal.useStore();
+  const formStore = FormStore.raw.useStore();
   const refetchInitialValidations = useRefetchInitialValidations();
 
   /* Ensures the callback will have the latest state */
@@ -31,13 +30,14 @@ export function useOnPageNavigationValidation() {
     if (!pageOrder || currentIndex === -1) {
       return false;
     }
+
     const currentOrPreviousPages = new Set<string>();
     for (const pageKey of pageOrder.slice(0, currentIndex + 1)) {
       currentOrPreviousPages.add(pageKey);
     }
 
-    const state = nodeStore.getState();
-    const nodeIds: string[] = [];
+    const state = formStore.getState();
+    const nodeIdsPerPage = new Map<string, string[]>();
     const nodesOnCurrentOrPreviousPages = new Set<string>();
     let hasSubform = false;
 
@@ -48,7 +48,7 @@ export function useOnPageNavigationValidation() {
       shouldCheckPage = (pageKey: string) => currentOrPreviousPages.has(pageKey);
     }
 
-    for (const nodeData of Object.values(state.nodeData)) {
+    for (const nodeData of Object.values(state.nodes.nodeData)) {
       if (currentOrPreviousPages.has(nodeData.pageKey)) {
         nodesOnCurrentOrPreviousPages.add(nodeData.id);
       }
@@ -58,7 +58,9 @@ export function useOnPageNavigationValidation() {
       if (nodeData.nodeType === 'Subform') {
         hasSubform = true;
       }
-      nodeIds.push(nodeData.id);
+      const nodes = nodeIdsPerPage.get(nodeData.pageKey) ?? [];
+      nodes.push(nodeData.id);
+      nodeIdsPerPage.set(nodeData.pageKey, nodes);
     }
 
     // We need to get updated validations from backend to validate subform
@@ -69,27 +71,22 @@ export function useOnPageNavigationValidation() {
 
     // Get nodes with errors along with their errors
     let onCurrentOrPreviousPage = false;
-    const nodeErrors = nodeIds
-      .map((id) => {
+    let hasErrors = false;
+    for (const [pageKey, nodeIds] of nodeIdsPerPage.entries()) {
+      const hasErrorsOnPage = nodeIds.some((id) => {
         const validations = getNodeValidations(id, mask, 'error');
         if (validations.length > 0) {
           onCurrentOrPreviousPage = onCurrentOrPreviousPage || nodesOnCurrentOrPreviousPages.has(id);
+          return true;
         }
-        return [id, validations.length > 0] as const;
-      })
-      .filter(([_, e]) => e);
+        return false;
+      });
 
-    if (nodeErrors.length > 0) {
-      setNodeVisibility(
-        nodeErrors.map(([n]) => n),
-        mask,
-      );
-
-      // Only block navigation if there are errors on the current or previous pages
-      return onCurrentOrPreviousPage;
+      setPageValidationMask(pageKey, hasErrorsOnPage ? mask : undefined);
+      hasErrors = hasErrors || hasErrorsOnPage;
     }
 
-    return false;
+    return hasErrors ? onCurrentOrPreviousPage : false;
   });
 
   return useCallback(

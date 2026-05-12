@@ -6,7 +6,7 @@ import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
-import { useHiddenLayoutsExpressions, useLayoutLookups, useLayouts } from 'src/features/form/layout/LayoutsContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { getComponentDef, implementsIsChildHidden } from 'src/layout';
@@ -48,8 +48,8 @@ export function useIsHidden<Reason extends boolean = false>(
     throw new Error("useIsHidden doesn't support changing the baseComponentId, that would break the rule of hooks");
   }
 
-  const layoutLookups = useLayoutLookups();
-  const hiddenPages = useHiddenLayoutsExpressions();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
+  const hiddenPages = FormStore.bootstrap.useHiddenLayoutsExpressions();
   const hiddenSources = findHiddenSources(baseComponentId, layoutLookups, hiddenPages).reverse();
   const dataSources = useExpressionDataSources(hiddenSources);
   const forcedVisible = useIsForcedVisibleByDevTools();
@@ -87,8 +87,8 @@ export function useIsHiddenMulti(
     );
   }
 
-  const layoutLookups = useLayoutLookups();
-  const hiddenPages = useHiddenLayoutsExpressions();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
+  const hiddenPages = FormStore.bootstrap.useHiddenLayoutsExpressions();
   const hiddenSources = useMemo(
     () =>
       baseComponentIds.map((baseComponentId) =>
@@ -137,7 +137,7 @@ export function useIsHiddenPage(pageKey: string | undefined, options: Omit<IsHid
     throw new Error("useIsHiddenPage doesn't support changing the pageKey, that would break the rule of hooks");
   }
 
-  const hiddenExpressions = useHiddenLayoutsExpressions();
+  const hiddenExpressions = FormStore.bootstrap.useHiddenLayoutsExpressions();
   const dataSources = useExpressionDataSources(hiddenExpressions);
   const pageOrder = useRawPageOrder();
   const forcedVisible = useIsForcedVisibleByDevTools();
@@ -155,8 +155,8 @@ export function useIsHiddenPage(pageKey: string | undefined, options: Omit<IsHid
  * Check which pages are hidden, returning a Set with the ones that are hidden
  */
 export function useHiddenPages(options: Omit<IsHiddenOptions, 'includeReason'> = {}): Set<string> {
-  const pages = Object.keys(useLayouts());
-  const hiddenExpressions = useHiddenLayoutsExpressions();
+  const pages = Object.keys(FormStore.bootstrap.useLaxLayouts() || {});
+  const hiddenExpressions = FormStore.bootstrap.useLaxHiddenLayoutsExpressions() || {};
   const dataSources = useExpressionDataSources(hiddenExpressions);
   const pageOrder = useRawPageOrder();
 

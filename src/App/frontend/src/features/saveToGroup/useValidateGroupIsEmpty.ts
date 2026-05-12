@@ -1,6 +1,6 @@
 import dot from 'dot-object';
 
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { toRelativePath } from 'src/features/saveToGroup/useSaveToGroup';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { getFieldNameKey } from 'src/utils/formComponentUtils';
@@ -17,7 +17,7 @@ export function useValidateGroupIsEmpty<T extends 'Checkboxes' | 'MultipleSelect
   const textResourceBindings = item.textResourceBindings;
   const formData = useNodeFormDataWhenType(baseComponentId, type);
 
-  const invalidDataSelector = FD.useInvalidDebouncedSelector();
+  const invalidDataSelector = FormStore.data.useInvalidDebouncedSelector();
   if (!required || !dataModelBindings) {
     return [];
   }

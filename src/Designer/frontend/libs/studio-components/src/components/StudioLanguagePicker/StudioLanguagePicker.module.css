@@ -1,0 +1,22 @@
+.root {
+  align-items: flex-end;
+  display: flex;
+  gap: var(--ds-size-3);
+}
+
+@supports (anchor-name: --add-field) and (position-anchor: --add-field) {
+  .addField input {
+    anchor-name: --add-field;
+    border-end-end-radius: 0;
+    border-inline-end: 0;
+    border-start-end-radius: 0;
+  }
+
+  .addFieldButton {
+    border-end-start-radius: 0;
+    border-start-start-radius: 0;
+    position-anchor: --add-field;
+    position-area: inline-end;
+    position: absolute;
+  }
+}

@@ -109,4 +109,14 @@ internal static partial class EngineRepositoryLogs
         string message,
         Exception ex
     );
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Lease lost on {LostCount} of {TotalCount} workflows during batch write-back — another host has reclaimed them; updates for those workflows are skipped"
+    )]
+    internal static partial void BatchUpdateLeaseLost(
+        this ILogger<EngineRepository> logger,
+        int lostCount,
+        int totalCount
+    );
 }

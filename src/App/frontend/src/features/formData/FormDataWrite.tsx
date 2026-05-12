@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import type { PropsWithChildren } from 'react';
 
 import { useIsMutating, useMutation, useQueryClient } from '@tanstack/react-query';
 import dot from 'dot-object';
@@ -8,17 +7,17 @@ import type { AxiosRequestConfig } from 'axios';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { createZustandContext } from 'src/core/contexts/zustandContext';
+import {
+  type useGetCachedInitialValidations,
+  useIsUpdatingInitialValidations,
+} from 'src/core/queries/backendValidation';
 import { useIsStateless } from 'src/features/applicationMetadata';
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
-import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
-import { useFormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
-import { createFormDataWriteStore } from 'src/features/formData/FormDataWriteStateMachine';
+import { FormStore } from 'src/features/form/FormContext';
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { getFormDataQueryKey } from 'src/features/formData/useFormDataQuery';
-import { useLaxInstanceId, useOptimisticallyUpdateCachedInstance } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import {
@@ -26,22 +25,16 @@ import {
   type BackendValidationIssueGroups,
   IgnoredValidators,
 } from 'src/features/validation';
-import { useIsUpdatingInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { getMultiPatchUrl } from 'src/utils/urls/appUrlHelper';
 import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
-import type { SchemaLookupTool } from 'src/features/datamodel/useDataModelSchemaQuery';
+import type { FormStoreState } from 'src/features/form/FormContext';
+import type { FormBootstrapQueryResponse } from 'src/features/formBootstrap/useFormBootstrapQuery';
 import type { FormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
-import type {
-  DataModelState,
-  FDActionResult,
-  FDSaveFinished,
-  FormDataContext,
-  UpdatedDataModel,
-} from 'src/features/formData/FormDataWriteStateMachine';
+import type { FDActionResult, FDSaveFinished, UpdatedDataModel } from 'src/features/formData/FormDataWriteStateMachine';
 import type { DebounceReason, IPatchListItem } from 'src/features/formData/types';
-import type { ChangeInstanceData } from 'src/features/instance/InstanceContext';
+import type { ChangeInstanceData, InstanceDataSelector } from 'src/features/instance/InstanceContext';
 import type { FormDataRowsSelector, FormDataSelector } from 'src/layout';
 import type { IDataModelReference, IMapping } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
@@ -50,39 +43,14 @@ import type { BaseRow } from 'src/utils/layout/types';
 export type FDLeafValue = string | number | boolean | null | undefined | string[];
 export type FDValue = FDLeafValue | object | FDValue[];
 
-interface FormDataContextInitialProps {
-  initialDataModels: { [dataType: string]: DataModelState };
+export interface FormDataSliceProps {
+  dataModels: FormBootstrapQueryResponse['dataModels'];
   autoSaving: boolean;
   proxies: FormDataWriteProxies;
-  schemaLookup: { [dataType: string]: SchemaLookupTool };
   changeInstance: ChangeInstanceData;
+  selectFromInstance: InstanceDataSelector;
+  getCachedInitialValidations: ReturnType<typeof useGetCachedInitialValidations>;
 }
-
-const {
-  Provider,
-  useSelector,
-  useStaticSelector,
-  useShallowSelector,
-  useMemoSelector,
-  useLaxMemoSelector,
-  useLaxDelayedSelector,
-  useDelayedSelector,
-  useLaxDelayedSelectorProps,
-  useLaxSelector,
-  useLaxStore,
-  useStore,
-} = createZustandContext({
-  name: 'FormDataWrite',
-  required: true,
-  initialCreateStore: ({
-    initialDataModels,
-    autoSaving,
-    proxies,
-    schemaLookup,
-    changeInstance,
-  }: FormDataContextInitialProps) =>
-    createFormDataWriteStore(initialDataModels, autoSaving, proxies, schemaLookup, changeInstance),
-});
 
 const saveFormDataMutationKey = ['saveFormData'] as const;
 
@@ -92,16 +60,16 @@ function useFormDataSaveMutation() {
   const instanceId = useLaxInstanceId();
   const multiPatchUrl = instanceId ? getMultiPatchUrl(instanceId) : undefined;
   const currentLanguage = useAsRef(useCurrentLanguage());
-  const dataModelsRef = useAsRef(useSelector((state) => state.dataModels));
-  const saveFinished = useSelector((s) => s.saveFinished);
-  const cancelSave = useSelector((s) => s.cancelSave);
+  const dataModelsRef = useAsRef(FormStore.raw.useSelector((state) => state.data.models));
+  const saveFinished = FormStore.raw.useSelector((s) => s.data.saveFinished);
+  const cancelSave = FormStore.raw.useSelector((s) => s.data.cancelSave);
   const isStateless = useIsStateless();
-  const debounce = useSelector((s) => s.debounce);
+  const debounce = FormStore.raw.useSelector((s) => s.data.debounce);
   const selectedPartyId = useSelectedParty()?.partyId;
   const waitFor = useWaitForState<
     { prev: { [dataType: string]: object }; next: { [dataType: string]: object } },
-    FormDataContext
-  >(useStore());
+    FormStoreState
+  >(FormStore.raw.useStore());
   const queryClient = useQueryClient();
 
   // This updates the query cache with the new data models every time a save has finished. This means we won't have to
@@ -192,7 +160,7 @@ function useFormDataSaveMutation() {
         // navigating away from the form context.
         debounce('beforeSave');
         return await waitFor((state, setReturnValue) => {
-          const dataModels = state.dataModels;
+          const dataModels = state.data.models;
           const hasUnDebouncedChanges = Object.values(dataModels).some(
             ({ debouncedCurrentData, currentData }) => debouncedCurrentData !== currentData,
           );
@@ -323,58 +291,21 @@ function useIsSavingFormData() {
   );
 }
 
-export function FormDataWriteProvider({ children }: PropsWithChildren) {
-  const proxies = useFormDataWriteProxies();
-  const allDataTypes = DataModels.useReadableDataTypes();
-  const writableDataTypes = DataModels.useWritableDataTypes();
-  const defaultDataType = DataModels.useDefaultDataType();
-  const initialData = DataModels.useInitialData();
-  const dataElementIds = DataModels.useDataElementIds();
-  const schemaLookup = DataModels.useSchemaLookup();
-  const autoSaveBehavior = usePageSettings().autoSaveBehavior;
-  const changeInstance = useOptimisticallyUpdateCachedInstance();
-
-  if (!writableDataTypes || !allDataTypes) {
-    throw new Error('FormDataWriteProvider failed because data types have not been loaded, see DataModelsProvider.');
-  }
-
-  const initialDataModels = allDataTypes.reduce((dm, dt) => {
-    const emptyInvalidData = {};
-    dm[dt] = {
-      currentData: initialData[dt],
-      invalidCurrentData: emptyInvalidData,
-      debouncedCurrentData: initialData[dt],
-      invalidDebouncedCurrentData: emptyInvalidData,
-      lastSavedData: initialData[dt],
-      hasUnsavedChanges: false,
-      dataElementId: dataElementIds[dt],
-      readonly: !writableDataTypes.includes(dt),
-      isDefault: dt === defaultDataType,
-    };
-    return dm;
-  }, {});
-
+export function FormDataWriteEffects() {
   return (
-    <Provider
-      initialDataModels={initialDataModels}
-      autoSaving={!autoSaveBehavior || autoSaveBehavior === 'onChangeFormData'}
-      proxies={proxies}
-      schemaLookup={schemaLookup}
-      changeInstance={changeInstance}
-    >
+    <>
       <FormDataEffects />
       <LockingEffects />
-      {children}
-    </Provider>
+    </>
   );
 }
 
 function FormDataEffects() {
-  const [autoSaving, lockedBy, debounceTimeout, manualSaveRequested] = useShallowSelector((s) => [
-    s.autoSaving,
-    s.lockedBy,
-    s.debounceTimeout,
-    s.manualSaveRequested,
+  const [autoSaving, lockedBy, debounceTimeout, manualSaveRequested] = FormStore.raw.useShallowSelector((s) => [
+    s.data.autoSaving,
+    s.data.lockedBy,
+    s.data.debounceTimeout,
+    s.data.manualSaveRequested,
   ]);
   const hasUnsavedChanges = useHasUnsavedChanges();
   const setUnsavedAttrTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -414,7 +345,7 @@ function FormDataEffects() {
 
   // Debounce the data model when the user stops typing. This has the effect of triggering the useEffect below,
   // saving the data model to the backend. Freezing can also be triggered manually, when a manual save is requested.
-  const shouldDebounce = useSelector(hasUnDebouncedChanges);
+  const shouldDebounce = FormStore.raw.useSelector((state) => hasUnDebouncedChanges(state));
   useEffect(() => {
     const timer = shouldDebounce
       ? setTimeout(() => {
@@ -426,7 +357,7 @@ function FormDataEffects() {
   });
 
   // Save the data model when the data has been frozen/debounced, and we're ready
-  const needsToSave = useSelector(hasDebouncedUnsavedChanges);
+  const needsToSave = FormStore.raw.useSelector((state) => hasDebouncedUnsavedChanges(state));
   const canSaveNow = !isSaving && !lockedBy && !isUpdatingInitialValidations;
   const shouldSave = needsToSave && (autoSaving || manualSaveRequested);
 
@@ -453,10 +384,10 @@ function FormDataEffects() {
   );
 
   // Sets the debounced data in the window object, so that Cypress tests can access it.
-  useSelector((state) => {
+  FormStore.raw.useSelector((state) => {
     if (window.Cypress) {
       const formData: { [key: string]: unknown } = {};
-      for (const [dataType, { debouncedCurrentData }] of Object.entries(state.dataModels)) {
+      for (const [dataType, { debouncedCurrentData }] of Object.entries(state.data.models)) {
         formData[dataType] = debouncedCurrentData;
       }
 
@@ -468,8 +399,8 @@ function FormDataEffects() {
 }
 
 function LockingEffects() {
-  const store = useStore();
-  const hasNext = useSelector((s) => (s.lockedBy ? false : s.lockQueue.length > 0));
+  const store = FormStore.raw.useStore();
+  const hasNext = FormStore.raw.useSelector((s) => (s.data.lockedBy ? false : s.data.lockQueue.length > 0));
 
   const hasUnsavedChangesNow = useHasUnsavedChangesNow();
   const waitForSave = useWaitForSave();
@@ -477,11 +408,12 @@ function LockingEffects() {
   useEffect(() => {
     (async () => {
       const state = store.getState();
-      if (!state.lockedBy && state.lockQueue.length > 0) {
+      const dataState = state.data;
+      if (!dataState.lockedBy && dataState.lockQueue.length > 0) {
         if (hasUnsavedChangesNow()) {
           await waitForSave(true);
         }
-        state.nextLock();
+        dataState.nextLock();
       }
     })().then();
   }, [hasNext, hasUnsavedChangesNow, store, waitForSave]);
@@ -490,7 +422,7 @@ function LockingEffects() {
 }
 
 const useRequestManualSave = () => {
-  const requestSave = useLaxSelector((s) => s.requestManualSave);
+  const requestSave = FormStore.raw.useLaxSelector((s) => s.data.requestManualSave);
   return useCallback(
     (setTo = true) => {
       if (requestSave !== ContextNotProvided) {
@@ -502,7 +434,7 @@ const useRequestManualSave = () => {
 };
 
 const useDebounceImmediately = () => {
-  const debounce = useLaxSelector((s) => s.debounce);
+  const debounce = FormStore.raw.useLaxSelector((s) => s.data.debounce);
   return useCallback(
     (reason: DebounceReason) => {
       if (debounce !== ContextNotProvided) {
@@ -513,21 +445,21 @@ const useDebounceImmediately = () => {
   );
 };
 
-function hasDebouncedUnsavedChanges(state: FormDataContext) {
-  return Object.values(state.dataModels).some(
+function hasDebouncedUnsavedChanges(state: FormStoreState) {
+  return Object.values(state.data.models).some(
     ({ debouncedCurrentData, lastSavedData }) => debouncedCurrentData !== lastSavedData,
   );
 }
 
-function hasUnDebouncedChanges(state: FormDataContext) {
-  return Object.values(state.dataModels).some(
+function hasUnDebouncedChanges(state: FormStoreState) {
+  return Object.values(state.data.models).some(
     ({ currentData, debouncedCurrentData, invalidCurrentData, invalidDebouncedCurrentData }) =>
       currentData !== debouncedCurrentData || invalidCurrentData !== invalidDebouncedCurrentData,
   );
 }
 
-function hasUnsavedChanges(state: FormDataContext) {
-  return Object.values(state.dataModels).some(
+function hasUnsavedChanges(state: FormStoreState) {
+  return Object.values(state.data.models).some(
     ({ currentData, lastSavedData, debouncedCurrentData }) =>
       currentData !== lastSavedData || debouncedCurrentData !== lastSavedData,
   );
@@ -535,7 +467,7 @@ function hasUnsavedChanges(state: FormDataContext) {
 
 const useHasUnsavedChanges = () => {
   const isSaving = useIsSavingFormData();
-  const result = useLaxMemoSelector((state) => hasUnsavedChanges(state));
+  const result = FormStore.raw.useLaxMemoSelector((state) => hasUnsavedChanges(state));
   if (result === ContextNotProvided) {
     return false;
   }
@@ -543,7 +475,7 @@ const useHasUnsavedChanges = () => {
 };
 
 const useHasUnsavedChangesNow = () => {
-  const store = useStore();
+  const store = FormStore.raw.useStore();
   const queryClient = useQueryClient();
 
   return useCallback(() => {
@@ -562,47 +494,35 @@ const useHasUnsavedChangesNow = () => {
 
 const useWaitForSave = () => {
   const requestSave = useRequestManualSave();
-  const dataTypes = useLaxMemoSelector((s) => Object.keys(s.dataModels));
-  const waitFor = useWaitForState<
-    BackendValidationIssueGroups | undefined,
-    FormDataContext | typeof ContextNotProvided
-  >(useLaxStore());
+  const waitFor = useWaitForState<undefined, FormStoreState | typeof ContextNotProvided>(FormStore.raw.useLaxStore());
 
   return useCallback(
-    async (requestManualSave = false): Promise<BackendValidationIssueGroups | undefined> => {
-      if (dataTypes === ContextNotProvided) {
-        return Promise.resolve(undefined);
-      }
-
-      return await waitFor((state, setReturnValue) => {
+    async (
+      requestManualSave = false,
+      extraReady?: (state: FormStoreState) => boolean,
+    ): Promise<BackendValidationIssueGroups | undefined> =>
+      await waitFor((state) => {
         if (state === ContextNotProvided) {
-          setReturnValue(undefined);
           return true;
         }
 
-        if (requestManualSave && !state.manualSaveRequested && hasDebouncedUnsavedChanges(state)) {
+        if (requestManualSave && !state.data.manualSaveRequested && hasDebouncedUnsavedChanges(state)) {
           requestSave();
           return false;
         }
 
-        if (hasUnsavedChanges(state)) {
-          return false;
-        }
-
-        setReturnValue(state.validationIssues);
-        return true;
-      });
-    },
-    [requestSave, dataTypes, waitFor],
+        return !hasUnsavedChanges(state) && (extraReady ? extraReady(state) : true);
+      }),
+    [requestSave, waitFor],
   );
 };
 
-function getFreshNumRows(state: FormDataContext, reference: IDataModelReference | undefined) {
+function getFreshNumRows(state: FormStoreState, reference: IDataModelReference | undefined) {
   if (!reference) {
     return 0;
   }
 
-  const model = state.dataModels[reference.dataType];
+  const model = state.data.models[reference.dataType];
   if (!model) {
     return 0;
   }
@@ -655,7 +575,7 @@ function collectMatchingFieldPaths(
 }
 
 export function selectAllPaths(reference: IDataModelReference | undefined, noRepGroup: boolean | undefined) {
-  return (v: FormDataContext) => {
+  return (v: FormStoreState) => {
     if (!reference) {
       return emptyArray;
     }
@@ -666,7 +586,7 @@ export function selectAllPaths(reference: IDataModelReference | undefined, noRep
 
     // If lookupTool is not available (e.g., in tests), or if there's a missingRepeatingGroup error,
     // we need to check the actual data to find all matching paths.
-    const formData = v.dataModels[reference.dataType]?.debouncedCurrentData;
+    const formData = v.data.models[reference.dataType]?.debouncedCurrentData;
     if (!formData) {
       return [];
     }
@@ -677,15 +597,15 @@ export function selectAllPaths(reference: IDataModelReference | undefined, noRep
   };
 }
 
-const currentSelector = (reference: IDataModelReference) => (state: FormDataContext) =>
-  dot.pick(reference.field, state.dataModels[reference.dataType]?.currentData);
-const debouncedSelector = (reference: IDataModelReference) => (state: FormDataContext) =>
-  dot.pick(reference.field, state.dataModels[reference.dataType]?.debouncedCurrentData);
-const invalidDebouncedSelector = (reference: IDataModelReference) => (state: FormDataContext) =>
-  dot.pick(reference.field, state.dataModels[reference.dataType]?.invalidDebouncedCurrentData);
+const currentSelector = (reference: IDataModelReference) => (state: FormStoreState) =>
+  dot.pick(reference.field, state.data.models[reference.dataType]?.currentData);
+const debouncedSelector = (reference: IDataModelReference) => (state: FormStoreState) =>
+  dot.pick(reference.field, state.data.models[reference.dataType]?.debouncedCurrentData);
+const invalidDebouncedSelector = (reference: IDataModelReference) => (state: FormStoreState) =>
+  dot.pick(reference.field, state.data.models[reference.dataType]?.invalidDebouncedCurrentData);
 
-const debouncedRowSelector = (reference: IDataModelReference) => (state: FormDataContext) => {
-  const rawRows = dot.pick(reference.field, state.dataModels[reference.dataType]?.debouncedCurrentData);
+const debouncedRowSelector = (reference: IDataModelReference) => (state: FormStoreState) => {
+  const rawRows = dot.pick(reference.field, state.data.models[reference.dataType]?.debouncedCurrentData);
   if (!Array.isArray(rawRows) || !rawRows.length) {
     return emptyArray;
   }
@@ -693,13 +613,13 @@ const debouncedRowSelector = (reference: IDataModelReference) => (state: FormDat
   return rawRows.map((row: any, index: number) => ({ uuid: row[ALTINN_ROW_ID], index }));
 };
 
-export const FD = {
+export const formDataHooks = {
   /**
    * Gives you a selector function that can be used to look up paths in the current datamodel (not the slower debounced
    * model).
    */
   useCurrentSelector(): FormDataSelector {
-    return useDelayedSelector({
+    return FormStore.raw.useDelayedSelector({
       mode: 'simple',
       selector: currentSelector,
     });
@@ -712,14 +632,7 @@ export const FD = {
    * pretend to have the full data model available to look up values from.
    */
   useDebouncedSelector(): FormDataSelector {
-    return useDelayedSelector({
-      mode: 'simple',
-      selector: debouncedSelector,
-    });
-  },
-
-  useLaxDebouncedSelectorProps() {
-    return useLaxDelayedSelectorProps({
+    return FormStore.raw.useDelayedSelector({
       mode: 'simple',
       selector: debouncedSelector,
     });
@@ -731,7 +644,7 @@ export const FD = {
    * inside them (and re-render if that data changes).
    */
   useDebouncedRowsSelector(): FormDataRowsSelector {
-    return useDelayedSelector({
+    return FormStore.raw.useDelayedSelector({
       mode: 'simple',
       selector: debouncedRowSelector,
     });
@@ -741,7 +654,7 @@ export const FD = {
    * Same as useDebouncedSelector(), but for invalid data.
    */
   useInvalidDebouncedSelector(): FormDataSelector {
-    return useDelayedSelector({
+    return FormStore.raw.useDelayedSelector({
       mode: 'simple',
       selector: invalidDebouncedSelector,
     });
@@ -752,7 +665,7 @@ export const FD = {
    * This will always give you the debounced data, which may or may not be saved to the backend yet.
    */
   useDebounced(dataType: string): object {
-    return useSelector((v) => v.dataModels[dataType]?.debouncedCurrentData);
+    return FormStore.raw.useSelector((v) => v.data.models[dataType]?.debouncedCurrentData);
   },
 
   /**
@@ -760,9 +673,9 @@ export const FD = {
    * select a value from the data model, and then process it in some way before returning it.
    */
   useDebouncedSelect<O>(selector: (pick: (reference: IDataModelReference) => FDValue) => O): O {
-    return useMemoSelector((v) =>
+    return FormStore.raw.useMemoSelector((v) =>
       selector((reference: IDataModelReference) =>
-        dot.pick(reference.field, v.dataModels[reference.dataType]?.debouncedCurrentData),
+        dot.pick(reference.field, v.data.models[reference.dataType]?.debouncedCurrentData),
       ),
     );
   },
@@ -772,7 +685,7 @@ export const FD = {
    * provider is not present.
    */
   useLaxDebouncedSelector(): FormDataSelector | typeof ContextNotProvided {
-    return useLaxDelayedSelector({
+    return FormStore.raw.useLaxDelayedSelector({
       mode: 'simple',
       selector: debouncedSelector,
     });
@@ -782,8 +695,8 @@ export const FD = {
    * This behaves the same as useDebouncedPick(), but selects from the current data
    */
   useCurrentPick(reference: IDataModelReference | undefined): FDValue {
-    return useSelector((v) =>
-      reference ? dot.pick(reference.field, v.dataModels[reference.dataType]?.currentData) : undefined,
+    return FormStore.raw.useSelector((v) =>
+      reference ? dot.pick(reference.field, v.data.models[reference.dataType]?.currentData) : undefined,
     );
   },
 
@@ -793,8 +706,8 @@ export const FD = {
    * the value is explicitly set to null.
    */
   useDebouncedPick(reference: IDataModelReference | undefined): FDValue {
-    return useSelector((v) =>
-      reference ? dot.pick(reference.field, v.dataModels[reference.dataType]?.debouncedCurrentData) : undefined,
+    return FormStore.raw.useSelector((v) =>
+      reference ? dot.pick(reference.field, v.data.models[reference.dataType]?.debouncedCurrentData) : undefined,
     );
   },
 
@@ -804,7 +717,7 @@ export const FD = {
    * This is useful for finding all instances of a field in repeating groups.
    */
   useDebouncedAllPaths(reference: IDataModelReference | undefined): string[] {
-    const lookupTool = DataModels.useLookupBinding();
+    const lookupTool = FormStore.bootstrap.useLookupBinding();
     const [, lookupErr] = (reference ? lookupTool?.(reference) : undefined) ?? [undefined, undefined];
 
     // When lookupTool is available and doesn't report a missing repeating group error, we know there's no
@@ -814,7 +727,7 @@ export const FD = {
       (!lookupErr || lookupErr.error !== 'missingProperty') &&
       (!lookupErr || lookupErr.error !== 'missingRepeatingGroup');
 
-    return useShallowSelector(selectAllPaths(reference, noRepGroup));
+    return FormStore.raw.useShallowSelector(selectAllPaths(reference, noRepGroup));
   },
 
   /**
@@ -827,7 +740,7 @@ export const FD = {
     bindings: T,
     dataAs: O,
   ): T extends undefined ? Record<string, never> : { [key in keyof T]: O extends 'raw' ? FDValue : string } =>
-    useMemoSelector((s) => {
+    FormStore.raw.useMemoSelector((s) => {
       if (!bindings || Object.keys(bindings).length === 0) {
         return emptyObject;
       }
@@ -836,13 +749,13 @@ export const FD = {
       for (const key of Object.keys(bindings)) {
         const field = bindings[key].field;
         const dataType = bindings[key].dataType;
-        const invalidValue = dot.pick(field, s.dataModels[dataType]?.invalidCurrentData);
+        const invalidValue = dot.pick(field, s.data.models[dataType]?.invalidCurrentData);
         if (invalidValue !== undefined) {
           out[key] = invalidValue;
           continue;
         }
 
-        const value = dot.pick(field, s.dataModels[dataType]?.currentData);
+        const value = dot.pick(field, s.data.models[dataType]?.currentData);
         if (dataAs === 'raw') {
           out[key] = value;
         } else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
@@ -866,7 +779,7 @@ export const FD = {
    * and warn the user if it is not.
    */
   useBindingsAreValid: <T extends IDataModelBindings | undefined>(bindings: T): { [key in keyof T]: boolean } =>
-    useMemoSelector((s) => {
+    FormStore.raw.useMemoSelector((s) => {
       if (!bindings || Object.keys(bindings).length === 0) {
         return emptyObject;
       }
@@ -875,7 +788,7 @@ export const FD = {
       for (const key of Object.keys(bindings)) {
         const field = bindings[key].field;
         const dataType = bindings[key].dataType;
-        out[key] = dot.pick(field, s.dataModels[dataType]?.invalidCurrentData) === undefined;
+        out[key] = dot.pick(field, s.data.models[dataType]?.invalidCurrentData) === undefined;
       }
       return out;
     }),
@@ -887,15 +800,15 @@ export const FD = {
    * while, so that this model can be used for i.e. validation messages.
    */
   useInvalidDebounced(dataType: string): object {
-    return useSelector((v) => v.dataModels[dataType]?.invalidDebouncedCurrentData);
+    return FormStore.raw.useSelector((v) => v.data.models[dataType]?.invalidDebouncedCurrentData);
   },
 
   /**
    * This returns the current invalid data which cannot be saved to backend
    */
   useInvalidDebouncedPick(reference: IDataModelReference | undefined): FDValue {
-    return useSelector((v) =>
-      reference ? dot.pick(reference.field, v.dataModels[reference.dataType]?.invalidDebouncedCurrentData) : undefined,
+    return FormStore.raw.useSelector((v) =>
+      reference ? dot.pick(reference.field, v.data.models[reference.dataType]?.invalidDebouncedCurrentData) : undefined,
     );
   },
 
@@ -912,14 +825,14 @@ export const FD = {
     defaultDataType: string | undefined,
     dataAs?: D,
   ): D extends 'raw' ? { [key: string]: FDValue } : { [key: string]: string } =>
-    useMemoSelector((s) => {
+    FormStore.raw.useMemoSelector((s) => {
       const realDataAs = dataAs || 'string';
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const out: any = {};
       if (mapping && defaultDataType) {
         for (const key of Object.keys(mapping)) {
           const outputKey = mapping[key];
-          const value = dot.pick(key, s.dataModels[defaultDataType]?.debouncedCurrentData);
+          const value = dot.pick(key, s.data.models[defaultDataType]?.debouncedCurrentData);
 
           if (realDataAs === 'raw') {
             out[outputKey] = value;
@@ -941,7 +854,7 @@ export const FD = {
    * consider using something like useDataModelBindings() instead.
    * @see useDataModelBindings
    */
-  useSetLeafValue: () => useStaticSelector((s) => s.setLeafValue),
+  useSetLeafValue: () => FormStore.raw.useStaticSelector((s) => s.data.setLeafValue),
 
   /**
    * This returns the raw method for setting multiple leaf values in the form data at once. This is
@@ -949,7 +862,7 @@ export const FD = {
    * for what you really want to do, so consider using something like useDataModelBindings() instead.
    * @see useDataModelBindings
    */
-  useSetMultiLeafValues: () => useStaticSelector((s) => s.setMultiLeafValues),
+  useSetMultiLeafValues: () => FormStore.raw.useStaticSelector((s) => s.data.setMultiLeafValues),
 
   /**
    * The locking functionality allows you to prevent form data from saving, even if the user stops typing (or navigates
@@ -958,13 +871,13 @@ export const FD = {
    * @see LockingEffects
    */
   useLocking(lockId: string) {
-    const store = useStore();
+    const store = FormStore.raw.useStore();
 
     const hasUnsavedChangesNow = useHasUnsavedChangesNow();
     const waitForSave = useWaitForSave();
 
     return useCallback(async () => {
-      const { lock: rawLock, unlock: rawUnlock, lockedBy } = store.getState();
+      const { lock: rawLock, unlock: rawUnlock, lockedBy } = store.getState().data;
 
       if (!lockedBy && hasUnsavedChangesNow()) {
         // Always save before locking. If the lock is not acquired immediately, LockingEffects will do that for us.
@@ -978,8 +891,8 @@ export const FD = {
         }),
       );
 
-      const isLockedByMe = () => store.getState().lockedBy === `${lockId} (${uuid})`;
-      const isLocked = () => store.getState().lockedBy !== undefined;
+      const isLockedByMe = () => store.getState().data.lockedBy === `${lockId} (${uuid})`;
+      const isLocked = () => store.getState().data.lockedBy !== undefined;
       const unlock = (actionResult?: FDActionResult) => rawUnlock(lockId, uuid, actionResult);
 
       return { unlock, isLocked, isLockedByMe };
@@ -987,7 +900,7 @@ export const FD = {
   },
 
   useLockStatus() {
-    const lockedBy = useSelector((s) => s.lockedBy);
+    const lockedBy = FormStore.raw.useSelector((s) => s.data.lockedBy);
     const isLocked = lockedBy !== undefined;
 
     return { lockedBy, isLocked };
@@ -998,12 +911,12 @@ export const FD = {
    * objects). This will always be 'fresh', meaning it will update immediately when a new row is added/removed.
    */
   useFreshRows: (reference: IDataModelReference | undefined): BaseRow[] =>
-    useMemoSelector((s) => {
+    FormStore.raw.useMemoSelector((s) => {
       if (!reference) {
         return emptyArray;
       }
 
-      const rawRows = dot.pick(reference.field, s.dataModels[reference.dataType]?.currentData);
+      const rawRows = dot.pick(reference.field, s.data.models[reference.dataType]?.currentData);
       if (!Array.isArray(rawRows) || !rawRows.length) {
         return emptyArray;
       }
@@ -1015,24 +928,25 @@ export const FD = {
    * Returns the number of rows in a repeating group. This will always be 'fresh', meaning it will update immediately
    * when a new row is added/removed.
    */
-  useFreshNumRows: (ref: IDataModelReference | undefined) => useMemoSelector((s) => getFreshNumRows(s, ref)),
+  useFreshNumRows: (ref: IDataModelReference | undefined) =>
+    FormStore.raw.useMemoSelector((s) => getFreshNumRows(s, ref)),
 
   /**
    * Same as the above, but returns a non-reactive function you can call to check the number of rows.
    */
   useGetFreshNumRows: (): ((reference: IDataModelReference | undefined) => number) => {
-    const store = useStore();
+    const store = FormStore.raw.useStore();
     return useCallback((reference) => getFreshNumRows(store.getState(), reference), [store]);
   },
 
   useGetFreshRows: (): ((reference: IDataModelReference | undefined) => BaseRow[]) => {
-    const store = useStore();
+    const store = FormStore.raw.useStore();
     return useCallback(
       (reference) => {
         if (!reference) {
           return emptyArray;
         }
-        const rawRows = dot.pick(reference.field, store.getState().dataModels[reference.dataType]?.currentData);
+        const rawRows = dot.pick(reference.field, store.getState().data.models[reference.dataType]?.currentData);
         if (!Array.isArray(rawRows) || !rawRows.length) {
           return emptyArray;
         }
@@ -1048,12 +962,12 @@ export const FD = {
    * a new row is added/removed.
    */
   useFreshRowUuid: (reference: IDataModelReference | undefined, index: number | undefined): string | undefined =>
-    useMemoSelector((s) => {
+    FormStore.raw.useMemoSelector((s) => {
       if (!reference || index === undefined) {
         return undefined;
       }
 
-      const model = s.dataModels[reference.dataType];
+      const model = s.data.models[reference.dataType];
       if (!model) {
         return undefined;
       }
@@ -1067,13 +981,13 @@ export const FD = {
 
   /**
    * Returns a function you can use to debounce saved form data
-   * This will work (and return immediately) even if there is no FormDataWriteProvider in the tree.
+   * This will work (and return immediately) even if there is no form store in the tree.
    */
   useDebounceImmediately,
 
   /**
    * Returns a function you can use to wait until the form data is saved.
-   * This will work (and return immediately) even if there is no FormDataWriteProvider in the tree.
+   * This will work (and return immediately) even if there is no form store in the tree.
    */
   useWaitForSave,
 
@@ -1084,7 +998,7 @@ export const FD = {
 
   /**
    * Returns true if the form data has unsaved changes
-   * This will work (and return false) even if there is no FormDataWriteProvider in the tree.
+   * This will work (and return false) even if there is no form store in the tree.
    */
   useHasUnsavedChanges,
 
@@ -1097,38 +1011,31 @@ export const FD = {
    * Returns a function to append a value to a list. It checks if the value is already in the list, and if not,
    * it will append it. If the value is already in the list, it will not be appended.
    */
-  useAppendToListUnique: () => useStaticSelector((s) => s.appendToListUnique),
+  useAppendToListUnique: () => FormStore.raw.useStaticSelector((s) => s.data.appendToListUnique),
 
   /**
    * Returns a function to append a value to a list. It will always append the value, even if it is already in the list.
    */
-  useAppendToList: () => useStaticSelector((s) => s.appendToList),
+  useAppendToList: () => FormStore.raw.useStaticSelector((s) => s.data.appendToList),
 
   /**
    * Returns a function to remove a value from a list, by use of a callback that lets you find the correct row to
    * remove. When the callback returns true, that row will be removed.
    */
-  useRemoveFromListCallback: () => useStaticSelector((s) => s.removeFromListCallback),
+  useRemoveFromListCallback: () => FormStore.raw.useStaticSelector((s) => s.data.removeFromListCallback),
 
   /**
    * Returns a function to remove a value from a list, by value. If your list contains unique values, this is the
    * safer alternative to useRemoveIndexFromList().
    */
-  useRemoveValueFromList: () => useStaticSelector((s) => s.removeValueFromList),
+  useRemoveValueFromList: () => FormStore.raw.useStaticSelector((s) => s.data.removeValueFromList),
 
-  /**
-   * Returns the latest validation issues from the backend, from the last time the form data was saved.
-   */
-  useLastSaveValidationIssues: () => useSelector((s) => s.validationIssues),
-
-  useSetLastValidationIssues: () => useStaticSelector((s) => s.setLastValidationIssues),
-
-  useRemoveIndexFromList: () => useStaticSelector((s) => s.removeIndexFromList),
+  useRemoveIndexFromList: () => FormStore.raw.useStaticSelector((s) => s.data.removeIndexFromList),
 
   useGetDataTypeForElementId: () => {
-    const map: Record<string, string | undefined> = useMemoSelector((s) =>
+    const map: Record<string, string | undefined> = FormStore.raw.useMemoSelector((s) =>
       Object.fromEntries(
-        Object.entries(s.dataModels)
+        Object.entries(s.data.models)
           .filter(([_, dataModel]) => dataModel.dataElementId)
           .map(([dataType, dataModel]) => [dataModel.dataElementId, dataType]),
       ),

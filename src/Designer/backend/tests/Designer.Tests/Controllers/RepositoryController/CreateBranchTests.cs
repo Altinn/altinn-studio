@@ -15,104 +15,95 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-namespace Designer.Tests.Controllers.RepositoryController
+namespace Designer.Tests.Controllers.RepositoryController;
+
+public class CreateBranchTests
+    : DesignerEndpointsTestsBase<CreateBranchTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public class CreateBranchTests
-        : DesignerEndpointsTestsBase<CreateBranchTests>,
-            IClassFixture<WebApplicationFactory<Program>>
+    private readonly Mock<ISourceControl> _sourceControlMock = new Mock<ISourceControl>();
+    private static string VersionPrefix => "/designer/api/repos";
+
+    public CreateBranchTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
+
+    protected override void ConfigureTestServices(IServiceCollection services)
     {
-        private readonly Mock<ISourceControl> _sourceControlMock = new Mock<ISourceControl>();
-        private static string VersionPrefix => "/designer/api/repos";
+        services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
+        services.AddSingleton<IGiteaClient, IGiteaClientMock>();
+        services.AddSingleton(_sourceControlMock.Object);
+    }
 
-        public CreateBranchTests(WebApplicationFactory<Program> factory)
-            : base(factory) { }
+    [Theory]
+    [InlineData("ttd", "apps-test", "feature/new-branch")]
+    [InlineData("ttd", "apps-test", "bugfix/issue-123")]
+    [InlineData("ttd", "apps-test", "release/v1.0")]
+    public async Task CreateBranch_ValidBranchName_ReturnsCreatedBranch(string org, string repo, string branchName)
+    {
+        // Arrange
+        string uri = $"{VersionPrefix}/repo/{org}/{repo}/branches";
+        var expectedBranch = new Branch { Name = branchName };
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
-        protected override void ConfigureTestServices(IServiceCollection services)
-        {
-            services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
-            services.AddSingleton<IGiteaClient, IGiteaClientMock>();
-            services.AddSingleton(_sourceControlMock.Object);
-        }
+        _sourceControlMock.Setup(x => x.CreateBranch(editingContext, branchName)).ReturnsAsync(expectedBranch);
 
-        [Theory]
-        [InlineData("ttd", "apps-test", "feature/new-branch")]
-        [InlineData("ttd", "apps-test", "bugfix/issue-123")]
-        [InlineData("ttd", "apps-test", "release/v1.0")]
-        public async Task CreateBranch_ValidBranchName_ReturnsCreatedBranch(string org, string repo, string branchName)
-        {
-            // Arrange
-            string uri = $"{VersionPrefix}/repo/{org}/{repo}/branches";
-            var expectedBranch = new Branch { Name = branchName };
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-                org,
-                repo,
-                "testUser"
-            );
+        var request = new CreateBranchRequest { BranchName = branchName };
+        using var content = new StringContent(
+            JsonSerializer.Serialize(request, JsonSerializerOptions),
+            Encoding.UTF8,
+            "application/json"
+        );
 
-            _sourceControlMock.Setup(x => x.CreateBranch(editingContext, branchName)).ReturnsAsync(expectedBranch);
+        // Act
+        using HttpResponseMessage response = await HttpClient.PostAsync(uri, content);
+        var responseContent = await response.Content.ReadAsAsync<Branch>();
 
-            var request = new CreateBranchRequest { BranchName = branchName };
-            using var content = new StringContent(
-                JsonSerializer.Serialize(request, JsonSerializerOptions),
-                Encoding.UTF8,
-                "application/json"
-            );
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(responseContent);
+        Assert.Equal(branchName, responseContent.Name);
+        _sourceControlMock.Verify(x => x.CreateBranch(editingContext, branchName), Times.Once);
+    }
 
-            // Act
-            using HttpResponseMessage response = await HttpClient.PostAsync(uri, content);
-            var responseContent = await response.Content.ReadAsAsync<Branch>();
+    [Theory]
+    [InlineData("ttd", "apps-test", "existing-branch")]
+    public async Task CreateBranch_BranchAlreadyExists_ReturnsError(string org, string repo, string branchName)
+    {
+        // Arrange
+        string uri = $"{VersionPrefix}/repo/{org}/{repo}/branches";
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.NotNull(responseContent);
-            Assert.Equal(branchName, responseContent.Name);
-            _sourceControlMock.Verify(x => x.CreateBranch(editingContext, branchName), Times.Once);
-        }
+        _sourceControlMock
+            .Setup(x => x.CreateBranch(editingContext, branchName))
+            .ThrowsAsync(new LibGit2Sharp.NameConflictException("Branch already exists"));
 
-        [Theory]
-        [InlineData("ttd", "apps-test", "existing-branch")]
-        public async Task CreateBranch_BranchAlreadyExists_ReturnsError(string org, string repo, string branchName)
-        {
-            // Arrange
-            string uri = $"{VersionPrefix}/repo/{org}/{repo}/branches";
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-                org,
-                repo,
-                "testUser"
-            );
+        var request = new CreateBranchRequest { BranchName = branchName };
+        using var content = new StringContent(
+            JsonSerializer.Serialize(request, JsonSerializerOptions),
+            Encoding.UTF8,
+            "application/json"
+        );
 
-            _sourceControlMock
-                .Setup(x => x.CreateBranch(editingContext, branchName))
-                .ThrowsAsync(new LibGit2Sharp.NameConflictException("Branch already exists"));
+        // Act
+        using HttpResponseMessage response = await HttpClient.PostAsync(uri, content);
 
-            var request = new CreateBranchRequest { BranchName = branchName };
-            using var content = new StringContent(
-                JsonSerializer.Serialize(request, JsonSerializerOptions),
-                Encoding.UTF8,
-                "application/json"
-            );
+        // Assert
+        // NameConflictException is handled by global exception handler and returns InternalServerError
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        _sourceControlMock.Verify(x => x.CreateBranch(editingContext, branchName), Times.Once);
+    }
 
-            // Act
-            using HttpResponseMessage response = await HttpClient.PostAsync(uri, content);
+    [Fact]
+    public async Task CreateBranch_EmptyRequest_ReturnsBadRequest()
+    {
+        // Arrange
+        string uri = $"{VersionPrefix}/repo/ttd/apps-test/branches";
+        using var content = new StringContent("{}", Encoding.UTF8, "application/json");
 
-            // Assert
-            // NameConflictException is handled by global exception handler and returns InternalServerError
-            Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-            _sourceControlMock.Verify(x => x.CreateBranch(editingContext, branchName), Times.Once);
-        }
+        // Act
+        using HttpResponseMessage response = await HttpClient.PostAsync(uri, content);
 
-        [Fact]
-        public async Task CreateBranch_EmptyRequest_ReturnsBadRequest()
-        {
-            // Arrange
-            string uri = $"{VersionPrefix}/repo/ttd/apps-test/branches";
-            using var content = new StringContent("{}", Encoding.UTF8, "application/json");
-
-            // Act
-            using HttpResponseMessage response = await HttpClient.PostAsync(uri, content);
-
-            // Assert
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        }
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using WorkflowEngine.Models.Abstractions;
 using WorkflowEngine.Models.Exceptions;
 
 namespace WorkflowEngine.Models;
@@ -9,13 +10,19 @@ namespace WorkflowEngine.Models;
 /// </summary>
 public sealed record CommandExecutionContext
 {
-    /// <summary>The parent workflow.</summary>
+    /// <summary>
+    /// The parent workflow.
+    /// </summary>
     public required Workflow Workflow { get; init; }
 
-    /// <summary>The step being executed.</summary>
+    /// <summary>
+    /// The step being executed.
+    /// </summary>
     public required Step Step { get; init; }
 
-    /// <summary>The raw command configuration (from <see cref="CommandDefinition.Data"/>), for logging/diagnostics.</summary>
+    /// <summary>
+    /// The raw command configuration (from <see cref="CommandDefinition.Data"/>), for logging/diagnostics.
+    /// </summary>
     public JsonElement? RawCommandData { get; init; }
 
     /// <summary>
@@ -28,10 +35,14 @@ public sealed record CommandExecutionContext
     /// </summary>
     public object? TypedWorkflowContext { get; init; }
 
-    /// <summary>State output from the previous step (or <see cref="Workflow.InitialState"/> for the first step).</summary>
+    /// <summary>
+    /// State output from the previous step (or <see cref="Workflow.InitialState"/> for the first step).
+    /// </summary>
     public string? StateIn { get; init; }
 
-    /// <summary>Parent trace context for distributed tracing.</summary>
+    /// <summary>
+    /// Parent trace context for distributed tracing.
+    /// </summary>
     public ActivityContext? ParentTraceContext { get; init; }
 
     /// <summary>

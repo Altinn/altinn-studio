@@ -1,12 +1,11 @@
 import { useEffect } from 'react';
 
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { FormStore } from 'src/features/form/FormContext';
 import type { NodeValidationProps } from 'src/layout/layout';
 
 export function ValidateSummary({ intermediateItem, externalItem }: NodeValidationProps<'Summary'>) {
-  const addError = NodesInternal.useAddError();
-  const targetType = useLayoutLookups().allComponents[externalItem.componentRef]?.type;
+  const addError = FormStore.nodes.useAddError();
+  const targetType = FormStore.bootstrap.useLayoutLookups().allComponents[externalItem.componentRef]?.type;
 
   useEffect(() => {
     if (!targetType) {

@@ -77,6 +77,7 @@ describe('Service task', () => {
 
 function startAppAndFillToFailure() {
   cy.startAppInstance(appFrontend.apps.serviceTask, { cyUser: 'manager' });
+  cy.get('#finishedLoading').should('exist');
   cy.findByRole('textbox', { name: 'En tekst i Task_Utfylling1' }).type('En hilsen fra Task_Utfylling1');
   cy.waitUntilSaved();
 

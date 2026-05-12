@@ -14,11 +14,11 @@ public sealed record WorkflowStatusResponse
     public Guid DatabaseId { get; init; }
 
     /// <summary>
-    /// The correlation ID for this workflow, if one was provided.
+    /// The collection key for this workflow, if one was provided.
     /// </summary>
-    [JsonPropertyName("correlationId")]
+    [JsonPropertyName("collectionKey")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public Guid? CorrelationId { get; init; }
+    public string? CollectionKey { get; init; }
 
     /// <summary>
     /// An identifier for this operation.
@@ -94,6 +94,14 @@ public sealed record WorkflowStatusResponse
     public IReadOnlyDictionary<Guid, PersistentItemStatus>? Dependencies { get; init; }
 
     /// <summary>
+    /// Optional dependents (inverse of <see cref="Dependencies"/>) — workflows that declare this one as a dependency,
+    /// presented as a dictionary of workflow ID and corresponding processing status.
+    /// </summary>
+    [JsonPropertyName("dependents")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyDictionary<Guid, PersistentItemStatus>? Dependents { get; init; }
+
+    /// <summary>
     /// Optional links for this workflow, presented as a dictionary of workflow ID and corresponding processing status.
     /// </summary>
     [JsonPropertyName("links")]
@@ -113,11 +121,14 @@ public sealed record WorkflowStatusResponse
     [JsonPropertyName("steps")]
     public required IReadOnlyList<StepStatusResponse> Steps { get; init; }
 
+    /// <summary>
+    /// Projects a <see cref="Workflow"/> to its public response representation.
+    /// </summary>
     public static WorkflowStatusResponse FromWorkflow(Workflow workflow) =>
         new()
         {
             DatabaseId = workflow.DatabaseId,
-            CorrelationId = workflow.CorrelationId,
+            CollectionKey = workflow.CollectionKey,
             IdempotencyKey = workflow.IdempotencyKey,
             Namespace = workflow.Namespace,
             OperationId = workflow.OperationId,
@@ -130,6 +141,7 @@ public sealed record WorkflowStatusResponse
             OverallStatus = workflow.Status,
             InitialState = workflow.InitialState,
             Dependencies = workflow.Dependencies?.ToDictionary(x => x.DatabaseId, x => x.Status),
+            Dependents = workflow.Dependents?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Links = workflow.Links?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Steps = workflow.Steps.Select(StepStatusResponse.FromStep).ToList(),
         };

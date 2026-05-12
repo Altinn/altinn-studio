@@ -10,6 +10,7 @@ namespace WorkflowEngine.Resilience.JsonConverters;
 public class FlexibleEnumConverter<TEnum> : JsonConverter<TEnum>
     where TEnum : struct, Enum
 {
+    /// <inheritdoc/>
     public override TEnum Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         return reader.TokenType switch
@@ -20,6 +21,7 @@ public class FlexibleEnumConverter<TEnum> : JsonConverter<TEnum>
         };
     }
 
+    /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, TEnum value, JsonSerializerOptions options)
     {
         // Write as string by default for better readability

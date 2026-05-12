@@ -77,7 +77,7 @@ import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 import type { OptionList } from 'app-shared/types/OptionList';
 import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
 import type { LayoutSetModel } from '../types/api/dto/LayoutSetModel';
-import { layoutSetsExtendedMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { layoutSetsExtendedMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
 import type { OptionListsResponse } from 'app-shared/types/api/OptionListsResponse';
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
@@ -263,11 +263,19 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve({ belongsToOrg: true })),
 
+  // Queries - Assistant chat
+  getChatThreads: jest.fn().mockImplementation(() => Promise.resolve([])),
+  getChatMessages: jest.fn().mockImplementation(() => Promise.resolve([])),
+
   // Queries - User settings
   getUserApiKeys: jest.fn().mockImplementation(() => Promise.resolve<UserApiKey[]>([])),
 
-  // Mutations - Org settings
+  // Queries - Org settings - Contact points
   getContactPoints: jest.fn().mockImplementation(() => Promise.resolve([])),
+
+  // Queries - Org settings - Bot accounts
+  getBotAccounts: jest.fn().mockImplementation(() => Promise.resolve([])),
+  getBotAccountApiKeys: jest.fn().mockImplementation(() => Promise.resolve([])),
 
   // Mutations
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -283,6 +291,7 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
   copyApp: jest.fn().mockImplementation(() => Promise.resolve()),
   createBranch: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteBranch: jest.fn().mockImplementation(() => Promise.resolve()),
   createDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   createDeployment: jest.fn().mockImplementation(() => Promise.resolve()),
   createOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -376,9 +385,23 @@ export const queriesMock: ServicesContextProps = {
   addUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
 
-  // Mutations - Org settings
+  // Mutations - Assistant chat
+  createChatThread: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateChatThread: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteChatThread: jest.fn().mockImplementation(() => Promise.resolve()),
+  createChatMessage: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteChatMessage: jest.fn().mockImplementation(() => Promise.resolve()),
+
+  // Mutations - Org settings - Contact points
   addContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
   updateContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
   toggleContactPointActive: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
+
+  // Mutations - Org settings - Bot accounts
+  createBotAccount: jest.fn().mockImplementation(() => Promise.resolve({})),
+  deactivateBotAccount: jest.fn().mockImplementation(() => Promise.resolve()),
+  createBotAccountApiKey: jest.fn().mockImplementation(() => Promise.resolve({})),
+  revokeBotAccountApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateBotAccount: jest.fn().mockImplementation(() => Promise.resolve()),
 };

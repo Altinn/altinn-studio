@@ -4,6 +4,7 @@ import { jest } from '@jest/globals';
 import { v4 as uuidv4 } from 'uuid';
 import type { AxiosResponse } from 'axios';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
@@ -141,7 +142,8 @@ export const render = async ({
   });
 
   setScreenWidth(mobileView ? 600 : 1200);
-  const result = await renderWithInstanceAndLayout({
+
+  return renderWithInstanceAndLayout({
     renderer: () => (
       <LikertComponent
         baseComponentId={mockLikertLayout.id}
@@ -151,17 +153,18 @@ export const render = async ({
     queries: {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fetchOptions: async () => ({ data: mockOptions, headers: {} }) as AxiosResponse<IRawOption[], any>,
-      fetchFormData: async () => generateMockFormData(mockQuestions),
-      fetchLayouts: async () => ({
-        FormLayout: {
-          data: {
-            layout: [mockLikertLayout],
-          },
-        },
-      }),
-      fetchBackendValidations: async () => validationIssues,
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.dataModels[defaultDataTypeMock].initialData = generateMockFormData(mockQuestions);
+          obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
+          obj.layouts = {
+            FormLayout: {
+              data: {
+                layout: [mockLikertLayout],
+              },
+            },
+          };
+        }),
     },
   });
-
-  return result;
 };

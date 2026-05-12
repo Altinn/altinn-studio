@@ -5,7 +5,7 @@ import { screen } from '@testing-library/dom';
 import { render } from '@testing-library/react';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { Lang } from 'src/features/language/Lang';
 import { CompInternal } from 'src/layout/layout';
@@ -18,13 +18,13 @@ jest.mock('src/layout/SigneeList/api');
 jest.mock('react-router');
 jest.mock('src/utils/layout/useNodeItem');
 jest.mock('src/features/language/Lang');
-jest.mock('src/features/form/layout/LayoutsContext');
+jest.mock('src/features/formBootstrap/FormBootstrap');
 jest.mock('src/utils/layout/hidden');
 jest.mock('src/core/contexts/TaskOverrides');
 
 describe('SigneeListSummary', () => {
   const mockedUseSigneeList = jest.mocked(useSigneeList);
-  const mockedUseLayoutLookups = jest.mocked(useLayoutLookups);
+  const mockedUseLayoutLookups = jest.mocked(FormStore.bootstrap.useLayoutLookups);
   const mockedUseTaskOverrides = jest.mocked(useTaskOverrides);
   const mockedUseItemWhenType = jest.mocked(useItemWhenType);
   const mockedUseItemFor = jest.mocked(useItemFor);

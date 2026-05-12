@@ -11,6 +11,8 @@ import type { AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
 import { getDataListMock } from 'src/__mocks__/getDataListMock';
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
+import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { orderDetailsResponsePayload } from 'src/__mocks__/getOrderDetailsPayloadMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
@@ -19,16 +21,19 @@ import { AppComponentsBridge } from 'src/AppComponentsBridge';
 import { ApiProvider } from 'src/core/contexts/ApiProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
-import { FormProvider } from 'src/features/form/FormContext';
-import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
+import { FormProvider } from 'src/features/form/FormProvider';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
+import { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
-import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
+import { NavigationFocusStateProvider } from 'src/features/navigation/NavigationFocusStateContext';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
+import { fetchFormBootstrapForInstance } from 'src/queries/queries';
 import { PageNavigationRouter } from 'src/test/routerUtils';
+import type { BackendValidationApi } from 'src/core/api-client/backendValidation.api';
+import type { InstanceApi } from 'src/core/api-client/instance.api';
 import type { PartyApi } from 'src/core/api-client/party.api';
 import type { ApiClients } from 'src/core/contexts/ApiProvider';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
@@ -39,7 +44,9 @@ import type { CompExternal, CompExternalExact, CompTypes } from 'src/layout/layo
 import type { AppMutations, AppQueries, AppQueriesContext } from 'src/queries/types';
 
 type ApiOverrides = Partial<{
+  backendValidationApi: Partial<BackendValidationApi>;
   partyApi: Partial<PartyApi>;
+  instanceApi: Partial<InstanceApi>;
 }>;
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
@@ -126,26 +133,34 @@ const defaultPostalCodesMock = (() => {
 
 const defaultQueryMocks: AppQueries = {
   fetchLogo: async () => getLogoMock(),
-  fetchDataModelSchema: async () => ({}),
   fetchRefreshJwtToken: async () => ({}),
-  fetchCustomValidationConfig: async () => null,
-  fetchFormData: async () => ({}),
+  fetchFormData: async () => {
+    throw new Error('Not implemented/overridden in test');
+  },
   fetchOptions: async () => ({ data: [], headers: {} }) as unknown as AxiosResponse<IRawOption[], unknown>,
   fetchDataList: async () => getDataListMock(),
   fetchPdfFormat: async () => ({ excludedPages: [], excludedComponents: [] }),
   fetchLayoutSchema: async () => ({}) as JSONSchema7,
-  fetchLayouts: () => Promise.reject(new Error('fetchLayouts not mocked')),
-  fetchLayoutsForInstance: () => Promise.reject(new Error('fetchLayoutsForInstance not mocked')),
-  fetchBackendValidations: async () => [],
-  fetchPaymentInformation: async () => paymentResponsePayload,
+  fetchPaymentInformationForTask: async () => paymentResponsePayload,
   fetchOrderDetails: async () => orderDetailsResponsePayload,
   fetchPostalCodes: async () => defaultPostalCodesMock,
+  fetchFormBootstrapForInstance: async () => getFormBootstrapMock(),
+  fetchFormBootstrapForStateless: async () => getFormBootstrapMock(),
 };
 
-const defaultApiMocks: ApiClients = {
+const defaultApiMocks: Omit<ApiClients, 'textResourcesApi'> = {
+  backendValidationApi: {
+    fetchBackendValidations: async () => [],
+  },
   partyApi: {
     getPartiesAllowedToInstantiateHierarchical: async () => [getPartyMock()],
     setSelectedParty: async () => 'Party successfully updated',
+  },
+  instanceApi: {
+    getInstance: async () => getInstanceWithProcessMock(),
+    getActiveInstances: async () => [],
+    create: async () => getInstanceWithProcessMock(),
+    createWithPrefill: async () => getInstanceWithProcessMock(),
   },
 };
 
@@ -188,7 +203,6 @@ export const makeFormDataMethodProxies = (
     lock: makeProxy('lock', ref),
     nextLock: makeProxy('nextLock', ref),
     requestManualSave: makeProxy('requestManualSave', ref),
-    setLastValidationIssues: makeProxy('setLastValidationIssues', ref),
   };
 
   const proxies: FormDataWriteProxies = Object.fromEntries(
@@ -298,7 +312,7 @@ export function StatelessRouter({
 
 interface ProvidersProps extends PropsWithChildren {
   queries: AppQueriesContext;
-  apis: ApiClients;
+  apis: Omit<ApiClients, 'textResourcesApi'>;
   queryClient: QueryClient;
   Router?: (props: PropsWithChildren) => React.ReactNode;
 }
@@ -311,17 +325,15 @@ function DefaultProviders({ children, queries, apis, queryClient, Router = Defau
         queryClient={queryClient}
       >
         <UiConfigProvider>
-          <PageNavigationProvider>
-            <Router>
-              <AppComponentsBridge>
-                <NavigationEffectProvider>
-                  <GlobalFormDataReadersProvider>
-                    <PartyProvider>{children}</PartyProvider>
-                  </GlobalFormDataReadersProvider>
-                </NavigationEffectProvider>
-              </AppComponentsBridge>
-            </Router>
-          </PageNavigationProvider>
+          <Router>
+            <AppComponentsBridge>
+              <NavigationFocusStateProvider>
+                <GlobalFormDataReadersProvider>
+                  <PartyProvider>{children}</PartyProvider>
+                </GlobalFormDataReadersProvider>
+              </NavigationFocusStateProvider>
+            </AppComponentsBridge>
+          </Router>
         </UiConfigProvider>
       </AppQueriesProvider>
     </ApiProvider>
@@ -350,9 +362,9 @@ function MinimalProviders({ children, queries, apis, queryClient, Router = Defau
         queryClient={queryClient}
       >
         <Router>
-          <NavigationEffectProvider>
+          <NavigationFocusStateProvider>
             <AppComponentsBridge>{children}</AppComponentsBridge>
-          </NavigationEffectProvider>
+          </NavigationFocusStateProvider>
         </Router>
       </AppQueriesProvider>
     </ApiProvider>
@@ -396,10 +408,18 @@ export function setupFakeApp({ queries, mutations, apis }: SetupFakeAppProps = {
     ...mutations,
   };
 
-  const finalApis: ApiClients = {
+  const finalApis: Omit<ApiClients, 'textResourcesApi'> = {
+    backendValidationApi: {
+      ...defaultApiMocks.backendValidationApi,
+      ...apis?.backendValidationApi,
+    },
     partyApi: {
       ...defaultApiMocks.partyApi,
       ...apis?.partyApi,
+    },
+    instanceApi: {
+      ...defaultApiMocks.instanceApi,
+      ...apis?.instanceApi,
     },
   };
 
@@ -617,24 +637,27 @@ export const renderWithInstanceAndLayout = async ({
         </InstanceRouter>
       ),
       queries: {
-        fetchLayouts: async () => ({
-          [initialPage]: {
-            data: {
-              layout: [
-                {
-                  id: 'noOtherComponentsHere',
-                  type: 'Header',
-                  textResourceBindings: {
-                    title:
-                      "You haven't added any components yet. Supply your own components " +
-                      'by overriding the "fetchLayouts" query in your test.',
-                  },
-                  size: 'L',
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = {
+              [initialPage]: {
+                data: {
+                  layout: [
+                    {
+                      id: 'noOtherComponentsHere',
+                      type: 'Header',
+                      textResourceBindings: {
+                        title:
+                          "You haven't added any components yet. Supply your own components " +
+                          'by overriding the "fetchLayouts" query in your test.',
+                      },
+                      size: 'L',
+                    },
+                  ],
                 },
-              ],
-            },
-          },
-        }),
+              },
+            };
+          }),
         ...renderOptions.queries,
       },
     })),
@@ -682,6 +705,30 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
     );
   };
 
+  async function formBoostrap(
+    ...args: Parameters<typeof fetchFormBootstrapForInstance>
+  ): Promise<FormBootstrapResponse> {
+    const mock =
+      (inInstance ? await rest.queries?.fetchFormBootstrapForInstance?.(...args) : undefined) ??
+      (!inInstance ? await rest.queries?.fetchFormBootstrapForStateless?.(...args) : undefined) ??
+      getFormBootstrapMock();
+
+    if (
+      !Object.hasOwn(mock.layouts, initialPage) ||
+      !mock.layouts[initialPage]?.data.layout.some((c) => c.id === realComponentDef.id)
+    ) {
+      mock.layouts = {
+        [initialPage]: {
+          data: {
+            layout: [realComponentDef],
+          },
+        },
+      };
+    }
+
+    return mock;
+  }
+
   const inInstance = (rest.inInstance ?? true) as InInstance;
   const funcToCall = inInstance ? renderWithInstanceAndLayout : renderWithoutInstanceAndLayout;
   return funcToCall({
@@ -689,14 +736,9 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
     renderer: Wrapper,
     initialPage,
     queries: {
-      fetchLayouts: async () => ({
-        [initialPage]: {
-          data: {
-            layout: [realComponentDef],
-          },
-        },
-      }),
       ...rest.queries,
+      fetchFormBootstrapForInstance: formBoostrap,
+      fetchFormBootstrapForStateless: formBoostrap,
     },
   }) as RenderGenericComponentReturnType<InInstance>;
 }

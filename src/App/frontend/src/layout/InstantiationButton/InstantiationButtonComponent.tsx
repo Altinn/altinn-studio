@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { InstantiationButton } from 'src/layout/InstantiationButton/InstantiationButton';
@@ -17,7 +17,7 @@ export function InstantiationButtonComponent({
 }: PropsFromGenericComponent<'InstantiationButton'>) {
   const item = useItemWhenType(baseComponentId, 'InstantiationButton');
   const props: IInstantiationButtonComponentProvidedProps = { ...componentProps, ...item, baseComponentId };
-  const parent = useLayoutLookups().componentToParent[baseComponentId];
+  const parent = FormStore.bootstrap.useLayoutLookups().componentToParent[baseComponentId];
 
   const parentIsPage = parent?.type === 'page';
   return (

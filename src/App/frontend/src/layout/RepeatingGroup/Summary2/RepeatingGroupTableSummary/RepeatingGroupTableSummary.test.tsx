@@ -3,8 +3,10 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
+import * as deepValidationsForNodeModule from 'src/features/validation/selectors/deepValidationsForNode';
 import * as useNavigatePageModule from 'src/hooks/useNavigatePage';
 import { RepeatingGroupProvider } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepeatingGroupTableSummary } from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/RepeatingGroupTableSummary';
@@ -303,6 +305,44 @@ describe('RepeatingGroupTableSummary', () => {
     );
   });
 
+  test('should render row error in matching column cell', async () => {
+    jest
+      .spyOn(deepValidationsForNodeModule, 'useDeepValidationsForNode')
+      .mockImplementation((_baseComponentId, _includeSelf, restriction) =>
+        restriction === 0
+          ? ([
+              {
+                severity: 'error',
+                baseComponentId: 'input2',
+                message: { key: 'Error.for.input2' },
+              },
+            ] as never)
+          : ([] as never),
+      );
+    await render({ layout: createLayout({ tableHeaders: ['input1', 'input2', 'input3'] }) });
+    const errorMessage = screen.getByText('Error.for.input2');
+    expect(errorMessage.closest('td')).toHaveAttribute('data-header-title', 'Input 2');
+  });
+
+  test('should render unmapped row error in first visible column cell', async () => {
+    jest
+      .spyOn(deepValidationsForNodeModule, 'useDeepValidationsForNode')
+      .mockImplementation((_baseComponentId, _includeSelf, restriction) =>
+        restriction === 0
+          ? ([
+              {
+                severity: 'error',
+                baseComponentId: undefined,
+                message: { key: 'Error.unmapped' },
+              },
+            ] as never)
+          : ([] as never),
+      );
+    await render({ layout: createLayout({ tableHeaders: ['input1', 'input2', 'input3'] }) });
+    const errorMessage = screen.getByText('Error.unmapped');
+    expect(errorMessage.closest('td')).toHaveAttribute('data-header-title', 'Input 1');
+  });
+
   type IRenderProps = {
     navigate?: jest.Mock;
     layout?: ILayoutCollection;
@@ -330,10 +370,15 @@ describe('RepeatingGroupTableSummary', () => {
       ),
       initialPage: 'FormPage2',
       queries: {
-        fetchLayouts: async () => layout,
-        fetchFormData: async () => ({
-          group: [{ field1: 'field1-row0', field2: 'field2-row0', field3: 'field3-row0', [ALTINN_ROW_ID]: 'abc123' }],
-        }),
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = layout;
+            obj.dataModels[defaultDataTypeMock].initialData = {
+              group: [
+                { field1: 'field1-row0', field2: 'field2-row0', field3: 'field3-row0', [ALTINN_ROW_ID]: 'abc123' },
+              ],
+            };
+          }),
       },
     });
   };

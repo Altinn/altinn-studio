@@ -26,7 +26,14 @@ export const MEDIA_QUERY_MAX_WIDTH = '(max-width: 1024px)';
 export const DATA_MODEL_NAME_REGEX = /^[a-zA-Z][a-zA-Z0-9_]*$/;
 export const MINIMUM_SUPPORTED_FRONTEND_VERSION = 3;
 export const MAXIMUM_SUPPORTED_FRONTEND_VERSION = 4;
+export const NEXT_V9_VERSION = 9;
 export const MINIMUM_SUPPORTED_BACKEND_VERSION = 7;
 export const MAXIMUM_SUPPORTED_BACKEND_VERSION = 8;
 export const CODE_LIST_FOLDER = 'CodeLists';
 export const PUBLISHED_CODE_LIST_FOLDER = 'code_lists';
+export const DEFAULT_APP_BRANCH = 'master';
+export const DEFAULT_RIGHTS_DESCRIPTION = {
+  nb: 'Ved å gi tilgang til denne tjenesten gir du en annen person fullmakt til å bruke den på dine vegne. Les beskrivelsen av tjenesten for mer informasjon om hva tilgangen innebærer.',
+  nn: 'Når du gir tilgang til denne tenesta, gir du ein annan person fullmakt til å bruka ho på dine vegner. Les skildringa av tenesta for meir informasjon om kva tilgangen inneber.',
+  en: 'By granting access to this service, you are authorising another person to use it on your behalf. Please read the service description for more information about what this access entails.',
+};

@@ -4,10 +4,10 @@ import { screen, waitFor } from '@testing-library/react';
 import { v4 as uuidv4 } from 'uuid';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
-import { InstanceApi } from 'src/core/api-client/instance.api';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
 import { Lang } from 'src/features/language/Lang';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -58,10 +58,6 @@ async function render(props: TestProps) {
     obj.folders.Task_1.defaultDataType = props.defaultDataModel;
   });
   window.altinnAppGlobalData.textResources!.resources = props.textResources;
-
-  jest
-    .mocked(InstanceApi.getInstance)
-    .mockImplementationOnce(async () => ({ ...instanceData, process: getProcessDataMock() }));
 
   function generateDataElements(instanceId: string): IData[] {
     return dataModelNames.map((name) => {
@@ -117,6 +113,23 @@ async function render(props: TestProps) {
     ),
     instanceId: instanceData.id,
     queries: {
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          for (const dm of Object.keys(props.dataModels)) {
+            if (props.dataModels[dm] instanceof Promise || props.dataModels[dm] instanceof Error) {
+              continue;
+            }
+
+            obj.dataModels[dm] = getDataModelBootstrapMock();
+            obj.dataModels[dm].initialData = props.dataModels[dm];
+            obj.dataModels[dm].schema = {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+              },
+            };
+          }
+        }),
       fetchFormData: async (url) => {
         const path = new URL(url).pathname;
         const id = path.split('/').pop();
@@ -125,10 +138,17 @@ async function render(props: TestProps) {
         if (formData instanceof Error) {
           return Promise.reject(formData);
         }
-        if (!formData) {
-          throw new Error(`No form data mocked for testing (modelName = ${modelName})`);
+        if (formData instanceof Promise) {
+          return formData;
         }
-        return formData;
+        throw new Error(
+          `No form data mocked for testing (modelName = ${modelName}), or statically fetchable data model fetched via API.`,
+        );
+      },
+    },
+    apis: {
+      instanceApi: {
+        getInstance: async () => ({ ...instanceData, process: getProcessDataMock() }),
       },
     },
   });
@@ -155,7 +175,7 @@ describe('FormDataReaders', () => {
   it.each<string>(['someModel', 'someModel1.0'])(
     'simple, should render a resource with a variable lookup - %s',
     async (modelName: string) => {
-      const { queries, urlFor } = await render({
+      const { queries } = await render({
         ids: ['test'],
         textResources: [
           {
@@ -179,8 +199,7 @@ describe('FormDataReaders', () => {
 
       await waitFor(() => expect(screen.getByTestId('test')).toHaveTextContent('Hello World'));
 
-      expect(queries.fetchFormData).toHaveBeenCalledTimes(1);
-      expect(queries.fetchFormData).toHaveBeenCalledWith(urlFor(modelName), {});
+      expect(queries.fetchFormData).not.toHaveBeenCalled();
 
       expect(window.logError).not.toHaveBeenCalled();
       expect(window.logErrorOnce).not.toHaveBeenCalled();
@@ -303,8 +322,8 @@ describe('FormDataReaders', () => {
     await waitFor(() => expect(screen.getByTestId('test2')).toHaveTextContent('Hello Universe'));
     expect(screen.getByTestId('test3')).toHaveTextContent('You are [missing] year(s) old');
 
-    expect(queries.fetchFormData).toHaveBeenCalledTimes(3);
-    expect(queries.fetchFormData).toHaveBeenCalledWith(urlFor('model1'), {});
+    expect(queries.fetchFormData).toHaveBeenCalledTimes(2);
+    expect(queries.fetchFormData).not.toHaveBeenCalledWith(urlFor('model1'), {});
     expect(queries.fetchFormData).toHaveBeenCalledWith(urlFor('model2'), {});
     expect(queries.fetchFormData).toHaveBeenCalledWith(urlFor('modelMissing'), {});
 

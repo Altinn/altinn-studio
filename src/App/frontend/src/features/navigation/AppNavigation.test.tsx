@@ -3,9 +3,11 @@ import React from 'react';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
+import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { NavigationReceipt, NavigationTask } from 'src/features/form/ui/types';
-import { AppNavigation } from 'src/features/navigation/AppNavigation';
+import { AppNavigation, AppNavigationHeading } from 'src/features/navigation/AppNavigation';
 import { BackendValidationSeverity } from 'src/features/validation';
 import * as UseNavigatePage from 'src/hooks/useNavigatePage';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -19,6 +21,10 @@ import type {
 const user = userEvent.setup({ delay: 100 });
 
 describe('AppNavigation', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
   async function render({
     initialPage,
     hiddenPages,
@@ -59,57 +65,62 @@ describe('AppNavigation', () => {
       renderer: () => <AppNavigation />,
       initialPage: initialPage ?? order?.[0] ?? groups?.[0].order[0],
       queries: {
-        fetchLayouts: async () =>
-          Object.fromEntries(
-            rawOrder.map((page) => [
-              page,
-              {
-                data: {
-                  hidden: !!hiddenPages?.includes(page),
-                  layout: [
-                    {
-                      id: `page-title-${page}`,
-                      type: 'Header',
-                      textResourceBindings: {
-                        title: `Title for ${page}`,
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = Object.fromEntries(
+              rawOrder.map((page) => [
+                page,
+                {
+                  data: {
+                    hidden: !!hiddenPages?.includes(page),
+                    layout: [
+                      {
+                        id: `page-title-${page}`,
+                        type: 'Header',
+                        textResourceBindings: {
+                          title: `Title for ${page}`,
+                        },
+                        size: 'L',
                       },
-                      size: 'L',
-                    },
-                    {
-                      id: `input-${page}`,
-                      type: 'Input',
-                      textResourceBindings: {
-                        title: `Input for ${page}`,
+                      {
+                        id: `input-${page}`,
+                        type: 'Input',
+                        textResourceBindings: {
+                          title: `Input for ${page}`,
+                        },
+                        dataModelBindings: {
+                          simpleBinding: `field-${page}`,
+                        },
+                        showValidations: ['All'],
                       },
-                      dataModelBindings: {
-                        simpleBinding: `field-${page}`,
-                      },
-                      showValidations: ['All'],
-                    },
-                  ],
-                },
-              } as ILayoutFile,
-            ]),
-          ),
-        fetchBackendValidations: async () =>
-          pagesWithError?.map((page) => ({
-            code: 'wrong format',
-            severity: BackendValidationSeverity.Error,
-            source: 'SomeCustomValidator',
-            field: `field-${page}`,
-          })) ?? [],
-        fetchDataModelSchema: async () => ({
-          type: 'object',
-          properties: Object.fromEntries(
-            rawOrder.map((page) => [
-              `field-${page}`,
-              {
-                type: 'string',
-              },
-            ]),
-          ),
-        }),
-        fetchFormData: async () => Object.fromEntries(rawOrder.map((page) => [`field-${page}`, 'some value'])),
+                    ],
+                  },
+                } as ILayoutFile,
+              ]),
+            );
+            obj.dataModels[defaultDataTypeMock].schema = {
+              type: 'object',
+              properties: Object.fromEntries(
+                rawOrder.map((page) => [
+                  `field-${page}`,
+                  {
+                    type: 'string',
+                  },
+                ]),
+              ),
+            };
+            obj.dataModels[defaultDataTypeMock].initialValidationIssues =
+              pagesWithError?.map((page) => ({
+                code: 'wrong format',
+                severity: BackendValidationSeverity.Error,
+                source: 'SomeCustomValidator',
+                field: `field-${page}`,
+                dataElementId: defaultMockDataElementId,
+              })) ?? [];
+            obj.dataModels[defaultDataTypeMock].initialData = Object.fromEntries(
+              rawOrder.map((page) => [`field-${page}`, 'some value']),
+            );
+          }),
       },
     });
   }
@@ -231,8 +242,8 @@ describe('AppNavigation', () => {
 
     await user.click(screen.getByRole('button', { name: 'second' }));
 
-    await waitFor(() => expect(screen.getByRole('button', { name: 'first' })).not.toHaveAttribute('aria-current'));
-    expect(screen.getByRole('button', { name: 'second' })).toHaveAttribute('aria-current', 'page');
+    await waitFor(() => expect(screen.getByRole('button', { name: /^first/ })).not.toHaveAttribute('aria-current'));
+    expect(screen.getByRole('button', { name: /^second/ })).toHaveAttribute('aria-current', 'page');
   });
 
   it('navigating to page inside different group should close current group', async () => {
@@ -257,7 +268,7 @@ describe('AppNavigation', () => {
     expect(screen.queryByRole('button', { name: 'first' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'second' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'part2' })).toHaveAttribute('aria-current', 'step');
-    expect(screen.getByRole('button', { name: 'third' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('button', { name: /^third/ })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('button', { name: 'fourth' })).not.toHaveAttribute('aria-current');
   });
 
@@ -301,6 +312,28 @@ describe('AppNavigation', () => {
     await user.click(screen.getByRole('button', { name: 'fourth' }));
     await waitFor(() => expect(screen.getByRole('button', { name: 'fourth' })).toHaveAttribute('aria-current', 'page'));
     expect(screen.getByRole('button', { name: 'form' })).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('should mark page as complete after navigating away through the navigation sidebar', async () => {
+    await render({
+      groups: [
+        { name: 'form', order: ['first', 'second'], markWhenCompleted: true },
+        { order: ['third'], type: 'info' },
+      ],
+    });
+
+    expect(
+      within(screen.getByRole('button', { name: 'first' })).queryByTestId('state-complete'),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'second' }));
+
+    await waitFor(() =>
+      expect(within(screen.getByRole('button', { name: /^first/ })).getByTestId('state-complete')).toBeInTheDocument(),
+    );
+    expect(
+      within(screen.getByRole('button', { name: /^second/ })).queryByTestId('state-complete'),
+    ).not.toBeInTheDocument(); // active
   });
 
   it('should show page as completed (if not active)', async () => {
@@ -416,6 +449,37 @@ describe('AppNavigation', () => {
     expect(screen.queryByRole('button', { name: /Utfylling/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Kvittering/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Kvittering/ })).not.toHaveAttribute('aria-current');
+  });
+
+  describe('navigationTitle', () => {
+    async function renderHeading({ navigationTitle }: { navigationTitle?: string } = {}) {
+      window.altinnAppGlobalData.ui.folders.Task_1.pages.navigationTitle = navigationTitle;
+      if ('order' in window.altinnAppGlobalData.ui.folders.Task_1.pages) {
+        window.altinnAppGlobalData.ui.folders.Task_1.pages.order = ['first'];
+      }
+      return renderWithInstanceAndLayout({
+        renderer: () => <AppNavigationHeading />,
+        initialPage: 'page1',
+        queries: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.layouts = {
+                page1: { data: { layout: [] } },
+              };
+            }),
+        },
+      });
+    }
+
+    it('should use the default title when navigationTitle is not set', async () => {
+      await renderHeading();
+      expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Skjemasider');
+    });
+
+    it('should use navigationTitle as the heading when it is set', async () => {
+      await renderHeading({ navigationTitle: 'My custom navigation title' });
+      expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('My custom navigation title');
+    });
   });
 
   it('should override task groups', async () => {

@@ -2,6 +2,7 @@ package internal_test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -83,13 +84,13 @@ func TestRunWorkflow_SelectsLatestPrereleaseForMain(t *testing.T) {
 `)
 	t.Chdir(repo)
 
-	err := internal.RunWorkflow(t.Context(), internal.WorkflowRequest{
+	err := runWorkflowWithFakeBuilder(t, internal.WorkflowRequest{
 		Component:             "studioctl",
 		BaseBranch:            "main",
 		DryRun:                true,
 		Draft:                 true,
 		UnsafeSkipBranchCheck: true,
-	}, internal.NopLogger{})
+	})
 	if err != nil {
 		t.Fatalf("RunWorkflow() error = %v", err)
 	}
@@ -134,13 +135,13 @@ func TestRunWorkflow_SelectsLatestStableForReleaseLine(t *testing.T) {
 	createReleaseBranch(t, repo, "release/studioctl/v1.0")
 	t.Chdir(repo)
 
-	err := internal.RunWorkflow(t.Context(), internal.WorkflowRequest{
+	err := runWorkflowWithFakeBuilder(t, internal.WorkflowRequest{
 		Component:             "studioctl",
 		BaseBranch:            "release/studioctl/v1.0",
 		DryRun:                true,
 		Draft:                 true,
 		UnsafeSkipBranchCheck: true,
-	}, internal.NopLogger{})
+	})
 	if err != nil {
 		t.Fatalf("RunWorkflow() error = %v", err)
 	}
@@ -172,13 +173,13 @@ func TestRunWorkflow_NonDraftReleaseNotesExcludeFullChangelog(t *testing.T) {
 `)
 	t.Chdir(repo)
 
-	err := internal.RunWorkflow(t.Context(), internal.WorkflowRequest{
+	err := runWorkflowWithFakeBuilder(t, internal.WorkflowRequest{
 		Component:             "studioctl",
 		BaseBranch:            "main",
 		DryRun:                true,
 		Draft:                 false,
 		UnsafeSkipBranchCheck: true,
-	}, internal.NopLogger{})
+	})
 	if err != nil {
 		t.Fatalf("RunWorkflow() error = %v", err)
 	}
@@ -254,23 +255,6 @@ func createStudioctlWorkflowRepo(t *testing.T, changelog string) string {
 	runGitCmd(t, repoDir, "config", "user.email", "test@example.com")
 	runGitCmd(t, repoDir, "config", "user.name", "Test User")
 
-	writeRepoFile(t, repoDir, "go.mod", "module altinn.studio/studioctl\n\ngo 1.22.0\n")
-	writeRepoFile(
-		t,
-		repoDir,
-		"internal/cmd/version.go",
-		"package cmd\n\nvar version = \"dev\"\n\nfunc Version() string { return version }\n",
-	)
-	writeRepoFile(
-		t,
-		repoDir,
-		"src/cli/cmd/studioctl/main.go",
-		"package main\n\nimport (\n\t\"fmt\"\n\tcmd \"altinn.studio/studioctl/internal/cmd\"\n)\n\nfunc main() { fmt.Println(cmd.Version()) }\n",
-	)
-	writeRepoFile(t, repoDir, "src/cli/cmd/studioctl/install.sh", "#!/usr/bin/env sh\necho install\n")
-	writeRepoFile(t, repoDir, "src/cli/cmd/studioctl/install.ps1", "Write-Host 'install'\n")
-	writeRepoFile(t, repoDir, "src/Runtime/localtest/testdata/data.txt", "data\n")
-	writeRepoFile(t, repoDir, "src/Runtime/localtest/infra/config.json", "{}\n")
 	writeRepoFile(t, repoDir, "src/cli/CHANGELOG.md", changelog)
 	writeRepoFile(t, repoDir, "README.md", "test\n")
 
@@ -317,4 +301,25 @@ func writeRepoFile(t *testing.T, repoDir, relPath, content string) {
 	if err := os.WriteFile(fullPath, []byte(content), 0o644); err != nil {
 		t.Fatalf("write %s: %v", relPath, err)
 	}
+}
+
+func runWorkflowWithFakeBuilder(t *testing.T, req internal.WorkflowRequest) error {
+	t.Helper()
+
+	git := internal.NewGitCLI(
+		internal.WithDryRun(req.DryRun),
+		internal.WithLogger(internal.NopLogger{}),
+	)
+
+	if err := internal.RunWorkflowWithDeps(
+		t.Context(),
+		req,
+		git,
+		&fakeGH{},
+		&fakeBuilder{},
+		internal.NopLogger{},
+	); err != nil {
+		return fmt.Errorf("run workflow with fake builder: %w", err)
+	}
+	return nil
 }

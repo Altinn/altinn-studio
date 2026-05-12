@@ -14,7 +14,7 @@ public class WorkflowTests
         var sharedId1 = new Workflow
         {
             DatabaseId = sharedGuid,
-            CorrelationId = Guid.NewGuid(),
+            CollectionKey = Guid.NewGuid().ToString(),
             OperationId = "workflow-1-operation",
             IdempotencyKey = "key-1",
             Namespace = _randomNamespace,
@@ -23,7 +23,7 @@ public class WorkflowTests
         var sharedId2 = new Workflow
         {
             DatabaseId = sharedGuid,
-            CorrelationId = Guid.NewGuid(),
+            CollectionKey = Guid.NewGuid().ToString(),
             OperationId = "workflow-2-operation",
             IdempotencyKey = "key-2",
             Namespace = _randomNamespace,
@@ -32,7 +32,7 @@ public class WorkflowTests
         var uniqueId = new Workflow
         {
             DatabaseId = Guid.NewGuid(),
-            CorrelationId = Guid.NewGuid(),
+            CollectionKey = Guid.NewGuid().ToString(),
             OperationId = "workflow-3-operation",
             IdempotencyKey = "key-3",
             Namespace = _randomNamespace,
@@ -71,7 +71,6 @@ public class WorkflowTests
             new()
             {
                 OperationId = "step-1",
-                IdempotencyKey = "step-key-1",
                 ProcessingOrder = 0,
                 Command = new CommandDefinition { Type = "app" },
                 CreatedAt = createdAt,
@@ -79,7 +78,6 @@ public class WorkflowTests
             new()
             {
                 OperationId = "step-2",
-                IdempotencyKey = "step-key-2",
                 ProcessingOrder = 1,
                 Command = new CommandDefinition { Type = "app" },
                 CreatedAt = createdAt,
@@ -136,7 +134,6 @@ public class WorkflowTests
                 new Step
                 {
                     OperationId = "noop",
-                    IdempotencyKey = "step-key",
                     ProcessingOrder = 0,
                     Command = new CommandDefinition { Type = "noop" },
                 },
@@ -162,7 +159,7 @@ public class WorkflowTests
         var dependency = new Workflow
         {
             DatabaseId = depGuid,
-            CorrelationId = Guid.NewGuid(),
+            CollectionKey = Guid.NewGuid().ToString(),
             OperationId = "dep-op",
             IdempotencyKey = "dep-key",
             Namespace = _randomNamespace,
@@ -171,7 +168,7 @@ public class WorkflowTests
         var link = new Workflow
         {
             DatabaseId = linkGuid,
-            CorrelationId = Guid.NewGuid(),
+            CollectionKey = Guid.NewGuid().ToString(),
             OperationId = "link-op",
             IdempotencyKey = "link-key",
             Namespace = _randomNamespace,
@@ -189,7 +186,6 @@ public class WorkflowTests
                 new Step
                 {
                     OperationId = "noop",
-                    IdempotencyKey = "step-key",
                     ProcessingOrder = 0,
                     Command = new CommandDefinition { Type = "noop" },
                 },

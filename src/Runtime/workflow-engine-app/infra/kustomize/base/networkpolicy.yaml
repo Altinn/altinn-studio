@@ -17,16 +17,6 @@ spec:
               kubernetes.io/metadata.name: default
       ports:
         - protocol: TCP
-          port: 8080
+          port: 9090
         - protocol: TCP
           port: 4143
-    # Allow traffic from kube-system (Azure Monitor Agent for metrics)
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: kube-system
-      ports:
-        - protocol: TCP
-          port: 8080
-        - protocol: TCP
-          port: 8081
