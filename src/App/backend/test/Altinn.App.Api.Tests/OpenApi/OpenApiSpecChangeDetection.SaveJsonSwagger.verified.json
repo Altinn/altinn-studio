@@ -3441,6 +3441,76 @@
         }
       }
     },
+    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/enriched": {
+      "get": {
+        "tags": [
+          "Instances"
+        ],
+        "summary": "Gets an instance object from storage with enriched process state including authorized actions,\nread/write access, element types, and process task metadata.",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "description": "unique identifier of the organisation responsible for the app",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "description": "application identifier which is unique within an organisation",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "instanceOwnerPartyId",
+            "in": "path",
+            "description": "unique id of the party that is the owner of the instance",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "instanceGuid",
+            "in": "path",
+            "description": "unique id to identify the instance",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/{org}/{app}/instances": {
       "post": {
         "tags": [
@@ -4640,7 +4710,7 @@
         "tags": [
           "Payment"
         ],
-        "summary": "Get updated payment information for the instance. Will contact the payment processor to check the status of the payment. Current task must be a payment task. See payment related documentation.",
+        "summary": "Get updated payment information for the instance. Will contact the payment processor to check the status of the payment. Current task must be a payment task, or a payment task ID must be supplied via the `taskId` query parameter. See payment related documentation.",
         "parameters": [
           {
             "name": "org",
@@ -4687,6 +4757,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "taskId",
+            "in": "query",
+            "description": "If payment information should be loaded for a different task than the current one. Useful for retrieving payment information for a completed payment task. Updates from the processor are not persisted when this is set.",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -4720,8 +4798,8 @@
               }
             }
           },
-          "404": {
-            "description": "Not Found",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "text/plain": {
                 "schema": {
@@ -5388,6 +5466,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "returnInstance",
+            "in": "query",
+            "description": "When true, the response body is Altinn.App.Api.Models.EnrichedInstanceResponse reflecting the post-transition instance state. Defaults to false for backward compatibility.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
           }
         ],
         "requestBody": {
@@ -5431,17 +5518,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/AppProcessState"
+                  "$ref": "#/components/schemas/EnrichedInstanceResponse"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AppProcessState"
+                  "$ref": "#/components/schemas/EnrichedInstanceResponse"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AppProcessState"
+                  "$ref": "#/components/schemas/EnrichedInstanceResponse"
                 }
               }
             }
@@ -7637,6 +7724,48 @@
         },
         "additionalProperties": false
       },
+      "AppMetadataAccess": {
+        "type": "object",
+        "properties": {
+          "rightDescription": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "nullable": true
+            },
+            "nullable": true
+          },
+          "delegable": {
+            "type": "boolean"
+          },
+          "visible": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppMetadataContactPoint": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "telephone": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactPage": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "AppOption": {
         "required": [
           "label",
@@ -7934,6 +8063,35 @@
           },
           "disallowUserInstantiation": {
             "type": "boolean"
+          },
+          "homepage": {
+            "type": "string",
+            "nullable": true
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Keyword"
+            },
+            "nullable": true
+          },
+          "description": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "nullable": true
+            },
+            "nullable": true
+          },
+          "access": {
+            "$ref": "#/components/schemas/AppMetadataAccess"
+          },
+          "contactPoints": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AppMetadataContactPoint"
+            },
+            "nullable": true
           },
           "id": {
             "type": "string",
@@ -8841,6 +8999,127 @@
         },
         "additionalProperties": false
       },
+      "EnrichedInstanceResponse": {
+        "required": [
+          "appId",
+          "completeConfirmations",
+          "created",
+          "createdBy",
+          "data",
+          "dataValues",
+          "dueBefore",
+          "id",
+          "instanceOwner",
+          "lastChanged",
+          "lastChangedBy",
+          "org",
+          "presentationTexts",
+          "process",
+          "selfLinks",
+          "status",
+          "visibleAfter"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The unique id of the instance {instanceOwnerId}/{instanceGuid}.",
+            "nullable": true
+          },
+          "instanceOwner": {
+            "$ref": "#/components/schemas/InstanceOwnerResponse"
+          },
+          "appId": {
+            "type": "string",
+            "description": "The id of the application this is an instance of, e.g. {org}/{app22}.",
+            "nullable": true
+          },
+          "org": {
+            "type": "string",
+            "description": "Application owner identifier, usually a abbreviation of organisation name. All in lower case.",
+            "nullable": true
+          },
+          "selfLinks": {
+            "$ref": "#/components/schemas/ResourceLinks"
+          },
+          "dueBefore": {
+            "type": "string",
+            "description": "The due date to submit the instance to application owner.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "visibleAfter": {
+            "type": "string",
+            "description": "Date and time for when the instance should first become visible for the instance owner.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "process": {
+            "$ref": "#/components/schemas/AppProcessState"
+          },
+          "status": {
+            "$ref": "#/components/schemas/InstanceStatus"
+          },
+          "completeConfirmations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompleteConfirmation"
+            },
+            "description": "A list of Altinn.Platform.Storage.Interface.Models.CompleteConfirmation elements.",
+            "nullable": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DataElement"
+            },
+            "description": "A list of data elements associated with the instance",
+            "nullable": true
+          },
+          "presentationTexts": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "nullable": true
+            },
+            "description": "The presentation texts for the instance.",
+            "nullable": true
+          },
+          "dataValues": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "nullable": true
+            },
+            "description": "The data values for the instance.",
+            "nullable": true
+          },
+          "created": {
+            "type": "string",
+            "description": "The date and time for when the element was created.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "The id of the user who created this element.",
+            "nullable": true
+          },
+          "lastChanged": {
+            "type": "string",
+            "description": "The date and time for when the element was last edited.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastChangedBy": {
+            "type": "string",
+            "description": "The id of the user who last changed this element.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents an instance response with enriched process state including authorized actions,\nread/write access, element types, and process task metadata."
+      },
       "FileScanResult": {
         "enum": [
           "NotApplicable",
@@ -9459,6 +9738,20 @@
             "nullable": true
           },
           "value": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Keyword": {
+        "type": "object",
+        "properties": {
+          "word": {
+            "type": "string",
+            "nullable": true
+          },
+          "language": {
             "type": "string",
             "nullable": true
           }
@@ -10708,6 +11001,10 @@
             "type": "boolean",
             "default": false
           },
+          "enableUserSuppliedDialogId": {
+            "type": "boolean",
+            "default": false
+          },
           "disableCreate": {
             "type": "boolean",
             "default": false
@@ -10732,11 +11029,23 @@
             "type": "boolean",
             "default": false
           },
+          "disableMarkCompletedWhenConfirmed": {
+            "type": "boolean",
+            "default": false
+          },
           "disableSyncContentTitle": {
             "type": "boolean",
             "default": false
           },
           "disableSyncContentSummary": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableSyncContentAdditionalInformation": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableSyncContentExtendedStatus": {
             "type": "boolean",
             "default": false
           },

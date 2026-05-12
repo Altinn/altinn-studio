@@ -8,7 +8,6 @@ import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
 import { getSummaryDataObject, ReceiptContainer } from 'src/features/receipt/ReceiptContainer';
-import { fetchProcessState } from 'src/queries/queries';
 import { TaskKeys } from 'src/routesBuilder';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import { PartyType } from 'src/types/shared';
@@ -90,13 +89,6 @@ const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender
   window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock((a) => {
     a.autoDeleteOnProcessEnd = autoDeleteOnProcessEnd;
   });
-  jest.mocked(fetchProcessState).mockImplementation(async () =>
-    getProcessDataMock((p) => {
-      p.currentTask = undefined;
-      p.ended = '2022-02-05T09:19:32.8858042Z';
-    }),
-  );
-
   return await renderWithoutInstanceAndLayout({
     renderer: () => (
       <InstanceProvider>

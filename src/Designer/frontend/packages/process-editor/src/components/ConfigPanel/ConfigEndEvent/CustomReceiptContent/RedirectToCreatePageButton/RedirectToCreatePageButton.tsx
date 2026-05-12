@@ -4,7 +4,7 @@ import { PencilWritingIcon } from '@studio/icons';
 import { StudioButton, StudioRedirectBox } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
-import getLayoutSetPath from '@altinn/ux-editor/utils/routeUtils';
+import getLayoutSetPath from '@altinn/ux-editor-v4/utils/routeUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Link } from 'react-router-dom';
 

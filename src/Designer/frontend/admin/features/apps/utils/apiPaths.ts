@@ -42,21 +42,6 @@ export const processMetadataPath = (org: string, env: string, app: string) =>
   `${adminApiBasePath}/applications/${org}/${env}/${app}/process-metadata`; // Get
 export const instanceDetailsPath = (org: string, env: string, app: string, instanceId: string) =>
   `${adminApiBasePath}/instances/${org}/${env}/${app}/${instanceId}`; // Get
-export const instanceProcessHistoryPath = (
-  org: string,
-  env: string,
-  app: string,
-  instanceId: string,
-) => `${adminApiBasePath}/instances/${org}/${env}/${app}/${instanceId}/process-history`; // Get
-export const instanceEventsPath = (org: string, env: string, app: string, instanceId: string) =>
-  `${adminApiBasePath}/instances/${org}/${env}/${app}/${instanceId}/events`; // Get
-export const instanceDataElementPath = (
-  org: string,
-  env: string,
-  app: string,
-  instanceId: string,
-  dataElementId: string,
-) => `${adminApiBasePath}/instances/${org}/${env}/${app}/${instanceId}/data/${dataElementId}`; // Get
 
 /**
  * Returns an encoded query string from a key-value object, or an empty string if the object is empty.

@@ -444,6 +444,14 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                     PatchOperation.Add(
                         JsonPointer.Create("melding", "hiddenNotRemove"),
                         JsonNode.Parse("\"value that is not removed\"")
+                    ),
+                    PatchOperation.Add(
+                        JsonPointer.Create("melding", "hiddenPage"),
+                        JsonNode.Parse("\"HiddenPage to be removed\"")
+                    ),
+                    PatchOperation.Add(
+                        JsonPointer.Create("melding", "hiddenPageNotRemove"),
+                        JsonNode.Parse("\"HiddenPageNotRemove to not be removed\"")
                     )
                 ),
                 IgnoredValidators = [],
@@ -464,6 +472,8 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         OutputHelper.WriteLine(dataString);
         dataString.Should().Contain("<hidden>value that is hidden</hidden>");
         dataString.Should().Contain("<hiddenNotRemove>value that is not removed</hiddenNotRemove>");
+        dataString.Should().Contain("<hiddenPage>HiddenPage to be removed</hiddenPage>");
+        dataString.Should().Contain("<hiddenPageNotRemove>HiddenPageNotRemove to not be removed</hiddenPageNotRemove>");
 
         // Run process next
         var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
@@ -477,6 +487,8 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         OutputHelper.WriteLine(dataString);
         dataString.Should().NotContain("<hidden>value that is hidden</hidden>");
         dataString.Should().Contain("<hiddenNotRemove>value that is not removed</hiddenNotRemove>");
+        dataString.Should().NotContain("<hiddenPage>HiddenPage to be removed</hiddenPage>");
+        dataString.Should().Contain("<hiddenPageNotRemove>HiddenPageNotRemove to not be removed</hiddenPageNotRemove>");
 
         _dataProcessorMock.Verify();
     }

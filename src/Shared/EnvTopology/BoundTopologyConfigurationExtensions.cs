@@ -10,7 +10,8 @@ public static class BoundTopologyConfigurationExtensions
 {
     public static IServiceCollection AddBoundTopology(
         this IServiceCollection services,
-        IConfiguration configuration
+        IConfiguration configuration,
+        bool optionalBoundConfig = false
     )
     {
         services.Configure<BoundTopologyOptions>(configuration.GetSection(BoundTopologyOptions.SectionName));
@@ -21,18 +22,18 @@ public static class BoundTopologyConfigurationExtensions
         );
         services.Configure<BoundTopologyConfig>(
             BoundTopologyOptions.BoundName,
-            BoundTopologyConfiguration(configuration[BoundTopologyOptions.ConfigPathConfigurationKey])
+            BoundTopologyConfiguration(configuration[BoundTopologyOptions.ConfigPathConfigurationKey], optionalBoundConfig)
         );
         services.AddSingleton<BoundTopologyIndexAccessor>();
         return services;
     }
 
-    private static IConfiguration BoundTopologyConfiguration(string? path)
+    private static IConfiguration BoundTopologyConfiguration(string? path, bool optional = false)
     {
         var builder = new ConfigurationBuilder();
         if (!string.IsNullOrWhiteSpace(path))
         {
-            builder.AddJsonFile(path, optional: false, reloadOnChange: true);
+            builder.AddJsonFile(path, optional, reloadOnChange: true);
         }
         return builder.Build();
     }

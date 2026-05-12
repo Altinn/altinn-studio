@@ -1,0 +1,7 @@
+.cardWrapper {
+  margin-inline: var(--ds-size-5);
+}
+
+.cardDescription {
+  color: var(--ds-color-neutral-text-subtle);
+}

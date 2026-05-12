@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -13,8 +14,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -38,6 +37,28 @@ public class OrgAccessHandlerTests
         await handler.HandleAsync(context);
 
         Assert.False(context.HasSucceeded);
+    }
+
+    [Fact]
+    public void ExtractAuthorizedPartyOrgNumbers_ShouldReturnAuthorizedParties_FromAnsattportenResourceAccessToken()
+    {
+        var token = CreateJwtTokenWithAuthorizedParties([TestOrgNumber]);
+        var handler = CreateHandler(null);
+
+        var orgNumbers = handler.ExtractAuthorizedPartyOrgNumbers(token);
+
+        Assert.Equal([TestOrgNumber], orgNumbers);
+    }
+
+    [Fact]
+    public void ExtractAuthorizedPartyOrgNumbers_ShouldReturnAuthorizedParties_WhenAuthorizationDetailsIsJsonString()
+    {
+        var token = CreateJwtTokenWithAuthorizationDetailsAsString([TestOrgNumber]);
+        var handler = CreateHandler(null);
+
+        var orgNumbers = handler.ExtractAuthorizedPartyOrgNumbers(token);
+
+        Assert.Equal([TestOrgNumber], orgNumbers);
     }
 
     [Fact]
@@ -73,7 +94,7 @@ public class OrgAccessHandlerTests
     }
 
     [Fact]
-    public async Task HandleRequirementAsync_ShouldFail_WhenTokenHasNoReportees()
+    public async Task HandleRequirementAsync_ShouldFail_WhenTokenHasNoAuthorizedParties()
     {
         var token = CreateJwtToken([]);
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
@@ -90,10 +111,27 @@ public class OrgAccessHandlerTests
     }
 
     [Fact]
+    public async Task HandleRequirementAsync_ShouldFail_WhenAuthorizationDetailsHasNoResourceOrAuthorizedParties()
+    {
+        var token = CreateJwtTokenWithoutAuthorizedParties();
+        var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
+        var handler = CreateHandler(httpContextMock);
+
+        var requirement = new OrgAccessRequirement();
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
+        var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
+
+        await handler.HandleAsync(context);
+
+        Assert.False(context.HasSucceeded);
+        Assert.True(context.HasFailed);
+    }
+
+    [Fact]
     public async Task HandleRequirementAsync_ShouldFail_WhenOrgNotFoundInAltinnOrgs()
     {
-        var reportees = new[] { TestOrgNumber };
-        var token = CreateJwtToken(reportees);
+        var authorizedParties = new[] { TestOrgNumber };
+        var token = CreateJwtToken(authorizedParties);
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
         var handler = CreateHandler(
             httpContextMock,
@@ -114,10 +152,10 @@ public class OrgAccessHandlerTests
     }
 
     [Fact]
-    public async Task HandleRequirementAsync_ShouldSucceed_WhenUserHasMatchingReporteeOrgNumber()
+    public async Task HandleRequirementAsync_ShouldSucceed_WhenUserHasMatchingAuthorizedPartyOrgNumber()
     {
-        var reportees = new[] { TestOrgNumber };
-        var token = CreateJwtToken(reportees);
+        var authorizedParties = new[] { TestOrgNumber };
+        var token = CreateJwtToken(authorizedParties);
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
         var handler = CreateHandler(
             httpContextMock,
@@ -138,10 +176,10 @@ public class OrgAccessHandlerTests
     }
 
     [Fact]
-    public async Task HandleRequirementAsync_ShouldFail_WhenUserHasNoMatchingReporteeOrgNumber()
+    public async Task HandleRequirementAsync_ShouldFail_WhenUserHasNoMatchingAuthorizedPartyOrgNumber()
     {
-        var reportees = new[] { OtherOrgNumber };
-        var token = CreateJwtToken(reportees);
+        var authorizedParties = new[] { OtherOrgNumber };
+        var token = CreateJwtToken(authorizedParties);
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
         var handler = CreateHandler(
             httpContextMock,
@@ -162,10 +200,10 @@ public class OrgAccessHandlerTests
     }
 
     [Fact]
-    public async Task HandleRequirementAsync_ShouldSucceed_WhenUserHasMultipleReporteesWithMatch()
+    public async Task HandleRequirementAsync_ShouldSucceed_WhenUserHasMultipleAuthorizedPartiesWithMatch()
     {
-        var reportees = new[] { OtherOrgNumber, TestOrgNumber, "123456789" };
-        var token = CreateJwtToken(reportees);
+        var authorizedParties = new[] { OtherOrgNumber, TestOrgNumber, "123456789" };
+        var token = CreateJwtToken(authorizedParties);
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
         var handler = CreateHandler(
             httpContextMock,
@@ -189,8 +227,8 @@ public class OrgAccessHandlerTests
     public async Task HandleRequirementAsync_ShouldSucceed_ForTtdOrgUsingDigdirOrgNumber()
     {
         // ttd test org uses Digdir's org number (991825827)
-        var reportees = new[] { TestOrgNumber };
-        var token = CreateJwtToken(reportees);
+        var authorizedParties = new[] { TestOrgNumber };
+        var token = CreateJwtToken(authorizedParties);
         var httpContextMock = CreateMockHttpContext("ttd", token);
         var handler = CreateHandler(
             httpContextMock,
@@ -213,7 +251,7 @@ public class OrgAccessHandlerTests
     [Fact]
     public async Task HandleRequirementAsync_ShouldFail_WhenOrgNumberIsTooShort()
     {
-        var token = CreateJwtTokenWithCustomReportees(new[] { new { ID = "0192:" } });
+        var token = CreateJwtTokenWithCustomAuthorizedParties(["0192:"]);
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
         var handler = CreateHandler(httpContextMock);
 
@@ -230,7 +268,7 @@ public class OrgAccessHandlerTests
     [Fact]
     public async Task HandleRequirementAsync_ShouldFail_WhenOrgNumberMissingPrefix()
     {
-        var token = CreateJwtTokenWithCustomReportees(new[] { new { ID = "991825827" } });
+        var token = CreateJwtTokenWithCustomAuthorizedParties(["991825827"]);
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
         var handler = CreateHandler(httpContextMock);
 
@@ -293,7 +331,7 @@ public class OrgAccessHandlerTests
     [Fact]
     public async Task HandleRequirementAsync_ShouldFail_WhenOrgNumberIsEmptyString()
     {
-        var token = CreateJwtTokenWithCustomReportees(new[] { new { ID = "" } });
+        var token = CreateJwtTokenWithCustomAuthorizedParties([""]);
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
         var handler = CreateHandler(httpContextMock);
 
@@ -360,15 +398,23 @@ public class OrgAccessHandlerTests
 
     private static string CreateJwtToken(string[] orgNumbers)
     {
+        return CreateJwtTokenWithAuthorizedParties(orgNumbers);
+    }
+
+    private static string CreateJwtTokenWithCustomAuthorizedParties(string[] ids)
+    {
         var authorizationDetails = new[]
         {
             new
             {
-                type = "ansattporten:altinn:service",
-                resource = "urn:altinn:resource:5613:1",
-                reportees = orgNumbers.Length > 0
-                    ? Array.ConvertAll(orgNumbers, orgNo => new { ID = $"0192:{orgNo}" })
-                    : Array.Empty<object>(),
+                type = "ansattporten:altinn:resource",
+                resource = "urn:altinn:resource:digdir-selvbetjening-klienter",
+                authorized_parties = ids.Select(id => new
+                {
+                    orgno = new { authority = "iso6523-actorid-upis", ID = id },
+                    resource = "digdir-selvbetjening-klienter",
+                    name = "Test org",
+                }),
             },
         };
 
@@ -386,15 +432,38 @@ public class OrgAccessHandlerTests
         return handler.WriteToken(token);
     }
 
-    private static string CreateJwtTokenWithCustomReportees(object[] reportees)
+    private static string CreateJwtTokenWithoutAuthorizedParties()
+    {
+        var authorizationDetails = new[] { new { type = "ansattporten:altinn:resource" } };
+
+        var header = new JwtHeader();
+        var payload = new JwtPayload
+        {
+            { "iss", "test" },
+            { "aud", "test" },
+            { "exp", new DateTimeOffset(DateTime.UtcNow.AddHours(1)).ToUnixTimeSeconds() },
+            { "authorization_details", JsonSerializer.SerializeToElement(authorizationDetails) },
+        };
+
+        var token = new JwtSecurityToken(header, payload);
+        var handler = new JwtSecurityTokenHandler();
+        return handler.WriteToken(token);
+    }
+
+    private static string CreateJwtTokenWithAuthorizedParties(string[] orgNumbers)
     {
         var authorizationDetails = new[]
         {
             new
             {
-                type = "ansattporten:altinn:service",
-                resource = "urn:altinn:resource:5613:1",
-                reportees,
+                type = "ansattporten:altinn:resource",
+                resource = "urn:altinn:resource:digdir-selvbetjening-klienter",
+                authorized_parties = orgNumbers.Select(orgNo => new
+                {
+                    orgno = new { authority = "iso6523-actorid-upis", ID = $"0192:{orgNo}" },
+                    resource = "digdir-selvbetjening-klienter",
+                    name = "Test org",
+                }),
             },
         };
 
@@ -405,6 +474,37 @@ public class OrgAccessHandlerTests
             { "aud", "test" },
             { "exp", new DateTimeOffset(DateTime.UtcNow.AddHours(1)).ToUnixTimeSeconds() },
             { "authorization_details", JsonSerializer.SerializeToElement(authorizationDetails) },
+        };
+
+        var token = new JwtSecurityToken(header, payload);
+        var handler = new JwtSecurityTokenHandler();
+        return handler.WriteToken(token);
+    }
+
+    private static string CreateJwtTokenWithAuthorizationDetailsAsString(string[] orgNumbers)
+    {
+        var authorizationDetails = new[]
+        {
+            new
+            {
+                type = "ansattporten:altinn:resource",
+                resource = "urn:altinn:resource:digdir-selvbetjening-klienter",
+                authorized_parties = orgNumbers.Select(orgNo => new
+                {
+                    orgno = new { authority = "iso6523-actorid-upis", ID = $"0192:{orgNo}" },
+                    resource = "digdir-selvbetjening-klienter",
+                    name = "Test org",
+                }),
+            },
+        };
+
+        var header = new JwtHeader();
+        var payload = new JwtPayload
+        {
+            { "iss", "test" },
+            { "aud", "test" },
+            { "exp", new DateTimeOffset(DateTime.UtcNow.AddHours(1)).ToUnixTimeSeconds() },
+            { "authorization_details", JsonSerializer.Serialize(authorizationDetails) },
         };
 
         var token = new JwtSecurityToken(header, payload);
@@ -414,8 +514,7 @@ public class OrgAccessHandlerTests
 
     private static OrgAccessHandler CreateHandler(
         HttpContext? httpContext,
-        Action<Mock<IEnvironmentsService>>? configureEnvironmentsService = null,
-        bool isProduction = true
+        Action<Mock<IEnvironmentsService>>? configureEnvironmentsService = null
     )
     {
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
@@ -424,16 +523,6 @@ public class OrgAccessHandlerTests
         var environmentsServiceMock = new Mock<IEnvironmentsService>();
         configureEnvironmentsService?.Invoke(environmentsServiceMock);
 
-        var hostEnvironmentMock = new Mock<IHostEnvironment>();
-        hostEnvironmentMock.Setup(x => x.EnvironmentName).Returns(isProduction ? "Production" : "Development");
-
-        var loggerMock = new Mock<ILogger<OrgAccessHandler>>();
-
-        return new OrgAccessHandler(
-            httpContextAccessorMock.Object,
-            environmentsServiceMock.Object,
-            hostEnvironmentMock.Object,
-            loggerMock.Object
-        );
+        return new OrgAccessHandler(httpContextAccessorMock.Object, environmentsServiceMock.Object);
     }
 }

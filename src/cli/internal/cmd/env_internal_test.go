@@ -12,7 +12,9 @@ import (
 
 	"altinn.studio/devenv/pkg/container/mock"
 	containertypes "altinn.studio/devenv/pkg/container/types"
+	"altinn.studio/devenv/pkg/resource"
 	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
+	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
@@ -23,13 +25,24 @@ func TestEnvUpJSON_AlreadyRunning(t *testing.T) {
 	t.Parallel()
 
 	client := mock.New()
-	client.ContainerStateFunc = func(context.Context, string) (containertypes.ContainerState, error) {
-		return containertypes.ContainerState{Status: "running", Running: true}, nil
+	client.ContainerInspectFunc = func(_ context.Context, nameOrID string) (containertypes.ContainerInfo, error) {
+		switch nameOrID {
+		case components.ContainerLocaltest,
+			components.ContainerPDF3,
+			components.ContainerWorkflowEngineDb,
+			components.ContainerWorkflowEngine:
+		default:
+			return containertypes.ContainerInfo{}, containertypes.ErrContainerNotFound
+		}
+		return containertypes.ContainerInfo{
+			Labels: map[string]string{resource.GraphIDLabel: "studioctl-localtest"},
+			State:  containertypes.ContainerState{Status: "running", Running: true},
+		}, nil
 	}
 
 	var out bytes.Buffer
 	command := &EnvCommand{
-		cfg: &config.Config{},
+		cfg: testEnvCommandConfig(t),
 		out: ui.NewOutput(&out, io.Discard, false),
 	}
 	err := command.runLocaltestUp(context.Background(), client, envUpFlags{
@@ -50,6 +63,32 @@ func TestEnvUpJSON_AlreadyRunning(t *testing.T) {
 	}
 }
 
+func testEnvCommandConfig(t *testing.T) *config.Config {
+	t.Helper()
+
+	home := t.TempDir()
+	return &config.Config{
+		Home:      home,
+		SocketDir: home,
+		LogDir:    filepath.Join(home, "logs"),
+		DataDir:   filepath.Join(home, "data"),
+		BinDir:    filepath.Join(home, "bin"),
+		Images:    testLocaltestImages(),
+	}
+}
+
+func testLocaltestImages() config.ImagesConfig {
+	return config.ImagesConfig{
+		Core: config.CoreImages{
+			Localtest:        config.ImageSpec{Image: "ghcr.io/altinn/test-localtest", Tag: "latest"},
+			PDF3:             config.ImageSpec{Image: "ghcr.io/altinn/test-pdf3", Tag: "latest"},
+			WorkflowEngineDb: config.ImageSpec{Image: "postgres", Tag: "18"},
+			WorkflowEngine:   config.ImageSpec{Image: "ghcr.io/altinn/test-workflow-engine", Tag: "latest"},
+			PgAdmin:          config.ImageSpec{Image: "dpage/pgadmin4", Tag: "latest"},
+		},
+	}
+}
+
 func TestEnvUpJSONRejectsForeground(t *testing.T) {
 	t.Parallel()
 
@@ -60,6 +99,48 @@ func TestEnvUpJSONRejectsForeground(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "--json requires --detach=true") {
 		t.Fatalf("runUp() error = %v, want detach/json error", err)
+	}
+}
+
+func TestParseUpFlagsDevWorkflowEngine(t *testing.T) {
+	t.Parallel()
+
+	command := &EnvCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	got, helpShown, err := command.parseUpFlags([]string{"--dev-workflow-engine"})
+	if err != nil {
+		t.Fatalf("parseUpFlags() error = %v", err)
+	}
+	if helpShown {
+		t.Fatal("parseUpFlags() helpShown = true, want false")
+	}
+	if !got.devWorkflowEngine {
+		t.Fatal("devWorkflowEngine = false, want true")
+	}
+}
+
+func TestEnvUsageHidesDevWorkflowEngine(t *testing.T) {
+	t.Parallel()
+
+	command := &EnvCommand{}
+	if got := command.Usage(); strings.Contains(got, "--dev-workflow-engine") {
+		t.Fatalf("Usage() includes hidden --dev-workflow-engine:\n%s", got)
+	}
+}
+
+func TestParseUpFlagsHelpHidesDevWorkflowEngine(t *testing.T) {
+	t.Parallel()
+
+	var out bytes.Buffer
+	command := &EnvCommand{out: ui.NewOutput(&out, io.Discard, false)}
+	_, helpShown, err := command.parseUpFlags([]string{"--help"})
+	if err != nil {
+		t.Fatalf("parseUpFlags() error = %v", err)
+	}
+	if !helpShown {
+		t.Fatal("parseUpFlags() helpShown = false, want true")
+	}
+	if got := out.String(); strings.Contains(got, "--dev-workflow-engine") {
+		t.Fatalf("help output includes hidden --dev-workflow-engine:\n%s", got)
 	}
 }
 

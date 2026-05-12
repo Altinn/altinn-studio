@@ -27,13 +27,6 @@ const (
 	// minWindowsVersionParts is the minimum number of parts in a Windows version string (major.minor.build).
 	minWindowsVersionParts = 3
 
-	// osWindows is the runtime.GOOS value for Windows.
-	osWindows = "windows"
-
-	// On-disk state file names used by CLI components.
-	doctorConfigFileName       = "config.yaml"
-	doctorResourcesPlatformDir = "AltinnPlatformLocal"
-
 	// Disk check levels.
 	diskLevelOK    = "ok"
 	diskLevelInfo  = "info"
@@ -163,7 +156,7 @@ func New(cfg *config.Config, debugf func(format string, args ...any)) *Service {
 // BuildReport builds a doctor report from system state.
 func (s *Service) BuildReport(ctx context.Context) Report {
 	return Report{
-		CLI:           &CLI{Version: s.cfg.Version},
+		CLI:           &CLI{Version: s.cfg.Version.String()},
 		System:        buildSystem(ctx),
 		Prerequisites: s.collectPrerequisites(ctx),
 		Auth:          s.buildAuth(),

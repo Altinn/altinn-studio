@@ -25,7 +25,7 @@ internal class SqlBulkInserter(IDbContextFactory<EngineDbContext> dbContextFacto
             ?? throw new InvalidOperationException($"Entity type {typeof(T).Name} not found in model.");
         var tableName = entityType.GetTableName();
         var schema = entityType.GetSchema();
-        var quotedTable = schema != null ? $"\"{schema}\".\"{tableName}\"" : $"\"{tableName}\"";
+        var qualifiedTable = schema != null ? $"{schema}.{tableName}" : $"{tableName}";
 
         // Resolve columns once
         var columns = entityType
@@ -55,8 +55,8 @@ internal class SqlBulkInserter(IDbContextFactory<EngineDbContext> dbContextFacto
             .ToArray();
 
         // Build COPY command once
-        var quotedColumns = string.Join(", ", columns.Select(c => $"\"{c.ColumnName}\""));
-        var copyCommand = $"COPY {quotedTable} ({quotedColumns}) FROM STDIN (FORMAT BINARY)";
+        var columnList = string.Join(", ", columns.Select(c => c.ColumnName));
+        var copyCommand = $"COPY {qualifiedTable} ({columnList}) FROM STDIN (FORMAT BINARY)";
 
         // Return a reusable function — no DbContext captured
         return async (connection, entities, ctk) =>
@@ -96,8 +96,8 @@ internal class SqlBulkInserter(IDbContextFactory<EngineDbContext> dbContextFacto
         string? schema = null
     )
     {
-        var quotedTable = schema != null ? $"\"{schema}\".\"{tableName}\"" : $"\"{tableName}\"";
-        var copyCommand = $"COPY {quotedTable} (\"{column1Name}\", \"{column2Name}\") FROM STDIN (FORMAT BINARY)";
+        var qualifiedTable = schema != null ? $"{schema}.{tableName}" : $"{tableName}";
+        var copyCommand = $"COPY {qualifiedTable} ({column1Name}, {column2Name}) FROM STDIN (FORMAT BINARY)";
 
         return async (connection, rows, ctk) =>
         {

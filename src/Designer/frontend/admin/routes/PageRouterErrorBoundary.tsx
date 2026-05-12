@@ -2,7 +2,7 @@ import type { ReactElement } from 'react';
 import { StudioParagraph, StudioPageError, StudioLink } from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
 
-export const ErrorBoundary = (): ReactElement => {
+const ErrorBoundary = (): ReactElement => {
   const { t } = useTranslation();
   return (
     <StudioPageError

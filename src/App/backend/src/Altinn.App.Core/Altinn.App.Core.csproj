@@ -12,10 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- The following packages uses frozen version because of compatibility considerations for apps -->
-    <!-- See: https://github.com/Altinn/app-lib-dotnet/issues/647 -->
-    <PackageReference Include="Altinn.ApiClients.Maskinporten"/>
-
     <PackageReference Include="JWTCookieAuthentication"/>
     <!-- The follwoing are depencencies for JWTCookieAuthentication, but we need newer versions-->
     <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" />

@@ -14,10 +14,11 @@ import (
 
 	containerruntime "altinn.studio/devenv/pkg/container"
 	containermock "altinn.studio/devenv/pkg/container/mock"
-	"altinn.studio/studioctl/internal/appmanager"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	appsupport "altinn.studio/studioctl/internal/cmd/apps"
+	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/osutil"
+	"altinn.studio/studioctl/internal/studioctlserver"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -41,10 +42,10 @@ func TestAppLogsStreamsProcessLogByPID(t *testing.T) {
 	command := &appLogsCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
 		cfg: cfg,
-		manager: appManagerAccess{
-			client: &fakeAppRuntimeClient{
-				status: &appmanager.Status{
-					Apps: []appmanager.DiscoveredApp{
+		server: studioctlServerAccess{
+			client: &fakeStudioctlServerClient{
+				status: &studioctlserver.Status{
+					Apps: []studioctlserver.DiscoveredApp{
 						{
 							ProcessID: &processID,
 							AppID:     testAppID,
@@ -88,10 +89,10 @@ func TestAppLogsJSONIncludesMetadata(t *testing.T) {
 	command := &appLogsCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
 		cfg: cfg,
-		manager: appManagerAccess{
-			client: &fakeAppRuntimeClient{
-				status: &appmanager.Status{
-					Apps: []appmanager.DiscoveredApp{
+		server: studioctlServerAccess{
+			client: &fakeStudioctlServerClient{
+				status: &studioctlserver.Status{
+					Apps: []studioctlserver.DiscoveredApp{
 						{
 							ProcessID: &processID,
 							AppID:     testAppID,
@@ -128,10 +129,10 @@ func TestAppLogsReturnsUnavailableForManualProcess(t *testing.T) {
 	command := &appLogsCommand{
 		out: ioDiscardOutput(),
 		cfg: cfg,
-		manager: appManagerAccess{
-			client: &fakeAppRuntimeClient{
-				status: &appmanager.Status{
-					Apps: []appmanager.DiscoveredApp{
+		server: studioctlServerAccess{
+			client: &fakeStudioctlServerClient{
+				status: &studioctlserver.Status{
+					Apps: []studioctlserver.DiscoveredApp{
 						{
 							ProcessID: &processID,
 							AppID:     testAppID,
@@ -172,10 +173,10 @@ func TestAppLogsStreamsContainerLogs(t *testing.T) {
 	command := &appLogsCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
 		cfg: cfg,
-		manager: appManagerAccess{
-			client: &fakeAppRuntimeClient{
-				status: &appmanager.Status{
-					Apps: []appmanager.DiscoveredApp{
+		server: studioctlServerAccess{
+			client: &fakeStudioctlServerClient{
+				status: &studioctlserver.Status{
+					Apps: []studioctlserver.DiscoveredApp{
 						{
 							ContainerID: containerID,
 							AppID:       testAppID,
@@ -268,9 +269,9 @@ func TestAppLogsStoredIDUsesCurrentAppDirectory(t *testing.T) {
 	command := &appLogsCommand{
 		out:     ui.NewOutput(&out, io.Discard, false),
 		cfg:     cfg,
-		service: appsvc.NewService(""),
-		manager: appManagerAccess{
-			client: &fakeAppRuntimeClient{status: &appmanager.Status{}},
+		service: appsvc.NewService(&config.Config{Version: config.NewVersion("test-version")}),
+		server: studioctlServerAccess{
+			client: &fakeStudioctlServerClient{status: &studioctlserver.Status{}},
 		},
 	}
 

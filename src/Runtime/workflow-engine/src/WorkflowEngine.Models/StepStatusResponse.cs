@@ -66,6 +66,9 @@ public sealed record StepStatusResponse
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? StateOut { get; init; }
 
+    /// <summary>
+    /// Retry strategy applied to this step. Omitted when the step uses the engine default.
+    /// </summary>
     [JsonPropertyName("retryStrategy")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public RetryStrategy? RetryStrategy { get; init; }
@@ -93,6 +96,9 @@ public sealed record StepStatusResponse
             ErrorHistory = step.ErrorHistory.Count > 0 ? step.ErrorHistory : null,
         };
 
+    /// <summary>
+    /// Public-surface projection of <see cref="CommandDefinition"/>: only the type discriminator is exposed.
+    /// </summary>
     public sealed record CommandDetails
     {
         /// <summary>

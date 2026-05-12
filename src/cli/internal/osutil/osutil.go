@@ -9,6 +9,15 @@ import (
 
 const fallbackCommandName = "studioctl"
 
+const (
+	// OSLinux is the runtime.GOOS value for Linux.
+	OSLinux = "linux"
+	// OSDarwin is the runtime.GOOS value for macOS.
+	OSDarwin = "darwin"
+	// OSWindows is the runtime.GOOS value for Windows.
+	OSWindows = "windows"
+)
+
 // CurrentBin returns the invoked binary basename, with a stable fallback.
 func CurrentBin() string {
 	if len(os.Args) == 0 || os.Args[0] == "" {

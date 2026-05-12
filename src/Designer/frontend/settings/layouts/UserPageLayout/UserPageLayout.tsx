@@ -5,13 +5,18 @@ import { StudioCenter, StudioPageSpinner } from '@studio/components';
 import { StudioPageError } from 'app-shared/components';
 import { useTranslation } from 'react-i18next';
 import { useRequiredRoutePathsParams } from 'settings/hooks/useRequiredRoutePathsParams';
+import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
+import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 
 export const UserPageLayout = () => {
   const { t } = useTranslation();
   const { owner } = useRequiredRoutePathsParams(['owner']);
-  const { data: user, isPending, isError } = useUserQuery();
+  const { data: user, isPending: isUserPending, isError: isUserError } = useUserQuery();
+  const { environment, isPending: isEnvironmentPending } = useEnvironmentConfig();
+  const studioOidc = environment?.featureFlags?.studioOidc;
+  const isAdminEnabled = useFeatureFlag(FeatureFlag.Admin);
 
-  if (isPending) {
+  if (isUserPending || isEnvironmentPending) {
     return (
       <StudioCenter>
         <StudioPageSpinner spinnerTitle={t('general.loading')} />
@@ -19,12 +24,17 @@ export const UserPageLayout = () => {
     );
   }
 
-  if (isError) {
+  if (isUserError) {
     return <StudioPageError />;
   }
 
   if (owner !== user?.login) {
     return <NotFound />;
   }
+
+  if (!studioOidc && !isAdminEnabled) {
+    return <NotFound />;
+  }
+
   return <PageLayout />;
 };

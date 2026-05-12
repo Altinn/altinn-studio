@@ -17,6 +17,13 @@ jest.mock('@studio/feature-flags', () => ({
   useFeatureFlag: (flag: FeatureFlag) => mockUseFeatureFlag(flag),
 }));
 
+const mockEnvironment: { environment: { featureFlags: { studioOidc: boolean } } | null } = {
+  environment: null,
+};
+jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+  useEnvironmentConfig: () => mockEnvironment,
+}));
+
 const renderMenu = (initialEntries: string[] = ['/ttd/bot-accounts']) =>
   renderWithProviders(<Menu />, { initialEntries });
 
@@ -31,16 +38,33 @@ const getBotAccountsTab = () =>
   });
 
 describe('Menu', () => {
+  beforeEach(() => {
+    mockEnvironment.environment = null;
+  });
+
   afterEach(() => jest.clearAllMocks());
 
-  it('renders the bot accounts tab', () => {
+  it('renders the bot accounts tab when studioOidc is enabled', () => {
     mockUseFeatureFlag.mockReturnValue(false);
+    mockEnvironment.environment = { featureFlags: { studioOidc: true } };
     renderMenu();
     expect(getBotAccountsTab()).toBeInTheDocument();
   });
 
+  it('does not render the bot accounts tab when studioOidc is disabled', () => {
+    mockUseFeatureFlag.mockReturnValue(false);
+    mockEnvironment.environment = { featureFlags: { studioOidc: false } };
+    renderMenu();
+    expect(
+      screen.queryByRole('tab', {
+        name: textMock('settings.orgs.bot_accounts.menu.bot_accounts'),
+      }),
+    ).not.toBeInTheDocument();
+  });
+
   it('does not render the contact points tab when Admin is disabled', () => {
     mockUseFeatureFlag.mockReturnValue(false);
+    mockEnvironment.environment = { featureFlags: { studioOidc: true } };
     renderMenu();
     expect(
       screen.queryByRole('tab', {
@@ -51,13 +75,8 @@ describe('Menu', () => {
 
   it('renders the contact points tab when Admin is enabled', () => {
     mockUseFeatureFlag.mockImplementation((flag: FeatureFlag) => flag === FeatureFlag.Admin);
+    mockEnvironment.environment = { featureFlags: { studioOidc: false } };
     renderMenu();
     expect(getContactPointsTab()).toBeInTheDocument();
-  });
-
-  it('renders the bot accounts tab', () => {
-    mockUseFeatureFlag.mockReturnValue(false);
-    renderMenu();
-    expect(getBotAccountsTab()).toBeInTheDocument();
   });
 });

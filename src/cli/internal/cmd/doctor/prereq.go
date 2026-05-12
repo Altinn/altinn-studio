@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"altinn.studio/devenv/pkg/container"
+	"altinn.studio/studioctl/internal/osutil"
 )
 
 func (s *Service) collectPrerequisites(ctx context.Context) *Prerequisites {
@@ -32,7 +33,7 @@ func (s *Service) collectPrerequisites(ctx context.Context) *Prerequisites {
 		OK:    containerErr == nil,
 	}
 
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == osutil.OSWindows {
 		windowsValue, windowsErr := s.probeWindowsVersion(ctx)
 		prerequisites.WindowsValue = windowsValue
 		prerequisites.Windows = &Check{

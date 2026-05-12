@@ -8,7 +8,6 @@ import type { JSONSchema7 } from 'json-schema';
 import { DynamicForm } from 'src/app-components/DynamicForm/DynamicForm';
 import { translationKey } from 'src/AppComponentsBridge';
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { DropdownCaption } from 'src/layout/Datepicker/DropdownCaption';
@@ -58,7 +57,7 @@ export function AddToListModal({
   let addToListModalRef = useRef<HTMLDialogElement | null>(null);
   addToListModalRef = modalRef ?? addToListModalRef;
 
-  const schemaLookup = FormBootstrap.useSchemaLookup();
+  const schemaLookup = FormStore.bootstrap.useSchemaLookup();
 
   const schema = schemaLookup[dataModelReference.dataType].getSchemaForPath(dataModelReference.field)[0];
 

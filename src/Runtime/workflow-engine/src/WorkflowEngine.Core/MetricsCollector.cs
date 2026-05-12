@@ -85,15 +85,15 @@ internal sealed class MetricsCollector(
 internal static partial class MetricsCollectorLogs
 {
     [LoggerMessage(LogLevel.Information, "MetricsCollector starting")]
-    public static partial void StartingUp(this ILogger<MetricsCollector> logger);
+    internal static partial void StartingUp(this ILogger<MetricsCollector> logger);
 
     [LoggerMessage(LogLevel.Error, "Failed to collect workflow counts: {ErrorMessage}")]
-    public static partial void FailedToQueryCounts(
+    internal static partial void FailedToQueryCounts(
         this ILogger<MetricsCollector> logger,
         string errorMessage,
         Exception ex
     );
 
     [LoggerMessage(LogLevel.Information, "MetricsCollector shutting down")]
-    public static partial void ShuttingDown(this ILogger<MetricsCollector> logger);
+    internal static partial void ShuttingDown(this ILogger<MetricsCollector> logger);
 }

@@ -153,7 +153,9 @@ export function FileUploadComponent({
 
                 <b id={dragLabelId}>
                   {mobileView ? (
-                    <Lang id='form_filler.file_uploader_upload' />
+                    <span className={cn(classes.blueUnderLine)}>
+                      <Lang id='form_filler.file_uploader_upload' />
+                    </span>
                   ) : (
                     <>
                       <Lang id='form_filler.file_uploader_drag' />

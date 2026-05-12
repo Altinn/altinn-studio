@@ -8,14 +8,20 @@ namespace WorkflowEngine.Core;
 /// </summary>
 internal interface ICommandRegistry
 {
-    /// <summary>Get the command for the given command type.</summary>
+    /// <summary>
+    /// Get the command for the given command type.
+    /// </summary>
     /// <exception cref="CommandHandlerNotFoundException">No command registered for the given type.</exception>
     ICommand GetCommand(string commandType);
 
-    /// <summary>Check if a command is registered for the given command type.</summary>
+    /// <summary>
+    /// Check if a command is registered for the given command type.
+    /// </summary>
     bool HasCommand(string commandType);
 
-    /// <summary>Get all registered commands.</summary>
+    /// <summary>
+    /// Get all registered commands.
+    /// </summary>
     IEnumerable<ICommand> GetAllCommands();
 }
 

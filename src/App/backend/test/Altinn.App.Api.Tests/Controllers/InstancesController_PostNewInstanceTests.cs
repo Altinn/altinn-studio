@@ -41,6 +41,39 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
     }
 
     [Fact]
+    public async Task PostNewInstanceWithContent_FailsWhenDataTypeSpecifiesNotFirstTask()
+    {
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        HttpClient client = GetRootedClient(org, app);
+        string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+
+        // Create instance data
+        using var content = new MultipartFormDataContent();
+        content.Add(
+            new ByteArrayContent([1, 2, 5]) { Headers = { ContentType = new MediaTypeHeaderValue("image/png") } },
+            name: "task2DataType"
+        );
+
+        // Create instance
+        var createResponse = await client.PostAsync(
+            $"{org}/{app}/instances/?instanceOwnerPartyId={instanceOwnerPartyId}",
+            content
+        );
+        var createResponseContent = await createResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(createResponseContent);
+        Assert.Equal(HttpStatusCode.Conflict, createResponse.StatusCode);
+
+        // This asserts on the current behaviour. Next version might use the `StartEvent` when posting a multipart instance creation
+        Assert.Contains(
+            "Data element of type task2DataType can only be modified in Task_2 (current task Task_1)",
+            createResponseContent
+        );
+    }
+
+    [Fact]
     public async Task PostNewInstanceWithContent_EnsureDataIsPresent()
     {
         // Setup test data

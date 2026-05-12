@@ -8,6 +8,20 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- Breaking: make `--follow` default to `false` for log commands.
+- Breaking: rename `studioctl servers` to `studioctl server`.
+- Rename `app-manager` to `studioctl-server`, including install/update migration cleanup of legacy runtime files, installed payload, and logs.
+- Show progress while `app run --mode container` pulls/builds and starts the app container.
+
+### Fixed
+
+- Keep running apps visible in localtest after restarting the localtest environment.
+- Improve localtest resource reconciliation so `env up` removes managed resources that are no longer requested, such as pgAdmin or monitoring, without restarting unchanged core containers.
+
+## [0.1.0-preview.7] - 2026-04-29
+
 ### Added
 
 - Add `env reset` for localtest to delete persisted localtest and workflow-engine database data, with interactive confirmation.
@@ -16,9 +30,13 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Changed
 
 - Make `--random-host-port` default to `true` for `run` and `app run`.
+- Stop running apps, localtest, and app-manager before `self update`, `self uninstall`, and installer replacement.
+- Make `self uninstall` remove studioctl home data and env runtime resources.
 
 ### Fixed
 
+- Fix install and update flows when no interactive terminal prompt is available.
+- Fix workflow-engine database persistence cross-platform support by using a named/managed volume instead of host bind mount.
 - Fix app-manager shutdown waits incorrectly reporting that an exited process is still running on Linux systems.
 - Reading password input when using `studioctl auth` now works on macOS with bracketed paste enabled.
 

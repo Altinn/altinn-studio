@@ -1,0 +1,32 @@
+name: Gitea Proxy - Test
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - 'src/gitea-proxy/**'
+      - '.github/workflows/gitea-proxy-test.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install hurl
+        run: |
+          HURL_VERSION=8.0.1
+          curl -fsSL "https://github.com/Orange-OpenSource/hurl/releases/download/${HURL_VERSION}/hurl_${HURL_VERSION}_amd64.deb" -o /tmp/hurl.deb
+          sudo dpkg -i /tmp/hurl.deb
+          hurl --version
+
+      - name: Run proxy integration tests
+        run: make test
+        working-directory: src/gitea-proxy/test

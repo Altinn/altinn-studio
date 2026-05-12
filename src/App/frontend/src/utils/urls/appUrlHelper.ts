@@ -17,8 +17,8 @@ export const getInstantiateUrl = (language?: string) => {
 
 export const getSetSelectedPartyUrl = (partyId: string | number) => `${appPath}/api/v1/parties/${partyId}`;
 
-export const getPaymentInformationUrl = (instanceId: string, language?: string) => {
-  const queryString = getQueryStringFromObject({ language });
+export const getPaymentInformationForTaskUrl = (instanceId: string, language?: string, taskId?: string) => {
+  const queryString = getQueryStringFromObject({ language, taskId });
   return `${origin}/${org}/${app}/instances/${instanceId}/payment${queryString}`;
 };
 
@@ -61,7 +61,6 @@ export const getDataModelTypeUrl = (instanceId: string, dataType: string) =>
 export const getDataElementUrl = (instanceId: string, dataElementId: string, language: string) =>
   `${appPath}/instances/${instanceId}/data/${dataElementId}?language=${language}`;
 
-export const getProcessStateUrl = (instanceId: string) => `${appPath}/instances/${instanceId}/process`;
 export const getActionsUrl = (partyId: string, instanceId: string, language?: string) => {
   const queryString = getQueryStringFromObject({ language });
   return `${appPath}/instances/${partyId}/${instanceId}/actions${queryString}`;
@@ -80,8 +79,11 @@ export const getPdfPreviewUrl = (instanceId: string, language: string) => {
   return `${appPath}/instances/${instanceId}/pdf/preview${queryString}`;
 };
 
-export const getProcessNextUrl = (instanceId: string, language?: string) => {
-  const queryString = getQueryStringFromObject({ language });
+export const getProcessNextUrl = (instanceId: string, language?: string, returnInstance?: boolean) => {
+  const queryString = getQueryStringFromObject({
+    language,
+    returnInstance: returnInstance ? 'true' : undefined,
+  });
   return `${appPath}/instances/${instanceId}/process/next${queryString}`;
 };
 

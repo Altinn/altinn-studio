@@ -14,6 +14,10 @@ export interface IExpandedWidthLayouts {
   [layoutKey: string]: boolean | undefined;
 }
 
+export interface IPreventNavigationLayouts {
+  [layoutKey: string]: boolean | undefined;
+}
+
 export enum ProcessTaskType {
   Unknown = 'unknown',
   Service = 'service',

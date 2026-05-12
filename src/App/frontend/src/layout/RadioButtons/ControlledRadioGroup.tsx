@@ -7,7 +7,7 @@ import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/Condit
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { RadioButton } from 'src/components/form/RadioButton';
 import { LabelContent } from 'src/components/label/LabelContent';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
@@ -46,7 +46,7 @@ export const ControlledRadioGroup = (props: PropsFromGenericComponent<'RadioButt
     error: !isValid,
   });
 
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const parent = layoutLookups.componentToParent[baseComponentId];
   let leftColumnHeader: string | undefined = undefined;
   if (parent?.type === 'node' && layoutLookups.getComponent(parent.id).type === 'Likert') {
@@ -77,6 +77,8 @@ export const ControlledRadioGroup = (props: PropsFromGenericComponent<'RadioButt
   );
 
   const hideLabel = overrideDisplay?.renderedInTable === true && calculatedOptions.length === 1 && !showLabelsInTable;
+  const renderLegend = overrideDisplay?.renderLegend !== false;
+  const fieldsetAriaLabel = !renderLegend ? langAsString(textResourceBindings?.title) : undefined;
   const shouldDisplayHorizontally = shouldUseRowLayout({
     layout,
     optionsCount: calculatedOptions.length,
@@ -93,12 +95,11 @@ export const ControlledRadioGroup = (props: PropsFromGenericComponent<'RadioButt
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <div id={id}>
-        <Fieldset role='radiogroup'>
-          <Fieldset.Legend
-            className={cn(classes.legend, { [utilClasses.visuallyHidden]: overrideDisplay?.renderLegend === false })}
-          >
-            {labelText}
-          </Fieldset.Legend>
+        <Fieldset
+          role='radiogroup'
+          aria-label={fieldsetAriaLabel}
+        >
+          {renderLegend && <Fieldset.Legend className={classes.legend}>{labelText}</Fieldset.Legend>}
           {textResourceBindings?.description && (
             <Fieldset.Description
               className={cn({ [utilClasses.visuallyHidden]: overrideDisplay?.renderLegend === false })}

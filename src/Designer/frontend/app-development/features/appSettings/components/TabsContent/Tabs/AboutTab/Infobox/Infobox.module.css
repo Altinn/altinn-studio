@@ -1,0 +1,7 @@
+.cardContainer {
+  max-width: 420px;
+}
+
+.cardContent {
+  background-color: var(--ds-color-info-surface-tinted);
+}

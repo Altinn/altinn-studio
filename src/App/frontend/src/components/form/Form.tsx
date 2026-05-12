@@ -16,10 +16,10 @@ import { FileScanResults } from 'src/features/attachments/types';
 import { FormStore } from 'src/features/form/FormContext';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { replaceAndPreventResetOptions } from 'src/features/navigation/navigationOptions';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
 import { useQueryKey } from 'src/hooks/navigation';
@@ -54,14 +54,11 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   useEffect(() => {
     if (shouldValidateFormPage && !shouldNavigateToStart) {
       onFormSubmitValidation();
-      setSearchParams(
-        (params) => {
-          const nextParams = new URLSearchParams(params);
-          nextParams.delete(SearchParams.Validate);
-          return nextParams;
-        },
-        { replace: true },
-      );
+      setSearchParams((params) => {
+        const nextParams = new URLSearchParams(params);
+        nextParams.delete(SearchParams.Validate);
+        return nextParams;
+      }, replaceAndPreventResetOptions);
     }
   }, [onFormSubmitValidation, searchParams, setSearchParams, shouldValidateFormPage, shouldNavigateToStart]);
 
@@ -179,7 +176,7 @@ function useRedirectToStoredPage() {
  */
 function useSetExpandedWidth() {
   const currentPageId = useCurrentView();
-  const expandedPagesFromLayout = FormBootstrap.useExpandedWidthLayouts();
+  const expandedPagesFromLayout = FormStore.bootstrap.useExpandedWidthLayouts();
   const expandedWidthFromSettings = usePageSettings().expandedWidth;
   const { setExpandedWidth } = useUiConfigContext();
 
@@ -196,7 +193,7 @@ function useSetExpandedWidth() {
 
 const emptyArray = [];
 function useFormState(currentPageId: string | undefined): FormState {
-  const lookups = FormBootstrap.useLayoutLookups();
+  const lookups = FormStore.bootstrap.useLayoutLookups();
   const topLevelIds = currentPageId ? (lookups.topLevelComponents[currentPageId] ?? emptyArray) : emptyArray;
   const { formErrors, taskErrors } = useTaskErrors();
   const hasErrors = Boolean(formErrors.length) || Boolean(taskErrors.length);
@@ -259,7 +256,7 @@ function HandleNavigationFocusComponent() {
         searchParams.delete(SearchParams.ExitSubform);
         const basePath = locationRef.current.pathname;
         const nextLocation = searchParams.size > 0 ? `${basePath}?${searchParams.toString()}` : basePath;
-        navigate(nextLocation, { replace: true });
+        navigate(nextLocation, replaceAndPreventResetOptions);
       }
     })();
   }, [navigate, locationRef, exitSubform, validate, onFormSubmitValidation]);

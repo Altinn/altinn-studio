@@ -13,6 +13,7 @@ on:
       - 'src/Runtime/workflow-engine-app/tests/**'
       - 'src/Runtime/workflow-engine-app/Directory.Build.props'
       - 'src/Runtime/workflow-engine-app/Directory.Packages.props'
+      - 'src/Runtime/workflow-engine-app/typos.toml'
       - '.github/workflows/runtime-workflow-engine-app-tests.yaml'
   workflow_dispatch:
 
@@ -34,6 +35,12 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
+
+      - name: Spell check
+        uses: crate-ci/typos@7c572958218557a3272c2d6719629443b5cc26fd # v1.45.2
+        with:
+          config: src/Runtime/workflow-engine-app/typos.toml
+          files: src/Runtime/workflow-engine-app
 
       - name: Setup .NET
         uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5

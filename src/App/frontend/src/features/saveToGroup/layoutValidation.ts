@@ -1,5 +1,5 @@
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import {
   validateDataModelBindingsAny,
   validateDataModelBindingsSimple,
@@ -13,8 +13,8 @@ export function useValidateSimpleBindingWithOptionalGroup<T extends 'Checkboxes'
   const errors: string[] = [];
   const allowedLeafTypes = ['string', 'boolean', 'number', 'integer'];
   const { group: groupBinding, simpleBinding, label: labelBinding, metadata: metadataBinding } = bindings ?? {};
-  const lookupBinding = FormBootstrap.useLookupBinding();
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const lookupBinding = FormStore.bootstrap.useLookupBinding();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
 
   if (groupBinding) {
     const [groupErrors] = validateDataModelBindingsAny(

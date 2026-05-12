@@ -6,7 +6,7 @@ using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Data.Entities;
 
-[Table("Workflows", Schema = SchemaNames.Engine)]
+[Table("workflows", Schema = SchemaNames.Engine)]
 internal sealed class WorkflowEntity
 {
     [Key]
@@ -35,10 +35,13 @@ internal sealed class WorkflowEntity
 
     public int ReclaimCount { get; set; }
 
+    public Guid? LeaseToken { get; set; }
+
     [Column(TypeName = "jsonb")]
     public Dictionary<string, string>? Labels { get; set; }
 
-    public Guid? CorrelationId { get; set; }
+    [MaxLength(200)]
+    public string? CollectionKey { get; set; }
 
     [MaxLength(100)]
     public string? DistributedTraceContext { get; set; }
@@ -55,6 +58,7 @@ internal sealed class WorkflowEntity
 
     public ICollection<StepEntity> Steps { get; set; } = [];
     public ICollection<WorkflowEntity>? Dependencies { get; set; }
+    public ICollection<WorkflowEntity>? Dependents { get; set; }
     public ICollection<WorkflowEntity>? Links { get; set; }
 
     public static WorkflowEntity FromDomainModel(Workflow workflow)
@@ -62,7 +66,7 @@ internal sealed class WorkflowEntity
         var entity = new WorkflowEntity
         {
             Id = workflow.DatabaseId,
-            CorrelationId = workflow.CorrelationId,
+            CollectionKey = workflow.CollectionKey,
             OperationId = workflow.OperationId,
             IdempotencyKey = workflow.IdempotencyKey,
             Namespace = workflow.Namespace,
@@ -72,6 +76,7 @@ internal sealed class WorkflowEntity
             BackoffUntil = workflow.BackoffUntil,
             HeartbeatAt = workflow.HeartbeatAt,
             ReclaimCount = workflow.ReclaimCount,
+            LeaseToken = workflow.LeaseToken,
             Status = workflow.Status,
             Labels = workflow.Labels,
             ContextJson = workflow.Context?.GetRawText(),
@@ -92,11 +97,19 @@ internal sealed class WorkflowEntity
         return entity;
     }
 
-    public Workflow ToDomainModel() =>
+    public Workflow ToDomainModel() => ToDomainModel(includeRelations: true);
+
+    /// <summary>
+    /// Maps to the domain model. When <paramref name="includeRelations"/> is <c>false</c>,
+    /// <see cref="Workflow.Dependencies"/>, <see cref="Workflow.Dependents"/>, and <see cref="Workflow.Links"/>
+    /// are left null. Used to cap recursion at one hop, since EF change-tracking fixup would
+    /// otherwise create cycles via the bidirectional Dependencies/Dependents inverse navigation.
+    /// </summary>
+    private Workflow ToDomainModel(bool includeRelations) =>
         new()
         {
             DatabaseId = Id,
-            CorrelationId = CorrelationId,
+            CollectionKey = CollectionKey,
             IdempotencyKey = IdempotencyKey,
             OperationId = OperationId,
             Namespace = Namespace,
@@ -106,6 +119,7 @@ internal sealed class WorkflowEntity
             BackoffUntil = BackoffUntil,
             HeartbeatAt = HeartbeatAt,
             ReclaimCount = ReclaimCount,
+            LeaseToken = LeaseToken,
             Status = Status,
             Labels = Labels,
             Context =
@@ -115,7 +129,12 @@ internal sealed class WorkflowEntity
             CancellationRequestedAt = CancellationRequestedAt,
             InitialState = InitialState,
             Steps = Steps.OrderBy(x => x.ProcessingOrder).Select(x => x.ToDomainModel()).ToList(),
-            Dependencies = Dependencies?.Select(x => x.ToDomainModel()).ToList(),
-            Links = Links?.Select(x => x.ToDomainModel()).ToList(),
+            Dependencies = includeRelations
+                ? Dependencies?.Select(x => x.ToDomainModel(includeRelations: false)).ToList()
+                : null,
+            Dependents = includeRelations
+                ? Dependents?.Select(x => x.ToDomainModel(includeRelations: false)).ToList()
+                : null,
+            Links = includeRelations ? Links?.Select(x => x.ToDomainModel(includeRelations: false)).ToList() : null,
         };
 }

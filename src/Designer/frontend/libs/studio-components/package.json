@@ -11,8 +11,8 @@
     "typecheck": "tsc --noEmit -p ./"
   },
   "dependencies": {
-    "@digdir/designsystemet-css": "1.11.1",
-    "@digdir/designsystemet-react": "1.11.1",
+    "@digdir/designsystemet-css": "1.13.2",
+    "@digdir/designsystemet-react": "1.13.2",
     "@digdir/designsystemet-theme": "1.11.0",
     "@studio/icons": "workspace:^",
     "@studio/pure-functions": "workspace:^",
@@ -29,6 +29,7 @@
     "@storybook/addon-links": "10.2.16",
     "@storybook/builder-vite": "10.2.16",
     "@storybook/react-vite": "10.2.16",
+    "@studio/ui-test": "workspace:^",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
     "@types/jest": "^30.0.0",

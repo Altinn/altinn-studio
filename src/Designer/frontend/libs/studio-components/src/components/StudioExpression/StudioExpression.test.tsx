@@ -49,7 +49,7 @@ describe('StudioExpression', () => {
     'Renders a boolean toggle correctly when the expression is %s',
     (expression) => {
       renderExpression(expression);
-      expect(screen.getByRole('radiogroup')).toBeInTheDocument();
+      expect(screen.getByRole('group')).toBeInTheDocument();
       if (expression) {
         expect(screen.getByRole('radio', { name: texts.true })).toBeChecked();
       } else {
