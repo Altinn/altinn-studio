@@ -12,6 +12,7 @@ import { makeIndexedId } from 'src/features/form/layout/utils/makeIndexedId';
 import { buildAuthContext } from 'src/utils/authContext';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { formatDateLocale } from 'src/utils/dateUtils';
+import { collectHiddenSources, evaluateHiddenSources } from 'src/utils/layout/hiddenUtils';
 import type { EvaluateExpressionParams } from 'src/features/expressions';
 import type {
   AnyExprArg,
@@ -899,32 +900,22 @@ function pickSimpleValue(
 }
 
 function isComponentOrAncestorHidden(ctx: EvaluateExpressionParams<['layoutLookups']>, componentId: string) {
-  let currentId: string | undefined = componentId;
-  while (currentId !== undefined) {
-    const component = ctx.dataSources.layoutLookups.allComponents[currentId];
-    const errorIntroText = `Expression in property hidden for component ${currentId} failed`;
-    if (evalEmbeddedExpression(ctx as EvaluateExpressionParams, component?.hidden, errorIntroText)) {
-      return true;
-    }
-
-    const parent = ctx.dataSources.layoutLookups.componentToParent[currentId];
-    if (parent?.type !== 'node') {
-      break;
-    }
-
-    currentId = parent.id;
-  }
-
-  const pageKey = ctx.dataSources.layoutLookups.componentToPage[componentId];
-  if (pageKey !== undefined) {
-    return evalEmbeddedExpression(
-      ctx as EvaluateExpressionParams,
-      ctx.dataSources.layoutLookups.hiddenPerPage[pageKey],
-      `Hidden expression for page ${pageKey} failed`,
-    );
-  }
-
-  return false;
+  const layoutLookups = ctx.dataSources.layoutLookups;
+  const hiddenSources = collectHiddenSources(componentId, layoutLookups).reverse();
+  const pageKey = layoutLookups.componentToPage[componentId];
+  return evaluateHiddenSources({
+    hiddenSources,
+    pageOrder: [],
+    pageKey,
+    evalHiddenExpression: (expr, source) =>
+      evalEmbeddedExpression(
+        ctx as EvaluateExpressionParams,
+        expr,
+        source.type === 'hiddenPage'
+          ? `Hidden expression for page ${source.id} failed`
+          : `Expression in property ${source.type} for component ${source.id} failed`,
+      ),
+  }).hidden;
 }
 
 function evalEmbeddedExpression(

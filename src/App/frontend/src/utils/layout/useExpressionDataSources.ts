@@ -14,6 +14,7 @@ import { useInnerLanguageWithForcedPathSelector } from 'src/features/language/us
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
+import { collectHiddenSources } from 'src/utils/layout/hiddenUtils';
 import type { ExprFunctionName } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
@@ -123,13 +124,12 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: DataSo
       );
     }
 
-    // When evaluating if a component is hidden, we look at the component and walk up the parents, all the way to the
-    // root component, and then the page it's on. To make sure this works, we have to build expression data sources for
-    // all parents as well.
+    // When evaluating if a component is hidden, we need data sources for all expressions involved in the effective
+    // visibility calculation, including parent-hidden, hiddenRow, and page-hidden expressions.
     const traversedComponentLookups = new Set<string>();
     while (componentLookups.size > 0) {
       const lookup = componentLookups.values().next().value;
-      if (lookup === undefined || !layoutLookups || !layoutCollection) {
+      if (lookup === undefined || !layoutLookups) {
         break;
       }
 
@@ -138,19 +138,11 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: DataSo
         continue;
       }
 
-      const component = layoutLookups.getComponent(lookup);
-      findUsedExpressionFunctions(component?.hidden, functionCalls, undefined, componentLookups);
-
-      let parent = layoutLookups.componentToParent[lookup];
-      while (parent?.type === 'node') {
-        const parentComponent = layoutLookups.getComponent(parent.id);
-        findUsedExpressionFunctions(parentComponent?.hidden, functionCalls, undefined, componentLookups);
-        parent = layoutLookups.componentToParent[parent.id];
-      }
-
-      const page = layoutLookups.componentToPage[lookup];
-      if (page !== undefined) {
-        findUsedExpressionFunctions(layoutCollection[page]?.data.hidden, functionCalls, undefined, componentLookups);
+      const hiddenSources = collectHiddenSources(lookup, layoutLookups);
+      for (const source of hiddenSources) {
+        if (source.type !== 'callback') {
+          findUsedExpressionFunctions(source.expr, functionCalls, undefined, componentLookups);
+        }
       }
 
       traversedComponentLookups.add(lookup);
