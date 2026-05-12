@@ -6,7 +6,10 @@ import { StudioCheckboxTableContextProvider } from './StudioCheckboxTableContext
 import { StudioValidationMessage } from '../StudioValidationMessage';
 import { CHECKBOX_TABLE_ERROR_ID } from './constants';
 
-export type StudioCheckboxTableProps = StudioTableProps & {
+export type StudioCheckboxTableProps = Pick<
+  StudioTableProps,
+  'children' | 'className' | 'data-size'
+> & {
   hasError?: boolean;
   errorMessage?: string;
 };
@@ -14,13 +17,13 @@ export type StudioCheckboxTableProps = StudioTableProps & {
 export function StudioCheckboxTable({
   className,
   children,
+  'data-size': dataSize,
   hasError,
   errorMessage,
-  ...rest
 }: StudioCheckboxTableProps): ReactElement {
   return (
     <StudioCheckboxTableContextProvider hasError={hasError}>
-      <StudioTable className={className} {...rest}>
+      <StudioTable className={className} data-size={dataSize}>
         {children}
       </StudioTable>
       {hasError && errorMessage && (
