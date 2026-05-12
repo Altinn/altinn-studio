@@ -530,7 +530,8 @@ public static class Metrics
     /// <summary>
     /// Returns the current service version from the entry assembly's
     /// <see cref="AssemblyInformationalVersionAttribute"/> (CI sets this via
-    /// <c>-p:InformationalVersion=&lt;short-sha&gt;</c> at publish time), falling back to <c>"0.0.0-dev"</c>.
+    /// <c>-p:InformationalVersion=&lt;short-sha&gt;</c> at publish time), falling back to <c>"dev"</c>
+    /// — matching the csproj default — when no entry assembly is resolvable (e.g. some test hosts).
     /// </summary>
     private static string ResolveServiceVersion()
     {
@@ -541,6 +542,6 @@ public static class Metrics
         if (!string.IsNullOrWhiteSpace(fromAssembly))
             return fromAssembly;
 
-        return "0.0.0-dev";
+        return "dev";
     }
 }
