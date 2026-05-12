@@ -94,7 +94,7 @@ export function processBootstrap(bootstrap: FormBootstrapBase): FormBootstrapCon
   }
 
   const processedLayouts = processLayouts(bootstrap.layouts, defaultDataType);
-  const layoutLookups = makeLayoutLookups(processedLayouts);
+  const layoutLookups = makeLayoutLookups(processedLayouts, bootstrap.layouts);
 
   return {
     ...bootstrap,
