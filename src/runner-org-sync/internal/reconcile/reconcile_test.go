@@ -167,13 +167,10 @@ func TestRun_ColdStart(t *testing.T) {
 	}
 	wantBody := strings.Join([]string{
 		"- name: brg",
-		"  replicas: 1",
 		"  registrationTokenSecretName: altinn-gitea-runner-brg-secret",
 		"- name: dsb",
-		"  replicas: 1",
 		"  registrationTokenSecretName: altinn-gitea-runner-dsb-secret",
 		"- name: ttd",
-		"  replicas: 1",
 		"  registrationTokenSecretName: altinn-gitea-runner-ttd-secret",
 		"",
 	}, "\n")

@@ -21,7 +21,6 @@ import (
 
 // Defaults used when the caller does not override.
 const (
-	DefaultReplicas       = 1
 	ConfigMapDataKey      = "runners.yaml"
 	FilterReasonNoEnv     = "no_environments"
 	FilterReasonWhitelist = "not_in_whitelist"
@@ -274,6 +273,10 @@ func (r *Reconciler) filter(orgs []cdn.Org, report *Report) []cdn.Org {
 // HelmRelease via Flux valuesFrom (targetPath: runners). Determinism via
 // sorted input is required so unchanged state produces unchanged output and
 // ApplyConfigMap detects "no change" correctly.
+//
+// Replica count is deliberately omitted: scaling is owned by KEDA ScaledJobs
+// on the consumer side, so a runner-org-sync-supplied replicas field would
+// be ignored at best and misleading at worst.
 func renderRunners(orgs []string, secretNameFor func(org string) string) string {
 	if len(orgs) == 0 {
 		return "[]\n"
@@ -281,7 +284,6 @@ func renderRunners(orgs []string, secretNameFor func(org string) string) string 
 	var b strings.Builder
 	for _, org := range orgs {
 		fmt.Fprintf(&b, "- name: %s\n", org)
-		fmt.Fprintf(&b, "  replicas: %d\n", DefaultReplicas)
 		fmt.Fprintf(&b, "  registrationTokenSecretName: %s\n", secretNameFor(org))
 	}
 	return b.String()
