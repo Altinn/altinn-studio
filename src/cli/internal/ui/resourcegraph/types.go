@@ -1,5 +1,5 @@
-// Package renderer contains the localtest resource renderers used by env up/down.
-package renderer
+// Package resourcegraph renders devenv resource graph lifecycle progress.
+package resourcegraph
 
 import (
 	"sync"
@@ -42,7 +42,7 @@ const (
 	stateCanceled   = "canceled"
 )
 
-// Mode identifies the rendering mode to use for a localtest resource operation.
+// Mode identifies the rendering mode to use for a resource graph operation.
 type Mode int
 
 const (

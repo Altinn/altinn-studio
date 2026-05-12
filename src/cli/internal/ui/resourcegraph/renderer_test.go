@@ -1,5 +1,5 @@
-//nolint:testpackage // Same-package tests are justified here because the renderer package is internal CLI implementation detail.
-package renderer
+//nolint:testpackage // Same-package tests are justified here because the resourcegraph package is internal CLI implementation detail.
+package resourcegraph
 
 import (
 	"bytes"
