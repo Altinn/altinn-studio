@@ -27,7 +27,10 @@ internal sealed class BinaryDataUpdateUserAction : IUserAction
             );
         }
 
-        if (!context.ActionMetadata.TryGetValue("newContent", out string? newContent))
+        if (
+            !context.ActionMetadata.TryGetValue("newContent", out string? newContent)
+            || string.IsNullOrWhiteSpace(newContent)
+        )
         {
             return Task.FromResult(
                 UserActionResult.FailureResult(

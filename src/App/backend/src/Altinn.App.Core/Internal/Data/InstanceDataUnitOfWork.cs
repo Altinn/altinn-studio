@@ -660,10 +660,11 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             throw new InvalidOperationException("AbandonAllChanges has been called, and no changes should be saved");
         }
 
-        foreach (var change in changes.BinaryDataChanges.Where(change => change.Type == ChangeType.Updated))
-        {
-            await GetPersistedBinaryData(change.DataElementIdentifier);
-        }
+        await Task.WhenAll(
+            changes
+                .BinaryDataChanges.Where(change => change.Type == ChangeType.Updated)
+                .Select(change => GetPersistedBinaryData(change.DataElementIdentifier))
+        );
 
         var tasks = new List<Task>();
 

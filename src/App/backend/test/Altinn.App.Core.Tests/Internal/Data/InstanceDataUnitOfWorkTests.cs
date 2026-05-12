@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Core.Tests.Internal.Data;
 
-public class InstanceDataUnitOfWorkTests
+public sealed class InstanceDataUnitOfWorkTests
 {
     [Fact]
     public async Task UpdateBinaryDataElement_RegistersUpdatedBinaryChange_AndReturnsUpdatedBytes()

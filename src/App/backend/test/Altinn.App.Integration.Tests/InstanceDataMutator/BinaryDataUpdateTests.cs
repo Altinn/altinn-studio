@@ -7,7 +7,7 @@ using Xunit.Abstractions;
 namespace Altinn.App.Integration.Tests.InstanceDataMutator;
 
 [Trait("Category", "Integration")]
-public class BinaryDataUpdateTests(ITestOutputHelper _output, AppFixtureClassFixture _classFixture)
+public sealed class BinaryDataUpdateTests(ITestOutputHelper _output, AppFixtureClassFixture _classFixture)
     : IClassFixture<AppFixtureClassFixture>
 {
     private static readonly byte[] _expectedBytes = Encoding.UTF8.GetBytes("updated through IInstanceDataMutator");
