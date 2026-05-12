@@ -60,6 +60,7 @@
       @using (Html.BeginForm("LogInTestUser", "Home", FormMethod.Post, new { Class = "form-signin", enctype = "multipart/form-data" }))
       {
         @Html.AntiForgeryToken();
+        @Html.HiddenFor(model => model.RedirectUrl);
         @if(Model.TestApps != null)
         {
           <div class="form-group">
