@@ -143,7 +143,8 @@ function OpenLanguageAdder({
 
   const handleBlur = useCallback((): void => {
     requestAnimationFrame(() => {
-      if (!([inputRef.current, buttonRef.current] as Element[]).includes(document.activeElement)) {
+      const focusableElements: (Element | null)[] = [inputRef.current, buttonRef.current];
+      if (!focusableElements.includes(document.activeElement)) {
         onFocusOutside();
       }
     });
