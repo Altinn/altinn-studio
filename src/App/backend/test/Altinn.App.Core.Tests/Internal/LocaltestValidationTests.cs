@@ -210,7 +210,8 @@ public class LocaltestValidationTests
     [Fact]
     public async Task Test_Timeout()
     {
-        await using var fixture = Fixture.Create();
+        var requestStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        await using var fixture = Fixture.Create(onRequest: () => requestStarted.TrySetResult());
 
         var expectedVersion = _okExpectedVersion;
         var delay = TimeSpan.FromSeconds(6);
@@ -230,7 +231,7 @@ public class LocaltestValidationTests
         var service = fixture.Validator;
         var lifetime = fixture.App.Services.GetRequiredService<IHostApplicationLifetime>();
         await service.StartAsync(lifetime.ApplicationStopping);
-        await Task.Delay(10);
+        await requestStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
         fixture.TimeProvider.Advance(delay);
 
         var result = await service.Results.FirstAsync();
@@ -243,7 +244,8 @@ public class LocaltestValidationTests
     [Fact]
     public async Task Test_App_Shutdown()
     {
-        await using var fixture = Fixture.Create();
+        var requestStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        await using var fixture = Fixture.Create(onRequest: () => requestStarted.TrySetResult());
 
         var expectedVersion = _okExpectedVersion;
         var delay = TimeSpan.FromSeconds(6);
@@ -263,7 +265,7 @@ public class LocaltestValidationTests
         var service = fixture.Validator;
         var lifetime = fixture.App.Services.GetRequiredService<IHostApplicationLifetime>();
         await service.StartAsync(lifetime.ApplicationStopping);
-        await Task.Delay(10);
+        await requestStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
         fixture.TimeProvider.Advance(delay.Subtract(TimeSpan.FromSeconds(4)));
         lifetime.StopApplication();
 

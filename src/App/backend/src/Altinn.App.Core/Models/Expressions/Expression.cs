@@ -130,6 +130,11 @@ public readonly struct Expression : IEquatable<Expression>
     public bool IsLiteralString => ValueUnion.ValueKind == JsonValueKind.String;
 
     /// <summary>
+    /// Used when the expression is not defined
+    /// </summary>
+    public static Expression Undefined => new(ExpressionValue.Undefined);
+
+    /// <summary>
     /// The custom <see cref="ExpressionConverter"/> is a <see cref="JsonConverter{T}"/>
     /// that serializes the expression to JSON (array for function or literal value).
     /// </summary>

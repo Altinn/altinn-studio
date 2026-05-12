@@ -5,7 +5,6 @@ import { Button } from 'src/app-components/Button/Button';
 import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
 import { parseInstanceId } from 'src/core/queries/instance';
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
@@ -21,7 +20,7 @@ export const InstantiationButton = ({ children, ...props }: Props) => {
   const performProcess = useProcessingMutation('instantiation');
   const isLoading = useIsThisProcessing('instantiation');
   const isAnyProcessing = useIsAnyProcessing();
-  const prefill = FormStore.data.useMapping(props.mapping, FormBootstrap.useDefaultDataType());
+  const prefill = FormStore.data.useMapping(props.mapping, FormStore.bootstrap.useDefaultDataType());
   const party = useSelectedParty();
   const navigate = useNavigate();
 

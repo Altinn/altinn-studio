@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Implementation;
+using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
 
@@ -26,7 +28,7 @@ public class ChatServiceTests
     public ChatServiceTests()
     {
         _repositoryMock = new Mock<IChatRepository>();
-        _chatService = new ChatService(_repositoryMock.Object);
+        _chatService = new ChatService(_repositoryMock.Object, TimeProvider.System, new SchedulingSettings());
     }
 
     [Fact]
@@ -116,6 +118,26 @@ public class ChatServiceTests
         await _chatService.DeleteThreadAsync(Guid.NewGuid(), _context);
 
         _repositoryMock.Verify(r => r.DeleteThreadAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task DeleteInactiveThreadsAsync_ComputesAndPassesCutoff()
+    {
+        var fixedNow = new DateTimeOffset(2026, 5, 6, 12, 0, 0, TimeSpan.Zero);
+        var fakeTimeProvider = new FakeTimeProvider(fixedNow);
+        var schedulingSettings = new SchedulingSettings
+        {
+            ChatInactivityCleanup = new ChatInactivityCleanupSettings { RetentionDays = 30 },
+        };
+        var chatService = new ChatService(_repositoryMock.Object, fakeTimeProvider, schedulingSettings);
+        DateTime expectedCutoff = fixedNow.UtcDateTime.AddDays(-30);
+
+        await chatService.DeleteInactiveThreadsAsync();
+
+        _repositoryMock.Verify(
+            r => r.DeleteInactiveThreadsAsync(expectedCutoff, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
     }
 
     [Fact]

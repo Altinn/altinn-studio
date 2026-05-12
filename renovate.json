@@ -73,7 +73,7 @@
       ],
       "groupName": "Digdir design system",
       "schedule": ["* 0-7 * * 1-5"],
-      "minimumReleaseAge": "0"
+      "minimumReleaseAge": "3 days"
     },
     {
       "matchFileNames": ["src/App/**"],

@@ -10,6 +10,14 @@
     "strict": true,
     "resolveJsonModule": true,
     "noUnusedLocals": true,
+    "paths": {
+      "src/*": ["./src/*"]
+    },
+    "plugins": [
+      {
+        "name": "typescript-plugin-css-modules"
+      }
+    ],
     "types": ["vitest/globals", "@testing-library/jest-dom"]
   },
   "include": ["src/**/*", "vitest.config.ts"],

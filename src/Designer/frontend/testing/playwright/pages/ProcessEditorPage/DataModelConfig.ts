@@ -7,11 +7,9 @@ export class DataModelConfig extends BasePage {
   }
 
   public async clickOnDesignAccordion(): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('process_editor.configuration_panel_design_title'),
-      })
-      .click();
+    await this.getSummaryByText(
+      this.textMock('process_editor.configuration_panel_design_title'),
+    ).click();
   }
 
   public async clickOnDataModelButton(dataModelName: string): Promise<void> {

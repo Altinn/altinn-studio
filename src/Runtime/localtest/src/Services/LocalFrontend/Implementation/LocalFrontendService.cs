@@ -3,7 +3,7 @@ using Altinn.Studio.EnvTopology;
 using LocalTest.Configuration;
 using LocalTest.Models;
 using LocalTest.Services.LocalFrontend.Interface;
-using LocalTest.Tunnel;
+using LocalTest.HostBridge;
 using Microsoft.Extensions.Options;
 
 namespace LocalTest.Services.LocalFrontend;
@@ -12,17 +12,17 @@ public class LocalFrontendService : ILocalFrontendService
 {
     private const string FrontendDevServerComponent = "frontendDevServer";
 
-    private readonly AppTunnelClient _appTunnelClient;
+    private readonly HostBridgeClient _hostBridgeClient;
     private readonly string _localtestBaseUrl;
     private readonly BoundTopologyIndexAccessor _boundTopologyIndex;
 
     public LocalFrontendService(
-        AppTunnelClient appTunnelClient,
+        HostBridgeClient hostBridgeClient,
         IOptions<GeneralSettings> generalSettings,
         BoundTopologyIndexAccessor boundTopologyIndex
     )
     {
-        _appTunnelClient = appTunnelClient;
+        _hostBridgeClient = hostBridgeClient;
         _localtestBaseUrl = generalSettings.Value.GetBaseUrl;
         _boundTopologyIndex = boundTopologyIndex;
     }
@@ -38,7 +38,7 @@ public class LocalFrontendService : ILocalFrontendService
         try
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, "/");
-            using var response = await _appTunnelClient.SendToTarget(
+            using var response = await _hostBridgeClient.SendToTarget(
                 request,
                 frontendRoute.TargetHost,
                 frontendRoute.TargetPort,

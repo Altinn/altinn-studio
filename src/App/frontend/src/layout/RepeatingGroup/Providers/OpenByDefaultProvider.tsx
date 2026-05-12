@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { SearchParams } from 'src/core/routing/types';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { useAsRef } from 'src/hooks/useAsRef';
 import {
   RepGroupContext,
@@ -98,7 +98,7 @@ export function OpenByDefaultProvider({ baseComponentId, children }: PropsWithCh
  */
 function useIsFocussingAChild(baseComponentId: string): boolean {
   const focusComponentId = useSearchParams()[0].get(SearchParams.FocusComponentId);
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   if (!focusComponentId) {
     return false;
   }

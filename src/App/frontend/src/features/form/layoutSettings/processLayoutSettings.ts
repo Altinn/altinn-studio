@@ -43,6 +43,8 @@ export function processLayoutSettings(settings: ILayoutSettings | null | undefin
     showLanguageSelector: settings.pages.showLanguageSelector,
     showProgress: settings.pages.showProgress,
     taskNavigation: settings.pages.taskNavigation?.map((g) => ({ ...g, id: uuidv4() })),
+    navigationTitle: settings.pages.navigationTitle,
+    validationOnNavigation: settings.pages.validationOnNavigation,
   };
 
   return {

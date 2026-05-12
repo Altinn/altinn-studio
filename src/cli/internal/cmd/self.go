@@ -6,27 +6,38 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
 
-	selfsvc "altinn.studio/studioctl/internal/cmd/self"
+	envtypes "altinn.studio/studioctl/internal/cmd/env"
+	envregistry "altinn.studio/studioctl/internal/cmd/env/registry"
+	selfcmd "altinn.studio/studioctl/internal/cmd/self"
 	"altinn.studio/studioctl/internal/config"
+	installpkg "altinn.studio/studioctl/internal/install"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
 
 const (
-	selfMigrateSubcmd = "__migrate"
+	selfCompleteInstallSubcmd = "__complete-install"
+	selfMigrateSubcmd         = "__migrate"
 )
 
 // SelfCommand implements the 'self' subcommand.
 type SelfCommand struct {
 	cfg              *config.Config
 	out              *ui.Output
-	service          *selfsvc.Service
-	transition       *selfsvc.Transition
+	service          *installpkg.Service
+	transition       *selfcmd.Transition
 	interactiveInput func() (io.Reader, func() error, error)
+}
+
+type applyBundleOptions struct {
+	TargetDir  string
+	Candidates []selfcmd.Candidate
+	WarnPath   bool
 }
 
 // NewSelfCommand creates a new self command.
@@ -34,10 +45,36 @@ func NewSelfCommand(cfg *config.Config, out *ui.Output) *SelfCommand {
 	return &SelfCommand{
 		cfg:              cfg,
 		out:              out,
-		service:          selfsvc.NewService(cfg),
-		transition:       selfsvc.NewTransition(cfg, out),
+		service:          installpkg.NewService(cfg, envInstallHooks(cfg, out)),
+		transition:       selfcmd.NewTransition(cfg, out),
 		interactiveInput: ui.InteractiveInput,
 	}
+}
+
+func envInstallHooks(cfg *config.Config, out *ui.Output) func(context.Context) error {
+	return func(ctx context.Context) error {
+		envs, err := envregistry.Envs(
+			envregistry.WithConfig(cfg),
+			envregistry.WithOutput(out),
+		)
+		if err != nil {
+			return fmt.Errorf("load environments: %w", err)
+		}
+		return runEnvInstallHooks(ctx, envs)
+	}
+}
+
+func runEnvInstallHooks(ctx context.Context, envs []envtypes.Env) error {
+	for _, env := range envs {
+		installer, ok := env.(envtypes.Installer)
+		if !ok {
+			continue
+		}
+		if err := installer.OnInstall(ctx); err != nil {
+			return fmt.Errorf("%s install hook: %w", env.Name(), err)
+		}
+	}
+	return nil
 }
 
 // Name returns the command name.
@@ -54,7 +91,7 @@ func (c *SelfCommand) Usage() string {
 		fmt.Sprintf("Manage the %s installation.", osutil.CurrentBin()),
 		"",
 		"Subcommands:",
-		"  install   Install binary, app-manager, and localtest resources",
+		"  install   Install binary, studioctl-server, and localtest resources",
 		"  update    Check for and install updates",
 		"  uninstall Remove installed binary",
 		"",
@@ -79,8 +116,9 @@ func (c *SelfCommand) Run(ctx context.Context, args []string) error {
 		return c.runUpdate(ctx, subArgs)
 	case "uninstall":
 		return c.runUninstall(ctx, subArgs)
-	case selfMigrateSubcmd:
-		return c.runMigrate(ctx, subArgs)
+	case selfCompleteInstallSubcmd, selfMigrateSubcmd:
+		// __migrate is a preview.7 compatibility alias used by old updaters after replacing the binary.
+		return c.runCompleteInstall(ctx, subArgs)
 	case "-h", flagHelp, helpSubcmd:
 		c.out.Print(c.Usage())
 		return nil
@@ -95,11 +133,10 @@ func (c *SelfCommand) runInstall(ctx context.Context, args []string) error {
 		c.out.Print(joinLines(
 			fmt.Sprintf("Usage: %s self install [options]", osutil.CurrentBin()),
 			"",
-			fmt.Sprintf("Install %s, app-manager, and localtest resources.", osutil.CurrentBin()),
+			fmt.Sprintf("Install %s, studioctl-server, and localtest resources.", osutil.CurrentBin()),
 			"",
 			"Options:",
 			"  --path DIR          Install binary to specific directory (non-interactive)",
-			"  --skip-resources    Skip localtest resources",
 			"  -h, --help          Show this help message",
 			"",
 			"If --path is not specified, an interactive picker will prompt you to",
@@ -109,9 +146,9 @@ func (c *SelfCommand) runInstall(ctx context.Context, args []string) error {
 	}
 
 	var targetPath string
-	var skipResources bool
 	fs.StringVar(&targetPath, "path", "", "Install to specific directory")
-	fs.BoolVar(&skipResources, "skip-resources", false, "Skip downloading localtest resources")
+	// TODO: Remove --skip-resources after releases that passed it from install scripts are no longer supported.
+	fs.Bool("skip-resources", false, "Deprecated no-op compatibility flag")
 
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
@@ -120,7 +157,7 @@ func (c *SelfCommand) runInstall(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	candidates := c.service.DetectCandidates()
+	candidates := selfcmd.DetectCandidates(nil)
 
 	if targetPath == "" {
 		selected, err := c.resolveInstallLocation(ctx, candidates)
@@ -133,14 +170,19 @@ func (c *SelfCommand) runInstall(ctx context.Context, args []string) error {
 		targetPath = selected
 	}
 
-	return c.performInstall(ctx, targetPath, candidates, skipResources)
+	return c.performInstall(ctx, targetPath, candidates)
 }
 
 func (c *SelfCommand) resolveInstallLocation(
 	ctx context.Context,
-	candidates []selfsvc.Candidate,
+	candidates []selfcmd.Candidate,
 ) (string, error) {
-	input, cleanup, err := ui.InteractiveInput()
+	if dir, ok := selfcmd.ExistingInstallDir(); ok {
+		c.out.Verbosef("using existing install location: %s", dir)
+		return dir, nil
+	}
+
+	input, cleanup, err := c.interactiveInput()
 	if err != nil {
 		c.out.Verbosef("terminal input unavailable, using default install location: %v", err)
 		return c.defaultInstallLocation(candidates)
@@ -154,8 +196,8 @@ func (c *SelfCommand) resolveInstallLocation(
 	return c.pickInstallLocation(ctx, input, candidates)
 }
 
-func (c *SelfCommand) defaultInstallLocation(candidates []selfsvc.Candidate) (string, error) {
-	target, ok := selfsvc.DefaultInstallLocation(candidates)
+func (c *SelfCommand) defaultInstallLocation(candidates []selfcmd.Candidate) (string, error) {
+	target, ok := selfcmd.DefaultInstallLocation(candidates)
 	if ok {
 		return target, nil
 	}
@@ -166,21 +208,15 @@ func (c *SelfCommand) defaultInstallLocation(candidates []selfsvc.Candidate) (st
 func (c *SelfCommand) pickInstallLocation(
 	ctx context.Context,
 	input io.Reader,
-	candidates []selfsvc.Candidate,
+	candidates []selfcmd.Candidate,
 ) (string, error) {
 	if len(candidates) == 0 {
 		return "", c.handleNoWritableLocations()
 	}
 
-	picker := selfsvc.NewPicker(c.out, input, candidates)
+	picker := selfcmd.NewPicker(c.out, input, candidates)
 	selected, err := picker.Run(ctx)
 	if err != nil {
-		if errors.Is(err, selfsvc.ErrSkipped) {
-			c.out.Println("")
-			c.out.Println("Installation skipped.")
-			c.out.Printlnf("You can manually move the %s binary to a directory in your PATH.", osutil.CurrentBin())
-			return "", nil
-		}
 		return "", fmt.Errorf("select install location: %w", err)
 	}
 	return selected, nil
@@ -189,58 +225,64 @@ func (c *SelfCommand) pickInstallLocation(
 func (c *SelfCommand) performInstall(
 	ctx context.Context,
 	targetPath string,
-	candidates []selfsvc.Candidate,
-	skipResources bool,
+	candidates []selfcmd.Candidate,
+) error {
+	bundle, err := c.service.CurrentBundle(os.Getenv(config.EnvResourcesArchive), targetPath)
+	if err != nil {
+		return fmt.Errorf("create install bundle: %w", err)
+	}
+
+	return c.applyBundle(ctx, bundle, applyBundleOptions{
+		TargetDir:  targetPath,
+		Candidates: candidates,
+		WarnPath:   true,
+	})
+}
+
+func (c *SelfCommand) applyBundle(
+	ctx context.Context,
+	bundle installpkg.Bundle,
+	opts applyBundleOptions,
 ) error {
 	state, err := c.transition.Prepare(ctx)
 	if err != nil {
-		return fmt.Errorf("prepare install: %w", err)
+		return fmt.Errorf("prepare self operation: %w", err)
 	}
-	installedStudioctlPath := ""
+	installedPath := ""
 	restoreOnFailure := true
 	defer func() {
 		if restoreOnFailure {
-			c.transition.Restore(ctx, state, installedStudioctlPath)
+			c.transition.Restore(ctx, state, installedPath)
 		}
 	}()
 
-	c.out.Printlnf("Installing binary to %s...", targetPath)
+	result, err := c.service.InstallBundleBinary(bundle, installpkg.BinaryInstallOptions{
+		BeforeInstallBinary: func(path string) {
+			c.out.Printlnf("Installing binary to %s...", path)
+		},
+		AfterInstallBinary: func(result installpkg.BundleInstallResult) {
+			if result.BinaryAlreadyInstalled {
+				c.out.Successf("%s is already installed at this location.", osutil.CurrentBin())
+			} else {
+				c.out.Successf("Binary installed to %s", result.BinaryPath)
+			}
 
-	result, err := c.service.InstallBinary(targetPath)
+			if opts.WarnPath && !selfcmd.LocationInPath(opts.TargetDir, opts.Candidates) {
+				c.out.Println("")
+				c.out.Warning("This directory is not in your PATH.")
+				c.out.Println("")
+				c.out.Println(selfcmd.LocationPathInstructions(opts.TargetDir))
+			}
+		},
+	})
+	installedPath = result.BinaryPath
 	if err != nil {
 		return fmt.Errorf("install binary: %w", err)
 	}
-	installedStudioctlPath = result.InstalledPath
-
-	if result.AlreadyInstalled {
-		c.out.Successf("%s is already installed at this location.", osutil.CurrentBin())
-	} else {
-		c.out.Successf("Binary installed to %s", result.InstalledPath)
-	}
-
-	if !c.service.IsInPath(targetPath, candidates) {
-		c.out.Println("")
-		c.out.Warning("This directory is not in your PATH.")
-		c.out.Println("")
-		c.out.Println(c.service.PathInstructions(targetPath))
-	}
-
-	if !skipResources {
-		if err := c.installResources(ctx); err != nil {
-			return err
-		}
-	}
-
-	if err := c.installAppManager(ctx); err != nil {
-		return err
+	if err := c.runInstalledCompleteInstall(ctx, installedPath); err != nil {
+		return fmt.Errorf("complete install: %w", err)
 	}
 	restoreOnFailure = false
-	if err := c.runInstalledMigrations(ctx, installedStudioctlPath); err != nil {
-		return fmt.Errorf("run install migrations: %w", err)
-	}
-	if err := c.transition.RestartIfNeeded(ctx, state, installedStudioctlPath); err != nil {
-		return fmt.Errorf("restart after install: %w", err)
-	}
 	return nil
 }
 
@@ -251,57 +293,7 @@ func (c *SelfCommand) handleNoWritableLocations() error {
 	c.out.Println("Common locations include:")
 	c.out.Println("  - ~/.local/bin (Linux/macOS)")
 	c.out.Println("  - /usr/local/bin (requires sudo)")
-	return selfsvc.ErrNoWritableLocation
-}
-
-func (c *SelfCommand) installResources(ctx context.Context) error {
-	c.out.Println("")
-
-	if c.service.ResourcesInstalled() {
-		c.out.Success("Localtest resources already installed.")
-		return nil
-	}
-
-	spinner := ui.NewSpinner(c.out, "Installing localtest resources...")
-	if !c.cfg.Verbose {
-		spinner.Start()
-	}
-
-	result, err := c.service.InstallResources(ctx)
-	if err != nil {
-		spinner.StopWithError("Failed to install resources")
-		return fmt.Errorf("install resources: %w", err)
-	}
-
-	if result.AlreadyInstalled {
-		spinner.Stop()
-		c.out.Success("Localtest resources already installed.")
-		return nil
-	}
-
-	spinner.StopWithSuccess("Localtest resources installed")
-	c.out.Verbosef("Installed to: %s", c.cfg.DataDir)
-
-	return nil
-}
-
-func (c *SelfCommand) installAppManager(ctx context.Context) error {
-	c.out.Println("")
-
-	spinner := ui.NewSpinner(c.out, "Installing app-manager...")
-	if !c.cfg.Verbose {
-		spinner.Start()
-	}
-
-	result, err := c.service.InstallAppManager(ctx)
-	if err != nil {
-		spinner.StopWithError("Failed to install app-manager")
-		return fmt.Errorf("install app-manager: %w", err)
-	}
-
-	spinner.StopWithSuccess("App-manager installed")
-	c.out.Verbosef("Installed to: %s", result.InstalledPath)
-	return nil
+	return selfcmd.ErrNoWritableInstallLocation
 }
 
 func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {
@@ -331,84 +323,84 @@ func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	if runtime.GOOS == osutil.OSWindows {
-		return fmt.Errorf("%w: windows executable is locked while running", selfsvc.ErrUpdateUnsupported)
-	}
-
-	state, err := c.transition.Prepare(ctx)
-	if err != nil {
-		return fmt.Errorf("prepare update: %w", err)
-	}
-	updatedStudioctlPath := ""
-	restoreOnFailure := true
-	defer func() {
-		if restoreOnFailure {
-			c.transition.Restore(ctx, state, updatedStudioctlPath)
-		}
-	}()
-
 	c.out.Printlnf("Current version: %s", c.cfg.Version)
-	result, err := c.service.UpdateBinary(
+	resolved, err := c.service.ResolveUpdateBundle(
 		ctx,
-		selfsvc.UpdateOptions{
+		installpkg.UpdateOptions{
 			Version:      version,
 			SkipChecksum: skipChecksum,
 		},
 	)
 	if err != nil {
-		return fmt.Errorf("self update: %w", err)
+		return fmt.Errorf("resolve update bundle: %w", err)
 	}
-	updatedStudioctlPath = result.TargetPath
+	if resolved.Cleanup != nil {
+		defer func() {
+			if cleanupErr := resolved.Cleanup(); cleanupErr != nil {
+				c.out.Verbosef("failed to clean up update bundle: %v", cleanupErr)
+			}
+		}()
+	}
 
-	c.out.Verbosef("Updated binary path: %s", result.TargetPath)
-	c.out.Verbosef("Release source: %s", result.ReleaseSource)
-	c.out.Verbosef("Asset: %s", result.Asset)
-	if err := c.updateAppManager(ctx, result.Version); err != nil {
-		return fmt.Errorf("update app-manager: %w", err)
-	}
-
-	restoreOnFailure = false
-	if err := c.runInstalledMigrations(ctx, result.TargetPath); err != nil {
-		return fmt.Errorf("run update migrations: %w", err)
-	}
-	if err := c.transition.RestartIfNeeded(ctx, state, result.TargetPath); err != nil {
-		return fmt.Errorf("restart after update: %w", err)
+	if err := c.applyBundle(ctx, resolved.Bundle, applyBundleOptions{
+		TargetDir:  "",
+		Candidates: nil,
+		WarnPath:   false,
+	}); err != nil {
+		return fmt.Errorf("apply update bundle: %w", err)
 	}
 
 	c.out.Successf("%s updated successfully.", osutil.CurrentBin())
 	return nil
 }
 
-func (c *SelfCommand) updateAppManager(
-	ctx context.Context,
-	version string,
-) error {
-	result, err := c.service.InstallAppManagerVersion(ctx, version)
-	if err != nil {
-		return fmt.Errorf("install app-manager: %w", err)
-	}
-	c.out.Verbosef("Updated app-manager path: %s", result.InstalledPath)
-	return nil
-}
+func (c *SelfCommand) runInstalledCompleteInstall(ctx context.Context, studioctlPath string) error {
+	args := c.installedSelfCommandArgs(selfCompleteInstallSubcmd)
+	c.out.Verbosef("Completing installation with: %s %v", studioctlPath, args)
 
-func (c *SelfCommand) runInstalledMigrations(ctx context.Context, studioctlPath string) error {
-	args := c.migrationCommandArgs()
-	c.out.Verbosef("Running migrations with: %s %v", studioctlPath, args)
+	c.out.Println("")
+	resourcesSpinner := ui.NewSpinner(c.out, "Completing installation...")
+	if !c.cfg.Verbose {
+		resourcesSpinner.Start()
+	}
 
 	//nolint:gosec // G204: studioctlPath is the just-installed studioctl binary path.
 	cmd := exec.CommandContext(ctx, studioctlPath, args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
+		resourcesSpinner.StopWithError("Failed to complete installation")
 		msg := strings.TrimSpace(string(output))
 		if msg != "" {
-			return fmt.Errorf("run installed studioctl migrations: %w: %s", err, msg)
+			return fmt.Errorf("run installed studioctl install completion: %w: %s", err, msg)
 		}
-		return fmt.Errorf("run installed studioctl migrations: %w", err)
+		return fmt.Errorf("run installed studioctl install completion: %w", err)
+	}
+
+	resourcesSpinner.StopWithSuccess("Installation completed")
+	c.out.Verbosef("Installed studioctl-server to: %s", c.cfg.StudioctlServerInstallDir())
+	c.out.Verbosef("Installed localtest resources to: %s", c.cfg.DataDir)
+	return nil
+}
+
+func (c *SelfCommand) runCompleteInstall(ctx context.Context, args []string) error {
+	if len(args) != 0 {
+		return fmt.Errorf("%w: %s", ErrInvalidFlagValue, strings.Join(args, " "))
+	}
+	bundle := installpkg.Bundle{
+		Version:              c.cfg.Version.String(),
+		BinaryPath:           "",
+		ResourcesArchivePath: os.Getenv(config.EnvResourcesArchive),
+	}
+	if err := c.service.InstallBundleResources(ctx, bundle); err != nil {
+		return fmt.Errorf("install resources: %w", err)
+	}
+	if err := c.transition.RunMigrations(ctx); err != nil {
+		return fmt.Errorf("run migrations: %w", err)
 	}
 	return nil
 }
 
-func (c *SelfCommand) migrationCommandArgs() []string {
+func (c *SelfCommand) installedSelfCommandArgs(subcmd string) []string {
 	args := make([]string, 0, 7)
 	if c.cfg.Home != "" {
 		args = append(args, "--home", c.cfg.Home)
@@ -419,17 +411,7 @@ func (c *SelfCommand) migrationCommandArgs() []string {
 	if c.cfg.Verbose {
 		args = append(args, "--verbose")
 	}
-	return append(args, "self", selfMigrateSubcmd)
-}
-
-func (c *SelfCommand) runMigrate(ctx context.Context, args []string) error {
-	if len(args) != 0 {
-		return fmt.Errorf("%w: %s", ErrInvalidFlagValue, strings.Join(args, " "))
-	}
-	if err := c.transition.RunMigrations(ctx); err != nil {
-		return fmt.Errorf("run migrations: %w", err)
-	}
-	return nil
+	return append(args, "self", subcmd)
 }
 
 type selfUninstallFlags struct {

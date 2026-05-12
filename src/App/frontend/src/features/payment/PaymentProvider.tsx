@@ -4,7 +4,6 @@ import type { ReactNode } from 'react';
 import type { AxiosError } from 'axios';
 
 import { Loader } from 'src/core/loading/Loader';
-import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { usePaymentInformation } from 'src/features/payment/PaymentInformationProvider';
 import { PaymentStatus } from 'src/features/payment/types';
 import { usePerformPayActionMutation } from 'src/features/payment/usePerformPaymentMutation';
@@ -16,7 +15,6 @@ import { useShallowMemo } from 'src/hooks/useShallowMemo';
 
 type PaymentContextProps = {
   performPayment: () => void;
-  skipPayment: () => void;
   paymentError: AxiosError | null;
 };
 
@@ -37,14 +35,12 @@ export const PaymentProvider: React.FC<PaymentContextProvider> = ({ children }) 
     error: paymentError,
     isPending: isPaymentPending,
   } = usePerformPayActionMutation(instanceOwnerPartyId, instanceGuid);
-  const { mutateAsync: processConfirm, isPending: isConfirmPending } = useProcessNext({ action: 'confirm' });
 
-  const isLoading = isPaymentPending || isConfirmPending;
+  const isLoading = isPaymentPending;
 
   const performPayment = useOurEffectEvent(() => mutateAsync());
-  const skipPayment = useOurEffectEvent(() => processConfirm());
 
-  const contextValue = useShallowMemo({ performPayment, skipPayment, paymentError });
+  const contextValue = useShallowMemo({ performPayment, paymentError });
 
   return (
     <PaymentContext.Provider value={contextValue}>
@@ -57,7 +53,7 @@ export const PaymentProvider: React.FC<PaymentContextProvider> = ({ children }) 
 function PaymentNavigation() {
   const paymentInfo = usePaymentInformation();
   const isPdf = useIsPdf();
-  const { performPayment, skipPayment } = usePayment();
+  const { performPayment } = usePayment();
   const instanceGuid = useNavigationParam('instanceGuid');
 
   const paymentDoesNotExist = paymentInfo?.status === PaymentStatus.Uninitialized;
@@ -81,15 +77,6 @@ function PaymentNavigation() {
       paymentInitiatedForInstance.delete(instanceGuid);
     }
   }, [isPaymentProcess, paymentDoesNotExist, performPayment, isPdf, instanceGuid, paymentInfo?.status]);
-
-  const paymentCompleted = paymentInfo?.status === PaymentStatus.Paid || paymentInfo?.status === PaymentStatus.Skipped;
-
-  // If when landing on payment task, PaymentStatus is Paid or Skipped, go to next task
-  useEffect(() => {
-    if (isPaymentProcess && paymentCompleted && !isPdf) {
-      skipPayment();
-    }
-  }, [isPaymentProcess, paymentCompleted, skipPayment, isPdf]);
 
   return null;
 }

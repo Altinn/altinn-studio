@@ -62,7 +62,7 @@ area/text-editor:
 
 area/ui-editor:
 - changed-files:
-  - any-glob-to-any-file: 'src/Designer/frontend/packages/ux-editor/**/*'
+  - any-glob-to-any-file: 'src/Designer/frontend/packages/ux-editor-v4/**/*'
 
 area/version-control:
 - changed-files:

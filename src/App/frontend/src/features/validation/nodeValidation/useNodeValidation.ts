@@ -1,5 +1,4 @@
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useExpressionValidation } from 'src/features/validation/expressionValidation/useExpressionValidation';
 import {
   type CompDef,
@@ -26,7 +25,7 @@ export function useNodeValidation(baseComponentId: string): AnyValidation[] {
   const def = getComponentDef(component.type);
   const indexedId = useIndexedId(baseComponentId);
   const registry = GeneratorInternal.useRegistry();
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const dataModelBindings = GeneratorInternal.useIntermediateItem()?.dataModelBindings;
   const bindings = Object.entries((dataModelBindings ?? {}) as Record<string, IDataModelReference>);
 

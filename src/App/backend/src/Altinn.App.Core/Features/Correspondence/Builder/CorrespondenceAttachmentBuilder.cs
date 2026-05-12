@@ -9,7 +9,8 @@ public class CorrespondenceAttachmentBuilder : ICorrespondenceAttachmentBuilder
 {
     private string? _filename;
     private string? _sendersReference;
-    private ReadOnlyMemory<byte>? _data;
+    private Stream? _data;
+    private ReadOnlyMemory<byte>? _dataAsBytes;
     private bool? _isEncrypted;
     private CorrespondenceDataLocationType _dataLocationType =
         CorrespondenceDataLocationType.ExistingCorrespondenceAttachment;
@@ -38,10 +39,17 @@ public class CorrespondenceAttachmentBuilder : ICorrespondenceAttachmentBuilder
     }
 
     /// <inheritdoc/>
+    public ICorrespondenceAttachmentBuilder WithData(Stream data)
+    {
+        _data = data;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    [Obsolete("This method is inefficient for large attachments. Consider using WithData(Stream) instead.")]
     public ICorrespondenceAttachmentBuilder WithData(ReadOnlyMemory<byte> data)
     {
-        BuilderUtils.NotNullOrEmpty(data, "Data cannot be empty");
-        _data = data;
+        _dataAsBytes = data;
         return this;
     }
 
@@ -64,13 +72,21 @@ public class CorrespondenceAttachmentBuilder : ICorrespondenceAttachmentBuilder
     {
         BuilderUtils.NotNullOrEmpty(_filename);
         BuilderUtils.NotNullOrEmpty(_sendersReference);
-        BuilderUtils.NotNullOrEmpty(_data);
+        BuilderUtils.RequireAtLeastOneOf(_data, _dataAsBytes, "Data cannot be empty");
+
+        Stream data =
+            _data
+            ?? (
+                _dataAsBytes.HasValue
+                    ? new MemoryStream(_dataAsBytes.Value.ToArray())
+                    : throw new InvalidOperationException("Data cannot be empty")
+            );
 
         return new CorrespondenceAttachment
         {
             Filename = _filename,
             SendersReference = _sendersReference,
-            Data = _data.Value,
+            Data = data,
             IsEncrypted = _isEncrypted,
             DataLocationType = _dataLocationType,
         };

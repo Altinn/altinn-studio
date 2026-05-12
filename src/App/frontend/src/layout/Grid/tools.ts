@@ -105,3 +105,12 @@ export function isGridCellEmpty(cell: GridCell): boolean {
 export function isGridCellNode(cell: GridCell): cell is GridComponentRef {
   return !!(cell && 'component' in cell && cell.component);
 }
+
+export function getGridCellHiddenExpr(cell: GridCell) {
+  if (!cell || typeof cell !== 'object') {
+    return undefined;
+  }
+  const options =
+    'columnOptions' in cell ? (cell as { columnOptions?: { hidden?: unknown } }).columnOptions : undefined;
+  return options?.hidden;
+}

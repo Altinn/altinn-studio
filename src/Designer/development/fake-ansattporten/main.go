@@ -369,7 +369,7 @@ func handleToken(w http.ResponseWriter, r *http.Request) {
 }
 
 // buildAuthorizationDetailsClaim parses the raw authorization_details from the
-// authorize request and enriches each entry with the selected org as a reportee.
+// authorize request and enriches each entry with the selected org as an authorized party.
 func buildAuthorizationDetailsClaim(rawAuthDetails string, org *FakeOrg) []map[string]any {
 	var requested []map[string]any
 	if err := json.Unmarshal([]byte(rawAuthDetails), &requested); err != nil {
@@ -377,20 +377,21 @@ func buildAuthorizationDetailsClaim(rawAuthDetails string, org *FakeOrg) []map[s
 		return nil
 	}
 
-	reportee := map[string]any{
-		"Rights":    []string{"Read", "ArchiveDelete", "ArchiveRead"},
-		"Authority": "iso6523-actorid-upis",
-		"ID":        org.ID,
-		"Name":      org.Name,
+	authorizedParty := map[string]any{
+		"orgno": map[string]any{
+			"authority": "iso6523-actorid-upis",
+			"ID":        org.ID,
+		},
+		"resource": "digdir-selvbetjening-klienter",
+		"name":     org.Name,
 	}
 
 	var result []map[string]any
 	for _, detail := range requested {
 		enriched := map[string]any{
-			"type":          detail["type"],
-			"resource":      detail["resource"],
-			"resource_name": org.Name,
-			"reportees":     []map[string]any{reportee},
+			"type":               detail["type"],
+			"resource":           detail["resource"],
+			"authorized_parties": []map[string]any{authorizedParty},
 		}
 		result = append(result, enriched)
 	}

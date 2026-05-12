@@ -40,11 +40,11 @@ export function createRouter(queryClient: QueryClient) {
           {
             path: routes.instanceSelection,
             Component: InstanceSelectionRoute,
-            loader: instanceSelectionLoader(queryClient, partyApi, instanceApi),
+            loader: instanceSelectionLoader(partyApi, instanceApi),
           },
           {
             path: routes.partySelection,
-            loader: partySelectionLoader(queryClient, partyApi),
+            loader: partySelectionLoader(partyApi),
             children: [
               { index: true, Component: PartySelectionRoute },
               { path: '*', Component: PartySelectionRoute },
@@ -52,7 +52,7 @@ export function createRouter(queryClient: QueryClient) {
           },
           {
             Component: IndexRoute,
-            loader: indexLoader(queryClient, instanceApi),
+            loader: indexLoader(instanceApi),
             children: [
               {
                 path: routes.statelessPage,
@@ -76,18 +76,18 @@ export function createRouter(queryClient: QueryClient) {
             children: [
               {
                 index: true,
-                loader: instanceIndexLoader(queryClient, instanceApi),
+                loader: instanceIndexLoader(instanceApi),
                 Component: () => <Loader reason='instance-redirect' />,
               },
               { path: 'ProcessEnd', Component: ProcessEndRoute },
               {
                 path: routes.task,
                 Component: TaskRoute,
-                loader: taskLoader(queryClient, instanceApi),
+                loader: taskLoader(instanceApi),
                 children: [
                   {
                     index: true,
-                    loader: taskIndexLoader(queryClient, instanceApi),
+                    loader: taskIndexLoader(instanceApi),
                     Component: () => <Loader reason='task-redirect' />,
                   },
                   {

@@ -1,18 +1,14 @@
 package doctor
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"runtime"
 
 	"gopkg.in/yaml.v3"
 
 	"altinn.studio/studioctl/internal/auth"
-	"altinn.studio/studioctl/internal/config"
-	"altinn.studio/studioctl/internal/install"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
@@ -23,11 +19,9 @@ func (s *Service) buildDisk() *Disk {
 		s.checkDirState("log_dir", s.cfg.LogDir, false),
 		s.checkDirState("data_dir", s.cfg.DataDir, true),
 		s.checkDirState("bin_dir", s.cfg.BinDir, false),
-		s.checkConfigFileState(),
 		s.checkCredentialsFileState(),
-		s.checkResourcesState(),
-		s.checkAppManagerBinaryState(),
-		s.checkAppManagerRuntimeState(),
+		s.checkStudioctlServerBinaryState(),
+		s.checkStudioctlServerRuntimeState(),
 	}
 
 	hasIssues := false
@@ -126,83 +120,6 @@ func (s *Service) checkDirState(id, path string, criticalWritable bool) DiskChec
 	}
 }
 
-func (s *Service) checkConfigFileState() DiskCheck {
-	path := filepath.Join(s.cfg.Home, doctorConfigFileName)
-	info, err := os.Stat(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return DiskCheck{
-				ID:      "config_file",
-				Level:   diskLevelInfo,
-				Path:    path,
-				Message: "missing (embedded defaults in effect)",
-			}
-		}
-		return DiskCheck{
-			ID:      "config_file",
-			Level:   diskLevelError,
-			Path:    path,
-			Message: "stat failed: " + err.Error(),
-		}
-	}
-	if info.IsDir() {
-		return DiskCheck{
-			ID:      "config_file",
-			Level:   diskLevelError,
-			Path:    path,
-			Message: "path exists but is a directory",
-		}
-	}
-
-	data, err := readTrustedFile(path)
-	if err != nil {
-		return DiskCheck{
-			ID:      "config_file",
-			Level:   diskLevelError,
-			Path:    path,
-			Message: "read failed: " + err.Error(),
-		}
-	}
-
-	var parsed config.PersistedConfig
-	if err := yaml.Unmarshal(data, &parsed); err != nil {
-		return DiskCheck{
-			ID:      "config_file",
-			Level:   diskLevelError,
-			Path:    path,
-			Message: "yaml parse failed: " + err.Error(),
-		}
-	}
-
-	decoder := yaml.NewDecoder(bytes.NewReader(data))
-	decoder.KnownFields(true)
-	var strictParsed config.PersistedConfig
-	if err := decoder.Decode(&strictParsed); err != nil {
-		return DiskCheck{
-			ID:      "config_file",
-			Level:   diskLevelWarn,
-			Path:    path,
-			Message: "valid yaml but contains unknown fields",
-		}
-	}
-
-	if warning := ownerOnlyPermissionsWarning(info.Mode()); warning != "" {
-		return DiskCheck{
-			ID:      "config_file",
-			Level:   diskLevelWarn,
-			Path:    path,
-			Message: warning,
-		}
-	}
-
-	return DiskCheck{
-		ID:      "config_file",
-		Level:   diskLevelOK,
-		Path:    path,
-		Message: "valid",
-	}
-}
-
 func (s *Service) checkCredentialsFileState() DiskCheck {
 	path := auth.CredentialsPath(s.cfg.Home)
 	info, err := os.Stat(path)
@@ -247,132 +164,8 @@ func (s *Service) checkCredentialsFileState() DiskCheck {
 	return summarizeCredentialsState(path, creds)
 }
 
-func (s *Service) checkResourcesState() DiskCheck {
-	platformPath := filepath.Join(s.cfg.DataDir, doctorResourcesPlatformDir)
-	installStatus := install.CheckInstallStatus(s.cfg.DataDir, s.cfg.Version)
-	if check := s.resourceStateFromInstallStatus(installStatus); check != nil {
-		return *check
-	}
-
-	platformInfo, platformErr := os.Stat(platformPath)
-	if check := s.checkPlatformDirectoryState(platformPath, platformInfo, platformErr); check != nil {
-		return *check
-	}
-
-	return DiskCheck{
-		ID:      "resources",
-		Level:   diskLevelOK,
-		Path:    s.cfg.DataDir,
-		Message: "installed for current CLI version",
-	}
-}
-
-func (s *Service) resourceStateFromInstallStatus(status install.Status) *DiskCheck {
-	if check := s.resourceStateFromInstallReadErrors(status); check != nil {
-		return check
-	}
-
-	staticChecks := map[install.State]DiskCheck{
-		install.StateNotInstalled: {
-			ID:      "resources",
-			Level:   diskLevelInfo,
-			Path:    s.cfg.DataDir,
-			Message: "not installed",
-		},
-		install.StatePartial: {
-			ID:      "resources",
-			Level:   diskLevelError,
-			Path:    s.cfg.DataDir,
-			Message: "partial install state detected",
-		},
-		install.StateTestdataEmpty: {
-			ID:      "resources",
-			Level:   diskLevelError,
-			Path:    s.cfg.DataDir,
-			Message: "testdata directory exists but is empty",
-		},
-		install.StateVersionEmpty: {
-			ID:      "resources",
-			Level:   diskLevelError,
-			Path:    status.Path,
-			Message: "version file is empty",
-		},
-		install.StateSourceMarkerMismatch: {
-			ID:      "resources",
-			Level:   diskLevelWarn,
-			Path:    status.Path,
-			Message: "source marker does not match current install source",
-		},
-	}
-	if check, ok := staticChecks[status.State]; ok {
-		return &check
-	}
-
-	if status.State == install.StateVersionMismatch {
-		check := DiskCheck{
-			ID:      "resources",
-			Level:   diskLevelWarn,
-			Path:    s.cfg.DataDir,
-			Message: fmt.Sprintf("installed version differs from CLI version %q", s.cfg.Version),
-		}
-		return &check
-	}
-	if status.State == install.StateInstalled {
-		return nil
-	}
-
-	check := DiskCheck{
-		ID:      "resources",
-		Level:   diskLevelWarn,
-		Path:    s.cfg.DataDir,
-		Message: "unknown install state",
-	}
-	return &check
-}
-
-func (s *Service) resourceStateFromInstallReadErrors(status install.Status) *DiskCheck {
-	if status.State == install.StateTestdataUnreadable {
-		check := DiskCheck{
-			ID:      "resources",
-			Level:   diskLevelWarn,
-			Path:    status.Path,
-			Message: "cannot read testdata directory: " + status.Err.Error(),
-		}
-		return &check
-	}
-	if status.State == install.StateVersionUnreadable {
-		check := DiskCheck{
-			ID:      "resources",
-			Level:   diskLevelWarn,
-			Path:    status.Path,
-			Message: "cannot read version file: " + status.Err.Error(),
-		}
-		return &check
-	}
-	if status.State == install.StateSourceMarkerUnreadable {
-		check := DiskCheck{
-			ID:      "resources",
-			Level:   diskLevelWarn,
-			Path:    status.Path,
-			Message: "cannot read source marker file: " + status.Err.Error(),
-		}
-		return &check
-	}
-	if status.State == install.StateInvalidExpectedSource {
-		check := DiskCheck{
-			ID:      "resources",
-			Level:   diskLevelWarn,
-			Path:    status.Path,
-			Message: "cannot compute expected source marker: " + status.Err.Error(),
-		}
-		return &check
-	}
-
-	return nil
-}
-
-func (s *Service) checkAppManagerBinaryState() DiskCheck {
-	installDir := s.cfg.AppManagerInstallDir()
+func (s *Service) checkStudioctlServerBinaryState() DiskCheck {
+	installDir := s.cfg.StudioctlServerInstallDir()
 	if info, err := os.Stat(installDir); err == nil && !info.IsDir() {
 		return DiskCheck{
 			ID:      "appmgr_binary",
@@ -382,7 +175,7 @@ func (s *Service) checkAppManagerBinaryState() DiskCheck {
 		}
 	}
 
-	path := s.cfg.AppManagerBinaryPath()
+	path := s.cfg.StudioctlServerBinaryPath()
 	info, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -425,16 +218,16 @@ func (s *Service) checkAppManagerBinaryState() DiskCheck {
 	}
 }
 
-func (s *Service) checkAppManagerRuntimeState() DiskCheck {
-	pidPath := s.cfg.AppManagerPIDPath()
+func (s *Service) checkStudioctlServerRuntimeState() DiskCheck {
+	pidPath := s.cfg.StudioctlServerPIDPath()
 	if runtime.GOOS == osutil.OSWindows {
-		return checkAppManagerRuntimeStateWindows(s.cfg.Home, pidPath)
+		return checkStudioctlServerRuntimeStateWindows(s.cfg.Home, pidPath)
 	}
 
-	socketPath := s.cfg.AppManagerSocketPath()
+	socketPath := s.cfg.StudioctlServerSocketPath()
 	pidInfo, pidErr := os.Stat(pidPath)
 	socketInfo, socketErr := os.Stat(socketPath)
-	if check := s.checkAppManagerPresenceState(pidPath, socketPath, pidErr, socketErr); check != nil {
+	if check := s.checkStudioctlServerPresenceState(pidPath, socketPath, pidErr, socketErr); check != nil {
 		return *check
 	}
 
@@ -455,7 +248,7 @@ func (s *Service) checkAppManagerRuntimeState() DiskCheck {
 		}
 	}
 
-	if check := checkAppManagerPIDFile(pidPath); check != nil {
+	if check := checkStudioctlServerPIDFile(pidPath); check != nil {
 		return *check
 	}
 
@@ -476,7 +269,7 @@ func (s *Service) checkAppManagerRuntimeState() DiskCheck {
 	}
 }
 
-func checkAppManagerRuntimeStateWindows(home, pidPath string) DiskCheck {
+func checkStudioctlServerRuntimeStateWindows(home, pidPath string) DiskCheck {
 	if _, err := os.Stat(pidPath); err != nil {
 		if os.IsNotExist(err) {
 			return DiskCheck{
@@ -494,7 +287,7 @@ func checkAppManagerRuntimeStateWindows(home, pidPath string) DiskCheck {
 		}
 	}
 
-	if check := checkAppManagerPIDFile(pidPath); check != nil {
+	if check := checkStudioctlServerPIDFile(pidPath); check != nil {
 		return *check
 	}
 
@@ -570,42 +363,7 @@ func countInvalidCredentialEntries(envs map[string]auth.EnvCredentials) int {
 	return invalidEntries
 }
 
-func (s *Service) checkPlatformDirectoryState(
-	platformPath string,
-	platformInfo os.FileInfo,
-	platformErr error,
-) *DiskCheck {
-	if platformErr != nil {
-		if os.IsNotExist(platformErr) {
-			check := DiskCheck{
-				ID:      "resources",
-				Level:   diskLevelWarn,
-				Path:    s.cfg.DataDir,
-				Message: "installed but AltinnPlatformLocal directory is missing",
-			}
-			return &check
-		}
-		check := DiskCheck{
-			ID:      "resources",
-			Level:   diskLevelWarn,
-			Path:    platformPath,
-			Message: "cannot inspect AltinnPlatformLocal: " + platformErr.Error(),
-		}
-		return &check
-	}
-	if !platformInfo.IsDir() {
-		check := DiskCheck{
-			ID:      "resources",
-			Level:   diskLevelError,
-			Path:    platformPath,
-			Message: "AltinnPlatformLocal exists but is not a directory",
-		}
-		return &check
-	}
-	return nil
-}
-
-func (s *Service) checkAppManagerPresenceState(
+func (s *Service) checkStudioctlServerPresenceState(
 	pidPath, socketPath string,
 	pidErr, socketErr error,
 ) *DiskCheck {
@@ -642,7 +400,7 @@ func (s *Service) checkAppManagerPresenceState(
 	}
 }
 
-func checkAppManagerPIDFile(pidPath string) *DiskCheck {
+func checkStudioctlServerPIDFile(pidPath string) *DiskCheck {
 	pidRaw, err := readTrustedFile(pidPath)
 	if err != nil {
 		check := DiskCheck{

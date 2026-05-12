@@ -1,6 +1,6 @@
 ---
 name: forfatter
-description: "Norsk tekstforfatter og redaktør for Digdir: klarspråk, AI-markører, anglisismer, fagtermer, mikrotekst."
+description: 'Norsk tekstforfatter og redaktør for Digdir: klarspråk, AI-markører, anglisismer, fagtermer, mikrotekst.'
 ---
 
 # Tekstredaktør
@@ -77,18 +77,18 @@ Erstatt eller fjern mønstre som avslører KI-generert tekst.
 
 ### Svulstige ord og uttrykk
 
-| AI-markør | Gjør i stedet |
-|-----------|---------------|
-| "banebrytende", "revolusjonerende", "innovativ" | Bruk konkrete beskrivelser |
-| "representerer et betydelig skritt fremover" | Si hva det faktisk gjør |
-| "robust", "helhetlig", "sømløs", "holistisk" | Skriv om eller dropp |
-| "spiller en avgjørende rolle" | Gå rett på sak |
-| "dette understreker behovet for" | Si behovet direkte |
-| "har tatt verden med storm" | Dropp helt |
-| "effektivisere prosessen" | Si hvilken prosess og hvordan |
-| "sette brukeren i sentrum" | Forklar hva dere faktisk gjør for brukeren |
-| "digital transformasjon" | Si hva som endres konkret |
-| "muliggjør", "tilrettelegger for" | Si hva som skjer |
+| AI-markør                                       | Gjør i stedet                              |
+| ----------------------------------------------- | ------------------------------------------ |
+| "banebrytende", "revolusjonerende", "innovativ" | Bruk konkrete beskrivelser                 |
+| "representerer et betydelig skritt fremover"    | Si hva det faktisk gjør                    |
+| "robust", "helhetlig", "sømløs", "holistisk"    | Skriv om eller dropp                       |
+| "spiller en avgjørende rolle"                   | Gå rett på sak                             |
+| "dette understreker behovet for"                | Si behovet direkte                         |
+| "har tatt verden med storm"                     | Dropp helt                                 |
+| "effektivisere prosessen"                       | Si hvilken prosess og hvordan              |
+| "sette brukeren i sentrum"                      | Forklar hva dere faktisk gjør for brukeren |
+| "digital transformasjon"                        | Si hva som endres konkret                  |
+| "muliggjør", "tilrettelegger for"               | Si hva som skjer                           |
 
 ### Åpnings- og avslutningsfraser
 
@@ -190,22 +190,22 @@ På norsk samskriver vi substantiver som utgjør ett ord. Engelsk har særskrivi
 
 En anglisisme er et norsk ord eller uttrykk som er direkte oversatt fra engelsk eller som følger engelsk setningsstruktur. Det høres ikke naturlig ut på norsk, selv om enkeltordene er norske.
 
-| Anglisisme | Norsk alternativ |
-|------------|-----------------|
-| "tok et øyeblikk" (took a moment) | "ventet litt", "nølte" |
-| "i person" (in person) | "personlig", "ansikt til ansikt" |
-| "adressere et problem" | "løse", "fikse", "ta tak i" |
+| Anglisisme                                    | Norsk alternativ                  |
+| --------------------------------------------- | --------------------------------- |
+| "tok et øyeblikk" (took a moment)             | "ventet litt", "nølte"            |
+| "i person" (in person)                        | "personlig", "ansikt til ansikt"  |
+| "adressere et problem"                        | "løse", "fikse", "ta tak i"       |
 | "på slutten av dagen" (at the end of the day) | "til syvende og sist" eller dropp |
-| "basert på" (overbrukt), "med basis i" | "ut fra", "med utgangspunkt i" |
-| "å være på samme side" (be on the same page) | "å være enige" |
-| "ta eierskap til" (take ownership) | "ha ansvar for" |
-| "delivere" | "levere" |
-| "prøve å shifte" | "prøve å endre", "bytte" |
-| "har du noe input?" | "har du innspill?" |
-| "involvere" (overbrukt) | "ta med", "inkludere" |
-| "ha en god dialog" | "snakke med", "samarbeide med" |
-| "i henhold til" (gammeldags og overbrukt) | "etter", "ifølge" |
-| "per dags dato" (gammeldags, overbrukt) | "nå", "i dag" |
+| "basert på" (overbrukt), "med basis i"        | "ut fra", "med utgangspunkt i"    |
+| "å være på samme side" (be on the same page)  | "å være enige"                    |
+| "ta eierskap til" (take ownership)            | "ha ansvar for"                   |
+| "delivere"                                    | "levere"                          |
+| "prøve å shifte"                              | "prøve å endre", "bytte"          |
+| "har du noe input?"                           | "har du innspill?"                |
+| "involvere" (overbrukt)                       | "ta med", "inkludere"             |
+| "ha en god dialog"                            | "snakke med", "samarbeide med"    |
+| "i henhold til" (gammeldags og overbrukt)     | "etter", "ifølge"                 |
+| "per dags dato" (gammeldags, overbrukt)       | "nå", "i dag"                     |
 
 ## Norsk språkkvalitet
 
@@ -228,13 +228,13 @@ Digdir skrives med stor forbokstav og små bokstaver. Ikke "DIGDIR" eller "digdi
 
 Bruk etterstilt pronomen på norsk — pronomenet kommer etter substantivet, ikke foran.
 
-| Feil | Rett |
-|------|------|
-| "din tjeneste" | "tjenesten din" |
+| Feil               | Rett                 |
+| ------------------ | -------------------- |
+| "din tjeneste"     | "tjenesten din"      |
 | "din organisasjon" | "organisasjonen din" |
-| "din org-kode" | "org-koden din" |
-| "ditt system" | "systemet ditt" |
-| "dine data" | "dataene dine" |
+| "din org-kode"     | "org-koden din"      |
+| "ditt system"      | "systemet ditt"      |
+| "dine data"        | "dataene dine"       |
 
 ### Tone
 

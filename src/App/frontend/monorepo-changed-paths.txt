@@ -2,7 +2,6 @@
 .github/
 .husky/
 .yarn/patches/jsdom-npm-26.1.0-3857255f02.patch
-.yarn/releases/yarn-4.12.0.cjs
 .yarnrc.yml
 LICENSE.md
 adr/001-component-library.md
@@ -12,11 +11,13 @@ src/App.test.tsx
 src/App.tsx
 src/__mocks__/getLayoutSetsMock.ts
 src/__mocks__/getOrgsMock.ts
+src/app-components/Card/
 src/app-components/Date/DisplayDate.tsx
 src/app-components/Datepicker/DatePickerHelpers.ts
 src/app-components/Text/DisplayText.tsx
 src/codegen/schemas/layout-sets.schema.v1.ts
 src/components/presentation/Header.tsx
+src/core/contexts/hookContext.tsx
 src/core/contexts/processingContext.tsx
 src/core/errorHandling/DisplayErrorProvider.tsx
 src/core/loading/LoadingRegistry.tsx
@@ -70,6 +71,7 @@ src/queries/appPrefetcher.ts
 src/queries/formPrefetcher.ts
 src/utils/formLayout.test.ts
 src/utils/formLayout.ts
+src/utils/layout/generator/GeneratorDataSources.tsx
 src/utils/refs/
 src/utils/versioning/versions.ts
 test/e2e/config/

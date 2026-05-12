@@ -11,6 +11,9 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Changed
 
 - Breaking: make `--follow` default to `false` for log commands.
+- Breaking: rename `studioctl servers` to `studioctl server`.
+- Rename `app-manager` to `studioctl-server`, including install/update migration cleanup of legacy runtime files, installed payload, and logs.
+- Show progress while `app run --mode container` pulls/builds and starts the app container.
 
 ### Fixed
 

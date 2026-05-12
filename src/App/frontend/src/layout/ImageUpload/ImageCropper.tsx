@@ -1,8 +1,8 @@
 import React, { useCallback, useRef, useState } from 'react';
 
+import { AppCard } from '@app/form-component';
 import { ValidationMessage } from '@digdir/designsystemet-react';
 
-import { AppCard } from 'src/app-components/Card/Card';
 import { Lang } from 'src/features/language/Lang';
 import { useFocusOnChange } from 'src/layout/ImageUpload/hooks/useFocusOnChange';
 import { useFocusWhenRemoved } from 'src/layout/ImageUpload/hooks/useFocusWhenRemoved';

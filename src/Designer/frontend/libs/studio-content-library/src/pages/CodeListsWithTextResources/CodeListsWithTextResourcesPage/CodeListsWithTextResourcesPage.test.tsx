@@ -1,5 +1,5 @@
 import type { RenderResult } from '@testing-library/react';
-import { render, screen, within } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import type { CodeListsWithTextResourcesPageProps } from './CodeListsWithTextResourcesPage';
 import type { CodeListDataWithTextResources } from '../../../types/CodeListDataWithTextResources';
 import { CodeListsWithTextResourcesPage } from './CodeListsWithTextResourcesPage';
@@ -11,11 +11,11 @@ import {
   codeList2Data,
   codeListDataList,
 } from '../../../test-data/codeListDataList';
-import { Guard } from '@studio/guard';
 import { ArrayUtils } from '@studio/pure-functions';
 import { label1ResourceNb, textResources } from '../../../test-data/textResources';
 import type { TextResource } from '../../../types/TextResource';
 import type { TextResourceWithLanguage } from '../../../types/TextResourceWithLanguage';
+import { screen, within } from '@studio/ui-test';
 
 const onCreateCodeList = jest.fn();
 const onCreateTextResource = jest.fn();
@@ -123,8 +123,8 @@ describe('CodeListsWithTextResourcesPage', () => {
       />,
     );
 
-    const openItem = screen.getByRole('button', { name: newCodeListData.title, expanded: true });
-    expect(openItem).toBeInTheDocument();
+    const openItem = getCodeListDetails(newCodeListData.title);
+    expect(openItem).toHaveAttribute('open');
   });
 
   it('calls onUpdateCodeListId when Id is changed', async () => {
@@ -334,19 +334,14 @@ const getFirstDescriptionField = (area: HTMLElement): HTMLElement => {
   return within(area).getByRole('textbox', { name: descriptionFieldLabel });
 };
 
-const getCodeListDetails = (codeListTitle: string): HTMLElement => {
-  // The following code accesses a node directly with parentElement. This is not recommended, hence the Eslint rule, but there is no other way to access the details element.
-  // Todo: Use getByRole('group') when the role becomes correctly assigned to the component: https://github.com/digdir/designsystemet/issues/3941
-  const { parentElement } = getCodeListHeading(codeListTitle); // eslint-disable-line testing-library/no-node-access
-  Guard.againstNull(parentElement);
-  return parentElement;
-};
+const getCodeListDetails = (codeListTitle: string): HTMLElement =>
+  screen.getDetailsBySummary(codeListTitle);
 
 const getCodeListHeading = (codeListTitle: string): HTMLElement =>
-  screen.getByRole('button', { name: codeListTitle });
+  screen.getSummaryByText(codeListTitle);
 
 const queryCodeListHeading = (codeListTitle: string): HTMLElement | null =>
-  screen.queryByRole('button', { name: codeListTitle });
+  screen.querySummaryByText(codeListTitle);
 
 const renderCodeListsWithTextResourcesPage = (
   props: Partial<CodeListsWithTextResourcesPageProps> = {},

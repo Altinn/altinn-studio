@@ -6,7 +6,6 @@ import type { Draft } from 'immer';
 import { useGetCachedInitialValidations, useRefetchInitialValidations } from 'src/core/queries/backendValidation';
 import { hasPendingAttachments } from 'src/features/attachments/utils';
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import {
   type BackendValidationIssue,
@@ -187,7 +186,7 @@ export function useWaitForValidation(): WaitForValidation {
   const waitForSave = FormStore.data.useWaitForSave();
   const waitForState = useWaitForState<undefined, FormStoreState>(FormStore.raw.useStore());
 
-  const hasWritableDataTypes = !!FormBootstrap.useWritableDataTypes()?.length;
+  const hasWritableDataTypes = !!FormStore.bootstrap.useWritableDataTypes()?.length;
   const getCachedInitialValidations = useGetCachedInitialValidations();
   const waitForNodesToValidate = useWaitForNodesToValidate();
 
