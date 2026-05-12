@@ -58,7 +58,7 @@ implying that we need to support mapping and filtering.
     ["Lambda function for filtering goes here. We still need to agree on some syntax for this."]
   ]
   ```
-- **A3:** String formatted mapping.
+- **A3:** String formatted mapping using a syntax we define by ourselves.
 
   Example extracting names from a list of people in the `dataModel` function:
 
@@ -76,7 +76,7 @@ implying that we need to support mapping and filtering.
   ]
   ```
 
-- **A4:** String formatted mapping and filtering.
+- **A4:** String formatted mapping and filtering using a syntax we define by ourselves.
 
   Example extracting names of people aged 18 years or older in the `dataModel` function:
 
@@ -224,8 +224,7 @@ implying that we need to support mapping and filtering.
 - Bad: Does not fulfill B10.
   - Good: [The Javascript library](https://www.npmjs.com/package/jmespath) has no subdependencies.
   - Bad: [The Nuget package](https://www.nuget.org/packages/JmesPath.Net) depends on `Newtonsoft.Json`, which we are in
-    the process of replacing with
-    `System.Text.Json`.
+    the process of replacing with `System.Text.Json`.
 - Bad: Does not fulfill B11.
   - Our `dataModel` selection syntax is similar, but there are slight differences (in particular when considering row
     context). This means we need to find a convenient way to merge them together if we want to extend the `dataModel`
@@ -242,8 +241,7 @@ implying that we need to support mapping and filtering.
 - Bad: Does not fulfill B10.
   - Good: [The Javascript library](https://www.npmjs.com/package/jsonata) has no subdependencies.
   - Bad: [The Nuget package](https://www.nuget.org/packages/Jsonata.Net.Native) depends on `Newtonsoft.Json`, which we
-    are in the process of replacing with
-    `System.Text.Json`.
+    are in the process of replacing with `System.Text.Json`.
 - Bad: Does not fulfill B11.
   - Our `dataModel` selection syntax is similar, but there are slight differences (in particular when considering row
     context). This means we need to find a convenient way to merge them together if we want to extend the `dataModel`
