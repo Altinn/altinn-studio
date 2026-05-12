@@ -3,7 +3,6 @@ from fastapi.testclient import TestClient
 from api.main import app
 
 FEEDBACK_PATH = "/api/feedback"
-VALID_API_KEY_HEADER = {"X-Api-Key": "test-key"}
 VALID_TRACE_ID = "trace-abc-123"
 
 
@@ -13,7 +12,6 @@ class TestFeedbackEndpoint:
             response = TestClient(app).post(
                 FEEDBACK_PATH,
                 json={"trace_id": VALID_TRACE_ID, "thumbs_up": True},
-                headers=VALID_API_KEY_HEADER,
             )
 
         assert response.status_code == 204
@@ -33,7 +31,6 @@ class TestFeedbackEndpoint:
                     "thumbs_up": False,
                     "comment": "Svaret var ikke nyttig.",
                 },
-                headers=VALID_API_KEY_HEADER,
             )
 
         assert response.status_code == 204
@@ -44,37 +41,25 @@ class TestFeedbackEndpoint:
             comment="Svaret var ikke nyttig.",
         )
 
-    def test_missing_api_key_is_rejected(self):
-        with patch("api.routes.feedback.score_validation") as mock_score:
-            response = TestClient(app).post(
-                FEEDBACK_PATH,
-                json={"trace_id": VALID_TRACE_ID, "thumbs_up": True},
-            )
-
-        assert response.status_code == 403
-        mock_score.assert_not_called()
-
     def test_empty_trace_id_returns_422(self):
         with patch("api.routes.feedback.score_validation") as mock_score:
             response = TestClient(app).post(
                 FEEDBACK_PATH,
                 json={"trace_id": "", "thumbs_up": True},
-                headers=VALID_API_KEY_HEADER,
             )
 
         assert response.status_code == 422
         mock_score.assert_not_called()
 
-    def test_comment_over_4000_chars_returns_422(self):
+    def test_comment_over_max_length_returns_422(self):
         with patch("api.routes.feedback.score_validation") as mock_score:
             response = TestClient(app).post(
                 FEEDBACK_PATH,
                 json={
                     "trace_id": VALID_TRACE_ID,
                     "thumbs_up": True,
-                    "comment": "x" * 4001,
+                    "comment": "x" * 10001,
                 },
-                headers=VALID_API_KEY_HEADER,
             )
 
         assert response.status_code == 422

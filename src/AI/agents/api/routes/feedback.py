@@ -2,10 +2,9 @@
 
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Response
 from pydantic import BaseModel, field_validator
 
-from api.dependencies import get_designer_api_key
 from shared.utils.langfuse_utils import score_validation
 from shared.utils.logging_utils import get_logger
 
@@ -26,14 +25,16 @@ class FeedbackReq(BaseModel):
     @field_validator("trace_id")
     @classmethod
     def _validate_trace_id(cls, v: str) -> str:
-        if not v or not v.strip():
+        if not v.strip():
             raise ValueError("trace_id must be non-empty")
         return v
 
     @field_validator("comment")
     @classmethod
     def _validate_comment(cls, v: Optional[str]) -> Optional[str]:
-        if v is not None and len(v) > FEEDBACK_COMMENT_MAX_LENGTH:
+        if v is None:
+            return v
+        if len(v) > FEEDBACK_COMMENT_MAX_LENGTH:
             raise ValueError(
                 f"comment must not exceed {FEEDBACK_COMMENT_MAX_LENGTH} characters"
             )
@@ -41,10 +42,7 @@ class FeedbackReq(BaseModel):
 
 
 @router.post("/api/feedback", status_code=204)
-async def submit_feedback(
-    req: FeedbackReq,
-    designer_api_key: str = Depends(get_designer_api_key),
-):
+async def submit_feedback(req: FeedbackReq):
     """Records user feedback as a Langfuse score on the given trace."""
     score_validation(
         name=FEEDBACK_SCORE_NAME,

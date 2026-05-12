@@ -1,6 +1,9 @@
 """Langfuse tracking utilities"""
+
 from contextlib import contextmanager
+
 from langfuse import Langfuse, get_client
+
 from shared.config.base_config import get_config
 from shared.utils.logging_utils import get_logger
 
@@ -24,8 +27,8 @@ def init_langfuse():
         return None
 
     try:
-        from opentelemetry.sdk.trace import TracerProvider as _OtelTracerProvider
         from opentelemetry import trace as _otel_trace
+        from opentelemetry.sdk.trace import TracerProvider as _OtelTracerProvider
 
         # Give Langfuse its own dedicated TracerProvider so it is isolated from
         # the global OTel provider that third-party libraries (fastmcp) share.
@@ -47,7 +50,9 @@ def init_langfuse():
         _otel_trace.set_tracer_provider(_OtelTracerProvider())
 
         _initialized = True
-        log.info(f"Langfuse initialized successfully (host: {config.LANGFUSE_HOST}, release: {config.LANGFUSE_RELEASE}, env: {config.LANGFUSE_ENVIRONMENT})")
+        log.info(
+            f"Langfuse initialized successfully (host: {config.LANGFUSE_HOST}, release: {config.LANGFUSE_RELEASE}, env: {config.LANGFUSE_ENVIRONMENT})"
+        )
 
         return _client
 
@@ -141,6 +146,7 @@ def flush_langfuse():
         except Exception as e:
             log.debug(f"Failed to flush Langfuse: {e}")
 
+
 def score_validation(
     name: str,
     passed: bool,
@@ -169,9 +175,12 @@ def score_validation(
         if comment:
             kwargs["comment"] = comment
         client.create_score(**kwargs)
-        log.debug("Langfuse score '%s' = %s written to trace %s", name, passed, trace_id)
+        log.debug(
+            "Langfuse score '%s' = %s written to trace %s", name, passed, trace_id
+        )
     except Exception as e:
         log.debug("Failed to create Langfuse score '%s': %s", name, e)
+
 
 # For backward compatibility with code that expects these functions
 # These are no-ops now since Langfuse handles things differently
@@ -180,11 +189,14 @@ def start_run_safe(run_name: str = None, **kwargs):
     Legacy compatibility function. Langfuse uses traces instead of runs.
     Returns a dummy context manager.
     """
+
     class DummyContext:
         def __enter__(self):
             return self
+
         def __exit__(self, *args):
             pass
+
     return DummyContext()
 
 
@@ -226,12 +238,12 @@ class _NoopSpan:
 
 
 def get_current_trace_id() -> str | None:
-    """Return the active Langfuse trace ID, or None if no trace context is active."""
     if not is_langfuse_enabled():
         return None
     try:
         return get_client().get_current_trace_id()
     except Exception:
+        log.exception("Failed to get current Langfuse trace ID")
         return None
 
 
@@ -251,7 +263,9 @@ def trace_span(name: str, **kwargs):
         yield _NoopSpan()
         return
 
-    with get_client().start_as_current_observation(as_type="span", name=name, **kwargs) as span:
+    with get_client().start_as_current_observation(
+        as_type="span", name=name, **kwargs
+    ) as span:
         yield span
 
 
@@ -265,5 +279,7 @@ def trace_generation(name: str, **kwargs):
         yield _NoopSpan()
         return
 
-    with get_client().start_as_current_observation(name=name, as_type="generation", **kwargs) as span:
+    with get_client().start_as_current_observation(
+        name=name, as_type="generation", **kwargs
+    ) as span:
         yield span
