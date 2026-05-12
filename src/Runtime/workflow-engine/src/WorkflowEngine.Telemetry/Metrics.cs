@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.Reflection;
 
 // CA1724: Type names should not match namespaces
 #pragma warning disable CA1724
@@ -21,7 +22,7 @@ public static class Metrics
     /// <summary>
     /// Service version reported on the engine's resource attributes.
     /// </summary>
-    public const string ServiceVersion = "1.0.0";
+    public static readonly string ServiceVersion = ResolveServiceVersion();
 
     /// <summary>
     /// Activity source for engine-emitted spans (workflow lifecycle, step lifecycle, DB IO).
@@ -35,7 +36,7 @@ public static class Metrics
 
     /// <summary>
     /// Counter of generic engine-side errors that don't have a more specific instrument.
-    /// </summary>
+    /// </summary>okay,
     public static readonly Counter<long> Errors = Meter.CreateCounter<long>("engine.errors");
 
     /// <summary>
@@ -525,4 +526,23 @@ public static class Metrics
     /// </summary>
     public static IEnumerable<ActivityLink> ToActivityLinks(this IEnumerable<ActivityContext?> contexts) =>
         contexts.OfType<ActivityContext>().Select(x => new ActivityLink(x));
+
+    /// <summary>
+    /// Returns the current service version by resolving the <c>WORKFLOW_ENGINE_VERSION</c> environment variable (from CI),
+    /// falling back to the assembly's <see cref="AssemblyInformationalVersionAttribute"/>, then lastly to <c>"0.0.0-dev"</c>.
+    /// </summary>
+    private static string ResolveServiceVersion()
+    {
+        var fromEnv = Environment.GetEnvironmentVariable("WORKFLOW_ENGINE_VERSION");
+        if (!string.IsNullOrWhiteSpace(fromEnv))
+            return fromEnv;
+
+        var fromAssembly = typeof(Metrics)
+            .Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion;
+        if (!string.IsNullOrWhiteSpace(fromAssembly))
+            return fromAssembly;
+
+        return "0.0.0-dev";
+    }
 }

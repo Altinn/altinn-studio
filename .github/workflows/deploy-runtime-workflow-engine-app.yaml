@@ -116,8 +116,9 @@ jobs:
         run: |
           export IMAGE="${{ steps.vars.outputs.image-repo }}"
           export IMAGE_TAG="${{ steps.vars.outputs.short-sha }}"
-          yq -i '.metadata.annotations["altinn.studio/image"] = env(IMAGE)' deployment.yaml
-          yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' deployment.yaml
+          yq -i '.metadata.annotations["altinn.studio/image"] = strenv(IMAGE)' deployment.yaml
+          yq -i '.metadata.annotations["altinn.studio/image-tag"] = strenv(IMAGE_TAG)' deployment.yaml
+          yq -i '(select(.kind == "Deployment").spec.template.spec.containers[0].env[] | select(.name == "WORKFLOW_ENGINE_VERSION").value) = strenv(IMAGE_TAG)' deployment.yaml
 
       - name: push artifact
         working-directory: src/Runtime/workflow-engine-app/infra/kustomize
