@@ -72,6 +72,13 @@ func NewClient(baseURL, pat string, opts ...Option) *Client {
 
 // MintRegistrationToken returns a fresh runner registration token for the
 // given organisation. org is the short Gitea organisation name (e.g. "ttd").
+//
+// The endpoint requires HTTP POST in Gitea 1.26+ (the GET form was removed).
+// Tokens themselves have no time-based expiry. However, each POST atomically
+// deactivates every previously-issued token for the same org — Gitea allows
+// at most one active org-scoped registration token at a time. Callers must
+// therefore mint only when no usable token exists, otherwise any not-yet-
+// registered runner using an older Secret value will fail to register.
 func (c *Client) MintRegistrationToken(ctx context.Context, org string) (string, error) {
 	if org == "" {
 		return "", errors.New("gitea: org is required")
@@ -79,7 +86,7 @@ func (c *Client) MintRegistrationToken(ctx context.Context, org string) (string,
 	endpoint := fmt.Sprintf("%s/api/v1/orgs/%s/actions/runners/registration-token",
 		c.baseURL, url.PathEscape(org))
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, nil)
 	if err != nil {
 		return "", fmt.Errorf("gitea: build request: %w", err)
 	}

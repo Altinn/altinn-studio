@@ -18,8 +18,9 @@ func newStubServer(t *testing.T, handler http.HandlerFunc) *httptest.Server {
 }
 
 func TestMintRegistrationToken_Happy(t *testing.T) {
-	var gotPath, gotAuth, gotUA string
+	var gotMethod, gotPath, gotAuth, gotUA string
 	s := newStubServer(t, func(w http.ResponseWriter, r *http.Request) {
+		gotMethod = r.Method
 		gotPath = r.URL.Path
 		gotAuth = r.Header.Get("Authorization")
 		gotUA = r.Header.Get("User-Agent")
@@ -34,6 +35,10 @@ func TestMintRegistrationToken_Happy(t *testing.T) {
 	}
 	if token != "reg-token-abc" {
 		t.Errorf("token = %q, want reg-token-abc", token)
+	}
+	// Gitea 1.26+ requires POST; the legacy GET form was removed.
+	if gotMethod != http.MethodPost {
+		t.Errorf("method = %q, want POST", gotMethod)
 	}
 	if want := "/api/v1/orgs/ttd/actions/runners/registration-token"; gotPath != want {
 		t.Errorf("path = %q, want %q", gotPath, want)
