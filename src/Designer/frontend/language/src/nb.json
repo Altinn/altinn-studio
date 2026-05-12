@@ -174,6 +174,7 @@
   "app_create_release.loading": "Laster...",
   "app_create_release.local_changes_can_build": "Alle endringene er ikke delt med master-versjonen. Du må dele dine lokale endringer med master for å få dem med i en ny versjon.",
   "app_create_release.local_changes_cant_build": "Alle endringene er ikke delt med master-versjonen. Du må dele dine lokale endringer med master før du kan bygge en ny versjon.",
+  "app_create_release.maskinporten_scopes_auto_add": "For apper som bruker Altinn.App.Api 8.3.0 eller nyere, legger Studio automatisk til standard Maskinporten-scopes for å lese og skrive instanser som tjenesteeier når appen bygges.",
   "app_create_release.no_changes_on_current_release": "Det er ingen endringer på nåværende lansering",
   "app_create_release.ok": "Ok",
   "app_create_release.release_creating": "Bygger en ny versjon av appen, startet av",

@@ -4,6 +4,7 @@ import type { ChangeEvent } from 'react';
 import { versionNameValid } from './utils';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { useCreateReleaseMutation } from '../../../hooks/mutations';
+import { useGetSelectedScopesQuery } from '../../../hooks/queries/useGetSelectedScopesQuery';
 import { Trans, useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FormField } from 'app-shared/components/FormField';
@@ -12,18 +13,42 @@ import {
   StudioButton,
   StudioDialog,
   StudioHeading,
+  StudioParagraph,
   StudioTextarea,
   StudioTextfield,
 } from '@studio/components';
 import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValidationQuery';
 import { AppValidationDialog } from 'app-shared/components/AppValidationDialog/AppValidationDialog';
 import { appHasCriticalValidationErrors } from 'app-shared/utils/appValidationUtils';
+import { useAppVersionQuery } from 'app-shared/hooks/queries';
+import { hasDefaultMaskinportenScopes } from 'app-development/utils/maskinportenScopes';
+
+const isVersionAtLeast = (
+  version: string | undefined,
+  major: number,
+  minor: number,
+  patch: number,
+) => {
+  const [actualMajor = 0, actualMinor = 0, actualPatch = 0] = (version ?? '')
+    .split(/[.-]/)
+    .map((part) => Number(part));
+
+  if ([actualMajor, actualMinor, actualPatch].some(Number.isNaN)) {
+    return false;
+  }
+
+  if (actualMajor !== major) return actualMajor > major;
+  if (actualMinor !== minor) return actualMinor > minor;
+  return actualPatch >= patch;
+};
 
 export function CreateRelease() {
   const { org, app } = useStudioEnvironmentParams();
   const [tagName, setTagName] = useState<string>('');
   const [body, setBody] = useState<string>('');
   const { data: releases = [] } = useAppReleasesQuery(org, app);
+  const { data: appVersion } = useAppVersionQuery(org, app);
+  const { data: selectedMaskinportenScopes } = useGetSelectedScopesQuery();
   const { refetch: getMasterBranchStatus } = useBranchStatusQuery(org, app, 'master');
   const { data: appValidationResult } = useAppValidationQuery(org, app);
   const { t } = useTranslation();
@@ -53,6 +78,12 @@ export function CreateRelease() {
   );
   const validVersionName = tagName && versionNameValid(releases, tagName);
   const canBuild = validVersionName;
+  const shouldShowMaskinportenScopesNotice =
+    appVersion !== undefined &&
+    selectedMaskinportenScopes !== undefined &&
+    isVersionAtLeast(appVersion.backendVersion, 8, 3, 0) &&
+    !hasDefaultMaskinportenScopes(selectedMaskinportenScopes);
+
   return (
     <div className={classes.createReleaseForm}>
       {appValidationResult?.isValid === false && appHasCriticalErrors && (
@@ -81,6 +112,11 @@ export function CreateRelease() {
             </Trans>
             <AppValidationDialog />
           </StudioDialog.TriggerContext>
+        </StudioAlert>
+      )}
+      {shouldShowMaskinportenScopesNotice && (
+        <StudioAlert data-color='info'>
+          <StudioParagraph>{t('app_create_release.maskinporten_scopes_auto_add')}</StudioParagraph>
         </StudioAlert>
       )}
       <FormField

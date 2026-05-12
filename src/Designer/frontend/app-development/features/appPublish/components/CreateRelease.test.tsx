@@ -44,6 +44,38 @@ describe('CreateRelease', () => {
     ).toBeInTheDocument();
   });
 
+  it('shows Maskinporten scopes notice for app backend version 8.3 when default scopes are missing', async () => {
+    renderCreateRelease({
+      getAppVersion: () => Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '8.3.0' }),
+      getSelectedMaskinportenScopes: () => Promise.resolve({ scopes: [] }),
+    });
+
+    expect(
+      await screen.findByText(textMock('app_create_release.maskinporten_scopes_auto_add')),
+    ).toBeInTheDocument();
+  });
+
+  it('does not show Maskinporten scopes notice when default scopes are already selected', async () => {
+    const getSelectedMaskinportenScopes = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        scopes: [
+          { scope: 'altinn:serviceowner/instances.read', description: 'Read instances' },
+          { scope: 'altinn:serviceowner/instances.write', description: 'Write instances' },
+        ],
+      }),
+    );
+
+    renderCreateRelease({
+      getAppVersion: () => Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '8.3.0' }),
+      getSelectedMaskinportenScopes,
+    });
+
+    await waitFor(() => expect(getSelectedMaskinportenScopes).toHaveBeenCalled());
+    expect(
+      screen.queryByText(textMock('app_create_release.maskinporten_scopes_auto_add')),
+    ).not.toBeInTheDocument();
+  });
+
   it('validates tag name correctly', async () => {
     const user = userEvent.setup();
     const newVersionNumber = 'v1';

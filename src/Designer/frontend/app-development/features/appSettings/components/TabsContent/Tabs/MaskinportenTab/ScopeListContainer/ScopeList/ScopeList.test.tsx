@@ -93,27 +93,27 @@ describe('ScopeList', () => {
     });
   });
 
-  it('should disable unmarking selected mandatory scopes in the add scopes dialog', async () => {
+  it('should disable unmarking selected default scopes in the add scopes dialog', async () => {
     const user = userEvent.setup();
     renderScopeList();
 
     await openAddScopeDialog(user);
     const dialog = getDialog();
-    const selectedMandatoryScopeCheckbox = within(dialog).getByRole('checkbox', {
+    const selectedDefaultScopeCheckbox = within(dialog).getByRole('checkbox', {
       name: scopeMock4.scope,
     });
-    const availableMandatoryScopeCheckbox = within(dialog).getByRole('checkbox', {
+    const availableDefaultScopeCheckbox = within(dialog).getByRole('checkbox', {
       name: scopeMock2.scope,
     });
 
-    expect(selectedMandatoryScopeCheckbox).toBeChecked();
-    expect(selectedMandatoryScopeCheckbox).toBeDisabled();
-    expect(availableMandatoryScopeCheckbox).not.toBeChecked();
-    expect(availableMandatoryScopeCheckbox).not.toBeDisabled();
+    expect(selectedDefaultScopeCheckbox).toBeChecked();
+    expect(selectedDefaultScopeCheckbox).toBeDisabled();
+    expect(availableDefaultScopeCheckbox).not.toBeChecked();
+    expect(availableDefaultScopeCheckbox).not.toBeDisabled();
 
-    await user.click(selectedMandatoryScopeCheckbox);
+    await user.click(selectedDefaultScopeCheckbox);
 
-    expect(selectedMandatoryScopeCheckbox).toBeChecked();
+    expect(selectedDefaultScopeCheckbox).toBeChecked();
   });
 
   it('should sort serviceowner scopes first in selected scopes and dialog scopes', async () => {
@@ -217,7 +217,7 @@ describe('ScopeList', () => {
     );
   });
 
-  it('should not update selected scopes when deleting a mandatory selected scope', async () => {
+  it('should not update selected scopes when deleting a default selected scope', async () => {
     const user = userEvent.setup();
     renderScopeList();
 

@@ -28,7 +28,7 @@ import { useUpdateSelectedMaskinportenScopesMutation } from 'app-development/hoo
 import { toast } from 'react-toastify';
 import {
   combineSelectedAndMaskinportenScopes,
-  isMandatoryMaskinportenScope,
+  isDefaultMaskinportenScope,
   mapMaskinPortenScopesToScopeList,
   mapSelectedValuesToMaskinportenScopes,
   sortScopesForDisplay,
@@ -113,7 +113,7 @@ function SelectedScopesTable({
   const { saveScopes } = useSaveScopes(allAvailableScopes);
 
   const deleteScope = (scopeName: string): void => {
-    if (isMandatoryMaskinportenScope(scopeName)) return;
+    if (isDefaultMaskinportenScope(scopeName)) return;
 
     const updatedValues = initialValues.filter(
       (selectedValue: string) => selectedValue !== scopeName,
@@ -143,7 +143,7 @@ function SelectedScopesTable({
         </StudioTable.Head>
         <StudioTable.Body>
           {selectedScopes.map((scope: MaskinportenScope) => {
-            const isMandatoryScope = isMandatoryMaskinportenScope(scope.scope);
+            const isDefaultScope = isDefaultMaskinportenScope(scope.scope);
 
             return (
               <StudioTable.Row key={scope.scope}>
@@ -153,7 +153,7 @@ function SelectedScopesTable({
                   <StudioDeleteButton
                     variant='tertiary'
                     aria-label={t('general.delete_item', { item: scope.scope })}
-                    disabled={isMandatoryScope}
+                    disabled={isDefaultScope}
                     onDelete={() => deleteScope(scope.scope)}
                   />
                 </StudioTable.Cell>
@@ -190,8 +190,8 @@ function AddScopesDialog({
     initialValues,
     title,
   );
-  const selectedMandatoryScopeNames = useMemo(
-    () => initialValues.filter(isMandatoryMaskinportenScope),
+  const selectedDefaultScopeNames = useMemo(
+    () => initialValues.filter(isDefaultMaskinportenScope),
     [initialValues],
   );
 
@@ -228,7 +228,7 @@ function AddScopesDialog({
   };
 
   const saveSelectedScopes = (): void => {
-    const valuesToSave = Array.from(new Set([...selectedValues, ...selectedMandatoryScopeNames]));
+    const valuesToSave = Array.from(new Set([...selectedValues, ...selectedDefaultScopeNames]));
 
     saveScopes(valuesToSave, () => {
       keepSelectionOnCloseRef.current = true;
@@ -273,7 +273,7 @@ function AddScopesDialog({
             />
             <StudioCheckboxTable.Body>
               {filteredScopes.map((scope: MaskinportenScope) => {
-                const isSelectedMandatoryScope = selectedMandatoryScopeNames.includes(scope.scope);
+                const isSelectedDefaultScope = selectedDefaultScopeNames.includes(scope.scope);
 
                 return (
                   <StudioCheckboxTable.Row
@@ -284,7 +284,7 @@ function AddScopesDialog({
                       ...getCheckboxProps({
                         value: scope.scope,
                       }),
-                      disabled: isSelectedMandatoryScope,
+                      disabled: isSelectedDefaultScope,
                     }}
                   />
                 );

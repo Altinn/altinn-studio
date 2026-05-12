@@ -18,6 +18,7 @@
   "app_create_release.last_commit_to_master": "last commit to master",
   "app_create_release.local_changes_can_build": "All changes are not pushed to master. You have to push your local changes for it to be included in a new version of the application.",
   "app_create_release.local_changes_cant_build": "All changes are not pushed to master. You have to push your local changes to build a new version of the application.",
+  "app_create_release.maskinporten_scopes_auto_add": "For apps using Altinn.App.Api 8.3.0 or newer, Studio automatically adds default Maskinporten scopes for reading and writing instances as service owner when the app is built.",
   "app_create_release.no_changes_on_current_release": "No changes on current release",
   "app_create_release.release_creating": "Building a new version of the application, started by",
   "app_create_release.release_description": "Describe the build",
