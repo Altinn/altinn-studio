@@ -14,7 +14,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.Altinity;
 
 public class AltinityAgentClient : IAltinityAgentClient
 {
-    private const string FeedbackPath = "/api/agent/feedback";
+    private const string FeedbackPath = "/api/feedback";
     private const string ApiKeyHeader = "X-Api-Key";
     private const string DeveloperHeader = "X-Developer";
     private const string ApiKeyNamePrefix = "altinity-feedback-";

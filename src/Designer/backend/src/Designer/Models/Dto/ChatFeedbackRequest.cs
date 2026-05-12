@@ -2,4 +2,4 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Altinn.Studio.Designer.Models.Dto;
 
-public record ChatFeedbackRequest([MaxLength(200)] string TraceId, bool ThumbsUp, [MaxLength(4000)] string? Comment);
+public record ChatFeedbackRequest([MaxLength(200)] string TraceId, bool ThumbsUp, [MaxLength(10000)] string? Comment);

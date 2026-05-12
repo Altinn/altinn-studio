@@ -2,14 +2,14 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 from api.main import app
 
-FEEDBACK_PATH = "/api/agent/feedback"
+FEEDBACK_PATH = "/api/feedback"
 VALID_API_KEY_HEADER = {"X-Api-Key": "test-key"}
 VALID_TRACE_ID = "trace-abc-123"
 
 
 class TestFeedbackEndpoint:
     def test_thumbs_up_writes_score_and_returns_204(self):
-        with patch("api.routes.agent.score_validation") as mock_score:
+        with patch("api.routes.feedback.score_validation") as mock_score:
             response = TestClient(app).post(
                 FEEDBACK_PATH,
                 json={"trace_id": VALID_TRACE_ID, "thumbs_up": True},
@@ -25,7 +25,7 @@ class TestFeedbackEndpoint:
         )
 
     def test_thumbs_down_with_comment_is_forwarded(self):
-        with patch("api.routes.agent.score_validation") as mock_score:
+        with patch("api.routes.feedback.score_validation") as mock_score:
             response = TestClient(app).post(
                 FEEDBACK_PATH,
                 json={
@@ -45,7 +45,7 @@ class TestFeedbackEndpoint:
         )
 
     def test_missing_api_key_is_rejected(self):
-        with patch("api.routes.agent.score_validation") as mock_score:
+        with patch("api.routes.feedback.score_validation") as mock_score:
             response = TestClient(app).post(
                 FEEDBACK_PATH,
                 json={"trace_id": VALID_TRACE_ID, "thumbs_up": True},
@@ -55,7 +55,7 @@ class TestFeedbackEndpoint:
         mock_score.assert_not_called()
 
     def test_empty_trace_id_returns_422(self):
-        with patch("api.routes.agent.score_validation") as mock_score:
+        with patch("api.routes.feedback.score_validation") as mock_score:
             response = TestClient(app).post(
                 FEEDBACK_PATH,
                 json={"trace_id": "", "thumbs_up": True},
@@ -66,7 +66,7 @@ class TestFeedbackEndpoint:
         mock_score.assert_not_called()
 
     def test_comment_over_4000_chars_returns_422(self):
-        with patch("api.routes.agent.score_validation") as mock_score:
+        with patch("api.routes.feedback.score_validation") as mock_score:
             response = TestClient(app).post(
                 FEEDBACK_PATH,
                 json={
