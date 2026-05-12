@@ -3,11 +3,11 @@ import escapeStringRegexp from 'escape-string-regexp';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { SearchParams } from 'src/core/routing/types';
-import { exprCastValue } from 'src/features/expressions';
+import { evalExpr, exprCastValue } from 'src/features/expressions';
 import { Decimal } from 'src/features/expressions/Decimal';
 import { ExprRuntimeError, NodeRelationNotFound } from 'src/features/expressions/errors';
 import { ExprVal } from 'src/features/expressions/types';
-import { addError } from 'src/features/expressions/validation';
+import { addError, ExprValidation } from 'src/features/expressions/validation';
 import { makeIndexedId } from 'src/features/form/layout/utils/makeIndexedId';
 import { buildAuthContext } from 'src/utils/authContext';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
@@ -20,6 +20,7 @@ import type {
   ExprFunctionName,
   ExprFunctions,
   ExprValToActual,
+  ExprValToActualOrExpr,
 } from 'src/features/expressions/types';
 import type { ValidationContext } from 'src/features/expressions/validation';
 import type { IDataModelReference } from 'src/layout/common.generated';
@@ -186,13 +187,7 @@ export const ExprFunctionDefinitions = {
   component: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.Any,
-    needs: dataSources(
-      'layoutLookups',
-      'currentDataModelPath',
-      'hiddenComponents',
-      'dataModelNames',
-      'formDataSelector',
-    ),
+    needs: dataSources('layoutLookups', 'currentDataModelPath', 'dataModelNames', 'formDataSelector'),
   },
   dataModel: {
     args: args(required(ExprVal.String), optional(ExprVal.String)),
@@ -212,7 +207,7 @@ export const ExprFunctionDefinitions = {
   displayValue: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.String,
-    needs: dataSources('displayValues', 'hiddenComponents', 'currentDataModelPath', 'layoutLookups'),
+    needs: dataSources('displayValues', 'currentDataModelPath', 'layoutLookups'),
   },
   optionLabel: {
     args: args(required(ExprVal.String), required(ExprVal.Any)),
@@ -483,7 +478,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new NodeRelationNotFound(this, id);
     }
 
-    if (this.dataSources.hiddenComponents[id] === true) {
+    if (isComponentOrAncestorHidden(this, id)) {
       return null;
     }
 
@@ -565,7 +560,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new NodeRelationNotFound(this, id);
     }
 
-    if (this.dataSources.hiddenComponents[id] === true) {
+    if (isComponentOrAncestorHidden(this, id)) {
       return null;
     }
 
@@ -901,6 +896,55 @@ function pickSimpleValue(
     return value;
   }
   return null;
+}
+
+function isComponentOrAncestorHidden(ctx: EvaluateExpressionParams<['layoutLookups']>, componentId: string) {
+  let currentId: string | undefined = componentId;
+  while (currentId !== undefined) {
+    const component = ctx.dataSources.layoutLookups.allComponents[currentId];
+    const errorIntroText = `Expression in property hidden for component ${currentId} failed`;
+    if (evalEmbeddedExpression(ctx as EvaluateExpressionParams, component?.hidden, errorIntroText)) {
+      return true;
+    }
+
+    const parent = ctx.dataSources.layoutLookups.componentToParent[currentId];
+    if (parent?.type !== 'node') {
+      break;
+    }
+
+    currentId = parent.id;
+  }
+
+  const pageKey = ctx.dataSources.layoutLookups.componentToPage[componentId];
+  if (pageKey !== undefined) {
+    return evalEmbeddedExpression(
+      ctx as EvaluateExpressionParams,
+      ctx.dataSources.layoutLookups.hiddenPerPage[pageKey],
+      `Hidden expression for page ${pageKey} failed`,
+    );
+  }
+
+  return false;
+}
+
+function evalEmbeddedExpression(
+  ctx: EvaluateExpressionParams,
+  expr: ExprValToActualOrExpr<ExprVal.Boolean> | undefined,
+  errorIntroText: string,
+) {
+  if (!ExprValidation.isValidOrScalar(expr, ExprVal.Boolean)) {
+    return false;
+  }
+
+  return evalExpr(expr, ctx.dataSources, {
+    errorIntroText,
+    defaultValue: false,
+    returnType: ExprVal.Boolean,
+    onBeforeFunctionCall: ctx.callbacks.onBeforeFunctionCall,
+    onAfterFunctionCall: ctx.callbacks.onAfterFunctionCall,
+    positionalArguments: ctx.positionalArguments,
+    valueArguments: ctx.valueArguments,
+  });
 }
 
 /**

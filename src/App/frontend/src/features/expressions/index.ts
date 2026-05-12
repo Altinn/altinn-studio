@@ -67,9 +67,9 @@ function isExpression(input: unknown): input is Expression {
 /**
  * Run/evaluate an expression. You have to provide your own context containing functions for looking up external values.
  */
-export function evalExpr<V extends ExprVal = ExprVal>(
+export function evalExpr<V extends ExprVal = ExprVal, DataSources extends readonly Source[] = Source[]>(
   expr: ExprValToActualOrExpr<V> | undefined,
-  dataSources: ExpressionDataSources,
+  dataSources: Pick<ExpressionDataSources, DataSources[number]>,
   options: EvalExprOptions,
 ): ExprValToActual<V> {
   if (!isExpression(expr)) {
@@ -80,7 +80,7 @@ export function evalExpr<V extends ExprVal = ExprVal>(
     onBeforeFunctionCall: options.onBeforeFunctionCall,
     onAfterFunctionCall: options.onAfterFunctionCall,
   };
-  const evalParams: EvaluateExpressionParams = {
+  const evalParams: EvaluateExpressionParams<DataSources> = {
     expr,
     path: [],
     callbacks,

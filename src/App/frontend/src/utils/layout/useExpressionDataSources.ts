@@ -14,7 +14,6 @@ import { useInnerLanguageWithForcedPathSelector } from 'src/features/language/us
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
-import { useIsHiddenMulti } from 'src/utils/layout/hidden';
 import type { ExprFunctionName } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
@@ -53,10 +52,9 @@ export interface ExpressionDataSources {
 
   // Solves themselves if we always have all expression data sources?
   displayValues: Record<string, string | undefined>;
-  hiddenComponents: Record<string, boolean | undefined>;
 }
 
-type HookBackedDataSource = Exclude<keyof ExpressionDataSources, 'displayValues' | 'hiddenComponents'>;
+type HookBackedDataSource = Exclude<keyof ExpressionDataSources, 'displayValues'>;
 type DerivedDataSource = Exclude<keyof ExpressionDataSources, HookBackedDataSource>;
 
 function typedKeys<T extends Record<string, unknown>>(obj: T): (keyof T)[] {
@@ -90,7 +88,6 @@ const hooks: { [K in HookBackedDataSource]: () => ExpressionDataSources[K] } = {
 
 const derivedDataSources: { [K in DerivedDataSource]: true } = {
   displayValues: true,
-  hiddenComponents: true,
 };
 
 export const ExpressionDataSourcesKeys = [
@@ -110,13 +107,48 @@ export type DataSourceOverrides = {
  * the same between renders, i.e. that layout configuration/expressions does not change between renders.
  */
 export function useExpressionDataSources(toEvaluate: unknown, overrides?: DataSourceOverrides): ExpressionDataSources {
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
+  const layoutCollection = FormStore.bootstrap.useLayoutCollection();
   const { unsupportedDataSources, errorSuffix, dataSources: overriddenDataSources } = overrides ?? {};
 
-  const { neededDataSources, displayValueLookups, componentLookups } = useMemo(() => {
+  const { neededDataSources, displayValueLookups } = useMemo(() => {
     const functionCalls = new Set<ExprFunctionName>();
     const displayValueLookups = new Set<string>();
     const componentLookups = new Set<string>();
     findUsedExpressionFunctions(toEvaluate, functionCalls, displayValueLookups, componentLookups);
+
+    // When evaluating if a component is hidden, we look at the component and walk up the parents, all the way to the
+    // root component, and then the page it's on. To make sure this works, we have to build expression data sources for
+    // all parents as well.
+    const traversedComponentLookups = new Set<string>();
+    while (componentLookups.size > 0) {
+      const lookup = componentLookups.values().next().value;
+      if (lookup === undefined) {
+        break;
+      }
+
+      componentLookups.delete(lookup);
+      if (traversedComponentLookups.has(lookup)) {
+        continue;
+      }
+
+      const component = layoutLookups.getComponent(lookup);
+      findUsedExpressionFunctions(component?.hidden, functionCalls, undefined, componentLookups);
+
+      let parent = layoutLookups.componentToParent[lookup];
+      while (parent?.type === 'node') {
+        const parentComponent = layoutLookups.getComponent(parent.id);
+        findUsedExpressionFunctions(parentComponent?.hidden, functionCalls, undefined, componentLookups);
+        parent = layoutLookups.componentToParent[parent.id];
+      }
+
+      const page = layoutLookups.componentToPage[lookup];
+      if (page !== undefined) {
+        findUsedExpressionFunctions(layoutCollection[page]?.data.hidden, functionCalls, undefined, componentLookups);
+      }
+
+      traversedComponentLookups.add(lookup);
+    }
 
     const neededDataSources = new Set<keyof ExpressionDataSources>();
     for (const functionName of functionCalls) {
@@ -132,8 +164,8 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: DataSo
       }
     }
 
-    return { functionCalls, displayValueLookups, componentLookups, neededDataSources };
-  }, [toEvaluate, unsupportedDataSources, errorSuffix]);
+    return { functionCalls, displayValueLookups, neededDataSources };
+  }, [toEvaluate, layoutLookups, layoutCollection, unsupportedDataSources, errorSuffix]);
 
   const output: Partial<ExpressionDataSources> = {};
 
@@ -145,8 +177,6 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: DataSo
       output[key] = hooks[key]();
     } else if (key === 'displayValues') {
       output[key] = useDisplayDataFor([...displayValueLookups.values()]);
-    } else if (key === 'hiddenComponents') {
-      output[key] = useIsHiddenMulti([...componentLookups, ...displayValueLookups]);
     } else {
       throw new Error(`No hook found for data source ${key}`);
     }
@@ -158,7 +188,7 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: DataSo
 function findUsedExpressionFunctions(
   subject: unknown,
   functionCalls: Set<ExprFunctionName>,
-  displayValueLookups: Set<string>,
+  displayValueLookups: Set<string> | undefined,
   componentLookups: Set<string>,
 ) {
   if (!subject || typeof subject !== 'object') {
@@ -170,7 +200,11 @@ function findUsedExpressionFunctions(
       functionCalls.add(subject[0]);
 
       if (subject[0] === 'displayValue' && typeof subject[1] === 'string') {
+        if (!displayValueLookups) {
+          throw new Error('Expression function "displayValue" cannot be called in a "hidden" property expression');
+        }
         displayValueLookups.add(subject[1]);
+        componentLookups.add(subject[1]);
       }
 
       if (subject[0] === 'component' && typeof subject[1] === 'string') {
