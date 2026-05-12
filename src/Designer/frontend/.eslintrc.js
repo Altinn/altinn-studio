@@ -25,7 +25,6 @@ module.exports = {
     'react-hooks/immutability': 'off',
     'react-hooks/static-components': 'off',
     'react-hooks/set-state-in-effect': 'off',
-
     'react/destructuring-assignment': 'off',
     'react/prop-types': 'error',
     'react/require-default-props': 'off',
