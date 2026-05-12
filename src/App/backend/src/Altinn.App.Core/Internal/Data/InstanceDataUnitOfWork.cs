@@ -46,7 +46,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     // Cache for the most up-to-date form data (can be mutated or replaced with SetFormData(dataElementId, data))
     private readonly DataElementCache<IFormDataWrapper> _formDataCache = new();
 
-    // Cache for the binary content of the file as currently in storage (updated on save)
+    // Cache for the binary content of the file as currently in storage.
     private readonly DataElementCache<ReadOnlyMemory<byte>> _binaryCache = new();
 
     // Data elements to delete (eg RemoveDataElement(dataElementId)), but not yet deleted from instance or storage
@@ -54,6 +54,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     // Form data not yet saved to storage (thus no dataElementId)
     private readonly ConcurrentBag<DataElementChange> _changesForCreation = [];
+
+    // Existing binary data elements with updated content that is not yet saved to storage.
+    private readonly ConcurrentDictionary<DataElementIdentifier, BinaryDataChange> _changesForBinaryUpdate = [];
 
     private readonly ConcurrentDictionary<DataType, StorageAuthenticationMethod> _authenticationMethodOverrides = new(
         DataTypeComparer.Instance
@@ -207,6 +210,11 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         // Verify that the data element exists on the instance
         GetDataElement(dataElementIdentifier);
 
+        if (_changesForBinaryUpdate.TryGetValue(dataElementIdentifier, out var updatedBinary))
+        {
+            return updatedBinary.CurrentBinaryData;
+        }
+
         return await _binaryCache.GetOrCreate(
             dataElementIdentifier,
             async () =>
@@ -286,19 +294,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             );
         }
 
-        if (dataType.MaxSize.HasValue && bytes.Length > dataType.MaxSize.Value * 1024 * 1024)
-        {
-            throw new InvalidOperationException(
-                $"Data element of type {dataTypeId} exceeds the size limit of {dataType.MaxSize} MB"
-            );
-        }
-
-        if (dataType.AllowedContentTypes is { Count: > 0 } && !dataType.AllowedContentTypes.Contains(contentType))
-        {
-            throw new InvalidOperationException(
-                $"Data element of type {dataTypeId} has a Content-Type '{contentType}' which is invalid for element type '{dataTypeId}'"
-            );
-        }
+        ValidateBinaryData(dataType, contentType, bytes);
 
         BinaryDataChange change = new BinaryDataChange(
             type: ChangeType.Created,
@@ -309,6 +305,47 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             currentBinaryData: bytes
         );
         _changesForCreation.Add(change);
+        return change;
+    }
+
+    /// <inheritdoc />
+    public BinaryDataChange UpdateBinaryDataElement(
+        DataElementIdentifier dataElementIdentifier,
+        ReadOnlyMemory<byte> bytes
+    )
+    {
+        var dataElement = GetDataElement(dataElementIdentifier);
+        var dataType = this.GetDataType(dataElementIdentifier);
+        if (dataType.AppLogic?.ClassRef is not null)
+        {
+            throw new InvalidOperationException(
+                $"Data element {dataElementIdentifier.Id} of type {dataType.Id} is not a binary data element"
+            );
+        }
+        if (_changesForDeletion.Any(c => c.DataElementIdentifier == dataElementIdentifier))
+        {
+            throw new InvalidOperationException(
+                $"Data element with id {dataElementIdentifier.Id} is marked for deletion and cannot be updated"
+            );
+        }
+        if (dataElement.ContentType is not { } contentType)
+        {
+            throw new InvalidOperationException(
+                $"Data element {dataElementIdentifier.Id} is missing Content-Type and cannot be updated"
+            );
+        }
+
+        ValidateBinaryData(dataType, contentType, bytes);
+
+        BinaryDataChange change = new BinaryDataChange(
+            type: ChangeType.Updated,
+            dataElement: dataElement,
+            dataType: dataType,
+            fileName: dataElement.Filename,
+            contentType: contentType,
+            currentBinaryData: bytes
+        );
+        _changesForBinaryUpdate[dataElementIdentifier] = change;
         return change;
     }
 
@@ -324,6 +361,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                 $"Data element with id {dataElementIdentifier.Id} is already marked for deletion"
             );
         }
+        _changesForBinaryUpdate.TryRemove(dataElementIdentifier, out _);
         if (dataType.AppLogic?.ClassRef is null)
         {
             _changesForDeletion.Add(
@@ -392,9 +430,14 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             }
             var dataType = this.GetDataType(dataElementIdentifier);
 
+            if (_changesForBinaryUpdate.TryGetValue(dataElementIdentifier, out var binaryChange))
+            {
+                changes.Add(binaryChange);
+                continue;
+            }
+
             if (!_formDataCache.TryGetCachedValue(dataElementIdentifier, out IFormDataWrapper? dataWrapper))
             {
-                // We don't support making updates to binary data elements (attachments) in IInstanceDataMutator
                 continue;
             }
 
@@ -472,6 +515,23 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         return new DataElementChanges(changes);
     }
 
+    private static void ValidateBinaryData(DataType dataType, string contentType, ReadOnlyMemory<byte> bytes)
+    {
+        if (dataType.MaxSize.HasValue && bytes.Length > dataType.MaxSize.Value * 1024 * 1024)
+        {
+            throw new InvalidOperationException(
+                $"Data element of type {dataType.Id} exceeds the size limit of {dataType.MaxSize} MB"
+            );
+        }
+
+        if (dataType.AllowedContentTypes is { Count: > 0 } && !dataType.AllowedContentTypes.Contains(contentType))
+        {
+            throw new InvalidOperationException(
+                $"Data element of type {dataType.Id} has a Content-Type '{contentType}' which is invalid for element type '{dataType.Id}'"
+            );
+        }
+    }
+
     private async Task CreateDataElement(
         ConcurrentDictionary<DataElementChange, DataElement> createdDataElements,
         DataElementChange change
@@ -520,6 +580,21 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             change.DataElement.Filename,
             Guid.Parse(change.DataElement.Id),
             new MemoryAsStream(bytes),
+            authenticationMethod: GetAuthenticationMethod(change.DataElementIdentifier)
+        );
+    }
+
+    private async Task UpdateDataElement(BinaryDataChange change)
+    {
+        if (change.DataElement is null)
+            throw new InvalidOperationException("ChangeType.Updated sent to SaveChanges must have a DataElement value");
+
+        await _dataClient.UpdateBinaryData(
+            new InstanceIdentifier(Instance),
+            change.ContentType,
+            change.FileName,
+            change.DataElementIdentifier.Guid,
+            new MemoryAsStream(change.CurrentBinaryData),
             authenticationMethod: GetAuthenticationMethod(change.DataElementIdentifier)
         );
     }
@@ -595,12 +670,16 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         }
         var tasks = new List<Task>();
 
-        foreach (var change in changes.FormDataChanges)
+        foreach (var change in changes.AllChanges.Where(change => change.Type == ChangeType.Updated))
         {
-            if (change.Type != ChangeType.Updated)
-                continue; // New and deleted form data is handled separately
-
-            tasks.Add(UpdateDataElement(change));
+            tasks.Add(
+                change switch
+                {
+                    FormDataChange formDataChange => UpdateDataElement(formDataChange),
+                    BinaryDataChange binaryDataChange => UpdateDataElement(binaryDataChange),
+                    _ => throw new UnreachableException("ChangeType.Updated must be a form or binary data change"),
+                }
+            );
         }
 
         await Task.WhenAll(tasks);
