@@ -1,0 +1,40 @@
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - errorlint
+    - gocritic
+    - gosec
+    - govet
+    - ineffassign
+    - revive
+    - staticcheck
+    - unused
+
+linters-settings:
+  errorlint:
+    errorf: true
+    asserts: true
+    comparison: true
+  revive:
+    severity: warning
+    rules:
+      - name: exported
+      - name: var-naming
+      - name: error-return
+      - name: error-naming
+      - name: error-strings
+      - name: unused-parameter
+      - name: receiver-naming
+      - name: indent-error-flow
+      - name: package-comments
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gosec

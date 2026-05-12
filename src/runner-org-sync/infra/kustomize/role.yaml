@@ -1,0 +1,17 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: runner-org-sync
+rules:
+  # Per-org registration-token Secrets: list to inventory, get to check
+  # existence, create on onboarding, delete on offboarding. No "update" —
+  # we never modify a Secret in place; we delete and recreate.
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "create", "delete"]
+
+  # Runner-org-list ConfigMap: get to detect drift, create on first run,
+  # update on subsequent changes.
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "create", "update"]

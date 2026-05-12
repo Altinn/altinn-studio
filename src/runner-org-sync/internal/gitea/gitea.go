@@ -1,0 +1,126 @@
+// Package gitea is a minimal admin client for Gitea — just enough to mint
+// per-organisation Actions runner registration tokens.
+//
+// The endpoint targeted is Gitea's organisation-scoped runner registration
+// token API. The returned token is a one-shot string that an act_runner
+// process uses to register itself with Gitea; once registered the runner
+// keeps its own long-lived identity.
+package gitea
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
+)
+
+const (
+	defaultTimeout   = 15 * time.Second
+	defaultUserAgent = "runner-org-sync"
+	maxErrorBody     = 512
+)
+
+// Sentinel errors. Callers can errors.Is against these to drive reconcile
+// policy (e.g. ErrUnauthorized → fatal; ErrOrgNotFound → skip & continue).
+var (
+	ErrUnauthorized = errors.New("gitea: unauthorized (bad PAT)")
+	ErrOrgNotFound  = errors.New("gitea: organisation not found")
+	ErrServer       = errors.New("gitea: server error")
+)
+
+// Client talks to a Gitea instance using a Personal Access Token.
+type Client struct {
+	httpClient *http.Client
+	baseURL    string
+	pat        string
+	userAgent  string
+}
+
+// Option configures a Client.
+type Option func(*Client)
+
+// WithHTTPClient overrides the default HTTP client.
+func WithHTTPClient(h *http.Client) Option {
+	return func(c *Client) { c.httpClient = h }
+}
+
+// WithUserAgent overrides the User-Agent header.
+func WithUserAgent(ua string) Option {
+	return func(c *Client) { c.userAgent = ua }
+}
+
+// NewClient constructs a Client. baseURL should be the Gitea instance root
+// (e.g. "http://altinn-repositories-public.default.svc.cluster.local"); the
+// trailing slash is normalised away.
+func NewClient(baseURL, pat string, opts ...Option) *Client {
+	c := &Client{
+		httpClient: &http.Client{Timeout: defaultTimeout},
+		baseURL:    strings.TrimRight(baseURL, "/"),
+		pat:        pat,
+		userAgent:  defaultUserAgent,
+	}
+	for _, opt := range opts {
+		opt(c)
+	}
+	return c
+}
+
+// MintRegistrationToken returns a fresh runner registration token for the
+// given organisation. org is the short Gitea organisation name (e.g. "ttd").
+func (c *Client) MintRegistrationToken(ctx context.Context, org string) (string, error) {
+	if org == "" {
+		return "", errors.New("gitea: org is required")
+	}
+	endpoint := fmt.Sprintf("%s/api/v1/orgs/%s/actions/runners/registration-token",
+		c.baseURL, url.PathEscape(org))
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return "", fmt.Errorf("gitea: build request: %w", err)
+	}
+	req.Header.Set("Authorization", "token "+c.pat)
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("User-Agent", c.userAgent)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("gitea: get registration token for %s: %w", org, err)
+	}
+	defer resp.Body.Close()
+
+	switch {
+	case resp.StatusCode == http.StatusOK:
+		// fall through
+	case resp.StatusCode == http.StatusUnauthorized, resp.StatusCode == http.StatusForbidden:
+		return "", fmt.Errorf("%w: status %d", ErrUnauthorized, resp.StatusCode)
+	case resp.StatusCode == http.StatusNotFound:
+		return "", fmt.Errorf("%w: %s", ErrOrgNotFound, org)
+	case resp.StatusCode >= 500:
+		body := readErrorBody(resp.Body)
+		return "", fmt.Errorf("%w: status %d: %s", ErrServer, resp.StatusCode, body)
+	default:
+		body := readErrorBody(resp.Body)
+		return "", fmt.Errorf("gitea: unexpected status %d: %s", resp.StatusCode, body)
+	}
+
+	var payload struct {
+		Token string `json:"token"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		return "", fmt.Errorf("gitea: decode response for %s: %w", org, err)
+	}
+	if payload.Token == "" {
+		return "", fmt.Errorf("gitea: empty token in response for %s", org)
+	}
+	return payload.Token, nil
+}
+
+func readErrorBody(r io.Reader) string {
+	body, _ := io.ReadAll(io.LimitReader(r, maxErrorBody))
+	return string(body)
+}

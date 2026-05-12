@@ -1,0 +1,91 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: runner-org-sync
+  labels:
+    app: runner-org-sync
+  annotations:
+    altinn.studio/image: "altinn-studio/runner-org-sync:latest"
+    altinn.studio/image-tag: "latest"
+spec:
+  # Every 15 minutes, aligned to wall-clock quarters.
+  schedule: "*/15 * * * *"
+
+  # Avoid overlap. A reconcile takes seconds; if a previous run somehow is
+  # still going, skipping is correct — the next tick has the latest state.
+  concurrencyPolicy: Forbid
+
+  # If the controller misses a window (e.g. AKS upgrade), do not back-fill.
+  # The next scheduled run does the right thing on its own.
+  startingDeadlineSeconds: 60
+
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      # Job-level deadline so a wedged pod cannot pile up next to a fresh one.
+      activeDeadlineSeconds: 300
+      template:
+        metadata:
+          labels:
+            app: runner-org-sync
+            # Tells the Workload Identity webhook to inject the federated
+            # token volume and AZURE_* env vars into this pod.
+            azure.workload.identity/use: "true"
+        spec:
+          serviceAccountName: runner-org-sync
+          restartPolicy: Never
+          terminationGracePeriodSeconds: 30
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            fsGroup: 65532
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: runner-org-sync
+              image: altinn-studio/runner-org-sync:latest
+              imagePullPolicy: IfNotPresent
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                privileged: false
+                capabilities:
+                  drop: ["ALL"]
+              env:
+                - name: RUNNER_ORG_SYNC_GITEA_URL
+                  value: "http://altinn-repositories-public.default.svc.cluster.local"
+                - name: RUNNER_ORG_SYNC_ORGS_JSON_URL
+                  value: "https://altinncdn.no/orgs/altinn-orgs.json"
+                - name: RUNNER_ORG_SYNC_OUTPUT_NAMESPACE
+                  value: "studio-runners"
+                - name: RUNNER_ORG_SYNC_SECRET_NAME_PATTERN
+                  value: "altinn-gitea-runner-{org}-secret"
+                - name: RUNNER_ORG_SYNC_CONFIGMAP_NAME
+                  value: "runner-org-list"
+                - name: RUNNER_ORG_SYNC_SYNC_ALL
+                  value: "false"
+                - name: RUNNER_ORG_SYNC_ORGS
+                  value: "${RUNNER_ORG_SYNC_ORGS}"
+                - name: RUNNER_ORG_SYNC_KEYVAULT_NAME
+                  value: "${RUNNER_ORG_SYNC_KEYVAULT_NAME}"
+                - name: RUNNER_ORG_SYNC_KEYVAULT_SECRET_NAME
+                  value: "gitea-admin-pat"
+                - name: OTEL_SERVICE_NAME
+                  value: "runner-org-sync"
+                - name: OTEL_EXPORTER_OTLP_ENDPOINT
+                  value: "http://otel-router.observability.svc.cluster.local:4317"
+                - name: OTEL_EXPORTER_OTLP_PROTOCOL
+                  value: "grpc"
+                - name: OTEL_RESOURCE_ATTRIBUTES
+                  value: "service.namespace=studio-runners,deployment.environment=${ENVIRONMENT}"
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
