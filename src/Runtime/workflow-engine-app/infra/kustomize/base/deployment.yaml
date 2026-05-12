@@ -92,8 +92,6 @@ spec:
                   key: environment
             - name: ASPNETCORE_HTTP_PORTS
               value: "9090"
-            - name: WORKFLOW_ENGINE_VERSION
-              value: ""
           volumeMounts:
             - name: secrets
               mountPath: /app/secrets

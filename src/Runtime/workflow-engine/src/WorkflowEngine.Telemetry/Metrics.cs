@@ -528,17 +528,15 @@ public static class Metrics
         contexts.OfType<ActivityContext>().Select(x => new ActivityLink(x));
 
     /// <summary>
-    /// Returns the current service version by resolving the <c>WORKFLOW_ENGINE_VERSION</c> environment variable (from CI),
-    /// falling back to the assembly's <see cref="AssemblyInformationalVersionAttribute"/>, then lastly to <c>"0.0.0-dev"</c>.
+    /// Returns the current service version from the entry assembly's
+    /// <see cref="AssemblyInformationalVersionAttribute"/> (CI sets this via
+    /// <c>-p:InformationalVersion=&lt;short-sha&gt;</c> at publish time), falling back to <c>"0.0.0-dev"</c>.
     /// </summary>
     private static string ResolveServiceVersion()
     {
-        var fromEnv = Environment.GetEnvironmentVariable("WORKFLOW_ENGINE_VERSION");
-        if (!string.IsNullOrWhiteSpace(fromEnv))
-            return fromEnv;
-
-        var fromAssembly = typeof(Metrics)
-            .Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+        var fromAssembly = Assembly
+            .GetEntryAssembly()
+            ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
             ?.InformationalVersion;
         if (!string.IsNullOrWhiteSpace(fromAssembly))
             return fromAssembly;
