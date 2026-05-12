@@ -8,6 +8,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.8] - 2026-05-13
+
 ### Changed
 
 - Breaking: make `--follow` default to `false` for log commands.
