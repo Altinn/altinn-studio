@@ -15,7 +15,9 @@ import (
 
 	containermock "altinn.studio/devenv/pkg/container/mock"
 	"altinn.studio/devenv/pkg/container/types"
+	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	appsupport "altinn.studio/studioctl/internal/cmd/apps"
+	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -205,5 +207,194 @@ func TestContainerAppRunInfoIncludesContainerHandle(t *testing.T) {
 
 	if got.ContainerID != "container-id" || got.HostPort != 5006 {
 		t.Fatalf("containerAppRunInfo() = %+v, want container handle and host port", got)
+	}
+}
+
+func TestPrepareDockerRunImagePullUsesProgressRenderer(t *testing.T) {
+	t.Parallel()
+
+	var out bytes.Buffer
+	cmd := &RunCommand{out: ui.NewOutput(&out, io.Discard, false)}
+	flags := runFlags{imageTag: "example/app:test", pullImage: true, skipBuild: true}
+	spec := appsvc.DockerRunSpec{Config: types.ContainerConfig{
+		Name:  "localtest-app-test",
+		Image: flags.imageTag,
+	}}
+	progress := cmd.startContainerRunProgress(spec, flags)
+	defer progress.Stop()
+
+	client := containermock.New()
+	progressHandlerCalled := false
+	client.ImagePullWithProgressFunc = func(
+		_ context.Context,
+		image string,
+		onProgress types.ProgressHandler,
+	) error {
+		if image != flags.imageTag {
+			t.Fatalf("image = %q, want %q", image, flags.imageTag)
+		}
+		if onProgress == nil {
+			t.Fatal("onProgress = nil, want progress handler")
+		}
+		progressHandlerCalled = true
+		onProgress(types.ProgressUpdate{Message: "downloading", Current: 1, Total: 2})
+		return nil
+	}
+
+	err := cmd.prepareDockerRunImage(t.Context(), client, repocontext.Detection{}, flags.imageTag, flags, progress)
+	if err != nil {
+		t.Fatalf("prepareDockerRunImage() error = %v", err)
+	}
+	progress.Stop()
+
+	if !progressHandlerCalled {
+		t.Fatal("progress handler was not called")
+	}
+	assertContainerCall(t, client.Calls, "ImagePullWithProgress")
+	assertNoContainerCall(t, client.Calls, "ImagePull")
+
+	rendered := out.String()
+	for _, want := range []string{
+		"Pulling and starting app container...",
+		"localtest-app-test: pulling",
+		"downloading",
+		"localtest-app-test: image ready",
+	} {
+		if !strings.Contains(rendered, want) {
+			t.Fatalf("rendered output %q missing %q", rendered, want)
+		}
+	}
+}
+
+func TestCreateDockerAppContainerRendersStartAndCanSuppressPlainInfo(t *testing.T) {
+	t.Parallel()
+
+	var out bytes.Buffer
+	cmd := &RunCommand{out: ui.NewOutput(&out, io.Discard, false)}
+	spec := appContainerProgressTestSpec()
+	progress := cmd.startContainerRunProgress(spec, runFlags{skipBuild: true})
+	defer progress.Stop()
+
+	client := containermock.New()
+	client.ContainerRemoveFunc = func(context.Context, string, bool) error {
+		return types.ErrContainerNotFound
+	}
+	client.ContainerInspectFunc = func(context.Context, string) (types.ContainerInfo, error) {
+		return appContainerProgressTestInfo(spec), nil
+	}
+
+	_, _, err := cmd.createDockerAppContainer(t.Context(), client, spec, true, progress)
+	if err != nil {
+		t.Fatalf("createDockerAppContainer() error = %v", err)
+	}
+	progress.Stop()
+
+	rendered := out.String()
+	if !strings.Contains(rendered, "localtest-app-test: starting") {
+		t.Fatalf("rendered output %q missing container starting state", rendered)
+	}
+	if strings.Contains(rendered, "Container:") || strings.Contains(rendered, "Port:") {
+		t.Fatalf("rendered output %q contains plain container info despite quiet output", rendered)
+	}
+}
+
+func TestCreateDockerAppContainerRendersExistingContainerRemoval(t *testing.T) {
+	t.Parallel()
+
+	var out bytes.Buffer
+	cmd := &RunCommand{out: ui.NewOutput(&out, io.Discard, false)}
+	spec := appContainerProgressTestSpec()
+	progress := cmd.startContainerRunProgress(spec, runFlags{skipBuild: true})
+	defer progress.Stop()
+
+	client := containermock.New()
+	client.ContainerInspectFunc = func(context.Context, string) (types.ContainerInfo, error) {
+		return appContainerProgressTestInfo(spec), nil
+	}
+
+	_, _, err := cmd.createDockerAppContainer(t.Context(), client, spec, true, progress)
+	if err != nil {
+		t.Fatalf("createDockerAppContainer() error = %v", err)
+	}
+	progress.Stop()
+
+	rendered := out.String()
+	for _, want := range []string{
+		"localtest-app-test: stopping",
+		"localtest-app-test: removed",
+		"localtest-app-test: starting",
+	} {
+		if !strings.Contains(rendered, want) {
+			t.Fatalf("rendered output %q missing %q", rendered, want)
+		}
+	}
+}
+
+func TestCreateDockerAppContainerRendersRemoveFailure(t *testing.T) {
+	t.Parallel()
+
+	var out bytes.Buffer
+	cmd := &RunCommand{out: ui.NewOutput(&out, io.Discard, false)}
+	spec := appContainerProgressTestSpec()
+	progress := cmd.startContainerRunProgress(spec, runFlags{skipBuild: true})
+	defer progress.Stop()
+
+	client := containermock.New()
+	client.ContainerRemoveFunc = func(context.Context, string, bool) error {
+		return errRemoveFailed
+	}
+
+	_, _, err := cmd.createDockerAppContainer(t.Context(), client, spec, true, progress)
+	if err == nil {
+		t.Fatal("createDockerAppContainer() error = nil, want error")
+	}
+	progress.Fail(err)
+
+	rendered := out.String()
+	if !strings.Contains(rendered, "localtest-app-test: stopping") {
+		t.Fatalf("rendered output %q missing removal start", rendered)
+	}
+	if !strings.Contains(rendered, "localtest-app-test: failed: remove failed") {
+		t.Fatalf("rendered output %q missing removal failure", rendered)
+	}
+}
+
+func appContainerProgressTestSpec() appsvc.DockerRunSpec {
+	return appsvc.DockerRunSpec{Config: types.ContainerConfig{
+		Name:  "localtest-app-test",
+		Image: "example/app:test",
+	}}
+}
+
+func appContainerProgressTestInfo(spec appsvc.DockerRunSpec) types.ContainerInfo {
+	return types.ContainerInfo{
+		ID:    "container-id",
+		Name:  spec.Config.Name,
+		State: types.ContainerState{Running: true},
+		Ports: []types.PublishedPort{{
+			ContainerPort: "5005",
+			HostPort:      "5006",
+		}},
+	}
+}
+
+func assertContainerCall(t *testing.T, calls []containermock.Call, method string) {
+	t.Helper()
+
+	for _, call := range calls {
+		if call.Method == method {
+			return
+		}
+	}
+	t.Fatalf("container calls = %+v, want %s", calls, method)
+}
+
+func assertNoContainerCall(t *testing.T, calls []containermock.Call, method string) {
+	t.Helper()
+
+	for _, call := range calls {
+		if call.Method == method {
+			t.Fatalf("container calls = %+v, did not want %s", calls, method)
+		}
 	}
 }
