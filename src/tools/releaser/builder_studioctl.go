@@ -1,4 +1,4 @@
-package internal
+package main
 
 import (
 	"context"
@@ -9,13 +9,12 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"altinn.studio/releaser/internal"
 	"altinn.studio/releaser/internal/version"
 )
 
-// StudioctlBuilder builds studioctl release artifacts.
-// It implements ComponentBuilder and wraps the detailed build steps.
-type StudioctlBuilder struct {
-	log Logger
+type studioctlBuilder struct {
+	log internal.Logger
 }
 
 const distManifestFile = ".dist-manifest.json"
@@ -26,21 +25,22 @@ type studioctlDistManifest struct {
 	Artifacts []string `json:"artifacts"`
 }
 
-// NewStudioctlBuilder creates a builder configured for studioctl.
-func NewStudioctlBuilder() *StudioctlBuilder {
-	return &StudioctlBuilder{
-		log: NopLogger{},
+func newStudioctlBuilder() *studioctlBuilder {
+	return &studioctlBuilder{
+		log: internal.NopLogger{},
 	}
 }
 
-// Build produces all release artifacts for studioctl.
-// Returns the artifact paths reported by cmd/dev dist.
-func (b *StudioctlBuilder) Build(ctx context.Context, ver *version.Version, outputDir string) ([]string, error) {
+func (b *studioctlBuilder) Build(
+	ctx context.Context,
+	ver *version.Version,
+	outputDir string,
+) ([]string, error) {
 	if b.log == nil {
-		b.log = NopLogger{}
+		b.log = internal.NopLogger{}
 	}
 
-	git := NewGitCLI()
+	git := internal.NewGitCLI()
 	root, err := git.RepoRoot(ctx)
 	if err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func (b *StudioctlBuilder) Build(ctx context.Context, ver *version.Version, outp
 
 	buildDir := filepath.Join(root, "src/cli")
 
-	if err := EnsureDir(outputDir); err != nil {
+	if err := internal.EnsureDir(outputDir); err != nil {
 		return nil, fmt.Errorf("create output directory: %w", err)
 	}
 
@@ -61,12 +61,7 @@ func (b *StudioctlBuilder) Build(ctx context.Context, ver *version.Version, outp
 	return readStudioctlDistManifest(manifestPath)
 }
 
-// SetLogger sets the logger for build output.
-func (b *StudioctlBuilder) SetLogger(log Logger) {
-	b.log = log
-}
-
-func (b *StudioctlBuilder) buildDistribution(ctx context.Context, ver, buildDir, outputDir, manifestPath string) error {
+func (b *studioctlBuilder) buildDistribution(ctx context.Context, ver, buildDir, outputDir, manifestPath string) error {
 	absOutputDir, err := filepath.Abs(outputDir)
 	if err != nil {
 		return fmt.Errorf("resolve output directory: %w", err)
@@ -118,13 +113,4 @@ func readStudioctlDistManifest(path string) ([]string, error) {
 	}
 
 	return artifacts, nil
-}
-
-// init registers the StudioctlBuilder with the studioctl component.
-//
-//nolint:gochecknoinits // registration pattern for component builders
-func init() {
-	if c, err := GetComponent("studioctl"); err == nil {
-		c.Builder = NewStudioctlBuilder()
-	}
 }
