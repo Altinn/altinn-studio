@@ -14,6 +14,10 @@ export const formBootstrapHooks = {
     return out === ContextNotProvided ? undefined : out;
   },
   useLayoutLookups: () => FormStore.raw.useSelector((s) => s.bootstrap.layoutLookups),
+  useLaxLayoutLookups: () => {
+    const out = FormStore.raw.useLaxSelector((s) => s.bootstrap.layoutLookups);
+    return out === ContextNotProvided ? undefined : out;
+  },
   useDataModels: () => FormStore.raw.useSelector((s) => s.bootstrap.dataModels),
 
   useDefaultDataType: () => {

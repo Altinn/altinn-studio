@@ -107,8 +107,8 @@ export type DataSourceOverrides = {
  * the same between renders, i.e. that layout configuration/expressions does not change between renders.
  */
 export function useExpressionDataSources(toEvaluate: unknown, overrides?: DataSourceOverrides): ExpressionDataSources {
-  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const layoutCollection = FormStore.bootstrap.useLayoutCollection();
+  const layoutLookups = FormStore.bootstrap.useLaxLayoutLookups();
+  const layoutCollection = FormStore.bootstrap.useLaxLayoutCollection();
   const { unsupportedDataSources, errorSuffix, dataSources: overriddenDataSources } = overrides ?? {};
 
   const { neededDataSources, displayValueLookups } = useMemo(() => {
@@ -117,13 +117,19 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: DataSo
     const componentLookups = new Set<string>();
     findUsedExpressionFunctions(toEvaluate, functionCalls, displayValueLookups, componentLookups);
 
+    if (componentLookups.size > 0 && (!layoutLookups || !layoutCollection)) {
+      throw new Error(
+        'Cannot access layouts in this context, expression functions like "component" and "displayValue" does not work here',
+      );
+    }
+
     // When evaluating if a component is hidden, we look at the component and walk up the parents, all the way to the
     // root component, and then the page it's on. To make sure this works, we have to build expression data sources for
     // all parents as well.
     const traversedComponentLookups = new Set<string>();
     while (componentLookups.size > 0) {
       const lookup = componentLookups.values().next().value;
-      if (lookup === undefined) {
+      if (lookup === undefined || !layoutLookups || !layoutCollection) {
         break;
       }
 
