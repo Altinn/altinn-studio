@@ -25,6 +25,12 @@ describe('StudioSearch', () => {
     testCustomAttributes(renderStudioSearch, getSearchBox);
   });
 
+  it('should apply custom data-size to label and input', () => {
+    renderStudioSearch({ 'data-size': 'sm' });
+    expect(screen.getByText('Search')).toHaveAttribute('data-size', 'sm');
+    expect(getSearchBox()).toHaveAttribute('data-size', 'sm');
+  });
+
   it('should render search field with label name when ID is set through props', () => {
     const label = 'Search for something';
     const id = 'searchId';

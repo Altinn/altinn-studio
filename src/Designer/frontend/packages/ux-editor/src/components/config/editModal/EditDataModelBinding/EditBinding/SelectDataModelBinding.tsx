@@ -1,0 +1,68 @@
+import React, { useId } from 'react';
+import classes from './SelectDataModelBinding.module.css';
+import { FormField } from 'app-shared/components/FormField';
+import { StudioSelect } from '@studio/components';
+import { useTranslation } from 'react-i18next';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useGetBindableDataTypes } from '../../../../../hooks/useGetBindableDataTypes';
+import { useValidDataModels } from '../../../../../hooks/useValidDataModels';
+import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+
+type SelectDataModelProps = {
+  currentDataModel: string;
+  bindingKey: string;
+  handleBindingChange: (dataModelBindings: ExplicitDataModelBinding) => void;
+};
+
+export const SelectDataModelBinding = ({
+  currentDataModel,
+  bindingKey,
+  handleBindingChange,
+}: SelectDataModelProps): React.JSX.Element => {
+  const { t } = useTranslation();
+  const id = useId();
+  const { org, app } = useStudioEnvironmentParams();
+  const { layoutSet } = useUxEditorParams();
+  const { selectedDataModel } = useValidDataModels(currentDataModel);
+  const { defaultDataTypeName, bindableDataTypes } = useGetBindableDataTypes(org, app, layoutSet);
+  const propertyPath = `definitions/component/properties/dataModelBindings/properties/${bindingKey}/dataType`;
+
+  const handleDataModelChange = (newDataModel: string) => {
+    const dataModelBinding = {
+      field: '',
+      dataType: newDataModel,
+    };
+    handleBindingChange(dataModelBinding);
+  };
+
+  return (
+    <FormField
+      id={id}
+      onChange={handleDataModelChange}
+      value={selectedDataModel}
+      propertyPath={propertyPath}
+      label={t('ux_editor.modal_properties_data_model_binding')}
+      renderField={({ fieldProps }) => (
+        <StudioSelect
+          className={classes.selectDataModel}
+          {...fieldProps}
+          label={t('ux_editor.modal_properties_data_model_binding')}
+          id={id}
+          onChange={(e) => fieldProps.onChange(e.target.value)}
+        >
+          {defaultDataTypeName && (
+            <StudioSelect.Option key={defaultDataTypeName} value={defaultDataTypeName}>
+              {defaultDataTypeName}
+            </StudioSelect.Option>
+          )}
+          {bindableDataTypes.map((dataType) => (
+            <StudioSelect.Option key={dataType.id} value={dataType.id}>
+              {dataType.id}
+            </StudioSelect.Option>
+          ))}
+        </StudioSelect>
+      )}
+    />
+  );
+};

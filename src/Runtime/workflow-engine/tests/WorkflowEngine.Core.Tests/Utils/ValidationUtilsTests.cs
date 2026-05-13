@@ -19,141 +19,101 @@ public class ValidationUtilsTests
             DependsOn = dependsOnRefs?.Select(d => (WorkflowRef)d).ToList(),
         };
 
-    // === ValidateAndSortWorkflowGraph ===
+    // === ValidateWorkflowGraph ===
 
     [Fact]
-    public void ValidateAndSort_EmptyBatch_ReturnsEmpty()
+    public void Validate_EmptyBatch_DoesNotThrow()
     {
-        var result = ValidationUtils.ValidateAndSortWorkflowGraph([]);
-        Assert.Empty(result);
+        ValidationUtils.ValidateWorkflowGraph([]);
     }
 
     [Fact]
-    public void ValidateAndSort_SingleWorkflow_NoError()
+    public void Validate_SingleWorkflow_DoesNotThrow()
     {
-        var requests = new List<WorkflowRequest> { CreateWorkflowRequest("a") };
-
-        var result = ValidationUtils.ValidateAndSortWorkflowGraph(requests);
-
-        Assert.Single(result);
-        Assert.Equal("a", result[0].Ref);
+        ValidationUtils.ValidateWorkflowGraph([CreateWorkflowRequest("a")]);
     }
 
     [Fact]
-    public void ValidateAndSort_MultipleDisconnectedWorkflows_ReturnsAll()
+    public void Validate_MultipleDisconnectedWorkflows_DoesNotThrow()
     {
-        var requests = new List<WorkflowRequest>
-        {
+        ValidationUtils.ValidateWorkflowGraph([
             CreateWorkflowRequest("a"),
             CreateWorkflowRequest("b"),
             CreateWorkflowRequest("c"),
-        };
-
-        var result = ValidationUtils.ValidateAndSortWorkflowGraph(requests);
-
-        Assert.Equal(3, result.Count);
-        Assert.Equal(["a", "b", "c"], result.Select(r => r.Ref).Order());
+        ]);
     }
 
     [Fact]
-    public void ValidateAndSort_DiamondDag_ReturnsSortedOrder()
+    public void Validate_DiamondDag_DoesNotThrow()
     {
-        // Diamond: a → b, a → c, b → d, c → d
-        var requests = new List<WorkflowRequest>
-        {
+        // Diamond: a → b, a → c, b → d, c → d. Listed out of dependency order to ensure Kahn's
+        // cycle detection handles fan-out + fan-in without false-positive cycle reports.
+        ValidationUtils.ValidateWorkflowGraph([
             CreateWorkflowRequest("b", ["a"]),
             CreateWorkflowRequest("d", ["b", "c"]),
             CreateWorkflowRequest("a"),
             CreateWorkflowRequest("c", ["a"]),
-        };
-
-        var result = ValidationUtils.ValidateAndSortWorkflowGraph(requests);
-
-        Assert.Equal(4, result.Count);
-
-        // 'a' must come first, 'd' must come last
-        Assert.Equal("a", result[0].Ref);
-        Assert.Equal("d", result[3].Ref);
-
-        // 'b' and 'c' must both come after 'a' and before 'd'
-        var middle = result.Skip(1).Take(2).Select(r => r.Ref).ToHashSet();
-        Assert.Contains("b", middle);
-        Assert.Contains("c", middle);
+        ]);
     }
 
     [Fact]
-    public void ValidateAndSort_ExternalIdDependency_SkippedInGraphValidation()
+    public void Validate_ExternalIdDependency_DoesNotThrow()
     {
-        // External DB IDs (IsId=true) should not participate in the in-batch topological sort
-        var requests = new List<WorkflowRequest>
-        {
+        // External DB IDs (IsId=true) should not participate in in-batch graph validation
+        ValidationUtils.ValidateWorkflowGraph([
             CreateWorkflowRequest("a") with
             {
                 DependsOn = [Guid.NewGuid()],
             },
             CreateWorkflowRequest("b", ["a"]),
-        };
-
-        var result = ValidationUtils.ValidateAndSortWorkflowGraph(requests);
-
-        Assert.Equal(2, result.Count);
-        Assert.Equal("a", result[0].Ref);
-        Assert.Equal("b", result[1].Ref);
+        ]);
     }
 
     [Fact]
-    public void ValidateAndSort_MixedExternalIdAndRefDependencies_HandledCorrectly()
+    public void Validate_MixedExternalIdAndRefDependencies_DoesNotThrow()
     {
         // "a" mixes an external DB ID (skipped) and a within-batch ref ("c") in the same DependsOn list.
         // Both the continue-branch and the graph-building branch must execute in the same inner loop.
-        var requests = new List<WorkflowRequest>
-        {
+        ValidationUtils.ValidateWorkflowGraph([
             CreateWorkflowRequest("c"),
             CreateWorkflowRequest("a") with
             {
                 DependsOn = [Guid.NewGuid(), (WorkflowRef)"c"],
             },
             CreateWorkflowRequest("b", ["a"]),
-        };
-
-        var result = ValidationUtils.ValidateAndSortWorkflowGraph(requests);
-
-        Assert.Equal(3, result.Count);
-        Assert.Equal("c", result[0].Ref); // c has no in-batch deps, must come first
-        Assert.Equal("a", result[1].Ref); // a depends on c, must come second
-        Assert.Equal("b", result[2].Ref); // b depends on a, must come last
+        ]);
     }
 
     [Fact]
-    public void ValidateAndSort_DuplicateRef_Throws()
+    public void Validate_DuplicateRef_Throws()
     {
         var requests = new List<WorkflowRequest> { CreateWorkflowRequest("a"), CreateWorkflowRequest("a") };
 
-        var ex = Assert.Throws<ArgumentException>(() => ValidationUtils.ValidateAndSortWorkflowGraph(requests));
+        var ex = Assert.Throws<ArgumentException>(() => ValidationUtils.ValidateWorkflowGraph(requests));
         Assert.Contains("Duplicate ref 'a'", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void ValidateAndSort_UnknownDependsOnRef_Throws()
+    public void Validate_UnknownDependsOnRef_Throws()
     {
         var requests = new List<WorkflowRequest> { CreateWorkflowRequest("a", ["nonexistent"]) };
 
-        var ex = Assert.Throws<ArgumentException>(() => ValidationUtils.ValidateAndSortWorkflowGraph(requests));
+        var ex = Assert.Throws<ArgumentException>(() => ValidationUtils.ValidateWorkflowGraph(requests));
         Assert.Contains("'nonexistent'", ex.Message, StringComparison.Ordinal);
         Assert.Contains("not present in the batch", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void ValidateAndSort_SelfReference_Throws()
+    public void Validate_SelfReference_Throws()
     {
         var requests = new List<WorkflowRequest> { CreateWorkflowRequest("a", ["a"]) };
 
-        var ex = Assert.Throws<ArgumentException>(() => ValidationUtils.ValidateAndSortWorkflowGraph(requests));
+        var ex = Assert.Throws<ArgumentException>(() => ValidationUtils.ValidateWorkflowGraph(requests));
         Assert.Contains("self-reference", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public void ValidateAndSort_Cycle_Throws()
+    public void Validate_Cycle_Throws()
     {
         // a → b → c → a
         var requests = new List<WorkflowRequest>
@@ -163,15 +123,14 @@ public class ValidationUtilsTests
             CreateWorkflowRequest("c", ["b"]),
         };
 
-        var ex = Assert.Throws<ArgumentException>(() => ValidationUtils.ValidateAndSortWorkflowGraph(requests));
+        var ex = Assert.Throws<ArgumentException>(() => ValidationUtils.ValidateWorkflowGraph(requests));
         Assert.Contains("cycle", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public void ValidateAndSort_NullRefs_NoDependencies_Succeeds()
+    public void Validate_NullRefs_NoDependencies_DoesNotThrow()
     {
-        var requests = new List<WorkflowRequest>
-        {
+        ValidationUtils.ValidateWorkflowGraph([
             CreateWorkflowRequest("a") with
             {
                 Ref = null,
@@ -180,56 +139,40 @@ public class ValidationUtilsTests
             {
                 Ref = null,
             },
-        };
-
-        var result = ValidationUtils.ValidateAndSortWorkflowGraph(requests);
-
-        Assert.Equal(2, result.Count);
+        ]);
     }
 
     [Fact]
-    public void ValidateAndSort_MixedNullAndNonNullRefs_WithDependency_Succeeds()
+    public void Validate_MixedNullAndNonNullRefs_WithDependency_DoesNotThrow()
     {
         // Workflow at index 1 (null ref) depends on "a" which has a ref
-        var requests = new List<WorkflowRequest>
-        {
+        ValidationUtils.ValidateWorkflowGraph([
             CreateWorkflowRequest("a"),
             CreateWorkflowRequest("b") with
             {
                 Ref = null,
                 DependsOn = [(WorkflowRef)"a"],
             },
-        };
-
-        var result = ValidationUtils.ValidateAndSortWorkflowGraph(requests);
-
-        Assert.Equal(2, result.Count);
-        Assert.Equal("a", result[0].Ref);
-        Assert.Null(result[1].Ref);
+        ]);
     }
 
     [Fact]
-    public void ValidateAndSort_NullRefWorkflow_WithExternalIdDependency_Succeeds()
+    public void Validate_NullRefWorkflow_WithExternalIdDependency_DoesNotThrow()
     {
         // A workflow without a ref can still depend on external DB IDs
-        var requests = new List<WorkflowRequest>
-        {
+        ValidationUtils.ValidateWorkflowGraph([
             CreateWorkflowRequest("a") with
             {
                 Ref = null,
                 DependsOn = [Guid.NewGuid()],
             },
-        };
-
-        var result = ValidationUtils.ValidateAndSortWorkflowGraph(requests);
-
-        Assert.Single(result);
+        ]);
     }
 
     [Fact]
-    public void ValidateAndSort_InvalidWorkflowInBatch_Throws()
+    public void Validate_InvalidWorkflowInBatch_Throws()
     {
-        // A workflow with no steps is invalid and should cause ValidateAndSort to throw
+        // A workflow with no steps is invalid and should cause Validate to throw
         var requests = new List<WorkflowRequest>
         {
             CreateWorkflowRequest("a"),
@@ -241,7 +184,7 @@ public class ValidationUtilsTests
             },
         };
 
-        var ex = Assert.Throws<ArgumentException>(() => ValidationUtils.ValidateAndSortWorkflowGraph(requests));
+        var ex = Assert.Throws<ArgumentException>(() => ValidationUtils.ValidateWorkflowGraph(requests));
         Assert.Contains("(b) is invalid", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
 

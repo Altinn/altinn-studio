@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	frontendDevServerTunnelTargetPort = "8080"
-	hostLoopbackAddress               = "127.0.0.1"
+	frontendDevServerHostBridgeTargetPort = "8080"
+	hostLoopbackAddress                   = "127.0.0.1"
 )
 
 func registerTopologyComponents(manifest *Manifest, opts *Options) {
@@ -53,7 +53,7 @@ func registerTopologyComponents(manifest *Manifest, opts *Options) {
 		Destination: envtopology.BoundTopologyDestination{
 			Location: envtopology.DestinationLocationHost,
 			Kind:     envtopology.DestinationKindHTTP,
-			URL:      hostHTTPURL(frontendDevServerTunnelTargetPort),
+			URL:      hostHTTPURL(frontendDevServerHostBridgeTargetPort),
 		},
 		Enabled: true,
 	})

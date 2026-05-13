@@ -16,6 +16,46 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+# Set to "kata-vm-isolation" to run pods in a Kata microVM on AKS Pod Sandboxing nodes.
+# Leave empty to use the default runc runtime.
+runtimeClassName: ""
+
+# Docker-in-Docker sidecar. When enabled, a privileged dockerd container is added to each
+# runner pod and DOCKER_HOST is injected into the runner container pointing at the sidecar.
+# Intended to be combined with runtimeClassName: kata-vm-isolation so "privileged"
+# is scoped to the microVM, not the host node.
+#
+# On kata, /var/lib/docker cannot use the default emptyDir (virtio-fs doesn't support
+# overlay as an upper filesystem). The sidecar's entrypoint therefore loop-mounts a
+# sparse ext4 image file at /var/lib/docker when it detects virtio-fs. diskSize controls
+# the logical size of that sparse file; physical usage grows only with actual writes.
+dockerInDocker:
+  enabled: false
+  image:
+    repository: docker
+    tag: "dind"
+    pullPolicy: IfNotPresent
+  diskSize: "15G"
+
+# Shared workspace: mounts a shared emptyDir at act_runner's cache dir in both
+# the runner and the dockerd sidecar. This makes any bind mount from the tenant's
+# workflow (including $(pwd), $GITHUB_WORKSPACE, and tools like studioctl) resolve
+# correctly across the DinD container boundary, because the docker client's
+# filesystem view (runner) and the docker daemon's filesystem view (dockerd
+# sidecar) are otherwise disjoint. The default path /root/.cache/act is where
+# act_runner stores every per-job session directory, so all workflow state lands
+# inside the shared tree automatically.
+#
+# NOTE: STUDIOCTL_HOME is set in the altinn-gitea-runner image itself
+# (Dockerfile ENV) to /root/.cache/act/studioctl, which MUST be inside
+# shareWorkspace.path. If you change `path` here, also update STUDIOCTL_HOME
+# in the runner image Dockerfile — otherwise studioctl's bind mounts will
+# fail because dockerd won't see studioctl's testdata via the shared volume.
+shareWorkspace:
+  enabled: false
+  path: "/root/.cache/act"
+  sizeLimit: "10Gi"
+
 # List of runners to deploy. Each runner will create a separate deployment.
 runners: []
   # - name: ttd

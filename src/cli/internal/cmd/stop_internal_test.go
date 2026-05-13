@@ -11,8 +11,8 @@ import (
 
 	containerruntime "altinn.studio/devenv/pkg/container"
 	containermock "altinn.studio/devenv/pkg/container/mock"
-	"altinn.studio/studioctl/internal/appmanager"
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/studioctlserver"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -27,10 +27,10 @@ func TestAppPsJSONListsApps(t *testing.T) {
 	var out bytes.Buffer
 	command := &AppPsCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
-		manager: appManagerAccess{
-			client: &fakeAppRuntimeClient{
-				status: &appmanager.Status{
-					Apps: []appmanager.DiscoveredApp{
+		server: studioctlServerAccess{
+			client: &fakeStudioctlServerClient{
+				status: &studioctlserver.Status{
+					Apps: []studioctlserver.DiscoveredApp{
 						{
 							ProcessID:   &processID,
 							AppID:       testAppID,
@@ -63,9 +63,9 @@ func TestAppPsJSONReportsNotRunningWhenNoApps(t *testing.T) {
 	var out bytes.Buffer
 	command := &AppPsCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
-		manager: appManagerAccess{
-			client: &fakeAppRuntimeClient{
-				status: &appmanager.Status{},
+		server: studioctlServerAccess{
+			client: &fakeStudioctlServerClient{
+				status: &studioctlserver.Status{},
 			},
 		},
 	}
@@ -90,10 +90,10 @@ func TestAppPsTableUsesProcessModeAndRuntimeID(t *testing.T) {
 	var out bytes.Buffer
 	command := &AppPsCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
-		manager: appManagerAccess{
-			client: &fakeAppRuntimeClient{
-				status: &appmanager.Status{
-					Apps: []appmanager.DiscoveredApp{
+		server: studioctlServerAccess{
+			client: &fakeStudioctlServerClient{
+				status: &studioctlserver.Status{
+					Apps: []studioctlserver.DiscoveredApp{
 						{
 							ProcessID: &processID,
 							AppID:     testAppID,
@@ -128,10 +128,10 @@ func TestAppPsTableShortensContainerID(t *testing.T) {
 	var out bytes.Buffer
 	command := &AppPsCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
-		manager: appManagerAccess{
-			client: &fakeAppRuntimeClient{
-				status: &appmanager.Status{
-					Apps: []appmanager.DiscoveredApp{
+		server: studioctlServerAccess{
+			client: &fakeStudioctlServerClient{
+				status: &studioctlserver.Status{
+					Apps: []studioctlserver.DiscoveredApp{
 						{
 							ContainerID: containerID,
 							AppID:       testAppID,
@@ -157,7 +157,7 @@ func TestAppPsTableShortensContainerID(t *testing.T) {
 	}
 }
 
-func TestAppPsStartsAppManagerBeforeStatus(t *testing.T) {
+func TestAppPsStartsStudioctlServerBeforeStatus(t *testing.T) {
 	t.Parallel()
 
 	cfg := testConfig(t)
@@ -165,11 +165,11 @@ func TestAppPsStartsAppManagerBeforeStatus(t *testing.T) {
 	var started bool
 	command := &AppPsCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
-		manager: appManagerAccess{
+		server: studioctlServerAccess{
 			cfg: cfg,
-			client: &fakeAppRuntimeClient{
-				statusErrs: []error{appmanager.ErrNotRunning, nil},
-				status:     &appmanager.Status{},
+			client: &fakeStudioctlServerClient{
+				statusErrs: []error{studioctlserver.ErrNotRunning, nil},
+				status:     &studioctlserver.Status{},
 			},
 			ensureStarted: func(context.Context, *config.Config, string) error {
 				started = true
@@ -186,7 +186,7 @@ func TestAppPsStartsAppManagerBeforeStatus(t *testing.T) {
 	}
 }
 
-func TestAppPsReconcilesRunningAppManager(t *testing.T) {
+func TestAppPsReconcilesRunningStudioctlServer(t *testing.T) {
 	t.Parallel()
 
 	cfg := testConfig(t)
@@ -194,9 +194,9 @@ func TestAppPsReconcilesRunningAppManager(t *testing.T) {
 	var started bool
 	command := &AppPsCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
-		manager: appManagerAccess{
+		server: studioctlServerAccess{
 			cfg:    cfg,
-			client: &fakeAppRuntimeClient{status: &appmanager.Status{}},
+			client: &fakeStudioctlServerClient{status: &studioctlserver.Status{}},
 			ensureStarted: func(context.Context, *config.Config, string) error {
 				started = true
 				return nil
@@ -218,9 +218,9 @@ func TestAppStopJSONStopsNativeAppsWithProcessID(t *testing.T) {
 	processID := 123
 	var stoppedPID int
 	var out bytes.Buffer
-	client := &fakeAppRuntimeClient{
-		status: &appmanager.Status{
-			Apps: []appmanager.DiscoveredApp{
+	client := &fakeStudioctlServerClient{
+		status: &studioctlserver.Status{
+			Apps: []studioctlserver.DiscoveredApp{
 				{
 					ProcessID: &processID,
 					AppID:     testAppID,
@@ -235,7 +235,7 @@ func TestAppStopJSONStopsNativeAppsWithProcessID(t *testing.T) {
 	}
 	command := &StopCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
-		manager: appManagerAccess{
+		server: studioctlServerAccess{
 			client: client,
 		},
 		stopProcess: func(_ context.Context, pid int) error {
@@ -273,9 +273,9 @@ func TestAppStopContinuesAfterStopError(t *testing.T) {
 	secondProcessID := 456
 	var stoppedPIDs []int
 	var out bytes.Buffer
-	client := &fakeAppRuntimeClient{
-		status: &appmanager.Status{
-			Apps: []appmanager.DiscoveredApp{
+	client := &fakeStudioctlServerClient{
+		status: &studioctlserver.Status{
+			Apps: []studioctlserver.DiscoveredApp{
 				{
 					ProcessID: &firstProcessID,
 					AppID:     "ttd/fails",
@@ -291,7 +291,7 @@ func TestAppStopContinuesAfterStopError(t *testing.T) {
 	}
 	command := &StopCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
-		manager: appManagerAccess{
+		server: studioctlServerAccess{
 			client: client,
 		},
 		stopProcess: func(_ context.Context, pid int) error {
@@ -330,10 +330,10 @@ func TestAppStopJSONStopsManagedContainerApps(t *testing.T) {
 	runtime := containermock.New()
 	command := &StopCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
-		manager: appManagerAccess{
-			client: &fakeAppRuntimeClient{
-				status: &appmanager.Status{
-					Apps: []appmanager.DiscoveredApp{
+		server: studioctlServerAccess{
+			client: &fakeStudioctlServerClient{
+				status: &studioctlserver.Status{
+					Apps: []studioctlserver.DiscoveredApp{
 						{
 							AppID:       testAppID,
 							BaseURL:     "http://localhost:5005",
@@ -361,14 +361,14 @@ func TestAppStopJSONStopsManagedContainerApps(t *testing.T) {
 	}
 }
 
-type fakeAppRuntimeClient struct {
-	status       *appmanager.Status
+type fakeStudioctlServerClient struct {
+	status       *studioctlserver.Status
 	statusErr    error
 	statusErrs   []error
 	unregistered []string
 }
 
-func (f *fakeAppRuntimeClient) Status(context.Context) (*appmanager.Status, error) {
+func (f *fakeStudioctlServerClient) Status(context.Context) (*studioctlserver.Status, error) {
 	if len(f.statusErrs) > 0 {
 		err := f.statusErrs[0]
 		f.statusErrs = f.statusErrs[1:]
@@ -377,16 +377,16 @@ func (f *fakeAppRuntimeClient) Status(context.Context) (*appmanager.Status, erro
 	return f.status, f.statusErr
 }
 
-func (f *fakeAppRuntimeClient) UnregisterApp(_ context.Context, appID string) error {
+func (f *fakeStudioctlServerClient) UnregisterApp(_ context.Context, appID string) error {
 	f.unregistered = append(f.unregistered, appID)
 	return nil
 }
 
-func (f *fakeAppRuntimeClient) UpgradeApp(
+func (f *fakeStudioctlServerClient) UpgradeApp(
 	context.Context,
-	appmanager.AppUpgrade,
-) (appmanager.AppUpgradeResult, error) {
-	return appmanager.AppUpgradeResult{}, nil
+	studioctlserver.AppUpgrade,
+) (studioctlserver.AppUpgradeResult, error) {
+	return studioctlserver.AppUpgradeResult{}, nil
 }
 
 func testConfig(t *testing.T) *config.Config {

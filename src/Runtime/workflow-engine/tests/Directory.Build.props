@@ -4,5 +4,9 @@
 
   <PropertyGroup>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!--
+      NX0003: null-forgiving operator without justification.
+    -->
+    <NoWarn>$(NoWarn);NX0003</NoWarn>
   </PropertyGroup>
 </Project>

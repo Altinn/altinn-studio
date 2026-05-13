@@ -46,7 +46,7 @@ using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.Register.Implementation;
 using LocalTest.Services.Register.Interface;
 using LocalTest.Services.Storage.Implementation;
-using LocalTest.Tunnel;
+using LocalTest.HostBridge;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.FileProviders;
@@ -208,9 +208,9 @@ namespace LocalTest
             services.AddTransient<ILocalApp, LocalAppHttp>();
 
             services.AddTransient<ILocalFrontendService, LocalFrontendService>();
-            services.AddSingleton<AppTunnelClient>();
-            services.AddSingleton<EnvProxy>();
-            services.AddSingleton<HostProxy>();
+            services.AddSingleton<HostBridgeClient>();
+            services.AddSingleton<EnvRouteProxy>();
+            services.AddSingleton<HostRouteProxy>();
 
             services.AddHttpForwarder();
 
@@ -269,10 +269,10 @@ namespace LocalTest
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.Map(Altinn.Studio.AppTunnel.TunnelDefaults.EndpointPath, async context =>
+                endpoints.Map(Altinn.Studio.HostBridge.HostBridgeDefaults.EndpointPath, async context =>
                 {
-                    var appTunnelClient = context.RequestServices.GetRequiredService<AppTunnelClient>();
-                    await appTunnelClient.Accept(context, context.RequestAborted);
+                    var hostBridgeClient = context.RequestServices.GetRequiredService<HostBridgeClient>();
+                    await hostBridgeClient.Accept(context, context.RequestAborted);
                 });
 
                 endpoints.MapControllerRoute(
