@@ -30,7 +30,7 @@ spec:
                     | where toint(resultCode) >= 500
                     | where operation_Name == 'PUT Process/NextElement [app/instanceGuid/instanceOwnerPartyId/org]'
                         or operation_Name == 'PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next'
-                    | extend instanceId = extract(@'/instances/\d+/([0-9a-f-]{36})', 1, url)
+                    | extend instanceId = extract(@'/instances/\d+/([^/]+)', 1, url)
                     | summarize count() by cloud_RoleName, instanceId
                 resources:
                     - /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
@@ -132,7 +132,7 @@ spec:
                         or operation_Name == 'POST Instances/PostSimplified [app/org]'
                         or operation_Name == 'POST {org}/{app}/instances'
                         or operation_Name == 'POST {org}/{app}/instances/create'
-                    | extend instanceId = extract(@'/instances/\d+/([0-9a-f-]{36})', 1, url)
+                    | extend instanceId = extract(@'/instances/\d+/([^/]+)', 1, url)
                     | summarize count() by cloud_RoleName, instanceId
                 resources:
                     - /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
