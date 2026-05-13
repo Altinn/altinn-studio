@@ -43,7 +43,7 @@ func (b *studioctlBuilder) Build(
 	git := internal.NewGitCLI()
 	root, err := git.RepoRoot(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get repo root: %w", err)
 	}
 
 	buildDir := filepath.Join(root, "src/cli")
