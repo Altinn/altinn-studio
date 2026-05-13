@@ -1,6 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["local>Altinn/renovate-config", ":prHourlyLimit4"],
+  "extends": [
+    "local>Altinn/renovate-config",
+    ":prHourlyLimit4",
+    "helpers:pinGitHubActionDigestsToSemver"
+  ],
   "customManagers": [
     {
       "customType": "regex",
@@ -18,13 +22,6 @@
   "separateMultipleMajor": true,
   "postUpdateOptions": ["gomodTidy"],
   "packageRules": [
-    {
-      "extends": [
-        "helpers:pinGitHubActionDigests" 
-      ],
-      "extractVersion": "^(?<version>v?\\d+\\.\\d+\\.\\d+)$",
-      "versioning": "regex:^v?(?<major>\\d+)(\\.(?<minor>\\d+)\\.(?<patch>\\d+))?$"
-    },
     {
       "description": "Disable minimum release age checks for digest updates",
       "matchUpdateTypes": ["digest"],
