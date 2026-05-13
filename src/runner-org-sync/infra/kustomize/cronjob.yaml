@@ -74,6 +74,15 @@ spec:
                   value: "${RUNNER_ORG_SYNC_KEYVAULT_NAME}"
                 - name: RUNNER_ORG_SYNC_KEYVAULT_SECRET_NAME
                   value: "gitea-admin-pat"
+                # KEDA PAT projection: read-only Gitea PAT fetched from the
+                # same Key Vault (different secret) and written as an Opaque
+                # K8s Secret for KEDA's TriggerAuthentication.
+                - name: RUNNER_ORG_SYNC_KEDA_PAT_KEYVAULT_SECRET_NAME
+                  value: "gitea-keda-pat"
+                - name: RUNNER_ORG_SYNC_KEDA_PAT_SECRET_NAME
+                  value: "keda-gitea-pat"
+                - name: RUNNER_ORG_SYNC_KEDA_PAT_SECRET_KEY
+                  value: "token"
                 - name: OTEL_SERVICE_NAME
                   value: "runner-org-sync"
                 - name: OTEL_EXPORTER_OTLP_ENDPOINT

@@ -9,14 +9,17 @@ import (
 // Tests mutate a copy to exercise one validation branch at a time.
 func validEnv() map[string]string {
 	return map[string]string{
-		EnvGiteaURL:           "http://gitea.local",
-		EnvOrgsJSONURL:        "https://altinncdn.no/orgs/altinn-orgs.json",
-		EnvOutputNamespace:    "studio-runners",
-		EnvSecretNamePattern:  "altinn-gitea-runner-{org}-secret",
-		EnvConfigMapName:      "runner-org-list",
-		EnvKeyVaultName:       "kv-studio",
-		EnvKeyVaultSecretName: "gitea-admin-pat",
-		EnvWhitelistedOrgs:    "ttd,brg,dsb",
+		EnvGiteaURL:                  "http://gitea.local",
+		EnvOrgsJSONURL:               "https://altinncdn.no/orgs/altinn-orgs.json",
+		EnvOutputNamespace:           "studio-runners",
+		EnvSecretNamePattern:         "altinn-gitea-runner-{org}-secret",
+		EnvConfigMapName:             "runner-org-list",
+		EnvKeyVaultName:              "kv-studio",
+		EnvKeyVaultSecretName:        "gitea-admin-pat",
+		EnvWhitelistedOrgs:           "ttd,brg,dsb",
+		EnvKedaPATKeyVaultSecretName: "gitea-keda-pat",
+		EnvKedaPATSecretName:         "keda-gitea-pat",
+		EnvKedaPATSecretKey:          "token",
 	}
 }
 
@@ -55,6 +58,41 @@ func TestLoadFrom_PATOverrideRelaxesKeyVaultRequirement(t *testing.T) {
 	}
 	if cfg.PATSource() != "env" {
 		t.Errorf("PATSource = %q, want env", cfg.PATSource())
+	}
+}
+
+func TestLoadFrom_KedaPATOverrideRelaxesKVRequirement(t *testing.T) {
+	env := validEnv()
+	delete(env, EnvKedaPATKeyVaultSecretName)
+	env[EnvKedaPATOverride] = "keda-pat-xyz"
+
+	cfg, err := LoadFrom(getter(env))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.KedaPATSource() != "env" {
+		t.Errorf("KedaPATSource = %q, want env", cfg.KedaPATSource())
+	}
+	if cfg.PATSource() != "keyvault" {
+		t.Errorf("PATSource = %q, want keyvault (admin still goes to KV)", cfg.PATSource())
+	}
+}
+
+func TestLoadFrom_KedaPATFieldsRequired(t *testing.T) {
+	env := validEnv()
+	delete(env, EnvKedaPATSecretName)
+	delete(env, EnvKedaPATSecretKey)
+	delete(env, EnvKedaPATKeyVaultSecretName)
+
+	_, err := LoadFrom(getter(env))
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	msg := err.Error()
+	for _, want := range []string{EnvKedaPATSecretName, EnvKedaPATSecretKey, EnvKedaPATKeyVaultSecretName} {
+		if !strings.Contains(msg, want) {
+			t.Errorf("error does not mention %q; got %v", want, err)
+		}
 	}
 }
 

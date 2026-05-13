@@ -78,7 +78,13 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("load PAT: %w", err)
 	}
-	logger.Info("pat.loaded", "source", string(patSource), "len", len(pat))
+	logger.Info("pat.loaded", "scope", "admin", "source", string(patSource), "len", len(pat))
+
+	kedaPAT, kedaPATSource, err := loadKedaPAT(ctx, cfg)
+	if err != nil {
+		return fmt.Errorf("load KEDA PAT: %w", err)
+	}
+	logger.Info("pat.loaded", "scope", "keda", "source", string(kedaPATSource), "len", len(kedaPAT))
 
 	k8sClient, err := buildK8sClient()
 	if err != nil {
@@ -139,6 +145,31 @@ func run() error {
 		span.SetStatus(codes.Error, runErr.Error())
 		return runErr
 	}
+
+	// Project the KEDA read-only PAT into a K8s Secret. Independent of the
+	// per-org reconcile — runs even when the reconcile outcome is "partial"
+	// because the KEDA Secret has its own lifecycle. A failure here is
+	// non-fatal: log + metric, exit 0, retry next tick.
+	kedaChanged, kedaErr := store.ApplyOpaqueSecret(ctx,
+		cfg.KedaPATSecretName, cfg.KedaPATSecretKey, kedaPAT)
+	metrics.KedaSecretApplied.Add(ctx, 1, metric.WithAttributes(
+		attribute.Bool("changed", kedaChanged),
+		attribute.Bool("success", kedaErr == nil),
+	))
+	if kedaErr != nil {
+		logger.Warn("keda.secret.apply.failed", "err", kedaErr.Error(), "secret", cfg.KedaPATSecretName)
+		span.AddEvent("keda.secret.apply.failed", trace.WithAttributes(
+			attribute.String("secret", cfg.KedaPATSecretName),
+			attribute.String("err", kedaErr.Error()),
+		))
+	} else {
+		span.AddEvent("keda.secret.applied", trace.WithAttributes(
+			attribute.String("secret", cfg.KedaPATSecretName),
+			attribute.Bool("changed", kedaChanged),
+		))
+		logger.Info("keda.secret.applied", "secret", cfg.KedaPATSecretName, "changed", kedaChanged)
+	}
+
 	if report.Outcome == reconcile.OutcomePartial {
 		// Continue-on-partial: still exit 0; metric + WARN log carries the signal.
 		span.SetStatus(codes.Ok, "partial")
@@ -146,6 +177,22 @@ func run() error {
 		span.SetStatus(codes.Ok, "success")
 	}
 	return nil
+}
+
+// loadKedaPAT mirrors loadPAT for the read-only KEDA PAT. Env override wins;
+// otherwise fetches from the same Key Vault used for the admin PAT, at a
+// different secret name (KedaPATKeyVaultSecretName).
+func loadKedaPAT(ctx context.Context, cfg config.Config) (string, keyvault.Source, error) {
+	var getter keyvault.Getter
+	if cfg.KedaPATOverride == "" {
+		g, err := keyvault.NewAzureGetter(cfg.KeyVaultName)
+		if err != nil {
+			return "", "", fmt.Errorf("build keyvault getter: %w", err)
+		}
+		getter = g
+	}
+	loader := keyvault.NewLoader(cfg.KedaPATOverride, getter, cfg.KedaPATKeyVaultSecretName)
+	return loader.Load(ctx)
 }
 
 // loadPAT resolves the Gitea admin PAT, honouring the env-var override for

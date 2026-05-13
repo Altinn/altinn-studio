@@ -9,6 +9,7 @@
 package k8sstate
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"maps"
@@ -152,6 +153,61 @@ func (s *Store) ApplyConfigMap(ctx context.Context, name string, data map[string
 
 	if _, err := s.client.CoreV1().ConfigMaps(s.namespace).Update(ctx, existing, metav1.UpdateOptions{}); err != nil {
 		return false, fmt.Errorf("k8sstate: update configmap %s: %w", name, err)
+	}
+	return true, nil
+}
+
+// ApplyOpaqueSecret creates or updates a single-key Opaque Secret so its
+// data[key] equals value. Returns true if a write occurred. Used for the
+// KEDA PAT projection: the value originates from Key Vault, the Secret is
+// consumed by KEDA's TriggerAuthentication.
+//
+// Labels are applied on create (ManagedBy). On update, the managed-by label
+// is added if missing; other existing labels are preserved.
+func (s *Store) ApplyOpaqueSecret(ctx context.Context, name, key, value string) (bool, error) {
+	if key == "" {
+		return false, fmt.Errorf("k8sstate: ApplyOpaqueSecret %s: key is required", name)
+	}
+	encoded := []byte(value)
+
+	existing, err := s.client.CoreV1().Secrets(s.namespace).Get(ctx, name, metav1.GetOptions{})
+	if apierrors.IsNotFound(err) {
+		desired := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: s.namespace,
+				Labels: map[string]string{
+					LabelManagedBy: ManagedBy,
+				},
+			},
+			Type: corev1.SecretTypeOpaque,
+			Data: map[string][]byte{key: encoded},
+		}
+		if _, err := s.client.CoreV1().Secrets(s.namespace).Create(ctx, desired, metav1.CreateOptions{}); err != nil {
+			return false, fmt.Errorf("k8sstate: create opaque secret %s: %w", name, err)
+		}
+		return true, nil
+	}
+	if err != nil {
+		return false, fmt.Errorf("k8sstate: get opaque secret %s: %w", name, err)
+	}
+
+	// Only writing the single key we manage; leave any other keys untouched.
+	if bytes.Equal(existing.Data[key], encoded) {
+		return false, nil
+	}
+
+	if existing.Data == nil {
+		existing.Data = map[string][]byte{}
+	}
+	existing.Data[key] = encoded
+	if existing.Labels == nil {
+		existing.Labels = map[string]string{}
+	}
+	existing.Labels[LabelManagedBy] = ManagedBy
+
+	if _, err := s.client.CoreV1().Secrets(s.namespace).Update(ctx, existing, metav1.UpdateOptions{}); err != nil {
+		return false, fmt.Errorf("k8sstate: update opaque secret %s: %w", name, err)
 	}
 	return true, nil
 }

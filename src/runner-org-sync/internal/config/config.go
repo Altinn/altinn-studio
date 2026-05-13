@@ -23,6 +23,14 @@ const (
 	EnvWhitelistedOrgs    = "RUNNER_ORG_SYNC_ORGS"
 	EnvGiteaPATOverride   = "RUNNER_ORG_SYNC_GITEA_PAT"
 
+	// KEDA PAT projection: read-only Gitea PAT consumed by KEDA's
+	// github-runner scaler. Fetched from the same Key Vault as the admin
+	// PAT, written to a K8s Secret in OutputNamespace.
+	EnvKedaPATKeyVaultSecretName = "RUNNER_ORG_SYNC_KEDA_PAT_KEYVAULT_SECRET_NAME"
+	EnvKedaPATSecretName         = "RUNNER_ORG_SYNC_KEDA_PAT_SECRET_NAME"
+	EnvKedaPATSecretKey          = "RUNNER_ORG_SYNC_KEDA_PAT_SECRET_KEY"
+	EnvKedaPATOverride           = "RUNNER_ORG_SYNC_KEDA_PAT"
+
 	// OrgPlaceholder is the substring SecretNamePattern must contain;
 	// it is substituted with the org code at apply time.
 	OrgPlaceholder = "{org}"
@@ -40,6 +48,14 @@ type Config struct {
 	SyncAll            bool
 	WhitelistedOrgs    []string
 	GiteaPATOverride   string
+
+	// KEDA PAT projection settings. KedaPATKeyVaultSecretName is the secret
+	// name in Azure Key Vault; KedaPATSecretName/Key control the destination
+	// K8s Secret. KedaPATOverride is a local-dev bypass mirroring GiteaPATOverride.
+	KedaPATKeyVaultSecretName string
+	KedaPATSecretName         string
+	KedaPATSecretKey          string
+	KedaPATOverride           string
 }
 
 // Getter abstracts os.Getenv so tests can inject a fake environment without
@@ -65,6 +81,11 @@ func LoadFrom(get Getter) (Config, error) {
 		SyncAll:            parseBool(get(EnvSyncAll)),
 		WhitelistedOrgs:    parseCSV(get(EnvWhitelistedOrgs)),
 		GiteaPATOverride:   get(EnvGiteaPATOverride),
+
+		KedaPATKeyVaultSecretName: strings.TrimSpace(get(EnvKedaPATKeyVaultSecretName)),
+		KedaPATSecretName:         strings.TrimSpace(get(EnvKedaPATSecretName)),
+		KedaPATSecretKey:          strings.TrimSpace(get(EnvKedaPATSecretKey)),
+		KedaPATOverride:           get(EnvKedaPATOverride),
 	}
 
 	var errs []error
@@ -73,15 +94,24 @@ func LoadFrom(get Getter) (Config, error) {
 	requireField(&errs, EnvOutputNamespace, cfg.OutputNamespace)
 	requireField(&errs, EnvSecretNamePattern, cfg.SecretNamePattern)
 	requireField(&errs, EnvConfigMapName, cfg.ConfigMapName)
+	requireField(&errs, EnvKedaPATSecretName, cfg.KedaPATSecretName)
+	requireField(&errs, EnvKedaPATSecretKey, cfg.KedaPATSecretKey)
 
 	if cfg.SecretNamePattern != "" && !strings.Contains(cfg.SecretNamePattern, OrgPlaceholder) {
 		errs = append(errs, fmt.Errorf("%s must contain the %q placeholder", EnvSecretNamePattern, OrgPlaceholder))
 	}
 
-	// PAT must be reachable either via override (local dev) or via Key Vault (in-cluster).
+	// Admin PAT must be reachable either via override (local dev) or via Key Vault (in-cluster).
 	if cfg.GiteaPATOverride == "" {
 		requireField(&errs, EnvKeyVaultName, cfg.KeyVaultName)
 		requireField(&errs, EnvKeyVaultSecretName, cfg.KeyVaultSecretName)
+	}
+
+	// KEDA PAT has the same shape: override or KV-secret-name. KeyVaultName is
+	// shared with the admin PAT (one vault, multiple secrets), so it's already
+	// validated above.
+	if cfg.KedaPATOverride == "" {
+		requireField(&errs, EnvKedaPATKeyVaultSecretName, cfg.KedaPATKeyVaultSecretName)
 	}
 
 	// Either syncAll=true or a non-empty whitelist. An empty intersection is
@@ -101,10 +131,19 @@ func (c Config) SecretNameFor(org string) string {
 	return strings.ReplaceAll(c.SecretNamePattern, OrgPlaceholder, org)
 }
 
-// PATSource returns a short human-readable label describing where the PAT
-// will be sourced from. Useful for the startup log line.
+// PATSource returns a short human-readable label describing where the admin
+// PAT will be sourced from. Useful for the startup log line.
 func (c Config) PATSource() string {
 	if c.GiteaPATOverride != "" {
+		return "env"
+	}
+	return "keyvault"
+}
+
+// KedaPATSource returns where the KEDA PAT will be sourced from. Mirrors
+// PATSource so the startup log makes both sources visible.
+func (c Config) KedaPATSource() string {
+	if c.KedaPATOverride != "" {
 		return "env"
 	}
 	return "keyvault"

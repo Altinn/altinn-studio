@@ -208,3 +208,107 @@ func TestOrgFromSecret(t *testing.T) {
 		t.Errorf("OrgFromSecret on unlabelled secret = %q, want empty", got)
 	}
 }
+
+func TestApplyOpaqueSecret_CreatesWhenMissing(t *testing.T) {
+	c := fake.NewSimpleClientset()
+	s := NewStore(c, testNamespace)
+
+	changed, err := s.ApplyOpaqueSecret(context.Background(), "keda-gitea-pat", "token", "pat-value")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !changed {
+		t.Error("changed = false, want true (create)")
+	}
+	got, err := c.CoreV1().Secrets(testNamespace).Get(context.Background(), "keda-gitea-pat", metav1.GetOptions{})
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	if got.Type != corev1.SecretTypeOpaque {
+		t.Errorf("type = %v, want Opaque", got.Type)
+	}
+	if string(got.Data["token"]) != "pat-value" {
+		t.Errorf("data[token] = %q, want pat-value", string(got.Data["token"]))
+	}
+	if got.Labels[LabelManagedBy] != ManagedBy {
+		t.Errorf("managed-by = %q, want %q", got.Labels[LabelManagedBy], ManagedBy)
+	}
+}
+
+func TestApplyOpaqueSecret_NoOpOnSameValue(t *testing.T) {
+	c := fake.NewSimpleClientset(&corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "keda-gitea-pat", Namespace: testNamespace,
+			Labels: map[string]string{LabelManagedBy: ManagedBy},
+		},
+		Type: corev1.SecretTypeOpaque,
+		Data: map[string][]byte{"token": []byte("pat-value")},
+	})
+	s := NewStore(c, testNamespace)
+
+	changed, err := s.ApplyOpaqueSecret(context.Background(), "keda-gitea-pat", "token", "pat-value")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if changed {
+		t.Error("changed = true, want false (no diff)")
+	}
+}
+
+func TestApplyOpaqueSecret_UpdatesOnDifference(t *testing.T) {
+	c := fake.NewSimpleClientset(&corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: "keda-gitea-pat", Namespace: testNamespace},
+		Type:       corev1.SecretTypeOpaque,
+		Data:       map[string][]byte{"token": []byte("old-pat")},
+	})
+	s := NewStore(c, testNamespace)
+
+	changed, err := s.ApplyOpaqueSecret(context.Background(), "keda-gitea-pat", "token", "new-pat")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !changed {
+		t.Error("changed = false, want true (update)")
+	}
+	got, _ := c.CoreV1().Secrets(testNamespace).Get(context.Background(), "keda-gitea-pat", metav1.GetOptions{})
+	if string(got.Data["token"]) != "new-pat" {
+		t.Errorf("data[token] = %q, want new-pat", string(got.Data["token"]))
+	}
+	if got.Labels[LabelManagedBy] != ManagedBy {
+		t.Errorf("managed-by label was not added on update, got %v", got.Labels)
+	}
+}
+
+func TestApplyOpaqueSecret_PreservesOtherKeys(t *testing.T) {
+	// Some other actor wrote an unrelated key into the Secret; we must not
+	// stomp on it when applying ours. This is defence in depth against an
+	// operator that manages multiple keys in one Opaque Secret.
+	c := fake.NewSimpleClientset(&corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: "shared", Namespace: testNamespace},
+		Type:       corev1.SecretTypeOpaque,
+		Data: map[string][]byte{
+			"token": []byte("old-pat"),
+			"other": []byte("not-ours"),
+		},
+	})
+	s := NewStore(c, testNamespace)
+
+	if _, err := s.ApplyOpaqueSecret(context.Background(), "shared", "token", "new-pat"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	got, _ := c.CoreV1().Secrets(testNamespace).Get(context.Background(), "shared", metav1.GetOptions{})
+	if string(got.Data["other"]) != "not-ours" {
+		t.Errorf("other key was overwritten: %q", string(got.Data["other"]))
+	}
+	if string(got.Data["token"]) != "new-pat" {
+		t.Errorf("token = %q, want new-pat", string(got.Data["token"]))
+	}
+}
+
+func TestApplyOpaqueSecret_RejectsEmptyKey(t *testing.T) {
+	c := fake.NewSimpleClientset()
+	s := NewStore(c, testNamespace)
+	if _, err := s.ApplyOpaqueSecret(context.Background(), "x", "", "v"); err == nil {
+		t.Fatal("expected error for empty key, got nil")
+	}
+}

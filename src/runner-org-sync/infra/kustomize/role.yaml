@@ -3,12 +3,15 @@ kind: Role
 metadata:
   name: runner-org-sync
 rules:
-  # Per-org registration-token Secrets: list to inventory, get to check
-  # existence, create on onboarding, delete on offboarding. No "update" —
-  # we never modify a Secret in place; we delete and recreate.
+  # Per-org registration-token Secrets and the KEDA PAT Secret:
+  # - list to inventory managed registration Secrets,
+  # - get to check existence,
+  # - create on onboarding / first KEDA Secret write,
+  # - update for the KEDA Secret when its KV value rotates,
+  # - delete on offboarding.
   - apiGroups: [""]
     resources: ["secrets"]
-    verbs: ["get", "list", "create", "delete"]
+    verbs: ["get", "list", "create", "update", "delete"]
 
   # Runner-org-list ConfigMap: get to detect drift, create on first run,
   # update on subsequent changes.

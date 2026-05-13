@@ -25,6 +25,7 @@ type Metrics struct {
 	KeyVaultDuration   metric.Float64Histogram
 	CDNCallDuration    metric.Float64Histogram
 	ConfigMapApplied   metric.Int64Counter
+	KedaSecretApplied  metric.Int64Counter
 }
 
 // NewMetrics constructs every instrument from the supplied Meter. Returns
@@ -94,6 +95,9 @@ func NewMetrics(m metric.Meter) (*Metrics, error) {
 		return nil, err
 	}
 	if err := mc(&out.ConfigMapApplied, "runner_org_sync.configmap.applied", "ConfigMap apply attempts by changed=true|false."); err != nil {
+		return nil, err
+	}
+	if err := mc(&out.KedaSecretApplied, "runner_org_sync.keda_secret.applied", "KEDA PAT Secret apply attempts by changed=true|false and success=true|false."); err != nil {
 		return nil, err
 	}
 	return out, nil
