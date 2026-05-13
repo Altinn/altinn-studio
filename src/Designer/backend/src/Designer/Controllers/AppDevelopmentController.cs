@@ -1248,4 +1248,60 @@ public class AppDevelopmentController : Controller
 
         return Ok();
     }
+
+    [HttpGet("layout-sets/settings/task-navigation")]
+    [UseSystemTextJson]
+    public async Task<IActionResult> GetGlobalTaskNavigationSettings(
+        string org,
+        string app,
+        CancellationToken cancellationToken
+    )
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+        IEnumerable<TaskNavigationGroup> taskNavigationGroupList =
+            await _appDevelopmentService.GetGlobalTaskNavigationSettings(editingContext, cancellationToken);
+        IEnumerable<App.Core.Internal.Process.Elements.ProcessTask> tasks = _appDevelopmentService.GetTasks(
+            editingContext,
+            cancellationToken
+        );
+        IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDto = taskNavigationGroupList.Select(
+            taskNavigationGroup =>
+                taskNavigationGroup.ToDto(
+                    (taskId) =>
+                        tasks.FirstOrDefault(task => task.Id == taskId)?.ExtensionElements?.TaskExtension?.TaskType
+                )
+        );
+
+        return Ok(taskNavigationGroupDto);
+    }
+
+    [HttpPost]
+    [UseSystemTextJson]
+    public async Task<IActionResult> UpdateGlobalTaskNavigationSettings(
+        string org,
+        string app,
+        [FromBody] IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDtoList,
+        CancellationToken cancellationToken
+    )
+    {
+        try
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+            await _appDevelopmentService.UpdateGlobalTaskNavigationSettings(
+                editingContext,
+                taskNavigationGroupDtoList.Select(taskNavigationGroupDto => taskNavigationGroupDto.ToDomain()),
+                cancellationToken
+            );
+
+            return NoContent();
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(exception.Message);
+        }
+    }
 }

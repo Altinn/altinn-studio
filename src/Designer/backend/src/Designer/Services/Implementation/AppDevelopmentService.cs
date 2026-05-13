@@ -1245,4 +1245,65 @@ public class AppDevelopmentService : IAppDevelopmentService
 
         await altinnAppGitRepository.SaveGlobalSettingsFile(globalSettingsFile);
     }
+
+    public async Task<List<TaskNavigationGroup>> GetGlobalTaskNavigationSettings(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        CancellationToken cancellationToken
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
+
+        UiSettings globalSettingsFile = await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken);
+        return globalSettingsFile?.TaskNavigation?.ToList();
+    }
+
+    public IEnumerable<ProcessTask> GetTasks(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        CancellationToken cancellationToken
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
+
+        Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
+        return definitions.Process.Tasks;
+    }
+
+    public async Task UpdateGlobalTaskNavigationSettings(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        IEnumerable<TaskNavigationGroup> taskNavigationGroupList,
+        CancellationToken cancellationToken
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
+
+        UiSettings globalSettingsFile = await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken);
+        globalSettingsFile ??= new UiSettings();
+
+        if (taskNavigationGroupList.Any())
+        {
+            globalSettingsFile.TaskNavigation = taskNavigationGroupList;
+        }
+        else
+        {
+            globalSettingsFile.TaskNavigation = null;
+        }
+
+        await altinnAppGitRepository.SaveGlobalSettingsFile(globalSettingsFile);
+    }
 }
