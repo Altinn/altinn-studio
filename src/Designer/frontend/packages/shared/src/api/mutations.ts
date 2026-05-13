@@ -88,7 +88,10 @@ import {
   chatFeedbackPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
-import type { AddRepoParams, ChatFeedbackPayload, ChatMessage, ChatThread, CreateChatMessagePayload, CreateChatThreadPayload } from 'app-shared/types/api';
+import type { AddRepoParams } from 'app-shared/types/api';
+import type { ChatFeedbackPayload } from 'app-shared/types/api/ChatFeedbackPayload';
+import type { ChatMessage, CreateChatMessagePayload } from 'app-shared/types/api/ChatMessage';
+import type { ChatThread, CreateChatThreadPayload } from 'app-shared/types/api/ChatThread';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
 import type { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploymentPayload';
 import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
