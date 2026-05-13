@@ -1208,4 +1208,41 @@ public class AppDevelopmentService : IAppDevelopmentService
 
         return hasChanges;
     }
+
+    // V9 and newer apps should use the global settings file for global layout settings.
+    public async Task<ValidationOnNavigation> GetGlobalValidationOnNavigationSettings(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        CancellationToken cancellationToken
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
+
+        UiSettings globalSettingsFile = await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken);
+        return globalSettingsFile?.ValidationOnNavigation;
+    }
+
+    public async Task SaveGlobalValidationOnNavigationSettings(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        ValidationOnNavigation validationOnNavigation,
+        CancellationToken cancellationToken
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
+
+        UiSettings globalSettingsFile = await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken);
+        globalSettingsFile ??= new UiSettings();
+        globalSettingsFile.ValidationOnNavigation = validationOnNavigation;
+
+        await altinnAppGitRepository.SaveGlobalSettingsFile(globalSettingsFile);
+    }
 }

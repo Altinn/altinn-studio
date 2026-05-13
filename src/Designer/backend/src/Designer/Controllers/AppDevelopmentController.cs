@@ -1186,4 +1186,66 @@ public class AppDevelopmentController : Controller
 
         return new VersionResponse { BackendVersion = backendVersion, FrontendVersion = frontendVersion };
     }
+
+    /// <summary>
+    /// Gets the global validation on navigation settings from the global settings file in apps created with v9.0 or later
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>The content of the global validation on navigation settings file</returns>
+    [HttpGet("layout-sets/settings/validation-on-navigation")]
+    [UseSystemTextJson]
+    public async Task<IActionResult> GetGlobalValidationOnNavigationSettings(
+        string org,
+        string app,
+        CancellationToken cancellationToken
+    )
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+        ValidationOnNavigation config = await _appDevelopmentService.GetGlobalValidationOnNavigationSettings(
+            editingContext,
+            cancellationToken
+        );
+
+        return Ok(config);
+    }
+
+    [HttpPost("layout-sets/settings/validation-on-navigation")]
+    [UseSystemTextJson]
+    public async Task<IActionResult> SaveGlobalValidationOnNavigationSettings(
+        string org,
+        string app,
+        [FromBody] ValidationOnNavigation config,
+        CancellationToken cancellationToken
+    )
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+        await _appDevelopmentService.SaveGlobalValidationOnNavigationSettings(
+            editingContext,
+            config,
+            cancellationToken
+        );
+
+        return Ok();
+    }
+
+    [HttpDelete("layout-sets/settings/validation-on-navigation")]
+    public async Task<IActionResult> DeleteGlobalValidationOnNavigationSettings(
+        string org,
+        string app,
+        CancellationToken cancellationToken
+    )
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+        await _appDevelopmentService.SaveGlobalValidationOnNavigationSettings(editingContext, null, cancellationToken);
+
+        return Ok();
+    }
 }

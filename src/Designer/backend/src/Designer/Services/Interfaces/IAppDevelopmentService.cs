@@ -323,4 +323,15 @@ public interface IAppDevelopmentService
         ValidationOnNavigation validationOnNavigation,
         CancellationToken cancellationToken
     );
+
+    public Task<ValidationOnNavigation> GetGlobalValidationOnNavigationSettings(
+        AltinnRepoEditingContext context,
+        CancellationToken cancellationToken
+    );
+
+    public Task SaveGlobalValidationOnNavigationSettings(
+        AltinnRepoEditingContext context,
+        ValidationOnNavigation validationOnNavigation,
+        CancellationToken cancellationToken
+    );
 }
