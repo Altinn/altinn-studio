@@ -28,10 +28,11 @@ type Metrics struct {
 	KedaSecretApplied  metric.Int64Counter
 }
 
-// NewMetrics constructs every instrument from the supplied Meter. Returns
-// an error if any instrument cannot be created; in practice this only fires
-// on misconfigured SDKs.
-func NewMetrics(m metric.Meter) (*Metrics, error) {
+// NewMetrics constructs every instrument from the package's Meter (set up
+// by ConfigureOTel). Returns an error if any instrument cannot be created;
+// in practice this only fires on misconfigured SDKs.
+func NewMetrics() (*Metrics, error) {
+	m := Meter()
 	mk := func(target *metric.Float64Histogram, name, desc, unit string) error {
 		h, err := m.Float64Histogram(name, metric.WithDescription(desc), metric.WithUnit(unit))
 		if err != nil {

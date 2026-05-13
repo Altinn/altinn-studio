@@ -1,11 +1,11 @@
-// Package telemetry configures OpenTelemetry traces and metrics, plus a
-// structured slog logger writing JSON to stdout.
+// Package telemetry configures OpenTelemetry traces and metrics, sets the
+// default slog logger, and exposes package-level Tracer/Meter accessors.
 //
-// Init returns a Telemetry value carrying ready-to-use Logger, Tracer, and
-// Meter, and a Shutdown closer that flushes both the trace and metric
-// pipelines. When OTEL_EXPORTER_OTLP_ENDPOINT is unset the OTLP exporters
-// are skipped entirely — the no-op providers from the OTel SDK keep working
-// so callers do not need conditional code paths.
+// Mirrors the pattern used by src/Runtime/pdf3/internal/telemetry: callers
+// invoke ConfigureOTel once at startup, defer the returned shutdown, and use
+// telemetry.Tracer() / telemetry.Meter() anywhere they need an instrument.
+// No per-handle struct to thread through call sites — OTel's global
+// providers do that work.
 package telemetry
 
 import (
@@ -20,66 +20,85 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/sdk/resource"
+	"go.opentelemetry.io/otel/propagation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.opentelemetry.io/otel/trace"
 )
 
-// Telemetry exposes the three observability handles the rest of the service
-// uses. None of them require a non-nil OTLP endpoint to be safe to call.
-type Telemetry struct {
-	Logger *slog.Logger
-	Tracer trace.Tracer
-	Meter  metric.Meter
-}
-
-// Shutdown flushes and stops the OTel pipelines. Always call on exit, with
-// a short bounded context (10s is plenty).
-type Shutdown func(ctx context.Context) error
-
-// scope is the instrumentation scope name used for the tracer and meter.
 const scope = "altinn.studio/runner-org-sync"
 
-// Init configures providers and returns ready-to-use handles. serviceName
-// defaults to "runner-org-sync" when empty and overrides any value the SDK
-// would otherwise pick up from OTEL_SERVICE_NAME.
-func Init(ctx context.Context, serviceName string) (*Telemetry, Shutdown, error) {
+// Tracer returns the package's tracer. Safe to call before ConfigureOTel —
+// the OTel SDK's default global provider is a no-op until a real one is
+// installed, so the returned tracer always works.
+//
+//nolint:ireturn // OpenTelemetry intentionally exposes interface-returning accessors.
+func Tracer() trace.Tracer {
+	return otel.Tracer(scope)
+}
+
+// Meter returns the package's meter. Same semantics as Tracer.
+//
+//nolint:ireturn // OpenTelemetry intentionally exposes interface-returning accessors.
+func Meter() metric.Meter {
+	return otel.Meter(scope)
+}
+
+// ConfigureOTel bootstraps OpenTelemetry (traces + metrics) and sets the
+// default slog logger. Always defer the returned shutdown on exit with a
+// bounded context — 10s is plenty for our payload sizes.
+//
+// If OTEL_EXPORTER_OTLP_ENDPOINT is unset (typical for local dev) the OTLP
+// exporters are skipped entirely and the global no-op providers continue to
+// satisfy Tracer() / Meter() calls.
+func ConfigureOTel(ctx context.Context, serviceName string) (func(context.Context) error, error) {
 	if serviceName == "" {
 		serviceName = "runner-org-sync"
 	}
 
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+	// Default slog handler: JSON to stdout. Keeps `kubectl logs` readable
+	// for humans and parseable for log aggregators.
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
-	}))
-	slog.SetDefault(logger)
+	})))
 
 	res, err := resource.New(ctx,
 		resource.WithAttributes(semconv.ServiceName(serviceName)),
-		resource.WithFromEnv(),     // OTEL_RESOURCE_ATTRIBUTES
+		resource.WithFromEnv(), // OTEL_RESOURCE_ATTRIBUTES
 		resource.WithProcessPID(),
 		resource.WithHost(),
 	)
 	if err != nil {
-		return nil, nil, fmt.Errorf("telemetry: resource: %w", err)
+		return nil, fmt.Errorf("telemetry: resource: %w", err)
 	}
 
-	// If no OTLP endpoint is configured (typical for local dev) skip exporters
-	// entirely. The default global TracerProvider / MeterProvider are no-ops,
-	// so call sites do not need conditional logic.
+	// Set propagator so any future cross-service call (HTTP/gRPC) preserves
+	// trace context automatically. Free for us — costs nothing if unused.
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{},
+		propagation.Baggage{},
+	))
+
+	noop := func(context.Context) error { return nil }
 	if !otlpEndpointConfigured() {
-		t := &Telemetry{
-			Logger: logger,
-			Tracer: otel.Tracer(scope),
-			Meter:  otel.Meter(scope),
+		return noop, nil
+	}
+
+	var shutdownFuncs []func(context.Context) error
+	shutdown := func(ctx context.Context) error {
+		var shutdownErr error
+		for _, fn := range shutdownFuncs {
+			shutdownErr = errors.Join(shutdownErr, fn(ctx))
 		}
-		return t, func(context.Context) error { return nil }, nil
+		shutdownFuncs = nil
+		return shutdownErr
 	}
 
 	traceExp, err := otlptracegrpc.New(ctx)
 	if err != nil {
-		return nil, nil, fmt.Errorf("telemetry: trace exporter: %w", err)
+		return shutdown, fmt.Errorf("telemetry: trace exporter: %w", err)
 	}
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(traceExp),
@@ -87,13 +106,11 @@ func Init(ctx context.Context, serviceName string) (*Telemetry, Shutdown, error)
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 	)
 	otel.SetTracerProvider(tp)
+	shutdownFuncs = append(shutdownFuncs, tp.Shutdown)
 
 	metricExp, err := otlpmetricgrpc.New(ctx)
 	if err != nil {
-		// Best-effort cleanup of the already-installed trace exporter so we
-		// do not leave background goroutines if Init returns an error.
-		_ = tp.Shutdown(ctx)
-		return nil, nil, fmt.Errorf("telemetry: metric exporter: %w", err)
+		return shutdown, fmt.Errorf("telemetry: metric exporter: %w", err)
 	}
 	mp := sdkmetric.NewMeterProvider(
 		sdkmetric.WithResource(res),
@@ -102,19 +119,9 @@ func Init(ctx context.Context, serviceName string) (*Telemetry, Shutdown, error)
 		)),
 	)
 	otel.SetMeterProvider(mp)
+	shutdownFuncs = append(shutdownFuncs, mp.Shutdown)
 
-	shutdown := func(ctx context.Context) error {
-		return errors.Join(
-			tp.Shutdown(ctx),
-			mp.Shutdown(ctx),
-		)
-	}
-
-	return &Telemetry{
-		Logger: logger,
-		Tracer: otel.Tracer(scope),
-		Meter:  otel.Meter(scope),
-	}, shutdown, nil
+	return shutdown, nil
 }
 
 func otlpEndpointConfigured() bool {

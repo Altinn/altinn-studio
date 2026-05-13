@@ -54,7 +54,7 @@ func run() error {
 		return fmt.Errorf("config: %w", err)
 	}
 
-	tel, shutdown, err := telemetry.Init(ctx, serviceName)
+	shutdown, err := telemetry.ConfigureOTel(ctx, serviceName)
 	if err != nil {
 		return fmt.Errorf("telemetry init: %w", err)
 	}
@@ -66,13 +66,13 @@ func run() error {
 		}
 	}()
 
-	metrics, err := telemetry.NewMetrics(tel.Meter)
+	metrics, err := telemetry.NewMetrics()
 	if err != nil {
 		return fmt.Errorf("telemetry metrics: %w", err)
 	}
 
 	runID := uuid.NewString()
-	logger := tel.Logger.With("run_id", runID, "service", serviceName)
+	logger := slog.With("run_id", runID, "service", serviceName)
 
 	pat, patSource, err := loadSecretFromKV(ctx, cfg.GiteaPATOverride, cfg.KeyVaultName, cfg.KeyVaultSecretName)
 	if err != nil {
@@ -107,7 +107,7 @@ func run() error {
 		return fmt.Errorf("build reconciler: %w", err)
 	}
 
-	ctx, span := tel.Tracer.Start(ctx, "runner_org_sync.reconcile",
+	ctx, span := telemetry.Tracer().Start(ctx, "runner_org_sync.reconcile",
 		trace.WithAttributes(attribute.String("run_id", runID)),
 	)
 	defer span.End()
@@ -150,7 +150,7 @@ func run() error {
 	// "partial" because the KEDA Secret has its own lifecycle. Failure is
 	// non-fatal: logged + counted, but the CronJob still exits 0 so the
 	// next tick retries.
-	applyKedaSecret(ctx, store, cfg, kedaPAT, metrics, span, logger)
+	applyKedaSecret(ctx, store, cfg, kedaPAT, metrics, logger)
 
 	if report.Outcome == reconcile.OutcomePartial {
 		// Continue-on-partial: still exit 0; metric + WARN log carries the signal.
@@ -191,9 +191,9 @@ func applyKedaSecret(
 	cfg config.Config,
 	value string,
 	metrics *telemetry.Metrics,
-	span trace.Span,
 	logger *slog.Logger,
 ) {
+	span := trace.SpanFromContext(ctx)
 	changed, err := store.ApplyOpaqueSecret(ctx, cfg.KedaPATSecretName, cfg.KedaPATSecretKey, value)
 	metrics.KedaSecretApplied.Add(ctx, 1, metric.WithAttributes(
 		attribute.Bool("changed", changed),
