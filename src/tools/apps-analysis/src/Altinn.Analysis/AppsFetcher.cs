@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Globalization;
+using System.Text.Json;
 using System.Threading.Channels;
 using Spectre.Console;
 
@@ -17,6 +18,12 @@ public sealed record FetchConfig(
 
 public sealed class AppsFetcher : IDisposable
 {
+    private static readonly JsonSerializerOptions ManifestJsonSerializerOptions = new()
+    {
+        WriteIndented = true,
+    };
+    private static readonly byte[] NewLine = "\n"u8.ToArray();
+
     private readonly FetchConfig _config;
     private readonly GiteaClient _giteaClient;
     private readonly KubernetesWrapperClient _kubernetesWrapperClient;
@@ -123,10 +130,11 @@ public sealed class AppsFetcher : IDisposable
                 return;
         }
 
-        await DownloadApps(apps, cancellationToken);
+        var downloadResult = await DownloadApps(apps, cancellationToken);
+        await WriteManifest(downloadResult, cancellationToken);
     }
 
-    private sealed record OrgRecord(List<GiteaRepo> Repos)
+    private sealed record OrgRecord(List<AppInfo> Apps)
     {
         public int Skipped { get; set; }
     }
@@ -193,25 +201,37 @@ public sealed class AppsFetcher : IDisposable
                     org.Name,
                     "prod"
                 );
-                HashSet<string> deployedApps = new(deploymentstt02.Select(d => d.Repo));
-                deployedApps.UnionWith(deploymentsProd.Select(d => d.Repo));
+                var tt02Deployments = deploymentstt02
+                    .GroupBy(d => d.Repo)
+                    .ToDictionary(g => g.Key, g => g.First());
+                var prodDeployments = deploymentsProd
+                    .GroupBy(d => d.Repo)
+                    .ToDictionary(g => g.Key, g => g.First());
 
-                task.MaxValue = deployedApps.Count;
+                HashSet<string> deployedApps = new(tt02Deployments.Keys);
+                deployedApps.UnionWith(prodDeployments.Keys);
 
-                var orgRecord = reposByOrg.GetOrAdd(org, _ => new(new List<GiteaRepo>(4)));
+                task.MaxValue = Math.Max(deployedApps.Count, 1);
+
+                var orgRecord = reposByOrg.GetOrAdd(org, _ => new(new List<AppInfo>(4)));
 
                 await foreach (var repo in _giteaClient.GetRepos(org.Name, cancellationToken))
                 {
                     if (deployedApps.Contains(repo.Name))
-                        orgRecord.Repos.Add(repo);
+                    {
+                        tt02Deployments.TryGetValue(repo.Name, out var tt02Deployment);
+                        prodDeployments.TryGetValue(repo.Name, out var prodDeployment);
+                        orgRecord.Apps.Add(new AppInfo(repo, tt02Deployment, prodDeployment));
+                    }
                     else
+                    {
                         orgRecord.Skipped += 1;
-                    var maxValue = task.MaxValue;
-                    if (orgRecord.Repos.Count >= maxValue)
-                        task.MaxValue = maxValue + 25;
+                    }
                     task.Increment(1);
+                    if (task.Value >= task.MaxValue)
+                        task.MaxValue = task.Value + 25;
                 }
-                task.MaxValue = orgRecord.Repos.Count;
+                task.MaxValue = task.Value;
 
                 ctx.Refresh();
                 task.StopTask();
@@ -220,10 +240,10 @@ public sealed class AppsFetcher : IDisposable
 
         return new GetAppsResult(
             reposByOrg.Keys.ToArray(),
-            reposByOrg.SelectMany(kvp => kvp.Value.Repos).ToArray(),
+            reposByOrg.SelectMany(kvp => kvp.Value.Apps).ToArray(),
             reposByOrg.ToDictionary(
                 kvp => kvp.Key,
-                kvp => ((IReadOnlyList<GiteaRepo>)kvp.Value.Repos, kvp.Value.Skipped)
+                kvp => ((IReadOnlyList<AppInfo>)kvp.Value.Apps, kvp.Value.Skipped)
             )
         );
     }
@@ -233,7 +253,6 @@ public sealed class AppsFetcher : IDisposable
         CancellationToken cancellationToken
     )
     {
-        var (orgs, repos, _) = apps;
         AnsiConsole.WriteLine();
         AnsiConsole.Write(new Rule($"Downloading apps").LeftJustified());
 
@@ -274,7 +293,7 @@ public sealed class AppsFetcher : IDisposable
 
         var queue = Channel.CreateBounded<(
             GiteaOrg Org,
-            GiteaRepo Repo,
+            AppInfo App,
             ProgressTask Task,
             DirectoryInfo OrgDirectory
         )>(
@@ -298,7 +317,8 @@ public sealed class AppsFetcher : IDisposable
                     {
                         while (reader.TryRead(out var entry))
                         {
-                            var (org, repo, task, orgDirectory) = entry;
+                            var (org, app, task, orgDirectory) = entry;
+                            var repo = app.Repo;
                             var branch = repo.DefaultBranch;
                             if (string.IsNullOrWhiteSpace(branch))
                                 throw new Exception(
@@ -333,7 +353,7 @@ public sealed class AppsFetcher : IDisposable
                                 );
                             }
 
-                            results.Add(new(org, repo, branch, branchDirectory));
+                            results.Add(new(org, app, branch, branchDirectory));
 
                             task.Increment(1);
 
@@ -356,17 +376,17 @@ public sealed class AppsFetcher : IDisposable
             options,
             async (org, cancellationToken) =>
             {
-                var (repos, skipped) = basicInformation.ReposByOrg[org];
+                var (apps, skipped) = basicInformation.AppsByOrg[org];
                 var task = ctx.AddTask(
                     $"[green]{org.FullName} ({org.Name})[/] (skipped: {skipped})",
                     autoStart: true,
-                    maxValue: repos.Count
+                    maxValue: apps.Count
                 );
                 var orgDirectory = _directory.CreateSubdirectory(org.Name);
-                foreach (var repo in repos)
+                foreach (var app in apps)
                 {
                     await queue.Writer.WriteAsync(
-                        (org, repo, task, orgDirectory),
+                        (org, app, task, orgDirectory),
                         cancellationToken
                     );
                 }
@@ -380,6 +400,47 @@ public sealed class AppsFetcher : IDisposable
         return new DownloadAppsResult(results.ToArray());
     }
 
+    private async Task WriteManifest(
+        DownloadAppsResult downloadResult,
+        CancellationToken cancellationToken
+    )
+    {
+        Debug.Assert(_directory is not null);
+
+        var manifestPath = Path.Join(_directory.FullName, "manifest.json");
+        var manifest = new FetchManifest(
+            GeneratedAt: DateTimeOffset.UtcNow,
+            AltinnUrl: _config.AltinnUrl,
+            Apps: downloadResult
+                .Repos.OrderBy(r => r.Org.Name, StringComparer.Ordinal)
+                .ThenBy(r => r.App.Repo.Name, StringComparer.Ordinal)
+                .Select(r => new FetchManifestApp(
+                    Org: r.Org.Name,
+                    Repo: r.App.Repo.Name,
+                    FullName: r.App.Repo.FullName,
+                    DefaultBranch: r.Branch,
+                    LocalPath: Path.GetRelativePath(_directory.FullName, r.MainDir.FullName),
+                    CloneUrl: r.App.Repo.CloneUrl,
+                    DeployedToTt02: r.App.Tt02Deployment is not null,
+                    Tt02Version: r.App.Tt02Deployment?.Version,
+                    DeployedToProd: r.App.ProdDeployment is not null,
+                    ProdVersion: r.App.ProdDeployment?.Version
+                ))
+                .ToArray()
+        );
+
+        await using var stream = File.Create(manifestPath);
+        await JsonSerializer.SerializeAsync(
+            stream,
+            manifest,
+            ManifestJsonSerializerOptions,
+            cancellationToken
+        );
+        await stream.WriteAsync(NewLine, cancellationToken);
+
+        AnsiConsole.MarkupLine($"Wrote manifest to [bold]{manifestPath}[/]");
+    }
+
     public void Dispose()
     {
         _giteaClient.Dispose();
@@ -387,16 +448,36 @@ public sealed class AppsFetcher : IDisposable
 
     private sealed record GetAppsResult(
         IReadOnlyList<GiteaOrg> Orgs,
-        IReadOnlyList<GiteaRepo> Repos,
-        IReadOnlyDictionary<GiteaOrg, (IReadOnlyList<GiteaRepo> Repos, int Skipped)> ReposByOrg
+        IReadOnlyList<AppInfo> Apps,
+        IReadOnlyDictionary<GiteaOrg, (IReadOnlyList<AppInfo> Apps, int Skipped)> AppsByOrg
     );
 
     private sealed record DownloadAppsResult(IReadOnlyList<RepoInfo> Repos);
 
-    private sealed record RepoInfo(
-        GiteaOrg Org,
+    private sealed record AppInfo(
         GiteaRepo Repo,
-        string Branch,
-        DirectoryInfo MainDir
+        Deployment? Tt02Deployment,
+        Deployment? ProdDeployment
+    );
+
+    private sealed record RepoInfo(GiteaOrg Org, AppInfo App, string Branch, DirectoryInfo MainDir);
+
+    private sealed record FetchManifest(
+        DateTimeOffset GeneratedAt,
+        string AltinnUrl,
+        IReadOnlyList<FetchManifestApp> Apps
+    );
+
+    private sealed record FetchManifestApp(
+        string Org,
+        string Repo,
+        string FullName,
+        string DefaultBranch,
+        string LocalPath,
+        string CloneUrl,
+        bool DeployedToTt02,
+        string? Tt02Version,
+        bool DeployedToProd,
+        string? ProdVersion
     );
 }

@@ -41,6 +41,9 @@ Fetch
 dotnet run -c Release -- fetch -c ../../config.ini
 ```
 
+This writes `manifest.json` to the fetch directory with an index of fetched apps,
+including whether each app is deployed to `tt02`, `prod`, or both.
+
 ![Downloading apps](img/download-progress.png)
 
 Analyze
