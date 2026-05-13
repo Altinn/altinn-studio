@@ -140,9 +140,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   const handleWorkflowEvent = useCallback(
     (event: WorkflowEvent) => {
       if (event.type === 'assistant_message') {
-        handleAssistantMessage(event).catch((error) =>
-          console.error('Failed to handle assistant message:', error),
-        );
+        handleAssistantMessage(event);
       } else if (event.type === 'status') {
         const isTerminal =
           event.data?.status === 'completed' ||
@@ -165,7 +163,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
           content: WORKFLOW_ERROR_MESSAGE,
           createdAt: new Date().toISOString(),
           filesChanged: [],
-        }).catch((error) => console.error('Failed to persist error message:', error));
+        });
       }
     },
     [applyStatusMessage, handleAssistantMessage, currentSessionIdRef, createMessage],
@@ -223,9 +221,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   const runWorkflowForSession = useCallback(
     async (threadId: string, userMessage: UserMessage): Promise<void> => {
       activeWorkflowThreadId.current = threadId;
-      createMessage(threadId, userMessage).catch((error) =>
-        console.error('Failed to persist user message:', error),
-      );
+      createMessage(threadId, userMessage);
       try {
         const result = await startAgentWorkflow(
           threadId,
@@ -239,9 +235,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
             content: formatRejectionMessage(result),
             createdAt: new Date().toISOString(),
             filesChanged: [],
-          }).catch((persistError) =>
-            console.error('Failed to persist rejection message:', persistError),
-          );
+          });
         }
       } catch (error) {
         console.error('Workflow request failed:', error);
@@ -250,7 +244,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
           content: WORKFLOW_ERROR_MESSAGE,
           createdAt: new Date().toISOString(),
           filesChanged: [],
-        }).catch((persistError) => console.error('Failed to persist error message:', persistError));
+        });
       }
     },
     [createMessage, startAgentWorkflow],

@@ -339,5 +339,3 @@ async def get_session_status(session_id: str):
     if status is None:
         return {"session_id": session_id, "status": "unknown"}
     return {"session_id": session_id, **status}
-
-
