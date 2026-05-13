@@ -18,6 +18,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Rename `app-manager` to `studioctl-server`, including install/update migration cleanup of legacy runtime files, installed payload, and logs.
 - Show progress while `app run --mode container` pulls/builds and starts the app container.
 - `studioctl self uninstall` now asks for confirmation; use `-y` or `--yes` for non-interactive uninstall.
+- `studioctl auth` uses login through web browser/auth code and Ansattporten session to create Studio API key.
 
 ### Fixed
 
