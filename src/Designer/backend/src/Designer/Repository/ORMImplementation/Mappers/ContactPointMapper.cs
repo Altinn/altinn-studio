@@ -14,8 +14,11 @@ public static class ContactPointMapper
             Org = entity.Org,
             Name = entity.Name,
             IsActive = entity.IsActive,
-            CreatedAt = entity.CreatedAt,
             Environments = entity.Environments,
+            CreatedByUserAccountId = entity.CreatedByUserAccountId,
+            CreatedAt = entity.CreatedAt,
+            UpdatedByUserAccountId = entity.UpdatedByUserAccountId,
+            UpdatedAt = entity.UpdatedAt,
             Methods = entity
                 .Methods.Select(m => new ContactMethodDbModel
                 {
@@ -36,8 +39,11 @@ public static class ContactPointMapper
             Org = dbModel.Org,
             Name = dbModel.Name,
             IsActive = dbModel.IsActive,
-            CreatedAt = dbModel.CreatedAt,
             Environments = dbModel.Environments,
+            CreatedByUserAccountId = dbModel.CreatedByUserAccountId,
+            CreatedAt = dbModel.CreatedAt,
+            UpdatedByUserAccountId = dbModel.UpdatedByUserAccountId,
+            UpdatedAt = dbModel.UpdatedAt,
             Methods = dbModel
                 .Methods.Select(m => new ContactMethodEntity
                 {

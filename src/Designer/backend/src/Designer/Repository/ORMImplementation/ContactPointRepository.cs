@@ -53,6 +53,8 @@ public class ContactPointRepository(DesignerdbContext dbContext) : IContactPoint
         existing.Name = entity.Name;
         existing.IsActive = entity.IsActive;
         existing.Environments = entity.Environments;
+        existing.UpdatedByUserAccountId = entity.UpdatedByUserAccountId;
+        existing.UpdatedAt = entity.UpdatedAt;
 
         dbContext.ContactMethods.RemoveRange(existing.Methods);
         existing.Methods = entity
