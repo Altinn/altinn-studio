@@ -30,7 +30,7 @@ describe('useAltinityAssistant', () => {
       cancelCurrentWorkflow: jest.fn(),
       cancelledMessageContent: null,
       clearCancelledMessageContent: jest.fn(),
-      traceIdsByMessageId: {},
+      messages: [],
     });
 
     const { result } = renderUseAltinityAssistant();

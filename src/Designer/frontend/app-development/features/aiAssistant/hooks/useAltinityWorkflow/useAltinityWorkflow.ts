@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import type {
   UserMessage,
   AssistantMessage,
+  Message,
   WorkflowEvent,
   WorkflowStatus,
   ConnectionStatus,
@@ -17,6 +18,7 @@ import { useCheckoutBranchMutation } from 'app-shared/hooks/mutations/useCheckou
 import { useAltinityWebSocket } from '../useAltinityWebSocket/useAltinityWebSocket';
 import type { AltinityThreadState } from '../useAltinityThreads/useAltinityThreads';
 import {
+  decorateMessagesWithTraceIds,
   formatRejectionMessage,
   getAssistantMessageContent,
   getAssistantMessageTimestamp,
@@ -36,7 +38,7 @@ export interface UseAltinityWorkflowResult {
   cancelCurrentWorkflow: () => Promise<void>;
   cancelledMessageContent: string | null;
   clearCancelledMessageContent: () => void;
-  traceIdsByMessageId: Record<string, string>;
+  messages: Message[];
 }
 
 export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWorkflowResult => {
@@ -127,7 +129,10 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       const persisted = await createMessage(threadId, finalAssistantMessage);
 
       if (assistantMessage.traceId && persisted?.id) {
-        setTraceIdsByMessageId((prev) => ({ ...prev, [persisted.id]: assistantMessage.traceId! }));
+        setTraceIdsByMessageId((prev) => ({
+          ...prev,
+          [persisted.id]: assistantMessage.traceId,
+        }));
       }
 
       if (event.session_id && !shouldSkipBranchOps(assistantMessage)) {
@@ -305,6 +310,11 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     setCancelledMessageContent(null);
   }, []);
 
+  const messages = useMemo(
+    () => decorateMessagesWithTraceIds(chatMessages, traceIdsByMessageId),
+    [chatMessages, traceIdsByMessageId],
+  );
+
   return {
     connectionStatus,
     workflowStatus,
@@ -313,7 +323,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     cancelCurrentWorkflow,
     cancelledMessageContent,
     clearCancelledMessageContent,
-    traceIdsByMessageId,
+    messages,
   };
 };
 

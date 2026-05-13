@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import type {
   ChatThread,
   Message,
@@ -6,7 +5,6 @@ import type {
   WorkflowStatus,
   ConnectionStatus,
 } from '@studio/assistant';
-import { MessageAuthor } from '@studio/assistant';
 import { useAltinityThreads } from '../useAltinityThreads/useAltinityThreads';
 import { useAltinityWorkflow } from '../useAltinityWorkflow/useAltinityWorkflow';
 
@@ -25,6 +23,10 @@ export interface UseAltinityAssistantResult {
   deleteThread: (threadId: string) => void;
 }
 
+/**
+ * Cohabitates all the callers that the main AiAssistant component needs. Do not add logic to this hook beyond this.
+ * TODO: consider exposing useAltinityWorkflow to the caller directly, and deleting this hook.
+ */
 export const useAltinityAssistant = (): UseAltinityAssistantResult => {
   const threads = useAltinityThreads();
   const {
@@ -35,13 +37,8 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     cancelCurrentWorkflow,
     cancelledMessageContent,
     clearCancelledMessageContent,
-    traceIdsByMessageId,
+    messages,
   } = useAltinityWorkflow(threads);
-
-  const messages = useMemo(
-    () => decorateMessagesWithTraceIds(threads.chatMessages, traceIdsByMessageId),
-    [threads.chatMessages, traceIdsByMessageId],
-  );
 
   return {
     connectionStatus,
@@ -58,14 +55,3 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     deleteThread: threads.deleteThread,
   };
 };
-
-function decorateMessagesWithTraceIds(
-  messages: Message[],
-  traceIdsByMessageId: Record<string, string>,
-): Message[] {
-  return messages.map((message) => {
-    if (message.role !== MessageAuthor.Assistant || !message.id) return message;
-    const traceId = traceIdsByMessageId[message.id];
-    return traceId ? { ...message, traceId } : message;
-  });
-}
