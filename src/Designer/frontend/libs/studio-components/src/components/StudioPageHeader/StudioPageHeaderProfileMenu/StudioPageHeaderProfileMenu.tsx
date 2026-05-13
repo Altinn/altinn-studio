@@ -53,7 +53,7 @@ const StudioPageHeaderMenuContent = ({
 }: StudioPageHeaderMenuContentProps): ReactElement => {
   const { setOpen } = useStudioDropdownContext();
   return (
-    <StudioDropdown.List>
+    <>
       {profileMenuGroups.map((group: StudioProfileMenuGroup, index: number) => (
         <StudioPageHeaderMenuContentGroup
           key={index}
@@ -62,7 +62,7 @@ const StudioPageHeaderMenuContent = ({
         />
       ))}
       {profileMenuFooter && <div className={classes.profileMenuFooter}>{profileMenuFooter}</div>}
-    </StudioDropdown.List>
+    </>
   );
 };
 
@@ -75,11 +75,11 @@ const StudioPageHeaderMenuContentGroup = ({
   onClickItem,
 }: StudioPageHeaderMenuContentGroupProps): ReactElement => {
   return (
-    <div className={classes.dropDownMenuGroup}>
+    <StudioDropdown.List className={classes.dropDownMenuGroup}>
       {group.items.map((item: StudioProfileMenuItem) => (
         <StudioProfileMenuGroupItem key={item.itemName} item={item} onClickItem={onClickItem} />
       ))}
-    </div>
+    </StudioDropdown.List>
   );
 };
 
