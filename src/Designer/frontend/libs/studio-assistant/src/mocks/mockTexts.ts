@@ -19,7 +19,7 @@ const textAreaTexts: TextAreaTexts = {
   waitingForConnection: 'waitingForConnection',
 };
 
-const messageFeedbackTexts: MessageFeedbackTexts = {
+export const messageFeedbackTexts: MessageFeedbackTexts = {
   thumbsUp: 'feedbackThumbsUp',
   thumbsDown: 'feedbackThumbsDown',
   heading: 'feedbackHeading',

@@ -2,15 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MessageFeedback } from './MessageFeedback';
 import type { MessageFeedbackProps } from './MessageFeedback';
-import type { MessageFeedbackTexts } from '../../../../types/AssistantTexts';
-
-const mockTexts: MessageFeedbackTexts = {
-  thumbsUp: 'Nyttig svar',
-  thumbsDown: 'Ikke nyttig svar',
-  heading: 'Tilbakemelding',
-  body: 'Takk for tilbakemeldingen. Vil du utdype?',
-  submit: 'Send',
-};
+import { messageFeedbackTexts as feedbackTexts } from '../../../../mocks/mockTexts';
 
 describe('MessageFeedback', () => {
   it('renders thumbs up and thumbs down buttons', () => {
@@ -57,7 +49,7 @@ describe('MessageFeedback', () => {
 });
 
 const defaultProps: MessageFeedbackProps = {
-  texts: mockTexts,
+  texts: feedbackTexts,
   onSubmit: jest.fn(),
 };
 
@@ -66,9 +58,9 @@ const renderMessageFeedback = (props: Partial<MessageFeedbackProps> = {}): void 
 };
 
 const getThumbsUpButton = (): HTMLElement =>
-  screen.getByRole('button', { name: mockTexts.thumbsUp });
+  screen.getByRole('button', { name: feedbackTexts.thumbsUp });
 
 const getThumbsDownButton = (): HTMLElement =>
-  screen.getByRole('button', { name: mockTexts.thumbsDown });
+  screen.getByRole('button', { name: feedbackTexts.thumbsDown });
 
-const getSendButton = (): HTMLElement => screen.getByRole('button', { name: mockTexts.submit });
+const getSendButton = (): HTMLElement => screen.getByRole('button', { name: feedbackTexts.submit });
