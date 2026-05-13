@@ -1,6 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["local>Altinn/renovate-config", ":prHourlyLimit4"],
+  "extends": [
+    "local>Altinn/renovate-config",
+    ":prHourlyLimit4",
+    "helpers:pinGitHubActionDigestsToSemver"
+  ],
   "customManagers": [
     {
       "customType": "regex",
