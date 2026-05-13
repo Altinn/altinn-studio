@@ -21,9 +21,6 @@ type Metrics struct {
 	SecretsDeleted     metric.Int64Counter
 	SecretsSkipped     metric.Int64Counter
 	OrgReconcileErrors metric.Int64Counter
-	GiteaCallDuration  metric.Float64Histogram
-	KeyVaultDuration   metric.Float64Histogram
-	CDNCallDuration    metric.Float64Histogram
 	ConfigMapApplied   metric.Int64Counter
 	KedaSecretApplied  metric.Int64Counter
 }
@@ -84,15 +81,6 @@ func NewMetrics() (*Metrics, error) {
 		return nil, err
 	}
 	if err := mc(&out.OrgReconcileErrors, "runner_org_sync.org.reconcile_errors", "Per-org reconcile failures by stage."); err != nil {
-		return nil, err
-	}
-	if err := mk(&out.GiteaCallDuration, "runner_org_sync.gitea.call.duration", "Gitea admin API call duration.", "s"); err != nil {
-		return nil, err
-	}
-	if err := mk(&out.KeyVaultDuration, "runner_org_sync.keyvault.call.duration", "Azure Key Vault secret fetch duration.", "s"); err != nil {
-		return nil, err
-	}
-	if err := mk(&out.CDNCallDuration, "runner_org_sync.cdn.call.duration", "CDN fetch duration for altinn-orgs.json.", "s"); err != nil {
 		return nil, err
 	}
 	if err := mc(&out.ConfigMapApplied, "runner_org_sync.configmap.applied", "ConfigMap apply attempts by changed=true|false."); err != nil {
