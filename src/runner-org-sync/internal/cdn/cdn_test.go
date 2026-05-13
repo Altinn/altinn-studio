@@ -73,10 +73,6 @@ func TestFetch_Happy(t *testing.T) {
 	if got, want := ttd.Environments, []string{"tt02", "production"}; !equalSlice(got, want) {
 		t.Errorf("ttd.Environments = %v, want %v", got, want)
 	}
-	if got, want := ttd.DisplayName(), "Test org TTD"; got != want {
-		t.Errorf("ttd.DisplayName = %q, want %q", got, want)
-	}
-
 	acn := byCode["acn"]
 	if len(acn.Environments) != 0 {
 		t.Errorf("acn.Environments = %v, want empty", acn.Environments)
@@ -147,26 +143,6 @@ func TestFetch_ContextCancelled(t *testing.T) {
 	_, err := c.Fetch(ctx)
 	if err == nil {
 		t.Fatal("expected error, got nil")
-	}
-}
-
-func TestDisplayName(t *testing.T) {
-	cases := []struct {
-		name string
-		org  Org
-		want string
-	}{
-		{"prefers en", Org{Code: "x", Name: map[string]string{"en": "English", "nb": "Norsk"}}, "English"},
-		{"falls back to any language", Org{Code: "x", Name: map[string]string{"nb": "Norsk"}}, "Norsk"},
-		{"empty en falls through", Org{Code: "x", Name: map[string]string{"en": "", "nn": "Nynorsk"}}, "Nynorsk"},
-		{"no name uses code", Org{Code: "x"}, "x"},
-	}
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			if got := c.org.DisplayName(); got != c.want {
-				t.Errorf("DisplayName = %q, want %q", got, c.want)
-			}
-		})
 	}
 }
 

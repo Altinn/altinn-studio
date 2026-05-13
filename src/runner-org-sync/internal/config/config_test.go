@@ -41,8 +41,8 @@ func TestLoadFrom_Valid(t *testing.T) {
 	if cfg.SyncAll {
 		t.Errorf("SyncAll = true, want false")
 	}
-	if cfg.PATSource() != "keyvault" {
-		t.Errorf("PATSource = %q, want keyvault", cfg.PATSource())
+	if cfg.GiteaPATOverride != "" {
+		t.Errorf("GiteaPATOverride = %q, want empty (no override in baseline env)", cfg.GiteaPATOverride)
 	}
 }
 
@@ -56,8 +56,8 @@ func TestLoadFrom_PATOverrideRelaxesKeyVaultRequirement(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if cfg.PATSource() != "env" {
-		t.Errorf("PATSource = %q, want env", cfg.PATSource())
+	if cfg.GiteaPATOverride != "pat-xyz" {
+		t.Errorf("GiteaPATOverride = %q, want pat-xyz", cfg.GiteaPATOverride)
 	}
 }
 
@@ -70,11 +70,11 @@ func TestLoadFrom_KedaPATOverrideRelaxesKVRequirement(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if cfg.KedaPATSource() != "env" {
-		t.Errorf("KedaPATSource = %q, want env", cfg.KedaPATSource())
+	if cfg.KedaPATOverride != "keda-pat-xyz" {
+		t.Errorf("KedaPATOverride = %q, want keda-pat-xyz", cfg.KedaPATOverride)
 	}
-	if cfg.PATSource() != "keyvault" {
-		t.Errorf("PATSource = %q, want keyvault (admin still goes to KV)", cfg.PATSource())
+	if cfg.GiteaPATOverride != "" {
+		t.Errorf("GiteaPATOverride = %q, want empty (admin still goes to KV)", cfg.GiteaPATOverride)
 	}
 }
 

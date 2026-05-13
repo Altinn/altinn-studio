@@ -131,24 +131,6 @@ func (c Config) SecretNameFor(org string) string {
 	return strings.ReplaceAll(c.SecretNamePattern, OrgPlaceholder, org)
 }
 
-// PATSource returns a short human-readable label describing where the admin
-// PAT will be sourced from. Useful for the startup log line.
-func (c Config) PATSource() string {
-	if c.GiteaPATOverride != "" {
-		return "env"
-	}
-	return "keyvault"
-}
-
-// KedaPATSource returns where the KEDA PAT will be sourced from. Mirrors
-// PATSource so the startup log makes both sources visible.
-func (c Config) KedaPATSource() string {
-	if c.KedaPATOverride != "" {
-		return "env"
-	}
-	return "keyvault"
-}
-
 func requireField(errs *[]error, name, value string) {
 	if value == "" {
 		*errs = append(*errs, fmt.Errorf("%s is required", name))

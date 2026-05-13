@@ -16,6 +16,8 @@ import (
 	"strings"
 
 	"altinn.studio/runner-org-sync/internal/cdn"
+	"altinn.studio/runner-org-sync/internal/gitea"
+	"altinn.studio/runner-org-sync/internal/k8sstate"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -182,6 +184,13 @@ func (r *Reconciler) Run(ctx context.Context) (Report, error) {
 		}
 		token, err := r.minter.MintRegistrationToken(ctx, org.Code)
 		if err != nil {
+			// Auth failures hit every subsequent org with the same PAT —
+			// fail fast instead of cascading the same root cause across
+			// the whole desired set. K8s records the CronJob failure and
+			// the next tick retries with whatever the latest PAT in KV is.
+			if errors.Is(err, gitea.ErrUnauthorized) {
+				return report, fmt.Errorf("reconcile: mint token for %s: %w", org.Code, err)
+			}
 			report.FailedOrgs = append(report.FailedOrgs, OrgFailure{Org: org.Code, Stage: StageMint, Err: err})
 			continue
 		}
@@ -199,7 +208,7 @@ func (r *Reconciler) Run(ctx context.Context) (Report, error) {
 		desiredSet[o.Code] = struct{}{}
 	}
 	for _, sec := range existing {
-		org := sec.Labels["runner-org-sync.altinn.studio/org"]
+		org := k8sstate.OrgFromSecret(sec)
 		if org == "" {
 			// Defence in depth: a managed Secret missing the org label is a
 			// drift signal; skip rather than delete on uncertain attribution.

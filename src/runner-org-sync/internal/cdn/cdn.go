@@ -34,21 +34,6 @@ type Org struct {
 	Environments []string          `json:"environments"`
 }
 
-// DisplayName returns the most useful human-readable name available:
-// English preferred, any language otherwise, falling back to the code.
-// Used for span attributes and log fields, not for reconciliation logic.
-func (o Org) DisplayName() string {
-	if v, ok := o.Name["en"]; ok && v != "" {
-		return v
-	}
-	for _, v := range o.Name {
-		if v != "" {
-			return v
-		}
-	}
-	return o.Code
-}
-
 // Client fetches the orgs document.
 type Client struct {
 	httpClient *http.Client

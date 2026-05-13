@@ -3,11 +3,13 @@ package reconcile
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sort"
 	"strings"
 	"testing"
 
 	"altinn.studio/runner-org-sync/internal/cdn"
+	"altinn.studio/runner-org-sync/internal/gitea"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -346,6 +348,44 @@ func TestRun_GiteaPartialFailure(t *testing.T) {
 }
 
 // --- additional coverage ----------------------------------------------------
+
+// Auth failures hit every org with the same PAT — failing fast avoids a
+// cascade of identical errors and keeps failure attribution clean.
+func TestRun_FatalOnUnauthorizedMint(t *testing.T) {
+	// Reconciler sorts orgs alphabetically; "aaa" gets minted first.
+	// If the first org returns ErrUnauthorized we should bail fatally
+	// before attempting "zzz".
+	src := &stubSource{orgs: []cdn.Org{
+		{Code: "aaa", Environments: []string{"tt02"}},
+		{Code: "zzz", Environments: []string{"tt02"}},
+	}}
+	minter := &stubMinter{
+		errs: map[string]error{
+			"aaa": fmt.Errorf("minting aaa: %w", gitea.ErrUnauthorized),
+		},
+	}
+	store := newStubStore()
+
+	r, _ := New(Options{
+		Source:        src,
+		Minter:        minter,
+		Store:         store,
+		SecretNameFor: secretNameFor,
+		ConfigMapName: "runner-org-list",
+		Whitelist:     []string{"aaa", "zzz"},
+	})
+	_, err := r.Run(context.Background())
+	if err == nil {
+		t.Fatal("expected fatal error on ErrUnauthorized, got nil")
+	}
+	if !errors.Is(err, gitea.ErrUnauthorized) {
+		t.Errorf("expected wrapped ErrUnauthorized, got %v", err)
+	}
+	// zzz should NOT have been attempted — fail-fast short-circuits.
+	if containsString(minter.calls, "zzz") {
+		t.Errorf("zzz should not be minted after aaa's 401; got calls %v", minter.calls)
+	}
+}
 
 func TestRun_FatalOnSourceError(t *testing.T) {
 	r, _ := New(Options{
