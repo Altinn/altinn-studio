@@ -9,6 +9,7 @@ resources:
   - rolebinding.yaml
   - cronjob.yaml
   - triggerauthentication.yaml
+  - networkpolicy.yaml
 
 # Copy the image annotation onto the container spec. The annotation value
 # is itself substituted at deploy time by Flux post-build substitution.
