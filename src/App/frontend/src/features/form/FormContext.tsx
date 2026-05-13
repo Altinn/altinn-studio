@@ -8,6 +8,7 @@ import { pageNavigationHooks } from 'src/features/form/layout/PageNavigationCont
 import { formBootstrapHooks } from 'src/features/formBootstrap/FormBootstrap';
 import { formDataHooks } from 'src/features/formData/FormDataWrite';
 import { validationHooks } from 'src/features/validation/validationContext';
+import { SelectorStrictness } from 'src/hooks/delayedSelectors';
 import { nodesHooks } from 'src/utils/layout/NodesContext';
 import type { PageNavigationSliceState } from 'src/features/form/layout/PageNavigationContext';
 import type { FormBootstrapBase, FormBootstrapContextValue } from 'src/features/formBootstrap/types';
@@ -24,6 +25,19 @@ const { Provider, useLaxCtx, useCtx } = createContext<FormStoreApi>({
 
 export const FormStoreProvider = Provider;
 
+const raw = createZustandHooks<FormStoreApi, FormStoreState>({
+  useStore: () => useCtx(),
+  useLaxStore: () => {
+    const ctx = useLaxCtx();
+    return ctx === ContextNotProvided ? ContextNotProvided : ctx;
+  },
+});
+
+type FormStoreRawDelayedSelector = <U>(
+  select: <S extends FormStoreState>(state: S) => U,
+  deps: unknown[],
+) => U | undefined;
+
 export const FormStore = {
   useIsInContext() {
     return useLaxCtx() !== ContextNotProvided;
@@ -31,13 +45,18 @@ export const FormStore = {
   useIsReadOnly() {
     return FormStore.raw.useSelector((state) => state.readOnly);
   },
-  raw: createZustandHooks<FormStoreApi, FormStoreState>({
-    useStore: () => useCtx(),
-    useLaxStore: () => {
-      const ctx = useLaxCtx();
-      return ctx === ContextNotProvided ? ContextNotProvided : ctx;
-    },
-  }),
+  raw: {
+    ...raw,
+    useRawDelayedSelector: (): FormStoreRawDelayedSelector =>
+      raw.useLaxDelayedSelector(
+        {
+          mode: 'innerSelector',
+          makeArgs: (state) => [state],
+        },
+        undefined,
+        SelectorStrictness.returnUndefinedWhenNotProvided,
+      ),
+  },
   data: formDataHooks,
   validation: validationHooks,
   nodes: nodesHooks,

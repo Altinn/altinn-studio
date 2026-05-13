@@ -1,5 +1,5 @@
 /* eslint-disable react-compiler/react-compiler, react-hooks/rules-of-hooks */
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
@@ -17,29 +17,30 @@ import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation'
 import { collectHiddenSources } from 'src/utils/layout/hiddenUtils';
 import type { ExprFunctionName } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
-import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
-import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
-import type { FormDataSelectorLax } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IApplicationSettings, IInstanceDataSources, IProcess } from 'src/types/shared';
 
 export interface ExpressionDataSources {
   applicationSettings: IApplicationSettings | null;
-  codeListSelector: (optionsId: string) => IOptionInternal[] | undefined;
   currentDataModelPath: IDataModelReference | undefined;
   currentLanguage: string;
   currentPage: string | undefined;
   dataElementSelector: ReturnType<typeof useDataElementsSelector>;
-  dataModelNames: string[];
-  defaultDataType: string | null;
-  displayValues: Record<string, string | undefined>;
-  externalApis: ExternalApisResult;
-  formDataSelector: FormDataSelectorLax;
   instanceDataSources: IInstanceDataSources | null;
-  langToolsSelector: (dataModelPath: IDataModelReference | undefined) => IUseLanguage;
-  layoutLookups: LayoutLookups;
   process: IProcess | undefined;
+
+  // Query
+  externalApis: ExternalApisResult;
+
+  // FormStore
+  formStoreSelector: ReturnType<(typeof FormStore)['raw']['useRawDelayedSelector']>;
+
+  // Complex/Other
+  langToolsSelector: (dataModelPath: IDataModelReference | undefined) => IUseLanguage;
+
+  // Solves themselves if we always have all expression data sources?
+  displayValues: Record<string, string | undefined>;
 }
 
 type HookBackedDataSource = Exclude<keyof ExpressionDataSources, 'displayValues'>;
@@ -54,16 +55,9 @@ const hooks: { [K in HookBackedDataSource]: () => ExpressionDataSources[K] } = {
   applicationSettings: () => useApplicationSettings(),
   currentLanguage: () => useCurrentLanguage(),
   currentDataModelPath: () => useCurrentDataModelLocation(),
-  layoutLookups: () => FormStore.bootstrap.useLayoutLookups(),
-  codeListSelector: () => {
-    const staticOptions = FormStore.bootstrap.useStaticOptionsMap();
-    return useCallback((optionsId: string) => staticOptions[optionsId]?.options, [staticOptions]);
-  },
-  formDataSelector: () => FormStore.data.useLaxDebouncedSelector(),
   dataElementSelector: () => useDataElementsSelector(),
   instanceDataSources: () => useInstanceDataSources(),
-  defaultDataType: () => FormStore.bootstrap.useDefaultDataType() ?? null,
-  dataModelNames: () => FormStore.bootstrap.useReadableDataTypes(),
+  formStoreSelector: () => FormStore.raw.useRawDelayedSelector(),
   externalApis: () => useExternalApis(getApplicationMetadata().externalApiIds ?? []),
   langToolsSelector: () =>
     useInnerLanguageWithForcedPathSelector(
