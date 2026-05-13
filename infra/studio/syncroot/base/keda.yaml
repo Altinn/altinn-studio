@@ -1,9 +1,14 @@
 ---
+# HelmRepository + HelmRelease live in `default` (the outer syncroot's
+# targetNamespace) because the keda namespace doesn't exist yet — the
+# chart's install creates it via install.createNamespace below. The chart
+# still installs INTO `keda` via spec.targetNamespace; only the Flux source
+# and release plumbing live in default.
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: keda
-  namespace: keda
+  namespace: default
 spec:
   type: oci
   interval: 1h
@@ -13,17 +18,15 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: keda
-  namespace: keda
+  namespace: default
 spec:
   interval: 10m
   timeout: 5m
   releaseName: keda
   targetNamespace: keda
   install:
-    # The keda namespace is created by Helm at install time. This avoids
-    # the kustomize/Flux namespace transformation that would otherwise
-    # rename a sibling Namespace resource in the syncroot to "default"
-    # and conflict with any other Namespace resource at the same level.
+    # Helm creates the keda namespace at install time so the operator
+    # resources (Deployments, Services, ConfigMaps...) have somewhere to land.
     createNamespace: true
     remediation:
       retries: 5
@@ -37,7 +40,7 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: keda
-        namespace: keda
+        namespace: default
   values:
     # KEDA's defaults are sensible. Keep this block intentionally small;
     # any per-environment knobs (e.g. higher resource limits in prod) can
