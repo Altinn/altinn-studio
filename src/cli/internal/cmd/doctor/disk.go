@@ -356,7 +356,7 @@ func summarizeCredentialsState(path string, creds auth.Credentials) DiskCheck {
 func countInvalidCredentialEntries(envs map[string]auth.EnvCredentials) int {
 	invalidEntries := 0
 	for _, envCreds := range envs {
-		if envCreds.Host == "" || envCreds.Token == "" || envCreds.Username == "" {
+		if envCreds.Host == "" || envCreds.ApiKey == "" || envCreds.ApiKeyID == 0 || envCreds.Username == "" {
 			invalidEntries++
 		}
 	}

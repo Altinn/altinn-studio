@@ -67,6 +67,8 @@ import {
   orgLibraryUpdatePath,
   orgCodeListPublishPath,
   layoutSetsPath,
+  studioctlAuthRequestCancelPath,
+  studioctlAuthRequestConfirmPath,
   userApiKeyPath,
   userApiKeysPath,
   validateNavigationLayoutSettingsPath,
@@ -121,6 +123,7 @@ import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeLis
 import type { AppSettings } from 'app-shared/types/AppSettings';
 import type { AddUserApiKeyRequest } from 'app-shared/types/api/AddUserApiKeyRequest';
 import type { AddUserApiKeyResponse } from 'app-shared/types/api/AddUserApiKeyResponse';
+import type { StudioctlAuthCallback } from 'app-shared/types/api/StudioctlAuth';
 import type { ContactPoint, ContactPointPayload } from 'app-shared/types/ContactPoint';
 import type { CreateBotAccountRequest, CreateBotAccountResponse, CreateBotAccountApiKeyRequest, CreateBotAccountApiKeyResponse } from 'app-shared/types/BotAccount';
 
@@ -254,6 +257,8 @@ export const discardChanges = async (org: string, app: string): Promise<RepoStat
 // User settings
 export const addUserApiKey = (payload: AddUserApiKeyRequest) => post<AddUserApiKeyResponse, AddUserApiKeyRequest>(userApiKeysPath(), payload);
 export const deleteUserApiKey = (id: number) => del(userApiKeyPath(id));
+export const confirmStudioctlAuthRequest = (id: string) => post<StudioctlAuthCallback>(studioctlAuthRequestConfirmPath(id), {});
+export const cancelStudioctlAuthRequest = (id: string) => post<StudioctlAuthCallback>(studioctlAuthRequestCancelPath(id), {});
 
 // Org settings - Contact points
 export const addContactPoint = async (org: string, payload: ContactPointPayload): Promise<ContactPoint> => post(contactPointsPath(org), payload);
