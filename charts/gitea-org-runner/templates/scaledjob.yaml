@@ -162,7 +162,10 @@ spec:
       metadata:
         # github-runner scaler is GitHub-compatible; pointed at Gitea's API URL
         # it polls the org's Actions queue depth via the same shape.
-        githubAPIURL: {{ $.Values.gitea.apiUrl | quote }}
+        # NOTE: the metadata key is `githubApiURL` — lowercase 'g', capital
+        # 'A' in 'Api', all-caps 'URL'. Any other casing is silently ignored
+        # and the scaler falls back to https://api.github.com.
+        githubApiURL: {{ $.Values.gitea.apiUrl | quote }}
         owner: {{ .name | quote }}
         runnerScope: "org"
         labels: {{ $.Values.gitea.runnerLabels | quote }}
