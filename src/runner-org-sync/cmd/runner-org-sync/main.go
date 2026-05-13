@@ -74,13 +74,13 @@ func run() error {
 	runID := uuid.NewString()
 	logger := tel.Logger.With("run_id", runID, "service", serviceName)
 
-	pat, patSource, err := loadPAT(ctx, cfg)
+	pat, patSource, err := loadSecretFromKV(ctx, cfg.GiteaPATOverride, cfg.KeyVaultName, cfg.KeyVaultSecretName)
 	if err != nil {
-		return fmt.Errorf("load PAT: %w", err)
+		return fmt.Errorf("load admin PAT: %w", err)
 	}
 	logger.Info("pat.loaded", "scope", "admin", "source", string(patSource), "len", len(pat))
 
-	kedaPAT, kedaPATSource, err := loadKedaPAT(ctx, cfg)
+	kedaPAT, kedaPATSource, err := loadSecretFromKV(ctx, cfg.KedaPATOverride, cfg.KeyVaultName, cfg.KedaPATKeyVaultSecretName)
 	if err != nil {
 		return fmt.Errorf("load KEDA PAT: %w", err)
 	}
@@ -179,35 +179,22 @@ func run() error {
 	return nil
 }
 
-// loadKedaPAT mirrors loadPAT for the read-only KEDA PAT. Env override wins;
-// otherwise fetches from the same Key Vault used for the admin PAT, at a
-// different secret name (KedaPATKeyVaultSecretName).
-func loadKedaPAT(ctx context.Context, cfg config.Config) (string, keyvault.Source, error) {
+// loadSecretFromKV resolves a single Key Vault secret, honouring an env-var
+// override for local development. When override is non-empty it
+// short-circuits without constructing the Azure SDK client; otherwise it
+// fetches from KV via Workload Identity (DefaultAzureCredential). Generic
+// over the value type — used today for the two Gitea PATs; any other
+// KV-stored credential could reuse it.
+func loadSecretFromKV(ctx context.Context, override, vaultName, vaultSecretName string) (string, keyvault.Source, error) {
 	var getter keyvault.Getter
-	if cfg.KedaPATOverride == "" {
-		g, err := keyvault.NewAzureGetter(cfg.KeyVaultName)
+	if override == "" {
+		g, err := keyvault.NewAzureGetter(vaultName)
 		if err != nil {
 			return "", "", fmt.Errorf("build keyvault getter: %w", err)
 		}
 		getter = g
 	}
-	loader := keyvault.NewLoader(cfg.KedaPATOverride, getter, cfg.KedaPATKeyVaultSecretName)
-	return loader.Load(ctx)
-}
-
-// loadPAT resolves the Gitea admin PAT, honouring the env-var override for
-// local development. In-cluster it goes through Azure Key Vault using
-// Workload Identity via DefaultAzureCredential.
-func loadPAT(ctx context.Context, cfg config.Config) (string, keyvault.Source, error) {
-	var getter keyvault.Getter
-	if cfg.GiteaPATOverride == "" {
-		g, err := keyvault.NewAzureGetter(cfg.KeyVaultName)
-		if err != nil {
-			return "", "", fmt.Errorf("build keyvault getter: %w", err)
-		}
-		getter = g
-	}
-	loader := keyvault.NewLoader(cfg.GiteaPATOverride, getter, cfg.KeyVaultSecretName)
+	loader := keyvault.NewLoader(override, getter, vaultSecretName)
 	return loader.Load(ctx)
 }
 
