@@ -80,12 +80,12 @@ func LoadFrom(get Getter) (Config, error) {
 		KeyVaultSecretName: strings.TrimSpace(get(EnvKeyVaultSecretName)),
 		SyncAll:            parseBool(get(EnvSyncAll)),
 		WhitelistedOrgs:    parseCSV(get(EnvWhitelistedOrgs)),
-		GiteaPATOverride:   get(EnvGiteaPATOverride),
+		GiteaPATOverride:   strings.TrimSpace(get(EnvGiteaPATOverride)),
 
 		KedaPATKeyVaultSecretName: strings.TrimSpace(get(EnvKedaPATKeyVaultSecretName)),
 		KedaPATSecretName:         strings.TrimSpace(get(EnvKedaPATSecretName)),
 		KedaPATSecretKey:          strings.TrimSpace(get(EnvKedaPATSecretKey)),
-		KedaPATOverride:           get(EnvKedaPATOverride),
+		KedaPATOverride:           strings.TrimSpace(get(EnvKedaPATOverride)),
 	}
 
 	var errs []error

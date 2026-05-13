@@ -20,6 +20,10 @@ const (
 	defaultTimeout   = 30 * time.Second
 	defaultUserAgent = "runner-org-sync"
 	maxErrorBody     = 512
+	// maxSuccessBody caps the JSON-decode read so a pathological CDN
+	// response cannot exhaust pod memory. altinn-orgs.json is ~100 KB
+	// today; 10 MiB is generous and far below the pod's memory limit.
+	maxSuccessBody   = 10 << 20 // 10 MiB
 )
 
 // ErrUnexpectedStatus is returned when the CDN responds with non-2xx.
@@ -91,7 +95,7 @@ func (c *Client) Fetch(ctx context.Context) ([]Org, error) {
 	var doc struct {
 		Orgs map[string]Org `json:"orgs"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&doc); err != nil {
+	if err := json.NewDecoder(io.LimitReader(resp.Body, maxSuccessBody)).Decode(&doc); err != nil {
 		return nil, fmt.Errorf("cdn: decode body: %w", err)
 	}
 

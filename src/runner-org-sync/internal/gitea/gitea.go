@@ -23,6 +23,10 @@ const (
 	defaultTimeout   = 15 * time.Second
 	defaultUserAgent = "runner-org-sync"
 	maxErrorBody     = 512
+	// maxSuccessBody caps the registration-token JSON decode. The real
+	// response is a few hundred bytes; 16 KiB is generous defense against
+	// a pathological Gitea reply.
+	maxSuccessBody   = 16 << 10 // 16 KiB
 )
 
 // Sentinel errors. Callers can errors.Is against these to drive reconcile
@@ -118,7 +122,7 @@ func (c *Client) MintRegistrationToken(ctx context.Context, org string) (string,
 	var payload struct {
 		Token string `json:"token"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+	if err := json.NewDecoder(io.LimitReader(resp.Body, maxSuccessBody)).Decode(&payload); err != nil {
 		return "", fmt.Errorf("gitea: decode response for %s: %w", org, err)
 	}
 	if payload.Token == "" {
