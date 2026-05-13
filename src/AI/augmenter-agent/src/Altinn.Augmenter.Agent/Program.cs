@@ -31,6 +31,7 @@ builder.Services.AddSingleton<IPdfGenerationQueue>(sp => sp.GetRequiredService<P
 builder.Services.AddHostedService<PdfGenerationBackgroundService>();
 
 // Services
+builder.Services.AddScoped<PipelineContext>();
 builder.Services.AddScoped<IAgentService, ClaudeCliAgentService>();
 builder.Services.AddScoped<IPdfGeneratorService, PdfGeneratorService>();
 builder.Services.AddSingleton<IRequestInfoDataMapper, RequestInfoDataMapper>();
@@ -43,10 +44,10 @@ builder.Services.AddHttpClient<ICallbackService, CallbackService>(client =>
     client.Timeout = TimeSpan.FromSeconds(callbackOptions.TimeoutSeconds);
 });
 
-// PDF generation pipeline steps (order matters — PDFs are returned in registration order)
+// PDF generation pipeline steps (order matters — checklist must run before decision)
 builder.Services.AddScoped<IPdfGenerationStep, RequestInfoGenerationStep>();
-builder.Services.AddScoped<IPdfGenerationStep, DecisionGenerationStep>();
 builder.Services.AddScoped<IPdfGenerationStep, ChecklistAgentStep>();
+builder.Services.AddScoped<IPdfGenerationStep, DecisionAgentStep>();
 
 // Pipeline orchestrator
 builder.Services.AddScoped<IPdfPipeline, PdfPipeline>();
@@ -54,6 +55,7 @@ builder.Services.AddScoped<IPdfPipeline, PdfPipeline>();
 var app = builder.Build();
 
 app.MapHealthEndpoints();
+app.MapAgentTestEndpoints();
 app.MapGenerateEndpoints();
 app.MapGenerateAsyncEndpoints();
 

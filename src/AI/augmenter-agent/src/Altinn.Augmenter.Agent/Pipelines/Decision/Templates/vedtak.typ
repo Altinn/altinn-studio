@@ -28,6 +28,10 @@
 #let er-avslag      = d.vedtak.utfall == "avslag"
 #let btype          = d.vedtak.bevillingstype
 
+// Søker-identifikasjon: med org.nr. hvis tilgjengelig, ellers bare navn
+#let orgnr = hent(d.soker, "organisasjonsnummer")
+#let soker-tekst = if orgnr != "" { d.soker.firmanavn + " (org.nr. " + orgnr + ")" } else { d.soker.firmanavn }
+
 // Norske betegnelser – oppslag via dictionary for å sikre streng-type
 #let btype-map = (
   serveringsbevilling: "serveringsbevilling",
@@ -105,14 +109,18 @@
 // ---------------------------------------------------------------------------
 
 #{
+  let soker-id = {
+    let orgnr = hent(d.soker, "organisasjonsnummer")
+    if orgnr != "" { d.soker.firmanavn + ", org.nr. " + orgnr } else { d.soker.firmanavn }
+  }
   let tittel = if er-innvilgelse and btype == "enkeltbevilling" {
-    "Vedtak om innvilgelse av enkeltbevilling – " + d.soker.firmanavn + ", org.nr. " + d.soker.organisasjonsnummer
+    "Vedtak om innvilgelse av enkeltbevilling – " + soker-id
   } else if er-innvilgelse and btype == "utvidelse_skjenke" {
-    "Vedtak om utvidelse av skjenkebevilling – " + d.soker.firmanavn + ", org.nr. " + d.soker.organisasjonsnummer + " – " + hent(d.arrangement, "navn")
+    "Vedtak om utvidelse av skjenkebevilling – " + soker-id + " – " + hent(d.arrangement, "navn")
   } else if er-innvilgelse {
-    "Vedtak om innvilgelse av " + bevillingstype-tekst + " – " + d.soker.firmanavn + ", org.nr. " + d.soker.organisasjonsnummer + " – " + sted-tekst
+    "Vedtak om innvilgelse av " + bevillingstype-tekst + " – " + soker-id + " – " + sted-tekst
   } else {
-    "Vedtak om avslag på søknad om " + bevillingstype-tekst + " – " + d.soker.firmanavn + ", org.nr. " + d.soker.organisasjonsnummer + " – " + sted-tekst
+    "Vedtak om avslag på søknad om " + bevillingstype-tekst + " – " + soker-id + " – " + sted-tekst
   }
   heading(level: 1, text(size: 13pt)[#tittel])
 }
@@ -137,7 +145,7 @@
   if btype == "enkeltbevilling" {
     let arr = d.arrangement
     enum(
-      [#d.soker.firmanavn (org.nr. #d.soker.organisasjonsnummer) gis skjenkebevilling for #alkoholgruppe-tekst i forbindelse med #arr.type «#arr.navn» på #d.sted.navn (#d.sted.adresse).],
+      [#soker-tekst gis skjenkebevilling for #alkoholgruppe-tekst i forbindelse med #arr.type «#arr.navn» på #d.sted.navn (#d.sted.adresse).],
       [Skjenketiden er fra #arr.fra_dato kl. #arr.fra_klokkeslett til og med #arr.til_dato kl. #arr.til_klokkeslett.],
       [Det er ikke adgang til å medbringe eller nyte medbrakt alkoholholdig drikk under arrangementet, jf. alkoholloven § 1-3 andre ledd.],
       [#d.styrer.navn godkjennes som styrer for skjenkebevillingen.],
@@ -156,7 +164,7 @@
   } else if btype == "utvidelse_skjenke" {
     let arr = d.arrangement
     enum(
-      [#d.soker.firmanavn (org.nr. #d.soker.organisasjonsnummer) gis utvidelse av skjenkebevillingen til å gjelde #d.sted.navn (#d.sted.adresse) for #alkoholgruppe-tekst, fra #arr.fra_dato kl. #arr.fra_klokkeslett til og med #arr.til_dato kl. #arr.til_klokkeslett.],
+      [#soker-tekst gis utvidelse av skjenkebevillingen til å gjelde #d.sted.navn (#d.sted.adresse) for #alkoholgruppe-tekst, fra #arr.fra_dato kl. #arr.fra_klokkeslett til og med #arr.til_dato kl. #arr.til_klokkeslett.],
       [Det er ikke adgang til å medbringe eller nyte medbrakt alkoholholdig drikk, jf. alkoholloven § 1-3 andre ledd.],
       [Utvidelsen gjelder i tillegg til eksisterende alminnelig skjenkebevilling.],
     )
@@ -166,7 +174,7 @@
   // --- Serveringsbevilling ---
   } else if btype == "serveringsbevilling" {
     enum(
-      [#d.soker.firmanavn (org.nr. #d.soker.organisasjonsnummer) gis serveringsbevilling for #d.sted.navn, #d.sted.adresse, med virkning fra #d.vedtak.bevillingsperiode.fra_dato.],
+      [#soker-tekst gis serveringsbevilling for #d.sted.navn, #d.sted.adresse, med virkning fra #d.vedtak.bevillingsperiode.fra_dato.],
       [Serveringsstedets åpningstider er #hent(d.vedtak, "apningstider", standard: "06.00–02.30 alle dager").],
       [#d.daglig_leder.navn godkjennes som daglig leder for serveringsstedet.],
       [Serveringsstedets kapasitet er #str(d.sted.personkapasitet_inne) personer inne#if har(d.sted, "personkapasitet_ute") [ og #str(d.sted.personkapasitet_ute) personer ute].],
@@ -176,7 +184,7 @@
   // --- Salgsbevilling ---
   } else if btype == "salgsbevilling" {
     enum(
-      [#d.soker.firmanavn (org.nr. #d.soker.organisasjonsnummer) gis salgsbevilling for alkoholholdig drikk gruppe 1 (2,5–4,7 volumprosent) for #d.sted.navn, #d.sted.adresse, fra #d.vedtak.bevillingsperiode.fra_dato til og med #d.vedtak.bevillingsperiode.til_dato.],
+      [#soker-tekst gis salgsbevilling for alkoholholdig drikk gruppe 1 (2,5–4,7 volumprosent) for #d.sted.navn, #d.sted.adresse, fra #d.vedtak.bevillingsperiode.fra_dato til og med #d.vedtak.bevillingsperiode.til_dato.],
       [#d.styrer.navn godkjennes som styrer for salgsbevillingen.],
       if har(d, "stedfortreder") and har(d.stedfortreder, "navn") {
         [#d.stedfortreder.navn godkjennes som stedfortreder for salgsbevillingen.]
@@ -189,7 +197,7 @@
 
   // --- Fast skjenkebevilling ---
   } else if btype == "skjenkebevilling" {
-    text[#d.soker.firmanavn (org.nr. #d.soker.organisasjonsnummer) gis skjenkebevilling for #alkoholgruppe-tekst for #d.sted.navn, #d.sted.adresse, med virkning fra #d.vedtak.bevillingsperiode.fra_dato til og med #d.vedtak.bevillingsperiode.til_dato.]
+    text[#soker-tekst gis skjenkebevilling for #alkoholgruppe-tekst for #d.sted.navn, #d.sted.adresse, med virkning fra #d.vedtak.bevillingsperiode.fra_dato til og med #d.vedtak.bevillingsperiode.til_dato.]
     v(0.4em)
 
     if har(d.vedtak, "skjenketider") {
@@ -290,11 +298,11 @@
 
   // Vedtaksformulering
   if btype == "serveringsbevilling" {
-    text[Søknad fra #d.soker.firmanavn (org.nr. #d.soker.organisasjonsnummer) om serveringsbevilling for #d.sted.navn, #d.sted.adresse, avslås med hjemmel i #hent(d, "avslagshjemmel", standard: "serveringsloven § 6").]
+    text[Søknad fra #soker-tekst om serveringsbevilling for #d.sted.navn, #d.sted.adresse, avslås med hjemmel i #hent(d, "avslagshjemmel", standard: "serveringsloven § 6").]
   } else if btype == "skjenkebevilling" or btype == "enkeltbevilling" {
-    text[Søknad fra #d.soker.firmanavn (org.nr. #d.soker.organisasjonsnummer) om #bevillingstype-tekst for #sted-tekst avslås med hjemmel i #hent(d, "avslagshjemmel", standard: "alkoholloven § 1-7b").]
+    text[Søknad fra #soker-tekst om #bevillingstype-tekst for #sted-tekst avslås med hjemmel i #hent(d, "avslagshjemmel", standard: "alkoholloven § 1-7b").]
   } else {
-    text[Søknad fra #d.soker.firmanavn (org.nr. #d.soker.organisasjonsnummer) om #bevillingstype-tekst avslås med hjemmel i #hent(d, "avslagshjemmel", standard: "alkoholloven § 1-7b").]
+    text[Søknad fra #soker-tekst om #bevillingstype-tekst avslås med hjemmel i #hent(d, "avslagshjemmel", standard: "alkoholloven § 1-7b").]
   }
 
   // --- Bakgrunn ---

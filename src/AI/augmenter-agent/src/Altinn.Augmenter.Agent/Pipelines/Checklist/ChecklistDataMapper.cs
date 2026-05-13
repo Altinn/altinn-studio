@@ -6,6 +6,12 @@ public sealed class ChecklistDataMapper : IChecklistDataMapper
 {
     private const string DefaultStatus = "ikke_vurdert";
 
+    private static readonly Dictionary<string, string> KommuneMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["4204"] = "Kristiansand",
+        ["4223"] = "Vennesla",
+    };
+
     public JsonDocument MapToChecklist(JsonElement flatData)
     {
         using var stream = new MemoryStream();
@@ -44,17 +50,30 @@ public sealed class ChecklistDataMapper : IChecklistDataMapper
     {
         writer.WriteStartObject("soker");
 
-        var orgNavn = "Ukjent";
-        var orgNr = "–";
+        var orgNavn = (string?)null;
+        var orgNr = (string?)null;
 
         if (TryGet(flatData, "OrganisasjonsInformasjon", out var orgInfo))
         {
-            orgNavn = GetString(orgInfo, "Navn") ?? orgNavn;
-            orgNr = GetString(orgInfo, "Organisasjonsnummer") ?? orgNr;
+            orgNavn = GetString(orgInfo, "Navn");
+            orgNr = GetString(orgInfo, "Organisasjonsnummer");
         }
 
-        writer.WriteString("navn", orgNavn);
-        writer.WriteString("organisasjonsnummer", orgNr);
+        var brukerType = GetString(flatData, "BrukerType");
+        var isPrivatperson = string.Equals(brukerType, "person", StringComparison.OrdinalIgnoreCase)
+                             || string.IsNullOrEmpty(orgNavn);
+
+        if (isPrivatperson)
+        {
+            var innsenderNavn = GetInnsenderNavn(flatData);
+            writer.WriteString("navn", innsenderNavn != "–" ? innsenderNavn : "Privatperson");
+        }
+        else
+        {
+            writer.WriteString("navn", orgNavn);
+        }
+
+        writer.WriteString("organisasjonsnummer", orgNr ?? "–");
         writer.WriteString("kontaktperson", GetInnsenderNavn(flatData));
         writer.WriteString("adresse", "–");
         writer.WriteEndObject();
@@ -79,10 +98,12 @@ public sealed class ChecklistDataMapper : IChecklistDataMapper
         }
 
         writer.WriteString("navn", GetString(arrangement, "Navn") ?? "–");
-        writer.WriteString("type", GetString(arrangement, "Type") ?? "–");
+        writer.WriteString("type", GetString(arrangement, "ArrangementType") ?? GetString(arrangement, "Type") ?? "–");
 
         var fraDato = "–";
         var tilDato = "–";
+        var fraKlokkeslett = "–";
+        var tilKlokkeslett = "–";
         if (TryGet(arrangement, "ArrangementPeriode", out var perioder) &&
             perioder.ValueKind == JsonValueKind.Array &&
             perioder.GetArrayLength() > 0)
@@ -90,15 +111,31 @@ public sealed class ChecklistDataMapper : IChecklistDataMapper
             var forstePeriode = perioder[0];
             fraDato = GetString(forstePeriode, "StartDato") ?? fraDato;
             tilDato = GetString(forstePeriode, "SluttDato") ?? fraDato;
+            fraKlokkeslett = GetString(forstePeriode, "StartTid") ?? fraKlokkeslett;
+            tilKlokkeslett = GetString(forstePeriode, "SluttTid") ?? tilKlokkeslett;
         }
 
         writer.WriteString("fra_dato", fraDato);
-        writer.WriteString("fra_klokkeslett", "–");
+        writer.WriteString("fra_klokkeslett", fraKlokkeslett);
         writer.WriteString("til_dato", tilDato);
-        writer.WriteString("til_klokkeslett", "–");
-        writer.WriteNumber("antall_deltakere", 0);
-        writer.WriteString("aapen_eller_lukket", "–");
-        writer.WriteString("innendors_utendors", "–");
+        writer.WriteString("til_klokkeslett", tilKlokkeslett);
+        writer.WriteNumber("antall_deltakere", ParseInt(GetString(arrangement, "AntallDeltakere")));
+
+        var typeDeltakere = GetString(arrangement, "TypeDeltakere");
+        var aapenEllerLukket = string.Equals(typeDeltakere, "bestemtePersoner", StringComparison.OrdinalIgnoreCase)
+            ? "Lukket" : "Åpent";
+        writer.WriteString("aapen_eller_lukket", aapenEllerLukket);
+
+        var stedsType = "–";
+        if (TryGet(arrangement, "Arrangementssted", out var arrangementssted))
+            stedsType = GetString(arrangementssted, "Type") ?? "–";
+        var innendorsUtendors = stedsType switch
+        {
+            "innendoers" => "Innendørs",
+            "utendoers" => "Utendørs",
+            _ => stedsType,
+        };
+        writer.WriteString("innendors_utendors", innendorsUtendors);
         writer.WriteString("lokale_navn", stedsNavn);
         writer.WriteString("lokale_adresse", stedsAdresse);
 
@@ -111,8 +148,29 @@ public sealed class ChecklistDataMapper : IChecklistDataMapper
 
         var bevillingsType = GetString(flatData, "BevillingsType") ?? "ukjent";
         writer.WriteString("type_bevilling", bevillingsType);
-        writer.WriteString("alkoholgruppe", "–");
-        writer.WriteBoolean("har_eksisterende_bevilling", false);
+
+        var alkoholgruppe = "–";
+        if (TryGet(flatData, "Arrangement", out var arr))
+        {
+            var varegruppe = GetString(arr, "VaregruppeAlkohol");
+            if (varegruppe != null)
+            {
+                var normalized = varegruppe.ToLowerInvariant();
+                if (normalized.Contains("tre") || normalized.Contains("3"))
+                    alkoholgruppe = "Gruppe 1, 2 og 3 (inntil 60 %)";
+                else if (normalized.Contains("to") || normalized.Contains("2"))
+                    alkoholgruppe = "Gruppe 1 og 2 (under 22 %)";
+                else
+                    alkoholgruppe = "Gruppe 1 (2,5–4,7 %)";
+            }
+        }
+        writer.WriteString("alkoholgruppe", alkoholgruppe);
+
+        var harEksisterende = false;
+        if (flatData.TryGetProperty("SkalFornyeBevilling", out var fornyProp) &&
+            fornyProp.ValueKind == JsonValueKind.True)
+            harEksisterende = true;
+        writer.WriteBoolean("har_eksisterende_bevilling", harEksisterende);
 
         writer.WriteEndObject();
     }
@@ -126,8 +184,8 @@ public sealed class ChecklistDataMapper : IChecklistDataMapper
         {
             writer.WriteString("navn", BuildFulltNavn(styrer));
             writer.WriteString("fodselsnummer", GetString(styrer, "Foedselsnummer") ?? "–");
-            writer.WriteString("epost", "–");
-            writer.WriteString("telefon", "–");
+            writer.WriteString("epost", GetString(styrer, "EPostadresse") ?? "–");
+            writer.WriteString("telefon", GetString(styrer, "Telefonnummer") ?? "–");
         }
         else
         {
@@ -144,14 +202,29 @@ public sealed class ChecklistDataMapper : IChecklistDataMapper
     {
         writer.WriteStartObject("stedfortreder");
 
-        if (TryGet(flatData, "Bevillingsansvarlig", out var ansvarlig) &&
-            TryGet(ansvarlig, "Stedfortreder", out var stedfortreder))
+        var fritakSokt = false;
+        if (TryGet(flatData, "Bevillingsansvarlig", out var ansvarlig))
         {
-            writer.WriteString("navn", BuildFulltNavn(stedfortreder));
-            writer.WriteString("fodselsnummer", GetString(stedfortreder, "Foedselsnummer") ?? "–");
-            writer.WriteString("epost", "–");
-            writer.WriteString("telefon", "–");
-            writer.WriteBoolean("fritak_sokt", false);
+            if (ansvarlig.TryGetProperty("SkalHaFritakFraStedfortreder", out var fritakProp) &&
+                fritakProp.ValueKind == JsonValueKind.True)
+                fritakSokt = true;
+
+            if (TryGet(ansvarlig, "Stedfortreder", out var stedfortreder))
+            {
+                writer.WriteString("navn", BuildFulltNavn(stedfortreder));
+                writer.WriteString("fodselsnummer", GetString(stedfortreder, "Foedselsnummer") ?? "–");
+                writer.WriteString("epost", GetString(stedfortreder, "EPostadresse") ?? "–");
+                writer.WriteString("telefon", GetString(stedfortreder, "Telefonnummer") ?? "–");
+                writer.WriteBoolean("fritak_sokt", fritakSokt);
+            }
+            else
+            {
+                writer.WriteString("navn", "Ikke oppgitt");
+                writer.WriteString("fodselsnummer", "–");
+                writer.WriteString("epost", "–");
+                writer.WriteString("telefon", "–");
+                writer.WriteBoolean("fritak_sokt", fritakSokt);
+            }
         }
         else
         {
@@ -252,12 +325,24 @@ public sealed class ChecklistDataMapper : IChecklistDataMapper
 
     private static string GetKommune(JsonElement flatData)
     {
+        // Try Kommunenummer first (most reliable)
+        var kommunenummer = GetString(flatData, "Kommunenummer");
+        if (kommunenummer != null && KommuneMap.TryGetValue(kommunenummer, out var mappedKommune))
+            return mappedKommune;
+
         if (TryGet(flatData, "Arrangement", out var arrangement) &&
             TryGet(arrangement, "Arrangementssted", out var sted))
         {
             var kommune = GetString(sted, "Kommune");
             if (kommune != null)
                 return kommune;
+
+            if (TryGet(sted, "StedsAdresse", out var stedsAdr))
+            {
+                var knr = GetString(stedsAdr, "Kommunenummer");
+                if (knr != null && KommuneMap.TryGetValue(knr, out var mapped))
+                    return mapped;
+            }
         }
 
         if (TryGet(flatData, "StedsOpplysninger", out var stedsOpplysninger))
@@ -267,6 +352,14 @@ public sealed class ChecklistDataMapper : IChecklistDataMapper
                 return kommune;
         }
 
+        if (TryGet(flatData, "Innsender", out var innsender) &&
+            TryGet(innsender, "Adresse", out var adr))
+        {
+            var knr = GetString(adr, "Kommunenummer");
+            if (knr != null && KommuneMap.TryGetValue(knr, out var mapped))
+                return mapped;
+        }
+
         return "–";
     }
 
@@ -274,9 +367,19 @@ public sealed class ChecklistDataMapper : IChecklistDataMapper
     {
         if (TryGet(flatData, "Innsender", out var innsender))
         {
-            return GetString(innsender, "FulltNavn") ?? "–";
+            var fulltNavn = GetString(innsender, "FulltNavn");
+            if (fulltNavn != null)
+                return fulltNavn;
+            return BuildFulltNavn(innsender);
         }
         return "–";
+    }
+
+    private static int ParseInt(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return 0;
+        return int.TryParse(value, out var result) ? result : 0;
     }
 
     private static string BuildFulltNavn(JsonElement person)

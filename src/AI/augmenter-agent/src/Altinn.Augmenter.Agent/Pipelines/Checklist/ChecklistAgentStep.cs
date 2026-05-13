@@ -13,8 +13,10 @@ public sealed class ChecklistAgentStep(
     IChecklistDataMapper dataMapper,
     IAgentService agentService,
     IPdfGeneratorService pdfGenerator,
+    PipelineContext pipelineContext,
     ILogger<ChecklistAgentStep> logger) : IPdfGenerationStep
 {
+    public const string ChecklistJsonKey = "checklist-evaluated-json";
     private const string SkillFolder = "Pipelines/Checklist/Skill";
     private const string TemplatePath = "Pipelines/Checklist/Templates/sjekkliste.typ";
 
@@ -64,8 +66,12 @@ public sealed class ChecklistAgentStep(
         if (evaluatedData == null)
         {
             logger.LogWarning("Agent returned invalid JSON, falling back to unevaluated checklist");
+            pipelineContext.Set(ChecklistJsonKey, checklistJson);
             return await GenerateFallbackPdf(mappedData, cancellationToken);
         }
+
+        // Share the evaluated checklist JSON with downstream steps (e.g. decision)
+        pipelineContext.Set(ChecklistJsonKey, SerializeJson(evaluatedData));
 
         var pdfBytes = await pdfGenerator.GeneratePdfAsync(evaluatedData, TemplatePath, cancellationToken);
         return new GeneratedPdf("checklist.pdf", pdfBytes);

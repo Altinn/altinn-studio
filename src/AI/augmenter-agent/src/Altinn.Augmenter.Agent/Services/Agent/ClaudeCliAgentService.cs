@@ -15,12 +15,18 @@ public sealed class ClaudeCliAgentService(
 
         var systemPrompt = await SkillLoader.LoadAsync(request.SkillFolder, cancellationToken);
 
+        var isLocalServer = opts.UseLocalProvider && !string.IsNullOrEmpty(opts.ApiBaseUrl);
         logger.LogInformation(
-            "Starting Claude CLI agent (skill={SkillFolder}, model={Model}, systemPromptLength={Length})",
-            request.SkillFolder, opts.Model ?? "default", systemPrompt.Length);
+            "Starting Claude CLI agent (skill={SkillFolder}, model={Model}, systemPromptLength={Length}, localServer={LocalServer})",
+            request.SkillFolder, opts.Model ?? "default", systemPrompt.Length,
+            isLocalServer ? opts.ApiBaseUrl : "none");
 
         using var process = new Process();
         process.StartInfo = CreateStartInfo(opts, systemPrompt);
+
+        // Log the complete command line for debugging
+        var commandLine = $"{process.StartInfo.FileName} {string.Join(" ", process.StartInfo.ArgumentList)}";
+        logger.LogDebug("Claude CLI command line: {CommandLine}", commandLine);
 
         logger.LogDebug("Claude CLI process launching (args count={Count})",
             process.StartInfo.ArgumentList.Count);
@@ -63,14 +69,14 @@ public sealed class ClaudeCliAgentService(
         if (process.ExitCode != 0)
         {
             logger.LogError(
-                "Claude CLI failed (exit code {ExitCode}): {Stderr}",
-                process.ExitCode, stderr);
+                "Claude CLI failed (exit code {ExitCode}). Stdout: {Stdout}. Stderr: {Stderr}",
+                process.ExitCode, stdout, stderr);
             throw new InvalidOperationException($"Claude CLI failed (exit {process.ExitCode}): {stderr}");
         }
 
         logger.LogInformation(
-            "Claude CLI completed successfully ({Length} chars output)",
-            stdout.Length);
+            "Claude CLI completed successfully ({Length} chars output). Output: {Output}",
+            stdout.Length, stdout);
 
         return stdout;
     }
@@ -108,6 +114,13 @@ public sealed class ClaudeCliAgentService(
 
         psi.ArgumentList.Add("--system-prompt");
         psi.ArgumentList.Add(systemPrompt);
+
+        // Route to local server (e.g. LM Studio) when configured
+        if (opts.UseLocalProvider && !string.IsNullOrEmpty(opts.ApiBaseUrl))
+        {
+            //psi.Environment["ANTHROPIC_BASE_URL"] = opts.ApiBaseUrl;
+            //psi.Environment["ANTHROPIC_AUTH_TOKEN"] = opts.ApiAuthToken ?? "lmstudio";
+        }
 
         return psi;
     }

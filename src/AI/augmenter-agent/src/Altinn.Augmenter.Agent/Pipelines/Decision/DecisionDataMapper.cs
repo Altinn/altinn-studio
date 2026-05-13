@@ -4,6 +4,12 @@ namespace Altinn.Augmenter.Agent.Pipelines.Decision;
 
 public sealed class DecisionDataMapper : IDecisionDataMapper
 {
+    private static readonly Dictionary<string, string> KommuneMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["4204"] = "Kristiansand",
+        ["4223"] = "Vennesla",
+    };
+
     public JsonDocument MapToDecision(JsonElement flatData)
     {
         using var stream = new MemoryStream();
@@ -43,19 +49,46 @@ public sealed class DecisionDataMapper : IDecisionDataMapper
     {
         writer.WriteStartObject("soker");
 
-        var firmanavn = "Ukjent";
-        var orgNr = "000000000";
+        var firmanavn = (string?)null;
+        var orgNr = (string?)null;
 
         if (TryGet(flatData, "OrganisasjonsInformasjon", out var orgInfo))
         {
-            firmanavn = GetString(orgInfo, "Navn") ?? firmanavn;
-            orgNr = GetString(orgInfo, "Organisasjonsnummer") ?? orgNr;
+            firmanavn = GetString(orgInfo, "Navn");
+            orgNr = GetString(orgInfo, "Organisasjonsnummer");
         }
 
-        writer.WriteString("firmanavn", firmanavn);
-        writer.WriteString("organisasjonsnummer", orgNr);
-        writer.WriteString("kontaktperson", GetInnsenderNavn(flatData));
-        writer.WriteString("adresse", "–");
+        var brukerType = GetString(flatData, "BrukerType");
+        var isPrivatperson = string.Equals(brukerType, "person", StringComparison.OrdinalIgnoreCase)
+                             || string.IsNullOrEmpty(firmanavn);
+
+        if (isPrivatperson)
+        {
+            // Use the submitter's name as the applicant when there's no org
+            var innsenderNavn = GetInnsenderNavn(flatData);
+            writer.WriteString("firmanavn", innsenderNavn != "–" ? innsenderNavn : "Privatperson");
+            writer.WriteString("kontaktperson", innsenderNavn);
+        }
+        else
+        {
+            writer.WriteString("firmanavn", firmanavn);
+            writer.WriteString("kontaktperson", GetInnsenderNavn(flatData));
+        }
+
+        // Only include org.nr if it's actually present and valid
+        if (!string.IsNullOrEmpty(orgNr))
+        {
+            writer.WriteString("organisasjonsnummer", orgNr);
+        }
+
+        // Try to get address from submitter
+        var adresse = "–";
+        if (TryGet(flatData, "Innsender", out var innsender) &&
+            TryGet(innsender, "Adresse", out var adr))
+        {
+            adresse = GetString(adr, "Gateadresse") ?? adresse;
+        }
+        writer.WriteString("adresse", adresse);
 
         writer.WriteEndObject();
     }
@@ -66,7 +99,6 @@ public sealed class DecisionDataMapper : IDecisionDataMapper
 
         var stedsNavn = "Ukjent";
         var stedsAdresse = "–";
-        var kapasitet = 0;
 
         if (TryGet(flatData, "Arrangement", out var arrangement) &&
             TryGet(arrangement, "Arrangementssted", out var sted))
@@ -85,7 +117,6 @@ public sealed class DecisionDataMapper : IDecisionDataMapper
 
         writer.WriteString("navn", stedsNavn);
         writer.WriteString("adresse", stedsAdresse);
-        writer.WriteNumber("personkapasitet_inne", kapasitet);
 
         writer.WriteEndObject();
     }
@@ -95,14 +126,36 @@ public sealed class DecisionDataMapper : IDecisionDataMapper
         writer.WriteStartObject("vedtak");
 
         var bevillingsType = MapBevillingstype(GetString(flatData, "BevillingsType"));
+        var alkoholgruppe = MapAlkoholgruppe(GetString(flatData, "Arrangement"));
+
+        // Try to get alkoholgruppe from Arrangement.VaregruppeAlkohol
+        if (TryGet(flatData, "Arrangement", out var arr))
+        {
+            var varegruppe = GetString(arr, "VaregruppeAlkohol");
+            if (varegruppe != null)
+                alkoholgruppe = MapVaregruppe(varegruppe);
+        }
 
         writer.WriteString("utfall", "innvilgelse");
         writer.WriteString("bevillingstype", bevillingsType);
-        writer.WriteString("alkoholgruppe", "gruppe_1_2");
+        writer.WriteString("alkoholgruppe", alkoholgruppe);
+
+        // Set bevillingsperiode from arrangement dates if available
+        var fraDato = DateTime.UtcNow.ToString("dd.MM.yyyy");
+        var tilDato = "–";
+        if (TryGet(flatData, "Arrangement", out var arrangement) &&
+            TryGet(arrangement, "ArrangementPeriode", out var perioder) &&
+            perioder.ValueKind == JsonValueKind.Array &&
+            perioder.GetArrayLength() > 0)
+        {
+            var forstePeriode = perioder[0];
+            fraDato = GetString(forstePeriode, "StartDato") ?? fraDato;
+            tilDato = GetString(forstePeriode, "SluttDato") ?? tilDato;
+        }
 
         writer.WriteStartObject("bevillingsperiode");
-        writer.WriteString("fra_dato", DateTime.UtcNow.ToString("dd.MM.yyyy"));
-        writer.WriteString("til_dato", "–");
+        writer.WriteString("fra_dato", fraDato);
+        writer.WriteString("til_dato", tilDato);
         writer.WriteEndObject();
 
         writer.WriteEndObject();
@@ -116,10 +169,12 @@ public sealed class DecisionDataMapper : IDecisionDataMapper
         writer.WriteStartObject("arrangement");
 
         writer.WriteString("navn", GetString(arrangement, "Navn") ?? "–");
-        writer.WriteString("type", GetString(arrangement, "Type") ?? "–");
+        writer.WriteString("type", GetString(arrangement, "ArrangementType") ?? GetString(arrangement, "Type") ?? "–");
 
         var fraDato = "–";
         var tilDato = "–";
+        var fraKlokkeslett = "–";
+        var tilKlokkeslett = "–";
         if (TryGet(arrangement, "ArrangementPeriode", out var perioder) &&
             perioder.ValueKind == JsonValueKind.Array &&
             perioder.GetArrayLength() > 0)
@@ -127,14 +182,19 @@ public sealed class DecisionDataMapper : IDecisionDataMapper
             var forstePeriode = perioder[0];
             fraDato = GetString(forstePeriode, "StartDato") ?? fraDato;
             tilDato = GetString(forstePeriode, "SluttDato") ?? tilDato;
+            fraKlokkeslett = GetString(forstePeriode, "StartTid") ?? fraKlokkeslett;
+            tilKlokkeslett = GetString(forstePeriode, "SluttTid") ?? tilKlokkeslett;
         }
 
         writer.WriteString("fra_dato", fraDato);
-        writer.WriteString("fra_klokkeslett", "–");
+        writer.WriteString("fra_klokkeslett", fraKlokkeslett);
         writer.WriteString("til_dato", tilDato);
-        writer.WriteString("til_klokkeslett", "–");
-        writer.WriteNumber("antall_deltakere", 0);
-        writer.WriteBoolean("aapen", false);
+        writer.WriteString("til_klokkeslett", tilKlokkeslett);
+        writer.WriteNumber("antall_deltakere", ParseInt(GetString(arrangement, "AntallDeltakere")));
+
+        var typeDeltakere = GetString(arrangement, "TypeDeltakere");
+        var aapen = !string.Equals(typeDeltakere, "bestemtePersoner", StringComparison.OrdinalIgnoreCase);
+        writer.WriteBoolean("aapen", aapen);
 
         writer.WriteEndObject();
     }
@@ -162,12 +222,27 @@ public sealed class DecisionDataMapper : IDecisionDataMapper
     {
         writer.WriteStartObject("stedfortreder");
 
-        if (TryGet(flatData, "Bevillingsansvarlig", out var ansvarlig) &&
-            TryGet(ansvarlig, "Stedfortreder", out var stedfortreder))
+        var fritakSokt = false;
+        if (TryGet(flatData, "Bevillingsansvarlig", out var ansvarlig))
         {
-            writer.WriteString("navn", BuildFulltNavn(stedfortreder));
-            writer.WriteString("fodselsnummer", GetString(stedfortreder, "Foedselsnummer") ?? "–");
-            writer.WriteBoolean("fritak", false);
+            if (ansvarlig.TryGetProperty("SkalHaFritakFraStedfortreder", out var fritakProp) &&
+                fritakProp.ValueKind == JsonValueKind.True)
+            {
+                fritakSokt = true;
+            }
+
+            if (TryGet(ansvarlig, "Stedfortreder", out var stedfortreder))
+            {
+                writer.WriteString("navn", BuildFulltNavn(stedfortreder));
+                writer.WriteString("fodselsnummer", GetString(stedfortreder, "Foedselsnummer") ?? "–");
+                writer.WriteBoolean("fritak", fritakSokt);
+            }
+            else
+            {
+                writer.WriteString("navn", "Ikke oppgitt");
+                writer.WriteString("fodselsnummer", "–");
+                writer.WriteBoolean("fritak", fritakSokt);
+            }
         }
         else
         {
@@ -206,7 +281,7 @@ public sealed class DecisionDataMapper : IDecisionDataMapper
 
         var normalized = bevillingsType.ToLowerInvariant().Replace(" ", "").Replace("-", "");
 
-        if (normalized.Contains("enkelt"))
+        if (normalized.Contains("enkelt") || normalized.Contains("arrangement"))
             return "enkeltbevilling";
         if (normalized.Contains("utvidelse") && normalized.Contains("skjenke"))
             return "utvidelse_skjenke";
@@ -220,14 +295,42 @@ public sealed class DecisionDataMapper : IDecisionDataMapper
         return "enkeltbevilling";
     }
 
+    private static string MapVaregruppe(string varegruppe)
+    {
+        var normalized = varegruppe.ToLowerInvariant().Replace(" ", "").Replace("-", "");
+
+        if (normalized.Contains("tre") || normalized.Contains("3"))
+            return "gruppe_1_2_3";
+        if (normalized.Contains("to") || normalized.Contains("2"))
+            return "gruppe_1_2";
+
+        return "gruppe_1";
+    }
+
+    private static string MapAlkoholgruppe(string? _) => "gruppe_1_2";
+
     private static string GetKommune(JsonElement flatData)
     {
+        // Try Kommunenummer first (most reliable)
+        var kommunenummer = GetString(flatData, "Kommunenummer");
+        if (kommunenummer != null && KommuneMap.TryGetValue(kommunenummer, out var mappedKommune))
+            return mappedKommune;
+
+        // Try nested Kommune fields
         if (TryGet(flatData, "Arrangement", out var arrangement) &&
             TryGet(arrangement, "Arrangementssted", out var sted))
         {
             var kommune = GetString(sted, "Kommune");
             if (kommune != null)
                 return kommune;
+
+            // Try Kommunenummer in address
+            if (TryGet(sted, "StedsAdresse", out var stedsAdr))
+            {
+                var knr = GetString(stedsAdr, "Kommunenummer");
+                if (knr != null && KommuneMap.TryGetValue(knr, out var mapped))
+                    return mapped;
+            }
         }
 
         if (TryGet(flatData, "StedsOpplysninger", out var stedsOpplysninger))
@@ -237,6 +340,15 @@ public sealed class DecisionDataMapper : IDecisionDataMapper
                 return kommune;
         }
 
+        // Try Innsender address
+        if (TryGet(flatData, "Innsender", out var innsender) &&
+            TryGet(innsender, "Adresse", out var adr))
+        {
+            var knr = GetString(adr, "Kommunenummer");
+            if (knr != null && KommuneMap.TryGetValue(knr, out var mapped))
+                return mapped;
+        }
+
         return "Vennesla";
     }
 
@@ -244,7 +356,11 @@ public sealed class DecisionDataMapper : IDecisionDataMapper
     {
         if (TryGet(flatData, "Innsender", out var innsender))
         {
-            return GetString(innsender, "FulltNavn") ?? "–";
+            var fulltNavn = GetString(innsender, "FulltNavn");
+            if (fulltNavn != null)
+                return fulltNavn;
+
+            return BuildFulltNavn(innsender);
         }
         return "–";
     }
@@ -260,6 +376,13 @@ public sealed class DecisionDataMapper : IDecisionDataMapper
 
         var joined = string.Join(" ", parts);
         return string.IsNullOrEmpty(joined) ? "Ukjent" : joined;
+    }
+
+    private static int ParseInt(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return 0;
+        return int.TryParse(value, out var result) ? result : 0;
     }
 
     private static string? GetString(JsonElement element, string propertyName)
