@@ -302,7 +302,7 @@ public sealed class ValidationServiceTests : IDisposable
                     DefaultPartyId,
                     _defaultInstanceId,
                     _defaultDataElementId,
-                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
             )

@@ -259,16 +259,36 @@ func (c *EnvCommand) withContainerClient(
 
 // envUpFlags holds parsed flags for the env up command.
 type envUpFlags struct {
-	runtime     string
-	detach      bool
-	monitoring  bool
-	pgAdmin     bool
-	openBrowser bool
-	jsonOutput  bool
+	runtime           string
+	detach            bool
+	devWorkflowEngine bool
+	monitoring        bool
+	pgAdmin           bool
+	openBrowser       bool
+	jsonOutput        bool
 }
 
 func (c *EnvCommand) parseUpFlags(args []string) (envUpFlags, bool, error) {
 	fs := flag.NewFlagSet("env up", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	fs.Usage = func() {
+		if c.out == nil {
+			return
+		}
+		c.out.Print(joinLines(
+			fmt.Sprintf("Usage: %s env up [options]", osutil.CurrentBin()),
+			"",
+			"Start the localtest environment.",
+			"",
+			"Options:",
+			"  -r, --runtime    Runtime to use (default: localtest)",
+			"  -d, --detach     Run in background (default: true)",
+			"  --monitoring     Start monitoring stack",
+			"  --pgadmin        Start pgAdmin for the workflow-engine database",
+			"  --open           Open localtest in browser after starting",
+			"  --json           Output as JSON",
+		))
+	}
 	var f envUpFlags
 	fs.StringVar(&f.runtime, "r", runtimeLocaltest, "Runtime to use")
 	fs.StringVar(&f.runtime, "runtime", runtimeLocaltest, "Runtime to use")
@@ -278,6 +298,7 @@ func (c *EnvCommand) parseUpFlags(args []string) (envUpFlags, bool, error) {
 	fs.BoolVar(&f.pgAdmin, "pgadmin", false, "Start pgAdmin for the workflow-engine database")
 	fs.BoolVar(&f.openBrowser, "open", false, "Open localtest in browser after starting")
 	fs.BoolVar(&f.jsonOutput, "json", false, "Output as JSON")
+	fs.BoolVar(&f.devWorkflowEngine, "dev-workflow-engine", false, "Route workflow-engine to a host process")
 
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
@@ -319,10 +340,11 @@ func (c *EnvCommand) runLocaltestUp(
 	env := envlocaltest.NewEnv(c.cfg, commandOutput(c.out, flags.jsonOutput), client)
 
 	upOpts := envtypes.UpOptions{
-		Detach:      flags.detach,
-		Monitoring:  flags.monitoring,
-		OpenBrowser: flags.openBrowser,
-		PgAdmin:     flags.pgAdmin,
+		Detach:            flags.detach,
+		DevWorkflowEngine: flags.devWorkflowEngine,
+		Monitoring:        flags.monitoring,
+		OpenBrowser:       flags.openBrowser,
+		PgAdmin:           flags.pgAdmin,
 	}
 
 	preflightErr := env.Preflight(ctx, upOpts)
@@ -334,7 +356,7 @@ func (c *EnvCommand) runLocaltestUp(
 	if err != nil {
 		return fmt.Errorf("get status: %w", err)
 	}
-	if status.Running {
+	if status.Running && !flags.devWorkflowEngine {
 		return envUpOutput{
 			Runtime:        runtimeLocaltest,
 			Running:        true,
@@ -1024,8 +1046,8 @@ func (c *EnvCommand) parseLogsFlags(args []string) (envLogsFlags, bool, error) {
 	fs.StringVar(&f.runtime, "runtime", runtimeLocaltest, "Runtime to use")
 	fs.StringVar(&f.component, "c", "", "Filter by component")
 	fs.StringVar(&f.component, "component", "", "Filter by component")
-	fs.BoolVar(&f.follow, "f", true, "Follow log output")
-	fs.BoolVar(&f.follow, "follow", true, "Follow log output")
+	fs.BoolVar(&f.follow, "f", defaultLogFollow, "Follow log output")
+	fs.BoolVar(&f.follow, "follow", defaultLogFollow, "Follow log output")
 	fs.BoolVar(&f.jsonOutput, "json", false, "Output as newline-delimited JSON")
 
 	if err := fs.Parse(args); err != nil {

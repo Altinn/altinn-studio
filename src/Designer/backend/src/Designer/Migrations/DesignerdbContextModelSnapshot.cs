@@ -247,9 +247,9 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<int?>("ActionMode")
-                        .HasColumnType("integer")
-                        .HasColumnName("action_mode");
+                    b.Property<bool?>("AllowAppChanges")
+                        .HasColumnType("boolean")
+                        .HasColumnName("allow_app_changes");
 
                     b.PrimitiveCollection<List<string>>("AttachmentFileNames")
                         .HasColumnType("text[]")
@@ -271,6 +271,10 @@ namespace Altinn.Studio.Designer.Migrations
                     b.Property<int>("Role")
                         .HasColumnType("integer")
                         .HasColumnName("role");
+
+                    b.Property<string>("Sources")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("sources");
 
                     b.Property<Guid>("ThreadId")
                         .HasColumnType("uuid")

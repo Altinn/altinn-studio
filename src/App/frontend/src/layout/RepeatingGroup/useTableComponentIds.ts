@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { getComponentDef } from 'src/layout';
 import { CompCategory } from 'src/layout/common';
 import type { CompTypes } from 'src/layout/layout';
@@ -8,7 +8,7 @@ import type { CompTypes } from 'src/layout/layout';
 const emptyArray: never[] = [];
 const extraToShowInTable: CompTypes[] = ['Text', 'Number', 'Date', 'Option'];
 export function useTableComponentIds(baseComponentId: string) {
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const component = layoutLookups.getComponent(baseComponentId, 'RepeatingGroup');
   const tableHeaders = component.tableHeaders;
   const multiPage = component.edit?.multiPage ?? false;

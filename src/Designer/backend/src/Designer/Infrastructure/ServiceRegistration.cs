@@ -85,6 +85,7 @@ public static class ServiceRegistration
         services.AddTransient<IAppScopesService, AppScopesService>();
         services.AddTransient<IAppSettingsService, AppSettingsService>();
         services.AddTransient<IContactPointsService, ContactPointsService>();
+        services.AddTransient<IChatService, ChatService>();
         services.AddTransient<IAppInactivityUndeployService, AppInactivityUndeployService>();
         services.AddTransient<IKubernetesDeploymentsService, KubernetesDeploymentsService>();
         services.AddTransient<IAppResourcesService, AppResourcesService>();
@@ -105,6 +106,7 @@ public static class ServiceRegistration
         services.AddTransient<IOrgContentService, OrgContentService>();
         services.AddTransient<IEnvironmentsService, EnvironmentsService>();
         services.AddSingleton<IStudioctlInstallScriptService, StudioctlInstallScriptService>();
+        services.AddScoped<StudioctlAuthService>();
         services.AddHttpClient<IOrgService, OrgService>();
         services.AddHttpClient<ImageClient>();
         services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();

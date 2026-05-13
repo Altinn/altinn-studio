@@ -77,6 +77,7 @@ const common = {
               .setTitle('Expanded width')
               .setDescription('Sets expanded width for pages'),
           ),
+          new CG.prop('validationOnNavigation', CG.common('PageValidation').optional()),
         ),
       ),
     )
@@ -139,6 +140,15 @@ const common = {
     new CG.obj(
       new CG.prop('labelGrid', CG.common('IGridStyling').optional()),
       new CG.prop('innerGrid', CG.common('IGridStyling').optional()),
+      new CG.prop(
+        'validationGrid',
+        CG.common('IGridStyling')
+          .optional()
+          .setTitle('Validation grid')
+          .setDescription(
+            'Column span for validation messages. Same container as innerGrid. If larger than innerGrid, the container expands to fit. Defaults to innerGrid when omitted.',
+          ),
+      ),
     )
       .extends(CG.common('IGridStyling'))
       .setTitle('Grid')
@@ -425,6 +435,19 @@ const common = {
       ),
     ).extends(CG.common('ISelectionComponent')),
 
+  IGridColumnProperties: () =>
+    new CG.obj(
+      new CG.prop(
+        'colSpan',
+        new CG.expr(ExprVal.Number)
+          .optional()
+          .setTitle('Column span')
+          .setDescription('Number of columns this cell should span. Defaults to 1 if not set.'),
+      ),
+    )
+      .setTitle('Grid column properties')
+      .setDescription('Additional properties for columns in the Grid component'),
+
   // Table configuration:
   ITableColumnsAlignText: () =>
     new CG.enum('left', 'center', 'right')
@@ -588,6 +611,7 @@ const common = {
     new CG.obj(
       new CG.prop('component', new CG.str().optional().setTitle('Component ID').setDescription('ID of the component')),
       new CG.prop('columnOptions', CG.common('ITableColumnProperties').optional()),
+      new CG.prop('cellStyle', CG.common('IGridColumnProperties').optional()),
     ).extends(CG.common('ITableColumnProperties')),
   GridCellLabelFrom: () =>
     new CG.obj(
@@ -598,6 +622,7 @@ const common = {
           .setDescription('Set this to a component id to display the label from that component'),
       ),
       new CG.prop('columnOptions', CG.common('ITableColumnProperties').optional()),
+      new CG.prop('cellStyle', CG.common('IGridColumnProperties').optional()),
     ).extends(CG.common('ITableColumnProperties')),
   GridCellText: () =>
     new CG.obj(
@@ -607,6 +632,7 @@ const common = {
       ),
       new CG.prop('help', new CG.str().optional().setTitle('Help').setDescription('Help text to display')),
       new CG.prop('columnOptions', CG.common('ITableColumnProperties').optional()),
+      new CG.prop('cellStyle', CG.common('IGridColumnProperties').optional()),
     ).extends(CG.common('ITableColumnProperties')),
   GridCell: () =>
     new CG.union(CG.common('GridComponentRef'), CG.null, CG.common('GridCellText'), CG.common('GridCellLabelFrom')),
@@ -743,6 +769,15 @@ const common = {
           ),
       ),
       new CG.prop(
+        'navigationTitle',
+        new CG.expr(ExprVal.String)
+          .optional()
+          .setTitle('Navigation title')
+          .setDescription(
+            'Overrides the default "Skjemasider" heading shown in the navigation panel. Can be a text resource key or a dynamic expression that reads from the data model.',
+          ),
+      ),
+      new CG.prop(
         'taskNavigation',
         new CG.arr(
           new CG.union(
@@ -762,6 +797,7 @@ const common = {
           .setTitle('Task navigation settings')
           .setDescription('Shows the listed tasks in the sidebar navigation menu'),
       ),
+      new CG.prop('validationOnNavigation', CG.common('PageValidation').optional()),
     ),
   IPagesBaseSettings: () =>
     new CG.obj(
@@ -781,6 +817,7 @@ const common = {
             'Name of a custom layout file to use for PDF creation instead of the automatically generated PDF.',
           ),
       ),
+      new CG.prop('validationOnNavigation', CG.common('PageValidation').optional()),
     ),
   INavigationBasePageGroup: () =>
     new CG.obj(
@@ -791,6 +828,12 @@ const common = {
         new CG.bool()
           .optional({ default: false })
           .setDescription('Whether this group should mark pages as completed when the user finishes'),
+      ),
+      new CG.prop(
+        'expandedByDefault',
+        new CG.bool()
+          .optional({ default: false })
+          .setDescription('Whether the sidebar group should be expanded by default'),
       ),
     ),
   IPagesSettingsWithGroups: () =>

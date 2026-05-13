@@ -90,13 +90,7 @@ internal static class WorkflowTestHelper
             Links = links?.Select(id => (WorkflowRef)id).ToList(),
         };
 
-        var metadata = new WorkflowRequestMetadata(
-            ns,
-            Guid.NewGuid().ToString("N"),
-            Guid.NewGuid(),
-            DateTimeOffset.UtcNow,
-            null
-        );
+        var metadata = new WorkflowRequestMetadata(ns, Guid.NewGuid().ToString("N"), null, DateTimeOffset.UtcNow, null);
         var labels = new Dictionary<string, string> { ["org"] = org, ["app"] = app };
 
         return (request, metadata, ns, labels);
@@ -111,7 +105,7 @@ internal static class WorkflowTestHelper
     {
         var leaseToken = Guid.NewGuid();
         await context.Database.ExecuteSqlAsync(
-            $"""UPDATE "engine"."Workflows" SET "LeaseToken" = {leaseToken} WHERE "Id" = {workflow.DatabaseId}""",
+            $"UPDATE engine.workflows SET lease_token = {leaseToken} WHERE id = {workflow.DatabaseId}",
             TestContext.Current.CancellationToken
         );
         workflow.LeaseToken = leaseToken;
@@ -138,7 +132,7 @@ internal static class WorkflowTestHelper
         if (status == PersistentItemStatus.Enqueued)
         {
             await context.Database.ExecuteSqlAsync(
-                $"""UPDATE "engine"."Workflows" SET "Status" = {statusInt} WHERE "Id" = {workflow.DatabaseId}""",
+                $"UPDATE engine.workflows SET status = {statusInt} WHERE id = {workflow.DatabaseId}",
                 TestContext.Current.CancellationToken
             );
         }
@@ -147,9 +141,9 @@ internal static class WorkflowTestHelper
             var leaseToken = Guid.NewGuid();
             await context.Database.ExecuteSqlAsync(
                 $"""
-                UPDATE "engine"."Workflows"
-                SET "Status" = {statusInt}, "LeaseToken" = {leaseToken}
-                WHERE "Id" = {workflow.DatabaseId}
+                UPDATE engine.workflows
+                SET status = {statusInt}, lease_token = {leaseToken}
+                WHERE id = {workflow.DatabaseId}
                 """,
                 TestContext.Current.CancellationToken
             );

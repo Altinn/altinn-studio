@@ -3,6 +3,9 @@ using WorkflowEngine.Resilience.JsonConverters;
 
 namespace WorkflowEngine.Models;
 
+/// <summary>
+/// Lifecycle status shared by <see cref="Workflow"/> and <see cref="Step"/>.
+/// </summary>
 [JsonConverter(typeof(FlexibleEnumConverter<PersistentItemStatus>))]
 public enum PersistentItemStatus
 {

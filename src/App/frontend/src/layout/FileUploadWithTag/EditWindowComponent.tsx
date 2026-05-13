@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { EXPERIMENTAL_Suggestion as Suggestion } from '@digdir/designsystemet-react';
+import { EXPERIMENTAL_Suggestion as Suggestion, ValidationMessage } from '@digdir/designsystemet-react';
 import deepEqual from 'fast-deep-equal';
 import type { SuggestionItem } from '@digdir/designsystemet-react';
 
@@ -11,10 +11,7 @@ import { isAttachmentUploaded } from 'src/features/attachments';
 import { useAttachmentsUpdater } from 'src/features/attachments/hooks';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useOnAttachmentSave } from 'src/features/validation/callbacks/onAttachmentSave';
-import { ComponentValidations } from 'src/features/validation/ComponentValidations';
-import { useAttachmentValidations } from 'src/features/validation/selectors/attachmentValidations';
-import { hasValidationErrors } from 'src/features/validation/utils';
+import validationClasses from 'src/features/validation/ComponentValidations.module.css';
 import { AttachmentFileName } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
 import { FileTableButtons } from 'src/layout/FileUpload/FileUploadTable/FileTableButtons';
 import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
@@ -47,14 +44,10 @@ export function EditWindowComponent({
   const uploadedAttachment = isAttachmentUploaded(attachment) ? attachment : undefined;
   const rawSelectedTags = uploadedAttachment?.data.tags?.filter((tag) => options?.find((o) => o.value === tag)) ?? [];
   const [chosenTags, setChosenTags] = useState<string[]>(rawSelectedTags);
+  const [showMissingTagError, setShowMissingTagError] = useResettingErrorState(chosenTags);
   const chosenTagsLabels = chosenTags.map((tag) => langAsString(options?.find((o) => o.value === tag)?.label ?? ''));
   const nodeId = useIndexedId(baseComponentId);
   const updateAttachment = useAttachmentsUpdater();
-
-  const attachmentValidations = useAttachmentValidations(baseComponentId, uploadedAttachment?.data.id);
-  const onAttachmentSave = useOnAttachmentSave();
-
-  const hasErrors = hasValidationErrors(attachmentValidations);
 
   const formatSelectedValue = (tags: string[]): string | SuggestionItem | undefined => {
     const tag = tags[0];
@@ -70,6 +63,11 @@ export function EditWindowComponent({
       return;
     }
 
+    if (chosenTags.length === 0) {
+      setShowMissingTagError(true);
+      return;
+    }
+
     const { tags: _tags } = uploadedAttachment.data;
     const existingTags = _tags || [];
 
@@ -77,7 +75,6 @@ export function EditWindowComponent({
       await setAttachmentTag(chosenTags);
     }
     setEditIndex(-1);
-    await onAttachmentSave(baseComponentId, uploadedAttachment.data.id);
   };
 
   const setAttachmentTag = async (tags: string[]) => {
@@ -186,7 +183,7 @@ export function EditWindowComponent({
               >
                 <Suggestion.Input
                   id={`attachment-tag-dropdown-${uniqueId}`}
-                  aria-invalid={hasErrors}
+                  aria-invalid={showMissingTagError}
                   aria-label={langAsString('general.choose')}
                 />
                 <Suggestion.Clear onClick={() => setChosenTags([])} />
@@ -241,18 +238,43 @@ export function EditWindowComponent({
           </Flex>
         )}
       </Flex>
-      {hasErrors ? (
-        <div
-          style={{
-            whiteSpace: 'pre-wrap',
-          }}
-        >
-          <ComponentValidations
-            validations={attachmentValidations}
-            baseComponentId={baseComponentId}
-          />
+      {showMissingTagError ? (
+        <div style={{ whiteSpace: 'pre-wrap' }}>
+          <ul className={validationClasses.errorList}>
+            <li>
+              <ValidationMessage
+                data-size='sm'
+                asChild
+              >
+                <span>
+                  <Lang
+                    id='form_filler.file_uploader_validation_error_no_chosen_tag'
+                    params={[
+                      textResourceBindings?.tagTitle
+                        ? {
+                            key: textResourceBindings.tagTitle,
+                            makeLowerCase: true,
+                          }
+                        : 'tag',
+                    ]}
+                  />
+                </span>
+              </ValidationMessage>
+            </li>
+          </ul>
         </div>
       ) : undefined}
     </div>
   );
+}
+
+function useResettingErrorState(chosenTags: string[]) {
+  const [showMissingTagError, setShowMissingTagError] = useState(false);
+  const finalState = showMissingTagError && chosenTags.length === 0;
+
+  if (chosenTags.length > 0 && showMissingTagError) {
+    setShowMissingTagError(false);
+  }
+
+  return [finalState, setShowMissingTagError] as const;
 }

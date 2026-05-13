@@ -31,7 +31,7 @@ export class LoginPage extends BasePage {
 
   public async goToGiteaLoginPage(): Promise<void> {
     await this.page.getByRole('button', { name: loginPageTexts['login'] }).click();
-    await this.page.waitForURL('/repos/user/login');
+    await this.page.waitForURL(/\/repos\/user\/login/);
   }
 
   public async writeUsername(username: string): Promise<void> {
@@ -64,15 +64,19 @@ export class LoginPage extends BasePage {
     await this.page.getByText(loginPageTexts['error_message']).isVisible();
   }
 
-  public async getLanguage(): Promise<string> {
-    return await this.page
+  private languageMenu() {
+    return this.page
       .getByRole('group', { name: loginPageTexts['links'] })
       .getByRole('menu')
-      .innerText();
+      .filter({ hasText: /Norsk|English/ });
+  }
+
+  public async getLanguage(): Promise<string> {
+    return await this.languageMenu().innerText();
   }
 
   public async clickOnLanguageMenu(): Promise<void> {
-    await this.page.getByRole('group', { name: loginPageTexts['links'] }).getByRole('menu').click();
+    await this.languageMenu().click();
   }
 
   public async clickOnNorwegianLanguageOption(): Promise<void> {

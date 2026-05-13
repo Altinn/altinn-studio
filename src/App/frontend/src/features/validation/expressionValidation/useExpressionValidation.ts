@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { type ExpressionDataSources, useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
@@ -17,7 +17,7 @@ type ExpressionValidationOutput = {
 const emptyArray: never[] = [];
 
 export function useExpressionValidation(bindings: [string, IDataModelReference][]): ExpressionValidationOutput {
-  const dataModels = FormBootstrap.useDataModels();
+  const dataModels = FormStore.bootstrap.useDataModels();
 
   const out: ExpressionValidationOutput = [];
   for (const [bindingKey, reference] of bindings) {

@@ -2,15 +2,15 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
 import { isDataModelBindingsRequired } from 'src/layout';
+import type { FormStore } from 'src/features/form/FormContext';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import type { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompTypes, IDataModelBindings } from 'src/layout/layout';
 
 export function validateDataModelBindingsAny<T extends CompTypes>(
   baseComponentId: string,
   bindings: IDataModelBindings<T>,
-  lookupBinding: ReturnType<(typeof FormBootstrap)['useLookupBinding']>,
+  lookupBinding: ReturnType<(typeof FormStore)['bootstrap']['useLookupBinding']>,
   layoutLookups: LayoutLookups,
   key: string,
   validTypes: string[],
@@ -58,7 +58,7 @@ export function validateDataModelBindingsAny<T extends CompTypes>(
 export function validateDataModelBindingsSimple<T extends CompTypes>(
   baseComponentId: string,
   bindings: IDataModelBindings<T>,
-  lookupBinding: ReturnType<(typeof FormBootstrap)['useLookupBinding']>,
+  lookupBinding: ReturnType<(typeof FormStore)['bootstrap']['useLookupBinding']>,
   layoutLookups: LayoutLookups,
   isRequired = isDataModelBindingsRequired(baseComponentId, layoutLookups),
 ): string[] {
@@ -79,7 +79,7 @@ export function validateDataModelBindingsSimple<T extends CompTypes>(
 export function validateDataModelBindingsList<T extends CompTypes>(
   baseComponentId: string,
   bindings: IDataModelBindings<T>,
-  lookupBinding: ReturnType<(typeof FormBootstrap)['useLookupBinding']>,
+  lookupBinding: ReturnType<(typeof FormStore)['bootstrap']['useLookupBinding']>,
   layoutLookups: LayoutLookups,
   isRequired = isDataModelBindingsRequired(baseComponentId, layoutLookups),
 ): string[] {

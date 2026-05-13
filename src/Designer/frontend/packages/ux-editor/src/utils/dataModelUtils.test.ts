@@ -175,6 +175,43 @@ describe('convertDataBindingToInternalFormat', () => {
     const internalFormat = convertDataBindingToInternalFormat('', undefined);
     expect(internalFormat).toEqual({ dataType: '', field: '' });
   });
+
+  it('should convert invalid object values to safe strings', () => {
+    const internalFormat = convertDataBindingToInternalFormat('defaultModel', {
+      dataType: { model: 'invalid' } as unknown as string,
+      field: { field: 'invalid' } as unknown as string,
+    });
+    expect(internalFormat).toEqual({ dataType: 'defaultModel', field: '' });
+  });
+
+  it('should keep field when string and fallback dataType when invalid', () => {
+    const internalFormat = convertDataBindingToInternalFormat('defaultModel', {
+      field: 'validField',
+      dataType: { model: 'invalid' } as unknown as string,
+    });
+    expect(internalFormat).toEqual({ dataType: 'defaultModel', field: 'validField' });
+  });
+
+  it('should keep dataType when string and fallback field when invalid', () => {
+    const internalFormat = convertDataBindingToInternalFormat('defaultModel', {
+      field: { field: 'invalid' } as unknown as string,
+      dataType: 'validDataType',
+    });
+    expect(internalFormat).toEqual({ dataType: 'validDataType', field: '' });
+  });
+
+  it('should keep string binding in old format', () => {
+    const internalFormat = convertDataBindingToInternalFormat('defaultModel', 'simple.path');
+    expect(internalFormat).toEqual({ dataType: 'defaultModel', field: 'simple.path' });
+  });
+
+  it('should fallback to empty dataType when default type is undefined', () => {
+    const internalFormat = convertDataBindingToInternalFormat(undefined, {
+      field: 'validField',
+      dataType: { model: 'invalid' } as unknown as string,
+    });
+    expect(internalFormat).toEqual({ dataType: '', field: 'validField' });
+  });
 });
 
 describe('validateSelectedDataModel', () => {

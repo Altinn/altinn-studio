@@ -10,7 +10,7 @@ import { getPartyMock, getPartyWithSubunitMock } from 'src/__mocks__/getPartyMoc
 import { ConfirmPage, type IConfirmPageProps } from 'src/features/process/confirm/containers/ConfirmPage';
 import { doProcessNext } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import { IProcess } from 'src/types/shared';
+import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 
 jest.mock('src/features/instance/useProcessQuery', () => ({
   ...jest.requireActual<typeof import('src/features/instance/useProcessQuery')>(
@@ -84,7 +84,7 @@ describe('ConfirmPage', () => {
     const user = userEvent.setup();
 
     // Create a promise that never resolves to keep the loading state
-    const processNextPromise = new Promise<AxiosResponse<IProcess>>(() => {
+    const processNextPromise = new Promise<AxiosResponse<IInstanceWithProcess>>(() => {
       // Never resolves
     });
 

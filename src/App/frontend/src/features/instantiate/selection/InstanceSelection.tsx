@@ -17,10 +17,8 @@ import classes from 'src/features/instantiate/selection/InstanceSelection.module
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
-import { focusMainContent } from 'src/hooks/useNavigatePage';
 import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { buildInstanceUrl } from 'src/routesBuilder';
 import { getPageTitle } from 'src/utils/getPageTitle';
@@ -61,7 +59,6 @@ function InstanceSelection({ instances: _instances }: { instances: ISimpleInstan
   const rowsPerPageOptions = instanceSelectionOptions?.rowsPerPageOptions ?? [10, 25, 50];
   const instantiation = useInstantiation();
   const selectedParty = useSelectedParty();
-  const setNavigationEffect = useSetNavigationEffect();
   const performProcess = useProcessingMutation('instantiation');
   const isLoading = useIsThisProcessing('instantiation');
   const isAnyProcessing = useIsAnyProcessing();
@@ -122,8 +119,8 @@ function InstanceSelection({ instances: _instances }: { instances: ISimpleInstan
                     variant='tertiary'
                     color='second'
                     icon={true}
-                    onClick={(ev) => openInstance(instance.id, ev, navigate, setNavigationEffect)}
-                    onMouseDown={(ev) => openInstance(instance.id, ev, navigate, setNavigationEffect)}
+                    onClick={(ev) => openInstance(instance.id, ev, navigate)}
+                    onMouseDown={(ev) => openInstance(instance.id, ev, navigate)}
                     aria-label={translationKey('instance_selection.continue')}
                   >
                     <PencilIcon fontSize='1rem' />
@@ -188,7 +185,7 @@ function InstanceSelection({ instances: _instances }: { instances: ISimpleInstan
                   <Button
                     variant='tertiary'
                     color='second'
-                    onClick={(ev) => openInstance(instance.id, ev, navigate, setNavigationEffect)}
+                    onClick={(ev) => openInstance(instance.id, ev, navigate)}
                   >
                     <Lang id='instance_selection.continue' />
                     <PencilIcon
@@ -267,11 +264,6 @@ function InstanceSelection({ instances: _instances }: { instances: ISimpleInstan
                     if (data) {
                       const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(data.id);
                       const url = buildInstanceUrl(instanceOwnerPartyId, instanceGuid);
-                      setNavigationEffect({
-                        targetLocation: url,
-                        matchStart: true,
-                        callback: focusMainContent,
-                      });
                       navigate(url);
                     }
                   }
@@ -316,7 +308,6 @@ const openInstance = (
   instanceId: string,
   originalEvent: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   navigate: ReturnType<typeof useNavigate>,
-  setNavigationEffect: ReturnType<typeof useSetNavigationEffect>,
 ) => {
   if (originalEvent.ctrlKey || originalEvent.metaKey || originalEvent.button === 1) {
     originalEvent.stopPropagation();
@@ -331,10 +322,5 @@ const openInstance = (
 
   const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(instanceId);
   const url = buildInstanceUrl(instanceOwnerPartyId, instanceGuid);
-  setNavigationEffect({
-    targetLocation: url,
-    matchStart: true,
-    callback: focusMainContent,
-  });
   navigate(url);
 };

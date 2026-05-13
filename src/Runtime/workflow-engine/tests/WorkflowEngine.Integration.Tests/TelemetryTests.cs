@@ -126,7 +126,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
 
         // === Enqueue phase ===
         Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatch"));
-        Assert.NotEmpty(collector.GetActivities("ValidationUtils.ValidateAndSortWorkflowGraph"));
+        Assert.NotEmpty(collector.GetActivities("ValidationUtils.ValidateWorkflowGraph"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflows"));
 
         // === Processing phase ===
@@ -256,7 +256,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         );
 
         // Assert repository activities for query operations
-        Assert.NotEmpty(collector.GetActivities("EngineRepository.GetActiveWorkflows"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.QueryWorkflows"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.GetWorkflow"));
     }
 
@@ -269,7 +269,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
     /// </para>
     /// <code>
     /// Trace A — HTTP request:
-    ///   ValidationUtils.ValidateAndSortWorkflowGraph   (child of HTTP server span)
+    ///   ValidationUtils.ValidateWorkflowGraph   (child of HTTP server span)
     ///
     /// Background — Write buffer (standalone traces):
     ///   Engine.FlushBatch
@@ -368,7 +368,9 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
 
     // ─── Span hierarchy helpers ────────────────────────────────────
 
-    /// <summary>Asserts that <paramref name="child"/> is a direct child of <paramref name="parent"/>.</summary>
+    /// <summary>
+    /// Asserts that <paramref name="child"/> is a direct child of <paramref name="parent"/>.
+    /// </summary>
     private static void AssertChildOf(Activity parent, Activity child)
     {
         Assert.Equal(parent.TraceId, child.TraceId);
@@ -393,7 +395,9 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         return matches[0];
     }
 
-    /// <summary>Returns the single activity matching <paramref name="operationName"/> within the given trace.</summary>
+    /// <summary>
+    /// Returns the single activity matching <paramref name="operationName"/> within the given trace.
+    /// </summary>
     private static Activity SingleInTrace(TelemetryCollector collector, ActivityTraceId traceId, string operationName)
     {
         var matches = collector.GetActivities(operationName).Where(a => a.TraceId == traceId).ToList();
@@ -404,7 +408,9 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         return matches[0];
     }
 
-    /// <summary>Returns the single activity whose name starts with <paramref name="prefix"/> within the given trace.</summary>
+    /// <summary>
+    /// Returns the single activity whose name starts with <paramref name="prefix"/> within the given trace.
+    /// </summary>
     private static Activity SingleStartingWith(TelemetryCollector collector, ActivityTraceId traceId, string prefix)
     {
         var matches = collector.GetActivitiesStartingWith(prefix).Where(a => a.TraceId == traceId).ToList();

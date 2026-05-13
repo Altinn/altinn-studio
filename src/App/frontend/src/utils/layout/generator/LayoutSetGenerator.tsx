@@ -2,7 +2,6 @@ import React, { useEffect, useMemo } from 'react';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { usePdfLayoutName, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { getComponentDef } from 'src/layout';
 import { GeneratorInternal, GeneratorPageProvider } from 'src/utils/layout/generator/GeneratorContext';
 import {
@@ -47,7 +46,7 @@ function PageGenerator({ layout, name }: PageProps) {
   // eslint-disable-next-line react-compiler/react-compiler
   useGeneratorErrorBoundaryNodeRef().current = { type: 'page', id: name };
 
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const topLevel = layoutLookups.topLevelComponents[name];
   const pageOrder = useRawPageOrder();
   const pdfPage = usePdfLayoutName();
@@ -97,8 +96,8 @@ interface NodeChildrenProps {
 }
 
 export function GenerateNodeChildren({ claims }: NodeChildrenProps) {
-  const layoutMap = FormBootstrap.useLayoutLookups().allComponents;
-  const map = FormBootstrap.useLayoutLookups().childClaims;
+  const layoutMap = FormStore.bootstrap.useLayoutLookups().allComponents;
+  const map = FormStore.bootstrap.useLayoutLookups().childClaims;
 
   return (
     <WhenParentAdded>

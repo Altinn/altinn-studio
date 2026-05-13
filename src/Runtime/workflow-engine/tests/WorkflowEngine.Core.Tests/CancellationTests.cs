@@ -101,7 +101,7 @@ public class CancellationTests
     /// Creates a mock executor where the specified step index cancels the CTS and throws
     /// <see cref="OperationCanceledException"/>. If a <paramref name="workflow"/> is provided,
     /// its <see cref="Workflow.CancellationRequestedAt"/> is stamped before cancellation
-    /// (simulating <see cref="InFlightTracker.TryCancel"/>). If null, only the CTS is
+    /// (simulating <see cref="InFlightTracker.TryCancel(System.Guid)"/>). If null, only the CTS is
     /// cancelled (simulating host shutdown).
     /// </summary>
     private static Mock<IWorkflowExecutor> MockExecutorWithCancellation(

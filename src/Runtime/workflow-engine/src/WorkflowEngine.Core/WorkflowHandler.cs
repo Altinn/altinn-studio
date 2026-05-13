@@ -31,7 +31,7 @@ internal sealed class WorkflowHandler(
     private readonly EngineSettings _settings = settings.Value;
 
     /// <summary>
-    /// Processes a workflow through all its steps. On return, the workflow's <see cref="Workflow.Status"/>
+    /// Processes a workflow through all its steps. On return, the workflow's <c>Status</c>
     /// reflects the final outcome (Completed, Failed, Canceled, or Requeued for retry).
     /// </summary>
     public async Task Handle(Workflow workflow, CancellationToken ct)
@@ -55,7 +55,7 @@ internal sealed class WorkflowHandler(
     private void HandleLeaseLost(Workflow workflow)
     {
         logger.WorkflowLeaseLost(workflow);
-        Metrics.WorkflowsLeaseLost.Add(1, workflow.GetHistorgramTags());
+        Metrics.WorkflowsLeaseLost.Add(1, workflow.GetHistogramTags());
 
         // Steps run sequentially so at most one span is open, but a per-step Submit that
         // throws LeaseLostException unwinds past the per-step StopActivity. Loop to catch it.
@@ -409,7 +409,7 @@ internal sealed class WorkflowHandler(
     {
         var latest = workflow.BackoffUntil ?? workflow.CreatedAt;
         var queueDuration = timeProvider.GetUtcNow().Subtract(latest).TotalSeconds;
-        Metrics.WorkflowQueueTime.Record(queueDuration, workflow.GetHistorgramTags());
+        Metrics.WorkflowQueueTime.Record(queueDuration, workflow.GetHistogramTags());
     }
 
     private void RecordWorkflowServiceTime(Workflow workflow)
@@ -419,39 +419,36 @@ internal sealed class WorkflowHandler(
             .Subtract(workflow.ExecutionStartedAt ?? workflow.CreatedAt)
             .TotalSeconds;
 
-        Metrics.WorkflowServiceTime.Record(serviceDuration, workflow.GetHistorgramTags());
+        Metrics.WorkflowServiceTime.Record(serviceDuration, workflow.GetHistogramTags());
     }
 
     private void RecordWorkflowTotalTime(Workflow workflow)
     {
         var anchor = workflow.BackoffUntil ?? workflow.CreatedAt;
         var totalDuration = timeProvider.GetUtcNow().Subtract(anchor).TotalSeconds;
-        Metrics.WorkflowTotalTime.Record(totalDuration, workflow.GetHistorgramTags());
+        Metrics.WorkflowTotalTime.Record(totalDuration, workflow.GetHistogramTags());
     }
 
     private void RecordStepQueueTime(Step step, DateTimeOffset anchor)
     {
         var queueDuration = timeProvider.GetUtcNow().Subtract(anchor).TotalSeconds;
-        Metrics.StepQueueTime.Record(queueDuration, step.GetHistorgramTags());
+        Metrics.StepQueueTime.Record(queueDuration, step.GetHistogramTags());
     }
 
     private void RecordStepServiceTime(Step step)
     {
         var serviceDuration = timeProvider.GetUtcNow().Subtract(step.ExecutionStartedAt ?? step.CreatedAt).TotalSeconds;
 
-        Metrics.StepServiceTime.Record(serviceDuration, step.GetHistorgramTags());
+        Metrics.StepServiceTime.Record(serviceDuration, step.GetHistogramTags());
     }
 
     private void RecordStepTotalTime(Step step, DateTimeOffset anchor)
     {
         var totalDuration = timeProvider.GetUtcNow().Subtract(anchor).TotalSeconds;
-        Metrics.StepTotalTime.Record(totalDuration, step.GetHistorgramTags());
+        Metrics.StepTotalTime.Record(totalDuration, step.GetHistogramTags());
     }
 }
 
-/// <summary>
-/// Source-generated log messages for <see cref="WorkflowHandler"/>.
-/// </summary>
 internal static partial class WorkflowHandlerLogs
 {
     [LoggerMessage(LogLevel.Debug, "Processing workflow: {Workflow}")]

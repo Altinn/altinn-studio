@@ -34,7 +34,7 @@ describe('Subform test', () => {
   it('PDF should include subforms + single-subform PDFs should work', { retries: 0 }, () => {
     fillTwoSubforms();
     cy.testPdf({
-      snapshotName: 'subform',
+      snapshotName: 'subform-main',
       enableResponseFuzzing: true,
       returnToForm: true,
       callback: () => {
@@ -194,7 +194,7 @@ describe('Subform test', () => {
     fillTwoSubforms();
 
     cy.testPdf({
-      snapshotName: 'subform',
+      snapshotName: 'subform-summary2',
       enableResponseFuzzing: true,
       callback: () => {
         cy.getSummary('Navn').should('contain.text', 'Per');

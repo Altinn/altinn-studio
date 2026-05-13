@@ -21,7 +21,7 @@
           See <a href="https://docs.altinn.studio/community/changelog/app-nuget/v4/breaking-changes/">https://docs.altinn.studio/community/changelog/app-nuget/v4/breaking-changes/</a> for instructions on how to update.
         </p>
       } else if(Model.HttpException.InnerException is System.Net.Sockets.SocketException) {
-        <p>Could not reach the local app through app discovery/tunneling.</p>
+        <p>Could not reach the local app through app discovery and the host bridge.</p>
         <p>Start an app, or run it through <code>studioctl run</code>.</p>
       } else {
         <pre>
@@ -60,6 +60,7 @@
       @using (Html.BeginForm("LogInTestUser", "Home", FormMethod.Post, new { Class = "form-signin", enctype = "multipart/form-data" }))
       {
         @Html.AntiForgeryToken();
+        @Html.HiddenFor(model => model.RedirectUrl);
         @if(Model.TestApps != null)
         {
           <div class="form-group">

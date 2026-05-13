@@ -45,7 +45,8 @@ export enum SummaryContains {
 export function ComponentSummary({ targetBaseComponentId }: ComponentSummaryProps) {
   const type = useExternalItem(targetBaseComponentId).type;
   const def = getComponentDef(type);
-  return def.renderSummary2 ? def.renderSummary2({ targetBaseComponentId }) : null;
+  const SummaryRenderer = def.renderSummary2;
+  return SummaryRenderer ? <SummaryRenderer targetBaseComponentId={targetBaseComponentId} /> : null;
 }
 
 export function useSummarySoftHidden(hidden: boolean | undefined) {

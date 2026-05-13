@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
@@ -47,7 +47,7 @@ export function SummaryGroupComponent({
   const ariaLabel = langAsString(summaryAccessibleTitleTrb ?? summaryTitleTrb ?? titleTrb);
   const isHidden = useIsHiddenMulti(targetItem.children);
   const children = targetItem.children.filter((id) => !inExcludedChildren(id) && !isHidden[id]);
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
 
   const largeGroup = overrides?.largeGroup ?? false;
   if (largeGroup) {

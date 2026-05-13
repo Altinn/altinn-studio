@@ -44,18 +44,18 @@ A new `Recurrence` field on `WorkflowRequest`:
 
 At least one of `maxOccurrences` or `until` must be specified. Unbounded recurrence with no kill switch is not allowed.
 
-### Failure behaviour
+### Failure behavior
 
 "Failure" in this context means the workflow's retry strategy has been fully exhausted — not a transient blip, but a genuine failure.
 
-| Value        | Behaviour                                                                                                               |
+| Value        | Behavior                                                                                                               |
 | ------------ | ----------------------------------------------------------------------------------------------------------------------- |
 | **Stop**     | Chain ends. No successor is scheduled. This is the default.                                                             |
 | **Continue** | Schedule the next occurrence anyway. The failed workflow is recorded in the chain but does not block future executions. |
 
 Note: there is no "Retry" option. By the time recurrence failure handling kicks in, the retry strategy has already made multiple attempts with backoff. If the caller wants more resilience, they should configure a more aggressive retry strategy.
 
-### Engine behaviour
+### Engine behavior
 
 1. A workflow with a `Recurrence` spec is enqueued and processed normally.
 2. On terminal status (Completed, or Failed if `onFailure: Continue`):
@@ -69,7 +69,7 @@ Note: there is no "Retry" option. By the time recurrence failure handling kicks 
 
 ### Frozen spec
 
-The recurrence spec is frozen from the initial request. The engine always uses the predecessor's spec to compute the successor. There is no mechanism to modify the interval, steps, or failure behaviour mid-chain. This keeps the engine logic simple (clone + decrement) and avoids race conditions around in-flight modifications.
+The recurrence spec is frozen from the initial request. The engine always uses the predecessor's spec to compute the successor. There is no mechanism to modify the interval, steps, or failure behavior mid-chain. This keeps the engine logic simple (clone + decrement) and avoids race conditions around in-flight modifications.
 
 ### Cancellation
 

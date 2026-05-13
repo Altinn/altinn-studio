@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout;
@@ -44,7 +45,6 @@ public class TranslationServiceInstanceTests
                 ],
             }
         );
-        fixture.TryAddCommonServices();
 
         await using var provider = fixture.BuildServiceProvider();
         var dataAccessor = await provider.CreateInstanceDataMutatorWithDataAndLayout(
@@ -100,13 +100,14 @@ public class TranslationServiceInstanceTests
         // Add a data type but NO layout set
         var dataType = fixture.AddDataType<SkjemaModel>();
 
-        fixture.TryAddCommonServices();
-
-        fixture
-            .AppResourcesMock.Setup(a => a.GetLayoutModelForFolder(It.IsAny<string>()))
-            .Returns(default(LayoutModel));
-
         await using var provider = fixture.BuildServiceProvider();
+
+        // Override the mock to return null instead of throwing for GetLayoutModelForFolder
+        // Must be done after BuildServiceProvider() since TryAddCommonServices sets up the default mock
+        fixture
+            .Mock<IAppResources>()
+            .Setup(a => a.GetLayoutModelForFolder(It.IsAny<string>()))
+            .Returns(null as LayoutModel);
 
         var dataAccessor = await provider.CreateInstanceDataUnitOfWork(
             new SkjemaModel() { Input1 = "test value" },
@@ -144,14 +145,14 @@ public class TranslationServiceInstanceTests
             }
         );
 
-        fixture.TryAddCommonServices();
-
-        // Override the mock to return null instead of throwing for GetLayoutModelForTask
-        fixture
-            .AppResourcesMock.Setup(a => a.GetLayoutModelForFolder(It.IsAny<string>()))
-            .Returns(default(LayoutModel));
-
         await using var provider = fixture.BuildServiceProvider();
+
+        // Override the mock to return null instead of throwing for GetLayoutModelForFolder
+        // Must be done after BuildServiceProvider() since TryAddCommonServices sets up the default mock
+        fixture
+            .Mock<IAppResources>()
+            .Setup(a => a.GetLayoutModelForFolder(It.IsAny<string>()))
+            .Returns(null as LayoutModel);
 
         var dataAccessor = await provider.CreateInstanceDataUnitOfWork(
             new SkjemaModel() { Input1 = "explicit type value" },

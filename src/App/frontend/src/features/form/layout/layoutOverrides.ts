@@ -1,71 +1,56 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import type { RefObject } from 'react';
 
-import type { ILayoutCollection } from 'src/layout/layout';
+import type { FormStoreApi } from 'src/features/form/FormContext';
 
-interface LayoutOverrideApi {
-  changeLayouts: (mutator: (existingLayouts: ILayoutCollection) => ILayoutCollection) => void;
-  resetLayouts: () => void;
-}
-
-const layoutOverrideApis: LayoutOverrideApi[] = [];
+const layoutOverrideStores: RefObject<FormStoreApi | undefined>[] = [];
 let windowLayoutOverridesInstalled = false;
 
-export function useLayoutOverrides(bootstrapLayouts: ILayoutCollection | undefined) {
-  const [overrideLayouts, setOverrideLayouts] = useState<ILayoutCollection | undefined>(undefined);
+function getInnermostStore() {
+  return [...layoutOverrideStores]
+    .reverse()
+    .map((ref) => ref?.current)
+    .find((store) => store !== undefined);
+}
 
-  const changeLayouts = useCallback(
-    (mutator: (existingLayouts: ILayoutCollection) => ILayoutCollection) => {
-      const existingLayouts = overrideLayouts ?? bootstrapLayouts;
-      if (!existingLayouts) {
-        throw new Error('Expected form bootstrap to exist before changing layouts');
-      }
-
-      setOverrideLayouts(mutator(structuredClone(existingLayouts)));
-    },
-    [bootstrapLayouts, overrideLayouts],
-  );
-
-  const resetLayouts = useCallback(() => {
-    setOverrideLayouts(undefined);
-  }, []);
-
-  useEffect(() => {
-    setOverrideLayouts(undefined);
-  }, [bootstrapLayouts]);
-
+/**
+ * This hook manages the window.changeLayouts() function, which automatically accesses the innermost FormProvider and
+ * exposes a function to change layouts. This is used by:
+ *  - Cypress, in the cy.changeLayouts() command
+ *  - Studio, when changing layouts in the UI editor preview
+ *  - Our own LayoutInspector that lets you change layouts inside devtools
+ */
+export function useLayoutOverrides(storeRef: RefObject<FormStoreApi | undefined>) {
   useEffect(() => {
     if (!windowLayoutOverridesInstalled) {
       window.changeLayouts = (mutator) => {
-        const target = layoutOverrideApis.at(-1);
+        const target = getInnermostStore();
         if (!target) {
           throw new Error('Could not find an active FormProvider to change layouts for');
         }
 
-        target.changeLayouts(mutator);
+        target.getState().bootstrap.changeLayouts(mutator);
       };
 
       window.resetLayouts = () => {
-        const target = layoutOverrideApis.at(-1);
+        const target = getInnermostStore();
         if (!target) {
           throw new Error('Could not find an active FormProvider to reset layouts for');
         }
 
-        target.resetLayouts();
+        target.getState().bootstrap.resetLayouts();
       };
 
       windowLayoutOverridesInstalled = true;
     }
 
-    const api = { changeLayouts, resetLayouts };
-    layoutOverrideApis.push(api);
+    layoutOverrideStores.push(storeRef);
 
     return () => {
-      const idx = layoutOverrideApis.indexOf(api);
+      const idx = layoutOverrideStores.indexOf(storeRef);
       if (idx !== -1) {
-        layoutOverrideApis.splice(idx, 1);
+        layoutOverrideStores.splice(idx, 1);
       }
     };
-  }, [changeLayouts, resetLayouts]);
-
-  return overrideLayouts ?? bootstrapLayouts;
+  }, [storeRef]);
 }

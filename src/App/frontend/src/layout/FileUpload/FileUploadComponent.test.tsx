@@ -452,6 +452,20 @@ describe('File uploading components', () => {
         expect(screen.getByRole('button', { name: 'Lagre' })).not.toBeDisabled();
       });
 
+      it('should show a missing-tag error after saving without selecting a tag', async () => {
+        await renderWithTag({
+          attachments: (dataType) => {
+            const out = getDataElements({ count: 1, dataType });
+            out[0].tags = [];
+            return out;
+          },
+        });
+
+        await userEvent.click(screen.getByRole('button', { name: 'Lagre' }));
+
+        expect(screen.getByText(/du må velge/i)).toBeInTheDocument();
+      });
+
       it('should not allow opening for editing when readOnly=true', async () => {
         await renderWithTag({
           component: { readOnly: true },

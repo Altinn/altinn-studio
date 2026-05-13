@@ -13,6 +13,7 @@ import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { ExprVal } from 'src/features/expressions/types';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
+import { replaceAndPreventResetOptions } from 'src/features/navigation/navigationOptions';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import classes from 'src/layout/GenericComponent.module.css';
 import { getComponentDef } from 'src/layout/index';
@@ -263,23 +264,48 @@ function cleanupQuery(searchParams: URLSearchParams, setSearchParams: SetURLSear
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.delete(SearchParams.FocusComponentId);
     newSearchParams.delete(SearchParams.FocusErrorBinding);
-    setSearchParams(newSearchParams, { replace: true });
+    setSearchParams(newSearchParams, replaceAndPreventResetOptions);
   }
 }
 
-function findElementToFocus(div: HTMLDivElement | null, binding: string | null) {
-  const targetElements = div?.querySelectorAll('input,textarea,select,p');
-  const targetHtmlElements = targetElements
-    ? Array.from(targetElements).filter((node) => node instanceof HTMLElement)
-    : [];
-
-  if (targetHtmlElements?.length > 0) {
-    const elementWithBinding = binding
-      ? Array.from(targetHtmlElements).find((htmlElement) => htmlElement?.dataset.bindingkey === binding)
-      : undefined;
-
-    return elementWithBinding ?? targetHtmlElements[0];
+export function findElementToFocus(div: HTMLDivElement | null, binding: string | null) {
+  if (!div) {
+    return undefined;
   }
 
-  return undefined;
+  const targetElements = Array.from(
+    div.querySelectorAll<HTMLElement>(
+      ['input', 'textarea', 'select', 'button', '[tabindex]:not([tabindex="-1"])', '[contenteditable="true"]'].join(
+        ',',
+      ),
+    ),
+  );
+
+  if (targetElements.length === 0) {
+    return undefined;
+  }
+
+  const hasBinding = binding !== null;
+
+  if (hasBinding) {
+    const matchesBinding = (element: HTMLElement) => element.dataset.bindingkey === binding;
+    const bindingInput = targetElements.find(
+      (element) => matchesBinding(element) && element.matches('input,textarea,select'),
+    );
+    if (bindingInput) {
+      return bindingInput;
+    }
+
+    const anyBinding = targetElements.find(matchesBinding);
+    if (anyBinding) {
+      return anyBinding;
+    }
+  }
+
+  const firstInputLike = targetElements.find((element) => element.matches('input,textarea,select'));
+  if (firstInputLike) {
+    return firstInputLike;
+  }
+
+  return targetElements[0];
 }

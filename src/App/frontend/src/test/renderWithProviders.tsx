@@ -27,7 +27,7 @@ import { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
-import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
+import { NavigationFocusStateProvider } from 'src/features/navigation/NavigationFocusStateContext';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { fetchFormBootstrapForInstance } from 'src/queries/queries';
@@ -141,7 +141,7 @@ const defaultQueryMocks: AppQueries = {
   fetchDataList: async () => getDataListMock(),
   fetchPdfFormat: async () => ({ excludedPages: [], excludedComponents: [] }),
   fetchLayoutSchema: async () => ({}) as JSONSchema7,
-  fetchPaymentInformation: async () => paymentResponsePayload,
+  fetchPaymentInformationForTask: async () => paymentResponsePayload,
   fetchOrderDetails: async () => orderDetailsResponsePayload,
   fetchPostalCodes: async () => defaultPostalCodesMock,
   fetchFormBootstrapForInstance: async () => getFormBootstrapMock(),
@@ -327,11 +327,11 @@ function DefaultProviders({ children, queries, apis, queryClient, Router = Defau
         <UiConfigProvider>
           <Router>
             <AppComponentsBridge>
-              <NavigationEffectProvider>
+              <NavigationFocusStateProvider>
                 <GlobalFormDataReadersProvider>
                   <PartyProvider>{children}</PartyProvider>
                 </GlobalFormDataReadersProvider>
-              </NavigationEffectProvider>
+              </NavigationFocusStateProvider>
             </AppComponentsBridge>
           </Router>
         </UiConfigProvider>
@@ -362,9 +362,9 @@ function MinimalProviders({ children, queries, apis, queryClient, Router = Defau
         queryClient={queryClient}
       >
         <Router>
-          <NavigationEffectProvider>
+          <NavigationFocusStateProvider>
             <AppComponentsBridge>{children}</AppComponentsBridge>
-          </NavigationEffectProvider>
+          </NavigationFocusStateProvider>
         </Router>
       </AppQueriesProvider>
     </ApiProvider>
@@ -713,13 +713,18 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
       (!inInstance ? await rest.queries?.fetchFormBootstrapForStateless?.(...args) : undefined) ??
       getFormBootstrapMock();
 
-    mock.layouts = {
-      [initialPage]: {
-        data: {
-          layout: [realComponentDef],
+    if (
+      !Object.hasOwn(mock.layouts, initialPage) ||
+      !mock.layouts[initialPage]?.data.layout.some((c) => c.id === realComponentDef.id)
+    ) {
+      mock.layouts = {
+        [initialPage]: {
+          data: {
+            layout: [realComponentDef],
+          },
         },
-      },
-    };
+      };
+    }
 
     return mock;
   }

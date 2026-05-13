@@ -5,6 +5,8 @@ import (
 	"testing"
 )
 
+const testGraphID GraphID = "test"
+
 // mockResource is a test implementation of Resource.
 type mockResource struct {
 	id      ResourceID
@@ -28,7 +30,7 @@ func buildLinearGraph() (*Graph, []Resource) {
 	b := &mockResource{id: "b", deps: DepIDs("a")}
 	c := &mockResource{id: "c", deps: DepIDs("b")}
 
-	g := NewGraph()
+	g := NewGraph(testGraphID)
 	return g, []Resource{a, b, c}
 }
 
@@ -66,7 +68,7 @@ func TestGraph_Add(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			g := NewGraph()
+			g := NewGraph(testGraphID)
 			if tt.setup != nil {
 				tt.setup(g)
 			}
@@ -79,7 +81,7 @@ func TestGraph_Add(t *testing.T) {
 }
 
 func TestGraph_Get(t *testing.T) {
-	g := NewGraph()
+	g := NewGraph(testGraphID)
 	r := &mockResource{id: "a"}
 	mustAddResource(t, g, r)
 
@@ -92,7 +94,7 @@ func TestGraph_Get(t *testing.T) {
 }
 
 func TestGraph_All(t *testing.T) {
-	g := NewGraph()
+	g := NewGraph(testGraphID)
 	mustAddResource(t, g, &mockResource{id: "b"})
 	mustAddResource(t, g, &mockResource{id: "a"})
 
@@ -184,7 +186,7 @@ func TestGraph_Validate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			g := NewGraph()
+			g := NewGraph(testGraphID)
 			for _, r := range tt.resources {
 				mustAddResource(t, g, r)
 			}
@@ -205,7 +207,7 @@ func TestGraph_Validate(t *testing.T) {
 }
 
 func TestGraph_Enabled(t *testing.T) {
-	g := NewGraph()
+	g := NewGraph(testGraphID)
 	mustAddResource(t, g, &mockResource{id: "c"})
 	mustAddResource(t, g, &mockResource{id: "b", enabled: new(bool)})
 	mustAddResource(t, g, &mockResource{id: "a"})
@@ -252,7 +254,7 @@ func TestGraph_TopologicalOrder_SkipsDisabledResources(t *testing.T) {
 	b := &mockResource{id: "b", enabled: new(bool)}
 	c := &mockResource{id: "c", deps: DepIDs("a")}
 
-	g := NewGraph()
+	g := NewGraph(testGraphID)
 	mustAddResource(t, g, a)
 	mustAddResource(t, g, b)
 	mustAddResource(t, g, c)
@@ -275,7 +277,7 @@ func TestGraph_TopologicalOrder_ParallelLevel(t *testing.T) {
 	b := &mockResource{id: "b"}
 	c := &mockResource{id: "c", deps: DepIDs("a", "b")}
 
-	g := NewGraph()
+	g := NewGraph(testGraphID)
 	mustAddResource(t, g, a)
 	mustAddResource(t, g, b)
 	mustAddResource(t, g, c)
@@ -331,12 +333,35 @@ func TestGraph_ReverseTopologicalOrder(t *testing.T) {
 	}
 }
 
+func TestGraph_ReverseTopologicalOrderSubset_IgnoresDependenciesOutsideSubset(t *testing.T) {
+	a := &mockResource{id: "a"}
+	b := &mockResource{id: "b", deps: DepIDs("a")}
+	c := &mockResource{id: "c", deps: DepIDs("b")}
+
+	g := NewGraph(testGraphID)
+	mustAddResource(t, g, a)
+	mustAddResource(t, g, b)
+	mustAddResource(t, g, c)
+
+	levels, err := g.ReverseTopologicalOrderSubset([]ResourceID{"b", "c"})
+	if err != nil {
+		t.Fatalf("ReverseTopologicalOrderSubset() error = %v", err)
+	}
+
+	if len(levels) != 2 {
+		t.Fatalf("ReverseTopologicalOrderSubset() returned %d levels, want 2", len(levels))
+	}
+	if levels[0][0].ID() != "c" || levels[1][0].ID() != "b" {
+		t.Fatalf("ReverseTopologicalOrderSubset() = %v, want c then b", levels)
+	}
+}
+
 func TestGraph_TopologicalOrder_WithDirectRefs(t *testing.T) {
 	a := &mockResource{id: "a"}
 	b := &mockResource{id: "b", deps: Deps(a)} // Direct ref
 	c := &mockResource{id: "c", deps: DepIDs("b")}
 
-	g := NewGraph()
+	g := NewGraph(testGraphID)
 	mustAddResource(t, g, a)
 	mustAddResource(t, g, b)
 	mustAddResource(t, g, c)
@@ -352,7 +377,7 @@ func TestGraph_TopologicalOrder_WithDirectRefs(t *testing.T) {
 }
 
 func TestGraph_TopologicalOrder_EmptyGraph(t *testing.T) {
-	g := NewGraph()
+	g := NewGraph(testGraphID)
 
 	levels, err := g.TopologicalOrder()
 	if err != nil {
@@ -368,7 +393,7 @@ func TestGraph_TopologicalOrder_CycleError(t *testing.T) {
 	a := &mockResource{id: "a", deps: DepIDs("b")}
 	b := &mockResource{id: "b", deps: DepIDs("a")}
 
-	g := NewGraph()
+	g := NewGraph(testGraphID)
 	mustAddResource(t, g, a)
 	mustAddResource(t, g, b)
 

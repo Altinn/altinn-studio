@@ -145,7 +145,6 @@ public sealed partial class AppFixture : IAsyncDisposable
             var appId = $"{appIdentity.Org}/{effectiveApp}";
             generatedAppDirectory = GetGeneratedAppDirectory(app, fixtureInstance);
             studioctlEnvironmentLease = await StudioctlEnvironmentLease.Acquire(logger, cancellationToken);
-            await StudioctlAppProcess.StopByPathBestEffort(generatedAppDirectory, logger);
             generatedAppDirectory = await GenerateAppDirectory(
                 app,
                 scenario,
@@ -256,8 +255,13 @@ public sealed partial class AppFixture : IAsyncDisposable
         return _directAppClient;
     }
 
-    public string GetSnapshotAppLogs()
+    public async Task<string> GetSnapshotAppLogs()
     {
+        // Logs travel a slower path (container stdout → Docker daemon → Testcontainers → pipe → background reader)
+        // than HTTP responses (direct TCP), so a response can arrive before its log line is captured.
+        // This delay gives the log consumer time to drain pending data under CI load.
+        await Task.Delay(50);
+
         // Gets logs from the app process
         // - Log messages from `SnapshotLogger` in the app
         // - Error logs (`fail:` prefix in the default M.E.L log format)
@@ -510,14 +514,27 @@ public sealed partial class AppFixture : IAsyncDisposable
         if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path))
             return;
 
-        try
+        Exception? lastException = null;
+        for (int attempt = 0; attempt < 5; attempt++)
         {
-            Directory.Delete(path, recursive: true);
+            try
+            {
+                Directory.Delete(path, recursive: true);
+                return;
+            }
+            catch (IOException ex)
+            {
+                lastException = ex;
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                lastException = ex;
+            }
+
+            Thread.Sleep(TimeSpan.FromMilliseconds(200 * (attempt + 1)));
         }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Failed to delete generated app directory {Path}", path);
-        }
+
+        logger.LogWarning(lastException, "Failed to delete generated app directory {Path}", path);
     }
 
     public async ValueTask DisposeAsync()

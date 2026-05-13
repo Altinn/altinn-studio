@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models;
 /// <summary>
 /// The message content in a correspondence.
 /// </summary>
-public sealed record CorrespondenceContent : MultipartCorrespondenceItem
+public sealed record CorrespondenceContent
 {
     /// <summary>
     /// The correspondence message title (subject).
@@ -30,14 +30,5 @@ public sealed record CorrespondenceContent : MultipartCorrespondenceItem
     /// <summary>
     /// File attachments to associate with this correspondence.
     /// </summary>
-    public IReadOnlyList<CorrespondenceAttachment>? Attachments { get; init; }
-
-    internal void Serialise(MultipartFormDataContent content)
-    {
-        AddRequired(content, Language.Value, "Correspondence.Content.Language");
-        AddRequired(content, Title, "Correspondence.Content.MessageTitle");
-        AddRequired(content, Summary, "Correspondence.Content.MessageSummary");
-        AddRequired(content, Body, "Correspondence.Content.MessageBody");
-        SerializeAttachmentItems(content, Attachments);
-    }
+    public IReadOnlyList<CorrespondenceAttachment>? Attachments { get; set; }
 }

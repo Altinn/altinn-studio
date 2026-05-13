@@ -19,14 +19,14 @@ import {
   getFormBootstrapUrlForInstance,
   getFormBootstrapUrlForStateless,
   getOrderDetailsUrl,
-  getPaymentInformationUrl,
+  getPaymentInformationForTaskUrl,
   getPdfFormatUrl,
   getProcessNextUrl,
-  getProcessStateUrl,
   getUpdateFileTagsUrl,
   refreshJwtTokenUrl,
 } from 'src/utils/urls/appUrlHelper';
 import { customEncodeURI } from 'src/utils/urls/urlHelper';
+import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 import type { DataPostResponse } from 'src/features/attachments';
 import type { IDataList } from 'src/features/dataLists';
 import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
@@ -36,10 +36,10 @@ import type { IPdfFormat } from 'src/features/pdf/types';
 import type { BackendValidationIssuesWithSource } from 'src/features/validation';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
-import type { IActionType, IData, IProcess, PostalCodesRegistry } from 'src/types/shared';
+import type { IActionType, IData, PostalCodesRegistry } from 'src/types/shared';
 
 export const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
-  httpPut<IProcess>(getProcessNextUrl(instanceId, language), action ? { action } : null);
+  httpPut<IInstanceWithProcess>(getProcessNextUrl(instanceId, language, true), action ? { action } : null);
 
 export const doAttachmentUpload = async (
   instanceId: string,
@@ -166,8 +166,6 @@ export const doPostStatelessFormData = async (
 export const fetchLogo = async (): Promise<string> =>
   (await axios.get(GlobalData.platformFrontendSettings.altinnLogoUrl)).data;
 
-export const fetchProcessState = (instanceId: string): Promise<IProcess> => httpGet(getProcessStateUrl(instanceId));
-
 export const fetchOptions = (url: string): Promise<AxiosResponse<IRawOption[]> | null> => httpGetRaw<IRawOption[]>(url);
 
 export const fetchDataList = (url: string): Promise<IDataList> => httpGet(url);
@@ -180,8 +178,11 @@ export const fetchFormData = (url: string, options?: AxiosRequestConfig): Promis
 export const fetchPdfFormat = (instanceId: string, dataElementId: string): Promise<IPdfFormat> =>
   httpGet(getPdfFormatUrl(instanceId, dataElementId));
 
-export const fetchPaymentInformation = (instanceId: string, language?: string): Promise<PaymentResponsePayload> =>
-  httpGet(getPaymentInformationUrl(instanceId, language));
+export const fetchPaymentInformationForTask = (
+  instanceId: string,
+  language?: string,
+  taskId?: string,
+): Promise<PaymentResponsePayload> => httpGet(getPaymentInformationForTaskUrl(instanceId, language, taskId));
 
 export const fetchOrderDetails = (instanceId: string, language?: string): Promise<OrderDetails> =>
   httpGet(getOrderDetailsUrl(instanceId, language));

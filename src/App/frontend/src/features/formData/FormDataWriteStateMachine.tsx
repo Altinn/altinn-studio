@@ -290,7 +290,7 @@ function makeActions(
     }
 
     if (instance) {
-      changeInstance(() => instance);
+      changeInstance((prev) => ({ ...prev, ...instance, process: prev?.process }));
     }
 
     for (const [dataType, { dataElementId }] of Object.entries(state.data.models)) {

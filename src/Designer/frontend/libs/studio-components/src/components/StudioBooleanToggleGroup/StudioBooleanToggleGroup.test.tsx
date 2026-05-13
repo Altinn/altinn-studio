@@ -9,7 +9,9 @@ import { testRefForwarding } from '../../test-utils/testRefForwarding';
 // Test data:
 const trueLabel = 'True';
 const falseLabel = 'False';
+const groupName = 'Boolean toggle';
 const defaultProps: StudioBooleanToggleGroupProps = {
+  'data-toggle-group': groupName,
   trueLabel,
   falseLabel,
 };
@@ -17,8 +19,7 @@ const defaultProps: StudioBooleanToggleGroupProps = {
 describe('StudioBooleanToggleGroup', () => {
   it('Renders a toggle group with toggles with the given labels', () => {
     renderBooleanToggle();
-    const withinRadioGroup = (): ReturnType<typeof within> =>
-      within(screen.getByRole('radiogroup'));
+    const withinRadioGroup = (): ReturnType<typeof within> => within(screen.getByRole('group'));
     expect(withinRadioGroup().getByRole('radio', { name: trueLabel })).toBeInTheDocument();
     expect(withinRadioGroup().getByRole('radio', { name: falseLabel })).toBeInTheDocument();
   });
@@ -85,7 +86,7 @@ describe('StudioBooleanToggleGroup', () => {
   });
 
   it('Forwards the ref object to the toggle group element if given', () => {
-    testRefForwarding<HTMLDivElement>((ref) => renderBooleanToggle({}, ref));
+    testRefForwarding<HTMLFieldSetElement>((ref) => renderBooleanToggle({}, ref));
   });
 
   const getTrueToggle = (): HTMLElement => screen.getByRole('radio', { name: trueLabel });
@@ -94,7 +95,7 @@ describe('StudioBooleanToggleGroup', () => {
 
 function renderBooleanToggle(
   props: Partial<StudioBooleanToggleGroupProps> = {},
-  ref?: ForwardedRef<HTMLDivElement>,
+  ref?: ForwardedRef<HTMLFieldSetElement>,
 ): RenderResult {
   return render(<StudioBooleanToggleGroup {...defaultProps} {...props} ref={ref} />);
 }

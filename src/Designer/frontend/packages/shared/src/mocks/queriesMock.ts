@@ -46,6 +46,10 @@ import type {
 } from 'app-shared/types/global';
 import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
+import type {
+  StudioctlAuthCallback,
+  StudioctlAuthRequest,
+} from 'app-shared/types/api/StudioctlAuth';
 import type { Policy, PolicyAction, PolicySubject } from 'packages/policy-editor';
 import {
   appConfig,
@@ -77,7 +81,7 @@ import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 import type { OptionList } from 'app-shared/types/OptionList';
 import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
 import type { LayoutSetModel } from '../types/api/dto/LayoutSetModel';
-import { layoutSetsExtendedMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { layoutSetsExtendedMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
 import type { OptionListsResponse } from 'app-shared/types/api/OptionListsResponse';
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
@@ -185,6 +189,14 @@ export const queriesMock: ServicesContextProps = {
       Promise.resolve<ITextResourcesWithLanguage>(textResourcesWithLanguage),
     ),
   getUser: jest.fn().mockImplementation(() => Promise.resolve<User>(user)),
+  getStudioctlAuthRequest: jest.fn().mockImplementation(() =>
+    Promise.resolve<StudioctlAuthRequest>({
+      username: user.login,
+      clientName: 'studioctl dev',
+      tokenName: 'studioctl dev mock',
+      expiresAt: '2099-01-01T00:00:00Z',
+    }),
+  ),
   getWidgetSettings: jest
     .fn()
     .mockImplementation(() => Promise.resolve<WidgetSettingsResponse | null>({})),
@@ -263,8 +275,22 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve({ belongsToOrg: true })),
 
+  // Queries - Assistant chat
+  getChatThreads: jest.fn().mockImplementation(() => Promise.resolve([])),
+  getChatMessages: jest.fn().mockImplementation(() => Promise.resolve([])),
+
   // Queries - User settings
   getUserApiKeys: jest.fn().mockImplementation(() => Promise.resolve<UserApiKey[]>([])),
+  confirmStudioctlAuthRequest: jest
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve<StudioctlAuthCallback>({ callbackUrl: 'http://127.0.0.1/callback' }),
+    ),
+  cancelStudioctlAuthRequest: jest
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve<StudioctlAuthCallback>({ callbackUrl: 'http://127.0.0.1/callback' }),
+    ),
 
   // Queries - Org settings - Contact points
   getContactPoints: jest.fn().mockImplementation(() => Promise.resolve([])),
@@ -380,6 +406,13 @@ export const queriesMock: ServicesContextProps = {
   // Mutations - User settings
   addUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
+
+  // Mutations - Assistant chat
+  createChatThread: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateChatThread: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteChatThread: jest.fn().mockImplementation(() => Promise.resolve()),
+  createChatMessage: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteChatMessage: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Org settings - Contact points
   addContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),

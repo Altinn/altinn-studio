@@ -1,0 +1,28 @@
+.root {
+  background-color: var(--ds-color-neutral-background-default);
+  flex: var(--elements-width-fraction);
+}
+
+.componentsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--ds-color-surface-neutral);
+  padding-inline: var(--ds-size-4);
+  height: var(--ds-size-15);
+  border-bottom: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+  box-sizing: border-box;
+}
+
+.collapsedPanel {
+  margin-top: var(--ds-size-2);
+  width: 100%;
+}
+.noPageSelected {
+  margin-top: var(--ds-size-5);
+  padding-left: var(--ds-size-5);
+}
+
+.errorMessage {
+  padding: var(--ds-size-4);
+}

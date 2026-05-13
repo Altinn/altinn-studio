@@ -19,8 +19,7 @@ const (
 	// DefaultEnv is the default environment name.
 	DefaultEnv = "prod"
 
-	// DefaultHost is the default Altinn Studio host.
-	DefaultHost = "altinn.studio"
+	defaultScheme = "https"
 )
 
 // Known environments with their default hosts.
@@ -29,6 +28,7 @@ const (
 var knownEnvHosts = map[string]string{
 	"prod":    "altinn.studio",
 	"dev":     "dev.altinn.studio",
+	"local":   "studio.localhost",
 	"staging": "staging.altinn.studio",
 }
 
@@ -37,8 +37,8 @@ var (
 	// ErrNotLoggedIn is returned when credentials are not found for an environment.
 	ErrNotLoggedIn = errors.New("not logged in")
 
-	// ErrInvalidToken is returned when a token is invalid or expired.
-	ErrInvalidToken = errors.New("invalid or expired token")
+	// ErrInvalidToken is returned when an API key is invalid or expired.
+	ErrInvalidToken = errors.New("invalid or expired API key")
 )
 
 // Credentials is the root structure for the credentials file.
@@ -48,9 +48,12 @@ type Credentials struct {
 
 // EnvCredentials holds credentials for a specific environment.
 type EnvCredentials struct {
-	Host     string `yaml:"host"`     // e.g., "altinn.studio"
-	Token    string `yaml:"token"`    // Personal Access Token
-	Username string `yaml:"username"` // Retrieved from API validation
+	Host      string `yaml:"host"`                // e.g., "altinn.studio"
+	Scheme    string `yaml:"scheme,omitempty"`    // "https" by default, "http" for local development
+	ApiKey    string `yaml:"apiKey"`              // Designer API key
+	ExpiresAt string `yaml:"expiresAt,omitempty"` // API key expiration timestamp
+	Username  string `yaml:"username"`            // Retrieved from API validation
+	ApiKeyID  int64  `yaml:"apiKeyId"`            // Designer API key identifier
 }
 
 // CredentialsPath returns the full path to the credentials file.
@@ -136,11 +139,6 @@ func (c *Credentials) Delete(env string) {
 	}
 }
 
-// DeleteAll removes all stored credentials.
-func (c *Credentials) DeleteAll() {
-	c.Envs = make(map[string]EnvCredentials)
-}
-
 // HasCredentials returns true if any credentials are stored.
 func (c *Credentials) HasCredentials() bool {
 	return len(c.Envs) > 0
@@ -165,4 +163,25 @@ func HostForEnv(env string) string {
 		return host
 	}
 	return ""
+}
+
+// SchemeForEnv returns the default scheme for a known environment.
+func SchemeForEnv(env string) string {
+	if env == "local" {
+		return "http"
+	}
+	return defaultScheme
+}
+
+// SchemeOrDefault returns the credential scheme, defaulting old credentials to HTTPS.
+func (c EnvCredentials) SchemeOrDefault() string {
+	return SchemeOrDefault(c.Scheme)
+}
+
+// SchemeOrDefault returns the provided scheme or the default HTTPS scheme.
+func SchemeOrDefault(scheme string) string {
+	if scheme != "" {
+		return scheme
+	}
+	return defaultScheme
 }

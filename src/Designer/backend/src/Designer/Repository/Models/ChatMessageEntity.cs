@@ -32,9 +32,9 @@ public class ChatMessageEntity
     public required string Content { get; set; }
 
     /// <summary>
-    /// Assistant action mode, set by the user.
+    /// If assistant can make changes to app, set by the user.
     /// </summary>
-    public ActionMode? ActionMode { get; set; }
+    public bool? AllowAppChanges { get; set; }
 
     /// <summary>
     /// Names of attached files.
@@ -45,4 +45,9 @@ public class ChatMessageEntity
     /// App files changed by assistant.
     /// </summary>
     public List<string>? FilesChanged { get; set; }
+
+    /// <summary>
+    /// Sources referenced by the assistant.
+    /// </summary>
+    public List<ChatSourceEntity>? Sources { get; set; }
 }

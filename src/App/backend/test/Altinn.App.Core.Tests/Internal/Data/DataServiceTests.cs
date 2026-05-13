@@ -45,7 +45,7 @@ public class DataServiceTests
                     instanceIdentifier.InstanceOwnerPartyId,
                     instanceIdentifier.InstanceGuid,
                     new Guid(instance.Data.First().Id),
-                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -100,7 +100,7 @@ public class DataServiceTests
                     instanceIdentifier.InstanceOwnerPartyId,
                     instanceIdentifier.InstanceGuid,
                     expectedDataId,
-                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -147,7 +147,7 @@ public class DataServiceTests
                     dataTypeId + ".json",
                     It.IsAny<Stream>(),
                     null,
-                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -179,7 +179,7 @@ public class DataServiceTests
                     dataTypeId + ".json",
                     dataElementId,
                     It.IsAny<Stream>(),
-                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
