@@ -39,7 +39,11 @@ spec:
     gitea:
       instanceUrl: "{{ .Values.giteaInstanceUrl }}"
       apiUrl: "{{ .Values.giteaInstanceUrl }}/api/v1"
+      # The runner advertises `ubuntu-latest:host` to act_runner (`:host`
+      # selects run-on-host mode); the KEDA scaler filters by `ubuntu-latest`
+      # only, matching what workflows put in `runs-on:`.
       runnerLabels: "ubuntu-latest:host"
+      scalerLabels: "ubuntu-latest"
 
     # KEDA wiring: name of the TriggerAuthentication ScaledJobs reference.
     # The CR is materialised by runner-org-sync's deploy in the same

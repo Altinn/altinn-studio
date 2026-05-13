@@ -168,7 +168,7 @@ spec:
         githubApiURL: {{ $.Values.gitea.apiUrl | quote }}
         owner: {{ .name | quote }}
         runnerScope: "org"
-        labels: {{ $.Values.gitea.runnerLabels | quote }}
+        labels: {{ $.Values.gitea.scalerLabels | default "ubuntu-latest" | quote }}
         targetWorkflowQueueLength: {{ $.Values.keda.targetWorkflowQueueLength | default "1" | quote }}
       authenticationRef:
         name: {{ $.Values.keda.authenticationRef.name }}

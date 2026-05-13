@@ -65,9 +65,17 @@ gitea:
   # Full API URL including /api/v1. Consumed by the KEDA github-runner scaler
   # which polls the Actions queue. Gitea's Actions API is GitHub-compatible.
   apiUrl: "http://altinn-repositories-public.default.svc.cluster.local/api/v1"
-  # Labels advertised by the runner; must match the labels referenced in
-  # workflow `runs-on:` entries (and the scaler's `labels` filter).
+  # Labels advertised by the runner via GITEA_RUNNER_LABELS env var. The
+  # `:host` suffix is act_runner's runner-type hint (run jobs natively in
+  # the pod instead of in docker); only the part BEFORE the colon is the
+  # label name workflows match against with `runs-on:`.
   runnerLabels: "ubuntu-latest:host"
+  # The label name (without runner-type suffix) the KEDA scaler filters
+  # workflow runs by. Must match the value workflows put in `runs-on:`.
+  # Derived from runnerLabels by stripping the ":<type>" suffix; expose
+  # separately so a workflow expecting "ubuntu-latest" isn't filtered out
+  # by a scaler looking for the literal "ubuntu-latest:host".
+  scalerLabels: "ubuntu-latest"
 
 # KEDA / ScaledJob configuration. Per-org caps live below in maxConcurrent*.
 keda:
