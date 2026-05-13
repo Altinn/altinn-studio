@@ -10,9 +10,11 @@ metadata:
   name: keda
   namespace: default
 spec:
-  type: oci
+  # KEDA's canonical Helm repository (the URL their docs link to). The OCI
+  # variant at oci://ghcr.io/kedacore/charts returns 403 on anonymous pulls,
+  # so we use HTTPS — same chart contents, no auth quirks.
   interval: 1h
-  url: oci://ghcr.io/kedacore/charts
+  url: https://kedacore.github.io/charts
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
