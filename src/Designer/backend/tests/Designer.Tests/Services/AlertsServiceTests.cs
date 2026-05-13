@@ -56,7 +56,7 @@ public class AlertsServiceTests
     public async Task NotifyAlertsUpdatedAsync_WhenNoFiringAlerts_ShouldNotCallNotificationService()
     {
         var service = CreateService();
-        var alert = BuildAlert([new AlertInstance { Status = "resolved", App = "app1" }]);
+        var alert = BuildAlert([BuildApp("app1", "resolved")]);
 
         await service.NotifyAlertsUpdatedAsync(
             "ttd",
@@ -91,7 +91,7 @@ public class AlertsServiceTests
     public async Task NotifyAlertsUpdatedAsync_WhenNoFiringAlerts_ShouldStillNotifyHub()
     {
         var service = CreateService();
-        var alert = BuildAlert([new AlertInstance { Status = "resolved", App = "app1" }]);
+        var alert = BuildAlert([BuildApp("app1", "resolved")]);
 
         await service.NotifyAlertsUpdatedAsync(
             "ttd",
@@ -108,7 +108,7 @@ public class AlertsServiceTests
     {
         var service = CreateService();
         var environment = AltinnEnvironment.FromName("tt02");
-        var alert = BuildAlert([new AlertInstance { Status = "firing", App = "app1" }]);
+        var alert = BuildAlert([BuildApp("app1", "firing")]);
 
         await service.NotifyAlertsUpdatedAsync("ttd", environment, alert, CancellationToken.None);
 
@@ -129,7 +129,7 @@ public class AlertsServiceTests
     {
         var service = CreateService();
         var environment = AltinnEnvironment.FromName("tt02");
-        var alert = BuildAlert([new AlertInstance { Status = "firing", App = "app1" }]);
+        var alert = BuildAlert([BuildApp("app1", "firing")]);
 
         await service.NotifyAlertsUpdatedAsync("ttd", environment, alert, CancellationToken.None);
 
@@ -149,7 +149,7 @@ public class AlertsServiceTests
     public async Task NotifyAlertsUpdatedAsync_WhenFiringAlerts_ShouldNotifyHub()
     {
         var service = CreateService();
-        var alert = BuildAlert([new AlertInstance { Status = "firing", App = "app1" }]);
+        var alert = BuildAlert([BuildApp("app1", "firing")]);
 
         await service.NotifyAlertsUpdatedAsync(
             "ttd",
@@ -173,13 +173,20 @@ public class AlertsServiceTests
         );
     }
 
-    private static Alert BuildAlert(IEnumerable<AlertInstance> instances) =>
+    private static AlertApp BuildApp(string app, string status) =>
+        new()
+        {
+            App = app,
+            Instances = [new AlertInstance { Status = status, InstanceId = Guid.NewGuid().ToString() }],
+        };
+
+    private static Alert BuildAlert(IEnumerable<AlertApp> apps) =>
         new()
         {
             Id = "alert-123",
             RuleId = "rule-456",
             Name = "HighErrorRate",
-            Alerts = instances,
+            Apps = apps,
             Url = new Uri("https://grafana.example.com/dashboard"),
             LogsUrl = new Uri("https://appinsights.example.com/logs"),
         };

@@ -38,8 +38,8 @@ internal sealed class AlertsService(
     )
     {
         var apps = alert
-            .Alerts.Where(alertInstance => alertInstance.Status == "firing")
-            .Select(alertInstance => alertInstance.App)
+            .Apps.Where(app => app.Instances.Any(i => i.Status == "firing"))
+            .Select(app => app.App)
             .ToList();
 
         if (apps.Count > 0)

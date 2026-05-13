@@ -30,7 +30,8 @@ spec:
                     | where toint(resultCode) >= 500
                     | where operation_Name == 'PUT Process/NextElement [app/instanceGuid/instanceOwnerPartyId/org]'
                         or operation_Name == 'PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next'
-                    | summarize occurred = iff(count() > 0, 1, 0) by cloud_RoleName
+                    | extend instanceId = extract(@'/instances/\d+/([0-9a-f-]{36})', 1, url)
+                    | summarize count() by cloud_RoleName, instanceId
                 resources:
                     - /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
                 resultFormat: time_series
@@ -59,7 +60,7 @@ spec:
                         - B
                   reducer:
                     params: []
-                    type: count
+                    type: last
                   type: query
             datasource:
                 type: __expr__
@@ -67,7 +68,7 @@ spec:
             expression: A
             intervalMs: 1000
             maxDataPoints: 43200
-            reducer: count
+            reducer: last
             refId: B
             type: reduce
         - refId: C
@@ -131,7 +132,8 @@ spec:
                         or operation_Name == 'POST Instances/PostSimplified [app/org]'
                         or operation_Name == 'POST {org}/{app}/instances'
                         or operation_Name == 'POST {org}/{app}/instances/create'
-                    | summarize occurred = iff(count() > 0, 1, 0) by cloud_RoleName
+                    | extend instanceId = extract(@'/instances/\d+/([0-9a-f-]{36})', 1, url)
+                    | summarize count() by cloud_RoleName, instanceId
                 resources:
                     - /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
                 resultFormat: time_series
@@ -160,7 +162,7 @@ spec:
                         - B
                   reducer:
                     params: []
-                    type: count
+                    type: last
                   type: query
             datasource:
                 type: __expr__
@@ -168,7 +170,7 @@ spec:
             expression: A
             intervalMs: 1000
             maxDataPoints: 43200
-            reducer: count
+            reducer: last
             refId: B
             type: reduce
         - refId: C
