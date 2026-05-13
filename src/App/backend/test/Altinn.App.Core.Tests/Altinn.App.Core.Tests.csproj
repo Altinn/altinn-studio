@@ -36,7 +36,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="WireMock.Net"/>
-    <PackageReference Include="System.Linq.Async"/>
     <PackageReference Include="System.IO.Hashing" />
     <PackageReference Include="PublicApiGenerator" />
   </ItemGroup>

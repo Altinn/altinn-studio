@@ -99,7 +99,7 @@ public class DataClientTests
             platformRequest,
             expectedUri,
             HttpMethod.Post,
-            "\"a cats story.pdf\"",
+            "a cats story.pdf",
             "application/pdf",
             expectedAuth: testCase?.ExpectedToken
         );
@@ -156,7 +156,7 @@ public class DataClientTests
             platformRequest,
             expectedUri,
             HttpMethod.Post,
-            "\"a cats story.pdf\"",
+            "a cats story.pdf",
             "application/pdf",
             expectedAuth: testCase?.ExpectedToken
         );

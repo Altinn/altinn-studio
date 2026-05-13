@@ -17,16 +17,12 @@ internal sealed class PostalCodesCsvParser(Stream _csvStream)
 
         using StreamReader reader = new StreamReader(_csvStream, Encoding.Latin1, leaveOpen: true);
 
-        while (!reader.EndOfStream)
+        string? line;
+        while ((line = await reader.ReadLineAsync()) is not null)
         {
-            string? line = await reader.ReadLineAsync();
-
-            if (line != null)
-            {
-                string[] columns = line.Split('\t');
-                PostalCodeRecord postalCode = new(columns[0], columns[1], columns[2], columns[3], columns[4]);
-                postalCodes.Add(postalCode);
-            }
+            string[] columns = line.Split('\t');
+            PostalCodeRecord postalCode = new(columns[0], columns[1], columns[2], columns[3], columns[4]);
+            postalCodes.Add(postalCode);
         }
 
         return postalCodes;

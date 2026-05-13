@@ -17,7 +17,6 @@
     <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" />
     <PackageReference Include="Microsoft.Rest.ClientRuntime" />
     <PackageReference Include="Microsoft.Rest.ClientRuntime.Azure" />
-    <PackageReference Include="System.Text.RegularExpressions" />
     <!-- End JWTCookieAuthentication deps -->
 
     <PackageReference Include="Altinn.Common.AccessTokenClient"/>
