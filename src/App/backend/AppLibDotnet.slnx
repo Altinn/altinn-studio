@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Altinn.App.Analyzers/Altinn.App.Analyzers.csproj" />
+    <Project Path="src/Altinn.App.Api/Altinn.App.Api.csproj" />
+    <Project Path="src/Altinn.App.Clients.Fiks/Altinn.App.Clients.Fiks.csproj" />
+    <Project Path="src/Altinn.App.Core/Altinn.App.Core.csproj" />
+    <Project Path="src/Altinn.App.Internal.Analyzers/Altinn.App.Internal.Analyzers.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <File Path=".editorconfig" />
+    <Project Path="test/Altinn.App.Api.Tests/Altinn.App.Api.Tests.csproj" />
+    <Project Path="test/Altinn.App.Clients.Fiks.Tests/Altinn.App.Clients.Fiks.Tests.csproj" />
+    <Project Path="test/Altinn.App.Core.Tests/Altinn.App.Core.Tests.csproj" />
+    <Project Path="test/Altinn.App.Tests.Common/Altinn.App.Tests.Common.csproj" />
+  </Folder>
+</Solution>
