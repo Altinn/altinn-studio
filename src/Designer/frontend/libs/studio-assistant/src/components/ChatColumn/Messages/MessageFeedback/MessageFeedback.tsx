@@ -35,6 +35,7 @@ export function MessageFeedback({ texts, traceId, onSubmit }: MessageFeedbackPro
       thumbsUp: selectedThumbsUp,
       comment: trimmedComment || undefined,
     });
+    dialogRef.current?.close();
   };
 
   return (
@@ -64,6 +65,7 @@ export function MessageFeedback({ texts, traceId, onSubmit }: MessageFeedbackPro
         </StudioDialog.Block>
         <StudioDialog.Block className={classes.dialogContent}>
           <StudioParagraph>{texts.body}</StudioParagraph>
+          {/* TODO: Add label for the text area, with an "optional" tag */}
           <StudioTextarea
             value={commentText}
             onChange={(event) => setCommentText(event.target.value)}

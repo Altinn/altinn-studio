@@ -237,6 +237,32 @@ class _NoopSpan:
         pass
 
 
+def get_trace_developer(trace_id: str) -> str | None:
+    """Return the developer stored on a Langfuse trace's root-span metadata."""
+    client = get_langfuse_client()
+    if not client or not trace_id:
+        return None
+    try:
+        trace = client.api.trace.get(trace_id)
+    except Exception as exc:
+        log.debug("Langfuse trace lookup failed for %s: %s", trace_id, exc)
+        return None
+
+    observations = getattr(trace, "observations", None) or []
+    root_observation = next(
+        (
+            obs
+            for obs in observations
+            if not getattr(obs, "parent_observation_id", None)
+        ),
+        None,
+    )
+    if root_observation is None:
+        return None
+    metadata = getattr(root_observation, "metadata", None) or {}
+    return metadata.get("developer")
+
+
 def get_current_trace_id() -> str | None:
     if not is_langfuse_enabled():
         return None

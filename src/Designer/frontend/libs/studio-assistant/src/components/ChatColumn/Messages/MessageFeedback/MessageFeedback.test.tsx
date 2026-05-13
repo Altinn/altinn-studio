@@ -39,6 +39,16 @@ describe('MessageFeedback', () => {
     });
   });
 
+  it('closes the dialog after submitting feedback', async () => {
+    const user = userEvent.setup();
+    renderMessageFeedback();
+
+    await user.click(getThumbsUpButton());
+    await user.click(getSendButton());
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
   it('calls onSubmit with comment when there is a comment', async () => {
     const user = userEvent.setup();
     const onSubmit = jest.fn();
