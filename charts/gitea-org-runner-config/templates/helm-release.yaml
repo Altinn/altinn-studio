@@ -32,6 +32,28 @@ spec:
       enabled: {{ .Values.dockerInDocker.enabled }}
     shareWorkspace:
       enabled: {{ .Values.shareWorkspace.enabled }}
+
+    # Chart-level Gitea config: the workload chart synthesises each runner
+    # pod's GITEA_INSTANCE_URL / RUNNER_LABELS env vars from here. The KEDA
+    # github-runner scaler uses apiUrl to poll org queue depth.
+    gitea:
+      instanceUrl: "{{ .Values.giteaInstanceUrl }}"
+      apiUrl: "{{ .Values.giteaInstanceUrl }}/api/v1"
+      runnerLabels: "ubuntu-latest:host"
+
+    # KEDA wiring: name of the TriggerAuthentication ScaledJobs reference.
+    # The CR is materialised by runner-org-sync's deploy in the same
+    # namespace (src/runner-org-sync/infra/kustomize/triggerauthentication.yaml).
+    keda:
+      authenticationRef:
+        name: keda-gitea-auth
+
+    # Per-org concurrency caps. Default applies to every org; overrides
+    # keyed by org name take precedence.
+    maxConcurrentDefault: {{ .Values.maxConcurrentDefault | default 2 }}
+    maxConcurrentOverrides:
+      {{- toYaml (.Values.maxConcurrentOverrides | default dict) | nindent 6 }}
+
     resources:
       requests:
         cpu: 500m
@@ -41,24 +63,18 @@ spec:
         cpu: "2"
         memory: 2Gi
         ephemeral-storage: 20Gi
+
+    # Slim per-org list. The workload chart pairs each entry's `name` with
+    # chart-level gitea/keda config to render a ScaledJob, and mounts
+    # `registrationTokenSecretName` via secretKeyRef on the runner pod.
+    # No per-runner environmentVariables block needed; no `replicas`
+    # (KEDA owns scaling via maxConcurrent*).
     runners:
-    {{- $giteaUrl := .Values.giteaInstanceUrl }}
     {{- range index .Values.runners .Values.environment }}
     - name: {{ .name }}
-      replicas: {{ .replicas }}
-      environmentVariables:
-      - name: GITEA_INSTANCE_URL
-        value: "{{ $giteaUrl }}"
-      - name: GITEA_RUNNER_EPHEMERAL
-        value: "1"
-      - name: GITEA_RUNNER_LABELS
-        value: "ubuntu-latest:host"
-      - name: GITEA_RUNNER_REGISTRATION_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: {{ .registrationTokenSecretName }}
-            key: token
+      registrationTokenSecretName: {{ .registrationTokenSecretName }}
     {{- end }}
+
     tolerations:
       - key: "purpose"
         operator: "Equal"

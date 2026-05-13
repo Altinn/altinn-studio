@@ -17,3 +17,20 @@ patches:
       metadata:
         name: altinn-altinity-agents
         namespace: default
+
+  # Per-env substitutions for the runner-org-sync Flux Kustomization. KV
+  # name follows the cluster-wide convention altinn-studio-<env>-kv. ORGS
+  # lists the whitelist runner-org-sync uses to filter the CDN. Add an
+  # entry here when onboarding a new staging-tier org.
+  - target:
+      group: kustomize.toolkit.fluxcd.io
+      version: v1
+      kind: Kustomization
+      name: runner-org-sync
+    patch: |-
+      - op: add
+        path: /spec/postBuild/substitute/RUNNER_ORG_SYNC_KEYVAULT_NAME
+        value: altinn-studio-staging-kv
+      - op: add
+        path: /spec/postBuild/substitute/RUNNER_ORG_SYNC_ORGS
+        value: ttd
