@@ -2,6 +2,8 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Globalization;
 using CsvHelper;
+using Microsoft.Build.Evaluation;
+using Microsoft.Build.Execution;
 using Microsoft.CodeAnalysis.Text;
 using Spectre.Console;
 
@@ -11,6 +13,8 @@ public sealed record AnalysisConfig(string Directory, int MaxParallelism);
 
 public sealed class AppsAnalyzer
 {
+    private static readonly SemaphoreSlim RestoreLock = new(1, 1);
+
     private readonly AnalysisConfig _config;
 
     private DirectoryInfo? _directory;
@@ -74,6 +78,7 @@ public sealed class AppsAnalyzer
         }
 
         var repos = GetRepos(cancellationToken);
+        await RestoreMissingProjectAssets(repos, cancellationToken);
 
         AnsiConsole.WriteLine();
         AnsiConsole.Write(new Rule($"Analysing [blue]{repos.Count}[/] apps").LeftJustified());
@@ -272,6 +277,119 @@ public sealed class AppsAnalyzer
 
         return result;
     }
+
+    private async Task RestoreMissingProjectAssets(
+        List<AppRepository> repos,
+        CancellationToken cancellationToken
+    )
+    {
+        var reposToRestore = repos
+            .Where(repo =>
+                File.Exists(GetProjectFile(repo)) && !File.Exists(GetProjectAssetsFile(repo))
+            )
+            .ToArray();
+        if (reposToRestore.Length == 0)
+            return;
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.Write(
+            new Rule($"Restoring [blue]{reposToRestore.Length}[/] apps").LeftJustified()
+        );
+
+        await AnsiConsole
+            .Progress()
+            .Columns(
+                new TaskDescriptionColumn(),
+                new ProgressBarColumn(),
+                new ElapsedTimeColumn(),
+                new SpinnerColumn()
+            )
+            .HideCompleted(true)
+            .AutoClear(true)
+            .StartAsync(async ctx =>
+            {
+                await RestoreRepos(ctx, reposToRestore, cancellationToken);
+            });
+    }
+
+    private async Task RestoreRepos(
+        ProgressContext ctx,
+        IReadOnlyList<AppRepository> repos,
+        CancellationToken cancellationToken
+    )
+    {
+        var options = new ParallelOptions
+        {
+            CancellationToken = cancellationToken,
+            MaxDegreeOfParallelism = Math.Min(_parallelism, 4),
+        };
+
+        await Parallel.ForEachAsync(
+            repos,
+            options,
+            async (repo, cancellationToken) =>
+            {
+                var (_, org, name) = repo;
+                var task = ctx.AddTask($"[green]{org}/{name}[/]", autoStart: false, maxValue: 1);
+                task.IsIndeterminate = true;
+                task.StartTask();
+
+                var projectFile = GetProjectFile(repo);
+                var restored = RestoreProject(projectFile);
+
+                task.Increment(1);
+                task.StopTask();
+
+                if (!restored)
+                {
+                    throw new Exception($"Restore failed for {org}/{name}");
+                }
+            }
+        );
+    }
+
+    private static bool RestoreProject(string projectFile)
+    {
+        MSBuildRegistration.EnsureRegistered();
+
+        RestoreLock.Wait();
+        try
+        {
+            return RestoreProjectCore(projectFile);
+        }
+        finally
+        {
+            RestoreLock.Release();
+        }
+    }
+
+    private static bool RestoreProjectCore(string projectFile)
+    {
+        var properties = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["RestoreUseStaticGraphEvaluation"] = "true",
+        };
+
+        using var projectCollection = new ProjectCollection(properties);
+        using var buildManager = new BuildManager($"Restore {projectFile}");
+        var parameters = new BuildParameters(projectCollection);
+        var request = new BuildRequestData(
+            projectFile,
+            properties,
+            toolsVersion: null,
+            targetsToBuild: ["Restore"],
+            hostServices: null
+        );
+
+        var result = buildManager.Build(parameters, request);
+        return result.OverallResult == BuildResultCode.Success;
+    }
+
+    private static string GetProjectFile(AppRepository repo) =>
+        Path.Combine(repo.Dir.FullName, "App", "App.csproj");
+
+    private static string GetProjectAssetsFile(AppRepository repo) =>
+        Path.Combine(repo.Dir.FullName, "App", "obj", "project.assets.json");
 
     private async Task<AppAnalysisResult[]> AnalyzeRepos(
         ProgressContext ctx,

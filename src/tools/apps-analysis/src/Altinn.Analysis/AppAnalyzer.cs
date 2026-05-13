@@ -1,11 +1,9 @@
 using System.Collections.Concurrent;
 using System.Collections.Specialized;
-using System.Diagnostics;
-using Buildalyzer;
-using Buildalyzer.IO;
-using Buildalyzer.Workspaces;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.MSBuild;
 
 namespace Altinn.Analysis;
 
@@ -95,6 +93,16 @@ public readonly record struct AppAnalysisResult
 
 public sealed class AppAnalyzer : IDisposable
 {
+    private static readonly string[] AppLibPackageNames =
+    [
+        // Main
+        "Altinn.App.Api",
+        // PR releases
+        "Altinn.App.Api.Experimental",
+        // <=6.0
+        "Altinn.App.Common",
+    ];
+
     private readonly SyncThreadPool _threadPool;
 
     public AppAnalyzer(int threadCount)
@@ -112,72 +120,35 @@ public sealed class AppAnalyzer : IDisposable
         var result = await _threadPool.RunAsync(
             async (CancellationToken cancellationToken) =>
             {
-                var manager = new AnalyzerManager();
                 var dir = app.Dir;
                 var projectFile = Path.Combine(dir.FullName, "App", "App.csproj");
 
                 if (!File.Exists(projectFile))
                     return new AppAnalysisResult(app, timedOut: false, validProject: false);
 
-                IAnalyzerResults buildResults;
-                IProjectAnalyzer? project;
+                MSBuildRegistration.EnsureRegistered();
+
+                using var workspace = MSBuildWorkspace.Create();
+                Project roslynProject;
                 try
                 {
-                    var path = IOPath.Parse(projectFile);
-                    project = manager.GetProject(path);
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    Debug.Assert(project is not null);
-                    buildResults = project.Build();
-                    cancellationToken.ThrowIfCancellationRequested();
+                    roslynProject = await workspace.OpenProjectAsync(
+                        projectFile,
+                        cancellationToken: cancellationToken
+                    );
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
                     return new AppAnalysisResult(app, timedOut: false, validProject: false);
                 }
 
-                var builds = buildResults.OverallSuccess;
-                var result = buildResults.FirstOrDefault(r => r.Succeeded);
-                if (result is null)
-                    return new AppAnalysisResult(
-                        app,
-                        timedOut: false,
-                        validProject: true,
-                        builds: builds
-                    );
+                var version = TryGetAppLibVersion(projectFile);
+                var hasAppLib = version is not null;
+                var HasLatestAppLib = IsLatestAppLibVersion(version);
 
-                var appLibRef = result.PackageReferences.FirstOrDefault(r =>
-                    // Main
-                    r.Key == "Altinn.App.Api"
-                    // PR releases
-                    || r.Key == "Altinn.App.Api.Experimental"
-                    // <=6.0
-                    || r.Key == "Altinn.App.Common"
-                );
-                string? version = null;
-                var hasAppLib =
-                    appLibRef.Key is not null
-                    && appLibRef.Value.TryGetValue("Version", out version);
-                var HasLatestAppLib = version is not null && version.StartsWith('8');
-                if (!builds || !hasAppLib || !HasLatestAppLib)
-                    return new AppAnalysisResult(
-                        app,
-                        timedOut: false,
-                        validProject: true,
-                        builds: builds,
-                        hasAppLib: hasAppLib,
-                        HasLatestAppLib: HasLatestAppLib,
-                        appLibVersion: version
-                    );
-
-                using var workspace = new AdhocWorkspace();
-                // workspace.WorkspaceFailed += (sender, args) => logger?.LogError("Workspace failed: {Diagnostic}{NewLine}", args.Diagnostic, System.Environment.NewLine);
-                Project roslynProject;
                 Compilation? compilation;
                 try
                 {
-                    result.AddToWorkspace(workspace, addProjectReferences: true);
-                    roslynProject = workspace.CurrentSolution.Projects.First();
                     compilation = await roslynProject.GetCompilationAsync(cancellationToken);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
@@ -209,12 +180,10 @@ public sealed class AppAnalyzer : IDisposable
                     diagnostics.Count(d =>
                         d.Id != "CS1701" && d.Severity == DiagnosticSeverity.Warning
                     );
-                builds =
-                    builds
-                    && !diagnostics.Any(d =>
-                        d.Severity >= DiagnosticSeverity.Error && !d.IsSuppressed
-                    );
-                if (!builds)
+                var builds = !diagnostics.Any(d =>
+                    d.Severity >= DiagnosticSeverity.Error && !d.IsSuppressed
+                );
+                if (!builds || !hasAppLib || !HasLatestAppLib)
                     return new AppAnalysisResult(
                         app,
                         timedOut: false,
@@ -251,6 +220,78 @@ public sealed class AppAnalyzer : IDisposable
         );
         results.Add(result);
     }
+
+    private static string? TryGetAppLibVersion(string projectFile)
+    {
+        var packageReference = FindPackageVersion(
+            projectFile,
+            "PackageReference",
+            AppLibPackageNames
+        );
+        if (packageReference is not null)
+            return packageReference;
+
+        var projectDirectory = Path.GetDirectoryName(projectFile);
+        while (!string.IsNullOrWhiteSpace(projectDirectory))
+        {
+            var centralPackageFile = Path.Join(projectDirectory, "Directory.Packages.props");
+            var packageVersion = FindPackageVersion(
+                centralPackageFile,
+                "PackageVersion",
+                AppLibPackageNames
+            );
+            if (packageVersion is not null)
+                return packageVersion;
+
+            projectDirectory = Directory.GetParent(projectDirectory)?.FullName;
+        }
+
+        return null;
+    }
+
+    private static string? FindPackageVersion(
+        string file,
+        string elementName,
+        IReadOnlyCollection<string> packageNames
+    )
+    {
+        if (!File.Exists(file))
+            return null;
+
+        try
+        {
+            var document = XDocument.Load(file);
+            foreach (
+                var element in document.Descendants().Where(e => e.Name.LocalName == elementName)
+            )
+            {
+                var packageName =
+                    element.Attribute("Include")?.Value ?? element.Attribute("Update")?.Value;
+                if (packageName is null || !packageNames.Contains(packageName))
+                    continue;
+
+                var version = element.Attribute("Version")?.Value;
+                if (!string.IsNullOrWhiteSpace(version))
+                    return version;
+
+                version = element
+                    .Elements()
+                    .FirstOrDefault(e => e.Name.LocalName == "Version")
+                    ?.Value;
+                if (!string.IsNullOrWhiteSpace(version))
+                    return version;
+            }
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return null;
+        }
+
+        return null;
+    }
+
+    private static bool IsLatestAppLibVersion(string? version) =>
+        version?.Trim().TrimStart('[', '(').StartsWith('8') is true;
 
     private static async Task PopulateReferenceCounts(
         string[] findReferences,

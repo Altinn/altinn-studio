@@ -1,1 +1,4 @@
 **/repos/
+**/*.csproj
+**/*.props
+**/*.targets
