@@ -18,6 +18,12 @@ spec:
   jobTargetRef:
     backoffLimit: 0
     ttlSecondsAfterFinished: {{ $.Values.keda.ttlSecondsAfterFinished | default 300 }}
+    # Cap on total Job runtime. Without this, a runner pod that registers
+    # but never gets dispatched a workflow polls Gitea forever (act_runner
+    # has no built-in idle timeout). Set generously enough that legitimate
+    # long workflows can finish, but short enough that orphaned idle
+    # runners get reaped.
+    activeDeadlineSeconds: {{ $.Values.keda.activeDeadlineSeconds | default 1800 }}
     template:
       metadata:
         labels:
