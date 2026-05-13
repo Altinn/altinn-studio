@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -279,17 +280,11 @@ func TestRunWorkflow_StudioctlLikeRepo_LocalRepo(t *testing.T) {
 		rel("v1.2.0-preview.1", "2025-01-01", cat("Added", "Older studioctl preview")),
 	))
 
-	t.Chdir(repo.dir)
-	err := internal.RunWorkflow(t.Context(), internal.WorkflowRequest{
-		Component:             studioctlComponent,
-		BaseBranch:            mainBranchName,
-		DryRun:                true,
-		Draft:                 true,
-		UnsafeSkipBranchCheck: false,
-	}, logger)
-	if err != nil {
-		t.Fatalf("RunWorkflow() error = %v", err)
-	}
+	runReleaser(t, logger, repo.dir, "workflow",
+		"-component", studioctlComponent,
+		"-base-branch", mainBranchName,
+		"-dry-run",
+	)
 
 	outputDir := filepath.Join(repo.dir, "build", "release")
 	notes, readErr := os.ReadFile(filepath.Join(outputDir, "release-notes.md"))
@@ -812,6 +807,41 @@ func runGit(t *testing.T, log internal.Logger, dir string, args ...string) strin
 		t.Fatalf("git %s: %v", strings.Join(args, " "), err)
 	}
 	return out
+}
+
+func runReleaser(t *testing.T, log internal.Logger, dir string, args ...string) {
+	t.Helper()
+
+	if log == nil {
+		log = internal.NopLogger{}
+	}
+
+	bin := filepath.Join(t.TempDir(), "releaser")
+	if runtime.GOOS == "windows" {
+		bin += ".exe"
+	}
+	buildArgs := []string{"build", "-o", bin, "."}
+	log.Command("go", buildArgs)
+	buildCmd := exec.CommandContext(t.Context(), "go", buildArgs...)
+	buildCmd.Dir = cliRootDir()
+	buildOutput, err := buildCmd.CombinedOutput()
+	if len(buildOutput) > 0 {
+		log.Info("%s", strings.TrimSpace(string(buildOutput)))
+	}
+	if err != nil {
+		t.Fatalf("go %s: %v\n%s", strings.Join(buildArgs, " "), err, string(buildOutput))
+	}
+
+	log.Command(bin, args)
+	cmd := exec.CommandContext(t.Context(), bin, args...)
+	cmd.Dir = dir
+	output, err := cmd.CombinedOutput()
+	if len(output) > 0 {
+		log.Info("%s", strings.TrimSpace(string(output)))
+	}
+	if err != nil {
+		t.Fatalf("%s %s: %v\n%s", bin, strings.Join(args, " "), err, string(output))
+	}
 }
 
 func writeFile(t *testing.T, path, content string) {

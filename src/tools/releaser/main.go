@@ -117,6 +117,9 @@ Examples:
 	if err := validateWorkflowExecutionContext(*dryRun); err != nil {
 		return fmt.Errorf("validate workflow execution context: %w", err)
 	}
+	if err := registerBuilders(); err != nil {
+		return fmt.Errorf("register builders: %w", err)
+	}
 
 	req := internal.WorkflowRequest{
 		Component:             *component,
