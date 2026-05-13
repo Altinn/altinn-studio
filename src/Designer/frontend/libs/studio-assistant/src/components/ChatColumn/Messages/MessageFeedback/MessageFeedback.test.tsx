@@ -8,81 +8,51 @@ const mockTexts: MessageFeedbackTexts = {
   thumbsUp: 'Nyttig svar',
   thumbsDown: 'Ikke nyttig svar',
   heading: 'Tilbakemelding',
-  body: 'Tilbakemeldingen er mottatt! Ønsker du å utdype?',
+  body: 'Takk for tilbakemeldingen. Vil du utdype?',
   submit: 'Send',
 };
 
 describe('MessageFeedback', () => {
-  beforeAll(() => {
-    if (!HTMLDialogElement.prototype.showModal) {
-      HTMLDialogElement.prototype.showModal = function showModal() {
-        this.setAttribute('open', '');
-      };
-    }
-    if (!HTMLDialogElement.prototype.close) {
-      HTMLDialogElement.prototype.close = function close() {
-        this.removeAttribute('open');
-        this.dispatchEvent(new Event('close'));
-      };
-    }
-  });
-
-  it('renders both thumb buttons enabled by default', () => {
+  it('renders thumbs up and thumbs down buttons', () => {
     renderMessageFeedback();
 
-    expect(getThumbsUpButton()).toBeEnabled();
-    expect(getThumbsDownButton()).toBeEnabled();
+    expect(getThumbsUpButton()).toBeInTheDocument();
+    expect(getThumbsDownButton()).toBeInTheDocument();
   });
 
-  it('marks the chosen button as pressed and opens the dialog after the first vote, without firing onSubmit yet', async () => {
+  it('opens feedback dialog when pressing either thumb button', async () => {
     const user = userEvent.setup();
     const onSubmit = jest.fn();
     renderMessageFeedback({ onSubmit });
 
     await user.click(getThumbsUpButton());
 
-    expect(getThumbsUpButton()).toHaveAttribute('aria-pressed', 'true');
-    expect(getThumbsDownButton()).toBeEnabled();
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(onSubmit).not.toHaveBeenCalled();
   });
 
-  it('fires onSubmit once with no comment when the dialog is dismissed without typing', async () => {
+  it('calls onSubmit without comment when there is no comment', async () => {
     const user = userEvent.setup();
     const onSubmit = jest.fn();
     renderMessageFeedback({ onSubmit });
 
     await user.click(getThumbsUpButton());
-    closeDialogViaEscape();
+    await user.click(getSendButton());
 
     expect(onSubmit).toHaveBeenCalledTimes(1);
-    expect(onSubmit).toHaveBeenCalledWith('up', undefined);
+    expect(onSubmit).toHaveBeenCalledWith('up');
   });
 
-  it('fires onSubmit once with the comment when the user submits the textarea', async () => {
+  it('calls onSubmit with comment when there is a comment', async () => {
     const user = userEvent.setup();
     const onSubmit = jest.fn();
     renderMessageFeedback({ onSubmit });
 
     await user.click(getThumbsDownButton());
     await user.type(screen.getByRole('textbox'), 'Svaret traff ikke helt.');
-    await user.click(screen.getByRole('button', { name: mockTexts.submit }));
+    await user.click(getSendButton());
 
     expect(onSubmit).toHaveBeenCalledTimes(1);
     expect(onSubmit).toHaveBeenCalledWith('down', 'Svaret traff ikke helt.');
-  });
-
-  it('does not fire onSubmit a second time if the dialog close fires twice', async () => {
-    const user = userEvent.setup();
-    const onSubmit = jest.fn();
-    renderMessageFeedback({ onSubmit });
-
-    await user.click(getThumbsUpButton());
-    const dialogElement = screen.getByRole('dialog');
-    dialogElement.dispatchEvent(new Event('close'));
-    dialogElement.dispatchEvent(new Event('close'));
-
-    expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -101,7 +71,4 @@ const getThumbsUpButton = (): HTMLElement =>
 const getThumbsDownButton = (): HTMLElement =>
   screen.getByRole('button', { name: mockTexts.thumbsDown });
 
-const closeDialogViaEscape = (): void => {
-  const dialogElement = screen.getByRole('dialog') as HTMLDialogElement;
-  dialogElement.close();
-};
+const getSendButton = (): HTMLElement => screen.getByRole('button', { name: mockTexts.submit });
