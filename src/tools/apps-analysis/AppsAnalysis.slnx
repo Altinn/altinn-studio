@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Altinn.Analysis.Cli/Altinn.Analysis.Cli.csproj" />
+    <Project Path="src/Altinn.Analysis/Altinn.Analysis.csproj" />
+  </Folder>
+</Solution>

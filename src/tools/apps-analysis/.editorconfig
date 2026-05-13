@@ -1,0 +1,34 @@
+[*.cs]
+
+# IDE0058: Expression value is never used
+dotnet_diagnostic.IDE0058.severity = suggestion
+
+# S125: Sections of code should not be commented out
+dotnet_diagnostic.S125.severity = suggestion
+
+# S112: General exceptions should never be thrown
+dotnet_diagnostic.S112.severity = suggestion
+
+# CA2201: Exception type is not sufficiently specific
+dotnet_diagnostic.CA2201.severity = suggestion
+
+# S1135: Track uses of "TODO" tags
+dotnet_diagnostic.S1135.severity = suggestion
+
+# S4487: Unread private class field
+dotnet_diagnostic.S4487.severity = suggestion
+
+# S1481: Unused local variables should be removed
+dotnet_diagnostic.S1481.severity = suggestion
+
+# CA1050: Declare types in namespaces
+dotnet_diagnostic.CA1050.severity = suggestion
+
+# S3903: Types should be defined in named namespaces
+dotnet_diagnostic.S3903.severity = suggestion
+
+# S108: Nested blocks of code should not be left empty
+dotnet_diagnostic.S108.severity = suggestion
+
+# S1199: Nested code blocks should not be used
+dotnet_diagnostic.S1199.severity = suggestion
