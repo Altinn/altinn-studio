@@ -7,7 +7,7 @@ import {
   StudioParagraph,
   StudioTextarea,
 } from '@studio/components';
-import { ThumbDownIcon, ThumbUpIcon } from '@studio/icons';
+import { ThumbDownIcon, ThumbUpIcon, PaperplaneFillIcon } from '@studio/icons';
 import type { MessageFeedbackTexts } from '../../../../types/AssistantTexts';
 import classes from './MessageFeedback.module.css';
 
@@ -89,20 +89,20 @@ export function MessageFeedback({ texts, onSubmit }: MessageFeedbackProps): Reac
       </div>
       <StudioDialog ref={dialogRef} closedby='any' className={classes.dialog}>
         <StudioDialog.Block>
-          <StudioHeading level={2} data-size='sm'>
-            {texts.thanksHeading}
-          </StudioHeading>
+          <StudioHeading level={2}>{texts.heading}</StudioHeading>
         </StudioDialog.Block>
-        <StudioDialog.Block>
-          <StudioParagraph spacing>{texts.elaboratePrompt}</StudioParagraph>
+        <StudioDialog.Block className={classes.dialogContent}>
+          <StudioParagraph>{texts.body}</StudioParagraph>
           <StudioTextarea
             value={commentText}
             onChange={(event) => setCommentText(event.target.value)}
-            placeholder={texts.commentPlaceholder}
-            rows={4}
           />
           <div className={classes.dialogActions}>
-            <StudioButton variant='primary' onClick={handleSendComment}>
+            <StudioButton
+              variant='primary'
+              onClick={handleSendComment}
+              icon={<PaperplaneFillIcon />}
+            >
               {texts.submit}
             </StudioButton>
           </div>

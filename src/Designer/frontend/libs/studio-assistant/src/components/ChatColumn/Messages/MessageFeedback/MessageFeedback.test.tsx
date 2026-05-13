@@ -7,9 +7,8 @@ import type { MessageFeedbackTexts } from '../../../../types/AssistantTexts';
 const mockTexts: MessageFeedbackTexts = {
   thumbsUp: 'Nyttig svar',
   thumbsDown: 'Ikke nyttig svar',
-  thanksHeading: 'Takk for tilbakemeldingen, den er mottatt!',
-  elaboratePrompt: 'Ønsker du å utdype?',
-  commentPlaceholder: 'Skriv tilbakemeldingen din her ...',
+  heading: 'Tilbakemelding',
+  body: 'Tilbakemeldingen er mottatt! Ønsker du å utdype?',
   submit: 'Send',
 };
 

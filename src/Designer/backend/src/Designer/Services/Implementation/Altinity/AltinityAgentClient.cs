@@ -19,7 +19,7 @@ public class AltinityAgentClient : IAltinityAgentClient
 
     public AltinityAgentClient(
         HttpClient httpClient,
-        IOptions<AltinitySettings> altinitySettings,
+        IOptions<AltinitySettings> altinitySettings
     )
     {
         _httpClient = httpClient;

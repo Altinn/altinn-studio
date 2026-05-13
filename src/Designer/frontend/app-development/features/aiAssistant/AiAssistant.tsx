@@ -78,9 +78,8 @@ function AiAssistant(): ReactElement {
     feedback: {
       thumbsUp: t('ai_assistant.feedback_thumbs_up'),
       thumbsDown: t('ai_assistant.feedback_thumbs_down'),
-      thanksHeading: t('ai_assistant.feedback_thanks_heading'),
-      elaboratePrompt: t('ai_assistant.feedback_elaborate_prompt'),
-      commentPlaceholder: t('ai_assistant.feedback_comment_placeholder'),
+      heading: t('ai_assistant.feedback_heading'),
+      body: t('ai_assistant.feedback_body'),
       submit: t('ai_assistant.feedback_submit'),
     },
   };

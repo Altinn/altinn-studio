@@ -22,9 +22,8 @@ const textAreaTexts: TextAreaTexts = {
 const messageFeedbackTexts: MessageFeedbackTexts = {
   thumbsUp: 'feedbackThumbsUp',
   thumbsDown: 'feedbackThumbsDown',
-  thanksHeading: 'feedbackThanksHeading',
-  elaboratePrompt: 'feedbackElaboratePrompt',
-  commentPlaceholder: 'feedbackCommentPlaceholder',
+  heading: 'feedbackHeading',
+  body: 'feedbackBody',
   submit: 'feedbackSubmit',
 };
 
