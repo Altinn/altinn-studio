@@ -146,29 +146,11 @@ func run() error {
 		return runErr
 	}
 
-	// Project the KEDA read-only PAT into a K8s Secret. Independent of the
-	// per-org reconcile — runs even when the reconcile outcome is "partial"
-	// because the KEDA Secret has its own lifecycle. A failure here is
-	// non-fatal: log + metric, exit 0, retry next tick.
-	kedaChanged, kedaErr := store.ApplyOpaqueSecret(ctx,
-		cfg.KedaPATSecretName, cfg.KedaPATSecretKey, kedaPAT)
-	metrics.KedaSecretApplied.Add(ctx, 1, metric.WithAttributes(
-		attribute.Bool("changed", kedaChanged),
-		attribute.Bool("success", kedaErr == nil),
-	))
-	if kedaErr != nil {
-		logger.Warn("keda.secret.apply.failed", "err", kedaErr.Error(), "secret", cfg.KedaPATSecretName)
-		span.AddEvent("keda.secret.apply.failed", trace.WithAttributes(
-			attribute.String("secret", cfg.KedaPATSecretName),
-			attribute.String("err", kedaErr.Error()),
-		))
-	} else {
-		span.AddEvent("keda.secret.applied", trace.WithAttributes(
-			attribute.String("secret", cfg.KedaPATSecretName),
-			attribute.Bool("changed", kedaChanged),
-		))
-		logger.Info("keda.secret.applied", "secret", cfg.KedaPATSecretName, "changed", kedaChanged)
-	}
+	// Independent of the per-org reconcile — runs even when its outcome is
+	// "partial" because the KEDA Secret has its own lifecycle. Failure is
+	// non-fatal: logged + counted, but the CronJob still exits 0 so the
+	// next tick retries.
+	applyKedaSecret(ctx, store, cfg, kedaPAT, metrics, span, logger)
 
 	if report.Outcome == reconcile.OutcomePartial {
 		// Continue-on-partial: still exit 0; metric + WARN log carries the signal.
@@ -196,6 +178,40 @@ func loadSecretFromKV(ctx context.Context, override, vaultName, vaultSecretName 
 	}
 	loader := keyvault.NewLoader(override, getter, vaultSecretName)
 	return loader.Load(ctx)
+}
+
+// applyKedaSecret writes the KEDA read-only PAT into a single-key Opaque
+// Secret in the output namespace and emits its own metric / span event /
+// log line. Separated from the per-org reconcile because it has an
+// independent lifecycle (sourced from KV, not from Gitea) and an
+// independent failure model (non-fatal — next tick retries).
+func applyKedaSecret(
+	ctx context.Context,
+	store *k8sstate.Store,
+	cfg config.Config,
+	value string,
+	metrics *telemetry.Metrics,
+	span trace.Span,
+	logger *slog.Logger,
+) {
+	changed, err := store.ApplyOpaqueSecret(ctx, cfg.KedaPATSecretName, cfg.KedaPATSecretKey, value)
+	metrics.KedaSecretApplied.Add(ctx, 1, metric.WithAttributes(
+		attribute.Bool("changed", changed),
+		attribute.Bool("success", err == nil),
+	))
+	if err != nil {
+		logger.Warn("keda.secret.apply.failed", "err", err.Error(), "secret", cfg.KedaPATSecretName)
+		span.AddEvent("keda.secret.apply.failed", trace.WithAttributes(
+			attribute.String("secret", cfg.KedaPATSecretName),
+			attribute.String("err", err.Error()),
+		))
+		return
+	}
+	span.AddEvent("keda.secret.applied", trace.WithAttributes(
+		attribute.String("secret", cfg.KedaPATSecretName),
+		attribute.Bool("changed", changed),
+	))
+	logger.Info("keda.secret.applied", "secret", cfg.KedaPATSecretName, "changed", changed)
 }
 
 // buildK8sClient returns a clientset that prefers in-cluster config and
