@@ -1,7 +1,6 @@
 import dot from 'dot-object';
 import escapeStringRegexp from 'escape-string-regexp';
 
-import { ContextNotProvided } from 'src/core/contexts/context';
 import { SearchParams } from 'src/core/routing/types';
 import { evalExpr, exprCastValue } from 'src/features/expressions';
 import { Decimal } from 'src/features/expressions/Decimal';
@@ -9,6 +8,7 @@ import { ExprRuntimeError, NodeRelationNotFound } from 'src/features/expressions
 import { ExprVal } from 'src/features/expressions/types';
 import { addError, ExprValidation } from 'src/features/expressions/validation';
 import { makeIndexedId } from 'src/features/form/layout/utils/makeIndexedId';
+import { getUiFolderSettings } from 'src/features/form/ui';
 import { buildAuthContext } from 'src/utils/authContext';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { formatDateLocale } from 'src/utils/dateUtils';
@@ -188,12 +188,12 @@ export const ExprFunctionDefinitions = {
   component: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.Any,
-    needs: dataSources('layoutLookups', 'currentDataModelPath', 'dataModelNames', 'formDataSelector'),
+    needs: dataSources('formStoreSelector', 'currentDataModelPath'),
   },
   dataModel: {
     args: args(required(ExprVal.String), optional(ExprVal.String)),
     returns: ExprVal.Any,
-    needs: dataSources('defaultDataType', 'currentDataModelPath', 'dataModelNames', 'formDataSelector'),
+    needs: dataSources('formStoreSelector', 'currentDataModelPath'),
   },
   countDataElements: {
     args: args(required(ExprVal.String)),
@@ -208,12 +208,12 @@ export const ExprFunctionDefinitions = {
   displayValue: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.String,
-    needs: dataSources('displayValues', 'currentDataModelPath', 'layoutLookups'),
+    needs: dataSources('displayValues', 'currentDataModelPath', 'formStoreSelector'),
   },
   optionLabel: {
     args: args(required(ExprVal.String), required(ExprVal.Any)),
     returns: ExprVal.String,
-    needs: dataSources('codeListSelector', 'langToolsSelector', 'currentDataModelPath'),
+    needs: dataSources('formStoreSelector', 'langToolsSelector', 'currentDataModelPath'),
   },
   formatDate: {
     args: args(required(ExprVal.Date), optional(ExprVal.String)),
@@ -238,7 +238,7 @@ export const ExprFunctionDefinitions = {
   linkToComponent: {
     args: args(required(ExprVal.String), required(ExprVal.String), optional(ExprVal.Boolean)),
     returns: ExprVal.String,
-    needs: dataSources('layoutLookups', 'process', 'instanceDataSources', 'currentDataModelPath', 'currentPage'),
+    needs: dataSources('formStoreSelector', 'process', 'instanceDataSources', 'currentDataModelPath', 'currentPage'),
   },
   linkToPage: {
     args: args(required(ExprVal.String), required(ExprVal.String), optional(ExprVal.Boolean)),
@@ -324,7 +324,7 @@ export const ExprFunctionDefinitions = {
       optional(ExprVal.Boolean),
     ),
     returns: ExprVal.String,
-    needs: dataSources('defaultDataType', 'formDataSelector'),
+    needs: dataSources('formStoreSelector'),
   },
 } satisfies { [key: string]: AnyFuncDef };
 
@@ -461,7 +461,8 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup component null`);
     }
 
-    const target = this.dataSources.layoutLookups.allComponents[id];
+    const layoutLookups = this.dataSources.formStoreSelector((s) => s.bootstrap.layoutLookups, []);
+    const target = layoutLookups?.allComponents[id];
     if (!target) {
       throw new ExprRuntimeError(this.expr, this.path, `Unable to find component with identifier ${id}`);
     }
@@ -475,7 +476,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new ExprRuntimeError(this.expr, this.path, `Component ${id} does not have a simpleBinding`);
     }
 
-    if (!makeIndexedId(target.id, this.dataSources.currentDataModelPath, this.dataSources.layoutLookups)) {
+    if (!makeIndexedId(target.id, this.dataSources.currentDataModelPath, layoutLookups)) {
       throw new NodeRelationNotFound(this, id);
     }
 
@@ -498,7 +499,9 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup dataModel null`);
     }
 
-    const dataType = maybeDataType ?? this.dataSources.defaultDataType;
+    const uiFolder = this.dataSources.formStoreSelector((s) => s.bootstrap.uiFolder, []);
+    const defaultDataType = getUiFolderSettings(uiFolder)?.defaultDataType;
+    const dataType = maybeDataType ?? defaultDataType;
     if (!dataType) {
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup dataType undefined`);
     }
@@ -552,12 +555,13 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     if (id === null) {
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup component null`);
     }
-    const target = this.dataSources.layoutLookups.allComponents[id];
+    const layoutLookups = this.dataSources.formStoreSelector((s) => s.bootstrap.layoutLookups, []);
+    const target = layoutLookups?.allComponents[id];
     if (!target) {
       throw new ExprRuntimeError(this.expr, this.path, `Unable to find component with identifier ${id}`);
     }
 
-    if (!makeIndexedId(id, this.dataSources.currentDataModelPath, this.dataSources.layoutLookups)) {
+    if (!makeIndexedId(id, this.dataSources.currentDataModelPath, layoutLookups)) {
       throw new NodeRelationNotFound(this, id);
     }
 
@@ -580,7 +584,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new ExprRuntimeError(this.expr, this.path, `Expected an options id`);
     }
 
-    const options = this.dataSources.codeListSelector(optionsId);
+    const options = this.dataSources.formStoreSelector((s) => s.bootstrap.staticOptions[optionsId]?.options, []);
     if (!options) {
       throw new ExprRuntimeError(this.expr, this.path, `Could not find options with id "${optionsId}"`);
     }
@@ -635,8 +639,9 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       return null;
     }
 
-    const target = this.dataSources.layoutLookups.allComponents[id];
-    const pageKey = this.dataSources.layoutLookups.componentToPage[id];
+    const layoutLookups = this.dataSources.formStoreSelector((s) => s.bootstrap.layoutLookups, []);
+    const target = layoutLookups?.allComponents[id];
+    const pageKey = layoutLookups?.componentToPage[id];
     if (!target || !pageKey) {
       throw new ExprRuntimeError(this.expr, this.path, `Unable to find component with identifier ${id}`);
     }
@@ -651,7 +656,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       url = `/${pageKey}`;
     }
 
-    const relativeId = makeIndexedId(id, this.dataSources.currentDataModelPath, this.dataSources.layoutLookups);
+    const relativeId = makeIndexedId(id, this.dataSources.currentDataModelPath, layoutLookups);
     if (!relativeId) {
       throw new NodeRelationNotFound(this, id);
     }
@@ -789,14 +794,15 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup dataModel null`);
     }
 
-    const dataType = this.dataSources.defaultDataType;
+    const uiFolder = this.dataSources.formStoreSelector((s) => s.bootstrap.uiFolder, []);
+    const dataType = getUiFolderSettings(uiFolder)?.defaultDataType;
     if (!dataType) {
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup dataType undefined`);
     }
-    if (this.dataSources.formDataSelector === ContextNotProvided) {
-      return '';
-    }
-    const array = this.dataSources.formDataSelector({ field: path, dataType });
+    const array = this.dataSources.formStoreSelector(
+      (s) => dot.pick(path, s.data.models[dataType]?.debouncedCurrentData),
+      [dataType, path],
+    );
     if (typeof array != 'object' || !Array.isArray(array)) {
       return '';
     }
@@ -880,27 +886,30 @@ export const ExprFunctionValidationExtensions: { [K in ExprFunctionName]?: FuncV
   },
 };
 
-function pickSimpleValue(
-  path: IDataModelReference,
-  params: EvaluateExpressionParams<['dataModelNames', 'formDataSelector']>,
-) {
-  const isValidDataType = params.dataSources.dataModelNames.includes(path.dataType);
+function pickSimpleValue(path: IDataModelReference, params: EvaluateExpressionParams<['formStoreSelector']>) {
+  const isValidDataType = params.dataSources.formStoreSelector(
+    (s) => Object.keys(s.bootstrap.dataModels).includes(path.dataType),
+    [path.dataType],
+  );
   if (!isValidDataType) {
     throw new ExprRuntimeError(params.expr, params.path, `Data model with type ${path.dataType} not found`);
   }
-  if (params.dataSources.formDataSelector === ContextNotProvided) {
-    return null;
-  }
 
-  const value = params.dataSources.formDataSelector(path);
+  const value = params.dataSources.formStoreSelector(
+    (s) => dot.pick(path.field, s.data.models[path.dataType]?.debouncedCurrentData),
+    [path.field, path.dataType],
+  );
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
     return value;
   }
   return null;
 }
 
-function isComponentOrAncestorHidden(ctx: EvaluateExpressionParams<['layoutLookups']>, componentId: string) {
-  const layoutLookups = ctx.dataSources.layoutLookups;
+function isComponentOrAncestorHidden(ctx: EvaluateExpressionParams<['formStoreSelector']>, componentId: string) {
+  const layoutLookups = ctx.dataSources.formStoreSelector((s) => s.bootstrap.layoutLookups, []);
+  if (!layoutLookups) {
+    throw new ExprRuntimeError(ctx.expr, ctx.path, 'Layouts not available in this context, cannot look up component');
+  }
   const hiddenSources = collectHiddenSources(componentId, layoutLookups).reverse();
   const pageKey = layoutLookups.componentToPage[componentId];
   return evaluateHiddenSources({
