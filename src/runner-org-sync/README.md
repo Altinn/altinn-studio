@@ -93,6 +93,24 @@ Three distinct credentials, three storage strategies:
 | Per-org runner registration token          | Lower (scoped to one org) | K8s Secret `altinn-gitea-runner-<org>-secret`, key `token`. Minted by runner-org-sync on first appearance of the org, consumed by the runner Pod (created by KEDA's ScaledJob) via `secretKeyRef`.   |
 | Read-only Gitea PAT for KEDA scaler        | Lower (read-only on orgs) | Azure Key Vault → projected to K8s Secret `keda-gitea-pat`, key `token`, by runner-org-sync each tick. Consumed by KEDA's `TriggerAuthentication`. Rotates when the KV value changes (≤ tick + 30s). |
 
+### KEDA wiring
+
+The `TriggerAuthentication/keda-gitea-auth` lives in
+`infra/kustomize/triggerauthentication.yaml` — ships with this service so
+the Secret writer and the auth ref are deployed atomically. Three names
+must agree across this folder and the workload chart:
+
+| Where                                 | Field                                                  | Value                      |
+| ------------------------------------- | ------------------------------------------------------ | -------------------------- |
+| `cronjob.yaml` (env)                  | `RUNNER_ORG_SYNC_KEDA_PAT_SECRET_NAME` / `_SECRET_KEY` | `keda-gitea-pat` / `token` |
+| `triggerauthentication.yaml`          | `secretTargetRef.name` / `.key`                        | `keda-gitea-pat` / `token` |
+| `charts/gitea-org-runner/values.yaml` | `keda.authenticationRef.name`                          | `keda-gitea-auth`          |
+
+The chart only consumes the TriggerAuth name as a reference; it does not
+define the Secret or the TriggerAuth itself. Renaming any of the above
+requires updating all four entries together — otherwise KEDA scalers
+fail with `auth ref not found`.
+
 ## Configuration
 
 All settings come from environment variables. The loader fails fast at
