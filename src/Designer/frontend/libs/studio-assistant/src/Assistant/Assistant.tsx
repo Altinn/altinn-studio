@@ -3,7 +3,7 @@ import type { ReactElement } from 'react';
 import type { ChatThread, UserMessage, Message } from '../types/ChatThread';
 import { CompactInterface } from '../components/CompactInterface/CompactInterface';
 import { CompleteInterface } from '../components/CompleteInterface/CompleteInterface';
-import type { MessageFeedbackHandler } from '../components/ChatColumn/Messages/Messages';
+import type { UserFeedback } from '../types/UserFeedback';
 import type { AssistantTexts } from '../types/AssistantTexts';
 import type { ConnectionStatus } from '../types/ConnectionStatus';
 import type { WorkflowStatus } from '../types/WorkflowStatus';
@@ -23,11 +23,11 @@ export type AssistantProps = {
   onSelectThread?: (threadId: string) => void;
   onDeleteThread?: (threadId: string) => void;
   onCreateThread?: () => void;
+  onMessageFeedback?: (feedback: UserFeedback) => void;
   workflowStatus: WorkflowStatus;
   previewContent: ReactElement;
   fileBrowserContent?: ReactElement;
   currentUser?: User;
-  onMessageFeedback?: MessageFeedbackHandler;
 };
 
 export function Assistant({
@@ -45,10 +45,10 @@ export function Assistant({
   onSelectThread,
   onDeleteThread,
   onCreateThread,
+  onMessageFeedback,
   previewContent,
   fileBrowserContent,
   currentUser,
-  onMessageFeedback,
 }: AssistantProps): React.ReactElement {
   return enableCompactInterface ? (
     <CompactInterface texts={texts} onSubmitMessage={onSubmitMessage} currentUser={currentUser} />
@@ -67,10 +67,10 @@ export function Assistant({
       onSelectThread={onSelectThread}
       onDeleteThread={onDeleteThread}
       onCreateThread={onCreateThread}
+      onMessageFeedback={onMessageFeedback}
       previewContent={previewContent}
       fileBrowserContent={fileBrowserContent}
       currentUser={currentUser}
-      onMessageFeedback={onMessageFeedback}
     />
   );
 }

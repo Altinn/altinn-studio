@@ -1,6 +1,5 @@
 import type { ReactElement } from 'react';
-import { useCallback } from 'react';
-import type { AssistantTexts, FeedbackVote } from '@studio/assistant';
+import type { AssistantTexts } from '@studio/assistant';
 import { Assistant } from '@studio/assistant';
 import { Trans, useTranslation } from 'react-i18next';
 import { useAltinityAssistant, useAltinityPermissions } from './hooks';
@@ -16,13 +15,6 @@ function AiAssistant(): ReactElement {
   const { data: currentUser } = useUserQuery();
   const userHasAccessToAssistant = useAltinityPermissions();
   const { mutate: sendChatFeedback } = useChatFeedbackMutation();
-
-  const handleMessageFeedback = useCallback(
-    (traceId: string, vote: FeedbackVote, comment?: string) => {
-      sendChatFeedback({ traceId, thumbsUp: vote === 'up', comment });
-    },
-    [sendChatFeedback],
-  );
 
   const {
     connectionStatus,
@@ -110,12 +102,12 @@ function AiAssistant(): ReactElement {
         onSelectThread={selectThread}
         onCreateThread={clearCurrentSession}
         onDeleteThread={deleteThread}
+        onMessageFeedback={sendChatFeedback}
         connectionStatus={connectionStatus}
         workflowStatus={workflowStatus}
         previewContent={<Preview />}
         fileBrowserContent={<FileBrowser />}
         currentUser={currentUser}
-        onMessageFeedback={handleMessageFeedback}
       />
     </div>
   );

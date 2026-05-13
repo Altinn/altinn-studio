@@ -4,6 +4,8 @@ import { MessageFeedback } from './MessageFeedback';
 import type { MessageFeedbackProps } from './MessageFeedback';
 import { messageFeedbackTexts as feedbackTexts } from '../../../../mocks/mockTexts';
 
+const traceId = 'trace-123';
+
 describe('MessageFeedback', () => {
   it('renders thumbs up and thumbs down buttons', () => {
     renderMessageFeedback();
@@ -14,8 +16,7 @@ describe('MessageFeedback', () => {
 
   it('opens feedback dialog when pressing either thumb button', async () => {
     const user = userEvent.setup();
-    const onSubmit = jest.fn();
-    renderMessageFeedback({ onSubmit });
+    renderMessageFeedback();
 
     await user.click(getThumbsUpButton());
 
@@ -31,7 +32,11 @@ describe('MessageFeedback', () => {
     await user.click(getSendButton());
 
     expect(onSubmit).toHaveBeenCalledTimes(1);
-    expect(onSubmit).toHaveBeenCalledWith('up');
+    expect(onSubmit).toHaveBeenCalledWith({
+      traceId,
+      thumbsUp: true,
+      comment: undefined,
+    });
   });
 
   it('calls onSubmit with comment when there is a comment', async () => {
@@ -44,12 +49,17 @@ describe('MessageFeedback', () => {
     await user.click(getSendButton());
 
     expect(onSubmit).toHaveBeenCalledTimes(1);
-    expect(onSubmit).toHaveBeenCalledWith('down', 'Svaret traff ikke helt.');
+    expect(onSubmit).toHaveBeenCalledWith({
+      traceId,
+      thumbsUp: false,
+      comment: 'Svaret traff ikke helt.',
+    });
   });
 });
 
 const defaultProps: MessageFeedbackProps = {
   texts: feedbackTexts,
+  traceId,
   onSubmit: jest.fn(),
 };
 

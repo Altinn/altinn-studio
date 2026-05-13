@@ -14,16 +14,10 @@ import {
 } from '../../../utils/messageUtils';
 import { ChatAvatar } from '../ChatAvatar';
 import { MessageFeedback } from './MessageFeedback';
-import type { FeedbackVote } from './MessageFeedback';
+import type { UserFeedback } from '../../../types/UserFeedback';
 
 const ASSISTANT_LABEL = 'Altinity';
 const DEFAULT_USER_LABEL = 'Deg';
-
-export type MessageFeedbackHandler = (
-  traceId: string,
-  vote: FeedbackVote,
-  comment?: string,
-) => void;
 
 export type MessagesProps = {
   messages: Message[];
@@ -31,7 +25,7 @@ export type MessagesProps = {
   currentUser?: User;
   assistantAvatarUrl?: string;
   feedbackTexts?: MessageFeedbackTexts;
-  onMessageFeedback?: MessageFeedbackHandler;
+  onMessageFeedback?: (feedback: UserFeedback) => void;
 };
 
 export function Messages({
@@ -95,7 +89,7 @@ type MessageItemProps = {
   currentUser?: User;
   assistantAvatarUrl?: string;
   feedbackTexts?: MessageFeedbackTexts;
-  onMessageFeedback?: MessageFeedbackHandler;
+  onMessageFeedback?: (feedback: UserFeedback) => void;
 };
 
 function MessageItem({
@@ -296,10 +290,7 @@ function MessageItem({
         {renderSources()}
         {renderFilesChanged()}
         {showFeedback && (
-          <MessageFeedback
-            texts={feedbackTexts!}
-            onSubmit={(vote, comment) => onMessageFeedback!(traceId!, vote, comment)}
-          />
+          <MessageFeedback texts={feedbackTexts} traceId={traceId} onSubmit={onMessageFeedback} />
         )}
       </div>
     </div>

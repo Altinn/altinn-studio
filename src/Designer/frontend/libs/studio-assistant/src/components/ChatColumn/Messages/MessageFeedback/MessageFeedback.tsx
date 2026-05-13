@@ -9,32 +9,32 @@ import {
 } from '@studio/components';
 import { ThumbDownIcon, ThumbUpIcon, PaperplaneFillIcon } from '@studio/icons';
 import type { MessageFeedbackTexts } from '../../../../types/AssistantTexts';
+import type { UserFeedback } from '../../../../types/UserFeedback';
 import classes from './MessageFeedback.module.css';
-
-export type FeedbackVote = 'up' | 'down';
 
 export type MessageFeedbackProps = {
   texts: MessageFeedbackTexts;
-  onSubmit: (vote: FeedbackVote, comment?: string) => void;
+  traceId: string;
+  onSubmit: (feedback: UserFeedback) => void;
 };
 
-export function MessageFeedback({ texts, onSubmit }: MessageFeedbackProps): ReactElement {
-  const [selectedVote, setSelectedVote] = useState<FeedbackVote | null>(null);
+export function MessageFeedback({ texts, traceId, onSubmit }: MessageFeedbackProps): ReactElement {
+  const [selectedThumbsUp, setSelectedThumbsUp] = useState<boolean | null>(null);
   const [commentText, setCommentText] = useState<string>('');
   const dialogRef = useRef<HTMLDialogElement>(null);
 
-  const handleVoteClick = (vote: FeedbackVote): void => {
-    setSelectedVote(vote);
+  const handleVoteClick = (thumbsUp: boolean): void => {
+    setSelectedThumbsUp(thumbsUp);
     dialogRef.current?.showModal();
   };
 
   const handleSendFeedback = (): void => {
     const trimmedComment = commentText.trim();
-    if (trimmedComment) {
-      onSubmit(selectedVote, trimmedComment);
-    } else {
-      onSubmit(selectedVote);
-    }
+    onSubmit({
+      traceId,
+      thumbsUp: selectedThumbsUp,
+      comment: trimmedComment || undefined,
+    });
   };
 
   return (
@@ -45,7 +45,7 @@ export function MessageFeedback({ texts, onSubmit }: MessageFeedbackProps): Reac
           data-size='sm'
           aria-label={texts.thumbsUp}
           title={texts.thumbsUp}
-          onClick={() => handleVoteClick('up')}
+          onClick={() => handleVoteClick(true)}
           icon={<ThumbUpIcon />}
         />
         <StudioButton
@@ -53,7 +53,7 @@ export function MessageFeedback({ texts, onSubmit }: MessageFeedbackProps): Reac
           data-size='sm'
           aria-label={texts.thumbsDown}
           title={texts.thumbsDown}
-          onClick={() => handleVoteClick('down')}
+          onClick={() => handleVoteClick(false)}
           icon={<ThumbDownIcon />}
         />
       </div>

@@ -29,10 +29,10 @@ export function CompleteInterface({
   onSelectThread,
   onDeleteThread,
   onCreateThread,
+  onMessageFeedback,
   previewContent,
   fileBrowserContent,
   currentUser,
-  onMessageFeedback,
 }: CompleteInterfaceProps): ReactElement {
   const [isThreadColumnCollapsed, setIsThreadColumnCollapsed] = useState(false);
   const [toolColumnMode, setToolColumnMode] = useState<ToolColumnMode>(ToolColumnMode.Preview);
@@ -92,10 +92,10 @@ export function CompleteInterface({
             onCancelWorkflow={onCancelWorkflow}
             cancelledMessageContent={cancelledMessageContent}
             onCancelledMessageConsumed={onCancelledMessageConsumed}
+            onMessageFeedback={onMessageFeedback}
             workflowStatus={currentThreadWorkflowStatus}
             enableCompactInterface={false}
             currentUser={currentUser}
-            onMessageFeedback={onMessageFeedback}
           />
         </StudioResizableLayout.Element>
         <StudioResizableLayout.Element minimumSize={200}>

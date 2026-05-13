@@ -2,7 +2,7 @@ import type { ReactElement } from 'react';
 import { useRef, useEffect } from 'react';
 import cn from 'classnames';
 import { Messages } from './Messages/Messages';
-import type { MessageFeedbackHandler } from './Messages/Messages';
+import type { UserFeedback } from '../../types/UserFeedback';
 import { UserInput } from './UserInput/UserInput';
 import classes from './ChatColumn.module.css';
 import { StudioParagraph } from '@studio/components';
@@ -18,10 +18,10 @@ export type ChatColumnProps = {
   onCancelWorkflow?: () => void;
   cancelledMessageContent?: string | null;
   onCancelledMessageConsumed?: () => void;
+  onMessageFeedback?: (feedback: UserFeedback) => void;
   workflowStatus?: WorkflowStatus;
   enableCompactInterface: boolean;
   currentUser?: User;
-  onMessageFeedback?: MessageFeedbackHandler;
 };
 
 export function ChatColumn({
@@ -31,10 +31,10 @@ export function ChatColumn({
   onCancelWorkflow,
   cancelledMessageContent,
   onCancelledMessageConsumed,
+  onMessageFeedback,
   workflowStatus,
   enableCompactInterface,
   currentUser,
-  onMessageFeedback,
 }: ChatColumnProps): ReactElement {
   const workflowIsActive = workflowStatus?.isActive === true;
   const messagesEndRef = useRef<HTMLDivElement>(null);
