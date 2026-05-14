@@ -35,7 +35,13 @@ export function MessageFeedback({ texts, traceId, onSubmit }: MessageFeedbackPro
       thumbsUp: selectedThumbsUp,
       comment: trimmedComment || undefined,
     });
+    handleDialogClose();
+  };
+
+  const handleDialogClose = (): void => {
     dialogRef.current?.close();
+    setSelectedThumbsUp(null);
+    setCommentText('');
   };
 
   return (
@@ -59,7 +65,7 @@ export function MessageFeedback({ texts, traceId, onSubmit }: MessageFeedbackPro
         />
       </div>
 
-      <StudioDialog ref={dialogRef} closedby='any'>
+      <StudioDialog ref={dialogRef} closedby='any' onClose={handleDialogClose}>
         <StudioDialog.Block>
           <StudioHeading level={2}>{texts.heading}</StudioHeading>
         </StudioDialog.Block>
