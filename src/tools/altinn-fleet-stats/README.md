@@ -45,7 +45,7 @@ All konfigurasjon gjøres i UI under fanen **Konfigurasjon** — miljøvalg (pro
 
 ## Bytte mellom prod og tt02
 
-Hver miljø får sin egen klone- og database-mappe under volumet:
+Bytt miljø i UI under fanen **Konfigurasjon** og klikk **Hent apper** for å fylle den. Hver miljø får sin egen klone- og database-mappe under volumet, så data fra det andre miljøet beholdes:
 
 ```
 /data/
@@ -55,8 +55,6 @@ Hver miljø får sin egen klone- og database-mappe under volumet:
 ├── fleet-tt02.sqlite ← database for tt02
 └── .cache/           ← API-cache (1 t TTL)
 ```
-
-For å bytte: sett `FLEET_ENV=tt02` i `.env`, kjør `docker compose up -d`, og klikk **Hent apper** for å fylle den.
 
 ## Arkitektur
 
@@ -97,7 +95,9 @@ yarn dev   # på http://localhost:5173, proxyer /api → :8080
 
 ## Databaseutforskning
 
-SQLite-fila er rå og kan åpnes direkte:
+Enkleste vei: bruk **Query-fanen** i UI — ferdig oppsett med autocomplete på tabeller/kolonner og kjør SQL direkte mot databasen for valgt miljø.
+
+For rå tilgang kan SQLite-fila åpnes direkte:
 
 ```bash
 docker compose exec fleet sqlite3 /data/fleet-prod.sqlite
