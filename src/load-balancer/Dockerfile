@@ -3,7 +3,7 @@ FROM nginx:1.30.1@sha256:842a3f99afd73859b5c647f8be6f0000849be286674e30d9dbcf7a6
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl gnupg2 ca-certificates \
     && curl -fsSL https://nginx.org/keys/nginx_signing.key | gpg --dearmor -o /usr/share/keyrings/nginx-archive-keyring.gpg \
-    && echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/mainline/debian $(. /etc/os-release && echo $VERSION_CODENAME) nginx" > /etc/apt/sources.list.d/nginx.list \
+    && echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/debian $(. /etc/os-release && echo $VERSION_CODENAME) nginx" > /etc/apt/sources.list.d/nginx.list \
     && apt-get update \
     && apt-get install -y --no-install-recommends nginx-module-otel \
     && apt-get clean \
