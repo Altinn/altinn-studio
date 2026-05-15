@@ -7,9 +7,9 @@ import { Select } from '@digdir/designsystemet-react';
 import { ArrowLeftIcon, ArrowRightIcon, XMarkIcon } from '@navikt/aksel-icons';
 import { addYears, setMonth, setYear, startOfMonth, subYears } from 'date-fns';
 
-import styles from 'src/app-components/Datepicker/Calendar.module.css';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
+import styles from 'src/layout/Datepicker/DropdownCaption.module.css';
 import comboboxClasses from 'src/styles/combobox.module.css';
 
 type DropdownCaptionProps = MonthCaptionProps & {
