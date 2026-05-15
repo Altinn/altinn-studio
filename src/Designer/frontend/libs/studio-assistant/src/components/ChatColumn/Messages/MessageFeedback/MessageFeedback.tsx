@@ -3,8 +3,8 @@ import { useState } from 'react';
 import {
   StudioButton,
   StudioDialog,
+  StudioFormGroup,
   StudioHeading,
-  StudioParagraph,
   StudioTextarea,
 } from '@studio/components';
 import { ThumbDownIcon, ThumbUpIcon, PaperplaneFillIcon } from '@studio/icons';
@@ -22,6 +22,7 @@ export function MessageFeedback({ texts, traceId, onSubmit }: MessageFeedbackPro
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [selectedVote, setSelectedVote] = useState<boolean | null>(null);
   const [commentText, setCommentText] = useState<string>('');
+  const dialogHeading = selectedVote === true ? texts.positiveHeading : texts.negativeHeading;
 
   const handleVoteClick = (vote: boolean): void => {
     setSelectedVote(vote);
@@ -69,15 +70,15 @@ export function MessageFeedback({ texts, traceId, onSubmit }: MessageFeedbackPro
 
       <StudioDialog open={isDialogOpen} closedby='any' onClose={handleDialogClose}>
         <StudioDialog.Block>
-          <StudioHeading level={2}>{texts.heading}</StudioHeading>
+          <StudioHeading level={2}>{dialogHeading}</StudioHeading>
         </StudioDialog.Block>
         <StudioDialog.Block className={classes.dialogContent}>
-          <StudioParagraph>{texts.body}</StudioParagraph>
-          {/* TODO: Add label for the text area, with an "optional" tag */}
-          <StudioTextarea
-            value={commentText}
-            onChange={(event) => setCommentText(event.target.value)}
-          />
+          <StudioFormGroup legend={texts.detailsLabel} tagText={texts.detailsOptionalTag}>
+            <StudioTextarea
+              value={commentText}
+              onChange={(event) => setCommentText(event.target.value)}
+            />
+          </StudioFormGroup>
           <div className={classes.dialogActions}>
             <StudioButton
               variant='primary'

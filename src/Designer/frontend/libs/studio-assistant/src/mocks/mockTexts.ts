@@ -22,8 +22,10 @@ const textAreaTexts: TextAreaTexts = {
 export const messageFeedbackTexts: MessageFeedbackTexts = {
   thumbsUp: 'feedbackThumbsUp',
   thumbsDown: 'feedbackThumbsDown',
-  heading: 'feedbackHeading',
-  body: 'feedbackBody',
+  positiveHeading: 'feedbackPositiveHeading',
+  negativeHeading: 'feedbackNegativeHeading',
+  detailsLabel: 'feedbackDetailsLabel',
+  detailsOptionalTag: 'feedbackDetailsOptionalTag',
   submit: 'feedbackSubmit',
 };
 
