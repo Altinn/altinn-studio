@@ -82,20 +82,26 @@ public class HomeController : Controller
     /// Login
     /// </summary>
     /// <returns>The login page</returns>
-    public async Task<IActionResult> Login()
+    public async Task<IActionResult> Login([FromQuery(Name = "redirect_to")] string redirectTo = "/")
     {
+        if (!Url.IsLocalUrl(redirectTo))
+        {
+            redirectTo = "/";
+        }
+
         if (User.Identity?.IsAuthenticated == true)
         {
-            return LocalRedirect("/");
+            return LocalRedirect(redirectTo);
         }
 
         if (await _featureManager.IsEnabledAsync(StudioFeatureFlags.StudioOidc))
         {
-            string callbackUrl = "/designer/api/v1/studio-oidc/callback?redirect_to=" + Uri.EscapeDataString("/");
+            string callbackUrl =
+                "/designer/api/v1/studio-oidc/callback?redirect_to=" + Uri.EscapeDataString(redirectTo);
             return Challenge(new AuthenticationProperties { RedirectUri = callbackUrl });
         }
 
-        return Challenge(new AuthenticationProperties { RedirectUri = "/" });
+        return Challenge(new AuthenticationProperties { RedirectUri = redirectTo });
     }
 
     /// <summary>

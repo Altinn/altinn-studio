@@ -104,6 +104,11 @@ describe('StudioCheckboxTable', () => {
     expect(screen.queryByText(mockErrorMessage)).not.toBeInTheDocument();
   });
 
+  it('passes data-size to the table', () => {
+    renderCheckboxTable({ componentProps: { 'data-size': 'sm' } });
+    expect(screen.getByRole('table')).toHaveAttribute('data-size', 'sm');
+  });
+
   it('shows description for checkbox when it is provided', () => {
     const descriptionCellTitle: string = 'Description';
     renderCheckboxTable({

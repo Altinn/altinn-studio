@@ -225,7 +225,7 @@ func TestWorkflow_Run_StableChecksOutReleaseBranch(t *testing.T) {
 	}
 }
 
-func TestWorkflow_Run_CleansOutputDirBeforeCollectingAssets(t *testing.T) {
+func TestWorkflow_Run_UsesBuilderArtifacts(t *testing.T) {
 	t.Parallel()
 
 	changelogPath := writeChangelog(t, `# Changelog
@@ -275,6 +275,9 @@ func TestWorkflow_Run_CleansOutputDirBeforeCollectingAssets(t *testing.T) {
 		if filepath.Base(asset) == "stale.bin" {
 			t.Fatalf("stale asset was uploaded: %s", asset)
 		}
+	}
+	if len(gh.assets) != 1 || filepath.Base(gh.assets[0]) != "dummy-asset" {
+		t.Fatalf("assets = %v, want only builder-returned dummy-asset", gh.assets)
 	}
 }
 

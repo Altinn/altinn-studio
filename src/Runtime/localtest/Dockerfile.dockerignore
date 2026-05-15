@@ -5,8 +5,8 @@
 !Shared/
 !Runtime/localtest/src/**
 !Runtime/localtest/testdata/**
-!Shared/AppTunnel/
-!Shared/AppTunnel/**
+!Shared/HostBridge/
+!Shared/HostBridge/**
 !Shared/EnvTopology/
 !Shared/EnvTopology/**
 **/bin
