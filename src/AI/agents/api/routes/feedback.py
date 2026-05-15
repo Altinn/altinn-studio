@@ -52,10 +52,8 @@ async def submit_feedback(req: FeedbackReq, request: Request):
         )
 
     trace_owner = get_trace_developer(req.trace_id)
-    if trace_owner is None:
-        raise HTTPException(status_code=403, detail="Trace owner unknown")
     if trace_owner != caller:
-        raise HTTPException(status_code=403, detail="Not the trace owner")
+        raise HTTPException(status_code=403)
 
     score_validation(
         name=FEEDBACK_SCORE_NAME,
