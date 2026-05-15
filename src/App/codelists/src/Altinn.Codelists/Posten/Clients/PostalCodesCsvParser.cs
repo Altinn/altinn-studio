@@ -21,6 +21,13 @@ internal sealed class PostalCodesCsvParser(Stream _csvStream)
         while ((line = await reader.ReadLineAsync()) is not null)
         {
             string[] columns = line.Split('\t');
+            if (columns.Length < 5)
+            {
+                throw new FormatException(
+                    $"Postal code record must contain at least 5 columns, but found {columns.Length}."
+                );
+            }
+
             PostalCodeRecord postalCode = new(columns[0], columns[1], columns[2], columns[3], columns[4]);
             postalCodes.Add(postalCode);
         }
