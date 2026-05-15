@@ -9,13 +9,13 @@ import (
 
 	"altinn.studio/devenv/pkg/container"
 	containertypes "altinn.studio/devenv/pkg/container/types"
-	"altinn.studio/studioctl/internal/appmanager"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	envregistry "altinn.studio/studioctl/internal/cmd/env/registry"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/migrations"
 	"altinn.studio/studioctl/internal/osutil"
+	"altinn.studio/studioctl/internal/studioctlserver"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -25,16 +25,16 @@ const (
 	runModeContainer   = "container"
 )
 
-type appManagerShutdownFunc func(context.Context, *config.Config) (<-chan error, error)
-type appManagerStartFunc func(context.Context, *config.Config, string, string) error
+type studioctlServerShutdownFunc func(context.Context, *config.Config) (<-chan error, error)
+type studioctlServerStartFunc func(context.Context, *config.Config, string, string) error
 type migrationRunnerFunc func(context.Context, *config.Config) error
 type containerClientFactory func(context.Context) (container.ContainerClient, error)
 type stopProcessFunc func(context.Context, int) error
 
-type appRuntimeClient interface {
-	Status(ctx context.Context) (*appmanager.Status, error)
+type studioctlServerClient interface {
+	Status(ctx context.Context) (*studioctlserver.Status, error)
 	UnregisterApp(ctx context.Context, appID string) error
-	UpgradeApp(ctx context.Context, upgrade appmanager.AppUpgrade) (appmanager.AppUpgradeResult, error)
+	UpgradeApp(ctx context.Context, upgrade studioctlserver.AppUpgrade) (studioctlserver.AppUpgradeResult, error)
 }
 
 var (
@@ -44,19 +44,19 @@ var (
 
 // TransitionState captures process state needed after a self operation.
 type TransitionState struct {
-	previousStudioctlPath string
-	appManagerWasRunning  bool
+	previousStudioctlPath     string
+	studioctlServerWasRunning bool
 }
 
-// Transition coordinates app/env/app-manager shutdown around self operations.
+// Transition coordinates app/env/studioctl-server shutdown around self operations.
 type Transition struct {
 	cfg             *config.Config
 	out             *ui.Output
-	appClient       appRuntimeClient
+	serverClient    studioctlServerClient
 	containerClient containerClientFactory
 	stopProcess     stopProcessFunc
-	shutdown        appManagerShutdownFunc
-	start           appManagerStartFunc
+	shutdown        studioctlServerShutdownFunc
+	start           studioctlServerStartFunc
 	runMigrations   migrationRunnerFunc
 }
 
@@ -65,42 +65,42 @@ func NewTransition(cfg *config.Config, out *ui.Output) *Transition {
 	return &Transition{
 		cfg:             cfg,
 		out:             out,
-		appClient:       appmanager.NewClient(cfg),
+		serverClient:    studioctlserver.NewClient(cfg),
 		containerClient: container.Detect,
 		stopProcess: func(ctx context.Context, pid int) error {
 			return osutil.StopProcess(ctx, pid, appShutdownTimeout)
 		},
-		shutdown: appmanager.Shutdown,
+		shutdown: studioctlserver.Shutdown,
 		start: func(ctx context.Context, cfg *config.Config, ingressPort, studioctlPath string) error {
 			if studioctlPath == "" {
-				return appmanager.EnsureStarted(ctx, cfg, ingressPort)
+				return studioctlserver.EnsureStarted(ctx, cfg, ingressPort)
 			}
-			return appmanager.EnsureStartedWithStudioctlPath(ctx, cfg, ingressPort, studioctlPath)
+			return studioctlserver.EnsureStartedWithStudioctlPath(ctx, cfg, ingressPort, studioctlPath)
 		},
 		runMigrations: migrations.Run,
 	}
 }
 
-// Prepare stops running apps, environments, and app-manager before a self operation.
+// Prepare stops running apps, environments, and studioctl-server before a self operation.
 func (t *Transition) Prepare(ctx context.Context) (TransitionState, error) {
-	appManagerWasRunning, studioctlPath, err := t.stopApps(ctx)
+	studioctlServerWasRunning, studioctlPath, err := t.stopApps(ctx)
 	if err != nil {
 		return TransitionState{}, err
 	}
 	state := TransitionState{
-		previousStudioctlPath: studioctlPath,
-		appManagerWasRunning:  appManagerWasRunning,
+		previousStudioctlPath:     studioctlPath,
+		studioctlServerWasRunning: studioctlServerWasRunning,
 	}
 
 	if stopErr := t.stopEnvs(ctx); stopErr != nil {
 		return TransitionState{}, stopErr
 	}
 
-	wasRunning, err := t.stopAppManager(ctx)
+	wasRunning, err := t.stopStudioctlServer(ctx)
 	if err != nil {
 		return TransitionState{}, err
 	}
-	state.appManagerWasRunning = state.appManagerWasRunning || wasRunning
+	state.studioctlServerWasRunning = state.studioctlServerWasRunning || wasRunning
 
 	return state, nil
 }
@@ -153,27 +153,27 @@ func (t *Transition) ResetEnvs(ctx context.Context) error {
 	return nil
 }
 
-// Restore restarts app-manager after a failed self operation when it was previously running.
+// Restore restarts studioctl-server after a failed self operation when it was previously running.
 func (t *Transition) Restore(
 	ctx context.Context,
 	state TransitionState,
 	studioctlPath string,
 ) {
-	if !state.appManagerWasRunning {
+	if !state.studioctlServerWasRunning {
 		return
 	}
-	if err := t.restartAppManager(ctx, restartStudioctlPath(state, studioctlPath)); err != nil {
-		t.out.Verbosef("failed to restart app-manager after failed self operation: %v", err)
+	if err := t.restartStudioctlServer(ctx, restartStudioctlPath(state, studioctlPath)); err != nil {
+		t.out.Verbosef("failed to restart studioctl-server after failed self operation: %v", err)
 	}
 }
 
 func (t *Transition) stopApps(ctx context.Context) (bool, string, error) {
-	status, err := t.appClient.Status(ctx)
+	status, err := t.serverClient.Status(ctx)
 	if err != nil {
-		if errors.Is(err, appmanager.ErrNotRunning) {
+		if errors.Is(err, studioctlserver.ErrNotRunning) {
 			return false, "", nil
 		}
-		return false, "", fmt.Errorf("get app-manager status before self operation: %w", err)
+		return false, "", fmt.Errorf("get studioctl-server status before self operation: %w", err)
 	}
 
 	apps := sortDiscoveredApps(filterManagedApps(status.Apps))
@@ -245,53 +245,53 @@ func (t *Transition) stopEnvs(ctx context.Context) error {
 	return nil
 }
 
-func (t *Transition) stopAppManager(ctx context.Context) (bool, error) {
+func (t *Transition) stopStudioctlServer(ctx context.Context) (bool, error) {
 	shutdown := t.shutdown
 	if shutdown == nil {
-		shutdown = appmanager.Shutdown
+		shutdown = studioctlserver.Shutdown
 	}
 
 	done, err := shutdown(ctx, t.cfg)
 	if err != nil {
-		if errors.Is(err, appmanager.ErrNotRunning) {
+		if errors.Is(err, studioctlserver.ErrNotRunning) {
 			return false, nil
 		}
-		return false, fmt.Errorf("stop app-manager before self operation: %w", err)
+		return false, fmt.Errorf("stop studioctl-server before self operation: %w", err)
 	}
 	if done == nil {
 		return false, nil
 	}
 
 	if shutdownErr := <-done; shutdownErr != nil {
-		if errors.Is(shutdownErr, appmanager.ErrNotRunning) {
+		if errors.Is(shutdownErr, studioctlserver.ErrNotRunning) {
 			return false, nil
 		}
-		return false, fmt.Errorf("stop app-manager before self operation: %w", shutdownErr)
+		return false, fmt.Errorf("stop studioctl-server before self operation: %w", shutdownErr)
 	}
 
 	return true, nil
 }
 
-func (t *Transition) restartAppManager(ctx context.Context, studioctlPath string) error {
+func (t *Transition) restartStudioctlServer(ctx context.Context, studioctlPath string) error {
 	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
 	start := t.start
 	if start == nil {
 		start = func(ctx context.Context, cfg *config.Config, ingressPort, studioctlPath string) error {
 			if studioctlPath == "" {
-				return appmanager.EnsureStarted(ctx, cfg, ingressPort)
+				return studioctlserver.EnsureStarted(ctx, cfg, ingressPort)
 			}
-			return appmanager.EnsureStartedWithStudioctlPath(ctx, cfg, ingressPort, studioctlPath)
+			return studioctlserver.EnsureStartedWithStudioctlPath(ctx, cfg, ingressPort, studioctlPath)
 		}
 	}
 	if err := start(ctx, t.cfg, topology.IngressPort(), studioctlPath); err != nil {
-		return fmt.Errorf("ensure app-manager started: %w", err)
+		return fmt.Errorf("ensure studioctl-server started: %w", err)
 	}
 	return nil
 }
 
 func (t *Transition) stopApp(
 	ctx context.Context,
-	app appmanager.DiscoveredApp,
+	app studioctlserver.DiscoveredApp,
 	containerClient *container.ContainerClient,
 ) error {
 	switch appStopMode(app) {
@@ -356,14 +356,14 @@ func (t *Transition) ensureContainerRuntime(
 	return nil
 }
 
-func (t *Transition) unregisterBestEffort(ctx context.Context, app appmanager.DiscoveredApp) {
-	if err := t.appClient.UnregisterApp(ctx, app.AppID); err != nil {
-		t.out.Verbosef("failed to unregister app %s from app-manager: %v", app.AppID, err)
+func (t *Transition) unregisterBestEffort(ctx context.Context, app studioctlserver.DiscoveredApp) {
+	if err := t.serverClient.UnregisterApp(ctx, app.AppID); err != nil {
+		t.out.Verbosef("failed to unregister app %s from studioctl-server: %v", app.AppID, err)
 	}
 }
 
-func filterManagedApps(apps []appmanager.DiscoveredApp) []appmanager.DiscoveredApp {
-	filtered := make([]appmanager.DiscoveredApp, 0, len(apps))
+func filterManagedApps(apps []studioctlserver.DiscoveredApp) []studioctlserver.DiscoveredApp {
+	filtered := make([]studioctlserver.DiscoveredApp, 0, len(apps))
 	for _, app := range apps {
 		if hasStopHandle(app) {
 			filtered = append(filtered, app)
@@ -372,7 +372,7 @@ func filterManagedApps(apps []appmanager.DiscoveredApp) []appmanager.DiscoveredA
 	return filtered
 }
 
-func sortDiscoveredApps(apps []appmanager.DiscoveredApp) []appmanager.DiscoveredApp {
+func sortDiscoveredApps(apps []studioctlserver.DiscoveredApp) []studioctlserver.DiscoveredApp {
 	sort.Slice(apps, func(i, j int) bool {
 		if apps[i].AppID != apps[j].AppID {
 			return apps[i].AppID < apps[j].AppID
@@ -382,11 +382,11 @@ func sortDiscoveredApps(apps []appmanager.DiscoveredApp) []appmanager.Discovered
 	return apps
 }
 
-func hasStopHandle(app appmanager.DiscoveredApp) bool {
+func hasStopHandle(app studioctlserver.DiscoveredApp) bool {
 	return appProcessID(app) > 0 || app.ContainerID != "" || app.Name != ""
 }
 
-func appStopMode(app appmanager.DiscoveredApp) string {
+func appStopMode(app studioctlserver.DiscoveredApp) string {
 	if app.ContainerID != "" || (app.Name != "" && appProcessID(app) == 0) {
 		return runModeContainer
 	}
@@ -396,7 +396,7 @@ func appStopMode(app appmanager.DiscoveredApp) string {
 	return app.Source
 }
 
-func appProcessID(app appmanager.DiscoveredApp) int {
+func appProcessID(app studioctlserver.DiscoveredApp) int {
 	if app.ProcessID != nil {
 		return *app.ProcessID
 	}

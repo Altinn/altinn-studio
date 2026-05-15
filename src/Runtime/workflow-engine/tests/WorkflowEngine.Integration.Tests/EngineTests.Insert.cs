@@ -477,6 +477,38 @@ public partial class EngineTests
     }
 
     [Fact]
+    public async Task Enqueue_BatchReorderedByTopologicalSort_PairsRefWithCorrectDatabaseId()
+    {
+        // Regression for #18700: when the request's topological order differs from request order,
+        // the response previously zipped sorted refs against request-order IDs, producing wrong
+        // Ref → DatabaseId pairs. Request order [a, b(depends on a), c] sorts to [a, c, b].
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/hook-a")]),
+            _testHelpers.CreateWorkflow("b", [_testHelpers.CreateWebhookStep("/hook-b")], dependsOn: ["a"]),
+            _testHelpers.CreateWorkflow("c", [_testHelpers.CreateWebhookStep("/hook-c")]),
+        ]);
+
+        // Act
+        var response = await _client.Enqueue(request);
+
+        // Assert (1): response is in request order — not topologically sorted. Asserting this
+        // explicitly pins the API contract so a future refactor that reintroduces sorting fails
+        // here loudly instead of silently flipping client-visible behavior.
+        Assert.Equal(["a", "b", "c"], response.Workflows.Select(w => w.Ref!).ToArray());
+
+        // Assert (2): every returned (Ref, DatabaseId) resolves to a workflow whose OperationId
+        // matches `op-{ref}` (the convention set by TestHelpers.CreateWorkflow). A mispaired
+        // response — the original #18700 symptom — would surface here as the wrong OperationId
+        // for the looked-up DatabaseId, independent of whether the response order is right.
+        foreach (var workflow in response.Workflows)
+        {
+            var persisted = await _client.GetWorkflow(workflow.DatabaseId);
+            Assert.NotNull(persisted);
+            Assert.Equal($"op-{workflow.Ref}", persisted!.OperationId);
+        }
+    }
+
+    [Fact]
     public async Task MultiStepWorkflow_StepFails_RemainingStepsStayEnqueued()
     {
         // Arrange — 3-step workflow where step 1 (index 0) always fails.

@@ -234,6 +234,9 @@ export const customTemplatesPath = () => `${apiBasePath}/customtemplates`; // GE
 // User settings
 export const userApiKeyPath = (id) => `${apiBasePath}/v1/user/api-keys/${id}`; // DELETE
 export const userApiKeysPath = () => `${apiBasePath}/v1/user/api-keys`; // GET, POST
+export const studioctlAuthRequestPath = (id) => `${apiBasePathV1}/studioctl/auth/requests/${id}`; // GET
+export const studioctlAuthRequestConfirmPath = (id) => `${studioctlAuthRequestPath(id)}/confirm`; // POST
+export const studioctlAuthRequestCancelPath = (id) => `${studioctlAuthRequestPath(id)}/cancel`; // POST
 
 // Org settings - Contact points
 export const contactPointsPath = (org) => `${apiBasePath}/v1/orgs/${org}/contact-points`; // Get, Post

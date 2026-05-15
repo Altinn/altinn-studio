@@ -173,7 +173,7 @@ dotnet_diagnostic.CS1591.severity = suggestion
 # S125: Sections of code should not be commented out
 dotnet_diagnostic.S125.severity = suggestion
 
-[app-manager/Studioctl/AppUpgradeService.cs]
+[studioctl-server/Studioctl/AppUpgradeService.cs]
 dotnet_diagnostic.S1135.severity = none
 
 [Program.cs]

@@ -17,7 +17,7 @@ const (
 	// BoundTopologyConfigDirName is the generated config directory under the studioctl data dir.
 	BoundTopologyConfigDirName = "generated/topology"
 
-	// BoundTopologyBaseConfigFileName is the app-manager input config file.
+	// BoundTopologyBaseConfigFileName is the studioctl-server input config file.
 	BoundTopologyBaseConfigFileName = "env.json"
 
 	// BoundTopologyConfigFileName is the bound config consumed by localtest.
@@ -26,7 +26,7 @@ const (
 	// BoundTopologyContainerDir is the localtest mount point for generated topology config.
 	BoundTopologyContainerDir = "/studioctl/topology"
 
-	// BoundTopologyBaseConfigContainerPath is the in-container app-manager input config path.
+	// BoundTopologyBaseConfigContainerPath is the in-container studioctl-server input config path.
 	BoundTopologyBaseConfigContainerPath = BoundTopologyContainerDir + "/" + BoundTopologyBaseConfigFileName
 
 	// BoundTopologyConfigContainerPath is the in-container bound config path.
@@ -74,7 +74,7 @@ type RuntimeBinding struct {
 	Enabled     bool
 }
 
-// BoundTopologyConfig is the shared bound topology configuration for localtest and app-manager.
+// BoundTopologyConfig is the shared bound topology configuration for localtest and studioctl-server.
 type BoundTopologyConfig struct {
 	AppRouteTemplate BoundTopologyAppRouteTemplate `json:"appRouteTemplate"`
 	Routes           []BoundTopologyRoute          `json:"routes"`

@@ -63,7 +63,7 @@ func NewCLI(cfg *config.Config) *CLI {
 	cli.Register(NewDoctorCommand(cfg, out))
 	cli.Register(NewSelfCommand(cfg, out))
 	cli.Register(NewAppCommand(cfg, out))
-	cli.Register(NewServersCommand(cfg, out))
+	cli.Register(NewServerCommand(cfg, out))
 	cli.Register(NewShellCommand(cfg, out))
 	cli.Register(NewAppContainersCommand(cfg, out))
 
@@ -124,7 +124,7 @@ func (c *CLI) printUsage() {
 		}
 	}
 
-	order := []string{"run", "stop", "env", "auth", "app", "install", "doctor", "self", "servers", "shell"}
+	order := []string{"run", "stop", "env", "auth", "app", "install", "doctor", "self", "server", "shell"}
 	for _, name := range order {
 		if cmd, ok := c.commands[name]; ok {
 			c.out.Printlnf("  %-*s  %s", maxLen+2, name, cmd.Synopsis())
@@ -266,7 +266,7 @@ func newEphemeralConfig(flags config.Flags, version string) *config.Config {
 		DataDir:   "",
 		BinDir:    "",
 		Images:    images,
-		Version:   version,
+		Version:   config.NewVersion(version),
 		Verbose:   flags.Verbose,
 	}
 }

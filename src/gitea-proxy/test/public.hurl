@@ -118,6 +118,33 @@ X-Api-Key: apikey_user
 HTTP 200
 [Asserts]
 jsonpath "$.headers['x-webauth-user']" == "{{APIKEY_USERNAME}}"
+jsonpath "$.headers['x-api-key']"      not exists
+
+# Rejected X-Api-Key falls through to Gitea with X-Api-Key preserved.
+GET {{proxy_on_pub}}/api/v1/repos
+X-Api-Key: invalid
+HTTP 200
+[Asserts]
+jsonpath "$.headers['x-api-key']" == "invalid"
+jsonpath "$.headers['x-webauth-user']" not exists
+
+# Basic auth password drives the ApiKey scenario for Git credential helpers.
+# The original Authorization header is cleared before proxying to Gitea.
+GET {{proxy_on_pub}}/owner/repo.git/info/refs
+Authorization: Basic YWN0dWFsLXVzZXI6YXBpa2V5X3VzZXI=
+HTTP 200
+[Asserts]
+jsonpath "$.headers['x-webauth-user']" == "{{APIKEY_USERNAME}}"
+jsonpath "$.headers['authorization']"  not exists
+jsonpath "$.headers['x-api-key']"      not exists
+
+# Rejected Basic auth falls through to Gitea with Authorization preserved.
+GET {{proxy_on_pub}}/api/v1/repos
+Authorization: Basic dXNlcjppbnZhbGlk
+HTTP 200
+[Asserts]
+jsonpath "$.headers['authorization']" == "Basic dXNlcjppbnZhbGlk"
+jsonpath "$.headers['x-webauth-user']" not exists
 
 # ApiKey rejected on /api/v2/ (allowlist is exact)
 GET {{proxy_on_pub}}/api/v2/anything
