@@ -40,12 +40,11 @@ export type SimpleEval<T extends ExprVal> = (
   dataSources?: Partial<ExpressionDataSources>,
 ) => ExprValToActual<T>;
 
-type Source = keyof ExpressionDataSources;
-export type EvaluateExpressionParams<DataSources extends readonly Source[] = Source[]> = {
+export type EvaluateExpressionParams = {
   expr: Expression;
   path: string[];
   callbacks: { onBeforeFunctionCall?: BeforeFuncCallback; onAfterFunctionCall?: AfterFuncCallback };
-  dataSources: Pick<ExpressionDataSources, DataSources[number]>;
+  dataSources: ExpressionDataSources;
   positionalArguments?: ExprPositionalArgs;
   valueArguments?: ExprValueArgs;
 };
@@ -67,9 +66,9 @@ function isExpression(input: unknown): input is Expression {
 /**
  * Run/evaluate an expression. You have to provide your own context containing functions for looking up external values.
  */
-export function evalExpr<V extends ExprVal = ExprVal, DataSources extends readonly Source[] = Source[]>(
+export function evalExpr<V extends ExprVal = ExprVal>(
   expr: ExprValToActualOrExpr<V> | undefined,
-  dataSources: Pick<ExpressionDataSources, DataSources[number]>,
+  dataSources: ExpressionDataSources,
   options: EvalExprOptions,
 ): ExprValToActual<V> {
   if (!isExpression(expr)) {
@@ -80,7 +79,7 @@ export function evalExpr<V extends ExprVal = ExprVal, DataSources extends readon
     onBeforeFunctionCall: options.onBeforeFunctionCall,
     onAfterFunctionCall: options.onAfterFunctionCall,
   };
-  const evalParams: EvaluateExpressionParams<DataSources> = {
+  const evalParams: EvaluateExpressionParams = {
     expr,
     path: [],
     callbacks,
@@ -194,7 +193,7 @@ function valueToExprValueType(value: unknown): ExprVal {
 export function exprCastValue<T extends ExprVal>(
   value: unknown,
   toType: T | undefined,
-  context: EvaluateExpressionParams<[]>,
+  context: EvaluateExpressionParams,
 ): ExprValToActual<T> | null {
   if (!toType || !(toType in ExprTypes)) {
     throw new UnknownTargetType(context.expr, context.path, toType ? toType : typeof toType);

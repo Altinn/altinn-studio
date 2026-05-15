@@ -45,7 +45,13 @@ function useExpressionValidationForBinding(
 ): FieldValidation[] {
   const baseDataSources = useExpressionDataSources(validationDefs);
   const dataSources: ExpressionDataSources = useMemo(
-    () => ({ ...baseDataSources, defaultDataType: reference.dataType }),
+    () => ({
+      ...baseDataSources,
+      formData: {
+        ...baseDataSources.formData,
+        defaultDataType: () => reference.dataType,
+      },
+    }),
     [baseDataSources, reference.dataType],
   );
 

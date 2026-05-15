@@ -5,7 +5,7 @@ import { pick } from 'dot-object';
 import { AppTable } from 'src/app-components/Table/Table';
 import { translationKey } from 'src/AppComponentsBridge';
 import { Caption } from 'src/components/form/caption/Caption';
-import { useExternalApis } from 'src/features/externalApi/useExternalApi';
+import { useExternalApis } from 'src/core/queries/externalApi';
 import { Lang } from 'src/features/language/Lang';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { isFormDataObject, isFormDataObjectArray } from 'src/layout/SimpleTable/typeguards';

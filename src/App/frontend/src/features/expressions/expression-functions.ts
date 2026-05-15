@@ -8,7 +8,6 @@ import { ExprRuntimeError, NodeRelationNotFound } from 'src/features/expressions
 import { ExprVal } from 'src/features/expressions/types';
 import { addError, ExprValidation } from 'src/features/expressions/validation';
 import { makeIndexedId } from 'src/features/form/layout/utils/makeIndexedId';
-import { getUiFolderSettings } from 'src/features/form/ui';
 import { buildAuthContext } from 'src/utils/authContext';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { formatDateLocale } from 'src/utils/dateUtils';
@@ -26,7 +25,6 @@ import type {
 import type { ValidationContext } from 'src/features/expressions/validation';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IInstanceDataSources } from 'src/types/shared';
-import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 type ArgsToActual<T extends readonly AnyExprArg[]> = {
   [Index in keyof T]: T[Index]['variant'] extends 'optional'
@@ -38,7 +36,6 @@ export type AnyFuncDef = FuncDef<readonly AnyExprArg[], ExprVal>;
 export interface FuncDef<Args extends readonly AnyExprArg[], Ret extends ExprVal> {
   args: Args;
   returns: Ret;
-  needs: readonly (keyof ExpressionDataSources)[];
 }
 
 export interface FuncValidationDef {
@@ -73,13 +70,6 @@ function args<A extends readonly AnyExprArg[]>(...args: A): A {
   return args;
 }
 
-type Source = keyof ExpressionDataSources;
-function dataSources<S extends readonly Source[]>(...sources: S): S {
-  return sources;
-}
-
-const noSources: never[] = [];
-
 /**
  * All the function definitions available in expressions. The implementations themselves are located in
  * @see ExprFunctionImplementations
@@ -88,232 +78,186 @@ export const ExprFunctionDefinitions = {
   argv: {
     args: args(required(ExprVal.Number)),
     returns: ExprVal.Any,
-    needs: noSources,
   },
   value: {
     args: args(optional(ExprVal.String)),
     returns: ExprVal.Any,
-    needs: noSources,
   },
   equals: {
     args: args(required(ExprVal.String), required(ExprVal.String)),
     returns: ExprVal.Boolean,
-    needs: noSources,
   },
   notEquals: {
     args: args(required(ExprVal.String), required(ExprVal.String)),
     returns: ExprVal.Boolean,
-    needs: noSources,
   },
   not: {
     args: args(required(ExprVal.Boolean)),
     returns: ExprVal.Boolean,
-    needs: noSources,
   },
   greaterThan: {
     args: args(required(ExprVal.Number), required(ExprVal.Number)),
     returns: ExprVal.Boolean,
-    needs: noSources,
   },
   greaterThanEq: {
     args: args(required(ExprVal.Number), required(ExprVal.Number)),
     returns: ExprVal.Boolean,
-    needs: noSources,
   },
   lessThan: {
     args: args(required(ExprVal.Number), required(ExprVal.Number)),
     returns: ExprVal.Boolean,
-    needs: noSources,
   },
   lessThanEq: {
     args: args(required(ExprVal.Number), required(ExprVal.Number)),
     returns: ExprVal.Boolean,
-    needs: noSources,
   },
   plus: {
     args: args(required(ExprVal.Number), required(ExprVal.Number)),
     returns: ExprVal.Number,
-    needs: noSources,
   },
   minus: {
     args: args(required(ExprVal.Number), required(ExprVal.Number)),
     returns: ExprVal.Number,
-    needs: noSources,
   },
   multiply: {
     args: args(required(ExprVal.Number), required(ExprVal.Number)),
     returns: ExprVal.Number,
-    needs: noSources,
   },
   divide: {
     args: args(required(ExprVal.Number), required(ExprVal.Number)),
     returns: ExprVal.Number,
-    needs: noSources,
   },
   concat: {
     args: args(rest(ExprVal.String)),
     returns: ExprVal.String,
-    needs: noSources,
   },
   and: {
     args: args(required(ExprVal.Boolean), rest(ExprVal.Boolean)),
     returns: ExprVal.Boolean,
-    needs: noSources,
   },
   or: {
     args: args(required(ExprVal.Boolean), rest(ExprVal.Boolean)),
     returns: ExprVal.Boolean,
-    needs: noSources,
   },
   if: {
     args: args(required(ExprVal.Boolean), required(ExprVal.Any), optional(ExprVal.String), optional(ExprVal.Any)),
     returns: ExprVal.Any,
-    needs: noSources,
   },
   instanceContext: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.String,
-    needs: dataSources('instanceDataSources'),
   },
   frontendSettings: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.Any,
-    needs: dataSources('applicationSettings'),
   },
   authContext: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.Boolean,
-    needs: dataSources('process'),
   },
   component: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.Any,
-    needs: dataSources('formStoreSelector', 'currentDataModelPath'),
   },
   dataModel: {
     args: args(required(ExprVal.String), optional(ExprVal.String)),
     returns: ExprVal.Any,
-    needs: dataSources('formStoreSelector', 'currentDataModelPath'),
   },
   countDataElements: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.Number,
-    needs: dataSources('dataElementSelector'),
   },
   externalApi: {
     args: args(required(ExprVal.String), required(ExprVal.String)),
     returns: ExprVal.String,
-    needs: dataSources('externalApis'),
   },
   displayValue: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.String,
-    needs: dataSources('displayValues', 'currentDataModelPath', 'formStoreSelector'),
   },
   optionLabel: {
     args: args(required(ExprVal.String), required(ExprVal.Any)),
     returns: ExprVal.String,
-    needs: dataSources('formStoreSelector', 'langToolsSelector', 'currentDataModelPath'),
   },
   formatDate: {
     args: args(required(ExprVal.Date), optional(ExprVal.String)),
     returns: ExprVal.String,
-    needs: dataSources('currentLanguage'),
   },
   compare: {
     args: args(required(ExprVal.Any), required(ExprVal.Any), required(ExprVal.Any), optional(ExprVal.Any)),
     returns: ExprVal.Boolean,
-    needs: noSources,
   },
   round: {
     args: args(required(ExprVal.Number), optional(ExprVal.Number)),
     returns: ExprVal.String,
-    needs: noSources,
   },
   text: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.String,
-    needs: dataSources('langToolsSelector', 'currentDataModelPath'),
   },
   linkToComponent: {
     args: args(required(ExprVal.String), required(ExprVal.String), optional(ExprVal.Boolean)),
     returns: ExprVal.String,
-    needs: dataSources('formStoreSelector', 'process', 'instanceDataSources', 'currentDataModelPath', 'currentPage'),
   },
   linkToPage: {
     args: args(required(ExprVal.String), required(ExprVal.String), optional(ExprVal.Boolean)),
     returns: ExprVal.String,
-    needs: dataSources('process', 'instanceDataSources', 'currentPage'),
   },
   language: {
     args: args(),
     returns: ExprVal.String,
-    needs: dataSources('currentLanguage'),
   },
   contains: {
     args: args(required(ExprVal.String), required(ExprVal.String)),
     returns: ExprVal.Boolean,
-    needs: noSources,
   },
   notContains: {
     args: args(required(ExprVal.String), required(ExprVal.String)),
     returns: ExprVal.Boolean,
-    needs: noSources,
   },
   endsWith: {
     args: args(required(ExprVal.String), required(ExprVal.String)),
     returns: ExprVal.Boolean,
-    needs: noSources,
   },
   startsWith: {
     args: args(required(ExprVal.String), required(ExprVal.String)),
     returns: ExprVal.Boolean,
-    needs: noSources,
   },
   stringReplace: {
     args: args(required(ExprVal.String), required(ExprVal.String), required(ExprVal.String)),
     returns: ExprVal.String,
-    needs: noSources,
   },
   stringLength: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.Number,
-    needs: noSources,
   },
   stringSlice: {
     args: args(required(ExprVal.String), required(ExprVal.Number), optional(ExprVal.Number)),
     returns: ExprVal.String,
-    needs: noSources,
   },
   stringIndexOf: {
     args: args(required(ExprVal.String), required(ExprVal.String)),
     returns: ExprVal.Number,
-    needs: noSources,
   },
   commaContains: {
     args: args(required(ExprVal.String), required(ExprVal.String)),
     returns: ExprVal.Boolean,
-    needs: noSources,
   },
   lowerCase: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.String,
-    needs: noSources,
   },
   upperCase: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.String,
-    needs: noSources,
   },
   upperCaseFirst: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.String,
-    needs: noSources,
   },
   lowerCaseFirst: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.String,
-    needs: noSources,
   },
   _experimentalSelectAndMap: {
     args: args(
@@ -324,12 +268,11 @@ export const ExprFunctionDefinitions = {
       optional(ExprVal.Boolean),
     ),
     returns: ExprVal.String,
-    needs: dataSources('formStoreSelector'),
   },
 } satisfies { [key: string]: AnyFuncDef };
 
 type Implementation<Name extends ExprFunctionName> = (
-  this: EvaluateExpressionParams<ExprFunctions[Name]['needs']>,
+  this: EvaluateExpressionParams,
   ...params: ArgsToActual<ExprFunctions[Name]['args']>
 ) => ExprValToActual<ExprFunctions[Name]['returns']> | null;
 
@@ -431,27 +374,30 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new ExprRuntimeError(this.expr, this.path, `Unknown Instance context property ${key}`);
     }
 
-    return (this.dataSources.instanceDataSources && this.dataSources.instanceDataSources[key]) || null;
+    const instanceDataSources = this.dataSources.instance.getDataSources();
+    return (instanceDataSources && instanceDataSources[key]) || null;
   },
   frontendSettings(key) {
     if (key === null) {
       throw new ExprRuntimeError(this.expr, this.path, `Value cannot be null. (Parameter 'key')`);
     }
 
-    return (this.dataSources.applicationSettings && this.dataSources.applicationSettings[key]) || null;
+    const applicationSettings = this.dataSources.application.getSettings();
+    return (applicationSettings && applicationSettings[key]) || null;
   },
   authContext(key) {
     if (key === null) {
       throw new ExprRuntimeError(this.expr, this.path, `Auth context key cannot be null`);
     }
 
-    const authContext = buildAuthContext(this.dataSources.process?.currentTask);
+    const process = this.dataSources.instance.getProcess();
+    const authContext = buildAuthContext(process?.currentTask);
     const hasAction = authContext?.[key];
     if (hasAction === undefined) {
       throw new ExprRuntimeError(
         this.expr,
         this.path,
-        `Unknown Auth context property ${key} for task ${this.dataSources.process?.currentTask?.elementId} (allowed keys are {${Object.keys(authContext).join(', ')}})`,
+        `Unknown Auth context property ${key} for task ${process?.currentTask?.elementId} (allowed keys are {${Object.keys(authContext).join(', ')}})`,
       );
     }
     return Boolean(hasAction);
@@ -461,7 +407,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup component null`);
     }
 
-    const layoutLookups = this.dataSources.formStoreSelector((s) => s.bootstrap.layoutLookups, []);
+    const layoutLookups = this.dataSources.layout.getLookups();
     const target = layoutLookups?.allComponents[id];
     if (!target) {
       throw new ExprRuntimeError(this.expr, this.path, `Unable to find component with identifier ${id}`);
@@ -499,8 +445,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup dataModel null`);
     }
 
-    const uiFolder = this.dataSources.formStoreSelector((s) => s.bootstrap.uiFolder, []);
-    const defaultDataType = getUiFolderSettings(uiFolder)?.defaultDataType;
+    const defaultDataType = this.dataSources.formData.defaultDataType();
     const dataType = maybeDataType ?? defaultDataType;
     if (!dataType) {
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup dataType undefined`);
@@ -522,15 +467,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new ExprRuntimeError(this.expr, this.path, `Expected dataType argument to be a string`);
     }
 
-    const length = this.dataSources.dataElementSelector(
-      (elements) => elements.filter((e) => e.dataType === dataType).length,
-    );
-
-    if (length === undefined) {
-      return 0; // Stateless never has any data elements
-    }
-
-    return length;
+    return this.dataSources.instance.countDataElements(dataType);
   },
   externalApi(externalApiId, path) {
     if (externalApiId === null) {
@@ -540,7 +477,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       return null;
     }
 
-    const externalApiData: unknown = this.dataSources.externalApis.data[externalApiId];
+    const externalApiData: unknown = this.dataSources.externalApi.getAll().data[externalApiId];
 
     const res =
       externalApiData && typeof externalApiData === 'object' ? dot.pick(path, externalApiData) : externalApiData;
@@ -555,7 +492,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     if (id === null) {
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup component null`);
     }
-    const layoutLookups = this.dataSources.formStoreSelector((s) => s.bootstrap.layoutLookups, []);
+    const layoutLookups = this.dataSources.layout.getLookups();
     const target = layoutLookups?.allComponents[id];
     if (!target) {
       throw new ExprRuntimeError(this.expr, this.path, `Unable to find component with identifier ${id}`);
@@ -569,7 +506,8 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       return null;
     }
 
-    if (!(id in this.dataSources.displayValues)) {
+    const displayValue = this.dataSources.displayValue.get(id);
+    if (displayValue === undefined) {
       throw new ExprRuntimeError(
         this.expr,
         this.path,
@@ -577,14 +515,14 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       );
     }
 
-    return this.dataSources.displayValues[id] ?? '';
+    return displayValue ?? '';
   },
   optionLabel(optionsId, value) {
     if (optionsId === null) {
       throw new ExprRuntimeError(this.expr, this.path, `Expected an options id`);
     }
 
-    const options = this.dataSources.formStoreSelector((s) => s.bootstrap.staticOptions[optionsId]?.options, []);
+    const options = this.dataSources.options.getStaticOptions(optionsId);
     if (!options) {
       throw new ExprRuntimeError(this.expr, this.path, `Could not find options with id "${optionsId}"`);
     }
@@ -605,7 +543,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     if (date === null) {
       return null;
     }
-    const result = formatDateLocale(this.dataSources.currentLanguage, date, format ?? undefined);
+    const result = formatDateLocale(this.dataSources.context.currentLanguage(), date, format ?? undefined);
     if (result.includes('Unsupported: ')) {
       throw new ExprRuntimeError(this.expr, this.path, `Unsupported date format token in '${format}'`);
     }
@@ -639,15 +577,15 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       return null;
     }
 
-    const layoutLookups = this.dataSources.formStoreSelector((s) => s.bootstrap.layoutLookups, []);
+    const layoutLookups = this.dataSources.layout.getLookups();
     const target = layoutLookups?.allComponents[id];
     const pageKey = layoutLookups?.componentToPage[id];
     if (!target || !pageKey) {
       throw new ExprRuntimeError(this.expr, this.path, `Unable to find component with identifier ${id}`);
     }
 
-    const taskId = this.dataSources.process?.currentTask?.elementId;
-    const instanceId = this.dataSources.instanceDataSources?.instanceId;
+    const taskId = this.dataSources.instance.getProcess()?.currentTask?.elementId;
+    const instanceId = this.dataSources.instance.getDataSources()?.instanceId;
 
     let url: string;
     if (taskId && instanceId) {
@@ -663,7 +601,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
 
     const searchParams = new URLSearchParams();
     searchParams.set(SearchParams.FocusComponentId, relativeId);
-    const backTo = this.dataSources.currentPage;
+    const backTo = this.dataSources.context.currentPage();
     if (enableBackButton && backTo && backTo !== pageKey) {
       searchParams.append(SearchParams.BackToPage, backTo);
     }
@@ -679,8 +617,8 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       window.logWarn('Link text was empty but must be set for linkToPage to work');
       return null;
     }
-    const taskId = this.dataSources.process?.currentTask?.elementId;
-    const instanceId = this.dataSources.instanceDataSources?.instanceId;
+    const taskId = this.dataSources.instance.getProcess()?.currentTask?.elementId;
+    const instanceId = this.dataSources.instance.getDataSources()?.instanceId;
 
     let url: string;
     if (taskId && instanceId) {
@@ -689,7 +627,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       url = `/${pageId}`;
     }
 
-    const backTo = this.dataSources.currentPage;
+    const backTo = this.dataSources.context.currentPage();
     if (enableBackButton && backTo && backTo !== pageId) {
       const searchParams = new URLSearchParams();
       searchParams.set(SearchParams.BackToPage, backTo);
@@ -698,7 +636,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     return `<a href="${url}" data-link-type="LinkToPotentialPage">${linkText}</a>`;
   },
   language() {
-    return this.dataSources.currentLanguage;
+    return this.dataSources.context.currentLanguage();
   },
   contains(string, stringToContain) {
     if (string === null || stringToContain === null) {
@@ -794,15 +732,11 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup dataModel null`);
     }
 
-    const uiFolder = this.dataSources.formStoreSelector((s) => s.bootstrap.uiFolder, []);
-    const dataType = getUiFolderSettings(uiFolder)?.defaultDataType;
+    const dataType = this.dataSources.formData.defaultDataType();
     if (!dataType) {
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup dataType undefined`);
     }
-    const array = this.dataSources.formStoreSelector(
-      (s) => dot.pick(path, s.data.models[dataType]?.debouncedCurrentData),
-      [dataType, path],
-    );
+    const array = this.dataSources.formData.read({ dataType, field: path });
     if (typeof array != 'object' || !Array.isArray(array)) {
       return '';
     }
@@ -886,27 +820,21 @@ export const ExprFunctionValidationExtensions: { [K in ExprFunctionName]?: FuncV
   },
 };
 
-function pickSimpleValue(path: IDataModelReference, params: EvaluateExpressionParams<['formStoreSelector']>) {
-  const isValidDataType = params.dataSources.formStoreSelector(
-    (s) => Object.keys(s.bootstrap.dataModels).includes(path.dataType),
-    [path.dataType],
-  );
+function pickSimpleValue(path: IDataModelReference, params: EvaluateExpressionParams) {
+  const isValidDataType = params.dataSources.formData.hasDataType(path.dataType);
   if (!isValidDataType) {
     throw new ExprRuntimeError(params.expr, params.path, `Data model with type ${path.dataType} not found`);
   }
 
-  const value = params.dataSources.formStoreSelector(
-    (s) => dot.pick(path.field, s.data.models[path.dataType]?.debouncedCurrentData),
-    [path.field, path.dataType],
-  );
+  const value = params.dataSources.formData.read(path);
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
     return value;
   }
   return null;
 }
 
-function isComponentOrAncestorHidden(ctx: EvaluateExpressionParams<['formStoreSelector']>, componentId: string) {
-  const layoutLookups = ctx.dataSources.formStoreSelector((s) => s.bootstrap.layoutLookups, []);
+function isComponentOrAncestorHidden(ctx: EvaluateExpressionParams, componentId: string) {
+  const layoutLookups = ctx.dataSources.layout.getLookups();
   if (!layoutLookups) {
     throw new ExprRuntimeError(ctx.expr, ctx.path, 'Layouts not available in this context, cannot look up component');
   }
@@ -953,7 +881,7 @@ function evalEmbeddedExpression(
  * 'compare', where the operator will determine the type of the arguments, and cast them accordingly.
  */
 function lateCastArg<T extends ExprVal>(
-  context: EvaluateExpressionParams<[]>,
+  context: EvaluateExpressionParams,
   arg: unknown,
   argIndex: number,
   type: T,
@@ -1050,7 +978,7 @@ export const CompareOperators = {
 type CompareOperator = keyof typeof CompareOperators;
 
 function compare(
-  ctx: EvaluateExpressionParams<[]>,
+  ctx: EvaluateExpressionParams,
   operator: CompareOperator,
   arg1: unknown,
   arg2: unknown,

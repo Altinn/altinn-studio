@@ -25,8 +25,8 @@ export function useItemWhenType<T extends CompTypes>(
     const suffix = typeof type === 'string' ? ` (expected ${type})` : '';
     throw new Error(`Unexpected type for ${baseComponentId}: ${intermediate?.type}${suffix}`);
   }
-  const location = useCurrentDataModelLocation();
-  const dataSources = useExpressionDataSources(intermediate, { dataSources: { currentDataModelPath: () => location } });
+  const currentDataModelPath = useCurrentDataModelLocation();
+  const dataSources = useExpressionDataSources(intermediate, { runtime: { currentDataModelPath } });
   const props = useExpressionResolverProps(`Invalid expression for ${baseComponentId}`, intermediate, dataSources);
   const def = getComponentDef(intermediate.type);
   return def.evalExpressions(props as never) as CompInternal<T>;
@@ -52,10 +52,10 @@ export function useItemIfType<T extends CompTypes>(
   }
   // eslint-disable-next-line react-compiler/react-compiler
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  const location = useCurrentDataModelLocation();
+  const currentDataModelPath = useCurrentDataModelLocation();
   // eslint-disable-next-line react-compiler/react-compiler
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  const dataSources = useExpressionDataSources(intermediate, { dataSources: { currentDataModelPath: () => location } });
+  const dataSources = useExpressionDataSources(intermediate, { runtime: { currentDataModelPath } });
   // eslint-disable-next-line react-compiler/react-compiler
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const props = useExpressionResolverProps(`Invalid expression for ${baseComponentId}`, intermediate, dataSources);
@@ -74,8 +74,8 @@ export function useItemFor<T extends CompTypes = CompTypes>(baseComponentId: str
   if (!intermediate) {
     throw new Error(`No component configuration found for ${baseComponentId}`);
   }
-  const location = useCurrentDataModelLocation();
-  const dataSources = useExpressionDataSources(intermediate, { dataSources: { currentDataModelPath: () => location } });
+  const currentDataModelPath = useCurrentDataModelLocation();
+  const dataSources = useExpressionDataSources(intermediate, { runtime: { currentDataModelPath } });
   const props = useExpressionResolverProps(`Invalid expression for ${baseComponentId}`, intermediate, dataSources);
   const def = getComponentDef(intermediate.type);
   return def.evalExpressions(props as never) as CompInternal<T>;
