@@ -18,7 +18,7 @@ export function EditButton(props: IEditButtonProps) {
       variant='tertiary'
       color='second'
       onClick={props.onClick}
-      aria-label={`${props.editText}: ${props.label}`}
+      aria-label={props.editText ? `${props.editText}: ${props.label}` : props.label}
     >
       {props.editText}
       <PencilIcon
