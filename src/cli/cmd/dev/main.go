@@ -1,30 +1,25 @@
-// Package main provides a cross-platform development tool for studioctl.
-// Replaces platform-specific Makefile operations with portable Go code.
-//
 //nolint:forbidigo // This dev tool uses fmt.Print for simple CLI output
 package main
 
 import (
-	"archive/tar"
-	"compress/gzip"
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 
 	"altinn.studio/devenv/pkg/processutil"
-	selfapp "altinn.studio/studioctl/internal/cmd/self"
 	"altinn.studio/studioctl/internal/config"
+	installpkg "altinn.studio/studioctl/internal/install"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
 const (
-	version = "0.1.0-preview.0"
+	version = "v0.1.0-preview.0"
 
 	buildDir = "build"
 
@@ -35,20 +30,37 @@ const (
 	helpCmd = "help"
 
 	dirPermDefault = 0o755
-
-	filePermDefault = 0o644
-
-	goArchAMD64 = "amd64"
-	goArchARM64 = "arm64"
 )
+
+type distPlatform struct {
+	GOOS   string
+	GOARCH string
+}
+
+type distOptions struct {
+	Version      string
+	OutputDir    string
+	ManifestPath string
+	PlatformMode string
+	Release      bool
+}
+
+type distResult struct {
+	HostBinaryPath           string
+	HostResourcesArchivePath string
+	Artifacts                []string
+}
+
+type distManifest struct {
+	Artifacts []string `json:"artifacts"`
+}
 
 var (
 	errBinaryPathIsDirectory       = errors.New("binary path is a directory")
 	errInstallWindowsHostNeedsUser = errors.New("windows-host install requires -user")
 	errNotRunningInWSL             = errors.New("windows-host install requires WSL")
-	errNoPathsSpecified            = errors.New("no paths specified")
 	errUnexpectedBinaryName        = errors.New("unexpected binary name")
-	errUnsupportedAppManagerRID    = errors.New("unsupported app-manager runtime")
+	errUnsupportedPlatformMode     = errors.New("unsupported platform mode")
 	errWindowsVariableEmpty        = errors.New("windows variable is empty")
 )
 
@@ -60,8 +72,8 @@ func main() {
 
 	var err error
 	switch os.Args[1] {
-	case "resources":
-		err = runResources(os.Args[2:])
+	case "dist":
+		err = runDist(os.Args[2:])
 	case "install":
 		err = runInstall(os.Args[2:])
 	case "clean":
@@ -87,7 +99,7 @@ func printUsage() {
 Usage: go run ./cmd/dev <command> [options]
 
 Commands:
-  resources   Create localtest resources tarball
+  dist        Build/stage studioctl install artifacts
   install     Build and install studioctl (default: dev-home)
   clean       Remove build artifacts
 
@@ -95,31 +107,135 @@ Run 'go run ./cmd/dev <command> -h' for command-specific help.
 `)
 }
 
-func runResources(args []string) error {
-	fs := flag.NewFlagSet("resources", flag.ExitOnError)
+func runDist(args []string) error {
+	fs := flag.NewFlagSet("dist", flag.ExitOnError)
+	distVersion := fs.String("version", version, "Version to embed in studioctl")
+	outputDir := fs.String("output", buildDir, "Output directory")
+	platform := fs.String("platform", "host", "Platform set: host or all")
+	manifestPath := fs.String("manifest", "", "Write JSON artifact manifest to file")
+	release := fs.Bool("release", false, "Finalize release artifacts")
 	fs.Usage = func() {
-		fmt.Print(`Usage: go run ./cmd/dev resources
+		fmt.Print(`Usage: go run ./cmd/dev dist [options]
 
-Creates build/localtest-resources.tar.gz from ../Runtime/localtest/{testdata,infra}
+Builds/stages studioctl and matching resources archives.
+
+Options:
+  -version VERSION            Version to embed in studioctl
+  -output DIR                 Output directory (default: build)
+  -platform host|all          Build host platform or release platform set
+  -manifest FILE              Write JSON artifact manifest to file
+  -release                    Add release install scripts and SHA256SUMS
 `)
 	}
 	if err := fs.Parse(args); err != nil {
 		return fmt.Errorf("parse flags: %w", err)
 	}
 
-	return createResourcesTarball()
+	_, err := buildDist(distOptions{
+		Version:      *distVersion,
+		OutputDir:    *outputDir,
+		ManifestPath: *manifestPath,
+		PlatformMode: *platform,
+		Release:      *release,
+	})
+	return err
 }
 
-func createResourcesTarball() error {
-	dest := filepath.Join(buildDir, "localtest-resources.tar.gz")
-	fmt.Printf("Creating %s...\n", dest)
-
-	if err := createTarGz(dest, localtestDir, "testdata", "infra"); err != nil {
-		return fmt.Errorf("create tarball: %w", err)
+func buildDist(opts distOptions) (distResult, error) {
+	if opts.ManifestPath != "" {
+		if err := os.Remove(opts.ManifestPath); err != nil && !errors.Is(err, os.ErrNotExist) {
+			return distResult{}, fmt.Errorf("remove stale dist manifest: %w", err)
+		}
 	}
 
-	fmt.Println("Done.")
+	platforms, err := resolveDistPlatforms(opts.PlatformMode)
+	if err != nil {
+		return distResult{}, err
+	}
+
+	var result distResult
+	for _, platform := range platforms {
+		binaryName := distStudioctlName(platform, opts.PlatformMode)
+		binaryPath, err := buildStudioctlFor(platform.GOOS, platform.GOARCH, opts.OutputDir, binaryName, opts.Version)
+		if err != nil {
+			return distResult{}, err
+		}
+
+		resourcesArchivePath, err := buildPlatformResources(
+			platform.GOOS,
+			platform.GOARCH,
+			opts.OutputDir,
+			opts.Version,
+		)
+		if err != nil {
+			return distResult{}, err
+		}
+		result.Artifacts = append(result.Artifacts,
+			binaryPath,
+			resourcesArchivePath,
+		)
+		if platform.GOOS == runtime.GOOS && platform.GOARCH == runtime.GOARCH {
+			result.HostBinaryPath = binaryPath
+			result.HostResourcesArchivePath = resourcesArchivePath
+		}
+	}
+
+	if opts.Release {
+		releaseArtifacts, err := installpkg.CreateReleaseArtifacts(opts.OutputDir, opts.Version)
+		if err != nil {
+			return distResult{}, fmt.Errorf("finalize release artifacts: %w", err)
+		}
+		result.Artifacts = append(result.Artifacts, releaseArtifacts...)
+	}
+
+	if opts.ManifestPath != "" {
+		if err := writeDistManifest(opts.ManifestPath, result); err != nil {
+			return distResult{}, err
+		}
+	}
+
+	return result, nil
+}
+
+func writeDistManifest(path string, result distResult) error {
+	if err := os.MkdirAll(filepath.Dir(path), dirPermDefault); err != nil {
+		return fmt.Errorf("create manifest directory: %w", err)
+	}
+
+	content, err := json.MarshalIndent(distManifest{Artifacts: result.Artifacts}, "", "  ")
+	if err != nil {
+		return fmt.Errorf("write dist manifest: %w", err)
+	}
+	content = append(content, '\n')
+	if err := os.WriteFile(path, content, osutil.FilePermOwnerOnly); err != nil {
+		return fmt.Errorf("write dist manifest: %w", err)
+	}
 	return nil
+}
+
+func resolveDistPlatforms(mode string) ([]distPlatform, error) {
+	switch mode {
+	case "host":
+		return []distPlatform{{GOOS: runtime.GOOS, GOARCH: runtime.GOARCH}}, nil
+	case "all":
+		return []distPlatform{
+			{GOOS: osutil.OSLinux, GOARCH: goArchAMD64},
+			{GOOS: osutil.OSLinux, GOARCH: goArchARM64},
+			{GOOS: osutil.OSDarwin, GOARCH: goArchAMD64},
+			{GOOS: osutil.OSDarwin, GOARCH: goArchARM64},
+			{GOOS: osutil.OSWindows, GOARCH: goArchAMD64},
+			{GOOS: osutil.OSWindows, GOARCH: goArchARM64},
+		}, nil
+	default:
+		return nil, fmt.Errorf("%w: %s", errUnsupportedPlatformMode, mode)
+	}
+}
+
+func distStudioctlName(platform distPlatform, mode string) string {
+	if mode == "host" {
+		return binaryNameWithExt("studioctl", platform.GOOS)
+	}
+	return binaryNameWithExt("studioctl-"+platform.GOOS+"-"+platform.GOARCH, platform.GOOS)
 }
 
 func runInstall(args []string) error {
@@ -129,7 +245,7 @@ func runInstall(args []string) error {
 	fs.Usage = func() {
 		fmt.Print(`Usage: go run ./cmd/dev install [options]
 
-Builds studioctl, publishes app-manager, and installs them with localtest resources.
+Builds studioctl and its resources archive, then installs them.
 
 Options:
   -user           Install to user directories (~/.local/bin, ~/.altinn-studio)
@@ -147,37 +263,77 @@ Options:
 		return err
 	}
 
-	if err := createResourcesTarball(); err != nil {
-		return err
-	}
-
 	if *windowsHost {
 		return installWindowsHostMode()
 	}
 
-	binaryPath, err := buildStudioctl(runtime.GOOS, buildDir)
-	if err != nil {
-		return err
-	}
-	appManagerPath, err := publishAppManager(runtime.GOOS, runtime.GOARCH, buildDir)
+	dist, err := buildDist(distOptions{
+		Version:      version,
+		OutputDir:    buildDir,
+		ManifestPath: "",
+		PlatformMode: "host",
+		Release:      false,
+	})
 	if err != nil {
 		return err
 	}
 
-	return installBinary(binaryPath, appManagerPath, *user)
+	return installBinary(dist.HostBinaryPath, dist.HostResourcesArchivePath, *user)
 }
 
 func buildStudioctl(goos, outputDir string) (string, error) {
-	fmt.Println("Building studioctl...")
-	binaryName := binaryNameWithExt("studioctl", goos)
-	binaryPath := filepath.Join(outputDir, binaryName)
-	ldflags := "-X altinn.studio/studioctl/internal/cmd.version=" + version
+	return buildStudioctlFor(
+		goos,
+		runtime.GOARCH,
+		outputDir,
+		binaryNameWithExt("studioctl", goos),
+		version,
+	)
+}
 
-	if err := goBuild(binaryPath, ldflags, "./cmd/studioctl", goos, runtime.GOARCH); err != nil {
+func buildStudioctlFor(goos, goarch, outputDir, binaryName, buildVersion string) (string, error) {
+	fmt.Println("Building studioctl...")
+	binaryPath := filepath.Join(outputDir, binaryName)
+	ldflags := "-X altinn.studio/studioctl/internal/cmd.version=" + buildVersion
+
+	if err := goBuild(binaryPath, ldflags, "./cmd/studioctl", goos, goarch); err != nil {
 		return "", fmt.Errorf("build studioctl: %w", err)
 	}
 
 	return binaryPath, nil
+}
+
+func buildPlatformResources(
+	goos, goarch, outputDir, buildVersion string,
+) (archivePath string, err error) {
+	serverDir := filepath.Join(outputDir, "."+config.StudioctlServerName+"-"+goos+"-"+goarch)
+	if removeErr := os.RemoveAll(serverDir); removeErr != nil {
+		return "", fmt.Errorf("clean %s staging dir: %w", config.StudioctlServerName, removeErr)
+	}
+	defer func() {
+		if removeErr := os.RemoveAll(serverDir); removeErr != nil && err == nil {
+			err = fmt.Errorf("remove %s staging dir: %w", config.StudioctlServerName, removeErr)
+		}
+	}()
+
+	if _, publishErr := publishStudioctlServerToDir(goos, goarch, serverDir, buildVersion); publishErr != nil {
+		return "", publishErr
+	}
+
+	fmt.Println("Creating resources archive...")
+	archivePath, err = installpkg.CreateResourcesArchive(installpkg.ResourcesArchiveOptions{
+		GOOS:         goos,
+		GOARCH:       goarch,
+		OutputDir:    outputDir,
+		ServerDir:    serverDir,
+		LocaltestDir: localtestDir,
+	})
+	if err != nil {
+		return "", fmt.Errorf("create resources archive: %w", err)
+	}
+	fmt.Printf("Created %s\n", archivePath)
+
+	return archivePath, nil
 }
 
 func validateInstallMode(userInstall, windowsHost, runningInWSL bool) error {
@@ -193,24 +349,19 @@ func validateInstallMode(userInstall, windowsHost, runningInWSL bool) error {
 	return nil
 }
 
-func installBinary(binaryPath, appManagerPath string, userInstall bool) error {
-	tarballPath, err := filepath.Abs(filepath.Join(buildDir, "localtest-resources.tar.gz"))
+func installBinary(binaryPath, resourcesArchivePath string, userInstall bool) error {
+	resourcesArchivePath, err := filepath.Abs(resourcesArchivePath)
 	if err != nil {
-		return fmt.Errorf("get tarball absolute path: %w", err)
+		return fmt.Errorf("get resources archive absolute path: %w", err)
 	}
 
 	if userInstall {
-		return installUserMode(binaryPath, appManagerPath, tarballPath)
+		return installUserMode(binaryPath, resourcesArchivePath)
 	}
-	return installDevMode(binaryPath, appManagerPath, tarballPath)
+	return installDevMode(binaryPath, resourcesArchivePath)
 }
 
 func installWindowsHostMode() error {
-	tarballPath, err := filepath.Abs(filepath.Join(buildDir, "localtest-resources.tar.gz"))
-	if err != nil {
-		return fmt.Errorf("get tarball absolute path: %w", err)
-	}
-
 	stageDirWindows, err := windowsEnv("TEMP")
 	if err != nil {
 		return err
@@ -229,7 +380,7 @@ func installWindowsHostMode() error {
 	if err != nil {
 		return err
 	}
-	appManagerPathWSL, err := publishAppManager(osutil.OSWindows, runtime.GOARCH, stageDirWSL)
+	resourcesArchivePath, err := buildPlatformResources(osutil.OSWindows, runtime.GOARCH, stageDirWSL, version)
 	if err != nil {
 		return err
 	}
@@ -237,18 +388,9 @@ func installWindowsHostMode() error {
 	if err != nil {
 		return err
 	}
-	appManagerPathWindows, err := windowsPath(appManagerPathWSL)
+	resourcesArchiveWindows, err := windowsPath(resourcesArchivePath)
 	if err != nil {
 		return err
-	}
-
-	tarballWindows := joinWindowsPath(stageDirWindows, "localtest-resources.tar.gz")
-	tarballWSL, err := wslPathToUnix(tarballWindows)
-	if err != nil {
-		return err
-	}
-	if copyErr := copyFile(tarballPath, tarballWSL); copyErr != nil {
-		return fmt.Errorf("stage resources tarball: %w", copyErr)
 	}
 
 	installDirWindows, err := recommendedWindowsInstallDir()
@@ -261,8 +403,7 @@ func installWindowsHostMode() error {
 
 	if err := runWindowsInstall(
 		binaryPathWindows,
-		appManagerPathWindows,
-		tarballWindows,
+		resourcesArchiveWindows,
 		installDirWindows,
 	); err != nil {
 		return fmt.Errorf("run windows self install: %w", err)
@@ -271,28 +412,20 @@ func installWindowsHostMode() error {
 	return nil
 }
 
-func installUserMode(binaryPath, appManagerPath, tarballPath string) error {
-	// Use the same candidate detection as self install
-	binDir := findRecommendedBinDir()
-	if binDir == "" {
-		return selfapp.ErrNoWritableLocation
-	}
+func installUserMode(binaryPath, resourcesArchivePath string) error {
+	fmt.Println("Running studioctl self install...")
 
-	fmt.Printf("Running studioctl self install --path %s\n", binDir)
-
-	// Only set tarball env - let config use default home resolution
 	env := []string{
-		config.EnvResourcesTarball + "=" + tarballPath,
-		config.EnvAppManagerBinary + "=" + appManagerPath,
+		config.EnvResourcesArchive + "=" + resourcesArchivePath,
 	}
 
-	if err := runBinary(binaryPath, env, "self", "install", "--path", binDir); err != nil {
+	if err := runBinary(binaryPath, env, "self", "install"); err != nil {
 		return fmt.Errorf("run self install: %w", err)
 	}
 	return nil
 }
 
-func installDevMode(binaryPath, appManagerPath, tarballPath string) error {
+func installDevMode(binaryPath, resourcesArchivePath string) error {
 	devHome, err := filepath.Abs(filepath.Join(buildDir, "dev-home"))
 	if err != nil {
 		return fmt.Errorf("get dev home absolute path: %w", err)
@@ -302,8 +435,7 @@ func installDevMode(binaryPath, appManagerPath, tarballPath string) error {
 	fmt.Printf("Running studioctl self install --path %s\n", binDir)
 
 	env := []string{
-		config.EnvResourcesTarball + "=" + tarballPath,
-		config.EnvAppManagerBinary + "=" + appManagerPath,
+		config.EnvResourcesArchive + "=" + resourcesArchivePath,
 		config.EnvHome + "=" + devHome,
 	}
 
@@ -314,15 +446,6 @@ func installDevMode(binaryPath, appManagerPath, tarballPath string) error {
 	destBinary := filepath.Join(binDir, binaryNameWithExt("studioctl", runtime.GOOS))
 	fmt.Printf("\nRun with: %s=%s %s <command>\n", config.EnvHome, devHome, destBinary)
 	return nil
-}
-
-func findRecommendedBinDir() string {
-	for _, c := range selfapp.DetectCandidates(nil) {
-		if c.Recommended && c.Writable {
-			return c.Path
-		}
-	}
-	return ""
 }
 
 func runClean(args []string) error {
@@ -366,76 +489,12 @@ func goBuild(output, ldflags, pkg, goos, goarch string) error {
 	cmd := processutil.CommandContext(context.Background(), "go", args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Env = append(os.Environ(), "GOOS="+goos, "GOARCH="+goarch)
+	cmd.Env = append(os.Environ(), "GOOS="+goos, "GOARCH="+goarch, "CGO_ENABLED=0")
 
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("go build failed: %w", err)
 	}
 	return nil
-}
-
-func publishAppManager(goos, goarch, outputDir string) (string, error) {
-	fmt.Println("Publishing app-manager...")
-
-	rid, err := dotnetRuntimeIdentifier(goos, goarch)
-	if err != nil {
-		return "", err
-	}
-
-	publishDir := filepath.Join(outputDir, "app-manager-"+goos+"-"+goarch)
-	if err := os.MkdirAll(publishDir, dirPermDefault); err != nil {
-		return "", fmt.Errorf("create app-manager publish dir: %w", err)
-	}
-
-	args := []string{
-		"publish",
-		"./app-manager/app-manager.csproj",
-		"-c", "Release",
-		"-o", publishDir,
-		"-r", rid,
-		"--self-contained", "true",
-		"-p:DebugType=None",
-		"-p:DebugSymbols=false",
-	}
-
-	cmd := processutil.CommandContext(context.Background(), "dotnet", args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Dir = "."
-
-	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("dotnet publish failed: %w", err)
-	}
-
-	return publishDir, nil
-}
-
-func dotnetRuntimeIdentifier(goos, goarch string) (string, error) {
-	switch goos {
-	case osutil.OSLinux:
-		switch goarch {
-		case goArchAMD64:
-			return "linux-x64", nil
-		case goArchARM64:
-			return "linux-arm64", nil
-		}
-	case osutil.OSDarwin:
-		switch goarch {
-		case goArchAMD64:
-			return "osx-x64", nil
-		case goArchARM64:
-			return "osx-arm64", nil
-		}
-	case osutil.OSWindows:
-		switch goarch {
-		case goArchAMD64:
-			return "win-x64", nil
-		case goArchARM64:
-			return "win-arm64", nil
-		}
-	}
-
-	return "", fmt.Errorf("%w: %s/%s", errUnsupportedAppManagerRID, goos, goarch)
 }
 
 func runBinary(binary string, env []string, args ...string) error {
@@ -525,13 +584,11 @@ func commandOutput(name string, args ...string) (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-func runWindowsInstall(binaryPath, appManagerPath, tarballPath, installDir string) error {
+func runWindowsInstall(binaryPath, resourcesArchivePath, installDir string) error {
 	script := fmt.Sprintf(
-		"$env:%s = %s; $env:%s = %s; & %s self install --path %s",
-		config.EnvResourcesTarball,
-		powerShellSingleQuoted(tarballPath),
-		config.EnvAppManagerBinary,
-		powerShellSingleQuoted(appManagerPath),
+		"$env:%s = %s; & %s self install --path %s",
+		config.EnvResourcesArchive,
+		powerShellSingleQuoted(resourcesArchivePath),
 		powerShellSingleQuoted(binaryPath),
 		powerShellSingleQuoted(installDir),
 	)
@@ -561,129 +618,4 @@ func joinWindowsPath(base string, elems ...string) string {
 		}
 	}
 	return strings.Join(parts, `\`)
-}
-
-func createTarGz(dest, baseDir string, paths ...string) (err error) {
-	if len(paths) == 0 {
-		return errNoPathsSpecified
-	}
-
-	if ensureErr := os.MkdirAll(filepath.Dir(dest), dirPermDefault); ensureErr != nil {
-		return fmt.Errorf("create destination directory: %w", ensureErr)
-	}
-
-	//nolint:gosec // G304: dest path is from trusted dev tooling input
-	f, err := os.OpenFile(dest, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, filePermDefault)
-	if err != nil {
-		return fmt.Errorf("create archive file: %w", err)
-	}
-	defer func() { err = closeWithError(f, "close archive file", err) }()
-
-	gw := gzip.NewWriter(f)
-	defer func() { err = closeWithError(gw, "close gzip writer", err) }()
-
-	tw := tar.NewWriter(gw)
-	defer func() { err = closeWithError(tw, "close tar writer", err) }()
-
-	for _, path := range paths {
-		fullPath := filepath.Join(baseDir, path)
-		if walkErr := addToTar(tw, baseDir, fullPath); walkErr != nil {
-			return fmt.Errorf("add %s to archive: %w", path, walkErr)
-		}
-	}
-
-	return nil
-}
-
-func addToTar(tw *tar.Writer, baseDir, path string) error {
-	walkErr := filepath.Walk(path, func(filePath string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		return addEntryToTar(tw, baseDir, filePath, info)
-	})
-	if walkErr != nil {
-		return fmt.Errorf("walk %s: %w", path, walkErr)
-	}
-	return nil
-}
-
-func addEntryToTar(tw *tar.Writer, baseDir, filePath string, info os.FileInfo) error {
-	relPath, err := filepath.Rel(baseDir, filePath)
-	if err != nil {
-		return fmt.Errorf("compute relative path: %w", err)
-	}
-
-	tarPath := filepath.ToSlash(relPath)
-
-	header, err := tar.FileInfoHeader(info, "")
-	if err != nil {
-		return fmt.Errorf("create tar header: %w", err)
-	}
-	header.Name = tarPath
-
-	if writeErr := tw.WriteHeader(header); writeErr != nil {
-		return fmt.Errorf("write tar header: %w", writeErr)
-	}
-
-	if info.IsDir() {
-		return nil
-	}
-
-	return addFileContentToTar(tw, filePath)
-}
-
-func addFileContentToTar(tw *tar.Writer, filePath string) (err error) {
-	//nolint:gosec // G304: filePath is from trusted dev tooling input via filepath.Walk
-	srcFile, err := os.Open(filePath)
-	if err != nil {
-		return fmt.Errorf("open file: %w", err)
-	}
-	defer func() { err = closeWithError(srcFile, "close source", err) }()
-
-	if _, copyErr := io.Copy(tw, srcFile); copyErr != nil {
-		return fmt.Errorf("copy file content: %w", copyErr)
-	}
-
-	return nil
-}
-
-func copyFile(src, dest string) (err error) {
-	if mkdirErr := os.MkdirAll(filepath.Dir(dest), dirPermDefault); mkdirErr != nil {
-		return fmt.Errorf("create destination directory: %w", mkdirErr)
-	}
-
-	srcFile, err := os.Open(src) //nolint:gosec // G304: src is controlled by the dev helper.
-	if err != nil {
-		return fmt.Errorf("open source file: %w", err)
-	}
-	defer func() { err = closeWithError(srcFile, "close source file", err) }()
-
-	//nolint:gosec // G304: dest is controlled by the dev helper.
-	destFile, err := os.OpenFile(
-		dest,
-		os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		filePermDefault,
-	)
-	if err != nil {
-		return fmt.Errorf("open destination file: %w", err)
-	}
-	defer func() { err = closeWithError(destFile, "close destination file", err) }()
-
-	if _, err := io.Copy(destFile, srcFile); err != nil {
-		return fmt.Errorf("copy file: %w", err)
-	}
-
-	return nil
-}
-
-func closeWithError(c io.Closer, msg string, existingErr error) error {
-	closeErr := c.Close()
-	if closeErr == nil {
-		return existingErr
-	}
-	if existingErr == nil {
-		return fmt.Errorf("%s: %w", msg, closeErr)
-	}
-	return existingErr
 }

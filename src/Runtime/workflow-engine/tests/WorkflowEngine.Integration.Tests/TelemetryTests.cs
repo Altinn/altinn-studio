@@ -126,7 +126,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
 
         // === Enqueue phase ===
         Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatch"));
-        Assert.NotEmpty(collector.GetActivities("ValidationUtils.ValidateAndSortWorkflowGraph"));
+        Assert.NotEmpty(collector.GetActivities("ValidationUtils.ValidateWorkflowGraph"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflows"));
 
         // === Processing phase ===
@@ -269,7 +269,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
     /// </para>
     /// <code>
     /// Trace A — HTTP request:
-    ///   ValidationUtils.ValidateAndSortWorkflowGraph   (child of HTTP server span)
+    ///   ValidationUtils.ValidateWorkflowGraph   (child of HTTP server span)
     ///
     /// Background — Write buffer (standalone traces):
     ///   Engine.FlushBatch

@@ -4,8 +4,8 @@ import { ChevronDownIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { ExprVal } from 'src/features/expressions/types';
+import { FormStore } from 'src/features/form/FormContext';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/features/navigation/components/SubformsForPage.module.css';
@@ -25,7 +25,7 @@ import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IData } from 'src/types/shared';
 
 export function SubformsForPage({ pageKey, expandedByDefault }: { pageKey: string; expandedByDefault?: boolean }) {
-  const lookups = FormBootstrap.useLayoutLookups();
+  const lookups = FormStore.bootstrap.useLayoutLookups();
   const subformIds = lookups.topLevelComponents[pageKey]?.filter((id) => lookups.allComponents[id]?.type === 'Subform');
   if (!subformIds?.length) {
     return null;
@@ -42,7 +42,7 @@ export function SubformsForPage({ pageKey, expandedByDefault }: { pageKey: strin
 
 function SubformGroup({ baseId, expandedByDefault }: { baseId: string; expandedByDefault?: boolean }) {
   const currentPageId = useNavigationParam('pageKey');
-  const pageKey = FormBootstrap.useLayoutLookups().componentToPage[baseId];
+  const pageKey = FormStore.bootstrap.useLayoutLookups().componentToPage[baseId];
   if (!pageKey) {
     throw new Error(`Unable to find page for subform with id ${baseId}`);
   }

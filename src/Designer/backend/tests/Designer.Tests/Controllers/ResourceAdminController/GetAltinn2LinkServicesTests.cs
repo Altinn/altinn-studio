@@ -42,7 +42,9 @@ public class GetAltinn2LinkServicesTests
                 }
             );
             ResourceRegistryMock
-                .Setup(r => r.GetResourceList(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()))
+                .Setup(r =>
+                    r.GetServiceResourceList(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())
+                )
                 .ReturnsAsync(new List<ServiceResource>());
             Altinn2MetadataClientMock
                 .Setup(r => r.AvailableServices(It.IsAny<int>(), It.IsAny<string>()))

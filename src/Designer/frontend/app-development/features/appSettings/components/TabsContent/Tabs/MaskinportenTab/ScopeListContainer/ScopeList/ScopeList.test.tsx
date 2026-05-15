@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { ScopeList } from './ScopeList';
 import type { ScopeListProps } from './ScopeList';
 import type { MaskinportenScope, MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
@@ -12,19 +12,19 @@ import userEvent from '@testing-library/user-event';
 import { app, org } from '@studio/testing/testids';
 
 const scopeMock1: MaskinportenScope = {
-  scope: 'scope1',
+  scope: 'altinn:authorization/authorize',
   description: 'description1',
 };
 const scopeMock2: MaskinportenScope = {
-  scope: 'scope2',
+  scope: 'altinn:serviceowner/instances.write',
   description: 'description2',
 };
 const scopeMock3: MaskinportenScope = {
-  scope: 'scope3',
+  scope: 'altinn:appdeploy',
   description: 'description3',
 };
 const scopeMock4: MaskinportenScope = {
-  scope: 'scope4',
+  scope: 'altinn:serviceowner/instances.read',
   description: 'description4',
 };
 
@@ -43,117 +43,201 @@ describe('ScopeList', () => {
     expect(
       getText(textMock('app_settings.maskinporten_tab_available_scopes_description_help')),
     ).toBeInTheDocument();
+    expect(
+      getText(textMock('app_settings.maskinporten_scope_changes_deployment_notice')),
+    ).toBeInTheDocument();
   });
 
-  it('should display a list of scopes if maskinporten scopes are available and selected is empty', async () => {
-    renderScopeList({
-      componentProps: {
-        selectedScopes: [],
-      },
-    });
+  it('should display only selected scopes in the page table', () => {
+    renderScopeList();
 
-    expect(getCheckoxes()).toHaveLength(3); // The two scopes + "select all"
-
-    maskinportenScopesMock.forEach((scope: MaskinportenScope) => {
-      expect(getCell(scope.description));
-      expect(getCheckbox(scope.scope)).not.toBeChecked();
-    });
-  });
-
-  it('should display a list of scopes if selected maskinporten scopes are available and maskinporten is empty', async () => {
-    renderScopeList({
-      componentProps: {
-        maskinPortenScopes: [],
-      },
-    });
-
-    expect(getCheckoxes()).toHaveLength(3); // The two scopes + "select all"
+    const selectedScopesTable = getTable();
 
     selectedScopesMock.forEach((scope: MaskinportenScope) => {
-      expect(getCell(scope.description));
-      expect(getCheckbox(scope.scope)).toBeChecked();
+      expect(
+        within(selectedScopesTable).getByRole('cell', { name: scope.scope }),
+      ).toBeInTheDocument();
+      expect(
+        within(selectedScopesTable).getByRole('cell', { name: scope.description }),
+      ).toBeInTheDocument();
+    });
+
+    maskinportenScopesMock.forEach((scope: MaskinportenScope) => {
+      expect(
+        within(selectedScopesTable).queryByRole('cell', { name: scope.scope }),
+      ).not.toBeInTheDocument();
     });
   });
 
-  it('should display a merged list of scopes if both selected scopes and available scopes are available', async () => {
+  it('should display empty selected scopes message when no scopes are selected', () => {
+    renderScopeList({ componentProps: { selectedScopes: [] } });
+
+    expect(getText(textMock('app_settings.maskinporten_no_scopes_added'))).toBeInTheDocument();
+  });
+
+  it('should open add scopes dialog with selected scopes checked', async () => {
+    const user = userEvent.setup();
     renderScopeList();
 
-    expect(getCheckoxes()).toHaveLength(5); // The four scopes + "select all"
+    await openAddScopeDialog(user);
 
-    const combinedScopes: MaskinportenScope[] = [...maskinportenScopesMock, ...selectedScopesMock];
-    combinedScopes.forEach((scope: MaskinportenScope) => {
-      expect(getCheckbox(scope.scope)).toBeInTheDocument();
-      expect(getCell(scope.description)).toBeInTheDocument();
+    const dialog = getDialog();
+    expect(dialog).toBeInTheDocument();
+    expect(dialog).toHaveAttribute('closedby', 'closerequest');
+
+    selectedScopesMock.forEach((scope: MaskinportenScope) => {
+      expect(within(dialog).getByRole('checkbox', { name: scope.scope })).toBeChecked();
     });
     maskinportenScopesMock.forEach((scope: MaskinportenScope) => {
-      expect(getCheckbox(scope.scope)).toBeInTheDocument();
-      expect(getCell(scope.description)).toBeInTheDocument();
-      expect(getCheckbox(scope.scope)).not.toBeChecked();
-    });
-    selectedScopesMock.forEach((scope: MaskinportenScope) => {
-      expect(getCheckbox(scope.scope)).toBeInTheDocument();
-      expect(getCell(scope.description)).toBeInTheDocument();
-      expect(getCheckbox(scope.scope)).toBeChecked();
+      expect(within(dialog).getByRole('checkbox', { name: scope.scope })).not.toBeChecked();
     });
   });
 
-  it('should toggle all scopes when "select all" checkbox is clicked', async () => {
+  it('should disable unmarking selected mandatory scopes in the add scopes dialog', async () => {
     const user = userEvent.setup();
     renderScopeList();
 
-    const selectAllCheckbox = getCheckbox(textMock('app_settings.maskinporten_select_all_scopes'));
+    await openAddScopeDialog(user);
+    const dialog = getDialog();
+    const selectedMandatoryScopeCheckbox = within(dialog).getByRole('checkbox', {
+      name: scopeMock4.scope,
+    });
+    const availableMandatoryScopeCheckbox = within(dialog).getByRole('checkbox', {
+      name: scopeMock2.scope,
+    });
 
-    expect(selectAllCheckbox).not.toBeChecked();
-    await user.click(selectAllCheckbox);
+    expect(selectedMandatoryScopeCheckbox).toBeChecked();
+    expect(selectedMandatoryScopeCheckbox).toBeDisabled();
+    expect(availableMandatoryScopeCheckbox).not.toBeChecked();
+    expect(availableMandatoryScopeCheckbox).not.toBeDisabled();
 
-    expect(selectAllCheckbox).toBeChecked();
+    await user.click(selectedMandatoryScopeCheckbox);
+
+    expect(selectedMandatoryScopeCheckbox).toBeChecked();
   });
 
-  it('should toggle individual scope checkbox when clicked', async () => {
+  it('should sort serviceowner scopes first in selected scopes and dialog scopes', async () => {
     const user = userEvent.setup();
     renderScopeList();
 
-    const scopeCheckbox = getCheckbox(scopeMock1.scope);
-    expect(scopeCheckbox).not.toBeChecked();
+    const selectedScopeCells = screen
+      .getAllByRole('cell')
+      .filter((cell: HTMLElement) => cell.textContent?.startsWith('altinn:'))
+      .map((cell: HTMLElement) => cell.textContent);
 
-    await user.click(scopeCheckbox);
-    expect(scopeCheckbox).toBeChecked();
+    expect(selectedScopeCells).toEqual([scopeMock4.scope, scopeMock3.scope]);
+
+    await openAddScopeDialog(user);
+    const dialog = getDialog();
+    const dialogScopeCheckboxes = within(dialog)
+      .getAllByRole('checkbox')
+      .map((checkbox: HTMLElement) => checkbox.getAttribute('aria-label'))
+      .filter((label: string | null) => label?.startsWith('altinn:'));
+
+    expect(dialogScopeCheckboxes).toEqual([
+      scopeMock4.scope,
+      scopeMock2.scope,
+      scopeMock3.scope,
+      scopeMock1.scope,
+    ]);
   });
 
-  it('should call updateSelectedMaskinportenScopes with correct payload when clicking save button', async () => {
+  it('should filter scopes in the add scopes dialog when searching', async () => {
     const user = userEvent.setup();
     renderScopeList();
 
-    const selectAllCheckbox = getCheckbox(textMock('app_settings.maskinporten_select_all_scopes'));
-    await user.click(selectAllCheckbox);
+    await openAddScopeDialog(user);
+    const dialog = getDialog();
 
-    const saveButton = getButton(textMock('app_settings.maskinporten_tab_save_scopes'));
-    await user.click(saveButton);
+    await user.type(
+      within(dialog).getByRole('searchbox', {
+        name: textMock('app_settings.maskinporten_scope_search_label'),
+      }),
+      scopeMock1.scope,
+    );
 
-    const allSelectedScopes: MaskinportenScopes = {
-      scopes: [...selectedScopesMock, ...maskinportenScopesMock],
+    expect(within(dialog).getByRole('checkbox', { name: scopeMock1.scope })).toBeInTheDocument();
+    expect(
+      within(dialog).queryByRole('checkbox', { name: scopeMock2.scope }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should call updateSelectedMaskinportenScopes with selected scopes when completing the dialog', async () => {
+    const user = userEvent.setup();
+    renderScopeList();
+
+    await openAddScopeDialog(user);
+    const dialog = getDialog();
+    await user.click(within(dialog).getByRole('checkbox', { name: scopeMock1.scope }));
+    await user.click(
+      within(dialog).getByRole('button', {
+        name: textMock('app_settings.maskinporten_add_scope_dialog_done'),
+      }),
+    );
+
+    const updatedScopes: MaskinportenScopes = {
+      scopes: [scopeMock4, scopeMock3, scopeMock1],
     };
 
     expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledTimes(1);
     expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledWith(
       org,
       app,
-      allSelectedScopes,
+      updatedScopes,
     );
+  });
+
+  it('should not update selected scopes when cancelling the dialog', async () => {
+    const user = userEvent.setup();
+    renderScopeList();
+
+    await openAddScopeDialog(user);
+    const dialog = getDialog();
+    await user.click(within(dialog).getByRole('checkbox', { name: scopeMock1.scope }));
+    await user.click(within(dialog).getByRole('button', { name: textMock('general.cancel') }));
+
+    expect(queriesMock.updateSelectedMaskinportenScopes).not.toHaveBeenCalled();
+  });
+
+  it('should call updateSelectedMaskinportenScopes without the removed scope when deleting a selected scope', async () => {
+    const user = userEvent.setup();
+    renderScopeList();
+
+    await user.click(getButton(textMock('general.delete_item', { item: scopeMock3.scope })));
+
+    const updatedScopes: MaskinportenScopes = {
+      scopes: [scopeMock4],
+    };
+
+    expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledWith(
+      org,
+      app,
+      updatedScopes,
+    );
+  });
+
+  it('should not update selected scopes when deleting a mandatory selected scope', async () => {
+    const user = userEvent.setup();
+    renderScopeList();
+
+    const deleteButton = getButton(textMock('general.delete_item', { item: scopeMock4.scope }));
+
+    expect(deleteButton).toBeDisabled();
+
+    await user.click(deleteButton);
+
+    expect(queriesMock.updateSelectedMaskinportenScopes).not.toHaveBeenCalled();
   });
 
   it('should display a success toast when the update is successful', async () => {
     const user = userEvent.setup();
     renderScopeList();
 
-    const selectAllCheckbox = getCheckbox(textMock('app_settings.maskinporten_select_all_scopes'));
-    await user.click(selectAllCheckbox);
-
-    const saveButton = getButton(textMock('app_settings.maskinporten_tab_save_scopes'));
-    await user.click(saveButton);
+    await user.click(getButton(textMock('general.delete_item', { item: scopeMock3.scope })));
 
     const successMessage = textMock('app_settings.maskinporten_tab_save_scopes_success_message');
-    expect(getText(successMessage)).toBeInTheDocument();
+    expect(await screen.findByText(successMessage)).toBeInTheDocument();
   });
 
   it('should display an error toast when the update fails', async () => {
@@ -163,58 +247,10 @@ describe('ScopeList', () => {
       .mockImplementation(() => Promise.reject({ response: {} }));
     renderScopeList({ queries: { updateSelectedMaskinportenScopes } });
 
-    const selectAllCheckbox = getCheckbox(textMock('app_settings.maskinporten_select_all_scopes'));
-    await user.click(selectAllCheckbox);
+    await user.click(getButton(textMock('general.delete_item', { item: scopeMock3.scope })));
 
-    const saveButton = getButton(textMock('app_settings.maskinporten_tab_save_scopes'));
-    await user.click(saveButton);
-
-    const successMessage = textMock('app_settings.maskinporten_tab_save_scopes_error_message');
-    expect(getText(successMessage)).toBeInTheDocument();
-  });
-
-  it('should reset checkboxes to initial values when reset button is clicked', async () => {
-    const user = userEvent.setup();
-    renderScopeList();
-
-    const randomcheckbox = getCheckbox(scopeMock1.scope);
-    expect(randomcheckbox).not.toBeChecked();
-    await user.click(randomcheckbox);
-    expect(randomcheckbox).toBeChecked();
-
-    const resetButton = getButton(textMock('app_settings.maskinporten_tab_reset_scopes'));
-    await user.click(resetButton);
-    expect(randomcheckbox).not.toBeChecked();
-  });
-
-  it('should disable save button when checkboxes are not changed from initial values', async () => {
-    const user = userEvent.setup();
-    renderScopeList({ componentProps: { selectedScopes: [] } });
-
-    const saveButton = getButton(textMock('app_settings.maskinporten_tab_save_scopes'));
-    expect(saveButton).toBeDisabled();
-
-    const selectAllCheckbox = getCheckbox(textMock('app_settings.maskinporten_select_all_scopes'));
-    await user.click(selectAllCheckbox);
-    expect(saveButton).not.toBeDisabled();
-
-    await user.click(selectAllCheckbox);
-    expect(saveButton).toBeDisabled();
-  });
-
-  it('should disable reset button when checkboxes are not changed from initial values', async () => {
-    const user = userEvent.setup();
-    renderScopeList({ componentProps: { selectedScopes: [] } });
-
-    const resetButton = getButton(textMock('app_settings.maskinporten_tab_reset_scopes'));
-    expect(resetButton).toBeDisabled();
-
-    const selectAllCheckbox = getCheckbox(textMock('app_settings.maskinporten_select_all_scopes'));
-    await user.click(selectAllCheckbox);
-    expect(resetButton).not.toBeDisabled();
-
-    await user.click(selectAllCheckbox);
-    expect(resetButton).toBeDisabled();
+    const errorMessage = textMock('app_settings.maskinporten_tab_save_scopes_error_message');
+    expect(await screen.findByText(errorMessage)).toBeInTheDocument();
   });
 });
 
@@ -241,8 +277,11 @@ const renderScopeList = (props: Partial<Props> = {}) => {
   )(<ScopeList {...defaultProps} {...componentProps} />);
 };
 
-const getText = (name: string): HTMLParagraphElement => screen.getByText(name);
-const getCheckoxes = (): HTMLInputElement[] => screen.getAllByRole('checkbox');
-const getCheckbox = (name: string): HTMLInputElement => screen.getByRole('checkbox', { name });
-const getCell = (name: string): HTMLTableCellElement => screen.getByRole('cell', { name });
+const openAddScopeDialog = async (user: ReturnType<typeof userEvent.setup>): Promise<void> => {
+  await user.click(getButton(textMock('app_settings.maskinporten_add_scope')));
+};
+
+const getText = (name: string): HTMLElement => screen.getByText(name);
+const getTable = (): HTMLTableElement => screen.getByRole('table');
+const getDialog = (): HTMLDialogElement => screen.getByRole('dialog');
 const getButton = (name: string): HTMLButtonElement => screen.getByRole('button', { name });

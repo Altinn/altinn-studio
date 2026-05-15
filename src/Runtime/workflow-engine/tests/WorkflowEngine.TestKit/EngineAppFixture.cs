@@ -115,7 +115,7 @@ public abstract class EngineAppFixture : IAsyncLifetime
 
     /// <summary>
     /// Resets both WireMock (back to the default catch-all 200 stub) and the database
-    /// (all workflow and step rows truncated).  Called at the start of every test.
+    /// (all workflow state rows truncated). Called at the start of every test.
     /// </summary>
     public async Task Reset()
     {
@@ -128,7 +128,9 @@ public abstract class EngineAppFixture : IAsyncLifetime
         await WaitForDbIdle();
 
         await using var context = GetDbContext();
-        await context.Database.ExecuteSqlRawAsync("TRUNCATE engine.workflows, engine.steps CASCADE");
+        await context.Database.ExecuteSqlRawAsync(
+            "TRUNCATE engine.workflows, engine.steps, engine.workflow_collections, engine.idempotency_keys CASCADE"
+        );
 
         // Start a fresh instance of WireMock, recycling the port (which has already been sent to the factory)
         WireMock = WireMockServer.Start(port: _wireMockPort);

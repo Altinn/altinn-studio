@@ -17,11 +17,3 @@ patches:
       metadata:
         name: altinn-altinity-agents
         namespace: default
-  - patch: |-
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: altinn-mcp-server
-        namespace: default
-      spec:
-        replicas: 0

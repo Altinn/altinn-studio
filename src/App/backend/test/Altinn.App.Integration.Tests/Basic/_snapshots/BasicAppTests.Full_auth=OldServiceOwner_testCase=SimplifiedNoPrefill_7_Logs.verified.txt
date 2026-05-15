@@ -25,7 +25,6 @@
 [basic/default] [INFO] IFormDataValidator.ValidateFormData
 [basic/default] [INFO] IProcessTaskEnd.End
 [basic/default] [INFO] IDataProcessor.ProcessDataRead
-[basic/default] [INFO] IExternalApiClient.GetExternalApiDataAsync
 [basic/default] [INFO] IProcessEnd.End
 [basic/default] [INFO] ### Response: Process.NextElement - OkObjectResult, StatusCode: 200
 [basic/default] [INFO] ### Request: Instances.Get - User: ServiceOwner/405003309, AuthLevel: 3, AuthMethod: localtest
