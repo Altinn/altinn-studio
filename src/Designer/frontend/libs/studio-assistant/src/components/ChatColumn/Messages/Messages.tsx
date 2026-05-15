@@ -274,7 +274,7 @@ function MessageItem({
   };
 
   const traceId = message.role === MessageAuthor.Assistant ? message.traceId : undefined;
-  const showFeedback = Boolean(traceId && feedbackTexts && onMessageFeedback);
+  const showFeedback = traceId && feedbackTexts && onMessageFeedback;
 
   return (
     <div className={`${classes.messageRow} ${classes.assistantRow}`}>

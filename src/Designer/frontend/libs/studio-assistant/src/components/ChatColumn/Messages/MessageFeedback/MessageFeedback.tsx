@@ -19,20 +19,22 @@ export type MessageFeedbackProps = {
 };
 
 export function MessageFeedback({ texts, traceId, onSubmit }: MessageFeedbackProps): ReactElement {
-  const [selectedThumbsUp, setSelectedThumbsUp] = useState<boolean | null>(null);
+  const [selectedVote, setSelectedVote] = useState<boolean | null>(null);
   const [commentText, setCommentText] = useState<string>('');
   const dialogRef = useRef<HTMLDialogElement>(null);
 
-  const handleVoteClick = (thumbsUp: boolean): void => {
-    setSelectedThumbsUp(thumbsUp);
+  const handleVoteClick = (vote: boolean): void => {
+    setSelectedVote(vote);
     dialogRef.current?.showModal();
   };
 
   const handleSendFeedback = (): void => {
+    if (selectedVote === null) return;
+
     const trimmedComment = commentText.trim();
     onSubmit({
       traceId,
-      thumbsUp: selectedThumbsUp,
+      thumbsUp: selectedVote,
       comment: trimmedComment || undefined,
     });
     handleDialogClose();
@@ -40,7 +42,7 @@ export function MessageFeedback({ texts, traceId, onSubmit }: MessageFeedbackPro
 
   const handleDialogClose = (): void => {
     dialogRef.current?.close();
-    setSelectedThumbsUp(null);
+    setSelectedVote(null);
     setCommentText('');
   };
 
