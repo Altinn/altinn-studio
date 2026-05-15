@@ -13,7 +13,7 @@ export function processLayoutSettings(settings: ILayoutSettings | null | undefin
   if (!settings) {
     return {
       order: emptyArray,
-      groups: emptyArray,
+      groups: undefined,
       pageSettings: getGlobalUiSettings(),
       pdfLayoutName: undefined,
     };
