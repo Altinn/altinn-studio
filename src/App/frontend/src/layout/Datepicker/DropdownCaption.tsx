@@ -2,16 +2,14 @@ import React from 'react';
 import { formatMonthDropdown, useDayPicker } from 'react-day-picker';
 import type { MonthCaptionProps } from 'react-day-picker';
 
-import { getDateLib, getMonths, getYears, useDatePickerClose } from '@app/form-component';
+import { Button, getDateLib, getMonths, getYears, useDatePickerClose } from '@app/form-component';
 import { Select } from '@digdir/designsystemet-react';
 import { ArrowLeftIcon, ArrowRightIcon, XMarkIcon } from '@navikt/aksel-icons';
 import { addYears, setMonth, setYear, startOfMonth, subYears } from 'date-fns';
 
-import { Button } from 'src/app-components/Button/Button';
-import { translationKey } from 'src/AppComponentsBridge';
+import styles from 'src/app-components/Datepicker/Calendar.module.css';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
-import styles from 'src/layout/Datepicker/DropdownCaption.module.css';
 import comboboxClasses from 'src/styles/combobox.module.css';
 
 type DropdownCaptionProps = MonthCaptionProps & {
@@ -54,7 +52,7 @@ export const DropdownCaption = ({ calendarMonth, id, minDate, maxDate }: Dropdow
         icon={true}
         color='second'
         variant='tertiary'
-        aria-label={translationKey('date_picker.aria_label_left_arrow')}
+        aria-label={langAsString('date_picker.aria_label_left_arrow')}
         disabled={isPrevMonthDisabled}
         onClick={() => previousMonth && goToMonth(previousMonth)}
       >
@@ -101,7 +99,7 @@ export const DropdownCaption = ({ calendarMonth, id, minDate, maxDate }: Dropdow
         icon={true}
         color='second'
         variant='tertiary'
-        aria-label={translationKey('date_picker.aria_label_right_arrow')}
+        aria-label={langAsString('date_picker.aria_label_right_arrow')}
         disabled={isNextMonthDisabled}
         onClick={() => nextMonth && goToMonth(nextMonth)}
       >
@@ -113,7 +111,7 @@ export const DropdownCaption = ({ calendarMonth, id, minDate, maxDate }: Dropdow
             icon={true}
             color='second'
             variant='tertiary'
-            aria-label={translationKey('general.close')}
+            aria-label={langAsString('general.close')}
             onClick={onClose}
           >
             <XMarkIcon />

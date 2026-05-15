@@ -1,11 +1,10 @@
 import React from 'react';
 import type { JSX } from 'react';
 
-import { Flex } from '@app/form-component';
+import { Button, Flex } from '@app/form-component';
 import { ChevronLeftIcon, ChevronRightIcon, TrashIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { Button } from 'src/app-components/Button/Button';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { GenericComponent } from 'src/layout/GenericComponent';

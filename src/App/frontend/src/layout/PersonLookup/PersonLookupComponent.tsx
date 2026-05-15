@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
 
+import { Button } from '@app/form-component';
 import { Field, ValidationMessage } from '@digdir/designsystemet-react';
 import { queryOptions, useQuery } from '@tanstack/react-query';
 
-import { Button } from 'src/app-components/Button/Button';
 import { Input } from 'src/app-components/Input/Input';
 import { NumericInput } from 'src/app-components/Input/NumericInput';
 import { Fieldset } from 'src/app-components/Label/Fieldset';
@@ -312,6 +312,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
                 onClick={handleSubmit}
                 variant='secondary'
                 isLoading={isFetching}
+                loadingLabel={langAsString('general.loading')}
               >
                 <Lang id='person_lookup.submit_button' />
               </Button>

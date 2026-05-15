@@ -1,10 +1,9 @@
 import React from 'react';
 
-import { Flex } from '@app/form-component';
+import { Flex, Spinner } from '@app/form-component';
 import { CaretDownFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
