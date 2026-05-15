@@ -94,7 +94,7 @@ The frontend consists of several React packages in the following directories:
 
 Components MUST use custom hooks, never call `useQuery`/`useMutation` directly.
 
-**Error handling:** A global `MutationCache`/`QueryCache` `onError` in `ServicesContext.tsx` surfaces all query and mutation errors as toasts. Do not add per-call error handlers just to log or toast — that's already covered. Only add a local handler when you need behavior beyond the default toast.
+**Error handling:** A global `MutationCache`/`QueryCache` `onError` in `ServicesContext.tsx` surfaces all query and mutation errors as toasts.
 
 ## Unit tests
 

@@ -1,7 +1,6 @@
 using System;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces.Altinity;
@@ -17,22 +16,13 @@ public class AltinityAgentClient : IAltinityAgentClient
     private readonly HttpClient _httpClient;
     private readonly AltinitySettings _altinitySettings;
 
-    public AltinityAgentClient(
-        HttpClient httpClient,
-        IOptions<AltinitySettings> altinitySettings
-    )
+    public AltinityAgentClient(HttpClient httpClient, IOptions<AltinitySettings> altinitySettings)
     {
         _httpClient = httpClient;
         _altinitySettings = altinitySettings.Value;
     }
 
-    public async Task SendFeedbackAsync(
-        string developer,
-        string traceId,
-        bool thumbsUp,
-        string? comment,
-        CancellationToken cancellationToken = default
-    )
+    public async Task SendFeedbackAsync(string developer, string traceId, bool thumbsUp, string? comment)
     {
         var requestUri = new Uri($"{_altinitySettings.AgentUrl}{FeedbackPath}");
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, requestUri)
@@ -48,13 +38,10 @@ public class AltinityAgentClient : IAltinityAgentClient
         };
         httpRequest.Headers.Add(DeveloperHeader, developer);
 
-        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(_altinitySettings.TimeoutSeconds));
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
-
-        using var response = await _httpClient.SendAsync(httpRequest, linkedCts.Token);
+        using var response = await _httpClient.SendAsync(httpRequest);
         if (!response.IsSuccessStatusCode)
         {
-            string responseContent = await response.Content.ReadAsStringAsync(linkedCts.Token);
+            string responseContent = await response.Content.ReadAsStringAsync();
             throw new HttpRequestException($"Altinity feedback returned {response.StatusCode}: {responseContent}");
         }
     }

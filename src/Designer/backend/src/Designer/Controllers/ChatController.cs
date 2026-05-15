@@ -137,26 +137,10 @@ public class ChatController(IChatService chatService, IAltinityAgentClient altin
 
     [HttpPost("feedback")]
     [RequestSizeLimit(20_000)]
-    public async Task<IActionResult> SubmitFeedback(
-        string org,
-        string app,
-        [FromBody] ChatFeedbackRequest request,
-        CancellationToken cancellationToken
-    )
+    public async Task<IActionResult> SubmitFeedback(string org, string app, [FromBody] ChatFeedbackRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.TraceId))
-        {
-            return BadRequest("traceId is required");
-        }
-
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        await altinityAgentClient.SendFeedbackAsync(
-            developer,
-            request.TraceId,
-            request.ThumbsUp,
-            request.Comment,
-            cancellationToken
-        );
+        await altinityAgentClient.SendFeedbackAsync(developer, request.TraceId, request.ThumbsUp, request.Comment);
         return NoContent();
     }
 

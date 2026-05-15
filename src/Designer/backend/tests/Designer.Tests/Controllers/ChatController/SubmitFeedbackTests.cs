@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces.Altinity;
@@ -40,7 +39,7 @@ public class SubmitFeedbackTests : ChatControllerTestsBase<SubmitFeedbackTests>
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         _altinityAgentClientMock.Verify(
-            client => client.SendFeedbackAsync(Developer, "trace-abc-123", true, null, It.IsAny<CancellationToken>()),
+            client => client.SendFeedbackAsync(Developer, "trace-abc-123", true, null),
             Times.Once
         );
     }
@@ -58,40 +57,8 @@ public class SubmitFeedbackTests : ChatControllerTestsBase<SubmitFeedbackTests>
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         _altinityAgentClientMock.Verify(
-            client =>
-                client.SendFeedbackAsync(
-                    Developer,
-                    "trace-abc-123",
-                    false,
-                    "Svaret traff ikke helt.",
-                    It.IsAny<CancellationToken>()
-                ),
+            client => client.SendFeedbackAsync(Developer, "trace-abc-123", false, "Svaret traff ikke helt."),
             Times.Once
-        );
-    }
-
-    [Fact]
-    public async Task SubmitFeedback_WithEmptyTraceId_ReturnsBadRequest()
-    {
-        var request = new ChatFeedbackRequest(string.Empty, true, null);
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, FeedbackUrl)
-        {
-            Content = CreateJsonContent(request),
-        };
-
-        using var response = await HttpClient.SendAsync(httpRequest);
-
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        _altinityAgentClientMock.Verify(
-            client =>
-                client.SendFeedbackAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Never
         );
     }
 }
