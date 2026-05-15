@@ -1,4 +1,3 @@
-import React from 'react';
 import type { JSX, PropsWithChildren, ReactElement, Ref } from 'react';
 
 import { Label as DesignsystemetLabel } from '@digdir/designsystemet-react';
