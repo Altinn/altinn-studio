@@ -141,6 +141,7 @@ __metadata:
     "@types/react": "npm:19.2.14"
     "@types/react-dom": "npm:19.2.3"
     "@vitejs/plugin-react": "npm:^5.0.0"
+    classnames: "npm:2.5.1"
     jsdom: "npm:^26.1.0"
     storybook: "npm:^10.2.11"
     typescript: "npm:5.9.3"
