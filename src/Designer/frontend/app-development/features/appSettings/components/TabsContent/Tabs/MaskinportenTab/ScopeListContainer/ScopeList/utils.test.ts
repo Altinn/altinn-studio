@@ -2,6 +2,8 @@ import {
   mapSelectedValuesToMaskinportenScopes,
   mapMaskinPortenScopesToScopeList,
   combineSelectedAndMaskinportenScopes,
+  isMandatoryMaskinportenScope,
+  sortScopesForDisplay,
 } from './utils';
 import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 
@@ -93,17 +95,56 @@ describe('ScopeList utils functions', () => {
       expect(result).toEqual([maskinportenScope1, maskinportenScope2]);
     });
 
-    it('sorts selected scopes first and sorts both groups alphabetically', () => {
-      const selectedScopes: MaskinportenScope[] = [maskinportenScope3, maskinportenScope1];
-      const maskinportenScopes: MaskinportenScope[] = [maskinportenScopeA, maskinportenScope2];
+    it('sorts altinn serviceowner scopes first and the rest alphabetically', () => {
+      const serviceOwnerReadScope: MaskinportenScope = {
+        scope: 'altinn:serviceowner/instances.read',
+        description: 'Service owner read',
+      };
+      const serviceOwnerWriteScope: MaskinportenScope = {
+        scope: 'altinn:serviceowner/instances.write',
+        description: 'Service owner write',
+      };
+      const selectedScopes: MaskinportenScope[] = [maskinportenScope3, serviceOwnerWriteScope];
+      const maskinportenScopes: MaskinportenScope[] = [
+        maskinportenScopeA,
+        serviceOwnerReadScope,
+        maskinportenScope2,
+      ];
 
       const result = combineSelectedAndMaskinportenScopes(selectedScopes, maskinportenScopes);
       expect(result).toEqual([
-        maskinportenScope1,
-        maskinportenScope3,
+        serviceOwnerReadScope,
+        serviceOwnerWriteScope,
         maskinportenScope2,
+        maskinportenScope3,
         maskinportenScopeA,
       ]);
+    });
+  });
+
+  describe('sortScopesForDisplay', () => {
+    it('does not mutate the input list', () => {
+      const serviceOwnerScope: MaskinportenScope = {
+        scope: 'altinn:serviceowner/instances.read',
+        description: 'Service owner read',
+      };
+      const scopes: MaskinportenScope[] = [maskinportenScope2, serviceOwnerScope];
+
+      const result = sortScopesForDisplay(scopes);
+
+      expect(result).toEqual([serviceOwnerScope, maskinportenScope2]);
+      expect(scopes).toEqual([maskinportenScope2, serviceOwnerScope]);
+    });
+  });
+
+  describe('isMandatoryMaskinportenScope', () => {
+    it('returns true for the mandatory serviceowner instance scopes', () => {
+      expect(isMandatoryMaskinportenScope('altinn:serviceowner/instances.read')).toBe(true);
+      expect(isMandatoryMaskinportenScope('altinn:serviceowner/instances.write')).toBe(true);
+    });
+
+    it('returns false for other serviceowner scopes', () => {
+      expect(isMandatoryMaskinportenScope('altinn:serviceowner/other')).toBe(false);
     });
   });
 });

@@ -1,0 +1,10 @@
+.label {
+  font-weight: bold;
+}
+
+.codeListLabels {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: var(--fds-spacing-3);
+}

@@ -1,0 +1,85 @@
+import React from 'react';
+import classes from './PropertiesHeader.module.css';
+import { formItemConfigs } from '../../../data/formItemConfig';
+import { getComponentHelperTextByComponentType } from '../../../utils/language';
+import { useTranslation } from 'react-i18next';
+import { EditComponentIdRow } from './EditComponentIdRow';
+import type { FormItem } from '../../../types/FormItem';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import { EditLayoutSetForSubform } from './EditLayoutSetForSubform';
+import { ComponentMainConfig } from './ComponentMainConfig';
+import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
+import { useComponentSchemaQuery } from '@altinn/ux-editor/hooks/queries/useComponentSchemaQuery';
+import { TextResourceMainConfig } from './TextResourceMainConfig';
+import { DataModelMainConfig } from './DataModelMainConfig';
+import { StudioAlert } from '@studio/components';
+import { ConfigPanelHeader } from '../CommonElements/ConfigPanelHeader/ConfigPanelHeader';
+import { MainSettingsHeader } from '../CommonElements/MainSettingsHeader/MainSettingsHeader';
+
+export type PropertiesHeaderProps = {
+  formItem: FormItem;
+  handleComponentUpdate: (component: FormItem) => void;
+};
+
+export const PropertiesHeader = ({
+  formItem,
+  handleComponentUpdate,
+}: PropertiesHeaderProps): React.JSX.Element => {
+  const { t } = useTranslation();
+  const { data: schema } = useComponentSchemaQuery(formItem.type);
+  const { dataModelBindings, textResourceBindings } = schema.properties;
+
+  const Icon = formItemConfigs[formItem.type]?.icon;
+
+  const hideMainConfig = formItem.type === ComponentType.Subform && !formItem['layoutSet'];
+
+  return (
+    <>
+      <ConfigPanelHeader
+        icon={<Icon />}
+        title={t(`ux_editor.component_title.${formItem.type}`)}
+        helpText={{
+          text: getComponentHelperTextByComponentType(formItem.type, t),
+          title: t('ux_editor.component_help_text_general_title'),
+        }}
+      />
+      {isComponentDeprecated(formItem.type) && (
+        <StudioAlert className={classes.alertWrapper} data-color='warning'>
+          {t(`ux_editor.component_properties.deprecated.${formItem.type}`)}
+        </StudioAlert>
+      )}
+      {!hideMainConfig && <MainSettingsHeader />}
+      <div className={classes.mainContent}>
+        {formItem.type === ComponentType.Subform && (
+          <EditLayoutSetForSubform
+            component={formItem}
+            handleComponentChange={handleComponentUpdate}
+          />
+        )}
+        {!hideMainConfig && (
+          <>
+            <EditComponentIdRow
+              component={formItem}
+              handleComponentUpdate={handleComponentUpdate}
+            />
+            <TextResourceMainConfig
+              component={formItem}
+              handleComponentChange={handleComponentUpdate}
+              componentSchemaTextKeys={Object.keys(textResourceBindings?.properties || {})}
+            />
+            <DataModelMainConfig
+              component={formItem}
+              handleComponentChange={handleComponentUpdate}
+              requiredDataModelBindings={dataModelBindings?.required || []}
+            />
+            <ComponentMainConfig
+              key={formItem.id}
+              component={formItem}
+              handleComponentChange={handleComponentUpdate}
+            />
+          </>
+        )}
+      </div>
+    </>
+  );
+};

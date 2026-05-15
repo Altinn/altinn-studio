@@ -22,4 +22,6 @@ public enum ResourceType
     CorrespondenceService = 1 << 6,
 
     Consent = 1 << 7,
+
+    MigratedApp = 1 << 8,
 }

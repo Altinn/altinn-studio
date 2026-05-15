@@ -11,27 +11,27 @@
       Namespace: ttd-e2e-tests
     },
     {
-      Ref: wf-b-first,
+      Ref: wf-a-second,
       DatabaseId: Guid_3,
       Namespace: ttd-e2e-tests
     },
     {
-      Ref: wf-c-first,
+      Ref: wf-a-third,
       DatabaseId: Guid_4,
       Namespace: ttd-e2e-tests
     },
     {
-      Ref: wf-a-second,
+      Ref: wf-b-first,
       DatabaseId: Guid_5,
       Namespace: ttd-e2e-tests
     },
     {
-      Ref: wf-join-b-c,
+      Ref: wf-c-first,
       DatabaseId: Guid_6,
       Namespace: ttd-e2e-tests
     },
     {
-      Ref: wf-a-third,
+      Ref: wf-join-b-c,
       DatabaseId: Guid_7,
       Namespace: ttd-e2e-tests
     },

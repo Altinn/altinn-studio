@@ -9,16 +9,18 @@ namespace WorkflowEngine.Core.Utils;
 internal static class ValidationUtils
 {
     /// <summary>
-    /// Validates and sorts a collection of workflow requests using Kahn's algorithm.
-    /// Returns the requests in topological order (dependencies first).
+    /// Validates the workflow batch graph: ref uniqueness, self-references, unresolved
+    /// <c>DependsOn</c> refs, and dependency cycles. Cycle detection runs Kahn's algorithm
+    /// for its acyclicity check; the topological ordering it produces is not surfaced because
+    /// persistence and the API response both key off request order.
     /// </summary>
     /// <exception cref="ArgumentException">
     /// Thrown when refs are not unique, a <c>DependsOn</c> ref is not present in the batch,
     /// a workflow references itself, or a dependency cycle is detected.
     /// </exception>
-    public static IReadOnlyList<WorkflowRequest> ValidateAndSortWorkflowGraph(IReadOnlyList<WorkflowRequest> requests)
+    public static void ValidateWorkflowGraph(IReadOnlyList<WorkflowRequest> requests)
     {
-        using var activity = Metrics.Source.StartActivity("ValidationUtils.ValidateAndSortWorkflowGraph");
+        using var activity = Metrics.Source.StartActivity("ValidationUtils.ValidateWorkflowGraph");
 
         // Build ref -> index map (only for workflows that have a ref) and validate uniqueness
         var refToIndex = new Dictionary<string, int>(requests.Count);
@@ -69,7 +71,9 @@ internal static class ValidationUtils
             }
         }
 
-        // Kahn's algorithm
+        // Kahn's algorithm — used purely for cycle detection. A complete topological pass
+        // visits every node exactly once; if `processed` falls short, the unvisited nodes
+        // form (or feed into) at least one cycle.
         var queue = new Queue<int>();
         for (int i = 0; i < requests.Count; i++)
         {
@@ -77,11 +81,11 @@ internal static class ValidationUtils
                 queue.Enqueue(i);
         }
 
-        var sorted = new List<WorkflowRequest>(requests.Count);
+        int processed = 0;
         while (queue.Count > 0)
         {
             int idx = queue.Dequeue();
-            sorted.Add(requests[idx]);
+            processed++;
 
             foreach (int dependentIdx in dependents[idx])
             {
@@ -91,17 +95,18 @@ internal static class ValidationUtils
             }
         }
 
-        if (sorted.Count != requests.Count)
+        if (processed != requests.Count)
         {
-            // Find the refs involved in the cycle for a helpful error message
-            var cycleRefs = requests.Where((_, i) => inDegree[i] > 0).Select((r, i) => WorkflowLabel(r, i)).ToList();
+            var cycleRefs = Enumerable
+                .Range(0, requests.Count)
+                .Where(i => inDegree[i] > 0)
+                .Select(i => WorkflowLabel(requests[i], i))
+                .ToList();
 
             throw new ArgumentException(
                 $"Dependency cycle detected in batch involving refs: {string.Join(", ", cycleRefs)}"
             );
         }
-
-        return sorted;
     }
 
     /// <summary>
