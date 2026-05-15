@@ -67,6 +67,7 @@ const StudioPageHeaderMenuContent = ({
             ))}
           </Fragment>
         ))}
+        <li aria-hidden='true' className={classes.separator} />
       </StudioDropdown.List>
       {profileMenuFooter && <div className={classes.profileMenuFooter}>{profileMenuFooter}</div>}
     </>
