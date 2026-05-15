@@ -566,8 +566,8 @@ public class ResourceAdminController : ControllerBase
     {
         List<ServiceResource> allResources = await _resourceRegistry.GetServiceResourceList(
             env.ToLower(),
-            includeAltinn2: false,
-            includeApps: true,
+            includeAltinn2: true,
+            includeApps: false,
             includeMigratedApps: false
         );
         bool serviceExists = allResources.Any(x => x.Identifier!.Equals($"se_{serviceCode}_{serviceEdition}"));

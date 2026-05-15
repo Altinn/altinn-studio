@@ -16,6 +16,9 @@
     "storybook": "storybook dev -p 6008",
     "build-storybook": "storybook build"
   },
+  "dependencies": {
+    "classnames": "2.5.1"
+  },
   "peerDependencies": {
     "@digdir/designsystemet-react": "^1.11.1",
     "classnames": "2.5.1",
