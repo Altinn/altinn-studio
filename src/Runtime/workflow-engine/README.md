@@ -44,15 +44,15 @@ The dashboard's `wwwroot/` directory is bind-mounted into the container, so fron
 
 | Service    | URL                                                             | Notes                                                   |
 | ---------- | --------------------------------------------------------------- | ------------------------------------------------------- |
-| Engine API | [http://localhost:8080](http://localhost:8080)                  | Swagger UI at [/swagger](http://localhost:8080/swagger) |
+| Engine API | [http://localhost:9090](http://localhost:9090)                  | Swagger UI at [/swagger](http://localhost:9090/swagger) |
 | Grafana    | [http://localhost:7070](http://localhost:7070)                  | Dashboards, logs, traces, metrics                       |
 | WireMock   | [http://localhost:6060](http://localhost:6060/__admin/requests) | Mock app/webhook target                                 |
 | PgAdmin    | [http://localhost:5050](http://localhost:5050)                  | Db password: postgres123                                |
-| PostgreSQL | `localhost:5433`                                                |                                                         |
+| PostgreSQL | `localhost:9543`                                                |                                                         |
 
 ### API endpoints
 
-See swagger for a [full list](http://localhost:8080/swagger) of endpoints. The main ones:
+See swagger for a [full list](http://localhost:9090/swagger) of endpoints. The main ones:
 
 ```
 GET  /api/v1/namespaces                        (list distinct namespaces)

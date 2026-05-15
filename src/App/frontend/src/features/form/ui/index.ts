@@ -9,6 +9,8 @@ export const defaultGlobalUiSettings: GlobalPageSettings = {
   showProgress: false,
   autoSaveBehavior: 'onChangePage',
   taskNavigation: [],
+  navigationTitle: 'navigation.form_pages',
+  validationOnNavigation: undefined,
 };
 
 export function getUiConfig() {

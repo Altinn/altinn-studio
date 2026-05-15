@@ -1,0 +1,1 @@
+export { PageConfigWarningModal } from './PageConfigWarningModal';

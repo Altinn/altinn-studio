@@ -18,6 +18,11 @@ public class AuthorizationDetail
     [JsonPropertyName("resource")]
     public required string Resource { get; set; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("organizationform")]
     public string? OrganizationForm { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("representation_is_required")]
+    public bool? RepresentationIsRequired { get; set; }
 }

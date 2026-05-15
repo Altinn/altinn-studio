@@ -107,10 +107,9 @@ declare global {
       addItemToGroup(oldValue: number, newValue: number, comment: string, openByDefault?: boolean): Chainable<Element>;
 
       /**
-       * Typings for tab plugin
+       * Press the Tab key (or Shift+Tab) from the current subject or focused element.
        */
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      tab(...args: any[]): Chainable<null>;
+      tab(options?: { shift?: boolean }): Chainable<null>;
 
       /**
        * Missing typings in Cypress, added here for proper TypeScript support

@@ -6,6 +6,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { parseInstanceId, prefetchActiveInstances } from 'src/core/queries/instance';
 import { isInstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 import { GlobalData } from 'src/GlobalData';
+import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { isStateless } from 'src/routes/index/isStateless';
 import { buildInstanceUrl } from 'src/routesBuilder';
 import { isAxiosError } from 'src/utils/isAxiosError';
@@ -19,8 +20,9 @@ export type IndexLoaderError =
 
 export type IndexLoaderResult = null | IndexLoaderError;
 
-export function indexLoader(queryClient: QueryClient, instanceApi: InstanceApi) {
-  return async function loader(_: LoaderFunctionArgs): Promise<IndexLoaderResult | Response> {
+export function indexLoader(instanceApi: InstanceApi) {
+  return async function loader({ context }: LoaderFunctionArgs): Promise<IndexLoaderResult | Response> {
+    const queryClient = context.get(queryClientContext);
     if (isStateless()) {
       return null;
     }

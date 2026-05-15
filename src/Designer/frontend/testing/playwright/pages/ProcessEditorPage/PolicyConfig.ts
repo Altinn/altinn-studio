@@ -7,11 +7,9 @@ export class PolicyConfig extends BasePage {
   }
 
   public async clickOnPolicyAccordion(): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('process_editor.configuration_panel_policy_title'),
-      })
-      .click();
+    await this.getSummaryByText(
+      this.textMock('process_editor.configuration_panel_policy_title'),
+    ).click();
   }
 
   public async waitForNavigateToPolicyLinkIsVisible(): Promise<void> {

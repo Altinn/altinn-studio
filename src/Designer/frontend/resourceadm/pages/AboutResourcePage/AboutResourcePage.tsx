@@ -72,6 +72,9 @@ export const AboutResourcePage = ({
    */
   const resourceTypeOptions = Object.entries(resourceTypeMap)
     .filter(([key]) => {
+      if (key === 'MigratedApp') {
+        return false;
+      }
       if (key === 'Systemresource' && org.toLowerCase() !== 'digdir') {
         return false;
       }
@@ -148,18 +151,20 @@ export const AboutResourcePage = ({
           readOnly
           onBlur={() => {}}
         />
-        <ResourceRadioGroup
-          id='resourceType'
-          label={t('resourceadm.about_resource_resource_type')}
-          description={t('resourceadm.about_resource_resource_type_label')}
-          value={resourceData.resourceType}
-          options={resourceTypeOptions}
-          onChange={(selected: ResourceTypeOption) =>
-            handleSave({ ...resourceData, resourceType: selected })
-          }
-          required
-          errors={validationErrors.filter((error) => error.field === 'resourceType')}
-        />
+        {resourceData.resourceType !== 'MigratedApp' && (
+          <ResourceRadioGroup
+            id='resourceType'
+            label={t('resourceadm.about_resource_resource_type')}
+            description={t('resourceadm.about_resource_resource_type_label')}
+            value={resourceData.resourceType}
+            options={resourceTypeOptions}
+            onChange={(selected: ResourceTypeOption) =>
+              handleSave({ ...resourceData, resourceType: selected })
+            }
+            required
+            errors={validationErrors.filter((error) => error.field === 'resourceType')}
+          />
+        )}
         <ResourceLanguageTextField
           id='title'
           label={t('resourceadm.about_resource_resource_title_label')}

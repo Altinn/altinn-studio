@@ -9,7 +9,7 @@ import (
 func TestLocaltestManifest_Bindings(t *testing.T) {
 	t.Parallel()
 
-	got := NewManifest(newOptions(t.TempDir(), true, true)).Bindings
+	got := mustManifest(t, newOptions(t.TempDir(), true, true)).Bindings
 	want := map[envtopology.ComponentID]envtopology.RuntimeBinding{
 		envtopology.ComponentApp:      enabledBinding(envtopology.ComponentApp, hostHTTPDestination("")),
 		envtopology.ComponentPlatform: enabledBinding(envtopology.ComponentPlatform, emptyDestination()),
@@ -24,7 +24,7 @@ func TestLocaltestManifest_Bindings(t *testing.T) {
 		),
 		envtopology.ComponentWorkflowEngine: enabledBinding(
 			envtopology.ComponentWorkflowEngine,
-			envHTTPDestination("http://"+ContainerWorkflowEngine+":8080"),
+			envHTTPDestination("http://"+ContainerWorkflowEngine+":9090"),
 		),
 		envtopology.ComponentPgAdmin: enabledBinding(
 			envtopology.ComponentPgAdmin,
@@ -41,7 +41,7 @@ func TestLocaltestManifest_Bindings(t *testing.T) {
 func TestLocaltestManifest_BindingEnablement(t *testing.T) {
 	t.Parallel()
 
-	got := NewManifest(newOptions(t.TempDir(), false, false)).Bindings
+	got := mustManifest(t, newOptions(t.TempDir(), false, false)).Bindings
 
 	want := map[envtopology.ComponentID]bool{
 		envtopology.ComponentApp:               true,
@@ -71,12 +71,40 @@ func TestLocaltestManifest_BindingEnablement(t *testing.T) {
 	}
 }
 
+func TestLocaltestManifest_DevWorkflowEngineBinding(t *testing.T) {
+	t.Parallel()
+
+	opts := newOptions(t.TempDir(), false, false)
+	opts.DevWorkflowEngine = true
+	got := mustManifest(t, opts).Bindings
+
+	for _, binding := range got {
+		if binding.ComponentID != envtopology.ComponentWorkflowEngine {
+			continue
+		}
+		want := enabledBinding(
+			envtopology.ComponentWorkflowEngine,
+			hostHTTPDestination("http://127.0.0.1:9090"),
+		)
+		if binding != want {
+			t.Fatalf("workflow-engine binding = %#v, want %#v", binding, want)
+		}
+		return
+	}
+	t.Fatalf("missing binding for component %q", envtopology.ComponentWorkflowEngine)
+}
+
 func newOptions(dataDir string, includeMonitoring bool, includePgAdmin bool) *Options {
 	return &Options{
 		Paths:             NewPaths(dataDir),
 		IncludeMonitoring: includeMonitoring,
 		IncludePgAdmin:    includePgAdmin,
 	}
+}
+
+func mustManifest(t *testing.T, opts *Options) *Manifest {
+	t.Helper()
+	return NewManifest(opts)
 }
 
 func enabledBinding(

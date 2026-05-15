@@ -26,3 +26,10 @@
 .dropDownMenuGroup :global([aria-checked='true']) {
   background-color: var(--fds-semantic-surface-neutral-selected);
 }
+
+/* Todo: Remove the following code when https://github.com/Altinn/altinn-studio/issues/18622 is fixed */
+.dropDownMenuGroup :is(button, a) {
+  font-weight: var(--ds-font-weight-regular);
+  justify-content: start;
+  width: 100%;
+}

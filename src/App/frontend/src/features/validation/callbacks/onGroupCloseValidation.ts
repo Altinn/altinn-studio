@@ -1,5 +1,4 @@
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { getVisibilityMask } from 'src/features/validation/utils';
 import { useWaitForValidation } from 'src/features/validation/validationContext';
 import { getRecursiveValidations, makeComponentIdIndex } from 'src/features/validation/ValidationStorePlugin';
@@ -17,7 +16,7 @@ export function useOnGroupCloseValidation() {
   const setRowValidationMask = FormStore.validation.useSetRowValidationMask();
   const validating = useWaitForValidation();
   const formStore = FormStore.raw.useStore();
-  const lookups = FormBootstrap.useLayoutLookups();
+  const lookups = FormStore.bootstrap.useLayoutLookups();
   const idMutator = useComponentIdMutator(true);
 
   /* Ensures the callback will have the latest state */

@@ -5,6 +5,7 @@ using Altinn.App.Core.Features.Payment.Processors.Nets.Models;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Features.Payment.Processors.Nets;
@@ -17,6 +18,8 @@ internal class NetsPaymentProcessor : IPaymentProcessor
     private readonly NetsPaymentSettings _settings;
     private readonly GeneralSettings _generalSettings;
     private readonly INetsClient _netsClient;
+    private readonly INetsWebhookSecretProvider _webhookSecretProvider;
+    private readonly IHostEnvironment _env;
 
     /// <summary>
     /// Amounts are specified in the lowest monetary unit for the given currency, without punctuation marks. For example: 100,00 NOK is specified as 10000 and 9.99 USD is specified as 999.
@@ -30,12 +33,16 @@ internal class NetsPaymentProcessor : IPaymentProcessor
     public NetsPaymentProcessor(
         INetsClient netsClient,
         IOptions<NetsPaymentSettings> settings,
-        IOptions<GeneralSettings> generalSettings
+        IOptions<GeneralSettings> generalSettings,
+        INetsWebhookSecretProvider webhookSecretProvider,
+        IHostEnvironment env
     )
     {
         _netsClient = netsClient;
         _settings = settings.Value;
         _generalSettings = generalSettings.Value;
+        _webhookSecretProvider = webhookSecretProvider;
+        _env = env;
     }
 
     /// <inheritdoc />
@@ -54,7 +61,6 @@ internal class NetsPaymentProcessor : IPaymentProcessor
                 "Payer is missing in orderDetails. MerchantHandlesConsumerData is set to true. Payer must be provided."
             );
         }
-
         var payment = new NetsCreatePayment()
         {
             Order = new NetsOrder
@@ -112,6 +118,23 @@ internal class NetsPaymentProcessor : IPaymentProcessor
                 Charge = true,
             },
         };
+
+        if (!_env.IsDevelopment())
+        {
+            string webhookSecret = _webhookSecretProvider.GetSigningSecret();
+            payment.Notifications = new NetsNotifications()
+            {
+                WebHooks =
+                [
+                    new NetsWebHook()
+                    {
+                        Authorization = webhookSecret,
+                        Url = $"{baseUrl}instances/{instance.Id}/payment/nets-webhook-listener",
+                        EventName = "payment.checkout.completed",
+                    },
+                ],
+            };
+        }
 
         HttpApiResult<NetsCreatePaymentSuccess> httpApiResult = await _netsClient.CreatePayment(payment);
         if (!httpApiResult.IsSuccess || httpApiResult.Result?.HostedPaymentPageUrl is null)

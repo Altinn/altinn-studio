@@ -7,19 +7,13 @@ Usage: install.sh [options]
 
 Options:
   --version VERSION      GitHub release tag or name (default: script release tag)
-  --repo OWNER/REPO      GitHub repo (default: Altinn/altinn-studio)
-  --asset NAME           Override asset name
   --install-dir DIR      Install target directory (passes --path)
-  --skip-resources       Skip localtest resources
   --skip-checksum        Skip SHA256 checksum verification
   -h, --help             Show this help
 
 Environment variables (overridden by flags):
   STUDIOCTL_VERSION
-  STUDIOCTL_REPO
-  STUDIOCTL_ASSET
   STUDIOCTL_INSTALL_DIR
-  STUDIOCTL_SKIP_RESOURCES=1
   STUDIOCTL_SKIP_CHECKSUM=1
 
 Examples:
@@ -30,21 +24,19 @@ Notes:
   - Without --install-dir, studioctl selects an install location.
   - Released scripts are pinned to a specific studioctl tag in this monorepo.
   - Binary integrity is verified via SHA256 checksum before execution.
-  - The install step also installs app-manager alongside studioctl.
-  - The install step stops running apps and localtest before replacement, and restarts app-manager if it was running.
+  - The install step also installs studioctl-server and localtest resources.
+  - The install step stops running apps, localtest, and studioctl-server before replacement.
+  - studioctl-server starts later when a command needs it.
 USAGE
 }
 
-REPO=${STUDIOCTL_REPO:-Altinn/altinn-studio}
+repo=Altinn/altinn-studio
 DEFAULT_VERSION="__STUDIOCTL_DEFAULT_VERSION__"
-# Keep source-tree script usable before release stamping.
 if [ "$DEFAULT_VERSION" = "__STUDIOCTL_DEFAULT_VERSION__" ]; then
 	DEFAULT_VERSION="latest"
 fi
 VERSION=${STUDIOCTL_VERSION:-$DEFAULT_VERSION}
-ASSET=${STUDIOCTL_ASSET:-}
 INSTALL_DIR=${STUDIOCTL_INSTALL_DIR:-}
-SKIP_RESOURCES=${STUDIOCTL_SKIP_RESOURCES:-0}
 SKIP_CHECKSUM=${STUDIOCTL_SKIP_CHECKSUM:-0}
 
 while [ $# -gt 0 ]; do
@@ -54,24 +46,10 @@ while [ $# -gt 0 ]; do
 			VERSION=$2
 			shift 2
 			;;
-		--repo)
-			[ $# -ge 2 ] || { echo "error: --repo requires a value"; exit 2; }
-			REPO=$2
-			shift 2
-			;;
-		--asset)
-			[ $# -ge 2 ] || { echo "error: --asset requires a value"; exit 2; }
-			ASSET=$2
-			shift 2
-			;;
 		--install-dir)
 			[ $# -ge 2 ] || { echo "error: --install-dir requires a value"; exit 2; }
 			INSTALL_DIR=$2
 			shift 2
-			;;
-		--skip-resources)
-			SKIP_RESOURCES=1
-			shift
 			;;
 		--skip-checksum)
 			SKIP_CHECKSUM=1
@@ -90,12 +68,10 @@ while [ $# -gt 0 ]; do
 done
 
 if [ "$VERSION" != "latest" ]; then
-	# Strip studioctl/ prefix if present
 	case "$VERSION" in
 		studioctl/*) VERSION=${VERSION#studioctl/} ;;
 	esac
 
-	# Validate and normalize to tag format
 	case "$VERSION" in
 		v*) VERSION="studioctl/$VERSION" ;;
 		*)
@@ -125,17 +101,15 @@ case "$arch" in
 		;;
 	esac
 
-if [ -z "$ASSET" ]; then
-	ASSET="studioctl-${os}-${arch}"
-fi
+asset="studioctl-${os}-${arch}"
 
 if [ "$VERSION" = "latest" ]; then
-	base_url="https://github.com/${REPO}/releases/latest/download"
+	base_url="https://github.com/${repo}/releases/latest/download"
 else
-	base_url="https://github.com/${REPO}/releases/download/${VERSION}"
+	base_url="https://github.com/${repo}/releases/download/${VERSION}"
 fi
 
-url="${base_url}/${ASSET}"
+url="${base_url}/${asset}"
 checksums_url="${base_url}/SHA256SUMS"
 
 download() {
@@ -160,7 +134,6 @@ bin="$tmpdir/studioctl"
 download "$url" "$bin"
 chmod 0755 "$bin"
 
-# Verify checksum
 verify_checksum() {
 	case "$SKIP_CHECKSUM" in
 		1|true|TRUE|True)
@@ -175,22 +148,20 @@ verify_checksum() {
 		exit 1
 	fi
 
-	# Extract expected checksum for our asset
 	expected=""
 	while read -r sum name _; do
 		name=${name#\*}
-		if [ "$name" = "$ASSET" ]; then
+		if [ "$name" = "$asset" ]; then
 			expected=$sum
 			break
 		fi
 	done < "$checksums_file"
 
 	if [ -z "$expected" ]; then
-		echo "error: Asset $ASSET not found in SHA256SUMS"
+		echo "error: Asset $asset not found in SHA256SUMS"
 		exit 1
 	fi
 
-	# Calculate actual checksum
 	if command -v sha256sum >/dev/null 2>&1; then
 		actual=$(sha256sum "$bin" | cut -d' ' -f1)
 	elif command -v shasum >/dev/null 2>&1; then
@@ -215,17 +186,8 @@ verify_checksum() {
 
 verify_checksum
 
-case "$SKIP_RESOURCES" in
-	1|true|TRUE|True)
-		skip_flag="--skip-resources"
-		;;
-	*)
-		skip_flag=""
-		;;
-esac
-
 if [ -n "$INSTALL_DIR" ]; then
-	"$bin" self install --path "$INSTALL_DIR" $skip_flag
+	"$bin" self install --path "$INSTALL_DIR"
 else
-	"$bin" self install $skip_flag
+	"$bin" self install
 fi

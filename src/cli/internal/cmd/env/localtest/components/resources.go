@@ -1,6 +1,7 @@
 package components
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -9,7 +10,10 @@ import (
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
+	"altinn.studio/studioctl/internal/osutil"
 )
+
+const localtestStorageDir = "AltinnPlatformLocal"
 
 // ContainerSpec defines a container to run.
 type ContainerSpec struct {
@@ -28,11 +32,12 @@ type ContainerSpec struct {
 // Options holds options for building the resource graph.
 type Options struct {
 	DevConfig         *DevImageConfig
+	RuntimeUser       string // "uid:gid" to run containers as (prevents root-owned bind mount files)
 	Images            config.ImagesConfig
 	Paths             Paths
-	RuntimeUser       string // "uid:gid" to run containers as (prevents root-owned bind mount files)
 	Topology          envtopology.Local
 	ImageMode         ImageMode
+	DevWorkflowEngine bool
 	IncludeMonitoring bool
 	IncludePgAdmin    bool
 }
@@ -49,6 +54,19 @@ func NewPaths(dataDir string) Paths {
 		DataDir:  dataDir,
 		InfraDir: filepath.Join(dataDir, "infra"),
 	}
+}
+
+// LocaltestStoragePath returns the host path used for localtest persisted storage.
+func LocaltestStoragePath(dataDir string) string {
+	return filepath.Join(dataDir, localtestStorageDir)
+}
+
+// EnsureLocaltestStorageDir creates the localtest persisted storage directory.
+func EnsureLocaltestStorageDir(dataDir string) error {
+	if err := os.MkdirAll(LocaltestStoragePath(dataDir), osutil.DirPermDefault); err != nil {
+		return fmt.Errorf("create localtest storage directory: %w", err)
+	}
+	return nil
 }
 
 func newPort(hostPort, containerPort string) types.PortMapping {

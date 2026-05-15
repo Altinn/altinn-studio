@@ -1,0 +1,5 @@
+.selectDataModel {
+  width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}

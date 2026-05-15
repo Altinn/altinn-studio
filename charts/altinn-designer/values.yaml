@@ -75,15 +75,13 @@ environmentVariables:
     - name: StudioOidcLoginSettings__AccountLinkUrl
       value: https://dev.altinn.studio/repos/user/oauth2/ansattporten
     - name: StudioOidcLoginSettings__AuthorizationDetails__0__Type
-      value: "ansattporten:altinn:service"
+      value: "ansattporten:altinn:resource"
     - name: StudioOidcLoginSettings__AuthorizationDetails__0__Resource
-      value: "urn:altinn:resource:2480:40"
+      value: "urn:altinn:resource:digdir-selvbetjening-klienter"
     - name: StudioOidcLoginSettings__AuthorizationDetails__0__OrganizationForm
       value: "enterprise"
-    - name: StudioOidcLoginSettings__AuthorizationDetails__1__Type
-      value: "ansattporten:altinn:service"
-    - name: StudioOidcLoginSettings__AuthorizationDetails__1__Resource
-      value: "urn:altinn:resource:5613:1"
+    - name: StudioOidcLoginSettings__AuthorizationDetails__0__RepresentationIsRequired
+      value: "false"
     - name: MaskinPortenHttpClientSettings__BaseUrl
       value: "https://api.test.samarbeid.digdir.no"
     - name: FeatureManagement__StudioOidc
@@ -165,15 +163,13 @@ environmentVariables:
     - name: StudioOidcLoginSettings__AccountLinkUrl
       value: https://staging.altinn.studio/repos/user/oauth2/ansattporten
     - name: StudioOidcLoginSettings__AuthorizationDetails__0__Type
-      value: "ansattporten:altinn:service"
+      value: "ansattporten:altinn:resource"
     - name: StudioOidcLoginSettings__AuthorizationDetails__0__Resource
-      value: "urn:altinn:resource:2480:40"
+      value: "urn:altinn:resource:digdir-selvbetjening-klienter"
     - name: StudioOidcLoginSettings__AuthorizationDetails__0__OrganizationForm
       value: "enterprise"
-    - name: StudioOidcLoginSettings__AuthorizationDetails__1__Type
-      value: "ansattporten:altinn:service"
-    - name: StudioOidcLoginSettings__AuthorizationDetails__1__Resource
-      value: "urn:altinn:resource:5613:1"
+    - name: StudioOidcLoginSettings__AuthorizationDetails__0__RepresentationIsRequired
+      value: "false"
     - name: MaskinPortenHttpClientSettings__BaseUrl
       value: "https://api.test.samarbeid.digdir.no"
     - name: FeatureManagement__StudioOidc
@@ -253,15 +249,13 @@ environmentVariables:
     - name: StudioOidcLoginSettings__AccountLinkUrl
       value: https://altinn.studio/repos/user/oauth2/ansattporten
     - name: StudioOidcLoginSettings__AuthorizationDetails__0__Type
-      value: "ansattporten:altinn:service"
+      value: "ansattporten:altinn:resource"
     - name: StudioOidcLoginSettings__AuthorizationDetails__0__Resource
-      value: "urn:altinn:resource:2480:40"
+      value: "urn:altinn:resource:digdir-selvbetjening-klienter"
     - name: StudioOidcLoginSettings__AuthorizationDetails__0__OrganizationForm
       value: "enterprise"
-    - name: StudioOidcLoginSettings__AuthorizationDetails__1__Type
-      value: "ansattporten:altinn:service"
-    - name: StudioOidcLoginSettings__AuthorizationDetails__1__Resource
-      value: "urn:altinn:resource:5613:1"
+    - name: StudioOidcLoginSettings__AuthorizationDetails__0__RepresentationIsRequired
+      value: "false"
     - name: MaskinPortenHttpClientSettings__BaseUrl
       value: "https://api.samarbeid.digdir.no"
     - name: FeatureManagement__StudioOidc

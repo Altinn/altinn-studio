@@ -1,0 +1,20 @@
+import { useTranslation } from 'react-i18next';
+import { StudioAlert } from '@studio/components';
+
+import type { JSX } from 'react';
+
+export type UnknownComponentAlertProps = {
+  componentName: string;
+};
+export const UnknownComponentAlert = ({
+  componentName,
+}: UnknownComponentAlertProps): JSX.Element => {
+  const { t } = useTranslation();
+  return (
+    <StudioAlert data-color='warning'>
+      {t('ux_editor.edit_component.unknown_component', {
+        componentName,
+      })}
+    </StudioAlert>
+  );
+};

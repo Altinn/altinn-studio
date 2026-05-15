@@ -4,7 +4,6 @@ import dot from 'dot-object';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { getRepeatingBinding, isRepeatingComponentType } from 'src/features/form/layout/utils/repeating';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation/index';
 import { getInitialMaskFromItem, selectValidations } from 'src/features/validation/utils';
@@ -93,7 +92,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
   extraHooks(): ValidationStorePluginConfig['extraHooks'] {
     return {
       useValidationVisibility: (nodeId) => {
-        const lookups = FormBootstrap.useLayoutLookups();
+        const lookups = FormStore.bootstrap.useLayoutLookups();
         return FormStore.raw.useSelector((state) => {
           if (!nodeId) {
             return 0;
@@ -102,7 +101,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
         });
       },
       useValidationVisibilityBreakdown: (nodeId) => {
-        const lookups = FormBootstrap.useLayoutLookups();
+        const lookups = FormStore.bootstrap.useLayoutLookups();
         return FormStore.raw.useShallowSelector((state) => {
           if (!nodeId) {
             return emptyVisibilityBreakdown;
@@ -123,7 +122,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           return out && out.length > 0 ? out : emptyArray;
         }),
       useVisibleValidations: (indexedId, showAll) => {
-        const lookups = FormBootstrap.useLayoutLookups();
+        const lookups = FormStore.bootstrap.useLayoutLookups();
         return FormStore.raw.useShallowSelector((state) => {
           if (!indexedId) {
             return emptyArray;
@@ -139,7 +138,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
         });
       },
       useVisibleValidationsDeep: (indexedId, mask, includeSelf, restriction, severity) => {
-        const lookups = FormBootstrap.useLayoutLookups();
+        const lookups = FormStore.bootstrap.useLayoutLookups();
         return FormStore.raw.useMemoSelector((state) => {
           const { baseComponentId } = splitDashedKey(indexedId);
           const output: NodeRefValidation[] = [];
@@ -159,7 +158,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
         });
       },
       useValidationsSelector: () => {
-        const lookups = FormBootstrap.useLayoutLookups();
+        const lookups = FormStore.bootstrap.useLayoutLookups();
         return FormStore.raw.useDelayedSelector({
           mode: 'simple',
           selector:
@@ -179,7 +178,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
         });
       },
       useLaxValidationsSelector: () => {
-        const lookups = FormBootstrap.useLayoutLookups();
+        const lookups = FormStore.bootstrap.useLayoutLookups();
         return FormStore.raw.useLaxDelayedSelector({
           mode: 'simple',
           selector:
@@ -199,7 +198,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
         });
       },
       useAllValidations: (mask, severity, includeHidden) => {
-        const lookups = FormBootstrap.useLayoutLookups();
+        const lookups = FormStore.bootstrap.useLayoutLookups();
         return FormStore.raw.useMemoSelector((state) => {
           const out: NodeRefValidation[] = [];
           for (const nodeData of Object.values(state.nodes.nodeData)) {
@@ -223,7 +222,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
       },
       useGetNodesWithErrors: () => {
         const zustand = FormStore.raw.useStore();
-        const lookups = FormBootstrap.useLayoutLookups();
+        const lookups = FormStore.bootstrap.useLayoutLookups();
         return useCallback(
           (mask, severity, includeHidden = false) => {
             // This is intentionally not reactive, as it is used once when a function is called. There's no need to
@@ -252,7 +251,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
         );
       },
       usePageHasVisibleRequiredValidations: (pageKey) => {
-        const lookups = FormBootstrap.useLayoutLookups();
+        const lookups = FormStore.bootstrap.useLayoutLookups();
         return FormStore.raw.useSelector((state) => {
           if (!pageKey) {
             return false;

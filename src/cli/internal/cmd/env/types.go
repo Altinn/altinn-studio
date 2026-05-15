@@ -18,6 +18,11 @@ type Env interface {
 	Name() string
 }
 
+// Installer optionally extends Env with install-time local filesystem setup.
+type Installer interface {
+	OnInstall(ctx context.Context) error
+}
+
 // Resetter optionally extends Env with destructive persisted-data reset support.
 type Resetter interface {
 	Reset(ctx context.Context) error
@@ -25,10 +30,11 @@ type Resetter interface {
 
 // UpOptions configures environment startup.
 type UpOptions struct {
-	Detach      bool
-	Monitoring  bool
-	OpenBrowser bool
-	PgAdmin     bool
+	Detach            bool
+	DevWorkflowEngine bool
+	Monitoring        bool
+	OpenBrowser       bool
+	PgAdmin           bool
 }
 
 // LogsOptions configures log streaming.

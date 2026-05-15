@@ -7,6 +7,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using LocalTest.Configuration;
 using LocalTest.Models;
+using LocalTest.Services.Authentication.Implementation;
 using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.LocalApp.Interface;
 using LocalTest.Services.LocalFrontend.Interface;
@@ -24,6 +25,7 @@ namespace LocalTest.Controllers
     [Route("/Home/[action]")]
     public class HomeController : Controller
     {
+        private static readonly Version BrowserRoutingAppVersion = new(9, 0, 0, 0);
         private static readonly TimeSpan LocalAppViewTimeout = TimeSpan.FromSeconds(5);
         private readonly GeneralSettings _generalSettings;
         private readonly LocalPlatformSettings _localPlatformSettings;
@@ -34,6 +36,7 @@ namespace LocalTest.Controllers
 
         private readonly ILocalApp _localApp;
         private readonly ILocalFrontendService _localFrontendService;
+        private readonly TestAuthenticationService _testAuthenticationService;
         private readonly TestDataService _testDataService;
         private readonly ILogger<HomeController> _logger;
 
@@ -46,6 +49,7 @@ namespace LocalTest.Controllers
             IParties partiesService,
             ILocalApp localApp,
             ILocalFrontendService localFrontendService,
+            TestAuthenticationService testAuthenticationService,
             TestDataService testDataService,
             ILogger<HomeController> logger
         )
@@ -58,6 +62,7 @@ namespace LocalTest.Controllers
             _partiesService = partiesService;
             _localApp = localApp;
             _localFrontendService = localFrontendService;
+            _testAuthenticationService = testAuthenticationService;
             _testDataService = testDataService;
             _logger = logger;
         }
@@ -66,7 +71,7 @@ namespace LocalTest.Controllers
         [HttpGet("/")]
         [HttpGet("/Home")]
         [HttpGet("/Home/Index")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index([FromQuery(Name = "goto")] string goTo = null)
         {
             StartAppModel model = new StartAppModel()
             {
@@ -74,6 +79,7 @@ namespace LocalTest.Controllers
                 LocalFrontendUrl = HttpContext.Request.Cookies[
                     FrontendVersionController.FRONTEND_URL_COOKIE_NAME
                 ],
+                RedirectUrl = goTo,
             };
             model.LocalFrontendDescription = _localFrontendService.DescribeFrontendUrl(model.LocalFrontendUrl);
 
@@ -84,8 +90,11 @@ namespace LocalTest.Controllers
                 model.TestApps = await GetAppsList(cancellationToken);
                 model.TestUsers = await GetTestUsersAndPartiesSelectList(cancellationToken);
                 model.UserSelect = Request.Cookies["Localtest_User.Party_Select"];
-                var firstAppId = model.TestApps.Count() == 1 ? model.TestApps.First().Value : null;
-                var defaultAuthLevel = await GetAppAuthLevel(firstAppId, cancellationToken);
+                model.SelectRedirectApp();
+                var selectedAppId =
+                    model.AppPathSelection
+                    ?? (model.TestApps.Count() == 1 ? model.TestApps.First().Value : null);
+                var defaultAuthLevel = await GetAppAuthLevel(selectedAppId, cancellationToken);
                 model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
             }
             catch (Exception e) when (e is HttpRequestException or OperationCanceledException)
@@ -131,16 +140,11 @@ namespace LocalTest.Controllers
         {
             if (startAppModel.AuthenticationLevel != "-1")
             {
-                UserProfile profile = await _userProfileService.GetUser(startAppModel.UserId);
-                if (profile == null)
-                {
-                    return BadRequest("User not found");
-                }
-
                 int authenticationLevel = Convert.ToInt32(startAppModel.AuthenticationLevel);
 
-                string token = await _authenticationService.GenerateTokenForProfile(
-                    profile,
+                string token = await _testAuthenticationService.GetUserToken(
+                    startAppModel.UserId,
+                    startAppModel.PartyId,
                     authenticationLevel
                 );
                 CreateJwtCookieAndAppendToResponse(
@@ -153,6 +157,13 @@ namespace LocalTest.Controllers
             if (action.Equals("reauthenticate"))
             {
                 return NoContent();
+            }
+
+            var prefill = Request.Form.Files.FirstOrDefault();
+
+            if (!string.IsNullOrWhiteSpace(startAppModel.RedirectUrl) && prefill == null)
+            {
+                return Redirect(startAppModel.RedirectUrl);
             }
 
             if (startAppModel.AppPathSelection?.Equals("accessmanagement") == true)
@@ -168,7 +179,6 @@ namespace LocalTest.Controllers
                 return BadRequest("App not found");
             }
 
-            var prefill = Request.Form.Files.FirstOrDefault();
             if (prefill != null)
             {
                 var instance = new Instance
@@ -183,8 +193,11 @@ namespace LocalTest.Controllers
 
                 using var reader = new StreamReader(prefill.OpenReadStream());
                 var content = await reader.ReadToEndAsync();
-                var token = await _authenticationService.GenerateTokenForOrg(
-                    app.Id.Split("/")[0]
+                // TODO: app might not support service owner instantiation,
+                // try with user token as well? based on chosen user
+                // or some other mechanism to find out which token to use
+                var token = await _testAuthenticationService.GetServiceOwnerToken(
+                    org: app.Id.Split("/")[0]
                 );
                 var newInstance = await _localApp.Instantiate(
                     app.Id,
@@ -193,8 +206,15 @@ namespace LocalTest.Controllers
                     xmlDataId,
                     token
                 );
+                var appVersion = await _localApp.GetAppVersion(
+                    startAppModel.AppPathSelection
+                );
+                var instancePath =
+                    appVersion is not null && appVersion < BrowserRoutingAppVersion
+                        ? $"/{app.Id}/#/instance/{newInstance.Id}"
+                        : $"/{app.Id}/instance/{newInstance.Id}";
 
-                return Redirect($"/{app.Id}/instance/{newInstance.Id}");
+                return Redirect(instancePath);
             }
 
             return Redirect($"/{app.Id}/");

@@ -128,14 +128,14 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     // --- Raw SQL queries (via static strings) ---
 
     [Fact]
-    public async Task PurgeExpiredWorkflows_UsesIndexScans()
+    public async Task SelectExpiredWorkflowCandidates_UsesIndexScans()
     {
         var ct = TestContext.Current.CancellationToken;
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
 
         var plan = await QueryPlanHelper.ExplainAsync(
             dataSource,
-            DbMaintenanceService.Sql.PurgeExpiredWorkflows,
+            DbMaintenanceService.Sql.SelectExpiredWorkflowCandidatesCommand,
             [
                 new NpgsqlParameter<DateTimeOffset>("cutoff", _now.AddDays(-30)),
                 new NpgsqlParameter<int>("batchSize", 1000),

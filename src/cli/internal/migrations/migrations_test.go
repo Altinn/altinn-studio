@@ -74,3 +74,33 @@ func testConfig(t *testing.T) *config.Config {
 	}
 	return cfg
 }
+
+func markMigrationsApplied(t *testing.T, cfg *config.Config, ids ...string) {
+	t.Helper()
+
+	steps := make([]migrations.Migration, 0, len(ids))
+	for _, id := range ids {
+		steps = append(steps, migrations.Migration{
+			ID: id,
+			Up: func(context.Context, *config.Config) error {
+				return nil
+			},
+		})
+	}
+	if err := migrations.RunAll(t.Context(), cfg, steps); err != nil {
+		t.Fatalf("mark migrations applied: %v", err)
+	}
+}
+
+func markOtherMigrationsApplied(t *testing.T, cfg *config.Config, migrationID string) {
+	t.Helper()
+
+	registered := migrations.NewRunner().RegisteredMigrations()
+	ids := make([]string, 0, len(registered)-1)
+	for _, migration := range registered {
+		if migration.ID != migrationID {
+			ids = append(ids, migration.ID)
+		}
+	}
+	markMigrationsApplied(t, cfg, ids...)
+}

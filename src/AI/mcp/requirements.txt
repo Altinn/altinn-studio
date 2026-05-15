@@ -14,7 +14,7 @@ requests>=2.33.0
 jsonschema>=4.26.0
 
 # LLM & AI
-langchain-core>=1.2.23
+langchain-core>=1.3.3
 langchain-openai>=1.1.12
 langchain-community>=0.4.1
 langgraph>=1.1.3
