@@ -32,6 +32,7 @@ class TestFeedbackEndpoint:
             passed=True,
             trace_id=VALID_TRACE_ID,
             comment=None,
+            score_id=f"{VALID_TRACE_ID}:user_feedback",
         )
 
     def test_thumbs_down_with_comment_is_forwarded(self):
@@ -54,6 +55,7 @@ class TestFeedbackEndpoint:
             passed=False,
             trace_id=VALID_TRACE_ID,
             comment="Svaret var ikke nyttig.",
+            score_id=f"{VALID_TRACE_ID}:user_feedback",
         )
 
     def test_missing_developer_header_returns_400(self):

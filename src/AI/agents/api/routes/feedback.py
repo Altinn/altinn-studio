@@ -60,5 +60,6 @@ async def submit_feedback(req: FeedbackReq, request: Request):
         passed=req.thumbs_up,
         trace_id=req.trace_id,
         comment=req.comment,
+        score_id=f"{req.trace_id}:{FEEDBACK_SCORE_NAME}",
     )
     return Response(status_code=204)

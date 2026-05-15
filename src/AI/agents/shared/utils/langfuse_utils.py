@@ -154,8 +154,13 @@ def score_validation(
     observation_id: str | None = None,
     config_id: str | None = None,
     comment: str | None = None,
+    score_id: str | None = None,
 ) -> None:
-    """Write a boolean validation result as a Langfuse score (1 = pass, 0 = fail)."""
+    """Write a boolean validation result as a Langfuse score (1 = pass, 0 = fail).
+
+    Pass `score_id` to upsert: re-using the same id on a later call overwrites
+    the previous score instead of creating a new one.
+    """
     client = get_langfuse_client()
     if not config.LANGFUSE_ENABLED:
         return
@@ -174,6 +179,8 @@ def score_validation(
             kwargs["observation_id"] = observation_id
         if comment:
             kwargs["comment"] = comment
+        if score_id:
+            kwargs["score_id"] = score_id
         client.create_score(**kwargs)
         log.debug(
             "Langfuse score '%s' = %s written to trace %s", name, passed, trace_id
