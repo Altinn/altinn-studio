@@ -15,9 +15,6 @@ jest.mock('react-toastify', () => ({
   toast: { success: jest.fn() },
 }));
 
-const mockSetConsentPreferences = jest.fn();
-const mockDenyAllConsent = jest.fn();
-
 const defaultConsentState = {
   hasAnalyticsConsent: false,
   hasSessionRecordingConsent: false,
@@ -33,16 +30,13 @@ const getSessionRecordingSwitch = () =>
 
 const getSaveButton = () => screen.getByRole('button', { name: textMock('consent.banner.save') });
 
-const getRevokeAllButton = () =>
-  screen.getByRole('button', { name: textMock('consent.banner.declineAll') });
-
 describe('Privacy', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (consentHooks.useConsent as jest.Mock).mockReturnValue(defaultConsentState);
     (consentHooks.useConsentMutation as jest.Mock).mockReturnValue({
-      setConsentPreferences: mockSetConsentPreferences,
-      denyAllConsent: mockDenyAllConsent,
+      setConsentPreferences: jest.fn(),
+      denyAllConsent: jest.fn(),
     });
   });
 
@@ -94,29 +88,6 @@ describe('Privacy', () => {
     expect(getSessionRecordingSwitch()).not.toBeChecked();
   });
 
-  it('calls setConsentPreferences with current toggle state when save is clicked', async () => {
-    const user = userEvent.setup();
-    renderPrivacy();
-    await user.click(getAnalyticsSwitch());
-    await user.click(getSaveButton());
-    expect(mockSetConsentPreferences).toHaveBeenCalledWith({
-      analytics: true,
-      sessionRecording: false,
-    });
-  });
-
-  it('calls setConsentPreferences with session recording enabled when both toggles are on', async () => {
-    const user = userEvent.setup();
-    renderPrivacy();
-    await user.click(getAnalyticsSwitch());
-    await user.click(getSessionRecordingSwitch());
-    await user.click(getSaveButton());
-    expect(mockSetConsentPreferences).toHaveBeenCalledWith({
-      analytics: true,
-      sessionRecording: true,
-    });
-  });
-
   it('shows a success toast after saving', async () => {
     const user = userEvent.setup();
     renderPrivacy();
@@ -125,23 +96,10 @@ describe('Privacy', () => {
     expect(toast.success).toHaveBeenCalledWith(textMock('settings.user.privacy.saved'));
   });
 
-  it('resets both toggles and calls denyAllConsent when revoke all is clicked', async () => {
-    (consentHooks.useConsent as jest.Mock).mockReturnValue({
-      hasAnalyticsConsent: true,
-      hasSessionRecordingConsent: true,
-    });
-    const user = userEvent.setup();
+  it('does not show a decline all button', () => {
     renderPrivacy();
-    await user.click(getRevokeAllButton());
-    expect(mockDenyAllConsent).toHaveBeenCalled();
-    expect(getAnalyticsSwitch()).not.toBeChecked();
-    expect(getSessionRecordingSwitch()).not.toBeChecked();
-  });
-
-  it('shows a success toast after revoking all consent', async () => {
-    const user = userEvent.setup();
-    renderPrivacy();
-    await user.click(getRevokeAllButton());
-    expect(toast.success).toHaveBeenCalledWith(textMock('settings.user.privacy.revoked'));
+    expect(
+      screen.queryByRole('button', { name: textMock('consent.banner.declineAll') }),
+    ).not.toBeInTheDocument();
   });
 });

@@ -6,7 +6,7 @@ import cn from 'classnames';
 import classes from './StudioBanner.module.css';
 
 export type StudioBannerProps = {
-  title: string;
+  title?: string;
   description?: string;
   isVisible?: boolean;
   children?: ReactNode;
@@ -39,14 +39,16 @@ function StudioBanner(
       {...rest}
       className={classNames}
       role='dialog'
-      aria-labelledby={titleId}
+      aria-labelledby={title ? titleId : undefined}
       aria-describedby={description ? descriptionId : undefined}
       ref={ref}
     >
       <div className={classes.container}>
-        <StudioHeading level={2} className={classes.title} id={titleId}>
-          {title}
-        </StudioHeading>
+        {title && (
+          <StudioHeading level={2} className={classes.title} id={titleId}>
+            {title}
+          </StudioHeading>
+        )}
         {description && (
           <StudioParagraph className={classes.description} id={descriptionId}>
             {description}
