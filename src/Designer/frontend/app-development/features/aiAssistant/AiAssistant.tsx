@@ -8,13 +8,15 @@ import { FileBrowser } from './components/FileBrowser';
 import classes from './AiAssistant.module.css';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useChatFeedbackMutation } from 'app-shared/hooks/mutations/useChatFeedbackMutation';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioCenter, StudioAlert, StudioParagraph } from '@studio/components';
 
 function AiAssistant(): ReactElement {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
   const { data: currentUser } = useUserQuery();
   const userHasAccessToAssistant = useAltinityPermissions();
-  const { mutate: sendChatFeedback } = useChatFeedbackMutation();
+  const { mutate: sendChatFeedback } = useChatFeedbackMutation(org, app);
 
   const {
     connectionStatus,

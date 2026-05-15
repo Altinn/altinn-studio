@@ -1,5 +1,5 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithProviders } from 'app-development/test/mocks';
+import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import { app, org } from '@studio/testing/testids';
 import { useChatFeedbackMutation } from './useChatFeedbackMutation';
 import { waitFor } from '@testing-library/react';
@@ -14,8 +14,7 @@ describe('useChatFeedbackMutation', () => {
       thumbsUp: true,
       comment: 'Veldig nyttig!',
     };
-    const result = renderHookWithProviders()(() => useChatFeedbackMutation()).renderHookResult
-      .result;
+    const { result } = renderHookWithProviders(() => useChatFeedbackMutation(org, app));
 
     result.current.mutate(payload);
     await waitFor(() => expect(result.current.isSuccess).toBe(true));

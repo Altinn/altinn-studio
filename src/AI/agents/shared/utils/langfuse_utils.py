@@ -264,6 +264,7 @@ def get_trace_developer(trace_id: str) -> str | None:
 
 
 def get_current_trace_id() -> str | None:
+    """Return the current Langfuse trace id, or None if unavailable or disabled."""
     if not is_langfuse_enabled():
         return None
     try:
