@@ -7,6 +7,7 @@ public class SchedulingSettings
     public bool UsePersistentScheduling { get; set; } = true;
     public bool AddHostedService { get; set; } = true;
     public InactivityUndeployJobTimeoutSettings InactivityUndeployJobTimeouts { get; set; } = new();
+    public ChatInactivityCleanupSettings ChatInactivityCleanup { get; set; } = new();
 }
 
 public class InactivityUndeployJobTimeoutSettings
@@ -18,4 +19,9 @@ public class InactivityUndeployJobTimeoutSettings
     public TimeSpan RootJobTimeout => TimeSpan.FromMinutes(RootJobMinutes);
     public TimeSpan PerOrgJobTimeout => TimeSpan.FromMinutes(PerOrgJobMinutes);
     public TimeSpan PerAppJobTimeout => TimeSpan.FromMinutes(PerAppJobMinutes);
+}
+
+public class ChatInactivityCleanupSettings
+{
+    public int RetentionDays { get; set; } = 30;
 }

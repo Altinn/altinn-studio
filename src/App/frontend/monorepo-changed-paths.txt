@@ -11,6 +11,7 @@ src/App.test.tsx
 src/App.tsx
 src/__mocks__/getLayoutSetsMock.ts
 src/__mocks__/getOrgsMock.ts
+src/app-components/Card/
 src/app-components/Date/DisplayDate.tsx
 src/app-components/Datepicker/DatePickerHelpers.ts
 src/app-components/Text/DisplayText.tsx

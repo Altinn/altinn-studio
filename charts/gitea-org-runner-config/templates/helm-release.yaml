@@ -1,5 +1,5 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: {{ .Values.releaseName }}
@@ -27,6 +27,20 @@ spec:
       tag: "{{ .Values.imageTag }}"
     nameOverride: {{ .Values.releaseName }}
     fullnameOverride: {{ .Values.releaseName }}
+    runtimeClassName: {{ .Values.runtimeClassName | quote }}
+    dockerInDocker:
+      enabled: {{ .Values.dockerInDocker.enabled }}
+    shareWorkspace:
+      enabled: {{ .Values.shareWorkspace.enabled }}
+    resources:
+      requests:
+        cpu: 500m
+        memory: 2Gi
+        ephemeral-storage: 16Gi
+      limits:
+        cpu: "2"
+        memory: 2Gi
+        ephemeral-storage: 20Gi
     runners:
     {{- $giteaUrl := .Values.giteaInstanceUrl }}
     {{- range index .Values.runners .Values.environment }}

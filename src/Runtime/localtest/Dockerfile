@@ -2,13 +2,13 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine@sha256:7d3a75ca5c8ac4679908ef7a2591
 WORKDIR /src
 
 COPY Runtime/localtest/src/LocalTest.csproj Runtime/localtest/src/
-COPY Shared/AppTunnel/ Shared/AppTunnel/
+COPY Shared/HostBridge/ Shared/HostBridge/
 COPY Shared/EnvTopology/ Shared/EnvTopology/
 WORKDIR /src/Runtime/localtest/src
 RUN dotnet restore LocalTest.csproj
 
 COPY Runtime/localtest/src/ .
-COPY Shared/AppTunnel/ /src/Shared/AppTunnel/
+COPY Shared/HostBridge/ /src/Shared/HostBridge/
 COPY Shared/EnvTopology/ /src/Shared/EnvTopology/
 RUN dotnet publish LocalTest.csproj -c Release -o /app_output
 

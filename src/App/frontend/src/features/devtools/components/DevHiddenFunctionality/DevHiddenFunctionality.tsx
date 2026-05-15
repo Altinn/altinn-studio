@@ -3,11 +3,11 @@ import React from 'react';
 import { Fieldset, ToggleGroup } from '@digdir/designsystemet-react';
 
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
-import { FormProviderHooks } from 'src/features/form/FormContext';
+import { FormStore } from 'src/features/form/FormContext';
 import type { IDevToolsState } from 'src/features/devtools/data/types';
 
 export function DevHiddenFunctionality() {
-  const isInForm = FormProviderHooks.useIsInContext();
+  const isInForm = FormStore.useIsInContext();
   if (!isInForm) {
     return null;
   }

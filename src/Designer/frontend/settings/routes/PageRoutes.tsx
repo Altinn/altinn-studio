@@ -13,6 +13,7 @@ import {
 } from './PageRouterErrorBoundary';
 import { ApiKeys } from '../features/user/pages/ApiKeys/ApiKeys';
 import { Privacy } from '../features/user/pages/Privacy/Privacy';
+import { StudioctlAuth } from '../features/user/pages/StudioctlAuth/StudioctlAuth';
 import { BotAccounts } from '../features/orgs/pages/BotAccounts/BotAccounts';
 import { ContactPoints } from '../features/orgs/pages/ContactPoints/ContactPoints';
 import { NotFound } from '../components/NotFound/NotFound';
@@ -31,6 +32,11 @@ const router = createBrowserRouter(
       <Route index element={<IndexRedirect />} />
       <Route path={RoutePaths.Owner} errorElement={<RouteErrorBoundary />}>
         <Route index element={<OwnerIndexRedirect />} />
+        <Route
+          path={UserRoutePaths.StudioctlAuth}
+          element={<StudioctlAuth />}
+          errorElement={<RouteErrorBoundary />}
+        />
         <Route element={<UserPageLayout />} errorElement={<RouteErrorBoundary />}>
           <Route
             path={UserRoutePaths.ApiKeys}

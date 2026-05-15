@@ -9,13 +9,17 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
 
 	containermock "altinn.studio/devenv/pkg/container/mock"
 	"altinn.studio/devenv/pkg/container/types"
+	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	appsupport "altinn.studio/studioctl/internal/cmd/apps"
+	repocontext "altinn.studio/studioctl/internal/context"
+	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -63,7 +67,7 @@ func TestStartupOperationError_ContextCancelledReturnsRunStopped(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 
-	err := startupOperationError(ctx, "start app-manager", context.Canceled)
+	err := startupOperationError(ctx, "start studioctl-server", context.Canceled)
 	if !errors.Is(err, errAppRunStopped) {
 		t.Fatalf("startupOperationError() error = %v, want errAppRunStopped", err)
 	}
@@ -162,6 +166,131 @@ func TestRunDetachedOutputPrintJSON(t *testing.T) {
 	}
 }
 
+func TestRunDetachedOutputPrintHumanNoOutput(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+
+	var out bytes.Buffer
+	result := runDetachedOutput{
+		AppID:     "ttd/app",
+		Mode:      runModeProcess,
+		URL:       "http://local.altinn.cloud:8000/ttd/app/",
+		ProcessID: 123,
+	}
+	if err := result.Print(ui.NewOutput(&out, io.Discard, false)); err != nil {
+		t.Fatalf("Print() error = %v", err)
+	}
+
+	if got := out.String(); got != "" {
+		t.Fatalf("output = %q, want empty output", got)
+	}
+}
+
+func TestPrintAppReadyUsesStudioctlStatusLinesWithoutPortsOrLogPath(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+
+	var out bytes.Buffer
+	cmd := &RunCommand{out: ui.NewOutput(&out, io.Discard, false)}
+
+	cmd.printAppReady("http://local.altinn.cloud:8000/ttd/app/", processRunDetails(123)...)
+
+	rendered := out.String()
+	for _, want := range []string{
+		"studioctl  App ready: http://local.altinn.cloud:8000/ttd/app/",
+		"studioctl    - Mode: process",
+		"studioctl    - PID: 123",
+		"studioctl  Logs: studioctl app logs",
+	} {
+		if !strings.Contains(rendered, want) {
+			t.Fatalf("output %q missing %q", rendered, want)
+		}
+	}
+	for _, unwanted := range []string{"Log:", "Container:", "Port:", "/tmp/"} {
+		if strings.Contains(rendered, unwanted) {
+			t.Fatalf("output %q contains %q", rendered, unwanted)
+		}
+	}
+}
+
+func TestPrintAppReadyUsesContainerDetails(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+
+	var out bytes.Buffer
+	cmd := &RunCommand{out: ui.NewOutput(&out, io.Discard, false)}
+
+	cmd.printAppReady("http://local.altinn.cloud:8000/ttd/app/", containerRunDetails("localtest-app-test")...)
+
+	rendered := out.String()
+	for _, want := range []string{
+		"studioctl    - Mode: container",
+		"studioctl    - Name: localtest-app-test",
+	} {
+		if !strings.Contains(rendered, want) {
+			t.Fatalf("output %q missing %q", rendered, want)
+		}
+	}
+}
+
+func TestPrintAppStoppedUsesStudioctlStatusLine(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+
+	var out bytes.Buffer
+	cmd := &RunCommand{out: ui.NewOutput(&out, io.Discard, false)}
+
+	cmd.printAppStopped()
+
+	want := "studioctl  App stopped."
+	if got := out.String(); !strings.Contains(got, want) {
+		t.Fatalf("output = %q, want %q", got, want)
+	}
+}
+
+func TestAppRunDisplayURLUsesTopologyAppRoute(t *testing.T) {
+	t.Parallel()
+
+	got := appRunDisplayURL(envtopology.NewLocal("8000"), "ttd/app")
+	want := "http://local.altinn.cloud:8000/ttd/app/"
+	if got != want {
+		t.Fatalf("appRunDisplayURL() = %q, want %q", got, want)
+	}
+}
+
+func TestDotnetRunCommandEnvEnablesAnsiColorForForeground(t *testing.T) {
+	t.Parallel()
+
+	got := dotnetRunCommandEnv([]string{"PATH=/bin"}, runFlags{}, true)
+	if !envContains(got, dotnetAnsiColorRedirectionEnv+"=1") {
+		t.Fatalf("env = %v, want %s=1", got, dotnetAnsiColorRedirectionEnv)
+	}
+}
+
+func TestDotnetRunCommandEnvPreservesUserColorSetting(t *testing.T) {
+	t.Parallel()
+
+	env := []string{dotnetAnsiColorRedirectionEnv + "=false"}
+	got := dotnetRunCommandEnv(env, runFlags{}, true)
+	if len(got) != 1 || got[0] != env[0] {
+		t.Fatalf("env = %v, want preserved user setting %v", got, env)
+	}
+}
+
+func TestDotnetRunCommandEnvDoesNotEnableAnsiColorForDetached(t *testing.T) {
+	t.Parallel()
+
+	got := dotnetRunCommandEnv([]string{"PATH=/bin"}, runFlags{detach: true}, true)
+	if envContainsPrefix(got, dotnetAnsiColorRedirectionEnv+"=") {
+		t.Fatalf("env = %v, did not want %s", got, dotnetAnsiColorRedirectionEnv)
+	}
+}
+
+func TestDotnetRunCommandEnvDoesNotEnableAnsiColorWhenOutputIsNotTerminal(t *testing.T) {
+	t.Parallel()
+
+	got := dotnetRunCommandEnv([]string{"PATH=/bin"}, runFlags{}, false)
+	if envContainsPrefix(got, dotnetAnsiColorRedirectionEnv+"=") {
+		t.Fatalf("env = %v, did not want %s", got, dotnetAnsiColorRedirectionEnv)
+	}
+}
+
 func TestNextAppLogPathUsesNextRunIDForDate(t *testing.T) {
 	t.Parallel()
 
@@ -206,4 +335,206 @@ func TestContainerAppRunInfoIncludesContainerHandle(t *testing.T) {
 	if got.ContainerID != "container-id" || got.HostPort != 5006 {
 		t.Fatalf("containerAppRunInfo() = %+v, want container handle and host port", got)
 	}
+}
+
+func TestPrepareDockerRunImagePullUsesProgressRenderer(t *testing.T) {
+	t.Parallel()
+
+	var out bytes.Buffer
+	cmd := &RunCommand{out: ui.NewOutput(&out, io.Discard, false)}
+	flags := runFlags{imageTag: "example/app:test", pullImage: true, skipBuild: true}
+	spec := appsvc.DockerRunSpec{Config: types.ContainerConfig{
+		Name:  "localtest-app-test",
+		Image: flags.imageTag,
+	}}
+	progress := cmd.startContainerRunProgress(spec, flags)
+	defer progress.Stop()
+
+	client := containermock.New()
+	progressHandlerCalled := false
+	client.ImagePullWithProgressFunc = func(
+		_ context.Context,
+		image string,
+		onProgress types.ProgressHandler,
+	) error {
+		if image != flags.imageTag {
+			t.Fatalf("image = %q, want %q", image, flags.imageTag)
+		}
+		if onProgress == nil {
+			t.Fatal("onProgress = nil, want progress handler")
+		}
+		progressHandlerCalled = true
+		onProgress(types.ProgressUpdate{Message: "downloading", Current: 1, Total: 2})
+		return nil
+	}
+
+	err := cmd.prepareDockerRunImage(t.Context(), client, repocontext.Detection{}, flags.imageTag, flags, progress)
+	if err != nil {
+		t.Fatalf("prepareDockerRunImage() error = %v", err)
+	}
+	progress.Stop()
+
+	if !progressHandlerCalled {
+		t.Fatal("progress handler was not called")
+	}
+	assertContainerCall(t, client.Calls, "ImagePullWithProgress")
+	assertNoContainerCall(t, client.Calls, "ImagePull")
+
+	rendered := out.String()
+	for _, want := range []string{
+		"Pulling and starting app container...",
+		"localtest-app-test: pulling",
+		"downloading",
+		"localtest-app-test: image ready",
+	} {
+		if !strings.Contains(rendered, want) {
+			t.Fatalf("rendered output %q missing %q", rendered, want)
+		}
+	}
+}
+
+func TestCreateDockerAppContainerRendersStartAndCanSuppressPlainInfo(t *testing.T) {
+	t.Parallel()
+
+	var out bytes.Buffer
+	cmd := &RunCommand{out: ui.NewOutput(&out, io.Discard, false)}
+	spec := appContainerProgressTestSpec()
+	progress := cmd.startContainerRunProgress(spec, runFlags{skipBuild: true})
+	defer progress.Stop()
+
+	client := containermock.New()
+	client.ContainerRemoveFunc = func(context.Context, string, bool) error {
+		return types.ErrContainerNotFound
+	}
+	client.ContainerInspectFunc = func(context.Context, string) (types.ContainerInfo, error) {
+		return appContainerProgressTestInfo(spec), nil
+	}
+
+	_, _, err := cmd.createDockerAppContainer(t.Context(), client, spec, progress)
+	if err != nil {
+		t.Fatalf("createDockerAppContainer() error = %v", err)
+	}
+	progress.Stop()
+
+	rendered := out.String()
+	if !strings.Contains(rendered, "localtest-app-test: starting") {
+		t.Fatalf("rendered output %q missing container starting state", rendered)
+	}
+	if strings.Contains(rendered, "Container:") || strings.Contains(rendered, "Port:") {
+		t.Fatalf("rendered output %q contains plain container info despite quiet output", rendered)
+	}
+}
+
+func TestCreateDockerAppContainerRendersExistingContainerRemoval(t *testing.T) {
+	t.Parallel()
+
+	var out bytes.Buffer
+	cmd := &RunCommand{out: ui.NewOutput(&out, io.Discard, false)}
+	spec := appContainerProgressTestSpec()
+	progress := cmd.startContainerRunProgress(spec, runFlags{skipBuild: true})
+	defer progress.Stop()
+
+	client := containermock.New()
+	client.ContainerInspectFunc = func(context.Context, string) (types.ContainerInfo, error) {
+		return appContainerProgressTestInfo(spec), nil
+	}
+
+	_, _, err := cmd.createDockerAppContainer(t.Context(), client, spec, progress)
+	if err != nil {
+		t.Fatalf("createDockerAppContainer() error = %v", err)
+	}
+	progress.Stop()
+
+	rendered := out.String()
+	for _, want := range []string{
+		"localtest-app-test: stopping",
+		"localtest-app-test: removed",
+		"localtest-app-test: starting",
+	} {
+		if !strings.Contains(rendered, want) {
+			t.Fatalf("rendered output %q missing %q", rendered, want)
+		}
+	}
+}
+
+func TestCreateDockerAppContainerRendersRemoveFailure(t *testing.T) {
+	t.Parallel()
+
+	var out bytes.Buffer
+	cmd := &RunCommand{out: ui.NewOutput(&out, io.Discard, false)}
+	spec := appContainerProgressTestSpec()
+	progress := cmd.startContainerRunProgress(spec, runFlags{skipBuild: true})
+	defer progress.Stop()
+
+	client := containermock.New()
+	client.ContainerRemoveFunc = func(context.Context, string, bool) error {
+		return errRemoveFailed
+	}
+
+	_, _, err := cmd.createDockerAppContainer(t.Context(), client, spec, progress)
+	if err == nil {
+		t.Fatal("createDockerAppContainer() error = nil, want error")
+	}
+	progress.Fail(err)
+
+	rendered := out.String()
+	if !strings.Contains(rendered, "localtest-app-test: stopping") {
+		t.Fatalf("rendered output %q missing removal start", rendered)
+	}
+	if !strings.Contains(rendered, "localtest-app-test: failed: remove failed") {
+		t.Fatalf("rendered output %q missing removal failure", rendered)
+	}
+}
+
+func appContainerProgressTestSpec() appsvc.DockerRunSpec {
+	return appsvc.DockerRunSpec{Config: types.ContainerConfig{
+		Name:  "localtest-app-test",
+		Image: "example/app:test",
+	}}
+}
+
+func appContainerProgressTestInfo(spec appsvc.DockerRunSpec) types.ContainerInfo {
+	return types.ContainerInfo{
+		ID:    "container-id",
+		Name:  spec.Config.Name,
+		State: types.ContainerState{Running: true},
+		Ports: []types.PublishedPort{{
+			ContainerPort: "5005",
+			HostPort:      "5006",
+		}},
+	}
+}
+
+func assertContainerCall(t *testing.T, calls []containermock.Call, method string) {
+	t.Helper()
+
+	for _, call := range calls {
+		if call.Method == method {
+			return
+		}
+	}
+	t.Fatalf("container calls = %+v, want %s", calls, method)
+}
+
+func assertNoContainerCall(t *testing.T, calls []containermock.Call, method string) {
+	t.Helper()
+
+	for _, call := range calls {
+		if call.Method == method {
+			t.Fatalf("container calls = %+v, did not want %s", calls, method)
+		}
+	}
+}
+
+func envContains(env []string, want string) bool {
+	return slices.Contains(env, want)
+}
+
+func envContainsPrefix(env []string, prefix string) bool {
+	for _, entry := range env {
+		if strings.HasPrefix(entry, prefix) {
+			return true
+		}
+	}
+	return false
 }

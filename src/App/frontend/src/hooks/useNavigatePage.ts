@@ -8,7 +8,6 @@ import { useIsStateless } from 'src/features/applicationMetadata';
 import { FormStore } from 'src/features/form/FormContext';
 import { usePageSettings, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { getUiConfig } from 'src/features/form/ui';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import {
   preventFocusAndScrollResetOptions,
@@ -376,7 +375,7 @@ export function useVisitedPages() {
 const emptyArray = [];
 
 export function useNavigateToComponent() {
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const { navigateToPage } = useNavigatePage();
   const currentPageId = useCurrentView();
   const [searchParams, setSearchParams] = useSearchParams();

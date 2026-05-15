@@ -1,0 +1,20 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  margin-left: var(--fds-spacing-3);
+  margin-right: var(--fds-spacing-3);
+}
+
+.root.center {
+  justify-content: center;
+}
+
+.addItemButtons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin: 20px auto;
+  background-color: var(--fds-semantic-surface-neutral-subtle);
+  width: 100%;
+}

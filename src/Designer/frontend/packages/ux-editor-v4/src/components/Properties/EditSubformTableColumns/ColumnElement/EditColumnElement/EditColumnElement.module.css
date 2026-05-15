@@ -1,0 +1,24 @@
+.wrapper {
+  margin-top: var(--fds-spacing-4);
+  padding: var(--fds-spacing-3);
+}
+
+.header {
+  padding-top: var(--fds-spacing-2);
+  padding-bottom: var(--fds-spacing-0);
+  padding-left: var(--fds-spacing-0);
+}
+
+.divider {
+  margin-top: var(--fds-spacing-0);
+  margin-bottom: var(--ds-size-6);
+}
+
+.buttons {
+  display: flex;
+  gap: var(--fds-spacing-2);
+}
+
+.optionDescription {
+  color: var(--ds-color-neutral-text-subtle);
+}

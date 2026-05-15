@@ -34,6 +34,8 @@ public interface IChatService
         CancellationToken cancellationToken = default
     );
 
+    Task<int> DeleteInactiveThreadsAsync(CancellationToken cancellationToken = default);
+
     Task<List<ChatMessageEntity>?> GetMessagesAsync(
         Guid threadId,
         AltinnRepoEditingContext context,

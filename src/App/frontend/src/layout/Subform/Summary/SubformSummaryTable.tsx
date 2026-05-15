@@ -9,8 +9,8 @@ import { Flex } from 'src/app-components/Flex/Flex';
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import { Caption } from 'src/components/form/caption/Caption';
 import { Label } from 'src/components/label/Label';
+import { FormStore } from 'src/features/form/FormContext';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -44,7 +44,7 @@ function SubformTableRow({
   pdfModeActive: boolean;
 }) {
   const id = dataElement.id;
-  const page = FormBootstrap.useLayoutLookups().componentToPage[baseComponentId] ?? 'unknown';
+  const page = FormStore.bootstrap.useLayoutLookups().componentToPage[baseComponentId] ?? 'unknown';
   const { id: nodeId, tableColumns } = useItemWhenType(baseComponentId, 'Subform');
   const { instanceOwnerPartyId, instanceGuid, taskId } = useAllNavigationParams();
 

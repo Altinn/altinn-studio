@@ -4,9 +4,8 @@ import { Chip, EXPERIMENTAL_Suggestion as Suggestion, Fieldset } from '@digdir/d
 import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/DevNavigationButtons/DevNavigationButtons.module.css';
-import { FormProviderHooks } from 'src/features/form/FormContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import comboboxClasses from 'src/styles/combobox.module.css';
@@ -14,7 +13,7 @@ import { useHiddenPages } from 'src/utils/layout/hidden';
 import { optionFilter } from 'src/utils/options';
 
 export function DevNavigationButtons() {
-  const isInForm = FormProviderHooks.useIsInContext();
+  const isInForm = FormStore.useIsInContext();
   if (!isInForm) {
     return null;
   }
@@ -27,7 +26,7 @@ const InnerDevNavigationButtons = () => {
   const { navigateToPage } = useNavigatePage();
   const hiddenPages = useHiddenPages();
   const rawOrder = useRawPageOrder();
-  const allPages = Object.keys(FormBootstrap.useLayouts() ?? {});
+  const allPages = Object.keys(FormStore.bootstrap.useLayouts() ?? {});
 
   function handleChange(values: string[]) {
     const newView = values.at(0);
