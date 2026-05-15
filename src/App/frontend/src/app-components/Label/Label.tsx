@@ -1,11 +1,11 @@
 import React, { forwardRef } from 'react';
 import type { JSX, PropsWithChildren, ReactElement } from 'react';
 
+import { Flex } from '@app/form-component';
 import { Label as DesignsystemetLabel } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { LabelProps as DesignsystemetLabelProps } from '@digdir/designsystemet-react';
 
-import { Flex } from 'src/app-components/Flex/Flex';
 import classes from 'src/app-components/Label/Label.module.css';
 import type { IGridStyling } from 'src/app-components/types';
 

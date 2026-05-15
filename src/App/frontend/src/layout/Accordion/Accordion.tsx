@@ -1,9 +1,9 @@
 import React from 'react';
 
+import { Flex } from '@app/form-component';
 import { Card } from '@digdir/designsystemet-react';
 
 import { AccordionItem } from 'src/app-components/Accordion/AccordionItem';
-import { Flex } from 'src/app-components/Flex/Flex';
 import { translationKey } from 'src/AppComponentsBridge';
 import classes from 'src/layout/Accordion/Accordion.module.css';
 import { useIsInAccordionGroup } from 'src/layout/AccordionGroup/AccordionGroupContext';

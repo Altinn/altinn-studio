@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 
+import { Flex } from '@app/form-component';
 import { EXPERIMENTAL_Suggestion as Suggestion, ValidationMessage } from '@digdir/designsystemet-react';
 import deepEqual from 'fast-deep-equal';
 import type { SuggestionItem } from '@digdir/designsystemet-react';
 
 import { Button } from 'src/app-components/Button/Button';
-import { Flex } from 'src/app-components/Flex/Flex';
 import { AltinnLoader } from 'src/components/AltinnLoader';
 import { isAttachmentUploaded } from 'src/features/attachments';
 import { useAttachmentsUpdater } from 'src/features/attachments/hooks';

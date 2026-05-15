@@ -1,4 +1,3 @@
-import { jest } from '@jest/globals';
 import { formatISO, isValid, parseISO } from 'date-fns';
 
 import {
@@ -10,18 +9,21 @@ import {
   getDateFormat,
   getSaveFormattedDateString,
   strictParseISO,
-} from 'src/app-components/Datepicker/utils/dateHelpers';
+} from './dateHelpers';
 
 describe('dateHelpers', () => {
   beforeAll(() => {
     /**
      * Mock todays date to be 2023-07-07T12:54:25.000Z
      */
-    jest.useFakeTimers({ now: 1688734465000 });
+    vi.useFakeTimers({ now: 1688734465000 });
   });
 
   describe('getDateFormat', () => {
-    const tests: { props: Parameters<typeof getDateFormat>; expected: ReturnType<typeof getDateFormat> }[] = [
+    const tests: {
+      props: Parameters<typeof getDateFormat>;
+      expected: ReturnType<typeof getDateFormat>;
+    }[] = [
       { props: ['YYYY-MM-DD'], expected: 'yyyy-MM-dd' },
       { props: ['DD/MM/YYYY'], expected: 'dd/MM/yyyy' },
       { props: ['DD.MM.YYYY'], expected: 'dd.MM.yyyy' },
@@ -127,7 +129,10 @@ describe('dateHelpers', () => {
   });
 
   describe('formatISOString', () => {
-    const tests: { props: Parameters<typeof formatISOString>; expected: ReturnType<typeof formatISOString> }[] = [
+    const tests: {
+      props: Parameters<typeof formatISOString>;
+      expected: ReturnType<typeof formatISOString>;
+    }[] = [
       { props: [undefined, 'dd/MM/yyyy'], expected: null },
       { props: ['2023-13-01', 'dd/MM/yyyy'], expected: null },
       { props: ['2023-10-41', 'dd/MM/yyyy'], expected: null },

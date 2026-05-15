@@ -2,9 +2,9 @@ import React, { useMemo } from 'react';
 import { useSearchParams } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
+import { Flex } from '@app/form-component';
 import { Heading } from '@digdir/designsystemet-react';
 
-import { Flex } from 'src/app-components/Flex/Flex';
 import { LoadingEmpty } from 'src/app-components/loading/LoadingEmpty/LoadingEmpty';
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
 import { DummyPresentation } from 'src/components/presentation/Presentation';

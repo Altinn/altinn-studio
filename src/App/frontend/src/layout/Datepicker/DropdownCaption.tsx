@@ -2,17 +2,16 @@ import React from 'react';
 import { formatMonthDropdown, useDayPicker } from 'react-day-picker';
 import type { MonthCaptionProps } from 'react-day-picker';
 
+import { getDateLib, getMonths, getYears, useDatePickerClose } from '@app/form-component';
 import { Select } from '@digdir/designsystemet-react';
 import { ArrowLeftIcon, ArrowRightIcon, XMarkIcon } from '@navikt/aksel-icons';
 import { addYears, setMonth, setYear, startOfMonth, subYears } from 'date-fns';
 
 import { Button } from 'src/app-components/Button/Button';
-import styles from 'src/app-components/Datepicker/Calendar.module.css';
-import { useDatePickerClose } from 'src/app-components/Datepicker/DatepickerDialog';
-import { getDateLib, getMonths, getYears } from 'src/app-components/Datepicker/utils/dateHelpers';
 import { translationKey } from 'src/AppComponentsBridge';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
+import styles from 'src/layout/Datepicker/DropdownCaption.module.css';
 import comboboxClasses from 'src/styles/combobox.module.css';
 
 type DropdownCaptionProps = MonthCaptionProps & {

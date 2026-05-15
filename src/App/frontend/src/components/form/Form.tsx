@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 
-import { Flex } from 'src/app-components/Flex/Flex';
+import { Flex } from '@app/form-component';
+
 import classes from 'src/components/form/Form.module.css';
 import { MessageBanner } from 'src/components/form/MessageBanner';
 import { ErrorReport, ErrorReportList } from 'src/components/message/ErrorReport';

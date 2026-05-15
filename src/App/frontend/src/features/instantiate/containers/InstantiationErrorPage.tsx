@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { Flex } from 'src/app-components/Flex/Flex';
+import { Flex } from '@app/form-component';
+
 import { AltinnError } from 'src/components/altinnError';
 import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
 

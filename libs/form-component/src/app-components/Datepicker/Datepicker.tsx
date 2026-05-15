@@ -4,12 +4,12 @@ import type { MonthCaption } from 'react-day-picker';
 import { CalendarIcon } from '@navikt/aksel-icons';
 import { isValid as isValidDate } from 'date-fns';
 
-import styles from 'src/app-components/Datepicker/Calendar.module.css';
-import { DatePickerCalendar } from 'src/app-components/Datepicker/DatePickerCalendar';
-import { DatePickerDialog } from 'src/app-components/Datepicker/DatepickerDialog';
-import { DatePickerInput } from 'src/app-components/Datepicker/DatePickerInput';
-import { getSaveFormattedDateString } from 'src/app-components/Datepicker/utils/dateHelpers';
-import { Flex } from 'src/app-components/Flex/Flex';
+import { Flex } from '../Flex/Flex';
+import styles from './Calendar.module.css';
+import { DatePickerCalendar } from './DatePickerCalendar';
+import { DatePickerDialog } from './DatepickerDialog';
+import { DatePickerInput } from './DatePickerInput';
+import { getSaveFormattedDateString } from './utils/dateHelpers';
 
 export type DatePickerControlProps = {
   id: string;
@@ -60,11 +60,7 @@ export const DatePickerControl: React.FC<DatePickerControlProps> = ({
   };
 
   return (
-    <Flex
-      container
-      item
-      size={{ xs: 12 }}
-    >
+    <Flex container item size={{ xs: 12 }}>
       <div className={styles.calendarInputWrapper}>
         <DatePickerInput
           ref={inputRef}

@@ -1,8 +1,9 @@
 import React from 'react';
 
+import { Flex } from '@app/form-component';
+
 import type { PropsFromGenericComponent } from '..';
 
-import { Flex } from 'src/app-components/Flex/Flex';
 import { Fieldset } from 'src/app-components/Label/Fieldset';
 import classes from 'src/layout/ButtonGroup/ButtonGroupComponent.module.css';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';

@@ -1,13 +1,13 @@
 import React from 'react';
 import { useNavigation } from 'react-router';
 
+import { Flex } from '@app/form-component';
 import { Table } from '@digdir/designsystemet-react';
 import { PencilIcon, PlusIcon, TrashIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { Button } from 'src/app-components/Button/Button';
 import { FatalError } from 'src/app-components/error/FatalError/FatalError';
-import { Flex } from 'src/app-components/Flex/Flex';
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import { translationKey } from 'src/AppComponentsBridge';
 import { Caption } from 'src/components/form/caption/Caption';

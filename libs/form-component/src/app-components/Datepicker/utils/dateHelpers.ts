@@ -17,7 +17,7 @@ import {
 } from 'date-fns';
 import type { Locale } from 'date-fns/locale';
 
-import { locales } from 'src/app-components/Datepicker/utils/dateLocales';
+import { locales } from './dateLocales';
 
 export enum DateFlags {
   Today = 'today',
@@ -53,19 +53,26 @@ export function getDateFormat(format?: string, selectedLanguage = 'nb'): string 
   if (format) {
     return convertLegacyFormat(format);
   }
-  return getLocale(selectedLanguage).formatLong?.date({ width: 'short' }) || DatepickerFormatDefault;
+  return (
+    getLocale(selectedLanguage).formatLong?.date({ width: 'short' }) || DatepickerFormatDefault
+  );
 }
 
 export function getSaveFormattedDateString(date: Date | null, timestamp: boolean) {
   if (date && isValid(date)) {
     return (
-      (!timestamp ? formatISO(date, { representation: 'date' }) : formatISO(date, { representation: 'complete' })) ?? ''
+      (!timestamp
+        ? formatISO(date, { representation: 'date' })
+        : formatISO(date, { representation: 'complete' })) ?? ''
     );
   }
   return null;
 }
 
-export function getDateConstraint(dateOrFlag: string | DateFlags | undefined, constraint: 'min' | 'max'): Date {
+export function getDateConstraint(
+  dateOrFlag: string | DateFlags | undefined,
+  constraint: 'min' | 'max',
+): Date {
   const shiftTime = constraint === 'min' ? startOfDay : endOfDay;
 
   if (dateOrFlag === DateFlags.Today) {
@@ -103,7 +110,11 @@ export function getDateConstraint(dateOrFlag: string | DateFlags | undefined, co
   }
 }
 
-export function formatISOString(isoString: string | undefined, format: string, locale?: Locale): string | null {
+export function formatISOString(
+  isoString: string | undefined,
+  format: string,
+  locale?: Locale,
+): string | null {
   const date = strictParseISO(isoString);
 
   if (date && isValid(date)) {
@@ -145,7 +156,10 @@ export function strictParseISO(isoString: string | undefined): Date | null {
  * this function requires that the parsed date when formatted using the same format is equal to the input.
  * This prevents the value in the Datepicker input from changing while typing.
  */
-export function strictParseFormat(formattedDate: string | undefined, formatString: string): Date | null {
+export function strictParseFormat(
+  formattedDate: string | undefined,
+  formatString: string,
+): Date | null {
   if (!formattedDate) {
     return null;
   }
