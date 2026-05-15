@@ -14,7 +14,9 @@ import (
 	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
+	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
+	"altinn.studio/studioctl/internal/httpclient"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
@@ -37,13 +39,14 @@ const (
 
 // DiagnosticOptions configures localtest diagnostics.
 type DiagnosticOptions struct {
-	DetectContainer func(ctx context.Context) (container.ContainerClient, error)
-	ResolveHost     func(ctx context.Context, host string) ([]string, error)
-	HTTPGet         func(ctx context.Context, url string) (DiagnosticHTTPResponse, error)
-	DialTCP         func(ctx context.Context, network, address string) error
-	IPv6Enabled     func() bool
-	Debugf          func(format string, args ...any)
-	Topology        envtopology.Local
+	DetectContainer  func(ctx context.Context) (container.ContainerClient, error)
+	ResolveHost      func(ctx context.Context, host string) ([]string, error)
+	HTTPGet          func(ctx context.Context, url string) (DiagnosticHTTPResponse, error)
+	DialTCP          func(ctx context.Context, network, address string) error
+	IPv6Enabled      func() bool
+	Debugf           func(format string, args ...any)
+	UserAgentVersion config.Version
+	Topology         envtopology.Local
 }
 
 // DiagnosticReport contains diagnostics for the localtest environment.
@@ -270,7 +273,10 @@ func normalizeDiagnosticOptions(opts DiagnosticOptions) DiagnosticOptions {
 		opts.ResolveHost = defaultDiagnosticResolveHost
 	}
 	if opts.HTTPGet == nil {
-		opts.HTTPGet = defaultDiagnosticHTTPGet
+		userAgentVersion := opts.UserAgentVersion
+		opts.HTTPGet = func(ctx context.Context, url string) (DiagnosticHTTPResponse, error) {
+			return defaultDiagnosticHTTPGet(ctx, url, userAgentVersion)
+		}
 	}
 	if opts.DialTCP == nil {
 		opts.DialTCP = defaultDiagnosticDialTCP
@@ -482,11 +488,16 @@ func defaultDiagnosticResolveHost(ctx context.Context, host string) ([]string, e
 	return addresses, nil
 }
 
-func defaultDiagnosticHTTPGet(ctx context.Context, url string) (DiagnosticHTTPResponse, error) {
+func defaultDiagnosticHTTPGet(
+	ctx context.Context,
+	url string,
+	userAgentVersion config.Version,
+) (DiagnosticHTTPResponse, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return DiagnosticHTTPResponse{}, fmt.Errorf("build request: %w", err)
 	}
+	httpclient.SetUserAgent(req, userAgentVersion)
 
 	client := &http.Client{Transport: diagnosticHTTPTransport()}
 	resp, err := client.Do(req)

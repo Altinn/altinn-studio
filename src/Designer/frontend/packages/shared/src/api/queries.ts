@@ -83,6 +83,7 @@ import {
   publishedResourcesPath,
   customTemplatesPath,
   userApiKeysPath,
+  studioctlAuthRequestPath,
   contactPointsPath,
   botAccountsPath,
   botAccountApiKeysPath,
@@ -137,6 +138,7 @@ import type { AppValidationResult } from 'app-development/hooks/queries/useAppVa
 import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
 import type { AppSettings } from 'app-shared/types/AppSettings';
 import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
+import type { StudioctlAuthRequest } from 'app-shared/types/api/StudioctlAuth';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
 import type { BotAccount, BotAccountApiKey } from 'app-shared/types/BotAccount';
 
@@ -247,6 +249,7 @@ export const getChatMessages = (org: string, app: string, threadId: string) => g
 
 // User settings
 export const getUserApiKeys = () => get<UserApiKey[]>(userApiKeysPath());
+export const getStudioctlAuthRequest = (id: string) => get<StudioctlAuthRequest>(studioctlAuthRequestPath(id));
 
 // Org settings - Contact points
 export const getContactPoints = (org: string) => get<ContactPoint[]>(contactPointsPath(org));

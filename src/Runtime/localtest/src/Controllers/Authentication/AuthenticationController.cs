@@ -49,6 +49,18 @@ namespace LocalTest.Controllers.Authentication
             return await Task.FromResult(Ok(token));
         }
 
+        [AllowAnonymous]
+        [HttpGet("authentication")]
+        public ActionResult Authenticate([FromQuery(Name = "goto")] string goTo)
+        {
+            if (string.IsNullOrWhiteSpace(goTo))
+            {
+                return Redirect("/");
+            }
+
+            return Redirect($"/?goto={Uri.EscapeDataString(goTo)}");
+        }
+
         [HttpGet("orgToken")]
         public async Task<ActionResult> GenerateOrgToken(
             [FromQuery] string org = "ttd",

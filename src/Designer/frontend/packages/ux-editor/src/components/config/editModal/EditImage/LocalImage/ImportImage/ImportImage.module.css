@@ -1,0 +1,6 @@
+.importImage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-2);
+  align-items: flex-start;
+}

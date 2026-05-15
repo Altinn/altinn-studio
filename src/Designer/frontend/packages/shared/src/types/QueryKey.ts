@@ -108,6 +108,7 @@ export enum QueryKey {
 
   // User settings
   UserApiKeys = 'UserApiKeys',
+  StudioctlAuthRequest = 'StudioctlAuthRequest',
 
   // Assistant chat
   ChatThreads = 'ChatThreads',

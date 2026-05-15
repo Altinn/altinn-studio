@@ -147,6 +147,22 @@ describe('AboutResourcePage', () => {
     expect(resourceTypeRadio).toBeChecked();
   });
 
+  it('should not show resource type radio control for migrated altinn apps', () => {
+    render(
+      <AboutResourcePage
+        {...defaultProps}
+        resourceData={{
+          ...mockConsentResource,
+          resourceType: 'MigratedApp',
+        }}
+      />,
+    );
+
+    expect(
+      screen.queryByLabelText(textMock('resourceadm.about_resource_resource_type')),
+    ).not.toBeInTheDocument();
+  });
+
   it('handles title input change', async () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);

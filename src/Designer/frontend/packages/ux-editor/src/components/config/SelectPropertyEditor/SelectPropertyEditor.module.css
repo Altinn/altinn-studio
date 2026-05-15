@@ -1,0 +1,13 @@
+.editMode {
+  display: flex;
+  margin-block: var(--ds-size-2);
+  gap: var(--ds-size-3);
+}
+
+.selectProperty {
+  flex: 1;
+}
+
+.actionButtons {
+  margin-top: var(--ds-size-8);
+}

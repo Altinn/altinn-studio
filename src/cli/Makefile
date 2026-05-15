@@ -8,6 +8,9 @@ LDFLAGS := -ldflags "-X altinn.studio/studioctl/internal/cmd.version=$(VERSION)"
 BUILD_DIR := build
 DEV_HOME := $(BUILD_DIR)/dev-home
 LOCALBIN := bin
+GOOS := $(shell go env GOOS)
+GOARCH := $(shell go env GOARCH)
+RESOURCES_ARCHIVE := $(BUILD_DIR)/studioctl-resources-$(GOOS)-$(GOARCH).tar.gz
 
 # Match `go install` output on Windows so tool install rules can locate binaries.
 EXEEXT :=
@@ -63,10 +66,6 @@ tidy: ## Tidy go.mod
 
 ##@ Development Helpers (Cross-Platform via cmd/dev)
 
-.PHONY: resources
-resources: ## Build localtest resources tarball (cross-platform)
-	go run ./cmd/dev resources
-
 .PHONY: dev-install
 dev-install: ## Install to isolated dev home directory (cross-platform)
 	go run ./cmd/dev install
@@ -81,7 +80,7 @@ user-install-winhost: ## From WSL, install studioctl onto the Windows host
 
 .PHONY: dev-run
 dev-run: dev-install ## Run studioctl with dev config (use CMD="env up" etc)
-	STUDIOCTL_HOME="$(abspath $(DEV_HOME))" STUDIOCTL_RESOURCES_TARBALL="$(abspath $(BUILD_DIR)/localtest-resources.tar.gz)" "$(DEV_HOME)/bin/studioctl" $(CMD)
+	STUDIOCTL_HOME="$(abspath $(DEV_HOME))" STUDIOCTL_RESOURCES_ARCHIVE="$(abspath $(RESOURCES_ARCHIVE))" "$(DEV_HOME)/bin/studioctl" $(CMD)
 
 .PHONY: clean
 clean: ## Clean build artifacts (cross-platform)
