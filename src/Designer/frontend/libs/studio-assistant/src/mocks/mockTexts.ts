@@ -27,6 +27,7 @@ export const messageFeedbackTexts: MessageFeedbackTexts = {
   detailsLabel: 'feedbackDetailsLabel',
   detailsOptionalTag: 'feedbackDetailsOptionalTag',
   submit: 'feedbackSubmit',
+  cancel: 'feedbackCancel',
 };
 
 export const mockTexts: AssistantTexts = {

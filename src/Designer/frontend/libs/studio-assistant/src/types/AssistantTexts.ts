@@ -27,6 +27,7 @@ export type MessageFeedbackTexts = {
   detailsLabel: string;
   detailsOptionalTag: string;
   submit: string;
+  cancel: string;
 };
 
 export type AboutAssistantDialogTexts = {

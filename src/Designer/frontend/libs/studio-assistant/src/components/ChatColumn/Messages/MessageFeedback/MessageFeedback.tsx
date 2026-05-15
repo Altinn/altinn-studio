@@ -7,7 +7,7 @@ import {
   StudioHeading,
   StudioTextarea,
 } from '@studio/components';
-import { ThumbDownIcon, ThumbUpIcon, PaperplaneFillIcon } from '@studio/icons';
+import { ThumbDownIcon, ThumbUpIcon, PaperplaneFillIcon, XMarkIcon } from '@studio/icons';
 import type { MessageFeedbackTexts } from '../../../../types/AssistantTexts';
 import type { UserFeedback } from '../../../../types/UserFeedback';
 import classes from './MessageFeedback.module.css';
@@ -86,6 +86,9 @@ export function MessageFeedback({ texts, traceId, onSubmit }: MessageFeedbackPro
               icon={<PaperplaneFillIcon />}
             >
               {texts.submit}
+            </StudioButton>
+            <StudioButton variant='secondary' onClick={handleDialogClose} icon={<XMarkIcon />}>
+              {texts.cancel}
             </StudioButton>
           </div>
         </StudioDialog.Block>

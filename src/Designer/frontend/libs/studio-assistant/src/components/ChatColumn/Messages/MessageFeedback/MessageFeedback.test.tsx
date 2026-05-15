@@ -39,16 +39,6 @@ describe('MessageFeedback', () => {
     });
   });
 
-  it('closes the dialog after submitting feedback', async () => {
-    const user = userEvent.setup();
-    renderMessageFeedback();
-
-    await user.click(getThumbsUpButton());
-    await user.click(getSendButton());
-
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-  });
-
   it('calls onSubmit with comment when there is a comment', async () => {
     const user = userEvent.setup();
     const onSubmit = jest.fn();
@@ -64,6 +54,28 @@ describe('MessageFeedback', () => {
       thumbsUp: false,
       comment: 'Svaret traff ikke helt.',
     });
+  });
+
+  it('closes the dialog without calling onSubmit when pressing cancel', async () => {
+    const user = userEvent.setup();
+    const onSubmit = jest.fn();
+    renderMessageFeedback({ onSubmit });
+
+    await user.click(getThumbsUpButton());
+    await user.click(getCancelButton());
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('closes the dialog after submitting feedback', async () => {
+    const user = userEvent.setup();
+    renderMessageFeedback();
+
+    await user.click(getThumbsUpButton());
+    await user.click(getSendButton());
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
 
@@ -84,3 +96,6 @@ const getThumbsDownButton = (): HTMLElement =>
   screen.getByRole('button', { name: feedbackTexts.thumbsDown });
 
 const getSendButton = (): HTMLElement => screen.getByRole('button', { name: feedbackTexts.submit });
+
+const getCancelButton = (): HTMLElement =>
+  screen.getByRole('button', { name: feedbackTexts.cancel });
