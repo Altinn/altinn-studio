@@ -15,7 +15,7 @@ src/__mocks__/getOrgsMock.ts
 src/app-components/Accordion/
 src/app-components/Button/Button.tsx
 src/app-components/Card/
-src/app-components/Date/DisplayDate.tsx
+src/app-components/Date/
 src/app-components/Datepicker/DatePickerHelpers.ts
 src/app-components/Text/DisplayText.tsx
 src/app-components/loading/Spinner/Spinner.tsx
