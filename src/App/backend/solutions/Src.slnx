@@ -1,12 +1,12 @@
 <Solution>
-  <Configurations>
-    <Platform Name="Any CPU" />
-    <Platform Name="x64" />
-    <Platform Name="x86" />
-  </Configurations>
-  <Project Path="../src/Altinn.App.Analyzers/Altinn.App.Analyzers.csproj" />
-  <Project Path="../src/Altinn.App.Api/Altinn.App.Api.csproj" />
-  <Project Path="../src/Altinn.App.Clients.Fiks/Altinn.App.Clients.Fiks.csproj" />
-  <Project Path="../src/Altinn.App.Core/Altinn.App.Core.csproj" />
-  <Project Path="../src/Altinn.App.Internal.Analyzers/Altinn.App.Internal.Analyzers.csproj" />
+    <Configurations>
+        <Platform Name="Any CPU" />
+        <Platform Name="x64" />
+        <Platform Name="x86" />
+    </Configurations>
+    <Project Path="../src/Altinn.App.Analyzers/Altinn.App.Analyzers.csproj" />
+    <Project Path="../src/Altinn.App.Api/Altinn.App.Api.csproj" />
+    <Project Path="../src/Altinn.App.Clients.Fiks/Altinn.App.Clients.Fiks.csproj" />
+    <Project Path="../src/Altinn.App.Core/Altinn.App.Core.csproj" />
+    <Project Path="../src/Altinn.App.Internal.Analyzers/Altinn.App.Internal.Analyzers.csproj" />
 </Solution>
