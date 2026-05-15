@@ -1,8 +1,9 @@
 import React from 'react';
 
+import { Button } from '@app/form-component';
+
 import type { PropsFromGenericComponent } from '..';
 
-import { Button } from 'src/app-components/Button/Button';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';

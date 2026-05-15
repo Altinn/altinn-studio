@@ -1,9 +1,9 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { Button } from '@app/form-component';
 import { PlusIcon } from '@navikt/aksel-icons';
 
-import { Button } from 'src/app-components/Button/Button';
 import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { Flex } from 'src/app-components/Flex/Flex';
 import { FullWidthWrapper } from 'src/app-components/FullWidthWrapper/FullWidthWrapper';

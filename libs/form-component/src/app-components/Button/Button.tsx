@@ -4,9 +4,7 @@ import type { PropsWithChildren } from 'react';
 import { Button as DesignSystemButton } from '@digdir/designsystemet-react';
 import type { ButtonProps as DesignSystemButtonProps } from '@digdir/designsystemet-react';
 
-import { useTranslation } from 'src/app-components/AppComponentsProvider';
-import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
-import type { TranslationKey } from 'src/app-components/types';
+import { Spinner } from '../Spinner';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | undefined;
 export type ButtonColor = 'first' | 'second' | 'success' | 'danger' | undefined;
@@ -16,14 +14,23 @@ export type ButtonProps = {
   variant?: ButtonVariant;
   color?: ButtonColor;
   isLoading?: boolean;
+  loadingLabel?: string;
   size?: 'sm' | 'md' | 'lg';
   fullWidth?: boolean;
   textAlign?: TextAlign;
-  title?: TranslationKey;
-  'aria-label'?: TranslationKey;
+  title?: string;
+  'aria-label'?: string;
 } & Omit<DesignSystemButtonProps, 'variant' | 'color' | 'size' | 'title' | 'aria-label'>;
 
-type DSButtonColor = 'accent' | 'neutral' | 'success' | 'danger' | 'brand1' | 'brand2' | 'brand3' | undefined;
+type DSButtonColor =
+  | 'accent'
+  | 'neutral'
+  | 'success'
+  | 'danger'
+  | 'brand1'
+  | 'brand2'
+  | 'brand3'
+  | undefined;
 
 function mapColorNames(color: ButtonColor): DSButtonColor {
   switch (color) {
@@ -47,18 +54,15 @@ export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProp
     fullWidth,
     style,
     textAlign,
-    title,
-    'aria-label': ariaLabel,
+    loadingLabel,
     ...rest
   },
   ref,
 ) {
-  const { translate } = useTranslation();
   const expandedStyle = { ...style, justifyContent: textAlign ? textAlign : undefined };
   return (
     <DesignSystemButton
       {...rest}
-      title={title ? translate(title) : undefined}
       disabled={disabled || isLoading}
       variant={variant}
       data-color={mapColorNames(color)}
@@ -66,15 +70,14 @@ export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProp
       data-fullwidth={fullWidth ? true : undefined}
       ref={ref}
       style={expandedStyle}
-      aria-label={ariaLabel ? translate(ariaLabel) : undefined}
     >
       {isLoading ? (
         <>
           <Spinner
             aria-hidden='true'
+            aria-label={loadingLabel}
             data-color={color}
             data-size={size === 'lg' ? 'sm' : 'xs'}
-            aria-label={translate('general.loading')}
           />
           {children}
         </>

@@ -12,10 +12,13 @@ src/App.test.tsx
 src/App.tsx
 src/__mocks__/getLayoutSetsMock.ts
 src/__mocks__/getOrgsMock.ts
+src/app-components/Accordion/
+src/app-components/Button/Button.tsx
 src/app-components/Card/
 src/app-components/Date/
 src/app-components/Datepicker/DatePickerHelpers.ts
 src/app-components/Text/DisplayText.tsx
+src/app-components/loading/Spinner/Spinner.tsx
 src/codegen/schemas/layout-sets.schema.v1.ts
 src/components/presentation/Header.tsx
 src/core/contexts/hookContext.tsx
@@ -63,6 +66,7 @@ src/features/validation/schemaValidation/SchemaValidation.tsx
 src/features/validation/selectors/attachmentValidations.ts
 src/features/validation/validationContext.tsx
 src/hooks/useWaitForState.ts
+src/index.css
 src/index.tsx
 src/layout/Group/SummaryGroupComponent.test.tsx
 src/layout/Group/__snapshots__/SummaryGroupComponent.test.tsx.snap
