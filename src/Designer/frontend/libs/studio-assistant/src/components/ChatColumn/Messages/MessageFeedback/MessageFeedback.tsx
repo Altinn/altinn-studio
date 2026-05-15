@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import {
   StudioButton,
   StudioDialog,
@@ -19,13 +19,13 @@ export type MessageFeedbackProps = {
 };
 
 export function MessageFeedback({ texts, traceId, onSubmit }: MessageFeedbackProps): ReactElement {
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [selectedVote, setSelectedVote] = useState<boolean | null>(null);
   const [commentText, setCommentText] = useState<string>('');
-  const dialogRef = useRef<HTMLDialogElement>(null);
 
   const handleVoteClick = (vote: boolean): void => {
     setSelectedVote(vote);
-    dialogRef.current?.showModal();
+    setIsDialogOpen(true);
   };
 
   const handleSendFeedback = (): void => {
@@ -41,7 +41,7 @@ export function MessageFeedback({ texts, traceId, onSubmit }: MessageFeedbackPro
   };
 
   const handleDialogClose = (): void => {
-    dialogRef.current?.close();
+    setIsDialogOpen(false);
     setSelectedVote(null);
     setCommentText('');
   };
@@ -67,7 +67,7 @@ export function MessageFeedback({ texts, traceId, onSubmit }: MessageFeedbackPro
         />
       </div>
 
-      <StudioDialog ref={dialogRef} closedby='any' onClose={handleDialogClose}>
+      <StudioDialog open={isDialogOpen} closedby='any' onClose={handleDialogClose}>
         <StudioDialog.Block>
           <StudioHeading level={2}>{texts.heading}</StudioHeading>
         </StudioDialog.Block>
