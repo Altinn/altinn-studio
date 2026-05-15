@@ -14,7 +14,6 @@ import { LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
 import { PageRoutes } from './routes/PageRoutes';
 import { EnvironmentConfigProvider } from 'app-shared/contexts/EnvironmentConfigContext';
 import { FeatureFlagsProvider } from '@studio/feature-flags';
-import { PostHogContextProvider } from 'app-shared/contexts/PostHogContext';
 import { ConsentProvider } from 'app-shared/utils/consent';
 
 const loggerConfig: LoggerConfig = {
@@ -47,13 +46,11 @@ root.render(
   <FeatureFlagsProvider>
     <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
       <EnvironmentConfigProvider>
-        <PostHogContextProvider>
+        <LoggerContextProvider config={loggerConfig}>
           <ConsentProvider>
-            <LoggerContextProvider config={loggerConfig}>
-              <PageRoutes />
-            </LoggerContextProvider>
+            <PageRoutes />
           </ConsentProvider>
-        </PostHogContextProvider>
+        </LoggerContextProvider>
       </EnvironmentConfigProvider>
     </ServicesContextProvider>
   </FeatureFlagsProvider>,
