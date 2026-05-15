@@ -45,16 +45,19 @@ public class DataClientTests
         CustomToken: TestAuthentication.GetMaskinportenToken("scope").AccessToken
     );
 
-    public static TheoryData<AuthenticationTestCase?> AuthenticationTestCases =>
-        [
-            null,
-            new(StorageAuthenticationMethod.CurrentUser(), _testTokens.UserToken),
-            new(StorageAuthenticationMethod.ServiceOwner(), _testTokens.ServiceOwnerToken),
-            new(
-                StorageAuthenticationMethod.Custom(() => Task.FromResult(_testTokens.CustomToken)),
-                _testTokens.CustomToken
-            ),
-        ];
+    // csharpier-ignore
+    public static TheoryData<AuthenticationTestCase?> AuthenticationTestCases
+    {
+        get
+        {
+            TheoryData<AuthenticationTestCase?> data = new();
+            data.Add(null);
+            data.Add(new(StorageAuthenticationMethod.CurrentUser(), _testTokens.UserToken));
+            data.Add(new(StorageAuthenticationMethod.ServiceOwner(), _testTokens.ServiceOwnerToken));
+            data.Add(new(StorageAuthenticationMethod.Custom(() => Task.FromResult(_testTokens.CustomToken)), _testTokens.CustomToken));
+            return data;
+        }
+    }
 
     [Theory]
     [MemberData(nameof(AuthenticationTestCases))]
