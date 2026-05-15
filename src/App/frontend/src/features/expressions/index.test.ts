@@ -10,7 +10,43 @@ describe('Expressions', () => {
       evalExpr(
         ['frontendSettings', 'whatever'],
         {
-          applicationSettings: {},
+          currentDataModelPath: undefined,
+          langToolsSelector: () => {
+            throw new Error('not used');
+          },
+          track: () => {},
+          getDependencies: () => [],
+          context: {
+            currentLanguage: () => 'nb',
+            currentPage: () => undefined,
+            currentDataModelPath: () => undefined,
+            assertDataSourceSupported: () => {},
+          },
+          application: {
+            getSettings: () => ({}),
+          },
+          formData: {
+            defaultDataType: () => undefined,
+            hasDataType: () => false,
+            read: () => undefined,
+          },
+          layout: {
+            getLookups: () => undefined,
+          },
+          options: {
+            getStaticOptions: () => undefined,
+          },
+          instance: {
+            countDataElements: () => 0,
+            getDataSources: () => null,
+            getProcess: () => undefined,
+          },
+          externalApi: {
+            getAll: () => ({ data: {}, errors: {} }),
+          },
+          displayValue: {
+            get: () => undefined,
+          },
         } as ExpressionDataSources,
         { returnType: ExprVal.String, defaultValue: 'hello world' },
       ),

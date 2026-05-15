@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 
@@ -29,6 +31,33 @@ function useCurrentInstance(): IInstance | undefined {
   return queryClient
     .getQueriesData<IInstance>({ queryKey: instanceQueryKeys.all() })
     .find(([key, data]) => data && key.length === 2 && typeof key[1] === 'object')?.[1];
+}
+
+export interface CachedInstanceQueries {
+  countDataElements: (instanceId: string | undefined, dataType: string) => number;
+  getCachedInstance: (instanceId: string | undefined) => IInstance | undefined;
+}
+
+function useCachedInstanceQueries(): CachedInstanceQueries {
+  const queryClient = useQueryClient();
+  return useMemo(
+    () => ({
+      countDataElements: (instanceId, dataType) => {
+        const data = getCachedInstance(queryClient, instanceId)?.data;
+        return data ? data.filter((element) => element.dataType === dataType).length : 0;
+      },
+      getCachedInstance: (instanceId) => getCachedInstance(queryClient, instanceId),
+    }),
+    [queryClient],
+  );
+}
+
+function getCachedInstance(queryClient: QueryClient, instanceId: string | undefined): IInstance | undefined {
+  if (!instanceId) {
+    return undefined;
+  }
+  const [instanceOwnerPartyId, instanceGuid] = instanceId.split('/');
+  return queryClient.getQueryData<IInstance>(instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }));
 }
 
 function useCreateInstance(language: string) {
@@ -95,6 +124,7 @@ export {
   instanceQueryKeys,
   useActiveInstances,
   useCreateInstance,
+  useCachedInstanceQueries,
   useCurrentInstance,
   useOptimisticallyUpdateInstance,
 };

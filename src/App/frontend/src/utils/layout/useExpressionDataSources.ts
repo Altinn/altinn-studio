@@ -1,198 +1,550 @@
-/* eslint-disable react-compiler/react-compiler, react-hooks/rules-of-hooks */
-import { useMemo } from 'react';
+import { useLayoutEffect, useMemo, useReducer, useRef } from 'react';
 
+import dot from 'dot-object';
+import deepEqual from 'fast-deep-equal';
+import type { StoreApi } from 'zustand';
+
+import { useTextResourcesApi } from 'src/core/contexts/ApiProvider';
+import { ContextNotProvided } from 'src/core/contexts/context';
+import { type ExternalApisResult, useExternalApiQueries } from 'src/core/queries/externalApi';
+import { useCachedInstanceQueries } from 'src/core/queries/instance';
+import { useQueryCacheObserver } from 'src/core/queries/queryCache';
+import { useTextResourcesQueries } from 'src/core/queries/textResources';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { useDisplayDataFor } from 'src/features/displayData/useDisplayData';
-import { ExprFunctionDefinitions } from 'src/features/expressions/expression-functions';
-import { useExternalApis } from 'src/features/externalApi/useExternalApi';
 import { FormStore } from 'src/features/form/FormContext';
-import { useDataElementsSelector, useInstanceDataSources } from 'src/features/instance/InstanceContext';
-import { useProcessQuery } from 'src/features/instance/useProcessQuery';
+import { getUiFolderSettings } from 'src/features/form/ui';
+import { useDataModelReaders } from 'src/features/formData/FormDataReaders';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useInnerLanguageWithForcedPathSelector } from 'src/features/language/useLanguage';
-import { useNavigationParam } from 'src/hooks/navigation';
+import { resourcesAsMap } from 'src/features/language/textResources/TextResourcesProvider';
+import { staticUseLanguage } from 'src/features/language/useLanguage';
+import { useAllNavigationParams } from 'src/hooks/navigation';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
+import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
-import { collectHiddenSources } from 'src/utils/layout/hiddenUtils';
-import type { ExprFunctionName } from 'src/features/expressions/types';
-import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
+import type { FormStoreState } from 'src/features/form/FormContext';
+import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
+import type { StaticOptionSet } from 'src/features/formBootstrap/types';
+import type { DataModelReaders } from 'src/features/formData/FormDataReaders';
+import type { TextResourceMap } from 'src/features/language/textResources';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IApplicationSettings, IInstanceDataSources, IProcess } from 'src/types/shared';
 
+/**
+ * The coarse categories expression functions can read from.
+ * A data source describes what kind of runtime state is being used, not a concrete lookup key.
+ */
+export type ExpressionDataSource =
+  | 'applicationSettings'
+  | 'currentLanguage'
+  | 'currentPage'
+  | 'displayValue'
+  | 'externalApi'
+  | 'formData'
+  | 'instanceDataSources'
+  | 'language'
+  | 'layout'
+  | 'options'
+  | 'process';
+
+/**
+ * A concrete read that happened while evaluating an expression.
+ * Dependencies are finer-grained than data sources, and are what the observer watches for future changes.
+ */
+export type ExpressionDependency =
+  | { type: 'applicationSettings' }
+  | { type: 'currentLanguage' }
+  | { type: 'currentPage' }
+  | { type: 'displayValue'; componentId: string }
+  | { type: 'externalApi' }
+  | { type: 'formData'; reference: IDataModelReference }
+  | { type: 'instanceDataSources' }
+  | { type: 'language'; dataModelPath: IDataModelReference | undefined }
+  | { type: 'layout' }
+  | { type: 'options'; optionsId: string }
+  | { type: 'process' };
+
 export interface ExpressionDataSources {
-  applicationSettings: IApplicationSettings | null;
   currentDataModelPath: IDataModelReference | undefined;
-  currentLanguage: string;
-  currentPage: string | undefined;
-  dataElementSelector: ReturnType<typeof useDataElementsSelector>;
-  instanceDataSources: IInstanceDataSources | null;
-  process: IProcess | undefined;
-
-  // Query
-  externalApis: ExternalApisResult;
-
-  // FormStore
-  formStoreSelector: ReturnType<(typeof FormStore)['raw']['useRawDelayedSelector']>;
-
-  // Complex/Other
   langToolsSelector: (dataModelPath: IDataModelReference | undefined) => IUseLanguage;
-
-  // Solves themselves if we always have all expression data sources?
-  displayValues: Record<string, string | undefined>;
+  track: (dependency: ExpressionDependency) => void;
+  getDependencies: () => readonly ExpressionDependency[];
+  context: {
+    currentLanguage: () => string;
+    currentPage: () => string | undefined;
+    currentDataModelPath: () => IDataModelReference | undefined;
+    assertDataSourceSupported: (dataSource: ExpressionDataSource) => void;
+  };
+  application: {
+    getSettings: () => IApplicationSettings | null;
+  };
+  formData: {
+    defaultDataType: () => string | undefined;
+    hasDataType: (dataType: string) => boolean;
+    read: (reference: IDataModelReference) => unknown;
+  };
+  layout: {
+    getLookups: () => LayoutLookups | undefined;
+  };
+  options: {
+    getStaticOptions: (optionsId: string) => StaticOptionSet['options'] | undefined;
+  };
+  instance: {
+    countDataElements: (dataType: string) => number;
+    getDataSources: () => IInstanceDataSources | null;
+    getProcess: () => IProcess | undefined;
+  };
+  externalApi: {
+    getAll: () => ExternalApisResult;
+  };
+  displayValue: {
+    get: (componentId: string) => string | undefined;
+  };
 }
 
-type HookBackedDataSource = Exclude<keyof ExpressionDataSources, 'displayValues'>;
-type DerivedDataSource = Exclude<keyof ExpressionDataSources, HookBackedDataSource>;
-
-function typedKeys<T extends Record<string, unknown>>(obj: T): (keyof T)[] {
-  return Object.keys(obj) as (keyof T)[];
-}
-
-const hooks: { [K in HookBackedDataSource]: () => ExpressionDataSources[K] } = {
-  process: () => useProcessQuery().data,
-  applicationSettings: () => useApplicationSettings(),
-  currentLanguage: () => useCurrentLanguage(),
-  currentDataModelPath: () => useCurrentDataModelLocation(),
-  dataElementSelector: () => useDataElementsSelector(),
-  instanceDataSources: () => useInstanceDataSources(),
-  formStoreSelector: () => FormStore.raw.useRawDelayedSelector(),
-  externalApis: () => useExternalApis(getApplicationMetadata().externalApiIds ?? []),
-  langToolsSelector: () =>
-    useInnerLanguageWithForcedPathSelector(
-      FormStore.bootstrap.useDefaultDataType(),
-      FormStore.bootstrap.useReadableDataTypes(),
-      FormStore.data.useDebouncedSelector(),
-    ),
-  currentPage: () => useNavigationParam('pageKey'),
-};
-
-const derivedDataSources: { [K in DerivedDataSource]: true } = {
-  displayValues: true,
-};
-
-export const ExpressionDataSourcesKeys = [
-  ...typedKeys(hooks),
-  ...typedKeys(derivedDataSources),
-] as const satisfies readonly (keyof ExpressionDataSources)[];
-
-export type DataSourceOverrides = {
-  dataSources?: { [K in keyof ExpressionDataSources]?: () => ExpressionDataSources[K] };
-  unsupportedDataSources?: Set<keyof ExpressionDataSources>;
+/**
+ * Optional tweaks to a runtime instance.
+ * This is mainly used to replace parts of the runtime in special contexts like subforms, or to forbid some
+ * expression data sources entirely.
+ */
+export type RuntimeOverrides = {
+  runtime?: Partial<ExpressionDataSources>;
+  unsupportedDataSources?: Set<ExpressionDataSource>;
   errorSuffix?: string;
 };
 
 /**
- * Figure out which data sources are needed to evaluate an expression and return them. This code breaks the
- * rule of hooks linting rule because it calls hooks conditionally. This is safe as long as `toEvaluate` is
- * the same between renders, i.e. that layout configuration/expressions does not change between renders.
+ * The snapshot-backed inputs that the runtime reads from during one render.
+ * These are intentionally broad and stable so runtime methods can stay synchronous and avoid mounting extra hooks.
  */
-export function useExpressionDataSources(toEvaluate: unknown, overrides?: DataSourceOverrides): ExpressionDataSources {
-  const layoutLookups = FormStore.bootstrap.useLaxLayoutLookups();
-  const { unsupportedDataSources, errorSuffix, dataSources: overriddenDataSources } = overrides ?? {};
+type SnapshotInputs = {
+  applicationSettings: IApplicationSettings | null;
+  currentLanguage: string;
+  currentPage: string | undefined;
+  currentDataModelPath: IDataModelReference | undefined;
+  externalApiIds: string[];
+  instanceId: string | undefined;
+  store: StoreApi<FormStoreState> | typeof ContextNotProvided;
+  textResourcesApi: ReturnType<typeof useTextResourcesApi>;
+  dataModelReaders: DataModelReaders;
+  instanceQueries: ReturnType<typeof useCachedInstanceQueries>;
+  queryCacheObserver: ReturnType<typeof useQueryCacheObserver>;
+  externalApiQueries: ReturnType<typeof useExternalApiQueries>;
+  textResourceQueries: ReturnType<typeof useTextResourcesQueries>;
+};
 
-  const { neededDataSources, displayValueLookups } = useMemo(() => {
-    const functionCalls = new Set<ExprFunctionName>();
-    const displayValueLookups = new Set<string>();
-    const componentLookups = new Set<string>();
-    findUsedExpressionFunctions(toEvaluate, functionCalls, displayValueLookups, componentLookups);
+/**
+ * Builds the expression runtime used by evalExpr().
+ * Unlike the old hook-selection approach, this always evaluates against current snapshots and lets the observer
+ * subscribe later only to the dependencies that were actually touched.
+ */
+export function useExpressionDataSources(toEvaluate: unknown, overrides?: RuntimeOverrides): ExpressionDataSources {
+  const applicationSettings = useApplicationSettings();
+  const currentLanguage = useCurrentLanguage();
+  const { pageKey: currentPage, instanceOwnerPartyId, instanceGuid } = useAllNavigationParams();
+  const currentDataModelPath = useCurrentDataModelLocation();
+  const store = FormStore.raw.useLaxStore();
+  const textResourcesApi = useTextResourcesApi();
+  const dataModelReaders = useDataModelReaders();
+  const instanceQueries = useCachedInstanceQueries();
+  const queryCacheObserver = useQueryCacheObserver();
+  const externalApiQueries = useExternalApiQueries();
+  const textResourceQueries = useTextResourcesQueries();
 
-    // When evaluating if a component is hidden, we need data sources for all expressions involved in the effective
-    // visibility calculation, including parent-hidden, hiddenRow, and page-hidden expressions.
-    const traversedComponentLookups = new Set<string>();
-    while (componentLookups.size > 0) {
-      const lookup = componentLookups.values().next().value;
-      if (lookup === undefined || !layoutLookups) {
-        break;
-      }
+  const displayValueLookups = useMemo(() => collectDisplayValueLookups(toEvaluate), [toEvaluate]);
+  // eslint-disable-next-line react-compiler/react-compiler,react-hooks/rules-of-hooks
+  const displayValues = displayValueLookups.length > 0 ? useDisplayDataFor(displayValueLookups) : emptyDisplayValues;
 
-      componentLookups.delete(lookup);
-      if (traversedComponentLookups.has(lookup)) {
-        continue;
-      }
+  const [, forceRender] = useReducer((n: number) => n + 1, 0);
+  const observerRef = useRef<ExpressionObserver>(undefined);
+  if (!observerRef.current) {
+    observerRef.current = new ExpressionObserver(() => forceRender());
+  }
 
-      const hiddenSources = collectHiddenSources(lookup, layoutLookups);
-      for (const source of hiddenSources) {
-        if (source.type !== 'callback') {
-          findUsedExpressionFunctions(source.expr, functionCalls, undefined, componentLookups);
-        }
-      }
+  const instanceId = instanceOwnerPartyId && instanceGuid ? `${instanceOwnerPartyId}/${instanceGuid}` : undefined;
+  const externalApiIds = getApplicationMetadata().externalApiIds ?? [];
+  const inputs: SnapshotInputs = {
+    applicationSettings,
+    currentLanguage,
+    currentPage,
+    currentDataModelPath,
+    externalApiIds,
+    instanceId,
+    store,
+    textResourcesApi,
+    dataModelReaders,
+    instanceQueries,
+    queryCacheObserver,
+    externalApiQueries,
+    textResourceQueries,
+  };
+  observerRef.current.updateInputs(inputs);
+  observerRef.current.beginCollect();
 
-      traversedComponentLookups.add(lookup);
+  useLayoutEffect(() => {
+    const observer = observerRef.current!;
+    observer.commitCollect();
+    return observer.subscribe();
+  });
+
+  const { runtime: runtimeOverrides, unsupportedDataSources, errorSuffix } = overrides ?? {};
+  const assertDataSourceSupported = (dataSource: ExpressionDataSource) => {
+    if (unsupportedDataSources?.has(dataSource)) {
+      const message = `Expressions using data source "${dataSource}" are not supported in ${
+        errorSuffix ? errorSuffix : 'this context'
+      }.`;
+      window.logErrorOnce(message);
+      throw new Error(message);
     }
-    const neededDataSources = new Set<keyof ExpressionDataSources>();
-    for (const functionName of functionCalls) {
-      const definition = ExprFunctionDefinitions[functionName];
-      for (const need of definition.needs) {
-        if (unsupportedDataSources && unsupportedDataSources.has(need)) {
-          const message = `Expression: "${functionName}" is not supported in ${errorSuffix ? errorSuffix : 'this context'}.`;
-          window.logErrorOnce(message);
-          throw new Error(message);
-        }
+  };
 
-        neededDataSources.add(need);
-      }
+  const output: ExpressionDataSources = {
+    currentDataModelPath,
+    langToolsSelector: (dataModelPath) => {
+      observerRef.current!.track({ type: 'language', dataModelPath });
+      return buildLanguageTools({ inputs, dataModelPath });
+    },
+    track: (dependency) => observerRef.current!.track(dependency),
+    getDependencies: () => observerRef.current!.getDependencies(),
+    context: {
+      currentLanguage: () => {
+        observerRef.current!.track({ type: 'currentLanguage' });
+        return currentLanguage;
+      },
+      currentPage: () => {
+        observerRef.current!.track({ type: 'currentPage' });
+        return currentPage;
+      },
+      currentDataModelPath: () => currentDataModelPath,
+      assertDataSourceSupported,
+    },
+    application: {
+      getSettings: () => {
+        observerRef.current!.track({ type: 'applicationSettings' });
+        return applicationSettings;
+      },
+    },
+    formData: {
+      defaultDataType: () => getDefaultDataTypeFromStore(store),
+      hasDataType: (dataType) => getReadableDataTypesFromStore(store).includes(dataType),
+      read: (reference) => {
+        observerRef.current!.track({ type: 'formData', reference });
+        return readFormDataFromStore(store, reference);
+      },
+    },
+    layout: {
+      getLookups: () => {
+        assertDataSourceSupported('layout');
+        observerRef.current!.track({ type: 'layout' });
+        return getLayoutLookupsFromStore(store);
+      },
+    },
+    options: {
+      getStaticOptions: (optionsId) => {
+        observerRef.current!.track({ type: 'options', optionsId });
+        return getStaticOptionsFromStore(store, optionsId);
+      },
+    },
+    instance: {
+      countDataElements: (dataType) => instanceQueries.countDataElements(instanceId, dataType),
+      getDataSources: () => {
+        observerRef.current!.track({ type: 'instanceDataSources' });
+        return getInstanceDataSourcesFromCache(instanceQueries, instanceId);
+      },
+      getProcess: () => {
+        observerRef.current!.track({ type: 'process' });
+        return getProcessFromCache(instanceQueries, instanceId);
+      },
+    },
+    externalApi: {
+      getAll: () => {
+        assertDataSourceSupported('externalApi');
+        observerRef.current!.track({ type: 'externalApi' });
+        externalApiQueries.ensureLoaded(instanceId, externalApiIds);
+        return externalApiQueries.getCached(instanceId, externalApiIds);
+      },
+    },
+    displayValue: {
+      get: (componentId) => {
+        assertDataSourceSupported('displayValue');
+        observerRef.current!.track({ type: 'displayValue', componentId });
+        return displayValues[componentId];
+      },
+    },
+  };
+
+  return useShallowMemo({ ...output, ...runtimeOverrides });
+}
+
+/**
+ * Tracks which dependencies were touched during evaluation and decides when a rerender is needed.
+ * It subscribes broadly to the store and query cache, but only compares the concrete dependencies that the
+ * current expression actually used.
+ */
+class ExpressionObserver {
+  private inputs?: SnapshotInputs;
+  private collected = new Map<string, ExpressionDependency>();
+  private active = new Map<string, ExpressionDependency>();
+  private lastValues = new Map<string, unknown>();
+  private unsubscribeStore?: (() => void) | null;
+  private unsubscribeQuery?: (() => void) | null;
+
+  constructor(private readonly onChange: () => void) {}
+
+  updateInputs(inputs: SnapshotInputs) {
+    this.inputs = inputs;
+  }
+
+  beginCollect() {
+    this.collected.clear();
+  }
+
+  track(dependency: ExpressionDependency) {
+    this.collected.set(makeDependencyKey(dependency), dependency);
+  }
+
+  commitCollect() {
+    this.active = new Map(this.collected);
+    this.lastValues = this.readValues(this.active);
+  }
+
+  getDependencies() {
+    return [...this.active.values()];
+  }
+
+  subscribe() {
+    this.unsubscribeStore?.();
+    this.unsubscribeQuery?.();
+
+    const inputs = this.inputs;
+    if (!inputs) {
+      return () => {};
     }
 
-    return { functionCalls, displayValueLookups, neededDataSources };
-  }, [toEvaluate, layoutLookups, unsupportedDataSources, errorSuffix]);
+    this.unsubscribeStore =
+      inputs.store !== ContextNotProvided
+        ? inputs.store.subscribe(() => {
+            this.checkForChanges();
+          })
+        : null;
 
-  const output: Partial<ExpressionDataSources> = {};
+    this.unsubscribeQuery = inputs.queryCacheObserver.subscribe(() => {
+      this.checkForChanges();
+    });
 
-  for (const key of neededDataSources) {
-    if (overriddenDataSources && key in overriddenDataSources) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      output[key] = overriddenDataSources[key]!() as unknown as any;
-    } else if (key in hooks) {
-      output[key] = hooks[key]();
-    } else if (key === 'displayValues') {
-      output[key] = useDisplayDataFor([...displayValueLookups.values()]);
-    } else {
-      throw new Error(`No hook found for data source ${key}`);
+    return () => {
+      this.unsubscribeStore?.();
+      this.unsubscribeQuery?.();
+      this.unsubscribeStore = null;
+      this.unsubscribeQuery = null;
+    };
+  }
+
+  private checkForChanges() {
+    if (!this.inputs || this.active.size === 0) {
+      return;
+    }
+
+    const nextValues = this.readValues(this.active);
+    for (const [key, nextValue] of nextValues) {
+      if (!deepEqual(this.lastValues.get(key), nextValue)) {
+        this.lastValues = nextValues;
+        this.onChange();
+        return;
+      }
     }
   }
 
-  return useShallowMemo(output) as ExpressionDataSources;
+  private readValues(dependencies: Map<string, ExpressionDependency>) {
+    const values = new Map<string, unknown>();
+    for (const [key, dependency] of dependencies) {
+      values.set(key, readDependencyValue(this.inputs!, dependency));
+    }
+    return values;
+  }
 }
 
-function findUsedExpressionFunctions(
-  subject: unknown,
-  functionCalls: Set<ExprFunctionName>,
-  displayValueLookups: Set<string> | undefined,
-  componentLookups: Set<string>,
+/**
+ * Reads the current value for one tracked dependency from the latest snapshots.
+ * This is the value the observer stores and compares over time to decide whether the expression should rerender.
+ */
+function readDependencyValue(inputs: SnapshotInputs, dependency: ExpressionDependency): unknown {
+  switch (dependency.type) {
+    case 'applicationSettings':
+      return inputs.applicationSettings;
+    case 'currentLanguage':
+      return inputs.currentLanguage;
+    case 'currentPage':
+      return inputs.currentPage;
+    case 'displayValue':
+      return dependency.componentId;
+    case 'externalApi':
+      return inputs.externalApiQueries.getCached(inputs.instanceId, inputs.externalApiIds);
+    case 'formData':
+      return readFormDataFromStore(inputs.store, dependency.reference);
+    case 'instanceDataSources':
+      return getInstanceDataSourcesFromCache(inputs.instanceQueries, inputs.instanceId);
+    case 'language':
+      return {
+        currentLanguage: inputs.currentLanguage,
+        textResources: getTextResourcesFromCache(inputs),
+        instanceDataSources: getInstanceDataSourcesFromCache(inputs.instanceQueries, inputs.instanceId),
+      };
+    case 'layout':
+      return getLayoutLookupsFromStore(inputs.store);
+    case 'options':
+      return getStaticOptionsFromStore(inputs.store, dependency.optionsId);
+    case 'process':
+      return getProcessFromCache(inputs.instanceQueries, inputs.instanceId);
+  }
+}
+
+/**
+ * Creates language helpers from snapshot state instead of from hook subscriptions.
+ * This keeps text-related expression functions in the same sync runtime model as the rest of the expression engine.
+ */
+function buildLanguageTools({
+  inputs,
+  dataModelPath,
+}: {
+  inputs: SnapshotInputs;
+  dataModelPath: IDataModelReference | undefined;
+}): IUseLanguage {
+  ensureTextResourcesFetched(inputs);
+  const textResources = getTextResourcesFromCache(inputs);
+
+  return staticUseLanguage(textResources, null, inputs.currentLanguage, {
+    applicationSettings: inputs.applicationSettings,
+    instanceDataSources: getInstanceDataSourcesFromCache(inputs.instanceQueries, inputs.instanceId),
+    customTextParameters: null,
+    dataModelPath,
+    dataModels: inputs.dataModelReaders,
+    defaultDataType: getDefaultDataTypeFromStore(inputs.store),
+    formDataTypes: getReadableDataTypesFromStore(inputs.store),
+    formDataSelector: (reference) => readFormDataFromStore(inputs.store, reference),
+  });
+}
+
+/** Read the default data type directly from the current FormStore snapshot. */
+function getDefaultDataTypeFromStore(store: SnapshotInputs['store']) {
+  if (store === ContextNotProvided) {
+    return undefined;
+  }
+  return getUiFolderSettings(store.getState().bootstrap.uiFolder)?.defaultDataType;
+}
+
+/** Read the available data model types directly from the current FormStore snapshot. */
+function getReadableDataTypesFromStore(store: SnapshotInputs['store']) {
+  if (store === ContextNotProvided) {
+    return [];
+  }
+  return Object.keys(store.getState().bootstrap.dataModels);
+}
+
+/** Read layout lookups directly from the current FormStore snapshot. */
+function getLayoutLookupsFromStore(store: SnapshotInputs['store']) {
+  if (store === ContextNotProvided) {
+    return undefined;
+  }
+  return store.getState().bootstrap.layoutLookups;
+}
+
+/** Read a static options set directly from the current FormStore snapshot. */
+function getStaticOptionsFromStore(store: SnapshotInputs['store'], optionsId: string) {
+  if (store === ContextNotProvided) {
+    return undefined;
+  }
+  return store.getState().bootstrap.staticOptions[optionsId]?.options;
+}
+
+/** Read one form-data value directly from the current FormStore snapshot. */
+function readFormDataFromStore(store: SnapshotInputs['store'], reference: IDataModelReference) {
+  if (store === ContextNotProvided) {
+    return undefined;
+  }
+  return dot.pick(reference.field, store.getState().data.models[reference.dataType]?.debouncedCurrentData);
+}
+
+/** Derive expression-friendly instance data sources from the cached instance snapshot. */
+function getInstanceDataSourcesFromCache(
+  instanceQueries: SnapshotInputs['instanceQueries'],
+  instanceId: string | undefined,
 ) {
+  return buildInstanceDataSources(instanceQueries.getCachedInstance(instanceId));
+}
+
+/** Read the current process snapshot from the query cache, if present. */
+function getProcessFromCache(instanceQueries: SnapshotInputs['instanceQueries'], instanceId: string | undefined) {
+  return instanceQueries.getCachedInstance(instanceId)?.process;
+}
+
+/** Read text resources from the query cache, falling back to the initial window payload when possible. */
+function getTextResourcesFromCache(inputs: SnapshotInputs): TextResourceMap {
+  const cached = inputs.textResourceQueries.getCached(inputs.currentLanguage);
+  if (cached) {
+    return cached;
+  }
+
+  const fromWindow = window.altinnAppGlobalData.textResources;
+  return fromWindow?.language === inputs.currentLanguage ? resourcesAsMap(fromWindow.resources) : {};
+}
+
+/** Start loading text resources into the cache when text-related expression functions touch that data source. */
+function ensureTextResourcesFetched(inputs: SnapshotInputs) {
+  inputs.textResourceQueries.ensureLoaded({
+    selectedLanguage: inputs.currentLanguage,
+    textResourcesFromWindow: window.altinnAppGlobalData.textResources,
+    textResourcesApi: inputs.textResourcesApi,
+  });
+}
+
+/**
+ * Finds displayValue lookups up front.
+ * displayValue is still a temporary exception because it depends on hook-based display-data implementations.
+ */
+function collectDisplayValueLookups(subject: unknown): string[] {
+  const lookups = new Set<string>();
+  collectDisplayValueLookupsInner(subject, lookups);
+  return [...lookups.values()];
+}
+
+function collectDisplayValueLookupsInner(subject: unknown, lookups: Set<string>) {
   if (!subject || typeof subject !== 'object') {
     return;
   }
 
   if (Array.isArray(subject)) {
-    if (subject.length > 0 && typeof subject[0] === 'string' && isFunctionName(subject[0])) {
-      functionCalls.add(subject[0]);
-
-      if (subject[0] === 'displayValue' && typeof subject[1] === 'string') {
-        if (!displayValueLookups) {
-          throw new Error('Expression function "displayValue" cannot be called in a "hidden" property expression');
-        }
-        displayValueLookups.add(subject[1]);
-        componentLookups.add(subject[1]);
-      }
-
-      if (subject[0] === 'component' && typeof subject[1] === 'string') {
-        componentLookups.add(subject[1]);
-      }
+    if (subject[0] === 'displayValue' && typeof subject[1] === 'string') {
+      lookups.add(subject[1]);
     }
 
     for (const item of subject) {
-      findUsedExpressionFunctions(item, functionCalls, displayValueLookups, componentLookups);
+      collectDisplayValueLookupsInner(item, lookups);
     }
-  } else {
-    for (const key in subject) {
-      findUsedExpressionFunctions(subject[key], functionCalls, displayValueLookups, componentLookups);
-    }
+    return;
+  }
+
+  for (const key in subject) {
+    collectDisplayValueLookupsInner(subject[key], lookups);
   }
 }
 
-function isFunctionName(name: string): name is ExprFunctionName {
-  return name in ExprFunctionDefinitions;
+/** Creates a stable key for deduplicating tracked dependencies. */
+function makeDependencyKey(dependency: ExpressionDependency) {
+  switch (dependency.type) {
+    case 'formData':
+      return `formData:${dependency.reference.dataType}:${dependency.reference.field}`;
+    case 'displayValue':
+      return `displayValue:${dependency.componentId}`;
+    case 'options':
+      return `options:${dependency.optionsId}`;
+    case 'language':
+      return `language:${dependency.dataModelPath?.dataType ?? ''}:${dependency.dataModelPath?.field ?? ''}`;
+    default:
+      return dependency.type;
+  }
 }
+
+const emptyDisplayValues: Record<string, string | undefined> = {};
