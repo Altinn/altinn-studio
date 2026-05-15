@@ -1,11 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
 
-import { Button } from 'src/app-components/Button/Button';
+import { Button } from '@app/form-component';
+
 import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
 import { parseInstanceId } from 'src/core/queries/instance';
 import { FormStore } from 'src/features/form/FormContext';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { buildInstanceUrl } from 'src/routesBuilder';
@@ -16,6 +18,7 @@ type Props = Omit<React.PropsWithChildren<IInstantiationButtonComponentProvidedP
 
 // TODO(Datamodels): This uses mapping and therefore only supports the "default" data model
 export const InstantiationButton = ({ children, ...props }: Props) => {
+  const { langAsString } = useLanguage();
   const instantiation = useInstantiation();
   const performProcess = useProcessingMutation('instantiation');
   const isLoading = useIsThisProcessing('instantiation');
@@ -51,6 +54,7 @@ export const InstantiationButton = ({ children, ...props }: Props) => {
         }
         disabled={isAnyProcessing}
         isLoading={isLoading}
+        loadingLabel={langAsString('general.loading')}
         variant='secondary'
         color='first'
       >

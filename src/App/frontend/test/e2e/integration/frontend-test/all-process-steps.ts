@@ -79,6 +79,9 @@ function testConfirmationPage() {
     .should('contain.text', `attachment-in-multi2.pdf`)
     .should('contain.text', `attachment-in-nested.pdf`);
 
+  // Make sure there is no sidebar navigation menu here (see https://github.com/Altinn/altinn-studio/pull/18791)
+  cy.findByText('Skjemasider').should('not.exist');
+
   cy.visualTesting('confirm');
 
   cy.reloadAndWait();

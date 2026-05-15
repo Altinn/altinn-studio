@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { Spinner } from '@app/form-component';
 import { Button, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import { format, isValid, parseISO } from 'date-fns';
@@ -7,7 +8,6 @@ import { pick } from 'dot-object';
 import type { JSONSchema7 } from 'json-schema';
 
 import { useTranslation } from 'src/app-components/AppComponentsProvider';
-import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import utilClasses from 'src/app-components/style/utils.module.css';
 import classes from 'src/app-components/Table/Table.module.css';
 import type { FormDataValue } from 'src/app-components/DynamicForm/DynamicForm';
