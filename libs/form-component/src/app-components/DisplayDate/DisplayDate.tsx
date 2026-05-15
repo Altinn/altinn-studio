@@ -1,6 +1,6 @@
 import React from 'react';
 
-import classes from './Date.module.css';
+import classes from './DisplayDate.module.css';
 
 export type DisplayDateProps = {
   value: React.ReactNode;
