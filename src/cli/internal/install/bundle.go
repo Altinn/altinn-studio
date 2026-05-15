@@ -18,7 +18,7 @@ func (s *Service) CurrentBundle(resourcesArchivePath, targetDir string) (Bundle,
 		return Bundle{}, err
 	}
 	return Bundle{
-		Version:              s.cfg.Version,
+		Version:              s.cfg.Version.String(),
 		BinaryPath:           binaryPath,
 		ResourcesArchivePath: resourcesArchivePath,
 		installPath:          filepath.Join(targetDir, installBinaryName()),

@@ -1,6 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["local>Altinn/renovate-config", ":prHourlyLimit4"],
+  "extends": [
+    "local>Altinn/renovate-config",
+    ":prHourlyLimit4",
+    "helpers:pinGitHubActionDigestsToSemver"
+  ],
   "customManagers": [
     {
       "customType": "regex",
@@ -73,7 +77,7 @@
       ],
       "groupName": "Digdir design system",
       "schedule": ["* 0-7 * * 1-5"],
-      "minimumReleaseAge": "0"
+      "minimumReleaseAge": "3 days"
     },
     {
       "matchFileNames": ["src/App/**"],

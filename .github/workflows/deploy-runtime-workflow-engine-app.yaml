@@ -99,7 +99,7 @@ jobs:
           if [ "${{ inputs.tag-latest }}" = "true" ]; then
             TAGS="$TAGS -t ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:latest"
           fi
-          docker build --platform linux/amd64,linux/arm64 $TAGS -f Runtime/workflow-engine-app/Dockerfile .
+          docker build --platform linux/amd64,linux/arm64 --build-arg BUILD_VERSION=${{ steps.vars.outputs.short-sha }} $TAGS -f Runtime/workflow-engine-app/Dockerfile .
 
       - name: push image
         run: docker push ${{ steps.vars.outputs.image-repo }}
@@ -116,8 +116,8 @@ jobs:
         run: |
           export IMAGE="${{ steps.vars.outputs.image-repo }}"
           export IMAGE_TAG="${{ steps.vars.outputs.short-sha }}"
-          yq -i '.metadata.annotations["altinn.studio/image"] = env(IMAGE)' deployment.yaml
-          yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' deployment.yaml
+          yq -i '.metadata.annotations["altinn.studio/image"] = strenv(IMAGE)' deployment.yaml
+          yq -i '.metadata.annotations["altinn.studio/image-tag"] = strenv(IMAGE_TAG)' deployment.yaml
 
       - name: push artifact
         working-directory: src/Runtime/workflow-engine-app/infra/kustomize

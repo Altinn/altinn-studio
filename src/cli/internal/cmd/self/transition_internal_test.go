@@ -12,8 +12,8 @@ import (
 
 	containerruntime "altinn.studio/devenv/pkg/container"
 	containermock "altinn.studio/devenv/pkg/container/mock"
-	"altinn.studio/studioctl/internal/appmanager"
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/studioctlserver"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -24,16 +24,16 @@ var errMigrationFailed = errors.New("migration failed")
 
 const selfTransitionTestAppID = "ttd/app"
 
-func TestSelfTransitionPrepareStopsAppsBeforeLocaltestAndAppManager(t *testing.T) {
+func TestSelfTransitionPrepareStopsAppsBeforeLocaltestAndStudioctlServer(t *testing.T) {
 	t.Parallel()
 
 	cfg := selfTransitionTestConfig(t)
 	processID := 123
 	var order []string
-	client := &fakeSelfTransitionAppRuntimeClient{
-		status: &appmanager.Status{
+	client := &fakeSelfTransitionStudioctlServerClient{
+		status: &studioctlserver.Status{
 			StudioctlPath: "/old/studioctl",
-			Apps: []appmanager.DiscoveredApp{
+			Apps: []studioctlserver.DiscoveredApp{
 				{
 					ProcessID: &processID,
 					AppID:     selfTransitionTestAppID,
@@ -43,9 +43,9 @@ func TestSelfTransitionPrepareStopsAppsBeforeLocaltestAndAppManager(t *testing.T
 		},
 	}
 	transition := &Transition{
-		cfg:       cfg,
-		out:       ui.NewOutput(&bytes.Buffer{}, io.Discard, true),
-		appClient: client,
+		cfg:          cfg,
+		out:          ui.NewOutput(&bytes.Buffer{}, io.Discard, true),
+		serverClient: client,
 		containerClient: func(context.Context) (containerruntime.ContainerClient, error) {
 			order = append(order, "localtest")
 			return nil, errReplacementTestRuntimeUnavailable
@@ -58,7 +58,7 @@ func TestSelfTransitionPrepareStopsAppsBeforeLocaltestAndAppManager(t *testing.T
 			return nil
 		},
 		shutdown: func(context.Context, *config.Config) (<-chan error, error) {
-			order = append(order, "app-manager")
+			order = append(order, "studioctl-server")
 			done := make(chan error, 1)
 			done <- nil
 			return done, nil
@@ -70,12 +70,12 @@ func TestSelfTransitionPrepareStopsAppsBeforeLocaltestAndAppManager(t *testing.T
 		t.Fatalf("Prepare() error = %v", err)
 	}
 
-	wantOrder := []string{"apps", "localtest", "app-manager"}
+	wantOrder := []string{"apps", "localtest", "studioctl-server"}
 	if !reflect.DeepEqual(order, wantOrder) {
 		t.Fatalf("order = %+v, want %+v", order, wantOrder)
 	}
-	if !state.appManagerWasRunning || state.previousStudioctlPath != "/old/studioctl" {
-		t.Fatalf("state = %+v, want running app-manager with previous studioctl path", state)
+	if !state.studioctlServerWasRunning || state.previousStudioctlPath != "/old/studioctl" {
+		t.Fatalf("state = %+v, want running studioctl-server with previous studioctl path", state)
 	}
 	if len(client.unregistered) != 1 || client.unregistered[0] != selfTransitionTestAppID {
 		t.Fatalf("unregistered = %+v, want %s", client.unregistered, selfTransitionTestAppID)
@@ -89,7 +89,7 @@ func TestSelfTransitionStatusFailureFails(t *testing.T) {
 	transition := &Transition{
 		cfg: cfg,
 		out: ui.NewOutput(&bytes.Buffer{}, io.Discard, true),
-		appClient: &fakeSelfTransitionAppRuntimeClient{
+		serverClient: &fakeSelfTransitionStudioctlServerClient{
 			statusErr: errSelfTransitionTestStatus,
 		},
 		containerClient: func(context.Context) (containerruntime.ContainerClient, error) {
@@ -118,10 +118,10 @@ func TestSelfTransitionAppStopFailureFails(t *testing.T) {
 		return &Transition{
 			cfg: selfTransitionTestConfig(t),
 			out: ui.NewOutput(&bytes.Buffer{}, io.Discard, true),
-			appClient: &fakeSelfTransitionAppRuntimeClient{
-				status: &appmanager.Status{
+			serverClient: &fakeSelfTransitionStudioctlServerClient{
+				status: &studioctlserver.Status{
 					StudioctlPath: "/old/studioctl",
-					Apps: []appmanager.DiscoveredApp{
+					Apps: []studioctlserver.DiscoveredApp{
 						{
 							ProcessID: &processID,
 							AppID:     selfTransitionTestAppID,
@@ -238,7 +238,7 @@ func TestSelfTransitionRestoreUsesPreviousStudioctlPath(t *testing.T) {
 
 	transition.Restore(
 		t.Context(),
-		TransitionState{appManagerWasRunning: true, previousStudioctlPath: "/old/studioctl"},
+		TransitionState{studioctlServerWasRunning: true, previousStudioctlPath: "/old/studioctl"},
 		"",
 	)
 
@@ -247,26 +247,26 @@ func TestSelfTransitionRestoreUsesPreviousStudioctlPath(t *testing.T) {
 	}
 }
 
-type fakeSelfTransitionAppRuntimeClient struct {
-	status       *appmanager.Status
+type fakeSelfTransitionStudioctlServerClient struct {
+	status       *studioctlserver.Status
 	statusErr    error
 	unregistered []string
 }
 
-func (f *fakeSelfTransitionAppRuntimeClient) Status(context.Context) (*appmanager.Status, error) {
+func (f *fakeSelfTransitionStudioctlServerClient) Status(context.Context) (*studioctlserver.Status, error) {
 	return f.status, f.statusErr
 }
 
-func (f *fakeSelfTransitionAppRuntimeClient) UnregisterApp(_ context.Context, appID string) error {
+func (f *fakeSelfTransitionStudioctlServerClient) UnregisterApp(_ context.Context, appID string) error {
 	f.unregistered = append(f.unregistered, appID)
 	return nil
 }
 
-func (f *fakeSelfTransitionAppRuntimeClient) UpgradeApp(
+func (f *fakeSelfTransitionStudioctlServerClient) UpgradeApp(
 	context.Context,
-	appmanager.AppUpgrade,
-) (appmanager.AppUpgradeResult, error) {
-	return appmanager.AppUpgradeResult{}, nil
+	studioctlserver.AppUpgrade,
+) (studioctlserver.AppUpgradeResult, error) {
+	return studioctlserver.AppUpgradeResult{}, nil
 }
 
 func selfTransitionTestConfig(t *testing.T) *config.Config {

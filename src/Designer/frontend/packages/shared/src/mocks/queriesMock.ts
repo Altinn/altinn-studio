@@ -46,6 +46,10 @@ import type {
 } from 'app-shared/types/global';
 import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
+import type {
+  StudioctlAuthCallback,
+  StudioctlAuthRequest,
+} from 'app-shared/types/api/StudioctlAuth';
 import type { Policy, PolicyAction, PolicySubject } from 'packages/policy-editor';
 import {
   appConfig,
@@ -185,6 +189,14 @@ export const queriesMock: ServicesContextProps = {
       Promise.resolve<ITextResourcesWithLanguage>(textResourcesWithLanguage),
     ),
   getUser: jest.fn().mockImplementation(() => Promise.resolve<User>(user)),
+  getStudioctlAuthRequest: jest.fn().mockImplementation(() =>
+    Promise.resolve<StudioctlAuthRequest>({
+      username: user.login,
+      clientName: 'studioctl dev',
+      tokenName: 'studioctl dev mock',
+      expiresAt: '2099-01-01T00:00:00Z',
+    }),
+  ),
   getWidgetSettings: jest
     .fn()
     .mockImplementation(() => Promise.resolve<WidgetSettingsResponse | null>({})),
@@ -269,6 +281,16 @@ export const queriesMock: ServicesContextProps = {
 
   // Queries - User settings
   getUserApiKeys: jest.fn().mockImplementation(() => Promise.resolve<UserApiKey[]>([])),
+  confirmStudioctlAuthRequest: jest
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve<StudioctlAuthCallback>({ callbackUrl: 'http://127.0.0.1/callback' }),
+    ),
+  cancelStudioctlAuthRequest: jest
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve<StudioctlAuthCallback>({ callbackUrl: 'http://127.0.0.1/callback' }),
+    ),
 
   // Queries - Org settings - Contact points
   getContactPoints: jest.fn().mockImplementation(() => Promise.resolve([])),
