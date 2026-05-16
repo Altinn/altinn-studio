@@ -57,7 +57,7 @@ func TestParseAppUpgradeFlagsAcceptsSupportedKinds(t *testing.T) {
 	t.Parallel()
 
 	command := &AppCommand{}
-	for _, kind := range []string{appUpgradeKindFrontendV4, appUpgradeKindBackendV8, appUpgradeKindV10} {
+	for _, kind := range []string{appUpgradeKindFrontendV4, appUpgradeKindBackendV8, appUpgradeKindV9} {
 		t.Run(kind, func(t *testing.T) {
 			t.Parallel()
 
@@ -78,7 +78,7 @@ func TestParseAppUpgradeFlagsAcceptsSupportedKinds(t *testing.T) {
 	}
 }
 
-func TestParseAppUpgradeFlagsDefaultsToV10(t *testing.T) {
+func TestParseAppUpgradeFlagsDefaultsToV9(t *testing.T) {
 	t.Parallel()
 
 	flags, help, err := (&AppCommand{}).parseAppUpgradeFlags([]string{"-p", "/tmp/app"})
@@ -88,8 +88,8 @@ func TestParseAppUpgradeFlagsDefaultsToV10(t *testing.T) {
 	if help {
 		t.Fatal("parseAppUpgradeFlags() help = true, want false")
 	}
-	if flags.kind != appUpgradeKindV10 {
-		t.Fatalf("kind = %q, want %q", flags.kind, appUpgradeKindV10)
+	if flags.kind != appUpgradeKindV9 {
+		t.Fatalf("kind = %q, want %q", flags.kind, appUpgradeKindV9)
 	}
 }
 
