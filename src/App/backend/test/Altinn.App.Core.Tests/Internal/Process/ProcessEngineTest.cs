@@ -5,6 +5,7 @@ using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -339,7 +340,21 @@ public sealed class ProcessEngineTest
 
         // Verify OperationId contains transition info
         capturedRequest.Workflows[0].OperationId.Should().Be("Process next: Task_1 -> Task_2");
-        capturedRequest.Labels.Should().ContainKey("processNextId").WhoseValue.Should().Be("Task_2:3");
+        capturedRequest
+            .Labels.Should()
+            .ContainKey(ProcessNextRequestFactory.ProcessNextSourceIdLabel)
+            .WhoseValue.Should()
+            .Be("Task_1:2");
+        capturedRequest
+            .Labels.Should()
+            .ContainKey(ProcessNextRequestFactory.ProcessNextTargetIdLabel)
+            .WhoseValue.Should()
+            .Be("Task_2:3");
+        capturedRequest
+            .Labels.Should()
+            .ContainKey(ProcessNextRequestFactory.ProcessNextIdLabel)
+            .WhoseValue.Should()
+            .Be("Task_2:3");
         capturedCollectionKey.Should().Be($"process-next:{_instanceGuid:N}:Task_1:2");
     }
 
@@ -1033,6 +1048,175 @@ public sealed class ProcessEngineTest
     }
 
     [Fact]
+    public async Task Next_DoesNotIssueSecondProcessNext_WhenWorkflowLeavesInstanceAtServiceTask()
+    {
+        var serviceTask = new Mock<IServiceTask>();
+        serviceTask.Setup(x => x.Type).Returns("service");
+
+        var services = new ServiceCollection();
+        services.AddSingleton(serviceTask.Object);
+
+        await using var fixture = Fixture.Create(services);
+        fixture
+            .Mock<IAppMetadata>()
+            .Setup(x => x.GetApplicationMetadata())
+            .ReturnsAsync(new ApplicationMetadata("org/app") { DataTypes = [] });
+        fixture.Mock<IProcessReader>().Setup(r => r.IsEndEvent("Task_Service")).Returns(false);
+        fixture.Mock<IProcessReader>().Setup(r => r.IsProcessTask("Task_Service")).Returns(true);
+        fixture
+            .Mock<IProcessNavigator>()
+            .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_1", It.IsAny<string?>()))
+            .ReturnsAsync(
+                new ServiceTask
+                {
+                    Id = "Task_Service",
+                    Incoming = ["Flow_2"],
+                    Outgoing = ["Flow_3"],
+                    Name = "Service",
+                    ExtensionElements = new() { TaskExtension = new() { TaskType = "service" } },
+                }
+            );
+
+        LegacyProcessEngine processEngine = fixture.ProcessEngine;
+        ProcessChangeResult result = await processEngine.Next(
+            new ProcessNextRequest
+            {
+                Instance = CreateTask1Instance(),
+                User = CreateUserClaimsPrincipal(),
+                Action = null,
+                Language = null,
+            }
+        );
+
+        result.Success.Should().BeTrue();
+        result.MutatedInstance.Should().NotBeNull();
+        result.MutatedInstance!.Process!.CurrentTask!.ElementId.Should().Be("Task_Service");
+        result.MutatedInstance.Process.CurrentTask.AltinnTaskType.Should().Be("service");
+        fixture
+            .Mock<IProcessNavigator>()
+            .Verify(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_Service", It.IsAny<string?>()), Times.Never);
+        fixture
+            .Mock<IWorkflowEngineClient>()
+            .Verify(
+                c =>
+                    c.EnqueueWorkflows(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<Guid?>(),
+                        It.IsAny<string?>(),
+                        It.IsAny<WorkflowEnqueueRequest>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
+    }
+
+    [Fact]
+    public async Task Next_ReportsFinalRefetchedProcessState_WhenWorkflowAutoAdvances()
+    {
+        Guid workflowId = Guid.NewGuid();
+        string collectionKey = CreateTaskCollectionKey("Task_1", 2);
+        var workflowEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        workflowEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<Guid?>(),
+                    null,
+                    It.IsAny<Dictionary<string, string>>(),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([]);
+        workflowEngineClientMock
+            .Setup(c =>
+                c.EnqueueWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Guid?>(),
+                    It.Is<string?>(key => key == collectionKey),
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new WorkflowEnqueueResponse.Accepted
+                {
+                    Workflows = [new WorkflowResult { DatabaseId = workflowId, Namespace = "org/app" }],
+                }
+            );
+        workflowEngineClientMock
+            .Setup(c =>
+                c.GetCollection(
+                    It.IsAny<string>(),
+                    It.Is<string>(key => key == collectionKey),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                CreateWorkflowCollectionDetailResponse(
+                    collectionKey,
+                    CreateCollectionHeadStatus(workflowId, PersistentItemStatus.Completed)
+                )
+            );
+        workflowEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    null,
+                    It.Is<string>(key => key == collectionKey),
+                    null,
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatusResponse(
+                    workflowId,
+                    "Process next: Task_1 -> Task_2",
+                    PersistentItemStatus.Completed,
+                    collectionKey
+                ),
+            ]);
+
+        Instance endedInstance = CreateEndedInstance();
+        var instanceClientMock = new Mock<IInstanceClient>(MockBehavior.Strict);
+        instanceClientMock
+            .Setup(c =>
+                c.GetInstance(
+                    It.IsAny<Instance>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(endedInstance);
+
+        var services = new ServiceCollection();
+        services.AddSingleton(workflowEngineClientMock.Object);
+        services.AddSingleton(instanceClientMock.Object);
+
+        await using var fixture = Fixture.Create(services);
+        LegacyProcessEngine processEngine = fixture.ProcessEngine;
+
+        ProcessChangeResult result = await processEngine.Next(
+            new ProcessNextRequest
+            {
+                Instance = CreateTask1Instance(),
+                User = CreateUserClaimsPrincipal(),
+                Action = null,
+                Language = null,
+            }
+        );
+
+        result.Success.Should().BeTrue();
+        result.MutatedInstance.Should().BeSameAs(endedInstance);
+        result.ProcessStateChange.Should().NotBeNull();
+        result.ProcessStateChange!.NewProcessState.Should().BeSameAs(endedInstance.Process);
+        result.ProcessStateChange.NewProcessState!.Ended.Should().NotBeNull();
+    }
+
+    [Fact]
     public async Task Next_moves_instance_to_next_task_and_produces_abandon_instanceevent_when_action_reject()
     {
         var expectedInstance = new Instance()
@@ -1362,7 +1546,7 @@ public sealed class ProcessEngineTest
                     It.IsAny<string>(),
                     It.IsAny<Guid?>(),
                     null,
-                    It.Is<Dictionary<string, string>>(labels => labels["processNextId"] == "Task_1:2"),
+                    It.Is<Dictionary<string, string>>(labels => MatchesCurrentTaskLookupLabel(labels, "Task_1:2")),
                     null,
                     It.IsAny<CancellationToken>()
                 )
@@ -1424,7 +1608,7 @@ public sealed class ProcessEngineTest
                     It.IsAny<string>(),
                     It.IsAny<Guid?>(),
                     null,
-                    It.Is<Dictionary<string, string>>(labels => labels["processNextId"] == "Task_1:2"),
+                    It.Is<Dictionary<string, string>>(labels => MatchesCurrentTaskLookupLabel(labels, "Task_1:2")),
                     null,
                     It.IsAny<CancellationToken>()
                 )
@@ -1494,6 +1678,116 @@ public sealed class ProcessEngineTest
     }
 
     [Fact]
+    public async Task Next_blocks_when_source_task_workflow_requires_recovery()
+    {
+        Guid workflowId = Guid.NewGuid();
+        string collectionKey = CreateTaskCollectionKey("Task_1", 2);
+        var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<Guid?>(),
+                    null,
+                    It.Is<Dictionary<string, string>>(labels =>
+                        IsProcessNextLabel(labels, ProcessNextRequestFactory.ProcessNextSourceIdLabel, "Task_1:2")
+                    ),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatusResponse(
+                    workflowId,
+                    "Process next: Task_1 -> Task_2",
+                    PersistentItemStatus.Failed,
+                    collectionKey
+                ),
+            ]);
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<Guid?>(),
+                    null,
+                    It.Is<Dictionary<string, string>>(labels =>
+                        MatchesCurrentTaskLookupLabel(labels, "Task_1:2")
+                        && !labels.ContainsKey(ProcessNextRequestFactory.ProcessNextSourceIdLabel)
+                    ),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([]);
+        processEngineClientMock
+            .Setup(c =>
+                c.GetCollection(
+                    It.IsAny<string>(),
+                    It.Is<string>(key => key == collectionKey),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                CreateWorkflowCollectionDetailResponse(
+                    collectionKey,
+                    CreateCollectionHeadStatus(workflowId, PersistentItemStatus.Failed)
+                )
+            );
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    null,
+                    It.Is<string>(key => key == collectionKey),
+                    null,
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatusResponse(
+                    workflowId,
+                    "Process next: Task_1 -> Task_2",
+                    PersistentItemStatus.Failed,
+                    collectionKey
+                ),
+            ]);
+
+        var services = new ServiceCollection();
+        services.AddSingleton(processEngineClientMock.Object);
+
+        await using var fixture = Fixture.Create(services);
+        LegacyProcessEngine processEngine = fixture.ProcessEngine;
+
+        ProcessChangeResult result = await processEngine.Next(
+            new ProcessNextRequest
+            {
+                Instance = CreateTask1Instance(),
+                User = CreateUserClaimsPrincipal(),
+                Action = null,
+                Language = null,
+            }
+        );
+
+        result.Success.Should().BeFalse();
+        result.ErrorType.Should().Be(ProcessErrorType.Conflict);
+        result.ProcessNextState.Should().Be(ProcessNextState.RecoveryRequired);
+        result.ErrorTitle.Should().Be("Task must be recovered before it can continue.");
+        processEngineClientMock.Verify(
+            c =>
+                c.EnqueueWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
+    }
+
+    [Fact]
     public async Task GetCurrentTaskWorkflowState_returns_head_workflow_id_from_collection()
     {
         Guid workflowId = Guid.NewGuid();
@@ -1505,7 +1799,7 @@ public sealed class ProcessEngineTest
                     It.IsAny<string>(),
                     It.IsAny<Guid?>(),
                     null,
-                    It.Is<Dictionary<string, string>>(labels => labels["processNextId"] == "Task_1:2"),
+                    It.Is<Dictionary<string, string>>(labels => MatchesCurrentTaskLookupLabel(labels, "Task_1:2")),
                     null,
                     It.IsAny<CancellationToken>()
                 )
@@ -1654,7 +1948,7 @@ public sealed class ProcessEngineTest
                     It.IsAny<string>(),
                     It.IsAny<Guid?>(),
                     null,
-                    It.Is<Dictionary<string, string>>(labels => labels["processNextId"] == "Task_1:2"),
+                    It.Is<Dictionary<string, string>>(labels => MatchesCurrentTaskLookupLabel(labels, "Task_1:2")),
                     null,
                     It.IsAny<CancellationToken>()
                 )
@@ -1765,6 +2059,18 @@ public sealed class ProcessEngineTest
     private static string CreateTaskCollectionKey(string taskId, int flow) =>
         $"process-next:{_instanceGuid:N}:{taskId}:{flow}";
 
+    private static bool MatchesCurrentTaskLookupLabel(Dictionary<string, string> labels, string processNextId) =>
+        labels.Count == 1
+        && labels.ContainsValue(processNextId)
+        && (
+            labels.ContainsKey(ProcessNextRequestFactory.ProcessNextSourceIdLabel)
+            || labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetIdLabel)
+            || labels.ContainsKey(ProcessNextRequestFactory.ProcessNextIdLabel)
+        );
+
+    private static bool IsProcessNextLabel(Dictionary<string, string> labels, string labelKey, string processNextId) =>
+        labels.Count == 1 && labels.TryGetValue(labelKey, out string? value) && value == processNextId;
+
     private static WorkflowCollectionDetailResponse CreateWorkflowCollectionDetailResponse(
         string key,
         params CollectionHeadStatus[] heads
@@ -1849,6 +2155,22 @@ public sealed class ProcessEngineTest
                     FlowType = ProcessSequenceFlowType.CompleteCurrentMoveToNext.ToString(),
                     Name = "Bekreft",
                 },
+            },
+        };
+
+    private static Instance CreateEndedInstance() =>
+        new()
+        {
+            Id = _instanceId,
+            AppId = "org/app",
+            InstanceOwner = new InstanceOwner() { PartyId = "1337" },
+            Data = [],
+            Process = new ProcessState()
+            {
+                StartEvent = "StartEvent_1",
+                CurrentTask = null,
+                Ended = DateTime.UtcNow,
+                EndEvent = "EndEvent_1",
             },
         };
 

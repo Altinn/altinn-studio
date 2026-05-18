@@ -9,7 +9,6 @@ using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.InstanceLocking;
-using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Internal.Validation;
@@ -33,8 +32,6 @@ namespace Altinn.App.Core.Internal.Process;
 /// </summary>
 internal class ProcessEngine : IProcessEngine
 {
-    private const int MaxNextIterationsAllowed = 100;
-
     private readonly IProcessReader _processReader;
     private readonly IProcessNavigator _processNavigator;
     private readonly UserActionService _userActionService;
@@ -47,7 +44,6 @@ internal class ProcessEngine : IProcessEngine
     private readonly IValidationService _validationService;
     private readonly WorkflowCallbackStateService _workflowCallbackStateService;
     private readonly IWorkflowEngineService _workflowEngineService;
-    private readonly IInstanceClient _instanceClient;
     private readonly IInstanceLocker _instanceLocker;
 
     /// <summary>
@@ -78,7 +74,6 @@ internal class ProcessEngine : IProcessEngine
         _workflowCallbackStateService = serviceProvider.GetRequiredService<WorkflowCallbackStateService>();
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
-        _instanceClient = serviceProvider.GetRequiredService<IInstanceClient>();
         _instanceLocker = serviceProvider.GetRequiredService<IInstanceLocker>();
     }
 
@@ -196,69 +191,15 @@ internal class ProcessEngine : IProcessEngine
 
         using Activity? activity = _telemetry?.StartProcessNextActivity(instance, request.Action);
 
-        ProcessChangeResult result;
-        bool moveToNextTaskAutomatically;
-        bool firstIteration = true;
-        int iterationCount = 0;
-
         await using var instanceLock = _instanceLocker.InitLock();
 
-        do
+        ProcessChangeResult result = await ProcessNext(request, instanceLock, ct);
+        if (result.Success && result.MutatedInstance is null)
         {
-            if (iterationCount >= MaxNextIterationsAllowed)
-            {
-                _logger.LogError(
-                    "More than {MaxIterations} iterations detected in process for instance {InstanceId}. Possible loop in process definition.",
-                    MaxNextIterationsAllowed,
-                    instance.Id
-                );
-                var loopError = new ProcessChangeResult
-                {
-                    Success = false,
-                    ErrorType = ProcessErrorType.Internal,
-                    ErrorTitle = "Process loop detected",
-                    ErrorMessage =
-                        $"More than {MaxNextIterationsAllowed} iterations detected in process. Possible loop in process definition.",
-                };
-                activity?.SetProcessChangeResult(loopError);
-                return loopError;
-            }
-
-            // Fetch fresh instance on subsequent iterations
-            if (!firstIteration)
-            {
-                instance = await _instanceClient.GetInstance(instance);
-            }
-
-            // Only use action and actionOnBehalfOf on first iteration
-            var processNextRequest = new ProcessNextRequest
-            {
-                User = request.User,
-                Instance = instance,
-                Action = firstIteration ? request.Action : null,
-                ActionOnBehalfOf = firstIteration ? request.ActionOnBehalfOf : null,
-                Language = request.Language,
-            };
-
-            result = await ProcessNext(processNextRequest, instanceLock, ct);
-
-            if (!result.Success)
-            {
-                activity?.SetProcessChangeResult(result);
-                return result;
-            }
-
-            if (result.MutatedInstance is null)
-            {
-                throw new ProcessException(
-                    "ProcessNext returned successfully, but ProcessChangeResult.MutatedInstance is null. Conundrum."
-                );
-            }
-
-            moveToNextTaskAutomatically = IsServiceTask(result.MutatedInstance);
-            firstIteration = false;
-            iterationCount++;
-        } while (moveToNextTaskAutomatically);
+            throw new ProcessException(
+                "ProcessNext returned successfully, but ProcessChangeResult.MutatedInstance is null. Conundrum."
+            );
+        }
 
         activity?.SetProcessChangeResult(result);
         return result;
@@ -816,9 +757,16 @@ internal class ProcessEngine : IProcessEngine
             ct: ct
         );
 
+        ProcessStateChange finalProcessStateChange = new()
+        {
+            OldProcessState = processStateChange.OldProcessState,
+            NewProcessState = result.Instance.Process ?? processStateChange.NewProcessState,
+            Events = processStateChange.Events,
+        };
+
         return new MoveToNextResult(
             result.Instance,
-            processStateChange,
+            finalProcessStateChange,
             result.WorkflowFailure,
             result.ProcessStateChanged
         );
@@ -1008,17 +956,6 @@ internal class ProcessEngine : IProcessEngine
             },
             _ => throw new ArgumentOutOfRangeException(nameof(blockedState), blockedState, null),
         };
-
-    private bool IsServiceTask(Instance instance)
-    {
-        if (instance.Process?.CurrentTask is null)
-        {
-            return false;
-        }
-
-        IServiceTask? serviceTask = CheckIfServiceTask(instance.Process.CurrentTask.AltinnTaskType);
-        return serviceTask is not null;
-    }
 
     private IServiceTask? CheckIfServiceTask(string? altinnTaskType)
     {

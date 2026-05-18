@@ -36,6 +36,8 @@ internal sealed record WorkflowEnqueueBundle(
 internal sealed class ProcessNextRequestFactory
 {
     internal const string ProcessNextIdLabel = "processNextId";
+    internal const string ProcessNextSourceIdLabel = "processNextSourceId";
+    internal const string ProcessNextTargetIdLabel = "processNextTargetId";
 
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IAuthenticationContext _authenticationContext;
@@ -109,11 +111,7 @@ internal sealed class ProcessNextRequestFactory
         string ns = $"{_appIdentifier.Org}/{_appIdentifier.App}";
         Guid correlationId = instanceId.InstanceGuid;
         string? collectionKey = CreateProcessNextCollectionKey(instance, processStateChange);
-        Dictionary<string, string>? labels = null;
-        if (CreateProcessNextId(processStateChange.NewProcessState?.CurrentTask) is { } processNextId)
-        {
-            labels = new Dictionary<string, string>(StringComparer.Ordinal) { [ProcessNextIdLabel] = processNextId };
-        }
+        Dictionary<string, string>? labels = CreateProcessNextLabels(processStateChange);
 
         var request = new WorkflowEnqueueRequest
         {
@@ -138,6 +136,26 @@ internal sealed class ProcessNextRequestFactory
         currentTask?.ElementId is { Length: > 0 } taskId ? CreateProcessNextId(taskId, currentTask.Flow ?? 0) : null;
 
     internal static string CreateProcessNextId(string taskId, int flow) => $"{taskId}:{flow}";
+
+    internal static Dictionary<string, string>? CreateProcessNextLabels(ProcessStateChange processStateChange)
+    {
+        var labels = new Dictionary<string, string>(StringComparer.Ordinal);
+
+        if (CreateProcessNextId(processStateChange.OldProcessState?.CurrentTask) is { } sourceId)
+        {
+            labels[ProcessNextSourceIdLabel] = sourceId;
+        }
+
+        if (CreateProcessNextId(processStateChange.NewProcessState?.CurrentTask) is { } targetId)
+        {
+            labels[ProcessNextTargetIdLabel] = targetId;
+
+            // Keep the original label for existing workflow lookups and dashboard filters.
+            labels[ProcessNextIdLabel] = targetId;
+        }
+
+        return labels.Count > 0 ? labels : null;
+    }
 
     internal static string? CreateProcessNextCollectionKey(Instance instance, ProcessStateChange processStateChange)
     {

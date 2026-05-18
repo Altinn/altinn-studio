@@ -99,7 +99,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         (_, string? collectionKey) = await CreateAndEnqueueWorkflow(
             instance,
             processStateChange,
-            CreateProcessNextIdempotencyKey(instance, resolvedAction),
+            CreateProcessNextIdempotencyKey(instance, processStateChange, resolvedAction),
             lockToken,
             state,
             isInstantiation: isInstantiation,
@@ -149,56 +149,64 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         }
 
         InstanceIdentifier instanceIdentifier = new(instance);
-        IReadOnlyList<WorkflowStatusResponse> matchingWorkflows = await _workflowEngineClient.ListWorkflows(
-            GetNamespace(),
-            correlationId: instanceIdentifier.InstanceGuid,
-            labels: new Dictionary<string, string>(StringComparer.Ordinal)
-            {
-                [ProcessNextRequestFactory.ProcessNextIdLabel] = processNextId,
-            },
-            ct: ct
+        IReadOnlyList<WorkflowStatusResponse> matchingWorkflows = await ListCurrentTaskProcessNextWorkflows(
+            instanceIdentifier.InstanceGuid,
+            processNextId,
+            ct
         );
 
-        WorkflowStatusResponse? currentTaskWorkflow = matchingWorkflows
+        WorkflowStatusResponse? newestWorkflow = matchingWorkflows
             .OrderByDescending(workflow => workflow.CreatedAt)
             .FirstOrDefault();
-        if (currentTaskWorkflow?.CollectionKey is not { Length: > 0 } collectionKey)
+        if (newestWorkflow is null)
         {
-            return new CurrentTaskWorkflowState(null, currentTaskWorkflow?.DatabaseId);
+            return new CurrentTaskWorkflowState(null);
         }
 
-        WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
-            GetNamespace(),
-            collectionKey,
-            ct: ct
-        );
-        if (collection is null || collection.Heads.Count == 0)
+        foreach (
+            WorkflowStatusResponse currentTaskWorkflow in matchingWorkflows.OrderByDescending(workflow =>
+                workflow.CreatedAt
+            )
+        )
         {
-            return new CurrentTaskWorkflowState(null, currentTaskWorkflow.DatabaseId, collectionKey);
-        }
+            if (currentTaskWorkflow.CollectionKey is not { Length: > 0 } collectionKey)
+            {
+                continue;
+            }
 
-        CollectionHeadStatus? activeHead = collection.Heads.FirstOrDefault(IsActiveCollectionHeadStatus);
-        if (activeHead is not null)
-        {
-            return new CurrentTaskWorkflowState(ProcessNextState.Retrying, activeHead.DatabaseId, collectionKey);
-        }
-
-        CollectionHeadStatus? recoveryRequiredHead = collection.Heads.FirstOrDefault(
-            IsRecoveryRequiredCollectionHeadStatus
-        );
-        if (recoveryRequiredHead is not null)
-        {
-            Guid retryTargetWorkflowId =
-                await GetRecoveryTargetWorkflowId(collectionKey, recoveryRequiredHead.DatabaseId, ct)
-                ?? recoveryRequiredHead.DatabaseId;
-            return new CurrentTaskWorkflowState(
-                ProcessNextState.RecoveryRequired,
-                retryTargetWorkflowId,
-                collectionKey
+            WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
+                GetNamespace(),
+                collectionKey,
+                ct: ct
             );
+            if (collection is null || collection.Heads.Count == 0)
+            {
+                continue;
+            }
+
+            CollectionHeadStatus? activeHead = collection.Heads.FirstOrDefault(IsActiveCollectionHeadStatus);
+            if (activeHead is not null)
+            {
+                return new CurrentTaskWorkflowState(ProcessNextState.Retrying, activeHead.DatabaseId, collectionKey);
+            }
+
+            CollectionHeadStatus? recoveryRequiredHead = collection.Heads.FirstOrDefault(
+                IsRecoveryRequiredCollectionHeadStatus
+            );
+            if (recoveryRequiredHead is not null)
+            {
+                Guid retryTargetWorkflowId =
+                    await GetRecoveryTargetWorkflowId(collectionKey, recoveryRequiredHead.DatabaseId, ct)
+                    ?? recoveryRequiredHead.DatabaseId;
+                return new CurrentTaskWorkflowState(
+                    ProcessNextState.RecoveryRequired,
+                    retryTargetWorkflowId,
+                    collectionKey
+                );
+            }
         }
 
-        return new CurrentTaskWorkflowState(null, currentTaskWorkflow.DatabaseId, collectionKey);
+        return new CurrentTaskWorkflowState(null, newestWorkflow.DatabaseId, newestWorkflow.CollectionKey);
     }
 
     public async Task<ProcessNextWorkflowResult> ResumeAndWaitForWorkflow(
@@ -338,6 +346,38 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
     private string GetNamespace() => $"{_appIdentifier.Org}/{_appIdentifier.App}";
 
+    private async Task<IReadOnlyList<WorkflowStatusResponse>> ListCurrentTaskProcessNextWorkflows(
+        Guid correlationId,
+        string processNextId,
+        CancellationToken ct
+    )
+    {
+        string[] labelKeys =
+        [
+            ProcessNextRequestFactory.ProcessNextSourceIdLabel,
+            ProcessNextRequestFactory.ProcessNextTargetIdLabel,
+            ProcessNextRequestFactory.ProcessNextIdLabel,
+        ];
+        var workflowsById = new Dictionary<Guid, WorkflowStatusResponse>();
+
+        foreach (string labelKey in labelKeys)
+        {
+            IReadOnlyList<WorkflowStatusResponse> matchingWorkflows = await _workflowEngineClient.ListWorkflows(
+                GetNamespace(),
+                correlationId: correlationId,
+                labels: new Dictionary<string, string>(StringComparer.Ordinal) { [labelKey] = processNextId },
+                ct: ct
+            );
+
+            foreach (WorkflowStatusResponse workflow in matchingWorkflows)
+            {
+                workflowsById[workflow.DatabaseId] = workflow;
+            }
+        }
+
+        return workflowsById.Values.ToList();
+    }
+
     private static bool IsActiveWorkflowStatus(WorkflowStatusResponse workflow) =>
         workflow.OverallStatus
             is PersistentItemStatus.Enqueued
@@ -456,9 +496,14 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 WasRetryable = errorEntry.WasRetryable,
             };
 
-    private static string CreateProcessNextIdempotencyKey(Instance instance, string resolvedAction)
+    private static string CreateProcessNextIdempotencyKey(
+        Instance instance,
+        ProcessStateChange processStateChange,
+        string resolvedAction
+    )
     {
-        ProcessElementInfo? currentTask = instance.Process?.CurrentTask;
+        ProcessElementInfo? currentTask =
+            processStateChange.OldProcessState?.CurrentTask ?? processStateChange.NewProcessState?.CurrentTask;
         string taskId = currentTask?.ElementId ?? instance.Process?.StartEvent ?? "process-start";
         int flow = currentTask?.Flow ?? 0;
         InstanceIdentifier instanceIdentifier = new(instance);

@@ -475,6 +475,55 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
+    public void CreateProcessNextLabels_TaskToTask_LabelsSourceTargetAndLegacyTarget()
+    {
+        // Arrange
+        var stateChange = new ProcessStateChange
+        {
+            OldProcessState = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo { ElementId = "Task_1", Flow = 2 },
+            },
+            NewProcessState = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo { ElementId = "Task_2", Flow = 3 },
+            },
+        };
+
+        // Act
+        Dictionary<string, string>? labels = ProcessNextRequestFactory.CreateProcessNextLabels(stateChange);
+
+        // Assert
+        Assert.NotNull(labels);
+        Assert.Equal(3, labels.Count);
+        Assert.Equal("Task_1:2", labels[ProcessNextRequestFactory.ProcessNextSourceIdLabel]);
+        Assert.Equal("Task_2:3", labels[ProcessNextRequestFactory.ProcessNextTargetIdLabel]);
+        Assert.Equal("Task_2:3", labels[ProcessNextRequestFactory.ProcessNextIdLabel]);
+    }
+
+    [Fact]
+    public void CreateProcessNextLabels_TaskToEnd_LabelsSourceOnly()
+    {
+        // Arrange
+        var stateChange = new ProcessStateChange
+        {
+            OldProcessState = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo { ElementId = "Task_1", Flow = 2 },
+            },
+            NewProcessState = new ProcessState { CurrentTask = null, EndEvent = "EndEvent_1" },
+        };
+
+        // Act
+        Dictionary<string, string>? labels = ProcessNextRequestFactory.CreateProcessNextLabels(stateChange);
+
+        // Assert
+        Assert.NotNull(labels);
+        Assert.Single(labels);
+        Assert.Equal("Task_1:2", labels[ProcessNextRequestFactory.ProcessNextSourceIdLabel]);
+    }
+
+    [Fact]
     public async Task Create_InitialTaskStart_OperationIdUsesStartEventName()
     {
         // Arrange
