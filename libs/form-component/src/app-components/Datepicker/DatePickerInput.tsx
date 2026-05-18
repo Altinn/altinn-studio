@@ -22,20 +22,19 @@ export interface DatePickerInputProps {
   onValueChange?: (value: string) => void;
   readOnly?: boolean;
   autoComplete?: 'bday';
+  ref?: Ref<HTMLInputElement>;
 }
 
-function DatePickerInputRef(
-  {
-    id,
-    value,
-    datepickerFormat,
-    timeStamp,
-    onValueChange,
-    readOnly,
-    autoComplete,
-  }: DatePickerInputProps,
-  ref: Ref<HTMLInputElement>,
-) {
+export function DatePickerInput({
+  id,
+  value,
+  datepickerFormat,
+  timeStamp,
+  onValueChange,
+  readOnly,
+  autoComplete,
+  ref,
+}: DatePickerInputProps) {
   const dateValue = strictParseISO(value);
   const formattedDateValue = dateValue ? format(dateValue, datepickerFormat) : value;
   const [inputValue, setInputValue] = useState(formattedDateValue ?? '');
@@ -84,6 +83,3 @@ function DatePickerInputRef(
     />
   );
 }
-
-export const DatePickerInput = React.forwardRef(DatePickerInputRef);
-DatePickerInput.displayName = 'DatePickerInput';
