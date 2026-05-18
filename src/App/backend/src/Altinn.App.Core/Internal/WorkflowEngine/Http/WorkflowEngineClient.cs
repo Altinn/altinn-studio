@@ -165,11 +165,9 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
         CancellationToken ct = default
     )
     {
-        var url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/workflows/{workflowId}/resume";
-        if (cascade)
-        {
-            url += "?cascade=true";
-        }
+        var cascadeValue = cascade ? "true" : "false";
+        var url =
+            $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/workflows/{workflowId}/resume?cascade={cascadeValue}";
 
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
 

@@ -166,6 +166,50 @@ public class WorkflowEngineClientTests
         );
     }
 
+    [Theory]
+    [InlineData(false, "false")]
+    [InlineData(true, "true")]
+    public async Task ResumeWorkflow_SendsExplicitCascadeQuery(bool cascade, string expectedCascadeValue)
+    {
+        HttpRequestMessage? capturedRequest = null;
+        Guid workflowId = Guid.NewGuid();
+
+        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .Returns<HttpRequestMessage, CancellationToken>(
+                (request, _) =>
+                {
+                    capturedRequest = request;
+                    return Task.FromResult(
+                        CreateJsonResponse(new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []))
+                    );
+                }
+            );
+        handlerMock.Protected().Setup("Dispose", ItExpr.IsAny<bool>());
+
+        using var httpClient = new HttpClient(handlerMock.Object);
+        var client = new WorkflowEngineClient(
+            httpClient,
+            Options.Create(new PlatformSettings { ApiWorkflowEngineEndpoint = "http://workflow-engine/api/v1/" }),
+            Mock.Of<ILogger<WorkflowEngineClient>>()
+        );
+
+        await client.ResumeWorkflow("ttd/app", workflowId, cascade);
+
+        Assert.NotNull(capturedRequest);
+        Assert.Equal(HttpMethod.Post, capturedRequest!.Method);
+        Assert.Equal(
+            $"http://workflow-engine/api/v1/ttd%2Fapp/workflows/{workflowId}/resume?cascade={expectedCascadeValue}",
+            capturedRequest.RequestUri!.ToString()
+        );
+    }
+
     [Fact]
     public async Task EnqueueWorkflows_SendsCollectionKeyHeader()
     {
