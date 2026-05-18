@@ -1,7 +1,7 @@
 ﻿{
   Success: true,
   StatusCode: 200,
-  Url: http://127.0.0.1:<pdfPort>/health/startup,
+  Url: http://pdf.local.altinn.cloud:8000/health/startup,
   ResponseContent: OK,
   Message: PDF service connectivity verified
 }

@@ -1,7 +1,7 @@
 ﻿{
   Success: true,
   StatusCode: 200,
-  Url: http://127.0.0.1:5101/health,
+  Url: http://local.altinn.cloud:8000/health,
   ResponseContent: Healthy,
   Message: Localtest health endpoint connectivity verified
 }
