@@ -140,17 +140,18 @@ func run() error {
 		"configmap_changed", report.ConfigMapChanged,
 	)
 
+	// Independent of the per-org reconcile — runs even when its outcome is
+	// "partial" or fatal because the KEDA Secret has its own lifecycle.
+	// Failure is non-fatal: logged + counted, but the CronJob exit code is
+	// still driven by the org reconcile result so fatal reconcile errors stay
+	// visible to Kubernetes.
+	applyKedaSecret(ctx, store, cfg, kedaPAT, metrics, logger)
+
 	if runErr != nil {
 		span.RecordError(runErr)
 		span.SetStatus(codes.Error, runErr.Error())
 		return runErr
 	}
-
-	// Independent of the per-org reconcile — runs even when its outcome is
-	// "partial" because the KEDA Secret has its own lifecycle. Failure is
-	// non-fatal: logged + counted, but the CronJob still exits 0 so the
-	// next tick retries.
-	applyKedaSecret(ctx, store, cfg, kedaPAT, metrics, logger)
 
 	if report.Outcome == reconcile.OutcomePartial {
 		// Continue-on-partial: still exit 0; metric + WARN log carries the signal.
