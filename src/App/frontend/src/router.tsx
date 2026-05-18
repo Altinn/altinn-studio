@@ -7,10 +7,9 @@ import { AppLayout } from 'src/AppLayout';
 import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ComponentRouting } from 'src/components/wrappers/ProcessWrapper';
-import { instanceApi } from 'src/core/api-client/instance.api';
-import { partyApi } from 'src/core/api-client/party.api';
 import { Loader } from 'src/core/loading/Loader';
 import { GlobalData } from 'src/GlobalData';
+import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { indexLoader } from 'src/routes/index/index.loader';
 import { Component as IndexRoute } from 'src/routes/index/index.route';
@@ -28,8 +27,9 @@ import { taskLoader } from 'src/routes/task/task.loader';
 import { Component as TaskRoute } from 'src/routes/task/task.route';
 import { taskIndexLoader } from 'src/routes/task/task-index.loader';
 import { routes } from 'src/routesBuilder';
+import type { ApiClients } from 'src/core/api-client/ApiClients';
 
-export function createRouter(queryClient: QueryClient) {
+export function createRouter({ queryClient, apiClients }: { queryClient: QueryClient; apiClients: ApiClients }) {
   return createBrowserRouter(
     [
       {
@@ -40,7 +40,7 @@ export function createRouter(queryClient: QueryClient) {
           {
             path: routes.instanceSelection,
             Component: InstanceSelectionRoute,
-            loader: instanceSelectionLoader(partyApi, instanceApi),
+            loader: instanceSelectionLoader(apiClients.partyApi, apiClients.instanceApi),
           },
           {
             path: routes.partySelection,
@@ -69,25 +69,25 @@ export function createRouter(queryClient: QueryClient) {
             path: routes.instance,
             Component: InstanceRoute,
             ErrorBoundary: InstanceErrorBoundary,
-            loader: instanceLoader(instanceApi),
+            loader: instanceLoader(apiClients.instanceApi),
             shouldRevalidate: ({ currentParams, nextParams }) =>
               currentParams.instanceOwnerPartyId !== nextParams.instanceOwnerPartyId ||
               currentParams.instanceGuid !== nextParams.instanceGuid,
             children: [
               {
                 index: true,
-                loader: instanceIndexLoader(instanceApi),
+                loader: instanceIndexLoader(apiClients.instanceApi),
                 Component: () => <Loader reason='instance-redirect' />,
               },
               { path: 'ProcessEnd', Component: ProcessEndRoute },
               {
                 path: routes.task,
                 Component: TaskRoute,
-                loader: taskLoader(instanceApi),
+                loader: taskLoader(apiClients.instanceApi),
                 children: [
                   {
                     index: true,
-                    loader: taskIndexLoader(instanceApi),
+                    loader: taskIndexLoader(apiClients.instanceApi),
                     Component: () => <Loader reason='task-redirect' />,
                   },
                   {
@@ -141,6 +141,7 @@ export function createRouter(queryClient: QueryClient) {
       getContext() {
         const context = new RouterContextProvider();
         context.set(queryClientContext, queryClient);
+        context.set(apiClientsContext, apiClients);
         return context;
       },
     },
