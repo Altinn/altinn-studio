@@ -161,7 +161,10 @@ func TestApplyConfigMap_NoOpOnSameContent(t *testing.T) {
 	c := fake.NewSimpleClientset(&corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "cm", Namespace: testNamespace,
-			Labels: map[string]string{LabelManagedBy: ManagedBy},
+			Labels: map[string]string{
+				LabelManagedBy: ManagedBy,
+				LabelComponent: ComponentRunnerCM,
+			},
 		},
 		Data: map[string]string{"k": "v"},
 	})
@@ -173,6 +176,36 @@ func TestApplyConfigMap_NoOpOnSameContent(t *testing.T) {
 	}
 	if changed {
 		t.Error("changed = true, want false (no diff)")
+	}
+}
+
+func TestApplyConfigMap_UpdatesOnLabelDrift(t *testing.T) {
+	c := fake.NewSimpleClientset(&corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "cm",
+			Namespace: testNamespace,
+			Labels:    map[string]string{"custom": "keep"},
+		},
+		Data: map[string]string{"k": "v"},
+	})
+	s := NewStore(c, testNamespace)
+
+	changed, err := s.ApplyConfigMap(context.Background(), "cm", map[string]string{"k": "v"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !changed {
+		t.Error("changed = false, want true (label drift)")
+	}
+	got, _ := c.CoreV1().ConfigMaps(testNamespace).Get(context.Background(), "cm", metav1.GetOptions{})
+	if got.Labels[LabelManagedBy] != ManagedBy {
+		t.Errorf("managed-by label was not restored, got %v", got.Labels)
+	}
+	if got.Labels[LabelComponent] != ComponentRunnerCM {
+		t.Errorf("component label was not restored, got %v", got.Labels)
+	}
+	if got.Labels["custom"] != "keep" {
+		t.Errorf("custom label was not preserved, got %v", got.Labels)
 	}
 }
 
@@ -252,6 +285,37 @@ func TestApplyOpaqueSecret_NoOpOnSameValue(t *testing.T) {
 	}
 	if changed {
 		t.Error("changed = true, want false (no diff)")
+	}
+}
+
+func TestApplyOpaqueSecret_UpdatesOnLabelDrift(t *testing.T) {
+	c := fake.NewSimpleClientset(&corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "keda-gitea-pat",
+			Namespace: testNamespace,
+			Labels:    map[string]string{"custom": "keep"},
+		},
+		Type: corev1.SecretTypeOpaque,
+		Data: map[string][]byte{"token": []byte("pat-value")},
+	})
+	s := NewStore(c, testNamespace)
+
+	changed, err := s.ApplyOpaqueSecret(context.Background(), "keda-gitea-pat", "token", "pat-value")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !changed {
+		t.Error("changed = false, want true (label drift)")
+	}
+	got, _ := c.CoreV1().Secrets(testNamespace).Get(context.Background(), "keda-gitea-pat", metav1.GetOptions{})
+	if got.Labels[LabelManagedBy] != ManagedBy {
+		t.Errorf("managed-by label was not restored, got %v", got.Labels)
+	}
+	if got.Labels["custom"] != "keep" {
+		t.Errorf("custom label was not preserved, got %v", got.Labels)
+	}
+	if string(got.Data["token"]) != "pat-value" {
+		t.Errorf("token = %q, want pat-value", string(got.Data["token"]))
 	}
 }
 

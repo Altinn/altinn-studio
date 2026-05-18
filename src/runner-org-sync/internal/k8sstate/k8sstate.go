@@ -116,7 +116,7 @@ func (s *Store) DeleteSecret(ctx context.Context, name string) error {
 // ApplyConfigMap creates or updates the named ConfigMap so its Data matches
 // the supplied value. Returns true if a write actually occurred (create or
 // update), false if the existing object already matched. Labels are
-// preserved on update; the managed-by label is added if missing.
+// preserved on update; managed labels are added or restored if missing.
 func (s *Store) ApplyConfigMap(ctx context.Context, name string, data map[string]string) (bool, error) {
 	desired := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -141,15 +141,15 @@ func (s *Store) ApplyConfigMap(ctx context.Context, name string, data map[string
 		return false, fmt.Errorf("k8sstate: get configmap %s: %w", name, err)
 	}
 
-	if maps.Equal(existing.Data, data) {
-		return false, nil
-	}
-	existing.Data = data
 	if existing.Labels == nil {
 		existing.Labels = map[string]string{}
 	}
-	existing.Labels[LabelManagedBy] = ManagedBy
-	existing.Labels[LabelComponent] = ComponentRunnerCM
+	labelsChanged := ensureLabel(existing.Labels, LabelManagedBy, ManagedBy)
+	labelsChanged = ensureLabel(existing.Labels, LabelComponent, ComponentRunnerCM) || labelsChanged
+	if maps.Equal(existing.Data, data) && !labelsChanged {
+		return false, nil
+	}
+	existing.Data = data
 
 	if _, err := s.client.CoreV1().ConfigMaps(s.namespace).Update(ctx, existing, metav1.UpdateOptions{}); err != nil {
 		return false, fmt.Errorf("k8sstate: update configmap %s: %w", name, err)
@@ -163,7 +163,7 @@ func (s *Store) ApplyConfigMap(ctx context.Context, name string, data map[string
 // consumed by KEDA's TriggerAuthentication.
 //
 // Labels are applied on create (ManagedBy). On update, the managed-by label
-// is added if missing; other existing labels are preserved.
+// is added or restored if missing; other existing labels are preserved.
 func (s *Store) ApplyOpaqueSecret(ctx context.Context, name, key, value string) (bool, error) {
 	if key == "" {
 		return false, fmt.Errorf("k8sstate: ApplyOpaqueSecret %s: key is required", name)
@@ -192,8 +192,13 @@ func (s *Store) ApplyOpaqueSecret(ctx context.Context, name, key, value string) 
 		return false, fmt.Errorf("k8sstate: get opaque secret %s: %w", name, err)
 	}
 
+	if existing.Labels == nil {
+		existing.Labels = map[string]string{}
+	}
+	labelsChanged := ensureLabel(existing.Labels, LabelManagedBy, ManagedBy)
+
 	// Only writing the single key we manage; leave any other keys untouched.
-	if bytes.Equal(existing.Data[key], encoded) {
+	if bytes.Equal(existing.Data[key], encoded) && !labelsChanged {
 		return false, nil
 	}
 
@@ -201,10 +206,6 @@ func (s *Store) ApplyOpaqueSecret(ctx context.Context, name, key, value string) 
 		existing.Data = map[string][]byte{}
 	}
 	existing.Data[key] = encoded
-	if existing.Labels == nil {
-		existing.Labels = map[string]string{}
-	}
-	existing.Labels[LabelManagedBy] = ManagedBy
 
 	if _, err := s.client.CoreV1().Secrets(s.namespace).Update(ctx, existing, metav1.UpdateOptions{}); err != nil {
 		return false, fmt.Errorf("k8sstate: update opaque secret %s: %w", name, err)
@@ -217,4 +218,12 @@ func (s *Store) ApplyOpaqueSecret(ctx context.Context, name, key, value string) 
 // a foreign Secret and skip it.
 func OrgFromSecret(s corev1.Secret) string {
 	return s.Labels[LabelOrg]
+}
+
+func ensureLabel(labels map[string]string, key, value string) bool {
+	if labels[key] == value {
+		return false
+	}
+	labels[key] = value
+	return true
 }
