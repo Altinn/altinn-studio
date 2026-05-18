@@ -18,7 +18,7 @@ public class GiteaDbStudioOidcUsernameProvider(
 ) : IStudioOidcUsernameProvider
 {
     private const string GiteaLookupQuery = """
-        SELECT u.lower_name
+        SELECT u.name
         FROM external_login_user elu
         JOIN "user" u ON elu.user_id = u.id
         WHERE elu.external_id = @sub
@@ -37,6 +37,17 @@ public class GiteaDbStudioOidcUsernameProvider(
             if (mapping.Deactivated)
             {
                 throw new UnauthorizedAccessException($"User account '{mapping.Username}' has been deactivated.");
+            }
+
+            string? canonicalGiteaUsername = await LookupGiteaUsernameAsync(sub);
+            if (
+                canonicalGiteaUsername != null
+                && !string.Equals(mapping.Username, canonicalGiteaUsername, StringComparison.Ordinal)
+                && string.Equals(mapping.Username, canonicalGiteaUsername, StringComparison.OrdinalIgnoreCase)
+            )
+            {
+                mapping.Username = canonicalGiteaUsername;
+                await designerDb.SaveChangesAsync();
             }
 
             return mapping.Username;
