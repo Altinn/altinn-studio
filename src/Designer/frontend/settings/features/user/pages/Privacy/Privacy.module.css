@@ -1,0 +1,13 @@
+.container,
+.content {
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  gap: var(--ds-size-10);
+}
+
+.content {
+  gap: var(--ds-size-4);
+}

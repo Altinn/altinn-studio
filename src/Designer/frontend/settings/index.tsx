@@ -14,6 +14,7 @@ import { LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
 import { PageRoutes } from './routes/PageRoutes';
 import { EnvironmentConfigProvider } from 'app-shared/contexts/EnvironmentConfigContext';
 import { FeatureFlagsProvider } from '@studio/feature-flags';
+import { ConsentProvider } from 'app-shared/utils/consent';
 
 const loggerConfig: LoggerConfig = {
   enableUnhandledPromiseRejectionTracking: true,
@@ -46,7 +47,9 @@ root.render(
     <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
       <EnvironmentConfigProvider>
         <LoggerContextProvider config={loggerConfig}>
-          <PageRoutes />
+          <ConsentProvider>
+            <PageRoutes />
+          </ConsentProvider>
         </LoggerContextProvider>
       </EnvironmentConfigProvider>
     </ServicesContextProvider>
