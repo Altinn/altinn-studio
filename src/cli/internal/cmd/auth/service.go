@@ -107,8 +107,7 @@ type TokenLoginRequest struct {
 	Env            string
 	Scheme         string
 	Host           string
-	Code           string
-	CodeVerifier   string
+	Token          string
 	AllowOverwrite bool
 }
 
@@ -227,12 +226,7 @@ func (s *Service) LoginWithToken(ctx context.Context, req TokenLoginRequest) (Lo
 		if errors.Is(err, studio.ErrUnauthorized) {
 			return LoginResult{}, ErrInvalidToken
 		}
-		return LoginResult{}, saveErr
-	}
-
-	result := LoginResult{Username: response.Username, RevokePreviousError: ""}
-	if err := revokeExistingAPIKey(ctx, existing); err != nil {
-		result.RevokePreviousError = err.Error()
+		return LoginResult{}, fmt.Errorf("validate token: %w", err)
 	}
 	if user.Login == "" {
 		return LoginResult{}, ErrInvalidToken
