@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-    "strings"
+	"strings"
 
 	authstore "altinn.studio/studioctl/internal/auth"
 	authsvc "altinn.studio/studioctl/internal/cmd/auth"
