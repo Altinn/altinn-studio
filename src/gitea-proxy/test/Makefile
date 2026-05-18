@@ -61,7 +61,7 @@ wait:
 	@for url in $(PROXY_ON_PUB) $(PROXY_ON_INT) $(PROXY_OFF_PUB) $(PROXY_OFF_INT); do \
 	  ok=0; \
 	  for i in $$(seq 1 60); do \
-	    if curl -s -o /dev/null --max-time 2 $$url/healthz; then ok=1; break; fi; \
+	    if curl -fs -o /dev/null --max-time 2 $$url/foo; then ok=1; break; fi; \
 	    sleep 1; \
 	  done; \
 	  if [ $$ok -eq 0 ]; then echo "timeout: $$url" >&2; $(COMPOSE) logs >&2; exit 1; fi; \

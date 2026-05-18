@@ -1,5 +1,5 @@
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import type { IDataModelReference } from 'src/layout/common.generated';
@@ -7,8 +7,8 @@ import type { IDataModelBindings } from 'src/layout/layout';
 
 export function useValidateGeometriesBindings(baseComponentId: string, bindings: IDataModelBindings<'Map'>) {
   const { geometries, geometryLabel, geometryData, geometryIsEditable } = bindings ?? {};
-  const lookupBinding = FormBootstrap.useLookupBinding();
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const lookupBinding = FormStore.bootstrap.useLookupBinding();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const toolbar = useExternalItem(baseComponentId, 'Map')?.toolbar;
 
   const errors: string[] = [];

@@ -4,6 +4,12 @@ imageTag: ""
 giteaInstanceUrl: "http://altinn-repositories-public.default.svc.cluster.local"
 environment: "dev"
 
+runtimeClassName: "kata-vm-isolation"
+dockerInDocker:
+  enabled: true
+shareWorkspace:
+  enabled: true
+
 # Environment-specific runner configurations
 # dev/staging: only ttd
 # prod: ttd, brg, dsb, ssb, ksdigi, pat, dibk, skm

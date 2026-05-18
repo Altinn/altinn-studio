@@ -574,7 +574,7 @@ steps:
         # Name format: {org}-{app}-{studio-env} to allow parsing when HelmRelease is deleted (for uninstall events)
         HELMRELEASE_NAME="${RELEASE_NAME}-${STUDIO_ENVIRONMENT}"
         cat << EOF > "${HELMRELEASE_FILE}"
-        apiVersion: helm.toolkit.fluxcd.io/v2beta1
+        apiVersion: helm.toolkit.fluxcd.io/v2
         kind: HelmRelease
         metadata:
           name: ${HELMRELEASE_NAME}

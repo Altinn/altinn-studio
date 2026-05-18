@@ -1,0 +1,12 @@
+.editing {
+  display: flex;
+  gap: var(--ds-size-2);
+}
+
+.editingTextfield {
+  flex: 1;
+}
+
+.editingActions {
+  margin-top: var(--ds-size-8);
+}

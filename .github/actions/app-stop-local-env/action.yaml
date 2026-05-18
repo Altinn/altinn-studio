@@ -8,7 +8,7 @@ runs:
       shell: bash
       run: |
         if command -v studioctl > /dev/null 2>&1; then
-          studioctl servers status || true
+          studioctl server status || true
           studioctl app ps || true
 
           apps_json="$(mktemp)"
@@ -27,8 +27,8 @@ runs:
           fi
           rm -f "$apps_json"
 
-          echo "::group::app-manager logs"
-          studioctl servers logs --tail 200 --follow=false || true
+          echo "::group::studioctl-server logs"
+          studioctl server logs --tail 200 --follow=false || true
           echo "::endgroup::"
         fi
 
@@ -38,5 +38,5 @@ runs:
         if command -v studioctl > /dev/null 2>&1; then
           studioctl app stop --all || true
           studioctl env down || true
-          studioctl servers down || true
+          studioctl server down || true
         fi

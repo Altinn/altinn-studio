@@ -7,7 +7,7 @@ import { Caption } from 'src/components/form/caption/Caption';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { GenericComponent } from 'src/layout/GenericComponent';
@@ -84,7 +84,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
     displayEditColumn = false;
   }
 
-  const parent = FormBootstrap.useLayoutLookups().componentToParent[baseComponentId];
+  const parent = FormStore.bootstrap.useLayoutLookups().componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';
   const extraCells = [...(displayEditColumn ? [null] : []), ...(displayDeleteColumn ? [null] : [])];
 
@@ -257,7 +257,7 @@ function ExtraRows({ where, extraCells, columnSettings, hiddenColumnIndices }: E
   const { visibleRows } = useRepeatingGroupRowState();
   const isEmpty = visibleRows.length === 0;
   const { rowsBefore, rowsAfter } = useExternalItem(baseComponentId, 'RepeatingGroup');
-  const parent = FormBootstrap.useLayoutLookups().componentToParent[baseComponentId];
+  const parent = FormStore.bootstrap.useLayoutLookups().componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';
 
   const rows = where === 'Before' ? rowsBefore : rowsAfter;

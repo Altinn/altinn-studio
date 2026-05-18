@@ -1,3 +1,5 @@
+import type { Ref } from 'react';
+
 import type { TranslationKey } from 'src/app-components/types';
 
 // Time format types
@@ -61,6 +63,7 @@ export interface TimeSegmentProps {
   'aria-describedby'?: string;
   className?: string;
   autoFocus?: boolean;
+  ref?: Ref<HTMLInputElement>;
 }
 
 // Dropdown and navigation

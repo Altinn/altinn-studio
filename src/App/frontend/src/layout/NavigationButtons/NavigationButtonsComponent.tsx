@@ -1,12 +1,12 @@
 import React from 'react';
 import { useSearchParams } from 'react-router';
 
-import { Button } from 'src/app-components/Button/Button';
+import { Button } from '@app/form-component';
+
 import { SearchParams } from 'src/core/routing/types';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useHasPendingAttachments } from 'src/features/attachments/hooks';
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
@@ -30,7 +30,7 @@ type Props = Pick<PropsFromGenericComponent<'NavigationButtons'>, 'baseComponent
 export function NavigationButtonsComponent({ baseComponentId }: Props) {
   const summaryNodeId = FormStore.pageNavigation.useSummaryNodeIdOfOrigin();
   const { baseComponentId: summaryBaseComponentId } = splitDashedKey(summaryNodeId ?? '');
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const origin = summaryBaseComponentId ? layoutLookups.getComponent(summaryBaseComponentId) : undefined;
 
   // TODO: Support returning to Summary2
@@ -106,7 +106,7 @@ function NavigationButtonsComponentInner({
   const showNextButton = showBackToSummaryButton ? showNextButtonSummary : hasNext;
 
   const onPageNavigationValidation = useOnPageNavigationValidation();
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
 
   const attachmentsPending = useHasPendingAttachments();
 
@@ -195,6 +195,7 @@ function NavigationButtonsComponentInner({
           <Button
             disabled={isAnyProcessing}
             isLoading={currentProcessKey === 'backToPage'}
+            loadingLabel={langAsString('general.loading')}
             onClick={onClickBackToPage}
           >
             <Lang
@@ -207,6 +208,7 @@ function NavigationButtonsComponentInner({
           <Button
             disabled={isAnyProcessing}
             isLoading={currentProcessKey === 'backToSummary'}
+            loadingLabel={langAsString('general.loading')}
             onClick={onClickBackToSummary}
           >
             <Lang id={returnToViewText} />
@@ -216,6 +218,7 @@ function NavigationButtonsComponentInner({
           <Button
             disabled={isAnyProcessing || attachmentsPending}
             isLoading={currentProcessKey === 'next'}
+            loadingLabel={langAsString('general.loading')}
             onClick={onClickNext}
             // If we are showing a back to summary button, we want the "next" button to be secondary
             variant={showBackToSummaryButton || showBackToPageButton ? 'secondary' : 'primary'}
@@ -227,6 +230,7 @@ function NavigationButtonsComponentInner({
           <Button
             disabled={isAnyProcessing}
             isLoading={currentProcessKey === 'previous'}
+            loadingLabel={langAsString('general.loading')}
             variant={showNextButton || showBackToSummaryButton ? 'secondary' : 'primary'}
             onClick={onClickPrevious}
           >

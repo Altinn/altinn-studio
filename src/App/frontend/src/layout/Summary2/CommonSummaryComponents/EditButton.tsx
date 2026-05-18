@@ -1,9 +1,8 @@
 import React from 'react';
 
+import { Button } from '@app/form-component';
 import { PencilIcon } from '@navikt/aksel-icons';
 
-import { Button } from 'src/app-components/Button/Button';
-import { translationKey } from 'src/AppComponentsBridge';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
@@ -110,7 +109,7 @@ export function EditButton({
   };
   return (
     <Button
-      aria-label={isMobile ? translationKey('general.edit') : undefined}
+      aria-label={isMobile ? langAsString('general.edit') : undefined}
       onClick={onChangeClick}
       variant='tertiary'
       className={className}

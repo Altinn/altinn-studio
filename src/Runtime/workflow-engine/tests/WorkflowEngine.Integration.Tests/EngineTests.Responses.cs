@@ -323,28 +323,28 @@ public partial class EngineTests
     [Fact]
     public async Task Response_GetWorkflowDependencyGraph_TraversesDependenciesAndLinksBidirectionally()
     {
-        // Three workflows enqueued separately so DependsOn / Links resolve via persisted GUIDs:
-        //   c — independent (enqueued first)
-        //   a — links to c       (link edge a → c)
-        //   b — depends on a     (dependency edge a → b)
+        // Three workflows enqueued in a single batch with in-batch ref resolution:
+        //   a — links to c     (link edge a → c)
+        //   b — depends on a   (dependency edge a → b)
+        //   c — independent
+        // Batch order [a, b, c] is intentionally not in topological order (which would be
+        // [a, c, b]) — this also exercises the Ref → DatabaseId pairing fixed in #18700.
         // Querying the graph rooted at b must walk upward to a, then sideways via the link to c.
-        var acceptedC = await _client.Enqueue(
-            _testHelpers.CreateEnqueueRequest(
-                _testHelpers.CreateWorkflow("c", [_testHelpers.CreateWebhookStep("/ping-c")])
-            )
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/ping-a")]) with
+            {
+                Links = [WorkflowRef.FromRefString("c")],
+            },
+            _testHelpers.CreateWorkflow("b", [_testHelpers.CreateWebhookStep("/ping-b")], dependsOn: ["a"]),
+            _testHelpers.CreateWorkflow("c", [_testHelpers.CreateWebhookStep("/ping-c")]),
+        ]);
+
+        var accepted = await _client.Enqueue(request);
+        var ids = accepted.Workflows.ToDictionary(
+            w => w.Ref ?? throw new InvalidOperationException("Workflow Ref was null"),
+            w => w.DatabaseId
         );
-        var idC = acceptedC.Workflows.Single().DatabaseId;
-
-        var workflowA = _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/ping-a")]) with
-        {
-            Links = [idC],
-        };
-        var acceptedA = await _client.Enqueue(_testHelpers.CreateEnqueueRequest(workflowA));
-        var idA = acceptedA.Workflows.Single().DatabaseId;
-
-        var workflowB = _testHelpers.CreateWorkflow("b", [_testHelpers.CreateWebhookStep("/ping-b")], dependsOn: [idA]);
-        var acceptedB = await _client.Enqueue(_testHelpers.CreateEnqueueRequest(workflowB));
-        var idB = acceptedB.Workflows.Single().DatabaseId;
+        var (idA, idB, idC) = (ids["a"], ids["b"], ids["c"]);
 
         await _client.WaitForWorkflowStatus(idA, PersistentItemStatus.Completed);
         await _client.WaitForWorkflowStatus(idB, PersistentItemStatus.Completed);

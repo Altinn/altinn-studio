@@ -89,6 +89,7 @@ public static class ServiceRegistration
         services.AddTransient<IAppInactivityUndeployService, AppInactivityUndeployService>();
         services.AddTransient<IKubernetesDeploymentsService, KubernetesDeploymentsService>();
         services.AddTransient<IAppResourcesService, AppResourcesService>();
+        services.AddTransient<INotificationService, NotificationService>();
         services.AddTransient<IAlertsService, AlertsService>();
         services.AddTransient<IBranchService, BranchService>();
         services.AddTransient<IMetricsService, MetricsService>();
@@ -105,6 +106,7 @@ public static class ServiceRegistration
         services.AddTransient<IOrgContentService, OrgContentService>();
         services.AddTransient<IEnvironmentsService, EnvironmentsService>();
         services.AddSingleton<IStudioctlInstallScriptService, StudioctlInstallScriptService>();
+        services.AddScoped<StudioctlAuthService>();
         services.AddHttpClient<IOrgService, OrgService>();
         services.AddHttpClient<ImageClient>();
         services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();

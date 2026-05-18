@@ -2,17 +2,18 @@ import React, { useEffect } from 'react';
 import { useParams } from 'react-router';
 import { toast } from 'react-toastify';
 
+import { Button } from '@app/form-component';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
+import type { ButtonColor, ButtonVariant } from '@app/form-component';
 
-import { Button } from 'src/app-components/Button/Button';
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetNavigationIsPrevented } from 'src/features/navigation/utils';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useIsSubformPage, useNavigationParam } from 'src/hooks/navigation';
@@ -22,7 +23,6 @@ import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from '
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { isSpecificClientAction } from 'src/layout/CustomButton/typeHelpers';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { ButtonColor, ButtonVariant } from 'src/app-components/Button/Button';
 import type { BackendValidationIssueGroups } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { PageValidation } from 'src/layout/common.generated';
@@ -198,6 +198,7 @@ function toShorthandSize(size?: CBTypes.CustomButtonSize): 'sm' | 'md' | 'lg' {
 }
 
 export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericComponent<'CustomButton'>) => {
+  const { langAsString } = useLanguage();
   const { textResourceBindings, actions, id, buttonColor, buttonSize, buttonStyle } = useItemWhenType(
     baseComponentId,
     'CustomButton',
@@ -214,7 +215,7 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
   const performProcess = useProcessingMutation('custom-action');
   const isThisProcessing = useIsThisProcessing('custom-action');
   const isAnyProcessing = useIsAnyProcessing();
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const { getPageValidation } = usePageValidation(baseComponentId);
   const getNavigationIsPrevented = useGetNavigationIsPrevented();
 
@@ -302,6 +303,7 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
         color={buttonColor ?? style.color}
         variant={style.variant}
         isLoading={isThisProcessing}
+        loadingLabel={langAsString('general.loading')}
       >
         <Lang id={buttonText} />
       </Button>

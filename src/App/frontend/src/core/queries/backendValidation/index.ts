@@ -7,7 +7,7 @@ import {
   backendValidationQuery,
   backendValidationQueryKeys,
 } from 'src/core/queries/backendValidation/backendValidation.queries';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useAsRef } from 'src/hooks/useAsRef';
@@ -22,7 +22,7 @@ function useBackendValidationQueryKey() {
 }
 
 export function useGetCachedInitialValidations() {
-  const bootstrapInitial = FormBootstrap.useAllInitialValidationIssues() ?? undefined;
+  const bootstrapInitial = FormStore.bootstrap.useAllInitialValidationIssues() ?? undefined;
   const queryKey = useBackendValidationQueryKey();
   const client = useQueryClient();
 

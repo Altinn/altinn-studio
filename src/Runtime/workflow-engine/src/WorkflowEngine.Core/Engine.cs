@@ -218,10 +218,9 @@ internal sealed class Engine(
             return new WorkflowEnqueueResponse.Rejected.Invalid(constraintError.Message);
         }
 
-        IReadOnlyList<WorkflowRequest> sortedRequests;
         try
         {
-            sortedRequests = ValidationUtils.ValidateAndSortWorkflowGraph(request.Workflows);
+            ValidationUtils.ValidateWorkflowGraph(request.Workflows);
         }
         catch (ArgumentException ex)
         {
@@ -251,8 +250,9 @@ internal sealed class Engine(
         {
             var hash = request.ComputeHash();
             var outcome = await writeBuffer.Enqueue(request, metadata, hash, cancellationToken);
-            var results = sortedRequests
-                .Zip(
+            // outcome.WorkflowIds is in request order (see EngineRepository.Writes.BatchEnqueueWorkflows)
+            var results = request
+                .Workflows.Zip(
                     outcome.WorkflowIds,
                     (req, id) =>
                         new WorkflowEnqueueResponse.WorkflowResult

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.Reflection;
 
 // CA1724: Type names should not match namespaces
 #pragma warning disable CA1724
@@ -21,7 +22,7 @@ public static class Metrics
     /// <summary>
     /// Service version reported on the engine's resource attributes.
     /// </summary>
-    public const string ServiceVersion = "1.0.0";
+    public static readonly string ServiceVersion = ResolveServiceVersion();
 
     /// <summary>
     /// Activity source for engine-emitted spans (workflow lifecycle, step lifecycle, DB IO).
@@ -525,4 +526,22 @@ public static class Metrics
     /// </summary>
     public static IEnumerable<ActivityLink> ToActivityLinks(this IEnumerable<ActivityContext?> contexts) =>
         contexts.OfType<ActivityContext>().Select(x => new ActivityLink(x));
+
+    /// <summary>
+    /// Returns the current service version from the entry assembly's
+    /// <see cref="AssemblyInformationalVersionAttribute"/> (CI sets this via
+    /// <c>-p:InformationalVersion=&lt;short-sha&gt;</c> at publish time), falling back to <c>"dev"</c>
+    /// — matching the csproj default — when no entry assembly is resolvable (e.g. some test hosts).
+    /// </summary>
+    private static string ResolveServiceVersion()
+    {
+        var fromAssembly = Assembly
+            .GetEntryAssembly()
+            ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion;
+        if (!string.IsNullOrWhiteSpace(fromAssembly))
+            return fromAssembly;
+
+        return "dev";
+    }
 }

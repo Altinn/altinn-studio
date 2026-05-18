@@ -6,7 +6,6 @@ import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { useStrictInstanceId } from 'src/features/instance/InstanceContext';
 import { useInnerLanguageWithForcedPathSelector } from 'src/features/language/useLanguage';
@@ -34,7 +33,7 @@ export function useSubformFormData(dataElementId: string) {
 }
 
 function useDataModelNamesForSubform(dataType: string) {
-  const dataModelNames = FormBootstrap.useReadableDataTypes();
+  const dataModelNames = FormStore.bootstrap.useReadableDataTypes();
   return useMemo(
     () => (dataModelNames.includes(dataType) ? dataModelNames : [...dataModelNames, dataType]),
     [dataModelNames, dataType],
@@ -48,8 +47,7 @@ function useFormDataSelectorForSubform(dataType: string, subformData: unknown) {
       if (reference.dataType !== dataType) {
         return formDataSelector(reference);
       }
-      const result = dot.pick(reference.field, subformData);
-      return result;
+      return dot.pick(reference.field, subformData);
     },
     [formDataSelector, dataType, subformData],
   );
