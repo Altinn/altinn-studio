@@ -130,6 +130,7 @@ export default defineConfig([
         { checkFragmentShorthand: true, checkKeyMustBeforeSpread: true, warnOnDuplicates: true },
       ],
       'react/prop-types': ['off'],
+      'react/react-in-jsx-scope': ['off'], // Not needed with the automatic JSX runtime (jsx: 'react-jsx')
 
       'sonarjs/no-duplicate-string': ['off'],
       'sonarjs/cognitive-complexity': ['off'],
