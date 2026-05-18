@@ -1,6 +1,7 @@
 using System;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces.Altinity;
@@ -22,7 +23,13 @@ public class AltinityAgentClient : IAltinityAgentClient
         _altinitySettings = altinitySettings.Value;
     }
 
-    public async Task SendFeedbackAsync(string developer, string traceId, bool thumbsUp, string? comment)
+    public async Task SendFeedbackAsync(
+        string developer,
+        string traceId,
+        bool thumbsUp,
+        string? comment,
+        CancellationToken cancellationToken
+    )
     {
         var requestUri = new Uri($"{_altinitySettings.AgentUrl}{FeedbackPathPrefix}{traceId}");
         using var httpRequest = new HttpRequestMessage(HttpMethod.Put, requestUri)
@@ -31,10 +38,10 @@ public class AltinityAgentClient : IAltinityAgentClient
         };
         httpRequest.Headers.Add(DeveloperHeader, developer);
 
-        using var response = await _httpClient.SendAsync(httpRequest);
+        using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
-            string responseContent = await response.Content.ReadAsStringAsync();
+            string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
             throw new HttpRequestException($"Altinity feedback returned {response.StatusCode}: {responseContent}");
         }
     }

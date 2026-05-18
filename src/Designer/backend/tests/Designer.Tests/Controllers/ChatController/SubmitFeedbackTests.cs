@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces.Altinity;
@@ -39,7 +40,10 @@ public class SubmitFeedbackTests : ChatControllerTestsBase<SubmitFeedbackTests>
         using var response = await HttpClient.SendAsync(httpRequest);
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        _altinityAgentClientMock.Verify(client => client.SendFeedbackAsync(Developer, TraceId, true, null), Times.Once);
+        _altinityAgentClientMock.Verify(
+            client => client.SendFeedbackAsync(Developer, TraceId, true, null, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -55,7 +59,14 @@ public class SubmitFeedbackTests : ChatControllerTestsBase<SubmitFeedbackTests>
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         _altinityAgentClientMock.Verify(
-            client => client.SendFeedbackAsync(Developer, TraceId, false, "Svaret traff ikke helt."),
+            client =>
+                client.SendFeedbackAsync(
+                    Developer,
+                    TraceId,
+                    false,
+                    "Svaret traff ikke helt.",
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
     }
