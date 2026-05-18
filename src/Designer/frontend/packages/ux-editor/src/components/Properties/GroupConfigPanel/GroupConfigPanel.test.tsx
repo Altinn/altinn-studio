@@ -76,7 +76,12 @@ describe('GroupConfigPanel', () => {
     };
 
     expect(changePageGroups).toHaveBeenCalledTimes(1);
-    expect(changePageGroups).toHaveBeenCalledWith(org, app, layoutSet1NameMock, expectedGroupsModel);
+    expect(changePageGroups).toHaveBeenCalledWith(
+      org,
+      app,
+      layoutSet1NameMock,
+      expectedGroupsModel,
+    );
   });
 
   it('should call changePageGroups mutation when changing group type to default', async () => {
@@ -110,7 +115,12 @@ describe('GroupConfigPanel', () => {
     };
 
     expect(changePageGroups).toHaveBeenCalledTimes(1);
-    expect(changePageGroups).toHaveBeenCalledWith(org, app, layoutSet1NameMock, expectedGroupsModel);
+    expect(changePageGroups).toHaveBeenCalledWith(
+      org,
+      app,
+      layoutSet1NameMock,
+      expectedGroupsModel,
+    );
   });
 
   it('should render edit group name when group has multiple pages', () => {
