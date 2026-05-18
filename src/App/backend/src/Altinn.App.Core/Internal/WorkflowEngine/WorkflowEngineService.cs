@@ -365,7 +365,11 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             IReadOnlyList<WorkflowStatusResponse> matchingWorkflows = await _workflowEngineClient.ListWorkflows(
                 GetNamespace(),
                 correlationId: correlationId,
-                labels: new Dictionary<string, string>(StringComparer.Ordinal) { [labelKey] = processNextId },
+                labels: new Dictionary<string, string>(StringComparer.Ordinal)
+                {
+                    [ProcessNextRequestFactory.ProcessNextInstanceGuidLabel] = correlationId.ToString("N"),
+                    [labelKey] = processNextId,
+                },
                 ct: ct
             );
 

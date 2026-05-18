@@ -4,13 +4,11 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Text.Json;
-using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.DependencyModel;
 
 #nullable enable
@@ -63,11 +61,6 @@ public sealed class FixtureConfigurationService
         var scenario = config.AppScenario ?? "default";
         if (scenario != "default")
         {
-            if (scenario.StartsWith("workflow-engine", StringComparison.OrdinalIgnoreCase))
-            {
-                services.Replace(ServiceDescriptor.Singleton<IWorkflowEngineClient, FakeWorkflowEngineClient>());
-            }
-
             SyncScenarioConfig(env.ContentRootPath);
 
             var scenarioOverridePath = Path.Join(env.ContentRootPath, "scenario-overrides", "services");

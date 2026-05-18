@@ -469,6 +469,12 @@ public class ProcessNextRequestFactoryTests
         // Assert
         Assert.Equal("lock-token", bundle.IdempotencyKey);
         Assert.Equal("ttd/test-app", bundle.Namespace);
+        Assert.NotNull(bundle.Request.Labels);
+        InstanceIdentifier instanceIdentifier = new(TestInstance);
+        Assert.Equal(
+            instanceIdentifier.InstanceGuid.ToString("N"),
+            bundle.Request.Labels[ProcessNextRequestFactory.ProcessNextInstanceGuidLabel]
+        );
         var workflow = bundle.Request.Workflows[0];
         Assert.Equal("Process next: Task_1 -> Task_2", workflow.OperationId);
         Assert.Equal("state-blob", workflow.State);

@@ -9,6 +9,7 @@ using Xunit.Abstractions;
 namespace Altinn.App.Integration.Tests.WorkflowEngine;
 
 [Trait("Category", "Integration")]
+[Collection(WorkflowEngineTestCollection.Name)]
 public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClassFixture classFixture)
     : IClassFixture<AppFixtureClassFixture>
 {

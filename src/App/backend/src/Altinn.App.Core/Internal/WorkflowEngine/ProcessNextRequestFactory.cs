@@ -38,6 +38,7 @@ internal sealed class ProcessNextRequestFactory
     internal const string ProcessNextIdLabel = "processNextId";
     internal const string ProcessNextSourceIdLabel = "processNextSourceId";
     internal const string ProcessNextTargetIdLabel = "processNextTargetId";
+    internal const string ProcessNextInstanceGuidLabel = "processNextInstanceGuid";
 
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IAuthenticationContext _authenticationContext;
@@ -111,7 +112,9 @@ internal sealed class ProcessNextRequestFactory
         string ns = $"{_appIdentifier.Org}/{_appIdentifier.App}";
         Guid correlationId = instanceId.InstanceGuid;
         string? collectionKey = CreateProcessNextCollectionKey(instance, processStateChange);
-        Dictionary<string, string>? labels = CreateProcessNextLabels(processStateChange);
+        Dictionary<string, string> labels =
+            CreateProcessNextLabels(processStateChange) ?? new Dictionary<string, string>(StringComparer.Ordinal);
+        labels[ProcessNextInstanceGuidLabel] = correlationId.ToString("N", CultureInfo.InvariantCulture);
 
         var request = new WorkflowEnqueueRequest
         {

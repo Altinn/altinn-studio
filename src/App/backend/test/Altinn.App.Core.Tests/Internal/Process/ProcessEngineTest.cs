@@ -2060,16 +2060,23 @@ public sealed class ProcessEngineTest
         $"process-next:{_instanceGuid:N}:{taskId}:{flow}";
 
     private static bool MatchesCurrentTaskLookupLabel(Dictionary<string, string> labels, string processNextId) =>
-        labels.Count == 1
-        && labels.ContainsValue(processNextId)
-        && (
-            labels.ContainsKey(ProcessNextRequestFactory.ProcessNextSourceIdLabel)
-            || labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetIdLabel)
-            || labels.ContainsKey(ProcessNextRequestFactory.ProcessNextIdLabel)
+        HasInstanceGuidLabel(labels)
+        && labels.Any(label =>
+            label.Value == processNextId
+            && (
+                label.Key == ProcessNextRequestFactory.ProcessNextSourceIdLabel
+                || label.Key == ProcessNextRequestFactory.ProcessNextTargetIdLabel
+                || label.Key == ProcessNextRequestFactory.ProcessNextIdLabel
+            )
         );
 
     private static bool IsProcessNextLabel(Dictionary<string, string> labels, string labelKey, string processNextId) =>
-        labels.Count == 1 && labels.TryGetValue(labelKey, out string? value) && value == processNextId;
+        HasInstanceGuidLabel(labels) && labels.TryGetValue(labelKey, out string? value) && value == processNextId;
+
+    private static bool HasInstanceGuidLabel(Dictionary<string, string> labels) =>
+        labels.Count == 2
+        && labels.TryGetValue(ProcessNextRequestFactory.ProcessNextInstanceGuidLabel, out string? value)
+        && value == _instanceGuid.ToString("N");
 
     private static WorkflowCollectionDetailResponse CreateWorkflowCollectionDetailResponse(
         string key,
