@@ -244,13 +244,29 @@ public class ReleaseService : IReleaseService
         CancellationToken cancellationToken
     )
     {
-        FileSystemObject appCsproj = await _giteaClient.GetFileAsync(
-            release.Org,
-            release.App,
-            "App/App.csproj",
-            release.TargetCommitish,
-            cancellationToken
-        );
+        FileSystemObject appCsproj;
+        try
+        {
+            appCsproj = await _giteaClient.GetFileAsync(
+                release.Org,
+                release.App,
+                "App/App.csproj",
+                release.TargetCommitish,
+                cancellationToken
+            );
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            Activity.Current?.SetTag("maskinporten.default_scopes_app_csproj_fetch_failed", true);
+            _logger.LogWarning(
+                ex,
+                "Could not fetch App.csproj while checking default Maskinporten scopes for {Org}/{App} at {TargetCommitish}.",
+                release.Org,
+                release.App,
+                release.TargetCommitish
+            );
+            return false;
+        }
 
         if (appCsproj?.Content is null)
         {
@@ -271,6 +287,7 @@ public class ReleaseService : IReleaseService
         }
         catch (FormatException ex)
         {
+            Activity.Current?.SetTag("maskinporten.default_scopes_app_csproj_decode_failed", true);
             _logger.LogWarning(ex, "Could not decode App.csproj content while checking default Maskinporten scopes.");
             return false;
         }

@@ -292,6 +292,21 @@ public class ReleaseServiceTest
             );
     }
 
+    private void VerifyWarningLog()
+    {
+        _logger.Verify(
+            l =>
+                l.Log(
+                    LogLevel.Warning,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((_, _) => true),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>()
+                ),
+            Times.Once
+        );
+    }
+
     [Fact]
     public async Task CreateAsync_WithAppScopes_PassesScopesToQueueBuildParameters()
     {
@@ -709,6 +724,72 @@ public class ReleaseServiceTest
                 ),
             Times.Once
         );
+    }
+
+    [Fact]
+    public async Task CreateAsync_WhenFetchingAppCsprojFails_PassesEmptyArray()
+    {
+        // Arrange
+        ReleaseEntity releaseEntity = new()
+        {
+            TagName = "1",
+            Name = "1",
+            Body = "test-app",
+            TargetCommitish = "eec136ac2d31cf984d2053df79f181b99c3b4db5",
+            Org = _org,
+            App = _app,
+        };
+
+        List<string> buildStatus = new()
+        {
+            BuildStatus.InProgress.ToEnumMemberAttributeValue(),
+            BuildStatus.NotStarted.ToEnumMemberAttributeValue(),
+        };
+
+        List<string> buildResult = new() { BuildResult.Succeeded.ToEnumMemberAttributeValue() };
+
+        _releaseRepository
+            .Setup(r => r.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), buildStatus, buildResult))
+            .ReturnsAsync(new List<ReleaseEntity>());
+        _releaseRepository
+            .Setup(r => r.Create(It.IsAny<ReleaseEntity>()))
+            .ReturnsAsync(GetReleases("createdRelease.json").First());
+        _appScopesService
+            .Setup(r =>
+                r.GetAppScopesAsync(It.IsAny<AltinnRepoContext>(), It.IsAny<System.Threading.CancellationToken>())
+            )
+            .ReturnsAsync((AppScopesEntity)null);
+        _giteaClient
+            .Setup(c => c.GetFileAsync(_org, _app, "App/App.csproj", It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new IOException("Could not read file."));
+        _azureDevOpsBuildClient
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(GetBuild());
+
+        ReleaseService releaseService = CreateReleaseService();
+
+        // Act
+        await releaseService.CreateAsync(releaseEntity);
+
+        // Assert
+        _appScopesService.Verify(
+            r =>
+                r.AddDefaultMaskinportenScopesAsync(
+                    It.IsAny<AltinnRepoEditingContext>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
+        _azureDevOpsBuildClient.Verify(
+            b =>
+                b.QueueAsync(
+                    It.Is<QueueBuildParameters>(p => p.AppMaskinportenScopes == "[]"),
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+        VerifyWarningLog();
     }
 
     [Fact]

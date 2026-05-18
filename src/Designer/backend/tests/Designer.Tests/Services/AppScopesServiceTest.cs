@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
@@ -76,5 +77,21 @@ public class AppScopesServiceTest
             r => r.UpsertAppScopesAsync(It.IsAny<AppScopesEntity>(), It.IsAny<CancellationToken>()),
             Times.Never
         );
+    }
+
+    [Fact]
+    public void DefaultMaskinportenScopesMergeWith_WhenInputHasDuplicateScopeNames_KeepsFirstScope()
+    {
+        ISet<MaskinPortenScopeEntity> scopes = new HashSet<MaskinPortenScopeEntity>
+        {
+            new() { Scope = "custom:scope", Description = "first" },
+            new() { Scope = "custom:scope", Description = "second" },
+        };
+
+        ISet<MaskinPortenScopeEntity> result = DefaultMaskinportenScopes.MergeWith(scopes);
+
+        Assert.Equal("first", result.Single(s => s.Scope == "custom:scope").Description);
+        Assert.Contains(result, s => s.Scope == DefaultMaskinportenScopes.ServiceOwnerInstancesRead);
+        Assert.Contains(result, s => s.Scope == DefaultMaskinportenScopes.ServiceOwnerInstancesWrite);
     }
 }

@@ -29,7 +29,11 @@ public static class DefaultMaskinportenScopes
 
     public static ISet<MaskinPortenScopeEntity> MergeWith(ISet<MaskinPortenScopeEntity>? scopes)
     {
-        var mergedScopes = scopes?.ToDictionary(s => s.Scope, s => s) ?? [];
+        var mergedScopes = new Dictionary<string, MaskinPortenScopeEntity>();
+        foreach (MaskinPortenScopeEntity scope in scopes ?? Enumerable.Empty<MaskinPortenScopeEntity>())
+        {
+            mergedScopes.TryAdd(scope.Scope, scope);
+        }
 
         foreach (MaskinPortenScopeEntity defaultScope in s_scopes)
         {
