@@ -1310,6 +1310,7 @@ namespace Altinn.App.Core.Features
         Altinn.App.Core.Models.FormDataChange AddFormDataElement(Altinn.Platform.Storage.Interface.Models.DataType dataType, object model);
         Altinn.App.Core.Models.FormDataChange AddFormDataElement(string dataTypeId, object model);
         void RemoveDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
+        Altinn.App.Core.Models.BinaryDataChange UpdateBinaryDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, string contentType, System.ReadOnlyMemory<byte> bytes);
     }
     [System.Obsolete("Use ITaskValidator, IDataElementValidator or IFormDataValidator instead")]
     public interface IInstanceValidator
