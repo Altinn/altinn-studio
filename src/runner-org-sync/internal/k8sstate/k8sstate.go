@@ -75,19 +75,6 @@ func (s *Store) ListManagedSecrets(ctx context.Context) ([]corev1.Secret, error)
 	return list.Items, nil
 }
 
-// SecretExists reports whether a Secret with the given name exists in the
-// store's namespace. A NotFound error is reported as ok=false, nil error.
-func (s *Store) SecretExists(ctx context.Context, name string) (bool, error) {
-	_, err := s.client.CoreV1().Secrets(s.namespace).Get(ctx, name, metav1.GetOptions{})
-	if err == nil {
-		return true, nil
-	}
-	if apierrors.IsNotFound(err) {
-		return false, nil
-	}
-	return false, fmt.Errorf("k8sstate: get secret %s: %w", name, err)
-}
-
 // RegistrationSecretStatus reports whether the named Secret exists and has
 // the ownership labels and token data expected for the given org.
 func (s *Store) RegistrationSecretStatus(ctx context.Context, name, org string) (RegistrationSecretState, error) {

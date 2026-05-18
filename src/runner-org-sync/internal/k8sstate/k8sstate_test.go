@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
 )
@@ -49,22 +50,6 @@ func TestCreateRegistrationSecret_AlreadyExists(t *testing.T) {
 	err := s.CreateRegistrationSecret(context.Background(), "x", "ttd", "tok")
 	if err == nil {
 		t.Fatal("expected error for duplicate, got nil")
-	}
-}
-
-func TestSecretExists(t *testing.T) {
-	c := fake.NewSimpleClientset(&corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{Name: "exists", Namespace: testNamespace},
-	})
-	s := NewStore(c, testNamespace)
-
-	ok, err := s.SecretExists(context.Background(), "exists")
-	if err != nil || !ok {
-		t.Errorf("SecretExists(exists) = %v, %v; want true, nil", ok, err)
-	}
-	ok, err = s.SecretExists(context.Background(), "missing")
-	if err != nil || ok {
-		t.Errorf("SecretExists(missing) = %v, %v; want false, nil", ok, err)
 	}
 }
 
@@ -150,9 +135,9 @@ func TestDeleteSecret_RemovesExisting(t *testing.T) {
 	if err := s.DeleteSecret(context.Background(), "x"); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	ok, _ := s.SecretExists(context.Background(), "x")
-	if ok {
-		t.Errorf("secret still exists after delete")
+	_, err := c.CoreV1().Secrets(testNamespace).Get(context.Background(), "x", metav1.GetOptions{})
+	if !apierrors.IsNotFound(err) {
+		t.Errorf("get deleted secret error = %v, want NotFound", err)
 	}
 }
 
