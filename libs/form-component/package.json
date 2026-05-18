@@ -29,7 +29,7 @@
     "@chromatic-com/storybook": "^5.0.1",
     "@digdir/designsystemet-css": "1.11.1",
     "@digdir/designsystemet-react": "1.11.1",
-    "@storybook/addon-a11y": "^10.2.16",
+    "@storybook/addon-a11y": "10.2.16",
     "@storybook/addon-docs": "10.2.16",
     "@storybook/addon-links": "10.2.16",
     "@storybook/builder-vite": "10.2.16",
@@ -41,7 +41,7 @@
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "^5.0.0",
     "jsdom": "^26.1.0",
-    "storybook": "^10.2.11",
+    "storybook": "10.2.16",
     "typescript": "5.9.3",
     "typescript-plugin-css-modules": "5.2.0",
     "vitest": "^4.1.5"

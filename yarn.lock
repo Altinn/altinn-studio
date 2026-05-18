@@ -131,7 +131,7 @@ __metadata:
     "@chromatic-com/storybook": "npm:^5.0.1"
     "@digdir/designsystemet-css": "npm:1.11.1"
     "@digdir/designsystemet-react": "npm:1.11.1"
-    "@storybook/addon-a11y": "npm:^10.2.16"
+    "@storybook/addon-a11y": "npm:10.2.16"
     "@storybook/addon-docs": "npm:10.2.16"
     "@storybook/addon-links": "npm:10.2.16"
     "@storybook/builder-vite": "npm:10.2.16"
@@ -144,7 +144,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:^5.0.0"
     classnames: "npm:2.5.1"
     jsdom: "npm:^26.1.0"
-    storybook: "npm:^10.2.11"
+    storybook: "npm:10.2.16"
     typescript: "npm:5.9.3"
     typescript-plugin-css-modules: "npm:5.2.0"
     vitest: "npm:^4.1.5"
@@ -6065,15 +6065,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/addon-a11y@npm:^10.2.16":
-  version: 10.4.0
-  resolution: "@storybook/addon-a11y@npm:10.4.0"
+"@storybook/addon-a11y@npm:10.2.16":
+  version: 10.2.16
+  resolution: "@storybook/addon-a11y@npm:10.2.16"
   dependencies:
     "@storybook/global": "npm:^5.0.0"
     axe-core: "npm:^4.2.0"
   peerDependencies:
-    storybook: ^10.4.0
-  checksum: 10/0e3dc46fdef537c35c95f70d755fa4e88dad1526d6c0af4a946896d7b60271c8abe3d52ad5e930d0a37b36303ae2c5a174814a5d1a1e7f73addff39b218b7e8a
+    storybook: ^10.2.16
+  checksum: 10/a7ac6f67c22eb9fcef7dd88d3c23de5563389dca958686096e6b66d29d179f684a32c0b1a3b9bd5789d5b61a26b58c119f0baa74c4ef346d2201ad5d7cd8885a
   languageName: node
   linkType: hard
 
@@ -22289,7 +22289,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"storybook@npm:^10.2.11":
+"storybook@npm:10.2.16, storybook@npm:^10.2.11":
   version: 10.2.16
   resolution: "storybook@npm:10.2.16"
   dependencies:
