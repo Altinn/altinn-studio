@@ -6,6 +6,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { parseInstanceId, prefetchActiveInstances } from 'src/core/queries/instance';
 import { isInstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 import { GlobalData } from 'src/GlobalData';
+import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { isStateless } from 'src/routes/index/isStateless';
 import { buildInstanceUrl } from 'src/routesBuilder';
@@ -20,33 +21,32 @@ export type IndexLoaderError =
 
 export type IndexLoaderResult = null | IndexLoaderError;
 
-export function indexLoader(instanceApi: InstanceApi) {
-  return async function loader({ context }: LoaderFunctionArgs): Promise<IndexLoaderResult | Response> {
-    const queryClient = context.get(queryClientContext);
-    if (isStateless()) {
-      return null;
+export async function indexLoader({ context }: LoaderFunctionArgs): Promise<IndexLoaderResult | Response> {
+  const queryClient = context.get(queryClientContext);
+  const { instanceApi } = context.get(apiClientsContext);
+  if (isStateless()) {
+    return null;
+  }
+
+  const entryType = GlobalData.applicationMetadata.onEntry?.show;
+
+  if (!GlobalData.getSelectedParty()) {
+    return redirect('/party-selection');
+  }
+
+  try {
+    if (entryType === 'new-instance') {
+      return await createInstanceAndRedirect(instanceApi);
     }
 
-    const entryType = GlobalData.applicationMetadata.onEntry?.show;
-
-    if (!GlobalData.getSelectedParty()) {
-      return redirect('/party-selection');
+    if (entryType === 'select-instance') {
+      return await handleSelectInstance(queryClient, instanceApi);
     }
+  } catch (error) {
+    return toLoaderError(error);
+  }
 
-    try {
-      if (entryType === 'new-instance') {
-        return await createInstanceAndRedirect(instanceApi);
-      }
-
-      if (entryType === 'select-instance') {
-        return await handleSelectInstance(queryClient, instanceApi);
-      }
-    } catch (error) {
-      return toLoaderError(error);
-    }
-
-    throw new Error(`Unexpected entry type: ${entryType}`);
-  };
+  throw new Error(`Unexpected entry type: ${entryType}`);
 }
 
 async function handleSelectInstance(queryClient: QueryClient, instanceApi: InstanceApi): Promise<Response> {

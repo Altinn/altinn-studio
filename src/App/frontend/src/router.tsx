@@ -40,11 +40,11 @@ export function createRouter({ queryClient, apiClients }: { queryClient: QueryCl
           {
             path: routes.instanceSelection,
             Component: InstanceSelectionRoute,
-            loader: instanceSelectionLoader(apiClients.partyApi, apiClients.instanceApi),
+            loader: instanceSelectionLoader,
           },
           {
             path: routes.partySelection,
-            loader: partySelectionLoader(partyApi),
+            loader: partySelectionLoader,
             children: [
               { index: true, Component: PartySelectionRoute },
               { path: '*', Component: PartySelectionRoute },
@@ -52,7 +52,7 @@ export function createRouter({ queryClient, apiClients }: { queryClient: QueryCl
           },
           {
             Component: IndexRoute,
-            loader: indexLoader(instanceApi),
+            loader: indexLoader,
             children: [
               {
                 path: routes.statelessPage,
@@ -69,25 +69,25 @@ export function createRouter({ queryClient, apiClients }: { queryClient: QueryCl
             path: routes.instance,
             Component: InstanceRoute,
             ErrorBoundary: InstanceErrorBoundary,
-            loader: instanceLoader(apiClients.instanceApi),
+            loader: instanceLoader,
             shouldRevalidate: ({ currentParams, nextParams }) =>
               currentParams.instanceOwnerPartyId !== nextParams.instanceOwnerPartyId ||
               currentParams.instanceGuid !== nextParams.instanceGuid,
             children: [
               {
                 index: true,
-                loader: instanceIndexLoader(apiClients.instanceApi),
+                loader: instanceIndexLoader,
                 Component: () => <Loader reason='instance-redirect' />,
               },
               { path: 'ProcessEnd', Component: ProcessEndRoute },
               {
                 path: routes.task,
                 Component: TaskRoute,
-                loader: taskLoader(apiClients.instanceApi),
+                loader: taskLoader,
                 children: [
                   {
                     index: true,
-                    loader: taskIndexLoader(apiClients.instanceApi),
+                    loader: taskIndexLoader,
                     Component: () => <Loader reason='task-redirect' />,
                   },
                   {
