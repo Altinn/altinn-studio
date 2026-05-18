@@ -1636,6 +1636,8 @@
   "settings.user.coming_soon_use_org": "Velg en organisasjon i menyen øverst til høyre for å få tilgang til organisasjonsinnstillinger.",
   "settings.user.heading": "Innstillinger",
   "settings.user.heading.description": "Her finner du innstillinger som gjelder for din bruker.",
+  "settings.user.privacy.heading": "Personvern",
+  "settings.user.privacy.saved": "Valgene dine er lagret.",
   "shared.header_all": "Alle",
   "shared.header_button": "Altinn profilmeny",
   "shared.header_button_alt": "Altinn profilmeny",

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 
 	authstore "altinn.studio/studioctl/internal/auth"
@@ -50,7 +51,7 @@ func (c *AuthCommand) Usage() string {
 		"Manage authentication with Altinn Studio.",
 		"",
 		"Subcommands:",
-		"  login     Authenticate with Altinn Studio using Ansattporten",
+		"  login     Authenticate with Altinn Studio",
 		"  status    Show authentication status",
 		"  logout    Clear stored credentials",
 		"",
@@ -123,6 +124,7 @@ func (c *AuthCommand) runGitCredential(args []string) error {
 type loginFlags struct {
 	env       string
 	noBrowser bool
+	withToken bool
 }
 
 func (c *AuthCommand) parseLoginFlags(args []string) (loginFlags, bool, error) {
@@ -130,15 +132,20 @@ func (c *AuthCommand) parseLoginFlags(args []string) (loginFlags, bool, error) {
 	f := loginFlags{
 		env:       authstore.DefaultEnv,
 		noBrowser: false,
+		withToken: false,
 	}
 	fs.StringVar(&f.env, "env", authstore.DefaultEnv, "Environment name (prod, dev, staging, local)")
 	fs.BoolVar(&f.noBrowser, "no-browser", false, "Print login URL instead of opening a browser")
+	fs.BoolVar(&f.withToken, "with-token", false, "Read a Studio/Designer API key from standard input")
 
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return f, true, nil
 		}
 		return f, false, fmt.Errorf("parsing flags: %w", err)
+	}
+	if f.withToken && f.noBrowser {
+		return f, false, fmt.Errorf("%w: --no-browser cannot be used with --with-token", ErrInvalidFlagValue)
 	}
 	return f, false, nil
 }
@@ -160,7 +167,12 @@ func (c *AuthCommand) runLogin(ctx context.Context, args []string) error {
 		return fmt.Errorf("resolve host: %w", err)
 	}
 
-	result, err := c.loginWithBrowser(ctx, flags, target)
+	var result authsvc.LoginResult
+	if flags.withToken {
+		result, err = c.loginWithToken(ctx, flags, target, os.Stdin)
+	} else {
+		result, err = c.loginWithBrowser(ctx, flags, target)
+	}
 	if err != nil {
 		if errors.Is(err, authsvc.ErrLoginCancelled) {
 			c.out.Println("Login cancelled")
@@ -171,6 +183,38 @@ func (c *AuthCommand) runLogin(ctx context.Context, args []string) error {
 
 	c.out.Successf("Logged in to %s as %s", flags.env, result.Username)
 	return nil
+}
+
+func (c *AuthCommand) loginWithToken(
+	ctx context.Context,
+	flags loginFlags,
+	target authsvc.LoginTarget,
+	in io.Reader,
+) (authsvc.LoginResult, error) {
+	data, err := io.ReadAll(in)
+	if err != nil {
+		return authsvc.LoginResult{}, fmt.Errorf("read token from standard input: %w", err)
+	}
+
+	token := strings.TrimSpace(string(data))
+	if token == "" {
+		return authsvc.LoginResult{}, fmt.Errorf("%w: no token provided on standard input", ErrInvalidToken)
+	}
+
+	result, err := c.service.LoginWithToken(ctx, authsvc.TokenLoginRequest{
+		Env:            flags.env,
+		Scheme:         target.Scheme,
+		Host:           target.Host,
+		Token:          token,
+		AllowOverwrite: true,
+	})
+	if err != nil {
+		return authsvc.LoginResult{}, mapLoginError(err, flags.env)
+	}
+	if result.RevokePreviousError != "" {
+		c.out.Warningf("Logged in, but failed to revoke previous API key: %s", result.RevokePreviousError)
+	}
+	return result, nil
 }
 
 func (c *AuthCommand) loginWithBrowser(
@@ -373,7 +417,7 @@ func (c *AuthCommand) runLogout(ctx context.Context, args []string) error {
 		if !result.Removed {
 			return nil
 		}
-		c.out.Success("Logged out from environments with revoked credentials")
+		c.out.Success("Logged out from stored environments")
 		return nil
 	}
 

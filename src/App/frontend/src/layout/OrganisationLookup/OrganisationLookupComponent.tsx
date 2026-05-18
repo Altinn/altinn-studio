@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 
+import { Button } from '@app/form-component';
 import { Field, Paragraph, ValidationMessage } from '@digdir/designsystemet-react';
 import { queryOptions, useQuery } from '@tanstack/react-query';
 
 import type { PropsFromGenericComponent } from '..';
 
-import { Button } from 'src/app-components/Button/Button';
 import { NumericInput } from 'src/app-components/Input/NumericInput';
 import { Fieldset } from 'src/app-components/Label/Fieldset';
 import { Label } from 'src/app-components/Label/Label';
@@ -184,6 +184,7 @@ export function OrganisationLookupComponent({
                 onClick={handleSubmit}
                 variant='secondary'
                 isLoading={isFetching}
+                loadingLabel={langAsString('general.loading')}
               >
                 <Lang id='organisation_lookup.submit_button' />
               </Button>

@@ -2,12 +2,12 @@
 import React, { useState } from 'react';
 import type { ErrorInfo, PropsWithChildren } from 'react';
 
+import { Button } from '@app/form-component';
 import { XMarkIcon } from '@navikt/aksel-icons';
 
-import { Button } from 'src/app-components/Button/Button';
-import { translationKey } from 'src/AppComponentsBridge';
 import classes from 'src/features/devtools/DevTools.module.css';
 import { DevToolsControls } from 'src/features/devtools/DevToolsControls';
+import { useLanguage } from 'src/features/language/useLanguage';
 
 function clampHeight(height: number): number {
   return Math.min(Math.max(height, 10), window.innerHeight);
@@ -19,6 +19,7 @@ interface IDevToolsPanelProps {
 }
 
 export const DevToolsPanel = ({ isOpen, close }: IDevToolsPanelProps) => {
+  const { langAsString } = useLanguage();
   const [height, setHeight] = useState(250);
 
   const resizeHandler = (mouseDownEvent: React.MouseEvent) => {
@@ -82,7 +83,7 @@ export const DevToolsPanel = ({ isOpen, close }: IDevToolsPanelProps) => {
                   onClick={close}
                   variant='tertiary'
                   color='second'
-                  aria-label={translationKey('general.close')}
+                  aria-label={langAsString('general.close')}
                   icon={true}
                 >
                   <XMarkIcon
