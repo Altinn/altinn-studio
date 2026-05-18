@@ -45,7 +45,7 @@ describe('Map component', () => {
 
     cy.get('g>path').should('to.be.visible');
 
-    cy.findByRole('link', { name: 'Delete layers' }).click();
+    cy.get('#form-content-MapPage-MapComponent-Geometries').findByRole('link', { name: 'Delete layers' }).click();
     cy.get('g>path').click('center');
     cy.findByRole('link', { name: 'Save' }).click();
     cy.get('g>path').should('not.exist');
