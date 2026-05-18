@@ -118,6 +118,24 @@ describe('ScopeList', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('should not offer adding default scopes for v8.3 apps when default scopes are already selected', async () => {
+    renderScopeList({
+      componentProps: { selectedScopes: [scopeMock4, scopeMock2] },
+      queries: {
+        getAppVersion: () => Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '8.3.0' }),
+      },
+    });
+
+    expect(
+      await screen.findByText(
+        textMock('app_settings.maskinporten_scope_changes_deployment_notice'),
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('app_settings.maskinporten_default_scopes_opt_in_notice')),
+    ).not.toBeInTheDocument();
+  });
+
   it('should open add scopes dialog with selected scopes checked', async () => {
     const user = userEvent.setup();
     renderScopeList();
