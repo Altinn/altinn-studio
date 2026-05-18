@@ -38,7 +38,7 @@ public class LookupPersonController : ControllerBase
     /// Lookup a person in Folkeregisteret (DSF)
     /// </summary>
     /// <param name="lookupPersonRequest">Payload that contains params for executing a person lookup.</param>
-    /// <param name="ct"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns>A <see cref="LookupPersonResponse"/> object.</returns>
     [HttpPost]
     [ProducesResponseType(typeof(LookupPersonResponse), StatusCodes.Status200OK)]
@@ -47,13 +47,13 @@ public class LookupPersonController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<LookupPersonResponse>> LookupPerson(
         [FromBody] LookupPersonRequest lookupPersonRequest,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         var personResult = await GetPersonDataOrError(
             lookupPersonRequest.SocialSecurityNumber,
             lookupPersonRequest.LastName,
-            ct
+            cancellationToken
         );
 
         if (!personResult.Success)
@@ -68,13 +68,13 @@ public class LookupPersonController : ControllerBase
     private async Task<ServiceResult<Person?, ProblemDetails>> GetPersonDataOrError(
         string ssn,
         string lastName,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         Person? person;
         try
         {
-            person = await _personClient.GetPerson(ssn, lastName, ct: ct);
+            person = await _personClient.GetPerson(ssn, lastName, ct: cancellationToken);
         }
         catch (PlatformHttpException e)
         {
