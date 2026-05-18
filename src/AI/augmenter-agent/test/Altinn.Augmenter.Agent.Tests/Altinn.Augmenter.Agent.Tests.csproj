@@ -8,6 +8,9 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <!-- NU1902: transitive OpenTelemetry vulnerabilities via Microsoft.AspNetCore.Mvc.Testing -->
+    <NoWarn>$(NoWarn);NU1902</NoWarn>
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1902</WarningsNotAsErrors>
   </PropertyGroup>
 
   <ItemGroup>

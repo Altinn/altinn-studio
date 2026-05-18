@@ -10,9 +10,18 @@ RUN dotnet publish src/Altinn.Augmenter.Agent/Altinn.Augmenter.Agent.csproj -c R
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine@sha256:49dce27611d8fe4fbe50483ea9438abd18ccb0198d0737af231335244d0c9b94 AS runtime
 WORKDIR /app
 
-RUN apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community typst
+# Typst (PDF), Pandoc (DOCX), Pi CLI (agent harness via pi.dev).
+# Claude CLI is intentionally NOT installed — use it only for local dev outside Docker.
+RUN apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community typst \
+    && apk add --no-cache pandoc nodejs npm \
+    && npm install -g @earendil-works/pi-coding-agent \
+    && apk del npm
 
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+RUN addgroup -S appgroup && adduser -S -h /home/appuser appuser -G appgroup \
+    && mkdir -p /etc/augmenter/skills /etc/augmenter/templates /etc/augmenter/domain \
+    && mkdir -p /home/appuser/.pi/agent \
+    && chown -R appuser:appgroup /etc/augmenter /home/appuser
+ENV HOME=/home/appuser
 USER appuser
 
 COPY --from=build /out .

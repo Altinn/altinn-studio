@@ -6,7 +6,10 @@ public interface IPdfGenerationStep
 {
     string Name { get; }
 
-    Task<GeneratedPdf?> ExecuteAsync(
+    /// <summary>
+    /// Executes the step and returns zero or more produced files (PDF and/or DOCX).
+    /// </summary>
+    Task<IReadOnlyList<GeneratedPdf>> ExecuteAsync(
         IReadOnlyList<UploadedFile> files,
         CancellationToken cancellationToken = default);
 }

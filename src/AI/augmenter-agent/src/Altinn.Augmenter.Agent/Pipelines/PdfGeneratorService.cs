@@ -15,9 +15,11 @@ public sealed class PdfGeneratorService(
         string templatePath,
         CancellationToken cancellationToken = default)
     {
-        var fullTemplatePath = Path.Combine(AppContext.BaseDirectory, templatePath);
+        var fullTemplatePath = Path.IsPathRooted(templatePath)
+            ? templatePath
+            : Path.Combine(AppContext.BaseDirectory, templatePath);
         var templateDir = Path.GetDirectoryName(fullTemplatePath)!;
-        var templateFile = Path.GetFileName(templatePath);
+        var templateFile = Path.GetFileName(fullTemplatePath);
 
         var tempDir = Path.Combine(Path.GetTempPath(), "augmenter-agent", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tempDir);

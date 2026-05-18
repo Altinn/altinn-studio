@@ -17,19 +17,18 @@ public sealed class PdfPipeline(
             try
             {
                 logger.LogInformation("Running PDF generation step: {StepName}", step.Name);
-                var result = await step.ExecuteAsync(files, cancellationToken);
+                var stepResults = await step.ExecuteAsync(files, cancellationToken);
 
-                if (result != null)
+                foreach (var result in stepResults)
                 {
                     results.Add(result);
                     logger.LogInformation(
-                        "Step {StepName} produced PDF: {PdfName} ({Size} bytes)",
+                        "Step {StepName} produced: {FileName} ({Size} bytes)",
                         step.Name, result.Name, result.Data.Length);
                 }
-                else
-                {
+
+                if (stepResults.Count == 0)
                     logger.LogWarning("Step {StepName} produced no output", step.Name);
-                }
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {

@@ -2,8 +2,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using Altinn.Augmenter.Agent.Configuration;
-using Altinn.Augmenter.Agent.Pipelines.Checklist;
-using Altinn.Augmenter.Agent.Pipelines.Decision;
+using Altinn.Augmenter.Agent.Pipelines.Generic;
 using Altinn.Augmenter.Agent.Services.Agent;
 using Microsoft.Extensions.Options;
 
@@ -54,8 +53,9 @@ public static class AgentTestEndpoints
         // GET /agent-test/checklist — runs the checklist skill with realistic input
         app.MapGet("/agent-test/checklist", async (
             IAgentService agentService,
-            IChecklistDataMapper dataMapper,
+            [FromKeyedServices("checklist")] IDataMapper dataMapper,
             IOptions<AgentOptions> options,
+            IOptions<ContentPathsOptions> contentPaths,
             ILogger<Program> logger,
             CancellationToken ct) =>
         {
@@ -63,12 +63,12 @@ public static class AgentTestEndpoints
             LogTestStart(logger, "checklist", opts);
 
             using var flatData = JsonDocument.Parse(TestFlatDataJson);
-            using var mappedData = dataMapper.MapToChecklist(flatData.RootElement);
+            using var mappedData = dataMapper.Map(flatData.RootElement);
             var checklistJson = SerializeJson(mappedData);
 
             var agentRequest = new AgentRequest
             {
-                SkillFolder = "Pipelines/Checklist/Skill",
+                SkillFolder = Path.Combine(contentPaths.Value.SkillsRoot, "checklist"),
                 UserPrompt = $"""
                     Her er rådata fra søknaden:
 
@@ -92,9 +92,9 @@ public static class AgentTestEndpoints
         // GET /agent-test/decision — runs the decision skill with realistic input
         app.MapGet("/agent-test/decision", async (
             IAgentService agentService,
-            IDecisionDataMapper decisionMapper,
-            IChecklistDataMapper checklistMapper,
+            [FromKeyedServices("decision")] IDataMapper decisionMapper,
             IOptions<AgentOptions> options,
+            IOptions<ContentPathsOptions> contentPaths,
             ILogger<Program> logger,
             CancellationToken ct) =>
         {
@@ -104,17 +104,16 @@ public static class AgentTestEndpoints
             using var flatData = JsonDocument.Parse(TestFlatDataJson);
 
             // Build decision base data
-            using var decisionData = decisionMapper.MapToDecision(flatData.RootElement);
+            using var decisionData = decisionMapper.Map(flatData.RootElement);
             var decisionJson = SerializeJson(decisionData);
 
-            // Build checklist data (uses eksempel.json as a pre-evaluated checklist)
-            var examplePath = Path.Combine(AppContext.BaseDirectory, "Pipelines/Checklist/Templates/eksempel.json");
+            // Pre-evaluated checklist example for testing
+            var examplePath = Path.Combine(contentPaths.Value.TemplatesRoot, "checklist-example.json");
             var checklistJson = File.Exists(examplePath)
                 ? await File.ReadAllTextAsync(examplePath, ct)
                 : null;
 
-            // Load schema
-            var schemaPath = Path.Combine(AppContext.BaseDirectory, "Pipelines/Decision/Templates/vedtak-schema.json");
+            var schemaPath = Path.Combine(contentPaths.Value.SchemasRoot, "decision-schema.json");
             var schemaJson = File.Exists(schemaPath)
                 ? await File.ReadAllTextAsync(schemaPath, ct)
                 : null;
@@ -148,7 +147,7 @@ public static class AgentTestEndpoints
 
             var agentRequest = new AgentRequest
             {
-                SkillFolder = "Pipelines/Decision/Skill",
+                SkillFolder = Path.Combine(contentPaths.Value.SkillsRoot, "decision"),
                 UserPrompt = sb.ToString(),
             };
 
@@ -180,8 +179,7 @@ public static class AgentTestEndpoints
             }
             finally
             {
-                var tempPath = Path.Combine(AppContext.BaseDirectory, skillDir);
-                try { Directory.Delete(tempPath, recursive: true); } catch { }
+                try { Directory.Delete(skillDir, recursive: true); } catch { }
             }
         });
     }
@@ -276,13 +274,12 @@ public static class AgentTestEndpoints
 
     private static string CreateTempSkill()
     {
-        var relDir = Path.Combine("_test_skills", Guid.NewGuid().ToString("N"));
-        var absDir = Path.Combine(AppContext.BaseDirectory, relDir);
+        var absDir = Path.Combine(Path.GetTempPath(), "augmenter-agent-test-skills", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(absDir);
         File.WriteAllText(
             Path.Combine(absDir, "skill.md"),
             "Du er en test-assistent. Svar kort og presist.");
-        return relDir;
+        return absDir;
     }
 
     private static string SerializeJson(JsonDocument doc)

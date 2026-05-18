@@ -11,15 +11,15 @@ public static partial class SkillLoader
     private const string SkillFileName = "skill.md";
 
     /// <summary>
-    /// Loads the system prompt from skill.md in the given folder.
+    /// Loads the system prompt from skill.md inside <paramref name="skillFolderAbsolutePath"/>.
     /// Resolves <c>@filename.ext</c> references on their own line to the content
     /// of the referenced file in the same folder.
     /// </summary>
     public static async Task<string> LoadAsync(
-        string skillFolder,
+        string skillFolderAbsolutePath,
         CancellationToken cancellationToken = default)
     {
-        var fullPath = Path.Combine(AppContext.BaseDirectory, skillFolder, SkillFileName);
+        var fullPath = Path.Combine(skillFolderAbsolutePath, SkillFileName);
 
         if (!File.Exists(fullPath))
         {
@@ -43,7 +43,6 @@ public static partial class SkillLoader
         if (matches.Count == 0)
             return content;
 
-        // Process in reverse order so string indices remain valid
         var result = content;
         for (int i = matches.Count - 1; i >= 0; i--)
         {
@@ -64,9 +63,6 @@ public static partial class SkillLoader
         return result;
     }
 
-    /// <summary>
-    /// Matches lines that consist of only <c>@filename.ext</c> (with optional surrounding whitespace).
-    /// </summary>
     [GeneratedRegex(@"^[ \t]*@(?<filename>[^\s@]+)[ \t]*$", RegexOptions.Multiline)]
     private static partial Regex AtReferencePattern();
 }

@@ -5,5 +5,17 @@ services:
       dockerfile: dockerfile
     ports:
       - "8072:8072"
+    env_file:
+      - .env
     environment:
       - ASPNETCORE_ENVIRONMENT=development
+    volumes:
+      # Mount the active config. Replace with ./examples/alt-config or a
+      # docker-compose.override.yaml when testing alternative skill/template sets.
+      - ./config:/etc/augmenter:ro
+      # Pi's models.json — adds custom providers (Ollama, LM Studio, vLLM, proxies).
+      # Built-in providers (anthropic, openai, google, ...) don't need this file.
+      - ./config/pi/models.json:/home/appuser/.pi/agent/models.json:ro
+    extra_hosts:
+      # Lets the container reach services on the Docker host (Linux needs this; Mac/Windows have it built-in).
+      - "host.docker.internal:host-gateway"

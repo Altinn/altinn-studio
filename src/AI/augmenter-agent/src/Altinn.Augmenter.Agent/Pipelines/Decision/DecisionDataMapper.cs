@@ -1,16 +1,12 @@
 using System.Text.Json;
+using Altinn.Augmenter.Agent.Pipelines.Generic;
+using Altinn.Augmenter.Agent.Services.Domain;
 
 namespace Altinn.Augmenter.Agent.Pipelines.Decision;
 
-public sealed class DecisionDataMapper : IDecisionDataMapper
+public sealed class DecisionDataMapper(DomainDataProvider domainData) : IDataMapper
 {
-    private static readonly Dictionary<string, string> KommuneMap = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["4204"] = "Kristiansand",
-        ["4223"] = "Vennesla",
-    };
-
-    public JsonDocument MapToDecision(JsonElement flatData)
+    public JsonDocument Map(JsonElement flatData)
     {
         using var stream = new MemoryStream();
         using var writer = new Utf8JsonWriter(stream);
@@ -34,7 +30,7 @@ public sealed class DecisionDataMapper : IDecisionDataMapper
         return JsonDocument.Parse(stream);
     }
 
-    private static void WriteMeta(Utf8JsonWriter writer, JsonElement flatData)
+    private void WriteMeta(Utf8JsonWriter writer, JsonElement flatData)
     {
         writer.WriteStartObject("meta");
         writer.WriteString("saksnummer", "–");
@@ -121,20 +117,16 @@ public sealed class DecisionDataMapper : IDecisionDataMapper
         writer.WriteEndObject();
     }
 
-    private static void WriteVedtak(Utf8JsonWriter writer, JsonElement flatData)
+    private void WriteVedtak(Utf8JsonWriter writer, JsonElement flatData)
     {
         writer.WriteStartObject("vedtak");
 
-        var bevillingsType = MapBevillingstype(GetString(flatData, "BevillingsType"));
-        var alkoholgruppe = MapAlkoholgruppe(GetString(flatData, "Arrangement"));
+        var bevillingsType = domainData.MapBevillingstypeForDecision(GetString(flatData, "BevillingsType"));
 
-        // Try to get alkoholgruppe from Arrangement.VaregruppeAlkohol
-        if (TryGet(flatData, "Arrangement", out var arr))
-        {
-            var varegruppe = GetString(arr, "VaregruppeAlkohol");
-            if (varegruppe != null)
-                alkoholgruppe = MapVaregruppe(varegruppe);
-        }
+        var varegruppe = TryGet(flatData, "Arrangement", out var arr)
+            ? GetString(arr, "VaregruppeAlkohol")
+            : null;
+        var alkoholgruppe = domainData.MapAlkoholgruppeDecision(varegruppe);
 
         writer.WriteString("utfall", "innvilgelse");
         writer.WriteString("bevillingstype", bevillingsType);
@@ -254,17 +246,15 @@ public sealed class DecisionDataMapper : IDecisionDataMapper
         writer.WriteEndObject();
     }
 
-    private static void WriteKlage(Utf8JsonWriter writer, JsonElement flatData)
+    private void WriteKlage(Utf8JsonWriter writer, JsonElement flatData)
     {
-        var kommune = GetKommune(flatData);
-        var kommuneEpost = kommune.Equals("Kristiansand", StringComparison.OrdinalIgnoreCase)
-            ? "post@kristiansand.kommune.no"
-            : "post@vennesla.kommune.no";
+        var knr = ExtractKommunenummer(flatData);
+        var entry = domainData.LookupKommune(knr);
 
         writer.WriteStartObject("klage");
         writer.WriteNumber("klagefrist_uker", 3);
         writer.WriteString("klageinstans", "Statsforvalteren i Agder");
-        writer.WriteString("kommune_epost", kommuneEpost);
+        writer.WriteString("kommune_epost", entry.KlageEpost);
         writer.WriteEndObject();
     }
 
@@ -274,82 +264,49 @@ public sealed class DecisionDataMapper : IDecisionDataMapper
         writer.WriteEndArray();
     }
 
-    private static string MapBevillingstype(string? bevillingsType)
+    private string GetKommune(JsonElement flatData)
     {
-        if (string.IsNullOrEmpty(bevillingsType))
-            return "enkeltbevilling";
+        var knr = ExtractKommunenummer(flatData);
+        if (knr != null && domainData.Kommuner.Kommuner.TryGetValue(knr, out var entry))
+            return entry.Navn;
 
-        var normalized = bevillingsType.ToLowerInvariant().Replace(" ", "").Replace("-", "");
-
-        if (normalized.Contains("enkelt") || normalized.Contains("arrangement"))
-            return "enkeltbevilling";
-        if (normalized.Contains("utvidelse") && normalized.Contains("skjenke"))
-            return "utvidelse_skjenke";
-        if (normalized.Contains("skjenke"))
-            return "skjenkebevilling";
-        if (normalized.Contains("salg"))
-            return "salgsbevilling";
-        if (normalized.Contains("servering"))
-            return "serveringsbevilling";
-
-        return "enkeltbevilling";
-    }
-
-    private static string MapVaregruppe(string varegruppe)
-    {
-        var normalized = varegruppe.ToLowerInvariant().Replace(" ", "").Replace("-", "");
-
-        if (normalized.Contains("tre") || normalized.Contains("3"))
-            return "gruppe_1_2_3";
-        if (normalized.Contains("to") || normalized.Contains("2"))
-            return "gruppe_1_2";
-
-        return "gruppe_1";
-    }
-
-    private static string MapAlkoholgruppe(string? _) => "gruppe_1_2";
-
-    private static string GetKommune(JsonElement flatData)
-    {
-        // Try Kommunenummer first (most reliable)
-        var kommunenummer = GetString(flatData, "Kommunenummer");
-        if (kommunenummer != null && KommuneMap.TryGetValue(kommunenummer, out var mappedKommune))
-            return mappedKommune;
-
-        // Try nested Kommune fields
         if (TryGet(flatData, "Arrangement", out var arrangement) &&
             TryGet(arrangement, "Arrangementssted", out var sted))
         {
             var kommune = GetString(sted, "Kommune");
-            if (kommune != null)
-                return kommune;
-
-            // Try Kommunenummer in address
-            if (TryGet(sted, "StedsAdresse", out var stedsAdr))
-            {
-                var knr = GetString(stedsAdr, "Kommunenummer");
-                if (knr != null && KommuneMap.TryGetValue(knr, out var mapped))
-                    return mapped;
-            }
+            if (kommune != null) return kommune;
         }
 
         if (TryGet(flatData, "StedsOpplysninger", out var stedsOpplysninger))
         {
             var kommune = GetString(stedsOpplysninger, "Kommune");
-            if (kommune != null)
-                return kommune;
+            if (kommune != null) return kommune;
         }
 
-        // Try Innsender address
+        return domainData.Kommuner.Default.Navn;
+    }
+
+    private static string? ExtractKommunenummer(JsonElement flatData)
+    {
+        var direct = GetString(flatData, "Kommunenummer");
+        if (direct != null) return direct;
+
+        if (TryGet(flatData, "Arrangement", out var arrangement) &&
+            TryGet(arrangement, "Arrangementssted", out var sted) &&
+            TryGet(sted, "StedsAdresse", out var stedsAdr))
+        {
+            var knr = GetString(stedsAdr, "Kommunenummer");
+            if (knr != null) return knr;
+        }
+
         if (TryGet(flatData, "Innsender", out var innsender) &&
             TryGet(innsender, "Adresse", out var adr))
         {
             var knr = GetString(adr, "Kommunenummer");
-            if (knr != null && KommuneMap.TryGetValue(knr, out var mapped))
-                return mapped;
+            if (knr != null) return knr;
         }
 
-        return "Vennesla";
+        return null;
     }
 
     private static string GetInnsenderNavn(JsonElement flatData)

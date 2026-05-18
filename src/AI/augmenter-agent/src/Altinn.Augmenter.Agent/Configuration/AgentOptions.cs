@@ -5,9 +5,20 @@ public sealed class AgentOptions
     public const string SectionName = "Agent";
 
     /// <summary>
-    /// Path to the Claude CLI executable. Defaults to "claude" (expects it on PATH).
+    /// Agent provider: <c>pi</c> (production) or <c>claude-cli</c> (local dev).
     /// </summary>
-    public string CliPath { get; set; } = "claude";
+    public string Provider { get; set; } = "pi";
+
+    /// <summary>
+    /// Path to the agent CLI executable. Defaults to the provider name on PATH.
+    /// </summary>
+    public string CliPath { get; set; } = "pi";
+
+    /// <summary>
+    /// Anthropic API key, normally sourced from the ANTHROPIC_API_KEY env var
+    /// (which providers read directly). Set here only if you must override.
+    /// </summary>
+    public string? ApiKey { get; set; }
 
     /// <summary>
     /// Maximum time in seconds to wait for the agent process to complete.

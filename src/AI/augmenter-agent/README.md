@@ -1,172 +1,193 @@
 # Altinn Augmenter Agent
 
-A microservice that generates PDFs from uploaded files using [Typst](https://typst.app/), with both synchronous and asynchronous (callback-based) endpoints.
+A generic, image-external configurable microservice that generates PDF (and optionally DOCX)
+documents from uploaded application data, optionally enriched by an AI agent. The Docker image
+ships only the runtime (Typst + Pandoc + Pi CLI); all skills, prompts, templates, domain tables,
+pipeline definition, and model/auth configuration are mounted in from `config/` and `.env`.
 
-## Prerequisites
+## Quick start (Docker)
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- [Typst CLI](https://github.com/typst/typst) — installed via PATH or WinGet
+```bash
+cp .env.example .env             # fill in ANTHROPIC_API_KEY
+docker compose up --build
+```
 
-## Getting started
+The service starts on `http://localhost:8072`.
 
-### Run locally
+## Quick start (local .NET, with Claude CLI)
+
+For development, you can swap Pi for the locally installed `claude` CLI:
 
 ```bash
 dotnet run --project src/Altinn.Augmenter.Agent
 ```
 
-The service starts at `http://localhost:8072`.
+`appsettings.Development.json` sets `Agent:Provider=claude-cli` so this works out of the box
+when `claude` is on `PATH` and authenticated.
 
-### Run with Docker
+## Mounted config layout
 
-```bash
-docker compose up --build
+```
+config/
+├── pipeline.yaml              # which steps run, in what order
+├── skills/
+│   ├── checklist/skill.md     # + @guide.md, @other.md references
+│   └── decision/skill.md
+├── templates/
+│   ├── request-info.typ       # Typst (PDF)
+│   ├── checklist.typ
+│   ├── decision.typ
+│   ├── decision.md            # Markdown (DOCX via Pandoc)
+│   └── decision-schema.json   # injected into agent prompt
+├── domain/
+│   ├── kommuner.json          # kommunenummer → navn + klage-epost
+│   ├── bevillingstyper.json   # input → normalized type + lovhenvisninger
+│   ├── alkoholgrupper.json    # varegruppe → standardized label
+│   └── sjekkliste.json        # checklist sections + items
+└── pi/
+    └── models.json            # Pi providers (LM Studio, Ollama, vLLM, proxies)
 ```
 
-The Docker image installs Typst from the Alpine Edge repository and runs as a non-root user.
+## Reload after a change — what command?
 
-### Run tests
+| You changed... | Run |
+|---|---|
+| any file under `config/` | `docker compose restart augmenter-agent` |
+| `.env` | `docker compose up -d` (add `--force-recreate` if it doesn't pick up) |
+| `dockerfile` or anything under `src/` | `docker compose up -d --build` |
 
-```bash
-dotnet test
+`docker compose restart` only restarts the process inside the existing container; it
+does **not** re-read `.env`. Env vars are baked in at container creation time.
+
+## Models, providers, and `.env`
+
+Pi-CLI is provider-agnostic — it can route to Anthropic, OpenAI, Google, Groq,
+or any OpenAI/Anthropic-compatible local server (LM Studio, Ollama, vLLM, ...).
+Two files cooperate:
+
+- **`.env`** holds secrets and selects which model to call (`Agent__Model=<provider>/<id>`).
+- **`config/pi/models.json`** defines endpoints for **non-built-in** providers.
+  Built-in providers (anthropic, openai, google, groq) work via env vars alone
+  and don't need an entry here.
+
+`apiKey` in `models.json` can reference an env var by name (e.g. `"OPENAI_API_KEY"`),
+so the secret stays in `.env` while the endpoint lives in a checked-in `models.json`.
+
+```env
+Agent__Provider=pi
+Agent__Model=lmstudio/qwen2.5-coder:7b   # matches an entry in config/pi/models.json
+LMSTUDIO_API_KEY=lmstudio                 # any string; many local servers don't validate
 ```
 
-Tests that require the Typst CLI are skipped automatically if it is not installed.
+`.env` is `.gitignored`. Copy `.env.example` and never commit a real key.
 
-### Quick smoke test
+## Adding a new step (no rebuild)
 
-```bash
-curl -X POST http://localhost:8072/generate \
-  -F "file=@test/testdata/zero-byte.pdf;type=application/pdf" \
-  --output generated.pdf
+1. Pick a step type: `mapping-pdf` (no AI) or `agent-pdf` (AI).
+2. Add an entry to `config/pipeline.yaml`:
+
+    ```yaml
+    - name: my-new-step
+      type: agent-pdf
+      mapper: <key>            # IDataMapper registered in Program.cs
+      skillFolder: my-skill    # config/skills/my-skill/skill.md
+      template: my.typ         # config/templates/my.typ
+      docxTemplate: my.md      # optional — also emits .docx
+      output: my.pdf
+      expectedJsonKey: foo
+      consumeContext: [some-other-step-output]
+      publishTo: my-step-result
+    ```
+
+3. Drop the skill folder, Typst template, and (if used) Markdown template under `config/`.
+4. Restart the container.
+
+For a brand-new domain whose data shape differs from bevillinger, register an `IDataMapper`
+under a new key in `Program.cs` (only step type that requires C# code).
+
+## Adding a new kommune (no rebuild)
+
+Edit `config/domain/kommuner.json`:
+
+```json
+"1234": { "navn": "Mykommune", "klageEpost": "post@mykommune.no" }
 ```
+
+Same pattern for `bevillingstyper.json`, `alkoholgrupper.json`, `sjekkliste.json`.
 
 ## API
 
 ### `GET /health`
-
 Returns `200 OK` with `{ "status": "ok" }`.
 
 ### `POST /generate`
+Synchronous. Returns JSON with all generated files (PDF and DOCX).
 
-Synchronous PDF generation. Returns the PDF directly.
+**Request:** `multipart/form-data`, field `file` repeated for each application JSON.
 
-**Request:** `multipart/form-data`
-
-| Field  | Type | Required | Description |
-|--------|------|----------|-------------|
-| `file` | file | Yes (1+) | Files to process. Allowed types: `application/pdf`, `application/xml`, `text/xml`, `application/json` |
-
-**Response:** `200 OK` with `Content-Type: application/pdf`
+**Response:** `200 OK`
+```json
+{
+  "pdfs": [
+    { "name": "request-info.pdf", "data": "<base64>" },
+    { "name": "checklist.pdf",    "data": "<base64>" },
+    { "name": "decision.pdf",     "data": "<base64>" },
+    { "name": "decision.docx",    "data": "<base64>" }
+  ]
+}
+```
 
 ### `POST /generate-async`
-
-Asynchronous PDF generation. Accepts the job immediately and POSTs the result to a callback URL.
-
-**Request:** `multipart/form-data`
-
-| Field          | Type   | Required | Description |
-|----------------|--------|----------|-------------|
-| `file`         | file   | Yes (1+) | Same file constraints as `/generate` |
-| `callback-url` | string | Yes      | URL to receive the generated PDF via POST |
-
-**Response:** `202 Accepted` with `{ "status": "accepted" }`
-
-The callback receives a `multipart/form-data` POST with the PDF in a field named `file`.
-
-## Configuration
-
-All settings are in `appsettings.json` and can be overridden with environment variables.
-
-| Section | Key | Default | Description |
-|---------|-----|---------|-------------|
-| `Upload` | `MaxFileBytes` | 10 MB | Max size per uploaded file |
-| `Upload` | `MaxTotalBytes` | 50 MB | Max total request size |
-| `PdfGeneration` | `ProcessTimeoutSeconds` | 60 | Typst process timeout |
-| `PdfGeneration` | `TemplatePath` | `pdf-templates/default.typ` | Path to Typst template |
-| `Callback` | `AllowedPatterns` | `[]` | Allowlist for callback URLs (see below) |
-| `Callback` | `TimeoutSeconds` | 30 | HTTP timeout for callback POST |
-| `Callback` | `MaxRetries` | 3 | Max retry attempts for failed callbacks |
-| `Callback` | `RetryBaseDelaySeconds` | 2 | Base delay for exponential backoff |
-| `Typst` | `Path` | `typst` | Path to Typst executable |
-
-### Callback URL patterns
-
-The `AllowedPatterns` array controls which callback URLs are accepted. Patterns support wildcards:
-
-- `*` in host matches a single DNS label: `*.altinn.no` matches `app.altinn.no` but not `deep.sub.altinn.no`
-- `:*` in port matches any port: `http://localhost:*/*`
-- `*` in path matches a single segment: `/api/*/callback`
-- Trailing `/*` matches everything under that path: `/api/*` matches `/api/v1/deep/path`
-
-In development, `http://localhost:*/*` is configured by default.
+Asynchronous. Adds field `callback-url`; service POSTs each produced file to the URL.
 
 ## Architecture
 
 ```
-                          ┌─────────────────────────────┐
-  POST /generate ────────>│  MultipartParserService      │──> PdfGeneratorService ──> PDF response
-                          └─────────────────────────────┘
-                          ┌─────────────────────────────┐     ┌──────────────────────┐
-  POST /generate-async ──>│  MultipartParserService      │──> │  PdfGenerationQueue   │
-                          │  CallbackUrlValidator        │    │  (bounded channel)    │
-                          └─────────────────────────────┘    └──────────┬───────────┘
-                                                                        │
-                                                             ┌──────────▼───────────┐
-                                                             │  BackgroundService    │
-                                                             │  ┌─ PdfGenerator      │
-                                                             │  └─ CallbackService ──┼──> POST to callback
-                                                             │  (retry + backoff)    │
-                                                             └──────────────────────┘
+multipart upload
+       │
+       ▼
+┌──────────────────────┐
+│  PdfPipeline         │  reads pipeline.yaml at startup
+│  ┌────────────────┐  │
+│  │ MappingPdfStep │  │  no AI: mapper → Typst → PDF (+ optional DOCX)
+│  ├────────────────┤  │
+│  │ AgentPdfStep   │  │  mapper → IPromptBuilder → IAgentService (Pi or Claude CLI)
+│  │                │  │       → IResponseParser → Typst PDF + Pandoc DOCX
+│  │                │  │       → optional PipelineContext.Set(publishTo, json)
+│  └────────────────┘  │
+└──────────────────────┘
+       │
+       ▼
+   GeneratedPdf[]  (name + bytes)
 ```
 
-### PDF generation pipeline
+Domain logic that previously lived in C# constants now lives in `config/domain/` JSON.
+The image is generic; the same binary serves bevillingssøknader today and any future
+saksbehandlings-type once its config folder is mounted.
 
-Each call to `PdfGeneratorService.GeneratePdfAsync` follows these steps:
+## Configuration reference
 
-1. Creates an isolated temp directory with a unique GUID (`/tmp/augmenter-agent/<guid>/`)
-2. Copies the Typst template into the temp dir as `input.typ`
-3. Writes a `data.json` file with the timestamp (and later other metadata)
-4. Spawns `typst compile input.typ output.pdf`
-5. Reads stdout/stderr concurrently to avoid pipe deadlocks
-6. Returns the PDF bytes and cleans up the temp directory
+| Section | Key | Default | Description |
+|---------|-----|---------|-------------|
+| `Agent` | `Provider` | `pi` | `pi` (container) or `claude-cli` (local dev) |
+| `Agent` | `CliPath` | provider name | Path to CLI binary if not on `PATH` |
+| `Agent` | `Model` | (CLI default) | Model name passed to `--model` |
+| `Agent` | `TimeoutSeconds` | 600 | Max wait for agent process |
+| `ContentPaths` | `SkillsRoot` | `/etc/augmenter/skills` | Local dev auto-discovers `config/skills/` |
+| `ContentPaths` | `TemplatesRoot` | `/etc/augmenter/templates` | Local dev auto-discovers `config/templates/` |
+| `ContentPaths` | `DomainRoot` | `/etc/augmenter/domain` | Local dev auto-discovers `config/domain/` |
+| `Callback` | `AllowedPatterns` | `[]` | Allowlist (wildcards supported) for `/generate-async` callbacks |
+| `Upload` | `MaxFileBytes` / `MaxTotalBytes` | 10 MB / 50 MB | Per-file and per-request size limits |
+| `PdfGeneration` | `ProcessTimeoutSeconds` | 60 | Typst process timeout |
+| `Typst` | `Path` | `typst` | Typst binary path |
+| `Pandoc` | `Path` | `pandoc` | Pandoc binary path |
 
-The template uses Typst's native `json("data.json")` to load data, avoiding `string.Format` escaping issues with Typst's `{ }` syntax.
-
-### Thread safety and concurrency
-
-The service is fully safe for concurrent requests. Each `GeneratePdfAsync` invocation creates its own temp directory keyed by `Guid.NewGuid()`, so parallel requests never share files:
-
-```
-Request A  →  /tmp/augmenter-agent/a1b2c3.../input.typ + data.json + output.pdf
-Request B  →  /tmp/augmenter-agent/d4e5f6.../input.typ + data.json + output.pdf
-```
-
-Typst's `json("data.json")` resolves relative to the input file's directory, so each process reads its own data file. There is no shared mutable state between requests.
-
-### Async job processing
-
-The `/generate-async` endpoint enqueues jobs into a bounded channel (capacity: 100). A single `BackgroundService` dequeues and processes jobs sequentially. If the callback POST fails, it retries with exponential backoff (capped at shift 16 to prevent int overflow). Metrics counters track processed, failed, and retried jobs via `System.Diagnostics.Metrics`.
-
-### Security
-
-- **Callback URL allowlist:** All callback URLs are validated against configured regex patterns with a 1-second match timeout
-- **File validation:** Content-type allowlist and per-file/total size limits
-- **Process isolation:** Typst runs as a child process with a configurable timeout; the entire process tree is killed on timeout
-- **Docker:** Runs as non-root user in Alpine container
-
-## Project structure
+## Tests
 
 ```
-src/Altinn.Augmenter.Agent/
-├── Configuration/          Options classes (CallbackOptions, UploadOptions, PdfGenerationOptions)
-├── Endpoints/              Minimal API endpoint definitions
-├── Models/                 Record types (ParsedFormData, PdfGenerationJob, UploadedFile)
-├── Services/               Core services and interfaces
-├── pdf-templates/          Typst templates
-└── Program.cs              Service registration and middleware pipeline
-
-test/Altinn.Augmenter.Agent.Tests/
-├── Integration/            End-to-end tests with TestWebApplicationFactory and WireMock
-└── Unit/                   Isolated service tests
+dotnet test
 ```
+
+Tests that require Typst skip automatically if it's not on `PATH`. Integration tests that
+exercise the full pipeline depend on a working agent CLI; in a CI environment without
+valid credentials they should be filtered out or pointed at a mock provider.

@@ -1,29 +1,14 @@
 using System.Text.Json;
+using Altinn.Augmenter.Agent.Pipelines.Generic;
+using Altinn.Augmenter.Agent.Services.Domain;
 
 namespace Altinn.Augmenter.Agent.Pipelines.RequestInfo;
 
-public sealed class RequestInfoDataMapper(ILogger<RequestInfoDataMapper> logger) : IRequestInfoDataMapper
+public sealed class RequestInfoDataMapper(
+    DomainDataProvider domainData,
+    ILogger<RequestInfoDataMapper> logger) : IDataMapper
 {
-    private static readonly Dictionary<string, string> BevillingsTypeMapping = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["arrangement"] = "enkeltbevilling",
-        ["enkeltbevilling"] = "enkeltbevilling",
-        ["skjenke"] = "alminnelig skjenkebevilling",
-        ["skjenkebevilling"] = "alminnelig skjenkebevilling",
-        ["alminnelig skjenkebevilling"] = "alminnelig skjenkebevilling",
-        ["salg"] = "salgsbevilling",
-        ["salgsbevilling"] = "salgsbevilling",
-        ["servering"] = "serveringsbevilling",
-        ["serveringsbevilling"] = "serveringsbevilling",
-    };
-
-    private static readonly string[] DefaultLovhenvisninger =
-    [
-        "Alkoholloven \u00a7\u00a71-7, 1-7b, 1-15",
-        "Serveringsloven \u00a7\u00a7 4, 6, 9, 11",
-    ];
-
-    public JsonDocument MapToRequestInfo(JsonElement flatData)
+    public JsonDocument Map(JsonElement flatData)
     {
         using var stream = new MemoryStream();
         using var writer = new Utf8JsonWriter(stream);
@@ -46,13 +31,11 @@ public sealed class RequestInfoDataMapper(ILogger<RequestInfoDataMapper> logger)
 
     private void WriteTypeSak(Utf8JsonWriter writer, JsonElement flatData)
     {
-        var bevillingsType = GetStringProperty(flatData, "BevillingsType") ?? "enkeltbevilling";
+        var bevillingsType = GetStringProperty(flatData, "BevillingsType");
+        var typeSak = domainData.MapBevillingstype(bevillingsType);
 
-        if (!BevillingsTypeMapping.TryGetValue(bevillingsType, out var typeSak))
-        {
-            logger.LogWarning("Unknown BevillingsType '{BevillingsType}', defaulting to enkeltbevilling", bevillingsType);
-            typeSak = "enkeltbevilling";
-        }
+        if (bevillingsType != null && !domainData.Bevillingstyper.Mapping.ContainsKey(bevillingsType))
+            logger.LogWarning("Unknown BevillingsType '{BevillingsType}', defaulting to {Default}", bevillingsType, typeSak);
 
         writer.WriteString("type-sak", typeSak);
     }
@@ -217,10 +200,10 @@ public sealed class RequestInfoDataMapper(ILogger<RequestInfoDataMapper> logger)
         writer.WriteEndObject();
     }
 
-    private static void WriteLovhenvisninger(Utf8JsonWriter writer)
+    private void WriteLovhenvisninger(Utf8JsonWriter writer)
     {
         writer.WriteStartArray("lovhenvisninger");
-        foreach (var lov in DefaultLovhenvisninger)
+        foreach (var lov in domainData.Bevillingstyper.Lovhenvisninger)
         {
             writer.WriteStringValue(lov);
         }

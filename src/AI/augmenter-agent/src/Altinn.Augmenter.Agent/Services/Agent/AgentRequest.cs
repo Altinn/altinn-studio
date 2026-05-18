@@ -8,8 +8,8 @@ namespace Altinn.Augmenter.Agent.Services.Agent;
 public sealed class AgentRequest
 {
     /// <summary>
-    /// Path to the skill folder (relative to <see cref="AppContext.BaseDirectory"/>).
-    /// Must contain a <c>skill.md</c> file.
+    /// Absolute path to the skill folder. Must contain a <c>skill.md</c> file.
+    /// Step classes resolve this from <c>ContentPathsOptions.SkillsRoot</c>.
     /// </summary>
     public required string SkillFolder { get; init; }
 

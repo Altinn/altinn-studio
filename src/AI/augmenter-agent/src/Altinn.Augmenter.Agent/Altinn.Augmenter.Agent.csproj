@@ -9,8 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Pipelines\**\Templates\*.typ" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="Pipelines\**\Skill\*.md" CopyToOutputDirectory="PreserveNewest" />
+    <PackageReference Include="YamlDotNet" Version="16.*" />
   </ItemGroup>
 
 </Project>
