@@ -35,6 +35,16 @@ const (
 	SecretTokenKey = "token"
 )
 
+// RegistrationSecretState describes whether a per-org runner registration
+// Secret is safe for the ConfigMap to reference.
+type RegistrationSecretState string
+
+const (
+	RegistrationSecretMissing RegistrationSecretState = "missing"
+	RegistrationSecretValid   RegistrationSecretState = "valid"
+	RegistrationSecretInvalid RegistrationSecretState = "invalid"
+)
+
 // Store is the package's only entry point for cluster I/O.
 type Store struct {
 	client    kubernetes.Interface
@@ -76,6 +86,30 @@ func (s *Store) SecretExists(ctx context.Context, name string) (bool, error) {
 		return false, nil
 	}
 	return false, fmt.Errorf("k8sstate: get secret %s: %w", name, err)
+}
+
+// RegistrationSecretStatus reports whether the named Secret exists and has
+// the ownership labels and token data expected for the given org.
+func (s *Store) RegistrationSecretStatus(ctx context.Context, name, org string) (RegistrationSecretState, error) {
+	sec, err := s.client.CoreV1().Secrets(s.namespace).Get(ctx, name, metav1.GetOptions{})
+	if apierrors.IsNotFound(err) {
+		return RegistrationSecretMissing, nil
+	}
+	if err != nil {
+		return "", fmt.Errorf("k8sstate: get registration secret %s: %w", name, err)
+	}
+	if sec.Type != "" && sec.Type != corev1.SecretTypeOpaque {
+		return RegistrationSecretInvalid, nil
+	}
+	if sec.Labels[LabelManagedBy] != ManagedBy ||
+		sec.Labels[LabelComponent] != ComponentRegToken ||
+		sec.Labels[LabelOrg] != org {
+		return RegistrationSecretInvalid, nil
+	}
+	if len(sec.Data[SecretTokenKey]) == 0 {
+		return RegistrationSecretInvalid, nil
+	}
+	return RegistrationSecretValid, nil
 }
 
 // CreateRegistrationSecret creates an Opaque Secret carrying the

@@ -13,12 +13,12 @@ import (
 	"errors"
 	"fmt"
 	"sort"
-	"strings"
 
 	"altinn.studio/runner-org-sync/internal/cdn"
 	"altinn.studio/runner-org-sync/internal/gitea"
 	"altinn.studio/runner-org-sync/internal/k8sstate"
 	corev1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/yaml"
 )
 
 // Defaults used when the caller does not override.
@@ -30,9 +30,10 @@ const (
 
 // Failure stages, surfaced on Report.FailedOrgs[*].Stage.
 const (
-	StageMint   = "mint"
-	StageCreate = "create"
-	StageDelete = "delete"
+	StageValidate = "validate"
+	StageMint     = "mint"
+	StageCreate   = "create"
+	StageDelete   = "delete"
 )
 
 // OrgSource produces the discovered org population (typically the CDN client).
@@ -50,7 +51,7 @@ type TokenMinter interface {
 // SecretStore is the cluster I/O surface the Reconciler needs.
 type SecretStore interface {
 	ListManagedSecrets(ctx context.Context) ([]corev1.Secret, error)
-	SecretExists(ctx context.Context, name string) (bool, error)
+	RegistrationSecretStatus(ctx context.Context, name, org string) (k8sstate.RegistrationSecretState, error)
 	CreateRegistrationSecret(ctx context.Context, name, org, token string) error
 	DeleteSecret(ctx context.Context, name string) error
 	ApplyConfigMap(ctx context.Context, name string, data map[string]string) (bool, error)
@@ -171,15 +172,23 @@ func (r *Reconciler) Run(ctx context.Context) (Report, error) {
 	orgHasSecret := make(map[string]bool, len(desired))
 	for _, org := range desired {
 		name := r.secretNameFor(org.Code)
-		exists, err := r.store.SecretExists(ctx, name)
+		status, err := r.store.RegistrationSecretStatus(ctx, name, org.Code)
 		if err != nil {
-			// SecretExists hitting a transient apiserver error is fatal for
+			// The lookup hitting a transient apiserver error is fatal for
 			// this run — without this lookup we cannot decide mint-or-skip.
-			return report, fmt.Errorf("reconcile: check secret %s: %w", name, err)
+			return report, fmt.Errorf("reconcile: check registration secret %s: %w", name, err)
 		}
-		if exists {
+		switch status {
+		case k8sstate.RegistrationSecretValid:
 			report.SecretsSkipped = append(report.SecretsSkipped, org.Code)
 			orgHasSecret[org.Code] = true
+			continue
+		case k8sstate.RegistrationSecretInvalid:
+			report.FailedOrgs = append(report.FailedOrgs, OrgFailure{
+				Org:   org.Code,
+				Stage: StageValidate,
+				Err:   fmt.Errorf("registration secret %s exists but is not a valid runner token secret", name),
+			})
 			continue
 		}
 		token, err := r.minter.MintRegistrationToken(ctx, org.Code)
@@ -287,15 +296,26 @@ func (r *Reconciler) filter(orgs []cdn.Org, report *Report) []cdn.Org {
 // on the consumer side, so a runner-org-sync-supplied replicas field would
 // be ignored at best and misleading at worst.
 func renderRunners(orgs []string, secretNameFor func(org string) string) string {
-	if len(orgs) == 0 {
+	runners := make([]runnerConfig, 0, len(orgs))
+	for _, org := range orgs {
+		runners = append(runners, runnerConfig{
+			Name:                        org,
+			RegistrationTokenSecretName: secretNameFor(org),
+		})
+	}
+	out, err := yaml.Marshal(runners)
+	if err != nil {
+		// The input is a simple slice of strings rendered into a static struct;
+		// yaml.Marshal should not fail. Keep the historical empty-list output
+		// if it ever does, so the chart does not reference stale runners.
 		return "[]\n"
 	}
-	var b strings.Builder
-	for _, org := range orgs {
-		fmt.Fprintf(&b, "- name: %s\n", org)
-		fmt.Fprintf(&b, "  registrationTokenSecretName: %s\n", secretNameFor(org))
-	}
-	return b.String()
+	return string(out)
+}
+
+type runnerConfig struct {
+	Name                        string `json:"name"`
+	RegistrationTokenSecretName string `json:"registrationTokenSecretName"`
 }
 
 func orgCodes(orgs []cdn.Org) []string {

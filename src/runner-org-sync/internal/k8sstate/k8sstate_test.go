@@ -68,6 +68,72 @@ func TestSecretExists(t *testing.T) {
 	}
 }
 
+func TestRegistrationSecretStatus(t *testing.T) {
+	c := fake.NewSimpleClientset(
+		&corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "valid",
+				Namespace: testNamespace,
+				Labels: map[string]string{
+					LabelManagedBy: ManagedBy,
+					LabelComponent: ComponentRegToken,
+					LabelOrg:       "ttd",
+				},
+			},
+			Type: corev1.SecretTypeOpaque,
+			Data: map[string][]byte{SecretTokenKey: []byte("tok")},
+		},
+		&corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "foreign",
+				Namespace: testNamespace,
+				Labels:    map[string]string{LabelManagedBy: "someone-else"},
+			},
+			Type: corev1.SecretTypeOpaque,
+			Data: map[string][]byte{SecretTokenKey: []byte("tok")},
+		},
+		&corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "empty-token",
+				Namespace: testNamespace,
+				Labels: map[string]string{
+					LabelManagedBy: ManagedBy,
+					LabelComponent: ComponentRegToken,
+					LabelOrg:       "ttd",
+				},
+			},
+			Type: corev1.SecretTypeOpaque,
+			Data: map[string][]byte{SecretTokenKey: nil},
+		},
+	)
+	s := NewStore(c, testNamespace)
+
+	tests := []struct {
+		name       string
+		secretName string
+		org        string
+		want       RegistrationSecretState
+	}{
+		{name: "valid", secretName: "valid", org: "ttd", want: RegistrationSecretValid},
+		{name: "missing", secretName: "missing", org: "ttd", want: RegistrationSecretMissing},
+		{name: "foreign same name", secretName: "foreign", org: "ttd", want: RegistrationSecretInvalid},
+		{name: "wrong org", secretName: "valid", org: "brg", want: RegistrationSecretInvalid},
+		{name: "empty token", secretName: "empty-token", org: "ttd", want: RegistrationSecretInvalid},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := s.RegistrationSecretStatus(context.Background(), tt.secretName, tt.org)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if got != tt.want {
+				t.Errorf("RegistrationSecretStatus() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestDeleteSecret_IdempotentOnMissing(t *testing.T) {
 	c := fake.NewSimpleClientset()
 	s := NewStore(c, testNamespace)

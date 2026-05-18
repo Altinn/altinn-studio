@@ -10,6 +10,7 @@ import (
 
 	"altinn.studio/runner-org-sync/internal/cdn"
 	"altinn.studio/runner-org-sync/internal/gitea"
+	"altinn.studio/runner-org-sync/internal/k8sstate"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -43,7 +44,7 @@ func (m *stubMinter) MintRegistrationToken(_ context.Context, org string) (strin
 
 type stubStore struct {
 	managed         []corev1.Secret
-	existsByName    map[string]bool
+	statusByName    map[string]k8sstate.RegistrationSecretState
 	createErr       map[string]error
 	deleteErr       map[string]error
 	applyCMErr      error
@@ -58,7 +59,7 @@ type stubStore struct {
 
 func newStubStore() *stubStore {
 	return &stubStore{
-		existsByName:    map[string]bool{},
+		statusByName:    map[string]k8sstate.RegistrationSecretState{},
 		createErr:       map[string]error{},
 		deleteErr:       map[string]error{},
 		createdOrgs:     map[string]string{},
@@ -70,11 +71,14 @@ func (s *stubStore) ListManagedSecrets(_ context.Context) ([]corev1.Secret, erro
 	return s.managed, s.listErr
 }
 
-func (s *stubStore) SecretExists(_ context.Context, name string) (bool, error) {
+func (s *stubStore) RegistrationSecretStatus(_ context.Context, name, _ string) (k8sstate.RegistrationSecretState, error) {
 	if s.existsErr != nil {
-		return false, s.existsErr
+		return "", s.existsErr
 	}
-	return s.existsByName[name], nil
+	if status, ok := s.statusByName[name]; ok {
+		return status, nil
+	}
+	return k8sstate.RegistrationSecretMissing, nil
 }
 
 func (s *stubStore) CreateRegistrationSecret(_ context.Context, name, org, _ string) error {
@@ -83,7 +87,7 @@ func (s *stubStore) CreateRegistrationSecret(_ context.Context, name, org, _ str
 	}
 	s.createdSecrets = append(s.createdSecrets, name)
 	s.createdOrgs[name] = org
-	s.existsByName[name] = true
+	s.statusByName[name] = k8sstate.RegistrationSecretValid
 	return nil
 }
 
@@ -190,8 +194,8 @@ func TestRun_IdempotentReRun(t *testing.T) {
 	minter := &stubMinter{}
 	store := newStubStore()
 	// pre-populate existing state — secrets exist for both orgs and we own them.
-	store.existsByName["altinn-gitea-runner-ttd-secret"] = true
-	store.existsByName["altinn-gitea-runner-brg-secret"] = true
+	store.statusByName["altinn-gitea-runner-ttd-secret"] = k8sstate.RegistrationSecretValid
+	store.statusByName["altinn-gitea-runner-brg-secret"] = k8sstate.RegistrationSecretValid
 	store.managed = []corev1.Secret{
 		managedSecret("altinn-gitea-runner-ttd-secret", "ttd"),
 		managedSecret("altinn-gitea-runner-brg-secret", "brg"),
@@ -226,8 +230,8 @@ func TestRun_OrgAdded(t *testing.T) {
 	}}
 	minter := &stubMinter{}
 	store := newStubStore()
-	store.existsByName["altinn-gitea-runner-ttd-secret"] = true
-	store.existsByName["altinn-gitea-runner-brg-secret"] = true
+	store.statusByName["altinn-gitea-runner-ttd-secret"] = k8sstate.RegistrationSecretValid
+	store.statusByName["altinn-gitea-runner-brg-secret"] = k8sstate.RegistrationSecretValid
 	store.managed = []corev1.Secret{
 		managedSecret("altinn-gitea-runner-ttd-secret", "ttd"),
 		managedSecret("altinn-gitea-runner-brg-secret", "brg"),
@@ -254,8 +258,8 @@ func TestRun_OrgRemoved(t *testing.T) {
 	}}
 	minter := &stubMinter{}
 	store := newStubStore()
-	store.existsByName["altinn-gitea-runner-ttd-secret"] = true
-	store.existsByName["altinn-gitea-runner-brg-secret"] = true
+	store.statusByName["altinn-gitea-runner-ttd-secret"] = k8sstate.RegistrationSecretValid
+	store.statusByName["altinn-gitea-runner-brg-secret"] = k8sstate.RegistrationSecretValid
 	store.managed = []corev1.Secret{
 		managedSecret("altinn-gitea-runner-ttd-secret", "ttd"),
 		managedSecret("altinn-gitea-runner-brg-secret", "brg"),
@@ -344,6 +348,30 @@ func TestRun_GiteaPartialFailure(t *testing.T) {
 	}
 	if strings.Contains(store.appliedCMData[ConfigMapDataKey], "name: brg") {
 		t.Errorf("ConfigMap should NOT include brg (mint failed)")
+	}
+}
+
+func TestRun_InvalidExistingSecretIsNotProjected(t *testing.T) {
+	src := &stubSource{orgs: []cdn.Org{
+		{Code: "ttd", Environments: []string{"tt02"}},
+	}}
+	minter := &stubMinter{}
+	store := newStubStore()
+	store.statusByName["altinn-gitea-runner-ttd-secret"] = k8sstate.RegistrationSecretInvalid
+
+	rep := runReconciler(t, src, minter, store, []string{"ttd"}, false)
+
+	if rep.Outcome != OutcomePartial {
+		t.Errorf("outcome = %v, want partial", rep.Outcome)
+	}
+	if len(rep.FailedOrgs) != 1 || rep.FailedOrgs[0].Org != "ttd" || rep.FailedOrgs[0].Stage != StageValidate {
+		t.Errorf("FailedOrgs = %v, want [{ttd validate ...}]", rep.FailedOrgs)
+	}
+	if len(minter.calls) != 0 {
+		t.Errorf("minter should not be called when same-name invalid secret exists; got %v", minter.calls)
+	}
+	if got := store.appliedCMData[ConfigMapDataKey]; got != "[]\n" {
+		t.Errorf("ConfigMap body = %q, want empty runner list", got)
 	}
 }
 
@@ -449,7 +477,7 @@ func TestRun_SyncAllSkipsWhitelist(t *testing.T) {
 func TestRun_UnlabelledManagedSecretIsSkippedOnDelete(t *testing.T) {
 	src := &stubSource{orgs: []cdn.Org{{Code: "ttd", Environments: []string{"tt02"}}}}
 	store := newStubStore()
-	store.existsByName["altinn-gitea-runner-ttd-secret"] = true
+	store.statusByName["altinn-gitea-runner-ttd-secret"] = k8sstate.RegistrationSecretValid
 	store.managed = []corev1.Secret{
 		managedSecret("altinn-gitea-runner-ttd-secret", "ttd"),
 		// drift: managed-by label but no org label
