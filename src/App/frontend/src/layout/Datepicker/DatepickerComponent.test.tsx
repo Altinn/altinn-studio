@@ -11,7 +11,7 @@ import type { RenderGenericComponentTestProps } from 'src/test/renderWithProvide
 
 // Mock dateformat
 jest.mock('@app/form-component', () => ({
-  __esModules: true,
+  __esModule: true,
   ...jest.requireActual<typeof import('@app/form-component')>('@app/form-component'),
   getDateFormat: jest.fn(() => 'dd.MM.yyyy'),
 }));

@@ -4,7 +4,7 @@ import type { MonthCaption } from 'react-day-picker';
 import { CalendarIcon } from '@navikt/aksel-icons';
 import { isValid as isValidDate } from 'date-fns';
 
-import { Flex } from '@app/form-component';
+import { Flex } from '../Flex/Flex';
 import styles from './Calendar.module.css';
 import { DatePickerCalendar } from './DatePickerCalendar';
 import { DatePickerDialog } from './DatepickerDialog';
