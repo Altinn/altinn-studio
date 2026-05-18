@@ -9,6 +9,7 @@ export const FEATURE_VERSION_MAP = {
   PDF_PREVIEW_BUTTON: '8.5.0.157',
   APP_LANGUAGES_IN_ANONYMOUS: '8.5.6.180',
   SET_TAGS_ENDPOINT: '8.8.0.215',
+  BACKEND_ORDERED_SIGNING_DOCUMENTS: '8.9.0.225',
   PAYMENT_WEBHOOK: '8.12.0.253',
 } as const;
 
@@ -67,6 +68,10 @@ export function appSupportsIncrementalValidationFeatures(currentNugetVersion: st
 
 export function appSupportsSetTagsEndpoint(currentNugetVersion: string | undefined) {
   return isFeatureSupported({ feature: 'SET_TAGS_ENDPOINT', currentNugetVersion });
+}
+
+export function backendSupportsSigningDocumentOrdering(currentNugetVersion: string | undefined) {
+  return isFeatureSupported({ feature: 'BACKEND_ORDERED_SIGNING_DOCUMENTS', currentNugetVersion });
 }
 
 export function appSupportsPaymentWebhooks(currentNugetVersion: string | undefined) {

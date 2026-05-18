@@ -49,6 +49,7 @@ jest.mock('src/features/language/Lang', () => ({
 jest.mock('src/features/applicationMetadata/ApplicationMetadataProvider', () => ({
   useApplicationMetadata: jest.fn(() => ({
     dataTypes: [],
+    altinnNugetVersion: '8.9.0.225',
   })),
 }));
 
