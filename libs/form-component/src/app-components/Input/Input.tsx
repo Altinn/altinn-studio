@@ -4,45 +4,26 @@ import type { InputHTMLAttributes, ReactNode } from 'react';
 import { Paragraph, Textfield } from '@digdir/designsystemet-react';
 import type { FieldCounterProps } from '@digdir/designsystemet-react';
 
-import { useTranslation } from 'src/app-components/AppComponentsProvider';
-import classes from 'src/app-components/Input/Input.module.css';
-import type { InputType } from 'src/app-components/Input/constants';
-import type { TranslationKey } from 'src/app-components/types';
-
-/**
- * Hook to create a character limit object for use in input components
- */
-export const useCharacterLimit = (maxLength: number | undefined): FieldCounterProps | undefined => {
-  const { translate } = useTranslation();
-
-  if (maxLength === undefined) {
-    return undefined;
-  }
-
-  return {
-    limit: maxLength,
-    under: translate('input_components.remaining_characters'),
-    over: translate('input_components.exceeded_max_limit'),
-  };
-};
+import classes from './Input.module.css';
+import type { InputType } from './constants';
 
 type LabelRequired =
-  | { 'aria-label': TranslationKey; 'aria-labelledby'?: never; label?: never }
+  | { 'aria-label': string; 'aria-labelledby'?: never; label?: never }
   | { 'aria-label'?: never; 'aria-labelledby'?: never; label: ReactNode }
   | { 'aria-label'?: never; 'aria-labelledby': string; label?: never };
 
 export type InputProps = {
   size?: 'sm' | 'md' | 'lg';
-  prefix?: TranslationKey;
-  suffix?: TranslationKey;
+  prefix?: string;
+  suffix?: string;
   error?: ReactNode;
   disabled?: boolean;
   id?: string;
   readOnly?: boolean;
   type?: InputType;
   textonly?: boolean;
-  maxLength?: number;
-  placeholder?: TranslationKey;
+  characterLimit?: FieldCounterProps;
+  placeholder?: string;
 } & Pick<
   InputHTMLAttributes<HTMLInputElement>,
   | 'value'
@@ -65,7 +46,7 @@ export function Input(props: InputProps) {
     readOnly,
     error,
     textonly,
-    maxLength,
+    characterLimit,
     'aria-label': ariaLabel,
     'aria-labelledby': ariaLabelledBy,
     label,
@@ -74,9 +55,6 @@ export function Input(props: InputProps) {
     placeholder,
     ...rest
   } = props;
-
-  const characterLimit = useCharacterLimit(maxLength);
-  const { translate } = useTranslation();
 
   const handlePaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
     if (readOnly) {
@@ -103,7 +81,7 @@ export function Input(props: InputProps) {
   }
 
   const labelProps = ariaLabel
-    ? { 'aria-label': translate(ariaLabel) }
+    ? { 'aria-label': ariaLabel }
     : ariaLabelledBy
       ? { 'aria-labelledby': ariaLabelledBy }
       : { label };
@@ -115,9 +93,9 @@ export function Input(props: InputProps) {
       aria-invalid={!!error}
       readOnly={readOnly}
       counter={!readOnly ? characterLimit : undefined}
-      prefix={prefix ? translate(prefix) : undefined}
-      suffix={suffix ? translate(suffix) : undefined}
-      placeholder={placeholder ? translate(placeholder) : undefined}
+      prefix={prefix}
+      suffix={suffix}
+      placeholder={placeholder}
       {...labelProps}
       {...rest}
     />
