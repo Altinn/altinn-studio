@@ -79,7 +79,7 @@ End to end tests are using Cypress, see [test readme for how to run these](./tes
 
 Unit tests are written using Jest and React testing library
 
-1. Execute `yarn --immutable`. This step is only nescessary if you have not already done it, or when package.json changes.
+1. Execute `yarn --immutable`. This step is only necessary if you have not already done it, or when package.json changes.
 2. Execute `yarn run test`.
 
 ## Contributing

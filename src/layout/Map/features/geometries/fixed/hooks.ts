@@ -25,6 +25,9 @@ export function useMapRawGeometries(baseComponentId: string): RawGeometry[] | un
     const dataPath = toRelativePath(dataModelBindings?.geometries, dataModelBindings?.geometryData) ?? 'data';
     const isEditablePath =
       toRelativePath(dataModelBindings?.geometries, dataModelBindings?.geometryIsEditable) ?? 'isEditable';
+    const isHiddenPath =
+      toRelativePath(dataModelBindings?.geometries, dataModelBindings?.geometryIsHidden) ?? 'isHidden';
+    const stylePath = toRelativePath(dataModelBindings?.geometries, dataModelBindings?.geometryStyle) ?? 'style';
 
     return formData.map((item: unknown): RawGeometry => {
       if (!item || typeof item !== 'object' || !item[ALTINN_ROW_ID]) {
@@ -38,6 +41,8 @@ export function useMapRawGeometries(baseComponentId: string): RawGeometry[] | un
         data: dot.pick(dataPath, item),
         label: dot.pick(labelPath, item),
         isEditable: dot.pick(isEditablePath, item),
+        isHidden: dot.pick(isHiddenPath, item),
+        style: dot.pick(stylePath, item),
       };
     });
   }, [
@@ -45,6 +50,8 @@ export function useMapRawGeometries(baseComponentId: string): RawGeometry[] | un
     dataModelBindings?.geometryData,
     dataModelBindings?.geometryLabel,
     dataModelBindings?.geometryIsEditable,
+    dataModelBindings?.geometryIsHidden,
+    dataModelBindings?.geometryStyle,
     formData,
   ]);
 }
@@ -75,13 +82,13 @@ function parseGeometries(geometries: RawGeometry[] | undefined, geometryType?: I
   }
 
   const out: Geometry[] = [];
-  for (const { altinnRowId, data: rawData, label, isEditable } of geometries) {
+  for (const { altinnRowId, data: rawData, label, isEditable, isHidden, style } of geometries) {
     if (geometryType === 'WKT') {
       const data = wktToGeoJSON(rawData);
-      out.push({ altinnRowId, data, label, isEditable });
+      out.push({ altinnRowId, data, label, isEditable, isHidden, style });
     } else {
       const data = JSON.parse(rawData) as GeoJSON;
-      out.push({ altinnRowId, data, label, isEditable });
+      out.push({ altinnRowId, data, label, isEditable, isHidden, style });
     }
   }
 

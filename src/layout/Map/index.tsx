@@ -82,6 +82,15 @@ export class Map extends MapDef {
         latitude: props.evalNum(props.item.centerLocation?.latitude, 0),
         longitude: props.evalNum(props.item.centerLocation?.longitude, 0),
       },
+      ...(props.item.toolbar && {
+        toolbar: {
+          polyline: props.evalBool(props.item.toolbar.polyline, false),
+          polygon: props.evalBool(props.item.toolbar.polygon, false),
+          rectangle: props.evalBool(props.item.toolbar.rectangle, false),
+          circle: props.evalBool(props.item.toolbar.circle, false),
+          marker: props.evalBool(props.item.toolbar.marker, false),
+        },
+      }),
     };
   }
 }
