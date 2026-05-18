@@ -158,8 +158,7 @@ def score_validation(
 ) -> None:
     """Write a boolean validation result as a Langfuse score (1 = pass, 0 = fail).
 
-    Pass `score_id` to upsert: re-using the same id on a later call overwrites
-    the previous score instead of creating a new one.
+    Pass `score_id` to upsert: re-using the same id on a later call overwrites the previous score.
     """
     client = get_langfuse_client()
     if not config.LANGFUSE_ENABLED:

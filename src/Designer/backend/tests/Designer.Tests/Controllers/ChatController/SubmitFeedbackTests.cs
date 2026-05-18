@@ -13,7 +13,8 @@ namespace Designer.Tests.Controllers.ChatController;
 
 public class SubmitFeedbackTests : ChatControllerTestsBase<SubmitFeedbackTests>
 {
-    private static string FeedbackUrl => $"designer/api/{Org}/{App}/chat/feedback";
+    private const string TraceId = "trace-abc-123";
+    private static string FeedbackUrl => $"designer/api/{Org}/{App}/chat/feedback/{TraceId}";
 
     private readonly Mock<IAltinityAgentClient> _altinityAgentClientMock = new();
 
@@ -29,8 +30,8 @@ public class SubmitFeedbackTests : ChatControllerTestsBase<SubmitFeedbackTests>
     [Fact]
     public async Task SubmitFeedback_WithValidThumbsUp_ForwardsToAgentAndReturnsNoContent()
     {
-        var request = new ChatFeedbackRequest("trace-abc-123", true, null);
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, FeedbackUrl)
+        var request = new ChatFeedbackRequest(true, null);
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Put, FeedbackUrl)
         {
             Content = CreateJsonContent(request),
         };
@@ -38,17 +39,14 @@ public class SubmitFeedbackTests : ChatControllerTestsBase<SubmitFeedbackTests>
         using var response = await HttpClient.SendAsync(httpRequest);
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        _altinityAgentClientMock.Verify(
-            client => client.SendFeedbackAsync(Developer, "trace-abc-123", true, null),
-            Times.Once
-        );
+        _altinityAgentClientMock.Verify(client => client.SendFeedbackAsync(Developer, TraceId, true, null), Times.Once);
     }
 
     [Fact]
     public async Task SubmitFeedback_WithThumbsDownAndComment_ForwardsCommentToAgent()
     {
-        var request = new ChatFeedbackRequest("trace-abc-123", false, "Svaret traff ikke helt.");
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, FeedbackUrl)
+        var request = new ChatFeedbackRequest(false, "Svaret traff ikke helt.");
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Put, FeedbackUrl)
         {
             Content = CreateJsonContent(request),
         };
@@ -57,7 +55,7 @@ public class SubmitFeedbackTests : ChatControllerTestsBase<SubmitFeedbackTests>
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         _altinityAgentClientMock.Verify(
-            client => client.SendFeedbackAsync(Developer, "trace-abc-123", false, "Svaret traff ikke helt."),
+            client => client.SendFeedbackAsync(Developer, TraceId, false, "Svaret traff ikke helt."),
             Times.Once
         );
     }

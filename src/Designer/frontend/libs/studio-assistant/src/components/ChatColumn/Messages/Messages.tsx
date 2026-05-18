@@ -290,7 +290,10 @@ function MessageItem({
         {renderSources()}
         {renderFilesChanged()}
         {showFeedback && (
-          <MessageFeedback texts={feedbackTexts} traceId={traceId} onSubmit={onMessageFeedback} />
+          <MessageFeedback
+            texts={feedbackTexts}
+            onSubmit={(payload) => onMessageFeedback({ traceId, payload })}
+          />
         )}
       </div>
     </div>

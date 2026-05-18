@@ -4,8 +4,6 @@ import { MessageFeedback } from './MessageFeedback';
 import type { MessageFeedbackProps } from './MessageFeedback';
 import { messageFeedbackTexts as feedbackTexts } from '../../../../mocks/mockTexts';
 
-const traceId = 'trace-123';
-
 describe('MessageFeedback', () => {
   it('renders thumbs up and thumbs down buttons', () => {
     renderMessageFeedback();
@@ -33,7 +31,6 @@ describe('MessageFeedback', () => {
 
     expect(onSubmit).toHaveBeenCalledTimes(1);
     expect(onSubmit).toHaveBeenCalledWith({
-      traceId,
       thumbsUp: true,
       comment: undefined,
     });
@@ -50,7 +47,6 @@ describe('MessageFeedback', () => {
 
     expect(onSubmit).toHaveBeenCalledTimes(1);
     expect(onSubmit).toHaveBeenCalledWith({
-      traceId,
       thumbsUp: false,
       comment: 'Svaret traff ikke helt.',
     });
@@ -81,7 +77,6 @@ describe('MessageFeedback', () => {
 
 const defaultProps: MessageFeedbackProps = {
   texts: feedbackTexts,
-  traceId,
   onSubmit: jest.fn(),
 };
 

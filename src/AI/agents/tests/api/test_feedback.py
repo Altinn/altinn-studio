@@ -4,15 +4,15 @@ from fastapi.testclient import TestClient
 
 from api.main import app
 
-FEEDBACK_PATH = "/api/feedback"
 VALID_TRACE_ID = "trace-abc-123"
+FEEDBACK_PATH = f"/api/feedback/{VALID_TRACE_ID}"
 DEVELOPER = "ola"
 OTHER_DEVELOPER = "kari"
 DEVELOPER_HEADER = {"X-Developer": DEVELOPER}
 
 
-def _post_feedback(payload, headers=None):
-    return TestClient(app).post(FEEDBACK_PATH, json=payload, headers=headers)
+def _put_feedback(payload, headers=None, path=FEEDBACK_PATH):
+    return TestClient(app).put(path, json=payload, headers=headers)
 
 
 class TestFeedbackEndpoint:
@@ -21,8 +21,8 @@ class TestFeedbackEndpoint:
             patch("api.routes.feedback.get_trace_developer", return_value=DEVELOPER),
             patch("api.routes.feedback.score_validation") as mock_score,
         ):
-            response = _post_feedback(
-                {"trace_id": VALID_TRACE_ID, "thumbs_up": True},
+            response = _put_feedback(
+                {"thumbs_up": True},
                 headers=DEVELOPER_HEADER,
             )
 
@@ -40,9 +40,8 @@ class TestFeedbackEndpoint:
             patch("api.routes.feedback.get_trace_developer", return_value=DEVELOPER),
             patch("api.routes.feedback.score_validation") as mock_score,
         ):
-            response = _post_feedback(
+            response = _put_feedback(
                 {
-                    "trace_id": VALID_TRACE_ID,
                     "thumbs_up": False,
                     "comment": "Svaret var ikke nyttig.",
                 },
@@ -60,7 +59,7 @@ class TestFeedbackEndpoint:
 
     def test_missing_developer_header_returns_400(self):
         with patch("api.routes.feedback.score_validation") as mock_score:
-            response = _post_feedback({"trace_id": VALID_TRACE_ID, "thumbs_up": True})
+            response = _put_feedback({"thumbs_up": True})
 
         assert response.status_code == 400
         mock_score.assert_not_called()
@@ -70,8 +69,8 @@ class TestFeedbackEndpoint:
             patch("api.routes.feedback.get_trace_developer", return_value=None),
             patch("api.routes.feedback.score_validation") as mock_score,
         ):
-            response = _post_feedback(
-                {"trace_id": VALID_TRACE_ID, "thumbs_up": True},
+            response = _put_feedback(
+                {"thumbs_up": True},
                 headers=DEVELOPER_HEADER,
             )
 
@@ -85,29 +84,18 @@ class TestFeedbackEndpoint:
             ),
             patch("api.routes.feedback.score_validation") as mock_score,
         ):
-            response = _post_feedback(
-                {"trace_id": VALID_TRACE_ID, "thumbs_up": True},
+            response = _put_feedback(
+                {"thumbs_up": True},
                 headers=DEVELOPER_HEADER,
             )
 
         assert response.status_code == 403
         mock_score.assert_not_called()
 
-    def test_empty_trace_id_returns_422(self):
-        with patch("api.routes.feedback.score_validation") as mock_score:
-            response = _post_feedback(
-                {"trace_id": "", "thumbs_up": True},
-                headers=DEVELOPER_HEADER,
-            )
-
-        assert response.status_code == 422
-        mock_score.assert_not_called()
-
     def test_comment_over_max_length_returns_422(self):
         with patch("api.routes.feedback.score_validation") as mock_score:
-            response = _post_feedback(
+            response = _put_feedback(
                 {
-                    "trace_id": VALID_TRACE_ID,
                     "thumbs_up": True,
                     "comment": "x" * 10001,
                 },

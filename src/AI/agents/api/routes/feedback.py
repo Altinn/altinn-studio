@@ -19,16 +19,8 @@ DEVELOPER_HEADER = "X-Developer"
 class FeedbackReq(BaseModel):
     """User feedback (thumbs up/down) on an assistant message, recorded as a Langfuse score."""
 
-    trace_id: str
     thumbs_up: bool
     comment: Optional[str] = None
-
-    @field_validator("trace_id")
-    @classmethod
-    def _validate_trace_id(cls, v: str) -> str:
-        if not v.strip():
-            raise ValueError("trace_id must be non-empty")
-        return v
 
     @field_validator("comment")
     @classmethod
@@ -42,24 +34,27 @@ class FeedbackReq(BaseModel):
         return v
 
 
-@router.post("/api/feedback", status_code=204)
-async def submit_feedback(req: FeedbackReq, request: Request):
-    """Records user feedback as a Langfuse score on the given trace."""
+@router.put("/api/feedback/{trace_id}", status_code=204)
+async def submit_feedback(trace_id: str, req: FeedbackReq, request: Request):
+    """Records user feedback as a Langfuse score on the given trace.
+
+    A second PUT for the same trace overwrites the previous score.
+    """
     caller = request.headers.get(DEVELOPER_HEADER)
     if not caller:
         raise HTTPException(
             status_code=400, detail=f"Missing {DEVELOPER_HEADER} header"
         )
 
-    trace_owner = get_trace_developer(req.trace_id)
+    trace_owner = get_trace_developer(trace_id)
     if trace_owner != caller:
         raise HTTPException(status_code=403)
 
     score_validation(
         name=FEEDBACK_SCORE_NAME,
         passed=req.thumbs_up,
-        trace_id=req.trace_id,
+        trace_id=trace_id,
         comment=req.comment,
-        score_id=f"{req.trace_id}:{FEEDBACK_SCORE_NAME}",
+        score_id=f"{trace_id}:{FEEDBACK_SCORE_NAME}",
     )
     return Response(status_code=204)

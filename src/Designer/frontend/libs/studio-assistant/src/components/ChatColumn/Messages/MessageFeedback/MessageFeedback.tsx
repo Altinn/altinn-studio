@@ -9,16 +9,15 @@ import {
 } from '@studio/components';
 import { ThumbDownIcon, ThumbUpIcon, PaperplaneFillIcon, XMarkIcon } from '@studio/icons';
 import type { MessageFeedbackTexts } from '../../../../types/AssistantTexts';
-import type { UserFeedback } from '../../../../types/UserFeedback';
+import type { FeedbackPayload } from '../../../../types/UserFeedback';
 import classes from './MessageFeedback.module.css';
 
 export type MessageFeedbackProps = {
   texts: MessageFeedbackTexts;
-  traceId: string;
-  onSubmit: (feedback: UserFeedback) => void;
+  onSubmit: (payload: FeedbackPayload) => void;
 };
 
-export function MessageFeedback({ texts, traceId, onSubmit }: MessageFeedbackProps): ReactElement {
+export function MessageFeedback({ texts, onSubmit }: MessageFeedbackProps): ReactElement {
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [selectedVote, setSelectedVote] = useState<boolean | null>(null);
   const [commentText, setCommentText] = useState<string>('');
@@ -34,7 +33,6 @@ export function MessageFeedback({ texts, traceId, onSubmit }: MessageFeedbackPro
 
     const trimmedComment = commentText.trim();
     onSubmit({
-      traceId,
       thumbsUp: selectedVote,
       comment: trimmedComment || undefined,
     });

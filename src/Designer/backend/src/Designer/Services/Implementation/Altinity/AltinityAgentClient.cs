@@ -10,7 +10,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.Altinity;
 
 public class AltinityAgentClient : IAltinityAgentClient
 {
-    private const string FeedbackPath = "/api/feedback";
+    private const string FeedbackPathPrefix = "/api/feedback/";
     private const string DeveloperHeader = "X-Developer";
 
     private readonly HttpClient _httpClient;
@@ -24,17 +24,10 @@ public class AltinityAgentClient : IAltinityAgentClient
 
     public async Task SendFeedbackAsync(string developer, string traceId, bool thumbsUp, string? comment)
     {
-        var requestUri = new Uri($"{_altinitySettings.AgentUrl}{FeedbackPath}");
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, requestUri)
+        var requestUri = new Uri($"{_altinitySettings.AgentUrl}{FeedbackPathPrefix}{traceId}");
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Put, requestUri)
         {
-            Content = JsonContent.Create(
-                new
-                {
-                    trace_id = traceId,
-                    thumbs_up = thumbsUp,
-                    comment,
-                }
-            ),
+            Content = JsonContent.Create(new { thumbs_up = thumbsUp, comment }),
         };
         httpRequest.Headers.Add(DeveloperHeader, developer);
 

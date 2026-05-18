@@ -283,4 +283,4 @@ export const updateChatThread = (org: string, app: string, threadId: string, pay
 export const deleteChatThread = (org: string, app: string, threadId: string) => del(chatThreadPath(org, app, threadId));
 export const createChatMessage = (org: string, app: string, threadId: string, payload: CreateChatMessagePayload) => post<ChatMessage, CreateChatMessagePayload>(chatMessagesPath(org, app, threadId), payload);
 export const deleteChatMessage = (org: string, app: string, threadId: string, messageId: string) => del(chatMessagePath(org, app, threadId, messageId));
-export const sendChatFeedback = (org: string, app: string, payload: ChatFeedbackPayload) => post(chatFeedbackPath(org, app), payload);
+export const sendChatFeedback = (org: string, app: string, traceId: string, payload: ChatFeedbackPayload) => put(chatFeedbackPath(org, app, traceId), payload);
