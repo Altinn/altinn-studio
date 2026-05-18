@@ -75,6 +75,49 @@ describe('ScopeList', () => {
     expect(getText(textMock('app_settings.maskinporten_no_scopes_added'))).toBeInTheDocument();
   });
 
+  it('should offer adding default scopes for v8.3 apps when default scopes are missing', async () => {
+    const user = userEvent.setup();
+    renderScopeList({
+      queries: {
+        getAppVersion: () => Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '8.3.0' }),
+      },
+    });
+
+    expect(
+      await screen.findByText(textMock('app_settings.maskinporten_default_scopes_opt_in_notice')),
+    ).toBeInTheDocument();
+
+    await user.click(getButton(textMock('app_settings.maskinporten_add_default_scopes')));
+
+    const updatedScopes: MaskinportenScopes = {
+      scopes: [scopeMock4, scopeMock2, scopeMock3],
+    };
+
+    expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledWith(
+      org,
+      app,
+      updatedScopes,
+    );
+  });
+
+  it('should not offer adding default scopes for v9 apps', async () => {
+    renderScopeList({
+      queries: {
+        getAppVersion: () => Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '9.0.0' }),
+      },
+    });
+
+    expect(
+      await screen.findByText(
+        textMock('app_settings.maskinporten_scope_changes_deployment_notice'),
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('app_settings.maskinporten_default_scopes_opt_in_notice')),
+    ).not.toBeInTheDocument();
+  });
+
   it('should open add scopes dialog with selected scopes checked', async () => {
     const user = userEvent.setup();
     renderScopeList();

@@ -44,15 +44,32 @@ describe('CreateRelease', () => {
     ).toBeInTheDocument();
   });
 
-  it('shows Maskinporten scopes notice for app backend version 8.3 when default scopes are missing', async () => {
+  it('shows Maskinporten scopes notice for app backend version 9 preview when default scopes are missing', async () => {
     renderCreateRelease({
-      getAppVersion: () => Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '8.3.0' }),
+      getAppVersion: () =>
+        Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '9.0.0-preview.1' }),
       getSelectedMaskinportenScopes: () => Promise.resolve({ scopes: [] }),
     });
 
     expect(
       await screen.findByText(textMock('app_create_release.maskinporten_scopes_auto_add')),
     ).toBeInTheDocument();
+  });
+
+  it('does not show Maskinporten scopes notice for app backend version 8.3 when default scopes are missing', async () => {
+    const getSelectedMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ scopes: [] }));
+
+    renderCreateRelease({
+      getAppVersion: () => Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '8.3.0' }),
+      getSelectedMaskinportenScopes,
+    });
+
+    await waitFor(() => expect(getSelectedMaskinportenScopes).toHaveBeenCalled());
+    expect(
+      screen.queryByText(textMock('app_create_release.maskinporten_scopes_auto_add')),
+    ).not.toBeInTheDocument();
   });
 
   it('does not show Maskinporten scopes notice when default scopes are already selected', async () => {
@@ -66,7 +83,7 @@ describe('CreateRelease', () => {
     );
 
     renderCreateRelease({
-      getAppVersion: () => Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '8.3.0' }),
+      getAppVersion: () => Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '9.0.0' }),
       getSelectedMaskinportenScopes,
     });
 

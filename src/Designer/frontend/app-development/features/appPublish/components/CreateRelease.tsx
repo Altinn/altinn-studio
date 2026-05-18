@@ -22,25 +22,7 @@ import { AppValidationDialog } from 'app-shared/components/AppValidationDialog/A
 import { appHasCriticalValidationErrors } from 'app-shared/utils/appValidationUtils';
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import { hasDefaultMaskinportenScopes } from 'app-development/utils/maskinportenScopes';
-
-const isVersionAtLeast = (
-  version: string | undefined,
-  major: number,
-  minor: number,
-  patch: number,
-) => {
-  const [actualMajor = 0, actualMinor = 0, actualPatch = 0] = (version ?? '')
-    .split(/[.-]/)
-    .map((part) => Number(part));
-
-  if ([actualMajor, actualMinor, actualPatch].some(Number.isNaN)) {
-    return false;
-  }
-
-  if (actualMajor !== major) return actualMajor > major;
-  if (actualMinor !== minor) return actualMinor > minor;
-  return actualPatch >= patch;
-};
+import { isVersionAtLeast } from 'app-development/utils/versionUtils';
 
 export function CreateRelease() {
   const { org, app } = useStudioEnvironmentParams();
@@ -81,7 +63,7 @@ export function CreateRelease() {
   const shouldShowMaskinportenScopesNotice =
     appVersion !== undefined &&
     selectedMaskinportenScopes !== undefined &&
-    isVersionAtLeast(appVersion.backendVersion, 8, 3, 0) &&
+    isVersionAtLeast(appVersion.backendVersion, 9, 0, 0) &&
     !hasDefaultMaskinportenScopes(selectedMaskinportenScopes);
 
   return (

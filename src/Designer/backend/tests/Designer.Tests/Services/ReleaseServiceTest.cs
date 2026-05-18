@@ -346,6 +346,14 @@ public class ReleaseServiceTest
         await releaseService.CreateAsync(releaseEntity);
 
         // Assert
+        _appScopesService.Verify(
+            r =>
+                r.AddDefaultMaskinportenScopesAsync(
+                    It.IsAny<AltinnRepoEditingContext>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
         _azureDevOpsBuildClient.Verify(
             b =>
                 b.QueueAsync(
@@ -411,6 +419,14 @@ public class ReleaseServiceTest
         await releaseService.CreateAsync(releaseEntity);
 
         // Assert
+        _appScopesService.Verify(
+            r =>
+                r.AddDefaultMaskinportenScopesAsync(
+                    It.IsAny<AltinnRepoEditingContext>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
         _azureDevOpsBuildClient.Verify(
             b =>
                 b.QueueAsync(
@@ -465,6 +481,14 @@ public class ReleaseServiceTest
         await releaseService.CreateAsync(releaseEntity);
 
         // Assert
+        _appScopesService.Verify(
+            r =>
+                r.AddDefaultMaskinportenScopesAsync(
+                    It.IsAny<AltinnRepoEditingContext>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
         _azureDevOpsBuildClient.Verify(
             b =>
                 b.QueueAsync(
@@ -477,7 +501,7 @@ public class ReleaseServiceTest
     }
 
     [Fact]
-    public async Task CreateAsync_WithAppLibVersion83AndNullAppScopes_AddsDefaultMaskinportenScopes()
+    public async Task CreateAsync_WithAppLibVersion9PreviewAndNullAppScopes_AddsDefaultMaskinportenScopes()
     {
         // Arrange
         ReleaseEntity releaseEntity = new()
@@ -527,7 +551,7 @@ public class ReleaseServiceTest
         _azureDevOpsBuildClient
             .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(GetBuild());
-        SetupAppLibVersion("8.3.0");
+        SetupAppLibVersion("9.0.0-preview.1");
 
         ReleaseService releaseService = CreateReleaseService();
 
@@ -560,7 +584,7 @@ public class ReleaseServiceTest
     }
 
     [Fact]
-    public async Task CreateAsync_WithAppLibVersion83AndExistingDefaultMaskinportenScopes_DoesNotAddDefaults()
+    public async Task CreateAsync_WithAppLibVersion9AndExistingDefaultMaskinportenScopes_DoesNotAddDefaults()
     {
         // Arrange
         ReleaseEntity releaseEntity = new()
@@ -606,7 +630,7 @@ public class ReleaseServiceTest
         _azureDevOpsBuildClient
             .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(GetBuild());
-        SetupAppLibVersion("8.3.0");
+        SetupAppLibVersion("9.0.0");
 
         ReleaseService releaseService = CreateReleaseService();
 
@@ -625,7 +649,7 @@ public class ReleaseServiceTest
     }
 
     [Fact]
-    public async Task CreateAsync_WithAppLibVersion82AndNullAppScopes_PassesEmptyArray()
+    public async Task CreateAsync_WithAppLibVersion83AndNullAppScopes_PassesEmptyArray()
     {
         // Arrange
         ReleaseEntity releaseEntity = new()
@@ -660,7 +684,7 @@ public class ReleaseServiceTest
         _azureDevOpsBuildClient
             .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(GetBuild());
-        SetupAppLibVersion("8.2.0");
+        SetupAppLibVersion("8.3.0");
 
         ReleaseService releaseService = CreateReleaseService();
 
@@ -668,6 +692,14 @@ public class ReleaseServiceTest
         await releaseService.CreateAsync(releaseEntity);
 
         // Assert
+        _appScopesService.Verify(
+            r =>
+                r.AddDefaultMaskinportenScopesAsync(
+                    It.IsAny<AltinnRepoEditingContext>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
         _azureDevOpsBuildClient.Verify(
             b =>
                 b.QueueAsync(

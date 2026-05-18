@@ -267,7 +267,7 @@ public class ReleaseService : IReleaseService
                     packageNames,
                     out SemanticVersion version
                 )
-                && version.CompareTo(new SemanticVersion(8, 3, 0)) >= 0;
+                && version.Major >= 9;
         }
         catch (FormatException ex)
         {

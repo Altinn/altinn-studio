@@ -26,6 +26,13 @@ import {
 import { PlusIcon } from '@studio/icons';
 import { useUpdateSelectedMaskinportenScopesMutation } from 'app-development/hooks/mutations/useUpdateSelectedMaskinportenScopesMutation';
 import { toast } from 'react-toastify';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useAppVersionQuery } from 'app-shared/hooks/queries';
+import {
+  defaultMaskinportenScopeNames,
+  hasDefaultMaskinportenScopes,
+} from 'app-development/utils/maskinportenScopes';
+import { isVersionAtLeast } from 'app-development/utils/versionUtils';
 import {
   combineSelectedAndMaskinportenScopes,
   isDefaultMaskinportenScope,
@@ -41,6 +48,8 @@ export type ScopeListProps = {
 
 export function ScopeList({ maskinPortenScopes, selectedScopes }: ScopeListProps): ReactElement {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: appVersion } = useAppVersionQuery(org, app);
   const dialogRef = useRef<HTMLDialogElement | null>(null);
   const [searchValue, setSearchValue] = useState<string>('');
 
@@ -77,6 +86,12 @@ export function ScopeList({ maskinPortenScopes, selectedScopes }: ScopeListProps
       <StudioAlert data-color='info' className={classes.deploymentNotice}>
         {t('app_settings.maskinporten_scope_changes_deployment_notice')}
       </StudioAlert>
+      <DefaultScopesNotice
+        appBackendVersion={appVersion?.backendVersion}
+        selectedScopes={sortedSelectedScopes}
+        initialValues={initialValues}
+        allAvailableScopes={allAvailableScopes}
+      />
 
       <StudioButton variant='secondary' onClick={openDialog} icon={<PlusIcon />}>
         {t('app_settings.maskinporten_add_scope')}
@@ -95,6 +110,45 @@ export function ScopeList({ maskinPortenScopes, selectedScopes }: ScopeListProps
         allAvailableScopes={allAvailableScopes}
       />
     </div>
+  );
+}
+
+type DefaultScopesNoticeProps = {
+  appBackendVersion: string | undefined;
+  selectedScopes: MaskinportenScope[];
+  initialValues: string[];
+  allAvailableScopes: MaskinportenScope[];
+};
+
+function DefaultScopesNotice({
+  appBackendVersion,
+  selectedScopes,
+  initialValues,
+  allAvailableScopes,
+}: DefaultScopesNoticeProps): ReactElement | null {
+  const { t } = useTranslation();
+  const { saveScopes, isSaving } = useSaveScopes(allAvailableScopes);
+  const shouldShowNotice =
+    isVersionAtLeast(appBackendVersion, 8, 3, 0) &&
+    !isVersionAtLeast(appBackendVersion, 9, 0, 0) &&
+    hasDefaultMaskinportenScopes(allAvailableScopes) &&
+    !hasDefaultMaskinportenScopes(selectedScopes);
+
+  if (!shouldShowNotice) return null;
+
+  const addDefaultScopes = (): void => {
+    saveScopes(Array.from(new Set([...initialValues, ...defaultMaskinportenScopeNames])));
+  };
+
+  return (
+    <StudioAlert data-color='info' className={classes.defaultScopesNotice}>
+      <StudioParagraph>
+        {t('app_settings.maskinporten_default_scopes_opt_in_notice')}
+      </StudioParagraph>
+      <StudioButton variant='secondary' onClick={addDefaultScopes} loading={isSaving}>
+        {t('app_settings.maskinporten_add_default_scopes')}
+      </StudioButton>
+    </StudioAlert>
   );
 }
 

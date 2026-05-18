@@ -8,6 +8,17 @@
   margin-bottom: var(--ds-size-4);
 }
 
+.defaultScopesNotice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-3);
+  margin-bottom: var(--ds-size-4);
+}
+
+.defaultScopesNotice button {
+  align-self: flex-start;
+}
+
 .tableWrapper {
   margin-top: var(--ds-size-6);
 }
