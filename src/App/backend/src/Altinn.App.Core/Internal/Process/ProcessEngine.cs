@@ -156,14 +156,25 @@ internal class ProcessEngine : IProcessEngine
     )
     {
         // Capture instance + form data state for transport to the workflow engine
-        string? taskId = instance.Process?.CurrentTask?.ElementId;
-        var unitOfWork = await _instanceDataUnitOfWorkInitializer.Init(
-            instance,
-            taskId,
-            language: null,
-            StorageAuthenticationMethod.ServiceOwner()
-        );
-        string state = await _workflowCallbackStateService.CaptureState(unitOfWork);
+        string state;
+        try
+        {
+            string? taskId = instance.Process?.CurrentTask?.ElementId;
+            var unitOfWork = await _instanceDataUnitOfWorkInitializer.Init(
+                instance,
+                taskId,
+                language: null,
+                StorageAuthenticationMethod.ServiceOwner()
+            );
+            state = await _workflowCallbackStateService.CaptureState(unitOfWork);
+        }
+        catch (Exception ex)
+        {
+            throw WorkflowSubmissionFailedException.NotAccepted(
+                "Runtime failed to prepare callback state before submitting the initial process workflow.",
+                innerException: ex
+            );
+        }
 
         ProcessNextWorkflowResult result = await _workflowEngineService.EnqueueAndWaitForProcessNext(
             instance,
@@ -181,7 +192,12 @@ internal class ProcessEngine : IProcessEngine
             return result.Instance;
         }
 
-        throw CreateWorkflowFailureException(result.WorkflowFailure);
+        throw new WorkflowExecutionFailedException(
+            result.Instance,
+            result.WorkflowFailure,
+            result.ProcessStateChanged,
+            CreateWorkflowFailureMessage(result.WorkflowFailure)
+        );
     }
 
     /// <inheritdoc/>
@@ -916,11 +932,6 @@ internal class ProcessEngine : IProcessEngine
         state = new CurrentTaskIdAndAltinnTaskType(taskId, taskType);
         return true;
     }
-
-    private static Exception CreateWorkflowFailureException(WorkflowFailure workflowFailure) =>
-        workflowFailure.Kind == WorkflowFailureKind.Timeout
-            ? new TimeoutException("Timeout while waiting for workflows to complete.")
-            : new InvalidOperationException(CreateWorkflowFailureMessage(workflowFailure));
 
     private static string CreateWorkflowFailureMessage(WorkflowFailure workflowFailure) =>
         workflowFailure.Kind switch

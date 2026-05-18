@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using Altinn.App.Core.Internal.Instances;
@@ -65,6 +66,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     private const int WorkflowPollingTimeoutMs = 100_000;
     private const int InitialWorkflowPollingDelayMs = 100;
     private const int MaxWorkflowPollingDelayMs = 2_000;
+    private const int AcceptanceProbeAttempts = 3;
 
     private readonly ProcessNextRequestFactory _processNextRequestFactory;
     private readonly IWorkflowEngineClient _workflowEngineClient;
@@ -96,21 +98,71 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         CancellationToken ct = default
     )
     {
-        (_, string? collectionKey) = await CreateAndEnqueueWorkflow(
-            instance,
-            processStateChange,
-            CreateProcessNextIdempotencyKey(instance, processStateChange, resolvedAction),
-            lockToken,
-            state,
-            isInstantiation: isInstantiation,
-            prefill: prefill,
-            notification: notification,
-            ct: ct
-        );
+        WorkflowEnqueueBundle bundle;
+        try
+        {
+            bundle = await CreateWorkflowEnqueueBundle(
+                instance,
+                processStateChange,
+                CreateProcessNextIdempotencyKey(instance, processStateChange, resolvedAction),
+                lockToken,
+                state,
+                isInstantiation: isInstantiation,
+                prefill: prefill,
+                notification: notification
+            );
+        }
+        catch (Exception exception) when (!ct.IsCancellationRequested)
+        {
+            throw WorkflowSubmissionFailedException.NotAccepted(
+                "Runtime failed to build the process-next workflow request before submitting it.",
+                innerException: exception
+            );
+        }
 
+        string? collectionKey = bundle.CollectionKey;
         if (string.IsNullOrWhiteSpace(collectionKey))
         {
             throw new InvalidOperationException("Process-next workflow collection key was not created.");
+        }
+
+        try
+        {
+            await EnqueueWorkflowBundle(bundle, collectionKey, ct);
+        }
+        catch (Exception exception) when (IsDefinitiveNotAccepted(exception, out HttpStatusCode? statusCode))
+        {
+            throw WorkflowSubmissionFailedException.NotAccepted(
+                "Workflow engine rejected the process-next workflow before accepting it.",
+                statusCode,
+                collectionKey,
+                exception
+            );
+        }
+        catch (Exception exception) when (!ct.IsCancellationRequested)
+        {
+            WorkflowCollectionLookupResult lookupResult = await ProbeWorkflowCollection(collectionKey, ct);
+            if (lookupResult == WorkflowCollectionLookupResult.Found)
+            {
+                return await WaitForWorkflowCollectionAndRefetchInstance(instance, collectionKey, ct);
+            }
+
+            if (lookupResult == WorkflowCollectionLookupResult.NotFound)
+            {
+                throw WorkflowSubmissionFailedException.NotAccepted(
+                    "Workflow engine did not accept the process-next workflow.",
+                    GetStatusCode(exception),
+                    collectionKey,
+                    exception
+                );
+            }
+
+            throw WorkflowSubmissionFailedException.Unknown(
+                "Workflow engine submission failed, and Runtime could not confirm whether the workflow was accepted.",
+                GetStatusCode(exception),
+                collectionKey,
+                exception
+            );
         }
 
         return await WaitForWorkflowCollectionAndRefetchInstance(instance, collectionKey, ct);
@@ -261,7 +313,36 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         CancellationToken ct = default
     )
     {
-        WorkflowEnqueueBundle bundle = await _processNextRequestFactory.Create(
+        WorkflowEnqueueBundle bundle = await CreateWorkflowEnqueueBundle(
+            instance,
+            processStateChange,
+            idempotencyKey,
+            lockToken,
+            state,
+            isInstantiation,
+            actor,
+            dependsOn,
+            prefill,
+            notification
+        );
+        string? effectiveCollectionKey = collectionKey ?? bundle.CollectionKey;
+
+        return await EnqueueWorkflowBundle(bundle, effectiveCollectionKey, ct);
+    }
+
+    private Task<WorkflowEnqueueBundle> CreateWorkflowEnqueueBundle(
+        Instance instance,
+        ProcessStateChange processStateChange,
+        string idempotencyKey,
+        string lockToken,
+        string? state = null,
+        bool isInstantiation = false,
+        Actor? actor = null,
+        IEnumerable<WorkflowRef>? dependsOn = null,
+        Dictionary<string, string>? prefill = null,
+        InstantiationNotification? notification = null
+    ) =>
+        _processNextRequestFactory.Create(
             instance,
             processStateChange,
             lockToken,
@@ -273,8 +354,13 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             notification: notification,
             idempotencyKey: idempotencyKey
         );
-        string? effectiveCollectionKey = collectionKey ?? bundle.CollectionKey;
 
+    private async Task<(Guid WorkflowId, string? CollectionKey)> EnqueueWorkflowBundle(
+        WorkflowEnqueueBundle bundle,
+        string? effectiveCollectionKey,
+        CancellationToken ct
+    )
+    {
         WorkflowEnqueueResponse.Accepted response = await _workflowEngineClient.EnqueueWorkflows(
             bundle.Namespace,
             bundle.IdempotencyKey,
@@ -285,6 +371,43 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         );
 
         return (response.Workflows[0].DatabaseId, effectiveCollectionKey);
+    }
+
+    private async Task<WorkflowCollectionLookupResult> ProbeWorkflowCollection(
+        string collectionKey,
+        CancellationToken ct
+    )
+    {
+        for (int attempt = 0; attempt < AcceptanceProbeAttempts; attempt++)
+        {
+            try
+            {
+                WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
+                    GetNamespace(),
+                    collectionKey,
+                    ct
+                );
+                if (collection is not null)
+                {
+                    return WorkflowCollectionLookupResult.Found;
+                }
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch
+            {
+                return WorkflowCollectionLookupResult.Unknown;
+            }
+
+            if (attempt < AcceptanceProbeAttempts - 1)
+            {
+                await Task.Delay(InitialWorkflowPollingDelayMs, ct);
+            }
+        }
+
+        return WorkflowCollectionLookupResult.NotFound;
     }
 
     private async Task<ProcessNextWorkflowResult> WaitForWorkflowCollectionAndRefetchInstance(
@@ -518,4 +641,20 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
     private static string CreateDependentWorkflowIdempotencyKey(Guid dependsOnWorkflowId) =>
         $"process-next-dependent-{dependsOnWorkflowId:N}";
+
+    private static bool IsDefinitiveNotAccepted(Exception exception, out HttpStatusCode? statusCode)
+    {
+        statusCode = GetStatusCode(exception);
+        return statusCode is not null && (int)statusCode.Value < 500 && statusCode != HttpStatusCode.Conflict;
+    }
+
+    private static HttpStatusCode? GetStatusCode(Exception exception) =>
+        exception is HttpRequestException httpRequestException ? httpRequestException.StatusCode : null;
+
+    private enum WorkflowCollectionLookupResult
+    {
+        Found,
+        NotFound,
+        Unknown,
+    }
 }

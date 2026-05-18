@@ -10,6 +10,10 @@ using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Pdf;
+using Altinn.App.Core.Internal.WorkflowEngine;
+using Altinn.App.Core.Internal.WorkflowEngine.Http;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
+using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
@@ -19,6 +23,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using Xunit.Abstractions;
 
@@ -254,6 +259,146 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         var readDataElementResponseParsed = JsonSerializer.Deserialize<Skjema>(readDataElementResponseContent)!;
         Assert.NotNull(readDataElementResponseParsed.Melding);
         readDataElementResponseParsed.Melding.Name.Should().Be("TestName");
+        TestData.DeleteInstanceAndData(org, app, instanceId);
+    }
+
+    [Fact]
+    public async Task PostNewInstance_Simplified_DeletesCreatedInstanceWhenWorkflowIsNotAccepted()
+    {
+        string org = "tdd";
+        string app = "permissive-app";
+        int instanceOwnerPartyId = 501337;
+        using HttpClient client = GetRootedClient(
+            org,
+            app,
+            configureServices: services =>
+            {
+                services.RemoveAll<IWorkflowEngineClient>();
+                services.AddSingleton<IWorkflowEngineClient>(
+                    new RejectingWorkflowEngineClient(HttpStatusCode.TooManyRequests)
+                );
+            }
+        );
+        string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+
+        var body = $$"""
+                {
+                    "instanceOwner": {
+                        "partyId": "{{instanceOwnerPartyId}}"
+                    }
+                }
+            """;
+        using var content = new StringContent(body, Encoding.UTF8, "application/json");
+
+        using HttpResponseMessage createResponse = await client.PostAsync($"{org}/{app}/instances/create", content);
+        string createResponseContent = await createResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(createResponseContent);
+
+        createResponse.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
+        using JsonDocument document = JsonDocument.Parse(createResponseContent);
+        JsonElement root = document.RootElement;
+        root.GetProperty("status").GetInt32().Should().Be(StatusCodes.Status500InternalServerError);
+        root.GetProperty("title").GetString().Should().Be("Instance initialization failed.");
+        root.GetProperty("detail")
+            .GetString()
+            .Should()
+            .Contain("The created instance was deleted, so the client can safely retry instance creation.");
+        root.GetProperty("technicalDetail")
+            .GetString()
+            .Should()
+            .Contain($"Instantiation of appId {org}/{app} failed for party {instanceOwnerPartyId}");
+        root.GetProperty("initializationState").GetString().Should().Be("workflowNotAccepted");
+        root.GetProperty("instanceDeleted").GetBoolean().Should().BeTrue();
+        root.GetProperty("recommendedAction").GetString().Should().Be("retryInstanceCreation");
+        root.GetProperty("workflowSubmissionFailureKind")
+            .GetString()
+            .Should()
+            .Be(WorkflowSubmissionFailureKind.NotAccepted.ToString());
+        root.GetProperty("workflowSubmissionStatusCode").GetInt32().Should().Be(StatusCodes.Status429TooManyRequests);
+        root.GetProperty("workflowCollectionKey").GetString().Should().NotBeNullOrWhiteSpace();
+
+        string instanceId = root.GetProperty("instanceId").GetString()!;
+        string[] instanceIdParts = instanceId.Split('/');
+        Guid instanceGuid = Guid.Parse(instanceIdParts[1]);
+        Instance storedInstance = await TestData.GetInstance(org, app, instanceOwnerPartyId, instanceGuid);
+        storedInstance.Status?.IsHardDeleted.Should().BeTrue();
+
+        TestData.DeleteInstanceAndData(org, app, instanceId);
+    }
+
+    [Fact]
+    public async Task PostNewInstance_Simplified_KeepsCreatedInstanceWhenAcceptedWorkflowFails()
+    {
+        string org = "tdd";
+        string app = "permissive-app";
+        int instanceOwnerPartyId = 501337;
+        using HttpClient client = GetRootedClient(
+            org,
+            app,
+            configureServices: services =>
+            {
+                services.RemoveAll<IWorkflowEngineClient>();
+                services.AddSingleton<IWorkflowEngineClient>(new AcceptedFailingWorkflowEngineClient());
+            }
+        );
+        string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+
+        var body = $$"""
+                {
+                    "instanceOwner": {
+                        "partyId": "{{instanceOwnerPartyId}}"
+                    }
+                }
+            """;
+        using var content = new StringContent(body, Encoding.UTF8, "application/json");
+
+        using HttpResponseMessage createResponse = await client.PostAsync($"{org}/{app}/instances/create", content);
+        string createResponseContent = await createResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(createResponseContent);
+
+        createResponse.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
+        using JsonDocument document = JsonDocument.Parse(createResponseContent);
+        JsonElement root = document.RootElement;
+        root.GetProperty("status").GetInt32().Should().Be(StatusCodes.Status500InternalServerError);
+        root.GetProperty("title").GetString().Should().Be("Instance initialization failed.");
+        root.GetProperty("detail")
+            .GetString()
+            .Should()
+            .Contain(
+                "Do not create a duplicate instance; resolve the workflow failure and call the recovery endpoint."
+            );
+        root.GetProperty("technicalDetail")
+            .GetString()
+            .Should()
+            .Contain($"Instantiation of appId {org}/{app} failed for party {instanceOwnerPartyId}");
+        root.GetProperty("initializationState").GetString().Should().Be("workflowFailed");
+        root.GetProperty("workflowAccepted").GetBoolean().Should().BeTrue();
+        root.GetProperty("recommendedAction").GetString().Should().Be("recoverCurrentTask");
+        JsonElement recoveryEndpoint = root.GetProperty("recoveryEndpoint");
+        recoveryEndpoint.GetProperty("method").GetString().Should().Be("POST");
+        JsonElement workflowFailure = root.GetProperty("workflowFailure");
+        workflowFailure.GetProperty("kind").GetString().Should().Be(WorkflowFailureKind.StepFailed.ToString());
+        workflowFailure.GetProperty("stepOperationId").GetString().Should().Be("StartTask");
+        workflowFailure
+            .GetProperty("lastError")
+            .GetProperty("message")
+            .GetString()
+            .Should()
+            .Be("Simulated workflow callback failure.");
+
+        string instanceId = root.GetProperty("instanceId").GetString()!;
+        string[] instanceIdParts = instanceId.Split('/');
+        Guid instanceGuid = Guid.Parse(instanceIdParts[1]);
+        recoveryEndpoint
+            .GetProperty("path")
+            .GetString()
+            .Should()
+            .Be($"/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/recover");
+        Instance storedInstance = await TestData.GetInstance(org, app, instanceOwnerPartyId, instanceGuid);
+        storedInstance.Status?.IsHardDeleted.Should().NotBe(true);
+
         TestData.DeleteInstanceAndData(org, app, instanceId);
     }
 
@@ -631,5 +776,144 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
         OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+    }
+
+    private sealed class RejectingWorkflowEngineClient(HttpStatusCode statusCode) : IWorkflowEngineClient
+    {
+        public Task<WorkflowEnqueueResponse.Accepted> EnqueueWorkflows(
+            string ns,
+            string idempotencyKey,
+            Guid? correlationId,
+            string? collectionKey,
+            WorkflowEnqueueRequest request,
+            CancellationToken ct = default
+        ) => throw new HttpRequestException("Workflow engine rejected enqueue.", null, statusCode);
+
+        public Task<WorkflowCollectionDetailResponse?> GetCollection(
+            string ns,
+            string key,
+            CancellationToken ct = default
+        ) => Task.FromResult<WorkflowCollectionDetailResponse?>(null);
+
+        public Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
+            string ns,
+            Guid? correlationId = null,
+            string? collectionKey = null,
+            Dictionary<string, string>? labels = null,
+            IReadOnlyList<PersistentItemStatus>? statuses = null,
+            CancellationToken ct = default
+        ) => Task.FromResult<IReadOnlyList<WorkflowStatusResponse>>([]);
+
+        public Task<CancelWorkflowResponse> CancelWorkflow(
+            string ns,
+            Guid workflowId,
+            CancellationToken ct = default
+        ) => throw new NotSupportedException();
+
+        public Task<ResumeWorkflowResponse> ResumeWorkflow(
+            string ns,
+            Guid workflowId,
+            bool cascade = false,
+            CancellationToken ct = default
+        ) => throw new NotSupportedException();
+    }
+
+    private sealed class AcceptedFailingWorkflowEngineClient : IWorkflowEngineClient
+    {
+        private readonly Guid _workflowId = Guid.NewGuid();
+        private string? _collectionKey;
+
+        public Task<WorkflowEnqueueResponse.Accepted> EnqueueWorkflows(
+            string ns,
+            string idempotencyKey,
+            Guid? correlationId,
+            string? collectionKey,
+            WorkflowEnqueueRequest request,
+            CancellationToken ct = default
+        )
+        {
+            _collectionKey = collectionKey;
+            return Task.FromResult(
+                new WorkflowEnqueueResponse.Accepted
+                {
+                    Workflows = [new WorkflowResult { DatabaseId = _workflowId, Namespace = ns }],
+                }
+            );
+        }
+
+        public Task<WorkflowCollectionDetailResponse?> GetCollection(
+            string ns,
+            string key,
+            CancellationToken ct = default
+        ) =>
+            Task.FromResult<WorkflowCollectionDetailResponse?>(
+                new WorkflowCollectionDetailResponse
+                {
+                    Key = key,
+                    Namespace = ns,
+                    Heads =
+                    [
+                        new CollectionHeadStatus { DatabaseId = _workflowId, Status = PersistentItemStatus.Failed },
+                    ],
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                }
+            );
+
+        public Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
+            string ns,
+            Guid? correlationId = null,
+            string? collectionKey = null,
+            Dictionary<string, string>? labels = null,
+            IReadOnlyList<PersistentItemStatus>? statuses = null,
+            CancellationToken ct = default
+        ) =>
+            Task.FromResult<IReadOnlyList<WorkflowStatusResponse>>([
+                new WorkflowStatusResponse
+                {
+                    DatabaseId = _workflowId,
+                    OperationId = "Process next: StartEvent_1 -> Task_1",
+                    IdempotencyKey = "accepted-failing-workflow",
+                    Namespace = ns,
+                    CollectionKey = collectionKey ?? _collectionKey,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                    OverallStatus = PersistentItemStatus.Failed,
+                    Steps =
+                    [
+                        new StepStatusResponse
+                        {
+                            DatabaseId = Guid.NewGuid(),
+                            OperationId = "StartTask",
+                            ProcessingOrder = 0,
+                            Command = new StepStatusResponse.CommandDetails { Type = "app" },
+                            Status = PersistentItemStatus.Failed,
+                            RetryCount = 0,
+                            ErrorHistory =
+                            [
+                                new ErrorEntry(
+                                    DateTimeOffset.UtcNow,
+                                    "Simulated workflow callback failure.",
+                                    StatusCodes.Status500InternalServerError,
+                                    WasRetryable: true
+                                ),
+                            ],
+                        },
+                    ],
+                },
+            ]);
+
+        public Task<CancelWorkflowResponse> CancelWorkflow(
+            string ns,
+            Guid workflowId,
+            CancellationToken ct = default
+        ) => throw new NotSupportedException();
+
+        public Task<ResumeWorkflowResponse> ResumeWorkflow(
+            string ns,
+            Guid workflowId,
+            bool cascade = false,
+            CancellationToken ct = default
+        ) => throw new NotSupportedException();
     }
 }

@@ -25,6 +25,7 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Texts;
+using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
@@ -520,6 +521,23 @@ public class InstancesController : ControllerBase
                 );
             }
         }
+        catch (WorkflowSubmissionFailedException exception)
+        {
+            return await HandleInitialWorkflowSubmissionFailure(
+                exception,
+                instance,
+                $"Instantiation of data elements failed for instance {instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}"
+            );
+        }
+        catch (WorkflowExecutionFailedException exception)
+        {
+            return HandleInitialWorkflowExecutionFailure(
+                exception,
+                $"Instantiation of data elements failed for instance {exception.Instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}",
+                org,
+                app
+            );
+        }
         catch (Exception exception)
         {
             return ExceptionResponse(
@@ -724,7 +742,7 @@ public class InstancesController : ControllerBase
             return StatusCode(StatusCodes.Status403Forbidden, validationResult);
         }
 
-        Instance instance;
+        Instance? instance = null;
         ProcessStateChange? processStateChange = null;
         try
         {
@@ -764,7 +782,7 @@ public class InstancesController : ControllerBase
                 }
             }
 
-            // Generate process start events - updates instanceTemplate.Process in memory
+            // Calculate initial process state in memory before creating the instance with process state
             var startRequest = new ProcessStartRequest()
             {
                 Instance = instanceTemplate,
@@ -813,6 +831,23 @@ public class InstancesController : ControllerBase
                 );
             }
         }
+        catch (WorkflowSubmissionFailedException exception)
+        {
+            return await HandleInitialWorkflowSubmissionFailure(
+                exception,
+                instance,
+                $"Instantiation of appId {org}/{app} failed for party {instanceTemplate.InstanceOwner?.PartyId}"
+            );
+        }
+        catch (WorkflowExecutionFailedException exception)
+        {
+            return HandleInitialWorkflowExecutionFailure(
+                exception,
+                $"Instantiation of appId {org}/{app} failed for party {instanceTemplate.InstanceOwner?.PartyId}",
+                org,
+                app
+            );
+        }
         catch (Exception exception)
         {
             return ExceptionResponse(
@@ -821,6 +856,7 @@ public class InstancesController : ControllerBase
             );
         }
 
+        ArgumentNullException.ThrowIfNull(instance);
         SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
         string url = instance.SelfLinks.Apps;
 
@@ -921,7 +957,7 @@ public class InstancesController : ControllerBase
             return StatusCode(StatusCodes.Status403Forbidden, validationResult);
         }
 
-        // Generate process start events - updates targetInstance.Process in memory
+        // Calculate initial process state in memory before creating the instance with process state
         ProcessStartRequest processStartRequest = new() { Instance = targetInstance, User = User };
         ProcessChangeResult startResult = await _processEngine.CreateInitialProcessState(processStartRequest);
         if (!startResult.Success)
@@ -946,19 +982,39 @@ public class InstancesController : ControllerBase
             CancellationToken.None
         );
 
-        // Dispatch process state change to async engine
-        if (startResult.ProcessStateChange is not null)
+        try
         {
-            int targetPartyId = int.Parse(targetInstance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
-            Guid targetInstanceGuid = Guid.Parse(targetInstance.Id.Split("/")[1]);
-            await using var instanceLock = _instanceLocker.InitLock(targetPartyId, targetInstanceGuid);
-            await instanceLock.Lock();
-            targetInstance = await _processEngine.SubmitInitialProcessState(
+            // Dispatch process state change to async engine
+            if (startResult.ProcessStateChange is not null)
+            {
+                int targetPartyId = int.Parse(targetInstance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
+                Guid targetInstanceGuid = Guid.Parse(targetInstance.Id.Split("/")[1]);
+                await using var instanceLock = _instanceLocker.InitLock(targetPartyId, targetInstanceGuid);
+                await instanceLock.Lock();
+                targetInstance = await _processEngine.SubmitInitialProcessState(
+                    targetInstance,
+                    startResult.ProcessStateChange,
+                    _instanceLocker.CurrentLockToken
+                        ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock"),
+                    isInstantiation: true
+                );
+            }
+        }
+        catch (WorkflowSubmissionFailedException exception)
+        {
+            return await HandleInitialWorkflowSubmissionFailure(
+                exception,
                 targetInstance,
-                startResult.ProcessStateChange,
-                _instanceLocker.CurrentLockToken
-                    ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock"),
-                isInstantiation: true
+                $"Instantiation of appId {org}/{app} failed for party {targetInstance.InstanceOwner?.PartyId}"
+            );
+        }
+        catch (WorkflowExecutionFailedException exception)
+        {
+            return HandleInitialWorkflowExecutionFailure(
+                exception,
+                $"Instantiation of appId {org}/{app} failed for party {targetInstance.InstanceOwner?.PartyId}",
+                org,
+                app
             );
         }
 
@@ -1351,6 +1407,208 @@ public class InstancesController : ControllerBase
 
         return StatusCode(500, $"{message}");
     }
+
+    private async Task<ObjectResult> HandleInitialWorkflowSubmissionFailure(
+        WorkflowSubmissionFailedException exception,
+        Instance? instance,
+        string message
+    )
+    {
+        bool instanceDeleted = false;
+        if (exception.Kind == WorkflowSubmissionFailureKind.NotAccepted && instance is not null)
+        {
+            instanceDeleted = await TryHardDeleteCreatedInstance(instance, "initial workflow was not accepted");
+        }
+
+        return CreateWorkflowInitializationProblem(
+            exception,
+            message,
+            exception.Kind == WorkflowSubmissionFailureKind.NotAccepted
+                ? "workflowNotAccepted"
+                : "workflowAcceptanceUnknown",
+            instance,
+            recommendedAction: exception.Kind == WorkflowSubmissionFailureKind.NotAccepted && instanceDeleted
+                ? "retryInstanceCreation"
+                : "inspectInstance",
+            instanceDeleted: instanceDeleted,
+            workflowSubmissionFailureKind: exception.Kind.ToString(),
+            workflowSubmissionStatusCode: exception.StatusCode,
+            workflowCollectionKey: exception.CollectionKey
+        );
+    }
+
+    private ObjectResult HandleInitialWorkflowExecutionFailure(
+        WorkflowExecutionFailedException exception,
+        string message,
+        string org,
+        string app
+    )
+    {
+        return CreateWorkflowInitializationProblem(
+            exception,
+            message,
+            initializationState: "workflowFailed",
+            instance: exception.Instance,
+            recommendedAction: "recoverCurrentTask",
+            recoveryEndpoint: CreateProcessRecoverEndpoint(org, app, exception.Instance),
+            workflowFailure: exception.WorkflowFailure,
+            workflowAccepted: true,
+            processStateChanged: exception.ProcessStateChanged
+        );
+    }
+
+    private async Task<bool> TryHardDeleteCreatedInstance(Instance instance, string reason)
+    {
+        try
+        {
+            var instanceIdentifier = new InstanceIdentifier(instance);
+            await _instanceClient.DeleteInstance(
+                instanceIdentifier.InstanceOwnerPartyId,
+                instanceIdentifier.InstanceGuid,
+                hard: true,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
+            return true;
+        }
+        catch (Exception deleteException)
+        {
+            _logger.LogError(
+                deleteException,
+                "Failed to delete instance {InstanceId} after {Reason}.",
+                instance.Id,
+                reason
+            );
+            return false;
+        }
+    }
+
+    private ObjectResult CreateWorkflowInitializationProblem(
+        Exception exception,
+        string message,
+        string initializationState,
+        Instance? instance,
+        string recommendedAction,
+        bool? instanceDeleted = null,
+        RecoveryEndpoint? recoveryEndpoint = null,
+        WorkflowFailure? workflowFailure = null,
+        bool? workflowAccepted = null,
+        string? workflowSubmissionFailureKind = null,
+        HttpStatusCode? workflowSubmissionStatusCode = null,
+        string? workflowCollectionKey = null,
+        bool processStateChanged = false
+    )
+    {
+        const int statusCode = StatusCodes.Status500InternalServerError;
+
+        _logger.LogError(exception, message);
+
+        var problemDetails = new ProblemDetails
+        {
+            Detail = CreateWorkflowInitializationDetail(
+                initializationState,
+                recommendedAction,
+                instanceDeleted,
+                workflowAccepted,
+                processStateChanged
+            ),
+            Status = statusCode,
+            Title = "Instance initialization failed.",
+        };
+        problemDetails.Extensions["initializationState"] = initializationState;
+        problemDetails.Extensions["recommendedAction"] = recommendedAction;
+        problemDetails.Extensions["technicalDetail"] = message;
+
+        if (instanceDeleted.HasValue)
+        {
+            problemDetails.Extensions["instanceDeleted"] = instanceDeleted.Value;
+        }
+
+        if (recoveryEndpoint is not null)
+        {
+            problemDetails.Extensions["recoveryEndpoint"] = recoveryEndpoint;
+        }
+
+        if (workflowAccepted.HasValue)
+        {
+            problemDetails.Extensions["workflowAccepted"] = workflowAccepted.Value;
+        }
+
+        if (workflowFailure is not null)
+        {
+            problemDetails.Extensions["workflowFailure"] = workflowFailure;
+        }
+
+        if (!string.IsNullOrWhiteSpace(workflowSubmissionFailureKind))
+        {
+            problemDetails.Extensions["workflowSubmissionFailureKind"] = workflowSubmissionFailureKind;
+        }
+
+        if (workflowSubmissionStatusCode.HasValue)
+        {
+            problemDetails.Extensions["workflowSubmissionStatusCode"] = (int)workflowSubmissionStatusCode.Value;
+        }
+
+        if (!string.IsNullOrWhiteSpace(workflowCollectionKey))
+        {
+            problemDetails.Extensions["workflowCollectionKey"] = workflowCollectionKey;
+        }
+
+        if (processStateChanged)
+        {
+            problemDetails.Extensions["processStateChanged"] = true;
+        }
+
+        AddInstanceExtensions(problemDetails, instance);
+
+        return StatusCode(statusCode, problemDetails);
+    }
+
+    private static string CreateWorkflowInitializationDetail(
+        string initializationState,
+        string recommendedAction,
+        bool? instanceDeleted,
+        bool? workflowAccepted,
+        bool processStateChanged
+    ) =>
+        (initializationState, recommendedAction, instanceDeleted, workflowAccepted, processStateChanged) switch
+        {
+            ("workflowNotAccepted", "retryInstanceCreation", true, _, _) =>
+                "Runtime created the instance, but the initial workflow was not accepted by the workflow engine. The created instance was deleted, so the client can safely retry instance creation.",
+            ("workflowNotAccepted", _, false, _, _) =>
+                "Runtime created the instance, but the initial workflow was not accepted by the workflow engine. Runtime could not delete the created instance, so inspect the instance before retrying instance creation.",
+            ("workflowAcceptanceUnknown", _, _, _, _) =>
+                "Runtime submitted the initial workflow, but could not determine whether the workflow engine accepted it. Inspect the instance and workflow state before retrying instance creation.",
+            ("workflowFailed", _, _, true, true) =>
+                "The workflow engine accepted the initial workflow, but the workflow failed after process state may have been updated in Storage. Do not create a duplicate instance; resolve the workflow failure and call the recovery endpoint.",
+            ("workflowFailed", _, _, true, _) =>
+                "The workflow engine accepted the initial workflow, but the workflow failed before instance initialization completed. Do not create a duplicate instance; resolve the workflow failure and call the recovery endpoint.",
+            _ => "Runtime could not complete instance initialization. Inspect the response details before retrying.",
+        };
+
+    private static void AddInstanceExtensions(ProblemDetails problemDetails, Instance? instance)
+    {
+        if (instance?.Id is null)
+        {
+            return;
+        }
+
+        problemDetails.Extensions["instanceId"] = instance.Id;
+        var instanceIdentifier = new InstanceIdentifier(instance);
+        problemDetails.Extensions["instanceOwnerPartyId"] = instanceIdentifier.InstanceOwnerPartyId;
+        problemDetails.Extensions["instanceGuid"] = instanceIdentifier.InstanceGuid;
+    }
+
+    private static RecoveryEndpoint CreateProcessRecoverEndpoint(string org, string app, Instance instance)
+    {
+        var instanceIdentifier = new InstanceIdentifier(instance);
+        return new RecoveryEndpoint(
+            "POST",
+            $"/{org}/{app}/instances/{instanceIdentifier.InstanceOwnerPartyId}/{instanceIdentifier.InstanceGuid}/process/recover"
+        );
+    }
+
+    private sealed record RecoveryEndpoint(string Method, string Path);
 
     private async Task<EnforcementResult> AuthorizeAction(
         string org,

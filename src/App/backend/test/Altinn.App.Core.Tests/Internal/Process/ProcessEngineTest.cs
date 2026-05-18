@@ -1937,6 +1937,152 @@ public sealed class ProcessEngineTest
     }
 
     [Fact]
+    public async Task EnqueueAndWaitForProcessNext_waits_when_enqueue_response_is_lost_but_collection_exists()
+    {
+        Guid workflowId = Guid.NewGuid();
+        string collectionKey = CreateTaskCollectionKey("Task_1", 2);
+        var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        processEngineClientMock
+            .Setup(c =>
+                c.EnqueueWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Guid?>(),
+                    It.Is<string?>(key => key == collectionKey),
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(new HttpRequestException("Response was lost."));
+        processEngineClientMock
+            .Setup(c =>
+                c.GetCollection(
+                    It.IsAny<string>(),
+                    It.Is<string>(key => key == collectionKey),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                CreateWorkflowCollectionDetailResponse(
+                    collectionKey,
+                    CreateCollectionHeadStatus(workflowId, PersistentItemStatus.Completed)
+                )
+            );
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    null,
+                    It.Is<string>(key => key == collectionKey),
+                    null,
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatusResponse(
+                    workflowId,
+                    "Process next: Task_1 -> Task_2",
+                    PersistentItemStatus.Completed,
+                    collectionKey
+                ),
+            ]);
+
+        Mock<IInstanceClient> instanceClientMock = new(MockBehavior.Strict);
+        Instance instance = CreateTask1Instance();
+        Instance updatedInstance = CreateTask2Instance();
+        instanceClientMock
+            .Setup(c =>
+                c.GetInstance(
+                    It.IsAny<Instance>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(updatedInstance);
+
+        var services = new ServiceCollection();
+        services.AddSingleton(processEngineClientMock.Object);
+        services.AddSingleton(instanceClientMock.Object);
+
+        await using var fixture = Fixture.Create(services);
+        IWorkflowEngineService workflowEngineService =
+            fixture.ServiceProvider.GetRequiredService<IWorkflowEngineService>();
+
+        ProcessNextWorkflowResult result = await workflowEngineService.EnqueueAndWaitForProcessNext(
+            instance,
+            new ProcessStateChange
+            {
+                OldProcessState = instance.Process,
+                NewProcessState = updatedInstance.Process,
+                Events = [],
+            },
+            resolvedAction: "complete",
+            lockToken: "lock-token"
+        );
+
+        result.WorkflowFailure.Should().BeNull();
+        result.Instance.Should().BeSameAs(updatedInstance);
+    }
+
+    [Fact]
+    public async Task SubmitInitialProcessState_throws_workflow_execution_failure_when_accepted_workflow_fails()
+    {
+        Instance instance = CreateTask1Instance();
+        WorkflowFailure workflowFailure = new()
+        {
+            Kind = WorkflowFailureKind.StepFailed,
+            WorkflowId = Guid.NewGuid(),
+            StepOperationId = "NotifyInstanceOwnerOnInstantiation",
+            RetryAction = "resumeWorkflow",
+            LastError = new WorkflowFailureError { Message = "Notification failed" },
+        };
+
+        Mock<IWorkflowEngineService> workflowEngineServiceMock = new(MockBehavior.Strict);
+        workflowEngineServiceMock
+            .Setup(service =>
+                service.EnqueueAndWaitForProcessNext(
+                    It.IsAny<Instance>(),
+                    It.IsAny<ProcessStateChange>(),
+                    "start",
+                    "lock-token",
+                    It.IsAny<string>(),
+                    true,
+                    null,
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new ProcessNextWorkflowResult(instance, workflowFailure, ProcessStateChanged: true));
+
+        var services = new ServiceCollection();
+        services.AddSingleton(workflowEngineServiceMock.Object);
+
+        await using var fixture = Fixture.Create(services);
+
+        ProcessStateChange processStateChange = new()
+        {
+            OldProcessState = null,
+            NewProcessState = instance.Process,
+            Events = [],
+        };
+
+        WorkflowExecutionFailedException exception = await Assert.ThrowsAsync<WorkflowExecutionFailedException>(() =>
+            fixture.ProcessEngine.SubmitInitialProcessState(
+                instance,
+                processStateChange,
+                "lock-token",
+                isInstantiation: true
+            )
+        );
+
+        exception.Instance.Should().BeSameAs(instance);
+        exception.WorkflowFailure.Should().BeSameAs(workflowFailure);
+        exception.ProcessStateChanged.Should().BeTrue();
+        exception.Message.Should().Be("Notification failed");
+    }
+
+    [Fact]
     public async Task RecoverCurrentTask_resumes_failed_workflow_and_returns_updated_instance()
     {
         Guid workflowId = Guid.NewGuid();
