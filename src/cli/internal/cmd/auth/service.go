@@ -200,7 +200,8 @@ func (s *Service) LoginWithToken(ctx context.Context, req TokenLoginRequest) (Lo
 	}
 
 	var existing *authstore.EnvCredentials
-	if existingCreds, existingErr := creds.Get(req.Env); existingErr == nil {
+	existingCreds, existingErr := creds.Get(req.Env)
+	if existingErr == nil {
 		if !req.AllowOverwrite {
 			return LoginResult{}, AlreadyLoggedInError{
 				Env:      req.Env,
@@ -208,6 +209,8 @@ func (s *Service) LoginWithToken(ctx context.Context, req TokenLoginRequest) (Lo
 			}
 		}
 		existing = existingCreds
+	} else if !errors.Is(existingErr, authstore.ErrNotLoggedIn) {
+		return LoginResult{}, fmt.Errorf("get credentials for %s: %w", req.Env, existingErr)
 	}
 
 	newCreds := authstore.EnvCredentials{
