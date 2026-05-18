@@ -30,7 +30,6 @@ describe('useAltinityAssistant', () => {
       cancelCurrentWorkflow: jest.fn(),
       cancelledMessageContent: null,
       clearCancelledMessageContent: jest.fn(),
-      messages: [],
     });
 
     const { result } = renderUseAltinityAssistant();
@@ -55,7 +54,7 @@ const createThreadState = (): AltinityThreadState => ({
   createThread: jest.fn().mockResolvedValue('new-thread-id'),
   deleteThread: jest.fn(),
   deleteMessage: jest.fn(),
-  createMessage: jest.fn().mockResolvedValue({ id: 'persisted-id' }),
+  createMessage: jest.fn(),
 });
 
 const renderUseAltinityAssistant = () => renderHook(() => useAltinityAssistant());
