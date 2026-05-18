@@ -9,8 +9,12 @@ import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-// Mock dateformat (see src/__mocks__/@app/form-component.ts)
-jest.mock('@app/form-component');
+// Mock dateformat
+jest.mock('@app/form-component', () => ({
+  __esModules: true,
+  ...jest.requireActual<typeof import('@app/form-component')>('@app/form-component'),
+  getDateFormat: jest.fn(() => 'dd.MM.yyyy'),
+}));
 
 const render = async ({ component, ...rest }: Partial<RenderGenericComponentTestProps<'Datepicker'>> = {}) =>
   await renderGenericComponentTest({

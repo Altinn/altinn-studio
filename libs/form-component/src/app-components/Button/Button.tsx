@@ -3,8 +3,7 @@ import type { PropsWithChildren } from 'react';
 
 import { Button as DesignSystemButton } from '@digdir/designsystemet-react';
 import type { ButtonProps as DesignSystemButtonProps } from '@digdir/designsystemet-react';
-
-import { Spinner } from '../Spinner';
+import { Spinner } from '@app/form-component';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | undefined;
 export type ButtonColor = 'first' | 'second' | 'success' | 'danger' | undefined;
