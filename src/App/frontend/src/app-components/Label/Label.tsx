@@ -1,5 +1,5 @@
-import React, { forwardRef } from 'react';
-import type { JSX, PropsWithChildren, ReactElement } from 'react';
+import React from 'react';
+import type { JSX, PropsWithChildren, ReactElement, Ref } from 'react';
 
 import { Flex } from '@app/form-component';
 import { Label as DesignsystemetLabel } from '@digdir/designsystemet-react';
@@ -22,26 +22,25 @@ type LabelProps = {
   grid?: IGridStyling;
   size?: DesignsystemetLabelProps['data-size'];
   style?: DesignsystemetLabelProps['style'];
+  ref?: Ref<HTMLLabelElement>;
 };
 
-export const Label = forwardRef<HTMLLabelElement, PropsWithChildren<LabelProps>>(function Label(
-  {
-    id,
-    label,
-    htmlFor,
-    required,
-    requiredIndicator,
-    optionalIndicator,
-    help,
-    description,
-    className,
-    grid,
-    size = 'md',
-    style,
-    children,
-  },
+export function Label({
+  id,
+  label,
+  htmlFor,
+  required,
+  requiredIndicator,
+  optionalIndicator,
+  help,
+  description,
+  className,
+  grid,
+  size = 'md',
+  style,
+  children,
   ref,
-) {
+}: PropsWithChildren<LabelProps>) {
   if (!label) {
     return children;
   }
@@ -81,4 +80,4 @@ export const Label = forwardRef<HTMLLabelElement, PropsWithChildren<LabelProps>>
       {children}
     </Flex>
   );
-});
+}
