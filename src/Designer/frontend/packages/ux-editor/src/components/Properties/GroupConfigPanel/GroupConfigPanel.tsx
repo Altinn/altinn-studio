@@ -58,7 +58,12 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
   const onChangeGroupType = (typeValue: GroupType) => {
     const updatedPages = { ...pages };
     updatedPages.groups[selectedItem.id].type = typeValue;
+    pageGroupMutation(updatedPages);
+  };
 
+  const onChangeExpandedByDefault = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const updatedPages = { ...pages };
+    updatedPages.groups[selectedItem.id].expandedByDefault = event.target.checked;
     pageGroupMutation(updatedPages);
   };
 
@@ -92,6 +97,13 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
             readOnly={mutatingPages}
             checked={selectedGroup.markWhenCompleted || false}
             onChange={onMarkAsCompleted}
+          ></StudioSwitch>
+          <StudioSwitch
+            label={t('ux_editor.page_group.expandedByDefault_switch')}
+            position='end'
+            readOnly={mutatingPages}
+            checked={selectedGroup.expandedByDefault || false}
+            onChange={onChangeExpandedByDefault}
           ></StudioSwitch>
           <StudioFieldset legend={t('ux_editor.page_group.select_type_title')}>
             <StudioRadio
