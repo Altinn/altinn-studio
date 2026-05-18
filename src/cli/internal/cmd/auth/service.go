@@ -102,6 +102,15 @@ type LoginResult struct {
 	RevokePreviousError string
 }
 
+// TokenLoginRequest contains a pre-created Designer API key to validate and store.
+type TokenLoginRequest struct {
+	Env            string
+	Scheme         string
+	Host           string
+	Token          string
+	AllowOverwrite bool
+}
+
 // CodeExchangeRequest contains the one-time browser login code.
 type CodeExchangeRequest struct {
 	Env            string
@@ -172,6 +181,64 @@ func (s *Service) ExchangeCode(ctx context.Context, req CodeExchangeRequest) (Lo
 	}
 
 	result := LoginResult{Username: response.Username, RevokePreviousError: ""}
+	if err := revokeExistingAPIKey(ctx, existing); err != nil {
+		result.RevokePreviousError = err.Error()
+	}
+
+	return result, nil
+}
+
+// LoginWithToken validates/stores credentials from an existing Designer API key.
+func (s *Service) LoginWithToken(ctx context.Context, req TokenLoginRequest) (LoginResult, error) {
+	if req.Token == "" {
+		return LoginResult{}, ErrInvalidToken
+	}
+
+	creds, err := authstore.LoadCredentials(s.cfg.Home)
+	if err != nil {
+		return LoginResult{}, fmt.Errorf("load credentials: %w", err)
+	}
+
+	var existing *authstore.EnvCredentials
+	existingCreds, existingErr := creds.Get(req.Env)
+	if existingErr == nil {
+		if !req.AllowOverwrite {
+			return LoginResult{}, AlreadyLoggedInError{
+				Env:      req.Env,
+				Username: existingCreds.Username,
+			}
+		}
+		existing = existingCreds
+	} else if !errors.Is(existingErr, authstore.ErrNotLoggedIn) {
+		return LoginResult{}, fmt.Errorf("get credentials for %s: %w", req.Env, existingErr)
+	}
+
+	newCreds := authstore.EnvCredentials{
+		ApiKeyID:  0,
+		Scheme:    authstore.SchemeOrDefault(req.Scheme),
+		Host:      req.Host,
+		ApiKey:    req.Token,
+		ExpiresAt: "",
+		Username:  "",
+	}
+	user, err := studio.NewClient(&newCreds, s.cfg.Version).GetUser(ctx)
+	if err != nil {
+		if errors.Is(err, studio.ErrUnauthorized) {
+			return LoginResult{}, ErrInvalidToken
+		}
+		return LoginResult{}, fmt.Errorf("validate token: %w", err)
+	}
+	if user.Login == "" {
+		return LoginResult{}, ErrInvalidToken
+	}
+	newCreds.Username = user.Login
+
+	creds.Set(req.Env, newCreds)
+	if err := authstore.SaveCredentials(s.cfg.Home, creds); err != nil {
+		return LoginResult{}, fmt.Errorf("save credentials: %w", err)
+	}
+
+	result := LoginResult{Username: user.Login, RevokePreviousError: ""}
 	if err := revokeExistingAPIKey(ctx, existing); err != nil {
 		result.RevokePreviousError = err.Error()
 	}
