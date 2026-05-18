@@ -1,5 +1,4 @@
-import React, { forwardRef } from 'react';
-import type { PropsWithChildren } from 'react';
+import type { PropsWithChildren, Ref } from 'react';
 
 import { Button as DesignSystemButton } from '@digdir/designsystemet-react';
 import type { ButtonProps as DesignSystemButtonProps } from '@digdir/designsystemet-react';
@@ -20,6 +19,7 @@ export type ButtonProps = {
   textAlign?: TextAlign;
   title?: string;
   'aria-label'?: string;
+  ref?: Ref<HTMLButtonElement>;
 } & Omit<DesignSystemButtonProps, 'variant' | 'color' | 'size' | 'title' | 'aria-label'>;
 
 type DSButtonColor =
@@ -43,22 +43,20 @@ function mapColorNames(color: ButtonColor): DSButtonColor {
   }
 }
 
-export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProps>>(function Button(
-  {
-    disabled,
-    isLoading = false,
-    variant = 'primary',
-    color = 'first',
-    size = 'sm',
-    children,
-    fullWidth,
-    style,
-    textAlign,
-    loadingLabel,
-    ...rest
-  },
+export function Button({
+  disabled,
+  isLoading = false,
+  variant = 'primary',
+  color = 'first',
+  size = 'sm',
+  children,
+  fullWidth,
+  style,
+  textAlign,
+  loadingLabel,
   ref,
-) {
+  ...rest
+}: PropsWithChildren<ButtonProps>) {
   const expandedStyle = { ...style, justifyContent: textAlign ? textAlign : undefined };
   return (
     <DesignSystemButton
@@ -86,4 +84,4 @@ export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProp
       )}
     </DesignSystemButton>
   );
-});
+}

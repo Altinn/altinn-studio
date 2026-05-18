@@ -1,5 +1,5 @@
-import React, { forwardRef, useState } from 'react';
-import type { PropsWithChildren } from 'react';
+import React, { useState } from 'react';
+import type { PropsWithChildren, Ref } from 'react';
 
 import { Popover } from '@digdir/designsystemet-react';
 import cl from 'clsx';
@@ -15,12 +15,10 @@ export interface HelpTextProps extends PropsWithChildren {
   titlePrefix?: TranslationKey;
   placement?: 'right' | 'bottom' | 'left' | 'top';
   className?: string;
+  ref?: Ref<HTMLButtonElement>;
 }
 
-export const HelpText = forwardRef<HTMLButtonElement, HelpTextProps>(function HelpText(
-  { id, title, titlePrefix, placement = 'right', className, children },
-  ref,
-) {
+export function HelpText({ id, title, titlePrefix, placement = 'right', className, children, ref }: HelpTextProps) {
   const [open, setOpen] = useState(false);
   const { translate } = useTranslation();
 
@@ -64,4 +62,4 @@ export const HelpText = forwardRef<HTMLButtonElement, HelpTextProps>(function He
       </Popover>
     </Popover.TriggerContext>
   );
-});
+}
