@@ -22,8 +22,7 @@ export type AssistantTexts = {
 export type MessageFeedbackTexts = {
   thumbsUp: string;
   thumbsDown: string;
-  positiveHeading: string;
-  negativeHeading: string;
+  heading: string;
   detailsLabel: string;
   detailsOptionalTag: string;
   submit: string;

@@ -72,8 +72,7 @@ function AiAssistant(): ReactElement {
     feedback: {
       thumbsUp: t('ai_assistant.feedback_thumbs_up'),
       thumbsDown: t('ai_assistant.feedback_thumbs_down'),
-      positiveHeading: t('ai_assistant.feedback_positive_heading'),
-      negativeHeading: t('ai_assistant.feedback_negative_heading'),
+      heading: t('ai_assistant.feedback_heading'),
       detailsLabel: t('ai_assistant.feedback_details_label'),
       detailsOptionalTag: t('general.optional'),
       submit: t('ai_assistant.feedback_submit'),

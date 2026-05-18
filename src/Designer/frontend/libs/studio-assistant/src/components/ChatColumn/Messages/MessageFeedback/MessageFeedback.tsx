@@ -21,7 +21,7 @@ export function MessageFeedback({ texts, onSubmit }: MessageFeedbackProps): Reac
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [selectedVote, setSelectedVote] = useState<boolean | null>(null);
   const [commentText, setCommentText] = useState<string>('');
-  const dialogHeading = selectedVote === true ? texts.positiveHeading : texts.negativeHeading;
+  const commentPlaceholder = selectedVote === true ? texts.thumbsUp : texts.thumbsDown;
 
   const handleVoteClick = (vote: boolean): void => {
     setSelectedVote(vote);
@@ -68,13 +68,14 @@ export function MessageFeedback({ texts, onSubmit }: MessageFeedbackProps): Reac
 
       <StudioDialog open={isDialogOpen} closedby='any' onClose={handleDialogClose}>
         <StudioDialog.Block>
-          <StudioHeading level={2}>{dialogHeading}</StudioHeading>
+          <StudioHeading level={2}>{texts.heading}</StudioHeading>
         </StudioDialog.Block>
         <StudioDialog.Block className={classes.dialogContent}>
           <StudioFormGroup legend={texts.detailsLabel} tagText={texts.detailsOptionalTag}>
             <StudioTextarea
               value={commentText}
               onChange={(event) => setCommentText(event.target.value)}
+              placeholder={commentPlaceholder}
             />
           </StudioFormGroup>
           <div className={classes.dialogActions}>
