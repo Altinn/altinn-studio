@@ -29,6 +29,7 @@
     "@chromatic-com/storybook": "^5.0.1",
     "@digdir/designsystemet-css": "1.11.1",
     "@digdir/designsystemet-react": "1.11.1",
+    "@storybook/addon-a11y": "^10.2.16",
     "@storybook/addon-docs": "10.2.16",
     "@storybook/addon-links": "10.2.16",
     "@storybook/builder-vite": "10.2.16",

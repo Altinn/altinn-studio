@@ -131,6 +131,7 @@ __metadata:
     "@chromatic-com/storybook": "npm:^5.0.1"
     "@digdir/designsystemet-css": "npm:1.11.1"
     "@digdir/designsystemet-react": "npm:1.11.1"
+    "@storybook/addon-a11y": "npm:^10.2.16"
     "@storybook/addon-docs": "npm:10.2.16"
     "@storybook/addon-links": "npm:10.2.16"
     "@storybook/builder-vite": "npm:10.2.16"
@@ -6064,6 +6065,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@storybook/addon-a11y@npm:^10.2.16":
+  version: 10.4.0
+  resolution: "@storybook/addon-a11y@npm:10.4.0"
+  dependencies:
+    "@storybook/global": "npm:^5.0.0"
+    axe-core: "npm:^4.2.0"
+  peerDependencies:
+    storybook: ^10.4.0
+  checksum: 10/0e3dc46fdef537c35c95f70d755fa4e88dad1526d6c0af4a946896d7b60271c8abe3d52ad5e930d0a37b36303ae2c5a174814a5d1a1e7f73addff39b218b7e8a
+  languageName: node
+  linkType: hard
+
 "@storybook/addon-docs@npm:10.2.16":
   version: 10.2.16
   resolution: "@storybook/addon-docs@npm:10.2.16"
@@ -9504,6 +9517,13 @@ __metadata:
   version: 4.11.0
   resolution: "axe-core@npm:4.11.0"
   checksum: 10/18254ee95bc328aec9a909b22e4b22e8ff14a21363fdbd1a5227267e66bf1d2fc1425c186e9001759aab5827cf4ee9dc30f7ea57e8200cbf7a1cd555ed21a908
+  languageName: node
+  linkType: hard
+
+"axe-core@npm:^4.2.0":
+  version: 4.11.4
+  resolution: "axe-core@npm:4.11.4"
+  checksum: 10/49095daa422d05d99a90b39301a3b5c971e234a4593403dfd6701df637a3e550bcfd7bd096709c5643564dd069208513247791f367790e0605d15386fb2a7bfe
   languageName: node
   linkType: hard
 
