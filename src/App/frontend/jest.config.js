@@ -24,6 +24,10 @@ const config = {
   moduleNameMapper: {
     '^src/(.*)$': '<rootDir>/src/$1',
     '^schemas/(.*)$': '<rootDir>/schemas/$1',
+    '^react$': '<rootDir>/node_modules/react',
+    '^react-dom$': '<rootDir>/node_modules/react-dom',
+    '^react/jsx-runtime$': '<rootDir>/node_modules/react/jsx-runtime.js',
+    '^react/jsx-dev-runtime$': '<rootDir>/node_modules/react/jsx-dev-runtime.js',
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'json'],
   testRegex: '\\.test\\.(ts|tsx|js|jsx)$',

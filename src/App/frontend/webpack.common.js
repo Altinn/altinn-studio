@@ -13,6 +13,11 @@ module.exports = {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.css'],
     alias: {
       src: path.resolve(__dirname, './src'),
+      // Workspace packages imported from outside this directory (i.e. libs) would otherwise
+      // resolve React from the repo root, which can load a different patch
+      // version than the app frontend bundle.
+      react: path.resolve(__dirname, './node_modules/react'),
+      'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
     },
   },
   module: {
