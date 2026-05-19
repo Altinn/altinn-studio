@@ -42,7 +42,11 @@ implying that we need to support mapping and filtering.
   ```json
   [
     "pluck",
-    ["list", { "name": "Ola", "city": "Oslo" }, { "name": "Kari", "city": "Hamar" }],
+    [
+      "list",
+      ["object", "name", "Ola", "city", "Oslo"],
+      ["object", "name", "Kari", "city", "Hamar"]
+    ],
     "name"
   ]
   ```
@@ -54,7 +58,11 @@ implying that we need to support mapping and filtering.
   ```json
   [
     "filter",
-    ["list", { "name": "Ola", "city": "Oslo" }, { "name": "Kari", "city": "Hamar" }],
+    [
+      "list",
+      ["object", "name", "Ola", "city", "Oslo"],
+      ["object", "name", "Kari", "city", "Hamar"]
+    ],
     ["Lambda function for filtering goes here. We still need to agree on some syntax for this."]
   ]
   ```
@@ -71,7 +79,11 @@ implying that we need to support mapping and filtering.
   ```json
   [
     "query",
-    ["list", { "name": "Ola", "city": "Oslo" }, { "name": "Kari", "city": "Hamar" }],
+    [
+      "list",
+      ["object", "name", "Ola", "city", "Oslo"],
+      ["object", "name", "Kari", "city", "Hamar"]
+    ],
     "name"
   ]
   ```
@@ -91,8 +103,8 @@ implying that we need to support mapping and filtering.
     "query",
     [
       "list",
-      { "name": "Ola", "city": "Oslo", "ageInYears": 17 },
-      { "name": "Kari", "city": "Hamar", "ageInYears": 18 }
+      ["object", "name", "Ola", "city", "Oslo", "ageInYears", 17],
+      ["object", "name", "Kari", "city", "Hamar", "ageInYears", 18]
     ],
     "[ageInYears>=18].name"
   ]
@@ -113,8 +125,8 @@ implying that we need to support mapping and filtering.
     "jsonpath",
     [
       "list",
-      { "name": "Ola", "city": "Oslo", "ageInYears": 17 },
-      { "name": "Kari", "city": "Hamar", "ageInYears": 18 }
+      ["object", "name", "Ola", "city", "Oslo", "ageInYears", 17],
+      ["object", "name", "Kari", "city", "Hamar", "ageInYears", 18]
     ],
     "$[?@.ageInYears>=18].name"
   ]
@@ -135,8 +147,8 @@ implying that we need to support mapping and filtering.
     "jmespath",
     [
       "list",
-      { "name": "Ola", "city": "Oslo", "ageInYears": 17 },
-      { "name": "Kari", "city": "Hamar", "ageInYears": 18 }
+      ["object", "name", "Ola", "city", "Oslo", "ageInYears", 17],
+      ["object", "name", "Kari", "city", "Hamar", "ageInYears", 18]
     ],
     "[?ageInYears>=`18`].name"
   ]
@@ -157,8 +169,8 @@ implying that we need to support mapping and filtering.
     "jsonata",
     [
       "list",
-      { "name": "Ola", "city": "Oslo", "ageInYears": 17 },
-      { "name": "Kari", "city": "Hamar", "ageInYears": 18 }
+      ["object", "name", "Ola", "city", "Oslo", "ageInYears", 17],
+      ["object", "name", "Kari", "city", "Hamar", "ageInYears", 18]
     ],
     "$[ageInYears>=18].name"
   ]
