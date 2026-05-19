@@ -87,12 +87,13 @@ public sealed class PiCliAgentService(
 
         psi.ArgumentList.Add("-p");
 
-        // Pure text/JSON generation: no tools, no auto-discovered skills/extensions/context files.
-        // Our system prompt and user prompt are passed in explicitly.
+        // Pure text/JSON generation: no tools, no auto-discovered skills/extensions/context files,
+        // no session persistence (parallel Pi instances must not trample shared session files).
         psi.ArgumentList.Add("-nt");
         psi.ArgumentList.Add("-ns");
         psi.ArgumentList.Add("-nc");
         psi.ArgumentList.Add("-ne");
+        psi.ArgumentList.Add("--no-session");
 
         if (!string.IsNullOrEmpty(opts.Model))
         {

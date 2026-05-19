@@ -86,6 +86,7 @@ app.MapHealthEndpoints();
 app.MapAgentTestEndpoints();
 app.MapGenerateEndpoints();
 app.MapGenerateAsyncEndpoints();
+app.MapExperimentEndpoints();
 
 app.Run();
 
