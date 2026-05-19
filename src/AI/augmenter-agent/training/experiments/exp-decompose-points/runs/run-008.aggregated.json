@@ -1,0 +1,239 @@
+{
+  "sjekkliste": {
+    "formelle_krav": {
+      "label": "Formelle krav",
+      "punkter": {
+        "soknad_komplett": {
+          "label": "Søknaden er komplett utfylt",
+          "status": "maa_undersokes",
+          "merknad": "Søknadens utfyllingsgrad må kontrolleres mot innsendt skjema."
+        },
+        "riktig_soknadstype": {
+          "label": "Riktig søknadstype valgt",
+          "status": "maa_undersokes",
+          "merknad": "Søknadstype er ikke oppgitt i faktumet og må kontrolleres mot innsendt skjema."
+        },
+        "kommune_riktig": {
+          "label": "Riktig kommune valgt",
+          "status": "maa_undersokes",
+          "merknad": "Det er ikke oppgitt hvilken kommune som er valgt i søknaden eller hvor søkeren er bosatt."
+        },
+        "soker_identifisert": {
+          "label": "Søker er identifisert med org.nr.",
+          "status": "maa_undersokes",
+          "merknad": "Det er ikke oppgitt organisasjonsnummer i faktum; må sjekkes i søknad eller folkeregister."
+        }
+      }
+    },
+    "dokumentasjon": {
+      "label": "Dokumentasjon",
+      "punkter": {
+        "leiekontrakt": {
+          "label": "Leiekontrakt for lokalet",
+          "status": "maa_undersokes",
+          "merknad": "Leiekontrakt for lokalet mangler i saksdokumentene og må innhentes."
+        },
+        "personantall_beregning": {
+          "label": "Beregning av personantall fra godkjent firma",
+          "status": "maa_undersokes",
+          "merknad": "Dokumentasjon på beregning av personantall fra godkjent firma mangler i saksdokumentene."
+        },
+        "plantegninger": {
+          "label": "Plantegninger over lokalet",
+          "status": "maa_undersokes",
+          "merknad": "Det er ikke opplyst om plantegninger over lokalet er vedlagt søknaden."
+        },
+        "mattilsynet_registrering": {
+          "label": "Registrering hos Mattilsynet",
+          "status": "maa_undersokes",
+          "merknad": "Det er ikke opplyst om søkeren er registrert hos Mattilsynet, og dokumentasjon mangler."
+        },
+        "bruksgodkjenning": {
+          "label": "Bruksgodkjenning fra plan- og bygningsetaten",
+          "status": "maa_undersokes",
+          "merknad": "Dokumentasjon på bruksgodkjenning fra plan- og bygningsetaten mangler i saksdokumentene."
+        },
+        "kunnskapsprove_styrer": {
+          "label": "Kunnskapsprøve bestått – styrer",
+          "status": "maa_undersokes",
+          "merknad": "Dokumentasjon på bestått kunnskapsprøve for styrer mangler i saksdokumentene."
+        },
+        "kunnskapsprove_stedfortreder": {
+          "label": "Kunnskapsprøve bestått – stedfortreder",
+          "status": "maa_undersokes",
+          "merknad": "Det er ikke opplyst om stedfortreder har bestått kunnskapsprøven."
+        },
+        "arbeidsavtale_styrer": {
+          "label": "Arbeidsavtale for styrer",
+          "status": "maa_undersokes",
+          "merknad": "Arbeidsavtale for styrer mangler i saksdokumentene og må innhentes eller kontrolleres."
+        },
+        "arbeidsavtale_stedfortreder": {
+          "label": "Arbeidsavtale for stedfortreder",
+          "status": "maa_undersokes",
+          "merknad": "Arbeidsavtale for stedfortreder mangler i saksdokumentene og må innhentes."
+        }
+      }
+    },
+    "vandel": {
+      "label": "Vandelsvurdering",
+      "punkter": {
+        "politi_uttalelse": {
+          "label": "Uttalelse innhentet fra politiet",
+          "status": "maa_undersokes",
+          "merknad": "Det foreligger ingen uttalelse fra politiet i saken; denne må innhentes for å fullføre vandelsvurderingen."
+        },
+        "skatteetaten_uttalelse": {
+          "label": "Uttalelse innhentet fra Skatteetaten",
+          "status": "maa_undersokes",
+          "merknad": "Uttalelse fra Skatteetaten er ikke innhentet i saksdokumentene."
+        },
+        "nav_uttalelse": {
+          "label": "Uttalelse innhentet fra NAV (sosialtjenesten)",
+          "status": "maa_undersokes",
+          "merknad": "Uttalelse fra NAV (sosialtjenesten) er ikke fremlagt i saken og må innhentes."
+        },
+        "vandel_bevillingshaver": {
+          "label": "Vandel OK – bevillingshaver/eier",
+          "status": "maa_undersokes",
+          "merknad": "Vandel for bevillingshaver/eier er ikke dokumentert i saksdokumentene og må innhentes."
+        },
+        "vandel_styrer": {
+          "label": "Vandel OK – styrer (kun alkohollovgivning)",
+          "status": "maa_undersokes",
+          "merknad": "Det foreligger ingen informasjon om styremedlemmenes vandel i henhold til alkohollovgivningen."
+        },
+        "vandel_stedfortreder": {
+          "label": "Vandel OK – stedfortreder (kun alkohollovgivning)",
+          "status": "maa_undersokes",
+          "merknad": "Det foreligger ikke dokumentasjon på vandelen til stedfortreder i saksmappen."
+        },
+        "vandel_vesentlig_innflytelse": {
+          "label": "Vandel OK – personer med vesentlig innflytelse",
+          "status": "maa_undersokes",
+          "merknad": "Dokumentasjon på vandel for personer med vesentlig innflytelse mangler og må innhentes/kontrolleres."
+        }
+      }
+    },
+    "personkrav": {
+      "label": "Krav til styrer og stedfortreder",
+      "punkter": {
+        "styrer_alder": {
+          "label": "Styrer er over 20 år",
+          "status": "maa_undersokes",
+          "merknad": "Informasjon om styrerens alder foreligger ikke i saksdokumentene."
+        },
+        "stedfortreder_alder": {
+          "label": "Stedfortreder er over 20 år",
+          "status": "maa_undersokes",
+          "merknad": "Dokumentasjon på stedfortrederens alder foreligger ikke i saksmappen."
+        },
+        "styrer_ansatt": {
+          "label": "Styrer er ansatt på stedet / eier",
+          "status": "maa_undersokes",
+          "merknad": "Det er ikke opplyst om styrer er ansatt på stedet eller eier."
+        },
+        "stedfortreder_ansatt": {
+          "label": "Stedfortreder er ansatt på stedet / eier",
+          "status": "maa_undersokes",
+          "merknad": "Det foreligger ingen dokumentasjon på om stedfortreder er ansatt på stedet eller er eier."
+        },
+        "styrer_kun_ett_sted": {
+          "label": "Styrer er ikke styrer/stedfortreder på annet sted",
+          "status": "maa_undersokes",
+          "merknad": "Det foreligger ikke informasjon om styrerens øvrige verv i søknadsdokumentasjonen."
+        },
+        "stedfortreder_kun_ett_sted": {
+          "label": "Stedfortreder er ikke styrer/stedfortreder på annet sted",
+          "status": "maa_undersokes",
+          "merknad": "Det foreligger ingen informasjon om stedfortrederens andre verv; må kontrolleres mot registerutskrift."
+        },
+        "fritak_stedfortreder": {
+          "label": "Fritak fra krav om stedfortreder vurdert",
+          "status": "maa_undersokes",
+          "merknad": "Det er ikke opplyst om det er søkt om eller innvilget fritak fra kravet om stedfortreder."
+        }
+      }
+    },
+    "lokalpolitisk": {
+      "label": "Lokalpolitisk vurdering (kommunens retningslinjer)",
+      "punkter": {
+        "beliggenhet_ok": {
+          "label": "Beliggenhet i tråd med retningslinjer",
+          "status": "maa_undersokes",
+          "merknad": "Det er ikke oppgitt informasjon om tiltakets beliggenhet eller kommunens gjeldende retningslinjer for området."
+        },
+        "ikke_barn_unge_omraade": {
+          "label": "Ikke i område for barn/unges fritidsaktiviteter",
+          "status": "maa_undersokes",
+          "merknad": "Det er ikke opplyst om søknaden gjelder et område som er regulert for barn og unges fritidsaktiviteter; dette må kontrolleres mot kommunens kart og retningslinjer."
+        },
+        "ikke_idrettsarrangement": {
+          "label": "Ikke idrettsarrangement eller arrangement for barn/unge",
+          "status": "maa_undersokes",
+          "merknad": "Det er ikke opplyst om arrangementets art, og det må undersøkes om det er et idrettsarrangement eller rettet mot barn/unge."
+        },
+        "brennevin_spisested": {
+          "label": "Brennevin kun til spisested (hvis gr. 3)",
+          "status": "maa_undersokes",
+          "merknad": "Det er ikke opplyst om søknaden gjelder bevilling gruppe 3 eller om det foreligger et spisested."
+        },
+        "skjenketider_ok": {
+          "label": "Skjenketider innenfor kommunens rammer",
+          "status": "maa_undersokes",
+          "merknad": "Søknaden inneholder ingen opplysninger om ønskede skjenketider, og det må kontrolleres om disse er i samsvar med kommunens gjeldende rammer."
+        },
+        "arrangement_varighet_ok": {
+          "label": "Arrangement innenfor maks 14 dager",
+          "status": "maa_undersokes",
+          "merknad": "Det er ikke oppgitt dato for arrangementet, saksbehandler må kontrollere om dette er innenfor tidsfristen på 14 dager."
+        }
+      }
+    },
+    "habilitet": {
+      "label": "Habilitet og saksbehandling",
+      "punkter": {
+        "habilitet_vurdert": {
+          "label": "Habilitet vurdert (fvl. § 6)",
+          "status": "maa_undersokes",
+          "merknad": "Saksbehandler må vurdere egen habilitet i henhold til fvl. § 6 før saken behandles videre."
+        },
+        "veiledningsplikt": {
+          "label": "Veiledningsplikt overholdt (fvl. § 11)",
+          "status": "maa_undersokes",
+          "merknad": "Det foreligger ikke dokumentasjon i saksmappen på at søker har mottatt nødvendig veiledning i henhold til fvl. § 11."
+        },
+        "saksbehandlingstid": {
+          "label": "Innenfor 90 dagers saksbehandlingsfrist",
+          "status": "maa_undersokes",
+          "merknad": "Søknadsdato mangler, må sjekkes mot dagens dato 19.05.2026 for å bekrefte at 90-dagersfristen er overholdt."
+        }
+      }
+    },
+    "gebyr": {
+      "label": "Gebyr",
+      "punkter": {
+        "gebyr_beregnet": {
+          "label": "Bevillingsgebyr korrekt beregnet",
+          "status": "maa_undersokes",
+          "merknad": "Det foreligger ikke informasjon om beregnet gebyr i saksdokumentene; saksbehandler må kontrollere at gebyret er korrekt utregnet i henhold til gjeldende satser."
+        }
+      }
+    },
+    "helhetsvurdering": {
+      "label": "Helhetsvurdering",
+      "punkter": {
+        "samlet_vurdering": {
+          "label": "Samlet vurdering av søknaden",
+          "status": "maa_undersokes",
+          "merknad": "Saksbehandler må foreta en samlet helhetsvurdering av søknaden basert på alle innhentede opplysninger."
+        },
+        "anbefaling": {
+          "label": "Foreløpig anbefaling",
+          "status": "maa_undersokes",
+          "merknad": "Foreløpig anbefaling er ikke fastsatt og må vurderes av saksbehandler basert på saksdokumentene."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,462 @@
+{
+  "iteration": 2,
+  "timestamp": "2026-05-19T22:41:52.773954+02:00",
+  "inputFile": "examples\\applications\\julebord-kristiansand.json",
+  "mode": "with-rules-and-facts",
+  "concurrency": 1,
+  "deterministicPunktCount": 16,
+  "llmPunktCount": 23,
+  "llmPhaseElapsedSec": 105.4,
+  "perPunkt": [
+    {
+      "key": "formelle_krav.kommune_riktig",
+      "source": "rule",
+      "elapsedMs": 0,
+      "result": {
+        "status": "vurdert_ok",
+        "merknad": "Kommunenummer 4204 = Kristiansand. Lokalet 'Restaurant Sjøhuset, Havnegata 15' ligger i Kristiansand."
+      }
+    },
+    {
+      "key": "formelle_krav.soker_identifisert",
+      "source": "rule",
+      "elapsedMs": 0,
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Søker er registrert som privatperson (BrukerType: person) uten organisasjonsnummer. Bevilling gis normalt til et selskap; ved enkeltbevilling for lukket arrangement (firmafest/privatfest) kan privatperson likevel være søker. Bekreft at dette er et privat/lukket arrangement og at privatperson er riktig bevillingshaver."
+      }
+    },
+    {
+      "key": "dokumentasjon.arbeidsavtale_styrer",
+      "source": "rule",
+      "elapsedMs": 0,
+      "result": {
+        "status": "ikke_relevant",
+        "merknad": "Enkeltbevilling/arrangement hvor søker selv er styrer for eget arrangement. Arbeidsavtale på serveringsstedet er ikke nødvendig i denne situasjonen."
+      }
+    },
+    {
+      "key": "dokumentasjon.arbeidsavtale_stedfortreder",
+      "source": "rule",
+      "elapsedMs": 0,
+      "result": {
+        "status": "ikke_relevant",
+        "merknad": "Enkeltbevilling/arrangement. Stedfortreder opptrer i tilknytning til arrangementet, ikke som fast ansatt på serveringsstedet. Arbeidsavtale ikke nødvendig."
+      }
+    },
+    {
+      "key": "vandel.vandel_vesentlig_innflytelse",
+      "source": "rule",
+      "elapsedMs": 0,
+      "result": {
+        "status": "ikke_relevant",
+        "merknad": "Søker er privatperson; listene over juridiske og fysiske personer med vesentlig innflytelse er tomme. Ingen andre personer å vurdere."
+      }
+    },
+    {
+      "key": "personkrav.styrer_alder",
+      "source": "rule",
+      "elapsedMs": 0,
+      "result": {
+        "status": "vurdert_ok",
+        "merknad": "Fødselsnummer 01039012345 tilsier fødselsdato 01.03.1990. På vedtakstidspunktet (2026-05-19) er styrer 36 år – godt over 20 år."
+      }
+    },
+    {
+      "key": "personkrav.stedfortreder_alder",
+      "source": "rule",
+      "elapsedMs": 0,
+      "result": {
+        "status": "vurdert_ok",
+        "merknad": "Fødselsnummer 15039012345 tilsier fødselsdato 15.03.1990. På vedtakstidspunktet (2026-05-19) er stedfortreder 36 år – godt over 20 år."
+      }
+    },
+    {
+      "key": "personkrav.styrer_ansatt",
+      "source": "rule",
+      "elapsedMs": 0,
+      "result": {
+        "status": "ikke_relevant",
+        "merknad": "Enkeltbevilling for arrangement hvor søker selv er styrer for eget arrangement. Ansettelseskrav er ikke aktuelt her."
+      }
+    },
+    {
+      "key": "personkrav.stedfortreder_ansatt",
+      "source": "rule",
+      "elapsedMs": 0,
+      "result": {
+        "status": "ikke_relevant",
+        "merknad": "Enkeltbevilling for arrangement. Stedfortreder opptrer i forbindelse med arrangementet, ikke som ansatt på serveringsstedet."
+      }
+    },
+    {
+      "key": "personkrav.fritak_stedfortreder",
+      "source": "rule",
+      "elapsedMs": 0,
+      "result": {
+        "status": "ikke_relevant",
+        "merknad": "Stedfortreder (Erik Hansen) er oppgitt i søknaden, og SkalHaFritakFraStedfortreder = false. Fritak ikke aktuelt."
+      }
+    },
+    {
+      "key": "lokalpolitisk.ikke_idrettsarrangement",
+      "source": "rule",
+      "elapsedMs": 0,
+      "result": {
+        "status": "vurdert_ok",
+        "merknad": "Arrangementet er 'Julebord Avdeling Nord' med 45 bestemte deltakere – tydelig voksenarrangement, ikke idretts- eller barne-/ungdomsarrangement."
+      }
+    },
+    {
+      "key": "lokalpolitisk.brennevin_spisested",
+      "source": "rule",
+      "elapsedMs": 0,
+      "result": {
+        "status": "vurdert_ok",
+        "merknad": "Det søkes om gruppe 3 (brennevin). Arrangementet avvikles på Restaurant Sjøhuset, som er et spisested med matservering. Kravet er oppfylt."
+      }
+    },
+    {
+      "key": "lokalpolitisk.skjenketider_ok",
+      "source": "rule",
+      "elapsedMs": 0,
+      "result": {
+        "status": "vurdert_ok",
+        "merknad": "Skjenkning kl. 19:00–02:00 ligger innenfor lovens makstider for gruppe 3 (13:00–03:00). Verifiser mot Kristiansand lokale retningslinjer."
+      }
+    },
+    {
+      "key": "lokalpolitisk.arrangement_varighet_ok",
+      "source": "rule",
+      "elapsedMs": 0,
+      "result": {
+        "status": "vurdert_ok",
+        "merknad": "Arrangementet varer fra 2026-12-12 kl. 19:00 til 2026-12-13 kl. 02:00 – 2 dag(er), godt innenfor grensen på 14 dager."
+      }
+    },
+    {
+      "key": "habilitet.habilitet_vurdert",
+      "source": "rule",
+      "elapsedMs": 0,
+      "result": {
+        "status": "vurdert_ok",
+        "merknad": "AI-agent – ingen inhabilitet. Menneskelig saksbehandler må selv vurdere egen habilitet før vedtak."
+      }
+    },
+    {
+      "key": "habilitet.saksbehandlingstid",
+      "source": "rule",
+      "elapsedMs": 0,
+      "result": {
+        "status": "vurdert_ok",
+        "merknad": "Vurderingsdato 2026-05-19, arrangement 2026-12-12 – 207 dager igjen. Rikelig tid igjen til både dokumentinnhenting og 90-dagers behandlingsfrist."
+      }
+    },
+    {
+      "key": "formelle_krav.soknad_komplett",
+      "source": "llm",
+      "elapsedMs": 4670,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 231,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Søknaden mangler vedlegg; det må avklares om det er krav om dokumentasjon for dette spesifikke arrangementet.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Søknaden mangler vedlegg; det må avklares om det er krav om dokumentasjon for dette spesifikke arrangementet."
+      }
+    },
+    {
+      "key": "formelle_krav.riktig_soknadstype",
+      "source": "llm",
+      "elapsedMs": 4338,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 227,
+      "rawStdoutPreview": "{\"status\": \"vurdert_ok\", \"merknad\": \"Søknaden gjelder et konkret arrangement (julebord) og riktig bevillingstype er valgt.\"}\n",
+      "result": {
+        "status": "vurdert_ok",
+        "merknad": "Søknaden gjelder et konkret arrangement (julebord) og riktig bevillingstype er valgt."
+      }
+    },
+    {
+      "key": "dokumentasjon.leiekontrakt",
+      "source": "llm",
+      "elapsedMs": 4002,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 182,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Leiekontrakt mangler i saksdokumentene.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Leiekontrakt mangler i saksdokumentene."
+      }
+    },
+    {
+      "key": "dokumentasjon.personantall_beregning",
+      "source": "llm",
+      "elapsedMs": 4617,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 226,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Det mangler dokumentasjon fra firmaet som bekrefter at lokalet har kapasitet til 45 deltakere.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Det mangler dokumentasjon fra firmaet som bekrefter at lokalet har kapasitet til 45 deltakere."
+      }
+    },
+    {
+      "key": "dokumentasjon.plantegninger",
+      "source": "llm",
+      "elapsedMs": 4756,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 183,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Plantegninger mangler i søknaden. Må undersøkes om disse finnes i kommunens arkiv for det etablerte lokalet.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Plantegninger mangler i søknaden. Må undersøkes om disse finnes i kommunens arkiv for det etablerte lokalet."
+      }
+    },
+    {
+      "key": "dokumentasjon.mattilsynet_registrering",
+      "source": "llm",
+      "elapsedMs": 4495,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 219,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Det foreligger ingen bekreftelse på registrering; antakelse er ikke tilstrekkelig dokumentasjon.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Det foreligger ingen bekreftelse på registrering; antakelse er ikke tilstrekkelig dokumentasjon."
+      }
+    },
+    {
+      "key": "dokumentasjon.bruksgodkjenning",
+      "source": "llm",
+      "elapsedMs": 4545,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 258,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Det foreligger ingen dokumentasjon på bruksgodkjenning, kun en antagelse om at denne finnes.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Det foreligger ingen dokumentasjon på bruksgodkjenning, kun en antagelse om at denne finnes."
+      }
+    },
+    {
+      "key": "dokumentasjon.kunnskapsprove_styrer",
+      "source": "llm",
+      "elapsedMs": 4375,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 203,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Dokumentasjon mangler i vedlegg; må kontrolleres i P360.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Dokumentasjon mangler i vedlegg; må kontrolleres i P360."
+      }
+    },
+    {
+      "key": "dokumentasjon.kunnskapsprove_stedfortreder",
+      "source": "llm",
+      "elapsedMs": 4588,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 210,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Dokumentasjon på bestått kunnskapsprøve for Erik Hansen mangler i vedlegg; må kontrolleres i P360.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Dokumentasjon på bestått kunnskapsprøve for Erik Hansen mangler i vedlegg; må kontrolleres i P360."
+      }
+    },
+    {
+      "key": "vandel.politi_uttalelse",
+      "source": "llm",
+      "elapsedMs": 4346,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 240,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Uttalelse fra politiet mangler; forespørsel må sendes til Agder politidistrikt.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Uttalelse fra politiet mangler; forespørsel må sendes til Agder politidistrikt."
+      }
+    },
+    {
+      "key": "vandel.skatteetaten_uttalelse",
+      "source": "llm",
+      "elapsedMs": 3916,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 196,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Uttalelse fra Skatteetaten mangler og må innhentes.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Uttalelse fra Skatteetaten mangler og må innhentes."
+      }
+    },
+    {
+      "key": "vandel.nav_uttalelse",
+      "source": "llm",
+      "elapsedMs": 4594,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 196,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Uttalelse fra NAV er ikke vedlagt saken og må innhentes.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Uttalelse fra NAV er ikke vedlagt saken og må innhentes."
+      }
+    },
+    {
+      "key": "vandel.vandel_bevillingshaver",
+      "source": "llm",
+      "elapsedMs": 4471,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 226,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Avventer uttalelser fra politi og Skatteetaten for bevillingshaver Sophie Salt.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Avventer uttalelser fra politi og Skatteetaten for bevillingshaver Sophie Salt."
+      }
+    },
+    {
+      "key": "vandel.vandel_styrer",
+      "source": "llm",
+      "elapsedMs": 4405,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 266,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Avventer uttalelse fra politi om alkohollovgivning for styremedlem Sophie Salt.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Avventer uttalelse fra politi om alkohollovgivning for styremedlem Sophie Salt."
+      }
+    },
+    {
+      "key": "vandel.vandel_stedfortreder",
+      "source": "llm",
+      "elapsedMs": 4531,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 287,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Avventer uttalelse fra politiet angående alkohollovgivning for stedfortreder Erik Hansen.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Avventer uttalelse fra politiet angående alkohollovgivning for stedfortreder Erik Hansen."
+      }
+    },
+    {
+      "key": "personkrav.styrer_kun_ett_sted",
+      "source": "llm",
+      "elapsedMs": 4941,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 216,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"P360-oppslag er ikke tilgjengelig for Sophie Salt, det er derfor ikke mulig å verifisere om vedkommende er styrer/stedfortreder på annet sted.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "P360-oppslag er ikke tilgjengelig for Sophie Salt, det er derfor ikke mulig å verifisere om vedkommende er styrer/stedfortreder på annet sted."
+      }
+    },
+    {
+      "key": "personkrav.stedfortreder_kun_ett_sted",
+      "source": "llm",
+      "elapsedMs": 4677,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 230,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Kunne ikke gjennomføre kontroll da P360-oppslag for Erik Hansen ikke var tilgjengelig.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Kunne ikke gjennomføre kontroll da P360-oppslag for Erik Hansen ikke var tilgjengelig."
+      }
+    },
+    {
+      "key": "lokalpolitisk.beliggenhet_ok",
+      "source": "llm",
+      "elapsedMs": 4763,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 274,
+      "rawStdoutPreview": "{\"status\": \"vurdert_ok\", \"merknad\": \"Lokasjonen er et etablert serveringssted i sentrumsområdet, noe som er i tråd med retningslinjene for beliggenhet.\"}\n",
+      "result": {
+        "status": "vurdert_ok",
+        "merknad": "Lokasjonen er et etablert serveringssted i sentrumsområdet, noe som er i tråd med retningslinjene for beliggenhet."
+      }
+    },
+    {
+      "key": "lokalpolitisk.ikke_barn_unge_omraade",
+      "source": "llm",
+      "elapsedMs": 4862,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 254,
+      "rawStdoutPreview": "{\"status\": \"vurdert_ok\", \"merknad\": \"Lokalet er en restaurant i havneområdet, som ikke er definert som et område for barn/unges fritidsaktiviteter.\"}\n",
+      "result": {
+        "status": "vurdert_ok",
+        "merknad": "Lokalet er en restaurant i havneområdet, som ikke er definert som et område for barn/unges fritidsaktiviteter."
+      }
+    },
+    {
+      "key": "habilitet.veiledningsplikt",
+      "source": "llm",
+      "elapsedMs": 4899,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 218,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Det mangler dokumentasjon og flere punkter er uavklart; det må undersøkes om søker har fått tilstrekkelig veiledning for å komplettere søknaden.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Det mangler dokumentasjon og flere punkter er uavklart; det må undersøkes om søker har fått tilstrekkelig veiledning for å komplettere søknaden."
+      }
+    },
+    {
+      "key": "gebyr.gebyr_beregnet",
+      "source": "llm",
+      "elapsedMs": 4766,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 222,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Gebyr er ikke oppgitt i søknaden; må beregnes basert på 45 deltakere for lukket arrangement.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Gebyr er ikke oppgitt i søknaden; må beregnes basert på 45 deltakere for lukket arrangement."
+      }
+    },
+    {
+      "key": "helhetsvurdering.samlet_vurdering",
+      "source": "llm",
+      "elapsedMs": 4636,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 279,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Det gjenstår vesentlig dokumentasjon og uttalelser fra politi, Skatteetaten og NAV før endelig vurdering kan tas.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Det gjenstår vesentlig dokumentasjon og uttalelser fra politi, Skatteetaten og NAV før endelig vurdering kan tas."
+      }
+    },
+    {
+      "key": "helhetsvurdering.anbefaling",
+      "source": "llm",
+      "elapsedMs": 4746,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 252,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Mange punkter er uavklarte; krever veiledningsbrev til søker og eksterne uttalelser før endelig anbefaling kan gis.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Mange punkter er uavklarte; krever veiledningsbrev til søker og eksterne uttalelser før endelig anbefaling kan gis."
+      }
+    }
+  ],
+  "success": true,
+  "stdout": "{\n  \"sjekkliste\": {\n    \"formelle_krav\": {\n      \"label\": \"Formelle krav\",\n      \"punkter\": {\n        \"kommune_riktig\": {\n          \"label\": \"Riktig kommune valgt\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Kommunenummer 4204 = Kristiansand. Lokalet 'Restaurant Sjøhuset, Havnegata 15' ligger i Kristiansand.\"\n        },\n        \"soker_identifisert\": {\n          \"label\": \"Søker er identifisert med org.nr.\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Søker er registrert som privatperson (BrukerType: person) uten organisasjonsnummer. Bevilling gis normalt til et selskap; ved enkeltbevilling for lukket arrangement (firmafest/privatfest) kan privatperson likevel være søker. Bekreft at dette er et privat/lukket arrangement og at privatperson er riktig bevillingshaver.\"\n        },\n        \"soknad_komplett\": {\n          \"label\": \"Søknaden er komplett utfylt\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Søknaden mangler vedlegg; det må avklares om det er krav om dokumentasjon for dette spesifikke arrangementet.\"\n        },\n        \"riktig_soknadstype\": {\n          \"label\": \"Riktig søknadstype valgt\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Søknaden gjelder et konkret arrangement (julebord) og riktig bevillingstype er valgt.\"\n        }\n      }\n    },\n    \"dokumentasjon\": {\n      \"label\": \"Dokumentasjon\",\n      \"punkter\": {\n        \"arbeidsavtale_styrer\": {\n          \"label\": \"Arbeidsavtale for styrer\",\n          \"status\": \"ikke_relevant\",\n          \"merknad\": \"Enkeltbevilling/arrangement hvor søker selv er styrer for eget arrangement. Arbeidsavtale på serveringsstedet er ikke nødvendig i denne situasjonen.\"\n        },\n        \"arbeidsavtale_stedfortreder\": {\n          \"label\": \"Arbeidsavtale for stedfortreder\",\n          \"status\": \"ikke_relevant\",\n          \"merknad\": \"Enkeltbevilling/arrangement. Stedfortreder opptrer i tilknytning til arrangementet, ikke som fast ansatt på serveringsstedet. Arbeidsavtale ikke nødvendig.\"\n        },\n        \"leiekontrakt\": {\n          \"label\": \"Leiekontrakt for lokalet\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Leiekontrakt mangler i saksdokumentene.\"\n        },\n        \"personantall_beregning\": {\n          \"label\": \"Beregning av personantall fra godkjent firma\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Det mangler dokumentasjon fra firmaet som bekrefter at lokalet har kapasitet til 45 deltakere.\"\n        },\n        \"plantegninger\": {\n          \"label\": \"Plantegninger over lokalet\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Plantegninger mangler i søknaden. Må undersøkes om disse finnes i kommunens arkiv for det etablerte lokalet.\"\n        },\n        \"mattilsynet_registrering\": {\n          \"label\": \"Registrering hos Mattilsynet\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Det foreligger ingen bekreftelse på registrering; antakelse er ikke tilstrekkelig dokumentasjon.\"\n        },\n        \"bruksgodkjenning\": {\n          \"label\": \"Bruksgodkjenning fra plan- og bygningsetaten\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Det foreligger ingen dokumentasjon på bruksgodkjenning, kun en antagelse om at denne finnes.\"\n        },\n        \"kunnskapsprove_styrer\": {\n          \"label\": \"Kunnskapsprøve bestått – styrer\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Dokumentasjon mangler i vedlegg; må kontrolleres i P360.\"\n        },\n        \"kunnskapsprove_stedfortreder\": {\n          \"label\": \"Kunnskapsprøve bestått – stedfortreder\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Dokumentasjon på bestått kunnskapsprøve for Erik Hansen mangler i vedlegg; må kontrolleres i P360.\"\n        }\n      }\n    },\n    \"vandel\": {\n      \"label\": \"Vandelsvurdering\",\n      \"punkter\": {\n        \"vandel_vesentlig_innflytelse\": {\n          \"label\": \"Vandel OK – personer med vesentlig innflytelse\",\n          \"status\": \"ikke_relevant\",\n          \"merknad\": \"Søker er privatperson; listene over juridiske og fysiske personer med vesentlig innflytelse er tomme. Ingen andre personer å vurdere.\"\n        },\n        \"politi_uttalelse\": {\n          \"label\": \"Uttalelse innhentet fra politiet\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Uttalelse fra politiet mangler; forespørsel må sendes til Agder politidistrikt.\"\n        },\n        \"skatteetaten_uttalelse\": {\n          \"label\": \"Uttalelse innhentet fra Skatteetaten\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Uttalelse fra Skatteetaten mangler og må innhentes.\"\n        },\n        \"nav_uttalelse\": {\n          \"label\": \"Uttalelse innhentet fra NAV (sosialtjenesten)\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Uttalelse fra NAV er ikke vedlagt saken og må innhentes.\"\n        },\n        \"vandel_bevillingshaver\": {\n          \"label\": \"Vandel OK – bevillingshaver/eier\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Avventer uttalelser fra politi og Skatteetaten for bevillingshaver Sophie Salt.\"\n        },\n        \"vandel_styrer\": {\n          \"label\": \"Vandel OK – styrer (kun alkohollovgivning)\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Avventer uttalelse fra politi om alkohollovgivning for styremedlem Sophie Salt.\"\n        },\n        \"vandel_stedfortreder\": {\n          \"label\": \"Vandel OK – stedfortreder (kun alkohollovgivning)\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Avventer uttalelse fra politiet angående alkohollovgivning for stedfortreder Erik Hansen.\"\n        }\n      }\n    },\n    \"personkrav\": {\n      \"label\": \"Krav til styrer og stedfortreder\",\n      \"punkter\": {\n        \"styrer_alder\": {\n          \"label\": \"Styrer er over 20 år\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Fødselsnummer 01039012345 tilsier fødselsdato 01.03.1990. På vedtakstidspunktet (2026-05-19) er styrer 36 år – godt over 20 år.\"\n        },\n        \"stedfortreder_alder\": {\n          \"label\": \"Stedfortreder er over 20 år\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Fødselsnummer 15039012345 tilsier fødselsdato 15.03.1990. På vedtakstidspunktet (2026-05-19) er stedfortreder 36 år – godt over 20 år.\"\n        },\n        \"styrer_ansatt\": {\n          \"label\": \"Styrer er ansatt på stedet / eier\",\n          \"status\": \"ikke_relevant\",\n          \"merknad\": \"Enkeltbevilling for arrangement hvor søker selv er styrer for eget arrangement. Ansettelseskrav er ikke aktuelt her.\"\n        },\n        \"stedfortreder_ansatt\": {\n          \"label\": \"Stedfortreder er ansatt på stedet / eier\",\n          \"status\": \"ikke_relevant\",\n          \"merknad\": \"Enkeltbevilling for arrangement. Stedfortreder opptrer i forbindelse med arrangementet, ikke som ansatt på serveringsstedet.\"\n        },\n        \"fritak_stedfortreder\": {\n          \"label\": \"Fritak fra krav om stedfortreder vurdert\",\n          \"status\": \"ikke_relevant\",\n          \"merknad\": \"Stedfortreder (Erik Hansen) er oppgitt i søknaden, og SkalHaFritakFraStedfortreder = false. Fritak ikke aktuelt.\"\n        },\n        \"styrer_kun_ett_sted\": {\n          \"label\": \"Styrer er ikke styrer/stedfortreder på annet sted\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"P360-oppslag er ikke tilgjengelig for Sophie Salt, det er derfor ikke mulig å verifisere om vedkommende er styrer/stedfortreder på annet sted.\"\n        },\n        \"stedfortreder_kun_ett_sted\": {\n          \"label\": \"Stedfortreder er ikke styrer/stedfortreder på annet sted\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Kunne ikke gjennomføre kontroll da P360-oppslag for Erik Hansen ikke var tilgjengelig.\"\n        }\n      }\n    },\n    \"lokalpolitisk\": {\n      \"label\": \"Lokalpolitisk vurdering (kommunens retningslinjer)\",\n      \"punkter\": {\n        \"ikke_idrettsarrangement\": {\n          \"label\": \"Ikke idrettsarrangement eller arrangement for barn/unge\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Arrangementet er 'Julebord Avdeling Nord' med 45 bestemte deltakere – tydelig voksenarrangement, ikke idretts- eller barne-/ungdomsarrangement.\"\n        },\n        \"brennevin_spisested\": {\n          \"label\": \"Brennevin kun til spisested (hvis gr. 3)\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Det søkes om gruppe 3 (brennevin). Arrangementet avvikles på Restaurant Sjøhuset, som er et spisested med matservering. Kravet er oppfylt.\"\n        },\n        \"skjenketider_ok\": {\n          \"label\": \"Skjenketider innenfor kommunens rammer\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Skjenkning kl. 19:00–02:00 ligger innenfor lovens makstider for gruppe 3 (13:00–03:00). Verifiser mot Kristiansand lokale retningslinjer.\"\n        },\n        \"arrangement_varighet_ok\": {\n          \"label\": \"Arrangement innenfor maks 14 dager\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Arrangementet varer fra 2026-12-12 kl. 19:00 til 2026-12-13 kl. 02:00 – 2 dag(er), godt innenfor grensen på 14 dager.\"\n        },\n        \"beliggenhet_ok\": {\n          \"label\": \"Beliggenhet i tråd med retningslinjer\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Lokasjonen er et etablert serveringssted i sentrumsområdet, noe som er i tråd med retningslinjene for beliggenhet.\"\n        },\n        \"ikke_barn_unge_omraade\": {\n          \"label\": \"Ikke i område for barn/unges fritidsaktiviteter\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Lokalet er en restaurant i havneområdet, som ikke er definert som et område for barn/unges fritidsaktiviteter.\"\n        }\n      }\n    },\n    \"habilitet\": {\n      \"label\": \"Habilitet og saksbehandling\",\n      \"punkter\": {\n        \"habilitet_vurdert\": {\n          \"label\": \"Habilitet vurdert (fvl. § 6)\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"AI-agent – ingen inhabilitet. Menneskelig saksbehandler må selv vurdere egen habilitet før vedtak.\"\n        },\n        \"saksbehandlingstid\": {\n          \"label\": \"Innenfor 90 dagers saksbehandlingsfrist\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Vurderingsdato 2026-05-19, arrangement 2026-12-12 – 207 dager igjen. Rikelig tid igjen til både dokumentinnhenting og 90-dagers behandlingsfrist.\"\n        },\n        \"veiledningsplikt\": {\n          \"label\": \"Veiledningsplikt overholdt (fvl. § 11)\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Det mangler dokumentasjon og flere punkter er uavklart; det må undersøkes om søker har fått tilstrekkelig veiledning for å komplettere søknaden.\"\n        }\n      }\n    },\n    \"gebyr\": {\n      \"label\": \"Gebyr\",\n      \"punkter\": {\n        \"gebyr_beregnet\": {\n          \"label\": \"Bevillingsgebyr korrekt beregnet\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Gebyr er ikke oppgitt i søknaden; må beregnes basert på 45 deltakere for lukket arrangement.\"\n        }\n      }\n    },\n    \"helhetsvurdering\": {\n      \"label\": \"Helhetsvurdering\",\n      \"punkter\": {\n        \"samlet_vurdering\": {\n          \"label\": \"Samlet vurdering av søknaden\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Det gjenstår vesentlig dokumentasjon og uttalelser fra politi, Skatteetaten og NAV før endelig vurdering kan tas.\"\n        },\n        \"anbefaling\": {\n          \"label\": \"Foreløpig anbefaling\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Mange punkter er uavklarte; krever veiledningsbrev til søker og eksterne uttalelser før endelig anbefaling kan gis.\"\n        }\n      }\n    }\n  }\n}",
+  "errorMessage": null,
+  "systemPromptSrc": "inline:MICRO_SYSTEM_PROMPT",
+  "userPromptSrc": "scripts/orchestrate_points.py:build_user_prompt",
+  "model": "sandkasse/telenor:gemma4",
+  "step": "checklist-agent-decomposed"
+}
