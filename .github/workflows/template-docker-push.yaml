@@ -54,6 +54,19 @@ jobs:
           repository: ${{ inputs.checkout-repository || github.repository }}
           ref: ${{ inputs.checkout-ref || github.sha }}
 
+      - name: Docker build
+        run: |
+          arguments=""
+          for tag in $(echo ${{ inputs.tags }} | tr ',' '\n'); do
+            arguments+=" -t ${{ inputs.registry-name }}/${{ inputs.repository-name }}:$tag"
+          done
+
+          for buildarg in $(echo ${{ secrets.build-args }} | tr ',' '\n'); do
+            arguments+=" --build-arg $buildarg"
+          done
+
+          docker build ${{ inputs.context }} -f ${{ inputs.dockerfile }} $arguments
+
       - name: 'Azure login'
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
         with:
@@ -70,19 +83,6 @@ jobs:
           --only-show-errors |  docker login ${{ inputs.registry-name }} \
                                 --username 00000000-0000-0000-0000-000000000000 \
                                 --password-stdin
-
-      - name: Docker build
-        run: |
-          arguments=""
-          for tag in $(echo ${{ inputs.tags }} | tr ',' '\n'); do
-            arguments+=" -t ${{ inputs.registry-name }}/${{ inputs.repository-name }}:$tag"
-          done
-
-          for buildarg in $(echo ${{ secrets.build-args }} | tr ',' '\n'); do
-            arguments+=" --build-arg $buildarg"
-          done
-
-          docker build ${{ inputs.context }} -f ${{ inputs.dockerfile }} $arguments
 
       - name: Docker push
         run: |

@@ -96,8 +96,18 @@ runs:
             exit 1
           fi
 
+          if ! git check-ref-format --branch "$ref" > /dev/null; then
+            echo "The ref input must be a valid branch name." >&2
+            exit 1
+          fi
+
           if ! sha="$(git ls-remote --exit-code --heads "https://github.com/${repository}.git" "refs/heads/$ref" | awk '{ print $1 }')"; then
             echo "Branch '$ref' was not found in '$repository'." >&2
+            exit 1
+          fi
+
+          if [[ ! "$sha" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "Branch '$ref' in '$repository' did not resolve to exactly one commit SHA." >&2
             exit 1
           fi
         fi
