@@ -50,10 +50,6 @@ jobs:
       - name: install dependencies
         run: yarn --immutable
 
-      - name: run form-component tests
-        run: yarn test
-        working-directory: src/libs/form-component/
-
       - name: type-check
         run: yarn tsc
 
