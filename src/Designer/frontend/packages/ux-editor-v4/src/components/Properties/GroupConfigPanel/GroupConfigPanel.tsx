@@ -50,20 +50,32 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
   const selectedGroup = pages.groups[selectedItem.id];
 
   const onMarkAsCompleted = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const updatedPages = { ...pages };
-    updatedPages.groups[selectedItem.id].markWhenCompleted = event.target.checked;
+    const updatedPages = {
+      ...pages,
+      groups: pages.groups.map((group, i) =>
+        i === selectedItem.id ? { ...group, markWhenCompleted: event.target.checked } : group,
+      ),
+    };
     pageGroupMutation(updatedPages);
   };
 
   const onChangeGroupType = (typeValue: GroupType) => {
-    const updatedPages = { ...pages };
-    updatedPages.groups[selectedItem.id].type = typeValue;
+    const updatedPages = {
+      ...pages,
+      groups: pages.groups.map((group, i) =>
+        i === selectedItem.id ? { ...group, type: typeValue } : group,
+      ),
+    };
     pageGroupMutation(updatedPages);
   };
 
   const onChangeExpandedByDefault = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const updatedPages = { ...pages };
-    updatedPages.groups[selectedItem.id].expandedByDefault = event.target.checked;
+    const updatedPages = {
+      ...pages,
+      groups: pages.groups.map((group, i) =>
+        i === selectedItem.id ? { ...group, expandedByDefault: event.target.checked } : group,
+      ),
+    };
     pageGroupMutation(updatedPages);
   };
 
