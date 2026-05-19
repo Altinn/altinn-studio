@@ -87,6 +87,13 @@ public sealed class PiCliAgentService(
 
         psi.ArgumentList.Add("-p");
 
+        // Pure text/JSON generation: no tools, no auto-discovered skills/extensions/context files.
+        // Our system prompt and user prompt are passed in explicitly.
+        psi.ArgumentList.Add("-nt");
+        psi.ArgumentList.Add("-ns");
+        psi.ArgumentList.Add("-nc");
+        psi.ArgumentList.Add("-ne");
+
         if (!string.IsNullOrEmpty(opts.Model))
         {
             psi.ArgumentList.Add("--model");
