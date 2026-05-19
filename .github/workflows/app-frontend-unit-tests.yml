@@ -7,6 +7,8 @@ on:
       - 'src/App/frontend/src/**'
       - 'src/App/frontend/package.json'
       - '.github/workflows/app-frontend-unit-tests.yml'
+      - 'libs/form-component/src/**'
+      - 'libs/form-component/package.json'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
