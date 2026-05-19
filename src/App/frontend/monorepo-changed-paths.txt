@@ -77,6 +77,7 @@ src/layout/Group/SummaryGroupComponent.test.tsx
 src/layout/Group/__snapshots__/SummaryGroupComponent.test.tsx.snap
 src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup.test.tsx
 src/layout/RepeatingGroup/Summary/__snapshots__/SummaryRepeatingGroup.test.tsx.snap
+src/layout/SigningDocumentList/api.test.ts
 src/queries/appPrefetcher.ts
 src/queries/formPrefetcher.ts
 src/utils/formLayout.test.ts
