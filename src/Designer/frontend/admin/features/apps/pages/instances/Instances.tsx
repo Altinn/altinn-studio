@@ -7,6 +7,8 @@ import { useQueryParamState } from 'admin/features/apps/hooks/useQueryParamState
 import { ProcessTaskFilter } from './components/ProcessTaskFilter';
 import { useTranslation } from 'react-i18next';
 import { useRequiredRoutePathsParams } from 'admin/hooks/useRequiredRoutePathsParams';
+import { useAppInstancesQuery } from 'admin/features/apps/hooks/queries/useAppInstancesQuery';
+import { isAxiosError } from 'axios';
 
 const YES_NO_ALL_OPTIONS = [
   { label: 'admin.instances.filter.all', value: undefined },
@@ -52,45 +54,62 @@ export const Instances = () => {
     undefined,
   );
 
+  const createdBefore = getCurrentDateOnlyStringMinusDays(createdBeforeDays);
+  const { error: instancesError } = useAppInstancesQuery(
+    org,
+    environment,
+    app,
+    currentTask,
+    isArchived,
+    archiveReference,
+    isConfirmed,
+    isSoftDeleted,
+    undefined,
+    createdBefore,
+  );
+  const hasNoAccess = isAxiosError(instancesError) && instancesError.response?.status === 403;
+
   return (
     <StudioCard>
       <StudioHeading className={classes.heading} data-size='sm'>
         {t('admin.instances.title')}
       </StudioHeading>
-      <div className={classes.filterWrapper}>
-        <ArchiveReferenceSearch value={archiveReference} setValue={setArchiveReference} />
-        <ProcessTaskFilter
-          org={org}
-          environment={environment}
-          app={app}
-          value={currentTask}
-          setValue={setCurrentTask}
-        />
-        <StatusFilter
-          label='admin.instances.status.completed'
-          value={isArchived}
-          setValue={setIsArchived}
-          options={YES_NO_ALL_OPTIONS}
-        />
-        <StatusFilter
-          label='admin.instances.status.confirmed'
-          value={isConfirmed}
-          setValue={setIsConfirmed}
-          options={YES_NO_ALL_OPTIONS}
-        />
-        <StatusFilter
-          label='admin.instances.status.deleted'
-          value={isSoftDeleted}
-          setValue={setIsSoftDeleted}
-          options={YES_NO_ALL_OPTIONS}
-        />
-        <StatusFilter
-          label='admin.instances.created_before'
-          value={createdBeforeDays}
-          setValue={setCreatedBeforeDays}
-          options={CREATED_BEFORE_OPTIONS}
-        />
-      </div>
+      {!hasNoAccess && (
+        <div className={classes.filterWrapper}>
+          <ArchiveReferenceSearch value={archiveReference} setValue={setArchiveReference} />
+          <ProcessTaskFilter
+            org={org}
+            environment={environment}
+            app={app}
+            value={currentTask}
+            setValue={setCurrentTask}
+          />
+          <StatusFilter
+            label='admin.instances.status.completed'
+            value={isArchived}
+            setValue={setIsArchived}
+            options={YES_NO_ALL_OPTIONS}
+          />
+          <StatusFilter
+            label='admin.instances.status.confirmed'
+            value={isConfirmed}
+            setValue={setIsConfirmed}
+            options={YES_NO_ALL_OPTIONS}
+          />
+          <StatusFilter
+            label='admin.instances.status.deleted'
+            value={isSoftDeleted}
+            setValue={setIsSoftDeleted}
+            options={YES_NO_ALL_OPTIONS}
+          />
+          <StatusFilter
+            label='admin.instances.created_before'
+            value={createdBeforeDays}
+            setValue={setCreatedBeforeDays}
+            options={CREATED_BEFORE_OPTIONS}
+          />
+        </div>
+      )}
       <InstancesTable
         org={org}
         environment={environment}
@@ -100,7 +119,7 @@ export const Instances = () => {
         archiveReference={archiveReference}
         confirmed={isConfirmed}
         isSoftDeleted={isSoftDeleted}
-        createdBefore={getCurrentDateOnlyStringMinusDays(createdBeforeDays)}
+        createdBefore={createdBefore}
       />
     </StudioCard>
   );

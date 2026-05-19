@@ -49,6 +49,42 @@ const defaultProps: AppMetricsProps = {
 describe('AppMetrics', () => {
   afterEach(jest.clearAllMocks);
 
+  it('should render merged info alert when all queries return 403', async () => {
+    const axiosError = createApiErrorMock(ServerCodes.Forbidden);
+    (axios.get as jest.Mock).mockRejectedValue(axiosError);
+
+    renderAppMetrics();
+
+    await waitFor(() => {
+      expect(
+        screen.queryByLabelText(textMock('admin.metrics.app.health.loading')),
+      ).not.toBeInTheDocument();
+    });
+
+    expect(
+      screen.getByText(
+        textMock('admin.metrics.missing_rights', { envTitle, orgName: orgFullName }),
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('should use org username when full name is missing in merged missing rights alert', async () => {
+    const axiosError = createApiErrorMock(ServerCodes.Forbidden);
+    (axios.get as jest.Mock).mockRejectedValue(axiosError);
+
+    renderAppMetrics(createQueryClientMock(), defaultProps, orgMockWithoutFullName);
+
+    await waitFor(() => {
+      expect(
+        screen.queryByLabelText(textMock('admin.metrics.app.health.loading')),
+      ).not.toBeInTheDocument();
+    });
+
+    expect(
+      screen.getByText(textMock('admin.metrics.missing_rights', { envTitle, orgName: org })),
+    ).toBeInTheDocument();
+  });
+
   describe('app health metrics', () => {
     it('should render loading state', () => {
       renderAppMetrics();
@@ -57,47 +93,6 @@ describe('AppMetrics', () => {
         screen.getByLabelText(textMock('admin.metrics.app.health.loading')),
       ).toBeInTheDocument();
     });
-
-    it('should render info alert when missing rights', async () => {
-      const axiosError = createApiErrorMock(ServerCodes.Forbidden);
-      (axios.get as jest.Mock).mockRejectedValue(axiosError);
-
-      renderAppMetrics();
-
-      await waitFor(() => {
-        expect(
-          screen.queryByLabelText(textMock('admin.metrics.app.health.loading')),
-        ).not.toBeInTheDocument();
-      });
-
-      expect(
-        screen.getByText(
-          textMock('admin.metrics.app.health.missing_rights', { envTitle, orgName: orgFullName }),
-        ),
-      ).toBeInTheDocument();
-    });
-
-    it.each([
-      ['health', 'admin.metrics.app.health.missing_rights', 'admin.metrics.app.health.loading'],
-      ['errors', 'admin.metrics.app.errors.missing_rights', 'admin.metrics.app.errors.loading'],
-      ['app', 'admin.metrics.app.missing_rights', 'admin.metrics.app.loading'],
-    ])(
-      'should use org username when full name is missing in %s missing rights alert',
-      async (_section, missingRightsKey, loadingKey) => {
-        const axiosError = createApiErrorMock(ServerCodes.Forbidden);
-        (axios.get as jest.Mock).mockRejectedValue(axiosError);
-
-        renderAppMetrics(createQueryClientMock(), defaultProps, orgMockWithoutFullName);
-
-        await waitFor(() => {
-          expect(screen.queryByLabelText(textMock(loadingKey))).not.toBeInTheDocument();
-        });
-
-        expect(
-          screen.getByText(textMock(missingRightsKey, { envTitle, orgName: org })),
-        ).toBeInTheDocument();
-      },
-    );
 
     it('should render error state', async () => {
       const axiosError = createApiErrorMock(ServerCodes.InternalServerError);
@@ -172,25 +167,6 @@ describe('AppMetrics', () => {
 
       expect(
         screen.getByLabelText(textMock('admin.metrics.app.errors.loading')),
-      ).toBeInTheDocument();
-    });
-
-    it('should render info alert when missing rights', async () => {
-      const axiosError = createApiErrorMock(ServerCodes.Forbidden);
-      (axios.get as jest.Mock).mockRejectedValue(axiosError);
-
-      renderAppMetrics();
-
-      await waitFor(() => {
-        expect(
-          screen.queryByLabelText(textMock('admin.metrics.app.errors.loading')),
-        ).not.toBeInTheDocument();
-      });
-
-      expect(
-        screen.getByText(
-          textMock('admin.metrics.app.errors.missing_rights', { envTitle, orgName: orgFullName }),
-        ),
       ).toBeInTheDocument();
     });
 
@@ -292,25 +268,6 @@ describe('AppMetrics', () => {
       renderAppMetrics();
 
       expect(screen.getByLabelText(textMock('admin.metrics.app.loading'))).toBeInTheDocument();
-    });
-
-    it('should render info alert when missing rights', async () => {
-      const axiosError = createApiErrorMock(ServerCodes.Forbidden);
-      (axios.get as jest.Mock).mockRejectedValue(axiosError);
-
-      renderAppMetrics();
-
-      await waitFor(() => {
-        expect(
-          screen.queryByLabelText(textMock('admin.metrics.app.loading')),
-        ).not.toBeInTheDocument();
-      });
-
-      expect(
-        screen.getByText(
-          textMock('admin.metrics.app.missing_rights', { envTitle, orgName: orgFullName }),
-        ),
-      ).toBeInTheDocument();
     });
 
     it('should render error state', async () => {
