@@ -3,8 +3,17 @@ import type { CSSProperties, ElementType, PropsWithChildren, Ref } from 'react';
 
 import cn from 'classnames';
 
-import classes from 'src/app-components/Flex/Flex.module.css';
-import type { IGridStyling } from 'src/app-components/types';
+import classes from './Flex.module.css';
+
+type GridSize = 'auto' | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+
+export interface IGridStyling {
+  xs?: GridSize;
+  sm?: GridSize;
+  md?: GridSize;
+  lg?: GridSize;
+  xl?: GridSize;
+}
 
 type Spacing = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 

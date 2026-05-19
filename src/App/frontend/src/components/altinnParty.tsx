@@ -1,10 +1,10 @@
 import React from 'react';
 
+import { Flex } from '@app/form-component';
 import { Paragraph } from '@digdir/designsystemet-react';
 import { Buildings3Icon, ChevronRightCircleFillIcon, PersonIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { Flex } from 'src/app-components/Flex/Flex';
 import { AltinnCollapsibleList } from 'src/components/AltinnCollapsible';
 import classes from 'src/components/altinnParty.module.css';
 import { Lang } from 'src/features/language/Lang';

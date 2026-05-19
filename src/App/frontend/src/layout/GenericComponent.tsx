@@ -2,11 +2,11 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router';
 import type { SetURLSearchParams } from 'react-router';
 
+import { Flex } from '@app/form-component';
 import classNames from 'classnames';
 
 import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import { FatalErrorEmpty } from 'src/app-components/error/FatalErrorEmpty/FatalErrorEmpty';
-import { Flex } from 'src/app-components/Flex/Flex';
 import { SearchParams } from 'src/core/routing/types';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';

@@ -16,7 +16,8 @@ src/app-components/Accordion/
 src/app-components/Button/Button.tsx
 src/app-components/Card/
 src/app-components/Date/
-src/app-components/Datepicker/DatePickerHelpers.ts
+src/app-components/Datepicker/
+src/app-components/Flex/
 src/app-components/Text/DisplayText.tsx
 src/app-components/loading/Spinner/Spinner.tsx
 src/codegen/schemas/layout-sets.schema.v1.ts

@@ -440,7 +440,7 @@ public class FiksArkivHostTest
             var currentStep = remaining > step ? step : remaining;
             timeProvider.Advance(currentStep);
             remaining -= currentStep;
-            await Task.Yield();
+            await Task.WhenAny(signal, Task.Delay(10));
         }
 
         await signal.WaitAsync(TimeSpan.FromSeconds(5));
