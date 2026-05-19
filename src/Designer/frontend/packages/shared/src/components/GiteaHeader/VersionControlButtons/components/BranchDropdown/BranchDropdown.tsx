@@ -110,23 +110,25 @@ const BranchActions = ({
   const { t } = useTranslation();
 
   return (
-    <StudioDropdown.List>
+    <>
       <StudioDropdown.Heading>{t('branching.actions_heading')}</StudioDropdown.Heading>
-      <StudioDropdown.Item>
-        <StudioDropdown.Button onClick={onCreateBranchClick}>
-          <PlusIcon />
-          {t('branching.new_branch_dialog.trigger')}
-        </StudioDropdown.Button>
-      </StudioDropdown.Item>
-      {canDeleteCurrentBranch && (
+      <StudioDropdown.List>
         <StudioDropdown.Item>
-          <StudioDropdown.Button onClick={onDeleteBranchClick} data-color='danger'>
-            <TrashIcon />
-            {t('branching.delete_branch_dialog.title')}
+          <StudioDropdown.Button onClick={onCreateBranchClick}>
+            <PlusIcon />
+            {t('branching.new_branch_dialog.trigger')}
           </StudioDropdown.Button>
         </StudioDropdown.Item>
-      )}
-    </StudioDropdown.List>
+        {canDeleteCurrentBranch && (
+          <StudioDropdown.Item>
+            <StudioDropdown.Button onClick={onDeleteBranchClick} data-color='danger'>
+              <TrashIcon />
+              {t('branching.delete_branch_dialog.title')}
+            </StudioDropdown.Button>
+          </StudioDropdown.Item>
+        )}
+      </StudioDropdown.List>
+    </>
   );
 };
 
@@ -140,9 +142,9 @@ const BranchList = ({ branchList, currentBranch, onBranchClick }: BranchListProp
   const { t } = useTranslation();
 
   return (
-    <StudioDropdown.List>
+    <>
       <StudioDropdown.Heading>{t('branching.select_branch_heading')}</StudioDropdown.Heading>
-      <div className={classes.branchList}>
+      <StudioDropdown.List className={classes.branchList}>
         {branchList?.map((branch) => (
           <StudioDropdown.Item key={branch.name}>
             <StudioDropdown.Button
@@ -155,7 +157,7 @@ const BranchList = ({ branchList, currentBranch, onBranchClick }: BranchListProp
             </StudioDropdown.Button>
           </StudioDropdown.Item>
         ))}
-      </div>
-    </StudioDropdown.List>
+      </StudioDropdown.List>
+    </>
   );
 };
