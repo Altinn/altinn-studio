@@ -7,8 +7,6 @@ on:
       - 'src/App/frontend/src/**'
       - 'src/App/frontend/package.json'
       - '.github/workflows/app-frontend-unit-tests.yml'
-      - 'libs/form-component/src/**'
-      - 'libs/form-component/package.json'
   workflow_dispatch:
 
 concurrency:
