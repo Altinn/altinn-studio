@@ -28,5 +28,5 @@ export function DisplayError({ error }: Props) {
     return <InvalidSubformLayoutError error={error} />;
   }
 
-  return <UnknownError />;
+  return <UnknownError error={error} />;
 }

@@ -7,6 +7,7 @@ import { DownloadIcon } from '@navikt/aksel-icons';
 import { AppTable } from 'src/app-components/Table/Table';
 import { translationKey } from 'src/AppComponentsBridge';
 import { Caption } from 'src/components/form/caption/Caption';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getFileEnding, removeFileEnding } from 'src/layout/FileUpload/utils/fileEndings';
@@ -23,8 +24,9 @@ export function SigningDocumentListComponent({
 }) {
   const { instanceOwnerPartyId, instanceGuid } = useParams();
   const { langAsString } = useLanguage();
+  const { altinnNugetVersion } = useApplicationMetadata();
 
-  const { data, isLoading, error } = useDocumentList(instanceOwnerPartyId, instanceGuid);
+  const { data, isLoading, error } = useDocumentList(instanceOwnerPartyId, instanceGuid, altinnNugetVersion);
 
   if (error) {
     return <SigningDocumentListError error={error} />;
