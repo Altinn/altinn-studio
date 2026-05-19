@@ -27,13 +27,14 @@
     },
 
     "sandkasse": {
-      "baseUrl": "https://gw.sandkasse.ai/",
+      "baseUrl": "https://gw.sandkasse.ai/v1",
       "api": "openai-completions",
       "apiKey": "SANDKASSE_API_KEY",
       "models": [
         { "id": "telenor:gemma4",
           "name": "Gemma 4 31b BF16",
-          "contextWindow": 24000 }
+          "contextWindow": 16192,
+          "maxTokens": 4096 }
       ]
     }
 
