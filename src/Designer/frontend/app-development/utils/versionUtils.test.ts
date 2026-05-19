@@ -4,6 +4,8 @@ describe('versionUtils', () => {
   describe('isVersionAtLeast', () => {
     it.each([
       ['9.0.0', 9, 0, 0, true],
+      ['9', 9, 0, 0, true],
+      ['9.0', 9, 0, 0, true],
       ['9.0.0-preview.1', 9, 0, 0, true],
       ['10.0.0', 9, 0, 0, true],
       ['9.1.0', 9, 0, 0, true],

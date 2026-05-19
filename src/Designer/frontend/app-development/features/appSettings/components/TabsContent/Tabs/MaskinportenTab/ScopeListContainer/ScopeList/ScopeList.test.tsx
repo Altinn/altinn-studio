@@ -223,6 +223,25 @@ describe('ScopeList', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('should display empty search result message when searching without matches', async () => {
+    const user = userEvent.setup();
+    renderScopeList();
+
+    await openAddScopeDialog(user);
+    const dialog = getDialog();
+
+    await user.type(
+      within(dialog).getByRole('searchbox', {
+        name: textMock('app_settings.maskinporten_scope_search_label'),
+      }),
+      'scope-without-matches',
+    );
+
+    expect(
+      within(dialog).getByText(textMock('app_settings.maskinporten_no_scopes_search_match')),
+    ).toBeInTheDocument();
+  });
+
   it('should call updateSelectedMaskinportenScopes with selected scopes when completing the dialog', async () => {
     const user = userEvent.setup();
     renderScopeList();

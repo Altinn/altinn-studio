@@ -216,7 +216,7 @@ public class RepositoryServiceTests
             );
             int actualCloneCount = Directory
                 .GetDirectories(developerClonePath)
-                .Count(d => d.Contains(targetRepositoryName));
+                .Count(d => Path.GetFileName(d) == targetRepositoryName);
             Assert.Equal(1, actualCloneCount);
         }
         finally
