@@ -1,0 +1,15 @@
+{
+  "iteration": 7,
+  "variant": "enum-v2",
+  "seksjon_id": "vandel",
+  "userPromptLength": 3361,
+  "systemPromptLength": 1298,
+  "elapsedMs": 17928,
+  "wallElapsedMs": 17955,
+  "success": true,
+  "stdout": "{\n  \"sjekkliste\": {\n    \"seksjoner\": [\n      {\n        \"id\": \"vandel\",\n        \"label\": \"Vandelsvurdering\",\n        \"punkter\": {\n          \"politi_uttalelse\": {\n            \"label\": \"Uttalelse innhentet fra politiet\",\n            \"status\": \"ikke_vurdert\",\n            \"merknad\": \"Venter på uttalelse fra politi.\"\n          },\n          \"skatteetaten_uttalelse\": {\n            \"label\": \"Uttalelse innhentet fra Skatteetaten\",\n            \"status\": \"ikke_vurdert\",\n            \"merknad\": \"Venter på uttalelse fra Skatteetaten.\"\n          },\n          \"nav_uttalelse\": {\n            \"label\": \"Uttalelse innhentet fra NAV (sosialtjenesten)\",\n            \"status\": \"ikke_vurdert\",\n            \"merknad\": \"Venter på uttalelse fra NAV.\"\n          },\n          \"vandel_bevillingshaver\": {\n            \"label\": \"Vandel OK – bevillingshaver/eier\",\n            \"status\": \"ikke_vurdert\",\n            \"merknad\": \"Kan ikke vurderes før uttalelser fra eksterne instanser foreligger for Sophie Salt.\"\n          },\n          \"vandel_styrer\": {\n            \"label\": \"Vandel OK – styrer (kun alkohollovgivning)\",\n            \"status\": \"ikke_vurdert\",\n            \"merknad\": \"Kan ikke vurderes før uttalelser fra eksterne instanser foreligger for Sophie Salt.\"\n          },\n          \"vandel_stedfortreder\": {\n            \"label\": \"Vandel OK – stedfortreder (kun alkohollovgivning)\",\n            \"status\": \"ikke_vurdert\",\n            \"merknad\": \"Kan ikke vurderes før uttalelser fra eksterne instanser foreligger for Erik Hansen.\"\n          },\n          \"vandel_vesentlig_innflytelse\": {\n            \"label\": \"Vandel OK – personer med vesentlig innflytelse\",\n            \"status\": \"ikke_relevant\",\n            \"merknad\": \"Ingen personer med vesentlig innflytelse oppgitt i søknaden.\"\n          }\n        }\n      }\n    ]\n  }\n}\n",
+  "errorMessage": null,
+  "parseError": null,
+  "model": "sandkasse/telenor:gemma4",
+  "status": "ok"
+}

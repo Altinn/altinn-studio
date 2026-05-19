@@ -1,0 +1,15 @@
+{
+  "iteration": 2,
+  "variant": "enum",
+  "seksjon_id": "personkrav",
+  "userPromptLength": 3359,
+  "systemPromptLength": 920,
+  "elapsedMs": 16393,
+  "wallElapsedMs": 16420,
+  "success": true,
+  "stdout": "{\n  \"sjekkliste\": {\n    \"seksjoner\": [\n      {\n        \"id\": \"personkrav\",\n        \"label\": \"Krav til styrer og stedfortreder\",\n        \"punkter\": {\n          \"styrer_alder\": {\n            \"label\": \"Styrer er over 20 år\",\n            \"status\": \"vurdert_ok\",\n            \"merknad\": \"Født 01.03.1990\"\n          },\n          \"stedfortreder_alder\": {\n            \"label\": \"Stedfortreder er over 20 år\",\n            \"status\": \"vurdert_ok\",\n            \"merknad\": \"Født 15.03.1990\"\n          },\n          \"styrer_ansatt\": {\n            \"label\": \"Styrer er ansatt på stedet / eier\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Søker er privatperson, må bekrefte tilknytning til lokalet/arrangementet\"\n          },\n          \"stedfortreder_ansatt\": {\n            \"label\": \"Stedfortreder er ansatt på stedet / eier\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Må bekrefte tilknytning\"\n          },\n          \"styrer_kun_ett_sted\": {\n            \"label\": \"Styrer er ikke styrer/stedfortreder på annet sted\",\n            \"status\": \"ikke_vurdert\",\n            \"merknad\": \"Må sjekkes mot register\"\n          },\n          \"stedfortreder_kun_ett_sted\": {\n            \"label\": \"Stedfortreder er ikke styrer/stedfortreder på annet sted\",\n            \"status\": \"ikke_vurdert\",\n            \"merknad\": \"Må sjekkes mot register\"\n          },\n          \"fritak_stedfortreder\": {\n            \"label\": \"Fritak fra krav om stedfortreder vurdert\",\n            \"status\": \"vurdert_ok\",\n            \"merknad\": \"Søker har opplyst at stedfortreder skal benyttes (ingen fritak søkt)\"\n          }\n        }\n      }\n    ]\n  }\n}\n",
+  "errorMessage": null,
+  "parseError": null,
+  "model": "sandkasse/telenor:gemma4",
+  "status": "ok"
+}

@@ -1,0 +1,15 @@
+{
+  "iteration": 2,
+  "variant": "enum",
+  "seksjon_id": "lokalpolitisk",
+  "userPromptLength": 3235,
+  "systemPromptLength": 920,
+  "elapsedMs": 16872,
+  "wallElapsedMs": 16876,
+  "success": true,
+  "stdout": "{\n  \"sjekkliste\": {\n    \"seksjoner\": [\n      {\n        \"id\": \"lokalpolitisk\",\n        \"label\": \"Lokalpolitisk vurdering (kommunens retningslinjer)\",\n        \"punkter\": {\n          \"beliggenhet_ok\": {\n            \"label\": \"Beliggenhet i tråd med retningslinjer\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Må sjekkes mot kommunens arealplan for Restaurant Sjøhuset, Havnegata 15.\"\n          },\n          \"ikke_barn_unge_omraade\": {\n            \"label\": \"Ikke i område for barn/unges fritidsaktiviteter\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Må verifiseres for adressen Havnegata 15.\"\n          },\n          \"ikke_idrettsarrangement\": {\n            \"label\": \"Ikke idrettsarrangement eller arrangement for barn/unge\",\n            \"status\": \"vurdert_ok\",\n            \"merknad\": \"Søknaden gjelder julebord for ansatte (Avdeling Nord).\"\n          },\n          \"brennevin_spisested\": {\n            \"label\": \"Brennevin kun til spisested (hvis gr. 3)\",\n            \"status\": \"vurdert_ok\",\n            \"merknad\": \"Søkes om gruppe 3 og skal avholdes på Restaurant Sjøhuset.\"\n          },\n          \"skjenketider_ok\": {\n            \"label\": \"Skjenketider innenfor kommunens rammer\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Sluttid kl. 02:00 må sjekkes mot kommunens lokale forskrifter.\"\n          },\n          \"arrangement_varighet_ok\": {\n            \"label\": \"Arrangement innenfor maks 14 dager\",\n            \"status\": \"vurdert_ok\",\n            \"merknad\": \"Arrangementet varer i 2 dager (2026-12-12 til 2026-12-13).\"\n          }\n        }\n      }\n    ]\n  }\n}\n",
+  "errorMessage": null,
+  "parseError": null,
+  "model": "sandkasse/telenor:gemma4",
+  "status": "ok"
+}

@@ -1,0 +1,15 @@
+{
+  "iteration": 5,
+  "variant": "enum-v2",
+  "seksjon_id": "dokumentasjon",
+  "userPromptLength": 3658,
+  "systemPromptLength": 1298,
+  "elapsedMs": 19943,
+  "wallElapsedMs": 19957,
+  "success": true,
+  "stdout": "{\n  \"sjekkliste\": {\n    \"seksjoner\": [\n      {\n        \"id\": \"dokumentasjon\",\n        \"label\": \"Dokumentasjon\",\n        \"punkter\": {\n          \"leiekontrakt\": {\n            \"label\": \"Leiekontrakt for lokalet\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Leiekontrakt eller avtale med Restaurant Sjøhuset mangler i vedlegg.\"\n          },\n          \"personantall_beregning\": {\n            \"label\": \"Beregning av personantall fra godkjent firma\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Dokumentasjon på maksimalt personantall for lokalet mangler.\"\n          },\n          \"plantegninger\": {\n            \"label\": \"Plantegninger over lokalet\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Plantegninger over lokalet mangler i vedlegg.\"\n          },\n          \"mattilsynet_registrering\": {\n            \"label\": \"Registrering hos Mattilsynet\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Bekreftelse på registrering hos Mattilsynet mangler.\"\n          },\n          \"bruksgodkjenning\": {\n            \"label\": \"Bruksgodkjenning fra plan- og bygningsetaten\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Bruksgodkjenning for lokalet mangler i vedlegg.\"\n          },\n          \"kunnskapsprove_styrer\": {\n            \"label\": \"Kunnskapsprøve bestått – styrer\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Dokumentasjon på bestått kunnskapsprøve for Sophie Salt mangler.\"\n          },\n          \"kunnskapsprove_stedfortreder\": {\n            \"label\": \"Kunnskapsprøve bestått – stedfortreder\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Dokumentasjon på bestått kunnskapsprøve for Erik Hansen mangler.\"\n          },\n          \"arbeidsavtale_styrer\": {\n            \"label\": \"Arbeidsavtale for styrer\",\n            \"status\": \"ikke_relevant\",\n            \"merknad\": \"Ikke relevant for arrangementbevilling.\"\n          },\n          \"arbeidsavtale_stedfortreder\": {\n            \"label\": \"Arbeidsavtale for stedfortreder\",\n            \"status\": \"ikke_relevant\",\n            \"merknad\": \"Ikke relevant for arrangementbevilling.\"\n          }\n        }\n      }\n    ]\n  }\n}\n",
+  "errorMessage": null,
+  "parseError": null,
+  "model": "sandkasse/telenor:gemma4",
+  "status": "ok"
+}

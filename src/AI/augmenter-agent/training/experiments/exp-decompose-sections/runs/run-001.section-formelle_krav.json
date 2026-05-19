@@ -1,0 +1,15 @@
+{
+  "iteration": 1,
+  "variant": "baseline",
+  "seksjon_id": "formelle_krav",
+  "userPromptLength": 2764,
+  "systemPromptLength": 627,
+  "elapsedMs": 11973,
+  "wallElapsedMs": 12008,
+  "success": true,
+  "stdout": "{\n  \"sjekkliste\": {\n    \"seksjoner\": [\n      {\n        \"id\": \"formelle_krav\",\n        \"label\": \"Formelle krav\",\n        \"punkter\": {\n          \"soknad_komplett\": {\n            \"label\": \"Søknaden er komplett utfylt\",\n            \"status\": \"mangelfull\",\n            \"merknad\": \"Vedleggsliste er tom. Det mangler nødvendige dokumenter for arrangementet.\"\n          },\n          \"riktig_soknadstype\": {\n            \"label\": \"Riktig søknadstype valgt\",\n            \"status\": \"godkjent\",\n            \"merknad\": \"Søknadstype er satt til arrangement, som samsvarer med formålet (julebord).\"\n          },\n          \"kommune_riktig\": {\n            \"label\": \"Riktig kommune valgt\",\n            \"status\": \"godkjent\",\n            \"merknad\": \"Kommunenummer 4204 er oppgitt.\"\n          },\n          \"soker_identifisert\": {\n            \"label\": \"Søker er identifisert med org.nr.\",\n            \"status\": \"ikke_relevant\",\n            \"merknad\": \"Søker er en privatperson (BrukerType: person), identifisert med fødselsnummer.\"\n          }\n        }\n      }\n    ]\n  }\n}\n",
+  "errorMessage": null,
+  "parseError": null,
+  "model": "sandkasse/telenor:gemma4",
+  "status": "ok"
+}

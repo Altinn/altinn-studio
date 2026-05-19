@@ -1,0 +1,15 @@
+{
+  "iteration": 6,
+  "variant": "enum-v2-subset",
+  "seksjon_id": "gebyr",
+  "userPromptLength": 1176,
+  "systemPromptLength": 1298,
+  "elapsedMs": 6753,
+  "wallElapsedMs": 6780,
+  "success": true,
+  "stdout": "{\n  \"sjekkliste\": {\n    \"seksjoner\": [\n      {\n        \"id\": \"gebyr\",\n        \"label\": \"Gebyr\",\n        \"punkter\": {\n          \"gebyr_beregnet\": {\n            \"label\": \"Bevillingsgebyr korrekt beregnet\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Søknadsdata inneholder ingen informasjon om innbetalt eller beregnet gebyr.\"\n          }\n        }\n      }\n    ]\n  }\n}\n",
+  "errorMessage": null,
+  "parseError": null,
+  "model": "sandkasse/telenor:gemma4",
+  "status": "ok"
+}

@@ -1,0 +1,15 @@
+{
+  "iteration": 4,
+  "variant": "enum",
+  "seksjon_id": "helhetsvurdering",
+  "userPromptLength": 2439,
+  "systemPromptLength": 920,
+  "elapsedMs": 8447,
+  "wallElapsedMs": 8452,
+  "success": true,
+  "stdout": "{\n  \"sjekkliste\": {\n    \"seksjoner\": [\n      {\n        \"id\": \"helhetsvurdering\",\n        \"label\": \"Helhetsvurdering\",\n        \"punkter\": {\n          \"samlet_vurdering\": {\n            \"label\": \"Samlet vurdering av søknaden\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Søknaden mangler alle nødvendige vedlegg (f.eks. kart/tegning av lokalet og bekreftelse fra utleier/lokaleier).\"\n          },\n          \"anbefaling\": {\n            \"label\": \"Foreløpig anbefaling\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Avventer dokumentasjon før endelig anbefaling kan gis.\"\n          }\n        }\n      }\n    ]\n  }\n}\n",
+  "errorMessage": null,
+  "parseError": null,
+  "model": "sandkasse/telenor:gemma4",
+  "status": "ok"
+}

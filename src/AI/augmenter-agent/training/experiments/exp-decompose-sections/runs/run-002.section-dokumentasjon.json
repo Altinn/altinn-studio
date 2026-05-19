@@ -1,0 +1,15 @@
+{
+  "iteration": 2,
+  "variant": "enum",
+  "seksjon_id": "dokumentasjon",
+  "userPromptLength": 3658,
+  "systemPromptLength": 920,
+  "elapsedMs": 20391,
+  "wallElapsedMs": 20396,
+  "success": true,
+  "stdout": "{\n  \"sjekkliste\": {\n    \"seksjoner\": [\n      {\n        \"id\": \"dokumentasjon\",\n        \"label\": \"Dokumentasjon\",\n        \"punkter\": {\n          \"leiekontrakt\": {\n            \"label\": \"Leiekontrakt for lokalet\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Ingen vedlegg innsendt. Arrangementet holdes på Restaurant Sjøhuset.\"\n          },\n          \"personantall_beregning\": {\n            \"label\": \"Beregning av personantall fra godkjent firma\",\n            \"status\": \"ikke_relevant\",\n            \"merknad\": \"Søknaden gjelder et julebord med 45 personer i eksisterende restaurantlokale.\"\n          },\n          \"plantegninger\": {\n            \"label\": \"Plantegninger over lokalet\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Ingen vedlegg innsendt.\"\n          },\n          \"mattilsynet_registrering\": {\n            \"label\": \"Registrering hos Mattilsynet\",\n            \"status\": \"ikke_relevant\",\n            \"merknad\": \"Arrangementet foregår i et profesjonelt serveringssted (Restaurant Sjøhuset).\"\n          },\n          \"bruksgodkjenning\": {\n            \"label\": \"Bruksgodkjenning fra plan- og bygningsetaten\",\n            \"status\": \"ikke_relevant\",\n            \"merknad\": \"Arrangementet foregår i eksisterende restaurantlokale.\"\n          },\n          \"kunnskapsprove_styrer\": {\n            \"label\": \"Kunnskapsprøve bestått – styrer\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Ingen dokumentasjon på bestått kunnskapsprøve for Sophie Salt vedlagt.\"\n          },\n          \"kunnskapsprove_stedfortreder\": {\n            \"label\": \"Kunnskapsprøve bestått – stedfortreder\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Ingen dokumentasjon på bestått kunnskapsprøve for Erik Hansen vedlagt.\"\n          },\n          \"arbeidsavtale_styrer\": {\n            \"label\": \"Arbeidsavtale for styrer\",\n            \"status\": \"ikke_relevant\",\n            \"merknad\": \"Søker er privatperson/arrangør for julebord.\"\n          },\n          \"arbeidsavtale_stedfortreder\": {\n            \"label\": \"Arbeidsavtale for stedfortreder\",\n            \"status\": \"ikke_relevant\",\n            \"merknad\": \"Søker er privatperson/arrangør for julebord.\"\n          }\n        }\n      }\n    ]\n  }\n}\n",
+  "errorMessage": null,
+  "parseError": null,
+  "model": "sandkasse/telenor:gemma4",
+  "status": "ok"
+}

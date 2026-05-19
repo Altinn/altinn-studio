@@ -1,0 +1,15 @@
+{
+  "iteration": 1,
+  "variant": "baseline",
+  "seksjon_id": "lokalpolitisk",
+  "userPromptLength": 3235,
+  "systemPromptLength": 627,
+  "elapsedMs": 15777,
+  "wallElapsedMs": 15783,
+  "success": true,
+  "stdout": "{\n  \"sjekkliste\": {\n    \"seksjoner\": [\n      {\n        \"id\": \"lokalpolitisk\",\n        \"label\": \"Lokalpolitisk vurdering (kommunens retningslinjer)\",\n        \"punkter\": {\n          \"beliggenhet_ok\": {\n            \"label\": \"Beliggenhet i tråd med retningslinjer\",\n            \"status\": \"ok\",\n            \"merknad\": \"Arrangementet skal holdes på Restaurant Sjøhuset, Havnegata 15.\"\n          },\n          \"ikke_barn_unge_omraade\": {\n            \"label\": \"Ikke i område for barn/unges fritidsaktiviteter\",\n            \"status\": \"ok\",\n            \"merknad\": \"Stedet er en restaurant, ingen indikasjoner på konflikt med barn/unges fritidsaktiviteter.\"\n          },\n          \"ikke_idrettsarrangement\": {\n            \"label\": \"Ikke idrettsarrangement eller arrangement for barn/unge\",\n            \"status\": \"ok\",\n            \"merknad\": \"Dette er et julebord for bestemte personer.\"\n          },\n          \"brennevin_spisested\": {\n            \"label\": \"Brennevin kun til spisested (hvis gr. 3)\",\n            \"status\": \"ok\",\n            \"merknad\": \"Søknaden gjelder varegruppe 3 og skal gjennomføres på et spisested (Restaurant Sjøhuset).\"\n          },\n          \"skjenketider_ok\": {\n            \"label\": \"Skjenketider innenfor kommunens rammer\",\n            \"status\": \"ok\",\n            \"merknad\": \"Skjenking fra 19:00 til 02:00.\"\n          },\n          \"arrangement_varighet_ok\": {\n            \"label\": \"Arrangement innenfor maks 14 dager\",\n            \"status\": \"ok\",\n            \"merknad\": \"Arrangementet varer i 2 dager (2026-12-12 til 2026-12-13).\"\n          }\n        }\n      }\n    ]\n  }\n}\n",
+  "errorMessage": null,
+  "parseError": null,
+  "model": "sandkasse/telenor:gemma4",
+  "status": "ok"
+}

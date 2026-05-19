@@ -1,0 +1,15 @@
+{
+  "iteration": 3,
+  "variant": "subset",
+  "seksjon_id": "personkrav",
+  "userPromptLength": 2104,
+  "systemPromptLength": 920,
+  "elapsedMs": 17212,
+  "wallElapsedMs": 17219,
+  "success": true,
+  "stdout": "{\n  \"sjekkliste\": {\n    \"seksjoner\": [\n      {\n        \"id\": \"personkrav\",\n        \"label\": \"Krav til styrer og stedfortreder\",\n        \"punkter\": {\n          \"styrer_alder\": {\n            \"label\": \"Styrer er over 20 år\",\n            \"status\": \"vurdert_ok\",\n            \"merknad\": \"Født 01.03.1990\"\n          },\n          \"stedfortreder_alder\": {\n            \"label\": \"Stedfortreder er over 20 år\",\n            \"status\": \"vurdert_ok\",\n            \"merknad\": \"Født 15.03.1990\"\n          },\n          \"styrer_ansatt\": {\n            \"label\": \"Styrer er ansatt på stedet / eier\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Dokumentasjon på ansettelsesforhold/eierskap mangler i rådata\"\n          },\n          \"stedfortreder_ansatt\": {\n            \"label\": \"Stedfortreder er ansatt på stedet / eier\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Dokumentasjon på ansettelsesforhold/eierskap mangler i rådata\"\n          },\n          \"styrer_kun_ett_sted\": {\n            \"label\": \"Styrer er ikke styrer/stedfortreder på annet sted\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Må kontrolleres mot register\"\n          },\n          \"stedfortreder_kun_ett_sted\": {\n            \"label\": \"Stedfortreder er ikke styrer/stedfortreder på annet sted\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Må kontrolleres mot register\"\n          },\n          \"fritak_stedfortreder\": {\n            \"label\": \"Fritak fra krav om stedfortreder vurdert\",\n            \"status\": \"vurdert_ok\",\n            \"merknad\": \"Søker har ikke bedt om fritak; stedfortreder er oppgitt.\"\n          }\n        }\n      }\n    ]\n  }\n}\n",
+  "errorMessage": null,
+  "parseError": null,
+  "model": "sandkasse/telenor:gemma4",
+  "status": "ok"
+}
