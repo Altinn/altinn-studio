@@ -1,0 +1,162 @@
+# Merknad diff: run-012.json
+
+- Run: `training\experiments\exp-prompt-tweaks\runs\run-012.json`
+- Gold: `training\gold-standard\gold-checklist.json`
+- Model: sandkasse/telenor:gemma4
+- Elapsed: 23568ms
+
+## dokumentasjon.arbeidsavtale_stedfortreder  ✗  *(only in gold)*
+- **Gold** (ikke_relevant): Enkeltbevilling/arrangement. Stedfortreder Erik Hansen opptrer i tilknytning til arrangementet, ikke som fast ansatt på Restaurant Sjøhuset. Arbeidsavtale ikke nødvendig.
+- **Exp**  (—): _(empty)_
+
+## dokumentasjon.arbeidsavtale_styrer  ✗  *(only in gold)*
+- **Gold** (ikke_relevant): Enkeltbevilling/arrangement hvor søker selv (Sophie Salt) er styrer for eget arrangement. Arbeidsavtale på serveringsstedet er ikke nødvendig i denne situasjonen.
+- **Exp**  (—): _(empty)_
+
+## dokumentasjon.bruksgodkjenning  ✗  *(only in gold)*
+- **Gold** (maa_undersokes): Ukjent status. Lokalet drives som restaurant – bruksgodkjenning antas å foreligge. Kontakt plan- og byggesaksavdelingen for bekreftelse om nødvendig.
+- **Exp**  (—): _(empty)_
+
+## dokumentasjon.kunnskapsprove_stedfortreder  ✗  *(only in gold)*
+- **Gold** (maa_undersokes): Dokumentasjon på kunnskapsprøve for Erik Hansen er ikke vedlagt. Søk i P360/samlesak. Hvis ikke funnet, etterspørres dokumentasjon.
+- **Exp**  (—): _(empty)_
+
+## dokumentasjon.kunnskapsprove_styrer  ✗  *(only in gold)*
+- **Gold** (maa_undersokes): Dokumentasjon på kunnskapsprøve for Sophie Salt er ikke vedlagt. Søk i P360/samlesak for å sjekke om prøven er tatt tidligere. Hvis ikke funnet, etterspørres dokumentasjon.
+- **Exp**  (—): _(empty)_
+
+## dokumentasjon.leiekontrakt  ✗  *(only in gold)*
+- **Gold** (maa_undersokes): Ingen dokumentasjon på disponering av lokalet vedlagt. For enkeltbevilling holder det normalt med en bekreftelse fra lokaleier (Restaurant Sjøhuset). Etterspørres.
+- **Exp**  (—): _(empty)_
+
+## dokumentasjon.mattilsynet_registrering  ✗  *(only in gold)*
+- **Gold** (vurdert_ok): Restaurant Sjøhuset er et etablert spisested og må antas å være registrert hos Mattilsynet. Verifiseres ved oppslag dersom det er tvil.
+- **Exp**  (—): _(empty)_
+
+## dokumentasjon.personantall_beregning  ✗  *(only in gold)*
+- **Gold** (maa_undersokes): Ikke vedlagt. Restaurant Sjøhuset er etablert spisested og beregning finnes sannsynligvis i kommunens systemer. 45 deltakere er moderat antall – sjekk om godkjent kapasitet dekker dette.
+- **Exp**  (—): _(empty)_
+
+## dokumentasjon.plantegninger  ✗  *(only in gold)*
+- **Gold** (ikke_vurdert): Ikke vedlagt. For et etablert spisested som Restaurant Sjøhuset kan plantegninger finnes i kommunens arkiv. Etterspørres ved behov.
+- **Exp**  (—): _(empty)_
+
+## formelle_krav.kommune_riktig  ✗
+- **Gold** (vurdert_ok): Kommunenummer 4204 = Kristiansand. Lokalet 'Restaurant Sjøhuset, Havnegata 15' ligger i Kristiansand.
+- **Exp**  (ikke_vurdert): Kommuneinformasjon er ikke oppgitt i rådata.
+
+## formelle_krav.riktig_soknadstype  ✓
+- **Gold** (vurdert_ok): Enkeltbevilling/arrangement (julebord) for ett tidsavgrenset arrangement 12.–13.12.2026 samsvarer med søknadstypen 'arrangement'.
+- **Exp**  (vurdert_ok): Søknadstype 'arrangement' er valgt for julebord.
+
+## formelle_krav.soker_identifisert  ✗
+- **Gold** (maa_undersokes): Søker er registrert som privatperson (BrukerType: person) uten organisasjonsnummer. Bevilling gis normalt til et selskap; ved enkeltbevilling for lukket arrangement (firmafest/privatfest) kan privatperson likevel være søker. Bekreft at dette er et privat/lukket arrangement og at privatperson er riktig bevillingshaver.
+- **Exp**  (vurdert_avslag): Søker er en privatperson (Sophie Salt) og organisasjonsnummer mangler.
+
+## formelle_krav.soknad_komplett  ✗
+- **Gold** (maa_undersokes): Skjemaet er utfylt med nødvendige felter for søker, arrangement, styrer og stedfortreder. Vedleggslisten er imidlertid tom – ingen dokumentasjon er lastet opp. Bør etterspørres.
+- **Exp**  (vurdert_ok): Alle nødvendige felter for arrangement er utfylt.
+
+## gebyr.gebyr_beregnet  ✗  *(only in gold)*
+- **Gold** (maa_undersokes): Lukket arrangement (bestemte personer) med 45 deltakere tilsier standard enkeltbevillingsgebyr (kr 440 + kr 100 adm.gebyr ihht. Vennesla-modellen; bekreft Kristiansands gebyrregler). Gebyr er ikke eksplisitt angitt i søknadsdataene.
+- **Exp**  (—): _(empty)_
+
+## habilitet.habilitet_vurdert  ✗  *(only in gold)*
+- **Gold** (vurdert_ok): AI-agent – ingen inhabilitet. Menneskelig saksbehandler må selv vurdere egen habilitet før vedtak.
+- **Exp**  (—): _(empty)_
+
+## habilitet.saksbehandlingstid  ✗  *(only in gold)*
+- **Gold** (vurdert_ok): Vurderingsdato 19.05.2026, arrangement 12.12.2026. Rikelig tid igjen til både dokumentinnhenting og 90-dagers behandlingsfrist.
+- **Exp**  (—): _(empty)_
+
+## habilitet.veiledningsplikt  ✗  *(only in gold)*
+- **Gold** (maa_undersokes): Vedleggslisten er tom og flere dokumentasjonspunkter er ikke avklart. Det bør sendes digitalt brev til søker med oversikt over manglende dokumentasjon (kunnskapsprøver, bekreftelse fra lokaleier mv.) og rimelig frist for ettersending.
+- **Exp**  (—): _(empty)_
+
+## helhetsvurdering.anbefaling  ✗  *(only in gold)*
+- **Gold** (maa_undersokes): Kan ikke gi endelig anbefaling. Forutsatt at vandelsuttalelser fra politi, Skatteetaten og NAV ikke avdekker merknader, og at manglende dokumentasjon (kunnskapsprøver, bekreftelse fra lokaleier) ettersendes, peker saken mot innvilgelse av enkeltbevilling for skjenking gruppe 1–3 på arrangementet 12.–13.12.2026. Send veiledningsbrev til søker og innhent uttalelser før vedtak.
+- **Exp**  (—): _(empty)_
+
+## helhetsvurdering.samlet_vurdering  ✗  *(only in gold)*
+- **Gold** (maa_undersokes): Grunnleggende rammer (lukket julebord på etablert spisested, voksne deltakere, kort varighet, skjenketider innenfor lovens rammer, styrer og stedfortreder oppfyller alderskravet) støtter innvilgelse. Avklaringer som gjenstår: organisasjonsstatus for søker (privatperson), kunnskapsprøver for styrer/stedfortreder, uttalelser fra politi/Skatteetaten/NAV, bekreftelse fra lokaleier, samt verifisering av at styrer/stedfortreder ikke har tilsvarende roller andre steder.
+- **Exp**  (—): _(empty)_
+
+## lokalpolitisk.arrangement_varighet_ok  ✗  *(only in gold)*
+- **Gold** (vurdert_ok): Arrangementet varer fra 12.12.2026 kl. 19:00 til 13.12.2026 kl. 02:00 – ett kveldsarrangement, godt innenfor grensen på 14 dager.
+- **Exp**  (—): _(empty)_
+
+## lokalpolitisk.beliggenhet_ok  ✗  *(only in gold)*
+- **Gold** (maa_undersokes): Restaurant Sjøhuset, Havnegata 15 i Kristiansand er et etablert serveringssted i havne-/sentrumsområde og antas å være i tråd med kommunens retningslinjer. Verifiser nærhet til skoler, barnehager og idrettsanlegg ved tvil.
+- **Exp**  (—): _(empty)_
+
+## lokalpolitisk.brennevin_spisested  ✗  *(only in gold)*
+- **Gold** (vurdert_ok): Det søkes om gruppe 3 (brennevin). Arrangementet avvikles på Restaurant Sjøhuset, som er et spisested med matservering. Kravet er oppfylt.
+- **Exp**  (—): _(empty)_
+
+## lokalpolitisk.ikke_barn_unge_omraade  ✗  *(only in gold)*
+- **Gold** (maa_undersokes): Lokalet er et etablert spisested og ligger i havneområde – sannsynligvis ikke i område for barn/unges fritidsaktiviteter. Bekreftes ved kartoppslag.
+- **Exp**  (—): _(empty)_
+
+## lokalpolitisk.ikke_idrettsarrangement  ✗  *(only in gold)*
+- **Gold** (vurdert_ok): Arrangementet er et julebord for 'Avdeling Nord' med 45 bestemte deltakere – tydelig firmaarrangement for voksne, ikke idrettsarrangement eller barne-/ungdomsarrangement.
+- **Exp**  (—): _(empty)_
+
+## lokalpolitisk.skjenketider_ok  ✗  *(only in gold)*
+- **Gold** (vurdert_ok): Skjenkning kl. 19:00–02:00 ligger innenfor lovens makstider for gruppe 3 (13:00–03:00). Tidene antas også å være innenfor Kristiansand kommunes rammer; verifiser mot lokale retningslinjer.
+- **Exp**  (—): _(empty)_
+
+## personkrav.fritak_stedfortreder  ✗
+- **Gold** (ikke_relevant): Stedfortreder (Erik Hansen) er oppgitt i søknaden, og SkalHaFritakFraStedfortreder = false. Fritak ikke aktuelt.
+- **Exp**  (vurdert_ok): Fritak er ikke søkt, og stedfortreder er oppgitt.
+
+## personkrav.stedfortreder_alder  ✓
+- **Gold** (vurdert_ok): Fødselsnummer 15039012345 tilsier fødselsdato 15.03.1990. På vedtakstidspunktet (mai 2026) er stedfortreder 36 år – godt over 20 år.
+- **Exp**  (vurdert_ok): Født 15.03.1990.
+
+## personkrav.stedfortreder_ansatt  ✗
+- **Gold** (ikke_relevant): Enkeltbevilling for arrangement. Stedfortreder opptrer i forbindelse med arrangementet, ikke som ansatt på serveringsstedet.
+- **Exp**  (maa_undersokes): Søknaden spesifiserer ikke arbeidsforhold ved Restaurant Sjøhuset.
+
+## personkrav.stedfortreder_kun_ett_sted  ✗
+- **Gold** (maa_undersokes): Sjekk P360/bevillingsoversikt for om Erik Hansen er registrert som styrer eller stedfortreder for annen aktiv bevilling.
+- **Exp**  (ikke_vurdert): Krever sjekk i P360/eksterne registre.
+
+## personkrav.styrer_alder  ✓
+- **Gold** (vurdert_ok): Fødselsnummer 01039012345 tilsier fødselsdato 01.03.1990. På vedtakstidspunktet (mai 2026) er styrer 36 år – godt over 20 år.
+- **Exp**  (vurdert_ok): Født 01.03.1990.
+
+## personkrav.styrer_ansatt  ✗
+- **Gold** (ikke_relevant): Enkeltbevilling for arrangement hvor søker selv er styrer for eget julebord. Ansettelseskrav er ikke aktuelt her.
+- **Exp**  (maa_undersokes): Søknaden spesifiserer ikke arbeidsforhold ved Restaurant Sjøhuset.
+
+## personkrav.styrer_kun_ett_sted  ✗
+- **Gold** (maa_undersokes): Sjekk P360/bevillingsoversikt for om Sophie Salt er registrert som styrer eller stedfortreder for annen aktiv bevilling.
+- **Exp**  (ikke_vurdert): Krever sjekk i P360/eksterne registre.
+
+## vandel.nav_uttalelse  ✗  *(only in gold)*
+- **Gold** (ikke_vurdert): Uttalelse fra NAV må innhentes ved søknad om skjenkebevilling jf. alkoholloven § 1-7. Kontakt NAV i Kristiansand.
+- **Exp**  (—): _(empty)_
+
+## vandel.politi_uttalelse  ✗  *(only in gold)*
+- **Gold** (ikke_vurdert): Forespørsel til Agder politidistrikt må sendes. Bruk mal 'Forespørsel om opplysninger.docx'. Forventet svartid ca. 1 uke.
+- **Exp**  (—): _(empty)_
+
+## vandel.skatteetaten_uttalelse  ✗  *(only in gold)*
+- **Gold** (ikke_vurdert): Forespørsel til Skatteetaten må sendes. Forventet svartid inntil 1 måned.
+- **Exp**  (—): _(empty)_
+
+## vandel.vandel_bevillingshaver  ✗  *(only in gold)*
+- **Gold** (ikke_vurdert): Avventer uttalelser fra politi og Skatteetaten for Sophie Salt (privatperson som bevillingshaver).
+- **Exp**  (—): _(empty)_
+
+## vandel.vandel_stedfortreder  ✗  *(only in gold)*
+- **Gold** (ikke_vurdert): Avventer uttalelse fra politi om alkohollovgivning for stedfortreder Erik Hansen. Skatte-/regnskapsforhold er ikke relevant for stedfortreder.
+- **Exp**  (—): _(empty)_
+
+## vandel.vandel_styrer  ✗  *(only in gold)*
+- **Gold** (ikke_vurdert): Avventer uttalelse fra politi om alkohollovgivning for styrer Sophie Salt. Skatte-/regnskapsforhold er ikke relevant for styrer.
+- **Exp**  (—): _(empty)_
+
+## vandel.vandel_vesentlig_innflytelse  ✗  *(only in gold)*
+- **Gold** (ikke_relevant): Søker er privatperson; listene over juridiske og fysiske personer med vesentlig innflytelse er tomme. Ingen andre personer å vurdere.
+- **Exp**  (—): _(empty)_

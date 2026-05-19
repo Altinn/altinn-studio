@@ -1,0 +1,17 @@
+{
+  "model": "sandkasse/telenor:gemma4",
+  "userPromptSrc": "C:\\data\\github\\altinn\\altinn-studio.exp-prompt-tweaks\\src\\AI\\augmenter-agent\\training\\experiments\\exp-prompt-tweaks\\artifacts\\user-section-personkrav.txt",
+  "timestamp": "2026-05-19T22:57:10.6303053+02:00",
+  "stdout": "{\n  \"sjekkliste\": {\n    \"personkrav\": {\n      \"label\": \"Krav til styrer og stedfortreder\",\n      \"punkter\": {\n        \"styrer_alder\": {\n          \"label\": \"Styrer er over 20 år\",\n          \"status\": \"godkjent\",\n          \"merknad\": \"Født 01.03.1990\"\n        },\n        \"stedfortreder_alder\": {\n          \"label\": \"Stedfortreder er over 20 år\",\n          \"status\": \"godkjent\",\n          \"merknad\": \"Født 15.03.1990\"\n        },\n        \"styrer_ansatt\": {\n          \"label\": \"Styrer er ansatt på stedet / eier\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Dokumentasjon på ansettelsesforhold mangler i søknadsdata\"\n        },\n        \"stedfortreder_ansatt\": {\n          \"label\": \"Stedfortreder er ansatt på stedet / eier\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Dokumentasjon på ansettelsesforhold mangler i søknadsdata\"\n        },\n        \"styrer_kun_ett_sted\": {\n          \"label\": \"Styrer er ikke styrer/stedfortreder på annet sted\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Må kontrolleres mot register\"\n        },\n        \"stedfortreder_kun_ett_sted\": {\n          \"label\": \"Stedfortreder er ikke styrer/stedfortreder på annet sted\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Må kontrolleres mot register\"\n        },\n        \"fritak_stedfortreder\": {\n          \"label\": \"Fritak fra krav om stedfortreder vurdert\",\n          \"status\": \"godkjent\",\n          \"merknad\": \"Fritak er ikke søkt, stedfortreder er oppgitt\"\n        }\n      }\n    }\n  }\n}\n",
+  "step": "checklist-agent",
+  "elapsedMs": 15906,
+  "promptLengths": {
+    "system": 627,
+    "user": 1676
+  },
+  "success": true,
+  "inputFile": "C:\\data\\github\\altinn\\altinn-studio.exp-prompt-tweaks\\src\\AI\\augmenter-agent\\examples\\applications\\julebord-kristiansand.json",
+  "iteration": 6,
+  "systemPromptSrc": "C:\\data\\github\\altinn\\altinn-studio.exp-prompt-tweaks\\src\\AI\\augmenter-agent\\training\\experiments\\exp-prompt-tweaks\\artifacts\\skill-v0-baseline.md",
+  "errorMessage": null
+}

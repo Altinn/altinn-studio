@@ -1,0 +1,17 @@
+{
+  "promptLengths": {
+    "system": 973,
+    "user": 1676
+  },
+  "elapsedMs": 16443,
+  "inputFile": "C:\\data\\github\\altinn\\altinn-studio.exp-prompt-tweaks\\src\\AI\\augmenter-agent\\examples\\applications\\julebord-kristiansand.json",
+  "iteration": 7,
+  "success": true,
+  "userPromptSrc": "C:\\data\\github\\altinn\\altinn-studio.exp-prompt-tweaks\\src\\AI\\augmenter-agent\\training\\experiments\\exp-prompt-tweaks\\artifacts\\user-section-personkrav.txt",
+  "systemPromptSrc": "C:\\data\\github\\altinn\\altinn-studio.exp-prompt-tweaks\\src\\AI\\augmenter-agent\\training\\experiments\\exp-prompt-tweaks\\artifacts\\skill-v1-no-enum-norsk.md",
+  "model": "sandkasse/telenor:gemma4",
+  "errorMessage": null,
+  "timestamp": "2026-05-19T22:57:43.5370975+02:00",
+  "stdout": "{\n  \"sjekkliste\": {\n    \"personkrav\": {\n      \"label\": \"Krav til styrer og stedfortreder\",\n      \"punkter\": {\n        \"styrer_alder\": {\n          \"label\": \"Styrer er over 20 år\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Født 01.03.1990\"\n        },\n        \"stedfortreder_alder\": {\n          \"label\": \"Stedfortreder er over 20 år\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Født 15.03.1990\"\n        },\n        \"styrer_ansatt\": {\n          \"label\": \"Styrer er ansatt på stedet / eier\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Søknaden spesifiserer ikke arbeidsforhold eller eierskap.\"\n        },\n        \"stedfortreder_ansatt\": {\n          \"label\": \"Stedfortreder er ansatt på stedet / eier\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Søknaden spesifiserer ikke arbeidsforhold eller eierskap.\"\n        },\n        \"styrer_kun_ett_sted\": {\n          \"label\": \"Styrer er ikke styrer/stedfortreder på annet sted\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Krever sjekk i eksternt register/P360.\"\n        },\n        \"stedfortreder_kun_ett_sted\": {\n          \"label\": \"Stedfortreder er ikke styrer/stedfortreder på annet sted\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Krever sjekk i eksternt register/P360.\"\n        },\n        \"fritak_stedfortreder\": {\n          \"label\": \"Fritak fra krav om stedfortreder vurdert\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Stedfortreder er oppgitt (Erik Hansen), fritak er ikke søkt.\"\n        }\n      }\n    }\n  }\n}\n",
+  "step": "checklist-agent"
+}

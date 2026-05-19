@@ -1,0 +1,17 @@
+{
+  "errorMessage": "Pi CLI failed (exit 1): terminated\n",
+  "promptLengths": {
+    "system": 973,
+    "user": 10442
+  },
+  "inputFile": "C:\\data\\github\\altinn\\altinn-studio.exp-prompt-tweaks\\src\\AI\\augmenter-agent\\examples\\applications\\julebord-kristiansand.json",
+  "elapsedMs": 249754,
+  "userPromptSrc": "pipeline-default",
+  "iteration": 2,
+  "stdout": "",
+  "step": "checklist-agent",
+  "timestamp": "2026-05-19T22:41:59.7757339+02:00",
+  "model": "sandkasse/telenor:gemma4",
+  "success": false,
+  "systemPromptSrc": "C:\\data\\github\\altinn\\altinn-studio.exp-prompt-tweaks\\src\\AI\\augmenter-agent\\training\\experiments\\exp-prompt-tweaks\\artifacts\\skill-v1-no-enum-norsk.md"
+}

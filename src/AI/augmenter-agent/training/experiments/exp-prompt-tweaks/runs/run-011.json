@@ -1,0 +1,17 @@
+{
+  "success": true,
+  "timestamp": "2026-05-19T23:01:03.2420867+02:00",
+  "elapsedMs": 16755,
+  "stdout": "{\n  \"sjekkliste\": {\n    \"personkrav\": {\n      \"label\": \"Krav til styrer og stedfortreder\",\n      \"punkter\": {\n        \"styrer_alder\": {\n          \"label\": \"Styrer er over 20 år\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Født 01.03.1990.\"\n        },\n        \"stedfortreder_alder\": {\n          \"label\": \"Stedfortreder er over 20 år\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Født 15.03.1990.\"\n        },\n        \"styrer_ansatt\": {\n          \"label\": \"Styrer er ansatt på stedet / eier\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Søknaden spesifiserer ikke arbeidsforhold/eierskap.\"\n        },\n        \"stedfortreder_ansatt\": {\n          \"label\": \"Stedfortreder er ansatt på stedet / eier\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Søknaden spesifiserer ikke arbeidsforhold/eierskap.\"\n        },\n        \"styrer_kun_ett_sted\": {\n          \"label\": \"Styrer er ikke styrer/stedfortreder på annet sted\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Krever sjekk i register/P360.\"\n        },\n        \"stedfortreder_kun_ett_sted\": {\n          \"label\": \"Stedfortreder er ikke styrer/stedfortreder på annet sted\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Krever sjekk i register/P360.\"\n        },\n        \"fritak_stedfortreder\": {\n          \"label\": \"Fritak fra krav om stedfortreder vurdert\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Fritak er ikke søkt om, og stedfortreder er oppgitt.\"\n        }\n      }\n    }\n  }\n}\n",
+  "systemPromptSrc": "C:\\data\\github\\altinn\\altinn-studio.exp-prompt-tweaks\\src\\AI\\augmenter-agent\\training\\experiments\\exp-prompt-tweaks\\artifacts\\skill-v1-no-enum-norsk.md",
+  "iteration": 11,
+  "errorMessage": null,
+  "userPromptSrc": "C:\\data\\github\\altinn\\altinn-studio.exp-prompt-tweaks\\src\\AI\\augmenter-agent\\training\\experiments\\exp-prompt-tweaks\\artifacts\\user-section-personkrav.txt",
+  "inputFile": "C:\\data\\github\\altinn\\altinn-studio.exp-prompt-tweaks\\src\\AI\\augmenter-agent\\examples\\applications\\julebord-kristiansand.json",
+  "model": "sandkasse/telenor:gemma4",
+  "step": "checklist-agent",
+  "promptLengths": {
+    "system": 973,
+    "user": 1676
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-05-19T22:58:34.7534843+02:00",
+  "success": true,
+  "errorMessage": null,
+  "userPromptSrc": "C:\\data\\github\\altinn\\altinn-studio.exp-prompt-tweaks\\src\\AI\\augmenter-agent\\training\\experiments\\exp-prompt-tweaks\\artifacts\\user-section-personkrav.txt",
+  "step": "checklist-agent",
+  "elapsedMs": 16530,
+  "stdout": "{\n  \"sjekkliste\": {\n    \"personkrav\": {\n      \"label\": \"Krav til styrer og stedfortreder\",\n      \"punkter\": {\n        \"styrer_alder\": {\n          \"label\": \"Styrer er over 20 år\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Født 01.03.1990.\"\n        },\n        \"stedfortreder_alder\": {\n          \"label\": \"Stedfortreder er over 20 år\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Født 15.03.1990.\"\n        },\n        \"styrer_ansatt\": {\n          \"label\": \"Styrer er ansatt på stedet / eier\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Søknaden spesifiserer ikke ansettelsesforhold eller eierskap.\"\n        },\n        \"stedfortreder_ansatt\": {\n          \"label\": \"Stedfortreder er ansatt på stedet / eier\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Søknaden spesifiserer ikke ansettelsesforhold eller eierskap.\"\n        },\n        \"styrer_kun_ett_sted\": {\n          \"label\": \"Styrer er ikke styrer/stedfortreder på annet sted\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Krever sjekk i eksterne registre/P360.\"\n        },\n        \"stedfortreder_kun_ett_sted\": {\n          \"label\": \"Stedfortreder er ikke styrer/stedfortreder på annet sted\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Krever sjekk i eksterne registre/P360.\"\n        },\n        \"fritak_stedfortreder\": {\n          \"label\": \"Fritak fra krav om stedfortreder vurdert\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Fritak er ikke søkt om, og stedfortreder er oppgitt.\"\n        }\n      }\n    }\n  }\n}\n",
+  "promptLengths": {
+    "system": 1140,
+    "user": 1676
+  },
+  "inputFile": "C:\\data\\github\\altinn\\altinn-studio.exp-prompt-tweaks\\src\\AI\\augmenter-agent\\examples\\applications\\julebord-kristiansand.json",
+  "systemPromptSrc": "C:\\data\\github\\altinn\\altinn-studio.exp-prompt-tweaks\\src\\AI\\augmenter-agent\\training\\experiments\\exp-prompt-tweaks\\artifacts\\skill-v2-enum-english.md",
+  "model": "sandkasse/telenor:gemma4",
+  "iteration": 8
+}
