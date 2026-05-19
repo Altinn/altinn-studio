@@ -1,5 +1,6 @@
 #nullable disable
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -124,7 +125,7 @@ public class GitOpsManifestsRenderer : IGitOpsManifestsRenderer
             """
         );
 
-        foreach (var app in apps)
+        foreach (var app in apps.OrderBy(app => app.Name))
         {
             manifest.AppendLine($"  - ../apps/{app.Name}");
         }

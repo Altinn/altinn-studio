@@ -48,6 +48,20 @@ public class GitOpsManifestsRendererTests : FluentTestsBase<GitOpsManifestsRende
             .Then.Manifests_ShouldEqualExpected(expectedManifests, RenderedEnvManifests);
     }
 
+    [Fact]
+    public void RenderedEnvironmentManifests_ShouldSortAppResourcesByName()
+    {
+        HashSet<AltinnRepoName> apps = [AltinnRepoName.FromName("z-app"), AltinnRepoName.FromName("a-app")];
+
+        Given.That.EnvironmentManifestsRendered(AltinnEnvironment.FromName("prod"), apps);
+
+        string kustomization = RenderedEnvManifests["./prod/kustomization.yaml"];
+        Assert.True(
+            kustomization.IndexOf("../apps/a-app") < kustomization.IndexOf("../apps/z-app"),
+            "Environment app resources should be rendered alphabetically by app name."
+        );
+    }
+
     private GitOpsManifestsRendererTests BaseManifestsRendered()
     {
         GitOpsManifestsRenderer renderer = new();
