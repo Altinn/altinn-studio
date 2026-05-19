@@ -16,6 +16,14 @@ on:
         required: false
         type: string
         default: ''
+      checkout-repository:
+        required: false
+        type: string
+        default: ''
+      checkout-ref:
+        required: false
+        type: string
+        default: ''
 
     secrets:
       client-id:
@@ -32,6 +40,9 @@ jobs:
     environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          repository: ${{ inputs.checkout-repository || github.repository }}
+          ref: ${{ inputs.checkout-ref || github.sha }}
 
       - name: 'Azure login'
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
@@ -63,4 +74,3 @@ jobs:
       - name: Helm push
         run: |
           helm push ${{ inputs.chart-name }}-${{ inputs.tag }}.tgz oci://${{ inputs.registry-name }}/charts
-

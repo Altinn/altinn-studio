@@ -21,6 +21,10 @@ on:
         description: 'Environments to deploy to. Multiple environments can be specified by separating them with a comma.'
         required: false
         default: 'dev'
+      ref:
+        description: 'Source ref to deploy. Use branch/tag/SHA, or owner:branch for forks.'
+        required: false
+        default: ''
 
 permissions:
       id-token: write
@@ -34,82 +38,197 @@ jobs:
       inputs: ${{ toJSON(github.event.inputs) }}
       override-default-studio-environments: staging,preapproved-prod
 
-  determine-tag:
+  resolve-source:
     runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.determine-tag.outputs.tag }}
+      repository: ${{ steps.resolve.outputs.repository }}
+      ref: ${{ steps.resolve.outputs.ref }}
+      label: ${{ steps.resolve.outputs.label }}
+      sha: ${{ steps.metadata.outputs.sha }}
+      tag: ${{ steps.metadata.outputs.tag }}
+      docker-tags: ${{ steps.metadata.outputs.docker-tags }}
+      tag-latest: ${{ steps.metadata.outputs.tag-latest }}
+      source-url: ${{ steps.metadata.outputs.source-url }}
+      source-revision: ${{ steps.metadata.outputs.source-revision }}
     steps:
-      - name: Determine tag
-        id: determine-tag
+      - name: Resolve source
+        id: resolve
+        env:
+          DEFAULT_REPOSITORY: ${{ github.repository }}
+          DEFAULT_REF: ${{ github.ref_name }}
+          DEFAULT_REPO_NAME: ${{ github.event.repository.name }}
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_REF: ${{ github.event.inputs.ref || '' }}
+          INPUT_ENVIRONMENTS: ${{ github.event.inputs.environments || 'dev' }}
         run: |
-          SHORT_SHA="${GITHUB_SHA::10}"
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            echo "tag=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
-          else
-            sanitized_branch_name=$(echo "${{ github.ref_name }}" | tr -d '()' | tr '/' '-' | tr '_' '-')
-            echo "tag=${sanitized_branch_name}-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+
+          repository="$DEFAULT_REPOSITORY"
+          ref="$DEFAULT_REF"
+          label="$DEFAULT_REF"
+          custom_source="false"
+
+          if [[ "$EVENT_NAME" == "workflow_dispatch" && -n "$INPUT_REF" ]]; then
+            custom_source="true"
+            label="$INPUT_REF"
+
+            if [[ "$INPUT_REF" == *:* ]]; then
+              repository_prefix="${INPUT_REF%%:*}"
+              ref="${INPUT_REF#*:}"
+              if [[ "$repository_prefix" == */* ]]; then
+                repository="$repository_prefix"
+              else
+                repository="${repository_prefix}/${DEFAULT_REPO_NAME}"
+              fi
+            else
+              ref="$INPUT_REF"
+            fi
           fi
 
+          if [[ "$custom_source" == "true" ]]; then
+            IFS=',' read -ra environments <<< "$INPUT_ENVIRONMENTS"
+            for environment in "${environments[@]}"; do
+              environment="$(echo "$environment" | xargs)"
+              if [[ "$environment" != "dev" ]]; then
+                echo "Custom source refs can only be deployed to dev, got '$environment'." >&2
+                exit 1
+              fi
+            done
+
+            if [[ "$repository" != "$DEFAULT_REPOSITORY" && "$repository" != "martinothamar-agent/${DEFAULT_REPO_NAME}" ]]; then
+              echo "Custom source repository '$repository' is not allowed." >&2
+              exit 1
+            fi
+          fi
+
+          {
+            echo "repository=$repository"
+            echo "ref=$ref"
+            echo "label=$label"
+            echo "custom-source=$custom_source"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          repository: ${{ steps.resolve.outputs.repository }}
+          ref: ${{ steps.resolve.outputs.ref }}
+          fetch-depth: 1
+
+      - name: Resolve source metadata
+        id: metadata
+        env:
+          SOURCE_LABEL: ${{ steps.resolve.outputs.label }}
+          SOURCE_REPOSITORY: ${{ steps.resolve.outputs.repository }}
+          CUSTOM_SOURCE: ${{ steps.resolve.outputs.custom-source }}
+          GITHUB_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+
+          SHA="$(git rev-parse HEAD)"
+          SHORT_SHA="${SHA::10}"
+          TAG_LATEST="true"
+
+          if [[ "$CUSTOM_SOURCE" == "false" && "$GITHUB_REF" == "refs/heads/main" ]]; then
+            TAG="$SHORT_SHA"
+          else
+            sanitized_ref_name="$(echo "$SOURCE_LABEL" | tr -d '()' | sed -E 's/[^A-Za-z0-9.-]+/-/g; s/^-+//; s/-+$//')"
+            if [[ -z "$sanitized_ref_name" ]]; then
+              sanitized_ref_name="source"
+            fi
+            sanitized_ref_name="${sanitized_ref_name:0:117}"
+            TAG="${sanitized_ref_name}-${SHORT_SHA}"
+          fi
+
+          if [[ "$CUSTOM_SOURCE" == "true" ]]; then
+            TAG_LATEST="false"
+          fi
+
+          if [[ "$TAG_LATEST" == "true" ]]; then
+            DOCKER_TAGS="$TAG,latest"
+          else
+            DOCKER_TAGS="$TAG"
+          fi
+
+          {
+            echo "sha=$SHA"
+            echo "tag=$TAG"
+            echo "docker-tags=$DOCKER_TAGS"
+            echo "tag-latest=$TAG_LATEST"
+            echo "source-url=https://github.com/${SOURCE_REPOSITORY}"
+            echo "source-revision=${SOURCE_LABEL}/${SHA}"
+          } >> "$GITHUB_OUTPUT"
+
   docker-build-push:
-    needs: determine-tag
+    needs: resolve-source
     uses: ./.github/workflows/template-docker-push.yaml
     with:
-      tags: ${{ needs.determine-tag.outputs.tag }},latest
+      tags: ${{ needs.resolve-source.outputs.docker-tags }}
       registry-name: altinntjenestercontainerregistry.azurecr.io
       repository-name: altinn-core
       context: .
       dockerfile: src/Designer/Dockerfile
       environment: dev # dev environment has push access and doesn't require review
+      checkout-repository: ${{ needs.resolve-source.outputs.repository }}
+      checkout-ref: ${{ needs.resolve-source.outputs.sha }}
     secrets:
       client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
       tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
-      build-args: DESIGNER_VERSION=${{ needs.determine-tag.outputs.tag }}
+      build-args: DESIGNER_VERSION=${{ needs.resolve-source.outputs.tag }}
 
   db-migrations-docker-build-push:
-    needs: determine-tag
+    needs: resolve-source
     uses: ./.github/workflows/template-docker-push.yaml
     with:
-      tags: ${{ needs.determine-tag.outputs.tag }},latest
+      tags: ${{ needs.resolve-source.outputs.docker-tags }}
       registry-name: altinntjenestercontainerregistry.azurecr.io
       repository-name: altinn-designer-db-migrations
       context: src/Designer/backend
       dockerfile: src/Designer/backend/Migrations.Dockerfile
       environment: dev # dev environment has push access and doesn't require review
+      checkout-repository: ${{ needs.resolve-source.outputs.repository }}
+      checkout-ref: ${{ needs.resolve-source.outputs.sha }}
     secrets:
       client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
       tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
   helm-push:
-    needs: determine-tag
+    needs: resolve-source
     uses: ./.github/workflows/template-helm-push.yaml
     with:
-      tag: 0.1.0+${{ needs.determine-tag.outputs.tag }} # Helm version needs to be valid sematic version
+      tag: 0.1.0+${{ needs.resolve-source.outputs.tag }} # Helm version needs to be valid sematic version
       chart-name: altinn-designer
       registry-name: altinntjenestercontainerregistry.azurecr.io
       environment: dev
+      checkout-repository: ${{ needs.resolve-source.outputs.repository }}
+      checkout-ref: ${{ needs.resolve-source.outputs.sha }}
     secrets:
       client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
       tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
   flux-config-push:
-    needs: [construct-environments-array, determine-tag, docker-build-push, db-migrations-docker-build-push, helm-push]
+    needs: [construct-environments-array, resolve-source, docker-build-push, db-migrations-docker-build-push, helm-push]
     strategy:
       matrix:
         include: ${{ fromJSON(needs.construct-environments-array.outputs.result) }}
     uses: ./.github/workflows/template-flux-config-push.yaml
     with:
-      tag: ${{ needs.determine-tag.outputs.tag }}
+      tag: ${{ needs.resolve-source.outputs.tag }}
       registry-name: altinntjenestercontainerregistry.azurecr.io
       environment: ${{ matrix.environment }}
       artifact-environment: ${{ matrix.environment == 'preapproved-prod' && 'prod' ||  matrix.environment }}
       config-chart-name: altinn-designer-config
       artifact-name: altinn-designer
-      helm-set-arguments: environmentName=${{ matrix.environment == 'preapproved-prod' && 'prod' ||  matrix.environment }},chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }},imageTag=${{ needs.determine-tag.outputs.tag }},dbMigrationsTag=${{ needs.determine-tag.outputs.tag }},replicas=${{ matrix.environment == 'dev' && 1 || 2 }}
+      helm-set-arguments: environmentName=${{ matrix.environment == 'preapproved-prod' && 'prod' ||  matrix.environment }},chartVersion=0.1.0+${{ needs.resolve-source.outputs.tag }},imageTag=${{ needs.resolve-source.outputs.tag }},dbMigrationsTag=${{ needs.resolve-source.outputs.tag }},replicas=${{ matrix.environment == 'dev' && 1 || 2 }}
       trace-workflow: true
       trace-team-name: 'team-studio'
+      checkout-repository: ${{ needs.resolve-source.outputs.repository }}
+      checkout-ref: ${{ needs.resolve-source.outputs.sha }}
+      source-url: ${{ needs.resolve-source.outputs.source-url }}
+      source-revision: ${{ needs.resolve-source.outputs.source-revision }}
+      tag-latest: ${{ needs.resolve-source.outputs.tag-latest == 'true' }}
     secrets:
       client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
       tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
