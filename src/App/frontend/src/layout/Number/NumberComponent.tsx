@@ -1,14 +1,14 @@
 import React from 'react';
 
+import { DisplayNumber } from '@app/form-component';
 import cn from 'classnames';
 
-import { DisplayNumber } from 'src/app-components/Number/DisplayNumber';
-import classes from 'src/app-components/Number/Number.module.css';
-import { translationKey } from 'src/AppComponentsBridge';
 import { getLabelId } from 'src/components/label/Label';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import classes from 'src/layout/Number/Number.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -23,6 +23,7 @@ export const NumberComponent = ({ baseComponentId }: PropsFromGenericComponent<'
   } = useItemWhenType(baseComponentId, 'Number');
   const direction = _direction ?? 'horizontal';
   const currentLanguage = useCurrentLanguage();
+  const { langAsString } = useLanguage();
   const indexedId = useIndexedId(baseComponentId);
 
   if (isNaN(value)) {
@@ -56,7 +57,7 @@ export const NumberComponent = ({ baseComponentId }: PropsFromGenericComponent<'
       <DisplayNumber
         value={value}
         iconUrl={icon}
-        iconAltText={translationKey(textResourceBindings.title)}
+        iconAltText={langAsString(textResourceBindings.title)}
         labelId={getLabelId(indexedId)}
         formatting={numberFormatting}
       />
