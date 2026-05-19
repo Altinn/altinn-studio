@@ -43,6 +43,7 @@ type Workflow struct {
 	tag              *Tag
 	changelogContent string
 	parsedChangelog  *changelog.Changelog
+	artifacts        []string
 	config           WorkflowConfig
 }
 
@@ -103,6 +104,7 @@ func NewWorkflow(
 		tag:              nil,
 		changelogContent: "",
 		parsedChangelog:  nil,
+		artifacts:        nil,
 	}, nil
 }
 
@@ -388,6 +390,7 @@ func (w *Workflow) buildArtifacts(ctx context.Context) error {
 	}
 
 	w.log.Success(fmt.Sprintf("Built %d artifacts successfully", len(artifacts)))
+	w.artifacts = append([]string(nil), artifacts...)
 	return nil
 }
 
@@ -425,10 +428,7 @@ func (w *Workflow) createGitHubRelease(ctx context.Context) error {
 		return fmt.Errorf("write release notes: %w", writeErr)
 	}
 
-	assets, err := w.collectAssets()
-	if err != nil {
-		return fmt.Errorf("collect assets: %w", err)
-	}
+	assets := append([]string(nil), w.artifacts...)
 
 	target := w.determineTargetBranch()
 	tagFull := w.tag.Full()
@@ -477,26 +477,6 @@ func (w *Workflow) determineTargetBranch() string {
 		return mainBranch
 	}
 	return w.tag.ReleaseBranch()
-}
-
-func (w *Workflow) collectAssets() ([]string, error) {
-	entries, err := os.ReadDir(w.config.OutputDir)
-	if err != nil {
-		return nil, fmt.Errorf("read output dir: %w", err)
-	}
-
-	var assets []string
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-		if entry.Name() == releaseNotesFile {
-			continue
-		}
-		assets = append(assets, filepath.Join(w.config.OutputDir, entry.Name()))
-	}
-
-	return assets, nil
 }
 
 func (w *Workflow) printSummary() {

@@ -31,6 +31,7 @@ http {
 
   js_var $auth_username;
   js_var $auth_fullname;
+  js_var $auth_api_key;
 
   upstream designer {
     server ${DESIGNER_HOST};
@@ -52,7 +53,7 @@ http {
       proxy_pass http://designer/designer/api/v1/studio-oidc/userinfo;
       proxy_set_header Host $host;
       proxy_set_header Cookie $http_cookie;
-      proxy_set_header X-Api-Key $http_x_api_key;
+      proxy_set_header X-Api-Key $auth_api_key;
       proxy_set_header Accept-Encoding "";
       proxy_pass_request_body off;
       proxy_set_header Content-Length "";
@@ -62,6 +63,8 @@ http {
       proxy_pass http://gitea;
       proxy_set_header X-WEBAUTH-USER $auth_username;
       proxy_set_header X-WEBAUTH-FULLNAME $auth_fullname;
+      proxy_set_header Authorization "";
+      proxy_set_header X-Api-Key "";
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

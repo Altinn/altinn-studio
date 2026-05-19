@@ -12,13 +12,13 @@ import (
 	containerruntime "altinn.studio/devenv/pkg/container"
 	"altinn.studio/studioctl/internal/appcontainers"
 	"altinn.studio/studioctl/internal/appimage"
-	"altinn.studio/studioctl/internal/appmanager"
 	"altinn.studio/studioctl/internal/auth"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/studio"
+	"altinn.studio/studioctl/internal/studioctlserver"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -29,7 +29,7 @@ type AppCommand struct {
 	ps      *AppPsCommand
 	run     *RunCommand
 	stop    *StopCommand
-	manager appManagerAccess
+	server  studioctlServerAccess
 	service *appsvc.Service
 }
 
@@ -71,14 +71,14 @@ func (o appBuildOutput) PrintFinal(out *ui.Output) error {
 
 // NewAppCommand creates a new app command.
 func NewAppCommand(cfg *config.Config, out *ui.Output) *AppCommand {
-	service := appsvc.NewService(cfg.Home)
+	service := appsvc.NewService(cfg)
 	return &AppCommand{
 		out:     out,
 		logs:    newAppLogsCommand(cfg, out, service),
 		ps:      newAppPsCommand(cfg, out, service),
 		run:     newRunCommand(cfg, out, service),
 		stop:    newStopCommand(cfg, out, service),
-		manager: newAppManagerAccess(cfg),
+		server:  newStudioctlServerAccess(cfg),
 		service: service,
 	}
 }
@@ -300,22 +300,22 @@ func (c *AppCommand) runUpgrade(ctx context.Context, args []string) error {
 		return fmt.Errorf("%w: run from an app directory or use -p to specify path", ErrNoAppFound)
 	}
 
-	if ensureErr := c.manager.ensure(ctx); ensureErr != nil {
-		return startAppManagerError(ensureErr)
+	if ensureErr := c.server.ensure(ctx); ensureErr != nil {
+		return startStudioctlServerError(ensureErr)
 	}
 
-	upgrade := appmanager.AppUpgrade{
+	upgrade := studioctlserver.AppUpgrade{
 		ProjectFolder:            detection.AppRoot,
 		StudioRoot:               "",
 		Kind:                     flags.kind,
 		ConvertPackageReferences: false,
 	}
-	if flags.kind == appUpgradeKindV10 && detection.InStudioRepo {
+	if flags.kind == appUpgradeKindV9 && detection.InStudioRepo {
 		upgrade.ConvertPackageReferences = true
 		upgrade.StudioRoot = detection.StudioRoot
 	}
 
-	result, err := c.manager.client.UpgradeApp(ctx, upgrade)
+	result, err := c.server.client.UpgradeApp(ctx, upgrade)
 	if err != nil {
 		return fmt.Errorf("upgrade app: %w", err)
 	}
@@ -339,7 +339,7 @@ type appUpgradeFlags struct {
 const (
 	appUpgradeKindFrontendV4 = "frontend-v4"
 	appUpgradeKindBackendV8  = "backend-v8"
-	appUpgradeKindV10        = "v10"
+	appUpgradeKindV9         = "v9"
 )
 
 func (c *AppCommand) parseAppUpgradeFlags(args []string) (appUpgradeFlags, bool, error) {
@@ -363,7 +363,7 @@ func (c *AppCommand) parseAppUpgradeFlags(args []string) (appUpgradeFlags, bool,
 
 	remaining := fs.Args()
 	if flags.kind == "" && len(remaining) == 0 {
-		flags.kind = appUpgradeKindV10
+		flags.kind = appUpgradeKindV9
 		return flags, false, nil
 	}
 	if flags.kind == "" && len(remaining) == 1 {
@@ -378,18 +378,18 @@ func (c *AppCommand) parseAppUpgradeFlags(args []string) (appUpgradeFlags, bool,
 }
 
 func isSupportedAppUpgradeKind(kind string) bool {
-	return kind == appUpgradeKindFrontendV4 || kind == appUpgradeKindBackendV8 || kind == appUpgradeKindV10
+	return kind == appUpgradeKindFrontendV4 || kind == appUpgradeKindBackendV8 || kind == appUpgradeKindV9
 }
 
 func (c *AppCommand) appUpgradeUsageLine() string {
-	return osutil.CurrentBin() + " app upgrade [frontend-v4|backend-v8|v10] [-p PATH]"
+	return osutil.CurrentBin() + " app upgrade [frontend-v4|backend-v8|v9] [-p PATH]"
 }
 
 func (c *AppCommand) appUpgradeUsage() string {
 	return joinLines(
 		"Usage: "+c.appUpgradeUsageLine(),
 		"",
-		"Upgrades an Altinn app. Defaults to v10 when no kind is specified. Package references are converted to project references only for v10 apps inside an Altinn Studio repo.",
+		"Upgrades an Altinn app. Defaults to v9 when no kind is specified. Package references are converted to project references only for v9 apps inside an Altinn Studio repo.",
 		"",
 		"Options:",
 		"  -p, --path PATH             Specify app directory (overrides auto-detect)",
@@ -481,7 +481,7 @@ func parseOrgRepo(s string) (org, repo string, err error) {
 	return parts[0], parts[1], nil
 }
 
-// AppContainersCommand is a hidden command used by app-manager for container runtime discovery.
+// AppContainersCommand is a hidden command used by studioctl-server for container runtime discovery.
 type AppContainersCommand struct {
 	out *ui.Output
 }

@@ -1,8 +1,8 @@
 # Build stage
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /app-root-dir
 
-COPY AppLibDotnet.sln .
+COPY AppLibDotnet.slnx .
 COPY test/Altinn.App.Api.Tests/Altinn.App.Api.Tests.csproj test/Altinn.App.Api.Tests/
 COPY test/Altinn.App.Core.Tests/Altinn.App.Core.Tests.csproj test/Altinn.App.Core.Tests/
 COPY test/Altinn.App.Tests.Common/Altinn.App.Tests.Common.csproj test/Altinn.App.Tests.Common/

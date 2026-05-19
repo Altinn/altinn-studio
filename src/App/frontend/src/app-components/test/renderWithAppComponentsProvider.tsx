@@ -9,7 +9,7 @@ export function renderWithAppComponentsProvider(ui: ReactElement, options?: Omit
     wrapper: ({ children }) => (
       <AppComponentsProvider
         translate={(key) => key}
-        TranslateComponent={({ tKey }) => tKey}
+        TranslateComponent={({ tKey }) => tKey ?? null}
       >
         {children}
       </AppComponentsProvider>

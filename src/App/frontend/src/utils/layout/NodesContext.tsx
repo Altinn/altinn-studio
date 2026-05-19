@@ -9,13 +9,11 @@ import { Loader } from 'src/core/loading/Loader';
 import { AttachmentsStorePlugin } from 'src/features/attachments/AttachmentsStorePlugin';
 import { UpdateAttachmentsForCypress } from 'src/features/attachments/UpdateAttachmentsForCypress';
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { pruneBoundaryMasks, ValidationStorePlugin } from 'src/features/validation/ValidationStorePlugin';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { TaskKeys } from 'src/routesBuilder';
 import { GeneratorGlobalProvider, GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
-import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
 import { useRegistry } from 'src/utils/layout/generator/GeneratorStages';
 import { LayoutSetGenerator } from 'src/utils/layout/generator/LayoutSetGenerator';
 import { GeneratorValidationProvider } from 'src/utils/layout/generator/validation/GenerationValidationContext';
@@ -88,8 +86,7 @@ export type NodesSliceState = {
   addPage: (pageKey: string) => void;
 
   reset: (layouts: ILayouts) => void;
-} & NodesSliceProps &
-  ExtraFunctions;
+} & ExtraFunctions;
 
 const defaultState = {
   hasErrors: false,
@@ -100,10 +97,9 @@ const defaultState = {
   nodeData: {},
 };
 
-export function createNodesSlice(props: NodesSliceProps, set: FormStoreSet): FormStoreState['nodes'] {
+export function createNodesSlice(set: FormStoreSet): FormStoreState['nodes'] {
   return {
     ...structuredClone(defaultState),
-    ...props,
 
     layouts: undefined,
 
@@ -195,7 +191,6 @@ export function createNodesSlice(props: NodesSliceProps, set: FormStoreSet): For
         nodes: {
           ...state.nodes,
           ...structuredClone(defaultState),
-          ...props,
           layouts,
         },
       })),
@@ -206,19 +201,13 @@ export function createNodesSlice(props: NodesSliceProps, set: FormStoreSet): For
   };
 }
 
-export interface NodesSliceProps {
-  readOnly: boolean;
-}
-
 export const NodesProvider = ({ children }: PropsWithChildren) => {
   const registry = useRegistry();
 
   return (
     <ProvideGlobalContext registry={registry}>
       <GeneratorValidationProvider>
-        <GeneratorData.Provider>
-          <LayoutSetGenerator />
-        </GeneratorData.Provider>
+        <LayoutSetGenerator />
       </GeneratorValidationProvider>
       {window.Cypress && <UpdateAttachmentsForCypress />}
       {children}
@@ -228,7 +217,7 @@ export const NodesProvider = ({ children }: PropsWithChildren) => {
 
 function ProvideGlobalContext({ children, registry }: PropsWithChildren<{ registry: RefObject<Registry> }>) {
   const isInTaskTransition = useIsInTaskTransition();
-  const latestLayouts = FormBootstrap.useLayouts();
+  const latestLayouts = FormStore.bootstrap.useLayouts();
   const layouts = FormStore.raw.useSelector((state) => state.nodes.layouts);
   const reset = FormStore.raw.useSelector((state) => state.nodes.reset);
 
@@ -336,9 +325,6 @@ function NodesLoader() {
  * A set of tools, selectors and functions to use internally in node generator components.
  */
 export const nodesHooks = {
-  useIsReadOnly() {
-    return FormStore.raw.useSelector((state) => state.nodes.readOnly);
-  },
   useFullErrorList() {
     return FormStore.raw.useMemoSelector((s) => {
       const errors: { [pageOrNode: string]: string[] } = {};

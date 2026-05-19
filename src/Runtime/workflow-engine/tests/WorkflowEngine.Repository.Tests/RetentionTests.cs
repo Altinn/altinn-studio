@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Npgsql;
+using WorkflowEngine.Data;
 using WorkflowEngine.Data.Services;
 using WorkflowEngine.Models;
 using WorkflowEngine.Repository.Tests.Fixtures;
@@ -194,6 +195,128 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Contains("recent-key", remainingKeys);
     }
 
+    [Fact]
+    public async Task Retention_DeletesLastWorkflowInCollection_RemovesCollection()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var expiredHeadId = Guid.NewGuid();
+        await InsertWorkflow(
+            dataSource,
+            expiredHeadId,
+            status: 3,
+            updatedAt: _now.AddDays(-31),
+            collectionKey: "collection",
+            ct: ct
+        );
+        await InsertCollection(dataSource, "collection", [expiredHeadId], updatedAt: _now.AddDays(-31), ct: ct);
+
+        // Act
+        await RunRetention(dataSource, retentionPeriod: TimeSpan.FromDays(30), ct: ct);
+
+        // Assert
+        await using var ctx = fixture.CreateDbContext();
+        Assert.False(await ctx.WorkflowCollections.AnyAsync(c => c.Key == "collection", ct));
+        Assert.False(await ctx.Workflows.AnyAsync(w => w.Id == expiredHeadId, ct));
+    }
+
+    [Fact]
+    public async Task Retention_DeletesOneCurrentHead_PreservesRemainingHeads()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+
+        var expiredHeadId = Guid.NewGuid();
+        var retainedHeadId = Guid.NewGuid();
+        await InsertWorkflow(
+            dataSource,
+            expiredHeadId,
+            status: 3,
+            updatedAt: _now.AddDays(-31),
+            collectionKey: "collection",
+            ct: ct
+        );
+        await InsertWorkflow(
+            dataSource,
+            retainedHeadId,
+            status: 3,
+            updatedAt: _now.AddDays(-1),
+            collectionKey: "collection",
+            ct: ct
+        );
+        await InsertCollection(
+            dataSource,
+            "collection",
+            [expiredHeadId, retainedHeadId],
+            updatedAt: _now.AddDays(-31),
+            ct: ct
+        );
+
+        // Act
+        await RunRetention(dataSource, retentionPeriod: TimeSpan.FromDays(30), ct: ct);
+
+        // Assert
+        await using var ctx = fixture.CreateDbContext();
+        var collection = await ctx.WorkflowCollections.SingleAsync(c => c.Key == "collection", ct);
+        var head = Assert.Single(collection.Heads);
+        Assert.Equal(retainedHeadId, head);
+    }
+
+    [Fact]
+    public async Task Retention_RemovesCurrentHead_NextDependsOnHeadsEnqueueSucceeds()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+        var repo = fixture.CreateRepository();
+        var metadata = new WorkflowRequestMetadata("test-ns", Guid.NewGuid().ToString("N"), "collection", _now, null);
+
+        var results = await WorkflowTestHelper.EnqueueWorkflows(
+            repo,
+            metadata,
+            [CreateWorkflowRequest("expired")],
+            ns: "test-ns"
+        );
+        var expiredHeadId = Assert.Single(results[0].WorkflowIds!);
+
+        await using (var ctx = fixture.CreateDbContext())
+        {
+            await ctx.Database.ExecuteSqlAsync(
+                $"UPDATE engine.workflows SET status = 3, updated_at = {_now.AddDays(-31)} WHERE id = {expiredHeadId}",
+                ct
+            );
+        }
+
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+        await RunRetention(dataSource, retentionPeriod: TimeSpan.FromDays(30), ct: ct);
+
+        // Act
+        var nextResults = await WorkflowTestHelper.EnqueueWorkflows(
+            repo,
+            metadata with
+            {
+                IdempotencyKey = Guid.NewGuid().ToString("N"),
+            },
+            [CreateWorkflowRequest("next")],
+            ns: "test-ns"
+        );
+
+        // Assert
+        var nextId = Assert.Single(nextResults[0].WorkflowIds!);
+        Assert.Equal(BatchEnqueueResultStatus.Created, nextResults[0].Status);
+
+        await using var assertCtx = fixture.CreateDbContext();
+        var collection = await assertCtx.WorkflowCollections.SingleAsync(c => c.Key == "collection", ct);
+        var head = Assert.Single(collection.Heads);
+        Assert.Equal(nextId, head);
+
+        var nextWorkflow = await assertCtx.Workflows.Include(w => w.Dependencies).SingleAsync(w => w.Id == nextId, ct);
+        Assert.NotNull(nextWorkflow.Dependencies);
+        Assert.Empty(nextWorkflow.Dependencies);
+    }
+
     // --- Helpers ---
 
     private static async Task RunRetention(
@@ -245,17 +368,55 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
         Guid id,
         int status,
         DateTimeOffset updatedAt,
+        string? collectionKey = null,
+        CancellationToken ct = default
+    )
+    {
+        await using var cmd = dataSource.CreateCommand(
+            """
+            INSERT INTO engine.workflows (id, operation_id, idempotency_key, namespace, status, created_at, updated_at, reclaim_count, collection_key)
+            VALUES (@id, 'test-op', @id::text, 'test-ns', @status, @createdAt, @updatedAt, 0, @collectionKey)
+            """
+        );
+        cmd.Parameters.AddWithValue("id", id);
+        cmd.Parameters.AddWithValue("status", status);
+        cmd.Parameters.AddWithValue("createdAt", updatedAt.AddHours(-1));
+        cmd.Parameters.AddWithValue("updatedAt", updatedAt);
+        cmd.Parameters.AddWithValue("collectionKey", collectionKey is null ? DBNull.Value : collectionKey);
+        await cmd.ExecuteNonQueryAsync(ct);
+    }
+
+    private static WorkflowRequest CreateWorkflowRequest(string @ref) =>
+        new()
+        {
+            Ref = @ref,
+            OperationId = $"op-{@ref}",
+            Steps =
+            [
+                new StepRequest
+                {
+                    OperationId = "step",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+            ],
+        };
+
+    private static async Task InsertCollection(
+        NpgsqlDataSource dataSource,
+        string key,
+        Guid[] heads,
+        DateTimeOffset updatedAt,
         CancellationToken ct
     )
     {
         await using var cmd = dataSource.CreateCommand(
             """
-            INSERT INTO engine.workflows (id, operation_id, idempotency_key, namespace, status, created_at, updated_at, reclaim_count)
-            VALUES (@id, 'test-op', @id::text, 'test-ns', @status, @createdAt, @updatedAt, 0)
+            INSERT INTO engine.workflow_collections (key, namespace, heads, created_at, updated_at)
+            VALUES (@key, 'test-ns', @heads, @createdAt, @updatedAt)
             """
         );
-        cmd.Parameters.AddWithValue("id", id);
-        cmd.Parameters.AddWithValue("status", status);
+        cmd.Parameters.AddWithValue("key", key);
+        cmd.Parameters.AddWithValue("heads", heads);
         cmd.Parameters.AddWithValue("createdAt", updatedAt.AddHours(-1));
         cmd.Parameters.AddWithValue("updatedAt", updatedAt);
         await cmd.ExecuteNonQueryAsync(ct);

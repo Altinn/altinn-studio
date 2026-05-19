@@ -1,9 +1,9 @@
 import React from 'react';
 import type { JSX, PropsWithChildren } from 'react';
 
+import { Flex } from '@app/form-component';
 import cn from 'classnames';
 
-import { Flex } from 'src/app-components/Flex/Flex';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { getComponentDef } from 'src/layout';
 import { CompCategory } from 'src/layout/common';
@@ -45,7 +45,8 @@ export enum SummaryContains {
 export function ComponentSummary({ targetBaseComponentId }: ComponentSummaryProps) {
   const type = useExternalItem(targetBaseComponentId).type;
   const def = getComponentDef(type);
-  return def.renderSummary2 ? def.renderSummary2({ targetBaseComponentId }) : null;
+  const SummaryRenderer = def.renderSummary2;
+  return SummaryRenderer ? <SummaryRenderer targetBaseComponentId={targetBaseComponentId} /> : null;
 }
 
 export function useSummarySoftHidden(hidden: boolean | undefined) {

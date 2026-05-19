@@ -19,7 +19,7 @@ const (
 	DefaultContainerPort = "5005"
 )
 
-// Candidate describes one app container endpoint suitable for app-manager probing.
+// Candidate describes one app container endpoint suitable for studioctl-server probing.
 type Candidate struct {
 	ContainerID string `json:"containerId"`
 	Name        string `json:"name"`
@@ -46,7 +46,7 @@ func DiscoveryFilter() types.ContainerListFilter {
 	}
 }
 
-// Discover lists studioctl-managed app containers and converts them to app-manager candidates.
+// Discover lists studioctl-managed app containers and converts them to studioctl-server candidates.
 func Discover(ctx context.Context, client container.ContainerClient) ([]Candidate, error) {
 	containers, err := client.ListContainers(ctx, DiscoveryFilter())
 	if err != nil {

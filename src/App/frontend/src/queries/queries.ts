@@ -19,7 +19,7 @@ import {
   getFormBootstrapUrlForInstance,
   getFormBootstrapUrlForStateless,
   getOrderDetailsUrl,
-  getPaymentInformationUrl,
+  getPaymentInformationForTaskUrl,
   getPdfFormatUrl,
   getProcessNextUrl,
   getUpdateFileTagsUrl,
@@ -178,8 +178,11 @@ export const fetchFormData = (url: string, options?: AxiosRequestConfig): Promis
 export const fetchPdfFormat = (instanceId: string, dataElementId: string): Promise<IPdfFormat> =>
   httpGet(getPdfFormatUrl(instanceId, dataElementId));
 
-export const fetchPaymentInformation = (instanceId: string, language?: string): Promise<PaymentResponsePayload> =>
-  httpGet(getPaymentInformationUrl(instanceId, language));
+export const fetchPaymentInformationForTask = (
+  instanceId: string,
+  language?: string,
+  taskId?: string,
+): Promise<PaymentResponsePayload> => httpGet(getPaymentInformationForTaskUrl(instanceId, language, taskId));
 
 export const fetchOrderDetails = (instanceId: string, language?: string): Promise<OrderDetails> =>
   httpGet(getOrderDetailsUrl(instanceId, language));

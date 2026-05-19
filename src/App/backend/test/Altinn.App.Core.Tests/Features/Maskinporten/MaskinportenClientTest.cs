@@ -6,7 +6,6 @@ using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Exceptions;
 using Altinn.App.Core.Features.Maskinporten.Models;
-using Altinn.App.Core.Internal.Maskinporten;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
@@ -111,10 +110,6 @@ public class MaskinportenClientTests
         Assert.Equivalent(Fixture.InternalSettings, internalClient.Settings);
         Assert.Equivalent(MaskinportenClient.VariantDefault, defaultClient.Variant);
         Assert.Equivalent(MaskinportenClient.VariantInternal, internalClient.Variant);
-
-        Assert.IsType<LegacyMaskinportenTokenProvider>(
-            fixture.App.Services.GetRequiredService<IMaskinportenTokenProvider>()
-        );
     }
 
     [Theory]

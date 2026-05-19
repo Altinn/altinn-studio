@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { DatePickerControl } from 'src/app-components/Datepicker/Datepicker';
-import { getDateConstraint, getDateFormat } from 'src/app-components/Datepicker/utils/dateHelpers';
-import { Flex } from 'src/app-components/Flex/Flex';
+import { DatePickerControl, Flex, getDateConstraint, getDateFormat } from '@app/form-component';
+
 import { Label } from 'src/app-components/Label/Label';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -74,7 +73,13 @@ export function DatepickerComponent({ baseComponentId, overrideDisplay }: PropsF
             locale={languageLocale}
             minDate={calculatedMinDate}
             maxDate={calculatedMaxDate}
-            DropdownCaption={DropdownCaption}
+            DropdownCaption={(props) => (
+              <DropdownCaption
+                {...props}
+                minDate={calculatedMinDate}
+                maxDate={calculatedMaxDate}
+              />
+            )}
             buttonAriaLabel={langAsString('date_picker.aria_label_icon')}
             calendarIconTitle={langAsString('date_picker.aria_label_icon')}
             autoComplete={autocomplete}

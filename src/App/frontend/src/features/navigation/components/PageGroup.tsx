@@ -10,9 +10,14 @@ import { Lang } from 'src/features/language/Lang';
 import { Page } from 'src/features/navigation/components/Page';
 import classes from 'src/features/navigation/components/PageGroup.module.css';
 import { SubformsForPage } from 'src/features/navigation/components/SubformsForPage';
-import { getTaskIcon, useValidationsForPages, useVisiblePages } from 'src/features/navigation/utils';
+import { useNavigateToPageWithValidation } from 'src/features/navigation/useNavigateToPageWithValidation';
+import {
+  getTaskIcon,
+  useGetNavigationIsPrevented,
+  useValidationsForPages,
+  useVisiblePages,
+} from 'src/features/navigation/utils';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import type {
   NavigationPageGroup,
@@ -71,9 +76,10 @@ function PageGroupSingle({
   validations,
   onNavigate,
 }: PageGroupProps<NavigationPageGroupSingle>) {
-  const { navigateToPage } = useNavigatePage();
   const performProcess = useProcessingMutation('navigate-page');
+  const navigateToPageWithValidation = useNavigateToPageWithValidation();
   const page = group.order[0];
+  const navigationIsPrevented = useGetNavigationIsPrevented()(page);
 
   const pageGroupHasErrors = validations !== ContextNotProvided && validations.hasErrors.group;
   const pageGroupIsComplete = validations !== ContextNotProvided && validations.isCompleted.group;
@@ -81,16 +87,10 @@ function PageGroupSingle({
   return (
     <li>
       <button
+        disabled={navigationIsPrevented}
         aria-current={isCurrentPage ? 'page' : undefined}
         className={cn(classes.groupButton, classes.groupButtonSingle, 'fds-focus')}
-        onClick={() =>
-          performProcess(async () => {
-            if (!isCurrentPage) {
-              await navigateToPage(page);
-              onNavigate?.();
-            }
-          })
-        }
+        onClick={() => performProcess(() => navigateToPageWithValidation(page, onNavigate))}
       >
         <PageGroupSymbol
           single
@@ -113,7 +113,10 @@ function PageGroupSingle({
           )}
         </span>
       </button>
-      <SubformsForPage pageKey={page} />
+      <SubformsForPage
+        pageKey={page}
+        expandedByDefault={group.expandedByDefault}
+      />
     </li>
   );
 }
@@ -128,8 +131,11 @@ function PageGroupMultiple({
   const buttonId = `navigation-button-${group.id}`;
   const listId = `navigation-page-list-${group.id}`;
 
-  const [isOpen, setIsOpen] = useState(containsCurrentPage);
-  useLayoutEffect(() => setIsOpen(containsCurrentPage), [containsCurrentPage]);
+  const [isOpen, setIsOpen] = useState(containsCurrentPage || !!group.expandedByDefault);
+  useLayoutEffect(
+    () => setIsOpen(containsCurrentPage || !!group.expandedByDefault),
+    [containsCurrentPage, group.expandedByDefault],
+  );
 
   const pageGroupHasErrors = validations !== ContextNotProvided && validations.hasErrors.group;
   const pageGroupIsComplete = validations !== ContextNotProvided && validations.isCompleted.group;
@@ -182,6 +188,7 @@ function PageGroupMultiple({
             onNavigate={onNavigate}
             hasErrors={validations !== ContextNotProvided && validations.hasErrors.pages[page]}
             isComplete={validations !== ContextNotProvided && validations.isCompleted.pages[page]}
+            expandedByDefault={group.expandedByDefault}
           />
         ))}
       </ul>

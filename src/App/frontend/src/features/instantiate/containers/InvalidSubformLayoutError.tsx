@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { Button } from 'src/app-components/Button/Button';
+import { Button } from '@app/form-component';
+
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';

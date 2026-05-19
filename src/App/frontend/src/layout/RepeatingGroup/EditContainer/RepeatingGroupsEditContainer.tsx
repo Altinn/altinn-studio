@@ -1,12 +1,11 @@
 import React from 'react';
 import type { JSX } from 'react';
 
+import { Button, Flex } from '@app/form-component';
 import { ChevronLeftIcon, ChevronRightIcon, TrashIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { Button } from 'src/app-components/Button/Button';
-import { Flex } from 'src/app-components/Flex/Flex';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import {
@@ -88,7 +87,7 @@ function RepeatingGroupsEditContainerInternal({
     ...textsForRow,
   };
 
-  const parent = FormBootstrap.useLayoutLookups().componentToParent[baseComponentId];
+  const parent = FormStore.bootstrap.useLayoutLookups().componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';
   let saveButtonVisible =
     !forceHideSaveButton &&

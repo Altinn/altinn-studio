@@ -228,7 +228,11 @@ public class DataTagsControllerTests(WebApplicationFactory<Program> factory, ITe
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
 
         var responseContent = await response.Content.ReadAsStringAsync();
-        responseContent.Should().Contain("Unable to find data element");
+        responseContent
+            .Should()
+            .Contain(
+                "The instance 500600/fad57e80-ec2f-4dee-90ac-400fa6d7720f doesn't have a data element with id '99999999-9999-9999-9999-999999999999"
+            );
     }
 
     #endregion
@@ -313,7 +317,11 @@ public class DataTagsControllerTests(WebApplicationFactory<Program> factory, ITe
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
 
         var responseContent = await response.Content.ReadAsStringAsync();
-        responseContent.Should().Contain("Unable to find data element");
+        responseContent
+            .Should()
+            .Contain(
+                "The instance 500600/fad57e80-ec2f-4dee-90ac-400fa6d7720f doesn't have a data element with id '99999999-9999-9999-9999-999999999999"
+            );
     }
 
     #endregion
@@ -456,7 +464,11 @@ public class DataTagsControllerTests(WebApplicationFactory<Program> factory, ITe
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
 
         var responseContent = await response.Content.ReadAsStringAsync();
-        responseContent.Should().Contain("Unable to find data element");
+        responseContent
+            .Should()
+            .Contain(
+                "The instance 500600/fad57e80-ec2f-4dee-90ac-400fa6d7720f doesn't have a data element with id '99999999-9999-9999-9999-999999999999"
+            );
     }
 
     [Fact]

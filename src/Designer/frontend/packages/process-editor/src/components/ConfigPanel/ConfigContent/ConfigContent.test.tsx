@@ -1,5 +1,5 @@
 import { ConfigContent } from './ConfigContent';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { BpmnContextProps } from '../../../contexts/BpmnContext';
 import { BpmnContext } from '../../../contexts/BpmnContext';
@@ -14,6 +14,7 @@ import {
   mockBpmnContextValue,
 } from '../../../../test/mocks/bpmnContextMock';
 import { useStudioRecommendedNextActionContext } from '@studio/components';
+import { screen } from '@studio/ui-test';
 
 const tasks = [
   {
@@ -154,11 +155,11 @@ describe('ConfigContent', () => {
 
   it('should render the Policy accordion', async () => {
     renderConfigContent();
-    const policyAccordion = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_policy_title'),
-    });
+    const policyDetails = screen.getDetailsBySummary(
+      textMock('process_editor.configuration_panel_policy_title'),
+    );
     const user = userEvent.setup();
-    await user.click(policyAccordion);
+    await user.click(policyDetails);
     const editPolicyLink = await screen.findByText(
       textMock('process_editor.configuration_panel.edit_policy_open_policy_editor_link'),
     );
@@ -167,10 +168,10 @@ describe('ConfigContent', () => {
 
   it('should render the Design accordion when a task has a connected layoutset', () => {
     renderConfigContent();
-    const designAccordion = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_design_title'),
-    });
-    expect(designAccordion).toBeInTheDocument();
+    const designDetails = screen.getDetailsBySummary(
+      textMock('process_editor.configuration_panel_design_title'),
+    );
+    expect(designDetails).toBeInTheDocument();
   });
 
   describe('Unique signature', () => {

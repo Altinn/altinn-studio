@@ -11,13 +11,13 @@ This is the **Altinn.App .NET libraries** project, which provides runtime librar
 **Build the solution:**
 
 ```bash
-dotnet build solutions/All.sln -v m
+dotnet build solutions/All.slnx -v m
 ```
 
 **Run all tests:**
 
 ```bash
-dotnet test solutions/All.sln -v m --no-restore --no-build
+dotnet test solutions/All.slnx -v m --no-restore --no-build
 ```
 
 **Run specific test project:**
@@ -76,7 +76,7 @@ The solution follows a **layered architecture** with feature-based organization:
 
 ### Technology Stack
 
-- **.NET 8.0** (see global.json)
+- **.NET 10.0** (see global.json)
 - **ASP.NET Core** for web APIs
 - **OpenTelemetry** for observability
 - **xUnit** with FluentAssertions and Moq for testing

@@ -30,14 +30,21 @@ internal static class EngineEndpoints
             .WithDescription("Enqueues one or more workflows, resolving their dependency graph");
 
         group
-            .MapGet("", EngineRequestHandlers.ListActiveWorkflows)
-            .WithName("ListActiveWorkflows")
-            .WithDescription("Lists all active workflows, optionally filtered by collection key");
+            .MapGet("", EngineRequestHandlers.ListWorkflows)
+            .WithName("ListWorkflows")
+            .WithDescription("Lists workflows, optionally filtered by collection key, labels, and statuses");
 
         group
             .MapGet("/{workflowId:guid}", EngineRequestHandlers.GetWorkflow)
             .WithName("GetWorkflow")
             .WithDescription("Gets details of a single workflow by database ID");
+
+        group
+            .MapGet("/{workflowId:guid}/dependency-graph", EngineRequestHandlers.GetWorkflowDependencyGraph)
+            .WithName("GetWorkflowDependencyGraph")
+            .WithDescription(
+                "Gets the connected dependency graph reachable from the requested workflow through dependency or link relations in either direction"
+            );
 
         group
             .MapPost("/{workflowId:guid}/cancel", EngineRequestHandlers.CancelWorkflow)
@@ -132,10 +139,11 @@ internal static class EngineRequestHandlers
         };
     }
 
-    public static async Task<Results<Ok<PaginatedResponse<WorkflowStatusResponse>>, NoContent>> ListActiveWorkflows(
+    public static async Task<Results<Ok<PaginatedResponse<WorkflowStatusResponse>>, NoContent>> ListWorkflows(
         [FromRoute] string @namespace,
         [FromQuery] string? collectionKey,
         [FromQuery(Name = "label")] string[]? labels,
+        [FromQuery(Name = "status")] PersistentItemStatus[]? statuses,
         [FromQuery] Guid? cursor,
         [FromQuery] int? pageSize,
         [FromServices] IEngineRepository repository,
@@ -150,14 +158,16 @@ internal static class EngineRequestHandlers
 
         var ns = NormalizeNamespace(@namespace);
         var labelFilters = ParseLabelFilters(labels);
-        var result = await repository.GetActiveWorkflows(
+        var effectiveStatuses = GetQueryStatuses(statuses);
+        var result = await repository.QueryWorkflows(
             effectivePageSize,
+            effectiveStatuses,
             cursor,
             includeTotalCount: true,
-            collectionKey,
-            ns,
-            labelFilters,
-            cancellationToken
+            labelFilters: labelFilters,
+            namespaceFilter: ns,
+            collectionKey: collectionKey,
+            cancellationToken: cancellationToken
         );
 
         if (result.TotalCount == 0)
@@ -190,6 +200,31 @@ internal static class EngineRequestHandlers
             return TypedResults.NotFound();
 
         return TypedResults.Ok(WorkflowStatusResponse.FromWorkflow(workflow));
+    }
+
+    public static async Task<Results<Ok<WorkflowDependencyGraphResponse>, NotFound>> GetWorkflowDependencyGraph(
+        [FromRoute] string @namespace,
+        [FromRoute] Guid workflowId,
+        [FromServices] IEngineRepository repository,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "dependency-graph"));
+
+        var ns = NormalizeNamespace(@namespace);
+        var dependencyGraph = await repository.GetWorkflowDependencyGraph(workflowId, ns, cancellationToken);
+
+        if (dependencyGraph is null)
+            return TypedResults.NotFound();
+
+        return TypedResults.Ok(
+            new WorkflowDependencyGraphResponse
+            {
+                RootWorkflowId = workflowId,
+                Workflows = dependencyGraph.Select(WorkflowStatusResponse.FromWorkflow).ToList(),
+                Edges = BuildDependencyGraphEdges(dependencyGraph),
+            }
+        );
     }
 
     public static async Task<
@@ -302,6 +337,67 @@ internal static class EngineRequestHandlers
         }
 
         return result;
+    }
+
+    private static readonly PersistentItemStatus[] AllPersistentItemStatuses = Enum.GetValues<PersistentItemStatus>();
+
+    private static PersistentItemStatus[] GetQueryStatuses(PersistentItemStatus[]? statuses) =>
+        statuses is { Length: > 0 } ? statuses : AllPersistentItemStatuses;
+
+    private static List<WorkflowDependencyGraphEdgeResponse> BuildDependencyGraphEdges(
+        IReadOnlyList<Workflow> workflows
+    )
+    {
+        // Workflows arrive ordered by (CreatedAt, OperationId, Id) from the repo, so the outer
+        // loop is already stable. The inner Dependencies/Links collections come from EF Include
+        // without ORDER BY, so we sort them by OperationId here to keep edge emission
+        // deterministic regardless of database row order. DatabaseId is the tiebreaker for the
+        // edge case where two related workflows share the same OperationId.
+        HashSet<Guid> workflowIds = [.. workflows.Select(workflow => workflow.DatabaseId)];
+        List<WorkflowDependencyGraphEdgeResponse> edges = [];
+
+        foreach (Workflow workflow in workflows)
+        {
+            if (workflow.Dependencies is not null)
+            {
+                foreach (
+                    Workflow dependency in workflow.Dependencies.OrderBy(d => d.OperationId).ThenBy(d => d.DatabaseId)
+                )
+                {
+                    if (!workflowIds.Contains(dependency.DatabaseId))
+                        continue;
+
+                    edges.Add(
+                        new WorkflowDependencyGraphEdgeResponse
+                        {
+                            From = dependency.DatabaseId,
+                            To = workflow.DatabaseId,
+                            Kind = WorkflowDependencyGraphEdgeKind.Dependency,
+                        }
+                    );
+                }
+            }
+
+            if (workflow.Links is not null)
+            {
+                foreach (Workflow link in workflow.Links.OrderBy(l => l.OperationId).ThenBy(l => l.DatabaseId))
+                {
+                    if (!workflowIds.Contains(link.DatabaseId))
+                        continue;
+
+                    edges.Add(
+                        new WorkflowDependencyGraphEdgeResponse
+                        {
+                            From = workflow.DatabaseId,
+                            To = link.DatabaseId,
+                            Kind = WorkflowDependencyGraphEdgeKind.Link,
+                        }
+                    );
+                }
+            }
+        }
+
+        return edges;
     }
 
     /// <summary>

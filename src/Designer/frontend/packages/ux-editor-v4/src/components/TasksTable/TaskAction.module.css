@@ -1,0 +1,14 @@
+.ellipsisMenuContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.ellipsisMenuContent button {
+  justify-content: start;
+}
+
+.divider {
+  border-top: 1px solid;
+  border-color: var(--fds-semantic-border-divider-subtle);
+  width: 100%;
+}

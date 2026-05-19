@@ -176,7 +176,7 @@ describe('navigation', () => {
       isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup(/Utfylling/, /Kjøretøy/)
         .find(ICON_COMPLETE)
-        .should('not.exist');
+        .should('be.visible');
       cy.navGroup(/Utfylling/, /Kjøretøy/)
         .find(ICON_ERROR)
         .should('not.exist');

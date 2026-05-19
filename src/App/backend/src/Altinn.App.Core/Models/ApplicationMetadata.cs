@@ -68,8 +68,7 @@ public class ApplicationMetadata : Application
 
     static ApplicationMetadata()
     {
-        // TODO: fix this, before going to next major after v8
-        LibVersion = "8.0.0.0";
+        LibVersion = "9.0.0.0";
     }
 
     /// <summary>

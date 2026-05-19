@@ -1,0 +1,52 @@
+POST /api/v1/ttd-e2e-tests/workflows HTTP/1.1
+Idempotency-Key: idem-Guid_1
+Content-Type: application/json; charset=utf-8
+
+{
+  "labels": {
+    "org": "ttd",
+    "app": "e2e-tests"
+  },
+  "context": null,
+  "workflows": [
+    {
+      "ref": "wf-a",
+      "operationId": "op-wf-a",
+      "steps": [
+        {
+          "operationId": "/ping-a",
+          "command": {
+            "type": "webhook",
+            "maxExecutionTime": null,
+            "data": {
+              "uri": "http://localhost:{PORT}/ping-a",
+              "payload": null,
+              "contentType": null
+            }
+          },
+          "retryStrategy": null,
+          "labels": null
+        }
+      ],
+      "startAt": null,
+      "state": null,
+      "dependsOn": [
+        "wf-a"
+      ],
+      "links": null,
+      "dependsOnHeads": true,
+      "isHead": null
+    }
+  ]
+}
+
+HTTP/1.1 400 Bad Request
+Content-Type: application/problem+json
+
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Invalid request. Workflow graph did not validate: Workflow \u0027wf-a\u0027 has a self-reference in DependsOn.",
+  "traceId": "{Scrubbed}"
+}

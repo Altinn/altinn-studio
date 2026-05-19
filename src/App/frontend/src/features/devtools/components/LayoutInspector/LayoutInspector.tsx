@@ -1,25 +1,26 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useEffect, useRef, useState } from 'react';
 
+import { Button } from '@app/form-component';
 import { Alert } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 
-import { Button } from 'src/app-components/Button/Button';
-import { translationKey } from 'src/AppComponentsBridge';
 import classes from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
 import { LayoutInspectorItem } from 'src/features/devtools/components/LayoutInspector/LayoutInspectorItem';
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { useLayoutValidationForPage } from 'src/features/devtools/layoutValidation/useLayoutValidation';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
 
 export const LayoutInspector = () => {
+  const { langAsString } = useLanguage();
   const selectedComponent = useDevToolsStore((state) => state.layoutInspector.selectedComponentId);
   const setSelectedComponent = useDevToolsStore((state) => state.actions.layoutInspectorSet);
   const currentView = useCurrentView();
-  const layouts = FormBootstrap.useLayouts();
+  const layouts = FormStore.bootstrap.useLayouts();
   const [componentProperties, setComponentProperties] = useState<string | null>(null);
   const [propertiesHaveChanged, setPropertiesHaveChanged] = useState(false);
   const [error, setError] = useState<boolean>(false);
@@ -130,7 +131,7 @@ export const LayoutInspector = () => {
                 onClick={() => setSelectedComponent(undefined)}
                 variant='tertiary'
                 color='second'
-                aria-label={translationKey('general.close')}
+                aria-label={langAsString('general.close')}
                 icon={true}
               >
                 <XMarkIcon
