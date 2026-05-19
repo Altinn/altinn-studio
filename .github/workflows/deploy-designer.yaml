@@ -72,6 +72,11 @@ jobs:
             custom_source="true"
             label="$INPUT_REF"
 
+            if [[ "$INPUT_REF" == *$'\n'* || "$INPUT_REF" == *$'\r'* ]]; then
+              echo "The ref input cannot contain newlines." >&2
+              exit 1
+            fi
+
             if [[ "$INPUT_REF" == *:* ]]; then
               repository_prefix="${INPUT_REF%%:*}"
               ref="${INPUT_REF#*:}"

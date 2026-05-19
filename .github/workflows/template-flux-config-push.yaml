@@ -116,7 +116,9 @@ jobs:
         run: |
           artifact_env=${{ inputs.artifact-environment || inputs.environment }}
           source_url="${SOURCE_URL:-$(git config --get remote.origin.url)}"
-          source_revision="${SOURCE_REVISION:-$(git branch --show-current)/$(git rev-parse HEAD)}"
+          source_sha="$(git rev-parse HEAD)"
+          fallback_ref="$(git symbolic-ref --short -q HEAD || echo "${GITHUB_REF_NAME:-detached}")"
+          source_revision="${SOURCE_REVISION:-${fallback_ref}/${source_sha}}"
           flux push artifact oci://${{ inputs.registry-name }}/configs/${{ inputs.artifact-name }}-${artifact_env}:${{ inputs.tag }} \
           --path="./${{ inputs.config-chart-name }}-rendered" \
           --source="$source_url" \
