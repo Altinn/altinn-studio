@@ -63,10 +63,10 @@ describe('GroupConfigPanel', () => {
 
     renderGroupConfigPanel({ props: { selectedItem }, queries: { changePageGroups, getPages } });
 
-    const radio = await screen.findByRole('radio', {
+    const infoTypeRadio = await screen.findByRole('radio', {
       name: textMock('ux_editor.page_group.select_info_type'),
     });
-    await user.click(radio);
+    await user.click(infoTypeRadio);
 
     const expectedGroupsModel = {
       ...groupsPagesModelMock,
@@ -84,7 +84,7 @@ describe('GroupConfigPanel', () => {
     );
   });
 
-  it('should call changePageGroups mutation when changing group type to default', async () => {
+  it('should call changePageGroups mutation when changing group type to data', async () => {
     const user = userEvent.setup();
     const selectedItem: SelectedItem = { type: ItemType.Group, id: 0 };
     const changePageGroups = jest.fn();
@@ -102,10 +102,10 @@ describe('GroupConfigPanel', () => {
       initialPagesData: pagesWithInfoType,
     });
 
-    const radio = await screen.findByRole('radio', {
+    const dataTypeRadio = await screen.findByRole('radio', {
       name: textMock('ux_editor.page_group.select_data_type'),
     });
-    await user.click(radio);
+    await user.click(dataTypeRadio);
 
     const expectedGroupsModel = {
       ...pagesWithInfoType,
