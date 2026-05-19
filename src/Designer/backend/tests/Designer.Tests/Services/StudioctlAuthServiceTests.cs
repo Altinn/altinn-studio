@@ -66,6 +66,27 @@ public class StudioctlAuthServiceTests
         Assert.StartsWith("/settings/Jondyr/studioctl-auth?requestId=", result.Value);
     }
 
+    [Fact]
+    public async Task CreateAuthorizationRequestAsync_WithLowercaseExistingUsername_PreservesCasingInConfirmationUrl()
+    {
+        StudioctlAuthService service = CreateService();
+        var request = new StudioctlAuthorizeRequest(
+            "http://127.0.0.1:12345/callback",
+            "state",
+            "code-challenge",
+            "studioctl prod"
+        );
+
+        StudioctlAuthResult<string> result = await service.CreateAuthorizationRequestAsync(
+            "jondyr",
+            request,
+            CancellationToken.None
+        );
+
+        Assert.Equal(StudioctlAuthStatus.Success, result.Status);
+        Assert.StartsWith("/settings/jondyr/studioctl-auth?requestId=", result.Value);
+    }
+
     private static StudioctlAuthService CreateService()
     {
         var cache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
