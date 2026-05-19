@@ -50,6 +50,11 @@ public class ManifestTestDataProvider
                 },
                 LoadManifestsFromFolder("./tt02", "GitOps/Manifests/tt02")
             },
+            {
+                AltinnEnvironment.FromName("at22"),
+                new HashSet<AltinnRepoName>(),
+                LoadManifestsFromFolder("./at22", "GitOps/Manifests/at22")
+            },
         };
 
     private static Dictionary<string, string> LoadManifestsFromFolder(string keysPrefix, string testDataFolderPath)
