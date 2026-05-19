@@ -241,13 +241,21 @@ public class CorrespondenceClientTests
     }
 
     // csharpier-ignore
-    public static TheoryData<(AuthenticationScenario scenario, IEnumerable<string> expectedScopes)> AuthenticationTestCases =>
-        [
-            (AuthenticationScenario.LegacyMaskinporten, ["altinn:correspondence.write", "altinn:serviceowner"]),
-            (AuthenticationScenario.LegacyCustom, ["old:custom"]),
-            (AuthenticationScenario.Default, ["altinn:serviceowner/instances.read", "altinn:serviceowner/instances.write", "altinn:correspondence.write"]),
-            (AuthenticationScenario.Custom, ["new:custom"]),
-        ];
+    public static TheoryData<(
+        AuthenticationScenario scenario,
+        IEnumerable<string> expectedScopes
+    )> AuthenticationTestCases
+    {
+        get
+        {
+            TheoryData<(AuthenticationScenario scenario, IEnumerable<string> expectedScopes)> data = new();
+            data.Add((AuthenticationScenario.LegacyMaskinporten, ["altinn:correspondence.write", "altinn:serviceowner"]));
+            data.Add((AuthenticationScenario.LegacyCustom, ["old:custom"]));
+            data.Add((AuthenticationScenario.Default, ["altinn:serviceowner/instances.read", "altinn:serviceowner/instances.write", "altinn:correspondence.write"]));
+            data.Add((AuthenticationScenario.Custom, ["new:custom"]));
+            return data;
+        }
+    }
 
     [Theory]
     [MemberData(nameof(AuthenticationTestCases))]

@@ -6,6 +6,7 @@ import { Checkbox, Heading, Paragraph } from '@digdir/designsystemet-react';
 import { PlusIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
+import { translationKey } from 'src/AppComponentsBridge';
 import { AltinnParty } from 'src/components/altinnParty';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
