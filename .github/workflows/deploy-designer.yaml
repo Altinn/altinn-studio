@@ -22,7 +22,7 @@ on:
         required: false
         default: 'dev'
       ref:
-        description: 'Source ref to deploy. Use branch/tag/SHA, or owner:branch for forks.'
+        description: 'Source branch to deploy. Use branch-name, or fork-owner:branch-name for forks.'
         required: false
         default: ''
 
@@ -78,15 +78,16 @@ jobs:
             fi
 
             if [[ "$INPUT_REF" == *:* ]]; then
-              repository_prefix="${INPUT_REF%%:*}"
+              repository_owner="${INPUT_REF%%:*}"
               ref="${INPUT_REF#*:}"
-              if [[ "$repository_prefix" == */* ]]; then
-                repository="$repository_prefix"
-              else
-                repository="${repository_prefix}/${DEFAULT_REPO_NAME}"
-              fi
+              repository="${repository_owner}/${DEFAULT_REPO_NAME}"
             else
               ref="$INPUT_REF"
+            fi
+
+            if [[ -z "$ref" || "$ref" == -* || "$repository" == */*/* ]]; then
+              echo "The ref input must be a branch name or fork-owner:branch-name." >&2
+              exit 1
             fi
           fi
 
@@ -102,6 +103,11 @@ jobs:
 
             if [[ "$repository" != "$DEFAULT_REPOSITORY" && "$repository" != "martinothamar-agent/${DEFAULT_REPO_NAME}" ]]; then
               echo "Custom source repository '$repository' is not allowed." >&2
+              exit 1
+            fi
+
+            if ! git ls-remote --exit-code --heads "https://github.com/${repository}.git" "$ref" > /dev/null; then
+              echo "Branch '$ref' was not found in '$repository'." >&2
               exit 1
             fi
           fi
