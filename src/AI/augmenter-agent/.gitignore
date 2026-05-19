@@ -3,3 +3,6 @@
 
 # Per-worktree Pi state (sessions, cache) — mounted into the container.
 .pi-state*/
+
+# Python cache
+__pycache__/

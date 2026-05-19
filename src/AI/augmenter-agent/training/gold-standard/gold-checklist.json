@@ -1,0 +1,284 @@
+{
+  "meta": {
+    "saksnummer": "–",
+    "soknadsdato": "–",
+    "vurderingsdato": "2026-05-19",
+    "saksbehandler": "AI-agent",
+    "soknadstype": "arrangement",
+    "kommune": "Kristiansand"
+  },
+  "soker": {
+    "navn": "Sophie Salt",
+    "organisasjonsnummer": "–",
+    "kontaktperson": "Sophie Salt",
+    "adresse": "–"
+  },
+  "arrangement": {
+    "navn": "Julebord Avdeling Nord",
+    "type": "julebord",
+    "fra_dato": "2026-12-12",
+    "fra_klokkeslett": "19:00",
+    "til_dato": "2026-12-13",
+    "til_klokkeslett": "02:00",
+    "antall_deltakere": 45,
+    "aapen_eller_lukket": "Lukket",
+    "innendors_utendors": "Innendørs",
+    "lokale_navn": "Restaurant Sjøhuset",
+    "lokale_adresse": "Havnegata 15"
+  },
+  "bevilling": {
+    "type_bevilling": "arrangement",
+    "alkoholgruppe": "Gruppe 1, 2 og 3 (inntil 60 %)",
+    "har_eksisterende_bevilling": false
+  },
+  "styrer": {
+    "navn": "Sophie Salt",
+    "fodselsnummer": "01039012345",
+    "epost": "sophie@test.no",
+    "telefon": "99887766"
+  },
+  "stedfortreder": {
+    "navn": "Erik Hansen",
+    "fodselsnummer": "15039012345",
+    "epost": "erik@test.no",
+    "telefon": "98765432",
+    "fritak_sokt": false
+  },
+  "sjekkliste": {
+    "formelle_krav": {
+      "label": "Formelle krav",
+      "punkter": {
+        "soknad_komplett": {
+          "label": "Søknaden er komplett utfylt",
+          "status": "maa_undersokes",
+          "merknad": "Skjemaet er utfylt med nødvendige felter for søker, arrangement, styrer og stedfortreder. Vedleggslisten er imidlertid tom – ingen dokumentasjon er lastet opp. Bør etterspørres."
+        },
+        "riktig_soknadstype": {
+          "label": "Riktig søknadstype valgt",
+          "status": "vurdert_ok",
+          "merknad": "Enkeltbevilling/arrangement (julebord) for ett tidsavgrenset arrangement 12.–13.12.2026 samsvarer med søknadstypen 'arrangement'."
+        },
+        "kommune_riktig": {
+          "label": "Riktig kommune valgt",
+          "status": "vurdert_ok",
+          "merknad": "Kommunenummer 4204 = Kristiansand. Lokalet 'Restaurant Sjøhuset, Havnegata 15' ligger i Kristiansand."
+        },
+        "soker_identifisert": {
+          "label": "Søker er identifisert med org.nr.",
+          "status": "maa_undersokes",
+          "merknad": "Søker er registrert som privatperson (BrukerType: person) uten organisasjonsnummer. Bevilling gis normalt til et selskap; ved enkeltbevilling for lukket arrangement (firmafest/privatfest) kan privatperson likevel være søker. Bekreft at dette er et privat/lukket arrangement og at privatperson er riktig bevillingshaver."
+        }
+      }
+    },
+    "dokumentasjon": {
+      "label": "Dokumentasjon",
+      "punkter": {
+        "leiekontrakt": {
+          "label": "Leiekontrakt for lokalet",
+          "status": "maa_undersokes",
+          "merknad": "Ingen dokumentasjon på disponering av lokalet vedlagt. For enkeltbevilling holder det normalt med en bekreftelse fra lokaleier (Restaurant Sjøhuset). Etterspørres."
+        },
+        "personantall_beregning": {
+          "label": "Beregning av personantall fra godkjent firma",
+          "status": "maa_undersokes",
+          "merknad": "Ikke vedlagt. Restaurant Sjøhuset er etablert spisested og beregning finnes sannsynligvis i kommunens systemer. 45 deltakere er moderat antall – sjekk om godkjent kapasitet dekker dette."
+        },
+        "plantegninger": {
+          "label": "Plantegninger over lokalet",
+          "status": "ikke_vurdert",
+          "merknad": "Ikke vedlagt. For et etablert spisested som Restaurant Sjøhuset kan plantegninger finnes i kommunens arkiv. Etterspørres ved behov."
+        },
+        "mattilsynet_registrering": {
+          "label": "Registrering hos Mattilsynet",
+          "status": "vurdert_ok",
+          "merknad": "Restaurant Sjøhuset er et etablert spisested og må antas å være registrert hos Mattilsynet. Verifiseres ved oppslag dersom det er tvil."
+        },
+        "bruksgodkjenning": {
+          "label": "Bruksgodkjenning fra plan- og bygningsetaten",
+          "status": "maa_undersokes",
+          "merknad": "Ukjent status. Lokalet drives som restaurant – bruksgodkjenning antas å foreligge. Kontakt plan- og byggesaksavdelingen for bekreftelse om nødvendig."
+        },
+        "kunnskapsprove_styrer": {
+          "label": "Kunnskapsprøve bestått – styrer",
+          "status": "maa_undersokes",
+          "merknad": "Dokumentasjon på kunnskapsprøve for Sophie Salt er ikke vedlagt. Søk i P360/samlesak for å sjekke om prøven er tatt tidligere. Hvis ikke funnet, etterspørres dokumentasjon."
+        },
+        "kunnskapsprove_stedfortreder": {
+          "label": "Kunnskapsprøve bestått – stedfortreder",
+          "status": "maa_undersokes",
+          "merknad": "Dokumentasjon på kunnskapsprøve for Erik Hansen er ikke vedlagt. Søk i P360/samlesak. Hvis ikke funnet, etterspørres dokumentasjon."
+        },
+        "arbeidsavtale_styrer": {
+          "label": "Arbeidsavtale for styrer",
+          "status": "ikke_relevant",
+          "merknad": "Enkeltbevilling/arrangement hvor søker selv (Sophie Salt) er styrer for eget arrangement. Arbeidsavtale på serveringsstedet er ikke nødvendig i denne situasjonen."
+        },
+        "arbeidsavtale_stedfortreder": {
+          "label": "Arbeidsavtale for stedfortreder",
+          "status": "ikke_relevant",
+          "merknad": "Enkeltbevilling/arrangement. Stedfortreder Erik Hansen opptrer i tilknytning til arrangementet, ikke som fast ansatt på Restaurant Sjøhuset. Arbeidsavtale ikke nødvendig."
+        }
+      }
+    },
+    "vandel": {
+      "label": "Vandelsvurdering",
+      "punkter": {
+        "politi_uttalelse": {
+          "label": "Uttalelse innhentet fra politiet",
+          "status": "ikke_vurdert",
+          "merknad": "Forespørsel til Agder politidistrikt må sendes. Bruk mal 'Forespørsel om opplysninger.docx'. Forventet svartid ca. 1 uke."
+        },
+        "skatteetaten_uttalelse": {
+          "label": "Uttalelse innhentet fra Skatteetaten",
+          "status": "ikke_vurdert",
+          "merknad": "Forespørsel til Skatteetaten må sendes. Forventet svartid inntil 1 måned."
+        },
+        "nav_uttalelse": {
+          "label": "Uttalelse innhentet fra NAV (sosialtjenesten)",
+          "status": "ikke_vurdert",
+          "merknad": "Uttalelse fra NAV må innhentes ved søknad om skjenkebevilling jf. alkoholloven § 1-7. Kontakt NAV i Kristiansand."
+        },
+        "vandel_bevillingshaver": {
+          "label": "Vandel OK – bevillingshaver/eier",
+          "status": "ikke_vurdert",
+          "merknad": "Avventer uttalelser fra politi og Skatteetaten for Sophie Salt (privatperson som bevillingshaver)."
+        },
+        "vandel_styrer": {
+          "label": "Vandel OK – styrer (kun alkohollovgivning)",
+          "status": "ikke_vurdert",
+          "merknad": "Avventer uttalelse fra politi om alkohollovgivning for styrer Sophie Salt. Skatte-/regnskapsforhold er ikke relevant for styrer."
+        },
+        "vandel_stedfortreder": {
+          "label": "Vandel OK – stedfortreder (kun alkohollovgivning)",
+          "status": "ikke_vurdert",
+          "merknad": "Avventer uttalelse fra politi om alkohollovgivning for stedfortreder Erik Hansen. Skatte-/regnskapsforhold er ikke relevant for stedfortreder."
+        },
+        "vandel_vesentlig_innflytelse": {
+          "label": "Vandel OK – personer med vesentlig innflytelse",
+          "status": "ikke_relevant",
+          "merknad": "Søker er privatperson; listene over juridiske og fysiske personer med vesentlig innflytelse er tomme. Ingen andre personer å vurdere."
+        }
+      }
+    },
+    "personkrav": {
+      "label": "Krav til styrer og stedfortreder",
+      "punkter": {
+        "styrer_alder": {
+          "label": "Styrer er over 20 år",
+          "status": "vurdert_ok",
+          "merknad": "Fødselsnummer 01039012345 tilsier fødselsdato 01.03.1990. På vedtakstidspunktet (mai 2026) er styrer 36 år – godt over 20 år."
+        },
+        "stedfortreder_alder": {
+          "label": "Stedfortreder er over 20 år",
+          "status": "vurdert_ok",
+          "merknad": "Fødselsnummer 15039012345 tilsier fødselsdato 15.03.1990. På vedtakstidspunktet (mai 2026) er stedfortreder 36 år – godt over 20 år."
+        },
+        "styrer_ansatt": {
+          "label": "Styrer er ansatt på stedet / eier",
+          "status": "ikke_relevant",
+          "merknad": "Enkeltbevilling for arrangement hvor søker selv er styrer for eget julebord. Ansettelseskrav er ikke aktuelt her."
+        },
+        "stedfortreder_ansatt": {
+          "label": "Stedfortreder er ansatt på stedet / eier",
+          "status": "ikke_relevant",
+          "merknad": "Enkeltbevilling for arrangement. Stedfortreder opptrer i forbindelse med arrangementet, ikke som ansatt på serveringsstedet."
+        },
+        "styrer_kun_ett_sted": {
+          "label": "Styrer er ikke styrer/stedfortreder på annet sted",
+          "status": "maa_undersokes",
+          "merknad": "Sjekk P360/bevillingsoversikt for om Sophie Salt er registrert som styrer eller stedfortreder for annen aktiv bevilling."
+        },
+        "stedfortreder_kun_ett_sted": {
+          "label": "Stedfortreder er ikke styrer/stedfortreder på annet sted",
+          "status": "maa_undersokes",
+          "merknad": "Sjekk P360/bevillingsoversikt for om Erik Hansen er registrert som styrer eller stedfortreder for annen aktiv bevilling."
+        },
+        "fritak_stedfortreder": {
+          "label": "Fritak fra krav om stedfortreder vurdert",
+          "status": "ikke_relevant",
+          "merknad": "Stedfortreder (Erik Hansen) er oppgitt i søknaden, og SkalHaFritakFraStedfortreder = false. Fritak ikke aktuelt."
+        }
+      }
+    },
+    "lokalpolitisk": {
+      "label": "Lokalpolitisk vurdering (kommunens retningslinjer)",
+      "punkter": {
+        "beliggenhet_ok": {
+          "label": "Beliggenhet i tråd med retningslinjer",
+          "status": "maa_undersokes",
+          "merknad": "Restaurant Sjøhuset, Havnegata 15 i Kristiansand er et etablert serveringssted i havne-/sentrumsområde og antas å være i tråd med kommunens retningslinjer. Verifiser nærhet til skoler, barnehager og idrettsanlegg ved tvil."
+        },
+        "ikke_barn_unge_omraade": {
+          "label": "Ikke i område for barn/unges fritidsaktiviteter",
+          "status": "maa_undersokes",
+          "merknad": "Lokalet er et etablert spisested og ligger i havneområde – sannsynligvis ikke i område for barn/unges fritidsaktiviteter. Bekreftes ved kartoppslag."
+        },
+        "ikke_idrettsarrangement": {
+          "label": "Ikke idrettsarrangement eller arrangement for barn/unge",
+          "status": "vurdert_ok",
+          "merknad": "Arrangementet er et julebord for 'Avdeling Nord' med 45 bestemte deltakere – tydelig firmaarrangement for voksne, ikke idrettsarrangement eller barne-/ungdomsarrangement."
+        },
+        "brennevin_spisested": {
+          "label": "Brennevin kun til spisested (hvis gr. 3)",
+          "status": "vurdert_ok",
+          "merknad": "Det søkes om gruppe 3 (brennevin). Arrangementet avvikles på Restaurant Sjøhuset, som er et spisested med matservering. Kravet er oppfylt."
+        },
+        "skjenketider_ok": {
+          "label": "Skjenketider innenfor kommunens rammer",
+          "status": "vurdert_ok",
+          "merknad": "Skjenkning kl. 19:00–02:00 ligger innenfor lovens makstider for gruppe 3 (13:00–03:00). Tidene antas også å være innenfor Kristiansand kommunes rammer; verifiser mot lokale retningslinjer."
+        },
+        "arrangement_varighet_ok": {
+          "label": "Arrangement innenfor maks 14 dager",
+          "status": "vurdert_ok",
+          "merknad": "Arrangementet varer fra 12.12.2026 kl. 19:00 til 13.12.2026 kl. 02:00 – ett kveldsarrangement, godt innenfor grensen på 14 dager."
+        }
+      }
+    },
+    "habilitet": {
+      "label": "Habilitet og saksbehandling",
+      "punkter": {
+        "habilitet_vurdert": {
+          "label": "Habilitet vurdert (fvl. § 6)",
+          "status": "vurdert_ok",
+          "merknad": "AI-agent – ingen inhabilitet. Menneskelig saksbehandler må selv vurdere egen habilitet før vedtak."
+        },
+        "veiledningsplikt": {
+          "label": "Veiledningsplikt overholdt (fvl. § 11)",
+          "status": "maa_undersokes",
+          "merknad": "Vedleggslisten er tom og flere dokumentasjonspunkter er ikke avklart. Det bør sendes digitalt brev til søker med oversikt over manglende dokumentasjon (kunnskapsprøver, bekreftelse fra lokaleier mv.) og rimelig frist for ettersending."
+        },
+        "saksbehandlingstid": {
+          "label": "Innenfor 90 dagers saksbehandlingsfrist",
+          "status": "vurdert_ok",
+          "merknad": "Vurderingsdato 19.05.2026, arrangement 12.12.2026. Rikelig tid igjen til både dokumentinnhenting og 90-dagers behandlingsfrist."
+        }
+      }
+    },
+    "gebyr": {
+      "label": "Gebyr",
+      "punkter": {
+        "gebyr_beregnet": {
+          "label": "Bevillingsgebyr korrekt beregnet",
+          "status": "maa_undersokes",
+          "merknad": "Lukket arrangement (bestemte personer) med 45 deltakere tilsier standard enkeltbevillingsgebyr (kr 440 + kr 100 adm.gebyr ihht. Vennesla-modellen; bekreft Kristiansands gebyrregler). Gebyr er ikke eksplisitt angitt i søknadsdataene."
+        }
+      }
+    },
+    "helhetsvurdering": {
+      "label": "Helhetsvurdering",
+      "punkter": {
+        "samlet_vurdering": {
+          "label": "Samlet vurdering av søknaden",
+          "status": "maa_undersokes",
+          "merknad": "Grunnleggende rammer (lukket julebord på etablert spisested, voksne deltakere, kort varighet, skjenketider innenfor lovens rammer, styrer og stedfortreder oppfyller alderskravet) støtter innvilgelse. Avklaringer som gjenstår: organisasjonsstatus for søker (privatperson), kunnskapsprøver for styrer/stedfortreder, uttalelser fra politi/Skatteetaten/NAV, bekreftelse fra lokaleier, samt verifisering av at styrer/stedfortreder ikke har tilsvarende roller andre steder."
+        },
+        "anbefaling": {
+          "label": "Foreløpig anbefaling",
+          "status": "maa_undersokes",
+          "merknad": "Kan ikke gi endelig anbefaling. Forutsatt at vandelsuttalelser fra politi, Skatteetaten og NAV ikke avdekker merknader, og at manglende dokumentasjon (kunnskapsprøver, bekreftelse fra lokaleier) ettersendes, peker saken mot innvilgelse av enkeltbevilling for skjenking gruppe 1–3 på arrangementet 12.–13.12.2026. Send veiledningsbrev til søker og innhent uttalelser før vedtak."
+        }
+      }
+    }
+  }
+}
