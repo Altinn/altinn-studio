@@ -97,6 +97,10 @@ public class ContactPointsController(IContactPointsService service) : Controller
             Name = contactPoint.Name,
             IsActive = contactPoint.IsActive,
             Environments = contactPoint.Environments,
+            CreatedByUsername = contactPoint.CreatedByUsername,
+            CreatedAt = contactPoint.CreatedAt,
+            UpdatedByUsername = contactPoint.UpdatedByUsername,
+            UpdatedAt = contactPoint.UpdatedAt,
             Methods = contactPoint
                 .Methods.Select(m => new ContactMethodResponse
                 {

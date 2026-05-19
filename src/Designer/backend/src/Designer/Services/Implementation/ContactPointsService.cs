@@ -89,7 +89,10 @@ public class ContactPointsService(
             Org = entity.Org,
             Name = entity.Name,
             IsActive = entity.IsActive,
+            CreatedByUsername = entity.CreatedByUsername,
             CreatedAt = entity.CreatedAt,
+            UpdatedByUsername = entity.UpdatedByUsername,
+            UpdatedAt = entity.UpdatedAt,
             Environments = entity.Environments,
             Methods = entity
                 .Methods.Select(m => new ContactMethod

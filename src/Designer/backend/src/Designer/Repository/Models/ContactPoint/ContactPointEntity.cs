@@ -12,7 +12,9 @@ public class ContactPointEntity
     public List<string> Environments { get; set; } = [];
     public List<ContactMethodEntity> Methods { get; set; } = [];
     public Guid? CreatedByUserAccountId { get; init; }
+    public string? CreatedByUsername { get; init; }
     public DateTimeOffset CreatedAt { get; set; }
     public Guid? UpdatedByUserAccountId { get; init; }
+    public string? UpdatedByUsername { get; init; }
     public DateTimeOffset UpdatedAt { get; init; }
 }

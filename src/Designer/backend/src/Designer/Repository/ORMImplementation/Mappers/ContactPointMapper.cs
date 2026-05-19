@@ -41,8 +41,10 @@ public static class ContactPointMapper
             IsActive = dbModel.IsActive,
             Environments = dbModel.Environments,
             CreatedByUserAccountId = dbModel.CreatedByUserAccountId,
+            CreatedByUsername = dbModel.CreatedByUserAccount?.Username,
             CreatedAt = dbModel.CreatedAt,
             UpdatedByUserAccountId = dbModel.UpdatedByUserAccountId,
+            UpdatedByUsername = dbModel.UpdatedByUserAccount?.Username,
             UpdatedAt = dbModel.UpdatedAt,
             Methods = dbModel
                 .Methods.Select(m => new ContactMethodEntity

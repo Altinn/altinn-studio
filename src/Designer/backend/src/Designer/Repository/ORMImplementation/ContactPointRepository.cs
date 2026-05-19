@@ -22,6 +22,8 @@ public class ContactPointRepository(DesignerdbContext dbContext) : IContactPoint
         var dbModels = await dbContext
             .ContactPoints.AsNoTracking()
             .Include(p => p.Methods)
+            .Include(p => p.CreatedByUserAccount)
+            .Include(p => p.UpdatedByUserAccount)
             .Where(p => p.Org == org)
             .OrderBy(p => p.Name)
             .ToListAsync(cancellationToken);

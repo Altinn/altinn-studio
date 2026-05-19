@@ -12,6 +12,10 @@ export type ContactPoint = {
   isActive: boolean;
   environments: string[];
   methods: ContactMethod[];
+  createdByUsername?: string;
+  createdAt: string;
+  updatedByUsername?: string;
+  updatedAt: string;
 };
 
 export type ContactPointPayload = Omit<ContactPoint, 'id' | 'methods'> & {

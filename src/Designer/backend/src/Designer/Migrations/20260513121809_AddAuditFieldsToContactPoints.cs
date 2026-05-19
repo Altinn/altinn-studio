@@ -16,7 +16,8 @@ namespace Altinn.Studio.Designer.Migrations
                 schema: "designer",
                 table: "contact_points",
                 type: "uuid",
-                nullable: true);
+                nullable: true
+            );
 
             migrationBuilder.AddColumn<DateTimeOffset>(
                 name: "updated_at",
@@ -24,26 +25,33 @@ namespace Altinn.Studio.Designer.Migrations
                 table: "contact_points",
                 type: "timestamptz",
                 nullable: false,
-                defaultValue: new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)));
+                defaultValue: new DateTimeOffset(
+                    new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                    new TimeSpan(0, 0, 0, 0, 0)
+                )
+            );
 
             migrationBuilder.AddColumn<Guid>(
                 name: "updated_by_user_account_id",
                 schema: "designer",
                 table: "contact_points",
                 type: "uuid",
-                nullable: true);
+                nullable: true
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_contact_points_created_by_user_account_id",
                 schema: "designer",
                 table: "contact_points",
-                column: "created_by_user_account_id");
+                column: "created_by_user_account_id"
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_contact_points_updated_by_user_account_id",
                 schema: "designer",
                 table: "contact_points",
-                column: "updated_by_user_account_id");
+                column: "updated_by_user_account_id"
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_contact_points_user_accounts_created_by_user_account_id",
@@ -53,7 +61,8 @@ namespace Altinn.Studio.Designer.Migrations
                 principalSchema: "designer",
                 principalTable: "user_accounts",
                 principalColumn: "id",
-                onDelete: ReferentialAction.SetNull);
+                onDelete: ReferentialAction.SetNull
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_contact_points_user_accounts_updated_by_user_account_id",
@@ -63,7 +72,8 @@ namespace Altinn.Studio.Designer.Migrations
                 principalSchema: "designer",
                 principalTable: "user_accounts",
                 principalColumn: "id",
-                onDelete: ReferentialAction.SetNull);
+                onDelete: ReferentialAction.SetNull
+            );
         }
 
         /// <inheritdoc />
@@ -72,37 +82,40 @@ namespace Altinn.Studio.Designer.Migrations
             migrationBuilder.DropForeignKey(
                 name: "FK_contact_points_user_accounts_created_by_user_account_id",
                 schema: "designer",
-                table: "contact_points");
+                table: "contact_points"
+            );
 
             migrationBuilder.DropForeignKey(
                 name: "FK_contact_points_user_accounts_updated_by_user_account_id",
                 schema: "designer",
-                table: "contact_points");
+                table: "contact_points"
+            );
 
             migrationBuilder.DropIndex(
                 name: "IX_contact_points_created_by_user_account_id",
                 schema: "designer",
-                table: "contact_points");
+                table: "contact_points"
+            );
 
             migrationBuilder.DropIndex(
                 name: "IX_contact_points_updated_by_user_account_id",
                 schema: "designer",
-                table: "contact_points");
+                table: "contact_points"
+            );
 
             migrationBuilder.DropColumn(
                 name: "created_by_user_account_id",
                 schema: "designer",
-                table: "contact_points");
+                table: "contact_points"
+            );
 
-            migrationBuilder.DropColumn(
-                name: "updated_at",
-                schema: "designer",
-                table: "contact_points");
+            migrationBuilder.DropColumn(name: "updated_at", schema: "designer", table: "contact_points");
 
             migrationBuilder.DropColumn(
                 name: "updated_by_user_account_id",
                 schema: "designer",
-                table: "contact_points");
+                table: "contact_points"
+            );
         }
     }
 }
