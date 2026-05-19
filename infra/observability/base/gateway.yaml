@@ -6,7 +6,7 @@ metadata:
     altinn.studio/otel-collector: otel-gateway
 spec:
   mode: deployment
-  image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.144.0
+  image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.148.0
   serviceAccount: otel-collector
   upgradeStrategy: automatic
   replicas: 1

@@ -1,8 +1,8 @@
 import React, { Fragment, type PropsWithChildren } from 'react';
 
+import { Flex } from '@app/form-component';
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
 
-import { Flex } from 'src/app-components/Flex/Flex';
 import { Label, LabelInner } from 'src/components/label/Label';
 import { TaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';

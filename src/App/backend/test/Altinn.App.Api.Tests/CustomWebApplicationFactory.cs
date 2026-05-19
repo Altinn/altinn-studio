@@ -90,6 +90,13 @@ public class ApiTestBase
         }
     }
 
+    private sealed class NoopHostLifetime : IHostLifetime
+    {
+        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public Task WaitForStartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+    }
+
     public HttpClient GetRootedUserClient(
         string org,
         string app,
@@ -136,6 +143,11 @@ public class ApiTestBase
 
         var factory = _factory.WithWebHostBuilder(builder =>
         {
+            if (OverrideEnvironment is not null)
+            {
+                builder.UseEnvironment(OverrideEnvironment);
+            }
+
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile(appSettingsPath)
                 .AddInMemoryCollection(_configOverrides)
@@ -168,6 +180,10 @@ public class ApiTestBase
                     hostEnvironmentMock.SetupGet(e => e.ContentRootPath).Returns(appRootPath);
 
                     services.Replace(ServiceDescriptor.Singleton(hostEnvironmentMock.Object));
+                    if (OverrideEnvironment == Environments.Development)
+                    {
+                        services.Replace(ServiceDescriptor.Singleton<IHostLifetime, NoopHostLifetime>());
+                    }
                 });
             }
         });

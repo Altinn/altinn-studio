@@ -1,12 +1,11 @@
 import React, { useLayoutEffect } from 'react';
 import type { JSX } from 'react';
 
-import { Button } from '@app/form-component';
+import { Button, Flex } from '@app/form-component';
 import { Table } from '@digdir/designsystemet-react';
 import { PencilIcon, TrashIcon, XMarkOctagonFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { Flex } from 'src/app-components/Flex/Flex';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import { useDisplayData, useDisplayDataFor } from 'src/features/displayData/useDisplayData';
