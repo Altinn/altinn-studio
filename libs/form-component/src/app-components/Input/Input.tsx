@@ -1,11 +1,14 @@
 import React from 'react';
 import type { InputHTMLAttributes, ReactNode } from 'react';
 
-import { Paragraph, Textfield } from '@digdir/designsystemet-react';
-import type { FieldCounterProps } from '@digdir/designsystemet-react';
+import {
+  Paragraph,
+  Textfield,
+  TextfieldProps,
+  FieldCounterProps,
+} from '@digdir/designsystemet-react';
 
 import classes from './Input.module.css';
-import type { InputType } from './constants';
 
 type LabelRequired =
   | { 'aria-label': string; 'aria-labelledby'?: never; label?: never }
@@ -20,7 +23,7 @@ export type InputProps = {
   disabled?: boolean;
   id?: string;
   readOnly?: boolean;
-  type?: InputType;
+  type?: TextfieldProps['type'];
   textonly?: boolean;
   characterLimit?: FieldCounterProps;
   placeholder?: string;

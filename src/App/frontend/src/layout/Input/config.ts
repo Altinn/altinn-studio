@@ -1,7 +1,6 @@
-import { EXTERNAL_INPUT_TYPE, INPUT_AUTO_COMPLETE } from '@app/form-component/src/app-components/Input/constants';
-
 import { CG } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
+import { EXTERNAL_INPUT_TYPE, INPUT_AUTO_COMPLETE } from 'src/layout/Input/constants';
 
 export const Config = new CG.component({
   category: CompCategory.Form,

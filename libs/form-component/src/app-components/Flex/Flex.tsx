@@ -12,6 +12,7 @@ export interface IGridStyling {
   sm?: GridSize;
   md?: GridSize;
   lg?: GridSize;
+  xl?: GridSize;
 }
 
 type Spacing = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;

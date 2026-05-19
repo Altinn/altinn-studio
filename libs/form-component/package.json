@@ -5,7 +5,6 @@
   "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./src/app-components/Input/constants": "./src/app-components/Input/constants.ts",
     "./styles/global.css": "./src/styles/global.css"
   },
   "private": true,
