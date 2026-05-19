@@ -4,11 +4,11 @@ import { isMaskinportenDefaultScopesOptInVersion } from './versionUtils';
 export const defaultMaskinportenScopes: MaskinportenScope[] = [
   {
     scope: 'altinn:serviceowner/instances.read',
-    description: 'Read instances',
+    description: 'Klienter kan lese data knyttet til alle appene til tjenesteeieren.',
   },
   {
     scope: 'altinn:serviceowner/instances.write',
-    description: 'Write instances',
+    description: 'Klienter kan skrive data for alle deres apper.',
   },
 ];
 
@@ -24,9 +24,7 @@ export const addDefaultMaskinportenScopes = (
     maskinportenScopes.map((scope: MaskinportenScope) => [scope.scope, scope]),
   );
   defaultMaskinportenScopes.forEach((scope: MaskinportenScope) => {
-    if (!scopeMap.has(scope.scope)) {
-      scopeMap.set(scope.scope, scope);
-    }
+    scopeMap.set(scope.scope, scope);
   });
 
   return Array.from(scopeMap.values());

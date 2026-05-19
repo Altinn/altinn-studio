@@ -91,7 +91,7 @@ describe('ScopeList', () => {
     await user.click(getButton(textMock('app_settings.maskinporten_add_default_scopes')));
 
     const updatedScopes: MaskinportenScopes = {
-      scopes: [scopeMock4, scopeMock2, scopeMock3],
+      scopes: [...defaultMaskinportenScopes, scopeMock3],
     };
 
     expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledTimes(1);

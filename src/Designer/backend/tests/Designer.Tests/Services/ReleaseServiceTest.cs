@@ -327,8 +327,16 @@ public class ReleaseServiceTest
             App = _app,
             Scopes = new HashSet<MaskinPortenScopeEntity>
             {
-                new() { Scope = "altinn:serviceowner/instances.read", Description = "Read instances" },
-                new() { Scope = "altinn:serviceowner/instances.write", Description = "Write instances" },
+                new()
+                {
+                    Scope = "altinn:serviceowner/instances.read",
+                    Description = "Klienter kan lese data knyttet til alle appene til tjenesteeieren.",
+                },
+                new()
+                {
+                    Scope = "altinn:serviceowner/instances.write",
+                    Description = "Klienter kan skrive data for alle deres apper.",
+                },
             },
         };
 

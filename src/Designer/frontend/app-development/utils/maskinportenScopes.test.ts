@@ -10,11 +10,11 @@ import {
 
 const readScope: MaskinportenScope = {
   scope: 'altinn:serviceowner/instances.read',
-  description: 'Read instances',
+  description: 'Klienter kan lese data knyttet til alle appene til tjenesteeieren.',
 };
 const writeScope: MaskinportenScope = {
   scope: 'altinn:serviceowner/instances.write',
-  description: 'Write instances',
+  description: 'Klienter kan skrive data for alle deres apper.',
 };
 const customScope: MaskinportenScope = {
   scope: 'custom:scope',
@@ -38,14 +38,14 @@ describe('maskinportenScopes', () => {
     ]);
   });
 
-  it('keeps existing default scope data when adding missing default scopes', () => {
+  it('uses canonical default scope data when adding default scopes', () => {
     const readScopeWithApiDescription: MaskinportenScope = {
       ...readScope,
       description: 'Description from API',
     };
 
     expect(addDefaultMaskinportenScopes([readScopeWithApiDescription, customScope])).toEqual([
-      readScopeWithApiDescription,
+      readScope,
       customScope,
       writeScope,
     ]);
