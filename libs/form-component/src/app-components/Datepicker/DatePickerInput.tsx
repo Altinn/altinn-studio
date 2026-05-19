@@ -5,14 +5,14 @@ import type { Ref } from 'react';
 import { Textfield } from '@digdir/designsystemet-react';
 import { format, isValid } from 'date-fns';
 
-import styles from 'src/app-components/Datepicker/Calendar.module.css';
+import styles from './Calendar.module.css';
 import {
   dateFormatCanBeNumericInReactPatternFormat,
   getFormatAsPatternFormat,
   getSaveFormattedDateString,
   strictParseFormat,
   strictParseISO,
-} from 'src/app-components/Datepicker/utils/dateHelpers';
+} from './utils/dateHelpers';
 
 export interface DatePickerInputProps {
   id: string;

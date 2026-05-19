@@ -10,11 +10,9 @@ import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 // Mock dateformat
-jest.mock('src/app-components/Datepicker/utils/dateHelpers', () => ({
-  __esModules: true,
-  ...jest.requireActual<typeof import('src/app-components/Datepicker/utils/dateHelpers')>(
-    'src/app-components/Datepicker/utils/dateHelpers',
-  ),
+jest.mock('@app/form-component', () => ({
+  __esModule: true,
+  ...jest.requireActual<typeof import('@app/form-component')>('@app/form-component'),
   getDateFormat: jest.fn(() => 'dd.MM.yyyy'),
 }));
 
