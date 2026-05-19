@@ -1,15 +1,14 @@
-import React from 'react';
 import type { JSX, PropsWithChildren, ReactElement, Ref } from 'react';
 
-import { Flex } from '@app/form-component';
 import { Label as DesignsystemetLabel } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { LabelProps as DesignsystemetLabelProps } from '@digdir/designsystemet-react';
 
-import classes from 'src/app-components/Label/Label.module.css';
-import type { IGridStyling } from 'src/app-components/types';
+import { Flex } from '../Flex/Flex';
+import classes from './Label.module.css';
+import type { IGridStyling } from '../Flex/Flex';
 
-type LabelProps = {
+export type LabelProps = {
   id?: string;
   label: string | ReactElement | undefined;
   htmlFor?: DesignsystemetLabelProps['htmlFor'];

@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 
-import { Button } from '@app/form-component';
+import { Button, Fieldset, Label } from '@app/form-component';
 import { Field, Paragraph, ValidationMessage } from '@digdir/designsystemet-react';
 import { queryOptions, useQuery } from '@tanstack/react-query';
 
 import type { PropsFromGenericComponent } from '..';
 
 import { NumericInput } from 'src/app-components/Input/NumericInput';
-import { Fieldset } from 'src/app-components/Label/Fieldset';
-import { Label } from 'src/app-components/Label/Label';
 import { translationKey } from 'src/AppComponentsBridge';
 import { Description } from 'src/components/form/Description';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';

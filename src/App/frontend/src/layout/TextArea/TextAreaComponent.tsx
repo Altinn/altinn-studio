@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { Label } from 'src/app-components/Label/Label';
+import { Label } from '@app/form-component';
+
 import { TextArea } from 'src/app-components/TextArea/TextArea';
 import { translationKey } from 'src/AppComponentsBridge';
 import { getDescriptionId } from 'src/components/label/Label';

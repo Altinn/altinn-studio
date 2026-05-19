@@ -1,9 +1,10 @@
 import React from 'react';
 
+import { Label } from '@app/form-component';
+
 import { FormattedInput } from 'src/app-components/Input/FormattedInput';
 import { Input } from 'src/app-components/Input/Input';
 import { NumericInput } from 'src/app-components/Input/NumericInput';
-import { Label } from 'src/app-components/Label/Label';
 import { translationKey } from 'src/AppComponentsBridge';
 import { getDescriptionId, getLabelId } from 'src/components/label/Label';
 import { FormStore } from 'src/features/form/FormContext';

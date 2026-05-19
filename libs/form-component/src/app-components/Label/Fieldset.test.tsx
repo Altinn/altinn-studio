@@ -1,19 +1,16 @@
-import React from 'react';
+import { render, screen } from '@testing-library/react';
 
-import { screen } from '@testing-library/react';
-
-import { Fieldset } from 'src/app-components/Label/Fieldset';
-import { renderWithAppComponentsProvider } from 'src/app-components/test/renderWithAppComponentsProvider';
+import { Fieldset } from './Fieldset';
 
 describe('Fieldset', () => {
-  it('renders with accessible legend', async () => {
-    renderWithAppComponentsProvider(<Fieldset legend='legend test' />);
+  it('renders with accessible legend', () => {
+    render(<Fieldset legend='legend test' />);
     const fieldset = screen.getByRole('group', { name: /legend test/i });
     expect(fieldset).toBeInTheDocument();
   });
 
-  it('renders with accessible description', async () => {
-    renderWithAppComponentsProvider(
+  it('renders with accessible description', () => {
+    render(
       <Fieldset
         legend='legend test'
         description={<span>description test</span>}
@@ -24,8 +21,8 @@ describe('Fieldset', () => {
     expect(description).toBeInTheDocument();
   });
 
-  it('provides an optional indicator', async () => {
-    renderWithAppComponentsProvider(
+  it('provides an optional indicator', () => {
+    render(
       <Fieldset
         legend='legend test'
         required={false}
@@ -36,8 +33,8 @@ describe('Fieldset', () => {
     expect(fieldset).toBeInTheDocument();
   });
 
-  it('provides an required indicator', async () => {
-    renderWithAppComponentsProvider(
+  it('provides a required indicator', () => {
+    render(
       <Fieldset
         legend='legend test'
         required={true}
