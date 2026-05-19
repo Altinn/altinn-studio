@@ -53,19 +53,39 @@ jobs:
         with:
           repository: ${{ inputs.checkout-repository || github.repository }}
           ref: ${{ inputs.checkout-ref || github.sha }}
+          persist-credentials: false
 
       - name: Docker build
+        env:
+          BUILD_ARGS: ${{ secrets.build-args }}
+          CONTEXT: ${{ inputs.context }}
+          DOCKERFILE: ${{ inputs.dockerfile }}
+          REGISTRY_NAME: ${{ inputs.registry-name }}
+          REPOSITORY_NAME: ${{ inputs.repository-name }}
+          TAGS: ${{ inputs.tags }}
         run: |
-          arguments=""
-          for tag in $(echo ${{ inputs.tags }} | tr ',' '\n'); do
-            arguments+=" -t ${{ inputs.registry-name }}/${{ inputs.repository-name }}:$tag"
+          set -euo pipefail
+
+          image="${REGISTRY_NAME}/${REPOSITORY_NAME}"
+          arguments=()
+
+          IFS=',' read -r -a tags <<< "$TAGS"
+          for tag in "${tags[@]}"; do
+            if [[ -n "$tag" ]]; then
+              arguments+=(-t "${image}:${tag}")
+            fi
           done
 
-          for buildarg in $(echo ${{ secrets.build-args }} | tr ',' '\n'); do
-            arguments+=" --build-arg $buildarg"
-          done
+          if [[ -n "$BUILD_ARGS" ]]; then
+            IFS=',' read -r -a build_args <<< "$BUILD_ARGS"
+            for build_arg in "${build_args[@]}"; do
+              if [[ -n "$build_arg" ]]; then
+                arguments+=(--build-arg "$build_arg")
+              fi
+            done
+          fi
 
-          docker build ${{ inputs.context }} -f ${{ inputs.dockerfile }} $arguments
+          docker build "$CONTEXT" -f "$DOCKERFILE" "${arguments[@]}"
 
       - name: 'Azure login'
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
@@ -85,7 +105,17 @@ jobs:
                                 --password-stdin
 
       - name: Docker push
+        env:
+          REGISTRY_NAME: ${{ inputs.registry-name }}
+          REPOSITORY_NAME: ${{ inputs.repository-name }}
+          TAGS: ${{ inputs.tags }}
         run: |
-          for tag in $(echo ${{ inputs.tags }} | tr ',' '\n'); do
-            docker push ${{ inputs.registry-name }}/${{ inputs.repository-name }}:$tag
+          set -euo pipefail
+
+          image="${REGISTRY_NAME}/${REPOSITORY_NAME}"
+          IFS=',' read -r -a tags <<< "$TAGS"
+          for tag in "${tags[@]}"; do
+            if [[ -n "$tag" ]]; then
+              docker push "${image}:${tag}"
+            fi
           done

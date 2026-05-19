@@ -76,6 +76,7 @@ jobs:
         with:
           repository: ${{ inputs.checkout-repository || github.repository }}
           ref: ${{ inputs.checkout-ref || github.sha }}
+          persist-credentials: false
 
       - name: 'Azure login'
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
@@ -98,37 +99,60 @@ jobs:
         uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
 
       - name: Generate cofiguration file
+        env:
+          CONFIG_CHART_NAME: ${{ inputs.config-chart-name }}
+          HELM_SET_ARGUMENTS: ${{ inputs.helm-set-arguments }}
         run: |
-          mkdir ${{ inputs.config-chart-name }}-rendered
+          set -euo pipefail
 
-          arguments=""
+          mkdir "${CONFIG_CHART_NAME}-rendered"
 
-          for setarg in $(echo ${{ inputs.helm-set-arguments }} | tr ',' '\n'); do
-            arguments+=" --set $setarg"
-          done
+          arguments=()
+          if [[ -n "$HELM_SET_ARGUMENTS" ]]; then
+            IFS=',' read -r -a set_arguments <<< "$HELM_SET_ARGUMENTS"
+            for set_argument in "${set_arguments[@]}"; do
+              if [[ -n "$set_argument" ]]; then
+                arguments+=(--set "$set_argument")
+              fi
+            done
+          fi
 
-          helm template charts/${{ inputs.config-chart-name }} $arguments > ${{ inputs.config-chart-name }}-rendered/helm-release.yaml
+          helm template "charts/${CONFIG_CHART_NAME}" "${arguments[@]}" > "${CONFIG_CHART_NAME}-rendered/helm-release.yaml"
 
       - name: Push config artifact
         env:
+          ARTIFACT_ENV: ${{ inputs.artifact-environment || inputs.environment }}
+          ARTIFACT_NAME: ${{ inputs.artifact-name }}
+          CONFIG_CHART_NAME: ${{ inputs.config-chart-name }}
+          REGISTRY_NAME: ${{ inputs.registry-name }}
           SOURCE_URL: ${{ inputs.source-url }}
           SOURCE_REVISION: ${{ inputs.source-revision }}
+          TAG: ${{ inputs.tag }}
         run: |
-          artifact_env=${{ inputs.artifact-environment || inputs.environment }}
+          set -euo pipefail
+
+          artifact_env="$ARTIFACT_ENV"
           source_url="${SOURCE_URL:-$(git config --get remote.origin.url)}"
           source_sha="$(git rev-parse HEAD)"
           fallback_ref="$(git symbolic-ref --short -q HEAD || echo "${GITHUB_REF_NAME:-detached}")"
           source_revision="${SOURCE_REVISION:-${fallback_ref}/${source_sha}}"
-          flux push artifact oci://${{ inputs.registry-name }}/configs/${{ inputs.artifact-name }}-${artifact_env}:${{ inputs.tag }} \
-          --path="./${{ inputs.config-chart-name }}-rendered" \
+          flux push artifact "oci://${REGISTRY_NAME}/configs/${ARTIFACT_NAME}-${artifact_env}:${TAG}" \
+          --path="./${CONFIG_CHART_NAME}-rendered" \
           --source="$source_url" \
           --revision="$source_revision"
 
       - name: Tag artifact as latest
         if: ${{ inputs.tag-latest }}
+        env:
+          ARTIFACT_ENV: ${{ inputs.artifact-environment || inputs.environment }}
+          ARTIFACT_NAME: ${{ inputs.artifact-name }}
+          REGISTRY_NAME: ${{ inputs.registry-name }}
+          TAG: ${{ inputs.tag }}
         run: |
-          artifact_env=${{ inputs.artifact-environment || inputs.environment }}
-          flux tag artifact oci://${{ inputs.registry-name }}/configs/${{ inputs.artifact-name }}-${artifact_env}:${{ inputs.tag }} --tag latest
+          set -euo pipefail
+
+          artifact_env="$ARTIFACT_ENV"
+          flux tag artifact "oci://${REGISTRY_NAME}/configs/${ARTIFACT_NAME}-${artifact_env}:${TAG}" --tag latest
 
       - name: Send Trace to Azure Monitor
         if: ${{ inputs.trace-workflow }}

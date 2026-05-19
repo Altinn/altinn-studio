@@ -43,6 +43,7 @@ jobs:
         with:
           repository: ${{ inputs.checkout-repository || github.repository }}
           ref: ${{ inputs.checkout-ref || github.sha }}
+          persist-credentials: false
 
       - name: 'Azure login'
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
