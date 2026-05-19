@@ -1310,6 +1310,7 @@ namespace Altinn.App.Core.Features
         Altinn.App.Core.Models.FormDataChange AddFormDataElement(Altinn.Platform.Storage.Interface.Models.DataType dataType, object model);
         Altinn.App.Core.Models.FormDataChange AddFormDataElement(string dataTypeId, object model);
         void RemoveDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
+        Altinn.App.Core.Models.BinaryDataChange UpdateBinaryDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, string contentType, System.ReadOnlyMemory<byte> bytes);
     }
     [System.Obsolete("Use ITaskValidator, IDataElementValidator or IFormDataValidator instead")]
     public interface IInstanceValidator
@@ -1718,18 +1719,6 @@ namespace Altinn.App.Core.Features.Notifications.Texts
 }
 namespace Altinn.App.Core.Features.Options.Altinn2Provider
 {
-    public class Altinn2CodeListProvider : Altinn.App.Core.Features.IAppOptionsProvider
-    {
-        public Altinn2CodeListProvider(Microsoft.Extensions.Caching.Memory.IMemoryCache cache, Altinn.App.Core.Features.Options.Altinn2Provider.Altinn2MetadataApiClient client, string id, System.Func<Altinn.App.Core.Features.Options.Altinn2Provider.MetadataCodeListCodes, Altinn.App.Core.Models.AppOption> transform, System.Func<Altinn.App.Core.Features.Options.Altinn2Provider.MetadataCodeListCodes, bool>? filter, string? metadataApiId = null, int? codeListVersion = default) { }
-        public string Id { get; }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions> GetAppOptionsAsync(string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs) { }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Features.Options.Altinn2Provider.MetadataCodelistResponse> GetRawAltinn2CodelistAsync(string? language) { }
-    }
-    public class Altinn2MetadataApiClient
-    {
-        public Altinn2MetadataApiClient(System.Net.Http.HttpClient client) { }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Features.Options.Altinn2Provider.MetadataCodelistResponse> GetAltinn2Codelist(string id, string langCode, int? version = default) { }
-    }
     public class MetadataCodeListCodes
     {
         public MetadataCodeListCodes() { }
