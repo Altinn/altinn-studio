@@ -10,7 +10,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- Add `apps search` for finding apps in Altinn Studio.
+- Add `apps search` for discovering app repositories in Altinn Studio.
 
 ### Fixed
 
