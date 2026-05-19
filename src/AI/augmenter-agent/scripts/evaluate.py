@@ -84,18 +84,38 @@ def load_gold_checklist(gold_path: Path) -> dict:
     )
 
 
-def flatten_punkter(checklist: dict) -> dict[str, dict]:
-    """Return {f'{seksjon_id}.{punkt_id}': {status, merknad, ...}}"""
-    out = {}
+def iter_sections(checklist: dict):
+    """Yield (section_id, section_dict) regardless of layout:
+       - {"sjekkliste": {"seksjoner": [{"id": "x", "punkter": [...]}]}}
+       - {"sjekkliste": {"x": {"punkter": {...}}}}   (the actual mapper format)
+    """
     sjekkliste = checklist.get("sjekkliste", {})
-    seksjoner = sjekkliste.get("seksjoner") or sjekkliste.get("sections") or []
-    for s in seksjoner:
-        seksjon_id = s.get("id") or s.get("seksjon") or ""
+    if not isinstance(sjekkliste, dict):
+        return
+    if "seksjoner" in sjekkliste and isinstance(sjekkliste["seksjoner"], list):
+        for s in sjekkliste["seksjoner"]:
+            if isinstance(s, dict):
+                yield s.get("id") or s.get("seksjon") or "", s
+    else:
+        for sid, s in sjekkliste.items():
+            if isinstance(s, dict):
+                yield sid, s
+
+
+def flatten_punkter(checklist: dict) -> dict[str, dict]:
+    """Return {f'{seksjon_id}.{punkt_id}': {status, merknad, ...}}."""
+    out = {}
+    for seksjon_id, s in iter_sections(checklist):
         punkter = s.get("punkter") or s.get("punkt") or s.get("items") or []
-        for p in punkter:
-            punkt_id = p.get("id") or p.get("punkt") or ""
-            key = f"{seksjon_id}.{punkt_id}"
-            out[key] = p
+        if isinstance(punkter, dict):
+            for pid, p in punkter.items():
+                if isinstance(p, dict):
+                    out[f"{seksjon_id}.{pid}"] = p
+        elif isinstance(punkter, list):
+            for p in punkter:
+                if isinstance(p, dict):
+                    pid = p.get("id") or p.get("punkt") or ""
+                    out[f"{seksjon_id}.{pid}"] = p
     return out
 
 
@@ -120,9 +140,9 @@ def evaluate(run: dict, gold: dict) -> dict:
     exp_points = flatten_punkter(parsed)
     gold_points = flatten_punkter(gold)
 
-    # Sections by id
-    exp_sections = {s.get("id"): s for s in parsed.get("sjekkliste", {}).get("seksjoner", [])}
-    gold_sections = {s.get("id"): s for s in gold.get("sjekkliste", {}).get("seksjoner", [])}
+    # Sections by id (handles both list and dict layouts)
+    exp_sections = {sid: s for sid, s in iter_sections(parsed)}
+    gold_sections = {sid: s for sid, s in iter_sections(gold)}
 
     missing_sections = sorted(set(gold_sections) - set(exp_sections))
     extra_sections = sorted(set(exp_sections) - set(gold_sections))

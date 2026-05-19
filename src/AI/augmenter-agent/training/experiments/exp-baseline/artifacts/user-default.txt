@@ -1,0 +1,362 @@
+Her er rådata fra søknaden:
+
+```json
+{
+  "FlatData": {
+    "BrukerType": "person",
+    "SkalFornyeBevilling": false,
+    "BevillingsType": "arrangement",
+    "Kommunenummer": "4204",
+    "Innsender": {
+      "Fornavn": "Sophie",
+      "Etternavn": "Salt",
+      "FulltNavn": "Sophie Salt",
+      "Foedselsnummer": "01039012345",
+      "EPostadresse": "sophie@test.no",
+      "Telefonnummer": "99887766",
+      "Adresse": {
+        "Gateadresse": "Leikanger",
+        "Postnummer": "6863",
+        "Poststed": "KRISTIANSAND S"
+      }
+    },
+    "OrganisasjonsInformasjon": {
+      "Organisasjonsnummer": null,
+      "Navn": null
+    },
+    "Arrangement": {
+      "VaregruppeAlkohol": "gruppeTre",
+      "Navn": "Julebord Avdeling Nord",
+      "ArrangementType": "julebord",
+      "ArrangementPeriode": [
+        {
+          "StartDato": "2026-12-12",
+          "SluttDato": "2026-12-13",
+          "StartTid": "19:00",
+          "SluttTid": "02:00"
+        }
+      ],
+      "TypeDeltakere": "bestemtePersoner",
+      "AntallDeltakere": "45",
+      "Arrangementssted": {
+        "Type": "innendoers",
+        "StedsNavn": "Restaurant Sjøhuset",
+        "StedsAdresse": { "Gateadresse": "Havnegata 15" },
+        "Etasje": "2. etasje"
+      }
+    },
+    "Bevillingsansvarlig": {
+      "SkalHaFritakFraStedfortreder": false,
+      "Styrer": {
+        "Fornavn": "Sophie",
+        "Etternavn": "Salt",
+        "Foedselsnummer": "01039012345",
+        "EPostadresse": "sophie@test.no",
+        "Telefonnummer": "99887766"
+      },
+      "Stedfortreder": {
+        "Fornavn": "Erik",
+        "Etternavn": "Hansen",
+        "Foedselsnummer": "15039012345",
+        "EPostadresse": "erik@test.no",
+        "Telefonnummer": "98765432"
+      }
+    },
+    "PersonerMedInnflytelse": {
+      "JuridiskePersoner": [],
+      "FysiskePersoner": []
+    },
+    "VedleggsListe": { "Rader": [] }
+  }
+}
+
+```
+
+Her er sjekklisten som skal evalueres. Oppdater "status" og "merknad" for hvert punkt basert på søknadsdataene over:
+
+```json
+{
+  "meta": {
+    "saksnummer": "\u2013",
+    "soknadsdato": "\u2013",
+    "vurderingsdato": "2026-05-19",
+    "saksbehandler": "AI-agent",
+    "soknadstype": "arrangement",
+    "kommune": "Kristiansand"
+  },
+  "soker": {
+    "navn": "Sophie Salt",
+    "organisasjonsnummer": "\u2013",
+    "kontaktperson": "Sophie Salt",
+    "adresse": "\u2013"
+  },
+  "arrangement": {
+    "navn": "Julebord Avdeling Nord",
+    "type": "julebord",
+    "fra_dato": "2026-12-12",
+    "fra_klokkeslett": "19:00",
+    "til_dato": "2026-12-13",
+    "til_klokkeslett": "02:00",
+    "antall_deltakere": 45,
+    "aapen_eller_lukket": "Lukket",
+    "innendors_utendors": "Innend\u00F8rs",
+    "lokale_navn": "Restaurant Sj\u00F8huset",
+    "lokale_adresse": "Havnegata 15"
+  },
+  "bevilling": {
+    "type_bevilling": "arrangement",
+    "alkoholgruppe": "Gruppe 1, 2 og 3 (inntil 60 %)",
+    "har_eksisterende_bevilling": false
+  },
+  "styrer": {
+    "navn": "Sophie Salt",
+    "fodselsnummer": "01039012345",
+    "epost": "sophie@test.no",
+    "telefon": "99887766"
+  },
+  "stedfortreder": {
+    "navn": "Erik Hansen",
+    "fodselsnummer": "15039012345",
+    "epost": "erik@test.no",
+    "telefon": "98765432",
+    "fritak_sokt": false
+  },
+  "sjekkliste": {
+    "formelle_krav": {
+      "label": "Formelle krav",
+      "punkter": {
+        "soknad_komplett": {
+          "label": "S\u00F8knaden er komplett utfylt",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "riktig_soknadstype": {
+          "label": "Riktig s\u00F8knadstype valgt",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "kommune_riktig": {
+          "label": "Riktig kommune valgt",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "soker_identifisert": {
+          "label": "S\u00F8ker er identifisert med org.nr.",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        }
+      }
+    },
+    "dokumentasjon": {
+      "label": "Dokumentasjon",
+      "punkter": {
+        "leiekontrakt": {
+          "label": "Leiekontrakt for lokalet",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "personantall_beregning": {
+          "label": "Beregning av personantall fra godkjent firma",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "plantegninger": {
+          "label": "Plantegninger over lokalet",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "mattilsynet_registrering": {
+          "label": "Registrering hos Mattilsynet",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "bruksgodkjenning": {
+          "label": "Bruksgodkjenning fra plan- og bygningsetaten",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "kunnskapsprove_styrer": {
+          "label": "Kunnskapspr\u00F8ve best\u00E5tt \u2013 styrer",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "kunnskapsprove_stedfortreder": {
+          "label": "Kunnskapspr\u00F8ve best\u00E5tt \u2013 stedfortreder",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "arbeidsavtale_styrer": {
+          "label": "Arbeidsavtale for styrer",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "arbeidsavtale_stedfortreder": {
+          "label": "Arbeidsavtale for stedfortreder",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        }
+      }
+    },
+    "vandel": {
+      "label": "Vandelsvurdering",
+      "punkter": {
+        "politi_uttalelse": {
+          "label": "Uttalelse innhentet fra politiet",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "skatteetaten_uttalelse": {
+          "label": "Uttalelse innhentet fra Skatteetaten",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "nav_uttalelse": {
+          "label": "Uttalelse innhentet fra NAV (sosialtjenesten)",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "vandel_bevillingshaver": {
+          "label": "Vandel OK \u2013 bevillingshaver/eier",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "vandel_styrer": {
+          "label": "Vandel OK \u2013 styrer (kun alkohollovgivning)",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "vandel_stedfortreder": {
+          "label": "Vandel OK \u2013 stedfortreder (kun alkohollovgivning)",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "vandel_vesentlig_innflytelse": {
+          "label": "Vandel OK \u2013 personer med vesentlig innflytelse",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        }
+      }
+    },
+    "personkrav": {
+      "label": "Krav til styrer og stedfortreder",
+      "punkter": {
+        "styrer_alder": {
+          "label": "Styrer er over 20 \u00E5r",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "stedfortreder_alder": {
+          "label": "Stedfortreder er over 20 \u00E5r",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "styrer_ansatt": {
+          "label": "Styrer er ansatt p\u00E5 stedet / eier",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "stedfortreder_ansatt": {
+          "label": "Stedfortreder er ansatt p\u00E5 stedet / eier",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "styrer_kun_ett_sted": {
+          "label": "Styrer er ikke styrer/stedfortreder p\u00E5 annet sted",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "stedfortreder_kun_ett_sted": {
+          "label": "Stedfortreder er ikke styrer/stedfortreder p\u00E5 annet sted",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "fritak_stedfortreder": {
+          "label": "Fritak fra krav om stedfortreder vurdert",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        }
+      }
+    },
+    "lokalpolitisk": {
+      "label": "Lokalpolitisk vurdering (kommunens retningslinjer)",
+      "punkter": {
+        "beliggenhet_ok": {
+          "label": "Beliggenhet i tr\u00E5d med retningslinjer",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "ikke_barn_unge_omraade": {
+          "label": "Ikke i omr\u00E5de for barn/unges fritidsaktiviteter",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "ikke_idrettsarrangement": {
+          "label": "Ikke idrettsarrangement eller arrangement for barn/unge",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "brennevin_spisested": {
+          "label": "Brennevin kun til spisested (hvis gr. 3)",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "skjenketider_ok": {
+          "label": "Skjenketider innenfor kommunens rammer",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "arrangement_varighet_ok": {
+          "label": "Arrangement innenfor maks 14 dager",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        }
+      }
+    },
+    "habilitet": {
+      "label": "Habilitet og saksbehandling",
+      "punkter": {
+        "habilitet_vurdert": {
+          "label": "Habilitet vurdert (fvl. \u00A7 6)",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "veiledningsplikt": {
+          "label": "Veiledningsplikt overholdt (fvl. \u00A7 11)",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "saksbehandlingstid": {
+          "label": "Innenfor 90 dagers saksbehandlingsfrist",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        }
+      }
+    },
+    "gebyr": {
+      "label": "Gebyr",
+      "punkter": {
+        "gebyr_beregnet": {
+          "label": "Bevillingsgebyr korrekt beregnet",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        }
+      }
+    },
+    "helhetsvurdering": {
+      "label": "Helhetsvurdering",
+      "punkter": {
+        "samlet_vurdering": {
+          "label": "Samlet vurdering av s\u00F8knaden",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "anbefaling": {
+          "label": "Forel\u00F8pig anbefaling",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        }
+      }
+    }
+  }
+}
+```

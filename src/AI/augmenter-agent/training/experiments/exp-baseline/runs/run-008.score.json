@@ -1,0 +1,70 @@
+{
+  "layer1": {
+    "non_empty": true,
+    "parses_json": true,
+    "has_sjekkliste_root": true,
+    "sections_missing": [
+      "dokumentasjon",
+      "gebyr",
+      "habilitet",
+      "helhetsvurdering",
+      "lokalpolitisk",
+      "personkrav",
+      "vandel"
+    ],
+    "sections_extra": [],
+    "points_missing_from_gold": [
+      "dokumentasjon.arbeidsavtale_stedfortreder",
+      "dokumentasjon.arbeidsavtale_styrer",
+      "dokumentasjon.bruksgodkjenning",
+      "dokumentasjon.kunnskapsprove_stedfortreder",
+      "dokumentasjon.kunnskapsprove_styrer",
+      "dokumentasjon.leiekontrakt",
+      "dokumentasjon.mattilsynet_registrering",
+      "dokumentasjon.personantall_beregning",
+      "dokumentasjon.plantegninger",
+      "formelle_krav.kommune_riktig",
+      "formelle_krav.riktig_soknadstype",
+      "gebyr.gebyr_beregnet",
+      "habilitet.habilitet_vurdert",
+      "habilitet.saksbehandlingstid",
+      "habilitet.veiledningsplikt",
+      "helhetsvurdering.anbefaling",
+      "helhetsvurdering.samlet_vurdering",
+      "lokalpolitisk.arrangement_varighet_ok",
+      "lokalpolitisk.beliggenhet_ok",
+      "lokalpolitisk.brennevin_spisested",
+      "lokalpolitisk.ikke_barn_unge_omraade",
+      "lokalpolitisk.ikke_idrettsarrangement",
+      "lokalpolitisk.skjenketider_ok",
+      "personkrav.fritak_stedfortreder",
+      "personkrav.stedfortreder_alder",
+      "personkrav.stedfortreder_ansatt",
+      "personkrav.stedfortreder_kun_ett_sted",
+      "personkrav.styrer_alder",
+      "personkrav.styrer_ansatt",
+      "personkrav.styrer_kun_ett_sted",
+      "vandel.nav_uttalelse",
+      "vandel.politi_uttalelse",
+      "vandel.skatteetaten_uttalelse",
+      "vandel.vandel_bevillingshaver",
+      "vandel.vandel_stedfortreder",
+      "vandel.vandel_styrer",
+      "vandel.vandel_vesentlig_innflytelse"
+    ],
+    "points_missing_status": [],
+    "points_missing_merknad": [],
+    "points_with_invalid_status": {
+      "formelle_krav.soknad_komplett": "godkjent",
+      "formelle_krav.soker_identifisert": "godkjent",
+      "formelle_krav.bevillingstype_klar": "godkjent"
+    }
+  },
+  "layer2": {
+    "section_coverage_pct": 12.5,
+    "point_coverage_pct": 5.1,
+    "status_agreement_pct": 0.0,
+    "merknad_length_ratio_mean": 0.24
+  },
+  "verdict": "structural_fail"
+}

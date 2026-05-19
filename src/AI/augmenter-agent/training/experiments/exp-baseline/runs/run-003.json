@@ -1,0 +1,17 @@
+{
+  "stdout": "",
+  "errorMessage": null,
+  "systemPromptSrc": "pipeline-default",
+  "success": true,
+  "model": "sandkasse/telenor:gemma4",
+  "timestamp": "2026-05-19T21:44:25.4402221+02:00",
+  "promptLengths": {
+    "system": 26785,
+    "user": 10442
+  },
+  "userPromptSrc": "pipeline-default",
+  "step": "checklist-agent",
+  "elapsedMs": 3471,
+  "iteration": 3,
+  "inputFile": "examples/applications/julebord-kristiansand.json"
+}

@@ -1,0 +1,45 @@
+Her er rådata fra søknaden:
+
+```json
+{
+  "BrukerType": "person",
+  "BevillingsType": "arrangement",
+  "Kommunenummer": "4204",
+  "Innsender": {
+    "FulltNavn": "Sophie Salt",
+    "Foedselsnummer": "01039012345"
+  },
+  "Arrangement": {
+    "VaregruppeAlkohol": "gruppeTre",
+    "Navn": "Julebord Avdeling Nord",
+    "ArrangementType": "julebord",
+    "ArrangementPeriode": [{ "StartDato": "2026-12-12", "SluttDato": "2026-12-13", "StartTid": "19:00", "SluttTid": "02:00" }],
+    "TypeDeltakere": "bestemtePersoner",
+    "AntallDeltakere": "45",
+    "Arrangementssted": { "StedsNavn": "Restaurant Sjøhuset", "StedsAdresse": { "Gateadresse": "Havnegata 15" } }
+  },
+  "Bevillingsansvarlig": {
+    "Styrer": { "FulltNavn": "Sophie Salt", "Foedselsnummer": "01039012345" }
+  }
+}
+```
+
+Her er ÉN seksjon av sjekklisten som skal evalueres. Oppdater "status" og "merknad" for hvert punkt basert på søknadsdataene over. Returner kun denne ene seksjonen som JSON:
+
+```json
+{
+  "sjekkliste": {
+    "seksjoner": [
+      {
+        "id": "formelle_krav",
+        "label": "Formelle krav",
+        "punkter": {
+          "soknad_komplett": { "label": "Søknaden er komplett utfylt", "status": "ikke_vurdert", "merknad": "" },
+          "soker_identifisert": { "label": "Søker er entydig identifisert", "status": "ikke_vurdert", "merknad": "" },
+          "bevillingstype_klar": { "label": "Det er klart hvilken type bevilling som søkes", "status": "ikke_vurdert", "merknad": "" }
+        }
+      }
+    ]
+  }
+}
+```

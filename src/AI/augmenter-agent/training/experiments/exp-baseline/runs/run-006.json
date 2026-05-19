@@ -1,0 +1,17 @@
+{
+  "step": "checklist-agent",
+  "errorMessage": null,
+  "systemPromptSrc": "pipeline-default",
+  "iteration": 6,
+  "elapsedMs": 4098,
+  "success": true,
+  "model": "sandkasse/telenor:gemma4",
+  "stdout": "",
+  "inputFile": "examples/applications/julebord-kristiansand.json",
+  "promptLengths": {
+    "system": 26785,
+    "user": 1498
+  },
+  "timestamp": "2026-05-19T22:04:15.2075612+02:00",
+  "userPromptSrc": "training/experiments/exp-baseline/artifacts/user-single-section.txt"
+}

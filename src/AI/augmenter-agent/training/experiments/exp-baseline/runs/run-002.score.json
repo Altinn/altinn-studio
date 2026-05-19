@@ -1,0 +1,9 @@
+{
+  "layer1": {
+    "non_empty": false,
+    "parses_json": false,
+    "parse_error": "empty output"
+  },
+  "layer2": {},
+  "verdict": "fail"
+}

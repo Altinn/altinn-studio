@@ -1,0 +1,17 @@
+{
+  "promptLengths": {
+    "system": 627,
+    "user": 10442
+  },
+  "iteration": 7,
+  "errorMessage": "Pi CLI failed (exit 1): terminated\n",
+  "success": false,
+  "model": "sandkasse/telenor:gemma4",
+  "userPromptSrc": "pipeline-default",
+  "systemPromptSrc": "training/experiments/exp-baseline/artifacts/skill-no-guide.md",
+  "timestamp": "2026-05-19T22:10:10.6523208+02:00",
+  "stdout": "",
+  "inputFile": "examples/applications/julebord-kristiansand.json",
+  "elapsedMs": 259894,
+  "step": "checklist-agent"
+}

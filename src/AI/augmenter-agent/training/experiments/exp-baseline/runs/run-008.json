@@ -1,0 +1,17 @@
+{
+  "promptLengths": {
+    "system": 627,
+    "user": 1498
+  },
+  "errorMessage": null,
+  "stdout": "{\n  \"sjekkliste\": {\n    \"seksjoner\": [\n      {\n        \"id\": \"formelle_krav\",\n        \"label\": \"Formelle krav\",\n        \"punkter\": {\n          \"soknad_komplett\": {\n            \"label\": \"Søknaden er komplett utfylt\",\n            \"status\": \"godkjent\",\n            \"merknad\": \"Alle nødvendige felt for arrangement-bevilling er utfylt.\"\n          },\n          \"soker_identifisert\": {\n            \"label\": \"Søker er entydig identifisert\",\n            \"status\": \"godkjent\",\n            \"merknad\": \"Søker Sophie Salt er identifisert med fødselsnummer.\"\n          },\n          \"bevillingstype_klar\": {\n            \"label\": \"Det er klart hvilken type bevilling som søkes\",\n            \"status\": \"godkjent\",\n            \"merknad\": \"Det søkes om bevilling for arrangement.\"\n          }\n        }\n      }\n    ]\n  }\n}\n",
+  "inputFile": "examples/applications/julebord-kristiansand.json",
+  "elapsedMs": 9308,
+  "iteration": 8,
+  "timestamp": "2026-05-19T22:11:02.4763606+02:00",
+  "success": true,
+  "systemPromptSrc": "training/experiments/exp-baseline/artifacts/skill-no-guide.md",
+  "model": "sandkasse/telenor:gemma4",
+  "userPromptSrc": "training/experiments/exp-baseline/artifacts/user-single-section.txt",
+  "step": "checklist-agent"
+}
