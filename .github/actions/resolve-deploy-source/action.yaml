@@ -1,0 +1,139 @@
+name: Resolve deploy source
+description: Resolve a deploy source branch to repository, commit SHA and artifact metadata.
+
+inputs:
+  ref:
+    description: Source branch to deploy. Use branch-name, or fork-owner:branch-name for forks.
+    required: false
+    default: ''
+  default-ref:
+    description: Default branch/ref name from the workflow context.
+    required: true
+  default-repository:
+    description: Default repository from the workflow context.
+    required: true
+  default-repo-name:
+    description: Default repository name from the workflow context.
+    required: true
+  default-sha:
+    description: Default commit SHA from the workflow context.
+    required: true
+  github-ref:
+    description: Full GitHub ref from the workflow context.
+    required: true
+
+outputs:
+  repository:
+    description: Repository to checkout.
+    value: ${{ steps.resolve.outputs.repository }}
+  ref:
+    description: Branch name to checkout.
+    value: ${{ steps.resolve.outputs.ref }}
+  label:
+    description: User-facing source label.
+    value: ${{ steps.resolve.outputs.label }}
+  sha:
+    description: Resolved source commit SHA.
+    value: ${{ steps.resolve.outputs.sha }}
+  tag:
+    description: Artifact tag.
+    value: ${{ steps.resolve.outputs.tag }}
+  docker-tags:
+    description: Comma-separated Docker tags.
+    value: ${{ steps.resolve.outputs.docker-tags }}
+  tag-latest:
+    description: Whether artifacts should also be tagged as latest.
+    value: ${{ steps.resolve.outputs.tag-latest }}
+  source-url:
+    description: Source repository URL for artifact provenance.
+    value: ${{ steps.resolve.outputs.source-url }}
+  source-revision:
+    description: Source revision for artifact provenance.
+    value: ${{ steps.resolve.outputs.source-revision }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve source
+      id: resolve
+      shell: bash
+      env:
+        INPUT_REF: ${{ inputs.ref }}
+        DEFAULT_REF: ${{ inputs.default-ref }}
+        DEFAULT_REPOSITORY: ${{ inputs.default-repository }}
+        DEFAULT_REPO_NAME: ${{ inputs.default-repo-name }}
+        DEFAULT_SHA: ${{ inputs.default-sha }}
+        GITHUB_REF: ${{ inputs.github-ref }}
+      run: |
+        set -euo pipefail
+
+        repository="$DEFAULT_REPOSITORY"
+        ref="$DEFAULT_REF"
+        label="$DEFAULT_REF"
+        sha="$DEFAULT_SHA"
+        custom_source="false"
+        repository_owner=""
+
+        if [[ -n "$INPUT_REF" ]]; then
+          custom_source="true"
+          label="$INPUT_REF"
+
+          if [[ "$INPUT_REF" == *$'\n'* || "$INPUT_REF" == *$'\r'* ]]; then
+            echo "The ref input cannot contain newlines." >&2
+            exit 1
+          fi
+
+          if [[ "$INPUT_REF" == *:* ]]; then
+            repository_owner="${INPUT_REF%%:*}"
+            ref="${INPUT_REF#*:}"
+            repository="${repository_owner}/${DEFAULT_REPO_NAME}"
+          else
+            ref="$INPUT_REF"
+          fi
+
+          if [[ -z "$ref" || "$ref" == -* || "$repository" == /* || "$repository" == */*/* ]]; then
+            echo "The ref input must be a branch name or fork-owner:branch-name." >&2
+            exit 1
+          fi
+
+          if ! sha="$(git ls-remote --exit-code --heads "https://github.com/${repository}.git" "refs/heads/$ref" | awk '{ print $1 }')"; then
+            echo "Branch '$ref' was not found in '$repository'." >&2
+            exit 1
+          fi
+        fi
+
+        short_sha="${sha::10}"
+        tag_latest="true"
+
+        if [[ "$custom_source" == "false" && "$GITHUB_REF" == "refs/heads/main" ]]; then
+          tag="$short_sha"
+        else
+          sanitized_ref_name="$(echo "$label" | tr -d '()' | sed -E 's/[^A-Za-z0-9.-]+/-/g; s/^-+//; s/-+$//')"
+          if [[ -z "$sanitized_ref_name" ]]; then
+            sanitized_ref_name="source"
+          fi
+          sanitized_ref_name="${sanitized_ref_name:0:117}"
+          tag="${sanitized_ref_name}-${short_sha}"
+        fi
+
+        if [[ "$custom_source" == "true" ]]; then
+          tag_latest="false"
+        fi
+
+        if [[ "$tag_latest" == "true" ]]; then
+          docker_tags="$tag,latest"
+        else
+          docker_tags="$tag"
+        fi
+
+        {
+          echo "repository=$repository"
+          echo "ref=$ref"
+          echo "label=$label"
+          echo "sha=$sha"
+          echo "tag=$tag"
+          echo "docker-tags=$docker_tags"
+          echo "tag-latest=$tag_latest"
+          echo "source-url=https://github.com/${repository}"
+          echo "source-revision=${label}/${sha}"
+        } >> "$GITHUB_OUTPUT"
