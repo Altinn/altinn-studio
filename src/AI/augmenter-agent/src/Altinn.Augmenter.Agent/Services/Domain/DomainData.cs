@@ -17,13 +17,6 @@ public sealed class BevillingstyperData
     public string Default { get; init; } = "enkeltbevilling";
     public List<string> Lovhenvisninger { get; init; } = new();
     public Dictionary<string, string> Mapping { get; init; } = new(StringComparer.OrdinalIgnoreCase);
-    public required DecisionMapping DecisionMapping { get; init; }
-}
-
-public sealed class DecisionMapping
-{
-    public string Default { get; init; } = "enkeltbevilling";
-    public List<MappingRule> Rules { get; init; } = new();
 }
 
 public sealed class MappingRule
@@ -37,7 +30,6 @@ public sealed class MappingRule
 public sealed class AlkoholgrupperData
 {
     public required RuleSet Checklist { get; init; }
-    public required RuleSet Decision { get; init; }
 }
 
 public sealed class RuleSet

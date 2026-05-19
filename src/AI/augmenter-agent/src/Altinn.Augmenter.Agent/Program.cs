@@ -2,7 +2,6 @@ using Altinn.Augmenter.Agent.Configuration;
 using Altinn.Augmenter.Agent.Endpoints;
 using Altinn.Augmenter.Agent.Pipelines;
 using Altinn.Augmenter.Agent.Pipelines.Checklist;
-using Altinn.Augmenter.Agent.Pipelines.Decision;
 using Altinn.Augmenter.Agent.Pipelines.Generic;
 using Altinn.Augmenter.Agent.Pipelines.RequestInfo;
 using Altinn.Augmenter.Agent.Services;
@@ -58,7 +57,6 @@ builder.Services.AddSingleton<DomainDataProvider>();
 // Keyed mappers — referenced by name from pipeline.yaml
 builder.Services.AddKeyedSingleton<IDataMapper, RequestInfoDataMapper>("request-info");
 builder.Services.AddKeyedSingleton<IDataMapper, ChecklistDataMapper>("checklist");
-builder.Services.AddKeyedSingleton<IDataMapper, DecisionDataMapper>("decision");
 
 // Keyed prompt builders and response parsers
 builder.Services.AddKeyedSingleton<IPromptBuilder, DefaultPromptBuilder>("default");

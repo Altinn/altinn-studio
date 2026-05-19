@@ -31,14 +31,10 @@ when `claude` is on `PATH` and authenticated.
 config/
 ├── pipeline.yaml              # which steps run, in what order
 ├── skills/
-│   ├── checklist/skill.md     # + @guide.md, @other.md references
-│   └── decision/skill.md
+│   └── checklist/skill.md     # + @guide.md, @other.md references
 ├── templates/
 │   ├── request-info.typ       # Typst (PDF)
-│   ├── checklist.typ
-│   ├── decision.typ
-│   ├── decision.md            # Markdown (DOCX via Pandoc)
-│   └── decision-schema.json   # injected into agent prompt
+│   └── checklist.typ
 ├── domain/
 │   ├── kommuner.json          # kommunenummer → navn + klage-epost
 │   ├── bevillingstyper.json   # input → normalized type + lovhenvisninger
@@ -130,9 +126,7 @@ Synchronous. Returns JSON with all generated files (PDF and DOCX).
 {
   "pdfs": [
     { "name": "request-info.pdf", "data": "<base64>" },
-    { "name": "checklist.pdf",    "data": "<base64>" },
-    { "name": "decision.pdf",     "data": "<base64>" },
-    { "name": "decision.docx",    "data": "<base64>" }
+    { "name": "checklist.pdf",    "data": "<base64>" }
   ]
 }
 ```

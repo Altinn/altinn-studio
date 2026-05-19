@@ -47,14 +47,8 @@ public sealed class DomainDataProvider
             : Bevillingstyper.Default;
     }
 
-    public string MapBevillingstypeForDecision(string? input)
-        => ApplyRules(input, Bevillingstyper.DecisionMapping.Rules, Bevillingstyper.DecisionMapping.Default);
-
     public string MapAlkoholgruppeChecklist(string? input)
         => ApplyRules(input, Alkoholgrupper.Checklist.Rules, Alkoholgrupper.Checklist.Default);
-
-    public string MapAlkoholgruppeDecision(string? input)
-        => ApplyRules(input, Alkoholgrupper.Decision.Rules, Alkoholgrupper.Decision.Default);
 
     private static string ApplyRules(string? input, IEnumerable<MappingRule> rules, string @default)
     {

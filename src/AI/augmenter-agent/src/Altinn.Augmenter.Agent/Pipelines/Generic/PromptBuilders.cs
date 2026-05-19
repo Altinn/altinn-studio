@@ -23,24 +23,13 @@ public sealed class DefaultPromptBuilder(IOptions<ContentPathsOptions> contentPa
     {
         var sb = new StringBuilder();
 
-        if (stepDefinition.Type == "agent-pdf" && stepDefinition.Name.Contains("checklist", StringComparison.OrdinalIgnoreCase))
-        {
-            // Checklist-style: raw data first, then mapped checklist to fill in
-            sb.AppendLine("Her er rådata fra søknaden:");
-            sb.AppendLine();
-            AppendJsonBlock(sb, rawApplicationJson);
-            sb.AppendLine();
-            sb.AppendLine("Her er sjekklisten som skal evalueres. Oppdater \"status\" og \"merknad\" for hvert punkt basert på søknadsdataene over:");
-            sb.AppendLine();
-            AppendJsonBlock(sb, SerializeJson(mappedData));
-        }
-        else
-        {
-            // Decision-style: mapped grunndata first, then context, then schema
-            sb.AppendLine("Her er grunndata (oppdater og utvid dette dokumentet):");
-            sb.AppendLine();
-            AppendJsonBlock(sb, SerializeJson(mappedData));
-        }
+        sb.AppendLine("Her er rådata fra søknaden:");
+        sb.AppendLine();
+        AppendJsonBlock(sb, rawApplicationJson);
+        sb.AppendLine();
+        sb.AppendLine("Her er sjekklisten som skal evalueres. Oppdater \"status\" og \"merknad\" for hvert punkt basert på søknadsdataene over:");
+        sb.AppendLine();
+        AppendJsonBlock(sb, SerializeJson(mappedData));
 
         foreach (var key in stepDefinition.ConsumeContext)
         {
