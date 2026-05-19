@@ -1,0 +1,38 @@
+.datepickerCaption {
+  display: flex;
+  margin-bottom: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+  gap: 4px;
+}
+.datepickerDropdowns {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 480px) {
+  .datepickerCaption {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    row-gap: 4px;
+    margin-left: 4px;
+    margin-right: 4px;
+  }
+  .datepickerDropdowns {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .datepickerDropdowns > * {
+    flex: 1;
+    min-width: 0;
+  }
+  .datepickerCloseButton {
+    display: block;
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+  }
+}

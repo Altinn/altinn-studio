@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+  </Folder>
+  <Project Path="src/Altinn.Codelists/Altinn.Codelists.csproj" />
+  <Project Path="test/Altinn.Codelists.Tests/Altinn.Codelists.Tests.csproj" />
+</Solution>

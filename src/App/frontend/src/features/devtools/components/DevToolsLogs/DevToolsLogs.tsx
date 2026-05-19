@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+import { Button } from '@app/form-component';
 import {
   DownloadIcon,
   ExclamationmarkTriangleFillIcon,
@@ -8,7 +9,6 @@ import {
   XMarkOctagonFillIcon,
 } from '@navikt/aksel-icons';
 
-import { Button } from 'src/app-components/Button/Button';
 import { Input } from 'src/app-components/Input/Input';
 import { translationKey } from 'src/AppComponentsBridge';
 import classes from 'src/features/devtools/components/DevToolsLogs/DevToolsLogs.module.css';

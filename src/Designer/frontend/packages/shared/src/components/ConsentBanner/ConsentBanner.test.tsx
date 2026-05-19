@@ -24,6 +24,8 @@ describe('ConsentBanner', () => {
   it('should show banner when user has not made a decision', () => {
     (consentHooks.useConsent as jest.Mock).mockReturnValue({
       hasDecision: false,
+      hasAnalyticsConsent: false,
+      hasSessionRecordingConsent: false,
     });
 
     render(<ConsentBanner />);
@@ -45,6 +47,8 @@ describe('ConsentBanner', () => {
   it('should have analytics switch unchecked by default for GDPR compliance', () => {
     (consentHooks.useConsent as jest.Mock).mockReturnValue({
       hasDecision: false,
+      hasAnalyticsConsent: false,
+      hasSessionRecordingConsent: false,
     });
 
     render(<ConsentBanner />);
@@ -58,6 +62,8 @@ describe('ConsentBanner', () => {
   it('should have session recording switch unchecked by default for GDPR compliance', () => {
     (consentHooks.useConsent as jest.Mock).mockReturnValue({
       hasDecision: false,
+      hasAnalyticsConsent: false,
+      hasSessionRecordingConsent: false,
     });
 
     render(<ConsentBanner />);
@@ -71,6 +77,8 @@ describe('ConsentBanner', () => {
   it('should disable session recording switch when analytics is disabled', async () => {
     (consentHooks.useConsent as jest.Mock).mockReturnValue({
       hasDecision: false,
+      hasAnalyticsConsent: false,
+      hasSessionRecordingConsent: false,
     });
 
     render(<ConsentBanner />);
@@ -86,6 +94,8 @@ describe('ConsentBanner', () => {
   it('should enable session recording switch when analytics is enabled', async () => {
     (consentHooks.useConsent as jest.Mock).mockReturnValue({
       hasDecision: false,
+      hasAnalyticsConsent: false,
+      hasSessionRecordingConsent: false,
     });
 
     const user = userEvent.setup();
@@ -106,6 +116,8 @@ describe('ConsentBanner', () => {
   it('should call setConsentPreferences with all enabled when user enables both and saves', async () => {
     (consentHooks.useConsent as jest.Mock).mockReturnValue({
       hasDecision: false,
+      hasAnalyticsConsent: false,
+      hasSessionRecordingConsent: false,
     });
 
     const user = userEvent.setup();
@@ -132,6 +144,8 @@ describe('ConsentBanner', () => {
   it('should call setConsentPreferences with only analytics when user enables analytics but not session recording', async () => {
     (consentHooks.useConsent as jest.Mock).mockReturnValue({
       hasDecision: false,
+      hasAnalyticsConsent: false,
+      hasSessionRecordingConsent: false,
     });
 
     const user = userEvent.setup();
@@ -154,6 +168,8 @@ describe('ConsentBanner', () => {
   it('should call denyAllConsent when decline all is clicked', async () => {
     (consentHooks.useConsent as jest.Mock).mockReturnValue({
       hasDecision: false,
+      hasAnalyticsConsent: false,
+      hasSessionRecordingConsent: false,
     });
 
     const user = userEvent.setup();
@@ -170,6 +186,8 @@ describe('ConsentBanner', () => {
   it('should hide banner after save is clicked', async () => {
     (consentHooks.useConsent as jest.Mock).mockReturnValue({
       hasDecision: false,
+      hasAnalyticsConsent: false,
+      hasSessionRecordingConsent: false,
     });
 
     const user = userEvent.setup();
@@ -191,6 +209,8 @@ describe('ConsentBanner', () => {
   it('should hide banner after decline all is clicked', async () => {
     (consentHooks.useConsent as jest.Mock).mockReturnValue({
       hasDecision: false,
+      hasAnalyticsConsent: false,
+      hasSessionRecordingConsent: false,
     });
 
     const user = userEvent.setup();
@@ -209,6 +229,8 @@ describe('ConsentBanner', () => {
   it('should have save button disabled by default when no consent is given', () => {
     (consentHooks.useConsent as jest.Mock).mockReturnValue({
       hasDecision: false,
+      hasAnalyticsConsent: false,
+      hasSessionRecordingConsent: false,
     });
 
     render(<ConsentBanner />);
@@ -221,6 +243,8 @@ describe('ConsentBanner', () => {
   it('should enable save button when analytics is enabled', async () => {
     (consentHooks.useConsent as jest.Mock).mockReturnValue({
       hasDecision: false,
+      hasAnalyticsConsent: false,
+      hasSessionRecordingConsent: false,
     });
 
     const user = userEvent.setup();
@@ -239,6 +263,8 @@ describe('ConsentBanner', () => {
   it('should uncheck session recording when analytics is unchecked', async () => {
     (consentHooks.useConsent as jest.Mock).mockReturnValue({
       hasDecision: false,
+      hasAnalyticsConsent: false,
+      hasSessionRecordingConsent: false,
     });
 
     const user = userEvent.setup();

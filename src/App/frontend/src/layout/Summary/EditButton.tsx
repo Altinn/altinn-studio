@@ -1,9 +1,8 @@
 import React from 'react';
 
+import { Button } from '@app/form-component';
 import { PencilIcon } from '@navikt/aksel-icons';
 
-import { Button } from 'src/app-components/Button/Button';
-import { translationKey } from 'src/AppComponentsBridge';
 import classes from 'src/layout/Summary/EditButton.module.css';
 
 export interface IEditButtonProps {
@@ -19,7 +18,7 @@ export function EditButton(props: IEditButtonProps) {
       variant='tertiary'
       color='second'
       onClick={props.onClick}
-      aria-label={translationKey(`${props.editText}: ${props.label}`)}
+      aria-label={props.editText ? `${props.editText}: ${props.label}` : props.label}
     >
       {props.editText}
       <PencilIcon

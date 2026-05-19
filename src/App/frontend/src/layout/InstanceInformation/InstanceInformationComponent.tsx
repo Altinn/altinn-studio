@@ -1,10 +1,10 @@
 import React from 'react';
 
+import { PrettyDateAndTime } from '@app/form-component';
 import { formatDate, formatISO } from 'date-fns';
 
 import type { PropsFromGenericComponent } from '..';
 
-import { PrettyDateAndTime } from 'src/app-components/Datepicker/utils/dateHelpers';
 import { Fieldset } from 'src/app-components/Label/Fieldset';
 import { AltinnSummaryTable } from 'src/components/table/AltinnSummaryTable';
 import { useAppReceiver } from 'src/core/texts/appTexts';

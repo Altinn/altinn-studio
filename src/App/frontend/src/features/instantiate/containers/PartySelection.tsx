@@ -1,12 +1,11 @@
 import React from 'react';
 import { useMatch, useNavigate } from 'react-router';
 
+import { Button, Flex } from '@app/form-component';
 import { Checkbox, Heading, Paragraph } from '@digdir/designsystemet-react';
 import { PlusIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { Button } from 'src/app-components/Button/Button';
-import { Flex } from 'src/app-components/Flex/Flex';
 import { Input } from 'src/app-components/Input/Input';
 import { translationKey } from 'src/AppComponentsBridge';
 import { AltinnParty } from 'src/components/altinnParty';
