@@ -1,4 +1,4 @@
-import { isVersionAtLeast } from './versionUtils';
+import { isMaskinportenDefaultScopesOptInVersion, isVersionAtLeast } from './versionUtils';
 
 describe('versionUtils', () => {
   describe('isVersionAtLeast', () => {
@@ -21,5 +21,18 @@ describe('versionUtils', () => {
         expect(isVersionAtLeast(version, major, minor, patch)).toBe(expected);
       },
     );
+  });
+
+  describe('isMaskinportenDefaultScopesOptInVersion', () => {
+    it.each([
+      ['8.2.9', false],
+      ['8.3.0', true],
+      ['8.4.0', true],
+      ['9.0.0-preview.1', false],
+      ['9.0.0', false],
+      [undefined, false],
+    ])('returns %s for %s', (version, expected) => {
+      expect(isMaskinportenDefaultScopesOptInVersion(version)).toBe(expected);
+    });
   });
 });

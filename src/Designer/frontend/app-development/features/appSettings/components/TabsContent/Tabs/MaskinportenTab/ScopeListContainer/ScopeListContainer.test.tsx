@@ -89,8 +89,12 @@ describe('ScopeListContainer', () => {
   });
 
   it('should display an alert if no scopes are available', async () => {
-    const getMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
-    const getSelectedMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
+    const getMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ scopes: [] }));
+    const getSelectedMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ scopes: [] }));
 
     renderScopeListContainer({
       getMaskinportenScopes,
@@ -101,6 +105,34 @@ describe('ScopeListContainer', () => {
     expect(
       getText(textMock('app_settings.maskinporten_no_scopes_available_description')),
     ).toBeInTheDocument();
+  });
+
+  it('should display add default scopes notice for v8.3 apps when no scopes are available', async () => {
+    const getMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ scopes: [] }));
+    const getSelectedMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ scopes: [] }));
+    const getAppVersion = jest
+      .fn()
+      .mockImplementation(() =>
+        Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '8.3.0' }),
+      );
+
+    renderScopeListContainer({
+      getMaskinportenScopes,
+      getSelectedMaskinportenScopes,
+      getAppVersion,
+    });
+    await waitForGetScopesCheckIsDone();
+
+    expect(
+      getText(textMock('app_settings.maskinporten_default_scopes_opt_in_notice')),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('app_settings.maskinporten_no_scopes_available_description')),
+    ).not.toBeInTheDocument();
   });
 });
 

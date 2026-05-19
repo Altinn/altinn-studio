@@ -10,6 +10,7 @@ import { renderWithProviders } from 'app-development/test/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { app, org } from '@studio/testing/testids';
+import { defaultMaskinportenScopes } from 'app-development/utils/maskinportenScopes';
 
 const scopeMock1: MaskinportenScope = {
   scope: 'altinn:authorization/authorize',
@@ -91,6 +92,36 @@ describe('ScopeList', () => {
 
     const updatedScopes: MaskinportenScopes = {
       scopes: [scopeMock4, scopeMock2, scopeMock3],
+    };
+
+    expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledWith(
+      org,
+      app,
+      updatedScopes,
+    );
+  });
+
+  it('should add default scopes for v8.3 apps when the available scopes API does not include them', async () => {
+    const user = userEvent.setup();
+    renderScopeList({
+      componentProps: {
+        maskinPortenScopes: [scopeMock1],
+        selectedScopes: [scopeMock3],
+      },
+      queries: {
+        getAppVersion: () => Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '8.3.0' }),
+      },
+    });
+
+    expect(
+      await screen.findByText(textMock('app_settings.maskinporten_default_scopes_opt_in_notice')),
+    ).toBeInTheDocument();
+
+    await user.click(getButton(textMock('app_settings.maskinporten_add_default_scopes')));
+
+    const updatedScopes: MaskinportenScopes = {
+      scopes: [...defaultMaskinportenScopes, scopeMock3],
     };
 
     expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledTimes(1);

@@ -29,10 +29,10 @@ import { toast } from 'react-toastify';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import {
+  addDefaultMaskinportenScopes,
   defaultMaskinportenScopeNames,
-  hasDefaultMaskinportenScopes,
+  shouldShowDefaultMaskinportenScopesOptIn,
 } from 'app-development/utils/maskinportenScopes';
-import { isVersionAtLeast } from 'app-development/utils/versionUtils';
 import {
   combineSelectedAndMaskinportenScopes,
   isDefaultMaskinportenScope,
@@ -52,11 +52,19 @@ export function ScopeList({ maskinPortenScopes, selectedScopes }: ScopeListProps
   const { data: appVersion } = useAppVersionQuery(org, app);
   const dialogRef = useRef<HTMLDialogElement | null>(null);
   const [searchValue, setSearchValue] = useState<string>('');
-
-  const allAvailableScopes: MaskinportenScope[] = useMemo(
-    () => combineSelectedAndMaskinportenScopes(selectedScopes, maskinPortenScopes),
-    [maskinPortenScopes, selectedScopes],
+  const shouldShowDefaultScopesOptIn: boolean = shouldShowDefaultMaskinportenScopesOptIn(
+    appVersion?.backendVersion,
+    selectedScopes,
   );
+
+  const allAvailableScopes: MaskinportenScope[] = useMemo(() => {
+    const combinedScopes = combineSelectedAndMaskinportenScopes(selectedScopes, maskinPortenScopes);
+    const scopes = shouldShowDefaultScopesOptIn
+      ? addDefaultMaskinportenScopes(combinedScopes)
+      : combinedScopes;
+
+    return sortScopesForDisplay(scopes);
+  }, [maskinPortenScopes, selectedScopes, shouldShowDefaultScopesOptIn]);
   const sortedSelectedScopes: MaskinportenScope[] = useMemo(
     () => sortScopesForDisplay(selectedScopes),
     [selectedScopes],
@@ -87,8 +95,7 @@ export function ScopeList({ maskinPortenScopes, selectedScopes }: ScopeListProps
         {t('app_settings.maskinporten_scope_changes_deployment_notice')}
       </StudioAlert>
       <DefaultScopesNotice
-        appBackendVersion={appVersion?.backendVersion}
-        selectedScopes={sortedSelectedScopes}
+        shouldShowDefaultScopesOptIn={shouldShowDefaultScopesOptIn}
         initialValues={initialValues}
         allAvailableScopes={allAvailableScopes}
       />
@@ -114,27 +121,20 @@ export function ScopeList({ maskinPortenScopes, selectedScopes }: ScopeListProps
 }
 
 type DefaultScopesNoticeProps = {
-  appBackendVersion: string | undefined;
-  selectedScopes: MaskinportenScope[];
+  shouldShowDefaultScopesOptIn: boolean;
   initialValues: string[];
   allAvailableScopes: MaskinportenScope[];
 };
 
 function DefaultScopesNotice({
-  appBackendVersion,
-  selectedScopes,
+  shouldShowDefaultScopesOptIn,
   initialValues,
   allAvailableScopes,
 }: DefaultScopesNoticeProps): ReactElement | null {
   const { t } = useTranslation();
   const { saveScopes, isSaving } = useSaveScopes(allAvailableScopes);
-  const shouldShowNotice =
-    isVersionAtLeast(appBackendVersion, 8, 3, 0) &&
-    !isVersionAtLeast(appBackendVersion, 9, 0, 0) &&
-    hasDefaultMaskinportenScopes(allAvailableScopes) &&
-    !hasDefaultMaskinportenScopes(selectedScopes);
 
-  if (!shouldShowNotice) return null;
+  if (!shouldShowDefaultScopesOptIn) return null;
 
   const addDefaultScopes = (): void => {
     saveScopes(Array.from(new Set([...initialValues, ...defaultMaskinportenScopeNames])));
