@@ -1,4 +1,5 @@
 export * from './AccordionItem';
+export * from './ConditionalWrapper';
 export * from './Button';
 export * from './Card';
 export * from './Datepicker';

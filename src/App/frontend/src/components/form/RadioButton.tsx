@@ -1,10 +1,10 @@
 import React, { forwardRef, useRef } from 'react';
 
+import { ConditionalWrapper } from '@app/form-component';
 import { Radio } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { RadioProps } from '@digdir/designsystemet-react';
 
-import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { HelpText } from 'src/app-components/HelpText/HelpText';
 import { translationKey } from 'src/AppComponentsBridge';
 import classes from 'src/components/form/RadioButton.module.css';

@@ -1,10 +1,10 @@
 import React, { forwardRef, useEffect, useState } from 'react';
 
+import { ConditionalWrapper } from '@app/form-component';
 import { Checkbox } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { CheckboxProps } from '@digdir/designsystemet-react';
 
-import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { HelpText } from 'src/app-components/HelpText/HelpText';
 import { translationKey } from 'src/AppComponentsBridge';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
