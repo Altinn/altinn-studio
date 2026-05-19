@@ -31,8 +31,8 @@ if (-not (Test-Path $runsDir)) { New-Item -ItemType Directory -Path $runsDir | O
 
 # 1. Dump the prompts the pipeline would build for this input + step
 Write-Host "[1/2] Dumping prompts for step '$Step' from $base..."
-$dumpForm = @{ file = Get-Item $InputFile }
-$dump = Invoke-RestMethod -Uri "$base/experiment/dump-prompt?step=$Step" -Method Post -Form $dumpForm
+$inputJson = Get-Content $InputFile -Raw
+$dump = Invoke-RestMethod -Uri "$base/experiment/dump-prompt?step=$Step" -Method Post -Body $inputJson -ContentType "application/json"
 
 $systemPrompt = if ($SystemPromptFile) { Get-Content $SystemPromptFile -Raw } else { $dump.systemPrompt }
 $userPrompt   = if ($UserPromptFile)   { Get-Content $UserPromptFile   -Raw } else { $dump.userPrompt }

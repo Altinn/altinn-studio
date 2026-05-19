@@ -36,7 +36,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-ALLOWED_STATUSES = {"ok", "avvik", "ikke_relevant", "ikke_vurdert", "ikke_vurderbar", "manuell_vurdering"}
+ALLOWED_STATUSES = {"vurdert_ok", "vurdert_avslag", "maa_undersokes", "ikke_relevant", "ikke_vurdert"}
 
 
 def strip_markdown_fences(text: str) -> str:

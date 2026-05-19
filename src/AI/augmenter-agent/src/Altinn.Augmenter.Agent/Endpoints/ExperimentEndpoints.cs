@@ -4,7 +4,6 @@ using System.Text.Json;
 using Altinn.Augmenter.Agent.Configuration;
 using Altinn.Augmenter.Agent.Pipelines;
 using Altinn.Augmenter.Agent.Pipelines.Generic;
-using Altinn.Augmenter.Agent.Services;
 using Altinn.Augmenter.Agent.Services.Agent;
 using Microsoft.Extensions.Options;
 
@@ -22,10 +21,9 @@ public static class ExperimentEndpoints
     public static void MapExperimentEndpoints(this WebApplication app)
     {
         // POST /experiment/dump-prompt?step=<step-name>
-        // multipart/form-data: file=<application json>
+        // Body: application/json — the raw application JSON (either {"FlatData": {...}} or {...} directly)
         app.MapPost("/experiment/dump-prompt", async (
             HttpContext context,
-            IMultipartParserService multipartParser,
             PipelineLoader pipelineLoader,
             IServiceProvider serviceProvider,
             IOptions<ContentPathsOptions> contentPaths,
@@ -43,11 +41,11 @@ public static class ExperimentEndpoints
             if (stepDef.Type != "agent-pdf")
                 return Results.BadRequest(new { error = $"Step '{stepName}' is type '{stepDef.Type}'; dump-prompt only supports 'agent-pdf'." });
 
-            var parsed = await multipartParser.ParseAsync(context.Request, ct);
-            if (parsed.Files.Count == 0)
-                return Results.BadRequest(new { error = "No file uploaded." });
+            using var reader = new StreamReader(context.Request.Body, Encoding.UTF8);
+            var rawJson = await reader.ReadToEndAsync(ct);
+            if (string.IsNullOrWhiteSpace(rawJson))
+                return Results.BadRequest(new { error = "Request body is empty. POST the application JSON as the body." });
 
-            var rawJson = Encoding.UTF8.GetString(parsed.Files[0].Data);
             var flatData = ExtractFlatData(rawJson);
 
             var mapper = serviceProvider.GetKeyedService<IDataMapper>(stepDef.Mapper)

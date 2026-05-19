@@ -21,8 +21,9 @@ $base = "http://localhost:$Port"
 if (-not (Test-Path $InputFile)) { throw "Input not found: $InputFile" }
 
 Write-Host "Dumping prompt..."
+$inputJson = Get-Content $InputFile -Raw
 $dump = Invoke-RestMethod -Uri "$base/experiment/dump-prompt?step=checklist-agent" -Method Post `
-    -Form @{ file = Get-Item $InputFile }
+    -Body $inputJson -ContentType "application/json"
 
 Write-Host "Calling agent (system=$($dump.systemPrompt.Length) chars, user=$($dump.userPrompt.Length) chars)..."
 $callBody = @{
