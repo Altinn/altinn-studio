@@ -1,0 +1,10 @@
+{
+  "default": {
+    "navn": "Vennesla",
+    "klageEpost": "post@vennesla.kommune.no"
+  },
+  "kommuner": {
+    "4204": { "navn": "Kristiansand", "klageEpost": "post@kristiansand.kommune.no" },
+    "4223": { "navn": "Vennesla",     "klageEpost": "post@vennesla.kommune.no" }
+  }
+}

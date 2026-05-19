@@ -1,0 +1,68 @@
+{
+  "FlatData": {
+    "BrukerType": "person",
+    "SkalFornyeBevilling": false,
+    "BevillingsType": "arrangement",
+    "Kommunenummer": "4204",
+    "Innsender": {
+      "Fornavn": "Sophie",
+      "Etternavn": "Salt",
+      "FulltNavn": "Sophie Salt",
+      "Foedselsnummer": "01039012345",
+      "EPostadresse": "sophie@test.no",
+      "Telefonnummer": "99887766",
+      "Adresse": {
+        "Gateadresse": "Leikanger",
+        "Postnummer": "6863",
+        "Poststed": "KRISTIANSAND S"
+      }
+    },
+    "OrganisasjonsInformasjon": {
+      "Organisasjonsnummer": null,
+      "Navn": null
+    },
+    "Arrangement": {
+      "VaregruppeAlkohol": "gruppeTre",
+      "Navn": "Julebord Avdeling Nord",
+      "ArrangementType": "julebord",
+      "ArrangementPeriode": [
+        {
+          "StartDato": "2026-12-12",
+          "SluttDato": "2026-12-13",
+          "StartTid": "19:00",
+          "SluttTid": "02:00"
+        }
+      ],
+      "TypeDeltakere": "bestemtePersoner",
+      "AntallDeltakere": "45",
+      "Arrangementssted": {
+        "Type": "innendoers",
+        "StedsNavn": "Restaurant Sjøhuset",
+        "StedsAdresse": { "Gateadresse": "Havnegata 15" },
+        "Etasje": "2. etasje"
+      }
+    },
+    "Bevillingsansvarlig": {
+      "SkalHaFritakFraStedfortreder": false,
+      "Styrer": {
+        "Fornavn": "Sophie",
+        "Etternavn": "Salt",
+        "Foedselsnummer": "01039012345",
+        "EPostadresse": "sophie@test.no",
+        "Telefonnummer": "99887766"
+      },
+      "Stedfortreder": {
+        "Fornavn": "Erik",
+        "Etternavn": "Hansen",
+        "Foedselsnummer": "15039012345",
+        "EPostadresse": "erik@test.no",
+        "Telefonnummer": "98765432"
+      }
+    },
+    "PersonerMedInnflytelse": {
+      "JuridiskePersoner": [],
+      "FysiskePersoner": []
+    },
+    "VedleggsListe": { "Rader": [] }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "default": "enkeltbevilling",
+  "lovhenvisninger": [
+    "Alkoholloven §§1-7, 1-7b, 1-15",
+    "Serveringsloven §§ 4, 6, 9, 11"
+  ],
+  "mapping": {
+    "arrangement":               "enkeltbevilling",
+    "enkeltbevilling":           "enkeltbevilling",
+    "skjenke":                   "alminnelig skjenkebevilling",
+    "skjenkebevilling":          "alminnelig skjenkebevilling",
+    "alminnelig skjenkebevilling": "alminnelig skjenkebevilling",
+    "salg":                      "salgsbevilling",
+    "salgsbevilling":            "salgsbevilling",
+    "servering":                 "serveringsbevilling",
+    "serveringsbevilling":       "serveringsbevilling"
+  }
+}

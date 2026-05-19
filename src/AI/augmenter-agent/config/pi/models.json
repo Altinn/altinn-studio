@@ -1,0 +1,41 @@
+{
+  "_doc": [
+    "Pi reads this from $HOME/.pi/agent/models.json (mounted in via docker-compose).",
+    "Built-in providers (anthropic, openai, google, ...) work via env vars alone and do NOT need an entry here.",
+    "Add entries here only for: local servers (Ollama, LM Studio, vLLM), proxies, or self-hosted endpoints.",
+    "apiKey field forms:",
+    "   \"OPENAI_API_KEY\"    → resolves at request time from env var of that name (preferred — keeps secret in .env)",
+    "   \"!aws ssm get-...\"  → resolves by running the shell command and reading stdout",
+    "   \"sk-literal-key\"    → literal, hardcoded value (avoid)",
+    "Reference a model from pipeline.yaml / Agent__Model as <provider-key>/<model-id>, e.g. lmstudio/qwen2.5-coder:7b.",
+    "The file hot-reloads on /model in the TUI; in print mode (-p) it's read at process start."
+  ],
+
+  "providers": {
+
+    "lmstudio": {
+      "baseUrl": "http://host.docker.internal:1234/v1",
+      "api": "openai-completions",
+      "apiKey": "LMSTUDIO_API_KEY",
+      "models": [
+        {
+          "id": "google/gemma-3-4b",
+          "name": "Lokal modell for å teste oppsett",
+          "contextWindow": 4096
+        }
+      ]
+    },
+
+    "sandkasse": {
+      "baseUrl": "https://gw.sandkasse.ai/",
+      "api": "openai-completions",
+      "apiKey": "SANDKASSE_API_KEY",
+      "models": [
+        { "id": "telenor:gemma4",
+          "name": "Gemma 4 31b BF16",
+          "contextWindow": 24000 }
+      ]
+    }
+
+  }
+}

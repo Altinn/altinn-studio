@@ -1,0 +1,91 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "foresporsel-om-opplysninger.schema.json",
+  "title": "Forespørsel om opplysninger – datagrunnlag",
+  "description": "Schema for JSON-data som driver Typst-malen for forespørsel om vandelsvurdering til bevillingssøknader.",
+  "type": "object",
+  "required": ["type-sak", "sted", "personer", "lovhenvisninger"],
+  "properties": {
+    "type-sak": {
+      "type": "string",
+      "description": "Bevillingstype det søkes om.",
+      "enum": [
+        "enkeltbevilling",
+        "alminnelig skjenkebevilling",
+        "salgsbevilling",
+        "serveringsbevilling"
+      ]
+    },
+    "sted": {
+      "type": "object",
+      "description": "Virksomheten/stedet søknaden gjelder.",
+      "required": ["navn", "adresse"],
+      "properties": {
+        "navn": {
+          "type": "string",
+          "description": "Navn på virksomheten / skjenke- / salgs- / serveringsstedet."
+        },
+        "adresse": {
+          "type": "string",
+          "description": "Besøksadresse for stedet."
+        }
+      }
+    },
+    "arrangementsdato": {
+      "type": "string",
+      "format": "date",
+      "description": "Dato for arrangementet (ISO 8601, f.eks. 2025-06-15). Kun relevant for enkeltbevillinger."
+    },
+    "personer": {
+      "type": "array",
+      "description": "Liste over personer og selskaper det ønskes uttalelse om.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["rolle", "navn", "id"],
+        "properties": {
+          "rolle": {
+            "type": "string",
+            "description": "Personens rolle i virksomheten.",
+            "examples": [
+              "Bevillingshaver",
+              "Eier",
+              "Daglig leder ved stedet",
+              "Styrer",
+              "Stedfortreder"
+            ]
+          },
+          "navn": {
+            "type": "string",
+            "description": "Fullt navn på person eller selskap."
+          },
+          "id": {
+            "type": "string",
+            "description": "Fødselsnummer (11 siffer) eller organisasjonsnummer (9 siffer).",
+            "pattern": "^[0-9]{9}([0-9]{2})?$"
+          }
+        }
+      }
+    },
+    "lovhenvisninger": {
+      "type": "array",
+      "description": "Relevante lovhenvisninger.",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      },
+      "default": [
+        "Alkoholloven §§1-7, 1-7b, 1-15",
+        "Serveringsloven §§ 4, 6, 9, 11"
+      ]
+    },
+    "vedlegg": {
+      "type": "array",
+      "description": "Eventuell liste over vedlegg. Tom liste betyr «Ingen vedlegg».",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "defaultStatus": "ikke_vurdert",
+  "seksjoner": [
+    {
+      "id": "formelle_krav",
+      "label": "Formelle krav",
+      "punkter": [
+        { "id": "soknad_komplett",   "label": "Søknaden er komplett utfylt" },
+        { "id": "riktig_soknadstype","label": "Riktig søknadstype valgt" },
+        { "id": "kommune_riktig",    "label": "Riktig kommune valgt" },
+        { "id": "soker_identifisert","label": "Søker er identifisert med org.nr." }
+      ]
+    },
+    {
+      "id": "dokumentasjon",
+      "label": "Dokumentasjon",
+      "punkter": [
+        { "id": "leiekontrakt",            "label": "Leiekontrakt for lokalet" },
+        { "id": "personantall_beregning",  "label": "Beregning av personantall fra godkjent firma" },
+        { "id": "plantegninger",           "label": "Plantegninger over lokalet" },
+        { "id": "mattilsynet_registrering","label": "Registrering hos Mattilsynet" },
+        { "id": "bruksgodkjenning",        "label": "Bruksgodkjenning fra plan- og bygningsetaten" },
+        { "id": "kunnskapsprove_styrer",   "label": "Kunnskapsprøve bestått – styrer" },
+        { "id": "kunnskapsprove_stedfortreder", "label": "Kunnskapsprøve bestått – stedfortreder" },
+        { "id": "arbeidsavtale_styrer",    "label": "Arbeidsavtale for styrer" },
+        { "id": "arbeidsavtale_stedfortreder", "label": "Arbeidsavtale for stedfortreder" }
+      ]
+    },
+    {
+      "id": "vandel",
+      "label": "Vandelsvurdering",
+      "punkter": [
+        { "id": "politi_uttalelse",         "label": "Uttalelse innhentet fra politiet" },
+        { "id": "skatteetaten_uttalelse",   "label": "Uttalelse innhentet fra Skatteetaten" },
+        { "id": "nav_uttalelse",            "label": "Uttalelse innhentet fra NAV (sosialtjenesten)" },
+        { "id": "vandel_bevillingshaver",   "label": "Vandel OK – bevillingshaver/eier" },
+        { "id": "vandel_styrer",            "label": "Vandel OK – styrer (kun alkohollovgivning)" },
+        { "id": "vandel_stedfortreder",     "label": "Vandel OK – stedfortreder (kun alkohollovgivning)" },
+        { "id": "vandel_vesentlig_innflytelse", "label": "Vandel OK – personer med vesentlig innflytelse" }
+      ]
+    },
+    {
+      "id": "personkrav",
+      "label": "Krav til styrer og stedfortreder",
+      "punkter": [
+        { "id": "styrer_alder",            "label": "Styrer er over 20 år" },
+        { "id": "stedfortreder_alder",     "label": "Stedfortreder er over 20 år" },
+        { "id": "styrer_ansatt",           "label": "Styrer er ansatt på stedet / eier" },
+        { "id": "stedfortreder_ansatt",    "label": "Stedfortreder er ansatt på stedet / eier" },
+        { "id": "styrer_kun_ett_sted",     "label": "Styrer er ikke styrer/stedfortreder på annet sted" },
+        { "id": "stedfortreder_kun_ett_sted", "label": "Stedfortreder er ikke styrer/stedfortreder på annet sted" },
+        { "id": "fritak_stedfortreder",    "label": "Fritak fra krav om stedfortreder vurdert" }
+      ]
+    },
+    {
+      "id": "lokalpolitisk",
+      "label": "Lokalpolitisk vurdering (kommunens retningslinjer)",
+      "punkter": [
+        { "id": "beliggenhet_ok",          "label": "Beliggenhet i tråd med retningslinjer" },
+        { "id": "ikke_barn_unge_omraade",  "label": "Ikke i område for barn/unges fritidsaktiviteter" },
+        { "id": "ikke_idrettsarrangement", "label": "Ikke idrettsarrangement eller arrangement for barn/unge" },
+        { "id": "brennevin_spisested",     "label": "Brennevin kun til spisested (hvis gr. 3)" },
+        { "id": "skjenketider_ok",         "label": "Skjenketider innenfor kommunens rammer" },
+        { "id": "arrangement_varighet_ok", "label": "Arrangement innenfor maks 14 dager" }
+      ]
+    },
+    {
+      "id": "habilitet",
+      "label": "Habilitet og saksbehandling",
+      "punkter": [
+        { "id": "habilitet_vurdert",   "label": "Habilitet vurdert (fvl. § 6)" },
+        { "id": "veiledningsplikt",    "label": "Veiledningsplikt overholdt (fvl. § 11)" },
+        { "id": "saksbehandlingstid",  "label": "Innenfor 90 dagers saksbehandlingsfrist" }
+      ]
+    },
+    {
+      "id": "gebyr",
+      "label": "Gebyr",
+      "punkter": [
+        { "id": "gebyr_beregnet", "label": "Bevillingsgebyr korrekt beregnet" }
+      ]
+    },
+    {
+      "id": "helhetsvurdering",
+      "label": "Helhetsvurdering",
+      "punkter": [
+        { "id": "samlet_vurdering", "label": "Samlet vurdering av søknaden" },
+        { "id": "anbefaling",       "label": "Foreløpig anbefaling" }
+      ]
+    }
+  ]
+}

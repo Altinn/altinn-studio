@@ -1,0 +1,21 @@
+{
+  "FlatData": {
+    "BevillingsType": "arrangement",
+    "Arrangement": {
+      "Navn": "Testfest",
+      "ArrangementPeriode": [
+        { "StartDato": "2026-12-12", "SluttDato": "2026-12-12" }
+      ],
+      "Arrangementssted": {
+        "StedsNavn": "Festsalen",
+        "StedsAdresse": { "Gateadresse": "Testveien 1" }
+      }
+    },
+    "Bevillingsansvarlig": {
+      "Styrer": { "FulltNavn": "Test Person", "Foedselsnummer": "01039012345" },
+      "Stedfortreder": { "Fornavn": "Ole", "Etternavn": "Hansen", "Foedselsnummer": "01019012345" }
+    },
+    "PersonerMedInnflytelse": { "FysiskePersoner": [], "JuridiskePersoner": [] },
+    "VedleggsListe": { "Rader": [] }
+  }
+}
