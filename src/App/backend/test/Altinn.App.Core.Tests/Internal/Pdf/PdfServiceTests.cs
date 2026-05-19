@@ -18,7 +18,6 @@ using Altinn.App.PlatformServices.Tests.Mocks;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -86,16 +85,13 @@ public class PdfServiceTests
 
         var httpClient = new HttpClient(delegatingHandler);
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
-        var hostEnvironment = new Mock<IHostEnvironment>();
         var authenticationTokenResolver = CreateAuthenticationTokenResolver(TestAuthentication.GetUserToken());
         var pdfGeneratorClient = new PdfGeneratorClient(
             logger.Object,
             httpClient,
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
-            authenticationTokenResolver.Object,
-            _httpContextAccessor.Object,
-            hostEnvironment.Object
+            authenticationTokenResolver.Object
         );
 
         Stream pdf = await pdfGeneratorClient.GeneratePdf(
@@ -119,16 +115,13 @@ public class PdfServiceTests
 
         var httpClient = new HttpClient(delegatingHandler);
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
-        var hostEnvironment = new Mock<IHostEnvironment>();
         var authenticationTokenResolver = CreateAuthenticationTokenResolver(TestAuthentication.GetUserToken());
         var pdfGeneratorClient = new PdfGeneratorClient(
             logger.Object,
             httpClient,
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
-            authenticationTokenResolver.Object,
-            _httpContextAccessor.Object,
-            hostEnvironment.Object
+            authenticationTokenResolver.Object
         );
 
         var func = async () =>
@@ -165,15 +158,12 @@ public class PdfServiceTests
 
         var httpClient = new HttpClient(delegatingHandler);
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
-        var hostEnvironment = new Mock<IHostEnvironment>();
         var pdfGeneratorClient = new PdfGeneratorClient(
             logger.Object,
             httpClient,
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
-            authTokenResolver.Object,
-            _httpContextAccessor.Object,
-            hostEnvironment.Object
+            authTokenResolver.Object
         );
 
         using Stream pdf = await pdfGeneratorClient.GeneratePdf(

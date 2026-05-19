@@ -140,6 +140,29 @@ func TestParseRunFlagsCanDisableRandomHostPort(t *testing.T) {
 	}
 }
 
+func TestParseRunFlagsReadsLocalFrontend(t *testing.T) {
+	t.Parallel()
+
+	cmd := &RunCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	flags, _, _, err := cmd.parseRunFlags([]string{"--local-frontend"}, "run")
+	if err != nil {
+		t.Fatalf("parseRunFlags() error = %v", err)
+	}
+	if !flags.localFrontend {
+		t.Fatal("localFrontend = false, want true")
+	}
+}
+
+func TestRunAppFrontendAssetBaseUrlUsesTopologyFrontendDevServer(t *testing.T) {
+	t.Parallel()
+
+	got := runAppFrontendAssetBaseUrl(envtopology.NewLocal("8000"), runFlags{localFrontend: true})
+	want := "http://app-frontend.local.altinn.cloud:8000"
+	if got != want {
+		t.Fatalf("runAppFrontendAssetBaseUrl() = %q, want %q", got, want)
+	}
+}
+
 func TestRunDetachedOutputPrintJSON(t *testing.T) {
 	t.Parallel()
 

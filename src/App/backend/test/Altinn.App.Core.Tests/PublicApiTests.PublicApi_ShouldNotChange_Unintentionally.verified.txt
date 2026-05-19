@@ -8,6 +8,7 @@ namespace Altinn.App.Core.Configuration
         public const string VALIDATION_CONFIG_FILENAME = "validation.json";
         public AppSettings() { }
         public string AppBasePath { get; set; }
+        public string? AppFrontendAssetBaseUrl { get; set; }
         public string AppOidcProvider { get; set; }
         public string AppVersion { get; set; }
         public string ApplicationMetadataFileName { get; set; }

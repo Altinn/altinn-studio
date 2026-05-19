@@ -6,8 +6,6 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Models.Pdf;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Context.Propagation;
@@ -32,8 +30,6 @@ internal sealed class PdfGeneratorClient : IPdfGeneratorClient
     private readonly PdfGeneratorSettings _pdfGeneratorSettings;
     private readonly PlatformSettings _platformSettings;
     private readonly Func<AuthenticationMethod, CancellationToken, Task<string>> _getAccessToken;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IHostEnvironment _hostEnvironment;
     private readonly Telemetry? _telemetry;
 
     private readonly AuthenticationMethod _defaultAuthenticationMethod = StorageAuthenticationMethod.CurrentUser();
@@ -48,8 +44,6 @@ internal sealed class PdfGeneratorClient : IPdfGeneratorClient
     /// </param>
     /// <param name="platformSettings">Links to platform services</param>
     /// <param name="authenticationTokenResolver">Provides access tokens for storage authentication methods.</param>
-    /// <param name="httpContextAccessor">http context</param>
-    /// <param name="hostEnvironment">The host environment.</param>
     /// <param name="telemetry">Telemetry service</param>
     public PdfGeneratorClient(
         ILogger<PdfGeneratorClient> logger,
@@ -57,8 +51,6 @@ internal sealed class PdfGeneratorClient : IPdfGeneratorClient
         IOptions<PdfGeneratorSettings> pdfGeneratorSettings,
         IOptions<PlatformSettings> platformSettings,
         IAuthenticationTokenResolver authenticationTokenResolver,
-        IHttpContextAccessor httpContextAccessor,
-        IHostEnvironment hostEnvironment,
         Telemetry? telemetry = null
     )
         : this(
@@ -66,8 +58,6 @@ internal sealed class PdfGeneratorClient : IPdfGeneratorClient
             httpClient,
             pdfGeneratorSettings,
             platformSettings,
-            httpContextAccessor,
-            hostEnvironment,
             async (authenticationMethod, cancellationToken) =>
                 await authenticationTokenResolver.GetAccessToken(authenticationMethod, cancellationToken),
             telemetry
@@ -78,8 +68,6 @@ internal sealed class PdfGeneratorClient : IPdfGeneratorClient
         HttpClient httpClient,
         IOptions<PdfGeneratorSettings> pdfGeneratorSettings,
         IOptions<PlatformSettings> platformSettings,
-        IHttpContextAccessor httpContextAccessor,
-        IHostEnvironment hostEnvironment,
         Func<AuthenticationMethod, CancellationToken, Task<string>> getAccessToken,
         Telemetry? telemetry
     )
@@ -88,8 +76,6 @@ internal sealed class PdfGeneratorClient : IPdfGeneratorClient
         _httpClient = httpClient;
         _pdfGeneratorSettings = pdfGeneratorSettings.Value;
         _platformSettings = platformSettings.Value;
-        _httpContextAccessor = httpContextAccessor;
-        _hostEnvironment = hostEnvironment;
         _getAccessToken = getAccessToken;
         _telemetry = telemetry;
     }
@@ -158,25 +144,6 @@ internal sealed class PdfGeneratorClient : IPdfGeneratorClient
 
         string tokenValue = await _getAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
         generatorRequest.Cookies.Add(new PdfGeneratorCookieOptions { Value = tokenValue, Domain = uri.Host });
-
-        if (
-            _hostEnvironment.IsDevelopment()
-            && _httpContextAccessor.HttpContext?.Request.Cookies.TryGetValue("frontendVersion", out var frontendVersion)
-                == true
-            && !string.IsNullOrEmpty(frontendVersion)
-        )
-        {
-            frontendVersion = frontendVersion.Replace("localhost", "host.containers.internal");
-            generatorRequest.Cookies.Insert(
-                0,
-                new PdfGeneratorCookieOptions
-                {
-                    Name = "frontendVersion",
-                    Domain = uri.Host,
-                    Value = frontendVersion,
-                }
-            );
-        }
 
         string requestContent = JsonSerializer.Serialize(generatorRequest, _jsonSerializerOptions);
         using StringContent stringContent = new(requestContent, Encoding.UTF8, "application/json");
