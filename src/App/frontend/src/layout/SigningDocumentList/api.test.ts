@@ -57,10 +57,10 @@ describe('useDocumentList', () => {
     return 'queryFn' in value && typeof value.queryFn === 'function';
   }
 
-  const runQueryFn = async (altinnNugetVersion: string | undefined): Promise<SigningDocument[]> => {
+  const runQueryFn = async (): Promise<SigningDocument[]> => {
     mockedUseQuery.mockReturnValue({} as ReturnType<typeof useQuery>);
 
-    renderHook(() => useDocumentList('party-id', 'instance-guid', altinnNugetVersion));
+    renderHook(() => useDocumentList('party-id', 'instance-guid'));
 
     const [queryOptions] = mockedUseQuery.mock.calls.at(-1) ?? [];
 
@@ -71,18 +71,9 @@ describe('useDocumentList', () => {
     return queryOptions.queryFn();
   };
 
-  it('returns backend order when altinnNugetVersion is at least 8.9.0.225', async () => {
-    const documents = await runQueryFn('8.9.0.225');
+  it('returns backend order', async () => {
+    const documents = await runQueryFn();
 
     expect(documents.map((doc) => doc.filename)).toEqual(['zeta.pdf', 'alpha.pdf']);
   });
-
-  it.each<[string | undefined]>([['8.9.0.224'], [undefined]])(
-    'sorts by filename when altinnNugetVersion is %s',
-    async (altinnNugetVersion) => {
-      const documents = await runQueryFn(altinnNugetVersion);
-
-      expect(documents.map((doc) => doc.filename)).toEqual(['alpha.pdf', 'zeta.pdf']);
-    },
-  );
 });

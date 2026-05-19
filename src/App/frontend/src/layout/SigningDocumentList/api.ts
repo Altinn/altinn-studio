@@ -6,7 +6,6 @@ import { DataTypeReference } from 'src/utils/attachmentsUtils';
 import { httpGet } from 'src/utils/network/sharedNetworking';
 import { appPath } from 'src/utils/urls/appUrlHelper';
 import { makeUrlRelativeIfSameDomain } from 'src/utils/urls/urlHelper';
-import { backendSupportsSigningDocumentOrdering } from 'src/utils/versioning/versions';
 
 const signingDocumentSchema = z
   .object({
@@ -34,23 +33,13 @@ export type SigningDocument = z.infer<typeof signingDocumentSchema>;
 export function useDocumentList(
   instanceOwnerPartyId: string | undefined,
   instanceGuid: string | undefined,
-  altinnNugetVersion: string | undefined,
 ): UseQueryResult<SigningDocument[]> {
-  const backendHandlesOrdering = backendSupportsSigningDocumentOrdering(altinnNugetVersion);
-
   return useQuery({
-    queryKey: ['signingDocumentList', instanceOwnerPartyId, instanceGuid, backendHandlesOrdering],
+    queryKey: ['signingDocumentList', instanceOwnerPartyId, instanceGuid],
     queryFn: async () => {
       const url = `${appPath}/instances/${instanceOwnerPartyId}/${instanceGuid}/signing/data-elements`;
-
       const response = await httpGet(url);
-
-      const dataElements = z.object({ dataElements: z.array(signingDocumentSchema) }).parse(response).dataElements;
-
-      if (backendHandlesOrdering) {
-        return dataElements;
-      }
-      return dataElements.toSorted((a, b) => (a.filename ?? '').localeCompare(b.filename ?? ''));
+      return z.object({ dataElements: z.array(signingDocumentSchema) }).parse(response).dataElements;
     },
     staleTime: 1000 * 60 * 30, // 30 minutes
     refetchOnMount: 'always',

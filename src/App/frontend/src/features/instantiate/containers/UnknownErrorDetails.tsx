@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 
+import { AccordionItem, Button, Flex } from '@app/form-component';
 import { CheckmarkCircleIcon } from '@navikt/aksel-icons';
 import { type AxiosError, isAxiosError } from 'axios';
 
-import { AccordionItem } from 'src/app-components/Accordion/AccordionItem';
-import { Button } from 'src/app-components/Button/Button';
-import { Flex } from 'src/app-components/Flex/Flex';
 import classes from 'src/features/instantiate/containers/UnknownErrorDetails.module.css';
 import { Lang } from 'src/features/language/Lang';
 
