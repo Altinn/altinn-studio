@@ -1,24 +1,21 @@
 import React from 'react';
 
-import { Label } from '@app/form-component';
+import { FormattedInput, Input, Label, NumericInput } from '@app/form-component';
+import type { InputProps } from '@app/form-component';
 
-import { FormattedInput } from 'src/app-components/Input/FormattedInput';
-import { Input } from 'src/app-components/Input/Input';
-import { NumericInput } from 'src/app-components/Input/NumericInput';
-import { translationKey } from 'src/AppComponentsBridge';
 import { getDescriptionId, getLabelId } from 'src/components/label/Label';
 import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { useMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/Input/InputComponent.module.css';
 import { isNumberFormat, isPatternFormat } from 'src/layout/Input/number-format-helpers';
-import { buildAriaDescribedBy } from 'src/utils/inputUtils';
+import { buildAriaDescribedBy, useCharacterLimit } from 'src/utils/inputUtils';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { InputProps } from 'src/app-components/Input/Input';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type {
   HTMLAutoCompleteValues,
@@ -124,6 +121,8 @@ const InputVariant = ({
     formData: { simpleBinding: realFormValue },
     setValue,
   } = useDataModelBindings(dataModelBindings, saveWhileTyping);
+  const { langAsString } = useLanguage();
+  const characterLimit = useCharacterLimit(maxLength);
 
   const [localValue, setLocalValue] = React.useState<string | undefined>(undefined);
   const formValue = localValue ?? realFormValue;
@@ -147,7 +146,7 @@ const InputVariant = ({
   });
 
   const labelProps = textResourceBindings?.title
-    ? { 'aria-label': translationKey(textResourceBindings?.title) }
+    ? { 'aria-label': langAsString(textResourceBindings.title) }
     : { 'aria-labelledby': labelId };
 
   const inputProps: InputProps = {
@@ -161,8 +160,8 @@ const InputVariant = ({
     required,
     onBlur: () => debounce('blur'),
     error: !useIsValid(baseComponentId),
-    prefix: translationKey(textResourceBindings?.prefix),
-    suffix: translationKey(textResourceBindings?.suffix),
+    prefix: textResourceBindings?.prefix ? langAsString(textResourceBindings.prefix) : undefined,
+    suffix: textResourceBindings?.suffix ? langAsString(textResourceBindings.suffix) : undefined,
     style: { width: '100%' },
     inputMode,
     pattern,
@@ -179,7 +178,7 @@ const InputVariant = ({
           onChange={(event) => {
             setValue('simpleBinding', event.target.value);
           }}
-          maxLength={maxLength}
+          characterLimit={characterLimit}
         />
       );
     case 'pattern':
@@ -195,7 +194,7 @@ const InputVariant = ({
             }
             setValue('simpleBinding', values.value);
           }}
-          maxLength={maxLength}
+          characterLimit={characterLimit}
         />
       );
     case 'number':
@@ -203,8 +202,8 @@ const InputVariant = ({
         <NumericInput
           {...inputProps}
           {...variant.format}
-          prefix={translationKey(variant.format.prefix)}
-          suffix={translationKey(variant.format.suffix)}
+          prefix={langAsString(variant.format.prefix)}
+          suffix={langAsString(variant.format.suffix)}
           value={formValue}
           type='text'
           onBlur={() => {
@@ -252,7 +251,7 @@ const InputVariant = ({
               setValue('simpleBinding', pastedText);
             }
           }}
-          maxLength={maxLength}
+          characterLimit={characterLimit}
         />
       );
   }

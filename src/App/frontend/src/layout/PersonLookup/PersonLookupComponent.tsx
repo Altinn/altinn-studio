@@ -1,12 +1,9 @@
 import React, { useMemo, useState } from 'react';
 
-import { Button, Fieldset, Label } from '@app/form-component';
+import { Button, Fieldset, Input, Label, NumericInput } from '@app/form-component';
 import { Field, ValidationMessage } from '@digdir/designsystemet-react';
 import { queryOptions, useQuery } from '@tanstack/react-query';
 
-import { Input } from 'src/app-components/Input/Input';
-import { NumericInput } from 'src/app-components/Input/NumericInput';
-import { translationKey } from 'src/AppComponentsBridge';
 import { Description } from 'src/components/form/Description';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { getDescriptionId } from 'src/components/label/Label';
@@ -222,7 +219,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
             <NumericInput
               id={`${id}_ssn`}
               aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${id}_ssn`) : undefined}
-              aria-label={translationKey('person_lookup.ssn_label')}
+              aria-label={langAsString('person_lookup.ssn_label')}
               value={hasSuccessfullyFetched ? person_lookup_ssn : tempSsn}
               required={required}
               readOnly={hasSuccessfullyFetched || isFetching || readOnly}
@@ -273,7 +270,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
             <Input
               id={`${id}_name`}
               aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${id}_name`) : undefined}
-              aria-label={translationKey(
+              aria-label={langAsString(
                 hasSuccessfullyFetched ? 'person_lookup.name_label' : 'person_lookup.surname_label',
               )}
               value={hasSuccessfullyFetched ? displayName : tempName}

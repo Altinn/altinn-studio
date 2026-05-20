@@ -19,4 +19,8 @@ public class GroupDto
     [JsonPropertyName("type")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public GroupType? Type { get; set; }
+
+    [JsonPropertyName("expandedByDefault")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool? ExpandedByDefault { get; set; }
 }
