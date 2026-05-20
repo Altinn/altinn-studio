@@ -2,7 +2,6 @@
 .github/
 .husky/
 .yarn/patches/jsdom-npm-26.1.0-3857255f02.patch
-.yarn/releases/yarn-4.12.0.cjs
 .yarnrc.yml
 LICENSE.md
 adr/001-component-library.md
@@ -40,6 +39,7 @@ src/features/datamodel/DataElementIdsForCypress.tsx
 src/features/datamodel/DataModelsProvider.tsx
 src/features/datamodel/useDataModelSchemaQuery.ts
 src/features/datamodel/utils.ts
+src/features/devtools/components/VersionSwitcher/VersionSwitcher.tsx
 src/features/entrypoint/Entrypoint.tsx
 src/features/form/FormContext.tsx
 src/features/form/dynamics/
@@ -51,7 +51,6 @@ src/features/form/layoutSettings/
 src/features/form/rules/RulesContext.tsx
 src/features/formData/LegacyRules.ts
 src/features/instance/instanceUtils.ts
-src/features/instantiate/InstantiationError.tsx
 src/features/instantiate/containers/InstantiateContainer.tsx
 src/features/instantiate/useInstantiation.tsx
 src/features/language/LangDataSourcesProvider.tsx
@@ -84,7 +83,7 @@ src/utils/formLayout.test.ts
 src/utils/formLayout.ts
 src/utils/layout/generator/GeneratorDataSources.tsx
 src/utils/refs/
-src/utils/versioning/versions.ts
+src/utils/versioning/
 test/e2e/config/
 test/e2e/integration/component-library/pdf.ts
 test/e2e/integration/frontend-test/language.ts
