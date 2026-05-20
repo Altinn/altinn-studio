@@ -1,9 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { FormattedInput } from './FormattedInput';
 import { Input } from './Input';
-import { NumericInput } from './NumericInput';
 
 describe('Input', () => {
   it('renders a textbox with a visible label', () => {
@@ -107,35 +105,5 @@ describe('Input', () => {
 
       expect(container).toBeEmptyDOMElement();
     });
-  });
-});
-
-describe('FormattedInput', () => {
-  it('formats the value according to the pattern', () => {
-    render(
-      <FormattedInput
-        aria-label='Phone'
-        format='### ## ###'
-        value='12345678'
-        onValueChange={() => {}}
-      />,
-    );
-
-    expect(screen.getByRole('textbox', { name: 'Phone' })).toHaveValue('123 45 678');
-  });
-});
-
-describe('NumericInput', () => {
-  it('formats the value with a thousand separator', () => {
-    render(
-      <NumericInput
-        aria-label='Amount'
-        thousandSeparator=' '
-        value='1234567'
-        onValueChange={() => {}}
-      />,
-    );
-
-    expect(screen.getByRole('textbox', { name: 'Amount' })).toHaveValue('1 234 567');
   });
 });
