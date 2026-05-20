@@ -100,7 +100,7 @@ public sealed class AgentPdfOrchestratedStep : IPdfGenerationStep
             if (rules.Count == 0)
             {
                 _logger.LogWarning(
-                    "No markdown rules found under {RulesFolder} — all punkter will default to 'ikke_vurdert'",
+                    "No markdown rules found under {RulesFolder} — all items will default to 'ikke_vurdert'",
                     _rulesFolderAbsolutePath);
             }
 

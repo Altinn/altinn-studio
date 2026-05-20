@@ -1,0 +1,126 @@
+{
+  "output": {
+    "type-sak": {
+      "kind": "mapping",
+      "registry": "bevillingstyper.json",
+      "source": "BevillingsType"
+    },
+
+    "sted": {
+      "navn":    {
+        "kind": "chain",
+        "sources": [
+          "Arrangement.Arrangementssted.StedsNavn",
+          "StedsOpplysninger.Navn"
+        ],
+        "default": "Ukjent sted"
+      },
+      "adresse": {
+        "kind": "chain",
+        "sources": [
+          "Arrangement.Arrangementssted.StedsAdresse.Gateadresse",
+          "StedsOpplysninger.Adresse"
+        ],
+        "default": "Ukjent adresse"
+      }
+    },
+
+    "arrangementsdato": {
+      "kind": "path",
+      "source": "Arrangement.ArrangementPeriode[0].StartDato"
+    },
+
+    "personer": {
+      "kind": "list_concat",
+      "parts": [
+        {
+          "kind": "object_if_present", "source": "Bevillingsansvarlig.Styrer",
+          "require_fields": ["Foedselsnummer"],
+          "fields": {
+            "rolle": { "kind": "const", "value": "Styrer" },
+            "navn":  { "kind": "coalesce", "items": [
+              { "kind": "path", "source": "FulltNavn" },
+              { "kind": "concat", "parts": ["$Fornavn", "$Mellomnavn", "$Etternavn"] }
+            ] },
+            "id":    { "kind": "path", "source": "Foedselsnummer" }
+          }
+        },
+        {
+          "kind": "object_if_present", "source": "Bevillingsansvarlig.Stedfortreder",
+          "require_fields": ["Foedselsnummer"],
+          "fields": {
+            "rolle": { "kind": "const", "value": "Stedfortreder" },
+            "navn":  { "kind": "coalesce", "items": [
+              { "kind": "path", "source": "FulltNavn" },
+              { "kind": "concat", "parts": ["$Fornavn", "$Mellomnavn", "$Etternavn"] }
+            ] },
+            "id":    { "kind": "path", "source": "Foedselsnummer" }
+          }
+        },
+        {
+          "kind": "object_if_present", "source": "Bevillingsansvarlig.DagligLeder",
+          "require_fields": ["Foedselsnummer"],
+          "fields": {
+            "rolle": { "kind": "const", "value": "Daglig leder ved stedet" },
+            "navn":  { "kind": "coalesce", "items": [
+              { "kind": "path", "source": "FulltNavn" },
+              { "kind": "concat", "parts": ["$Fornavn", "$Mellomnavn", "$Etternavn"] }
+            ] },
+            "id":    { "kind": "path", "source": "Foedselsnummer" }
+          }
+        },
+        {
+          "kind": "object_if_present", "source": "Innsender",
+          "require_fields": ["Foedselsnummer", "FulltNavn"],
+          "exclude_when_id_matches": [
+            "Bevillingsansvarlig.Styrer.Foedselsnummer",
+            "Bevillingsansvarlig.Stedfortreder.Foedselsnummer"
+          ],
+          "id_field": "Foedselsnummer",
+          "fields": {
+            "rolle": { "kind": "const", "value": "Innsender" },
+            "navn":  { "kind": "path", "source": "FulltNavn" },
+            "id":    { "kind": "path", "source": "Foedselsnummer" }
+          }
+        },
+        {
+          "kind": "list_map", "source": "PersonerMedInnflytelse.FysiskePersoner",
+          "fields": {
+            "rolle": { "kind": "chain", "sources": ["Rolle"], "default": "Person med vesentlig innflytelse" },
+            "navn":  { "kind": "chain", "sources": ["FulltNavn", "Navn"] },
+            "id":    { "kind": "chain", "sources": ["Foedselsnummer", "Id"] }
+          }
+        },
+        {
+          "kind": "list_map", "source": "PersonerMedInnflytelse.JuridiskePersoner",
+          "fields": {
+            "rolle": { "kind": "chain", "sources": ["Rolle"], "default": "Juridisk person med vesentlig innflytelse" },
+            "navn":  { "kind": "path", "source": "Navn" },
+            "id":    { "kind": "path", "source": "Organisasjonsnummer" }
+          }
+        },
+        {
+          "kind": "object_if_present", "source": "OrganisasjonsInformasjon",
+          "require_fields": ["Navn", "Organisasjonsnummer"],
+          "fields": {
+            "rolle": { "kind": "const", "value": "Bevillingshaver" },
+            "navn":  { "kind": "path", "source": "Navn" },
+            "id":    { "kind": "path", "source": "Organisasjonsnummer" }
+          }
+        }
+      ]
+    },
+
+    "lovhenvisninger": {
+      "kind": "list_const",
+      "registry": "bevillingstyper.json",
+      "field": "references"
+    },
+
+    "vedlegg": {
+      "kind": "list_pluck",
+      "source": "VedleggsListe.Rader",
+      "fields": ["Navn", "Filnavn"]
+    }
+  }
+}

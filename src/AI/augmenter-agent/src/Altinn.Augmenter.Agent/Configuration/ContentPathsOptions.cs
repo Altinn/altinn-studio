@@ -40,4 +40,12 @@ public sealed class ContentPathsOptions
     /// schemas live here so the public image carries no domain vocabulary.
     /// </summary>
     public string ToolsRoot { get; set; } = "/etc/augmenter/tools";
+
+    /// <summary>
+    /// JsonPathMapper spec files (one <c>&lt;mapper_name&gt;.json</c> per mapper).
+    /// Filename without extension is the key referenced by <c>mapper</c> in
+    /// pipeline.yaml. The image ships no projection logic; specs declare how
+    /// to fold FlatData into the shape each template expects.
+    /// </summary>
+    public string MappingsRoot { get; set; } = "/etc/augmenter/mappings";
 }

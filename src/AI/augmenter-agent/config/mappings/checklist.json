@@ -1,0 +1,91 @@
+{
+  "output": {
+    "meta": {
+      "saksnummer":     { "kind": "const", "value": "–" },
+      "soknadsdato":    { "kind": "const", "value": "–" },
+      "vurderingsdato": { "kind": "today" },
+      "saksbehandler":  { "kind": "const", "value": "AI-agent" },
+      "soknadstype":    { "kind": "path", "source": "BevillingsType", "default": "ukjent" },
+      "kommune": {
+        "kind": "registry_field",
+        "registry": "kommuner.json",
+        "key_sources": [
+          "Kommunenummer",
+          "Arrangement.Arrangementssted.StedsAdresse.Kommunenummer",
+          "Innsender.Adresse.Kommunenummer"
+        ],
+        "field": "name",
+        "fallback_sources": [
+          "Arrangement.Arrangementssted.Kommune",
+          "StedsOpplysninger.Kommune"
+        ],
+        "default": "–"
+      }
+    },
+
+    "soker": {
+      "navn": {
+        "kind": "chain",
+        "sources": [
+          "OrganisasjonsInformasjon.Navn",
+          "Innsender.FulltNavn"
+        ],
+        "default": "Privatperson"
+      },
+      "organisasjonsnummer": { "kind": "path", "source": "OrganisasjonsInformasjon.Organisasjonsnummer", "default": "–" },
+      "kontaktperson":       { "kind": "chain", "sources": ["Innsender.FulltNavn"], "default": "–" },
+      "adresse":             { "kind": "const", "value": "–" }
+    },
+
+    "arrangement": {
+      "navn":              { "kind": "path", "source": "Arrangement.Navn", "default": "–" },
+      "type":              { "kind": "chain", "sources": ["Arrangement.ArrangementType", "Arrangement.Type"], "default": "–" },
+      "fra_dato":          { "kind": "path", "source": "Arrangement.ArrangementPeriode[0].StartDato", "default": "–" },
+      "fra_klokkeslett":   { "kind": "path", "source": "Arrangement.ArrangementPeriode[0].StartTid",  "default": "–" },
+      "til_dato":          { "kind": "path", "source": "Arrangement.ArrangementPeriode[0].SluttDato", "default": "–" },
+      "til_klokkeslett":   { "kind": "path", "source": "Arrangement.ArrangementPeriode[0].SluttTid",  "default": "–" },
+      "antall_deltakere":  { "kind": "int",  "source": "Arrangement.AntallDeltakere", "default": 0 },
+      "aapen_eller_lukket": {
+        "kind": "switch", "source": "Arrangement.TypeDeltakere",
+        "cases": { "bestemtePersoner": "Lukket" },
+        "default": "Åpent"
+      },
+      "innendors_utendors": {
+        "kind": "switch", "source": "Arrangement.Arrangementssted.Type",
+        "cases": { "innendoers": "Innendørs", "utendoers": "Utendørs" },
+        "default": "–"
+      },
+      "lokale_navn":    { "kind": "path", "source": "Arrangement.Arrangementssted.StedsNavn", "default": "Ukjent" },
+      "lokale_adresse": { "kind": "path", "source": "Arrangement.Arrangementssted.StedsAdresse.Gateadresse", "default": "–" }
+    },
+
+    "bevilling": {
+      "type_bevilling":    { "kind": "path", "source": "BevillingsType", "default": "ukjent" },
+      "alkoholgruppe":     { "kind": "rule_match", "registry": "alkoholgrupper.json", "source": "Arrangement.VaregruppeAlkohol" },
+      "har_eksisterende_bevilling": { "kind": "boolean", "source": "SkalFornyeBevilling" }
+    },
+
+    "styrer": {
+      "navn": { "kind": "coalesce", "items": [
+        { "kind": "path",   "source": "Bevillingsansvarlig.Styrer.FulltNavn" },
+        { "kind": "concat", "parts":  ["$Bevillingsansvarlig.Styrer.Fornavn", "$Bevillingsansvarlig.Styrer.Mellomnavn", "$Bevillingsansvarlig.Styrer.Etternavn"] }
+      ], "default": "Ikke oppgitt" },
+      "fodselsnummer": { "kind": "path", "source": "Bevillingsansvarlig.Styrer.Foedselsnummer", "default": "–" },
+      "epost":         { "kind": "path", "source": "Bevillingsansvarlig.Styrer.EPostadresse",  "default": "–" },
+      "telefon":       { "kind": "path", "source": "Bevillingsansvarlig.Styrer.Telefonnummer", "default": "–" }
+    },
+
+    "stedfortreder": {
+      "navn": { "kind": "coalesce", "items": [
+        { "kind": "path",   "source": "Bevillingsansvarlig.Stedfortreder.FulltNavn" },
+        { "kind": "concat", "parts":  ["$Bevillingsansvarlig.Stedfortreder.Fornavn", "$Bevillingsansvarlig.Stedfortreder.Mellomnavn", "$Bevillingsansvarlig.Stedfortreder.Etternavn"] }
+      ], "default": "Ikke oppgitt" },
+      "fodselsnummer": { "kind": "path", "source": "Bevillingsansvarlig.Stedfortreder.Foedselsnummer", "default": "–" },
+      "epost":         { "kind": "path", "source": "Bevillingsansvarlig.Stedfortreder.EPostadresse",  "default": "–" },
+      "telefon":       { "kind": "path", "source": "Bevillingsansvarlig.Stedfortreder.Telefonnummer", "default": "–" },
+      "fritak_sokt":   { "kind": "boolean", "source": "Bevillingsansvarlig.SkalHaFritakFraStedfortreder" }
+    },
+
+    "sjekkliste": { "kind": "const", "value": {} }
+  }
+}
