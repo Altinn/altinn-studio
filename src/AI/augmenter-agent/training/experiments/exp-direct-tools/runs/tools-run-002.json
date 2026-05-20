@@ -1,0 +1,50 @@
+{
+  "runId": "tools-run-002",
+  "timestamp": "2026-05-20T10:42:39.611189+02:00",
+  "inputFile": "examples\\applications\\julebord-kristiansand.json",
+  "tracesDir": "training\\experiments\\exp-direct-tools\\traces\\tools-run-002",
+  "punkter": [
+    {
+      "punkt": "personkrav.styrer_alder",
+      "status": "vurdert_ok",
+      "merknad": "Styrer er født 1990-03-01 og er 36 år på arrangementets startdato (2026-12-12), noe som oppfyller kravet om minimum 20 år.",
+      "llmCallCount": 3,
+      "toolCallCount": 3,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "age_at_date_from_fnr"
+      ],
+      "totalElapsedMs": 3458,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "lokalpolitisk.skjenketider_ok",
+      "status": "vurdert_ok",
+      "merknad": "Skjenketidene (19:00 - 02:00) for varegruppe 3 ligger innenfor lovens makstider (13:00 - 03:00). Saksbehandler må verifisere tidene mot kommunens lokale retningslinjer.",
+      "llmCallCount": 3,
+      "toolCallCount": 4,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "path_value",
+        "time_within_legal_schedule"
+      ],
+      "totalElapsedMs": 3893,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "vandel.vandel_styrer",
+      "status": "ikke_vurdert",
+      "merknad": "Vandelsspørsmålet for styrer Sophie Salt venter på uttalelse fra politiet om alkohollovgivningen. Merk at skatte- og regnskapsforhold ikke er relevant for vurdering av styrer.",
+      "llmCallCount": 1,
+      "toolCallCount": 0,
+      "toolsUsed": [],
+      "totalElapsedMs": 1266,
+      "finishReason": "stop"
+    }
+  ],
+  "wallTimeSec": 8.64,
+  "model": "sandkasse/telenor:gemma4",
+  "transport": "sandkasse-direct-http + tool-loop"
+}
