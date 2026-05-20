@@ -67,7 +67,7 @@ export function OrganisationLookupComponent({
   baseComponentId,
   overrideDisplay,
 }: PropsFromGenericComponent<'OrganisationLookup'>) {
-  const { id, dataModelBindings, required } = useItemWhenType(baseComponentId, 'OrganisationLookup');
+  const { id, dataModelBindings, required, readOnly } = useItemWhenType(baseComponentId, 'OrganisationLookup');
   const { labelText, getHelpTextComponent, getDescriptionComponent } = useLabel({
     baseComponentId,
     overrideDisplay,
@@ -155,14 +155,14 @@ export function OrganisationLookupComponent({
               aria-label={langAsString('organisation_lookup.orgnr_label')}
               value={hasSuccessfullyFetched ? organisation_lookup_orgnr : tempOrgNr}
               required={required}
-              readOnly={hasSuccessfullyFetched || isFetching}
+              readOnly={hasSuccessfullyFetched || isFetching || readOnly}
               error={isValid}
               onValueChange={(e) => {
                 setTempOrgNr(e.value);
                 setOrgNrErrors(undefined);
               }}
               onKeyDown={async (ev) => {
-                if (ev.key === 'Enter') {
+                if (ev.key === 'Enter' && !readOnly) {
                   await handleSubmit();
                 }
               }}
@@ -176,26 +176,28 @@ export function OrganisationLookupComponent({
               </ValidationMessage>
             )}
           </Field>
-          <div className={classes.submit}>
-            {!hasSuccessfullyFetched ? (
-              <Button
-                onClick={handleSubmit}
-                variant='secondary'
-                isLoading={isFetching}
-                loadingLabel={langAsString('general.loading')}
-              >
-                <Lang id='organisation_lookup.submit_button' />
-              </Button>
-            ) : (
-              <Button
-                variant='secondary'
-                color='danger'
-                onClick={handleClear}
-              >
-                <Lang id='organisation_lookup.clear_button' />
-              </Button>
-            )}
-          </div>
+          {!readOnly && (
+            <div className={classes.submit}>
+              {!hasSuccessfullyFetched ? (
+                <Button
+                  onClick={handleSubmit}
+                  variant='secondary'
+                  isLoading={isFetching}
+                  loadingLabel={langAsString('general.loading')}
+                >
+                  <Lang id='organisation_lookup.submit_button' />
+                </Button>
+              ) : (
+                <Button
+                  variant='secondary'
+                  color='danger'
+                  onClick={handleClear}
+                >
+                  <Lang id='organisation_lookup.clear_button' />
+                </Button>
+              )}
+            </div>
+          )}
           {data?.error && (
             <ValidationMessage
               data-size='sm'

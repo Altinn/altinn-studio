@@ -44,7 +44,7 @@ export const AltinnError = ({
         </span>
       )}
       <h1 className={cn(classes.title, classes.contentMargin)}>{title}</h1>
-      <p className={cn(classes.articleText, classes.contentMargin)}>{content}</p>
+      <section className={cn(classes.articleText, classes.contentMargin)}>{content}</section>
       {showContactInfo && (
         <p>
           <Lang
