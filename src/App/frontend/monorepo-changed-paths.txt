@@ -23,7 +23,7 @@ src/app-components/Label/
 src/app-components/Number/
 src/app-components/Text/DisplayText.tsx
 src/app-components/TextArea/TextArea.tsx
-src/app-components/TimePicker/TimeSegment/TimeSegment.tsx
+src/app-components/TimePicker/
 src/app-components/loading/Spinner/Spinner.tsx
 src/codegen/schemas/layout-sets.schema.v1.ts
 src/components/presentation/Header.tsx
