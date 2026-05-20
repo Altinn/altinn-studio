@@ -1,12 +1,11 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { Button, Flex } from '@app/form-component';
+import { Button, Fieldset, Flex } from '@app/form-component';
 import { PlusIcon } from '@navikt/aksel-icons';
 
 import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { FullWidthWrapper } from 'src/app-components/FullWidthWrapper/FullWidthWrapper';
-import { Fieldset } from 'src/app-components/Label/Fieldset';
 import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
