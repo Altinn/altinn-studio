@@ -7,6 +7,7 @@ export * from './Input';
 export * from './hooks';
 export * from './Pagination';
 export * from './DisplayDate';
+export * from './DisplayText';
 export * from './DisplayNumber';
 export * from './Spinner';
 export * from './TextArea';
