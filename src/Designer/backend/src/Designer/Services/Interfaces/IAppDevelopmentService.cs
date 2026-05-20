@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
@@ -322,33 +321,6 @@ public interface IAppDevelopmentService
     public Task SaveValidationOnNavigationLayoutSets(
         AltinnRepoEditingContext context,
         ValidationOnNavigation validationOnNavigation,
-        CancellationToken cancellationToken
-    );
-
-    public Task<ValidationOnNavigation> GetGlobalValidationOnNavigationSettings(
-        AltinnRepoEditingContext context,
-        CancellationToken cancellationToken
-    );
-
-    public Task SaveGlobalValidationOnNavigationSettings(
-        AltinnRepoEditingContext context,
-        ValidationOnNavigation validationOnNavigation,
-        CancellationToken cancellationToken
-    );
-
-    public Task<List<TaskNavigationGroup>> GetGlobalTaskNavigationSettings(
-        AltinnRepoEditingContext context,
-        CancellationToken cancellationToken
-    );
-
-    public IEnumerable<ProcessTask> GetTasks(
-        AltinnRepoEditingContext altinnRepoEditingContext,
-        CancellationToken cancellationToken
-    );
-
-    public Task UpdateGlobalTaskNavigationSettings(
-        AltinnRepoEditingContext altinnRepoEditingContext,
-        IEnumerable<TaskNavigationGroup> taskNavigationGroupList,
         CancellationToken cancellationToken
     );
 }
