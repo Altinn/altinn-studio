@@ -20,6 +20,7 @@ src/app-components/Datepicker/
 src/app-components/Flex/
 src/app-components/Input/
 src/app-components/Number/
+src/app-components/Pagination/
 src/app-components/Text/DisplayText.tsx
 src/app-components/TextArea/TextArea.tsx
 src/app-components/TimePicker/TimeSegment/TimeSegment.tsx

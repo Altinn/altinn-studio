@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 
-import { Button } from '@app/form-component';
+import { Button, Pagination } from '@app/form-component';
 import { Heading, Paragraph, Table } from '@digdir/designsystemet-react';
 import { PencilIcon } from '@navikt/aksel-icons';
 
-import { Pagination } from 'src/app-components/Pagination/Pagination';
-import { translationKey } from 'src/AppComponentsBridge';
 import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
@@ -137,9 +135,10 @@ function InstanceSelection({ instances: _instances }: { instances: ISimpleInstan
                 <div className={classes.paginationWrapperMobile}>
                   <Pagination
                     id='instance-selection'
-                    nextLabel={translationKey('list_component.nextPage')}
-                    previousLabel={translationKey('list_component.previousPage')}
-                    rowsPerPageText={translationKey('list_component.rowsPerPage')}
+                    nextLabel={langAsString('list_component.nextPage')}
+                    previousLabel={langAsString('list_component.previousPage')}
+                    rowsPerPageText={langAsString('list_component.rowsPerPage')}
+                    pageAriaLabelTemplate={langAsString('general.page_number', ['{page}'])}
                     size='sm'
                     numberOfRows={instances.length}
                     showRowsPerPageDropdown={true}
@@ -205,9 +204,10 @@ function InstanceSelection({ instances: _instances }: { instances: ISimpleInstan
                 <div className={classes.paginationWrapper}>
                   <Pagination
                     id='instance-selection'
-                    nextLabel={translationKey('list_component.nextPage')}
-                    previousLabel={translationKey('list_component.previousPage')}
-                    rowsPerPageText={translationKey('list_component.rowsPerPage')}
+                    nextLabel={langAsString('list_component.nextPage')}
+                    previousLabel={langAsString('list_component.previousPage')}
+                    rowsPerPageText={langAsString('list_component.rowsPerPage')}
+                    pageAriaLabelTemplate={langAsString('general.page_number', ['{page}'])}
                     size='sm'
                     hideLabels={false}
                     currentPage={currentPage}
