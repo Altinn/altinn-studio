@@ -7,27 +7,42 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class AppScopesService : IAppScopesService
 {
     private readonly IAppScopesRepository _appRepository;
+    private readonly IEnvironmentsService _environmentsService;
+    private readonly ILogger<AppScopesService> _logger;
     private readonly TimeProvider _timeProvider;
 
-    public AppScopesService(IAppScopesRepository appRepository, TimeProvider timeProvider)
+    public AppScopesService(
+        IAppScopesRepository appRepository,
+        IEnvironmentsService environmentsService,
+        ILogger<AppScopesService> logger,
+        TimeProvider timeProvider
+    )
     {
         _appRepository = appRepository;
+        _environmentsService = environmentsService;
+        _logger = logger;
         _timeProvider = timeProvider;
     }
 
-    public Task<AppScopesEntity> GetAppScopesAsync(
+    public async Task<AppScopesEntity> GetAppScopesAsync(
         AltinnRepoContext context,
         CancellationToken cancellationToken = default
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return _appRepository.GetAppScopesAsync(context, cancellationToken);
+        if (!await IsServiceOwnerOrg(context.Org, cancellationToken))
+        {
+            return null;
+        }
+
+        return await _appRepository.GetAppScopesAsync(context, cancellationToken);
     }
 
     public async Task<AppScopesEntity> UpsertScopesAsync(
@@ -37,6 +52,11 @@ public class AppScopesService : IAppScopesService
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
+        if (!await IsServiceOwnerOrg(editingContext.Org, cancellationToken))
+        {
+            return null;
+        }
+
         var appScopes =
             await _appRepository.GetAppScopesAsync(editingContext, cancellationToken)
             ?? GenerateNewAppScopesEntity(editingContext);
@@ -52,6 +72,11 @@ public class AppScopesService : IAppScopesService
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
+        if (!await IsServiceOwnerOrg(editingContext.Org, cancellationToken))
+        {
+            return null;
+        }
+
         var appScopes =
             await _appRepository.GetAppScopesAsync(editingContext, cancellationToken)
             ?? GenerateNewAppScopesEntity(editingContext);
@@ -64,6 +89,23 @@ public class AppScopesService : IAppScopesService
         appScopes.Scopes = DefaultMaskinportenScopes.MergeWith(appScopes.Scopes);
         appScopes.LastModifiedBy = editingContext.Developer;
         return await _appRepository.UpsertAppScopesAsync(appScopes, cancellationToken);
+    }
+
+    private async Task<bool> IsServiceOwnerOrg(string org, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _environmentsService.IsAltinnOrg(org, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Unable to determine whether {Org} is a registered service owner organization. Skipping app scopes.",
+                org
+            );
+            return false;
+        }
     }
 
     private AppScopesEntity GenerateNewAppScopesEntity(AltinnRepoEditingContext context)
