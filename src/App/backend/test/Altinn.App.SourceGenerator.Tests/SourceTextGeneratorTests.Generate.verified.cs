@@ -80,7 +80,8 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
             return null;
         }
 
-        return GetRecursive(model[literalIndex], path, offset);
+        var item = model[literalIndex];
+        return GetRecursive(item, path, offset);
     }
 
     private static object? GetRecursive(
@@ -255,7 +256,8 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         {
             return false;
         }
-        return SetRecursive(model[literalIndex], path, offset, value);
+        var item = model[literalIndex];
+        return SetRecursive(item, path, offset, value);
     }
 
     private static bool SetRecursive(
@@ -943,7 +945,8 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         }
         else
         {
-            RemoveRecursive(model[index], path, offset, rowRemovalOption);
+            var item = model[index];
+            RemoveRecursive(item, path, offset, rowRemovalOption);
         }
     }
 

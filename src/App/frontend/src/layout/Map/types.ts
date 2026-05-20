@@ -5,6 +5,8 @@ export type RawGeometry = {
   data: string;
   label?: string;
   isEditable?: boolean;
+  isHidden?: boolean;
+  style?: string;
 };
 
 export type Geometry = {
@@ -12,6 +14,8 @@ export type Geometry = {
   data: GeoJSON;
   label?: string;
   isEditable?: boolean;
+  isHidden?: boolean;
+  style?: string;
 };
 
 export type Location = {
