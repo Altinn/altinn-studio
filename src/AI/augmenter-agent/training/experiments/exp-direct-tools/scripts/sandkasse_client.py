@@ -29,6 +29,11 @@ from typing import Any
 GATEWAY_URL_DEFAULT = "https://gw.sandkasse.ai/v1/chat/completions"
 MODEL_DEFAULT = "telenor:gemma4"
 TIMEOUT_S_DEFAULT = 240
+# Retry on transient backend errors (sandkasse 503 OpenAIBackendError observed
+# intermittently). Brief exponential backoff: 2s, 4s, 8s.
+RETRY_STATUS_CODES = frozenset({502, 503, 504})
+RETRY_MAX_ATTEMPTS = 3
+RETRY_INITIAL_BACKOFF_S = 2.0
 
 
 @dataclass
@@ -125,8 +130,19 @@ class SandkasseClient:
                 body["tool_choice"] = tool_choice
         if stream:
             body["stream"] = True
-            return self._chat_stream(body)
-        return self._chat_blocking(body)
+            executor = self._chat_stream
+        else:
+            executor = self._chat_blocking
+
+        # Retry transient backend errors (502/503/504) with exponential backoff
+        backoff = RETRY_INITIAL_BACKOFF_S
+        for attempt in range(RETRY_MAX_ATTEMPTS):
+            resp = executor(body)
+            if resp.status_code not in RETRY_STATUS_CODES or attempt == RETRY_MAX_ATTEMPTS - 1:
+                return resp
+            time.sleep(backoff)
+            backoff *= 2
+        return resp
 
     def _chat_blocking(self, body: dict[str, Any]) -> ChatResponse:
         started = time.perf_counter()
