@@ -1,9 +1,9 @@
 import React from 'react';
 import type { JSX } from 'react';
 
+import { Fieldset } from '@app/form-component';
 import { Heading } from '@digdir/designsystemet-react';
 
-import { Fieldset } from 'src/app-components/Label/Fieldset';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
