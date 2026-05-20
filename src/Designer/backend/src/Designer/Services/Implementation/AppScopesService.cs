@@ -1,8 +1,9 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
@@ -13,30 +14,40 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 public class AppScopesService : IAppScopesService
 {
     private readonly IAppScopesRepository _appRepository;
+    private readonly IEnvironmentsService _environmentsService;
     private readonly TimeProvider _timeProvider;
 
-    public AppScopesService(IAppScopesRepository appRepository, TimeProvider timeProvider)
+    public AppScopesService(
+        IAppScopesRepository appRepository,
+        IEnvironmentsService environmentsService,
+        TimeProvider timeProvider
+    )
     {
         _appRepository = appRepository;
+        _environmentsService = environmentsService;
         _timeProvider = timeProvider;
     }
 
-    public Task<AppScopesEntity> GetAppScopesAsync(
+    public async Task<AppScopesEntity?> GetAppScopesAsync(
         AltinnRepoContext context,
         CancellationToken cancellationToken = default
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return _appRepository.GetAppScopesAsync(context, cancellationToken);
+        await EnsureServiceOwnerOrg(context.Org, cancellationToken);
+
+        return await _appRepository.GetAppScopesAsync(context, cancellationToken);
     }
 
-    public async Task<AppScopesEntity> UpsertScopesAsync(
+    public async Task<AppScopesEntity?> UpsertScopesAsync(
         AltinnRepoEditingContext editingContext,
         ISet<MaskinPortenScopeEntity> scopes,
         CancellationToken cancellationToken = default
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
+        await EnsureServiceOwnerOrg(editingContext.Org, cancellationToken);
+
         var appScopes =
             await _appRepository.GetAppScopesAsync(editingContext, cancellationToken)
             ?? GenerateNewAppScopesEntity(editingContext);
@@ -46,12 +57,17 @@ public class AppScopesService : IAppScopesService
         return await _appRepository.UpsertAppScopesAsync(appScopes, cancellationToken);
     }
 
-    public async Task<AppScopesEntity> AddDefaultMaskinportenScopesAsync(
+    public async Task<AppScopesEntity?> AddDefaultMaskinportenScopesAsync(
         AltinnRepoEditingContext editingContext,
         CancellationToken cancellationToken = default
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
+        if (!await IsServiceOwnerOrg(editingContext.Org, cancellationToken))
+        {
+            return null;
+        }
+
         var appScopes =
             await _appRepository.GetAppScopesAsync(editingContext, cancellationToken)
             ?? GenerateNewAppScopesEntity(editingContext);
@@ -64,6 +80,34 @@ public class AppScopesService : IAppScopesService
         appScopes.Scopes = DefaultMaskinportenScopes.MergeWith(appScopes.Scopes);
         appScopes.LastModifiedBy = editingContext.Developer;
         return await _appRepository.UpsertAppScopesAsync(appScopes, cancellationToken);
+    }
+
+    private async Task EnsureServiceOwnerOrg(string org, CancellationToken cancellationToken)
+    {
+        if (!await IsServiceOwnerOrg(org, cancellationToken))
+        {
+            throw new InvalidOperationException(AppScopesErrorMessages.NotSupportedDetail(org));
+        }
+    }
+
+    private async Task<bool> IsServiceOwnerOrg(string org, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _environmentsService.IsAltinnOrg(org, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            var activity = Activity.Current;
+            activity?.SetTag("org", org);
+            activity?.AddException(exception);
+            activity?.SetStatus(ActivityStatusCode.Error, exception.GetType().Name);
+            return false;
+        }
     }
 
     private AppScopesEntity GenerateNewAppScopesEntity(AltinnRepoEditingContext context)
