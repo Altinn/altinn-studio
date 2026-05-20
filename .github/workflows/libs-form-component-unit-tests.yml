@@ -58,5 +58,5 @@ jobs:
       #   run: yarn lint
       #
       - name: run tests
-        run: yarn test --coverage
+        run: yarn test
         # TODO : Run with coverage (yarn test --coverage ?)
