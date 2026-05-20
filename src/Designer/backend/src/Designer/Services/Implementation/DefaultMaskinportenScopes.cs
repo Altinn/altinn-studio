@@ -6,17 +6,20 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 
 public static class DefaultMaskinportenScopes
 {
+    public const string ServiceOwner = "altinn:serviceowner";
     public const string ServiceOwnerInstancesRead = "altinn:serviceowner/instances.read";
     public const string ServiceOwnerInstancesWrite = "altinn:serviceowner/instances.write";
 
     public static readonly IReadOnlySet<string> ScopeNames = new HashSet<string>
     {
+        ServiceOwner,
         ServiceOwnerInstancesRead,
         ServiceOwnerInstancesWrite,
     };
 
     private static readonly IReadOnlyList<MaskinPortenScopeEntity> s_scopes =
     [
+        new() { Scope = ServiceOwner, Description = "Brukes til å indikere at klienten er et tjenesteeiersystem." },
         new()
         {
             Scope = ServiceOwnerInstancesRead,

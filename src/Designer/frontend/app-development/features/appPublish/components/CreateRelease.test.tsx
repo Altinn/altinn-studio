@@ -77,6 +77,10 @@ describe('CreateRelease', () => {
       Promise.resolve({
         scopes: [
           {
+            scope: 'altinn:serviceowner',
+            description: 'Brukes til å indikere at klienten er et tjenesteeiersystem.',
+          },
+          {
             scope: 'altinn:serviceowner/instances.read',
             description: 'Klienter kan lese data knyttet til alle appene til tjenesteeieren.',
           },
