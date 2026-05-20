@@ -59,7 +59,7 @@ describe('useAppSettingsMenuTabConfigs', () => {
     ]);
   });
 
-  it('hides the Maskinporten tab for personal apps', async () => {
+  it('hides the service owner only tabs for personal apps', async () => {
     const getOrgList = jest.fn().mockImplementation(() => Promise.resolve<OrgList>({ orgs: {} }));
     const { renderHookResult } = renderHookWithProviders({ getOrgList })(() =>
       useAppSettingsMenuTabConfigs(),
@@ -67,7 +67,10 @@ describe('useAppSettingsMenuTabConfigs', () => {
 
     await waitFor(() => expect(getOrgList).toHaveBeenCalledTimes(1));
 
-    expect(renderHookResult.result.current).toHaveLength(5);
+    expect(renderHookResult.result.current).toHaveLength(4);
+    expect(renderHookResult.result.current).not.toContainEqual(
+      expect.objectContaining({ tabId: 'run' }),
+    );
     expect(renderHookResult.result.current).not.toContainEqual(
       expect.objectContaining({ tabId: 'maskinporten' }),
     );
