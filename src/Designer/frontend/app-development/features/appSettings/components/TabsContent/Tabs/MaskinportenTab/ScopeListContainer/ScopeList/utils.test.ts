@@ -138,7 +138,8 @@ describe('ScopeList utils functions', () => {
   });
 
   describe('isDefaultMaskinportenScope', () => {
-    it('returns true for the default serviceowner instance scopes', () => {
+    it('returns true for the default serviceowner scopes', () => {
+      expect(isDefaultMaskinportenScope('altinn:serviceowner')).toBe(true);
       expect(isDefaultMaskinportenScope('altinn:serviceowner/instances.read')).toBe(true);
       expect(isDefaultMaskinportenScope('altinn:serviceowner/instances.write')).toBe(true);
     });

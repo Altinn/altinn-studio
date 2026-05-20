@@ -329,12 +329,17 @@ public class ReleaseServiceTest
             {
                 new()
                 {
-                    Scope = "altinn:serviceowner/instances.read",
+                    Scope = DefaultMaskinportenScopes.ServiceOwner,
+                    Description = "Brukes til å indikere at klienten er et tjenesteeiersystem.",
+                },
+                new()
+                {
+                    Scope = DefaultMaskinportenScopes.ServiceOwnerInstancesRead,
                     Description = "Klienter kan lese data knyttet til alle appene til tjenesteeieren.",
                 },
                 new()
                 {
-                    Scope = "altinn:serviceowner/instances.write",
+                    Scope = DefaultMaskinportenScopes.ServiceOwnerInstancesWrite,
                     Description = "Klienter kan skrive data for alle deres apper.",
                 },
             },
@@ -382,8 +387,9 @@ public class ReleaseServiceTest
                 b.QueueAsync(
                     It.Is<QueueBuildParameters>(p =>
                         p.AppMaskinportenScopes != null
-                        && p.AppMaskinportenScopes.Contains("altinn:serviceowner/instances.read")
-                        && p.AppMaskinportenScopes.Contains("altinn:serviceowner/instances.write")
+                        && p.AppMaskinportenScopes.Contains(DefaultMaskinportenScopes.ServiceOwner)
+                        && p.AppMaskinportenScopes.Contains(DefaultMaskinportenScopes.ServiceOwnerInstancesRead)
+                        && p.AppMaskinportenScopes.Contains(DefaultMaskinportenScopes.ServiceOwnerInstancesWrite)
                     ),
                     It.IsAny<int>(),
                     It.IsAny<CancellationToken>()
@@ -562,6 +568,7 @@ public class ReleaseServiceTest
             App = _app,
             Scopes = new HashSet<MaskinPortenScopeEntity>
             {
+                new() { Scope = DefaultMaskinportenScopes.ServiceOwner },
                 new() { Scope = DefaultMaskinportenScopes.ServiceOwnerInstancesRead },
                 new() { Scope = DefaultMaskinportenScopes.ServiceOwnerInstancesWrite },
             },
@@ -596,7 +603,8 @@ public class ReleaseServiceTest
             b =>
                 b.QueueAsync(
                     It.Is<QueueBuildParameters>(p =>
-                        p.AppMaskinportenScopes.Contains(DefaultMaskinportenScopes.ServiceOwnerInstancesRead)
+                        p.AppMaskinportenScopes.Contains(DefaultMaskinportenScopes.ServiceOwner)
+                        && p.AppMaskinportenScopes.Contains(DefaultMaskinportenScopes.ServiceOwnerInstancesRead)
                         && p.AppMaskinportenScopes.Contains(DefaultMaskinportenScopes.ServiceOwnerInstancesWrite)
                     ),
                     It.IsAny<int>(),
@@ -626,6 +634,7 @@ public class ReleaseServiceTest
             App = _app,
             Scopes = new HashSet<MaskinPortenScopeEntity>
             {
+                new() { Scope = DefaultMaskinportenScopes.ServiceOwner },
                 new() { Scope = DefaultMaskinportenScopes.ServiceOwnerInstancesRead },
                 new() { Scope = DefaultMaskinportenScopes.ServiceOwnerInstancesWrite },
             },

@@ -37,6 +37,7 @@ public class AppScopesServiceTest
         Assert.Equal(context.Repo, result.App);
         Assert.Equal(context.Developer, result.CreatedBy);
         Assert.Equal(context.Developer, result.LastModifiedBy);
+        Assert.Contains(result.Scopes, s => s.Scope == DefaultMaskinportenScopes.ServiceOwner);
         Assert.Contains(result.Scopes, s => s.Scope == DefaultMaskinportenScopes.ServiceOwnerInstancesRead);
         Assert.Contains(result.Scopes, s => s.Scope == DefaultMaskinportenScopes.ServiceOwnerInstancesWrite);
         appScopesRepository.Verify(
@@ -56,6 +57,7 @@ public class AppScopesServiceTest
             App = context.Repo,
             Scopes = new HashSet<MaskinPortenScopeEntity>
             {
+                new() { Scope = DefaultMaskinportenScopes.ServiceOwner },
                 new() { Scope = DefaultMaskinportenScopes.ServiceOwnerInstancesRead },
                 new() { Scope = DefaultMaskinportenScopes.ServiceOwnerInstancesWrite },
             },
@@ -91,6 +93,7 @@ public class AppScopesServiceTest
         ISet<MaskinPortenScopeEntity> result = DefaultMaskinportenScopes.MergeWith(scopes);
 
         Assert.Equal("first", result.Single(s => s.Scope == "custom:scope").Description);
+        Assert.Contains(result, s => s.Scope == DefaultMaskinportenScopes.ServiceOwner);
         Assert.Contains(result, s => s.Scope == DefaultMaskinportenScopes.ServiceOwnerInstancesRead);
         Assert.Contains(result, s => s.Scope == DefaultMaskinportenScopes.ServiceOwnerInstancesWrite);
     }

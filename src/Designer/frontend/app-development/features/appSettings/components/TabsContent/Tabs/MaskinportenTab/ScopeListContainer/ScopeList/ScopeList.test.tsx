@@ -28,6 +28,10 @@ const scopeMock4: MaskinportenScope = {
   scope: 'altinn:serviceowner/instances.read',
   description: 'description4',
 };
+const scopeMock5: MaskinportenScope = {
+  scope: 'altinn:serviceowner',
+  description: 'description5',
+};
 
 const maskinportenScopesMock: MaskinportenScope[] = [scopeMock1, scopeMock2];
 const selectedScopesMock: MaskinportenScope[] = [scopeMock3, scopeMock4];
@@ -151,7 +155,7 @@ describe('ScopeList', () => {
 
   it('should not offer adding default scopes for v8.3 apps when default scopes are already selected', async () => {
     renderScopeList({
-      componentProps: { selectedScopes: [scopeMock4, scopeMock2] },
+      componentProps: { selectedScopes: [scopeMock5, scopeMock4, scopeMock2] },
       queries: {
         getAppVersion: () => Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '8.3.0' }),
       },
