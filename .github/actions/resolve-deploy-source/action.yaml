@@ -142,5 +142,5 @@ runs:
           echo "docker-tags=$docker_tags"
           echo "tag-latest=$tag_latest"
           echo "source-url=https://github.com/${repository}"
-          echo "source-revision=${label}/${sha}"
+          echo "source-revision=${ref}/${sha}"
         } >> "$GITHUB_OUTPUT"
