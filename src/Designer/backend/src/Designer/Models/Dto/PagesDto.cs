@@ -70,6 +70,7 @@ public class PagesDto
                         Pages = group.Order.Select(pageId => new PageDto { Id = pageId }).ToList(),
                         MarkWhenCompleted = group.MarkWhenCompleted,
                         Type = group.Type,
+                        ExpandedByDefault = group.ExpandedByDefault,
                     })
                     .ToList(),
             },
@@ -108,6 +109,7 @@ public class PagesDto
                         Order = [.. group.Pages.Select(page => page.Id)],
                         MarkWhenCompleted = group.MarkWhenCompleted,
                         Type = group.Type,
+                        ExpandedByDefault = group.ExpandedByDefault,
                     })
                     .ToList(),
             },
