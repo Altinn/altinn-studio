@@ -21,11 +21,22 @@ public class AuthenticationMethodTest
         Assert.IsType<AuthenticationMethod.AltinnToken>(serviceOwnerExtra);
 
         Assert.Equivalent(
-            new[] { "altinn:serviceowner/instances.read", "altinn:serviceowner/instances.write" },
+            new[]
+            {
+                "altinn:serviceowner",
+                "altinn:serviceowner/instances.read",
+                "altinn:serviceowner/instances.write",
+            },
             serviceOwnerDefault.Scopes
         );
         Assert.Equivalent(
-            new[] { "altinn:serviceowner/instances.read", "altinn:serviceowner/instances.write", "extra-scope" },
+            new[]
+            {
+                "altinn:serviceowner",
+                "altinn:serviceowner/instances.read",
+                "altinn:serviceowner/instances.write",
+                "extra-scope",
+            },
             serviceOwnerExtra.Scopes
         );
     }

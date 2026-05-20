@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { PolicyTab } from './Tabs/PolicyTab';
 import { SetupTab } from './Tabs/SetupTab';
 import { AboutTab } from './Tabs/AboutTab';
@@ -28,7 +27,7 @@ export function TabsContent(): ReactElement {
       return <RunTab />;
     }
     case 'maskinporten': {
-      return shouldDisplayFeature(FeatureFlag.Maskinporten) ? <MaskinportenTab /> : null;
+      return <MaskinportenTab />;
     }
   }
 }

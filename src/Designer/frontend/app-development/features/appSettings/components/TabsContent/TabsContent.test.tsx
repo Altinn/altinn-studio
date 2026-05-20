@@ -2,8 +2,6 @@ import { render, screen } from '@testing-library/react';
 import { TabsContent } from './TabsContent';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { typedLocalStorage } from '@studio/pure-functions';
-import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { SettingsTabId } from '../../types/SettingsTabId';
 import type { SettingsPageTabId } from 'app-development/types/SettingsPageTabId';
@@ -22,19 +20,11 @@ const tabs: SettingsPageTabId[] = [
 describe('TabsContent', () => {
   afterEach(() => {
     jest.clearAllMocks();
-    typedLocalStorage.removeItem('featureFlags');
   });
 
   it.each(tabs)('should render %s tab content when tabToDisplay is "%s"', (tab) => {
-    tab === 'maskinporten' && addFeatureFlagToLocalStorage(FeatureFlag.Maskinporten);
     renderTabsContent(tab);
     expect(getHeading(tab)).toBeInTheDocument();
-  });
-
-  it('should not render anything when feature flag is disabled for Maskinporten tab', () => {
-    const maskinPortenTab: SettingsPageTabId = 'maskinporten';
-    renderTabsContent(maskinPortenTab);
-    expect(queryHeading(maskinPortenTab)).not.toBeInTheDocument();
   });
 });
 
@@ -51,12 +41,6 @@ const renderTabsContent = (initialEntries: string = '') => {
 
 const getHeading = (tabId: SettingsTabId): HTMLHeadingElement =>
   screen.getByRole('heading', {
-    name: textMock(`app_settings.${tabId}_tab_heading`),
-    level: 3,
-  });
-
-const queryHeading = (tabId: SettingsTabId): HTMLHeadingElement =>
-  screen.queryByRole('heading', {
     name: textMock(`app_settings.${tabId}_tab_heading`),
     level: 3,
   });

@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { StudioContentMenu } from '@studio/components';
 import type { StudioContentMenuButtonTabProps } from '@studio/components';
 import type { SettingsPageTabId } from 'app-development/types/SettingsPageTabId';
@@ -7,8 +6,7 @@ import { useAppSettingsMenuTabConfigs } from '../../hooks/useAppSettingsMenuTabC
 import { useCurrentSettingsTab } from '../../hooks/useCurrentSettingsTab';
 
 export function ContentMenu(): ReactElement {
-  const menuTabConfigs = useAppSettingsMenuTabConfigs();
-  const menuTabs = filterFeatureFlag(menuTabConfigs);
+  const menuTabs = useAppSettingsMenuTabConfigs();
   const tabIds: SettingsPageTabId[] = extractTabIdsFromTabs(menuTabs);
   const { tabToDisplay, setTabToDisplay } = useCurrentSettingsTab(tabIds);
 
@@ -31,14 +29,6 @@ function ContentMenuTabs({ tabs }: ContentMenuTabsProps): ReactElement[] {
       tabName={tab.tabName}
     />
   ));
-}
-
-function filterFeatureFlag(
-  menuTabConfigs: Array<StudioContentMenuButtonTabProps<SettingsPageTabId>>,
-) {
-  return shouldDisplayFeature(FeatureFlag.Maskinporten)
-    ? menuTabConfigs
-    : menuTabConfigs.filter((tab) => tab.tabId !== 'maskinporten');
 }
 
 function extractTabIdsFromTabs(tabs: StudioContentMenuButtonTabProps<SettingsPageTabId>[]) {

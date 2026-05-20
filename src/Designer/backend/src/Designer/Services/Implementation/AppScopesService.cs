@@ -46,6 +46,26 @@ public class AppScopesService : IAppScopesService
         return await _appRepository.UpsertAppScopesAsync(appScopes, cancellationToken);
     }
 
+    public async Task<AppScopesEntity> AddDefaultMaskinportenScopesAsync(
+        AltinnRepoEditingContext editingContext,
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var appScopes =
+            await _appRepository.GetAppScopesAsync(editingContext, cancellationToken)
+            ?? GenerateNewAppScopesEntity(editingContext);
+
+        if (DefaultMaskinportenScopes.ContainsAll(appScopes.Scopes))
+        {
+            return appScopes;
+        }
+
+        appScopes.Scopes = DefaultMaskinportenScopes.MergeWith(appScopes.Scopes);
+        appScopes.LastModifiedBy = editingContext.Developer;
+        return await _appRepository.UpsertAppScopesAsync(appScopes, cancellationToken);
+    }
+
     private AppScopesEntity GenerateNewAppScopesEntity(AltinnRepoEditingContext context)
     {
         return new AppScopesEntity
