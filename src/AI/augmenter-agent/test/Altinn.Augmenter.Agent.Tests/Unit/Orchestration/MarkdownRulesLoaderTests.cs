@@ -29,7 +29,7 @@ public class MarkdownRulesLoaderTests : IDisposable
         var loader = new MarkdownRulesLoader();
         var rules = await loader.LoadAsync(_tempDir);
 
-        rules.Select(r => r.PunktKey).Should().Equal(
+        rules.Select(r => r.Key).Should().Equal(
             "formelle_krav.soknad_komplett",
             "personkrav.styrer_alder",
             "vandel.vandel_styrer");

@@ -7,17 +7,21 @@ using Altinn.Augmenter.Agent.Services.Agent.Tools;
 namespace Altinn.Augmenter.Agent.Services.Agent.Orchestration;
 
 /// <summary>
-/// C# port of <c>orchestrate_tools.py</c>. Each punkt is one independent loop:
-///   1. Send system + user (rule + application JSON) with tools array
+/// Per-item LLM-loop orchestrator. For each item (one markdown rule):
+///   1. Send system + user (rule + application JSON) with the tool array
 ///   2. If the model returns tool_calls, dispatch and feed results back; loop up to MaxToolIterations
 ///   3. Otherwise parse the final JSON {status, merknad}
-/// Verdicts and (optional) per-punkt traces are produced for downstream rendering.
+/// Verdicts and (optional) per-item traces are produced for downstream rendering.
+///
+/// The orchestrator is domain-agnostic: rules, system prompt, and tool definitions
+/// all come from config. Translating the verdict-per-item map into a domain-shaped
+/// output (e.g. <c>{sjekkliste:{...}}</c>) is a caller responsibility.
 /// </summary>
-public sealed partial class ChecklistOrchestrator(
+public sealed partial class EvaluationOrchestrator(
     IChatService chatService,
     IToolRegistry toolRegistry,
     ISystemPromptProvider systemPromptProvider,
-    ILogger<ChecklistOrchestrator> logger) : IChecklistOrchestrator
+    ILogger<EvaluationOrchestrator> logger) : IEvaluationOrchestrator
 {
 
     private static readonly JsonSerializerOptions TraceJsonOptions = new() { WriteIndented = true };
@@ -44,7 +48,7 @@ public sealed partial class ChecklistOrchestrator(
             await sem.WaitAsync(cancellationToken);
             try
             {
-                return await RunSinglePunktAsync(rule, application, serialisedApplication, options, cancellationToken);
+                return await RunSingleItemAsync(rule, application, serialisedApplication, options, cancellationToken);
             }
             finally
             {
@@ -55,7 +59,7 @@ public sealed partial class ChecklistOrchestrator(
         var traces = await Task.WhenAll(tasks);
         wallSw.Stop();
 
-        var verdicts = traces.ToDictionary(t => t.PunktKey, t => t.Verdict, StringComparer.Ordinal);
+        var verdicts = traces.ToDictionary(t => t.Key, t => t.Verdict, StringComparer.Ordinal);
 
         return new OrchestratorResult
         {
@@ -66,18 +70,18 @@ public sealed partial class ChecklistOrchestrator(
         };
     }
 
-    private async Task<PunktTrace> RunSinglePunktAsync(
+    private async Task<ItemTrace> RunSingleItemAsync(
         RuleEntry rule,
         JsonDocument application,
         string serialisedApplication,
         OrchestratorOptions options,
         CancellationToken ct)
     {
-        var punktSw = Stopwatch.StartNew();
+        var itemSw = Stopwatch.StartNew();
         var userPrompt =
-            $"# Sjekklistepunkt: {rule.PunktKey}\n\n" +
-            $"## Regelen\n\n{rule.Markdown}\n\n" +
-            $"## Søknad (JSON)\n\n```json\n{serialisedApplication}\n```\n";
+            $"# Item: {rule.Key}\n\n" +
+            $"## Rule\n\n{rule.Markdown}\n\n" +
+            $"## Application (JSON)\n\n```json\n{serialisedApplication}\n```\n";
 
         var messages = new List<ChatMessage>
         {
@@ -88,7 +92,7 @@ public sealed partial class ChecklistOrchestrator(
         var llmCallCount = 0;
         var toolCallCount = 0;
         string? finishReason = null;
-        PunktVerdict? verdict = null;
+        ItemVerdict? verdict = null;
 
         for (var iteration = 0; iteration < options.MaxToolIterations; iteration++)
         {
@@ -107,12 +111,12 @@ public sealed partial class ChecklistOrchestrator(
 
             if (resp.Error is not null)
             {
-                verdict = new PunktVerdict
+                verdict = new ItemVerdict
                 {
                     Status = "ikke_vurdert",
-                    Merknad = $"HTTP/transport-feil: {resp.Error}",
+                    Merknad = $"HTTP/transport error: {resp.Error}",
                 };
-                logger.LogWarning("punkt {Punkt}: error from chat service: {Error}", rule.PunktKey, resp.Error);
+                logger.LogWarning("item {Item}: error from chat service: {Error}", rule.Key, resp.Error);
                 break;
             }
 
@@ -157,21 +161,21 @@ public sealed partial class ChecklistOrchestrator(
         }
 
         // Loop exhausted without a final verdict
-        verdict ??= new PunktVerdict
+        verdict ??= new ItemVerdict
         {
             Status = "ikke_vurdert",
-            Merknad = $"Maks antall tool-iterasjoner ({options.MaxToolIterations}) nådd uten endelig svar.",
+            Merknad = $"Max tool iterations ({options.MaxToolIterations}) reached without a final answer.",
         };
 
-        punktSw.Stop();
-        var trace = new PunktTrace
+        itemSw.Stop();
+        var trace = new ItemTrace
         {
-            PunktKey = rule.PunktKey,
+            Key = rule.Key,
             Verdict = verdict,
             LlmCallCount = llmCallCount,
             ToolCallCount = toolCallCount,
             FinishReason = finishReason,
-            TotalElapsedMs = (int)punktSw.ElapsedMilliseconds,
+            TotalElapsedMs = (int)itemSw.ElapsedMilliseconds,
             Messages = messages,
         };
 
@@ -181,10 +185,10 @@ public sealed partial class ChecklistOrchestrator(
         return trace;
     }
 
-    internal static PunktVerdict ParseFinalVerdict(string text)
+    internal static ItemVerdict ParseFinalVerdict(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
-            return new PunktVerdict { Status = "ikke_vurdert", Merknad = "Tom respons fra modellen." };
+            return new ItemVerdict { Status = "ikke_vurdert", Merknad = "Empty model response." };
 
         var cleaned = text.Trim();
         if (cleaned.StartsWith("```", StringComparison.Ordinal))
@@ -199,10 +203,10 @@ public sealed partial class ChecklistOrchestrator(
         var match = JsonObjectRegex().Match(cleaned);
         if (!match.Success)
         {
-            return new PunktVerdict
+            return new ItemVerdict
             {
                 Status = "ikke_vurdert",
-                Merknad = $"Kunne ikke parse JSON. Råtekst: {Truncate(text, 200)}",
+                Merknad = $"Could not parse JSON. Raw: {Truncate(text, 200)}",
             };
         }
 
@@ -221,17 +225,17 @@ public sealed partial class ChecklistOrchestrator(
                 var merknad = root.TryGetProperty("merknad", out var m) && m.ValueKind == JsonValueKind.String
                     ? m.GetString() ?? ""
                     : "";
-                return new PunktVerdict { Status = status, Merknad = merknad };
+                return new ItemVerdict { Status = status, Merknad = merknad };
             }
             catch (JsonException)
             {
                 continue;
             }
         }
-        return new PunktVerdict
+        return new ItemVerdict
         {
             Status = "ikke_vurdert",
-            Merknad = $"Ugyldig JSON. Råtekst: {Truncate(text, 200)}",
+            Merknad = $"Invalid JSON. Raw: {Truncate(text, 200)}",
         };
     }
 
@@ -247,12 +251,12 @@ public sealed partial class ChecklistOrchestrator(
         return System.Text.Encoding.UTF8.GetString(stream.ToArray());
     }
 
-    private static async Task WriteTraceAsync(string traceDir, PunktTrace trace, CancellationToken ct)
+    private static async Task WriteTraceAsync(string traceDir, ItemTrace trace, CancellationToken ct)
     {
-        var path = Path.Combine(traceDir, $"{trace.PunktKey}.json");
+        var path = Path.Combine(traceDir, $"{trace.Key}.json");
         var serialisable = new
         {
-            punkt = trace.PunktKey,
+            item = trace.Key,
             final = new { status = trace.Verdict.Status, merknad = trace.Verdict.Merknad },
             totalElapsedMs = trace.TotalElapsedMs,
             llmCallCount = trace.LlmCallCount,
@@ -265,10 +269,10 @@ public sealed partial class ChecklistOrchestrator(
     }
 }
 
-internal sealed record PunktTrace
+internal sealed record ItemTrace
 {
-    public required string PunktKey { get; init; }
-    public required PunktVerdict Verdict { get; init; }
+    public required string Key { get; init; }
+    public required ItemVerdict Verdict { get; init; }
     public int LlmCallCount { get; init; }
     public int ToolCallCount { get; init; }
     public string? FinishReason { get; init; }

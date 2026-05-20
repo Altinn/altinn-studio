@@ -4,8 +4,8 @@ namespace Altinn.Augmenter.Agent.Services.Agent.Tools;
 
 /// <summary>
 /// Holds the 8 deterministic tools and dispatches model-issued tool_calls
-/// to the right implementation. Used by <c>ChecklistOrchestrator</c> inside
-/// the per-punkt tool-loop.
+/// to the right implementation. Used by <c>EvaluationOrchestrator</c> inside
+/// the per-item tool-loop.
 /// </summary>
 public interface IToolRegistry
 {

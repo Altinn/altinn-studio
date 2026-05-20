@@ -68,7 +68,7 @@ builder.Services.AddSingleton<IToolRegistry>(sp => new ToolRegistry(
 builder.Services.AddSingleton<IRulesLoader, MarkdownRulesLoader>();
 builder.Services.AddSingleton<ISystemPromptProvider, FileSystemPromptProvider>();
 builder.Services.AddScoped<IChatService, SandkasseChatService>();
-builder.Services.AddScoped<IChecklistOrchestrator, ChecklistOrchestrator>();
+builder.Services.AddScoped<IEvaluationOrchestrator, EvaluationOrchestrator>();
 
 builder.Services.AddScoped<IPdfGeneratorService, PdfGeneratorService>();
 builder.Services.AddScoped<IDocxGeneratorService, DocxGeneratorService>();

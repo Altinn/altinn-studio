@@ -78,7 +78,7 @@ public sealed class StepFactory(IServiceProvider serviceProvider)
         IDocxGeneratorService? docxGenerator,
         ILoggerFactory loggerFactory)
     {
-        var orchestrator = serviceProvider.GetRequiredService<IChecklistOrchestrator>();
+        var orchestrator = serviceProvider.GetRequiredService<IEvaluationOrchestrator>();
         var rulesLoader = serviceProvider.GetRequiredService<IRulesLoader>();
         var pipelineContext = serviceProvider.GetRequiredService<PipelineContext>();
 

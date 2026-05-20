@@ -19,12 +19,12 @@ namespace Altinn.Augmenter.Agent.Tests.Integration;
 /// punkter in Phase E end-to-end verification).
 /// </summary>
 [Trait("Category", "Sandkasse")]
-public class ChecklistOrchestratorIntegrationTests
+public class EvaluationOrchestratorIntegrationTests
 {
-    private readonly ChecklistOrchestrator? _sut;
+    private readonly EvaluationOrchestrator? _sut;
     private readonly ITestOutputHelper _output;
 
-    public ChecklistOrchestratorIntegrationTests(ITestOutputHelper output)
+    public EvaluationOrchestratorIntegrationTests(ITestOutputHelper output)
     {
         _output = output;
         var apiKey = Environment.GetEnvironmentVariable("SANDKASSE_API_KEY");
@@ -49,7 +49,7 @@ public class ChecklistOrchestratorIntegrationTests
         var httpFactory = sp.GetRequiredService<IHttpClientFactory>();
 
         var chatLogger = new TestOutputLogger<SandkasseChatService>(output);
-        var orchLogger = new TestOutputLogger<ChecklistOrchestrator>(output);
+        var orchLogger = new TestOutputLogger<EvaluationOrchestrator>(output);
         var chat = new SandkasseChatService(httpFactory, opts, chatLogger);
 
         // Use the real config/orchestrator/system-prompt.md + config/tools/*.json
@@ -61,7 +61,7 @@ public class ChecklistOrchestratorIntegrationTests
         var domain = new Altinn.Augmenter.Agent.Services.Domain.DomainDataProvider(contentPaths);
         var registry = new ToolRegistry(ToolRegistry.BuiltIn(domain), toolLoader);
 
-        _sut = new ChecklistOrchestrator(chat, registry, promptProvider, orchLogger);
+        _sut = new EvaluationOrchestrator(chat, registry, promptProvider, orchLogger);
     }
 
     [Fact]
@@ -79,9 +79,9 @@ public class ChecklistOrchestratorIntegrationTests
 
         var rules = new List<RuleEntry>
         {
-            new() { PunktKey = "personkrav.styrer_alder", Markdown = await File.ReadAllTextAsync(Path.Combine(rulesDir, "personkrav.styrer_alder.md")) },
-            new() { PunktKey = "lokalpolitisk.skjenketider_ok", Markdown = await File.ReadAllTextAsync(Path.Combine(rulesDir, "lokalpolitisk.skjenketider_ok.md")) },
-            new() { PunktKey = "vandel.vandel_styrer", Markdown = await File.ReadAllTextAsync(Path.Combine(rulesDir, "vandel.vandel_styrer.md")) },
+            new() { Key = "personkrav.styrer_alder", Markdown = await File.ReadAllTextAsync(Path.Combine(rulesDir, "personkrav.styrer_alder.md")) },
+            new() { Key = "lokalpolitisk.skjenketider_ok", Markdown = await File.ReadAllTextAsync(Path.Combine(rulesDir, "lokalpolitisk.skjenketider_ok.md")) },
+            new() { Key = "vandel.vandel_styrer", Markdown = await File.ReadAllTextAsync(Path.Combine(rulesDir, "vandel.vandel_styrer.md")) },
         };
 
         using var app = JsonDocument.Parse(await File.ReadAllTextAsync(appPath));

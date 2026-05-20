@@ -17,7 +17,7 @@ public sealed class MarkdownRulesLoader : IRulesLoader
             var markdown = await File.ReadAllTextAsync(path, ct);
             entries.Add(new RuleEntry
             {
-                PunktKey = Path.GetFileNameWithoutExtension(path),
+                Key = Path.GetFileNameWithoutExtension(path),
                 Markdown = markdown,
             });
         }

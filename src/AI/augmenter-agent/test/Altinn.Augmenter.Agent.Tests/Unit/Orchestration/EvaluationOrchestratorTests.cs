@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Altinn.Augmenter.Agent.Tests.Unit.Orchestration;
 
-public class ChecklistOrchestratorTests
+public class EvaluationOrchestratorTests
 {
     private static JsonDocument SampleApp() => JsonDocument.Parse("""
         { "Bevillingsansvarlig": { "Styrer": { "Foedselsnummer": "01018012345" } } }
@@ -15,7 +15,7 @@ public class ChecklistOrchestratorTests
 
     private static RuleEntry Rule(string key) => new()
     {
-        PunktKey = key,
+        Key = key,
         Markdown = $"# Rule for {key}\n\nVurder dette punktet.",
     };
 
@@ -28,7 +28,7 @@ public class ChecklistOrchestratorTests
         "maa_undersokes", "Mangler")]
     public void ParseFinalVerdict_ExtractsValidJson(string text, string expectedStatus, string expectedMerknad)
     {
-        var verdict = ChecklistOrchestrator.ParseFinalVerdict(text);
+        var verdict = EvaluationOrchestrator.ParseFinalVerdict(text);
         verdict.Status.Should().Be(expectedStatus);
         verdict.Merknad.Should().Be(expectedMerknad);
     }
@@ -39,7 +39,7 @@ public class ChecklistOrchestratorTests
     [InlineData("no json at all here")]
     public void ParseFinalVerdict_NoJson_ReturnsIkkeVurdert(string text)
     {
-        var verdict = ChecklistOrchestrator.ParseFinalVerdict(text);
+        var verdict = EvaluationOrchestrator.ParseFinalVerdict(text);
         verdict.Status.Should().Be("ikke_vurdert");
         verdict.Merknad.Should().NotBeEmpty();
     }
@@ -52,7 +52,7 @@ public class ChecklistOrchestratorTests
         var chat = new StubChatService([
             new ChatResponse { Content = """{"status":"vurdert_ok","merknad":"OK"}""", StatusCode = 200 },
         ]);
-        var orchestrator = new ChecklistOrchestrator(chat, ToolRegistry.ForTesting(), new StubSystemPromptProvider(), NullLogger<ChecklistOrchestrator>.Instance);
+        var orchestrator = new EvaluationOrchestrator(chat, ToolRegistry.ForTesting(), new StubSystemPromptProvider(), NullLogger<EvaluationOrchestrator>.Instance);
 
         using var app = SampleApp();
         var result = await orchestrator.RunAsync(app, [Rule("personkrav.styrer_alder")], new OrchestratorOptions());
@@ -81,7 +81,7 @@ public class ChecklistOrchestratorTests
             },
             new ChatResponse { Content = """{"status":"vurdert_ok","merknad":"14 dager"}""", StatusCode = 200 },
         ]);
-        var orchestrator = new ChecklistOrchestrator(chat, ToolRegistry.ForTesting(), new StubSystemPromptProvider(), NullLogger<ChecklistOrchestrator>.Instance);
+        var orchestrator = new EvaluationOrchestrator(chat, ToolRegistry.ForTesting(), new StubSystemPromptProvider(), NullLogger<EvaluationOrchestrator>.Instance);
 
         using var app = SampleApp();
         var result = await orchestrator.RunAsync(app, [Rule("p.q")], new OrchestratorOptions());
@@ -107,13 +107,13 @@ public class ChecklistOrchestratorTests
             StatusCode = 200,
         }).ToList();
         var chat = new StubChatService(responses);
-        var orchestrator = new ChecklistOrchestrator(chat, ToolRegistry.ForTesting(), new StubSystemPromptProvider(), NullLogger<ChecklistOrchestrator>.Instance);
+        var orchestrator = new EvaluationOrchestrator(chat, ToolRegistry.ForTesting(), new StubSystemPromptProvider(), NullLogger<EvaluationOrchestrator>.Instance);
 
         using var app = SampleApp();
         var result = await orchestrator.RunAsync(app, [Rule("p.q")], new OrchestratorOptions { MaxToolIterations = 5 });
 
         result.Verdicts["p.q"].Status.Should().Be("ikke_vurdert");
-        result.Verdicts["p.q"].Merknad.Should().Contain("Maks antall");
+        result.Verdicts["p.q"].Merknad.Should().Contain("Max tool iterations");
     }
 
     [Fact]
@@ -122,13 +122,13 @@ public class ChecklistOrchestratorTests
         var chat = new StubChatService([
             new ChatResponse { Error = "HTTP 503: gateway error", StatusCode = 503 },
         ]);
-        var orchestrator = new ChecklistOrchestrator(chat, ToolRegistry.ForTesting(), new StubSystemPromptProvider(), NullLogger<ChecklistOrchestrator>.Instance);
+        var orchestrator = new EvaluationOrchestrator(chat, ToolRegistry.ForTesting(), new StubSystemPromptProvider(), NullLogger<EvaluationOrchestrator>.Instance);
 
         using var app = SampleApp();
         var result = await orchestrator.RunAsync(app, [Rule("p.q")], new OrchestratorOptions());
 
         result.Verdicts["p.q"].Status.Should().Be("ikke_vurdert");
-        result.Verdicts["p.q"].Merknad.Should().Contain("HTTP/transport-feil");
+        result.Verdicts["p.q"].Merknad.Should().Contain("HTTP/transport error");
     }
 
     [Fact]
@@ -144,7 +144,7 @@ public class ChecklistOrchestratorTests
             StatusCode = 200,
         }), delayMs: 200);
 
-        var orchestrator = new ChecklistOrchestrator(chat, ToolRegistry.ForTesting(), new StubSystemPromptProvider(), NullLogger<ChecklistOrchestrator>.Instance);
+        var orchestrator = new EvaluationOrchestrator(chat, ToolRegistry.ForTesting(), new StubSystemPromptProvider(), NullLogger<EvaluationOrchestrator>.Instance);
 
         using var app = SampleApp();
         var rules = new[] { Rule("a.1"), Rule("a.2"), Rule("a.3") };

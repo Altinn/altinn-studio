@@ -32,7 +32,7 @@ public class ChecklistAggregatorTests
     [Fact]
     public void Aggregate_AllVerdictsPresent_BuildsExpectedShape()
     {
-        var verdicts = new Dictionary<string, PunktVerdict>
+        var verdicts = new Dictionary<string, ItemVerdict>
         {
             ["formelle_krav.soknad_komplett"] = new() { Status = "vurdert_ok", Merknad = "OK" },
             ["formelle_krav.kommune_riktig"] = new() { Status = "maa_undersokes", Merknad = "Mangler kommune-nr" },
@@ -59,7 +59,7 @@ public class ChecklistAggregatorTests
     public void Aggregate_MissingVerdict_FallsBackToDefaultStatusWithMerknad()
     {
         // Only 1 of 3 punkter has a verdict — the other 2 should fall back.
-        var verdicts = new Dictionary<string, PunktVerdict>
+        var verdicts = new Dictionary<string, ItemVerdict>
         {
             ["formelle_krav.soknad_komplett"] = new() { Status = "vurdert_ok", Merknad = "OK" },
         };

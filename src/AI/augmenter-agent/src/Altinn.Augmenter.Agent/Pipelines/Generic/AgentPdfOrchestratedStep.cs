@@ -9,7 +9,7 @@ using Microsoft.Extensions.Options;
 namespace Altinn.Augmenter.Agent.Pipelines.Generic;
 
 /// <summary>
-/// Per-punkt orchestrated agent step. Runs <see cref="IChecklistOrchestrator"/>
+/// Per-punkt orchestrated agent step. Runs <see cref="IEvaluationOrchestrator"/>
 /// over the application's FlatData with markdown rules + deterministic tools,
 /// merges the verdicts into the document the configured mapper produces, then
 /// renders the existing checklist Typst template — identical output contract
@@ -25,7 +25,7 @@ public sealed class AgentPdfOrchestratedStep : IPdfGenerationStep
 
     private readonly StepDefinition _definition;
     private readonly IDataMapper _mapper;
-    private readonly IChecklistOrchestrator _orchestrator;
+    private readonly IEvaluationOrchestrator _orchestrator;
     private readonly IRulesLoader _rulesLoader;
     private readonly IPdfGeneratorService _pdfGenerator;
     private readonly IDocxGeneratorService? _docxGenerator;
@@ -42,7 +42,7 @@ public sealed class AgentPdfOrchestratedStep : IPdfGenerationStep
     public AgentPdfOrchestratedStep(
         StepDefinition definition,
         IDataMapper mapper,
-        IChecklistOrchestrator orchestrator,
+        IEvaluationOrchestrator orchestrator,
         IRulesLoader rulesLoader,
         IPdfGeneratorService pdfGenerator,
         IDocxGeneratorService? docxGenerator,

@@ -12,7 +12,7 @@ public static class ChecklistAggregator
 {
     public static JsonDocument Aggregate(
         JsonDocument sjekklisteSchema,
-        IReadOnlyDictionary<string, PunktVerdict> verdicts)
+        IReadOnlyDictionary<string, ItemVerdict> verdicts)
     {
         var schemaRoot = sjekklisteSchema.RootElement;
         var defaultStatus = schemaRoot.TryGetProperty("defaultStatus", out var dsEl) && dsEl.ValueKind == JsonValueKind.String
