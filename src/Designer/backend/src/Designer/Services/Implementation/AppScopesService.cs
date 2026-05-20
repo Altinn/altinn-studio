@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
@@ -85,9 +86,7 @@ public class AppScopesService : IAppScopesService
     {
         if (!await IsServiceOwnerOrg(org, cancellationToken))
         {
-            throw new InvalidOperationException(
-                $"Maskinporten scopes are only supported for service-owner organisations. '{org}' is not a service-owner organisation."
-            );
+            throw new InvalidOperationException(AppScopesErrorMessages.NotSupportedDetail(org));
         }
     }
 

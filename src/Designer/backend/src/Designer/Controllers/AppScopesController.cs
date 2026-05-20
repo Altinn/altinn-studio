@@ -102,9 +102,8 @@ public class AppScopesController(
     private static ProblemDetails CreateAppScopesNotSupportedProblemDetails(string org) =>
         new()
         {
-            Title = "Maskinporten scopes are not supported for this app",
-            Detail =
-                $"Maskinporten scopes are only supported for service-owner organisations. '{org}' is not a service-owner organisation.",
+            Title = AppScopesErrorMessages.NotSupportedTitle,
+            Detail = AppScopesErrorMessages.NotSupportedDetail(org),
             Status = StatusCodes.Status400BadRequest,
         };
 }
