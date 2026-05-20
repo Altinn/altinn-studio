@@ -39,6 +39,11 @@ export function Fieldset({
   size = 'md',
   optionalIndicator,
 }: PropsWithChildren<FieldsetProps>) {
+  const generatedId = React.useId();
+  const baseId = id ?? `fieldset-${generatedId}`;
+  const legendId = `${baseId}-legend`;
+  const descriptionId = `${baseId}-description`;
+
   if (!legend) {
     return (
       <Flex
@@ -70,8 +75,12 @@ export function Fieldset({
         <DesignsystemetFieldset
           className={cn(className)}
           data-size={size}
+          aria-labelledby={`${legendId} ${descriptionId}`}
         >
-          <DesignsystemetFieldset.Legend className={labelClasses.legend}>
+          <DesignsystemetFieldset.Legend
+            id={legendId}
+            className={labelClasses.legend}
+          >
             <span className={cn(labelClasses.labelAndHelpWrapper)}>
               <DesignsystemetLabel
                 weight='medium'
@@ -88,7 +97,7 @@ export function Fieldset({
               {help}
             </span>
           </DesignsystemetFieldset.Legend>
-          <DesignsystemetFieldset.Description>{description}</DesignsystemetFieldset.Description>
+          <DesignsystemetFieldset.Description id={descriptionId}>{description}</DesignsystemetFieldset.Description>
           {children}
         </DesignsystemetFieldset>
       </Flex>

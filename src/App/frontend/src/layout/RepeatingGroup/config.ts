@@ -224,6 +224,19 @@ export const Config = new CG.component({
                 'Text will still be shown when the row is in edit mode.',
             ),
         ),
+        new CG.prop(
+          'buttonLayout',
+          new CG.enum('horizontal', 'vertical')
+            .optional({ default: 'horizontal' })
+            .setTitle('Button layout')
+            .setDescription(
+              'In desktop table view, controls how the edit and delete buttons are laid out. ' +
+                '"horizontal" uses two table columns (edit and delete side by side). ' +
+                '"vertical" uses a single button column with edit above delete, saving horizontal space. ' +
+                'Does not apply to mobile/tablet layout. ' +
+                'Can be combined with compactButtons.',
+            ),
+        ),
       )
         .exportAs('IGroupEditProperties')
         .optional(),

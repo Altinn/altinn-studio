@@ -101,7 +101,7 @@ export function AwaitingCurrentUserSignaturePanel({
 
   // This shouldn't really happen, but if it does it indicates that our backend is out of sync with Autorisasjon somehow
   if (!canSign) {
-    return <UnknownError />;
+    return <UnknownError error={new Error('Unknown error during signing: User cannot sign in')} />;
   }
 
   if (isApiLoading) {
