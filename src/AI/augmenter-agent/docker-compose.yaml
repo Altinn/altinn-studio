@@ -15,6 +15,9 @@ services:
       - Agent__BaseUrl=https://gw.sandkasse.ai/v1
       - Agent__Model=telenor:gemma4
       - Agent__ApiKey=${SANDKASSE_API_KEY}
+      # Sandkasse-admin bumpet context-window til 32k (mai 2026). Med
+      # 27KB system-prompt + søknad er det god plass til lange svar.
+      - Agent__MaxTokens=8192
     volumes:
       # Mount the active config. Replace with ./examples/alt-config or a
       # docker-compose.override.yaml when testing alternative skill/template sets.

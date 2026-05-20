@@ -41,6 +41,13 @@ public sealed class AgentOptions
     public double Temperature { get; set; }
 
     /// <summary>
+    /// Request server-sent-event streaming. Keeps the connection alive while
+    /// the model is processing, which bypasses the gateway's pre-first-token
+    /// timeout (~30s on sandkasse) for long prompts. Recommended on.
+    /// </summary>
+    public bool UseStreaming { get; set; } = true;
+
+    /// <summary>
     /// Maximum time in seconds to wait for the agent to complete.
     /// </summary>
     public int TimeoutSeconds { get; set; } = 300;
