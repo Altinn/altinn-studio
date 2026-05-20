@@ -11,6 +11,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import { shouldShowDefaultMaskinportenScopesOptIn } from 'app-development/utils/maskinportenScopes';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import classes from './ScopeListContainer.module.css';
 
 export function ScopeListContainer(): ReactElement {
   const { t } = useTranslation();
@@ -49,7 +50,7 @@ export function ScopeListContainer(): ReactElement {
 
   if (!hasOrgAccess) {
     return (
-      <>
+      <div className={classes.noOrgAccessContent}>
         <NoOrgAccessAlert />
         {selectedScopes?.scopes?.length > 0 && (
           <ScopeList
@@ -58,7 +59,7 @@ export function ScopeListContainer(): ReactElement {
             canManageScopes={false}
           />
         )}
-      </>
+      </div>
     );
   }
 
