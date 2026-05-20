@@ -108,15 +108,15 @@ export const returnUrlToAllForms = (host: string): string | undefined => {
 };
 
 export function logoutUrlAltinn(host: string): string | undefined {
-  if (host.match(localRegex)) {
+  if (isLocalEnvironment(host)) {
     return `http://${host}/`;
   }
 
-  const baseUrl = returnBaseUrlToAltinn(host);
-  if (!baseUrl) {
+  const altinnHost = extractAltinnHost(host);
+  if (!altinnHost) {
     return;
   }
-  return `${baseUrl}ui/authentication/LogOut`;
+  return `https://platform.${altinnHost}/authentication/api/v1/logout`;
 }
 
 export function customEncodeURI(uri: string): string {
