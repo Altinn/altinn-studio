@@ -1,3 +1,4 @@
+.claude/settings.json
 .gitattributes
 .github/
 .husky/
@@ -18,6 +19,7 @@ src/app-components/Card/
 src/app-components/Date/
 src/app-components/Datepicker/
 src/app-components/Flex/
+src/app-components/HelpText/
 src/app-components/Input/
 src/app-components/Label/
 src/app-components/Number/
