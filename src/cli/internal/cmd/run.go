@@ -100,7 +100,7 @@ func (c *RunCommand) UsageFor(commandPath string) string {
 		"  -m, --mode MODE       Run mode: process or container (default: process)",
 		"  -d, --detach          Run app in background",
 		"  --random-host-port    Use a random host port (default: true)",
-		"  --local-frontend      Use local frontend dev server assets",
+		"  --dev-frontend        Use frontend dev server assets",
 		"  --image-tag IMAGE     Use a specific app container image tag (container mode)",
 		"  --pull                Pull app container image before start (container mode)",
 		"  --skip-build          Skip building the app container image (container mode)",
@@ -116,7 +116,7 @@ type runFlags struct {
 	detach         bool
 	pullImage      bool
 	randomHostPort bool
-	localFrontend  bool
+	devFrontend    bool
 	skipBuild      bool
 	jsonOutput     bool
 }
@@ -200,7 +200,7 @@ func (c *RunCommand) parseRunFlags(args []string, commandPath string) (runFlags,
 	fs.BoolVar(&flags.detach, "detach", false, "Run app in background")
 	fs.BoolVar(&flags.pullImage, "pull", false, "Pull app container image before start")
 	fs.BoolVar(&flags.randomHostPort, "random-host-port", true, "Use a random host port")
-	fs.BoolVar(&flags.localFrontend, "local-frontend", false, "Use local frontend dev server assets")
+	fs.BoolVar(&flags.devFrontend, "dev-frontend", false, "Use frontend dev server assets")
 	fs.BoolVar(&flags.skipBuild, "skip-build", false, "Skip building the app container image")
 	fs.BoolVar(&flags.jsonOutput, "json", false, "Output as JSON")
 
@@ -338,7 +338,7 @@ func (c *RunCommand) runTarget(
 }
 
 func runAppFrontendAssetBaseUrl(topology envtopology.Local, flags runFlags) string {
-	if !flags.localFrontend {
+	if !flags.devFrontend {
 		return ""
 	}
 	return topology.PublicBaseURL(envtopology.ComponentFrontendDevServer)
