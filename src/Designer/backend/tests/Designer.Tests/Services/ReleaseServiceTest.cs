@@ -46,6 +46,14 @@ public class ReleaseServiceTest
     private readonly GeneralSettings _generalSettings;
     private readonly string _org = "udi";
     private readonly string _app = "kjaerestebesok";
+    private const string ExpectedDefaultMaskinportenScopes =
+        "[\"altinn:serviceowner\",\"altinn:serviceowner/instances.read\",\"altinn:serviceowner/instances.write\"]";
+    private static readonly List<string> ExpectedDefaultMaskinportenScopeList =
+    [
+        DefaultMaskinportenScopes.ServiceOwner,
+        DefaultMaskinportenScopes.ServiceOwnerInstancesRead,
+        DefaultMaskinportenScopes.ServiceOwnerInstancesWrite,
+    ];
 
     public ReleaseServiceTest()
     {
@@ -385,14 +393,18 @@ public class ReleaseServiceTest
         _azureDevOpsBuildClient.Verify(
             b =>
                 b.QueueAsync(
-                    It.Is<QueueBuildParameters>(p =>
-                        p.AppMaskinportenScopes != null
-                        && p.AppMaskinportenScopes.Contains(DefaultMaskinportenScopes.ServiceOwner)
-                        && p.AppMaskinportenScopes.Contains(DefaultMaskinportenScopes.ServiceOwnerInstancesRead)
-                        && p.AppMaskinportenScopes.Contains(DefaultMaskinportenScopes.ServiceOwnerInstancesWrite)
-                    ),
+                    It.Is<QueueBuildParameters>(p => p.AppMaskinportenScopes == ExpectedDefaultMaskinportenScopes),
                     It.IsAny<int>(),
                     It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+        _releaseRepository.Verify(
+            r =>
+                r.Create(
+                    It.Is<ReleaseEntity>(release =>
+                        release.BuildInputs.MaskinportenScopes.SequenceEqual(ExpectedDefaultMaskinportenScopeList)
+                    )
                 ),
             Times.Once
         );
@@ -465,6 +477,10 @@ public class ReleaseServiceTest
                 ),
             Times.Once
         );
+        _releaseRepository.Verify(
+            r => r.Create(It.Is<ReleaseEntity>(release => release.BuildInputs.MaskinportenScopes.Count == 0)),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -525,6 +541,10 @@ public class ReleaseServiceTest
                     It.IsAny<int>(),
                     It.IsAny<CancellationToken>()
                 ),
+            Times.Once
+        );
+        _releaseRepository.Verify(
+            r => r.Create(It.Is<ReleaseEntity>(release => release.BuildInputs.MaskinportenScopes.Count == 0)),
             Times.Once
         );
     }
