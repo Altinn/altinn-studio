@@ -396,22 +396,23 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     return compare(this, 'lessThanEq', arg1, arg2);
   },
   plus(term1, term2) {
-    return applyNullableBinaryOperation(Decimal.add, [term1, term2]);
+    return applyBinaryOperation(Decimal.add, [term1, term2]);
   },
   minus(minuend, subtrahend) {
-    return applyNullableBinaryOperation(Decimal.subtract, [minuend, subtrahend]);
+    return applyBinaryOperation(Decimal.subtract, [minuend, subtrahend]);
   },
   multiply(factor1, factor2) {
-    return applyNullableBinaryOperation(Decimal.multiply, [factor1, factor2]);
+    return applyBinaryOperation(Decimal.multiply, [factor1, factor2]);
   },
   divide(dividend, divisor) {
-    if (dividend === null || divisor === null) {
-      return null;
-    } else if (divisor === 0) {
-      throw new ExprRuntimeError(this.expr, this.path, 'The second argument is 0, cannot divide by 0');
-    } else {
-      return Decimal.divide(dividend, divisor);
-    }
+    const divideNumbers = (dividendNumber: number, divisorNumber: number): number => {
+      if (divisorNumber === 0) {
+        throw new ExprRuntimeError(this.expr, this.path, 'The second argument is 0, cannot divide by 0');
+      } else {
+        return Decimal.divide(dividendNumber, divisorNumber);
+      }
+    };
+    return applyBinaryOperation(divideNumbers, [dividend, divisor]);
   },
   concat: (...args) => args.join(''),
   and: (...args) => args.reduce((prev, cur) => prev && !!cur, true),
@@ -1031,11 +1032,11 @@ function compare(
   return def.impl.call(ctx, a, b);
 }
 
-function applyNullableBinaryOperation(
+function applyBinaryOperation(
   operation: (a: number, b: number) => number,
   [a, b]: [number | null, number | null],
-): number | null {
-  return a === null || b === null ? null : operation(a, b);
+): number {
+  return operation(a || 0, b || 0);
 }
 
 function validateDatesForSameDay(this: EvaluateExpressionParams, a: ExprDate, b: ExprDate) {

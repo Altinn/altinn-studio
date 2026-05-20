@@ -12,19 +12,19 @@
       "expects": -4.2
     },
     {
-      "name": "Should return null when both of the arguments are null",
+      "name": "Should return 0 when both of the arguments are null",
       "expression": ["plus", null, null],
-      "expects": null
+      "expects": 0
     },
     {
-      "name": "Should return null when one of the arguments is null [decimal, null]",
+      "name": "Should return the first term when the second term is null",
       "expression": ["plus", 4.3, null],
-      "expects": null
+      "expects": 4.3
     },
     {
-      "name": "Should return null when one of the arguments is null [null, decimal]",
+      "name": "Should return the second term when the first term is null",
       "expression": ["plus", null, 4.3],
-      "expects": null
+      "expects": 4.3
     },
     {
       "name": "Should add two integers",

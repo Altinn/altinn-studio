@@ -7,9 +7,9 @@
       "expects": 0.02
     },
     {
-      "name": "Should return null when both of the arguments are null",
+      "name": "Should return 0 when both of the arguments are null",
       "expression": ["multiply", null, null],
-      "expects": null
+      "expects": 0
     },
     {
       "name": "Should multiply the two negative arguments",
@@ -17,14 +17,14 @@
       "expects": 0.02
     },
     {
-      "name": "Should return null when one of the arguments is null [null, decimal]",
+      "name": "Should return 0 when one of the arguments is null [null, decimal]",
       "expression": ["multiply", null, 2.1],
-      "expects": null
+      "expects": 0
     },
     {
-      "name": "Should return null when one of the arguments is null [decimal, null]",
+      "name": "Should return 0 when one of the arguments is null [decimal, null]",
       "expression": ["multiply", 2.1, null],
-      "expects": null
+      "expects": 0
     },
     {
       "name": "Should multiply two integers",
