@@ -1,0 +1,17 @@
+{
+  "systemPromptSrc": "C:\\data\\github\\altinn\\altinn-studio.exp-prompt-tweaks\\src\\AI\\augmenter-agent\\training\\experiments\\exp-prompt-tweaks\\artifacts\\skill-v4-do-dont.md",
+  "step": "checklist-agent",
+  "elapsedMs": 259654,
+  "inputFile": "C:\\data\\github\\altinn\\altinn-studio.exp-prompt-tweaks\\src\\AI\\augmenter-agent\\examples\\applications\\julebord-kristiansand.json",
+  "timestamp": "2026-05-19T22:56:25.6054788+02:00",
+  "errorMessage": "Pi CLI failed (exit 1): terminated\n",
+  "model": "sandkasse/telenor:gemma4",
+  "success": false,
+  "iteration": 5,
+  "userPromptSrc": "pipeline-default",
+  "stdout": "",
+  "promptLengths": {
+    "system": 1199,
+    "user": 10442
+  }
+}

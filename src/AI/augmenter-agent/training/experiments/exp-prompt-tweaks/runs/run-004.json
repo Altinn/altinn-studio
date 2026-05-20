@@ -1,0 +1,17 @@
+{
+  "success": false,
+  "elapsedMs": 256227,
+  "step": "checklist-agent",
+  "iteration": 4,
+  "stdout": "",
+  "userPromptSrc": "pipeline-default",
+  "promptLengths": {
+    "system": 1186,
+    "user": 10442
+  },
+  "inputFile": "C:\\data\\github\\altinn\\altinn-studio.exp-prompt-tweaks\\src\\AI\\augmenter-agent\\examples\\applications\\julebord-kristiansand.json",
+  "model": "sandkasse/telenor:gemma4",
+  "errorMessage": "Pi CLI failed (exit 1): terminated\n",
+  "timestamp": "2026-05-19T22:51:34.0651998+02:00",
+  "systemPromptSrc": "C:\\data\\github\\altinn\\altinn-studio.exp-prompt-tweaks\\src\\AI\\augmenter-agent\\training\\experiments\\exp-prompt-tweaks\\artifacts\\skill-v3-oneshot.md"
+}

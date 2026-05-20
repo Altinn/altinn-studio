@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-05-19T23:01:41.6080360+02:00",
+  "inputFile": "C:\\data\\github\\altinn\\altinn-studio.exp-prompt-tweaks\\src\\AI\\augmenter-agent\\examples\\applications\\julebord-kristiansand.json",
+  "model": "sandkasse/telenor:gemma4",
+  "iteration": 12,
+  "step": "checklist-agent",
+  "elapsedMs": 23568,
+  "promptLengths": {
+    "system": 973,
+    "user": 2277
+  },
+  "userPromptSrc": "C:\\data\\github\\altinn\\altinn-studio.exp-prompt-tweaks\\src\\AI\\augmenter-agent\\training\\experiments\\exp-prompt-tweaks\\artifacts\\user-section-formelle-and-personkrav.txt",
+  "stdout": "{\n  \"sjekkliste\": {\n    \"formelle_krav\": {\n      \"label\": \"Formelle krav\",\n      \"punkter\": {\n        \"soknad_komplett\": {\n          \"label\": \"Søknaden er komplett utfylt\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Alle nødvendige felter for arrangement er utfylt.\"\n        },\n        \"riktig_soknadstype\": {\n          \"label\": \"Riktig søknadstype valgt\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Søknadstype 'arrangement' er valgt for julebord.\"\n        },\n        \"kommune_riktig\": {\n          \"label\": \"Riktig kommune valgt\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Kommuneinformasjon er ikke oppgitt i rådata.\"\n        },\n        \"soker_identifisert\": {\n          \"label\": \"Søker er identifisert med org.nr.\",\n          \"status\": \"vurdert_avslag\",\n          \"merknad\": \"Søker er en privatperson (Sophie Salt) og organisasjonsnummer mangler.\"\n        }\n      }\n    },\n    \"personkrav\": {\n      \"label\": \"Krav til styrer og stedfortreder\",\n      \"punkter\": {\n        \"styrer_alder\": {\n          \"label\": \"Styrer er over 20 år\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Født 01.03.1990.\"\n        },\n        \"stedfortreder_alder\": {\n          \"label\": \"Stedfortreder er over 20 år\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Født 15.03.1990.\"\n        },\n        \"styrer_ansatt\": {\n          \"label\": \"Styrer er ansatt på stedet / eier\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Søknaden spesifiserer ikke arbeidsforhold ved Restaurant Sjøhuset.\"\n        },\n        \"stedfortreder_ansatt\": {\n          \"label\": \"Stedfortreder er ansatt på stedet / eier\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Søknaden spesifiserer ikke arbeidsforhold ved Restaurant Sjøhuset.\"\n        },\n        \"styrer_kun_ett_sted\": {\n          \"label\": \"Styrer er ikke styrer/stedfortreder på annet sted\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Krever sjekk i P360/eksterne registre.\"\n        },\n        \"stedfortreder_kun_ett_sted\": {\n          \"label\": \"Stedfortreder er ikke styrer/stedfortreder på annet sted\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Krever sjekk i P360/eksterne registre.\"\n        },\n        \"fritak_stedfortreder\": {\n          \"label\": \"Fritak fra krav om stedfortreder vurdert\",\n          \"status\": \"vurdert_ok\",\n          \"merknad\": \"Fritak er ikke søkt, og stedfortreder er oppgitt.\"\n        }\n      }\n    }\n  }\n}\n",
+  "systemPromptSrc": "C:\\data\\github\\altinn\\altinn-studio.exp-prompt-tweaks\\src\\AI\\augmenter-agent\\training\\experiments\\exp-prompt-tweaks\\artifacts\\skill-v1-no-enum-norsk.md",
+  "errorMessage": null,
+  "success": true
+}

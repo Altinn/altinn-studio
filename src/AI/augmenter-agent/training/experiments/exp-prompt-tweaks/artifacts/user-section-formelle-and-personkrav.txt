@@ -1,0 +1,41 @@
+Her er rådata fra søknaden:
+
+```json
+{
+  "soker": {"navn": "Sophie Salt", "organisasjonsnummer": null},
+  "arrangement": {"navn": "Julebord Avdeling Nord", "type": "julebord", "innendors_utendors": "Innendørs", "antall_deltakere": 45, "lokale_adresse": "Havnegata 15", "lokale_navn": "Restaurant Sjøhuset"},
+  "bevilling": {"type_bevilling": "arrangement", "alkoholgruppe": "Gruppe 1, 2 og 3 (inntil 60 %)", "har_eksisterende_bevilling": false},
+  "styrer": {"navn": "Sophie Salt", "fodselsnummer": "01039012345"},
+  "stedfortreder": {"navn": "Erik Hansen", "fodselsnummer": "15039012345", "fritak_sokt": false}
+}
+```
+
+Her er sjekklisten som skal evalueres. Oppdater "status" og "merknad" for hvert punkt basert på søknadsdataene over:
+
+```json
+{
+  "sjekkliste": {
+    "formelle_krav": {
+      "label": "Formelle krav",
+      "punkter": {
+        "soknad_komplett": {"label": "Søknaden er komplett utfylt", "status": "ikke_vurdert", "merknad": ""},
+        "riktig_soknadstype": {"label": "Riktig søknadstype valgt", "status": "ikke_vurdert", "merknad": ""},
+        "kommune_riktig": {"label": "Riktig kommune valgt", "status": "ikke_vurdert", "merknad": ""},
+        "soker_identifisert": {"label": "Søker er identifisert med org.nr.", "status": "ikke_vurdert", "merknad": ""}
+      }
+    },
+    "personkrav": {
+      "label": "Krav til styrer og stedfortreder",
+      "punkter": {
+        "styrer_alder": {"label": "Styrer er over 20 år", "status": "ikke_vurdert", "merknad": ""},
+        "stedfortreder_alder": {"label": "Stedfortreder er over 20 år", "status": "ikke_vurdert", "merknad": ""},
+        "styrer_ansatt": {"label": "Styrer er ansatt på stedet / eier", "status": "ikke_vurdert", "merknad": ""},
+        "stedfortreder_ansatt": {"label": "Stedfortreder er ansatt på stedet / eier", "status": "ikke_vurdert", "merknad": ""},
+        "styrer_kun_ett_sted": {"label": "Styrer er ikke styrer/stedfortreder på annet sted", "status": "ikke_vurdert", "merknad": ""},
+        "stedfortreder_kun_ett_sted": {"label": "Stedfortreder er ikke styrer/stedfortreder på annet sted", "status": "ikke_vurdert", "merknad": ""},
+        "fritak_stedfortreder": {"label": "Fritak fra krav om stedfortreder vurdert", "status": "ikke_vurdert", "merknad": ""}
+      }
+    }
+  }
+}
+```
