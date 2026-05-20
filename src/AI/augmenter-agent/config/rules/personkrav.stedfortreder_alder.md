@@ -10,4 +10,4 @@ Sjekk om stedfortreder er fylt 20 år på arrangementets startdato.
 * Stedfortreder under 20 år: **vurdert_avslag**. Sitér alder og lovens minimumsalder.
 * Fødselsnummer eller startdato mangler: **maa_undersokes**.
 
-Bruk `path_value` for stedfortreders fødselsnummer og arrangementets startdato, og `age_at_date_from_fnr` for alder.
+Bruk `path_value` for stedfortreders fødselsnummer og arrangementets startdato, og `age_from_id` (med `decoder="fnr-no"`) for alder.

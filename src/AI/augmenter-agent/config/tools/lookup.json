@@ -1,0 +1,12 @@
+{
+  "name": "lookup",
+  "description": "Slå opp en verdi i en konfigurert oppslagstabell via nøkkel. Velg riktig tabell via 'registry'-parameteren. Støttede registries i denne konfigurasjonen: 'kommuner' (4-sifret kommunenummer → kommune-data).",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "registry": { "type": "string", "description": "Navn på oppslagstabellen (f.eks. 'kommuner')" },
+      "key":      { "type": "string", "description": "Nøkkelen å slå opp (formatet avhenger av registry)" }
+    },
+    "required": ["registry", "key"]
+  }
+}

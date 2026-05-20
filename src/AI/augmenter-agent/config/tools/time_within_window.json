@@ -1,0 +1,14 @@
+{
+  "name": "time_within_window",
+  "description": "Sjekk om en tidsperiode [start_time, end_time] ligger fullt innenfor et tillatt vindu [window_start, window_end]. Håndterer wrap-around forbi midnatt (end < start tolkes som neste dag, og vinduet kan også gå over midnatt). Bruk dette når regelen oppgir et tillatt vindu i prosa — du må selv velge riktig vindu basert på rule-tekst.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "start_time":   { "type": "string", "description": "Periodens start, HH:MM" },
+      "end_time":     { "type": "string", "description": "Periodens slutt, HH:MM (kan være neste dag — wrap håndteres)" },
+      "window_start": { "type": "string", "description": "Vinduets start, HH:MM" },
+      "window_end":   { "type": "string", "description": "Vinduets slutt, HH:MM (kan være neste dag — wrap håndteres)" }
+    },
+    "required": ["start_time", "end_time", "window_start", "window_end"]
+  }
+}

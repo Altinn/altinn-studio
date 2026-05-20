@@ -78,10 +78,10 @@ public sealed class ToolRegistry : IToolRegistry
             new Altinn.Augmenter.Agent.Configuration.ContentPathsOptions { DomainRoot = "/nonexistent" }));
         return
         [
-            new AgeAtDateFromFnrTool(),
+            new AgeFromIdTool(),
             new DaysBetweenTool(),
-            new TimeWithinLegalScheduleTool(),
-            new LookupKommuneTool(domain),
+            new TimeWithinWindowTool(),
+            new LookupTool(domain),
             new PathValueTool(),
             new CountAttachmentsTool(),
             new TextMatchesAnyTool(),
@@ -132,10 +132,10 @@ public sealed class ToolRegistry : IToolRegistry
     /// <summary>Default tool set when an explicit <see cref="DomainDataProvider"/> is supplied (used by the integration test).</summary>
     public static IReadOnlyList<ITool> BuiltIn(DomainDataProvider domain) =>
     [
-        new AgeAtDateFromFnrTool(),
+        new AgeFromIdTool(),
         new DaysBetweenTool(),
-        new TimeWithinLegalScheduleTool(),
-        new LookupKommuneTool(domain),
+        new TimeWithinWindowTool(),
+        new LookupTool(domain),
         new PathValueTool(),
         new CountAttachmentsTool(),
         new TextMatchesAnyTool(),

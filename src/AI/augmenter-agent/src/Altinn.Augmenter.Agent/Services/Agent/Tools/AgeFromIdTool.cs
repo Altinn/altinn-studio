@@ -5,22 +5,29 @@ using System.Text.RegularExpressions;
 namespace Altinn.Augmenter.Agent.Services.Agent.Tools;
 
 /// <summary>
-/// Computes a person's age in whole years on a reference date, given an
-/// 11-digit Norwegian fødselsnummer. Century derived from the individual-number
-/// per Skatteetaten's rules; D-numbers (day + 40) are handled.
+/// Computes a person's age in whole years on a reference date from an opaque
+/// identifier and a named decoder. Decoders supported in the image today:
+/// <list type="bullet">
+///   <item><c>fnr-no</c>: 11-digit Norwegian fødselsnummer with D-number handling.</item>
+/// </list>
+/// New decoders are added by extending the switch in <see cref="DecodeBirthdate"/>.
 /// </summary>
-public sealed partial class AgeAtDateFromFnrTool : ITool
+public sealed partial class AgeFromIdTool : ITool
 {
-    public string Name => "age_at_date_from_fnr";
+    public string Name => "age_from_id";
 
     public object Invoke(JsonElement arguments, JsonDocument application)
     {
-        var fnr = arguments.TryGetProperty("fnr", out var fnrEl) ? fnrEl.GetString() : null;
+        var id = arguments.TryGetProperty("id", out var idEl) ? idEl.GetString() : null;
         var refDateStr = arguments.TryGetProperty("reference_date", out var rdEl) ? rdEl.GetString() : null;
+        var decoder = arguments.TryGetProperty("decoder", out var decEl) ? decEl.GetString() : null;
 
-        var birthdate = TryDecodeBirthdate(fnr);
+        if (string.IsNullOrEmpty(decoder))
+            return new { error = "Missing required argument 'decoder' (supported: 'fnr-no')." };
+
+        var birthdate = DecodeBirthdate(id, decoder);
         if (birthdate is null)
-            return new { error = $"Invalid fnr (expected 11 digits): '{fnr}'" };
+            return new { error = $"Could not decode id '{id}' with decoder '{decoder}'." };
 
         if (!DateOnly.TryParseExact(refDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var refDate))
             return new { error = $"Invalid reference_date (expected YYYY-MM-DD): '{refDateStr}'" };
@@ -36,10 +43,16 @@ public sealed partial class AgeAtDateFromFnrTool : ITool
         };
     }
 
+    private static DateOnly? DecodeBirthdate(string? id, string decoder) => decoder switch
+    {
+        "fnr-no" => DecodeNorwegianFnr(id),
+        _ => null,
+    };
+
     [GeneratedRegex(@"^\d{11}$")]
     private static partial Regex FnrRegex();
 
-    internal static DateOnly? TryDecodeBirthdate(string? fnr)
+    internal static DateOnly? DecodeNorwegianFnr(string? fnr)
     {
         if (string.IsNullOrEmpty(fnr) || !FnrRegex().IsMatch(fnr))
             return null;

@@ -41,10 +41,10 @@ public class ToolTests
     [InlineData("31125012345", "2026-05-20", 75)]   // born 1950-12-31 → 75 (birthday already passed)
     [InlineData("01018012345", "2026-01-01", 46)]   // exactly on birthday → 46
     [InlineData("02018012345", "2026-01-01", 45)]   // day before birthday → still 45
-    public void AgeAtDateFromFnr_ValidInputs_ReturnsExpectedAge(string fnr, string refDate, int expectedAge)
+    public void AgeFromId_FnrDecoder_ValidInputs_ReturnsExpectedAge(string fnr, string refDate, int expectedAge)
     {
-        var tool = new AgeAtDateFromFnrTool();
-        var result = tool.Invoke(Args($$"""{ "fnr": "{{fnr}}", "reference_date": "{{refDate}}" }"""), SampleApplication);
+        var tool = new AgeFromIdTool();
+        var result = tool.Invoke(Args($$"""{ "id": "{{fnr}}", "reference_date": "{{refDate}}", "decoder": "fnr-no" }"""), SampleApplication);
         var json = JsonSerializer.SerializeToElement(result);
         json.GetProperty("age").GetInt32().Should().Be(expectedAge);
     }
@@ -53,23 +53,32 @@ public class ToolTests
     [InlineData("not-a-fnr")]
     [InlineData("12345")]
     [InlineData("")]
-    public void AgeAtDateFromFnr_InvalidFnr_ReturnsError(string fnr)
+    public void AgeFromId_FnrDecoder_InvalidId_ReturnsError(string fnr)
     {
-        var tool = new AgeAtDateFromFnrTool();
-        var result = tool.Invoke(Args($$"""{ "fnr": "{{fnr}}", "reference_date": "2026-01-01" }"""), SampleApplication);
+        var tool = new AgeFromIdTool();
+        var result = tool.Invoke(Args($$"""{ "id": "{{fnr}}", "reference_date": "2026-01-01", "decoder": "fnr-no" }"""), SampleApplication);
         var json = JsonSerializer.SerializeToElement(result);
         json.TryGetProperty("error", out _).Should().BeTrue();
     }
 
     [Fact]
-    public void AgeAtDateFromFnr_DNumber_DecodesDayMinus40()
+    public void AgeFromId_FnrDecoder_DNumber_DecodesDayMinus40()
     {
         // D-number: day = real-day + 40. 41018012345 → day 1, month 01, 1980 → age 46 on 2026-05-20
-        var tool = new AgeAtDateFromFnrTool();
-        var result = tool.Invoke(Args("""{ "fnr": "41018012345", "reference_date": "2026-05-20" }"""), SampleApplication);
+        var tool = new AgeFromIdTool();
+        var result = tool.Invoke(Args("""{ "id": "41018012345", "reference_date": "2026-05-20", "decoder": "fnr-no" }"""), SampleApplication);
         var json = JsonSerializer.SerializeToElement(result);
         json.GetProperty("age").GetInt32().Should().Be(46);
         json.GetProperty("birthdate").GetString().Should().Be("1980-01-01");
+    }
+
+    [Fact]
+    public void AgeFromId_UnknownDecoder_ReturnsError()
+    {
+        var tool = new AgeFromIdTool();
+        var result = tool.Invoke(Args("""{ "id": "01018012345", "reference_date": "2026-01-01", "decoder": "ssn-us" }"""), SampleApplication);
+        var json = JsonSerializer.SerializeToElement(result);
+        json.TryGetProperty("error", out _).Should().BeTrue();
     }
 
     // --- days_between -------------------------------------------------------------
@@ -96,58 +105,67 @@ public class ToolTests
         json.TryGetProperty("error", out _).Should().BeTrue();
     }
 
-    // --- time_within_legal_schedule -----------------------------------------------
+    // --- time_within_window -------------------------------------------------------
 
     [Theory]
-    [InlineData("18:00", "01:00", "gruppe 1 og 2", true, "1-2")]     // wraps midnight, within
-    [InlineData("06:00", "03:00", "gruppe 1 og 2", true, "1-2")]     // exact bounds
-    [InlineData("05:30", "02:00", "gruppe 1 og 2", false, "1-2")]    // starts before 06:00
-    [InlineData("18:00", "04:00", "gruppe 1 og 2", false, "1-2")]    // ends after 03:00
-    [InlineData("13:00", "03:00", "gruppe tre", true, "3")]          // group 3, exact bounds
-    [InlineData("12:00", "03:00", "brennevin", false, "3")]          // group 3, starts before 13:00
-    [InlineData("13:00", "02:00", "3", true, "3")]                   // numeric "3" triggers group 3
-    public void TimeWithinLegalSchedule_Cases(string start, string end, string grp, bool within, string group)
+    [InlineData("18:00", "01:00", "06:00", "03:00", true)]   // period wraps midnight, fits 06:00-03:00 window
+    [InlineData("06:00", "03:00", "06:00", "03:00", true)]   // exact match (both wrap)
+    [InlineData("05:30", "02:00", "06:00", "03:00", false)]  // starts before window start
+    [InlineData("18:00", "04:00", "06:00", "03:00", false)]  // ends after window end
+    [InlineData("13:00", "03:00", "13:00", "03:00", true)]   // tighter window, exact match
+    [InlineData("12:00", "03:00", "13:00", "03:00", false)]  // starts before tighter window start
+    [InlineData("10:00", "14:00", "09:00", "17:00", true)]   // both intervals fully diurnal
+    public void TimeWithinWindow_Cases(string start, string end, string winStart, string winEnd, bool within)
     {
-        var tool = new TimeWithinLegalScheduleTool();
+        var tool = new TimeWithinWindowTool();
         var result = tool.Invoke(
-            Args($$"""{ "start_time": "{{start}}", "end_time": "{{end}}", "vare_gruppe": "{{grp}}" }"""),
+            Args($$"""{ "start_time": "{{start}}", "end_time": "{{end}}", "window_start": "{{winStart}}", "window_end": "{{winEnd}}" }"""),
             SampleApplication);
         var json = JsonSerializer.SerializeToElement(result);
         json.GetProperty("within").GetBoolean().Should().Be(within);
-        json.GetProperty("group").GetString().Should().Be(group);
     }
 
     [Fact]
-    public void TimeWithinLegalSchedule_BadTime_ReturnsError()
+    public void TimeWithinWindow_BadTime_ReturnsError()
     {
-        var tool = new TimeWithinLegalScheduleTool();
+        var tool = new TimeWithinWindowTool();
         var result = tool.Invoke(
-            Args("""{ "start_time": "25:00", "end_time": "03:00", "vare_gruppe": "1-2" }"""),
+            Args("""{ "start_time": "25:00", "end_time": "03:00", "window_start": "06:00", "window_end": "03:00" }"""),
             SampleApplication);
         var json = JsonSerializer.SerializeToElement(result);
         json.TryGetProperty("error", out _).Should().BeTrue();
     }
 
-    // --- lookup_kommune -----------------------------------------------------------
+    // --- lookup (registry, key) ---------------------------------------------------
 
     [Theory]
     [InlineData("4204", "Kristiansand")]
     [InlineData("4223", "Vennesla")]
-    public void LookupKommune_Known_ReturnsName(string nr, string expectedName)
+    public void Lookup_KommunerRegistry_Known_ReturnsName(string nr, string expectedName)
     {
-        var tool = new LookupKommuneTool(RealDomainProvider());
-        var result = tool.Invoke(Args($$"""{ "kommunenummer": "{{nr}}" }"""), SampleApplication);
+        var tool = new LookupTool(RealDomainProvider());
+        var result = tool.Invoke(Args($$"""{ "registry": "kommuner", "key": "{{nr}}" }"""), SampleApplication);
         var json = JsonSerializer.SerializeToElement(result);
         json.GetProperty("name").GetString().Should().Be(expectedName);
     }
 
     [Fact]
-    public void LookupKommune_Unknown_ReturnsError()
+    public void Lookup_KommunerRegistry_Unknown_ReturnsError()
     {
-        var tool = new LookupKommuneTool(RealDomainProvider());
-        var result = tool.Invoke(Args("""{ "kommunenummer": "9999" }"""), SampleApplication);
+        var tool = new LookupTool(RealDomainProvider());
+        var result = tool.Invoke(Args("""{ "registry": "kommuner", "key": "9999" }"""), SampleApplication);
         var json = JsonSerializer.SerializeToElement(result);
         json.TryGetProperty("error", out _).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Lookup_UnknownRegistry_ReturnsError()
+    {
+        var tool = new LookupTool(RealDomainProvider());
+        var result = tool.Invoke(Args("""{ "registry": "non_existent", "key": "x" }"""), SampleApplication);
+        var json = JsonSerializer.SerializeToElement(result);
+        json.TryGetProperty("error", out var err).Should().BeTrue();
+        err.GetString().Should().Contain("Unknown registry");
     }
 
     private static Altinn.Augmenter.Agent.Services.Domain.DomainDataProvider RealDomainProvider()
@@ -288,8 +306,8 @@ public class ToolTests
     public void ToolRegistry_BuiltIn_HasEightTools()
     {
         ToolRegistry.BuiltIn(RealDomainProvider()).Select(t => t.Name).Should().BeEquivalentTo(
-            "age_at_date_from_fnr", "days_between", "time_within_legal_schedule",
-            "lookup_kommune", "path_value", "count_attachments",
+            "age_from_id", "days_between", "time_within_window",
+            "lookup", "path_value", "count_attachments",
             "text_matches_any", "text_contains_any");
     }
 

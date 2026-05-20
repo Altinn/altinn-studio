@@ -10,6 +10,6 @@ Statusen skal alltid være: **ikke_vurdert**.
 
 Skriv en merknad som:
 * Sier at uttalelse må innhentes fra NAV i den aktuelle kommunen
-* Nevner kommunenavnet hvis tilgjengelig (slå opp via `lookup_kommune` på kommunenummeret)
+* Nevner kommunenavnet hvis tilgjengelig (slå opp via `lookup` (med `registry="kommuner"`) på kommunenummeret)
 
-Bruk `path_value` for `FlatData.Kommunenummer` og `lookup_kommune` for navn.
+Bruk `path_value` for `FlatData.Kommunenummer` og `lookup` (med `registry="kommuner"`) for navn.

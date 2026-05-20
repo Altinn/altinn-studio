@@ -53,10 +53,10 @@ builder.Services.AddScoped<IAgentService>(sp =>
 });
 // Per-punkt orchestrator + supporting services (used by agent-pdf-orchestrated step)
 // Tools registered as types so DI injects dependencies (LookupKommuneTool needs DomainDataProvider)
-builder.Services.AddSingleton<ITool, AgeAtDateFromFnrTool>();
+builder.Services.AddSingleton<ITool, AgeFromIdTool>();
 builder.Services.AddSingleton<ITool, DaysBetweenTool>();
-builder.Services.AddSingleton<ITool, TimeWithinLegalScheduleTool>();
-builder.Services.AddSingleton<ITool, LookupKommuneTool>();
+builder.Services.AddSingleton<ITool, TimeWithinWindowTool>();
+builder.Services.AddSingleton<ITool, LookupTool>();
 builder.Services.AddSingleton<ITool, PathValueTool>();
 builder.Services.AddSingleton<ITool, CountAttachmentsTool>();
 builder.Services.AddSingleton<ITool, TextMatchesAnyTool>();

@@ -8,6 +8,6 @@ Statusen skal alltid være: **maa_undersokes**.
 Skriv en merknad som:
 * Sier at saksbehandler må vurdere beliggenheten konkret mot kommunens lokale retningslinjer
 * Nevner stedsnavn og adresse fra søknaden
-* Nevner kommunen (slå opp via `lookup_kommune` på kommunenummer)
+* Nevner kommunen (slå opp via `lookup` (med `registry="kommuner"`) på kommunenummer)
 
-Bruk `path_value` for `FlatData.Arrangement.Arrangementssted` og `FlatData.Kommunenummer`, og `lookup_kommune` for navn.
+Bruk `path_value` for `FlatData.Arrangement.Arrangementssted` og `FlatData.Kommunenummer`, og `lookup` (med `registry="kommuner"`) for navn.
