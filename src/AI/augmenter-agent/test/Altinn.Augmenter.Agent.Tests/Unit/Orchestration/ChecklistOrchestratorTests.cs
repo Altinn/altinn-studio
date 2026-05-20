@@ -134,13 +134,15 @@ public class ChecklistOrchestratorTests
     [Fact]
     public async Task RunAsync_MultipleRules_RunsConcurrently()
     {
-        // Each rule gets a response with a 50ms artificial delay; with concurrency=3
-        // and 3 rules, total wall-time should be far less than 3×50ms == 150ms.
+        // Each rule's "chat call" delays 200ms. With concurrency=3 and 3 rules,
+        // parallel execution should land near 200ms; sequential would be ~600ms.
+        // Threshold 400ms gives comfortable headroom for cold-start jitter while
+        // still falsifying serial execution.
         var chat = new StubChatService(_ => Task.FromResult(new ChatResponse
         {
             Content = """{"status":"vurdert_ok","merknad":"OK"}""",
             StatusCode = 200,
-        }), delayMs: 50);
+        }), delayMs: 200);
 
         var orchestrator = new ChecklistOrchestrator(chat, new ToolRegistry(), NullLogger<ChecklistOrchestrator>.Instance);
 
@@ -149,7 +151,7 @@ public class ChecklistOrchestratorTests
         var result = await orchestrator.RunAsync(app, rules, new OrchestratorOptions { Concurrency = 3 });
 
         result.Verdicts.Should().HaveCount(3);
-        result.WallTimeMs.Should().BeLessThan(120); // sequential would be ~150ms
+        result.WallTimeMs.Should().BeLessThan(400);
     }
 }
 
