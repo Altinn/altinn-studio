@@ -12,4 +12,8 @@
     <PackageReference Include="YamlDotNet" Version="16.*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Altinn.Augmenter.Agent.Tests" />
+  </ItemGroup>
+
 </Project>
