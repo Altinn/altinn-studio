@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -20,19 +21,32 @@ const appsSearchTestQuery = "apps"
 func TestAppsSearchCommandPrintsResults(t *testing.T) {
 	t.Parallel()
 
+	reqErrCh := make(chan string, 1)
+	failRequest := func(w http.ResponseWriter, format string, args ...any) {
+		select {
+		case reqErrCh <- fmt.Sprintf(format, args...):
+		default:
+		}
+		http.Error(w, "unexpected request", http.StatusBadRequest)
+	}
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/designer/api/repos/search" {
-			t.Fatalf("path = %s, want /designer/api/repos/search", r.URL.Path)
+			failRequest(w, "path = %s, want /designer/api/repos/search", r.URL.Path)
+			return
 		}
 		query := r.URL.Query()
 		if got := query.Get("keyword"); got != appsSearchTestQuery {
-			t.Fatalf("keyword = %q, want %s", got, appsSearchTestQuery)
+			failRequest(w, "keyword = %q, want %s", got, appsSearchTestQuery)
+			return
 		}
 		if got := query.Get("limit"); got != "1" {
-			t.Fatalf("limit = %q, want 1", got)
+			failRequest(w, "limit = %q, want 1", got)
+			return
 		}
 		if got := query.Get("page"); got != "1" {
-			t.Fatalf("page = %q, want 1", got)
+			failRequest(w, "page = %q, want 1", got)
+			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -58,10 +72,16 @@ func TestAppsSearchCommandPrintsResults(t *testing.T) {
 	var out bytes.Buffer
 	command := NewAppsCommand(cfg, ui.NewOutput(&out, io.Discard, false))
 
-	if err := command.Run(
+	err := command.Run(
 		t.Context(),
 		[]string{"search", "--env", "dev", "--limit", "1", appsSearchTestQuery},
-	); err != nil {
+	)
+	select {
+	case reqErr := <-reqErrCh:
+		t.Fatal(reqErr)
+	default:
+	}
+	if err != nil {
 		t.Fatalf("Run() error = %v", err)
 	}
 
