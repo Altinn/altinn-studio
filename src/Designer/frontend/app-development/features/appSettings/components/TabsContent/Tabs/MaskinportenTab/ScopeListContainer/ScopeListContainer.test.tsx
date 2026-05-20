@@ -7,6 +7,8 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { AxiosError } from 'axios';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 const scopeMock1: MaskinportenScope = {
   scope: 'scope1',
@@ -89,8 +91,12 @@ describe('ScopeListContainer', () => {
   });
 
   it('should display an alert if no scopes are available', async () => {
-    const getMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
-    const getSelectedMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
+    const getMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ scopes: [] }));
+    const getSelectedMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ scopes: [] }));
 
     renderScopeListContainer({
       getMaskinportenScopes,
@@ -101,6 +107,91 @@ describe('ScopeListContainer', () => {
     expect(
       getText(textMock('app_settings.maskinporten_no_scopes_available_description')),
     ).toBeInTheDocument();
+  });
+
+  it('should display an alert if user does not have access on behalf of the organisation', async () => {
+    const getMaskinportenScopes = jest
+      .fn()
+      .mockRejectedValue(createAxiosError(ServerCodes.Forbidden));
+    const getSelectedMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ scopes: [] }));
+
+    renderScopeListContainer({
+      getMaskinportenScopes,
+      getSelectedMaskinportenScopes,
+    });
+    await waitForGetScopesCheckIsDone();
+
+    expect(
+      getText(textMock('app_settings.maskinporten_no_org_access_description')),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('app_settings.maskinporten_no_scopes_available_description')),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should display selected scopes without management controls if user does not have access on behalf of the organisation', async () => {
+    const getMaskinportenScopes = jest
+      .fn()
+      .mockRejectedValue(createAxiosError(ServerCodes.Forbidden));
+    const getSelectedMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve(maskinportenScopes));
+
+    renderScopeListContainer({
+      getMaskinportenScopes,
+      getSelectedMaskinportenScopes,
+    });
+    await waitForGetScopesCheckIsDone();
+
+    expect(
+      getText(textMock('app_settings.maskinporten_no_org_access_description')),
+    ).toBeInTheDocument();
+    maskinportenScopes.scopes.forEach((scope: MaskinportenScope) => {
+      expect(getCell(scope.description)).toBeInTheDocument();
+      expect(getCell(scope.scope)).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', {
+          name: textMock('general.delete_item', { item: scope.scope }),
+        }),
+      ).not.toBeInTheDocument();
+    });
+    expect(queryButton(textMock('app_settings.maskinporten_add_scope'))).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('app_settings.maskinporten_tab_available_scopes_description')),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('app_settings.maskinporten_scope_changes_deployment_notice')),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should display add default scopes notice for v8.3 apps when no scopes are available', async () => {
+    const getMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ scopes: [] }));
+    const getSelectedMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ scopes: [] }));
+    const getAppVersion = jest
+      .fn()
+      .mockImplementation(() =>
+        Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '8.3.0' }),
+      );
+
+    renderScopeListContainer({
+      getMaskinportenScopes,
+      getSelectedMaskinportenScopes,
+      getAppVersion,
+    });
+    await waitForGetScopesCheckIsDone();
+
+    expect(
+      getText(textMock('app_settings.maskinporten_default_scopes_opt_in_notice')),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('app_settings.maskinporten_no_scopes_available_description')),
+    ).not.toBeInTheDocument();
   });
 });
 
@@ -122,3 +213,11 @@ const getCell = (name: string): HTMLTableCellElement => screen.getByRole('cell',
 const queryCell = (name: string): HTMLTableCellElement | null =>
   screen.queryByRole('cell', { name });
 const getButton = (name: string): HTMLButtonElement => screen.getByRole('button', { name });
+const queryButton = (name: string): HTMLButtonElement | null =>
+  screen.queryByRole('button', { name });
+
+function createAxiosError(status: ServerCodes): AxiosError {
+  const error = new AxiosError();
+  error.response = { status } as AxiosError['response'];
+  return error;
+}

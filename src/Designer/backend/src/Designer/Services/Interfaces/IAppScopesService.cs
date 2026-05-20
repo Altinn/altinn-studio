@@ -15,4 +15,8 @@ public interface IAppScopesService
         ISet<MaskinPortenScopeEntity> scopes,
         CancellationToken cancellationToken = default
     );
+    Task<AppScopesEntity> AddDefaultMaskinportenScopesAsync(
+        AltinnRepoEditingContext editingContext,
+        CancellationToken cancellationToken = default
+    );
 }
