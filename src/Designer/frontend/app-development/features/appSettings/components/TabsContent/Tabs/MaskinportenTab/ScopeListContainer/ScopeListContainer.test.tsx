@@ -7,6 +7,8 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { AxiosError } from 'axios';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 const scopeMock1: MaskinportenScope = {
   scope: 'scope1',
@@ -107,6 +109,28 @@ describe('ScopeListContainer', () => {
     ).toBeInTheDocument();
   });
 
+  it('should display an alert if user does not have access on behalf of the organisation', async () => {
+    const getMaskinportenScopes = jest
+      .fn()
+      .mockRejectedValue(createAxiosError(ServerCodes.Forbidden));
+    const getSelectedMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ scopes: [] }));
+
+    renderScopeListContainer({
+      getMaskinportenScopes,
+      getSelectedMaskinportenScopes,
+    });
+    await waitForGetScopesCheckIsDone();
+
+    expect(
+      getText(textMock('app_settings.maskinporten_no_org_access_description')),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('app_settings.maskinporten_no_scopes_available_description')),
+    ).not.toBeInTheDocument();
+  });
+
   it('should display add default scopes notice for v8.3 apps when no scopes are available', async () => {
     const getMaskinportenScopes = jest
       .fn()
@@ -154,3 +178,9 @@ const getCell = (name: string): HTMLTableCellElement => screen.getByRole('cell',
 const queryCell = (name: string): HTMLTableCellElement | null =>
   screen.queryByRole('cell', { name });
 const getButton = (name: string): HTMLButtonElement => screen.getByRole('button', { name });
+
+function createAxiosError(status: ServerCodes): AxiosError {
+  const error = new AxiosError();
+  error.response = { status } as AxiosError['response'];
+  return error;
+}
