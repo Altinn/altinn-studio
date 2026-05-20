@@ -6,4 +6,5 @@ export * from './Flex';
 export * from './hooks';
 export * from './Label';
 export * from './DisplayDate';
+export * from './DisplayNumber';
 export * from './Spinner';

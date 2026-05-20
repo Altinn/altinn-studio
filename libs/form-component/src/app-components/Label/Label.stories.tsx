@@ -36,14 +36,3 @@ export const WithDescription: Story = {
     description: <span>Enter the name as written in your passport.</span>,
   },
 };
-
-export const WithField: Story = {
-  args: {
-    children: (
-      <input
-        id='first-name'
-        type='text'
-      />
-    ),
-  },
-};

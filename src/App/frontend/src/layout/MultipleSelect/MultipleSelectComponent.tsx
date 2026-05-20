@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 
 import { Label } from '@app/form-component';
 import { EXPERIMENTAL_Suggestion as Suggestion, Field, Label as DSLabel } from '@digdir/designsystemet-react';
@@ -36,6 +36,7 @@ export function MultipleSelectComponent({
   } = useGetOptions(baseComponentId, 'multi');
   const groupBinding = useSaveValueToGroup(dataModelBindings);
   const selectedValues = groupBinding.enabled ? groupBinding.selectedValues : selectedFromSimpleBinding;
+  const isPatchingFocus = useRef(false);
 
   const debounce = FormStore.data.useDebounceImmediately();
   const { langAsString, lang } = useLanguage();
@@ -147,6 +148,33 @@ export function MultipleSelectComponent({
                   : undefined
               }
               readOnly={readOnly}
+              onFocus={async (e) => {
+                // Workaround for when programmatically focused by repeating group focus management
+
+                // If this event was triggered by our code below, reset the flag and exit.
+                if (isPatchingFocus.current) {
+                  isPatchingFocus.current = false;
+                  return;
+                }
+
+                const input = e.target;
+
+                // Wait for the combobox to be fully defined
+                await customElements.whenDefined('u-combobox');
+
+                setTimeout(() => {
+                  // Ensure we are still the active element
+                  if (document.activeElement !== input) {
+                    return;
+                  }
+
+                  // Tell the next execution of onFocus to ignore the event we are about to fire
+                  isPatchingFocus.current = true;
+
+                  // Wake up the component
+                  input.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+                }, 150);
+              }}
             />
             <Suggestion.Clear
               aria-label={langAsString('form_filler.clear_selection')}

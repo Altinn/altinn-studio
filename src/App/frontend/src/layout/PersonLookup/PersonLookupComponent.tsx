@@ -79,7 +79,7 @@ async function fetchPerson(
 }
 
 export function PersonLookupComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'PersonLookup'>) {
-  const { id, dataModelBindings, required } = useItemWhenType(baseComponentId, 'PersonLookup');
+  const { id, dataModelBindings, required, readOnly } = useItemWhenType(baseComponentId, 'PersonLookup');
   const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({
     baseComponentId,
     overrideDisplay,
@@ -225,14 +225,14 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               aria-label={translationKey('person_lookup.ssn_label')}
               value={hasSuccessfullyFetched ? person_lookup_ssn : tempSsn}
               required={required}
-              readOnly={hasSuccessfullyFetched}
+              readOnly={hasSuccessfullyFetched || isFetching || readOnly}
               error={invalidSsn}
               onValueChange={(e) => {
                 setTempSsn(e.value);
                 setSsnErrors(undefined);
               }}
               onKeyDown={async (ev) => {
-                if (ev.key === 'Enter') {
+                if (ev.key === 'Enter' && !readOnly) {
                   await handleSubmit();
                 }
               }}
@@ -279,14 +279,14 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               value={hasSuccessfullyFetched ? displayName : tempName}
               type='text'
               required={required}
-              readOnly={hasSuccessfullyFetched}
+              readOnly={hasSuccessfullyFetched || isFetching || readOnly}
               error={invalidName}
               onChange={(e) => {
                 setTempName(e.target.value);
                 setNameError(undefined);
               }}
               onKeyDown={async (ev) => {
-                if (ev.key === 'Enter') {
+                if (ev.key === 'Enter' && !readOnly) {
                   await handleSubmit();
                 }
               }}
@@ -304,26 +304,28 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
                 />
               ))}
           </Field>
-          <div className={classes.submit}>
-            {!hasSuccessfullyFetched ? (
-              <Button
-                onClick={handleSubmit}
-                variant='secondary'
-                isLoading={isFetching}
-                loadingLabel={langAsString('general.loading')}
-              >
-                <Lang id='person_lookup.submit_button' />
-              </Button>
-            ) : (
-              <Button
-                variant='secondary'
-                color='danger'
-                onClick={handleClear}
-              >
-                <Lang id='person_lookup.clear_button' />
-              </Button>
-            )}
-          </div>
+          {!readOnly && (
+            <div className={classes.submit}>
+              {!hasSuccessfullyFetched ? (
+                <Button
+                  onClick={handleSubmit}
+                  variant='secondary'
+                  isLoading={isFetching}
+                  loadingLabel={langAsString('general.loading')}
+                >
+                  <Lang id='person_lookup.submit_button' />
+                </Button>
+              ) : (
+                <Button
+                  variant='secondary'
+                  color='danger'
+                  onClick={handleClear}
+                >
+                  <Lang id='person_lookup.clear_button' />
+                </Button>
+              )}
+            </div>
+          )}
           {data?.error && (
             <ValidationMessage
               data-size='sm'
