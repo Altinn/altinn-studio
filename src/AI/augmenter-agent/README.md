@@ -33,8 +33,12 @@ when `claude` is on `PATH` and authenticated.
 ```
 config/
 ├── pipeline.yaml              # which steps run, in what order
+├── rules/                     # per-punkt markdown rules (agent-pdf-orchestrated)
+│   ├── personkrav.styrer_alder.md
+│   ├── lokalpolitisk.skjenketider_ok.md
+│   └── … (39 total)
 ├── skills/
-│   └── checklist/skill.md     # + @guide.md, @other.md references
+│   └── checklist/skill.md     # + @guide.md (used by legacy agent-pdf)
 ├── templates/
 │   ├── request-info.typ       # Typst (PDF)
 │   └── checklist.typ
@@ -42,7 +46,7 @@ config/
     ├── kommuner.json          # kommunenummer → navn + klage-epost
     ├── bevillingstyper.json   # input → normalized type + lovhenvisninger
     ├── alkoholgrupper.json    # varegruppe → standardized label
-    └── sjekkliste.json        # checklist sections + items
+    └── sjekkliste.json        # checklist sections + items (taxonomy)
 ```
 
 ## Reload after a change — what command?
@@ -78,29 +82,67 @@ default). The `claude` CLI must be on `PATH` and authenticated.
 
 `.env` is `.gitignored`. Copy `.env.example` and never commit a real key.
 
+## Step types
+
+| Type | Use when | Pipeline contract |
+|---|---|---|
+| `mapping-pdf` | Pure deterministic transformation; no LLM | mapper → Typst → PDF |
+| `agent-pdf` | Single monolithic LLM call works for the prompt size and model | mapper → IPromptBuilder → IAgentService → IResponseParser → Typst PDF |
+| `agent-pdf-orchestrated` | Production checklist path: per-punkt loops with deterministic tools, scales to 39+ rules without hitting gateway timeouts | mapper (base envelope) + orchestrator (per-punkt verdicts via IChatService + IToolRegistry + markdown rules) → merged JSON → Typst PDF |
+
+The orchestrated path was added in v0.4 after the monolithic agent-pdf path
+proved infeasible on Gemma 4 31B via sandkasse (gateway drops SSE at ~60s,
+model can't produce full 50KB checklist JSON in that window). The orchestrator
+decomposes the work to one short LLM call per punkt, each ~26s aggregate on
+the same model.
+
 ## Adding a new step (no rebuild)
 
-1. Pick a step type: `mapping-pdf` (no AI) or `agent-pdf` (AI).
-2. Add an entry to `config/pipeline.yaml`:
+1. Pick a step type from the table above.
+2. Add an entry to `config/pipeline.yaml`. Examples:
 
     ```yaml
-    - name: my-new-step
+    # Legacy single-call agent
+    - name: my-step
       type: agent-pdf
-      mapper: <key>            # IDataMapper registered in Program.cs
-      skillFolder: my-skill    # config/skills/my-skill/skill.md
-      template: my.typ         # config/templates/my.typ
-      docxTemplate: my.md      # optional — also emits .docx
+      mapper: <key>
+      skillFolder: my-skill
+      template: my.typ
       output: my.pdf
       expectedJsonKey: foo
-      consumeContext: [some-other-step-output]
-      publishTo: my-step-result
+
+    # Per-punkt orchestrated (current production checklist path)
+    - name: my-orchestrated-step
+      type: agent-pdf-orchestrated
+      mapper: <key>            # produces the envelope (meta/soker/…) the template needs
+      rulesFolder: .           # or a subfolder under config/rules/
+      sjekklisteSchema: sjekkliste.json    # optional, default
+      maxToolIterations: 5     # optional, default 5
+      concurrency: 5           # optional, default 5
+      traceDir: my-traces      # optional — relative paths go under TEMP
+      template: my.typ
+      output: my.pdf
     ```
 
-3. Drop the skill folder, Typst template, and (if used) Markdown template under `config/`.
+3. Drop the skill folder / markdown rules / Typst template under the right
+   `config/` subfolder (skills, rules, templates).
 4. Restart the container.
 
-For a brand-new domain whose data shape differs from bevillinger, register an `IDataMapper`
-under a new key in `Program.cs` (only step type that requires C# code).
+For a brand-new domain whose data shape differs from bevillinger, register an
+`IDataMapper` under a new key in `Program.cs` (this is the only step-type that
+requires C# code).
+
+### Adding tools (agent-pdf-orchestrated only)
+
+The 8 built-in tools live in `Services/Agent/Tools/`. To add a new one:
+1. Implement `ITool` (small file: name, OpenAI JSON-schema, Invoke method).
+2. Add it to `ToolRegistry.BuiltIn()`.
+3. Write rules that lean on it (the description string is what the LLM uses
+   to decide when to call it — be specific about when it should fire).
+
+Tools are pure functions: deterministic, no I/O, return JSON-serializable
+results. Errors come back as `{ "error": "..." }` rather than thrown so the
+model can read and recover.
 
 ## Adding a new kommune (no rebuild)
 
@@ -141,19 +183,27 @@ Asynchronous. Adds field `callback-url`; service POSTs each produced file to the
 multipart upload
        │
        ▼
-┌──────────────────────────┐
-│  PdfPipeline             │  reads pipeline.yaml at startup
-│  ┌────────────────────┐  │
-│  │ MappingPdfStep     │  │  no AI: mapper → Typst → PDF (+ optional DOCX)
-│  ├────────────────────┤  │
-│  │ AgentPdfStep       │  │  mapper → IPromptBuilder → IAgentService
-│  │                    │  │       → IResponseParser → Typst PDF + Pandoc DOCX
-│  │                    │  │       → optional PipelineContext.Set(publishTo, json)
-│  └────────────────────┘  │
-└──────────────────────────┘
-       │                      IAgentService implementations:
-       │                       - SandkasseHttpAgentService (default, production)
-       │                       - ClaudeCliAgentService (local dev)
+┌──────────────────────────────┐
+│  PdfPipeline                 │  reads pipeline.yaml at startup
+│  ┌────────────────────────┐  │
+│  │ MappingPdfStep         │  │  no AI: mapper → Typst → PDF (+ optional DOCX)
+│  ├────────────────────────┤  │
+│  │ AgentPdfStep           │  │  single LLM call:
+│  │                        │  │    mapper → IPromptBuilder → IAgentService
+│  │                        │  │    → IResponseParser → Typst
+│  ├────────────────────────┤  │
+│  │ AgentPdfOrchestrated   │  │  per-punkt loops (production checklist path):
+│  │ Step                   │  │    mapper → orchestrator (IChatService + IToolRegistry
+│  │                        │  │    + IRulesLoader, one loop per punkt, throttled
+│  │                        │  │    by SemaphoreSlim) → ChecklistAggregator → Typst
+│  └────────────────────────┘  │
+└──────────────────────────────┘
+       │
+       │   Service implementations:
+       │     IAgentService     → SandkasseHttpAgentService (prod) | ClaudeCliAgentService (dev)
+       │     IChatService      → SandkasseChatService (OpenAI chat-completions with tool_calls)
+       │     IToolRegistry     → 8 deterministic tools (age, dates, kommune lookup, JSON paths, …)
+       │     IRulesLoader      → globs config/rules/*.md
        ▼
    GeneratedPdf[]  (name + bytes)
 ```
@@ -177,6 +227,7 @@ saksbehandlings-type once its config folder is mounted.
 | `ContentPaths` | `SkillsRoot` | `/etc/augmenter/skills` | Local dev auto-discovers `config/skills/` |
 | `ContentPaths` | `TemplatesRoot` | `/etc/augmenter/templates` | Local dev auto-discovers `config/templates/` |
 | `ContentPaths` | `DomainRoot` | `/etc/augmenter/domain` | Local dev auto-discovers `config/domain/` |
+| `ContentPaths` | `RulesRoot` | `/etc/augmenter/rules` | Local dev auto-discovers `config/rules/` (per-punkt markdown for `agent-pdf-orchestrated`) |
 | `Callback` | `AllowedPatterns` | `[]` | Allowlist (wildcards supported) for `/generate-async` callbacks |
 | `Upload` | `MaxFileBytes` / `MaxTotalBytes` | 10 MB / 50 MB | Per-file and per-request size limits |
 | `PdfGeneration` | `ProcessTimeoutSeconds` | 60 | Typst process timeout |
@@ -189,8 +240,16 @@ saksbehandlings-type once its config folder is mounted.
 dotnet test
 ```
 
-Integration tests use a stub agent (`EmptyAgentService`) so they don't need a real gateway.
-Tests that require Typst skip automatically if it's not on `PATH`.
+Integration tests use stub LLM services (`EmptyAgentService` for `agent-pdf` and
+`CannedChatService` for `agent-pdf-orchestrated`) so they don't need a real
+gateway. Tests that require Typst skip automatically if it's not on `PATH`.
+
+Tests tagged `[Trait("Category", "Sandkasse")]` hit live sandkasse and skip
+silently when `SANDKASSE_API_KEY` is unset:
+
+```bash
+dotnet test --filter "Category=Sandkasse"
+```
 
 ## R&D experiments
 
