@@ -1,4 +1,5 @@
 using Altinn.Augmenter.Agent.Services.Agent;
+using Altinn.Augmenter.Agent.Services.Agent.Chat;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
@@ -27,13 +28,18 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             config.AddInMemoryCollection(settings);
         });
 
-        // Replace the agent service with a stub that returns empty output, so
-        // the AgentPdfStep falls back to the unevaluated-data PDF rendering
-        // path. Integration tests verify the pipeline plumbing, not LLM I/O.
+        // Replace LLM-bound services with stubs so integration tests verify
+        // pipeline plumbing without depending on a live SANDKASSE_API_KEY.
+        //   IAgentService → empty string ⇒ AgentPdfStep falls back to unevaluated-data PDF
+        //   IChatService  → canned "ikke_vurdert" verdict ⇒ AgentPdfOrchestratedStep
+        //                   still produces a valid sjekkliste (all punkter default)
         builder.ConfigureServices(services =>
         {
             services.RemoveAll<IAgentService>();
             services.AddScoped<IAgentService, EmptyAgentService>();
+
+            services.RemoveAll<IChatService>();
+            services.AddScoped<IChatService, CannedChatService>();
         });
     }
 }
@@ -42,4 +48,14 @@ internal sealed class EmptyAgentService : IAgentService
 {
     public Task<string> RunAsync(AgentRequest request, CancellationToken cancellationToken = default)
         => Task.FromResult(string.Empty);
+}
+
+internal sealed class CannedChatService : IChatService
+{
+    public Task<ChatResponse> RunAsync(ChatRequest request, CancellationToken cancellationToken = default)
+        => Task.FromResult(new ChatResponse
+        {
+            Content = """{"status":"ikke_vurdert","merknad":"Stubbed in TestWebApplicationFactory"}""",
+            StatusCode = 200,
+        });
 }

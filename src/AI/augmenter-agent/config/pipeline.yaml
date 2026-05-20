@@ -2,18 +2,29 @@
 # Each step runs in order. Agent steps may publish JSON into the pipeline context
 # under a key, and later steps may consume it via `consumeContext`.
 #
+# Step types:
+#   mapping-pdf:             deterministic mapper → Typst PDF (no LLM)
+#   agent-pdf:               mapper → one big LLM call (full skill) → Typst PDF
+#   agent-pdf-orchestrated:  per-punkt LLM loops with deterministic tools → aggregate → Typst PDF
+#                            (Phase 4 / v0.4 production path — handles the full sjekkliste in ~26 s
+#                            on Gemma 4 31B, where the monolithic agent-pdf path times out at the
+#                            ~60 s sandkasse SSE drop)
+#
 # Field reference:
-#   type:           mapping-pdf | agent-pdf
-#   mapper:         keyed IDataMapper registered in Program.cs
-#   promptBuilder:  keyed IPromptBuilder (default: "default")
-#   responseParser: keyed IResponseParser (default: "default")
-#   skillFolder:    folder under templates root containing skill.md
-#   template:       Typst template under templates root
-#   schema:         (optional) JSON schema injected into the prompt
-#   output:         filename for the produced PDF in the response
-#   publishTo:      (optional) PipelineContext key where evaluated JSON is stored
-#   consumeContext: (optional) PipelineContext keys appended to this step's prompt
-#   expectedJsonKey:(optional) parser validates that this top-level key exists
+#   mapper:            keyed IDataMapper (required by mapping-pdf and agent-pdf; ignored by agent-pdf-orchestrated)
+#   promptBuilder:     keyed IPromptBuilder (agent-pdf only; default "default")
+#   responseParser:    keyed IResponseParser (agent-pdf only; default "default")
+#   skillFolder:       folder under skills root containing skill.md (agent-pdf only)
+#   rulesFolder:       folder under rules root containing per-punkt markdown (agent-pdf-orchestrated; "." = root)
+#   sjekklisteSchema:  filename under domain root for the punkt taxonomy (agent-pdf-orchestrated; default sjekkliste.json)
+#   maxToolIterations: hard cap on tool-call loops per punkt (agent-pdf-orchestrated; default 5)
+#   concurrency:       max parallel per-punkt LLM loops (agent-pdf-orchestrated; default 5)
+#   traceDir:          optional per-punkt trace folder (agent-pdf-orchestrated; relative → under temp)
+#   template:          Typst template under templates root
+#   output:            filename for the produced PDF in the response
+#   publishTo:         (optional) PipelineContext key where evaluated JSON is stored
+#   consumeContext:    (optional) PipelineContext keys appended to this step's prompt (agent-pdf only)
+#   expectedJsonKey:   (optional) parser validates that this top-level key exists (agent-pdf only)
 
 steps:
   - name: request-info
@@ -23,9 +34,8 @@ steps:
     output: request-info.pdf
 
   - name: checklist-agent
-    type: agent-pdf
+    type: agent-pdf-orchestrated
     mapper: checklist
-    skillFolder: checklist
+    rulesFolder: .
     template: checklist.typ
     output: checklist.pdf
-    expectedJsonKey: sjekkliste

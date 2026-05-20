@@ -27,7 +27,7 @@ public sealed class StepFactory(IServiceProvider serviceProvider)
 
             "agent-pdf" => BuildAgentPdfStep(definition, RequireMapper(definition), contentPaths, pdfGenerator, docxGenerator, loggerFactory),
 
-            "agent-pdf-orchestrated" => BuildAgentPdfOrchestratedStep(definition, contentPaths, pdfGenerator, docxGenerator, loggerFactory),
+            "agent-pdf-orchestrated" => BuildAgentPdfOrchestratedStep(definition, RequireMapper(definition), contentPaths, pdfGenerator, docxGenerator, loggerFactory),
 
             _ => throw new InvalidOperationException(
                 $"Step '{definition.Name}' has unknown type '{definition.Type}'. " +
@@ -72,6 +72,7 @@ public sealed class StepFactory(IServiceProvider serviceProvider)
 
     private AgentPdfOrchestratedStep BuildAgentPdfOrchestratedStep(
         StepDefinition definition,
+        IDataMapper mapper,
         IOptions<ContentPathsOptions> contentPaths,
         IPdfGeneratorService pdfGenerator,
         IDocxGeneratorService? docxGenerator,
@@ -82,7 +83,7 @@ public sealed class StepFactory(IServiceProvider serviceProvider)
         var pipelineContext = serviceProvider.GetRequiredService<PipelineContext>();
 
         return new AgentPdfOrchestratedStep(
-            definition, orchestrator, rulesLoader, pdfGenerator, docxGenerator,
+            definition, mapper, orchestrator, rulesLoader, pdfGenerator, docxGenerator,
             pipelineContext, contentPaths,
             loggerFactory.CreateLogger($"Step.{definition.Name}"));
     }

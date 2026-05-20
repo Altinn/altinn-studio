@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Altinn.Augmenter.Agent.Configuration;
 using Altinn.Augmenter.Agent.Models;
 using Altinn.Augmenter.Agent.Services.Agent.Orchestration;
@@ -10,9 +11,11 @@ namespace Altinn.Augmenter.Agent.Pipelines.Generic;
 /// <summary>
 /// Per-punkt orchestrated agent step. Runs <see cref="IChecklistOrchestrator"/>
 /// over the application's FlatData with markdown rules + deterministic tools,
-/// aggregates the per-punkt verdicts into the {sjekkliste:{...}} shape, then
+/// merges the verdicts into the document the configured mapper produces, then
 /// renders the existing checklist Typst template — identical output contract
-/// to the monolithic <c>agent-pdf</c> step it replaces in production.
+/// to the monolithic <c>agent-pdf</c> step it replaces in production. A mapper
+/// is required because the Typst template needs meta/soker/arrangement/bevilling
+/// fields that the orchestrator does not produce.
 /// </summary>
 public sealed class AgentPdfOrchestratedStep : IPdfGenerationStep
 {
@@ -21,6 +24,7 @@ public sealed class AgentPdfOrchestratedStep : IPdfGenerationStep
     private const string DefaultSjekklisteSchema = "sjekkliste.json";
 
     private readonly StepDefinition _definition;
+    private readonly IDataMapper _mapper;
     private readonly IChecklistOrchestrator _orchestrator;
     private readonly IRulesLoader _rulesLoader;
     private readonly IPdfGeneratorService _pdfGenerator;
@@ -37,6 +41,7 @@ public sealed class AgentPdfOrchestratedStep : IPdfGenerationStep
 
     public AgentPdfOrchestratedStep(
         StepDefinition definition,
+        IDataMapper mapper,
         IChecklistOrchestrator orchestrator,
         IRulesLoader rulesLoader,
         IPdfGeneratorService pdfGenerator,
@@ -66,6 +71,7 @@ public sealed class AgentPdfOrchestratedStep : IPdfGenerationStep
         _traceDirAbsolutePath = ResolveTraceDir(definition.TraceDir);
 
         _definition = definition;
+        _mapper = mapper;
         _orchestrator = orchestrator;
         _rulesLoader = rulesLoader;
         _pdfGenerator = pdfGenerator;
@@ -85,40 +91,60 @@ public sealed class AgentPdfOrchestratedStep : IPdfGenerationStep
             return [];
         }
 
-        using var application = LoadFlatDataAsDocument(jsonFile.Data);
-        using var sjekklisteSchema = JsonDocument.Parse(await File.ReadAllTextAsync(_sjekklisteSchemaPath, cancellationToken));
-
-        var rules = await _rulesLoader.LoadAsync(_rulesFolderAbsolutePath, cancellationToken);
-        if (rules.Count == 0)
+        var (flatDataElement, applicationDoc) = LoadFlatData(jsonFile.Data);
+        using (applicationDoc)
         {
-            _logger.LogWarning(
-                "No markdown rules found under {RulesFolder} — all punkter will default to 'ikke_vurdert'",
-                _rulesFolderAbsolutePath);
+            using var sjekklisteSchema = JsonDocument.Parse(await File.ReadAllTextAsync(_sjekklisteSchemaPath, cancellationToken));
+
+            var rules = await _rulesLoader.LoadAsync(_rulesFolderAbsolutePath, cancellationToken);
+            if (rules.Count == 0)
+            {
+                _logger.LogWarning(
+                    "No markdown rules found under {RulesFolder} — all punkter will default to 'ikke_vurdert'",
+                    _rulesFolderAbsolutePath);
+            }
+
+            var options = new OrchestratorOptions
+            {
+                MaxToolIterations = _definition.MaxToolIterations ?? DefaultMaxToolIterations,
+                Concurrency = _definition.Concurrency ?? DefaultConcurrency,
+                TraceDirAbsolutePath = _traceDirAbsolutePath,
+            };
+
+            _logger.LogInformation(
+                "Orchestrator {StepName}: {RuleCount} rules, concurrency={Concurrency}, maxIter={MaxIter}",
+                Name, rules.Count, options.Concurrency, options.MaxToolIterations);
+
+            var result = await _orchestrator.RunAsync(applicationDoc, rules, options, cancellationToken);
+
+            _logger.LogInformation(
+                "Orchestrator {StepName} done: {WallMs}ms, {LlmCalls} LLM calls, {ToolCalls} tool calls",
+                Name, result.WallTimeMs, result.TotalLlmCalls, result.TotalToolCalls);
+
+            using var aggregated = ChecklistAggregator.Aggregate(sjekklisteSchema, result.Verdicts);
+            using var mapped = _mapper.Map(flatDataElement);
+            using var merged = MergeSjekkliste(mapped, aggregated);
+
+            if (!string.IsNullOrEmpty(_definition.PublishTo))
+                _pipelineContext.Set(_definition.PublishTo, SerializeJson(merged));
+
+            return await RenderFiles(merged, cancellationToken);
         }
+    }
 
-        var options = new OrchestratorOptions
-        {
-            MaxToolIterations = _definition.MaxToolIterations ?? DefaultMaxToolIterations,
-            Concurrency = _definition.Concurrency ?? DefaultConcurrency,
-            TraceDirAbsolutePath = _traceDirAbsolutePath,
-        };
-
-        _logger.LogInformation(
-            "Orchestrator {StepName}: {RuleCount} rules, concurrency={Concurrency}, maxIter={MaxIter}",
-            Name, rules.Count, options.Concurrency, options.MaxToolIterations);
-
-        var result = await _orchestrator.RunAsync(application, rules, options, cancellationToken);
-
-        _logger.LogInformation(
-            "Orchestrator {StepName} done: {WallMs}ms, {LlmCalls} LLM calls, {ToolCalls} tool calls",
-            Name, result.WallTimeMs, result.TotalLlmCalls, result.TotalToolCalls);
-
-        using var aggregated = ChecklistAggregator.Aggregate(sjekklisteSchema, result.Verdicts);
-
-        if (!string.IsNullOrEmpty(_definition.PublishTo))
-            _pipelineContext.Set(_definition.PublishTo, SerializeJson(aggregated));
-
-        return await RenderFiles(aggregated, cancellationToken);
+    /// <summary>
+    /// Replaces the <c>sjekkliste</c> subtree in the mapper's output with the
+    /// orchestrator's aggregated verdicts (which already include the right
+    /// labels per punkt). The mapper's other sections — meta, soker, arrangement,
+    /// bevilling, styrer, stedfortreder — pass through untouched so the Typst
+    /// template receives the same envelope it always has.
+    /// </summary>
+    private static JsonDocument MergeSjekkliste(JsonDocument mapped, JsonDocument aggregated)
+    {
+        var node = JsonNode.Parse(mapped.RootElement.GetRawText())!.AsObject();
+        var sjekkliste = JsonNode.Parse(aggregated.RootElement.GetProperty("sjekkliste").GetRawText())!;
+        node["sjekkliste"] = sjekkliste;
+        return JsonDocument.Parse(node.ToJsonString());
     }
 
     private async Task<IReadOnlyList<GeneratedPdf>> RenderFiles(JsonDocument data, CancellationToken cancellationToken)
@@ -142,18 +168,21 @@ public sealed class AgentPdfOrchestratedStep : IPdfGenerationStep
         return results;
     }
 
-    private static JsonDocument LoadFlatDataAsDocument(byte[] uploadedBytes)
+    /// <summary>
+    /// Unwraps FlatData from the upload envelope (Altinn submissions are wrapped
+    /// in { "FlatData": {...} }). Returns a fresh JsonDocument containing the
+    /// flat-shape data; the orchestrator's tools navigate it with paths like
+    /// "Bevillingsansvarlig.Styrer.Foedselsnummer" rather than "FlatData.Bevillingsansvarlig...".
+    /// The accompanying JsonElement points to the document's root so the mapper
+    /// can be invoked over the same data without re-parsing.
+    /// </summary>
+    private static (JsonElement FlatDataElement, JsonDocument ApplicationDoc) LoadFlatData(byte[] uploadedBytes)
     {
-        // Detach FlatData from the upload wrapper so the orchestrator's tools see
-        // the same flat shape Altinn submissions have (paths like
-        // "Bevillingsansvarlig.Styrer.Foedselsnummer" — not "FlatData.Bevillingsansvarlig...").
         using var wrapper = JsonDocument.Parse(uploadedBytes);
         var flat = wrapper.RootElement.TryGetProperty("FlatData", out var fd) ? fd : wrapper.RootElement;
-
-        using var stream = new MemoryStream();
-        using (var writer = new Utf8JsonWriter(stream))
-            flat.WriteTo(writer);
-        return JsonDocument.Parse(stream.ToArray());
+        var bytes = System.Text.Encoding.UTF8.GetBytes(flat.GetRawText());
+        var doc = JsonDocument.Parse(bytes);
+        return (doc.RootElement, doc);
     }
 
     private static string? ResolveTraceDir(string? configured)
