@@ -76,8 +76,14 @@ describe('CreateRelease', () => {
     const getSelectedMaskinportenScopes = jest.fn().mockImplementation(() =>
       Promise.resolve({
         scopes: [
-          { scope: 'altinn:serviceowner/instances.read', description: 'Read instances' },
-          { scope: 'altinn:serviceowner/instances.write', description: 'Write instances' },
+          {
+            scope: 'altinn:serviceowner/instances.read',
+            description: 'Klienter kan lese data knyttet til alle appene til tjenesteeieren.',
+          },
+          {
+            scope: 'altinn:serviceowner/instances.write',
+            description: 'Klienter kan skrive data for alle deres apper.',
+          },
         ],
       }),
     );

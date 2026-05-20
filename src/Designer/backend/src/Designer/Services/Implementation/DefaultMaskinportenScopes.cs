@@ -17,8 +17,12 @@ public static class DefaultMaskinportenScopes
 
     private static readonly IReadOnlyList<MaskinPortenScopeEntity> s_scopes =
     [
-        new() { Scope = ServiceOwnerInstancesRead, Description = "Read instances" },
-        new() { Scope = ServiceOwnerInstancesWrite, Description = "Write instances" },
+        new()
+        {
+            Scope = ServiceOwnerInstancesRead,
+            Description = "Klienter kan lese data knyttet til alle appene til tjenesteeieren.",
+        },
+        new() { Scope = ServiceOwnerInstancesWrite, Description = "Klienter kan skrive data for alle deres apper." },
     ];
 
     public static bool ContainsAll(ISet<MaskinPortenScopeEntity>? scopes)
