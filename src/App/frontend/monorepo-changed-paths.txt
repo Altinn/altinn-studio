@@ -2,7 +2,7 @@
 .github/
 .husky/
 .yarn/patches/jsdom-npm-26.1.0-3857255f02.patch
-.yarn/releases/yarn-4.14.1.cjs
+.yarn/releases/yarn-4.12.0.cjs
 .yarnrc.yml
 LICENSE.md
 adr/001-component-library.md
@@ -19,6 +19,7 @@ src/app-components/Date/
 src/app-components/Datepicker/
 src/app-components/Flex/
 src/app-components/Text/DisplayText.tsx
+src/app-components/TimePicker/
 src/app-components/loading/Spinner/Spinner.tsx
 src/codegen/schemas/layout-sets.schema.v1.ts
 src/components/presentation/Header.tsx

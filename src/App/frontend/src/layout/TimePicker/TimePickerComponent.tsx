@@ -1,17 +1,17 @@
 import React from 'react';
 
-import { Flex } from '@app/form-component';
+import { Flex, TimePicker as TimePickerControl } from '@app/form-component';
 
 import { Label } from 'src/app-components/Label/Label';
-import { TimePicker as TimePickerControl } from 'src/app-components/TimePicker/TimePicker';
-import { translationKey } from 'src/AppComponentsBridge';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function TimePickerComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'TimePicker'>) {
+  const { langAsString } = useLanguage();
   const {
     minTime,
     maxTime,
@@ -26,12 +26,11 @@ export function TimePickerComponent({ baseComponentId, overrideDisplay }: PropsF
   const { setValue, formData } = useDataModelBindings(dataModelBindings);
   const value = formData.simpleBinding || '';
 
-  // Create translated labels for segments
   const segmentLabels = {
-    hours: translationKey('timepicker.hours'),
-    minutes: translationKey('timepicker.minutes'),
-    seconds: translationKey('timepicker.seconds'),
-    amPm: translationKey('timepicker.am_pm'),
+    hours: langAsString('timepicker.hours'),
+    minutes: langAsString('timepicker.minutes'),
+    seconds: langAsString('timepicker.seconds'),
+    amPm: langAsString('timepicker.am_pm'),
   };
 
   const handleTimeChange = (timeString: string) => {

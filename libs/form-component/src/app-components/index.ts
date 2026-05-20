@@ -6,3 +6,4 @@ export * from './Flex';
 export * from './hooks';
 export * from './DisplayDate';
 export * from './Spinner';
+export * from './Timepicker';
