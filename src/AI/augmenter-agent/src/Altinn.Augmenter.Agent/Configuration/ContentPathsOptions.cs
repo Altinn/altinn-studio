@@ -13,4 +13,10 @@ public sealed class ContentPathsOptions
     public string TemplatesRoot { get; set; } = "/etc/augmenter/templates";
     public string SchemasRoot { get; set; } = "/etc/augmenter/templates";
     public string DomainRoot { get; set; } = "/etc/augmenter/domain";
+
+    /// <summary>
+    /// Per-punkt markdown rules consumed by <c>agent-pdf-orchestrated</c>.
+    /// Folder structure: <c>RulesRoot/&lt;rulesFolder&gt;/section.punkt.md</c>.
+    /// </summary>
+    public string RulesRoot { get; set; } = "/etc/augmenter/rules";
 }

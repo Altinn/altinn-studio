@@ -30,6 +30,9 @@ public sealed class ContentPathsPostConfigure : IPostConfigureOptions<ContentPat
 
         if (!Directory.Exists(options.DomainRoot))
             options.DomainRoot = Path.Combine(configRoot, "domain");
+
+        if (!Directory.Exists(options.RulesRoot))
+            options.RulesRoot = Path.Combine(configRoot, "rules");
     }
 
     private static string? FindLocalConfigRoot()

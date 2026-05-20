@@ -6,6 +6,9 @@ using Altinn.Augmenter.Agent.Pipelines.Generic;
 using Altinn.Augmenter.Agent.Pipelines.RequestInfo;
 using Altinn.Augmenter.Agent.Services;
 using Altinn.Augmenter.Agent.Services.Agent;
+using Altinn.Augmenter.Agent.Services.Agent.Chat;
+using Altinn.Augmenter.Agent.Services.Agent.Orchestration;
+using Altinn.Augmenter.Agent.Services.Agent.Tools;
 using Altinn.Augmenter.Agent.Services.Domain;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Options;
@@ -48,6 +51,12 @@ builder.Services.AddScoped<IAgentService>(sp =>
             $"Unknown Agent:Provider '{opts.Provider}'. Supported: sandkasse-http, claude-cli."),
     };
 });
+// Per-punkt orchestrator + supporting services (used by agent-pdf-orchestrated step)
+builder.Services.AddSingleton<IToolRegistry, ToolRegistry>();
+builder.Services.AddSingleton<IRulesLoader, MarkdownRulesLoader>();
+builder.Services.AddScoped<IChatService, SandkasseChatService>();
+builder.Services.AddScoped<IChecklistOrchestrator, ChecklistOrchestrator>();
+
 builder.Services.AddScoped<IPdfGeneratorService, PdfGeneratorService>();
 builder.Services.AddScoped<IDocxGeneratorService, DocxGeneratorService>();
 builder.Services.AddScoped<IMultipartParserService, MultipartParserService>();

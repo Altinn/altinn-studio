@@ -53,4 +53,21 @@ public sealed class StepDefinition
 
     /// <summary>Top-level JSON key expected in the agent response; used by validating parsers.</summary>
     public string? ExpectedJsonKey { get; set; }
+
+    // --- agent-pdf-orchestrated fields below -------------------------------------
+
+    /// <summary>Folder under <c>ContentPaths.RulesRoot</c> holding per-punkt markdown rules. Use <c>"."</c> for the rules-root itself.</summary>
+    public string? RulesFolder { get; set; }
+
+    /// <summary>Filename of the sjekkliste schema under <c>ContentPaths.DomainRoot</c>. Default: <c>sjekkliste.json</c>.</summary>
+    public string? SjekklisteSchema { get; set; }
+
+    /// <summary>Hard cap on tool-call iterations per punkt. Default: 5.</summary>
+    public int? MaxToolIterations { get; set; }
+
+    /// <summary>Max parallel per-punkt LLM loops. Default: 5.</summary>
+    public int? Concurrency { get; set; }
+
+    /// <summary>If set, write per-punkt traces here. Relative paths resolve under <c>Path.GetTempPath()</c>; absolute paths are used as-is.</summary>
+    public string? TraceDir { get; set; }
 }
