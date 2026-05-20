@@ -6,7 +6,7 @@ const meta = {
   title: 'AppComponents/HelpText',
   component: HelpText,
   parameters: {
-    layout: 'padded',
+    layout: 'centered',
   },
   args: {
     title: 'Help for this field',
