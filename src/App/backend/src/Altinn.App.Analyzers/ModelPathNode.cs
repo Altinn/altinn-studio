@@ -20,13 +20,15 @@ public record ModelPathNode
         bool isNullable,
         ModelPathNode[]? properties = null,
         string? listType = null,
-        bool isNullableList = false
+        bool isNullableList = false,
+        bool isIndexableList = true
     )
     {
         CSharpName = cSharpName;
         JsonName = jsonName;
         ListType = listType;
         IsNullableList = isNullableList;
+        IsIndexableList = isIndexableList;
         TypeName = typeName;
         IsNullable = isNullable;
         IsJsonValueType = properties is null;
@@ -77,6 +79,7 @@ public record ModelPathNode
     /// </remarks>
     public string? ListType { get; }
     public bool IsNullableList { get; }
+    public bool IsIndexableList { get; }
 
     public string? ListTypeWithNullable => IsNullableList ? $"{ListType}?" : ListType;
 
