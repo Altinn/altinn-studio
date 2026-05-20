@@ -1,8 +1,8 @@
 import React from 'react';
 
+import { Flex } from '@app/form-component';
 import { Heading } from '@digdir/designsystemet-react';
 
-import { Flex } from 'src/app-components/Flex/Flex';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentSummary, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';

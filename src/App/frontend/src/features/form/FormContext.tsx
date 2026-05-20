@@ -5,7 +5,6 @@ import { createZustandHooks } from 'src/core/contexts/zustandContext';
 import { processLayouts } from 'src/features/form/layout/LayoutsContext';
 import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { pageNavigationHooks } from 'src/features/form/layout/PageNavigationContext';
-import { getUiFolderSettings } from 'src/features/form/ui';
 import { formBootstrapHooks } from 'src/features/formBootstrap/FormBootstrap';
 import { formDataHooks } from 'src/features/formData/FormDataWrite';
 import { validationHooks } from 'src/features/validation/validationContext';
@@ -88,12 +87,7 @@ interface FormBootstrapSliceState extends FormBootstrapContextValue {
 }
 
 export function processBootstrap(bootstrap: FormBootstrapBase): FormBootstrapContextValue {
-  const defaultDataType = getUiFolderSettings(bootstrap.uiFolder)?.defaultDataType;
-  if (!defaultDataType) {
-    throw new Error(`Expected defaultDataType to be defined for uiFolder: ${bootstrap.uiFolder}`);
-  }
-
-  const processedLayouts = processLayouts(bootstrap.layouts, defaultDataType);
+  const processedLayouts = processLayouts(bootstrap.layouts, bootstrap.defaultDataType);
   const layoutLookups = makeLayoutLookups(processedLayouts.processedLayouts);
 
   return {

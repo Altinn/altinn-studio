@@ -1,9 +1,9 @@
 import React from 'react';
 import type { JSX, PropsWithChildren } from 'react';
 
+import { Flex } from '@app/form-component';
 import cn from 'classnames';
 
-import { Flex } from 'src/app-components/Flex/Flex';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { getComponentDef } from 'src/layout';
 import { CompCategory } from 'src/layout/common';

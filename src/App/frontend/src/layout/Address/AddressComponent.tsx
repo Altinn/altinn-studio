@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 
-import { Flex } from 'src/app-components/Flex/Flex';
+import { Flex } from '@app/form-component';
+
 import { Input } from 'src/app-components/Input/Input';
 import { Label } from 'src/app-components/Label/Label';
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';

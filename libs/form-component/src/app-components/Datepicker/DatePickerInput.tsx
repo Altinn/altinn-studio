@@ -5,14 +5,14 @@ import type { Ref } from 'react';
 import { Textfield } from '@digdir/designsystemet-react';
 import { format, isValid } from 'date-fns';
 
-import styles from 'src/app-components/Datepicker/Calendar.module.css';
+import styles from './Calendar.module.css';
 import {
   dateFormatCanBeNumericInReactPatternFormat,
   getFormatAsPatternFormat,
   getSaveFormattedDateString,
   strictParseFormat,
   strictParseISO,
-} from 'src/app-components/Datepicker/utils/dateHelpers';
+} from './utils/dateHelpers';
 
 export interface DatePickerInputProps {
   id: string;
@@ -22,12 +22,19 @@ export interface DatePickerInputProps {
   onValueChange?: (value: string) => void;
   readOnly?: boolean;
   autoComplete?: 'bday';
+  ref?: Ref<HTMLInputElement>;
 }
 
-function DatePickerInputRef(
-  { id, value, datepickerFormat, timeStamp, onValueChange, readOnly, autoComplete }: DatePickerInputProps,
-  ref: Ref<HTMLInputElement>,
-) {
+export function DatePickerInput({
+  id,
+  value,
+  datepickerFormat,
+  timeStamp,
+  onValueChange,
+  readOnly,
+  autoComplete,
+  ref,
+}: DatePickerInputProps) {
   const dateValue = strictParseISO(value);
   const formattedDateValue = dateValue ? format(dateValue, datepickerFormat) : value;
   const [inputValue, setInputValue] = useState(formattedDateValue ?? '');
@@ -76,6 +83,3 @@ function DatePickerInputRef(
     />
   );
 }
-
-export const DatePickerInput = React.forwardRef(DatePickerInputRef);
-DatePickerInput.displayName = 'DatePickerInput';

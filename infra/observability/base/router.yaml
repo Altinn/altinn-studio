@@ -6,7 +6,7 @@ metadata:
     altinn.studio/otel-collector: otel-router
 spec:
   mode: deployment
-  image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.144.0
+  image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.148.0
   serviceAccount: otel-collector
   upgradeStrategy: automatic
   replicas: 1
@@ -42,7 +42,7 @@ spec:
           resource_attributes:
             k8s.cluster.name:
               enabled: true
-      k8sattributes:
+      k8s_attributes:
         auth_type: 'serviceAccount'
         wait_for_metadata: true
         wait_for_metadata_timeout: 10s

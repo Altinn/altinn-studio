@@ -11,17 +11,19 @@
   "scripts": {
     "test": "vitest",
     "test:ci": "vitest run",
-    "lint": "eslint \"src/**/*.ts*\"",
     "typecheck": "tsc --noEmit -p ./",
     "storybook": "storybook dev -p 6008",
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "classnames": "2.5.1"
+    "classnames": "2.5.1",
+    "date-fns": "^4.1.0",
+    "react-day-picker": "^9.14.0",
+    "react-number-format": "^5.4.5"
   },
   "peerDependencies": {
     "@digdir/designsystemet-react": "^1.11.1",
-    "classnames": "2.5.1",
+    "@navikt/aksel-icons": "^8.9.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -29,6 +31,7 @@
     "@chromatic-com/storybook": "^5.0.1",
     "@digdir/designsystemet-css": "1.11.1",
     "@digdir/designsystemet-react": "1.11.1",
+    "@navikt/aksel-icons": "8.9.0",
     "@storybook/addon-a11y": "10.2.16",
     "@storybook/addon-docs": "10.2.16",
     "@storybook/addon-links": "10.2.16",

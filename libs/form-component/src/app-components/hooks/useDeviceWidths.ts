@@ -10,7 +10,8 @@ type Condition = (width: number) => boolean;
 
 const conditionIsMini: Condition = (width) => width <= breakpoints.mini;
 const conditionIsMobile: Condition = (width) => width <= breakpoints.mobile;
-const conditionIsTablet: Condition = (width) => width > breakpoints.mobile && width <= breakpoints.tablet;
+const conditionIsTablet: Condition = (width) =>
+  width > breakpoints.mobile && width <= breakpoints.tablet;
 
 export function useIsMini() {
   return useBrowserWidth(conditionIsMini);
