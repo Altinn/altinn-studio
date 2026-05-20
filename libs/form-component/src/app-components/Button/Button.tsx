@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import type { PropsWithChildren, Ref } from 'react';
 
 import { Button as DesignSystemButton } from '@digdir/designsystemet-react';
