@@ -125,6 +125,15 @@ public class FullTests(ITestOutputHelper output)
                 public List<int?> ListNullableInt { get; set; }
 
                 #nullable enable
+
+                [JsonPropertyName("withHashSetOfString")]
+                public HashSet<string>? WithHashSetOfString { get; set; }
+
+                [JsonPropertyName("withHashSetOfInt")]
+                public HashSet<int>? WithHashSetOfInt { get; set; }
+
+                [JsonPropertyName("hashSetAdresse")]
+                public HashSet<Adresse>? HashSetAdresse { get; set; }
             }
 
             public class Adresse

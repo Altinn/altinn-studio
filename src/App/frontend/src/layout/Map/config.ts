@@ -48,6 +48,22 @@ export const Config = new CG.component({
             'Should point to a boolean indicating if this geometry is editable. This has no default value, geometries will not be editable if this is not specified.',
           ),
       ),
+      new CG.prop(
+        'geometryIsHidden',
+        new CG.dataModelBinding()
+          .optional()
+          .setDescription(
+            'Should point to a boolean indicating if this geometry is hidden. Geometries will be visible by default if this is not specified.',
+          ),
+      ),
+      new CG.prop(
+        'geometryStyle',
+        new CG.dataModelBinding()
+          .optional()
+          .setDescription(
+            'Should point to a JSON-serialized Leaflet PathOptions object (e.g. \'{"color":"#ff0000","weight":2,"fillOpacity":0.3}\') used as the style for this geometry. Overrides the default style. Invalid JSON is ignored.',
+          ),
+      ),
     ).exportAs('IDataModelBindingsForMap'),
   )
   .addProperty(
