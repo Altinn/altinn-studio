@@ -11,10 +11,10 @@ namespace Altinn.Augmenter.Agent.Services.Agent.Orchestration;
 public static class ChecklistAggregator
 {
     public static JsonDocument Aggregate(
-        JsonDocument sjekklisteSchema,
+        JsonDocument schema,
         IReadOnlyDictionary<string, ItemVerdict> verdicts)
     {
-        var schemaRoot = sjekklisteSchema.RootElement;
+        var schemaRoot = schema.RootElement;
         var defaultStatus = schemaRoot.TryGetProperty("defaultStatus", out var dsEl) && dsEl.ValueKind == JsonValueKind.String
             ? dsEl.GetString() ?? "ikke_vurdert"
             : "ikke_vurdert";

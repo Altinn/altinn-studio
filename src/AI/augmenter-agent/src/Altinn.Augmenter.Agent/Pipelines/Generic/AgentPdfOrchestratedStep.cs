@@ -21,7 +21,7 @@ public sealed class AgentPdfOrchestratedStep : IPdfGenerationStep
 {
     private const int DefaultMaxToolIterations = 5;
     private const int DefaultConcurrency = 5;
-    private const string DefaultSjekklisteSchema = "sjekkliste.json";
+    private const string DefaultSchemaFile = "sjekkliste.json";
 
     private readonly StepDefinition _definition;
     private readonly IDataMapper _mapper;
@@ -31,7 +31,7 @@ public sealed class AgentPdfOrchestratedStep : IPdfGenerationStep
     private readonly IDocxGeneratorService? _docxGenerator;
     private readonly PipelineContext _pipelineContext;
     private readonly string _rulesFolderAbsolutePath;
-    private readonly string _sjekklisteSchemaPath;
+    private readonly string _schemaFilePath;
     private readonly string _templatePath;
     private readonly string? _docxTemplatePath;
     private readonly string? _traceDirAbsolutePath;
@@ -62,7 +62,7 @@ public sealed class AgentPdfOrchestratedStep : IPdfGenerationStep
         _rulesFolderAbsolutePath = string.IsNullOrEmpty(rulesSubfolder)
             ? paths.RulesRoot
             : Path.Combine(paths.RulesRoot, rulesSubfolder);
-        _sjekklisteSchemaPath = Path.Combine(paths.DomainRoot, definition.SjekklisteSchema ?? DefaultSjekklisteSchema);
+        _schemaFilePath = Path.Combine(paths.DomainRoot, definition.SchemaFile ?? DefaultSchemaFile);
         _templatePath = Path.Combine(paths.TemplatesRoot, definition.Template);
         _docxTemplatePath = string.IsNullOrEmpty(definition.DocxTemplate)
             ? null
@@ -94,7 +94,7 @@ public sealed class AgentPdfOrchestratedStep : IPdfGenerationStep
         var (flatDataElement, applicationDoc) = LoadFlatData(jsonFile.Data);
         using (applicationDoc)
         {
-            using var sjekklisteSchema = JsonDocument.Parse(await File.ReadAllTextAsync(_sjekklisteSchemaPath, cancellationToken));
+            using var schema = JsonDocument.Parse(await File.ReadAllTextAsync(_schemaFilePath, cancellationToken));
 
             var rules = await _rulesLoader.LoadAsync(_rulesFolderAbsolutePath, cancellationToken);
             if (rules.Count == 0)
@@ -121,9 +121,9 @@ public sealed class AgentPdfOrchestratedStep : IPdfGenerationStep
                 "Orchestrator {StepName} done: {WallMs}ms, {LlmCalls} LLM calls, {ToolCalls} tool calls",
                 Name, result.WallTimeMs, result.TotalLlmCalls, result.TotalToolCalls);
 
-            using var aggregated = ChecklistAggregator.Aggregate(sjekklisteSchema, result.Verdicts);
+            using var aggregated = ChecklistAggregator.Aggregate(schema, result.Verdicts);
             using var mapped = _mapper.Map(flatDataElement);
-            using var merged = MergeSjekkliste(mapped, aggregated);
+            using var merged = MergeAggregatedInto(mapped, aggregated);
 
             if (!string.IsNullOrEmpty(_definition.PublishTo))
                 _pipelineContext.Set(_definition.PublishTo, SerializeJson(merged));
@@ -139,7 +139,7 @@ public sealed class AgentPdfOrchestratedStep : IPdfGenerationStep
     /// bevilling, styrer, stedfortreder — pass through untouched so the Typst
     /// template receives the same envelope it always has.
     /// </summary>
-    private static JsonDocument MergeSjekkliste(JsonDocument mapped, JsonDocument aggregated)
+    private static JsonDocument MergeAggregatedInto(JsonDocument mapped, JsonDocument aggregated)
     {
         var node = JsonNode.Parse(mapped.RootElement.GetRawText())!.AsObject();
         var sjekkliste = JsonNode.Parse(aggregated.RootElement.GetProperty("sjekkliste").GetRawText())!;
