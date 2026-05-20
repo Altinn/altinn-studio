@@ -1,0 +1,15 @@
+{
+  "iteration": 1,
+  "variant": "baseline",
+  "seksjon_id": "dokumentasjon",
+  "userPromptLength": 3658,
+  "systemPromptLength": 627,
+  "elapsedMs": 20315,
+  "wallElapsedMs": 20323,
+  "success": true,
+  "stdout": "{\n  \"sjekkliste\": {\n    \"seksjoner\": [\n      {\n        \"id\": \"dokumentasjon\",\n        \"label\": \"Dokumentasjon\",\n        \"punkter\": {\n          \"leiekontrakt\": {\n            \"label\": \"Leiekontrakt for lokalet\",\n            \"status\": \"mangler\",\n            \"merknad\": \"Ingen leiekontrakt funnet i vedleggslisten.\"\n          },\n          \"personantall_beregning\": {\n            \"label\": \"Beregning av personantall fra godkjent firma\",\n            \"status\": \"mangler\",\n            \"merknad\": \"Ingen beregning av personantall funnet i vedleggslisten.\"\n          },\n          \"plantegninger\": {\n            \"label\": \"Plantegninger over lokalet\",\n            \"status\": \"mangler\",\n            \"merknad\": \"Ingen plantegninger funnet i vedleggslisten.\"\n          },\n          \"mattilsynet_registrering\": {\n            \"label\": \"Registrering hos Mattilsynet\",\n            \"status\": \"mangler\",\n            \"merknad\": \"Ingen dokumentasjon på registrering hos Mattilsynet funnet i vedleggslisten.\"\n          },\n          \"bruksgodkjenning\": {\n            \"label\": \"Bruksgodkjenning fra plan- og bygningsetaten\",\n            \"status\": \"mangler\",\n            \"merknad\": \"Ingen bruksgodkjenning funnet i vedleggslisten.\"\n          },\n          \"kunnskapsprove_styrer\": {\n            \"label\": \"Kunnskapsprøve bestått – styrer\",\n            \"status\": \"mangler\",\n            \"merknad\": \"Ingen dokumentasjon på bestått kunnskapsprøve for Sophie Salt funnet i vedleggslisten.\"\n          },\n          \"kunnskapsprove_stedfortreder\": {\n            \"label\": \"Kunnskapsprøve bestått – stedfortreder\",\n            \"status\": \"mangler\",\n            \"merknad\": \"Ingen dokumentasjon på bestått kunnskapsprøve for Erik Hansen funnet i vedleggslisten.\"\n          },\n          \"arbeidsavtale_styrer\": {\n            \"label\": \"Arbeidsavtale for styrer\",\n            \"status\": \"mangler\",\n            \"merknad\": \"Ingen arbeidsavtale for styrer funnet i vedleggslisten.\"\n          },\n          \"arbeidsavtale_stedfortreder\": {\n            \"label\": \"Arbeidsavtale for stedfortreder\",\n            \"status\": \"mangler\",\n            \"merknad\": \"Ingen arbeidsavtale for stedfortreder funnet i vedleggslisten.\"\n          }\n        }\n      }\n    ]\n  }\n}\n",
+  "errorMessage": null,
+  "parseError": null,
+  "model": "sandkasse/telenor:gemma4",
+  "status": "ok"
+}

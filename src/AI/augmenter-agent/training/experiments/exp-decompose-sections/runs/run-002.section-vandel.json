@@ -1,0 +1,15 @@
+{
+  "iteration": 2,
+  "variant": "enum",
+  "seksjon_id": "vandel",
+  "userPromptLength": 3361,
+  "systemPromptLength": 920,
+  "elapsedMs": 17141,
+  "wallElapsedMs": 17173,
+  "success": true,
+  "stdout": "{\n  \"sjekkliste\": {\n    \"seksjoner\": [\n      {\n        \"id\": \"vandel\",\n        \"label\": \"Vandelsvurdering\",\n        \"punkter\": {\n          \"politi_uttalelse\": {\n            \"label\": \"Uttalelse innhentet fra politiet\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Ingen politiattest funnet i vedleggslisten.\"\n          },\n          \"skatteetaten_uttalelse\": {\n            \"label\": \"Uttalelse innhentet fra Skatteetaten\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Ingen uttalelse fra Skatteetaten i vedleggslisten.\"\n          },\n          \"nav_uttalelse\": {\n            \"label\": \"Uttalelse innhentet fra NAV (sosialtjenesten)\",\n            \"status\": \"maa_undersokes\",\n            \"merknad\": \"Ingen uttalelse fra NAV i vedleggslisten.\"\n          },\n          \"vandel_bevillingshaver\": {\n            \"label\": \"Vandel OK – bevillingshaver/eier\",\n            \"status\": \"ikke_vurdert\",\n            \"merknad\": \"Avventer uttalelser for Sophie Salt.\"\n          },\n          \"vandel_styrer\": {\n            \"label\": \"Vandel OK – styrer (kun alkohollovgivning)\",\n            \"status\": \"ikke_vurdert\",\n            \"merknad\": \"Avventer uttalelser for Sophie Salt.\"\n          },\n          \"vandel_stedfortreder\": {\n            \"label\": \"Vandel OK – stedfortreder (kun alkohollovgivning)\",\n            \"status\": \"ikke_vurdert\",\n            \"merknad\": \"Avventer uttalelser for Erik Hansen.\"\n          },\n          \"vandel_vesentlig_innflytelse\": {\n            \"label\": \"Vandel OK – personer med vesentlig innflytelse\",\n            \"status\": \"ikke_relevant\",\n            \"merknad\": \"Ingen personer med vesentlig innflytelse oppgitt i søknaden.\"\n          }\n        }\n      }\n    ]\n  }\n}\n",
+  "errorMessage": null,
+  "parseError": null,
+  "model": "sandkasse/telenor:gemma4",
+  "status": "ok"
+}

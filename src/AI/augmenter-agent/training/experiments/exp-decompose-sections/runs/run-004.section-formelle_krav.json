@@ -1,0 +1,15 @@
+{
+  "iteration": 4,
+  "variant": "enum",
+  "seksjon_id": "formelle_krav",
+  "userPromptLength": 2764,
+  "systemPromptLength": 920,
+  "elapsedMs": 11598,
+  "wallElapsedMs": 11631,
+  "success": true,
+  "stdout": "{\n  \"sjekkliste\": {\n    \"seksjoner\": [\n      {\n        \"id\": \"formelle_krav\",\n        \"label\": \"Formelle krav\",\n        \"punkter\": {\n          \"soknad_komplett\": {\n            \"label\": \"Søknaden er komplett utfylt\",\n            \"status\": \"vurdert_ok\",\n            \"merknad\": \"Alle nødvendige felt for arrangementsbevilling er utfylt.\"\n          },\n          \"riktig_soknadstype\": {\n            \"label\": \"Riktig søknadstype valgt\",\n            \"status\": \"vurdert_ok\",\n            \"merknad\": \"BevillingsType 'arrangement' er korrekt valgt for julebord.\"\n          },\n          \"kommune_riktig\": {\n            \"label\": \"Riktig kommune valgt\",\n            \"status\": \"vurdert_ok\",\n            \"merknad\": \"Kommunenummer 4204 er oppgitt.\"\n          },\n          \"soker_identifisert\": {\n            \"label\": \"Søker er identifisert med org.nr.\",\n            \"status\": \"ikke_relevant\",\n            \"merknad\": \"Søker er en privatperson (BrukerType: person), ikke en organisasjon.\"\n          }\n        }\n      }\n    ]\n  }\n}\n",
+  "errorMessage": null,
+  "parseError": null,
+  "model": "sandkasse/telenor:gemma4",
+  "status": "ok"
+}

@@ -1,0 +1,302 @@
+{
+  "iteration": 2,
+  "variant": "enum",
+  "timestamp": "2026-05-19T22:38:27",
+  "inputFile": "C:/data/github/altinn/altinn-studio.exp-decompose-sections/src/AI/augmenter-agent/examples/applications/julebord-kristiansand.json",
+  "systemPromptSrc": "C:/data/github/altinn/altinn-studio.exp-decompose-sections/src/AI/augmenter-agent/training/experiments/exp-baseline/artifacts/skill-no-guide.md",
+  "model": "sandkasse/telenor:gemma4",
+  "totalElapsedMs": 109567,
+  "perSectionElapsedMs": [
+    11966,
+    20396,
+    17173,
+    16420,
+    16876,
+    10929,
+    6813,
+    8980
+  ],
+  "perSectionStatus": [
+    {
+      "sid": "formelle_krav",
+      "status": "ok",
+      "ms": 11966
+    },
+    {
+      "sid": "dokumentasjon",
+      "status": "ok",
+      "ms": 20396
+    },
+    {
+      "sid": "vandel",
+      "status": "ok",
+      "ms": 17173
+    },
+    {
+      "sid": "personkrav",
+      "status": "ok",
+      "ms": 16420
+    },
+    {
+      "sid": "lokalpolitisk",
+      "status": "ok",
+      "ms": 16876
+    },
+    {
+      "sid": "habilitet",
+      "status": "ok",
+      "ms": 10929
+    },
+    {
+      "sid": "gebyr",
+      "status": "ok",
+      "ms": 6813
+    },
+    {
+      "sid": "helhetsvurdering",
+      "status": "ok",
+      "ms": 8980
+    }
+  ],
+  "success": true,
+  "aggregated": {
+    "sjekkliste": {
+      "formelle_krav": {
+        "label": "Formelle krav",
+        "punkter": {
+          "soknad_komplett": {
+            "label": "Søknaden er komplett utfylt",
+            "status": "vurdert_ok",
+            "merknad": "Alle nødvendige felter for arrangementsbevilling er utfylt."
+          },
+          "riktig_soknadstype": {
+            "label": "Riktig søknadstype valgt",
+            "status": "vurdert_ok",
+            "merknad": "Søker har valgt bevillingsType 'arrangement', som stemmer med formålet."
+          },
+          "kommune_riktig": {
+            "label": "Riktig kommune valgt",
+            "status": "vurdert_ok",
+            "merknad": "Kommunenummer 4204 er oppgitt."
+          },
+          "soker_identifisert": {
+            "label": "Søker er identifisert med org.nr.",
+            "status": "ikke_relevant",
+            "merknad": "Søker er en privatperson, identifisert med fødselsnummer."
+          }
+        }
+      },
+      "dokumentasjon": {
+        "label": "Dokumentasjon",
+        "punkter": {
+          "leiekontrakt": {
+            "label": "Leiekontrakt for lokalet",
+            "status": "maa_undersokes",
+            "merknad": "Ingen vedlegg innsendt. Arrangementet holdes på Restaurant Sjøhuset."
+          },
+          "personantall_beregning": {
+            "label": "Beregning av personantall fra godkjent firma",
+            "status": "ikke_relevant",
+            "merknad": "Søknaden gjelder et julebord med 45 personer i eksisterende restaurantlokale."
+          },
+          "plantegninger": {
+            "label": "Plantegninger over lokalet",
+            "status": "maa_undersokes",
+            "merknad": "Ingen vedlegg innsendt."
+          },
+          "mattilsynet_registrering": {
+            "label": "Registrering hos Mattilsynet",
+            "status": "ikke_relevant",
+            "merknad": "Arrangementet foregår i et profesjonelt serveringssted (Restaurant Sjøhuset)."
+          },
+          "bruksgodkjenning": {
+            "label": "Bruksgodkjenning fra plan- og bygningsetaten",
+            "status": "ikke_relevant",
+            "merknad": "Arrangementet foregår i eksisterende restaurantlokale."
+          },
+          "kunnskapsprove_styrer": {
+            "label": "Kunnskapsprøve bestått – styrer",
+            "status": "maa_undersokes",
+            "merknad": "Ingen dokumentasjon på bestått kunnskapsprøve for Sophie Salt vedlagt."
+          },
+          "kunnskapsprove_stedfortreder": {
+            "label": "Kunnskapsprøve bestått – stedfortreder",
+            "status": "maa_undersokes",
+            "merknad": "Ingen dokumentasjon på bestått kunnskapsprøve for Erik Hansen vedlagt."
+          },
+          "arbeidsavtale_styrer": {
+            "label": "Arbeidsavtale for styrer",
+            "status": "ikke_relevant",
+            "merknad": "Søker er privatperson/arrangør for julebord."
+          },
+          "arbeidsavtale_stedfortreder": {
+            "label": "Arbeidsavtale for stedfortreder",
+            "status": "ikke_relevant",
+            "merknad": "Søker er privatperson/arrangør for julebord."
+          }
+        }
+      },
+      "vandel": {
+        "label": "Vandelsvurdering",
+        "punkter": {
+          "politi_uttalelse": {
+            "label": "Uttalelse innhentet fra politiet",
+            "status": "maa_undersokes",
+            "merknad": "Ingen politiattest funnet i vedleggslisten."
+          },
+          "skatteetaten_uttalelse": {
+            "label": "Uttalelse innhentet fra Skatteetaten",
+            "status": "maa_undersokes",
+            "merknad": "Ingen uttalelse fra Skatteetaten i vedleggslisten."
+          },
+          "nav_uttalelse": {
+            "label": "Uttalelse innhentet fra NAV (sosialtjenesten)",
+            "status": "maa_undersokes",
+            "merknad": "Ingen uttalelse fra NAV i vedleggslisten."
+          },
+          "vandel_bevillingshaver": {
+            "label": "Vandel OK – bevillingshaver/eier",
+            "status": "ikke_vurdert",
+            "merknad": "Avventer uttalelser for Sophie Salt."
+          },
+          "vandel_styrer": {
+            "label": "Vandel OK – styrer (kun alkohollovgivning)",
+            "status": "ikke_vurdert",
+            "merknad": "Avventer uttalelser for Sophie Salt."
+          },
+          "vandel_stedfortreder": {
+            "label": "Vandel OK – stedfortreder (kun alkohollovgivning)",
+            "status": "ikke_vurdert",
+            "merknad": "Avventer uttalelser for Erik Hansen."
+          },
+          "vandel_vesentlig_innflytelse": {
+            "label": "Vandel OK – personer med vesentlig innflytelse",
+            "status": "ikke_relevant",
+            "merknad": "Ingen personer med vesentlig innflytelse oppgitt i søknaden."
+          }
+        }
+      },
+      "personkrav": {
+        "label": "Krav til styrer og stedfortreder",
+        "punkter": {
+          "styrer_alder": {
+            "label": "Styrer er over 20 år",
+            "status": "vurdert_ok",
+            "merknad": "Født 01.03.1990"
+          },
+          "stedfortreder_alder": {
+            "label": "Stedfortreder er over 20 år",
+            "status": "vurdert_ok",
+            "merknad": "Født 15.03.1990"
+          },
+          "styrer_ansatt": {
+            "label": "Styrer er ansatt på stedet / eier",
+            "status": "maa_undersokes",
+            "merknad": "Søker er privatperson, må bekrefte tilknytning til lokalet/arrangementet"
+          },
+          "stedfortreder_ansatt": {
+            "label": "Stedfortreder er ansatt på stedet / eier",
+            "status": "maa_undersokes",
+            "merknad": "Må bekrefte tilknytning"
+          },
+          "styrer_kun_ett_sted": {
+            "label": "Styrer er ikke styrer/stedfortreder på annet sted",
+            "status": "ikke_vurdert",
+            "merknad": "Må sjekkes mot register"
+          },
+          "stedfortreder_kun_ett_sted": {
+            "label": "Stedfortreder er ikke styrer/stedfortreder på annet sted",
+            "status": "ikke_vurdert",
+            "merknad": "Må sjekkes mot register"
+          },
+          "fritak_stedfortreder": {
+            "label": "Fritak fra krav om stedfortreder vurdert",
+            "status": "vurdert_ok",
+            "merknad": "Søker har opplyst at stedfortreder skal benyttes (ingen fritak søkt)"
+          }
+        }
+      },
+      "lokalpolitisk": {
+        "label": "Lokalpolitisk vurdering (kommunens retningslinjer)",
+        "punkter": {
+          "beliggenhet_ok": {
+            "label": "Beliggenhet i tråd med retningslinjer",
+            "status": "maa_undersokes",
+            "merknad": "Må sjekkes mot kommunens arealplan for Restaurant Sjøhuset, Havnegata 15."
+          },
+          "ikke_barn_unge_omraade": {
+            "label": "Ikke i område for barn/unges fritidsaktiviteter",
+            "status": "maa_undersokes",
+            "merknad": "Må verifiseres for adressen Havnegata 15."
+          },
+          "ikke_idrettsarrangement": {
+            "label": "Ikke idrettsarrangement eller arrangement for barn/unge",
+            "status": "vurdert_ok",
+            "merknad": "Søknaden gjelder julebord for ansatte (Avdeling Nord)."
+          },
+          "brennevin_spisested": {
+            "label": "Brennevin kun til spisested (hvis gr. 3)",
+            "status": "vurdert_ok",
+            "merknad": "Søkes om gruppe 3 og skal avholdes på Restaurant Sjøhuset."
+          },
+          "skjenketider_ok": {
+            "label": "Skjenketider innenfor kommunens rammer",
+            "status": "maa_undersokes",
+            "merknad": "Sluttid kl. 02:00 må sjekkes mot kommunens lokale forskrifter."
+          },
+          "arrangement_varighet_ok": {
+            "label": "Arrangement innenfor maks 14 dager",
+            "status": "vurdert_ok",
+            "merknad": "Arrangementet varer i 2 dager (2026-12-12 til 2026-12-13)."
+          }
+        }
+      },
+      "habilitet": {
+        "label": "Habilitet og saksbehandling",
+        "punkter": {
+          "habilitet_vurdert": {
+            "label": "Habilitet vurdert (fvl. § 6)",
+            "status": "ikke_vurdert",
+            "merknad": "Krev manuell vurdering av saksbehandler."
+          },
+          "veiledningsplikt": {
+            "label": "Veiledningsplikt overholdt (fvl. § 11)",
+            "status": "ikke_vurdert",
+            "merknad": "Krev manuell vurdering av saksbehandler."
+          },
+          "saksbehandlingstid": {
+            "label": "Innenfor 90 dagers saksbehandlingsfrist",
+            "status": "vurdert_ok",
+            "merknad": "Søknadsdato er 2026-05-19 og arrangementet starter 2026-12-12. God tid før fristen."
+          }
+        }
+      },
+      "gebyr": {
+        "label": "Gebyr",
+        "punkter": {
+          "gebyr_beregnet": {
+            "label": "Bevillingsgebyr korrekt beregnet",
+            "status": "maa_undersokes",
+            "merknad": "Det er ikke oppgitt informasjon om betalt eller beregnet gebyr i søknadsdataene."
+          }
+        }
+      },
+      "helhetsvurdering": {
+        "label": "Helhetsvurdering",
+        "punkter": {
+          "samlet_vurdering": {
+            "label": "Samlet vurdering av søknaden",
+            "status": "maa_undersokes",
+            "merknad": "Søknaden er komplett utfylt, men vedleggslisten er tom. Det må kontrolleres om det foreligger nødvendige vedlegg for arrangementsbevilling (f.eks. leieavtale for lokalet)."
+          },
+          "anbefaling": {
+            "label": "Foreløpig anbefaling",
+            "status": "maa_undersokes",
+            "merknad": "Venter på kontroll av vedlegg før endelig anbefaling kan gis."
+          }
+        }
+      }
+    }
+  },
+  "stdout": "{\"sjekkliste\": {\"formelle_krav\": {\"label\": \"Formelle krav\", \"punkter\": {\"soknad_komplett\": {\"label\": \"Søknaden er komplett utfylt\", \"status\": \"vurdert_ok\", \"merknad\": \"Alle nødvendige felter for arrangementsbevilling er utfylt.\"}, \"riktig_soknadstype\": {\"label\": \"Riktig søknadstype valgt\", \"status\": \"vurdert_ok\", \"merknad\": \"Søker har valgt bevillingsType 'arrangement', som stemmer med formålet.\"}, \"kommune_riktig\": {\"label\": \"Riktig kommune valgt\", \"status\": \"vurdert_ok\", \"merknad\": \"Kommunenummer 4204 er oppgitt.\"}, \"soker_identifisert\": {\"label\": \"Søker er identifisert med org.nr.\", \"status\": \"ikke_relevant\", \"merknad\": \"Søker er en privatperson, identifisert med fødselsnummer.\"}}}, \"dokumentasjon\": {\"label\": \"Dokumentasjon\", \"punkter\": {\"leiekontrakt\": {\"label\": \"Leiekontrakt for lokalet\", \"status\": \"maa_undersokes\", \"merknad\": \"Ingen vedlegg innsendt. Arrangementet holdes på Restaurant Sjøhuset.\"}, \"personantall_beregning\": {\"label\": \"Beregning av personantall fra godkjent firma\", \"status\": \"ikke_relevant\", \"merknad\": \"Søknaden gjelder et julebord med 45 personer i eksisterende restaurantlokale.\"}, \"plantegninger\": {\"label\": \"Plantegninger over lokalet\", \"status\": \"maa_undersokes\", \"merknad\": \"Ingen vedlegg innsendt.\"}, \"mattilsynet_registrering\": {\"label\": \"Registrering hos Mattilsynet\", \"status\": \"ikke_relevant\", \"merknad\": \"Arrangementet foregår i et profesjonelt serveringssted (Restaurant Sjøhuset).\"}, \"bruksgodkjenning\": {\"label\": \"Bruksgodkjenning fra plan- og bygningsetaten\", \"status\": \"ikke_relevant\", \"merknad\": \"Arrangementet foregår i eksisterende restaurantlokale.\"}, \"kunnskapsprove_styrer\": {\"label\": \"Kunnskapsprøve bestått – styrer\", \"status\": \"maa_undersokes\", \"merknad\": \"Ingen dokumentasjon på bestått kunnskapsprøve for Sophie Salt vedlagt.\"}, \"kunnskapsprove_stedfortreder\": {\"label\": \"Kunnskapsprøve bestått – stedfortreder\", \"status\": \"maa_undersokes\", \"merknad\": \"Ingen dokumentasjon på bestått kunnskapsprøve for Erik Hansen vedlagt.\"}, \"arbeidsavtale_styrer\": {\"label\": \"Arbeidsavtale for styrer\", \"status\": \"ikke_relevant\", \"merknad\": \"Søker er privatperson/arrangør for julebord.\"}, \"arbeidsavtale_stedfortreder\": {\"label\": \"Arbeidsavtale for stedfortreder\", \"status\": \"ikke_relevant\", \"merknad\": \"Søker er privatperson/arrangør for julebord.\"}}}, \"vandel\": {\"label\": \"Vandelsvurdering\", \"punkter\": {\"politi_uttalelse\": {\"label\": \"Uttalelse innhentet fra politiet\", \"status\": \"maa_undersokes\", \"merknad\": \"Ingen politiattest funnet i vedleggslisten.\"}, \"skatteetaten_uttalelse\": {\"label\": \"Uttalelse innhentet fra Skatteetaten\", \"status\": \"maa_undersokes\", \"merknad\": \"Ingen uttalelse fra Skatteetaten i vedleggslisten.\"}, \"nav_uttalelse\": {\"label\": \"Uttalelse innhentet fra NAV (sosialtjenesten)\", \"status\": \"maa_undersokes\", \"merknad\": \"Ingen uttalelse fra NAV i vedleggslisten.\"}, \"vandel_bevillingshaver\": {\"label\": \"Vandel OK – bevillingshaver/eier\", \"status\": \"ikke_vurdert\", \"merknad\": \"Avventer uttalelser for Sophie Salt.\"}, \"vandel_styrer\": {\"label\": \"Vandel OK – styrer (kun alkohollovgivning)\", \"status\": \"ikke_vurdert\", \"merknad\": \"Avventer uttalelser for Sophie Salt.\"}, \"vandel_stedfortreder\": {\"label\": \"Vandel OK – stedfortreder (kun alkohollovgivning)\", \"status\": \"ikke_vurdert\", \"merknad\": \"Avventer uttalelser for Erik Hansen.\"}, \"vandel_vesentlig_innflytelse\": {\"label\": \"Vandel OK – personer med vesentlig innflytelse\", \"status\": \"ikke_relevant\", \"merknad\": \"Ingen personer med vesentlig innflytelse oppgitt i søknaden.\"}}}, \"personkrav\": {\"label\": \"Krav til styrer og stedfortreder\", \"punkter\": {\"styrer_alder\": {\"label\": \"Styrer er over 20 år\", \"status\": \"vurdert_ok\", \"merknad\": \"Født 01.03.1990\"}, \"stedfortreder_alder\": {\"label\": \"Stedfortreder er over 20 år\", \"status\": \"vurdert_ok\", \"merknad\": \"Født 15.03.1990\"}, \"styrer_ansatt\": {\"label\": \"Styrer er ansatt på stedet / eier\", \"status\": \"maa_undersokes\", \"merknad\": \"Søker er privatperson, må bekrefte tilknytning til lokalet/arrangementet\"}, \"stedfortreder_ansatt\": {\"label\": \"Stedfortreder er ansatt på stedet / eier\", \"status\": \"maa_undersokes\", \"merknad\": \"Må bekrefte tilknytning\"}, \"styrer_kun_ett_sted\": {\"label\": \"Styrer er ikke styrer/stedfortreder på annet sted\", \"status\": \"ikke_vurdert\", \"merknad\": \"Må sjekkes mot register\"}, \"stedfortreder_kun_ett_sted\": {\"label\": \"Stedfortreder er ikke styrer/stedfortreder på annet sted\", \"status\": \"ikke_vurdert\", \"merknad\": \"Må sjekkes mot register\"}, \"fritak_stedfortreder\": {\"label\": \"Fritak fra krav om stedfortreder vurdert\", \"status\": \"vurdert_ok\", \"merknad\": \"Søker har opplyst at stedfortreder skal benyttes (ingen fritak søkt)\"}}}, \"lokalpolitisk\": {\"label\": \"Lokalpolitisk vurdering (kommunens retningslinjer)\", \"punkter\": {\"beliggenhet_ok\": {\"label\": \"Beliggenhet i tråd med retningslinjer\", \"status\": \"maa_undersokes\", \"merknad\": \"Må sjekkes mot kommunens arealplan for Restaurant Sjøhuset, Havnegata 15.\"}, \"ikke_barn_unge_omraade\": {\"label\": \"Ikke i område for barn/unges fritidsaktiviteter\", \"status\": \"maa_undersokes\", \"merknad\": \"Må verifiseres for adressen Havnegata 15.\"}, \"ikke_idrettsarrangement\": {\"label\": \"Ikke idrettsarrangement eller arrangement for barn/unge\", \"status\": \"vurdert_ok\", \"merknad\": \"Søknaden gjelder julebord for ansatte (Avdeling Nord).\"}, \"brennevin_spisested\": {\"label\": \"Brennevin kun til spisested (hvis gr. 3)\", \"status\": \"vurdert_ok\", \"merknad\": \"Søkes om gruppe 3 og skal avholdes på Restaurant Sjøhuset.\"}, \"skjenketider_ok\": {\"label\": \"Skjenketider innenfor kommunens rammer\", \"status\": \"maa_undersokes\", \"merknad\": \"Sluttid kl. 02:00 må sjekkes mot kommunens lokale forskrifter.\"}, \"arrangement_varighet_ok\": {\"label\": \"Arrangement innenfor maks 14 dager\", \"status\": \"vurdert_ok\", \"merknad\": \"Arrangementet varer i 2 dager (2026-12-12 til 2026-12-13).\"}}}, \"habilitet\": {\"label\": \"Habilitet og saksbehandling\", \"punkter\": {\"habilitet_vurdert\": {\"label\": \"Habilitet vurdert (fvl. § 6)\", \"status\": \"ikke_vurdert\", \"merknad\": \"Krev manuell vurdering av saksbehandler.\"}, \"veiledningsplikt\": {\"label\": \"Veiledningsplikt overholdt (fvl. § 11)\", \"status\": \"ikke_vurdert\", \"merknad\": \"Krev manuell vurdering av saksbehandler.\"}, \"saksbehandlingstid\": {\"label\": \"Innenfor 90 dagers saksbehandlingsfrist\", \"status\": \"vurdert_ok\", \"merknad\": \"Søknadsdato er 2026-05-19 og arrangementet starter 2026-12-12. God tid før fristen.\"}}}, \"gebyr\": {\"label\": \"Gebyr\", \"punkter\": {\"gebyr_beregnet\": {\"label\": \"Bevillingsgebyr korrekt beregnet\", \"status\": \"maa_undersokes\", \"merknad\": \"Det er ikke oppgitt informasjon om betalt eller beregnet gebyr i søknadsdataene.\"}}}, \"helhetsvurdering\": {\"label\": \"Helhetsvurdering\", \"punkter\": {\"samlet_vurdering\": {\"label\": \"Samlet vurdering av søknaden\", \"status\": \"maa_undersokes\", \"merknad\": \"Søknaden er komplett utfylt, men vedleggslisten er tom. Det må kontrolleres om det foreligger nødvendige vedlegg for arrangementsbevilling (f.eks. leieavtale for lokalet).\"}, \"anbefaling\": {\"label\": \"Foreløpig anbefaling\", \"status\": \"maa_undersokes\", \"merknad\": \"Venter på kontroll av vedlegg før endelig anbefaling kan gis.\"}}}}}"
+}

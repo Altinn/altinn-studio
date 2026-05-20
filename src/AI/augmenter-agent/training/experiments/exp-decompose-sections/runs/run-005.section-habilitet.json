@@ -1,0 +1,15 @@
+{
+  "iteration": 5,
+  "variant": "enum-v2",
+  "seksjon_id": "habilitet",
+  "userPromptLength": 2643,
+  "systemPromptLength": 1298,
+  "elapsedMs": 10954,
+  "wallElapsedMs": 10960,
+  "success": true,
+  "stdout": "{\n  \"sjekkliste\": {\n    \"seksjoner\": [\n      {\n        \"id\": \"habilitet\",\n        \"label\": \"Habilitet og saksbehandling\",\n        \"punkter\": {\n          \"habilitet_vurdert\": {\n            \"label\": \"Habilitet vurdert (fvl. § 6)\",\n            \"status\": \"ikke_vurdert\",\n            \"merknad\": \"Må vurderes av saksbehandler manuelt\"\n          },\n          \"veiledningsplikt\": {\n            \"label\": \"Veiledningsplikt overholdt (fvl. § 11)\",\n            \"status\": \"ikke_vurdert\",\n            \"merknad\": \"Må vurderes av saksbehandler manuelt\"\n          },\n          \"saksbehandlingstid\": {\n            \"label\": \"Innenfor 90 dagers saksbehandlingsfrist\",\n            \"status\": \"vurdert_ok\",\n            \"merknad\": \"Søknadsdato er 2026-05-19 og arrangementet starter 2026-12-12, som er godt innenfor fristen.\"\n          }\n        }\n      }\n    ]\n  }\n}\n",
+  "errorMessage": null,
+  "parseError": null,
+  "model": "sandkasse/telenor:gemma4",
+  "status": "ok"
+}

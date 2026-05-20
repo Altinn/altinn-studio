@@ -1,0 +1,46 @@
+{
+  "layer1": {
+    "non_empty": true,
+    "parses_json": true,
+    "has_sjekkliste_root": true,
+    "sections_missing": [],
+    "sections_extra": [],
+    "points_missing_from_gold": [],
+    "points_missing_status": [],
+    "points_missing_merknad": [],
+    "points_with_invalid_status": {
+      "formelle_krav.soknad_komplett": "mangelfull",
+      "formelle_krav.riktig_soknadstype": "godkjent",
+      "formelle_krav.kommune_riktig": "godkjent",
+      "dokumentasjon.leiekontrakt": "mangler",
+      "dokumentasjon.personantall_beregning": "mangler",
+      "dokumentasjon.plantegninger": "mangler",
+      "dokumentasjon.mattilsynet_registrering": "mangler",
+      "dokumentasjon.bruksgodkjenning": "mangler",
+      "dokumentasjon.kunnskapsprove_styrer": "mangler",
+      "dokumentasjon.kunnskapsprove_stedfortreder": "mangler",
+      "dokumentasjon.arbeidsavtale_styrer": "mangler",
+      "dokumentasjon.arbeidsavtale_stedfortreder": "mangler",
+      "vandel.vandel_vesentlig_innflytelse": "ok",
+      "personkrav.styrer_alder": "godkjent",
+      "personkrav.stedfortreder_alder": "godkjent",
+      "personkrav.fritak_stedfortreder": "godkjent",
+      "lokalpolitisk.beliggenhet_ok": "ok",
+      "lokalpolitisk.ikke_barn_unge_omraade": "ok",
+      "lokalpolitisk.ikke_idrettsarrangement": "ok",
+      "lokalpolitisk.brennevin_spisested": "ok",
+      "lokalpolitisk.skjenketider_ok": "ok",
+      "lokalpolitisk.arrangement_varighet_ok": "ok",
+      "habilitet.saksbehandlingstid": "ok",
+      "helhetsvurdering.samlet_vurdering": "fullstendig",
+      "helhetsvurdering.anbefaling": "innvilget"
+    }
+  },
+  "layer2": {
+    "section_coverage_pct": 100.0,
+    "point_coverage_pct": 100.0,
+    "status_agreement_pct": 15.4,
+    "merknad_length_ratio_mean": 0.35
+  },
+  "verdict": "structural_fail"
+}
