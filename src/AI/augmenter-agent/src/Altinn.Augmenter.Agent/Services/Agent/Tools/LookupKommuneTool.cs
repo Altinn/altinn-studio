@@ -1,33 +1,32 @@
 using System.Text.Json;
+using Altinn.Augmenter.Agent.Services.Domain;
 
 namespace Altinn.Augmenter.Agent.Services.Agent.Tools;
 
 /// <summary>
-/// Looks up a Norwegian kommune by 4-digit kommunenummer. Initial registry
-/// covers the Agder-kommuner relevant for the current pilot; extend as more
-/// kommuner come on board.
+/// Looks up a Norwegian kommune by 4-digit kommunenummer in
+/// <see cref="DomainDataProvider"/>'s registry (loaded from
+/// <c>config/domain/kommuner.json</c>). Returns the registry entry verbatim
+/// so config can carry whatever fields each deployment cares about
+/// (name + klage-epost + future additions).
+///
+/// Unknown numbers return { "error": "..." } rather than silently falling back
+/// to the default kommune — the LLM needs an explicit signal that the input
+/// wasn't recognized so it can mark the punkt "maa_undersokes" instead of
+/// confidently citing a wrong kommune.
 /// </summary>
-public sealed class LookupKommuneTool : ITool
+public sealed class LookupKommuneTool(DomainDataProvider domain) : ITool
 {
     public string Name => "lookup_kommune";
-
-    private static readonly IReadOnlyDictionary<string, (string Name, string Fylke)> Registry =
-        new Dictionary<string, (string, string)>
-        {
-            ["4204"] = ("Kristiansand", "Agder"),
-            ["4205"] = ("Vennesla", "Agder"),
-            ["1001"] = ("Kristiansand", "Agder"), // historic; still in use in some sources
-            ["4221"] = ("Vennesla", "Agder"),
-        };
 
     public object Invoke(JsonElement arguments, JsonDocument application)
     {
         var nr = arguments.TryGetProperty("kommunenummer", out var k) ? k.GetString()?.Trim() ?? "" : "";
-        if (!Registry.TryGetValue(nr, out var hit))
+        if (!domain.Kommuner.Kommuner.TryGetValue(nr, out var entry))
         {
-            var known = string.Join(", ", Registry.Keys.OrderBy(x => x));
+            var known = string.Join(", ", domain.Kommuner.Kommuner.Keys.OrderBy(x => x));
             return new { error = $"Unknown kommunenummer: '{nr}'. Known: [{known}]" };
         }
-        return new { name = hit.Name, fylke = hit.Fylke };
+        return new { name = entry.Navn, klage_epost = entry.KlageEpost };
     }
 }

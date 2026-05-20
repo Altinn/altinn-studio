@@ -58,7 +58,8 @@ public class ChecklistOrchestratorIntegrationTests
         new ContentPathsPostConfigure().PostConfigure(null, contentPaths.Value);
         var promptProvider = new FileSystemPromptProvider(contentPaths);
         var toolLoader = new FileToolDefinitionLoader(contentPaths);
-        var registry = new ToolRegistry(ToolRegistry.BuiltIn(), toolLoader);
+        var domain = new Altinn.Augmenter.Agent.Services.Domain.DomainDataProvider(contentPaths);
+        var registry = new ToolRegistry(ToolRegistry.BuiltIn(domain), toolLoader);
 
         _sut = new ChecklistOrchestrator(chat, registry, promptProvider, orchLogger);
     }

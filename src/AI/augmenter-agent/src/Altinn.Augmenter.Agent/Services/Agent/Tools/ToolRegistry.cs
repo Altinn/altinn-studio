@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Altinn.Augmenter.Agent.Services.Domain;
 
 namespace Altinn.Augmenter.Agent.Services.Agent.Tools;
 
@@ -57,9 +58,36 @@ public sealed class ToolRegistry : IToolRegistry
     /// <summary>
     /// Convenience for tests that exercise dispatch but don't care about
     /// definitions — pairs the built-in tools with minimal placeholder
-    /// definitions so the registry doesn't throw.
+    /// definitions so the registry doesn't throw. Tools with dependencies
+    /// (lookup_kommune) get a no-op stub since unit tests that target dispatch
+    /// don't usually invoke them.
     /// </summary>
-    public static ToolRegistry ForTesting() => new(BuiltIn(), PlaceholderDefinitions(BuiltIn()));
+    public static ToolRegistry ForTesting()
+    {
+        var tools = BuiltInForTesting();
+        return new(tools, PlaceholderDefinitions(tools));
+    }
+
+    private static IReadOnlyList<ITool> BuiltInForTesting()
+    {
+        // DomainDataProvider uses Lazy<> internally, so a non-existent path is
+        // fine until something actually tries to read a registry. Tests that
+        // need real registry data should construct a registry pointing at
+        // config/domain/ explicitly.
+        var domain = new DomainDataProvider(Microsoft.Extensions.Options.Options.Create(
+            new Altinn.Augmenter.Agent.Configuration.ContentPathsOptions { DomainRoot = "/nonexistent" }));
+        return
+        [
+            new AgeAtDateFromFnrTool(),
+            new DaysBetweenTool(),
+            new TimeWithinLegalScheduleTool(),
+            new LookupKommuneTool(domain),
+            new PathValueTool(),
+            new CountAttachmentsTool(),
+            new TextMatchesAnyTool(),
+            new TextContainsAnyTool(),
+        ];
+    }
 
     private static IReadOnlyDictionary<string, ToolDefinition> PlaceholderDefinitions(IEnumerable<ITool> tools)
     {
@@ -101,16 +129,17 @@ public sealed class ToolRegistry : IToolRegistry
         return JsonSerializer.Serialize(result, ResultJsonOptions);
     }
 
-    /// <summary>Default tool set used by production wiring.</summary>
-    public static IReadOnlyList<ITool> BuiltIn() =>
+    /// <summary>Default tool set when an explicit <see cref="DomainDataProvider"/> is supplied (used by the integration test).</summary>
+    public static IReadOnlyList<ITool> BuiltIn(DomainDataProvider domain) =>
     [
         new AgeAtDateFromFnrTool(),
         new DaysBetweenTool(),
         new TimeWithinLegalScheduleTool(),
-        new LookupKommuneTool(),
+        new LookupKommuneTool(domain),
         new PathValueTool(),
         new CountAttachmentsTool(),
         new TextMatchesAnyTool(),
         new TextContainsAnyTool(),
     ];
 }
+

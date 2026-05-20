@@ -52,8 +52,15 @@ builder.Services.AddScoped<IAgentService>(sp =>
     };
 });
 // Per-punkt orchestrator + supporting services (used by agent-pdf-orchestrated step)
-foreach (var tool in ToolRegistry.BuiltIn())
-    builder.Services.AddSingleton(tool);
+// Tools registered as types so DI injects dependencies (LookupKommuneTool needs DomainDataProvider)
+builder.Services.AddSingleton<ITool, AgeAtDateFromFnrTool>();
+builder.Services.AddSingleton<ITool, DaysBetweenTool>();
+builder.Services.AddSingleton<ITool, TimeWithinLegalScheduleTool>();
+builder.Services.AddSingleton<ITool, LookupKommuneTool>();
+builder.Services.AddSingleton<ITool, PathValueTool>();
+builder.Services.AddSingleton<ITool, CountAttachmentsTool>();
+builder.Services.AddSingleton<ITool, TextMatchesAnyTool>();
+builder.Services.AddSingleton<ITool, TextContainsAnyTool>();
 builder.Services.AddSingleton<IToolDefinitionLoader, FileToolDefinitionLoader>();
 builder.Services.AddSingleton<IToolRegistry>(sp => new ToolRegistry(
     sp.GetServices<ITool>(),
