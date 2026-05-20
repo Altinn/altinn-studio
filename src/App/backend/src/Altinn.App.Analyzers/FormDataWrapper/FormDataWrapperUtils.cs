@@ -126,18 +126,23 @@ public static class FormDataWrapperUtils
             return null;
         }
 
-        var propertyTypeInfo = SourceReaderUtils.GetTypeFromProperty(rootSymbol);
+        var collectionTypeSymbols = SourceReaderUtils.GetCollectionTypeSymbols(compilation);
+        var propertyTypeInfo = SourceReaderUtils.GetTypeFromProperty(rootSymbol, collectionTypeSymbols);
 
         return new ModelPathNode(
             "",
             "",
             propertyTypeInfo.PropertyTypeString,
             propertyTypeInfo.IsNullable,
-            GetNodeProperties(rootSymbol, diagnostics)
+            GetNodeProperties(rootSymbol, diagnostics, collectionTypeSymbols)
         );
     }
 
-    private static ModelPathNode[]? GetNodeProperties(ITypeSymbol typeSymbol, List<Diagnostic> diagnostics)
+    private static ModelPathNode[]? GetNodeProperties(
+        ITypeSymbol typeSymbol,
+        List<Diagnostic> diagnostics,
+        SourceReaderUtils.CollectionTypeSymbols? collectionTypeSymbols
+    )
     {
         if (typeSymbol is not INamedTypeSymbol namedTypeSymbol)
         {
@@ -158,12 +163,12 @@ public static class FormDataWrapperUtils
                 // Skip static, readonly, writeonly, implicitly declared, private and indexer properties
                 continue;
             }
-            var propertyTypeInfo = SourceReaderUtils.GetTypeFromProperty(property.Type);
+            var propertyTypeInfo = SourceReaderUtils.GetTypeFromProperty(property.Type, collectionTypeSymbols);
 
             var cSharpName = property.Name;
             var jsonName = SourceReaderUtils.GetJsonName(property) ?? cSharpName;
 
-            var subProperties = GetNodeProperties(propertyTypeInfo.PropertyType, diagnostics);
+            var subProperties = GetNodeProperties(propertyTypeInfo.PropertyType, diagnostics, collectionTypeSymbols);
 
             nodeProperties.Add(
                 new ModelPathNode(
@@ -173,7 +178,8 @@ public static class FormDataWrapperUtils
                     propertyTypeInfo.IsNullable,
                     subProperties,
                     propertyTypeInfo.PropertyCollectionTypeString,
-                    propertyTypeInfo.IsNullableCollection
+                    propertyTypeInfo.IsNullableCollection,
+                    propertyTypeInfo.IsIndexableCollection
                 )
             );
         }

@@ -22,7 +22,6 @@ export function SigningDocumentListComponent({
 }) {
   const { instanceOwnerPartyId, instanceGuid } = useParams();
   const { langAsString } = useLanguage();
-
   const { data, isLoading, error } = useDocumentList(instanceOwnerPartyId, instanceGuid);
 
   if (error) {
