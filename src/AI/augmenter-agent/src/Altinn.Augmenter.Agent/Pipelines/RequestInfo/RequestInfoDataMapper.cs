@@ -1,13 +1,15 @@
 using System.Text.Json;
 using Altinn.Augmenter.Agent.Pipelines.Generic;
-using Altinn.Augmenter.Agent.Services.Domain;
+using Altinn.Augmenter.Agent.Services.Registries;
 
 namespace Altinn.Augmenter.Agent.Pipelines.RequestInfo;
 
 public sealed class RequestInfoDataMapper(
-    DomainDataProvider domainData,
+    RegistryProvider registries,
     ILogger<RequestInfoDataMapper> logger) : IDataMapper
 {
+    private const string BevillingstyperRegistryFile = "bevillingstyper.json";
+
     public JsonDocument Map(JsonElement flatData)
     {
         using var stream = new MemoryStream();
@@ -32,9 +34,10 @@ public sealed class RequestInfoDataMapper(
     private void WriteTypeSak(Utf8JsonWriter writer, JsonElement flatData)
     {
         var bevillingsType = GetStringProperty(flatData, "BevillingsType");
-        var typeSak = domainData.MapBevillingstype(bevillingsType);
+        var bevillingstyper = registries.Load<MappingRegistry>(BevillingstyperRegistryFile);
+        var typeSak = bevillingstyper.Map(bevillingsType);
 
-        if (bevillingsType != null && !domainData.Bevillingstyper.Mapping.ContainsKey(bevillingsType))
+        if (bevillingsType != null && !bevillingstyper.Mapping.ContainsKey(bevillingsType))
             logger.LogWarning("Unknown BevillingsType '{BevillingsType}', defaulting to {Default}", bevillingsType, typeSak);
 
         writer.WriteString("type-sak", typeSak);
@@ -202,10 +205,11 @@ public sealed class RequestInfoDataMapper(
 
     private void WriteLovhenvisninger(Utf8JsonWriter writer)
     {
+        var bevillingstyper = registries.Load<MappingRegistry>(BevillingstyperRegistryFile);
         writer.WriteStartArray("lovhenvisninger");
-        foreach (var lov in domainData.Bevillingstyper.Lovhenvisninger)
+        foreach (var reference in bevillingstyper.References)
         {
-            writer.WriteStringValue(lov);
+            writer.WriteStringValue(reference);
         }
         writer.WriteEndArray();
     }

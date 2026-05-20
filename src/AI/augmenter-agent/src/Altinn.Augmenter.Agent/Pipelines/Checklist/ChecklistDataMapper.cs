@@ -1,11 +1,15 @@
 using System.Text.Json;
 using Altinn.Augmenter.Agent.Pipelines.Generic;
-using Altinn.Augmenter.Agent.Services.Domain;
+using Altinn.Augmenter.Agent.Services.Registries;
 
 namespace Altinn.Augmenter.Agent.Pipelines.Checklist;
 
-public sealed class ChecklistDataMapper(DomainDataProvider domainData) : IDataMapper
+public sealed class ChecklistDataMapper(RegistryProvider registries) : IDataMapper
 {
+    private const string KommunerRegistryFile = "kommuner.json";
+    private const string AlkoholgrupperRegistryFile = "alkoholgrupper.json";
+    private const string ChecklistSchemaFile = "sjekkliste.json";
+
     public JsonDocument Map(JsonElement flatData)
     {
         using var stream = new MemoryStream();
@@ -146,7 +150,8 @@ public sealed class ChecklistDataMapper(DomainDataProvider domainData) : IDataMa
         var varegruppe = TryGet(flatData, "Arrangement", out var arr)
             ? GetString(arr, "VaregruppeAlkohol")
             : null;
-        writer.WriteString("alkoholgruppe", domainData.MapAlkoholgruppeChecklist(varegruppe));
+        var alkoholgrupper = registries.Load<RuleBasedRegistry>(AlkoholgrupperRegistryFile);
+        writer.WriteString("alkoholgruppe", alkoholgrupper.Match(varegruppe));
 
         var harEksisterende = false;
         if (flatData.TryGetProperty("SkalFornyeBevilling", out var fornyProp) &&
@@ -222,20 +227,20 @@ public sealed class ChecklistDataMapper(DomainDataProvider domainData) : IDataMa
 
     private void WriteSjekkliste(Utf8JsonWriter writer)
     {
-        var sjekkliste = domainData.Sjekkliste;
+        var schema = registries.Load<OutputSchema>(ChecklistSchemaFile);
         writer.WriteStartObject("sjekkliste");
 
-        foreach (var seksjon in sjekkliste.Seksjoner)
+        foreach (var section in schema.Sections)
         {
-            writer.WriteStartObject(seksjon.Id);
-            writer.WriteString("label", seksjon.Label);
+            writer.WriteStartObject(section.Id);
+            writer.WriteString("label", section.Label);
 
             writer.WriteStartObject("punkter");
-            foreach (var punkt in seksjon.Punkter)
+            foreach (var item in section.Items)
             {
-                writer.WriteStartObject(punkt.Id);
-                writer.WriteString("label", punkt.Label);
-                writer.WriteString("status", sjekkliste.DefaultStatus);
+                writer.WriteStartObject(item.Id);
+                writer.WriteString("label", item.Label);
+                writer.WriteString("status", schema.DefaultStatus);
                 writer.WriteString("merknad", "");
                 writer.WriteEndObject();
             }
@@ -250,8 +255,10 @@ public sealed class ChecklistDataMapper(DomainDataProvider domainData) : IDataMa
     private string GetKommune(JsonElement flatData)
     {
         var knr = ExtractKommunenummer(flatData);
-        if (knr != null && domainData.Kommuner.Kommuner.TryGetValue(knr, out var entry))
-            return entry.Navn;
+        var kommuner = registries.Load<LookupRegistry>(KommunerRegistryFile);
+        var entry = kommuner.Find(knr);
+        if (entry != null && entry.TryGetValue("name", out var nameEl) && nameEl.ValueKind == JsonValueKind.String)
+            return nameEl.GetString() ?? "–";
 
         // Fall back to any string-form "Kommune" field found in the application
         if (TryGet(flatData, "Arrangement", out var arrangement) &&

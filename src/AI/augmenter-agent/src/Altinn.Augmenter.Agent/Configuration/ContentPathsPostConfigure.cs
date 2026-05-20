@@ -28,8 +28,8 @@ public sealed class ContentPathsPostConfigure : IPostConfigureOptions<ContentPat
         if (!Directory.Exists(options.SchemasRoot))
             options.SchemasRoot = Path.Combine(configRoot, "templates");
 
-        if (!Directory.Exists(options.DomainRoot))
-            options.DomainRoot = Path.Combine(configRoot, "domain");
+        if (!Directory.Exists(options.RegistriesRoot))
+            options.RegistriesRoot = Path.Combine(configRoot, "registries");
 
         if (!Directory.Exists(options.RulesRoot))
             options.RulesRoot = Path.Combine(configRoot, "rules");

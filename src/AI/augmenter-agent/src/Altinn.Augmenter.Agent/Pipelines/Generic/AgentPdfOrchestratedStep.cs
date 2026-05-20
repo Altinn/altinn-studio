@@ -62,7 +62,7 @@ public sealed class AgentPdfOrchestratedStep : IPdfGenerationStep
         _rulesFolderAbsolutePath = string.IsNullOrEmpty(rulesSubfolder)
             ? paths.RulesRoot
             : Path.Combine(paths.RulesRoot, rulesSubfolder);
-        _schemaFilePath = Path.Combine(paths.DomainRoot, definition.SchemaFile ?? DefaultSchemaFile);
+        _schemaFilePath = Path.Combine(paths.RegistriesRoot, definition.SchemaFile ?? DefaultSchemaFile);
         _templatePath = Path.Combine(paths.TemplatesRoot, definition.Template);
         _docxTemplatePath = string.IsNullOrEmpty(definition.DocxTemplate)
             ? null

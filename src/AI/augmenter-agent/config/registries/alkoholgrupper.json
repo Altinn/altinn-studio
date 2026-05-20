@@ -1,0 +1,8 @@
+{
+  "default": "–",
+  "rules": [
+    { "contains": ["tre", "3"], "value": "Gruppe 1, 2 og 3 (inntil 60 %)" },
+    { "contains": ["to", "2"],  "value": "Gruppe 1 og 2 (under 22 %)" },
+    { "fallback": true,         "value": "Gruppe 1 (2,5–4,7 %)" }
+  ]
+}

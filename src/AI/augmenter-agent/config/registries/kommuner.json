@@ -1,0 +1,10 @@
+{
+  "default": {
+    "name": "Vennesla",
+    "klage_epost": "post@vennesla.kommune.no"
+  },
+  "entries": {
+    "4204": { "name": "Kristiansand", "klage_epost": "post@kristiansand.kommune.no" },
+    "4223": { "name": "Vennesla",     "klage_epost": "post@vennesla.kommune.no" }
+  }
+}

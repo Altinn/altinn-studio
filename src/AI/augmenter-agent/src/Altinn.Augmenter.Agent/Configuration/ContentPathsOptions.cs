@@ -12,7 +12,15 @@ public sealed class ContentPathsOptions
     public string SkillsRoot { get; set; } = "/etc/augmenter/skills";
     public string TemplatesRoot { get; set; } = "/etc/augmenter/templates";
     public string SchemasRoot { get; set; } = "/etc/augmenter/templates";
-    public string DomainRoot { get; set; } = "/etc/augmenter/domain";
+
+    /// <summary>
+    /// Typed key→value registries (<see cref="Services.Registries.LookupRegistry"/>,
+    /// <see cref="Services.Registries.MappingRegistry"/>,
+    /// <see cref="Services.Registries.RuleBasedRegistry"/>) plus output schemas
+    /// (<see cref="Services.Registries.OutputSchema"/>) consumed by mappers,
+    /// the lookup tool and the aggregator.
+    /// </summary>
+    public string RegistriesRoot { get; set; } = "/etc/augmenter/registries";
 
     /// <summary>
     /// Per-punkt markdown rules consumed by <c>agent-pdf-orchestrated</c>.

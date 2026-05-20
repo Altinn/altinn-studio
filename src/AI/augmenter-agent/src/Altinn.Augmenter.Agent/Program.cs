@@ -9,7 +9,7 @@ using Altinn.Augmenter.Agent.Services.Agent;
 using Altinn.Augmenter.Agent.Services.Agent.Chat;
 using Altinn.Augmenter.Agent.Services.Agent.Orchestration;
 using Altinn.Augmenter.Agent.Services.Agent.Tools;
-using Altinn.Augmenter.Agent.Services.Domain;
+using Altinn.Augmenter.Agent.Services.Registries;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Options;
 
@@ -52,7 +52,7 @@ builder.Services.AddScoped<IAgentService>(sp =>
     };
 });
 // Per-punkt orchestrator + supporting services (used by agent-pdf-orchestrated step)
-// Tools registered as types so DI injects dependencies (LookupKommuneTool needs DomainDataProvider)
+// Tools registered as types so DI injects dependencies (LookupTool needs RegistryProvider)
 builder.Services.AddSingleton<ITool, AgeFromIdTool>();
 builder.Services.AddSingleton<ITool, DaysBetweenTool>();
 builder.Services.AddSingleton<ITool, TimeWithinWindowTool>();
@@ -74,8 +74,8 @@ builder.Services.AddScoped<IPdfGeneratorService, PdfGeneratorService>();
 builder.Services.AddScoped<IDocxGeneratorService, DocxGeneratorService>();
 builder.Services.AddScoped<IMultipartParserService, MultipartParserService>();
 
-// Domain reference data loaded from /etc/augmenter/domain/
-builder.Services.AddSingleton<DomainDataProvider>();
+// Typed registries loaded from /etc/augmenter/registries/ (kommuner, bevillingstyper, alkoholgrupper, ...)
+builder.Services.AddSingleton<RegistryProvider>();
 
 // Keyed mappers — referenced by name from pipeline.yaml
 builder.Services.AddKeyedSingleton<IDataMapper, RequestInfoDataMapper>("request-info");

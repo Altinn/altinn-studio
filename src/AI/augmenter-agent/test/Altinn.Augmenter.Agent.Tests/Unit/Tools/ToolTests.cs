@@ -143,7 +143,7 @@ public class ToolTests
     [InlineData("4223", "Vennesla")]
     public void Lookup_KommunerRegistry_Known_ReturnsName(string nr, string expectedName)
     {
-        var tool = new LookupTool(RealDomainProvider());
+        var tool = new LookupTool(RealRegistryProvider());
         var result = tool.Invoke(Args($$"""{ "registry": "kommuner", "key": "{{nr}}" }"""), SampleApplication);
         var json = JsonSerializer.SerializeToElement(result);
         json.GetProperty("name").GetString().Should().Be(expectedName);
@@ -152,7 +152,7 @@ public class ToolTests
     [Fact]
     public void Lookup_KommunerRegistry_Unknown_ReturnsError()
     {
-        var tool = new LookupTool(RealDomainProvider());
+        var tool = new LookupTool(RealRegistryProvider());
         var result = tool.Invoke(Args("""{ "registry": "kommuner", "key": "9999" }"""), SampleApplication);
         var json = JsonSerializer.SerializeToElement(result);
         json.TryGetProperty("error", out _).Should().BeTrue();
@@ -161,18 +161,18 @@ public class ToolTests
     [Fact]
     public void Lookup_UnknownRegistry_ReturnsError()
     {
-        var tool = new LookupTool(RealDomainProvider());
+        var tool = new LookupTool(RealRegistryProvider());
         var result = tool.Invoke(Args("""{ "registry": "non_existent", "key": "x" }"""), SampleApplication);
         var json = JsonSerializer.SerializeToElement(result);
         json.TryGetProperty("error", out var err).Should().BeTrue();
         err.GetString().Should().Contain("Unknown registry");
     }
 
-    private static Altinn.Augmenter.Agent.Services.Domain.DomainDataProvider RealDomainProvider()
+    private static Altinn.Augmenter.Agent.Services.Registries.RegistryProvider RealRegistryProvider()
         => new(Microsoft.Extensions.Options.Options.Create(
             new Altinn.Augmenter.Agent.Configuration.ContentPathsOptions
             {
-                DomainRoot = Path.Combine(Altinn.Augmenter.Agent.Tests.Integration.Helpers.ConfigLocator.GetConfigRoot(), "domain"),
+                RegistriesRoot = Path.Combine(Altinn.Augmenter.Agent.Tests.Integration.Helpers.ConfigLocator.GetConfigRoot(), "registries"),
             }));
 
     // --- path_value ---------------------------------------------------------------
@@ -305,7 +305,7 @@ public class ToolTests
     [Fact]
     public void ToolRegistry_BuiltIn_HasEightTools()
     {
-        ToolRegistry.BuiltIn(RealDomainProvider()).Select(t => t.Name).Should().BeEquivalentTo(
+        ToolRegistry.BuiltIn(RealRegistryProvider()).Select(t => t.Name).Should().BeEquivalentTo(
             "age_from_id", "days_between", "time_within_window",
             "lookup", "path_value", "count_attachments",
             "text_matches_any", "text_contains_any");
@@ -316,7 +316,7 @@ public class ToolTests
     {
         // BuiltIn() returns 8 impls; pass an empty defs map → registry should
         // refuse rather than silently produce a tool with no definition.
-        var act = () => new ToolRegistry(ToolRegistry.BuiltIn(RealDomainProvider()), new Dictionary<string, ToolDefinition>());
+        var act = () => new ToolRegistry(ToolRegistry.BuiltIn(RealRegistryProvider()), new Dictionary<string, ToolDefinition>());
         act.Should().Throw<InvalidOperationException>().WithMessage("*has an implementation but no definition*");
     }
 

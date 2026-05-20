@@ -9,11 +9,11 @@ public class ChecklistAggregatorTests
     private static readonly JsonDocument MiniSchema = JsonDocument.Parse("""
         {
           "defaultStatus": "ikke_vurdert",
-          "seksjoner": [
+          "sections": [
             {
               "id": "formelle_krav",
               "label": "Formelle krav",
-              "punkter": [
+              "items": [
                 { "id": "soknad_komplett", "label": "Søknad komplett" },
                 { "id": "kommune_riktig",  "label": "Riktig kommune"  }
               ]
@@ -21,7 +21,7 @@ public class ChecklistAggregatorTests
             {
               "id": "personkrav",
               "label": "Personkrav",
-              "punkter": [
+              "items": [
                 { "id": "styrer_alder", "label": "Styrer over 20" }
               ]
             }

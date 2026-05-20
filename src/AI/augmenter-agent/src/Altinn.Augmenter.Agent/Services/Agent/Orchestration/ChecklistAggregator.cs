@@ -25,26 +25,26 @@ public static class ChecklistAggregator
             writer.WriteStartObject();
             writer.WriteStartObject("sjekkliste");
 
-            if (!schemaRoot.TryGetProperty("seksjoner", out var seksjonerEl) || seksjonerEl.ValueKind != JsonValueKind.Array)
-                throw new InvalidOperationException("Sjekkliste schema missing 'seksjoner' array.");
+            if (!schemaRoot.TryGetProperty("sections", out var sectionsEl) || sectionsEl.ValueKind != JsonValueKind.Array)
+                throw new InvalidOperationException("Output schema missing 'sections' array.");
 
-            foreach (var seksjon in seksjonerEl.EnumerateArray())
+            foreach (var section in sectionsEl.EnumerateArray())
             {
-                var sectionId = seksjon.GetProperty("id").GetString()!;
-                var sectionLabel = seksjon.GetProperty("label").GetString() ?? sectionId;
+                var sectionId = section.GetProperty("id").GetString()!;
+                var sectionLabel = section.GetProperty("label").GetString() ?? sectionId;
 
                 writer.WriteStartObject(sectionId);
                 writer.WriteString("label", sectionLabel);
 
                 writer.WriteStartObject("punkter");
-                foreach (var punkt in seksjon.GetProperty("punkter").EnumerateArray())
+                foreach (var item in section.GetProperty("items").EnumerateArray())
                 {
-                    var punktId = punkt.GetProperty("id").GetString()!;
-                    var punktLabel = punkt.GetProperty("label").GetString() ?? punktId;
-                    var key = $"{sectionId}.{punktId}";
+                    var itemId = item.GetProperty("id").GetString()!;
+                    var itemLabel = item.GetProperty("label").GetString() ?? itemId;
+                    var key = $"{sectionId}.{itemId}";
 
-                    writer.WriteStartObject(punktId);
-                    writer.WriteString("label", punktLabel);
+                    writer.WriteStartObject(itemId);
+                    writer.WriteString("label", itemLabel);
                     if (verdicts.TryGetValue(key, out var verdict))
                     {
                         writer.WriteString("status", verdict.Status);

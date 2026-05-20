@@ -59,7 +59,7 @@ public sealed class StepDefinition
     /// <summary>Folder under <c>ContentPaths.RulesRoot</c> holding per-punkt markdown rules. Use <c>"."</c> for the rules-root itself.</summary>
     public string? RulesFolder { get; set; }
 
-    /// <summary>Filename of the output-schema (sections + items) under <c>ContentPaths.DomainRoot</c>. Default: <c>sjekkliste.json</c>.</summary>
+    /// <summary>Filename of the output-schema (sections + items) under <c>ContentPaths.RegistriesRoot</c>. Default: <c>sjekkliste.json</c>.</summary>
     public string? SchemaFile { get; set; }
 
     /// <summary>Hard cap on tool-call iterations per punkt. Default: 5.</summary>

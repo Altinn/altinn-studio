@@ -1,10 +1,10 @@
 {
   "defaultStatus": "ikke_vurdert",
-  "seksjoner": [
+  "sections": [
     {
       "id": "formelle_krav",
       "label": "Formelle krav",
-      "punkter": [
+      "items": [
         { "id": "soknad_komplett",   "label": "Søknaden er komplett utfylt" },
         { "id": "riktig_soknadstype","label": "Riktig søknadstype valgt" },
         { "id": "kommune_riktig",    "label": "Riktig kommune valgt" },
@@ -14,7 +14,7 @@
     {
       "id": "dokumentasjon",
       "label": "Dokumentasjon",
-      "punkter": [
+      "items": [
         { "id": "leiekontrakt",            "label": "Leiekontrakt for lokalet" },
         { "id": "personantall_beregning",  "label": "Beregning av personantall fra godkjent firma" },
         { "id": "plantegninger",           "label": "Plantegninger over lokalet" },
@@ -29,7 +29,7 @@
     {
       "id": "vandel",
       "label": "Vandelsvurdering",
-      "punkter": [
+      "items": [
         { "id": "politi_uttalelse",         "label": "Uttalelse innhentet fra politiet" },
         { "id": "skatteetaten_uttalelse",   "label": "Uttalelse innhentet fra Skatteetaten" },
         { "id": "nav_uttalelse",            "label": "Uttalelse innhentet fra NAV (sosialtjenesten)" },
@@ -42,7 +42,7 @@
     {
       "id": "personkrav",
       "label": "Krav til styrer og stedfortreder",
-      "punkter": [
+      "items": [
         { "id": "styrer_alder",            "label": "Styrer er over 20 år" },
         { "id": "stedfortreder_alder",     "label": "Stedfortreder er over 20 år" },
         { "id": "styrer_ansatt",           "label": "Styrer er ansatt på stedet / eier" },
@@ -55,7 +55,7 @@
     {
       "id": "lokalpolitisk",
       "label": "Lokalpolitisk vurdering (kommunens retningslinjer)",
-      "punkter": [
+      "items": [
         { "id": "beliggenhet_ok",          "label": "Beliggenhet i tråd med retningslinjer" },
         { "id": "ikke_barn_unge_omraade",  "label": "Ikke i område for barn/unges fritidsaktiviteter" },
         { "id": "ikke_idrettsarrangement", "label": "Ikke idrettsarrangement eller arrangement for barn/unge" },
@@ -67,7 +67,7 @@
     {
       "id": "habilitet",
       "label": "Habilitet og saksbehandling",
-      "punkter": [
+      "items": [
         { "id": "habilitet_vurdert",   "label": "Habilitet vurdert (fvl. § 6)" },
         { "id": "veiledningsplikt",    "label": "Veiledningsplikt overholdt (fvl. § 11)" },
         { "id": "saksbehandlingstid",  "label": "Innenfor 90 dagers saksbehandlingsfrist" }
@@ -76,14 +76,14 @@
     {
       "id": "gebyr",
       "label": "Gebyr",
-      "punkter": [
+      "items": [
         { "id": "gebyr_beregnet", "label": "Bevillingsgebyr korrekt beregnet" }
       ]
     },
     {
       "id": "helhetsvurdering",
       "label": "Helhetsvurdering",
-      "punkter": [
+      "items": [
         { "id": "samlet_vurdering", "label": "Samlet vurdering av søknaden" },
         { "id": "anbefaling",       "label": "Foreløpig anbefaling" }
       ]

@@ -58,8 +58,8 @@ public class EvaluationOrchestratorIntegrationTests
         new ContentPathsPostConfigure().PostConfigure(null, contentPaths.Value);
         var promptProvider = new FileSystemPromptProvider(contentPaths);
         var toolLoader = new FileToolDefinitionLoader(contentPaths);
-        var domain = new Altinn.Augmenter.Agent.Services.Domain.DomainDataProvider(contentPaths);
-        var registry = new ToolRegistry(ToolRegistry.BuiltIn(domain), toolLoader);
+        var registries = new Altinn.Augmenter.Agent.Services.Registries.RegistryProvider(contentPaths);
+        var registry = new ToolRegistry(ToolRegistry.BuiltIn(registries), toolLoader);
 
         _sut = new EvaluationOrchestrator(chat, registry, promptProvider, orchLogger);
     }
