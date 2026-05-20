@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { pick } from 'dot-object';
+import type { FormDataObject } from '@app/form-component';
 
 import { AppTable } from 'src/app-components/Table/Table';
 import { translationKey } from 'src/AppComponentsBridge';
@@ -11,7 +12,6 @@ import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { isFormDataObject, isFormDataObjectArray } from 'src/layout/SimpleTable/typeguards';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { FormDataObject } from 'src/app-components/DynamicForm/DynamicForm';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export function ApiTableSummary({ targetBaseComponentId }: Summary2Props) {

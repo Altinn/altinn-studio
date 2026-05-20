@@ -5,12 +5,12 @@ import { Button, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import { format, isValid, parseISO } from 'date-fns';
 import { pick } from 'dot-object';
+import type { FormDataValue } from '@app/form-component';
 import type { JSONSchema7 } from 'json-schema';
 
 import { useTranslation } from 'src/app-components/AppComponentsProvider';
 import utilClasses from 'src/app-components/style/utils.module.css';
 import classes from 'src/app-components/Table/Table.module.css';
-import type { FormDataValue } from 'src/app-components/DynamicForm/DynamicForm';
 import type { TranslationKey } from 'src/app-components/types';
 
 interface Column<T> {

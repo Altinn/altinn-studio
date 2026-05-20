@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Link } from '@digdir/designsystemet-react';
 import { pick } from 'dot-object';
+import type { FormDataObject } from '@app/form-component';
 
 import { AppTable } from 'src/app-components/Table/Table';
 import { translationKey } from 'src/AppComponentsBridge';
@@ -12,7 +13,6 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { isFormDataObject, isFormDataObjectArray } from 'src/layout/SimpleTable/typeguards';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { FormDataObject } from 'src/app-components/DynamicForm/DynamicForm';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { DataConfig } from 'src/layout/SimpleTable/config.generated';
 
