@@ -113,9 +113,10 @@ runs:
         fi
 
         short_sha="${sha::10}"
-        tag_latest="true"
+        tag_latest="false"
 
         if [[ "$custom_source" == "false" && "$GITHUB_REF" == "refs/heads/main" ]]; then
+          tag_latest="true"
           tag="$short_sha"
         else
           sanitized_ref_name="$(echo "$label" | tr -d '()' | sed -E 's/[^A-Za-z0-9.-]+/-/g; s/^-+//; s/-+$//')"
@@ -124,10 +125,6 @@ runs:
           fi
           sanitized_ref_name="${sanitized_ref_name:0:117}"
           tag="${sanitized_ref_name}-${short_sha}"
-        fi
-
-        if [[ "$custom_source" == "true" ]]; then
-          tag_latest="false"
         fi
 
         if [[ "$tag_latest" == "true" ]]; then
