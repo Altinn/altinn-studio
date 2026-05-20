@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -96,17 +95,10 @@ public class AppScopesService : IAppScopesService
         }
         catch (Exception exception)
         {
-            Activity.Current?.AddEvent(
-                new ActivityEvent(
-                    "app_scopes.service_owner_lookup_failed",
-                    tags: new ActivityTagsCollection
-                    {
-                        ["org"] = org,
-                        ["exception.type"] = exception.GetType().FullName,
-                        ["exception.message"] = exception.Message,
-                    }
-                )
-            );
+            var activity = Activity.Current;
+            activity?.SetTag("org", org);
+            activity?.AddException(exception);
+            activity?.SetStatus(ActivityStatusCode.Error, exception.GetType().Name);
             return false;
         }
     }
