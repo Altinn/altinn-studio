@@ -5,49 +5,51 @@ public sealed class AgentOptions
     public const string SectionName = "Agent";
 
     /// <summary>
-    /// Agent provider: <c>pi</c> (production) or <c>claude-cli</c> (local dev).
+    /// Agent provider: <c>sandkasse-http</c> (production, default) or
+    /// <c>claude-cli</c> (local dev, requires the Claude CLI on PATH).
     /// </summary>
-    public string Provider { get; set; } = "pi";
+    public string Provider { get; set; } = "sandkasse-http";
 
     /// <summary>
-    /// Path to the agent CLI executable. Defaults to the provider name on PATH.
+    /// Base URL for the OpenAI-compatible gateway. Must include the version
+    /// segment (e.g. <c>/v1</c>). Required for <c>sandkasse-http</c>.
+    /// Example: <c>https://gw.sandkasse.ai/v1</c>.
     /// </summary>
-    public string CliPath { get; set; } = "pi";
+    public string? BaseUrl { get; set; }
 
     /// <summary>
-    /// Anthropic API key, normally sourced from the ANTHROPIC_API_KEY env var
-    /// (which providers read directly). Set here only if you must override.
+    /// API key for the gateway. Typically supplied via SANDKASSE_API_KEY env var
+    /// and bound here through configuration.
     /// </summary>
     public string? ApiKey { get; set; }
 
     /// <summary>
-    /// Maximum time in seconds to wait for the agent process to complete.
-    /// </summary>
-    public int TimeoutSeconds { get; set; } = 600;
-
-    /// <summary>
-    /// The model to request from Claude CLI (e.g. "sonnet", "opus").
-    /// For local servers, use the format "provider/model-name" (e.g. "nvidia/nemotron-3-nano-4b").
-    /// If null, uses the CLI default.
+    /// Model identifier passed in the chat-completions request (e.g.
+    /// <c>telenor:gemma4</c>). Required for <c>sandkasse-http</c>.
     /// </summary>
     public string? Model { get; set; }
 
     /// <summary>
-    /// Toggle to route requests to the local API server defined by
-    /// <see cref="ApiBaseUrl"/> instead of the Anthropic API.
+    /// Maximum completion tokens. Stay under the gateway's
+    /// <c>max_total_tokens</c> minus the prompt length.
     /// </summary>
-    public bool UseLocalProvider { get; set; }
+    public int MaxTokens { get; set; } = 4096;
 
     /// <summary>
-    /// Base URL for a local API server (e.g. LM Studio).
-    /// Only used when <see cref="UseLocalProvider"/> is true.
-    /// Example: "http://localhost:1234"
+    /// Sampling temperature. 0 = deterministic-as-possible.
     /// </summary>
-    public string? ApiBaseUrl { get; set; }
+    public double Temperature { get; set; }
 
     /// <summary>
-    /// Auth token for the local API server. Defaults to "lmstudio" when
-    /// <see cref="ApiBaseUrl"/> is set.
+    /// Maximum time in seconds to wait for the agent to complete.
     /// </summary>
-    public string? ApiAuthToken { get; set; }
+    public int TimeoutSeconds { get; set; } = 300;
+
+    // --- claude-cli dev-fallback fields below ---
+
+    /// <summary>
+    /// Path to the Claude CLI executable, used only when Provider is
+    /// <c>claude-cli</c>. Defaults to <c>claude</c> (on PATH).
+    /// </summary>
+    public string CliPath { get; set; } = "claude";
 }

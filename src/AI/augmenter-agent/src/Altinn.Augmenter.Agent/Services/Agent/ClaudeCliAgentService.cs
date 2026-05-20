@@ -15,11 +15,9 @@ public sealed class ClaudeCliAgentService(
 
         var systemPrompt = await SkillLoader.LoadAsync(request.SkillFolder, cancellationToken);
 
-        var isLocalServer = opts.UseLocalProvider && !string.IsNullOrEmpty(opts.ApiBaseUrl);
         logger.LogInformation(
-            "Starting Claude CLI agent (skill={SkillFolder}, model={Model}, systemPromptLength={Length}, localServer={LocalServer})",
-            request.SkillFolder, opts.Model ?? "default", systemPrompt.Length,
-            isLocalServer ? opts.ApiBaseUrl : "none");
+            "Starting Claude CLI agent (skill={SkillFolder}, model={Model}, systemPromptLength={Length})",
+            request.SkillFolder, opts.Model ?? "default", systemPrompt.Length);
 
         using var process = new Process();
         process.StartInfo = CreateStartInfo(opts, systemPrompt);
@@ -114,13 +112,6 @@ public sealed class ClaudeCliAgentService(
 
         psi.ArgumentList.Add("--system-prompt");
         psi.ArgumentList.Add(systemPrompt);
-
-        // Route to local server (e.g. LM Studio) when configured
-        if (opts.UseLocalProvider && !string.IsNullOrEmpty(opts.ApiBaseUrl))
-        {
-            //psi.Environment["ANTHROPIC_BASE_URL"] = opts.ApiBaseUrl;
-            //psi.Environment["ANTHROPIC_AUTH_TOKEN"] = opts.ApiAuthToken ?? "lmstudio";
-        }
 
         return psi;
     }

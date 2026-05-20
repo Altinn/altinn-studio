@@ -49,7 +49,9 @@ public class GenerateTests(TestWebApplicationFactory factory) : IClassFixture<Te
         using var doc = JsonDocument.Parse(json);
 
         var pdfs = doc.RootElement.GetProperty("pdfs");
-        pdfs.GetArrayLength().Should().BeGreaterOrEqualTo(3);
+        // pipeline.yaml currently defines 2 PDF steps (request-info + checklist-agent).
+        // Older config also included a decision-agent step, hence the original >=3 expectation.
+        pdfs.GetArrayLength().Should().BeGreaterOrEqualTo(2);
 
         foreach (var pdf in pdfs.EnumerateArray())
         {

@@ -161,7 +161,7 @@ public static class AgentTestEndpoints
             {
                 status = validationError == null ? "ok" : "ok_with_warnings",
                 elapsedSeconds = sw.Elapsed.TotalSeconds,
-                provider = opts.UseLocalProvider ? "local" : "anthropic",
+                provider = opts.Provider,
                 model = opts.Model ?? "default",
                 responseLength = trimmed.Length,
                 validationError,
@@ -177,7 +177,7 @@ public static class AgentTestEndpoints
             {
                 status = "error",
                 elapsedSeconds = sw.Elapsed.TotalSeconds,
-                provider = opts.UseLocalProvider ? "local" : "anthropic",
+                provider = opts.Provider,
                 model = opts.Model ?? "default",
                 error = ex.Message,
             }, statusCode: 500);
@@ -188,7 +188,7 @@ public static class AgentTestEndpoints
     {
         logger.LogInformation("[AGENT-TEST] === {Test} === provider={Provider}, model={Model}",
             test,
-            opts.UseLocalProvider ? $"local ({opts.ApiBaseUrl})" : "anthropic",
+            opts.Provider,
             opts.Model ?? "default");
     }
 

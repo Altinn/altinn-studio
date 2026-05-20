@@ -36,15 +36,16 @@ builder.Services.AddHostedService<PdfGenerationBackgroundService>();
 
 // Services
 builder.Services.AddScoped<PipelineContext>();
+builder.Services.AddHttpClient(SandkasseHttpAgentService.HttpClientName);
 builder.Services.AddScoped<IAgentService>(sp =>
 {
     var opts = sp.GetRequiredService<IOptions<AgentOptions>>().Value;
     return opts.Provider switch
     {
-        "pi"         => ActivatorUtilities.CreateInstance<PiCliAgentService>(sp),
-        "claude-cli" => ActivatorUtilities.CreateInstance<ClaudeCliAgentService>(sp),
+        "sandkasse-http" => ActivatorUtilities.CreateInstance<SandkasseHttpAgentService>(sp),
+        "claude-cli"     => ActivatorUtilities.CreateInstance<ClaudeCliAgentService>(sp),
         _ => throw new InvalidOperationException(
-            $"Unknown Agent:Provider '{opts.Provider}'. Supported: pi, claude-cli."),
+            $"Unknown Agent:Provider '{opts.Provider}'. Supported: sandkasse-http, claude-cli."),
     };
 });
 builder.Services.AddScoped<IPdfGeneratorService, PdfGeneratorService>();
