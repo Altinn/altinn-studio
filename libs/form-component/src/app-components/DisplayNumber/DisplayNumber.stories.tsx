@@ -35,15 +35,3 @@ export const WithIcon: Story = {
     iconAltText: 'Number icon',
   },
 };
-
-export const WithLabel: Story = {
-  args: {
-    labelId: 'number-label',
-  },
-  render: (args) => (
-    <>
-      <span id='number-label'>Amount</span>
-      <DisplayNumber {...args} />
-    </>
-  ),
-};

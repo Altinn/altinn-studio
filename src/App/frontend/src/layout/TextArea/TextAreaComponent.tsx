@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { TextArea } from '@app/form-component';
+import { Label, TextArea } from '@app/form-component';
 
-import { Label } from 'src/app-components/Label/Label';
 import { getDescriptionId } from 'src/components/label/Label';
 import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
