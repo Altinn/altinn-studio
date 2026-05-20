@@ -4,6 +4,7 @@ export * from './Card';
 export * from './Datepicker';
 export * from './Flex';
 export * from './Input';
+export * from './Panel';
 export * from './hooks';
 export * from './DisplayDate';
 export * from './DisplayNumber';

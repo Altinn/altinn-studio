@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import { useParams } from 'react-router';
 
-import { Spinner } from '@app/form-component';
+import { Panel, Spinner } from '@app/form-component';
 
 import { FatalError } from 'src/app-components/error/FatalError/FatalError';
-import { Panel } from 'src/app-components/Panel/Panel';
+import { FullWidthWrapper } from 'src/app-components/FullWidthWrapper/FullWidthWrapper';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -46,14 +46,13 @@ export function SigningActionsComponent({ baseComponentId }: PropsFromGenericCom
 
   if (isSigneeListLoading) {
     return (
-      <Panel
-        variant='info'
-        isOnBottom
-      >
-        <div className={classes.loadingContainer}>
-          <Spinner aria-label={langAsString('signing.loading')} />
-        </div>
-      </Panel>
+      <FullWidthWrapper isOnBottom>
+        <Panel variant='info'>
+          <div className={classes.loadingContainer}>
+            <Spinner aria-label={langAsString('signing.loading')} />
+          </div>
+        </Panel>
+      </FullWidthWrapper>
     );
   }
 

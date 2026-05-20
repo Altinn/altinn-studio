@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 
-import { Button, Spinner } from '@app/form-component';
+import { Button, Panel, Spinner } from '@app/form-component';
 import { Checkbox, Heading, ValidationMessage } from '@digdir/designsystemet-react';
 
-import { Panel } from 'src/app-components/Panel/Panel';
+import { FullWidthWrapper } from 'src/app-components/FullWidthWrapper/FullWidthWrapper';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { Lang } from 'src/features/language/Lang';
@@ -106,14 +106,13 @@ export function AwaitingCurrentUserSignaturePanel({
 
   if (isApiLoading) {
     return (
-      <Panel
-        variant='info'
-        isOnBottom
-      >
-        <div className={classes.loadingContainer}>
-          <Spinner aria-label={langAsString('signing.loading')} />
-        </div>
-      </Panel>
+      <FullWidthWrapper isOnBottom>
+        <Panel variant='info'>
+          <div className={classes.loadingContainer}>
+            <Spinner aria-label={langAsString('signing.loading')} />
+          </div>
+        </Panel>
+      </FullWidthWrapper>
     );
   }
 
