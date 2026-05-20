@@ -9,7 +9,7 @@ import { GlobalData } from 'src/GlobalData';
 import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { isStateless } from 'src/routes/index/isStateless';
-import { buildInstanceUrl } from 'src/routesBuilder';
+import { buildInstanceUrl, buildPartySelectionUrl } from 'src/routesBuilder';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import type { InstanceApi } from 'src/core/api-client/instance.api';
 import type { InstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
@@ -31,7 +31,7 @@ export async function indexLoader({ context }: LoaderFunctionArgs): Promise<Inde
   const entryType = GlobalData.applicationMetadata.onEntry?.show;
 
   if (!GlobalData.getSelectedParty()) {
-    return redirect('/party-selection');
+    return redirect(buildPartySelectionUrl());
   }
 
   try {
