@@ -103,11 +103,13 @@ runs:
       uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
       env:
         APP_RUN_TARGETS_JSON: ${{ inputs.app-run-targets-json }}
+        RUN_FRONTEND: ${{ inputs.run-frontend }}
         STUDIOCTL_REGISTRY_CACHE_WRITE: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
       with:
         script: |
           const workspace = process.env.GITHUB_WORKSPACE;
           const maxParallelStarts = 4;
+          const runFrontend = process.env.RUN_FRONTEND === 'true';
 
           const targetsJson = process.env.APP_RUN_TARGETS_JSON;
           let targets;
@@ -121,7 +123,10 @@ runs:
           }
 
           function targetRunArgs(path, image) {
-            const args = ['run', '--mode', 'container', '--detach', '--random-host-port', '--dev-frontend', '--path', path];
+            const args = ['run', '--mode', 'container', '--detach', '--random-host-port', '--path', path];
+            if (runFrontend) {
+              args.push('--dev-frontend');
+            }
             if (image) {
               args.push('--image-tag', image, '--pull', '--skip-build');
             }

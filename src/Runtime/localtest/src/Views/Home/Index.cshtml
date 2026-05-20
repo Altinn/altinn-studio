@@ -68,11 +68,21 @@
             <select class="form-control" id="AppPathSelection" name="AppPathSelection">
               @foreach (var app in Model.TestApps)
               {
-                <option value="@app.Value"
-                        selected="@app.Selected"
-                        data-show-frontend-version-switcher="@app.ShowFrontendVersionSwitcher.ToString().ToLowerInvariant()">
-                  @app.Text
-                </option>
+                if (app.Selected)
+                {
+                  <option value="@app.Value"
+                          selected="selected"
+                          data-show-frontend-version-switcher="@app.ShowFrontendVersionSwitcher.ToString().ToLowerInvariant()">
+                    @app.Text
+                  </option>
+                }
+                else
+                {
+                  <option value="@app.Value"
+                          data-show-frontend-version-switcher="@app.ShowFrontendVersionSwitcher.ToString().ToLowerInvariant()">
+                    @app.Text
+                  </option>
+                }
               }
             </select>
           </div>
