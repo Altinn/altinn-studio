@@ -7,11 +7,6 @@
 .label span {
   font-size: var(--ds-body-md-font-size);
 }
-
-.icon {
-  width: 24px;
-  margin-right: 12px;
-}
 .vertical {
   flex-direction: column;
 }
