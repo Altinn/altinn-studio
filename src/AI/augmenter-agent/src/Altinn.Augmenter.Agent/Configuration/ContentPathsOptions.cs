@@ -19,4 +19,10 @@ public sealed class ContentPathsOptions
     /// Folder structure: <c>RulesRoot/&lt;rulesFolder&gt;/section.punkt.md</c>.
     /// </summary>
     public string RulesRoot { get; set; } = "/etc/augmenter/rules";
+
+    /// <summary>
+    /// Orchestrator configuration — system prompt and other text content not
+    /// tied to a specific skill. Folder must contain <c>system-prompt.md</c>.
+    /// </summary>
+    public string OrchestratorRoot { get; set; } = "/etc/augmenter/orchestrator";
 }

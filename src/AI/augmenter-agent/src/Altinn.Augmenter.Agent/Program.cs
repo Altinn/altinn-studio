@@ -54,6 +54,7 @@ builder.Services.AddScoped<IAgentService>(sp =>
 // Per-punkt orchestrator + supporting services (used by agent-pdf-orchestrated step)
 builder.Services.AddSingleton<IToolRegistry, ToolRegistry>();
 builder.Services.AddSingleton<IRulesLoader, MarkdownRulesLoader>();
+builder.Services.AddSingleton<ISystemPromptProvider, FileSystemPromptProvider>();
 builder.Services.AddScoped<IChatService, SandkasseChatService>();
 builder.Services.AddScoped<IChecklistOrchestrator, ChecklistOrchestrator>();
 

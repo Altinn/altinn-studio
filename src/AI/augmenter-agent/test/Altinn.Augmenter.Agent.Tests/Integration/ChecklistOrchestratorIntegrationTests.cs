@@ -51,7 +51,14 @@ public class ChecklistOrchestratorIntegrationTests
         var chatLogger = new TestOutputLogger<SandkasseChatService>(output);
         var orchLogger = new TestOutputLogger<ChecklistOrchestrator>(output);
         var chat = new SandkasseChatService(httpFactory, opts, chatLogger);
-        _sut = new ChecklistOrchestrator(chat, new ToolRegistry(), orchLogger);
+
+        // Use the real config/orchestrator/system-prompt.md for an end-to-end
+        // verification — the prompt is what we ship to production.
+        var contentPaths = Options.Create(new ContentPathsOptions());
+        new ContentPathsPostConfigure().PostConfigure(null, contentPaths.Value);
+        var promptProvider = new FileSystemPromptProvider(contentPaths);
+
+        _sut = new ChecklistOrchestrator(chat, new ToolRegistry(), promptProvider, orchLogger);
     }
 
     [Fact]

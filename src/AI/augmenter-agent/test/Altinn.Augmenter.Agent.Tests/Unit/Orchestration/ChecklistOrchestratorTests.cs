@@ -52,7 +52,7 @@ public class ChecklistOrchestratorTests
         var chat = new StubChatService([
             new ChatResponse { Content = """{"status":"vurdert_ok","merknad":"OK"}""", StatusCode = 200 },
         ]);
-        var orchestrator = new ChecklistOrchestrator(chat, new ToolRegistry(), NullLogger<ChecklistOrchestrator>.Instance);
+        var orchestrator = new ChecklistOrchestrator(chat, new ToolRegistry(), new StubSystemPromptProvider(), NullLogger<ChecklistOrchestrator>.Instance);
 
         using var app = SampleApp();
         var result = await orchestrator.RunAsync(app, [Rule("personkrav.styrer_alder")], new OrchestratorOptions());
@@ -81,7 +81,7 @@ public class ChecklistOrchestratorTests
             },
             new ChatResponse { Content = """{"status":"vurdert_ok","merknad":"14 dager"}""", StatusCode = 200 },
         ]);
-        var orchestrator = new ChecklistOrchestrator(chat, new ToolRegistry(), NullLogger<ChecklistOrchestrator>.Instance);
+        var orchestrator = new ChecklistOrchestrator(chat, new ToolRegistry(), new StubSystemPromptProvider(), NullLogger<ChecklistOrchestrator>.Instance);
 
         using var app = SampleApp();
         var result = await orchestrator.RunAsync(app, [Rule("p.q")], new OrchestratorOptions());
@@ -107,7 +107,7 @@ public class ChecklistOrchestratorTests
             StatusCode = 200,
         }).ToList();
         var chat = new StubChatService(responses);
-        var orchestrator = new ChecklistOrchestrator(chat, new ToolRegistry(), NullLogger<ChecklistOrchestrator>.Instance);
+        var orchestrator = new ChecklistOrchestrator(chat, new ToolRegistry(), new StubSystemPromptProvider(), NullLogger<ChecklistOrchestrator>.Instance);
 
         using var app = SampleApp();
         var result = await orchestrator.RunAsync(app, [Rule("p.q")], new OrchestratorOptions { MaxToolIterations = 5 });
@@ -122,7 +122,7 @@ public class ChecklistOrchestratorTests
         var chat = new StubChatService([
             new ChatResponse { Error = "HTTP 503: gateway error", StatusCode = 503 },
         ]);
-        var orchestrator = new ChecklistOrchestrator(chat, new ToolRegistry(), NullLogger<ChecklistOrchestrator>.Instance);
+        var orchestrator = new ChecklistOrchestrator(chat, new ToolRegistry(), new StubSystemPromptProvider(), NullLogger<ChecklistOrchestrator>.Instance);
 
         using var app = SampleApp();
         var result = await orchestrator.RunAsync(app, [Rule("p.q")], new OrchestratorOptions());
@@ -144,7 +144,7 @@ public class ChecklistOrchestratorTests
             StatusCode = 200,
         }), delayMs: 200);
 
-        var orchestrator = new ChecklistOrchestrator(chat, new ToolRegistry(), NullLogger<ChecklistOrchestrator>.Instance);
+        var orchestrator = new ChecklistOrchestrator(chat, new ToolRegistry(), new StubSystemPromptProvider(), NullLogger<ChecklistOrchestrator>.Instance);
 
         using var app = SampleApp();
         var rules = new[] { Rule("a.1"), Rule("a.2"), Rule("a.3") };
@@ -153,6 +153,11 @@ public class ChecklistOrchestratorTests
         result.Verdicts.Should().HaveCount(3);
         result.WallTimeMs.Should().BeLessThan(400);
     }
+}
+
+internal sealed class StubSystemPromptProvider : ISystemPromptProvider
+{
+    public string GetSystemPrompt() => "Test system prompt.";
 }
 
 internal sealed class StubChatService : IChatService

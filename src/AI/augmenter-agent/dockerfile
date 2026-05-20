@@ -16,7 +16,7 @@ RUN apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/edge/c
     && apk add --no-cache pandoc
 
 RUN addgroup -S appgroup && adduser -S -h /home/appuser appuser -G appgroup \
-    && mkdir -p /etc/augmenter/skills /etc/augmenter/templates /etc/augmenter/domain /etc/augmenter/rules \
+    && mkdir -p /etc/augmenter/skills /etc/augmenter/templates /etc/augmenter/domain /etc/augmenter/rules /etc/augmenter/orchestrator \
     && chown -R appuser:appgroup /etc/augmenter /home/appuser
 ENV HOME=/home/appuser
 USER appuser
