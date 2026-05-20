@@ -1,13 +1,12 @@
 import { render, screen } from '@testing-library/react';
 
-import { PANEL_VARIANT } from './constants';
 import { Panel } from './Panel';
 import type { PanelVariant } from './Panel';
 
 describe('Panel', () => {
   it('renders the title and children', () => {
     render(
-      <Panel variant={PANEL_VARIANT.Info} title='Panel Title'>
+      <Panel variant={'info'} title='Panel Title'>
         Panel Content
       </Panel>,
     );
@@ -18,7 +17,7 @@ describe('Panel', () => {
 
   it('accepts a ReactNode as title', () => {
     render(
-      <Panel variant={PANEL_VARIANT.Info} title={<span data-testid='custom-title'>Custom</span>}>
+      <Panel variant={'info'} title={<span data-testid='custom-title'>Custom</span>}>
         Body
       </Panel>,
     );
@@ -28,7 +27,7 @@ describe('Panel', () => {
 
   it('does not render an icon by default', () => {
     render(
-      <Panel variant={PANEL_VARIANT.Info} title='No icon'>
+      <Panel variant={'info'} title='No icon'>
         Body
       </Panel>,
     );
@@ -38,7 +37,7 @@ describe('Panel', () => {
 
   it('does not render an icon when showIcon is false', () => {
     render(
-      <Panel variant={PANEL_VARIANT.Info} title='No icon' showIcon={false}>
+      <Panel variant={'info'} title='No icon' showIcon={false}>
         Body
       </Panel>,
     );
@@ -61,7 +60,7 @@ describe('Panel', () => {
 
   it('applies the provided className and style', () => {
     const { container } = render(
-      <Panel variant={PANEL_VARIANT.Success} className='my-panel' style={{ marginTop: 10 }}>
+      <Panel variant={'success'} className='my-panel' style={{ marginTop: 10 }}>
         Body
       </Panel>,
     );

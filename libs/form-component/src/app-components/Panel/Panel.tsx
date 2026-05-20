@@ -11,10 +11,9 @@ import {
 import cn from 'classnames';
 
 import { useIsMobile } from '../hooks/useDeviceWidths';
-import { PANEL_VARIANT } from './constants';
 import classes from './Panel.module.css';
 
-export type PanelVariant = (typeof PANEL_VARIANT)[keyof typeof PANEL_VARIANT];
+export type PanelVariant = 'info' | 'warning' | 'error' | 'success';
 
 export type PanelProps = PropsWithChildren<{
   variant: PanelVariant;
@@ -34,13 +33,13 @@ function PanelIcon({ isMobileLayout, variant }: PanelIconProps) {
   const fontSize = isMobileLayout ? '2rem' : '3rem';
 
   switch (variant) {
-    case PANEL_VARIANT.Info:
+    case 'info':
       return <InformationSquareIcon title='info' fontSize={fontSize} />;
-    case PANEL_VARIANT.Warning:
+    case 'warning':
       return <ExclamationmarkTriangleIcon title='warning' fontSize={fontSize} />;
-    case PANEL_VARIANT.Error:
+    case 'error':
       return <XMarkOctagonIcon title='error' fontSize={fontSize} />;
-    case PANEL_VARIANT.Success:
+    case 'success':
       return <CheckmarkCircleIcon title='success' fontSize={fontSize} />;
   }
 }

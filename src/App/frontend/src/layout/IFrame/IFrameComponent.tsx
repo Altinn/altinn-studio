@@ -1,7 +1,7 @@
 import React from 'react';
 import type { JSX } from 'react';
 
-import { Panel, PANEL_VARIANT } from '@app/form-component';
+import { Panel } from '@app/form-component';
 
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -22,7 +22,7 @@ export const IFrameComponent = ({ baseComponentId }: PropsFromGenericComponent<'
   if (isSrcDocUnsupported) {
     return (
       <Panel
-        variant={PANEL_VARIANT.Error}
+        variant='error'
         showIcon={true}
         title={<Lang id='iframe_component.unsupported_browser_title' />}
       >
