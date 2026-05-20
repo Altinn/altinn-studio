@@ -1,0 +1,239 @@
+{
+  "sjekkliste": {
+    "formelle_krav": {
+      "label": "Formelle krav",
+      "punkter": {
+        "soknad_komplett": {
+          "label": "Søknaden er komplett utfylt",
+          "status": "ikke_vurdert",
+          "merknad": "Søknadsdokumenter er ikke fremlagt for vurdering."
+        },
+        "riktig_soknadstype": {
+          "label": "Riktig søknadstype valgt",
+          "status": "ikke_vurdert",
+          "merknad": "Manglende saksdokumentasjon for å kontrollere valgt søknadstype."
+        },
+        "kommune_riktig": {
+          "label": "Riktig kommune valgt",
+          "status": "ikke_vurdert",
+          "merknad": "Mangler saksdokumentasjon for å verifisere valgt kommune."
+        },
+        "soker_identifisert": {
+          "label": "Søker er identifisert med org.nr.",
+          "status": "ikke_vurdert",
+          "merknad": "Ingen søknadsdata er mottatt for kontroll mot sjekkpunktet."
+        }
+      }
+    },
+    "dokumentasjon": {
+      "label": "Dokumentasjon",
+      "punkter": {
+        "leiekontrakt": {
+          "label": "Leiekontrakt for lokalet",
+          "status": "maa_undersokes",
+          "merknad": "Leiekontrakt mangler i saksdokumentene."
+        },
+        "personantall_beregning": {
+          "label": "Beregning av personantall fra godkjent firma",
+          "status": "ikke_vurdert",
+          "merknad": "Venter på innsendt dokumentasjon fra firma for å beregne personantall."
+        },
+        "plantegninger": {
+          "label": "Plantegninger over lokalet",
+          "status": "ikke_vurdert",
+          "merknad": "Ingen dokumentasjon innsendt for vurdering."
+        },
+        "mattilsynet_registrering": {
+          "label": "Registrering hos Mattilsynet",
+          "status": "ikke_vurdert",
+          "merknad": "Dokumentasjon på registrering hos Mattilsynet mangler i saksmappen."
+        },
+        "bruksgodkjenning": {
+          "label": "Bruksgodkjenning fra plan- og bygningsetaten",
+          "status": "maa_undersokes",
+          "merknad": "Dokumentasjon på bruksgodkjenning fra plan- og bygningsetaten mangler i saksmappen og må innhentes."
+        },
+        "kunnskapsprove_styrer": {
+          "label": "Kunnskapsprøve bestått – styrer",
+          "status": "ikke_vurdert",
+          "merknad": "Dokumentasjon på bestått kunnskapsprøve for styremedlemmer mangler i saksdokumentene."
+        },
+        "kunnskapsprove_stedfortreder": {
+          "label": "Kunnskapsprøve bestått – stedfortreder",
+          "status": "ikke_vurdert",
+          "merknad": "Dokumentasjon på bestått kunnskapsprøve for stedfortreder mangler i saksdokumentene."
+        },
+        "arbeidsavtale_styrer": {
+          "label": "Arbeidsavtale for styrer",
+          "status": "ikke_vurdert",
+          "merknad": "Dokumentasjon for arbeidsavtale for styrer mangler i saksdokumentene."
+        },
+        "arbeidsavtale_stedfortreder": {
+          "label": "Arbeidsavtale for stedfortreder",
+          "status": "ikke_vurdert",
+          "merknad": "Dokumentasjon på arbeidsavtale for stedfortreder mangler i saksdokumentene."
+        }
+      }
+    },
+    "vandel": {
+      "label": "Vandelsvurdering",
+      "punkter": {
+        "politi_uttalelse": {
+          "label": "Uttalelse innhentet fra politiet",
+          "status": "maa_undersokes",
+          "merknad": "Det er ikke lagt ved eller registrert uttalelse fra politiet i saksdokumentene."
+        },
+        "skatteetaten_uttalelse": {
+          "label": "Uttalelse innhentet fra Skatteetaten",
+          "status": "maa_undersokes",
+          "merknad": "Uttalelse fra Skatteetaten er ikke lagt ved saken og må innhentes."
+        },
+        "nav_uttalelse": {
+          "label": "Uttalelse innhentet fra NAV (sosialtjenesten)",
+          "status": "maa_undersokes",
+          "merknad": "Uttalelse fra NAV er ikke lagt ved saksdokumentene."
+        },
+        "vandel_bevillingshaver": {
+          "label": "Vandel OK – bevillingshaver/eier",
+          "status": "ikke_vurdert",
+          "merknad": "Ingen dokumentasjon på vandel er fremlagt for vurdering."
+        },
+        "vandel_styrer": {
+          "label": "Vandel OK – styrer (kun alkohollovgivning)",
+          "status": "ikke_vurdert",
+          "merknad": "Manglende dokumentasjon på styremedlemmenes vandel i henhold til alkohollovgivningen."
+        },
+        "vandel_stedfortreder": {
+          "label": "Vandel OK – stedfortreder (kun alkohollovgivning)",
+          "status": "ikke_vurdert",
+          "merknad": "Mangler dokumentasjon på stedfortreder for å kunne vurdere vandel i henhold til alkohollovgivningen."
+        },
+        "vandel_vesentlig_innflytelse": {
+          "label": "Vandel OK – personer med vesentlig innflytelse",
+          "status": "ikke_vurdert",
+          "merknad": "Mangler dokumentasjon på personer med vesentlig innflytelse for vurdering."
+        }
+      }
+    },
+    "personkrav": {
+      "label": "Krav til styrer og stedfortreder",
+      "punkter": {
+        "styrer_alder": {
+          "label": "Styrer er over 20 år",
+          "status": "ikke_vurdert",
+          "merknad": "Manglende opplysninger om styrers alder."
+        },
+        "stedfortreder_alder": {
+          "label": "Stedfortreder er over 20 år",
+          "status": "ikke_vurdert",
+          "merknad": "Manglende informasjon om stedfortreders alder."
+        },
+        "styrer_ansatt": {
+          "label": "Styrer er ansatt på stedet / eier",
+          "status": "ikke_vurdert",
+          "merknad": "Manglende dokumentasjon på styrerens ansettelsesforhold eller eierskap."
+        },
+        "stedfortreder_ansatt": {
+          "label": "Stedfortreder er ansatt på stedet / eier",
+          "status": "ikke_vurdert",
+          "merknad": "Manglende dokumentasjon på stedfortrederens ansettelsesforhold eller eierforhold."
+        },
+        "styrer_kun_ett_sted": {
+          "label": "Styrer er ikke styrer/stedfortreder på annet sted",
+          "status": "ikke_vurdert",
+          "merknad": "Manglende dokumentasjon på styresammensetning og eventuelle andre verv."
+        },
+        "stedfortreder_kun_ett_sted": {
+          "label": "Stedfortreder er ikke styrer/stedfortreder på annet sted",
+          "status": "ikke_vurdert",
+          "merknad": "Mangler dokumentasjon på stedfortrederens øvrige verv."
+        },
+        "fritak_stedfortreder": {
+          "label": "Fritak fra krav om stedfortreder vurdert",
+          "status": "ikke_vurdert",
+          "merknad": "Ingen dokumentasjon foreligger for vurdering av fritak fra krav om stedfortreder."
+        }
+      }
+    },
+    "lokalpolitisk": {
+      "label": "Lokalpolitisk vurdering (kommunens retningslinjer)",
+      "punkter": {
+        "beliggenhet_ok": {
+          "label": "Beliggenhet i tråd med retningslinjer",
+          "status": "ikke_vurdert",
+          "merknad": "Manglende faktagrunnlag for å vurdere beliggenhet opp mot kommunens retningslinjer."
+        },
+        "ikke_barn_unge_omraade": {
+          "label": "Ikke i område for barn/unges fritidsaktiviteter",
+          "status": "ikke_vurdert",
+          "merknad": "Manglende informasjon om søknadens geografiske plassering i forhold til kommunens områder for barn og unges fritidsaktiviteter."
+        },
+        "ikke_idrettsarrangement": {
+          "label": "Ikke idrettsarrangement eller arrangement for barn/unge",
+          "status": "ikke_vurdert",
+          "merknad": "Manglende informasjon om arrangementets art for å kunne foreta vurdering."
+        },
+        "brennevin_spisested": {
+          "label": "Brennevin kun til spisested (hvis gr. 3)",
+          "status": "ikke_vurdert",
+          "merknad": "Manglende informasjon om søkers bevillingstype og driftstype."
+        },
+        "skjenketider_ok": {
+          "label": "Skjenketider innenfor kommunens rammer",
+          "status": "ikke_vurdert",
+          "merknad": "Manglende dokumentasjon på søkers ønskede skjenketider og kommunens gjeldende rammer."
+        },
+        "arrangement_varighet_ok": {
+          "label": "Arrangement innenfor maks 14 dager",
+          "status": "ikke_vurdert",
+          "merknad": "Mangler dato for arrangement for å kunne vurdere om det er innenfor maks 14 dager."
+        }
+      }
+    },
+    "habilitet": {
+      "label": "Habilitet og saksbehandling",
+      "punkter": {
+        "habilitet_vurdert": {
+          "label": "Habilitet vurdert (fvl. § 6)",
+          "status": "ikke_vurdert",
+          "merknad": "Det er ikke lagt ved dokumentasjon eller informasjon som bekrefter at habilitetsvurdering er gjennomført i saken."
+        },
+        "veiledningsplikt": {
+          "label": "Veiledningsplikt overholdt (fvl. § 11)",
+          "status": "ikke_vurdert",
+          "merknad": "Ingen dokumentasjon på gitt veiledning foreligger i saksmappen."
+        },
+        "saksbehandlingstid": {
+          "label": "Innenfor 90 dagers saksbehandlingsfrist",
+          "status": "ikke_vurdert",
+          "merknad": "Dato for mottatt søknad mangler, kan derfor ikke kontrollere mot saksbehandlingsfrist."
+        }
+      }
+    },
+    "gebyr": {
+      "label": "Gebyr",
+      "punkter": {
+        "gebyr_beregnet": {
+          "label": "Bevillingsgebyr korrekt beregnet",
+          "status": "ikke_vurdert",
+          "merknad": "Manglende dokumentasjon på beregningsgrunnlag for gebyr."
+        }
+      }
+    },
+    "helhetsvurdering": {
+      "label": "Helhetsvurdering",
+      "punkter": {
+        "samlet_vurdering": {
+          "label": "Samlet vurdering av søknaden",
+          "status": "ikke_vurdert",
+          "merknad": "Manglende saksdokumentasjon for å foreta en samlet vurdering av søknaden."
+        },
+        "anbefaling": {
+          "label": "Foreløpig anbefaling",
+          "status": "ikke_vurdert",
+          "merknad": "Foreløpig anbefaling er ikke utfylt eller vurdert i saksdokumentene."
+        }
+      }
+    }
+  }
+}

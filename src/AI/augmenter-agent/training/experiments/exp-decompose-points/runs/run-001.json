@@ -1,0 +1,526 @@
+{
+  "iteration": 1,
+  "timestamp": "2026-05-19T22:39:31.549924+02:00",
+  "inputFile": "examples\\applications\\julebord-kristiansand.json",
+  "mode": "llm-only",
+  "concurrency": 1,
+  "deterministicPunktCount": 0,
+  "llmPunktCount": 39,
+  "llmPhaseElapsedSec": 169.97,
+  "perPunkt": [
+    {
+      "key": "formelle_krav.soknad_komplett",
+      "source": "llm",
+      "elapsedMs": 4221,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 112,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Søknadsdokumenter er ikke fremlagt for vurdering.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Søknadsdokumenter er ikke fremlagt for vurdering."
+      }
+    },
+    {
+      "key": "formelle_krav.riktig_soknadstype",
+      "source": "llm",
+      "elapsedMs": 4322,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 109,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Manglende saksdokumentasjon for å kontrollere valgt søknadstype.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Manglende saksdokumentasjon for å kontrollere valgt søknadstype."
+      }
+    },
+    {
+      "key": "formelle_krav.kommune_riktig",
+      "source": "llm",
+      "elapsedMs": 4506,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 105,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Mangler saksdokumentasjon for å verifisere valgt kommune.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Mangler saksdokumentasjon for å verifisere valgt kommune."
+      }
+    },
+    {
+      "key": "formelle_krav.soker_identifisert",
+      "source": "llm",
+      "elapsedMs": 4242,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 118,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Ingen søknadsdata er mottatt for kontroll mot sjekkpunktet.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Ingen søknadsdata er mottatt for kontroll mot sjekkpunktet."
+      }
+    },
+    {
+      "key": "dokumentasjon.leiekontrakt",
+      "source": "llm",
+      "elapsedMs": 4329,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 109,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Leiekontrakt mangler i saksdokumentene.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Leiekontrakt mangler i saksdokumentene."
+      }
+    },
+    {
+      "key": "dokumentasjon.personantall_beregning",
+      "source": "llm",
+      "elapsedMs": 4378,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 129,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Venter på innsendt dokumentasjon fra firma for å beregne personantall.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Venter på innsendt dokumentasjon fra firma for å beregne personantall."
+      }
+    },
+    {
+      "key": "dokumentasjon.plantegninger",
+      "source": "llm",
+      "elapsedMs": 4049,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 111,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Ingen dokumentasjon innsendt for vurdering.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Ingen dokumentasjon innsendt for vurdering."
+      }
+    },
+    {
+      "key": "dokumentasjon.mattilsynet_registrering",
+      "source": "llm",
+      "elapsedMs": 4280,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 113,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Dokumentasjon på registrering hos Mattilsynet mangler i saksmappen.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Dokumentasjon på registrering hos Mattilsynet mangler i saksmappen."
+      }
+    },
+    {
+      "key": "dokumentasjon.bruksgodkjenning",
+      "source": "llm",
+      "elapsedMs": 4534,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 129,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Dokumentasjon på bruksgodkjenning fra plan- og bygningsetaten mangler i saksmappen og må innhentes.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Dokumentasjon på bruksgodkjenning fra plan- og bygningsetaten mangler i saksmappen og må innhentes."
+      }
+    },
+    {
+      "key": "dokumentasjon.kunnskapsprove_styrer",
+      "source": "llm",
+      "elapsedMs": 4570,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 116,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Dokumentasjon på bestått kunnskapsprøve for styremedlemmer mangler i saksdokumentene.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Dokumentasjon på bestått kunnskapsprøve for styremedlemmer mangler i saksdokumentene."
+      }
+    },
+    {
+      "key": "dokumentasjon.kunnskapsprove_stedfortreder",
+      "source": "llm",
+      "elapsedMs": 4421,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 123,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Dokumentasjon på bestått kunnskapsprøve for stedfortreder mangler i saksdokumentene.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Dokumentasjon på bestått kunnskapsprøve for stedfortreder mangler i saksdokumentene."
+      }
+    },
+    {
+      "key": "dokumentasjon.arbeidsavtale_styrer",
+      "source": "llm",
+      "elapsedMs": 4081,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 109,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Dokumentasjon for arbeidsavtale for styrer mangler i saksdokumentene.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Dokumentasjon for arbeidsavtale for styrer mangler i saksdokumentene."
+      }
+    },
+    {
+      "key": "dokumentasjon.arbeidsavtale_stedfortreder",
+      "source": "llm",
+      "elapsedMs": 4198,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 116,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Dokumentasjon på arbeidsavtale for stedfortreder mangler i saksdokumentene.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Dokumentasjon på arbeidsavtale for stedfortreder mangler i saksdokumentene."
+      }
+    },
+    {
+      "key": "vandel.politi_uttalelse",
+      "source": "llm",
+      "elapsedMs": 4175,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 120,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Det er ikke lagt ved eller registrert uttalelse fra politiet i saksdokumentene.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Det er ikke lagt ved eller registrert uttalelse fra politiet i saksdokumentene."
+      }
+    },
+    {
+      "key": "vandel.skatteetaten_uttalelse",
+      "source": "llm",
+      "elapsedMs": 4087,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 124,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Uttalelse fra Skatteetaten er ikke lagt ved saken og må innhentes.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Uttalelse fra Skatteetaten er ikke lagt ved saken og må innhentes."
+      }
+    },
+    {
+      "key": "vandel.nav_uttalelse",
+      "source": "llm",
+      "elapsedMs": 4030,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 133,
+      "rawStdoutPreview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Uttalelse fra NAV er ikke lagt ved saksdokumentene.\"}\n",
+      "result": {
+        "status": "maa_undersokes",
+        "merknad": "Uttalelse fra NAV er ikke lagt ved saksdokumentene."
+      }
+    },
+    {
+      "key": "vandel.vandel_bevillingshaver",
+      "source": "llm",
+      "elapsedMs": 4729,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 120,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Ingen dokumentasjon på vandel er fremlagt for vurdering.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Ingen dokumentasjon på vandel er fremlagt for vurdering."
+      }
+    },
+    {
+      "key": "vandel.vandel_styrer",
+      "source": "llm",
+      "elapsedMs": 4393,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 130,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Manglende dokumentasjon på styremedlemmenes vandel i henhold til alkohollovgivningen.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Manglende dokumentasjon på styremedlemmenes vandel i henhold til alkohollovgivningen."
+      }
+    },
+    {
+      "key": "vandel.vandel_stedfortreder",
+      "source": "llm",
+      "elapsedMs": 4508,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 137,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Mangler dokumentasjon på stedfortreder for å kunne vurdere vandel i henhold til alkohollovgivningen.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Mangler dokumentasjon på stedfortreder for å kunne vurdere vandel i henhold til alkohollovgivningen."
+      }
+    },
+    {
+      "key": "vandel.vandel_vesentlig_innflytelse",
+      "source": "llm",
+      "elapsedMs": 4364,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 134,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Mangler dokumentasjon på personer med vesentlig innflytelse for vurdering.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Mangler dokumentasjon på personer med vesentlig innflytelse for vurdering."
+      }
+    },
+    {
+      "key": "personkrav.styrer_alder",
+      "source": "llm",
+      "elapsedMs": 4036,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 124,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Manglende opplysninger om styrers alder.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Manglende opplysninger om styrers alder."
+      }
+    },
+    {
+      "key": "personkrav.stedfortreder_alder",
+      "source": "llm",
+      "elapsedMs": 4166,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 131,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Manglende informasjon om stedfortreders alder.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Manglende informasjon om stedfortreders alder."
+      }
+    },
+    {
+      "key": "personkrav.styrer_ansatt",
+      "source": "llm",
+      "elapsedMs": 4326,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 137,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Manglende dokumentasjon på styrerens ansettelsesforhold eller eierskap.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Manglende dokumentasjon på styrerens ansettelsesforhold eller eierskap."
+      }
+    },
+    {
+      "key": "personkrav.stedfortreder_ansatt",
+      "source": "llm",
+      "elapsedMs": 4497,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 144,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Manglende dokumentasjon på stedfortrederens ansettelsesforhold eller eierforhold.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Manglende dokumentasjon på stedfortrederens ansettelsesforhold eller eierforhold."
+      }
+    },
+    {
+      "key": "personkrav.styrer_kun_ett_sted",
+      "source": "llm",
+      "elapsedMs": 4224,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 153,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Manglende dokumentasjon på styresammensetning og eventuelle andre verv.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Manglende dokumentasjon på styresammensetning og eventuelle andre verv."
+      }
+    },
+    {
+      "key": "personkrav.stedfortreder_kun_ett_sted",
+      "source": "llm",
+      "elapsedMs": 4145,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 160,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Mangler dokumentasjon på stedfortrederens øvrige verv.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Mangler dokumentasjon på stedfortrederens øvrige verv."
+      }
+    },
+    {
+      "key": "personkrav.fritak_stedfortreder",
+      "source": "llm",
+      "elapsedMs": 4357,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 144,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Ingen dokumentasjon foreligger for vurdering av fritak fra krav om stedfortreder.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Ingen dokumentasjon foreligger for vurdering av fritak fra krav om stedfortreder."
+      }
+    },
+    {
+      "key": "lokalpolitisk.beliggenhet_ok",
+      "source": "llm",
+      "elapsedMs": 4466,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 159,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Manglende faktagrunnlag for å vurdere beliggenhet opp mot kommunens retningslinjer.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Manglende faktagrunnlag for å vurdere beliggenhet opp mot kommunens retningslinjer."
+      }
+    },
+    {
+      "key": "lokalpolitisk.ikke_barn_unge_omraade",
+      "source": "llm",
+      "elapsedMs": 4700,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 169,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Manglende informasjon om søknadens geografiske plassering i forhold til kommunens områder for barn og unges fritidsaktiviteter.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Manglende informasjon om søknadens geografiske plassering i forhold til kommunens områder for barn og unges fritidsaktiviteter."
+      }
+    },
+    {
+      "key": "lokalpolitisk.ikke_idrettsarrangement",
+      "source": "llm",
+      "elapsedMs": 4100,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 177,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Manglende informasjon om arrangementets art for å kunne foreta vurdering.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Manglende informasjon om arrangementets art for å kunne foreta vurdering."
+      }
+    },
+    {
+      "key": "lokalpolitisk.brennevin_spisested",
+      "source": "llm",
+      "elapsedMs": 4821,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 162,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Manglende informasjon om søkers bevillingstype og driftstype.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Manglende informasjon om søkers bevillingstype og driftstype."
+      }
+    },
+    {
+      "key": "lokalpolitisk.skjenketider_ok",
+      "source": "llm",
+      "elapsedMs": 4313,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 160,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Manglende dokumentasjon på søkers ønskede skjenketider og kommunens gjeldende rammer.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Manglende dokumentasjon på søkers ønskede skjenketider og kommunens gjeldende rammer."
+      }
+    },
+    {
+      "key": "lokalpolitisk.arrangement_varighet_ok",
+      "source": "llm",
+      "elapsedMs": 4532,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 156,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Mangler dato for arrangement for å kunne vurdere om det er innenfor maks 14 dager.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Mangler dato for arrangement for å kunne vurdere om det er innenfor maks 14 dager."
+      }
+    },
+    {
+      "key": "habilitet.habilitet_vurdert",
+      "source": "llm",
+      "elapsedMs": 4279,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 127,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Det er ikke lagt ved dokumentasjon eller informasjon som bekrefter at habilitetsvurdering er gjennomført i saken.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Det er ikke lagt ved dokumentasjon eller informasjon som bekrefter at habilitetsvurdering er gjennomført i saken."
+      }
+    },
+    {
+      "key": "habilitet.veiledningsplikt",
+      "source": "llm",
+      "elapsedMs": 4352,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 137,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Ingen dokumentasjon på gitt veiledning foreligger i saksmappen.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Ingen dokumentasjon på gitt veiledning foreligger i saksmappen."
+      }
+    },
+    {
+      "key": "habilitet.saksbehandlingstid",
+      "source": "llm",
+      "elapsedMs": 4518,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 138,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Dato for mottatt søknad mangler, kan derfor ikke kontrollere mot saksbehandlingsfrist.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Dato for mottatt søknad mangler, kan derfor ikke kontrollere mot saksbehandlingsfrist."
+      }
+    },
+    {
+      "key": "gebyr.gebyr_beregnet",
+      "source": "llm",
+      "elapsedMs": 4250,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 109,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Manglende dokumentasjon på beregningsgrunnlag for gebyr.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Manglende dokumentasjon på beregningsgrunnlag for gebyr."
+      }
+    },
+    {
+      "key": "helhetsvurdering.samlet_vurdering",
+      "source": "llm",
+      "elapsedMs": 4464,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 116,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Manglende saksdokumentasjon for å foreta en samlet vurdering av søknaden.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Manglende saksdokumentasjon for å foreta en samlet vurdering av søknaden."
+      }
+    },
+    {
+      "key": "helhetsvurdering.anbefaling",
+      "source": "llm",
+      "elapsedMs": 4327,
+      "success": true,
+      "errorMessage": null,
+      "userPromptLen": 108,
+      "rawStdoutPreview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Foreløpig anbefaling er ikke utfylt eller vurdert i saksdokumentene.\"}\n",
+      "result": {
+        "status": "ikke_vurdert",
+        "merknad": "Foreløpig anbefaling er ikke utfylt eller vurdert i saksdokumentene."
+      }
+    }
+  ],
+  "success": true,
+  "stdout": "{\n  \"sjekkliste\": {\n    \"formelle_krav\": {\n      \"label\": \"Formelle krav\",\n      \"punkter\": {\n        \"soknad_komplett\": {\n          \"label\": \"Søknaden er komplett utfylt\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Søknadsdokumenter er ikke fremlagt for vurdering.\"\n        },\n        \"riktig_soknadstype\": {\n          \"label\": \"Riktig søknadstype valgt\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Manglende saksdokumentasjon for å kontrollere valgt søknadstype.\"\n        },\n        \"kommune_riktig\": {\n          \"label\": \"Riktig kommune valgt\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Mangler saksdokumentasjon for å verifisere valgt kommune.\"\n        },\n        \"soker_identifisert\": {\n          \"label\": \"Søker er identifisert med org.nr.\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Ingen søknadsdata er mottatt for kontroll mot sjekkpunktet.\"\n        }\n      }\n    },\n    \"dokumentasjon\": {\n      \"label\": \"Dokumentasjon\",\n      \"punkter\": {\n        \"leiekontrakt\": {\n          \"label\": \"Leiekontrakt for lokalet\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Leiekontrakt mangler i saksdokumentene.\"\n        },\n        \"personantall_beregning\": {\n          \"label\": \"Beregning av personantall fra godkjent firma\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Venter på innsendt dokumentasjon fra firma for å beregne personantall.\"\n        },\n        \"plantegninger\": {\n          \"label\": \"Plantegninger over lokalet\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Ingen dokumentasjon innsendt for vurdering.\"\n        },\n        \"mattilsynet_registrering\": {\n          \"label\": \"Registrering hos Mattilsynet\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Dokumentasjon på registrering hos Mattilsynet mangler i saksmappen.\"\n        },\n        \"bruksgodkjenning\": {\n          \"label\": \"Bruksgodkjenning fra plan- og bygningsetaten\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Dokumentasjon på bruksgodkjenning fra plan- og bygningsetaten mangler i saksmappen og må innhentes.\"\n        },\n        \"kunnskapsprove_styrer\": {\n          \"label\": \"Kunnskapsprøve bestått – styrer\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Dokumentasjon på bestått kunnskapsprøve for styremedlemmer mangler i saksdokumentene.\"\n        },\n        \"kunnskapsprove_stedfortreder\": {\n          \"label\": \"Kunnskapsprøve bestått – stedfortreder\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Dokumentasjon på bestått kunnskapsprøve for stedfortreder mangler i saksdokumentene.\"\n        },\n        \"arbeidsavtale_styrer\": {\n          \"label\": \"Arbeidsavtale for styrer\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Dokumentasjon for arbeidsavtale for styrer mangler i saksdokumentene.\"\n        },\n        \"arbeidsavtale_stedfortreder\": {\n          \"label\": \"Arbeidsavtale for stedfortreder\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Dokumentasjon på arbeidsavtale for stedfortreder mangler i saksdokumentene.\"\n        }\n      }\n    },\n    \"vandel\": {\n      \"label\": \"Vandelsvurdering\",\n      \"punkter\": {\n        \"politi_uttalelse\": {\n          \"label\": \"Uttalelse innhentet fra politiet\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Det er ikke lagt ved eller registrert uttalelse fra politiet i saksdokumentene.\"\n        },\n        \"skatteetaten_uttalelse\": {\n          \"label\": \"Uttalelse innhentet fra Skatteetaten\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Uttalelse fra Skatteetaten er ikke lagt ved saken og må innhentes.\"\n        },\n        \"nav_uttalelse\": {\n          \"label\": \"Uttalelse innhentet fra NAV (sosialtjenesten)\",\n          \"status\": \"maa_undersokes\",\n          \"merknad\": \"Uttalelse fra NAV er ikke lagt ved saksdokumentene.\"\n        },\n        \"vandel_bevillingshaver\": {\n          \"label\": \"Vandel OK – bevillingshaver/eier\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Ingen dokumentasjon på vandel er fremlagt for vurdering.\"\n        },\n        \"vandel_styrer\": {\n          \"label\": \"Vandel OK – styrer (kun alkohollovgivning)\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Manglende dokumentasjon på styremedlemmenes vandel i henhold til alkohollovgivningen.\"\n        },\n        \"vandel_stedfortreder\": {\n          \"label\": \"Vandel OK – stedfortreder (kun alkohollovgivning)\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Mangler dokumentasjon på stedfortreder for å kunne vurdere vandel i henhold til alkohollovgivningen.\"\n        },\n        \"vandel_vesentlig_innflytelse\": {\n          \"label\": \"Vandel OK – personer med vesentlig innflytelse\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Mangler dokumentasjon på personer med vesentlig innflytelse for vurdering.\"\n        }\n      }\n    },\n    \"personkrav\": {\n      \"label\": \"Krav til styrer og stedfortreder\",\n      \"punkter\": {\n        \"styrer_alder\": {\n          \"label\": \"Styrer er over 20 år\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Manglende opplysninger om styrers alder.\"\n        },\n        \"stedfortreder_alder\": {\n          \"label\": \"Stedfortreder er over 20 år\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Manglende informasjon om stedfortreders alder.\"\n        },\n        \"styrer_ansatt\": {\n          \"label\": \"Styrer er ansatt på stedet / eier\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Manglende dokumentasjon på styrerens ansettelsesforhold eller eierskap.\"\n        },\n        \"stedfortreder_ansatt\": {\n          \"label\": \"Stedfortreder er ansatt på stedet / eier\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Manglende dokumentasjon på stedfortrederens ansettelsesforhold eller eierforhold.\"\n        },\n        \"styrer_kun_ett_sted\": {\n          \"label\": \"Styrer er ikke styrer/stedfortreder på annet sted\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Manglende dokumentasjon på styresammensetning og eventuelle andre verv.\"\n        },\n        \"stedfortreder_kun_ett_sted\": {\n          \"label\": \"Stedfortreder er ikke styrer/stedfortreder på annet sted\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Mangler dokumentasjon på stedfortrederens øvrige verv.\"\n        },\n        \"fritak_stedfortreder\": {\n          \"label\": \"Fritak fra krav om stedfortreder vurdert\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Ingen dokumentasjon foreligger for vurdering av fritak fra krav om stedfortreder.\"\n        }\n      }\n    },\n    \"lokalpolitisk\": {\n      \"label\": \"Lokalpolitisk vurdering (kommunens retningslinjer)\",\n      \"punkter\": {\n        \"beliggenhet_ok\": {\n          \"label\": \"Beliggenhet i tråd med retningslinjer\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Manglende faktagrunnlag for å vurdere beliggenhet opp mot kommunens retningslinjer.\"\n        },\n        \"ikke_barn_unge_omraade\": {\n          \"label\": \"Ikke i område for barn/unges fritidsaktiviteter\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Manglende informasjon om søknadens geografiske plassering i forhold til kommunens områder for barn og unges fritidsaktiviteter.\"\n        },\n        \"ikke_idrettsarrangement\": {\n          \"label\": \"Ikke idrettsarrangement eller arrangement for barn/unge\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Manglende informasjon om arrangementets art for å kunne foreta vurdering.\"\n        },\n        \"brennevin_spisested\": {\n          \"label\": \"Brennevin kun til spisested (hvis gr. 3)\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Manglende informasjon om søkers bevillingstype og driftstype.\"\n        },\n        \"skjenketider_ok\": {\n          \"label\": \"Skjenketider innenfor kommunens rammer\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Manglende dokumentasjon på søkers ønskede skjenketider og kommunens gjeldende rammer.\"\n        },\n        \"arrangement_varighet_ok\": {\n          \"label\": \"Arrangement innenfor maks 14 dager\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Mangler dato for arrangement for å kunne vurdere om det er innenfor maks 14 dager.\"\n        }\n      }\n    },\n    \"habilitet\": {\n      \"label\": \"Habilitet og saksbehandling\",\n      \"punkter\": {\n        \"habilitet_vurdert\": {\n          \"label\": \"Habilitet vurdert (fvl. § 6)\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Det er ikke lagt ved dokumentasjon eller informasjon som bekrefter at habilitetsvurdering er gjennomført i saken.\"\n        },\n        \"veiledningsplikt\": {\n          \"label\": \"Veiledningsplikt overholdt (fvl. § 11)\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Ingen dokumentasjon på gitt veiledning foreligger i saksmappen.\"\n        },\n        \"saksbehandlingstid\": {\n          \"label\": \"Innenfor 90 dagers saksbehandlingsfrist\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Dato for mottatt søknad mangler, kan derfor ikke kontrollere mot saksbehandlingsfrist.\"\n        }\n      }\n    },\n    \"gebyr\": {\n      \"label\": \"Gebyr\",\n      \"punkter\": {\n        \"gebyr_beregnet\": {\n          \"label\": \"Bevillingsgebyr korrekt beregnet\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Manglende dokumentasjon på beregningsgrunnlag for gebyr.\"\n        }\n      }\n    },\n    \"helhetsvurdering\": {\n      \"label\": \"Helhetsvurdering\",\n      \"punkter\": {\n        \"samlet_vurdering\": {\n          \"label\": \"Samlet vurdering av søknaden\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Manglende saksdokumentasjon for å foreta en samlet vurdering av søknaden.\"\n        },\n        \"anbefaling\": {\n          \"label\": \"Foreløpig anbefaling\",\n          \"status\": \"ikke_vurdert\",\n          \"merknad\": \"Foreløpig anbefaling er ikke utfylt eller vurdert i saksdokumentene.\"\n        }\n      }\n    }\n  }\n}",
+  "errorMessage": null,
+  "systemPromptSrc": "inline:MICRO_SYSTEM_PROMPT",
+  "userPromptSrc": "scripts/orchestrate_points.py:build_user_prompt",
+  "model": "sandkasse/telenor:gemma4",
+  "step": "checklist-agent-decomposed"
+}
