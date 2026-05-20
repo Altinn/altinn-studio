@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { Flex, TimePicker as TimePickerControl } from '@app/form-component';
+import { Flex, Label, TimePicker as TimePickerControl } from '@app/form-component';
 
-import { Label } from 'src/app-components/Label/Label';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';

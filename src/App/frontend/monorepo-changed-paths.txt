@@ -19,6 +19,7 @@ src/app-components/Date/
 src/app-components/Datepicker/
 src/app-components/Flex/
 src/app-components/Input/
+src/app-components/Label/
 src/app-components/Number/
 src/app-components/Text/DisplayText.tsx
 src/app-components/TextArea/TextArea.tsx
