@@ -8,3 +8,4 @@ export * from './hooks';
 export * from './DisplayDate';
 export * from './DisplayNumber';
 export * from './Spinner';
+export * from './TextArea';
