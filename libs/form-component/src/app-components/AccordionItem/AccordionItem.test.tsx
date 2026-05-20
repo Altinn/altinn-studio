@@ -13,7 +13,8 @@ describe('AccordionItem', () => {
       </AccordionItem>,
     );
 
-    expect(screen.getByText('My section')).toBeInTheDocument();
+    expect(screen.getByRole('group')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'My section' })).toBeInTheDocument();
     expect(screen.getByText('Hidden until opened')).toBeInTheDocument();
   });
 
@@ -25,11 +26,11 @@ describe('AccordionItem', () => {
       </AccordionItem>,
     );
 
-    const details = screen.getByText('My section').closest('details');
-    expect(details).not.toHaveAttribute('open');
+    const button = screen.getByRole('button', { name: 'My section' });
+    expect(button.parentElement).not.toHaveAttribute('open');
 
-    await user.click(screen.getByText('My section'));
-    expect(details).toHaveAttribute('open');
+    await user.click(button);
+    expect(button.parentElement).toHaveAttribute('open');
   });
 
   it('honors defaultOpen', () => {
@@ -39,7 +40,8 @@ describe('AccordionItem', () => {
       </AccordionItem>,
     );
 
-    expect(screen.getByText('My section').closest('details')).toHaveAttribute('open');
+    const button = screen.getByRole('button', { name: 'My section' });
+    expect(button.parentElement).toHaveAttribute('open');
   });
 
   it('is controlled when `open` is provided and calls onToggle', async () => {
@@ -63,10 +65,11 @@ describe('AccordionItem', () => {
     }
 
     render(<ControlledHost />);
-    const details = screen.getByText('My section').closest('details');
+    const button = screen.getByRole('button', { name: 'My section' });
+    const details = button.parentElement;
     expect(details).not.toHaveAttribute('open');
 
-    await user.click(screen.getByText('My section'));
+    await user.click(button);
     expect(onToggle).toHaveBeenCalledWith(true);
     expect(details).toHaveAttribute('open');
   });
