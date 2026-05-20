@@ -6,6 +6,8 @@ on:
     paths:
       - 'libs/form-component/src/**'
       - 'libs/form-component/package.json'
+      - 'libs/form-component/tsconfig.json'
+      - 'libs/form-component/vitest.config.ts'
       - '.github/workflows/libs-form-component-unit-tests.yml'
   workflow_dispatch:
 
@@ -18,7 +20,7 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    name: Type-checks, eslint, unit tests and SonarCloud
+    name: Unit tests
     defaults:
       run:
         working-directory: libs/form-component/
@@ -27,6 +29,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+          persist-credentials: false
 
       - name: install node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
