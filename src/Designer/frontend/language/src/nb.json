@@ -82,7 +82,7 @@
   "ai_assistant.about_assistant_description": "Studio-assistenten er en KI-drevet chatbot som kan hjelpe deg med å bygge apper i Altinn Studio. Gi den en instruksjon og aktiver <strong>Tillat endringer i appen</strong> for å komme i gang! Den har tilgang på Studio-dokumentasjonen og kan også svare på spørsmål om skjemaoppsett, tilgangsstyring og andre funksjoner i verktøyet.",
   "ai_assistant.about_assistant_disclaimer": "Assistenten er under utvikling og kan gi svar som ikke alltid er helt presise. Kontroller viktige endringer før du publiserer appen din.",
   "ai_assistant.about_assistant_heading": "Om assistenten",
-  "ai_assistant.access_denied": "Det er bare apper som ligger under Testdepartementet som kan bruke KI-assistenten.",
+  "ai_assistant.access_denied": "Du har ikke tilgang. Bare apper under Testdepartementet kan bruke KI-assistenten.",
   "ai_assistant.add_attachment": "Last opp vedlegg",
   "ai_assistant.allow_app_changes": "Tillat endringer i appen",
   "ai_assistant.assistant_first_message": "Hva kan jeg hjelpe med?",
