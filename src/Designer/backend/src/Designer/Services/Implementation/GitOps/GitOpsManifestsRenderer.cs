@@ -58,19 +58,22 @@ public class GitOpsManifestsRenderer : IGitOpsManifestsRenderer
 
     private static string GetAppKustomization()
     {
-        return """
+        return NormalizeLineEndings(
+            """
             apiVersion: kustomize.config.k8s.io/v1beta1
             kind: Kustomization
             resources:
               - oci-repository.yaml
               - kustomize.yaml
 
-            """;
+            """
+        );
     }
 
     private static string GetAppKustomize(string app)
     {
-        return $"""
+        return NormalizeLineEndings(
+            $"""
             apiVersion: kustomize.toolkit.fluxcd.io/v1
             kind: Kustomization
             metadata:
@@ -90,12 +93,14 @@ public class GitOpsManifestsRenderer : IGitOpsManifestsRenderer
               timeout: 5m0s
               wait: true
 
-            """;
+            """
+        );
     }
 
     private static string GetAppOciRepository(string org, string app)
     {
-        return $"""
+        return NormalizeLineEndings(
+            $"""
             apiVersion: source.toolkit.fluxcd.io/v1
             kind: OCIRepository
             metadata:
@@ -109,7 +114,8 @@ public class GitOpsManifestsRenderer : IGitOpsManifestsRenderer
               timeout: 5m0s
               url: oci://{org}altinnregistry01.azurecr.io/configs/{app}
 
-            """;
+            """
+        );
     }
 
     private static string GetEnvironmentKustomization(string environment, IEnumerable<AltinnRepoName> apps)
@@ -143,6 +149,8 @@ public class GitOpsManifestsRenderer : IGitOpsManifestsRenderer
             """
         );
 
-        return manifest.ToString();
+        return NormalizeLineEndings(manifest.ToString());
     }
+
+    private static string NormalizeLineEndings(string manifest) => manifest.ReplaceLineEndings("\n");
 }
