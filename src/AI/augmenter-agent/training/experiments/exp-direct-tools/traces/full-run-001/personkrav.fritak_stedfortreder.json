@@ -1,0 +1,123 @@
+{
+  "punkt": "personkrav.fritak_stedfortreder",
+  "final": {
+    "status": "ikke_relevant",
+    "merknad": "Stedfortreder er oppgitt (Erik Hansen) og fritak er ikke aktuelt."
+  },
+  "totalElapsedMs": 2526,
+  "llmCallCount": 2,
+  "toolCallCount": 2,
+  "finishReason": "stop",
+  "llmCalls": [
+    {
+      "iteration": 0,
+      "status_code": 200,
+      "elapsed_ms": 1599,
+      "finish_reason": "tool_calls",
+      "tool_calls_count": 2,
+      "content_preview": "",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2452,
+        "total_tokens": 2518,
+        "completion_tokens": 66,
+        "prompt_tokens_details": null
+      }
+    },
+    {
+      "iteration": 1,
+      "status_code": 200,
+      "elapsed_ms": 926,
+      "finish_reason": "stop",
+      "tool_calls_count": 0,
+      "content_preview": "```json\n{\"status\": \"ikke_relevant\", \"merknad\": \"Stedfortreder er oppgitt (Erik Hansen) og fritak er ikke aktuelt.\"}\n```",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2620,
+        "total_tokens": 2667,
+        "completion_tokens": 47,
+        "prompt_tokens_details": null
+      }
+    }
+  ],
+  "toolCalls": [
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-9cc979874a4a28cb",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Bevillingsansvarlig.Stedfortreder"
+      },
+      "result": {
+        "value": {
+          "Fornavn": "Erik",
+          "Etternavn": "Hansen",
+          "Foedselsnummer": "15039012345",
+          "EPostadresse": "erik@test.no",
+          "Telefonnummer": "98765432"
+        },
+        "present": true
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-8aca7cc3ce6c9a54",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Bevillingsansvarlig.SkalHaFritakFraStedfortreder"
+      },
+      "result": {
+        "value": false,
+        "present": true
+      },
+      "elapsed_ms": 0
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "Du er en saksbehandler-assistent for kommunale bevillingssaker.\n\nDu får ETT sjekklistepunkt med tilhørende regel (i markdown-format) og hele søknads-JSON.\nDin oppgave: vurder dette ene punktet og returner KUN ett JSON-objekt:\n{\"status\": \"...\", \"merknad\": \"...\"}\n\nStatus MÅ være EN av:\n- vurdert_ok       (vilkåret er bekreftet oppfylt)\n- vurdert_avslag   (konkret dokumentert brudd på vilkåret)\n- maa_undersokes   (mangler dokumentasjon, eller saksbehandler må undersøke noe)\n- ikke_relevant    (punktet gjelder ikke denne søknadstypen)\n- ikke_vurdert     (avventer ekstern uttalelse eller manuelle steg)\n\nDu har tilgang til verktøy for deterministiske beregninger (alder, datoer, oppslag, tekst-matching).\nBruk dem AKTIVT når regelen krever beregning eller oppslag — ikke gjett tall eller datoer.\nHvis regelen er ren tekstvurdering uten beregning, svar direkte uten verktøyskall.\n\nNår du har all info du trenger, svar med JSON-objektet og ingenting annet.\nIngen markdown, ingen kommentar utenfor JSON.\n"
+    },
+    {
+      "role": "user",
+      "content": "# Sjekklistepunkt: personkrav.fritak_stedfortreder\n\n## Regelen\n\n# Fritak fra krav om stedfortreder vurdert\n\n## Hjemmel\nAlkoholloven § 1-7c: kommunen kan i enkelte tilfeller frita fra kravet om stedfortreder.\n\n## Vurdering\nSjekk om stedfortreder er oppgitt i søknaden, og om søker har bedt om fritak.\n\n* Stedfortreder er oppgitt OG `SkalHaFritakFraStedfortreder` er false: **ikke_relevant**. Skriv at stedfortreder er oppgitt og fritak ikke er aktuelt. Nevn stedfortreders navn.\n* Stedfortreder er IKKE oppgitt OG `SkalHaFritakFraStedfortreder` er true: **maa_undersokes**. Skriv at fritaket må vurderes konkret.\n* Stedfortreder mangler og ikke bedt om fritak: **maa_undersokes**.\n\nBruk `path_value` for `FlatData.Bevillingsansvarlig.Stedfortreder` og `FlatData.Bevillingsansvarlig.SkalHaFritakFraStedfortreder`.\n\n\n## Søknad (JSON)\n\n```json\n{\n  \"FlatData\": {\n    \"BrukerType\": \"person\",\n    \"SkalFornyeBevilling\": false,\n    \"BevillingsType\": \"arrangement\",\n    \"Kommunenummer\": \"4204\",\n    \"Innsender\": {\n      \"Fornavn\": \"Sophie\",\n      \"Etternavn\": \"Salt\",\n      \"FulltNavn\": \"Sophie Salt\",\n      \"Foedselsnummer\": \"01039012345\",\n      \"EPostadresse\": \"sophie@test.no\",\n      \"Telefonnummer\": \"99887766\",\n      \"Adresse\": {\n        \"Gateadresse\": \"Leikanger\",\n        \"Postnummer\": \"6863\",\n        \"Poststed\": \"KRISTIANSAND S\"\n      }\n    },\n    \"OrganisasjonsInformasjon\": {\n      \"Organisasjonsnummer\": null,\n      \"Navn\": null\n    },\n    \"Arrangement\": {\n      \"VaregruppeAlkohol\": \"gruppeTre\",\n      \"Navn\": \"Julebord Avdeling Nord\",\n      \"ArrangementType\": \"julebord\",\n      \"ArrangementPeriode\": [\n        {\n          \"StartDato\": \"2026-12-12\",\n          \"SluttDato\": \"2026-12-13\",\n          \"StartTid\": \"19:00\",\n          \"SluttTid\": \"02:00\"\n        }\n      ],\n      \"TypeDeltakere\": \"bestemtePersoner\",\n      \"AntallDeltakere\": \"45\",\n      \"Arrangementssted\": {\n        \"Type\": \"innendoers\",\n        \"StedsNavn\": \"Restaurant Sjøhuset\",\n        \"StedsAdresse\": {\n          \"Gateadresse\": \"Havnegata 15\"\n        },\n        \"Etasje\": \"2. etasje\"\n      }\n    },\n    \"Bevillingsansvarlig\": {\n      \"SkalHaFritakFraStedfortreder\": false,\n      \"Styrer\": {\n        \"Fornavn\": \"Sophie\",\n        \"Etternavn\": \"Salt\",\n        \"Foedselsnummer\": \"01039012345\",\n        \"EPostadresse\": \"sophie@test.no\",\n        \"Telefonnummer\": \"99887766\"\n      },\n      \"Stedfortreder\": {\n        \"Fornavn\": \"Erik\",\n        \"Etternavn\": \"Hansen\",\n        \"Foedselsnummer\": \"15039012345\",\n        \"EPostadresse\": \"erik@test.no\",\n        \"Telefonnummer\": \"98765432\"\n      }\n    },\n    \"PersonerMedInnflytelse\": {\n      \"JuridiskePersoner\": [],\n      \"FysiskePersoner\": []\n    },\n    \"VedleggsListe\": {\n      \"Rader\": []\n    }\n  }\n}\n```\n"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "chatcmpl-tool-9cc979874a4a28cb",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Bevillingsansvarlig.Stedfortreder\"}"
+          }
+        },
+        {
+          "id": "chatcmpl-tool-8aca7cc3ce6c9a54",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Bevillingsansvarlig.SkalHaFritakFraStedfortreder\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-9cc979874a4a28cb",
+      "content": "{\"value\": {\"Fornavn\": \"Erik\", \"Etternavn\": \"Hansen\", \"Foedselsnummer\": \"15039012345\", \"EPostadresse\": \"erik@test.no\", \"Telefonnummer\": \"98765432\"}, \"present\": true}"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-8aca7cc3ce6c9a54",
+      "content": "{\"value\": false, \"present\": true}"
+    },
+    {
+      "role": "assistant",
+      "content": "```json\n{\"status\": \"ikke_relevant\", \"merknad\": \"Stedfortreder er oppgitt (Erik Hansen) og fritak er ikke aktuelt.\"}\n```"
+    }
+  ]
+}

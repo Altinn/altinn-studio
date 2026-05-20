@@ -1,0 +1,145 @@
+{
+  "punkt": "dokumentasjon.mattilsynet_registrering",
+  "final": {
+    "status": "ikke_relevant",
+    "merknad": "Lokalet ('Festsalen') fremstår ikke som et etablert spisested, og Mattilsyn-registrering vurderes derfor som ikke relevant for dette arrangementet."
+  },
+  "totalElapsedMs": 3022,
+  "llmCallCount": 3,
+  "toolCallCount": 2,
+  "finishReason": "stop",
+  "llmCalls": [
+    {
+      "iteration": 0,
+      "status_code": 200,
+      "elapsed_ms": 700,
+      "finish_reason": "tool_calls",
+      "tool_calls_count": 1,
+      "content_preview": "",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 1991,
+        "total_tokens": 2021,
+        "completion_tokens": 30,
+        "prompt_tokens_details": null
+      }
+    },
+    {
+      "iteration": 1,
+      "status_code": 200,
+      "elapsed_ms": 1197,
+      "finish_reason": "tool_calls",
+      "tool_calls_count": 1,
+      "content_preview": "",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2042,
+        "total_tokens": 2095,
+        "completion_tokens": 53,
+        "prompt_tokens_details": null
+      }
+    },
+    {
+      "iteration": 2,
+      "status_code": 200,
+      "elapsed_ms": 1124,
+      "finish_reason": "stop",
+      "tool_calls_count": 0,
+      "content_preview": "{\"status\": \"ikke_relevant\", \"merknad\": \"Lokalet ('Festsalen') fremstår ikke som et etablert spisested, og Mattilsyn-registrering vurderes derfor som ikke relevant for dette arrangementet.\"}",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2115,
+        "total_tokens": 2173,
+        "completion_tokens": 58,
+        "prompt_tokens_details": null
+      }
+    }
+  ],
+  "toolCalls": [
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-b6993c6244d9f197",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Arrangement.Arrangementssted.StedsNavn"
+      },
+      "result": {
+        "value": "Festsalen",
+        "present": true
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 1,
+      "tool_call_id": "chatcmpl-tool-8155635f3c5989bc",
+      "name": "text_contains_any",
+      "arguments": {
+        "haystack": "Festsalen",
+        "needles": [
+          "restaurant",
+          "kro",
+          "pub",
+          "spisested",
+          "gjestgiveri"
+        ]
+      },
+      "result": {
+        "contains": false,
+        "matched": null
+      },
+      "elapsed_ms": 0
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "Du er en saksbehandler-assistent for kommunale bevillingssaker.\n\nDu får ETT sjekklistepunkt med tilhørende regel (i markdown-format) og hele søknads-JSON.\nDin oppgave: vurder dette ene punktet og returner KUN ett JSON-objekt:\n{\"status\": \"...\", \"merknad\": \"...\"}\n\nStatus MÅ være EN av:\n- vurdert_ok       (vilkåret er bekreftet oppfylt)\n- vurdert_avslag   (konkret dokumentert brudd på vilkåret)\n- maa_undersokes   (mangler dokumentasjon, eller saksbehandler må undersøke noe)\n- ikke_relevant    (punktet gjelder ikke denne søknadstypen)\n- ikke_vurdert     (avventer ekstern uttalelse eller manuelle steg)\n\nDu har tilgang til verktøy for deterministiske beregninger (alder, datoer, oppslag, tekst-matching).\nBruk dem AKTIVT når regelen krever beregning eller oppslag — ikke gjett tall eller datoer.\nHvis regelen er ren tekstvurdering uten beregning, svar direkte uten verktøyskall.\n\nNår du har all info du trenger, svar med JSON-objektet og ingenting annet.\nIngen markdown, ingen kommentar utenfor JSON.\n"
+    },
+    {
+      "role": "user",
+      "content": "# Sjekklistepunkt: dokumentasjon.mattilsynet_registrering\n\n## Regelen\n\n# Registrering hos Mattilsynet\n\n## Vurdering\nSjekk om lokalet er registrert hos Mattilsynet (for spisesteder).\n\n* Lokalet er et etablert spisested (stedsnavn inneholder \"restaurant\", \"kro\", \"pub\" e.l.): **vurdert_ok**. Skriv at det må antas å være registrert; verifiseres via oppslag ved tvil.\n* Lokalet er ikke et tydelig spisested (f.eks. forsamlingshus, telt): **ikke_relevant** eller **maa_undersokes** etter skjønn — Mattilsyn-registrering er mest relevant der det serveres mat.\n* Felter mangler: **maa_undersokes**.\n\nBruk `path_value` for `FlatData.Arrangement.Arrangementssted.StedsNavn` og `text_contains_any` med [\"restaurant\",\"kro\",\"pub\",\"spisested\",\"gjestgiveri\"].\n\n\n## Søknad (JSON)\n\n```json\n{\n  \"FlatData\": {\n    \"BevillingsType\": \"arrangement\",\n    \"Arrangement\": {\n      \"Navn\": \"Testfest\",\n      \"ArrangementPeriode\": [\n        {\n          \"StartDato\": \"2026-12-12\",\n          \"SluttDato\": \"2026-12-12\"\n        }\n      ],\n      \"Arrangementssted\": {\n        \"StedsNavn\": \"Festsalen\",\n        \"StedsAdresse\": {\n          \"Gateadresse\": \"Testveien 1\"\n        }\n      }\n    },\n    \"Bevillingsansvarlig\": {\n      \"Styrer\": {\n        \"FulltNavn\": \"Test Person\",\n        \"Foedselsnummer\": \"01039012345\"\n      },\n      \"Stedfortreder\": {\n        \"Fornavn\": \"Ole\",\n        \"Etternavn\": \"Hansen\",\n        \"Foedselsnummer\": \"01019012345\"\n      }\n    },\n    \"PersonerMedInnflytelse\": {\n      \"FysiskePersoner\": [],\n      \"JuridiskePersoner\": []\n    },\n    \"VedleggsListe\": {\n      \"Rader\": []\n    }\n  }\n}\n```\n"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "chatcmpl-tool-b6993c6244d9f197",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Arrangement.Arrangementssted.StedsNavn\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-b6993c6244d9f197",
+      "content": "{\"value\": \"Festsalen\", \"present\": true}"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "chatcmpl-tool-8155635f3c5989bc",
+          "type": "function",
+          "function": {
+            "name": "text_contains_any",
+            "arguments": "{\"haystack\": \"Festsalen\", \"needles\": [\"restaurant\", \"kro\", \"pub\", \"spisested\", \"gjestgiveri\"]}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-8155635f3c5989bc",
+      "content": "{\"contains\": false, \"matched\": null}"
+    },
+    {
+      "role": "assistant",
+      "content": "{\"status\": \"ikke_relevant\", \"merknad\": \"Lokalet ('Festsalen') fremstår ikke som et etablert spisested, og Mattilsyn-registrering vurderes derfor som ikke relevant for dette arrangementet.\"}"
+    }
+  ]
+}

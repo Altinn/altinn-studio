@@ -1,0 +1,169 @@
+{
+  "punkt": "helhetsvurdering.samlet_vurdering",
+  "final": {
+    "status": "maa_undersokes",
+    "merknad": "Saksbehandler må gjøre samlet vurdering etter at de øvrige punktene er gått igjennom. Særlige momenter for denne søknaden: Arrangementet 'Testfest' skal holdes i 'Festsalen'. Antall deltakere og varegruppe er ikke oppgitt i søknaden."
+  },
+  "totalElapsedMs": 3809,
+  "llmCallCount": 2,
+  "toolCallCount": 4,
+  "finishReason": "stop",
+  "llmCalls": [
+    {
+      "iteration": 0,
+      "status_code": 200,
+      "elapsed_ms": 1987,
+      "finish_reason": "tool_calls",
+      "tool_calls_count": 4,
+      "content_preview": "",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2001,
+        "total_tokens": 2102,
+        "completion_tokens": 101,
+        "prompt_tokens_details": null
+      }
+    },
+    {
+      "iteration": 1,
+      "status_code": 200,
+      "elapsed_ms": 1821,
+      "finish_reason": "stop",
+      "tool_calls_count": 0,
+      "content_preview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Saksbehandler må gjøre samlet vurdering etter at de øvrige punktene er gått igjennom. Særlige momenter for denne søknaden: Arrangementet 'Testfest' skal holdes i 'Festsalen'. Antall deltakere og varegruppe er ikke oppgitt i søknaden.\"}",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2216,
+        "total_tokens": 2305,
+        "completion_tokens": 89,
+        "prompt_tokens_details": null
+      }
+    }
+  ],
+  "toolCalls": [
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-95b3a194cff65fce",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Arrangement.Navn"
+      },
+      "result": {
+        "value": "Testfest",
+        "present": true
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-80adaf07ca792e9f",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Arrangement.Arrangementssted.StedsNavn"
+      },
+      "result": {
+        "value": "Festsalen",
+        "present": true
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-86c1635bb5d314f0",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Arrangement.AntallDeltakere"
+      },
+      "result": {
+        "present": false,
+        "missing_at": "FlatData.Arrangement.AntallDeltakere"
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-9d5ef3b75ad4283f",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Varegruppe"
+      },
+      "result": {
+        "present": false,
+        "missing_at": "FlatData.Varegruppe"
+      },
+      "elapsed_ms": 0
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "Du er en saksbehandler-assistent for kommunale bevillingssaker.\n\nDu får ETT sjekklistepunkt med tilhørende regel (i markdown-format) og hele søknads-JSON.\nDin oppgave: vurder dette ene punktet og returner KUN ett JSON-objekt:\n{\"status\": \"...\", \"merknad\": \"...\"}\n\nStatus MÅ være EN av:\n- vurdert_ok       (vilkåret er bekreftet oppfylt)\n- vurdert_avslag   (konkret dokumentert brudd på vilkåret)\n- maa_undersokes   (mangler dokumentasjon, eller saksbehandler må undersøke noe)\n- ikke_relevant    (punktet gjelder ikke denne søknadstypen)\n- ikke_vurdert     (avventer ekstern uttalelse eller manuelle steg)\n\nDu har tilgang til verktøy for deterministiske beregninger (alder, datoer, oppslag, tekst-matching).\nBruk dem AKTIVT når regelen krever beregning eller oppslag — ikke gjett tall eller datoer.\nHvis regelen er ren tekstvurdering uten beregning, svar direkte uten verktøyskall.\n\nNår du har all info du trenger, svar med JSON-objektet og ingenting annet.\nIngen markdown, ingen kommentar utenfor JSON.\n"
+    },
+    {
+      "role": "user",
+      "content": "# Sjekklistepunkt: helhetsvurdering.samlet_vurdering\n\n## Regelen\n\n# Samlet vurdering av søknaden\n\n## Vurdering\nDette er en oppsummering der saksbehandler vurderer søknaden i sin helhet — i lys av alle de andre punktene i sjekklisten.\n\nSiden AI-agenten ikke kjenner statusen på de andre punktene i samme kontekst, kan den ikke avgjøre helheten. Saksbehandler må selv gjøre denne vurderingen etter å ha gått gjennom resten av sjekklisten.\n\nStatusen skal alltid være: **maa_undersokes**.\n\nSkriv en merknad som:\n* Sier at saksbehandler må gjøre samlet vurdering etter at de øvrige punktene er gått igjennom\n* Nevner særlige momenter for denne søknaden: arrangementstype, antall deltakere, lokale, varegruppe (slå opp fra søknads-JSON)\n\nBruk `path_value` for å hente arrangementets navn, type, antall deltakere, sted, og varegruppe.\n\n\n## Søknad (JSON)\n\n```json\n{\n  \"FlatData\": {\n    \"BevillingsType\": \"arrangement\",\n    \"Arrangement\": {\n      \"Navn\": \"Testfest\",\n      \"ArrangementPeriode\": [\n        {\n          \"StartDato\": \"2026-12-12\",\n          \"SluttDato\": \"2026-12-12\"\n        }\n      ],\n      \"Arrangementssted\": {\n        \"StedsNavn\": \"Festsalen\",\n        \"StedsAdresse\": {\n          \"Gateadresse\": \"Testveien 1\"\n        }\n      }\n    },\n    \"Bevillingsansvarlig\": {\n      \"Styrer\": {\n        \"FulltNavn\": \"Test Person\",\n        \"Foedselsnummer\": \"01039012345\"\n      },\n      \"Stedfortreder\": {\n        \"Fornavn\": \"Ole\",\n        \"Etternavn\": \"Hansen\",\n        \"Foedselsnummer\": \"01019012345\"\n      }\n    },\n    \"PersonerMedInnflytelse\": {\n      \"FysiskePersoner\": [],\n      \"JuridiskePersoner\": []\n    },\n    \"VedleggsListe\": {\n      \"Rader\": []\n    }\n  }\n}\n```\n"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "chatcmpl-tool-95b3a194cff65fce",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Arrangement.Navn\"}"
+          }
+        },
+        {
+          "id": "chatcmpl-tool-80adaf07ca792e9f",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Arrangement.Arrangementssted.StedsNavn\"}"
+          }
+        },
+        {
+          "id": "chatcmpl-tool-86c1635bb5d314f0",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Arrangement.AntallDeltakere\"}"
+          }
+        },
+        {
+          "id": "chatcmpl-tool-9d5ef3b75ad4283f",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Varegruppe\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-95b3a194cff65fce",
+      "content": "{\"value\": \"Testfest\", \"present\": true}"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-80adaf07ca792e9f",
+      "content": "{\"value\": \"Festsalen\", \"present\": true}"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-86c1635bb5d314f0",
+      "content": "{\"present\": false, \"missing_at\": \"FlatData.Arrangement.AntallDeltakere\"}"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-9d5ef3b75ad4283f",
+      "content": "{\"present\": false, \"missing_at\": \"FlatData.Varegruppe\"}"
+    },
+    {
+      "role": "assistant",
+      "content": "{\"status\": \"maa_undersokes\", \"merknad\": \"Saksbehandler må gjøre samlet vurdering etter at de øvrige punktene er gått igjennom. Særlige momenter for denne søknaden: Arrangementet 'Testfest' skal holdes i 'Festsalen'. Antall deltakere og varegruppe er ikke oppgitt i søknaden.\"}"
+    }
+  ]
+}

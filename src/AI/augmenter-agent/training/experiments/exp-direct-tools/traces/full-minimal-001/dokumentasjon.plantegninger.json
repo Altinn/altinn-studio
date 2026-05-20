@@ -1,0 +1,143 @@
+{
+  "punkt": "dokumentasjon.plantegninger",
+  "final": {
+    "status": "maa_undersokes",
+    "merknad": "Ingen plantegninger er vedlagt søknaden for lokalet 'Festsalen'. Det må be om plantegninger."
+  },
+  "totalElapsedMs": 2454,
+  "llmCallCount": 2,
+  "toolCallCount": 3,
+  "finishReason": "stop",
+  "llmCalls": [
+    {
+      "iteration": 0,
+      "status_code": 200,
+      "elapsed_ms": 1307,
+      "finish_reason": "tool_calls",
+      "tool_calls_count": 3,
+      "content_preview": "",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 1974,
+        "total_tokens": 2037,
+        "completion_tokens": 63,
+        "prompt_tokens_details": null
+      }
+    },
+    {
+      "iteration": 1,
+      "status_code": 200,
+      "elapsed_ms": 1145,
+      "finish_reason": "stop",
+      "tool_calls_count": 0,
+      "content_preview": "```json\n{\"status\": \"maa_undersokes\", \"merknad\": \"Ingen plantegninger er vedlagt søknaden for lokalet 'Festsalen'. Det må be om plantegninger.\"}\n```",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2106,
+        "total_tokens": 2159,
+        "completion_tokens": 53,
+        "prompt_tokens_details": null
+      }
+    }
+  ],
+  "toolCalls": [
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-ab949ac3c0cc7f31",
+      "name": "count_attachments",
+      "arguments": {
+        "name_contains": "plan"
+      },
+      "result": {
+        "count": 0,
+        "names": []
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-8b2227c80b739663",
+      "name": "count_attachments",
+      "arguments": {
+        "name_contains": "tegning"
+      },
+      "result": {
+        "count": 0,
+        "names": []
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-967eb9ff4faeffc1",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Arrangement.Arrangementssted.StedsNavn"
+      },
+      "result": {
+        "value": "Festsalen",
+        "present": true
+      },
+      "elapsed_ms": 0
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "Du er en saksbehandler-assistent for kommunale bevillingssaker.\n\nDu får ETT sjekklistepunkt med tilhørende regel (i markdown-format) og hele søknads-JSON.\nDin oppgave: vurder dette ene punktet og returner KUN ett JSON-objekt:\n{\"status\": \"...\", \"merknad\": \"...\"}\n\nStatus MÅ være EN av:\n- vurdert_ok       (vilkåret er bekreftet oppfylt)\n- vurdert_avslag   (konkret dokumentert brudd på vilkåret)\n- maa_undersokes   (mangler dokumentasjon, eller saksbehandler må undersøke noe)\n- ikke_relevant    (punktet gjelder ikke denne søknadstypen)\n- ikke_vurdert     (avventer ekstern uttalelse eller manuelle steg)\n\nDu har tilgang til verktøy for deterministiske beregninger (alder, datoer, oppslag, tekst-matching).\nBruk dem AKTIVT når regelen krever beregning eller oppslag — ikke gjett tall eller datoer.\nHvis regelen er ren tekstvurdering uten beregning, svar direkte uten verktøyskall.\n\nNår du har all info du trenger, svar med JSON-objektet og ingenting annet.\nIngen markdown, ingen kommentar utenfor JSON.\n"
+    },
+    {
+      "role": "user",
+      "content": "# Sjekklistepunkt: dokumentasjon.plantegninger\n\n## Regelen\n\n# Plantegninger over lokalet\n\n## Vurdering\nSjekk om plantegninger for lokalet er vedlagt søknaden.\n\n* Vedlegg som ser ut til å være plantegning (filnavn inneholder \"plan\", \"tegning\" e.l.) er lastet opp: **vurdert_ok**.\n* Ingen vedlegg, men lokalet er etablert spisested: **ikke_vurdert**. Skriv at plantegninger ofte finnes i kommunens arkiv — sjekkes på vanlig saksbehandlings-måte. Nevn stedsnavn.\n* Ingen vedlegg, ukjent lokale: **maa_undersokes**. Be om plantegninger.\n\nBruk `count_attachments` (gjerne med filter), `path_value` for stedsnavn, og `text_contains_any` for å sjekke om det er etablert spisested.\n\n\n## Søknad (JSON)\n\n```json\n{\n  \"FlatData\": {\n    \"BevillingsType\": \"arrangement\",\n    \"Arrangement\": {\n      \"Navn\": \"Testfest\",\n      \"ArrangementPeriode\": [\n        {\n          \"StartDato\": \"2026-12-12\",\n          \"SluttDato\": \"2026-12-12\"\n        }\n      ],\n      \"Arrangementssted\": {\n        \"StedsNavn\": \"Festsalen\",\n        \"StedsAdresse\": {\n          \"Gateadresse\": \"Testveien 1\"\n        }\n      }\n    },\n    \"Bevillingsansvarlig\": {\n      \"Styrer\": {\n        \"FulltNavn\": \"Test Person\",\n        \"Foedselsnummer\": \"01039012345\"\n      },\n      \"Stedfortreder\": {\n        \"Fornavn\": \"Ole\",\n        \"Etternavn\": \"Hansen\",\n        \"Foedselsnummer\": \"01019012345\"\n      }\n    },\n    \"PersonerMedInnflytelse\": {\n      \"FysiskePersoner\": [],\n      \"JuridiskePersoner\": []\n    },\n    \"VedleggsListe\": {\n      \"Rader\": []\n    }\n  }\n}\n```\n"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "chatcmpl-tool-ab949ac3c0cc7f31",
+          "type": "function",
+          "function": {
+            "name": "count_attachments",
+            "arguments": "{\"name_contains\": \"plan\"}"
+          }
+        },
+        {
+          "id": "chatcmpl-tool-8b2227c80b739663",
+          "type": "function",
+          "function": {
+            "name": "count_attachments",
+            "arguments": "{\"name_contains\": \"tegning\"}"
+          }
+        },
+        {
+          "id": "chatcmpl-tool-967eb9ff4faeffc1",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Arrangement.Arrangementssted.StedsNavn\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-ab949ac3c0cc7f31",
+      "content": "{\"count\": 0, \"names\": []}"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-8b2227c80b739663",
+      "content": "{\"count\": 0, \"names\": []}"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-967eb9ff4faeffc1",
+      "content": "{\"value\": \"Festsalen\", \"present\": true}"
+    },
+    {
+      "role": "assistant",
+      "content": "```json\n{\"status\": \"maa_undersokes\", \"merknad\": \"Ingen plantegninger er vedlagt søknaden for lokalet 'Festsalen'. Det må be om plantegninger.\"}\n```"
+    }
+  ]
+}

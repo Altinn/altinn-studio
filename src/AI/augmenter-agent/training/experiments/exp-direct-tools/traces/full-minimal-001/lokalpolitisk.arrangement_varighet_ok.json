@@ -1,0 +1,164 @@
+{
+  "punkt": "lokalpolitisk.arrangement_varighet_ok",
+  "final": {
+    "status": "vurdert_ok",
+    "merknad": "Arrangementet varer fra 2026-12-12 til 2026-12-12 (0 dager), som er innenfor grensen på 14 dager."
+  },
+  "totalElapsedMs": 3845,
+  "llmCallCount": 3,
+  "toolCallCount": 3,
+  "finishReason": "stop",
+  "llmCalls": [
+    {
+      "iteration": 0,
+      "status_code": 200,
+      "elapsed_ms": 1350,
+      "finish_reason": "tool_calls",
+      "tool_calls_count": 2,
+      "content_preview": "",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 1978,
+        "total_tokens": 2042,
+        "completion_tokens": 64,
+        "prompt_tokens_details": null
+      }
+    },
+    {
+      "iteration": 1,
+      "status_code": 200,
+      "elapsed_ms": 994,
+      "finish_reason": "tool_calls",
+      "tool_calls_count": 1,
+      "content_preview": "",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2103,
+        "total_tokens": 2150,
+        "completion_tokens": 47,
+        "prompt_tokens_details": null
+      }
+    },
+    {
+      "iteration": 2,
+      "status_code": 200,
+      "elapsed_ms": 1499,
+      "finish_reason": "stop",
+      "tool_calls_count": 0,
+      "content_preview": "{\"status\": \"vurdert_ok\", \"merknad\": \"Arrangementet varer fra 2026-12-12 til 2026-12-12 (0 dager), som er innenfor grensen på 14 dager.\"}",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2164,
+        "total_tokens": 2233,
+        "completion_tokens": 69,
+        "prompt_tokens_details": null
+      }
+    }
+  ],
+  "toolCalls": [
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-9ff49c6dce67f64e",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Arrangement.ArrangementPeriode[0].StartDato"
+      },
+      "result": {
+        "value": "2026-12-12",
+        "present": true
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-aa8f4d7d00239b2e",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Arrangement.ArrangementPeriode[0].SluttDato"
+      },
+      "result": {
+        "value": "2026-12-12",
+        "present": true
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 1,
+      "tool_call_id": "chatcmpl-tool-8b299138905746d9",
+      "name": "days_between",
+      "arguments": {
+        "from_date": "2026-12-12",
+        "to_date": "2026-12-12"
+      },
+      "result": {
+        "days": 0
+      },
+      "elapsed_ms": 0
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "Du er en saksbehandler-assistent for kommunale bevillingssaker.\n\nDu får ETT sjekklistepunkt med tilhørende regel (i markdown-format) og hele søknads-JSON.\nDin oppgave: vurder dette ene punktet og returner KUN ett JSON-objekt:\n{\"status\": \"...\", \"merknad\": \"...\"}\n\nStatus MÅ være EN av:\n- vurdert_ok       (vilkåret er bekreftet oppfylt)\n- vurdert_avslag   (konkret dokumentert brudd på vilkåret)\n- maa_undersokes   (mangler dokumentasjon, eller saksbehandler må undersøke noe)\n- ikke_relevant    (punktet gjelder ikke denne søknadstypen)\n- ikke_vurdert     (avventer ekstern uttalelse eller manuelle steg)\n\nDu har tilgang til verktøy for deterministiske beregninger (alder, datoer, oppslag, tekst-matching).\nBruk dem AKTIVT når regelen krever beregning eller oppslag — ikke gjett tall eller datoer.\nHvis regelen er ren tekstvurdering uten beregning, svar direkte uten verktøyskall.\n\nNår du har all info du trenger, svar med JSON-objektet og ingenting annet.\nIngen markdown, ingen kommentar utenfor JSON.\n"
+    },
+    {
+      "role": "user",
+      "content": "# Sjekklistepunkt: lokalpolitisk.arrangement_varighet_ok\n\n## Regelen\n\n# Arrangement innenfor maks 14 dager\n\n## Hjemmel\nAlkoholloven § 1-6: enkeltbevilling kan gis for arrangementer av begrenset varighet, normalt opp til 14 dager.\n\n## Vurdering\nSjekk arrangementets varighet (antall dager mellom start- og sluttdato).\n\n* Varighet ≤ 14 dager: **vurdert_ok**. Bekreft start, slutt og antall dager i merknad.\n* Varighet > 14 dager: **vurdert_avslag**. Sitér tidsrommet og lovens grense.\n* Datoer mangler: **maa_undersokes**.\n\nBruk `path_value` for `FlatData.Arrangement.ArrangementPeriode[0].StartDato` og `SluttDato`, og `days_between` for å beregne varigheten.\n\n\n## Søknad (JSON)\n\n```json\n{\n  \"FlatData\": {\n    \"BevillingsType\": \"arrangement\",\n    \"Arrangement\": {\n      \"Navn\": \"Testfest\",\n      \"ArrangementPeriode\": [\n        {\n          \"StartDato\": \"2026-12-12\",\n          \"SluttDato\": \"2026-12-12\"\n        }\n      ],\n      \"Arrangementssted\": {\n        \"StedsNavn\": \"Festsalen\",\n        \"StedsAdresse\": {\n          \"Gateadresse\": \"Testveien 1\"\n        }\n      }\n    },\n    \"Bevillingsansvarlig\": {\n      \"Styrer\": {\n        \"FulltNavn\": \"Test Person\",\n        \"Foedselsnummer\": \"01039012345\"\n      },\n      \"Stedfortreder\": {\n        \"Fornavn\": \"Ole\",\n        \"Etternavn\": \"Hansen\",\n        \"Foedselsnummer\": \"01019012345\"\n      }\n    },\n    \"PersonerMedInnflytelse\": {\n      \"FysiskePersoner\": [],\n      \"JuridiskePersoner\": []\n    },\n    \"VedleggsListe\": {\n      \"Rader\": []\n    }\n  }\n}\n```\n"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "chatcmpl-tool-9ff49c6dce67f64e",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Arrangement.ArrangementPeriode[0].StartDato\"}"
+          }
+        },
+        {
+          "id": "chatcmpl-tool-aa8f4d7d00239b2e",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Arrangement.ArrangementPeriode[0].SluttDato\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-9ff49c6dce67f64e",
+      "content": "{\"value\": \"2026-12-12\", \"present\": true}"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-aa8f4d7d00239b2e",
+      "content": "{\"value\": \"2026-12-12\", \"present\": true}"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "chatcmpl-tool-8b299138905746d9",
+          "type": "function",
+          "function": {
+            "name": "days_between",
+            "arguments": "{\"from_date\": \"2026-12-12\", \"to_date\": \"2026-12-12\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-8b299138905746d9",
+      "content": "{\"days\": 0}"
+    },
+    {
+      "role": "assistant",
+      "content": "{\"status\": \"vurdert_ok\", \"merknad\": \"Arrangementet varer fra 2026-12-12 til 2026-12-12 (0 dager), som er innenfor grensen på 14 dager.\"}"
+    }
+  ]
+}

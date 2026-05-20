@@ -1,0 +1,195 @@
+{
+  "punkt": "dokumentasjon.leiekontrakt",
+  "final": {
+    "status": "maa_undersokes",
+    "merknad": "Ingen leiekontrakt eller bekreftelse fra lokaleier er vedlagt. Siden dette er en arrangement-bevilling, må det innhentes bekreftelse fra lokaleier for Festsalen."
+  },
+  "totalElapsedMs": 3418,
+  "llmCallCount": 2,
+  "toolCallCount": 5,
+  "finishReason": "stop",
+  "llmCalls": [
+    {
+      "iteration": 0,
+      "status_code": 200,
+      "elapsed_ms": 2045,
+      "finish_reason": "tool_calls",
+      "tool_calls_count": 5,
+      "content_preview": "",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 1998,
+        "total_tokens": 2102,
+        "completion_tokens": 104,
+        "prompt_tokens_details": null
+      }
+    },
+    {
+      "iteration": 1,
+      "status_code": 200,
+      "elapsed_ms": 1371,
+      "finish_reason": "stop",
+      "tool_calls_count": 0,
+      "content_preview": "```json\n{\"status\": \"maa_undersokes\", \"merknad\": \"Ingen leiekontrakt eller bekreftelse fra lokaleier er vedlagt. Siden dette er en arrangement-bevilling, må det innhentes bekreftelse fra lokaleier for Festsalen.\"}\n```",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2219,
+        "total_tokens": 2290,
+        "completion_tokens": 71,
+        "prompt_tokens_details": null
+      }
+    }
+  ],
+  "toolCalls": [
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-be258def903d92b5",
+      "name": "count_attachments",
+      "arguments": {
+        "name_contains": "leie"
+      },
+      "result": {
+        "count": 0,
+        "names": []
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-bb53cde23f275b17",
+      "name": "count_attachments",
+      "arguments": {
+        "name_contains": "bekreftelse"
+      },
+      "result": {
+        "count": 0,
+        "names": []
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-a3401b325d6eb278",
+      "name": "count_attachments",
+      "arguments": {
+        "name_contains": "kontrakt"
+      },
+      "result": {
+        "count": 0,
+        "names": []
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-8bdb794a2b326355",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.BevillingsType"
+      },
+      "result": {
+        "value": "arrangement",
+        "present": true
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-9526c9c0b9637bc5",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Arrangement.Arrangementssted.StedsNavn"
+      },
+      "result": {
+        "value": "Festsalen",
+        "present": true
+      },
+      "elapsed_ms": 0
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "Du er en saksbehandler-assistent for kommunale bevillingssaker.\n\nDu får ETT sjekklistepunkt med tilhørende regel (i markdown-format) og hele søknads-JSON.\nDin oppgave: vurder dette ene punktet og returner KUN ett JSON-objekt:\n{\"status\": \"...\", \"merknad\": \"...\"}\n\nStatus MÅ være EN av:\n- vurdert_ok       (vilkåret er bekreftet oppfylt)\n- vurdert_avslag   (konkret dokumentert brudd på vilkåret)\n- maa_undersokes   (mangler dokumentasjon, eller saksbehandler må undersøke noe)\n- ikke_relevant    (punktet gjelder ikke denne søknadstypen)\n- ikke_vurdert     (avventer ekstern uttalelse eller manuelle steg)\n\nDu har tilgang til verktøy for deterministiske beregninger (alder, datoer, oppslag, tekst-matching).\nBruk dem AKTIVT når regelen krever beregning eller oppslag — ikke gjett tall eller datoer.\nHvis regelen er ren tekstvurdering uten beregning, svar direkte uten verktøyskall.\n\nNår du har all info du trenger, svar med JSON-objektet og ingenting annet.\nIngen markdown, ingen kommentar utenfor JSON.\n"
+    },
+    {
+      "role": "user",
+      "content": "# Sjekklistepunkt: dokumentasjon.leiekontrakt\n\n## Regelen\n\n# Leiekontrakt for lokalet\n\n## Vurdering\nSøker må kunne dokumentere disponering av lokalet. For enkeltbevilling/arrangement holder det normalt med en bekreftelse fra lokaleier (ikke full leiekontrakt).\n\n* Det er vedlagt et dokument som ser ut til å være leiekontrakt eller bekreftelse fra lokaleier (sjekk filnavn på vedlegg): **vurdert_ok**.\n* Ingen vedlegg er lastet opp, men bevillingstypen er \"arrangement\": **maa_undersokes**. Be om bekreftelse fra lokaleier (nevn stedsnavn).\n* Ingen vedlegg og ikke \"arrangement\"-bevilling: **maa_undersokes** (be om full leiekontrakt).\n\nBruk `count_attachments` (valgfritt med filter) for å sjekke vedlegg, og `path_value` for `FlatData.BevillingsType` og `FlatData.Arrangement.Arrangementssted.StedsNavn`.\n\n\n## Søknad (JSON)\n\n```json\n{\n  \"FlatData\": {\n    \"BevillingsType\": \"arrangement\",\n    \"Arrangement\": {\n      \"Navn\": \"Testfest\",\n      \"ArrangementPeriode\": [\n        {\n          \"StartDato\": \"2026-12-12\",\n          \"SluttDato\": \"2026-12-12\"\n        }\n      ],\n      \"Arrangementssted\": {\n        \"StedsNavn\": \"Festsalen\",\n        \"StedsAdresse\": {\n          \"Gateadresse\": \"Testveien 1\"\n        }\n      }\n    },\n    \"Bevillingsansvarlig\": {\n      \"Styrer\": {\n        \"FulltNavn\": \"Test Person\",\n        \"Foedselsnummer\": \"01039012345\"\n      },\n      \"Stedfortreder\": {\n        \"Fornavn\": \"Ole\",\n        \"Etternavn\": \"Hansen\",\n        \"Foedselsnummer\": \"01019012345\"\n      }\n    },\n    \"PersonerMedInnflytelse\": {\n      \"FysiskePersoner\": [],\n      \"JuridiskePersoner\": []\n    },\n    \"VedleggsListe\": {\n      \"Rader\": []\n    }\n  }\n}\n```\n"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "chatcmpl-tool-be258def903d92b5",
+          "type": "function",
+          "function": {
+            "name": "count_attachments",
+            "arguments": "{\"name_contains\": \"leie\"}"
+          }
+        },
+        {
+          "id": "chatcmpl-tool-bb53cde23f275b17",
+          "type": "function",
+          "function": {
+            "name": "count_attachments",
+            "arguments": "{\"name_contains\": \"bekreftelse\"}"
+          }
+        },
+        {
+          "id": "chatcmpl-tool-a3401b325d6eb278",
+          "type": "function",
+          "function": {
+            "name": "count_attachments",
+            "arguments": "{\"name_contains\": \"kontrakt\"}"
+          }
+        },
+        {
+          "id": "chatcmpl-tool-8bdb794a2b326355",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.BevillingsType\"}"
+          }
+        },
+        {
+          "id": "chatcmpl-tool-9526c9c0b9637bc5",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Arrangement.Arrangementssted.StedsNavn\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-be258def903d92b5",
+      "content": "{\"count\": 0, \"names\": []}"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-bb53cde23f275b17",
+      "content": "{\"count\": 0, \"names\": []}"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-a3401b325d6eb278",
+      "content": "{\"count\": 0, \"names\": []}"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-8bdb794a2b326355",
+      "content": "{\"value\": \"arrangement\", \"present\": true}"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-9526c9c0b9637bc5",
+      "content": "{\"value\": \"Festsalen\", \"present\": true}"
+    },
+    {
+      "role": "assistant",
+      "content": "```json\n{\"status\": \"maa_undersokes\", \"merknad\": \"Ingen leiekontrakt eller bekreftelse fra lokaleier er vedlagt. Siden dette er en arrangement-bevilling, må det innhentes bekreftelse fra lokaleier for Festsalen.\"}\n```"
+    }
+  ]
+}

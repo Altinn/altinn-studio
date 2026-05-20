@@ -1,0 +1,172 @@
+{
+  "punkt": "dokumentasjon.bruksgodkjenning",
+  "final": {
+    "status": "maa_undersokes",
+    "merknad": "Ingen vedlegg for bruksgodkjenning er lastet opp, men lokalet (Restaurant Sjøhuset) er et etablert spisested. Bruksgodkjenning antas å foreligge — kontakt plan- og byggesaksavdelingen for bekreftelse."
+  },
+  "totalElapsedMs": 4610,
+  "llmCallCount": 3,
+  "toolCallCount": 3,
+  "finishReason": "stop",
+  "llmCalls": [
+    {
+      "iteration": 0,
+      "status_code": 200,
+      "elapsed_ms": 1650,
+      "finish_reason": "tool_calls",
+      "tool_calls_count": 2,
+      "content_preview": "",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2365,
+        "total_tokens": 2416,
+        "completion_tokens": 51,
+        "prompt_tokens_details": null
+      }
+    },
+    {
+      "iteration": 1,
+      "status_code": 200,
+      "elapsed_ms": 1272,
+      "finish_reason": "tool_calls",
+      "tool_calls_count": 1,
+      "content_preview": "",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2463,
+        "total_tokens": 2521,
+        "completion_tokens": 58,
+        "prompt_tokens_details": null
+      }
+    },
+    {
+      "iteration": 2,
+      "status_code": 200,
+      "elapsed_ms": 1687,
+      "finish_reason": "stop",
+      "tool_calls_count": 0,
+      "content_preview": "```json\n{\"status\": \"maa_undersokes\", \"merknad\": \"Ingen vedlegg for bruksgodkjenning er lastet opp, men lokalet (Restaurant Sjøhuset) er et etablert spisested. Bruksgodkjenning antas å foreligge — kontakt plan- og byggesaksavdelingen for bekreftelse.\"}\n```",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2542,
+        "total_tokens": 2631,
+        "completion_tokens": 89,
+        "prompt_tokens_details": null
+      }
+    }
+  ],
+  "toolCalls": [
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-b85e74ebc34c9db7",
+      "name": "count_attachments",
+      "arguments": {
+        "name_contains": "bruksgodkjenning"
+      },
+      "result": {
+        "count": 0,
+        "names": []
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-b6a81146b2120075",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Arrangement.Arrangementssted.StedsNavn"
+      },
+      "result": {
+        "value": "Restaurant Sjøhuset",
+        "present": true
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 1,
+      "tool_call_id": "chatcmpl-tool-81003b4a95def2c5",
+      "name": "text_contains_any",
+      "arguments": {
+        "haystack": "Restaurant Sjøhuset",
+        "needles": [
+          "restaurant",
+          "kro",
+          "pub",
+          "kafé",
+          "café",
+          "spisested"
+        ]
+      },
+      "result": {
+        "contains": true,
+        "matched": "restaurant"
+      },
+      "elapsed_ms": 0
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "Du er en saksbehandler-assistent for kommunale bevillingssaker.\n\nDu får ETT sjekklistepunkt med tilhørende regel (i markdown-format) og hele søknads-JSON.\nDin oppgave: vurder dette ene punktet og returner KUN ett JSON-objekt:\n{\"status\": \"...\", \"merknad\": \"...\"}\n\nStatus MÅ være EN av:\n- vurdert_ok       (vilkåret er bekreftet oppfylt)\n- vurdert_avslag   (konkret dokumentert brudd på vilkåret)\n- maa_undersokes   (mangler dokumentasjon, eller saksbehandler må undersøke noe)\n- ikke_relevant    (punktet gjelder ikke denne søknadstypen)\n- ikke_vurdert     (avventer ekstern uttalelse eller manuelle steg)\n\nDu har tilgang til verktøy for deterministiske beregninger (alder, datoer, oppslag, tekst-matching).\nBruk dem AKTIVT når regelen krever beregning eller oppslag — ikke gjett tall eller datoer.\nHvis regelen er ren tekstvurdering uten beregning, svar direkte uten verktøyskall.\n\nNår du har all info du trenger, svar med JSON-objektet og ingenting annet.\nIngen markdown, ingen kommentar utenfor JSON.\n"
+    },
+    {
+      "role": "user",
+      "content": "# Sjekklistepunkt: dokumentasjon.bruksgodkjenning\n\n## Regelen\n\n# Bruksgodkjenning fra plan- og bygningsetaten\n\n## Vurdering\nSjekk om bruksgodkjenning for lokalet er dokumentert.\n\n* Vedlegg som ser ut til å være bruksgodkjenning er lastet opp: **vurdert_ok**.\n* Ingen vedlegg, men lokalet er etablert spisested: **maa_undersokes**. Skriv at bruksgodkjenning antas å foreligge — kontakt plan- og byggesaksavdelingen for bekreftelse.\n* Ingen vedlegg, ukjent lokale-type: **maa_undersokes**. Be om dokumentasjon.\n\nBruk `count_attachments`, `path_value` for stedsnavn, og `text_contains_any` for spisesteds-detektering.\n\n\n## Søknad (JSON)\n\n```json\n{\n  \"FlatData\": {\n    \"BrukerType\": \"person\",\n    \"SkalFornyeBevilling\": false,\n    \"BevillingsType\": \"arrangement\",\n    \"Kommunenummer\": \"4204\",\n    \"Innsender\": {\n      \"Fornavn\": \"Sophie\",\n      \"Etternavn\": \"Salt\",\n      \"FulltNavn\": \"Sophie Salt\",\n      \"Foedselsnummer\": \"01039012345\",\n      \"EPostadresse\": \"sophie@test.no\",\n      \"Telefonnummer\": \"99887766\",\n      \"Adresse\": {\n        \"Gateadresse\": \"Leikanger\",\n        \"Postnummer\": \"6863\",\n        \"Poststed\": \"KRISTIANSAND S\"\n      }\n    },\n    \"OrganisasjonsInformasjon\": {\n      \"Organisasjonsnummer\": null,\n      \"Navn\": null\n    },\n    \"Arrangement\": {\n      \"VaregruppeAlkohol\": \"gruppeTre\",\n      \"Navn\": \"Julebord Avdeling Nord\",\n      \"ArrangementType\": \"julebord\",\n      \"ArrangementPeriode\": [\n        {\n          \"StartDato\": \"2026-12-12\",\n          \"SluttDato\": \"2026-12-13\",\n          \"StartTid\": \"19:00\",\n          \"SluttTid\": \"02:00\"\n        }\n      ],\n      \"TypeDeltakere\": \"bestemtePersoner\",\n      \"AntallDeltakere\": \"45\",\n      \"Arrangementssted\": {\n        \"Type\": \"innendoers\",\n        \"StedsNavn\": \"Restaurant Sjøhuset\",\n        \"StedsAdresse\": {\n          \"Gateadresse\": \"Havnegata 15\"\n        },\n        \"Etasje\": \"2. etasje\"\n      }\n    },\n    \"Bevillingsansvarlig\": {\n      \"SkalHaFritakFraStedfortreder\": false,\n      \"Styrer\": {\n        \"Fornavn\": \"Sophie\",\n        \"Etternavn\": \"Salt\",\n        \"Foedselsnummer\": \"01039012345\",\n        \"EPostadresse\": \"sophie@test.no\",\n        \"Telefonnummer\": \"99887766\"\n      },\n      \"Stedfortreder\": {\n        \"Fornavn\": \"Erik\",\n        \"Etternavn\": \"Hansen\",\n        \"Foedselsnummer\": \"15039012345\",\n        \"EPostadresse\": \"erik@test.no\",\n        \"Telefonnummer\": \"98765432\"\n      }\n    },\n    \"PersonerMedInnflytelse\": {\n      \"JuridiskePersoner\": [],\n      \"FysiskePersoner\": []\n    },\n    \"VedleggsListe\": {\n      \"Rader\": []\n    }\n  }\n}\n```\n"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "chatcmpl-tool-b85e74ebc34c9db7",
+          "type": "function",
+          "function": {
+            "name": "count_attachments",
+            "arguments": "{\"name_contains\": \"bruksgodkjenning\"}"
+          }
+        },
+        {
+          "id": "chatcmpl-tool-b6a81146b2120075",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Arrangement.Arrangementssted.StedsNavn\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-b85e74ebc34c9db7",
+      "content": "{\"count\": 0, \"names\": []}"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-b6a81146b2120075",
+      "content": "{\"value\": \"Restaurant Sjøhuset\", \"present\": true}"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "chatcmpl-tool-81003b4a95def2c5",
+          "type": "function",
+          "function": {
+            "name": "text_contains_any",
+            "arguments": "{\"haystack\": \"Restaurant Sjøhuset\", \"needles\": [\"restaurant\", \"kro\", \"pub\", \"kafé\", \"café\", \"spisested\"]}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-81003b4a95def2c5",
+      "content": "{\"contains\": true, \"matched\": \"restaurant\"}"
+    },
+    {
+      "role": "assistant",
+      "content": "```json\n{\"status\": \"maa_undersokes\", \"merknad\": \"Ingen vedlegg for bruksgodkjenning er lastet opp, men lokalet (Restaurant Sjøhuset) er et etablert spisested. Bruksgodkjenning antas å foreligge — kontakt plan- og byggesaksavdelingen for bekreftelse.\"}\n```"
+    }
+  ]
+}

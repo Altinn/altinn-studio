@@ -19,6 +19,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import concurrent.futures as cf
 import datetime as dt
 import json
 import re
@@ -227,8 +228,18 @@ def main() -> int:
                     help="Summary output JSON")
     ap.add_argument("--traces-dir", type=Path, default=None,
                     help="Directory to write per-punkt traces (default: ../traces/<run-id>)")
-    ap.add_argument("--punkter", nargs="+", required=True,
-                    help="Punkt-keys to evaluate (matches <key>.md in rules-dir)")
+    grp = ap.add_mutually_exclusive_group(required=True)
+    grp.add_argument("--punkter", nargs="+",
+                     help="Punkt-keys to evaluate (matches <key>.md in rules-dir)")
+    grp.add_argument("--all", action="store_true",
+                     help="Evaluate every <key>.md in rules-dir")
+    ap.add_argument("--concurrency", type=int, default=1,
+                    help="Parallel LLM-loops (each punkt is one loop)")
+    ap.add_argument("--write-aggregated", type=Path, default=None,
+                    help="Optional path to also write Spor-C-shaped aggregated sjekkliste JSON "
+                         "(suitable for scripts/evaluate.py)")
+    ap.add_argument("--sjekkliste-schema", type=Path, default=None,
+                    help="Path to sjekkliste.json (required if --write-aggregated)")
     args = ap.parse_args()
 
     application = json.loads(args.input.read_text(encoding="utf-8"))
@@ -238,26 +249,26 @@ def main() -> int:
     traces_dir = args.traces_dir or (args.out.parent.parent / "traces" / run_id)
     traces_dir.mkdir(parents=True, exist_ok=True)
 
-    wall_started = time.perf_counter()
-    summary_per_punkt = []
-    for punkt_key in args.punkter:
+    if args.all:
+        rule_files = sorted(args.rules_dir.glob("*.md"))
+        punkt_keys = [f.stem for f in rule_files]
+    else:
+        punkt_keys = args.punkter
+
+    def _eval(punkt_key: str) -> dict:
         rule_file = args.rules_dir / f"{punkt_key}.md"
         if not rule_file.is_file():
-            summary_per_punkt.append({
+            return {
                 "punkt": punkt_key,
                 "skipped": True,
                 "reason": f"Rule file not found: {rule_file}",
-            })
-            continue
+            }
         rule_text = rule_file.read_text(encoding="utf-8")
-        print(f"--- {punkt_key} ---")
         trace = run_punkt(client, application, rule_text, punkt_key)
-        # Write trace
         (traces_dir / f"{punkt_key}.json").write_text(
             json.dumps(trace, ensure_ascii=False, indent=2), encoding="utf-8"
         )
-        # Compact summary
-        summary_per_punkt.append({
+        return {
             "punkt": punkt_key,
             "status": trace["final"]["status"],
             "merknad": trace["final"]["merknad"],
@@ -266,11 +277,22 @@ def main() -> int:
             "toolsUsed": [tc["name"] for tc in trace["toolCalls"]],
             "totalElapsedMs": trace["totalElapsedMs"],
             "finishReason": trace["finishReason"],
-        })
-        print(f"  status={trace['final']['status']}  "
-              f"llm_calls={trace['llmCallCount']}  "
-              f"tools={[tc['name'] for tc in trace['toolCalls']]}  "
-              f"{trace['totalElapsedMs']}ms")
+        }
+
+    wall_started = time.perf_counter()
+    if args.concurrency > 1 and len(punkt_keys) > 1:
+        with cf.ThreadPoolExecutor(max_workers=args.concurrency) as ex:
+            results = list(ex.map(_eval, punkt_keys))
+    else:
+        results = [_eval(k) for k in punkt_keys]
+    summary_per_punkt = results
+    for r in results:
+        if r.get("skipped"):
+            print(f"  SKIP  {r['punkt']}: {r['reason']}")
+        else:
+            print(f"  {r['status']:16s}  {r['punkt']:48s}  "
+                  f"llm={r['llmCallCount']} tools={r['toolsUsed']}  "
+                  f"{r['totalElapsedMs']}ms")
 
     wall_elapsed = round(time.perf_counter() - wall_started, 2)
     summary = {
@@ -278,6 +300,7 @@ def main() -> int:
         "timestamp": dt.datetime.now().astimezone().isoformat(),
         "inputFile": str(args.input),
         "tracesDir": str(traces_dir),
+        "concurrency": args.concurrency,
         "punkter": summary_per_punkt,
         "wallTimeSec": wall_elapsed,
         "model": "sandkasse/telenor:gemma4",
@@ -286,6 +309,50 @@ def main() -> int:
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(summary, ensure_ascii=False, indent=2),
                         encoding="utf-8")
+
+    if args.write_aggregated:
+        if not args.sjekkliste_schema:
+            print("ERROR: --write-aggregated requires --sjekkliste-schema", file=sys.stderr)
+            return 2
+        schema = json.loads(args.sjekkliste_schema.read_text(encoding="utf-8"))
+        by_key = {r["punkt"]: r for r in summary_per_punkt if not r.get("skipped")}
+        aggregated_sjekkliste: dict[str, dict] = {}
+        for s in schema["seksjoner"]:
+            section: dict[str, Any] = {"label": s["label"], "punkter": {}}
+            for p in s["punkter"]:
+                key = f"{s['id']}.{p['id']}"
+                hit = by_key.get(key)
+                if hit:
+                    section["punkter"][p["id"]] = {
+                        "label": p["label"],
+                        "status": hit["status"],
+                        "merknad": hit["merknad"],
+                    }
+                else:
+                    section["punkter"][p["id"]] = {
+                        "label": p["label"],
+                        "status": schema.get("defaultStatus", "ikke_vurdert"),
+                        "merknad": "Ingen markdown-regel for dette punktet.",
+                    }
+            aggregated_sjekkliste[s["id"]] = section
+        agg = {"sjekkliste": aggregated_sjekkliste}
+        args.write_aggregated.write_text(json.dumps(agg, ensure_ascii=False, indent=2),
+                                         encoding="utf-8")
+        # Also write an envelope file with stdout=aggregated_json, suitable for evaluate.py
+        envelope_path = args.write_aggregated.with_suffix(".envelope.json")
+        envelope_path.write_text(json.dumps({
+            "iteration": 0,
+            "stdout": json.dumps(agg, ensure_ascii=False, indent=2),
+            "success": True,
+            "errorMessage": None,
+            "model": "sandkasse/telenor:gemma4 (direct + tools)",
+            "step": "checklist-agent-direct-tools",
+            "wallTimeSec": wall_elapsed,
+            "concurrency": args.concurrency,
+        }, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"Aggregated: {args.write_aggregated}")
+        print(f"Envelope:   {envelope_path}")
+
     print(f"\nSummary: {args.out}")
     print(f"Traces:  {traces_dir}/")
     print(f"Wall:    {wall_elapsed}s")

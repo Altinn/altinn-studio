@@ -1,0 +1,20 @@
+{
+  "layer1": {
+    "non_empty": true,
+    "parses_json": true,
+    "has_sjekkliste_root": true,
+    "sections_missing": [],
+    "sections_extra": [],
+    "points_missing_from_gold": [],
+    "points_missing_status": [],
+    "points_missing_merknad": [],
+    "points_with_invalid_status": {}
+  },
+  "layer2": {
+    "section_coverage_pct": 100.0,
+    "point_coverage_pct": 100.0,
+    "status_agreement_pct": 100.0,
+    "merknad_length_ratio_mean": 0.94
+  },
+  "verdict": "pass"
+}

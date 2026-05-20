@@ -1,0 +1,239 @@
+{
+  "sjekkliste": {
+    "formelle_krav": {
+      "label": "Formelle krav",
+      "punkter": {
+        "soknad_komplett": {
+          "label": "Søknaden er komplett utfylt",
+          "status": "maa_undersokes",
+          "merknad": "Søknaden er utfylt med nødvendige felter, men vedleggslisten er tom. Dokumentasjon må etterspørres."
+        },
+        "riktig_soknadstype": {
+          "label": "Riktig søknadstype valgt",
+          "status": "maa_undersokes",
+          "merknad": "BevillingsType er satt til 'arrangement', men feltet FlatData.Arrangement.ArrangementType mangler, slik at det ikke kan bekreftes at søknadstypen stemmer overens med arrangementets art."
+        },
+        "kommune_riktig": {
+          "label": "Riktig kommune valgt",
+          "status": "maa_undersokes",
+          "merknad": "Kommunenummer mangler i søknaden (FlatData.Kommunenummer), og kan derfor ikke verifiseres mot arrangementsstedet."
+        },
+        "soker_identifisert": {
+          "label": "Søker er identifisert med org.nr.",
+          "status": "maa_undersokes",
+          "merknad": "Søknaden mangler både organisasjonsnummer og informasjon om brukertype (person/bedrift). Det kan ikke bekreftes om søker er identifisert korrekt."
+        }
+      }
+    },
+    "dokumentasjon": {
+      "label": "Dokumentasjon",
+      "punkter": {
+        "leiekontrakt": {
+          "label": "Leiekontrakt for lokalet",
+          "status": "maa_undersokes",
+          "merknad": "Ingen leiekontrakt eller bekreftelse fra lokaleier er vedlagt. Siden dette er en arrangement-bevilling, må det innhentes bekreftelse fra lokaleier for Festsalen."
+        },
+        "personantall_beregning": {
+          "label": "Beregning av personantall fra godkjent firma",
+          "status": "maa_undersokes",
+          "merknad": "Det er ikke vedlagt beregning av maksimalt personantall, og lokalet ('Festsalen') fremstår ikke som et etablert spisested. Vennligst be søker om å sende inn dokumentasjon på personantall utført av godkjent firma."
+        },
+        "plantegninger": {
+          "label": "Plantegninger over lokalet",
+          "status": "maa_undersokes",
+          "merknad": "Ingen plantegninger er vedlagt søknaden for lokalet 'Festsalen'. Det må be om plantegninger."
+        },
+        "mattilsynet_registrering": {
+          "label": "Registrering hos Mattilsynet",
+          "status": "ikke_relevant",
+          "merknad": "Lokalet ('Festsalen') fremstår ikke som et etablert spisested, og Mattilsyn-registrering vurderes derfor som ikke relevant for dette arrangementet."
+        },
+        "bruksgodkjenning": {
+          "label": "Bruksgodkjenning fra plan- og bygningsetaten",
+          "status": "maa_undersokes",
+          "merknad": "Ingen bruksgodkjenning er vedlagt, og lokalet (Festsalen) er ikke identifisert som et etablert spisested. Vennligst send forespørsel om dokumentasjon."
+        },
+        "kunnskapsprove_styrer": {
+          "label": "Kunnskapsprøve bestått – styrer",
+          "status": "maa_undersokes",
+          "merknad": "Dokumentasjon på bestått kunnskapsprøve for styrer Test Person mangler. Dokumentasjon må etterspørres, og det bør sjekkes i P360 om prøven er tatt tidligere."
+        },
+        "kunnskapsprove_stedfortreder": {
+          "label": "Kunnskapsprøve bestått – stedfortreder",
+          "status": "maa_undersokes",
+          "merknad": "Stedfortreder Ole Hansen er navngitt, men dokumentasjon for bestått kunnskapsprøve er ikke vedlagt."
+        },
+        "arbeidsavtale_styrer": {
+          "label": "Arbeidsavtale for styrer",
+          "status": "ikke_relevant",
+          "merknad": "Arbeidsavtale ikke kreves for enkeltbevilling der søker er styrer for eget arrangement."
+        },
+        "arbeidsavtale_stedfortreder": {
+          "label": "Arbeidsavtale for stedfortreder",
+          "status": "ikke_relevant",
+          "merknad": "Arbeidsavtale ikke kreves når stedfortreder opptrer i tilknytning til arrangementet."
+        }
+      }
+    },
+    "vandel": {
+      "label": "Vandelsvurdering",
+      "punkter": {
+        "politi_uttalelse": {
+          "label": "Uttalelse innhentet fra politiet",
+          "status": "ikke_vurdert",
+          "merknad": "Forespørsel om uttalelse må sendes manuelt til lokalt politidistrikt. Standardmal 'Forespørsel om opplysninger.docx' kan benyttes. Forventet svartid er ca. 1 uke."
+        },
+        "skatteetaten_uttalelse": {
+          "label": "Uttalelse innhentet fra Skatteetaten",
+          "status": "ikke_vurdert",
+          "merknad": "Forespørsel om uttalelse må sendes manuelt til Skatteetaten. Typisk svartid er inntil 1 måned."
+        },
+        "nav_uttalelse": {
+          "label": "Uttalelse innhentet fra NAV (sosialtjenesten)",
+          "status": "ikke_vurdert",
+          "merknad": "Uttalelse må innhentes fra NAV i den aktuelle kommunen."
+        },
+        "vandel_bevillingshaver": {
+          "label": "Vandel OK – bevillingshaver/eier",
+          "status": "ikke_vurdert",
+          "merknad": "Avventer uttalelser fra politi og Skatteetaten for bevillingshaver Test Person. Informasjon om bruker-type mangler i søknaden."
+        },
+        "vandel_styrer": {
+          "label": "Vandel OK – styrer (kun alkohollovgivning)",
+          "status": "ikke_vurdert",
+          "merknad": "Vandelsspørsmålet for styrer Test Person venter på uttalelse fra politiet om alkohollovgivningen. Merk at skatte- og regnskapsforhold ikke er relevant for vurderingen av styrer."
+        },
+        "vandel_stedfortreder": {
+          "label": "Vandel OK – stedfortreder (kun alkohollovgivning)",
+          "status": "ikke_vurdert",
+          "merknad": "Avventer uttalelse fra politi om alkohollovgivning for stedfortreder Ole Hansen. Skatte- og regnskapsforhold er ikke relevant for stedfortreder."
+        },
+        "vandel_vesentlig_innflytelse": {
+          "label": "Vandel OK – personer med vesentlig innflytelse",
+          "status": "maa_undersokes",
+          "merknad": "BrukerType mangler i søknaden, og listene over personer med innflytelse er tomme. Det må avklares om søker er en privatperson eller om det mangler opplysninger om personer med vesentlig innflytelse."
+        }
+      }
+    },
+    "personkrav": {
+      "label": "Krav til styrer og stedfortreder",
+      "punkter": {
+        "styrer_alder": {
+          "label": "Styrer er over 20 år",
+          "status": "vurdert_ok",
+          "merknad": "Styrer er født 1990-03-01 og er 36 år på arrangementets startdato (2026-12-12), noe som oppfyller kravet om minimum 20 år."
+        },
+        "stedfortreder_alder": {
+          "label": "Stedfortreder er over 20 år",
+          "status": "vurdert_ok",
+          "merknad": "Stedfortreder (født 1990-01-01) er 36 år på arrangementets startdato 2026-12-12, noe som oppfyller kravet om minimum 20 år."
+        },
+        "styrer_ansatt": {
+          "label": "Styrer er ansatt på stedet / eier",
+          "status": "ikke_relevant",
+          "merknad": "Ansettelseskravet gjelder ikke for enkeltbevilling der søker selv er styrer for eget arrangement."
+        },
+        "stedfortreder_ansatt": {
+          "label": "Stedfortreder er ansatt på stedet / eier",
+          "status": "ikke_relevant",
+          "merknad": "Ansettelseskravet gjelder ikke for arrangementer; stedfortreder opptrer i tilknytning til arrangementet."
+        },
+        "styrer_kun_ett_sted": {
+          "label": "Styrer er ikke styrer/stedfortreder på annet sted",
+          "status": "maa_undersokes",
+          "merknad": "Saksbehandler må sjekke P360/bevillingsoversikt om Test Person er registrert som styrer/stedfortreder for andre aktive bevillinger."
+        },
+        "stedfortreder_kun_ett_sted": {
+          "label": "Stedfortreder er ikke styrer/stedfortreder på annet sted",
+          "status": "maa_undersokes",
+          "merknad": "Stedfortreder Ole Hansen er navngitt. Saksbehandler må sjekke P360 for å bekrefte at vedkommende ikke er styrer eller stedfortreder på annet sted."
+        },
+        "fritak_stedfortreder": {
+          "label": "Fritak fra krav om stedfortreder vurdert",
+          "status": "ikke_relevant",
+          "merknad": "Stedfortreder er oppgitt (Ole Hansen) og fritak er ikke aktuelt."
+        }
+      }
+    },
+    "lokalpolitisk": {
+      "label": "Lokalpolitisk vurdering (kommunens retningslinjer)",
+      "punkter": {
+        "beliggenhet_ok": {
+          "label": "Beliggenhet i tråd med retningslinjer",
+          "status": "maa_undersokes",
+          "merknad": "Saksbehandler må vurdere beliggenheten konkret mot kommunens lokale retningslinjer for Festsalen i Testveien 1. Kommunenummer mangler i søknaden, så kommune må identifiseres manuelt."
+        },
+        "ikke_barn_unge_omraade": {
+          "label": "Ikke i område for barn/unges fritidsaktiviteter",
+          "status": "maa_undersokes",
+          "merknad": "Saksbehandler må vurdere lokalets område konkret med hensyn på barn/unges fritidsaktiviteter. Gjelder stedsnavn 'Festsalen' med adresse 'Testveien 1'. Basert på stedsnavnet kan dette fremstå som et lokale for voksenarrangementer, men dette må bekreftes lokalt."
+        },
+        "ikke_idrettsarrangement": {
+          "label": "Ikke idrettsarrangement eller arrangement for barn/unge",
+          "status": "maa_undersokes",
+          "merknad": "Søknaden mangler opplysninger om arrangementstype og type deltakere, noe som er nødvendig for å vurdere om arrangementet er i strid med Alkoholloven § 8-9."
+        },
+        "brennevin_spisested": {
+          "label": "Brennevin kun til spisested (hvis gr. 3)",
+          "status": "maa_undersokes",
+          "merknad": "Varegruppe er ikke oppgitt i søknaden. Det må avklares om det søkes om gruppe 3 (brennevin), og i så fall om 'Festsalen' tilfredsstiller kravet om matservering."
+        },
+        "skjenketider_ok": {
+          "label": "Skjenketider innenfor kommunens rammer",
+          "status": "maa_undersokes",
+          "merknad": "Søknaden mangler opplysninger om skjenketider og varegruppe."
+        },
+        "arrangement_varighet_ok": {
+          "label": "Arrangement innenfor maks 14 dager",
+          "status": "vurdert_ok",
+          "merknad": "Arrangementet varer fra 2026-12-12 til 2026-12-12 (0 dager), som er innenfor grensen på 14 dager."
+        }
+      }
+    },
+    "habilitet": {
+      "label": "Habilitet og saksbehandling",
+      "punkter": {
+        "habilitet_vurdert": {
+          "label": "Habilitet vurdert (fvl. § 6)",
+          "status": "vurdert_ok",
+          "merknad": "AI-agenten er habil i lovens forstand. Saksbehandler må selv vurdere egen habilitet i henhold til fvl. § 6 før vedtak fattes."
+        },
+        "veiledningsplikt": {
+          "label": "Veiledningsplikt overholdt (fvl. § 11)",
+          "status": "maa_undersokes",
+          "merknad": "Vedleggslisten er tom og det mangler nødvendig dokumentasjon. Det bør sendes digitalt brev til søker med oversikt over manglende dokumentasjon (kunnskapsprøver, bekreftelse fra lokaleier mv.) og rimelig frist for ettersending."
+        },
+        "saksbehandlingstid": {
+          "label": "Innenfor 90 dagers saksbehandlingsfrist",
+          "status": "vurdert_ok",
+          "merknad": "Det er 569 dager mellom dagens dato (2025-05-22) og arrangementets startdato (2026-12-12), noe som er godt over saksbehandlingsfristen på 90 dager."
+        }
+      }
+    },
+    "gebyr": {
+      "label": "Gebyr",
+      "punkter": {
+        "gebyr_beregnet": {
+          "label": "Bevillingsgebyr korrekt beregnet",
+          "status": "maa_undersokes",
+          "merknad": "Gebyr må beregnes manuelt etter kommunens satser. Saksbehandler må konsultere kommunens gebyrregulativ."
+        }
+      }
+    },
+    "helhetsvurdering": {
+      "label": "Helhetsvurdering",
+      "punkter": {
+        "samlet_vurdering": {
+          "label": "Samlet vurdering av søknaden",
+          "status": "maa_undersokes",
+          "merknad": "Saksbehandler må gjøre samlet vurdering etter at de øvrige punktene er gått igjennom. Særlige momenter for denne søknaden: Arrangementet 'Testfest' skal holdes i 'Festsalen'. Antall deltakere og varegruppe er ikke oppgitt i søknaden."
+        },
+        "anbefaling": {
+          "label": "Foreløpig anbefaling",
+          "status": "maa_undersokes",
+          "merknad": "Foreløpig anbefaling avventer eksterne uttalelser og saksbehandlers gjennomgang av sjekklisten. Søknaden gjelder arrangementet 'Testfest' i Festsalen."
+        }
+      }
+    }
+  }
+}

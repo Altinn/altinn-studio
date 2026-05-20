@@ -1,0 +1,169 @@
+{
+  "punkt": "dokumentasjon.leiekontrakt",
+  "final": {
+    "status": "maa_undersokes",
+    "merknad": "Ingen leiekontrakt eller bekreftelse fra lokaleier er vedlagt. Siden dette er en arrangement-bevilling, må det be om bekreftelse fra lokaleier for Restaurant Sjøhuset."
+  },
+  "totalElapsedMs": 3297,
+  "llmCallCount": 2,
+  "toolCallCount": 4,
+  "finishReason": "stop",
+  "llmCalls": [
+    {
+      "iteration": 0,
+      "status_code": 200,
+      "elapsed_ms": 1785,
+      "finish_reason": "tool_calls",
+      "tool_calls_count": 4,
+      "content_preview": "",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2407,
+        "total_tokens": 2494,
+        "completion_tokens": 87,
+        "prompt_tokens_details": null
+      }
+    },
+    {
+      "iteration": 1,
+      "status_code": 200,
+      "elapsed_ms": 1510,
+      "finish_reason": "stop",
+      "tool_calls_count": 0,
+      "content_preview": "```json\n{\"status\": \"maa_undersokes\", \"merknad\": \"Ingen leiekontrakt eller bekreftelse fra lokaleier er vedlagt. Siden dette er en arrangement-bevilling, må det be om bekreftelse fra lokaleier for Restaurant Sjøhuset.\"}\n```",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2589,
+        "total_tokens": 2661,
+        "completion_tokens": 72,
+        "prompt_tokens_details": null
+      }
+    }
+  ],
+  "toolCalls": [
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-8b06e770823a33f6",
+      "name": "count_attachments",
+      "arguments": {
+        "name_contains": "leie"
+      },
+      "result": {
+        "count": 0,
+        "names": []
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-931f7f00689d1834",
+      "name": "count_attachments",
+      "arguments": {
+        "name_contains": "bekreftelse"
+      },
+      "result": {
+        "count": 0,
+        "names": []
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-824b90b2b3399923",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.BevillingsType"
+      },
+      "result": {
+        "value": "arrangement",
+        "present": true
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-aad60b10e6f042fa",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Arrangement.Arrangementssted.StedsNavn"
+      },
+      "result": {
+        "value": "Restaurant Sjøhuset",
+        "present": true
+      },
+      "elapsed_ms": 0
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "Du er en saksbehandler-assistent for kommunale bevillingssaker.\n\nDu får ETT sjekklistepunkt med tilhørende regel (i markdown-format) og hele søknads-JSON.\nDin oppgave: vurder dette ene punktet og returner KUN ett JSON-objekt:\n{\"status\": \"...\", \"merknad\": \"...\"}\n\nStatus MÅ være EN av:\n- vurdert_ok       (vilkåret er bekreftet oppfylt)\n- vurdert_avslag   (konkret dokumentert brudd på vilkåret)\n- maa_undersokes   (mangler dokumentasjon, eller saksbehandler må undersøke noe)\n- ikke_relevant    (punktet gjelder ikke denne søknadstypen)\n- ikke_vurdert     (avventer ekstern uttalelse eller manuelle steg)\n\nDu har tilgang til verktøy for deterministiske beregninger (alder, datoer, oppslag, tekst-matching).\nBruk dem AKTIVT når regelen krever beregning eller oppslag — ikke gjett tall eller datoer.\nHvis regelen er ren tekstvurdering uten beregning, svar direkte uten verktøyskall.\n\nNår du har all info du trenger, svar med JSON-objektet og ingenting annet.\nIngen markdown, ingen kommentar utenfor JSON.\n"
+    },
+    {
+      "role": "user",
+      "content": "# Sjekklistepunkt: dokumentasjon.leiekontrakt\n\n## Regelen\n\n# Leiekontrakt for lokalet\n\n## Vurdering\nSøker må kunne dokumentere disponering av lokalet. For enkeltbevilling/arrangement holder det normalt med en bekreftelse fra lokaleier (ikke full leiekontrakt).\n\n* Det er vedlagt et dokument som ser ut til å være leiekontrakt eller bekreftelse fra lokaleier (sjekk filnavn på vedlegg): **vurdert_ok**.\n* Ingen vedlegg er lastet opp, men bevillingstypen er \"arrangement\": **maa_undersokes**. Be om bekreftelse fra lokaleier (nevn stedsnavn).\n* Ingen vedlegg og ikke \"arrangement\"-bevilling: **maa_undersokes** (be om full leiekontrakt).\n\nBruk `count_attachments` (valgfritt med filter) for å sjekke vedlegg, og `path_value` for `FlatData.BevillingsType` og `FlatData.Arrangement.Arrangementssted.StedsNavn`.\n\n\n## Søknad (JSON)\n\n```json\n{\n  \"FlatData\": {\n    \"BrukerType\": \"person\",\n    \"SkalFornyeBevilling\": false,\n    \"BevillingsType\": \"arrangement\",\n    \"Kommunenummer\": \"4204\",\n    \"Innsender\": {\n      \"Fornavn\": \"Sophie\",\n      \"Etternavn\": \"Salt\",\n      \"FulltNavn\": \"Sophie Salt\",\n      \"Foedselsnummer\": \"01039012345\",\n      \"EPostadresse\": \"sophie@test.no\",\n      \"Telefonnummer\": \"99887766\",\n      \"Adresse\": {\n        \"Gateadresse\": \"Leikanger\",\n        \"Postnummer\": \"6863\",\n        \"Poststed\": \"KRISTIANSAND S\"\n      }\n    },\n    \"OrganisasjonsInformasjon\": {\n      \"Organisasjonsnummer\": null,\n      \"Navn\": null\n    },\n    \"Arrangement\": {\n      \"VaregruppeAlkohol\": \"gruppeTre\",\n      \"Navn\": \"Julebord Avdeling Nord\",\n      \"ArrangementType\": \"julebord\",\n      \"ArrangementPeriode\": [\n        {\n          \"StartDato\": \"2026-12-12\",\n          \"SluttDato\": \"2026-12-13\",\n          \"StartTid\": \"19:00\",\n          \"SluttTid\": \"02:00\"\n        }\n      ],\n      \"TypeDeltakere\": \"bestemtePersoner\",\n      \"AntallDeltakere\": \"45\",\n      \"Arrangementssted\": {\n        \"Type\": \"innendoers\",\n        \"StedsNavn\": \"Restaurant Sjøhuset\",\n        \"StedsAdresse\": {\n          \"Gateadresse\": \"Havnegata 15\"\n        },\n        \"Etasje\": \"2. etasje\"\n      }\n    },\n    \"Bevillingsansvarlig\": {\n      \"SkalHaFritakFraStedfortreder\": false,\n      \"Styrer\": {\n        \"Fornavn\": \"Sophie\",\n        \"Etternavn\": \"Salt\",\n        \"Foedselsnummer\": \"01039012345\",\n        \"EPostadresse\": \"sophie@test.no\",\n        \"Telefonnummer\": \"99887766\"\n      },\n      \"Stedfortreder\": {\n        \"Fornavn\": \"Erik\",\n        \"Etternavn\": \"Hansen\",\n        \"Foedselsnummer\": \"15039012345\",\n        \"EPostadresse\": \"erik@test.no\",\n        \"Telefonnummer\": \"98765432\"\n      }\n    },\n    \"PersonerMedInnflytelse\": {\n      \"JuridiskePersoner\": [],\n      \"FysiskePersoner\": []\n    },\n    \"VedleggsListe\": {\n      \"Rader\": []\n    }\n  }\n}\n```\n"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "chatcmpl-tool-8b06e770823a33f6",
+          "type": "function",
+          "function": {
+            "name": "count_attachments",
+            "arguments": "{\"name_contains\": \"leie\"}"
+          }
+        },
+        {
+          "id": "chatcmpl-tool-931f7f00689d1834",
+          "type": "function",
+          "function": {
+            "name": "count_attachments",
+            "arguments": "{\"name_contains\": \"bekreftelse\"}"
+          }
+        },
+        {
+          "id": "chatcmpl-tool-824b90b2b3399923",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.BevillingsType\"}"
+          }
+        },
+        {
+          "id": "chatcmpl-tool-aad60b10e6f042fa",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Arrangement.Arrangementssted.StedsNavn\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-8b06e770823a33f6",
+      "content": "{\"count\": 0, \"names\": []}"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-931f7f00689d1834",
+      "content": "{\"count\": 0, \"names\": []}"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-824b90b2b3399923",
+      "content": "{\"value\": \"arrangement\", \"present\": true}"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-aad60b10e6f042fa",
+      "content": "{\"value\": \"Restaurant Sjøhuset\", \"present\": true}"
+    },
+    {
+      "role": "assistant",
+      "content": "```json\n{\"status\": \"maa_undersokes\", \"merknad\": \"Ingen leiekontrakt eller bekreftelse fra lokaleier er vedlagt. Siden dette er en arrangement-bevilling, må det be om bekreftelse fra lokaleier for Restaurant Sjøhuset.\"}\n```"
+    }
+  ]
+}

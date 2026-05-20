@@ -1,0 +1,117 @@
+{
+  "punkt": "lokalpolitisk.brennevin_spisested",
+  "final": {
+    "status": "maa_undersokes",
+    "merknad": "Varegruppe er ikke oppgitt i søknaden. Det må avklares om det søkes om gruppe 3 (brennevin), og i så fall om 'Festsalen' tilfredsstiller kravet om matservering."
+  },
+  "totalElapsedMs": 2690,
+  "llmCallCount": 2,
+  "toolCallCount": 2,
+  "finishReason": "stop",
+  "llmCalls": [
+    {
+      "iteration": 0,
+      "status_code": 200,
+      "elapsed_ms": 1182,
+      "finish_reason": "tool_calls",
+      "tool_calls_count": 2,
+      "content_preview": "",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2062,
+        "total_tokens": 2118,
+        "completion_tokens": 56,
+        "prompt_tokens_details": null
+      }
+    },
+    {
+      "iteration": 1,
+      "status_code": 200,
+      "elapsed_ms": 1507,
+      "finish_reason": "stop",
+      "tool_calls_count": 0,
+      "content_preview": "{\"status\": \"maa_undersokes\", \"merknad\": \"Varegruppe er ikke oppgitt i søknaden. Det må avklares om det søkes om gruppe 3 (brennevin), og i så fall om 'Festsalen' tilfredsstiller kravet om matservering.\"}",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2175,
+        "total_tokens": 2250,
+        "completion_tokens": 75,
+        "prompt_tokens_details": null
+      }
+    }
+  ],
+  "toolCalls": [
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-b9d281db6f01d79e",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Arrangement.VaregruppeAlkohol"
+      },
+      "result": {
+        "present": false,
+        "missing_at": "FlatData.Arrangement.VaregruppeAlkohol"
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-a03a4acf338de112",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Arrangement.Arrangementssted.StedsNavn"
+      },
+      "result": {
+        "value": "Festsalen",
+        "present": true
+      },
+      "elapsed_ms": 0
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "Du er en saksbehandler-assistent for kommunale bevillingssaker.\n\nDu får ETT sjekklistepunkt med tilhørende regel (i markdown-format) og hele søknads-JSON.\nDin oppgave: vurder dette ene punktet og returner KUN ett JSON-objekt:\n{\"status\": \"...\", \"merknad\": \"...\"}\n\nStatus MÅ være EN av:\n- vurdert_ok       (vilkåret er bekreftet oppfylt)\n- vurdert_avslag   (konkret dokumentert brudd på vilkåret)\n- maa_undersokes   (mangler dokumentasjon, eller saksbehandler må undersøke noe)\n- ikke_relevant    (punktet gjelder ikke denne søknadstypen)\n- ikke_vurdert     (avventer ekstern uttalelse eller manuelle steg)\n\nDu har tilgang til verktøy for deterministiske beregninger (alder, datoer, oppslag, tekst-matching).\nBruk dem AKTIVT når regelen krever beregning eller oppslag — ikke gjett tall eller datoer.\nHvis regelen er ren tekstvurdering uten beregning, svar direkte uten verktøyskall.\n\nNår du har all info du trenger, svar med JSON-objektet og ingenting annet.\nIngen markdown, ingen kommentar utenfor JSON.\n"
+    },
+    {
+      "role": "user",
+      "content": "# Sjekklistepunkt: lokalpolitisk.brennevin_spisested\n\n## Regelen\n\n# Brennevin kun til spisested (hvis gruppe 3)\n\n## Hjemmel\nAlkoholloven § 4-2: Bevilling for gruppe 3 (brennevin) kan kun gis til spisesteder med matservering.\n\n## Vurdering\nSjekk varegruppen og arrangementsstedet.\n\n* Det søkes IKKE om gruppe 3 (varegruppen er gruppe 1/2): **ikke_relevant**. Skriv at gruppe 3 ikke er omsøkt.\n* Det søkes om gruppe 3 OG stedet er åpenbart spisested (stedsnavn inneholder \"restaurant\",\"kro\",\"gjestgiveri\",\"spisested\"): **vurdert_ok**. Bekreft.\n* Det søkes om gruppe 3, men stedet er ikke åpenbart spisested: **maa_undersokes**. Be om bekreftelse på matservering.\n\nBruk `path_value` for `FlatData.Arrangement.VaregruppeAlkohol` og `FlatData.Arrangement.Arrangementssted.StedsNavn`. Bruk `text_contains_any` for å detektere spisested og for å sjekke om varegruppen er \"gruppeTre\" eller inneholder \"tre\"/\"3\"/\"brennevin\".\n\n\n## Søknad (JSON)\n\n```json\n{\n  \"FlatData\": {\n    \"BevillingsType\": \"arrangement\",\n    \"Arrangement\": {\n      \"Navn\": \"Testfest\",\n      \"ArrangementPeriode\": [\n        {\n          \"StartDato\": \"2026-12-12\",\n          \"SluttDato\": \"2026-12-12\"\n        }\n      ],\n      \"Arrangementssted\": {\n        \"StedsNavn\": \"Festsalen\",\n        \"StedsAdresse\": {\n          \"Gateadresse\": \"Testveien 1\"\n        }\n      }\n    },\n    \"Bevillingsansvarlig\": {\n      \"Styrer\": {\n        \"FulltNavn\": \"Test Person\",\n        \"Foedselsnummer\": \"01039012345\"\n      },\n      \"Stedfortreder\": {\n        \"Fornavn\": \"Ole\",\n        \"Etternavn\": \"Hansen\",\n        \"Foedselsnummer\": \"01019012345\"\n      }\n    },\n    \"PersonerMedInnflytelse\": {\n      \"FysiskePersoner\": [],\n      \"JuridiskePersoner\": []\n    },\n    \"VedleggsListe\": {\n      \"Rader\": []\n    }\n  }\n}\n```\n"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "chatcmpl-tool-b9d281db6f01d79e",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Arrangement.VaregruppeAlkohol\"}"
+          }
+        },
+        {
+          "id": "chatcmpl-tool-a03a4acf338de112",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Arrangement.Arrangementssted.StedsNavn\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-b9d281db6f01d79e",
+      "content": "{\"present\": false, \"missing_at\": \"FlatData.Arrangement.VaregruppeAlkohol\"}"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-a03a4acf338de112",
+      "content": "{\"value\": \"Festsalen\", \"present\": true}"
+    },
+    {
+      "role": "assistant",
+      "content": "{\"status\": \"maa_undersokes\", \"merknad\": \"Varegruppe er ikke oppgitt i søknaden. Det må avklares om det søkes om gruppe 3 (brennevin), og i så fall om 'Festsalen' tilfredsstiller kravet om matservering.\"}"
+    }
+  ]
+}

@@ -1,0 +1,195 @@
+{
+  "punkt": "dokumentasjon.kunnskapsprove_stedfortreder",
+  "final": {
+    "status": "maa_undersokes",
+    "merknad": "Stedfortreder Erik Hansen er navngitt, men det er ikke vedlagt dokumentasjon på bestått kunnskapsprøve."
+  },
+  "totalElapsedMs": 11502,
+  "llmCallCount": 2,
+  "toolCallCount": 5,
+  "finishReason": "stop",
+  "llmCalls": [
+    {
+      "iteration": 0,
+      "status_code": 200,
+      "elapsed_ms": 10429,
+      "finish_reason": "tool_calls",
+      "tool_calls_count": 5,
+      "content_preview": "",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2424,
+        "total_tokens": 2581,
+        "completion_tokens": 157,
+        "prompt_tokens_details": null
+      }
+    },
+    {
+      "iteration": 1,
+      "status_code": 200,
+      "elapsed_ms": 1071,
+      "finish_reason": "stop",
+      "tool_calls_count": 0,
+      "content_preview": "```json\n{\"status\": \"maa_undersokes\", \"merknad\": \"Stedfortreder Erik Hansen er navngitt, men det er ikke vedlagt dokumentasjon på bestått kunnskapsprøve.\"}\n```",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2716,
+        "total_tokens": 2772,
+        "completion_tokens": 56,
+        "prompt_tokens_details": null
+      }
+    }
+  ],
+  "toolCalls": [
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-bc04e64888d0ad88",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Bevillingsansvarlig.Stedfortreder.FulltNavn"
+      },
+      "result": {
+        "present": false,
+        "missing_at": "FlatData.Bevillingsansvarlig.Stedfortreder.FulltNavn"
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-8491672c29446de4",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Bevillingsansvarlig.Stedfortreder.Fornavn"
+      },
+      "result": {
+        "value": "Erik",
+        "present": true
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-9fb391d404a3c93b",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Bevillingsansvarlig.Stedfortreder.Etternavn"
+      },
+      "result": {
+        "value": "Hansen",
+        "present": true
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-897583bd68aef4b6",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Bevillingsansvarlig.SkalHaFritakFraStedfortreder"
+      },
+      "result": {
+        "value": false,
+        "present": true
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-8299442ca4d6c299",
+      "name": "count_attachments",
+      "arguments": {
+        "name_contains": "kunnskapsprove"
+      },
+      "result": {
+        "count": 0,
+        "names": []
+      },
+      "elapsed_ms": 0
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "Du er en saksbehandler-assistent for kommunale bevillingssaker.\n\nDu får ETT sjekklistepunkt med tilhørende regel (i markdown-format) og hele søknads-JSON.\nDin oppgave: vurder dette ene punktet og returner KUN ett JSON-objekt:\n{\"status\": \"...\", \"merknad\": \"...\"}\n\nStatus MÅ være EN av:\n- vurdert_ok       (vilkåret er bekreftet oppfylt)\n- vurdert_avslag   (konkret dokumentert brudd på vilkåret)\n- maa_undersokes   (mangler dokumentasjon, eller saksbehandler må undersøke noe)\n- ikke_relevant    (punktet gjelder ikke denne søknadstypen)\n- ikke_vurdert     (avventer ekstern uttalelse eller manuelle steg)\n\nDu har tilgang til verktøy for deterministiske beregninger (alder, datoer, oppslag, tekst-matching).\nBruk dem AKTIVT når regelen krever beregning eller oppslag — ikke gjett tall eller datoer.\nHvis regelen er ren tekstvurdering uten beregning, svar direkte uten verktøyskall.\n\nNår du har all info du trenger, svar med JSON-objektet og ingenting annet.\nIngen markdown, ingen kommentar utenfor JSON.\n"
+    },
+    {
+      "role": "user",
+      "content": "# Sjekklistepunkt: dokumentasjon.kunnskapsprove_stedfortreder\n\n## Regelen\n\n# Kunnskapsprøve bestått – stedfortreder\n\n## Hjemmel\nAlkoholloven § 1-7c, jf. forskrift om omsetning av alkoholholdig drikk § 5-2: også stedfortreder må ha bestått kunnskapsprøven.\n\n## Vurdering\nSamme tilnærming som for styrer, men for stedfortreder.\n\n* Dokumentasjon for stedfortreders kunnskapsprøve er vedlagt: **vurdert_ok**.\n* Stedfortreder er navngitt, men ingen relevant vedlegg: **maa_undersokes**. Be om dokumentasjon, sjekk P360. Nevn stedfortreders navn.\n* Stedfortreder ikke navngitt og det er ikke gitt fritak: **maa_undersokes**.\n\nBruk `path_value` for `FlatData.Bevillingsansvarlig.Stedfortreder.FulltNavn` og `count_attachments` med filter på navn eller \"kunnskapsprove\".\n\n\n## Søknad (JSON)\n\n```json\n{\n  \"FlatData\": {\n    \"BrukerType\": \"person\",\n    \"SkalFornyeBevilling\": false,\n    \"BevillingsType\": \"arrangement\",\n    \"Kommunenummer\": \"4204\",\n    \"Innsender\": {\n      \"Fornavn\": \"Sophie\",\n      \"Etternavn\": \"Salt\",\n      \"FulltNavn\": \"Sophie Salt\",\n      \"Foedselsnummer\": \"01039012345\",\n      \"EPostadresse\": \"sophie@test.no\",\n      \"Telefonnummer\": \"99887766\",\n      \"Adresse\": {\n        \"Gateadresse\": \"Leikanger\",\n        \"Postnummer\": \"6863\",\n        \"Poststed\": \"KRISTIANSAND S\"\n      }\n    },\n    \"OrganisasjonsInformasjon\": {\n      \"Organisasjonsnummer\": null,\n      \"Navn\": null\n    },\n    \"Arrangement\": {\n      \"VaregruppeAlkohol\": \"gruppeTre\",\n      \"Navn\": \"Julebord Avdeling Nord\",\n      \"ArrangementType\": \"julebord\",\n      \"ArrangementPeriode\": [\n        {\n          \"StartDato\": \"2026-12-12\",\n          \"SluttDato\": \"2026-12-13\",\n          \"StartTid\": \"19:00\",\n          \"SluttTid\": \"02:00\"\n        }\n      ],\n      \"TypeDeltakere\": \"bestemtePersoner\",\n      \"AntallDeltakere\": \"45\",\n      \"Arrangementssted\": {\n        \"Type\": \"innendoers\",\n        \"StedsNavn\": \"Restaurant Sjøhuset\",\n        \"StedsAdresse\": {\n          \"Gateadresse\": \"Havnegata 15\"\n        },\n        \"Etasje\": \"2. etasje\"\n      }\n    },\n    \"Bevillingsansvarlig\": {\n      \"SkalHaFritakFraStedfortreder\": false,\n      \"Styrer\": {\n        \"Fornavn\": \"Sophie\",\n        \"Etternavn\": \"Salt\",\n        \"Foedselsnummer\": \"01039012345\",\n        \"EPostadresse\": \"sophie@test.no\",\n        \"Telefonnummer\": \"99887766\"\n      },\n      \"Stedfortreder\": {\n        \"Fornavn\": \"Erik\",\n        \"Etternavn\": \"Hansen\",\n        \"Foedselsnummer\": \"15039012345\",\n        \"EPostadresse\": \"erik@test.no\",\n        \"Telefonnummer\": \"98765432\"\n      }\n    },\n    \"PersonerMedInnflytelse\": {\n      \"JuridiskePersoner\": [],\n      \"FysiskePersoner\": []\n    },\n    \"VedleggsListe\": {\n      \"Rader\": []\n    }\n  }\n}\n```\n"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "chatcmpl-tool-bc04e64888d0ad88",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Bevillingsansvarlig.Stedfortreder.FulltNavn\"}"
+          }
+        },
+        {
+          "id": "chatcmpl-tool-8491672c29446de4",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Bevillingsansvarlig.Stedfortreder.Fornavn\"}"
+          }
+        },
+        {
+          "id": "chatcmpl-tool-9fb391d404a3c93b",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Bevillingsansvarlig.Stedfortreder.Etternavn\"}"
+          }
+        },
+        {
+          "id": "chatcmpl-tool-897583bd68aef4b6",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Bevillingsansvarlig.SkalHaFritakFraStedfortreder\"}"
+          }
+        },
+        {
+          "id": "chatcmpl-tool-8299442ca4d6c299",
+          "type": "function",
+          "function": {
+            "name": "count_attachments",
+            "arguments": "{\"name_contains\": \"kunnskapsprove\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-bc04e64888d0ad88",
+      "content": "{\"present\": false, \"missing_at\": \"FlatData.Bevillingsansvarlig.Stedfortreder.FulltNavn\"}"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-8491672c29446de4",
+      "content": "{\"value\": \"Erik\", \"present\": true}"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-9fb391d404a3c93b",
+      "content": "{\"value\": \"Hansen\", \"present\": true}"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-897583bd68aef4b6",
+      "content": "{\"value\": false, \"present\": true}"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-8299442ca4d6c299",
+      "content": "{\"count\": 0, \"names\": []}"
+    },
+    {
+      "role": "assistant",
+      "content": "```json\n{\"status\": \"maa_undersokes\", \"merknad\": \"Stedfortreder Erik Hansen er navngitt, men det er ikke vedlagt dokumentasjon på bestått kunnskapsprøve.\"}\n```"
+    }
+  ]
+}

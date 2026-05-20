@@ -1,0 +1,520 @@
+{
+  "runId": "full-run-002",
+  "timestamp": "2026-05-20T10:54:04.518607+02:00",
+  "inputFile": "examples\\applications\\julebord-kristiansand.json",
+  "tracesDir": "training\\experiments\\exp-direct-tools\\traces\\full-run-002",
+  "concurrency": 5,
+  "punkter": [
+    {
+      "punkt": "dokumentasjon.arbeidsavtale_stedfortreder",
+      "status": "ikke_relevant",
+      "merknad": "Arbeidsavtale ikke kreves når stedfortreder opptrer i tilknytning til arrangementet.",
+      "llmCallCount": 2,
+      "toolCallCount": 1,
+      "toolsUsed": [
+        "path_value"
+      ],
+      "totalElapsedMs": 2209,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "dokumentasjon.arbeidsavtale_styrer",
+      "status": "ikke_relevant",
+      "merknad": "Arbeidsavtale ikke kreves for enkeltbevilling der søker er styrer for eget arrangement.",
+      "llmCallCount": 1,
+      "toolCallCount": 0,
+      "toolsUsed": [],
+      "totalElapsedMs": 1622,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "dokumentasjon.bruksgodkjenning",
+      "status": "maa_undersokes",
+      "merknad": "Ingen vedlegg for bruksgodkjenning er lastet opp, men lokalet (Restaurant Sjøhuset) er et etablert spisested. Bruksgodkjenning antas å foreligge — kontakt plan- og byggesaksavdelingen for bekreftelse.",
+      "llmCallCount": 3,
+      "toolCallCount": 3,
+      "toolsUsed": [
+        "count_attachments",
+        "path_value",
+        "text_contains_any"
+      ],
+      "totalElapsedMs": 4610,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "dokumentasjon.kunnskapsprove_stedfortreder",
+      "status": "maa_undersokes",
+      "merknad": "Stedfortreder Erik Hansen er navngitt, men dokumentasjon for bestått kunnskapsprøve mangler. Be om dokumentasjon eller sjekk P360.",
+      "llmCallCount": 2,
+      "toolCallCount": 5,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "path_value",
+        "path_value",
+        "count_attachments"
+      ],
+      "totalElapsedMs": 4969,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "dokumentasjon.kunnskapsprove_styrer",
+      "status": "maa_undersokes",
+      "merknad": "Dokumentasjon på bestått kunnskapsprøve for styrer Sophie Salt mangler. Dokumentasjon må etterspørres, og det bør sjekkes i P360 om prøven er tatt tidligere.",
+      "llmCallCount": 3,
+      "toolCallCount": 5,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "path_value",
+        "count_attachments",
+        "count_attachments"
+      ],
+      "totalElapsedMs": 4932,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "dokumentasjon.leiekontrakt",
+      "status": "maa_undersokes",
+      "merknad": "Ingen leiekontrakt eller bekreftelse fra lokaleier er vedlagt. Siden dette er en arrangement-bevilling, må det be om bekreftelse fra lokaleier for Restaurant Sjøhuset.",
+      "llmCallCount": 2,
+      "toolCallCount": 4,
+      "toolsUsed": [
+        "count_attachments",
+        "count_attachments",
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 3351,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "dokumentasjon.mattilsynet_registrering",
+      "status": "vurdert_ok",
+      "merknad": "Lokalet er et etablert spisested (Restaurant Sjøhuset), og det må derfor antas at det er registrert hos Mattilsynet.",
+      "llmCallCount": 3,
+      "toolCallCount": 2,
+      "toolsUsed": [
+        "path_value",
+        "text_contains_any"
+      ],
+      "totalElapsedMs": 3315,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "dokumentasjon.personantall_beregning",
+      "status": "maa_undersokes",
+      "merknad": "Ingen vedlegg med personantall-beregning funnet, men lokalet 'Restaurant Sjøhuset' er et etablert spisested. Beregning finnes sannsynligvis i kommunens systemer (P360/byggesak) — sjekk der først. Søknaden oppgir 45 deltakere.",
+      "llmCallCount": 3,
+      "toolCallCount": 4,
+      "toolsUsed": [
+        "count_attachments",
+        "path_value",
+        "path_value",
+        "text_contains_any"
+      ],
+      "totalElapsedMs": 4912,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "dokumentasjon.plantegninger",
+      "status": "ikke_vurdert",
+      "merknad": "Ingen plantegninger vedlagt, men lokalet (Restaurant Sjøhuset) er et etablert spisested. Plantegninger finnes ofte i kommunens arkiv og sjekkes på vanlig saksbehandlings-måte.",
+      "llmCallCount": 3,
+      "toolCallCount": 4,
+      "toolsUsed": [
+        "count_attachments",
+        "count_attachments",
+        "path_value",
+        "text_contains_any"
+      ],
+      "totalElapsedMs": 4461,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "formelle_krav.kommune_riktig",
+      "status": "vurdert_ok",
+      "merknad": "Kommunenummer 4204 er bekreftet som Kristiansand kommune, og arrangementsstedet (Restaurant Sjøhuset, Havnegata 15) ligger i denne kommunen.",
+      "llmCallCount": 3,
+      "toolCallCount": 3,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "lookup_kommune"
+      ],
+      "totalElapsedMs": 3401,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "formelle_krav.riktig_soknadstype",
+      "status": "vurdert_ok",
+      "merknad": "BevillingsType er 'arrangement' og arrangementstypen er 'julebord', som er et tydelig enkelt-arrangement.",
+      "llmCallCount": 2,
+      "toolCallCount": 2,
+      "toolsUsed": [
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 2281,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "formelle_krav.soker_identifisert",
+      "status": "maa_undersokes",
+      "merknad": "Søker er oppgitt som privatperson (BrukerType: person) uten organisasjonsnummer. Arrangementet er et julebord for bestemte personer, noe som kan kvalifisere for enkeltbevilling til privatperson. Saksbehandler må bekrefte at privatperson er riktig bevillingshaver for dette lukkede arrangementet.",
+      "llmCallCount": 1,
+      "toolCallCount": 0,
+      "toolsUsed": [],
+      "totalElapsedMs": 2064,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "formelle_krav.soknad_komplett",
+      "status": "maa_undersokes",
+      "merknad": "Søknaden er utfylt med nødvendige felter, men vedleggslisten er tom. Dokumentasjon må etterspørres.",
+      "llmCallCount": 2,
+      "toolCallCount": 1,
+      "toolsUsed": [
+        "count_attachments"
+      ],
+      "totalElapsedMs": 1465,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "gebyr.gebyr_beregnet",
+      "status": "maa_undersokes",
+      "merknad": "Gebyr må beregnes manuelt etter kommunens satser. Saksbehandler må konsultere gebyrregulativet for Kristiansand kommune.",
+      "llmCallCount": 3,
+      "toolCallCount": 2,
+      "toolsUsed": [
+        "path_value",
+        "lookup_kommune"
+      ],
+      "totalElapsedMs": 2547,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "habilitet.habilitet_vurdert",
+      "status": "vurdert_ok",
+      "merknad": "AI-agenten er habil i lovens forstand. Saksbehandler påminnes om å vurdere egen habilitet i henhold til forvaltningsloven § 6 før vedtak fattes.",
+      "llmCallCount": 1,
+      "toolCallCount": 0,
+      "toolsUsed": [],
+      "totalElapsedMs": 1692,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "habilitet.saksbehandlingstid",
+      "status": "vurdert_ok",
+      "merknad": "Det er 569 dager mellom dagens dato (2025-05-22) og arrangementets startdato (2026-12-12), noe som er godt over saksbehandlingsfristen på 90 dager.",
+      "llmCallCount": 3,
+      "toolCallCount": 2,
+      "toolsUsed": [
+        "path_value",
+        "days_between"
+      ],
+      "totalElapsedMs": 3789,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "habilitet.veiledningsplikt",
+      "status": "maa_undersokes",
+      "merknad": "Vedleggslisten er tom og det mangler nødvendig dokumentasjon. Det bør sendes digitalt brev til søker med oversikt over manglende dokumentasjon (kunnskapsprøver, bekreftelse fra lokaleier mv.) og rimelig frist for ettersending.",
+      "llmCallCount": 2,
+      "toolCallCount": 1,
+      "toolsUsed": [
+        "count_attachments"
+      ],
+      "totalElapsedMs": 2449,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "helhetsvurdering.anbefaling",
+      "status": "maa_undersokes",
+      "merknad": "Foreløpig anbefaling avventer eksterne uttalelser og saksbehandlers gjennomgang av sjekklisten. Søknaden gjelder et julebord for 45 bestemte personer med servering av varegruppe 3 på Restaurant Sjøhuset.",
+      "llmCallCount": 1,
+      "toolCallCount": 0,
+      "toolsUsed": [],
+      "totalElapsedMs": 1836,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "helhetsvurdering.samlet_vurdering",
+      "status": "maa_undersokes",
+      "merknad": "Saksbehandler må gjøre samlet vurdering etter at de øvrige punktene er gått igjennom. Særlige momenter for denne søknaden: Arrangementet 'Julebord Avdeling Nord' er av typen julebord med 45 deltakere på Restaurant Sjøhuset, og søker om varegruppe gruppeTre.",
+      "llmCallCount": 2,
+      "toolCallCount": 5,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "path_value",
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 4982,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "lokalpolitisk.arrangement_varighet_ok",
+      "status": "vurdert_ok",
+      "merknad": "Arrangementet varer fra 2026-12-12 til 2026-12-13, som utgjør 1 dag. Dette er innenfor grensen på 14 dager.",
+      "llmCallCount": 3,
+      "toolCallCount": 3,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "days_between"
+      ],
+      "totalElapsedMs": 4017,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "lokalpolitisk.beliggenhet_ok",
+      "status": "maa_undersokes",
+      "merknad": "Saksbehandler må vurdere beliggenheten konkret mot Kristiansand kommunes lokale retningslinjer. Arrangementet skal holdes på Restaurant Sjøhuset, Havnegata 15.",
+      "llmCallCount": 3,
+      "toolCallCount": 3,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "lookup_kommune"
+      ],
+      "totalElapsedMs": 3404,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "lokalpolitisk.brennevin_spisested",
+      "status": "vurdert_ok",
+      "merknad": "Det søkes om gruppe 3 (brennevin) og arrangementsstedet 'Restaurant Sjøhuset' er et åpenbart spisested.",
+      "llmCallCount": 3,
+      "toolCallCount": 3,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "text_contains_any"
+      ],
+      "totalElapsedMs": 3750,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "lokalpolitisk.ikke_barn_unge_omraade",
+      "status": "maa_undersokes",
+      "merknad": "Saksbehandler må vurdere om lokalet Restaurant Sjøhuset i Havnegata 15 ligger i et område som primært brukes til barn/unges fritidsaktiviteter. Basert på stedsnavnet fremstår dette som et lokale for voksne, men dette må bekreftes med lokalkunnskap.",
+      "llmCallCount": 2,
+      "toolCallCount": 1,
+      "toolsUsed": [
+        "path_value"
+      ],
+      "totalElapsedMs": 2867,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "lokalpolitisk.ikke_idrettsarrangement",
+      "status": "vurdert_ok",
+      "merknad": "Arrangementstypen er julebord og deltakerne er bestemte personer (lukket selskap) med 45 deltakere.",
+      "llmCallCount": 3,
+      "toolCallCount": 4,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "path_value",
+        "text_matches_any"
+      ],
+      "totalElapsedMs": 4400,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "lokalpolitisk.skjenketider_ok",
+      "status": "vurdert_ok",
+      "merknad": "Skjenketidene (19:00 - 02:00) for varegruppe 3 er innenfor lovens makstider (13:00 - 03:00). Saksbehandler må verifisere tidene mot kommunens lokale retningslinjer.",
+      "llmCallCount": 3,
+      "toolCallCount": 4,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "path_value",
+        "time_within_legal_schedule"
+      ],
+      "totalElapsedMs": 5047,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "personkrav.fritak_stedfortreder",
+      "status": "ikke_relevant",
+      "merknad": "Stedfortreder er oppgitt (Erik Hansen) og fritak er ikke aktuelt.",
+      "llmCallCount": 2,
+      "toolCallCount": 2,
+      "toolsUsed": [
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 2712,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "personkrav.stedfortreder_alder",
+      "status": "vurdert_ok",
+      "merknad": "Stedfortreder Erik Hansen (født 1990-03-15) er 36 år på arrangementets startdato 2026-12-12, noe som oppfyller kravet om minimum 20 år.",
+      "llmCallCount": 3,
+      "toolCallCount": 3,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "age_at_date_from_fnr"
+      ],
+      "totalElapsedMs": 4334,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "personkrav.stedfortreder_ansatt",
+      "status": "ikke_relevant",
+      "merknad": "Ansettelseskravet gjelder ikke da dette er en søknad om arrangement; stedfortreder opptrer i tilknytning til arrangementet.",
+      "llmCallCount": 2,
+      "toolCallCount": 1,
+      "toolsUsed": [
+        "path_value"
+      ],
+      "totalElapsedMs": 1695,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "personkrav.stedfortreder_kun_ett_sted",
+      "status": "maa_undersokes",
+      "merknad": "Stedfortreder Erik Hansen er navngitt. Saksbehandler må sjekke P360 for å bekrefte at vedkommende ikke er styrer eller stedfortreder på annet sted.",
+      "llmCallCount": 2,
+      "toolCallCount": 3,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 3744,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "personkrav.styrer_alder",
+      "status": "vurdert_ok",
+      "merknad": "Styrer er født 1990-03-01 og er 36 år på arrangementets startdato (2026-12-12), noe som oppfyller kravet om minimum 20 år.",
+      "llmCallCount": 2,
+      "toolCallCount": 1,
+      "toolsUsed": [
+        "age_at_date_from_fnr"
+      ],
+      "totalElapsedMs": 2948,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "personkrav.styrer_ansatt",
+      "status": "ikke_relevant",
+      "merknad": "Ansettelseskravet gjelder ikke for enkeltbevilling der søker selv er styrer for eget arrangement.",
+      "llmCallCount": 2,
+      "toolCallCount": 1,
+      "toolsUsed": [
+        "path_value"
+      ],
+      "totalElapsedMs": 1459,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "personkrav.styrer_kun_ett_sted",
+      "status": "maa_undersokes",
+      "merknad": "Saksbehandler må sjekke P360/bevillingsoversikt om Sophie Salt er registrert som styrer/stedfortreder for andre aktive bevillinger.",
+      "llmCallCount": 2,
+      "toolCallCount": 3,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 3820,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "vandel.nav_uttalelse",
+      "status": "ikke_vurdert",
+      "merknad": "Uttalelse må innhentes fra NAV i Kristiansand kommune.",
+      "llmCallCount": 3,
+      "toolCallCount": 2,
+      "toolsUsed": [
+        "path_value",
+        "lookup_kommune"
+      ],
+      "totalElapsedMs": 2825,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "vandel.politi_uttalelse",
+      "status": "ikke_vurdert",
+      "merknad": "Forespørsel om uttalelse må sendes manuelt til lokalt politidistrikt. Standardmal 'Forespørsel om opplysninger.docx' kan benyttes. Forventet svartid er ca. 1 uke.",
+      "llmCallCount": 1,
+      "toolCallCount": 0,
+      "toolsUsed": [],
+      "totalElapsedMs": 1942,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "vandel.skatteetaten_uttalelse",
+      "status": "ikke_vurdert",
+      "merknad": "Forespørsel om uttalelse må sendes manuelt til Skatteetaten. Typisk svartid er inntil 1 måned.",
+      "llmCallCount": 1,
+      "toolCallCount": 0,
+      "toolsUsed": [],
+      "totalElapsedMs": 1309,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "vandel.vandel_bevillingshaver",
+      "status": "ikke_vurdert",
+      "merknad": "Avventer uttalelser fra politi og Skatteetaten for bevillingshaver Sophie Salt (privatperson).",
+      "llmCallCount": 2,
+      "toolCallCount": 2,
+      "toolsUsed": [
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 2499,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "vandel.vandel_stedfortreder",
+      "status": "ikke_vurdert",
+      "merknad": "Avventer uttalelse fra politi om alkohollovgivning for stedfortreder Erik Hansen. Skatte- og regnskapsforhold er ikke relevant for stedfortreder.",
+      "llmCallCount": 3,
+      "toolCallCount": 3,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 3549,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "vandel.vandel_styrer",
+      "status": "ikke_vurdert",
+      "merknad": "Vandelsspørsmålet for styrer Sophie Salt venter på uttalelse fra politiet om alkohollovgivningen. Merk at skatte- og regnskapsforhold ikke er relevant for vurderingen av styrer.",
+      "llmCallCount": 1,
+      "toolCallCount": 0,
+      "toolsUsed": [],
+      "totalElapsedMs": 1712,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "vandel.vandel_vesentlig_innflytelse",
+      "status": "ikke_relevant",
+      "merknad": "Søker er privatperson uten andre personer med vesentlig innflytelse — ingen andre å vurdere.",
+      "llmCallCount": 2,
+      "toolCallCount": 3,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 2453,
+      "finishReason": "stop"
+    }
+  ],
+  "wallTimeSec": 25.57,
+  "model": "sandkasse/telenor:gemma4",
+  "transport": "sandkasse-direct-http + tool-loop"
+}

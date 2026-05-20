@@ -1,0 +1,145 @@
+{
+  "punkt": "dokumentasjon.mattilsynet_registrering",
+  "final": {
+    "status": "vurdert_ok",
+    "merknad": "Lokalet er et etablert spisested (Restaurant Sjøhuset), og det må derfor antas at det er registrert hos Mattilsynet."
+  },
+  "totalElapsedMs": 3348,
+  "llmCallCount": 3,
+  "toolCallCount": 2,
+  "finishReason": "stop",
+  "llmCalls": [
+    {
+      "iteration": 0,
+      "status_code": 200,
+      "elapsed_ms": 733,
+      "finish_reason": "tool_calls",
+      "tool_calls_count": 1,
+      "content_preview": "",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2400,
+        "total_tokens": 2430,
+        "completion_tokens": 30,
+        "prompt_tokens_details": null
+      }
+    },
+    {
+      "iteration": 1,
+      "status_code": 200,
+      "elapsed_ms": 1091,
+      "finish_reason": "tool_calls",
+      "tool_calls_count": 1,
+      "content_preview": "",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2453,
+        "total_tokens": 2508,
+        "completion_tokens": 55,
+        "prompt_tokens_details": null
+      }
+    },
+    {
+      "iteration": 2,
+      "status_code": 200,
+      "elapsed_ms": 1522,
+      "finish_reason": "stop",
+      "tool_calls_count": 0,
+      "content_preview": "```json\n{\"status\": \"vurdert_ok\", \"merknad\": \"Lokalet er et etablert spisested (Restaurant Sjøhuset), og det må derfor antas at det er registrert hos Mattilsynet.\"}\n```",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2529,
+        "total_tokens": 2589,
+        "completion_tokens": 60,
+        "prompt_tokens_details": null
+      }
+    }
+  ],
+  "toolCalls": [
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-aa6fff36b8c4d82a",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Arrangement.Arrangementssted.StedsNavn"
+      },
+      "result": {
+        "value": "Restaurant Sjøhuset",
+        "present": true
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 1,
+      "tool_call_id": "chatcmpl-tool-b2f7e3c8dcf86239",
+      "name": "text_contains_any",
+      "arguments": {
+        "haystack": "Restaurant Sjøhuset",
+        "needles": [
+          "restaurant",
+          "kro",
+          "pub",
+          "spisested",
+          "gjestgiveri"
+        ]
+      },
+      "result": {
+        "contains": true,
+        "matched": "restaurant"
+      },
+      "elapsed_ms": 0
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "Du er en saksbehandler-assistent for kommunale bevillingssaker.\n\nDu får ETT sjekklistepunkt med tilhørende regel (i markdown-format) og hele søknads-JSON.\nDin oppgave: vurder dette ene punktet og returner KUN ett JSON-objekt:\n{\"status\": \"...\", \"merknad\": \"...\"}\n\nStatus MÅ være EN av:\n- vurdert_ok       (vilkåret er bekreftet oppfylt)\n- vurdert_avslag   (konkret dokumentert brudd på vilkåret)\n- maa_undersokes   (mangler dokumentasjon, eller saksbehandler må undersøke noe)\n- ikke_relevant    (punktet gjelder ikke denne søknadstypen)\n- ikke_vurdert     (avventer ekstern uttalelse eller manuelle steg)\n\nDu har tilgang til verktøy for deterministiske beregninger (alder, datoer, oppslag, tekst-matching).\nBruk dem AKTIVT når regelen krever beregning eller oppslag — ikke gjett tall eller datoer.\nHvis regelen er ren tekstvurdering uten beregning, svar direkte uten verktøyskall.\n\nNår du har all info du trenger, svar med JSON-objektet og ingenting annet.\nIngen markdown, ingen kommentar utenfor JSON.\n"
+    },
+    {
+      "role": "user",
+      "content": "# Sjekklistepunkt: dokumentasjon.mattilsynet_registrering\n\n## Regelen\n\n# Registrering hos Mattilsynet\n\n## Vurdering\nSjekk om lokalet er registrert hos Mattilsynet (for spisesteder).\n\n* Lokalet er et etablert spisested (stedsnavn inneholder \"restaurant\", \"kro\", \"pub\" e.l.): **vurdert_ok**. Skriv at det må antas å være registrert; verifiseres via oppslag ved tvil.\n* Lokalet er ikke et tydelig spisested (f.eks. forsamlingshus, telt): **ikke_relevant** eller **maa_undersokes** etter skjønn — Mattilsyn-registrering er mest relevant der det serveres mat.\n* Felter mangler: **maa_undersokes**.\n\nBruk `path_value` for `FlatData.Arrangement.Arrangementssted.StedsNavn` og `text_contains_any` med [\"restaurant\",\"kro\",\"pub\",\"spisested\",\"gjestgiveri\"].\n\n\n## Søknad (JSON)\n\n```json\n{\n  \"FlatData\": {\n    \"BrukerType\": \"person\",\n    \"SkalFornyeBevilling\": false,\n    \"BevillingsType\": \"arrangement\",\n    \"Kommunenummer\": \"4204\",\n    \"Innsender\": {\n      \"Fornavn\": \"Sophie\",\n      \"Etternavn\": \"Salt\",\n      \"FulltNavn\": \"Sophie Salt\",\n      \"Foedselsnummer\": \"01039012345\",\n      \"EPostadresse\": \"sophie@test.no\",\n      \"Telefonnummer\": \"99887766\",\n      \"Adresse\": {\n        \"Gateadresse\": \"Leikanger\",\n        \"Postnummer\": \"6863\",\n        \"Poststed\": \"KRISTIANSAND S\"\n      }\n    },\n    \"OrganisasjonsInformasjon\": {\n      \"Organisasjonsnummer\": null,\n      \"Navn\": null\n    },\n    \"Arrangement\": {\n      \"VaregruppeAlkohol\": \"gruppeTre\",\n      \"Navn\": \"Julebord Avdeling Nord\",\n      \"ArrangementType\": \"julebord\",\n      \"ArrangementPeriode\": [\n        {\n          \"StartDato\": \"2026-12-12\",\n          \"SluttDato\": \"2026-12-13\",\n          \"StartTid\": \"19:00\",\n          \"SluttTid\": \"02:00\"\n        }\n      ],\n      \"TypeDeltakere\": \"bestemtePersoner\",\n      \"AntallDeltakere\": \"45\",\n      \"Arrangementssted\": {\n        \"Type\": \"innendoers\",\n        \"StedsNavn\": \"Restaurant Sjøhuset\",\n        \"StedsAdresse\": {\n          \"Gateadresse\": \"Havnegata 15\"\n        },\n        \"Etasje\": \"2. etasje\"\n      }\n    },\n    \"Bevillingsansvarlig\": {\n      \"SkalHaFritakFraStedfortreder\": false,\n      \"Styrer\": {\n        \"Fornavn\": \"Sophie\",\n        \"Etternavn\": \"Salt\",\n        \"Foedselsnummer\": \"01039012345\",\n        \"EPostadresse\": \"sophie@test.no\",\n        \"Telefonnummer\": \"99887766\"\n      },\n      \"Stedfortreder\": {\n        \"Fornavn\": \"Erik\",\n        \"Etternavn\": \"Hansen\",\n        \"Foedselsnummer\": \"15039012345\",\n        \"EPostadresse\": \"erik@test.no\",\n        \"Telefonnummer\": \"98765432\"\n      }\n    },\n    \"PersonerMedInnflytelse\": {\n      \"JuridiskePersoner\": [],\n      \"FysiskePersoner\": []\n    },\n    \"VedleggsListe\": {\n      \"Rader\": []\n    }\n  }\n}\n```\n"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "chatcmpl-tool-aa6fff36b8c4d82a",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Arrangement.Arrangementssted.StedsNavn\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-aa6fff36b8c4d82a",
+      "content": "{\"value\": \"Restaurant Sjøhuset\", \"present\": true}"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "chatcmpl-tool-b2f7e3c8dcf86239",
+          "type": "function",
+          "function": {
+            "name": "text_contains_any",
+            "arguments": "{\"haystack\": \"Restaurant Sjøhuset\", \"needles\": [\"restaurant\", \"kro\", \"pub\", \"spisested\", \"gjestgiveri\"]}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-b2f7e3c8dcf86239",
+      "content": "{\"contains\": true, \"matched\": \"restaurant\"}"
+    },
+    {
+      "role": "assistant",
+      "content": "```json\n{\"status\": \"vurdert_ok\", \"merknad\": \"Lokalet er et etablert spisested (Restaurant Sjøhuset), og det må derfor antas at det er registrert hos Mattilsynet.\"}\n```"
+    }
+  ]
+}

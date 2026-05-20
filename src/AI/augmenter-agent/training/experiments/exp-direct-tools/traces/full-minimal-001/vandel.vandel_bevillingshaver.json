@@ -1,0 +1,164 @@
+{
+  "punkt": "vandel.vandel_bevillingshaver",
+  "final": {
+    "status": "ikke_vurdert",
+    "merknad": "Avventer uttalelser fra politi og Skatteetaten for bevillingshaver Test Person. Informasjon om bruker-type mangler i søknaden."
+  },
+  "totalElapsedMs": 2679,
+  "llmCallCount": 3,
+  "toolCallCount": 3,
+  "finishReason": "stop",
+  "llmCalls": [
+    {
+      "iteration": 0,
+      "status_code": 200,
+      "elapsed_ms": 968,
+      "finish_reason": "tool_calls",
+      "tool_calls_count": 2,
+      "content_preview": "",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2017,
+        "total_tokens": 2065,
+        "completion_tokens": 48,
+        "prompt_tokens_details": null
+      }
+    },
+    {
+      "iteration": 1,
+      "status_code": 200,
+      "elapsed_ms": 683,
+      "finish_reason": "tool_calls",
+      "tool_calls_count": 1,
+      "content_preview": "",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2122,
+        "total_tokens": 2159,
+        "completion_tokens": 37,
+        "prompt_tokens_details": null
+      }
+    },
+    {
+      "iteration": 2,
+      "status_code": 200,
+      "elapsed_ms": 1026,
+      "finish_reason": "stop",
+      "tool_calls_count": 0,
+      "content_preview": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Avventer uttalelser fra politi og Skatteetaten for bevillingshaver Test Person. Informasjon om bruker-type mangler i søknaden.\"}",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2179,
+        "total_tokens": 2237,
+        "completion_tokens": 58,
+        "prompt_tokens_details": null
+      }
+    }
+  ],
+  "toolCalls": [
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-9a31a23ed4764132",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Innsender.FulltNavn"
+      },
+      "result": {
+        "present": false,
+        "missing_at": "FlatData.Innsender"
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-bef24ef5577e3345",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.BrukerType"
+      },
+      "result": {
+        "present": false,
+        "missing_at": "FlatData.BrukerType"
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 1,
+      "tool_call_id": "chatcmpl-tool-814fd62ae24af96e",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Bevillingsansvarlig.Styrer.FulltNavn"
+      },
+      "result": {
+        "value": "Test Person",
+        "present": true
+      },
+      "elapsed_ms": 0
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "Du er en saksbehandler-assistent for kommunale bevillingssaker.\n\nDu får ETT sjekklistepunkt med tilhørende regel (i markdown-format) og hele søknads-JSON.\nDin oppgave: vurder dette ene punktet og returner KUN ett JSON-objekt:\n{\"status\": \"...\", \"merknad\": \"...\"}\n\nStatus MÅ være EN av:\n- vurdert_ok       (vilkåret er bekreftet oppfylt)\n- vurdert_avslag   (konkret dokumentert brudd på vilkåret)\n- maa_undersokes   (mangler dokumentasjon, eller saksbehandler må undersøke noe)\n- ikke_relevant    (punktet gjelder ikke denne søknadstypen)\n- ikke_vurdert     (avventer ekstern uttalelse eller manuelle steg)\n\nDu har tilgang til verktøy for deterministiske beregninger (alder, datoer, oppslag, tekst-matching).\nBruk dem AKTIVT når regelen krever beregning eller oppslag — ikke gjett tall eller datoer.\nHvis regelen er ren tekstvurdering uten beregning, svar direkte uten verktøyskall.\n\nNår du har all info du trenger, svar med JSON-objektet og ingenting annet.\nIngen markdown, ingen kommentar utenfor JSON.\n"
+    },
+    {
+      "role": "user",
+      "content": "# Sjekklistepunkt: vandel.vandel_bevillingshaver\n\n## Regelen\n\n# Vandel OK – bevillingshaver/eier\n\n## Hjemmel\nAlkoholloven § 1-7b: bevillingshaver må ha utvist uklanderlig vandel i forhold til alkohollovgivningen, skatte- og avgiftslovgivningen samt regnskapslovgivningen.\n\n## Vurdering\nVandelsvurdering for bevillingshaver baseres på uttalelser fra politi og Skatteetaten. Det finnes ingen integrasjon mot disse — punktet kan ikke avgjøres her.\n\nStatusen skal alltid være: **ikke_vurdert**.\n\nSkriv en merknad som:\n* Sier at man avventer uttalelser fra politi og Skatteetaten\n* Inkluderer bevillingshaverens navn (innsenderens fulle navn)\n* Nevner om bevillingshaver er privatperson eller selskap (basert på `BrukerType`)\n\nBruk `path_value` for `FlatData.Innsender.FulltNavn` og `FlatData.BrukerType`.\n\n\n## Søknad (JSON)\n\n```json\n{\n  \"FlatData\": {\n    \"BevillingsType\": \"arrangement\",\n    \"Arrangement\": {\n      \"Navn\": \"Testfest\",\n      \"ArrangementPeriode\": [\n        {\n          \"StartDato\": \"2026-12-12\",\n          \"SluttDato\": \"2026-12-12\"\n        }\n      ],\n      \"Arrangementssted\": {\n        \"StedsNavn\": \"Festsalen\",\n        \"StedsAdresse\": {\n          \"Gateadresse\": \"Testveien 1\"\n        }\n      }\n    },\n    \"Bevillingsansvarlig\": {\n      \"Styrer\": {\n        \"FulltNavn\": \"Test Person\",\n        \"Foedselsnummer\": \"01039012345\"\n      },\n      \"Stedfortreder\": {\n        \"Fornavn\": \"Ole\",\n        \"Etternavn\": \"Hansen\",\n        \"Foedselsnummer\": \"01019012345\"\n      }\n    },\n    \"PersonerMedInnflytelse\": {\n      \"FysiskePersoner\": [],\n      \"JuridiskePersoner\": []\n    },\n    \"VedleggsListe\": {\n      \"Rader\": []\n    }\n  }\n}\n```\n"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "chatcmpl-tool-9a31a23ed4764132",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Innsender.FulltNavn\"}"
+          }
+        },
+        {
+          "id": "chatcmpl-tool-bef24ef5577e3345",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.BrukerType\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-9a31a23ed4764132",
+      "content": "{\"present\": false, \"missing_at\": \"FlatData.Innsender\"}"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-bef24ef5577e3345",
+      "content": "{\"present\": false, \"missing_at\": \"FlatData.BrukerType\"}"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "chatcmpl-tool-814fd62ae24af96e",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Bevillingsansvarlig.Styrer.FulltNavn\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-814fd62ae24af96e",
+      "content": "{\"value\": \"Test Person\", \"present\": true}"
+    },
+    {
+      "role": "assistant",
+      "content": "{\"status\": \"ikke_vurdert\", \"merknad\": \"Avventer uttalelser fra politi og Skatteetaten for bevillingshaver Test Person. Informasjon om bruker-type mangler i søknaden.\"}"
+    }
+  ]
+}

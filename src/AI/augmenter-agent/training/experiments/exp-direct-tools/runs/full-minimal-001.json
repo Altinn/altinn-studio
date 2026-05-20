@@ -1,0 +1,518 @@
+{
+  "runId": "full-minimal-001",
+  "timestamp": "2026-05-20T10:55:38.284514+02:00",
+  "inputFile": "examples\\applications\\minimal-arrangement.json",
+  "tracesDir": "training\\experiments\\exp-direct-tools\\traces\\full-minimal-001",
+  "concurrency": 5,
+  "punkter": [
+    {
+      "punkt": "dokumentasjon.arbeidsavtale_stedfortreder",
+      "status": "ikke_relevant",
+      "merknad": "Arbeidsavtale ikke kreves når stedfortreder opptrer i tilknytning til arrangementet.",
+      "llmCallCount": 2,
+      "toolCallCount": 1,
+      "toolsUsed": [
+        "path_value"
+      ],
+      "totalElapsedMs": 11321,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "dokumentasjon.arbeidsavtale_styrer",
+      "status": "ikke_relevant",
+      "merknad": "Arbeidsavtale ikke kreves for enkeltbevilling der søker er styrer for eget arrangement.",
+      "llmCallCount": 2,
+      "toolCallCount": 2,
+      "toolsUsed": [
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 11755,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "dokumentasjon.bruksgodkjenning",
+      "status": "maa_undersokes",
+      "merknad": "Ingen bruksgodkjenning er vedlagt, og lokalet (Festsalen) er ikke identifisert som et etablert spisested. Vennligst send forespørsel om dokumentasjon.",
+      "llmCallCount": 3,
+      "toolCallCount": 3,
+      "toolsUsed": [
+        "count_attachments",
+        "path_value",
+        "text_contains_any"
+      ],
+      "totalElapsedMs": 13433,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "dokumentasjon.kunnskapsprove_stedfortreder",
+      "status": "maa_undersokes",
+      "merknad": "Stedfortreder Ole Hansen er navngitt, men dokumentasjon for bestått kunnskapsprøve er ikke vedlagt.",
+      "llmCallCount": 2,
+      "toolCallCount": 3,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "count_attachments"
+      ],
+      "totalElapsedMs": 12471,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "dokumentasjon.kunnskapsprove_styrer",
+      "status": "maa_undersokes",
+      "merknad": "Dokumentasjon på bestått kunnskapsprøve for styrer Test Person mangler. Dokumentasjon må etterspørres, og det bør sjekkes i P360 om prøven er tatt tidligere.",
+      "llmCallCount": 3,
+      "toolCallCount": 3,
+      "toolsUsed": [
+        "path_value",
+        "count_attachments",
+        "count_attachments"
+      ],
+      "totalElapsedMs": 12677,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "dokumentasjon.leiekontrakt",
+      "status": "maa_undersokes",
+      "merknad": "Ingen leiekontrakt eller bekreftelse fra lokaleier er vedlagt. Siden dette er en arrangement-bevilling, må det innhentes bekreftelse fra lokaleier for Festsalen.",
+      "llmCallCount": 2,
+      "toolCallCount": 5,
+      "toolsUsed": [
+        "count_attachments",
+        "count_attachments",
+        "count_attachments",
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 3418,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "dokumentasjon.mattilsynet_registrering",
+      "status": "ikke_relevant",
+      "merknad": "Lokalet ('Festsalen') fremstår ikke som et etablert spisested, og Mattilsyn-registrering vurderes derfor som ikke relevant for dette arrangementet.",
+      "llmCallCount": 3,
+      "toolCallCount": 2,
+      "toolsUsed": [
+        "path_value",
+        "text_contains_any"
+      ],
+      "totalElapsedMs": 3022,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "dokumentasjon.personantall_beregning",
+      "status": "maa_undersokes",
+      "merknad": "Det er ikke vedlagt beregning av maksimalt personantall, og lokalet ('Festsalen') fremstår ikke som et etablert spisested. Vennligst be søker om å sende inn dokumentasjon på personantall utført av godkjent firma.",
+      "llmCallCount": 3,
+      "toolCallCount": 4,
+      "toolsUsed": [
+        "count_attachments",
+        "path_value",
+        "path_value",
+        "text_contains_any"
+      ],
+      "totalElapsedMs": 4295,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "dokumentasjon.plantegninger",
+      "status": "maa_undersokes",
+      "merknad": "Ingen plantegninger er vedlagt søknaden for lokalet 'Festsalen'. Det må be om plantegninger.",
+      "llmCallCount": 2,
+      "toolCallCount": 3,
+      "toolsUsed": [
+        "count_attachments",
+        "count_attachments",
+        "path_value"
+      ],
+      "totalElapsedMs": 2454,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "formelle_krav.kommune_riktig",
+      "status": "maa_undersokes",
+      "merknad": "Kommunenummer mangler i søknaden (FlatData.Kommunenummer), og kan derfor ikke verifiseres mot arrangementsstedet.",
+      "llmCallCount": 2,
+      "toolCallCount": 2,
+      "toolsUsed": [
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 2314,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "formelle_krav.riktig_soknadstype",
+      "status": "maa_undersokes",
+      "merknad": "BevillingsType er satt til 'arrangement', men feltet FlatData.Arrangement.ArrangementType mangler, slik at det ikke kan bekreftes at søknadstypen stemmer overens med arrangementets art.",
+      "llmCallCount": 2,
+      "toolCallCount": 2,
+      "toolsUsed": [
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 2634,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "formelle_krav.soker_identifisert",
+      "status": "maa_undersokes",
+      "merknad": "Søknaden mangler både organisasjonsnummer og informasjon om brukertype (person/bedrift). Det kan ikke bekreftes om søker er identifisert korrekt.",
+      "llmCallCount": 2,
+      "toolCallCount": 2,
+      "toolsUsed": [
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 2318,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "formelle_krav.soknad_komplett",
+      "status": "maa_undersokes",
+      "merknad": "Søknaden er utfylt med nødvendige felter, men vedleggslisten er tom. Dokumentasjon må etterspørres.",
+      "llmCallCount": 2,
+      "toolCallCount": 8,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "path_value",
+        "path_value",
+        "path_value",
+        "path_value",
+        "path_value",
+        "count_attachments"
+      ],
+      "totalElapsedMs": 12793,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "gebyr.gebyr_beregnet",
+      "status": "maa_undersokes",
+      "merknad": "Gebyr må beregnes manuelt etter kommunens satser. Saksbehandler må konsultere kommunens gebyrregulativ.",
+      "llmCallCount": 3,
+      "toolCallCount": 2,
+      "toolsUsed": [
+        "path_value",
+        "lookup_kommune"
+      ],
+      "totalElapsedMs": 2239,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "habilitet.habilitet_vurdert",
+      "status": "vurdert_ok",
+      "merknad": "AI-agenten er habil i lovens forstand. Saksbehandler må selv vurdere egen habilitet i henhold til fvl. § 6 før vedtak fattes.",
+      "llmCallCount": 1,
+      "toolCallCount": 0,
+      "toolsUsed": [],
+      "totalElapsedMs": 8917,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "habilitet.saksbehandlingstid",
+      "status": "vurdert_ok",
+      "merknad": "Det er 569 dager mellom dagens dato (2025-05-22) og arrangementets startdato (2026-12-12), noe som er godt over saksbehandlingsfristen på 90 dager.",
+      "llmCallCount": 3,
+      "toolCallCount": 2,
+      "toolsUsed": [
+        "path_value",
+        "days_between"
+      ],
+      "totalElapsedMs": 11078,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "habilitet.veiledningsplikt",
+      "status": "maa_undersokes",
+      "merknad": "Vedleggslisten er tom og det mangler nødvendig dokumentasjon. Det bør sendes digitalt brev til søker med oversikt over manglende dokumentasjon (kunnskapsprøver, bekreftelse fra lokaleier mv.) og rimelig frist for ettersending.",
+      "llmCallCount": 2,
+      "toolCallCount": 1,
+      "toolsUsed": [
+        "count_attachments"
+      ],
+      "totalElapsedMs": 9504,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "helhetsvurdering.anbefaling",
+      "status": "maa_undersokes",
+      "merknad": "Foreløpig anbefaling avventer eksterne uttalelser og saksbehandlers gjennomgang av sjekklisten. Søknaden gjelder arrangementet 'Testfest' i Festsalen.",
+      "llmCallCount": 1,
+      "toolCallCount": 0,
+      "toolsUsed": [],
+      "totalElapsedMs": 8830,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "helhetsvurdering.samlet_vurdering",
+      "status": "maa_undersokes",
+      "merknad": "Saksbehandler må gjøre samlet vurdering etter at de øvrige punktene er gått igjennom. Særlige momenter for denne søknaden: Arrangementet 'Testfest' skal holdes i 'Festsalen'. Antall deltakere og varegruppe er ikke oppgitt i søknaden.",
+      "llmCallCount": 2,
+      "toolCallCount": 4,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 3809,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "lokalpolitisk.arrangement_varighet_ok",
+      "status": "vurdert_ok",
+      "merknad": "Arrangementet varer fra 2026-12-12 til 2026-12-12 (0 dager), som er innenfor grensen på 14 dager.",
+      "llmCallCount": 3,
+      "toolCallCount": 3,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "days_between"
+      ],
+      "totalElapsedMs": 3845,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "lokalpolitisk.beliggenhet_ok",
+      "status": "maa_undersokes",
+      "merknad": "Saksbehandler må vurdere beliggenheten konkret mot kommunens lokale retningslinjer for Festsalen i Testveien 1. Kommunenummer mangler i søknaden, så kommune må identifiseres manuelt.",
+      "llmCallCount": 2,
+      "toolCallCount": 3,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 3431,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "lokalpolitisk.brennevin_spisested",
+      "status": "maa_undersokes",
+      "merknad": "Varegruppe er ikke oppgitt i søknaden. Det må avklares om det søkes om gruppe 3 (brennevin), og i så fall om 'Festsalen' tilfredsstiller kravet om matservering.",
+      "llmCallCount": 2,
+      "toolCallCount": 2,
+      "toolsUsed": [
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 2690,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "lokalpolitisk.ikke_barn_unge_omraade",
+      "status": "maa_undersokes",
+      "merknad": "Saksbehandler må vurdere lokalets område konkret med hensyn på barn/unges fritidsaktiviteter. Gjelder stedsnavn 'Festsalen' med adresse 'Testveien 1'. Basert på stedsnavnet kan dette fremstå som et lokale for voksenarrangementer, men dette må bekreftes lokalt.",
+      "llmCallCount": 2,
+      "toolCallCount": 1,
+      "toolsUsed": [
+        "path_value"
+      ],
+      "totalElapsedMs": 2885,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "lokalpolitisk.ikke_idrettsarrangement",
+      "status": "maa_undersokes",
+      "merknad": "Søknaden mangler opplysninger om arrangementstype og type deltakere, noe som er nødvendig for å vurdere om arrangementet er i strid med Alkoholloven § 8-9.",
+      "llmCallCount": 2,
+      "toolCallCount": 2,
+      "toolsUsed": [
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 2560,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "lokalpolitisk.skjenketider_ok",
+      "status": "maa_undersokes",
+      "merknad": "Søknaden mangler opplysninger om skjenketider og varegruppe.",
+      "llmCallCount": 1,
+      "toolCallCount": 0,
+      "toolsUsed": [],
+      "totalElapsedMs": 843,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "personkrav.fritak_stedfortreder",
+      "status": "ikke_relevant",
+      "merknad": "Stedfortreder er oppgitt (Ole Hansen) og fritak er ikke aktuelt.",
+      "llmCallCount": 2,
+      "toolCallCount": 2,
+      "toolsUsed": [
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 2551,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "personkrav.stedfortreder_alder",
+      "status": "vurdert_ok",
+      "merknad": "Stedfortreder (født 1990-01-01) er 36 år på arrangementets startdato 2026-12-12, noe som oppfyller kravet om minimum 20 år.",
+      "llmCallCount": 3,
+      "toolCallCount": 3,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "age_at_date_from_fnr"
+      ],
+      "totalElapsedMs": 4148,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "personkrav.stedfortreder_ansatt",
+      "status": "ikke_relevant",
+      "merknad": "Ansettelseskravet gjelder ikke for arrangementer; stedfortreder opptrer i tilknytning til arrangementet.",
+      "llmCallCount": 2,
+      "toolCallCount": 1,
+      "toolsUsed": [
+        "path_value"
+      ],
+      "totalElapsedMs": 1621,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "personkrav.stedfortreder_kun_ett_sted",
+      "status": "maa_undersokes",
+      "merknad": "Stedfortreder Ole Hansen er navngitt. Saksbehandler må sjekke P360 for å bekrefte at vedkommende ikke er styrer eller stedfortreder på annet sted.",
+      "llmCallCount": 2,
+      "toolCallCount": 2,
+      "toolsUsed": [
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 2774,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "personkrav.styrer_alder",
+      "status": "vurdert_ok",
+      "merknad": "Styrer er født 1990-03-01 og er 36 år på arrangementets startdato (2026-12-12), noe som oppfyller kravet om minimum 20 år.",
+      "llmCallCount": 3,
+      "toolCallCount": 3,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "age_at_date_from_fnr"
+      ],
+      "totalElapsedMs": 3999,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "personkrav.styrer_ansatt",
+      "status": "ikke_relevant",
+      "merknad": "Ansettelseskravet gjelder ikke for enkeltbevilling der søker selv er styrer for eget arrangement.",
+      "llmCallCount": 2,
+      "toolCallCount": 1,
+      "toolsUsed": [
+        "path_value"
+      ],
+      "totalElapsedMs": 1491,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "personkrav.styrer_kun_ett_sted",
+      "status": "maa_undersokes",
+      "merknad": "Saksbehandler må sjekke P360/bevillingsoversikt om Test Person er registrert som styrer/stedfortreder for andre aktive bevillinger.",
+      "llmCallCount": 2,
+      "toolCallCount": 1,
+      "toolsUsed": [
+        "path_value"
+      ],
+      "totalElapsedMs": 1996,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "vandel.nav_uttalelse",
+      "status": "ikke_vurdert",
+      "merknad": "Uttalelse må innhentes fra NAV i den aktuelle kommunen.",
+      "llmCallCount": 2,
+      "toolCallCount": 1,
+      "toolsUsed": [
+        "path_value"
+      ],
+      "totalElapsedMs": 1386,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "vandel.politi_uttalelse",
+      "status": "ikke_vurdert",
+      "merknad": "Forespørsel om uttalelse må sendes manuelt til lokalt politidistrikt. Standardmal 'Forespørsel om opplysninger.docx' kan benyttes. Forventet svartid er ca. 1 uke.",
+      "llmCallCount": 1,
+      "toolCallCount": 0,
+      "toolsUsed": [],
+      "totalElapsedMs": 1585,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "vandel.skatteetaten_uttalelse",
+      "status": "ikke_vurdert",
+      "merknad": "Forespørsel om uttalelse må sendes manuelt til Skatteetaten. Typisk svartid er inntil 1 måned.",
+      "llmCallCount": 1,
+      "toolCallCount": 0,
+      "toolsUsed": [],
+      "totalElapsedMs": 1225,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "vandel.vandel_bevillingshaver",
+      "status": "ikke_vurdert",
+      "merknad": "Avventer uttalelser fra politi og Skatteetaten for bevillingshaver Test Person. Informasjon om bruker-type mangler i søknaden.",
+      "llmCallCount": 3,
+      "toolCallCount": 3,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 2679,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "vandel.vandel_stedfortreder",
+      "status": "ikke_vurdert",
+      "merknad": "Avventer uttalelse fra politi om alkohollovgivning for stedfortreder Ole Hansen. Skatte- og regnskapsforhold er ikke relevant for stedfortreder.",
+      "llmCallCount": 3,
+      "toolCallCount": 3,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 3405,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "vandel.vandel_styrer",
+      "status": "ikke_vurdert",
+      "merknad": "Vandelsspørsmålet for styrer Test Person venter på uttalelse fra politiet om alkohollovgivningen. Merk at skatte- og regnskapsforhold ikke er relevant for vurderingen av styrer.",
+      "llmCallCount": 1,
+      "toolCallCount": 0,
+      "toolsUsed": [],
+      "totalElapsedMs": 1507,
+      "finishReason": "stop"
+    },
+    {
+      "punkt": "vandel.vandel_vesentlig_innflytelse",
+      "status": "maa_undersokes",
+      "merknad": "BrukerType mangler i søknaden, og listene over personer med innflytelse er tomme. Det må avklares om søker er en privatperson eller om det mangler opplysninger om personer med vesentlig innflytelse.",
+      "llmCallCount": 2,
+      "toolCallCount": 3,
+      "toolsUsed": [
+        "path_value",
+        "path_value",
+        "path_value"
+      ],
+      "totalElapsedMs": 2797,
+      "finishReason": "stop"
+    }
+  ],
+  "wallTimeSec": 38.96,
+  "model": "sandkasse/telenor:gemma4",
+  "transport": "sandkasse-direct-http + tool-loop"
+}

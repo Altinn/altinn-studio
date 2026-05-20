@@ -1,0 +1,164 @@
+{
+  "punkt": "vandel.vandel_stedfortreder",
+  "final": {
+    "status": "ikke_vurdert",
+    "merknad": "Avventer uttalelse fra politi om alkohollovgivning for stedfortreder Ole Hansen. Skatte- og regnskapsforhold er ikke relevant for stedfortreder."
+  },
+  "totalElapsedMs": 3405,
+  "llmCallCount": 3,
+  "toolCallCount": 3,
+  "finishReason": "stop",
+  "llmCalls": [
+    {
+      "iteration": 0,
+      "status_code": 200,
+      "elapsed_ms": 780,
+      "finish_reason": "tool_calls",
+      "tool_calls_count": 1,
+      "content_preview": "",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 1998,
+        "total_tokens": 2033,
+        "completion_tokens": 35,
+        "prompt_tokens_details": null
+      }
+    },
+    {
+      "iteration": 1,
+      "status_code": 200,
+      "elapsed_ms": 1273,
+      "finish_reason": "tool_calls",
+      "tool_calls_count": 2,
+      "content_preview": "",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2072,
+        "total_tokens": 2143,
+        "completion_tokens": 71,
+        "prompt_tokens_details": null
+      }
+    },
+    {
+      "iteration": 2,
+      "status_code": 200,
+      "elapsed_ms": 1351,
+      "finish_reason": "stop",
+      "tool_calls_count": 0,
+      "content_preview": "```json\n{\n  \"status\": \"ikke_vurdert\",\n  \"merknad\": \"Avventer uttalelse fra politi om alkohollovgivning for stedfortreder Ole Hansen. Skatte- og regnskapsforhold er ikke relevant for stedfortreder.\"\n}\n```",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2187,
+        "total_tokens": 2260,
+        "completion_tokens": 73,
+        "prompt_tokens_details": null
+      }
+    }
+  ],
+  "toolCalls": [
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-bc054bad103dd8d9",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Bevillingsansvarlig.Stedfortreder.FulltNavn"
+      },
+      "result": {
+        "present": false,
+        "missing_at": "FlatData.Bevillingsansvarlig.Stedfortreder.FulltNavn"
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 1,
+      "tool_call_id": "chatcmpl-tool-b81f298abe43e769",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Bevillingsansvarlig.Stedfortreder.Fornavn"
+      },
+      "result": {
+        "value": "Ole",
+        "present": true
+      },
+      "elapsed_ms": 0
+    },
+    {
+      "iteration": 1,
+      "tool_call_id": "chatcmpl-tool-933644c7ec7a711a",
+      "name": "path_value",
+      "arguments": {
+        "json_path": "FlatData.Bevillingsansvarlig.Stedfortreder.Etternavn"
+      },
+      "result": {
+        "value": "Hansen",
+        "present": true
+      },
+      "elapsed_ms": 0
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "Du er en saksbehandler-assistent for kommunale bevillingssaker.\n\nDu får ETT sjekklistepunkt med tilhørende regel (i markdown-format) og hele søknads-JSON.\nDin oppgave: vurder dette ene punktet og returner KUN ett JSON-objekt:\n{\"status\": \"...\", \"merknad\": \"...\"}\n\nStatus MÅ være EN av:\n- vurdert_ok       (vilkåret er bekreftet oppfylt)\n- vurdert_avslag   (konkret dokumentert brudd på vilkåret)\n- maa_undersokes   (mangler dokumentasjon, eller saksbehandler må undersøke noe)\n- ikke_relevant    (punktet gjelder ikke denne søknadstypen)\n- ikke_vurdert     (avventer ekstern uttalelse eller manuelle steg)\n\nDu har tilgang til verktøy for deterministiske beregninger (alder, datoer, oppslag, tekst-matching).\nBruk dem AKTIVT når regelen krever beregning eller oppslag — ikke gjett tall eller datoer.\nHvis regelen er ren tekstvurdering uten beregning, svar direkte uten verktøyskall.\n\nNår du har all info du trenger, svar med JSON-objektet og ingenting annet.\nIngen markdown, ingen kommentar utenfor JSON.\n"
+    },
+    {
+      "role": "user",
+      "content": "# Sjekklistepunkt: vandel.vandel_stedfortreder\n\n## Regelen\n\n# Vandel OK – stedfortreder (kun alkohollovgivning)\n\n## Hjemmel\nAlkoholloven § 1-7b: stedfortreder må ha utvist uklanderlig vandel i forhold til alkohollovgivningen. Skatte- og regnskapsforhold er IKKE relevant for stedfortreder.\n\n## Vurdering\nVandelsvurdering for stedfortreder baseres på politiets uttalelse. Ingen integrasjon — manuell innhenting.\n\nStatusen skal alltid være: **ikke_vurdert**.\n\nSkriv en merknad som:\n* Sier at man avventer uttalelse fra politi om alkohollovgivning for stedfortreder\n* Påpeker at skatte-/regnskapsforhold IKKE er relevant for stedfortreder\n* Inkluderer stedfortrederens navn\n\nBruk `path_value` for `FlatData.Bevillingsansvarlig.Stedfortreder.FulltNavn`.\n\n\n## Søknad (JSON)\n\n```json\n{\n  \"FlatData\": {\n    \"BevillingsType\": \"arrangement\",\n    \"Arrangement\": {\n      \"Navn\": \"Testfest\",\n      \"ArrangementPeriode\": [\n        {\n          \"StartDato\": \"2026-12-12\",\n          \"SluttDato\": \"2026-12-12\"\n        }\n      ],\n      \"Arrangementssted\": {\n        \"StedsNavn\": \"Festsalen\",\n        \"StedsAdresse\": {\n          \"Gateadresse\": \"Testveien 1\"\n        }\n      }\n    },\n    \"Bevillingsansvarlig\": {\n      \"Styrer\": {\n        \"FulltNavn\": \"Test Person\",\n        \"Foedselsnummer\": \"01039012345\"\n      },\n      \"Stedfortreder\": {\n        \"Fornavn\": \"Ole\",\n        \"Etternavn\": \"Hansen\",\n        \"Foedselsnummer\": \"01019012345\"\n      }\n    },\n    \"PersonerMedInnflytelse\": {\n      \"FysiskePersoner\": [],\n      \"JuridiskePersoner\": []\n    },\n    \"VedleggsListe\": {\n      \"Rader\": []\n    }\n  }\n}\n```\n"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "chatcmpl-tool-bc054bad103dd8d9",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Bevillingsansvarlig.Stedfortreder.FulltNavn\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-bc054bad103dd8d9",
+      "content": "{\"present\": false, \"missing_at\": \"FlatData.Bevillingsansvarlig.Stedfortreder.FulltNavn\"}"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "chatcmpl-tool-b81f298abe43e769",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Bevillingsansvarlig.Stedfortreder.Fornavn\"}"
+          }
+        },
+        {
+          "id": "chatcmpl-tool-933644c7ec7a711a",
+          "type": "function",
+          "function": {
+            "name": "path_value",
+            "arguments": "{\"json_path\": \"FlatData.Bevillingsansvarlig.Stedfortreder.Etternavn\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-b81f298abe43e769",
+      "content": "{\"value\": \"Ole\", \"present\": true}"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-933644c7ec7a711a",
+      "content": "{\"value\": \"Hansen\", \"present\": true}"
+    },
+    {
+      "role": "assistant",
+      "content": "```json\n{\n  \"status\": \"ikke_vurdert\",\n  \"merknad\": \"Avventer uttalelse fra politi om alkohollovgivning for stedfortreder Ole Hansen. Skatte- og regnskapsforhold er ikke relevant for stedfortreder.\"\n}\n```"
+    }
+  ]
+}

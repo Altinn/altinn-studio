@@ -1,0 +1,43 @@
+{
+  "punkt": "vandel.vandel_styrer",
+  "final": {
+    "status": "ikke_vurdert",
+    "merknad": "Vandelsspørsmålet for styrer Test Person venter på uttalelse fra politiet om alkohollovgivningen. Merk at skatte- og regnskapsforhold ikke er relevant for vurderingen av styrer."
+  },
+  "totalElapsedMs": 1507,
+  "llmCallCount": 1,
+  "toolCallCount": 0,
+  "finishReason": "stop",
+  "llmCalls": [
+    {
+      "iteration": 0,
+      "status_code": 200,
+      "elapsed_ms": 1507,
+      "finish_reason": "stop",
+      "tool_calls_count": 0,
+      "content_preview": "```json\n{\n  \"status\": \"ikke_vurdert\",\n  \"merknad\": \"Vandelsspørsmålet for styrer Test Person venter på uttalelse fra politiet om alkohollovgivningen. Merk at skatte- og regnskapsforhold ikke er relevant for vurderingen av styrer.\"\n}\n```",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2070,
+        "total_tokens": 2148,
+        "completion_tokens": 78,
+        "prompt_tokens_details": null
+      }
+    }
+  ],
+  "toolCalls": [],
+  "messages": [
+    {
+      "role": "system",
+      "content": "Du er en saksbehandler-assistent for kommunale bevillingssaker.\n\nDu får ETT sjekklistepunkt med tilhørende regel (i markdown-format) og hele søknads-JSON.\nDin oppgave: vurder dette ene punktet og returner KUN ett JSON-objekt:\n{\"status\": \"...\", \"merknad\": \"...\"}\n\nStatus MÅ være EN av:\n- vurdert_ok       (vilkåret er bekreftet oppfylt)\n- vurdert_avslag   (konkret dokumentert brudd på vilkåret)\n- maa_undersokes   (mangler dokumentasjon, eller saksbehandler må undersøke noe)\n- ikke_relevant    (punktet gjelder ikke denne søknadstypen)\n- ikke_vurdert     (avventer ekstern uttalelse eller manuelle steg)\n\nDu har tilgang til verktøy for deterministiske beregninger (alder, datoer, oppslag, tekst-matching).\nBruk dem AKTIVT når regelen krever beregning eller oppslag — ikke gjett tall eller datoer.\nHvis regelen er ren tekstvurdering uten beregning, svar direkte uten verktøyskall.\n\nNår du har all info du trenger, svar med JSON-objektet og ingenting annet.\nIngen markdown, ingen kommentar utenfor JSON.\n"
+    },
+    {
+      "role": "user",
+      "content": "# Sjekklistepunkt: vandel.vandel_styrer\n\n## Regelen\n\n# Vandel for styrer\n\n## Hjemmel\nAlkoholloven § 1-7b: Bevillingshaver og styrer må ha utvist uklanderlig vandel i forhold til alkohollovgivningen og bestemmelser i andre lover som har sammenheng med alkohollovens formål. Skatte- og avgiftslovgivningen samt regnskapslovgivningen er **ikke** relevant for styrer (kun for bevillingshaver).\n\n## Vurdering\nVandelsvurdering for styrer baseres på politiets uttalelse. Det finnes ingen integrasjon for å hente politiattest eller uttalelse direkte i denne saksbehandlerløsningen — det må gjøres manuelt av saksbehandler.\n\nStatusen for dette punktet skal alltid være: **ikke_vurdert**.\n\nSkriv en merknad som:\n* Bekrefter at vandelsspørsmålet for styrer venter på uttalelse fra politiet om alkohollovgivningen\n* Påpeker at skatte-/regnskapsforhold IKKE er relevant for styrer (vanlig feil å sjekke disse også)\n* Nevner styrers navn hvis det er oppgitt i søknaden\n\nDette punktet krever ikke verktøyskall — alt du trenger er styrers navn fra søknaden.\n\n\n## Søknad (JSON)\n\n```json\n{\n  \"FlatData\": {\n    \"BevillingsType\": \"arrangement\",\n    \"Arrangement\": {\n      \"Navn\": \"Testfest\",\n      \"ArrangementPeriode\": [\n        {\n          \"StartDato\": \"2026-12-12\",\n          \"SluttDato\": \"2026-12-12\"\n        }\n      ],\n      \"Arrangementssted\": {\n        \"StedsNavn\": \"Festsalen\",\n        \"StedsAdresse\": {\n          \"Gateadresse\": \"Testveien 1\"\n        }\n      }\n    },\n    \"Bevillingsansvarlig\": {\n      \"Styrer\": {\n        \"FulltNavn\": \"Test Person\",\n        \"Foedselsnummer\": \"01039012345\"\n      },\n      \"Stedfortreder\": {\n        \"Fornavn\": \"Ole\",\n        \"Etternavn\": \"Hansen\",\n        \"Foedselsnummer\": \"01019012345\"\n      }\n    },\n    \"PersonerMedInnflytelse\": {\n      \"FysiskePersoner\": [],\n      \"JuridiskePersoner\": []\n    },\n    \"VedleggsListe\": {\n      \"Rader\": []\n    }\n  }\n}\n```\n"
+    },
+    {
+      "role": "assistant",
+      "content": "```json\n{\n  \"status\": \"ikke_vurdert\",\n  \"merknad\": \"Vandelsspørsmålet for styrer Test Person venter på uttalelse fra politiet om alkohollovgivningen. Merk at skatte- og regnskapsforhold ikke er relevant for vurderingen av styrer.\"\n}\n```"
+    }
+  ]
+}

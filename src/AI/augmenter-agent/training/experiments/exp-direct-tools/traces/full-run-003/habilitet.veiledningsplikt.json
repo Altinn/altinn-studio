@@ -1,0 +1,89 @@
+{
+  "punkt": "habilitet.veiledningsplikt",
+  "final": {
+    "status": "maa_undersokes",
+    "merknad": "Vedleggslisten er tom og det mangler nødvendig dokumentasjon. Det bør sendes digitalt brev til søker med oversikt over manglende dokumentasjon (kunnskapsprøver, bekreftelse fra lokaleier mv.) og rimelig frist for ettersending."
+  },
+  "totalElapsedMs": 2303,
+  "llmCallCount": 2,
+  "toolCallCount": 1,
+  "finishReason": "stop",
+  "llmCalls": [
+    {
+      "iteration": 0,
+      "status_code": 200,
+      "elapsed_ms": 370,
+      "finish_reason": "tool_calls",
+      "tool_calls_count": 1,
+      "content_preview": "",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2389,
+        "total_tokens": 2398,
+        "completion_tokens": 9,
+        "prompt_tokens_details": null
+      }
+    },
+    {
+      "iteration": 1,
+      "status_code": 200,
+      "elapsed_ms": 1932,
+      "finish_reason": "stop",
+      "tool_calls_count": 0,
+      "content_preview": "```json\n{\n  \"status\": \"maa_undersokes\",\n  \"merknad\": \"Vedleggslisten er tom og det mangler nødvendig dokumentasjon. Det bør sendes digitalt brev til søker med oversikt over manglende dokumentasjon (kunnskapsprøver, bekreftelse fra lokaleier mv.) og rimelig frist for ettersending.\"\n}\n```",
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2417,
+        "total_tokens": 2511,
+        "completion_tokens": 94,
+        "prompt_tokens_details": null
+      }
+    }
+  ],
+  "toolCalls": [
+    {
+      "iteration": 0,
+      "tool_call_id": "chatcmpl-tool-85edc1ca80b2f968",
+      "name": "count_attachments",
+      "arguments": {},
+      "result": {
+        "count": 0,
+        "names": []
+      },
+      "elapsed_ms": 0
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "Du er en saksbehandler-assistent for kommunale bevillingssaker.\n\nDu får ETT sjekklistepunkt med tilhørende regel (i markdown-format) og hele søknads-JSON.\nDin oppgave: vurder dette ene punktet og returner KUN ett JSON-objekt:\n{\"status\": \"...\", \"merknad\": \"...\"}\n\nStatus MÅ være EN av:\n- vurdert_ok       (vilkåret er bekreftet oppfylt)\n- vurdert_avslag   (konkret dokumentert brudd på vilkåret)\n- maa_undersokes   (mangler dokumentasjon, eller saksbehandler må undersøke noe)\n- ikke_relevant    (punktet gjelder ikke denne søknadstypen)\n- ikke_vurdert     (avventer ekstern uttalelse eller manuelle steg)\n\nDu har tilgang til verktøy for deterministiske beregninger (alder, datoer, oppslag, tekst-matching).\nBruk dem AKTIVT når regelen krever beregning eller oppslag — ikke gjett tall eller datoer.\nHvis regelen er ren tekstvurdering uten beregning, svar direkte uten verktøyskall.\n\nNår du har all info du trenger, svar med JSON-objektet og ingenting annet.\nIngen markdown, ingen kommentar utenfor JSON.\n"
+    },
+    {
+      "role": "user",
+      "content": "# Sjekklistepunkt: habilitet.veiledningsplikt\n\n## Regelen\n\n# Veiledningsplikt overholdt (fvl. § 11)\n\n## Hjemmel\nForvaltningsloven § 11: kommunen har veiledningsplikt overfor søker — særlig ved manglende dokumentasjon.\n\n## Vurdering\n* Vedleggslisten er tom OG flere dokumentasjonspunkter er uavklart: **maa_undersokes**. Skriv at det bør sendes digitalt brev til søker med oversikt over manglende dokumentasjon (kunnskapsprøver, bekreftelse fra lokaleier mv.) og rimelig frist for ettersending.\n* Det er noen vedlegg lastet opp og søknaden er nær komplett: **vurdert_ok**. Skriv at veiledningsplikten er ivaretatt så langt — eventuelt suppler med veiledning ved behov.\n\nBruk `count_attachments` for å vurdere mengden dokumentasjon.\n\n\n## Søknad (JSON)\n\n```json\n{\n  \"FlatData\": {\n    \"BrukerType\": \"person\",\n    \"SkalFornyeBevilling\": false,\n    \"BevillingsType\": \"arrangement\",\n    \"Kommunenummer\": \"4204\",\n    \"Innsender\": {\n      \"Fornavn\": \"Sophie\",\n      \"Etternavn\": \"Salt\",\n      \"FulltNavn\": \"Sophie Salt\",\n      \"Foedselsnummer\": \"01039012345\",\n      \"EPostadresse\": \"sophie@test.no\",\n      \"Telefonnummer\": \"99887766\",\n      \"Adresse\": {\n        \"Gateadresse\": \"Leikanger\",\n        \"Postnummer\": \"6863\",\n        \"Poststed\": \"KRISTIANSAND S\"\n      }\n    },\n    \"OrganisasjonsInformasjon\": {\n      \"Organisasjonsnummer\": null,\n      \"Navn\": null\n    },\n    \"Arrangement\": {\n      \"VaregruppeAlkohol\": \"gruppeTre\",\n      \"Navn\": \"Julebord Avdeling Nord\",\n      \"ArrangementType\": \"julebord\",\n      \"ArrangementPeriode\": [\n        {\n          \"StartDato\": \"2026-12-12\",\n          \"SluttDato\": \"2026-12-13\",\n          \"StartTid\": \"19:00\",\n          \"SluttTid\": \"02:00\"\n        }\n      ],\n      \"TypeDeltakere\": \"bestemtePersoner\",\n      \"AntallDeltakere\": \"45\",\n      \"Arrangementssted\": {\n        \"Type\": \"innendoers\",\n        \"StedsNavn\": \"Restaurant Sjøhuset\",\n        \"StedsAdresse\": {\n          \"Gateadresse\": \"Havnegata 15\"\n        },\n        \"Etasje\": \"2. etasje\"\n      }\n    },\n    \"Bevillingsansvarlig\": {\n      \"SkalHaFritakFraStedfortreder\": false,\n      \"Styrer\": {\n        \"Fornavn\": \"Sophie\",\n        \"Etternavn\": \"Salt\",\n        \"Foedselsnummer\": \"01039012345\",\n        \"EPostadresse\": \"sophie@test.no\",\n        \"Telefonnummer\": \"99887766\"\n      },\n      \"Stedfortreder\": {\n        \"Fornavn\": \"Erik\",\n        \"Etternavn\": \"Hansen\",\n        \"Foedselsnummer\": \"15039012345\",\n        \"EPostadresse\": \"erik@test.no\",\n        \"Telefonnummer\": \"98765432\"\n      }\n    },\n    \"PersonerMedInnflytelse\": {\n      \"JuridiskePersoner\": [],\n      \"FysiskePersoner\": []\n    },\n    \"VedleggsListe\": {\n      \"Rader\": []\n    }\n  }\n}\n```\n"
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "chatcmpl-tool-85edc1ca80b2f968",
+          "type": "function",
+          "function": {
+            "name": "count_attachments",
+            "arguments": "{}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "chatcmpl-tool-85edc1ca80b2f968",
+      "content": "{\"count\": 0, \"names\": []}"
+    },
+    {
+      "role": "assistant",
+      "content": "```json\n{\n  \"status\": \"maa_undersokes\",\n  \"merknad\": \"Vedleggslisten er tom og det mangler nødvendig dokumentasjon. Det bør sendes digitalt brev til søker med oversikt over manglende dokumentasjon (kunnskapsprøver, bekreftelse fra lokaleier mv.) og rimelig frist for ettersending.\"\n}\n```"
+    }
+  ]
+}
