@@ -8,22 +8,25 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 
 public interface ILayoutsetsService
 {
-    public Task<ValidationOnNavigation> GetGlobalValidationOnNavigationSettings(
-        AltinnRepoEditingContext editingContext,
+    public Task<ValidationOnNavigation?> GetGlobalValidationOnNavigationSettings(
+        AltinnRepoEditingContext context,
         CancellationToken cancellationToken
     );
+
     public Task SaveGlobalValidationOnNavigationSettings(
         AltinnRepoEditingContext editingContext,
         ValidationOnNavigation? validationOnNavigation,
         CancellationToken cancellationToken
     );
-    Task<IEnumerable<TaskNavigationGroupDto>> GetGlobalTaskNavigationSettings(
+
+    public Task<IEnumerable<TaskNavigationGroupDto>> GetGlobalTaskNavigationSettingsDto(
         AltinnRepoEditingContext editingContext,
         CancellationToken cancellationToken
     );
+
     public Task UpdateGlobalTaskNavigationSettings(
         AltinnRepoEditingContext editingContext,
-        IEnumerable<TaskNavigationGroup> taskNavigationGroupList,
+        IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDtoList,
         CancellationToken cancellationToken
     );
 }

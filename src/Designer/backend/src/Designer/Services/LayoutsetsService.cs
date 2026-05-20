@@ -1,62 +1,134 @@
+#nullable enable
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Mappers;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 public class LayoutsetsService : ILayoutsetsService
 {
-    private readonly IAppDevelopmentService _appDevelopmentService;
+    private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
 
-    public LayoutsetsService(IAppDevelopmentService appDevelopmentService)
+    public LayoutsetsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
     {
-        _appDevelopmentService = appDevelopmentService;
+        _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
     }
 
-    public async Task<ValidationOnNavigation> GetGlobalValidationOnNavigationSettings(
-        AltinnRepoEditingContext editingContext,
+    public async Task<ValidationOnNavigation?> GetGlobalValidationOnNavigationSettings(
+        AltinnRepoEditingContext altinnRepoEditingContext,
         CancellationToken cancellationToken
     )
     {
-        return await _appDevelopmentService.GetGlobalValidationOnNavigationSettings(editingContext, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
+
+        UiSettings globalSettingsFile = await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken);
+        return globalSettingsFile?.ValidationOnNavigation;
     }
 
     public async Task SaveGlobalValidationOnNavigationSettings(
-        AltinnRepoEditingContext editingContext,
+        AltinnRepoEditingContext altinnRepoEditingContext,
         ValidationOnNavigation? config,
         CancellationToken cancellationToken
     )
     {
-        await _appDevelopmentService.SaveGlobalValidationOnNavigationSettings(
-            editingContext,
-            config,
-            cancellationToken
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
         );
+
+        UiSettings globalSettingsFile = await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken);
+        globalSettingsFile ??= new UiSettings();
+        globalSettingsFile.ValidationOnNavigation = config;
+        await altinnAppGitRepository.SaveGlobalSettingsFile(globalSettingsFile);
     }
 
-    public async Task<IEnumerable<TaskNavigationGroupDto>> GetGlobalTaskNavigationSettings(
+    public async Task<IEnumerable<TaskNavigationGroupDto>> GetGlobalTaskNavigationSettingsDto(
         AltinnRepoEditingContext editingContext,
         CancellationToken cancellationToken
     )
     {
-        var taskNavigationGroupList = await _appDevelopmentService.GetGlobalTaskNavigationSettings(
+        IEnumerable<TaskNavigationGroup> taskNavigationGroups = await GetGlobalTaskNavigationSettings(
             editingContext,
             cancellationToken
         );
-        var tasks = _appDevelopmentService.GetTasks(editingContext, cancellationToken);
-        return taskNavigationGroupList.Select(taskNavigationGroup =>
-            taskNavigationGroup.ToDto(
-                (taskId) => tasks.FirstOrDefault(task => task.Id == taskId)?.ExtensionElements?.TaskExtension?.TaskType
-            )
+
+        IEnumerable<ProcessTask> tasks = GetTasks(editingContext, cancellationToken);
+
+        Dictionary<string, string?> taskTypesById = tasks.ToDictionary(
+            task => task.Id,
+            task => task.ExtensionElements?.TaskExtension?.TaskType
         );
+
+        return taskNavigationGroups.Select(group => group.ToDto(taskId => taskTypesById.GetValueOrDefault(taskId)));
+    }
+
+    public async Task<List<TaskNavigationGroup>> GetGlobalTaskNavigationSettings(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        CancellationToken cancellationToken
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
+
+        UiSettings globalSettingsFile = await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken);
+        return globalSettingsFile?.TaskNavigation?.ToList() ?? [];
+    }
+
+    public IEnumerable<ProcessTask> GetTasks(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        CancellationToken cancellationToken
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
+
+        Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
+        return definitions.Process.Tasks;
     }
 
     public async Task UpdateGlobalTaskNavigationSettings(
-        AltinnRepoEditingContext editingContext,
+        AltinnRepoEditingContext altinnRepoEditingContext,
         IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDtoList,
         CancellationToken cancellationToken
     )
     {
-        await _appDevelopmentService.UpdateGlobalTaskNavigationSettings(
-            editingContext,
-            taskNavigationGroupDtoList.Select(dto => dto.ToDomain()),
-            cancellationToken
+        cancellationToken.ThrowIfCancellationRequested();
+
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
         );
+
+        IEnumerable<TaskNavigationGroup> taskNavigationGroupList = taskNavigationGroupDtoList.Select(x => x.ToDomain());
+
+        UiSettings globalSettingsFile = await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken);
+
+        globalSettingsFile ??= new UiSettings();
+
+        globalSettingsFile.TaskNavigation = taskNavigationGroupList.Any() ? taskNavigationGroupList : null;
+
+        await altinnAppGitRepository.SaveGlobalSettingsFile(globalSettingsFile);
     }
 }
