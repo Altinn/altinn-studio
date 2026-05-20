@@ -44,9 +44,14 @@ import {
 export type ScopeListProps = {
   maskinPortenScopes: MaskinportenScope[];
   selectedScopes: MaskinportenScope[];
+  canManageScopes?: boolean;
 };
 
-export function ScopeList({ maskinPortenScopes, selectedScopes }: ScopeListProps): ReactElement {
+export function ScopeList({
+  maskinPortenScopes,
+  selectedScopes,
+  canManageScopes = true,
+}: ScopeListProps): ReactElement {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: appVersion } = useAppVersionQuery(org, app);
@@ -82,40 +87,47 @@ export function ScopeList({ maskinPortenScopes, selectedScopes }: ScopeListProps
 
   return (
     <div>
-      <LoggedInTitle />
-      <StudioParagraph className={classes.informationText}>
-        {t('app_settings.maskinporten_tab_available_scopes_description')}
-      </StudioParagraph>
-      <StudioParagraph className={classes.informationText}>
-        <Trans i18nKey='app_settings.maskinporten_tab_available_scopes_description_help'>
-          <StudioLink href={contactByEmail.url('serviceOwner')}> </StudioLink>
-        </Trans>
-      </StudioParagraph>
-      <StudioAlert data-color='info' className={classes.deploymentNotice}>
-        {t('app_settings.maskinporten_scope_changes_deployment_notice')}
-      </StudioAlert>
-      <DefaultScopesNotice
-        shouldShowDefaultScopesOptIn={shouldShowDefaultScopesOptIn}
-        initialValues={initialValues}
-        allAvailableScopes={allAvailableScopes}
-      />
+      {canManageScopes && (
+        <>
+          <LoggedInTitle />
+          <StudioParagraph className={classes.informationText}>
+            {t('app_settings.maskinporten_tab_available_scopes_description')}
+          </StudioParagraph>
+          <StudioParagraph className={classes.informationText}>
+            <Trans i18nKey='app_settings.maskinporten_tab_available_scopes_description_help'>
+              <StudioLink href={contactByEmail.url('serviceOwner')}> </StudioLink>
+            </Trans>
+          </StudioParagraph>
+          <StudioAlert data-color='info' className={classes.deploymentNotice}>
+            {t('app_settings.maskinporten_scope_changes_deployment_notice')}
+          </StudioAlert>
+          <DefaultScopesNotice
+            shouldShowDefaultScopesOptIn={shouldShowDefaultScopesOptIn}
+            initialValues={initialValues}
+            allAvailableScopes={allAvailableScopes}
+          />
 
-      <StudioButton variant='secondary' onClick={openDialog} icon={<PlusIcon />}>
-        {t('app_settings.maskinporten_add_scope')}
-      </StudioButton>
+          <StudioButton variant='secondary' onClick={openDialog} icon={<PlusIcon />}>
+            {t('app_settings.maskinporten_add_scope')}
+          </StudioButton>
+        </>
+      )}
 
       <SelectedScopesTable
         selectedScopes={sortedSelectedScopes}
         initialValues={initialValues}
         allAvailableScopes={allAvailableScopes}
+        canManageScopes={canManageScopes}
       />
-      <AddScopesDialog
-        dialogRef={dialogRef}
-        searchValue={searchValue}
-        setSearchValue={setSearchValue}
-        initialValues={initialValues}
-        allAvailableScopes={allAvailableScopes}
-      />
+      {canManageScopes && (
+        <AddScopesDialog
+          dialogRef={dialogRef}
+          searchValue={searchValue}
+          setSearchValue={setSearchValue}
+          initialValues={initialValues}
+          allAvailableScopes={allAvailableScopes}
+        />
+      )}
     </div>
   );
 }
@@ -156,12 +168,14 @@ type SelectedScopesTableProps = {
   selectedScopes: MaskinportenScope[];
   initialValues: string[];
   allAvailableScopes: MaskinportenScope[];
+  canManageScopes: boolean;
 };
 
 function SelectedScopesTable({
   selectedScopes,
   initialValues,
   allAvailableScopes,
+  canManageScopes,
 }: SelectedScopesTableProps): ReactElement {
   const { t } = useTranslation();
   const { saveScopes } = useSaveScopes(allAvailableScopes);
@@ -192,7 +206,9 @@ function SelectedScopesTable({
               {t('app_settings.maskinporten_scope_name')}
             </StudioTable.HeaderCell>
             <StudioTable.HeaderCell>{t('general.description')}</StudioTable.HeaderCell>
-            <StudioTable.HeaderCell>{t('general.delete')}</StudioTable.HeaderCell>
+            {canManageScopes && (
+              <StudioTable.HeaderCell>{t('general.delete')}</StudioTable.HeaderCell>
+            )}
           </StudioTable.Row>
         </StudioTable.Head>
         <StudioTable.Body>
@@ -203,14 +219,16 @@ function SelectedScopesTable({
               <StudioTable.Row key={scope.scope}>
                 <StudioTable.Cell>{scope.scope}</StudioTable.Cell>
                 <StudioTable.Cell>{scope.description}</StudioTable.Cell>
-                <StudioTable.Cell>
-                  <StudioDeleteButton
-                    variant='tertiary'
-                    aria-label={t('general.delete_item', { item: scope.scope })}
-                    disabled={isDefaultScope}
-                    onDelete={() => deleteScope(scope.scope)}
-                  />
-                </StudioTable.Cell>
+                {canManageScopes && (
+                  <StudioTable.Cell>
+                    <StudioDeleteButton
+                      variant='tertiary'
+                      aria-label={t('general.delete_item', { item: scope.scope })}
+                      disabled={isDefaultScope}
+                      onDelete={() => deleteScope(scope.scope)}
+                    />
+                  </StudioTable.Cell>
+                )}
               </StudioTable.Row>
             );
           })}

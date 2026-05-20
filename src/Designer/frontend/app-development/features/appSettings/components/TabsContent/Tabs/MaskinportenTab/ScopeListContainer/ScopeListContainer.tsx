@@ -11,6 +11,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import { shouldShowDefaultMaskinportenScopesOptIn } from 'app-development/utils/maskinportenScopes';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import classes from './ScopeListContainer.module.css';
 
 export function ScopeListContainer(): ReactElement {
   const { t } = useTranslation();
@@ -36,16 +37,29 @@ export function ScopeListContainer(): ReactElement {
     return <StudioSpinner aria-hidden spinnerTitle={t('general.loading')} />;
   }
 
-  if (isForbiddenError(maskinportenScopesError)) {
-    return <NoOrgAccessAlert />;
-  }
+  const hasOrgAccess: boolean = !isForbiddenError(maskinportenScopesError);
 
-  if (hasScopes || shouldShowDefaultScopesOptIn) {
+  if (hasOrgAccess && (hasScopes || shouldShowDefaultScopesOptIn)) {
     return (
       <ScopeList
         maskinPortenScopes={maskinPortenScopes?.scopes ?? []}
         selectedScopes={selectedScopes?.scopes ?? []}
       />
+    );
+  }
+
+  if (!hasOrgAccess) {
+    return (
+      <div className={classes.noOrgAccessContent}>
+        <NoOrgAccessAlert />
+        {selectedScopes?.scopes?.length > 0 && (
+          <ScopeList
+            maskinPortenScopes={[]}
+            selectedScopes={selectedScopes.scopes}
+            canManageScopes={false}
+          />
+        )}
+      </div>
     );
   }
 

@@ -131,6 +131,41 @@ describe('ScopeListContainer', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('should display selected scopes without management controls if user does not have access on behalf of the organisation', async () => {
+    const getMaskinportenScopes = jest
+      .fn()
+      .mockRejectedValue(createAxiosError(ServerCodes.Forbidden));
+    const getSelectedMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve(maskinportenScopes));
+
+    renderScopeListContainer({
+      getMaskinportenScopes,
+      getSelectedMaskinportenScopes,
+    });
+    await waitForGetScopesCheckIsDone();
+
+    expect(
+      getText(textMock('app_settings.maskinporten_no_org_access_description')),
+    ).toBeInTheDocument();
+    maskinportenScopes.scopes.forEach((scope: MaskinportenScope) => {
+      expect(getCell(scope.description)).toBeInTheDocument();
+      expect(getCell(scope.scope)).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', {
+          name: textMock('general.delete_item', { item: scope.scope }),
+        }),
+      ).not.toBeInTheDocument();
+    });
+    expect(queryButton(textMock('app_settings.maskinporten_add_scope'))).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('app_settings.maskinporten_tab_available_scopes_description')),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('app_settings.maskinporten_scope_changes_deployment_notice')),
+    ).not.toBeInTheDocument();
+  });
+
   it('should display add default scopes notice for v8.3 apps when no scopes are available', async () => {
     const getMaskinportenScopes = jest
       .fn()
@@ -178,6 +213,8 @@ const getCell = (name: string): HTMLTableCellElement => screen.getByRole('cell',
 const queryCell = (name: string): HTMLTableCellElement | null =>
   screen.queryByRole('cell', { name });
 const getButton = (name: string): HTMLButtonElement => screen.getByRole('button', { name });
+const queryButton = (name: string): HTMLButtonElement | null =>
+  screen.queryByRole('button', { name });
 
 function createAxiosError(status: ServerCodes): AxiosError {
   const error = new AxiosError();
