@@ -30,7 +30,7 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
             OrgEditingContext.Developer
         );
     protected GitRepoGitOpsConfigurationManager GitOpsConfigurationManager { get; private set; }
-    protected ScribanGitOpsManifestsRenderer ScribanGitOpsManifestsRenderer { get; private set; }
+    protected GitOpsManifestsRenderer GitOpsManifestsRenderer { get; private set; }
     protected Mock<ILogger<GitRepoGitOpsConfigurationManager>> MockLogger { get; private set; }
     protected string TestRepoName { get; private set; }
     protected AltinnOrgEditingContext OrgEditingContext { get; }
@@ -52,11 +52,11 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
             TestRepoName
         );
         AltinnGitRepositoryFactory = new AltinnGitRepositoryFactory(testRepoPath);
-        ScribanGitOpsManifestsRenderer = new ScribanGitOpsManifestsRenderer();
+        GitOpsManifestsRenderer = new GitOpsManifestsRenderer();
         MockLogger = new Mock<ILogger<GitRepoGitOpsConfigurationManager>>();
         GitOpsConfigurationManager = new GitRepoGitOpsConfigurationManager(
             new IGiteaClientMock(),
-            ScribanGitOpsManifestsRenderer,
+            GitOpsManifestsRenderer,
             new ISourceControlMock(),
             AltinnGitRepositoryFactory,
             new FakeTimeProvider(),
@@ -73,7 +73,7 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
 
     protected async Task AppDirectoryExists(string app)
     {
-        var appManifests = ScribanGitOpsManifestsRenderer.GetAppManifests(
+        var appManifests = GitOpsManifestsRenderer.GetAppManifests(
             AltinnRepoContext.FromOrgRepo(OrgEditingContext.Org, app)
         );
         await WriteManifestsToRepository(appManifests);
@@ -92,7 +92,7 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
     protected async Task EnvironmentManifestsExistsWithResourceApps(string environment, params string[] apps)
     {
         var appsSet = apps.Select(AltinnRepoName.FromName).ToHashSet();
-        var manifests = ScribanGitOpsManifestsRenderer.GetEnvironmentOverlayManifests(
+        var manifests = GitOpsManifestsRenderer.GetEnvironmentOverlayManifests(
             AltinnEnvironment.FromName(environment),
             appsSet
         );
@@ -101,7 +101,7 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
 
     protected async Task BaseManifestsExist()
     {
-        var baseManifests = ScribanGitOpsManifestsRenderer.GetBaseManifests();
+        var baseManifests = GitOpsManifestsRenderer.GetBaseManifests();
         await WriteManifestsToRepository(baseManifests);
     }
 
