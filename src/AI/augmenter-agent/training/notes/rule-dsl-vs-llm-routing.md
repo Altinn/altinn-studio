@@ -118,3 +118,30 @@ is technically Anthropic's tool-use / OpenAI function-calling. Worth revisiting 
 we move to a model that's actually good at it (Claude, GPT-4, or Gemma's bigger sibling
 Gemini). For the v0.3 production target on small models, Design A's explicit `tool:` and
 `args:` fields are more reliable.
+
+## UPDATE 2026-05-20 — we did try Design B with Gemma 4 31B; it worked
+
+In `training/experiments/exp-direct-tools/` (branch `feat/augmenter-agent-v0.4-direct-tools`)
+we built the LLM-driven tool-routing variant we'd parked. Findings:
+
+- **Gemma 4 31B via sandkasse OpenAI-compatible gateway handles the `tools` parameter
+  correctly.** Tool-calls were deterministic in practice at temperature=0 (identical
+  routing across 3 iterations on Phase 3's 3-punkt test). The model never invented
+  argument names or skipped tool-calls when the rule demanded one.
+- **Full 39-punkts sjekkliste: 100% point-coverage AND 100% status-agreement** vs the
+  Claude gold standard, with markdown-prose rules (one file per punkt, lov-hjemmel +
+  vurderings-tre in plain Norwegian) and 8 deterministic tool-primitives. Wall-time
+  ~26s at concurrency=5.
+- **8x slower than Spor C** (~26s vs ~3.3s after Pi was removed) because we trade the
+  27 Python rule-functions for ~80 LLM-mediated tool-calls per checklist. Within budget.
+- **Author experience: markdown rules feel right.** A saksbehandler can read and edit
+  `personkrav.styrer_alder.md` without knowing what a function or a DSL is. We
+  validated this by tightening 2 over-liberal rules between Phase 4 run 001 and 002 —
+  the change was a 5-line markdown edit, no code touched.
+
+**So the recommendation changes:** Design B is no longer "wait for a better model" —
+it works *today* on the small model we have. The hybrid (Design A + B) is still valid
+for *latency-critical* paths, but for "non-coder authorship is the win", pure Design B
+with a stable tool-registry is now the leading candidate.
+
+See `training/experiments/exp-direct-tools/SYNTHESIS.md` for the full write-up.

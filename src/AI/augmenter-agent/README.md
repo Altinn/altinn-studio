@@ -2,13 +2,16 @@
 
 A generic, image-external configurable microservice that generates PDF (and optionally DOCX)
 documents from uploaded application data, optionally enriched by an AI agent. The Docker image
-ships only the runtime (Typst + Pandoc + Pi CLI); all skills, prompts, templates, domain tables,
+ships only the runtime (.NET + Typst + Pandoc); all skills, prompts, templates, domain tables,
 pipeline definition, and model/auth configuration are mounted in from `config/` and `.env`.
+
+Agent calls go directly over HTTP to an OpenAI-compatible gateway (sandkasse by default).
+No npm/node/CLI in the production image.
 
 ## Quick start (Docker)
 
 ```bash
-cp .env.example .env             # fill in ANTHROPIC_API_KEY
+cp .env.example .env             # fill in SANDKASSE_API_KEY
 docker compose up --build
 ```
 
@@ -16,7 +19,7 @@ The service starts on `http://localhost:8072`.
 
 ## Quick start (local .NET, with Claude CLI)
 
-For development, you can swap Pi for the locally installed `claude` CLI:
+For development, you can swap the HTTP gateway for the locally installed `claude` CLI:
 
 ```bash
 dotnet run --project src/Altinn.Augmenter.Agent
@@ -35,13 +38,11 @@ config/
 ├── templates/
 │   ├── request-info.typ       # Typst (PDF)
 │   └── checklist.typ
-├── domain/
-│   ├── kommuner.json          # kommunenummer → navn + klage-epost
-│   ├── bevillingstyper.json   # input → normalized type + lovhenvisninger
-│   ├── alkoholgrupper.json    # varegruppe → standardized label
-│   └── sjekkliste.json        # checklist sections + items
-└── pi/
-    └── models.json            # Pi providers (LM Studio, Ollama, vLLM, proxies)
+└── domain/
+    ├── kommuner.json          # kommunenummer → navn + klage-epost
+    ├── bevillingstyper.json   # input → normalized type + lovhenvisninger
+    ├── alkoholgrupper.json    # varegruppe → standardized label
+    └── sjekkliste.json        # checklist sections + items
 ```
 
 ## Reload after a change — what command?
@@ -57,23 +58,23 @@ does **not** re-read `.env`. Env vars are baked in at container creation time.
 
 ## Models, providers, and `.env`
 
-Pi-CLI is provider-agnostic — it can route to Anthropic, OpenAI, Google, Groq,
-or any OpenAI/Anthropic-compatible local server (LM Studio, Ollama, vLLM, ...).
-Two files cooperate:
-
-- **`.env`** holds secrets and selects which model to call (`Agent__Model=<provider>/<id>`).
-- **`config/pi/models.json`** defines endpoints for **non-built-in** providers.
-  Built-in providers (anthropic, openai, google, groq) work via env vars alone
-  and don't need an entry here.
-
-`apiKey` in `models.json` can reference an env var by name (e.g. `"OPENAI_API_KEY"`),
-so the secret stays in `.env` while the endpoint lives in a checked-in `models.json`.
+The production provider is `sandkasse-http`: a direct HTTP client that calls an
+OpenAI-compatible chat-completions endpoint. Configuration is via env vars:
 
 ```env
-Agent__Provider=pi
-Agent__Model=lmstudio/qwen2.5-coder:7b   # matches an entry in config/pi/models.json
-LMSTUDIO_API_KEY=lmstudio                 # any string; many local servers don't validate
+SANDKASSE_API_KEY=<your-key>
+Agent__Provider=sandkasse-http
+Agent__BaseUrl=https://gw.sandkasse.ai/v1
+Agent__Model=telenor:gemma4
+Agent__MaxTokens=4096
+Agent__Temperature=0
 ```
+
+`docker-compose.yaml` already wires `SANDKASSE_API_KEY` from `.env` into `Agent__ApiKey`,
+so you only need to set the key.
+
+For local development without a sandkasse key, use `Agent:Provider=claude-cli` (the dev
+default). The `claude` CLI must be on `PATH` and authenticated.
 
 `.env` is `.gitignored`. Copy `.env.example` and never commit a real key.
 
@@ -140,17 +141,19 @@ Asynchronous. Adds field `callback-url`; service POSTs each produced file to the
 multipart upload
        │
        ▼
-┌──────────────────────┐
-│  PdfPipeline         │  reads pipeline.yaml at startup
-│  ┌────────────────┐  │
-│  │ MappingPdfStep │  │  no AI: mapper → Typst → PDF (+ optional DOCX)
-│  ├────────────────┤  │
-│  │ AgentPdfStep   │  │  mapper → IPromptBuilder → IAgentService (Pi or Claude CLI)
-│  │                │  │       → IResponseParser → Typst PDF + Pandoc DOCX
-│  │                │  │       → optional PipelineContext.Set(publishTo, json)
-│  └────────────────┘  │
-└──────────────────────┘
-       │
+┌──────────────────────────┐
+│  PdfPipeline             │  reads pipeline.yaml at startup
+│  ┌────────────────────┐  │
+│  │ MappingPdfStep     │  │  no AI: mapper → Typst → PDF (+ optional DOCX)
+│  ├────────────────────┤  │
+│  │ AgentPdfStep       │  │  mapper → IPromptBuilder → IAgentService
+│  │                    │  │       → IResponseParser → Typst PDF + Pandoc DOCX
+│  │                    │  │       → optional PipelineContext.Set(publishTo, json)
+│  └────────────────────┘  │
+└──────────────────────────┘
+       │                      IAgentService implementations:
+       │                       - SandkasseHttpAgentService (default, production)
+       │                       - ClaudeCliAgentService (local dev)
        ▼
    GeneratedPdf[]  (name + bytes)
 ```
@@ -163,10 +166,14 @@ saksbehandlings-type once its config folder is mounted.
 
 | Section | Key | Default | Description |
 |---------|-----|---------|-------------|
-| `Agent` | `Provider` | `pi` | `pi` (container) or `claude-cli` (local dev) |
-| `Agent` | `CliPath` | provider name | Path to CLI binary if not on `PATH` |
-| `Agent` | `Model` | (CLI default) | Model name passed to `--model` |
-| `Agent` | `TimeoutSeconds` | 600 | Max wait for agent process |
+| `Agent` | `Provider` | `sandkasse-http` | `sandkasse-http` (HTTP gateway) or `claude-cli` (local dev) |
+| `Agent` | `BaseUrl` | (none) | OpenAI-compatible base URL, including `/v1`. Required for `sandkasse-http` |
+| `Agent` | `ApiKey` | (none) | Gateway API key. Required for `sandkasse-http` |
+| `Agent` | `Model` | (none) | Model identifier passed in the chat request |
+| `Agent` | `MaxTokens` | 4096 | Max completion tokens |
+| `Agent` | `Temperature` | 0 | Sampling temperature |
+| `Agent` | `TimeoutSeconds` | 300 | Per-request timeout |
+| `Agent` | `CliPath` | `claude` | Path to Claude CLI (only used by `claude-cli` provider) |
 | `ContentPaths` | `SkillsRoot` | `/etc/augmenter/skills` | Local dev auto-discovers `config/skills/` |
 | `ContentPaths` | `TemplatesRoot` | `/etc/augmenter/templates` | Local dev auto-discovers `config/templates/` |
 | `ContentPaths` | `DomainRoot` | `/etc/augmenter/domain` | Local dev auto-discovers `config/domain/` |
@@ -182,6 +189,11 @@ saksbehandlings-type once its config folder is mounted.
 dotnet test
 ```
 
-Tests that require Typst skip automatically if it's not on `PATH`. Integration tests that
-exercise the full pipeline depend on a working agent CLI; in a CI environment without
-valid credentials they should be filtered out or pointed at a mock provider.
+Integration tests use a stub agent (`EmptyAgentService`) so they don't need a real gateway.
+Tests that require Typst skip automatically if it's not on `PATH`.
+
+## R&D experiments
+
+`training/experiments/exp-direct-tools/` documents the v0.4 work that replaced Pi:
+direct HTTP, tool-calling, streaming, markdown-rule authorship. See its
+`SYNTHESIS.md` for findings.

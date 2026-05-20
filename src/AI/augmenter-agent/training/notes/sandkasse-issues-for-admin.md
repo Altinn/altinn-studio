@@ -50,16 +50,42 @@ mai 2026. Bruker Pi CLI (`@earendil-works/pi-coding-agent`) som klient.
 - Bortenfor 3 traff vi en per-kall latency floor på ~4-5s (sannsynligvis modell-side), så vi har ikke pushet høyere.
 - **Ask (valgfritt):** dokumenter rate-limits (per nøkkel, per modell). Vil informere klient-arkitektur når vi skal produktifisere.
 
+### 6. Sporadiske 503/504 fra OpenAIBackendError — bekreftet eksisterer
+
+- Symptom: HTTP 503 "OpenAIBackendError" eller 504 "Gateway Timeout" returneres
+  intermittent på fungerende kall — vi så det rundt mai 2026 i flere minutter
+  før det normaliserte seg.
+- 504 ser ut til å treffe spesielt på lange monolittiske prompts (27 KB
+  system-prompt + full søknad) der modellen ikke rekker å begynne å generere
+  før gateway dropper forbindelsen.
+- **Vår mitigering:** klient-side retry med exponential backoff (2s/4s/8s)
+  for 502/503/504 — implementert både i Python (sandkasse_client.py) og C#
+  (SandkasseHttpAgentService).
+- **Ask:** dokumentér hvordan vi best bør handtere disse — er det et hard rate-
+  limit, en intermittent backend-feil, eller noe annet? Bør vi sette en
+  spesifikk Retry-After header og respektere den?
+
+### 7. Tools-parameter og streaming — bekreftet fungerer ✓
+
+- Vi testet OpenAI-API `tools`-parameter mot `telenor:gemma4` i mai 2026:
+  modellen returnerer korrekt `tool_calls` med JSON-args ved første kall.
+  Tool-routing er deterministisk i praksis ved temperature=0.
+- `stream: true` fungerer som forventet — SSE-respons med `data:`-events,
+  endelig `data: [DONE]`. Latency-til-første-token typisk ~150ms.
+- **Ingen ask, kun bekreftelse for andre konsumenter:** disse er produksjons-
+  klare features på `telenor:gemma4`.
+
 ## Det vi ikke har sett
 
 - Eksplisitt feilmelding for "modellen finnes ikke" — vi får 401 (auth) for ukjente modeller, ikke 404 (not found). Dette kan være riktig sikkerhetsdesign, men gjør debugging vanskelig — vurdér å returnere 404 for ukjente modeller selv om nøkkelen er gyldig.
-- Streaming-respons har vi ikke testet — vet ikke om sandkasse støtter `stream: true`.
 
-## Kontekst
+## Kontekst (oppdatert mai 2026)
 
-Vi bygger en domain-spesifikk pipeline (kommunal saksbehandling) der vi bruker Pi-agent
-med open-source modeller via sandkasse som alternativ til Anthropic. Vi har nådd
-**100% status-agreement vs Claude gold-standard på 10s wall-time** med `telenor:gemma4` ved å
-kombinere små per-punkt prompts med en deterministisk regel-layer. Vi vil teste flere
-modeller (nemotron3, qwen3.6) for å se om vi får bedre kvalitet på de få vurderings-tunge
-punktene som fortsatt går via LLM.
+Vi bygger en domain-spesifikk pipeline (kommunal saksbehandling) som tidligere brukte
+Pi-CLI som agent-harness. Vi har siden bevist at direkte HTTP mot sandkasse er ~3x
+raskere, og at `tools`/`streaming` kan brukes til en mer ambisiøs arkitektur (markdown-
+regler + LLM-routed tool-bruk for mekanikk). Pi er nå fjernet fra produksjonskoden.
+
+100% status-agreement mot Claude gold-standard er bekreftet både med (a) Spor C-arkitekturen
+(deterministiske regler + 6 fokuserte LLM-kall, ~3s wall-time uten Pi) og (b) Phase 4-
+arkitekturen (markdown-regler + tool-calling, ~26s wall-time, ikke-koder-eierskap).
