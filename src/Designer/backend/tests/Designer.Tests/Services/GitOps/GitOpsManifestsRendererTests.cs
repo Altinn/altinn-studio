@@ -56,6 +56,8 @@ public class GitOpsManifestsRendererTests : FluentTestsBase<GitOpsManifestsRende
         Given.That.EnvironmentManifestsRendered(AltinnEnvironment.FromName("prod"), apps);
 
         string kustomization = RenderedEnvManifests["./prod/kustomization.yaml"];
+        Assert.Contains("../apps/a-app", kustomization);
+        Assert.Contains("../apps/z-app", kustomization);
         Assert.True(
             kustomization.IndexOf("../apps/a-app") < kustomization.IndexOf("../apps/z-app"),
             "Environment app resources should be rendered alphabetically by app name."

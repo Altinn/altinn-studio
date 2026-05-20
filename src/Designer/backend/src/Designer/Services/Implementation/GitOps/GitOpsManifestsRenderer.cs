@@ -37,7 +37,7 @@ public class GitOpsManifestsRenderer : IGitOpsManifestsRenderer
             },
             {
                 $"{ManifestsPathHelper.AppManifests.AppDirectoryPath(context.Repo)}/oci-repository.yaml",
-                GetAppOciRepository(context.Org, context.Repo)
+                GetAppOciRepository(context)
             },
         };
     }
@@ -97,14 +97,14 @@ public class GitOpsManifestsRenderer : IGitOpsManifestsRenderer
         );
     }
 
-    private static string GetAppOciRepository(string org, string app)
+    private static string GetAppOciRepository(AltinnRepoContext context)
     {
         return NormalizeLineEndings(
             $"""
             apiVersion: source.toolkit.fluxcd.io/v1
             kind: OCIRepository
             metadata:
-              name: {app}
+              name: {context.Repo}
               namespace: default
             spec:
               interval: 5m0s
@@ -112,7 +112,7 @@ public class GitOpsManifestsRenderer : IGitOpsManifestsRenderer
               ref:
                 tag: main
               timeout: 5m0s
-              url: oci://{org}altinnregistry01.azurecr.io/configs/{app}
+              url: oci://{context.Org}altinnregistry01.azurecr.io/configs/{context.Repo}
 
             """
         );
