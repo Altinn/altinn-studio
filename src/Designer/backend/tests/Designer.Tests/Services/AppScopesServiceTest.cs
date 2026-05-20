@@ -146,6 +146,20 @@ public class AppScopesServiceTest
         Assert.Null(result);
     }
 
+    [Fact]
+    public async Task GetAppScopesAsync_WhenServiceOwnerLookupIsCanceled_ThrowsOperationCanceledException()
+    {
+        AltinnRepoContext context = AltinnRepoContext.FromOrgRepo("ttd", "app");
+        Mock<IAppScopesRepository> appScopesRepository = new(MockBehavior.Strict);
+        Mock<IEnvironmentsService> environmentsService = new();
+        environmentsService
+            .Setup(s => s.IsAltinnOrg(context.Org, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException());
+        AppScopesService service = new(appScopesRepository.Object, environmentsService.Object, TimeProvider.System);
+
+        await Assert.ThrowsAsync<OperationCanceledException>(() => service.GetAppScopesAsync(context));
+    }
+
     private static AppScopesService CreateAppScopesService(
         IAppScopesRepository appScopesRepository,
         bool isAltinnOrg = true

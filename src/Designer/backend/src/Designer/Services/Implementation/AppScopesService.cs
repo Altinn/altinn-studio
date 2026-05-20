@@ -93,6 +93,10 @@ public class AppScopesService : IAppScopesService
         {
             return await _environmentsService.IsAltinnOrg(org, cancellationToken);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception exception)
         {
             var activity = Activity.Current;
