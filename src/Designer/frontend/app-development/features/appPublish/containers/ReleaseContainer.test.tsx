@@ -191,6 +191,7 @@ describe('ReleaseContainer', () => {
       screen.queryByText(textMock('app_create_release.loading')),
     );
 
+    expect(mockGetSelectedMaskinportenScopes).toHaveBeenCalled();
     expect(screen.getByText(textMock('app_release.release_title'))).toBeInTheDocument();
     expect(
       screen.getByLabelText(textMock('app_create_release.release_version_number')),
