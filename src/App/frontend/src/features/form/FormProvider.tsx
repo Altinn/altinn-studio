@@ -164,20 +164,25 @@ function useBoostrapQuery({ uiFolderOverride, dataElementIdOverride }: FormProvi
     }
   }, [data, prefill]);
 
-  const bootstrap = useMemo<FormBootstrapBase | null>(
-    () =>
-      data && uiFolder
-        ? {
-            uiFolder,
-            layouts: data.layouts,
-            dataModels: data.dataModels,
-            staticOptions: data.staticOptions,
-            validationIssues: data.validationIssues,
-            allInitialValidations: data.allInitialValidations,
-          }
-        : null,
-    [data, uiFolder],
-  );
+  const bootstrap = useMemo<FormBootstrapBase | null>(() => {
+    const defaultDataType = folderSettings?.defaultDataType;
+    if (!data || !uiFolder || !defaultDataType) {
+      return null;
+    }
+    return {
+      uiFolder,
+      defaultDataType,
+      layouts: data.layouts,
+      dataModels: data.dataModels,
+      staticOptions: data.staticOptions,
+      validationIssues: data.validationIssues,
+      allInitialValidations: data.allInitialValidations,
+    };
+  }, [data, uiFolder, folderSettings]);
+
+  if (uiFolder && folderSettings && !folderSettings.defaultDataType) {
+    throw new Error(`Expected defaultDataType to be defined for uiFolder: ${uiFolder}`);
+  }
 
   return { error, bootstrap, enabled };
 }
