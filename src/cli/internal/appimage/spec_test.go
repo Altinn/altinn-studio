@@ -242,6 +242,38 @@ func TestBuildSpecForApp_StandaloneAppInjectsConfigCopy(t *testing.T) {
 	assertInOrder(t, spec.DockerfileContent, []string{publish, copyConfig, final})
 }
 
+func TestSetAppFrontendAssetBaseURL_AppendsEnvToFinalStage(t *testing.T) {
+	t.Parallel()
+
+	appRoot := t.TempDir()
+	writeTestAppDockerfile(t, appRoot, "Altinn.Application.dll")
+
+	spec, err := appimage.BuildSpecForApp(repocontext.Detection{
+		AppRoot:   appRoot,
+		InAppRepo: true,
+	}, "")
+	if err != nil {
+		t.Fatalf("BuildSpecForApp() error = %v", err)
+	}
+
+	want := "http://app-frontend.local.altinn.cloud:8000"
+	if err := appimage.SetAppFrontendAssetBaseURL(&spec, want); err != nil {
+		t.Fatalf("SetAppFrontendAssetBaseURL() error = %v", err)
+	}
+
+	if spec.Dockerfile != "" {
+		t.Fatalf("Dockerfile = %q, want generated dockerfile", spec.Dockerfile)
+	}
+	assertContainsAll(t, spec.DockerfileContent, []string{
+		"ENV AppSettings__AppFrontendAssetBaseUrl=" + want,
+	})
+	assertInOrder(t, spec.DockerfileContent, []string{
+		"FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final",
+		`ENTRYPOINT ["dotnet","Altinn.Application.dll"]`,
+		"ENV AppSettings__AppFrontendAssetBaseUrl=" + want,
+	})
+}
+
 func TestBuildSpecForApp_StandaloneAppDoesNotDuplicateExistingConfigCopy(t *testing.T) {
 	t.Parallel()
 
