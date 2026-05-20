@@ -19,13 +19,14 @@ const policyTabId: SettingsPageTabId = 'policy';
 const accessControlTabId: SettingsPageTabId = 'access_control';
 const maskinportenTabId: SettingsPageTabId = 'maskinporten';
 const runTabId: SettingsPageTabId = 'run';
+const serviceOwnerOnlyTabIds: SettingsPageTabId[] = [runTabId, maskinportenTabId];
 
 export const useAppSettingsMenuTabConfigs =
   (): StudioContentMenuButtonTabProps<SettingsPageTabId>[] => {
     const { t } = useTranslation();
     const { org } = useStudioEnvironmentParams();
     const { data: orgs = {} } = useOrgListQuery();
-    const shouldShowMaskinportenTab = isServiceOwnerOrg(orgs, org);
+    const isServiceOwnerApp = isServiceOwnerOrg(orgs, org);
 
     const tabs: StudioContentMenuButtonTabProps<SettingsPageTabId>[] = [
       {
@@ -60,5 +61,7 @@ export const useAppSettingsMenuTabConfigs =
       },
     ];
 
-    return shouldShowMaskinportenTab ? tabs : tabs.filter((tab) => tab.tabId !== maskinportenTabId);
+    return isServiceOwnerApp
+      ? tabs
+      : tabs.filter((tab) => !serviceOwnerOnlyTabIds.includes(tab.tabId));
   };

@@ -28,12 +28,15 @@ describe('TabsContent', () => {
     expect(await findHeading(tab)).toBeInTheDocument();
   });
 
-  it('should render the about tab when Maskinporten is requested for a personal app', async () => {
-    renderTabsContent('maskinporten', { orgs: {} });
+  it.each(['run', 'maskinporten'] as const)(
+    'should render the about tab when %s is requested for a personal app',
+    async (tab) => {
+      renderTabsContent(tab, { orgs: {} });
 
-    expect(await findHeading('about')).toBeInTheDocument();
-    expect(queryHeading('maskinporten')).not.toBeInTheDocument();
-  });
+      expect(await findHeading('about')).toBeInTheDocument();
+      expect(queryHeading(tab)).not.toBeInTheDocument();
+    },
+  );
 });
 
 const orgListWithTestOrg: OrgList = {

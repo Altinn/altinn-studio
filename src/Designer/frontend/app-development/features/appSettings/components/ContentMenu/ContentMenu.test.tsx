@@ -25,12 +25,15 @@ describe('ContentMenu', () => {
     }
   });
 
-  it('should hide Maskinporten for personal apps', async () => {
+  it('should hide service owner only tabs for personal apps', async () => {
     renderContentMenu({ orgs: {} });
 
     expect(
       await screen.findByRole('tab', { name: textMock('app_settings.left_nav_tab_about') }),
     ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('tab', { name: textMock('app_settings.left_nav_tab_run') }),
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('tab', { name: textMock('app_settings.left_nav_tab_maskinporten') }),
     ).not.toBeInTheDocument();
