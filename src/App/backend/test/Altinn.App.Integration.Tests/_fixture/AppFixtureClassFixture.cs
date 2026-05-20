@@ -6,7 +6,7 @@ public sealed class AppFixtureScope(AppFixture fixture, SemaphoreSlim? testLock 
 {
     public AppFixture Fixture { get; } = fixture;
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         try
         {
@@ -14,15 +14,13 @@ public sealed class AppFixtureScope(AppFixture fixture, SemaphoreSlim? testLock 
             {
                 // TestErrored is set to true for test/snapshot failures.
                 // When this happens we might not reach the stage of the test where we snapshot app logs.
-                Fixture.LogAppLogs();
+                await Fixture.LogAppLogs();
             }
         }
         finally
         {
             testLock?.Release();
         }
-
-        return default;
     }
 }
 
