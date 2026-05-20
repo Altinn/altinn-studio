@@ -4,11 +4,12 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { type MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
-export const useGetSelectedScopesQuery = () => {
+export const useGetSelectedScopesQuery = (enabled: boolean = true) => {
   const { org, app } = useStudioEnvironmentParams();
   const { getSelectedMaskinportenScopes } = useServicesContext();
   return useQuery<MaskinportenScopes>({
     queryKey: [QueryKey.SelectedAppScopes, org, app],
     queryFn: () => getSelectedMaskinportenScopes(org, app),
+    enabled,
   });
 };

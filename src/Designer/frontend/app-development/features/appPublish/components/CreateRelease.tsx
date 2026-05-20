@@ -2,7 +2,7 @@ import { useState } from 'react';
 import classes from './CreateRelease.module.css';
 import type { ChangeEvent } from 'react';
 import { versionNameValid } from './utils';
-import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
+import { useBranchStatusQuery, useAppReleasesQuery, useOrgListQuery } from '../../../hooks/queries';
 import { useCreateReleaseMutation } from '../../../hooks/mutations';
 import { useGetSelectedScopesQuery } from '../../../hooks/queries/useGetSelectedScopesQuery';
 import { Trans, useTranslation } from 'react-i18next';
@@ -30,7 +30,10 @@ export function CreateRelease() {
   const [body, setBody] = useState<string>('');
   const { data: releases = [] } = useAppReleasesQuery(org, app);
   const { data: appVersion } = useAppVersionQuery(org, app);
-  const { data: selectedMaskinportenScopes } = useGetSelectedScopesQuery();
+  const { data: orgs = {} } = useOrgListQuery();
+  const repoOwnerIsServiceOwner = !!org && Object.prototype.hasOwnProperty.call(orgs, org);
+  const { data: selectedMaskinportenScopes } =
+    useGetSelectedScopesQuery(repoOwnerIsServiceOwner);
   const { refetch: getMasterBranchStatus } = useBranchStatusQuery(org, app, 'master');
   const { data: appValidationResult } = useAppValidationQuery(org, app);
   const { t } = useTranslation();
@@ -62,6 +65,7 @@ export function CreateRelease() {
   const canBuild = validVersionName;
   const shouldShowMaskinportenScopesNotice =
     appVersion !== undefined &&
+    repoOwnerIsServiceOwner &&
     selectedMaskinportenScopes !== undefined &&
     isVersionAtLeast(appVersion.backendVersion, 9, 0, 0) &&
     !hasDefaultMaskinportenScopes(selectedMaskinportenScopes);
