@@ -46,15 +46,14 @@ public class HomeControllerTest_AppFrontendAssetBaseUrl : ApiTestBase, IClassFix
     }
 
     [Fact]
-    public async Task Index_UsesCdnAppFrontendAssetsByDefault()
+    public async Task Index_FailsByDefault()
     {
         using var client = GetRootedClient(Org, App, configureServices: ConfigureStatelessAnonymousApp);
         using var response = await client.GetAsync($"{Org}/{App}/");
         var html = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("href=\"https://altinncdn.no/toolkits/altinn-app-frontend/4/altinn-app-frontend.css\"", html);
-        Assert.Contains("src=\"https://altinncdn.no/toolkits/altinn-app-frontend/4/altinn-app-frontend.js\"", html);
+        Assert.Contains("loading our built-in frontend is not yet supported", html);
     }
 
     private static void ConfigureStatelessAnonymousApp(IServiceCollection services)
