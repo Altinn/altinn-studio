@@ -160,7 +160,10 @@ func (c *AppCommand) runBuild(ctx context.Context, args []string) error {
 	result, err := c.service.ResolveTarget(ctx, flags.appPath)
 	if err != nil {
 		if errors.Is(err, repocontext.ErrAppNotFound) {
-			return fmt.Errorf("%w: run from an app directory or use -p to specify path", ErrNoAppFound)
+			return fmt.Errorf(
+				"%w: run from an app directory or use -p to specify path",
+				ErrNoAppFound,
+			)
 		}
 		return fmt.Errorf("detect app: %w", err)
 	}
@@ -169,7 +172,11 @@ func (c *AppCommand) runBuild(ctx context.Context, args []string) error {
 	if err != nil {
 		return fmt.Errorf("build docker image spec: %w", err)
 	}
-	if err := appimage.SetAppFrontendAssetBaseURL(&spec, appBuildFrontendAssetBaseURL(flags)); err != nil {
+	err = appimage.SetAppFrontendAssetBaseURL(
+		&spec,
+		AppBuildFrontendAssetBaseURL(flags.devFrontend),
+	)
+	if err != nil {
 		return fmt.Errorf("set app frontend asset base URL: %w", err)
 	}
 	cleanupDockerfile, err := appimage.MaterializeDockerfile(&spec)
@@ -239,7 +246,10 @@ func (c *AppCommand) parseAppBuildFlags(args []string) (appBuildFlags, bool, err
 
 func (c *AppCommand) appBuildUsage() string {
 	return joinLines(
-		fmt.Sprintf("Usage: %s app build [-p PATH] [--image-tag IMAGE] [--push]", osutil.CurrentBin()),
+		fmt.Sprintf(
+			"Usage: %s app build [-p PATH] [--image-tag IMAGE] [--push]",
+			osutil.CurrentBin(),
+		),
 		"",
 		"Builds an Altinn app container image.",
 		"",
@@ -254,8 +264,9 @@ func (c *AppCommand) appBuildUsage() string {
 	)
 }
 
-func appBuildFrontendAssetBaseURL(flags appBuildFlags) string {
-	if !flags.devFrontend {
+// AppBuildFrontendAssetBaseURL returns the frontend asset base URL for app builds.
+func AppBuildFrontendAssetBaseURL(devFrontend bool) string {
+	if !devFrontend {
 		return ""
 	}
 	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
@@ -280,7 +291,10 @@ func (c *AppCommand) runUpdate(ctx context.Context, args []string) error {
 	result, err := c.service.ResolveUpdateTarget(ctx, appPath)
 	if err != nil {
 		if errors.Is(err, repocontext.ErrAppNotFound) {
-			return fmt.Errorf("%w: run from an app directory or use -p to specify path", ErrNoAppFound)
+			return fmt.Errorf(
+				"%w: run from an app directory or use -p to specify path",
+				ErrNoAppFound,
+			)
 		}
 		return fmt.Errorf("detect app: %w", err)
 	}
@@ -393,7 +407,8 @@ func (c *AppCommand) parseAppUpgradeFlags(args []string) (appUpgradeFlags, bool,
 }
 
 func isSupportedAppUpgradeKind(kind string) bool {
-	return kind == appUpgradeKindFrontendV4 || kind == appUpgradeKindBackendV8 || kind == appUpgradeKindV9
+	return kind == appUpgradeKindFrontendV4 || kind == appUpgradeKindBackendV8 ||
+		kind == appUpgradeKindV9
 }
 
 func (c *AppCommand) appUpgradeUsageLine() string {
@@ -447,7 +462,13 @@ func (c *AppCommand) runClone(ctx context.Context, args []string) error {
 	host, err := c.service.ResolveHost(env)
 	if err != nil {
 		if errors.Is(err, appsvc.ErrNotLoggedIn) {
-			return fmt.Errorf("%w: %s (run '%s auth login --env %s')", ErrNotLoggedIn, env, osutil.CurrentBin(), env)
+			return fmt.Errorf(
+				"%w: %s (run '%s auth login --env %s')",
+				ErrNotLoggedIn,
+				env,
+				osutil.CurrentBin(),
+				env,
+			)
 		}
 		return fmt.Errorf("resolve host: %w", err)
 	}
@@ -475,13 +496,24 @@ func (c *AppCommand) runClone(ctx context.Context, args []string) error {
 func mapCloneError(err error, env, org, repo, host, dest string) error {
 	switch {
 	case errors.Is(err, appsvc.ErrNotLoggedIn):
-		return fmt.Errorf("%w: %s (run '%s auth login --env %s')", ErrNotLoggedIn, env, osutil.CurrentBin(), env)
+		return fmt.Errorf(
+			"%w: %s (run '%s auth login --env %s')",
+			ErrNotLoggedIn,
+			env,
+			osutil.CurrentBin(),
+			env,
+		)
 	case errors.Is(err, studio.ErrRepoNotFound):
 		return fmt.Errorf("%w: %s/%s on %s", studio.ErrRepoNotFound, org, repo, host)
 	case errors.Is(err, studio.ErrDestinationExists):
 		return fmt.Errorf("%w: %s", studio.ErrDestinationExists, dest)
 	case errors.Is(err, studio.ErrUnauthorized):
-		return fmt.Errorf("%w (run '%s auth login --env %s')", ErrInvalidToken, osutil.CurrentBin(), env)
+		return fmt.Errorf(
+			"%w (run '%s auth login --env %s')",
+			ErrInvalidToken,
+			osutil.CurrentBin(),
+			env,
+		)
 	default:
 		return fmt.Errorf("clone failed: %w", err)
 	}
