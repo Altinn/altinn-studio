@@ -36,16 +36,29 @@ export function ScopeListContainer(): ReactElement {
     return <StudioSpinner aria-hidden spinnerTitle={t('general.loading')} />;
   }
 
-  if (isForbiddenError(maskinportenScopesError)) {
-    return <NoOrgAccessAlert />;
-  }
+  const hasOrgAccess: boolean = !isForbiddenError(maskinportenScopesError);
 
-  if (hasScopes || shouldShowDefaultScopesOptIn) {
+  if (hasOrgAccess && (hasScopes || shouldShowDefaultScopesOptIn)) {
     return (
       <ScopeList
         maskinPortenScopes={maskinPortenScopes?.scopes ?? []}
         selectedScopes={selectedScopes?.scopes ?? []}
       />
+    );
+  }
+
+  if (!hasOrgAccess) {
+    return (
+      <>
+        <NoOrgAccessAlert />
+        {selectedScopes?.scopes?.length > 0 && (
+          <ScopeList
+            maskinPortenScopes={[]}
+            selectedScopes={selectedScopes.scopes}
+            canManageScopes={false}
+          />
+        )}
+      </>
     );
   }
 
