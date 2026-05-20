@@ -1,4 +1,3 @@
-import React from 'react';
 import type { PropsWithChildren, Ref } from 'react';
 
 import { Button as DesignSystemButton } from '@digdir/designsystemet-react';
@@ -7,7 +6,7 @@ import type { ButtonProps as DesignSystemButtonProps } from '@digdir/designsyste
 import { Spinner } from '../Spinner';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | undefined;
-export type ButtonColor = 'first' | 'second' | 'success' | 'danger' | undefined;
+export type ButtonColor = 'first' | 'second' | 'danger' | undefined;
 export type TextAlign = 'left' | 'center' | 'right';
 
 export type ButtonProps = {
@@ -33,7 +32,7 @@ type DSButtonColor =
   | 'brand3'
   | undefined;
 
-function mapColorNames(color: ButtonColor): DSButtonColor {
+function mapColorNames(color: ButtonColor): DesignSystemButtonProps['data-color'] {
   switch (color) {
     case 'first':
       return 'accent';
