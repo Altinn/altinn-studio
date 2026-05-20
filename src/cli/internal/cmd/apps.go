@@ -183,6 +183,8 @@ func (c *AppsCommand) parseSearchFlags(args []string) (appsSearchFlags, string, 
 	if !isSupportedAppsSearchOrder(flags.order) {
 		return flags, "", false, fmt.Errorf("%w: --order must be asc or desc", ErrInvalidFlagValue)
 	}
+	flags.sort = strings.ToLower(flags.sort)
+	flags.order = strings.ToLower(flags.order)
 
 	query := strings.TrimSpace(strings.Join(fs.Args(), " "))
 	return flags, query, false, nil
