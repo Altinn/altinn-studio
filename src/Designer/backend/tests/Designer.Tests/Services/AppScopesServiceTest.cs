@@ -8,7 +8,6 @@ using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -157,11 +156,6 @@ public class AppScopesServiceTest
             .Setup(s => s.IsAltinnOrg(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(isAltinnOrg);
 
-        return new AppScopesService(
-            appScopesRepository,
-            environmentsService.Object,
-            NullLogger<AppScopesService>.Instance,
-            TimeProvider.System
-        );
+        return new AppScopesService(appScopesRepository, environmentsService.Object, TimeProvider.System);
     }
 }
