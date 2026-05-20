@@ -32,8 +32,7 @@ export function CreateRelease() {
   const { data: appVersion } = useAppVersionQuery(org, app);
   const { data: orgs = {} } = useOrgListQuery();
   const repoOwnerIsServiceOwner = !!org && Object.prototype.hasOwnProperty.call(orgs, org);
-  const { data: selectedMaskinportenScopes } =
-    useGetSelectedScopesQuery(repoOwnerIsServiceOwner);
+  const { data: selectedMaskinportenScopes } = useGetSelectedScopesQuery(repoOwnerIsServiceOwner);
   const { refetch: getMasterBranchStatus } = useBranchStatusQuery(org, app, 'master');
   const { data: appValidationResult } = useAppValidationQuery(org, app);
   const { t } = useTranslation();
