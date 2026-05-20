@@ -2,7 +2,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Constants;
-using Altinn.Studio.Designer.Exceptions.AppScopes;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.StudioOidc;
 using Altinn.Studio.Designer.Models;
@@ -11,6 +10,7 @@ using Altinn.Studio.Designer.Repository.Models.AppScope;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.MaskinPorten;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.FeatureManagement.Mvc;
 
@@ -56,7 +56,7 @@ public class AppScopesController(
     {
         if (!await environmentsService.IsAltinnOrg(org, cancellationToken))
         {
-            return BadRequest(AppScopesNotSupportedException.CreateMessage(org));
+            return BadRequest(CreateAppScopesNotSupportedProblemDetails(org));
         }
 
         var scopes = appScopesUpsertRequest
@@ -79,7 +79,7 @@ public class AppScopesController(
     {
         if (!await environmentsService.IsAltinnOrg(org, cancellationToken))
         {
-            return BadRequest(AppScopesNotSupportedException.CreateMessage(org));
+            return BadRequest(CreateAppScopesNotSupportedProblemDetails(org));
         }
 
         var appScopes = await appScopesService.GetAppScopesAsync(
@@ -98,4 +98,13 @@ public class AppScopesController(
 
         return Ok(reponse);
     }
+
+    private static ProblemDetails CreateAppScopesNotSupportedProblemDetails(string org) =>
+        new()
+        {
+            Title = "Maskinporten scopes are not supported for this app",
+            Detail =
+                $"Maskinporten scopes are only supported for service-owner organisations. '{org}' is not a service-owner organisation.",
+            Status = StatusCodes.Status400BadRequest,
+        };
 }

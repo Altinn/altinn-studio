@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Exceptions.AppScopes;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
@@ -107,7 +106,7 @@ public class AppScopesServiceTest
         Mock<IAppScopesRepository> appScopesRepository = new(MockBehavior.Strict);
         AppScopesService service = CreateAppScopesService(appScopesRepository.Object, isAltinnOrg: false);
 
-        await Assert.ThrowsAsync<AppScopesNotSupportedException>(() => service.GetAppScopesAsync(context));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.GetAppScopesAsync(context));
     }
 
     [Fact]
@@ -121,7 +120,7 @@ public class AppScopesServiceTest
         Mock<IAppScopesRepository> appScopesRepository = new(MockBehavior.Strict);
         AppScopesService service = CreateAppScopesService(appScopesRepository.Object, isAltinnOrg: false);
 
-        await Assert.ThrowsAsync<AppScopesNotSupportedException>(() =>
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
             service.UpsertScopesAsync(
                 context,
                 new HashSet<MaskinPortenScopeEntity> { new() { Scope = "custom:scope" } }
