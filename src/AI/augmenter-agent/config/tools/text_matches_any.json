@@ -1,0 +1,12 @@
+{
+  "name": "text_matches_any",
+  "description": "Eksakt tekst-likhet (case-insensitiv) mot en liste alternativer. Bruk for å sjekke om en kategori er i en kjent enum (f.eks. arrangement-type).",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "haystack": { "type": "string", "description": "Verdi å sjekke" },
+      "needles":  { "type": "array", "items": { "type": "string" }, "description": "Liste med gyldige alternativer" }
+    },
+    "required": ["haystack", "needles"]
+  }
+}

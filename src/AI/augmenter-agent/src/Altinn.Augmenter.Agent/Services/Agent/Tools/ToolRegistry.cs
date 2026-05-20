@@ -3,10 +3,10 @@ using System.Text.Json;
 namespace Altinn.Augmenter.Agent.Services.Agent.Tools;
 
 /// <summary>
-/// Default registry containing the 8 deterministic tools ported from
-/// <c>training/experiments/exp-direct-tools/scripts/tools.py</c>. Constructed
-/// with no arguments; tools are pure singletons so a single registry instance
-/// is safe to share across requests.
+/// Composes built-in <see cref="ITool"/> implementations with definitions
+/// loaded from config. Definitions and implementations are joined by tool name;
+/// an impl without a definition (or vice versa) is an error so misconfiguration
+/// fails fast at startup rather than silently dropping a tool.
 /// </summary>
 public sealed class ToolRegistry : IToolRegistry
 {
@@ -18,15 +18,64 @@ public sealed class ToolRegistry : IToolRegistry
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.Never,
     };
 
-    public ToolRegistry()
-        : this(BuiltIn())
+    /// <summary>
+    /// Production constructor (used by DI). Pairs each registered <see cref="ITool"/>
+    /// with the matching definition from <paramref name="loader"/>.
+    /// </summary>
+    public ToolRegistry(IEnumerable<ITool> tools, IToolDefinitionLoader loader)
+        : this(tools, loader.LoadAll())
     {
     }
 
-    public ToolRegistry(IEnumerable<ITool> tools)
+    /// <summary>
+    /// Test constructor — accepts an in-memory definitions map so unit tests
+    /// don't need a file system. Default <paramref name="definitions"/> is empty,
+    /// which throws if any tool is registered (matching production behavior).
+    /// </summary>
+    public ToolRegistry(IEnumerable<ITool> tools, IReadOnlyDictionary<string, ToolDefinition> definitions)
     {
         _byName = tools.ToDictionary(t => t.Name, t => t, StringComparer.Ordinal);
-        _definitions = _byName.Values.Select(t => t.Definition).ToList();
+        var defs = new List<ToolDefinition>(_byName.Count);
+        foreach (var (name, _) in _byName)
+        {
+            if (!definitions.TryGetValue(name, out var def))
+                throw new InvalidOperationException(
+                    $"Tool '{name}' has an implementation but no definition. " +
+                    $"Add a {name}.json file under ContentPaths.ToolsRoot.");
+            defs.Add(def);
+        }
+        var orphans = definitions.Keys.Where(k => !_byName.ContainsKey(k)).ToList();
+        if (orphans.Count > 0)
+        {
+            throw new InvalidOperationException(
+                $"Tool definitions without an implementation: [{string.Join(", ", orphans)}]. " +
+                $"Either add the matching ITool or remove the .json file.");
+        }
+        _definitions = defs;
+    }
+
+    /// <summary>
+    /// Convenience for tests that exercise dispatch but don't care about
+    /// definitions — pairs the built-in tools with minimal placeholder
+    /// definitions so the registry doesn't throw.
+    /// </summary>
+    public static ToolRegistry ForTesting() => new(BuiltIn(), PlaceholderDefinitions(BuiltIn()));
+
+    private static IReadOnlyDictionary<string, ToolDefinition> PlaceholderDefinitions(IEnumerable<ITool> tools)
+    {
+        var emptyParameters = JsonDocument.Parse("""{"type":"object","properties":{},"required":[]}""").RootElement.Clone();
+        return tools.ToDictionary(
+            t => t.Name,
+            t => new ToolDefinition
+            {
+                Function = new ToolFunctionDefinition
+                {
+                    Name = t.Name,
+                    Description = $"Placeholder definition for {t.Name} (test fixture).",
+                    Parameters = emptyParameters,
+                },
+            },
+            StringComparer.Ordinal);
     }
 
     public IReadOnlyList<ToolDefinition> Definitions => _definitions;

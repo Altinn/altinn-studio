@@ -1,0 +1,12 @@
+{
+  "name": "text_contains_any",
+  "description": "Substring-søk (case-insensitiv): True hvis ETT av needles forekommer i haystack. Bruk for å sjekke om f.eks. stedsnavn inneholder 'restaurant', 'kro', 'pub'.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "haystack": { "type": "string", "description": "Tekst å søke i" },
+      "needles":  { "type": "array", "items": { "type": "string" }, "description": "Liste med substrings" }
+    },
+    "required": ["haystack", "needles"]
+  }
+}

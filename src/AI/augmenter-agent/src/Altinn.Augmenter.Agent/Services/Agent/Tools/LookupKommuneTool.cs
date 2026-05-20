@@ -20,24 +20,6 @@ public sealed class LookupKommuneTool : ITool
             ["4221"] = ("Vennesla", "Agder"),
         };
 
-    public ToolDefinition Definition { get; } = new()
-    {
-        Function = new ToolFunctionDefinition
-        {
-            Name = "lookup_kommune",
-            Description = "Slå opp kommunenavn fra 4-sifret kommunenummer.",
-            Parameters = JsonDocument.Parse("""
-                {
-                  "type": "object",
-                  "properties": {
-                    "kommunenummer": { "type": "string", "description": "4-sifret kommunenummer" }
-                  },
-                  "required": ["kommunenummer"]
-                }
-                """).RootElement.Clone(),
-        },
-    };
-
     public object Invoke(JsonElement arguments, JsonDocument application)
     {
         var nr = arguments.TryGetProperty("kommunenummer", out var k) ? k.GetString()?.Trim() ?? "" : "";

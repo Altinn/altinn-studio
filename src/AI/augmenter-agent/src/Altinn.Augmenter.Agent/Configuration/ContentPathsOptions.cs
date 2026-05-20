@@ -25,4 +25,11 @@ public sealed class ContentPathsOptions
     /// tied to a specific skill. Folder must contain <c>system-prompt.md</c>.
     /// </summary>
     public string OrchestratorRoot { get; set; } = "/etc/augmenter/orchestrator";
+
+    /// <summary>
+    /// OpenAI tool definitions (one <c>&lt;tool_name&gt;.json</c> file per tool).
+    /// The image ships built-in implementations; descriptions and parameter
+    /// schemas live here so the public image carries no domain vocabulary.
+    /// </summary>
+    public string ToolsRoot { get; set; } = "/etc/augmenter/tools";
 }

@@ -13,28 +13,6 @@ public sealed partial class PathValueTool : ITool
 {
     public string Name => "path_value";
 
-    public ToolDefinition Definition { get; } = new()
-    {
-        Function = new ToolFunctionDefinition
-        {
-            Name = "path_value",
-            Description =
-                "Les en verdi fra søknads-JSON via dot-path med valgfri [index]. " +
-                "Eksempel: 'Bevillingsansvarlig.Styrer.Foedselsnummer'. " +
-                "Returnerer present=False hvis et mellomliggende steg mangler — bruk det " +
-                "for å avgjøre om dokumentasjon/felt er oppgitt eller mangler.",
-            Parameters = JsonDocument.Parse("""
-                {
-                  "type": "object",
-                  "properties": {
-                    "json_path": { "type": "string", "description": "Dot-path med valgfri [n]-indeks" }
-                  },
-                  "required": ["json_path"]
-                }
-                """).RootElement.Clone(),
-        },
-    };
-
     [GeneratedRegex(@"^([^\[\]]+)(?:\[(\d+)\])?$")]
     private static partial Regex SegmentRegex();
 

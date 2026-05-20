@@ -11,27 +11,6 @@ public sealed class CountAttachmentsTool : ITool
 {
     public string Name => "count_attachments";
 
-    public ToolDefinition Definition { get; } = new()
-    {
-        Function = new ToolFunctionDefinition
-        {
-            Name = "count_attachments",
-            Description =
-                "Tell vedlegg på søknaden, valgfritt filtrert på filnavn-substring. " +
-                "Bruk dette for å sjekke om dokumentasjon (plantegning, leiekontrakt, etc.) " +
-                "er vedlagt.",
-            Parameters = JsonDocument.Parse("""
-                {
-                  "type": "object",
-                  "properties": {
-                    "name_contains": { "type": "string", "description": "Valgfri substring i filnavn (case-insensitiv). Utelat for total-telling." }
-                  },
-                  "required": []
-                }
-                """).RootElement.Clone(),
-        },
-    };
-
     public object Invoke(JsonElement arguments, JsonDocument application)
     {
         string? filter = null;

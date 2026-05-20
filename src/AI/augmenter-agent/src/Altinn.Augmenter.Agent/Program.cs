@@ -52,7 +52,12 @@ builder.Services.AddScoped<IAgentService>(sp =>
     };
 });
 // Per-punkt orchestrator + supporting services (used by agent-pdf-orchestrated step)
-builder.Services.AddSingleton<IToolRegistry, ToolRegistry>();
+foreach (var tool in ToolRegistry.BuiltIn())
+    builder.Services.AddSingleton(tool);
+builder.Services.AddSingleton<IToolDefinitionLoader, FileToolDefinitionLoader>();
+builder.Services.AddSingleton<IToolRegistry>(sp => new ToolRegistry(
+    sp.GetServices<ITool>(),
+    sp.GetRequiredService<IToolDefinitionLoader>()));
 builder.Services.AddSingleton<IRulesLoader, MarkdownRulesLoader>();
 builder.Services.AddSingleton<ISystemPromptProvider, FileSystemPromptProvider>();
 builder.Services.AddScoped<IChatService, SandkasseChatService>();

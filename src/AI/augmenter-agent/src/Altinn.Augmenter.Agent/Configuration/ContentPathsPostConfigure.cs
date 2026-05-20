@@ -36,6 +36,9 @@ public sealed class ContentPathsPostConfigure : IPostConfigureOptions<ContentPat
 
         if (!Directory.Exists(options.OrchestratorRoot))
             options.OrchestratorRoot = Path.Combine(configRoot, "orchestrator");
+
+        if (!Directory.Exists(options.ToolsRoot))
+            options.ToolsRoot = Path.Combine(configRoot, "tools");
     }
 
     private static string? FindLocalConfigRoot()

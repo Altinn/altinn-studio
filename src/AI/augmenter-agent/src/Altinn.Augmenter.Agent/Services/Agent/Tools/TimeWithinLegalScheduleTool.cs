@@ -13,28 +13,6 @@ public sealed partial class TimeWithinLegalScheduleTool : ITool
 {
     public string Name => "time_within_legal_schedule";
 
-    public ToolDefinition Definition { get; } = new()
-    {
-        Function = new ToolFunctionDefinition
-        {
-            Name = "time_within_legal_schedule",
-            Description =
-                "Sjekk om skjenketider ligger innenfor alkohollovens makstider for varegruppen. " +
-                "Gruppe 1-2 (øl/vin): 06:00-03:00. Gruppe 3 (brennevin): 13:00-03:00.",
-            Parameters = JsonDocument.Parse("""
-                {
-                  "type": "object",
-                  "properties": {
-                    "start_time":  { "type": "string", "description": "Skjenkestart, HH:MM" },
-                    "end_time":    { "type": "string", "description": "Skjenkeslutt, HH:MM (kan være neste dag — wrap håndteres)" },
-                    "vare_gruppe": { "type": "string", "description": "Tekstuell beskrivelse av varegruppe (f.eks. 'gruppe 1 og 2', 'gruppe tre', 'brennevin')" }
-                  },
-                  "required": ["start_time", "end_time", "vare_gruppe"]
-                }
-                """).RootElement.Clone(),
-        },
-    };
-
     [GeneratedRegex(@"^(\d{1,2}):(\d{2})$")]
     private static partial Regex TimeRegex();
 

@@ -258,7 +258,7 @@ public class ToolTests
     [Fact]
     public void ToolRegistry_Dispatch_UnknownTool_ReturnsErrorJson()
     {
-        var registry = new ToolRegistry();
+        var registry = ToolRegistry.ForTesting();
         var json = registry.Dispatch("nonexistent_tool", Args("{}"), SampleApplication);
         var parsed = JsonDocument.Parse(json);
         parsed.RootElement.TryGetProperty("error", out var err).Should().BeTrue();
@@ -268,7 +268,7 @@ public class ToolTests
     [Fact]
     public void ToolRegistry_Dispatch_KnownTool_ReturnsSerializedResult()
     {
-        var registry = new ToolRegistry();
+        var registry = ToolRegistry.ForTesting();
         var json = registry.Dispatch(
             "days_between",
             Args("""{ "from_date": "2026-01-01", "to_date": "2026-01-15" }"""),
@@ -278,29 +278,62 @@ public class ToolTests
     }
 
     [Fact]
-    public void ToolRegistry_Definitions_HasEightTools()
+    public void ToolRegistry_BuiltIn_HasEightTools()
     {
-        var registry = new ToolRegistry();
-        registry.Definitions.Should().HaveCount(8);
-        registry.Definitions.Select(d => d.Function.Name).Should().BeEquivalentTo(
+        ToolRegistry.BuiltIn().Select(t => t.Name).Should().BeEquivalentTo(
             "age_at_date_from_fnr", "days_between", "time_within_legal_schedule",
             "lookup_kommune", "path_value", "count_attachments",
             "text_matches_any", "text_contains_any");
     }
 
     [Fact]
-    public void ToolRegistry_ToolDefinition_SerializesParametersAsSchema()
+    public void ToolRegistry_MissingDefinition_ThrowsOnConstruction()
+    {
+        // BuiltIn() returns 8 impls; pass an empty defs map → registry should
+        // refuse rather than silently produce a tool with no definition.
+        var act = () => new ToolRegistry(ToolRegistry.BuiltIn(), new Dictionary<string, ToolDefinition>());
+        act.Should().Throw<InvalidOperationException>().WithMessage("*has an implementation but no definition*");
+    }
+
+    [Fact]
+    public void ToolRegistry_OrphanDefinition_ThrowsOnConstruction()
+    {
+        var defs = new Dictionary<string, ToolDefinition>
+        {
+            ["days_between"] = new() { Function = new ToolFunctionDefinition
+            {
+                Name = "days_between",
+                Description = "x",
+                Parameters = JsonDocument.Parse("{}").RootElement.Clone(),
+            } },
+            ["a_phantom_tool"] = new() { Function = new ToolFunctionDefinition
+            {
+                Name = "a_phantom_tool",
+                Description = "x",
+                Parameters = JsonDocument.Parse("{}").RootElement.Clone(),
+            } },
+        };
+        var act = () => new ToolRegistry([new DaysBetweenTool()], defs);
+        act.Should().Throw<InvalidOperationException>().WithMessage("*without an implementation*a_phantom_tool*");
+    }
+
+    [Fact]
+    public void ToolDefinition_SerializesParametersAsSchema()
     {
         // Ensure JsonElementConverter prevents the outer snake_case naming policy
         // (used by SandkasseChatService) from mangling JSON-schema property names
         // like "type" or "properties".
-        var registry = new ToolRegistry();
-        var ageTool = registry.Definitions.First(d => d.Function.Name == "age_at_date_from_fnr");
-        var snakeOptions = new JsonSerializerOptions
+        var def = new ToolDefinition
         {
-            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+            Function = new ToolFunctionDefinition
+            {
+                Name = "x",
+                Description = "x",
+                Parameters = JsonDocument.Parse("""{"type":"object","properties":{"a":{"type":"string"}},"required":["a"]}""").RootElement.Clone(),
+            },
         };
-        var serialized = JsonSerializer.Serialize(ageTool, snakeOptions);
+        var snakeOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
+        var serialized = JsonSerializer.Serialize(def, snakeOptions);
         serialized.Should().Contain("\"type\":");
         serialized.Should().Contain("\"properties\":");
         serialized.Should().Contain("\"required\":");

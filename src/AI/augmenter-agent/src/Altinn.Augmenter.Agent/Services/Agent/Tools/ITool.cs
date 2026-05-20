@@ -7,13 +7,13 @@ namespace Altinn.Augmenter.Agent.Services.Agent.Tools;
 /// Implementations must be pure, side-effect-free, and JSON-serializable in return.
 /// Errors are returned as { "error": "..." } objects rather than thrown — the
 /// LLM needs to be able to read and reason about a failed call.
+///
+/// The OpenAI tool definition (description + JSON-schema) lives in config —
+/// see <see cref="IToolDefinitionLoader"/>. <see cref="Name"/> is the join key.
 /// </summary>
 public interface ITool
 {
     string Name { get; }
-
-    /// <summary>OpenAI-compatible tool definition (function name + JSON schema).</summary>
-    ToolDefinition Definition { get; }
 
     /// <summary>
     /// Invoke the tool with arguments parsed from the model's tool_call.

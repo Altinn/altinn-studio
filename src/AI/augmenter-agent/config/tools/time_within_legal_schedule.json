@@ -1,0 +1,13 @@
+{
+  "name": "time_within_legal_schedule",
+  "description": "Sjekk om skjenketider ligger innenfor alkohollovens makstider for varegruppen. Gruppe 1-2 (øl/vin): 06:00-03:00. Gruppe 3 (brennevin): 13:00-03:00.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "start_time":  { "type": "string", "description": "Skjenkestart, HH:MM" },
+      "end_time":    { "type": "string", "description": "Skjenkeslutt, HH:MM (kan være neste dag — wrap håndteres)" },
+      "vare_gruppe": { "type": "string", "description": "Tekstuell beskrivelse av varegruppe (f.eks. 'gruppe 1 og 2', 'gruppe tre', 'brennevin')" }
+    },
+    "required": ["start_time", "end_time", "vare_gruppe"]
+  }
+}

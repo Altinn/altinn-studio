@@ -13,28 +13,6 @@ public sealed partial class AgeAtDateFromFnrTool : ITool
 {
     public string Name => "age_at_date_from_fnr";
 
-    public ToolDefinition Definition { get; } = new()
-    {
-        Function = new ToolFunctionDefinition
-        {
-            Name = "age_at_date_from_fnr",
-            Description =
-                "Beregn alder i hele år for en person med gitt 11-sifret norsk " +
-                "fødselsnummer på en referansedato. Bruk dette når du må vite " +
-                "om en person har fylt en aldersgrense (f.eks. 20 år for styrer).",
-            Parameters = JsonDocument.Parse("""
-                {
-                  "type": "object",
-                  "properties": {
-                    "fnr":            { "type": "string", "description": "11-sifret fødselsnummer (kun siffer)" },
-                    "reference_date": { "type": "string", "description": "ISO-8601 dato YYYY-MM-DD (typisk arrangementets startdato eller vedtaksdato)" }
-                  },
-                  "required": ["fnr", "reference_date"]
-                }
-                """).RootElement.Clone(),
-        },
-    };
-
     public object Invoke(JsonElement arguments, JsonDocument application)
     {
         var fnr = arguments.TryGetProperty("fnr", out var fnrEl) ? fnrEl.GetString() : null;
