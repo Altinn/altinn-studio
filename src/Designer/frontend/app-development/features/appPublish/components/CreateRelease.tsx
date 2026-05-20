@@ -23,6 +23,7 @@ import { appHasCriticalValidationErrors } from 'app-shared/utils/appValidationUt
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import { hasDefaultMaskinportenScopes } from 'app-development/utils/maskinportenScopes';
 import { isVersionAtLeast } from 'app-development/utils/versionUtils';
+import { isServiceOwnerOrg } from 'app-development/utils/serviceOwnerOrgUtils';
 
 export function CreateRelease() {
   const { org, app } = useStudioEnvironmentParams();
@@ -31,7 +32,7 @@ export function CreateRelease() {
   const { data: releases = [] } = useAppReleasesQuery(org, app);
   const { data: appVersion } = useAppVersionQuery(org, app);
   const { data: orgs = {} } = useOrgListQuery();
-  const repoOwnerIsServiceOwner = !!org && Object.prototype.hasOwnProperty.call(orgs, org);
+  const repoOwnerIsServiceOwner = isServiceOwnerOrg(orgs, org);
   const { data: selectedMaskinportenScopes } = useGetSelectedScopesQuery(repoOwnerIsServiceOwner);
   const { refetch: getMasterBranchStatus } = useBranchStatusQuery(org, app, 'master');
   const { data: appValidationResult } = useAppValidationQuery(org, app);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Exceptions.AppScopes;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
@@ -33,10 +34,7 @@ public class AppScopesService : IAppScopesService
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (!await IsServiceOwnerOrg(context.Org, cancellationToken))
-        {
-            return null;
-        }
+        await EnsureServiceOwnerOrg(context.Org, cancellationToken);
 
         return await _appRepository.GetAppScopesAsync(context, cancellationToken);
     }
@@ -48,10 +46,7 @@ public class AppScopesService : IAppScopesService
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (!await IsServiceOwnerOrg(editingContext.Org, cancellationToken))
-        {
-            return null;
-        }
+        await EnsureServiceOwnerOrg(editingContext.Org, cancellationToken);
 
         var appScopes =
             await _appRepository.GetAppScopesAsync(editingContext, cancellationToken)
@@ -85,6 +80,14 @@ public class AppScopesService : IAppScopesService
         appScopes.Scopes = DefaultMaskinportenScopes.MergeWith(appScopes.Scopes);
         appScopes.LastModifiedBy = editingContext.Developer;
         return await _appRepository.UpsertAppScopesAsync(appScopes, cancellationToken);
+    }
+
+    private async Task EnsureServiceOwnerOrg(string org, CancellationToken cancellationToken)
+    {
+        if (!await IsServiceOwnerOrg(org, cancellationToken))
+        {
+            throw new AppScopesNotSupportedException(org);
+        }
     }
 
     private async Task<bool> IsServiceOwnerOrg(string org, CancellationToken cancellationToken)

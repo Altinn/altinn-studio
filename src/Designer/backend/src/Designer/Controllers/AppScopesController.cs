@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Constants;
+using Altinn.Studio.Designer.Exceptions.AppScopes;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.StudioOidc;
 using Altinn.Studio.Designer.Models;
@@ -43,7 +44,7 @@ public class AppScopesController(IMaskinPortenHttpClient maskinPortenHttpClient,
 
     [Authorize]
     [HttpPut]
-    public async Task UpsertAppScopes(
+    public async Task<IActionResult> UpsertAppScopes(
         string org,
         string app,
         [FromBody] AppScopesUpsertRequest appScopesUpsertRequest,
@@ -55,21 +56,38 @@ public class AppScopesController(IMaskinPortenHttpClient maskinPortenHttpClient,
             .ToHashSet();
 
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        await appScopesService.UpsertScopesAsync(
-            AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer),
-            scopes,
-            cancellationToken
-        );
+        try
+        {
+            await appScopesService.UpsertScopesAsync(
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer),
+                scopes,
+                cancellationToken
+            );
+        }
+        catch (AppScopesNotSupportedException exception)
+        {
+            return BadRequest(exception.Message);
+        }
+
+        return Ok();
     }
 
     [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetAppScopes(string org, string app, CancellationToken cancellationToken)
     {
-        var appScopes = await appScopesService.GetAppScopesAsync(
-            AltinnRepoContext.FromOrgRepo(org, app),
-            cancellationToken
-        );
+        AppScopesEntity? appScopes;
+        try
+        {
+            appScopes = await appScopesService.GetAppScopesAsync(
+                AltinnRepoContext.FromOrgRepo(org, app),
+                cancellationToken
+            );
+        }
+        catch (AppScopesNotSupportedException exception)
+        {
+            return BadRequest(exception.Message);
+        }
 
         var reponse = new AppScopesResponse()
         {

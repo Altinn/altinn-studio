@@ -10,6 +10,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import type { StudioContentMenuButtonTabProps } from '@studio/components';
 import { useOrgListQuery } from 'app-development/hooks/queries/useOrgListQuery';
+import { isServiceOwnerOrg } from 'app-development/utils/serviceOwnerOrgUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 const aboutTabId: SettingsPageTabId = 'about';
@@ -24,7 +25,7 @@ export const useAppSettingsMenuTabConfigs =
     const { t } = useTranslation();
     const { org } = useStudioEnvironmentParams();
     const { data: orgs = {} } = useOrgListQuery();
-    const shouldShowMaskinportenTab = !!org && Object.prototype.hasOwnProperty.call(orgs, org);
+    const shouldShowMaskinportenTab = isServiceOwnerOrg(orgs, org);
 
     const tabs: StudioContentMenuButtonTabProps<SettingsPageTabId>[] = [
       {

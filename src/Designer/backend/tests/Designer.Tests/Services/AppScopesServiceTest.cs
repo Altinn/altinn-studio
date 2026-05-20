@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Exceptions.AppScopes;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
@@ -100,19 +101,17 @@ public class AppScopesServiceTest
     }
 
     [Fact]
-    public async Task GetAppScopesAsync_WhenOrgIsNotAltinnOrg_ReturnsNullAndDoesNotReadRepository()
+    public async Task GetAppScopesAsync_WhenOrgIsNotAltinnOrg_ThrowsAndDoesNotReadRepository()
     {
         AltinnRepoContext context = AltinnRepoContext.FromOrgRepo("developer", "app");
         Mock<IAppScopesRepository> appScopesRepository = new(MockBehavior.Strict);
         AppScopesService service = CreateAppScopesService(appScopesRepository.Object, isAltinnOrg: false);
 
-        AppScopesEntity result = await service.GetAppScopesAsync(context);
-
-        Assert.Null(result);
+        await Assert.ThrowsAsync<AppScopesNotSupportedException>(() => service.GetAppScopesAsync(context));
     }
 
     [Fact]
-    public async Task UpsertScopesAsync_WhenOrgIsNotAltinnOrg_ReturnsNullAndDoesNotPersist()
+    public async Task UpsertScopesAsync_WhenOrgIsNotAltinnOrg_ThrowsAndDoesNotPersist()
     {
         AltinnRepoEditingContext context = AltinnRepoEditingContext.FromOrgRepoDeveloper(
             "developer",
@@ -122,12 +121,12 @@ public class AppScopesServiceTest
         Mock<IAppScopesRepository> appScopesRepository = new(MockBehavior.Strict);
         AppScopesService service = CreateAppScopesService(appScopesRepository.Object, isAltinnOrg: false);
 
-        AppScopesEntity result = await service.UpsertScopesAsync(
-            context,
-            new HashSet<MaskinPortenScopeEntity> { new() { Scope = "custom:scope" } }
+        await Assert.ThrowsAsync<AppScopesNotSupportedException>(() =>
+            service.UpsertScopesAsync(
+                context,
+                new HashSet<MaskinPortenScopeEntity> { new() { Scope = "custom:scope" } }
+            )
         );
-
-        Assert.Null(result);
     }
 
     [Fact]
