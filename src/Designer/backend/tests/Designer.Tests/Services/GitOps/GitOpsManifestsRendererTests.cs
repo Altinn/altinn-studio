@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Designer.Tests.Services.GitOps;
 
-public class ScribanGitOpsManifestsRendererTests : FluentTestsBase<ScribanGitOpsManifestsRendererTests>
+public class GitOpsManifestsRendererTests : FluentTestsBase<GitOpsManifestsRendererTests>
 {
     private Dictionary<string, string> RenderedBaseManifests { get; set; }
     private Dictionary<string, string> RenderedAppManifests { get; set; }
@@ -48,26 +48,42 @@ public class ScribanGitOpsManifestsRendererTests : FluentTestsBase<ScribanGitOps
             .Then.Manifests_ShouldEqualExpected(expectedManifests, RenderedEnvManifests);
     }
 
-    private ScribanGitOpsManifestsRendererTests BaseManifestsRendered()
+    [Fact]
+    public void RenderedEnvironmentManifests_ShouldSortAppResourcesByName()
     {
-        ScribanGitOpsManifestsRenderer renderer = new();
+        HashSet<AltinnRepoName> apps = [AltinnRepoName.FromName("z-app"), AltinnRepoName.FromName("a-app")];
+
+        Given.That.EnvironmentManifestsRendered(AltinnEnvironment.FromName("prod"), apps);
+
+        string kustomization = RenderedEnvManifests["./prod/kustomization.yaml"];
+        Assert.Contains("../apps/a-app", kustomization);
+        Assert.Contains("../apps/z-app", kustomization);
+        Assert.True(
+            kustomization.IndexOf("../apps/a-app") < kustomization.IndexOf("../apps/z-app"),
+            "Environment app resources should be rendered alphabetically by app name."
+        );
+    }
+
+    private GitOpsManifestsRendererTests BaseManifestsRendered()
+    {
+        GitOpsManifestsRenderer renderer = new();
         RenderedBaseManifests = renderer.GetBaseManifests();
         return this;
     }
 
-    private ScribanGitOpsManifestsRendererTests AppManifestsRendered(AltinnRepoContext context)
+    private GitOpsManifestsRendererTests AppManifestsRendered(AltinnRepoContext context)
     {
-        ScribanGitOpsManifestsRenderer renderer = new();
+        GitOpsManifestsRenderer renderer = new();
         RenderedAppManifests = renderer.GetAppManifests(context);
         return this;
     }
 
-    private ScribanGitOpsManifestsRendererTests EnvironmentManifestsRendered(
+    private GitOpsManifestsRendererTests EnvironmentManifestsRendered(
         AltinnEnvironment environment,
         HashSet<AltinnRepoName> apps
     )
     {
-        ScribanGitOpsManifestsRenderer renderer = new();
+        GitOpsManifestsRenderer renderer = new();
         RenderedEnvManifests = renderer.GetEnvironmentOverlayManifests(environment, apps);
         return this;
     }
