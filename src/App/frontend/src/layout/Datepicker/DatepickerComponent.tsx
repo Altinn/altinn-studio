@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { DatePickerControl, Flex, Label, getDateConstraint, getDateFormat } from '@app/form-component';
+import { DatePickerControl, Flex, getDateConstraint, getDateFormat, Label } from '@app/form-component';
 
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
