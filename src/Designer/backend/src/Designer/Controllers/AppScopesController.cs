@@ -19,8 +19,11 @@ namespace Altinn.Studio.Designer.Controllers;
 [ApiController]
 [FeatureGate(StudioFeatureFlags.StudioOidc)]
 [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/app-scopes")]
-public class AppScopesController(IMaskinPortenHttpClient maskinPortenHttpClient, IAppScopesService appScopesService)
-    : ControllerBase
+public class AppScopesController(
+    IMaskinPortenHttpClient maskinPortenHttpClient,
+    IAppScopesService appScopesService,
+    IEnvironmentsService environmentsService
+) : ControllerBase
 {
     [Authorize(StudioOidcConstants.OrgAccessAuthorizationPolicy)]
     [HttpGet("maskinporten")]
@@ -51,23 +54,21 @@ public class AppScopesController(IMaskinPortenHttpClient maskinPortenHttpClient,
         CancellationToken cancellationToken
     )
     {
+        if (!await environmentsService.IsAltinnOrg(org, cancellationToken))
+        {
+            return BadRequest(AppScopesNotSupportedException.CreateMessage(org));
+        }
+
         var scopes = appScopesUpsertRequest
             .Scopes.Select(x => new MaskinPortenScopeEntity() { Scope = x.Scope, Description = x.Description })
             .ToHashSet();
 
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        try
-        {
-            await appScopesService.UpsertScopesAsync(
-                AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer),
-                scopes,
-                cancellationToken
-            );
-        }
-        catch (AppScopesNotSupportedException exception)
-        {
-            return BadRequest(exception.Message);
-        }
+        await appScopesService.UpsertScopesAsync(
+            AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer),
+            scopes,
+            cancellationToken
+        );
 
         return Ok();
     }
@@ -76,18 +77,15 @@ public class AppScopesController(IMaskinPortenHttpClient maskinPortenHttpClient,
     [HttpGet]
     public async Task<IActionResult> GetAppScopes(string org, string app, CancellationToken cancellationToken)
     {
-        AppScopesEntity? appScopes;
-        try
+        if (!await environmentsService.IsAltinnOrg(org, cancellationToken))
         {
-            appScopes = await appScopesService.GetAppScopesAsync(
-                AltinnRepoContext.FromOrgRepo(org, app),
-                cancellationToken
-            );
+            return BadRequest(AppScopesNotSupportedException.CreateMessage(org));
         }
-        catch (AppScopesNotSupportedException exception)
-        {
-            return BadRequest(exception.Message);
-        }
+
+        var appScopes = await appScopesService.GetAppScopesAsync(
+            AltinnRepoContext.FromOrgRepo(org, app),
+            cancellationToken
+        );
 
         var reponse = new AppScopesResponse()
         {

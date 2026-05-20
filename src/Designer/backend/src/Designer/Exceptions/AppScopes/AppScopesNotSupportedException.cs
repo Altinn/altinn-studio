@@ -2,7 +2,8 @@ using System;
 
 namespace Altinn.Studio.Designer.Exceptions.AppScopes;
 
-public sealed class AppScopesNotSupportedException(string org)
-    : Exception(
-        $"Maskinporten scopes are only supported for service-owner organisations. '{org}' is not a service-owner organisation."
-    );
+public sealed class AppScopesNotSupportedException(string org) : Exception(CreateMessage(org))
+{
+    public static string CreateMessage(string org) =>
+        $"Maskinporten scopes are only supported for service-owner organisations. '{org}' is not a service-owner organisation.";
+}
