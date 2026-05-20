@@ -381,6 +381,8 @@
   "app_settings.maskinporten_add_scope_dialog_done": "Fullfør",
   "app_settings.maskinporten_add_scope_dialog_title": "Legg til nytt scope",
   "app_settings.maskinporten_default_scopes_opt_in_notice": "Denne appen kan bruke standard Maskinporten-scopes for å lese og skrive instanser som tjenesteeier.",
+  "app_settings.maskinporten_no_org_access_description": "For å velge Maskinporten-scopes må du logge inn med Ansattporten på vegne av virksomheten som eier appen.",
+  "app_settings.maskinporten_no_org_access_title": "Du har ikke tilgang på vegne av virksomheten",
   "app_settings.maskinporten_no_scopes_added": "Ingen scopes er lagt til i appen.",
   "app_settings.maskinporten_no_scopes_available_description": "Før du kan velge scopes her i Studio, må du sjekke at du har tilgang til Maskinporten.",
   "app_settings.maskinporten_no_scopes_available_link": "Ta kontakt med Altinn servicedesk for å få hjelp til å sette opp scopes.",
