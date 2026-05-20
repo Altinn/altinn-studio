@@ -4,8 +4,8 @@ import type { InputHTMLAttributes, ReactNode } from 'react';
 import {
   Paragraph,
   Textfield,
-  TextfieldProps,
-  FieldCounterProps,
+  type TextfieldProps,
+  type FieldCounterProps,
 } from '@digdir/designsystemet-react';
 
 import classes from './Input.module.css';

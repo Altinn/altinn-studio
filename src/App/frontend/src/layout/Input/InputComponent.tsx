@@ -203,8 +203,8 @@ const InputVariant = ({
         <NumericInput
           {...inputProps}
           {...variant.format}
-          prefix={variant.format.prefix ? langAsString(variant.format.prefix) : undefined}
-          suffix={variant.format.suffix ? langAsString(variant.format.suffix) : undefined}
+          prefix={langAsString(variant.format.prefix)}
+          suffix={langAsString(variant.format.suffix)}
           value={formValue}
           type='text'
           onBlur={() => {
