@@ -1,14 +1,12 @@
-name: App Frontend - Unit tests
+name: Library Form Component - Unit tests
 
 on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
-      - 'src/App/frontend/src/**'
-      - 'src/App/frontend/package.json'
       - 'libs/form-component/src/**'
       - 'libs/form-component/package.json'
-      - '.github/workflows/app-frontend-unit-tests.yml'
+      - '.github/workflows/libs-form-component-unit-tests.yml'
   workflow_dispatch:
 
 concurrency:
@@ -23,7 +21,7 @@ jobs:
     name: Type-checks, eslint, unit tests and SonarCloud
     defaults:
       run:
-        working-directory: src/App/frontend/
+        working-directory: libs/form-component/
     steps:
       - name: checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -49,35 +47,13 @@ jobs:
 
       - name: install dependencies
         run: yarn --immutable
-
-      - name: type-check
-        run: yarn tsc
-
-      - name: type-check-strict
-        run: |
-          strict_error_count="$(yarn tsc-strict:error-count)"
-          echo "Strict TypeScript error count: ${strict_error_count}"
-
-          if (( strict_error_count >= 301 )); then
-            echo "Strict TypeScript error count is ${strict_error_count}, expected less than 301."
-            exit 1
-          fi
-
-      - name: run eslint
-        run: yarn lint
-
+      #
+      # todo:
+      # - name: type-check
+      #   run: yarn typecheck
+      # - name: run eslint
+      #   run: yarn lint
+      #
       - name: run tests
         run: yarn test --coverage
-
-      # TODO: consider for removal?
-      # - name: SonarCloud Scan
-      #   if: |
-      #     github.repository_owner == 'Altinn' &&
-      #     (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
-      #     (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
-      #   with:
-      #     projectBaseDir: src/App/frontend/
-      #   uses: SonarSource/sonarqube-scan-action@1a6d90ebcb0e6a6b1d87e37ba693fe453195ae25 # v5.3.1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        # TODO : Run with coverage (yarn test --coverage ?)
