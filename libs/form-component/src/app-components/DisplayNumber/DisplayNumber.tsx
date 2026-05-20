@@ -24,7 +24,14 @@ export function DisplayNumber({
 
   return (
     <>
-      {iconUrl && <img src={iconUrl} className={classes.icon} alt={iconAltText} />}
+      {iconUrl && (
+        <img
+          src={iconUrl}
+          className={classes.icon}
+          alt={iconAltText ?? ''}
+          aria-hidden={iconAltText ? undefined : true}
+        />
+      )}
       <span aria-labelledby={labelId}>{displayData}</span>
     </>
   );
