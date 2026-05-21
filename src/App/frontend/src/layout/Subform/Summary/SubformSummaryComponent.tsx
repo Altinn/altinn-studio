@@ -1,9 +1,8 @@
 import React from 'react';
 import type { ReactNode } from 'react';
 
-import { Spinner } from '@app/form-component';
+import { FatalError, Spinner } from '@app/form-component';
 
-import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';

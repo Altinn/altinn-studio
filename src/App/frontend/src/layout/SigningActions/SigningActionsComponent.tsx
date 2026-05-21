@@ -1,9 +1,8 @@
 import React, { useEffect } from 'react';
 import { useParams } from 'react-router';
 
-import { Panel, Spinner } from '@app/form-component';
+import { FatalError, Panel, Spinner } from '@app/form-component';
 
-import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import { FullWidthWrapper } from 'src/app-components/FullWidthWrapper/FullWidthWrapper';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
