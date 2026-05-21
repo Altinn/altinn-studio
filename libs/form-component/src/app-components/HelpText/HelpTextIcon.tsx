@@ -1,5 +1,3 @@
-import React from 'react';
-
 export type HelpTextIconProps = {
   className: string;
   filled?: boolean;
@@ -21,12 +19,7 @@ export const HelpTextIcon = ({ className, filled = false, openState }: HelpTextI
       viewBox='0 0 24 24'
       xmlns='http://www.w3.org/2000/svg'
     >
-      <path
-        clipRule='evenodd'
-        d={d}
-        fill='currentColor'
-        fillRule='evenodd'
-      />
+      <path clipRule='evenodd' d={d} fill='currentColor' fillRule='evenodd' />
     </svg>
   );
 };

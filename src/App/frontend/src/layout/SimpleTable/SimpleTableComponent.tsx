@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 
-import { AppTable } from '@app/form-component';
+import { AppTable, FieldRenderer } from '@app/form-component';
 import { Link } from '@digdir/designsystemet-react';
 import { PencilIcon, TrashIcon } from '@navikt/aksel-icons';
 import { pick } from 'dot-object';
-import type { TableActionButton } from '@app/form-component';
+import type { FormDataObject, TableActionButton } from '@app/form-component';
 
-import { FieldRenderer } from 'src/app-components/DynamicForm/DynamicForm';
 import { Caption } from 'src/components/form/caption/Caption';
 import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
@@ -19,7 +18,6 @@ import { DropdownCaption } from 'src/layout/Datepicker/DropdownCaption';
 import { isFormDataObjectArray, isValidItemsSchema } from 'src/layout/SimpleTable/typeguards';
 import { getDatepickerFormat } from 'src/utils/dateUtils';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { FormDataObject } from 'src/app-components/DynamicForm/DynamicForm';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindingsForTable } from 'src/layout/SimpleTable/config.generated';
 
