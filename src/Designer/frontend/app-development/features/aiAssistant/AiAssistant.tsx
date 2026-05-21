@@ -55,6 +55,10 @@ function AiAssistant(): ReactElement {
       branchDocsLink: t('ai_assistant.about_assistant_branch_docs_link'),
       disclaimer: t('ai_assistant.about_assistant_disclaimer'),
     },
+    emptyThread: {
+      welcome: t('ai_assistant.empty_thread_welcome'),
+      instruction: t('ai_assistant.empty_thread_instruction'),
+    },
     textarea: {
       placeholder: t('ai_assistant.textarea_placeholder'),
       wait: 'Vent litt ...',
