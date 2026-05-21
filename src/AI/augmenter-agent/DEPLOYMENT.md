@@ -114,20 +114,57 @@ override pattern.
 
 ## Secrets
 
-`SANDKASSE_API_KEY` and any other sensitive material **must** live in
-`.env` (or your secret manager of choice). They flow into the container
-via env vars — they are never read from the config mount.
+The API key (`Agent:ApiKey`) and any future sensitive material **must
+never** ship in the config mount or be baked into the image. Two delivery
+paths are supported, and both feed the same `IConfiguration` slot.
+
+### Local development — `.env`
+
+For developer machines and compose deployments outside the Altinn
+platform, set the key as an environment variable. The compose file
+sources it from a gitignored `.env`:
+
+```
+# .env (gitignored)
+SANDKASSE_API_KEY=<your-key>
+```
+
+The compose file maps `SANDKASSE_API_KEY` to `Agent__ApiKey` which
+populates `Agent:ApiKey` via standard .NET configuration binding.
+
+Hardening for shared / multi-user hosts: use Docker secrets (`secrets:`
+in compose) instead of `.env`, restrict `.env` to `chmod 600`, rotate
+the gateway key on any suspected exposure.
+
+### Altinn platform — secret file
+
+On Altinn's cluster the image follows the same secret-injection
+convention as Altinn Apps (see
+[Altinn secret docs](https://docs.altinn.studio/nb/altinn-studio/v8/reference/configuration/secrets/)).
+The platform syncs a value from Azure Key Vault into a Kubernetes
+Secret, mounted by the deployment manifest at
+`/altinn-appsettings-secret/altinn-appsettings-secret.json`. The file
+holds standard nested ASP.NET configuration JSON:
+
+```json
+{
+  "Agent": {
+    "ApiKey": "<value-from-keyvault>"
+  }
+}
+```
+
+At startup the image calls `AddAltinnPlatformSecretFile()` which adds
+this file as a configuration source (optional — absence is silently
+ignored). Env vars still take precedence, so a deployment can override
+on the fly without touching the secret.
+
+This means the augmenter-agent image itself never authenticates to Key
+Vault, holds no Service Principal credentials, and needs no Key Vault
+SDK. The platform owns the Key Vault → Secret sync.
 
 The image never logs the API key in cleartext. It does log the gateway
 URL, model name, and request/response durations.
-
-Recommended hardening for shared / multi-user hosts:
-
-- Use Docker secrets (`secrets:` in compose) instead of `.env` for
-  production deployments where multiple users have host access.
-- Restrict `.env` to `chmod 600`.
-- Rotate the gateway key on any suspected exposure; the gateway team
-  can invalidate keys server-side.
 
 ## Image publication (augmenter-agent repo, not tenant repo)
 

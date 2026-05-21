@@ -12,6 +12,10 @@ using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Read runtime secrets (Agent:ApiKey, ...) from the Altinn platform secret-file mount
+// when present. No-op outside the platform — env vars / .env then fill the same slots.
+builder.Configuration.AddAltinnPlatformSecretFile();
+
 // Configuration
 builder.Services.Configure<CallbackOptions>(builder.Configuration.GetSection(CallbackOptions.SectionName));
 builder.Services.Configure<UploadOptions>(builder.Configuration.GetSection(UploadOptions.SectionName));
