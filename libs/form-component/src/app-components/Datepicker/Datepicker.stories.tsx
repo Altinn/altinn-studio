@@ -25,7 +25,11 @@ type Story = StoryObj<typeof meta>;
 
 const Wrapper = (args: React.ComponentProps<typeof DatePickerControl>) => {
   const [value, setValue] = useState(args.value);
-  return <DatePickerControl {...args} value={value} onValueChange={setValue} />;
+  const handleVAlueChange = (newValue: string) => {
+    args.onValueChange(newValue);
+    setValue(newValue);
+  };
+  return <DatePickerControl {...args} value={value} onValueChange={handleVAlueChange} />;
 };
 
 export const Preview: Story = {
