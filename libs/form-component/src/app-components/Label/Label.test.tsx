@@ -22,10 +22,7 @@ describe('Label', () => {
   it('associates the label with a field via htmlFor', () => {
     render(
       <>
-        <Label
-          label='First name'
-          htmlFor='name-input'
-        />
+        <Label label='First name' htmlFor='name-input' />
         <input id='name-input' />
       </>,
     );
@@ -34,36 +31,21 @@ describe('Label', () => {
   });
 
   it('shows the required indicator when required', () => {
-    render(
-      <Label
-        label='First name'
-        required
-        requiredIndicator={<span>*</span>}
-      />,
-    );
+    render(<Label label='First name' required requiredIndicator={<span>*</span>} />);
 
     expect(screen.getByText('*')).toBeInTheDocument();
   });
 
   it('shows the optional indicator when not required', () => {
     render(
-      <Label
-        label='First name'
-        required={false}
-        optionalIndicator={<span>(valgfri)</span>}
-      />,
+      <Label label='First name' required={false} optionalIndicator={<span>(valgfri)</span>} />,
     );
 
     expect(screen.getByText('(valgfri)')).toBeInTheDocument();
   });
 
   it('renders the description', () => {
-    render(
-      <Label
-        label='First name'
-        description={<span>Use the name on your passport</span>}
-      />,
-    );
+    render(<Label label='First name' description={<span>Use the name on your passport</span>} />);
 
     expect(screen.getByText('Use the name on your passport')).toBeInTheDocument();
   });

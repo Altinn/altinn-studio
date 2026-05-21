@@ -9,7 +9,6 @@ const persistFeatureKey = 'persistFeatureFlag';
 export enum FeatureFlag {
   AddComponentModal = 'addComponentModal',
   ComponentConfigBeta = 'componentConfigBeta',
-  Maskinporten = 'maskinporten',
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
   ImageUpload = 'imageUpload',
   HideGiteaFieldsInResourceList = 'hideGiteaFieldsInResourceList',

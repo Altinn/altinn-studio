@@ -11,4 +11,6 @@ export * from './DisplayDate';
 export * from './DisplayText';
 export * from './DisplayNumber';
 export * from './Spinner';
+export * from './Timepicker';
+export * from './Table';
 export * from './TextArea';

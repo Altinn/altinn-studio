@@ -45,15 +45,8 @@ export function Label({
   }
 
   return (
-    <Flex
-      container
-      size={{ xs: 'auto' }}
-      spacing={2}
-    >
-      <Flex
-        item
-        size={grid ?? { xs: 12 }}
-      >
+    <Flex container size={{ xs: 'auto' }} spacing={2}>
+      <Flex item size={grid ?? { xs: 12 }}>
         <span className={classes.labelAndDescWrapper}>
           <span className={classes.labelAndHelpWrapper}>
             <DesignsystemetLabel

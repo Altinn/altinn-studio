@@ -12,6 +12,19 @@ import { app, org } from '@studio/testing/testids';
 import { BuildResult } from 'app-shared/types/Build';
 import { TestAppRouter } from '@studio/testing/testRoutingUtils';
 import { FeatureFlagsContextProvider } from '@studio/feature-flags';
+import type { OrgList } from 'app-shared/types/OrgList';
+
+const orgListWithTestOrg: OrgList = {
+  orgs: {
+    [org]: {
+      name: { nb: org },
+      logo: '',
+      orgnr: '123456789',
+      homepage: '',
+      environments: [],
+    },
+  },
+};
 
 const renderCreateRelease = (queries?: Partial<ServicesContextProps>) => {
   const allQueries: ServicesContextProps = {
@@ -42,6 +55,89 @@ describe('CreateRelease', () => {
     expect(
       screen.getByRole('button', { name: textMock('app_create_release.build_version') }),
     ).toBeInTheDocument();
+  });
+
+  it('shows Maskinporten scopes notice for app backend version 9 preview when default scopes are missing', async () => {
+    renderCreateRelease({
+      getAppVersion: () =>
+        Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '9.0.0-preview.1' }),
+      getOrgList: () => Promise.resolve(orgListWithTestOrg),
+      getSelectedMaskinportenScopes: () => Promise.resolve({ scopes: [] }),
+    });
+
+    expect(
+      await screen.findByText(textMock('app_create_release.maskinporten_scopes_auto_add')),
+    ).toBeInTheDocument();
+  });
+
+  it('does not show Maskinporten scopes notice for app backend version 8.3 when default scopes are missing', async () => {
+    const getSelectedMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ scopes: [] }));
+
+    renderCreateRelease({
+      getAppVersion: () => Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '8.3.0' }),
+      getOrgList: () => Promise.resolve(orgListWithTestOrg),
+      getSelectedMaskinportenScopes,
+    });
+
+    await waitFor(() => expect(getSelectedMaskinportenScopes).toHaveBeenCalled());
+    expect(
+      screen.queryByText(textMock('app_create_release.maskinporten_scopes_auto_add')),
+    ).not.toBeInTheDocument();
+  });
+
+  it('does not show Maskinporten scopes notice when default scopes are already selected', async () => {
+    const getSelectedMaskinportenScopes = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        scopes: [
+          {
+            scope: 'altinn:serviceowner',
+            description: 'Brukes til å indikere at klienten er et tjenesteeiersystem.',
+          },
+          {
+            scope: 'altinn:serviceowner/instances.read',
+            description: 'Klienter kan lese data knyttet til alle appene til tjenesteeieren.',
+          },
+          {
+            scope: 'altinn:serviceowner/instances.write',
+            description: 'Klienter kan skrive data for alle deres apper.',
+          },
+        ],
+      }),
+    );
+
+    renderCreateRelease({
+      getAppVersion: () => Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '9.0.0' }),
+      getOrgList: () => Promise.resolve(orgListWithTestOrg),
+      getSelectedMaskinportenScopes,
+    });
+
+    await waitFor(() => expect(getSelectedMaskinportenScopes).toHaveBeenCalled());
+    expect(
+      screen.queryByText(textMock('app_create_release.maskinporten_scopes_auto_add')),
+    ).not.toBeInTheDocument();
+  });
+
+  it('does not fetch selected Maskinporten scopes or show the notice for personal apps', async () => {
+    const getSelectedMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ scopes: [] }));
+
+    renderCreateRelease({
+      getAppVersion: () => Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '9.0.0' }),
+      getOrgList: () => Promise.resolve({ orgs: {} }),
+      getSelectedMaskinportenScopes,
+    });
+
+    expect(
+      await screen.findByLabelText(textMock('app_create_release.release_version_number')),
+    ).toBeInTheDocument();
+
+    expect(getSelectedMaskinportenScopes).not.toHaveBeenCalled();
+    expect(
+      screen.queryByText(textMock('app_create_release.maskinporten_scopes_auto_add')),
+    ).not.toBeInTheDocument();
   });
 
   it('validates tag name correctly', async () => {
