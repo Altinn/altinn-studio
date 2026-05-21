@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import type { MonthCaption } from 'react-day-picker';
 
-import { DatePickerControl, getDateFormat } from '@app/form-component';
 import { Radio, Textfield } from '@digdir/designsystemet-react';
 import type { JSONSchema7, JSONSchema7Definition } from 'json-schema';
 
-import { useTranslation } from 'src/app-components/AppComponentsProvider';
-import type { TranslationKey } from 'src/app-components/types';
+import { DatePickerControl, getDateFormat } from '../Datepicker';
 
-export type FormDataValue = string | number | boolean | null | FormDataValue[] | { [key: string]: FormDataValue };
+export type FormDataValue =
+  | string
+  | number
+  | boolean
+  | null
+  | FormDataValue[]
+  | { [key: string]: FormDataValue };
 
 export interface FormDataObject {
   [key: string]: FormDataValue;
@@ -20,8 +24,8 @@ export interface DynamicFormProps {
   initialData?: FormDataObject;
   locale?: string;
   DropdownCaption: typeof MonthCaption;
-  buttonAriaLabel: TranslationKey;
-  calendarIconTitle: TranslationKey;
+  buttonAriaLabel: string;
+  calendarIconTitle: string;
   getDatepickerFormat: (unicodeFormat: string) => string;
 }
 
@@ -36,7 +40,6 @@ export function DynamicForm({
   getDatepickerFormat,
 }: DynamicFormProps) {
   const [formData, setFormData] = useState<FormDataObject>(initialData || {});
-  const { translate } = useTranslation();
 
   useEffect(() => {
     if (initialData) {
@@ -61,8 +64,8 @@ export function DynamicForm({
           schema={schema}
           renderFields={renderFields}
           locale={locale}
-          buttonAriaLabel={translate(buttonAriaLabel)}
-          calendarIconTitle={translate(calendarIconTitle)}
+          buttonAriaLabel={buttonAriaLabel}
+          calendarIconTitle={calendarIconTitle}
           DropdownCaption={DropdownCaption}
           getDatepickerFormat={getDatepickerFormat}
         />
@@ -128,17 +131,11 @@ export function FieldRenderer({
             onChange={(e) => handleChange(fieldKey, e.target.value)}
             required={required}
           >
-            <option
-              value=''
-              disabled
-            >
+            <option value='' disabled>
               Select an option
             </option>
             {enumOptions.map((option) => (
-              <option
-                key={String(option)}
-                value={String(option)}
-              >
+              <option key={String(option)} value={String(option)}>
                 {String(option)}
               </option>
             ))}
@@ -150,10 +147,7 @@ export function FieldRenderer({
     switch (renderType) {
       case 'string':
         return (
-          <div
-            key={fieldKey}
-            style={{ marginBottom: '10px' }}
-          >
+          <div key={fieldKey} style={{ marginBottom: '10px' }}>
             <Textfield
               label={label}
               data-size='sm'
@@ -166,10 +160,7 @@ export function FieldRenderer({
       case 'number':
       case 'integer':
         return (
-          <div
-            key={fieldKey}
-            style={{ marginBottom: '10px' }}
-          >
+          <div key={fieldKey} style={{ marginBottom: '10px' }}>
             <Textfield
               label={label}
               data-size='sm'

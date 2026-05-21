@@ -1,6 +1,7 @@
 import type {
   AboutAssistantDialogTexts,
   AssistantTexts,
+  EmptyThreadTexts,
   TextAreaTexts,
 } from '../types/AssistantTexts';
 
@@ -10,6 +11,11 @@ const aboutAssistantDialogTexts: AboutAssistantDialogTexts = {
   branchInfo: 'aboutAssistantBranchInfo',
   branchDocsLink: 'aboutAssistantBranchDocsLink',
   disclaimer: 'aboutAssistantDisclaimer',
+};
+
+const emptyThreadTexts: EmptyThreadTexts = {
+  welcome: 'emptyThreadWelcome',
+  instruction: 'emptyThreadInstruction',
 };
 
 const textAreaTexts: TextAreaTexts = {
@@ -28,6 +34,7 @@ export const mockTexts: AssistantTexts = {
   previousThreads: 'previousThreads',
   aboutAssistant: 'aboutAssistant',
   aboutAssistantDialog: aboutAssistantDialogTexts,
+  emptyThread: emptyThreadTexts,
   textarea: textAreaTexts,
   addAttachment: 'addAttachment',
   allowAppChangesSwitch: 'allowAppChangesSwitch',

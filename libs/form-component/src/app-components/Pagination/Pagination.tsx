@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { useIsMini, useIsMobile, useIsTablet } from '@app/form-component';
 import {
   Field,
   Label,
@@ -10,14 +9,13 @@ import {
 } from '@digdir/designsystemet-react';
 import type { UsePaginationProps } from '@digdir/designsystemet-react';
 
-import { useTranslation } from 'src/app-components/AppComponentsProvider';
-import classes from 'src/app-components/Pagination/Pagination.module.css';
-import type { TranslationKey } from 'src/app-components/types';
+import { useIsMini, useIsMobile, useIsTablet } from '../hooks/useDeviceWidths';
+import classes from './Pagination.module.css';
 
-type PaginationProps = {
+export type PaginationProps = {
   id: string;
-  nextLabel: TranslationKey;
-  previousLabel: TranslationKey;
+  nextLabel: string;
+  previousLabel: string;
   size: NonNullable<Parameters<typeof DesignSystemPagination>[0]['data-size']>;
   compact?: boolean;
   hideLabels?: boolean;
@@ -25,8 +23,9 @@ type PaginationProps = {
   currentPage: number;
   numberOfRows: number;
   pageSize: number;
-  rowsPerPageText: TranslationKey;
+  rowsPerPageText: string;
   rowsPerPageOptions?: number[];
+  pageAriaLabelTemplate?: string;
   onPageSizeChange: (value: number) => void;
   setCurrentPage: (pageNumber: number) => void;
 } & Omit<React.HTMLAttributes<HTMLElement>, 'onChange'> &
@@ -46,6 +45,7 @@ export const Pagination = ({
   numberOfRows = 0,
   rowsPerPageOptions,
   rowsPerPageText,
+  pageAriaLabelTemplate,
   showRowsPerPageDropdown = false,
   pageSize,
 }: PaginationProps) => {
@@ -68,7 +68,6 @@ export const Pagination = ({
     onChange,
     showPages,
   });
-  const { translate } = useTranslation();
 
   return (
     <>
@@ -90,7 +89,7 @@ export const Pagination = ({
               </Select.Option>
             ))}
           </Select>
-          <Label htmlFor={`paginationRowsPerPageDropdown-${id}`}>{translate(rowsPerPageText)}</Label>
+          <Label htmlFor={`paginationRowsPerPageDropdown-${id}`}>{rowsPerPageText}</Label>
         </Field>
       )}
       <DesignSystemPagination
@@ -102,7 +101,7 @@ export const Pagination = ({
         <DesignSystemPagination.List>
           <DesignSystemPagination.Item>
             <DesignSystemPagination.Button {...prevButtonProps}>
-              {!hideLabels && !isMobile && translate(previousLabel)}
+              {!hideLabels && !isMobile && previousLabel}
             </DesignSystemPagination.Button>
           </DesignSystemPagination.Item>
           {pages.map(({ page, itemKey, buttonProps }) => (
@@ -110,7 +109,7 @@ export const Pagination = ({
               {typeof page === 'number' && (
                 <DesignSystemPagination.Button
                   aria-current={currentPage === page}
-                  aria-label={translate('general.page_number', [page])}
+                  aria-label={pageAriaLabelTemplate?.replace('{page}', String(page))}
                   {...buttonProps}
                 >
                   {page}
@@ -120,7 +119,7 @@ export const Pagination = ({
           ))}
           <DesignSystemPagination.Item>
             <DesignSystemPagination.Button {...nextButtonProps}>
-              {!hideLabels && !isMobile && translate(nextLabel)}
+              {!hideLabels && !isMobile && nextLabel}
             </DesignSystemPagination.Button>
           </DesignSystemPagination.Item>
         </DesignSystemPagination.List>
