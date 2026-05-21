@@ -88,6 +88,7 @@ export function UserInput({
   }, []);
 
   const handleSubmit = (): void => {
+    if (!hasTextContent) return;
     const message: UserMessage = createUserMessage(messageContent, allowAppChanges, attachments);
     onSubmitMessage(message);
     resetInputs();

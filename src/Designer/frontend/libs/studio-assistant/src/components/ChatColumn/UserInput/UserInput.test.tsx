@@ -143,6 +143,16 @@ describe('UserInput', () => {
     expect(onSubmitMessage).toHaveBeenCalledTimes(1);
   });
 
+  it('should not submit message on Enter key press when textarea is empty', async () => {
+    const user = userEvent.setup();
+    renderUserInput();
+
+    await user.click(getTextarea());
+    await user.keyboard('{Enter}');
+
+    expect(onSubmitMessage).not.toHaveBeenCalled();
+  });
+
   it('should not submit message on Shift+Enter key press', async () => {
     const user = userEvent.setup();
     renderUserInput();
