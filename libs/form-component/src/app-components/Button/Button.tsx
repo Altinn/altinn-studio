@@ -5,6 +5,8 @@ import type { ButtonProps as DesignSystemButtonProps } from '@digdir/designsyste
 
 import { Spinner } from '../Spinner';
 
+import classes from './Button.module.css';
+
 export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | undefined;
 export type ButtonColor = 'first' | 'second' | 'success' | 'danger' | undefined;
 export type TextAlign = 'left' | 'center' | 'right';
@@ -22,21 +24,20 @@ export type ButtonProps = {
   ref?: Ref<HTMLButtonElement>;
 } & Omit<DesignSystemButtonProps, 'variant' | 'color' | 'size' | 'title' | 'aria-label'>;
 
-// Color property of Button from Designsystemet is typed to not include 'success', but it does work as it is styled generally based on data-color, and 'success' is a valid color.
-// Alternative would be to manually sett all color to appropriate color, like
-// {--dsc-button-background: var(--ds-color-success-base-default); ---dsc-button-color--hover: var(--ds-color-success-base-hover);)
-// and so on for all css properties defined at https://designsystemet.no/no/components/docs/button/code
-
-type ExtendedButtonColor = DesignSystemButtonProps['data-color'] | 'success';
-
-function mapColorNames(color: ButtonColor): ExtendedButtonColor {
+// Maps our custom ColorProperty to properties supported by Designsystemet. Color property of Button in Designsystemet does not support success, so we map that to our custom class
+function mapColorNames(color: ButtonColor): {
+  className?: string;
+  color?: DesignSystemButtonProps['data-color'];
+} {
   switch (color) {
     case 'first':
-      return 'accent';
+      return { color: 'accent' };
     case 'second':
-      return 'neutral';
+      return { color: 'neutral' };
+    case 'success':
+      return { className: classes.buttonSuccess };
     default:
-      return color ?? 'accent';
+      return { color: color ?? 'accent' };
   }
 }
 
@@ -55,16 +56,18 @@ export function Button({
   ...rest
 }: PropsWithChildren<ButtonProps>) {
   const expandedStyle = { ...style, justifyContent: textAlign ? textAlign : undefined };
+  const { className, color: mappedColor } = mapColorNames(color);
   return (
     <DesignSystemButton
       {...rest}
       disabled={disabled || isLoading}
       variant={variant}
-      data-color={mapColorNames(color) as DesignSystemButtonProps['data-color']}
+      data-color={mappedColor}
       data-size={size}
       data-fullwidth={fullWidth ? true : undefined}
       ref={ref}
       style={expandedStyle}
+      className={className}
     >
       {isLoading ? (
         <>
