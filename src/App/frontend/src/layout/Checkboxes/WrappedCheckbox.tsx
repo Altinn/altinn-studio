@@ -1,11 +1,10 @@
 import React, { forwardRef, useEffect, useState } from 'react';
 
-import { ConditionalWrapper } from '@app/form-component';
+import { ConditionalWrapper, HelpText } from '@app/form-component';
 import { Checkbox } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { CheckboxProps } from '@digdir/designsystemet-react';
 
-import { HelpText } from 'src/app-components/HelpText/HelpText';
 import { translationKey } from 'src/AppComponentsBridge';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
@@ -69,7 +68,7 @@ export const WrappedCheckbox = forwardRef<HTMLInputElement, IWrappedCheckboxProp
             {option.helpText && (
               <HelpText
                 id={id}
-                title={translationKey(elementAsString(option.helpText))}
+                title={elementAsString(option.helpText)}
               >
                 <Lang id={option.helpText} />
               </HelpText>
