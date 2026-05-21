@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
@@ -48,6 +49,9 @@ public class AppScopesControllerTestsBase<TControllerTest> : DbDesignerEndpoints
         environmentsServiceMock
             .Setup(x => x.GetAltinnOrgNumber(It.IsAny<string>()))
             .ReturnsAsync((string org) => "991825827");
+        environmentsServiceMock
+            .Setup(x => x.IsAltinnOrg(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string org, CancellationToken _) => org == "ttd");
 
         services.AddSingleton(environmentsServiceMock.Object);
     }
