@@ -1,14 +1,14 @@
 import React from 'react';
 
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 
-import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
-import { renderWithAppComponentsProvider } from 'src/app-components/test/renderWithAppComponentsProvider';
+import { ConditionalWrapper } from './ConditionalWrapper';
 
 describe('ConditionalWrapper', () => {
   it('should pass children to wrapper callback when condition is true', () => {
-    const wrapperCb = jest.fn((children: React.ReactNode) => <div data-testid='conditional-wrapper'>{children}</div>);
-    render({
+    const wrapperCb = vi.fn((children: React.ReactNode) => <div data-testid='conditional-wrapper'>{children}</div>);
+    renderComponent({
       condition: true,
       wrapper: wrapperCb,
     });
@@ -19,8 +19,8 @@ describe('ConditionalWrapper', () => {
   });
 
   it('should not pass children to wrapper callback when condition is false', () => {
-    const wrapperCb = jest.fn((children: React.ReactNode) => <div data-testid='conditional-wrapper'>{children}</div>);
-    render({
+    const wrapperCb = vi.fn((children: React.ReactNode) => <div data-testid='conditional-wrapper'>{children}</div>);
+    renderComponent({
       condition: false,
       wrapper: wrapperCb,
     });
@@ -29,11 +29,24 @@ describe('ConditionalWrapper', () => {
     expect(screen.queryByTestId('conditional-wrapper')).not.toBeInTheDocument();
     expect(screen.getByTestId('children')).toBeInTheDocument();
   });
+
+  it('should pass children to otherwise callback when condition is false', () => {
+    const otherwiseCb = vi.fn((children: React.ReactNode) => <div data-testid='otherwise-wrapper'>{children}</div>);
+    renderComponent({
+      condition: false,
+      otherwise: otherwiseCb,
+    });
+
+    expect(otherwiseCb).toHaveBeenCalledWith(<div data-testid='children'>Children</div>);
+    expect(screen.getByTestId('otherwise-wrapper')).toBeInTheDocument();
+    expect(screen.getByTestId('children')).toBeInTheDocument();
+  });
 });
 
-const render = (overridingProps: {
+const renderComponent = (overridingProps: {
   condition?: boolean;
   wrapper?: (children: React.ReactNode) => React.JSX.Element;
+  otherwise?: (children: React.ReactNode) => React.JSX.Element;
 }) => {
   const allProps: Parameters<typeof ConditionalWrapper>[0] = {
     condition: false,
@@ -41,7 +54,7 @@ const render = (overridingProps: {
     ...overridingProps,
   };
 
-  return renderWithAppComponentsProvider(
+  return render(
     <ConditionalWrapper {...allProps}>
       <div data-testid='children'>Children</div>
     </ConditionalWrapper>,

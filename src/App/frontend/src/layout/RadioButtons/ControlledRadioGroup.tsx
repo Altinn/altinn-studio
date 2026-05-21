@@ -1,9 +1,9 @@
 import React from 'react';
 
+import { ConditionalWrapper } from '@app/form-component';
 import { Fieldset, useRadioGroup } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
-import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { RadioButton } from 'src/components/form/RadioButton';
 import { LabelContent } from 'src/components/label/LabelContent';
