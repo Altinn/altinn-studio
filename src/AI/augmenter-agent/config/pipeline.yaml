@@ -1,30 +1,24 @@
 # Pipeline definition for augmenter-agent.
-# Each step runs in order. Agent steps may publish JSON into the pipeline context
-# under a key, and later steps may consume it via `consumeContext`.
+# Each step runs in order. Steps may publish JSON into the pipeline context
+# under a key, and later steps may read it.
 #
 # Step types:
-#   mapping-pdf:             deterministic mapper → Typst PDF (no LLM)
-#   agent-pdf:               mapper → one big LLM call (full skill) → Typst PDF
-#   agent-pdf-orchestrated:  per-punkt LLM loops with deterministic tools → aggregate → Typst PDF
-#                            (Phase 4 / v0.4 production path — handles the full sjekkliste in ~26 s
-#                            on Gemma 4 31B, where the monolithic agent-pdf path times out at the
-#                            ~60 s sandkasse SSE drop)
+#   mapping-pdf:             deterministic JsonPathMapper → Typst PDF (no LLM)
+#   agent-pdf-orchestrated:  per-item LLM loops with deterministic tools → aggregate → Typst PDF
 #
-# Field reference:
-#   mapper:            keyed IDataMapper (required by mapping-pdf and agent-pdf; ignored by agent-pdf-orchestrated)
-#   promptBuilder:     keyed IPromptBuilder (agent-pdf only; default "default")
-#   responseParser:    keyed IResponseParser (agent-pdf only; default "default")
-#   skillFolder:       folder under skills root containing skill.md (agent-pdf only)
-#   rulesFolder:       folder under rules root containing per-punkt markdown (agent-pdf-orchestrated; "." = root)
-#   sjekklisteSchema:  filename under domain root for the punkt taxonomy (agent-pdf-orchestrated; default sjekkliste.json)
-#   maxToolIterations: hard cap on tool-call loops per punkt (agent-pdf-orchestrated; default 5)
-#   concurrency:       max parallel per-punkt LLM loops (agent-pdf-orchestrated; default 5)
-#   traceDir:          optional per-punkt trace folder (agent-pdf-orchestrated; relative → under temp)
-#   template:          Typst template under templates root
-#   output:            filename for the produced PDF in the response
-#   publishTo:         (optional) PipelineContext key where evaluated JSON is stored
-#   consumeContext:    (optional) PipelineContext keys appended to this step's prompt (agent-pdf only)
-#   expectedJsonKey:   (optional) parser validates that this top-level key exists (agent-pdf only)
+# Field reference (all):
+#   mapper:            filename stem of a <name>.json spec under ContentPaths.MappingsRoot
+#   template:          Typst template filename under ContentPaths.TemplatesRoot
+#   docxTemplate:      (optional) DOCX Markdown template under TemplatesRoot
+#   output:            output PDF (and DOCX) filename in the response
+#   publishTo:         (optional) PipelineContext key where the evaluated JSON is stored
+#
+# Field reference (agent-pdf-orchestrated only):
+#   rulesFolder:       folder under RulesRoot with per-item *.md (use "." for the root)
+#   schemaFile:        filename of the output schema under RegistriesRoot (default: sjekkliste.json)
+#   maxToolIterations: hard cap on tool-call loops per item (default: 5)
+#   concurrency:       max parallel per-item LLM loops (default: 5)
+#   traceDir:          optional per-item trace folder (relative paths resolve under temp)
 
 steps:
   - name: request-info

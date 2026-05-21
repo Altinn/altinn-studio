@@ -19,14 +19,8 @@ public sealed class ContentPathsPostConfigure : IPostConfigureOptions<ContentPat
         if (configRoot == null)
             return;
 
-        if (!Directory.Exists(options.SkillsRoot))
-            options.SkillsRoot = Path.Combine(configRoot, "skills");
-
         if (!Directory.Exists(options.TemplatesRoot))
             options.TemplatesRoot = Path.Combine(configRoot, "templates");
-
-        if (!Directory.Exists(options.SchemasRoot))
-            options.SchemasRoot = Path.Combine(configRoot, "templates");
 
         if (!Directory.Exists(options.RegistriesRoot))
             options.RegistriesRoot = Path.Combine(configRoot, "registries");
@@ -50,8 +44,8 @@ public sealed class ContentPathsPostConfigure : IPostConfigureOptions<ContentPat
         for (var i = 0; i < MaxSearchDepth && dir != null; i++, dir = dir.Parent)
         {
             var candidate = Path.Combine(dir.FullName, ConfigFolderName);
-            if (Directory.Exists(Path.Combine(candidate, "skills")) &&
-                Directory.Exists(Path.Combine(candidate, "templates")))
+            if (Directory.Exists(Path.Combine(candidate, "templates")) &&
+                Directory.Exists(Path.Combine(candidate, "registries")))
             {
                 return candidate;
             }

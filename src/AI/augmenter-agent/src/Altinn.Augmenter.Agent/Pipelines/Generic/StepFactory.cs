@@ -1,5 +1,4 @@
 using Altinn.Augmenter.Agent.Configuration;
-using Altinn.Augmenter.Agent.Services.Agent;
 using Altinn.Augmenter.Agent.Services.Agent.Orchestration;
 using Microsoft.Extensions.Options;
 
@@ -7,8 +6,8 @@ namespace Altinn.Augmenter.Agent.Pipelines.Generic;
 
 /// <summary>
 /// Builds <see cref="IPdfGenerationStep"/> instances from <see cref="StepDefinition"/> entries
-/// read from pipeline.yaml. Resolves keyed services (mappers, prompt builders, parsers) and
-/// passes the matching step definition into the constructor.
+/// read from pipeline.yaml. Resolves keyed services (mappers) and passes the matching step
+/// definition into the constructor.
 /// </summary>
 public sealed class StepFactory(IServiceProvider serviceProvider)
 {
@@ -25,13 +24,11 @@ public sealed class StepFactory(IServiceProvider serviceProvider)
                 definition, RequireMapper(definition), pdfGenerator, docxGenerator, contentPaths,
                 loggerFactory.CreateLogger($"Step.{definition.Name}")),
 
-            "agent-pdf" => BuildAgentPdfStep(definition, RequireMapper(definition), contentPaths, pdfGenerator, docxGenerator, loggerFactory),
-
             "agent-pdf-orchestrated" => BuildAgentPdfOrchestratedStep(definition, RequireMapper(definition), contentPaths, pdfGenerator, docxGenerator, loggerFactory),
 
             _ => throw new InvalidOperationException(
                 $"Step '{definition.Name}' has unknown type '{definition.Type}'. " +
-                $"Supported: mapping-pdf, agent-pdf, agent-pdf-orchestrated."),
+                $"Supported: mapping-pdf, agent-pdf-orchestrated."),
         };
     }
 
@@ -42,32 +39,7 @@ public sealed class StepFactory(IServiceProvider serviceProvider)
         return serviceProvider.GetKeyedService<IDataMapper>(definition.Mapper)
             ?? throw new InvalidOperationException(
                 $"Step '{definition.Name}' references unknown mapper '{definition.Mapper}'. " +
-                $"Register it via AddKeyedSingleton<IDataMapper, ...>(key) in Program.cs.");
-    }
-
-    private AgentPdfStep BuildAgentPdfStep(
-        StepDefinition definition,
-        IDataMapper mapper,
-        IOptions<ContentPathsOptions> contentPaths,
-        IPdfGeneratorService pdfGenerator,
-        IDocxGeneratorService? docxGenerator,
-        ILoggerFactory loggerFactory)
-    {
-        var agentService = serviceProvider.GetRequiredService<IAgentService>();
-        var pipelineContext = serviceProvider.GetRequiredService<PipelineContext>();
-
-        var promptBuilder = serviceProvider.GetKeyedService<IPromptBuilder>(definition.PromptBuilder)
-            ?? throw new InvalidOperationException(
-                $"Step '{definition.Name}' references unknown promptBuilder '{definition.PromptBuilder}'.");
-
-        var responseParser = serviceProvider.GetKeyedService<IResponseParser>(definition.ResponseParser)
-            ?? throw new InvalidOperationException(
-                $"Step '{definition.Name}' references unknown responseParser '{definition.ResponseParser}'.");
-
-        return new AgentPdfStep(
-            definition, mapper, agentService, promptBuilder, responseParser,
-            pdfGenerator, docxGenerator, pipelineContext, contentPaths,
-            loggerFactory.CreateLogger($"Step.{definition.Name}"));
+                $"Drop a <name>.json spec into ContentPaths.MappingsRoot.");
     }
 
     private AgentPdfOrchestratedStep BuildAgentPdfOrchestratedStep(

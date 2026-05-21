@@ -35,10 +35,10 @@ public sealed class PipelineLoader(IOptions<ContentPathsOptions> contentPaths, I
 
     private string ResolvePipelinePath()
     {
-        // pipeline.yaml sits at the config root (one level above skills/templates).
-        var skillsRoot = contentPaths.Value.SkillsRoot;
-        var configRoot = Path.GetDirectoryName(skillsRoot)
-            ?? throw new InvalidOperationException($"Cannot derive config root from SkillsRoot='{skillsRoot}'.");
+        // pipeline.yaml sits at the config root (one level above templates/registries).
+        var templatesRoot = contentPaths.Value.TemplatesRoot;
+        var configRoot = Path.GetDirectoryName(templatesRoot)
+            ?? throw new InvalidOperationException($"Cannot derive config root from TemplatesRoot='{templatesRoot}'.");
 
         var candidate = Path.Combine(configRoot, PipelineFileName);
         if (File.Exists(candidate))

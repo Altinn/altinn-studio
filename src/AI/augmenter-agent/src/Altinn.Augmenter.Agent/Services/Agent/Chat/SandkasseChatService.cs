@@ -11,20 +11,20 @@ namespace Altinn.Augmenter.Agent.Services.Agent.Chat;
 
 /// <summary>
 /// Calls the sandkasse OpenAI-compatible gateway with full tool-calling and
-/// optional SSE streaming. Reuses the "sandkasse" HttpClient already registered
-/// for <see cref="SandkasseHttpAgentService"/> so connection pooling and
-/// headers are shared.
+/// optional SSE streaming.
 ///
 /// Retries 502/503/504 with exponential backoff (2s/4s/8s) to absorb sandkasse's
 /// occasional transient OpenAIBackendError. Other failures surface as
 /// <see cref="ChatResponse.Error"/> so the orchestrator can record them in the
-/// per-punkt trace without throwing.
+/// per-item trace without throwing.
 /// </summary>
 public sealed class SandkasseChatService(
     IHttpClientFactory httpClientFactory,
     IOptions<AgentOptions> options,
     ILogger<SandkasseChatService> logger) : IChatService
 {
+    public const string HttpClientName = "sandkasse";
+
     private const int MaxRetryAttempts = 3;
     private static readonly TimeSpan InitialBackoff = TimeSpan.FromSeconds(2);
 
@@ -98,7 +98,7 @@ public sealed class SandkasseChatService(
                 streaming ? "text/event-stream" : "application/json"));
             req.Content = JsonContent.Create(body, options: JsonOpts);
 
-            var client = httpClientFactory.CreateClient(SandkasseHttpAgentService.HttpClientName);
+            var client = httpClientFactory.CreateClient(HttpClientName);
             using var response = await client.SendAsync(
                 req,
                 streaming ? HttpCompletionOption.ResponseHeadersRead : HttpCompletionOption.ResponseContentRead,

@@ -4,7 +4,6 @@ using Altinn.Augmenter.Agent.Pipelines;
 using Altinn.Augmenter.Agent.Pipelines.Generic;
 using Altinn.Augmenter.Agent.Pipelines.Generic.Mapping;
 using Altinn.Augmenter.Agent.Services;
-using Altinn.Augmenter.Agent.Services.Agent;
 using Altinn.Augmenter.Agent.Services.Agent.Chat;
 using Altinn.Augmenter.Agent.Services.Agent.Orchestration;
 using Altinn.Augmenter.Agent.Services.Agent.Tools;
@@ -36,22 +35,14 @@ builder.Services.AddSingleton<PdfGenerationQueue>();
 builder.Services.AddSingleton<IPdfGenerationQueue>(sp => sp.GetRequiredService<PdfGenerationQueue>());
 builder.Services.AddHostedService<PdfGenerationBackgroundService>();
 
-// Services
+// Per-step infrastructure
 builder.Services.AddScoped<PipelineContext>();
-builder.Services.AddHttpClient(SandkasseHttpAgentService.HttpClientName);
-builder.Services.AddScoped<IAgentService>(sp =>
-{
-    var opts = sp.GetRequiredService<IOptions<AgentOptions>>().Value;
-    return opts.Provider switch
-    {
-        "sandkasse-http" => ActivatorUtilities.CreateInstance<SandkasseHttpAgentService>(sp),
-        "claude-cli"     => ActivatorUtilities.CreateInstance<ClaudeCliAgentService>(sp),
-        _ => throw new InvalidOperationException(
-            $"Unknown Agent:Provider '{opts.Provider}'. Supported: sandkasse-http, claude-cli."),
-    };
-});
-// Per-punkt orchestrator + supporting services (used by agent-pdf-orchestrated step)
-// Tools registered as types so DI injects dependencies (LookupTool needs RegistryProvider)
+
+// OpenAI-compatible chat gateway used by the per-item orchestrator.
+builder.Services.AddHttpClient(SandkasseChatService.HttpClientName);
+
+// Per-item evaluation orchestrator + dependencies (the agent-pdf-orchestrated step).
+// Tools registered as types so DI injects dependencies (LookupTool needs RegistryProvider).
 builder.Services.AddSingleton<ITool, AgeFromIdTool>();
 builder.Services.AddSingleton<ITool, DaysBetweenTool>();
 builder.Services.AddSingleton<ITool, TimeWithinWindowTool>();
@@ -69,6 +60,7 @@ builder.Services.AddSingleton<ISystemPromptProvider, FileSystemPromptProvider>()
 builder.Services.AddScoped<IChatService, SandkasseChatService>();
 builder.Services.AddScoped<IEvaluationOrchestrator, EvaluationOrchestrator>();
 
+// PDF/DOCX rendering + multipart upload parsing
 builder.Services.AddScoped<IPdfGeneratorService, PdfGeneratorService>();
 builder.Services.AddScoped<IDocxGeneratorService, DocxGeneratorService>();
 builder.Services.AddScoped<IMultipartParserService, MultipartParserService>();
@@ -98,10 +90,6 @@ static void RegisterMappers(IServiceCollection services, IConfiguration configur
     }
 }
 
-// Keyed prompt builders and response parsers
-builder.Services.AddKeyedSingleton<IPromptBuilder, DefaultPromptBuilder>("default");
-builder.Services.AddKeyedSingleton<IResponseParser, DefaultResponseParser>("default");
-
 var callbackOptions = builder.Configuration.GetSection(CallbackOptions.SectionName).Get<CallbackOptions>() ?? new CallbackOptions();
 builder.Services.AddHttpClient<ICallbackService, CallbackService>(client =>
 {
@@ -122,11 +110,13 @@ builder.Services.AddScoped<IPdfPipeline>(sp =>
 
 var app = builder.Build();
 
+// Fail-fast on misconfigured mounts. The failure message documents the contract
+// every tenant config repo must satisfy.
+ConfigValidator.Validate(app.Services);
+
 app.MapHealthEndpoints();
-app.MapAgentTestEndpoints();
 app.MapGenerateEndpoints();
 app.MapGenerateAsyncEndpoints();
-app.MapExperimentEndpoints();
 
 app.Run();
 

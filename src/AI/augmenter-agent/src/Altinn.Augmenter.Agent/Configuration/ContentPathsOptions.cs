@@ -1,17 +1,18 @@
 namespace Altinn.Augmenter.Agent.Configuration;
 
 /// <summary>
-/// Filesystem roots for mounted, image-external content (skills, templates, schemas, domain data).
-/// In Docker these are volume-mounted under /etc/augmenter; locally they typically point at the
-/// repository's config/ folder so the same code path works for `dotnet run` and tests.
+/// Filesystem roots for mounted, image-external content (templates, registries,
+/// rules, mappings, orchestrator prompts, tool definitions). In Docker these are
+/// volume-mounted under <c>/etc/augmenter</c>; locally they fall back to the
+/// repository's <c>config/</c> folder so the same code path works for
+/// <c>dotnet run</c> and tests.
 /// </summary>
 public sealed class ContentPathsOptions
 {
     public const string SectionName = "ContentPaths";
 
-    public string SkillsRoot { get; set; } = "/etc/augmenter/skills";
+    /// <summary>Typst (.typ) + DOCX Markdown templates rendered by the PDF/DOCX generators.</summary>
     public string TemplatesRoot { get; set; } = "/etc/augmenter/templates";
-    public string SchemasRoot { get; set; } = "/etc/augmenter/templates";
 
     /// <summary>
     /// Typed key→value registries (<see cref="Services.Registries.LookupRegistry"/>,

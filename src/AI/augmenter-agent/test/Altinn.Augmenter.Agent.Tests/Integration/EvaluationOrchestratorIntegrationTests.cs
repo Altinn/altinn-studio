@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Altinn.Augmenter.Agent.Configuration;
-using Altinn.Augmenter.Agent.Services.Agent;
 using Altinn.Augmenter.Agent.Services.Agent.Chat;
 using Altinn.Augmenter.Agent.Services.Agent.Orchestration;
 using Altinn.Augmenter.Agent.Services.Agent.Tools;
@@ -36,7 +35,6 @@ public class EvaluationOrchestratorIntegrationTests
 
         var opts = Options.Create(new AgentOptions
         {
-            Provider = "sandkasse-http",
             BaseUrl = "https://gw.sandkasse.ai/v1",
             Model = "telenor:gemma4",
             ApiKey = apiKey,
@@ -44,7 +42,7 @@ public class EvaluationOrchestratorIntegrationTests
         });
 
         var services = new ServiceCollection();
-        services.AddHttpClient(SandkasseHttpAgentService.HttpClientName);
+        services.AddHttpClient(SandkasseChatService.HttpClientName);
         var sp = services.BuildServiceProvider();
         var httpFactory = sp.GetRequiredService<IHttpClientFactory>();
 

@@ -1,18 +1,15 @@
 namespace Altinn.Augmenter.Agent.Configuration;
 
+/// <summary>
+/// Options for the OpenAI-compatible chat-completions gateway used by
+/// <see cref="Services.Agent.Chat.SandkasseChatService"/>.
+/// </summary>
 public sealed class AgentOptions
 {
     public const string SectionName = "Agent";
 
     /// <summary>
-    /// Agent provider: <c>sandkasse-http</c> (production, default) or
-    /// <c>claude-cli</c> (local dev, requires the Claude CLI on PATH).
-    /// </summary>
-    public string Provider { get; set; } = "sandkasse-http";
-
-    /// <summary>
-    /// Base URL for the OpenAI-compatible gateway. Must include the version
-    /// segment (e.g. <c>/v1</c>). Required for <c>sandkasse-http</c>.
+    /// Base URL for the gateway. Must include the version segment (e.g. <c>/v1</c>).
     /// Example: <c>https://gw.sandkasse.ai/v1</c>.
     /// </summary>
     public string? BaseUrl { get; set; }
@@ -25,7 +22,7 @@ public sealed class AgentOptions
 
     /// <summary>
     /// Model identifier passed in the chat-completions request (e.g.
-    /// <c>telenor:gemma4</c>). Required for <c>sandkasse-http</c>.
+    /// <c>telenor:gemma4</c>).
     /// </summary>
     public string? Model { get; set; }
 
@@ -35,9 +32,7 @@ public sealed class AgentOptions
     /// </summary>
     public int MaxTokens { get; set; } = 4096;
 
-    /// <summary>
-    /// Sampling temperature. 0 = deterministic-as-possible.
-    /// </summary>
+    /// <summary>Sampling temperature. 0 = deterministic-as-possible.</summary>
     public double Temperature { get; set; }
 
     /// <summary>
@@ -47,16 +42,6 @@ public sealed class AgentOptions
     /// </summary>
     public bool UseStreaming { get; set; } = true;
 
-    /// <summary>
-    /// Maximum time in seconds to wait for the agent to complete.
-    /// </summary>
+    /// <summary>Maximum time in seconds to wait for a single chat call.</summary>
     public int TimeoutSeconds { get; set; } = 300;
-
-    // --- claude-cli dev-fallback fields below ---
-
-    /// <summary>
-    /// Path to the Claude CLI executable, used only when Provider is
-    /// <c>claude-cli</c>. Defaults to <c>claude</c> (on PATH).
-    /// </summary>
-    public string CliPath { get; set; } = "claude";
 }
