@@ -6,7 +6,7 @@ import type { ButtonProps as DesignSystemButtonProps } from '@digdir/designsyste
 import { Spinner } from '../Spinner';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | undefined;
-export type ButtonColor = 'first' | 'second' | 'danger' | undefined;
+export type ButtonColor = 'first' | 'second' | 'success' | 'danger' | undefined;
 export type TextAlign = 'left' | 'center' | 'right';
 
 export type ButtonProps = {
@@ -32,7 +32,7 @@ type DSButtonColor =
   | 'brand3'
   | undefined;
 
-function mapColorNames(color: ButtonColor): DesignSystemButtonProps['data-color'] {
+function mapColorNames(color: ButtonColor): DSButtonColor {
   switch (color) {
     case 'first':
       return 'accent';
