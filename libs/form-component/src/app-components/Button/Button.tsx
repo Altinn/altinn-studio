@@ -22,17 +22,7 @@ export type ButtonProps = {
   ref?: Ref<HTMLButtonElement>;
 } & Omit<DesignSystemButtonProps, 'variant' | 'color' | 'size' | 'title' | 'aria-label'>;
 
-type DSButtonColor =
-  | 'accent'
-  | 'neutral'
-  | 'success'
-  | 'danger'
-  | 'brand1'
-  | 'brand2'
-  | 'brand3'
-  | undefined;
-
-function mapColorNames(color: ButtonColor): DSButtonColor {
+function mapColorNames(color: ButtonColor): DesignSystemButtonProps['data-color'] {
   switch (color) {
     case 'first':
       return 'accent';
