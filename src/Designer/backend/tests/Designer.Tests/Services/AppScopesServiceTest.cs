@@ -7,6 +7,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
 using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Moq;
 using Xunit;
 
@@ -27,7 +28,7 @@ public class AppScopesServiceTest
             .Setup(r => r.UpsertAppScopesAsync(It.IsAny<AppScopesEntity>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((AppScopesEntity entity, CancellationToken _) => entity);
 
-        AppScopesService service = new(appScopesRepository.Object, TimeProvider.System);
+        AppScopesService service = CreateAppScopesService(appScopesRepository.Object);
 
         // Act
         AppScopesEntity result = await service.AddDefaultMaskinportenScopesAsync(context);
@@ -68,7 +69,7 @@ public class AppScopesServiceTest
             .Setup(r => r.GetAppScopesAsync(context, It.IsAny<CancellationToken>()))
             .ReturnsAsync(appScopes);
 
-        AppScopesService service = new(appScopesRepository.Object, TimeProvider.System);
+        AppScopesService service = CreateAppScopesService(appScopesRepository.Object);
 
         // Act
         AppScopesEntity result = await service.AddDefaultMaskinportenScopesAsync(context);
@@ -96,5 +97,77 @@ public class AppScopesServiceTest
         Assert.Contains(result, s => s.Scope == DefaultMaskinportenScopes.ServiceOwner);
         Assert.Contains(result, s => s.Scope == DefaultMaskinportenScopes.ServiceOwnerInstancesRead);
         Assert.Contains(result, s => s.Scope == DefaultMaskinportenScopes.ServiceOwnerInstancesWrite);
+    }
+
+    [Fact]
+    public async Task GetAppScopesAsync_WhenOrgIsNotAltinnOrg_ThrowsAndDoesNotReadRepository()
+    {
+        AltinnRepoContext context = AltinnRepoContext.FromOrgRepo("developer", "app");
+        Mock<IAppScopesRepository> appScopesRepository = new(MockBehavior.Strict);
+        AppScopesService service = CreateAppScopesService(appScopesRepository.Object, isAltinnOrg: false);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.GetAppScopesAsync(context));
+    }
+
+    [Fact]
+    public async Task UpsertScopesAsync_WhenOrgIsNotAltinnOrg_ThrowsAndDoesNotPersist()
+    {
+        AltinnRepoEditingContext context = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+            "developer",
+            "app",
+            "developer"
+        );
+        Mock<IAppScopesRepository> appScopesRepository = new(MockBehavior.Strict);
+        AppScopesService service = CreateAppScopesService(appScopesRepository.Object, isAltinnOrg: false);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.UpsertScopesAsync(
+                context,
+                new HashSet<MaskinPortenScopeEntity> { new() { Scope = "custom:scope" } }
+            )
+        );
+    }
+
+    [Fact]
+    public async Task AddDefaultMaskinportenScopesAsync_WhenOrgIsNotAltinnOrg_ReturnsNullAndDoesNotPersist()
+    {
+        AltinnRepoEditingContext context = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+            "developer",
+            "app",
+            "developer"
+        );
+        Mock<IAppScopesRepository> appScopesRepository = new(MockBehavior.Strict);
+        AppScopesService service = CreateAppScopesService(appScopesRepository.Object, isAltinnOrg: false);
+
+        AppScopesEntity result = await service.AddDefaultMaskinportenScopesAsync(context);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetAppScopesAsync_WhenServiceOwnerLookupIsCanceled_ThrowsOperationCanceledException()
+    {
+        AltinnRepoContext context = AltinnRepoContext.FromOrgRepo("ttd", "app");
+        Mock<IAppScopesRepository> appScopesRepository = new(MockBehavior.Strict);
+        Mock<IEnvironmentsService> environmentsService = new();
+        environmentsService
+            .Setup(s => s.IsAltinnOrg(context.Org, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException());
+        AppScopesService service = new(appScopesRepository.Object, environmentsService.Object, TimeProvider.System);
+
+        await Assert.ThrowsAsync<OperationCanceledException>(() => service.GetAppScopesAsync(context));
+    }
+
+    private static AppScopesService CreateAppScopesService(
+        IAppScopesRepository appScopesRepository,
+        bool isAltinnOrg = true
+    )
+    {
+        Mock<IEnvironmentsService> environmentsService = new();
+        environmentsService
+            .Setup(s => s.IsAltinnOrg(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(isAltinnOrg);
+
+        return new AppScopesService(appScopesRepository, environmentsService.Object, TimeProvider.System);
     }
 }

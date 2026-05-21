@@ -1,4 +1,3 @@
-#nullable disable
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,13 +8,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 
 public interface IAppScopesService
 {
-    Task<AppScopesEntity> GetAppScopesAsync(AltinnRepoContext context, CancellationToken cancellationToken = default);
-    Task<AppScopesEntity> UpsertScopesAsync(
+    Task<AppScopesEntity?> GetAppScopesAsync(AltinnRepoContext context, CancellationToken cancellationToken = default);
+    Task<AppScopesEntity?> UpsertScopesAsync(
         AltinnRepoEditingContext editingContext,
         ISet<MaskinPortenScopeEntity> scopes,
         CancellationToken cancellationToken = default
     );
-    Task<AppScopesEntity> AddDefaultMaskinportenScopesAsync(
+    Task<AppScopesEntity?> AddDefaultMaskinportenScopesAsync(
         AltinnRepoEditingContext editingContext,
         CancellationToken cancellationToken = default
     );
