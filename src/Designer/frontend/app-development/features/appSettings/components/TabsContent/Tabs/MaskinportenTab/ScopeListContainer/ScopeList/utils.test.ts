@@ -2,7 +2,7 @@ import {
   mapSelectedValuesToMaskinportenScopes,
   mapMaskinPortenScopesToScopeList,
   combineSelectedAndMaskinportenScopes,
-  isMandatoryMaskinportenScope,
+  isDefaultMaskinportenScope,
   sortScopesForDisplay,
 } from './utils';
 import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
@@ -137,14 +137,15 @@ describe('ScopeList utils functions', () => {
     });
   });
 
-  describe('isMandatoryMaskinportenScope', () => {
-    it('returns true for the mandatory serviceowner instance scopes', () => {
-      expect(isMandatoryMaskinportenScope('altinn:serviceowner/instances.read')).toBe(true);
-      expect(isMandatoryMaskinportenScope('altinn:serviceowner/instances.write')).toBe(true);
+  describe('isDefaultMaskinportenScope', () => {
+    it('returns true for the default serviceowner scopes', () => {
+      expect(isDefaultMaskinportenScope('altinn:serviceowner')).toBe(true);
+      expect(isDefaultMaskinportenScope('altinn:serviceowner/instances.read')).toBe(true);
+      expect(isDefaultMaskinportenScope('altinn:serviceowner/instances.write')).toBe(true);
     });
 
     it('returns false for other serviceowner scopes', () => {
-      expect(isMandatoryMaskinportenScope('altinn:serviceowner/other')).toBe(false);
+      expect(isDefaultMaskinportenScope('altinn:serviceowner/other')).toBe(false);
     });
   });
 });

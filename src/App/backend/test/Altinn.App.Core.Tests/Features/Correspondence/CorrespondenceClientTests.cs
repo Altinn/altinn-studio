@@ -251,7 +251,7 @@ public class CorrespondenceClientTests
             TheoryData<(AuthenticationScenario scenario, IEnumerable<string> expectedScopes)> data = new();
             data.Add((AuthenticationScenario.LegacyMaskinporten, ["altinn:correspondence.write", "altinn:serviceowner"]));
             data.Add((AuthenticationScenario.LegacyCustom, ["old:custom"]));
-            data.Add((AuthenticationScenario.Default, ["altinn:serviceowner/instances.read", "altinn:serviceowner/instances.write", "altinn:correspondence.write"]));
+            data.Add((AuthenticationScenario.Default, ["altinn:serviceowner", "altinn:serviceowner/instances.read", "altinn:serviceowner/instances.write", "altinn:correspondence.write"]));
             data.Add((AuthenticationScenario.Custom, ["new:custom"]));
             return data;
         }

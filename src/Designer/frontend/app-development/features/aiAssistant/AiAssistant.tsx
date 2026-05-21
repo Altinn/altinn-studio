@@ -71,8 +71,7 @@ function AiAssistant(): ReactElement {
     return (
       <StudioCenter>
         <StudioAlert>
-          <StudioParagraph>{t('ai_assistant.access_denied_1')}</StudioParagraph>
-          <StudioParagraph>{t('ai_assistant.access_denied_2')}</StudioParagraph>
+          <StudioParagraph>{t('ai_assistant.access_denied')}</StudioParagraph>
         </StudioAlert>
       </StudioCenter>
     );

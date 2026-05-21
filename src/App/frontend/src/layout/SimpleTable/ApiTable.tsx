@@ -1,10 +1,9 @@
 import React from 'react';
 
+import { AppTable } from '@app/form-component';
 import { Link } from '@digdir/designsystemet-react';
 import { pick } from 'dot-object';
 
-import { AppTable } from 'src/app-components/Table/Table';
-import { translationKey } from 'src/AppComponentsBridge';
 import { Caption } from 'src/components/form/caption/Caption';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
 import { Lang } from 'src/features/language/Lang';
@@ -23,7 +22,7 @@ interface ApiTableProps extends PropsFromGenericComponent<'SimpleTable'> {
 export function ApiTable({ baseComponentId, externalApi }: ApiTableProps) {
   const { textResourceBindings, zebra, size, columns } = useItemWhenType(baseComponentId, 'SimpleTable');
   const { title, description, help } = textResourceBindings ?? {};
-  const { elementAsString } = useLanguage();
+  const { elementAsString, langAsString } = useLanguage();
   const accessibleTitle = elementAsString(title);
   const isMobile = useIsMobile();
   const { data } = useExternalApis([externalApi.id]);
@@ -54,7 +53,6 @@ export function ApiTable({ baseComponentId, externalApi }: ApiTableProps) {
     <AppTable
       zebra={zebra}
       size={size}
-      schema={{}}
       caption={
         title && (
           <Caption
@@ -66,7 +64,7 @@ export function ApiTable({ baseComponentId, externalApi }: ApiTableProps) {
       }
       data={dataToDisplay}
       stickyHeader={true}
-      emptyText={translationKey('general.empty_table')}
+      emptyText={langAsString('general.empty_table')}
       columns={columns.map((config) => {
         const { component } = config;
         let renderCell;
@@ -90,12 +88,12 @@ export function ApiTable({ baseComponentId, externalApi }: ApiTableProps) {
 
         return {
           ...config,
-          header: translationKey(config.header),
+          header: langAsString(config.header),
           renderCell,
         };
       })}
       mobile={isMobile}
-      actionButtonHeader={translationKey('general.action')}
+      actionButtonHeader={langAsString('general.action')}
     />
   );
 }

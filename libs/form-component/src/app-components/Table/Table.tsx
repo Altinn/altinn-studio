@@ -1,52 +1,66 @@
 import React from 'react';
 
-import { Spinner } from '@app/form-component';
 import { Button, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import { format, isValid, parseISO } from 'date-fns';
-import { pick } from 'dot-object';
-import type { JSONSchema7 } from 'json-schema';
 
-import { useTranslation } from 'src/app-components/AppComponentsProvider';
-import utilClasses from 'src/app-components/style/utils.module.css';
-import classes from 'src/app-components/Table/Table.module.css';
-import type { FormDataValue } from 'src/app-components/DynamicForm/DynamicForm';
-import type { TranslationKey } from 'src/app-components/types';
+import { Spinner } from '../Spinner/Spinner';
+import classes from './Table.module.css';
 
-interface Column<T> {
-  header: TranslationKey | null;
-  ariaLabel?: TranslationKey;
+export type TableCellValue =
+  | string
+  | number
+  | boolean
+  | null
+  | TableCellValue[]
+  | { [key: string]: TableCellValue };
+
+export interface Column<T> {
+  header: string | null;
+  ariaLabel?: string;
   accessors: string[];
-  renderCell?: (values: FormDataValue[], rowData: T, rowIndex: number) => React.ReactNode;
+  renderCell?: (values: TableCellValue[], rowData: T, rowIndex: number) => React.ReactNode;
   enableInlineEditing?: boolean;
 }
 
 export interface TableActionButton<T = unknown> {
   onClick: (rowIdx: number, rowData: T) => void;
-  buttonText: TranslationKey;
+  buttonText: React.ReactNode;
   icon: React.ReactNode;
   color?: 'first' | 'second' | 'success' | 'danger';
   variant?: 'tertiary' | 'primary' | 'secondary';
 }
 
-interface DataTableProps<T> {
+export interface AppTableProps<T> {
   data: T[];
-  schema?: JSONSchema7;
   columns: Column<T>[];
   caption?: React.ReactNode;
   actionButtons?: TableActionButton<T>[];
-  actionButtonHeader?: TranslationKey;
+  actionButtonHeader?: string;
   mobile?: boolean;
   size?: 'sm' | 'md' | 'lg';
   zebra?: boolean;
   stickyHeader?: boolean;
   isLoading?: boolean;
-  emptyText: TranslationKey | undefined;
+  loadingLabel?: string;
+  emptyText?: string;
   tableClassName?: string;
   headerClassName?: string;
 }
 
-function formatValue(value: FormDataValue): string {
+function pickByPath(path: string, source: unknown): TableCellValue {
+  const segments = path.split('.');
+  let current: unknown = source;
+  for (const segment of segments) {
+    if (current == null || typeof current !== 'object') {
+      return null;
+    }
+    current = (current as Record<string, unknown>)[segment];
+  }
+  return current as TableCellValue;
+}
+
+function formatValue(value: TableCellValue): string {
   if (typeof value === 'boolean') {
     return value ? 'Yes' : 'No';
   }
@@ -85,16 +99,9 @@ export function AppTable<T>({
   tableClassName,
   headerClassName,
   isLoading = false,
+  loadingLabel = 'Loading data...',
   emptyText,
-}: DataTableProps<T>) {
-  const { translate: t, TranslateComponent } = useTranslation();
-  function translate(key: TranslationKey | null) {
-    if (!key) {
-      return '';
-    }
-    return t(key);
-  }
-
+}: AppTableProps<T>) {
   const defaultButtonVariant = mobile ? 'secondary' : 'tertiary';
   return (
     <Table
@@ -111,14 +118,14 @@ export function AppTable<T>({
               style={stickyHeader ? { zIndex: 2 } : {}}
               className={headerClassName}
               key={index}
-              aria-label={col.ariaLabel ? translate(col.ariaLabel) : undefined}
+              aria-label={col.ariaLabel}
             >
-              {translate(col.header)}
+              {col.header}
             </Table.HeaderCell>
           ))}
           {actionButtons && actionButtons.length > 0 && (
             <Table.HeaderCell>
-              <span className={utilClasses.visuallyHidden}>{actionButtonHeader && translate(actionButtonHeader)}</span>
+              <span className={classes.visuallyHidden}>{actionButtonHeader}</span>
             </Table.HeaderCell>
           )}
         </Table.Row>
@@ -130,10 +137,7 @@ export function AppTable<T>({
               colSpan={columns.length + (actionButtons ? 1 : 0)}
               style={{ textAlign: 'center' }}
             >
-              <Spinner
-                aria-label='Loading data...'
-                data-size='md'
-              />
+              <Spinner aria-label={loadingLabel} data-size='md' />
             </Table.Cell>
           </Table.Row>
         ) : data.length === 0 ? (
@@ -142,7 +146,7 @@ export function AppTable<T>({
               colSpan={columns.length + (actionButtons ? 1 : 0)}
               className={classes.emptyCell}
             >
-              <em>{emptyText && translate(emptyText)}</em>
+              <em>{emptyText}</em>
             </Table.Cell>
           </Table.Row>
         ) : (
@@ -150,15 +154,12 @@ export function AppTable<T>({
             <Table.Row key={rowIndex}>
               {columns.map((col, colIndex) => {
                 const cellValues = col.accessors
-                  .map((accessor) => pick(accessor, rowData) as FormDataValue)
+                  .map((accessor) => pickByPath(accessor, rowData))
                   .filter((value) => value != null);
 
                 if (col.renderCell) {
                   return (
-                    <Table.Cell
-                      key={colIndex}
-                      data-header-title={translate(col.header)}
-                    >
+                    <Table.Cell key={colIndex} data-header-title={col.header ?? ''}>
                       {col.renderCell(cellValues, rowData, rowIndex)}
                     </Table.Cell>
                   );
@@ -166,10 +167,7 @@ export function AppTable<T>({
 
                 if (cellValues.length === 0) {
                   return (
-                    <Table.Cell
-                      key={colIndex}
-                      data-header-title={translate(col.header)}
-                    >
+                    <Table.Cell key={colIndex} data-header-title={col.header ?? ''}>
                       -
                     </Table.Cell>
                   );
@@ -177,20 +175,14 @@ export function AppTable<T>({
 
                 if (cellValues.length === 1) {
                   return (
-                    <Table.Cell
-                      key={colIndex}
-                      data-header-title={translate(col.header)}
-                    >
+                    <Table.Cell key={colIndex} data-header-title={col.header ?? ''}>
                       {formatValue(cellValues[0])}
                     </Table.Cell>
                   );
                 }
 
                 return (
-                  <Table.Cell
-                    key={colIndex}
-                    data-header-title={translate(col.header)}
-                  >
+                  <Table.Cell key={colIndex} data-header-title={col.header ?? ''}>
                     <ul>
                       {cellValues.map((value, idx) => (
                         <li key={idx}>{formatValue(value)}</li>
@@ -210,7 +202,7 @@ export function AppTable<T>({
                         variant={button.variant ? button.variant : defaultButtonVariant}
                         color={button.color ? button.color : 'second'}
                       >
-                        <TranslateComponent tKey={button.buttonText} />
+                        {button.buttonText}
                         {button.icon}
                       </Button>
                     ))}

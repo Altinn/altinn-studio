@@ -10,6 +10,7 @@ using Altinn.Studio.Designer.Repository.Models.AppScope;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.MaskinPorten;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.FeatureManagement.Mvc;
 
@@ -18,8 +19,11 @@ namespace Altinn.Studio.Designer.Controllers;
 [ApiController]
 [FeatureGate(StudioFeatureFlags.StudioOidc)]
 [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/app-scopes")]
-public class AppScopesController(IMaskinPortenHttpClient maskinPortenHttpClient, IAppScopesService appScopesService)
-    : ControllerBase
+public class AppScopesController(
+    IMaskinPortenHttpClient maskinPortenHttpClient,
+    IAppScopesService appScopesService,
+    IEnvironmentsService environmentsService
+) : ControllerBase
 {
     [Authorize(StudioOidcConstants.OrgAccessAuthorizationPolicy)]
     [HttpGet("maskinporten")]
@@ -43,13 +47,18 @@ public class AppScopesController(IMaskinPortenHttpClient maskinPortenHttpClient,
 
     [Authorize]
     [HttpPut]
-    public async Task UpsertAppScopes(
+    public async Task<IActionResult> UpsertAppScopes(
         string org,
         string app,
         [FromBody] AppScopesUpsertRequest appScopesUpsertRequest,
         CancellationToken cancellationToken
     )
     {
+        if (!await environmentsService.IsAltinnOrg(org, cancellationToken))
+        {
+            return BadRequest(CreateAppScopesNotSupportedProblemDetails(org));
+        }
+
         var scopes = appScopesUpsertRequest
             .Scopes.Select(x => new MaskinPortenScopeEntity() { Scope = x.Scope, Description = x.Description })
             .ToHashSet();
@@ -60,12 +69,19 @@ public class AppScopesController(IMaskinPortenHttpClient maskinPortenHttpClient,
             scopes,
             cancellationToken
         );
+
+        return Ok();
     }
 
     [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetAppScopes(string org, string app, CancellationToken cancellationToken)
     {
+        if (!await environmentsService.IsAltinnOrg(org, cancellationToken))
+        {
+            return BadRequest(CreateAppScopesNotSupportedProblemDetails(org));
+        }
+
         var appScopes = await appScopesService.GetAppScopesAsync(
             AltinnRepoContext.FromOrgRepo(org, app),
             cancellationToken
@@ -82,4 +98,12 @@ public class AppScopesController(IMaskinPortenHttpClient maskinPortenHttpClient,
 
         return Ok(reponse);
     }
+
+    private static ProblemDetails CreateAppScopesNotSupportedProblemDetails(string org) =>
+        new()
+        {
+            Title = AppScopesErrorMessages.NotSupportedTitle,
+            Detail = AppScopesErrorMessages.NotSupportedDetail(org),
+            Status = StatusCodes.Status400BadRequest,
+        };
 }
