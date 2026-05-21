@@ -17,5 +17,12 @@ export const isVersionAtLeast = (
   return actualPatch >= patch;
 };
 
+const maskinportenScopesSupportedVersion = [8, 3, 0] as const;
+const maskinportenDefaultScopesOptInCutoffVersion = [9, 0, 0] as const;
+
+export const isMaskinportenScopesSupportedVersion = (version: string | undefined): boolean =>
+  isVersionAtLeast(version, ...maskinportenScopesSupportedVersion);
+
 export const isMaskinportenDefaultScopesOptInVersion = (version: string | undefined): boolean =>
-  isVersionAtLeast(version, 8, 3, 0) && !isVersionAtLeast(version, 9, 0, 0);
+  isMaskinportenScopesSupportedVersion(version) &&
+  !isVersionAtLeast(version, ...maskinportenDefaultScopesOptInCutoffVersion);

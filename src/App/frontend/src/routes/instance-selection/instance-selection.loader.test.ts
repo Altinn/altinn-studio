@@ -1,16 +1,18 @@
-import { redirect, RouterContextProvider } from 'react-router';
+import { LoaderFunctionArgs, redirect, RouterContextProvider } from 'react-router';
 
 import { QueryClient } from '@tanstack/react-query';
 
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
+import { ApiClients } from 'src/core/api-client/ApiClients';
 import { instanceApi } from 'src/core/api-client/instance.api';
 import { partyApi } from 'src/core/api-client/party.api';
 import { GlobalData } from 'src/GlobalData';
+import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { instanceSelectionLoader } from 'src/routes/instance-selection/instance-selection.loader';
-import { createLoaderArgs } from 'src/test/routerUtils';
+import { createLoaderFunctionArgs } from 'src/test/routerUtils';
 import type { InstanceSelectionLoaderResult } from 'src/routes/instance-selection/instance-selection.loader';
 
 // react-router's redirect() requires the Fetch API Response class, which jsdom doesn't provide.
@@ -33,17 +35,17 @@ const mockInstance = {
   process: getProcessDataMock(),
 };
 
-function createLoader() {
+function createLoaderArgs(): LoaderFunctionArgs {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  const loader = instanceSelectionLoader(partyApi, instanceApi);
   const context = new RouterContextProvider();
   context.set(queryClientContext, queryClient);
-  return {
-    loader,
-    loaderArgs: createLoaderArgs({ context }),
-  };
+  context.set(apiClientsContext, {
+    partyApi,
+    instanceApi,
+  } as ApiClients);
+  return createLoaderFunctionArgs({ context });
 }
 
 describe('instanceSelectionLoader', () => {
@@ -63,8 +65,7 @@ describe('instanceSelectionLoader', () => {
     ];
     jest.mocked(instanceApi.getActiveInstances).mockResolvedValue(activeInstances);
 
-    const { loader, loaderArgs } = createLoader();
-    const result = await loader(loaderArgs);
+    const result = await instanceSelectionLoader(createLoaderArgs());
 
     expect(result).toBeNull();
     expect(instanceApi.create).not.toHaveBeenCalled();
@@ -74,8 +75,7 @@ describe('instanceSelectionLoader', () => {
     jest.mocked(instanceApi.getActiveInstances).mockResolvedValue([]);
     jest.mocked(instanceApi.create).mockResolvedValue(mockInstance);
 
-    const { loader, loaderArgs } = createLoader();
-    await loader(loaderArgs);
+    await instanceSelectionLoader(createLoaderArgs());
 
     expect(instanceApi.create).toHaveBeenCalledWith({ instanceOwnerPartyId: mockParty.partyId });
     expect(redirect).toHaveBeenCalledWith(expect.stringContaining('some-instance-guid'));
@@ -95,8 +95,7 @@ describe('instanceSelectionLoader', () => {
     jest.mocked(instanceApi.getActiveInstances).mockResolvedValue([]);
     jest.mocked(instanceApi.create).mockRejectedValue(error);
 
-    const { loader, loaderArgs } = createLoader();
-    const result = (await loader(loaderArgs)) as InstanceSelectionLoaderResult;
+    const result = (await instanceSelectionLoader(createLoaderArgs())) as InstanceSelectionLoaderResult;
 
     expect(result).not.toBeNull();
     expect(result).toHaveProperty('error', 'forbidden-validation');
@@ -114,8 +113,7 @@ describe('instanceSelectionLoader', () => {
     jest.mocked(instanceApi.getActiveInstances).mockResolvedValue([]);
     jest.mocked(instanceApi.create).mockRejectedValue(error);
 
-    const { loader, loaderArgs } = createLoader();
-    const result = await loader(loaderArgs);
+    const result = await instanceSelectionLoader(createLoaderArgs());
 
     expect(result).not.toBeNull();
     expect(result).toHaveProperty('error', 'forbidden');
@@ -127,8 +125,7 @@ describe('instanceSelectionLoader', () => {
     jest.mocked(instanceApi.getActiveInstances).mockResolvedValue([]);
     jest.mocked(instanceApi.create).mockRejectedValue(error);
 
-    const { loader, loaderArgs } = createLoader();
-    const result = await loader(loaderArgs);
+    const result = await instanceSelectionLoader(createLoaderArgs());
 
     expect(result).not.toBeNull();
     expect(result).toHaveProperty('error', 'instantiation-failed');
@@ -142,8 +139,7 @@ describe('instanceSelectionLoader', () => {
     const originalSelectedParty = window.altinnAppGlobalData.selectedParty;
     window.altinnAppGlobalData.selectedParty = undefined;
 
-    const { loader, loaderArgs } = createLoader();
-    await loader(loaderArgs);
+    await instanceSelectionLoader(createLoaderArgs());
 
     window.altinnAppGlobalData.selectedParty = originalSelectedParty;
 

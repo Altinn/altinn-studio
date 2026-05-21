@@ -1,4 +1,8 @@
-import { isMaskinportenDefaultScopesOptInVersion, isVersionAtLeast } from './versionUtils';
+import {
+  isMaskinportenDefaultScopesOptInVersion,
+  isMaskinportenScopesSupportedVersion,
+  isVersionAtLeast,
+} from './versionUtils';
 
 describe('versionUtils', () => {
   describe('isVersionAtLeast', () => {
@@ -33,6 +37,17 @@ describe('versionUtils', () => {
       [undefined, false],
     ])('returns %s for %s', (version, expected) => {
       expect(isMaskinportenDefaultScopesOptInVersion(version)).toBe(expected);
+    });
+  });
+
+  describe('isMaskinportenScopesSupportedVersion', () => {
+    it.each([
+      ['8.2.9', false],
+      ['8.3.0', true],
+      ['9.0.0', true],
+      [undefined, false],
+    ])('returns %s for %s', (version, expected) => {
+      expect(isMaskinportenScopesSupportedVersion(version)).toBe(expected);
     });
   });
 });

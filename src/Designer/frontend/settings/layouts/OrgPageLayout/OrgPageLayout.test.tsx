@@ -6,6 +6,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { user as userMock } from 'app-shared/mocks/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import type { User } from 'app-shared/types/Repository';
 
 jest.mock('../../features/orgs/layout/PageLayout', () => ({
   PageLayout: () => <div>PageLayout</div>,
@@ -36,16 +37,18 @@ type RenderOptions = {
   initialEntries?: string[];
   queries?: Record<string, unknown>;
   seedCurrentUser?: boolean;
+  currentUser?: User | null;
 };
 
 const renderOrgPageLayout = ({
   initialEntries = ['/ttd/bot-accounts'],
   queries = {},
   seedCurrentUser = true,
+  currentUser = orgUser,
 }: RenderOptions = {}) => {
   const queryClient = createQueryClientMock();
   if (seedCurrentUser) {
-    queryClient.setQueryData([QueryKey.CurrentUser], orgUser);
+    queryClient.setQueryData([QueryKey.CurrentUser], currentUser);
   }
   return renderWithProviders(<RoutedOrgPageLayout />, { initialEntries, queryClient, queries });
 };
@@ -68,6 +71,18 @@ describe('OrgPageLayout', () => {
     expect(
       screen.getByRole('heading', { name: textMock('not_found_page.heading') }),
     ).toBeInTheDocument();
+  });
+
+  it('renders the not-found page when owner matches the logged-in user login with different casing', () => {
+    renderOrgPageLayout({ initialEntries: ['/TestUser/bot-accounts'] });
+    expect(
+      screen.getByRole('heading', { name: textMock('not_found_page.heading') }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders PageLayout when user data resolves without a user', () => {
+    renderOrgPageLayout({ currentUser: null });
+    expect(screen.getByText('PageLayout')).toBeInTheDocument();
   });
 
   it('renders the loading spinner while user data is still loading', () => {
