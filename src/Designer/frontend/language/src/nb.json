@@ -1004,7 +1004,7 @@
   "merge_conflict.download_entire_repo": "Last ned hele repoet",
   "merge_conflict.download_zip_file": "Last ned zip-fil",
   "merge_conflict.headline": "Det er en konflikt i appen",
-  "merge_conflict.remove_my_changes": "Fjern mine endringer",
+  "merge_conflict.remove_my_changes": "Slett mine endringer",
   "not_found_page.heading": "Vi finner ikke siden",
   "not_found_page.redirect_to_dashboard": "Gå tilbake til Dashboard",
   "not_found_page.text": "Vi finner ikke siden du leter etter. Har du skrevet inn riktig URL? \nDu kan prøve å gå tilbake til dashboardet for å sjekke, eller <a>ta kontakt med oss</a> om du trenger hjelp.",
