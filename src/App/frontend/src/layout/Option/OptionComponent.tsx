@@ -1,9 +1,9 @@
 import React from 'react';
 
+import { LoadingEmpty } from '@app/form-component';
 import cn from 'classnames';
 
 import { HelpText } from 'src/app-components/HelpText/HelpText';
-import { LoadingEmpty } from 'src/app-components/loading/LoadingEmpty/LoadingEmpty';
 import { translationKey } from 'src/AppComponentsBridge';
 import { getLabelId } from 'src/components/label/Label';
 import { Lang } from 'src/features/language/Lang';

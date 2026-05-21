@@ -14,3 +14,4 @@ export * from './Spinner';
 export * from './Timepicker';
 export * from './Table';
 export * from './TextArea';
+export * from './loading';

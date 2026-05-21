@@ -19,6 +19,7 @@
     "classnames": "2.5.1",
     "date-fns": "^4.1.0",
     "mime": "^4.1.0",
+    "react-content-loader": "7.1.2",
     "react-day-picker": "^9.14.0",
     "react-dropzone": "^15.0.0",
     "react-number-format": "^5.4.5"

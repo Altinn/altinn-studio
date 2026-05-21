@@ -1,9 +1,9 @@
 import React from 'react';
 import ContentLoader from 'react-content-loader';
 
-import { AltinnContentIcon } from 'src/app-components/loading/AltinnContentLoader/AltinnContentIcon';
-import { AltinnContentIconFormData } from 'src/app-components/loading/AltinnContentLoader/AltinnContentIconFormData';
-import { AltinnContentIconReceipt } from 'src/app-components/loading/AltinnContentLoader/AltinnContentIconReceipt';
+import { AltinnContentIcon } from './AltinnContentIcon';
+import { AltinnContentIconFormData } from './AltinnContentIconFormData';
+import { AltinnContentIconReceipt } from './AltinnContentIconReceipt';
 
 type LoaderVariant = 'default' | 'form' | 'receipt';
 
@@ -42,16 +42,8 @@ export const AltinnContentLoader = ({
   width = 400,
   height = 200,
 }: IAltinnContentLoaderProps) => (
-  <div
-    data-loading
-    data-testid='loader'
-    data-reason={reason}
-    data-details={details}
-  >
-    <ContentLoader
-      height={height}
-      width={width}
-    >
+  <div data-loading data-testid='loader' data-reason={reason} data-details={details}>
+    <ContentLoader height={height} width={width}>
       <LoaderIcon variant={variant} />
     </ContentLoader>
   </div>
