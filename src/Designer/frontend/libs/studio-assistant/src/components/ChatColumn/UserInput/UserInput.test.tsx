@@ -61,6 +61,29 @@ describe('UserInput', () => {
     expect(sendButton).toBeDisabled();
   });
 
+  it('should disable send button when textarea is empty, even when there is an attachment', async () => {
+    const user = userEvent.setup();
+    renderUserInput();
+    const fileInput = screen.getByLabelText(mockTexts.addAttachment, { selector: 'input' });
+    const attachment = new File(['file content'], 'attachment.txt', { type: 'text/plain' });
+
+    await user.upload(fileInput, attachment);
+
+    const sendButton = screen.getByRole('button', { name: mockTexts.send });
+    expect(sendButton).toBeDisabled();
+  });
+
+  it('should disable send button when entering empty or white-space only message', async () => {
+    const user = userEvent.setup();
+    renderUserInput();
+    const textarea = screen.getByPlaceholderText(mockTexts.textarea.placeholder);
+
+    await user.type(textarea, '   ');
+
+    const sendButton = screen.getByRole('button', { name: mockTexts.send });
+    expect(sendButton).toBeDisabled();
+  });
+
   it('should enable send button when textarea has content', async () => {
     const user = userEvent.setup();
     renderUserInput();
@@ -145,17 +168,6 @@ describe('UserInput', () => {
     await user.type(textarea, 'Test message{Shift>}{Enter}');
 
     expect(onSubmitMessage).not.toHaveBeenCalled();
-  });
-
-  it('should disable the send button when entering empty or white-space only message', async () => {
-    const user = userEvent.setup();
-    renderUserInput();
-    const textarea = screen.getByPlaceholderText(mockTexts.textarea.placeholder);
-
-    await user.type(textarea, '   ');
-
-    const sendButton = screen.getByRole('button', { name: mockTexts.send });
-    expect(sendButton).toBeDisabled();
   });
 });
 
