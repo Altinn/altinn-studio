@@ -36,10 +36,15 @@ public sealed class StepFactory(IServiceProvider serviceProvider)
     {
         if (string.IsNullOrEmpty(definition.Mapper))
             throw new InvalidOperationException($"Step '{definition.Name}' is missing 'mapper'.");
-        return serviceProvider.GetKeyedService<IDataMapper>(definition.Mapper)
-            ?? throw new InvalidOperationException(
-                $"Step '{definition.Name}' references unknown mapper '{definition.Mapper}'. " +
-                $"Drop a <name>.json spec into ContentPaths.MappingsRoot.");
+        try
+        {
+            return serviceProvider.GetRequiredService<IDataMapperRegistry>().Get(definition.Mapper);
+        }
+        catch (FileNotFoundException ex)
+        {
+            throw new InvalidOperationException(
+                $"Step '{definition.Name}': {ex.Message}", ex);
+        }
     }
 
     private AgentPdfOrchestratedStep BuildAgentPdfOrchestratedStep(

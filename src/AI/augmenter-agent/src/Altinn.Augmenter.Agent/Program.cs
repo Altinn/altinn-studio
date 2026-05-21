@@ -2,7 +2,6 @@ using Altinn.Augmenter.Agent.Configuration;
 using Altinn.Augmenter.Agent.Endpoints;
 using Altinn.Augmenter.Agent.Pipelines;
 using Altinn.Augmenter.Agent.Pipelines.Generic;
-using Altinn.Augmenter.Agent.Pipelines.Generic.Mapping;
 using Altinn.Augmenter.Agent.Services;
 using Altinn.Augmenter.Agent.Services.Agent.Chat;
 using Altinn.Augmenter.Agent.Services.Agent.Orchestration;
@@ -68,27 +67,11 @@ builder.Services.AddScoped<IMultipartParserService, MultipartParserService>();
 // Typed registries loaded from /etc/augmenter/registries/ (kommuner, bevillingstyper, alkoholgrupper, ...)
 builder.Services.AddSingleton<RegistryProvider>();
 
-// Mappers — keyed by mapping spec filename (stem) under ContentPaths.MappingsRoot.
-// Each pipeline.yaml step's `mapper:` field is the key. Specs are discovered
-// at startup so adding a new mapper is a config drop-in, no code change.
-RegisterMappers(builder.Services, builder.Configuration);
-
-static void RegisterMappers(IServiceCollection services, IConfiguration configuration)
-{
-    var contentPaths = configuration.GetSection(ContentPathsOptions.SectionName).Get<ContentPathsOptions>() ?? new();
-    var postConfigure = new ContentPathsPostConfigure();
-    postConfigure.PostConfigure(null, contentPaths);
-
-    if (!Directory.Exists(contentPaths.MappingsRoot))
-        return;
-
-    foreach (var path in Directory.EnumerateFiles(contentPaths.MappingsRoot, "*.json"))
-    {
-        var key = Path.GetFileNameWithoutExtension(path);
-        services.AddKeyedSingleton<IDataMapper>(key, (sp, _) =>
-            new JsonPathMapper(path, sp.GetRequiredService<RegistryProvider>()));
-    }
-}
+// Mappers — lazy file-system lookup by name. Resolves <MappingsRoot>/<name>.json
+// on first request so ContentPaths overrides from test factories / override
+// compose files actually take effect (a startup-time folder scan would freeze
+// the wrong path before those overrides are applied).
+builder.Services.AddSingleton<IDataMapperRegistry, FileSystemDataMapperRegistry>();
 
 var callbackOptions = builder.Configuration.GetSection(CallbackOptions.SectionName).Get<CallbackOptions>() ?? new CallbackOptions();
 builder.Services.AddHttpClient<ICallbackService, CallbackService>(client =>

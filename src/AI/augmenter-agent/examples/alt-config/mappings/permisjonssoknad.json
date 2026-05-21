@@ -51,20 +51,20 @@
       "fields": {
         "navn": {
           "kind": "coalesce",
-          "sources": [
-            { "kind": "path", "source": "Stedfortreder.FulltNavn" },
+          "items": [
+            { "kind": "path", "source": "FulltNavn" },
             {
               "kind": "concat",
               "parts": [
-                { "kind": "path", "source": "Stedfortreder.Fornavn" },
-                { "kind": "path", "source": "Stedfortreder.Etternavn" }
+                { "kind": "path", "source": "Fornavn" },
+                { "kind": "path", "source": "Etternavn" }
               ],
               "separator": " "
             }
           ],
           "default": "Ukjent stedfortreder"
         },
-        "ansattnummer": { "kind": "path", "source": "Stedfortreder.Ansattnummer", "default": "–" }
+        "ansattnummer": { "kind": "path", "source": "Ansattnummer", "default": "–" }
       }
     },
 
