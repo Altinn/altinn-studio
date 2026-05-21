@@ -68,7 +68,7 @@ jobs:
         run: docker push ${{ steps.vars.outputs.image-repo }}
 
       - name: patch base with image tag
-        working-directory: src/runner-org-sync/infra/kustomize
+        working-directory: src/runner-org-sync/infra/kustomize/base
         run: |
           export IMAGE="${{ steps.vars.outputs.image-repo }}"
           export IMAGE_TAG="${{ steps.vars.outputs.short-sha }}"

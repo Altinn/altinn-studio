@@ -26,28 +26,10 @@ spec:
     kind: OCIRepository
     name: runner-org-sync
     namespace: default
-  path: ./
+  path: ./${ENVIRONMENT}
   prune: true
   timeout: 1m
   postBuild:
-    # These variables are double-substituted: the outer syncroot Kustomization
-    # (provisioned in altinn-studio-infra/provisioning/studio-flux-syncroot.tf)
-    # resolves ${...} on the right-hand sides first, then this inner
-    # Kustomization applies the resolved values to the kustomize manifests
-    # pulled from the OCI artifact above.
     substitute:
       ENVIRONMENT: ${ENVIRONMENT}
       RUNNER_ORG_SYNC_ENTRA_CLIENT_ID: ${RUNNER_ORG_SYNC_ENTRA_CLIENT_ID}
-      # The kustomize manifests in src/runner-org-sync/infra/kustomize also
-      # reference these two; they must be sourced from somewhere before this
-      # Kustomization can reconcile cleanly. Three options:
-      #   1. Add to studio-flux-syncroot.tf's postBuild.substitute (alongside
-      #      ENTRA_CLIENT_ID). Best for values Terraform already knows
-      #      (KEYVAULT_NAME = azurerm_key_vault.kv.name).
-      #   2. Hardcode literal values here. Best for stable per-env values
-      #      with no Terraform counterpart.
-      #   3. Move the runner-org-sync resource to per-env syncroot overlays
-      #      (infra/studio/syncroot/{dev,staging,prod}/) so each env can
-      #      patch its own values.
-      # RUNNER_ORG_SYNC_KEYVAULT_NAME: ???
-      # RUNNER_ORG_SYNC_ORGS: ???

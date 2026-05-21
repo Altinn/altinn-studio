@@ -17,21 +17,3 @@ patches:
       metadata:
         name: altinn-altinity-agents
         namespace: default
-
-  # Per-env substitutions for the runner-org-sync Flux Kustomization. KV
-  # name follows the cluster-wide convention altinn-studio-<env>-kv. ORGS
-  # lists the whitelist runner-org-sync uses to filter the CDN; this list
-  # must agree with the prod entry of runners in
-  # charts/gitea-org-runner-config/values.yaml.
-  - target:
-      group: kustomize.toolkit.fluxcd.io
-      version: v1
-      kind: Kustomization
-      name: runner-org-sync
-    patch: |-
-      - op: add
-        path: /spec/postBuild/substitute/RUNNER_ORG_SYNC_KEYVAULT_NAME
-        value: altinn-studio-prod-kv
-      - op: add
-        path: /spec/postBuild/substitute/RUNNER_ORG_SYNC_ORGS
-        value: ttd,brg,dsb,ssb,ksdigi,pat,dibk,skm,sfvt

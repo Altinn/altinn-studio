@@ -7,7 +7,7 @@ runners running in the Studio cluster.
 ## What it does
 
 Each scheduled run (cadence configured by `spec.schedule` in
-`infra/kustomize/cronjob.yaml`):
+`infra/kustomize/base/cronjob.yaml`):
 
 1. Loads the **admin** Gitea PAT from Azure Key Vault (via Workload Identity),
    or from a local env var override for development.
@@ -96,7 +96,7 @@ Three distinct credentials, three storage strategies:
 ### KEDA wiring
 
 The `TriggerAuthentication/keda-gitea-auth` lives in
-`infra/kustomize/triggerauthentication.yaml` — ships with this service so
+`infra/kustomize/base/triggerauthentication.yaml` — ships with this service so
 the Secret writer and the auth ref are deployed atomically. Three names
 must agree across this folder and the workload chart:
 
