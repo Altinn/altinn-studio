@@ -26,9 +26,16 @@ import {
 import { PlusIcon } from '@studio/icons';
 import { useUpdateSelectedMaskinportenScopesMutation } from 'app-development/hooks/mutations/useUpdateSelectedMaskinportenScopesMutation';
 import { toast } from 'react-toastify';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useAppVersionQuery } from 'app-shared/hooks/queries';
+import {
+  addDefaultMaskinportenScopes,
+  defaultMaskinportenScopeNames,
+  shouldShowDefaultMaskinportenScopesOptIn,
+} from 'app-development/utils/maskinportenScopes';
 import {
   combineSelectedAndMaskinportenScopes,
-  isMandatoryMaskinportenScope,
+  isDefaultMaskinportenScope,
   mapMaskinPortenScopesToScopeList,
   mapSelectedValuesToMaskinportenScopes,
   sortScopesForDisplay,
@@ -37,17 +44,32 @@ import {
 export type ScopeListProps = {
   maskinPortenScopes: MaskinportenScope[];
   selectedScopes: MaskinportenScope[];
+  canManageScopes?: boolean;
 };
 
-export function ScopeList({ maskinPortenScopes, selectedScopes }: ScopeListProps): ReactElement {
+export function ScopeList({
+  maskinPortenScopes,
+  selectedScopes,
+  canManageScopes = true,
+}: ScopeListProps): ReactElement {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: appVersion } = useAppVersionQuery(org, app);
   const dialogRef = useRef<HTMLDialogElement | null>(null);
   const [searchValue, setSearchValue] = useState<string>('');
-
-  const allAvailableScopes: MaskinportenScope[] = useMemo(
-    () => combineSelectedAndMaskinportenScopes(selectedScopes, maskinPortenScopes),
-    [maskinPortenScopes, selectedScopes],
+  const shouldShowDefaultScopesOptIn: boolean = shouldShowDefaultMaskinportenScopesOptIn(
+    appVersion?.backendVersion,
+    selectedScopes,
   );
+
+  const allAvailableScopes: MaskinportenScope[] = useMemo(() => {
+    const combinedScopes = combineSelectedAndMaskinportenScopes(selectedScopes, maskinPortenScopes);
+    const scopes = shouldShowDefaultScopesOptIn
+      ? addDefaultMaskinportenScopes(combinedScopes)
+      : combinedScopes;
+
+    return sortScopesForDisplay(scopes);
+  }, [maskinPortenScopes, selectedScopes, shouldShowDefaultScopesOptIn]);
   const sortedSelectedScopes: MaskinportenScope[] = useMemo(
     () => sortScopesForDisplay(selectedScopes),
     [selectedScopes],
@@ -65,36 +87,80 @@ export function ScopeList({ maskinPortenScopes, selectedScopes }: ScopeListProps
 
   return (
     <div>
-      <LoggedInTitle />
-      <StudioParagraph className={classes.informationText}>
-        {t('app_settings.maskinporten_tab_available_scopes_description')}
-      </StudioParagraph>
-      <StudioParagraph className={classes.informationText}>
-        <Trans i18nKey='app_settings.maskinporten_tab_available_scopes_description_help'>
-          <StudioLink href={contactByEmail.url('serviceOwner')}> </StudioLink>
-        </Trans>
-      </StudioParagraph>
-      <StudioAlert data-color='info' className={classes.deploymentNotice}>
-        {t('app_settings.maskinporten_scope_changes_deployment_notice')}
-      </StudioAlert>
+      {canManageScopes && (
+        <>
+          <LoggedInTitle />
+          <StudioParagraph className={classes.informationText}>
+            {t('app_settings.maskinporten_tab_available_scopes_description')}
+          </StudioParagraph>
+          <StudioParagraph className={classes.informationText}>
+            <Trans i18nKey='app_settings.maskinporten_tab_available_scopes_description_help'>
+              <StudioLink href={contactByEmail.url('serviceOwner')}> </StudioLink>
+            </Trans>
+          </StudioParagraph>
+          <StudioAlert data-color='info' className={classes.deploymentNotice}>
+            {t('app_settings.maskinporten_scope_changes_deployment_notice')}
+          </StudioAlert>
+          <DefaultScopesNotice
+            shouldShowDefaultScopesOptIn={shouldShowDefaultScopesOptIn}
+            initialValues={initialValues}
+            allAvailableScopes={allAvailableScopes}
+          />
 
-      <StudioButton variant='secondary' onClick={openDialog} icon={<PlusIcon />}>
-        {t('app_settings.maskinporten_add_scope')}
-      </StudioButton>
+          <StudioButton variant='secondary' onClick={openDialog} icon={<PlusIcon />}>
+            {t('app_settings.maskinporten_add_scope')}
+          </StudioButton>
+        </>
+      )}
 
       <SelectedScopesTable
         selectedScopes={sortedSelectedScopes}
         initialValues={initialValues}
         allAvailableScopes={allAvailableScopes}
+        canManageScopes={canManageScopes}
       />
-      <AddScopesDialog
-        dialogRef={dialogRef}
-        searchValue={searchValue}
-        setSearchValue={setSearchValue}
-        initialValues={initialValues}
-        allAvailableScopes={allAvailableScopes}
-      />
+      {canManageScopes && (
+        <AddScopesDialog
+          dialogRef={dialogRef}
+          searchValue={searchValue}
+          setSearchValue={setSearchValue}
+          initialValues={initialValues}
+          allAvailableScopes={allAvailableScopes}
+        />
+      )}
     </div>
+  );
+}
+
+type DefaultScopesNoticeProps = {
+  shouldShowDefaultScopesOptIn: boolean;
+  initialValues: string[];
+  allAvailableScopes: MaskinportenScope[];
+};
+
+function DefaultScopesNotice({
+  shouldShowDefaultScopesOptIn,
+  initialValues,
+  allAvailableScopes,
+}: DefaultScopesNoticeProps): ReactElement | null {
+  const { t } = useTranslation();
+  const { saveScopes, isSaving } = useSaveScopes(allAvailableScopes);
+
+  if (!shouldShowDefaultScopesOptIn) return null;
+
+  const addDefaultScopes = (): void => {
+    saveScopes(Array.from(new Set([...initialValues, ...defaultMaskinportenScopeNames])));
+  };
+
+  return (
+    <StudioAlert data-color='info' className={classes.defaultScopesNotice}>
+      <StudioParagraph>
+        {t('app_settings.maskinporten_default_scopes_opt_in_notice')}
+      </StudioParagraph>
+      <StudioButton variant='secondary' onClick={addDefaultScopes} loading={isSaving}>
+        {t('app_settings.maskinporten_add_default_scopes')}
+      </StudioButton>
+    </StudioAlert>
   );
 }
 
@@ -102,18 +168,20 @@ type SelectedScopesTableProps = {
   selectedScopes: MaskinportenScope[];
   initialValues: string[];
   allAvailableScopes: MaskinportenScope[];
+  canManageScopes: boolean;
 };
 
 function SelectedScopesTable({
   selectedScopes,
   initialValues,
   allAvailableScopes,
+  canManageScopes,
 }: SelectedScopesTableProps): ReactElement {
   const { t } = useTranslation();
   const { saveScopes } = useSaveScopes(allAvailableScopes);
 
   const deleteScope = (scopeName: string): void => {
-    if (isMandatoryMaskinportenScope(scopeName)) return;
+    if (isDefaultMaskinportenScope(scopeName)) return;
 
     const updatedValues = initialValues.filter(
       (selectedValue: string) => selectedValue !== scopeName,
@@ -138,25 +206,29 @@ function SelectedScopesTable({
               {t('app_settings.maskinporten_scope_name')}
             </StudioTable.HeaderCell>
             <StudioTable.HeaderCell>{t('general.description')}</StudioTable.HeaderCell>
-            <StudioTable.HeaderCell>{t('general.delete')}</StudioTable.HeaderCell>
+            {canManageScopes && (
+              <StudioTable.HeaderCell>{t('general.delete')}</StudioTable.HeaderCell>
+            )}
           </StudioTable.Row>
         </StudioTable.Head>
         <StudioTable.Body>
           {selectedScopes.map((scope: MaskinportenScope) => {
-            const isMandatoryScope = isMandatoryMaskinportenScope(scope.scope);
+            const isDefaultScope = isDefaultMaskinportenScope(scope.scope);
 
             return (
               <StudioTable.Row key={scope.scope}>
                 <StudioTable.Cell>{scope.scope}</StudioTable.Cell>
                 <StudioTable.Cell>{scope.description}</StudioTable.Cell>
-                <StudioTable.Cell>
-                  <StudioDeleteButton
-                    variant='tertiary'
-                    aria-label={t('general.delete_item', { item: scope.scope })}
-                    disabled={isMandatoryScope}
-                    onDelete={() => deleteScope(scope.scope)}
-                  />
-                </StudioTable.Cell>
+                {canManageScopes && (
+                  <StudioTable.Cell>
+                    <StudioDeleteButton
+                      variant='tertiary'
+                      aria-label={t('general.delete_item', { item: scope.scope })}
+                      disabled={isDefaultScope}
+                      onDelete={() => deleteScope(scope.scope)}
+                    />
+                  </StudioTable.Cell>
+                )}
               </StudioTable.Row>
             );
           })}
@@ -190,8 +262,8 @@ function AddScopesDialog({
     initialValues,
     title,
   );
-  const selectedMandatoryScopeNames = useMemo(
-    () => initialValues.filter(isMandatoryMaskinportenScope),
+  const selectedDefaultScopeNames = useMemo(
+    () => initialValues.filter(isDefaultMaskinportenScope),
     [initialValues],
   );
 
@@ -228,7 +300,7 @@ function AddScopesDialog({
   };
 
   const saveSelectedScopes = (): void => {
-    const valuesToSave = Array.from(new Set([...selectedValues, ...selectedMandatoryScopeNames]));
+    const valuesToSave = Array.from(new Set([...selectedValues, ...selectedDefaultScopeNames]));
 
     saveScopes(valuesToSave, () => {
       keepSelectionOnCloseRef.current = true;
@@ -273,7 +345,7 @@ function AddScopesDialog({
             />
             <StudioCheckboxTable.Body>
               {filteredScopes.map((scope: MaskinportenScope) => {
-                const isSelectedMandatoryScope = selectedMandatoryScopeNames.includes(scope.scope);
+                const isSelectedDefaultScope = selectedDefaultScopeNames.includes(scope.scope);
 
                 return (
                   <StudioCheckboxTable.Row
@@ -284,7 +356,7 @@ function AddScopesDialog({
                       ...getCheckboxProps({
                         value: scope.scope,
                       }),
-                      disabled: isSelectedMandatoryScope,
+                      disabled: isSelectedDefaultScope,
                     }}
                   />
                 );

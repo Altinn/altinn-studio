@@ -13,6 +13,8 @@ on:
       - 'src/App/frontend/test/**'
       - 'src/App/frontend/package.json'
       - 'src/test/apps/**'
+      - 'libs/form-component/src/**'
+      - 'libs/form-component/package.json'
       - '.github/actions/**'
       - '.github/workflows/app-frontend-k6-browser.yml'
   workflow_dispatch:

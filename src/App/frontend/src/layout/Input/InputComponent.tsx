@@ -1,9 +1,8 @@
 import React from 'react';
 
-import { FormattedInput, Input, NumericInput } from '@app/form-component';
+import { FormattedInput, Input, Label, NumericInput } from '@app/form-component';
 import type { InputProps } from '@app/form-component';
 
-import { Label } from 'src/app-components/Label/Label';
 import { getDescriptionId, getLabelId } from 'src/components/label/Label';
 import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
