@@ -12,4 +12,5 @@ export * from './DisplayNumber';
 export * from './HelpText';
 export * from './Spinner';
 export * from './Timepicker';
+export * from './Table';
 export * from './TextArea';
