@@ -287,10 +287,10 @@ func (r *Reconciler) filter(orgs []cdn.Org, report *Report) []cdn.Org {
 	return out
 }
 
-// renderRunners emits the YAML list consumed by the gitea-org-runner-config
-// HelmRelease via Flux valuesFrom (targetPath: runners). Determinism via
-// sorted input is required so unchanged state produces unchanged output and
-// ApplyConfigMap detects "no change" correctly.
+// renderRunners emits Helm values consumed by the gitea-org-runner-config
+// HelmRelease via Flux valuesFrom. Determinism via sorted input is required
+// so unchanged state produces unchanged output and ApplyConfigMap detects
+// "no change" correctly.
 //
 // Replica count is deliberately omitted: scaling is owned by KEDA ScaledJobs
 // on the consumer side, so a runner-org-sync-supplied replicas field would
@@ -303,14 +303,18 @@ func renderRunners(orgs []string, secretNameFor func(org string) string) string 
 			RegistrationTokenSecretName: secretNameFor(org),
 		})
 	}
-	out, err := yaml.Marshal(runners)
+	out, err := yaml.Marshal(runnerValues{Runners: runners})
 	if err != nil {
 		// The input is a simple slice of strings rendered into a static struct;
-		// yaml.Marshal should not fail. Keep the historical empty-list output
-		// if it ever does, so the chart does not reference stale runners.
-		return "[]\n"
+		// yaml.Marshal should not fail. Keep an empty runner list if it ever
+		// does, so the chart does not reference stale runners.
+		return "runners: []\n"
 	}
 	return string(out)
+}
+
+type runnerValues struct {
+	Runners []runnerConfig `json:"runners"`
 }
 
 type runnerConfig struct {

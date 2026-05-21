@@ -22,6 +22,12 @@ spec:
         kind: HelmRepository
         name: studio-charts
         namespace: default
+  valuesFrom:
+    # runner-org-sync writes this ConfigMap in studio-runners. The
+    # runners.yaml key contains root Helm values with the dynamic runners list.
+    - kind: ConfigMap
+      name: runner-org-list
+      valuesKey: runners.yaml
   values:
     image:
       tag: "{{ .Values.imageTag }}"
@@ -67,17 +73,6 @@ spec:
         cpu: "2"
         memory: 2Gi
         ephemeral-storage: 20Gi
-
-    # Slim per-org list. The workload chart pairs each entry's `name` with
-    # chart-level gitea/keda config to render a ScaledJob, and mounts
-    # `registrationTokenSecretName` via secretKeyRef on the runner pod.
-    # No per-runner environmentVariables block needed; no `replicas`
-    # (KEDA owns scaling via maxConcurrent*).
-    runners:
-    {{- range index .Values.runners .Values.environment }}
-    - name: {{ .name }}
-      registrationTokenSecretName: {{ .registrationTokenSecretName }}
-    {{- end }}
 
     tolerations:
       - key: "purpose"

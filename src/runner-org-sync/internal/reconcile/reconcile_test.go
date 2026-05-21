@@ -172,6 +172,7 @@ func TestRun_ColdStart(t *testing.T) {
 		t.Errorf("ConfigMapChanged = false, want true on cold start")
 	}
 	wantBody := strings.Join([]string{
+		"runners:",
 		"- name: brg",
 		"  registrationTokenSecretName: altinn-gitea-runner-brg-secret",
 		"- name: dsb",
@@ -370,7 +371,7 @@ func TestRun_InvalidExistingSecretIsNotProjected(t *testing.T) {
 	if len(minter.calls) != 0 {
 		t.Errorf("minter should not be called when same-name invalid secret exists; got %v", minter.calls)
 	}
-	if got := store.appliedCMData[ConfigMapDataKey]; got != "[]\n" {
+	if got := store.appliedCMData[ConfigMapDataKey]; got != "runners: []\n" {
 		t.Errorf("ConfigMap body = %q, want empty runner list", got)
 	}
 }
