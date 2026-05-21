@@ -22,7 +22,14 @@ export type ButtonProps = {
   ref?: Ref<HTMLButtonElement>;
 } & Omit<DesignSystemButtonProps, 'variant' | 'color' | 'size' | 'title' | 'aria-label'>;
 
-function mapColorNames(color: ButtonColor): DesignSystemButtonProps['data-color'] {
+// Color property of Button from Designsystemet is typed to not include 'success', but it does work as it is styled generally based on data-color, and 'success' is a valid color.
+// Alternative would be to manually sett all color to appropriate color, like
+// {--dsc-button-background: var(--ds-color-success-base-default); ---dsc-button-color--hover: var(--ds-color-success-base-hover);)
+// and so on for all css properties defined at https://designsystemet.no/no/components/docs/button/code
+
+type ExtendedButtonColor = DesignSystemButtonProps['data-color'] | 'success';
+
+function mapColorNames(color: ButtonColor): ExtendedButtonColor {
   switch (color) {
     case 'first':
       return 'accent';
@@ -53,7 +60,7 @@ export function Button({
       {...rest}
       disabled={disabled || isLoading}
       variant={variant}
-      data-color={mapColorNames(color)}
+      data-color={mapColorNames(color) as DesignSystemButtonProps['data-color']}
       data-size={size}
       data-fullwidth={fullWidth ? true : undefined}
       ref={ref}
