@@ -3,6 +3,7 @@ export * from './Button';
 export * from './Card';
 export * from './Datepicker';
 export * from './Dropzone';
+export * from './FatalError';
 export * from './Flex';
 export * from './Input';
 export * from './hooks';

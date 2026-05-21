@@ -1,4 +1,3 @@
-.claude/settings.json
 .gitattributes
 .github/
 .husky/
@@ -24,9 +23,11 @@ src/app-components/Input/
 src/app-components/Label/
 src/app-components/Number/
 src/app-components/Table/
-src/app-components/Text/DisplayText.tsx
+src/app-components/Text/
 src/app-components/TextArea/TextArea.tsx
 src/app-components/TimePicker/
+src/app-components/error/FatalError/FatalError.tsx
+src/app-components/error/FatalErrorEmpty/FatalErrorEmpty.tsx
 src/app-components/loading/Spinner/Spinner.tsx
 src/codegen/schemas/layout-sets.schema.v1.ts
 src/components/presentation/Header.tsx
@@ -55,6 +56,7 @@ src/features/form/layoutSettings/
 src/features/form/rules/RulesContext.tsx
 src/features/formData/LegacyRules.ts
 src/features/instance/instanceUtils.ts
+src/features/instantiate/InstantiationError.tsx
 src/features/instantiate/containers/InstantiateContainer.tsx
 src/features/instantiate/useInstantiation.tsx
 src/features/language/LangDataSourcesProvider.tsx
