@@ -109,13 +109,7 @@ describe('AppTable', () => {
 
   it('renders the loading spinner when isLoading is true', () => {
     render(
-      <AppTable
-        data={[]}
-        columns={columns}
-        emptyText=''
-        isLoading
-        loadingLabel='Loading rows'
-      />,
+      <AppTable data={[]} columns={columns} emptyText='' isLoading loadingLabel='Loading rows' />,
     );
     expect(screen.getByLabelText('Loading rows')).toBeInTheDocument();
   });

@@ -6,6 +6,7 @@ export * from './Dropzone';
 export * from './Flex';
 export * from './Input';
 export * from './hooks';
+export * from './Pagination';
 export * from './Label';
 export * from './DisplayDate';
 export * from './DisplayText';
