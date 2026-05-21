@@ -79,6 +79,14 @@ func TestRegistrationSecretStatus(t *testing.T) {
 		},
 		&corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
+				Name:      "legacy-unlabeled",
+				Namespace: testNamespace,
+			},
+			Type: corev1.SecretTypeOpaque,
+			Data: map[string][]byte{SecretTokenKey: []byte("tok")},
+		},
+		&corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
 				Name:      "empty-token",
 				Namespace: testNamespace,
 				Labels: map[string]string{
@@ -102,6 +110,7 @@ func TestRegistrationSecretStatus(t *testing.T) {
 		{name: "valid", secretName: "valid", org: "ttd", want: RegistrationSecretValid},
 		{name: "missing", secretName: "missing", org: "ttd", want: RegistrationSecretMissing},
 		{name: "foreign same name", secretName: "foreign", org: "ttd", want: RegistrationSecretInvalid},
+		{name: "legacy unlabeled", secretName: "legacy-unlabeled", org: "ttd", want: RegistrationSecretValid},
 		{name: "wrong org", secretName: "valid", org: "brg", want: RegistrationSecretInvalid},
 		{name: "empty token", secretName: "empty-token", org: "ttd", want: RegistrationSecretInvalid},
 	}
@@ -116,6 +125,20 @@ func TestRegistrationSecretStatus(t *testing.T) {
 				t.Errorf("RegistrationSecretStatus() = %q, want %q", got, tt.want)
 			}
 		})
+	}
+
+	got, err := c.CoreV1().Secrets(testNamespace).Get(context.Background(), "legacy-unlabeled", metav1.GetOptions{})
+	if err != nil {
+		t.Fatalf("get adopted legacy secret: %v", err)
+	}
+	if got.Labels[LabelManagedBy] != ManagedBy {
+		t.Errorf("legacy managed-by label = %q, want %q", got.Labels[LabelManagedBy], ManagedBy)
+	}
+	if got.Labels[LabelComponent] != ComponentRegToken {
+		t.Errorf("legacy component label = %q, want %q", got.Labels[LabelComponent], ComponentRegToken)
+	}
+	if got.Labels[LabelOrg] != "ttd" {
+		t.Errorf("legacy org label = %q, want ttd", got.Labels[LabelOrg])
 	}
 }
 
@@ -206,6 +229,9 @@ func TestApplyConfigMap_CreatesWhenMissing(t *testing.T) {
 	if cm.Labels[LabelManagedBy] != ManagedBy {
 		t.Errorf("managed-by label missing, got %v", cm.Labels)
 	}
+	if cm.Labels[LabelFluxWatch] != FluxWatchEnabled {
+		t.Errorf("flux watch label missing, got %v", cm.Labels)
+	}
 }
 
 func TestApplyConfigMap_NoOpOnSameContent(t *testing.T) {
@@ -215,6 +241,7 @@ func TestApplyConfigMap_NoOpOnSameContent(t *testing.T) {
 			Labels: map[string]string{
 				LabelManagedBy: ManagedBy,
 				LabelComponent: ComponentRunnerCM,
+				LabelFluxWatch: FluxWatchEnabled,
 			},
 		},
 		Data: map[string]string{"k": "v"},
@@ -254,6 +281,9 @@ func TestApplyConfigMap_UpdatesOnLabelDrift(t *testing.T) {
 	}
 	if got.Labels[LabelComponent] != ComponentRunnerCM {
 		t.Errorf("component label was not restored, got %v", got.Labels)
+	}
+	if got.Labels[LabelFluxWatch] != FluxWatchEnabled {
+		t.Errorf("flux watch label was not restored, got %v", got.Labels)
 	}
 	if got.Labels["custom"] != "keep" {
 		t.Errorf("custom label was not preserved, got %v", got.Labels)

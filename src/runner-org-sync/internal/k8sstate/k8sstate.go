@@ -25,10 +25,12 @@ const (
 	LabelManagedBy = "app.kubernetes.io/managed-by"
 	LabelComponent = "app.kubernetes.io/component"
 	LabelOrg       = "runner-org-sync.altinn.studio/org"
+	LabelFluxWatch = "reconcile.fluxcd.io/watch"
 
 	ManagedBy         = "runner-org-sync"
 	ComponentRegToken = "runner-registration-token"
 	ComponentRunnerCM = "runner-org-list"
+	FluxWatchEnabled  = "Enabled"
 
 	// SecretTokenKey is the data key inside per-org registration Secrets,
 	// matching what the runner Deployment's secretKeyRef expects.
@@ -88,13 +90,24 @@ func (s *Store) RegistrationSecretStatus(ctx context.Context, name, org string) 
 	if sec.Type != "" && sec.Type != corev1.SecretTypeOpaque {
 		return RegistrationSecretInvalid, nil
 	}
-	if sec.Labels[LabelManagedBy] != ManagedBy ||
-		sec.Labels[LabelComponent] != ComponentRegToken ||
-		sec.Labels[LabelOrg] != org {
-		return RegistrationSecretInvalid, nil
-	}
 	if len(sec.Data[SecretTokenKey]) == 0 {
 		return RegistrationSecretInvalid, nil
+	}
+	if hasConflictingLabel(sec.Labels, LabelManagedBy, ManagedBy) ||
+		hasConflictingLabel(sec.Labels, LabelComponent, ComponentRegToken) ||
+		hasConflictingLabel(sec.Labels, LabelOrg, org) {
+		return RegistrationSecretInvalid, nil
+	}
+	if sec.Labels == nil {
+		sec.Labels = map[string]string{}
+	}
+	labelsChanged := ensureLabel(sec.Labels, LabelManagedBy, ManagedBy)
+	labelsChanged = ensureLabel(sec.Labels, LabelComponent, ComponentRegToken) || labelsChanged
+	labelsChanged = ensureLabel(sec.Labels, LabelOrg, org) || labelsChanged
+	if labelsChanged {
+		if _, err := s.client.CoreV1().Secrets(s.namespace).Update(ctx, sec, metav1.UpdateOptions{}); err != nil {
+			return "", fmt.Errorf("k8sstate: adopt registration secret %s: %w", name, err)
+		}
 	}
 	return RegistrationSecretValid, nil
 }
@@ -146,6 +159,7 @@ func (s *Store) ApplyConfigMap(ctx context.Context, name string, data map[string
 			Labels: map[string]string{
 				LabelManagedBy: ManagedBy,
 				LabelComponent: ComponentRunnerCM,
+				LabelFluxWatch: FluxWatchEnabled,
 			},
 		},
 		Data: data,
@@ -167,6 +181,7 @@ func (s *Store) ApplyConfigMap(ctx context.Context, name string, data map[string
 	}
 	labelsChanged := ensureLabel(existing.Labels, LabelManagedBy, ManagedBy)
 	labelsChanged = ensureLabel(existing.Labels, LabelComponent, ComponentRunnerCM) || labelsChanged
+	labelsChanged = ensureLabel(existing.Labels, LabelFluxWatch, FluxWatchEnabled) || labelsChanged
 	if maps.Equal(existing.Data, data) && !labelsChanged {
 		return false, nil
 	}
@@ -247,4 +262,9 @@ func ensureLabel(labels map[string]string, key, value string) bool {
 	}
 	labels[key] = value
 	return true
+}
+
+func hasConflictingLabel(labels map[string]string, key, expected string) bool {
+	value, ok := labels[key]
+	return ok && value != expected
 }
