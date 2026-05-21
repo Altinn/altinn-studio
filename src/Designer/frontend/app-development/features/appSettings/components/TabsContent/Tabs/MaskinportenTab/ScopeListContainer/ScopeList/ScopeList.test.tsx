@@ -39,7 +39,7 @@ const selectedScopesMock: MaskinportenScope[] = [scopeMock3, scopeMock4];
 describe('ScopeList', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should render description and help text', () => {
+  it('should render description and help text', async () => {
     renderScopeList();
 
     expect(
@@ -49,7 +49,9 @@ describe('ScopeList', () => {
       getText(textMock('app_settings.maskinporten_tab_available_scopes_description_help')),
     ).toBeInTheDocument();
     expect(
-      getText(textMock('app_settings.maskinporten_scope_changes_deployment_notice')),
+      await screen.findByText(
+        textMock('app_settings.maskinporten_scope_changes_deployment_notice'),
+      ),
     ).toBeInTheDocument();
   });
 
@@ -78,6 +80,24 @@ describe('ScopeList', () => {
     renderScopeList({ componentProps: { selectedScopes: [] } });
 
     expect(getText(textMock('app_settings.maskinporten_no_scopes_added'))).toBeInTheDocument();
+  });
+
+  it('should warn that Maskinporten scopes cannot be used for apps older than v8.3', async () => {
+    renderScopeList({
+      queries: {
+        getAppVersion: () => Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '8.2.9' }),
+      },
+    });
+
+    expect(
+      await screen.findByText(textMock('app_settings.maskinporten_unsupported_app_version_title')),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('app_settings.maskinporten_unsupported_app_version_description')),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('app_settings.maskinporten_scope_changes_deployment_notice')),
+    ).not.toBeInTheDocument();
   });
 
   it('should offer adding default scopes for v8.3 apps when default scopes are missing', async () => {

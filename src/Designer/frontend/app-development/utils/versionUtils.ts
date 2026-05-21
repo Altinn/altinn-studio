@@ -17,5 +17,8 @@ export const isVersionAtLeast = (
   return actualPatch >= patch;
 };
 
+export const isMaskinportenScopesSupportedVersion = (version: string | undefined): boolean =>
+  isVersionAtLeast(version, 8, 3, 0);
+
 export const isMaskinportenDefaultScopesOptInVersion = (version: string | undefined): boolean =>
-  isVersionAtLeast(version, 8, 3, 0) && !isVersionAtLeast(version, 9, 0, 0);
+  isMaskinportenScopesSupportedVersion(version) && !isVersionAtLeast(version, 9, 0, 0);
