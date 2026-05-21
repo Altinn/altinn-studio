@@ -17,6 +17,7 @@ src/app-components/Card/
 src/app-components/ConditionalWrapper/
 src/app-components/Date/
 src/app-components/Datepicker/
+src/app-components/Dropzone/
 src/app-components/Flex/
 src/app-components/Input/
 src/app-components/Label/

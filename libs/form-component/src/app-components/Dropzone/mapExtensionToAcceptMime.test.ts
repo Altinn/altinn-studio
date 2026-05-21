@@ -1,4 +1,4 @@
-import { mapExtensionToAcceptMime } from 'src/app-components/Dropzone/mapExtensionToAcceptMime';
+import { mapExtensionToAcceptMime } from './mapExtensionToAcceptMime';
 
 describe('mapExtensionToAcceptMime', () => {
   it('should map a single file extension as string to mime object', () => {
