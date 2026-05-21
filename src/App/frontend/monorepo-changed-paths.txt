@@ -19,6 +19,7 @@ src/app-components/Card/
 src/app-components/Date/
 src/app-components/Datepicker/
 src/app-components/Dropzone/
+src/app-components/DynamicForm/DynamicForm.tsx
 src/app-components/Flex/
 src/app-components/HelpText/
 src/app-components/Input/
