@@ -8,6 +8,7 @@ const preview: Preview = {
   parameters: {
     layout: 'centered',
   },
+  tags: ['autodocs'],
   decorators: [
     (Story) => (
       <div data-color-scheme='light' data-size='md'>

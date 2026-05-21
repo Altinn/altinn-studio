@@ -1,11 +1,10 @@
 import React from 'react';
 import { useNavigate, useNavigation } from 'react-router';
 
-import { Flex, Spinner } from '@app/form-component';
+import { FatalError, Flex, Spinner } from '@app/form-component';
 import { Paragraph, Table } from '@digdir/designsystemet-react';
 import classNames from 'classnames';
 
-import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import { Caption } from 'src/components/form/caption/Caption';
 import { Label } from 'src/components/label/Label';
 import { FormStore } from 'src/features/form/FormContext';

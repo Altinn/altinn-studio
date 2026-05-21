@@ -1,9 +1,9 @@
 import React from 'react';
 import type { ChangeEvent } from 'react';
 
+import { Fieldset } from '@app/form-component';
 import { ValidationMessage } from '@digdir/designsystemet-react';
 
-import { Fieldset } from 'src/app-components/Label/Fieldset';
 import { RadioButton } from 'src/components/form/RadioButton';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { Lang } from 'src/features/language/Lang';
