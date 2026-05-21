@@ -12,8 +12,28 @@ WORKDIR /app
 
 # Typst (PDF) and Pandoc (DOCX). Agent calls go to a remote OpenAI-compatible
 # gateway directly over HTTP — no Pi/npm/node in the image.
-RUN apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community typst \
-    && apk add --no-cache pandoc
+#
+# Typst is fetched from the GitHub release and SHA-256-verified instead of
+# `apk add typst` from alpine edge/community: edge is a rolling channel, so
+# the apk pin would drift silently. Bump TYPST_VERSION and both SHAs together.
+ARG TARGETARCH
+ARG TYPST_VERSION=0.14.2
+ARG TYPST_SHA256_AMD64=a6044cbad2a954deb921167e257e120ac0a16b20339ec01121194ff9d394996d
+ARG TYPST_SHA256_ARM64=491b101aa40a3a7ea82a3f8a6232cabb4e6a7e233810082e5ac812d43fdcd47a
+RUN set -eux; \
+    apk add --no-cache --virtual .typst-build-deps curl xz; \
+    case "${TARGETARCH:-amd64}" in \
+        amd64) typst_arch=x86_64; typst_sha="${TYPST_SHA256_AMD64}" ;; \
+        arm64) typst_arch=aarch64; typst_sha="${TYPST_SHA256_ARM64}" ;; \
+        *) echo "unsupported TARGETARCH=${TARGETARCH}" >&2; exit 1 ;; \
+    esac; \
+    curl -fsSLo /tmp/typst.tar.xz "https://github.com/typst/typst/releases/download/v${TYPST_VERSION}/typst-${typst_arch}-unknown-linux-musl.tar.xz"; \
+    echo "${typst_sha}  /tmp/typst.tar.xz" | sha256sum -c -; \
+    tar -xJf /tmp/typst.tar.xz -C /tmp; \
+    mv "/tmp/typst-${typst_arch}-unknown-linux-musl/typst" /usr/local/bin/typst; \
+    rm -rf /tmp/typst.tar.xz "/tmp/typst-${typst_arch}-unknown-linux-musl"; \
+    apk del .typst-build-deps; \
+    apk add --no-cache pandoc
 
 RUN addgroup -S appgroup && adduser -S -h /home/appuser appuser -G appgroup \
     && mkdir -p /etc/augmenter/templates /etc/augmenter/registries /etc/augmenter/rules /etc/augmenter/orchestrator /etc/augmenter/tools /etc/augmenter/mappings \
