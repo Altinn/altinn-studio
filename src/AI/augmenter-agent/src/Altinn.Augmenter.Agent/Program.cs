@@ -57,6 +57,8 @@ builder.Services.AddHttpClient(SandkasseChatService.HttpClientName);
 builder.Services.AddSingleton<ITool, AgeFromIdTool>();
 builder.Services.AddSingleton<ITool, DaysBetweenTool>();
 builder.Services.AddSingleton<ITool, TimeWithinWindowTool>();
+builder.Services.AddSingleton<ITool, HoursBetweenTimesTool>();
+builder.Services.AddSingleton<ITool, CurrentDateTool>();
 builder.Services.AddSingleton<ITool, LookupTool>();
 builder.Services.AddSingleton<ITool, PathValueTool>();
 builder.Services.AddSingleton<ITool, CountAttachmentsTool>();

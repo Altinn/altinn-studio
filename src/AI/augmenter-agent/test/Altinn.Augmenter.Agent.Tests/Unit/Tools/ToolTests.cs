@@ -136,6 +136,66 @@ public class ToolTests
         json.TryGetProperty("error", out _).Should().BeTrue();
     }
 
+    // --- hours_between_times ------------------------------------------------------
+
+    [Theory]
+    [InlineData("18:00", "02:00", 8.0, true)]    // wraps midnight, classic skjenketid
+    [InlineData("13:00", "03:00", 14.0, true)]   // alkohollovens makstid (gruppe 3)
+    [InlineData("09:00", "17:00", 8.0, false)]   // diurnal
+    [InlineData("10:00", "10:30", 0.5, false)]   // sub-hour, fractional
+    [InlineData("06:00", "03:00", 21.0, true)]   // alkohollovens makstid (gruppe 1/2)
+    [InlineData("12:00", "12:00", 24.0, true)]   // identical → treated as full wrap
+    public void HoursBetweenTimes_Cases(string start, string end, double expectedHours, bool wrapsMidnight)
+    {
+        var tool = new HoursBetweenTimesTool();
+        var result = tool.Invoke(
+            Args($$"""{ "start_time": "{{start}}", "end_time": "{{end}}" }"""),
+            SampleApplication);
+        var json = JsonSerializer.SerializeToElement(result);
+        json.GetProperty("hours").GetDouble().Should().Be(expectedHours);
+        json.GetProperty("wraps_midnight").GetBoolean().Should().Be(wrapsMidnight);
+    }
+
+    [Theory]
+    [InlineData("25:00", "03:00")]
+    [InlineData("18:00", "abc")]
+    [InlineData("18:00", "")]
+    public void HoursBetweenTimes_BadTime_ReturnsError(string start, string end)
+    {
+        var tool = new HoursBetweenTimesTool();
+        var result = tool.Invoke(
+            Args($$"""{ "start_time": "{{start}}", "end_time": "{{end}}" }"""),
+            SampleApplication);
+        var json = JsonSerializer.SerializeToElement(result);
+        json.TryGetProperty("error", out _).Should().BeTrue();
+    }
+
+    // --- current_date -------------------------------------------------------------
+
+    [Fact]
+    public void CurrentDate_NorwegianLocalTime_ConvertsFromUtc()
+    {
+        // 22:30 UTC on 2026-05-21 → 00:30 CEST on 2026-05-22 (Oslo summer time = UTC+2).
+        // The whole point of this tool is to NOT return the UTC date in this window.
+        var fixedNowUtc = new DateTimeOffset(2026, 5, 21, 22, 30, 0, TimeSpan.Zero);
+        var tool = new CurrentDateTool(() => fixedNowUtc);
+        var result = tool.Invoke(Args("{}"), SampleApplication);
+        var json = JsonSerializer.SerializeToElement(result);
+        json.GetProperty("date").GetString().Should().Be("2026-05-22");
+        json.GetProperty("timezone").GetString().Should().Be("Europe/Oslo");
+    }
+
+    [Fact]
+    public void CurrentDate_DaytimeUtc_MatchesOsloDate()
+    {
+        // 12:00 UTC on 2026-05-21 → 14:00 CEST same date.
+        var fixedNowUtc = new DateTimeOffset(2026, 5, 21, 12, 0, 0, TimeSpan.Zero);
+        var tool = new CurrentDateTool(() => fixedNowUtc);
+        var result = tool.Invoke(Args("{}"), SampleApplication);
+        var json = JsonSerializer.SerializeToElement(result);
+        json.GetProperty("date").GetString().Should().Be("2026-05-21");
+    }
+
     // --- lookup (registry, key) ---------------------------------------------------
 
     [Theory]
@@ -303,10 +363,11 @@ public class ToolTests
     }
 
     [Fact]
-    public void ToolRegistry_BuiltIn_HasEightTools()
+    public void ToolRegistry_BuiltIn_HasTenTools()
     {
         ToolRegistry.BuiltIn(RealRegistryProvider()).Select(t => t.Name).Should().BeEquivalentTo(
             "age_from_id", "days_between", "time_within_window",
+            "hours_between_times", "current_date",
             "lookup", "path_value", "count_attachments",
             "text_matches_any", "text_contains_any");
     }

@@ -10,4 +10,4 @@ Sjekk om det er tilstrekkelig tid mellom vedtaksdato (i dag) og arrangementets s
 * Det er mindre enn 90 dager: **maa_undersokes**. Skriv at fristen er kort — saken bør prioriteres.
 * Datoer mangler: **maa_undersokes**.
 
-Bruk `path_value` for `FlatData.Arrangement.ArrangementPeriode[0].StartDato`, og `days_between(today, start)`. For dagens dato kan du bruke den oppgitte vurderingsdatoen om den finnes, eller forklare i merknad at saksbehandler må sjekke selv (vi har ikke et "today"-tool).
+Bruk `current_date` for dagens dato, `path_value` for `FlatData.Arrangement.ArrangementPeriode[0].StartDato`, og `days_between(today, start)` for antall dager mellom. Hvis vurderingsdato er oppgitt eksplisitt i mappingen, bruk den i stedet for `current_date`.

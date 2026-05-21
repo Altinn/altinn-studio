@@ -1,0 +1,12 @@
+{
+  "name": "hours_between_times",
+  "description": "Antall timer (desimal) mellom to klokkeslett innenfor ett døgn. Hvis end_time ≤ start_time tolkes intervallet som å krysse midnatt (neste dag), f.eks. 18:00 → 02:00 = 8 timer.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "start_time": { "type": "string", "description": "Starttid (HH:MM, 00-23 time)" },
+      "end_time":   { "type": "string", "description": "Sluttid (HH:MM, 00-23 time)" }
+    },
+    "required": ["start_time", "end_time"]
+  }
+}

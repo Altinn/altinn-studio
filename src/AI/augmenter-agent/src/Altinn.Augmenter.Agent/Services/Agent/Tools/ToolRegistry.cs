@@ -125,6 +125,8 @@ public sealed class ToolRegistry : IToolRegistry
         new AgeFromIdTool(),
         new DaysBetweenTool(),
         new TimeWithinWindowTool(),
+        new HoursBetweenTimesTool(),
+        new CurrentDateTool(),
         new LookupTool(registries),
         new PathValueTool(),
         new CountAttachmentsTool(),

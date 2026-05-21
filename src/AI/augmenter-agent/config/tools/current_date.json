@@ -1,0 +1,9 @@
+{
+  "name": "current_date",
+  "description": "Dagens dato i norsk tidssone (Europe/Oslo) som YYYY-MM-DD. Bruk dette når en regel snakker om 'i dag', 'dagens dato', eller vedtaksdato. Ikke gjett — kall verktøyet.",
+  "parameters": {
+    "type": "object",
+    "properties": {},
+    "required": []
+  }
+}
