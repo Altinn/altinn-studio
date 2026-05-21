@@ -146,7 +146,9 @@ __metadata:
     classnames: "npm:2.5.1"
     date-fns: "npm:^4.1.0"
     jsdom: "npm:^26.1.0"
+    mime: "npm:^4.1.0"
     react-day-picker: "npm:^9.14.0"
+    react-dropzone: "npm:^15.0.0"
     react-number-format: "npm:^5.4.5"
     storybook: "npm:10.2.16"
     typescript: "npm:5.9.3"
@@ -9156,7 +9158,6 @@ __metadata:
     lru-cache: "npm:11.3.5"
     marked: "npm:17.0.6"
     marked-mangle: "npm:1.1.13"
-    mime: "npm:4.1.0"
     mini-css-extract-plugin: "npm:2.10.2"
     prettier: "npm:3.8.3"
     puppeteer: "npm:^24.29.0"
@@ -9542,7 +9543,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axe-core@npm:4.11.4":
+"axe-core@npm:4.11.4, axe-core@npm:^4.2.0":
   version: 4.11.4
   resolution: "axe-core@npm:4.11.4"
   checksum: 10/49095daa422d05d99a90b39301a3b5c971e234a4593403dfd6701df637a3e550bcfd7bd096709c5643564dd069208513247791f367790e0605d15386fb2a7bfe
@@ -9553,13 +9554,6 @@ __metadata:
   version: 4.11.0
   resolution: "axe-core@npm:4.11.0"
   checksum: 10/18254ee95bc328aec9a909b22e4b22e8ff14a21363fdbd1a5227267e66bf1d2fc1425c186e9001759aab5827cf4ee9dc30f7ea57e8200cbf7a1cd555ed21a908
-  languageName: node
-  linkType: hard
-
-"axe-core@npm:^4.2.0":
-  version: 4.11.4
-  resolution: "axe-core@npm:4.11.4"
-  checksum: 10/49095daa422d05d99a90b39301a3b5c971e234a4593403dfd6701df637a3e550bcfd7bd096709c5643564dd069208513247791f367790e0605d15386fb2a7bfe
   languageName: node
   linkType: hard
 
@@ -18699,7 +18693,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mime@npm:4.1.0":
+"mime@npm:^4.1.0":
   version: 4.1.0
   resolution: "mime@npm:4.1.0"
   bin:
@@ -20809,7 +20803,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dropzone@npm:15.0.0":
+"react-dropzone@npm:15.0.0, react-dropzone@npm:^15.0.0":
   version: 15.0.0
   resolution: "react-dropzone@npm:15.0.0"
   dependencies:

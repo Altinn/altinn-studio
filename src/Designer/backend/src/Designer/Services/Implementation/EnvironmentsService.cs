@@ -169,6 +169,12 @@ public class EnvironmentsService : IEnvironmentsService
         return orgModel.OrgNr;
     }
 
+    public async Task<bool> IsAltinnOrg(string org, CancellationToken cancellationToken = default)
+    {
+        var orgs = await GetAltinnOrgs(cancellationToken);
+        return orgs.ContainsKey(org);
+    }
+
     private Task<Dictionary<string, AltinnOrgModel>> GetAltinnOrgs(CancellationToken cancellationToken = default)
     {
         return _cache.GetOrCreateAsync(

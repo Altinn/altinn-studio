@@ -4,7 +4,7 @@ import mime from 'mime';
  * The 'mime' library isn't perfect. This map can be used to add
  * additional mime types for specific extensions.
  */
-const extraTypes = {
+const extraTypes: Record<string, string[]> = {
   csv: ['application/csv', 'application/vnd.ms-excel'], // The last one here fixes csv uploads in Firefox on Windows
 };
 
@@ -14,7 +14,7 @@ export const mapExtensionToAcceptMime = (extensions: string | string[]) => {
   }
   const extensionList = Array.isArray(extensions) ? extensions : [extensions];
 
-  const outputObject = {};
+  const outputObject: Record<string, string[]> = {};
   for (const _extension of extensionList) {
     const extension = _extension.trim().replace(/^\./, '');
     const mimeType = mime.getType(extension);

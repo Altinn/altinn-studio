@@ -38,5 +38,5 @@
 
 .validationError {
   border-style: dotted;
-  border-color: var(--colors-danger);
+  border-color: var(--ds-color-danger-border-default);
 }
