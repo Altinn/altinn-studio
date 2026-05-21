@@ -136,35 +136,71 @@ Hardening for shared / multi-user hosts: use Docker secrets (`secrets:`
 in compose) instead of `.env`, restrict `.env` to `chmod 600`, rotate
 the gateway key on any suspected exposure.
 
-### Altinn platform — secret file
+### Altinn platform — secret file + Key Vault
 
 On Altinn's cluster the image follows the same secret-injection
 convention as Altinn Apps (see
 [Altinn secret docs](https://docs.altinn.studio/nb/altinn-studio/v8/reference/configuration/secrets/)).
-The platform syncs a value from Azure Key Vault into a Kubernetes
-Secret, mounted by the deployment manifest at
-`/altinn-appsettings-secret/altinn-appsettings-secret.json`. The file
-holds standard nested ASP.NET configuration JSON:
+
+The platform writes the `altinn-appsettings-secret` Kubernetes Secret
+into each tenant namespace. The Secret holds a single
+`altinn-appsettings-secret.json` file mounted at
+`/altinn-appsettings-secret/altinn-appsettings-secret.json`. That file
+holds the `kvSetting` Service Principal credentials that point to the
+tenant's Azure Key Vault:
 
 ```json
 {
-  "Agent": {
-    "ApiKey": "<value-from-keyvault>"
+  "kvSetting": {
+    "SecretUri": "https://<vault-name>.vault.azure.net/",
+    "ClientId": "<sp-app-id>",
+    "ClientSecret": "<sp-secret>",
+    "TenantId": "<azure-tenant-id>"
   }
 }
 ```
 
-At startup the image calls `AddAltinnPlatformSecretFile()` which adds
-this file as a configuration source (optional — absence is silently
-ignored). Env vars still take precedence, so a deployment can override
-on the fly without touching the secret.
+At startup:
 
-This means the augmenter-agent image itself never authenticates to Key
-Vault, holds no Service Principal credentials, and needs no Key Vault
-SDK. The platform owns the Key Vault → Secret sync.
+1. `AddAltinnPlatformSecretFile()` loads that JSON into `IConfiguration`.
+2. `AddOptionalAzureKeyVault()` reads `kvSetting:*` and registers the
+   tenant's Key Vault as an additional configuration source (5 min
+   reload). All Key Vault secrets become available at IConfiguration
+   keys where `--` in the secret name is replaced with `:`. So a vault
+   secret named `ttd--app--<app-id>--sandkasse-api-key` is reachable as
+   `IConfiguration["ttd:app:<app-id>:sandkasse-api-key"]`.
+3. The tenant's deployment manifest sets `Agent__ApiKeySource` to that
+   IConfiguration path. `AgentOptionsPostConfigure` copies the value
+   into `Agent:ApiKey` so the chat client picks it up:
 
-The image never logs the API key in cleartext. It does log the gateway
-URL, model name, and request/response durations.
+   ```yaml
+   env:
+     - name: Agent__ApiKeySource
+       value: "ttd:app:<app-id>:sandkasse-api-key"
+   ```
+
+Notes:
+
+- The image's Key Vault registration is silent-optional. If `kvSetting`
+  is absent from the secret file (local dev, non-Altinn platform), the
+  step logs a one-line info message and falls back to env vars.
+- The Key Vault registration is **eager** — at startup the image
+  authenticates to Key Vault and lists secrets. A misconfigured vault
+  URL or expired Service Principal causes startup to fail fast (good).
+- Env vars always take precedence over Key Vault values. To override an
+  API key during incident response without touching Key Vault, set
+  `Agent__ApiKey` directly on the Deployment env block.
+- The image never logs the API key in cleartext. It does log the
+  gateway URL, model name, and request/response durations.
+
+### Why not pin a hardcoded secret name?
+
+Altinn tenants typically share one Key Vault across many apps, so
+secret names follow a `<owner>--<scope>--<app-id>--<purpose>` hierarchy
+to avoid collisions. Baking such a name into the augmenter-agent image
+would couple it to a single tenant. The `Agent:ApiKeySource` indirection
+keeps the image tenant-agnostic — each deployment supplies its own
+mapping.
 
 ## Image publication (augmenter-agent repo, not tenant repo)
 

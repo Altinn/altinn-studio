@@ -9,6 +9,40 @@ existing configs keep working through, **patch** for bug fixes.
 Tenants pin a specific tag in their compose / Helm manifest and read
 this file before bumping across minor or major versions.
 
+## v0.4.1 — Azure Key Vault as configuration source
+
+Adds direct Key Vault integration so tenants on the Altinn platform can
+keep their `Agent:ApiKey` value entirely in Key Vault without manually
+syncing K8s Secrets. No contract change for existing tenants —
+`Agent:ApiKey` still wins when set directly (local dev `.env` path
+unchanged).
+
+### Added
+
+- **`AddOptionalAzureKeyVault()`** — registers the tenant's Key Vault as
+  a `ClientSecretCredential`-authenticated configuration source when
+  the platform-mounted secret file provides a `kvSetting` block
+  (`SecretUri`, `ClientId`, `ClientSecret`, `TenantId`). Silent no-op
+  when `kvSetting` is missing, so the image still boots on dev /
+  non-Altinn platforms. 5-minute auto-reload.
+- **`AgentOptions.ApiKeySource`** + **`AgentOptionsPostConfigure`** — when
+  `Agent:ApiKey` is empty after the normal binding, copies the value at
+  the configurable `Agent:ApiKeySource` IConfiguration path into
+  `Agent:ApiKey`. Lets the deployment point at any Key Vault secret
+  name (`ttd--app--<app-id>--sandkasse-api-key` →
+  `ttd:app:<app-id>:sandkasse-api-key`) without baking tenant-specific
+  names into the image.
+- NuGet: `Azure.Identity` (1.*), `Azure.Extensions.AspNetCore.Configuration.Secrets` (1.*).
+
+### Deployment notes
+
+- Tenants who already mount their own `augmenter-agent-secret` (Path A
+  in `deployment/augmenter/README.md`) keep working unchanged.
+- Tenants wiring this new path should mount the platform-managed
+  `altinn-appsettings-secret` K8s Secret instead, and set
+  `Agent__ApiKeySource` on the Deployment env block. See updated
+  `DEPLOYMENT.md` for the JSON shape and naming convention.
+
 ## v0.4.0 — first published image
 
 The v0.4 series productizes the per-item evaluation orchestrator, makes

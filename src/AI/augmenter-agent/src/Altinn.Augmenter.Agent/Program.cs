@@ -12,15 +12,23 @@ using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Read runtime secrets (Agent:ApiKey, ...) from the Altinn platform secret-file mount
-// when present. No-op outside the platform — env vars / .env then fill the same slots.
+// Read runtime secrets (Agent:ApiKey, kvSetting, ...) from the Altinn platform
+// secret-file mount when present. No-op outside the platform — env vars / .env
+// then fill the same slots.
 builder.Configuration.AddAltinnPlatformSecretFile();
+
+// If the secret file supplied kvSetting credentials, layer Azure Key Vault on
+// top so tenant-named secrets (e.g. ttd--app--<app-id>--<key>) become available
+// at IConfiguration["ttd:app:<app-id>:<key>"]. Silent no-op when kvSetting
+// is missing — local dev and non-Altinn platforms remain on .env.
+builder.AddOptionalAzureKeyVault();
 
 // Configuration
 builder.Services.Configure<CallbackOptions>(builder.Configuration.GetSection(CallbackOptions.SectionName));
 builder.Services.Configure<UploadOptions>(builder.Configuration.GetSection(UploadOptions.SectionName));
 builder.Services.Configure<PdfGenerationOptions>(builder.Configuration.GetSection(PdfGenerationOptions.SectionName));
 builder.Services.Configure<AgentOptions>(builder.Configuration.GetSection(AgentOptions.SectionName));
+builder.Services.AddSingleton<IPostConfigureOptions<AgentOptions>, AgentOptionsPostConfigure>();
 builder.Services.Configure<ContentPathsOptions>(builder.Configuration.GetSection(ContentPathsOptions.SectionName));
 builder.Services.AddSingleton<IPostConfigureOptions<ContentPathsOptions>, ContentPathsPostConfigure>();
 
