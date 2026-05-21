@@ -621,6 +621,10 @@ public class AltinnAppGitRepository : AltinnGitRepository
     {
         string globalSettingsFilePath = GetPathToGlobalSettingsFile();
         cancellationToken.ThrowIfCancellationRequested();
+        if (!FileExistsByRelativePath(globalSettingsFilePath))
+        {
+            return null;
+        }
         string fileContent = await ReadTextByRelativePathAsync(globalSettingsFilePath, cancellationToken);
         UiSettings globalSettingsFile = JsonSerializer.Deserialize<UiSettings>(fileContent, s_jsonOptions);
         return globalSettingsFile;
