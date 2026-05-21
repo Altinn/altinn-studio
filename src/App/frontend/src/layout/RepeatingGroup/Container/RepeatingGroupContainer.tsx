@@ -3,6 +3,7 @@ import type { JSX } from 'react';
 
 import { Button, ConditionalWrapper, Fieldset, Flex, FullWidthWrapper } from '@app/form-component';
 import { PlusIcon } from '@navikt/aksel-icons';
+
 import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
