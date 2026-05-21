@@ -1,5 +1,9 @@
 # Secrets — copy from .env.example and fill in real values; never commit.
 .env
 
+# Local compose override — see docker-compose.override.yaml.example.
+# The example file IS committed (as a template); the active override is per-developer.
+docker-compose.override.yaml
+
 # Python cache
 __pycache__/

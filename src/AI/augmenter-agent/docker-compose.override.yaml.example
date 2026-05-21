@@ -1,0 +1,13 @@
+# Example override that swaps the active config mount to examples/alt-config/.
+# Copy to `docker-compose.override.yaml` (gitignored) to make the swap stick
+# across `docker compose up`. Useful for local testing of a tenant config
+# without modifying the canonical docker-compose.yaml.
+#
+# Production tenants should put their own override in their PRIVATE repo
+# alongside their docker-compose.yaml — see DEPLOYMENT.md for the full
+# pattern.
+
+services:
+  augmenter-agent:
+    volumes:
+      - ./examples/alt-config:/etc/augmenter:ro

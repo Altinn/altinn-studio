@@ -19,8 +19,10 @@ services:
       # 27KB system-prompt + søknad er det god plass til lange svar.
       - Agent__MaxTokens=8192
     volumes:
-      # Mount the active config. Replace with ./examples/alt-config or a
-      # docker-compose.override.yaml when testing alternative skill/template sets.
+      # Mount the active config. To run against a different tenant config,
+      # copy docker-compose.override.yaml.example → docker-compose.override.yaml.
+      # Private-tenant deployments should pin an image tag and mount a private
+      # config repo — see DEPLOYMENT.md.
       - ./config:/etc/augmenter:ro
     extra_hosts:
       # Lets the container reach services on the Docker host (Linux needs this; Mac/Windows have it built-in).
