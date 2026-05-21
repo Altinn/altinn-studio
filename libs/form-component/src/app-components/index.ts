@@ -7,6 +7,7 @@ export * from './DynamicForm';
 export * from './Dropzone';
 export * from './FatalError';
 export * from './Flex';
+export * from './FullWidthWrapper';
 export * from './Input';
 export * from './hooks';
 export * from './Pagination';

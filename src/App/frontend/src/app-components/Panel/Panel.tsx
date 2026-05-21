@@ -1,7 +1,7 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { ConditionalWrapper, useIsMobile } from '@app/form-component';
+import { ConditionalWrapper, FullWidthWrapper, useIsMobile } from '@app/form-component';
 import { Heading } from '@digdir/designsystemet-react';
 import {
   CheckmarkCircleIcon,
@@ -12,7 +12,6 @@ import {
 import cn from 'classnames';
 
 import { useTranslation } from 'src/app-components/AppComponentsProvider';
-import { FullWidthWrapper } from 'src/app-components/FullWidthWrapper/FullWidthWrapper';
 import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
 import classes from 'src/app-components/Panel/Panel.module.css';
 import type { TranslationKey } from 'src/app-components/types';
