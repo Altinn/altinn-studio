@@ -105,7 +105,7 @@ export function ScopeList({
           </StudioParagraph>
           {isUnsupportedAppVersion && <UnsupportedAppVersionAlert />}
           {shouldShowDeploymentNotice && (
-            <StudioAlert data-color='info' className={classes.deploymentNotice}>
+            <StudioAlert data-color='info' className={classes.deploymentNotice} role='note'>
               {t('app_settings.maskinporten_scope_changes_deployment_notice')}
             </StudioAlert>
           )}
@@ -144,7 +144,7 @@ function UnsupportedAppVersionAlert(): ReactElement {
   const { t } = useTranslation();
 
   return (
-    <StudioAlert data-color='danger' className={classes.unsupportedVersionNotice}>
+    <StudioAlert data-color='danger' className={classes.unsupportedVersionNotice} role='alert'>
       <StudioHeading data-size='2xs' level={4}>
         {t('app_settings.maskinporten_unsupported_app_version_title')}
       </StudioHeading>

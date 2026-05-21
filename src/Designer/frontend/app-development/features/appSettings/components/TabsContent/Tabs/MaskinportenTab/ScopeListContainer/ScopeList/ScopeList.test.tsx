@@ -48,8 +48,9 @@ describe('ScopeList', () => {
     expect(
       getText(textMock('app_settings.maskinporten_tab_available_scopes_description_help')),
     ).toBeInTheDocument();
+    const deploymentNotice = await screen.findByRole('note');
     expect(
-      await screen.findByText(
+      within(deploymentNotice).getByText(
         textMock('app_settings.maskinporten_scope_changes_deployment_notice'),
       ),
     ).toBeInTheDocument();
@@ -89,11 +90,16 @@ describe('ScopeList', () => {
       },
     });
 
+    const unsupportedVersionAlert = await screen.findByRole('alert');
     expect(
-      await screen.findByText(textMock('app_settings.maskinporten_unsupported_app_version_title')),
+      within(unsupportedVersionAlert).getByRole('heading', {
+        name: textMock('app_settings.maskinporten_unsupported_app_version_title'),
+      }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(textMock('app_settings.maskinporten_unsupported_app_version_description')),
+      within(unsupportedVersionAlert).getByText(
+        textMock('app_settings.maskinporten_unsupported_app_version_description'),
+      ),
     ).toBeInTheDocument();
     expect(
       screen.queryByText(textMock('app_settings.maskinporten_scope_changes_deployment_notice')),
