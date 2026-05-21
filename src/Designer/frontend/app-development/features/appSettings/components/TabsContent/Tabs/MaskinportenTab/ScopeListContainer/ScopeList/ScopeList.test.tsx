@@ -10,6 +10,7 @@ import { renderWithProviders } from 'app-development/test/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { app, org } from '@studio/testing/testids';
+import { defaultMaskinportenScopes } from 'app-development/utils/maskinportenScopes';
 
 const scopeMock1: MaskinportenScope = {
   scope: 'altinn:authorization/authorize',
@@ -26,6 +27,10 @@ const scopeMock3: MaskinportenScope = {
 const scopeMock4: MaskinportenScope = {
   scope: 'altinn:serviceowner/instances.read',
   description: 'description4',
+};
+const scopeMock5: MaskinportenScope = {
+  scope: 'altinn:serviceowner',
+  description: 'description5',
 };
 
 const maskinportenScopesMock: MaskinportenScope[] = [scopeMock1, scopeMock2];
@@ -75,6 +80,97 @@ describe('ScopeList', () => {
     expect(getText(textMock('app_settings.maskinporten_no_scopes_added'))).toBeInTheDocument();
   });
 
+  it('should offer adding default scopes for v8.3 apps when default scopes are missing', async () => {
+    const user = userEvent.setup();
+    renderScopeList({
+      queries: {
+        getAppVersion: () => Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '8.3.0' }),
+      },
+    });
+
+    expect(
+      await screen.findByText(textMock('app_settings.maskinporten_default_scopes_opt_in_notice')),
+    ).toBeInTheDocument();
+
+    await user.click(getButton(textMock('app_settings.maskinporten_add_default_scopes')));
+
+    const updatedScopes: MaskinportenScopes = {
+      scopes: [...defaultMaskinportenScopes, scopeMock3],
+    };
+
+    expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledWith(
+      org,
+      app,
+      updatedScopes,
+    );
+  });
+
+  it('should add default scopes for v8.3 apps when the available scopes API does not include them', async () => {
+    const user = userEvent.setup();
+    renderScopeList({
+      componentProps: {
+        maskinPortenScopes: [scopeMock1],
+        selectedScopes: [scopeMock3],
+      },
+      queries: {
+        getAppVersion: () => Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '8.3.0' }),
+      },
+    });
+
+    expect(
+      await screen.findByText(textMock('app_settings.maskinporten_default_scopes_opt_in_notice')),
+    ).toBeInTheDocument();
+
+    await user.click(getButton(textMock('app_settings.maskinporten_add_default_scopes')));
+
+    const updatedScopes: MaskinportenScopes = {
+      scopes: [...defaultMaskinportenScopes, scopeMock3],
+    };
+
+    expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledWith(
+      org,
+      app,
+      updatedScopes,
+    );
+  });
+
+  it('should not offer adding default scopes for v9 apps', async () => {
+    renderScopeList({
+      queries: {
+        getAppVersion: () => Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '9.0.0' }),
+      },
+    });
+
+    expect(
+      await screen.findByText(
+        textMock('app_settings.maskinporten_scope_changes_deployment_notice'),
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('app_settings.maskinporten_default_scopes_opt_in_notice')),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should not offer adding default scopes for v8.3 apps when default scopes are already selected', async () => {
+    renderScopeList({
+      componentProps: { selectedScopes: [scopeMock5, scopeMock4, scopeMock2] },
+      queries: {
+        getAppVersion: () => Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '8.3.0' }),
+      },
+    });
+
+    expect(
+      await screen.findByText(
+        textMock('app_settings.maskinporten_scope_changes_deployment_notice'),
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('app_settings.maskinporten_default_scopes_opt_in_notice')),
+    ).not.toBeInTheDocument();
+  });
+
   it('should open add scopes dialog with selected scopes checked', async () => {
     const user = userEvent.setup();
     renderScopeList();
@@ -93,27 +189,27 @@ describe('ScopeList', () => {
     });
   });
 
-  it('should disable unmarking selected mandatory scopes in the add scopes dialog', async () => {
+  it('should disable unmarking selected default scopes in the add scopes dialog', async () => {
     const user = userEvent.setup();
     renderScopeList();
 
     await openAddScopeDialog(user);
     const dialog = getDialog();
-    const selectedMandatoryScopeCheckbox = within(dialog).getByRole('checkbox', {
+    const selectedDefaultScopeCheckbox = within(dialog).getByRole('checkbox', {
       name: scopeMock4.scope,
     });
-    const availableMandatoryScopeCheckbox = within(dialog).getByRole('checkbox', {
+    const availableDefaultScopeCheckbox = within(dialog).getByRole('checkbox', {
       name: scopeMock2.scope,
     });
 
-    expect(selectedMandatoryScopeCheckbox).toBeChecked();
-    expect(selectedMandatoryScopeCheckbox).toBeDisabled();
-    expect(availableMandatoryScopeCheckbox).not.toBeChecked();
-    expect(availableMandatoryScopeCheckbox).not.toBeDisabled();
+    expect(selectedDefaultScopeCheckbox).toBeChecked();
+    expect(selectedDefaultScopeCheckbox).toBeDisabled();
+    expect(availableDefaultScopeCheckbox).not.toBeChecked();
+    expect(availableDefaultScopeCheckbox).not.toBeDisabled();
 
-    await user.click(selectedMandatoryScopeCheckbox);
+    await user.click(selectedDefaultScopeCheckbox);
 
-    expect(selectedMandatoryScopeCheckbox).toBeChecked();
+    expect(selectedDefaultScopeCheckbox).toBeChecked();
   });
 
   it('should sort serviceowner scopes first in selected scopes and dialog scopes', async () => {
@@ -160,6 +256,25 @@ describe('ScopeList', () => {
     expect(
       within(dialog).queryByRole('checkbox', { name: scopeMock2.scope }),
     ).not.toBeInTheDocument();
+  });
+
+  it('should display empty search result message when searching without matches', async () => {
+    const user = userEvent.setup();
+    renderScopeList();
+
+    await openAddScopeDialog(user);
+    const dialog = getDialog();
+
+    await user.type(
+      within(dialog).getByRole('searchbox', {
+        name: textMock('app_settings.maskinporten_scope_search_label'),
+      }),
+      'scope-without-matches',
+    );
+
+    expect(
+      within(dialog).getByText(textMock('app_settings.maskinporten_no_scopes_search_match')),
+    ).toBeInTheDocument();
   });
 
   it('should call updateSelectedMaskinportenScopes with selected scopes when completing the dialog', async () => {
@@ -217,7 +332,7 @@ describe('ScopeList', () => {
     );
   });
 
-  it('should not update selected scopes when deleting a mandatory selected scope', async () => {
+  it('should not update selected scopes when deleting a default selected scope', async () => {
     const user = userEvent.setup();
     renderScopeList();
 

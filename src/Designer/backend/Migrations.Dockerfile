@@ -13,7 +13,9 @@ ENV OidcLoginSettings__ClientSecret=dummyRequired
 ENV FeatureManagement__StudioOidc=false
 ENV StudioOidcLoginSettings__FetchClientIdAndSecretFromRootEnvFile=false
 
-RUN dotnet ef migrations script --project src/Designer/Designer.csproj --idempotent -o /app/migrations.sql
+RUN dotnet restore src/Designer/Designer.csproj && \
+    dotnet build src/Designer/Designer.csproj --no-restore && \
+    dotnet ef migrations script --project src/Designer/Designer.csproj --no-build --idempotent -o /app/migrations.sql
 
 FROM alpine:3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659 AS final
 COPY --from=build /app/migrations.sql migrations.sql

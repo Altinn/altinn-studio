@@ -8,7 +8,7 @@ using KeyValueEntry = Altinn.Platform.Storage.Interface.Models.KeyValueEntry;
 namespace Altinn.App.Core.Features;
 
 /// <summary>
-/// Extension of the IInstanceDataAccessor that allows for adding and removing data elements,
+/// Extension of the IInstanceDataAccessor that allows for adding, updating and removing data elements,
 /// and also indicate that it is OK to mutate the models
 /// </summary>
 public interface IInstanceDataMutator : IInstanceDataAccessor
@@ -60,6 +60,18 @@ public interface IInstanceDataMutator : IInstanceDataAccessor
         string? generatedFromTask = null,
         List<KeyValueEntry>? metadata = null
     ) => AddBinaryDataElement(dataType.Id, contentType, filename, bytes, generatedFromTask, metadata);
+
+    /// <summary>
+    /// Replace the binary content of an existing binary data element.
+    /// </summary>
+    /// <remarks>
+    /// Saving to storage is not done until the instance is saved, so mutations to data might or might not be sent to storage.
+    /// </remarks>
+    BinaryDataChange UpdateBinaryDataElement(
+        DataElementIdentifier dataElementIdentifier,
+        string contentType,
+        ReadOnlyMemory<byte> bytes
+    );
 
     /// <summary>
     /// Remove a data element from the instance.

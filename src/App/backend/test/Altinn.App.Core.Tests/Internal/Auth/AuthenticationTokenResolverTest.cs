@@ -95,6 +95,7 @@ public class AuthenticationTokenResolverTest
                         scopes.SequenceEqual(
                             new[]
                             {
+                                "altinn:serviceowner",
                                 "altinn:serviceowner/instances.read",
                                 "altinn:serviceowner/instances.write",
                                 "a",
@@ -115,7 +116,7 @@ public class AuthenticationTokenResolverTest
         var authMethodAltinn = AuthenticationMethod.ServiceOwner("a", "b");
         string requestedUrl = string.Empty;
         string expectedUrl =
-            "http://localhost:5101/Home/GetTestOrgToken?org=test-org&orgNumber=405003309&authenticationLevel=3&scopes=altinn%3Aserviceowner%2Finstances.read%20altinn%3Aserviceowner%2Finstances.write%20a%20b";
+            "http://localhost:5101/Home/GetTestOrgToken?org=test-org&orgNumber=405003309&authenticationLevel=3&scopes=altinn%3Aserviceowner%20altinn%3Aserviceowner%2Finstances.read%20altinn%3Aserviceowner%2Finstances.write%20a%20b";
 
         await using var fixture = Fixture.Create(
             _generalSettingsLocal,

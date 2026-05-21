@@ -8,7 +8,12 @@ export interface AppRelease {
   app: string;
   org: string;
   targetCommitish: string;
+  buildInputs?: AppReleaseBuildInputs;
   createdBy: string;
   created: string;
   build: Build;
+}
+
+export interface AppReleaseBuildInputs {
+  maskinportenScopes?: string[];
 }
