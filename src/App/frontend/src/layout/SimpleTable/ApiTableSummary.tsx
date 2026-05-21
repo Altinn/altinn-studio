@@ -1,13 +1,13 @@
 import React from 'react';
 
+import { AppTable } from '@app/form-component';
 import { pick } from 'dot-object';
 import type { FormDataObject } from '@app/form-component';
 
-import { AppTable } from 'src/app-components/Table/Table';
-import { translationKey } from 'src/AppComponentsBridge';
 import { Caption } from 'src/components/form/caption/Caption';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
 import { Lang } from 'src/features/language/Lang';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { isFormDataObject, isFormDataObjectArray } from 'src/layout/SimpleTable/typeguards';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
@@ -22,6 +22,7 @@ export function ApiTableSummary({ targetBaseComponentId }: Summary2Props) {
 
   const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
   const isMobile = useIsMobile();
+  const { langAsString } = useLanguage();
   const { data } = useExternalApis(externalApi ? [externalApi.id] : []);
 
   if (!externalApi || !data[externalApi.id]) {
@@ -55,9 +56,9 @@ export function ApiTableSummary({ targetBaseComponentId }: Summary2Props) {
       <AppTable
         caption={title && <Caption title={<Lang id={title} />} />}
         data={dataToDisplay}
-        columns={columns.map((column) => ({ ...column, header: translationKey(column.header) }))}
+        columns={columns.map((column) => ({ ...column, header: langAsString(column.header) }))}
         mobile={isMobile}
-        emptyText={translationKey('general.empty_table')}
+        emptyText={langAsString('general.empty_table')}
       />
     </SummaryFlex>
   );
