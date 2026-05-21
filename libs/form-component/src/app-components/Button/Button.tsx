@@ -5,6 +5,8 @@ import type { ButtonProps as DesignSystemButtonProps } from '@digdir/designsyste
 
 import { Spinner } from '../Spinner';
 
+import cn from 'classnames';
+
 import classes from './Button.module.css';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | undefined;
@@ -52,11 +54,12 @@ export function Button({
   style,
   textAlign,
   loadingLabel,
+  className,
   ref,
   ...rest
 }: PropsWithChildren<ButtonProps>) {
   const expandedStyle = { ...style, justifyContent: textAlign ? textAlign : undefined };
-  const { className, color: mappedColor } = mapColorNames(color);
+  const { className: buttonClassName, color: mappedColor } = mapColorNames(color);
   return (
     <DesignSystemButton
       {...rest}
@@ -67,7 +70,7 @@ export function Button({
       data-fullwidth={fullWidth ? true : undefined}
       ref={ref}
       style={expandedStyle}
-      className={className}
+      className={cn(buttonClassName, className)}
     >
       {isLoading ? (
         <>
