@@ -130,7 +130,7 @@ export const ExprFunctionDefinitions = {
     needs: noSources,
   },
   plus: {
-    args: args(required(ExprVal.Number), required(ExprVal.Number)),
+    args: args(required(ExprVal.Number), rest(ExprVal.Number)),
     returns: ExprVal.Number,
     needs: noSources,
   },
@@ -140,7 +140,7 @@ export const ExprFunctionDefinitions = {
     needs: noSources,
   },
   multiply: {
-    args: args(required(ExprVal.Number), required(ExprVal.Number)),
+    args: args(required(ExprVal.Number), rest(ExprVal.Number)),
     returns: ExprVal.Number,
     needs: noSources,
   },
@@ -395,14 +395,14 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
   lessThanEq(arg1, arg2) {
     return compare(this, 'lessThanEq', arg1, arg2);
   },
-  plus(term1, term2) {
-    return applyBinaryOperation(Decimal.add, [term1, term2]);
+  plus(...terms) {
+    return terms.reduce((prev, current) => applyBinaryOperation(Decimal.add, [prev, current]), 0);
   },
   minus(minuend, subtrahend) {
     return applyBinaryOperation(Decimal.subtract, [minuend, subtrahend]);
   },
-  multiply(factor1, factor2) {
-    return applyBinaryOperation(Decimal.multiply, [factor1, factor2]);
+  multiply(...factors) {
+    return factors.reduce((prev, current) => applyBinaryOperation(Decimal.multiply, [prev, current]), 1);
   },
   divide(dividend, divisor) {
     const divideNumbers = (dividendNumber: number, divisorNumber: number): number => {

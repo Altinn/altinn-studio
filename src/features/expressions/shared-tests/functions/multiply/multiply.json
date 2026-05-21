@@ -162,14 +162,19 @@
       "expectsFailure": "Expected number, got value \"e2\""
     },
     {
-      "name": "Should throw exception when less than two arguments are provided",
-      "expression": ["multiply", 0.1],
+      "name": "Should throw exception when no arguments are provided",
+      "expression": ["multiply"],
       "expectsFailure": "Invalid"
     },
     {
-      "name": "Should throw exception when more than two arguments are present",
+      "name": "Should return the only factor when only one is provided",
+      "expression": ["multiply", 0.1],
+      "expects": 0.1
+    },
+    {
+      "name": "Should return the product of all factors when more than two factors are present",
       "expression": ["multiply", 0.1, 0.2, 15, 1.50],
-      "expectsFailure": "Invalid"
+      "expects": 0.45
     },
     {
       "name": "Should multiply negative and positive decimal numbers",

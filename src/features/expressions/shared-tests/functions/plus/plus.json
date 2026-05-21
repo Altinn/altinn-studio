@@ -147,14 +147,19 @@
       "expectsFailure": "Expected number, got value \"e2\""
     },
     {
-      "name": "Should throw exception when less than two arguments are provided",
-      "expression": ["plus", 0.2],
+      "name": "Should throw exception when no arguments are provided",
+      "expression": ["plus"],
       "expectsFailure": "Invalid"
     },
     {
-      "name": "Should throw exception when more than two arguments are present",
+      "name": "Should return the only term when only one is provided",
+      "expression": ["plus", 0.2],
+      "expects": 0.2
+    },
+    {
+      "name": "Should return the sum when more than two terms are present",
       "expression": ["plus", 0.1, 0.2, 15, 1.50],
-      "expectsFailure": "Invalid"
+      "expects": 16.8
     },
     {
       "name": "Should add negative and positive decimal numbers",
