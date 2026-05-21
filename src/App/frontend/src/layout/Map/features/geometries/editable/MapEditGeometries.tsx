@@ -4,7 +4,10 @@ import { EditControl } from 'react-leaflet-draw';
 
 import { geojsonToWKT } from '@terraformer/wkt';
 // Import GeoJSON type
-import L from 'leaflet';
+import L, { icon } from 'leaflet';
+import Icon from 'leaflet/dist/images/marker-icon.png';
+import RetinaIcon from 'leaflet/dist/images/marker-icon-2x.png';
+import IconShadow from 'leaflet/dist/images/marker-shadow.png';
 import { v4 as uuidv4 } from 'uuid';
 import type { Feature } from 'geojson';
 
@@ -15,6 +18,16 @@ import { useLeafletDrawSpritesheetFix } from 'src/layout/Map/features/geometries
 import { useMapParsedGeometries } from 'src/layout/Map/features/geometries/fixed/hooks';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+
+export const markerIcon = icon({
+  iconUrl: Icon,
+  iconRetinaUrl: RetinaIcon,
+  shadowUrl: IconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+L.Marker.prototype.options.icon = markerIcon;
 
 interface FeatureWithId extends Feature {
   properties: {
@@ -191,7 +204,7 @@ export function MapEditGeometries({ baseComponentId }: MapEditGeometriesProps) {
           polygon: !!toolbar?.polygon,
           rectangle: !!toolbar?.rectangle,
           circle: !!toolbar?.circle,
-          marker: !!toolbar?.marker,
+          marker: toolbar?.marker ? { icon: markerIcon } : false,
           circlemarker: false,
         }}
       />

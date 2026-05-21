@@ -1,11 +1,10 @@
 import React from 'react';
 
+import { Button, Spinner } from '@app/form-component';
 import { EXPERIMENTAL_Suggestion as Suggestion, Fieldset } from '@digdir/designsystemet-react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-import { Button } from 'src/app-components/Button/Button';
-import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import comboboxClasses from 'src/styles/combobox.module.css';
 import { optionFilter } from 'src/utils/options';
 import { appPath, getAppFrontendCDNPath, getFrontendVersionsCDN } from 'src/utils/urls/appUrlHelper';

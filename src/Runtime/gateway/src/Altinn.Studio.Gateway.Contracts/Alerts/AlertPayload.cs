@@ -4,6 +4,8 @@ public class AlertPayload
 {
     public required string Status { get; set; }
     public required IEnumerable<AlertPayloadInstance> Alerts { get; init; }
+    public required Dictionary<string, string> CommonLabels { get; init; }
+    public required Dictionary<string, string> CommonAnnotations { get; init; }
 }
 
 public class AlertPayloadInstance

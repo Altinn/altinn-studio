@@ -39,6 +39,7 @@ export interface ProcessedDataModelInfo extends Omit<RawDataModelInfo, 'expressi
 
 export interface FormBootstrapBase extends Omit<FormBootstrapQueryResponse, 'staticOptions'> {
   uiFolder: string;
+  defaultDataType: string;
   staticOptions: Record<string, StaticOptionSet>;
 }
 

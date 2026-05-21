@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 
+	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/httpclient"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
@@ -67,6 +69,18 @@ type resolvedUpdate struct {
 	skipCheck  bool
 }
 
+type httpDownloader struct {
+	client  *http.Client
+	version config.Version
+}
+
+func newHTTPDownloader(version config.Version) httpDownloader {
+	return httpDownloader{
+		version: version,
+		client:  &http.Client{Timeout: httpTimeout},
+	}
+}
+
 // ResolveUpdateBundle downloads an update bundle and returns the current install target.
 func (s *Service) ResolveUpdateBundle(
 	ctx context.Context,
@@ -84,12 +98,13 @@ func (s *Service) ResolveUpdateBundle(
 		)
 	}
 
-	resolved, err := resolveUpdateOptions(ctx, opts, execPath)
+	downloads := newHTTPDownloader(s.cfg.Version)
+	resolved, err := downloads.resolveUpdateOptions(ctx, opts, execPath)
 	if err != nil {
 		return ResolvedBundle{}, err
 	}
 
-	tmpBinaryPath, cleanup, err := downloadUpdateBinary(ctx, resolved)
+	tmpBinaryPath, cleanup, err := downloads.downloadUpdateBinary(ctx, resolved)
 	if err != nil {
 		if cleanup != nil {
 			err = errors.Join(err, cleanup())
@@ -98,7 +113,12 @@ func (s *Service) ResolveUpdateBundle(
 	}
 
 	if !resolved.skipCheck {
-		if verifyErr := verifyAssetChecksum(ctx, resolved.checksums, resolved.asset, tmpBinaryPath); verifyErr != nil {
+		if verifyErr := downloads.verifyAssetChecksum(
+			ctx,
+			resolved.checksums,
+			resolved.asset,
+			tmpBinaryPath,
+		); verifyErr != nil {
 			if cleanup != nil {
 				verifyErr = errors.Join(verifyErr, cleanup())
 			}
@@ -117,13 +137,17 @@ func (s *Service) ResolveUpdateBundle(
 	}, nil
 }
 
-func resolveUpdateOptions(ctx context.Context, opts UpdateOptions, execPath string) (resolvedUpdate, error) {
+func (d httpDownloader) resolveUpdateOptions(
+	ctx context.Context,
+	opts UpdateOptions,
+	execPath string,
+) (resolvedUpdate, error) {
 	version, err := normalizeReleaseVersion(opts.Version)
 	if err != nil {
 		return resolvedUpdate{}, err
 	}
 	if version == "" {
-		version, err = resolveLatestStudioctlVersion(ctx, defaultUpdateRepo)
+		version, err = d.resolveLatestStudioctlVersion(ctx, defaultUpdateRepo)
 		if err != nil {
 			return resolvedUpdate{}, err
 		}
@@ -146,8 +170,8 @@ func resolveUpdateOptions(ctx context.Context, opts UpdateOptions, execPath stri
 	}, nil
 }
 
-func resolveLatestStudioctlVersion(ctx context.Context, repo string) (string, error) {
-	return resolveLatestStudioctlVersionFromBase(ctx, repo, githubAPIReposBaseURL)
+func (d httpDownloader) resolveLatestStudioctlVersion(ctx context.Context, repo string) (string, error) {
+	return d.resolveLatestStudioctlVersionFromBase(ctx, repo, githubAPIReposBaseURL)
 }
 
 type studioctlTagVersion struct {
@@ -271,11 +295,15 @@ func compareInt(a, b int) int {
 	return 0
 }
 
-func resolveLatestStudioctlVersionFromBase(ctx context.Context, repo, baseURL string) (string, error) {
+func (d httpDownloader) resolveLatestStudioctlVersionFromBase(
+	ctx context.Context,
+	repo,
+	baseURL string,
+) (string, error) {
 	var candidates releaseCandidates
 
 	for page := 1; page <= releaseMaxPages; page++ {
-		releases, err := fetchReleasesPage(ctx, repo, baseURL, page)
+		releases, err := d.fetchReleasesPage(ctx, repo, baseURL, page)
 		if err != nil {
 			return "", err
 		}
@@ -298,7 +326,12 @@ type githubRelease struct {
 	Prerelease bool   `json:"prerelease"`
 }
 
-func fetchReleasesPage(ctx context.Context, repo, baseURL string, page int) ([]githubRelease, error) {
+func (d httpDownloader) fetchReleasesPage(
+	ctx context.Context,
+	repo,
+	baseURL string,
+	page int,
+) ([]githubRelease, error) {
 	releasesURL := fmt.Sprintf(
 		"%s/%s/releases?per_page=%d&page=%d",
 		baseURL,
@@ -306,7 +339,7 @@ func fetchReleasesPage(ctx context.Context, repo, baseURL string, page int) ([]g
 		releasePageSize,
 		page,
 	)
-	data, err := downloadToMemory(ctx, releasesURL)
+	data, err := d.downloadToMemory(ctx, releasesURL)
 	if err != nil {
 		return nil, err
 	}
@@ -364,7 +397,7 @@ func (c *releaseCandidates) resolveTag() (string, bool) {
 	return "", false
 }
 
-func downloadUpdateBinary(
+func (d httpDownloader) downloadUpdateBinary(
 	ctx context.Context,
 	plan resolvedUpdate,
 ) (binaryPath string, cleanup func() error, err error) {
@@ -385,7 +418,7 @@ func downloadUpdateBinary(
 		binaryPath += exeSuffix
 	}
 
-	if err := downloadToFile(ctx, plan.binaryBase+"/"+plan.asset, binaryPath); err != nil {
+	if err := d.downloadToFile(ctx, plan.binaryBase+"/"+plan.asset, binaryPath); err != nil {
 		return "", cleanup, err
 	}
 
@@ -581,8 +614,8 @@ func releaseURLs(repo, version string) (binaryBaseURL, checksumsURL string) {
 	return base, base + "/" + checksumAssetName
 }
 
-func downloadToFile(ctx context.Context, url, path string) (err error) {
-	resp, err := getURL(ctx, url)
+func (d httpDownloader) downloadToFile(ctx context.Context, url, path string) (err error) {
+	resp, err := d.get(ctx, url)
 	if err != nil {
 		return err
 	}
@@ -606,8 +639,13 @@ func downloadToFile(ctx context.Context, url, path string) (err error) {
 	return nil
 }
 
-func verifyAssetChecksum(ctx context.Context, checksumsURL, asset, binaryPath string) error {
-	checksums, err := downloadToMemory(ctx, checksumsURL)
+func (d httpDownloader) verifyAssetChecksum(
+	ctx context.Context,
+	checksumsURL,
+	asset,
+	binaryPath string,
+) error {
+	checksums, err := d.downloadToMemory(ctx, checksumsURL)
 	if err != nil {
 		return err
 	}
@@ -633,8 +671,8 @@ func verifyAssetChecksum(ctx context.Context, checksumsURL, asset, binaryPath st
 	return nil
 }
 
-func downloadToMemory(ctx context.Context, url string) (data []byte, err error) {
-	resp, err := getURL(ctx, url)
+func (d httpDownloader) downloadToMemory(ctx context.Context, url string) (data []byte, err error) {
+	resp, err := d.get(ctx, url)
 	if err != nil {
 		return nil, err
 	}
@@ -649,14 +687,14 @@ func downloadToMemory(ctx context.Context, url string) (data []byte, err error) 
 	return data, nil
 }
 
-func getURL(ctx context.Context, url string) (*http.Response, error) {
+func (d httpDownloader) get(ctx context.Context, url string) (*http.Response, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("create request: %w", err)
 	}
+	httpclient.SetUserAgent(req, d.version)
 
-	client := &http.Client{Timeout: httpTimeout}
-	resp, err := client.Do(req)
+	resp, err := d.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("download %q: %w", url, err)
 	}

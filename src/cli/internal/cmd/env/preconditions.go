@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"altinn.studio/studioctl/internal/appmanager"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
+	"altinn.studio/studioctl/internal/studioctlserver"
 )
 
 // EnsureBoundTopology prepares shared topology state required by environment runtimes.
@@ -20,8 +20,8 @@ func EnsureBoundTopology(
 		return fmt.Errorf("write environment topology config: %w", err)
 	}
 
-	if err := appmanager.EnsureStarted(ctx, cfg, topology.IngressPort()); err != nil {
-		return fmt.Errorf("ensure app-manager: %w", err)
+	if err := studioctlserver.EnsureStarted(ctx, cfg, topology.IngressPort()); err != nil {
+		return fmt.Errorf("ensure studioctl-server: %w", err)
 	}
 
 	return nil

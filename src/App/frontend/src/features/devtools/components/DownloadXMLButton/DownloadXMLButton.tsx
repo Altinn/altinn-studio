@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import Dropzone from 'react-dropzone';
 
+import { Button } from '@app/form-component';
 import { EXPERIMENTAL_Suggestion as Suggestion, Fieldset } from '@digdir/designsystemet-react';
 import { DownloadIcon, UploadIcon } from '@navikt/aksel-icons';
 import axios from 'axios';
 
-import { Button } from 'src/app-components/Button/Button';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { FormStore } from 'src/features/form/FormContext';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';

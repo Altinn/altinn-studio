@@ -1,13 +1,14 @@
 import React, { useRef } from 'react';
 import type { PropsWithChildren, ReactElement } from 'react';
 
+import { Button } from '@app/form-component';
 import { Dialog, Heading, Paragraph, ValidationMessage } from '@digdir/designsystemet-react';
 
-import { Button } from 'src/app-components/Button/Button';
 import { Panel } from 'src/app-components/Panel/Panel';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
+import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/SigningActions/SigningActions.module.css';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PanelProps } from 'src/app-components/Panel/Panel';
@@ -65,6 +66,7 @@ type RejectTextProps = {
 };
 
 function RejectButton({ baseComponentId }: RejectTextProps) {
+  const { langAsString } = useLanguage();
   const modalRef = useRef<HTMLDialogElement>(null);
   const { mutate: processReject, isPending: isRejecting } = useProcessNext({ action: 'reject' });
   const { textResourceBindings } = useItemWhenType(baseComponentId, 'SigningActions');
@@ -105,6 +107,7 @@ function RejectButton({ baseComponentId }: RejectTextProps) {
             disabled={isRejecting}
             size='md'
             isLoading={isRejecting}
+            loadingLabel={langAsString('general.loading')}
             onClick={() => processReject()}
           >
             <Lang id={modalButton} />

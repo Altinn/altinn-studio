@@ -8,12 +8,13 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
 const (
 	resourcesArchiveAssetBaseName = "studioctl-resources"
-	resourcesAppManagerDir        = "app-manager"
+	resourcesServerDir            = config.StudioctlServerResourcesDirName
 	resourcesLocaltestDir         = "localtest"
 	resourcesTestdataDir          = "testdata"
 	resourcesInfraDir             = "infra"
@@ -25,10 +26,12 @@ const (
 )
 
 var errResourcesVersionRequired = errors.New("version required for resources install")
-var errAppManagerExecutablePathDirectory = errors.New("validate app-manager payload: executable path is a directory")
+var errStudioctlServerExecutablePathDirectory = errors.New(
+	"validate " + config.StudioctlServerName + " payload: executable path is a directory",
+)
 
-var errAppManagerExecutableNotExecutable = errors.New(
-	"validate app-manager payload: executable is not marked executable",
+var errStudioctlServerExecutableNotExecutable = errors.New(
+	"validate " + config.StudioctlServerName + " payload: executable is not marked executable",
 )
 
 // InstallBundleResources installs the bundle resources.
@@ -65,9 +68,9 @@ func (s *Service) InstallBundleResources(ctx context.Context, bundle Bundle) (er
 		return fmt.Errorf("extract resources archive: %w", err)
 	}
 
-	appManagerDir := filepath.Join(stagingDir, resourcesAppManagerDir)
-	if _, err := installDir(appManagerDir, s.cfg.AppManagerInstallDir(), s.validatePayloadDir); err != nil {
-		return fmt.Errorf("install app-manager: %w", err)
+	serverDir := filepath.Join(stagingDir, resourcesServerDir)
+	if _, err := installDir(serverDir, s.cfg.StudioctlServerInstallDir(), s.validatePayloadDir); err != nil {
+		return fmt.Errorf("install %s: %w", resourcesServerDir, err)
 	}
 
 	if err := copyDir(filepath.Join(stagingDir, resourcesLocaltestDir), s.cfg.DataDir); err != nil {
@@ -96,6 +99,7 @@ func (b Bundle) downloadResourcesArchive(ctx context.Context) (path string, clea
 	}
 
 	assetBaseURL, checksumsURL := releaseURLs(defaultUpdateRepo, version)
+	downloads := newHTTPDownloader(config.NewVersion(b.Version))
 	tempDir, err := os.MkdirTemp("", "studioctl-resources-*")
 	if err != nil {
 		return "", nil, fmt.Errorf("create resources temp dir: %w", err)
@@ -108,10 +112,10 @@ func (b Bundle) downloadResourcesArchive(ctx context.Context) (path string, clea
 	}
 
 	tmpPath := filepath.Join(tempDir, assetName)
-	if err := downloadToFile(ctx, assetBaseURL+"/"+assetName, tmpPath); err != nil {
+	if err := downloads.downloadToFile(ctx, assetBaseURL+"/"+assetName, tmpPath); err != nil {
 		return "", cleanup, fmt.Errorf("download resources archive: %w", err)
 	}
-	if err := verifyAssetChecksum(ctx, checksumsURL, assetName, tmpPath); err != nil {
+	if err := downloads.verifyAssetChecksum(ctx, checksumsURL, assetName, tmpPath); err != nil {
 		return "", cleanup, fmt.Errorf("verify resources archive checksum: %w", err)
 	}
 
@@ -119,16 +123,16 @@ func (b Bundle) downloadResourcesArchive(ctx context.Context) (path string, clea
 }
 
 func (s *Service) validatePayloadDir(payloadDir string) error {
-	binaryPath := filepath.Join(payloadDir, filepath.Base(s.cfg.AppManagerBinaryPath()))
+	binaryPath := filepath.Join(payloadDir, filepath.Base(s.cfg.StudioctlServerBinaryPath()))
 	info, err := os.Stat(binaryPath)
 	if err != nil {
-		return fmt.Errorf("validate app-manager payload: missing executable %q: %w", binaryPath, err)
+		return fmt.Errorf("validate %s payload: missing executable %q: %w", config.StudioctlServerName, binaryPath, err)
 	}
 	if info.IsDir() {
-		return fmt.Errorf("%w: %s", errAppManagerExecutablePathDirectory, binaryPath)
+		return fmt.Errorf("%w: %s", errStudioctlServerExecutablePathDirectory, binaryPath)
 	}
 	if runtime.GOOS != osutil.OSWindows && info.Mode()&0o111 == 0 {
-		return fmt.Errorf("%w: %s", errAppManagerExecutableNotExecutable, binaryPath)
+		return fmt.Errorf("%w: %s", errStudioctlServerExecutableNotExecutable, binaryPath)
 	}
 	return nil
 }

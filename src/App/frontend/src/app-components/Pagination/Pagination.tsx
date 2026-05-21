@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useIsMini, useIsMobile, useIsTablet } from '@app/form-component';
 import {
   Field,
   Label,
@@ -10,7 +11,6 @@ import {
 import type { UsePaginationProps } from '@digdir/designsystemet-react';
 
 import { useTranslation } from 'src/app-components/AppComponentsProvider';
-import { useIsMini, useIsMobile, useIsTablet } from 'src/app-components/hooks/useDeviceWidths';
 import classes from 'src/app-components/Pagination/Pagination.module.css';
 import type { TranslationKey } from 'src/app-components/types';
 

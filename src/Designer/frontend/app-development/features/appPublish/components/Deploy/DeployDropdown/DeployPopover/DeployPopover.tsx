@@ -1,8 +1,11 @@
 import type { ReactElement } from 'react';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import classes from './DeployPopover.module.css';
 import { StudioButton, StudioParagraph, StudioPopover, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
+import { usePostHog } from '@posthog/react';
+
+export const DEPLOY_EVENT_NAME = 'user_confirmed_app_deploy';
 
 export type DeployPopoverProps = {
   appDeployedVersion: string;
@@ -20,8 +23,15 @@ export const DeployPopover = ({
   onConfirm,
 }: DeployPopoverProps): ReactElement => {
   const { t } = useTranslation();
+  const posthog = usePostHog();
 
   const [isConfirmDeployDialogOpen, setIsConfirmDeployDialogOpen] = useState<boolean>();
+
+  const handleDeployConfirm = () => {
+    onConfirm();
+    posthog.capture(DEPLOY_EVENT_NAME);
+    setIsConfirmDeployDialogOpen(false);
+  };
 
   return (
     <StudioPopover.TriggerContext>
@@ -51,24 +61,13 @@ export const DeployPopover = ({
                 : t('app_deployment.deploy_confirmation_short', { selectedImageTag })}
             </StudioParagraph>
             <div className={classes.buttonContainer}>
-              <StudioButton
-                data-color='first'
-                variant='primary'
-                onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                  event.stopPropagation();
-                  onConfirm();
-                  setIsConfirmDeployDialogOpen(false);
-                }}
-              >
+              <StudioButton data-color='first' variant='primary' onClick={handleDeployConfirm}>
                 {t('general.yes')}
               </StudioButton>
               <StudioButton
                 data-color='second'
                 variant='tertiary'
-                onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                  event.stopPropagation();
-                  setIsConfirmDeployDialogOpen(false);
-                }}
+                onClick={() => setIsConfirmDeployDialogOpen(false)}
               >
                 {t('general.cancel')}
               </StudioButton>

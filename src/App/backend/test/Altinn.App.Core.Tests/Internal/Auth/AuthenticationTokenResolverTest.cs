@@ -34,14 +34,20 @@ public class AuthenticationTokenResolverTest
         CustomToken: TestAuthentication.GetMaskinportenToken("-").AccessToken
     );
 
-    public static TheoryData<TestCase> TestCases =>
-        [
-            new(AuthenticationMethod.CurrentUser(), _testTokens.UserToken),
-            new(AuthenticationMethod.ServiceOwner(), _testTokens.ServiceOwnerTokenLocal, _generalSettingsLocal),
-            new(AuthenticationMethod.ServiceOwner(), _testTokens.ServiceOwnerTokenTt02, _generalSettingsTt02),
-            new(AuthenticationMethod.Maskinporten("-"), _testTokens.MaskinportenToken),
-            new(AuthenticationMethod.Custom(() => Task.FromResult(_testTokens.CustomToken)), _testTokens.CustomToken),
-        ];
+    // csharpier-ignore
+    public static TheoryData<TestCase> TestCases
+    {
+        get
+        {
+            TheoryData<TestCase> data = new();
+            data.Add(new(AuthenticationMethod.CurrentUser(), _testTokens.UserToken));
+            data.Add(new(AuthenticationMethod.ServiceOwner(), _testTokens.ServiceOwnerTokenLocal, _generalSettingsLocal));
+            data.Add(new(AuthenticationMethod.ServiceOwner(), _testTokens.ServiceOwnerTokenTt02, _generalSettingsTt02));
+            data.Add(new(AuthenticationMethod.Maskinporten("-"), _testTokens.MaskinportenToken));
+            data.Add(new(AuthenticationMethod.Custom(() => Task.FromResult(_testTokens.CustomToken)), _testTokens.CustomToken));
+            return data;
+        }
+    }
 
     [Theory]
     [MemberData(nameof(TestCases))]
@@ -89,6 +95,7 @@ public class AuthenticationTokenResolverTest
                         scopes.SequenceEqual(
                             new[]
                             {
+                                "altinn:serviceowner",
                                 "altinn:serviceowner/instances.read",
                                 "altinn:serviceowner/instances.write",
                                 "a",
@@ -109,7 +116,7 @@ public class AuthenticationTokenResolverTest
         var authMethodAltinn = AuthenticationMethod.ServiceOwner("a", "b");
         string requestedUrl = string.Empty;
         string expectedUrl =
-            "http://localhost:5101/Home/GetTestOrgToken?org=test-org&orgNumber=991825827&authenticationLevel=3&scopes=altinn%3Aserviceowner%2Finstances.read%20altinn%3Aserviceowner%2Finstances.write%20a%20b";
+            "http://localhost:5101/Home/GetTestOrgToken?org=test-org&orgNumber=991825827&authenticationLevel=3&scopes=altinn%3Aserviceowner%20altinn%3Aserviceowner%2Finstances.read%20altinn%3Aserviceowner%2Finstances.write%20a%20b";
 
         await using var fixture = Fixture.Create(
             _generalSettingsLocal,

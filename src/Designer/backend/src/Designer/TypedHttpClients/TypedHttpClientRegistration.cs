@@ -1,8 +1,13 @@
 #nullable disable
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Mime;
+using Altinn.ApiClients.Maskinporten.Config;
+using Altinn.ApiClients.Maskinporten.Extensions;
+using Altinn.ApiClients.Maskinporten.Helpers;
+using Altinn.ApiClients.Maskinporten.Services;
 using Altinn.Studio.Designer.Clients.Implementations;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
@@ -13,6 +18,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
+using Altinn.Studio.Designer.TypedHttpClients.AltinnNotification;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
@@ -75,6 +81,7 @@ public static class TypedHttpClientRegistration
             IAltinnStorageInstancesClient,
             AltinnStorageInstancesClient
         >();
+        services.AddAltinnNotificationsClient(config, env);
         services.AddKubernetesWrapperTypedHttpClient();
         services.AddHttpClient<IPolicyOptions, PolicyOptionsClient>();
         services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();
@@ -99,6 +106,68 @@ public static class TypedHttpClientRegistration
         services.AddRuntimeGatewayHttpClient(config, env);
 
         return services;
+    }
+
+    private static IServiceCollection AddAltinnNotificationsClient(
+        this IServiceCollection services,
+        IConfiguration config,
+        IHostEnvironment env
+    )
+    {
+        var clientBuilder = services.AddAuthenticatedAltinnPlatformTypedHttpClient<
+            IAltinnNotificationClient,
+            AltinnNotificationClient
+        >();
+        if (env.IsStaging() || env.IsProduction())
+        {
+            var settings = GetMaskinportenClientForNotifications(config, env);
+            services.RegisterMaskinportenClientDefinition<SettingsJwkClientDefinition>(
+                MaskinportenClientDefinitionHelper.GetClientDefinitionKey<IAltinnNotificationClient>(),
+                settings
+            );
+            clientBuilder.AddMaskinportenHttpMessageHandler<SettingsJwkClientDefinition, IAltinnNotificationClient>();
+        }
+        return services;
+    }
+
+    private static MaskinportenSettings GetMaskinportenClientForNotifications(
+        IConfiguration config,
+        IHostEnvironment env
+    )
+    {
+        var clients = config
+            .GetSection(nameof(MaskinportenClientForNotifications))
+            .Get<MaskinportenClientForNotifications>();
+        if (clients?.Count != 1)
+        {
+            throw new InvalidOperationException(
+                $"{nameof(MaskinportenClientForNotifications)} configuration must contain exactly one client"
+            );
+        }
+
+        var settings = clients.Single().Value;
+
+        if (
+            string.IsNullOrWhiteSpace(settings.ClientId)
+            || string.IsNullOrWhiteSpace(settings.Scope)
+            || string.IsNullOrWhiteSpace(settings.Environment)
+            || string.IsNullOrWhiteSpace(settings.EncodedJwk)
+        )
+        {
+            throw new InvalidOperationException(
+                $"{nameof(MaskinportenClientForNotifications)} must define ClientId, Scope, Environment and EncodedJwk"
+            );
+        }
+
+        string expectedEnvironment = env.IsProduction() ? "prod" : "test";
+        if (!string.Equals(settings.Environment, expectedEnvironment, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                $"{nameof(MaskinportenClientForNotifications)} Environment must be '{expectedEnvironment}' when ASPNETCORE_ENVIRONMENT is '{env.EnvironmentName}'"
+            );
+        }
+
+        return settings;
     }
 
     private static IHttpClientBuilder AddAzureDevOpsTypedHttpClient(

@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { Label } from 'src/app-components/Label/Label';
+import { Label } from '@app/form-component';
+
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { ImageCropper } from 'src/layout/ImageUpload/ImageCropper';

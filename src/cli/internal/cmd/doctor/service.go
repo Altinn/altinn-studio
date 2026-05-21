@@ -156,7 +156,7 @@ func New(cfg *config.Config, debugf func(format string, args ...any)) *Service {
 // BuildReport builds a doctor report from system state.
 func (s *Service) BuildReport(ctx context.Context) Report {
 	return Report{
-		CLI:           &CLI{Version: s.cfg.Version},
+		CLI:           &CLI{Version: s.cfg.Version.String()},
 		System:        buildSystem(ctx),
 		Prerequisites: s.collectPrerequisites(ctx),
 		Auth:          s.buildAuth(),

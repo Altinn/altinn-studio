@@ -8,18 +8,18 @@ import (
 	"io"
 	"strconv"
 
-	"altinn.studio/studioctl/internal/appmanager"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/osutil"
+	"altinn.studio/studioctl/internal/studioctlserver"
 	"altinn.studio/studioctl/internal/ui"
 )
 
 // AppPsCommand implements `studioctl app ps`.
 type AppPsCommand struct {
 	out     *ui.Output
-	manager appManagerAccess
+	server  studioctlServerAccess
 	service *appsvc.Service
 }
 
@@ -45,7 +45,7 @@ type appPsAppOutput struct {
 func newAppPsCommand(cfg *config.Config, out *ui.Output, service *appsvc.Service) *AppPsCommand {
 	return &AppPsCommand{
 		out:     out,
-		manager: newAppManagerAccess(cfg),
+		server:  newStudioctlServerAccess(cfg),
 		service: service,
 	}
 }
@@ -73,16 +73,16 @@ func (c *AppPsCommand) RunWithCommandPath(ctx context.Context, args []string, co
 		appID = target.AppID
 	}
 
-	if ensureErr := c.manager.ensure(ctx); ensureErr != nil {
-		return startAppManagerError(ensureErr)
+	if ensureErr := c.server.ensure(ctx); ensureErr != nil {
+		return startStudioctlServerError(ensureErr)
 	}
 
-	status, err := c.manager.client.Status(ctx)
+	status, err := c.server.client.Status(ctx)
 	if err != nil {
-		if errors.Is(err, appmanager.ErrNotRunning) {
+		if errors.Is(err, studioctlserver.ErrNotRunning) {
 			return appPsOutput{Apps: nil, Running: false, JSONOutput: flags.jsonOutput}.Print(c.out)
 		}
-		return fmt.Errorf("get app-manager status: %w", err)
+		return fmt.Errorf("get studioctl-server status: %w", err)
 	}
 
 	apps := appPsAppsOutput(sortDiscoveredApps(filterApps(status.Apps, appID, false)))
@@ -98,7 +98,7 @@ func (c *AppPsCommand) UsageFor(commandPath string) string {
 	return joinLines(
 		fmt.Sprintf("Usage: %s %s [-p PATH]", osutil.CurrentBin(), commandPath),
 		"",
-		"Lists app endpoints discovered by app-manager.",
+		"Lists app endpoints discovered by studioctl-server.",
 		"",
 		"Options:",
 		"  -p, --path PATH       Filter by app directory",
@@ -124,7 +124,7 @@ func (c *AppPsCommand) parseFlags(args []string, commandPath string) (appPsFlags
 	return flags, false, nil
 }
 
-func appPsAppsOutput(apps []appmanager.DiscoveredApp) []appPsAppOutput {
+func appPsAppsOutput(apps []studioctlserver.DiscoveredApp) []appPsAppOutput {
 	output := make([]appPsAppOutput, 0, len(apps))
 	for _, app := range apps {
 		id := appRuntimeID(app)
@@ -147,7 +147,7 @@ func (o appPsOutput) Print(out *ui.Output) error {
 		return printJSONOutput(out, "app ps", o)
 	}
 	if !o.Running {
-		out.Println("app-manager is not running.")
+		out.Println("studioctl-server is not running.")
 		return nil
 	}
 	if len(o.Apps) == 0 {
