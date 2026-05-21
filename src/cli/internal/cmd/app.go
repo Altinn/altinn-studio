@@ -44,11 +44,11 @@ type appBuildOutput struct {
 }
 
 type appBuildFlags struct {
-	appPath     string
-	mode        string
-	imageTag    string
-	push        bool
-	jsonOutput  bool
+	appPath    string
+	mode       string
+	imageTag   string
+	push       bool
+	jsonOutput bool
 }
 
 func (o appBuildOutput) PrintImage(out *ui.Output) error {
