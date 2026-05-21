@@ -12,6 +12,19 @@ import { app, org } from '@studio/testing/testids';
 import { BuildResult } from 'app-shared/types/Build';
 import { TestAppRouter } from '@studio/testing/testRoutingUtils';
 import { FeatureFlagsContextProvider } from '@studio/feature-flags';
+import type { OrgList } from 'app-shared/types/OrgList';
+
+const orgListWithTestOrg: OrgList = {
+  orgs: {
+    [org]: {
+      name: { nb: org },
+      logo: '',
+      orgnr: '123456789',
+      homepage: '',
+      environments: [],
+    },
+  },
+};
 
 const renderCreateRelease = (queries?: Partial<ServicesContextProps>) => {
   const allQueries: ServicesContextProps = {
@@ -48,6 +61,7 @@ describe('CreateRelease', () => {
     renderCreateRelease({
       getAppVersion: () =>
         Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '9.0.0-preview.1' }),
+      getOrgList: () => Promise.resolve(orgListWithTestOrg),
       getSelectedMaskinportenScopes: () => Promise.resolve({ scopes: [] }),
     });
 
@@ -63,6 +77,7 @@ describe('CreateRelease', () => {
 
     renderCreateRelease({
       getAppVersion: () => Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '8.3.0' }),
+      getOrgList: () => Promise.resolve(orgListWithTestOrg),
       getSelectedMaskinportenScopes,
     });
 
@@ -94,10 +109,32 @@ describe('CreateRelease', () => {
 
     renderCreateRelease({
       getAppVersion: () => Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '9.0.0' }),
+      getOrgList: () => Promise.resolve(orgListWithTestOrg),
       getSelectedMaskinportenScopes,
     });
 
     await waitFor(() => expect(getSelectedMaskinportenScopes).toHaveBeenCalled());
+    expect(
+      screen.queryByText(textMock('app_create_release.maskinporten_scopes_auto_add')),
+    ).not.toBeInTheDocument();
+  });
+
+  it('does not fetch selected Maskinporten scopes or show the notice for personal apps', async () => {
+    const getSelectedMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ scopes: [] }));
+
+    renderCreateRelease({
+      getAppVersion: () => Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '9.0.0' }),
+      getOrgList: () => Promise.resolve({ orgs: {} }),
+      getSelectedMaskinportenScopes,
+    });
+
+    expect(
+      await screen.findByLabelText(textMock('app_create_release.release_version_number')),
+    ).toBeInTheDocument();
+
+    expect(getSelectedMaskinportenScopes).not.toHaveBeenCalled();
     expect(
       screen.queryByText(textMock('app_create_release.maskinporten_scopes_auto_add')),
     ).not.toBeInTheDocument();

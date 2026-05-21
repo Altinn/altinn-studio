@@ -6,9 +6,12 @@ import { MaskinportenTab } from './Tabs/MaskinportenTab';
 import { AccessControlTab } from './Tabs/AccessControlTab';
 import { RunTab } from './Tabs/RunTab';
 import { useCurrentSettingsTab } from '../../hooks/useCurrentSettingsTab';
+import { useAppSettingsMenuTabConfigs } from '../../hooks/useAppSettingsMenuTabConfigs';
 
 export function TabsContent(): ReactElement {
-  const { tabToDisplay } = useCurrentSettingsTab();
+  const menuTabConfigs = useAppSettingsMenuTabConfigs();
+  const tabIds = menuTabConfigs.map((tabConfig) => tabConfig.tabId);
+  const { tabToDisplay } = useCurrentSettingsTab(tabIds);
 
   switch (tabToDisplay) {
     case 'about': {
