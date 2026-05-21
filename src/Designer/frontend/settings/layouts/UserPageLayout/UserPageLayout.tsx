@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useRequiredRoutePathsParams } from 'settings/hooks/useRequiredRoutePathsParams';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
+import { StringUtils } from '@studio/pure-functions';
 
 export const UserPageLayout = () => {
   const { t } = useTranslation();
@@ -28,7 +29,7 @@ export const UserPageLayout = () => {
     return <StudioPageError />;
   }
 
-  if (owner !== user?.login) {
+  if (!StringUtils.areCaseInsensitiveEqual(owner, user?.login ?? '')) {
     return <NotFound />;
   }
 

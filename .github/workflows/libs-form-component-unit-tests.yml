@@ -50,10 +50,11 @@ jobs:
 
       - name: install dependencies
         run: yarn --immutable
+
+      - name: type-check
+        run: yarn typecheck
       #
       # todo:
-      # - name: type-check
-      #   run: yarn typecheck
       # - name: run eslint
       #   run: yarn lint
       #
