@@ -97,7 +97,8 @@ public class ReleaseService : IReleaseService
             developer,
             cancellationToken
         );
-        string appMaskinportenScopes = SerializeAppScopes(appScopes);
+        List<string> appMaskinportenScopes = GetMaskinportenScopes(appScopes);
+        release.BuildInputs = new ReleaseBuildInputsEntity { MaskinportenScopes = appMaskinportenScopes };
 
         QueueBuildParameters queueBuildParameters = new()
         {
@@ -109,7 +110,7 @@ public class ReleaseService : IReleaseService
             AppDeployToken = deployToken,
             AppAuthHeaderName = authHeaderName,
             AltinnStudioHostname = _generalSettings.HostName,
-            AppMaskinportenScopes = appMaskinportenScopes,
+            AppMaskinportenScopes = SerializeAppScopes(appMaskinportenScopes),
         };
 
         // NOTE: these codepaths are sensitive to leaving partial state/progress if the user/caller
@@ -228,16 +229,17 @@ public class ReleaseService : IReleaseService
         return appScopes;
     }
 
-    private static string SerializeAppScopes(AppScopesEntity appScopes)
+    private static List<string> GetMaskinportenScopes(AppScopesEntity appScopes)
     {
-        if (appScopes?.Scopes is null || appScopes.Scopes.Count == 0)
-        {
-            return "[]";
-        }
-
-        var scopeList = appScopes.Scopes.Select(s => s.Scope).ToArray();
-        return JsonSerializer.Serialize(scopeList);
+        return appScopes
+                ?.Scopes.Select(s => s.Scope)
+                .Distinct(StringComparer.Ordinal)
+                .OrderBy(scope => scope, StringComparer.Ordinal)
+                .ToList()
+            ?? new List<string>();
     }
+
+    private static string SerializeAppScopes(List<string> scopes) => JsonSerializer.Serialize(scopes);
 
     private async Task<bool> ShouldAddDefaultMaskinportenScopes(
         ReleaseEntity release,

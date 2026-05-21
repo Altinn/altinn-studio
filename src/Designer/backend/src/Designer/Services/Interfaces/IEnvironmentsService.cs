@@ -32,4 +32,12 @@ public interface IEnvironmentsService
     /// <param name="org">Organization identifier</param>
     /// <returns>Organization number</returns>
     Task<string> GetAltinnOrgNumber(string org);
+
+    /// <summary>
+    /// Checks whether the organization identifier is registered in altinn-orgs.json
+    /// </summary>
+    /// <param name="org">Organization identifier</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>True when the organization identifier is registered in altinn-orgs.json</returns>
+    Task<bool> IsAltinnOrg(string org, CancellationToken cancellationToken = default);
 }

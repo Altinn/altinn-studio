@@ -3,11 +3,10 @@ import { useNavigation } from 'react-router';
 import { toast } from 'react-toastify';
 import type { FileRejection } from 'react-dropzone';
 
+import { Dropzone, mapExtensionToAcceptMime } from '@app/form-component';
 import { CloudUpIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { Dropzone } from 'src/app-components/Dropzone/Dropzone';
-import { mapExtensionToAcceptMime } from 'src/app-components/Dropzone/mapExtensionToAcceptMime';
 import { getDescriptionId, getLabelId, Label } from 'src/components/label/Label';
 import { useAddRejectedAttachments, useAttachmentsFor, useAttachmentsUploader } from 'src/features/attachments/hooks';
 import { Lang } from 'src/features/language/Lang';

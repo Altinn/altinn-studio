@@ -16,10 +16,13 @@ src/app-components/Button/Button.tsx
 src/app-components/Card/
 src/app-components/Date/
 src/app-components/Datepicker/
+src/app-components/Dropzone/
 src/app-components/Flex/
+src/app-components/HelpText/
 src/app-components/Input/
 src/app-components/Label/
 src/app-components/Number/
+src/app-components/Table/
 src/app-components/Text/
 src/app-components/TextArea/TextArea.tsx
 src/app-components/TimePicker/
