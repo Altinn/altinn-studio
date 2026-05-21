@@ -2,11 +2,11 @@ import { useRef } from 'react';
 
 import { renderHook } from '@testing-library/react';
 
-import { RefsUtils } from 'src/app-components/Dropzone/utils';
+import { RefsUtils } from './utils';
 
 describe('RefsUtils.merge', () => {
   it('should set callback ref', () => {
-    const callbackRef = jest.fn();
+    const callbackRef = vi.fn();
     const mergedRef = RefsUtils.merge(callbackRef);
     const element = document.createElement('div');
 
@@ -28,8 +28,8 @@ describe('RefsUtils.merge', () => {
   });
 
   it('should set multiple refs', () => {
-    const callbackRef1 = jest.fn();
-    const callbackRef2 = jest.fn();
+    const callbackRef1 = vi.fn();
+    const callbackRef2 = vi.fn();
     const { result: result1 } = renderHook(() => useRef<HTMLDivElement>(null));
     const { result: result2 } = renderHook(() => useRef<HTMLDivElement>(null));
     const refObject1 = result1.current;
@@ -47,7 +47,7 @@ describe('RefsUtils.merge', () => {
   });
 
   it('should handle undefined refs', () => {
-    const callbackRef = jest.fn();
+    const callbackRef = vi.fn();
     const mergedRef = RefsUtils.merge(undefined, callbackRef, undefined);
     const element = document.createElement('div');
 
@@ -58,7 +58,7 @@ describe('RefsUtils.merge', () => {
   });
 
   it('should handle null element', () => {
-    const callbackRef = jest.fn();
+    const callbackRef = vi.fn();
     const { result } = renderHook(() => useRef<HTMLDivElement>(null));
     const refObject = result.current;
     const mergedRef = RefsUtils.merge(callbackRef, refObject);
@@ -92,7 +92,7 @@ describe('RefsUtils.merge', () => {
   });
 
   it('should call callback ref multiple times when element changes', () => {
-    const callbackRef = jest.fn();
+    const callbackRef = vi.fn();
     const mergedRef = RefsUtils.merge(callbackRef);
     const element1 = document.createElement('div');
     const element2 = document.createElement('div');

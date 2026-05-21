@@ -2,7 +2,6 @@
 .github/
 .husky/
 .yarn/patches/jsdom-npm-26.1.0-3857255f02.patch
-.yarn/releases/yarn-4.12.0.cjs
 .yarnrc.yml
 LICENSE.md
 adr/001-component-library.md
@@ -17,6 +16,7 @@ src/app-components/Button/Button.tsx
 src/app-components/Card/
 src/app-components/Date/
 src/app-components/Datepicker/
+src/app-components/Dropzone/
 src/app-components/Flex/
 src/app-components/Input/
 src/app-components/Label/
@@ -53,7 +53,6 @@ src/features/form/layoutSettings/
 src/features/form/rules/RulesContext.tsx
 src/features/formData/LegacyRules.ts
 src/features/instance/instanceUtils.ts
-src/features/instantiate/InstantiationError.tsx
 src/features/instantiate/containers/InstantiateContainer.tsx
 src/features/instantiate/useInstantiation.tsx
 src/features/language/LangDataSourcesProvider.tsx
