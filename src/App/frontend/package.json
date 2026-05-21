@@ -111,7 +111,6 @@
     "jest-silent-reporter": "^0.6.0",
     "js-levenshtein": "1.1.6",
     "jsdom": "patch:jsdom@npm%3A26.1.0#~/.yarn/patches/jsdom-npm-26.1.0-3857255f02.patch",
-    "mime": "4.1.0",
     "mini-css-extract-plugin": "2.10.2",
     "prettier": "3.8.3",
     "puppeteer": "^24.29.0",

@@ -16,6 +16,7 @@ src/app-components/Button/Button.tsx
 src/app-components/Card/
 src/app-components/Date/
 src/app-components/Datepicker/
+src/app-components/Dropzone/
 src/app-components/Flex/
 src/app-components/FullWidthWrapper/
 src/app-components/Input/

@@ -2,6 +2,7 @@ export * from './AccordionItem';
 export * from './Button';
 export * from './Card';
 export * from './Datepicker';
+export * from './Dropzone';
 export * from './Flex';
 export * from './FullWidthWrapper';
 export * from './Input';
