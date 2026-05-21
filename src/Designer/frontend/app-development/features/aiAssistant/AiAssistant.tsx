@@ -30,7 +30,7 @@ function AiAssistant(): ReactElement {
   } = useAltinityAssistant();
 
   const texts: AssistantTexts = {
-    heading: t('ai_assistant.heading'),
+    heading: t('top_menu.ai_assistant'),
     preview: t('ai_assistant.preview'),
     fileBrowser: t('ai_assistant.file_browser'),
     hideThreads: t('ai_assistant.hide_threads'),
