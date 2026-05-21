@@ -26,6 +26,7 @@ import { changeBodyBackground } from 'src/utils/bodyStyling';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import { capitalizeName } from 'src/utils/stringHelper';
+import { getHostname } from 'src/utils/urls/appUrlHelper';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IParty } from 'src/types/shared';
 
@@ -207,6 +208,7 @@ export const PartySelection = () => {
                     ? 'party_selection.seeing_this_override'
                     : 'party_selection.seeing_this_preference'
                 }
+                params={[getHostname()]}
               />
             </Paragraph>
           </Flex>

@@ -254,7 +254,7 @@ export function nb() {
     'instantiate.authorization_error_ask':
       'Om du representerer en person, er det den du representerer som kan gi deg rettighet til å starte tjenesten. Representerer du en organisasjon er det de som har rollen tilgangsstyring innad i organisasjonen som kan gi deg rettighet.',
     'instantiate.authorization_error_check_rights':
-      '<a href="https://{0}/ui/Profile/" target="_blank">Se hvem som har rollen tilgangsstyring under "Andre med rettigheter til virksomheten"</a>.',
+      '<a href="https://am.ui.{0}/accessmanagement/ui" target="_blank">Se hvem som har rollen tilgangsstyring under "Andre med rettigheter til virksomheten"</a>.',
     'instantiate.authorization_error_info_rights':
       '<a href="https://{0}/hjelp/profil/enkelttjenester-og-roller/" target="_blank">Her finner du mer informasjon om roller og rettigheter</a>.',
     'instantiate.authorization_error_info_customer_service': 'Du kan også kontakte oss på brukerservice {0}.',
@@ -296,7 +296,7 @@ export function nb() {
     'party_selection.show_sub_unit': 'Vis underenheter',
     'party_selection.why_seeing_this': 'Hvorfor ser jeg dette?',
     'party_selection.seeing_this_preference':
-      'Du kan endre [profilinnstillingene](https://altinn.no/ui/Profile) dine for å ikke bli spurt om aktør hver gang du starter utfylling av et nytt skjema. Du finner denne innstillingen under **Profil** > **Avanserte innstillinger** > **Jeg ønsker ikke å bli spurt om aktør hver gang jeg starter utfylling av et nytt skjema**.',
+      'Du kan endre [profilinnstillingene](https://af.{0}/profile/parties) dine for å ikke bli spurt om aktør hver gang du starter utfylling av et nytt skjema. Du finner denne innstillingen under **Profil** > **Aktører**.',
     'party_selection.seeing_this_override': 'Denne appen er satt opp til å alltid spørre om aktør.',
     'payment.pay': 'Betal',
     'payment.summary': 'Oppsummering',

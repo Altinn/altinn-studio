@@ -251,7 +251,7 @@ export function en() {
     'instantiate.authorization_error_ask':
       'If you are representing a person it is the one you are representing that can give you the required rights to start this service. If you are you representing an organization you have to ask for the required rights from persons with access delegation rights within your organization.',
     'instantiate.authorization_error_check_rights':
-      '<a href="https://{0}/ui/Profile/" target="_blank">See who has rights to delegate access under "Others with rights within the organization"</a>.',
+      '<a href="https://am.ui.{0}/accessmanagement/ui" target="_blank">See who has rights to delegate access under "Others with rights within the organization"</a>.',
     'instantiate.authorization_error_info_rights':
       '<a href="https://{0}/hjelp/profil/enkelttjenester-og-roller/" target="_blank">Learn more about roles and rights</a>.',
     'instantiate.authorization_error_info_customer_service': 'You can also contact customer service at {0}.',
@@ -292,7 +292,7 @@ export function en() {
     'party_selection.show_sub_unit': 'Show sub units',
     'party_selection.why_seeing_this': 'Why am I seeing this?',
     'party_selection.seeing_this_preference':
-      'You can change your [profile settings](https://altinn.no/ui/Profile) to not get prompted for party selection each time you start a new instance. You can find this setting under **Profile** > **Advanced settings** > **Do not ask what party I represent each time I start to fill in a new form**.',
+      'You can change your [profile settings](https://af.{0}/profile/parties) to not get prompted for party selection each time you start a new instance. You can find this setting under **Profile** > **Parties**.',
     'party_selection.seeing_this_override': 'This app has been configured to always prompt you for party selection.',
     'payment.pay': 'Pay',
     'payment.summary': 'Summary',
