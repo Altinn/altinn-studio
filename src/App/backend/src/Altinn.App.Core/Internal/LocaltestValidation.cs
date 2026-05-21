@@ -20,6 +20,8 @@ internal static class LocaltestValidationDI
 
 internal sealed class LocaltestValidation : BackgroundService
 {
+    internal const int MinSupportedApiVersion = 6;
+
     private readonly ILogger<LocaltestValidation> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IOptionsMonitor<GeneralSettings> _generalSettings;
@@ -74,7 +76,7 @@ internal sealed class LocaltestValidation : BackgroundService
                         case VersionResult.Ok { Version: var version }:
                         {
                             _logger.LogInformation("Localtest version: {Version}", version);
-                            if (version >= 6)
+                            if (version >= MinSupportedApiVersion)
                                 return;
                             _logger.LogError(
                                 "Localtest version is not supported for this version of the app backend. Update your local copy of localtest (git pull)."
