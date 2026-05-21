@@ -1,10 +1,9 @@
 import React from 'react';
 
+import { Button } from '@app/form-component';
 import { PencilIcon, TrashIcon } from '@navikt/aksel-icons';
 
-import { Button } from 'src/app-components/Button/Button';
 import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
-import { translationKey } from 'src/AppComponentsBridge';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import { isAttachmentUploaded } from 'src/features/attachments';
@@ -90,7 +89,7 @@ export function FileTableButtons({
         color={showEditButton ? 'second' : 'danger'}
         onClick={() => (showEditButton ? handleEdit(index) : handleDelete())}
         aria-label={
-          showEditButton ? translationKey('general.edit_alt') : translationKey('form_filler.file_uploader_list_delete')
+          showEditButton ? langAsString('general.edit_alt') : langAsString('form_filler.file_uploader_list_delete')
         }
         icon={mobileView}
       >

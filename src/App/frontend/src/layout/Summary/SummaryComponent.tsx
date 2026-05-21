@@ -1,8 +1,8 @@
 import React from 'react';
 
+import { Flex } from '@app/form-component';
 import cn from 'classnames';
 
-import { Flex } from 'src/app-components/Flex/Flex';
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';

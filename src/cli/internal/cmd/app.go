@@ -310,7 +310,7 @@ func (c *AppCommand) runUpgrade(ctx context.Context, args []string) error {
 		Kind:                     flags.kind,
 		ConvertPackageReferences: false,
 	}
-	if flags.kind == appUpgradeKindV10 && detection.InStudioRepo {
+	if flags.kind == appUpgradeKindV9 && detection.InStudioRepo {
 		upgrade.ConvertPackageReferences = true
 		upgrade.StudioRoot = detection.StudioRoot
 	}
@@ -339,7 +339,7 @@ type appUpgradeFlags struct {
 const (
 	appUpgradeKindFrontendV4 = "frontend-v4"
 	appUpgradeKindBackendV8  = "backend-v8"
-	appUpgradeKindV10        = "v10"
+	appUpgradeKindV9         = "v9"
 )
 
 func (c *AppCommand) parseAppUpgradeFlags(args []string) (appUpgradeFlags, bool, error) {
@@ -363,7 +363,7 @@ func (c *AppCommand) parseAppUpgradeFlags(args []string) (appUpgradeFlags, bool,
 
 	remaining := fs.Args()
 	if flags.kind == "" && len(remaining) == 0 {
-		flags.kind = appUpgradeKindV10
+		flags.kind = appUpgradeKindV9
 		return flags, false, nil
 	}
 	if flags.kind == "" && len(remaining) == 1 {
@@ -378,18 +378,18 @@ func (c *AppCommand) parseAppUpgradeFlags(args []string) (appUpgradeFlags, bool,
 }
 
 func isSupportedAppUpgradeKind(kind string) bool {
-	return kind == appUpgradeKindFrontendV4 || kind == appUpgradeKindBackendV8 || kind == appUpgradeKindV10
+	return kind == appUpgradeKindFrontendV4 || kind == appUpgradeKindBackendV8 || kind == appUpgradeKindV9
 }
 
 func (c *AppCommand) appUpgradeUsageLine() string {
-	return osutil.CurrentBin() + " app upgrade [frontend-v4|backend-v8|v10] [-p PATH]"
+	return osutil.CurrentBin() + " app upgrade [frontend-v4|backend-v8|v9] [-p PATH]"
 }
 
 func (c *AppCommand) appUpgradeUsage() string {
 	return joinLines(
 		"Usage: "+c.appUpgradeUsageLine(),
 		"",
-		"Upgrades an Altinn app. Defaults to v10 when no kind is specified. Package references are converted to project references only for v10 apps inside an Altinn Studio repo.",
+		"Upgrades an Altinn app. Defaults to v9 when no kind is specified. Package references are converted to project references only for v9 apps inside an Altinn Studio repo.",
 		"",
 		"Options:",
 		"  -p, --path PATH             Specify app directory (overrides auto-detect)",

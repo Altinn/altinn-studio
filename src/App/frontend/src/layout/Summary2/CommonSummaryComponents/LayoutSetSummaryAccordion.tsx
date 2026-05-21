@@ -1,9 +1,8 @@
 import React from 'react';
 
-import { AccordionItem } from '@app/form-component';
+import { AccordionItem, Flex } from '@app/form-component';
 
 import { useTranslation } from 'src/app-components/AppComponentsProvider';
-import { Flex } from 'src/app-components/Flex/Flex';
 import classes from 'src/layout/Summary2/CommonSummaryComponents/LayoutSetSummaryAccordion.module.css';
 import { EmptyChildrenBoundary } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import { PageSummary } from 'src/layout/Summary2/SummaryComponent2/PageSummary';

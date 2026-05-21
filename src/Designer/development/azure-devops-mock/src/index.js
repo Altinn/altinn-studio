@@ -17,6 +17,7 @@ import {
 } from './routes/storage.js';
 import { environmentsRoute } from './routes/environments.js';
 import { appMetadataRoute, appProcessRoute } from './routes/apps.js';
+import { notificationRoute } from './routes/notifications.js';
 import { accessibleForAllScopesRoute, accessScopesRoute } from './routes/maskinporten.js';
 
 const app = express();
@@ -48,6 +49,7 @@ app.get('/storage/api/v1/studio/instances/:org/:app/:instanceId', storageInstanc
 app.get('/api/v1/scopes/all', accessibleForAllScopesRoute);
 app.get('/api/v1/scopes/access/all', accessScopesRoute);
 app.post('/_apis/build/builds/', buildsRoute);
+app.post('/notifications/api/v1/future/orders', notificationRoute);
 
 app.all('*', function (req, res) {
   console.log(req.method + ' ' + req.originalUrl);

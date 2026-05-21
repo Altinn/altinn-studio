@@ -1,11 +1,11 @@
 import React from 'react';
 
-import { Label } from 'src/app-components/Label/Label';
-import { TextArea } from 'src/app-components/TextArea/TextArea';
-import { translationKey } from 'src/AppComponentsBridge';
+import { Label, TextArea } from '@app/form-component';
+
 import { getDescriptionId } from 'src/components/label/Label';
 import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -20,6 +20,7 @@ export type ITextAreaProps = Readonly<PropsFromGenericComponent<'TextArea'>>;
 
 export function TextAreaComponent({ baseComponentId, overrideDisplay }: ITextAreaProps) {
   const isValid = useIsValid(baseComponentId);
+  const { langAsString } = useLanguage();
   const {
     id,
     readOnly,
@@ -78,7 +79,9 @@ export function TextAreaComponent({ baseComponentId, overrideDisplay }: ITextAre
           dataTestId={id}
           ariaDescribedBy={textAreaDescribedBy}
           ariaLabel={
-            overrideDisplay?.renderedInTable === true ? translationKey(textResourceBindings?.title) : undefined
+            overrideDisplay?.renderedInTable === true && textResourceBindings?.title
+              ? langAsString(textResourceBindings.title)
+              : undefined
           }
           autoComplete={autocomplete}
           style={{ minHeight: '150px', height: '150px', width: '100%' }}

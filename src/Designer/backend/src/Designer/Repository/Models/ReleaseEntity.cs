@@ -1,4 +1,5 @@
 #nullable disable
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Repository.Models;
@@ -33,8 +34,26 @@ public class ReleaseEntity : BaseEntity
     public string TargetCommitish { get; set; }
 
     /// <summary>
+    /// Inputs that were used to build the app release.
+    /// </summary>
+    [JsonProperty("buildInputs")]
+    public ReleaseBuildInputsEntity BuildInputs { get; set; }
+
+    /// <summary>
     /// Build
     /// </summary>
     [JsonProperty("build")]
     public BuildEntity Build { get; set; }
+}
+
+/// <summary>
+/// Build input snapshot for a release.
+/// </summary>
+public class ReleaseBuildInputsEntity
+{
+    /// <summary>
+    /// Maskinporten scopes included in the build.
+    /// </summary>
+    [JsonProperty("maskinportenScopes")]
+    public List<string> MaskinportenScopes { get; set; }
 }

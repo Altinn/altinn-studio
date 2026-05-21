@@ -290,14 +290,14 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
         );
     }
 
-    public IReadOnlyList<string> GetLogLines(int startLine = 0)
+    public async Task<IReadOnlyList<string>> GetLogLines(int startLine, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(LogPath) || !File.Exists(LogPath))
             return [];
 
         try
         {
-            return ReadLogLines(LogPath, startLine);
+            return await ReadLogLines(LogPath, startLine, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -306,15 +306,27 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
         }
     }
 
-    public int GetLogLineCount() => GetLogLines().Count;
+    public async Task<int> GetLogLineCount(CancellationToken cancellationToken) =>
+        (await GetLogLines(startLine: 0, cancellationToken)).Count;
 
-    internal static IReadOnlyList<string> ReadLogLines(string path, int startLine = 0)
+    internal static async Task<IReadOnlyList<string>> ReadLogLines(
+        string path,
+        int startLine,
+        CancellationToken cancellationToken
+    )
     {
-        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+        using var stream = new FileStream(
+            path,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.ReadWrite | FileShare.Delete,
+            bufferSize: 4096,
+            options: FileOptions.Asynchronous | FileOptions.SequentialScan
+        );
         using var reader = new StreamReader(stream);
 
         var lines = new List<string>();
-        while (reader.ReadLine() is { } line)
+        while (await reader.ReadLineAsync(cancellationToken) is { } line)
             lines.Add(line);
 
         if (startLine <= 0)
