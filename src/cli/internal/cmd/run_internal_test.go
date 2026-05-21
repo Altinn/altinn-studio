@@ -391,15 +391,7 @@ func TestPrepareDockerRunImagePullUsesProgressRenderer(t *testing.T) {
 		return nil
 	}
 
-	err := cmd.prepareDockerRunImage(
-		t.Context(),
-		client,
-		repocontext.Detection{},
-		envtopology.NewLocal(envtopology.DefaultIngressPortString()),
-		flags.imageTag,
-		flags,
-		progress,
-	)
+	err := cmd.prepareDockerRunImage(t.Context(), client, repocontext.Detection{}, flags.imageTag, flags, progress)
 	if err != nil {
 		t.Fatalf("prepareDockerRunImage() error = %v", err)
 	}

@@ -35,30 +35,6 @@ type BuildSpec struct {
 	Build             types.BuildOptions
 }
 
-// SetAppFrontendAssetBaseURL injects a frontend asset base URL into the built app image.
-func SetAppFrontendAssetBaseURL(spec *BuildSpec, value string) error {
-	if value == "" {
-		return nil
-	}
-
-	content := spec.DockerfileContent
-	if content == "" {
-		data, err := os.ReadFile(spec.Dockerfile)
-		if err != nil {
-			return fmt.Errorf("read dockerfile: %w", err)
-		}
-		content = string(data)
-	}
-
-	if !strings.HasSuffix(content, "\n") {
-		content += "\n"
-	}
-	content += "ENV AppSettings__AppFrontendAssetBaseUrl=" + value + "\n"
-	spec.Dockerfile = ""
-	spec.DockerfileContent = content
-	return nil
-}
-
 // BuildSpecForApp builds image build configuration for an app container.
 func BuildSpecForApp(result repocontext.Detection, imageTag string) (BuildSpec, error) {
 	runRepo, err := newRepoContext(result)

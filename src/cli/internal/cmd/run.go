@@ -1217,7 +1217,6 @@ func (c *RunCommand) runDocker(
 		ctx,
 		client,
 		result,
-		topology,
 		spec.Config.Image,
 		flags,
 		progress,
@@ -1440,7 +1439,6 @@ func (c *RunCommand) prepareDockerRunImage(
 	ctx context.Context,
 	client containerruntime.ContainerClient,
 	result repocontext.Detection,
-	topology envtopology.Local,
 	imageTag string,
 	flags runFlags,
 	progress *containerRunProgress,
@@ -1463,9 +1461,6 @@ func (c *RunCommand) prepareDockerRunImage(
 	spec, err := appimage.BuildSpecForApp(result, imageTag)
 	if err != nil {
 		return fmt.Errorf("build docker image spec: %w", err)
-	}
-	if err := appimage.SetAppFrontendAssetBaseURL(&spec, runAppFrontendAssetBaseUrl(topology, flags)); err != nil {
-		return fmt.Errorf("set app frontend asset base URL: %w", err)
 	}
 	cleanupDockerfile, prepareErr := appimage.MaterializeDockerfile(&spec)
 	if prepareErr != nil {

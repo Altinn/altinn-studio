@@ -16,7 +16,6 @@ import (
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
-	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/studio"
 	"altinn.studio/studioctl/internal/studioctlserver"
@@ -49,7 +48,6 @@ type appBuildFlags struct {
 	mode        string
 	imageTag    string
 	push        bool
-	devFrontend bool
 	jsonOutput  bool
 }
 
@@ -172,13 +170,6 @@ func (c *AppCommand) runBuild(ctx context.Context, args []string) error {
 	if err != nil {
 		return fmt.Errorf("build docker image spec: %w", err)
 	}
-	err = appimage.SetAppFrontendAssetBaseURL(
-		&spec,
-		AppBuildFrontendAssetBaseURL(flags.devFrontend),
-	)
-	if err != nil {
-		return fmt.Errorf("set app frontend asset base URL: %w", err)
-	}
 	cleanupDockerfile, err := appimage.MaterializeDockerfile(&spec)
 	if err != nil {
 		return fmt.Errorf("materialize dockerfile: %w", err)
@@ -225,7 +216,6 @@ func (c *AppCommand) parseAppBuildFlags(args []string) (appBuildFlags, bool, err
 	fs.StringVar(&flags.mode, "mode", runModeContainer, "Build mode")
 	fs.StringVar(&flags.imageTag, "image-tag", "", "App container image tag")
 	fs.BoolVar(&flags.push, "push", false, "Push app container image after build")
-	fs.BoolVar(&flags.devFrontend, "dev-frontend", false, "Use frontend dev server assets")
 	fs.BoolVar(&flags.jsonOutput, "json", false, "Output as JSON")
 
 	if err := fs.Parse(args); err != nil {
@@ -256,21 +246,11 @@ func (c *AppCommand) appBuildUsage() string {
 		"Options:",
 		"  -p, --path PATH       Specify app directory (overrides auto-detect)",
 		"  -m, --mode MODE       Build mode: container (default: container)",
-		"  --dev-frontend        Use frontend dev server assets",
 		"  --image-tag IMAGE     App container image tag",
 		"  --push                Push app container image after build",
 		"  --json                Output as JSON",
 		"  -h, --help            Show this help",
 	)
-}
-
-// AppBuildFrontendAssetBaseURL returns the frontend asset base URL for app builds.
-func AppBuildFrontendAssetBaseURL(devFrontend bool) string {
-	if !devFrontend {
-		return ""
-	}
-	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
-	return topology.PublicBaseURL(envtopology.ComponentFrontendDevServer)
 }
 
 func (c *AppCommand) runUpdate(ctx context.Context, args []string) error {

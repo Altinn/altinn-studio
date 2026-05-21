@@ -100,7 +100,7 @@ jobs:
               while (nextTarget < targets.length) {
                 const target = targets[nextTarget++];
                 core.info(`Worker ${workerId}: building ${target.path}`);
-                await exec.exec('studioctl', ['app', 'build', '--path', target.path, '--image-tag', target.image, '--push', '--dev-frontend']);
+                await exec.exec('studioctl', ['app', 'build', '--path', target.path, '--image-tag', target.image, '--push']);
               }
             }
 
