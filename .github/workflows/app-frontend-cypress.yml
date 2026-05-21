@@ -134,7 +134,6 @@ jobs:
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
         with:
-          run-frontend: true
           run-localtest: true
           app-run-targets-json: ${{ needs.build-app-images.outputs.app-run-targets-json }}
 
@@ -244,7 +243,6 @@ jobs:
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
         with:
-          run-frontend: true
           run-localtest: true
           app-run-targets-json: ${{ steps.app-run-targets.outputs.app-run-targets-json }}
 

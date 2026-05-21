@@ -44,7 +44,6 @@ jobs:
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
         with:
-          run-frontend: true
           run-localtest: true
           app-run-targets-json: |
             [{ "path": "src/test/apps/frontend-test" }]
