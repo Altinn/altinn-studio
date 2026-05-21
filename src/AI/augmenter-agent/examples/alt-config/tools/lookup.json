@@ -1,0 +1,12 @@
+{
+  "name": "lookup",
+  "description": "Slå opp en verdi i en konfigurert oppslagstabell via nøkkel. (Denne konfigurasjonen har ingen LookupRegistry-tabeller — kun MappingRegistry — så dette verktøyet skal ikke kalles.)",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "registry": { "type": "string", "description": "Navn på oppslagstabellen" },
+      "key":      { "type": "string", "description": "Nøkkelen å slå opp" }
+    },
+    "required": ["registry", "key"]
+  }
+}

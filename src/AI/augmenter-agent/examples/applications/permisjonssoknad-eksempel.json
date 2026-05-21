@@ -1,0 +1,27 @@
+{
+  "FlatData": {
+    "Permisjonstype": "studiepermisjon",
+    "Soeknadsdato": "2026-04-01",
+    "Soeker": {
+      "FulltNavn": "Kari Olsen",
+      "Fornavn": "Kari",
+      "Etternavn": "Olsen",
+      "Foedselsnummer": "01058512345",
+      "Ansattnummer": "E-12048",
+      "AvdelingsKode": "ENG-FE"
+    },
+    "Permisjonsperiode": {
+      "StartDato": "2026-05-15",
+      "SluttDato": "2026-05-22"
+    },
+    "Begrunnelse": "Deltakelse på fagkurs i sikker programvareutvikling, arrangert av NTNU Videre.",
+    "Stedfortreder": {
+      "FulltNavn": "Per Hansen",
+      "Ansattnummer": "E-12091"
+    },
+    "Vedlegg": [
+      { "Type": "kursbevis",     "Filnavn": "ntnu-kursbekreftelse.pdf" },
+      { "Type": "godkjenning",   "Filnavn": "leder-signatur.pdf" }
+    ]
+  }
+}

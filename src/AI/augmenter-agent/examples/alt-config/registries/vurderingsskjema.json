@@ -1,0 +1,27 @@
+{
+  "defaultStatus": "ikke_vurdert",
+  "sections": [
+    {
+      "id": "formelle_krav",
+      "label": "Formelle krav",
+      "items": [
+        { "id": "soker_oppgitt",   "label": "Søker er identifisert (navn + fødselsnummer)" },
+        { "id": "periode_gyldig",  "label": "Permisjonsperioden er gyldig" }
+      ]
+    },
+    {
+      "id": "tidskrav",
+      "label": "Tidskrav",
+      "items": [
+        { "id": "varslet_i_tide",  "label": "Søknaden er sendt minst 14 dager før permisjonsstart" }
+      ]
+    },
+    {
+      "id": "helhetsvurdering",
+      "label": "Helhetsvurdering",
+      "items": [
+        { "id": "samlet_vurdering", "label": "Samlet vurdering av søknaden" }
+      ]
+    }
+  ]
+}

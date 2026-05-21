@@ -147,11 +147,14 @@ it short and concrete; the per-item markdown rules carry the specifics.
 ## `tools/`
 
 One `<tool_name>.json` per tool. The image has 8 built-in tool
-*implementations*; this folder supplies their public-facing description and
-JSON-schema (so the model sees them as proper OpenAI tools and the image
-ships no domain vocabulary).
+*implementations*; this folder supplies their public-facing name,
+description, and JSON-schema (so the model sees them as proper OpenAI tools
+and the image ships no domain vocabulary).
 
-Required filenames (one per built-in tool):
+**All 8 files are required** — `ToolRegistry` fails at startup if any
+built-in implementation is missing a matching definition file. (A tenant
+that genuinely doesn't want a tool exposed can ship the file with a
+discouraging description, but the file itself must exist.)
 
 ```
 tools/
@@ -165,22 +168,21 @@ tools/
 └── time_within_window.json
 ```
 
-Each file is OpenAI tool-definition JSON:
+Each file is the OpenAI tool *function* spec — the tools/ files contain the
+inner function object only; the outer `{"type":"function", ...}` wrapper is
+added by the image when sending to the gateway:
 
 ```json
 {
-  "type": "function",
-  "function": {
-    "name": "age_from_id",
-    "description": "Compute age in years on a reference date from a national ID.",
-    "parameters": { "type": "object", "properties": { ... }, "required": [...] }
-  }
+  "name": "age_from_id",
+  "description": "Compute age in years on a reference date from a national ID.",
+  "parameters": { "type": "object", "properties": { ... }, "required": [...] }
 }
 ```
 
-The `name` field must match a built-in tool name. Missing files cause that
-tool to be unavailable; the model loses one capability but the orchestrator
-keeps running.
+The `name` field must match a built-in tool name exactly. Definitions
+without a matching implementation (extra files) also fail startup, so the
+tools/ folder and the image's built-in set must be one-to-one.
 
 ---
 

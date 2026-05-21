@@ -1,0 +1,11 @@
+{
+  "name": "count_attachments",
+  "description": "Tell vedlegg på søknaden, valgfritt filtrert på filnavn-substring. Bruk dette for å sjekke om dokumentasjon (legeerklæring, kursbevis, etc.) er vedlagt.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "name_contains": { "type": "string", "description": "Valgfri substring i filnavn (case-insensitiv). Utelat for total-telling." }
+    },
+    "required": []
+  }
+}

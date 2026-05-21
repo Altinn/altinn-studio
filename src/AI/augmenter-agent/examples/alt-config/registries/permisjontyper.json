@@ -1,0 +1,11 @@
+{
+  "default": "Annet",
+  "references": ["Permisjonstype"],
+  "mapping": {
+    "ferie":              "Ferie",
+    "studiepermisjon":    "Studiepermisjon",
+    "foreldrepermisjon":  "Foreldrepermisjon",
+    "sykefravar":         "Sykefraværsoppfølging",
+    "velferd":            "Velferdspermisjon"
+  }
+}

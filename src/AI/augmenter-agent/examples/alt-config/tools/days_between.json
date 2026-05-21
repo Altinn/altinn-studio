@@ -1,0 +1,12 @@
+{
+  "name": "days_between",
+  "description": "Antall kalenderdager mellom to ISO-datoer (start inkludert, slutt ekskludert). Bruk dette for å beregne om en søknad er sendt minst N dager før permisjonsstart, eller andre tidsfrister.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "from_date": { "type": "string", "description": "Startdato (YYYY-MM-DD)" },
+      "to_date":   { "type": "string", "description": "Sluttdato (YYYY-MM-DD)" }
+    },
+    "required": ["from_date", "to_date"]
+  }
+}

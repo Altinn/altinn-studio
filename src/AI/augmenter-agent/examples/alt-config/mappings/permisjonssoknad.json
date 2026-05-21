@@ -1,0 +1,80 @@
+{
+  "output": {
+    "meta": {
+      "saksnummer":       { "kind": "const", "value": "–" },
+      "soeknadsdato":     { "kind": "path",  "source": "Soeknadsdato",          "default": "–" },
+      "vurderingsdato":   { "kind": "today" },
+      "permisjonstype":   {
+        "kind": "mapping",
+        "registry": "permisjontyper.json",
+        "source": "Permisjonstype"
+      }
+    },
+
+    "soker": {
+      "navn": {
+        "kind": "coalesce",
+        "items": [
+          { "kind": "path", "source": "Soeker.FulltNavn" },
+          {
+            "kind": "concat",
+            "parts": [
+              { "kind": "path", "source": "Soeker.Fornavn" },
+              { "kind": "path", "source": "Soeker.Mellomnavn" },
+              { "kind": "path", "source": "Soeker.Etternavn" }
+            ],
+            "separator": " "
+          }
+        ],
+        "default": "Ukjent søker"
+      },
+      "foedselsnummer": { "kind": "path", "source": "Soeker.Foedselsnummer", "default": "–" },
+      "ansattnummer":   { "kind": "path", "source": "Soeker.Ansattnummer",   "default": "–" },
+      "avdeling":       { "kind": "path", "source": "Soeker.AvdelingsKode",  "default": "–" }
+    },
+
+    "permisjon": {
+      "type":         {
+        "kind": "mapping",
+        "registry": "permisjontyper.json",
+        "source": "Permisjonstype"
+      },
+      "fra_dato":     { "kind": "path", "source": "Permisjonsperiode.StartDato", "default": "–" },
+      "til_dato":     { "kind": "path", "source": "Permisjonsperiode.SluttDato", "default": "–" },
+      "begrunnelse":  { "kind": "path", "source": "Begrunnelse", "default": "Ikke oppgitt" }
+    },
+
+    "stedfortreder": {
+      "kind": "object_if_present",
+      "source": "Stedfortreder",
+      "require_fields": ["Ansattnummer"],
+      "fields": {
+        "navn": {
+          "kind": "coalesce",
+          "sources": [
+            { "kind": "path", "source": "Stedfortreder.FulltNavn" },
+            {
+              "kind": "concat",
+              "parts": [
+                { "kind": "path", "source": "Stedfortreder.Fornavn" },
+                { "kind": "path", "source": "Stedfortreder.Etternavn" }
+              ],
+              "separator": " "
+            }
+          ],
+          "default": "Ukjent stedfortreder"
+        },
+        "ansattnummer": { "kind": "path", "source": "Stedfortreder.Ansattnummer", "default": "–" }
+      }
+    },
+
+    "vedlegg": {
+      "kind": "list_map",
+      "source": "Vedlegg",
+      "fields": {
+        "type":     { "kind": "path", "source": "Type",     "default": "ukjent" },
+        "filnavn":  { "kind": "path", "source": "Filnavn",  "default": "–" }
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "age_from_id",
+  "description": "Beregn alder i hele år for en person ut fra fødselsnummer på en referansedato. (Ikke i bruk i denne konfigurasjonen — permisjonssøknad har ingen aldersgrense — men implementasjonen er tilgjengelig.)",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "id":             { "type": "string", "description": "Identifikator (f.eks. 11-sifret norsk fødselsnummer)" },
+      "reference_date": { "type": "string", "description": "ISO-8601 dato YYYY-MM-DD" },
+      "decoder":        { "type": "string", "description": "Decoder å bruke. Støttede: 'fnr-no'." }
+    },
+    "required": ["id", "reference_date", "decoder"]
+  }
+}

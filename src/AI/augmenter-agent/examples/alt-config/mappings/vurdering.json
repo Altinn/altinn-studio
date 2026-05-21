@@ -1,0 +1,34 @@
+{
+  "output": {
+    "meta": {
+      "soeknadsdato":   { "kind": "path", "source": "Soeknadsdato", "default": "–" },
+      "vurderingsdato": { "kind": "today" },
+      "permisjonstype": {
+        "kind": "mapping",
+        "registry": "permisjontyper.json",
+        "source": "Permisjonstype"
+      }
+    },
+
+    "soker": {
+      "navn": {
+        "kind": "coalesce",
+        "items": [
+          { "kind": "path", "source": "Soeker.FulltNavn" },
+          {
+            "kind": "concat",
+            "parts": [
+              { "kind": "path", "source": "Soeker.Fornavn" },
+              { "kind": "path", "source": "Soeker.Etternavn" }
+            ],
+            "separator": " "
+          }
+        ],
+        "default": "Ukjent søker"
+      },
+      "ansattnummer": { "kind": "path", "source": "Soeker.Ansattnummer", "default": "–" }
+    },
+
+    "sjekkliste": { "kind": "const", "value": {} }
+  }
+}

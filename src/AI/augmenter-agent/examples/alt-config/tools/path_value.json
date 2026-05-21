@@ -1,0 +1,11 @@
+{
+  "name": "path_value",
+  "description": "Les en verdi fra søknads-JSON via dot-path med valgfri [index]. Eksempel: 'Soeker.Foedselsnummer' eller 'Vedlegg[0].Filnavn'. Returnerer present=False hvis et mellomliggende steg mangler — bruk det for å avgjøre om et felt faktisk er oppgitt.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "json_path": { "type": "string", "description": "Dot-path med valgfri [n]-indeks" }
+    },
+    "required": ["json_path"]
+  }
+}

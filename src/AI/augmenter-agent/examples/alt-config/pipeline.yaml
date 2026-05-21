@@ -1,0 +1,23 @@
+# Alt-config: personalpermisjon — a deliberately-different domain proving the
+# image is multi-tenant. Same image binary that runs config/, different
+# pipeline + mappings + rules + registries + templates.
+#
+# Mount this folder instead of config/ to switch tenants:
+#   volumes:
+#     - ./examples/alt-config:/etc/augmenter:ro
+
+steps:
+  - name: permisjonssoknad
+    type: mapping-pdf
+    mapper: permisjonssoknad
+    template: permisjonssoknad.typ
+    output: permisjonssoknad.pdf
+
+  - name: vurdering
+    type: agent-pdf-orchestrated
+    mapper: vurdering
+    template: vurdering.typ
+    output: vurdering.pdf
+    rulesFolder: .
+    schemaFile: vurderingsskjema.json
+    concurrency: 2
