@@ -8,8 +8,8 @@ const (
 )
 
 type processSnapshotEntry struct {
-	parentPID uint32
 	exe       string
+	parentPID uint32
 }
 
 func isPowerShellISEProcessTree(currentPID uint32, processes map[uint32]processSnapshotEntry) bool {

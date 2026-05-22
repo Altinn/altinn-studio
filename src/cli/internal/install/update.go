@@ -445,7 +445,7 @@ func (s *Service) UninstallBinaryAt(execPath string) (UninstallResult, error) {
 		return UninstallResult{}, fmt.Errorf("remove binary %q: %w", execPath, err)
 	}
 
-	return UninstallResult{RemovedPath: execPath}, nil
+	return UninstallResult{RemovedPath: execPath, RemovedDir: ""}, nil
 }
 
 // RemoveHome removes the studioctl home directory.

@@ -38,7 +38,9 @@ func TestColors_DisabledWhenNoColorIsSet(t *testing.T) {
 func TestColors_DisabledWhenTerminalDecorationsDisabled(t *testing.T) {
 	setTerminalDecorationsForTest(t, false)
 	t.Setenv("NO_COLOR", "")
-	os.Unsetenv("NO_COLOR")
+	if err := os.Unsetenv("NO_COLOR"); err != nil {
+		t.Fatalf("unset NO_COLOR: %v", err)
+	}
 
 	if Colors() {
 		t.Fatal("Colors() = true, want false when terminal decorations are disabled")
@@ -48,7 +50,9 @@ func TestColors_DisabledWhenTerminalDecorationsDisabled(t *testing.T) {
 func TestColors_DisabledWhenTerminalDecorationsEnvSet(t *testing.T) {
 	t.Setenv(osutil.DisableTerminalDecorationsEnv, "1")
 	t.Setenv("NO_COLOR", "")
-	os.Unsetenv("NO_COLOR")
+	if err := os.Unsetenv("NO_COLOR"); err != nil {
+		t.Fatalf("unset NO_COLOR: %v", err)
+	}
 
 	if Colors() {
 		t.Fatal("Colors() = true, want false when terminal decorations env is set")
