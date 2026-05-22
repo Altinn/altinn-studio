@@ -21,6 +21,7 @@ type Spinner struct {
 	style   Style
 	done    chan struct{}
 	message string
+	animate bool
 	mu      sync.Mutex
 	running bool
 }
@@ -31,6 +32,7 @@ func NewSpinner(out *Output, message string) *Spinner {
 		out:     out,
 		message: message,
 		style:   ColorStyle(ColorBlue),
+		animate: terminalDecorations(),
 		done:    nil, // initialized on Start()
 		mu:      sync.Mutex{},
 		running: false,
@@ -46,7 +48,13 @@ func (s *Spinner) Start() {
 	}
 	s.running = true
 	s.done = make(chan struct{})
+	animate := s.animate
 	s.mu.Unlock()
+
+	if !animate {
+		s.out.Println(s.message)
+		return
+	}
 
 	go s.run()
 }
@@ -60,9 +68,12 @@ func (s *Spinner) Stop() {
 	}
 	s.running = false
 	close(s.done)
+	animate := s.animate
 	s.mu.Unlock()
 
-	s.clearLine()
+	if animate {
+		s.clearLine()
+	}
 }
 
 // StopWithSuccess stops the spinner and shows a success message.

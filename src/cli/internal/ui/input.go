@@ -19,6 +19,7 @@ import (
 var ErrInterrupted = errors.New("interrupted")
 
 var errFDOverflow = errors.New("file descriptor overflow")
+var errInteractiveOutputUnavailable = errors.New("interactive output is unavailable")
 
 // Control characters for terminal input.
 const (
@@ -56,6 +57,9 @@ func ReadPassword(ctx context.Context, out *Output) ([]byte, error) {
 
 // InteractiveInput returns input suitable for interactive prompts.
 func InteractiveInput() (io.Reader, func() error, error) {
+	if !StdoutIsTerminal() {
+		return nil, nil, errInteractiveOutputUnavailable
+	}
 	if stdinIsTerminal() {
 		return os.Stdin, func() error { return nil }, nil
 	}
