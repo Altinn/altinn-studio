@@ -6,11 +6,18 @@
    -->
   <ItemGroup Condition="'$(IsAltinnApp)' == 'true'">
     <AltinnAppFrontendAsset Include="$(MSBuildThisFileDirectory)Altinn.App.Api/altinn-app-frontend/**/*" />
-    <Content Include="@(AltinnAppFrontendAsset)">
-      <Link>wwwroot/altinn-app-frontend/%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <TargetPath>wwwroot/altinn-app-frontend/%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <StaticWebAsset Include="@(AltinnAppFrontendAsset)">
+      <SourceType>Package</SourceType>
+      <SourceId>Altinn.App.Api</SourceId>
+      <ContentRoot>$(MSBuildThisFileDirectory)Altinn.App.Api/</ContentRoot>
+      <BasePath>/</BasePath>
+      <RelativePath>altinn-app-frontend/%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+      <AssetKind>All</AssetKind>
+      <AssetMode>All</AssetMode>
+      <AssetRole>Primary</AssetRole>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
+      <OriginalItemSpec>%(FullPath)</OriginalItemSpec>
+    </StaticWebAsset>
   </ItemGroup>
 </Project>
