@@ -1,29 +1,14 @@
-import React from 'react';
+import { render, screen } from '@testing-library/react';
 
-import { screen } from '@testing-library/react';
+import { AltinnContentLoader, type IAltinnContentLoaderProps } from './AltinnContentLoader';
 
-import {
-  AltinnContentLoader,
-  IAltinnContentLoaderProps,
-} from 'src/app-components/loading/AltinnContentLoader/AltinnContentLoader';
-import { renderWithAppComponentsProvider } from 'src/app-components/test/renderWithAppComponentsProvider';
-
-const render = (props: Omit<IAltinnContentLoaderProps, 'reason'> = {}) => {
-  const allProps = {
-    ...props,
-  };
-
-  renderWithAppComponentsProvider(
-    <AltinnContentLoader
-      reason='testing'
-      {...allProps}
-    />,
-  );
+const renderLoader = (props: Omit<IAltinnContentLoaderProps, 'reason'> = {}) => {
+  render(<AltinnContentLoader reason='testing' {...props} />);
 };
 
 describe('AltinnContentLoader', () => {
   it('should show default loader when no variant is set', () => {
-    render();
+    renderLoader();
 
     expect(screen.getByTestId('AltinnContentIcon')).toBeInTheDocument();
     expect(screen.queryByTestId('AltinnContentIconFormData')).not.toBeInTheDocument();
@@ -31,7 +16,7 @@ describe('AltinnContentLoader', () => {
   });
 
   it('should show form loader when variant=form', () => {
-    render({ variant: 'form' });
+    renderLoader({ variant: 'form' });
 
     expect(screen.queryByTestId('AltinnContentIconFormData')).toBeInTheDocument();
     expect(screen.queryByTestId('AltinnContentIconReceipt')).not.toBeInTheDocument();
@@ -39,7 +24,7 @@ describe('AltinnContentLoader', () => {
   });
 
   it('should show receipt loader when variant=receipt', () => {
-    render({ variant: 'receipt' });
+    renderLoader({ variant: 'receipt' });
 
     expect(screen.queryByTestId('AltinnContentIconReceipt')).toBeInTheDocument();
     expect(screen.queryByTestId('AltinnContentIconFormData')).not.toBeInTheDocument();
