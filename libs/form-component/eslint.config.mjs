@@ -12,6 +12,7 @@ import reactPlugin from 'eslint-plugin-react';
 import reactCompiler from 'eslint-plugin-react-compiler';
 import reactHooks from 'eslint-plugin-react-hooks';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
+import sonarjs from 'eslint-plugin-sonarjs';
 import testingLibrary from 'eslint-plugin-testing-library';
 import globals from 'globals';
 
@@ -45,6 +46,7 @@ export default defineConfig([
       '@typescript-eslint': tsPlugin,
       'react-hooks': reactHooks,
       'react-compiler': reactCompiler,
+      sonarjs,
     },
     languageOptions: {
       parser: tsParser,
@@ -107,6 +109,14 @@ export default defineConfig([
         { checkFragmentShorthand: true, checkKeyMustBeforeSpread: true, warnOnDuplicates: true },
       ],
       'react/prop-types': ['off'],
+
+      'sonarjs/no-duplicate-string': ['off'],
+      'sonarjs/cognitive-complexity': ['off'],
+      'sonarjs/no-collapsible-if': ['warn'],
+      'sonarjs/prefer-single-boolean-return': ['warn'],
+      'sonarjs/no-identical-functions': ['warn'],
+      'sonarjs/no-small-switch': ['warn'],
+      'sonarjs/no-nested-template-literals': ['warn'],
 
       'no-relative-import-paths/no-relative-import-paths': ['warn', { allowSameFolder: true }],
 
