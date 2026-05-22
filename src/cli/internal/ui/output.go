@@ -20,7 +20,7 @@ func Colors() bool {
 var terminalDecorations = defaultTerminalDecorations
 
 func defaultTerminalDecorations() bool {
-	return !osutil.IsPowerShellISEHost()
+	return os.Getenv(osutil.DisableTerminalDecorationsEnv) == "" && !osutil.IsPowerShellISEHost()
 }
 
 // Style functions return ANSI styles for terminal output.

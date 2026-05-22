@@ -45,6 +45,27 @@ func TestColors_DisabledWhenTerminalDecorationsDisabled(t *testing.T) {
 	}
 }
 
+func TestColors_DisabledWhenTerminalDecorationsEnvSet(t *testing.T) {
+	t.Setenv(osutil.DisableTerminalDecorationsEnv, "1")
+	t.Setenv("NO_COLOR", "")
+	os.Unsetenv("NO_COLOR")
+
+	if Colors() {
+		t.Fatal("Colors() = true, want false when terminal decorations env is set")
+	}
+}
+
+func TestStatusUsesPlainTextWhenTerminalDecorationsDisabled(t *testing.T) {
+	setTerminalDecorationsForTest(t, false)
+
+	if got := Status(true).Text; got != "[ok]" {
+		t.Fatalf("Status(true).Text = %q, want [ok]", got)
+	}
+	if got := Status(false).Text; got != "[error]" {
+		t.Fatalf("Status(false).Text = %q, want [error]", got)
+	}
+}
+
 func TestOutputPrintlnUsesPlatformLineBreak(t *testing.T) {
 	var out bytes.Buffer
 	output := NewOutput(&out, &out, false)

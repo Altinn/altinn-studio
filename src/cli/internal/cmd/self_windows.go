@@ -116,6 +116,9 @@ func startWindowsHelperProcess(path string, args []string) error {
 	)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	if osutil.IsPowerShellISEHost() {
+		cmd.Env = append(os.Environ(), osutil.DisableTerminalDecorationsEnv+"=1")
+	}
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("start Windows self helper: %w", err)
 	}
