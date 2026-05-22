@@ -25,8 +25,8 @@ src/app-components/HelpText/
 src/app-components/Input/
 src/app-components/Label/
 src/app-components/Number/
-src/app-components/Panel/
 src/app-components/Pagination/
+src/app-components/Panel/
 src/app-components/Table/
 src/app-components/Text/
 src/app-components/TextArea/TextArea.tsx
