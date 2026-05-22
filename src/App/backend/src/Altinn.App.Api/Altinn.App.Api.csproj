@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <OutputType>Library</OutputType>
+    <AppFrontendDistPath>../../../frontend/dist</AppFrontendDistPath>
     <PackageTags>Altinn;Studio;App;Api;Controllers</PackageTags>
     <Description>
       This class library holds all the API controllers used by a standard Altinn 3 App.
@@ -45,16 +46,23 @@
     <!-- <None Include="../Altinn.App.Analyzers/bin/$(Configuration)/netstandard2.0/System.Text.Json.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="true" /> -->
     <!-- These MSBuild props are applied to the app when they reference the Altinn.App.Api package. Used for <AdditionalFile /> inclusions etc. -->
     <None Include="packaging/Altinn.App.Api.props" Pack="true" PackagePath="build/" Visible="true" Condition="'$(MinVerVersionOverride)'==''" />
+    <None Include="packaging/Altinn.App.Api.targets" Pack="true" PackagePath="build/" Visible="true" Condition="'$(MinVerVersionOverride)'==''" />
     <!--
-      When we do PR builds/experimental releases we set tne MinVerVersionOverride from CI, and we also append '.Experimental' to package IDs.
+      When we do PR builds/experimental releases we set the MinVerVersionOverride from CI, and we also append '.Experimental' to package IDs.
       The props file name must match the package ID for the package it is included in.
      -->
     <None Include="packaging/Altinn.App.Api.Experimental.props" Pack="true" PackagePath="build/" Visible="true" Condition="'$(MinVerVersionOverride)'!=''" />
+    <None Include="packaging/Altinn.App.Api.Experimental.targets" Pack="true" PackagePath="build/" Visible="true" Condition="'$(MinVerVersionOverride)'!=''" />
+    <None Include="$(AppFrontendDistPath)/**/*" Pack="true" PackagePath="build/Altinn.App.Api/altinn-app-frontend/%(RecursiveDir)%(Filename)%(Extension)" Visible="false" />
   </ItemGroup>
 
-  <Target Name="CreateExperimentalPropsFile" AfterTargets="Build" Condition="'$(MinVerVersionOverride)'!=''">
-    <!-- For PR/experimental builds we need to rename the props file (only happens in CI) -->
-    <Move SourceFiles="packaging/Altinn.App.Api.props" DestinationFiles="packaging/Altinn.App.Api.Experimental.props"/>
+  <Target Name="CreateExperimentalBuildAssetFiles" AfterTargets="Build" Condition="'$(MinVerVersionOverride)'!=''">
+    <!-- For PR/experimental builds the build asset file names must match the experimental package ID. -->
+    <Copy SourceFiles="packaging/Altinn.App.Api.props;packaging/Altinn.App.Api.targets" DestinationFiles="packaging/Altinn.App.Api.Experimental.props;packaging/Altinn.App.Api.Experimental.targets" />
+  </Target>
+
+  <Target Name="ValidateAppFrontendDistForPack" BeforeTargets="Pack">
+    <Error Condition="!Exists('$(AppFrontendDistPath)/altinn-app-frontend.js') OR !Exists('$(AppFrontendDistPath)/altinn-app-frontend.css')" Text="App frontend assets are missing. Run 'cd src/App/frontend &amp;&amp; yarn build' before packing Altinn.App.Api." />
   </Target>
 
   <ItemGroup>

@@ -135,10 +135,8 @@ public sealed partial class AppFixture : IAsyncDisposable
         string? generatedAppDirectory = null;
         try
         {
-            await Task.WhenAll(
-                EnsureLibrariesPacked(logger, cancellationToken),
-                EnsureFrontendBuilt(logger, cancellationToken)
-            );
+            await EnsureFrontendBuilt(logger, cancellationToken);
+            await EnsureLibrariesPacked(logger, cancellationToken);
             var originalAppId = GetAppId(app);
             var appIdentity = AppIdentity.Create(originalAppId);
             var effectiveApp = $"{appIdentity.App}-f{fixtureInstance:0000}";
@@ -819,17 +817,11 @@ public sealed partial class AppFixture : IAsyncDisposable
             Directory.Delete(appStaticFrontendDirectory, true);
         Directory.CreateDirectory(appStaticFrontendDirectory);
 
-        string[] fileNamesToCopy = ["altinn-app-frontend.js", "altinn-app-frontend.css"];
-        var frontendBuildFiles = Directory.GetFiles(frontendBuildDirectory);
-        foreach (var fileName in fileNamesToCopy)
+        foreach (var sourceFile in Directory.GetFiles(frontendBuildDirectory, "*", SearchOption.AllDirectories))
         {
-            var sourceFile =
-                frontendBuildFiles.FirstOrDefault(file => Path.GetFileName(file) == fileName)
-                ?? throw new FileNotFoundException(
-                    $"Expected frontend file '{fileName}' not found in '{frontendBuildDirectory}'. {missingFilesErrorMessage}"
-                );
-
-            var destFile = Path.Join(appStaticFrontendDirectory, fileName);
+            var relativePath = Path.GetRelativePath(frontendBuildDirectory, sourceFile);
+            var destFile = Path.Join(appStaticFrontendDirectory, relativePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(destFile)!);
             logger.LogInformation("Copying {SourceFile} to {DestFile}", sourceFile, destFile);
             await using var source = File.OpenRead(sourceFile);
             await using var destination = File.Create(destFile);
