@@ -2,7 +2,7 @@ import { org, app } from '@studio/testing/testids';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { useSaveValidationOnNavigationLayoutSets } from './useSaveValidationOnNavigationLayoutSets';
+import { useSaveValidationOnNavigationLayoutSets } from './useSaveGlobalValidationOnNavigation';
 import type { IValidationOnNavigationLayoutSets } from 'app-shared/types/global';
 
 describe('useSaveValidationOnNavigationLayoutSets', () => {

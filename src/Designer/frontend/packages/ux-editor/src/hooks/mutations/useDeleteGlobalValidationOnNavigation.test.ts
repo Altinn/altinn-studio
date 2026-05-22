@@ -2,7 +2,7 @@ import { org, app } from '@studio/testing/testids';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { useDeleteValidationOnNavigationLayoutSets } from './useDeleteValidationOnNavigationLayoutSets';
+import { useDeleteValidationOnNavigationLayoutSets } from './useDeleteGlobalValidationOnNavigation';
 
 describe('useDeleteValidationOnNavigationLayoutSets', () => {
   it('Calls deleteValidationOnNavigationLayoutSets with correct arguments', async () => {
