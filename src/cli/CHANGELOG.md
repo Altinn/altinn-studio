@@ -8,6 +8,12 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix Windows PowerShell installer architecture detection.
+- Make Windows installs fall back to the default location when no usable interactive prompt is available.
+- Support `studioctl self update` and `studioctl self uninstall` on Windows by completing binary replacement/removal after the running process exits.
+
 ## [0.1.0-preview.9] - 2026-05-22
 
 ### Added

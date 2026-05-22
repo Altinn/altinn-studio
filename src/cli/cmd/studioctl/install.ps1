@@ -33,12 +33,23 @@ if ($Version -ne "latest") {
     $Version = "studioctl/$Version"
 }
 
-$arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
-switch ($arch) {
-    "x64" { $arch = "amd64" }
-    "arm64" { $arch = "arm64" }
-    default { throw "Unsupported architecture: $arch" }
+function Resolve-StudioctlArchitecture {
+    $rawArch = $env:PROCESSOR_ARCHITEW6432
+    if (-not $rawArch) { $rawArch = $env:PROCESSOR_ARCHITECTURE }
+
+    if (-not $rawArch) {
+        throw "Unsupported architecture: unable to determine processor architecture"
+    }
+
+    switch ($rawArch.ToLowerInvariant()) {
+        "amd64" { return "amd64" }
+        "x86_64" { return "amd64" }
+        "arm64" { return "arm64" }
+        default { throw "Unsupported architecture: $rawArch" }
+    }
 }
+
+$arch = Resolve-StudioctlArchitecture
 
 $asset = "studioctl-windows-$arch.exe"
 $repo = "Altinn/altinn-studio"

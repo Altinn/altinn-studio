@@ -91,13 +91,6 @@ func (s *Service) ResolveUpdateBundle(
 		return ResolvedBundle{}, fmt.Errorf("resolve current executable path: %w", err)
 	}
 
-	if runtime.GOOS == osutil.OSWindows {
-		return ResolvedBundle{}, fmt.Errorf(
-			"%w: windows executable is locked while running",
-			ErrUpdateUnsupported,
-		)
-	}
-
 	downloads := newHTTPDownloader(s.cfg.Version)
 	resolved, err := downloads.resolveUpdateOptions(ctx, opts, execPath)
 	if err != nil {
@@ -438,11 +431,13 @@ func (s *Service) UninstallBinary() (UninstallResult, error) {
 		return UninstallResult{}, fmt.Errorf("resolve current executable path: %w", err)
 	}
 
+	return s.UninstallBinaryAt(execPath)
+}
+
+// UninstallBinaryAt removes a studioctl executable from disk.
+func (s *Service) UninstallBinaryAt(execPath string) (UninstallResult, error) {
 	if runtime.GOOS == osutil.OSWindows {
-		return UninstallResult{}, fmt.Errorf(
-			"%w: remove manually after process exits",
-			errUninstallUnsupported,
-		)
+		return uninstallBinaryAtWindows(execPath)
 	}
 
 	if err := os.Remove(execPath); err != nil {

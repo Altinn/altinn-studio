@@ -23,6 +23,7 @@ import (
 const (
 	selfCompleteInstallSubcmd = "__complete-install"
 	selfMigrateSubcmd         = "__migrate"
+	selfWindowsHelperSubcmd   = "__windows-helper"
 )
 
 // SelfCommand implements the 'self' subcommand.
@@ -119,6 +120,8 @@ func (c *SelfCommand) Run(ctx context.Context, args []string) error {
 	case selfCompleteInstallSubcmd, selfMigrateSubcmd:
 		// __migrate is a preview.7 compatibility alias used by old updaters after replacing the binary.
 		return c.runCompleteInstall(ctx, subArgs)
+	case selfWindowsHelperSubcmd:
+		return c.runWindowsSelfHelper(ctx, subArgs)
 	case "-h", flagHelp, helpSubcmd:
 		c.out.Print(c.Usage())
 		return nil
@@ -334,6 +337,16 @@ func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {
 	if err != nil {
 		return fmt.Errorf("resolve update bundle: %w", err)
 	}
+	if runtime.GOOS == osutil.OSWindows {
+		if err := c.startWindowsUpdateHelper(resolved); err != nil {
+			if resolved.Cleanup != nil {
+				err = errors.Join(err, resolved.Cleanup())
+			}
+			return err
+		}
+		c.out.Successf("%s update started. The replacement will finish after this process exits.", osutil.CurrentBin())
+		return nil
+	}
 	if resolved.Cleanup != nil {
 		defer func() {
 			if cleanupErr := resolved.Cleanup(); cleanupErr != nil {
@@ -443,16 +456,17 @@ func (c *SelfCommand) runUninstall(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	if runtime.GOOS == osutil.OSWindows {
-		c.out.Error("Self-uninstall while running is not supported on Windows.")
-		c.out.Println("Run this after studioctl has exited:")
-		c.out.Println(`  Remove-Item "<path-to-studioctl.exe>"`)
-		return nil
-	}
-
 	if proceed, err := c.confirmUninstallIfNeeded(ctx, flags); err != nil {
 		return err
 	} else if !proceed {
+		return nil
+	}
+
+	if runtime.GOOS == osutil.OSWindows {
+		if err := c.startWindowsUninstallHelper(); err != nil {
+			return err
+		}
+		c.out.Successf("%s uninstall started. The binary will be removed after this process exits.", osutil.CurrentBin())
 		return nil
 	}
 
