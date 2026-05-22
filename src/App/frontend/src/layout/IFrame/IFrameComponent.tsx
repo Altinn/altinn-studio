@@ -1,9 +1,8 @@
 import React from 'react';
 import type { JSX } from 'react';
 
-import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
-import { Panel } from 'src/app-components/Panel/Panel';
-import { translationKey } from 'src/AppComponentsBridge';
+import { Panel } from '@app/form-component';
+
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -23,10 +22,9 @@ export const IFrameComponent = ({ baseComponentId }: PropsFromGenericComponent<'
   if (isSrcDocUnsupported) {
     return (
       <Panel
-        variant={PANEL_VARIANT.Error}
+        variant='error'
         showIcon={true}
-        title={translationKey('iframe_component.unsupported_browser_title')}
-        fullWidth={false}
+        title={<Lang id='iframe_component.unsupported_browser_title' />}
       >
         <p>
           <Lang id='iframe_component.unsupported_browser' />

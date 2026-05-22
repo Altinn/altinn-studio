@@ -27,6 +27,8 @@ export const Unwrapped: Story = {
 export const Otherwise: Story = {
   args: {
     condition: false,
-    otherwise: (children) => <div style={{ border: '2px solid orange', padding: 8 }}>{children}</div>,
+    otherwise: (children) => (
+      <div style={{ border: '2px solid orange', padding: 8 }}>{children}</div>
+    ),
   },
 };

@@ -23,12 +23,9 @@ describe('FullWidthWrapper', () => {
   it.each([
     ['isOnBottom', { isOnBottom: true }, classes.consumeBottomPadding],
     ['isOnTop', { isOnTop: true }, classes.consumeTopPadding],
-  ] as const)(
-    'should have correct class when %s is true',
-    (_propName, props, expectedClass) => {
-      const { wrapper } = renderWrapper(props);
+  ] as const)('should have correct class when %s is true', (_propName, props, expectedClass) => {
+    const { wrapper } = renderWrapper(props);
 
-      expect(wrapper).toHaveClass(expectedClass);
-    },
-  );
+    expect(wrapper).toHaveClass(expectedClass);
+  });
 });

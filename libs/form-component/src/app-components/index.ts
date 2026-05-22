@@ -9,6 +9,7 @@ export * from './FatalError';
 export * from './Flex';
 export * from './FullWidthWrapper';
 export * from './Input';
+export * from './Panel';
 export * from './hooks';
 export * from './Pagination';
 export * from './Label';

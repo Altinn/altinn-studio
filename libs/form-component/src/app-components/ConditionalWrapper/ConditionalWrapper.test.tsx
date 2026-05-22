@@ -7,7 +7,9 @@ import { ConditionalWrapper } from './ConditionalWrapper';
 
 describe('ConditionalWrapper', () => {
   it('should pass children to wrapper callback when condition is true', () => {
-    const wrapperCb = vi.fn((children: React.ReactNode) => <div data-testid='conditional-wrapper'>{children}</div>);
+    const wrapperCb = vi.fn((children: React.ReactNode) => (
+      <div data-testid='conditional-wrapper'>{children}</div>
+    ));
     renderComponent({
       condition: true,
       wrapper: wrapperCb,
@@ -19,7 +21,9 @@ describe('ConditionalWrapper', () => {
   });
 
   it('should not pass children to wrapper callback when condition is false', () => {
-    const wrapperCb = vi.fn((children: React.ReactNode) => <div data-testid='conditional-wrapper'>{children}</div>);
+    const wrapperCb = vi.fn((children: React.ReactNode) => (
+      <div data-testid='conditional-wrapper'>{children}</div>
+    ));
     renderComponent({
       condition: false,
       wrapper: wrapperCb,
@@ -31,7 +35,9 @@ describe('ConditionalWrapper', () => {
   });
 
   it('should pass children to otherwise callback when condition is false', () => {
-    const otherwiseCb = vi.fn((children: React.ReactNode) => <div data-testid='otherwise-wrapper'>{children}</div>);
+    const otherwiseCb = vi.fn((children: React.ReactNode) => (
+      <div data-testid='otherwise-wrapper'>{children}</div>
+    ));
     renderComponent({
       condition: false,
       otherwise: otherwiseCb,
