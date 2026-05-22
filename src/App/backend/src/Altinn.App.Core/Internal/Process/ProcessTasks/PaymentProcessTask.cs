@@ -8,6 +8,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Hosting;
 
@@ -89,12 +90,13 @@ internal sealed class PaymentProcessTask : IProcessTask
         await pdfStream.CopyToAsync(memoryStream, CancellationToken.None);
 
         ValidAltinnPaymentConfiguration validatedPaymentConfiguration = paymentConfiguration.Validate();
-        dataMutator.AddBinaryDataElement(
+        UpsertTaskGeneratedBinaryDataElement(
+            dataMutator,
             validatedPaymentConfiguration.PaymentReceiptPdfDataType,
             PdfContentType,
             ReceiptFileName,
             memoryStream.ToArray(),
-            generatedFromTask: taskId
+            taskId
         );
     }
 
@@ -111,6 +113,32 @@ internal sealed class PaymentProcessTask : IProcessTask
         dataAccessor.TaskId
         ?? dataAccessor.Instance.Process?.CurrentTask?.ElementId
         ?? throw new InvalidOperationException("Process task requires a current task id.");
+
+    private static void UpsertTaskGeneratedBinaryDataElement(
+        IInstanceDataMutator dataMutator,
+        string dataTypeId,
+        string contentType,
+        string fileName,
+        ReadOnlyMemory<byte> bytes,
+        string taskId
+    )
+    {
+        DataElement? existingDataElement = dataMutator.Instance.Data.SingleOrDefault(de =>
+            de.DataType == dataTypeId
+            && de.References?.Exists(reference =>
+                reference.ValueType == ReferenceType.Task && reference.Value == taskId
+            )
+                is true
+        );
+
+        if (existingDataElement is not null)
+        {
+            dataMutator.UpdateBinaryDataElement(existingDataElement, contentType, bytes);
+            return;
+        }
+
+        dataMutator.AddBinaryDataElement(dataTypeId, contentType, fileName, bytes, generatedFromTask: taskId);
+    }
 
     private AltinnPaymentConfiguration GetAltinnPaymentConfiguration(string taskId)
     {

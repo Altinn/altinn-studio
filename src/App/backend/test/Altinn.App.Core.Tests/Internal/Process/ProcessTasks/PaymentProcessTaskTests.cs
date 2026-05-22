@@ -8,6 +8,7 @@ using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Hosting;
@@ -83,6 +84,49 @@ public class PaymentProcessTaskTests
                 taskId,
                 It.IsAny<List<KeyValueEntry>?>()
             )
+        );
+    }
+
+    [Fact]
+    public async Task End_ExistingTaskGeneratedReceipt_ShouldUpdatePdfReceipt()
+    {
+        DataElement existingReceipt = new()
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = "paymentReceiptPdfDataType",
+            ContentType = "application/pdf",
+            Filename = "Betalingskvittering.pdf",
+            References = [new Reference { ValueType = ReferenceType.Task, Value = "Task_1" }],
+        };
+        Instance instance = CreateInstance(existingReceipt);
+        var dataMutator = CreateDataMutator(instance);
+
+        var altinnTaskExtension = new AltinnTaskExtension { PaymentConfiguration = CreatePaymentConfiguration() };
+
+        _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
+        _paymentServiceMock
+            .Setup(x => x.GetPaymentStatus(It.IsAny<Instance>(), It.IsAny<ValidAltinnPaymentConfiguration>()))
+            .ReturnsAsync(PaymentStatus.Paid);
+        _pdfServiceMock
+            .Setup(x => x.GeneratePdf(instance, "Task_1", false, null, CancellationToken.None))
+            .ReturnsAsync(new MemoryStream([1, 2, 3]));
+
+        await _paymentProcessTask.End(dataMutator.Object);
+
+        dataMutator.Verify(x =>
+            x.UpdateBinaryDataElement(existingReceipt, "application/pdf", It.IsAny<ReadOnlyMemory<byte>>())
+        );
+        dataMutator.Verify(
+            x =>
+                x.AddBinaryDataElement(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<ReadOnlyMemory<byte>>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<List<KeyValueEntry>?>()
+                ),
+            Times.Never
         );
     }
 
@@ -247,7 +291,7 @@ public class PaymentProcessTaskTests
         return dataMutator;
     }
 
-    private static Instance CreateInstance()
+    private static Instance CreateInstance(params DataElement[] dataElements)
     {
         return new Instance()
         {
@@ -257,6 +301,7 @@ public class PaymentProcessTaskTests
             {
                 CurrentTask = new ProcessElementInfo { AltinnTaskType = AltinnTaskTypes.Payment, ElementId = "Task_1" },
             },
+            Data = [.. dataElements],
         };
     }
 
