@@ -57,6 +57,11 @@ func (b *appBuilder) Build(ctx context.Context, ver *version.Version, outputDir 
 		return nil, fmt.Errorf("build app frontend: %w", err)
 	}
 
+	informationalVersion, err := appInformationalVersion(ctx, git, ver)
+	if err != nil {
+		return nil, err
+	}
+
 	b.log.Info("Packing app backend packages...")
 	if err := b.run(
 		ctx,
@@ -69,7 +74,9 @@ func (b *appBuilder) Build(ctx context.Context, ver *version.Version, outputDir 
 		"Release",
 		"--output",
 		outputDir,
-		"-p:MinVerVersionOverride="+ver.Num,
+		"-p:AppPackageVersion="+ver.Num,
+		fmt.Sprintf("-p:AppCompatVersion=%d.%d.%d.0", ver.Major, ver.Minor, ver.Patch),
+		"-p:AppInformationalVersion="+informationalVersion,
 		"-p:UseExperimentalPackageId=false",
 	); err != nil {
 		return nil, fmt.Errorf("pack app backend: %w", err)
@@ -83,6 +90,18 @@ func (b *appBuilder) Build(ctx context.Context, ver *version.Version, outputDir 
 		return nil, fmt.Errorf("no app package artifacts produced in %s", outputDir)
 	}
 	return artifacts, nil
+}
+
+func appInformationalVersion(ctx context.Context, git *internal.GitCLI, ver *version.Version) (string, error) {
+	sha, err := git.Run(ctx, "rev-parse", "--short=12", "HEAD")
+	if err != nil {
+		return "", fmt.Errorf("get app package informational version commit: %w", err)
+	}
+	sha = strings.TrimSpace(sha)
+	if sha == "" {
+		return "", fmt.Errorf("get app package informational version commit: empty SHA")
+	}
+	return ver.Num + "+" + sha, nil
 }
 
 func (b *appBuilder) run(ctx context.Context, dir string, env []string, name string, args ...string) error {

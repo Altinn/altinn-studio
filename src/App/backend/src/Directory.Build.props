@@ -3,7 +3,6 @@
   <Import Project="../Directory.Build.props" />
 
   <ItemGroup>
-    <PackageReference Include="MinVer" PrivateAssets="All" />
     <PackageReference Include="Nullable.Extended.Analyzer">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
@@ -26,10 +25,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
-    <MinVerTagPrefix>v</MinVerTagPrefix>
 
     <RepoRoot>$([System.IO.Directory]::GetParent($(MSBuildThisFileDirectory)).Parent.FullName)</RepoRoot>
+    <AppVersionTagPattern>app/v[0-9]*</AppVersionTagPattern>
+    <AppDefaultBaseVersion>9.0.0-preview.0</AppDefaultBaseVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <GetPackageVersionDependsOn>ResolveAppVersionFromGit;$(GetPackageVersionDependsOn)</GetPackageVersionDependsOn>
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Authors>Altinn Platform Contributors</Authors>
@@ -43,7 +44,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(UseExperimentalPackageId)' == '' AND '$(MinVerVersionOverride)'!=''">
+  <PropertyGroup Condition="'$(UseExperimentalPackageId)' == '' AND '$(AppPackageVersion)'!=''">
     <UseExperimentalPackageId>true</UseExperimentalPackageId>
   </PropertyGroup>
 
@@ -51,11 +52,68 @@
     <PackageId>$(MSBuildProjectName).Experimental</PackageId>
   </PropertyGroup>
 
-  <Target Name="AssemblyVersionTarget" AfterTargets="MinVer" Condition="'$(MinVerVersion)'!='' AND '$(BuildNumber)' != ''">
+  <Target Name="ResolveAppVersionFromGit" BeforeTargets="GetAssemblyVersion;GenerateNuspec">
+    <Exec
+      Command="git -C &quot;$(RepoRoot)&quot; describe --tags --match &quot;$(AppVersionTagPattern)&quot; --abbrev=0"
+      ConsoleToMSBuild="true"
+      IgnoreExitCode="true"
+      StandardOutputImportance="Low"
+      StandardErrorImportance="Low"
+      Condition="'$(AppPackageVersion)' == '' OR '$(AppCompatVersion)' == '' OR '$(AppInformationalVersion)' == ''"
+    >
+      <Output TaskParameter="ConsoleOutput" ItemName="_AppLatestTagOutput" />
+      <Output TaskParameter="ExitCode" PropertyName="_AppLatestTagExitCode" />
+    </Exec>
+
+    <PropertyGroup Condition="'$(_AppLatestTagExitCode)' == '0' AND '@(_AppLatestTagOutput)' != ''">
+      <_AppLatestTag>@(_AppLatestTagOutput->'%(Identity)')</_AppLatestTag>
+    </PropertyGroup>
+
+    <Exec
+      Command="git -C &quot;$(RepoRoot)&quot; rev-list --count $(_AppLatestTag)..HEAD"
+      ConsoleToMSBuild="true"
+      IgnoreExitCode="true"
+      StandardOutputImportance="Low"
+      StandardErrorImportance="Low"
+      Condition="'$(_AppLatestTag)' != '' AND ('$(AppPackageVersion)' == '' OR '$(AppCompatVersion)' == '')"
+    >
+      <Output TaskParameter="ConsoleOutput" ItemName="_AppVersionHeightOutput" />
+      <Output TaskParameter="ExitCode" PropertyName="_AppVersionHeightExitCode" />
+    </Exec>
+
+    <Exec
+      Command="git -C &quot;$(RepoRoot)&quot; rev-parse --short=12 HEAD"
+      ConsoleToMSBuild="true"
+      IgnoreExitCode="true"
+      StandardOutputImportance="Low"
+      StandardErrorImportance="Low"
+      Condition="'$(AppInformationalVersion)' == ''"
+    >
+      <Output TaskParameter="ConsoleOutput" ItemName="_AppCommitOutput" />
+      <Output TaskParameter="ExitCode" PropertyName="_AppCommitExitCode" />
+    </Exec>
+
     <PropertyGroup>
-      <FileVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BuildNumber)</FileVersion>
-      <Version>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BuildNumber)</Version>
-      <AssemblyVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BuildNumber)</AssemblyVersion>
+      <_AppBaseVersion Condition="'$(_AppLatestTag)' != ''">$([System.Text.RegularExpressions.Regex]::Replace('$(_AppLatestTag)', '^app/v', ''))</_AppBaseVersion>
+      <_AppBaseVersion Condition="'$(_AppBaseVersion)' == ''">$(AppDefaultBaseVersion)</_AppBaseVersion>
+      <_AppVersionHeight Condition="'$(_AppVersionHeightExitCode)' == '0' AND '@(_AppVersionHeightOutput)' != ''">@(_AppVersionHeightOutput->'%(Identity)')</_AppVersionHeight>
+      <_AppVersionHeight Condition="'$(_AppVersionHeight)' == ''">0</_AppVersionHeight>
+      <_AppCommit Condition="'$(_AppCommitExitCode)' == '0' AND '@(_AppCommitOutput)' != ''">@(_AppCommitOutput->'%(Identity)')</_AppCommit>
+      <_AppPackageVersionSuffix Condition="'$(_AppLatestTag)' == '' AND '$(_AppVersionHeight)' == '0'">.dev.0</_AppPackageVersionSuffix>
+      <_AppPackageVersionSuffix Condition="'$(_AppVersionHeight)' != '0' AND $([System.Text.RegularExpressions.Regex]::IsMatch('$(_AppBaseVersion)', '-'))">.dev.$(_AppVersionHeight)</_AppPackageVersionSuffix>
+      <_AppPackageVersionSuffix Condition="'$(_AppVersionHeight)' != '0' AND !$([System.Text.RegularExpressions.Regex]::IsMatch('$(_AppBaseVersion)', '-'))">-dev.$(_AppVersionHeight)</_AppPackageVersionSuffix>
+      <AppPackageVersion Condition="'$(AppPackageVersion)' == ''">$(_AppBaseVersion)$(_AppPackageVersionSuffix)</AppPackageVersion>
+      <_AppVersionMajor>$([System.Text.RegularExpressions.Regex]::Match('$(AppPackageVersion)', '^([0-9]+)\.([0-9]+)\.([0-9]+)').Groups[1].Value)</_AppVersionMajor>
+      <_AppVersionMinor>$([System.Text.RegularExpressions.Regex]::Match('$(AppPackageVersion)', '^([0-9]+)\.([0-9]+)\.([0-9]+)').Groups[2].Value)</_AppVersionMinor>
+      <_AppVersionPatch>$([System.Text.RegularExpressions.Regex]::Match('$(AppPackageVersion)', '^([0-9]+)\.([0-9]+)\.([0-9]+)').Groups[3].Value)</_AppVersionPatch>
+      <AppCompatVersion Condition="'$(AppCompatVersion)' == ''">$(_AppVersionMajor).$(_AppVersionMinor).$(_AppVersionPatch).$(_AppVersionHeight)</AppCompatVersion>
+      <AppInformationalVersion Condition="'$(AppInformationalVersion)' == '' AND '$(_AppCommit)' != ''">$(AppPackageVersion)+$(_AppCommit)</AppInformationalVersion>
+      <AppInformationalVersion Condition="'$(AppInformationalVersion)' == ''">$(AppPackageVersion)</AppInformationalVersion>
+      <Version>$(AppPackageVersion)</Version>
+      <PackageVersion>$(AppPackageVersion)</PackageVersion>
+      <FileVersion>$(AppCompatVersion)</FileVersion>
+      <AssemblyVersion>$(AppCompatVersion)</AssemblyVersion>
+      <InformationalVersion>$(AppInformationalVersion)</InformationalVersion>
     </PropertyGroup>
   </Target>
 
