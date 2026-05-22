@@ -2,12 +2,15 @@ import type { ReactNode, RefObject } from 'react';
 
 import { getComponentConfigs } from 'src/layout/components.generated';
 import type { DisplayData } from 'src/features/displayData';
+import type { FormStoreState } from 'src/features/form/FormContext';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import type { BaseValidation, ComponentValidation } from 'src/features/validation';
+import type { AnyValidation, BaseValidation, ComponentValidation } from 'src/features/validation';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 import type { CompIntermediate, CompInternal, CompTypes } from 'src/layout/layout';
+import type { IData } from 'src/types/shared';
 import type { BaseRow } from 'src/utils/layout/types';
+import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 type ComponentConfigs = ReturnType<typeof getComponentConfigs>;
 
@@ -54,23 +57,30 @@ export function getComponentCapabilities<T extends CompTypes>(type: T): Componen
 export function implementsAnyValidation<Def extends CompDef>(
   def: Def,
 ): def is Def & (ValidateEmptyField | ValidateComponent) {
-  return 'useEmptyFieldValidation' in def || 'useComponentValidation' in def;
+  return 'validateEmptyField' in def || 'validateComponent' in def;
 }
 
-export interface ValidateEmptyField {
-  useEmptyFieldValidation: (baseComponentId: string) => ComponentValidation[];
+export interface ValidateEmptyField<T extends CompTypes = CompTypes> {
+  validateEmptyField: (ctx: ComponentValidationContext<T>) => ComponentValidation[];
 }
 
 export function implementsValidateEmptyField<Def extends CompDef>(def: Def): def is Def & ValidateEmptyField {
-  return 'useEmptyFieldValidation' in def;
+  return 'validateEmptyField' in def;
 }
 
-export interface ValidateComponent {
-  useComponentValidation: (baseComponentId: string) => ComponentValidation[];
+export interface ValidateComponent<T extends CompTypes = CompTypes> {
+  validateComponent: (ctx: ComponentValidationContext<T>) => AnyValidation[];
 }
 
 export function implementsValidateComponent<Def extends CompDef>(def: Def): def is Def & ValidateComponent {
-  return 'useComponentValidation' in def;
+  return 'validateComponent' in def;
+}
+
+export interface ComponentValidationContext<T extends CompTypes = CompTypes> {
+  component: CompIntermediate<T>;
+  formState: FormStoreState;
+  instanceData: IData[];
+  expressionDataSources: ExpressionDataSources;
 }
 
 export interface SubRouting {

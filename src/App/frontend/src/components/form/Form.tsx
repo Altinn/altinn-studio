@@ -21,6 +21,7 @@ import { useTextResources } from 'src/features/language/textResources/TextResour
 import { useLanguage } from 'src/features/language/useLanguage';
 import { replaceAndPreventResetOptions } from 'src/features/navigation/navigationOptions';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
+import { usePageHasVisibleRequiredValidations } from 'src/features/validation/derivedValidations';
 import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
 import { useQueryKey } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
@@ -66,7 +67,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   const appOwner = useAppOwner();
   const { langAsString } = useLanguage();
   const { hasRequired, mainIds, errorReportIds, formErrors, taskErrors } = useFormState(currentPageId);
-  const requiredFieldsMissing = FormStore.nodes.usePageHasVisibleRequiredValidations(currentPageId);
+  const requiredFieldsMissing = usePageHasVisibleRequiredValidations(currentPageId);
   const allAttachments = useAllAttachments();
   const textResources = useTextResources();
 

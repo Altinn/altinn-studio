@@ -1,7 +1,13 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import type { PropsFromGenericComponent, ValidateComponent, ValidationFilter, ValidationFilterFunction } from '..';
+import type {
+  ComponentValidationContext,
+  PropsFromGenericComponent,
+  ValidateComponent,
+  ValidationFilter,
+  ValidationFilterFunction,
+} from '..';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { FrontendValidationSource } from 'src/features/validation';
@@ -12,7 +18,7 @@ import { RepeatingGroupProvider } from 'src/layout/RepeatingGroup/Providers/Repe
 import { RepeatingGroupsFocusProvider } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupFocusContext';
 import { SummaryRepeatingGroup } from 'src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup';
 import { RepeatingGroupSummary } from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupSummary';
-import { useValidateRepGroupMinCount } from 'src/layout/RepeatingGroup/useValidateRepGroupMinCount';
+import { validateRepGroupMinCountForNode } from 'src/layout/RepeatingGroup/useValidateRepGroupMinCount';
 import { EmptyChildrenBoundary } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import { GenerateNodeChildren } from 'src/utils/layout/generator/LayoutSetGenerator';
 import { NodeRepeatingChildren } from 'src/utils/layout/generator/NodeRepeatingChildren';
@@ -31,7 +37,7 @@ import type { RepGroupInternal } from 'src/layout/RepeatingGroup/types';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { ChildClaims } from 'src/utils/layout/generator/GeneratorContext';
 
-export class RepeatingGroup extends RepeatingGroupDef implements ValidateComponent, ValidationFilter {
+export class RepeatingGroup extends RepeatingGroupDef implements ValidateComponent<'RepeatingGroup'>, ValidationFilter {
   render = forwardRef<HTMLDivElement, PropsFromGenericComponent<'RepeatingGroup'>>(
     function LayoutComponentRepeatingGroupRender(props, ref): JSX.Element | null {
       return (
@@ -87,8 +93,8 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
     return false;
   }
 
-  useComponentValidation(baseComponentId: string): ComponentValidation[] {
-    return useValidateRepGroupMinCount(baseComponentId);
+  validateComponent(ctx: ComponentValidationContext<'RepeatingGroup'>): ComponentValidation[] {
+    return validateRepGroupMinCountForNode(ctx);
   }
 
   /**

@@ -1,4 +1,5 @@
 import { FormStore } from 'src/features/form/FormContext';
+import { useVisibleValidationsDeep } from 'src/features/validation/derivedValidations';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import type { NodeRefValidation } from 'src/features/validation/index';
 
@@ -14,5 +15,5 @@ export function useDeepValidationsForNode(
   const showAll = FormStore.validation.useShowAllUnboundValidations();
   const mask = showAll ? 'showAll' : 'visible';
   const indexedId = useIndexedId(baseComponentId, skipLastIdMutator);
-  return FormStore.nodes.useVisibleValidationsDeep(indexedId, mask, includeSelf, restriction);
+  return useVisibleValidationsDeep(indexedId, mask, includeSelf, restriction);
 }

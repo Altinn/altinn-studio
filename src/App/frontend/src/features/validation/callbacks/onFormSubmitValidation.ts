@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { ValidationMask } from '..';
 
 import { FormStore } from 'src/features/form/FormContext';
+import { useGetNodesWithErrors } from 'src/features/validation/derivedValidations';
 import { useWaitForValidation } from 'src/features/validation/validationContext';
 import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
 
@@ -17,7 +18,7 @@ import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
 export function useOnFormSubmitValidation() {
   const validate = useWaitForValidation();
   const setFormValidationMask = FormStore.validation.useSetFormValidationMask();
-  const getNodesWithErrors = FormStore.nodes.useGetNodesWithErrors();
+  const getNodesWithErrors = useGetNodesWithErrors();
 
   const callback = useOurEffectEvent((includeNonIncrementalValidations: boolean): boolean => {
     /*

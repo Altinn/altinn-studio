@@ -1,21 +1,38 @@
 import { isAfter, isBefore } from 'date-fns';
 
 import { getDateConstraint, getDateFormat, strictParseISO } from 'src/app-components/Datepicker/utils/dateHelpers';
-import { FormStore } from 'src/features/form/FormContext';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { evalExpr } from 'src/features/expressions';
+import { ExprVal } from 'src/features/expressions/types';
 import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';
+import { readDataFromState } from 'src/features/validation/nodeValidation/readDataFromState';
 import { getDatepickerFormat } from 'src/utils/dateUtils';
-import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import type { ComponentValidationContext } from 'src/layout';
+import type { IDataModelBindings } from 'src/layout/layout';
 
-export function useDatepickerValidation(baseComponentId: string): ComponentValidation[] {
-  const currentLanguage = useCurrentLanguage();
-  const field = useDataModelBindingsFor(baseComponentId, 'Datepicker')?.simpleBinding;
-  const component = useItemWhenType(baseComponentId, 'Datepicker');
-  const data = FormStore.data.useDebouncedPick(field);
-  const minDate = getDateConstraint(component?.minDate, 'min');
-  const maxDate = getDateConstraint(component?.maxDate, 'max');
-  const format = getDateFormat(component?.format, currentLanguage);
+export function validateDatepicker(ctx: ComponentValidationContext<'Datepicker'>): ComponentValidation[] {
+  const bindings = ctx.component.dataModelBindings as IDataModelBindings<'Datepicker'> | undefined;
+  const data = readDataFromState(ctx.formState, bindings?.simpleBinding);
+  const minDate = getDateConstraint(
+    evalExpr(ctx.component.minDate, ctx.expressionDataSources, {
+      returnType: ExprVal.String,
+      defaultValue: '',
+    }),
+    'min',
+  );
+  const maxDate = getDateConstraint(
+    evalExpr(ctx.component.maxDate, ctx.expressionDataSources, {
+      returnType: ExprVal.String,
+      defaultValue: '',
+    }),
+    'max',
+  );
+  const format = getDateFormat(
+    evalExpr(ctx.component.format, ctx.expressionDataSources, {
+      returnType: ExprVal.String,
+      defaultValue: '',
+    }) as string,
+    ctx.expressionDataSources.context.currentLanguage(),
+  );
   const dataAsString = typeof data === 'string' || typeof data === 'number' ? String(data) : undefined;
   if (!dataAsString) {
     return [];

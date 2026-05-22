@@ -10,7 +10,6 @@ import { AttachmentsStorePlugin } from 'src/features/attachments/AttachmentsStor
 import { UpdateAttachmentsForCypress } from 'src/features/attachments/UpdateAttachmentsForCypress';
 import { FormStore } from 'src/features/form/FormContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
-import { pruneBoundaryMasks, ValidationStorePlugin } from 'src/features/validation/ValidationStorePlugin';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { TaskKeys } from 'src/routesBuilder';
 import { GeneratorGlobalProvider, GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
@@ -20,7 +19,6 @@ import { GeneratorValidationProvider } from 'src/utils/layout/generator/validati
 import { nodesProduce } from 'src/utils/layout/nodesProduce';
 import type { AttachmentsStorePluginConfig } from 'src/features/attachments/AttachmentsStorePlugin';
 import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
-import type { ValidationStorePluginConfig } from 'src/features/validation/ValidationStorePlugin';
 import type { CompTypes, ILayouts } from 'src/layout/layout';
 import type { Registry } from 'src/utils/layout/generator/GeneratorStages';
 import type { NodeDataPlugin } from 'src/utils/layout/plugins/NodeDataPlugin';
@@ -40,12 +38,10 @@ export interface PageData {
 }
 
 export type NodesStorePlugins = {
-  validation: ValidationStorePluginConfig;
   attachments: AttachmentsStorePluginConfig;
 };
 
 const StorePlugins: { [K in keyof NodesStorePlugins]: NodeDataPlugin<NodesStorePlugins[K]> } = {
-  validation: new ValidationStorePlugin(),
   attachments: new AttachmentsStorePlugin(),
 };
 
@@ -114,7 +110,6 @@ export function createNodesSlice(set: FormStoreSet): FormStoreState['nodes'] {
       }),
     removeNodes: (requests) =>
       set((state) => {
-        let count = 0;
         for (const { nodeId, layouts } of requests) {
           if (!state.nodes.nodeData[nodeId]) {
             continue;
@@ -127,16 +122,10 @@ export function createNodesSlice(set: FormStoreSet): FormStoreState['nodes'] {
           }
 
           delete state.nodes.nodeData[nodeId];
-          count += 1;
-        }
-
-        if (count > 0) {
-          pruneBoundaryMasks(state);
         }
       }),
     setNodeProps: (requests) =>
       set((state) => {
-        let changes = false;
         for (const { nodeId, prop, value } of requests) {
           if (!state.nodes.nodeData[nodeId]) {
             continue;
@@ -148,12 +137,8 @@ export function createNodesSlice(set: FormStoreSet): FormStoreState['nodes'] {
           thisNode[prop as any] = value;
 
           if (!deepEqual(state.nodes.nodeData[nodeId][prop], thisNode[prop])) {
-            changes = true;
             state.nodes.nodeData[nodeId] = thisNode;
           }
-        }
-        if (changes) {
-          pruneBoundaryMasks(state);
         }
       }),
     addError: (error, id, type) =>

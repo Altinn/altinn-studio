@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 
 import { FormStore } from 'src/features/form/FormContext';
+import { useAllValidations } from 'src/features/validation/derivedValidations';
 import {
   type AnyValidation,
   type BaseValidation,
@@ -29,7 +30,7 @@ export function useTaskErrors(): {
 
   const formErrorVisibility: NodeVisibility = showAllUnboundValidations ? 'showAll' : 'visible';
 
-  const _formErrors = FormStore.nodes.useAllValidations(formErrorVisibility, 'error');
+  const _formErrors = useAllValidations(formErrorVisibility, 'error');
   const formErrors = !_formErrors.length ? emptyArray : _formErrors;
 
   const taskErrors = useMemo(() => {

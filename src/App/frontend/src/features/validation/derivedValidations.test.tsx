@@ -25,7 +25,7 @@ function FormDataValue() {
   return <div data-testid='formDataValue'>{delayedValue ? delayedValue.toString() : '<empty>'}</div>;
 }
 
-describe('ValidationPlugin', () => {
+describe('derived validation state', () => {
   beforeEach(() => {
     window.altinnAppGlobalData.textResources!.resources.push({ id: 'Form', value: 'This is a page title' });
     window.altinnAppGlobalData.textResources!.resources.push({ id: 'NextPage', value: 'This is the next page title' });

@@ -8,7 +8,7 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FormStore } from 'src/features/form/FormContext';
 import { evalQueryParameters } from 'src/features/options/evalQueryParameters';
 import { ObjectToGroupLayoutValidator } from 'src/features/saveToGroup/ObjectToGroupLayoutValidator';
-import { useValidateGroupIsEmpty } from 'src/features/saveToGroup/useValidateGroupIsEmpty';
+import { validateGroupIsEmpty } from 'src/features/saveToGroup/useValidateGroupIsEmpty';
 import { ListDef } from 'src/layout/List/config.def.generated';
 import { ListComponent } from 'src/layout/List/ListComponent';
 import { ListSummary } from 'src/layout/List/ListSummary';
@@ -17,7 +17,7 @@ import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validat
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { ComponentValidation } from 'src/features/validation';
-import type { PropsFromGenericComponent } from 'src/layout';
+import type { ComponentValidationContext, PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
@@ -86,8 +86,8 @@ export class List extends ListDef {
     return <ListSummary {...props} />;
   }
 
-  useEmptyFieldValidation(baseComponentId: string): ComponentValidation[] {
-    return useValidateGroupIsEmpty(baseComponentId, 'List');
+  validateEmptyField(ctx: ComponentValidationContext<'List'>): ComponentValidation[] {
+    return validateGroupIsEmpty(ctx);
   }
 
   renderLayoutValidators(props: NodeValidationProps<'List'>): JSX.Element | null {

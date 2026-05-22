@@ -1,10 +1,10 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import type { PropsFromGenericComponent } from '..';
+import type { ComponentValidationContext, PropsFromGenericComponent } from '..';
 
 import { FormStore } from 'src/features/form/FormContext';
-import { useEmptyFieldValidationOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
+import { validateEmptyFieldOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { OrganisationLookupDef } from 'src/layout/OrganisationLookup/config.def.generated';
 import { OrganisationLookupComponent } from 'src/layout/OrganisationLookup/OrganisationLookupComponent';
 import { OrganisationLookupSummary } from 'src/layout/OrganisationLookup/OrganisationLookupSummary';
@@ -35,12 +35,8 @@ export class OrganisationLookup extends OrganisationLookupDef {
     return null;
   }
 
-  useEmptyFieldValidation(baseComponentId: string): ComponentValidation[] {
-    return useEmptyFieldValidationOnlyOneBinding(
-      baseComponentId,
-      'organisation_lookup_orgnr',
-      'organisation_lookup.error_required',
-    );
+  validateEmptyField(ctx: ComponentValidationContext<'OrganisationLookup'>): ComponentValidation[] {
+    return validateEmptyFieldOnlyOneBinding(ctx, 'organisation_lookup_orgnr', 'organisation_lookup.error_required');
   }
 
   useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'OrganisationLookup'>): string[] {
