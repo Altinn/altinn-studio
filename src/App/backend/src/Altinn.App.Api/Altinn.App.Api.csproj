@@ -48,7 +48,7 @@
     <None Include="packaging/Altinn.App.Api.props" Pack="true" PackagePath="build/" Visible="true" Condition="'$(UseExperimentalPackageId)'!='true'" />
     <None Include="packaging/Altinn.App.Api.targets" Pack="true" PackagePath="build/" Visible="true" Condition="'$(UseExperimentalPackageId)'!='true'" />
     <!--
-      When we do PR builds/experimental releases we set AppPackageVersion from CI, and we also append '.Experimental' to package IDs.
+      When we do PR builds/experimental releases we set UseExperimentalPackageId, and we also append '.Experimental' to package IDs.
       The props file name must match the package ID for the package it is included in.
      -->
     <None Include="packaging/Altinn.App.Api.Experimental.props" Pack="true" PackagePath="build/" Visible="true" Condition="'$(UseExperimentalPackageId)'=='true'" />

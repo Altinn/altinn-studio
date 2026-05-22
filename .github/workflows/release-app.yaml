@@ -14,7 +14,7 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   resolve-release-context:
@@ -70,6 +70,8 @@ jobs:
     name: Build, release and publish
     runs-on: ubuntu-latest
     needs: resolve-release-context
+    permissions:
+      contents: write
     environment: ${{ needs.resolve-release-context.outputs.environment }}
 
     steps:

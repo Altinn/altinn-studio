@@ -46,8 +46,8 @@ public class ApplicationMetdataTests
             .Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()
             ?.Version;
 
-        ApplicationMetadata.LibVersion.Should().Be(fileVersion);
-        Version.TryParse(ApplicationMetadata.LibVersion, out _).Should().BeTrue();
-        new ApplicationMetadata("ttd/test").AltinnNugetVersion.Should().Be(fileVersion);
+        Assert.Equal(fileVersion, ApplicationMetadata.LibVersion);
+        Assert.True(Version.TryParse(ApplicationMetadata.LibVersion, out _));
+        Assert.Equal(fileVersion, new ApplicationMetadata("ttd/test").AltinnNugetVersion);
     }
 }

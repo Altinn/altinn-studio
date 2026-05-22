@@ -44,8 +44,8 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(UseExperimentalPackageId)' == '' AND '$(AppPackageVersion)'!=''">
-    <UseExperimentalPackageId>true</UseExperimentalPackageId>
+  <PropertyGroup Condition="'$(UseExperimentalPackageId)' == ''">
+    <UseExperimentalPackageId>false</UseExperimentalPackageId>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(UseExperimentalPackageId)' == 'true'">

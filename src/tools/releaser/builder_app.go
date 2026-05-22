@@ -111,7 +111,12 @@ func appInformationalVersion(ctx context.Context, git *internal.GitCLI, ver *ver
 }
 
 func (b *appBuilder) run(ctx context.Context, dir string, env []string, name string, args ...string) error {
-	//nolint:gosec // G204: commands are fixed release build tools with fixed local arguments.
+	switch name {
+	case "dotnet", "yarn":
+	default:
+		return fmt.Errorf("unsupported app build command: %s", name)
+	}
+
 	cmd := exec.CommandContext(ctx, name, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
