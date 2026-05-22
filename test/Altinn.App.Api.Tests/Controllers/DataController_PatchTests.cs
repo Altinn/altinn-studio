@@ -340,7 +340,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     [Fact]
     public async Task InvalidTestValue_ReturnsConflict()
     {
-        this.OverrideServicesForThisTest = (services) =>
+        OverrideServicesForThisTest = (services) =>
         {
             services.AddTelemetrySink(
                 additionalActivitySources: source => source.Name == "Microsoft.AspNetCore",

@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Helpers.Patch;
+using Altinn.App.Api.Helpers.RequestHandling;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
@@ -15,6 +16,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
+using Altinn.App.Core.Internal.Files;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Profile;
@@ -134,6 +136,7 @@ internal sealed record InstancesControllerFixture(IServiceProvider ServiceProvid
         services.AddSingleton(new Mock<IDataElementAccessChecker>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<IAppResources>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<INotificationService>(MockBehavior.Strict).Object);
+        services.AddSingleton(new Mock<IFileService>(MockBehavior.Loose).Object);
 
         var httpContextMock = new Mock<HttpContext>(MockBehavior.Strict);
         services.AddTransient(_ => httpContextMock.Object);

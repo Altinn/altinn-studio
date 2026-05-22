@@ -44,6 +44,7 @@ using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Files;
 using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
@@ -203,6 +204,7 @@ public static class ServiceCollectionExtensions
         services.Configure<AccessTokenSettings>(configuration.GetSection("AccessTokenSettings"));
         services.Configure<FrontEndSettings>(configuration.GetSection(nameof(FrontEndSettings)));
         services.Configure<PdfGeneratorSettings>(configuration.GetSection(nameof(PdfGeneratorSettings)));
+        services.AddTransient<IFileService, FileService>();
 
         services.AddRuntimeEnvironment();
         if (env.IsDevelopment())

@@ -10,16 +10,14 @@ using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
-using Altinn.App.Core.Features.FileAnalysis;
-using Altinn.App.Core.Features.FileAnalyzis;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Files;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Prefill;
-using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Result;
 using Altinn.App.Core.Models.Validation;
@@ -47,8 +45,6 @@ public class DataController : ControllerBase
     private readonly IAppModel _appModel;
     private readonly IAppMetadata _appMetadata;
     private readonly IPrefill _prefillService;
-    private readonly IFileAnalysisService _fileAnalyserService;
-    private readonly IFileValidationService _fileValidationService;
     private readonly IFeatureManager _featureManager;
     private readonly InternalPatchService _patchService;
     private readonly ModelSerializationService _modelDeserializer;
@@ -56,6 +52,7 @@ public class DataController : ControllerBase
     private readonly IAuthenticationContext _authenticationContext;
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IDataElementAccessChecker _dataElementAccessChecker;
+    private readonly IFileService _fileService;
 
     private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
@@ -68,8 +65,6 @@ public class DataController : ControllerBase
         IDataClient dataClient,
         IAppModel appModel,
         IPrefill prefillService,
-        IFileAnalysisService fileAnalyserService,
-        IFileValidationService fileValidationService,
         IAppMetadata appMetadata,
         IFeatureManager featureManager,
         InternalPatchService patchService,
@@ -85,13 +80,12 @@ public class DataController : ControllerBase
         _appModel = appModel;
         _appMetadata = appMetadata;
         _prefillService = prefillService;
-        _fileAnalyserService = fileAnalyserService;
-        _fileValidationService = fileValidationService;
         _featureManager = featureManager;
         _patchService = patchService;
         _modelDeserializer = modelDeserializer;
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _authenticationContext = authenticationContext;
+        _fileService = serviceProvider.GetRequiredService<IFileService>();
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
         _dataElementAccessChecker = serviceProvider.GetRequiredService<IDataElementAccessChecker>();
     }
@@ -341,10 +335,10 @@ public class DataController : ControllerBase
                 bool parseSuccess = Request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues);
                 string? filename = parseSuccess ? DataRestrictionValidation.GetFileNameFromHeader(headerValues) : null;
 
-                var analysisAndValidationProblem = await RunFileAnalysisAndValidation(dataType, bytes, filename);
-                if (analysisAndValidationProblem != null)
+                var fileValidationIssues = await _fileService.RunFileAnalysisAndValidation(dataType, bytes, filename);
+                if (fileValidationIssues != null)
                 {
-                    return analysisAndValidationProblem;
+                    return new DataPostErrorResponse("File validation failed", fileValidationIssues);
                 }
 
                 //schedule the binary data element to be created
@@ -419,38 +413,6 @@ public class DataController : ControllerBase
             .ToList();
     }
 
-    private async Task<ProblemDetails?> RunFileAnalysisAndValidation(
-        DataType dataTypeFromMetadata,
-        byte[] bytes,
-        string? filename
-    )
-    {
-        List<FileAnalysisResult> fileAnalysisResults = [];
-        if (FileAnalysisEnabledForDataType(dataTypeFromMetadata))
-        {
-            fileAnalysisResults = (
-                await _fileAnalyserService.Analyse(dataTypeFromMetadata, new MemoryAsStream(bytes), filename)
-            ).ToList();
-        }
-
-        var fileValidationSuccess = true;
-        List<ValidationIssueWithSource> validationIssues = [];
-        if (FileValidationEnabledForDataType(dataTypeFromMetadata))
-        {
-            (fileValidationSuccess, validationIssues) = await _fileValidationService.Validate(
-                dataTypeFromMetadata,
-                fileAnalysisResults
-            );
-        }
-
-        if (!fileValidationSuccess)
-        {
-            return new DataPostErrorResponse("File validation failed", validationIssues);
-        }
-
-        return null;
-    }
-
     /// <summary>
     /// File validation requires json object in response and is introduced in the
     /// methods above validating files. In order to be consistent for the return types
@@ -464,16 +426,6 @@ public class DataController : ControllerBase
         return await _featureManager.IsEnabledAsync(FeatureFlags.JsonObjectInDataResponse)
             ? errors
             : string.Join(";", errors.Select(x => x.Description));
-    }
-
-    private static bool FileAnalysisEnabledForDataType(DataType dataTypeFromMetadata)
-    {
-        return dataTypeFromMetadata.EnabledFileAnalysers is { Count: > 0 };
-    }
-
-    private static bool FileValidationEnabledForDataType(DataType dataTypeFromMetadata)
-    {
-        return dataTypeFromMetadata.EnabledFileValidators is { Count: > 0 };
     }
 
     /// <summary>
@@ -555,7 +507,7 @@ public class DataController : ControllerBase
     }
 
     /// <summary>
-    ///  Updates an existing data element with new content.
+    /// Updates an existing data element with new content.
     /// </summary>
     /// <param name="org">unique identifier of the organisation responsible for the app</param>
     /// <param name="app">application identifier which is unique within an organisation</param>
@@ -1065,14 +1017,14 @@ public class DataController : ControllerBase
             );
         }
 
-        var analysisAndValidationProblem = await RunFileAnalysisAndValidation(
+        var fileValidationIssues = await _fileService.RunFileAnalysisAndValidation(
             dataType,
             bytes,
             contentDispositionHeader.FileName.ToString()
         );
-        if (analysisAndValidationProblem != null)
+        if (fileValidationIssues != null)
         {
-            return Problem(analysisAndValidationProblem);
+            return Problem(new DataPostErrorResponse("File validation failed", fileValidationIssues));
         }
 
         DataElement dataElement = await _dataClient.UpdateBinaryData(

@@ -19,6 +19,7 @@ using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
+using Altinn.App.Core.Internal.Files;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Process;
@@ -78,6 +79,7 @@ public class InstancesController : ControllerBase
     private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly IDataElementAccessChecker _dataElementAccessChecker;
+    private readonly IFileService _fileService;
     private const long RequestSizeLimit = 2000 * 1024 * 1024;
 
     /// <summary>
@@ -124,6 +126,7 @@ public class InstancesController : ControllerBase
         _patchService = patchService;
         _notificationService = notificationService;
         _translationService = translationService;
+        _fileService = serviceProvider.GetRequiredService<IFileService>();
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _authenticationContext = authenticationContext;
         _dataElementAccessChecker = serviceProvider.GetRequiredService<IDataElementAccessChecker>();
@@ -395,7 +398,7 @@ public class InstancesController : ControllerBase
 
         try
         {
-            var prefillProblem = await StorePrefillParts(instance, application, requestParts, language);
+            var prefillProblem = await StoreParts(instance, application, requestParts, language);
             if (prefillProblem is not null)
             {
                 await _instanceClient.DeleteInstance(
@@ -490,11 +493,11 @@ public class InstancesController : ControllerBase
     }
 
     /// <summary>
-    /// Simplified Instanciation with support for fieldprefill
+    /// Simplified instantiation with support for fieldprefill
     /// </summary>
     /// <param name="org">unique identifier of the organisation responsible for the app</param>
     /// <param name="app">application identifier which is unique within an organisation</param>
-    /// <param name="instansiationInstance">instansiation information</param>
+    /// <param name="instansiationInstance">instantiation information</param>
     /// <param name="language">The currently active user language</param>
     /// <returns>The new instance</returns>
     [HttpPost("create")]
@@ -1394,7 +1397,7 @@ public class InstancesController : ControllerBase
         }
     }
 
-    private async Task<ProblemDetails?> StorePrefillParts(
+    private async Task<ProblemDetails?> StoreParts(
         Instance instance,
         ApplicationMetadata appInfo,
         List<RequestPart> parts,
@@ -1440,9 +1443,10 @@ public class InstancesController : ControllerBase
                 return accessProblem;
             }
 
+            _logger.LogInformation("Storing part {partName}", part.Name);
+
             if (dataType.AppLogic?.ClassRef != null)
             {
-                _logger.LogInformation("Storing part {partName}", part.Name);
                 var deserializationResult = await _serializationService.DeserializeSingleFromStream(
                     new MemoryAsStream(part.Bytes),
                     part.ContentType,
@@ -1464,7 +1468,16 @@ public class InstancesController : ControllerBase
             }
             else
             {
-                _logger.LogInformation("Storing part {partName}", part.Name);
+                var fileValidationIssues = await _fileService.RunFileAnalysisAndValidation(
+                    dataType,
+                    part.Bytes,
+                    part.FileName
+                );
+
+                if (fileValidationIssues is not null)
+                {
+                    return new DataPostErrorResponse("File validation failed", fileValidationIssues);
+                }
                 dataMutator.AddBinaryDataElement(dataType.Id, part.ContentType, part.FileName, part.Bytes);
             }
         }
