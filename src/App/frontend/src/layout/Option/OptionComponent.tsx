@@ -1,9 +1,8 @@
 import React from 'react';
 
-import { HelpText } from '@app/form-component';
+import { HelpText, LoadingEmpty } from '@app/form-component';
 import cn from 'classnames';
 
-import { LoadingEmpty } from 'src/app-components/loading/LoadingEmpty/LoadingEmpty';
 import { getLabelId } from 'src/components/label/Label';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';

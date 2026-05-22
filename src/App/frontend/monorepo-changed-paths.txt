@@ -33,6 +33,9 @@ src/app-components/TextArea/TextArea.tsx
 src/app-components/TimePicker/
 src/app-components/error/FatalError/FatalError.tsx
 src/app-components/error/FatalErrorEmpty/FatalErrorEmpty.tsx
+src/app-components/loading/AltinnContentLoader/
+src/app-components/loading/LoadingEmpty/LoadingEmpty.tsx
+src/app-components/loading/LoadingWrapper/LoadingWrapper.tsx
 src/app-components/loading/Spinner/Spinner.tsx
 src/codegen/schemas/layout-sets.schema.v1.ts
 src/components/presentation/Header.tsx
