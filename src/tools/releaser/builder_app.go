@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,6 +12,11 @@ import (
 
 	"altinn.studio/releaser/internal"
 	"altinn.studio/releaser/internal/version"
+)
+
+var (
+	errAppPackageArtifactsMissing         = errors.New("no app package artifacts produced")
+	errAppInformationalVersionCommitEmpty = errors.New("app package informational version commit is empty")
 )
 
 type appBuilder struct {
@@ -37,12 +43,12 @@ func (b *appBuilder) Build(ctx context.Context, ver *version.Version, outputDir 
 	frontendDir := filepath.Join(root, "src", "App", "frontend")
 	backendDir := filepath.Join(root, "src", "App", "backend")
 
-	if err := internal.EnsureDir(outputDir); err != nil {
-		return nil, fmt.Errorf("create output directory: %w", err)
+	if ensureErr := internal.EnsureDir(outputDir); ensureErr != nil {
+		return nil, fmt.Errorf("create output directory: %w", ensureErr)
 	}
 
 	b.log.Info("Building app frontend...")
-	if err := b.run(
+	if installErr := b.run(
 		ctx,
 		frontendDir,
 		appFrontendInstallEnv(),
@@ -50,11 +56,11 @@ func (b *appBuilder) Build(ctx context.Context, ver *version.Version, outputDir 
 		"install",
 		"--immutable",
 		"--inline-builds",
-	); err != nil {
-		return nil, fmt.Errorf("install app frontend dependencies: %w", err)
+	); installErr != nil {
+		return nil, fmt.Errorf("install app frontend dependencies: %w", installErr)
 	}
-	if err := b.run(ctx, frontendDir, nil, "yarn", "build"); err != nil {
-		return nil, fmt.Errorf("build app frontend: %w", err)
+	if buildErr := b.run(ctx, frontendDir, nil, "yarn", "build"); buildErr != nil {
+		return nil, fmt.Errorf("build app frontend: %w", buildErr)
 	}
 
 	informationalVersion, err := appInformationalVersion(ctx, git, ver)
@@ -63,7 +69,7 @@ func (b *appBuilder) Build(ctx context.Context, ver *version.Version, outputDir 
 	}
 
 	b.log.Info("Packing app backend packages...")
-	if err := b.run(
+	if packErr := b.run(
 		ctx,
 		backendDir,
 		nil,
@@ -75,11 +81,11 @@ func (b *appBuilder) Build(ctx context.Context, ver *version.Version, outputDir 
 		"--output",
 		outputDir,
 		"-p:AppPackageVersion="+ver.Num,
-		fmt.Sprintf("-p:AppCompatVersion=%d.%d.%d.0", ver.Major, ver.Minor, ver.Patch),
+		fmt.Sprintf("-p:AppAssemblyVersion=%d.%d.%d.0", ver.Major, ver.Minor, ver.Patch),
 		"-p:AppInformationalVersion="+informationalVersion,
 		"-p:UseExperimentalPackageId=false",
-	); err != nil {
-		return nil, fmt.Errorf("pack app backend: %w", err)
+	); packErr != nil {
+		return nil, fmt.Errorf("pack app backend: %w", packErr)
 	}
 
 	artifacts, err := appPackageArtifacts(outputDir)
@@ -87,7 +93,7 @@ func (b *appBuilder) Build(ctx context.Context, ver *version.Version, outputDir 
 		return nil, err
 	}
 	if len(artifacts) == 0 {
-		return nil, fmt.Errorf("no app package artifacts produced in %s", outputDir)
+		return nil, fmt.Errorf("%w in %s", errAppPackageArtifactsMissing, outputDir)
 	}
 	return artifacts, nil
 }
@@ -99,7 +105,7 @@ func appInformationalVersion(ctx context.Context, git *internal.GitCLI, ver *ver
 	}
 	sha = strings.TrimSpace(sha)
 	if sha == "" {
-		return "", fmt.Errorf("get app package informational version commit: empty SHA")
+		return "", errAppInformationalVersionCommitEmpty
 	}
 	return ver.Num + "+" + sha, nil
 }

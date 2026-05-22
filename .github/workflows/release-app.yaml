@@ -42,27 +42,18 @@ jobs:
         with:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.merge_commit_sha || github.sha }}
 
+      - name: Setup Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: 'src/tools/releaser/go.mod'
+          cache-dependency-path: src/tools/releaser/go.sum
+
       - name: Resolve environment
         id: context
+        env:
+          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || 'main' }}
         run: |
-          version="$(
-            awk '
-              /^## \[/ {
-                section = $0
-                gsub(/^## \[/, "", section)
-                gsub(/\].*$/, "", section)
-                if (section != "Unreleased") {
-                  print section
-                  exit
-                }
-              }
-            ' src/App/backend/CHANGELOG.md
-          )"
-
-          if [[ -z "$version" ]]; then
-            echo "Could not resolve release version from src/App/backend/CHANGELOG.md" >&2
-            exit 1
-          fi
+          version="$(go run . resolve-version --component app --base-branch "$BASE_BRANCH")"
 
           environment="prod"
           if [[ "$version" == *"-preview."* ]]; then
@@ -73,6 +64,7 @@ jobs:
 
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "environment=$environment" >> "$GITHUB_OUTPUT"
+        working-directory: src/tools/releaser
 
   release:
     name: Build, release and publish

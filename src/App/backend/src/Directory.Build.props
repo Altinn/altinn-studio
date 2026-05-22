@@ -59,7 +59,7 @@
       IgnoreExitCode="true"
       StandardOutputImportance="Low"
       StandardErrorImportance="Low"
-      Condition="'$(AppPackageVersion)' == '' OR '$(AppCompatVersion)' == '' OR '$(AppInformationalVersion)' == ''"
+      Condition="'$(AppPackageVersion)' == '' OR '$(AppAssemblyVersion)' == '' OR '$(AppInformationalVersion)' == ''"
     >
       <Output TaskParameter="ConsoleOutput" ItemName="_AppLatestTagOutput" />
       <Output TaskParameter="ExitCode" PropertyName="_AppLatestTagExitCode" />
@@ -75,7 +75,7 @@
       IgnoreExitCode="true"
       StandardOutputImportance="Low"
       StandardErrorImportance="Low"
-      Condition="'$(_AppLatestTag)' != '' AND ('$(AppPackageVersion)' == '' OR '$(AppCompatVersion)' == '')"
+      Condition="'$(_AppLatestTag)' != '' AND ('$(AppPackageVersion)' == '' OR '$(AppAssemblyVersion)' == '')"
     >
       <Output TaskParameter="ConsoleOutput" ItemName="_AppVersionHeightOutput" />
       <Output TaskParameter="ExitCode" PropertyName="_AppVersionHeightExitCode" />
@@ -106,13 +106,13 @@
       <_AppVersionMajor>$([System.Text.RegularExpressions.Regex]::Match('$(AppPackageVersion)', '^([0-9]+)\.([0-9]+)\.([0-9]+)').Groups[1].Value)</_AppVersionMajor>
       <_AppVersionMinor>$([System.Text.RegularExpressions.Regex]::Match('$(AppPackageVersion)', '^([0-9]+)\.([0-9]+)\.([0-9]+)').Groups[2].Value)</_AppVersionMinor>
       <_AppVersionPatch>$([System.Text.RegularExpressions.Regex]::Match('$(AppPackageVersion)', '^([0-9]+)\.([0-9]+)\.([0-9]+)').Groups[3].Value)</_AppVersionPatch>
-      <AppCompatVersion Condition="'$(AppCompatVersion)' == ''">$(_AppVersionMajor).$(_AppVersionMinor).$(_AppVersionPatch).$(_AppVersionHeight)</AppCompatVersion>
+      <AppAssemblyVersion Condition="'$(AppAssemblyVersion)' == ''">$(_AppVersionMajor).$(_AppVersionMinor).$(_AppVersionPatch).$(_AppVersionHeight)</AppAssemblyVersion>
       <AppInformationalVersion Condition="'$(AppInformationalVersion)' == '' AND '$(_AppCommit)' != ''">$(AppPackageVersion)+$(_AppCommit)</AppInformationalVersion>
       <AppInformationalVersion Condition="'$(AppInformationalVersion)' == ''">$(AppPackageVersion)</AppInformationalVersion>
       <Version>$(AppPackageVersion)</Version>
       <PackageVersion>$(AppPackageVersion)</PackageVersion>
-      <FileVersion>$(AppCompatVersion)</FileVersion>
-      <AssemblyVersion>$(AppCompatVersion)</AssemblyVersion>
+      <FileVersion>$(AppAssemblyVersion)</FileVersion>
+      <AssemblyVersion>$(AppAssemblyVersion)</AssemblyVersion>
       <InformationalVersion>$(AppInformationalVersion)</InformationalVersion>
     </PropertyGroup>
   </Target>
