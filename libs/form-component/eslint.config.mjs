@@ -145,7 +145,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['vitest.config.ts', 'form-component/.storybook/**/*', '**/*.stories.{ts,tsx}'],
+    files: ['vitest.config.ts', '.storybook/**/*', '**/*.stories.{ts,tsx}'],
     rules: {
       'import/no-default-export': ['off'],
     },
