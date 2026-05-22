@@ -85,6 +85,7 @@ import {
   chatThreadPath,
   chatMessagesPath,
   chatMessagePath,
+  uiFoldersPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams, ChatThread, CreateChatMessagePayload, CreateChatThreadPayload } from 'app-shared/types/api';
@@ -196,6 +197,9 @@ export const convertToPageGroups = (org: string, app: string, layoutSetName: str
 export const convertToPageOrder = (org: string, app: string, layoutSetName: string) => post(layoutConvertToPageOrderPath(org, app, layoutSetName));
 export const updateValidationOnNavigationLayoutSets = (org: string, app: string, payload: IValidationOnNavigationLayoutSets) => post<IValidationOnNavigationLayoutSets>(`${layoutSetsPath(org, app)}/validation-on-navigation`, payload);
 export const deleteValidationOnNavigationLayoutSets = (org: string, app: string) => del(`${layoutSetsPath(org, app)}/validation-on-navigation`);
+// v9 and newer versions
+export const updateGlobalValidationOnNavigation = (org: string, app: string, payload: IValidationOnNavigationLayoutSets) => post<IValidationOnNavigationLayoutSets>(`${uiFoldersPath(org, app)}/settings/validation-on-navigation`, payload);
+export const deleteGlobalValidationOnNavigation = (org: string, app: string) => del(`${uiFoldersPath(org, app)}/settings/validation-on-navigation`);
 
 // Resourceadm
 export const createResource = (org: string, payload: NewResource) => post(resourceCreatePath(org), payload);

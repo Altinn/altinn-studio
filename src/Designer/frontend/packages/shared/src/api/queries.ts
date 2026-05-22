@@ -87,6 +87,7 @@ import {
   contactPointsPath,
   botAccountsPath,
   botAccountApiKeysPath,
+  uiFoldersPath,
 } from './paths';
 
 import type { AppReleasesResponse, ChatMessage, ChatThread, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -257,3 +258,6 @@ export const getContactPoints = (org: string) => get<ContactPoint[]>(contactPoin
 // Org settings - Bot accounts
 export const getBotAccounts = (org: string) => get<BotAccount[]>(botAccountsPath(org));
 export const getBotAccountApiKeys = (org: string, botAccountId: string) => get<BotAccountApiKey[]>(botAccountApiKeysPath(org, botAccountId));
+
+/// V9 and newer versions
+export const getGlobalValidationOnNavigation = (org: string, app: string) => get<IValidationOnNavigationLayoutSets>(`${uiFoldersPath(org, app)}/settings/validation-on-navigation`);
