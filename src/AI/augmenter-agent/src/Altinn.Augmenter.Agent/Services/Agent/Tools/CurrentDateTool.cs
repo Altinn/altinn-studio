@@ -10,9 +10,15 @@ namespace Altinn.Augmenter.Agent.Services.Agent.Tools;
 ///
 /// UTC is intentionally NOT used: a saksbehandler clicking "vurder" at 00:30
 /// CET on May 22 expects "2026-05-22", not "2026-05-21" (UTC).
+///
+/// Requires IANA tzdata at runtime — the Alpine runtime image installs the
+/// 'tzdata' apk so /usr/share/zoneinfo/Europe/Oslo is present. On Windows,
+/// .NET resolves the IANA ID via its built-in ICU mapping.
 /// </summary>
 public sealed class CurrentDateTool : ITool
 {
+    private const string NorwegianTimeZoneId = "Europe/Oslo";
+
     public string Name => "current_date";
 
     private readonly Func<DateTimeOffset> _nowUtc;
@@ -26,7 +32,7 @@ public sealed class CurrentDateTool : ITool
     internal CurrentDateTool(Func<DateTimeOffset> nowUtc)
     {
         _nowUtc = nowUtc;
-        _norwegianTz = ResolveNorwegianTimeZone();
+        _norwegianTz = TimeZoneInfo.FindSystemTimeZoneById(NorwegianTimeZoneId);
     }
 
     public object Invoke(JsonElement arguments, JsonDocument application)
@@ -37,19 +43,5 @@ public sealed class CurrentDateTool : ITool
             date = local.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
             timezone = _norwegianTz.Id,
         };
-    }
-
-    private static TimeZoneInfo ResolveNorwegianTimeZone()
-    {
-        // .NET 6+ accepts both IANA and Windows IDs on either platform, but fall
-        // back to the Windows ID if the runtime image lacks tzdata.
-        try
-        {
-            return TimeZoneInfo.FindSystemTimeZoneById("Europe/Oslo");
-        }
-        catch (TimeZoneNotFoundException)
-        {
-            return TimeZoneInfo.FindSystemTimeZoneById("W. Europe Standard Time");
-        }
     }
 }

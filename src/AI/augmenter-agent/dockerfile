@@ -33,7 +33,11 @@ RUN set -eux; \
     mv "/tmp/typst-${typst_arch}-unknown-linux-musl/typst" /usr/local/bin/typst; \
     rm -rf /tmp/typst.tar.xz "/tmp/typst-${typst_arch}-unknown-linux-musl"; \
     apk del .typst-build-deps; \
-    apk add --no-cache pandoc
+    apk add --no-cache pandoc tzdata
+# tzdata is required for TimeZoneInfo.FindSystemTimeZoneById("Europe/Oslo")
+# used by the current_date tool — Alpine ships without IANA tz files, and
+# .NET on Linux reads them from /usr/share/zoneinfo at runtime (no ICU
+# fallback for tz names).
 
 RUN addgroup -S appgroup && adduser -S -h /home/appuser appuser -G appgroup \
     && mkdir -p /etc/augmenter/templates /etc/augmenter/registries /etc/augmenter/rules /etc/augmenter/orchestrator /etc/augmenter/tools /etc/augmenter/mappings \
