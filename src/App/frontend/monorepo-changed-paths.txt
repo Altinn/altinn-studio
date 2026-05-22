@@ -25,8 +25,8 @@ src/app-components/HelpText/
 src/app-components/Input/
 src/app-components/Label/
 src/app-components/Number/
-src/app-components/Panel/
 src/app-components/Pagination/
+src/app-components/Panel/
 src/app-components/Table/
 src/app-components/Text/
 src/app-components/TextArea/TextArea.tsx
@@ -50,6 +50,7 @@ src/features/datamodel/DataElementIdsForCypress.tsx
 src/features/datamodel/DataModelsProvider.tsx
 src/features/datamodel/useDataModelSchemaQuery.ts
 src/features/datamodel/utils.ts
+src/features/devtools/components/VersionSwitcher/VersionSwitcher.tsx
 src/features/entrypoint/Entrypoint.tsx
 src/features/form/FormContext.tsx
 src/features/form/dynamics/
@@ -93,7 +94,7 @@ src/utils/formLayout.test.ts
 src/utils/formLayout.ts
 src/utils/layout/generator/GeneratorDataSources.tsx
 src/utils/refs/
-src/utils/versioning/versions.ts
+src/utils/versioning/
 test/e2e/config/
 test/e2e/integration/component-library/pdf.ts
 test/e2e/integration/frontend-test/language.ts

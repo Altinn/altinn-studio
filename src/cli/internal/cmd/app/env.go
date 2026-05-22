@@ -11,9 +11,14 @@ type appEnv struct {
 	values map[string]string
 }
 
-func newAppRunEnv(current []string, kestrelURL string, topology envtopology.Local) []string {
+func newAppRunEnv(
+	current []string,
+	kestrelURL string,
+	topology envtopology.Local,
+	appFrontendAssetBaseUrl string,
+) []string {
 	env := newAppEnv(current)
-	env.addRunDefaults(kestrelURL, topology)
+	env.addRunDefaults(kestrelURL, topology, appFrontendAssetBaseUrl)
 	return env.entries()
 }
 
@@ -31,11 +36,14 @@ func newAppEnv(current []string) appEnv {
 	return appEnv{values: values}
 }
 
-func (e appEnv) addRunDefaults(kestrelURL string, topology envtopology.Local) {
+func (e appEnv) addRunDefaults(kestrelURL string, topology envtopology.Local, appFrontendAssetBaseUrl string) {
 	endpoints := newAppEndpointConfig(topology)
 
 	e.setDefault("ASPNETCORE_ENVIRONMENT", "Development")
 	e.setDefault("Kestrel__EndPoints__Http__Url", kestrelURL)
+	if appFrontendAssetBaseUrl != "" {
+		e.values["AppSettings__AppFrontendAssetBaseUrl"] = appFrontendAssetBaseUrl
+	}
 	e.setDefault("AppSettings__OpenIdWellKnownEndpoint", endpoints.platform+"/authentication/api/v1/openid/")
 	e.setDefault("GeneralSettings__ExternalAppBaseUrl", topology.AppBaseURL())
 	e.setDefault("GeneralSettings__HostName", topology.AppHostName())
