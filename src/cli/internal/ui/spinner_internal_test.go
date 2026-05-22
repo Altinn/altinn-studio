@@ -23,7 +23,7 @@ func TestSpinner_UsesPlainOutputWhenTerminalDecorationsDisabled(t *testing.T) {
 	if !strings.Contains(output, "[ok] Installation completed") {
 		t.Fatalf("spinner output = %q, want plain success message", output)
 	}
-	for _, forbidden := range []string{"\x1b", "\r", "⠋", "✓"} {
+	for _, forbidden := range []string{"\x1b", "\r\033[K", "⠋", "✓"} {
 		if strings.Contains(output, forbidden) {
 			t.Fatalf("spinner output = %q, did not want %q", output, forbidden)
 		}
