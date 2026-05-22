@@ -593,6 +593,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     internal async Task UpdateInstanceData(DataElementChanges changes)
     {
+        using var activity = _telemetry?.StartUpdateInstanceData(changes);
         if (HasAbandonIssues)
         {
             throw new InvalidOperationException("AbandonAllChanges has been called, and no changes should be saved");
