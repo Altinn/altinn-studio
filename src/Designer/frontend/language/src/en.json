@@ -58,6 +58,8 @@
   "app_settings.maskinporten_no_org_access_description": "To select Maskinporten scopes, sign in with Ansattporten on behalf of the organisation that owns the app.",
   "app_settings.maskinporten_no_org_access_title": "You do not have access on behalf of the organisation",
   "app_settings.maskinporten_scope_changes_deployment_notice": "Scope changes take effect the next time the app is built and deployed.",
+  "app_settings.maskinporten_unsupported_app_version_description": "This app uses an Altinn App version older than 8.3.0. Maskinporten scopes selected here are saved in Studio, but the app cannot use them when it is built and deployed until it is upgraded to Altinn App v8.3.0 or newer.",
+  "app_settings.maskinporten_unsupported_app_version_title": "The app must be upgraded before scopes can be used",
   "app_settings.run_tab_heading": "Run",
   "app_settings.run_tab_info": "This setting is used for cost reduction. The app can be undeployed automatically in test environments when it is inactive.",
   "app_settings.run_tab_switch_undeploy_on_inactivity": "Undeploy on inactivity in test environments",

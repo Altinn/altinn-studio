@@ -33,6 +33,7 @@ import {
   defaultMaskinportenScopeNames,
   shouldShowDefaultMaskinportenScopesOptIn,
 } from 'app-development/utils/maskinportenScopes';
+import { isMaskinportenScopesSupportedVersion } from 'app-development/utils/versionUtils';
 import {
   combineSelectedAndMaskinportenScopes,
   isDefaultMaskinportenScope,
@@ -54,11 +55,15 @@ export function ScopeList({
 }: ScopeListProps): ReactElement {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: appVersion } = useAppVersionQuery(org, app);
+  const { data: appVersion, isPending: isPendingAppVersion } = useAppVersionQuery(org, app);
   const dialogRef = useRef<HTMLDialogElement | null>(null);
   const [searchValue, setSearchValue] = useState<string>('');
+  const backendVersion = appVersion?.backendVersion;
+  const isUnsupportedAppVersion: boolean =
+    !!backendVersion && !isMaskinportenScopesSupportedVersion(backendVersion);
+  const shouldShowDeploymentNotice: boolean = !isPendingAppVersion && !isUnsupportedAppVersion;
   const shouldShowDefaultScopesOptIn: boolean = shouldShowDefaultMaskinportenScopesOptIn(
-    appVersion?.backendVersion,
+    backendVersion,
     selectedScopes,
   );
 
@@ -98,9 +103,12 @@ export function ScopeList({
               <StudioLink href={contactByEmail.url('serviceOwner')}> </StudioLink>
             </Trans>
           </StudioParagraph>
-          <StudioAlert data-color='info' className={classes.deploymentNotice}>
-            {t('app_settings.maskinporten_scope_changes_deployment_notice')}
-          </StudioAlert>
+          {isUnsupportedAppVersion && <UnsupportedAppVersionAlert />}
+          {shouldShowDeploymentNotice && (
+            <StudioAlert data-color='info' className={classes.deploymentNotice} role='note'>
+              {t('app_settings.maskinporten_scope_changes_deployment_notice')}
+            </StudioAlert>
+          )}
           <DefaultScopesNotice
             shouldShowDefaultScopesOptIn={shouldShowDefaultScopesOptIn}
             initialValues={initialValues}
@@ -129,6 +137,21 @@ export function ScopeList({
         />
       )}
     </div>
+  );
+}
+
+function UnsupportedAppVersionAlert(): ReactElement {
+  const { t } = useTranslation();
+
+  return (
+    <StudioAlert data-color='danger' className={classes.unsupportedVersionNotice} role='alert'>
+      <StudioHeading data-size='2xs' level={4}>
+        {t('app_settings.maskinporten_unsupported_app_version_title')}
+      </StudioHeading>
+      <StudioParagraph>
+        {t('app_settings.maskinporten_unsupported_app_version_description')}
+      </StudioParagraph>
+    </StudioAlert>
   );
 }
 
