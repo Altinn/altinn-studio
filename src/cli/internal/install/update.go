@@ -438,6 +438,10 @@ func (s *Service) UninstallBinary() (UninstallResult, error) {
 // UninstallBinaryAt removes a studioctl executable from disk.
 func (s *Service) UninstallBinaryAt(execPath string) (UninstallResult, error) {
 	if runtime.GOOS == osutil.OSWindows {
+		// Windows user installs live in a dedicated studioctl directory, so the
+		// platform cleanup also removes managed update artifacts and the directory
+		// itself when no unmanaged files remain. Other platforms install into
+		// shared PATH directories and only remove the studioctl binary.
 		return uninstallBinaryAtWindows(execPath)
 	}
 

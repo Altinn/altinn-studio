@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 
 	installpkg "altinn.studio/studioctl/internal/install"
 	"altinn.studio/studioctl/internal/osutil"
@@ -23,11 +24,16 @@ import (
 )
 
 const (
-	windowsHelperExe      = "studioctl-self-helper.exe"
-	windowsHelperFilePerm = 0o755
+	windowsHelperExe               = "studioctl-self-helper.exe"
+	windowsHelperFilePerm          = 0o755
+	windowsParentExitWaitTimeout   = 30 * time.Second
+	windowsPowerShellSystemSubpath = `WindowsPowerShell\v1.0\powershell.exe`
 )
 
-var errUnexpectedWindowsWaitStatus = errors.New("unexpected Windows wait status")
+var (
+	errUnexpectedWindowsWaitStatus = errors.New("unexpected Windows wait status")
+	errWindowsParentWaitTimeout    = errors.New("timed out waiting for parent process")
+)
 
 //nolint:gochecknoglobals // Test seam for system PowerShell path resolution.
 var windowsPowerShellPathFunc = windowsPowerShellPath
@@ -213,41 +219,9 @@ func (c *SelfCommand) runWindowsUpdateHelper(ctx context.Context, flags windowsS
 }
 
 func (c *SelfCommand) runWindowsUninstallHelper(ctx context.Context, flags windowsSelfHelperFlags) error {
-	state, err := c.transition.Prepare(ctx)
-	if err != nil {
-		return fmt.Errorf("prepare uninstall: %w", err)
-	}
-	removed := false
-	defer func() {
-		if !removed {
-			c.transition.Restore(ctx, state, "")
-		}
-	}()
-
-	if validateErr := c.service.ValidateHomeRemoval(); validateErr != nil {
-		return fmt.Errorf("validate home directory removal: %w", validateErr)
-	}
-
-	result, err := c.service.UninstallBinaryAt(flags.target)
-	if err != nil {
-		return fmt.Errorf("self uninstall: %w", err)
-	}
-	removed = true
-
-	if resetErr := c.transition.ResetEnvs(ctx); resetErr != nil {
-		return fmt.Errorf("reset environments before uninstall: %w", resetErr)
-	}
-	removedHome, err := c.service.RemoveHome()
-	if err != nil {
-		return fmt.Errorf("remove home directory: %w", err)
-	}
-
-	c.out.Successf("Removed %s", result.RemovedPath)
-	if result.RemovedDir != "" {
-		c.out.Successf("Removed %s", result.RemovedDir)
-	}
-	c.out.Successf("Removed %s", removedHome)
-	return nil
+	return c.runConfirmedUninstall(ctx, func() (installpkg.UninstallResult, error) {
+		return c.service.UninstallBinaryAt(flags.target)
+	})
 }
 
 func waitForWindowsProcessExit(handle windows.Handle) (err error) {
@@ -257,14 +231,21 @@ func waitForWindowsProcessExit(handle windows.Handle) (err error) {
 		}
 	}()
 
-	status, err := windows.WaitForSingleObject(handle, windows.INFINITE)
+	status, err := windows.WaitForSingleObject(handle, windowsParentExitWaitMilliseconds())
 	if err != nil {
 		return fmt.Errorf("wait for parent process: %w", err)
+	}
+	if status == uint32(windows.WAIT_TIMEOUT) {
+		return fmt.Errorf("wait for parent process: %w", errWindowsParentWaitTimeout)
 	}
 	if status != windows.WAIT_OBJECT_0 {
 		return fmt.Errorf("wait for parent process: %w %d", errUnexpectedWindowsWaitStatus, status)
 	}
 	return nil
+}
+
+func windowsParentExitWaitMilliseconds() uint32 {
+	return uint32(windowsParentExitWaitTimeout / time.Millisecond)
 }
 
 func currentWindowsProcessID() (uint32, error) {
@@ -367,5 +348,7 @@ func windowsPowerShellPath() string {
 	if err != nil || systemDir == "" {
 		systemDir = `C:\Windows\System32`
 	}
-	return filepath.Join(systemDir, "WindowsPowerShell", "v1.0", "powershell.exe")
+	// Windows PowerShell 5.1 is included with supported Windows versions and is
+	// a better fallback for this cleanup task than pwsh, which may not be installed.
+	return filepath.Join(systemDir, windowsPowerShellSystemSubpath)
 }

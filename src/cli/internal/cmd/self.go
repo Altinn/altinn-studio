@@ -43,6 +43,8 @@ type applyBundleOptions struct {
 	WarnPath   bool
 }
 
+type uninstallBinaryFunc func() (installpkg.UninstallResult, error)
+
 // NewSelfCommand creates a new self command.
 func NewSelfCommand(cfg *config.Config, out *ui.Output) *SelfCommand {
 	return &SelfCommand{
@@ -475,6 +477,10 @@ func (c *SelfCommand) runUninstall(ctx context.Context, args []string) error {
 		return nil
 	}
 
+	return c.runConfirmedUninstall(ctx, c.service.UninstallBinary)
+}
+
+func (c *SelfCommand) runConfirmedUninstall(ctx context.Context, uninstallBinary uninstallBinaryFunc) error {
 	state, err := c.transition.Prepare(ctx)
 	if err != nil {
 		return fmt.Errorf("prepare uninstall: %w", err)
@@ -498,7 +504,7 @@ func (c *SelfCommand) runUninstall(ctx context.Context, args []string) error {
 		return fmt.Errorf("remove home directory: %w", err)
 	}
 
-	result, err := c.service.UninstallBinary()
+	result, err := uninstallBinary()
 	if err != nil {
 		return fmt.Errorf("self uninstall: %w", err)
 	}
