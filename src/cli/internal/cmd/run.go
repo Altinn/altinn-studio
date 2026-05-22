@@ -100,6 +100,7 @@ func (c *RunCommand) UsageFor(commandPath string) string {
 		"  -m, --mode MODE       Run mode: process or container (default: process)",
 		"  -d, --detach          Run app in background",
 		"  --random-host-port    Use a random host port (default: true)",
+		"  --dev-frontend        Use frontend dev server assets",
 		"  --image-tag IMAGE     Use a specific app container image tag (container mode)",
 		"  --pull                Pull app container image before start (container mode)",
 		"  --skip-build          Skip building the app container image (container mode)",
@@ -115,6 +116,7 @@ type runFlags struct {
 	detach         bool
 	pullImage      bool
 	randomHostPort bool
+	devFrontend    bool
 	skipBuild      bool
 	jsonOutput     bool
 }
@@ -198,6 +200,7 @@ func (c *RunCommand) parseRunFlags(args []string, commandPath string) (runFlags,
 	fs.BoolVar(&flags.detach, "detach", false, "Run app in background")
 	fs.BoolVar(&flags.pullImage, "pull", false, "Pull app container image before start")
 	fs.BoolVar(&flags.randomHostPort, "random-host-port", true, "Use a random host port")
+	fs.BoolVar(&flags.devFrontend, "dev-frontend", false, "Use frontend dev server assets")
 	fs.BoolVar(&flags.skipBuild, "skip-build", false, "Skip building the app container image")
 	fs.BoolVar(&flags.jsonOutput, "json", false, "Output as JSON")
 
@@ -334,6 +337,13 @@ func (c *RunCommand) runTarget(
 	}
 }
 
+func runAppFrontendAssetBaseUrl(topology envtopology.Local, flags runFlags) string {
+	if !flags.devFrontend {
+		return ""
+	}
+	return topology.PublicBaseURL(envtopology.ComponentFrontendDevServer)
+}
+
 func (c *RunCommand) runDotnet(
 	ctx context.Context,
 	target appsvc.RunTarget,
@@ -348,7 +358,10 @@ func (c *RunCommand) runDotnet(
 		args,
 		os.Environ(),
 		topology,
-		appsvc.DotnetRunOptions{RandomHostPort: flags.randomHostPort},
+		appsvc.DotnetRunOptions{
+			RandomHostPort:          flags.randomHostPort,
+			AppFrontendAssetBaseUrl: runAppFrontendAssetBaseUrl(topology, flags),
+		},
 	)
 	if specErr != nil {
 		return fmt.Errorf("build process run spec: %w", specErr)
@@ -1175,8 +1188,9 @@ func (c *RunCommand) runDocker(
 ) error {
 	result := target.Detection
 	spec, specErr := c.service.BuildDockerRunSpec(result, args, topology, appsvc.DockerRunOptions{
-		ImageTag:       flags.imageTag,
-		RandomHostPort: flags.randomHostPort,
+		ImageTag:                flags.imageTag,
+		RandomHostPort:          flags.randomHostPort,
+		AppFrontendAssetBaseUrl: runAppFrontendAssetBaseUrl(topology, flags),
 	})
 	if specErr != nil {
 		return fmt.Errorf("build docker run spec: %w", specErr)
