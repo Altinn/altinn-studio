@@ -8,6 +8,14 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Add `studioctl auth login --with-token` for logging in with an existing Studio/Designer API key from standard input.
+
+### Changed
+
+- Update localtest image.
+
 ## [0.1.0-preview.8] - 2026-05-13
 
 ### Changed
