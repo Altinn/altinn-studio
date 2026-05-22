@@ -13,7 +13,14 @@ import (
 // Colors checks if color output is enabled.
 func Colors() bool {
 	_, noColor := os.LookupEnv("NO_COLOR")
-	return !noColor
+	return !noColor && terminalDecorations()
+}
+
+//nolint:gochecknoglobals // Package-internal hook keeps ISE output mode unit-testable.
+var terminalDecorations = defaultTerminalDecorations
+
+func defaultTerminalDecorations() bool {
+	return !osutil.IsPowerShellISEHost()
 }
 
 // Style functions return ANSI styles for terminal output.
