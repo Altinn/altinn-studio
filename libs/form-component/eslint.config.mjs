@@ -167,12 +167,6 @@ export default defineConfig([
     },
   },
   {
-    files: ['src/layout/*/index.tsx', 'src/layout/LayoutComponent.tsx'],
-    rules: {
-      'react-hooks/rules-of-hooks': 'off', // FIXME: Refactor to follow rules and remove this rule
-    },
-  },
-  {
     files: ['src/codegen/**/*.ts'],
     rules: {
       'no-console': 'off',
