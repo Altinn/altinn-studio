@@ -1,9 +1,7 @@
 import React from 'react';
 
-import { Panel } from '@app/form-component';
+import { ConditionalWrapper, FullWidthWrapper, Panel } from '@app/form-component';
 
-import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
-import { FullWidthWrapper } from 'src/app-components/FullWidthWrapper/FullWidthWrapper';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';

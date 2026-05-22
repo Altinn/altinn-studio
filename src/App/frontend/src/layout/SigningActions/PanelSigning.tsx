@@ -1,11 +1,10 @@
 import React, { useRef } from 'react';
 import type { PropsWithChildren, ReactElement } from 'react';
 
-import { Button, Panel } from '@app/form-component';
+import { Button, FullWidthWrapper, Panel } from '@app/form-component';
 import { Dialog, Heading, Paragraph, ValidationMessage } from '@digdir/designsystemet-react';
 import type { PanelProps } from '@app/form-component';
 
-import { FullWidthWrapper } from 'src/app-components/FullWidthWrapper/FullWidthWrapper';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';

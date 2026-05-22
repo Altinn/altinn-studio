@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Spinner as DesignSystemSpinner } from '@digdir/designsystemet-react';
 
 /**

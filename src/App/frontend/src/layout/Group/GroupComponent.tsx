@@ -1,12 +1,10 @@
 import React from 'react';
 import type { JSX } from 'react';
 
-import { Fieldset, Panel } from '@app/form-component';
+import { ConditionalWrapper, Fieldset, FullWidthWrapper, Panel } from '@app/form-component';
 import { Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
-import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
-import { FullWidthWrapper } from 'src/app-components/FullWidthWrapper/FullWidthWrapper';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupComponent.module.css';

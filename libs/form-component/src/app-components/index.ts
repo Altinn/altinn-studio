@@ -1,4 +1,5 @@
 export * from './AccordionItem';
+export * from './ConditionalWrapper';
 export * from './Button';
 export * from './Card';
 export * from './Datepicker';
@@ -6,6 +7,7 @@ export * from './DynamicForm';
 export * from './Dropzone';
 export * from './FatalError';
 export * from './Flex';
+export * from './FullWidthWrapper';
 export * from './Input';
 export * from './Panel';
 export * from './hooks';

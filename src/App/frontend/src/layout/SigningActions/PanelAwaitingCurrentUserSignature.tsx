@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 
-import { Button, Panel, Spinner } from '@app/form-component';
+import { Button, FullWidthWrapper, Panel, Spinner } from '@app/form-component';
 import { Checkbox, Heading, ValidationMessage } from '@digdir/designsystemet-react';
 
-import { FullWidthWrapper } from 'src/app-components/FullWidthWrapper/FullWidthWrapper';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { Lang } from 'src/features/language/Lang';
