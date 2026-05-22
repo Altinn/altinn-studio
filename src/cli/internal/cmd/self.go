@@ -466,7 +466,10 @@ func (c *SelfCommand) runUninstall(ctx context.Context, args []string) error {
 		if err := c.startWindowsUninstallHelper(); err != nil {
 			return err
 		}
-		c.out.Successf("%s uninstall started. The binary will be removed after this process exits.", osutil.CurrentBin())
+		c.out.Successf(
+			"%s uninstall started. The binary will be removed after this process exits.",
+			osutil.CurrentBin(),
+		)
 		return nil
 	}
 
