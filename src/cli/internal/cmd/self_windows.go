@@ -35,9 +35,6 @@ var (
 	errWindowsParentWaitTimeout    = errors.New("timed out waiting for parent process")
 )
 
-//nolint:gochecknoglobals // Test seam for system PowerShell path resolution.
-var windowsPowerShellPathFunc = windowsPowerShellPath
-
 type windowsSelfHelperFlags struct {
 	operation    string
 	target       string
@@ -113,7 +110,7 @@ func (c *SelfCommand) windowsSelfHelperArgs(flags windowsSelfHelperFlags) []stri
 	return args
 }
 
-func startWindowsHelperProcess(ctx context.Context, path string, args []string) (err error) {
+func startWindowsHelperProcess(ctx context.Context, path string, args []string) error {
 	processID, err := currentWindowsProcessID()
 	if err != nil {
 		return err
@@ -122,11 +119,7 @@ func startWindowsHelperProcess(ctx context.Context, path string, args []string) 
 	if err != nil {
 		return fmt.Errorf("open current process for Windows self helper: %w", err)
 	}
-	defer func() {
-		if closeErr := windows.CloseHandle(parentHandle); closeErr != nil {
-			err = errors.Join(err, fmt.Errorf("close Windows self helper parent handle: %w", closeErr))
-		}
-	}()
+	defer closeWindowsHandle(parentHandle)
 
 	args = append(args, "--parent-handle", strconv.FormatUint(uint64(parentHandle), 10))
 
@@ -224,12 +217,8 @@ func (c *SelfCommand) runWindowsUninstallHelper(ctx context.Context, flags windo
 	})
 }
 
-func waitForWindowsProcessExit(handle windows.Handle) (err error) {
-	defer func() {
-		if closeErr := windows.CloseHandle(handle); closeErr != nil {
-			err = errors.Join(err, fmt.Errorf("close Windows parent process handle: %w", closeErr))
-		}
-	}()
+func waitForWindowsProcessExit(handle windows.Handle) error {
+	defer closeWindowsHandle(handle)
 
 	status, err := windows.WaitForSingleObject(handle, windowsParentExitWaitMilliseconds())
 	if err != nil {
@@ -242,6 +231,14 @@ func waitForWindowsProcessExit(handle windows.Handle) (err error) {
 		return fmt.Errorf("wait for parent process: %w %d", errUnexpectedWindowsWaitStatus, status)
 	}
 	return nil
+}
+
+func closeWindowsHandle(handle windows.Handle) {
+	// Handle closure is cleanup only; a failure must not turn a successful
+	// helper start or parent wait into a failed self update/uninstall.
+	if err := windows.CloseHandle(handle); err != nil {
+		return
+	}
 }
 
 func windowsParentExitWaitMilliseconds() uint32 {
@@ -330,7 +327,7 @@ func scheduleWindowsTempCleanup(ctx context.Context, c *SelfCommand, tempDir str
 	//nolint:gosec // G204: executable is the system PowerShell path; command only targets the helper temp directory.
 	cmd := exec.CommandContext(
 		context.WithoutCancel(ctx),
-		windowsPowerShellPathFunc(),
+		windowsPowerShellPath(),
 		"-NoProfile",
 		"-ExecutionPolicy",
 		"Bypass",
