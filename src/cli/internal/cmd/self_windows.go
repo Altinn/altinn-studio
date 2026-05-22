@@ -223,6 +223,9 @@ func (c *SelfCommand) runWindowsUninstallHelper(ctx context.Context, flags windo
 	}
 
 	c.out.Successf("Removed %s", result.RemovedPath)
+	if result.RemovedDir != "" {
+		c.out.Successf("Removed %s", result.RemovedDir)
+	}
 	c.out.Successf("Removed %s", removedHome)
 	return nil
 }

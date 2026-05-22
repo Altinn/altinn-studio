@@ -500,6 +500,9 @@ func (c *SelfCommand) runUninstall(ctx context.Context, args []string) error {
 	removed = true
 
 	c.out.Successf("Removed %s", result.RemovedPath)
+	if result.RemovedDir != "" {
+		c.out.Successf("Removed %s", result.RemovedDir)
+	}
 	c.out.Successf("Removed %s", removedHome)
 	return nil
 }

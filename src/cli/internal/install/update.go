@@ -52,6 +52,7 @@ type UpdateOptions struct {
 // UninstallResult describes a completed self uninstall.
 type UninstallResult struct {
 	RemovedPath string
+	RemovedDir  string
 }
 
 // ResolvedBundle describes a downloaded update bundle and its install target.
