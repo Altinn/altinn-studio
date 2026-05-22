@@ -18,7 +18,7 @@ namespace Altinn.Studio.Designer.Controllers;
 [ApiController]
 [Authorize]
 [AutoValidateAntiforgeryToken]
-[Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/layoutsets")]
+[Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/layout-sets")]
 public class LayoutsetsController : Controller
 {
     private readonly ILayoutsetsService _layoutsetsService;
@@ -34,7 +34,7 @@ public class LayoutsetsController : Controller
         return AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
     }
 
-    [HttpGet("layout-sets/settings/validation-on-navigation")]
+    [HttpGet("settings/validation-on-navigation")]
     [UseSystemTextJson]
     public async Task<IActionResult> GetGlobalValidationOnNavigationSettings(
         string org,
@@ -50,7 +50,7 @@ public class LayoutsetsController : Controller
         return Ok(config);
     }
 
-    [HttpPost("layout-sets/settings/validation-on-navigation")]
+    [HttpPost("settings/validation-on-navigation")]
     [UseSystemTextJson]
     public async Task<IActionResult> SaveGlobalValidationOnNavigationSettings(
         string org,
@@ -64,7 +64,7 @@ public class LayoutsetsController : Controller
         return Ok();
     }
 
-    [HttpDelete("layout-sets/settings/validation-on-navigation")]
+    [HttpDelete("settings/validation-on-navigation")]
     public async Task<IActionResult> DeleteGlobalValidationOnNavigationSettings(
         string org,
         string app,
@@ -76,7 +76,7 @@ public class LayoutsetsController : Controller
         return Ok();
     }
 
-    [HttpGet("layout-sets/settings/task-navigation")]
+    [HttpGet("settings/task-navigation")]
     [UseSystemTextJson]
     public async Task<IActionResult> GetGlobalTaskNavigationSettings(
         string org,
@@ -93,7 +93,7 @@ public class LayoutsetsController : Controller
         return Ok(result);
     }
 
-    [HttpPost("layout-sets/settings/task-navigation")]
+    [HttpPost("settings/task-navigation")]
     [UseSystemTextJson]
     public async Task<IActionResult> UpdateGlobalTaskNavigationSettings(
         string org,
