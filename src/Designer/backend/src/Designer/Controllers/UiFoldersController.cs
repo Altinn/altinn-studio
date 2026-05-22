@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.Studio.Designer.Controllers;
 
 /// <summary>
-/// Controller for handling layout sets related operations for v9 and newer, such as fetching and saving global settings for validation on navigation and task navigation.
+/// Controller for handling UI folder related operations for v9 and newer, such as fetching and saving settings for validation on navigation and task navigation.
 /// </summary>
 [ApiController]
 [Authorize]
@@ -36,14 +36,14 @@ public class UiFoldersController : Controller
 
     [HttpGet("settings/validation-on-navigation")]
     [UseSystemTextJson]
-    public async Task<IActionResult> GetGlobalValidationOnNavigationSettings(
+    public async Task<IActionResult> GetGlobalValidationOnNavigation(
         string org,
         string app,
         CancellationToken cancellationToken
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        ValidationOnNavigation? config = await _uiFoldersService.GetGlobalValidationOnNavigationSettings(
+        ValidationOnNavigation? config = await _uiFoldersService.GetGlobalValidationOnNavigation(
             editingContext,
             cancellationToken
         );
@@ -52,7 +52,7 @@ public class UiFoldersController : Controller
 
     [HttpPost("settings/validation-on-navigation")]
     [UseSystemTextJson]
-    public async Task<IActionResult> SaveGlobalValidationOnNavigationSettings(
+    public async Task<IActionResult> SaveGlobalValidationOnNavigation(
         string org,
         string app,
         [FromBody] ValidationOnNavigation config,
@@ -60,32 +60,32 @@ public class UiFoldersController : Controller
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        await _uiFoldersService.SaveGlobalValidationOnNavigationSettings(editingContext, config, cancellationToken);
+        await _uiFoldersService.SaveGlobalValidationOnNavigation(editingContext, config, cancellationToken);
         return Ok();
     }
 
     [HttpDelete("settings/validation-on-navigation")]
-    public async Task<IActionResult> DeleteGlobalValidationOnNavigationSettings(
+    public async Task<IActionResult> DeleteGlobalValidationOnNavigation(
         string org,
         string app,
         CancellationToken cancellationToken
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        await _uiFoldersService.SaveGlobalValidationOnNavigationSettings(editingContext, null, cancellationToken);
+        await _uiFoldersService.SaveGlobalValidationOnNavigation(editingContext, null, cancellationToken);
         return Ok();
     }
 
     [HttpGet("settings/task-navigation")]
     [UseSystemTextJson]
-    public async Task<IActionResult> GetGlobalTaskNavigationSettings(
+    public async Task<IActionResult> GetGlobalTaskNavigation(
         string org,
         string app,
         CancellationToken cancellationToken
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        IEnumerable<TaskNavigationGroupDto> result = await _uiFoldersService.GetGlobalTaskNavigationSettingsDto(
+        IEnumerable<TaskNavigationGroupDto> result = await _uiFoldersService.GetGlobalTaskNavigationDto(
             editingContext,
             cancellationToken
         );
@@ -95,7 +95,7 @@ public class UiFoldersController : Controller
 
     [HttpPost("settings/task-navigation")]
     [UseSystemTextJson]
-    public async Task<IActionResult> UpdateGlobalTaskNavigationSettings(
+    public async Task<IActionResult> UpdateGlobalTaskNavigation(
         string org,
         string app,
         [FromBody] IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDtoList,
@@ -105,7 +105,7 @@ public class UiFoldersController : Controller
         try
         {
             AltinnRepoEditingContext editingContext = CreateContext(org, app);
-            await _uiFoldersService.UpdateGlobalTaskNavigationSettings(
+            await _uiFoldersService.UpdateGlobalTaskNavigation(
                 editingContext,
                 taskNavigationGroupDtoList,
                 cancellationToken

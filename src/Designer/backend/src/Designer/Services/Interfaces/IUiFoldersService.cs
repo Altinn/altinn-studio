@@ -8,23 +8,23 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 
 public interface IUiFoldersService
 {
-    public Task<ValidationOnNavigation?> GetGlobalValidationOnNavigationSettings(
+    public Task<ValidationOnNavigation?> GetGlobalValidationOnNavigation(
         AltinnRepoEditingContext context,
         CancellationToken cancellationToken
     );
 
-    public Task SaveGlobalValidationOnNavigationSettings(
+    public Task SaveGlobalValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
         ValidationOnNavigation? validationOnNavigation,
         CancellationToken cancellationToken
     );
 
-    public Task<IEnumerable<TaskNavigationGroupDto>> GetGlobalTaskNavigationSettingsDto(
+    public Task<IEnumerable<TaskNavigationGroupDto>> GetGlobalTaskNavigationDto(
         AltinnRepoEditingContext editingContext,
         CancellationToken cancellationToken
     );
 
-    public Task UpdateGlobalTaskNavigationSettings(
+    public Task UpdateGlobalTaskNavigation(
         AltinnRepoEditingContext editingContext,
         IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDtoList,
         CancellationToken cancellationToken

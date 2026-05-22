@@ -18,7 +18,7 @@ public class UiFoldersService : IUiFoldersService
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
     }
 
-    public async Task<ValidationOnNavigation?> GetGlobalValidationOnNavigationSettings(
+    public async Task<ValidationOnNavigation?> GetGlobalValidationOnNavigation(
         AltinnRepoEditingContext altinnRepoEditingContext,
         CancellationToken cancellationToken
     )
@@ -34,7 +34,7 @@ public class UiFoldersService : IUiFoldersService
         return globalSettingsFile?.ValidationOnNavigation;
     }
 
-    public async Task SaveGlobalValidationOnNavigationSettings(
+    public async Task SaveGlobalValidationOnNavigation(
         AltinnRepoEditingContext altinnRepoEditingContext,
         ValidationOnNavigation? config,
         CancellationToken cancellationToken
@@ -53,12 +53,12 @@ public class UiFoldersService : IUiFoldersService
         await altinnAppGitRepository.SaveGlobalSettingsFile(globalSettingsFile);
     }
 
-    public async Task<IEnumerable<TaskNavigationGroupDto>> GetGlobalTaskNavigationSettingsDto(
+    public async Task<IEnumerable<TaskNavigationGroupDto>> GetGlobalTaskNavigationDto(
         AltinnRepoEditingContext editingContext,
         CancellationToken cancellationToken
     )
     {
-        IEnumerable<TaskNavigationGroup> taskNavigationGroups = await GetGlobalTaskNavigationSettings(
+        IEnumerable<TaskNavigationGroup> taskNavigationGroups = await GetGlobalTaskNavigation(
             editingContext,
             cancellationToken
         );
@@ -73,7 +73,7 @@ public class UiFoldersService : IUiFoldersService
         return taskNavigationGroups.Select(group => group.ToDto(taskId => taskTypesById.GetValueOrDefault(taskId)));
     }
 
-    public async Task<List<TaskNavigationGroup>> GetGlobalTaskNavigationSettings(
+    public async Task<List<TaskNavigationGroup>> GetGlobalTaskNavigation(
         AltinnRepoEditingContext altinnRepoEditingContext,
         CancellationToken cancellationToken
     )
@@ -106,7 +106,7 @@ public class UiFoldersService : IUiFoldersService
         return definitions.Process.Tasks;
     }
 
-    public async Task UpdateGlobalTaskNavigationSettings(
+    public async Task UpdateGlobalTaskNavigation(
         AltinnRepoEditingContext altinnRepoEditingContext,
         IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDtoList,
         CancellationToken cancellationToken
