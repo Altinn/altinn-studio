@@ -136,10 +136,10 @@ public class DeploymentService : IDeploymentService
             deployment.EnvName
         );
 
-        var createdEntity = await _deploymentRepository.Create(deploymentEntity);
+        deploymentEntity = await _deploymentRepository.Create(deploymentEntity);
 
         await _deployEventRepository.AddBySequenceNoAsync(
-            createdEntity.SequenceNo,
+            deploymentEntity.SequenceNo,
             new DeployEvent
             {
                 EventType = registryResult.Succeeded
@@ -189,7 +189,7 @@ public class DeploymentService : IDeploymentService
         await _deploymentRepository.Update(deploymentEntity);
 
         await _deployEventRepository.AddBySequenceNoAsync(
-            createdEntity.SequenceNo,
+            deploymentEntity.SequenceNo,
             new DeployEvent
             {
                 EventType = DeployEventType.PipelineScheduled,
@@ -210,7 +210,7 @@ public class DeploymentService : IDeploymentService
             traceContext.TraceParent,
             traceContext.TraceState
         );
-        return createdEntity;
+        return deploymentEntity;
     }
 
     private async Task<bool> AddAppToGitOpsRepoIfNotExists(
@@ -597,6 +597,7 @@ public class DeploymentService : IDeploymentService
             AppEnvironment = deploymentEntity.EnvName,
             Hostname = await _environmentsService.GetHostNameByEnvName(envName),
             TagName = deploymentEntity.TagName,
+            DeploymentId = deploymentEntity.SequenceNo.ToString(),
             GiteaEnvironment = $"{_generalSettings.HostName}/repos",
             AppDeployToken = deployToken,
             AppAuthHeaderName = authHeaderName,
