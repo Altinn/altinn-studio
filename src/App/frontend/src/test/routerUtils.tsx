@@ -23,7 +23,7 @@ export const PageNavigationRouter =
     return <RouterProvider router={router} />;
   };
 
-export function createLoaderArgs(partialArgs: Partial<LoaderFunctionArgs>): LoaderFunctionArgs {
+export function createLoaderFunctionArgs(partialArgs: Partial<LoaderFunctionArgs>): LoaderFunctionArgs {
   return {
     request: partialArgs.request ?? new Request('http://localhost/'),
     params: partialArgs.params ?? {},
