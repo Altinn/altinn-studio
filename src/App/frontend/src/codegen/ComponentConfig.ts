@@ -6,7 +6,6 @@ import { GenerateObject } from 'src/codegen/dataTypes/GenerateObject';
 import { GenerateRaw } from 'src/codegen/dataTypes/GenerateRaw';
 import { GenerateUnion } from 'src/codegen/dataTypes/GenerateUnion';
 import { ExprVal } from 'src/features/expressions/types';
-import { ValidationPlugin } from 'src/features/validation/ValidationPlugin';
 import { CompCategory } from 'src/layout/common';
 import { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
@@ -69,7 +68,6 @@ export class ComponentConfig {
       this.inner.extends(CG.common('SummarizableComponentProps'));
       this.extendTextResources(CG.common('TRBSummarizable'));
       this.behaviors.isSummarizable = true;
-      this.addPlugin(new ValidationPlugin());
     }
   }
 

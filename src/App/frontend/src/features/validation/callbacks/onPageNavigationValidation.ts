@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 
 import { useRefetchInitialValidations } from 'src/core/queries/backendValidation';
 import { FormStore } from 'src/features/form/FormContext';
+import { useValidationsSelector } from 'src/features/validation/derivedValidations';
 import { getVisibilityMask } from 'src/features/validation/utils';
 import { useWaitForValidation } from 'src/features/validation/validationContext';
 import { usePageOrder } from 'src/hooks/useNavigatePage';
@@ -14,7 +15,7 @@ import type { PageValidation } from 'src/layout/common.generated';
  **/
 export function useOnPageNavigationValidation() {
   const setPageValidationMask = FormStore.validation.useSetPageValidationMask();
-  const getNodeValidations = FormStore.nodes.useValidationsSelector();
+  const getNodeValidations = useValidationsSelector();
   const validating = useWaitForValidation();
   const pageOrder = usePageOrder();
   const formStore = FormStore.raw.useStore();

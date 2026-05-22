@@ -4,12 +4,12 @@ import type { JSX } from 'react';
 import { useAttachmentsFor } from 'src/features/attachments/hooks';
 import { useFileUploaderDataBindingsValidation } from 'src/layout/FileUpload/utils/useFileUploaderDataBindingsValidation';
 import { ImageUploadDef } from 'src/layout/ImageUpload/config.def.generated';
-import { useValidateRequiredImageUpload } from 'src/layout/ImageUpload/hooks/useValidateRequiredImageUpload';
+import { validateRequiredImageUploadForNode } from 'src/layout/ImageUpload/hooks/useValidateRequiredImageUpload';
 import { ImageUploadComponent } from 'src/layout/ImageUpload/ImageUploadComponent';
 import { ImageUploadSummary2 } from 'src/layout/ImageUpload/ImageUploadSummary2/ImageUploadSummary2';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { ComponentValidation } from 'src/features/validation';
-import type { PropsFromGenericComponent } from 'src/layout';
+import type { ComponentValidationContext, PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -37,8 +37,8 @@ export class ImageUpload extends ImageUploadDef {
     return useFileUploaderDataBindingsValidation(baseComponentId, bindings);
   }
 
-  useEmptyFieldValidation(baseComponentId: string): ComponentValidation[] {
-    return useValidateRequiredImageUpload(baseComponentId);
+  validateEmptyField(ctx: ComponentValidationContext<'ImageUpload'>): ComponentValidation[] {
+    return validateRequiredImageUploadForNode(ctx);
   }
 
   renderSummary(_props: SummaryRendererProps): JSX.Element | null {

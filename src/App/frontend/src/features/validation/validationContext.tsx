@@ -21,9 +21,8 @@ import {
   mapBackendValidationsToValidatorGroups,
   mapValidatorGroupsToDataModelValidations,
 } from 'src/features/validation/backendValidation/backendValidationUtils';
-import { useWaitForNodesToValidate } from 'src/features/validation/nodeValidation/waitForNodesToValidate';
+import { usePruneValidationMasks } from 'src/features/validation/derivedValidations';
 import { hasValidationErrors, selectValidations } from 'src/features/validation/utils';
-import { pruneBoundaryMasks } from 'src/features/validation/ValidationStorePlugin';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
 import type { FormBootstrapContextValue } from 'src/features/formBootstrap/types';
@@ -99,13 +98,11 @@ export function createValidationSlice(
         const dataModel = state.data.models[dataType];
         if (dataModel && validations) {
           dataModel.validations[key] = validations;
-          pruneBoundaryMasks(state);
         }
       }),
     updateBackendValidations: (backendValidations, processedLast, taskValidations) =>
       set((state) => {
         updateBackendValidations(state)(backendValidations, processedLast, taskValidations);
-        pruneBoundaryMasks(state);
       }),
     setOtherDataElementBackendValidations: (dataElementId, validationIssues) =>
       set((state) => {
@@ -119,8 +116,6 @@ export function createValidationSlice(
           } else {
             delete state.validation.otherDataElementBackendValidations[dataElementId];
           }
-
-          pruneBoundaryMasks(state);
         }
       }),
   };
@@ -176,6 +171,7 @@ export function ValidationEffects() {
   return (
     <>
       <BackendValidation />
+      <ValidationMaskPruner />
       <ManageShowAllErrors />
     </>
   );
@@ -188,7 +184,6 @@ export function useWaitForValidation(): WaitForValidation {
 
   const hasWritableDataTypes = !!FormStore.bootstrap.useWritableDataTypes()?.length;
   const getCachedInitialValidations = useGetCachedInitialValidations();
-  const waitForNodesToValidate = useWaitForNodesToValidate();
 
   return useCallback(
     async (forceSave = true) => {
@@ -216,18 +211,20 @@ export function useWaitForValidation(): WaitForValidation {
 
         return initialMatch && !isFetching && !pendingAttachments;
       });
-      await waitForNodesToValidate();
       await waitForNodesReady();
     },
-    [
-      getCachedInitialValidations,
-      hasWritableDataTypes,
-      waitForNodesReady,
-      waitForNodesToValidate,
-      waitForSave,
-      waitForState,
-    ],
+    [getCachedInitialValidations, hasWritableDataTypes, waitForNodesReady, waitForSave, waitForState],
   );
+}
+
+function ValidationMaskPruner() {
+  const { prune } = usePruneValidationMasks();
+
+  useEffect(() => {
+    prune();
+  }, [prune]);
+
+  return null;
 }
 
 function ManageShowAllErrors() {

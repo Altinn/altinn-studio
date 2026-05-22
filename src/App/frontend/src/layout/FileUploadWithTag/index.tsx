@@ -1,23 +1,24 @@
 import React, { forwardRef, type JSX } from 'react';
 
 import { useAttachmentsFor } from 'src/features/attachments/hooks';
+import { attachmentSelector } from 'src/features/attachments/tools';
 import { AttachmentSummaryComponent2 } from 'src/layout/FileUpload/AttachmentSummaryComponent2';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { FileUploadLayoutValidator } from 'src/layout/FileUpload/FileUploadLayoutValidator';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
-import { useValidateAttachmentDataElements } from 'src/layout/FileUpload/useValidateAttachmentDataElements';
-import { useValidateMinNumberOfAttachments } from 'src/layout/FileUpload/useValidateMinNumberOfAttachments';
+import { validateAttachmentDataElements } from 'src/layout/FileUpload/useValidateAttachmentDataElements';
+import { validateMinNumberOfAttachmentsForNode } from 'src/layout/FileUpload/useValidateMinNumberOfAttachments';
 import { useFileUploaderDataBindingsValidation } from 'src/layout/FileUpload/utils/useFileUploaderDataBindingsValidation';
 import { FileUploadWithTagDef } from 'src/layout/FileUploadWithTag/config.def.generated';
-import { useValidateMissingTag } from 'src/layout/FileUploadWithTag/useValidateMissingTag';
+import { validateMissingTagsForNode } from 'src/layout/FileUploadWithTag/useValidateMissingTag';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import type { ComponentValidation } from 'src/features/validation';
-import type { PropsFromGenericComponent, ValidateComponent } from 'src/layout';
+import type { AnyValidation, ComponentValidation } from 'src/features/validation';
+import type { ComponentValidationContext, PropsFromGenericComponent, ValidateComponent } from 'src/layout';
 import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateComponent {
+export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateComponent<'FileUploadWithTag'> {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'FileUploadWithTag'>>(
     function LayoutComponentFileUploadWithTagRender(props, _): JSX.Element | null {
       return <FileUploadComponent {...props} />;
@@ -54,16 +55,17 @@ export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateC
     return <FileUploadLayoutValidator {...props} />;
   }
 
-  // This component does not have empty field validation, so has to override its inherited method
-  useEmptyFieldValidation(): ComponentValidation[] {
+  // This component does not use required-field validation; min attachments is handled as component validation.
+  validateEmptyField(): ComponentValidation[] {
     return [];
   }
 
-  useComponentValidation(baseComponentId: string): ComponentValidation[] {
+  validateComponent(ctx: ComponentValidationContext<'FileUploadWithTag'>): AnyValidation[] {
+    const attachments = attachmentSelector(ctx.component.id)(ctx.formState);
     return [
-      ...useValidateMinNumberOfAttachments(baseComponentId),
-      ...useValidateMissingTag(baseComponentId),
-      ...useValidateAttachmentDataElements(baseComponentId),
+      ...validateMinNumberOfAttachmentsForNode(ctx),
+      ...validateMissingTagsForNode(ctx),
+      ...validateAttachmentDataElements(attachments, ctx.formState.validation.otherDataElementBackendValidations),
     ];
   }
 

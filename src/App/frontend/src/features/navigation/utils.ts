@@ -15,6 +15,7 @@ import { FormStore } from 'src/features/form/FormContext';
 import { usePageGroups, usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useGetAltinnTaskType } from 'src/features/instance/useProcessQuery';
 import { ValidationMask } from 'src/features/validation';
+import { useLaxValidationsSelector } from 'src/features/validation/derivedValidations';
 import { getVisibilityMask } from 'src/features/validation/utils';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { usePageOrder, useVisitedPages } from 'src/hooks/useNavigatePage';
@@ -89,7 +90,7 @@ export function getTaskIcon(taskType: string | undefined) {
  * 4. A group is marked as completed if all of its pages have no nodes with any validations errors (visible or not), and all of the pages are marked as 'visited'.
  */
 export function useValidationsForPages(order: string[], shouldMarkWhenCompleted = false) {
-  const validationsSelector = FormStore.nodes.useLaxValidationsSelector();
+  const validationsSelector = useLaxValidationsSelector();
   const [visitedPages] = useVisitedPages();
 
   const allNodeIds = FormStore.raw.useLaxMemoSelector((state) => {
@@ -112,7 +113,7 @@ export function useValidationsForPages(order: string[], shouldMarkWhenCompleted 
         page,
         allNodeIds[page].every((nodeId) => {
           const allValidations = validationsSelector(nodeId, ValidationMask.All, 'error');
-          return allValidations !== ContextNotProvided && allValidations.length === 0;
+          return allValidations.length === 0;
         }),
       ]),
     );
@@ -136,7 +137,7 @@ export function useValidationsForPages(order: string[], shouldMarkWhenCompleted 
         page,
         allNodeIds[page].some((nodeId) => {
           const visibleValidations = validationsSelector(nodeId, 'visible', 'error');
-          return visibleValidations !== ContextNotProvided && visibleValidations.length > 0;
+          return visibleValidations.length > 0;
         }),
       ]),
     );
@@ -159,7 +160,7 @@ export function useGetNavigationIsPrevented() {
   const layoutCollection = FormStore.bootstrap.useLayoutCollection();
   const globalValidationOnNavigation = usePageSettings().validationOnNavigation;
   const order = usePageOrder();
-  const validationsSelector = FormStore.nodes.useLaxValidationsSelector();
+  const validationsSelector = useLaxValidationsSelector();
   const allNodeIds = FormStore.raw.useLaxMemoSelector((state) => {
     const result = Object.fromEntries<string[]>(order.map((page) => [page, []]));
     Object.values(state.nodes.nodeData).forEach((node) => result[node.pageKey]?.push(node.id));
@@ -189,7 +190,7 @@ export function useGetNavigationIsPrevented() {
       const mask = getVisibilityMask(validationOnNavigation.show);
       return (allNodeIds[pageId] ?? []).some((nodeId) => {
         const validations = validationsSelector(nodeId, mask, 'error');
-        return validations !== ContextNotProvided && validations.length > 0;
+        return validations.length > 0;
       });
     });
   };

@@ -6,17 +6,17 @@ import { FormStore } from 'src/features/form/FormContext';
 import { AddressComponent } from 'src/layout/Address/AddressComponent';
 import { AddressSummary } from 'src/layout/Address/AddressSummary/AddressSummary';
 import { AddressDef } from 'src/layout/Address/config.def.generated';
-import { useAddressValidation } from 'src/layout/Address/useAddressValidation';
+import { validateAddress } from 'src/layout/Address/useAddressValidation';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { ComponentValidation } from 'src/features/validation';
-import type { PropsFromGenericComponent, ValidateComponent } from 'src/layout';
+import type { ComponentValidationContext, PropsFromGenericComponent, ValidateComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-export class Address extends AddressDef implements ValidateComponent {
+export class Address extends AddressDef implements ValidateComponent<'Address'> {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Address'>>(
     function LayoutComponentAddressRender(props, _): JSX.Element | null {
       return <AddressComponent {...props} />;
@@ -41,8 +41,8 @@ export class Address extends AddressDef implements ValidateComponent {
     return false;
   }
 
-  useComponentValidation(baseComponentId: string): ComponentValidation[] {
-    return useAddressValidation(baseComponentId);
+  validateComponent(ctx: ComponentValidationContext<'Address'>): ComponentValidation[] {
+    return validateAddress(ctx);
   }
 
   useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'Address'>): string[] {

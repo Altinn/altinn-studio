@@ -3,7 +3,6 @@ import type { PropsWithChildren, SetStateAction } from 'react';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
-import type { ValidationsProcessedLast } from 'src/features/validation';
 import type { AddNodeRequest, RemoveNodeRequest, SetNodePropRequest } from 'src/utils/layout/NodesContext';
 
 /**
@@ -13,9 +12,6 @@ import type { AddNodeRequest, RemoveNodeRequest, SetNodePropRequest } from 'src/
  */
 export type Registry = {
   triggerAutoCommit: ((value: SetStateAction<number>) => void) | undefined;
-  validationsProcessed: {
-    [nodeId: string]: ValidationsProcessedLast;
-  };
   toCommit: {
     addNodeRequests: AddNodeRequest[];
     removeNodeRequests: RemoveNodeRequest[];
@@ -31,7 +27,6 @@ export type Registry = {
 export function useRegistry() {
   return useRef<Registry>({
     triggerAutoCommit: undefined,
-    validationsProcessed: {},
     toCommit: {
       addNodeRequests: [],
       removeNodeRequests: [],

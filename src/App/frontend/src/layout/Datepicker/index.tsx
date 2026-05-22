@@ -10,7 +10,7 @@ import { FrontendValidationSource } from 'src/features/validation';
 import { DatepickerDef } from 'src/layout/Datepicker/config.def.generated';
 import { DatepickerComponent } from 'src/layout/Datepicker/DatepickerComponent';
 import { DatepickerSummary } from 'src/layout/Datepicker/DatepickerSummary';
-import { useDatepickerValidation } from 'src/layout/Datepicker/useDatepickerValidation';
+import { validateDatepicker } from 'src/layout/Datepicker/useDatepickerValidation';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { useExternalItem } from 'src/utils/layout/hooks';
@@ -18,6 +18,7 @@ import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { BaseValidation, ComponentValidation } from 'src/features/validation';
 import type {
+  ComponentValidationContext,
   PropsFromGenericComponent,
   ValidateComponent,
   ValidationFilter,
@@ -27,7 +28,7 @@ import type { IDataModelBindings } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-export class Datepicker extends DatepickerDef implements ValidateComponent, ValidationFilter {
+export class Datepicker extends DatepickerDef implements ValidateComponent<'Datepicker'>, ValidationFilter {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Datepicker'>>(
     function LayoutComponentDatepickerRender(props, _): JSX.Element | null {
       return <DatepickerComponent {...props} />;
@@ -62,8 +63,8 @@ export class Datepicker extends DatepickerDef implements ValidateComponent, Vali
     return <DatepickerSummary {...props} />;
   }
 
-  useComponentValidation(baseComponentId: string): ComponentValidation[] {
-    return useDatepickerValidation(baseComponentId);
+  validateComponent(ctx: ComponentValidationContext<'Datepicker'>): ComponentValidation[] {
+    return validateDatepicker(ctx);
   }
 
   /**

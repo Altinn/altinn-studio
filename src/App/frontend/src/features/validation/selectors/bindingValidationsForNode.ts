@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import type { ComponentValidation, FieldValidation, NodeRefValidation } from '..';
 
 import { FormStore } from 'src/features/form/FormContext';
+import { useVisibleValidations } from 'src/features/validation/derivedValidations';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import type { CompTypes, IDataModelBindings } from 'src/layout/layout';
@@ -17,9 +18,9 @@ export function useBindingValidationsFor<T extends CompTypes>(
   baseComponentId: string,
 ): { [binding in keyof NonNullable<IDataModelBindings<T>>]: OutValues } | undefined {
   const showAll = FormStore.validation.useShowAllUnboundValidations();
-  const component = FormStore.nodes.useVisibleValidations(baseComponentId, showAll);
-  const dataModelBindings = useDataModelBindingsFor(baseComponentId);
   const indexedId = useIndexedId(baseComponentId);
+  const component = useVisibleValidations(indexedId, showAll);
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId);
 
   return useMemo(() => {
     if (!dataModelBindings) {

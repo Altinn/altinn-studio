@@ -5,7 +5,7 @@ import type { ErrorObject } from 'ajv';
 
 import { DefaultNodeInspector } from 'src/features/devtools/components/NodeInspector/DefaultNodeInspector';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
-import { useEmptyFieldValidationAllBindings } from 'src/features/validation/nodeValidation/emptyFieldValidation';
+import { validateEmptyFieldAllBindings } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { CompCategory } from 'src/layout/common';
 import { getComponentCapabilities } from 'src/layout/index';
 import { SummaryItemCompact } from 'src/layout/Summary/SummaryItemCompact';
@@ -17,7 +17,7 @@ import type { ExprResolved, ExprVal } from 'src/features/expressions/types';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { ComponentValidation } from 'src/features/validation';
 import type { ComponentBase, FormComponentProps, SummarizableComponentProps } from 'src/layout/common.generated';
-import type { PropsFromGenericComponent, ValidateEmptyField } from 'src/layout/index';
+import type { ComponentValidationContext, PropsFromGenericComponent, ValidateEmptyField } from 'src/layout/index';
 import type {
   CompExternal,
   CompExternalExact,
@@ -230,11 +230,14 @@ export abstract class ActionComponent<Type extends CompTypes> extends AnyCompone
   }
 }
 
-export abstract class FormComponent<Type extends CompTypes> extends _FormComponent<Type> implements ValidateEmptyField {
+export abstract class FormComponent<Type extends CompTypes>
+  extends _FormComponent<Type>
+  implements ValidateEmptyField<Type>
+{
   readonly category = CompCategory.Form;
 
-  useEmptyFieldValidation(baseComponentId: string): ComponentValidation[] {
-    return useEmptyFieldValidationAllBindings(baseComponentId);
+  validateEmptyField(ctx: ComponentValidationContext<Type>): ComponentValidation[] {
+    return validateEmptyFieldAllBindings(ctx);
   }
 }
 
