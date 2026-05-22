@@ -9,6 +9,11 @@ namespace Altinn.Studio.Designer.Repository;
 public interface IContactPointsRepository
 {
     Task<IReadOnlyList<ContactPointEntity>> GetAllAsync(string org, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ContactPointEntity>> GetActiveByOrgAndEnvironmentAsync(
+        string org,
+        string environment,
+        CancellationToken cancellationToken = default
+    );
     Task<ContactPointEntity> AddAsync(ContactPointEntity entity, CancellationToken cancellationToken = default);
     Task<ContactPointEntity> UpdateAsync(ContactPointEntity entity, CancellationToken cancellationToken = default);
     Task ToggleActiveAsync(string org, Guid id, bool isActive, CancellationToken cancellationToken = default);

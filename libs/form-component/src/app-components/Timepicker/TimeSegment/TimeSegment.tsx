@@ -1,0 +1,141 @@
+import React from 'react';
+
+import { Textfield } from '@digdir/designsystemet-react';
+
+import type { TimeSegmentProps } from '../types';
+import { useSegmentDisplay } from './hooks/useSegmentDisplay';
+import { useSegmentInputHandlers } from './hooks/useSegmentInputHandlers';
+import { useTypingBuffer } from './hooks/useTypingBuffer';
+
+export function TimeSegment({
+  value,
+  type,
+  format,
+  onValueChange,
+  onNavigate,
+  placeholder,
+  disabled,
+  readOnly,
+  required,
+  'aria-label': ariaLabel,
+  'aria-describedby': ariaDescribedBy,
+  className,
+  ref,
+}: TimeSegmentProps) {
+  const { displayValue, updateDisplayFromBuffer, syncWithExternalValue } = useSegmentDisplay(
+    value,
+    type,
+    format,
+  );
+
+  const inputHandlers = useSegmentInputHandlers({
+    segmentType: type,
+    timeFormat: format,
+    currentValue: value,
+    onValueChange,
+    onNavigate,
+    onUpdateDisplay: updateDisplayFromBuffer,
+  });
+
+  const typingBuffer = useTypingBuffer({
+    onCommit: inputHandlers.commitBufferValue,
+    commitDelayMs: 1000,
+    typingEndDelayMs: 2000,
+  });
+
+  const syncExternalChangesWhenNotTyping = () => {
+    if (!typingBuffer.isTyping) {
+      syncWithExternalValue();
+      typingBuffer.resetToIdleState();
+    }
+  };
+
+  React.useEffect(syncExternalChangesWhenNotTyping, [
+    value,
+    type,
+    format,
+    syncWithExternalValue,
+    typingBuffer,
+  ]);
+
+  const handleCharacterTyping = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    const character = event.key;
+
+    // First check if it's a special key
+    const isSpecialKey =
+      character === 'Delete' ||
+      character === 'Backspace' ||
+      character === 'ArrowLeft' ||
+      character === 'ArrowRight' ||
+      character === 'ArrowUp' ||
+      character === 'ArrowDown';
+
+    if (isSpecialKey) {
+      handleSpecialKeys(event);
+      return;
+    }
+
+    // Handle regular character input
+    if (character.length === 1) {
+      event.preventDefault();
+
+      const currentBuffer = typingBuffer.buffer;
+      const inputResult = inputHandlers.processCharacterInput(character, currentBuffer);
+
+      // Use the processed buffer result, not the raw character
+      typingBuffer.replaceBuffer(inputResult.newBuffer);
+
+      if (inputResult.shouldNavigateRight) {
+        typingBuffer.commitImmediatelyAndEndTyping();
+        onNavigate('right');
+      }
+    }
+  };
+
+  const handleSpecialKeys = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    const isDeleteOrBackspace = event.key === 'Delete' || event.key === 'Backspace';
+
+    if (isDeleteOrBackspace) {
+      event.preventDefault();
+      inputHandlers.handleDeleteOrBackspace();
+      typingBuffer.resetToIdleState();
+      return;
+    }
+
+    const wasArrowKeyHandled = inputHandlers.handleArrowKeyNavigation(event);
+    if (wasArrowKeyHandled) {
+      typingBuffer.commitImmediatelyAndEndTyping();
+    }
+  };
+
+  const handleBlurEvent = () => {
+    typingBuffer.commitImmediatelyAndEndTyping();
+    inputHandlers.fillEmptyMinutesOrSecondsWithZero();
+  };
+
+  return (
+    <Textfield
+      ref={ref}
+      type='text'
+      value={displayValue}
+      onKeyDown={handleCharacterTyping}
+      onBlur={handleBlurEvent}
+      placeholder={placeholder}
+      disabled={disabled}
+      readOnly={readOnly}
+      required={required}
+      aria-label={ariaLabel}
+      aria-describedby={ariaDescribedBy}
+      className={className}
+      data-size='sm'
+      style={{
+        width: '3rem',
+        textAlign: 'center',
+        padding: '0.25rem',
+      }}
+      autoComplete='off'
+      inputMode={type === 'period' ? 'text' : 'numeric'}
+      maxLength={2}
+    />
+  );
+}

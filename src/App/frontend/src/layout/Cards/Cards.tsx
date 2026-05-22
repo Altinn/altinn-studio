@@ -1,10 +1,9 @@
 import React from 'react';
 import type { CSSProperties } from 'react';
 
-import { AppCard } from '@app/form-component';
+import { AppCard, Flex } from '@app/form-component';
 
-import { useTranslation } from 'src/app-components/AppComponentsProvider';
-import { Flex } from 'src/app-components/Flex/Flex';
+import { Lang } from 'src/features/language/Lang';
 import { CardProvider } from 'src/layout/Cards/CardContext';
 import classes from 'src/layout/Cards/Cards.module.css';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -32,7 +31,6 @@ export const Cards = ({ baseComponentId }: PropsFromGenericComponent<'Cards'>) =
     color,
     mediaPosition: _mediaPosition,
   } = useExternalItem(baseComponentId, 'Cards');
-  const { TranslateComponent } = useTranslation();
   const processedMinWidth = parseSize(minWidth, '250px');
   const processedMinMediaHeight = parseSize(minMediaHeight, '150px');
   const mediaPosition = _mediaPosition ?? 'top';
@@ -47,9 +45,9 @@ export const Cards = ({ baseComponentId }: PropsFromGenericComponent<'Cards'>) =
         {cards.map((card, idx) => (
           <AppCard
             key={idx}
-            title={<TranslateComponent tKey={card.title} />}
-            description={<TranslateComponent tKey={card.description} />}
-            footer={<TranslateComponent tKey={card.footer} />}
+            title={<Lang id={card.title} />}
+            description={<Lang id={card.description} />}
+            footer={<Lang id={card.footer} />}
             variant={colorVariantMap[color]}
             mediaPosition={mediaPosition}
             media={

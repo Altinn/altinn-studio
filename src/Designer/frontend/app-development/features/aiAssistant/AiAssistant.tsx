@@ -30,7 +30,7 @@ function AiAssistant(): ReactElement {
   } = useAltinityAssistant();
 
   const texts: AssistantTexts = {
-    heading: t('ai_assistant.heading'),
+    heading: t('top_menu.ai_assistant'),
     preview: t('ai_assistant.preview'),
     fileBrowser: t('ai_assistant.file_browser'),
     hideThreads: t('ai_assistant.hide_threads'),
@@ -55,6 +55,10 @@ function AiAssistant(): ReactElement {
       branchDocsLink: t('ai_assistant.about_assistant_branch_docs_link'),
       disclaimer: t('ai_assistant.about_assistant_disclaimer'),
     },
+    emptyThread: {
+      welcome: t('ai_assistant.empty_thread_welcome'),
+      instruction: t('ai_assistant.empty_thread_instruction'),
+    },
     textarea: {
       placeholder: t('ai_assistant.textarea_placeholder'),
       wait: 'Vent litt ...',
@@ -71,8 +75,7 @@ function AiAssistant(): ReactElement {
     return (
       <StudioCenter>
         <StudioAlert>
-          <StudioParagraph>{t('ai_assistant.access_denied_1')}</StudioParagraph>
-          <StudioParagraph>{t('ai_assistant.access_denied_2')}</StudioParagraph>
+          <StudioParagraph>{t('ai_assistant.access_denied')}</StudioParagraph>
         </StudioAlert>
       </StudioCenter>
     );

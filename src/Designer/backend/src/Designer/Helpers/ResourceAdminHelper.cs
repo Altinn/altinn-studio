@@ -1,6 +1,8 @@
 ﻿#nullable disable
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Helpers;
@@ -49,4 +51,16 @@ public static class ResourceAdminHelper
     }
 
     public static char[] GetInvalidFileNameChars() => new char[] { '\"', '<', '>', '|', '*', '?' };
+
+    public static bool IsMigratedAltinn1App(string resourceIdentifier)
+    {
+        return Regex.IsMatch(resourceIdentifier, @"^app_[a-z0-9]+_a1-.+:[a-z0-9.]+$", RegexOptions.IgnoreCase);
+    }
+
+    public static string GetResourceFileStructureName(string resourceIdentifier)
+    {
+        return IsMigratedAltinn1App(resourceIdentifier)
+            ? resourceIdentifier.Replace(":", "%3A") // %3A is the URL encoded value for ':', which is not allowed in file names. We need to encode it to be able to use the resource identifier as file name.
+            : resourceIdentifier.AsFileName();
+    }
 }

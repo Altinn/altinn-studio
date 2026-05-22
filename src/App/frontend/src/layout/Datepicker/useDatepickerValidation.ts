@@ -1,6 +1,6 @@
+import { getDateConstraint, getDateFormat, strictParseISO } from '@app/form-component';
 import { isAfter, isBefore } from 'date-fns';
 
-import { getDateConstraint, getDateFormat, strictParseISO } from 'src/app-components/Datepicker/utils/dateHelpers';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';

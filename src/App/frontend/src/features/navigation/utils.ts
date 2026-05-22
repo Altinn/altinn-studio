@@ -26,7 +26,7 @@ export function useHasGroupedNavigation() {
   const pageGroups = usePageGroups();
   const taskGroups = usePageSettings().taskNavigation;
   const isReceiptPage = useIsReceiptPage();
-  return !isReceiptPage && (pageGroups || taskGroups.length);
+  return Boolean(!isReceiptPage && (pageGroups?.length || taskGroups.length));
 }
 
 export const SIDEBAR_BREAKPOINT = 1341;

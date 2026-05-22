@@ -52,7 +52,7 @@ export function Map({ baseComponentId, className, readOnly, animate = true }: Ma
       scrollWheelZoom={!readOnly}
       attributionControl={false}
     >
-      {toolbar !== undefined && <MapEditGeometries baseComponentId={baseComponentId} />}
+      {toolbar !== undefined && !readOnly && <MapEditGeometries baseComponentId={baseComponentId} />}
       <MapLayers baseComponentId={baseComponentId} />
       <MapGeometries
         baseComponentId={baseComponentId}

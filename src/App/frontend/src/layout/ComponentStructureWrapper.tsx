@@ -1,7 +1,8 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { Flex } from 'src/app-components/Flex/Flex';
+import { Flex } from '@app/form-component';
+
 import { Label } from 'src/components/label/Label';
 import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useFormComponentCtx } from 'src/layout/FormComponentContext';

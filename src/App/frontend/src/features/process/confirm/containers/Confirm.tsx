@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { AltinnContentLoader } from 'src/app-components/loading/AltinnContentLoader/AltinnContentLoader';
+import { AltinnContentLoader } from '@app/form-component';
+
 import { useAppName } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';

@@ -1,9 +1,10 @@
-import { parseTimeString } from 'src/app-components/TimePicker/utils/timeConstraintUtils';
+import { parseTimeString } from '@app/form-component';
+import type { TimeFormat, TimeValue } from '@app/form-component';
+
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { readDataFromState } from 'src/features/validation/nodeValidation/readDataFromState';
-import type { TimeFormat, TimeValue } from 'src/app-components/TimePicker/types';
 import type { ComponentValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 

@@ -52,6 +52,32 @@ public class UpsertAppScopesTests
         await CallUpsertEndpointAndAssertFromDb(org, app, payload);
     }
 
+    [Fact]
+    public async Task UpsertAppScopes_Should_ReturnBadRequest_WhenRepoOwnerIsNotServiceOwner()
+    {
+        AppScopesUpsertRequest payload = new()
+        {
+            Scopes = new HashSet<MaskinPortenScopeDto>()
+            {
+                new() { Scope = "test", Description = "test" },
+            },
+        };
+
+        using var httpRequestMessage = new HttpRequestMessage(
+            HttpMethod.Put,
+            VersionPrefix("developer", "personal-app")
+        );
+        httpRequestMessage.Content = new StringContent(
+            JsonSerializer.Serialize(payload),
+            Encoding.UTF8,
+            MediaTypeNames.Application.Json
+        );
+
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     private async Task CallUpsertEndpointAndAssertFromDb(string org, string app, AppScopesUpsertRequest payload)
     {
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, VersionPrefix(org, app));

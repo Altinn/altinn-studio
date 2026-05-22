@@ -16,6 +16,10 @@ public class Group
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool? MarkWhenCompleted { get; set; }
 
+    [JsonPropertyName("expandedByDefault")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool? ExpandedByDefault { get; set; }
+
     [JsonPropertyName("order")]
     public required List<string> Order { get; set; }
 
