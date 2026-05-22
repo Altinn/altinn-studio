@@ -1,6 +1,6 @@
 //go:build windows
 
-package cmd
+package cmd //nolint:testpackage // Tests cover unexported Windows helper parsing and path helpers.
 
 import (
 	"strings"

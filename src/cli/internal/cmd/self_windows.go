@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -21,20 +22,26 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-const windowsHelperExe = "studioctl-self-helper.exe"
+const (
+	windowsHelperExe      = "studioctl-self-helper.exe"
+	windowsHelperFilePerm = 0o755
+)
 
+var errUnexpectedWindowsWaitStatus = errors.New("unexpected Windows wait status")
+
+//nolint:gochecknoglobals // Test seam for system PowerShell path resolution.
 var windowsPowerShellPathFunc = windowsPowerShellPath
 
 type windowsSelfHelperFlags struct {
 	operation    string
-	parentHandle windows.Handle
 	target       string
 	source       string
 	version      string
 	tempDir      string
+	parentHandle windows.Handle
 }
 
-func (c *SelfCommand) startWindowsUpdateHelper(resolved installpkg.ResolvedBundle) error {
+func (c *SelfCommand) startWindowsUpdateHelper(ctx context.Context, resolved installpkg.ResolvedBundle) error {
 	source := resolved.Bundle.BinaryPath
 	target := resolved.Bundle.InstallPath()
 	if source == "" || target == "" {
@@ -47,17 +54,18 @@ func (c *SelfCommand) startWindowsUpdateHelper(resolved installpkg.ResolvedBundl
 	}
 
 	args := c.windowsSelfHelperArgs(windowsSelfHelperFlags{
-		operation: "update",
-		source:    source,
-		target:    target,
-		version:   resolved.Bundle.Version,
-		tempDir:   tempDir,
+		operation:    selfUpdateSubcmd,
+		target:       target,
+		source:       source,
+		version:      resolved.Bundle.Version,
+		tempDir:      tempDir,
+		parentHandle: 0,
 	})
 
-	return startWindowsHelperProcess(helperPath, args)
+	return startWindowsHelperProcess(ctx, helperPath, args)
 }
 
-func (c *SelfCommand) startWindowsUninstallHelper() error {
+func (c *SelfCommand) startWindowsUninstallHelper(ctx context.Context) error {
 	tempDir, err := os.MkdirTemp("", "studioctl-self-uninstall-*")
 	if err != nil {
 		return fmt.Errorf("create uninstall helper directory: %w", err)
@@ -68,11 +76,14 @@ func (c *SelfCommand) startWindowsUninstallHelper() error {
 	}
 
 	args := c.windowsSelfHelperArgs(windowsSelfHelperFlags{
-		operation: "uninstall",
-		target:    current,
-		tempDir:   tempDir,
+		operation:    selfUninstallSubcmd,
+		target:       current,
+		source:       "",
+		version:      "",
+		tempDir:      tempDir,
+		parentHandle: 0,
 	})
-	if err := startWindowsHelperProcess(helperPath, args); err != nil {
+	if err := startWindowsHelperProcess(ctx, helperPath, args); err != nil {
 		return errors.Join(err, os.RemoveAll(tempDir))
 	}
 	return nil
@@ -96,19 +107,25 @@ func (c *SelfCommand) windowsSelfHelperArgs(flags windowsSelfHelperFlags) []stri
 	return args
 }
 
-func startWindowsHelperProcess(path string, args []string) error {
-	parentHandle, err := windows.OpenProcess(windows.SYNCHRONIZE, true, uint32(os.Getpid()))
+func startWindowsHelperProcess(ctx context.Context, path string, args []string) (err error) {
+	processID, err := currentWindowsProcessID()
+	if err != nil {
+		return err
+	}
+	parentHandle, err := windows.OpenProcess(windows.SYNCHRONIZE, true, processID)
 	if err != nil {
 		return fmt.Errorf("open current process for Windows self helper: %w", err)
 	}
 	defer func() {
-		_ = windows.CloseHandle(parentHandle)
+		if closeErr := windows.CloseHandle(parentHandle); closeErr != nil {
+			err = errors.Join(err, fmt.Errorf("close Windows self helper parent handle: %w", closeErr))
+		}
 	}()
 
 	args = append(args, "--parent-handle", strconv.FormatUint(uint64(parentHandle), 10))
 
 	//nolint:gosec // G204: helper path is a temp copy of the current studioctl binary.
-	cmd := exec.Command(path, args...)
+	cmd := exec.CommandContext(context.WithoutCancel(ctx), path, args...)
 	osutil.ApplyDetachedAttrs(cmd)
 	cmd.SysProcAttr.AdditionalInheritedHandles = append(
 		cmd.SysProcAttr.AdditionalInheritedHandles,
@@ -135,12 +152,12 @@ func (c *SelfCommand) runWindowsSelfHelper(ctx context.Context, args []string) e
 		return err
 	}
 
-	defer scheduleWindowsTempCleanup(c, flags.tempDir)
+	defer scheduleWindowsTempCleanup(ctx, c, flags.tempDir)
 
 	switch flags.operation {
-	case "update":
+	case selfUpdateSubcmd:
 		return c.runWindowsUpdateHelper(ctx, flags)
-	case "uninstall":
+	case selfUninstallSubcmd:
 		return c.runWindowsUninstallHelper(ctx, flags)
 	default:
 		return fmt.Errorf("%w: unsupported Windows self helper operation %q", ErrInvalidFlagValue, flags.operation)
@@ -233,27 +250,43 @@ func (c *SelfCommand) runWindowsUninstallHelper(ctx context.Context, flags windo
 	return nil
 }
 
-func waitForWindowsProcessExit(handle windows.Handle) error {
-	defer windows.CloseHandle(handle) //nolint:errcheck // Nothing useful can be done during helper shutdown.
+func waitForWindowsProcessExit(handle windows.Handle) (err error) {
+	defer func() {
+		if closeErr := windows.CloseHandle(handle); closeErr != nil {
+			err = errors.Join(err, fmt.Errorf("close Windows parent process handle: %w", closeErr))
+		}
+	}()
 
 	status, err := windows.WaitForSingleObject(handle, windows.INFINITE)
 	if err != nil {
 		return fmt.Errorf("wait for parent process: %w", err)
 	}
 	if status != windows.WAIT_OBJECT_0 {
-		return fmt.Errorf("wait for parent process: unexpected status %d", status)
+		return fmt.Errorf("wait for parent process: %w %d", errUnexpectedWindowsWaitStatus, status)
 	}
 	return nil
+}
+
+func currentWindowsProcessID() (uint32, error) {
+	pid := os.Getpid()
+	if pid < 0 || uint64(pid) > math.MaxUint32 {
+		return 0, fmt.Errorf("%w: %d", ErrInvalidFlagValue, pid)
+	}
+	return uint32(pid), nil
 }
 
 func currentExecutablePath() (string, error) {
 	path, err := os.Executable()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("resolve current executable: %w", err)
 	}
 	resolved, err := filepath.EvalSymlinks(path)
 	if err != nil {
-		return filepath.Abs(path)
+		absolute, absErr := filepath.Abs(path)
+		if absErr != nil {
+			return "", fmt.Errorf("resolve absolute executable path: %w", absErr)
+		}
+		return absolute, nil
 	}
 	return resolved, nil
 }
@@ -271,8 +304,8 @@ func copyCurrentExecutableToWindowsHelper(tempDir string) (currentPath, helperPa
 }
 
 func copyFileForWindowsHelper(src, dst string) (err error) {
-	if err := os.MkdirAll(filepath.Dir(dst), osutil.DirPermDefault); err != nil {
-		return fmt.Errorf("create helper directory: %w", err)
+	if mkdirErr := os.MkdirAll(filepath.Dir(dst), osutil.DirPermDefault); mkdirErr != nil {
+		return fmt.Errorf("create helper directory: %w", mkdirErr)
 	}
 
 	//nolint:gosec // G304: source is the resolved current studioctl executable.
@@ -287,7 +320,7 @@ func copyFileForWindowsHelper(src, dst string) (err error) {
 	}()
 
 	//nolint:gosec // G304: destination is a freshly-created temp helper path.
-	out, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o755)
+	out, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, windowsHelperFilePerm)
 	if err != nil {
 		return fmt.Errorf("create helper copy: %w", err)
 	}
@@ -303,7 +336,7 @@ func copyFileForWindowsHelper(src, dst string) (err error) {
 	return nil
 }
 
-func scheduleWindowsTempCleanup(c *SelfCommand, tempDir string) {
+func scheduleWindowsTempCleanup(ctx context.Context, c *SelfCommand, tempDir string) {
 	if tempDir == "" {
 		return
 	}
@@ -313,7 +346,9 @@ func scheduleWindowsTempCleanup(c *SelfCommand, tempDir string) {
 		"Start-Sleep -Seconds 2; Remove-Item -LiteralPath '%s' -Recurse -Force -ErrorAction SilentlyContinue",
 		quoted,
 	)
-	cmd := exec.Command(
+	//nolint:gosec // G204: executable is the system PowerShell path; command only targets the helper temp directory.
+	cmd := exec.CommandContext(
+		context.WithoutCancel(ctx),
 		windowsPowerShellPathFunc(),
 		"-NoProfile",
 		"-ExecutionPolicy",

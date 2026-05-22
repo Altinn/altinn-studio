@@ -43,7 +43,6 @@ function Resolve-StudioctlArchitecture {
 
     switch ($rawArch.ToLowerInvariant()) {
         "amd64" { return "amd64" }
-        "x86_64" { return "amd64" }
         "arm64" { return "arm64" }
         default { throw "Unsupported architecture: $rawArch" }
     }

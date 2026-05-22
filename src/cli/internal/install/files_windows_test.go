@@ -1,6 +1,6 @@
 //go:build windows
 
-package install
+package install //nolint:testpackage // Tests cover unexported Windows install cleanup helpers.
 
 import (
 	"os"
@@ -63,7 +63,10 @@ func TestUninstallBinaryAtWindowsKeepsInstallDirWithUnmanagedFile(t *testing.T) 
 }
 
 func TestWindowsInstallDirArtifacts(t *testing.T) {
-	got := windowsInstallDirArtifacts(`C:\Users\me\AppData\Local\Programs\studioctl\studioctl.exe`)
+	got, err := windowsInstallDirArtifacts(`C:\Users\me\AppData\Local\Programs\studioctl\studioctl.exe`)
+	if err != nil {
+		t.Fatalf("windowsInstallDirArtifacts() error = %v", err)
+	}
 	wantNew := `C:\Users\me\AppData\Local\Programs\studioctl\studioctl.new.exe`
 	if len(got) == 0 || got[0] != wantNew {
 		t.Fatalf("windowsInstallDirArtifacts()[0] = %q, want %q", got, wantNew)

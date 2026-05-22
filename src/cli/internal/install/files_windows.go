@@ -44,7 +44,11 @@ func uninstallBinaryAtWindows(execPath string) (UninstallResult, error) {
 
 func cleanupWindowsInstallDir(execPath string) (string, error) {
 	dir := filepath.Dir(execPath)
-	for _, path := range windowsInstallDirArtifacts(execPath) {
+	artifacts, err := windowsInstallDirArtifacts(execPath)
+	if err != nil {
+		return "", err
+	}
+	for _, path := range artifacts {
 		if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
 			return "", fmt.Errorf("remove managed install artifact %q: %w", path, err)
 		}
@@ -59,16 +63,18 @@ func cleanupWindowsInstallDir(execPath string) (string, error) {
 	return dir, nil
 }
 
-func windowsInstallDirArtifacts(execPath string) []string {
+func windowsInstallDirArtifacts(execPath string) ([]string, error) {
 	dir := filepath.Dir(execPath)
 	base := filepath.Base(execPath)
 	ext := filepath.Ext(base)
 	name := strings.TrimSuffix(base, ext)
 
-	artifacts := []string{filepath.Join(dir, name+".new"+ext)}
 	matches, err := filepath.Glob(filepath.Join(dir, "."+base+".old-*"))
-	if err == nil {
-		artifacts = append(artifacts, matches...)
+	if err != nil {
+		return nil, fmt.Errorf("glob old install artifacts: %w", err)
 	}
-	return artifacts
+	artifacts := make([]string, 0, 1+len(matches))
+	artifacts = append(artifacts, filepath.Join(dir, name+".new"+ext))
+	artifacts = append(artifacts, matches...)
+	return artifacts, nil
 }

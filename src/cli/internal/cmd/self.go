@@ -24,6 +24,8 @@ const (
 	selfCompleteInstallSubcmd = "__complete-install"
 	selfMigrateSubcmd         = "__migrate"
 	selfWindowsHelperSubcmd   = "__windows-helper"
+	selfUpdateSubcmd          = "update"
+	selfUninstallSubcmd       = "uninstall"
 )
 
 // SelfCommand implements the 'self' subcommand.
@@ -113,9 +115,9 @@ func (c *SelfCommand) Run(ctx context.Context, args []string) error {
 	switch subCmd {
 	case "install":
 		return c.runInstall(ctx, subArgs)
-	case "update":
+	case selfUpdateSubcmd:
 		return c.runUpdate(ctx, subArgs)
-	case "uninstall":
+	case selfUninstallSubcmd:
 		return c.runUninstall(ctx, subArgs)
 	case selfCompleteInstallSubcmd, selfMigrateSubcmd:
 		// __migrate is a preview.7 compatibility alias used by old updaters after replacing the binary.
@@ -338,7 +340,7 @@ func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {
 		return fmt.Errorf("resolve update bundle: %w", err)
 	}
 	if runtime.GOOS == osutil.OSWindows {
-		if err := c.startWindowsUpdateHelper(resolved); err != nil {
+		if err := c.startWindowsUpdateHelper(ctx, resolved); err != nil {
 			if resolved.Cleanup != nil {
 				err = errors.Join(err, resolved.Cleanup())
 			}
@@ -463,7 +465,7 @@ func (c *SelfCommand) runUninstall(ctx context.Context, args []string) error {
 	}
 
 	if runtime.GOOS == osutil.OSWindows {
-		if err := c.startWindowsUninstallHelper(); err != nil {
+		if err := c.startWindowsUninstallHelper(ctx); err != nil {
 			return err
 		}
 		c.out.Successf(
