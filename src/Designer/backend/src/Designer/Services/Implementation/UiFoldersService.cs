@@ -9,11 +9,11 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 
-public class LayoutsetsService : ILayoutsetsService
+public class UiFoldersService : IUiFoldersService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
 
-    public LayoutsetsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
+    public UiFoldersService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
     }

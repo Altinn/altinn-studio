@@ -6,7 +6,7 @@ using Altinn.Studio.Designer.Models.Dto;
 
 namespace Altinn.Studio.Designer.Services.Interfaces;
 
-public interface ILayoutsetsService
+public interface IUiFoldersService
 {
     public Task<ValidationOnNavigation?> GetGlobalValidationOnNavigationSettings(
         AltinnRepoEditingContext context,

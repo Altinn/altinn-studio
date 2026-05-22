@@ -18,14 +18,14 @@ namespace Altinn.Studio.Designer.Controllers;
 [ApiController]
 [Authorize]
 [AutoValidateAntiforgeryToken]
-[Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/layout-sets")]
-public class LayoutsetsController : Controller
+[Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/ui-folders")]
+public class UiFoldersController : Controller
 {
-    private readonly ILayoutsetsService _layoutsetsService;
+    private readonly IUiFoldersService _uiFoldersService;
 
-    public LayoutsetsController(ILayoutsetsService layoutsetsService)
+    public UiFoldersController(IUiFoldersService uiFoldersService)
     {
-        _layoutsetsService = layoutsetsService;
+        _uiFoldersService = uiFoldersService;
     }
 
     private AltinnRepoEditingContext CreateContext(string org, string app)
@@ -43,7 +43,7 @@ public class LayoutsetsController : Controller
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        ValidationOnNavigation? config = await _layoutsetsService.GetGlobalValidationOnNavigationSettings(
+        ValidationOnNavigation? config = await _uiFoldersService.GetGlobalValidationOnNavigationSettings(
             editingContext,
             cancellationToken
         );
@@ -60,7 +60,7 @@ public class LayoutsetsController : Controller
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        await _layoutsetsService.SaveGlobalValidationOnNavigationSettings(editingContext, config, cancellationToken);
+        await _uiFoldersService.SaveGlobalValidationOnNavigationSettings(editingContext, config, cancellationToken);
         return Ok();
     }
 
@@ -72,7 +72,7 @@ public class LayoutsetsController : Controller
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        await _layoutsetsService.SaveGlobalValidationOnNavigationSettings(editingContext, null, cancellationToken);
+        await _uiFoldersService.SaveGlobalValidationOnNavigationSettings(editingContext, null, cancellationToken);
         return Ok();
     }
 
@@ -85,7 +85,7 @@ public class LayoutsetsController : Controller
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        IEnumerable<TaskNavigationGroupDto> result = await _layoutsetsService.GetGlobalTaskNavigationSettingsDto(
+        IEnumerable<TaskNavigationGroupDto> result = await _uiFoldersService.GetGlobalTaskNavigationSettingsDto(
             editingContext,
             cancellationToken
         );
@@ -105,7 +105,7 @@ public class LayoutsetsController : Controller
         try
         {
             AltinnRepoEditingContext editingContext = CreateContext(org, app);
-            await _layoutsetsService.UpdateGlobalTaskNavigationSettings(
+            await _uiFoldersService.UpdateGlobalTaskNavigationSettings(
                 editingContext,
                 taskNavigationGroupDtoList,
                 cancellationToken
