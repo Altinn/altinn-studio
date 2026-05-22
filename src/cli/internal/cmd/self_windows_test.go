@@ -68,7 +68,7 @@ func TestParseWindowsSelfHelperFlagsParsesUpdate(t *testing.T) {
 func TestWindowsPowerShellPathUsesSystemDirectory(t *testing.T) {
 	got := windowsPowerShellPath()
 	wantSuffix := `\System32\WindowsPowerShell\v1.0\powershell.exe`
-	if !strings.HasSuffix(got, wantSuffix) {
+	if !strings.HasSuffix(strings.ToLower(got), strings.ToLower(wantSuffix)) {
 		t.Fatalf("windowsPowerShellPath() = %q, want suffix %q", got, wantSuffix)
 	}
 }
