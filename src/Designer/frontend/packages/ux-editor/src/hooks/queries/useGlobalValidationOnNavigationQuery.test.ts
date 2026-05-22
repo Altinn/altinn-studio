@@ -1,10 +1,10 @@
 import { waitFor } from '@testing-library/react';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
-import { useValidationOnNavigationLayoutSetsQuery } from './useValidationOnNavigationLayoutSetsQuery';
+import { useGlobalValidationOnNavigationQuery } from './useGlobalValidationOnNavigationQuery';
 import { app, org } from '@studio/testing/testids';
 
-describe('useFrontEndSettingsQuery', () => {
+describe('useGlobalValidationOnNavigationQuery', () => {
   it('should call getValidationOnNavigationLayoutSets with the correct parameters', () => {
     render();
     expect(queriesMock.getValidationOnNavigationLayoutSets).toHaveBeenCalledWith(org, app);
@@ -17,9 +17,7 @@ describe('useFrontEndSettingsQuery', () => {
 });
 
 const render = async () => {
-  const { result } = renderHookWithProviders(() =>
-    useValidationOnNavigationLayoutSetsQuery(org, app),
-  );
+  const { result } = renderHookWithProviders(() => useGlobalValidationOnNavigationQuery(org, app));
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
   return result;
 };

@@ -2,11 +2,11 @@ import { org, app } from '@studio/testing/testids';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { useDeleteValidationOnNavigationLayoutSets } from './useDeleteGlobalValidationOnNavigation';
+import { useDeleteGlobalValidationOnNavigation } from './useDeleteGlobalValidationOnNavigation';
 
-describe('useDeleteValidationOnNavigationLayoutSets', () => {
+describe('useDeleteGlobalValidationOnNavigation', () => {
   it('Calls deleteValidationOnNavigationLayoutSets with correct arguments', async () => {
-    const { result } = renderDeleteValidationOnNavigationLayoutSets();
+    const { result } = deleteGlobalValidationOnNavigation();
 
     result.current.mutate();
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -16,6 +16,6 @@ describe('useDeleteValidationOnNavigationLayoutSets', () => {
   });
 });
 
-const renderDeleteValidationOnNavigationLayoutSets = () => {
-  return renderHookWithProviders(() => useDeleteValidationOnNavigationLayoutSets(org, app));
+const deleteGlobalValidationOnNavigation = () => {
+  return renderHookWithProviders(() => useDeleteGlobalValidationOnNavigation(org, app));
 };
