@@ -81,14 +81,6 @@ export default defineConfig([
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-unused-vars': ['off'],
       'prefer-template': ['warn'],
-      'no-restricted-syntax': [
-        'error',
-        { selector: 'ExportAllDeclaration', message: 'Do not re-exports already exported symbols' },
-        {
-          selector: "ExportNamedDeclaration[source.type='Literal']",
-          message: 'Do not re-exports already exported symbols',
-        },
-      ],
 
       'jsx-a11y/no-autofocus': ['off'],
 
@@ -107,6 +99,7 @@ export default defineConfig([
       'react/jsx-filename-extension': ['error', { extensions: ['.jsx', '.tsx'] }],
       'react/jsx-curly-brace-presence': ['error', { props: 'never', children: 'never' }],
       'react/jsx-fragments': ['error'],
+      'react/react-in-jsx-scope': 'off',
       'react/jsx-no-useless-fragment': ['error'],
       'react/self-closing-comp': ['warn'],
       'react/jsx-key': [
@@ -115,7 +108,7 @@ export default defineConfig([
       ],
       'react/prop-types': ['off'],
 
-      'no-relative-import-paths/no-relative-import-paths': ['warn', { allowSameFolder: false }],
+      'no-relative-import-paths/no-relative-import-paths': ['warn', { allowSameFolder: true }],
 
       'preferred-import-path/preferred-import-path': [
         'warn',
@@ -139,6 +132,12 @@ export default defineConfig([
           ],
         },
       ],
+    },
+  },
+  {
+    files: ['vitest.config.ts', 'form-component/.storybook/**/*', '**/*.stories.{ts,tsx}'],
+    rules: {
+      'import/no-default-export': ['off'],
     },
   },
   {
@@ -187,66 +186,6 @@ export default defineConfig([
               regex: 'src/(?!app-components)',
               message:
                 'app-components should not import from outside src/app-components/. Keep these components self-contained.',
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: ['src/**/*.{ts,tsx}'],
-    ignores: [
-      'src/core/**',
-      'src/routes/**',
-      'src/test/**',
-      'src/queries/**',
-      'src/routerContexts/**',
-      'src/appQueryClient.ts',
-    ],
-    rules: {
-      '@typescript-eslint/no-restricted-imports': [
-        'warn',
-        {
-          paths: [
-            {
-              name: '@tanstack/react-query',
-              message: 'Import hooks from src/core/queries/ instead of using React Query directly.',
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: ['src/routes/**/*.{ts,tsx}', 'src/router.tsx'],
-    ignores: ['src/routes/**/*.test.ts'],
-    rules: {
-      '@typescript-eslint/no-restricted-imports': [
-        'warn',
-        {
-          paths: [
-            {
-              name: '@tanstack/react-query',
-              message: 'Import hooks from src/core/queries/ instead of using React Query directly.',
-              allowTypeImports: true,
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: ['src/**/*.{ts,tsx}'],
-    ignores: ['src/core/**'],
-    rules: {
-      'no-restricted-imports': [
-        'warn',
-        {
-          patterns: [
-            {
-              regex: 'src/core/queries/[^/]+/(?!index$)',
-              message:
-                'Only import from the index.ts of each src/core/queries/ module. Do not import internal files directly.',
             },
           ],
         },
