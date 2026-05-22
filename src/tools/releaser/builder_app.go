@@ -48,18 +48,10 @@ func (b *appBuilder) Build(ctx context.Context, ver *version.Version, outputDir 
 	}
 
 	b.log.Info("Building app frontend...")
-	if installErr := b.run(
-		ctx,
-		frontendDir,
-		appFrontendInstallEnv(),
-		"yarn",
-		"install",
-		"--immutable",
-		"--inline-builds",
-	); installErr != nil {
+	if installErr := b.runYarnInstall(ctx, frontendDir); installErr != nil {
 		return nil, fmt.Errorf("install app frontend dependencies: %w", installErr)
 	}
-	if buildErr := b.run(ctx, frontendDir, nil, "yarn", "build"); buildErr != nil {
+	if buildErr := b.runYarnBuild(ctx, frontendDir); buildErr != nil {
 		return nil, fmt.Errorf("build app frontend: %w", buildErr)
 	}
 
@@ -69,22 +61,7 @@ func (b *appBuilder) Build(ctx context.Context, ver *version.Version, outputDir 
 	}
 
 	b.log.Info("Packing app backend packages...")
-	if packErr := b.run(
-		ctx,
-		backendDir,
-		nil,
-		"dotnet",
-		"pack",
-		"solutions/Src.slnx",
-		"-c",
-		"Release",
-		"--output",
-		outputDir,
-		"-p:AppPackageVersion="+ver.Num,
-		fmt.Sprintf("-p:AppAssemblyVersion=%d.%d.%d.0", ver.Major, ver.Minor, ver.Patch),
-		"-p:AppInformationalVersion="+informationalVersion,
-		"-p:UseExperimentalPackageId=false",
-	); packErr != nil {
+	if packErr := b.runDotnetPack(ctx, backendDir, outputDir, ver, informationalVersion); packErr != nil {
 		return nil, fmt.Errorf("pack app backend: %w", packErr)
 	}
 
@@ -110,23 +87,53 @@ func appInformationalVersion(ctx context.Context, git *internal.GitCLI, ver *ver
 	return ver.Num + "+" + sha, nil
 }
 
-func (b *appBuilder) run(ctx context.Context, dir string, env []string, name string, args ...string) error {
-	switch name {
-	case "dotnet", "yarn":
-	default:
-		return fmt.Errorf("unsupported app build command: %s", name)
-	}
-
-	cmd := exec.CommandContext(ctx, name, args...)
+func (b *appBuilder) runYarnInstall(ctx context.Context, dir string) error {
+	cmd := exec.CommandContext(ctx, "yarn", "install", "--immutable", "--inline-builds")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Dir = dir
-	if len(env) > 0 {
-		cmd.Env = append(os.Environ(), env...)
-	}
+	cmd.Env = append(os.Environ(), appFrontendInstallEnv()...)
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("run %s %s: %w", name, strings.Join(args, " "), err)
+		return fmt.Errorf("run yarn install --immutable --inline-builds: %w", err)
+	}
+	return nil
+}
+
+func (b *appBuilder) runYarnBuild(ctx context.Context, dir string) error {
+	cmd := exec.CommandContext(ctx, "yarn", "build")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Dir = dir
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("run yarn build: %w", err)
+	}
+	return nil
+}
+
+func (b *appBuilder) runDotnetPack(
+	ctx context.Context,
+	dir string,
+	outputDir string,
+	ver *version.Version,
+	informationalVersion string,
+) error {
+	cmd := exec.CommandContext(ctx, "dotnet", "pack", "solutions/Src.slnx", "-c", "Release", "--output")
+	cmd.Args = append(
+		cmd.Args,
+		outputDir,
+		"-p:AppPackageVersion="+ver.Num,
+		fmt.Sprintf("-p:AppAssemblyVersion=%d.%d.%d.0", ver.Major, ver.Minor, ver.Patch),
+		"-p:AppInformationalVersion="+informationalVersion,
+		"-p:UseExperimentalPackageId=false",
+	)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Dir = dir
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("run dotnet pack: %w", err)
 	}
 	return nil
 }
