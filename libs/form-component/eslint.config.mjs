@@ -9,7 +9,6 @@ import noRelativeImportPaths from 'eslint-plugin-no-relative-import-paths';
 import preferredImportPath from 'eslint-plugin-preferred-import-path';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import reactPlugin from 'eslint-plugin-react';
-import reactCompiler from 'eslint-plugin-react-compiler';
 import reactHooks from 'eslint-plugin-react-hooks';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import sonarjs from 'eslint-plugin-sonarjs';
@@ -45,7 +44,6 @@ export default defineConfig([
       'simple-import-sort': simpleImportSort,
       '@typescript-eslint': tsPlugin,
       'react-hooks': reactHooks,
-      'react-compiler': reactCompiler,
       sonarjs,
     },
     languageOptions: {
@@ -125,8 +123,6 @@ export default defineConfig([
         { '^/src': 'src', '^/test/': 'test/' },
       ],
 
-      'react-compiler/react-compiler': 'error',
-
       'simple-import-sort/imports': [
         'error',
         {
@@ -175,7 +171,6 @@ export default defineConfig([
   {
     files: ['src/**/*.generated.{ts,tsx}'],
     rules: {
-      'no-explicit-any': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
