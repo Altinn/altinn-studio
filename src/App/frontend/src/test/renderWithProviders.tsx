@@ -17,7 +17,6 @@ import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { orderDetailsResponsePayload } from 'src/__mocks__/getOrderDetailsPayloadMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
-import { AppComponentsBridge } from 'src/AppComponentsBridge';
 import { ApiProvider } from 'src/core/contexts/ApiProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
@@ -326,13 +325,11 @@ function DefaultProviders({ children, queries, apis, queryClient, Router = Defau
       >
         <UiConfigProvider>
           <Router>
-            <AppComponentsBridge>
-              <NavigationFocusStateProvider>
-                <GlobalFormDataReadersProvider>
-                  <PartyProvider>{children}</PartyProvider>
-                </GlobalFormDataReadersProvider>
-              </NavigationFocusStateProvider>
-            </AppComponentsBridge>
+            <NavigationFocusStateProvider>
+              <GlobalFormDataReadersProvider>
+                <PartyProvider>{children}</PartyProvider>
+              </GlobalFormDataReadersProvider>
+            </NavigationFocusStateProvider>
           </Router>
         </UiConfigProvider>
       </AppQueriesProvider>
@@ -362,9 +359,7 @@ function MinimalProviders({ children, queries, apis, queryClient, Router = Defau
         queryClient={queryClient}
       >
         <Router>
-          <NavigationFocusStateProvider>
-            <AppComponentsBridge>{children}</AppComponentsBridge>
-          </NavigationFocusStateProvider>
+          <NavigationFocusStateProvider>{children}</NavigationFocusStateProvider>
         </Router>
       </AppQueriesProvider>
     </ApiProvider>
