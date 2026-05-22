@@ -326,6 +326,72 @@ describe('DeploymentEnvironmentLogList', () => {
         ),
       ).toBeInTheDocument();
     });
+
+    it('keeps deployment in progress when pipeline scheduling is still within grace period', () => {
+      render({
+        pipelineDeploymentList: [
+          {
+            ...pipelineDeployment,
+            build: undefined,
+            events: [
+              {
+                ...deployEvent,
+                eventType: WarningEventType.ResourceRegistryPublishFailed,
+                created: new Date(Date.now() - 60 * 1000).toISOString(),
+              },
+            ],
+          },
+        ],
+      });
+
+      expect(
+        screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.none')),
+      ).toBeInTheDocument();
+    });
+
+    it('renders failed status when pipeline scheduling is stale after resource registry failure', () => {
+      render({
+        pipelineDeploymentList: [
+          {
+            ...pipelineDeployment,
+            build: undefined,
+            events: [
+              {
+                ...deployEvent,
+                eventType: WarningEventType.ResourceRegistryPublishFailed,
+                created: new Date(Date.now() - 6 * 60 * 1000).toISOString(),
+              },
+            ],
+          },
+        ],
+      });
+
+      expect(
+        screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed')),
+      ).toBeInTheDocument();
+    });
+
+    it('renders failed status when pipeline scheduling is stale after resource registry success', () => {
+      render({
+        pipelineDeploymentList: [
+          {
+            ...pipelineDeployment,
+            build: undefined,
+            events: [
+              {
+                ...deployEvent,
+                eventType: EventType.ResourceRegistryPublishSucceeded,
+                created: new Date(Date.now() - 6 * 60 * 1000).toISOString(),
+              },
+            ],
+          },
+        ],
+      });
+
+      expect(
+        screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed')),
+      ).toBeInTheDocument();
+    });
   });
 
   it('does not render build log link when started date is null', () => {

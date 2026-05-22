@@ -17,7 +17,6 @@ import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { orderDetailsResponsePayload } from 'src/__mocks__/getOrderDetailsPayloadMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
-import { AppComponentsBridge } from 'src/AppComponentsBridge';
 import { ApiProvider } from 'src/core/contexts/ApiProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
@@ -32,10 +31,10 @@ import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { fetchFormBootstrapForInstance } from 'src/queries/queries';
 import { PageNavigationRouter } from 'src/test/routerUtils';
+import type { ApiClients } from 'src/core/api-client/ApiClients';
 import type { BackendValidationApi } from 'src/core/api-client/backendValidation.api';
 import type { InstanceApi } from 'src/core/api-client/instance.api';
 import type { PartyApi } from 'src/core/api-client/party.api';
-import type { ApiClients } from 'src/core/contexts/ApiProvider';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { FormDataMethods } from 'src/features/formData/FormDataWriteStateMachine';
 import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
@@ -326,13 +325,11 @@ function DefaultProviders({ children, queries, apis, queryClient, Router = Defau
       >
         <UiConfigProvider>
           <Router>
-            <AppComponentsBridge>
-              <NavigationFocusStateProvider>
-                <GlobalFormDataReadersProvider>
-                  <PartyProvider>{children}</PartyProvider>
-                </GlobalFormDataReadersProvider>
-              </NavigationFocusStateProvider>
-            </AppComponentsBridge>
+            <NavigationFocusStateProvider>
+              <GlobalFormDataReadersProvider>
+                <PartyProvider>{children}</PartyProvider>
+              </GlobalFormDataReadersProvider>
+            </NavigationFocusStateProvider>
           </Router>
         </UiConfigProvider>
       </AppQueriesProvider>
@@ -362,9 +359,7 @@ function MinimalProviders({ children, queries, apis, queryClient, Router = Defau
         queryClient={queryClient}
       >
         <Router>
-          <NavigationFocusStateProvider>
-            <AppComponentsBridge>{children}</AppComponentsBridge>
-          </NavigationFocusStateProvider>
+          <NavigationFocusStateProvider>{children}</NavigationFocusStateProvider>
         </Router>
       </AppQueriesProvider>
     </ApiProvider>

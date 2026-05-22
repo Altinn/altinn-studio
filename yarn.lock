@@ -147,6 +147,7 @@ __metadata:
     date-fns: "npm:^4.1.0"
     jsdom: "npm:^26.1.0"
     mime: "npm:^4.1.0"
+    react-content-loader: "npm:7.1.2"
     react-day-picker: "npm:^9.14.0"
     react-dropzone: "npm:^15.0.0"
     react-number-format: "npm:^5.4.5"

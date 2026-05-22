@@ -1,11 +1,10 @@
 import React from 'react';
 
-import { Flex } from '@app/form-component';
+import { ConditionalWrapper, Flex } from '@app/form-component';
 import { Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { HeadingProps } from '@digdir/designsystemet-react';
 
-import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupSummary.module.css';
 import { ComponentSummary, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';

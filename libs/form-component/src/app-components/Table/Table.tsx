@@ -137,10 +137,7 @@ export function AppTable<T>({
               colSpan={columns.length + (actionButtons ? 1 : 0)}
               style={{ textAlign: 'center' }}
             >
-              <Spinner
-                aria-label={loadingLabel}
-                data-size='md'
-              />
+              <Spinner aria-label={loadingLabel} data-size='md' />
             </Table.Cell>
           </Table.Row>
         ) : data.length === 0 ? (
@@ -162,10 +159,7 @@ export function AppTable<T>({
 
                 if (col.renderCell) {
                   return (
-                    <Table.Cell
-                      key={colIndex}
-                      data-header-title={col.header ?? ''}
-                    >
+                    <Table.Cell key={colIndex} data-header-title={col.header ?? ''}>
                       {col.renderCell(cellValues, rowData, rowIndex)}
                     </Table.Cell>
                   );
@@ -173,10 +167,7 @@ export function AppTable<T>({
 
                 if (cellValues.length === 0) {
                   return (
-                    <Table.Cell
-                      key={colIndex}
-                      data-header-title={col.header ?? ''}
-                    >
+                    <Table.Cell key={colIndex} data-header-title={col.header ?? ''}>
                       -
                     </Table.Cell>
                   );
@@ -184,20 +175,14 @@ export function AppTable<T>({
 
                 if (cellValues.length === 1) {
                   return (
-                    <Table.Cell
-                      key={colIndex}
-                      data-header-title={col.header ?? ''}
-                    >
+                    <Table.Cell key={colIndex} data-header-title={col.header ?? ''}>
                       {formatValue(cellValues[0])}
                     </Table.Cell>
                   );
                 }
 
                 return (
-                  <Table.Cell
-                    key={colIndex}
-                    data-header-title={col.header ?? ''}
-                  >
+                  <Table.Cell key={colIndex} data-header-title={col.header ?? ''}>
                     <ul>
                       {cellValues.map((value, idx) => (
                         <li key={idx}>{formatValue(value)}</li>

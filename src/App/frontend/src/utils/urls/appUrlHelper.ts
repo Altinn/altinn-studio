@@ -145,8 +145,6 @@ export const redirectToUpgrade = (reqAuthLevel: string) => {
 export const getActiveInstancesUrl = (partyId: number) => `${appPath}/instances/${partyId}/active`;
 export const getInstanceUiUrl = (instanceId: string) => `${appPath}/instance/${instanceId}`;
 
-export const getAppFrontendCDNPath = () => GlobalData.platformFrontendSettings.appFrontendCdnBaseUrl;
-export const getFrontendVersionsCDN = () => `${getAppFrontendCDNPath()}/index.json`;
 export const getHelpCircleIllustrationUrl = () => GlobalData.platformFrontendSettings.helpCircleIllustrationUrl;
 
 export type ParamValue = string | number | boolean | null;

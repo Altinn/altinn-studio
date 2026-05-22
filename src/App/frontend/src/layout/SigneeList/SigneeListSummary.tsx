@@ -2,13 +2,11 @@ import React from 'react';
 import { useParams } from 'react-router';
 import type { PropsWithChildren, ReactElement } from 'react';
 
-import { Label } from '@app/form-component';
+import { FatalError, Label, LoadingWrapper } from '@app/form-component';
 import { Divider, Paragraph } from '@digdir/designsystemet-react';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale/nb';
 
-import { FatalError } from 'src/app-components/error/FatalError/FatalError';
-import { LoadingWrapper } from 'src/app-components/loading/LoadingWrapper/LoadingWrapper';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { Lang } from 'src/features/language/Lang';
 import { type SigneeState, useSigneeList } from 'src/layout/SigneeList/api';

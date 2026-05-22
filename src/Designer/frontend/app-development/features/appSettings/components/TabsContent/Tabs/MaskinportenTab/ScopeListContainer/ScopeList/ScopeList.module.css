@@ -8,6 +8,11 @@
   margin-bottom: var(--ds-size-4);
 }
 
+.unsupportedVersionNotice {
+  margin-top: var(--ds-size-4);
+  margin-bottom: var(--ds-size-4);
+}
+
 .defaultScopesNotice {
   display: flex;
   flex-direction: column;

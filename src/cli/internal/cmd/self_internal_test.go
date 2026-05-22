@@ -50,6 +50,9 @@ func TestSelfUsageHidesInternalSubcommands(t *testing.T) {
 	if strings.Contains(usage, selfMigrateSubcmd) {
 		t.Fatalf("Usage() includes %s:\n%s", selfMigrateSubcmd, usage)
 	}
+	if strings.Contains(usage, selfWindowsHelperSubcmd) {
+		t.Fatalf("Usage() includes %s:\n%s", selfWindowsHelperSubcmd, usage)
+	}
 }
 
 func TestInstalledSelfCommandArgsIncludesConfigFlags(t *testing.T) {
