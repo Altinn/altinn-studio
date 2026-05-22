@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+
+	"altinn.studio/studioctl/internal/osutil"
 )
 
 func TestSpinner_UsesPlainOutputWhenTerminalDecorationsDisabled(t *testing.T) {
-	setTerminalDecorationsForTest(t, false)
+	t.Setenv(osutil.DisableTerminalDecorationsEnv, "1")
 
 	var buf bytes.Buffer
 	out := NewOutput(&buf, &buf, false)

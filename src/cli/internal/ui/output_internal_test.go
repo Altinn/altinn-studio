@@ -36,7 +36,7 @@ func TestColors_DisabledWhenNoColorIsSet(t *testing.T) {
 }
 
 func TestColors_DisabledWhenTerminalDecorationsDisabled(t *testing.T) {
-	setTerminalDecorationsForTest(t, false)
+	t.Setenv(osutil.DisableTerminalDecorationsEnv, "1")
 	t.Setenv("NO_COLOR", "")
 	if err := os.Unsetenv("NO_COLOR"); err != nil {
 		t.Fatalf("unset NO_COLOR: %v", err)
@@ -60,7 +60,7 @@ func TestColors_DisabledWhenTerminalDecorationsEnvSet(t *testing.T) {
 }
 
 func TestStatusUsesPlainTextWhenTerminalDecorationsDisabled(t *testing.T) {
-	setTerminalDecorationsForTest(t, false)
+	t.Setenv(osutil.DisableTerminalDecorationsEnv, "1")
 
 	if got := Status(true).Text; got != "[ok]" {
 		t.Fatalf("Status(true).Text = %q, want [ok]", got)
@@ -109,16 +109,4 @@ func TestOutputErrorlnfUsesPlatformLineBreak(t *testing.T) {
 	if got != want {
 		t.Fatalf("Errorlnf() wrote %q, want %q", got, want)
 	}
-}
-
-func setTerminalDecorationsForTest(t *testing.T, enabled bool) {
-	t.Helper()
-
-	original := terminalDecorations
-	terminalDecorations = func() bool {
-		return enabled
-	}
-	t.Cleanup(func() {
-		terminalDecorations = original
-	})
 }

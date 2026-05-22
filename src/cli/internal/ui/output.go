@@ -16,10 +16,7 @@ func Colors() bool {
 	return !noColor && terminalDecorations()
 }
 
-//nolint:gochecknoglobals // Package-internal hook keeps ISE output mode unit-testable.
-var terminalDecorations = defaultTerminalDecorations
-
-func defaultTerminalDecorations() bool {
+func terminalDecorations() bool {
 	return os.Getenv(osutil.DisableTerminalDecorationsEnv) == "" && !osutil.IsPowerShellISEHost()
 }
 
