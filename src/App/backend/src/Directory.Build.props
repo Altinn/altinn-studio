@@ -43,7 +43,11 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(MinVerVersionOverride)'!=''">
+  <PropertyGroup Condition="'$(UseExperimentalPackageId)' == '' AND '$(MinVerVersionOverride)'!=''">
+    <UseExperimentalPackageId>true</UseExperimentalPackageId>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(UseExperimentalPackageId)' == 'true'">
     <PackageId>$(MSBuildProjectName).Experimental</PackageId>
   </PropertyGroup>
 

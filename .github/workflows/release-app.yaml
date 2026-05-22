@@ -1,0 +1,186 @@
+name: Release - app
+
+# Automatically triggers release when an app changelog promotion PR is merged.
+# PRs must have the 'release/app' label.
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+      - 'release/app/v*'
+    paths:
+      - 'src/App/backend/CHANGELOG.md'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  resolve-release-context:
+    name: Resolve release context
+    runs-on: ubuntu-latest
+    # Automatically release same-repo release PRs. Fork PRs can be retried manually
+    # from main after merge because their pull_request token cannot publish releases.
+    if: >
+      (
+        github.event_name == 'workflow_dispatch' &&
+        github.ref == 'refs/heads/main'
+      ) ||
+      (
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.merged == true &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        contains(github.event.pull_request.labels.*.name, 'release/app')
+      )
+    outputs:
+      environment: ${{ steps.context.outputs.environment }}
+      version: ${{ steps.context.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.merge_commit_sha || github.sha }}
+
+      - name: Resolve environment
+        id: context
+        run: |
+          version="$(
+            awk '
+              /^## \[/ {
+                section = $0
+                gsub(/^## \[/, "", section)
+                gsub(/\].*$/, "", section)
+                if (section != "Unreleased") {
+                  print section
+                  exit
+                }
+              }
+            ' src/App/backend/CHANGELOG.md
+          )"
+
+          if [[ -z "$version" ]]; then
+            echo "Could not resolve release version from src/App/backend/CHANGELOG.md" >&2
+            exit 1
+          fi
+
+          environment="prod"
+          if [[ "$version" == *"-preview."* ]]; then
+            environment="test"
+          elif [[ "$version" == *"-rc."* ]]; then
+            environment="staging"
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "environment=$environment" >> "$GITHUB_OUTPUT"
+
+  release:
+    name: Build, release and publish
+    runs-on: ubuntu-latest
+    needs: resolve-release-context
+    environment: ${{ needs.resolve-release-context.outputs.environment }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.merge_commit_sha || github.sha }}
+
+      - name: Checkout base branch
+        env:
+          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || 'main' }}
+          MERGE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.merge_commit_sha || github.sha }}
+        run: |
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" && "${GITHUB_REF}" != "refs/heads/main" ]]; then
+            echo "Manual app releases must be dispatched from main"
+            exit 1
+          fi
+
+          if [[ "${BASE_BRANCH}" != "main" && ! "${BASE_BRANCH}" =~ ^release/app/v[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid base branch: ${BASE_BRANCH}"
+            exit 1
+          fi
+
+          git fetch origin "$BASE_BRANCH"
+          git checkout -B "$BASE_BRANCH" "$MERGE_SHA"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
+        with:
+          global-json-file: src/App/backend/global.json
+
+      - name: Setup Node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        with:
+          node-version: '22'
+          cache: yarn
+          cache-dependency-path: yarn.lock
+
+      - name: Setup Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: 'src/tools/releaser/go.mod'
+          cache-dependency-path: src/tools/releaser/go.sum
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run release workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || 'main' }}
+        run: |
+          go run . workflow --component app --base-branch "$BASE_BRANCH"
+        working-directory: src/tools/releaser
+
+      - name: Publish packages to NuGet
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          shopt -s nullglob
+          packages=(build/release/*.nupkg build/release/*.snupkg)
+
+          if (( ${#packages[@]} == 0 )); then
+            echo "No NuGet packages found in build/release" >&2
+            exit 1
+          fi
+
+          for package in "${packages[@]}"; do
+            dotnet nuget push "$package" \
+              --api-key "$NUGET_API_KEY" \
+              --source https://api.nuget.org/v3/index.json \
+              --skip-duplicate
+          done
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## Release Summary"
+            echo ""
+            if [[ -n "${PR_NUMBER}" ]]; then
+              echo "- **PR**: #${PR_NUMBER}"
+            fi
+            echo "- **Base branch**: ${BASE_BRANCH}"
+            echo "- **Version**: ${RELEASE_VERSION}"
+            echo "- **Environment**: ${{ needs.resolve-release-context.outputs.environment }}"
+            echo "- **Version source**: latest released section in src/App/backend/CHANGELOG.md"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ -d "build/release" ]]; then
+            {
+              echo "### Assets"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            ls -la build/release/ >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "No assets found"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          fi
+        env:
+          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || 'main' }}
+          PR_NUMBER: ${{ github.event_name == 'pull_request' && github.event.pull_request.number || '' }}
+          RELEASE_VERSION: ${{ needs.resolve-release-context.outputs.version }}
