@@ -118,18 +118,17 @@ public class HomeController : Controller
                 return PartialView("Index");
             }
 
-            string? frontendVersionOverride = null;
-            if (_env.IsDevelopment() && HttpContext.Request.Cookies.TryGetValue("frontendVersion", out var cookie))
-            {
-                frontendVersionOverride = cookie.TrimEnd('/');
-            }
+            string? appFrontendAssetBaseUrlOverride =
+                _env.IsDevelopment() && !string.IsNullOrWhiteSpace(_appSettings.AppFrontendAssetBaseUrl)
+                    ? _appSettings.AppFrontendAssetBaseUrl.Trim().TrimEnd('/')
+                    : null;
 
             var appGlobalState = await _bootstrapGlobalService.GetGlobalState(_appId.Org, _appId.App, returnUrl, lang);
             var html = await _indexPageGenerator.Generate(
                 _appId.Org,
                 _appId.App,
                 appGlobalState,
-                frontendVersionOverride
+                appFrontendAssetBaseUrlOverride
             );
             return Content(html, "text/html; charset=utf-8");
         }

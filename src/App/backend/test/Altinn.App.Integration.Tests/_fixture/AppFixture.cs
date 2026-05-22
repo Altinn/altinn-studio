@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -161,10 +160,12 @@ public sealed partial class AppFixture : IAsyncDisposable
                 fixtureInstance,
                 cancellationToken
             );
+            var appFrontendAssetBaseUrl = $"/{appId}/altinn-app-frontend";
             appProcess = await StudioctlAppProcess.Start(
                 generatedAppDirectory,
                 fixtureConfigurationPath,
                 _nugetPackagesDirectory,
+                appFrontendAssetBaseUrl,
                 logger,
                 cancellationToken
             );
@@ -219,17 +220,11 @@ public sealed partial class AppFixture : IAsyncDisposable
     {
         if (_appClient == null)
         {
-            var cookieContainer = new CookieContainer();
-            var handler = new HttpClientHandler { CookieContainer = cookieContainer };
-
-            _appClient = new HttpClient(handler)
+            _appClient = new HttpClient
             {
                 BaseAddress = new Uri($"http://local.altinn.cloud:{StudioctlLocaltestHostPort}"),
             };
             _appClient.DefaultRequestHeaders.Add("User-Agent", "Altinn.App.Integration.Tests");
-
-            var appFrontendUrl = $"{AppPath}/altinn-app-frontend/";
-            cookieContainer.Add(_appClient.BaseAddress, new Cookie("frontendVersion", appFrontendUrl));
         }
 
         return _appClient;
