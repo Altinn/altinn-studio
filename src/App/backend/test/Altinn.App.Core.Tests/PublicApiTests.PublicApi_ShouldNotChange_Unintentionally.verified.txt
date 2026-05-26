@@ -3241,6 +3241,7 @@ namespace Altinn.App.Core.Internal.Expressions
     public readonly struct ExpressionValue : System.IEquatable<Altinn.App.Core.Internal.Expressions.ExpressionValue>
     {
         public ExpressionValue() { }
+        public Altinn.App.Core.Internal.Expressions.ExpressionValue[] Array { get; }
         public bool Bool { get; }
         public double Number { get; }
         public string String { get; }
@@ -3260,6 +3261,7 @@ namespace Altinn.App.Core.Internal.Expressions
         public bool TryDeserialize(System.Type type, out object? result) { }
         public bool TryDeserialize<T>(out T? result) { }
         public static Altinn.App.Core.Internal.Expressions.ExpressionValue FromObject(object? value) { }
+        public static Altinn.App.Core.Internal.Expressions.ExpressionValue op_Implicit(Altinn.App.Core.Internal.Expressions.ExpressionValue[]? value) { }
         public static Altinn.App.Core.Internal.Expressions.ExpressionValue op_Implicit(bool? value) { }
         public static Altinn.App.Core.Internal.Expressions.ExpressionValue op_Implicit(double? value) { }
         public static Altinn.App.Core.Internal.Expressions.ExpressionValue op_Implicit(string? value) { }
@@ -4774,6 +4776,7 @@ namespace Altinn.App.Core.Models.Expressions
         minus = 38,
         multiply = 39,
         divide = 40,
+        list = 41,
     }
 }
 namespace Altinn.App.Core.Models.Layout.Components.Base

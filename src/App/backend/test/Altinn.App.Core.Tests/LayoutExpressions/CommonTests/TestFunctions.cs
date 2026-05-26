@@ -227,6 +227,11 @@ public class TestFunctions
     [SharedTest("round")]
     public async Task Round_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
+    [Theory]
+    [SharedTestCases("list")]
+    public async Task List_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
+        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+
     private static async Task<ExpressionTestCaseRoot> LoadTestCase(string file, string folder)
     {
         ExpressionTestCaseRoot testCase = new();
@@ -382,17 +387,20 @@ public class TestFunctions
 
         test.ParsingException.Should().BeNull("Loading of test failed");
 
-        await RunTestCaseItem(
-            new ExpressionTestCaseRoot.TestCaseItem()
-            {
-                Expects = test.Expects,
-                Expression = test.Expression,
-                ExpectsFailure = test.ExpectsFailure,
-            },
-            state,
-            context,
-            positionalArguments
-        );
+        if (test.Expression != null)
+        {
+            await RunTestCaseItem(
+                new ExpressionTestCaseRoot.TestCaseItem()
+                {
+                    Expects = test.Expects,
+                    Expression = (Expression)test.Expression,
+                    ExpectsFailure = test.ExpectsFailure,
+                },
+                state,
+                context,
+                positionalArguments
+            );
+        }
 
         if (test.TestCases != null)
         {

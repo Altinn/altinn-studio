@@ -131,6 +131,7 @@ public static partial class ExpressionEvaluator
             ExpressionFunction.minus => Minus(args),
             ExpressionFunction.multiply => Multiply(args),
             ExpressionFunction.divide => Divide(args),
+            ExpressionFunction.list => List(args),
             ExpressionFunction.INVALID => throw new ExpressionEvaluatorTypeErrorException(
                 $"Function {expr.Args.FirstOrDefault()} not implemented in backend {expr}"
             ),
@@ -988,6 +989,11 @@ public static partial class ExpressionEvaluator
         }
 
         return positionalArguments[index.Value];
+    }
+
+    private static ExpressionValue[] List(ExpressionValue[] args)
+    {
+        return args;
     }
 
     /// <summary>

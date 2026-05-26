@@ -225,4 +225,7 @@ public enum ExpressionFunction
     /// Divide numbers. Must be numeric values.
     /// </summary>
     divide,
+
+    /// <summary>Create a list from the arguments.</summary>
+    list,
 }
