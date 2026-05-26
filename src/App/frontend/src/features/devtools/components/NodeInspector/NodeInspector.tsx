@@ -1,11 +1,10 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React from 'react';
 
+import { Button } from '@app/form-component';
 import { Tabs } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 
-import { Button } from 'src/app-components/Button/Button';
-import { translationKey } from 'src/AppComponentsBridge';
 import reusedClasses from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
 import { NodeHierarchy } from 'src/features/devtools/components/NodeInspector/NodeHierarchy';
 import classes from 'src/features/devtools/components/NodeInspector/NodeInspector.module.css';
@@ -13,17 +12,19 @@ import { NodeInspectorContextProvider } from 'src/features/devtools/components/N
 import { ValidationInspector } from 'src/features/devtools/components/NodeInspector/ValidationInspector';
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { getComponentDef, implementsAnyValidation } from 'src/layout';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 
 export const NodeInspector = () => {
+  const { langAsString } = useLanguage();
   const pageKey = useCurrentView();
   const selectedId = useDevToolsStore((state) => state.nodeInspector.selectedNodeId);
   const { baseComponentId } = splitDashedKey(selectedId ?? '');
-  const lookups = FormBootstrap.useLayoutLookups();
+  const lookups = FormStore.bootstrap.useLayoutLookups();
   const def = baseComponentId ? getComponentDef(lookups.getComponent(baseComponentId).type) : undefined;
   const children = pageKey ? lookups.topLevelComponents[pageKey] : undefined;
   const setSelected = useDevToolsStore((state) => state.actions.nodeInspectorSet);
@@ -50,7 +51,7 @@ export const NodeInspector = () => {
                 onClick={() => setSelected(undefined)}
                 variant='tertiary'
                 color='second'
-                aria-label={translationKey('general.close')}
+                aria-label={langAsString('general.close')}
                 icon={true}
               >
                 <XMarkIcon

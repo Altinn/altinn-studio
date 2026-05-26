@@ -46,6 +46,15 @@ internal static class GetterGenerator
     {
         if (modelPathNode.ListType != null && generatedTypes.Add(modelPathNode.ListType))
         {
+            var itemAccessor = CollectionAccessorGenerator.GenerateAccessor(modelPathNode, "model", "literalIndex");
+            var returnStatement =
+                modelPathNode.Properties.Count == 0
+                    ? $"return {itemAccessor};"
+                    : $$"""
+                        var item = {{itemAccessor}};
+                                return GetRecursive(item, path, offset);
+                        """;
+
             builder.Append(
                 $$"""
 
@@ -66,11 +75,7 @@ internal static class GetterGenerator
                             return null;
                         }
 
-                        {{(
-                    modelPathNode.Properties.Count == 0
-                        ? "return model[literalIndex];"
-                        : "return GetRecursive(model[literalIndex], path, offset);"
-                )}}
+                        {{returnStatement}}
                     }
 
                 """

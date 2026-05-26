@@ -172,7 +172,7 @@ describe('Validation', () => {
     cy.wait('@upload');
     cy.dsReady(appFrontend.changeOfName.uploadWithTag.saveTag);
     cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click();
-    cy.get(appFrontend.changeOfName.uploadWithTag.error).should(
+    cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).should(
       'not.contain.text',
       appFrontend.changeOfName.uploadWithTag.unwantedChar,
     );
@@ -498,7 +498,7 @@ describe('Validation', () => {
 
     cy.changeLayout((component) => {
       if (component.type === 'RepeatingGroup' && component.id === 'mainGroup' && component.tableColumns) {
-        // Components that are not editable in the table, when using the 'onlyTable' mode, are implicitly hidden
+        // Components with editInTable: false in onlyTable mode are shown as read-only cells are still visible and validated.
         component.tableColumns.currentValue.editInTable = false;
       }
     });
@@ -510,7 +510,7 @@ describe('Validation', () => {
     cy.get(appFrontend.group.row(2).currentValue).should('not.exist');
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('repeating').should('have.attr', 'aria-current', 'page');
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
     cy.get(appFrontend.errorReport).findByText('Du må fylle ut 2. endre verdi til').click();
     cy.get(appFrontend.group.row(2).newValue).should('be.focused');
 

@@ -12,14 +12,13 @@ import { getSharedTests } from 'src/features/expressions/shared';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
+import { FormStore } from 'src/features/form/FormContext';
 import {
   getRepeatingBinding,
   isRepeatingComponent,
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
-import { fetchProcessState } from 'src/queries/queries';
 import { AppQueries } from 'src/queries/types';
 import {
   renderWithInstanceAndLayout,
@@ -54,7 +53,7 @@ function InnerExpressionRunner({ expression, positionalArguments, valueArguments
 }
 
 function ExpressionRunner(props: Props) {
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   if (props.context === undefined || props.context.rowIndices === undefined || props.context.rowIndices.length === 0) {
     return <InnerExpressionRunner {...props} />;
   }
@@ -185,7 +184,6 @@ function setupMocks(test: FunctionTest): void {
   };
 
   jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
-  jest.mocked(fetchProcessState).mockImplementation(async () => createProcess(test) ?? getProcessDataMock());
 }
 
 function createApplicationMetadata({ stateless, instanceDataElements, dataModels }: FunctionTest): ApplicationMetadata {
@@ -310,7 +308,10 @@ async function renderExpression(test: FunctionTest, expression: ExprValToActualO
       queries,
       apis: {
         instanceApi: {
-          getInstance: async () => ({ ...createInstanceData(test), process: getProcessDataMock() }),
+          getInstance: async () => ({
+            ...createInstanceData(test),
+            process: createProcess(test) ?? getProcessDataMock(),
+          }),
         },
       },
     });

@@ -1,0 +1,20 @@
+.navigationSettingsWrapper {
+  display: flex;
+  gap: var(--ds-size-15);
+  max-width: 1300px;
+}
+
+.navigationTabContent {
+  max-width: 744px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-5);
+  flex: 1;
+}
+
+.divider {
+  border-top: 1px solid;
+  border-color: var(--fds-semantic-border-divider-subtle);
+  width: 90%;
+  margin-left: 0;
+}

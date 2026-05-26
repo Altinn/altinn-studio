@@ -1,4 +1,5 @@
-import { PrettyDateAndTime } from 'src/app-components/Datepicker/utils/dateHelpers';
+import { PrettyDateAndTime } from '@app/form-component';
+
 import { formatDateLocale } from 'src/utils/dateUtils';
 import type { Token } from 'src/utils/dateUtils';
 

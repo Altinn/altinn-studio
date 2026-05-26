@@ -1,0 +1,28 @@
+.allComponentsWrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  flex: 3;
+  padding: 20px;
+}
+
+.componentCategory {
+  padding-top: 12px;
+}
+
+.componentsInfoWrapper {
+  flex: 1;
+  background-color: var(--fds-semantic-surface-info-subtle);
+  padding: 20px;
+}
+
+.componentsWrapper {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  flex-wrap: wrap;
+}
+
+.root {
+  min-width: 360px;
+}

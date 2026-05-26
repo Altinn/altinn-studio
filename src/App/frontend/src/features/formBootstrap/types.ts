@@ -37,13 +37,14 @@ export interface ProcessedDataModelInfo extends Omit<RawDataModelInfo, 'expressi
   schemaResult: DataModelSchemaResult;
 }
 
-export interface FormBootstrapBase extends Omit<FormBootstrapQueryResponse, 'staticOptions' | 'layouts'> {
+export interface FormBootstrapBase extends Omit<FormBootstrapQueryResponse, 'staticOptions'> {
   uiFolder: string;
+  defaultDataType: string;
   staticOptions: Record<string, StaticOptionSet>;
 }
 
 export interface FormBootstrapContextValue extends FormBootstrapBase {
-  layouts: ILayouts;
+  processedLayouts: ILayouts;
   layoutLookups: LayoutLookups;
   hiddenLayoutsExpressions: IHiddenLayoutsExternal;
   expandedWidthLayouts: IExpandedWidthLayouts;

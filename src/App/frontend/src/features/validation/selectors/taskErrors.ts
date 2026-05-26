@@ -21,21 +21,19 @@ export function useTaskErrors(): {
   formErrors: NodeRefValidation<AnyValidation<'error'>>[];
   taskErrors: BaseValidation<'error'>[];
 } {
-  const [dataModels, otherDataElementBackendValidations, taskValidations, showAllBackendErrors] =
-    FormStore.raw.useShallowSelector((state) => [
-      state.data.models,
-      state.validation.otherDataElementBackendValidations,
-      state.validation.state.task,
-      state.validation.showAllBackendErrors,
-    ]);
+  const [dataModels, taskValidations, showAllUnboundValidations] = FormStore.raw.useShallowSelector((state) => [
+    state.data.models,
+    state.validation.state.task,
+    state.validation.showAllUnboundValidations,
+  ]);
 
-  const formErrorVisibility: NodeVisibility = showAllBackendErrors ? 'showAll' : 'visible';
+  const formErrorVisibility: NodeVisibility = showAllUnboundValidations ? 'showAll' : 'visible';
 
   const _formErrors = FormStore.nodes.useAllValidations(formErrorVisibility, 'error');
   const formErrors = !_formErrors.length ? emptyArray : _formErrors;
 
   const taskErrors = useMemo(() => {
-    if (!showAllBackendErrors) {
+    if (!showAllUnboundValidations) {
       return emptyArray;
     }
 
@@ -44,13 +42,8 @@ export function useTaskErrors(): {
 
     const boundErrorIds = new Set(formErrors.filter(hasBackendValidationId).map((v) => v.backendValidationId));
 
-    const unified = [
-      ...Object.values(dataModels).map((dataModel) => dataModel.validations.backend),
-      ...Object.values(otherDataElementBackendValidations),
-    ];
-
     // Unbound field errors
-    for (const validations of unified) {
+    for (const validations of Object.values(dataModels).map((dataModel) => dataModel.validations.backend)) {
       for (const field of Object.values(validations)) {
         for (const validation of selectValidations(field, backendMask, 'error')) {
           // Only select backend errors which are not already visible through formErrors
@@ -65,7 +58,7 @@ export function useTaskErrors(): {
     allBackendErrors.push(...validationsOfSeverity(taskValidations, 'error'));
 
     return allBackendErrors?.length ? allBackendErrors : emptyArray;
-  }, [dataModels, formErrors, otherDataElementBackendValidations, showAllBackendErrors, taskValidations]);
+  }, [dataModels, formErrors, showAllUnboundValidations, taskValidations]);
 
   return {
     formErrors,

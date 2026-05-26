@@ -59,7 +59,6 @@ public class OptionsWithGroupTests
         _outputHelper = outputHelper;
         _collection = new MockedServiceCollection();
         _collection.OutputHelper = outputHelper;
-        _collection.TryAddCommonServices();
         _dataType = _collection.AddDataType<SkjemaModel>();
 
         _collection.AddLayoutSet(

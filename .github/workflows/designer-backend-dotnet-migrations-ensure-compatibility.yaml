@@ -34,12 +34,18 @@ jobs:
       - name: Install dotnet ef # Version should be the same as Migrations docker file and project
         run: dotnet tool install --version 9.0.0 --global dotnet-ef
 
+      - name: Build Designer backend
+        run: |
+            dotnet restore backend/src/Designer/Designer.csproj
+            dotnet build backend/src/Designer/Designer.csproj --no-restore
+        working-directory: src/Designer
+
       - name: Check if migrations script can be generated
         run: |
-            dotnet ef migrations script --project backend/src/Designer
+            dotnet ef migrations script --project backend/src/Designer --no-build
         working-directory: src/Designer
 
       - name: Check if it's possible to add a new migration
         run: |
-            dotnet ef migrations add Test --project backend/src/Designer
+            dotnet ef migrations add Test --project backend/src/Designer --no-build
         working-directory: src/Designer

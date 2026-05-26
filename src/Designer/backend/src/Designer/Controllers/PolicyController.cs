@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
 using Altinn.Studio.PolicyAdmin;
@@ -59,7 +60,8 @@ public class PolicyController : ControllerBase
     [Route("{resourceid}")]
     public ActionResult GetResourcePolicy(string org, string app, string resourceid)
     {
-        XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, resourceid);
+        string resourceFileStructureName = ResourceAdminHelper.GetResourceFileStructureName(resourceid);
+        XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, resourceFileStructureName);
 
         if (xacmlPolicy == null)
         {
@@ -115,7 +117,8 @@ public class PolicyController : ControllerBase
     {
         XacmlPolicy xacmlPolicy = PolicyConverter.ConvertPolicy(applicationPolicy);
 
-        await _repository.SavePolicy(org, app, resourceid, xacmlPolicy);
+        string resourceFileStructureName = ResourceAdminHelper.GetResourceFileStructureName(resourceid);
+        await _repository.SavePolicy(org, app, resourceFileStructureName, xacmlPolicy);
 
         return Ok(applicationPolicy);
     }
@@ -139,7 +142,8 @@ public class PolicyController : ControllerBase
     [Route("validate/{resourceid}")]
     public ActionResult ValidateResourcePolicy(string org, string app, string resourceid)
     {
-        XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, resourceid);
+        string resourceFileStructureName = ResourceAdminHelper.GetResourceFileStructureName(resourceid);
+        XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, resourceFileStructureName);
         if (xacmlPolicy == null)
         {
             ModelState.AddModelError("policy", "policyerror.missingpolicy");

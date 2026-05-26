@@ -1,0 +1,7 @@
+.container {
+  padding-inline: var(--fds-spacing-5);
+}
+
+.alert {
+  margin-top: var(--fds-spacing-3);
+}

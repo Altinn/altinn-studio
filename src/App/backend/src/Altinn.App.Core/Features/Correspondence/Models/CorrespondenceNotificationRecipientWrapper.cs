@@ -8,7 +8,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models;
 [Obsolete(
     "This model is deprecated and will be removed in a future version. Use CorrespondenceNotificationRecipient instead."
 )]
-public sealed record CorrespondenceNotificationRecipientWrapper : MultipartCorrespondenceListItem
+public sealed record CorrespondenceNotificationRecipientWrapper
 {
     /// <summary>
     /// The correspondence recipient which the notification should be overridden for. Organization number or national identification number.
@@ -20,9 +20,4 @@ public sealed record CorrespondenceNotificationRecipientWrapper : MultipartCorre
     /// </summary>
     /// <remarks> Only the first recipient in the list will be used for sending the notification. </remarks>
     public required List<CorrespondenceNotificationRecipient> CorrespondenceNotificationRecipients { get; init; }
-
-    internal override void Serialise(MultipartFormDataContent content, int index)
-    {
-        SerializeOverrideNotificationRecipients(content, CorrespondenceNotificationRecipients);
-    }
 }

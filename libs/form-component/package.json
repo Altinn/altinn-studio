@@ -3,26 +3,71 @@
   "packageManager": "yarn@4.12.0",
   "version": "0.1.0",
   "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles/global.css": "./src/styles/global.css"
+  },
   "private": true,
   "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "yarn lint --fix",
     "test": "vitest",
     "test:ci": "vitest run",
-    "lint": "eslint \"src/**/*.ts*\"",
-    "typecheck": "tsc --noEmit -p ./"
+    "typecheck": "tsc --noEmit -p ./",
+    "storybook": "storybook dev -p 6008",
+    "build-storybook": "storybook build"
+  },
+  "dependencies": {
+    "classnames": "2.5.1",
+    "date-fns": "^4.1.0",
+    "mime": "^4.1.0",
+    "react-content-loader": "7.1.2",
+    "react-day-picker": "^9.14.0",
+    "react-dropzone": "^15.0.0",
+    "react-number-format": "^5.4.5"
   },
   "peerDependencies": {
+    "@digdir/designsystemet-react": "^1.11.1",
+    "@navikt/aksel-icons": "^8.9.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@chromatic-com/storybook": "^5.0.1",
+    "@digdir/designsystemet-css": "1.11.1",
+    "@digdir/designsystemet-react": "1.11.1",
+    "@eslint/compat": "2.0.5",
+    "@eslint/js": "^10.0.1",
+    "@navikt/aksel-icons": "8.9.0",
+    "@storybook/addon-a11y": "10.2.16",
+    "@storybook/addon-docs": "10.2.16",
+    "@storybook/addon-links": "10.2.16",
+    "@storybook/builder-vite": "10.2.16",
+    "@storybook/react-vite": "10.2.16",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
     "@testing-library/user-event": "14.6.1",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
+    "@typescript-eslint/eslint-plugin": "8.59.1",
+    "@typescript-eslint/parser": "8.59.1",
     "@vitejs/plugin-react": "^5.0.0",
+    "eslint": "10.3.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-import": "2.32.0",
+    "eslint-plugin-jsx-a11y": "6.10.2",
+    "eslint-plugin-preferred-import-path": "1.1.0",
+    "eslint-plugin-prettier": "5.5.5",
+    "eslint-plugin-react": "7.37.5",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-simple-import-sort": "12.1.1",
+    "eslint-plugin-sonarjs": "4.0.3",
+    "globals": "17.6.0",
     "jsdom": "^26.1.0",
+    "prettier": "3.8.3",
+    "storybook": "10.2.16",
     "typescript": "5.9.3",
-    "vitest": "^3.0.0"
+    "typescript-plugin-css-modules": "5.2.0",
+    "vitest": "^4.1.5"
   }
 }

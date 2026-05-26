@@ -1,11 +1,10 @@
 import React from 'react';
 
+import { Fieldset, PrettyDateAndTime } from '@app/form-component';
 import { formatDate, formatISO } from 'date-fns';
 
 import type { PropsFromGenericComponent } from '..';
 
-import { PrettyDateAndTime } from 'src/app-components/Datepicker/utils/dateHelpers';
-import { Fieldset } from 'src/app-components/Label/Fieldset';
 import { AltinnSummaryTable } from 'src/components/table/AltinnSummaryTable';
 import { useAppReceiver } from 'src/core/texts/appTexts';
 import { useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
@@ -74,10 +73,11 @@ export function InstanceInformation({ elements }: Pick<CompInternal<'InstanceInf
   const instanceDateSent =
     lastChanged && dateSent !== false && formatDate(toTimeZonedDate(formatISO(lastChanged)), PrettyDateAndTime);
 
+  const identifier = instanceOwnerParty?.ssn ?? instanceOwnerParty?.orgNumber;
   const instanceSender =
     sender !== false &&
     instanceOwnerParty &&
-    `${instanceOwnerParty.ssn ?? instanceOwnerParty.orgNumber}-${instanceOwnerParty.name}`;
+    (identifier ? `${identifier}-${instanceOwnerParty.name}` : instanceOwnerParty.name);
 
   const instanceReceiver = receiver !== false ? (appReceiver ?? 'Error: Receiver org not found') : undefined;
 

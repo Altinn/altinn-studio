@@ -1,0 +1,40 @@
+.expressionContent {
+  align-items: center;
+  background-color: var(--fds-semantic-surface-neutral-default);
+  border-radius: var(--fds-border_radius-medium);
+  border: 0;
+  box-shadow: var(--fds-shadow-small);
+  display: grid;
+  gap: var(--studio-legacy-expression-spacing);
+  grid-template-columns: [start] 1fr auto [end];
+  margin: 0;
+  overflow: auto;
+  padding: 0;
+}
+
+.legend {
+  display: contents;
+}
+
+.legendContent {
+  display: flex;
+  gap: var(--fds-spacing-1);
+  margin-left: var(--studio-legacy-expression-spacing);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.deleteButton {
+  margin-right: var(--studio-legacy-expression-spacing);
+}
+
+.legendContent,
+.deleteButton {
+  margin-top: var(--studio-legacy-expression-spacing);
+}
+
+.expressionWrapper {
+  display: grid;
+  grid-column-end: end;
+  grid-column-start: start;
+}

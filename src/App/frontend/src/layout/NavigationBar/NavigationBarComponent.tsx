@@ -1,17 +1,18 @@
 import React from 'react';
 
+import { Flex, Spinner } from '@app/form-component';
 import { CaretDownFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { Flex } from 'src/app-components/Flex/Flex';
-import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useGetNavigationIsPrevented } from 'src/features/navigation/utils';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { usePageValidation } from 'src/hooks/usePageValidation';
 import {
   useCurrentProcessKey,
   useIsAnyProcessing,
@@ -64,7 +65,15 @@ export const NavigationBarComponent = ({ baseComponentId }: PropsFromGenericComp
   const performProcess = useProcessingMutationWithKey<NavigatePageProcessKey>('navigate-page');
   const currentProcessKey = useCurrentProcessKey<NavigatePageProcessKey>('navigate-page');
   const isAnyProcessing = useIsAnyProcessing();
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
+
+  const { getPageValidation } = usePageValidation(baseComponentId);
+  // Use component-level validation if set, otherwise fall back to page-level
+  // When page-level validation is set, only validate forward navigation
+  const validationOnForward = getPageValidation() ?? validateOnForward;
+  const validationOnBackward = getPageValidation() ? undefined : validateOnBackward;
+
+  const getNavigationIsPrevented = useGetNavigationIsPrevented();
 
   const firstPageLink = React.useRef<HTMLButtonElement>(undefined);
 
@@ -84,12 +93,12 @@ export const NavigationBarComponent = ({ baseComponentId }: PropsFromGenericComp
 
       await maybeSaveOnPageChange();
 
-      if (isForward && validateOnForward && (await onPageNavigationValidation(pageKey, validateOnForward))) {
+      if (isForward && validationOnForward && (await onPageNavigationValidation(pageKey, validationOnForward))) {
         // Block navigation if validation fails
         return;
       }
 
-      if (isBackward && validateOnBackward && (await onPageNavigationValidation(pageKey, validateOnBackward))) {
+      if (isBackward && validationOnBackward && (await onPageNavigationValidation(pageKey, validationOnBackward))) {
         // Block navigation if validation fails
         return;
       }
@@ -160,7 +169,7 @@ export const NavigationBarComponent = ({ baseComponentId }: PropsFromGenericComp
                   className={classes.containerBase}
                 >
                   <NavigationButton
-                    disabled={isAnyProcessing}
+                    disabled={isAnyProcessing || getNavigationIsPrevented(pageId)}
                     current={currentPageId === pageId}
                     onClick={() => handleNavigationClick(pageId)}
                     ref={index === 0 ? firstPageLink : null}

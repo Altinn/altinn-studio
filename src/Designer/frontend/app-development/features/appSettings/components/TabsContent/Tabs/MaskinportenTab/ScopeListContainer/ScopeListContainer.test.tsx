@@ -7,6 +7,8 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { AxiosError } from 'axios';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 const scopeMock1: MaskinportenScope = {
   scope: 'scope1',
@@ -28,7 +30,7 @@ describe('ScopeListContainer', () => {
     expect(getText(textMock('general.loading'))).toBeInTheDocument();
   });
 
-  it('should display a list of scopes if maskinporten scopes are available', async () => {
+  it('should display add button and empty selected scopes message if only available scopes exist', async () => {
     const getMaskinportenScopes = jest
       .fn()
       .mockImplementation(() => Promise.resolve(maskinportenScopes));
@@ -41,15 +43,11 @@ describe('ScopeListContainer', () => {
 
     await waitForGetScopesCheckIsDone();
 
-    expect(getCheckoxes()).toHaveLength(3); // The two scopes + "select all"
-    maskinportenScopes.scopes.forEach((scope: MaskinportenScope) => {
-      expect(getCheckbox(scope.scope)).toBeInTheDocument();
-      expect(getCell(scope.description)).toBeInTheDocument();
-      expect(getCheckbox(scope.scope)).not.toBeChecked();
-    });
+    expect(getButton(textMock('app_settings.maskinporten_add_scope'))).toBeInTheDocument();
+    expect(getText(textMock('app_settings.maskinporten_no_scopes_added'))).toBeInTheDocument();
   });
 
-  it('should display a list of scopes if selected maskinporten scopes are available', async () => {
+  it('should display selected scopes if selected maskinporten scopes are available', async () => {
     const getMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
     const getSelectedMaskinportenScopes = jest
       .fn()
@@ -62,15 +60,13 @@ describe('ScopeListContainer', () => {
 
     await waitForGetScopesCheckIsDone();
 
-    expect(getCheckoxes()).toHaveLength(3); // The two scopes + "select all"
     maskinportenScopes.scopes.forEach((scope: MaskinportenScope) => {
-      expect(getCheckbox(scope.scope)).toBeInTheDocument();
       expect(getCell(scope.description)).toBeInTheDocument();
-      expect(getCheckbox(scope.scope)).toBeChecked();
+      expect(getCell(scope.scope)).toBeInTheDocument();
     });
   });
 
-  it('should display a merged list of scopes if both selected scopes and available scopes are available', async () => {
+  it('should display only selected scopes if both selected scopes and available scopes are available', async () => {
     const availableScopes: MaskinportenScopes = { scopes: [scopeMock1] };
     const getMaskinportenScopes = jest
       .fn()
@@ -88,18 +84,19 @@ describe('ScopeListContainer', () => {
 
     await waitForGetScopesCheckIsDone();
 
-    expect(getCheckoxes()).toHaveLength(3); // The two scopes + "select all"
-    maskinportenScopes.scopes.forEach((scope: MaskinportenScope) => {
-      expect(getCheckbox(scope.scope)).toBeInTheDocument();
-      expect(getCell(scope.description)).toBeInTheDocument();
-    });
-    expect(getCheckbox(scopeMock1.scope)).not.toBeChecked();
-    expect(getCheckbox(scopeMock2.scope)).toBeChecked();
+    expect(getCell(scopeMock2.scope)).toBeInTheDocument();
+    expect(getCell(scopeMock2.description)).toBeInTheDocument();
+    expect(queryCell(scopeMock1.scope)).not.toBeInTheDocument();
+    expect(queryCell(scopeMock1.description)).not.toBeInTheDocument();
   });
 
   it('should display an alert if no scopes are available', async () => {
-    const getMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
-    const getSelectedMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
+    const getMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ scopes: [] }));
+    const getSelectedMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ scopes: [] }));
 
     renderScopeListContainer({
       getMaskinportenScopes,
@@ -110,6 +107,91 @@ describe('ScopeListContainer', () => {
     expect(
       getText(textMock('app_settings.maskinporten_no_scopes_available_description')),
     ).toBeInTheDocument();
+  });
+
+  it('should display an alert if user does not have access on behalf of the organisation', async () => {
+    const getMaskinportenScopes = jest
+      .fn()
+      .mockRejectedValue(createAxiosError(ServerCodes.Forbidden));
+    const getSelectedMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ scopes: [] }));
+
+    renderScopeListContainer({
+      getMaskinportenScopes,
+      getSelectedMaskinportenScopes,
+    });
+    await waitForGetScopesCheckIsDone();
+
+    expect(
+      getText(textMock('app_settings.maskinporten_no_org_access_description')),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('app_settings.maskinporten_no_scopes_available_description')),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should display selected scopes without management controls if user does not have access on behalf of the organisation', async () => {
+    const getMaskinportenScopes = jest
+      .fn()
+      .mockRejectedValue(createAxiosError(ServerCodes.Forbidden));
+    const getSelectedMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve(maskinportenScopes));
+
+    renderScopeListContainer({
+      getMaskinportenScopes,
+      getSelectedMaskinportenScopes,
+    });
+    await waitForGetScopesCheckIsDone();
+
+    expect(
+      getText(textMock('app_settings.maskinporten_no_org_access_description')),
+    ).toBeInTheDocument();
+    maskinportenScopes.scopes.forEach((scope: MaskinportenScope) => {
+      expect(getCell(scope.description)).toBeInTheDocument();
+      expect(getCell(scope.scope)).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', {
+          name: textMock('general.delete_item', { item: scope.scope }),
+        }),
+      ).not.toBeInTheDocument();
+    });
+    expect(queryButton(textMock('app_settings.maskinporten_add_scope'))).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('app_settings.maskinporten_tab_available_scopes_description')),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('app_settings.maskinporten_scope_changes_deployment_notice')),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should display add default scopes notice for v8.3 apps when no scopes are available', async () => {
+    const getMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ scopes: [] }));
+    const getSelectedMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ scopes: [] }));
+    const getAppVersion = jest
+      .fn()
+      .mockImplementation(() =>
+        Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '8.3.0' }),
+      );
+
+    renderScopeListContainer({
+      getMaskinportenScopes,
+      getSelectedMaskinportenScopes,
+      getAppVersion,
+    });
+    await waitForGetScopesCheckIsDone();
+
+    expect(
+      getText(textMock('app_settings.maskinporten_default_scopes_opt_in_notice')),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('app_settings.maskinporten_no_scopes_available_description')),
+    ).not.toBeInTheDocument();
   });
 });
 
@@ -127,6 +209,15 @@ async function waitForGetScopesCheckIsDone() {
 }
 
 const getText = (name: string): HTMLParagraphElement => screen.getByText(name);
-const getCheckoxes = (): HTMLInputElement[] => screen.getAllByRole('checkbox');
-const getCheckbox = (name: string): HTMLInputElement => screen.getByRole('checkbox', { name });
 const getCell = (name: string): HTMLTableCellElement => screen.getByRole('cell', { name });
+const queryCell = (name: string): HTMLTableCellElement | null =>
+  screen.queryByRole('cell', { name });
+const getButton = (name: string): HTMLButtonElement => screen.getByRole('button', { name });
+const queryButton = (name: string): HTMLButtonElement | null =>
+  screen.queryByRole('button', { name });
+
+function createAxiosError(status: ServerCodes): AxiosError {
+  const error = new AxiosError();
+  error.response = { status } as AxiosError['response'];
+  return error;
+}

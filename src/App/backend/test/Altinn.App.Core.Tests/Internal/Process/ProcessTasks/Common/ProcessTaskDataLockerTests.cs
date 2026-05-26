@@ -54,7 +54,7 @@ public class ProcessTaskDataLockerTests
                 x.UnlockDataElement(
                     It.IsAny<InstanceIdentifier>(),
                     It.IsAny<Guid>(),
-                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Exactly(2)
@@ -94,7 +94,7 @@ public class ProcessTaskDataLockerTests
                 x.LockDataElement(
                     It.IsAny<InstanceIdentifier>(),
                     It.IsAny<Guid>(),
-                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Exactly(2)
@@ -134,7 +134,7 @@ public class ProcessTaskDataLockerTests
                 x.UnlockDataElement(
                     It.IsAny<InstanceIdentifier>(),
                     It.IsAny<Guid>(),
-                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -174,7 +174,7 @@ public class ProcessTaskDataLockerTests
                 x.LockDataElement(
                     It.IsAny<InstanceIdentifier>(),
                     It.IsAny<Guid>(),
-                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once

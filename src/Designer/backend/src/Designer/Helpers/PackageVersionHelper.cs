@@ -15,8 +15,25 @@ public static class PackageVersionHelper
         out SemanticVersion version
     )
     {
+        return TryGetPackageVersionFromCsprojXml(XDocument.Load(csprojFilePath), packageNames, out version);
+    }
+
+    public static bool TryGetPackageVersionFromCsprojContent(
+        string csprojContent,
+        IReadOnlyList<string> packageNames,
+        out SemanticVersion version
+    )
+    {
+        return TryGetPackageVersionFromCsprojXml(XDocument.Parse(csprojContent), packageNames, out version);
+    }
+
+    private static bool TryGetPackageVersionFromCsprojXml(
+        XDocument doc,
+        IReadOnlyList<string> packageNames,
+        out SemanticVersion version
+    )
+    {
         version = null;
-        var doc = XDocument.Load(csprojFilePath);
         var packageReferences = doc.XPathSelectElements("//PackageReference")
             .Where(element => packageNames.Contains(element.Attribute("Include")?.Value));
 

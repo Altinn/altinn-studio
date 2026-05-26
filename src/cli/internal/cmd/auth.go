@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -23,8 +24,6 @@ type authStatusFlags struct {
 
 const authStatusSubcommand = "status"
 
-var errLoginCancelled = errors.New("login cancelled")
-
 // AuthCommand implements the 'auth' subcommand.
 type AuthCommand struct {
 	out     *ui.Output
@@ -35,7 +34,7 @@ type AuthCommand struct {
 func NewAuthCommand(cfg *config.Config, out *ui.Output) *AuthCommand {
 	return &AuthCommand{
 		out:     out,
-		service: authsvc.NewService(cfg.Home),
+		service: authsvc.NewService(cfg),
 	}
 }
 
@@ -53,8 +52,7 @@ func (c *AuthCommand) Usage() string {
 		"Manage authentication with Altinn Studio.",
 		"",
 		"Subcommands:",
-		"  login     Authenticate with Altinn Studio using a Personal Access Token",
-		"            (requires 'read:user' and 'repo' scopes)",
+		"  login     Authenticate with Altinn Studio",
 		"  status    Show authentication status",
 		"  logout    Clear stored credentials",
 		"",
@@ -79,6 +77,8 @@ func (c *AuthCommand) Run(ctx context.Context, args []string) error {
 		return c.runStatus(ctx, subArgs)
 	case "logout":
 		return c.runLogout(ctx, subArgs)
+	case "git-credential":
+		return c.runGitCredential(subArgs)
 	case "-h", flagHelp, helpSubcmd:
 		c.out.Print(c.Usage())
 		return nil
@@ -87,26 +87,57 @@ func (c *AuthCommand) Run(ctx context.Context, args []string) error {
 	}
 }
 
+func (c *AuthCommand) runGitCredential(args []string) error {
+	fs := flag.NewFlagSet("auth git-credential", flag.ContinueOnError)
+	var env string
+	fs.StringVar(&env, "env", authstore.DefaultEnv, "Environment name")
+
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return nil
+		}
+		return fmt.Errorf("parsing flags: %w", err)
+	}
+
+	operation := "get"
+	if fs.NArg() > 0 {
+		operation = fs.Arg(0)
+	}
+	if operation != "get" {
+		return nil
+	}
+
+	result, err := c.service.GitCredential(os.Stdin, env)
+	if err != nil {
+		return fmt.Errorf("resolve git credentials: %w", err)
+	}
+	if !result.Found {
+		return nil
+	}
+
+	c.out.Printlnf("username=%s", result.Username)
+	c.out.Printlnf("password=%s", result.Password)
+	c.out.Println("")
+	return nil
+}
+
 // loginFlags holds parsed flags for the auth login command.
 type loginFlags struct {
-	env         string
-	host        string
-	token       string
-	openBrowser bool
+	env       string
+	noBrowser bool
+	withToken bool
 }
 
 func (c *AuthCommand) parseLoginFlags(args []string) (loginFlags, bool, error) {
 	fs := flag.NewFlagSet("auth login", flag.ContinueOnError)
 	f := loginFlags{
-		env:         authstore.DefaultEnv,
-		host:        "",
-		token:       "",
-		openBrowser: false,
+		env:       authstore.DefaultEnv,
+		noBrowser: false,
+		withToken: false,
 	}
-	fs.StringVar(&f.env, "env", authstore.DefaultEnv, "Environment name (prod, dev, staging)")
-	fs.StringVar(&f.host, "host", "", "Altinn Studio host (default: based on env)")
-	fs.StringVar(&f.token, "token", "", "Personal Access Token (not recommended, use interactive prompt)")
-	fs.BoolVar(&f.openBrowser, "open", false, "Open browser to create a new Personal Access Token")
+	fs.StringVar(&f.env, "env", authstore.DefaultEnv, "Environment name (prod, dev, staging, local)")
+	fs.BoolVar(&f.noBrowser, "no-browser", false, "Print login URL instead of opening a browser")
+	fs.BoolVar(&f.withToken, "with-token", false, "Read a Studio/Designer API key from standard input")
 
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
@@ -114,26 +145,10 @@ func (c *AuthCommand) parseLoginFlags(args []string) (loginFlags, bool, error) {
 		}
 		return f, false, fmt.Errorf("parsing flags: %w", err)
 	}
+	if f.withToken && f.noBrowser {
+		return f, false, fmt.Errorf("%w: --no-browser cannot be used with --with-token", ErrInvalidFlagValue)
+	}
 	return f, false, nil
-}
-
-func (c *AuthCommand) openPATPage(ctx context.Context, host string) {
-	patURL := fmt.Sprintf("https://%s/repos/user/settings/applications", host)
-	c.out.Verbosef("Opening browser to: %s", patURL)
-	if err := osutil.OpenContext(ctx, patURL); err != nil {
-		c.out.Warningf("Failed to open browser: %v", err)
-		c.out.Printlnf("Please open manually: %s", patURL)
-	}
-}
-
-func (c *AuthCommand) promptForToken(ctx context.Context, env, host string) (string, error) {
-	c.out.Printf("Enter Personal Access Token for %s (%s): ", env, host)
-	tokenBytes, err := ui.ReadPassword(ctx, c.out)
-	c.out.Println("")
-	if err != nil {
-		return "", fmt.Errorf("read token: %w", err)
-	}
-	return strings.TrimSpace(string(tokenBytes)), nil
 }
 
 func (c *AuthCommand) runLogin(ctx context.Context, args []string) error {
@@ -145,109 +160,142 @@ func (c *AuthCommand) runLogin(ctx context.Context, args []string) error {
 		return nil
 	}
 
-	host, err := c.resolveLoginHost(flags)
+	target, err := c.service.ResolveLoginTarget(flags.env)
 	if err != nil {
-		return err
+		if errors.Is(err, authsvc.ErrUnknownEnvironment) {
+			return fmt.Errorf("%w: %q", ErrUnknownEnvironment, flags.env)
+		}
+		return fmt.Errorf("resolve host: %w", err)
 	}
 
-	if flags.openBrowser {
-		c.openPATPage(ctx, host)
+	var result authsvc.LoginResult
+	if flags.withToken {
+		result, err = c.loginWithToken(ctx, flags, target, os.Stdin)
+	} else {
+		result, err = c.loginWithBrowser(ctx, flags, target)
 	}
-
-	token, err := c.resolveLoginToken(ctx, flags, host)
 	if err != nil {
-		return err
-	}
-
-	result, err := c.loginWithOverwrite(ctx, flags.env, host, token)
-	if err != nil {
-		if errors.Is(err, errLoginCancelled) {
+		if errors.Is(err, authsvc.ErrLoginCancelled) {
+			c.out.Println("Login cancelled")
 			return nil
 		}
 		return err
 	}
 
 	c.out.Successf("Logged in to %s as %s", flags.env, result.Username)
-	c.out.Warning("NOTE: for this login method, `app clone` stores your username/token in the repository origin URL.")
 	return nil
 }
 
-func (c *AuthCommand) resolveLoginHost(flags loginFlags) (string, error) {
-	host, err := c.service.ResolveHost(flags.env, flags.host)
-	if err != nil {
-		if errors.Is(err, authsvc.ErrUnknownEnvironment) {
-			return "", fmt.Errorf(
-				"%w: %q (use --host to specify the Altinn Studio host)",
-				ErrUnknownEnvironment,
-				flags.env,
-			)
-		}
-		return "", fmt.Errorf("resolve host: %w", err)
-	}
-	return host, nil
-}
-
-func (c *AuthCommand) resolveLoginToken(ctx context.Context, flags loginFlags, host string) (string, error) {
-	if flags.token != "" {
-		return flags.token, nil
-	}
-	return c.promptForToken(ctx, flags.env, host)
-}
-
-func (c *AuthCommand) loginWithOverwrite(
+func (c *AuthCommand) loginWithToken(
 	ctx context.Context,
-	env, host, token string,
+	flags loginFlags,
+	target authsvc.LoginTarget,
+	in io.Reader,
 ) (authsvc.LoginResult, error) {
-	result, err := c.loginOnce(ctx, env, host, token, false)
-	if err == nil {
-		return result, nil
-	}
-
-	var alreadyLoggedIn authsvc.AlreadyLoggedInError
-	if !errors.As(err, &alreadyLoggedIn) {
-		return authsvc.LoginResult{}, mapLoginError(err, env)
-	}
-
-	c.out.Warningf("Already logged in to %s as %s", alreadyLoggedIn.Env, alreadyLoggedIn.Username)
-	confirmed, confirmErr := c.confirmOverwrite(ctx)
-	if confirmErr != nil {
-		return authsvc.LoginResult{}, confirmErr
-	}
-	if !confirmed {
-		c.out.Println("Login cancelled")
-		return authsvc.LoginResult{}, errLoginCancelled
-	}
-
-	result, err = c.loginOnce(ctx, env, host, token, true)
+	data, err := io.ReadAll(in)
 	if err != nil {
-		return authsvc.LoginResult{}, mapLoginError(err, env)
+		return authsvc.LoginResult{}, fmt.Errorf("read token from standard input: %w", err)
 	}
 
+	token := strings.TrimSpace(string(data))
+	if token == "" {
+		return authsvc.LoginResult{}, fmt.Errorf("%w: no token provided on standard input", ErrInvalidToken)
+	}
+
+	result, err := c.service.LoginWithToken(ctx, authsvc.TokenLoginRequest{
+		Env:            flags.env,
+		Scheme:         target.Scheme,
+		Host:           target.Host,
+		Token:          token,
+		AllowOverwrite: true,
+	})
+	if err != nil {
+		return authsvc.LoginResult{}, mapLoginError(err, flags.env)
+	}
+	if result.RevokePreviousError != "" {
+		c.out.Warningf("Logged in, but failed to revoke previous API key: %s", result.RevokePreviousError)
+	}
 	return result, nil
 }
 
-func (c *AuthCommand) loginOnce(
+func (c *AuthCommand) loginWithBrowser(
 	ctx context.Context,
-	env, host, token string,
-	allowOverwrite bool,
+	flags loginFlags,
+	target authsvc.LoginTarget,
 ) (authsvc.LoginResult, error) {
-	c.out.Verbose("Validating token...")
-	result, err := c.service.Login(ctx, authsvc.LoginRequest{
-		Env:            env,
-		Host:           host,
-		Token:          token,
+	allowOverwrite := false
+	existing, err := c.service.ExistingLogin(flags.env)
+	if err != nil {
+		return authsvc.LoginResult{}, fmt.Errorf("check existing login: %w", err)
+	}
+	if existing.Exists {
+		c.out.Warningf("Already logged in to %s as %s", flags.env, existing.Username)
+		confirmed, confirmErr := c.confirmOverwrite(ctx)
+		if confirmErr != nil {
+			return authsvc.LoginResult{}, confirmErr
+		}
+		if !confirmed {
+			return authsvc.LoginResult{}, authsvc.ErrLoginCancelled
+		}
+		allowOverwrite = true
+	}
+
+	code, codeVerifier, err := c.waitForBrowserLogin(ctx, flags, target)
+	if err != nil {
+		return authsvc.LoginResult{}, err
+	}
+
+	result, err := c.service.ExchangeCode(ctx, authsvc.CodeExchangeRequest{
+		Env:            flags.env,
+		Scheme:         target.Scheme,
+		Host:           target.Host,
+		Code:           code,
+		CodeVerifier:   codeVerifier,
 		AllowOverwrite: allowOverwrite,
 	})
 	if err != nil {
-		return authsvc.LoginResult{}, fmt.Errorf("login: %w", err)
+		return authsvc.LoginResult{}, mapLoginError(err, flags.env)
+	}
+	if result.RevokePreviousError != "" {
+		c.out.Warningf("Logged in, but failed to revoke previous API key: %s", result.RevokePreviousError)
 	}
 	return result, nil
+}
+
+func (c *AuthCommand) waitForBrowserLogin(
+	ctx context.Context,
+	flags loginFlags,
+	target authsvc.LoginTarget,
+) (string, string, error) {
+	session, err := c.service.StartBrowserLogin(ctx, flags.env, target)
+	if err != nil {
+		return "", "", fmt.Errorf("start browser login: %w", err)
+	}
+	defer func() {
+		if closeErr := session.Close(ctx); closeErr != nil {
+			c.out.Verbosef("failed to shutdown login callback server: %v", closeErr)
+		}
+	}()
+
+	c.out.Println("Opening browser for Ansattporten login...")
+	if flags.noBrowser {
+		c.out.Printlnf("Open this URL to continue: %s", session.LoginURL)
+	} else if openErr := osutil.OpenContext(ctx, session.LoginURL); openErr != nil {
+		c.out.Warningf("Failed to open browser: %v", openErr)
+		c.out.Printlnf("Open this URL to continue: %s", session.LoginURL)
+	}
+
+	result, err := session.Wait(ctx)
+	if err != nil {
+		return "", "", fmt.Errorf("wait for browser login: %w", err)
+	}
+	return result.Code, result.CodeVerifier, nil
 }
 
 func mapLoginError(err error, env string) error {
 	switch {
-	case errors.Is(err, authsvc.ErrTokenRequired):
-		return ErrTokenRequired
+	case errors.Is(err, authsvc.ErrLoginCodeRequired):
+		return ErrLoginCodeRequired
 	case errors.Is(err, authsvc.ErrInvalidToken):
 		return fmt.Errorf("%w: authentication failed", ErrInvalidToken)
 	default:
@@ -338,7 +386,7 @@ func (c *AuthCommand) printAuthStatusJSON(status authsvc.StatusResult) error {
 	return nil
 }
 
-func (c *AuthCommand) runLogout(_ context.Context, args []string) error {
+func (c *AuthCommand) runLogout(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("auth logout", flag.ContinueOnError)
 	var env string
 	var all bool
@@ -352,7 +400,7 @@ func (c *AuthCommand) runLogout(_ context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	result, err := c.service.Logout(authsvc.LogoutRequest{
+	result, err := c.service.Logout(ctx, authsvc.LogoutRequest{
 		Env: env,
 		All: all,
 	})
@@ -361,14 +409,33 @@ func (c *AuthCommand) runLogout(_ context.Context, args []string) error {
 	}
 
 	if all {
-		c.out.Success("Logged out from all environments")
+		if result.RevokeError != "" {
+			c.out.Warningf(
+				"Some API keys could not be revoked; local credentials were kept for retry: %s",
+				result.RevokeError,
+			)
+		}
+		if !result.Removed {
+			return nil
+		}
+		c.out.Success("Logged out from stored environments")
 		return nil
 	}
 
 	if !result.Removed {
+		if result.RevokeError != "" {
+			c.out.Warningf(
+				"Failed to revoke API key for %s; local credentials were kept for retry: %s",
+				env,
+				result.RevokeError,
+			)
+		}
 		return nil
 	}
 
+	if result.RevokeError != "" {
+		c.out.Warningf("Failed to revoke API key: %s", result.RevokeError)
+	}
 	c.out.Successf("Logged out from %s", env)
 	return nil
 }

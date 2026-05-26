@@ -1,10 +1,7 @@
-import React, { useEffect } from 'react';
-import { Outlet, ScrollRestoration, useLocation } from 'react-router';
+import React from 'react';
+import { Outlet, ScrollRestoration } from 'react-router';
 import { Slide, ToastContainer } from 'react-toastify';
 
-import { useQueryClient } from '@tanstack/react-query';
-
-import { AppComponentsBridge } from 'src/AppComponentsBridge';
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { ViewportWrapper } from 'src/components/ViewportWrapper';
 import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
@@ -17,48 +14,29 @@ import { PartyPrefetcher } from 'src/queries/partyPrefetcher';
 export function AppLayout() {
   return (
     <>
-      <AppComponentsBridge>
-        <NavigationFocusStateProvider>
-          <ErrorBoundary>
-            <ViewportWrapper>
-              <UiConfigProvider>
-                <InstantiationUrlReset />
-                <GlobalFormDataReadersProvider>
-                  <PartyProvider>
-                    <KeepAliveProvider>
-                      <Outlet />
-                      <ToastContainer
-                        position='top-center'
-                        theme='colored'
-                        transition={Slide}
-                        draggable={false}
-                      />
-                    </KeepAliveProvider>
-                  </PartyProvider>
-                  <PartyPrefetcher />
-                </GlobalFormDataReadersProvider>
-              </UiConfigProvider>
-            </ViewportWrapper>
-          </ErrorBoundary>
-        </NavigationFocusStateProvider>
-      </AppComponentsBridge>
+      <NavigationFocusStateProvider>
+        <ErrorBoundary>
+          <ViewportWrapper>
+            <UiConfigProvider>
+              <GlobalFormDataReadersProvider>
+                <PartyProvider>
+                  <KeepAliveProvider>
+                    <Outlet />
+                    <ToastContainer
+                      position='top-center'
+                      theme='colored'
+                      transition={Slide}
+                      draggable={false}
+                    />
+                  </KeepAliveProvider>
+                </PartyProvider>
+                <PartyPrefetcher />
+              </GlobalFormDataReadersProvider>
+            </UiConfigProvider>
+          </ViewportWrapper>
+        </ErrorBoundary>
+      </NavigationFocusStateProvider>
       <ScrollRestoration />
     </>
   );
-}
-
-function InstantiationUrlReset() {
-  const location = useLocation();
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    if (!location.pathname.includes('/instance/')) {
-      const mutations = queryClient.getMutationCache().findAll({ mutationKey: ['instantiate'] });
-      mutations.forEach((mutation) => {
-        queryClient.getMutationCache().remove(mutation);
-      });
-    }
-  }, [location.pathname, queryClient]);
-
-  return null;
 }

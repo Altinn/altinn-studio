@@ -18,7 +18,7 @@ export const LogicalOperatorToggle = ({
   return (
     <div className={classes.logicalOperatorToggle}>
       <Paragraph>{texts.logicalOperator}</Paragraph>
-      <ToggleGroup value={operator} onChange={onChange}>
+      <ToggleGroup data-toggle-group={texts.logicalOperator} value={operator} onChange={onChange}>
         {Object.values(LogicalTupleOperator).map((o) => (
           <ToggleGroup.Item key={o} value={o}>
             {texts.logicalTupleOperators[o]}

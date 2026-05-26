@@ -7,7 +7,7 @@ import { renderWithProviders } from '../../test/mocks';
 import { app, layoutSet, org } from '@studio/testing/testids';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { userMock } from 'app-development/test/userMock';
-import { layoutSet3SubformNameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { layoutSet3SubformNameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
 import { useParams } from 'react-router-dom';
 
 jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({

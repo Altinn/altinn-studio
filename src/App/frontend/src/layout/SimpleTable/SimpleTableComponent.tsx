@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 
+import { AppTable, FieldRenderer } from '@app/form-component';
 import { Link } from '@digdir/designsystemet-react';
 import { PencilIcon, TrashIcon } from '@navikt/aksel-icons';
 import { pick } from 'dot-object';
+import type { FormDataObject, TableActionButton } from '@app/form-component';
 
-import { FieldRenderer } from 'src/app-components/DynamicForm/DynamicForm';
-import { AppTable } from 'src/app-components/Table/Table';
-import { translationKey } from 'src/AppComponentsBridge';
 import { Caption } from 'src/components/form/caption/Caption';
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -20,8 +18,6 @@ import { DropdownCaption } from 'src/layout/Datepicker/DropdownCaption';
 import { isFormDataObjectArray, isValidItemsSchema } from 'src/layout/SimpleTable/typeguards';
 import { getDatepickerFormat } from 'src/utils/dateUtils';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { FormDataObject } from 'src/app-components/DynamicForm/DynamicForm';
-import type { TableActionButton } from 'src/app-components/Table/Table';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindingsForTable } from 'src/layout/SimpleTable/config.generated';
 
@@ -41,7 +37,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
   const accessibleTitle = elementAsString(title);
   const isMobile = useIsMobile();
   const data = formData.tableData;
-  const schemaLookup = FormBootstrap.useSchemaLookup();
+  const schemaLookup = FormStore.bootstrap.useSchemaLookup();
   const [showEdit, setShowEdit] = useState(false);
   const [editItemIndex, setEditItemIndex] = useState<number>(-1);
   const setMultiLeafValues = FormStore.data.useSetMultiLeafValues();
@@ -66,7 +62,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
           callback: (_) => true,
         });
       },
-      buttonText: translationKey('general.delete'),
+      buttonText: <Lang id='general.delete' />,
       icon: <TrashIcon />,
       color: 'danger',
     });
@@ -78,7 +74,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
         setEditItemIndex(idx);
         setShowEdit(true);
       },
-      buttonText: translationKey('general.edit'),
+      buttonText: <Lang id='general.edit' />,
       icon: <PencilIcon />,
       variant: 'tertiary',
       color: 'second',
@@ -143,11 +139,10 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
       <AppTable
         zebra={zebra}
         size={size}
-        schema={schema}
         mobile={isMobile}
         actionButtons={actionButtons}
-        actionButtonHeader={translationKey('general.action')}
-        emptyText={translationKey('general.empty_table')}
+        actionButtonHeader={langAsString('general.action')}
+        emptyText={langAsString('general.empty_table')}
         caption={
           title && (
             <Caption
@@ -212,7 +207,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
 
           return {
             ...config,
-            header: translationKey(config.header),
+            header: langAsString(config.header),
             renderCell,
           };
         })}

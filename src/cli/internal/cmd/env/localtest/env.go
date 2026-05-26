@@ -16,13 +16,12 @@ import (
 	"altinn.studio/devenv/pkg/resource"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
-	localtestrenderer "altinn.studio/studioctl/internal/cmd/env/localtest/renderer"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/envtopology"
-	"altinn.studio/studioctl/internal/install"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
+	"altinn.studio/studioctl/internal/ui/resourcegraph"
 )
 
 // Sentinel errors for the localtest package.
@@ -56,7 +55,6 @@ type Env struct {
 	cfg    *config.Config
 	out    *ui.Output
 	client container.ContainerClient
-	logs   *logStreamer
 	paths  components.Paths
 }
 
@@ -66,17 +64,22 @@ func NewEnv(cfg *config.Config, out *ui.Output, client container.ContainerClient
 		cfg:    cfg,
 		out:    out,
 		client: client,
-		logs:   nil,
 		paths:  components.NewPaths(cfg.DataDir),
 	}
-	manifest := components.NewManifest(env.buildDestroyOptions())
-	env.logs = newLogStreamer(client, out, components.EnabledContainerNames(manifest.Resources))
 	return env
 }
 
 // Name returns the runtime name.
 func (e *Env) Name() string {
 	return "localtest"
+}
+
+// OnInstall prepares localtest-owned filesystem state after bundled resources are installed.
+func (e *Env) OnInstall(_ context.Context) error {
+	if err := components.EnsureLocaltestStorageDir(e.cfg.DataDir); err != nil {
+		return fmt.Errorf("ensure localtest storage dir: %w", err)
+	}
+	return nil
 }
 
 // Preflight validates prerequisites before startup.
@@ -96,7 +99,7 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	}
 	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
 
-	buildOpts, err := e.buildResourceOptions(ctx, runtimeUser, topology, opts.Monitoring, opts.PgAdmin)
+	buildOpts, err := e.buildResourceOptions(ctx, runtimeUser, topology, opts)
 	if err != nil {
 		return err
 	}
@@ -107,8 +110,8 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 		return fmt.Errorf("ensure bound topology: %w", err)
 	}
 
-	if err := e.ensureResources(ctx, manifest); err != nil {
-		return err
+	if err := manifest.Prepare(ctx); err != nil {
+		return fmt.Errorf("prepare resources: %w", err)
 	}
 
 	if err := e.applyResources(ctx, manifest.Resources, buildOpts.ImageMode); err != nil {
@@ -125,7 +128,7 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	}
 
 	if !opts.Detach {
-		return e.runForeground(ctx, localtestURL)
+		return e.runForeground(ctx, localtestURL, manifest.Resources)
 	}
 
 	e.out.Println("")
@@ -191,6 +194,7 @@ func (e *Env) Reset(ctx context.Context) error {
 // Status returns the localtest environment status.
 func (e *Env) Status(ctx context.Context) (*Status, error) {
 	return e.status(ctx, statusOptions{
+		DevWorkflowEngine: e.devWorkflowEngineFromEnvironmentTopology(),
 		IncludeMonitoring: false,
 		IncludePgAdmin:    false,
 		RequireDesired:    false,
@@ -200,6 +204,7 @@ func (e *Env) Status(ctx context.Context) (*Status, error) {
 // StatusForUp returns status for the containers requested by env up.
 func (e *Env) StatusForUp(ctx context.Context, opts envtypes.UpOptions) (*Status, error) {
 	return e.status(ctx, statusOptions{
+		DevWorkflowEngine: opts.DevWorkflowEngine,
 		IncludeMonitoring: opts.Monitoring,
 		IncludePgAdmin:    opts.PgAdmin,
 		RequireDesired:    true,
@@ -208,17 +213,24 @@ func (e *Env) StatusForUp(ctx context.Context, opts envtypes.UpOptions) (*Status
 
 // Logs streams localtest environment logs.
 func (e *Env) Logs(ctx context.Context, opts envtypes.LogsOptions) error {
-	return e.logs.Stream(ctx, opts.Component, opts.Follow, opts.JSON)
+	return e.logStreamer().Stream(ctx, opts.Component, opts.Follow, opts.JSON)
 }
 
 type statusOptions struct {
+	DevWorkflowEngine bool
 	IncludeMonitoring bool
 	IncludePgAdmin    bool
 	RequireDesired    bool
 }
 
 func (e *Env) status(ctx context.Context, opts statusOptions) (*Status, error) {
-	manifest := components.NewManifest(e.releaseOptions(opts.IncludeMonitoring, opts.IncludePgAdmin))
+	resourceOpts := e.releaseOptions(
+		opts.IncludeMonitoring,
+		opts.IncludePgAdmin,
+		opts.DevWorkflowEngine,
+	)
+
+	manifest := components.NewManifest(resourceOpts)
 	graph, err := buildResourceGraph(manifest.Resources)
 	if err != nil {
 		return nil, fmt.Errorf("build resource graph: %w", err)
@@ -231,6 +243,22 @@ func (e *Env) status(ctx context.Context, opts statusOptions) (*Status, error) {
 	}
 
 	return localtestStatus(graph.All(), snapshot, opts.RequireDesired), nil
+}
+
+func (e *Env) devWorkflowEngineFromEnvironmentTopology() bool {
+	envConfig, err := envtopology.ReadBoundTopologyConfig(e.cfg.BoundTopologyBaseConfigPath())
+	if err != nil {
+		e.out.Verbosef("Failed to read environment topology config: %v", err)
+		return false
+	}
+
+	for _, route := range envConfig.Routes {
+		if route.Component != envtopology.ComponentWorkflowEngine {
+			continue
+		}
+		return route.Destination.Location == envtopology.DestinationLocationHost
+	}
+	return false
 }
 
 func (e *Env) hasManagedResources(ctx context.Context) (bool, error) {
@@ -262,12 +290,14 @@ func (e *Env) hasManagedResources(ctx context.Context) (bool, error) {
 func (e *Env) runForeground(
 	ctx context.Context,
 	localtestURL string,
+	resources []resource.Resource,
 ) error {
 	e.out.Println("")
 	e.out.Println("Localtest is running. Press Ctrl+C to stop.")
 	e.out.Printlnf("Access the platform at: %s", localtestURL)
 
-	if err := e.logs.Stream(ctx, "", true, false); err != nil {
+	streamer := newLogStreamer(e.client, e.out, components.EnabledContainerNames(resources))
+	if err := streamer.Stream(ctx, "", true, false); err != nil {
 		e.out.Verbosef("log streaming ended: %v", err)
 	}
 
@@ -288,6 +318,11 @@ func (e *Env) runForeground(
 	return nil
 }
 
+func (e *Env) logStreamer() *logStreamer {
+	manifest := components.NewManifest(e.releaseOptions(true, true, e.devWorkflowEngineFromEnvironmentTopology()))
+	return newLogStreamer(e.client, e.out, components.EnabledContainerNames(manifest.Resources))
+}
+
 func (e *Env) applyResources(ctx context.Context, resources []resource.Resource, imageMode components.ImageMode) error {
 	graph, err := buildResourceGraph(resources)
 	if err != nil {
@@ -300,13 +335,13 @@ func (e *Env) applyResources(ctx context.Context, resources []resource.Resource,
 		spinnerMsg = "Building and starting localtest environment (dev mode)..."
 	}
 
-	var renderer localtestrenderer.Renderer
+	var renderer resourcegraph.Renderer
 	if _, err := executor.Apply(ctx, graph, resource.WithApplyPlan(func(plan resource.ApplyPlan) error {
 		e.startRenderer(
 			executor,
 			&renderer,
 			applyPlannedResources(plan),
-			localtestrenderer.OperationApply,
+			resourcegraph.OperationApply,
 			plan.Snapshot.Statuses(),
 			spinnerMsg,
 		)
@@ -332,14 +367,14 @@ func (e *Env) destroyResources(ctx context.Context, resources []resource.Resourc
 		return err
 	}
 
-	var renderer localtestrenderer.Renderer
+	var renderer resourcegraph.Renderer
 	executor := resource.NewExecutor(e.client)
 	if err := executor.Destroy(ctx, graph, resource.WithDestroyPlan(func(plan resource.DestroyPlan) error {
 		e.startRenderer(
 			executor,
 			&renderer,
 			plan.Destroy,
-			localtestrenderer.OperationDestroy,
+			resourcegraph.OperationDestroy,
 			plan.Snapshot.Statuses(),
 			logStartMessage,
 		)
@@ -360,29 +395,29 @@ func (e *Env) destroyResources(ctx context.Context, resources []resource.Resourc
 
 func (e *Env) startRenderer(
 	executor *resource.Executor,
-	renderer *localtestrenderer.Renderer,
+	renderer *resourcegraph.Renderer,
 	resources []resource.PlannedResource,
-	operation localtestrenderer.Operation,
+	operation resourcegraph.Operation,
 	statuses map[resource.ResourceID]resource.Status,
 	logStartMessage string,
 ) {
-	switch localtestrenderer.DetectMode(e.out, e.cfg.Verbose) {
-	case localtestrenderer.ModeTable:
-		*renderer = localtestrenderer.NewTableWithPlan(
+	switch resourcegraph.DetectMode(e.out, e.cfg.Verbose) {
+	case resourcegraph.ModeTable:
+		*renderer = resourcegraph.NewTableWithPlan(
 			e.out,
 			resources,
 			operation,
 			statuses,
 		)
-	case localtestrenderer.ModeCompact:
-		*renderer = localtestrenderer.NewCompactWithPlan(
+	case resourcegraph.ModeCompact:
+		*renderer = resourcegraph.NewCompactWithPlan(
 			e.out,
 			resources,
 			operation,
 			statuses,
 		)
-	case localtestrenderer.ModeLog:
-		*renderer = localtestrenderer.NewLogWithPlan(
+	case resourcegraph.ModeLog:
+		*renderer = resourcegraph.NewLogWithPlan(
 			e.out,
 			resources,
 			operation,
@@ -390,7 +425,7 @@ func (e *Env) startRenderer(
 			logStartMessage,
 		)
 	default:
-		*renderer = localtestrenderer.NewLogWithPlan(e.out, resources, operation, statuses, logStartMessage)
+		*renderer = resourcegraph.NewLogWithPlan(e.out, resources, operation, statuses, logStartMessage)
 	}
 	(*renderer).Start()
 	executor.SetObserver(*renderer)
@@ -490,10 +525,10 @@ func isImageResource(res resource.Resource) bool {
 }
 
 func (e *Env) buildDestroyOptions() *components.Options {
-	return e.releaseOptions(true, true) // include all for cleanup
+	return e.releaseOptions(true, true, false) // include all for cleanup
 }
 
-func (e *Env) releaseOptions(includeMonitoring, includePgAdmin bool) *components.Options {
+func (e *Env) releaseOptions(includeMonitoring, includePgAdmin, devWorkflowEngine bool) *components.Options {
 	return &components.Options{
 		DevConfig:         nil,
 		Paths:             e.paths,
@@ -501,27 +536,14 @@ func (e *Env) releaseOptions(includeMonitoring, includePgAdmin bool) *components
 		RuntimeUser:       "",
 		Topology:          envtopology.NewLocal(envtopology.DefaultIngressPortString()),
 		ImageMode:         components.ReleaseMode,
+		DevWorkflowEngine: devWorkflowEngine,
 		IncludeMonitoring: includeMonitoring,
 		IncludePgAdmin:    includePgAdmin,
 	}
 }
 
-func (e *Env) ensureResources(ctx context.Context, manifest *components.Manifest) error {
-	if !install.IsInstalled(e.cfg.DataDir, e.cfg.Version) {
-		if err := e.installResources(ctx, false); err != nil {
-			return err
-		}
-	}
-
-	if err := manifest.Prepare(ctx); err != nil {
-		return fmt.Errorf("prepare resources: %w", err)
-	}
-
-	return nil
-}
-
 func (e *Env) deletePersistedData(ctx context.Context) error {
-	if err := removeResetDataPath(e.cfg.DataDir, filepath.Join(e.cfg.DataDir, "AltinnPlatformLocal")); err != nil {
+	if err := removeResetDataPath(e.cfg.DataDir, components.LocaltestStoragePath(e.cfg.DataDir)); err != nil {
 		return err
 	}
 	if err := e.removeLegacyWorkflowEngineDbData(ctx, components.WorkflowEngineDbDataPath(e.cfg.DataDir)); err != nil {
@@ -697,26 +719,11 @@ func buildResourceGraph(resources []resource.Resource) (*resource.Graph, error) 
 	return graph, nil
 }
 
-func (e *Env) installResources(ctx context.Context, force bool) error {
-	e.out.Println("Installing localtest resources...")
-	installOpts := install.Options{
-		DataDir: e.cfg.DataDir,
-		Version: e.cfg.Version,
-		Force:   force,
-	}
-	if err := install.Install(ctx, installOpts); err != nil {
-		return fmt.Errorf("install resources: %w", err)
-	}
-	e.out.Verbosef("Resources installed to: %s", e.cfg.DataDir)
-	return nil
-}
-
 func (e *Env) buildResourceOptions(
 	ctx context.Context,
 	runtimeUser string,
 	topology envtopology.Local,
-	monitoring bool,
-	pgAdmin bool,
+	upOpts envtypes.UpOptions,
 ) (*components.Options, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -735,12 +742,13 @@ func (e *Env) buildResourceOptions(
 	return &components.Options{
 		Paths:             e.paths,
 		RuntimeUser:       runtimeUser,
-		Topology:          topology,
-		IncludeMonitoring: monitoring,
-		IncludePgAdmin:    pgAdmin,
-		ImageMode:         imageMode,
-		Images:            e.cfg.Images,
 		DevConfig:         devConfig,
+		Images:            e.cfg.Images,
+		Topology:          topology,
+		ImageMode:         imageMode,
+		DevWorkflowEngine: upOpts.DevWorkflowEngine,
+		IncludeMonitoring: upOpts.Monitoring,
+		IncludePgAdmin:    upOpts.PgAdmin,
 	}, nil
 }
 

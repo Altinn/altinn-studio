@@ -236,6 +236,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
         string appDirectory,
         string fixtureConfigurationPath,
         string nugetPackagesDirectory,
+        string appFrontendAssetBaseUrl,
         ILogger logger,
         CancellationToken cancellationToken
     )
@@ -246,6 +247,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
             nugetPackagesDirectory,
             logger,
             cancellationToken,
+            appFrontendAssetBaseUrl,
             "run",
             "--mode",
             "process",
@@ -282,6 +284,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
             nugetPackagesDirectory: null,
             logger,
             CancellationToken.None,
+            appFrontendAssetBaseUrl: null,
             "app",
             "stop",
             "--path",
@@ -290,19 +293,14 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
         );
     }
 
-    public IReadOnlyList<string> GetLogLines(int startLine = 0)
+    public async Task<IReadOnlyList<string>> GetLogLines(int startLine, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(LogPath) || !File.Exists(LogPath))
             return [];
 
         try
         {
-            var lines = File.ReadAllLines(LogPath);
-            if (startLine <= 0)
-                return lines;
-            if (startLine >= lines.Length)
-                return [];
-            return lines[startLine..];
+            return await ReadLogLines(LogPath, startLine, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -311,7 +309,35 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
         }
     }
 
-    public int GetLogLineCount() => GetLogLines().Count;
+    public async Task<int> GetLogLineCount(CancellationToken cancellationToken) =>
+        (await GetLogLines(startLine: 0, cancellationToken)).Count;
+
+    internal static async Task<IReadOnlyList<string>> ReadLogLines(
+        string path,
+        int startLine,
+        CancellationToken cancellationToken
+    )
+    {
+        using var stream = new FileStream(
+            path,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.ReadWrite | FileShare.Delete,
+            bufferSize: 4096,
+            options: FileOptions.Asynchronous | FileOptions.SequentialScan
+        );
+        using var reader = new StreamReader(stream);
+
+        var lines = new List<string>();
+        while (await reader.ReadLineAsync(cancellationToken) is { } line)
+            lines.Add(line);
+
+        if (startLine <= 0)
+            return lines;
+        if (startLine >= lines.Count)
+            return [];
+        return lines[startLine..];
+    }
 
     public async ValueTask DisposeAsync()
     {
@@ -381,6 +407,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
         string? nugetPackagesDirectory,
         ILogger logger,
         CancellationToken cancellationToken,
+        string? appFrontendAssetBaseUrl,
         params string[] arguments
     )
     {
@@ -395,6 +422,8 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
             process.StartInfo.Environment["AppFixture__ConfigurationPath"] = fixtureConfigurationPath;
         if (nugetPackagesDirectory is not null)
             process.StartInfo.Environment["NUGET_PACKAGES"] = nugetPackagesDirectory;
+        if (appFrontendAssetBaseUrl is not null)
+            process.StartInfo.Environment["AppSettings__AppFrontendAssetBaseUrl"] = appFrontendAssetBaseUrl;
         foreach (var argument in arguments)
             process.StartInfo.ArgumentList.Add(argument);
 

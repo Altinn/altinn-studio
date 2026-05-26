@@ -102,6 +102,48 @@ func TestEnvUpJSONRejectsForeground(t *testing.T) {
 	}
 }
 
+func TestParseUpFlagsDevWorkflowEngine(t *testing.T) {
+	t.Parallel()
+
+	command := &EnvCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	got, helpShown, err := command.parseUpFlags([]string{"--dev-workflow-engine"})
+	if err != nil {
+		t.Fatalf("parseUpFlags() error = %v", err)
+	}
+	if helpShown {
+		t.Fatal("parseUpFlags() helpShown = true, want false")
+	}
+	if !got.devWorkflowEngine {
+		t.Fatal("devWorkflowEngine = false, want true")
+	}
+}
+
+func TestEnvUsageHidesDevWorkflowEngine(t *testing.T) {
+	t.Parallel()
+
+	command := &EnvCommand{}
+	if got := command.Usage(); strings.Contains(got, "--dev-workflow-engine") {
+		t.Fatalf("Usage() includes hidden --dev-workflow-engine:\n%s", got)
+	}
+}
+
+func TestParseUpFlagsHelpHidesDevWorkflowEngine(t *testing.T) {
+	t.Parallel()
+
+	var out bytes.Buffer
+	command := &EnvCommand{out: ui.NewOutput(&out, io.Discard, false)}
+	_, helpShown, err := command.parseUpFlags([]string{"--help"})
+	if err != nil {
+		t.Fatalf("parseUpFlags() error = %v", err)
+	}
+	if !helpShown {
+		t.Fatal("parseUpFlags() helpShown = false, want true")
+	}
+	if got := out.String(); strings.Contains(got, "--dev-workflow-engine") {
+		t.Fatalf("help output includes hidden --dev-workflow-engine:\n%s", got)
+	}
+}
+
 func TestEnvHostsStatusJSON(t *testing.T) {
 	hostsPath := filepath.Join(t.TempDir(), "hosts")
 	content := "127.0.0.1 localhost\n"

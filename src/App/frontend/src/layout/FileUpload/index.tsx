@@ -7,6 +7,7 @@ import { FileUploadDef } from 'src/layout/FileUpload/config.def.generated';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { FileUploadLayoutValidator } from 'src/layout/FileUpload/FileUploadLayoutValidator';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
+import { useValidateAttachmentDataElements } from 'src/layout/FileUpload/useValidateAttachmentDataElements';
 import { useValidateMinNumberOfAttachments } from 'src/layout/FileUpload/useValidateMinNumberOfAttachments';
 import { useFileUploaderDataBindingsValidation } from 'src/layout/FileUpload/utils/useFileUploaderDataBindingsValidation';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
@@ -63,7 +64,10 @@ export class FileUpload extends FileUploadDef implements ValidateComponent {
   }
 
   useComponentValidation(baseComponentId: string): ComponentValidation[] {
-    return useValidateMinNumberOfAttachments(baseComponentId);
+    return [
+      ...useValidateMinNumberOfAttachments(baseComponentId),
+      ...useValidateAttachmentDataElements(baseComponentId),
+    ];
   }
 
   isDataModelBindingsRequired(baseComponentId: string, layoutLookups: LayoutLookups): boolean {

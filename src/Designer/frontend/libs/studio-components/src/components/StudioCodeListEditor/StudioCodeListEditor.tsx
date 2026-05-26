@@ -1,5 +1,5 @@
 import type { CodeList } from './types/CodeList';
-import { useMemo, useRef, useCallback } from 'react';
+import { useMemo, useRef, useCallback, useState } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import { StudioInputTable } from '../StudioInputTable';
 import type { CodeListItem } from './types/CodeListItem';
@@ -9,6 +9,10 @@ import {
   addNewCodeListItem,
   changeCodeListItem,
   isCodeListEmpty,
+  initialiseSelectedLanguage,
+  addLanguage,
+  removeLanguage,
+  initialiseLanguageOptions,
 } from './utils';
 import { StudioCodeListEditorRow } from './StudioCodeListEditorRow/StudioCodeListEditorRow';
 import type { CodeListEditorTexts } from './types/CodeListEditorTexts';
@@ -25,35 +29,34 @@ import { StudioParagraph } from '../StudioParagraph';
 import classes from './StudioCodeListEditor.module.css';
 import { StudioValidationMessage } from '../StudioValidationMessage';
 import cn from 'classnames';
+import type { StudioLanguagePickerTexts } from '../StudioLanguagePicker';
+import { StudioLanguagePicker } from '../StudioLanguagePicker';
+import { ArrayUtils } from '@studio/pure-functions';
 
 export type StudioCodeListEditorProps = Readonly<{
   className?: string;
   codeList: CodeList;
-  language: string;
+  fallbackLanguage: string;
   onInvalid?: () => void;
   onUpdateCodeList: (codeList: CodeList) => void;
   texts: CodeListEditorTexts;
 }>;
 
-export function StudioCodeListEditor({
-  language,
-  texts,
-  ...rest
-}: StudioCodeListEditorProps): ReactElement {
+export function StudioCodeListEditor({ texts, ...rest }: StudioCodeListEditorProps): ReactElement {
   return (
-    <StudioCodeListEditorContextProvider value={{ language, texts }}>
+    <StudioCodeListEditorContextProvider value={{ texts }}>
       <StatefulCodeListEditor {...rest} />
     </StudioCodeListEditorContextProvider>
   );
 }
 
-type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'language' | 'texts'>;
+type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'texts'>;
 
 function StatefulCodeListEditor({
-  className,
   codeList: givenCodeList,
   onInvalid,
   onUpdateCodeList,
+  ...rest
 }: StatefulCodeListEditorProps): ReactElement {
   const [codeList, setCodeList] = usePropState<CodeList>(givenCodeList);
 
@@ -71,9 +74,9 @@ function StatefulCodeListEditor({
 
   return (
     <ControlledCodeListEditor
-      className={className}
       codeList={codeList}
       onChangeCodeList={handleChangeCodeList}
+      {...rest}
     />
   );
 }
@@ -88,6 +91,7 @@ type ControlledCodeListEditorProps = Omit<
 function ControlledCodeListEditor({
   className: givenClass,
   codeList,
+  fallbackLanguage,
   onChangeCodeList,
 }: ControlledCodeListEditorProps): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
@@ -101,12 +105,72 @@ function ControlledCodeListEditor({
 
   const className = cn(classes.codeListEditor, givenClass);
 
+  const [language, setLanguage] = useState(initialiseSelectedLanguage(codeList, fallbackLanguage));
+
   return (
     <StudioFieldset legend={texts.codeList} className={className} ref={fieldsetRef}>
-      <CodeListTable codeList={codeList} errorMap={errorMap} onChangeCodeList={onChangeCodeList} />
+      <LanguagePicker
+        codeList={codeList}
+        fallbackLanguage={fallbackLanguage}
+        onChangeCodeList={onChangeCodeList}
+        onSelect={setLanguage}
+        texts={texts.languagePickerTexts}
+      />
+      <CodeListTable
+        codeList={codeList}
+        errorMap={errorMap}
+        language={language}
+        onChangeCodeList={onChangeCodeList}
+      />
       <AddButton onClick={handleAddButtonClick} />
       <Errors errorMap={errorMap} />
     </StudioFieldset>
+  );
+}
+
+type LanguagePickerProps = {
+  codeList: CodeList;
+  fallbackLanguage: string;
+  onChangeCodeList: (codeList: CodeList) => void;
+  onSelect: (languageCode: string) => void;
+  texts: StudioLanguagePickerTexts;
+};
+
+function LanguagePicker({
+  codeList,
+  fallbackLanguage,
+  onChangeCodeList,
+  onSelect,
+  texts,
+}: LanguagePickerProps): ReactElement {
+  const [languageCodes, setLanguageCodes] = useState<string[]>(
+    initialiseLanguageOptions(codeList, fallbackLanguage),
+  );
+
+  const handleAddLanguage = useCallback(
+    (languageCode: string): void => {
+      setLanguageCodes([...languageCodes, languageCode]);
+      onChangeCodeList(addLanguage(codeList, languageCode));
+    },
+    [codeList, onChangeCodeList, languageCodes, setLanguageCodes],
+  );
+
+  const handleRemoveLanguage = useCallback(
+    (languageCode: string): void => {
+      setLanguageCodes(ArrayUtils.removeItemByValue(languageCodes, languageCode));
+      onChangeCodeList(removeLanguage(codeList, languageCode));
+    },
+    [codeList, onChangeCodeList, languageCodes, setLanguageCodes],
+  );
+
+  return (
+    <StudioLanguagePicker
+      languageCodes={languageCodes}
+      onSelect={onSelect}
+      onAdd={handleAddLanguage}
+      onRemove={handleRemoveLanguage}
+      texts={texts}
+    />
   );
 }
 
@@ -125,7 +189,10 @@ function EmptyCodeListTable(): ReactElement {
   return <StudioParagraph>{texts.emptyCodeList}</StudioParagraph>;
 }
 
-type CodeListTableWithContentProps = ControlledCodeListEditorProps & ErrorsProps;
+type CodeListTableWithContentProps = Omit<ControlledCodeListEditorProps, 'fallbackLanguage'> &
+  ErrorsProps & {
+    language: string;
+  };
 
 function CodeListTableWithContent({ ...rest }: CodeListTableWithContentProps): ReactElement {
   return (
@@ -155,6 +222,7 @@ function TableHeadings(): ReactElement {
 function TableBody({
   codeList,
   errorMap,
+  language,
   onChangeCodeList,
 }: CodeListTableWithContentProps): ReactElement {
   const handleDeleteButtonClick = useCallback(
@@ -180,6 +248,7 @@ function TableBody({
           error={errorMap[index]}
           item={item}
           key={index}
+          language={language}
           number={index + 1}
           onDeleteButtonClick={() => handleDeleteButtonClick(index)}
           onChangeCodeListItem={(newItem) => handleChangeCodeListItem(index, newItem)}

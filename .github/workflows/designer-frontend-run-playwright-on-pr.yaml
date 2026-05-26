@@ -11,6 +11,8 @@ on:
       - 'src/Designer/compose.yaml'
       - 'src/Designer/Dockerfile'
       - 'src/gitea/**'
+      - 'src/gitea-runner/**'
+      - 'src/load-balancer/**'
       - 'package.json'
       - 'src/Designer/development/**'
       - 'src/App/template/**'

@@ -147,4 +147,16 @@ describe('objectUtils', () => {
       expect(object).toHaveProperty('d');
     });
   });
+
+  describe('shallowMutableCopy', () => {
+    it('Returns a new object', () => {
+      const obj: { readonly a: string } = { a: 'a' };
+      expect(ObjectUtils.shallowMutableCopy(obj)).not.toBe(obj);
+    });
+
+    it('Returns a copy of the given object', () => {
+      const obj: { readonly a: string } = { a: 'a' };
+      expect(ObjectUtils.shallowMutableCopy(obj)).toEqual(obj);
+    });
+  });
 });

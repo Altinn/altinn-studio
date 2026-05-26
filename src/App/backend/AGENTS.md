@@ -11,13 +11,13 @@ This is the **Altinn.App .NET libraries** project, which provides runtime librar
 **Build the solution:**
 
 ```bash
-dotnet build solutions/All.sln -v m
+dotnet build solutions/All.slnx -v m
 ```
 
 **Run all tests:**
 
 ```bash
-dotnet test solutions/All.sln -v m --no-restore --no-build
+dotnet test solutions/All.slnx -v m --no-restore --no-build
 ```
 
 **Run specific test project:**
@@ -76,7 +76,7 @@ The solution follows a **layered architecture** with feature-based organization:
 
 ### Technology Stack
 
-- **.NET 8.0** (see global.json)
+- **.NET 10.0** (see global.json)
 - **ASP.NET Core** for web APIs
 - **OpenTelemetry** for observability
 - **xUnit** with FluentAssertions and Moq for testing
@@ -101,12 +101,12 @@ We have Architecture Decision Records in the `/doc/adr/` folder.
 - **Manual testing** requires localtest environment integration
 - All telemetry changes are considered **breaking changes**
 - **Integration tests** use studioctl with generated app folders for isolated, reproducible environments:
-  - **AppFixture pattern** - Central orchestrator managing test lifecycle with feature-specific operations
-  - **Snapshot testing** - Verify both HTTP response and response body content with port/data normalization
-  - **Test apps** - Complete Altinn apps in `_testapps/{app}/` with config, models, and UI
-  - **Scenario-based testing** - Override config and inject custom services via `_testapps/{app}/_scenarios/{scenario}/` folders
-  - **studioctl orchestration** - Shared localtest environment, generated app ids, and process-mode app runs
-  - Follow existing `AppFixture.{Feature}.cs` pattern for new API operations (see `InstancesOperations`)
+    - **AppFixture pattern** - Central orchestrator managing test lifecycle with feature-specific operations
+    - **Snapshot testing** - Verify both HTTP response and response body content with port/data normalization
+    - **Test apps** - Complete Altinn apps in `_testapps/{app}/` with config, models, and UI
+    - **Scenario-based testing** - Override config and inject custom services via `_testapps/{app}/_scenarios/{scenario}/` folders
+    - **studioctl orchestration** - Shared localtest environment, generated app ids, and process-mode app runs
+    - Follow existing `AppFixture.{Feature}.cs` pattern for new API operations (see `InstancesOperations`)
 
 ### Versioning
 

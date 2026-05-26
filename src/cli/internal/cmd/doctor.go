@@ -272,7 +272,7 @@ func (c *DoctorCommand) renderDoctorAuthSection(table *ui.Table, authJSON *docto
 
 	doctorKeyValue(table, "Status", "logged in ("+strconv.Itoa(len(authJSON.Environments))+" env)")
 	for _, env := range authJSON.Environments {
-		doctorKeyValue(table, env.Env, env.Username+" @ "+env.Host+" (PAT)")
+		doctorKeyValue(table, env.Env, env.Username+" @ "+env.Host)
 	}
 }
 

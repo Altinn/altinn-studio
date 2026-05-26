@@ -119,6 +119,7 @@ services:
       - GeneralSettings:LanguageFilesLocation=Languages/
       - GeneralSettings:TemplateLocation=/Templates
       - GeneralSettings:TemplateLocation=Templates/AspNet
+      - MaskinPortenHttpClientSettings:BaseUrl=http://studio-azure-mock:6161
       - PostgreSQLSettings:AdminConnectionString=Host=studio_db;Port=5432;Username=designer_admin;Password={0};Database=designerdb
       - PostgreSQLSettings:ConnectionString=Host=studio_db;Port=5432;Username=designer;Password={0};Database=designerdb
       - PostgreSQLSettings:DesignerDbAdminPwd=${POSTGRES_PASSWORD}
@@ -142,6 +143,10 @@ services:
       - StudioOidcLoginSettings:ClientSecret=${STUDIO_OIDC_CLIENT_SECRET:-fake-secret}
       - StudioOidcLoginSettings:Authority=${STUDIO_OIDC_AUTHORITY:-http://fake-ansattporten:8443}
       - StudioOidcLoginSettings:RequireHttpsMetadata=false
+      - StudioOidcLoginSettings:AuthorizationDetails:0:Type=ansattporten:altinn:resource
+      - StudioOidcLoginSettings:AuthorizationDetails:0:Resource=urn:altinn:resource:digdir-selvbetjening-klienter
+      - StudioOidcLoginSettings:AuthorizationDetails:0:OrganizationForm=enterprise
+      - StudioOidcLoginSettings:AuthorizationDetails:0:RepresentationIsRequired=false
       - FeatureManagement:Ansattporten=${FEATUREFLAGS_ANSATTPORTEN:-false}
       - FeatureManagement:GitOpsDeploy=${FEATUREFLAGS_GITOPSDEPLOY:-true}
       - FeatureManagement:StudioOidc=${FEATUREFLAGS_STUDIOOIDC:-true}
@@ -161,6 +166,8 @@ services:
       studio_db:
         condition: service_healthy
       fake_ansattporten:
+        condition: service_started
+      studio_azure_mock:
         condition: service_started
     build:
       context: ./../..
@@ -341,5 +348,3 @@ services:
         - REDIS_HOSTS=redis
     ports:
         - "8081:8081"
-
-
