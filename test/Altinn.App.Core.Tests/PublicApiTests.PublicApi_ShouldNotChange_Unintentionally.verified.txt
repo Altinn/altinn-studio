@@ -1172,6 +1172,10 @@ namespace Altinn.App.Core.Features
         string Id { get; }
         System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions> GetAppOptionsAsync(string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
     }
+    public interface ICopyInstanceValidator
+    {
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.Validation.InstantiationValidationResult?> Validate(Altinn.App.Core.Features.IInstanceDataAccessor sourceInstanceDataAccessor);
+    }
     public interface IDataElementValidator
     {
         string DataType { get; }
