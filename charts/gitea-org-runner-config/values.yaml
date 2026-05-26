@@ -15,5 +15,5 @@ shareWorkspace:
 # environment's runners list are harmlessly ignored.
 maxConcurrentDefault: 2
 maxConcurrentOverrides:
-  brg: 6
+  brg: 5
   ssb: 5
