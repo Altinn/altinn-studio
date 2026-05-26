@@ -18,7 +18,7 @@ public class UiFoldersService : IUiFoldersService
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
     }
 
-    public async Task<LayoutSetsModel> GetLayoutSetsExtended(
+    public async Task<List<LayoutSetModel>> GetLayoutSetsExtended(
         AltinnRepoEditingContext altinnRepoEditingContext,
         CancellationToken cancellationToken
     )
@@ -34,16 +34,36 @@ public class UiFoldersService : IUiFoldersService
         Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
         // if uiFolder in UiFolders exists in defintions ids, keep it.
 
+        foreach (string uiFolder in uiFolders)
+        {
+            if (!definitions.Process.Tasks.Any(task => task.Id == uiFolder))
+            {
+                uiFolders = uiFolders.Where(folder => folder != uiFolder);
+            }
+        }
 
-        LayoutSetsModel layoutSetsModel = new();
+        // Get `defaultDataType` in Settings.json file in each ui folder, and `type` if it is subform
 
-        uiFolders.ToList().ForEach(
+        List<LayoutSetModel> layoutSetsModel = new();
 
+        uiFolders
+            .ToList()
+            .ForEach(layoutSetName =>
+            {
+                LayoutSetModel layoutSetModel = new()
+                {
+                    Id = layoutSetName, // Ui folder name
+                    // DataType = //get defaultDataType from settings.json file in the ui folder
+                    // Type = set.Type, // Settes hvis det er subform, hvor skal vi hente det nå?
+                };
+                string taskType = TaskTypeFromDefinitions(definitions, layoutSetName);
+                layoutSetModel.Task = new TaskModel { Id = layoutSetName, Type = taskType };
+                layoutSetsModel.Add(layoutSetModel);
+            });
 
+        // LayoutSetsModel layoutSetsModel = new();
 
-
-
-
+        // uiFolders.ToList().ForEach(
 
         // uiFolders.ForEach(set =>
         // {
