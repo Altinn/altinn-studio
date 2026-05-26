@@ -131,6 +131,15 @@ public class AppSettings
         "https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css";
 
     /// <summary>
+    /// Gets or sets the frontend asset URL used by the generated controller index page.
+    /// </summary>
+    /// <remarks>
+    /// This setting is only honored when the host runs in the Development environment. PDF rendering runs in a
+    /// container, so avoid loopback URLs such as <c>localhost</c> because they resolve inside the container.
+    /// </remarks>
+    public string? AppFrontendAssetBaseUrl { get; set; }
+
+    /// <summary>
     /// Open Id Connect Well known endpoint
     /// </summary>
 #nullable disable

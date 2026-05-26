@@ -10,6 +10,7 @@ export type AssistantTexts = {
   previousThreads: string;
   aboutAssistant: string;
   aboutAssistantDialog: AboutAssistantDialogTexts;
+  emptyThread: EmptyThreadTexts;
   textarea: TextAreaTexts;
   addAttachment: string;
   allowAppChangesSwitch: string;
@@ -35,6 +36,11 @@ export type AboutAssistantDialogTexts = {
   branchInfo: ReactNode;
   branchDocsLink: string;
   disclaimer: string;
+};
+
+export type EmptyThreadTexts = {
+  welcome: string;
+  instruction: string;
 };
 
 export type TextAreaTexts = {

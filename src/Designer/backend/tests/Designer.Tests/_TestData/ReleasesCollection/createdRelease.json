@@ -4,6 +4,9 @@
     "name": "1",
     "body": "test-app",
     "targetCommitish": "eec136ac2d31cf984d2053df79f181b99c3b4db5",
+    "buildInputs": {
+        "maskinportenScopes": []
+    },
     "build": {
         "id": "84993",
         "status": "notStarted",

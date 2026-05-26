@@ -1,10 +1,9 @@
 import React from 'react';
 
+import { AccordionItem, Flex } from '@app/form-component';
 import { Card } from '@digdir/designsystemet-react';
 
-import { AccordionItem } from 'src/app-components/Accordion/AccordionItem';
-import { Flex } from 'src/app-components/Flex/Flex';
-import { translationKey } from 'src/AppComponentsBridge';
+import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Accordion/Accordion.module.css';
 import { useIsInAccordionGroup } from 'src/layout/AccordionGroup/AccordionGroupContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -22,7 +21,7 @@ export const Accordion = ({ baseComponentId }: PropsFromGenericComponent<'Accord
 
   const AccordionContent = ({ className }: { className?: string }) => (
     <AccordionItem
-      title={translationKey(title)}
+      title={<Lang id={title} />}
       className={className}
       defaultOpen={Boolean(openByDefault)}
     >

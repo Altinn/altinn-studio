@@ -1,8 +1,8 @@
 import React from 'react';
 
+import { Flex } from '@app/form-component';
 import dot from 'dot-object';
 
-import { Flex } from 'src/app-components/Flex/Flex';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getCommaSeparatedOptionsToText } from 'src/features/options/getCommaSeparatedOptionsToText';

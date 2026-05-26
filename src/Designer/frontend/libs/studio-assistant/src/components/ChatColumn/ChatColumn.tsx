@@ -46,18 +46,16 @@ export function ChatColumn({
   }, [messages, workflowIsActive]);
 
   const placeholderContent = (
-    <div className={classes.emptyState}>
-      <div className={classes.emptyStateIcon}>
+    <div className={classes.emptyThread}>
+      <div className={classes.emptyThreadIcon}>
         <span className={classes.bubble}>
           <span className={classes.dot}></span>
           <span className={classes.dot}></span>
           <span className={classes.dot}></span>
         </span>
       </div>
-      <StudioParagraph data-size='lg'>
-        Velkommen til Altinity!
-        <br /> Skriv i feltet under for å begynne.
-      </StudioParagraph>
+      <StudioParagraph data-size='lg'>{texts.emptyThread.welcome}</StudioParagraph>
+      <StudioParagraph data-size='lg'>{texts.emptyThread.instruction}</StudioParagraph>
     </div>
   );
 

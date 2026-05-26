@@ -12,6 +12,11 @@ import (
 	"altinn.studio/studioctl/internal/config"
 )
 
+const (
+	testBotToken = "bot-token"
+	testBotUser  = "bot-user"
+)
+
 func TestExchangeCodeRevokesPreviousAPIKeyAfterSavingNewCredentials(t *testing.T) {
 	home := t.TempDir()
 	ctx := context.Background()
@@ -70,6 +75,122 @@ func TestExchangeCodeRevokesPreviousAPIKeyAfterSavingNewCredentials(t *testing.T
 	}
 	if envCreds.ApiKey != "new-key" || envCreds.ApiKeyID != 2 {
 		t.Errorf("expected new credentials to be saved, got key=%q id=%d", envCreds.ApiKey, envCreds.ApiKeyID)
+	}
+}
+
+func TestLoginWithTokenStoresValidatedTokenAndRevokesPreviousAPIKey(t *testing.T) {
+	home := t.TempDir()
+	ctx := context.Background()
+
+	err := authstore.SaveCredentials(home, &authstore.Credentials{
+		Envs: map[string]authstore.EnvCredentials{
+			"prod": {
+				ApiKeyID:  7,
+				Host:      "old.example.com",
+				ApiKey:    "old-key",
+				ExpiresAt: "",
+				Username:  "old-user",
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("save credentials: %v", err)
+	}
+
+	oldTransport := http.DefaultTransport
+	defer func() {
+		http.DefaultTransport = oldTransport
+	}()
+
+	revokeCalled := false
+	server := httptest.NewTLSServer(tokenLoginOverwriteHandler(t, home, &revokeCalled))
+	defer server.Close()
+	http.DefaultTransport = server.Client().Transport
+
+	host := strings.TrimPrefix(server.URL, "https://")
+	service := NewService(&config.Config{Home: home, Version: config.NewVersion("test-version")})
+	result, err := service.LoginWithToken(ctx, TokenLoginRequest{
+		Env:            "prod",
+		Host:           host,
+		Token:          testBotToken,
+		AllowOverwrite: true,
+	})
+	if err != nil {
+		t.Fatalf("LoginWithToken failed: %v", err)
+	}
+	if result.Username != testBotUser {
+		t.Errorf("expected %s, got %s", testBotUser, result.Username)
+	}
+	if !revokeCalled {
+		t.Error("expected previous API key to be revoked")
+	}
+
+	creds, err := authstore.LoadCredentials(home)
+	if err != nil {
+		t.Fatalf("load credentials: %v", err)
+	}
+	envCreds, err := creds.Get("prod")
+	if err != nil {
+		t.Fatalf("get prod credentials: %v", err)
+	}
+	if envCreds.ApiKey != testBotToken || envCreds.ApiKeyID != 0 || envCreds.Username != testBotUser {
+		t.Errorf("stored credentials = %+v, want imported token without api key id", envCreds)
+	}
+}
+
+func tokenLoginOverwriteHandler(t *testing.T, home string, revokeCalled *bool) http.Handler {
+	t.Helper()
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == http.MethodGet && r.URL.Path == "/repos/api/v1/user":
+			writeTokenLoginUser(t, w, r)
+		case r.Method == http.MethodDelete && r.URL.Path == studioctlRevokePath+"7":
+			*revokeCalled = true
+			assertPreviousAPIKeyRevokedAfterTokenCredentialsSaved(t, home, r)
+			w.WriteHeader(http.StatusNoContent)
+		default:
+			t.Errorf("unexpected request %s %s", r.Method, r.URL.Path)
+			w.WriteHeader(http.StatusNotFound)
+		}
+	})
+}
+
+func writeTokenLoginUser(t *testing.T, w http.ResponseWriter, r *http.Request) {
+	t.Helper()
+
+	if got := r.Header.Get("X-Api-Key"); got != testBotToken {
+		t.Errorf("expected bot token for validation, got %q", got)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	encodeErr := json.NewEncoder(w).Encode(map[string]string{"login": testBotUser})
+	if encodeErr != nil {
+		t.Errorf("encode response: %v", encodeErr)
+	}
+}
+
+func assertPreviousAPIKeyRevokedAfterTokenCredentialsSaved(t *testing.T, home string, r *http.Request) {
+	t.Helper()
+
+	if got := r.Header.Get("X-Api-Key"); got != "old-key" {
+		t.Errorf("expected old API key for revoke, got %q", got)
+	}
+	creds, err := authstore.LoadCredentials(home)
+	if err != nil {
+		t.Errorf("load credentials during revoke: %v", err)
+		return
+	}
+	envCreds, err := creds.Get("prod")
+	if err != nil {
+		t.Errorf("get prod credentials during revoke: %v", err)
+		return
+	}
+	if envCreds.ApiKey != testBotToken || envCreds.ApiKeyID != 0 {
+		t.Errorf(
+			"expected imported token to be saved before revoke, got key=%q id=%d",
+			envCreds.ApiKey,
+			envCreds.ApiKeyID,
+		)
 	}
 }
 

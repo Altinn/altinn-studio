@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { AccordionItem } from 'src/app-components/Accordion/AccordionItem';
-import { Flex } from 'src/app-components/Flex/Flex';
-import { translationKey } from 'src/AppComponentsBridge';
+import { AccordionItem, Flex } from '@app/form-component';
+
+import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Summary2/CommonSummaryComponents/LayoutSetSummaryAccordion.module.css';
 import { EmptyChildrenBoundary } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import { PageSummary } from 'src/layout/Summary2/SummaryComponent2/PageSummary';
@@ -17,7 +17,7 @@ export function LayoutSetSummaryAccordion({ filteredPages }: LayoutSetAccordionS
       key={layoutId}
       defaultOpen={true}
       className={classes.summaryItem}
-      title={translationKey(layoutId)}
+      title={<Lang id={layoutId} />}
     >
       <Flex
         container

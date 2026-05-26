@@ -18,7 +18,7 @@ public class GiteaDbStudioOidcUsernameProvider(
 ) : IStudioOidcUsernameProvider
 {
     private const string GiteaLookupQuery = """
-        SELECT u.lower_name
+        SELECT u.name
         FROM external_login_user elu
         JOIN "user" u ON elu.user_id = u.id
         WHERE elu.external_id = @sub

@@ -1,18 +1,12 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { type BackendValidationApi, backendValidationApi } from 'src/core/api-client/backendValidation.api';
-import { type InstanceApi, instanceApi } from 'src/core/api-client/instance.api';
-import { type PartyApi, partyApi } from 'src/core/api-client/party.api';
-import { type TextResourcesApi, textResourcesApi } from 'src/core/api-client/textResources.api';
+import { backendValidationApi } from 'src/core/api-client/backendValidation.api';
+import { instanceApi } from 'src/core/api-client/instance.api';
+import { partyApi } from 'src/core/api-client/party.api';
+import { textResourcesApi } from 'src/core/api-client/textResources.api';
 import { createContext } from 'src/core/contexts/context';
-
-export interface ApiClients {
-  backendValidationApi: BackendValidationApi;
-  partyApi: PartyApi;
-  instanceApi: InstanceApi;
-  textResourcesApi: TextResourcesApi;
-}
+import type { ApiClients } from 'src/core/api-client/ApiClients';
 
 interface ApiProviderProps extends PropsWithChildren {
   apis?: Partial<ApiClients>;
@@ -28,7 +22,7 @@ const defaultApis: ApiClients = {
 const { Provider, useCtx } = createContext<ApiClients>({
   name: 'ApiProvider',
   required: false,
-  default: { backendValidationApi, partyApi, instanceApi, textResourcesApi },
+  default: defaultApis,
 });
 
 export function ApiProvider({ children, apis }: ApiProviderProps) {

@@ -111,7 +111,7 @@ public static class TestAuthentication
     public const string DefaultOrg = "tdd";
     public const int DefaultOrgPartyId = 5001337;
     public const string DefaultServiceOwnerScope =
-        "altinn:serviceowner/instances.read altinn:serviceowner/instances.write";
+        "altinn:serviceowner altinn:serviceowner/instances.read altinn:serviceowner/instances.write";
     public const string DefaultOrgScope = "altinn:instances.read altinn:instances.write";
 
     public const string DefaultSystemUserId = "f58fe166-bc22-4899-beb7-c3e8e3332f43";

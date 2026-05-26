@@ -1,7 +1,8 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { formatISOString, getDateFormat } from 'src/app-components/Datepicker/utils/dateHelpers';
+import { formatISOString, getDateFormat } from '@app/form-component';
+
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FormStore } from 'src/features/form/FormContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';

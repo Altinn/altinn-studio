@@ -1,9 +1,9 @@
 import React from 'react';
 
+import { Flex } from '@app/form-component';
 import { Heading, ValidationMessage } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
-import { Flex } from 'src/app-components/Flex/Flex';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
