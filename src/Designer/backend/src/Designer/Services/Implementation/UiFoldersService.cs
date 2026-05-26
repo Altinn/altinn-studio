@@ -18,6 +18,60 @@ public class UiFoldersService : IUiFoldersService
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
     }
 
+    public async Task<LayoutSetsModel> GetLayoutSetsExtended(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        CancellationToken cancellationToken
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
+
+        IEnumerable<string> uiFolders = await altinnAppGitRepository.GetUiFolders(cancellationToken);
+        Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
+        // if uiFolder in UiFolders exists in defintions ids, keep it.
+
+
+        LayoutSetsModel layoutSetsModel = new();
+
+        uiFolders.ToList().ForEach(
+
+
+
+
+
+
+
+        // uiFolders.ForEach(set =>
+        // {
+        //     LayoutSetModel layoutSetModel = new()
+        //     {
+        //         Id = set.Id, // Ui folder name
+        //         DataType = set.DataType, // new name: "defaultDataType" in the specific settings.json file
+        //         Type = set.Type, // Settes hvis det er subform, hvor skal vi hente det nå?
+        //     };
+        //     string? taskId = set.Tasks?[0];
+        //     if (taskId != null)
+        //     {
+        //         string taskType = TaskTypeFromDefinitions(definitions, taskId);
+        //         layoutSetModel.Task = new TaskModel { Id = taskId, Type = taskType };
+        //     }
+        //     layoutSetsModel.Sets.Add(layoutSetModel);
+        // });
+        return layoutSetsModel;
+    }
+
+    private static string TaskTypeFromDefinitions(Definitions definitions, string taskId)
+    {
+        return definitions
+                .Process.Tasks.FirstOrDefault(task => task.Id == taskId)
+                ?.ExtensionElements?.TaskExtension?.TaskType
+            ?? string.Empty;
+    }
+
     public async Task<ValidationOnNavigation?> GetGlobalValidationOnNavigation(
         AltinnRepoEditingContext altinnRepoEditingContext,
         CancellationToken cancellationToken

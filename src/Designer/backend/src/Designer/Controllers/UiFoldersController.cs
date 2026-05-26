@@ -34,6 +34,22 @@ public class UiFoldersController : Controller
         return AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
     }
 
+    [HttpGet("layout-sets/extended")]
+    [UseSystemTextJson]
+    public async Task<IActionResult> GetLayoutSetsExtended(string org, string app, CancellationToken cancellationToken)
+    {
+        AltinnRepoEditingContext editingContext = CreateContext(org, app);
+        IEnumerable<string> uiFolders = await _uiFoldersService.GetLayoutSetsExtended(
+            editingContext,
+            cancellationToken
+        );
+        return Ok(uiFolders);
+    }
+
+    // [HttpGet("layout-sets/extended")]
+    // [HttpGet("layout-sets/extended/form1")]
+    // [HttpGet("settings/validation-on-navigation?layoutSet=form1")]
+    // [HttpGet("settings/validation-on-navigation?layoutSet=form1&page="page1")]
     [HttpGet("settings/validation-on-navigation")]
     [UseSystemTextJson]
     public async Task<IActionResult> GetGlobalValidationOnNavigation(
