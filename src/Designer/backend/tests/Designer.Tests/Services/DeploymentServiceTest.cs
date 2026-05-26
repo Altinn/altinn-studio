@@ -234,6 +234,93 @@ public class DeploymentServiceTest
 
     [Theory]
     [InlineData("ttd", "apps-test-tba")]
+    public async Task CreateAsync_QueuesPipelineWithDeploymentIdFromCreatedDeployment(string org, string app)
+    {
+        // Arrange
+        const long DeploymentSequenceNo = 42;
+        DeploymentModel deploymentModel = new() { TagName = "1", EnvName = "at23" };
+
+        _releaseRepository
+            .Setup(r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(GetReleases("updatedRelease.json").First());
+
+        _applicationInformationService
+            .Setup(ais =>
+                ais.UpdateApplicationMetadataAndPoliciesAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.CompletedTask);
+
+        _applicationInformationService
+            .Setup(ais =>
+                ais.PublishToResourceRegistryAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()
+                )
+            )
+            .ReturnsAsync(new ResourceRegistryPublishResult(true));
+
+        _azureDevOpsBuildClient
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(GetBuild());
+
+        _deploymentRepository
+            .Setup(r => r.Create(It.IsAny<DeploymentEntity>()))
+            .ReturnsAsync(
+                (DeploymentEntity entity) =>
+                {
+                    entity.SequenceNo = DeploymentSequenceNo;
+                    return entity;
+                }
+            );
+
+        DeploymentService deploymentService = new(
+            GetAzureDevOpsSettings(),
+            _azureDevOpsBuildClient.Object,
+            _httpContextAccessor.Object,
+            _deploymentRepository.Object,
+            _deployEventRepository.Object,
+            _releaseRepository.Object,
+            _environementsService.Object,
+            _applicationInformationService.Object,
+            _mediatrMock.Object,
+            _generalSettings,
+            _fakeTimeProvider,
+            _gitOpsConfigurationManager.Object,
+            _featureManager.Object,
+            _runtimeGatewayClient.Object,
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
+        );
+
+        AltinnAuthenticatedRepoEditingContext authenticatedContext =
+            AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
+
+        // Act
+        await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
+
+        // Assert
+        _azureDevOpsBuildClient.Verify(
+            b =>
+                b.QueueAsync(
+                    It.Is<QueueBuildParameters>(p => p.DeploymentId == DeploymentSequenceNo.ToString()),
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Theory]
+    [InlineData("ttd", "apps-test-tba")]
     public async Task CreateAsync_WhenResourceRegistryPublishFails_ContinuesPipelineAndRecordsFailedEvent(
         string org,
         string app

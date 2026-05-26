@@ -1,9 +1,8 @@
 import React from 'react';
 
-import { Button } from '@app/form-component';
+import { Button, ConditionalWrapper } from '@app/form-component';
 import { PencilIcon, TrashIcon } from '@navikt/aksel-icons';
 
-import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import { isAttachmentUploaded } from 'src/features/attachments';

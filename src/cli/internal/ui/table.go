@@ -155,6 +155,12 @@ func ErrorText(text string) Cell {
 
 // Status creates a success or error status icon cell.
 func Status(ok bool) Cell {
+	if !terminalDecorations() {
+		if ok {
+			return SuccessText("[ok]")
+		}
+		return ErrorText("[error]")
+	}
 	if ok {
 		return SuccessText("✓")
 	}

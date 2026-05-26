@@ -93,15 +93,12 @@ public class PdfServiceTests
 
         var httpClient = new HttpClient(delegatingHandler);
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
-        var hostEnvironment = new Mock<IHostEnvironment>();
         var pdfGeneratorClient = new PdfGeneratorClient(
             logger.Object,
             httpClient,
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
-            _userTokenProvider.Object,
-            _httpContextAccessor.Object,
-            hostEnvironment.Object
+            _userTokenProvider.Object
         );
 
         Stream pdf = await pdfGeneratorClient.GeneratePdf(
@@ -125,15 +122,12 @@ public class PdfServiceTests
 
         var httpClient = new HttpClient(delegatingHandler);
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
-        var hostEnvironment = new Mock<IHostEnvironment>();
         var pdfGeneratorClient = new PdfGeneratorClient(
             logger.Object,
             httpClient,
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
-            _userTokenProvider.Object,
-            _httpContextAccessor.Object,
-            hostEnvironment.Object
+            _userTokenProvider.Object
         );
 
         var func = async () =>

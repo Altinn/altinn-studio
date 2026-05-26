@@ -81,10 +81,7 @@ export const Pagination = ({
             className={classes.rowsPerPageDropdown}
           >
             {rowsPerPageOptions?.map((option, i) => (
-              <Select.Option
-                key={`${option}${i}`}
-                value={option}
-              >
+              <Select.Option key={`${option}${i}`} value={option}>
                 {option}
               </Select.Option>
             ))}

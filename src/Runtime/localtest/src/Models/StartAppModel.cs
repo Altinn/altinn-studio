@@ -7,6 +7,17 @@ using System.Threading.Tasks;
 
 namespace LocalTest.Models
 {
+    public class AppSelectionOption
+    {
+        public string Value { get; set; }
+
+        public string Text { get; set; }
+
+        public bool Selected { get; set; }
+
+        public bool ShowFrontendVersionSwitcher { get; set; }
+    }
+
     public class StartAppModel
     {
         /// <summary>
@@ -73,7 +84,12 @@ namespace LocalTest.Models
         /// <summary>
         /// List of selectable Apps for dropdown
         /// </summary>
-        public List<SelectListItem> TestApps { get; set; }
+        public List<AppSelectionOption> TestApps { get; set; }
+
+        /// <summary>
+        /// Whether frontend version switching UI should be visible for the selected app.
+        /// </summary>
+        public bool ShowFrontendVersionSwitcher { get; set; } = true;
 
         /// <summary>
         /// List of possible authentication levels
@@ -98,6 +114,7 @@ namespace LocalTest.Models
 
             selectedApp.Selected = true;
             AppPathSelection = selectedApp.Value;
+            ShowFrontendVersionSwitcher = selectedApp.ShowFrontendVersionSwitcher;
         }
 
         private string GetAppIdFromRedirectUrl()

@@ -236,6 +236,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
         string appDirectory,
         string fixtureConfigurationPath,
         string nugetPackagesDirectory,
+        string appFrontendAssetBaseUrl,
         ILogger logger,
         CancellationToken cancellationToken
     )
@@ -246,6 +247,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
             nugetPackagesDirectory,
             logger,
             cancellationToken,
+            appFrontendAssetBaseUrl,
             "run",
             "--mode",
             "process",
@@ -282,6 +284,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
             nugetPackagesDirectory: null,
             logger,
             CancellationToken.None,
+            appFrontendAssetBaseUrl: null,
             "app",
             "stop",
             "--path",
@@ -404,6 +407,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
         string? nugetPackagesDirectory,
         ILogger logger,
         CancellationToken cancellationToken,
+        string? appFrontendAssetBaseUrl,
         params string[] arguments
     )
     {
@@ -418,6 +422,8 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
             process.StartInfo.Environment["AppFixture__ConfigurationPath"] = fixtureConfigurationPath;
         if (nugetPackagesDirectory is not null)
             process.StartInfo.Environment["NUGET_PACKAGES"] = nugetPackagesDirectory;
+        if (appFrontendAssetBaseUrl is not null)
+            process.StartInfo.Environment["AppSettings__AppFrontendAssetBaseUrl"] = appFrontendAssetBaseUrl;
         foreach (var argument in arguments)
             process.StartInfo.ArgumentList.Add(argument);
 

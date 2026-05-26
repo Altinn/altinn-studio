@@ -47,8 +47,14 @@ describe('Pagination', () => {
     render(<Pagination {...defaultProps} currentPage={2} />);
 
     const nav = screen.getByTestId('pagination');
-    expect(within(nav).getByRole('button', { name: /^2$/ })).toHaveAttribute('aria-current', 'page');
-    expect(within(nav).getByRole('button', { name: /^1$/ })).not.toHaveAttribute('aria-current', 'page');
+    expect(within(nav).getByRole('button', { name: /^2$/ })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(within(nav).getByRole('button', { name: /^1$/ })).not.toHaveAttribute(
+      'aria-current',
+      'page',
+    );
   });
 
   it('substitutes {page} in pageAriaLabelTemplate per page', () => {
