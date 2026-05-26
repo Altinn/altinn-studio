@@ -39,6 +39,7 @@
         { "$ref": "#/definitions/strict-string" },
         { "$ref": "#/definitions/strict-boolean" },
         { "$ref": "#/definitions/strict-number" },
+        { "$ref": "#/definitions/strict-list" },
         { "$ref": "#/definitions/func-if" }
       ]
     },
@@ -144,6 +145,18 @@
         { "$ref": "#/definitions/func-stringLength" },
         { "$ref": "#/definitions/func-stringIndexOf" },
         { "$ref": "#/definitions/func-countDataElements" }
+      ]
+    },
+    "list": {
+      "title": "Any expression returning a list",
+      "$ref": "#/definitions/strict-list"
+    },
+    "strict-list": {
+      "title": "Any expression returning a list (strict)",
+      "anyOf": [
+        { "$ref": "#/definitions/func-component" },
+        { "$ref": "#/definitions/func-dataModel" },
+        { "$ref": "#/definitions/func-list" }
       ]
     },
     "func-if": {
@@ -633,6 +646,13 @@
         { "$ref": "#/definitions/string" }
       ],
       "additionalItems": false
+    },
+    "func-list": {
+      "title": "Create a list",
+      "description": "This function creates a list from its arguments.",
+      "type": "array",
+      "items": [{ "const": "list" }],
+      "additionalItems": { "$ref": "#/definitions/any" }
     },
     "compare-operator": {
       "title": "Comparison operator",
