@@ -8,6 +8,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 
 public interface IUiFoldersService
 {
+    public Task<List<LayoutSetModel>> GetLayoutSetsExtended(
+        AltinnRepoEditingContext context,
+        CancellationToken cancellationToken
+    );
+
     public Task<ValidationOnNavigation?> GetGlobalValidationOnNavigation(
         AltinnRepoEditingContext context,
         CancellationToken cancellationToken
