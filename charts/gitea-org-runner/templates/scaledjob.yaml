@@ -175,6 +175,7 @@ spec:
         owner: {{ .name | quote }}
         runnerScope: "org"
         labels: {{ $.Values.gitea.scalerLabels | default "ubuntu-latest" | quote }}
+        noDefaultLabels: "true"
         targetWorkflowQueueLength: {{ $.Values.keda.targetWorkflowQueueLength | default "1" | quote }}
       authenticationRef:
         name: {{ $.Values.keda.authenticationRef.name }}
