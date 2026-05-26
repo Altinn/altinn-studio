@@ -43,7 +43,7 @@ jobs:
     needs: test
     steps:
       - name: Download Coverage Results
-        uses: actions/download-artifact@master
+        uses: actions/download-artifact@2a5974104b6d5dbdb2f9468a3e54da3bdd241578 # master
         with:
           name: code-coverage-report
           path: dist/
