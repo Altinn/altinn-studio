@@ -35,7 +35,12 @@
         "description": "The main api for creating new instances. ",
         "parameters": [
           {
-            "$ref": "#/components/parameters/instanceOwnerPartyId"
+            "name": "instanceOwnerPartyId",
+            "in": "query",
+            "description": "The party id of the instance owner (use either this or an instance document in the body)",
+            "schema": {
+              "type": "integer"
+            }
           },
           {
             "$ref": "#/components/parameters/language"
@@ -46,8 +51,7 @@
           "content": {
             "empty": {
               "schema": {
-                "type": "null",
-                "example": null
+                "nullable": true
               }
             },
             "application/json": {
@@ -460,7 +464,49 @@
             }
           },
           "409": {
-            "$ref": "#/components/responses/ProblemDetails"
+            "description": "Instance is not in a valid state to move to next process step",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "https://datatracker.ietf.org/doc/html/rfc6902/"
+                    },
+                    "title": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "Error in data processing"
+                    },
+                    "status": {
+                      "type": "integer",
+                      "format": "int32",
+                      "nullable": true,
+                      "example": 400
+                    },
+                    "detail": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "Actually useful description of the error"
+                    },
+                    "instance": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "traceId": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  },
+                  "additionalProperties": {
+                    "title": "Additional properties",
+                    "description": "Additional properties can be added to the problem details"
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/ProblemDetails"
@@ -511,7 +557,8 @@
               }
             }
           }
-        }
+        },
+        "security": []
       }
     },
     "/authentication/api/v1/exchange/{tokenProvider}": {
@@ -853,7 +900,49 @@
             }
           },
           "409": {
-            "$ref": "#/components/responses/ProblemDetails"
+            "description": "Validation cannot be performed (e.g., no active task)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "https://datatracker.ietf.org/doc/html/rfc6902/"
+                    },
+                    "title": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "Error in data processing"
+                    },
+                    "status": {
+                      "type": "integer",
+                      "format": "int32",
+                      "nullable": true,
+                      "example": 400
+                    },
+                    "detail": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "Actually useful description of the error"
+                    },
+                    "instance": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "traceId": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  },
+                  "additionalProperties": {
+                    "title": "Additional properties",
+                    "description": "Additional properties can be added to the problem details"
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/ProblemDetails"
@@ -1045,7 +1134,7 @@
     },
     "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/customElement": {
       "summary": "Operations for customElement",
-      "description": "CRUD operations for data of type customElement",
+      "description": "Data type for an element with limited contributors",
       "get": {
         "tags": [
           "FileData customElement"
@@ -1058,6 +1147,7 @@
             "content": {
               "application/octet-stream": {
                 "schema": {
+                  "type": "string",
                   "format": "binary"
                 }
               }
@@ -1117,7 +1207,7 @@
     },
     "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/9edd53de-f46f-40a1-bb4d-3efb93dc113d": {
       "summary": "Operations for 9edd53de-f46f-40a1-bb4d-3efb93dc113d",
-      "description": "CRUD operations for data of type 9edd53de-f46f-40a1-bb4d-3efb93dc113d",
+      "description": "Http operations for data of type 9edd53de-f46f-40a1-bb4d-3efb93dc113d",
       "get": {
         "tags": [
           "FileData 9edd53de-f46f-40a1-bb4d-3efb93dc113d"
@@ -1130,6 +1220,7 @@
             "content": {
               "application/octet-stream": {
                 "schema": {
+                  "type": "string",
                   "format": "binary"
                 }
               }
@@ -1189,7 +1280,7 @@
     },
     "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/specificFileType": {
       "summary": "Operations for specificFileType",
-      "description": "CRUD operations for data of type specificFileType",
+      "description": "Data type for attachments with specific file types allowed",
       "get": {
         "tags": [
           "FileData specificFileType"
@@ -1202,6 +1293,7 @@
             "content": {
               "application/octet-stream": {
                 "schema": {
+                  "type": "string",
                   "format": "binary"
                 }
               }
@@ -2113,7 +2205,7 @@
     },
     "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/task2DataType": {
       "summary": "Operations for task2DataType",
-      "description": "CRUD operations for data of type task2DataType",
+      "description": "Http operations for data of type task2DataType",
       "get": {
         "tags": [
           "FileData task2DataType"
@@ -2126,6 +2218,7 @@
             "content": {
               "application/octet-stream": {
                 "schema": {
+                  "type": "string",
                   "format": "binary"
                 }
               }
@@ -3746,6 +3839,7 @@
         "additionalProperties": false
       },
       "Skjema": {
+        "title": "requiresActionToWrite",
         "type": "object",
         "properties": {
           "melding": {
@@ -3923,6 +4017,68 @@
   "security": [
     {
       "AltinnToken": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Instances",
+      "description": "Operations on instances"
+    },
+    {
+      "name": "Static",
+      "description": "Static info about the application"
+    },
+    {
+      "name": "Authentication",
+      "description": "Operations for exchanging Maskinporten or ID-Porten tokens to Altinn tokens"
+    },
+    {
+      "name": "Options",
+      "description": "Operations for getting app options"
+    },
+    {
+      "name": "Validation",
+      "description": "Operations for validating"
+    },
+    {
+      "name": "FormData default",
+      "description": "Operations on data elements of type default"
+    },
+    {
+      "name": "FileData customElement",
+      "description": "Operations on data elements of type customElement"
+    },
+    {
+      "name": "FileData 9edd53de-f46f-40a1-bb4d-3efb93dc113d",
+      "description": "Operations on data elements of type 9edd53de-f46f-40a1-bb4d-3efb93dc113d"
+    },
+    {
+      "name": "FileData specificFileType",
+      "description": "Operations on data elements of type specificFileType"
+    },
+    {
+      "name": "FormData userInteractionUnspecified",
+      "description": "Operations on data elements of type userInteractionUnspecified"
+    },
+    {
+      "name": "FormData disallowUserCreate",
+      "description": "Operations on data elements of type disallowUserCreate"
+    },
+    {
+      "name": "FormData disallowUserDelete",
+      "description": "Operations on data elements of type disallowUserDelete"
+    },
+    {
+      "name": "FormData requiresActionToRead",
+      "description": "Operations on data elements of type requiresActionToRead"
+    },
+    {
+      "name": "FormData requiresActionToWrite",
+      "description": "Operations on data elements of type requiresActionToWrite"
+    },
+    {
+      "name": "FileData task2DataType",
+      "description": "Operations on data elements of type task2DataType"
     }
   ],
   "externalDocs": {

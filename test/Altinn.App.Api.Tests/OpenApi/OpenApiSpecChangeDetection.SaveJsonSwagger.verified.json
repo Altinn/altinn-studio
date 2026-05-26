@@ -10864,5 +10864,100 @@
         "additionalProperties": false
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "Actions"
+    },
+    {
+      "name": "ApplicationLanguage"
+    },
+    {
+      "name": "ApplicationMetadata"
+    },
+    {
+      "name": "ApplicationSettings"
+    },
+    {
+      "name": "Authentication"
+    },
+    {
+      "name": "Authorization"
+    },
+    {
+      "name": "Data"
+    },
+    {
+      "name": "DataLists"
+    },
+    {
+      "name": "DataTags"
+    },
+    {
+      "name": "EventsReceiver"
+    },
+    {
+      "name": "ExternalApi"
+    },
+    {
+      "name": "FileScan"
+    },
+    {
+      "name": "Home"
+    },
+    {
+      "name": "Instances"
+    },
+    {
+      "name": "LookupOrganisation"
+    },
+    {
+      "name": "LookupPerson"
+    },
+    {
+      "name": "Options"
+    },
+    {
+      "name": "Pages"
+    },
+    {
+      "name": "Parties"
+    },
+    {
+      "name": "Payment"
+    },
+    {
+      "name": "Pdf"
+    },
+    {
+      "name": "Process"
+    },
+    {
+      "name": "Profile"
+    },
+    {
+      "name": "Redirect"
+    },
+    {
+      "name": "Resource"
+    },
+    {
+      "name": "Signing"
+    },
+    {
+      "name": "StatelessData"
+    },
+    {
+      "name": "StatelessPages"
+    },
+    {
+      "name": "Texts"
+    },
+    {
+      "name": "UserDefinedMetadata"
+    },
+    {
+      "name": "Validate"
+    }
+  ]
 }
