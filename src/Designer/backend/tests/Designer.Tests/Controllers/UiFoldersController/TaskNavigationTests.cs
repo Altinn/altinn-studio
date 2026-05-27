@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Xunit;
@@ -19,7 +21,15 @@ public class TaskNavigationTests
     public TaskNavigationTests()
     {
         _uiFoldersServiceMock = new Mock<IUiFoldersService>();
-        _controller = new UiFoldersController(_uiFoldersServiceMock.Object);
+        var httpContext = new DefaultHttpContext
+        {
+            User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Name, "test-user")], "TestAuth")),
+        };
+
+        _controller = new UiFoldersController(_uiFoldersServiceMock.Object)
+        {
+            ControllerContext = new ControllerContext { HttpContext = httpContext },
+        };
     }
 
     [Fact]
