@@ -213,15 +213,87 @@ public class SourceControlService(
                 {
                     CredentialsProvider = self.GetCredentialsHandler(authenticatedContext),
                     CustomHeaders = self.GetAuthCustomHeaders(authenticatedContext),
+                    Prune = true,
                 };
 
                 foreach (Remote remote in repo.Network.Remotes)
                 {
                     IEnumerable<string> refSpecs = remote.FetchRefSpecs.Select(x => x.Specification);
-                    Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
+                    try
+                    {
+                        Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
+                    }
+                    catch (LibGit2SharpException ex)
+                    {
+                        // Libgit2 applies prune too late for branch shape changes like origin/develop/test -> origin/develop.
+                        // Remove only blocking stale remote-tracking refs before retrying fetch.
+                        if (!RemoveRemoteTrackingRefsBlockingFetch(repo, remote, ex))
+                        {
+                            throw;
+                        }
+
+                        Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
+                    }
                 }
             }
         );
+    }
+
+    private static bool RemoveRemoteTrackingRefsBlockingFetch(
+        LibGit2Sharp.Repository repo,
+        Remote remote,
+        LibGit2SharpException exception
+    )
+    {
+        const string CannotLockRefMessagePrefix = "cannot lock ref '";
+        int refNameStart = exception.Message.IndexOf(CannotLockRefMessagePrefix, StringComparison.Ordinal);
+        if (refNameStart < 0)
+        {
+            return false;
+        }
+
+        refNameStart += CannotLockRefMessagePrefix.Length;
+        int refNameEnd = exception.Message.IndexOf('\'', refNameStart);
+        if (refNameEnd < 0)
+        {
+            return false;
+        }
+
+        string blockedRef = exception.Message[refNameStart..refNameEnd];
+        string remoteTrackingPrefix = $"refs/remotes/{remote.Name}/";
+        if (!blockedRef.StartsWith(remoteTrackingPrefix, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        string staleChildRefPrefix = $"{blockedRef}/";
+        List<string> refsToRemove = repo
+            .Refs.Where(reference =>
+                reference.IsRemoteTrackingBranch
+                && reference.CanonicalName.StartsWith(staleChildRefPrefix, StringComparison.Ordinal)
+            )
+            .Select(reference => reference.CanonicalName)
+            .ToList();
+
+        for (
+            int slashIndex = blockedRef.LastIndexOf('/');
+            slashIndex > remoteTrackingPrefix.Length;
+            slashIndex = blockedRef.LastIndexOf('/', slashIndex - 1)
+        )
+        {
+            string staleParentRef = blockedRef[..slashIndex];
+            if (repo.Refs[staleParentRef]?.IsRemoteTrackingBranch == true)
+            {
+                refsToRemove.Add(staleParentRef);
+            }
+        }
+
+        foreach (string refToRemove in refsToRemove.Distinct())
+        {
+            repo.Refs.Remove(refToRemove);
+        }
+
+        return refsToRemove.Count > 0;
     }
 
     /// <inheritdoc/>
