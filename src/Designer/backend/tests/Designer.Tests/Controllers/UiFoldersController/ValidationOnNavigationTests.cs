@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Controllers;
@@ -20,9 +21,14 @@ public class ValidationOnNavigationTests
     {
         _uiFoldersServiceMock = new Mock<IUiFoldersService>();
 
+        var httpContext = new DefaultHttpContext
+        {
+            User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Name, "test-user")], "TestAuth")),
+        };
+
         _controller = new UiFoldersController(_uiFoldersServiceMock.Object)
         {
-            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() },
+            ControllerContext = new ControllerContext { HttpContext = httpContext },
         };
     }
 
