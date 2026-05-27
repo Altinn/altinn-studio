@@ -23,6 +23,7 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
         );
         var fixture = fixtureScope.Fixture;
         var verifier = fixture.ScopedVerifier;
+        await ResetScenario(fixture);
 
         string token = await fixture.Auth.GetUserToken(userId: 1337);
 
@@ -100,5 +101,120 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
                 sb.Clear();
                 sb.Append(scrubbed);
             });
+    }
+
+    [Fact]
+    public async Task RecoverCurrentTask_AfterAutoContinuedServiceTaskFailure_ResumesServiceTaskAndCompletesProcess()
+    {
+        await using var fixtureScope = await classFixture.Get(
+            output,
+            TestApps.Basic,
+            scenario: "workflow-engine-failure"
+        );
+        var fixture = fixtureScope.Fixture;
+        await ResetScenario(fixture);
+
+        string token = await fixture.Auth.GetUserToken(userId: 1337);
+
+        using AppFixture.ReadApiResponse<Instance> instance = await CreateInstance(fixture, token);
+        await PatchValidFormData(fixture, token, instance);
+
+        using var failedProcessNextResponse = await fixture.Instances.ProcessNext(token, instance);
+        using var failedProcessNext = await failedProcessNextResponse.Read<ProblemDetails>();
+
+        Assert.Equal(HttpStatusCode.InternalServerError, failedProcessNext.Response.StatusCode);
+        using JsonDocument failureDocument = JsonDocument.Parse(failedProcessNext.Data.Body!);
+        JsonElement failureRoot = failureDocument.RootElement;
+        Assert.Equal("StepFailed", failureRoot.GetProperty("workflowFailure").GetProperty("kind").GetString());
+        Assert.Equal(
+            "ExecuteServiceTask",
+            failureRoot.GetProperty("workflowFailure").GetProperty("stepOperationId").GetString()
+        );
+        Assert.Contains(
+            "Scenario service task failed permanently.",
+            failureRoot.GetProperty("workflowFailure").GetProperty("lastError").GetProperty("message").GetString()
+        );
+
+        using var instanceAfterFailureResponse = await fixture.Instances.Get(token, instance);
+        using var instanceAfterFailure = await instanceAfterFailureResponse.Read<Instance>();
+        Assert.Equal("Task_Service", instanceAfterFailure.Data.Model!.Process.CurrentTask!.ElementId);
+
+        using var blockedProcessNextResponse = await fixture.Instances.ProcessNext(token, instanceAfterFailure);
+        using var blockedProcessNext = await blockedProcessNextResponse.Read<ProblemDetails>();
+        Assert.Equal(HttpStatusCode.Conflict, blockedProcessNext.Response.StatusCode);
+        using JsonDocument blockedDocument = JsonDocument.Parse(blockedProcessNext.Data.Body!);
+        Assert.Equal("recoveryRequired", blockedDocument.RootElement.GetProperty("processNextState").GetString());
+
+        await AllowServiceTask(fixture);
+
+        using var recoverResponse = await fixture.Instances.RecoverCurrentTask(token, instanceAfterFailure);
+        using var recoveredProcessState = await recoverResponse.Read<AppProcessState>();
+        Assert.Equal(HttpStatusCode.OK, recoveredProcessState.Response.StatusCode);
+        Assert.Null(recoveredProcessState.Data.Model!.CurrentTask);
+        Assert.Equal("EndEvent_1", recoveredProcessState.Data.Model.EndEvent);
+
+        using var refreshedInstanceResponse = await fixture.Instances.Get(token, instanceAfterFailure);
+        using var refreshedInstance = await refreshedInstanceResponse.Read<Instance>();
+        Assert.Null(refreshedInstance.Data.Model!.Process.CurrentTask);
+        Assert.Equal("EndEvent_1", refreshedInstance.Data.Model.Process.EndEvent);
+    }
+
+    private static async Task<AppFixture.ReadApiResponse<Instance>> CreateInstance(AppFixture fixture, string token)
+    {
+        using var instantiationResponse = await fixture.Instances.PostSimplified(
+            token,
+            new InstansiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
+        );
+        var readInstantiationResponse = await instantiationResponse.Read<Instance>();
+        Assert.Equal(HttpStatusCode.Created, readInstantiationResponse.Response.StatusCode);
+        Assert.Equal("Task_1", readInstantiationResponse.Data.Model!.Process.CurrentTask!.ElementId);
+        return readInstantiationResponse;
+    }
+
+    private static async Task PatchValidFormData(
+        AppFixture fixture,
+        string token,
+        AppFixture.ReadApiResponse<Instance> instance
+    )
+    {
+        Guid dataElementId = Guid.Parse(instance.Data.Model!.Data.Single(d => d.DataType == "model").Id);
+        using var patchResponse = await fixture.Instances.PatchFormData(
+            token,
+            instance,
+            new DataPatchRequestMultiple
+            {
+                Patches =
+                [
+                    new(
+                        dataElementId,
+                        new Json.Patch.JsonPatch(
+                            Json.Patch.PatchOperation.Replace(
+                                Json.Pointer.JsonPointer.Create("property1"),
+                                JsonNode.Parse("\"2\"")
+                            ),
+                            Json.Patch.PatchOperation.Replace(
+                                Json.Pointer.JsonPointer.Create("property2"),
+                                JsonNode.Parse("\"2\"")
+                            )
+                        )
+                    ),
+                ],
+                IgnoredValidators = null,
+            }
+        );
+        using var readPatchResponse = await patchResponse.Read<DataPatchResponseMultiple>();
+        Assert.Equal(HttpStatusCode.OK, readPatchResponse.Response.StatusCode);
+    }
+
+    private static Task ResetScenario(AppFixture fixture) =>
+        PostScenarioEndpoint(fixture, "/test/workflow-engine-failure/reset");
+
+    private static Task AllowServiceTask(AppFixture fixture) =>
+        PostScenarioEndpoint(fixture, "/test/workflow-engine-failure/allow-service-task");
+
+    private static async Task PostScenarioEndpoint(AppFixture fixture, string path)
+    {
+        using var response = await fixture.GetDirectAppClient().PostAsync(path, null);
+        response.EnsureSuccessStatusCode();
     }
 }
