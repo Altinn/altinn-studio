@@ -1,0 +1,97 @@
+using System.Threading;
+using System.Threading.Tasks;
+using Altinn.Studio.Designer.Controllers;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Services.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+using Moq;
+using Xunit;
+
+namespace Altinn.Studio.Designer.Tests.Controllers;
+
+public class ValidationOnNavigationTests
+{
+    private readonly Mock<IUiFoldersService> _uiFoldersServiceMock;
+    private readonly UiFoldersController _controller;
+
+    public ValidationOnNavigationTests()
+    {
+        _uiFoldersServiceMock = new Mock<IUiFoldersService>();
+        _controller = new UiFoldersController(_uiFoldersServiceMock.Object);
+    }
+
+    [Fact]
+    public async Task GetGlobalValidationOnNavigation_ReturnsOkWithConfig()
+    {
+        // Arrange
+        var expectedConfig = new ValidationOnNavigation { Page = "current", Show = ["Expression", "Schema"] };
+        _uiFoldersServiceMock
+            .Setup(s =>
+                s.GetGlobalValidationOnNavigation(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(expectedConfig);
+
+        // Act
+        IActionResult result = await _controller.GetGlobalValidationOnNavigation("ttd", "app", CancellationToken.None);
+
+        // Assert
+        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
+        Assert.Equal(expectedConfig, okResult.Value);
+    }
+
+    [Fact]
+    public async Task SaveGlobalValidationOnNavigation_ReturnsOk()
+    {
+        // Arrange
+        var config = new ValidationOnNavigation { Page = "current", Show = ["Expression"] };
+        _uiFoldersServiceMock
+            .Setup(s =>
+                s.SaveGlobalValidationOnNavigation(
+                    It.IsAny<AltinnRepoEditingContext>(),
+                    config,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.CompletedTask)
+            .Verifiable();
+
+        // Act
+        IActionResult result = await _controller.SaveGlobalValidationOnNavigation(
+            "ttd",
+            "app",
+            config,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.IsType<OkResult>(result);
+        _uiFoldersServiceMock.Verify();
+    }
+
+    [Fact]
+    public async Task DeleteGlobalValidationOnNavigation_ReturnsOk()
+    {
+        // Arrange
+        _uiFoldersServiceMock
+            .Setup(s =>
+                s.SaveGlobalValidationOnNavigation(
+                    It.IsAny<AltinnRepoEditingContext>(),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.CompletedTask)
+            .Verifiable();
+
+        // Act
+        IActionResult result = await _controller.DeleteGlobalValidationOnNavigation(
+            "ttd",
+            "app",
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.IsType<OkResult>(result);
+        _uiFoldersServiceMock.Verify();
+    }
+}
