@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import type { MutableRefObject } from 'react';
 import type { ChatThread, UserMessage, AssistantMessage, Message } from '@studio/assistant';
 import { MessageAuthor } from '@studio/assistant';
+import type { ChatMessage } from 'app-shared/types/api';
 import { useChatThreadsQuery } from 'app-shared/hooks/queries/useChatThreadsQuery';
 import { useCreateChatThreadMutation } from 'app-shared/hooks/mutations/useCreateChatThreadMutation';
 import { useDeleteChatThreadMutation } from 'app-shared/hooks/mutations/useDeleteChatThreadMutation';
@@ -19,7 +20,10 @@ export interface AltinityThreadState {
   createThread: (title: string) => Promise<string>;
   deleteThread: (threadId: string) => void;
   deleteMessage: (threadId: string, messageId: string) => void;
-  createMessage: (threadId: string, message: UserMessage | AssistantMessage) => void;
+  createMessage: (
+    threadId: string,
+    message: UserMessage | AssistantMessage,
+  ) => Promise<ChatMessage>;
 }
 
 export const useAltinityThreads = (): AltinityThreadState => {
@@ -31,7 +35,7 @@ export const useAltinityThreads = (): AltinityThreadState => {
   const { mutate: deleteChatThread } = useDeleteChatThreadMutation();
 
   const { data: chatMessages } = useChatMessagesQuery(currentSessionId);
-  const { mutate: createChatMessage } = useCreateChatMessageMutation();
+  const { mutateAsync: createChatMessage } = useCreateChatMessageMutation();
   const { mutate: deleteChatMessage } = useDeleteChatMessageMutation();
 
   const setCurrentSession = useCallback((sessionId: string | null) => {
@@ -68,9 +72,9 @@ export const useAltinityThreads = (): AltinityThreadState => {
   );
 
   const createMessage = useCallback(
-    (threadId: string, message: UserMessage | AssistantMessage) => {
+    (threadId: string, message: UserMessage | AssistantMessage): Promise<ChatMessage> => {
       const isUser = message.role === MessageAuthor.User;
-      createChatMessage({
+      return createChatMessage({
         threadId,
         payload: {
           role: message.role,

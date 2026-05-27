@@ -8,6 +8,12 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.10] - 2026-05-22
+
+### Changed
+
+- Update localtest image.
+
 ### Fixed
 
 - Fix Windows PowerShell installer architecture detection.

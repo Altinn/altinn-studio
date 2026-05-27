@@ -17,6 +17,17 @@ export type AssistantTexts = {
   send: string;
   cancel: string;
   assistantFirstMessage: string;
+  feedback: MessageFeedbackTexts;
+};
+
+export type MessageFeedbackTexts = {
+  thumbsUp: string;
+  thumbsDown: string;
+  heading: string;
+  detailsLabel: string;
+  detailsOptionalTag: string;
+  submit: string;
+  cancel: string;
 };
 
 export type AboutAssistantDialogTexts = {

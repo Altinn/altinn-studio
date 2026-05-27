@@ -2,10 +2,41 @@ package podman
 
 import (
 	"errors"
+	"slices"
 	"testing"
 
 	"altinn.studio/devenv/pkg/container/types"
 )
+
+func TestBuildCreateArgs_UserNamespaceAndRelabelBind(t *testing.T) {
+	t.Parallel()
+
+	args := buildCreateArgs(types.ContainerConfig{
+		Name:       "localtest",
+		Image:      "alpine",
+		User:       "1000:1000",
+		UsernsMode: "keep-id",
+		Volumes: []types.VolumeMount{{
+			HostPath:       "/tmp/config.sql",
+			ContainerPath:  "/docker-entrypoint-initdb.d/01-tuning.sql",
+			Type:           types.VolumeMountTypeBind,
+			SELinuxRelabel: types.SELinuxRelabelShared,
+			ReadOnly:       true,
+		}},
+	})
+
+	for _, want := range []string{
+		"/tmp/config.sql:/docker-entrypoint-initdb.d/01-tuning.sql:ro,z",
+		"--userns",
+		"keep-id",
+		"--user",
+		"1000:1000",
+	} {
+		if !slices.Contains(args, want) {
+			t.Fatalf("buildCreateArgs() missing %q in %#v", want, args)
+		}
+	}
+}
 
 func TestParseContainerInspect_ImageIDUsesImageNotDigest(t *testing.T) {
 	t.Parallel()
