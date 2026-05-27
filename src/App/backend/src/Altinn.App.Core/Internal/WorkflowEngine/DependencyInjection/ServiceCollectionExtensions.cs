@@ -24,19 +24,16 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<IWorkflowEngineCommand, CommonTaskInitialization>();
         services.AddTransient<IWorkflowEngineCommand, StartTask>();
         services.AddTransient<IWorkflowEngineCommand, OnTaskStartingHook>();
-        services.AddTransient<IWorkflowEngineCommand, StartTaskLegacyHook>();
         services.AddTransient<IWorkflowEngineCommand, UnlockTaskData>();
 
         // Process engine callback handlers - TaskAbandon
         services.AddTransient<IWorkflowEngineCommand, AbandonTask>();
         services.AddTransient<IWorkflowEngineCommand, OnTaskAbandonHook>();
-        services.AddTransient<IWorkflowEngineCommand, AbandonTaskLegacyHook>();
 
         // Process engine callback handlers - TaskEnd
         services.AddTransient<IWorkflowEngineCommand, CommonTaskFinalization>();
         services.AddTransient<IWorkflowEngineCommand, EndTask>();
         services.AddTransient<IWorkflowEngineCommand, OnTaskEndingHook>();
-        services.AddTransient<IWorkflowEngineCommand, EndTaskLegacyHook>();
         services.AddTransient<IWorkflowEngineCommand, LockTaskData>();
 
         // Process engine callback handlers - ServiceTask

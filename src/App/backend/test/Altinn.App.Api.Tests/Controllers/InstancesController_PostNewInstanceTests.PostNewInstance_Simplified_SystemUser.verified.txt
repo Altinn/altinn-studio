@@ -30,16 +30,6 @@
       IdFormat: W3C,
       Tags: [
         {
-          numberOfChangedDataElements: 0
-        }
-      ],
-      HasParent: true
-    },
-    {
-      Name: InstanceDataAccessor.SaveChanges,
-      IdFormat: W3C,
-      Tags: [
-        {
           numberOfChangedDataElements: 1
         }
       ],
@@ -196,20 +186,6 @@
         },
         {
           process.callback.command: UnlockTaskData
-        }
-      ],
-      HasParent: true
-    },
-    {
-      Name: Process.Callback,
-      IdFormat: W3C,
-      Status: Ok,
-      Tags: [
-        {
-          instance.guid: Guid_4
-        },
-        {
-          process.callback.command: StartTaskLegacyHook
         }
       ],
       HasParent: true

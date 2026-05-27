@@ -1356,22 +1356,6 @@ namespace Altinn.App.Core.Features
         System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.SequenceFlow>> FilterAsync(System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.SequenceFlow> outgoingFlows, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Models.Process.ProcessGatewayInformation processGatewayInformation);
         System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.SequenceFlow>> FilterAsync(System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.SequenceFlow> outgoingFlows, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Models.Process.ProcessGatewayInformation processGatewayInformation);
     }
-    public interface IProcessTaskAbandon
-    {
-        System.Threading.Tasks.Task Abandon(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance);
-    }
-    [System.Obsolete("Use IOnTaskEndingHandler hook interface instead. This interface will be removed i" +
-        "n a future release.")]
-    public interface IProcessTaskEnd
-    {
-        System.Threading.Tasks.Task End(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance);
-    }
-    [System.Obsolete("Use IOnTaskStartingHandler hook interface instead. This interface will be removed" +
-        " in a future release.")]
-    public interface IProcessTaskStart
-    {
-        System.Threading.Tasks.Task Start(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance, System.Collections.Generic.Dictionary<string, string>? prefill);
-    }
     public interface ISmsNotificationClient
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Models.Notifications.Sms.SmsOrderResponse> Order(Altinn.App.Core.Models.Notifications.Sms.SmsNotification smsNotification, System.Threading.CancellationToken ct);

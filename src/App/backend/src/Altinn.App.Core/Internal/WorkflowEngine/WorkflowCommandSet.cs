@@ -34,7 +34,6 @@ internal sealed class WorkflowCommandSet
     {
         var group = new WorkflowCommandSet()
             .AddCommand(UnlockTaskData.Key)
-            .AddCommand(StartTaskLegacyHook.Key, new StartTaskLegacyHookPayload(context.Prefill))
             .AddCommand(OnTaskStartingHook.Key)
             .AddCommand(CommonTaskInitialization.Key, new CommonTaskInitializationPayload(context.Prefill))
             .AddCommand(StartTask.Key);
@@ -76,7 +75,6 @@ internal sealed class WorkflowCommandSet
         return new WorkflowCommandSet()
             .AddCommand(EndTask.Key)
             .AddCommand(CommonTaskFinalization.Key)
-            .AddCommand(EndTaskLegacyHook.Key)
             .AddCommand(OnTaskEndingHook.Key)
             .AddCommand(LockTaskData.Key);
     }
@@ -86,10 +84,7 @@ internal sealed class WorkflowCommandSet
     /// </summary>
     public static WorkflowCommandSet GetTaskAbandonSteps()
     {
-        return new WorkflowCommandSet()
-            .AddCommand(AbandonTask.Key)
-            .AddCommand(OnTaskAbandonHook.Key)
-            .AddCommand(AbandonTaskLegacyHook.Key);
+        return new WorkflowCommandSet().AddCommand(AbandonTask.Key).AddCommand(OnTaskAbandonHook.Key);
     }
 
     /// <summary>

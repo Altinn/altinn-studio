@@ -268,14 +268,12 @@ public class ProcessNextRequestFactoryTests
             // Task end commands
             EndTask.Key,
             CommonTaskFinalization.Key,
-            EndTaskLegacyHook.Key,
             OnTaskEndingHook.Key,
             LockTaskData.Key,
             // MutateProcessState (between end and start)
             MutateProcessState.Key,
             // Task start commands
             UnlockTaskData.Key,
-            StartTaskLegacyHook.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
             StartTask.Key,
@@ -304,7 +302,6 @@ public class ProcessNextRequestFactoryTests
             // Task end commands
             EndTask.Key,
             CommonTaskFinalization.Key,
-            EndTaskLegacyHook.Key,
             OnTaskEndingHook.Key,
             LockTaskData.Key,
             // MutateProcessState
@@ -342,7 +339,6 @@ public class ProcessNextRequestFactoryTests
         {
             // Task start commands only
             UnlockTaskData.Key,
-            StartTaskLegacyHook.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
             StartTask.Key,
@@ -388,12 +384,10 @@ public class ProcessNextRequestFactoryTests
             // Abandon commands
             AbandonTask.Key,
             OnTaskAbandonHook.Key,
-            AbandonTaskLegacyHook.Key,
             // MutateProcessState
             MutateProcessState.Key,
             // Task start commands
             UnlockTaskData.Key,
-            StartTaskLegacyHook.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
             StartTask.Key,

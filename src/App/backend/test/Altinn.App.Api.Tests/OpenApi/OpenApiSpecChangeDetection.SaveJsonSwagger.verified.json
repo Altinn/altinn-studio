@@ -5144,6 +5144,144 @@
         }
       }
     },
+    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/start": {
+      "post": {
+        "tags": [
+          "Process"
+        ],
+        "summary": "Starts the process of an instance.",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "description": "unique identifier of the organisation responsible for the app",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "description": "application identifier which is unique within an organisation",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "instanceOwnerPartyId",
+            "in": "path",
+            "description": "unique id of the party that is the owner of the instance",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "instanceGuid",
+            "in": "path",
+            "description": "unique id to identify the instance",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "startEvent",
+            "in": "query",
+            "description": "a specific start event id to start the process, must be used if there are more than one start events",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppProcessState"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppProcessState"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppProcessState"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/next": {
       "get": {
         "tags": [
@@ -7745,7 +7883,38 @@
         ],
         "type": "object",
         "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
           "userIdOrOrgNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "orgId": {
+            "type": "string",
+            "nullable": true
+          },
+          "authenticationLevel": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "nationalIdentityNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "systemUserId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "systemUserOwnerOrgNo": {
+            "type": "string",
+            "nullable": true
+          },
+          "systemUserName": {
             "type": "string",
             "nullable": true
           },

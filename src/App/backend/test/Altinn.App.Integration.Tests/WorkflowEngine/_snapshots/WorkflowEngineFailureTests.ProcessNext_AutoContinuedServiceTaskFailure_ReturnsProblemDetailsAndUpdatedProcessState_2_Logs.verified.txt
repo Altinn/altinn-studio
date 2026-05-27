@@ -1,7 +1,7 @@
 ﻿[basic/workflow-engine-failure] [INFO] ### Request: Instances.PostSimplified - User: User/1337/501337, AuthLevel: 2, AuthMethod: BankID
 [basic/workflow-engine-failure] [INFO] IInstantiationValidator.Validate
-[basic/workflow-engine-failure] [INFO] IProcessTaskStart.Start
 [basic/workflow-engine-failure] [INFO] IInstantiationProcessor.DataCreation
+[basic/workflow-engine-failure] [INFO] IProcessTask.Start
 [basic/workflow-engine-failure] [INFO] ### Response: Instances.PostSimplified - CreatedResult, StatusCode: 201
 [basic/workflow-engine-failure] [INFO] ### Request: Data.PatchFormDataMultiple - User: User/1337/501337, AuthLevel: 2, AuthMethod: BankID
 [basic/workflow-engine-failure] [INFO] IDataProcessor.ProcessDataWrite
@@ -16,8 +16,7 @@
 [basic/workflow-engine-failure] [INFO] ITaskValidator.ValidateTask
 [basic/workflow-engine-failure] [INFO] IDataElementValidator.ValidateDataElement
 [basic/workflow-engine-failure] [INFO] IFormDataValidator.ValidateFormData
-[basic/workflow-engine-failure] [INFO] IProcessTaskEnd.End
-[basic/workflow-engine-failure] [INFO] IProcessTaskStart.Start
+[basic/workflow-engine-failure] [INFO] IProcessTask.End
 fail: Altinn.App.Api.Controllers.WorkflowEngineCallbackController[0]
       Callback handler failed. CommandKey: ExecuteServiceTask, Instance: 501337/<instanceGuid>, Task: Task_Service, Error: Service task 'failing-service' failed: Scenario service task failed permanently., ExceptionType: ServiceTaskFailedException
 [basic/workflow-engine-failure] [INFO] ### Response: Process.NextElement - ObjectResult, StatusCode: 500

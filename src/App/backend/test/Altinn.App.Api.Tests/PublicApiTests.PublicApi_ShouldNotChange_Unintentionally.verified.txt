@@ -734,7 +734,7 @@ namespace Altinn.App.Api.Controllers
     {
         public WorkflowEngineCallbackController(System.IServiceProvider serviceProvider, Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.WorkflowEngineCallbackController> logger, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
         [Microsoft.AspNetCore.Mvc.HttpPost("{commandKey}")]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> ExecuteCommand([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] string commandKey, [Microsoft.AspNetCore.Mvc.FromBody] Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.AppCallbackPayload payload, System.Threading.CancellationToken cancellationToken) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> ExecuteCommand([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] string commandKey, [Microsoft.AspNetCore.Mvc.FromBody] Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.AppCallbackPayload payload, System.Threading.CancellationToken ct) { }
     }
 }
 namespace Altinn.App.Api.Controllers.Conventions

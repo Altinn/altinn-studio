@@ -1,7 +1,7 @@
 ﻿[basic/default] [INFO] ### Request: Instances.PostSimplified - User: ServiceOwner/405003309, AuthLevel: 3, AuthMethod: localtest
 [basic/default] [INFO] IInstantiationValidator.Validate
-[basic/default] [INFO] IProcessTaskStart.Start
 [basic/default] [INFO] IInstantiationProcessor.DataCreation
+[basic/default] [INFO] IProcessTask.Start
 [basic/default] [INFO] ### Response: Instances.PostSimplified - CreatedResult, StatusCode: 201
 [basic/default] [INFO] ### Request: Instances.Get - User: ServiceOwner/405003309, AuthLevel: 3, AuthMethod: localtest
 [basic/default] [INFO] ### Response: Instances.Get - OkObjectResult, StatusCode: 200
@@ -23,7 +23,7 @@
 [basic/default] [INFO] ITaskValidator.ValidateTask
 [basic/default] [INFO] IDataElementValidator.ValidateDataElement
 [basic/default] [INFO] IFormDataValidator.ValidateFormData
-[basic/default] [INFO] IProcessTaskEnd.End
+[basic/default] [INFO] IProcessTask.End
 [basic/default] [INFO] IProcessEnd.End
 [basic/default] [INFO] ### Response: Process.NextElement - OkObjectResult, StatusCode: 200
 [basic/default] [INFO] ### Request: Instances.Get - User: ServiceOwner/405003309, AuthLevel: 3, AuthMethod: localtest
