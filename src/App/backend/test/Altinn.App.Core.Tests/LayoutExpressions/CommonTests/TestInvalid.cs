@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Altinn.App.Core.Internal.Expressions;
-using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
@@ -54,11 +53,7 @@ public class TestInvalid
                 test.FrontEndSettings ?? new()
             );
 
-            await ExpressionEvaluator.EvaluateExpression(
-                state,
-                (Expression)test.Expression!,
-                await test.GetContextOrNull(state)
-            );
+            await ExpressionEvaluator.EvaluateExpression(state, test.Expression, await test.GetContextOrNull(state));
         };
         (await act.Should().ThrowAsync<Exception>()).WithMessage(testCase.ExpectsFailure + "*");
     }

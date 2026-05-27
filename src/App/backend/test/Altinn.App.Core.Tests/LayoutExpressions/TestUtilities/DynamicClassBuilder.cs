@@ -109,23 +109,13 @@ public class DynamicClassBuilder
 
     private static Type GetArrayType(JsonElement arrayElement, string propertyName, ModuleBuilder moduleBuilder)
     {
-        if (arrayElement.GetArrayLength() == 0 || HasDifferentTypes(arrayElement))
+        if (arrayElement.GetArrayLength() == 0)
         {
             return typeof(object);
         }
 
         var firstElement = arrayElement[0];
         return GetTypeFromJsonElement(firstElement, propertyName + "Item", moduleBuilder);
-    }
-
-    private static bool HasDifferentTypes(JsonElement arrayElement)
-    {
-        if (arrayElement.GetArrayLength() == 0)
-        {
-            return false;
-        }
-        var types = arrayElement.EnumerateArray().Select(element => element.ValueKind).ToArray();
-        return types.Distinct().Count() > 1;
     }
 
     private static readonly JsonSerializerOptions _options = new JsonSerializerOptions()

@@ -90,6 +90,7 @@ public class EqualTests(ITestOutputHelper outputHelper)
         new()
         {
             new BigInteger(123), // Not supported by JsonSerializer, but might make sense to support
+            new object[] { 1, 2, 3 },
             new object(),
             new
             {
@@ -97,6 +98,7 @@ public class EqualTests(ITestOutputHelper outputHelper)
                 B = 2,
                 C = 3,
             },
+            new byte[] { 0x01, 0x02, 0x03 },
         };
 
     [Theory]
