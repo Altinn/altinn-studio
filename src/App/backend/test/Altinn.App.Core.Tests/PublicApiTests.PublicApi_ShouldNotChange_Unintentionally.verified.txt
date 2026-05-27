@@ -3242,7 +3242,6 @@ namespace Altinn.App.Core.Internal.Expressions
     public readonly struct ExpressionValue : System.IEquatable<Altinn.App.Core.Internal.Expressions.ExpressionValue>
     {
         public ExpressionValue() { }
-        public ExpressionValue(Altinn.App.Core.Internal.Expressions.ExpressionValue[]? value) { }
         public Altinn.App.Core.Internal.Expressions.ExpressionValue[] Array { get; }
         public bool Bool { get; }
         public double Number { get; }

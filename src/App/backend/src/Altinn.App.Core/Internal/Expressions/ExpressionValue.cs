@@ -90,8 +90,7 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
     //     _objectValue = value;
     // }
 
-    /// <summary>Constructor for array value</summary>
-    public ExpressionValue(ExpressionValue[]? value)
+    private ExpressionValue(ExpressionValue[]? value)
     {
         ValueKind = value is null ? JsonValueKind.Null : JsonValueKind.Array;
         _arrayValue = value;
@@ -174,7 +173,7 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
                     '"'
                 ) // Trim quotes to match the string representation
             ,
-            IEnumerable enumerableValue => enumerableValue.Cast<object>().Select(FromObject).ToArray(),
+            IEnumerable enumerableValue => enumerableValue.Cast<object?>().Select(FromObject).ToArray(),
             JsonElement jsonElement => FromObject(JsonElementToObject(jsonElement)),
             _ => Null,
         };
@@ -638,23 +637,16 @@ internal class ExpressionTypeUnionConverter : JsonConverter<ExpressionValue>
             JsonTokenType.Number => reader.GetDouble(),
             JsonTokenType.Null => ExpressionValue.Null,
             // JsonTokenType.StartObject => ReadObject(ref reader),
-            JsonTokenType.StartArray => ReadArray(ref reader, options),
+            // JsonTokenType.StartArray => ReadArray(ref reader),
             _ => throw new JsonException(),
         };
     }
 
-    private static ExpressionValue ReadArray(ref Utf8JsonReader reader, JsonSerializerOptions options)
-    {
-        if (reader.TokenType != JsonTokenType.StartArray)
-        {
-            throw new JsonException("Expected StartArray token.");
-        }
-        var values =
-            JsonSerializer.Deserialize<List<ExpressionValue>>(ref reader, options)
-            ?? throw new JsonException("Expected EndArray token.");
-        return new ExpressionValue(values.ToArray());
-    }
-
+    // private ExpressionValue ReadArray(ref Utf8JsonReader reader)
+    // {
+    //     throw new NotImplementedException();
+    // }
+    //
     // private ExpressionValue ReadObject(ref Utf8JsonReader reader)
     // {
     //     throw new NotImplementedException();
