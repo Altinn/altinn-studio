@@ -7,12 +7,16 @@ import { Preview } from './components/Preview';
 import { FileBrowser } from './components/FileBrowser';
 import classes from './AiAssistant.module.css';
 import { useUserQuery } from 'app-shared/hooks/queries';
+import { useChatFeedbackMutation } from 'app-shared/hooks/mutations/useChatFeedbackMutation';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioCenter, StudioAlert, StudioParagraph } from '@studio/components';
 
 function AiAssistant(): ReactElement {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
   const { data: currentUser } = useUserQuery();
   const userHasAccessToAssistant = useAltinityPermissions();
+  const { mutate: sendChatFeedback } = useChatFeedbackMutation(org, app);
 
   const {
     connectionStatus,
@@ -69,6 +73,15 @@ function AiAssistant(): ReactElement {
     send: t('ai_assistant.send'),
     cancel: 'Avbryt',
     assistantFirstMessage: t('ai_assistant.assistant_first_message'),
+    feedback: {
+      thumbsUp: t('ai_assistant.feedback_thumbs_up'),
+      thumbsDown: t('ai_assistant.feedback_thumbs_down'),
+      heading: t('ai_assistant.feedback_heading'),
+      detailsLabel: t('ai_assistant.feedback_details_label'),
+      detailsOptionalTag: t('general.optional'),
+      submit: t('ai_assistant.feedback_submit'),
+      cancel: t('general.cancel'),
+    },
   };
 
   if (!userHasAccessToAssistant) {
@@ -96,6 +109,7 @@ function AiAssistant(): ReactElement {
         onSelectThread={selectThread}
         onCreateThread={clearCurrentSession}
         onDeleteThread={deleteThread}
+        onMessageFeedback={sendChatFeedback}
         connectionStatus={connectionStatus}
         workflowStatus={workflowStatus}
         previewContent={<Preview />}
