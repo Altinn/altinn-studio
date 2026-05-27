@@ -39,7 +39,7 @@ public class UiFoldersController : Controller
     public async Task<IActionResult> GetLayoutSetsExtended(string org, string app, CancellationToken cancellationToken)
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        IEnumerable<string> uiFolders = await _uiFoldersService.GetLayoutSetsExtended(
+        IEnumerable<LayoutSetDto> uiFolders = await _uiFoldersService.GetLayoutSetsExtended(
             editingContext,
             cancellationToken
         );

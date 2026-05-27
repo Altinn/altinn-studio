@@ -8,7 +8,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 
 public interface IUiFoldersService
 {
-    public Task<List<LayoutSetModel>> GetLayoutSetsExtended(
+    public Task<IEnumerable<LayoutSetDto>> GetLayoutSetsExtended(
         AltinnRepoEditingContext context,
         CancellationToken cancellationToken
     );

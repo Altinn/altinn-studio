@@ -18,21 +18,20 @@ public class UiFoldersService : IUiFoldersService
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
     }
 
-    public async Task<List<LayoutSetModel>> GetLayoutSetsExtended(
+    private AltinnAppGitRepository GetRepository(AltinnRepoEditingContext context) =>
+        _altinnGitRepositoryFactory.GetAltinnAppGitRepository(context.Org, context.Repo, context.Developer);
+
+    public async Task<IEnumerable<LayoutSetDto>> GetLayoutSetsExtended(
         AltinnRepoEditingContext altinnRepoEditingContext,
         CancellationToken cancellationToken
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-            altinnRepoEditingContext.Org,
-            altinnRepoEditingContext.Repo,
-            altinnRepoEditingContext.Developer
-        );
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(altinnRepoEditingContext);
 
         IEnumerable<string> uiFolders = await altinnAppGitRepository.GetUiFolders(cancellationToken);
         Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
-        // if uiFolder in UiFolders exists in defintions ids, keep it.
+        // if uiFolder in UiFolders exists in defintions ids or is a subform, keep it.
 
         foreach (string uiFolder in uiFolders)
         {
@@ -42,46 +41,54 @@ public class UiFoldersService : IUiFoldersService
             }
         }
 
-        // Get `defaultDataType` in Settings.json file in each ui folder, and `type` if it is subform
-
         List<LayoutSetModel> layoutSetsModel = new();
 
-        uiFolders
-            .ToList()
-            .ForEach(layoutSetName =>
+        foreach (string layoutSetName in uiFolders.ToList())
+        {
+            //se på try-catch metoden
+            try
             {
+                LayoutSettings layoutSettings = await altinnAppGitRepository.GetLayoutSettings(layoutSetName, cancellationToken);
+                string taskType = TaskTypeFromDefinitions(definitions, layoutSetName);
                 LayoutSetModel layoutSetModel = new()
                 {
-                    Id = layoutSetName, // Ui folder name
-                    // DataType = //get defaultDataType from settings.json file in the ui folder
-                    // Type = set.Type, // Settes hvis det er subform, hvor skal vi hente det nå?
+                    Id = layoutSetName,
+                    DataType = layoutSettings?.DataType,
+                    Type = layoutSettings?.Type,
+                    Task = new TaskModel { Type = taskType },
                 };
-                string taskType = TaskTypeFromDefinitions(definitions, layoutSetName);
-                layoutSetModel.Task = new TaskModel { Id = layoutSetName, Type = taskType };
                 layoutSetsModel.Add(layoutSetModel);
-            });
+            }
+            catch (System.IO.FileNotFoundException)
+            {
+                // If layout settings file is not found, we can ignore and continue with next layout set.
+                continue;
+            }
+        }
+        IEnumerable<LayoutSetDto> layoutSetDtoList = (await GetLayoutSetsDto(altinnRepoEditingContext, layoutSetsModel, cancellationToken)).ToList();
 
-        // LayoutSetsModel layoutSetsModel = new();
+        return layoutSetDtoList;
+    }
 
-        // uiFolders.ToList().ForEach(
+    public async Task<IEnumerable<LayoutSetDto>> GetLayoutSetsDto(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        IEnumerable<LayoutSetModel> layoutSetModels,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(altinnRepoEditingContext);
 
-        // uiFolders.ForEach(set =>
-        // {
-        //     LayoutSetModel layoutSetModel = new()
-        //     {
-        //         Id = set.Id, // Ui folder name
-        //         DataType = set.DataType, // new name: "defaultDataType" in the specific settings.json file
-        //         Type = set.Type, // Settes hvis det er subform, hvor skal vi hente det nå?
-        //     };
-        //     string? taskId = set.Tasks?[0];
-        //     if (taskId != null)
-        //     {
-        //         string taskType = TaskTypeFromDefinitions(definitions, taskId);
-        //         layoutSetModel.Task = new TaskModel { Id = taskId, Type = taskType };
-        //     }
-        //     layoutSetsModel.Sets.Add(layoutSetModel);
-        // });
-        return layoutSetsModel;
+        return await Task.WhenAll(
+            layoutSetModels.Select(async (layoutSet) =>
+            {
+                LayoutSetDto layoutSetDto = layoutSet.ToDto();
+                LayoutSettings layoutSettings = await altinnAppGitRepository.GetLayoutSettings(layoutSet.Id, cancellationToken);
+                PagesDto pages = PagesDto.From(layoutSettings);
+                layoutSetDto.PageCount =
+                    pages.Groups != null ? pages.Groups.Sum(group => group.Pages.Count) : pages.Pages!.Count;
+                return layoutSetDto;
+            })
+        );
     }
 
     private static string TaskTypeFromDefinitions(Definitions definitions, string taskId)
@@ -98,11 +105,7 @@ public class UiFoldersService : IUiFoldersService
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-            altinnRepoEditingContext.Org,
-            altinnRepoEditingContext.Repo,
-            altinnRepoEditingContext.Developer
-        );
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(altinnRepoEditingContext);
 
         UiSettings globalSettingsFile = await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken);
         return globalSettingsFile?.ValidationOnNavigation;
@@ -115,11 +118,7 @@ public class UiFoldersService : IUiFoldersService
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-            altinnRepoEditingContext.Org,
-            altinnRepoEditingContext.Repo,
-            altinnRepoEditingContext.Developer
-        );
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(altinnRepoEditingContext);
 
         UiSettings globalSettingsFile = await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken);
         globalSettingsFile ??= new UiSettings();
@@ -154,11 +153,7 @@ public class UiFoldersService : IUiFoldersService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-            altinnRepoEditingContext.Org,
-            altinnRepoEditingContext.Repo,
-            altinnRepoEditingContext.Developer
-        );
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(altinnRepoEditingContext);
 
         UiSettings globalSettingsFile = await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken);
         return globalSettingsFile?.TaskNavigation?.ToList() ?? [];
@@ -170,11 +165,7 @@ public class UiFoldersService : IUiFoldersService
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-            altinnRepoEditingContext.Org,
-            altinnRepoEditingContext.Repo,
-            altinnRepoEditingContext.Developer
-        );
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(altinnRepoEditingContext);
 
         Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
         return definitions.Process.Tasks;
@@ -188,11 +179,7 @@ public class UiFoldersService : IUiFoldersService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-            altinnRepoEditingContext.Org,
-            altinnRepoEditingContext.Repo,
-            altinnRepoEditingContext.Developer
-        );
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(altinnRepoEditingContext);
 
         IEnumerable<TaskNavigationGroup> taskNavigationGroupList = taskNavigationGroupDtoList.Select(x => x.ToDomain());
 
