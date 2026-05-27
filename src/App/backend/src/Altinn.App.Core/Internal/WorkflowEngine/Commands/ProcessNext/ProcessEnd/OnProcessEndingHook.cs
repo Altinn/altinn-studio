@@ -28,8 +28,9 @@ internal sealed class OnProcessEndingHook : IWorkflowEngineCommand
 
         if (onProcessEndingHandlers.Count > 1)
         {
-            throw new InvalidOperationException(
-                $"Multiple {nameof(IOnProcessEndingHandler)} hooks are registered for task '{taskId}'. Only one hook per task is allowed."
+            return FailedProcessEngineCommandResult.Permanent(
+                $"Multiple {nameof(IOnProcessEndingHandler)} hooks are registered for task '{taskId}'. Only one hook per task is allowed.",
+                nameof(InvalidOperationException)
             );
         }
 

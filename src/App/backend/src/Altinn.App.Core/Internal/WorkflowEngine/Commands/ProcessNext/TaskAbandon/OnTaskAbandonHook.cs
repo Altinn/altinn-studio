@@ -23,12 +23,13 @@ internal sealed class OnTaskAbandonHook : IWorkflowEngineCommand
         string taskId = dataMutator.Instance.Process?.CurrentTask?.ElementId ?? string.Empty;
 
         IEnumerable<IOnTaskAbandonHandler> hooks = _appImplementationFactory.GetAll<IOnTaskAbandonHandler>();
-        IEnumerable<IOnTaskAbandonHandler> applicableHooks = hooks.Where(h => h.ShouldRunForTask(taskId)).ToList();
+        List<IOnTaskAbandonHandler> applicableHooks = hooks.Where(h => h.ShouldRunForTask(taskId)).ToList();
 
-        if (applicableHooks.Count() > 1)
+        if (applicableHooks.Count > 1)
         {
-            throw new InvalidOperationException(
-                $"Multiple {nameof(IOnTaskAbandonHandler)} hooks are registered for task '{taskId}'. Only one hook per task is allowed."
+            return FailedProcessEngineCommandResult.Permanent(
+                $"Multiple {nameof(IOnTaskAbandonHandler)} hooks are registered for task '{taskId}'. Only one hook per task is allowed.",
+                nameof(InvalidOperationException)
             );
         }
 

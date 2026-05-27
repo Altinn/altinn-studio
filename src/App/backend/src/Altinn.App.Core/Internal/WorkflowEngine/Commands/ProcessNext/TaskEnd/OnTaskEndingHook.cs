@@ -23,12 +23,13 @@ internal sealed class OnTaskEndingHook : IWorkflowEngineCommand
         string taskId = dataMutator.Instance.Process?.CurrentTask?.ElementId ?? string.Empty;
 
         IEnumerable<IOnTaskEndingHandler> hooks = _appImplementationFactory.GetAll<IOnTaskEndingHandler>();
-        IEnumerable<IOnTaskEndingHandler> applicableHooks = hooks.Where(h => h.ShouldRunForTask(taskId)).ToList();
+        List<IOnTaskEndingHandler> applicableHooks = hooks.Where(h => h.ShouldRunForTask(taskId)).ToList();
 
-        if (applicableHooks.Count() > 1)
+        if (applicableHooks.Count > 1)
         {
-            throw new InvalidOperationException(
-                $"Multiple {nameof(IOnTaskEndingHandler)} hooks are registered for task '{taskId}'. Only one hook per task is allowed."
+            return FailedProcessEngineCommandResult.Permanent(
+                $"Multiple {nameof(IOnTaskEndingHandler)} hooks are registered for task '{taskId}'. Only one hook per task is allowed.",
+                nameof(InvalidOperationException)
             );
         }
 

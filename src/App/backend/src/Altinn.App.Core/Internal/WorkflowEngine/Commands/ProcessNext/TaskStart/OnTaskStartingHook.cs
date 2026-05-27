@@ -23,12 +23,13 @@ internal sealed class OnTaskStartingHook : IWorkflowEngineCommand
         string taskId = dataMutator.Instance.Process?.CurrentTask?.ElementId ?? string.Empty;
 
         IEnumerable<IOnTaskStartingHandler> hooks = _appImplementationFactory.GetAll<IOnTaskStartingHandler>();
-        IEnumerable<IOnTaskStartingHandler> applicableHooks = hooks.Where(h => h.ShouldRunForTask(taskId)).ToList();
+        List<IOnTaskStartingHandler> applicableHooks = hooks.Where(h => h.ShouldRunForTask(taskId)).ToList();
 
-        if (applicableHooks.Count() > 1)
+        if (applicableHooks.Count > 1)
         {
-            throw new InvalidOperationException(
-                $"Multiple {nameof(IOnTaskStartingHandler)} hooks are registered for task '{taskId}'. Only one hook per task is allowed."
+            return FailedProcessEngineCommandResult.Permanent(
+                $"Multiple {nameof(IOnTaskStartingHandler)} hooks are registered for task '{taskId}'. Only one hook per task is allowed.",
+                nameof(InvalidOperationException)
             );
         }
 
