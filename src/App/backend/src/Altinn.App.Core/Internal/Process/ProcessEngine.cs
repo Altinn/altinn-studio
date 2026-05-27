@@ -836,10 +836,50 @@ internal class ProcessEngine : IProcessEngine
 
     private static PlatformUser CreatePlatformUser(Actor actor)
     {
-        if (int.TryParse(actor.UserIdOrOrgNumber, out int userId))
+        if (actor.UserId is int userId)
+        {
+            var platformUser = new PlatformUser
+            {
+                UserId = userId,
+                NationalIdentityNumber = actor.NationalIdentityNumber,
+            };
+            if (actor.AuthenticationLevel is int authenticationLevel)
+            {
+                platformUser.AuthenticationLevel = authenticationLevel;
+            }
+            return platformUser;
+        }
+
+        if (actor.SystemUserId is Guid systemUserId)
+        {
+            var platformUser = new PlatformUser
+            {
+                SystemUserId = systemUserId,
+                SystemUserOwnerOrgNo = actor.SystemUserOwnerOrgNo,
+                SystemUserName = actor.SystemUserName,
+            };
+            if (actor.AuthenticationLevel is int authenticationLevel)
+            {
+                platformUser.AuthenticationLevel = authenticationLevel;
+            }
+            return platformUser;
+        }
+
+        if (actor.OrgId is not null || actor.AuthenticationLevel is not null)
+        {
+            var platformUser = new PlatformUser { OrgId = actor.OrgId ?? actor.UserIdOrOrgNumber };
+            if (actor.AuthenticationLevel is int authenticationLevel)
+            {
+                platformUser.AuthenticationLevel = authenticationLevel;
+            }
+            return platformUser;
+        }
+
+        if (int.TryParse(actor.UserIdOrOrgNumber, out userId))
         {
             return new PlatformUser { UserId = userId };
         }
+
         return new PlatformUser { OrgId = actor.UserIdOrOrgNumber };
     }
 

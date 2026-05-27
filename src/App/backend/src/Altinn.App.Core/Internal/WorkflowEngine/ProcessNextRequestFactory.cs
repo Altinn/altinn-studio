@@ -296,18 +296,48 @@ internal sealed class ProcessNextRequestFactory
     private async Task<Actor> ExtractActor()
     {
         Authenticated currentAuth = _authenticationContext.Current;
-        string userIdOrOrgNumber = currentAuth switch
+        if (currentAuth is Authenticated.User user)
         {
-            Authenticated.User user => user.UserId.ToString(CultureInfo.InvariantCulture),
-            Authenticated.Org org => org.OrgNo,
-            Authenticated.ServiceOwner serviceOwner => serviceOwner.OrgNo,
-            Authenticated.SystemUser systemUser => systemUser.SystemUserOrgNr.Get(OrganisationNumberFormat.Local),
+            Authenticated.User.Details details = await user.LoadDetails(validateSelectedParty: true);
+            string? userLanguage = await currentAuth.GetLanguage();
+            return new Actor
+            {
+                UserId = user.UserId,
+                UserIdOrOrgNumber = user.UserId.ToString(CultureInfo.InvariantCulture),
+                AuthenticationLevel = user.AuthenticationLevel,
+                NationalIdentityNumber = details.Profile.Party.SSN,
+                Language = userLanguage,
+            };
+        }
+
+        string? resolvedLanguage = await currentAuth.GetLanguage();
+        return currentAuth switch
+        {
+            Authenticated.Org org => new Actor
+            {
+                UserIdOrOrgNumber = org.OrgNo,
+                OrgId = org.OrgNo,
+                AuthenticationLevel = org.AuthenticationLevel,
+                Language = resolvedLanguage,
+            },
+            Authenticated.ServiceOwner serviceOwner => new Actor
+            {
+                UserIdOrOrgNumber = serviceOwner.OrgNo,
+                OrgId = serviceOwner.Name,
+                AuthenticationLevel = serviceOwner.AuthenticationLevel,
+                Language = resolvedLanguage,
+            },
+            Authenticated.SystemUser systemUser => new Actor
+            {
+                UserIdOrOrgNumber = systemUser.SystemUserOrgNr.Get(OrganisationNumberFormat.Local),
+                AuthenticationLevel = systemUser.AuthenticationLevel,
+                SystemUserId = systemUser.SystemUserId[0],
+                SystemUserOwnerOrgNo = systemUser.SystemUserOrgNr.Get(OrganisationNumberFormat.Local),
+                SystemUserName = null,
+                Language = resolvedLanguage,
+            },
             _ => throw new InvalidOperationException($"Unknown authentication type: {currentAuth.GetType().Name}"),
         };
-
-        string? language = await currentAuth.GetLanguage();
-
-        return new Actor { UserIdOrOrgNumber = userIdOrOrgNumber, Language = language };
     }
 
     private static StepRequest CreateMutateProcessStateCommand(ProcessStateChange processStateChange)

@@ -4169,8 +4169,29 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand
     public sealed class Actor : System.IEquatable<Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.Actor>
     {
         public Actor() { }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("authenticationLevel")]
+        public int? AuthenticationLevel { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("language")]
         public string? Language { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("nationalIdentityNumber")]
+        public string? NationalIdentityNumber { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("orgId")]
+        public string? OrgId { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("systemUserId")]
+        public System.Guid? SystemUserId { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("systemUserName")]
+        public string? SystemUserName { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("systemUserOwnerOrgNo")]
+        public string? SystemUserOwnerOrgNo { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("userId")]
+        public int? UserId { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("userIdOrOrgNumber")]
         public required string UserIdOrOrgNumber { get; init; }
     }

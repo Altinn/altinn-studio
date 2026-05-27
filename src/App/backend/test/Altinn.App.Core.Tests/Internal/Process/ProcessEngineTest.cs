@@ -2199,6 +2199,143 @@ public sealed class ProcessEngineTest
         );
     }
 
+    [Fact]
+    public async Task EnqueueProcessNext_ServiceOwnerActor_PreservesPlatformUser()
+    {
+        // Arrange
+        var workflowEngineServiceMock = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
+        ProcessStateChange? capturedStateChange = null;
+        workflowEngineServiceMock
+            .Setup(x =>
+                x.EnqueueDependentProcessNext(
+                    It.IsAny<Instance>(),
+                    It.IsAny<ProcessStateChange>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Actor>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<Instance, ProcessStateChange, string, Guid, string, string, Actor, CancellationToken>(
+                (_, processStateChange, _, _, _, _, _, _) => capturedStateChange = processStateChange
+            )
+            .ReturnsAsync(Guid.NewGuid());
+
+        var services = new ServiceCollection();
+        services.AddSingleton(workflowEngineServiceMock.Object);
+
+        await using var fixture = Fixture.Create(services);
+        LegacyProcessEngine processEngine = fixture.ProcessEngine;
+
+        var actor = new Actor
+        {
+            UserIdOrOrgNumber = TestAuthentication.DefaultOrgNumber,
+            OrgId = TestAuthentication.DefaultOrg,
+            AuthenticationLevel = 3,
+        };
+
+        // Act
+        await processEngine.EnqueueProcessNext(
+            CreateTask1Instance(),
+            actor,
+            "test-lock-token",
+            Guid.NewGuid(),
+            CreateTaskCollectionKey("Task_1", 2),
+            "state"
+        );
+
+        // Assert
+        capturedStateChange.Should().NotBeNull();
+        capturedStateChange!.Events.Should().HaveCount(2);
+        capturedStateChange
+            .Events[0]
+            .User.Should()
+            .BeEquivalentTo(new PlatformUser { OrgId = TestAuthentication.DefaultOrg, AuthenticationLevel = 3 });
+        capturedStateChange
+            .Events[1]
+            .User.Should()
+            .BeEquivalentTo(new PlatformUser { OrgId = TestAuthentication.DefaultOrg, AuthenticationLevel = 3 });
+    }
+
+    [Fact]
+    public async Task EnqueueProcessNext_SystemUserActor_PreservesPlatformUser()
+    {
+        // Arrange
+        var workflowEngineServiceMock = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
+        ProcessStateChange? capturedStateChange = null;
+        workflowEngineServiceMock
+            .Setup(x =>
+                x.EnqueueDependentProcessNext(
+                    It.IsAny<Instance>(),
+                    It.IsAny<ProcessStateChange>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Actor>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<Instance, ProcessStateChange, string, Guid, string, string, Actor, CancellationToken>(
+                (_, processStateChange, _, _, _, _, _, _) => capturedStateChange = processStateChange
+            )
+            .ReturnsAsync(Guid.NewGuid());
+
+        var services = new ServiceCollection();
+        services.AddSingleton(workflowEngineServiceMock.Object);
+
+        await using var fixture = Fixture.Create(services);
+        LegacyProcessEngine processEngine = fixture.ProcessEngine;
+
+        var actor = new Actor
+        {
+            UserIdOrOrgNumber = TestAuthentication.DefaultSystemUserOrgNumber,
+            AuthenticationLevel = 3,
+            SystemUserId = Guid.Parse(TestAuthentication.DefaultSystemUserId),
+            SystemUserOwnerOrgNo = TestAuthentication.DefaultSystemUserOrgNumber,
+        };
+
+        // Act
+        await processEngine.EnqueueProcessNext(
+            CreateTask1Instance(),
+            actor,
+            "test-lock-token",
+            Guid.NewGuid(),
+            CreateTaskCollectionKey("Task_1", 2),
+            "state"
+        );
+
+        // Assert
+        capturedStateChange.Should().NotBeNull();
+        capturedStateChange!.Events.Should().HaveCount(2);
+        capturedStateChange
+            .Events[0]
+            .User.Should()
+            .BeEquivalentTo(
+                new PlatformUser
+                {
+                    SystemUserId = Guid.Parse(TestAuthentication.DefaultSystemUserId),
+                    SystemUserOwnerOrgNo = TestAuthentication.DefaultSystemUserOrgNumber,
+                    SystemUserName = null,
+                    AuthenticationLevel = 3,
+                }
+            );
+        capturedStateChange
+            .Events[1]
+            .User.Should()
+            .BeEquivalentTo(
+                new PlatformUser
+                {
+                    SystemUserId = Guid.Parse(TestAuthentication.DefaultSystemUserId),
+                    SystemUserOwnerOrgNo = TestAuthentication.DefaultSystemUserOrgNumber,
+                    SystemUserName = null,
+                    AuthenticationLevel = 3,
+                }
+            );
+    }
+
     private static WorkflowStatusResponse CreateCompletedWorkflowStatusResponse(Guid workflowId, string operationId) =>
         CreateWorkflowStatusResponse(workflowId, operationId, PersistentItemStatus.Completed);
 
