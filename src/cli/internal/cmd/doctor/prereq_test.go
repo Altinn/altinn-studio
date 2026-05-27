@@ -157,6 +157,8 @@ func TestProbeContainerRuntime_APIWithoutCLIStillSucceeds(t *testing.T) {
 					Platform:   types.PlatformDocker,
 					AccessMode: types.AccessDockerEngineAPI,
 					Source:     types.SourceDefault,
+					SocketPath: "",
+					SELinux:    false,
 				},
 			}, nil
 		},
@@ -191,5 +193,7 @@ func (c *dockerEngineClient) Toolchain() types.ContainerToolchain {
 		Platform:   types.PlatformDocker,
 		AccessMode: types.AccessDockerEngineAPI,
 		Source:     types.SourceDefault,
+		SocketPath: "",
+		SELinux:    false,
 	}
 }
