@@ -2,6 +2,7 @@ import { Messages, type MessagesProps } from './Messages';
 import { render, screen } from '@testing-library/react';
 import type { Message } from '../../../types/ChatThread';
 import { MessageAuthor } from '../../../types/MessageAuthor';
+import { messageFeedbackTexts } from '../../../mocks/mockTexts';
 
 // Test data
 const userMessageContent = 'User message';
@@ -29,7 +30,7 @@ const fileAttachment = { name: 'notes.txt', mimeType: 'text/plain' };
 
 describe('Messages', () => {
   it('should render all messages', () => {
-    renderMessages({ messages: mockMessages });
+    renderMessages();
     const userMessage = screen.getByText(userMessageContent);
     const assistantMessage = screen.getByText(assistantMessageContent);
 
@@ -110,8 +111,62 @@ describe('Messages', () => {
     const link = screen.getByRole('link', { name: new RegExp(sourceTitle) });
     expect(link).toHaveAttribute('href', safeUrl);
   });
+
+  it('renders feedback buttons for assistant messages', () => {
+    const assistantMessageWithTraceId: Message = {
+      role: MessageAuthor.Assistant,
+      content: assistantMessageContent,
+      createdAt: new Date().toISOString(),
+      traceId: 'trace-123',
+    };
+    renderMessages({ messages: [assistantMessageWithTraceId] });
+
+    expect(screen.getByRole('button', { name: messageFeedbackTexts.thumbsUp })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: messageFeedbackTexts.thumbsDown }),
+    ).toBeInTheDocument();
+  });
+
+  it('does not render feedback buttons for user messages', () => {
+    const userMessage: Message = {
+      role: MessageAuthor.User,
+      content: userMessageContent,
+      createdAt: new Date().toISOString(),
+      allowAppChanges: false,
+    };
+    renderMessages({ messages: [userMessage] });
+
+    expect(
+      screen.queryByRole('button', { name: messageFeedbackTexts.thumbsUp }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: messageFeedbackTexts.thumbsDown }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('does not render feedback buttons when traceId is missing', () => {
+    const assistantMessageWithoutTraceId: Message = {
+      role: MessageAuthor.Assistant,
+      content: assistantMessageContent,
+      createdAt: new Date().toISOString(),
+    };
+    renderMessages({ messages: [assistantMessageWithoutTraceId] });
+
+    expect(
+      screen.queryByRole('button', { name: messageFeedbackTexts.thumbsUp }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: messageFeedbackTexts.thumbsDown }),
+    ).not.toBeInTheDocument();
+  });
 });
 
-const renderMessages = (props: MessagesProps): void => {
-  render(<Messages {...props} />);
+const defaultProps: MessagesProps = {
+  messages: mockMessages,
+  feedbackTexts: messageFeedbackTexts,
+  onMessageFeedback: jest.fn(),
+};
+
+const renderMessages = (props: Partial<MessagesProps> = {}): void => {
+  render(<Messages {...defaultProps} {...props} />);
 };
