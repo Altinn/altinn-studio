@@ -1079,15 +1079,15 @@ public class DataController : ControllerBase
         // Get the previous service model for dataProcessing to work
         var oldServiceModel = await dataMutator.GetFormData(dataElement);
         // Set the new service model so that dataAccessors see the new state
-        dataMutator.SetFormData(dataElement, FormDataWrapperFactory.Create(serviceModel));
+        dataMutator.SetFormData(dataElement, FormDataWrapperFactory.Create(serviceModel, dataType, dataElement));
 
         var requestedChange = new FormDataChange(
             type: ChangeType.Updated,
             dataElement: dataElement,
             contentType: dataElement.ContentType,
             dataType: dataType,
-            previousFormDataWrapper: FormDataWrapperFactory.Create(oldServiceModel),
-            currentFormDataWrapper: FormDataWrapperFactory.Create(serviceModel),
+            previousFormDataWrapper: FormDataWrapperFactory.Create(oldServiceModel, dataType, dataElement),
+            currentFormDataWrapper: FormDataWrapperFactory.Create(serviceModel, dataType, dataElement),
             previousBinaryData: await dataMutator.GetBinaryData(dataElement),
             currentBinaryData: null // We don't serialize to xml before running data processors
         );

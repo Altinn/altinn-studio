@@ -10,18 +10,13 @@ namespace Altinn.App.Core.Features.Validation.Default;
 /// </summary>
 public class RequiredLayoutValidator : IValidator
 {
-    private readonly ILayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
     private readonly IAppResources _appResources;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RequiredLayoutValidator"/> class.
     /// </summary>
-    public RequiredLayoutValidator(
-        ILayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
-        IAppResources appResources
-    )
+    public RequiredLayoutValidator(IAppResources appResources)
     {
-        _layoutEvaluatorStateInitializer = layoutEvaluatorStateInitializer;
         _appResources = appResources;
     }
 
@@ -48,13 +43,9 @@ public class RequiredLayoutValidator : IValidator
         string? language
     )
     {
-        var evaluationState = await _layoutEvaluatorStateInitializer.Init(
-            dataAccessor,
-            taskId,
-            gatewayAction: null,
-            language
-        );
-
+        var evaluationState =
+            dataAccessor.GetLayoutEvaluatorState()
+            ?? throw new InvalidOperationException($"The evaluation state for task {taskId} could not be found.");
         return await LayoutEvaluator.RunLayoutValidationsForRequired(evaluationState);
     }
 

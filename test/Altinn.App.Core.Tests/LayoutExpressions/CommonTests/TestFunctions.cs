@@ -272,10 +272,6 @@ public class TestFunctions
         if (test.DataModels is null)
         {
             dataTypes.Add(new DataType() { Id = "default" });
-            dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(
-                test.Instance,
-                test.DataModel ?? JsonDocument.Parse("{}").RootElement
-            );
         }
         else
         {
@@ -289,7 +285,6 @@ public class TestFunctions
                         AppLogic = new() { ClassRef = "not-in-user" },
                     })
             );
-            dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(test.Instance, test.DataModels);
         }
 
         var positionalArguments = test
@@ -354,15 +349,33 @@ public class TestFunctions
             FakeLoggerXunit.Get<TranslationService>(_output)
         );
 
-        var state = new LayoutEvaluatorState(
-            dataAccessor,
-            componentModel,
-            translationService,
-            test.FrontEndSettings ?? new FrontEndSettings(),
-            test.GatewayAction,
-            language,
-            TimeZoneInfo.Utc // Frontend uses UTC when formating dates
-        );
+        if (test.DataModels is null)
+        {
+            dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(
+                test.Instance,
+                translationService,
+                componentModel,
+                test.FrontEndSettings ?? new FrontEndSettings(),
+                test.DataModel ?? JsonDocument.Parse("{}").RootElement,
+                test.GatewayAction,
+                language
+            );
+        }
+        else
+        {
+            dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(
+                test.Instance,
+                translationService,
+                componentModel,
+                test.FrontEndSettings ?? new FrontEndSettings(),
+                test.DataModels,
+                test.GatewayAction,
+                language
+            );
+        }
+
+        var state = dataAccessor.GetLayoutEvaluatorState();
+        Assert.NotNull(state);
 
         ComponentContext? context = null;
         if (test.Context is not null)
@@ -371,7 +384,7 @@ public class TestFunctions
         }
         else if (componentModel is not null)
         {
-            context = (await componentModel.GenerateComponentContexts(state)).First();
+            context = (await componentModel.GenerateComponentContexts(dataAccessor)).First();
         }
 
         if (test.ExpectsFailure is not null && test.ParsingException is not null)

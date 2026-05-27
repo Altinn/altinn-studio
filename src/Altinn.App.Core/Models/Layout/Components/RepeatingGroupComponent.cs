@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Expressions;
 
@@ -163,7 +165,7 @@ public sealed class RepeatingGroupComponent : Base.ReferenceComponent
 
     /// <inheritdoc />
     public override async Task<ComponentContext> GetContext(
-        LayoutEvaluatorState state,
+        IInstanceDataAccessor dataAccessor,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
         Dictionary<string, LayoutSetComponent> layoutsLookup
@@ -176,7 +178,7 @@ public sealed class RepeatingGroupComponent : Base.ReferenceComponent
             childContexts.Add(
                 await GetClaimedChildComponentContext(
                     componentId,
-                    state,
+                    dataAccessor,
                     defaultDataElementIdentifier,
                     rowIndexes,
                     layoutsLookup
@@ -184,7 +186,8 @@ public sealed class RepeatingGroupComponent : Base.ReferenceComponent
             );
         }
 
-        var rowCount = await state.GetModelDataCount(GroupModelBinding, defaultDataElementIdentifier, rowIndexes) ?? 0;
+        var formDataWrapper = await dataAccessor.GetFormDataWrapper(GroupModelBinding, defaultDataElementIdentifier);
+        int rowCount = formDataWrapper?.GetRowCount(GroupModelBinding.Field, rowIndexes ?? []) ?? 0;
 
         _repeatingGroupRowComponent ??= RepeatingGroupRowComponent.FromGroup(this);
 
@@ -197,7 +200,7 @@ public sealed class RepeatingGroupComponent : Base.ReferenceComponent
                 rowChildren.Add(
                     await GetClaimedChildComponentContext(
                         componentId,
-                        state,
+                        dataAccessor,
                         defaultDataElementIdentifier,
                         subRowIndexes,
                         layoutsLookup
@@ -207,7 +210,7 @@ public sealed class RepeatingGroupComponent : Base.ReferenceComponent
 
             childContexts.Add(
                 new ComponentContext(
-                    state,
+                    dataAccessor,
                     _repeatingGroupRowComponent,
                     subRowIndexes,
                     defaultDataElementIdentifier,
@@ -221,7 +224,7 @@ public sealed class RepeatingGroupComponent : Base.ReferenceComponent
             childContexts.Add(
                 await GetClaimedChildComponentContext(
                     componentId,
-                    state,
+                    dataAccessor,
                     defaultDataElementIdentifier,
                     rowIndexes,
                     layoutsLookup
@@ -229,7 +232,7 @@ public sealed class RepeatingGroupComponent : Base.ReferenceComponent
             );
         }
 
-        return new ComponentContext(state, this, rowIndexes, defaultDataElementIdentifier, childContexts);
+        return new ComponentContext(dataAccessor, this, rowIndexes, defaultDataElementIdentifier, childContexts);
     }
 }
 

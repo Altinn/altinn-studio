@@ -1,4 +1,4 @@
-using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Models.Expressions;
 
 namespace Altinn.App.Core.Models.Layout.Components.Base;
@@ -20,9 +20,9 @@ public abstract class NoReferenceComponent : BaseLayoutComponent
     /// No child contexts to return for NoReferenceComponent
     /// </summary>
     public override Task<ComponentContext> GetContext(
-        LayoutEvaluatorState state,
+        IInstanceDataAccessor dataAccessor,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
         Dictionary<string, LayoutSetComponent> layoutsLookup
-    ) => Task.FromResult(new ComponentContext(state, this, rowIndexes, defaultDataElementIdentifier));
+    ) => Task.FromResult(new ComponentContext(dataAccessor, this, rowIndexes, defaultDataElementIdentifier));
 }

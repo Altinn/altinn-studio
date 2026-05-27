@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Expressions;
 
@@ -16,8 +17,32 @@ public abstract class BaseLayoutComponent : BaseComponent
     /// <param name="rowIndexes">The current row indexes for components within repeating groups, or null for non-repeating contexts.</param>
     /// <param name="layoutsLookup">A lookup dictionary for resolving layout set components.</param>
     /// <returns>A <see cref="ComponentContext"/> instance representing the current context of the component.</returns>
-    public abstract Task<ComponentContext> GetContext(
+    [Obsolete(
+        "Use the overload that takes an IInstanceDataAccessor instead as LayoutEvaluatorState is being phased out",
+        error: true
+    )]
+    public Task<ComponentContext> GetContext(
         LayoutEvaluatorState state,
+        DataElementIdentifier defaultDataElementIdentifier,
+        int[]? rowIndexes,
+        Dictionary<string, LayoutSetComponent> layoutsLookup
+    )
+    {
+        throw new NotImplementedException(
+            "This method is obsolete. Use the overload that takes an IInstanceDataAccessor instead."
+        );
+    }
+
+    /// <summary>
+    /// Creates a context for the component based on the provided parameters.
+    /// </summary>
+    /// <param name="dataAccessor">The data accessor to be used to check instance data in this context</param>
+    /// <param name="defaultDataElementIdentifier">The default data element identifier for the layout.</param>
+    /// <param name="rowIndexes">The current row indexes for components within repeating groups, or null for non-repeating contexts.</param>
+    /// <param name="layoutsLookup">A lookup dictionary for resolving layout set components.</param>
+    /// <returns>A <see cref="ComponentContext"/> instance representing the current context of the component.</returns>
+    public abstract Task<ComponentContext> GetContext(
+        IInstanceDataAccessor dataAccessor,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
         Dictionary<string, LayoutSetComponent> layoutsLookup

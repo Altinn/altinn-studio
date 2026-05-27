@@ -88,8 +88,6 @@ public class ExpressionValidatorTests
         var dataType = new DataType() { Id = "default" };
         var appMedatada = new ApplicationMetadata("org/app") { DataTypes = [dataType] };
 
-        var dataModel = DynamicClassBuilder.DataAccessorFromJsonDocument(instance, testCase.FormData, dataElement);
-
         var layout = new LayoutSetComponent(testCase.Layouts, "layout", dataType);
         var componentModel = new LayoutModel([layout], null);
         var translationService = new TranslationService(
@@ -97,12 +95,24 @@ public class ExpressionValidatorTests
             _appResources.Object,
             FakeLoggerXunit.Get<TranslationService>(_output)
         );
-        var evaluatorState = new LayoutEvaluatorState(
-            dataModel,
-            componentModel,
+
+        var dataModel = DynamicClassBuilder.DataObjectFromJsonDocument(testCase.FormData);
+
+        var dataAccessor = new InstanceDataAccessorFake(
+            instance,
+            appMedatada,
             translationService,
-            _frontendSettings.Value
-        );
+            componentModel,
+            new FrontEndSettings(),
+            null,
+            null
+        )
+        {
+            { dataElement, dataModel },
+        };
+        var evaluatorState = dataAccessor.GetLayoutEvaluatorState();
+        Assert.NotNull(evaluatorState);
+
         _layoutInitializer
             .Setup(init =>
                 init.Init(It.IsAny<IInstanceDataAccessor>(), "Task_1", It.IsAny<string?>(), It.IsAny<string?>())
@@ -116,8 +126,6 @@ public class ExpressionValidatorTests
                     ? null
                     : new TextResource { Language = "nb", Resources = testCase.TextResources }
             );
-
-        var dataAccessor = new InstanceDataAccessorFake(instance, appMedatada) { { dataElement, dataModel } };
 
         var validationIssues = await _validator.ValidateFormData(
             dataElement,

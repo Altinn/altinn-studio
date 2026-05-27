@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 using System.Text.Json;
-using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Models.Expressions;
 
 namespace Altinn.App.Core.Models.Layout.Components;
@@ -134,7 +134,7 @@ public sealed class PageComponent : Base.BaseComponent
     /// Get the context for this page component
     /// </summary>
     public async Task<ComponentContext> GetContextForPage(
-        LayoutEvaluatorState state,
+        IInstanceDataAccessor dataAccessor,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
         Dictionary<string, LayoutSetComponent> layoutsLookup
@@ -144,10 +144,10 @@ public sealed class PageComponent : Base.BaseComponent
         foreach (var component in ChildComponents)
         {
             childContexts.Add(
-                await component.GetContext(state, defaultDataElementIdentifier, rowIndexes, layoutsLookup)
+                await component.GetContext(dataAccessor, defaultDataElementIdentifier, rowIndexes, layoutsLookup)
             );
         }
 
-        return new ComponentContext(state, this, rowIndexes, defaultDataElementIdentifier, childContexts);
+        return new ComponentContext(dataAccessor, this, rowIndexes, defaultDataElementIdentifier, childContexts);
     }
 }

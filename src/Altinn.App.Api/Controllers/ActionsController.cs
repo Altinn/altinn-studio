@@ -210,7 +210,10 @@ public class ActionsController : ControllerBase
             {
                 // If the data mutator missed a that was returned with the deprecated UpdatedDataModels
                 // we still need to return it to the frontend, but we assume it was already saved to storage
-                dataMutator.SetFormData(new DataElementIdentifier(elementId), FormDataWrapperFactory.Create(data));
+                var elementIdentifier = new DataElementIdentifier(elementId);
+                var dataElement = dataMutator.GetDataElement(elementIdentifier);
+                var dataType = dataMutator.GetDataType(elementIdentifier);
+                dataMutator.SetFormData(elementIdentifier, FormDataWrapperFactory.Create(data, dataType, dataElement));
             }
         }
 #pragma warning restore CS0618 // Type or member is obsolete

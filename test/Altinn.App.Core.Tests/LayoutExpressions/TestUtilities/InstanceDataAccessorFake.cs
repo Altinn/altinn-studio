@@ -1,9 +1,12 @@
 using System.Collections;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Layout;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
@@ -11,20 +14,34 @@ namespace Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyValuePair<DataElement?, object>>
 {
     private readonly ApplicationMetadata _applicationMetadata;
+    private readonly ITranslationService? _translationService;
+    private readonly LayoutModel? _layout;
+    private readonly FrontEndSettings? _frontEndSettings;
+    private readonly string? _gatewayAction;
     private readonly string _defaultDataType;
 
     public InstanceDataAccessorFake(
         Instance instance,
         ApplicationMetadata? applicationMetadata,
+        ITranslationService? translationService,
+        LayoutModel? layout,
+        FrontEndSettings? frontEndSettings,
+        string? gatewayAction,
+        string? language,
         string defaultTaskId = "Task_1",
         string defaultDataType = "default"
     )
     {
         _applicationMetadata = applicationMetadata ?? new ApplicationMetadata("app/org") { DataTypes = [] };
         TaskId = defaultTaskId;
+        _translationService = translationService;
+        _layout = layout;
+        _frontEndSettings = frontEndSettings;
+        _gatewayAction = gatewayAction;
         _defaultDataType = defaultDataType;
         Instance = instance;
         Instance.Data ??= new();
+        Language = language;
     }
 
     private readonly Dictionary<DataElementIdentifier, object> _dataById = new();
@@ -70,7 +87,7 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
 
     public string? TaskId { get; }
 
-    public string? Language => null;
+    public string? Language { get; }
 
     public IReadOnlyCollection<DataType> DataTypes => _applicationMetadata.DataTypes;
 
@@ -81,7 +98,9 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
 
     public Task<IFormDataWrapper> GetFormDataWrapper(DataElementIdentifier dataElementIdentifier)
     {
-        return Task.FromResult(FormDataWrapperFactory.Create(_dataById[dataElementIdentifier]));
+        var dataElement = GetDataElement(dataElementIdentifier);
+        var dataType = this.GetDataType(dataElementIdentifier);
+        return Task.FromResult(FormDataWrapperFactory.Create(_dataById[dataElementIdentifier], dataType, dataElement));
     }
 
     public IInstanceDataAccessor GetCleanAccessor(RowRemovalOption rowRemovalOption = RowRemovalOption.SetToNull)
@@ -98,7 +117,17 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
 
     public LayoutEvaluatorState? GetLayoutEvaluatorState()
     {
-        throw new NotImplementedException();
+        ArgumentNullException.ThrowIfNull(_translationService);
+        ArgumentNullException.ThrowIfNull(_frontEndSettings);
+        return new LayoutEvaluatorState(
+            this,
+            _layout,
+            _translationService,
+            _frontEndSettings,
+            _gatewayAction,
+            Language,
+            TimeZoneInfo.Utc
+        );
     }
 
     public Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementIdentifier dataElementIdentifier)

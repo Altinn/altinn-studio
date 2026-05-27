@@ -1,3 +1,5 @@
+using Altinn.Platform.Storage.Interface.Models;
+
 namespace Altinn.App.Core.Internal.Data;
 
 /// <summary>
@@ -6,27 +8,27 @@ namespace Altinn.App.Core.Internal.Data;
 /// </summary>
 public static class FormDataWrapperFactory
 {
-    private static readonly Dictionary<Type, Func<object, IFormDataWrapper>> _dataWrappers = [];
+    private static readonly Dictionary<Type, Func<object, DataType, DataElement?, IFormDataWrapper>> _dataWrappers = [];
 
     /// <summary>
     /// Registers a factory for creating instances of <see cref="IFormDataWrapper"/> for a specific type.
     /// </summary>
     /// <typeparam name="T">The type for which the factory is being registered. It must not be null.</typeparam>
     /// <param name="factory">A function that takes an object of type T and returns an instance of <see cref="IFormDataWrapper"/>.</param>
-    public static void Register<T>(Func<object, IFormDataWrapper> factory)
+    public static void Register<T>(Func<object, DataType, DataElement?, IFormDataWrapper> factory)
         where T : notnull
     {
         _dataWrappers[typeof(T)] = factory;
     }
 
-    internal static IFormDataWrapper Create(object dataModel)
+    internal static IFormDataWrapper Create(object dataModel, DataType dataType, DataElement? dataElement)
     {
         if (_dataWrappers.TryGetValue(dataModel.GetType(), out var accessorType))
         {
-            return accessorType(dataModel);
+            return accessorType(dataModel, dataType, dataElement);
         }
 
         // TODO: Do some sort of startup validation to ensure that all data model types have a registered wrapper?
-        return new ReflectionFormDataWrapper(dataModel);
+        return new ReflectionFormDataWrapper(dataModel, dataType, dataElement);
     }
 }
