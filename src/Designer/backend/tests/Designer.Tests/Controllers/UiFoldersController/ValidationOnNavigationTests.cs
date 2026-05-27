@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Xunit;
@@ -13,11 +14,16 @@ public class ValidationOnNavigationTests
 {
     private readonly Mock<IUiFoldersService> _uiFoldersServiceMock;
     private readonly UiFoldersController _controller;
+    private static readonly string[] s_expected = ["Expression", "Schema"];
 
     public ValidationOnNavigationTests()
     {
         _uiFoldersServiceMock = new Mock<IUiFoldersService>();
-        _controller = new UiFoldersController(_uiFoldersServiceMock.Object);
+
+        _controller = new UiFoldersController(_uiFoldersServiceMock.Object)
+        {
+            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() },
+        };
     }
 
     [Fact]
@@ -36,7 +42,11 @@ public class ValidationOnNavigationTests
 
         // Assert
         OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
-        Assert.Equal(expectedConfig, okResult.Value);
+
+        ValidationOnNavigation config = Assert.IsType<ValidationOnNavigation>(okResult.Value);
+
+        Assert.Equal("current", config.Page);
+        Assert.Equal(s_expected, config.Show);
     }
 
     [Fact]
