@@ -51,7 +51,7 @@ jobs:
         env:
           STUDIOCTL_HOME: ${{ runner.temp }}/studioctl-home
           STUDIOCTL_INSTALL_DIR: ${{ runner.temp }}/studioctl-bin
-          STUDIOCTL_VERSION: v0.1.0-preview.8
+          STUDIOCTL_VERSION: v0.1.0-preview.9
         run: |
           mkdir -p "$STUDIOCTL_HOME" "$STUDIOCTL_INSTALL_DIR"
           curl -fsSL https://altinn.studio/designer/api/v1/studioctl/install.sh -o "$RUNNER_TEMP/studioctl-install.sh"
