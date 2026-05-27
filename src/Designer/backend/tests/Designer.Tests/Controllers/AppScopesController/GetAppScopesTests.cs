@@ -33,6 +33,19 @@ public class GetAppScopesTests
         Assert.Empty(repsponseContent.Scopes);
     }
 
+    [Fact]
+    public async Task GetAppScopes_Should_ReturnBadRequest_WhenRepoOwnerIsNotServiceOwner()
+    {
+        using var httpRequestMessage = new HttpRequestMessage(
+            HttpMethod.Get,
+            VersionPrefix("developer", "personal-app")
+        );
+
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     [Theory]
     [InlineData("ttd", "empty-app")]
     public async Task GetAppScopes_Should_ReturnOk_WithScopes_IfRecordExists(string org, string app)

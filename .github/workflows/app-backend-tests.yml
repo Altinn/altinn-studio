@@ -56,7 +56,7 @@ jobs:
       - name: Build backend
         working-directory: ${{ matrix.os.workingDir }}
         run: |
-          dotnet build solutions/All.sln -v m
+          dotnet build solutions/All.slnx -v m
 
       - name: Download built frontend
         if: matrix.os.id == 'ubuntu-latest'
@@ -69,12 +69,12 @@ jobs:
         if: matrix.os.id != 'ubuntu-latest'
         working-directory: ${{ matrix.os.workingDir }}
         run: |
-          dotnet test solutions/All.sln -v m --no-restore --no-build --filter "Category!=Integration"
+          dotnet test solutions/All.slnx -v m --no-restore --no-build --filter "Category!=Integration"
       - name: Test (main tests)
         if: matrix.os.id == 'ubuntu-latest'
         working-directory: ${{ matrix.os.workingDir }}
         run: |
-          dotnet test solutions/All.sln -v m --no-restore --no-build --filter "Category!=Integration"
+          dotnet test solutions/All.slnx -v m --no-restore --no-build --filter "Category!=Integration"
       - name: Setup studioctl
         if: matrix.os.id == 'ubuntu-latest'
         uses: ./.github/actions/setup-studioctl
@@ -82,6 +82,6 @@ jobs:
         if: matrix.os.id == 'ubuntu-latest'
         working-directory: ${{ matrix.os.workingDir }}
         run: |
-          dotnet test solutions/All.sln --no-restore --no-build --logger "console;verbosity=detailed" --filter "Category=Integration"
+          dotnet test solutions/All.slnx --no-restore --no-build --logger "console;verbosity=detailed" --filter "Category=Integration"
         env:
           SKIP_FRONTEND_BUILD: true

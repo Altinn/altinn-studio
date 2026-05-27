@@ -9,6 +9,8 @@ import { UploadIcon, CheckmarkIcon } from '@studio/icons';
 import { gitCommitPath } from 'app-shared/api/paths';
 import { StudioPopover, StudioParagraph, StudioSpinner, StudioError } from '@studio/components';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
+import { useGetSelectedScopesQuery } from '../../../hooks/queries/useGetSelectedScopesQuery';
+import { useOrgListQuery } from 'app-development/hooks/queries/useOrgListQuery';
 import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -17,6 +19,7 @@ import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Link } from '@digdir/designsystemet-react';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
+import { isServiceOwnerOrg } from 'app-development/utils/serviceOwnerOrgUtils';
 
 export function ReleaseContainer() {
   const { org, app } = useStudioEnvironmentParams();
@@ -26,14 +29,27 @@ export function ReleaseContainer() {
 
   const { data: releases = [] } = useAppReleasesQuery(org, app);
   const { data: repoStatus, isPending: isRepoStatusPending } = useRepoStatusQuery(org, app);
+  const { data: orgs = {}, isPending: isOrgListPending } = useOrgListQuery();
+  const isServiceOwnerApp = isServiceOwnerOrg(orgs, org);
+  const { data: selectedMaskinportenScopes, isPending: selectedMaskinportenScopesIsPending } =
+    useGetSelectedScopesQuery(isServiceOwnerApp);
   const { data: masterBranchStatus, isPending: masterBranchStatusIsPending } = useBranchStatusQuery(
     org,
     app,
     'master',
   );
 
-  const latestRelease: AppReleaseType = releases && releases[0] ? releases[0] : null;
-
+  const latestRelease: AppReleaseType | null = releases && releases[0] ? releases[0] : null;
+  const hasMaskinportenScopeChanges = hasMaskinportenScopesChanged(
+    latestRelease,
+    selectedMaskinportenScopes?.scopes.map(({ scope }) => scope),
+    isServiceOwnerApp,
+  );
+  const isLoading =
+    isRepoStatusPending ||
+    masterBranchStatusIsPending ||
+    isOrgListPending ||
+    (isServiceOwnerApp && selectedMaskinportenScopesIsPending);
   const { t } = useTranslation();
 
   function handlePopoverKeyPress(event: KeyboardEvent) {
@@ -60,7 +76,7 @@ export function ReleaseContainer() {
   const handlePopoverClose = () => setPopoverOpenHover(false);
 
   function renderCreateRelease() {
-    if (isRepoStatusPending || masterBranchStatusIsPending) {
+    if (isLoading) {
       return (
         <>
           <div>
@@ -92,7 +108,8 @@ export function ReleaseContainer() {
       latestRelease &&
       latestRelease.targetCommitish === masterBranchStatus.commit.id &&
       latestRelease.build.status === BuildStatus.completed &&
-      latestRelease.build.result === BuildResult.succeeded
+      latestRelease.build.result === BuildResult.succeeded &&
+      !hasMaskinportenScopeChanges
     ) {
       return t('app_create_release.no_changes_on_current_release');
     }
@@ -152,6 +169,7 @@ export function ReleaseContainer() {
     if (
       !latestRelease ||
       latestRelease.targetCommitish !== masterBranchStatus.commit.id ||
+      hasMaskinportenScopeChanges ||
       !repoStatus?.contentStatus
     ) {
       return (
@@ -218,4 +236,34 @@ export function ReleaseContainer() {
       </div>
     </div>
   );
+}
+
+function hasMaskinportenScopesChanged(
+  latestRelease: AppReleaseType | null,
+  selectedScopes: string[] | undefined,
+  isServiceOwnerApp: boolean,
+): boolean {
+  if (!latestRelease || !isServiceOwnerApp || !selectedScopes) {
+    return false;
+  }
+
+  const releaseScopes = latestRelease.buildInputs?.maskinportenScopes;
+  const currentScopes = normalizeScopeNames(selectedScopes);
+
+  if (releaseScopes === undefined) {
+    return currentScopes.length > 0;
+  }
+
+  return !hasSameScopes(normalizeScopeNames(releaseScopes), currentScopes);
+}
+
+function hasSameScopes(releaseScopes: string[], currentScopes: string[]): boolean {
+  return (
+    releaseScopes.length === currentScopes.length &&
+    releaseScopes.every((scope, index) => scope === currentScopes[index])
+  );
+}
+
+function normalizeScopeNames(scopes: string[]): string[] {
+  return [...new Set(scopes)].sort((a, b) => a.localeCompare(b));
 }

@@ -1,16 +1,16 @@
 import React, { useRef } from 'react';
 import type { PropsWithChildren, ReactElement } from 'react';
 
+import { Button, FullWidthWrapper, Panel } from '@app/form-component';
 import { Dialog, Heading, Paragraph, ValidationMessage } from '@digdir/designsystemet-react';
+import type { PanelProps } from '@app/form-component';
 
-import { Button } from 'src/app-components/Button/Button';
-import { Panel } from 'src/app-components/Panel/Panel';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
+import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/SigningActions/SigningActions.module.css';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { PanelProps } from 'src/app-components/Panel/Panel';
 
 type SigningPanelProps = {
   baseComponentId: string;
@@ -33,30 +33,31 @@ export function SigningPanel({
   const canReject = useIsAuthorized()('reject');
 
   return (
-    <Panel
-      variant={variant}
-      isOnBottom
-      className={classes.signingPanel}
-    >
-      <div className={classes.contentContainer}>
-        <Heading
-          level={4}
-          data-size='xs'
-        >
-          {heading}
-        </Heading>
-        {description && <Paragraph>{description}</Paragraph>}
+    <FullWidthWrapper isOnBottom>
+      <Panel
+        variant={variant}
+        className={classes.signingPanel}
+      >
+        <div className={classes.contentContainer}>
+          <Heading
+            level={4}
+            data-size='xs'
+          >
+            {heading}
+          </Heading>
+          {description && <Paragraph>{description}</Paragraph>}
 
-        {children}
-        <div>
-          <div className={classes.buttonContainer}>
-            {actionButton}
-            {canReject && <RejectButton baseComponentId={baseComponentId} />}
+          {children}
+          <div>
+            <div className={classes.buttonContainer}>
+              {actionButton}
+              {canReject && <RejectButton baseComponentId={baseComponentId} />}
+            </div>
+            {errorMessage && <ValidationMessage>{errorMessage}</ValidationMessage>}
           </div>
-          {errorMessage && <ValidationMessage>{errorMessage}</ValidationMessage>}
         </div>
-      </div>
-    </Panel>
+      </Panel>
+    </FullWidthWrapper>
   );
 }
 
@@ -65,6 +66,7 @@ type RejectTextProps = {
 };
 
 function RejectButton({ baseComponentId }: RejectTextProps) {
+  const { langAsString } = useLanguage();
   const modalRef = useRef<HTMLDialogElement>(null);
   const { mutate: processReject, isPending: isRejecting } = useProcessNext({ action: 'reject' });
   const { textResourceBindings } = useItemWhenType(baseComponentId, 'SigningActions');
@@ -105,6 +107,7 @@ function RejectButton({ baseComponentId }: RejectTextProps) {
             disabled={isRejecting}
             size='md'
             isLoading={isRejecting}
+            loadingLabel={langAsString('general.loading')}
             onClick={() => processReject()}
           >
             <Lang id={modalButton} />

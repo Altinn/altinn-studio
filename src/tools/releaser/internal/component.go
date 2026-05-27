@@ -38,7 +38,7 @@ var components = map[string]*Component{
 		Name:          "studioctl",
 		ChangelogPath: "src/cli/CHANGELOG.md",
 		SourcePath:    "src/cli",
-		Builder:       nil, // set later to avoid import cycle, see init in builder_go.go
+		Builder:       nil, // registered by the releaser CLI
 	},
 	"fileanalyzers": {
 		Name:          "fileanalyzers",
@@ -46,6 +46,16 @@ var components = map[string]*Component{
 		SourcePath:    "src/App/fileanalyzers",
 		Builder:       nil, // YAML handles dotnet pack/push
 	},
+}
+
+// RegisterComponentBuilder registers a builder for an existing component.
+func RegisterComponentBuilder(name string, builder ComponentBuilder) error {
+	c, err := GetComponent(name)
+	if err != nil {
+		return err
+	}
+	c.Builder = builder
+	return nil
 }
 
 // GetComponent returns a component by name.

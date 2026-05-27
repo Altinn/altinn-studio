@@ -162,6 +162,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
     services.Configure<AltinitySettings>(configuration.GetSection("AltinitySettings"));
     services.AddSingleton<IAltinityWebSocketService, AltinityWebSocketService>();
+    services.AddHttpClient<IAltinityAgentClient, AltinityAgentClient>();
     var maskinPortenClientName = "MaskinportenClient";
     services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(
         maskinPortenClientName,
@@ -221,6 +222,16 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
             options.InstanceName = redisSettings.InstanceName;
         });
         signalRBuilder.AddStackExchangeRedis(redisSettings.ConnectionString);
+    }
+    else if (env.IsDevelopment() || env.IsEnvironment("Test"))
+    {
+        services.AddDistributedMemoryCache();
+    }
+    else
+    {
+        throw new InvalidOperationException(
+            "Redis cache must be enabled outside Development/Test because studioctl auth codes require a shared distributed cache."
+        );
     }
 
     if (!env.IsDevelopment())

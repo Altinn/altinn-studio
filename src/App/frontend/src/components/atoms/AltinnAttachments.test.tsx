@@ -84,18 +84,6 @@ jest.mock('src/utils/urls/urlHelper', () => ({
   makeUrlRelativeIfSameDomain: jest.fn((url) => url),
 }));
 
-jest.mock('src/app-components/ConditionalWrapper/ConditionalWrapper', () => ({
-  ConditionalWrapper: jest.fn(({ condition, wrapper, otherwise, children }) => {
-    if (condition) {
-      return wrapper(children);
-    } else if (otherwise) {
-      return otherwise(children);
-    } else {
-      return children;
-    }
-  }),
-}));
-
 describe('AltinnAttachments', () => {
   const mockUseCurrentLanguage = jest.mocked(useCurrentLanguage);
 

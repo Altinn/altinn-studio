@@ -1,13 +1,21 @@
 import React from 'react';
 
-import { Button } from 'src/app-components/Button/Button';
+import { Button } from '@app/form-component';
+import { type AxiosError } from 'axios';
+
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
+import styles from 'src/features/instantiate/containers/UnknownError.module.css';
+import { UnknownErrorDetails } from 'src/features/instantiate/containers/UnknownErrorDetails';
 import { Lang } from 'src/features/language/Lang';
 import { isDev } from 'src/utils/isDev';
 
-export function UnknownError() {
+interface Props {
+  error: Error | AxiosError;
+}
+
+export function UnknownError({ error }: Props) {
   const open = useDevToolsStore((s) => s.actions.open);
   const setActiveTab = useDevToolsStore((s) => s.actions.setActiveTab);
 
@@ -34,6 +42,12 @@ export function UnknownError() {
               />,
             ]}
           />
+
+          <UnknownErrorDetails
+            error={error}
+            className={styles.errorDetails}
+          />
+
           {isDev() && (
             <>
               <br />

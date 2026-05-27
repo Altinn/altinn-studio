@@ -1,10 +1,10 @@
 import React from 'react';
 
+import { Spinner } from '@app/form-component';
 import { Paragraph } from '@digdir/designsystemet-react';
 import classNames from 'classnames';
 import type { ArgumentArray } from 'classnames';
 
-import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import classes from 'src/components/AltinnSpinner.module.css';
 import { useLanguage } from 'src/features/language/useLanguage';
 

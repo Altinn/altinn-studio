@@ -45,7 +45,9 @@ describe('useAltinityThreads', () => {
     } as any);
     mockUseDeleteChatThreadMutation.mockReturnValue({ mutate: jest.fn() } as any);
     mockUseChatMessagesQuery.mockReturnValue({ data: [], isLoading: false } as any);
-    mockUseCreateChatMessageMutation.mockReturnValue({ mutate: jest.fn() } as any);
+    mockUseCreateChatMessageMutation.mockReturnValue({
+      mutateAsync: jest.fn().mockResolvedValue({ id: 'persisted-id' }),
+    } as any);
     mockUseDeleteChatMessageMutation.mockReturnValue({ mutate: jest.fn() } as any);
   });
 
@@ -92,9 +94,11 @@ describe('useAltinityThreads', () => {
     expect(deleteMessageMutate).toHaveBeenCalledWith({ threadId, messageId: 'message-1' });
   });
 
-  it('createMessage forwards user fields and omits assistant fields', () => {
-    const createMessageMutate = jest.fn();
-    mockUseCreateChatMessageMutation.mockReturnValue({ mutate: createMessageMutate } as any);
+  it('createMessage forwards user fields and omits assistant fields', async () => {
+    const createMessageMutateAsync = jest.fn().mockResolvedValue({ id: 'persisted-id' });
+    mockUseCreateChatMessageMutation.mockReturnValue({
+      mutateAsync: createMessageMutateAsync,
+    } as any);
 
     const userMessage: UserMessage = {
       role: MessageAuthor.User,
@@ -106,11 +110,11 @@ describe('useAltinityThreads', () => {
 
     const { result } = renderUseAltinityThreads();
 
-    act(() => {
-      result.current.createMessage(threadId, userMessage);
+    await act(async () => {
+      await result.current.createMessage(threadId, userMessage);
     });
 
-    expect(createMessageMutate).toHaveBeenCalledWith({
+    expect(createMessageMutateAsync).toHaveBeenCalledWith({
       threadId,
       payload: {
         role: MessageAuthor.User,
@@ -123,9 +127,11 @@ describe('useAltinityThreads', () => {
     });
   });
 
-  it('createMessage forwards assistant fields and omits user fields', () => {
-    const createMessageMutate = jest.fn();
-    mockUseCreateChatMessageMutation.mockReturnValue({ mutate: createMessageMutate } as any);
+  it('createMessage forwards assistant fields and omits user fields', async () => {
+    const createMessageMutateAsync = jest.fn().mockResolvedValue({ id: 'persisted-id' });
+    mockUseCreateChatMessageMutation.mockReturnValue({
+      mutateAsync: createMessageMutateAsync,
+    } as any);
 
     const assistantMessage: AssistantMessage = {
       role: MessageAuthor.Assistant,
@@ -137,11 +143,11 @@ describe('useAltinityThreads', () => {
 
     const { result } = renderUseAltinityThreads();
 
-    act(() => {
-      result.current.createMessage(threadId, assistantMessage);
+    await act(async () => {
+      await result.current.createMessage(threadId, assistantMessage);
     });
 
-    expect(createMessageMutate).toHaveBeenCalledWith({
+    expect(createMessageMutateAsync).toHaveBeenCalledWith({
       threadId,
       payload: {
         role: MessageAuthor.Assistant,

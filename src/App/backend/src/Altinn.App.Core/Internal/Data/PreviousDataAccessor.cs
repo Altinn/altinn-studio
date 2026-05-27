@@ -69,7 +69,7 @@ internal class PreviousDataAccessor : IInstanceDataAccessor
                         );
                     }
                     var dataElement = GetDataElement(id);
-                    var binaryData = await _dataAccessor.GetBinaryData(id).ConfigureAwait(false);
+                    var binaryData = await GetBinaryData(id).ConfigureAwait(false);
 
                     return FormDataWrapperFactory.Create(
                         _modelSerializationService.DeserializeFromStorage(binaryData.Span, dataType, dataElement)
@@ -107,6 +107,11 @@ internal class PreviousDataAccessor : IInstanceDataAccessor
 
     public async Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementIdentifier dataElementIdentifier)
     {
+        if (_dataAccessor is InstanceDataUnitOfWork dataUnitOfWork)
+        {
+            return await dataUnitOfWork.GetPersistedBinaryData(dataElementIdentifier).ConfigureAwait(false);
+        }
+
         return await _dataAccessor.GetBinaryData(dataElementIdentifier).ConfigureAwait(false);
     }
 

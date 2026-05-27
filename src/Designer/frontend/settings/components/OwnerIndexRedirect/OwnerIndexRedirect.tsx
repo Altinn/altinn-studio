@@ -10,6 +10,7 @@ import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 import { StudioCenter, StudioPageSpinner } from '@studio/components';
 import { StudioPageError } from 'app-shared/components';
 import { useTranslation } from 'react-i18next';
+import { StringUtils } from '@studio/pure-functions';
 
 export const OwnerIndexRedirect = () => {
   const { t } = useTranslation();
@@ -34,7 +35,7 @@ export const OwnerIndexRedirect = () => {
   if (!studioOidc && !isAdminEnabled) {
     return <NotFound />;
   }
-  if (owner === user.login) {
+  if (StringUtils.areCaseInsensitiveEqual(owner, user.login)) {
     return studioOidc ? <Navigate to={UserRoutePaths.ApiKeys} replace /> : <NoOrgSelected />;
   }
   return (

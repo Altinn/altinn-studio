@@ -73,27 +73,46 @@ internal static class RemoveGenerator
                         }
                         if (offset == -1)
                         {
-                            switch (rowRemovalOption)
-                            {
-                                case global::Altinn.App.Core.Helpers.RowRemovalOption.DeleteRow:
-                                    model.RemoveAt(index);
-                                    break;
-                                case global::Altinn.App.Core.Helpers.RowRemovalOption.SetToNull:
-                                    model[index] = default!;
-                                    break;
-                            }
-                        }
                 """
             );
+            builder.Append("\r\n");
+            if (modelPathNode.IsIndexableList)
+            {
+                builder.Append(
+                    """
+                                switch (rowRemovalOption)
+                                {
+                                    case global::Altinn.App.Core.Helpers.RowRemovalOption.DeleteRow:
+                                        model.RemoveAt(index);
+                                        break;
+                                    case global::Altinn.App.Core.Helpers.RowRemovalOption.SetToNull:
+                                        model[index] = default!;
+                                        break;
+                                }
+                            }
+                    """
+                );
+            }
+            else
+            {
+                builder.Append(
+                    """
+                                return;
+                            }
+                    """
+                );
+            }
             if (modelPathNode.Properties.Count > 0)
             {
                 // Don't recurs into primitives (classes with no properties)
+                var itemAccessor = CollectionAccessorGenerator.GenerateAccessor(modelPathNode, "model", "index");
                 builder.Append(
-                    """
+                    $$"""
 
                             else
                             {
-                                RemoveRecursive(model[index], path, offset, rowRemovalOption);
+                                var item = {{itemAccessor}};
+                                RemoveRecursive(item, path, offset, rowRemovalOption);
                             }
                     """
                 );
