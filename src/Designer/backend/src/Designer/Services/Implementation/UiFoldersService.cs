@@ -47,8 +47,9 @@ public class UiFoldersService : IUiFoldersService
             altinnRepoEditingContext.Developer
         );
 
-        UiSettings globalSettingsFile = await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken);
-        globalSettingsFile ??= new UiSettings();
+        UiSettings globalSettingsFile =
+            await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken) ?? new UiSettings();
+
         globalSettingsFile.ValidationOnNavigation = config;
         await altinnAppGitRepository.SaveGlobalSettingsFile(globalSettingsFile);
     }
