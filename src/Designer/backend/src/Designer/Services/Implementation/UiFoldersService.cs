@@ -123,9 +123,8 @@ public class UiFoldersService : IUiFoldersService
 
         IEnumerable<TaskNavigationGroup> taskNavigationGroupList = taskNavigationGroupDtoList.Select(x => x.ToDomain());
 
-        UiSettings globalSettingsFile = await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken);
-
-        globalSettingsFile ??= new UiSettings();
+        UiSettings globalSettingsFile =
+            await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken) ?? new UiSettings();
 
         globalSettingsFile.TaskNavigation = taskNavigationGroupList.Any() ? taskNavigationGroupList : null;
 
