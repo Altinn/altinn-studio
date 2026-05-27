@@ -26,19 +26,17 @@ spec:
               name: http
               protocol: TCP
           env:
-            - name: AZURE_OPENAI_ENDPOINT
-              value: "https://rndlabaidemoss0618689180.openai.azure.com/"
-            - name: AZURE_ANTHROPIC_ENDPOINT
-              value: "https://rndlabaidemoss0618689180.services.ai.azure.com/anthropic/"
+            - name: GATEWAY_BASE_URL
+              value: "https://gw.sandkasse.ai/v1"
             - name: GITEA_BASE_URL
               value: "http://altinn-repositories-public"
             - name: MCP_SERVER_URL
               value: "http://altinn-mcp-server/mcp/sse"
-            - name: AZURE_API_KEY
+            - name: GATEWAY_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: altinn-altinity-agents-secret
-                  key: AZURE_API_KEY
+                  key: GATEWAY_API_KEY
             - name: LANGFUSE_SECRET_KEY
               valueFrom:
                 secretKeyRef:

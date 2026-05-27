@@ -5,12 +5,10 @@ from langfuse import get_client
 from shared.utils.langfuse_utils import trace_generation
 from typing import Dict, Any, Optional, List, Tuple
 from langchain_openai import (
-    AzureChatOpenAI,
     ChatOpenAI,
-    AzureOpenAI as LangchainAzureOpenAI,
     OpenAI as LangchainOpenAI,
 )
-from openai import AzureOpenAI as AzureResponsesClient, OpenAI as OpenAIResponsesClient
+from openai import OpenAI as OpenAIResponsesClient
 from langchain_core.messages import SystemMessage, HumanMessage
 from shared.config.base_config import get_config
 from shared.utils.logging_utils import get_logger
@@ -59,9 +57,8 @@ class LLMClient:
         """
         self.role = role
         
-        # Select model, version, and temperature based on role
+        # Select model and temperature based on role
         model: Optional[str] = None
-        model_version: Optional[str] = None
         temperature: Optional[float] = None
         self.use_completions = False
         self.use_responses = False
@@ -69,7 +66,6 @@ class LLMClient:
 
         if role == "planner":
             model = config.LLM_MODEL_PLANNER
-            model_version = config.LLM_VERSION_PLANNER
             if config.LLM_TEMPERATURE_PLANNER is not None:
                 try:
                     temperature = float(config.LLM_TEMPERATURE_PLANNER)
@@ -80,7 +76,6 @@ class LLMClient:
                     )
         elif role == "tool_planner":
             model = config.LLM_MODEL_TOOL_PLANNER
-            model_version = config.LLM_VERSION_TOOL_PLANNER
             if config.LLM_TEMPERATURE_TOOL_PLANNER is not None:
                 try:
                     temperature = float(config.LLM_TEMPERATURE_TOOL_PLANNER)
@@ -96,7 +91,6 @@ class LLMClient:
                 self.use_completions = False
         elif role == "actor":
             model = config.LLM_MODEL_ACTOR
-            model_version = config.LLM_VERSION_ACTOR
             if config.LLM_TEMPERATURE_ACTOR is not None:
                 try:
                     temperature = float(config.LLM_TEMPERATURE_ACTOR)
@@ -107,7 +101,6 @@ class LLMClient:
                     )
         elif role == "reviewer":
             model = config.LLM_MODEL_REVIEWER
-            model_version = config.LLM_VERSION_REVIEWER
             if config.LLM_TEMPERATURE_REVIEWER is not None:
                 try:
                     temperature = float(config.LLM_TEMPERATURE_REVIEWER)
@@ -118,7 +111,6 @@ class LLMClient:
                     )
         elif role == "verifier":
             model = config.LLM_MODEL_VERIFIER
-            model_version = config.LLM_VERSION_VERIFIER
             if config.LLM_TEMPERATURE_VERIFIER is not None:
                 try:
                     temperature = float(config.LLM_TEMPERATURE_VERIFIER)
@@ -129,7 +121,6 @@ class LLMClient:
                     )
         elif role == "assistant":
             model = config.LLM_MODEL_ASSISTANT
-            model_version = config.LLM_VERSION_ASSISTANT
             if config.LLM_TEMPERATURE_ASSISTANT is not None:
                 try:
                     temperature = float(config.LLM_TEMPERATURE_ASSISTANT)
@@ -139,8 +130,7 @@ class LLMClient:
                         config.LLM_TEMPERATURE_ASSISTANT,
                     )
         else:
-            model = config.AZURE_DEPLOYMENT_NAME if config.AZURE_API_KEY else config.LLM_MODEL
-            model_version = None
+            model = config.LLM_MODEL
             if config.LLM_TEMPERATURE is not None:
                 try:
                     temperature = float(config.LLM_TEMPERATURE)
@@ -150,7 +140,7 @@ class LLMClient:
                         config.LLM_TEMPERATURE,
                     )
         
-        self.model_version = model_version
+        self.model_version = None
         self.model = model
         self.temperature = temperature if temperature is not None else config.LLM_TEMPERATURE
         self.use_anthropic = False
@@ -175,43 +165,36 @@ class LLMClient:
             # Disable OpenAI-specific modes for Claude
             self.use_completions = False
             self.use_responses = False
-        # Prefer Azure OpenAI if available
-        elif config.AZURE_API_KEY:
-            version_info = f", version={model_version}" if model_version else ""
+        # Prefer the Digdir Gateway (OpenAI-compatible) if available
+        elif config.GATEWAY_API_KEY:
             log.info(
-                f"Using Azure OpenAI for LLM operations (role={role}, model={model}{version_info}, temperature={temperature if temperature is not None else 'default'})"
+                f"Using Digdir Gateway for LLM operations (role={role}, model={model}, "
+                f"temperature={temperature if temperature is not None else 'default'})"
             )
-
-            llm_params = {
-                "azure_endpoint": config.AZURE_OPENAI_ENDPOINT,
-                "api_key": config.AZURE_API_KEY,
-                "api_version": config.AZURE_API_VERSION,
-                "deployment_name": model,
+            chat_kwargs = {
+                "api_key": config.GATEWAY_API_KEY,
+                "base_url": config.GATEWAY_BASE_URL,
+                "model": model,
                 "max_tokens": self.max_tokens,
             }
-
             if self.is_reasoning_model:
-                # Reasoning models: use low effort to preserve tokens for output.
-                # They also don't support the temperature parameter.
-                llm_params["model_kwargs"] = {"reasoning_effort": "low"}
-            elif temperature is not None and temperature != 1.0:
-                llm_params["temperature"] = temperature
-
+                chat_kwargs["model_kwargs"] = {"reasoning_effort": "low"}
+            elif temperature is not None:
+                chat_kwargs["temperature"] = temperature
             if self.use_responses:
                 try:
-                    self.responses_client = AzureResponsesClient(
-                        azure_endpoint=config.AZURE_OPENAI_ENDPOINT,
-                        api_key=config.AZURE_API_KEY,
-                        api_version=config.AZURE_API_VERSION,
+                    self.responses_client = OpenAIResponsesClient(
+                        api_key=config.GATEWAY_API_KEY,
+                        base_url=config.GATEWAY_BASE_URL,
                     )
                 except Exception as exc:
-                    log.error(f"Failed to initialize Azure Responses client: {exc}")
+                    log.error(f"Failed to initialize Gateway Responses client: {exc}")
                     raise
                 self.llm = None
             elif self.use_completions:
-                self.llm = LangchainAzureOpenAI(**llm_params)
+                self.llm = LangchainOpenAI(**chat_kwargs)
             else:
-                self.llm = AzureChatOpenAI(**llm_params)
+                self.llm = ChatOpenAI(**chat_kwargs)
         elif config.OPENAI_API_KEY and config.OPENAI_API_KEY != "your_openai_api_key_here":
             log.info(
                 f"Using OpenAI for LLM operations (role={role}, model={model}, temperature={temperature if temperature is not None else 'default'})"
@@ -725,7 +708,6 @@ def _build_cache_key(role: str) -> Tuple[str, ...]:
         return (
             role,
             str(config.LLM_MODEL_TOOL_PLANNER),
-            str(config.LLM_VERSION_TOOL_PLANNER),
             str(config.LLM_TEMPERATURE_TOOL_PLANNER),
             str(config.LLM_TOOL_PLANNER_USE_COMPLETIONS),
             str(config.LLM_TOOL_PLANNER_USE_RESPONSES),
@@ -734,34 +716,29 @@ def _build_cache_key(role: str) -> Tuple[str, ...]:
         return (
             role,
             str(config.LLM_MODEL_PLANNER),
-            str(config.LLM_VERSION_PLANNER),
             str(config.LLM_TEMPERATURE_PLANNER),
         )
     if role == "actor":
         return (
             role,
             str(config.LLM_MODEL_ACTOR),
-            str(config.LLM_VERSION_ACTOR),
             str(config.LLM_TEMPERATURE_ACTOR),
         )
     if role == "reviewer":
         return (
             role,
             str(config.LLM_MODEL_REVIEWER),
-            str(config.LLM_VERSION_REVIEWER),
             str(config.LLM_TEMPERATURE_REVIEWER),
         )
     if role == "verifier":
         return (
             role,
             str(config.LLM_MODEL_VERIFIER),
-            str(config.LLM_VERSION_VERIFIER),
             str(config.LLM_TEMPERATURE_VERIFIER),
         )
     return (
         role,
         str(config.LLM_MODEL),
-        str(config.AZURE_DEPLOYMENT_NAME),
         str(config.LLM_TEMPERATURE),
     )
 

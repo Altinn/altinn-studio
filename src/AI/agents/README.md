@@ -114,7 +114,7 @@ ws.onopen = () => {
     JSON.stringify({
       type: 'session',
       session_id: 'your-session-id',
-    })
+    }),
   );
 };
 
@@ -141,9 +141,9 @@ ws.onmessage = (event) => {
 ## Configuration
 
 ```env
-# Required: Azure OpenAI
-AZURE_API_KEY=your-key
-AZURE_OPENAI_ENDPOINT=https://your-endpoint.openai.azure.com/
+# Required: Digdir Gateway (OpenAI-compatible)
+GATEWAY_API_KEY=your-key
+GATEWAY_BASE_URL=https://gw.sandkasse.ai/v1
 
 # Required: Gitea for branch pushes
 GITEA_LOCAL_TOKEN=your-token
@@ -152,10 +152,10 @@ GITEA_BASE_URL=http://localhost:3000
 # Required: MCP Server
 MCP_SERVER_URL=http://localhost:8069/sse
 
-# Optional: Multi-model setup
-LLM_MODEL_PLANNER=gpt-4o
-LLM_MODEL_ACTOR=claude-sonnet-4-5
-LLM_MODEL_REVIEWER=gpt-4o-mini
+# Optional: per-role model overrides (all default to telenor:gemma4)
+LLM_MODEL_PLANNER=telenor:gemma4
+LLM_MODEL_ACTOR=telenor:gemma4
+LLM_MODEL_REVIEWER=telenor:gemma4
 
 # Optional: Langfuse observability
 LANGFUSE_SECRET_KEY=sk-lf-...
