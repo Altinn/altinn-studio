@@ -37,6 +37,7 @@ src/app-components/loading/AltinnContentLoader/
 src/app-components/loading/LoadingEmpty/LoadingEmpty.tsx
 src/app-components/loading/LoadingWrapper/LoadingWrapper.tsx
 src/app-components/loading/Spinner/Spinner.tsx
+src/app-components/readme.md
 src/codegen/schemas/layout-sets.schema.v1.ts
 src/components/presentation/Header.tsx
 src/core/contexts/hookContext.tsx
@@ -55,6 +56,7 @@ src/features/datamodel/useDataModelSchemaQuery.ts
 src/features/datamodel/utils.ts
 src/features/devtools/components/VersionSwitcher/VersionSwitcher.tsx
 src/features/entrypoint/Entrypoint.tsx
+src/features/expressions/shared-tests/functions/dataModel/array-is-null.json
 src/features/form/FormContext.tsx
 src/features/form/dynamics/
 src/features/form/layout/LayoutsContext.tsx
