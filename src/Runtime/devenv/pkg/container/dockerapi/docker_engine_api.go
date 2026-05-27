@@ -375,7 +375,7 @@ func buildRestartPolicy(policy string) dockercontainer.RestartPolicy {
 func buildMounts(volumes []types.VolumeMount) []dockermount.Mount {
 	mounts := make([]dockermount.Mount, 0, len(volumes))
 	for _, v := range volumes {
-		if v.SELinuxRelabel != types.SELinuxRelabelNone {
+		if v.Type == types.VolumeMountTypeBind && v.SELinuxRelabel != types.SELinuxRelabelNone {
 			continue
 		}
 		mounts = append(mounts, dockermount.Mount{
@@ -391,7 +391,7 @@ func buildMounts(volumes []types.VolumeMount) []dockermount.Mount {
 func buildVolumeBinds(volumes []types.VolumeMount) []string {
 	var binds []string
 	for _, v := range volumes {
-		if v.SELinuxRelabel == types.SELinuxRelabelNone {
+		if v.Type != types.VolumeMountTypeBind || v.SELinuxRelabel == types.SELinuxRelabelNone {
 			continue
 		}
 		options := make([]string, 0, 2)

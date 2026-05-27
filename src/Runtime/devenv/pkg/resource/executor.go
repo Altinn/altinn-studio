@@ -901,6 +901,10 @@ func containerSpecHash(c *Container, imageID string, networks []string) string {
 	b.WriteString(c.User)
 	b.WriteByte('\n')
 
+	b.WriteString("usernsMode=")
+	b.WriteString(c.UsernsMode)
+	b.WriteByte('\n')
+
 	b.WriteString("restartPolicy=")
 	b.WriteString(c.RestartPolicy)
 	b.WriteByte('\n')

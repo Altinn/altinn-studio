@@ -232,7 +232,7 @@ func volumeOptions(v types.VolumeMount) []string {
 	if v.ReadOnly {
 		options = append(options, "ro")
 	}
-	if v.SELinuxRelabel != types.SELinuxRelabelNone {
+	if v.Type == types.VolumeMountTypeBind && v.SELinuxRelabel != types.SELinuxRelabelNone {
 		options = append(options, string(v.SELinuxRelabel))
 	}
 	return options

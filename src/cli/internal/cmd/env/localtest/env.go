@@ -589,7 +589,7 @@ func (e *Env) removeWorkflowEngineDbVolume(ctx context.Context) error {
 func (e *Env) cleanupWorkflowEngineDbData(ctx context.Context, targetAbs string) error {
 	helperName := fmt.Sprintf("studioctl-reset-workflow-engine-db-%d", time.Now().UnixNano())
 	relabel := containertypes.SELinuxRelabelNone
-	if e.client.Toolchain().SELinux {
+	if e.client.Toolchain().Platform == containertypes.PlatformPodman && e.client.Toolchain().SELinux {
 		relabel = containertypes.SELinuxRelabelShared
 	}
 	containerCfg := containertypes.ContainerConfig{
