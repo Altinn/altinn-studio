@@ -97,9 +97,15 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	if runtime.GOOS != osutil.OSWindows {
 		runtimeUser = fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid())
 	}
+	runtimeUsernsMode := ""
+	relabelBinds := false
+	if toolchain.Platform == containertypes.PlatformPodman {
+		runtimeUsernsMode = "keep-id"
+		relabelBinds = toolchain.SELinux
+	}
 	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
 
-	buildOpts, err := e.buildResourceOptions(ctx, runtimeUser, topology, opts)
+	buildOpts, err := e.buildResourceOptions(ctx, runtimeUser, runtimeUsernsMode, relabelBinds, topology, opts)
 	if err != nil {
 		return err
 	}
@@ -534,6 +540,8 @@ func (e *Env) releaseOptions(includeMonitoring, includePgAdmin, devWorkflowEngin
 		Paths:             e.paths,
 		Images:            e.cfg.Images,
 		RuntimeUser:       "",
+		RuntimeUsernsMode: "",
+		RelabelBinds:      false,
 		Topology:          envtopology.NewLocal(envtopology.DefaultIngressPortString()),
 		ImageMode:         components.ReleaseMode,
 		DevWorkflowEngine: devWorkflowEngine,
@@ -580,20 +588,26 @@ func (e *Env) removeWorkflowEngineDbVolume(ctx context.Context) error {
 
 func (e *Env) cleanupWorkflowEngineDbData(ctx context.Context, targetAbs string) error {
 	helperName := fmt.Sprintf("studioctl-reset-workflow-engine-db-%d", time.Now().UnixNano())
+	relabel := containertypes.SELinuxRelabelNone
+	if e.client.Toolchain().SELinux {
+		relabel = containertypes.SELinuxRelabelShared
+	}
 	containerCfg := containertypes.ContainerConfig{
 		Labels:         nil,
 		HealthCheck:    nil,
 		Name:           helperName,
 		Image:          e.cfg.Images.Core.WorkflowEngineDb.Ref(),
 		User:           "",
+		UsernsMode:     "",
 		RestartPolicy:  "",
 		ExtraHosts:     nil,
 		NetworkAliases: nil,
 		Volumes: []containertypes.VolumeMount{{
-			HostPath:      targetAbs,
-			ContainerPath: "/cleanup",
-			Type:          containertypes.VolumeMountTypeBind,
-			ReadOnly:      false,
+			HostPath:       targetAbs,
+			ContainerPath:  "/cleanup",
+			Type:           containertypes.VolumeMountTypeBind,
+			SELinuxRelabel: relabel,
+			ReadOnly:       false,
 		}},
 		Networks: nil,
 		Ports:    nil,
@@ -722,6 +736,8 @@ func buildResourceGraph(resources []resource.Resource) (*resource.Graph, error) 
 func (e *Env) buildResourceOptions(
 	ctx context.Context,
 	runtimeUser string,
+	runtimeUsernsMode string,
+	relabelBinds bool,
 	topology envtopology.Local,
 	upOpts envtypes.UpOptions,
 ) (*components.Options, error) {
@@ -742,6 +758,8 @@ func (e *Env) buildResourceOptions(
 	return &components.Options{
 		Paths:             e.paths,
 		RuntimeUser:       runtimeUser,
+		RuntimeUsernsMode: runtimeUsernsMode,
+		RelabelBinds:      relabelBinds,
 		DevConfig:         devConfig,
 		Images:            e.cfg.Images,
 		Topology:          topology,

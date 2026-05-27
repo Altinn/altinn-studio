@@ -613,6 +613,7 @@ func (e *Executor) applyContainer(ctx context.Context, graphID GraphID, c *Conta
 			Labels:         desiredLabels,
 			Detach:         true,
 			User:           c.User,
+			UsernsMode:     c.UsernsMode,
 			Networks:       networks,
 		}
 

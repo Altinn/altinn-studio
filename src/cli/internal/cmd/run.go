@@ -1066,6 +1066,7 @@ func containerRunProgressResources(spec appsvc.DockerRunSpec, flags runFlags) []
 		Name:           spec.Config.Name,
 		RestartPolicy:  "",
 		User:           "",
+		UsernsMode:     "",
 		Networks:       nil,
 		DependsOn:      nil,
 		Ports:          nil,
