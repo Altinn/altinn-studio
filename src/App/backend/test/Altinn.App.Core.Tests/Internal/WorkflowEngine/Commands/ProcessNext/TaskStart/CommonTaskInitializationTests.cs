@@ -217,6 +217,54 @@ public class CommonTaskInitializationTests
     }
 
     [Fact]
+    public async Task Execute_RecreatesAutoCreatedDataElementWhenExistingElementWasGeneratedFromCurrentTask()
+    {
+        // Arrange
+        var instance = CreateInstance("Task_1");
+        var generatedElement = new DataElement
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = "model",
+            References = [new Reference { ValueType = ReferenceType.Task, Value = "Task_1" }],
+        };
+        instance.Data = [generatedElement];
+
+        var testData = new TestModel { Name = "replacement" };
+        var appModelMock = new Mock<IAppModel>();
+        appModelMock.Setup(x => x.Create("App.Models.TestModel")).Returns(testData);
+
+        var prefillMock = new Mock<IPrefill>();
+        var instantiationProcessorMock = new Mock<IInstantiationProcessor>();
+
+        var appMetadata = new ApplicationMetadata("ttd/test-app")
+        {
+            DataTypes =
+            [
+                new DataType
+                {
+                    Id = "model",
+                    TaskId = "Task_1",
+                    AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = "App.Models.TestModel" },
+                },
+            ],
+        };
+
+        var command = CreateCommand(appMetadata, prefillMock, appModelMock, instantiationProcessorMock);
+        var (context, mutatorMock) = CreateContextWithMutator(instance, new CommonTaskInitializationPayload(null));
+
+        // Act
+        var result = await ((IWorkflowEngineCommand)command).Execute(context);
+
+        // Assert
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.DoesNotContain(generatedElement, instance.Data);
+        mutatorMock.Verify(x => x.RemoveDataElement(generatedElement), Times.Once);
+        mutatorMock.Verify(x => x.AddFormDataElement("model", testData), Times.Once);
+        prefillMock.Verify(x => x.PrefillDataModel("1337", "model", testData, null), Times.Once);
+        instantiationProcessorMock.Verify(x => x.DataCreation(instance, testData, null), Times.Once);
+    }
+
+    [Fact]
     public async Task Execute_RunsPrefillWithExternalPrefillData()
     {
         // Arrange

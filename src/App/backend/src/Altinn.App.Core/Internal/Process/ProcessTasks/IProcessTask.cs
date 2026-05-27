@@ -5,6 +5,11 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 /// <summary>
 /// Implement this interface to create a new type of task for the process engine.
 /// </summary>
+/// <remarks>
+/// When migrating from the legacy task lifecycle interfaces, move start/end/abandon logic into this interface and
+/// use <see cref="IInstanceDataAccessor.Instance" /> to access the instance. Use the data mutator for any data
+/// changes that should be persisted by the process engine.
+/// </remarks>
 [ImplementableByApps]
 public interface IProcessTask
 {
@@ -13,9 +18,6 @@ public interface IProcessTask
     /// </summary>
     string Type { get; }
 
-    /// <summary>
-    /// Any logic to be executed when a task is started should be put in this method.
-    /// </summary>
     /// <summary>
     /// Any logic to be executed when a task is started should be put in this method.
     /// </summary>

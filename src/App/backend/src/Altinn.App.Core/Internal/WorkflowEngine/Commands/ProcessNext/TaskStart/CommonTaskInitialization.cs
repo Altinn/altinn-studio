@@ -80,14 +80,17 @@ internal sealed class CommonTaskInitialization : WorkflowEngineCommandBase<Commo
     {
         Instance instance = instanceDataMutator.Instance;
         var dataElements =
-            instance.Data?.Where(de =>
-                de.References?.Exists(r => r.ValueType == ReferenceType.Task && r.Value == taskId) is true
-            )
+            instance
+                .Data?.Where(de =>
+                    de.References?.Exists(r => r.ValueType == ReferenceType.Task && r.Value == taskId) is true
+                )
+                .ToList()
             ?? [];
 
         foreach (var dataElement in dataElements)
         {
             instanceDataMutator.RemoveDataElement(dataElement);
+            instance.Data?.Remove(dataElement);
         }
     }
 }
