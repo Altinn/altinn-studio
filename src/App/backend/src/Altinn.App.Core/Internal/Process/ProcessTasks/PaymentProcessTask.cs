@@ -1,7 +1,9 @@
+using System.Text.Json;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Payment.Exceptions;
 using Altinn.App.Core.Features.Payment.Models;
+using Altinn.App.Core.Features.Payment.Processors;
 using Altinn.App.Core.Features.Payment.Services;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
@@ -19,9 +21,12 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 /// </summary>
 internal sealed class PaymentProcessTask : IProcessTask
 {
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
+
     private readonly IPdfService _pdfService;
     private readonly IProcessReader _processReader;
     private readonly IPaymentService _paymentService;
+    private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IAppMetadata _appMetadata;
     private readonly IHostEnvironment _hostEnvironment;
 
@@ -35,6 +40,7 @@ internal sealed class PaymentProcessTask : IProcessTask
         IPdfService pdfService,
         IProcessReader processReader,
         IPaymentService paymentService,
+        AppImplementationFactory appImplementationFactory,
         IAppMetadata appMetadata,
         IHostEnvironment hostEnvironment
     )
@@ -42,6 +48,7 @@ internal sealed class PaymentProcessTask : IProcessTask
         _pdfService = pdfService;
         _processReader = processReader;
         _paymentService = paymentService;
+        _appImplementationFactory = appImplementationFactory;
         _appMetadata = appMetadata;
         _hostEnvironment = hostEnvironment;
     }
@@ -62,7 +69,7 @@ internal sealed class PaymentProcessTask : IProcessTask
             AllowedContributorsHelper.EnsureDataTypeIsAppOwned(appMetadata, paymentConfiguration.PaymentDataType);
         }
 
-        await _paymentService.CancelAndDeleteAnyExistingPayment(instance, paymentConfiguration);
+        await CleanupAnyExistingPayment(dataMutator, paymentConfiguration);
     }
 
     /// <inheritdoc/>
@@ -106,13 +113,58 @@ internal sealed class PaymentProcessTask : IProcessTask
         Instance instance = dataMutator.Instance;
         string taskId = GetTaskId(dataMutator);
         AltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId);
-        await _paymentService.CancelAndDeleteAnyExistingPayment(instance, paymentConfiguration.Validate());
+        await CleanupAnyExistingPayment(dataMutator, paymentConfiguration.Validate());
     }
 
     private static string GetTaskId(IInstanceDataAccessor dataAccessor) =>
         dataAccessor.TaskId
         ?? dataAccessor.Instance.Process?.CurrentTask?.ElementId
         ?? throw new InvalidOperationException("Process task requires a current task id.");
+
+    private async Task CleanupAnyExistingPayment(
+        IInstanceDataMutator dataMutator,
+        ValidAltinnPaymentConfiguration paymentConfiguration
+    )
+    {
+        DataElement? paymentDataElement = dataMutator
+            .GetDataElementsForType(paymentConfiguration.PaymentDataType)
+            .SingleOrDefault();
+        if (paymentDataElement is null)
+        {
+            return;
+        }
+
+        ReadOnlyMemory<byte> paymentData = await dataMutator.GetBinaryData(paymentDataElement);
+        PaymentInformation paymentInformation =
+            JsonSerializer.Deserialize<PaymentInformation>(paymentData.Span, _jsonSerializerOptions)
+            ?? throw new InvalidOperationException("Unable to deserialize stored payment information.");
+
+        if (paymentInformation.Status == PaymentStatus.Paid)
+        {
+            return;
+        }
+
+        if (paymentInformation.Status != PaymentStatus.Skipped)
+        {
+            string paymentProcessorId = paymentInformation.OrderDetails.PaymentProcessorId;
+            IPaymentProcessor paymentProcessor =
+                _appImplementationFactory
+                    .GetAll<IPaymentProcessor>()
+                    .FirstOrDefault(pp => pp.PaymentProcessorId == paymentProcessorId)
+                ?? throw new PaymentException($"Payment processor with ID '{paymentProcessorId}' not found.");
+
+            bool success = await paymentProcessor.TerminatePayment(dataMutator.Instance, paymentInformation);
+            string paymentId = paymentInformation.PaymentDetails?.PaymentId ?? "missing";
+            if (!success)
+            {
+                throw new PaymentException(
+                    $"Unable to cancel existing {paymentProcessorId} payment with ID: {paymentId}."
+                );
+            }
+        }
+
+        dataMutator.RemoveDataElement(paymentDataElement);
+    }
 
     private static void UpsertTaskGeneratedBinaryDataElement(
         IInstanceDataMutator dataMutator,
