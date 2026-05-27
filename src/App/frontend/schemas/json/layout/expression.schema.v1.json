@@ -47,6 +47,7 @@
         { "$ref": "#/definitions/strict-boolean" },
         { "$ref": "#/definitions/strict-number" },
         { "$ref": "#/definitions/strict-list" },
+        { "$ref": "#/definitions/strict-object" },
         { "$ref": "#/definitions/func-if" }
       ]
     },
@@ -154,6 +155,18 @@
         { "$ref": "#/definitions/func-component" },
         { "$ref": "#/definitions/func-dataModel" },
         { "$ref": "#/definitions/func-list" }
+      ]
+    },
+    "object": {
+      "title": "Any expression returning an object",
+      "$ref": "#/definitions/strict-object"
+    },
+    "strict-object": {
+      "title": "Any expression returning an object (strict)",
+      "anyOf": [
+        { "$ref": "#/definitions/func-component" },
+        { "$ref": "#/definitions/func-dataModel" },
+        { "$ref": "#/definitions/func-object" }
       ]
     },
     "func-if": {
@@ -700,6 +713,15 @@
       "type": "array",
       "items": [
         { "const": "list" }
+      ],
+      "additionalItems": { "$ref": "#/definitions/any" }
+    },
+    "func-object": {
+      "title": "Create an object",
+      "description": "This function creates a list from its arguments.",
+      "type": "array",
+      "items": [
+        { "const": "object" }
       ],
       "additionalItems": { "$ref": "#/definitions/any" }
     },

@@ -20,6 +20,7 @@ import type {
   ExprFunctionName,
   ExprFunctions,
   ExprValToActual,
+  ValidObject,
   ValidValue,
 } from 'src/features/expressions/types';
 import type { ValidationContext } from 'src/features/expressions/validation';
@@ -323,6 +324,11 @@ export const ExprFunctionDefinitions = {
   list: {
     args: args(rest(ExprVal.Any)),
     returns: ExprVal.List,
+    needs: noSources,
+  },
+  object: {
+    args: args(rest(ExprVal.Any)),
+    returns: ExprVal.Object,
     needs: noSources,
   },
   _experimentalSelectAndMap: {
@@ -797,6 +803,21 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
   list(...items): ValidValue[] {
     return items;
   },
+  object(...items): ValidObject {
+    if (items.length % 2 === 1) {
+      throw new ExprRuntimeError(this.expr, this.path, 'The object function must have an even number of arguments');
+    }
+    const keys = extractEvenIndexedArguments(items);
+    if (!consistsOfStringsOnly(keys)) {
+      throw new ExprRuntimeError(this.expr, this.path, 'Object keys must be strings');
+    }
+    if (!areStringsUnique(keys)) {
+      throw new ExprRuntimeError(this.expr, this.path, 'Object keys must be unique');
+    }
+    const values = extractOddIndexedArguments(items);
+    const entries = zipArrays<string, ValidValue>(keys, values);
+    return Object.fromEntries(entries);
+  },
   _experimentalSelectAndMap(path, propertyToSelect, prepend, append, appendToLastElement = true) {
     if (path === null || propertyToSelect == null) {
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup dataModel null`);
@@ -1060,4 +1081,24 @@ function validateDates(this: EvaluateExpressionParams, a: ExprDate, b: ExprDate)
   if (!sameTimezones && eitherIsLocal) {
     throw new ExprRuntimeError(this.expr, this.path, `Can not compare timestamps where only one specify timezone`);
   }
+}
+
+function extractEvenIndexedArguments(args: ValidValue[]): ValidValue[] {
+  return args.filter((_, index) => index % 2 === 0);
+}
+
+function extractOddIndexedArguments(args: ValidValue[]): ValidValue[] {
+  return args.filter((_, index) => index % 2 === 1);
+}
+
+function consistsOfStringsOnly(array: ValidValue[]): array is string[] {
+  return array.every((value) => typeof value === 'string');
+}
+
+function areStringsUnique(strings: string[]): boolean {
+  return strings.length === new Set(strings).size;
+}
+
+function zipArrays<V1, V2>(array1: V1[], array2: V2[]): Array<[V1, V2]> {
+  return array1.map((value, index) => [value, array2[index]]);
 }
