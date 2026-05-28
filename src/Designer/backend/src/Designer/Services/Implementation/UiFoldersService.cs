@@ -61,17 +61,18 @@ public class UiFoldersService : IUiFoldersService
                     continue;
                 }
 
-                string taskType = TaskTypeFromDefinitions(definitions, layoutSetName);
+                string? taskType = hasMatchingTask ? TaskTypeFromDefinitions(definitions, layoutSetName) : null;
                 PagesDto pages = PagesDto.From(layoutSettings);
+                int pageCount = pages.Groups != null ? pages.Groups.Sum(group => group.Pages.Count) : pages.Pages!.Count;
+
                 layoutSets.Add(
                     new LayoutSetDto
                     {
                         Id = layoutSetName,
                         DataType = layoutSettings.DataType,
                         Type = layoutSettings.Type,
-                        Task = new TaskModel { Type = taskType },
-                        PageCount =
-                            pages.Groups != null ? pages.Groups.Sum(group => group.Pages.Count) : pages.Pages!.Count,
+                        Task = taskType != null ? new TaskModel { Type = taskType } : null,
+                        PageCount = pageCount,
                     }
                 );
             }
