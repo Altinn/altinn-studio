@@ -262,7 +262,7 @@ func appendHealthCheckArgs(args []string, hc *types.HealthCheck) []string {
 // ContainerState returns the state of a container.
 // Returns ErrContainerNotFound if the container does not exist.
 func (c *Client) ContainerState(ctx context.Context, nameOrID string) (types.ContainerState, error) {
-	cmd := processutil.CommandContext(ctx, "podman", "inspect", "--format", "{{json .State}}", nameOrID)
+	cmd := processutil.CommandContext(ctx, "podman", "container", "inspect", "--format", "{{json .State}}", nameOrID)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		lower := strings.ToLower(string(output))
@@ -288,7 +288,15 @@ func (c *Client) ContainerState(ctx context.Context, nameOrID string) (types.Con
 
 // ContainerNetworks returns the networks the container is attached to.
 func (c *Client) ContainerNetworks(ctx context.Context, nameOrID string) ([]string, error) {
-	cmd := processutil.CommandContext(ctx, "podman", "inspect", "-f", "{{json .NetworkSettings.Networks}}", nameOrID)
+	cmd := processutil.CommandContext(
+		ctx,
+		"podman",
+		"container",
+		"inspect",
+		"-f",
+		"{{json .NetworkSettings.Networks}}",
+		nameOrID,
+	)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		lower := strings.ToLower(string(output))
@@ -493,7 +501,7 @@ func podmanHealthStatus(health, healthcheck string) string {
 
 // ContainerInspect returns detailed information about a container.
 func (c *Client) ContainerInspect(ctx context.Context, nameOrID string) (types.ContainerInfo, error) {
-	cmd := processutil.CommandContext(ctx, "podman", "inspect", nameOrID)
+	cmd := processutil.CommandContext(ctx, "podman", "container", "inspect", nameOrID)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		lower := strings.ToLower(string(output))
