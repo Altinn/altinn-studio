@@ -482,15 +482,6 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new ExprRuntimeError(this.expr, this.path, `Unable to find component with identifier ${id}`);
     }
 
-    const rawBinding =
-      target.dataModelBindings && 'simpleBinding' in target.dataModelBindings
-        ? target.dataModelBindings.simpleBinding
-        : undefined;
-
-    if (!rawBinding) {
-      throw new ExprRuntimeError(this.expr, this.path, `Component ${id} does not have a simpleBinding`);
-    }
-
     if (!makeIndexedId(target.id, this.dataSources.currentDataModelPath, this.dataSources.layoutLookups)) {
       throw new NodeRelationNotFound(this, id);
     }
@@ -499,15 +490,17 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       return null;
     }
 
-    if (this.dataSources.currentDataModelPath) {
-      const transposed = transposeDataBinding({
-        subject: rawBinding,
-        currentLocation: this.dataSources.currentDataModelPath,
-      });
-      return pickSimpleValue(transposed, this);
+    const { dataModelBindings } = target;
+    if (!dataModelBindings) {
+      throw new ExprRuntimeError(this.expr, this.path, `Component ${id} does not have any bindings`);
     }
-
-    return pickSimpleValue(rawBinding, this);
+    if ('simpleBinding' in dataModelBindings) {
+      return valueFromBinding(dataModelBindings.simpleBinding, this);
+    }
+    if (target.children) {
+      return valueFromGroupBinding(dataModelBindings, this);
+    }
+    return valuesFromBindings(dataModelBindings, this);
   },
   dataModel(propertyPath, maybeDataType) {
     if (propertyPath === null) {
@@ -913,6 +906,41 @@ export const ExprFunctionValidationExtensions: { [K in ExprFunctionName]?: FuncV
     },
   },
 };
+
+function valueFromBinding(
+  binding: string,
+  params: EvaluateExpressionParams<['dataModelNames', 'formDataSelector', 'currentDataModelPath']>,
+): ValidValue {
+  if (params.dataSources.currentDataModelPath) {
+    const transposed = transposeDataBinding({
+      subject: binding,
+      currentLocation: params.dataSources.currentDataModelPath,
+    });
+    return pickSimpleValue(transposed, params);
+  } else {
+    return pickSimpleValue(binding, params);
+  }
+}
+
+function valueFromGroupBinding(
+  bindings: Record<string, string>,
+  params: EvaluateExpressionParams<['dataModelNames', 'formDataSelector', 'currentDataModelPath']>,
+) {
+  if ('group' in bindings) {
+    return valueFromBinding(bindings.group, params);
+  } else {
+    throw new ExprRuntimeError(params.expr, params.path, `Group component ${id} is missing group binding`);
+  }
+}
+
+function valuesFromBindings(
+  bindings: Record<string, string>,
+  params: EvaluateExpressionParams<['dataModelNames', 'formDataSelector', 'currentDataModelPath']>,
+): ValidObject {
+  const keys = Object.keys(bindings);
+  const values = Object.values(bindings).map((binding) => valueFromBinding(binding, params));
+  return Object.fromEntries(zipArrays(keys, values));
+}
 
 function pickSimpleValue(
   path: IDataModelReference,
