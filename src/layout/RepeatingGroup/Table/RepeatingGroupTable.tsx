@@ -354,6 +354,7 @@ function ExtraRows({ where, extraCells, columnSettings, hiddenColumnIndices }: E
       isNested={isNested}
       mutableColumnSettings={columnSettings}
       hiddenColumnIndices={mergedHiddenColumnIndices}
+      bodyClassName={where === 'Before' ? classes.rowsBeforeInTableHeaderGroup : undefined}
     />
   );
 }

@@ -265,6 +265,27 @@ describe('RepeatingGroupTable', () => {
     ])('hides column from %s when header cell has columnOptions.hidden', async (_label, extraRowsProp) => {
       await renderExtraRowsWithHiddenSecondColumn(extraRowsProp);
     });
+
+    it('should render rowsBefore before column headers when header is false', async () => {
+      const groupWithRowsBefore = getFormLayoutRepeatingGroupMock({
+        id: 'mock-container-id',
+        tableHeaders: ['field1', 'field2', 'field3'],
+        rowsBefore: [
+          {
+            header: false,
+            cells: [{ text: 'extra.before.row' }],
+          },
+        ],
+      });
+      await render(getLayout(groupWithRowsBefore, components), undefined, [
+        { id: 'extra.before.row', value: 'Row before text' },
+      ]);
+
+      const rowsBeforeText = screen.getByText('Row before text');
+      const columnHeader = screen.getByRole('columnheader', { name: 'Title1' });
+
+      expect(rowsBeforeText.compareDocumentPosition(columnHeader) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
   });
 
   describe('mobile view', () => {
