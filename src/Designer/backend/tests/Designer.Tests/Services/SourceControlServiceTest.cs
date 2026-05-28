@@ -421,10 +421,7 @@ public class SourceControlServiceTest : IDisposable
         }
         finally
         {
-            if (Directory.Exists(remoteRepoDir))
-            {
-                Directory.Delete(remoteRepoDir, true);
-            }
+            DeleteDirectoryIfExists(remoteRepoDir);
         }
     }
 
@@ -546,11 +543,17 @@ public class SourceControlServiceTest : IDisposable
         {
             return;
         }
+
+        DeleteDirectoryIfExists(_repoDir);
+    }
+
+    private static void DeleteDirectoryIfExists(string directory)
+    {
         try
         {
-            if (Directory.Exists(_repoDir))
+            if (Directory.Exists(directory))
             {
-                Directory.Delete(_repoDir, true);
+                Directory.Delete(directory, true);
             }
         }
         catch (Exception ex)
