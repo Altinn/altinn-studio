@@ -21,52 +21,33 @@ const appsSearchTestQuery = "apps"
 func TestAppsSearchCommandPrintsResults(t *testing.T) {
 	t.Parallel()
 
-	reqErrCh := make(chan string, 1)
-	failRequest := func(w http.ResponseWriter, format string, args ...any) {
-		select {
-		case reqErrCh <- fmt.Sprintf(format, args...):
-		default:
-		}
-		http.Error(w, "unexpected request", http.StatusBadRequest)
-	}
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server, reqErrCh := newAppsSearchTestServer(t, studio.SearchAppsResult{
+		Ok:         true,
+		TotalCount: 1,
+		TotalPages: 1,
+		Data: []studio.Repository{
+			{
+				Name:        "apps-test",
+				FullName:    "ttd/apps-test",
+				Description: "Test app",
+			},
+		},
+	}, func(r *http.Request) error {
 		if r.URL.Path != "/designer/api/repos/search" {
-			failRequest(w, "path = %s, want /designer/api/repos/search", r.URL.Path)
-			return
+			return fmt.Errorf("path = %s, want /designer/api/repos/search", r.URL.Path)
 		}
 		query := r.URL.Query()
 		if got := query.Get("keyword"); got != appsSearchTestQuery {
-			failRequest(w, "keyword = %q, want %s", got, appsSearchTestQuery)
-			return
+			return fmt.Errorf("keyword = %q, want %s", got, appsSearchTestQuery)
 		}
 		if got := query.Get("limit"); got != "1" {
-			failRequest(w, "limit = %q, want 1", got)
-			return
+			return fmt.Errorf("limit = %q, want 1", got)
 		}
 		if got := query.Get("page"); got != "1" {
-			failRequest(w, "page = %q, want 1", got)
-			return
+			return fmt.Errorf("page = %q, want 1", got)
 		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("X-Total-Count", "1")
-		if err := json.NewEncoder(w).Encode(studio.SearchAppsResult{
-			Ok:         true,
-			TotalCount: 1,
-			TotalPages: 1,
-			Data: []studio.Repository{
-				{
-					Name:        "apps-test",
-					FullName:    "ttd/apps-test",
-					Description: "Test app",
-				},
-			},
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-	}))
-	defer server.Close()
+		return nil
+	})
 
 	cfg := appsSearchTestConfig(t, server)
 	var out bytes.Buffer
@@ -76,11 +57,7 @@ func TestAppsSearchCommandPrintsResults(t *testing.T) {
 		t.Context(),
 		[]string{"search", "--env", "dev", "--limit", "1", appsSearchTestQuery},
 	)
-	select {
-	case reqErr := <-reqErrCh:
-		t.Fatal(reqErr)
-	default:
-	}
+	assertNoAppsSearchRequestError(t, reqErrCh)
 	if err != nil {
 		t.Fatalf("Run() error = %v", err)
 	}
@@ -97,25 +74,19 @@ func TestAppsSearchCommandPrintsResults(t *testing.T) {
 func TestAppsSearchCommandPrintsJSON(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(studio.SearchAppsResult{
-			Ok:         true,
-			TotalCount: 1,
-			TotalPages: 1,
-			Data: []studio.Repository{
-				{
-					Name:     "apps-test",
-					FullName: "ttd/apps-test",
-					CloneURL: "https://altinn.studio/repos/ttd/apps-test.git",
-					HTMLURL:  "https://altinn.studio/repos/ttd/apps-test",
-				},
+	server, reqErrCh := newAppsSearchTestServer(t, studio.SearchAppsResult{
+		Ok:         true,
+		TotalCount: 1,
+		TotalPages: 1,
+		Data: []studio.Repository{
+			{
+				Name:     "apps-test",
+				FullName: "ttd/apps-test",
+				CloneURL: "https://altinn.studio/repos/ttd/apps-test.git",
+				HTMLURL:  "https://altinn.studio/repos/ttd/apps-test",
 			},
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-	}))
-	defer server.Close()
+		},
+	}, nil)
 
 	cfg := appsSearchTestConfig(t, server)
 	var out bytes.Buffer
@@ -124,6 +95,7 @@ func TestAppsSearchCommandPrintsJSON(t *testing.T) {
 	if err := command.Run(t.Context(), []string{"search", "--env", "dev", "--json", appsSearchTestQuery}); err != nil {
 		t.Fatalf("Run() error = %v", err)
 	}
+	assertNoAppsSearchRequestError(t, reqErrCh)
 
 	var got appsSearchOutput
 	if err := json.Unmarshal([]byte(strings.TrimSpace(out.String())), &got); err != nil {
@@ -152,6 +124,51 @@ func TestAppsSearchCommandRequiresQuery(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), ErrMissingArgument.Error()) {
 		t.Fatalf("Run() error = %v, want missing argument", err)
+	}
+}
+
+func newAppsSearchTestServer(
+	t *testing.T,
+	result studio.SearchAppsResult,
+	validateRequest func(*http.Request) error,
+) (*httptest.Server, <-chan error) {
+	t.Helper()
+
+	reqErrCh := make(chan error, 1)
+	recordRequestError := func(w http.ResponseWriter, err error) {
+		select {
+		case reqErrCh <- err:
+		default:
+		}
+		http.Error(w, "unexpected request", http.StatusBadRequest)
+	}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if validateRequest != nil {
+			if err := validateRequest(r); err != nil {
+				recordRequestError(w, err)
+				return
+			}
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("X-Total-Count", "1")
+		if err := json.NewEncoder(w).Encode(result); err != nil {
+			recordRequestError(w, fmt.Errorf("encode response: %w", err))
+		}
+	}))
+	t.Cleanup(server.Close)
+
+	return server, reqErrCh
+}
+
+func assertNoAppsSearchRequestError(t *testing.T, reqErrCh <-chan error) {
+	t.Helper()
+
+	select {
+	case reqErr := <-reqErrCh:
+		t.Fatal(reqErr)
+	default:
 	}
 }
 
