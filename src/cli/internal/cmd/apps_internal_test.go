@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -17,6 +18,8 @@ import (
 )
 
 const appsSearchTestQuery = "apps"
+
+var errUnexpectedAppsSearchRequest = errors.New("unexpected apps search request")
 
 func TestAppsSearchCommandPrintsResults(t *testing.T) {
 	t.Parallel()
@@ -34,17 +37,21 @@ func TestAppsSearchCommandPrintsResults(t *testing.T) {
 		},
 	}, func(r *http.Request) error {
 		if r.URL.Path != "/designer/api/repos/search" {
-			return fmt.Errorf("path = %s, want /designer/api/repos/search", r.URL.Path)
+			return fmt.Errorf(
+				"%w: path = %s, want /designer/api/repos/search",
+				errUnexpectedAppsSearchRequest,
+				r.URL.Path,
+			)
 		}
 		query := r.URL.Query()
 		if got := query.Get("keyword"); got != appsSearchTestQuery {
-			return fmt.Errorf("keyword = %q, want %s", got, appsSearchTestQuery)
+			return fmt.Errorf("%w: keyword = %q, want %s", errUnexpectedAppsSearchRequest, got, appsSearchTestQuery)
 		}
 		if got := query.Get("limit"); got != "1" {
-			return fmt.Errorf("limit = %q, want 1", got)
+			return fmt.Errorf("%w: limit = %q, want 1", errUnexpectedAppsSearchRequest, got)
 		}
 		if got := query.Get("page"); got != "1" {
-			return fmt.Errorf("page = %q, want 1", got)
+			return fmt.Errorf("%w: page = %q, want 1", errUnexpectedAppsSearchRequest, got)
 		}
 		return nil
 	})
@@ -154,7 +161,7 @@ func newAppsSearchTestServer(
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("X-Total-Count", "1")
 		if err := json.NewEncoder(w).Encode(result); err != nil {
-			recordRequestError(w, fmt.Errorf("encode response: %w", err))
+			recordRequestError(w, fmt.Errorf("%w: encode response: %w", errUnexpectedAppsSearchRequest, err))
 		}
 	}))
 	t.Cleanup(server.Close)
