@@ -46,10 +46,6 @@ public class UiFoldersController : Controller
         return Ok(uiFolders);
     }
 
-    // [HttpGet("layout-sets/extended")]
-    // [HttpGet("layout-sets/extended/form1")]
-    // [HttpGet("settings/validation-on-navigation?layoutSet=form1")]
-    // [HttpGet("settings/validation-on-navigation?layoutSet=form1&page="page1")]
     [HttpGet("settings/validation-on-navigation")]
     [UseSystemTextJson]
     public async Task<IActionResult> GetGlobalValidationOnNavigation(
