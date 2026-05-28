@@ -1,34 +1,34 @@
 import React from 'react';
 
-import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
-import { Lang, LangAsParagraph } from 'src/features/language/Lang';
+import { Paragraph } from '@app/form-component';
+
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import classes from 'src/layout/Paragraph/ParagraphComponent.module.css';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function ParagraphComponent({ baseComponentId }: PropsFromGenericComponent<'Paragraph'>) {
   const { id, textResourceBindings } = useItemWhenType(baseComponentId, 'Paragraph');
-  const { langAsString } = useLanguage();
+  const { lang, langAsString } = useLanguage();
+
+  const titleContent = lang(textResourceBindings?.title);
+  const titleIsInline =
+    !!titleContent && typeof titleContent === 'object' && 'type' in titleContent && titleContent.type === 'span';
+
+  const titleKey = textResourceBindings?.title;
+  const helpKey = textResourceBindings?.help;
 
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>
-      <div className={classes.paragraphWrapper}>
-        <div
-          id={id}
-          data-testid={`paragraph-component-${id}`}
-        >
-          <LangAsParagraph id={textResourceBindings?.title} />
-        </div>
-        {textResourceBindings?.help && (
-          <HelpTextContainer
-            id={id}
-            helpText={<Lang id={textResourceBindings?.help} />}
-            title={langAsString(textResourceBindings?.title)}
-          />
-        )}
-      </div>
+      <Paragraph
+        id={id}
+        title={titleContent}
+        titleIsInline={titleIsInline}
+        helpText={helpKey ? <Lang id={helpKey} /> : undefined}
+        helpTitle={titleKey ? langAsString(titleKey) : langAsString('helptext.button_title')}
+        helpTitlePrefix={titleKey ? langAsString('helptext.button_title_prefix') : undefined}
+      />
     </ComponentStructureWrapper>
   );
 }
