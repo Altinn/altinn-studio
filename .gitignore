@@ -165,6 +165,7 @@ AppPackages/
 
 # Others
 *.Cache
+*.lscache
 ClientBin/
 [Ss]tyle[Cc]op.*
 !stylecop.json

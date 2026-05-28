@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import type {
   UserMessage,
   AssistantMessage,
+  Message,
   WorkflowEvent,
   WorkflowStatus,
   ConnectionStatus,
@@ -17,6 +18,7 @@ import { useCheckoutBranchMutation } from 'app-shared/hooks/mutations/useCheckou
 import { useAltinityWebSocket } from '../useAltinityWebSocket/useAltinityWebSocket';
 import type { AltinityThreadState } from '../useAltinityThreads/useAltinityThreads';
 import {
+  decorateMessagesWithTraceIds,
   formatRejectionMessage,
   getAssistantMessageContent,
   getAssistantMessageTimestamp,
@@ -36,11 +38,13 @@ export interface UseAltinityWorkflowResult {
   cancelCurrentWorkflow: () => Promise<void>;
   cancelledMessageContent: string | null;
   clearCancelledMessageContent: () => void;
+  messages: Message[];
 }
 
 export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWorkflowResult => {
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowStatus>({ isActive: false });
   const [cancelledMessageContent, setCancelledMessageContent] = useState<string | null>(null);
+  const [traceIdsByMessageId, setTraceIdsByMessageId] = useState<Record<string, string>>({});
   const {
     connectionStatus,
     sessionId: backendSessionId,
@@ -106,7 +110,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   );
 
   const handleAssistantMessage = useCallback(
-    (event: WorkflowEvent & { type: 'assistant_message' }) => {
+    async (event: WorkflowEvent & { type: 'assistant_message' }) => {
       const assistantMessage = event.data;
       const messageContent = getAssistantMessageContent(assistantMessage);
       const messageTimestamp = getAssistantMessageTimestamp(assistantMessage);
@@ -122,7 +126,14 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         filesChanged: assistantMessage.filesChanged || [],
         sources: assistantMessage.sources || [],
       };
-      createMessage(threadId, finalAssistantMessage);
+      const persisted = await createMessage(threadId, finalAssistantMessage);
+
+      if (assistantMessage.traceId && persisted?.id) {
+        setTraceIdsByMessageId((prev) => ({
+          ...prev,
+          [persisted.id]: assistantMessage.traceId,
+        }));
+      }
 
       if (event.session_id && !shouldSkipBranchOps(assistantMessage)) {
         resetRepoForSession(event.session_id);
@@ -299,6 +310,11 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     setCancelledMessageContent(null);
   }, []);
 
+  const messages = useMemo(
+    () => decorateMessagesWithTraceIds(chatMessages, traceIdsByMessageId),
+    [chatMessages, traceIdsByMessageId],
+  );
+
   return {
     connectionStatus,
     workflowStatus,
@@ -307,6 +323,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     cancelCurrentWorkflow,
     cancelledMessageContent,
     clearCancelledMessageContent,
+    messages,
   };
 };
 

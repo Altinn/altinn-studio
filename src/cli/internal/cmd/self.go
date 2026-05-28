@@ -23,6 +23,9 @@ import (
 const (
 	selfCompleteInstallSubcmd = "__complete-install"
 	selfMigrateSubcmd         = "__migrate"
+	selfWindowsHelperSubcmd   = "__windows-helper"
+	selfUpdateSubcmd          = "update"
+	selfUninstallSubcmd       = "uninstall"
 )
 
 // SelfCommand implements the 'self' subcommand.
@@ -39,6 +42,8 @@ type applyBundleOptions struct {
 	Candidates []selfcmd.Candidate
 	WarnPath   bool
 }
+
+type uninstallBinaryFunc func() (installpkg.UninstallResult, error)
 
 // NewSelfCommand creates a new self command.
 func NewSelfCommand(cfg *config.Config, out *ui.Output) *SelfCommand {
@@ -112,13 +117,15 @@ func (c *SelfCommand) Run(ctx context.Context, args []string) error {
 	switch subCmd {
 	case "install":
 		return c.runInstall(ctx, subArgs)
-	case "update":
+	case selfUpdateSubcmd:
 		return c.runUpdate(ctx, subArgs)
-	case "uninstall":
+	case selfUninstallSubcmd:
 		return c.runUninstall(ctx, subArgs)
 	case selfCompleteInstallSubcmd, selfMigrateSubcmd:
 		// __migrate is a preview.7 compatibility alias used by old updaters after replacing the binary.
 		return c.runCompleteInstall(ctx, subArgs)
+	case selfWindowsHelperSubcmd:
+		return c.runWindowsSelfHelper(ctx, subArgs)
 	case "-h", flagHelp, helpSubcmd:
 		c.out.Print(c.Usage())
 		return nil
@@ -334,6 +341,16 @@ func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {
 	if err != nil {
 		return fmt.Errorf("resolve update bundle: %w", err)
 	}
+	if runtime.GOOS == osutil.OSWindows {
+		if err := c.startWindowsUpdateHelper(ctx, resolved); err != nil {
+			if resolved.Cleanup != nil {
+				err = errors.Join(err, resolved.Cleanup())
+			}
+			return err
+		}
+		c.out.Successf("%s update started. The replacement will finish after this process exits.", osutil.CurrentBin())
+		return nil
+	}
 	if resolved.Cleanup != nil {
 		defer func() {
 			if cleanupErr := resolved.Cleanup(); cleanupErr != nil {
@@ -443,19 +460,27 @@ func (c *SelfCommand) runUninstall(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	if runtime.GOOS == osutil.OSWindows {
-		c.out.Error("Self-uninstall while running is not supported on Windows.")
-		c.out.Println("Run this after studioctl has exited:")
-		c.out.Println(`  Remove-Item "<path-to-studioctl.exe>"`)
-		return nil
-	}
-
 	if proceed, err := c.confirmUninstallIfNeeded(ctx, flags); err != nil {
 		return err
 	} else if !proceed {
 		return nil
 	}
 
+	if runtime.GOOS == osutil.OSWindows {
+		if err := c.startWindowsUninstallHelper(ctx); err != nil {
+			return err
+		}
+		c.out.Successf(
+			"%s uninstall started. The binary will be removed after this process exits.",
+			osutil.CurrentBin(),
+		)
+		return nil
+	}
+
+	return c.runConfirmedUninstall(ctx, c.service.UninstallBinary)
+}
+
+func (c *SelfCommand) runConfirmedUninstall(ctx context.Context, uninstallBinary uninstallBinaryFunc) error {
 	state, err := c.transition.Prepare(ctx)
 	if err != nil {
 		return fmt.Errorf("prepare uninstall: %w", err)
@@ -479,13 +504,16 @@ func (c *SelfCommand) runUninstall(ctx context.Context, args []string) error {
 		return fmt.Errorf("remove home directory: %w", err)
 	}
 
-	result, err := c.service.UninstallBinary()
+	result, err := uninstallBinary()
 	if err != nil {
 		return fmt.Errorf("self uninstall: %w", err)
 	}
 	removed = true
 
 	c.out.Successf("Removed %s", result.RemovedPath)
+	if result.RemovedDir != "" {
+		c.out.Successf("Removed %s", result.RemovedDir)
+	}
 	c.out.Successf("Removed %s", removedHome)
 	return nil
 }

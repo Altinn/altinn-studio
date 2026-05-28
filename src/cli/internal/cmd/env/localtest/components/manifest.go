@@ -67,6 +67,8 @@ func (manifest *Manifest) addContainer(
 		image,
 		manifest.network,
 		opts.RuntimeUser,
+		opts.RuntimeUsernsMode,
+		opts.RelabelBinds,
 		resourceEnabledRef(enabled),
 	))
 }

@@ -46,7 +46,8 @@ type DotnetRunSpec struct {
 
 // DotnetRunOptions contains native run-specific app options.
 type DotnetRunOptions struct {
-	RandomHostPort bool
+	AppFrontendAssetBaseUrl string
+	RandomHostPort          bool
 }
 
 // DockerRunSpec contains container execution details for `studioctl app run --mode container`.
@@ -56,8 +57,9 @@ type DockerRunSpec struct {
 
 // DockerRunOptions contains docker run-specific app options.
 type DockerRunOptions struct {
-	ImageTag       string
-	RandomHostPort bool
+	ImageTag                string
+	AppFrontendAssetBaseUrl string
+	RandomHostPort          bool
 }
 
 // RunTarget describes the app resolved for the app run command.
@@ -117,7 +119,7 @@ func (s *Service) BuildDotnetRunSpec(
 		AppArgs:        args,
 		BuildArgs:      []string{"build", projectPath},
 		TargetPathArgs: []string{"msbuild", projectPath, "-getProperty:TargetPath"},
-		Env:            newAppRunEnv(env, baseURL, topology),
+		Env:            newAppRunEnv(env, baseURL, topology, opts.AppFrontendAssetBaseUrl),
 	}, nil
 }
 
@@ -211,6 +213,7 @@ func (s *Service) BuildDockerRunSpec(
 			Name:           localtestAppContainerNamePrefix + appName,
 			Image:          imageTag,
 			User:           "",
+			UsernsMode:     "",
 			RestartPolicy:  "",
 			ExtraHosts:     nil,
 			NetworkAliases: nil,
@@ -226,7 +229,12 @@ func (s *Service) BuildDockerRunSpec(
 					Protocol:      "tcp",
 				},
 			},
-			Env:     newAppRunEnv(nil, "http://*:"+appcontainers.DefaultContainerPort, topology),
+			Env: newAppRunEnv(
+				nil,
+				"http://*:"+appcontainers.DefaultContainerPort,
+				topology,
+				opts.AppFrontendAssetBaseUrl,
+			),
 			Command: args,
 			CapAdd:  nil,
 			Detach:  true,

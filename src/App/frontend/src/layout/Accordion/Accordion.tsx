@@ -3,7 +3,7 @@ import React from 'react';
 import { AccordionItem, Flex } from '@app/form-component';
 import { Card } from '@digdir/designsystemet-react';
 
-import { useTranslation } from 'src/app-components/AppComponentsProvider';
+import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Accordion/Accordion.module.css';
 import { useIsInAccordionGroup } from 'src/layout/AccordionGroup/AccordionGroupContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -16,13 +16,12 @@ export const Accordion = ({ baseComponentId }: PropsFromGenericComponent<'Accord
   const { textResourceBindings, children, openByDefault } = useItemWhenType(baseComponentId, 'Accordion');
   const canRender = useHasCapability('renderInAccordion');
   const renderAsAccordionItem = useIsInAccordionGroup();
-  const { TranslateComponent } = useTranslation();
 
   const title = textResourceBindings?.title ?? '';
 
   const AccordionContent = ({ className }: { className?: string }) => (
     <AccordionItem
-      title={<TranslateComponent tKey={title} />}
+      title={<Lang id={title} />}
       className={className}
       defaultOpen={Boolean(openByDefault)}
     >
