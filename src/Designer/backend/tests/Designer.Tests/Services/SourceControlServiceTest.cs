@@ -377,6 +377,8 @@ public class SourceControlServiceTest : IDisposable
         string repoName = TestDataHelper.GenerateTestRepoName();
         string remoteRepoDir = TestDataHelper.GetTestDataRepositoryDirectory(_org, $"{repoName}-remote", _developer);
         _repoDir = TestDataHelper.GetTestDataRepositoryDirectory(_org, repoName, _developer);
+        const string staleRemoteBranchName = "develop'/test";
+        const string replacementRemoteBranchName = "develop'";
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, repoName, _developer);
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
             AltinnAuthenticatedRepoEditingContext.FromEditingContext(editingContext, "dummytoken");
@@ -394,21 +396,21 @@ public class SourceControlServiceTest : IDisposable
                     "test.txt",
                     "Initial content"
                 );
-                remoteRepo.CreateBranch("develop/test", initialCommit);
+                remoteRepo.CreateBranch(staleRemoteBranchName, initialCommit);
             }
 
             Repository.Clone(remoteRepoDir, _repoDir);
 
             using (var clonedRepo = new Repository(_repoDir))
             {
-                Assert.NotNull(clonedRepo.Branches["origin/develop/test"]);
-                Assert.Null(clonedRepo.Branches["origin/develop"]);
+                Assert.NotNull(clonedRepo.Branches[$"origin/{staleRemoteBranchName}"]);
+                Assert.Null(clonedRepo.Branches[$"origin/{replacementRemoteBranchName}"]);
             }
 
             using (var remoteRepo = new Repository(remoteRepoDir))
             {
-                remoteRepo.Branches.Remove("develop/test");
-                remoteRepo.CreateBranch("develop", remoteRepo.Head.Tip);
+                remoteRepo.Branches.Remove(staleRemoteBranchName);
+                remoteRepo.CreateBranch(replacementRemoteBranchName, remoteRepo.Head.Tip);
             }
 
             // Act
@@ -416,8 +418,64 @@ public class SourceControlServiceTest : IDisposable
 
             // Assert
             using var repo = new Repository(_repoDir);
-            Assert.Null(repo.Branches["origin/develop/test"]);
-            Assert.NotNull(repo.Branches["origin/develop"]);
+            Assert.Null(repo.Branches[$"origin/{staleRemoteBranchName}"]);
+            Assert.NotNull(repo.Branches[$"origin/{replacementRemoteBranchName}"]);
+        }
+        finally
+        {
+            DeleteDirectoryIfExists(remoteRepoDir);
+        }
+    }
+
+    [Fact]
+    public void FetchRemoteChanges_RemoteParentBranchReplacedByChildBranch_PrunesStaleRemoteTrackingBranch()
+    {
+        // Arrange
+        Setup();
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        string remoteRepoDir = TestDataHelper.GetTestDataRepositoryDirectory(_org, $"{repoName}-remote", _developer);
+        _repoDir = TestDataHelper.GetTestDataRepositoryDirectory(_org, repoName, _developer);
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, repoName, _developer);
+        AltinnAuthenticatedRepoEditingContext authenticatedContext =
+            AltinnAuthenticatedRepoEditingContext.FromEditingContext(editingContext, "dummytoken");
+
+        try
+        {
+            Directory.CreateDirectory(remoteRepoDir);
+            Repository.Init(remoteRepoDir);
+
+            using (var remoteRepo = new Repository(remoteRepoDir))
+            {
+                LibGit2Sharp.Commit initialCommit = CommitFile(
+                    remoteRepo,
+                    remoteRepoDir,
+                    "test.txt",
+                    "Initial content"
+                );
+                remoteRepo.CreateBranch("develop", initialCommit);
+            }
+
+            Repository.Clone(remoteRepoDir, _repoDir);
+
+            using (var clonedRepo = new Repository(_repoDir))
+            {
+                Assert.NotNull(clonedRepo.Branches["origin/develop"]);
+                Assert.Null(clonedRepo.Branches["origin/develop/test"]);
+            }
+
+            using (var remoteRepo = new Repository(remoteRepoDir))
+            {
+                remoteRepo.Branches.Remove("develop");
+                remoteRepo.CreateBranch("develop/test", remoteRepo.Head.Tip);
+            }
+
+            // Act
+            _sourceControlService.FetchRemoteChanges(authenticatedContext);
+
+            // Assert
+            using var repo = new Repository(_repoDir);
+            Assert.Null(repo.Branches["origin/develop"]);
+            Assert.NotNull(repo.Branches["origin/develop/test"]);
         }
         finally
         {

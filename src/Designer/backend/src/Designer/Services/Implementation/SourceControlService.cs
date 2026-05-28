@@ -225,7 +225,7 @@ public class SourceControlService(
                     }
                     catch (LibGit2SharpException ex)
                     {
-                        // Libgit2 applies prune too late for branch shape changes like origin/develop/test -> origin/develop.
+                        // Libgit2 applies prune too late for branch shape changes like origin/develop/test <-> origin/develop.
                         // Remove only blocking stale remote-tracking refs before retrying fetch.
                         if (!RemoveRemoteTrackingRefsBlockingFetch(repo, remote, ex))
                         {
@@ -245,27 +245,13 @@ public class SourceControlService(
         LibGit2SharpException exception
     )
     {
-        const string CannotLockRefMessagePrefix = "cannot lock ref '";
-        int refNameStart = exception.Message.IndexOf(CannotLockRefMessagePrefix, StringComparison.Ordinal);
-        if (refNameStart < 0)
+        string? blockedRef = GetBlockedRemoteTrackingRef(repo, remote, exception.Message);
+        if (blockedRef is null)
         {
             return false;
         }
 
-        refNameStart += CannotLockRefMessagePrefix.Length;
-        int refNameEnd = exception.Message.IndexOf('\'', refNameStart);
-        if (refNameEnd < 0)
-        {
-            return false;
-        }
-
-        string blockedRef = exception.Message[refNameStart..refNameEnd];
         string remoteTrackingPrefix = $"refs/remotes/{remote.Name}/";
-        if (!blockedRef.StartsWith(remoteTrackingPrefix, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
         string staleChildRefPrefix = $"{blockedRef}/";
         List<string> refsToRemove = repo
             .Refs.Where(reference =>
@@ -294,6 +280,79 @@ public class SourceControlService(
         }
 
         return refsToRemove.Count > 0;
+    }
+
+    private static string? GetBlockedRemoteTrackingRef(
+        LibGit2Sharp.Repository repo,
+        Remote remote,
+        string exceptionMessage
+    )
+    {
+        const string CannotLockRefMessagePrefix = "cannot lock ref '";
+        const string CannotLockRefMessageSuffix = "', there are refs beneath that folder";
+        string? canonicalRef = ExtractQuotedValue(
+            exceptionMessage,
+            CannotLockRefMessagePrefix,
+            CannotLockRefMessageSuffix
+        );
+        if (IsRemoteTrackingRefForRemote(canonicalRef, remote))
+        {
+            return canonicalRef;
+        }
+
+        const string CouldNotRemoveDirectoryPrefix = "could not remove directory '";
+        const string ParentIsNotDirectorySuffix = "': parent is not directory";
+        string? path = ExtractQuotedValue(exceptionMessage, CouldNotRemoveDirectoryPrefix, ParentIsNotDirectorySuffix);
+        canonicalRef = GetRemoteTrackingRefFromPath(repo, remote, path);
+        if (IsRemoteTrackingRefForRemote(canonicalRef, remote))
+        {
+            return canonicalRef;
+        }
+
+        return null;
+    }
+
+    private static bool IsRemoteTrackingRefForRemote(string? canonicalRef, Remote remote)
+    {
+        string remoteTrackingPrefix = $"refs/remotes/{remote.Name}/";
+        return canonicalRef?.StartsWith(remoteTrackingPrefix, StringComparison.Ordinal) == true;
+    }
+
+    private static string? ExtractQuotedValue(string message, string prefix, string suffix)
+    {
+        int valueStart = message.IndexOf(prefix, StringComparison.Ordinal);
+        if (valueStart < 0)
+        {
+            return null;
+        }
+
+        valueStart += prefix.Length;
+        int valueEnd = message.LastIndexOf(suffix, StringComparison.Ordinal);
+        if (valueEnd < valueStart)
+        {
+            return null;
+        }
+
+        return message[valueStart..valueEnd];
+    }
+
+    private static string? GetRemoteTrackingRefFromPath(LibGit2Sharp.Repository repo, Remote remote, string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return null;
+        }
+
+        string normalizedPath = path.Replace('\\', '/');
+        string normalizedGitDirectory = repo.Info.Path.Replace('\\', '/').TrimEnd('/');
+        string remoteTrackingPathPrefix = $"{normalizedGitDirectory}/refs/remotes/{remote.Name}/";
+        if (!normalizedPath.StartsWith(remoteTrackingPathPrefix, StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        string refName = normalizedPath[remoteTrackingPathPrefix.Length..];
+        return string.IsNullOrWhiteSpace(refName) ? null : $"refs/remotes/{remote.Name}/{refName}";
     }
 
     /// <inheritdoc/>
