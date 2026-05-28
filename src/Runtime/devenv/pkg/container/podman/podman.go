@@ -883,7 +883,7 @@ func (c *Client) ContainerLogs(
 	if follow {
 		args = append(args, "-f")
 	}
-	if tail != "" {
+	if tail != "" && tail != "all" {
 		args = append(args, "--tail", tail)
 	}
 	args = append(args, nameOrID)
