@@ -202,6 +202,11 @@ internal sealed class StudioctlEnvironmentLease : IAsyncDisposable
 internal sealed class StudioctlAppProcess : IAsyncDisposable
 {
     private static readonly TimeSpan _stopTimeout = TimeSpan.FromSeconds(10);
+    private static readonly HashSet<string> _reservedEnvironmentVariables = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "AppFixture__ConfigurationPath",
+        "NUGET_PACKAGES",
+    };
 
     private readonly ILogger _logger;
 
@@ -236,6 +241,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
         string appDirectory,
         string fixtureConfigurationPath,
         string nugetPackagesDirectory,
+        IReadOnlyDictionary<string, string>? environmentVariables,
         ILogger logger,
         CancellationToken cancellationToken
     )
@@ -244,6 +250,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
             appDirectory,
             fixtureConfigurationPath,
             nugetPackagesDirectory,
+            environmentVariables,
             logger,
             cancellationToken,
             "run",
@@ -280,6 +287,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
             appDirectory,
             fixtureConfigurationPath: null,
             nugetPackagesDirectory: null,
+            environmentVariables: null,
             logger,
             CancellationToken.None,
             "app",
@@ -402,6 +410,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
         string workingDirectory,
         string? fixtureConfigurationPath,
         string? nugetPackagesDirectory,
+        IReadOnlyDictionary<string, string>? environmentVariables,
         ILogger logger,
         CancellationToken cancellationToken,
         params string[] arguments
@@ -418,6 +427,16 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
             process.StartInfo.Environment["AppFixture__ConfigurationPath"] = fixtureConfigurationPath;
         if (nugetPackagesDirectory is not null)
             process.StartInfo.Environment["NUGET_PACKAGES"] = nugetPackagesDirectory;
+        if (environmentVariables is not null)
+        {
+            foreach (var (key, value) in environmentVariables)
+            {
+                if (_reservedEnvironmentVariables.Contains(key))
+                    throw new InvalidOperationException($"Environment variable '{key}' is reserved by the fixture.");
+
+                process.StartInfo.Environment[key] = value;
+            }
+        }
         foreach (var argument in arguments)
             process.StartInfo.ArgumentList.Add(argument);
 
