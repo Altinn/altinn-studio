@@ -52,22 +52,19 @@ WorkflowEngine/
 │   ├── ProcessNext/
 │   │   ├── TaskStart/
 │   │   │   ├── UnlockTaskData.cs            - Unlock data elements for new task
-│   │   │   ├── StartTaskLegacyHook  - Runs legacy IProcessTaskStart (obsolete API)
-│   │   │   ├── OnTaskStartingHook.cs        - Runs IOnTaskStartingHandler (new API, max 1 per task)
+│   │   │   ├── OnTaskStartingHook.cs        - Runs IOnTaskStartingHandler (max 1 per task)
 │   │   │   ├── CommonTaskInitialization.cs   - Auto-create data elements, prefill, remove task-generated data
-│   │   │   └── StartTask.cs          - Calls IProcessTask.Start()
+│   │   │   └── StartTask.cs                 - Calls IProcessTask.Start(ProcessTaskContext)
 │   │   ├── TaskEnd/
-│   │   │   ├── EndTask.cs            - Calls IProcessTask.End()
+│   │   │   ├── EndTask.cs                   - Calls IProcessTask.End(ProcessTaskContext)
 │   │   │   ├── CommonTaskFinalization.cs    - Remove hidden data, shadow fields, AltinnRowIds
-│   │   │   ├── EndTaskLegacyHook.cs         - Runs legacy IProcessTaskEnd (obsolete API)
-│   │   │   ├── OnTaskEndingHook.cs          - Runs IOnTaskEndingHandler (new API, max 1 per task)
+│   │   │   ├── OnTaskEndingHook.cs          - Runs IOnTaskEndingHandler (max 1 per task)
 │   │   │   └── LockTaskData.cs              - Lock data elements after task completes
 │   │   ├── TaskAbandon/
-│   │   │   ├── AbandonTask.cs
-│   │   │   ├── OnTaskEndingHook.cs          - (reused from TaskEnd namespace - runs IOnTaskAbandonHandler)
-│   │   │   └── AbandonTaskLegacyHook.cs
+│   │   │   ├── AbandonTask.cs               - Calls IProcessTask.Abandon(ProcessTaskContext)
+│   │   │   └── OnTaskAbandonHook.cs         - Runs IOnTaskAbandonHandler (max 1 per task)
 │   │   └── ProcessEnd/
-│   │       ├── OnProcessEndingHook.cs      - Runs IOnProcessEndingHandler (pre-commit)
+│   │       ├── OnProcessEndingHook.cs       - Runs IOnProcessEndingHandler (pre-commit)
 │   │       ├── EndProcessLegacyHook.cs      - Runs legacy IProcessEnd (post-commit)
 │   │       ├── DeleteDataElements.cs        - Auto-delete data types with AutoDeleteOnProcessEnd (post-commit)
 │   │       └── DeleteInstance.cs            - Hard-delete instance if ApplicationMetadata.AutoDeleteOnProcessEnd (post-commit)
@@ -76,6 +73,7 @@ WorkflowEngine/
 │   │   ├── CompletedAltinnEvent.cs          - Fires process.completed event (post-commit)
 │   │   └── InstanceCreatedAltinnEvent.cs    - Fires instance.created event (post-commit, first task only)
 │   ├── ExecuteServiceTask.cs                - Runs IServiceTask.Execute() (post-commit)
+│   ├── NotifyInstanceOwnerOnInstantiation.cs - Sends instantiation notification (post-commit, first task only)
 │   ├── MutateProcessState.cs                - Mutates in-memory process state between task-end and task-start
 │   └── SaveProcessStateToStorage.cs         - Commits ProcessStateChange to Storage (the commit boundary)
 ├── DependencyInjection/
@@ -87,19 +85,21 @@ WorkflowEngine/
 ├── Models/
 │   ├── WorkflowEnqueueRequest.cs            - Batch request body (labels, context, list of WorkflowRequest)
 │   ├── WorkflowRequest.cs                   - Single workflow (operationId, steps, state, dependsOn)
-│   ├── WorkflowEnqueueResponse.cs           - Response: Accepted (with WorkflowResult[]) or Rejected
+│   ├── WorkflowEnqueueResponse.cs           - Response: Accepted (with WorkflowResult[])
 │   ├── StepRequest.cs                       - Single step (operationId + command + retryStrategy + metadata)
-│   ├── Command.cs                           - CommandDefinition: flat record with type + data (JsonElement)
+│   ├── CommandDefinition.cs                 - CommandDefinition: flat record with type + data (JsonElement)
 │   ├── AppCommandData.cs                    - Data for "app" commands (commandKey + payload)
 │   ├── AppWorkflowContext.cs                - Context for app commands (actor, lockToken, org, app, party, guid)
 │   ├── AppCallbackPayload.cs                - Payload engine sends back per callback (includes workflowId)
+│   ├── AppCallbackResponse.cs               - Success response with updated state blob (nullable)
 │   ├── Actor.cs                             - User/org identity for the request
 │   ├── RetryStrategy.cs                     - Backoff config (Exponential/Linear/Constant + nonRetryableHttpStatusCodes)
 │   ├── BackoffType.cs                       - Enum
 │   ├── PersistentItemStatus.cs              - Enum (Enqueued/Processing/Requeued/Completed/Failed/Canceled/DependencyFailed)
+│   ├── PaginatedResponse.cs                 - Paged engine list response
+│   ├── WorkflowCollectionDetailResponse.cs  - Collection status response with active heads
 │   ├── WorkflowStatusResponse.cs            - Full status response (databaseId, operationId, steps as StepStatusResponse)
-│   ├── CallbackErrorResponse.cs             - Error response from callback controller
-│   ├── AppCallbackResponse.cs               - Success response with updated state blob (nullable)
+│   ├── WorkflowRef.cs                       - Dependency reference between workflows
 │   └── WorkflowCallbackState.cs             - Internal DTO for transported instance + form data callback state
 ├── WorkflowCallbackStateService.cs          - Captures/restores workflow callback state to/from opaque state blob
 ├── ProcessNextRequestFactory.cs             - Maps ProcessStateChange → WorkflowEnqueueRequest
@@ -118,10 +118,10 @@ Defined in `WorkflowCommandSet.cs`. `ProcessNextRequestFactory` assembles the fu
 ### Task-to-Task Transition (e.g., Task_1 → Task_2)
 ```
 ── instance.Process.CurrentTask = Task_1 (OLD) ──
-EndTask → CommonTaskFinalization → EndTaskLegacyHook → OnTaskEndingHook → LockTaskData
+EndTask → CommonTaskFinalization → OnTaskEndingHook → LockTaskData
   ── MutateProcessState (in-memory: CurrentTask → Task_2) ──
 ── instance.Process.CurrentTask = Task_2 (NEW) ──
-UnlockTaskData → StartTaskLegacyHook → OnTaskStartingHook → CommonTaskInitialization → StartTask
+UnlockTaskData → OnTaskStartingHook → CommonTaskInitialization → StartTask
   ── SaveProcessStateToStorage (persist to Storage) ──
 MovedToAltinnEvent → [ExecuteServiceTask if service task]
 ```
@@ -129,7 +129,7 @@ MovedToAltinnEvent → [ExecuteServiceTask if service task]
 ### Task-to-End Transition (e.g., Task_1 → EndEvent)
 ```
 ── instance.Process.CurrentTask = Task_1 (OLD) ──
-EndTask → CommonTaskFinalization → EndTaskLegacyHook → OnTaskEndingHook → LockTaskData
+EndTask → CommonTaskFinalization → OnTaskEndingHook → LockTaskData
   ── MutateProcessState (in-memory: CurrentTask → null, EndEvent set) ──
 OnProcessEndingHook
   ── SaveProcessStateToStorage (persist to Storage) ──
@@ -139,15 +139,15 @@ EndProcessLegacyHook → DeleteDataElementsIfConfigured → DeleteInstanceIfConf
 ### Initial Task Start (process just created)
 ```
 ── instance.Process.CurrentTask = Task_1 (already set by CreateInitialProcessState) ──
-UnlockTaskData → StartTaskLegacyHook → OnTaskStartingHook → CommonTaskInitialization → StartTask
+UnlockTaskData → OnTaskStartingHook → CommonTaskInitialization → StartTask
   ── SaveProcessStateToStorage (persist to Storage) ──
-MovedToAltinnEvent → [ExecuteServiceTask if service task] → [InstanceCreatedAltinnEvent if first task]
+MovedToAltinnEvent → [ExecuteServiceTask if service task] → [InstanceCreatedAltinnEvent if first task] → [NotifyInstanceOwnerOnInstantiation if configured]
 ```
 
 ### Task Abandon (reject → end)
 ```
 ── instance.Process.CurrentTask = Task_1 (OLD) ──
-AbandonTask → OnTaskAbandonHook → AbandonTaskLegacyHook
+AbandonTask → OnTaskAbandonHook
   ── MutateProcessState (in-memory: CurrentTask → null or next task) ──
 [OnProcessEndingHook if ending] / [task-start commands if moving to next task]
   ── SaveProcessStateToStorage (persist to Storage) ──
@@ -168,15 +168,17 @@ AbandonTask → OnTaskAbandonHook → AbandonTaskLegacyHook
 
 4. **Add to sequence**: add to the appropriate method in `WorkflowCommandSet.cs` (use `AddCommand` for pre-commit, `AddPostProcessNextCommittedCommand` for post-commit)
 
-5. **Startup validation**: `WorkflowEngineCommandValidator` will fail at startup if a key in `WorkflowCommandSet` isn't registered in DI
+5. **Startup validation**: `ProcessEngineCommandValidator` in `WorkflowEngineCommandValidator.cs` will fail at startup if a key in `WorkflowCommandSet` isn't registered in DI
 
 ## Command Conventions
 
 - Every command has `public static string Key => "..."` and `public string GetKey() => Key`
 - Commands return `SuccessfulProcessEngineCommandResult` or `FailedProcessEngineCommandResult` (never throw from Execute)
 - Commands get instance data through `context.InstanceDataMutator` (an `InstanceDataUnitOfWork`)
+- Commands pass `context.CancellationToken` into app-facing contexts (`ProcessTaskContext`, hook contexts, and `ServiceTaskContext`)
 - The callback controller saves data changes after successful execution - commands don't need to persist data themselves (except `SaveProcessStateToStorage` which writes to the process/events API)
-- Hook commands (OnTaskStarting/Ending, OnProcessEnding) enforce max 1 handler per task
+- Hook commands (`OnTaskStarting`, `OnTaskEnding`, `OnTaskAbandon`, `OnProcessEnding`) enforce max 1 handler per task
+- `ExecuteServiceTask` can request auto-advance by returning `ServiceTaskSuccessResult` with `AutoAdvanceProcess = true`
 
 ## Interaction with Workflow Engine Service
 
@@ -226,10 +228,8 @@ All data saves during callbacks use `StorageAuthenticationMethod.ServiceOwner()`
 
 **Implication for task-start data saves**: Between `MutateProcessState` and `SaveProcessStateToStorage`, task-start commands create/modify data while Storage still has the OLD task as current. This works because ServiceOwner has write access on all tasks. If Storage ever starts forwarding the real userId to the authorization service (e.g., via a header), we would need to persist the process state between the two command groups instead. The factory already separates `taskEndSteps` and `taskStartSteps`, so moving the `SaveProcessStateToStorage` insert point would be straightforward.
 
-## Known TODOs / In-Progress
+## Known TODOs / Notes
 
 - Authentication on callback controller: currently `[AllowAnonymous]`, should use X-Api-Key scheme
-- `DeleteDataElementsIfConfigured` and `DeleteInstanceIfConfigured` are wired into process end sequence (post-commit)
 - `Actor.UserIdOrOrgNumber` could use a more specific type
 - `AppCallbackPayload.LockToken` naming inconsistency with engine (LockKey vs LockToken)
-- "Go to next task after service task" - automatic progression not yet reimplemented
