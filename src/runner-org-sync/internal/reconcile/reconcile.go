@@ -16,7 +16,7 @@ import (
 
 	"altinn.studio/runner-org-sync/internal/cdn"
 	"altinn.studio/runner-org-sync/internal/gitea"
-	"altinn.studio/runner-org-sync/internal/k8sstate"
+	"altinn.studio/runner-org-sync/internal/k8sclient"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/yaml"
 )
@@ -51,7 +51,7 @@ type TokenMinter interface {
 // SecretStore is the cluster I/O surface the Reconciler needs.
 type SecretStore interface {
 	ListManagedSecrets(ctx context.Context) ([]corev1.Secret, error)
-	RegistrationSecretStatus(ctx context.Context, name, org string) (k8sstate.RegistrationSecretState, error)
+	RegistrationSecretStatus(ctx context.Context, name, org string) (k8sclient.RegistrationSecretState, error)
 	CreateRegistrationSecret(ctx context.Context, name, org, token string) error
 	DeleteSecret(ctx context.Context, name string) error
 	ApplyConfigMap(ctx context.Context, name string, data map[string]string) (bool, error)
@@ -179,11 +179,11 @@ func (r *Reconciler) Run(ctx context.Context) (Report, error) {
 			return report, fmt.Errorf("reconcile: check registration secret %s: %w", name, err)
 		}
 		switch status {
-		case k8sstate.RegistrationSecretValid:
+		case k8sclient.RegistrationSecretValid:
 			report.SecretsSkipped = append(report.SecretsSkipped, org.Code)
 			orgHasSecret[org.Code] = true
 			continue
-		case k8sstate.RegistrationSecretInvalid:
+		case k8sclient.RegistrationSecretInvalid:
 			report.FailedOrgs = append(report.FailedOrgs, OrgFailure{
 				Org:   org.Code,
 				Stage: StageValidate,
@@ -217,7 +217,7 @@ func (r *Reconciler) Run(ctx context.Context) (Report, error) {
 		desiredSet[o.Code] = struct{}{}
 	}
 	for _, sec := range existing {
-		org := k8sstate.OrgFromSecret(sec)
+		org := k8sclient.OrgFromSecret(sec)
 		if org == "" {
 			// Defence in depth: a managed Secret missing the org label is a
 			// drift signal; skip rather than delete on uncertain attribution.

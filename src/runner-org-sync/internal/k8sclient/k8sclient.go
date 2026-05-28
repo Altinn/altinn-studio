@@ -1,12 +1,11 @@
-// Package k8sstate provides the in-cluster reconcile primitives used by the
-// runner-org-sync CronJob: listing the Secrets we own, creating and
-// deleting per-org registration-token Secrets, and applying the runners
-// ConfigMap idempotently.
+// Package k8sclient wraps the Kubernetes REST client operations used by the
+// runner-org-sync CronJob: listing the Secrets we own, creating and deleting
+// per-org registration-token Secrets, and applying the runners ConfigMap
+// idempotently.
 //
-// The Store is constructed around a kubernetes.Interface so the production
-// path uses a real REST client while tests inject the fake clientset from
-// k8s.io/client-go/kubernetes/fake.
-package k8sstate
+// The NamespacedClient is bound to one namespace. It does not cache or store
+// cluster state; each method talks to the supplied kubernetes.Interface.
+package k8sclient
 
 import (
 	"bytes"
@@ -47,23 +46,24 @@ const (
 	RegistrationSecretInvalid RegistrationSecretState = "invalid"
 )
 
-// Store is the package's only entry point for cluster I/O.
-type Store struct {
+// NamespacedClient performs the namespace-scoped Kubernetes I/O needed by the
+// reconciler.
+type NamespacedClient struct {
 	client    kubernetes.Interface
 	namespace string
 }
 
-// NewStore constructs a Store bound to a single namespace.
-func NewStore(client kubernetes.Interface, namespace string) *Store {
-	return &Store{client: client, namespace: namespace}
+// NewNamespacedClient constructs a NamespacedClient bound to a single namespace.
+func NewNamespacedClient(client kubernetes.Interface, namespace string) *NamespacedClient {
+	return &NamespacedClient{client: client, namespace: namespace}
 }
 
-// Namespace returns the namespace the Store operates in. Useful for logs.
-func (s *Store) Namespace() string { return s.namespace }
+// Namespace returns the namespace the NamespacedClient operates in. Useful for logs.
+func (s *NamespacedClient) Namespace() string { return s.namespace }
 
 // ListManagedSecrets returns all Secrets in the namespace that this service
 // owns, matched by ManagedBy + Component labels.
-func (s *Store) ListManagedSecrets(ctx context.Context) ([]corev1.Secret, error) {
+func (s *NamespacedClient) ListManagedSecrets(ctx context.Context) ([]corev1.Secret, error) {
 	selector := fmt.Sprintf("%s=%s,%s=%s",
 		LabelManagedBy, ManagedBy,
 		LabelComponent, ComponentRegToken,
@@ -72,20 +72,20 @@ func (s *Store) ListManagedSecrets(ctx context.Context) ([]corev1.Secret, error)
 		LabelSelector: selector,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("k8sstate: list secrets: %w", err)
+		return nil, fmt.Errorf("k8sclient: list secrets: %w", err)
 	}
 	return list.Items, nil
 }
 
 // RegistrationSecretStatus reports whether the named Secret exists and has
 // the ownership labels and token data expected for the given org.
-func (s *Store) RegistrationSecretStatus(ctx context.Context, name, org string) (RegistrationSecretState, error) {
+func (s *NamespacedClient) RegistrationSecretStatus(ctx context.Context, name, org string) (RegistrationSecretState, error) {
 	sec, err := s.client.CoreV1().Secrets(s.namespace).Get(ctx, name, metav1.GetOptions{})
 	if apierrors.IsNotFound(err) {
 		return RegistrationSecretMissing, nil
 	}
 	if err != nil {
-		return "", fmt.Errorf("k8sstate: get registration secret %s: %w", name, err)
+		return "", fmt.Errorf("k8sclient: get registration secret %s: %w", name, err)
 	}
 	if sec.Type != "" && sec.Type != corev1.SecretTypeOpaque {
 		return RegistrationSecretInvalid, nil
@@ -106,7 +106,7 @@ func (s *Store) RegistrationSecretStatus(ctx context.Context, name, org string) 
 	labelsChanged = ensureLabel(sec.Labels, LabelOrg, org) || labelsChanged
 	if labelsChanged {
 		if _, err := s.client.CoreV1().Secrets(s.namespace).Update(ctx, sec, metav1.UpdateOptions{}); err != nil {
-			return "", fmt.Errorf("k8sstate: adopt registration secret %s: %w", name, err)
+			return "", fmt.Errorf("k8sclient: adopt registration secret %s: %w", name, err)
 		}
 	}
 	return RegistrationSecretValid, nil
@@ -115,7 +115,7 @@ func (s *Store) RegistrationSecretStatus(ctx context.Context, name, org string) 
 // CreateRegistrationSecret creates an Opaque Secret carrying the
 // registration token at key "token", labelled with ManagedBy / Component /
 // Org. Returns the underlying error verbatim so callers can use apierrors.IsAlreadyExists.
-func (s *Store) CreateRegistrationSecret(ctx context.Context, name, org, token string) error {
+func (s *NamespacedClient) CreateRegistrationSecret(ctx context.Context, name, org, token string) error {
 	sec := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -132,17 +132,17 @@ func (s *Store) CreateRegistrationSecret(ctx context.Context, name, org, token s
 		},
 	}
 	if _, err := s.client.CoreV1().Secrets(s.namespace).Create(ctx, sec, metav1.CreateOptions{}); err != nil {
-		return fmt.Errorf("k8sstate: create secret %s: %w", name, err)
+		return fmt.Errorf("k8sclient: create secret %s: %w", name, err)
 	}
 	return nil
 }
 
 // DeleteSecret removes the named Secret. NotFound is treated as success so
 // the operation is idempotent across reconciles.
-func (s *Store) DeleteSecret(ctx context.Context, name string) error {
+func (s *NamespacedClient) DeleteSecret(ctx context.Context, name string) error {
 	err := s.client.CoreV1().Secrets(s.namespace).Delete(ctx, name, metav1.DeleteOptions{})
 	if err != nil && !apierrors.IsNotFound(err) {
-		return fmt.Errorf("k8sstate: delete secret %s: %w", name, err)
+		return fmt.Errorf("k8sclient: delete secret %s: %w", name, err)
 	}
 	return nil
 }
@@ -151,7 +151,7 @@ func (s *Store) DeleteSecret(ctx context.Context, name string) error {
 // the supplied value. Returns true if a write actually occurred (create or
 // update), false if the existing object already matched. Labels are
 // preserved on update; managed labels are added or restored if missing.
-func (s *Store) ApplyConfigMap(ctx context.Context, name string, data map[string]string) (bool, error) {
+func (s *NamespacedClient) ApplyConfigMap(ctx context.Context, name string, data map[string]string) (bool, error) {
 	desired := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -168,12 +168,12 @@ func (s *Store) ApplyConfigMap(ctx context.Context, name string, data map[string
 	existing, err := s.client.CoreV1().ConfigMaps(s.namespace).Get(ctx, name, metav1.GetOptions{})
 	if apierrors.IsNotFound(err) {
 		if _, err := s.client.CoreV1().ConfigMaps(s.namespace).Create(ctx, desired, metav1.CreateOptions{}); err != nil {
-			return false, fmt.Errorf("k8sstate: create configmap %s: %w", name, err)
+			return false, fmt.Errorf("k8sclient: create configmap %s: %w", name, err)
 		}
 		return true, nil
 	}
 	if err != nil {
-		return false, fmt.Errorf("k8sstate: get configmap %s: %w", name, err)
+		return false, fmt.Errorf("k8sclient: get configmap %s: %w", name, err)
 	}
 
 	if existing.Labels == nil {
@@ -188,7 +188,7 @@ func (s *Store) ApplyConfigMap(ctx context.Context, name string, data map[string
 	existing.Data = data
 
 	if _, err := s.client.CoreV1().ConfigMaps(s.namespace).Update(ctx, existing, metav1.UpdateOptions{}); err != nil {
-		return false, fmt.Errorf("k8sstate: update configmap %s: %w", name, err)
+		return false, fmt.Errorf("k8sclient: update configmap %s: %w", name, err)
 	}
 	return true, nil
 }
@@ -200,9 +200,9 @@ func (s *Store) ApplyConfigMap(ctx context.Context, name string, data map[string
 //
 // Labels are applied on create (ManagedBy). On update, the managed-by label
 // is added or restored if missing; other existing labels are preserved.
-func (s *Store) ApplyOpaqueSecret(ctx context.Context, name, key, value string) (bool, error) {
+func (s *NamespacedClient) ApplyOpaqueSecret(ctx context.Context, name, key, value string) (bool, error) {
 	if key == "" {
-		return false, fmt.Errorf("k8sstate: ApplyOpaqueSecret %s: key is required", name)
+		return false, fmt.Errorf("k8sclient: ApplyOpaqueSecret %s: key is required", name)
 	}
 	encoded := []byte(value)
 
@@ -220,12 +220,12 @@ func (s *Store) ApplyOpaqueSecret(ctx context.Context, name, key, value string) 
 			Data: map[string][]byte{key: encoded},
 		}
 		if _, err := s.client.CoreV1().Secrets(s.namespace).Create(ctx, desired, metav1.CreateOptions{}); err != nil {
-			return false, fmt.Errorf("k8sstate: create opaque secret %s: %w", name, err)
+			return false, fmt.Errorf("k8sclient: create opaque secret %s: %w", name, err)
 		}
 		return true, nil
 	}
 	if err != nil {
-		return false, fmt.Errorf("k8sstate: get opaque secret %s: %w", name, err)
+		return false, fmt.Errorf("k8sclient: get opaque secret %s: %w", name, err)
 	}
 
 	if existing.Labels == nil {
@@ -244,7 +244,7 @@ func (s *Store) ApplyOpaqueSecret(ctx context.Context, name, key, value string) 
 	existing.Data[key] = encoded
 
 	if _, err := s.client.CoreV1().Secrets(s.namespace).Update(ctx, existing, metav1.UpdateOptions{}); err != nil {
-		return false, fmt.Errorf("k8sstate: update opaque secret %s: %w", name, err)
+		return false, fmt.Errorf("k8sclient: update opaque secret %s: %w", name, err)
 	}
 	return true, nil
 }

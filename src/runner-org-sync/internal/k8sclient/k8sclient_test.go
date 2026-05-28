@@ -1,4 +1,4 @@
-package k8sstate
+package k8sclient
 
 import (
 	"context"
@@ -15,7 +15,7 @@ const testNamespace = "studio-runners"
 
 func TestCreateRegistrationSecret_SetsLabelsAndData(t *testing.T) {
 	c := fake.NewSimpleClientset()
-	s := NewStore(c, testNamespace)
+	s := NewNamespacedClient(c, testNamespace)
 
 	if err := s.CreateRegistrationSecret(context.Background(), "altinn-gitea-runner-ttd-secret", "ttd", "tok-1"); err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -46,7 +46,7 @@ func TestCreateRegistrationSecret_AlreadyExists(t *testing.T) {
 	c := fake.NewSimpleClientset(&corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: "x", Namespace: testNamespace},
 	})
-	s := NewStore(c, testNamespace)
+	s := NewNamespacedClient(c, testNamespace)
 	err := s.CreateRegistrationSecret(context.Background(), "x", "ttd", "tok")
 	if err == nil {
 		t.Fatal("expected error for duplicate, got nil")
@@ -99,7 +99,7 @@ func TestRegistrationSecretStatus(t *testing.T) {
 			Data: map[string][]byte{SecretTokenKey: nil},
 		},
 	)
-	s := NewStore(c, testNamespace)
+	s := NewNamespacedClient(c, testNamespace)
 
 	tests := []struct {
 		name       string
@@ -144,7 +144,7 @@ func TestRegistrationSecretStatus(t *testing.T) {
 
 func TestDeleteSecret_IdempotentOnMissing(t *testing.T) {
 	c := fake.NewSimpleClientset()
-	s := NewStore(c, testNamespace)
+	s := NewNamespacedClient(c, testNamespace)
 	if err := s.DeleteSecret(context.Background(), "never-existed"); err != nil {
 		t.Errorf("delete missing should be nil, got %v", err)
 	}
@@ -154,7 +154,7 @@ func TestDeleteSecret_RemovesExisting(t *testing.T) {
 	c := fake.NewSimpleClientset(&corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: "x", Namespace: testNamespace},
 	})
-	s := NewStore(c, testNamespace)
+	s := NewNamespacedClient(c, testNamespace)
 	if err := s.DeleteSecret(context.Background(), "x"); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -192,7 +192,7 @@ func TestListManagedSecrets_OnlyOurs(t *testing.T) {
 		},
 	}
 	c := fake.NewSimpleClientset(managed1, managed2, foreign)
-	s := NewStore(c, testNamespace)
+	s := NewNamespacedClient(c, testNamespace)
 
 	got, err := s.ListManagedSecrets(context.Background())
 	if err != nil {
@@ -210,7 +210,7 @@ func TestListManagedSecrets_OnlyOurs(t *testing.T) {
 
 func TestApplyConfigMap_CreatesWhenMissing(t *testing.T) {
 	c := fake.NewSimpleClientset()
-	s := NewStore(c, testNamespace)
+	s := NewNamespacedClient(c, testNamespace)
 
 	changed, err := s.ApplyConfigMap(context.Background(), "runner-org-list", map[string]string{"runners.yaml": "- name: ttd\n"})
 	if err != nil {
@@ -246,7 +246,7 @@ func TestApplyConfigMap_NoOpOnSameContent(t *testing.T) {
 		},
 		Data: map[string]string{"k": "v"},
 	})
-	s := NewStore(c, testNamespace)
+	s := NewNamespacedClient(c, testNamespace)
 
 	changed, err := s.ApplyConfigMap(context.Background(), "cm", map[string]string{"k": "v"})
 	if err != nil {
@@ -266,7 +266,7 @@ func TestApplyConfigMap_UpdatesOnLabelDrift(t *testing.T) {
 		},
 		Data: map[string]string{"k": "v"},
 	})
-	s := NewStore(c, testNamespace)
+	s := NewNamespacedClient(c, testNamespace)
 
 	changed, err := s.ApplyConfigMap(context.Background(), "cm", map[string]string{"k": "v"})
 	if err != nil {
@@ -295,7 +295,7 @@ func TestApplyConfigMap_UpdatesOnDifference(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "cm", Namespace: testNamespace},
 		Data:       map[string]string{"k": "old"},
 	})
-	s := NewStore(c, testNamespace)
+	s := NewNamespacedClient(c, testNamespace)
 
 	changed, err := s.ApplyConfigMap(context.Background(), "cm", map[string]string{"k": "new"})
 	if err != nil {
@@ -325,7 +325,7 @@ func TestOrgFromSecret(t *testing.T) {
 
 func TestApplyOpaqueSecret_CreatesWhenMissing(t *testing.T) {
 	c := fake.NewSimpleClientset()
-	s := NewStore(c, testNamespace)
+	s := NewNamespacedClient(c, testNamespace)
 
 	changed, err := s.ApplyOpaqueSecret(context.Background(), "keda-gitea-pat", "token", "pat-value")
 	if err != nil {
@@ -358,7 +358,7 @@ func TestApplyOpaqueSecret_NoOpOnSameValue(t *testing.T) {
 		Type: corev1.SecretTypeOpaque,
 		Data: map[string][]byte{"token": []byte("pat-value")},
 	})
-	s := NewStore(c, testNamespace)
+	s := NewNamespacedClient(c, testNamespace)
 
 	changed, err := s.ApplyOpaqueSecret(context.Background(), "keda-gitea-pat", "token", "pat-value")
 	if err != nil {
@@ -379,7 +379,7 @@ func TestApplyOpaqueSecret_UpdatesOnLabelDrift(t *testing.T) {
 		Type: corev1.SecretTypeOpaque,
 		Data: map[string][]byte{"token": []byte("pat-value")},
 	})
-	s := NewStore(c, testNamespace)
+	s := NewNamespacedClient(c, testNamespace)
 
 	changed, err := s.ApplyOpaqueSecret(context.Background(), "keda-gitea-pat", "token", "pat-value")
 	if err != nil {
@@ -406,7 +406,7 @@ func TestApplyOpaqueSecret_UpdatesOnDifference(t *testing.T) {
 		Type:       corev1.SecretTypeOpaque,
 		Data:       map[string][]byte{"token": []byte("old-pat")},
 	})
-	s := NewStore(c, testNamespace)
+	s := NewNamespacedClient(c, testNamespace)
 
 	changed, err := s.ApplyOpaqueSecret(context.Background(), "keda-gitea-pat", "token", "new-pat")
 	if err != nil {
@@ -436,7 +436,7 @@ func TestApplyOpaqueSecret_PreservesOtherKeys(t *testing.T) {
 			"other": []byte("not-ours"),
 		},
 	})
-	s := NewStore(c, testNamespace)
+	s := NewNamespacedClient(c, testNamespace)
 
 	if _, err := s.ApplyOpaqueSecret(context.Background(), "shared", "token", "new-pat"); err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -452,7 +452,7 @@ func TestApplyOpaqueSecret_PreservesOtherKeys(t *testing.T) {
 
 func TestApplyOpaqueSecret_RejectsEmptyKey(t *testing.T) {
 	c := fake.NewSimpleClientset()
-	s := NewStore(c, testNamespace)
+	s := NewNamespacedClient(c, testNamespace)
 	if _, err := s.ApplyOpaqueSecret(context.Background(), "x", "", "v"); err == nil {
 		t.Fatal("expected error for empty key, got nil")
 	}

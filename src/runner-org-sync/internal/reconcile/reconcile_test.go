@@ -10,7 +10,7 @@ import (
 
 	"altinn.studio/runner-org-sync/internal/cdn"
 	"altinn.studio/runner-org-sync/internal/gitea"
-	"altinn.studio/runner-org-sync/internal/k8sstate"
+	"altinn.studio/runner-org-sync/internal/k8sclient"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -44,7 +44,7 @@ func (m *stubMinter) MintRegistrationToken(_ context.Context, org string) (strin
 
 type stubStore struct {
 	managed         []corev1.Secret
-	statusByName    map[string]k8sstate.RegistrationSecretState
+	statusByName    map[string]k8sclient.RegistrationSecretState
 	createErr       map[string]error
 	deleteErr       map[string]error
 	applyCMErr      error
@@ -59,7 +59,7 @@ type stubStore struct {
 
 func newStubStore() *stubStore {
 	return &stubStore{
-		statusByName:    map[string]k8sstate.RegistrationSecretState{},
+		statusByName:    map[string]k8sclient.RegistrationSecretState{},
 		createErr:       map[string]error{},
 		deleteErr:       map[string]error{},
 		createdOrgs:     map[string]string{},
@@ -71,14 +71,14 @@ func (s *stubStore) ListManagedSecrets(_ context.Context) ([]corev1.Secret, erro
 	return s.managed, s.listErr
 }
 
-func (s *stubStore) RegistrationSecretStatus(_ context.Context, name, _ string) (k8sstate.RegistrationSecretState, error) {
+func (s *stubStore) RegistrationSecretStatus(_ context.Context, name, _ string) (k8sclient.RegistrationSecretState, error) {
 	if s.existsErr != nil {
 		return "", s.existsErr
 	}
 	if status, ok := s.statusByName[name]; ok {
 		return status, nil
 	}
-	return k8sstate.RegistrationSecretMissing, nil
+	return k8sclient.RegistrationSecretMissing, nil
 }
 
 func (s *stubStore) CreateRegistrationSecret(_ context.Context, name, org, _ string) error {
@@ -87,7 +87,7 @@ func (s *stubStore) CreateRegistrationSecret(_ context.Context, name, org, _ str
 	}
 	s.createdSecrets = append(s.createdSecrets, name)
 	s.createdOrgs[name] = org
-	s.statusByName[name] = k8sstate.RegistrationSecretValid
+	s.statusByName[name] = k8sclient.RegistrationSecretValid
 	return nil
 }
 
@@ -195,8 +195,8 @@ func TestRun_IdempotentReRun(t *testing.T) {
 	minter := &stubMinter{}
 	store := newStubStore()
 	// pre-populate existing state — secrets exist for both orgs and we own them.
-	store.statusByName["altinn-gitea-runner-ttd-secret"] = k8sstate.RegistrationSecretValid
-	store.statusByName["altinn-gitea-runner-brg-secret"] = k8sstate.RegistrationSecretValid
+	store.statusByName["altinn-gitea-runner-ttd-secret"] = k8sclient.RegistrationSecretValid
+	store.statusByName["altinn-gitea-runner-brg-secret"] = k8sclient.RegistrationSecretValid
 	store.managed = []corev1.Secret{
 		managedSecret("altinn-gitea-runner-ttd-secret", "ttd"),
 		managedSecret("altinn-gitea-runner-brg-secret", "brg"),
@@ -231,8 +231,8 @@ func TestRun_OrgAdded(t *testing.T) {
 	}}
 	minter := &stubMinter{}
 	store := newStubStore()
-	store.statusByName["altinn-gitea-runner-ttd-secret"] = k8sstate.RegistrationSecretValid
-	store.statusByName["altinn-gitea-runner-brg-secret"] = k8sstate.RegistrationSecretValid
+	store.statusByName["altinn-gitea-runner-ttd-secret"] = k8sclient.RegistrationSecretValid
+	store.statusByName["altinn-gitea-runner-brg-secret"] = k8sclient.RegistrationSecretValid
 	store.managed = []corev1.Secret{
 		managedSecret("altinn-gitea-runner-ttd-secret", "ttd"),
 		managedSecret("altinn-gitea-runner-brg-secret", "brg"),
@@ -259,8 +259,8 @@ func TestRun_OrgRemoved(t *testing.T) {
 	}}
 	minter := &stubMinter{}
 	store := newStubStore()
-	store.statusByName["altinn-gitea-runner-ttd-secret"] = k8sstate.RegistrationSecretValid
-	store.statusByName["altinn-gitea-runner-brg-secret"] = k8sstate.RegistrationSecretValid
+	store.statusByName["altinn-gitea-runner-ttd-secret"] = k8sclient.RegistrationSecretValid
+	store.statusByName["altinn-gitea-runner-brg-secret"] = k8sclient.RegistrationSecretValid
 	store.managed = []corev1.Secret{
 		managedSecret("altinn-gitea-runner-ttd-secret", "ttd"),
 		managedSecret("altinn-gitea-runner-brg-secret", "brg"),
@@ -358,7 +358,7 @@ func TestRun_InvalidExistingSecretIsNotProjected(t *testing.T) {
 	}}
 	minter := &stubMinter{}
 	store := newStubStore()
-	store.statusByName["altinn-gitea-runner-ttd-secret"] = k8sstate.RegistrationSecretInvalid
+	store.statusByName["altinn-gitea-runner-ttd-secret"] = k8sclient.RegistrationSecretInvalid
 
 	rep := runReconciler(t, src, minter, store, []string{"ttd"}, false)
 
@@ -478,7 +478,7 @@ func TestRun_SyncAllSkipsWhitelist(t *testing.T) {
 func TestRun_UnlabelledManagedSecretIsSkippedOnDelete(t *testing.T) {
 	src := &stubSource{orgs: []cdn.Org{{Code: "ttd", Environments: []string{"tt02"}}}}
 	store := newStubStore()
-	store.statusByName["altinn-gitea-runner-ttd-secret"] = k8sstate.RegistrationSecretValid
+	store.statusByName["altinn-gitea-runner-ttd-secret"] = k8sclient.RegistrationSecretValid
 	store.managed = []corev1.Secret{
 		managedSecret("altinn-gitea-runner-ttd-secret", "ttd"),
 		// drift: managed-by label but no org label

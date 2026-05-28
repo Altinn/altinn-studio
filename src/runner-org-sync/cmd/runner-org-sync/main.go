@@ -27,7 +27,7 @@ import (
 	"altinn.studio/runner-org-sync/internal/cdn"
 	"altinn.studio/runner-org-sync/internal/config"
 	"altinn.studio/runner-org-sync/internal/gitea"
-	"altinn.studio/runner-org-sync/internal/k8sstate"
+	"altinn.studio/runner-org-sync/internal/k8sclient"
 	"altinn.studio/runner-org-sync/internal/keyvault"
 	"altinn.studio/runner-org-sync/internal/reconcile"
 	"altinn.studio/runner-org-sync/internal/telemetry"
@@ -90,14 +90,14 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("build kubernetes client: %w", err)
 	}
-	store := k8sstate.NewStore(k8sClient, cfg.OutputNamespace)
+	namespaceClient := k8sclient.NewNamespacedClient(k8sClient, cfg.OutputNamespace)
 	giteaClient := gitea.NewClient(cfg.GiteaURL, pat)
 	cdnClient := cdn.NewClient(cfg.OrgsJSONURL)
 
 	rec, err := reconcile.New(reconcile.Options{
 		Source:        cdnClient,
 		Minter:        giteaClient,
-		Store:         store,
+		Store:         namespaceClient,
 		SecretNameFor: cfg.SecretNameFor,
 		ConfigMapName: cfg.ConfigMapName,
 		Whitelist:     cfg.WhitelistedOrgs,
@@ -145,7 +145,7 @@ func run() error {
 	// Failure is non-fatal: logged + counted, but the CronJob exit code is
 	// still driven by the org reconcile result so fatal reconcile errors stay
 	// visible to Kubernetes.
-	applyKedaSecret(ctx, store, cfg, kedaPAT, metrics, logger)
+	applyKedaSecret(ctx, namespaceClient, cfg, kedaPAT, metrics, logger)
 
 	if runErr != nil {
 		span.RecordError(runErr)
@@ -188,14 +188,14 @@ func loadSecretFromKV(ctx context.Context, override, vaultName, vaultSecretName 
 // independent failure model (non-fatal — next tick retries).
 func applyKedaSecret(
 	ctx context.Context,
-	store *k8sstate.Store,
+	namespaceClient *k8sclient.NamespacedClient,
 	cfg config.Config,
 	value string,
 	metrics *telemetry.Metrics,
 	logger *slog.Logger,
 ) {
 	span := trace.SpanFromContext(ctx)
-	changed, err := store.ApplyOpaqueSecret(ctx, cfg.KedaPATSecretName, cfg.KedaPATSecretKey, value)
+	changed, err := namespaceClient.ApplyOpaqueSecret(ctx, cfg.KedaPATSecretName, cfg.KedaPATSecretKey, value)
 	metrics.KedaSecretApplied.Add(ctx, 1, metric.WithAttributes(
 		attribute.Bool("changed", changed),
 		attribute.Bool("success", err == nil),
