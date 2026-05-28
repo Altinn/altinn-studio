@@ -55,4 +55,9 @@ public sealed class ProcessTaskContext
     /// An instance data mutator that can be used to access and modify instance data. Changes made will be automatically saved if task execution is successful.
     /// </summary>
     public required IInstanceDataMutator InstanceDataMutator { get; init; }
+
+    /// <summary>
+    /// Cancellation token for the task lifecycle operation.
+    /// </summary>
+    public CancellationToken CancellationToken { get; init; } = CancellationToken.None;
 }

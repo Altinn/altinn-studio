@@ -77,6 +77,7 @@ internal sealed class PaymentProcessTask : IProcessTask
     public async Task End(ProcessTaskContext context)
     {
         IInstanceDataMutator dataMutator = context.InstanceDataMutator;
+        CancellationToken ct = context.CancellationToken;
         Instance instance = dataMutator.Instance;
         string taskId = GetTaskId(dataMutator);
         AltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId);
@@ -89,14 +90,9 @@ internal sealed class PaymentProcessTask : IProcessTask
         if (paymentStatus != PaymentStatus.Paid)
             throw new PaymentException("The payment is not completed.");
 
-        await using Stream pdfStream = await _pdfService.GeneratePdf(
-            instance,
-            taskId,
-            false,
-            ct: CancellationToken.None
-        );
+        await using Stream pdfStream = await _pdfService.GeneratePdf(instance, taskId, false, ct: ct);
         using var memoryStream = new MemoryStream();
-        await pdfStream.CopyToAsync(memoryStream, CancellationToken.None);
+        await pdfStream.CopyToAsync(memoryStream, ct);
 
         ValidAltinnPaymentConfiguration validatedPaymentConfiguration = paymentConfiguration.Validate();
         UpsertTaskGeneratedBinaryDataElement(

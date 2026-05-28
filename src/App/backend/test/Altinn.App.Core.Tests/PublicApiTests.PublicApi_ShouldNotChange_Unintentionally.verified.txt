@@ -2098,6 +2098,7 @@ namespace Altinn.App.Core.Features.Process
     public sealed class OnProcessEndingHandlerContext
     {
         public OnProcessEndingHandlerContext() { }
+        public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
     }
     public abstract class OnProcessEndingHandlerResult : Altinn.App.Core.Features.Process.HookResult, System.IEquatable<Altinn.App.Core.Features.Process.OnProcessEndingHandlerResult>
@@ -2110,16 +2111,19 @@ namespace Altinn.App.Core.Features.Process
     public sealed class OnTaskAbandonHandlerContext
     {
         public OnTaskAbandonHandlerContext() { }
+        public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
     }
     public sealed class OnTaskEndingHandlerContext
     {
         public OnTaskEndingHandlerContext() { }
+        public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
     }
     public sealed class OnTaskStartingContext
     {
         public OnTaskStartingContext() { }
+        public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
     }
     public abstract class OnTaskStartingHandlerResult : Altinn.App.Core.Features.Process.HookResult, System.IEquatable<Altinn.App.Core.Features.Process.OnTaskStartingHandlerResult>
@@ -4010,6 +4014,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
     public sealed class ProcessTaskContext
     {
         public ProcessTaskContext() { }
+        public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
     }
     public class ProcessTaskDataLocker : Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTaskDataLocker

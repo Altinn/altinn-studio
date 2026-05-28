@@ -40,7 +40,11 @@ internal sealed class OnProcessEndingHook : IWorkflowEngineCommand
             return new SuccessfulProcessEngineCommandResult();
         }
 
-        var hookParameters = new OnProcessEndingHandlerContext { InstanceDataMutator = dataMutator };
+        var hookParameters = new OnProcessEndingHandlerContext
+        {
+            InstanceDataMutator = dataMutator,
+            CancellationToken = parameters.CancellationToken,
+        };
 
         try
         {

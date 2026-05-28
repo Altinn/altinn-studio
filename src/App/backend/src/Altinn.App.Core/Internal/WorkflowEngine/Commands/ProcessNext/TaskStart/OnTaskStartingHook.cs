@@ -39,7 +39,11 @@ internal sealed class OnTaskStartingHook : IWorkflowEngineCommand
             return new SuccessfulProcessEngineCommandResult();
         }
 
-        var hookParameters = new OnTaskStartingContext { InstanceDataMutator = dataMutator };
+        var hookParameters = new OnTaskStartingContext
+        {
+            InstanceDataMutator = dataMutator,
+            CancellationToken = parameters.CancellationToken,
+        };
 
         try
         {

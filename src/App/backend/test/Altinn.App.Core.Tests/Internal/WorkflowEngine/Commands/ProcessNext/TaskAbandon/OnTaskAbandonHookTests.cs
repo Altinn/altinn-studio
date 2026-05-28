@@ -23,7 +23,7 @@ public class OnTaskAbandonHookTests
             AppId = new AppIdentifier("ttd", "test-app"),
             InstanceId = new InstanceIdentifier(1337, Guid.NewGuid()),
             InstanceDataMutator = mutatorMock.Object,
-            CancellationToken = CancellationToken.None,
+            CancellationToken = new CancellationToken(canceled: true),
             Payload = new AppCallbackPayload
             {
                 CommandKey = OnTaskAbandonHook.Key,
@@ -88,7 +88,16 @@ public class OnTaskAbandonHookTests
 
         // Assert
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        handler.Verify(x => x.ExecuteAsync(It.IsAny<OnTaskAbandonHandlerContext>()), Times.Once);
+        handler.Verify(
+            x =>
+                x.ExecuteAsync(
+                    It.Is<OnTaskAbandonHandlerContext>(c =>
+                        c.InstanceDataMutator == context.InstanceDataMutator
+                        && c.CancellationToken.Equals(context.CancellationToken)
+                    )
+                ),
+            Times.Once
+        );
     }
 
     [Fact]

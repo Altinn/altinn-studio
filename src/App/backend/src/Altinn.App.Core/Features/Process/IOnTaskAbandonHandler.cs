@@ -33,6 +33,11 @@ public sealed class OnTaskAbandonHandlerContext
     /// An instance data mutator that can be used to access and modify instance data. Changes made will be automatically saved if the hook execution is successful.
     /// </summary>
     public required IInstanceDataMutator InstanceDataMutator { get; init; }
+
+    /// <summary>
+    /// Cancellation token for the hook execution.
+    /// </summary>
+    public CancellationToken CancellationToken { get; init; } = CancellationToken.None;
 }
 
 /// <summary>

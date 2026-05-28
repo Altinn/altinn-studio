@@ -24,7 +24,13 @@ internal sealed class AbandonTask : IWorkflowEngineCommand
         try
         {
             IProcessTask processTask = _processTaskResolver.GetProcessTaskInstance(altinnTaskType);
-            await processTask.Abandon(new ProcessTaskContext { InstanceDataMutator = dataMutator });
+            await processTask.Abandon(
+                new ProcessTaskContext
+                {
+                    InstanceDataMutator = dataMutator,
+                    CancellationToken = parameters.CancellationToken,
+                }
+            );
             return new SuccessfulProcessEngineCommandResult();
         }
         catch (Exception ex)

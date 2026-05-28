@@ -24,7 +24,13 @@ internal sealed class StartTask : IWorkflowEngineCommand
         try
         {
             IProcessTask processTask = _processTaskResolver.GetProcessTaskInstance(altinnTaskType);
-            await processTask.Start(new ProcessTaskContext { InstanceDataMutator = dataMutator });
+            await processTask.Start(
+                new ProcessTaskContext
+                {
+                    InstanceDataMutator = dataMutator,
+                    CancellationToken = parameters.CancellationToken,
+                }
+            );
             return new SuccessfulProcessEngineCommandResult();
         }
         catch (Exception ex)

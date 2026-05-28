@@ -39,7 +39,11 @@ internal sealed class OnTaskAbandonHook : IWorkflowEngineCommand
             return new SuccessfulProcessEngineCommandResult();
         }
 
-        var hookParameters = new OnTaskAbandonHandlerContext { InstanceDataMutator = dataMutator };
+        var hookParameters = new OnTaskAbandonHandlerContext
+        {
+            InstanceDataMutator = dataMutator,
+            CancellationToken = parameters.CancellationToken,
+        };
 
         try
         {
