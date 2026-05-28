@@ -38,6 +38,7 @@ func New(ctx context.Context, toolchain types.ContainerToolchain) (*Client, erro
 	if toolchain.Platform == types.PlatformUnknown {
 		toolchain.Platform = types.PlatformPodman
 	}
+	toolchain.SELinux = detectSELinuxEnabled(ctx)
 	return &Client{toolchain: toolchain}, nil
 }
 
@@ -55,6 +56,26 @@ func reportProgress(onProgress types.ProgressHandler, progress types.ProgressUpd
 	if onProgress != nil {
 		onProgress(progress)
 	}
+}
+
+func detectSELinuxEnabled(ctx context.Context) bool {
+	cmd := processutil.CommandContext(ctx, "podman", "info", "--format", "json")
+	output, err := cmd.Output()
+	if err != nil {
+		return false
+	}
+
+	var info struct {
+		Host struct {
+			Security struct {
+				SELinuxEnabled bool `json:"selinuxEnabled"`
+			} `json:"security"`
+		} `json:"host"`
+	}
+	if err := json.Unmarshal(output, &info); err != nil {
+		return false
+	}
+	return info.Host.Security.SELinuxEnabled
 }
 
 func runPodmanCommand(ctx context.Context, args []string) ([]byte, error) {
@@ -167,8 +188,9 @@ func buildCreateArgs(cfg types.ContainerConfig) []string {
 
 	for _, v := range cfg.Volumes {
 		volArg := fmt.Sprintf("%s:%s", v.HostPath, v.ContainerPath)
-		if v.ReadOnly {
-			volArg += ":ro"
+		options := volumeOptions(v)
+		if len(options) > 0 {
+			volArg += ":" + strings.Join(options, ",")
 		}
 		args = append(args, "-v", volArg)
 	}
@@ -188,6 +210,9 @@ func buildCreateArgs(cfg types.ContainerConfig) []string {
 	if cfg.User != "" {
 		args = append(args, "--user", cfg.User)
 	}
+	if cfg.UsernsMode != "" {
+		args = append(args, "--userns", cfg.UsernsMode)
+	}
 
 	caps := types.MergeCapabilities(types.DefaultPodmanCapabilities(), cfg.CapAdd)
 	for _, cap := range caps {
@@ -200,6 +225,17 @@ func buildCreateArgs(cfg types.ContainerConfig) []string {
 	args = append(args, cfg.Command...)
 
 	return args
+}
+
+func volumeOptions(v types.VolumeMount) []string {
+	options := make([]string, 0, 2)
+	if v.ReadOnly {
+		options = append(options, "ro")
+	}
+	if v.Type == types.VolumeMountTypeBind && v.SELinuxRelabel != types.SELinuxRelabelNone {
+		options = append(options, string(v.SELinuxRelabel))
+	}
+	return options
 }
 
 // appendHealthCheckArgs appends health check CLI flags if configured.

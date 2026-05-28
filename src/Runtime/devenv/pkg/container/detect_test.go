@@ -24,6 +24,11 @@ const (
 	testColimaSocketHost = "unix://" + testColimaSocketPath
 )
 
+func clearDockerHost(t *testing.T) {
+	t.Helper()
+	t.Setenv("DOCKER_HOST", "")
+}
+
 func mixedToolchainDetectorDeps(
 	t *testing.T,
 	defaultPlatform ContainerPlatform,
@@ -70,6 +75,8 @@ func mixedToolchainDetectorDeps(
 }
 
 func TestDetect_RetriesAfterTransientFailure(t *testing.T) {
+	clearDockerHost(t)
+
 	calls := 0
 	d := newDetector(detectorDeps{
 		detectPlatform: func(context.Context) (ContainerPlatform, error) {
@@ -85,6 +92,12 @@ func TestDetect_RetriesAfterTransientFailure(t *testing.T) {
 			}
 			return "", exec.ErrNotFound
 		},
+		dockerContextHost: func(context.Context) (string, error) {
+			return "", errTransientFailure
+		},
+		dockerSocketPaths: func() []string { return nil },
+		podmanSocketPaths: func() []string { return nil },
+		fileExists:        func(string) bool { return false },
 		newClient: func(context.Context, ContainerToolchain) (ContainerClient, error) {
 			return containermock.New(), nil
 		},
@@ -125,6 +138,8 @@ func TestDetectToolchain_DefaultDockerHostWithoutDockerCLISucceeds(t *testing.T)
 }
 
 func TestDetectToolchain_DockerContextClassifiesPodmanSocket(t *testing.T) {
+	clearDockerHost(t)
+
 	d := newDetector(detectorDeps{
 		detectPlatform: func(context.Context) (ContainerPlatform, error) {
 			return PlatformUnknown, errTransientFailure
@@ -165,6 +180,8 @@ func TestDetectToolchain_DockerContextClassifiesPodmanSocket(t *testing.T) {
 }
 
 func TestDetectToolchain_DockerSocketWithoutDockerCLISucceeds(t *testing.T) {
+	clearDockerHost(t)
+
 	d := newDetector(detectorDeps{
 		detectPlatform: func(context.Context) (ContainerPlatform, error) {
 			return PlatformUnknown, errTransientFailure
@@ -196,6 +213,8 @@ func TestDetectToolchain_DockerSocketWithoutDockerCLISucceeds(t *testing.T) {
 }
 
 func TestDetectToolchain_DockerContextClassifiesDockerWithDockerCLI(t *testing.T) {
+	clearDockerHost(t)
+
 	d := newDetector(detectorDeps{
 		detectPlatform: func(context.Context) (ContainerPlatform, error) {
 			return PlatformUnknown, errTransientFailure
@@ -232,6 +251,8 @@ func TestDetectToolchain_DockerContextClassifiesDockerWithDockerCLI(t *testing.T
 }
 
 func TestDetectToolchain_PodmanSocketFallbackClassifiesPodman(t *testing.T) {
+	clearDockerHost(t)
+
 	d := newDetector(detectorDeps{
 		detectPlatform: func(context.Context) (ContainerPlatform, error) {
 			return PlatformUnknown, errTransientFailure
@@ -268,6 +289,8 @@ func TestDetectToolchain_PodmanSocketFallbackClassifiesPodman(t *testing.T) {
 }
 
 func TestDetectToolchain_DockerContextColimaBeatsPodmanSocket(t *testing.T) {
+	clearDockerHost(t)
+
 	d := newDetector(detectorDeps{
 		detectPlatform: func(context.Context) (ContainerPlatform, error) {
 			return PlatformUnknown, errTransientFailure

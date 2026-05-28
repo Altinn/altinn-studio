@@ -3,6 +3,7 @@ import type { ReactElement } from 'react';
 import type { ChatThread, UserMessage, Message } from '../types/ChatThread';
 import { CompactInterface } from '../components/CompactInterface/CompactInterface';
 import { CompleteInterface } from '../components/CompleteInterface/CompleteInterface';
+import type { UserFeedback } from '../types/UserFeedback';
 import type { AssistantTexts } from '../types/AssistantTexts';
 import type { ConnectionStatus } from '../types/ConnectionStatus';
 import type { WorkflowStatus } from '../types/WorkflowStatus';
@@ -22,6 +23,7 @@ export type AssistantProps = {
   onSelectThread?: (threadId: string) => void;
   onDeleteThread?: (threadId: string) => void;
   onCreateThread?: () => void;
+  onMessageFeedback?: (feedback: UserFeedback) => void;
   workflowStatus: WorkflowStatus;
   previewContent: ReactElement;
   fileBrowserContent?: ReactElement;
@@ -43,6 +45,7 @@ export function Assistant({
   onSelectThread,
   onDeleteThread,
   onCreateThread,
+  onMessageFeedback,
   previewContent,
   fileBrowserContent,
   currentUser,
@@ -64,6 +67,7 @@ export function Assistant({
       onSelectThread={onSelectThread}
       onDeleteThread={onDeleteThread}
       onCreateThread={onCreateThread}
+      onMessageFeedback={onMessageFeedback}
       previewContent={previewContent}
       fileBrowserContent={fileBrowserContent}
       currentUser={currentUser}
