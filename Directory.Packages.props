@@ -36,7 +36,7 @@
     <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.5.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
     <PackageVersion Include="Microsoft.OpenApi" Version="2.7.4" />
-    <PackageVersion Include="MinVer" Version="6.1.0" />
+    <PackageVersion Include="MinVer" Version="7.0.0" />
     <PackageVersion Include="Moq" Version="4.20.72" />
     <PackageVersion Include="NetEscapades.EnumGenerators" Version="1.0.0-beta21" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
