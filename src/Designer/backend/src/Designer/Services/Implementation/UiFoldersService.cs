@@ -25,7 +25,11 @@ public class UiFoldersService : IUiFoldersService
     }
 
     private AltinnAppGitRepository GetRepository(AltinnRepoEditingContext editingContext) =>
-        _altinnGitRepositoryFactory.GetAltinnAppGitRepository(editingContext.Org, editingContext.Repo, editingContext.Developer);
+        _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            editingContext.Org,
+            editingContext.Repo,
+            editingContext.Developer
+        );
 
     public async Task<IEnumerable<LayoutSetDto>> GetLayoutSetsExtended(
         AltinnRepoEditingContext editingContext,
