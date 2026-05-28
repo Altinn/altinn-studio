@@ -8,6 +8,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- Support starting localtest with rootless Podman setups where the host user has a large domain UID/GID outside the default subordinate ID mapping.
+- Relabel localtest bind mounts on SELinux-enabled Podman setups so containers can read generated resources.
+
 ## [0.1.0-preview.10] - 2026-05-22
 
 ### Changed
