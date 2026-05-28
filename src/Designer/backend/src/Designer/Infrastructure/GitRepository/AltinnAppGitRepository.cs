@@ -617,7 +617,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
         }
     }
 
-    public async Task<IEnumerable<string>> GetUiFolders(CancellationToken cancellationToken = default)
+    public Task<IEnumerable<string>> GetUiFolders(CancellationToken cancellationToken = default)
     {
         string uiPath = LayoutsFolderName;
 
@@ -629,7 +629,8 @@ public class AltinnAppGitRepository : AltinnGitRepository
         }
 
         // The UI folder should only contain folders for layout sets, so we return the folder names
-        return GetDirectoriesByRelativeDirectory(uiPath).Select(Path.GetFileName);
+        IEnumerable<string> folders = GetDirectoriesByRelativeDirectory(uiPath).Select(Path.GetFileName);
+        return Task.FromResult(folders);
     }
 
     public async Task<UiSettings> GetGlobalSettingsFile(CancellationToken cancellationToken = default)
