@@ -180,3 +180,16 @@ export function removeAllButOneOrg(parties: IParty[]): IParty[] {
   }
   return toKeep;
 }
+
+export function removeAllButKeepOrg(parties: IParty[], orgNumber: string): IParty[] {
+  // Keep one specific organisation (by org number) plus all persons. Pinning a specific org by
+  // number, instead of just taking the first one. This avoids depending on the order of the tt02
+  // party list, which is not stable. Falls back to the first org when this specific org is not
+  // present, e.g. in docker/podman/localtest environments that have entirely different test data.
+  const org = parties.find((party) => party.partyTypeName === PartyType.Organisation && party.orgNumber === orgNumber);
+  if (!org) {
+    return removeAllButOneOrg(parties);
+  }
+  const persons = parties.filter((party) => party.partyTypeName === PartyType.Person);
+  return [org, ...persons];
+}

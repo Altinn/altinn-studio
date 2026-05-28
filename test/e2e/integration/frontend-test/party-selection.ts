@@ -1,11 +1,17 @@
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-import { cyMockResponses, CyPartyMocks, removeAllButOneOrg } from 'test/e2e/pageobjects/party-mocks';
+import { cyMockResponses, CyPartyMocks, removeAllButKeepOrg } from 'test/e2e/pageobjects/party-mocks';
 import { cyUserCredentials } from 'test/e2e/support/auth';
 
 import type { IParty } from 'src/types/shared';
 
 const appFrontend = new AppFrontend();
+
+// Org numbers the accountant test user only represents as accountant — no instantiate rights, so
+// instantiation returns 403.
+const NonInstantiableOrgForAccountant = {
+  AldrendeOppstemtTigerAS: '213611372',
+} as const;
 
 describe('Party selection', () => {
   it('Party selection filtering and search', () => {
@@ -249,15 +255,19 @@ describe('Party selection', () => {
   it('Should be possible to select another party if instantiation fails, and go back to party selection and instantiate again', () => {
     cy.allowFailureOnEnd();
     const user = cyUserCredentials.accountant.firstName;
+    // Pin a specific org by number instead of taking the first one — the tt02 party list order is
+    // not stable, and an org the user *can* instantiate for may otherwise end up first.
     cyMockResponses({
       allowedToInstantiate: (parties) =>
         // Removing all other users as well, since one of the users are not allowed to instantiate on tt02
-        removeAllButOneOrg(parties).filter((party) => party.orgNumber || party.name.includes(user)),
+        removeAllButKeepOrg(parties, NonInstantiableOrgForAccountant.AldrendeOppstemtTigerAS).filter(
+          (party) => party.orgNumber || party.name.includes(user),
+        ),
       doNotPromptForParty: false,
     });
     cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'accountant' });
 
-    // Select the first organisation. This is not allowed to instantiate in this app, so it will throw an error.
+    // Select the organisation. This is not allowed to instantiate in this app, so it will throw an error.
     cy.findAllByText(/org\.nr\. \d+/)
       .first()
       .click();
