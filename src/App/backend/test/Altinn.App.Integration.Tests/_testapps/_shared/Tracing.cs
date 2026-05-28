@@ -288,19 +288,19 @@ internal sealed class TracingDataProcessTask : IProcessTask
 {
     public string Type => AltinnTaskTypes.Data;
 
-    public Task Start(IInstanceDataMutator dataMutator)
+    public Task Start(ProcessTaskContext context)
     {
         SnapshotLogger.LogInfo("IProcessTask.Start");
         return Task.CompletedTask;
     }
 
-    public Task End(IInstanceDataMutator dataMutator)
+    public Task End(ProcessTaskContext context)
     {
         SnapshotLogger.LogInfo("IProcessTask.End");
         return Task.CompletedTask;
     }
 
-    public Task Abandon(IInstanceDataMutator dataMutator)
+    public Task Abandon(ProcessTaskContext context)
     {
         SnapshotLogger.LogInfo("IProcessTask.Abandon");
         return Task.CompletedTask;
@@ -311,19 +311,19 @@ internal sealed class TracingConfirmationProcessTask : IProcessTask
 {
     public string Type => AltinnTaskTypes.Confirmation;
 
-    public Task Start(IInstanceDataMutator dataMutator)
+    public Task Start(ProcessTaskContext context)
     {
         SnapshotLogger.LogInfo("IProcessTask.Start");
         return Task.CompletedTask;
     }
 
-    public Task End(IInstanceDataMutator dataMutator)
+    public Task End(ProcessTaskContext context)
     {
         SnapshotLogger.LogInfo("IProcessTask.End");
         return Task.CompletedTask;
     }
 
-    public Task Abandon(IInstanceDataMutator dataMutator)
+    public Task Abandon(ProcessTaskContext context)
     {
         SnapshotLogger.LogInfo("IProcessTask.Abandon");
         return Task.CompletedTask;

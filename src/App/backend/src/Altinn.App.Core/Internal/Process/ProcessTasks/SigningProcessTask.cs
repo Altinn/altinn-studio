@@ -46,8 +46,9 @@ internal sealed class SigningProcessTask : IProcessTask
     private const string PdfContentType = "application/pdf";
 
     /// <inheritdoc/>
-    public async Task Start(IInstanceDataMutator dataMutator)
+    public async Task Start(ProcessTaskContext context)
     {
+        IInstanceDataMutator dataMutator = context.InstanceDataMutator;
         string taskId = GetTaskId(dataMutator);
         AltinnSignatureConfiguration signingConfiguration = GetAltinnSignatureConfiguration(taskId);
         ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
@@ -66,8 +67,9 @@ internal sealed class SigningProcessTask : IProcessTask
 
     /// <inheritdoc/>
     /// <remarks> Generates a PDF if the signature configuration specifies a signature data type. </remarks>
-    public async Task End(IInstanceDataMutator dataMutator)
+    public async Task End(ProcessTaskContext context)
     {
+        IInstanceDataMutator dataMutator = context.InstanceDataMutator;
         Instance instance = dataMutator.Instance;
         string taskId = GetTaskId(dataMutator);
         AltinnSignatureConfiguration? signatureConfiguration = _processReader
@@ -99,8 +101,9 @@ internal sealed class SigningProcessTask : IProcessTask
     }
 
     /// <inheritdoc/>
-    public async Task Abandon(IInstanceDataMutator dataMutator)
+    public async Task Abandon(ProcessTaskContext context)
     {
+        IInstanceDataMutator dataMutator = context.InstanceDataMutator;
         string taskId = GetTaskId(dataMutator);
         AltinnSignatureConfiguration signatureConfiguration = GetAltinnSignatureConfiguration(taskId);
         await _signingService.AbortRuntimeDelegatedSigning(dataMutator, signatureConfiguration, CancellationToken.None);

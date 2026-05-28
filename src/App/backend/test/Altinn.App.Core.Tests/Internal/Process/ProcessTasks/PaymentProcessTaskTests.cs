@@ -75,7 +75,7 @@ public class PaymentProcessTaskTests
             )
             .ReturnsAsync(true);
 
-        await _paymentProcessTask.Start(dataMutator.Object);
+        await _paymentProcessTask.Start(CreateProcessTaskContext(dataMutator.Object));
 
         _paymentProcessorMock.Verify(x =>
             x.TerminatePayment(
@@ -102,7 +102,7 @@ public class PaymentProcessTaskTests
         var altinnTaskExtension = new AltinnTaskExtension { PaymentConfiguration = CreatePaymentConfiguration() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
 
-        await _paymentProcessTask.Start(dataMutator.Object);
+        await _paymentProcessTask.Start(CreateProcessTaskContext(dataMutator.Object));
 
         _paymentProcessorMock.Verify(
             x => x.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>()),
@@ -129,7 +129,7 @@ public class PaymentProcessTaskTests
             .Setup(x => x.GeneratePdf(instance, taskId, false, null, CancellationToken.None))
             .ReturnsAsync(new MemoryStream([1, 2, 3]));
 
-        await _paymentProcessTask.End(dataMutator.Object);
+        await _paymentProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
 
         _pdfServiceMock.Verify(x => x.GeneratePdf(instance, taskId, false, null, CancellationToken.None));
         dataMutator.Verify(x =>
@@ -168,7 +168,7 @@ public class PaymentProcessTaskTests
             .Setup(x => x.GeneratePdf(instance, "Task_1", false, null, CancellationToken.None))
             .ReturnsAsync(new MemoryStream([1, 2, 3]));
 
-        await _paymentProcessTask.End(dataMutator.Object);
+        await _paymentProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
 
         dataMutator.Verify(x =>
             x.UpdateBinaryDataElement(existingReceipt, "application/pdf", It.IsAny<ReadOnlyMemory<byte>>())
@@ -202,7 +202,7 @@ public class PaymentProcessTaskTests
             .Setup(x => x.GetPaymentStatus(It.IsAny<Instance>(), It.IsAny<ValidAltinnPaymentConfiguration>()))
             .ReturnsAsync(PaymentStatus.Skipped);
 
-        await _paymentProcessTask.End(dataMutator.Object);
+        await _paymentProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
 
         _pdfServiceMock.Verify(x => x.GeneratePdf(instance, taskId, false, null, CancellationToken.None), Times.Never);
         dataMutator.Verify(
@@ -248,7 +248,9 @@ public class PaymentProcessTaskTests
             Times.Never
         );
 
-        await Assert.ThrowsAsync<PaymentException>(async () => await _paymentProcessTask.End(dataMutator.Object));
+        await Assert.ThrowsAsync<PaymentException>(async () =>
+            await _paymentProcessTask.End(CreateProcessTaskContext(dataMutator.Object))
+        );
     }
 
     [Fact]
@@ -276,7 +278,7 @@ public class PaymentProcessTaskTests
             )
             .ReturnsAsync(true);
 
-        await _paymentProcessTask.Abandon(dataMutator.Object);
+        await _paymentProcessTask.Abandon(CreateProcessTaskContext(dataMutator.Object));
 
         _paymentProcessorMock.Verify(x =>
             x.TerminatePayment(
@@ -296,7 +298,8 @@ public class PaymentProcessTaskTests
             .Setup(pr => pr.GetAltinnTaskExtension(It.IsAny<string>()))
             .Returns((AltinnTaskExtension?)null);
 
-        Func<Task> act = async () => await _paymentProcessTask.End(CreateDataMutator(CreateInstance()).Object);
+        Func<Task> act = async () =>
+            await _paymentProcessTask.End(CreateProcessTaskContext(CreateDataMutator(CreateInstance()).Object));
 
         await act.Should().ThrowAsync<ApplicationConfigException>().WithMessage("*PaymentConfig is missing*");
     }
@@ -313,7 +316,8 @@ public class PaymentProcessTaskTests
                 }
             );
 
-        Func<Task> act = async () => await _paymentProcessTask.End(CreateDataMutator(CreateInstance()).Object);
+        Func<Task> act = async () =>
+            await _paymentProcessTask.End(CreateProcessTaskContext(CreateDataMutator(CreateInstance()).Object));
 
         await act.Should().ThrowAsync<ApplicationConfigException>().WithMessage("*PaymentDataType is missing*");
     }
@@ -334,7 +338,8 @@ public class PaymentProcessTaskTests
             )
             .ReturnsAsync(new MemoryStream([1, 2, 3]));
 
-        Func<Task> act = async () => await _paymentProcessTask.End(CreateDataMutator(CreateInstance()).Object);
+        Func<Task> act = async () =>
+            await _paymentProcessTask.End(CreateProcessTaskContext(CreateDataMutator(CreateInstance()).Object));
 
         await act.Should().NotThrowAsync();
     }
@@ -346,7 +351,8 @@ public class PaymentProcessTaskTests
             .Setup(pr => pr.GetAltinnTaskExtension(It.IsAny<string>()))
             .Returns((AltinnTaskExtension?)null);
 
-        Func<Task> act = async () => await _paymentProcessTask.Abandon(CreateDataMutator(CreateInstance()).Object);
+        Func<Task> act = async () =>
+            await _paymentProcessTask.Abandon(CreateProcessTaskContext(CreateDataMutator(CreateInstance()).Object));
 
         await act.Should().ThrowAsync<ApplicationConfigException>().WithMessage("*PaymentConfig is missing*");
     }
@@ -358,7 +364,8 @@ public class PaymentProcessTaskTests
             .Setup(pr => pr.GetAltinnTaskExtension(It.IsAny<string>()))
             .Returns(new AltinnTaskExtension { PaymentConfiguration = CreatePaymentConfiguration() });
 
-        Func<Task> act = async () => await _paymentProcessTask.Abandon(CreateDataMutator(CreateInstance()).Object);
+        Func<Task> act = async () =>
+            await _paymentProcessTask.Abandon(CreateProcessTaskContext(CreateDataMutator(CreateInstance()).Object));
 
         await act.Should().NotThrowAsync();
     }
@@ -369,6 +376,9 @@ public class PaymentProcessTaskTests
         dataMutator.Setup(x => x.Instance).Returns(instance);
         return dataMutator;
     }
+
+    private static ProcessTaskContext CreateProcessTaskContext(IInstanceDataMutator dataMutator) =>
+        new() { InstanceDataMutator = dataMutator };
 
     private static Instance CreateInstance(params DataElement[] dataElements)
     {

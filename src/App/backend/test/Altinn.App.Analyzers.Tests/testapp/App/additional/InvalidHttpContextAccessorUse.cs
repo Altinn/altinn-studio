@@ -2,7 +2,6 @@ using System;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Microsoft.AspNetCore.Http;
 
@@ -21,7 +20,7 @@ internal sealed class ProcessTaskStart1 : IProcessTask
         _httpContext = httpContextAccessor?.HttpContext ?? throw new Exception();
     }
 
-    public Task Start(IInstanceDataMutator dataMutator)
+    public Task Start(ProcessTaskContext context)
     {
         _ = _httpContextAccessor.HttpContext;
         _ = _httpContextAccessor.HttpContext.User;
@@ -37,7 +36,7 @@ internal sealed class ProcessTaskStart2(IHttpContextAccessor httpContextAccessor
     private HttpContext _httpContext3 { get; } = httpContextAccessor?.HttpContext ?? throw new Exception();
     public string Type => "data";
 
-    public Task Start(IInstanceDataMutator dataMutator)
+    public Task Start(ProcessTaskContext context)
     {
         _ = _httpContextAccessor.HttpContext;
         _ = _httpContextAccessor.HttpContext.User;

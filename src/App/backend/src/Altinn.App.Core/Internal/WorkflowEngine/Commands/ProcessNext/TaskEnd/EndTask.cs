@@ -24,7 +24,7 @@ internal sealed class EndTask : IWorkflowEngineCommand
         try
         {
             IProcessTask processTask = _processTaskResolver.GetProcessTaskInstance(altinnTaskType);
-            await processTask.End(dataMutator);
+            await processTask.End(new ProcessTaskContext { InstanceDataMutator = dataMutator });
             return new SuccessfulProcessEngineCommandResult();
         }
         catch (Exception ex)

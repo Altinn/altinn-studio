@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Constants;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -16,7 +15,7 @@ public sealed class WaitForReleaseProcessTaskEnd : IProcessTask
     private static TaskCompletionSource _signal = new();
     public string Type => AltinnTaskTypes.Data;
 
-    public Task End(IInstanceDataMutator dataMutator)
+    public Task End(ProcessTaskContext context)
     {
         return _signal.Task;
     }

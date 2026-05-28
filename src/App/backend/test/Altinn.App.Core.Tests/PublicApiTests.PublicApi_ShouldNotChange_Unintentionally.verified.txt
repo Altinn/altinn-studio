@@ -3967,32 +3967,32 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
     {
         public ConfirmationProcessTask() { }
         public string Type { get; }
-        public System.Threading.Tasks.Task Abandon(Altinn.App.Core.Features.IInstanceDataMutator dataMutator) { }
-        public System.Threading.Tasks.Task End(Altinn.App.Core.Features.IInstanceDataMutator dataMutator) { }
-        public System.Threading.Tasks.Task Start(Altinn.App.Core.Features.IInstanceDataMutator dataMutator) { }
+        public System.Threading.Tasks.Task Abandon(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
+        public System.Threading.Tasks.Task End(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
+        public System.Threading.Tasks.Task Start(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
     }
     public class DataProcessTask : Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
     {
         public DataProcessTask() { }
         public string Type { get; }
-        public System.Threading.Tasks.Task Abandon(Altinn.App.Core.Features.IInstanceDataMutator dataMutator) { }
-        public System.Threading.Tasks.Task End(Altinn.App.Core.Features.IInstanceDataMutator dataMutator) { }
-        public System.Threading.Tasks.Task Start(Altinn.App.Core.Features.IInstanceDataMutator dataMutator) { }
+        public System.Threading.Tasks.Task Abandon(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
+        public System.Threading.Tasks.Task End(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
+        public System.Threading.Tasks.Task Start(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
     }
     public class FeedbackProcessTask : Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
     {
         public FeedbackProcessTask() { }
         public string Type { get; }
-        public System.Threading.Tasks.Task Abandon(Altinn.App.Core.Features.IInstanceDataMutator dataMutator) { }
-        public System.Threading.Tasks.Task End(Altinn.App.Core.Features.IInstanceDataMutator dataMutator) { }
-        public System.Threading.Tasks.Task Start(Altinn.App.Core.Features.IInstanceDataMutator dataMutator) { }
+        public System.Threading.Tasks.Task Abandon(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
+        public System.Threading.Tasks.Task End(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
+        public System.Threading.Tasks.Task Start(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
     }
     public interface IProcessTask
     {
         string Type { get; }
-        System.Threading.Tasks.Task Abandon(Altinn.App.Core.Features.IInstanceDataMutator dataMutator);
-        System.Threading.Tasks.Task End(Altinn.App.Core.Features.IInstanceDataMutator dataMutator);
-        System.Threading.Tasks.Task Start(Altinn.App.Core.Features.IInstanceDataMutator dataMutator);
+        System.Threading.Tasks.Task Abandon(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
+        System.Threading.Tasks.Task End(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
+        System.Threading.Tasks.Task Start(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
     }
     public interface IProcessTaskDataLocker
     {
@@ -4003,9 +4003,14 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
     {
         public NullTypeProcessTask() { }
         public string Type { get; }
-        public System.Threading.Tasks.Task Abandon(Altinn.App.Core.Features.IInstanceDataMutator dataMutator) { }
-        public System.Threading.Tasks.Task End(Altinn.App.Core.Features.IInstanceDataMutator dataMutator) { }
-        public System.Threading.Tasks.Task Start(Altinn.App.Core.Features.IInstanceDataMutator dataMutator) { }
+        public System.Threading.Tasks.Task Abandon(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
+        public System.Threading.Tasks.Task End(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
+        public System.Threading.Tasks.Task Start(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
+    }
+    public sealed class ProcessTaskContext
+    {
+        public ProcessTaskContext() { }
+        public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
     }
     public class ProcessTaskDataLocker : Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTaskDataLocker
     {

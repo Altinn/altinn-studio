@@ -90,7 +90,7 @@ public class SigningProcessTaskTests
             .ReturnsAsync([])
             .Verifiable(Times.Once);
 
-        await _signingProcessTask.Start(dataMutator.Object);
+        await _signingProcessTask.Start(CreateProcessTaskContext(dataMutator.Object));
 
         _signeeContextsManagerMock.VerifyAll();
         _signingServiceMock.VerifyAll();
@@ -115,7 +115,7 @@ public class SigningProcessTaskTests
             .Returns(Task.CompletedTask)
             .Verifiable(Times.Once);
 
-        await _signingProcessTask.Abandon(dataMutator.Object);
+        await _signingProcessTask.Abandon(CreateProcessTaskContext(dataMutator.Object));
 
         _signingServiceMock.VerifyAll();
     }
@@ -157,7 +157,7 @@ public class SigningProcessTaskTests
                 )
             );
 
-        await _signingProcessTask.End(dataMutator.Object);
+        await _signingProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
 
         _pdfServiceMock.VerifyAll();
         dataMutator.VerifyAll();
@@ -200,7 +200,7 @@ public class SigningProcessTaskTests
                 )
             );
 
-        await _signingProcessTask.End(dataMutator.Object);
+        await _signingProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
 
         _pdfServiceMock.VerifyAll();
         dataMutator.VerifyAll();
@@ -225,6 +225,9 @@ public class SigningProcessTaskTests
         dataMutator.Setup(x => x.TaskId).Returns(instance.Process?.CurrentTask?.ElementId);
         return dataMutator;
     }
+
+    private static ProcessTaskContext CreateProcessTaskContext(IInstanceDataMutator dataMutator) =>
+        new() { InstanceDataMutator = dataMutator };
 
     private static Instance CreateInstance(params DataElement[] dataElements)
     {

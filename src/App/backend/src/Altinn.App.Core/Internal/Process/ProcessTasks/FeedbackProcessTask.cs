@@ -1,5 +1,3 @@
-using Altinn.App.Core.Features;
-
 namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 
 /// <summary>
@@ -11,11 +9,11 @@ public class FeedbackProcessTask : IProcessTask
     public string Type => "feedback";
 
     /// <inheritdoc/>
-    public Task Abandon(IInstanceDataMutator dataMutator) => Task.CompletedTask;
+    public Task Abandon(ProcessTaskContext context) => Task.CompletedTask;
 
     /// <inheritdoc/>
-    public Task End(IInstanceDataMutator dataMutator) => Task.CompletedTask;
+    public Task End(ProcessTaskContext context) => Task.CompletedTask;
 
     /// <inheritdoc/>
-    public Task Start(IInstanceDataMutator dataMutator) => Task.CompletedTask;
+    public Task Start(ProcessTaskContext context) => Task.CompletedTask;
 }

@@ -57,8 +57,9 @@ internal sealed class PaymentProcessTask : IProcessTask
     public string Type => AltinnTaskTypes.Payment;
 
     /// <inheritdoc/>
-    public async Task Start(IInstanceDataMutator dataMutator)
+    public async Task Start(ProcessTaskContext context)
     {
+        IInstanceDataMutator dataMutator = context.InstanceDataMutator;
         Instance instance = dataMutator.Instance;
         string taskId = GetTaskId(dataMutator);
         ValidAltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId).Validate();
@@ -73,8 +74,9 @@ internal sealed class PaymentProcessTask : IProcessTask
     }
 
     /// <inheritdoc/>
-    public async Task End(IInstanceDataMutator dataMutator)
+    public async Task End(ProcessTaskContext context)
     {
+        IInstanceDataMutator dataMutator = context.InstanceDataMutator;
         Instance instance = dataMutator.Instance;
         string taskId = GetTaskId(dataMutator);
         AltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId);
@@ -108,8 +110,9 @@ internal sealed class PaymentProcessTask : IProcessTask
     }
 
     /// <inheritdoc/>
-    public async Task Abandon(IInstanceDataMutator dataMutator)
+    public async Task Abandon(ProcessTaskContext context)
     {
+        IInstanceDataMutator dataMutator = context.InstanceDataMutator;
         Instance instance = dataMutator.Instance;
         string taskId = GetTaskId(dataMutator);
         AltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId);

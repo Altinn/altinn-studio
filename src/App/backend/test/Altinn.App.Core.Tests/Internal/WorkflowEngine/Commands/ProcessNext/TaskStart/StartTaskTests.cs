@@ -64,7 +64,7 @@ public class StartTaskTests
         // Arrange
         var processTask = new Mock<IProcessTask>();
         processTask.Setup(x => x.Type).Returns("data");
-        processTask.Setup(x => x.Start(It.IsAny<IInstanceDataMutator>())).Returns(Task.CompletedTask);
+        processTask.Setup(x => x.Start(It.IsAny<ProcessTaskContext>())).Returns(Task.CompletedTask);
         var command = CreateCommand(processTask.Object);
         var context = CreateContext(CreateInstance());
 
@@ -73,7 +73,10 @@ public class StartTaskTests
 
         // Assert
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        processTask.Verify(x => x.Start(It.IsAny<IInstanceDataMutator>()), Times.Once);
+        processTask.Verify(
+            x => x.Start(It.Is<ProcessTaskContext>(c => c.InstanceDataMutator == context.InstanceDataMutator)),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -83,7 +86,7 @@ public class StartTaskTests
         var processTask = new Mock<IProcessTask>();
         processTask.Setup(x => x.Type).Returns("data");
         processTask
-            .Setup(x => x.Start(It.IsAny<IInstanceDataMutator>()))
+            .Setup(x => x.Start(It.IsAny<ProcessTaskContext>()))
             .ThrowsAsync(new InvalidOperationException("Start failed"));
         var command = CreateCommand(processTask.Object);
         var context = CreateContext(CreateInstance());

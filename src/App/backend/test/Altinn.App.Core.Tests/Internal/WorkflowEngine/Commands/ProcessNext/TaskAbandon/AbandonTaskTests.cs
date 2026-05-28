@@ -64,7 +64,7 @@ public class AbandonTaskTests
         // Arrange
         var processTask = new Mock<IProcessTask>();
         processTask.Setup(x => x.Type).Returns("data");
-        processTask.Setup(x => x.Abandon(It.IsAny<IInstanceDataMutator>())).Returns(Task.CompletedTask);
+        processTask.Setup(x => x.Abandon(It.IsAny<ProcessTaskContext>())).Returns(Task.CompletedTask);
         var command = CreateCommand(processTask.Object);
         var context = CreateContext(CreateInstance());
 
@@ -73,7 +73,10 @@ public class AbandonTaskTests
 
         // Assert
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        processTask.Verify(x => x.Abandon(It.IsAny<IInstanceDataMutator>()), Times.Once);
+        processTask.Verify(
+            x => x.Abandon(It.Is<ProcessTaskContext>(c => c.InstanceDataMutator == context.InstanceDataMutator)),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -83,7 +86,7 @@ public class AbandonTaskTests
         var processTask = new Mock<IProcessTask>();
         processTask.Setup(x => x.Type).Returns("data");
         processTask
-            .Setup(x => x.Abandon(It.IsAny<IInstanceDataMutator>()))
+            .Setup(x => x.Abandon(It.IsAny<ProcessTaskContext>()))
             .ThrowsAsync(new InvalidOperationException("Abandon failed"));
         var command = CreateCommand(processTask.Object);
         var context = CreateContext(CreateInstance());
