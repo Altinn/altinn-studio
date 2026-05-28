@@ -1,1 +1,11 @@
+#!/usr/bin/env sh
+
 yarn lint-staged
+
+# Check if there are staged changes in the specific folder
+if git diff --cached --quiet -- "src/Designer/backend/"; then
+  echo "No changes in your-folder-name/. Skipping hook."
+else
+  echo "Changes detected in src/Designer/backend/. Running hook..."
+  cd src/Designer/backend && dotnet husky run
+fi
