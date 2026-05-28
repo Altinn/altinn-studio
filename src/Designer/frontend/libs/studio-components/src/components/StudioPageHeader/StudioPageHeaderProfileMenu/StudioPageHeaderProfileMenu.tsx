@@ -1,4 +1,4 @@
-import type { ReactNode, ReactElement } from 'react';
+import { Fragment, type ReactNode, type ReactElement } from 'react';
 import classes from './StudioPageHeaderProfileMenu.module.css';
 import { StudioDropdown } from '../../StudioDropdown';
 import { useStudioDropdownContext } from '../../StudioDropdown/context/StudioDropdownContext';
@@ -53,33 +53,24 @@ const StudioPageHeaderMenuContent = ({
 }: StudioPageHeaderMenuContentProps): ReactElement => {
   const { setOpen } = useStudioDropdownContext();
   return (
-    <StudioDropdown.List>
-      {profileMenuGroups.map((group: StudioProfileMenuGroup, index: number) => (
-        <StudioPageHeaderMenuContentGroup
-          key={index}
-          group={group}
-          onClickItem={() => setOpen(false)}
-        />
-      ))}
+    <>
+      <StudioDropdown.List className={classes.menuList}>
+        {profileMenuGroups.map((group: StudioProfileMenuGroup, groupIndex: number) => (
+          <Fragment key={groupIndex}>
+            {groupIndex > 0 && <li aria-hidden='true' className={classes.separator} />}
+            {group.items.map((item: StudioProfileMenuItem) => (
+              <StudioProfileMenuGroupItem
+                key={item.itemName}
+                item={item}
+                onClickItem={() => setOpen(false)}
+              />
+            ))}
+          </Fragment>
+        ))}
+        <li aria-hidden='true' className={classes.separator} />
+      </StudioDropdown.List>
       {profileMenuFooter && <div className={classes.profileMenuFooter}>{profileMenuFooter}</div>}
-    </StudioDropdown.List>
-  );
-};
-
-type StudioPageHeaderMenuContentGroupProps = {
-  group: StudioProfileMenuGroup;
-  onClickItem: () => void;
-};
-const StudioPageHeaderMenuContentGroup = ({
-  group,
-  onClickItem,
-}: StudioPageHeaderMenuContentGroupProps): ReactElement => {
-  return (
-    <div className={classes.dropDownMenuGroup}>
-      {group.items.map((item: StudioProfileMenuItem) => (
-        <StudioProfileMenuGroupItem key={item.itemName} item={item} onClickItem={onClickItem} />
-      ))}
-    </div>
+    </>
   );
 };
 

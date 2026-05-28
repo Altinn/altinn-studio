@@ -52,6 +52,7 @@ type UpdateOptions struct {
 // UninstallResult describes a completed self uninstall.
 type UninstallResult struct {
 	RemovedPath string
+	RemovedDir  string
 }
 
 // ResolvedBundle describes a downloaded update bundle and its install target.
@@ -89,13 +90,6 @@ func (s *Service) ResolveUpdateBundle(
 	execPath, err := currentExecutablePath()
 	if err != nil {
 		return ResolvedBundle{}, fmt.Errorf("resolve current executable path: %w", err)
-	}
-
-	if runtime.GOOS == osutil.OSWindows {
-		return ResolvedBundle{}, fmt.Errorf(
-			"%w: windows executable is locked while running",
-			ErrUpdateUnsupported,
-		)
 	}
 
 	downloads := newHTTPDownloader(s.cfg.Version)
@@ -438,18 +432,24 @@ func (s *Service) UninstallBinary() (UninstallResult, error) {
 		return UninstallResult{}, fmt.Errorf("resolve current executable path: %w", err)
 	}
 
+	return s.UninstallBinaryAt(execPath)
+}
+
+// UninstallBinaryAt removes a studioctl executable from disk.
+func (s *Service) UninstallBinaryAt(execPath string) (UninstallResult, error) {
 	if runtime.GOOS == osutil.OSWindows {
-		return UninstallResult{}, fmt.Errorf(
-			"%w: remove manually after process exits",
-			errUninstallUnsupported,
-		)
+		// Windows user installs live in a dedicated studioctl directory, so the
+		// platform cleanup also removes managed update artifacts and the directory
+		// itself when no unmanaged files remain. Other platforms install into
+		// shared PATH directories and only remove the studioctl binary.
+		return uninstallBinaryAtWindows(execPath)
 	}
 
 	if err := os.Remove(execPath); err != nil {
 		return UninstallResult{}, fmt.Errorf("remove binary %q: %w", execPath, err)
 	}
 
-	return UninstallResult{RemovedPath: execPath}, nil
+	return UninstallResult{RemovedPath: execPath, RemovedDir: ""}, nil
 }
 
 // RemoveHome removes the studioctl home directory.

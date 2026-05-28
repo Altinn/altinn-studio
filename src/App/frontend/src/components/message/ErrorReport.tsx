@@ -1,10 +1,9 @@
 import React, { createContext, useContext } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { Flex } from '@app/form-component';
+import { Flex, FullWidthWrapper } from '@app/form-component';
 import { ErrorSummary } from '@digdir/designsystemet-react';
 
-import { FullWidthWrapper } from 'src/app-components/FullWidthWrapper/FullWidthWrapper';
 import classes from 'src/components/message/ErrorReport.module.css';
 import { useAllAttachments } from 'src/features/attachments/hooks';
 import { FileScanResults } from 'src/features/attachments/types';

@@ -1,6 +1,9 @@
-import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
 import { CG } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
+
+// Mirrors PanelVariant in @app/form-component. Inlined so codegen (run via tsx)
+// does not pull in the lib barrel, which transitively imports CSS modules.
+const PANEL_VARIANTS = ['info', 'warning', 'error', 'success'] as const;
 
 export const Config = new CG.component({
   category: CompCategory.Presentation,
@@ -34,7 +37,7 @@ export const Config = new CG.component({
   .addProperty(
     new CG.prop(
       'variant',
-      new CG.enum(...Object.values(PANEL_VARIANT))
+      new CG.enum(...PANEL_VARIANTS)
         .optional()
         .setTitle('Panel variant')
         .setDescription('Change the look of the panel')

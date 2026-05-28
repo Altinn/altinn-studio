@@ -132,6 +132,8 @@ func (d *detector) detectToolchain(ctx context.Context) (ContainerToolchain, err
 			Platform:   PlatformPodman,
 			AccessMode: AccessPodmanCLI,
 			Source:     SourcePodmanCLI,
+			SocketPath: "",
+			SELinux:    false,
 		}, nil
 	}
 
@@ -319,6 +321,7 @@ func (d *detector) newToolchain(
 		AccessMode: accessMode,
 		Source:     source,
 		SocketPath: socketPath,
+		SELinux:    false,
 	}
 }
 

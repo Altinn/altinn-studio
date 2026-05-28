@@ -11,6 +11,21 @@ type Bundle struct {
 	installPath string
 }
 
+// NewBundle returns an installable bundle for an explicit target path.
+func NewBundle(version, binaryPath, resourcesArchivePath, installPath string) Bundle {
+	return Bundle{
+		Version:              version,
+		BinaryPath:           binaryPath,
+		ResourcesArchivePath: resourcesArchivePath,
+		installPath:          installPath,
+	}
+}
+
+// InstallPath returns the binary installation target.
+func (b Bundle) InstallPath() string {
+	return b.installPath
+}
+
 // CurrentBundle returns an installable bundle containing the currently running studioctl binary.
 func (s *Service) CurrentBundle(resourcesArchivePath, targetDir string) (Bundle, error) {
 	binaryPath, err := currentExecutablePath()

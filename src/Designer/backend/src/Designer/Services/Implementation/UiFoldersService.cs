@@ -18,10 +18,7 @@ public class UiFoldersService : IUiFoldersService
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly ILogger<UiFoldersService> _logger;
 
-    public UiFoldersService(
-        IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-        ILogger<UiFoldersService> logger
-    )
+    public UiFoldersService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ILogger<UiFoldersService> logger)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _logger = logger;
@@ -69,15 +66,18 @@ public class UiFoldersService : IUiFoldersService
                         DataType = layoutSettings.DataType,
                         Type = layoutSettings.Type,
                         Task = new TaskModel { Type = taskType },
-                        PageCount = pages.Groups != null
-                            ? pages.Groups.Sum(group => group.Pages.Count)
-                            : pages.Pages!.Count,
+                        PageCount =
+                            pages.Groups != null ? pages.Groups.Sum(group => group.Pages.Count) : pages.Pages!.Count,
                     }
                 );
             }
             catch (Exception e) when (e is FileNotFoundException or JsonException)
             {
-                _logger.LogWarning(e, "Could not read Settings.json for layout set {LayoutSetName}. Skipping.", layoutSetName);
+                _logger.LogWarning(
+                    e,
+                    "Could not read Settings.json for layout set {LayoutSetName}. Skipping.",
+                    layoutSetName
+                );
             }
         }
 
@@ -113,8 +113,9 @@ public class UiFoldersService : IUiFoldersService
         cancellationToken.ThrowIfCancellationRequested();
         AltinnAppGitRepository altinnAppGitRepository = GetRepository(altinnRepoEditingContext);
 
-        UiSettings globalSettingsFile = await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken);
-        globalSettingsFile ??= new UiSettings();
+        UiSettings globalSettingsFile =
+            await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken) ?? new UiSettings();
+
         globalSettingsFile.ValidationOnNavigation = config;
         await altinnAppGitRepository.SaveGlobalSettingsFile(globalSettingsFile);
     }
@@ -176,9 +177,8 @@ public class UiFoldersService : IUiFoldersService
 
         IEnumerable<TaskNavigationGroup> taskNavigationGroupList = taskNavigationGroupDtoList.Select(x => x.ToDomain());
 
-        UiSettings globalSettingsFile = await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken);
-
-        globalSettingsFile ??= new UiSettings();
+        UiSettings globalSettingsFile =
+            await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken) ?? new UiSettings();
 
         globalSettingsFile.TaskNavigation = taskNavigationGroupList.Any() ? taskNavigationGroupList : null;
 

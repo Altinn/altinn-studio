@@ -6,6 +6,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import 'react-day-picker/style.css';
 
 import { DatePickerControl } from './Datepicker';
+import { fn } from 'storybook/test';
 
 const NoopDropdownCaption = ({ calendarMonth }: MonthCaptionProps) => (
   <div style={{ padding: 8, fontWeight: 600 }}>
@@ -24,7 +25,11 @@ type Story = StoryObj<typeof meta>;
 
 const Wrapper = (args: React.ComponentProps<typeof DatePickerControl>) => {
   const [value, setValue] = useState(args.value);
-  return <DatePickerControl {...args} value={value} onValueChange={setValue} />;
+  const handleValueChange = (newValue: string) => {
+    args.onValueChange(newValue);
+    setValue(newValue);
+  };
+  return <DatePickerControl {...args} value={value} onValueChange={handleValueChange} />;
 };
 
 export const Preview: Story = {
@@ -35,6 +40,7 @@ export const Preview: Story = {
     locale: 'nb',
     buttonAriaLabel: 'Open date picker',
     calendarIconTitle: 'Calendar',
+    onValueChange: fn(),
     DropdownCaption: NoopDropdownCaption,
   },
   render: (args) => <Wrapper {...args} />,
