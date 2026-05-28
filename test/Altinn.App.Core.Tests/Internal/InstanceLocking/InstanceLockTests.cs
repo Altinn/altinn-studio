@@ -145,15 +145,21 @@ public sealed class InstanceLockTests
         Assert.Equal(3, requests.Count);
 
         var acquireMatchResult = new RequestMatchResult();
-        acquireLockRequestBuilder.GetMatchingScore(requests[0].RequestMessage, acquireMatchResult);
+        var message0 = requests[0].RequestMessage;
+        Assert.NotNull(message0);
+        acquireLockRequestBuilder.GetMatchingScore(message0, acquireMatchResult);
         Assert.True(acquireMatchResult.IsPerfectMatch);
 
         var testMatchResult = new RequestMatchResult();
-        testRequestBuilder.GetMatchingScore(requests[1].RequestMessage, testMatchResult);
+        var message1 = requests[1].RequestMessage;
+        Assert.NotNull(message1);
+        testRequestBuilder.GetMatchingScore(message1, testMatchResult);
         Assert.True(testMatchResult.IsPerfectMatch);
 
         var releaseMatchResult = new RequestMatchResult();
-        releaseLockRequestBuilder.GetMatchingScore(requests[2].RequestMessage, releaseMatchResult);
+        var message2 = requests[2].RequestMessage;
+        Assert.NotNull(message2);
+        releaseLockRequestBuilder.GetMatchingScore(message2, releaseMatchResult);
         Assert.True(releaseMatchResult.IsPerfectMatch);
     }
 
@@ -248,7 +254,9 @@ public sealed class InstanceLockTests
 
         var acquireRequests = fixture.Server.FindLogEntries(fixture.GetAcquireLockRequestBuilder());
         Assert.Single(acquireRequests);
-        var requestBody = acquireRequests[0].RequestMessage.Body;
+        var message0 = acquireRequests[0].RequestMessage;
+        Assert.NotNull(message0);
+        var requestBody = message0.Body;
 
         await Verify(new { RequestBody = requestBody });
     }
@@ -489,7 +497,9 @@ public sealed class InstanceLockTests
 
         var acquireRequests = fixture.Server.FindLogEntries(fixture.GetAcquireLockRequestBuilder());
         Assert.Single(acquireRequests);
-        var requestBody = acquireRequests[0].RequestMessage.Body;
+        var message0 = acquireRequests[0].RequestMessage;
+        Assert.NotNull(message0);
+        var requestBody = message0.Body;
 
         await Verify(new { RequestBody = requestBody });
     }
