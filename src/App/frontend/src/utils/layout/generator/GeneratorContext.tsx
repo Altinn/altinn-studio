@@ -104,8 +104,6 @@ export function GeneratorNodeProvider({ children, parentBaseId, item }: PropsWit
  */
 export function GeneratorPageProvider({ children, pageKey, isValid }: PropsWithChildren<PageProviderProps>) {
   const parent = useCtx();
-  // Depend on the individual props, not the rest object (which is a new reference every render and
-  // defeats the memo, changing the context value identity on every render and re-rendering every consumer).
   const value: GeneratorContext = useMemo(
     () => ({
       ...parent,
@@ -169,8 +167,6 @@ export function GeneratorGlobalProvider({
   removeNode,
   setNodeProp,
 }: PropsWithChildren<GlobalProviderProps>) {
-  // Depend on the individual props, not the rest object (which is a new reference every render and
-  // defeats the memo, changing the context value identity on every render and re-rendering every consumer).
   const value: GeneratorContext = useMemo(
     () => ({
       item: undefined,
