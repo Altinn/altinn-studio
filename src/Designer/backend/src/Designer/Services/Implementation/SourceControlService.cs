@@ -327,7 +327,7 @@ public class SourceControlService(
         }
 
         valueStart += prefix.Length;
-        int valueEnd = message.LastIndexOf(suffix, StringComparison.Ordinal);
+        int valueEnd = message.IndexOf(suffix, valueStart, StringComparison.Ordinal);
         if (valueEnd < valueStart)
         {
             return null;
