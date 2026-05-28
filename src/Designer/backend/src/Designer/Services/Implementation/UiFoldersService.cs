@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -63,7 +64,8 @@ public class UiFoldersService : IUiFoldersService
 
                 string? taskType = hasMatchingTask ? TaskTypeFromDefinitions(definitions, layoutSetName) : null;
                 PagesDto pages = PagesDto.From(layoutSettings);
-                int pageCount = pages.Groups != null ? pages.Groups.Sum(group => group.Pages.Count) : pages.Pages!.Count;
+                int pageCount =
+                    pages.Groups != null ? pages.Groups.Sum(group => group.Pages.Count) : pages.Pages!.Count;
 
                 layoutSets.Add(
                     new LayoutSetDto
@@ -123,6 +125,70 @@ public class UiFoldersService : IUiFoldersService
 
         globalSettingsFile.ValidationOnNavigation = config;
         await altinnAppGitRepository.SaveGlobalSettingsFile(globalSettingsFile);
+    }
+
+    public async Task<ValidationOnNavigation?> GetLayoutSetValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetId,
+        CancellationToken cancellationToken
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository repository = GetRepository(editingContext);
+        LayoutSettings layoutSettings = await repository.GetLayoutSettings(layoutSetId, cancellationToken);
+        return layoutSettings.Pages?.ValidationOnNavigation;
+    }
+
+    public async Task SaveLayoutSetValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetId,
+        ValidationOnNavigation? config,
+        CancellationToken cancellationToken
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository repository = GetRepository(editingContext);
+        LayoutSettings layoutSettings = await repository.GetLayoutSettings(layoutSetId, cancellationToken);
+        layoutSettings.Pages ??= new Pages();
+        layoutSettings.Pages.ValidationOnNavigation = config;
+        await repository.SaveLayoutSettings(layoutSetId, layoutSettings);
+    }
+
+    public async Task<ValidationOnNavigation?> GetPageValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetId,
+        string pageId,
+        CancellationToken cancellationToken
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository repository = GetRepository(editingContext);
+        JsonNode layout = await repository.GetLayout(layoutSetId, pageId, cancellationToken);
+        return layout["data"]?["validationOnNavigation"]?.Deserialize<ValidationOnNavigation>();
+    }
+
+    public async Task SavePageValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetId,
+        string pageId,
+        ValidationOnNavigation? config,
+        CancellationToken cancellationToken
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository repository = GetRepository(editingContext);
+        JsonNode layout = await repository.GetLayout(layoutSetId, pageId, cancellationToken);
+
+        if (config == null)
+        {
+            layout["data"]?.AsObject().Remove("validationOnNavigation");
+        }
+        else
+        {
+            layout["data"]!["validationOnNavigation"] = JsonSerializer.SerializeToNode(config);
+        }
+
+        await repository.SaveLayout(layoutSetId, pageId, layout, cancellationToken);
     }
 
     public async Task<IEnumerable<TaskNavigationGroupDto>> GetGlobalTaskNavigationDto(

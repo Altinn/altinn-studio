@@ -24,6 +24,34 @@ public interface IUiFoldersService
         CancellationToken cancellationToken
     );
 
+    public Task<ValidationOnNavigation?> GetLayoutSetValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetId,
+        CancellationToken cancellationToken
+    );
+
+    public Task SaveLayoutSetValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetId,
+        ValidationOnNavigation? config,
+        CancellationToken cancellationToken
+    );
+
+    public Task<ValidationOnNavigation?> GetPageValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetId,
+        string pageId,
+        CancellationToken cancellationToken
+    );
+
+    public Task SavePageValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetId,
+        string pageId,
+        ValidationOnNavigation? config,
+        CancellationToken cancellationToken
+    );
+
     public Task<IEnumerable<TaskNavigationGroupDto>> GetGlobalTaskNavigationDto(
         AltinnRepoEditingContext editingContext,
         CancellationToken cancellationToken
