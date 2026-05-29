@@ -11,7 +11,7 @@ Kjøres som én Docker-container. UX-teamet kan starte den lokalt og klikke seg 
 docker compose up -d --build
 
 # Åpne dashbordet
-open http://localhost:8080
+open http://localhost:9091
 ```
 
 ### Installer som app på Mac
@@ -20,13 +20,13 @@ Verktøyet er en PWA — kan installeres som standalone app:
 
 **Chrome / Edge:**
 
-1. Åpne http://localhost:8080
+1. Åpne http://localhost:9091
 2. Trykk install-ikonet i adresselinjen (eller ⋮ → "Install Altinn Studio Fleet Statistics…")
 3. App'en dukker opp i Launchpad og kan startes som vanlig app
 
 **Safari (macOS Sonoma+):**
 
-1. Åpne http://localhost:8080
+1. Åpne http://localhost:9091
 2. Fil → Legg til i Dock
 
 App'en kjører i et eget vindu uten browser-chrome. Docker-container må fortsatt være oppe i bakgrunnen siden den er datakilden — `docker compose up -d` overlever maskin-restart hvis du har Docker Desktop satt til å starte automatisk.
@@ -60,7 +60,7 @@ Bytt miljø i UI under fanen **Konfigurasjon** og klikk **Hent apper** for å fy
 
 ```
 ┌────────────────────────────────────────┐
-│ Docker container (localhost:8080)      │
+│ Docker container (localhost:9091)      │
 │                                        │
 │  React (Vite) ──→ FastAPI ──→ SQLite   │
 │      ▲              │                  │
@@ -90,7 +90,7 @@ FLEET_DATA_DIR=$(pwd)/../data uvicorn altinn_fleet.main:app --reload
 # Frontend
 cd ../frontend
 yarn install
-yarn dev   # på http://localhost:5173, proxyer /api → :8080
+yarn dev   # på http://localhost:5173, proxyer /api → :9091
 ```
 
 ## Databaseutforskning

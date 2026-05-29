@@ -53,7 +53,7 @@ class Settings(BaseSettings):
 
     # Web server
     host: str = "0.0.0.0"
-    port: int = 8080
+    port: int = 9091
 
     @property
     def apps_dir(self) -> Path:

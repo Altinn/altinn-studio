@@ -31,10 +31,10 @@ COPY --from=frontend-builder /backend/static ./static
 ENV FLEET_DATA_DIR=/data \
     FLEET_ENV=prod \
     FLEET_HOST=0.0.0.0 \
-    FLEET_PORT=8080
+    FLEET_PORT=9091
 
 VOLUME ["/data"]
-EXPOSE 8080
+EXPOSE 9091
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["uvicorn", "altinn_fleet.main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "altinn_fleet.main:app", "--host", "0.0.0.0", "--port", "9091"]
