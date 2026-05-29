@@ -1,7 +1,7 @@
 import { createContext, type JSX, type PropsWithChildren, type ReactNode, useContext } from 'react';
 
-type TranslationParams = (string | number | undefined)[];
 type LangFn = (key: string | undefined, params?: TranslationParams) => ReactNode;
+type TranslationParams = (string | number | undefined)[];
 type TranslateFn = (key: string, params?: TranslationParams) => string;
 type TranslateComponent = (args: {
   tKey: string;
@@ -36,6 +36,5 @@ export function LanguageTranslatorProvider({
 }
 
 export function useTranslation(): LanguageTranslatorContextProps {
-  const context = useContext(LanguageTranslatorContext);
-  return context;
+  return useContext(LanguageTranslatorContext);
 }

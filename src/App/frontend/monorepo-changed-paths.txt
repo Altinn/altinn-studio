@@ -16,5 +16,6 @@ test/e2e/integration/component-library/pdf.ts
 test/e2e/integration/component-library/performance.ts
 test/e2e/integration/frontend-test/hide-row-in-group.ts
 test/e2e/integration/frontend-test/language.ts
+test/e2e/integration/frontend-test/party-selection.ts
 test/e2e/integration/frontend-test/process-next.ts
 yarn.lock
