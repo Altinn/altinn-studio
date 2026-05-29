@@ -1,4 +1,4 @@
-import { type ReactElement } from 'react';
+import { type ReactNode } from 'react';
 
 import { render, screen } from '@testing-library/react';
 
@@ -6,54 +6,64 @@ import { render, screen } from '@testing-library/react';
 import { LanguageTranslatorProvider } from '../../LanguageTranslatorProvider';
 import { Paragraph } from './Paragraph';
 
+interface Stubs {
+  lang?: (key: string | undefined) => ReactNode;
+  translate?: (key: string) => string;
+}
+
+const renderParagraph = (ui: ReactNode, { lang, translate }: Stubs = {}) =>
+  render(
+    <LanguageTranslatorProvider
+      lang={lang ?? ((key) => key ?? null)}
+      translate={translate ?? ((key) => key)}
+      TranslateComponent={({ tKey }) => <span>{tKey}</span>}
+    >
+      {ui}
+    </LanguageTranslatorProvider>,
+  );
+
 describe('Paragraph', () => {
-  it('renders the supplied title content', () => {
-    render(<Paragraph title='paragraph text content' />);
-    expect(screen.getByText('paragraph text content')).toBeInTheDocument();
+  it('resolves the title key via the context and renders it', () => {
+    renderParagraph(<Paragraph id='p' title='my.title' />, {
+      lang: (key) => (key === 'my.title' ? 'resolved title' : null),
+    });
+    expect(screen.getByText('resolved title')).toBeInTheDocument();
   });
 
   it('uses the id for the data-testid', () => {
-    render(<Paragraph id='abc123' title='x' />);
+    renderParagraph(<Paragraph id='abc123' title='x' />);
     expect(screen.getByTestId('paragraph-component-abc123')).toBeInTheDocument();
   });
 
-  it('does not render a help button when no help is supplied', () => {
-    render(<Paragraph title='x' />);
+  it('does not render a help button when no help key is supplied', () => {
+    renderParagraph(<Paragraph id='p' title='x' />);
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
-  it('renders a help button when help is supplied', () => {
-    render(<Paragraph id='h' title='x' help='some help' />);
+  it('renders a help button when a help key is supplied', () => {
+    renderParagraph(<Paragraph id='p' title='x' help='my.help' />);
     expect(screen.getByRole('button')).toBeInTheDocument();
   });
 
-  describe('help button aria-label (translated inside the lib)', () => {
-    const renderWithTranslation = (ui: ReactElement) =>
-      render(
-        <LanguageTranslatorProvider
-          translate={(key) => `t:${key}`}
-          TranslateComponent={({ tKey }) => tKey}
-        >
-          {ui}
-        </LanguageTranslatorProvider>,
-      );
-
-    it('composes the prefix and the resolved title when titleText is present', () => {
-      renderWithTranslation(<Paragraph id='h' title='My title' titleText='My title' help='help' />);
-      expect(screen.getByRole('button')).toHaveAttribute(
-        'aria-label',
-        't:helptext.button_title_prefix My title',
-      );
+  it('composes the help aria-label from the resolved title and the translated prefix', () => {
+    renderParagraph(<Paragraph id='p' title='my.title' help='my.help' />, {
+      translate: (key) => {
+        if (key === 'my.title') {
+          return 'My Title';
+        }
+        if (key === 'helptext.button_title_prefix') {
+          return 'Help for';
+        }
+        return key;
+      },
     });
-
-    it('falls back to the button_title key when no titleText is present', () => {
-      renderWithTranslation(<Paragraph id='h' help='help' />);
-      expect(screen.getByRole('button')).toHaveAttribute('aria-label', 't:helptext.button_title');
-    });
+    expect(screen.getByRole('button')).toHaveAttribute('aria-label', 'Help for My Title');
   });
 
-  it('renders the raw key when no translator provider is mounted (identity default)', () => {
-    render(<Paragraph id='h' help='help' />);
-    expect(screen.getByRole('button')).toHaveAttribute('aria-label', 'helptext.button_title');
+  it('falls back to the button_title key for the aria-label when there is no title', () => {
+    renderParagraph(<Paragraph id='p' help='my.help' />, {
+      translate: (key) => (key === 'helptext.button_title' ? 'Help' : key),
+    });
+    expect(screen.getByRole('button')).toHaveAttribute('aria-label', 'Help');
   });
 });

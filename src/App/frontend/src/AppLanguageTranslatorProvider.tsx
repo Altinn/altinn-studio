@@ -7,10 +7,11 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 
 export function AppLanguageTranslatorProvider({ children }: PropsWithChildren) {
-  const { langAsString } = useLanguage();
+  const { lang, langAsString } = useLanguage();
 
   return (
     <LanguageTranslatorProvider
+      lang={lang}
       translate={langAsString}
       TranslateComponent={({ tKey, params }) => (
         <Lang

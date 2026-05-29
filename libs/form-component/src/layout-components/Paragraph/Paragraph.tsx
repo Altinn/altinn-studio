@@ -1,27 +1,24 @@
-import { type ReactNode } from 'react';
-
 // eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
-import { HelpText } from '../../app-components/HelpText/HelpText';
-// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
-import { ParagraphText } from '../../app-components/ParagraphText/ParagraphText';
+import { HelpText, ParagraphText } from '../../app-components';
 // eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
 import { useTranslation } from '../../LanguageTranslatorProvider';
 import classes from './Paragraph.module.css';
 
 export interface ParagraphProps {
   id?: string;
-  title?: ReactNode;
-  titleText?: string;
-  help?: ReactNode;
+  title?: string;
+  help?: string;
 }
 
-export function Paragraph({ id, title, titleText, help }: ParagraphProps) {
-  const { translate } = useTranslation();
+export function Paragraph({ id, title, help }: ParagraphProps) {
+  const { lang, translate, TranslateComponent } = useTranslation();
+
+  const titleText = title ? translate(title) : '';
 
   return (
     <div className={classes.paragraphWrapper}>
       <div id={id} data-testid={`paragraph-component-${id}`}>
-        <ParagraphText>{title}</ParagraphText>
+        <ParagraphText>{lang(title)}</ParagraphText>
       </div>
       {help && (
         <HelpText
@@ -30,7 +27,7 @@ export function Paragraph({ id, title, titleText, help }: ParagraphProps) {
           title={titleText ? titleText : translate('helptext.button_title')}
           className={classes.helpTextContainer}
         >
-          {help}
+          <TranslateComponent tKey={help} />
         </HelpText>
       )}
     </div>

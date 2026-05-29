@@ -1,6 +1,26 @@
+import { type ReactElement } from 'react';
+
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
+// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
+import { LanguageTranslatorProvider } from '../../LanguageTranslatorProvider';
 import { Paragraph } from './Paragraph';
+
+const TEXTS: Record<string, string | ReactElement> = {
+  'paragraph.basic': 'This is a paragraph of presentational text shown in a form.',
+  'paragraph.inline': (
+    <span>
+      Paragraph with <strong>bold</strong> and <em>emphasised</em> inline elements.
+    </span>
+  ),
+  'paragraph.help': 'This help text gives the user more context about the paragraph.',
+};
+
+const STRINGS: Record<string, string> = {
+  'paragraph.basic': 'This is a paragraph of presentational text shown in a form.',
+  'helptext.button_title': 'Help',
+  'helptext.button_title_prefix': 'Help for',
+};
 
 const meta = {
   title: 'LayoutComponents/Paragraph',
@@ -8,9 +28,20 @@ const meta = {
   parameters: {
     layout: 'padded',
   },
+  decorators: [
+    (Story) => (
+      <LanguageTranslatorProvider
+        lang={(key) => (key ? (TEXTS[key] ?? key) : null)}
+        translate={(key) => STRINGS[key] ?? key}
+        TranslateComponent={({ tKey }) => TEXTS[tKey] ?? tKey}
+      >
+        <Story />
+      </LanguageTranslatorProvider>
+    ),
+  ],
   args: {
     id: 'paragraph-preview',
-    title: 'This is a paragraph of presentational text shown in a form.',
+    title: 'paragraph.basic',
   },
 } satisfies Meta<typeof Paragraph>;
 
@@ -22,17 +53,13 @@ export const Preview: Story = {};
 
 export const InlineFormatting: Story = {
   args: {
-    title: (
-      <span>
-        Paragraph with <strong>bold</strong> and <em>emphasised</em> inline elements.
-      </span>
-    ),
+    title: 'paragraph.inline',
   },
 };
 
 export const WithHelpText: Story = {
   args: {
-    titleText: 'This is a paragraph of presentational text shown in a form.',
-    help: 'This help text gives the user more context about the paragraph.',
+    title: 'paragraph.basic',
+    help: 'paragraph.help',
   },
 };
