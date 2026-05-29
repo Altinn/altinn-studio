@@ -60,6 +60,7 @@ studioctl auth login --env dev --with-token < token.txt
 ## Core commands
 
 - `studioctl auth login`: login with Ansattporten or `--with-token` for `prod`, `dev`, `staging`, or `local`
+- `studioctl apps search`: search app repositories in Altinn Studio
 - `studioctl app clone`: clone `org/repo` from the selected Altinn Studio environment
 - `studioctl app run`: run app locally
 - `studioctl env up`: start localtest

@@ -164,6 +164,119 @@ func TestClient_GetRepo_NotFound(t *testing.T) {
 	}
 }
 
+func TestClient_SearchApps_Success(t *testing.T) {
+	t.Parallel()
+	server := httptest.NewServer(searchAppsSuccessHandler(t))
+	defer server.Close()
+
+	host := server.URL[7:]
+	client := &Client{
+		host:       host,
+		apiKey:     "test-api-key",
+		version:    config.NewVersion("test-version"),
+		scheme:     "http",
+		httpClient: server.Client(),
+	}
+
+	result, err := client.SearchApps(context.Background(), SearchAppsRequest{
+		Query: "apps",
+		Sort:  "updated",
+		Order: "desc",
+		Page:  2,
+		Limit: 10,
+	})
+	if err != nil {
+		t.Fatalf("SearchApps failed: %v", err)
+	}
+	if result.TotalCount != 27 {
+		t.Fatalf("TotalCount = %d, want 27", result.TotalCount)
+	}
+	if result.TotalPages != 3 {
+		t.Fatalf("TotalPages = %d, want 3", result.TotalPages)
+	}
+	if len(result.Data) != 1 || result.Data[0].FullName != "ttd/apps-test" {
+		t.Fatalf("Data = %+v, want one ttd/apps-test repo", result.Data)
+	}
+}
+
+func searchAppsSuccessHandler(t *testing.T) http.HandlerFunc {
+	t.Helper()
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		assertSearchAppsRequest(t, r)
+
+		result := SearchAppsResult{
+			Ok:         true,
+			TotalCount: 27,
+			TotalPages: 3,
+			Data: []Repository{
+				{
+					ID:          1,
+					Name:        "apps-test",
+					FullName:    "ttd/apps-test",
+					Description: "Test app",
+				},
+			},
+		}
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(result); err != nil {
+			t.Errorf("encode response: %v", err)
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func assertSearchAppsRequest(t *testing.T, r *http.Request) {
+	t.Helper()
+
+	if apiKey := r.Header.Get("X-Api-Key"); apiKey != "test-api-key" {
+		t.Errorf("expected X-Api-Key header, got %q", apiKey)
+	}
+	if userAgent := r.Header.Get("User-Agent"); userAgent != "studioctl/test-version" {
+		t.Errorf("expected User-Agent 'studioctl/test-version', got %q", userAgent)
+	}
+	if r.URL.Path != "/designer/api/repos/search" {
+		t.Errorf("expected path /designer/api/repos/search, got %s", r.URL.Path)
+	}
+
+	query := r.URL.Query()
+	wantQuery := map[string]string{
+		"keyword": "apps",
+		"limit":   "10",
+		"order":   "desc",
+		"page":    "2",
+		"sortBy":  "updated",
+	}
+	for key, want := range wantQuery {
+		if got := query.Get(key); got != want {
+			t.Errorf("%s = %q, want %q", key, got, want)
+		}
+	}
+}
+
+func TestClient_SearchApps_Unauthorized(t *testing.T) {
+	t.Parallel()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+	}))
+	defer server.Close()
+
+	host := server.URL[7:]
+	client := &Client{
+		host:       host,
+		apiKey:     "bad-api-key",
+		version:    config.NewVersion("test-version"),
+		scheme:     "http",
+		httpClient: server.Client(),
+	}
+
+	_, err := client.SearchApps(context.Background(), SearchAppsRequest{Query: "apps"})
+	if !errors.Is(err, ErrUnauthorized) {
+		t.Errorf("expected ErrUnauthorized, got %v", err)
+	}
+}
+
 func TestClient_buildCloneURL_DoesNotEmbedCredentials(t *testing.T) {
 	t.Parallel()
 	client := &Client{
