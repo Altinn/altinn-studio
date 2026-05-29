@@ -66,7 +66,6 @@ src/features/form/layoutSettings/
 src/features/form/rules/RulesContext.tsx
 src/features/formData/LegacyRules.ts
 src/features/instance/instanceUtils.ts
-src/features/instance/useProcessQuery.ts
 src/features/instantiate/containers/InstantiateContainer.tsx
 src/features/instantiate/useInstantiation.tsx
 src/features/language/LangDataSourcesProvider.tsx
@@ -98,7 +97,6 @@ src/queries/formPrefetcher.ts
 src/utils/formLayout.test.ts
 src/utils/formLayout.ts
 src/utils/layout/generator/GeneratorDataSources.tsx
-src/utils/layout/index.tsx
 src/utils/refs/
 src/utils/versioning/
 test/e2e/config/
@@ -106,5 +104,4 @@ test/e2e/integration/component-library/pdf.ts
 test/e2e/integration/frontend-test/language.ts
 test/e2e/integration/frontend-test/party-selection.ts
 test/e2e/integration/frontend-test/process-next.ts
-test/e2e/integration/stateless-app/party-selection.ts
 yarn.lock
