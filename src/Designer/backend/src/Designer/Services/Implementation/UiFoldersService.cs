@@ -185,7 +185,9 @@ public class UiFoldersService : IUiFoldersService
         }
         else
         {
-            layout["data"]!["validationOnNavigation"] = JsonSerializer.SerializeToNode(config);
+            JsonObject data = layout["data"]?.AsObject() ?? [];
+            data["validationOnNavigation"] = JsonSerializer.SerializeToNode(config);
+            layout["data"] = data;
         }
 
         await repository.SaveLayout(layoutSetId, pageId, layout, cancellationToken);
