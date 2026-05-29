@@ -1,0 +1,1 @@
+export { ParagraphText } from './ParagraphText';
