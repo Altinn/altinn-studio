@@ -8,4 +8,6 @@ export type {
 export { FormComponentActionType } from './types/FormComponentActionType';
 export type { DataModelBinding } from './types/DataModelBinding';
 
+export { LanguageTranslatorProvider } from './LanguageTranslatorProvider';
+
 export * from './app-components';
