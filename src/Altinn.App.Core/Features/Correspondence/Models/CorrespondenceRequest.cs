@@ -17,7 +17,10 @@ public sealed record CorrespondenceRequest
     /// <summary>
     /// The sending organisation of the correspondence.
     /// </summary>
-    public required OrganisationNumber Sender { get; init; }
+    [Obsolete(
+        "This property is deprecated. The sender is now automatically determined from the Resource Registry based on the resourceId."
+    )]
+    public OrganisationNumber? Sender { get; init; }
 
     /// <summary>
     /// A reference value given to the message by the creator.
