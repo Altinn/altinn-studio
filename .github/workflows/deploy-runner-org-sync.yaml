@@ -1,7 +1,7 @@
 name: Deploy Runner Org Sync
 on:
   push:
-    branches: [main, feat/runners-autoscaling]
+    branches: [main]
     paths:
       - 'src/runner-org-sync/**'
       - '.github/workflows/deploy-runner-org-sync.yaml'
@@ -20,11 +20,7 @@ jobs:
   construct-environments-array:
     uses: ./.github/workflows/template-studio-construct-environments.yaml
     with:
-      # Push to the autoscaling feature branch deploys to staging only.
-      # Push to main and manual dispatches fall through to github.event.inputs
-      # (which is empty on push to main → template applies its own defaults,
-      #  and on dispatch → the value the user typed in the form).
-      inputs: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/feat/runners-autoscaling') && '{"environments":"staging"}' || toJSON(github.event.inputs) }}
+      inputs: ${{ toJSON(github.event.inputs) }}
 
   push-artifact:
     name: Push runner-org-sync as OCI artifact
