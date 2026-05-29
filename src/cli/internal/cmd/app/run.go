@@ -213,6 +213,7 @@ func (s *Service) BuildDockerRunSpec(
 			Name:           localtestAppContainerNamePrefix + appName,
 			Image:          imageTag,
 			User:           "",
+			UsernsMode:     "",
 			RestartPolicy:  "",
 			ExtraHosts:     nil,
 			NetworkAliases: nil,

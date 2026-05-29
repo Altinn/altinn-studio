@@ -613,6 +613,7 @@ func (e *Executor) applyContainer(ctx context.Context, graphID GraphID, c *Conta
 			Labels:         desiredLabels,
 			Detach:         true,
 			User:           c.User,
+			UsernsMode:     c.UsernsMode,
 			Networks:       networks,
 		}
 
@@ -898,6 +899,10 @@ func containerSpecHash(c *Container, imageID string, networks []string) string {
 
 	b.WriteString("user=")
 	b.WriteString(c.User)
+	b.WriteByte('\n')
+
+	b.WriteString("usernsMode=")
+	b.WriteString(c.UsernsMode)
 	b.WriteByte('\n')
 
 	b.WriteString("restartPolicy=")
