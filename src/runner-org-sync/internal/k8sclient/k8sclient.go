@@ -10,6 +10,7 @@ package k8sclient
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"maps"
 
@@ -18,6 +19,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
+
+var errOpaqueSecretKeyRequired = errors.New("opaque secret key is required")
 
 // Label keys and well-known values for resources this service owns.
 const (
@@ -41,8 +44,11 @@ const (
 type RegistrationSecretState string
 
 const (
+	// RegistrationSecretMissing means the named Secret does not exist.
 	RegistrationSecretMissing RegistrationSecretState = "missing"
-	RegistrationSecretValid   RegistrationSecretState = "valid"
+	// RegistrationSecretValid means the named Secret can be referenced by runners.
+	RegistrationSecretValid RegistrationSecretState = "valid"
+	// RegistrationSecretInvalid means the named Secret exists but has unsafe shape or ownership.
 	RegistrationSecretInvalid RegistrationSecretState = "invalid"
 )
 
@@ -79,7 +85,10 @@ func (s *NamespacedClient) ListManagedSecrets(ctx context.Context) ([]corev1.Sec
 
 // RegistrationSecretStatus reports whether the named Secret exists and has
 // the ownership labels and token data expected for the given org.
-func (s *NamespacedClient) RegistrationSecretStatus(ctx context.Context, name, org string) (RegistrationSecretState, error) {
+func (s *NamespacedClient) RegistrationSecretStatus(
+	ctx context.Context,
+	name, org string,
+) (RegistrationSecretState, error) {
 	sec, err := s.client.CoreV1().Secrets(s.namespace).Get(ctx, name, metav1.GetOptions{})
 	if apierrors.IsNotFound(err) {
 		return RegistrationSecretMissing, nil
@@ -167,8 +176,10 @@ func (s *NamespacedClient) ApplyConfigMap(ctx context.Context, name string, data
 
 	existing, err := s.client.CoreV1().ConfigMaps(s.namespace).Get(ctx, name, metav1.GetOptions{})
 	if apierrors.IsNotFound(err) {
-		if _, err := s.client.CoreV1().ConfigMaps(s.namespace).Create(ctx, desired, metav1.CreateOptions{}); err != nil {
-			return false, fmt.Errorf("k8sclient: create configmap %s: %w", name, err)
+		if _, createErr := s.client.CoreV1().
+			ConfigMaps(s.namespace).
+			Create(ctx, desired, metav1.CreateOptions{}); createErr != nil {
+			return false, fmt.Errorf("k8sclient: create configmap %s: %w", name, createErr)
 		}
 		return true, nil
 	}
@@ -202,7 +213,7 @@ func (s *NamespacedClient) ApplyConfigMap(ctx context.Context, name string, data
 // is added or restored if missing; other existing labels are preserved.
 func (s *NamespacedClient) ApplyOpaqueSecret(ctx context.Context, name, key, value string) (bool, error) {
 	if key == "" {
-		return false, fmt.Errorf("k8sclient: ApplyOpaqueSecret %s: key is required", name)
+		return false, fmt.Errorf("k8sclient: ApplyOpaqueSecret %s: %w", name, errOpaqueSecretKeyRequired)
 	}
 	encoded := []byte(value)
 
@@ -219,8 +230,10 @@ func (s *NamespacedClient) ApplyOpaqueSecret(ctx context.Context, name, key, val
 			Type: corev1.SecretTypeOpaque,
 			Data: map[string][]byte{key: encoded},
 		}
-		if _, err := s.client.CoreV1().Secrets(s.namespace).Create(ctx, desired, metav1.CreateOptions{}); err != nil {
-			return false, fmt.Errorf("k8sclient: create opaque secret %s: %w", name, err)
+		if _, createErr := s.client.CoreV1().
+			Secrets(s.namespace).
+			Create(ctx, desired, metav1.CreateOptions{}); createErr != nil {
+			return false, fmt.Errorf("k8sclient: create opaque secret %s: %w", name, createErr)
 		}
 		return true, nil
 	}

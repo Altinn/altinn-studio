@@ -45,7 +45,7 @@ func main() {
 	}
 }
 
-func run() error {
+func run() error { //nolint:funlen // Main wires dependencies and emits run telemetry in one place.
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
@@ -61,8 +61,8 @@ func run() error {
 	defer func() {
 		sctx, scancel := context.WithTimeout(context.Background(), telemetryShutdownTimeout)
 		defer scancel()
-		if err := shutdown(sctx); err != nil {
-			slog.Warn("telemetry shutdown returned error", "err", err.Error())
+		if shutdownErr := shutdown(sctx); shutdownErr != nil {
+			slog.Warn("telemetry shutdown returned error", "err", shutdownErr.Error())
 		}
 	}()
 
@@ -80,7 +80,12 @@ func run() error {
 	}
 	logger.Info("pat.loaded", "scope", "admin", "source", string(patSource), "len", len(pat))
 
-	kedaPAT, kedaPATSource, err := loadSecretFromKV(ctx, cfg.KedaPATOverride, cfg.KeyVaultName, cfg.KedaPATKeyVaultSecretName)
+	kedaPAT, kedaPATSource, err := loadSecretFromKV(
+		ctx,
+		cfg.KedaPATOverride,
+		cfg.KeyVaultName,
+		cfg.KedaPATKeyVaultSecretName,
+	)
 	if err != nil {
 		return fmt.Errorf("load KEDA PAT: %w", err)
 	}
@@ -150,7 +155,7 @@ func run() error {
 	if runErr != nil {
 		span.RecordError(runErr)
 		span.SetStatus(codes.Error, runErr.Error())
-		return runErr
+		return fmt.Errorf("run reconcile: %w", runErr)
 	}
 
 	if report.Outcome == reconcile.OutcomePartial {
@@ -168,7 +173,10 @@ func run() error {
 // fetches from KV via Workload Identity (DefaultAzureCredential). Generic
 // over the value type — used today for the two Gitea PATs; any other
 // KV-stored credential could reuse it.
-func loadSecretFromKV(ctx context.Context, override, vaultName, vaultSecretName string) (string, keyvault.Source, error) {
+func loadSecretFromKV(
+	ctx context.Context,
+	override, vaultName, vaultSecretName string,
+) (string, keyvault.Source, error) {
 	var getter keyvault.Getter
 	if override == "" {
 		g, err := keyvault.NewAzureGetter(vaultName)
@@ -178,7 +186,11 @@ func loadSecretFromKV(ctx context.Context, override, vaultName, vaultSecretName 
 		getter = g
 	}
 	loader := keyvault.NewLoader(override, getter, vaultSecretName)
-	return loader.Load(ctx)
+	value, source, err := loader.Load(ctx)
+	if err != nil {
+		return "", "", fmt.Errorf("load keyvault secret %s: %w", vaultSecretName, err)
+	}
+	return value, source, nil
 }
 
 // applyKedaSecret writes the KEDA read-only PAT into a single-key Opaque
@@ -220,16 +232,28 @@ func applyKedaSecret(
 // developer can run the binary directly against a kind cluster.
 func buildK8sClient() (kubernetes.Interface, error) {
 	if cfg, err := rest.InClusterConfig(); err == nil {
-		return kubernetes.NewForConfig(cfg)
+		client, clientErr := kubernetes.NewForConfig(cfg)
+		if clientErr != nil {
+			return nil, fmt.Errorf("kubernetes client from in-cluster config: %w", clientErr)
+		}
+		return client, nil
 	} else if !errors.Is(err, rest.ErrNotInCluster) {
 		return nil, fmt.Errorf("in-cluster config: %w", err)
 	}
 	loading := clientcmd.NewDefaultClientConfigLoadingRules()
-	kubeCfg, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loading, &clientcmd.ConfigOverrides{}).ClientConfig()
+	kubeCfg, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		loading,
+		&clientcmd.ConfigOverrides{},
+	).
+		ClientConfig()
 	if err != nil {
 		return nil, fmt.Errorf("local kubeconfig: %w", err)
 	}
-	return kubernetes.NewForConfig(kubeCfg)
+	client, err := kubernetes.NewForConfig(kubeCfg)
+	if err != nil {
+		return nil, fmt.Errorf("kubernetes client from local kubeconfig: %w", err)
+	}
+	return client, nil
 }
 
 func emitMetrics(ctx context.Context, m *telemetry.Metrics, r reconcile.Report, d time.Duration) {

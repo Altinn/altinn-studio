@@ -1,3 +1,4 @@
+//nolint:errcheck // httptest response writes in test handlers do not need their error checked.
 package cdn
 
 import (

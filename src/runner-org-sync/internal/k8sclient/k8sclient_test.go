@@ -1,3 +1,4 @@
+//nolint:goconst,errcheck // Repeated fixture values are clearer inline; httptest writes need no error check.
 package k8sclient
 
 import (
@@ -17,11 +18,18 @@ func TestCreateRegistrationSecret_SetsLabelsAndData(t *testing.T) {
 	c := fake.NewSimpleClientset()
 	s := NewNamespacedClient(c, testNamespace)
 
-	if err := s.CreateRegistrationSecret(context.Background(), "altinn-gitea-runner-ttd-secret", "ttd", "tok-1"); err != nil {
+	if err := s.CreateRegistrationSecret(
+		context.Background(),
+		"altinn-gitea-runner-ttd-secret",
+		"ttd",
+		"tok-1",
+	); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	got, err := c.CoreV1().Secrets(testNamespace).Get(context.Background(), "altinn-gitea-runner-ttd-secret", metav1.GetOptions{})
+	got, err := c.CoreV1().
+		Secrets(testNamespace).
+		Get(context.Background(), "altinn-gitea-runner-ttd-secret", metav1.GetOptions{})
 	if err != nil {
 		t.Fatalf("get failed: %v", err)
 	}
@@ -212,7 +220,11 @@ func TestApplyConfigMap_CreatesWhenMissing(t *testing.T) {
 	c := fake.NewSimpleClientset()
 	s := NewNamespacedClient(c, testNamespace)
 
-	changed, err := s.ApplyConfigMap(context.Background(), "runner-org-list", map[string]string{"runners.yaml": "- name: ttd\n"})
+	changed, err := s.ApplyConfigMap(
+		context.Background(),
+		"runner-org-list",
+		map[string]string{"runners.yaml": "- name: ttd\n"},
+	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

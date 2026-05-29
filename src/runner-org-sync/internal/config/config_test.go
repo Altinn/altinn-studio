@@ -1,3 +1,4 @@
+//nolint:goconst // Repeated fixture values are clearer inline than extracted to constants.
 package config
 
 import (

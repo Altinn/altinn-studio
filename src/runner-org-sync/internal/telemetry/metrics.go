@@ -28,7 +28,7 @@ type Metrics struct {
 // NewMetrics constructs every instrument from the package's Meter (set up
 // by ConfigureOTel). Returns an error if any instrument cannot be created;
 // in practice this only fires on misconfigured SDKs.
-func NewMetrics() (*Metrics, error) {
+func NewMetrics() (*Metrics, error) { //nolint:funlen // Instrument creation is repetitive but clearer when kept together.
 	m := Meter()
 	mk := func(target *metric.Float64Histogram, name, desc, unit string) error {
 		h, err := m.Float64Histogram(name, metric.WithDescription(desc), metric.WithUnit(unit))
@@ -56,7 +56,12 @@ func NewMetrics() (*Metrics, error) {
 	}
 
 	out := &Metrics{}
-	if err := mk(&out.ReconcileDuration, "runner_org_sync.reconcile.duration", "End-to-end reconcile run duration.", "s"); err != nil {
+	if err := mk(
+		&out.ReconcileDuration,
+		"runner_org_sync.reconcile.duration",
+		"End-to-end reconcile run duration.",
+		"s",
+	); err != nil {
 		return nil, err
 	}
 	if err := mc(&out.ReconcileRuns, "runner_org_sync.reconcile.runs", "Reconcile run count by outcome."); err != nil {
@@ -65,28 +70,56 @@ func NewMetrics() (*Metrics, error) {
 	if err := mg(&out.OrgsDiscovered, "runner_org_sync.orgs.discovered", "Orgs returned by the CDN."); err != nil {
 		return nil, err
 	}
-	if err := mg(&out.OrgsDesired, "runner_org_sync.orgs.desired", "Orgs after environment + whitelist filter."); err != nil {
+	if err := mg(
+		&out.OrgsDesired,
+		"runner_org_sync.orgs.desired",
+		"Orgs after environment + whitelist filter.",
+	); err != nil {
 		return nil, err
 	}
 	if err := mc(&out.OrgsFiltered, "runner_org_sync.orgs.filtered", "Orgs filtered out, by reason."); err != nil {
 		return nil, err
 	}
-	if err := mc(&out.SecretsCreated, "runner_org_sync.secrets.created", "Per-org Secrets created this run."); err != nil {
+	if err := mc(
+		&out.SecretsCreated,
+		"runner_org_sync.secrets.created",
+		"Per-org Secrets created this run.",
+	); err != nil {
 		return nil, err
 	}
-	if err := mc(&out.SecretsDeleted, "runner_org_sync.secrets.deleted", "Per-org Secrets deleted this run."); err != nil {
+	if err := mc(
+		&out.SecretsDeleted,
+		"runner_org_sync.secrets.deleted",
+		"Per-org Secrets deleted this run.",
+	); err != nil {
 		return nil, err
 	}
-	if err := mc(&out.SecretsSkipped, "runner_org_sync.secrets.skipped", "Per-org Secrets left untouched (already existed)."); err != nil {
+	if err := mc(
+		&out.SecretsSkipped,
+		"runner_org_sync.secrets.skipped",
+		"Per-org Secrets left untouched (already existed).",
+	); err != nil {
 		return nil, err
 	}
-	if err := mc(&out.OrgReconcileErrors, "runner_org_sync.org.reconcile_errors", "Per-org reconcile failures by stage."); err != nil {
+	if err := mc(
+		&out.OrgReconcileErrors,
+		"runner_org_sync.org.reconcile_errors",
+		"Per-org reconcile failures by stage.",
+	); err != nil {
 		return nil, err
 	}
-	if err := mc(&out.ConfigMapApplied, "runner_org_sync.configmap.applied", "ConfigMap apply attempts by changed=true|false."); err != nil {
+	if err := mc(
+		&out.ConfigMapApplied,
+		"runner_org_sync.configmap.applied",
+		"ConfigMap apply attempts by changed=true|false.",
+	); err != nil {
 		return nil, err
 	}
-	if err := mc(&out.KedaSecretApplied, "runner_org_sync.keda_secret.applied", "KEDA PAT Secret apply attempts by changed=true|false and success=true|false."); err != nil {
+	if err := mc(
+		&out.KedaSecretApplied,
+		"runner_org_sync.keda_secret.applied",
+		"KEDA PAT Secret apply attempts by changed=true|false and success=true|false.",
+	); err != nil {
 		return nil, err
 	}
 	return out, nil

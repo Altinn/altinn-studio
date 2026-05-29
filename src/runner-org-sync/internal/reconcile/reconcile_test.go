@@ -1,25 +1,28 @@
+//nolint:goconst,err113,errcheck // Tests use repeated fixtures, sentinel fixture errors, and httptest writes.
 package reconcile
 
 import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"testing"
 
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"altinn.studio/runner-org-sync/internal/cdn"
 	"altinn.studio/runner-org-sync/internal/gitea"
 	"altinn.studio/runner-org-sync/internal/k8sclient"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // --- stub dependencies ------------------------------------------------------
 
 type stubSource struct {
-	orgs []cdn.Org
 	err  error
+	orgs []cdn.Org
 }
 
 func (s *stubSource) Fetch(_ context.Context) ([]cdn.Org, error) { return s.orgs, s.err }
@@ -43,17 +46,17 @@ func (m *stubMinter) MintRegistrationToken(_ context.Context, org string) (strin
 }
 
 type stubStore struct {
-	managed         []corev1.Secret
-	statusByName    map[string]k8sclient.RegistrationSecretState
-	createErr       map[string]error
-	deleteErr       map[string]error
 	applyCMErr      error
 	listErr         error
 	existsErr       error
-	createdSecrets  []string
+	statusByName    map[string]k8sclient.RegistrationSecretState
+	createErr       map[string]error
+	deleteErr       map[string]error
 	createdOrgs     map[string]string
-	deletedSecrets  []string
 	appliedCMData   map[string]string
+	managed         []corev1.Secret
+	createdSecrets  []string
+	deletedSecrets  []string
 	appliedCMChange bool
 }
 
@@ -71,7 +74,10 @@ func (s *stubStore) ListManagedSecrets(_ context.Context) ([]corev1.Secret, erro
 	return s.managed, s.listErr
 }
 
-func (s *stubStore) RegistrationSecretStatus(_ context.Context, name, _ string) (k8sclient.RegistrationSecretState, error) {
+func (s *stubStore) RegistrationSecretStatus(
+	_ context.Context,
+	name, _ string,
+) (k8sclient.RegistrationSecretState, error) {
 	if s.existsErr != nil {
 		return "", s.existsErr
 	}
@@ -123,7 +129,13 @@ func managedSecret(name, org string) corev1.Secret {
 	}
 }
 
-func runReconciler(t *testing.T, src *stubSource, minter *stubMinter, store *stubStore, whitelist []string, syncAll bool) Report {
+func runReconciler(
+	t *testing.T,
+	src *stubSource,
+	minter *stubMinter,
+	store *stubStore,
+	whitelist []string,
+) Report {
 	t.Helper()
 	r, err := New(Options{
 		Source:        src,
@@ -132,7 +144,6 @@ func runReconciler(t *testing.T, src *stubSource, minter *stubMinter, store *stu
 		SecretNameFor: secretNameFor,
 		ConfigMapName: "runner-org-list",
 		Whitelist:     whitelist,
-		SyncAll:       syncAll,
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -156,7 +167,7 @@ func TestRun_ColdStart(t *testing.T) {
 	minter := &stubMinter{}
 	store := newStubStore()
 
-	rep := runReconciler(t, src, minter, store, []string{"ttd", "brg", "dsb"}, false)
+	rep := runReconciler(t, src, minter, store, []string{"ttd", "brg", "dsb"})
 
 	if rep.Outcome != OutcomeSuccess {
 		t.Errorf("outcome = %v, want success", rep.Outcome)
@@ -202,7 +213,7 @@ func TestRun_IdempotentReRun(t *testing.T) {
 		managedSecret("altinn-gitea-runner-brg-secret", "brg"),
 	}
 
-	rep := runReconciler(t, src, minter, store, []string{"ttd", "brg"}, false)
+	rep := runReconciler(t, src, minter, store, []string{"ttd", "brg"})
 
 	if rep.Outcome != OutcomeSuccess {
 		t.Errorf("outcome = %v, want success", rep.Outcome)
@@ -238,7 +249,7 @@ func TestRun_OrgAdded(t *testing.T) {
 		managedSecret("altinn-gitea-runner-brg-secret", "brg"),
 	}
 
-	rep := runReconciler(t, src, minter, store, []string{"ttd", "brg", "dsb"}, false)
+	rep := runReconciler(t, src, minter, store, []string{"ttd", "brg", "dsb"})
 
 	if rep.Outcome != OutcomeSuccess {
 		t.Errorf("outcome = %v, want success", rep.Outcome)
@@ -266,7 +277,7 @@ func TestRun_OrgRemoved(t *testing.T) {
 		managedSecret("altinn-gitea-runner-brg-secret", "brg"),
 	}
 
-	rep := runReconciler(t, src, minter, store, []string{"ttd", "brg"}, false)
+	rep := runReconciler(t, src, minter, store, []string{"ttd", "brg"})
 
 	if rep.Outcome != OutcomeSuccess {
 		t.Errorf("outcome = %v, want success", rep.Outcome)
@@ -288,7 +299,7 @@ func TestRun_FilteredByEmptyEnvironments(t *testing.T) {
 	minter := &stubMinter{}
 	store := newStubStore()
 
-	rep := runReconciler(t, src, minter, store, []string{"ttd", "acn"}, false)
+	rep := runReconciler(t, src, minter, store, []string{"ttd", "acn"})
 
 	if !equalSlice(rep.FilteredNoEnv, []string{"acn"}) {
 		t.Errorf("FilteredNoEnv = %v, want [acn]", rep.FilteredNoEnv)
@@ -311,7 +322,7 @@ func TestRun_FilteredByWhitelist(t *testing.T) {
 	minter := &stubMinter{}
 	store := newStubStore()
 
-	rep := runReconciler(t, src, minter, store, []string{"ttd", "brg"}, false)
+	rep := runReconciler(t, src, minter, store, []string{"ttd", "brg"})
 
 	if !equalSlice(rep.FilteredWhitelist, []string{"extra"}) {
 		t.Errorf("FilteredWhitelist = %v, want [extra]", rep.FilteredWhitelist)
@@ -333,7 +344,7 @@ func TestRun_GiteaPartialFailure(t *testing.T) {
 	}
 	store := newStubStore()
 
-	rep := runReconciler(t, src, minter, store, []string{"ttd", "brg", "dsb"}, false)
+	rep := runReconciler(t, src, minter, store, []string{"ttd", "brg", "dsb"})
 
 	if rep.Outcome != OutcomePartial {
 		t.Errorf("outcome = %v, want partial", rep.Outcome)
@@ -360,7 +371,7 @@ func TestRun_InvalidExistingSecretIsNotProjected(t *testing.T) {
 	store := newStubStore()
 	store.statusByName["altinn-gitea-runner-ttd-secret"] = k8sclient.RegistrationSecretInvalid
 
-	rep := runReconciler(t, src, minter, store, []string{"ttd"}, false)
+	rep := runReconciler(t, src, minter, store, []string{"ttd"})
 
 	if rep.Outcome != OutcomePartial {
 		t.Errorf("outcome = %v, want partial", rep.Outcome)
@@ -482,9 +493,14 @@ func TestRun_UnlabelledManagedSecretIsSkippedOnDelete(t *testing.T) {
 	store.managed = []corev1.Secret{
 		managedSecret("altinn-gitea-runner-ttd-secret", "ttd"),
 		// drift: managed-by label but no org label
-		{ObjectMeta: metav1.ObjectMeta{Name: "stray", Labels: map[string]string{"app.kubernetes.io/managed-by": "runner-org-sync"}}},
+		{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:   "stray",
+				Labels: map[string]string{"app.kubernetes.io/managed-by": "runner-org-sync"},
+			},
+		},
 	}
-	rep := runReconciler(t, src, &stubMinter{}, store, []string{"ttd"}, false)
+	rep := runReconciler(t, src, &stubMinter{}, store, []string{"ttd"})
 
 	if rep.Outcome != OutcomeSuccess {
 		t.Errorf("outcome = %v, want success", rep.Outcome)
@@ -499,12 +515,66 @@ func TestNew_Validation(t *testing.T) {
 		name string
 		opts Options
 	}{
-		{"no source", Options{Minter: &stubMinter{}, Store: newStubStore(), SecretNameFor: secretNameFor, ConfigMapName: "x", Whitelist: []string{"a"}}},
-		{"no minter", Options{Source: &stubSource{}, Store: newStubStore(), SecretNameFor: secretNameFor, ConfigMapName: "x", Whitelist: []string{"a"}}},
-		{"no store", Options{Source: &stubSource{}, Minter: &stubMinter{}, SecretNameFor: secretNameFor, ConfigMapName: "x", Whitelist: []string{"a"}}},
-		{"no secretNameFor", Options{Source: &stubSource{}, Minter: &stubMinter{}, Store: newStubStore(), ConfigMapName: "x", Whitelist: []string{"a"}}},
-		{"no configMapName", Options{Source: &stubSource{}, Minter: &stubMinter{}, Store: newStubStore(), SecretNameFor: secretNameFor, Whitelist: []string{"a"}}},
-		{"empty whitelist & !syncAll", Options{Source: &stubSource{}, Minter: &stubMinter{}, Store: newStubStore(), SecretNameFor: secretNameFor, ConfigMapName: "x"}},
+		{
+			"no source",
+			Options{
+				Minter:        &stubMinter{},
+				Store:         newStubStore(),
+				SecretNameFor: secretNameFor,
+				ConfigMapName: "x",
+				Whitelist:     []string{"a"},
+			},
+		},
+		{
+			"no minter",
+			Options{
+				Source:        &stubSource{},
+				Store:         newStubStore(),
+				SecretNameFor: secretNameFor,
+				ConfigMapName: "x",
+				Whitelist:     []string{"a"},
+			},
+		},
+		{
+			"no store",
+			Options{
+				Source:        &stubSource{},
+				Minter:        &stubMinter{},
+				SecretNameFor: secretNameFor,
+				ConfigMapName: "x",
+				Whitelist:     []string{"a"},
+			},
+		},
+		{
+			"no secretNameFor",
+			Options{
+				Source:        &stubSource{},
+				Minter:        &stubMinter{},
+				Store:         newStubStore(),
+				ConfigMapName: "x",
+				Whitelist:     []string{"a"},
+			},
+		},
+		{
+			"no configMapName",
+			Options{
+				Source:        &stubSource{},
+				Minter:        &stubMinter{},
+				Store:         newStubStore(),
+				SecretNameFor: secretNameFor,
+				Whitelist:     []string{"a"},
+			},
+		},
+		{
+			"empty whitelist & !syncAll",
+			Options{
+				Source:        &stubSource{},
+				Minter:        &stubMinter{},
+				Store:         newStubStore(),
+				SecretNameFor: secretNameFor,
+				ConfigMapName: "x",
+			},
+		},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -533,10 +603,5 @@ func equalSlice(a, b []string) bool {
 }
 
 func containsString(haystack []string, needle string) bool {
-	for _, s := range haystack {
-		if s == needle {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(haystack, needle)
 }

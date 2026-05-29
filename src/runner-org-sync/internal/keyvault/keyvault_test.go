@@ -1,3 +1,4 @@
+//nolint:goconst,containedctx,err113 // Tests use package-private fakes, fixture contexts, and sentinel fixture errors.
 package keyvault
 
 import (

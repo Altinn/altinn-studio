@@ -30,18 +30,16 @@ import (
 
 const scope = "altinn.studio/runner-org-sync"
 
+const metricExportInterval = 15 * time.Second
+
 // Tracer returns the package's tracer. Safe to call before ConfigureOTel —
 // the OTel SDK's default global provider is a no-op until a real one is
 // installed, so the returned tracer always works.
-//
-//nolint:ireturn // OpenTelemetry intentionally exposes interface-returning accessors.
 func Tracer() trace.Tracer {
 	return otel.Tracer(scope)
 }
 
 // Meter returns the package's meter. Same semantics as Tracer.
-//
-//nolint:ireturn // OpenTelemetry intentionally exposes interface-returning accessors.
 func Meter() metric.Meter {
 	return otel.Meter(scope)
 }
@@ -60,9 +58,16 @@ func ConfigureOTel(ctx context.Context, serviceName string) (func(context.Contex
 
 	// Default slog handler: JSON to stdout. Keeps `kubectl logs` readable
 	// for humans and parseable for log aggregators.
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
-	})))
+	slog.SetDefault(
+		slog.New(
+			slog.NewJSONHandler(
+				os.Stdout,
+				&slog.HandlerOptions{
+					Level: slog.LevelInfo,
+				},
+			),
+		),
+	)
 
 	res, err := resource.New(ctx,
 		resource.WithAttributes(semconv.ServiceName(serviceName)),
@@ -115,7 +120,7 @@ func ConfigureOTel(ctx context.Context, serviceName string) (func(context.Contex
 	mp := sdkmetric.NewMeterProvider(
 		sdkmetric.WithResource(res),
 		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(metricExp,
-			sdkmetric.WithInterval(15*time.Second),
+			sdkmetric.WithInterval(metricExportInterval),
 		)),
 	)
 	otel.SetMeterProvider(mp)

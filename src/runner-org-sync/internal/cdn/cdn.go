@@ -23,7 +23,7 @@ const (
 	// maxSuccessBody caps the JSON-decode read so a pathological CDN
 	// response cannot exhaust pod memory. altinn-orgs.json is ~100 KB
 	// today; 10 MiB is generous and far below the pod's memory limit.
-	maxSuccessBody   = 10 << 20 // 10 MiB
+	maxSuccessBody = 10 << 20 // 10 MiB
 )
 
 // ErrUnexpectedStatus is returned when the CDN responds with non-2xx.
@@ -85,10 +85,15 @@ func (c *Client) Fetch(ctx context.Context) ([]Org, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cdn: get %s: %w", c.url, err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close() //nolint:errcheck // Closing an HTTP response body after reading does not change the result.
+	}()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, maxErrorBody))
+		body, readErr := io.ReadAll(io.LimitReader(resp.Body, maxErrorBody))
+		if readErr != nil {
+			body = []byte(readErr.Error())
+		}
 		return nil, fmt.Errorf("%w %d from %s: %s", ErrUnexpectedStatus, resp.StatusCode, c.url, string(body))
 	}
 

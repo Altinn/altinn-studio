@@ -24,13 +24,21 @@ import (
 type Source string
 
 const (
-	SourceEnv      Source = "env"
+	// SourceEnv means the PAT came from an environment override.
+	SourceEnv Source = "env"
+	// SourceKeyVault means the PAT came from Azure Key Vault.
 	SourceKeyVault Source = "keyvault"
 )
 
 // ErrNoSource is returned when the loader has neither an env override nor a
 // configured Key Vault Getter.
 var ErrNoSource = errors.New("keyvault: no env override and no Key Vault getter configured")
+
+var (
+	// ErrEmptySecretValue is returned when a Key Vault secret exists but has no value.
+	ErrEmptySecretValue = errors.New("keyvault: secret has empty value")
+	errVaultNameEmpty   = errors.New("keyvault: vaultName is required")
+)
 
 // Getter abstracts secret retrieval. The production implementation wraps
 // the Azure SDK; tests inject a stub.
@@ -69,10 +77,10 @@ func (l *Loader) Load(ctx context.Context) (string, Source, error) {
 	}
 	v, err := l.getter.GetSecret(ctx, l.secretName)
 	if err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("keyvault: get secret %q: %w", l.secretName, err)
 	}
 	if v == "" {
-		return "", "", fmt.Errorf("keyvault: secret %q has empty value", l.secretName)
+		return "", "", fmt.Errorf("%w: %q", ErrEmptySecretValue, l.secretName)
 	}
 	return v, SourceKeyVault, nil
 }
@@ -83,7 +91,7 @@ func (l *Loader) Load(ctx context.Context) (string, Source, error) {
 // (e.g. "studio-kv"), not the full URL.
 func NewAzureGetter(vaultName string) (Getter, error) {
 	if vaultName == "" {
-		return nil, errors.New("keyvault: vaultName is required")
+		return nil, errVaultNameEmpty
 	}
 	cred, err := azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {

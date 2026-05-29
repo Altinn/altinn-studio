@@ -26,7 +26,7 @@ const (
 	// maxSuccessBody caps the registration-token JSON decode. The real
 	// response is a few hundred bytes; 16 KiB is generous defense against
 	// a pathological Gitea reply.
-	maxSuccessBody   = 16 << 10 // 16 KiB
+	maxSuccessBody = 16 << 10 // 16 KiB
 )
 
 // Sentinel errors. Callers can errors.Is against these to drive reconcile
@@ -34,7 +34,10 @@ const (
 var (
 	ErrUnauthorized = errors.New("gitea: unauthorized (bad PAT)")
 	ErrOrgNotFound  = errors.New("gitea: organisation not found")
+	ErrOrgRequired  = errors.New("gitea: org is required")
 	ErrServer       = errors.New("gitea: server error")
+	ErrUnexpected   = errors.New("gitea: unexpected status")
+	ErrEmptyToken   = errors.New("gitea: empty token in response")
 )
 
 // Client talks to a Gitea instance using a Personal Access Token.
@@ -85,7 +88,7 @@ func NewClient(baseURL, pat string, opts ...Option) *Client {
 // registered runner using an older Secret value will fail to register.
 func (c *Client) MintRegistrationToken(ctx context.Context, org string) (string, error) {
 	if org == "" {
-		return "", errors.New("gitea: org is required")
+		return "", ErrOrgRequired
 	}
 	endpoint := fmt.Sprintf("%s/api/v1/orgs/%s/actions/runners/registration-token",
 		c.baseURL, url.PathEscape(org))
@@ -102,7 +105,9 @@ func (c *Client) MintRegistrationToken(ctx context.Context, org string) (string,
 	if err != nil {
 		return "", fmt.Errorf("gitea: get registration token for %s: %w", org, err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close() //nolint:errcheck // Closing an HTTP response body after reading does not change the result.
+	}()
 
 	switch {
 	case resp.StatusCode == http.StatusOK:
@@ -111,12 +116,12 @@ func (c *Client) MintRegistrationToken(ctx context.Context, org string) (string,
 		return "", fmt.Errorf("%w: status %d", ErrUnauthorized, resp.StatusCode)
 	case resp.StatusCode == http.StatusNotFound:
 		return "", fmt.Errorf("%w: %s", ErrOrgNotFound, org)
-	case resp.StatusCode >= 500:
+	case resp.StatusCode >= http.StatusInternalServerError:
 		body := readErrorBody(resp.Body)
 		return "", fmt.Errorf("%w: status %d: %s", ErrServer, resp.StatusCode, body)
 	default:
 		body := readErrorBody(resp.Body)
-		return "", fmt.Errorf("gitea: unexpected status %d: %s", resp.StatusCode, body)
+		return "", fmt.Errorf("%w %d: %s", ErrUnexpected, resp.StatusCode, body)
 	}
 
 	var payload struct {
@@ -126,12 +131,15 @@ func (c *Client) MintRegistrationToken(ctx context.Context, org string) (string,
 		return "", fmt.Errorf("gitea: decode response for %s: %w", org, err)
 	}
 	if payload.Token == "" {
-		return "", fmt.Errorf("gitea: empty token in response for %s", org)
+		return "", fmt.Errorf("%w for %s", ErrEmptyToken, org)
 	}
 	return payload.Token, nil
 }
 
 func readErrorBody(r io.Reader) string {
-	body, _ := io.ReadAll(io.LimitReader(r, maxErrorBody))
+	body, err := io.ReadAll(io.LimitReader(r, maxErrorBody))
+	if err != nil {
+		return err.Error()
+	}
 	return string(body)
 }

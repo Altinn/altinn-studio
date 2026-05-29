@@ -14,11 +14,22 @@ import (
 	"fmt"
 	"sort"
 
+	corev1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/yaml"
+
 	"altinn.studio/runner-org-sync/internal/cdn"
 	"altinn.studio/runner-org-sync/internal/gitea"
 	"altinn.studio/runner-org-sync/internal/k8sclient"
-	corev1 "k8s.io/api/core/v1"
-	"sigs.k8s.io/yaml"
+)
+
+var (
+	errSourceRequired        = errors.New("reconcile: Source is required")
+	errMinterRequired        = errors.New("reconcile: Minter is required")
+	errStoreRequired         = errors.New("reconcile: Store is required")
+	errSecretNameForRequired = errors.New("reconcile: SecretNameFor is required")
+	errConfigMapNameRequired = errors.New("reconcile: ConfigMapName is required")
+	errOrgSelectionRequired  = errors.New("reconcile: either SyncAll=true or a non-empty Whitelist is required")
+	errInvalidRunnerSecret   = errors.New("registration secret exists but is not a valid runner token secret")
 )
 
 // Defaults used when the caller does not override.
@@ -61,8 +72,11 @@ type SecretStore interface {
 type Outcome string
 
 const (
+	// OutcomeSuccess means the run completed without fatal or per-org errors.
 	OutcomeSuccess Outcome = "success"
+	// OutcomePartial means the run completed with one or more per-org errors.
 	OutcomePartial Outcome = "partial"
+	// OutcomeFailure means the run failed before producing a complete report.
 	OutcomeFailure Outcome = "failure"
 )
 
@@ -70,16 +84,15 @@ const (
 // It does not abort the run; the org is simply omitted from this tick's
 // ConfigMap so the chart never references a Secret that does not exist.
 type OrgFailure struct {
+	Err   error
 	Org   string
 	Stage string
-	Err   error
 }
 
 // Report is the structured result of a single Run. The caller derives all
 // telemetry (logs, metrics, span events) from this value.
 type Report struct {
 	Outcome           Outcome
-	Discovered        int
 	FilteredNoEnv     []string
 	FilteredWhitelist []string
 	Desired           []string
@@ -87,6 +100,7 @@ type Report struct {
 	SecretsDeleted    []string
 	SecretsSkipped    []string
 	FailedOrgs        []OrgFailure
+	Discovered        int
 	ConfigMapChanged  bool
 }
 
@@ -96,8 +110,8 @@ type Reconciler struct {
 	minter        TokenMinter
 	store         SecretStore
 	secretNameFor func(org string) string
-	configMapName string
 	whitelist     map[string]struct{}
+	configMapName string
 	syncAll       bool
 }
 
@@ -117,17 +131,17 @@ type Options struct {
 func New(opts Options) (*Reconciler, error) {
 	switch {
 	case opts.Source == nil:
-		return nil, errors.New("reconcile: Source is required")
+		return nil, errSourceRequired
 	case opts.Minter == nil:
-		return nil, errors.New("reconcile: Minter is required")
+		return nil, errMinterRequired
 	case opts.Store == nil:
-		return nil, errors.New("reconcile: Store is required")
+		return nil, errStoreRequired
 	case opts.SecretNameFor == nil:
-		return nil, errors.New("reconcile: SecretNameFor is required")
+		return nil, errSecretNameForRequired
 	case opts.ConfigMapName == "":
-		return nil, errors.New("reconcile: ConfigMapName is required")
+		return nil, errConfigMapNameRequired
 	case !opts.SyncAll && len(opts.Whitelist) == 0:
-		return nil, errors.New("reconcile: either SyncAll=true or a non-empty Whitelist is required")
+		return nil, errOrgSelectionRequired
 	}
 	wl := make(map[string]struct{}, len(opts.Whitelist))
 	for _, w := range opts.Whitelist {
@@ -149,6 +163,8 @@ func New(opts Options) (*Reconciler, error) {
 // the ConfigMap fails). Per-org failures are captured in Report.FailedOrgs;
 // the function still returns nil error and Outcome=Partial so the CronJob
 // exits zero and the next tick retries.
+//
+//nolint:gocognit,gocyclo,funlen // Reconcile flow is kept linear so partial/fatal handling stays visible.
 func (r *Reconciler) Run(ctx context.Context) (Report, error) {
 	report := Report{Outcome: OutcomeFailure}
 
@@ -172,11 +188,11 @@ func (r *Reconciler) Run(ctx context.Context) (Report, error) {
 	orgHasSecret := make(map[string]bool, len(desired))
 	for _, org := range desired {
 		name := r.secretNameFor(org.Code)
-		status, err := r.store.RegistrationSecretStatus(ctx, name, org.Code)
-		if err != nil {
+		status, statusErr := r.store.RegistrationSecretStatus(ctx, name, org.Code)
+		if statusErr != nil {
 			// The lookup hitting a transient apiserver error is fatal for
 			// this run — without this lookup we cannot decide mint-or-skip.
-			return report, fmt.Errorf("reconcile: check registration secret %s: %w", name, err)
+			return report, fmt.Errorf("reconcile: check registration secret %s: %w", name, statusErr)
 		}
 		switch status {
 		case k8sclient.RegistrationSecretValid:
@@ -187,24 +203,25 @@ func (r *Reconciler) Run(ctx context.Context) (Report, error) {
 			report.FailedOrgs = append(report.FailedOrgs, OrgFailure{
 				Org:   org.Code,
 				Stage: StageValidate,
-				Err:   fmt.Errorf("registration secret %s exists but is not a valid runner token secret", name),
+				Err:   fmt.Errorf("%w: %s", errInvalidRunnerSecret, name),
 			})
 			continue
+		case k8sclient.RegistrationSecretMissing:
 		}
-		token, err := r.minter.MintRegistrationToken(ctx, org.Code)
-		if err != nil {
+		token, tokenErr := r.minter.MintRegistrationToken(ctx, org.Code)
+		if tokenErr != nil {
 			// Auth failures hit every subsequent org with the same PAT —
 			// fail fast instead of cascading the same root cause across
 			// the whole desired set. K8s records the CronJob failure and
 			// the next tick retries with whatever the latest PAT in KV is.
-			if errors.Is(err, gitea.ErrUnauthorized) {
-				return report, fmt.Errorf("reconcile: mint token for %s: %w", org.Code, err)
+			if errors.Is(tokenErr, gitea.ErrUnauthorized) {
+				return report, fmt.Errorf("reconcile: mint token for %s: %w", org.Code, tokenErr)
 			}
-			report.FailedOrgs = append(report.FailedOrgs, OrgFailure{Org: org.Code, Stage: StageMint, Err: err})
+			report.FailedOrgs = append(report.FailedOrgs, OrgFailure{Org: org.Code, Stage: StageMint, Err: tokenErr})
 			continue
 		}
-		if err := r.store.CreateRegistrationSecret(ctx, name, org.Code, token); err != nil {
-			report.FailedOrgs = append(report.FailedOrgs, OrgFailure{Org: org.Code, Stage: StageCreate, Err: err})
+		if createErr := r.store.CreateRegistrationSecret(ctx, name, org.Code, token); createErr != nil {
+			report.FailedOrgs = append(report.FailedOrgs, OrgFailure{Org: org.Code, Stage: StageCreate, Err: createErr})
 			continue
 		}
 		report.SecretsCreated = append(report.SecretsCreated, org.Code)
@@ -226,8 +243,8 @@ func (r *Reconciler) Run(ctx context.Context) (Report, error) {
 		if _, keep := desiredSet[org]; keep {
 			continue
 		}
-		if err := r.store.DeleteSecret(ctx, sec.Name); err != nil {
-			report.FailedOrgs = append(report.FailedOrgs, OrgFailure{Org: org, Stage: StageDelete, Err: err})
+		if deleteErr := r.store.DeleteSecret(ctx, sec.Name); deleteErr != nil {
+			report.FailedOrgs = append(report.FailedOrgs, OrgFailure{Org: org, Stage: StageDelete, Err: deleteErr})
 			continue
 		}
 		report.SecretsDeleted = append(report.SecretsDeleted, org)

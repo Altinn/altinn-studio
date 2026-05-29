@@ -11,24 +11,32 @@ import (
 	"strings"
 )
 
+var (
+	errMissingRequiredField = errors.New("required field is missing")
+	errMissingPlaceholder   = errors.New("secret name pattern is missing placeholder")
+	errMissingOrgSelection  = errors.New("org selection is missing")
+)
+
+const boolTrue = "true"
+
+// Environment variable names consumed by the runner-org-sync CronJob.
 const (
 	EnvGiteaURL           = "RUNNER_ORG_SYNC_GITEA_URL"
 	EnvOrgsJSONURL        = "RUNNER_ORG_SYNC_ORGS_JSON_URL"
 	EnvOutputNamespace    = "RUNNER_ORG_SYNC_OUTPUT_NAMESPACE"
-	EnvSecretNamePattern  = "RUNNER_ORG_SYNC_SECRET_NAME_PATTERN"
+	EnvSecretNamePattern  = "RUNNER_ORG_SYNC_SECRET_NAME_PATTERN" // #nosec G101 -- environment variable name, not a secret value.
 	EnvConfigMapName      = "RUNNER_ORG_SYNC_CONFIGMAP_NAME"
 	EnvKeyVaultName       = "RUNNER_ORG_SYNC_KEYVAULT_NAME"
-	EnvKeyVaultSecretName = "RUNNER_ORG_SYNC_KEYVAULT_SECRET_NAME"
+	EnvKeyVaultSecretName = "RUNNER_ORG_SYNC_KEYVAULT_SECRET_NAME" // #nosec G101 -- environment variable name, not a secret value.
 	EnvSyncAll            = "RUNNER_ORG_SYNC_SYNC_ALL"
 	EnvWhitelistedOrgs    = "RUNNER_ORG_SYNC_ORGS"
 	EnvGiteaPATOverride   = "RUNNER_ORG_SYNC_GITEA_PAT"
 
-	// KEDA PAT projection: read-only Gitea PAT consumed by KEDA's
-	// github-runner scaler. Fetched from the same Key Vault as the admin
-	// PAT, written to a K8s Secret in OutputNamespace.
-	EnvKedaPATKeyVaultSecretName = "RUNNER_ORG_SYNC_KEDA_PAT_KEYVAULT_SECRET_NAME"
-	EnvKedaPATSecretName         = "RUNNER_ORG_SYNC_KEDA_PAT_SECRET_NAME"
-	EnvKedaPATSecretKey          = "RUNNER_ORG_SYNC_KEDA_PAT_SECRET_KEY"
+	// EnvKedaPATKeyVaultSecretName identifies the Key Vault secret for the
+	// read-only Gitea PAT consumed by KEDA's github-runner scaler.
+	EnvKedaPATKeyVaultSecretName = "RUNNER_ORG_SYNC_KEDA_PAT_KEYVAULT_SECRET_NAME" // #nosec G101 -- environment variable name, not a secret value.
+	EnvKedaPATSecretName         = "RUNNER_ORG_SYNC_KEDA_PAT_SECRET_NAME"          // #nosec G101 -- environment variable name, not a secret value.
+	EnvKedaPATSecretKey          = "RUNNER_ORG_SYNC_KEDA_PAT_SECRET_KEY"           // #nosec G101 -- environment variable name, not a secret value.
 	EnvKedaPATOverride           = "RUNNER_ORG_SYNC_KEDA_PAT"
 
 	// OrgPlaceholder is the substring SecretNamePattern must contain;
@@ -37,25 +45,27 @@ const (
 )
 
 // Config holds validated runtime settings. Construct only via Load/LoadFrom.
+//
+// The KEDA PAT projection fields work together: KedaPATKeyVaultSecretName is
+// the secret name in Azure Key Vault, KedaPATSecretName/KedaPATSecretKey
+// control the destination K8s Secret, and KedaPATOverride is a local-dev
+// bypass mirroring GiteaPATOverride. Fields are ordered for struct alignment,
+// not by logical grouping.
 type Config struct {
-	GiteaURL           string
-	OrgsJSONURL        string
-	OutputNamespace    string
-	SecretNamePattern  string
-	ConfigMapName      string
-	KeyVaultName       string
-	KeyVaultSecretName string
-	SyncAll            bool
-	WhitelistedOrgs    []string
-	GiteaPATOverride   string
-
-	// KEDA PAT projection settings. KedaPATKeyVaultSecretName is the secret
-	// name in Azure Key Vault; KedaPATSecretName/Key control the destination
-	// K8s Secret. KedaPATOverride is a local-dev bypass mirroring GiteaPATOverride.
-	KedaPATKeyVaultSecretName string
-	KedaPATSecretName         string
-	KedaPATSecretKey          string
-	KedaPATOverride           string
+	KeyVaultSecretName        string
+	KedaPATOverride           string // local-dev bypass for the KEDA PAT, mirrors GiteaPATOverride
+	OutputNamespace           string
+	SecretNamePattern         string
+	ConfigMapName             string
+	KeyVaultName              string
+	GiteaPATOverride          string
+	GiteaURL                  string
+	OrgsJSONURL               string
+	KedaPATKeyVaultSecretName string // Key Vault secret holding the read-only KEDA PAT
+	KedaPATSecretName         string // destination K8s Secret name
+	KedaPATSecretKey          string // destination K8s Secret data key
+	WhitelistedOrgs           []string
+	SyncAll                   bool
 }
 
 // Getter abstracts os.Getenv so tests can inject a fake environment without
@@ -98,7 +108,10 @@ func LoadFrom(get Getter) (Config, error) {
 	requireField(&errs, EnvKedaPATSecretKey, cfg.KedaPATSecretKey)
 
 	if cfg.SecretNamePattern != "" && !strings.Contains(cfg.SecretNamePattern, OrgPlaceholder) {
-		errs = append(errs, fmt.Errorf("%s must contain the %q placeholder", EnvSecretNamePattern, OrgPlaceholder))
+		errs = append(
+			errs,
+			fmt.Errorf("%w: %s must contain %q", errMissingPlaceholder, EnvSecretNamePattern, OrgPlaceholder),
+		)
 	}
 
 	// Admin PAT must be reachable either via override (local dev) or via Key Vault (in-cluster).
@@ -117,7 +130,15 @@ func LoadFrom(get Getter) (Config, error) {
 	// Either syncAll=true or a non-empty whitelist. An empty intersection is
 	// almost certainly a misconfiguration, not an intended "sync nothing".
 	if !cfg.SyncAll && len(cfg.WhitelistedOrgs) == 0 {
-		errs = append(errs, fmt.Errorf("either %s=true or %s must be a non-empty CSV list", EnvSyncAll, EnvWhitelistedOrgs))
+		errs = append(
+			errs,
+			fmt.Errorf(
+				"%w: either %s=true or %s must be a non-empty CSV list",
+				errMissingOrgSelection,
+				EnvSyncAll,
+				EnvWhitelistedOrgs,
+			),
+		)
 	}
 
 	if len(errs) > 0 {
@@ -133,13 +154,13 @@ func (c Config) SecretNameFor(org string) string {
 
 func requireField(errs *[]error, name, value string) {
 	if value == "" {
-		*errs = append(*errs, fmt.Errorf("%s is required", name))
+		*errs = append(*errs, fmt.Errorf("%w: %s", errMissingRequiredField, name))
 	}
 }
 
 func parseBool(raw string) bool {
 	switch strings.ToLower(strings.TrimSpace(raw)) {
-	case "1", "t", "true", "yes", "y":
+	case "1", "t", boolTrue, "yes", "y":
 		return true
 	default:
 		return false
