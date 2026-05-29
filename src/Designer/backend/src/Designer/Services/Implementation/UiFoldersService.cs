@@ -63,7 +63,8 @@ public class UiFoldersService : IUiFoldersService
 
                 string? taskType = hasMatchingTask ? TaskTypeFromDefinitions(definitions, layoutSetName) : null;
                 PagesDto pages = PagesDto.From(layoutSettings);
-                int pageCount = pages.Groups != null ? pages.Groups.Sum(group => group.Pages.Count) : pages.Pages!.Count;
+                int pageCount =
+                    pages.Groups != null ? pages.Groups.Sum(group => group.Pages.Count) : pages.Pages!.Count;
 
                 layoutSets.Add(
                     new LayoutSetDto
