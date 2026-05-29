@@ -114,15 +114,18 @@ func LoadFrom(get Getter) (Config, error) {
 		)
 	}
 
-	// Admin PAT must be reachable either via override (local dev) or via Key Vault (in-cluster).
-	if cfg.GiteaPATOverride == "" {
+	// KeyVaultName is shared by both PATs (one vault, multiple secrets);
+	// require it whenever either PAT must be resolved from Key Vault.
+	if cfg.GiteaPATOverride == "" || cfg.KedaPATOverride == "" {
 		requireField(&errs, EnvKeyVaultName, cfg.KeyVaultName)
+	}
+
+	// Admin PAT must be reachable either via override (local dev) or via Key Vault.
+	if cfg.GiteaPATOverride == "" {
 		requireField(&errs, EnvKeyVaultSecretName, cfg.KeyVaultSecretName)
 	}
 
-	// KEDA PAT has the same shape: override or KV-secret-name. KeyVaultName is
-	// shared with the admin PAT (one vault, multiple secrets), so it's already
-	// validated above.
+	// KEDA PAT has the same shape: override or KV-secret-name.
 	if cfg.KedaPATOverride == "" {
 		requireField(&errs, EnvKedaPATKeyVaultSecretName, cfg.KedaPATKeyVaultSecretName)
 	}

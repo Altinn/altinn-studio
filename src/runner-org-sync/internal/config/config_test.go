@@ -49,7 +49,6 @@ func TestLoadFrom_Valid(t *testing.T) {
 
 func TestLoadFrom_PATOverrideRelaxesKeyVaultRequirement(t *testing.T) {
 	env := validEnv()
-	delete(env, EnvKeyVaultName)
 	delete(env, EnvKeyVaultSecretName)
 	env[EnvGiteaPATOverride] = "pat-xyz"
 
@@ -59,6 +58,20 @@ func TestLoadFrom_PATOverrideRelaxesKeyVaultRequirement(t *testing.T) {
 	}
 	if cfg.GiteaPATOverride != "pat-xyz" {
 		t.Errorf("GiteaPATOverride = %q, want pat-xyz", cfg.GiteaPATOverride)
+	}
+}
+
+func TestLoadFrom_PATOverrideStillRequiresKeyVaultNameWhenKedaUsesKV(t *testing.T) {
+	env := validEnv()
+	delete(env, EnvKeyVaultName)
+	env[EnvGiteaPATOverride] = "pat-xyz"
+
+	_, err := LoadFrom(getter(env))
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if !strings.Contains(err.Error(), EnvKeyVaultName) {
+		t.Errorf("error does not mention %q; got %v", EnvKeyVaultName, err)
 	}
 }
 
