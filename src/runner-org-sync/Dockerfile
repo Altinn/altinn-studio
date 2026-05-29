@@ -7,6 +7,8 @@ FROM golang:${GO_VERSION}-alpine AS build
 
 WORKDIR /src
 
+RUN apk add --no-cache ca-certificates
+
 # Module cache: download deps first so source changes don't re-download.
 COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/go/pkg/mod \
@@ -25,11 +27,11 @@ RUN --mount=type=cache,target=/go/pkg/mod \
         ./cmd/runner-org-sync
 
 # --- runtime ----------------------------------------------------------------
-# Distroless static (nonroot variant): no shell, no package manager, runs as
-# uid 65532. ca-certificates are bundled, so TLS to Azure KV and the CDN
-# works without extra setup.
-FROM gcr.io/distroless/static-debian12:nonroot
+# Scratch is enough for the static Go binary. Copy the CA bundle explicitly
+# because the service talks to Azure KV, the CDN, Kubernetes, and OTLP over TLS.
+FROM scratch
 
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /out/runner-org-sync /runner-org-sync
 
 USER 65532:65532
