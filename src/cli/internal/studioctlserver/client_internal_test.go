@@ -57,7 +57,7 @@ func TestUpgradeAppUsesUpgradeTimeoutOnly(t *testing.T) {
 		AppUpgrade{
 			ProjectFolder:            "/tmp/app",
 			StudioRoot:               "",
-			Kind:                     "v10",
+			Kind:                     "v9",
 			ConvertPackageReferences: false,
 		},
 	)

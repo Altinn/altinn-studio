@@ -2,8 +2,9 @@ import { useState } from 'react';
 import classes from './CreateRelease.module.css';
 import type { ChangeEvent } from 'react';
 import { versionNameValid } from './utils';
-import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
+import { useBranchStatusQuery, useAppReleasesQuery, useOrgListQuery } from '../../../hooks/queries';
 import { useCreateReleaseMutation } from '../../../hooks/mutations';
+import { useGetSelectedScopesQuery } from '../../../hooks/queries/useGetSelectedScopesQuery';
 import { Trans, useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FormField } from 'app-shared/components/FormField';
@@ -12,18 +13,27 @@ import {
   StudioButton,
   StudioDialog,
   StudioHeading,
+  StudioParagraph,
   StudioTextarea,
   StudioTextfield,
 } from '@studio/components';
 import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValidationQuery';
 import { AppValidationDialog } from 'app-shared/components/AppValidationDialog/AppValidationDialog';
 import { appHasCriticalValidationErrors } from 'app-shared/utils/appValidationUtils';
+import { useAppVersionQuery } from 'app-shared/hooks/queries';
+import { hasDefaultMaskinportenScopes } from 'app-development/utils/maskinportenScopes';
+import { isVersionAtLeast } from 'app-development/utils/versionUtils';
+import { isServiceOwnerOrg } from 'app-development/utils/serviceOwnerOrgUtils';
 
 export function CreateRelease() {
   const { org, app } = useStudioEnvironmentParams();
   const [tagName, setTagName] = useState<string>('');
   const [body, setBody] = useState<string>('');
   const { data: releases = [] } = useAppReleasesQuery(org, app);
+  const { data: appVersion } = useAppVersionQuery(org, app);
+  const { data: orgs = {} } = useOrgListQuery();
+  const repoOwnerIsServiceOwner = isServiceOwnerOrg(orgs, org);
+  const { data: selectedMaskinportenScopes } = useGetSelectedScopesQuery(repoOwnerIsServiceOwner);
   const { refetch: getMasterBranchStatus } = useBranchStatusQuery(org, app, 'master');
   const { data: appValidationResult } = useAppValidationQuery(org, app);
   const { t } = useTranslation();
@@ -53,6 +63,13 @@ export function CreateRelease() {
   );
   const validVersionName = tagName && versionNameValid(releases, tagName);
   const canBuild = validVersionName;
+  const shouldShowMaskinportenScopesNotice =
+    appVersion !== undefined &&
+    repoOwnerIsServiceOwner &&
+    selectedMaskinportenScopes !== undefined &&
+    isVersionAtLeast(appVersion.backendVersion, 9, 0, 0) &&
+    !hasDefaultMaskinportenScopes(selectedMaskinportenScopes);
+
   return (
     <div className={classes.createReleaseForm}>
       {appValidationResult?.isValid === false && appHasCriticalErrors && (
@@ -81,6 +98,11 @@ export function CreateRelease() {
             </Trans>
             <AppValidationDialog />
           </StudioDialog.TriggerContext>
+        </StudioAlert>
+      )}
+      {shouldShowMaskinportenScopesNotice && (
+        <StudioAlert data-color='info'>
+          <StudioParagraph>{t('app_create_release.maskinporten_scopes_auto_add')}</StudioParagraph>
         </StudioAlert>
       )}
       <FormField

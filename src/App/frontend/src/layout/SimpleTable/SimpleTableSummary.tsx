@@ -1,11 +1,12 @@
 import React from 'react';
 
-import { AppTable } from 'src/app-components/Table/Table';
-import { translationKey } from 'src/AppComponentsBridge';
+import { AppTable } from '@app/form-component';
+
 import { Caption } from 'src/components/form/caption/Caption';
 import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { isJSONSchema7Definition } from 'src/layout/AddToList/AddToList';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
@@ -23,6 +24,7 @@ export function SimpleTableSummary({ targetBaseComponentId }: Summary2Props) {
   const { formData } = useDataModelBindings(dataModelBindings, 1, 'raw');
   const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
   const isMobile = useIsMobile();
+  const { langAsString } = useLanguage();
 
   const schemaLookup = FormStore.bootstrap.useSchemaLookup();
 
@@ -56,12 +58,11 @@ export function SimpleTableSummary({ targetBaseComponentId }: Summary2Props) {
       }
     >
       <AppTable
-        schema={schema}
         caption={title && <Caption title={<Lang id={title} />} />}
         data={Array.isArray(data) ? data : emptyArray}
-        columns={columns.map((column) => ({ ...column, header: translationKey(column.header) }))}
+        columns={columns.map((column) => ({ ...column, header: langAsString(column.header) }))}
         mobile={isMobile}
-        emptyText={translationKey('general.empty_table')}
+        emptyText={langAsString('general.empty_table')}
       />
     </SummaryFlex>
   );

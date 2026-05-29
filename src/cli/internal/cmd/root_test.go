@@ -227,6 +227,11 @@ func TestCLI_Run(t *testing.T) {
 			args:     []string{"app", "stop", "--help"},
 			wantCode: 0,
 		},
+		{
+			name:     "apps search command exists",
+			args:     []string{"apps", "search", "--help"},
+			wantCode: 0,
+		},
 	}
 
 	for _, tt := range tests {

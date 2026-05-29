@@ -1,9 +1,9 @@
 import React, { useLayoutEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
+import { Flex } from '@app/form-component';
 import cn from 'classnames';
 
-import { Flex } from 'src/app-components/Flex/Flex';
 import { LogoColor } from 'src/components/logo/AltinnLogo';
 import { AltinnSubstatus } from 'src/components/molecules/AltinnSubstatus';
 import { AppHeader } from 'src/components/presentation/AppHeader/AppHeader';

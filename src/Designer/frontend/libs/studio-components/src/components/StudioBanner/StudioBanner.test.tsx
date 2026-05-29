@@ -32,6 +32,16 @@ describe('StudioBanner', () => {
     expect(screen.getByRole('heading', { name: title })).toBeInTheDocument();
   });
 
+  it('should not render heading when title is not provided', () => {
+    renderBanner({ title: undefined });
+    expect(screen.queryByRole('heading')).not.toBeInTheDocument();
+  });
+
+  it('should not have aria-labelledby when title is not provided', () => {
+    renderBanner({ title: undefined });
+    expect(screen.getByRole('dialog')).not.toHaveAttribute('aria-labelledby');
+  });
+
   it('should render description when provided', () => {
     renderBanner({ description });
     expect(screen.getByText(description)).toBeInTheDocument();

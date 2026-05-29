@@ -287,7 +287,6 @@ export interface IApplicationSettings {
 }
 
 export interface IPlatformFrontendSettings {
-  appFrontendCdnBaseUrl: string;
   altinnLogoUrl: string;
   helpCircleIllustrationUrl: string;
   postalCodesUrl: string;
