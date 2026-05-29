@@ -1,7 +1,10 @@
 using System.Net;
+using Altinn.App.Api.Controllers;
 using Argon;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.OpenApi;
+using Microsoft.OpenApi.Extensions;
+using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi.Readers;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.OpenApi;
@@ -37,11 +40,14 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
         Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
 
         await using var stream = await response.Content.ReadAsStreamAsync();
-        var result = await OpenApiDocument.LoadAsync(stream, format: OpenApiConstants.Json);
-        // Assert.Empty(result.Diagnostic?.Errors ?? []);
-        var document = result.Document ?? throw new InvalidOperationException("Failed to read OpenAPI document");
+        var reader = new OpenApiStreamReader();
+        OpenApiDocument document = reader.Read(stream, out OpenApiDiagnostic diagnostic);
+        // Assert.Empty(diagnostic.Errors);
         document.Info.Version = "";
-        await VerifyJson(await document.SerializeAsJsonAsync(OpenApiSpecVersion.OpenApi3_0), _verifySettings);
+        await VerifyJson(
+            document.Serialize(CustomOpenApiController.SpecVersion, CustomOpenApiController.SpecFormat),
+            _verifySettings
+        );
     }
 
     private static VerifySettings _verifySettings

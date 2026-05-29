@@ -1,5 +1,5 @@
 using Altinn.App.Api.Controllers;
-using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Altinn.App.Api.Extensions;
