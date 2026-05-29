@@ -39,9 +39,11 @@ jobs:
       - name: Extract release notes
         id: extract-notes
         run: |
-          echo "Release notes look best on GitHub: ${{ github.event.release.html_url }}" > RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "${{ github.event.release.body }}" >> RELEASE_NOTES.md
+          {
+            echo "Release notes look best on GitHub: ${{ github.event.release.html_url }}"
+            echo
+            jq -r '.release.body // ""' "$GITHUB_EVENT_PATH"
+          } > RELEASE_NOTES.md
           cat RELEASE_NOTES.md
       - name: Build
         run: |
