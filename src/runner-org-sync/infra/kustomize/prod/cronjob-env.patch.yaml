@@ -11,7 +11,7 @@ spec:
             - name: runner-org-sync
               env:
                 - name: RUNNER_ORG_SYNC_ORGS
-                  value: "ttd,brg,dsb,ssb,ksdigi,pat,dibk,skm,sfvt"
+                  value: "ttd,brg,dsb,ssb,ksdigi,pat,dibk,skm,sfvt,digdir"
                 - name: RUNNER_ORG_SYNC_KEYVAULT_NAME
                   value: "altinn-studio-prod-kv"
                 - name: OTEL_RESOURCE_ATTRIBUTES
