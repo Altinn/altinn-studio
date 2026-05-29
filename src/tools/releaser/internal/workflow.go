@@ -19,6 +19,7 @@ var (
 	ErrChangelogMissing     = errors.New("changelog version section not found")
 	ErrBuildFailed          = errors.New("build failed")
 	ErrReleaseBranchMissing = errors.New("release branch does not exist for stable release")
+	errReleaseTargetMissing = errors.New("release target commit is empty")
 )
 
 // WorkflowConfig configures the release workflow.
@@ -430,12 +431,15 @@ func (w *Workflow) createGitHubRelease(ctx context.Context) error {
 
 	assets := append([]string(nil), w.artifacts...)
 
-	target := w.determineTargetBranch()
+	target, err := w.determineReleaseTarget(ctx)
+	if err != nil {
+		return err
+	}
 	tagFull := w.tag.Full()
 	title := w.component.ReleaseTitle(verStr)
 
 	w.log.Info("Creating release with %d assets...", len(assets))
-	w.log.Detail("Target branch", target)
+	w.log.Detail("Target commit", target)
 
 	if w.config.DryRun {
 		w.log.Info("(dry-run) Would create release:")
@@ -471,12 +475,16 @@ func (w *Workflow) createGitHubRelease(ctx context.Context) error {
 	return nil
 }
 
-// determineTargetBranch returns the branch where the tag should be created.
-func (w *Workflow) determineTargetBranch() string {
-	if w.tag.Version.IsPrerelease {
-		return mainBranch
+func (w *Workflow) determineReleaseTarget(ctx context.Context) (string, error) {
+	target, err := w.git.HeadCommit(ctx)
+	if err != nil {
+		return "", fmt.Errorf("resolve release target commit: %w", err)
 	}
-	return w.tag.ReleaseBranch()
+	target = strings.TrimSpace(target)
+	if target == "" {
+		return "", errReleaseTargetMissing
+	}
+	return target, nil
 }
 
 func (w *Workflow) printSummary() {
