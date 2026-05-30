@@ -49,8 +49,22 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
         {{- end }}
-        {{- if $.Values.dockerInDocker.enabled }}
+        {{- if or $.Values.actCacheSeed.enabled $.Values.dockerInDocker.enabled }}
         initContainers:
+        {{- if $.Values.actCacheSeed.enabled }}
+          - name: seed-act-cache
+            image: "{{ $.Values.actCacheSeed.image.repository }}:{{ $.Values.actCacheSeed.image.tag | default $.Values.image.tag | default $.Chart.AppVersion }}"
+            imagePullPolicy: {{ $.Values.actCacheSeed.image.pullPolicy | default "IfNotPresent" }}
+            command: ["sh", "-c"]
+            args:
+              - |
+                mkdir -p {{ $.Values.shareWorkspace.path | default "/root/.cache/act" }}
+                cp -a /prewarmed-act-cache/. {{ $.Values.shareWorkspace.path | default "/root/.cache/act" }}/
+            volumeMounts:
+              - name: act-cache
+                mountPath: {{ $.Values.shareWorkspace.path | default "/root/.cache/act" }}
+        {{- end }}
+        {{- if $.Values.dockerInDocker.enabled }}
           - name: dockerd
             image: "{{ $.Values.dockerInDocker.image.repository }}:{{ $.Values.dockerInDocker.image.tag }}"
             imagePullPolicy: {{ $.Values.dockerInDocker.image.pullPolicy }}
@@ -82,6 +96,7 @@ spec:
               - name: act-cache
                 mountPath: {{ $.Values.shareWorkspace.path | default "/root/.cache/act" }}
               {{- end }}
+        {{- end }}
         {{- end }}
         containers:
           - name: {{ $.Chart.Name }}
@@ -121,7 +136,7 @@ spec:
             resources:
               {{- toYaml . | nindent 14 }}
             {{- end }}
-            {{- if or $.Values.volumeMounts $.Values.dockerInDocker.enabled $.Values.shareWorkspace.enabled }}
+            {{- if or $.Values.volumeMounts $.Values.dockerInDocker.enabled $.Values.shareWorkspace.enabled $.Values.actCacheSeed.enabled }}
             volumeMounts:
               {{- with $.Values.volumeMounts }}
               {{- toYaml . | nindent 14 }}
@@ -131,12 +146,12 @@ spec:
                 mountPath: /certs
                 readOnly: true
               {{- end }}
-              {{- if $.Values.shareWorkspace.enabled }}
+              {{- if or $.Values.shareWorkspace.enabled $.Values.actCacheSeed.enabled }}
               - name: act-cache
                 mountPath: {{ $.Values.shareWorkspace.path | default "/root/.cache/act" }}
               {{- end }}
             {{- end }}
-        {{- if or $.Values.volumes $.Values.dockerInDocker.enabled $.Values.shareWorkspace.enabled }}
+        {{- if or $.Values.volumes $.Values.dockerInDocker.enabled $.Values.shareWorkspace.enabled $.Values.actCacheSeed.enabled }}
         volumes:
           {{- with $.Values.volumes }}
           {{- toYaml . | nindent 10 }}
@@ -145,7 +160,7 @@ spec:
           - name: docker-certs
             emptyDir: {}
           {{- end }}
-          {{- if $.Values.shareWorkspace.enabled }}
+          {{- if or $.Values.shareWorkspace.enabled $.Values.actCacheSeed.enabled }}
           - name: act-cache
             emptyDir:
               sizeLimit: {{ $.Values.shareWorkspace.sizeLimit | default "10Gi" }}
