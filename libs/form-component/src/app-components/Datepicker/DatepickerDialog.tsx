@@ -3,8 +3,9 @@ import type { PropsWithChildren, ReactNode } from 'react';
 
 import { Dialog, Popover } from '@digdir/designsystemet-react';
 
-import { useIsMobile } from '../hooks/useDeviceWidths';
 import styles from './Calendar.module.css';
+
+import { useIsMobile } from 'src/app-components/hooks/useDeviceWidths';
 
 const DatePickerCloseContext = createContext<(() => void) | null>(null);
 

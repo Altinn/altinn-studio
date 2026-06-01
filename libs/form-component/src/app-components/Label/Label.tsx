@@ -4,9 +4,10 @@ import { Label as DesignsystemetLabel } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { LabelProps as DesignsystemetLabelProps } from '@digdir/designsystemet-react';
 
-import { Flex } from '../Flex/Flex';
 import classes from './Label.module.css';
-import type { IGridStyling } from '../Flex/Flex';
+
+import { Flex } from 'src/app-components/Flex/Flex';
+import type { IGridStyling } from 'src/app-components/Flex/Flex';
 
 export type LabelProps = {
   id?: string;

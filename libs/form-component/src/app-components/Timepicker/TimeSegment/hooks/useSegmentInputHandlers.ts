@@ -1,17 +1,17 @@
 import type React from 'react';
 
-import type { SegmentInputConfig } from '../../types';
 import {
   handleSegmentKeyDown,
   handleValueDecrement,
   handleValueIncrement,
-} from '../../utils/keyboardNavigation';
+} from 'src/app-components/Timepicker/utils/keyboardNavigation';
 import {
   clearSegment,
   commitSegmentValue,
   handleSegmentCharacterInput,
   processSegmentBuffer,
-} from '../../utils/segmentTyping';
+} from 'src/app-components/Timepicker/utils/segmentTyping';
+import type { SegmentInputConfig } from 'src/app-components/Timepicker/types';
 
 export function useSegmentInputHandlers({
   segmentType,

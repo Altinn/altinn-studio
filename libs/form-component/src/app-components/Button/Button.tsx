@@ -1,13 +1,12 @@
 import type { PropsWithChildren, Ref } from 'react';
 
 import { Button as DesignSystemButton } from '@digdir/designsystemet-react';
+import cn from 'classnames';
 import type { ButtonProps as DesignSystemButtonProps } from '@digdir/designsystemet-react';
 
-import { Spinner } from '../Spinner';
-
-import cn from 'classnames';
-
 import classes from './Button.module.css';
+
+import { Spinner } from 'src/app-components/Spinner';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | undefined;
 export type ButtonColor = 'first' | 'second' | 'success' | 'danger' | undefined;

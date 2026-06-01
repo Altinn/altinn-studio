@@ -1,4 +1,4 @@
-import React, { type JSX, PropsWithChildren, ReactElement } from 'react';
+import React, { type JSX, type PropsWithChildren, type ReactElement } from 'react';
 
 import {
   Fieldset as DesignsystemetFieldset,
@@ -7,9 +7,10 @@ import {
 import cn from 'classnames';
 import type { LabelProps as DesignsystemetLabelProps } from '@digdir/designsystemet-react';
 
-import { Flex } from '../Flex/Flex';
 import labelClasses from './Label.module.css';
-import type { IGridStyling } from '../Flex/Flex';
+
+import { Flex } from 'src/app-components/Flex/Flex';
+import type { IGridStyling } from 'src/app-components/Flex/Flex';
 
 export type FieldsetProps = {
   id?: string;

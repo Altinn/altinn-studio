@@ -1,10 +1,11 @@
-import type { TimeValue } from '../types';
 import {
   formatSegmentValue,
   formatTimeValue,
   isValidSegmentInput,
   parseSegmentInput,
 } from './timeFormatUtils';
+
+import type { TimeValue } from 'src/app-components/Timepicker/types';
 
 describe('Time Format Utilities', () => {
   describe('formatTimeValue', () => {

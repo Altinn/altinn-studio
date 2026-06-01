@@ -1,6 +1,7 @@
-import React, { useId, useState, type ChangeEvent } from 'react';
-import { FormComponentActionType } from '../types/FormComponentActionType';
-import type { FormComponentProps } from '../types/FormComponentProps';
+import React, { type ChangeEvent, useId, useState } from 'react';
+
+import { FormComponentActionType } from 'src/types/FormComponentActionType';
+import type { FormComponentProps } from 'src/types/FormComponentProps';
 
 export function FormComponent({
   title,

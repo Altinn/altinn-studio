@@ -1,5 +1,6 @@
-import type { DropdownFocusState, NavigationAction } from '../../types';
 import { calculateNextFocusState } from './calculateNextFocusState';
+
+import type { DropdownFocusState, NavigationAction } from 'src/app-components/Timepicker/types';
 
 describe('calculateNextFocusState', () => {
   const maxColumns = 3; // hours, minutes, seconds

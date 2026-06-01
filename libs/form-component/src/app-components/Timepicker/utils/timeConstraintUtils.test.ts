@@ -1,10 +1,11 @@
-import type { TimeValue } from '../types';
 import {
   getNextValidValue,
   getSegmentConstraints,
   isTimeInRange,
   parseTimeString,
 } from './timeConstraintUtils';
+
+import type { TimeValue } from 'src/app-components/Timepicker/types';
 
 interface SegmentConstraints {
   min: number;

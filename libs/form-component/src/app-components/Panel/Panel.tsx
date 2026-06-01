@@ -10,8 +10,9 @@ import {
 } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { useIsMobile } from '../hooks/useDeviceWidths';
 import classes from './Panel.module.css';
+
+import { useIsMobile } from 'src/app-components/hooks/useDeviceWidths';
 
 export type PanelVariant = 'info' | 'warning' | 'error' | 'success';
 

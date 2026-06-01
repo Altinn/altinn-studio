@@ -4,8 +4,9 @@ import { Button, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import { format, isValid, parseISO } from 'date-fns';
 
-import { Spinner } from '../Spinner/Spinner';
 import classes from './Table.module.css';
+
+import { Spinner } from 'src/app-components/Spinner/Spinner';
 
 export type TableCellValue =
   | string

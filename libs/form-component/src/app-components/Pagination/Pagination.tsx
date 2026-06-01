@@ -9,8 +9,9 @@ import {
 } from '@digdir/designsystemet-react';
 import type { UsePaginationProps } from '@digdir/designsystemet-react';
 
-import { useIsMini, useIsMobile, useIsTablet } from '../hooks/useDeviceWidths';
 import classes from './Pagination.module.css';
+
+import { useIsMini, useIsMobile, useIsTablet } from 'src/app-components/hooks/useDeviceWidths';
 
 export type PaginationProps = {
   id: string;

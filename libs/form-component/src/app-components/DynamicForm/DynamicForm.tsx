@@ -4,7 +4,7 @@ import type { MonthCaption } from 'react-day-picker';
 import { Radio, Textfield } from '@digdir/designsystemet-react';
 import type { JSONSchema7, JSONSchema7Definition } from 'json-schema';
 
-import { DatePickerControl, getDateFormat } from '../Datepicker';
+import { DatePickerControl, getDateFormat } from 'src/app-components/Datepicker';
 
 export type FormDataValue =
   | string
