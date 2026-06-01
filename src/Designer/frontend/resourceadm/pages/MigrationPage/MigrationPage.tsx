@@ -90,7 +90,7 @@ export const MigrationPage = ({
                 } else if (env.id === 'prod') {
                   return isProdSBLBridgeEnabled();
                 }
-                return false;
+                return true;
               })
               .map((env) => {
                 const isPublishedInEnv = env.isResourcePublished;
