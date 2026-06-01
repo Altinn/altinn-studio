@@ -23,6 +23,10 @@ export interface UseAltinityAssistantResult {
   deleteThread: (threadId: string) => void;
 }
 
+/**
+ * Cohabitates all the callers that the main AiAssistant component needs. Do not add logic to this hook beyond this.
+ * TODO: consider exposing useAltinityWorkflow to the caller directly, and deleting this hook.
+ */
 export const useAltinityAssistant = (): UseAltinityAssistantResult => {
   const threads = useAltinityThreads();
   const {
@@ -33,13 +37,14 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     cancelCurrentWorkflow,
     cancelledMessageContent,
     clearCancelledMessageContent,
+    messages,
   } = useAltinityWorkflow(threads);
 
   return {
     connectionStatus,
     workflowStatus,
     chatThreads: threads.chatThreads,
-    messages: threads.chatMessages,
+    messages,
     currentSessionId: threads.currentSessionId,
     onSubmitMessage,
     cancelCurrentWorkflow,

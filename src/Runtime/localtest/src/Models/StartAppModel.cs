@@ -7,6 +7,17 @@ using System.Threading.Tasks;
 
 namespace LocalTest.Models
 {
+    public class AppSelectionOption
+    {
+        public string Value { get; set; }
+
+        public string Text { get; set; }
+
+        public bool Selected { get; set; }
+
+        public bool ShowFrontendVersionSwitcher { get; set; }
+    }
+
     public class StartAppModel
     {
         /// <summary>
@@ -50,6 +61,11 @@ namespace LocalTest.Models
         public string AuthenticationLevel { get; set; }
 
         /// <summary>
+        /// Url to redirect to after localtest has created authentication cookies.
+        /// </summary>
+        public string RedirectUrl { get; set; }
+
+        /// <summary>
         /// Url for where to load the local frontend from
         /// (implemented as a cookie consumed by localtest proxy middleware)
         /// </summary>
@@ -68,11 +84,53 @@ namespace LocalTest.Models
         /// <summary>
         /// List of selectable Apps for dropdown
         /// </summary>
-        public List<SelectListItem> TestApps { get; set; }
+        public List<AppSelectionOption> TestApps { get; set; }
+
+        /// <summary>
+        /// Whether frontend version switching UI should be visible for the selected app.
+        /// </summary>
+        public bool ShowFrontendVersionSwitcher { get; set; } = true;
 
         /// <summary>
         /// List of possible authentication levels
         /// </summary>
         public IEnumerable<SelectListItem> AuthenticationLevels { get; set; }
+
+        public void SelectRedirectApp()
+        {
+            var appId = GetAppIdFromRedirectUrl();
+            if (string.IsNullOrEmpty(appId))
+            {
+                return;
+            }
+
+            var selectedApp = TestApps.FirstOrDefault(
+                app => string.Equals(app.Text, appId, StringComparison.OrdinalIgnoreCase)
+            );
+            if (selectedApp == null)
+            {
+                return;
+            }
+
+            selectedApp.Selected = true;
+            AppPathSelection = selectedApp.Value;
+            ShowFrontendVersionSwitcher = selectedApp.ShowFrontendVersionSwitcher;
+        }
+
+        private string GetAppIdFromRedirectUrl()
+        {
+            if (string.IsNullOrWhiteSpace(RedirectUrl) || !Uri.TryCreate(RedirectUrl, UriKind.Absolute, out var uri))
+            {
+                return null;
+            }
+
+            var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            if (segments.Length < 2)
+            {
+                return null;
+            }
+
+            return $"{segments[0]}/{segments[1]}";
+        }
     }
 }

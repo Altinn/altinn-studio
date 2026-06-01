@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/Altinn.FileAnalyzers/Altinn.FileAnalyzers.csproj" />
+  <Project Path="test/Altinn.FileAnalyzers.Tests/Altinn.FileAnalyzers.Tests.csproj" />
+</Solution>

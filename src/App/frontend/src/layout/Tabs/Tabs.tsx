@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router';
 
+import { Flex } from '@app/form-component';
 import { Tabs as DesignsystemetTabs } from '@digdir/designsystemet-react';
 
-import { Flex } from 'src/app-components/Flex/Flex';
 import { SearchParams } from 'src/core/routing/types';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';

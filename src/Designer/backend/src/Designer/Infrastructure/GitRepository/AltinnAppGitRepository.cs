@@ -42,7 +42,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
     private const string CshtmlPath = "App/views/Home/Index.cshtml";
 
     private const string ServiceConfigFilename = "config.json";
-    private const string LayoutSettingsFilename = "Settings.json";
+    private const string SettingsFilename = "Settings.json";
     private const string AppMetadataFilename = "applicationmetadata.json";
     private const string LayoutSetsFilename = "layout-sets.json";
     private const string FooterFilename = "footer.json";
@@ -617,6 +617,42 @@ public class AltinnAppGitRepository : AltinnGitRepository
         }
     }
 
+    public Task<IEnumerable<string>> GetUiFolders(CancellationToken cancellationToken = default)
+    {
+        string uiPath = LayoutsFolderName;
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (!DirectoryExistsByRelativePath(uiPath))
+        {
+            throw new NotFoundException("No UI folder was found for this app");
+        }
+
+        // The UI folder should only contain folders for layout sets, so we return the folder names
+        IEnumerable<string> folders = GetDirectoriesByRelativeDirectory(uiPath).Select(Path.GetFileName);
+        return Task.FromResult(folders);
+    }
+
+    public async Task<UiSettings> GetGlobalSettingsFile(CancellationToken cancellationToken = default)
+    {
+        string globalSettingsFilePath = GetPathToGlobalSettingsFile();
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!FileExistsByRelativePath(globalSettingsFilePath))
+        {
+            return null;
+        }
+        string fileContent = await ReadTextByRelativePathAsync(globalSettingsFilePath, cancellationToken);
+        UiSettings globalSettingsFile = JsonSerializer.Deserialize<UiSettings>(fileContent, s_jsonOptions);
+        return globalSettingsFile;
+    }
+
+    public async Task SaveGlobalSettingsFile(UiSettings globalSettings)
+    {
+        string globalSettingsFilePath = GetPathToGlobalSettingsFile();
+        string globalSettingsString = JsonSerializer.Serialize(globalSettings, s_jsonOptions);
+        await WriteTextByRelativePathAsync(globalSettingsFilePath, globalSettingsString);
+    }
+
     public async Task<FooterFile> GetFooter(CancellationToken cancellationToken = default)
     {
         string footerFilePath = GetPathToFooterFile();
@@ -1022,13 +1058,18 @@ public class AltinnAppGitRepository : AltinnGitRepository
     private static string GetPathToLayoutSettings(string layoutSetName)
     {
         return string.IsNullOrEmpty(layoutSetName)
-            ? Path.Combine(LayoutsFolderName, LayoutSettingsFilename)
-            : Path.Combine(LayoutsFolderName, layoutSetName, LayoutSettingsFilename);
+            ? Path.Combine(LayoutsFolderName, SettingsFilename)
+            : Path.Combine(LayoutsFolderName, layoutSetName, SettingsFilename);
     }
 
     private static string GetPathToLayoutSetsFile()
     {
         return Path.Combine(LayoutsFolderName, LayoutSetsFilename);
+    }
+
+    private static string GetPathToGlobalSettingsFile()
+    {
+        return Path.Combine(LayoutsFolderName, SettingsFilename);
     }
 
     private static string GetPathToFooterFile()

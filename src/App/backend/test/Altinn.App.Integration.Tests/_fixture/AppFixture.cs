@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -161,15 +160,17 @@ public sealed partial class AppFixture : IAsyncDisposable
                 fixtureInstance,
                 cancellationToken
             );
+            var appFrontendAssetBaseUrl = $"/{appId}/altinn-app-frontend";
             appProcess = await StudioctlAppProcess.Start(
                 generatedAppDirectory,
                 fixtureConfigurationPath,
                 _nugetPackagesDirectory,
+                appFrontendAssetBaseUrl,
                 logger,
                 cancellationToken
             );
             // studioctl run performs readiness checks. This only catches an immediate post-start crash.
-            EnsureAppStillRunning(appProcess);
+            await EnsureAppStillRunning(appProcess, cancellationToken);
 
             logger.LogInformation("Fixture created in {ElapsedSeconds}s", timer.Elapsed.TotalSeconds.ToString("0.00"));
             return new AppFixture(
@@ -195,36 +196,35 @@ public sealed partial class AppFixture : IAsyncDisposable
                 await appProcess.DisposeAsync();
             if (studioctlEnvironmentLease is not null)
                 await studioctlEnvironmentLease.DisposeAsync();
-            DeleteDirectoryBestEffort(logger, generatedAppDirectory);
+            await DeleteDirectoryBestEffort(logger, generatedAppDirectory);
             throw;
         }
     }
 
-    private static void EnsureAppStillRunning(StudioctlAppProcess appProcess)
+    private static async Task EnsureAppStillRunning(StudioctlAppProcess appProcess, CancellationToken cancellationToken)
     {
         if (!appProcess.IsRunning())
-            throw new InvalidOperationException(
-                $"App process exited after studioctl reported it ready.\n{GetAppLogs(appProcess)}"
-            );
+        {
+            var appLogs = await GetAppLogs(appProcess, cancellationToken);
+            throw new InvalidOperationException($"App process exited after studioctl reported it ready.\n{appLogs}");
+        }
     }
 
-    private static string GetAppLogs(StudioctlAppProcess appProcess) => string.Join('\n', appProcess.GetLogLines());
+    private static async Task<string> GetAppLogs(StudioctlAppProcess appProcess, CancellationToken cancellationToken)
+    {
+        var logLines = await appProcess.GetLogLines(startLine: 0, cancellationToken);
+        return string.Join('\n', logLines);
+    }
 
     public HttpClient GetAppClient()
     {
         if (_appClient == null)
         {
-            var cookieContainer = new CookieContainer();
-            var handler = new HttpClientHandler { CookieContainer = cookieContainer };
-
-            _appClient = new HttpClient(handler)
+            _appClient = new HttpClient
             {
                 BaseAddress = new Uri($"http://local.altinn.cloud:{StudioctlLocaltestHostPort}"),
             };
             _appClient.DefaultRequestHeaders.Add("User-Agent", "Altinn.App.Integration.Tests");
-
-            var appFrontendUrl = $"{AppPath}/altinn-app-frontend/";
-            cookieContainer.Add(_appClient.BaseAddress, new Cookie("frontendVersion", appFrontendUrl));
         }
 
         return _appClient;
@@ -255,7 +255,7 @@ public sealed partial class AppFixture : IAsyncDisposable
         return _directAppClient;
     }
 
-    public async Task<string> GetSnapshotAppLogs()
+    public async Task<string> GetSnapshotAppLogs(CancellationToken cancellationToken = default)
     {
         // Logs travel a slower path (container stdout → Docker daemon → Testcontainers → pipe → background reader)
         // than HTTP responses (direct TCP), so a response can arrive before its log line is captured.
@@ -267,7 +267,7 @@ public sealed partial class AppFixture : IAsyncDisposable
         // - Error logs (`fail:` prefix in the default M.E.L log format)
 
         var expectedPrefix = $"[{_currentFixtureInstance:00}/{_app}/{_scenario}";
-        var allLines = _appProcess.GetLogLines(_appLogLineOffset);
+        var allLines = await _appProcess.GetLogLines(_appLogLineOffset, cancellationToken);
 
         var data = new List<string>(allLines.Count);
         static bool IsStartOfLogMessage(
@@ -330,9 +330,9 @@ public sealed partial class AppFixture : IAsyncDisposable
         return result;
     }
 
-    public string GetAppLogs()
+    public async Task<string> GetAppLogs(CancellationToken cancellationToken = default)
     {
-        var allLines = _appProcess.GetLogLines(_appLogLineOffset);
+        var allLines = await _appProcess.GetLogLines(_appLogLineOffset, cancellationToken);
         var result = string.Join('\n', allLines);
         return result;
     }
@@ -356,7 +356,7 @@ public sealed partial class AppFixture : IAsyncDisposable
         Assert.True(_isClassFixture);
 
         _currentFixtureInstance = NextFixtureInstance();
-        _appLogLineOffset = _appProcess.GetLogLineCount();
+        _appLogLineOffset = await _appProcess.GetLogLineCount(cancellationToken);
 
         // Update logger with new test output helper and fixture instance
         if (output is not null && _logger is TestOutputLogger logger)
@@ -391,7 +391,10 @@ public sealed partial class AppFixture : IAsyncDisposable
     private async Task ReloadFixtureConfiguration(CancellationToken cancellationToken)
     {
         if (!_appProcess.IsRunning())
-            throw new InvalidOperationException($"App process exited before fixture reset.\n{GetAppLogs(_appProcess)}");
+        {
+            var appLogs = await GetAppLogs(_appProcess, cancellationToken);
+            throw new InvalidOperationException($"App process exited before fixture reset.\n{appLogs}");
+        }
 
         using var response = await GetDirectAppClient()
             .PostAsync("/test/fixture-configuration/reload", null, cancellationToken);
@@ -408,7 +411,7 @@ public sealed partial class AppFixture : IAsyncDisposable
     )
     {
         var sourceDirectory = Path.GetFullPath(Path.Join(GetAppDir(name), ".."));
-        DeleteDirectoryBestEffort(logger, generatedDirectory);
+        await DeleteDirectoryBestEffort(logger, generatedDirectory);
         Directory.CreateDirectory(generatedDirectory);
 
         CopyDirectory(
@@ -509,7 +512,7 @@ public sealed partial class AppFixture : IAsyncDisposable
         return false;
     }
 
-    private static void DeleteDirectoryBestEffort(ILogger logger, string? path)
+    private static async Task DeleteDirectoryBestEffort(ILogger logger, string? path)
     {
         if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path))
             return;
@@ -531,7 +534,7 @@ public sealed partial class AppFixture : IAsyncDisposable
                 lastException = ex;
             }
 
-            Thread.Sleep(TimeSpan.FromMilliseconds(200 * (attempt + 1)));
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
         }
 
         logger.LogWarning(lastException, "Failed to delete generated app directory {Path}", path);
@@ -560,23 +563,29 @@ public sealed partial class AppFixture : IAsyncDisposable
             // TestErrored is set to true for test/snapshot failures.
             // When this happens we might not reach the stage of the test where we snapshot app logs.
             _logger.LogError("Test errored, logging app output");
-            LogAppLogs();
+            await LogAppLogs();
         }
 
         await _appProcess.DisposeAsync();
-        DeleteDirectoryBestEffort(_logger, _generatedAppDirectory);
+        await DeleteDirectoryBestEffort(_logger, _generatedAppDirectory);
         await _studioctlEnvironmentLease.DisposeAsync();
     }
 
-    internal void LogAppLogs() => LogAppLogs(_logger, _appProcess);
+    internal Task LogAppLogs(CancellationToken cancellationToken = default) =>
+        LogAppLogs(_logger, _appProcess, cancellationToken);
 
-    private static void LogAppLogs(ILogger logger, StudioctlAppProcess appProcess)
+    private static async Task LogAppLogs(
+        ILogger logger,
+        StudioctlAppProcess appProcess,
+        CancellationToken cancellationToken
+    )
     {
         logger.LogError(
             "Localtest is managed by studioctl. Run 'studioctl env logs --follow=false' for localtest logs."
         );
         {
-            var logs = string.Join("\n", appProcess.GetLogLines());
+            var logLines = await appProcess.GetLogLines(startLine: 0, cancellationToken);
+            var logs = string.Join("\n", logLines);
             logger.LogError("App logs:\n{Logs}", logs);
         }
     }
@@ -739,7 +748,7 @@ public sealed partial class AppFixture : IAsyncDisposable
 
             var output = Path.Join(ModuleInitializer.GetProjectDirectory(), "_testapps", "_packages");
             await NuGetPackaging.PackLibraries(output, logger, cancellationToken);
-            DeleteDirectoryBestEffort(logger, Path.GetDirectoryName(_nugetPackagesDirectory));
+            await DeleteDirectoryBestEffort(logger, Path.GetDirectoryName(_nugetPackagesDirectory));
             Directory.CreateDirectory(_nugetPackagesDirectory);
             _librariesPacked = true;
 

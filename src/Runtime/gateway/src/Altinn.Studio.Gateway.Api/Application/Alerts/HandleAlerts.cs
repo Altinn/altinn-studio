@@ -53,9 +53,7 @@ internal static class HandleAlerts
         CancellationToken cancellationToken
     )
     {
-        string? designerEnvironmentLabel = alertPayload
-            .Alerts.Select(a => a.Labels.GetValueOrDefault("DesignerEnvironment"))
-            .FirstOrDefault();
+        string? designerEnvironmentLabel = alertPayload.CommonLabels.GetValueOrDefault("DesignerEnvironment");
         string designerEnvironment =
             !string.IsNullOrWhiteSpace(designerEnvironmentLabel)
             && environments.CurrentValue.ContainsKey(designerEnvironmentLabel)
@@ -67,47 +65,53 @@ internal static class HandleAlerts
         );
         var currentGatewayContext = gatewayContext.CurrentValue;
 
-        var firstAlert = alertPayload.Alerts.FirstOrDefault();
-        if (firstAlert is null)
+        if (!alertPayload.Alerts.Any())
         {
             return Results.BadRequest();
         }
 
-        var ruleId = firstAlert.Annotations.GetValueOrDefault("ruleId");
+        var ruleId = alertPayload.CommonAnnotations.GetValueOrDefault("ruleId");
         if (string.IsNullOrEmpty(ruleId) || !AzureMonitorClient.OperationNameKeys.Contains(ruleId))
         {
             return Results.BadRequest();
         }
 
-        var alerts = alertPayload
-            .Alerts.Select(alertInstance => new AlertInstance
+        var apps = alertPayload
+            .Alerts.GroupBy(a => a.Labels.GetValueOrDefault("cloud_RoleName", string.Empty))
+            .Where(g => !string.IsNullOrEmpty(g.Key))
+            .Select(g => new AlertApp
             {
-                Status = alertInstance.Status,
-                App = alertInstance.Labels.GetValueOrDefault("cloud_RoleName", string.Empty),
+                App = g.Key,
+                Instances = g.Select(a => new AlertInstance
+                    {
+                        Status = a.Status,
+                        InstanceId = a.Labels.GetValueOrDefault("instanceId", string.Empty),
+                    })
+                    .Where(i => !string.IsNullOrEmpty(i.InstanceId))
+                    .ToList(),
             })
-            .Where(alertInstance => !string.IsNullOrEmpty(alertInstance.App))
             .ToList();
 
-        if (alerts.Count == 0)
+        if (apps.Count == 0)
         {
             return Results.BadRequest();
         }
 
         int? intervalInMinutes = int.TryParse(
-            firstAlert.Annotations.GetValueOrDefault("intervalInMinutes"),
+            alertPayload.CommonAnnotations.GetValueOrDefault("intervalInMinutes"),
             out var interval
         )
             ? interval
             : null;
         var to = DateTimeOffset.UtcNow;
         var from = intervalInMinutes.HasValue ? to.AddMinutes(-intervalInMinutes.Value) : to.AddMinutes(-5);
-        var apps = alerts.Select(alertInstance => alertInstance.App).ToList();
+        var appNames = apps.Select(a => a.App).ToList();
 
         var logsUrl = metricsClient.GetLogsUrl(
             currentGatewayContext.AzureSubscriptionId,
             currentGatewayContext.ServiceOwner,
             currentGatewayContext.Environment,
-            apps,
+            appNames,
             ruleId,
             from,
             to
@@ -115,11 +119,14 @@ internal static class HandleAlerts
 
         var alert = new Alert
         {
-            Id = firstAlert.Fingerprint,
+            Id = string.Join(
+                "-",
+                alertPayload.Alerts.Select(a => $"{a.Fingerprint}:{a.StartsAt.ToUnixTimeSeconds()}").Order()
+            ),
             RuleId = ruleId,
-            Name = firstAlert.Labels.GetValueOrDefault("alertname", string.Empty),
-            Alerts = alerts,
-            Url = firstAlert.GeneratorURL,
+            Name = alertPayload.CommonLabels.GetValueOrDefault("alertname", string.Empty),
+            Apps = apps,
+            Url = alertPayload.Alerts.First().GeneratorURL,
             LogsUrl = logsUrl,
         };
 

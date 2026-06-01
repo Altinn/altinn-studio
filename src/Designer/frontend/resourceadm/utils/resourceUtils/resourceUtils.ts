@@ -35,6 +35,7 @@ export const resourceTypeMap: Record<ResourceTypeOption, string> = {
   BrokerService: 'resourceadm.about_resource_resource_type_brokerservice',
   CorrespondenceService: 'resourceadm.about_resource_resource_type_correspondenceservice',
   Consent: 'resourceadm.about_resource_resource_type_consentresource',
+  MigratedApp: '',
 };
 
 /**

@@ -47,13 +47,20 @@ studioctl env up
 studioctl app run
 ```
 
-`studioctl auth login` uses a PAT with `read:user` and `repo` scopes.
+`studioctl auth login` opens Designer for Ansattporten login and stores a Designer API key locally.
+For agents and automations, pass an existing Studio/Designer API key on standard input:
+
+```sh
+studioctl auth login --env dev --with-token < token.txt
+```
+
 `studioctl app run` wraps `dotnet run --project <app>/App` and auto-detects the app directory.
 `studioctl run` is a short alias for the same operation.
 
 ## Core commands
 
-- `studioctl auth login`: login with PAT for `prod`, `dev`, or `staging`
+- `studioctl auth login`: login with Ansattporten or `--with-token` for `prod`, `dev`, `staging`, or `local`
+- `studioctl apps search`: search app repositories in Altinn Studio
 - `studioctl app clone`: clone `org/repo` from the selected Altinn Studio environment
 - `studioctl app run`: run app locally
 - `studioctl env up`: start localtest

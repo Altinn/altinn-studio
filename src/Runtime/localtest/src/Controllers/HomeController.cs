@@ -6,6 +6,7 @@ using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using LocalTest.Configuration;
+using LocalTest.Constants;
 using LocalTest.Models;
 using LocalTest.Services.Authentication.Implementation;
 using LocalTest.Services.Authentication.Interface;
@@ -71,7 +72,7 @@ namespace LocalTest.Controllers
         [HttpGet("/")]
         [HttpGet("/Home")]
         [HttpGet("/Home/Index")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index([FromQuery(Name = "goto")] string goTo = null)
         {
             StartAppModel model = new StartAppModel()
             {
@@ -79,6 +80,7 @@ namespace LocalTest.Controllers
                 LocalFrontendUrl = HttpContext.Request.Cookies[
                     FrontendVersionController.FRONTEND_URL_COOKIE_NAME
                 ],
+                RedirectUrl = goTo,
             };
             model.LocalFrontendDescription = _localFrontendService.DescribeFrontendUrl(model.LocalFrontendUrl);
 
@@ -86,11 +88,16 @@ namespace LocalTest.Controllers
             {
                 using var timeoutCancellationTokenSource = new CancellationTokenSource(LocalAppViewTimeout);
                 var cancellationToken = timeoutCancellationTokenSource.Token;
-                model.TestApps = await GetAppsList(cancellationToken);
+                model.TestApps = await GetAppSelectionOptions(cancellationToken);
                 model.TestUsers = await GetTestUsersAndPartiesSelectList(cancellationToken);
                 model.UserSelect = Request.Cookies["Localtest_User.Party_Select"];
-                var firstAppId = model.TestApps.Count() == 1 ? model.TestApps.First().Value : null;
-                var defaultAuthLevel = await GetAppAuthLevel(firstAppId, cancellationToken);
+                model.SelectRedirectApp();
+                var selectedApp =
+                    model.TestApps.FirstOrDefault(app => app.Selected)
+                    ?? (model.TestApps.Count == 1 ? model.TestApps.First() : null);
+                var selectedAppId = model.AppPathSelection ?? selectedApp?.Value;
+                model.ShowFrontendVersionSwitcher = selectedApp?.ShowFrontendVersionSwitcher ?? true;
+                var defaultAuthLevel = await GetAppAuthLevel(selectedAppId, cancellationToken);
                 model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
             }
             catch (Exception e) when (e is HttpRequestException or OperationCanceledException)
@@ -111,7 +118,7 @@ namespace LocalTest.Controllers
         [HttpGet("/Home/Localtest/Version")]
         public IActionResult Version()
         {
-            return Ok("4");
+            return Ok(LocalTestApi.Version);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -155,6 +162,13 @@ namespace LocalTest.Controllers
                 return NoContent();
             }
 
+            var prefill = Request.Form.Files.FirstOrDefault();
+
+            if (!string.IsNullOrWhiteSpace(startAppModel.RedirectUrl) && prefill == null)
+            {
+                return Redirect(startAppModel.RedirectUrl);
+            }
+
             if (startAppModel.AppPathSelection?.Equals("accessmanagement") == true)
             {
                 return Redirect($"/accessmanagement/ui/given-api-delegations/overview");
@@ -168,7 +182,6 @@ namespace LocalTest.Controllers
                 return BadRequest("App not found");
             }
 
-            var prefill = Request.Form.Files.FirstOrDefault();
             if (prefill != null)
             {
                 var instance = new Instance
@@ -509,6 +522,32 @@ namespace LocalTest.Controllers
         {
             var applications = await _localApp.GetApplications(cancellationToken);
             return applications.Select((kv) => GetSelectItem(kv.Value, kv.Key)).ToList();
+        }
+
+        private async Task<List<AppSelectionOption>> GetAppSelectionOptions(CancellationToken cancellationToken = default)
+        {
+            var applications = await _localApp.GetApplications(cancellationToken);
+            var appOptions = new List<AppSelectionOption>();
+
+            foreach (var (path, app) in applications)
+            {
+                var appVersion = await _localApp.GetAppVersion(path, cancellationToken);
+                appOptions.Add(
+                    new AppSelectionOption
+                    {
+                        Value = path,
+                        Text = app.Id,
+                        ShowFrontendVersionSwitcher = ShouldShowFrontendVersionSwitcher(appVersion),
+                    }
+                );
+            }
+
+            return appOptions;
+        }
+
+        private static bool ShouldShowFrontendVersionSwitcher(Version appVersion)
+        {
+            return appVersion is null || appVersion.Major < BrowserRoutingAppVersion.Major;
         }
 
         private static SelectListItem GetSelectItem(Application app, string path)

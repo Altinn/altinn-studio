@@ -44,5 +44,5 @@ export function buildProcessEndUrl(instanceOwnerPartyId: string | number, instan
 }
 
 export function buildPartySelectionUrl(): string {
-  return '/party-selection';
+  return `/${routes.partySelection}`;
 }

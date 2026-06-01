@@ -113,6 +113,27 @@ func TestContainerSpecHash_ChangesOnNetworkAliasChange(t *testing.T) {
 	}
 }
 
+func TestContainerSpecHash_ChangesOnUsernsModeChange(t *testing.T) {
+	t.Parallel()
+
+	base := &Container{
+		Name:       "localtest",
+		Image:      RefID("image:localtest"),
+		User:       "1000:1000",
+		UsernsMode: "",
+	}
+
+	baseHash := containerSpecHash(base, "sha256:image-v1", []string{"bridge"})
+
+	modified := *base
+	modified.UsernsMode = "keep-id"
+	modifiedHash := containerSpecHash(&modified, "sha256:image-v1", []string{"bridge"})
+
+	if baseHash == modifiedHash {
+		t.Fatalf("container spec hash did not change when user namespace mode changed")
+	}
+}
+
 func TestContainerSpecHash_ChangesOnVolumeMountTypeChange(t *testing.T) {
 	t.Parallel()
 

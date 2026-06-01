@@ -1,9 +1,10 @@
-import { parseTimeString } from 'src/app-components/TimePicker/utils/timeConstraintUtils';
+import { parseTimeString } from '@app/form-component';
+import type { TimeFormat, TimeValue } from '@app/form-component';
+
 import { FormStore } from 'src/features/form/FormContext';
 import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { TimeFormat, TimeValue } from 'src/app-components/TimePicker/types';
 
 const isValidTimeString = (timeStr: string, format: TimeFormat): boolean => {
   if (!timeStr) {

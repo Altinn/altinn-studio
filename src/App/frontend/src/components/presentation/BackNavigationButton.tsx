@@ -1,14 +1,15 @@
 import React from 'react';
 
+import { Button } from '@app/form-component';
 import { ArrowLeftIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { Button } from 'src/app-components/Button/Button';
 import classes from 'src/components/presentation/BackNavigationButton.module.css';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { MessageBoxConfigEvaluator } from 'src/features/applicationMetadata/messageBoxConfig';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsSubformPage, useNavigationParam } from 'src/hooks/navigation';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
@@ -17,6 +18,7 @@ import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from '
 import { getDialogIdFromDataValues, getMessageBoxUrl } from 'src/utils/urls/urlHelper';
 
 export function BackNavigationButton(props: { className?: string }) {
+  const { langAsString } = useLanguage();
   const isMobile = useIsMobile();
   const party = useSelectedParty();
   const mainPageKey = useNavigationParam('mainPageKey');
@@ -40,6 +42,7 @@ export function BackNavigationButton(props: { className?: string }) {
         onClick={() => performProcess(exitSubform)}
         disabled={isAnyProcessing}
         isLoading={isExitingSubform}
+        loadingLabel={langAsString('general.loading')}
         variant='tertiary'
         size='sm'
         className={cn(classes.button, props.className)}
