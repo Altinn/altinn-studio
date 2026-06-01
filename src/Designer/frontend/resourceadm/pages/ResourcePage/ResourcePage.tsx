@@ -9,17 +9,15 @@ import { useSinlgeResourceQuery, useValidatePolicyQuery } from '../../hooks/quer
 import { AboutResourcePage } from '../AboutResourcePage';
 import { NavigationModal } from '../../components/NavigationModal';
 import { useEditResourceMutation } from '../../hooks/mutations';
-import { MigrationPage } from '../MigrationPage';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
 import {
   ArrowLeftIcon,
   GavelSoundBlockIcon,
   InformationSquareIcon,
-  MigrationIcon,
   UploadIcon,
 } from '@studio/icons';
-import { deepCompare, getAltinn2Reference, validateResource } from '../../utils/resourceUtils';
+import { deepCompare, validateResource } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
 import { ResourceAccessLists } from '../../components/ResourceAccessLists';
 import { AccessListDetail } from '../../components/AccessListDetails';
@@ -28,7 +26,6 @@ import { useUrlParams } from '../../hooks/useUrlParams';
 import { StudioContentMenu, StudioSpinner } from '@studio/components';
 import type { StudioContentMenuButtonTabProps } from '@studio/components';
 import { useGetConsentTemplates } from '../../hooks/queries/useGetConsentTemplates';
-import { isProdSBLBridgeEnabled, isTT02SBLBridgeEnabled } from 'resourceadm/utils/userUtils';
 
 /**
  * @component
@@ -165,22 +162,10 @@ export const ResourcePage = (): React.JSX.Element => {
   };
 
   const validationErrors = validateResource(resourceData, t);
-  const altinn2References = getAltinn2Reference(resourceData);
-  /**
-   * Decide if the migration page should be accessible or not
-   */
-  const isMigrateEnabled = (): boolean => {
-    return (
-      !!altinn2References &&
-      resourceData.resourceType === 'GenericAccessResource' &&
-      (isTT02SBLBridgeEnabled() || isProdSBLBridgeEnabled())
-    );
-  };
 
   const aboutPageId = 'about';
   const policyPageId = 'policy';
   const deployPageId = 'deploy';
-  const migrationPageId = 'migration';
   const accessListsPageId = 'accesslists';
 
   /**
@@ -211,13 +196,6 @@ export const ResourcePage = (): React.JSX.Element => {
         icon: <UploadIcon />,
       },
     ];
-    if (isMigrateEnabled()) {
-      contentMenuItems.push({
-        tabId: 'migration',
-        tabName: t('resourceadm.left_nav_bar_migration'),
-        icon: <MigrationIcon />,
-      });
-    }
     return contentMenuItems;
   };
 
@@ -230,9 +208,7 @@ export const ResourcePage = (): React.JSX.Element => {
               navigateToPage(tabId);
             }
           }}
-          selectedTabId={
-            currentPage === migrationPageId && !isMigrateEnabled() ? aboutPageId : currentPage
-          }
+          selectedTabId={currentPage}
         >
           <StudioContentMenu.LinkTab
             tabId='back'
@@ -275,13 +251,6 @@ export const ResourcePage = (): React.JSX.Element => {
               }
               id='page-content-deploy'
               isSavingResource={isSavingResource}
-            />
-          )}
-          {currentPage === migrationPageId && isMigrateEnabled() && (
-            <MigrationPage
-              id='page-content-migration'
-              serviceCode={altinn2References[0]}
-              serviceEdition={altinn2References[1]}
             />
           )}
           {currentPage === accessListsPageId && env && !accessListId && (

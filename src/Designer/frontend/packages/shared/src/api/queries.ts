@@ -2,7 +2,6 @@ import { get } from 'app-shared/utils/networking';
 import {
   chatThreadsPath,
   chatMessagesPath,
-  altinn2LinkServicesPath,
   appMetadataPath,
   appPolicyPath,
   appVersionPath,
@@ -58,7 +57,6 @@ import {
   layoutNamesPath,
   appMetadataModelIdsPath,
   processTaskTypePath,
-  altinn2DelegationsCountPath,
   repoDiffPath,
   getImageFileNamesPath,
   validateImageFromExternalUrlPath,
@@ -113,7 +111,6 @@ import type { PolicySubject } from '../types/PolicySubject';
 import type { BrregPartySearchResult, BrregSubPartySearchResult, AccessList, Resource, ResourceListItem, ResourceVersionStatus, Validation, AccessListsResponse, AccessListMembersResponse, DelegationCountOverview, ConsentTemplate } from 'app-shared/types/ResourceAdm';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
-import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
 import type { Policy } from 'app-shared/types/Policy';
@@ -207,7 +204,6 @@ export const getAppPolicy = (org: string, app: string) => get<Policy>(appPolicyP
 export const getAppMetadata = (org: string, app: string) => get<ApplicationMetadata>(appMetadataPath(org, app));
 
 // Resourceadm
-export const getAltinn2LinkServices = (org: string, environment: string) => get<Altinn2LinkService[]>(altinn2LinkServicesPath(org, environment));
 export const getPolicyActions = (org: string, repo: string) => get<PolicyAction[]>(resourceActionsPath(org, repo));
 export const getPolicy = (org: string, repo: string, id: string) => get<Policy>(resourcePolicyPath(org, repo, id));
 export const getPolicySubjects = (org: string, repo: string) => get<PolicySubject[]>(resourceSubjectsPath(org, repo));
@@ -225,7 +221,6 @@ export const getAccessListMembers = (org: string, listId: string, environment: s
 export const getResourceAccessLists = (org: string, resourceId: string, environment: string, page?: string) => get<AccessListsResponse>(resourceAccessListsPath(org, resourceId, environment, page));
 export const getParties = (url: string) => get<BrregPartySearchResult>(url);
 export const getSubParties = (url: string) => get<BrregSubPartySearchResult>(url);
-export const getAltinn2DelegationsCount = (org: string, serviceCode: string, serviceEdition: string, env: string) => get<DelegationCountOverview>(altinn2DelegationsCountPath(org, serviceCode, serviceEdition, env));
 export const getConsentTemplates = (org: string) => get<ConsentTemplate[]>(consentTemplatesPath(org));
 
 // ProcessEditor
