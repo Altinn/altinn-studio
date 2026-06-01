@@ -7,6 +7,7 @@ import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
 import { MigrationPanel } from '../../components/MigrationPanel';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
+import { isTT02SBLBridgeEnabled, isProdSBLBridgeEnabled } from 'resourceadm/utils/userUtils';
 
 export type MigrationPageProps = {
   id: string;
@@ -82,18 +83,27 @@ export const MigrationPage = ({
           </StudioHeading>
           <StudioParagraph>{t('resourceadm.migration_select_environment_body')}</StudioParagraph>
           <div className={classes.environmentWrapper}>
-            {envPublishStatus.map((env) => {
-              const isPublishedInEnv = env.isResourcePublished;
-              return (
-                <MigrationPanel
-                  key={env.id}
-                  serviceCode={serviceCode}
-                  serviceEdition={serviceEdition}
-                  env={env}
-                  isPublishedInEnv={isPublishedInEnv}
-                />
-              );
-            })}
+            {envPublishStatus
+              .filter((env) => {
+                if (env.id === 'tt02') {
+                  return isTT02SBLBridgeEnabled();
+                } else if (env.id === 'prod') {
+                  return isProdSBLBridgeEnabled();
+                }
+                return false;
+              })
+              .map((env) => {
+                const isPublishedInEnv = env.isResourcePublished;
+                return (
+                  <MigrationPanel
+                    key={env.id}
+                    serviceCode={serviceCode}
+                    serviceEdition={serviceEdition}
+                    env={env}
+                    isPublishedInEnv={isPublishedInEnv}
+                  />
+                );
+              })}
           </div>
         </div>
       </>
