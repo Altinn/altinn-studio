@@ -1,6 +1,7 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
+import { useIsMobile } from '@app/form-component/app-components/hooks/useDeviceWidths';
 import { Heading } from '@digdir/designsystemet-react';
 import {
   CheckmarkCircleIcon,
@@ -11,8 +12,6 @@ import {
 import cn from 'classnames';
 
 import classes from './Panel.module.css';
-
-import { useIsMobile } from 'src/app-components/hooks/useDeviceWidths';
 
 export type PanelVariant = 'info' | 'warning' | 'error' | 'success';
 

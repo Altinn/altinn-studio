@@ -141,6 +141,23 @@ export default defineConfig([
     },
   },
   {
+    files: ['src/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['src/*'],
+              message:
+                'Use @app/form-component/... aliases instead of src/... to keep imports resolvable across package boundaries.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['vitest.config.ts', '.storybook/**/*', '**/*.stories.{ts,tsx}'],
     rules: {
       'import/no-default-export': ['off'],
@@ -182,9 +199,9 @@ export default defineConfig([
         {
           patterns: [
             {
-              regex: 'src/(?!app-components)',
+              regex: '@app/form-component/(?!app-components)',
               message:
-                'app-components should not import from outside src/app-components/. Keep these components self-contained.',
+                'app-components should not import from outside @app/form-component/app-components/. Keep these components self-contained.',
             },
           ],
         },

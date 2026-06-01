@@ -1,12 +1,11 @@
 import React from 'react';
 
 import { Textfield } from '@digdir/designsystemet-react';
+import type { TimeSegmentProps } from '@app/form-component/app-components/Timepicker/types';
 
 import { useSegmentDisplay } from './hooks/useSegmentDisplay';
 import { useSegmentInputHandlers } from './hooks/useSegmentInputHandlers';
 import { useTypingBuffer } from './hooks/useTypingBuffer';
-
-import type { TimeSegmentProps } from 'src/app-components/Timepicker/types';
 
 export function TimeSegment({
   value,

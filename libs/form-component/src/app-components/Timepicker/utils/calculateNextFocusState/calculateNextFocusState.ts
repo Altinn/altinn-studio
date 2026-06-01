@@ -1,4 +1,7 @@
-import type { DropdownFocusState, NavigationAction } from 'src/app-components/Timepicker/types';
+import type {
+  DropdownFocusState,
+  NavigationAction,
+} from '@app/form-component/app-components/Timepicker/types';
 
 /**
  * Calculates the next focus state based on the current state and navigation action

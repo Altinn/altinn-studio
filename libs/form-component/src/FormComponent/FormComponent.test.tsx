@@ -1,11 +1,10 @@
+import { FormComponentActionType } from '@app/form-component/types/FormComponentActionType';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { DataModelBinding } from '@app/form-component/types/DataModelBinding';
+import type { FormComponentProps } from '@app/form-component/types/FormComponentProps';
 
 import { FormComponent } from './FormComponent';
-
-import { FormComponentActionType } from 'src/types/FormComponentActionType';
-import type { DataModelBinding } from 'src/types/DataModelBinding';
-import type { FormComponentProps } from 'src/types/FormComponentProps';
 
 const onActionMock = vi.fn();
 

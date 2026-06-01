@@ -3,7 +3,7 @@ import type {
   SegmentType,
   SegmentTypingResult,
   TimeFormat,
-} from 'src/app-components/Timepicker/types';
+} from '@app/form-component/app-components/Timepicker/types';
 
 /**
  * Process hour input with Chrome-like smart coercion

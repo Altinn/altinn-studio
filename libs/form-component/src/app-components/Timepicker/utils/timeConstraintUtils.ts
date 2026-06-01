@@ -3,7 +3,7 @@ import type {
   TimeConstraints,
   TimeFormat,
   TimeValue,
-} from 'src/app-components/Timepicker/types';
+} from '@app/form-component/app-components/Timepicker/types';
 
 export const parseTimeString = (timeStr: string, format: TimeFormat): TimeValue => {
   const is12Hour = format.includes('a');

@@ -3,7 +3,7 @@ import type {
   SegmentNavigationResult,
   SegmentType,
   TimeFormat,
-} from 'src/app-components/Timepicker/types';
+} from '@app/form-component/app-components/Timepicker/types';
 
 export const handleSegmentKeyDown = (event: {
   key: string;

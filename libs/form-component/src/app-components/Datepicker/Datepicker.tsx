@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import type { MonthCaption } from 'react-day-picker';
 
+import { Flex } from '@app/form-component/app-components/Flex/Flex';
 import { CalendarIcon } from '@navikt/aksel-icons';
 import { isValid as isValidDate } from 'date-fns';
 
@@ -9,8 +10,6 @@ import { DatePickerCalendar } from './DatePickerCalendar';
 import { DatePickerDialog } from './DatepickerDialog';
 import { DatePickerInput } from './DatePickerInput';
 import { getSaveFormattedDateString } from './utils/dateHelpers';
-
-import { Flex } from 'src/app-components/Flex/Flex';
 
 export type DatePickerControlProps = {
   id: string;

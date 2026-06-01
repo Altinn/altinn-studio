@@ -4,7 +4,7 @@ import type {
   SegmentConstraints,
   SegmentType,
   TimeValue,
-} from 'src/app-components/Timepicker/types';
+} from '@app/form-component/app-components/Timepicker/types';
 
 /**
  * Handles period (AM/PM) changes by adjusting hours accordingly
