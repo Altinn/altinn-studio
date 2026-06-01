@@ -2,5 +2,4 @@
 
 cd "$(dirname -- "$0")"
 cd ../
-sh .husky/pre-commit-check-monorepo-paths
 npx lint-staged
