@@ -31,7 +31,53 @@ public class UiFoldersService : IUiFoldersService
             editingContext.Developer
         );
 
+    public async Task<IEnumerable<LayoutSetDto>> GetLayoutSets(
+        AltinnRepoEditingContext editingContext,
+        CancellationToken cancellationToken
+    )
+    {
+        List<LayoutSetInfo> layoutSetInfos = await GetLayoutSetInfos(editingContext, cancellationToken);
+
+        return [.. layoutSetInfos.Select(ToLayoutSetDto)];
+    }
+
     public async Task<IEnumerable<LayoutSetDto>> GetLayoutSetsExtended(
+        AltinnRepoEditingContext editingContext,
+        CancellationToken cancellationToken
+    )
+    {
+        List<LayoutSetInfo> layoutSetInfos = await GetLayoutSetInfos(editingContext, cancellationToken);
+
+        return
+        [
+            .. layoutSetInfos.Select(info =>
+            {
+                LayoutSetDto layoutSet = ToLayoutSetDto(info);
+
+                PagesDto pages = PagesDto.From(info.LayoutSettings);
+                layoutSet.PageCount =
+                    pages.Groups != null ? pages.Groups.Sum(group => group.Pages.Count) : pages.Pages!.Count;
+
+                return layoutSet;
+            }),
+        ];
+    }
+
+    private static LayoutSetDto ToLayoutSetDto(LayoutSetInfo info) =>
+        new()
+        {
+            Id = info.LayoutSetName,
+            DataType = info.LayoutSettings.DataType,
+            Type = info.LayoutSettings.Type,
+            Task = info.TaskType != null ? new TaskModel { Type = info.TaskType } : null,
+        };
+
+    /// <summary>
+    /// Shared logic for resolving layout sets from the UI folders. Since v9 apps no longer have a
+    /// layout-sets.json file, layout sets are derived from the UI folders combined with the process
+    /// definitions. Only folders that are subforms or that match a process task are included.
+    /// </summary>
+    private async Task<List<LayoutSetInfo>> GetLayoutSetInfos(
         AltinnRepoEditingContext editingContext,
         CancellationToken cancellationToken
     )
@@ -42,7 +88,7 @@ public class UiFoldersService : IUiFoldersService
         IEnumerable<string> uiFolders = await altinnAppGitRepository.GetUiFolders(cancellationToken);
         Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
 
-        List<LayoutSetDto> layoutSets = [];
+        List<LayoutSetInfo> layoutSets = [];
 
         foreach (string layoutSetName in uiFolders)
         {
@@ -62,20 +108,8 @@ public class UiFoldersService : IUiFoldersService
                 }
 
                 string? taskType = hasMatchingTask ? TaskTypeFromDefinitions(definitions, layoutSetName) : null;
-                PagesDto pages = PagesDto.From(layoutSettings);
-                int pageCount =
-                    pages.Groups != null ? pages.Groups.Sum(group => group.Pages.Count) : pages.Pages!.Count;
 
-                layoutSets.Add(
-                    new LayoutSetDto
-                    {
-                        Id = layoutSetName,
-                        DataType = layoutSettings.DataType,
-                        Type = layoutSettings.Type,
-                        Task = taskType != null ? new TaskModel { Type = taskType } : null,
-                        PageCount = pageCount,
-                    }
-                );
+                layoutSets.Add(new LayoutSetInfo(layoutSetName, layoutSettings, taskType));
             }
             catch (Exception e) when (e is FileNotFoundException or JsonException)
             {
@@ -89,6 +123,8 @@ public class UiFoldersService : IUiFoldersService
 
         return layoutSets;
     }
+
+    private sealed record LayoutSetInfo(string LayoutSetName, LayoutSettings LayoutSettings, string? TaskType);
 
     private static string TaskTypeFromDefinitions(Definitions definitions, string taskId)
     {

@@ -34,6 +34,15 @@ public class UiFoldersController : Controller
         return AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
     }
 
+    [HttpGet("layout-sets")]
+    [UseSystemTextJson]
+    public async Task<IActionResult> GetLayoutSets(string org, string app, CancellationToken cancellationToken)
+    {
+        AltinnRepoEditingContext editingContext = CreateContext(org, app);
+        IEnumerable<LayoutSetDto> layoutSets = await _uiFoldersService.GetLayoutSets(editingContext, cancellationToken);
+        return Ok(layoutSets);
+    }
+
     [HttpGet("layout-sets/extended")]
     [UseSystemTextJson]
     public async Task<IActionResult> GetLayoutSetsExtended(string org, string app, CancellationToken cancellationToken)
