@@ -33,9 +33,8 @@ import { collectHiddenSources, evaluateHiddenSources } from 'src/utils/layout/hi
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import type { FormComponentProps, IDataModelReference, SummarizableComponentProps } from 'src/layout/common.generated';
+import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompExternal, CompIntermediate, CompInternal, CompTypes, IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
 import type { IData } from 'src/types/shared';
 import type { BaseRow } from 'src/utils/layout/types';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
@@ -57,7 +56,6 @@ type GeneratedNode = {
   rowIds: string[];
   dataModelBindings: IDataModelBindings;
   intermediateItem: CompIntermediate;
-  item: CompInternal;
   hidden: boolean;
   isValid: boolean;
 };
@@ -99,95 +97,6 @@ function cloneWithRuntime(
       currentDataModelPath: () => currentDataModelPath,
     },
   };
-}
-
-function buildExpressionResolverProps<T extends CompTypes>(
-  errorIntroText: string,
-  rawItem: CompIntermediate<T>,
-  allDataSources: ExpressionDataSources,
-): ExprResolver<T> {
-  const item = rawItem as CompIntermediate<T>;
-
-  const evalProto = <V extends ExprVal>(
-    type: V,
-    expr: unknown,
-    defaultValue: unknown,
-    dataSources?: Partial<ExpressionDataSources>,
-  ) =>
-    evalExpr(expr as never, { ...allDataSources, ...dataSources }, {
-      returnType: type,
-      defaultValue,
-      errorIntroText,
-    } as never);
-
-  const evalBool = (expr: unknown, defaultValue: boolean, dataSources?: Partial<ExpressionDataSources>) =>
-    evalProto(ExprVal.Boolean, expr, defaultValue, dataSources) as boolean;
-  const evalStr = (expr: unknown, defaultValue: string, dataSources?: Partial<ExpressionDataSources>) =>
-    evalProto(ExprVal.String, expr, defaultValue, dataSources) as string;
-  const evalNum = (expr: unknown, defaultValue: number, dataSources?: Partial<ExpressionDataSources>) =>
-    evalProto(ExprVal.Number, expr, defaultValue, dataSources) as number;
-  const evalAny = (expr: unknown, defaultValue: unknown, dataSources?: Partial<ExpressionDataSources>) =>
-    evalProto(ExprVal.Any, expr, defaultValue, dataSources);
-
-  const evalBase = () => {
-    const { hidden: _hidden, ...rest } = item as CompIntermediate & {
-      pageBreak?: { breakBefore?: unknown; breakAfter?: unknown };
-    };
-    return {
-      ...rest,
-      ...(rest.pageBreak
-        ? {
-            pageBreak: {
-              breakBefore: evalStr(rest.pageBreak.breakBefore, 'auto'),
-              breakAfter: evalStr(rest.pageBreak.breakAfter, 'auto'),
-            },
-          }
-        : {}),
-    };
-  };
-
-  const evalFormProps = () => {
-    const out: Partial<FormComponentProps> = {};
-    if ('required' in item && Array.isArray(item.required)) {
-      out.required = evalBool(item.required, false);
-    }
-    if ('readOnly' in item && Array.isArray(item.readOnly)) {
-      out.readOnly = evalBool(item.readOnly, false);
-    }
-    return out;
-  };
-
-  const evalSummarizable = () => {
-    const out: Partial<SummarizableComponentProps> = {};
-    if ('forceShowInSummary' in item && Array.isArray(item.forceShowInSummary)) {
-      out.forceShowInSummary = evalBool(item.forceShowInSummary, false);
-    }
-    return out;
-  };
-
-  const evalTrb = () => {
-    const trb: Record<string, string> = {};
-    if (item.textResourceBindings) {
-      for (const [key, value] of Object.entries(item.textResourceBindings)) {
-        trb[key] = evalStr(value, '');
-      }
-    }
-    return {
-      textResourceBindings: item.textResourceBindings ? trb : undefined,
-    };
-  };
-
-  return {
-    item,
-    evalBool,
-    evalNum,
-    evalStr,
-    evalAny,
-    evalBase,
-    evalFormProps,
-    evalSummarizable,
-    evalTrb,
-  } as unknown as ExprResolver<T>;
 }
 
 function toIntermediateItem<T extends CompTypes>(
@@ -268,7 +177,6 @@ function buildNode(
   state: FormStoreState,
   lookups: LayoutLookups,
   hiddenDataSources: ExpressionDataSources,
-  evalDataSources: ExpressionDataSources,
   pageOrder: string[],
   pageKey: string,
   baseId: string,
@@ -280,9 +188,6 @@ function buildNode(
   const component = lookups.getComponent(baseId);
   const intermediateItem = toIntermediateItem(component, rowContexts);
   const currentDataModelPath = getCurrentDataModelPath(rowContexts);
-  const runtimeForNode = cloneWithRuntime(evalDataSources, currentDataModelPath);
-  const props = buildExpressionResolverProps(`Invalid expression for ${baseId}`, intermediateItem, runtimeForNode);
-  const item = getComponentDef(component.type).evalExpressions(props as never) as CompInternal;
 
   const hiddenSources = collectHiddenSources(baseId, lookups).reverse();
   const hiddenRuntime = cloneWithRuntime(hiddenDataSources, currentDataModelPath);
@@ -314,7 +219,6 @@ function buildNode(
     rowIds: getRowIds(state, rowContexts),
     dataModelBindings: intermediateItem.dataModelBindings as IDataModelBindings,
     intermediateItem,
-    item,
     hidden,
     isValid,
   };
@@ -349,7 +253,6 @@ function walkNodes(args: {
     args.state,
     args.lookups,
     args.hiddenDataSources,
-    args.evalDataSources,
     args.pageOrder,
     args.pageKey,
     args.baseId,
@@ -393,12 +296,10 @@ function walkNodes(args: {
   }
 
   if (node.nodeType === 'Likert') {
+    const item = args.lookups.getComponent(node.baseId, 'Likert');
     const questionsBinding = (node.dataModelBindings as IDataModelBindings<'Likert'>).questions;
     const rows = getRows(args.state, questionsBinding);
-    const { startIndex, stopIndex } = getLikertStartStopIndex(
-      rows.length - 1,
-      (node.item as CompInternal<'Likert'>).filter,
-    );
+    const { startIndex, stopIndex } = getLikertStartStopIndex(rows.length - 1, item.filter);
     const childId = makeLikertChildId(args.baseId);
     for (const row of rows.slice(startIndex, stopIndex + 1)) {
       walkNodes({
@@ -525,13 +426,18 @@ function getRawValidationsForNode(
   dataSources: ExpressionDataSources,
   instanceData: IData[],
 ): AnyValidation[] {
-  if (!node.isValid || !shouldValidateNode(node.item)) {
+  const item = lookups.getComponent(node.baseId);
+  if (!node.isValid || !shouldValidateNode(item) || !item) {
     return emptyArray;
   }
 
   const bindings = Object.entries((node.dataModelBindings ?? {}) as Record<string, IDataModelReference>);
-  const out: AnyValidation[] = [];
   const def = getComponentDef(node.nodeType);
+  if (!def) {
+    return emptyArray;
+  }
+
+  const out: AnyValidation[] = [];
   out.push(...getComponentDefValidations(def, makeComponentValidationContext(node, state, dataSources, instanceData)));
 
   for (const [bindingKey, reference] of bindings) {
