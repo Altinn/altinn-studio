@@ -54,7 +54,6 @@ jobs:
       - name: type-check
         run: yarn typecheck
 
-      todo:
       - name: run eslint
         run: yarn lint
 
