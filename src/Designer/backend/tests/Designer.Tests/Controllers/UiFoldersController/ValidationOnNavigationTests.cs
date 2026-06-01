@@ -1,113 +1,120 @@
-using System.Security.Claims;
-using System.Threading;
+using System.Net;
+using System.Net.Http;
+using System.Net.Mime;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Moq;
+using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.Utils;
+using Microsoft.AspNetCore.Mvc.Testing;
+using SharedResources.Tests;
 using Xunit;
 
-namespace Altinn.Studio.Designer.Tests.Controllers;
+namespace Designer.Tests.Controllers.UiFoldersController;
 
-public class ValidationOnNavigationTests
+public class ValidationOnNavigationTests(WebApplicationFactory<Program> factory)
+    : DesignerEndpointsTestsBase<ValidationOnNavigationTests>(factory),
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly Mock<IUiFoldersService> _uiFoldersServiceMock;
-    private readonly UiFoldersController _controller;
-    private static readonly string[] s_expected = ["Expression", "Schema"];
+    private const string GlobalSettingsPath = "App/ui/Settings.json";
 
-    public ValidationOnNavigationTests()
+    private static string VersionPrefix(string org, string repository) =>
+        $"/designer/api/{org}/{repository}/ui-folders/settings/validation-on-navigation";
+
+    [Theory]
+    [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
+    public async Task GetGlobalValidationOnNavigation_WhenExists_ReturnsConfig(string org, string app, string developer)
     {
-        _uiFoldersServiceMock = new Mock<IUiFoldersService>();
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        var httpContext = new DefaultHttpContext
+        string url = VersionPrefix(org, targetRepository);
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        string expected = JsonSerializer.Serialize(
+            new ValidationOnNavigation { Page = "current", Show = ["Expression", "Schema"] }
+        );
+        string actual = await response.Content.ReadAsStringAsync();
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData("ttd", "app-with-process-and-layoutsets", "testUser")]
+    public async Task GetGlobalValidationOnNavigation_WhenDoesNotExist_ReturnsNull(
+        string org,
+        string app,
+        string developer
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+        string url = VersionPrefix(org, targetRepository);
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        string actual = await response.Content.ReadAsStringAsync();
+        Assert.Equal("null", actual);
+    }
+
+    [Theory]
+    [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
+    public async Task SaveGlobalValidationOnNavigation_WhenValidPayload_ReturnsOk(
+        string org,
+        string app,
+        string developer
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+        string url = VersionPrefix(org, targetRepository);
+
+        var config = new ValidationOnNavigation { Page = "all", Show = ["Required"] };
+
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
-            User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Name, "test-user")], "TestAuth")),
+            Content = new StringContent(
+                JsonSerializer.Serialize(config),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            ),
         };
 
-        _controller = new UiFoldersController(_uiFoldersServiceMock.Object)
-        {
-            ControllerContext = new ControllerContext { HttpContext = httpContext },
-        };
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        JsonNode expectedData = JsonNode.Parse(JsonSerializer.Serialize(config));
+
+        string savedFile = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, GlobalSettingsPath);
+        JsonNode savedData = JsonNode.Parse(savedFile)["validationOnNavigation"];
+
+        Assert.True(JsonUtils.DeepEquals(expectedData.ToJsonString(), savedData.ToJsonString()));
     }
 
-    [Fact]
-    public async Task GetGlobalValidationOnNavigation_ReturnsOkWithConfig()
+    [Theory]
+    [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
+    public async Task DeleteGlobalValidationOnNavigation_ReturnsOk(string org, string app, string developer)
     {
-        // Arrange
-        var expectedConfig = new ValidationOnNavigation { Page = "current", Show = ["Expression", "Schema"] };
-        _uiFoldersServiceMock
-            .Setup(s =>
-                s.GetGlobalValidationOnNavigation(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<CancellationToken>())
-            )
-            .ReturnsAsync(expectedConfig);
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        // Act
-        IActionResult result = await _controller.GetGlobalValidationOnNavigation("ttd", "app", CancellationToken.None);
+        string url = VersionPrefix(org, targetRepository);
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
-        // Assert
-        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        ValidationOnNavigation config = Assert.IsType<ValidationOnNavigation>(okResult.Value);
+        string savedFile = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, GlobalSettingsPath);
+        JsonNode savedData = JsonNode.Parse(savedFile)["validationOnNavigation"];
 
-        Assert.Equal("current", config.Page);
-        Assert.Equal(s_expected, config.Show);
-    }
-
-    [Fact]
-    public async Task SaveGlobalValidationOnNavigation_ReturnsOk()
-    {
-        // Arrange
-        var config = new ValidationOnNavigation { Page = "current", Show = ["Expression"] };
-        _uiFoldersServiceMock
-            .Setup(s =>
-                s.SaveGlobalValidationOnNavigation(
-                    It.IsAny<AltinnRepoEditingContext>(),
-                    config,
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .Returns(Task.CompletedTask)
-            .Verifiable();
-
-        // Act
-        IActionResult result = await _controller.SaveGlobalValidationOnNavigation(
-            "ttd",
-            "app",
-            config,
-            CancellationToken.None
-        );
-
-        // Assert
-        Assert.IsType<OkResult>(result);
-        _uiFoldersServiceMock.Verify();
-    }
-
-    [Fact]
-    public async Task DeleteGlobalValidationOnNavigation_ReturnsOk()
-    {
-        // Arrange
-        _uiFoldersServiceMock
-            .Setup(s =>
-                s.SaveGlobalValidationOnNavigation(
-                    It.IsAny<AltinnRepoEditingContext>(),
-                    null,
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .Returns(Task.CompletedTask)
-            .Verifiable();
-
-        // Act
-        IActionResult result = await _controller.DeleteGlobalValidationOnNavigation(
-            "ttd",
-            "app",
-            CancellationToken.None
-        );
-
-        // Assert
-        Assert.IsType<OkResult>(result);
-        _uiFoldersServiceMock.Verify();
+        Assert.Null(savedData);
     }
 }

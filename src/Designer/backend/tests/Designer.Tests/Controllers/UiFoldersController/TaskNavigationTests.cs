@@ -1,143 +1,190 @@
 using System.Collections.Generic;
-using System.Security.Claims;
-using System.Threading;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Mime;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Controllers;
-using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Mappers;
 using Altinn.Studio.Designer.Models.Dto;
-using Altinn.Studio.Designer.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Moq;
+using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.Utils;
+using Microsoft.AspNetCore.Mvc.Testing;
+using SharedResources.Tests;
 using Xunit;
 
-namespace Altinn.Studio.Designer.Tests.Controllers;
+namespace Designer.Tests.Controllers.UiFoldersController;
 
-public class TaskNavigationTests
+public class TaskNavigationTests(WebApplicationFactory<Program> factory)
+    : DesignerEndpointsTestsBase<TaskNavigationTests>(factory),
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly Mock<IUiFoldersService> _uiFoldersServiceMock;
-    private readonly UiFoldersController _controller;
+    private const string GlobalSettingsPath = "App/ui/Settings.json";
 
-    public TaskNavigationTests()
+    private static string VersionPrefix(string org, string repository) =>
+        $"/designer/api/{org}/{repository}/ui-folders/settings/task-navigation";
+
+    [Theory]
+    [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
+    public async Task GetGlobalTaskNavigation_WhenExists_ReturnsTaskNavigationArray(
+        string org,
+        string app,
+        string developer
+    )
     {
-        _uiFoldersServiceMock = new Mock<IUiFoldersService>();
-        var httpContext = new DefaultHttpContext
-        {
-            User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Name, "test-user")], "TestAuth")),
-        };
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        _controller = new UiFoldersController(_uiFoldersServiceMock.Object)
-        {
-            ControllerContext = new ControllerContext { HttpContext = httpContext },
-        };
+        string url = VersionPrefix(org, targetRepository);
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        string expected = JsonSerializer.Serialize(
+            new List<TaskNavigationGroupDto>()
+            {
+                new()
+                {
+                    TaskId = "Task_1",
+                    TaskType = "data",
+                    Name = "tasks.form",
+                },
+                new() { TaskId = "Task_Confirm", TaskType = "confirmation" },
+                new() { TaskType = "receipt" },
+            }
+        );
+        string actual = await response.Content.ReadAsStringAsync();
+        Assert.Equal(expected, actual);
     }
 
-    [Fact]
-    public async Task GetGlobalTaskNavigation_ReturnsOkWithGroups()
+    [Theory]
+    [InlineData("ttd", "app-with-process-and-layoutsets", "testUser")]
+    public async Task GetGlobalTaskNavigation_WhenDoesNotExist_ReturnsEmptyArray(
+        string org,
+        string app,
+        string developer
+    )
     {
-        // Arrange
-        var expectedGroups = new List<TaskNavigationGroupDto>
-        {
-            new()
-            {
-                TaskId = "Task_1",
-                TaskType = "typeA",
-                Name = "First",
-            },
-            new()
-            {
-                TaskId = "Task_2",
-                TaskType = "typeB",
-                Name = "Second",
-            },
-        };
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        _uiFoldersServiceMock
-            .Setup(s =>
-                s.GetGlobalTaskNavigationDto(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<CancellationToken>())
-            )
-            .ReturnsAsync(expectedGroups);
+        string url = VersionPrefix(org, targetRepository);
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
-        // Act
-        IActionResult result = await _controller.GetGlobalTaskNavigation("ttd", "app", CancellationToken.None);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        // Assert
-        OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
-        List<TaskNavigationGroupDto> groups = Assert.IsType<List<TaskNavigationGroupDto>>(okResult.Value);
-
-        Assert.Equal(2, groups.Count);
-
-        Assert.Equal("Task_1", groups[0].TaskId);
-        Assert.Equal("typeA", groups[0].TaskType);
-        Assert.Equal("First", groups[0].Name);
-
-        Assert.Equal("Task_2", groups[1].TaskId);
-        Assert.Equal("typeB", groups[1].TaskType);
-        Assert.Equal("Second", groups[1].Name);
+        string expected = "[]";
+        string actual = await response.Content.ReadAsStringAsync();
+        Assert.Equal(expected, actual);
     }
 
-    [Fact]
-    public async Task UpdateGlobalTaskNavigation_ReturnsNoContent()
+    [Theory]
+    [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
+    public async Task UpdateGlobalTaskNavigation_WhenValidPayload_ReturnsNoContent(
+        string org,
+        string app,
+        string developer
+    )
     {
-        // Arrange
-        var inputGroups = new List<TaskNavigationGroupDto>
-        {
-            new()
-            {
-                TaskId = "Task_1",
-                TaskType = "typeA",
-                Name = "First",
-            },
-        };
-        _uiFoldersServiceMock
-            .Setup(s =>
-                s.UpdateGlobalTaskNavigation(
-                    It.IsAny<AltinnRepoEditingContext>(),
-                    inputGroups,
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .Returns(Task.CompletedTask)
-            .Verifiable();
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        // Act
-        IActionResult result = await _controller.UpdateGlobalTaskNavigation(
-            "ttd",
-            "app",
-            inputGroups,
-            CancellationToken.None
+        string url = VersionPrefix(org, targetRepository);
+
+        IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDtoList =
+        [
+            new() { TaskId = "data", Name = "data" },
+            new() { TaskType = "receipt", Name = "receipt" },
+        ];
+
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(taskNavigationGroupDtoList),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            ),
+        };
+
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+        JsonNode expectedData = JsonNode.Parse(
+            JsonSerializer.Serialize(
+                taskNavigationGroupDtoList.Select(taskNavigationGroupDto => taskNavigationGroupDto.ToDomain())
+            )
         );
 
-        // Assert
-        Assert.IsType<NoContentResult>(result);
-        _uiFoldersServiceMock.Verify();
+        string savedFile = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, GlobalSettingsPath);
+        JsonNode savedData = JsonNode.Parse(savedFile)["taskNavigation"];
+
+        Assert.True(JsonUtils.DeepEquals(expectedData.ToJsonString(), savedData.ToJsonString()));
     }
 
-    [Fact]
-    public async Task UpdateGlobalTaskNavigation_WhenException_ReturnsBadRequest()
+    [Theory]
+    [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
+    public async Task UpdateGlobalTaskNavigation_WhenEmptyPayload_ReturnsNoContent(
+        string org,
+        string app,
+        string developer
+    )
     {
-        // Arrange
-        var inputGroups = new List<TaskNavigationGroupDto>();
-        _uiFoldersServiceMock
-            .Setup(s =>
-                s.UpdateGlobalTaskNavigation(
-                    It.IsAny<AltinnRepoEditingContext>(),
-                    inputGroups,
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .Throws(new System.ArgumentException("Invalid input"));
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        // Act
-        IActionResult result = await _controller.UpdateGlobalTaskNavigation(
-            "ttd",
-            "app",
-            inputGroups,
-            CancellationToken.None
-        );
+        string url = VersionPrefix(org, targetRepository);
 
-        // Assert
-        BadRequestObjectResult badRequest = Assert.IsType<BadRequestObjectResult>(result);
-        Assert.Equal("Invalid input", badRequest.Value);
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+        {
+            Content = new StringContent("[]", Encoding.UTF8, MediaTypeNames.Application.Json),
+        };
+
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+        string savedFile = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, GlobalSettingsPath);
+        JsonNode savedData = JsonNode.Parse(savedFile)["taskNavigation"];
+
+        Assert.Null(savedData);
+    }
+
+    [Theory]
+    [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
+    public async Task UpdateGlobalTaskNavigation_WhenInvalidPayload_ReturnsBadRequest(
+        string org,
+        string app,
+        string developer
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+        string url = VersionPrefix(org, targetRepository);
+
+        IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDtoList = [new() { TaskType = "test" }];
+
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(taskNavigationGroupDtoList),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            ),
+        };
+
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        string expectedFile = TestDataHelper.GetFileFromRepo(org, app, developer, GlobalSettingsPath);
+        JsonNode expectedData = JsonNode.Parse(expectedFile)["taskNavigation"];
+
+        string savedFile = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, GlobalSettingsPath);
+        JsonNode savedData = JsonNode.Parse(savedFile)["taskNavigation"];
+
+        Assert.True(JsonUtils.DeepEquals(expectedData.ToJsonString(), savedData.ToJsonString()));
     }
 }
