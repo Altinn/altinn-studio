@@ -884,6 +884,15 @@ const common = {
             'The default data model type to be used for bindings not specifying a dataType in these layouts',
           ),
       ),
+      new CG.prop(
+        'type',
+        new CG.str()
+          .optional()
+          .setTitle('Subform indicator')
+          .setDescription(
+            'Optional field used only in Altinn Studio Designer for subform layout sets. When set to "subform", the layout set is treated as a subform. For all other layout sets, this field is not required.',
+          ),
+      ),
     )
       .setTitle('Layout settings')
       .setDescription('Settings regarding layout pages and components'),

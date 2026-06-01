@@ -5,6 +5,7 @@ import type { User } from '../../../types/User';
 import { MessageAuthor } from '../../../types/MessageAuthor';
 import classes from './Messages.module.css';
 import type { Message, UserAttachment, UserMessage, Source } from '../../../types/ChatThread';
+import type { MessageFeedbackTexts } from '../../../types/AssistantTexts';
 import type { WorkflowStatus } from '../../../types/WorkflowStatus';
 import {
   formatAssistantMessageContent,
@@ -12,6 +13,8 @@ import {
   isUrlSafe,
 } from '../../../utils/messageUtils';
 import { ChatAvatar } from '../ChatAvatar';
+import { MessageFeedback } from './MessageFeedback';
+import type { UserFeedback } from '../../../types/UserFeedback';
 
 const ASSISTANT_LABEL = 'Altinity';
 const DEFAULT_USER_LABEL = 'Deg';
@@ -21,6 +24,8 @@ export type MessagesProps = {
   workflowStatus?: WorkflowStatus;
   currentUser?: User;
   assistantAvatarUrl?: string;
+  feedbackTexts?: MessageFeedbackTexts;
+  onMessageFeedback?: (feedback: UserFeedback) => void;
 };
 
 export function Messages({
@@ -28,6 +33,8 @@ export function Messages({
   workflowStatus,
   currentUser,
   assistantAvatarUrl,
+  feedbackTexts,
+  onMessageFeedback,
 }: MessagesProps): ReactElement {
   const showLoadingBubble = workflowStatus?.isActive === true;
   const loadingBubbleText = workflowStatus?.message ?? '';
@@ -40,6 +47,8 @@ export function Messages({
           message={message}
           currentUser={currentUser}
           assistantAvatarUrl={assistantAvatarUrl}
+          feedbackTexts={feedbackTexts}
+          onMessageFeedback={onMessageFeedback}
         />
       ))}
       {showLoadingBubble && (
@@ -79,9 +88,17 @@ type MessageItemProps = {
   message: Message;
   currentUser?: User;
   assistantAvatarUrl?: string;
+  feedbackTexts?: MessageFeedbackTexts;
+  onMessageFeedback?: (feedback: UserFeedback) => void;
 };
 
-function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemProps): ReactElement {
+function MessageItem({
+  message,
+  currentUser,
+  assistantAvatarUrl,
+  feedbackTexts,
+  onMessageFeedback,
+}: MessageItemProps): ReactElement {
   const isUser = message.role === MessageAuthor.User;
   const userLabel = currentUser?.full_name ?? DEFAULT_USER_LABEL;
 
@@ -256,6 +273,9 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
     );
   };
 
+  const traceId = message.role === MessageAuthor.Assistant ? message.traceId : undefined;
+  const showFeedback = traceId && feedbackTexts && onMessageFeedback;
+
   return (
     <div className={`${classes.messageRow} ${classes.assistantRow}`}>
       <ChatAvatar src={assistantAvatarUrl} label={ASSISTANT_LABEL} variant='assistant' />
@@ -269,6 +289,12 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
         </div>
         {renderSources()}
         {renderFilesChanged()}
+        {showFeedback && (
+          <MessageFeedback
+            texts={feedbackTexts}
+            onSubmit={(payload) => onMessageFeedback({ traceId, payload })}
+          />
+        )}
       </div>
     </div>
   );

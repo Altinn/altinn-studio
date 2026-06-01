@@ -11,3 +11,5 @@ resources:
   - lhci.yaml
   - observability.yaml
   - otel-operator.yaml
+  - keda.yaml
+  - runner-org-sync.yaml

@@ -112,6 +112,8 @@ environmentVariables:
     value: "postgres"
   - name: GITEA__database__SSL_MODE
     value: require
+  - name: GITEA__api__DEFAULT_PAGING_NUM
+    value: "100"
   - name: GITEA__mailer__ENABLED
     value: "true"
   - name: GITEA__mailer__SKIP_VERIFY

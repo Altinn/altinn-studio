@@ -18,6 +18,9 @@ import (
 
 const dockerContextTimeout = 5 * time.Second
 
+// EnvContainerToolchain overrides automatic container toolchain detection.
+const EnvContainerToolchain = "STUDIO_CONTAINER_TOOLCHAIN"
+
 type detectorDeps struct {
 	lookupPath             func(string) (string, error)
 	detectPlatform         func(context.Context) (ContainerPlatform, error)
@@ -39,7 +42,19 @@ type detector struct {
 var (
 	defaultDetector       = newDetector(detectorDeps{})
 	errNoContainerRuntime = errors.New("no container runtime found")
+	errUnsupportedTool    = errors.New("unsupported container toolchain")
 	errUnknownTransport   = errors.New("unknown container transport")
+)
+
+type toolchainPreference string
+
+const (
+	toolchainPreferenceAuto                  toolchainPreference = "auto"
+	toolchainPreferenceDocker                toolchainPreference = "docker"
+	toolchainPreferenceColima                toolchainPreference = "colima"
+	toolchainPreferencePodman                toolchainPreference = "podman"
+	toolchainPreferencePodmanCLI             toolchainPreference = "podman-cli"
+	toolchainPreferencePodmanDockerEngineAPI toolchainPreference = "podman-docker-engine-api"
 )
 
 // Detect detects which container runtime is available on the system.
@@ -105,6 +120,64 @@ func newDetector(deps detectorDeps) *detector {
 }
 
 func (d *detector) detectToolchain(ctx context.Context) (ContainerToolchain, error) {
+	preference, err := toolchainPreferenceFromEnv()
+	if err != nil {
+		return ContainerToolchain{}, err
+	}
+
+	switch preference {
+	case toolchainPreferenceAuto:
+		return d.detectAutoToolchain(ctx)
+	case toolchainPreferenceDocker:
+		return d.detectDockerEngineAPIPlatform(ctx, preference, PlatformDocker)
+	case toolchainPreferenceColima:
+		return d.detectDockerEngineAPIPlatform(ctx, preference, PlatformColima)
+	case toolchainPreferencePodman:
+		if toolchain, err := d.detectDockerEngineAPIPlatform(ctx, preference, PlatformPodman); err == nil {
+			return toolchain, nil
+		}
+		if toolchain, ok := d.detectPodmanCLIToolchain(); ok {
+			return toolchain, nil
+		}
+		return ContainerToolchain{}, noRuntimeForPreference(preference)
+	case toolchainPreferencePodmanCLI:
+		if toolchain, ok := d.detectPodmanCLIToolchain(); ok {
+			return toolchain, nil
+		}
+		return ContainerToolchain{}, noRuntimeForPreference(preference)
+	case toolchainPreferencePodmanDockerEngineAPI:
+		return d.detectDockerEngineAPIPlatform(ctx, preference, PlatformPodman)
+	default:
+		return ContainerToolchain{}, noRuntimeForPreference(preference)
+	}
+}
+
+func toolchainPreferenceFromEnv() (toolchainPreference, error) {
+	raw := strings.TrimSpace(os.Getenv(EnvContainerToolchain))
+	if raw == "" {
+		return toolchainPreferenceAuto, nil
+	}
+
+	preference := toolchainPreference(strings.ToLower(raw))
+	switch preference {
+	case toolchainPreferenceAuto,
+		toolchainPreferenceDocker,
+		toolchainPreferenceColima,
+		toolchainPreferencePodman,
+		toolchainPreferencePodmanCLI,
+		toolchainPreferencePodmanDockerEngineAPI:
+		return preference, nil
+	default:
+		return "", fmt.Errorf(
+			"%w: %s=%q (supported: auto, docker, colima, podman, podman-cli, podman-docker-engine-api)",
+			errUnsupportedTool,
+			EnvContainerToolchain,
+			raw,
+		)
+	}
+}
+
+func (d *detector) detectAutoToolchain(ctx context.Context) (ContainerToolchain, error) {
 	dockerHost := strings.TrimSpace(os.Getenv("DOCKER_HOST"))
 	if dockerHost != "" {
 		if toolchain, ok := d.detectDefaultToolchain(ctx, true); ok {
@@ -132,6 +205,8 @@ func (d *detector) detectToolchain(ctx context.Context) (ContainerToolchain, err
 			Platform:   PlatformPodman,
 			AccessMode: AccessPodmanCLI,
 			Source:     SourcePodmanCLI,
+			SocketPath: "",
+			SELinux:    false,
 		}, nil
 	}
 
@@ -139,6 +214,46 @@ func (d *detector) detectToolchain(ctx context.Context) (ContainerToolchain, err
 		"%w (tried Docker API, docker context, Docker-compatible sockets, Podman socket, Podman CLI)",
 		errNoContainerRuntime,
 	)
+}
+
+func (d *detector) detectDockerEngineAPIPlatform(
+	ctx context.Context,
+	preference toolchainPreference,
+	platform ContainerPlatform,
+) (ContainerToolchain, error) {
+	dockerHost := strings.TrimSpace(os.Getenv("DOCKER_HOST"))
+	if toolchain, ok := d.detectDefaultToolchain(ctx, dockerHost != ""); ok && toolchain.Platform == platform {
+		return toolchain, nil
+	}
+	if toolchain, ok := d.tryDockerContext(ctx); ok && toolchain.Platform == platform {
+		return toolchain, nil
+	}
+	if toolchain, ok := d.findDockerSocketPlatform(ctx, platform); ok {
+		return toolchain, nil
+	}
+	if toolchain, ok := d.findPodmanSocket(ctx); ok && toolchain.Platform == platform {
+		return toolchain, nil
+	}
+
+	return ContainerToolchain{}, noRuntimeForPreference(preference)
+}
+
+func (d *detector) detectPodmanCLIToolchain() (ContainerToolchain, bool) {
+	if _, err := d.deps.lookupPath("podman"); err != nil {
+		return ContainerToolchain{}, false
+	}
+
+	return ContainerToolchain{
+		Platform:   PlatformPodman,
+		AccessMode: AccessPodmanCLI,
+		Source:     SourcePodmanCLI,
+		SocketPath: "",
+		SELinux:    false,
+	}, true
+}
+
+func noRuntimeForPreference(preference toolchainPreference) error {
+	return fmt.Errorf("%w for %s=%q", errNoContainerRuntime, EnvContainerToolchain, preference)
 }
 
 func newClientForTransport(ctx context.Context, toolchain ContainerToolchain) (ContainerClient, error) {
@@ -193,6 +308,23 @@ func (d *detector) findDockerSocket(ctx context.Context) (ContainerToolchain, bo
 
 		toolchain, ok := d.detectHostToolchain(ctx, "unix://"+socketPath, SourceKnownSocket)
 		if ok {
+			return toolchain, true
+		}
+	}
+	return ContainerToolchain{}, false
+}
+
+func (d *detector) findDockerSocketPlatform(
+	ctx context.Context,
+	platform ContainerPlatform,
+) (ContainerToolchain, bool) {
+	for _, socketPath := range d.deps.dockerSocketPaths() {
+		if !d.deps.fileExists(socketPath) {
+			continue
+		}
+
+		toolchain, ok := d.detectHostToolchain(ctx, "unix://"+socketPath, SourceKnownSocket)
+		if ok && toolchain.Platform == platform {
 			return toolchain, true
 		}
 	}
@@ -319,6 +451,7 @@ func (d *detector) newToolchain(
 		AccessMode: accessMode,
 		Source:     source,
 		SocketPath: socketPath,
+		SELinux:    false,
 	}
 }
 
