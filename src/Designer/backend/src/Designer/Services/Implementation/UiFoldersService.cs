@@ -226,10 +226,11 @@ public class UiFoldersService : IUiFoldersService
         }
         catch (Exception e) when (e is FileNotFoundException or JsonException)
         {
+            string sanitizedLayoutSetName = (layoutSetName ?? string.Empty).Replace("\r", string.Empty).Replace("\n", string.Empty);
             _logger.LogWarning(
                 e,
                 "Could not read Settings.json for layout set {LayoutSetName} while deleting. Skipping data type cleanup.",
-                layoutSetName
+                sanitizedLayoutSetName
             );
             return null;
         }
