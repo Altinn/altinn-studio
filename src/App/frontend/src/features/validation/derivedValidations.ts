@@ -18,6 +18,7 @@ import {
   type ValidationSeverity,
 } from 'src/features/validation';
 import { getInitialMaskFromItem, selectValidations } from 'src/features/validation/utils';
+import { useAsRef } from 'src/hooks/useAsRef';
 import {
   type CompDef,
   type ComponentValidationContext,
@@ -691,6 +692,33 @@ function useDerivedState() {
   );
 }
 
+function useBuildFreshDerivedState() {
+  const store = FormStore.raw.useStore();
+  const pageOrder = useRawPageOrder();
+  const pdfLayoutName = usePdfLayoutName();
+  const processedLayouts = FormStore.bootstrap.useLayouts();
+  const layoutCollection = FormStore.bootstrap.useLayoutCollection();
+  const hiddenDataSources = useExpressionDataSources(layoutCollection, {
+    unsupportedDataSources: new Set(['displayValue']),
+    errorSuffix: 'hidden expressions',
+  });
+  const evalDataSources = useExpressionDataSources(processedLayouts);
+  const instanceData = useInstanceDataQuery({ select: (instance) => instance.data }).data ?? emptyArray;
+  const sourcesRef = useAsRef({ pageOrder, pdfLayoutName, hiddenDataSources, evalDataSources, instanceData });
+
+  return useCallback(() => {
+    const { pageOrder, pdfLayoutName, hiddenDataSources, evalDataSources, instanceData } = sourcesRef.current;
+    return buildDerivedState(
+      store.getState(),
+      pageOrder,
+      pdfLayoutName,
+      hiddenDataSources,
+      evalDataSources,
+      instanceData,
+    );
+  }, [sourcesRef, store]);
+}
+
 export function useValidationVisibilityBreakdown(indexedId: string | undefined): ValidationVisibilityBreakdown {
   const derived = useDerivedState();
   return indexedId ? (derived.visibleBreakdownByNode.get(indexedId) ?? emptyBreakdown) : emptyBreakdown;
@@ -725,6 +753,7 @@ export function useVisibleValidationsDeep(
 
 export function useVisibleValidationsDeepSelector() {
   const derived = useDerivedState();
+  const buildFreshDerivedState = useBuildFreshDerivedState();
   return useCallback(
     (
       indexedId: string,
@@ -733,14 +762,19 @@ export function useVisibleValidationsDeepSelector() {
       restriction?: number,
       severity?: ValidationSeverity,
     ): NodeRefValidation[] => {
-      const ids = [...(includeSelf ? [indexedId] : emptyArray), ...getDescendantIds(derived, indexedId, restriction)];
+      void derived;
+      const freshDerived = buildFreshDerivedState();
+      const ids = [
+        ...(includeSelf ? [indexedId] : emptyArray),
+        ...getDescendantIds(freshDerived, indexedId, restriction),
+      ];
       return ids.flatMap((nodeId) =>
-        getValidationsForNode(derived, nodeId, mask, severity).map((validation) =>
-          toNodeRef(derived.nodeById.get(nodeId)?.baseId ?? '', nodeId, validation),
+        getValidationsForNode(freshDerived, nodeId, mask, severity).map((validation) =>
+          toNodeRef(freshDerived.nodeById.get(nodeId)?.baseId ?? '', nodeId, validation),
         ),
       );
     },
-    [derived],
+    [buildFreshDerivedState, derived],
   );
 }
 
@@ -759,10 +793,13 @@ export function useAllValidations(
 
 export function useValidationsSelector() {
   const derived = useDerivedState();
+  const buildFreshDerivedState = useBuildFreshDerivedState();
   return useCallback(
-    (nodeId: string, mask: NodeVisibility, severity?: ValidationSeverity, includeHidden = false) =>
-      getValidationsForNode(derived, nodeId, mask, severity, includeHidden),
-    [derived],
+    (nodeId: string, mask: NodeVisibility, severity?: ValidationSeverity, includeHidden = false) => {
+      void derived;
+      return getValidationsForNode(buildFreshDerivedState(), nodeId, mask, severity, includeHidden);
+    },
+    [buildFreshDerivedState, derived],
   );
 }
 
@@ -770,10 +807,16 @@ export const useLaxValidationsSelector = useValidationsSelector;
 
 export function useGetNodesWithErrors() {
   const derived = useDerivedState();
+  const buildFreshDerivedState = useBuildFreshDerivedState();
   return useCallback(
-    (mask: NodeVisibility, severity?: ValidationSeverity, includeHidden = false) =>
-      derived.nodes.flatMap((node) => getValidationsForNode(derived, node.id, mask, severity, includeHidden)),
-    [derived],
+    (mask: NodeVisibility, severity?: ValidationSeverity, includeHidden = false) => {
+      void derived;
+      const freshDerived = buildFreshDerivedState();
+      return freshDerived.nodes.flatMap((node) =>
+        getValidationsForNode(freshDerived, node.id, mask, severity, includeHidden),
+      );
+    },
+    [buildFreshDerivedState, derived],
   );
 }
 
