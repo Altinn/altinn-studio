@@ -865,22 +865,12 @@ internal class ProcessEngine : IProcessEngine
             return platformUser;
         }
 
-        if (actor.OrgId is not null || actor.AuthenticationLevel is not null)
+        var orgPlatformUser = new PlatformUser { OrgId = actor.OrgId };
+        if (actor.AuthenticationLevel is int orgAuthenticationLevel)
         {
-            var platformUser = new PlatformUser { OrgId = actor.OrgId ?? actor.UserIdOrOrgNumber };
-            if (actor.AuthenticationLevel is int authenticationLevel)
-            {
-                platformUser.AuthenticationLevel = authenticationLevel;
-            }
-            return platformUser;
+            orgPlatformUser.AuthenticationLevel = orgAuthenticationLevel;
         }
-
-        if (int.TryParse(actor.UserIdOrOrgNumber, out userId))
-        {
-            return new PlatformUser { UserId = userId };
-        }
-
-        return new PlatformUser { OrgId = actor.UserIdOrOrgNumber };
+        return orgPlatformUser;
     }
 
     private sealed record MoveToNextResult(

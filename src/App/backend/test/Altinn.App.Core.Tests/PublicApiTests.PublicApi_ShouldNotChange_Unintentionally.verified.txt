@@ -4186,8 +4186,6 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("userId")]
         public int? UserId { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("userIdOrOrgNumber")]
-        public required string UserIdOrOrgNumber { get; init; }
     }
     public sealed class AppCallbackPayload : System.IEquatable<Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.AppCallbackPayload>
     {

@@ -26,7 +26,7 @@ public class CompletedAltinnEventTests
             Payload = new AppCallbackPayload
             {
                 CommandKey = CompletedAltinnEvent.Key,
-                Actor = new Actor { UserIdOrOrgNumber = "1337" },
+                Actor = new Actor { UserId = 1337 },
                 LockToken = Guid.NewGuid().ToString(),
                 State = "{}",
                 WorkflowId = Guid.Empty,

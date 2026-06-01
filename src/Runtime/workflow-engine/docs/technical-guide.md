@@ -368,7 +368,7 @@ POST /api/v1/{namespace}/workflows?idempotencyKey=process-next-abc123&collection
         "instanceGuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
     },
     "context": {
-        "actor": { "userIdOrOrgNumber": "12345678901" },
+        "actor": { "orgId": "12345678901" },
         "lockToken": "lock-token-from-app",
         "org": "ttd",
         "app": "my-app",

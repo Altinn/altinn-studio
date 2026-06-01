@@ -58,9 +58,16 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
         if (workflowContext is null)
             return new CommandValidationResult.Invalid("AppCommand requires workflow context");
 
-        if (string.IsNullOrWhiteSpace(workflowContext.Actor?.UserIdOrOrgNumber))
+        if (workflowContext.Actor is null)
+            return new CommandValidationResult.Invalid("AppCommand requires an 'actor' in workflow context");
+
+        if (
+            workflowContext.Actor.UserId is null
+            && workflowContext.Actor.SystemUserId is null
+            && string.IsNullOrWhiteSpace(workflowContext.Actor.OrgId)
+        )
             return new CommandValidationResult.Invalid(
-                "AppCommand requires an 'actor' with 'userIdOrOrgNumber' in workflow context"
+                "AppCommand requires an 'actor' with at least one identity (userId, systemUserId, or orgId) in workflow context"
             );
 
         if (string.IsNullOrWhiteSpace(workflowContext.Org) || string.IsNullOrWhiteSpace(workflowContext.App))

@@ -98,7 +98,7 @@ internal sealed record AppCommandTestFixture(
     public static AppWorkflowContext DefaultContext =>
         new()
         {
-            Actor = new Actor { UserIdOrOrgNumber = "test-user-123" },
+            Actor = new Actor { OrgId = "test-user-123" },
             LockToken = "test-lock-key",
             Org = "ttd",
             App = "test-app",

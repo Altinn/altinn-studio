@@ -30,7 +30,7 @@ public class MutateProcessStateTests
             Payload = new AppCallbackPayload
             {
                 CommandKey = MutateProcessState.Key,
-                Actor = new Actor { UserIdOrOrgNumber = "1337" },
+                Actor = new Actor { UserId = 1337 },
                 Payload = serializedPayload,
                 LockToken = Guid.NewGuid().ToString(),
                 State = "{}",

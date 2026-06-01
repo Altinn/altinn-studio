@@ -15,12 +15,6 @@ public sealed record Actor
     public int? UserId { get; init; }
 
     /// <summary>
-    /// The user ID or organization number of the actor.
-    /// </summary>
-    [JsonPropertyName("userIdOrOrgNumber")]
-    public required string UserIdOrOrgNumber { get; init; }
-
-    /// <summary>
     /// The platform user org identifier to use for emitted instance events.
     /// </summary>
     [JsonPropertyName("orgId")]

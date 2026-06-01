@@ -2224,12 +2224,7 @@ public sealed class ProcessEngineTest
         await using var fixture = Fixture.Create(services);
         LegacyProcessEngine processEngine = fixture.ProcessEngine;
 
-        var actor = new Actor
-        {
-            UserIdOrOrgNumber = TestAuthentication.DefaultOrgNumber,
-            OrgId = TestAuthentication.DefaultOrg,
-            AuthenticationLevel = 3,
-        };
+        var actor = new Actor { OrgId = TestAuthentication.DefaultOrg, AuthenticationLevel = 3 };
 
         // Act
         await processEngine.EnqueueProcessNext(
@@ -2286,7 +2281,6 @@ public sealed class ProcessEngineTest
 
         var actor = new Actor
         {
-            UserIdOrOrgNumber = TestAuthentication.DefaultSystemUserOrgNumber,
             AuthenticationLevel = 3,
             SystemUserId = Guid.Parse(TestAuthentication.DefaultSystemUserId),
             SystemUserOwnerOrgNo = TestAuthentication.DefaultSystemUserOrgNumber,

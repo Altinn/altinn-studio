@@ -231,5 +231,4 @@ All data saves during callbacks use `StorageAuthenticationMethod.ServiceOwner()`
 ## Known TODOs / Notes
 
 - Authentication on callback controller: currently `[AllowAnonymous]`, should use X-Api-Key scheme
-- `Actor.UserIdOrOrgNumber` could use a more specific type
 - `AppCallbackPayload.LockToken` naming inconsistency with engine (LockKey vs LockToken)

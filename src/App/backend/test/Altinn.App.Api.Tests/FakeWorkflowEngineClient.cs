@@ -568,7 +568,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         new()
         {
             DatabaseId = workflow.DatabaseId,
-            CorrelationId = workflow.CorrelationId,
             OperationId = workflow.OperationId,
             IdempotencyKey = workflow.IdempotencyKey,
             Namespace = workflow.Namespace,

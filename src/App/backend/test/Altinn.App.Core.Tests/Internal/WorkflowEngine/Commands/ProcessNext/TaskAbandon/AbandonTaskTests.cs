@@ -27,7 +27,7 @@ public class AbandonTaskTests
             Payload = new AppCallbackPayload
             {
                 CommandKey = AbandonTask.Key,
-                Actor = new Actor { UserIdOrOrgNumber = "1337" },
+                Actor = new Actor { UserId = 1337 },
                 LockToken = Guid.NewGuid().ToString(),
                 State = "{}",
                 WorkflowId = Guid.Empty,

@@ -14,13 +14,6 @@ internal sealed record WorkflowStatusResponse
     public Guid DatabaseId { get; init; }
 
     /// <summary>
-    /// The correlation ID for this workflow, if one was provided.
-    /// </summary>
-    [JsonPropertyName("correlationId")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public Guid? CorrelationId { get; init; }
-
-    /// <summary>
     /// The operation ID of the workflow.
     /// </summary>
     [JsonPropertyName("operationId")]
@@ -99,6 +92,13 @@ internal sealed record WorkflowStatusResponse
     [JsonPropertyName("dependencies")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyDictionary<Guid, PersistentItemStatus>? Dependencies { get; init; }
+
+    /// <summary>
+    /// Optional dependents (inverse of <see cref="Dependencies"/>) — workflows that declare this one as a dependency.
+    /// </summary>
+    [JsonPropertyName("dependents")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyDictionary<Guid, PersistentItemStatus>? Dependents { get; init; }
 
     /// <summary>
     /// Optional link information.

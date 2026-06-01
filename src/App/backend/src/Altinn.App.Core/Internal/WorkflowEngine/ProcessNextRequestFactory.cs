@@ -303,7 +303,6 @@ internal sealed class ProcessNextRequestFactory
             return new Actor
             {
                 UserId = user.UserId,
-                UserIdOrOrgNumber = user.UserId.ToString(CultureInfo.InvariantCulture),
                 AuthenticationLevel = user.AuthenticationLevel,
                 NationalIdentityNumber = details.Profile.Party.SSN,
                 Language = userLanguage,
@@ -315,21 +314,18 @@ internal sealed class ProcessNextRequestFactory
         {
             Authenticated.Org org => new Actor
             {
-                UserIdOrOrgNumber = org.OrgNo,
                 OrgId = org.OrgNo,
                 AuthenticationLevel = org.AuthenticationLevel,
                 Language = resolvedLanguage,
             },
             Authenticated.ServiceOwner serviceOwner => new Actor
             {
-                UserIdOrOrgNumber = serviceOwner.OrgNo,
-                OrgId = serviceOwner.Name,
+                OrgId = serviceOwner.OrgNo,
                 AuthenticationLevel = serviceOwner.AuthenticationLevel,
                 Language = resolvedLanguage,
             },
             Authenticated.SystemUser systemUser => new Actor
             {
-                UserIdOrOrgNumber = systemUser.SystemUserOrgNr.Get(OrganisationNumberFormat.Local),
                 AuthenticationLevel = systemUser.AuthenticationLevel,
                 SystemUserId = systemUser.SystemUserId[0],
                 SystemUserOwnerOrgNo = systemUser.SystemUserOrgNr.Get(OrganisationNumberFormat.Local),

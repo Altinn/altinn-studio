@@ -7878,18 +7878,11 @@
         "format": "int32"
       },
       "Actor": {
-        "required": [
-          "userIdOrOrgNumber"
-        ],
         "type": "object",
         "properties": {
           "userId": {
             "type": "integer",
             "format": "int32",
-            "nullable": true
-          },
-          "userIdOrOrgNumber": {
-            "type": "string",
             "nullable": true
           },
           "orgId": {

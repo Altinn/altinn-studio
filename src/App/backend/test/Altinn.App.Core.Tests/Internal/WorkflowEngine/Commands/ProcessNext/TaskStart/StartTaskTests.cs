@@ -27,7 +27,7 @@ public class StartTaskTests
             Payload = new AppCallbackPayload
             {
                 CommandKey = StartTask.Key,
-                Actor = new Actor { UserIdOrOrgNumber = "1337" },
+                Actor = new Actor { UserId = 1337 },
                 LockToken = Guid.NewGuid().ToString(),
                 State = "{}",
                 WorkflowId = Guid.Empty,

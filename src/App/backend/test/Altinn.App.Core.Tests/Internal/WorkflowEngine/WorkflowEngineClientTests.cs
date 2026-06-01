@@ -270,7 +270,6 @@ public class WorkflowEngineClientTests
         new()
         {
             DatabaseId = Guid.NewGuid(),
-            CorrelationId = Guid.NewGuid(),
             OperationId = operationId,
             IdempotencyKey = $"{operationId}-key",
             Namespace = "ttd/app",

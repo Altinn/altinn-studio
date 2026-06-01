@@ -95,7 +95,7 @@ public sealed partial class AppCommandIntegrationTests(AppTestFixture fixture) :
             Context = JsonSerializer.SerializeToElement(
                 new
                 {
-                    Actor = new Actor { UserIdOrOrgNumber = "test-user" },
+                    Actor = new Actor { OrgId = "test-user" },
                     Org = EngineAppFixture.DefaultOrg,
                     App = EngineAppFixture.DefaultApp,
                     InstanceOwnerPartyId = int.Parse(EngineAppFixture.DefaultPartyId),
@@ -153,7 +153,7 @@ public sealed partial class AppCommandIntegrationTests(AppTestFixture fixture) :
         Assert.Equal("custom-payload", payload.Payload);
         Assert.NotEqual(Guid.Empty, payload.WorkflowId);
         Assert.NotNull(payload.Actor);
-        Assert.Equal("test-user", payload.Actor.UserIdOrOrgNumber);
+        Assert.Equal("test-user", payload.Actor.OrgId);
     }
 
     [Fact]

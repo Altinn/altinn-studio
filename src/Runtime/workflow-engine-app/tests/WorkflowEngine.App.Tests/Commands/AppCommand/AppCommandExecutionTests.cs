@@ -57,9 +57,75 @@ public class AppCommandExecutionTests
         var payload = JsonSerializer.Deserialize<AppCallbackPayload>(captured.Body);
         Assert.NotNull(payload);
         Assert.Equal("test-command", payload.CommandKey);
-        Assert.Equal("test-user-123", payload.Actor.UserIdOrOrgNumber);
+        Assert.Equal("test-user-123", payload.Actor.OrgId);
         Assert.Equal("test-lock-key", payload.LockToken);
         Assert.Equal("test-payload-data", payload.Payload);
+    }
+
+    [Fact]
+    public async Task Execute_PreservesFullActorIdentity_AcrossContextRoundTrip()
+    {
+        // Regression guard for the "preserve actor identity across handoff" path.
+        // The engine must round-trip ALL actor identity fields, not just a single identity + language.
+        // App.Core relies on the full actor (ProcessEngine.CreatePlatformUser) to attribute instance
+        // events to the originating user/system user when an auto-advanced workflow is re-enqueued.
+        using var fixture = AppCommandTestFixture.Create();
+        var command = GetAppCommand(fixture);
+
+        var richActor = new Actor
+        {
+            UserId = 1337,
+            OrgId = "ttd",
+            AuthenticationLevel = 3,
+            NationalIdentityNumber = "01017012345",
+            SystemUserId = Guid.Parse("11111111-2222-3333-4444-555555555555"),
+            SystemUserOwnerOrgNo = "310702641",
+            SystemUserName = "Test system user",
+            Language = "nb",
+        };
+
+        // Simulate the real handoff: App.Core serializes the context, the engine stores it as an
+        // opaque JsonElement and deserializes it back into its own typed AppWorkflowContext.
+        var contextElement = JsonSerializer.SerializeToElement(
+            new AppWorkflowContext
+            {
+                Actor = richActor,
+                LockToken = "test-lock-key",
+                Org = "ttd",
+                App = "test-app",
+                InstanceOwnerPartyId = 12345,
+                InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+            }
+        );
+        var roundTrippedContext = contextElement.Deserialize<AppWorkflowContext>();
+        Assert.NotNull(roundTrippedContext);
+
+        var data = CreateCommandData("test-command");
+        var step = AppCommandTestFixture.CreateStep(CreateCommand("test-command"));
+        var workflow = AppCommandTestFixture.CreateWorkflow(step);
+        var context = AppCommandTestFixture.CreateExecutionContext(
+            workflow,
+            step,
+            data,
+            workflowContext: roundTrippedContext
+        );
+
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ExecutionStatus.Success, result.Status);
+        var captured = fixture.HttpHandler.Requests[0];
+        var payload = JsonSerializer.Deserialize<AppCallbackPayload>(captured.Body!);
+
+        Assert.NotNull(payload);
+        Assert.NotNull(payload.Actor);
+        Assert.Equal(1337, payload.Actor.UserId);
+        Assert.Equal("ttd", payload.Actor.OrgId);
+        Assert.Equal(3, payload.Actor.AuthenticationLevel);
+        Assert.Equal("01017012345", payload.Actor.NationalIdentityNumber);
+        Assert.Equal(Guid.Parse("11111111-2222-3333-4444-555555555555"), payload.Actor.SystemUserId);
+        Assert.Equal("310702641", payload.Actor.SystemUserOwnerOrgNo);
+        Assert.Equal("Test system user", payload.Actor.SystemUserName);
+        Assert.Equal("nb", payload.Actor.Language);
     }
 
     [Fact]
@@ -290,7 +356,7 @@ public class AppCommandExecutionTests
 
         var contextWithoutLock = new AppWorkflowContext
         {
-            Actor = new Actor { UserIdOrOrgNumber = "test-user-123" },
+            Actor = new Actor { OrgId = "test-user-123" },
             LockToken = "", // empty lock token
             Org = "ttd",
             App = "test-app",

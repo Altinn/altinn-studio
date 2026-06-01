@@ -29,7 +29,7 @@ public class ExecuteServiceTaskTests
             Payload = new AppCallbackPayload
             {
                 CommandKey = ExecuteServiceTask.Key,
-                Actor = new Actor { UserIdOrOrgNumber = "1337" },
+                Actor = new Actor { UserId = 1337 },
                 Payload = serializedPayload,
                 LockToken = Guid.NewGuid().ToString(),
                 State = "{}",

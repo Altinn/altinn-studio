@@ -569,7 +569,6 @@ public class ProcessNextRequestFactoryTests
         var context = JsonSerializer.Deserialize<AppWorkflowContext>(bundle.Request.Context.Value);
         Assert.NotNull(context);
         Assert.Equal(42, context.Actor.UserId);
-        Assert.Equal("42", context.Actor.UserIdOrOrgNumber);
         Assert.Equal(2, context.Actor.AuthenticationLevel);
         Assert.Equal("12345678901", context.Actor.NationalIdentityNumber);
         Assert.Equal("nb", context.Actor.Language);
@@ -590,8 +589,7 @@ public class ProcessNextRequestFactoryTests
         Assert.NotNull(bundle.Request.Context);
         var context = JsonSerializer.Deserialize<AppWorkflowContext>(bundle.Request.Context.Value);
         Assert.NotNull(context);
-        Assert.Equal(TestAuthentication.DefaultOrgNumber, context.Actor.UserIdOrOrgNumber);
-        Assert.Equal(TestAuthentication.DefaultOrg, context.Actor.OrgId);
+        Assert.Equal(TestAuthentication.DefaultOrgNumber, context.Actor.OrgId);
         Assert.Equal(3, context.Actor.AuthenticationLevel);
         Assert.Equal("nb", context.Actor.Language);
     }
@@ -611,7 +609,6 @@ public class ProcessNextRequestFactoryTests
         Assert.NotNull(bundle.Request.Context);
         var context = JsonSerializer.Deserialize<AppWorkflowContext>(bundle.Request.Context.Value);
         Assert.NotNull(context);
-        Assert.Equal(TestAuthentication.DefaultSystemUserOrgNumber, context.Actor.UserIdOrOrgNumber);
         Assert.Equal(Guid.Parse(TestAuthentication.DefaultSystemUserId), context.Actor.SystemUserId);
         Assert.Equal(TestAuthentication.DefaultSystemUserOrgNumber, context.Actor.SystemUserOwnerOrgNo);
         Assert.Equal(3, context.Actor.AuthenticationLevel);

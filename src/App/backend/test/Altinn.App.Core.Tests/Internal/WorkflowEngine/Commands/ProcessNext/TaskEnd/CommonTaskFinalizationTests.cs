@@ -34,7 +34,7 @@ public class CommonTaskFinalizationTests
             Payload = new AppCallbackPayload
             {
                 CommandKey = CommonTaskFinalization.Key,
-                Actor = new Actor { UserIdOrOrgNumber = "1337" },
+                Actor = new Actor { UserId = 1337 },
                 LockToken = Guid.NewGuid().ToString(),
                 State = "{}",
                 WorkflowId = Guid.Empty,
