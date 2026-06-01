@@ -64,7 +64,7 @@ class TestFeedbackEndpoint:
         assert response.status_code == 400
         mock_score.assert_not_called()
 
-    def test_unknown_trace_owner_returns_403(self):
+    def test_unresolvable_trace_owner_returns_404(self):
         with (
             patch("api.routes.feedback.get_trace_developer", return_value=None),
             patch("api.routes.feedback.score_validation") as mock_score,
@@ -74,7 +74,7 @@ class TestFeedbackEndpoint:
                 headers=DEVELOPER_HEADER,
             )
 
-        assert response.status_code == 403
+        assert response.status_code == 404
         mock_score.assert_not_called()
 
     def test_owner_mismatch_returns_403(self):
