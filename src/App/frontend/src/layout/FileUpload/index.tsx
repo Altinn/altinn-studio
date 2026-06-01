@@ -1,8 +1,9 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useAttachmentsFor } from 'src/features/attachments/hooks';
-import { attachmentSelector } from 'src/features/attachments/tools';
+import { attachmentSelector, makeAttachmentNode } from 'src/features/attachments/tools';
 import { AttachmentSummaryComponent2 } from 'src/layout/FileUpload/AttachmentSummaryComponent2';
 import { FileUploadDef } from 'src/layout/FileUpload/config.def.generated';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
@@ -65,7 +66,13 @@ export class FileUpload extends FileUploadDef implements ValidateComponent<'File
   }
 
   validateComponent(ctx: ComponentValidationContext<'FileUpload'>): AnyValidation[] {
-    const attachments = attachmentSelector(ctx.component.id)(ctx.formState);
+    const attachments = attachmentSelector(
+      makeAttachmentNode(ctx.baseComponentId, ctx.component),
+      ctx.formState,
+      ctx.instanceData,
+      getApplicationMetadata(),
+      ctx.taskId,
+    );
     return [
       ...validateMinNumberOfAttachmentsForNode(ctx),
       ...validateAttachmentDataElements(attachments, ctx.formState.validation.otherDataElementBackendValidations),

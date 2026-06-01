@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { FormStore } from 'src/features/form/FormContext';
 import { usePdfLayoutName, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
+import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { FrontendValidationSource } from 'src/features/validation';
 import {
   buildDerivedValidationState,
@@ -36,8 +37,9 @@ function useDerivedValidationStateInputs(): DerivedValidationStateInputs {
   const hiddenDataSources = useExpressionDataSources(layoutCollection, hiddenExpressionRuntimeOverrides);
   const evalDataSources = useExpressionDataSources(processedLayouts);
   const instanceData = useInstanceDataQuery({ select: (instance) => instance.data }).data ?? emptyArray;
+  const taskId = useProcessTaskId();
 
-  return { pageOrder, pdfLayoutName, hiddenDataSources, evalDataSources, instanceData };
+  return { pageOrder, pdfLayoutName, hiddenDataSources, evalDataSources, instanceData, taskId };
 }
 
 /**

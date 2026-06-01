@@ -10,6 +10,8 @@ import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { useGetCachedInitialValidations } from 'src/core/queries/backendValidation';
 import { useIsStateless } from 'src/features/applicationMetadata';
+import { AttachmentEffects } from 'src/features/attachments/AttachmentEffects';
+import { createAttachmentsSlice } from 'src/features/attachments/AttachmentsStore';
 import { UpdateDataElementIdsForCypress } from 'src/features/form/DataElementIdsForCypress';
 import {
   createFormBootstrapSlice,
@@ -114,6 +116,7 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
     <FormStoreProvider value={storeRef.current!}>
       {window.Cypress && <UpdateDataElementIdsForCypress />}
       <FormDataWriteEffects />
+      <AttachmentEffects />
       <ValidationEffects />
       <NodesProvider>
         <PaymentInformationProvider>
@@ -203,6 +206,7 @@ function createFormStore({
       parent,
       readOnly,
       data: createFormDataWriteSlice(data, set),
+      attachments: createAttachmentsSlice(set),
       validation: createValidationSlice(processBootstrap(bootstrap), set),
       nodes: createNodesSlice(set),
       pageNavigation: createPageNavigationSlice(set),

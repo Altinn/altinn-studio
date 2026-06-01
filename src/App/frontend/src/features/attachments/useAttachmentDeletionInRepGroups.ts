@@ -1,16 +1,16 @@
 import { useCallback } from 'react';
 
-import { AttachmentsPlugin } from 'src/features/attachments/AttachmentsPlugin';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useAttachmentsAwaiter, useAttachmentsRemover } from 'src/features/attachments/hooks';
 import { isAttachmentUploaded } from 'src/features/attachments/index';
-import { attachmentSelector } from 'src/features/attachments/tools';
+import { type AttachmentNode, attachmentSelector } from 'src/features/attachments/tools';
 import { FormStore } from 'src/features/form/FormContext';
+import { useSelectFromInstanceData } from 'src/features/instance/InstanceContext';
+import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { useAsRef } from 'src/hooks/useAsRef';
-import { getComponentDef } from 'src/layout';
+import { getComponentBehaviors } from 'src/layout';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import type { FormStoreState } from 'src/features/form/FormContext';
-import type { CompWithPlugin, IDataModelBindings } from 'src/layout/layout';
-import type { NodeData } from 'src/utils/layout/types';
+import { deriveLayoutNodes, getLayoutDescendantIds } from 'src/utils/layout/deriveLayoutNodes';
 
 /**
  * When deleting a row in a repeating group, we need to find any attachments that are uploaded
@@ -27,42 +27,42 @@ export function useAttachmentDeletionInRepGroups(baseComponentId: string) {
   const awaiter = useAttachmentsAwaiter();
   const idRef = useAsRef(useIndexedId(baseComponentId));
   const formStore = FormStore.raw.useStore();
+  const selectFromInstance = useSelectFromInstanceData();
+  const taskId = useAsRef(useProcessTaskId());
 
   return useCallback(
     async (restriction: number | undefined): Promise<boolean> => {
       const state = formStore.getState();
-      const recursiveChildren = new Set<string>(recursivelyFindChildren(idRef.current, state, restriction));
-      const uploaderNodeIds = (Object.values(state.nodes.nodeData) as NodeData[])
-        .filter((n) => {
-          if (!recursiveChildren.has(n.id)) {
-            return false;
-          }
-          const def = getComponentDef(n.nodeType);
-          return def && def.hasPlugin(AttachmentsPlugin);
-        })
-        .map((n) => n.id);
+      const nodes = deriveLayoutNodes(state);
+      const recursiveChildren = new Set<string>(getLayoutDescendantIds(nodes, idRef.current, restriction));
+      const instanceData = selectFromInstance((instance) => instance.data) ?? [];
+      const uploaderNodes = nodes.filter(
+        (node) =>
+          recursiveChildren.has(node.id) && getComponentBehaviors(node.intermediateItem.type)?.canHaveAttachments,
+      );
 
       // This code is intentionally not parallelized, as especially LocalTest can't handle parallel requests to
       // delete attachments. It might return a 500 if you try. To be safe, we do them one by one.
-      for (const uploaderId of uploaderNodeIds) {
-        const nodeData = state.nodes.nodeData[uploaderId];
-        const dataModelBindings = nodeData?.dataModelBindings as IDataModelBindings<
-          CompWithPlugin<typeof AttachmentsPlugin>
-        >;
+      for (const uploader of uploaderNodes) {
+        const attachmentNode: AttachmentNode = {
+          id: uploader.id,
+          baseId: uploader.baseId,
+          dataModelBindings: uploader.intermediateItem.dataModelBindings as AttachmentNode['dataModelBindings'],
+        };
 
-        const files = attachmentSelector(uploaderId)(state);
+        const files = attachmentSelector(attachmentNode, state, instanceData, getApplicationMetadata(), taskId.current);
         for (const file of files) {
           if (isAttachmentUploaded(file)) {
             const result = await remove.current({
               attachment: file,
-              nodeId: uploaderId,
-              dataModelBindings,
+              nodeId: uploader.id,
+              dataModelBindings: attachmentNode.dataModelBindings,
             });
             if (!result) {
               return false;
             }
           } else {
-            const uploaded = await awaiter(uploaderId, file);
+            const uploaded = await awaiter(uploader.id, file);
             if (uploaded) {
               const result = await remove.current({
                 attachment: {
@@ -71,8 +71,8 @@ export function useAttachmentDeletionInRepGroups(baseComponentId: string) {
                   updating: false,
                   data: uploaded,
                 },
-                nodeId: uploaderId,
-                dataModelBindings,
+                nodeId: uploader.id,
+                dataModelBindings: attachmentNode.dataModelBindings,
               });
               if (!result) {
                 return false;
@@ -80,21 +80,12 @@ export function useAttachmentDeletionInRepGroups(baseComponentId: string) {
             }
             // If the attachment was never uploaded successfully, we don't need to remove
             // it, and we can just continue as if removing it was successful.
-            return true;
           }
         }
       }
 
       return true;
     },
-    [formStore, idRef, remove, awaiter],
+    [formStore, idRef, remove, awaiter, selectFromInstance, taskId],
   );
-}
-
-function recursivelyFindChildren(parentId: string, state: FormStoreState, restriction?: number): string[] {
-  const children = Object.values(state.nodes.nodeData)
-    .filter((n) => n.parentId === parentId && (restriction === undefined || n.rowIndex === restriction))
-    .map((n) => n.id);
-
-  return [...children, ...children.flatMap((c) => recursivelyFindChildren(c, state, undefined))];
 }

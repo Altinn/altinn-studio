@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
+import { useQueryClient } from '@tanstack/react-query';
 import deepEqual from 'fast-deep-equal';
 import type { Draft } from 'immer';
 
 import { useGetCachedInitialValidations, useRefetchInitialValidations } from 'src/core/queries/backendValidation';
-import { hasPendingAttachments } from 'src/features/attachments/utils';
+import { hasPendingAttachments, waitForAttachments } from 'src/features/attachments/utils';
 import { FormStore } from 'src/features/form/FormContext';
-import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
+import { useInstanceDataQuery, useSelectFromInstanceData } from 'src/features/instance/InstanceContext';
 import {
   type BackendValidationIssue,
   type BaseValidation,
@@ -178,12 +179,22 @@ export function ValidationEffects() {
 }
 
 export function useWaitForValidation(): WaitForValidation {
-  const waitForNodesReady = FormStore.nodes.useWaitUntilReady();
   const waitForSave = FormStore.data.useWaitForSave();
-  const waitForState = useWaitForState<undefined, FormStoreState>(FormStore.raw.useStore());
+  const store = FormStore.raw.useStore();
+  const waitForState = useWaitForState<undefined, FormStoreState>(store);
+  const queryClient = useQueryClient();
+  const selectFromInstance = useSelectFromInstanceData();
 
   const hasWritableDataTypes = !!FormStore.bootstrap.useWritableDataTypes()?.length;
   const getCachedInitialValidations = useGetCachedInitialValidations();
+  const getInstanceData = useCallback(
+    () => selectFromInstance((instance) => instance.data) ?? [],
+    [selectFromInstance],
+  );
+  const waitForActiveAttachments = useCallback(
+    () => waitForAttachments(store, queryClient, getInstanceData),
+    [getInstanceData, queryClient, store],
+  );
 
   return useCallback(
     async (forceSave = true) => {
@@ -193,27 +204,35 @@ export function useWaitForValidation(): WaitForValidation {
         // Wait for BackendValidation to process it into the zustand store before returning.
         await waitForState((state) => {
           const { isFetching, cachedInitialValidations } = getCachedInitialValidations();
-          return (
-            !isFetching &&
-            deepEqual(state.validation.processedLast.initial, cachedInitialValidations) &&
-            !hasPendingAttachments(state)
-          );
+          return !isFetching && deepEqual(state.validation.processedLast.initial, cachedInitialValidations);
         });
+        await waitForActiveAttachments();
         return;
       }
 
       // Wait until we've saved changed to backend, and we've processed the backend validations we got from that save
-      await waitForNodesReady();
-      await waitForSave(forceSave, (state) => {
-        const { isFetching, cachedInitialValidations } = getCachedInitialValidations();
-        const initialMatch = deepEqual(state.validation.processedLast.initial, cachedInitialValidations);
-        const pendingAttachments = hasPendingAttachments(state);
+      const waitForSaveAndValidations = () =>
+        waitForSave(forceSave, (state) => {
+          const { isFetching, cachedInitialValidations } = getCachedInitialValidations();
+          return deepEqual(state.validation.processedLast.initial, cachedInitialValidations) && !isFetching;
+        });
 
-        return initialMatch && !isFetching && !pendingAttachments;
-      });
-      await waitForNodesReady();
+      await waitForSaveAndValidations();
+      do {
+        await waitForActiveAttachments();
+        await waitForSaveAndValidations();
+      } while (hasPendingAttachments(store.getState(), queryClient, getInstanceData()));
     },
-    [getCachedInitialValidations, hasWritableDataTypes, waitForNodesReady, waitForSave, waitForState],
+    [
+      getCachedInitialValidations,
+      getInstanceData,
+      hasWritableDataTypes,
+      queryClient,
+      store,
+      waitForActiveAttachments,
+      waitForSave,
+      waitForState,
+    ],
   );
 }
 

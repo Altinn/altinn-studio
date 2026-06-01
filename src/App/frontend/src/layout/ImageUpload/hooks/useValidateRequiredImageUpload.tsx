@@ -1,4 +1,5 @@
-import { attachmentSelector } from 'src/features/attachments/tools';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
+import { attachmentSelector, makeAttachmentNode } from 'src/features/attachments/tools';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';
@@ -29,6 +30,12 @@ export function validateRequiredImageUploadForNode(
       returnType: ExprVal.Boolean,
       defaultValue: false,
     }),
-    attachmentSelector(ctx.component.id)(ctx.formState).length,
+    attachmentSelector(
+      makeAttachmentNode(ctx.baseComponentId, ctx.component),
+      ctx.formState,
+      ctx.instanceData,
+      getApplicationMetadata(),
+      ctx.taskId,
+    ).length,
   );
 }

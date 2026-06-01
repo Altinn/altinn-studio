@@ -3,10 +3,8 @@ import type { PropsWithChildren, RefObject } from 'react';
 
 import deepEqual from 'fast-deep-equal';
 import { current } from 'immer';
-import type { UnionToIntersection } from 'utility-types';
 
 import { Loader } from 'src/core/loading/Loader';
-import { AttachmentsStorePlugin } from 'src/features/attachments/AttachmentsStorePlugin';
 import { UpdateAttachmentsForCypress } from 'src/features/attachments/UpdateAttachmentsForCypress';
 import { FormStore } from 'src/features/form/FormContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
@@ -17,11 +15,9 @@ import { useRegistry } from 'src/utils/layout/generator/GeneratorStages';
 import { LayoutSetGenerator } from 'src/utils/layout/generator/LayoutSetGenerator';
 import { GeneratorValidationProvider } from 'src/utils/layout/generator/validation/GenerationValidationContext';
 import { nodesProduce } from 'src/utils/layout/nodesProduce';
-import type { AttachmentsStorePluginConfig } from 'src/features/attachments/AttachmentsStorePlugin';
 import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
 import type { CompTypes, ILayouts } from 'src/layout/layout';
 import type { Registry } from 'src/utils/layout/generator/GeneratorStages';
-import type { NodeDataPlugin } from 'src/utils/layout/plugins/NodeDataPlugin';
 import type { GeneratorErrors, NodeData } from 'src/utils/layout/types';
 
 export interface PagesData {
@@ -36,22 +32,6 @@ export interface PageData {
   pageKey: string;
   errors: GeneratorErrors | undefined;
 }
-
-export type NodesStorePlugins = {
-  attachments: AttachmentsStorePluginConfig;
-};
-
-const StorePlugins: { [K in keyof NodesStorePlugins]: NodeDataPlugin<NodesStorePlugins[K]> } = {
-  attachments: new AttachmentsStorePlugin(),
-};
-
-type AllFlat<T> = UnionToIntersection<T extends Record<string, infer U> ? (U extends undefined ? never : U) : never>;
-type ExtraFunctions = AllFlat<{
-  [K in keyof NodesStorePlugins]: NodesStorePlugins[K]['extraFunctions'];
-}>;
-type ExtraHooks = AllFlat<{
-  [K in keyof NodesStorePlugins]: NodesStorePlugins[K]['extraHooks'];
-}>;
 
 export interface AddNodeRequest<T extends CompTypes = CompTypes> {
   nodeId: string;
@@ -82,7 +62,7 @@ export type NodesSliceState = {
   addPage: (pageKey: string) => void;
 
   reset: (layouts: ILayouts) => void;
-} & ExtraFunctions;
+};
 
 const defaultState = {
   hasErrors: false,
@@ -179,10 +159,6 @@ export function createNodesSlice(set: FormStoreSet): FormStoreState['nodes'] {
           layouts,
         },
       })),
-
-    ...(Object.values(StorePlugins)
-      .map((plugin) => plugin.extraFunctions(set))
-      .reduce((acc, val) => ({ ...acc, ...val }), {}) as ExtraFunctions),
   };
 }
 
@@ -392,8 +368,4 @@ export const nodesHooks = {
 
   useAddPage: () => FormStore.raw.useStaticSelector((state) => state.nodes.addPage),
   useAddError: () => FormStore.raw.useStaticSelector((state) => state.nodes.addError),
-
-  ...(Object.values(StorePlugins)
-    .map((plugin) => plugin.extraHooks())
-    .reduce((acc, val) => ({ ...acc, ...val }), {}) as ExtraHooks),
 };

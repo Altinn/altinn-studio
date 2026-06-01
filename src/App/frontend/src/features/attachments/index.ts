@@ -1,24 +1,22 @@
-import type { AxiosError } from 'axios';
-
 import type { IDataModelPairResponse } from 'src/features/formData/types';
 import type { BackendValidationIssue, BackendValidationIssuesWithSource } from 'src/features/validation';
 import type { IData, IInstance, ProblemDetails } from 'src/types/shared';
 
-interface IAttachmentTemporary {
+export interface IAttachmentTemporary {
   temporaryId: string;
   filename: string;
   size: number;
   tags?: string[];
 }
 
-interface Metadata {
+interface AttachmentMutationState {
   updating: boolean;
   deleting: boolean;
-  error?: AxiosError;
 }
 
-export type UploadedAttachment = { uploaded: true; data: IData; temporaryId?: string } & Metadata;
-export type TemporaryAttachment = { uploaded: false; data: IAttachmentTemporary } & Metadata;
+export type StoredTemporaryAttachment = { uploaded: false; data: IAttachmentTemporary };
+export type UploadedAttachment = { uploaded: true; data: IData } & AttachmentMutationState;
+export type TemporaryAttachment = StoredTemporaryAttachment & AttachmentMutationState;
 export type IAttachment = UploadedAttachment | TemporaryAttachment;
 export type IFailedAttachment = { data: IAttachmentTemporary; error: Error };
 
