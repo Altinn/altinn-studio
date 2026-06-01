@@ -148,7 +148,7 @@ export function useIsHiddenPage(pageKey: string | undefined, options: Omit<IsHid
  * Check which pages are hidden, returning a Set with the ones that are hidden
  */
 export function useHiddenPages(options: Omit<IsHiddenOptions, 'includeReason'> = {}): Set<string> {
-  const layoutCollection = FormStore.bootstrap.useLayoutCollection();
+  const layoutCollection = FormStore.bootstrap.useLaxLayoutCollection();
   const pages = Object.keys(layoutCollection || {});
   const dataSources = useExpressionDataSources(layoutCollection);
   const pageOrder = useRawPageOrder();

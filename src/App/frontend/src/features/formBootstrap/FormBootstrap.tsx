@@ -13,7 +13,6 @@ export const formBootstrapHooks = {
     const out = FormStore.raw.useLaxSelector((s) => s.bootstrap.layouts);
     return out === ContextNotProvided ? undefined : out;
   },
-  useLayoutCollection: () => FormStore.raw.useSelector((s) => s.bootstrap.layouts),
   useLayoutLookups: () => FormStore.raw.useSelector((s) => s.bootstrap.layoutLookups),
   useLaxLayoutLookups: () => {
     const out = FormStore.raw.useLaxSelector((s) => s.bootstrap.layoutLookups);
