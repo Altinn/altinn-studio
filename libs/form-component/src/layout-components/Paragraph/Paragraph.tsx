@@ -1,7 +1,8 @@
+// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
+import { HelpText, ParagraphText } from '../../app-components';
+// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
+import { useTranslation } from '../../LanguageTranslatorProvider';
 import classes from './Paragraph.module.css';
-
-import { HelpText, ParagraphText } from 'src/app-components';
-import { useTranslation } from 'src/LanguageTranslatorProvider';
 
 export interface ParagraphProps {
   id?: string;
