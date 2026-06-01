@@ -460,32 +460,14 @@ internal class ProcessEngine : IProcessEngine
             }
         }
 
-        MoveToNextResult moveToNextResult;
-        try
-        {
-            moveToNextResult = await HandleMoveToNext(
-                instance,
-                processNextAction,
-                checkedAction,
-                _instanceLocker.CurrentLockToken
-                    ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock"),
-                ct
-            );
-        }
-        catch (ServiceTaskFailedException ex)
-        {
-            // The process state was committed to Storage (post-commit), but the service task failed.
-            // Return an error result so the caller knows the service task did not succeed.
-            var failureResult = new ProcessChangeResult(mutatedInstance: instance)
-            {
-                Success = false,
-                ErrorType = ProcessErrorType.Internal,
-                ErrorTitle = "Service task failed!",
-                ErrorMessage = ex.Message,
-            };
-            activity?.SetProcessChangeResult(failureResult);
-            return failureResult;
-        }
+        MoveToNextResult moveToNextResult = await HandleMoveToNext(
+            instance,
+            processNextAction,
+            checkedAction,
+            _instanceLocker.CurrentLockToken
+                ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock"),
+            ct
+        );
 
         if (moveToNextResult.WorkflowFailure is not null)
         {

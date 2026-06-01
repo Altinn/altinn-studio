@@ -505,23 +505,11 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         return workflowsById.Values.ToList();
     }
 
-    private static bool IsActiveWorkflowStatus(WorkflowStatusResponse workflow) =>
-        workflow.OverallStatus
-            is PersistentItemStatus.Enqueued
-                or PersistentItemStatus.Processing
-                or PersistentItemStatus.Requeued;
-
     private static bool IsActiveCollectionHeadStatus(CollectionHeadStatus workflow) =>
         workflow.Status
             is PersistentItemStatus.Enqueued
                 or PersistentItemStatus.Processing
                 or PersistentItemStatus.Requeued;
-
-    private static bool IsRecoveryRequiredWorkflowStatus(WorkflowStatusResponse workflow) =>
-        workflow.OverallStatus
-            is PersistentItemStatus.Failed
-                or PersistentItemStatus.Canceled
-                or PersistentItemStatus.DependencyFailed;
 
     private static bool IsRecoveryRequiredCollectionHeadStatus(CollectionHeadStatus workflow) =>
         workflow.Status

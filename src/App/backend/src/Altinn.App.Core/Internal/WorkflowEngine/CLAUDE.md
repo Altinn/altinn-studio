@@ -81,7 +81,7 @@ WorkflowEngine/
 │   └── WorkflowEngineCommandValidator.cs    - Startup check: all keys in WorkflowCommandSet are registered
 ├── Http/
 │   ├── IWorkflowEngineClient.cs             - Enqueue, list, collection, cancel, and resume operations
-│   └── WorkflowEngineClient.cs              - HTTP impl with X-Api-Key auth
+│   └── WorkflowEngineClient.cs              - HTTP impl (no auth header yet)
 ├── Models/
 │   ├── WorkflowEnqueueRequest.cs            - Batch request body (labels, context, list of WorkflowRequest)
 │   ├── WorkflowRequest.cs                   - Single workflow (operationId, steps, state, dependsOn)
@@ -168,7 +168,7 @@ AbandonTask → OnTaskAbandonHook
 
 4. **Add to sequence**: add to the appropriate method in `WorkflowCommandSet.cs` (use `AddCommand` for pre-commit, `AddPostProcessNextCommittedCommand` for post-commit)
 
-5. **Startup validation**: `ProcessEngineCommandValidator` in `WorkflowEngineCommandValidator.cs` will fail at startup if a key in `WorkflowCommandSet` isn't registered in DI
+5. **Startup validation**: `WorkflowEngineCommandValidator` in `WorkflowEngineCommandValidator.cs` will fail at startup if a key in `WorkflowCommandSet` isn't registered in DI
 
 ## Command Conventions
 

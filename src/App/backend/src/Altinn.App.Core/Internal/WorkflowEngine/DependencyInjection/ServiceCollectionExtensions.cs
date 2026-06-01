@@ -58,6 +58,6 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<IWorkflowEngineCommand, MovedToAltinnEvent>();
 
         // Validate all commands are registered
-        ProcessEngineCommandValidator.Validate(services);
+        WorkflowEngineCommandValidator.Validate(services);
     }
 }

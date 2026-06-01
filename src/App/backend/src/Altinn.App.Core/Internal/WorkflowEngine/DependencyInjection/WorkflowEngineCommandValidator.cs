@@ -11,7 +11,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.DependencyInjection;
 /// <summary>
 /// Validates that all process engine commands referenced in ProcessEventCommands are registered in DI.
 /// </summary>
-internal static class ProcessEngineCommandValidator
+internal static class WorkflowEngineCommandValidator
 {
     /// <summary>
     /// Validates that all required commands are registered. Throws if any are missing.

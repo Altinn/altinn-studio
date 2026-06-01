@@ -8,9 +8,9 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 using Altinn.App.Core.Internal.WorkflowEngine.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Altinn.App.Core.Tests.Internal.ProcessEngine;
+namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.DependencyInjection;
 
-public class ProcessEngineCommandValidatorTests
+public class WorkflowEngineCommandValidatorTests
 {
     [Fact]
     public void Validate_AllCommandsRegistered_DoesNotThrow()
@@ -20,7 +20,7 @@ public class ProcessEngineCommandValidatorTests
         RegisterAllCommands(services);
 
         // Act & Assert - should not throw
-        ProcessEngineCommandValidator.Validate(services);
+        WorkflowEngineCommandValidator.Validate(services);
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public class ProcessEngineCommandValidatorTests
 
         // Act & Assert
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            ProcessEngineCommandValidator.Validate(services)
+            WorkflowEngineCommandValidator.Validate(services)
         );
 
         Assert.Contains("not registered", exception.Message);
