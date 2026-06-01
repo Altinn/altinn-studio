@@ -53,6 +53,7 @@ export type DerivedValidationStateInputs = {
   hiddenDataSources: ExpressionDataSources;
   evalDataSources: ExpressionDataSources;
   instanceData: IData[];
+  taskId: string | undefined;
 };
 
 const emptyArray: never[] = [];
@@ -141,11 +142,14 @@ function makeComponentValidationContext(
   state: FormStoreState,
   dataSources: ExpressionDataSources,
   instanceData: IData[],
+  taskId: string | undefined,
 ): ComponentValidationContext {
   return {
+    baseComponentId: node.baseId,
     component: node.intermediateItem,
     formState: state,
     instanceData,
+    taskId,
     expressionDataSources: withCurrentDataModelPath(dataSources, getCurrentDataModelPath(node.rowContexts)),
   };
 }
@@ -186,6 +190,7 @@ function getRawValidationsForNode(
   state: FormStoreState,
   dataSources: ExpressionDataSources,
   instanceData: IData[],
+  taskId: string | undefined,
 ): AnyValidation[] {
   if (!node.isValid || !shouldValidateNode(node.intermediateItem)) {
     return emptyArray;
@@ -199,7 +204,7 @@ function getRawValidationsForNode(
 
   const validations = getComponentDefValidations(
     def,
-    makeComponentValidationContext(node, state, dataSources, instanceData),
+    makeComponentValidationContext(node, state, dataSources, instanceData, taskId),
   );
 
   for (const [bindingKey, reference] of bindings) {
@@ -282,7 +287,7 @@ export function buildDerivedValidationState(
 
     rawValidationsByNode.set(
       node.id,
-      getRawValidationsForNode(node, state, inputs.evalDataSources, inputs.instanceData),
+      getRawValidationsForNode(node, state, inputs.evalDataSources, inputs.instanceData, inputs.taskId),
     );
     visibleBreakdownByNode.set(node.id, getVisibilityBreakdown(state, node));
   }

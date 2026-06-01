@@ -47,7 +47,6 @@ export const getAttachmentDataMock = (overrides: Partial<IData> = {}): IData => 
 });
 
 export const getAttachmentMock = (overrides: Partial<UploadedAttachment> = {}): UploadedAttachment => ({
-  error: undefined,
   uploaded: true,
   deleting: false,
   updating: false,

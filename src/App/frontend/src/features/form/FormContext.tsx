@@ -10,6 +10,7 @@ import { formDataHooks } from 'src/features/formData/FormDataWrite';
 import { validationHooks } from 'src/features/validation/validationContext';
 import { SelectorStrictness } from 'src/hooks/delayedSelectors';
 import { nodesHooks } from 'src/utils/layout/NodesContext';
+import type { AttachmentsSliceState } from 'src/features/attachments/AttachmentsStore';
 import type { PageNavigationSliceState } from 'src/features/form/layout/PageNavigationContext';
 import type { FormBootstrapBase, FormBootstrapContextValue } from 'src/features/formBootstrap/types';
 import type { FormDataMethods, FormDataSliceState } from 'src/features/formData/FormDataWriteStateMachine';
@@ -75,6 +76,7 @@ export interface FormStoreState {
   readOnly: boolean;
 
   data: FormDataSliceState & FormDataMethods;
+  attachments: AttachmentsSliceState;
   validation: ValidationSliceState & ValidationInternals;
   nodes: NodesSliceState;
   pageNavigation: PageNavigationSliceState;

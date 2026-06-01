@@ -54,6 +54,16 @@ export function getComponentCapabilities<T extends CompTypes>(type: T): Componen
   return undefined as any;
 }
 
+export function getComponentBehaviors<T extends CompTypes>(type: T): ComponentConfigs[T]['behaviors'] {
+  const configs = getComponentConfigs();
+  if (type && type in configs) {
+    return configs[type].behaviors;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return undefined as any;
+}
+
 export function implementsAnyValidation<Def extends CompDef>(
   def: Def,
 ): def is Def & (ValidateEmptyField | ValidateComponent) {
@@ -77,9 +87,11 @@ export function implementsValidateComponent<Def extends CompDef>(def: Def): def 
 }
 
 export interface ComponentValidationContext<T extends CompTypes = CompTypes> {
+  baseComponentId: string;
   component: CompIntermediate<T>;
   formState: FormStoreState;
   instanceData: IData[];
+  taskId: string | undefined;
   expressionDataSources: ExpressionDataSources;
 }
 

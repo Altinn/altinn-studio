@@ -1,7 +1,8 @@
 import React, { forwardRef, type JSX } from 'react';
 
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useAttachmentsFor } from 'src/features/attachments/hooks';
-import { attachmentSelector } from 'src/features/attachments/tools';
+import { attachmentSelector, makeAttachmentNode } from 'src/features/attachments/tools';
 import { AttachmentSummaryComponent2 } from 'src/layout/FileUpload/AttachmentSummaryComponent2';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { FileUploadLayoutValidator } from 'src/layout/FileUpload/FileUploadLayoutValidator';
@@ -61,7 +62,13 @@ export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateC
   }
 
   validateComponent(ctx: ComponentValidationContext<'FileUploadWithTag'>): AnyValidation[] {
-    const attachments = attachmentSelector(ctx.component.id)(ctx.formState);
+    const attachments = attachmentSelector(
+      makeAttachmentNode(ctx.baseComponentId, ctx.component),
+      ctx.formState,
+      ctx.instanceData,
+      getApplicationMetadata(),
+      ctx.taskId,
+    );
     return [
       ...validateMinNumberOfAttachmentsForNode(ctx),
       ...validateMissingTagsForNode(ctx),
