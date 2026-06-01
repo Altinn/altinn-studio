@@ -181,6 +181,7 @@
   "resourceadm.deploy_status_card_error_resource_page": "{{num}} felt mangler utfylling eller inneholder feil på siden <0>\"Om ressursen\"</0>.",
   "resourceadm.deploy_status_card_error_resource_page_default": "Det finnes mangler på siden <0>\"Om ressursen\"</0>.",
   "resourceadm.deploy_status_card_error_title": "Du må fikse disse feilene før du kan gå videre",
+  "resourceadm.deploy_status_altinn2_role_warning": "Ressursen bruker følgende Altinn 2-roller i tilgangsregler: <ul></ul>Disse vil ikke kunne brukes etter 31.12.26",
   "resourceadm.deploy_status_card_error_version": "Lokalt repo mangler versjonsnummer. Vennligst last opp et versjonnummer i feltet under.",
   "resourceadm.deploy_status_card_success": "Ressursen er klar til å publiseres",
   "resourceadm.deploy_status_card_loading": "Laster status...",

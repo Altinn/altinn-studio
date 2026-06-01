@@ -29,3 +29,7 @@
   display: flex;
   gap: var(--ds-size-3);
 }
+
+.deprecatedRoleAlert {
+  margin-top: var(--ds-size-4);
+}

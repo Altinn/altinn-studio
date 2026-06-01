@@ -1084,6 +1084,7 @@
   "policy_editor.consent_resource_request_consent_description": "Velg hvilke tilgangslister som skal ha tilgang til tjenesten. Kun organisasjonene i de valgte listene vil få tilgang.",
   "policy_editor.consent_resource_request_consent_error": "Du må velge hvem som kan be om samtykke",
   "policy_editor.consent_resource_request_consent_header": "Hvem skal kunne be om samtykke?",
+  "policy_editor.deprecated_altinn2_role_warning": "Følgende Altinn 2-roller vil ikke kunne brukes etter 31.12.26: <ul></ul>",
   "policy_editor.expandable_card_close_icon": "Lukk kortet",
   "policy_editor.expandable_card_dropdown_copy": "Lag kopi",
   "policy_editor.expandable_card_open_icon": "Åpne kortet",
