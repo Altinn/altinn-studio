@@ -21,8 +21,8 @@ import {
   mapBackendValidationsToValidatorGroups,
   mapValidatorGroupsToDataModelValidations,
 } from 'src/features/validation/backendValidation/backendValidationUtils';
-import { usePruneValidationMasks } from 'src/features/validation/derivedValidations';
 import { hasValidationErrors, selectValidations } from 'src/features/validation/utils';
+import { usePruneValidationMasks } from 'src/features/validation/validationHooks';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
 import type { FormBootstrapContextValue } from 'src/features/formBootstrap/types';

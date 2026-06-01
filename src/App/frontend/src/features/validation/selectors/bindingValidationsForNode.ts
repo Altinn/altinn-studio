@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import type { ComponentValidation, FieldValidation, NodeRefValidation } from '..';
 
 import { FormStore } from 'src/features/form/FormContext';
-import { useVisibleValidations } from 'src/features/validation/derivedValidations';
+import { useVisibleValidations } from 'src/features/validation/validationHooks';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import type { CompTypes, IDataModelBindings } from 'src/layout/layout';

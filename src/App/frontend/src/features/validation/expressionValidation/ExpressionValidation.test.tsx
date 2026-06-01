@@ -7,7 +7,7 @@ import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { Form } from 'src/components/form/Form';
 import { FrontendValidationSource } from 'src/features/validation';
-import { useAllValidations } from 'src/features/validation/derivedValidations';
+import { useAllValidations } from 'src/features/validation/validationHooks';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IRawTextResource } from 'src/features/language/textResources';
 import type { IExpressionValidationConfig } from 'src/features/validation';

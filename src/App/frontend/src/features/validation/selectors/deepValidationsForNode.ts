@@ -1,5 +1,5 @@
 import { FormStore } from 'src/features/form/FormContext';
-import { useVisibleValidationsDeep } from 'src/features/validation/derivedValidations';
+import { useVisibleValidationsDeep } from 'src/features/validation/validationHooks';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import type { NodeRefValidation } from 'src/features/validation/index';
 

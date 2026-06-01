@@ -6,7 +6,7 @@ import type { UsePaginationProps } from '@digdir/designsystemet-react';
 
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useVisibleValidationsDeep } from 'src/features/validation/derivedValidations';
+import { useVisibleValidationsDeep } from 'src/features/validation/validationHooks';
 import { useIsMini, useIsMobile, useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import classes from 'src/layout/RepeatingGroup/Pagination/RepeatingGroupPagination.module.css';
 import {

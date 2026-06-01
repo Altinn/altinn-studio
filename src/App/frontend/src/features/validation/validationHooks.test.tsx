@@ -10,7 +10,7 @@ import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { Form } from 'src/components/form/Form';
 import { FormStore } from 'src/features/form/FormContext';
-import { useGetNodesWithErrors } from 'src/features/validation/derivedValidations';
+import { useGetNodesWithErrors } from 'src/features/validation/validationHooks';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { AllowedValidationMasks } from 'src/layout/common.generated';
 
