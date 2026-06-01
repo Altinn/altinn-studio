@@ -3,13 +3,14 @@ import React, { useEffect, useState } from 'react';
 import { screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import { type BackendValidationIssue, BackendValidationSeverity } from '.';
+import { type BackendValidationIssue, BackendValidationSeverity, type FieldValidation, ValidationMask } from '.';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { Form } from 'src/components/form/Form';
 import { FormStore } from 'src/features/form/FormContext';
+import { useGetNodesWithErrors } from 'src/features/validation/derivedValidations';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { AllowedValidationMasks } from 'src/layout/common.generated';
 
@@ -231,6 +232,82 @@ describe('derived validation state', () => {
       // Even though we removed the value, the required validation should not be visible since it was previously fixed
       // and 'Required' is not present in its 'showValidations'.
       expect(screen.queryByTestId('ErrorReport')).not.toBeInTheDocument();
+    });
+
+    it('selects fresh backend validations immediately after validation state is updated', async () => {
+      function FreshBackendValidationProbe() {
+        const store = FormStore.raw.useStore();
+        const getNodesWithErrors = useGetNodesWithErrors();
+        const [errorCount, setErrorCount] = useState(0);
+
+        return (
+          <button
+            type='button'
+            onClick={() => {
+              const validation: FieldValidation = {
+                field: 'TextField',
+                dataElementId: defaultMockDataElementId,
+                source: 'Custom',
+                severity: 'error',
+                category: ValidationMask.CustomBackend,
+                message: { key: 'Backend says this is wrong' },
+                backendValidationId: 'fresh-backend-validation',
+              };
+
+              store.getState().validation.updateBackendValidations({
+                [defaultMockDataElementId]: { TextField: [validation] },
+              });
+
+              setErrorCount(getNodesWithErrors(ValidationMask.All, 'error', false).length);
+            }}
+          >
+            {errorCount}
+          </button>
+        );
+      }
+
+      window.altinnAppGlobalData.ui = getUiConfigMock((ui) => {
+        ui.folders.Task_1 = {
+          defaultDataType: defaultDataTypeMock,
+          pages: { order: ['Form'] },
+        };
+      });
+
+      await renderWithInstanceAndLayout({
+        renderer: () => <FreshBackendValidationProbe />,
+        initialPage: 'Form',
+        queries: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].initialData = {
+                TextField: 'valid value',
+              };
+              obj.layouts = {
+                Form: {
+                  data: {
+                    layout: [
+                      {
+                        id: 'text-field',
+                        type: 'Input',
+                        textResourceBindings: {
+                          title: 'Text',
+                        },
+                        dataModelBindings: {
+                          simpleBinding: { dataType: defaultDataTypeMock, field: 'TextField' },
+                        },
+                        showValidations: ['CustomBackend'],
+                      },
+                    ],
+                  },
+                },
+              };
+            }),
+        },
+      });
+
+      await userEvent.click(screen.getByRole('button', { name: '0' }));
+
+      expect(screen.getByRole('button')).toHaveTextContent('1');
     });
   });
 });
