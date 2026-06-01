@@ -1,7 +1,7 @@
 import { FormStore } from 'src/features/form/FormContext';
-import { useVisibleValidationsDeepSelector } from 'src/features/validation/derivedValidations';
 import { getVisibilityMask } from 'src/features/validation/utils';
 import { useWaitForValidation } from 'src/features/validation/validationContext';
+import { useVisibleValidationsDeepSelector } from 'src/features/validation/validationHooks';
 import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
 import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import type { NodeRefValidation } from 'src/features/validation';

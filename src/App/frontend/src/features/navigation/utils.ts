@@ -15,8 +15,8 @@ import { FormStore } from 'src/features/form/FormContext';
 import { usePageGroups, usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useGetAltinnTaskType } from 'src/features/instance/useProcessQuery';
 import { ValidationMask } from 'src/features/validation';
-import { useLaxValidationsSelector } from 'src/features/validation/derivedValidations';
 import { getVisibilityMask } from 'src/features/validation/utils';
+import { useValidationsSelector } from 'src/features/validation/validationHooks';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { usePageOrder, useVisitedPages } from 'src/hooks/useNavigatePage';
 import { useHiddenPages } from 'src/utils/layout/hidden';
@@ -90,7 +90,7 @@ export function getTaskIcon(taskType: string | undefined) {
  * 4. A group is marked as completed if all of its pages have no nodes with any validations errors (visible or not), and all of the pages are marked as 'visited'.
  */
 export function useValidationsForPages(order: string[], shouldMarkWhenCompleted = false) {
-  const validationsSelector = useLaxValidationsSelector();
+  const validationsSelector = useValidationsSelector();
   const [visitedPages] = useVisitedPages();
 
   const allNodeIds = FormStore.raw.useLaxMemoSelector((state) => {
@@ -160,7 +160,7 @@ export function useGetNavigationIsPrevented() {
   const layoutCollection = FormStore.bootstrap.useLayoutCollection();
   const globalValidationOnNavigation = usePageSettings().validationOnNavigation;
   const order = usePageOrder();
-  const validationsSelector = useLaxValidationsSelector();
+  const validationsSelector = useValidationsSelector();
   const allNodeIds = FormStore.raw.useLaxMemoSelector((state) => {
     const result = Object.fromEntries<string[]>(order.map((page) => [page, []]));
     Object.values(state.nodes.nodeData).forEach((node) => result[node.pageKey]?.push(node.id));

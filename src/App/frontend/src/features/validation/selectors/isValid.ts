@@ -1,6 +1,6 @@
 import { FormStore } from 'src/features/form/FormContext';
-import { useVisibleValidations } from 'src/features/validation/derivedValidations';
 import { hasValidationErrors } from 'src/features/validation/utils';
+import { useVisibleValidations } from 'src/features/validation/validationHooks';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 
 export function useIsValid(baseComponentId: string): boolean {

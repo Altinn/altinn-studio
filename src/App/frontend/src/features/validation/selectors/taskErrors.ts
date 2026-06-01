@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 
 import { FormStore } from 'src/features/form/FormContext';
-import { useAllValidations } from 'src/features/validation/derivedValidations';
 import {
   type AnyValidation,
   type BaseValidation,
@@ -11,6 +10,7 @@ import {
   ValidationMask,
 } from 'src/features/validation/index';
 import { selectValidations, validationsOfSeverity } from 'src/features/validation/utils';
+import { useAllValidations } from 'src/features/validation/validationHooks';
 
 const emptyArray: never[] = [];
 

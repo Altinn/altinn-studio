@@ -7,13 +7,13 @@ import { useAttachmentsFor } from 'src/features/attachments/hooks';
 import classes from 'src/features/devtools/components/NodeInspector/ValidationInspector.module.css';
 import { Lang } from 'src/features/language/Lang';
 import { ValidationMask } from 'src/features/validation';
-import { useRawValidations, useValidationVisibilityBreakdown } from 'src/features/validation/derivedValidations';
 import { isValidationVisible } from 'src/features/validation/utils';
+import { useRawValidations, useValidationVisibilityBreakdown } from 'src/features/validation/validationHooks';
 import { getComponentDef, implementsAnyValidation } from 'src/layout';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import type { AttachmentValidation, NodeRefValidation, ValidationSeverity } from 'src/features/validation';
-import type { ValidationVisibilityBreakdown } from 'src/features/validation/derivedValidations';
+import type { ValidationVisibilityBreakdown } from 'src/features/validation/validationHooks';
 
 interface ValidationInspectorProps {
   baseComponentId: string;

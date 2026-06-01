@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import type { NodeRefValidation } from '..';
 
 import { FormStore } from 'src/features/form/FormContext';
-import { useVisibleValidations } from 'src/features/validation/derivedValidations';
+import { useVisibleValidations } from 'src/features/validation/validationHooks';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 
 /**

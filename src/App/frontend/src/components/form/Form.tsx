@@ -22,8 +22,8 @@ import { useTextResources } from 'src/features/language/textResources/TextResour
 import { useLanguage } from 'src/features/language/useLanguage';
 import { replaceAndPreventResetOptions } from 'src/features/navigation/navigationOptions';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
-import { usePageHasVisibleRequiredValidations } from 'src/features/validation/derivedValidations';
 import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
+import { usePageHasVisibleRequiredValidations } from 'src/features/validation/validationHooks';
 import { useQueryKey } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useCurrentView, useIsValidPageId, useNavigateToPage, useStartUrl } from 'src/hooks/useNavigatePage';
