@@ -50,6 +50,12 @@ jest.mock('react-router-dom', () => ({
   }),
 }));
 
+jest.mock('../../utils/userUtils/userUtils', () => ({
+  ...jest.requireActual('../../utils/userUtils/userUtils'),
+  isTT02SBLBridgeEnabled: jest.fn().mockReturnValue(true),
+  isProdSBLBridgeEnabled: jest.fn().mockReturnValue(true),
+}));
+
 describe('ResourcePage', () => {
   afterEach(() => {
     jest.clearAllMocks();
