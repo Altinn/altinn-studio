@@ -111,7 +111,16 @@ public class UiFoldersService : IUiFoldersService
             throw new NonUniqueLayoutSetIdException($"Layout set name, {newLayoutSet.Id}, already exists.");
         }
 
-        await CreateLayoutSetFiles(altinnAppGitRepository, newLayoutSet, taskType);
+        try
+        {
+            await CreateLayoutSetFiles(altinnAppGitRepository, newLayoutSet, taskType);
+        }
+        catch
+        {
+            // Roll back any partially written files so a failed create does not leave a half-created layout set.
+            altinnAppGitRepository.DeleteLayoutSetFolder(newLayoutSet.Id, CancellationToken.None);
+            throw;
+        }
 
         await _publisher.Publish(
             new LayoutSetCreatedEvent { EditingContext = editingContext, LayoutSet = newLayoutSet },
@@ -151,12 +160,25 @@ public class UiFoldersService : IUiFoldersService
 
         if (isTaskConnected)
         {
-            await _processModelingService.UpdateTaskId(
-                editingContext,
-                oldLayoutSetName,
-                newLayoutSetName,
-                cancellationToken
-            );
+            try
+            {
+                await _processModelingService.UpdateTaskId(
+                    editingContext,
+                    oldLayoutSetName,
+                    newLayoutSetName,
+                    cancellationToken
+                );
+            }
+            catch
+            {
+                // Roll back the folder rename so the repository is not left with the folder name and task id out of sync.
+                altinnAppGitRepository.ChangeLayoutSetFolderName(
+                    newLayoutSetName,
+                    oldLayoutSetName,
+                    CancellationToken.None
+                );
+                throw;
+            }
         }
 
         await _publisher.Publish(
@@ -194,11 +216,6 @@ public class UiFoldersService : IUiFoldersService
         cancellationToken.ThrowIfCancellationRequested();
         AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext);
 
-        await _publisher.Publish(
-            new LayoutSetDeletedEvent { EditingContext = editingContext, LayoutSetName = layoutSetToDeleteId },
-            cancellationToken
-        );
-
         string? dataType = await TryGetDataType(altinnAppGitRepository, layoutSetToDeleteId, cancellationToken);
         if (!string.IsNullOrEmpty(dataType))
         {
@@ -206,6 +223,12 @@ public class UiFoldersService : IUiFoldersService
         }
 
         altinnAppGitRepository.DeleteLayoutSetFolder(layoutSetToDeleteId, cancellationToken);
+
+        // Only publish once every repository mutation has succeeded.
+        await _publisher.Publish(
+            new LayoutSetDeletedEvent { EditingContext = editingContext, LayoutSetName = layoutSetToDeleteId },
+            cancellationToken
+        );
 
         return await GetLayoutSets(editingContext, cancellationToken);
     }
