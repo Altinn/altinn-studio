@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 
@@ -10,6 +11,26 @@ public interface IUiFoldersService
 {
     public Task<IEnumerable<LayoutSetDto>> GetLayoutSets(
         AltinnRepoEditingContext context,
+        CancellationToken cancellationToken
+    );
+
+    public Task<IEnumerable<LayoutSetDto>> AddLayoutSet(
+        AltinnRepoEditingContext editingContext,
+        LayoutSetConfig newLayoutSet,
+        TaskType? taskType,
+        CancellationToken cancellationToken
+    );
+
+    public Task<IEnumerable<LayoutSetDto>> UpdateLayoutSetName(
+        AltinnRepoEditingContext editingContext,
+        string oldLayoutSetName,
+        string newLayoutSetName,
+        CancellationToken cancellationToken
+    );
+
+    public Task<IEnumerable<LayoutSetDto>> DeleteLayoutSet(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetToDeleteId,
         CancellationToken cancellationToken
     );
 

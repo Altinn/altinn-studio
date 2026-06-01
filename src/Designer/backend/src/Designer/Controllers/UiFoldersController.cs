@@ -43,6 +43,63 @@ public class UiFoldersController : Controller
         return Ok(layoutSets);
     }
 
+    [HttpPost("layout-sets")]
+    [UseSystemTextJson]
+    public async Task<IActionResult> AddLayoutSet(
+        string org,
+        string app,
+        [FromBody] LayoutSetPayload layoutSetPayload,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnRepoEditingContext editingContext = CreateContext(org, app);
+        IEnumerable<LayoutSetDto> layoutSets = await _uiFoldersService.AddLayoutSet(
+            editingContext,
+            layoutSetPayload.LayoutSetConfig,
+            layoutSetPayload.TaskType,
+            cancellationToken
+        );
+        return Ok(layoutSets);
+    }
+
+    [HttpPut("layout-sets/{layoutSetId}")]
+    [UseSystemTextJson]
+    public async Task<IActionResult> UpdateLayoutSetName(
+        string org,
+        string app,
+        [FromRoute] string layoutSetId,
+        [FromBody] string newLayoutSetName,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnRepoEditingContext editingContext = CreateContext(org, app);
+        IEnumerable<LayoutSetDto> layoutSets = await _uiFoldersService.UpdateLayoutSetName(
+            editingContext,
+            layoutSetId,
+            newLayoutSetName,
+            cancellationToken
+        );
+        return Ok(layoutSets);
+    }
+
+    [HttpDelete("layout-sets/{layoutSetId}")]
+    [UseSystemTextJson]
+    public async Task<IActionResult> DeleteLayoutSet(
+        string org,
+        string app,
+        [FromRoute] string layoutSetId,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnRepoEditingContext editingContext = CreateContext(org, app);
+        IEnumerable<LayoutSetDto> layoutSets = await _uiFoldersService.DeleteLayoutSet(
+            editingContext,
+            layoutSetId,
+            cancellationToken
+        );
+        return Ok(layoutSets);
+    }
+
     [HttpGet("layout-sets/extended")]
     [UseSystemTextJson]
     public async Task<IActionResult> GetLayoutSetsExtended(string org, string app, CancellationToken cancellationToken)
