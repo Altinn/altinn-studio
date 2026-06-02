@@ -213,13 +213,11 @@ export function usePruneValidationMasks() {
     )
     .map(([rowId]) => rowId);
 
-  const prune = useCallback(() => {
+  return useCallback(() => {
     if (formMask && !hasFormErrors) {
       setFormMask(undefined);
     }
     stalePages.forEach((pageKey) => setPageMask(pageKey, undefined));
     staleRows.forEach((rowId) => setRowMask(rowId, undefined));
   }, [formMask, hasFormErrors, setFormMask, setPageMask, setRowMask, stalePages, staleRows]);
-
-  return { prune };
 }

@@ -290,6 +290,8 @@ class ExpressionObserver {
   private lastValues = new Map<string, unknown>();
   private unsubscribeStore?: (() => void) | null;
   private unsubscribeQuery?: (() => void) | null;
+  private subscribed = false;
+  private rerenderScheduled = false;
 
   constructor(private readonly onChange: () => void) {}
 
@@ -317,6 +319,7 @@ class ExpressionObserver {
   subscribe() {
     this.unsubscribeStore?.();
     this.unsubscribeQuery?.();
+    this.subscribed = false;
 
     const inputs = this.inputs;
     if (!inputs) {
@@ -333,8 +336,10 @@ class ExpressionObserver {
     this.unsubscribeQuery = inputs.queryCacheObserver.subscribe(() => {
       this.checkForChanges();
     });
+    this.subscribed = true;
 
     return () => {
+      this.subscribed = false;
       this.unsubscribeStore?.();
       this.unsubscribeQuery?.();
       this.unsubscribeStore = null;
@@ -351,10 +356,24 @@ class ExpressionObserver {
     for (const [key, nextValue] of nextValues) {
       if (!deepEqual(this.lastValues.get(key), nextValue)) {
         this.lastValues = nextValues;
-        this.onChange();
+        this.scheduleRerender();
         return;
       }
     }
+  }
+
+  private scheduleRerender() {
+    if (this.rerenderScheduled) {
+      return;
+    }
+
+    this.rerenderScheduled = true;
+    queueMicrotask(() => {
+      this.rerenderScheduled = false;
+      if (this.subscribed) {
+        this.onChange();
+      }
+    });
   }
 
   private readValues(dependencies: Map<string, ExpressionDependency>) {
