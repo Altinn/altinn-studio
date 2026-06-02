@@ -237,7 +237,7 @@ export function useWaitForValidation(): WaitForValidation {
 }
 
 function ValidationMaskPruner() {
-  const { prune } = usePruneValidationMasks();
+  const prune = usePruneValidationMasks();
 
   useEffect(() => {
     prune();
