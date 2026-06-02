@@ -61,14 +61,12 @@ public class ResourceRegistryService : IResourceRegistry
     public async Task<List<ServiceResource>> GetServiceResourceList(
         string env,
         bool includeApps = false,
-        bool includeAltinn2 = false,
         bool includeMigratedApps = false
     )
     {
         return await _resourceRegistryRepository.GetServiceResources(
             env,
             includeApps,
-            includeAltinn2,
             includeMigratedApps
         );
     }
@@ -78,7 +76,6 @@ public class ResourceRegistryService : IResourceRegistry
         var resourceList = await GetServiceResourceList(
             env,
             includeApps: false,
-            includeAltinn2: false,
             includeMigratedApps: false
         );
         return resourceList.Any((serviceResource) => serviceResource.Identifier.Equals(id));

@@ -22,7 +22,6 @@ public interface IResourceRegistry
     Task<List<ServiceResource>> GetServiceResourceList(
         string env,
         bool includeApps = false,
-        bool includeAltinn2 = false,
         bool includeMigratedApps = false
     );
 

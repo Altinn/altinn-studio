@@ -360,7 +360,6 @@ public class ResourceAdminController : ControllerBase
                         environmentResources = await _resourceRegistry.GetServiceResourceList(
                             environment,
                             includeApps: true,
-                            includeAltinn2: false,
                             includeMigratedApps: true
                         );
 
@@ -491,7 +490,6 @@ public class ResourceAdminController : ControllerBase
         string repository = GetRepositoryName(org);
         List<ServiceResource> allResources = await _resourceRegistry.GetServiceResourceList(
             env.ToLower(),
-            includeAltinn2: false,
             includeApps: true,
             includeMigratedApps: true
         );
@@ -601,7 +599,6 @@ public class ResourceAdminController : ControllerBase
             environmentResources = await _resourceRegistry.GetServiceResourceList(
                 env,
                 includeApps: true,
-                includeAltinn2: false,
                 includeMigratedApps: true
             );
 
