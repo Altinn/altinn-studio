@@ -307,7 +307,9 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         root.GetProperty("technicalDetail")
             .GetString()
             .Should()
-            .Contain($"Instantiation of appId {org}/{app} failed for party {instanceOwnerPartyId}");
+            .Contain(
+                $"Initial process workflow submission failed for appId {org}/{app} for party {instanceOwnerPartyId}"
+            );
         root.GetProperty("initializationState").GetString().Should().Be("workflowNotAccepted");
         root.GetProperty("instanceDeleted").GetBoolean().Should().BeTrue();
         root.GetProperty("recommendedAction").GetString().Should().Be("retryInstanceCreation");
@@ -372,7 +374,9 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         root.GetProperty("technicalDetail")
             .GetString()
             .Should()
-            .Contain($"Instantiation of appId {org}/{app} failed for party {instanceOwnerPartyId}");
+            .Contain(
+                $"Initial process workflow execution failed for appId {org}/{app} for party {instanceOwnerPartyId}"
+            );
         root.GetProperty("initializationState").GetString().Should().Be("workflowFailed");
         root.GetProperty("workflowAccepted").GetBoolean().Should().BeTrue();
         root.GetProperty("recommendedAction").GetString().Should().Be("recoverCurrentTask");

@@ -526,14 +526,14 @@ public class InstancesController : ControllerBase
             return await HandleInitialWorkflowSubmissionFailure(
                 exception,
                 instance,
-                $"Instantiation of data elements failed for instance {instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}"
+                $"Initial process workflow submission failed for instance {instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}"
             );
         }
         catch (WorkflowExecutionFailedException exception)
         {
             return HandleInitialWorkflowExecutionFailure(
                 exception,
-                $"Instantiation of data elements failed for instance {exception.Instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}",
+                $"Initial process workflow execution failed for instance {exception.Instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}",
                 org,
                 app
             );
@@ -836,14 +836,14 @@ public class InstancesController : ControllerBase
             return await HandleInitialWorkflowSubmissionFailure(
                 exception,
                 instance,
-                $"Instantiation of appId {org}/{app} failed for party {instanceTemplate.InstanceOwner?.PartyId}"
+                $"Initial process workflow submission failed for appId {org}/{app} for party {instanceTemplate.InstanceOwner?.PartyId}"
             );
         }
         catch (WorkflowExecutionFailedException exception)
         {
             return HandleInitialWorkflowExecutionFailure(
                 exception,
-                $"Instantiation of appId {org}/{app} failed for party {instanceTemplate.InstanceOwner?.PartyId}",
+                $"Initial process workflow execution failed for appId {org}/{app} for party {instanceTemplate.InstanceOwner?.PartyId}",
                 org,
                 app
             );
@@ -1005,14 +1005,14 @@ public class InstancesController : ControllerBase
             return await HandleInitialWorkflowSubmissionFailure(
                 exception,
                 targetInstance,
-                $"Instantiation of appId {org}/{app} failed for party {targetInstance.InstanceOwner?.PartyId}"
+                $"Initial process workflow submission failed for appId {org}/{app} for party {targetInstance.InstanceOwner?.PartyId}"
             );
         }
         catch (WorkflowExecutionFailedException exception)
         {
             return HandleInitialWorkflowExecutionFailure(
                 exception,
-                $"Instantiation of appId {org}/{app} failed for party {targetInstance.InstanceOwner?.PartyId}",
+                $"Initial process workflow execution failed for appId {org}/{app} for party {targetInstance.InstanceOwner?.PartyId}",
                 org,
                 app
             );
