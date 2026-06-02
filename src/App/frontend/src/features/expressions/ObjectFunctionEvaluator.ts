@@ -5,11 +5,11 @@ import type { ValidObject, ValidValue } from 'src/features/expressions/types';
 
 export class ObjectFunctionEvaluator {
   #context: EvaluateExpressionParams<never[]>;
-  #items: ValidValue[];
+  #argumentList: ValidValue[];
 
-  constructor(context: EvaluateExpressionParams<never[]>, items: ValidValue[]) {
+  constructor(context: EvaluateExpressionParams<never[]>, argumentList: ValidValue[]) {
     this.#context = context;
-    this.#items = items;
+    this.#argumentList = argumentList;
   }
 
   evaluate(): ValidObject {
@@ -20,7 +20,7 @@ export class ObjectFunctionEvaluator {
   }
 
   private assertEvenNumberOfArguments(): void {
-    if (this.#items.length % 2 === 1) {
+    if (this.#argumentList.length % 2 === 1) {
       throw new ExprRuntimeError(
         this.#context.expr,
         this.#context.path,
@@ -41,11 +41,11 @@ export class ObjectFunctionEvaluator {
   }
 
   private extractEvenIndexedArguments(): ValidValue[] {
-    return this.#items.filter((_, index) => index % 2 === 0);
+    return this.#argumentList.filter((_, index) => index % 2 === 0);
   }
 
   private extractOddIndexedArguments(): ValidValue[] {
-    return this.#items.filter((_, index) => index % 2 === 1);
+    return this.#argumentList.filter((_, index) => index % 2 === 1);
   }
 
   private static objectFromKeysAndValues(keys: string[], values: ValidValue[]): Record<string, ValidValue> {
