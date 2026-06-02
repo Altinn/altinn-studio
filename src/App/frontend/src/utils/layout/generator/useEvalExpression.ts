@@ -20,10 +20,7 @@ import type { ExprVal, ExprValToActual, ExprValToActualOrExpr } from 'src/featur
  *  3. Implement `evalExpressions()` in your `index.tsx` file. This function will be called by the hierarchy generator
  *     to evaluate the expressions in the configuration.
  *
- * Expressions that can be used in multiple components:
- *  1. Write a plugin that adds a property to the configuration using `new CG.expr(...)` and implements
- *     expression evaluation. See `AlertOnChangePlugin` for a simple example.
- *  2. Add the plugin to your component in `config.ts`.
+ * Expressions that can be used in multiple components should be added through a shared component config helper.
  */
 export function useEvalExpression<V extends ExprVal>(
   expr: ExprValToActualOrExpr<V> | undefined,

@@ -7,7 +7,6 @@ import { GenerateRaw } from 'src/codegen/dataTypes/GenerateRaw';
 import { GenerateUnion } from 'src/codegen/dataTypes/GenerateUnion';
 import { ExprVal } from 'src/features/expressions/types';
 import { CompCategory } from 'src/layout/common';
-import { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
 import type { CompBehaviors, RequiredComponentConfig } from 'src/codegen/Config';
 import type { GenerateCommonImport } from 'src/codegen/dataTypes/GenerateCommonImport';
@@ -52,8 +51,6 @@ export class ComponentConfig {
     canHaveAttachments: false,
   };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  protected plugins: NodeDefPlugin<any>[] = [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected createSummaryOverrides: (() => MaybeOptionalCodeGenerator<any>) | undefined;
   protected hasSummaryOverridesExtender = false;
 
@@ -77,19 +74,6 @@ export class ComponentConfig {
     this.typeSymbol = symbolName;
     this.inner.addProperty(new CG.prop('type', new CG.const(this.type)).insertFirst());
 
-    return this;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public addPlugin(plugin: NodeDefPlugin<any>): this {
-    for (const existing of this.plugins) {
-      if (existing.getKey() === plugin.getKey()) {
-        throw new Error(`Component already has a plugin with the key ${plugin.getKey()}!`);
-      }
-    }
-
-    plugin.addToComponent(this);
-    this.plugins.push(plugin);
     return this;
   }
 
@@ -326,17 +310,6 @@ export class ComponentConfig {
       from: `src/layout/common`,
     });
 
-    const pluginUnion =
-      this.plugins.length === 0
-        ? 'never'
-        : this.plugins
-            .map((plugin) => {
-              const PluginName = plugin.makeImport();
-              const genericArgs = plugin.makeGenericArgs();
-              return genericArgs ? `${PluginName}<${genericArgs}>` : `${PluginName}`;
-            })
-            .join(' | ');
-
     const staticElements = [
       `export function getConfig() {
          return {
@@ -348,7 +321,6 @@ export class ComponentConfig {
       `export type TypeConfig = {
          category: ${CompCategory}.${this.config.category},
          layout: ${this.inner};
-         plugins: ${pluginUnion};
          summaryOverrides: ${this.getSummaryOverridesImport('plain')?.toTypeScript() ?? 'undefined'};
          summaryOverridesWithRef: ${this.getSummaryOverrides()?.toTypeScript() ?? 'undefined'};
        }`,
@@ -375,21 +347,6 @@ export class ComponentConfig {
     const ExprResolver = new CG.import({
       import: 'ExprResolver',
       from: 'src/layout/LayoutComponent',
-    });
-
-    const NodeGeneratorProps = new CG.import({
-      import: 'NodeGeneratorProps',
-      from: 'src/layout/LayoutComponent',
-    });
-
-    const ReactJSX = new CG.import({
-      import: 'JSX',
-      from: 'react',
-    });
-
-    const NodeGenerator = new CG.import({
-      import: 'NodeGenerator',
-      from: 'src/utils/layout/generator/NodeGenerator',
     });
 
     const DisplayData = new CG.import({
@@ -420,28 +377,6 @@ export class ComponentConfig {
         evalLines.push(`...props.${evaluator}(),`);
       }
     }
-
-    const pluginInstances = this.plugins.map((plugin) => {
-      const args = plugin.makeConstructorArgs();
-      const instance = `new ${plugin.import}(${args})`;
-      return `'${plugin.getKey()}': ${instance}`;
-    });
-    const pluginMap = pluginInstances.length ? `protected plugins = {${pluginInstances.join(',\n')}};` : '';
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    function pluginRef(plugin: NodeDefPlugin<any>): string {
-      return `this.plugins['${plugin.getKey()}']`;
-    }
-
-    const pluginStateFactories = this.plugins
-      .filter((plugin) => plugin.stateFactory !== NodeDefPlugin.prototype.stateFactory)
-      .map((plugin) => `...${pluginRef(plugin)}.stateFactory(props as any),`)
-      .join('\n');
-
-    const pluginGeneratorChildren = this.plugins
-      .filter((plugin) => plugin.extraNodeGeneratorChildren !== NodeDefPlugin.prototype.extraNodeGeneratorChildren)
-      .map((plugin) => plugin.extraNodeGeneratorChildren())
-      .join('\n');
 
     const additionalMethods: string[] = [];
 
@@ -476,19 +411,8 @@ export class ComponentConfig {
     const implementing = implementsInterfaces.length ? ` implements ${implementsInterfaces.join(', ')}` : '';
     return `export abstract class ${symbol}Def extends ${categorySymbol}<'${this.type}'>${implementing} {
       protected readonly type = '${this.type}';
-      ${pluginMap}
 
       ${this.config.directRendering ? 'directRender(): boolean { return true; }' : ''}
-
-      renderNodeGenerator(props: ${NodeGeneratorProps}): ${ReactJSX}.Element | null {
-        const others = this.extraNodeGeneratorChildren(props);
-        return (
-          <${NodeGenerator} {...props}>
-            ${pluginGeneratorChildren}
-            {others}
-          </${NodeGenerator}>
-        );
-      }
 
       stateFactory(props: ${StateFactoryProps}<'${this.type}'>) {
         const baseState: ${BaseNodeData}<'${this.type}'> = {
@@ -505,7 +429,7 @@ export class ComponentConfig {
           dataModelBindings: props.dataModelBindings,
         };
 
-        return { ...baseState, ${pluginStateFactories} };
+        return { ...baseState };
       }
 
       // Do not override this one, set functionality.customExpressions to true instead

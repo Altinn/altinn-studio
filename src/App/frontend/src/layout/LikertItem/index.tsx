@@ -5,6 +5,7 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
+import { RunOptionsEffects } from 'src/features/options/RunOptionsEffects';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { validateEmptyFieldOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { LikertItemDef } from 'src/layout/LikertItem/config.def.generated';
@@ -15,7 +16,7 @@ import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { ComponentValidation } from 'src/features/validation';
 import type { ComponentValidationContext, PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { NodeGeneratorProps, SummaryRendererProps } from 'src/layout/LayoutComponent';
 
 export class LikertItem extends LikertItemDef {
   render = forwardRef<HTMLTableRowElement, PropsFromGenericComponent<'LikertItem'>>(
@@ -28,6 +29,10 @@ export class LikertItem extends LikertItemDef {
       );
     },
   );
+
+  extraNodeGeneratorChildren(_props: NodeGeneratorProps): JSX.Element | null {
+    return <RunOptionsEffects valueType='single' />;
+  }
 
   useDisplayData(baseComponentId: string): string {
     const formData = useNodeFormDataWhenType(baseComponentId, 'LikertItem');
