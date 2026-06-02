@@ -54,7 +54,8 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
             throw new InvalidOperationException("layout-sets.json is missing a 'sets' array.");
         }
 
-        var plans = BuildPlans(uiPath, sets);
+        var subformReferencedSets = CollectSubformLayoutSetReferences(uiPath);
+        var plans = BuildPlans(uiPath, sets, subformReferencedSets);
         ValidateCollisions(uiPath, plans);
 
         var touchedFolders = new HashSet<string>(StringComparer.Ordinal);
@@ -187,7 +188,11 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
         }
     }
 
-    private static List<LayoutSetMigrationPlan> BuildPlans(string uiPath, JsonArray sets)
+    private static List<LayoutSetMigrationPlan> BuildPlans(
+        string uiPath,
+        JsonArray sets,
+        HashSet<string> subformReferencedSets
+    )
     {
         var plans = new List<LayoutSetMigrationPlan>();
         foreach (var setNode in sets)
@@ -209,17 +214,97 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
                 throw new InvalidOperationException($"Missing UI folder for layout set '{sourceId}' ({sourcePath}).");
             }
 
+            // A set referenced by a Subform component is never bound to a task — the v9 task-folder
+            // layout is for top-level layouts. Ignore any 'tasks' it has and keep the folder name.
+            var tasksArray = setObject["tasks"] as JsonArray;
+            if (subformReferencedSets.Contains(sourceId) && tasksArray is { Count: > 0 })
+            {
+                UpgradeConsole.WriteLine(
+                    $"Layout set '{sourceId}' is referenced by a Subform component; ignoring its 'tasks' entry and keeping it as a subform folder."
+                );
+                tasksArray = null;
+            }
+
             plans.Add(
                 new LayoutSetMigrationPlan(
                     sourceId,
                     sourcePath,
-                    ResolveDestinationFolderIds(sourceId, setObject["tasks"] as JsonArray),
+                    ResolveDestinationFolderIds(sourceId, tasksArray),
                     setObject["dataType"]?.GetValue<string>()
                 )
             );
         }
 
         return plans;
+    }
+
+    /// <summary>
+    /// Scans every layout JSON under <paramref name="uiPath"/> for Subform components and returns
+    /// the set of <c>layoutSet</c> ids they reference. Tolerant of malformed files — they're skipped.
+    /// </summary>
+    private static HashSet<string> CollectSubformLayoutSetReferences(string uiPath)
+    {
+        var refs = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var setFolder in Directory.GetDirectories(uiPath))
+        {
+            var layoutsFolder = Path.Combine(setFolder, "layouts");
+            if (!Directory.Exists(layoutsFolder))
+            {
+                continue;
+            }
+
+            foreach (var file in Directory.GetFiles(layoutsFolder, "*.json"))
+            {
+                JsonNode? root;
+                try
+                {
+                    root = JsonNode.Parse(File.ReadAllText(file));
+                }
+                catch
+                {
+                    continue;
+                }
+
+                if (root?["data"]?["layout"] is not JsonArray layoutArray)
+                {
+                    continue;
+                }
+
+                CollectSubformReferencesFromNode(layoutArray, refs);
+            }
+        }
+
+        return refs;
+    }
+
+    private static void CollectSubformReferencesFromNode(JsonNode? node, HashSet<string> refs)
+    {
+        switch (node)
+        {
+            case JsonArray array:
+                foreach (var item in array)
+                {
+                    CollectSubformReferencesFromNode(item, refs);
+                }
+                break;
+            case JsonObject obj:
+                if (
+                    obj["type"] is JsonValue typeValue
+                    && typeValue.TryGetValue<string>(out var typeName)
+                    && string.Equals(typeName, "Subform", StringComparison.Ordinal)
+                    && obj["layoutSet"] is JsonValue layoutSetValue
+                    && layoutSetValue.TryGetValue<string>(out var layoutSetId)
+                    && !string.IsNullOrWhiteSpace(layoutSetId)
+                )
+                {
+                    refs.Add(layoutSetId);
+                }
+                foreach (var kvp in obj)
+                {
+                    CollectSubformReferencesFromNode(kvp.Value, refs);
+                }
+                break;
+        }
     }
 
     private static void ValidateCollisions(string uiPath, List<LayoutSetMigrationPlan> plans)
