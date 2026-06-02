@@ -164,8 +164,6 @@
     "strict-object": {
       "title": "Any expression returning an object (strict)",
       "anyOf": [
-        { "$ref": "#/definitions/func-component" },
-        { "$ref": "#/definitions/func-dataModel" },
         { "$ref": "#/definitions/func-object" }
       ]
     },
