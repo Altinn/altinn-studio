@@ -804,8 +804,8 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
   list(...items): ValidValue[] {
     return items;
   },
-  object(...items): ValidObject {
-    return new ObjectFunctionEvaluator(this, items).evaluate();
+  object(...argumentList): ValidObject {
+    return new ObjectFunctionEvaluator(this, argumentList).evaluate();
   },
   _experimentalSelectAndMap(path, propertyToSelect, prepend, append, appendToLastElement = true) {
     if (path === null || propertyToSelect == null) {
