@@ -30,7 +30,6 @@ import type {
 import type { LegacySummaryOverrides } from 'src/layout/Summary/SummaryComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { ChildClaims } from 'src/utils/layout/generator/GeneratorContext';
-import type { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { StateFactoryProps } from 'src/utils/layout/types';
 
 export interface NodeGeneratorProps {
@@ -54,8 +53,6 @@ export interface ExprResolver<Type extends CompTypes> {
 
 export abstract class AnyComponent<Type extends CompTypes> {
   protected readonly type: Type;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  protected plugins: { [key: string]: NodeDefPlugin<any> } = {};
 
   /**
    * Given properties from GenericComponent, render this layout component
@@ -71,7 +68,7 @@ export abstract class AnyComponent<Type extends CompTypes> {
    * the default node generator with additional functionality.
    */
   renderNodeGenerator(props: NodeGeneratorProps): JSX.Element | null {
-    return <NodeGenerator {...props} />;
+    return <NodeGenerator {...props}>{this.extraNodeGeneratorChildren(props)}</NodeGenerator>;
   }
 
   /**
@@ -80,15 +77,6 @@ export abstract class AnyComponent<Type extends CompTypes> {
    */
   renderLayoutValidators(_props: NodeValidationProps<Type>): JSX.Element | null {
     return null;
-  }
-
-  /**
-   * Check if this component has a specific plugin
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public hasPlugin(constructor: new (...args: any[]) => NodeDefPlugin<any>): boolean {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return Object.values(this.plugins).some((plugin: NodeDefPlugin<any>) => plugin instanceof constructor);
   }
 
   /**

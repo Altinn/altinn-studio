@@ -5,6 +5,7 @@ import dot from 'dot-object';
 
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getCommaSeparatedOptionsToText } from 'src/features/options/getCommaSeparatedOptionsToText';
+import { RunOptionsEffects } from 'src/features/options/RunOptionsEffects';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { useValidateSimpleBindingWithOptionalGroup } from 'src/features/saveToGroup/layoutValidation';
 import { ObjectToGroupLayoutValidator } from 'src/features/saveToGroup/ObjectToGroupLayoutValidator';
@@ -18,7 +19,7 @@ import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { ComponentValidation } from 'src/features/validation';
 import type { ComponentValidationContext, PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
-import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { ExprResolver, NodeGeneratorProps, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 type Row = Record<string, string | number | boolean>;
@@ -29,6 +30,10 @@ export class MultipleSelect extends MultipleSelectDef {
       return <MultipleSelectComponent {...props} />;
     },
   );
+
+  extraNodeGeneratorChildren(_props: NodeGeneratorProps): JSX.Element | null {
+    return <RunOptionsEffects valueType='multi' />;
+  }
 
   useDisplayData(baseComponentId: string): string {
     const formData = useNodeFormDataWhenType(baseComponentId, 'MultipleSelect');

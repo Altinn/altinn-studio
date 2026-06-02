@@ -4,6 +4,7 @@ import type { JSX } from 'react';
 import type { PropsFromGenericComponent } from '..';
 
 import { FormStore } from 'src/features/form/FormContext';
+import { RunOptionsEffects } from 'src/features/options/RunOptionsEffects';
 import { LikertDef } from 'src/layout/Likert/config.def.generated';
 import { LikertGeneratorChildren } from 'src/layout/Likert/Generator/LikertGeneratorChildren';
 import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
@@ -84,7 +85,12 @@ export class Likert extends LikertDef {
   }
 
   extraNodeGeneratorChildren(_props: NodeGeneratorProps): JSX.Element | null {
-    return <LikertGeneratorChildren />;
+    return (
+      <>
+        <RunOptionsEffects valueType='single' />
+        <LikertGeneratorChildren />
+      </>
+    );
   }
 
   claimChildren(props: ChildClaimerProps<'Likert'>): void {
