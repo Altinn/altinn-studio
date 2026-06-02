@@ -19,14 +19,6 @@
             "hidden": true
           }
         ]
-      },
-      {
-        "id": "SummaryTask2",
-        "type": "Summary2",
-        "target": {
-          "type": "layoutSet",
-          "taskId": "Task_Utfylling2"
-        }
       }
     ]
   }
