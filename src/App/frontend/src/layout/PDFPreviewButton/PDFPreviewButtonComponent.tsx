@@ -10,7 +10,7 @@ import type { NodeValidationProps } from 'src/layout/layout';
 
 export function PDFPreviewButtonRenderLayoutValidator({ intermediateItem }: NodeValidationProps<'PDFPreviewButton'>) {
   const instanceId = useStrictInstanceId();
-  const addError = FormStore.nodes.useAddError();
+  const addError = FormStore.layoutDiagnostics.useAddError();
 
   useEffect(() => {
     if (!instanceId) {

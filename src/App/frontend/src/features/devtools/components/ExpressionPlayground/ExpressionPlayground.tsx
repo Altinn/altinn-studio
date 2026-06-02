@@ -14,6 +14,7 @@ import { FormStore } from 'src/features/form/FormContext';
 import { useNavigationParam } from 'src/hooks/navigation';
 import comboboxClasses from 'src/styles/combobox.module.css';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
+import { deriveLayoutNodes } from 'src/utils/layout/deriveLayoutNodes';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import { optionFilter } from 'src/utils/options';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
@@ -63,9 +64,9 @@ export const ExpressionPlayground = () => {
   const resetOutputHistory = () => setOutputs([]);
 
   const componentOptions = FormStore.raw.useMemoSelector((state) =>
-    Object.values(state.nodes.nodeData).map((nodeData) => ({
-      label: nodeData.id,
-      value: nodeData.id,
+    deriveLayoutNodes(state).map((node) => ({
+      label: node.id,
+      value: node.id,
     })),
   );
 

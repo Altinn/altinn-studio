@@ -49,7 +49,7 @@ export function useGeneratorErrorBoundaryNodeRef() {
 }
 
 function StoreErrorAndBail({ error, ref }: { error: Error; ref: Ref }) {
-  const addError = FormStore.nodes.useAddError();
+  const addError = FormStore.layoutDiagnostics.useAddError();
 
   useEffect(() => {
     if (!ref) {

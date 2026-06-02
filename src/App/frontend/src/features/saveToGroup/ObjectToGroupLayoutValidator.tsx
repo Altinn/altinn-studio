@@ -11,7 +11,7 @@ export function ObjectToGroupLayoutValidator(props: NodeValidationProps<'List' |
   const deletionStrategy = externalItem.deletionStrategy;
   const checkedBinding = externalItem.dataModelBindings?.checked;
 
-  const addError = FormStore.nodes.useAddError();
+  const addError = FormStore.layoutDiagnostics.useAddError();
 
   useEffect(() => {
     let error: string | null = null;

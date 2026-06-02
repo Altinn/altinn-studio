@@ -1,14 +1,11 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
-import { FormStore } from 'src/features/form/FormContext';
-import { getComponentCapabilities, getComponentDef } from 'src/layout';
 import { GeneratorInternal, GeneratorNodeProvider } from 'src/utils/layout/generator/GeneratorContext';
 import { useGeneratorErrorBoundaryNodeRef } from 'src/utils/layout/generator/GeneratorErrorBoundary';
-import { WhenParentAdded } from 'src/utils/layout/generator/GeneratorStages';
 import { NodePropertiesValidation } from 'src/utils/layout/generator/validation/NodePropertiesValidation';
 import type { SimpleEval } from 'src/features/expressions';
 import type { ExprResolved, ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
@@ -22,7 +19,6 @@ import type {
   ITextResourceBindings,
 } from 'src/layout/layout';
 import type { ExprResolver, NodeGeneratorProps } from 'src/layout/LayoutComponent';
-import type { StateFactoryProps } from 'src/utils/layout/types';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 /**
@@ -40,106 +36,24 @@ export function NodeGenerator({ children, externalItem }: PropsWithChildren<Node
   // eslint-disable-next-line react-compiler/react-compiler
   useGeneratorErrorBoundaryNodeRef().current = { type: 'node', id: intermediateItem.id };
 
-  const commonProps: CommonProps<CompTypes> = { baseComponentId: externalItem.id, externalItem };
+  const commonProps: CommonProps<CompTypes> = { externalItem };
 
   return (
-    <>
-      <WhenParentAdded>
-        <AddRemoveNode
-          {...commonProps}
-          intermediateItem={intermediateItem}
-        />
-      </WhenParentAdded>
-      <GeneratorNodeProvider
-        parentBaseId={externalItem.id}
-        item={intermediateItem}
-      >
-        <WhenParentAdded>
-          <NodePropertiesValidation
-            {...commonProps}
-            intermediateItem={intermediateItem}
-          />
-        </WhenParentAdded>
-        {children}
-      </GeneratorNodeProvider>
-    </>
+    <GeneratorNodeProvider
+      parentBaseId={externalItem.id}
+      item={intermediateItem}
+    >
+      <NodePropertiesValidation
+        {...commonProps}
+        intermediateItem={intermediateItem}
+      />
+      {children}
+    </GeneratorNodeProvider>
   );
 }
 
 interface CommonProps<T extends CompTypes> {
-  baseComponentId: string;
   externalItem: CompExternalExact<T>;
-}
-
-function AddRemoveNode<T extends CompTypes>({
-  baseComponentId,
-  intermediateItem,
-}: CommonProps<T> & { intermediateItem: CompIntermediateExact<T> }) {
-  const parent = GeneratorInternal.useParent();
-  const depth = GeneratorInternal.useDepth();
-  const rowIndex = GeneratorInternal.useRowIndex();
-  const pageKey = GeneratorInternal.usePage() ?? '';
-  const idMutators = GeneratorInternal.useIdMutators();
-  const layoutMap = FormStore.bootstrap.useLayoutLookups().allComponents;
-  const isValid = GeneratorInternal.useIsValid();
-  const getCapabilities = useCallback((type: CompTypes) => getComponentCapabilities(type), []);
-  const stateFactoryProps = useMemo(
-    () =>
-      ({
-        id: intermediateItem.id,
-        baseId: baseComponentId,
-        parentId: parent?.type === 'node' ? parent.indexedId : undefined,
-        depth,
-        rowIndex,
-        pageKey,
-        idMutators,
-        layoutMap,
-        getCapabilities,
-        isValid,
-        dataModelBindings: intermediateItem.dataModelBindings as never,
-      }) satisfies StateFactoryProps,
-    [
-      baseComponentId,
-      depth,
-      getCapabilities,
-      idMutators,
-      intermediateItem.dataModelBindings,
-      intermediateItem.id,
-      isValid,
-      layoutMap,
-      pageKey,
-      parent.indexedId,
-      parent?.type,
-      rowIndex,
-    ],
-  );
-
-  const isAdded = FormStore.nodes.useIsAdded(intermediateItem.id, 'node');
-
-  const def = getComponentDef(intermediateItem.type);
-  const addNode = GeneratorInternal.useAddNode();
-  const removeNode = GeneratorInternal.useRemoveNode();
-
-  // This state is intentionally not reactive, as we want to commit _what the layout was when this node was created_,
-  // so that we don't accidentally remove a node with the same ID from a future/different layout.
-  const layoutsWas = FormStore.raw.useStaticSelector((state) => state.nodes.layouts!);
-
-  useEffect(() => {
-    !isAdded &&
-      addNode({
-        nodeId: intermediateItem.id,
-        targetState: def.stateFactory(stateFactoryProps as never),
-      });
-  }, [addNode, def, intermediateItem.id, isAdded, layoutsWas, stateFactoryProps]);
-
-  useEffect(
-    () => () => {
-      removeNode({ nodeId: intermediateItem.id, layouts: layoutsWas });
-    },
-    [intermediateItem.id, layoutsWas, removeNode],
-  );
-
-  return null;
 }
 
 /**

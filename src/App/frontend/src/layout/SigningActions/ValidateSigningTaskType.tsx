@@ -13,7 +13,7 @@ type Props = NodeValidationProps<'SigningActions' | 'SigningDocumentList' | 'Sig
 export function ValidateSigningTaskType(props: Props) {
   const currentTaskType = useTaskTypeFromBackend();
   const isInCurrentTask = useIsInCurrentTask();
-  const addError = FormStore.nodes.useAddError();
+  const addError = FormStore.layoutDiagnostics.useAddError();
   const { langAsString } = useLanguage();
   const error = langAsString('signing.wrong_task_error', [props.intermediateItem.type]);
 

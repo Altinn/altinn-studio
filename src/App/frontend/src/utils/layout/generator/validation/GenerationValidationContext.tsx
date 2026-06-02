@@ -75,7 +75,7 @@ function FetchLayoutSchema({
 function useIsLayoutValidationEnabled() {
   const hasBeenEnabledBefore = useRef(false);
   const panelOpen = useDevToolsStore((s) => s.isOpen);
-  const hasErrors = FormStore.nodes.useHasErrors();
+  const hasErrors = FormStore.layoutDiagnostics.useHasErrors();
   const enabled = isDev() || hasErrors || panelOpen || hasBeenEnabledBefore.current;
   hasBeenEnabledBefore.current = enabled;
 

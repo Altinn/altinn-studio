@@ -1,13 +1,11 @@
 import React, { useMemo } from 'react';
-import type { PropsWithChildren, RefObject } from 'react';
+import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompIntermediate, CompIntermediateExact, CompTypes, ILayouts } from 'src/layout/layout';
-import type { Registry } from 'src/utils/layout/generator/GeneratorStages';
 import type { MultiPageMapping } from 'src/utils/layout/generator/NodeRepeatingChildren';
-import type { AddNodeRequest, RemoveNodeRequest, SetNodePropRequest } from 'src/utils/layout/NodesContext';
 
 export type ChildIdMutator = (id: string) => string;
 export type ChildMutator<T extends CompTypes = CompTypes> = (item: CompIntermediate<T>) => void;
@@ -18,7 +16,7 @@ export interface ChildClaimsMap {
   [parentId: string]: ChildClaims;
 }
 
-type GlobalProviderProps = Pick<GeneratorContext, 'layouts' | 'registry' | 'addNode' | 'removeNode' | 'setNodeProp'>;
+type GlobalProviderProps = Pick<GeneratorContext, 'layouts'>;
 
 type PageProviderProps = Pick<GeneratorContext, 'isValid'> & {
   pageKey: string;
@@ -35,7 +33,6 @@ type RowGeneratorProps = Pick<GeneratorContext, 'idMutators' | 'recursiveMutator
 };
 
 interface GeneratorContext {
-  registry: RefObject<Registry>;
   idMutators?: ChildIdMutator[];
   recursiveMutators?: ChildMutator[];
   layouts: ILayouts;
@@ -53,10 +50,6 @@ interface GeneratorContext {
     | undefined;
   depth: number; // Depth is 1 for top level nodes, 2 for children of top level nodes, etc.
   isValid?: boolean; // False when page is not in the page order, and not a pdf page (forwarded to nodes as well)
-
-  addNode: (request: AddNodeRequest) => void;
-  removeNode: (request: RemoveNodeRequest) => void;
-  setNodeProp: (request: SetNodePropRequest) => void;
 }
 
 const { Provider, useCtx } = createContext<GeneratorContext>({
@@ -159,14 +152,7 @@ function GeneratorRowProviderInner({
 export const GeneratorRowProvider = React.memo(GeneratorRowProviderInner);
 GeneratorRowProvider.displayName = 'GeneratorRowProvider';
 
-export function GeneratorGlobalProvider({
-  children,
-  layouts,
-  registry,
-  addNode,
-  removeNode,
-  setNodeProp,
-}: PropsWithChildren<GlobalProviderProps>) {
+export function GeneratorGlobalProvider({ children, layouts }: PropsWithChildren<GlobalProviderProps>) {
   const value: GeneratorContext = useMemo(
     () => ({
       item: undefined,
@@ -179,18 +165,13 @@ export function GeneratorGlobalProvider({
       parentType: undefined,
       pageKey: undefined,
       layouts,
-      registry,
-      addNode,
-      removeNode,
-      setNodeProp,
     }),
-    [layouts, registry, addNode, removeNode, setNodeProp],
+    [layouts],
   );
   return <Provider value={value}>{children}</Provider>;
 }
 
 export const GeneratorInternal = {
-  useRegistry: () => useCtx().registry,
   useIdMutators: () => useCtx().idMutators ?? emptyArray,
   useRecursiveMutators: () => useCtx().recursiveMutators ?? emptyArray,
   useDepth: () => useCtx().depth,
@@ -203,8 +184,4 @@ export const GeneratorInternal = {
   useRowIndex: () => useCtx().row?.index,
   useIntermediateItem: () => useCtx().item,
   useIsValid: () => useCtx().isValid ?? true,
-
-  useAddNode: () => useCtx().addNode,
-  useRemoveNode: () => useCtx().removeNode,
-  useSetNodeProp: () => useCtx().setNodeProp,
 };

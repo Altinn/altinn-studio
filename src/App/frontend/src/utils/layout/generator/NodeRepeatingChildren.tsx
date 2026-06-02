@@ -5,7 +5,6 @@ import dot from 'dot-object';
 import { FormStore } from 'src/features/form/FormContext';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { GeneratorInternal, GeneratorRowProvider } from 'src/utils/layout/generator/GeneratorContext';
-import { WhenParentAdded } from 'src/utils/layout/generator/GeneratorStages';
 import { GenerateNodeChildren } from 'src/utils/layout/generator/LayoutSetGenerator';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { ChildClaims, ChildIdMutator, ChildMutator } from 'src/utils/layout/generator/GeneratorContext';
@@ -14,13 +13,7 @@ interface Props {
   claims: ChildClaims | undefined;
 }
 
-export function NodeRepeatingChildren(props: Props) {
-  return (
-    <WhenParentAdded>
-      <NodeRepeatingChildrenWorker {...props} />
-    </WhenParentAdded>
-  );
-}
+export const NodeRepeatingChildren = NodeRepeatingChildrenWorker;
 
 const emptySet: ChildClaims = new Set();
 function NodeRepeatingChildrenWorker({ claims }: Props) {
