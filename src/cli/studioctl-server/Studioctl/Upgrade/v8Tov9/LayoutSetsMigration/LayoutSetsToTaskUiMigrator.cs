@@ -291,7 +291,7 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
                 if (
                     obj["type"] is JsonValue typeValue
                     && typeValue.TryGetValue<string>(out var typeName)
-                    && string.Equals(typeName, "Subform", StringComparison.Ordinal)
+                    && string.Equals(typeName, "Subform", StringComparison.OrdinalIgnoreCase)
                     && obj["layoutSet"] is JsonValue layoutSetValue
                     && layoutSetValue.TryGetValue<string>(out var layoutSetId)
                     && !string.IsNullOrWhiteSpace(layoutSetId)
