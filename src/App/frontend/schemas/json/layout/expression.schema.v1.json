@@ -50,7 +50,8 @@
         { "$ref": "#/definitions/strict-object" },
         { "$ref": "#/definitions/func-if" },
         { "$ref": "#/definitions/func-component" },
-        { "$ref": "#/definitions/func-dataModel" }
+        { "$ref": "#/definitions/func-dataModel" },
+        { "$ref": "#/definitions/func-jmespath" }
       ]
     },
     "string": {
@@ -722,6 +723,16 @@
         { "const": "object" }
       ],
       "additionalItems": { "$ref": "#/definitions/any" }
+    },
+    "func-jmespath": {
+      "title": "Run a Jmespath query",
+      "description": "This function runs a Jmespath query and returns the result. The first argument is the data to query, and the second is the Jmespath query string.",
+      "type": "array",
+      "items": [
+        { "const": "jmespath" },
+        { "$ref": "#/definitions/any" },
+        { "$ref": "#/definitions/string" }
+      ]
     },
     "compare-operator": {
       "title": "Comparison operator",
