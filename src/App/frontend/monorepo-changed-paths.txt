@@ -57,6 +57,7 @@ src/features/datamodel/utils.ts
 src/features/devtools/components/VersionSwitcher/VersionSwitcher.tsx
 src/features/entrypoint/Entrypoint.tsx
 src/features/expressions/shared-tests/functions/dataModel/array-is-null.json
+src/features/expressions/shared-tests/functions/dataModel/object-is-null.json
 src/features/form/FormContext.tsx
 src/features/form/dynamics/
 src/features/form/layout/LayoutsContext.tsx
