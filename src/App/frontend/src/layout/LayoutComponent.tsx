@@ -30,7 +30,6 @@ import type {
 import type { LegacySummaryOverrides } from 'src/layout/Summary/SummaryComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { ChildClaims } from 'src/utils/layout/generator/GeneratorContext';
-import type { StateFactoryProps } from 'src/utils/layout/types';
 
 export interface NodeGeneratorProps {
   externalItem: CompExternalExact<CompTypes>;
@@ -78,12 +77,6 @@ export abstract class AnyComponent<Type extends CompTypes> {
   renderLayoutValidators(_props: NodeValidationProps<Type>): JSX.Element | null {
     return null;
   }
-
-  /**
-   * Creates the zustand store default state for a node of this component type. Usually this is implemented
-   * automatically by code generation, but you can override it if you need to add additional properties to the state.
-   */
-  abstract stateFactory(props: StateFactoryProps): unknown;
 
   /**
    * The default expression evaluator, implemented by code generation. Do not try to override this yourself. If you

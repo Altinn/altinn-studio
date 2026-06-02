@@ -5,7 +5,6 @@ import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId
 import { getLikertStartStopIndex } from 'src/layout/Likert/rowUtils';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { GeneratorInternal, GeneratorRowProvider } from 'src/utils/layout/generator/GeneratorContext';
-import { WhenParentAdded } from 'src/utils/layout/generator/GeneratorStages';
 import { GenerateNodeChildren } from 'src/utils/layout/generator/LayoutSetGenerator';
 import {
   mutateComponentId,
@@ -17,13 +16,7 @@ import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompIntermediate } from 'src/layout/layout';
 import type { ChildClaims } from 'src/utils/layout/generator/GeneratorContext';
 
-export function LikertGeneratorChildren() {
-  return (
-    <WhenParentAdded>
-      <LikertGeneratorChildrenWorker />
-    </WhenParentAdded>
-  );
-}
+export const LikertGeneratorChildren = LikertGeneratorChildrenWorker;
 
 function LikertGeneratorChildrenWorker() {
   const item = GeneratorInternal.useIntermediateItem() as CompIntermediate<'Likert'>;

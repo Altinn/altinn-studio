@@ -27,7 +27,7 @@ export function NodePropertiesValidation<T extends CompTypes>(props: NodeValidat
 
 const emptyArray: never[] = [];
 function DataModelValidation<T extends CompTypes>({ externalItem, intermediateItem }: NodeValidationProps<T>) {
-  const addError = FormStore.nodes.useAddError();
+  const addError = FormStore.layoutDiagnostics.useAddError();
   const def = getComponentDef(intermediateItem.type);
   const errors =
     implementsDataModelBindingValidation(def, intermediateItem) && window.forceNodePropertiesValidation !== 'off'
@@ -53,7 +53,7 @@ function DataModelValidation<T extends CompTypes>({ externalItem, intermediateIt
 
 function SchemaValidation<T extends CompTypes>({ intermediateItem, externalItem }: NodeValidationProps<T>) {
   const validate = GeneratorValidation.useValidate();
-  const addError = FormStore.nodes.useAddError();
+  const addError = FormStore.layoutDiagnostics.useAddError();
 
   useEffect(() => {
     if (!validate) {

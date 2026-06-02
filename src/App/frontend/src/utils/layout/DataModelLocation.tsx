@@ -3,9 +3,8 @@ import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
 import { FormStore } from 'src/features/form/FormContext';
-import { getRepeatingBinding, isRepeatingComponentType } from 'src/features/form/layout/utils/repeating';
+import { getDataModelLocationForIndexedNode } from 'src/utils/layout/hierarchy';
 import type { IDataModelReference } from 'src/layout/common.generated';
-import type { IDataModelBindings } from 'src/layout/layout';
 
 export type IdMutator = (id: string) => string;
 
@@ -43,35 +42,14 @@ export function DataModelLocationProvider({ groupBinding, rowIndex, children }: 
 }
 
 function useDataModelLocationForNodeRaw(nodeId: string | undefined) {
-  return FormStore.raw.useMemoSelector((state) => {
-    if (!nodeId) {
-      return { groupBinding: undefined, rowIndex: undefined };
-    }
-
-    let childId = nodeId;
-    let parentId = state.nodes.nodeData[childId]?.parentId;
-    while (parentId) {
-      const child = state.nodes.nodeData[childId];
-      const parent = state.nodes.nodeData[parentId];
-      const groupBinding = isRepeatingComponentType(parent.nodeType)
-        ? getRepeatingBinding(parent.nodeType, parent.dataModelBindings as IDataModelBindings<typeof parent.nodeType>)
-        : undefined;
-      if (groupBinding && child?.rowIndex !== undefined) {
-        return { groupBinding, rowIndex: child.rowIndex };
-      }
-
-      childId = parentId;
-      parentId = state.nodes.nodeData[childId]?.parentId;
-    }
-
-    return { groupBinding: undefined, rowIndex: undefined };
-  });
+  const lookups = FormStore.bootstrap.useLayoutLookups();
+  return useMemo(() => getDataModelLocationForIndexedNode(nodeId, lookups), [lookups, nodeId]);
 }
 
 export function DataModelLocationProviderFromNode({ nodeId, children }: PropsWithChildren<{ nodeId: string }>) {
   const { groupBinding, rowIndex } = useDataModelLocationForNodeRaw(nodeId);
 
-  if (!groupBinding) {
+  if (!groupBinding || rowIndex === undefined) {
     return children;
   }
 

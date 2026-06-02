@@ -39,7 +39,7 @@ function NonMemoGenericComponent<Type extends CompTypes = CompTypes>({
   overrideDisplay,
 }: IGenericComponentProps<Type>) {
   const nodeId = useIndexedId(baseComponentId);
-  const generatorErrors = FormStore.nodes.useNodeData(nodeId, undefined, (node) => node.errors);
+  const generatorErrors = FormStore.layoutDiagnostics.useNodeErrors(nodeId);
 
   if (generatorErrors && Object.keys(generatorErrors).length > 0) {
     return (

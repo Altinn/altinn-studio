@@ -4,7 +4,7 @@ import { FormStore } from 'src/features/form/FormContext';
 import type { NodeValidationProps } from 'src/layout/layout';
 
 export function Summary2LayoutValidator({ intermediateItem, externalItem }: NodeValidationProps<'Summary2'>) {
-  const addError = FormStore.nodes.useAddError();
+  const addError = FormStore.layoutDiagnostics.useAddError();
 
   const errors = useMemo(() => {
     const errors: string[] = [];

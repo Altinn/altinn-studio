@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { usePdfLayoutName, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
@@ -8,7 +8,6 @@ import {
   GeneratorErrorBoundary,
   useGeneratorErrorBoundaryNodeRef,
 } from 'src/utils/layout/generator/GeneratorErrorBoundary';
-import { WhenParentAdded } from 'src/utils/layout/generator/GeneratorStages';
 import type { CompExternalExact, CompTypes, ILayout } from 'src/layout/layout';
 import type { NodeGeneratorProps } from 'src/layout/LayoutComponent';
 import type { ChildClaims } from 'src/utils/layout/generator/GeneratorContext';
@@ -68,30 +67,13 @@ function PageGenerator({ layout, name }: PageProps) {
   }
 
   return (
-    <>
-      <AddPage name={name} />
-      <GeneratorPageProvider
-        pageKey={name}
-        isValid={isValid}
-      >
-        <GenerateNodeChildren claims={topLevelIdsAsClaims} />
-      </GeneratorPageProvider>
-    </>
+    <GeneratorPageProvider
+      pageKey={name}
+      isValid={isValid}
+    >
+      <GenerateNodeChildren claims={topLevelIdsAsClaims} />
+    </GeneratorPageProvider>
   );
-}
-
-interface CommonProps {
-  name: string;
-}
-
-function AddPage({ name }: CommonProps) {
-  const addPage = FormStore.nodes.useAddPage();
-
-  useEffect(() => {
-    addPage(name);
-  }, [addPage, name]);
-
-  return null;
 }
 
 interface NodeChildrenProps {
@@ -103,7 +85,7 @@ export function GenerateNodeChildren({ claims }: NodeChildrenProps) {
   const map = FormStore.bootstrap.useLayoutLookups().childClaims;
 
   return (
-    <WhenParentAdded>
+    <>
       {[...(claims?.values() ?? [])].map((id) => {
         const layout = layoutMap[id];
         if (!layout) {
@@ -119,7 +101,7 @@ export function GenerateNodeChildren({ claims }: NodeChildrenProps) {
           </GeneratorErrorBoundary>
         );
       })}
-    </WhenParentAdded>
+    </>
   );
 }
 

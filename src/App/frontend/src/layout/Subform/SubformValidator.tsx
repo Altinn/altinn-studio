@@ -16,7 +16,7 @@ export function SubformValidator(props: NodeValidationProps<'Subform'>) {
     (x) => x.id.toLocaleLowerCase() === targetType?.toLocaleLowerCase(),
   );
 
-  const addError = FormStore.nodes.useAddError();
+  const addError = FormStore.layoutDiagnostics.useAddError();
 
   useEffect(() => {
     let error: string | null = null;

@@ -14,7 +14,7 @@ export function FileUploadLayoutValidator(
   const allPages = FormStore.bootstrap.useLayouts();
   const binding = extractBinding(externalItem);
   const { langAsString } = useLanguage();
-  const addError = FormStore.nodes.useAddError();
+  const addError = FormStore.layoutDiagnostics.useAddError();
 
   const othersWithSameBinding: string[] = [];
   if (binding) {

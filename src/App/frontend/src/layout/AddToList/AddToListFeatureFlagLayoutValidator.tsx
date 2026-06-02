@@ -5,7 +5,7 @@ import type { NodeValidationProps } from 'src/layout/layout';
 export function AddToListFeatureFlagLayoutValidator({ intermediateItem }: NodeValidationProps<'AddToList'>) {
   const simpleTableEnabled = getFeature('addToListEnabled');
 
-  const addError = FormStore.nodes.useAddError();
+  const addError = FormStore.layoutDiagnostics.useAddError();
   if (!simpleTableEnabled.value) {
     const error = `You need to enable the feature flag addToListEnabled to use this component. Please note that the component is experimental
     and the configuration is likely to change.`;

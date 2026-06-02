@@ -4,7 +4,7 @@ import { FormStore } from 'src/features/form/FormContext';
 import type { NodeValidationProps } from 'src/layout/layout';
 
 export function ValidateSummary({ intermediateItem, externalItem }: NodeValidationProps<'Summary'>) {
-  const addError = FormStore.nodes.useAddError();
+  const addError = FormStore.layoutDiagnostics.useAddError();
   const targetType = FormStore.bootstrap.useLayoutLookups().allComponents[externalItem.componentRef]?.type;
 
   useEffect(() => {

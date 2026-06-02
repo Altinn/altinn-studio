@@ -334,16 +334,6 @@ export class ComponentConfig {
     const category = this.config.category;
     const categorySymbol = CategoryImports[category].toTypeScript();
 
-    const StateFactoryProps = new CG.import({
-      import: 'StateFactoryProps',
-      from: 'src/utils/layout/types',
-    });
-
-    const BaseNodeData = new CG.import({
-      import: 'BaseNodeData',
-      from: 'src/utils/layout/types',
-    });
-
     const ExprResolver = new CG.import({
       import: 'ExprResolver',
       from: 'src/layout/LayoutComponent',
@@ -413,24 +403,6 @@ export class ComponentConfig {
       protected readonly type = '${this.type}';
 
       ${this.config.directRendering ? 'directRender(): boolean { return true; }' : ''}
-
-      stateFactory(props: ${StateFactoryProps}<'${this.type}'>) {
-        const baseState: ${BaseNodeData}<'${this.type}'> = {
-          type: 'node',
-          id: props.id,
-          baseId: props.baseId,
-          nodeType: '${this.type}',
-          pageKey: props.pageKey,
-          parentId: props.parentId,
-          depth: props.depth,
-          isValid: props.isValid,
-          rowIndex: props.rowIndex,
-          errors: undefined,
-          dataModelBindings: props.dataModelBindings,
-        };
-
-        return { ...baseState };
-      }
 
       // Do not override this one, set functionality.customExpressions to true instead
       evalDefaultExpressions(props: ${ExprResolver}<'${this.type}'>) {

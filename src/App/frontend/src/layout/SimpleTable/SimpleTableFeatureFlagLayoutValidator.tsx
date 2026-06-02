@@ -5,7 +5,7 @@ import type { NodeValidationProps } from 'src/layout/layout';
 export function SimpleTableFeatureFlagLayoutValidator({ intermediateItem }: NodeValidationProps<'SimpleTable'>) {
   const simpleTableEnabled = getFeature('simpleTableEnabled');
 
-  const addError = FormStore.nodes.useAddError();
+  const addError = FormStore.layoutDiagnostics.useAddError();
   if (!simpleTableEnabled.value) {
     const error = `You need to enable the feature flag simpleTableEnabled to use this component. Please note that the component is experimental
 

@@ -2,9 +2,10 @@ import { useCallback } from 'react';
 
 import { useRefetchInitialValidations } from 'src/core/queries/backendValidation';
 import { FormStore } from 'src/features/form/FormContext';
+import { getValidationsForNode } from 'src/features/validation/deriveValidationState';
 import { getVisibilityMask } from 'src/features/validation/utils';
 import { useWaitForValidation } from 'src/features/validation/validationContext';
-import { useValidationsSelector } from 'src/features/validation/validationHooks';
+import { useGetDerivedValidationState } from 'src/features/validation/validationHooks';
 import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
 import type { PageValidation } from 'src/layout/common.generated';
@@ -15,10 +16,9 @@ import type { PageValidation } from 'src/layout/common.generated';
  **/
 export function useOnPageNavigationValidation() {
   const setPageValidationMask = FormStore.validation.useSetPageValidationMask();
-  const getNodeValidations = useValidationsSelector();
+  const getDerivedValidationState = useGetDerivedValidationState();
   const validating = useWaitForValidation();
   const pageOrder = usePageOrder();
-  const formStore = FormStore.raw.useStore();
   const refetchInitialValidations = useRefetchInitialValidations();
 
   /* Ensures the callback will have the latest state */
@@ -37,7 +37,7 @@ export function useOnPageNavigationValidation() {
       currentOrPreviousPages.add(pageKey);
     }
 
-    const state = formStore.getState();
+    const derived = getDerivedValidationState();
     const nodeIdsPerPage = new Map<string, string[]>();
     const nodesOnCurrentOrPreviousPages = new Set<string>();
     let hasSubform = false;
@@ -49,19 +49,19 @@ export function useOnPageNavigationValidation() {
       shouldCheckPage = (pageKey: string) => currentOrPreviousPages.has(pageKey);
     }
 
-    for (const nodeData of Object.values(state.nodes.nodeData)) {
-      if (currentOrPreviousPages.has(nodeData.pageKey)) {
-        nodesOnCurrentOrPreviousPages.add(nodeData.id);
+    for (const node of derived.nodes) {
+      if (currentOrPreviousPages.has(node.pageKey)) {
+        nodesOnCurrentOrPreviousPages.add(node.id);
       }
-      if (!shouldCheckPage(nodeData.pageKey)) {
+      if (!shouldCheckPage(node.pageKey)) {
         continue;
       }
-      if (nodeData.nodeType === 'Subform') {
+      if (node.intermediateItem.type === 'Subform') {
         hasSubform = true;
       }
-      const nodes = nodeIdsPerPage.get(nodeData.pageKey) ?? [];
-      nodes.push(nodeData.id);
-      nodeIdsPerPage.set(nodeData.pageKey, nodes);
+      const nodes = nodeIdsPerPage.get(node.pageKey) ?? [];
+      nodes.push(node.id);
+      nodeIdsPerPage.set(node.pageKey, nodes);
     }
 
     // We need to get updated validations from backend to validate subform
@@ -75,7 +75,7 @@ export function useOnPageNavigationValidation() {
     let hasErrors = false;
     for (const [pageKey, nodeIds] of nodeIdsPerPage.entries()) {
       const hasErrorsOnPage = nodeIds.some((id) => {
-        const validations = getNodeValidations(id, mask, 'error');
+        const validations = getValidationsForNode(derived, id, mask, 'error');
         if (validations.length > 0) {
           onCurrentOrPreviousPage = onCurrentOrPreviousPage || nodesOnCurrentOrPreviousPages.has(id);
           return true;
