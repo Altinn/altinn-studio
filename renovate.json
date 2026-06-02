@@ -2,19 +2,9 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "local>Altinn/renovate-config",
-    "helpers:pinGitHubActionDigestsToSemver"
+    "helpers:pinGitHubActionDigestsToSemver",
+    "security:only-security-updates"
   ],
   "labels": ["kind/dependencies", "backport-ignore"],
-  "baseBranchPatterns": ["main"],
-  "packageRules": [
-    {
-      "matchPackageNames": [
-        "@digdir/designsystemet-react",
-        "@digdir/designsystemet-css"
-      ],
-      "groupName": "Digdir design system",
-      "schedule": ["* 0-7 * * 1-5"],
-      "minimumReleaseAge": "0"
-    }
-  ]
+  "baseBranchPatterns": ["main"]
 }
