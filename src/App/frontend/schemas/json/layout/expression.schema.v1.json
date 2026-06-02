@@ -47,7 +47,9 @@
         { "$ref": "#/definitions/strict-boolean" },
         { "$ref": "#/definitions/strict-number" },
         { "$ref": "#/definitions/strict-list" },
-        { "$ref": "#/definitions/func-if" }
+        { "$ref": "#/definitions/func-if" },
+        { "$ref": "#/definitions/func-component" },
+        { "$ref": "#/definitions/func-dataModel" }
       ]
     },
     "string": {
@@ -151,8 +153,6 @@
     "strict-list": {
       "title": "Any expression returning a list (strict)",
       "anyOf": [
-        { "$ref": "#/definitions/func-component" },
-        { "$ref": "#/definitions/func-dataModel" },
         { "$ref": "#/definitions/func-list" }
       ]
     },
