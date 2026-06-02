@@ -13,7 +13,6 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Http;
 internal sealed class WorkflowEngineClient : IWorkflowEngineClient
 {
     private const string IdempotencyKeyHeader = "Idempotency-Key";
-    private const string CorrelationIdHeader = "Correlation-Id";
     private const string CollectionKeyHeader = "Collection-Key";
 
     private readonly HttpClient _httpClient;
@@ -35,7 +34,6 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
     public async Task<WorkflowEnqueueResponse.Accepted> EnqueueWorkflows(
         string ns,
         string idempotencyKey,
-        Guid? correlationId,
         string? collectionKey,
         WorkflowEnqueueRequest request,
         CancellationToken ct = default
@@ -45,10 +43,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
         httpRequest.Content = JsonContent.Create(request);
         httpRequest.Headers.Add(IdempotencyKeyHeader, idempotencyKey);
-        if (correlationId.HasValue)
-        {
-            httpRequest.Headers.Add(CorrelationIdHeader, correlationId.Value.ToString());
-        }
+
         if (!string.IsNullOrWhiteSpace(collectionKey))
         {
             httpRequest.Headers.Add(CollectionKeyHeader, collectionKey);
@@ -102,7 +97,6 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
     /// <inheritdoc />
     public async Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
         string ns,
-        Guid? correlationId = null,
         string? collectionKey = null,
         Dictionary<string, string>? labels = null,
         IReadOnlyList<PersistentItemStatus>? statuses = null,
@@ -114,7 +108,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
 
         while (true)
         {
-            var url = BuildListWorkflowsUrl(ns, correlationId, collectionKey, labels, statuses, cursor);
+            var url = BuildListWorkflowsUrl(ns, collectionKey, labels, statuses, cursor);
             using var httpRequest = new HttpRequestMessage(HttpMethod.Get, url);
             using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
 
@@ -182,7 +176,6 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
 
     private string BuildListWorkflowsUrl(
         string ns,
-        Guid? correlationId,
         string? collectionKey,
         Dictionary<string, string>? labels,
         IReadOnlyList<PersistentItemStatus>? statuses,
@@ -192,10 +185,6 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
         var url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/workflows";
         var queryParams = new List<string>();
 
-        if (correlationId.HasValue)
-        {
-            queryParams.Add($"correlationId={correlationId.Value}");
-        }
         if (!string.IsNullOrWhiteSpace(collectionKey))
         {
             queryParams.Add($"collectionKey={Uri.EscapeDataString(collectionKey)}");

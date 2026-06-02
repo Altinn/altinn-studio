@@ -17,7 +17,6 @@ public class WorkflowEngineClientTests
     public async Task ListWorkflows_FollowsCursorPaginationAndReturnsAllPages()
     {
         // Arrange
-        Guid correlationId = Guid.NewGuid();
         Guid nextCursor = Guid.NewGuid();
         var requestUris = new List<Uri?>();
         int requestCount = 0;
@@ -76,7 +75,6 @@ public class WorkflowEngineClientTests
         // Act
         IReadOnlyList<WorkflowStatusResponse> workflows = await client.ListWorkflows(
             "ttd/app",
-            correlationId,
             null,
             new Dictionary<string, string> { ["org"] = "ttd" },
             [PersistentItemStatus.Enqueued, PersistentItemStatus.Failed]
@@ -88,11 +86,11 @@ public class WorkflowEngineClientTests
         Assert.Equal("second-workflow", workflows[1].OperationId);
 
         Assert.Equal(
-            $"http://workflow-engine/api/v1/ttd%2Fapp/workflows?correlationId={correlationId}&label=org:ttd&status=Enqueued&status=Failed",
+            "http://workflow-engine/api/v1/ttd%2Fapp/workflows?label=org:ttd&status=Enqueued&status=Failed",
             requestUris[0]!.ToString()
         );
         Assert.Equal(
-            $"http://workflow-engine/api/v1/ttd%2Fapp/workflows?correlationId={correlationId}&label=org:ttd&status=Enqueued&status=Failed&cursor={nextCursor}",
+            $"http://workflow-engine/api/v1/ttd%2Fapp/workflows?label=org:ttd&status=Enqueued&status=Failed&cursor={nextCursor}",
             requestUris[1]!.ToString()
         );
 
@@ -249,7 +247,6 @@ public class WorkflowEngineClientTests
         await client.EnqueueWorkflows(
             "ttd/app",
             "idempotency-key",
-            Guid.NewGuid(),
             "process-next:abc:Task_1:2",
             new WorkflowEnqueueRequest { Workflows = [] }
         );

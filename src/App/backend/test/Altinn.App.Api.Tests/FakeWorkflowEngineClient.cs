@@ -45,7 +45,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     public async Task<WorkflowEnqueueResponse.Accepted> EnqueueWorkflows(
         string ns,
         string idempotencyKey,
-        Guid? correlationId,
         string? collectionKey,
         WorkflowEnqueueRequest request,
         CancellationToken ct = default
@@ -100,7 +99,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                     DatabaseId = databaseId,
                     Ref = workflow.Ref,
                     Namespace = ns,
-                    CorrelationId = correlationId,
                     CollectionKey = collectionKey,
                     IdempotencyKey = idempotencyKey,
                     OperationId = workflow.OperationId,
@@ -182,7 +180,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
 
     public Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
         string ns,
-        Guid? correlationId = null,
         string? collectionKey = null,
         Dictionary<string, string>? labels = null,
         IReadOnlyList<PersistentItemStatus>? statuses = null,
@@ -190,11 +187,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     )
     {
         IEnumerable<StoredWorkflow> matching = _workflows.Values.Where(workflow => workflow.Namespace == ns);
-
-        if (correlationId.HasValue)
-        {
-            matching = matching.Where(workflow => workflow.CorrelationId == correlationId.Value);
-        }
 
         if (!string.IsNullOrWhiteSpace(collectionKey))
         {
@@ -639,8 +631,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         public string? Ref { get; init; }
 
         public required string Namespace { get; init; }
-
-        public required Guid? CorrelationId { get; init; }
 
         public required string? CollectionKey { get; init; }
 

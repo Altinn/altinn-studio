@@ -170,14 +170,13 @@ public sealed class ProcessEngineTest
                 c.EnqueueWorkflows(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<Guid?>(),
                     It.IsAny<string?>(),
                     It.IsAny<WorkflowEnqueueRequest>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<string, string, Guid?, string?, WorkflowEnqueueRequest, CancellationToken>(
-                (_, _, _, collectionKey, req, _) =>
+            .Callback<string, string, string?, WorkflowEnqueueRequest, CancellationToken>(
+                (_, _, collectionKey, req, _) =>
                 {
                     capturedCollectionKey = collectionKey;
                     capturedRequest = req;
@@ -193,7 +192,6 @@ public sealed class ProcessEngineTest
             .Setup(c =>
                 c.ListWorkflows(
                     It.IsAny<string>(),
-                    It.IsAny<Guid?>(),
                     null,
                     It.IsAny<Dictionary<string, string>>(),
                     null,
@@ -212,12 +210,11 @@ public sealed class ProcessEngineTest
             );
         processEngineClientMock
             .Setup(c =>
-                c.ListWorkflows(It.IsAny<string>(), null, It.IsAny<string>(), null, null, It.IsAny<CancellationToken>())
+                c.ListWorkflows(It.IsAny<string>(), It.IsAny<string>(), null, null, It.IsAny<CancellationToken>())
             )
             .ReturnsAsync(
                 (
                     string _,
-                    Guid? _,
                     string? key,
                     Dictionary<string, string>? _,
                     IReadOnlyList<PersistentItemStatus>? _,
@@ -368,14 +365,13 @@ public sealed class ProcessEngineTest
                 c.EnqueueWorkflows(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<Guid?>(),
                     It.IsAny<string?>(),
                     It.IsAny<WorkflowEnqueueRequest>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<string, string, Guid?, string?, WorkflowEnqueueRequest, CancellationToken>(
-                (_, _, _, _, req, _) => capturedRequest = req
+            .Callback<string, string, string?, WorkflowEnqueueRequest, CancellationToken>(
+                (_, _, _, req, _) => capturedRequest = req
             )
             .ReturnsAsync(
                 new WorkflowEnqueueResponse.Accepted
@@ -387,7 +383,6 @@ public sealed class ProcessEngineTest
             .Setup(c =>
                 c.ListWorkflows(
                     It.IsAny<string>(),
-                    It.IsAny<Guid?>(),
                     null,
                     It.IsAny<Dictionary<string, string>>(),
                     null,
@@ -406,12 +401,11 @@ public sealed class ProcessEngineTest
             );
         processEngineClientMock
             .Setup(c =>
-                c.ListWorkflows(It.IsAny<string>(), null, It.IsAny<string>(), null, null, It.IsAny<CancellationToken>())
+                c.ListWorkflows(It.IsAny<string>(), It.IsAny<string>(), null, null, It.IsAny<CancellationToken>())
             )
             .ReturnsAsync(
                 (
                     string _,
-                    Guid? _,
                     string? key,
                     Dictionary<string, string>? _,
                     IReadOnlyList<PersistentItemStatus>? _,
@@ -540,14 +534,13 @@ public sealed class ProcessEngineTest
                 c.EnqueueWorkflows(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<Guid?>(),
                     It.IsAny<string?>(),
                     It.IsAny<WorkflowEnqueueRequest>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<string, string, Guid?, string?, WorkflowEnqueueRequest, CancellationToken>(
-                (_, _, _, _, req, _) => capturedRequest = req
+            .Callback<string, string, string?, WorkflowEnqueueRequest, CancellationToken>(
+                (_, _, _, req, _) => capturedRequest = req
             )
             .ReturnsAsync(
                 new WorkflowEnqueueResponse.Accepted
@@ -559,7 +552,6 @@ public sealed class ProcessEngineTest
             .Setup(c =>
                 c.ListWorkflows(
                     It.IsAny<string>(),
-                    It.IsAny<Guid?>(),
                     null,
                     It.IsAny<Dictionary<string, string>>(),
                     null,
@@ -578,12 +570,11 @@ public sealed class ProcessEngineTest
             );
         processEngineClientMock
             .Setup(c =>
-                c.ListWorkflows(It.IsAny<string>(), null, It.IsAny<string>(), null, null, It.IsAny<CancellationToken>())
+                c.ListWorkflows(It.IsAny<string>(), It.IsAny<string>(), null, null, It.IsAny<CancellationToken>())
             )
             .ReturnsAsync(
                 (
                     string _,
-                    Guid? _,
                     string? key,
                     Dictionary<string, string>? _,
                     IReadOnlyList<PersistentItemStatus>? _,
@@ -1097,7 +1088,6 @@ public sealed class ProcessEngineTest
                     c.EnqueueWorkflows(
                         It.IsAny<string>(),
                         It.IsAny<string>(),
-                        It.IsAny<Guid?>(),
                         It.IsAny<string?>(),
                         It.IsAny<WorkflowEnqueueRequest>(),
                         It.IsAny<CancellationToken>()
@@ -1116,7 +1106,6 @@ public sealed class ProcessEngineTest
             .Setup(c =>
                 c.ListWorkflows(
                     It.IsAny<string>(),
-                    It.IsAny<Guid?>(),
                     null,
                     It.IsAny<Dictionary<string, string>>(),
                     null,
@@ -1129,7 +1118,6 @@ public sealed class ProcessEngineTest
                 c.EnqueueWorkflows(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<Guid?>(),
                     It.Is<string?>(key => key == collectionKey),
                     It.IsAny<WorkflowEnqueueRequest>(),
                     It.IsAny<CancellationToken>()
@@ -1159,7 +1147,6 @@ public sealed class ProcessEngineTest
             .Setup(c =>
                 c.ListWorkflows(
                     It.IsAny<string>(),
-                    null,
                     It.Is<string>(key => key == collectionKey),
                     null,
                     null,
@@ -1539,7 +1526,6 @@ public sealed class ProcessEngineTest
             .Setup(c =>
                 c.ListWorkflows(
                     It.IsAny<string>(),
-                    It.IsAny<Guid?>(),
                     null,
                     It.Is<Dictionary<string, string>>(labels => MatchesCurrentTaskLookupLabel(labels, "Task_1:2")),
                     null,
@@ -1601,7 +1587,6 @@ public sealed class ProcessEngineTest
             .Setup(c =>
                 c.ListWorkflows(
                     It.IsAny<string>(),
-                    It.IsAny<Guid?>(),
                     null,
                     It.Is<Dictionary<string, string>>(labels => MatchesCurrentTaskLookupLabel(labels, "Task_1:2")),
                     null,
@@ -1634,7 +1619,6 @@ public sealed class ProcessEngineTest
             .Setup(c =>
                 c.ListWorkflows(
                     It.IsAny<string>(),
-                    null,
                     It.Is<string>(key => key == collectionKey),
                     null,
                     null,
@@ -1682,7 +1666,6 @@ public sealed class ProcessEngineTest
             .Setup(c =>
                 c.ListWorkflows(
                     It.IsAny<string>(),
-                    It.IsAny<Guid?>(),
                     null,
                     It.Is<Dictionary<string, string>>(labels =>
                         IsProcessNextLabel(labels, ProcessNextRequestFactory.ProcessNextSourceIdLabel, "Task_1:2")
@@ -1703,7 +1686,6 @@ public sealed class ProcessEngineTest
             .Setup(c =>
                 c.ListWorkflows(
                     It.IsAny<string>(),
-                    It.IsAny<Guid?>(),
                     null,
                     It.Is<Dictionary<string, string>>(labels =>
                         MatchesCurrentTaskLookupLabel(labels, "Task_1:2")
@@ -1732,7 +1714,6 @@ public sealed class ProcessEngineTest
             .Setup(c =>
                 c.ListWorkflows(
                     It.IsAny<string>(),
-                    null,
                     It.Is<string>(key => key == collectionKey),
                     null,
                     null,
@@ -1773,7 +1754,6 @@ public sealed class ProcessEngineTest
                 c.EnqueueWorkflows(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<Guid?>(),
                     It.IsAny<string?>(),
                     It.IsAny<WorkflowEnqueueRequest>(),
                     It.IsAny<CancellationToken>()
@@ -1792,7 +1772,6 @@ public sealed class ProcessEngineTest
             .Setup(c =>
                 c.ListWorkflows(
                     It.IsAny<string>(),
-                    It.IsAny<Guid?>(),
                     null,
                     It.Is<Dictionary<string, string>>(labels => MatchesCurrentTaskLookupLabel(labels, "Task_1:2")),
                     null,
@@ -1847,7 +1826,6 @@ public sealed class ProcessEngineTest
                 c.EnqueueWorkflows(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<Guid?>(),
                     It.Is<string?>(key => key == collectionKey),
                     It.IsAny<WorkflowEnqueueRequest>(),
                     It.IsAny<CancellationToken>()
@@ -1877,7 +1855,6 @@ public sealed class ProcessEngineTest
             .Setup(c =>
                 c.ListWorkflows(
                     It.IsAny<string>(),
-                    null,
                     It.Is<string>(key => key == collectionKey),
                     null,
                     null,
@@ -1942,7 +1919,6 @@ public sealed class ProcessEngineTest
                 c.EnqueueWorkflows(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<Guid?>(),
                     It.Is<string?>(key => key == collectionKey),
                     It.IsAny<WorkflowEnqueueRequest>(),
                     It.IsAny<CancellationToken>()
@@ -1967,7 +1943,6 @@ public sealed class ProcessEngineTest
             .Setup(c =>
                 c.ListWorkflows(
                     It.IsAny<string>(),
-                    null,
                     It.Is<string>(key => key == collectionKey),
                     null,
                     null,
@@ -2087,7 +2062,6 @@ public sealed class ProcessEngineTest
             .Setup(c =>
                 c.ListWorkflows(
                     It.IsAny<string>(),
-                    It.IsAny<Guid?>(),
                     null,
                     It.Is<Dictionary<string, string>>(labels => MatchesCurrentTaskLookupLabel(labels, "Task_1:2")),
                     null,
@@ -2126,7 +2100,6 @@ public sealed class ProcessEngineTest
             .SetupSequence(c =>
                 c.ListWorkflows(
                     It.IsAny<string>(),
-                    null,
                     It.Is<string>(key => key == collectionKey),
                     null,
                     null,
@@ -2173,7 +2146,7 @@ public sealed class ProcessEngineTest
         await using var fixture = Fixture.Create(services);
         LegacyProcessEngine processEngine = fixture.ProcessEngine;
 
-        ProcessChangeResult result = await processEngine.RecoverCurrentTask(
+        ProcessChangeResult result = await processEngine.ResumeCurrentTask(
             new ProcessNextRequest
             {
                 Instance = originalInstance,
@@ -2599,7 +2572,6 @@ public sealed class ProcessEngineTest
                     c.EnqueueWorkflows(
                         It.IsAny<string>(),
                         It.IsAny<string>(),
-                        It.IsAny<Guid?>(),
                         It.IsAny<string?>(),
                         It.IsAny<WorkflowEnqueueRequest>(),
                         It.IsAny<CancellationToken>()
@@ -2615,7 +2587,6 @@ public sealed class ProcessEngineTest
                 .Setup(c =>
                     c.ListWorkflows(
                         It.IsAny<string>(),
-                        It.IsAny<Guid?>(),
                         null,
                         It.IsAny<Dictionary<string, string>>(),
                         null,
@@ -2625,19 +2596,11 @@ public sealed class ProcessEngineTest
                 .ReturnsAsync([]);
             processEngineClientMock
                 .Setup(c =>
-                    c.ListWorkflows(
-                        It.IsAny<string>(),
-                        null,
-                        It.IsAny<string>(),
-                        null,
-                        null,
-                        It.IsAny<CancellationToken>()
-                    )
+                    c.ListWorkflows(It.IsAny<string>(), It.IsAny<string>(), null, null, It.IsAny<CancellationToken>())
                 )
                 .ReturnsAsync(
                     (
                         string _,
-                        Guid? _,
                         string? collectionKey,
                         Dictionary<string, string>? _,
                         IReadOnlyList<PersistentItemStatus>? _,

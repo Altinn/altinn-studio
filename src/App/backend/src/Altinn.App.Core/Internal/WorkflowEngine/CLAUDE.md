@@ -6,7 +6,7 @@ App-lib integration with the async Workflow Engine service. The engine runs as a
 
 The Workflow Engine service (external, .NET, PostgreSQL-backed) orchestrates process transitions. This integration layer:
 
-1. **Outbound**: `ProcessNextRequestFactory` builds a `WorkflowEnqueueBundle` (containing `WorkflowEnqueueRequest` body + metadata) and `WorkflowEngineClient` POSTs it to the engine's enqueue endpoint (`POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows`). Namespace is sent in the URL path, idempotency key and correlation ID are sent via HTTP headers (`Idempotency-Key`, `Correlation-Id`). Context (`AppWorkflowContext`) carries actor, lock token, org/app, and instance identification. `Namespace` = `{org}/{app}` (isolation boundary), `CorrelationId` = `instanceGuid` (for querying all workflows for an instance).
+1. **Outbound**: `ProcessNextRequestFactory` builds a `WorkflowEnqueueBundle` (containing `WorkflowEnqueueRequest` body + metadata) and `WorkflowEngineClient` POSTs it to the engine's enqueue endpoint (`POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows`). Namespace is sent in the URL path, idempotency key and collection key are sent via HTTP headers (`Idempotency-Key`, `Collection-Key`). Context (`AppWorkflowContext`) carries actor, lock token, org/app, and instance identification. `Namespace` = `{org}/{app}` (isolation boundary); the instance guid is sent as the `processNextInstanceGuid` label (for querying all workflows for an instance).
 2. **Inbound**: The engine calls back to `WorkflowEngineCallbackController` for each command, one at a time, sequentially
 3. **Per-callback lifecycle**: Controller restores `InstanceDataUnitOfWork` from the opaque state blob, resolves the `IWorkflowEngineCommand` by key, executes it, commits data changes on success, captures updated state, and returns it to the engine
 
@@ -189,15 +189,15 @@ The engine service (separate repo at `altinn-studio/src/Runtime/workflow-engine`
 - Calls back to the app via HTTP POST for each `AppCommand`
 - Retries failed steps with configurable backoff (default: exponential, 1s base, 5min max delay, 24h max duration)
 - `Namespace` = `{org}/{app}` is the primary isolation boundary; idempotency keys are unique within a namespace
-- `CorrelationId` = `instanceGuid` groups workflows per instance for status queries
+- The `processNextInstanceGuid` label = `instanceGuid` groups workflows per instance for status queries
 - Steps execute in order; previous step must complete before next begins
 - `Context` (`AppWorkflowContext`) is opaque to the engine; passed through to command handlers
 - Commands use `CommandDefinition` with `type: "app"` and `data: AppCommandData { commandKey, payload }`
 
 ### URL Patterns
-- Enqueue: `POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows` with `Idempotency-Key` header (required) and `Correlation-Id` header (optional)
+- Enqueue: `POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows` with `Idempotency-Key` header (required) and `Collection-Key` header (optional)
 - Collection detail: `GET {ApiWorkflowEngineEndpoint}/{namespace}/collections/{collectionKey}`
-- List active: `GET {ApiWorkflowEngineEndpoint}/{namespace}/workflows?correlationId={correlationId}` — returns `PaginatedResponse<WorkflowStatusResponse>`
+- List active: `GET {ApiWorkflowEngineEndpoint}/{namespace}/workflows?label=processNextInstanceGuid:{instanceGuid}` — returns `PaginatedResponse<WorkflowStatusResponse>`
 - Cancel: `POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows/{workflowId}/cancel`
 - Resume: `POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows/{workflowId}/resume?cascade={bool}`
 

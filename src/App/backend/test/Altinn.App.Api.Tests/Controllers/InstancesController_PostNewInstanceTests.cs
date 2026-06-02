@@ -787,7 +787,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         public Task<WorkflowEnqueueResponse.Accepted> EnqueueWorkflows(
             string ns,
             string idempotencyKey,
-            Guid? correlationId,
             string? collectionKey,
             WorkflowEnqueueRequest request,
             CancellationToken ct = default
@@ -801,7 +800,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         public Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
             string ns,
-            Guid? correlationId = null,
             string? collectionKey = null,
             Dictionary<string, string>? labels = null,
             IReadOnlyList<PersistentItemStatus>? statuses = null,
@@ -830,7 +828,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         public Task<WorkflowEnqueueResponse.Accepted> EnqueueWorkflows(
             string ns,
             string idempotencyKey,
-            Guid? correlationId,
             string? collectionKey,
             WorkflowEnqueueRequest request,
             CancellationToken ct = default
@@ -866,7 +863,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         public Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
             string ns,
-            Guid? correlationId = null,
             string? collectionKey = null,
             Dictionary<string, string>? labels = null,
             IReadOnlyList<PersistentItemStatus>? statuses = null,

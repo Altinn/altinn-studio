@@ -21,11 +21,11 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// Result from <see cref="ProcessNextRequestFactory.Create"/> containing both the request body
 /// and the metadata that must be sent via URL path and HTTP headers.
 /// </summary>
+//TODO: RENAME
 internal sealed record WorkflowEnqueueBundle(
     WorkflowEnqueueRequest Request,
     string Namespace,
     string IdempotencyKey,
-    Guid? CorrelationId,
     string? CollectionKey
 );
 
@@ -64,7 +64,7 @@ internal sealed class ProcessNextRequestFactory
     /// <summary>
     /// Creates a WorkflowEnqueueBundle from the process state change.
     /// The bundle contains the request body plus the metadata (namespace, idempotency key,
-    /// correlation ID) that must be sent via URL path and HTTP headers.
+    /// collection key) that must be sent via URL path and HTTP headers.
     /// </summary>
     public async Task<WorkflowEnqueueBundle> Create(
         Instance instance,
@@ -110,11 +110,10 @@ internal sealed class ProcessNextRequestFactory
         };
 
         string ns = $"{_appIdentifier.Org}/{_appIdentifier.App}";
-        Guid correlationId = instanceId.InstanceGuid;
         string? collectionKey = CreateProcessNextCollectionKey(instance, processStateChange);
         Dictionary<string, string> labels =
             CreateProcessNextLabels(processStateChange) ?? new Dictionary<string, string>(StringComparer.Ordinal);
-        labels[ProcessNextInstanceGuidLabel] = correlationId.ToString("N", CultureInfo.InvariantCulture);
+        labels[ProcessNextInstanceGuidLabel] = instanceId.InstanceGuid.ToString("N", CultureInfo.InvariantCulture);
 
         var request = new WorkflowEnqueueRequest
         {
@@ -132,7 +131,7 @@ internal sealed class ProcessNextRequestFactory
             ],
         };
 
-        return new WorkflowEnqueueBundle(request, ns, effectiveIdempotencyKey, correlationId, collectionKey);
+        return new WorkflowEnqueueBundle(request, ns, effectiveIdempotencyKey, collectionKey);
     }
 
     internal static string? CreateProcessNextId(ProcessElementInfo? currentTask) =>

@@ -364,7 +364,6 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         WorkflowEnqueueResponse.Accepted response = await _workflowEngineClient.EnqueueWorkflows(
             bundle.Namespace,
             bundle.IdempotencyKey,
-            bundle.CorrelationId,
             effectiveCollectionKey,
             bundle.Request,
             ct
@@ -470,7 +469,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     private string GetNamespace() => $"{_appIdentifier.Org}/{_appIdentifier.App}";
 
     private async Task<IReadOnlyList<WorkflowStatusResponse>> ListCurrentTaskProcessNextWorkflows(
-        Guid correlationId,
+        Guid instanceGuid,
         string processNextId,
         CancellationToken ct
     )
@@ -487,10 +486,9 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         {
             IReadOnlyList<WorkflowStatusResponse> matchingWorkflows = await _workflowEngineClient.ListWorkflows(
                 GetNamespace(),
-                correlationId: correlationId,
                 labels: new Dictionary<string, string>(StringComparer.Ordinal)
                 {
-                    [ProcessNextRequestFactory.ProcessNextInstanceGuidLabel] = correlationId.ToString("N"),
+                    [ProcessNextRequestFactory.ProcessNextInstanceGuidLabel] = instanceGuid.ToString("N"),
                     [labelKey] = processNextId,
                 },
                 ct: ct

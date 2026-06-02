@@ -12,14 +12,12 @@ internal interface IWorkflowEngineClient
     /// </summary>
     /// <param name="ns">Namespace (URL path segment, e.g. "org/app")</param>
     /// <param name="idempotencyKey">Idempotency key sent via HTTP header</param>
-    /// <param name="correlationId">Optional correlation ID sent via HTTP header</param>
     /// <param name="collectionKey">Optional collection key sent via HTTP header</param>
     /// <param name="request">The WorkflowEnqueueRequest body to send</param>
     /// <param name="ct">Cancellation token</param>
     Task<WorkflowEnqueueResponse.Accepted> EnqueueWorkflows(
         string ns,
         string idempotencyKey,
-        Guid? correlationId,
         string? collectionKey,
         WorkflowEnqueueRequest request,
         CancellationToken ct = default
@@ -32,18 +30,16 @@ internal interface IWorkflowEngineClient
     Task<WorkflowCollectionDetailResponse?> GetCollection(string ns, string key, CancellationToken ct = default);
 
     /// <summary>
-    /// Lists workflows, optionally filtered by correlation ID, collection key, labels, and statuses.
+    /// Lists workflows, optionally filtered by collection key, labels, and statuses.
     /// Returns an empty list when no workflows match.
     /// </summary>
     /// <param name="ns">Namespace (URL path segment)</param>
-    /// <param name="correlationId">Optional correlation ID to filter by</param>
     /// <param name="collectionKey">Optional collection key to filter by</param>
     /// <param name="labels">Optional label filters (key-value pairs)</param>
     /// <param name="statuses">Optional workflow statuses to filter by</param>
     /// <param name="ct">Cancellation token</param>
     Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
         string ns,
-        Guid? correlationId = null,
         string? collectionKey = null,
         Dictionary<string, string>? labels = null,
         IReadOnlyList<PersistentItemStatus>? statuses = null,
