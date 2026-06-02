@@ -51,27 +51,33 @@ public class UiFoldersController : Controller
     public async Task<IActionResult> GetValidationOnNavigation(
         string org,
         string app,
-        [FromQuery] string? layoutSet,
-        [FromQuery] string? page,
+        [FromQuery] List<string>? layoutSets,
+        [FromQuery] List<string>? pages,
         CancellationToken cancellationToken
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
 
-        if (layoutSet == null)
+        if (layoutSets == null || layoutSets.Count == 0)
         {
             return Ok(await _uiFoldersService.GetGlobalValidationOnNavigation(editingContext, cancellationToken));
         }
 
-        if (page == null)
+        if (pages == null || pages.Count == 0)
         {
             return Ok(
-                await _uiFoldersService.GetLayoutSetValidationOnNavigation(editingContext, layoutSet, cancellationToken)
+                await _uiFoldersService.GetLayoutSetsValidationOnNavigation(editingContext, layoutSets, cancellationToken)
             );
         }
 
+        //if page-level config is being used, only one layoutSet can be selected each time.
+        if (layoutSets.Count != 1)
+        {
+            return BadRequest("Exactly one layoutSet must be specified when querying pages.");
+        }
+
         return Ok(
-            await _uiFoldersService.GetPageValidationOnNavigation(editingContext, layoutSet, page, cancellationToken)
+            await _uiFoldersService.GetPagesValidationOnNavigation(editingContext, layoutSets[0], pages, cancellationToken)
         );
     }
 
@@ -80,38 +86,33 @@ public class UiFoldersController : Controller
     public async Task<IActionResult> SaveValidationOnNavigation(
         string org,
         string app,
-        [FromQuery] string? layoutSet,
-        [FromQuery] string? page,
+        [FromQuery] List<string>? layoutSets,
+        [FromQuery] List<string>? pages,
         [FromBody] ValidationOnNavigation config,
         CancellationToken cancellationToken
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
 
-        if (layoutSet == null)
+        if (layoutSets == null || layoutSets.Count == 0)
         {
             await _uiFoldersService.SaveGlobalValidationOnNavigation(editingContext, config, cancellationToken);
             return Ok();
         }
 
-        if (page == null)
+        if (pages == null || pages.Count == 0)
         {
-            await _uiFoldersService.SaveLayoutSetValidationOnNavigation(
-                editingContext,
-                layoutSet,
-                config,
-                cancellationToken
-            );
+            await _uiFoldersService.SaveLayoutSetsValidationOnNavigation(editingContext, layoutSets, config, cancellationToken);
             return Ok();
         }
 
-        await _uiFoldersService.SavePageValidationOnNavigation(
-            editingContext,
-            layoutSet,
-            page,
-            config,
-            cancellationToken
-        );
+        //if page-level config is being used, only one layoutSet can be selected each time.
+        if (layoutSets.Count != 1)
+        {
+            return BadRequest("Exactly one layoutSet must be specified when saving pages.");
+        }
+
+        await _uiFoldersService.SavePagesValidationOnNavigation(editingContext, layoutSets[0], pages, config, cancellationToken);
         return Ok();
     }
 
@@ -119,37 +120,32 @@ public class UiFoldersController : Controller
     public async Task<IActionResult> DeleteValidationOnNavigation(
         string org,
         string app,
-        [FromQuery] string? layoutSet,
-        [FromQuery] string? page,
+        [FromQuery] List<string>? layoutSets,
+        [FromQuery] List<string>? pages,
         CancellationToken cancellationToken
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
 
-        if (layoutSet == null)
+        if (layoutSets == null || layoutSets.Count == 0)
         {
             await _uiFoldersService.SaveGlobalValidationOnNavigation(editingContext, null, cancellationToken);
             return Ok();
         }
 
-        if (page == null)
+        if (pages == null || pages.Count == 0)
         {
-            await _uiFoldersService.SaveLayoutSetValidationOnNavigation(
-                editingContext,
-                layoutSet,
-                null,
-                cancellationToken
-            );
+            await _uiFoldersService.SaveLayoutSetsValidationOnNavigation(editingContext, layoutSets, null, cancellationToken);
             return Ok();
         }
 
-        await _uiFoldersService.SavePageValidationOnNavigation(
-            editingContext,
-            layoutSet,
-            page,
-            null,
-            cancellationToken
-        );
+        //if page-level config is being used, only one layoutSet can be selected each time.
+        if (layoutSets.Count != 1)
+        {
+            return BadRequest("Exactly one layoutSet must be specified when deleting pages.");
+        }
+
+        await _uiFoldersService.SavePagesValidationOnNavigation(editingContext, layoutSets[0], pages, null, cancellationToken);
         return Ok();
     }
 
