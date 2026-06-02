@@ -6,6 +6,7 @@ import { SearchParams } from 'src/core/routing/types';
 import { exprCastValue } from 'src/features/expressions';
 import { Decimal } from 'src/features/expressions/Decimal';
 import { ExprRuntimeError, NodeRelationNotFound } from 'src/features/expressions/errors';
+import { ObjectFunctionEvaluator } from 'src/features/expressions/ObjectFunctionEvaluator';
 import { ExprVal } from 'src/features/expressions/types';
 import { addError, isValidValue } from 'src/features/expressions/validation';
 import { makeIndexedId } from 'src/features/form/layout/utils/makeIndexedId';
@@ -804,19 +805,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     return items;
   },
   object(...items): ValidObject {
-    if (items.length % 2 === 1) {
-      throw new ExprRuntimeError(this.expr, this.path, 'The object function must have an even number of arguments');
-    }
-    const keys = extractEvenIndexedArguments(items);
-    if (!consistsOfStringsOnly(keys)) {
-      throw new ExprRuntimeError(this.expr, this.path, 'Object keys must be strings');
-    }
-    if (!areStringsUnique(keys)) {
-      throw new ExprRuntimeError(this.expr, this.path, 'Object keys must be unique');
-    }
-    const values = extractOddIndexedArguments(items);
-    const entries = zipArrays<string, ValidValue>(keys, values);
-    return Object.fromEntries(entries);
+    return new ObjectFunctionEvaluator(this, items).evaluate();
   },
   _experimentalSelectAndMap(path, propertyToSelect, prepend, append, appendToLastElement = true) {
     if (path === null || propertyToSelect == null) {
@@ -1081,24 +1070,4 @@ function validateDates(this: EvaluateExpressionParams, a: ExprDate, b: ExprDate)
   if (!sameTimezones && eitherIsLocal) {
     throw new ExprRuntimeError(this.expr, this.path, `Can not compare timestamps where only one specify timezone`);
   }
-}
-
-function extractEvenIndexedArguments(args: ValidValue[]): ValidValue[] {
-  return args.filter((_, index) => index % 2 === 0);
-}
-
-function extractOddIndexedArguments(args: ValidValue[]): ValidValue[] {
-  return args.filter((_, index) => index % 2 === 1);
-}
-
-function consistsOfStringsOnly(array: ValidValue[]): array is string[] {
-  return array.every((value) => typeof value === 'string');
-}
-
-function areStringsUnique(strings: string[]): boolean {
-  return strings.length === new Set(strings).size;
-}
-
-function zipArrays<V1, V2>(array1: V1[], array2: V2[]): Array<[V1, V2]> {
-  return array1.map((value, index) => [value, array2[index]]);
 }
