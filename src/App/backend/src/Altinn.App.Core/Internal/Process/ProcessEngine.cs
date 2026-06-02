@@ -222,14 +222,11 @@ internal class ProcessEngine : IProcessEngine
     }
 
     /// <inheritdoc/>
-    public async Task<ProcessChangeResult> RecoverCurrentTask(
-        ProcessNextRequest request,
-        CancellationToken ct = default
-    )
+    public async Task<ProcessChangeResult> ResumeCurrentTask(ProcessNextRequest request, CancellationToken ct = default)
     {
         Instance instance = request.Instance;
 
-        using Activity? activity = _telemetry?.StartProcessNextActivity(instance, "recover");
+        using Activity? activity = _telemetry?.StartProcessNextActivity(instance, "resume");
 
         if (
             !TryGetCurrentTaskIdAndAltinnTaskType(
@@ -254,7 +251,7 @@ internal class ProcessEngine : IProcessEngine
                 Success = false,
                 ErrorType = ProcessErrorType.Unauthorized,
                 ErrorMessage =
-                    $"User is not authorized to recover the current task. Task ID: {LogSanitizer.Sanitize(currentTaskId)}. Task type: {LogSanitizer.Sanitize(altinnTaskType)}.",
+                    $"User is not authorized to resume the current task. Task ID: {LogSanitizer.Sanitize(currentTaskId)}. Task type: {LogSanitizer.Sanitize(altinnTaskType)}.",
             };
             activity?.SetProcessChangeResult(result);
             return result;
@@ -276,7 +273,7 @@ internal class ProcessEngine : IProcessEngine
         }
 
         if (
-            currentTaskWorkflowState.ProcessNextState != ProcessNextState.RecoveryRequired
+            currentTaskWorkflowState.ProcessNextState != ProcessNextState.ResumeRequired
             || currentTaskWorkflowState.WorkflowId is not Guid workflowId
             || currentTaskWorkflowState.CollectionKey is not { Length: > 0 } collectionKey
         )
@@ -285,8 +282,8 @@ internal class ProcessEngine : IProcessEngine
             {
                 Success = false,
                 ErrorType = ProcessErrorType.Conflict,
-                ErrorTitle = "Task does not need recovery.",
-                ErrorMessage = "The current task does not have a failed workflow that can be recovered.",
+                ErrorTitle = "Task does not need to be resumed.",
+                ErrorMessage = "The current task does not have a failed workflow that can be resumed.",
             };
             activity?.SetProcessChangeResult(result);
             return result;
@@ -305,7 +302,7 @@ internal class ProcessEngine : IProcessEngine
             {
                 Success = false,
                 ErrorType = ProcessErrorType.Internal,
-                ErrorTitle = "Something went wrong while recovering the current task.",
+                ErrorTitle = "Something went wrong while resuming the current task.",
                 ErrorMessage = CreateWorkflowFailureMessage(workflowResult.WorkflowFailure),
                 WorkflowFailure = workflowResult.WorkflowFailure,
                 ProcessStateOnFailure = workflowResult.ProcessStateChanged ? workflowResult.Instance.Process : null,
@@ -969,13 +966,13 @@ internal class ProcessEngine : IProcessEngine
                     "The current task is still being processed by the workflow engine. Wait for automatic retries to finish before trying again.",
                 ProcessNextState = ProcessNextState.Retrying,
             },
-            ProcessNextState.RecoveryRequired => new ProcessChangeResult
+            ProcessNextState.ResumeRequired => new ProcessChangeResult
             {
                 Success = false,
                 ErrorType = ProcessErrorType.Conflict,
-                ErrorTitle = "Task must be recovered before it can continue.",
-                ErrorMessage = "The current task has a failed workflow that must be recovered before it can continue.",
-                ProcessNextState = ProcessNextState.RecoveryRequired,
+                ErrorTitle = "Task must be resumed before it can continue.",
+                ErrorMessage = "The current task has a failed workflow that must be resumed before it can continue.",
+                ProcessNextState = ProcessNextState.ResumeRequired,
             },
             _ => throw new ArgumentOutOfRangeException(nameof(blockedState), blockedState, null),
         };

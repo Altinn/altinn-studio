@@ -15,7 +15,7 @@ public class WorkflowEngineInstantiationFailureTests(ITestOutputHelper output, A
     : IClassFixture<AppFixtureClassFixture>
 {
     [Fact]
-    public async Task PostSimplified_WhenInitialWorkflowCommandFails_ReturnsRecoveryProblemDetails()
+    public async Task PostSimplified_WhenInitialWorkflowCommandFails_ReturnsResumeProblemDetails()
     {
         await using var fixtureScope = await classFixture.Get(
             output,
@@ -40,12 +40,12 @@ public class WorkflowEngineInstantiationFailureTests(ITestOutputHelper output, A
         Assert.Equal("Instance initialization failed.", root.GetProperty("title").GetString());
         Assert.Equal(StatusCodes.Status500InternalServerError, root.GetProperty("status").GetInt32());
         Assert.Contains(
-            "Do not create a duplicate instance; resolve the workflow failure and call the recovery endpoint.",
+            "Do not create a duplicate instance; resolve the workflow failure and call the resume endpoint.",
             root.GetProperty("detail").GetString()
         );
         Assert.Equal("workflowFailed", root.GetProperty("initializationState").GetString());
         Assert.True(root.GetProperty("workflowAccepted").GetBoolean());
-        Assert.Equal("recoverCurrentTask", root.GetProperty("recommendedAction").GetString());
+        Assert.Equal("resumeCurrentTask", root.GetProperty("recommendedAction").GetString());
 
         JsonElement workflowFailure = root.GetProperty("workflowFailure");
         Assert.Equal("StepFailed", workflowFailure.GetProperty("kind").GetString());
@@ -60,11 +60,11 @@ public class WorkflowEngineInstantiationFailureTests(ITestOutputHelper output, A
         Guid instanceGuid = root.GetProperty("instanceGuid").GetGuid();
         Assert.Equal($"501337/{instanceGuid}", instanceId);
 
-        JsonElement recoveryEndpoint = root.GetProperty("recoveryEndpoint");
-        Assert.Equal("POST", recoveryEndpoint.GetProperty("method").GetString());
+        JsonElement resumeEndpoint = root.GetProperty("resumeEndpoint");
+        Assert.Equal("POST", resumeEndpoint.GetProperty("method").GetString());
         Assert.Equal(
-            $"/ttd/{fixture.EffectiveApp}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/recover",
-            recoveryEndpoint.GetProperty("path").GetString()
+            $"/ttd/{fixture.EffectiveApp}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/resume",
+            resumeEndpoint.GetProperty("path").GetString()
         );
 
         using var getRequest = new HttpRequestMessage(

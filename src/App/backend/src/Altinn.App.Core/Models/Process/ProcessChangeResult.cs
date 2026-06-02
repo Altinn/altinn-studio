@@ -113,9 +113,9 @@ public enum ProcessNextState
     Retrying,
 
     /// <summary>
-    /// The workflow for the current task failed and must be recovered before continuing.
+    /// The workflow for the current task failed and must be resumed before continuing.
     /// </summary>
-    RecoveryRequired,
+    ResumeRequired,
 }
 
 /// <summary>

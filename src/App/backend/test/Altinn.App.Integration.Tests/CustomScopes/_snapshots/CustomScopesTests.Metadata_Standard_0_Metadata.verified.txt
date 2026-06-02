@@ -824,7 +824,7 @@
         }
       },
       {
-        endpoint: POST {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/recover,
+        endpoint: POST {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/resume,
         metadata: {
           errorMessageTextResourceKeyUser: null,
           errorMessageTextResourceKeyServiceOwner: null,

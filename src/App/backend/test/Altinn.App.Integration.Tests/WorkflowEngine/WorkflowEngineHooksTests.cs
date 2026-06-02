@@ -57,7 +57,7 @@ public class WorkflowEngineHooksTests(ITestOutputHelper output, AppFixtureClassF
     }
 
     [Fact]
-    public async Task RecoverCurrentTask_AfterTaskEndingHookFailure_ResumesWorkflowAndCompletesDependents()
+    public async Task ResumeCurrentTask_AfterTaskEndingHookFailure_ResumesWorkflowAndCompletesDependents()
     {
         await using var fixtureScope = await classFixture.Get(
             output,
@@ -96,15 +96,15 @@ public class WorkflowEngineHooksTests(ITestOutputHelper output, AppFixtureClassF
         using var blockedProcessNext = await blockedProcessNextResponse.Read<ProblemDetails>();
         Assert.Equal(HttpStatusCode.Conflict, blockedProcessNext.Response.StatusCode);
         using JsonDocument blockedDocument = JsonDocument.Parse(blockedProcessNext.Data.Body!);
-        Assert.Equal("recoveryRequired", blockedDocument.RootElement.GetProperty("processNextState").GetString());
+        Assert.Equal("resumeRequired", blockedDocument.RootElement.GetProperty("processNextState").GetString());
 
         await PostScenarioEndpoint(fixture, "/test/workflow-engine-hooks/allow-task-ending");
 
-        using var recoverResponse = await fixture.Instances.RecoverCurrentTask(token, instanceAfterFailure);
-        using var recoveredProcessState = await recoverResponse.Read<AppProcessState>();
-        Assert.Equal(HttpStatusCode.OK, recoveredProcessState.Response.StatusCode);
-        Assert.Null(recoveredProcessState.Data.Model!.CurrentTask);
-        Assert.Equal("EndEvent_1", recoveredProcessState.Data.Model.EndEvent);
+        using var resumeResponse = await fixture.Instances.ResumeCurrentTask(token, instanceAfterFailure);
+        using var resumedProcessState = await resumeResponse.Read<AppProcessState>();
+        Assert.Equal(HttpStatusCode.OK, resumedProcessState.Response.StatusCode);
+        Assert.Null(resumedProcessState.Data.Model!.CurrentTask);
+        Assert.Equal("EndEvent_1", resumedProcessState.Data.Model.EndEvent);
 
         using var refreshedInstanceResponse = await fixture.Instances.Get(token, instanceAfterFailure);
         using var refreshedInstance = await refreshedInstanceResponse.Read<Instance>();

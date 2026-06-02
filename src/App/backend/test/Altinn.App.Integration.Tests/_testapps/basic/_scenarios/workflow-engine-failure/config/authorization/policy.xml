@@ -2,7 +2,7 @@
 <xacml:Policy PolicyId="urn:altinn:resource:app_[ORG]_[APP]:policyid:1" Version="1.0" RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides" xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17">
   <xacml:Target />
   <xacml:Rule RuleId="urn:altinn:resource:app_[ORG]_[APP]:policyid:1:ruleid:1" Effect="Permit">
-    <xacml:Description>Permit actions needed by workflow-engine failure and recovery integration tests.</xacml:Description>
+    <xacml:Description>Permit actions needed by workflow-engine failure and resume integration tests.</xacml:Description>
     <xacml:Target>
       <xacml:AnyOf>
         <xacml:AllOf>

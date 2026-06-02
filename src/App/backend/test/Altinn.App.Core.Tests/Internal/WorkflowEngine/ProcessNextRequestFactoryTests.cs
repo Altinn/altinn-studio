@@ -236,7 +236,7 @@ public class ProcessNextRequestFactoryTests
         };
     }
 
-    private static List<string> ExtractCommandKeys(WorkflowEnqueueBundle bundle)
+    private static List<string> ExtractCommandKeys(WorkflowEnqueueEnvelope bundle)
     {
         return bundle
             .Request.Workflows[0]

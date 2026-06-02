@@ -5596,12 +5596,12 @@
         }
       }
     },
-    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/recover": {
+    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/resume": {
       "post": {
         "tags": [
           "Process"
         ],
-        "summary": "Recovers the workflow that established the instance's current task.",
+        "summary": "Resumes the workflow that established the instance's current task.",
         "parameters": [
           {
             "name": "org",

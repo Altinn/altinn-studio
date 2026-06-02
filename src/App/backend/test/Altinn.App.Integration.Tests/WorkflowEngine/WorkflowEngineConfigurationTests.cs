@@ -56,7 +56,7 @@ public class WorkflowEngineConfigurationTests(ITestOutputHelper output, AppFixtu
         Assert.Equal(HttpStatusCode.Conflict, blockedProcessNext.Response.StatusCode);
 
         using JsonDocument blockedDocument = JsonDocument.Parse(blockedProcessNext.Data.Body!);
-        Assert.Equal("recoveryRequired", blockedDocument.RootElement.GetProperty("processNextState").GetString());
+        Assert.Equal("resumeRequired", blockedDocument.RootElement.GetProperty("processNextState").GetString());
     }
 
     private static async Task<AppFixture.ReadApiResponse<Instance>> CreateInstance(AppFixture fixture, string token)

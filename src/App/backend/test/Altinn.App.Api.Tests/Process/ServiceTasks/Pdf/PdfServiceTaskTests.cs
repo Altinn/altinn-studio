@@ -45,7 +45,7 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
     }
 
     [Fact]
-    public async Task Reject_Is_Blocked_When_PdfServiceTask_Failed_And_Recovery_Is_Required()
+    public async Task Reject_Is_Blocked_When_PdfServiceTask_Failed_And_Resume_Is_Required()
     {
         var sendAsyncCalled = false;
 
@@ -91,11 +91,11 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
         string rejectResponseContent = await rejectResponse.Content.ReadAsStringAsync();
         OutputHelper.WriteLine(rejectResponseContent);
         JObject rejectProblem = JObject.Parse(rejectResponseContent);
-        rejectProblem["title"]!.Value<string>().Should().Be("Task must be recovered before it can continue.");
+        rejectProblem["title"]!.Value<string>().Should().Be("Task must be resumed before it can continue.");
         rejectProblem["status"]!.Value<int>().Should().Be((int)HttpStatusCode.Conflict);
-        rejectProblem["processNextState"]!.Value<string>().Should().Be("recoveryRequired");
+        rejectProblem["processNextState"]!.Value<string>().Should().Be("resumeRequired");
 
-        // Double check that process stays on the failed service task until recovery
+        // Double check that process stays on the failed service task until resume
         Instance instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
         instance.Process.CurrentTask.ElementId.Should().Be("Task_2");
         instance.Process.CurrentTask.AltinnTaskType.Should().Be(AltinnTaskTypes.Pdf);

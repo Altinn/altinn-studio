@@ -1578,7 +1578,7 @@ public sealed class ProcessEngineTest
     }
 
     [Fact]
-    public async Task Next_blocks_when_current_task_workflow_requires_recovery()
+    public async Task Next_blocks_when_current_task_workflow_requires_resume()
     {
         Guid workflowId = Guid.NewGuid();
         string collectionKey = CreateTaskCollectionKey("Task_1", 2);
@@ -1652,12 +1652,12 @@ public sealed class ProcessEngineTest
 
         result.Success.Should().BeFalse();
         result.ErrorType.Should().Be(ProcessErrorType.Conflict);
-        result.ProcessNextState.Should().Be(ProcessNextState.RecoveryRequired);
-        result.ErrorTitle.Should().Be("Task must be recovered before it can continue.");
+        result.ProcessNextState.Should().Be(ProcessNextState.ResumeRequired);
+        result.ErrorTitle.Should().Be("Task must be resumed before it can continue.");
     }
 
     [Fact]
-    public async Task Next_blocks_when_source_task_workflow_requires_recovery()
+    public async Task Next_blocks_when_source_task_workflow_requires_resume()
     {
         Guid workflowId = Guid.NewGuid();
         string collectionKey = CreateTaskCollectionKey("Task_1", 2);
@@ -1747,8 +1747,8 @@ public sealed class ProcessEngineTest
 
         result.Success.Should().BeFalse();
         result.ErrorType.Should().Be(ProcessErrorType.Conflict);
-        result.ProcessNextState.Should().Be(ProcessNextState.RecoveryRequired);
-        result.ErrorTitle.Should().Be("Task must be recovered before it can continue.");
+        result.ProcessNextState.Should().Be(ProcessNextState.ResumeRequired);
+        result.ErrorTitle.Should().Be("Task must be resumed before it can continue.");
         processEngineClientMock.Verify(
             c =>
                 c.EnqueueWorkflows(
@@ -2053,7 +2053,7 @@ public sealed class ProcessEngineTest
     }
 
     [Fact]
-    public async Task RecoverCurrentTask_resumes_failed_workflow_and_returns_updated_instance()
+    public async Task ResumeCurrentTask_resumes_failed_workflow_and_returns_updated_instance()
     {
         Guid workflowId = Guid.NewGuid();
         string collectionKey = CreateTaskCollectionKey("Task_1", 2);
@@ -2128,7 +2128,7 @@ public sealed class ProcessEngineTest
 
         Mock<IInstanceClient> instanceClientMock = new(MockBehavior.Strict);
         Instance originalInstance = CreateTask1Instance();
-        Instance recoveredInstance = CreateTask2Instance();
+        Instance resumedInstance = CreateTask2Instance();
         instanceClientMock
             .Setup(c =>
                 c.GetInstance(
@@ -2137,7 +2137,7 @@ public sealed class ProcessEngineTest
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(recoveredInstance);
+            .ReturnsAsync(resumedInstance);
 
         var services = new ServiceCollection();
         services.AddSingleton(processEngineClientMock.Object);
@@ -2157,10 +2157,10 @@ public sealed class ProcessEngineTest
         );
 
         result.Success.Should().BeTrue();
-        result.MutatedInstance.Should().BeSameAs(recoveredInstance);
+        result.MutatedInstance.Should().BeSameAs(resumedInstance);
         result.ProcessStateChange.Should().NotBeNull();
         result.ProcessStateChange!.OldProcessState.Should().BeEquivalentTo(originalInstance.Process);
-        result.ProcessStateChange.NewProcessState.Should().BeEquivalentTo(recoveredInstance.Process);
+        result.ProcessStateChange.NewProcessState.Should().BeEquivalentTo(resumedInstance.Process);
         processEngineClientMock.Verify(
             c => c.ResumeWorkflow(It.IsAny<string>(), workflowId, false, It.IsAny<CancellationToken>()),
             Times.Once

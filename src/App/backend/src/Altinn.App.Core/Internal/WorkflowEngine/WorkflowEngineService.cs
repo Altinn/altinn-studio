@@ -98,10 +98,10 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         CancellationToken ct = default
     )
     {
-        WorkflowEnqueueBundle bundle;
+        WorkflowEnqueueEnvelope bundle;
         try
         {
-            bundle = await CreateWorkflowEnqueueBundle(
+            bundle = await CreateWorkflowEnqueueEnvelope(
                 instance,
                 processStateChange,
                 CreateProcessNextIdempotencyKey(instance, processStateChange, resolvedAction),
@@ -128,7 +128,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
         try
         {
-            await EnqueueWorkflowBundle(bundle, collectionKey, ct);
+            await EnqueueWorkflowEnvelope(bundle, collectionKey, ct);
         }
         catch (Exception exception) when (IsDefinitiveNotAccepted(exception, out HttpStatusCode? statusCode))
         {
@@ -242,16 +242,16 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 return new CurrentTaskWorkflowState(ProcessNextState.Retrying, activeHead.DatabaseId, collectionKey);
             }
 
-            CollectionHeadStatus? recoveryRequiredHead = collection.Heads.FirstOrDefault(
-                IsRecoveryRequiredCollectionHeadStatus
+            CollectionHeadStatus? resumeRequiredHead = collection.Heads.FirstOrDefault(
+                IsResumeRequiredCollectionHeadStatus
             );
-            if (recoveryRequiredHead is not null)
+            if (resumeRequiredHead is not null)
             {
                 Guid retryTargetWorkflowId =
-                    await GetRecoveryTargetWorkflowId(collectionKey, recoveryRequiredHead.DatabaseId, ct)
-                    ?? recoveryRequiredHead.DatabaseId;
+                    await GetResumeTargetWorkflowId(collectionKey, resumeRequiredHead.DatabaseId, ct)
+                    ?? resumeRequiredHead.DatabaseId;
                 return new CurrentTaskWorkflowState(
-                    ProcessNextState.RecoveryRequired,
+                    ProcessNextState.ResumeRequired,
                     retryTargetWorkflowId,
                     collectionKey
                 );
@@ -313,7 +313,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         CancellationToken ct = default
     )
     {
-        WorkflowEnqueueBundle bundle = await CreateWorkflowEnqueueBundle(
+        WorkflowEnqueueEnvelope bundle = await CreateWorkflowEnqueueEnvelope(
             instance,
             processStateChange,
             idempotencyKey,
@@ -327,10 +327,10 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         );
         string? effectiveCollectionKey = collectionKey ?? bundle.CollectionKey;
 
-        return await EnqueueWorkflowBundle(bundle, effectiveCollectionKey, ct);
+        return await EnqueueWorkflowEnvelope(bundle, effectiveCollectionKey, ct);
     }
 
-    private Task<WorkflowEnqueueBundle> CreateWorkflowEnqueueBundle(
+    private Task<WorkflowEnqueueEnvelope> CreateWorkflowEnqueueEnvelope(
         Instance instance,
         ProcessStateChange processStateChange,
         string idempotencyKey,
@@ -355,8 +355,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             idempotencyKey: idempotencyKey
         );
 
-    private async Task<(Guid WorkflowId, string? CollectionKey)> EnqueueWorkflowBundle(
-        WorkflowEnqueueBundle bundle,
+    private async Task<(Guid WorkflowId, string? CollectionKey)> EnqueueWorkflowEnvelope(
+        WorkflowEnqueueEnvelope bundle,
         string? effectiveCollectionKey,
         CancellationToken ct
     )
@@ -509,13 +509,13 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 or PersistentItemStatus.Processing
                 or PersistentItemStatus.Requeued;
 
-    private static bool IsRecoveryRequiredCollectionHeadStatus(CollectionHeadStatus workflow) =>
+    private static bool IsResumeRequiredCollectionHeadStatus(CollectionHeadStatus workflow) =>
         workflow.Status
             is PersistentItemStatus.Failed
                 or PersistentItemStatus.Canceled
                 or PersistentItemStatus.DependencyFailed;
 
-    private async Task<Guid?> GetRecoveryTargetWorkflowId(
+    private async Task<Guid?> GetResumeTargetWorkflowId(
         string collectionKey,
         Guid fallbackWorkflowId,
         CancellationToken ct

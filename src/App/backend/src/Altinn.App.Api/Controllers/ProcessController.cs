@@ -381,13 +381,13 @@ public class ProcessController : ControllerBase
     }
 
     /// <summary>
-    /// Recovers the workflow that established the instance's current task.
+    /// Resumes the workflow that established the instance's current task.
     /// </summary>
-    [HttpPost("recover")]
+    [HttpPost("resume")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<AppProcessState>> RecoverCurrentTask(
+    public async Task<ActionResult<AppProcessState>> ResumeCurrentTask(
         [FromRoute] string org,
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
@@ -406,7 +406,7 @@ public class ProcessController : ControllerBase
                 ct
             );
 
-            ProcessChangeResult result = await _processEngine.RecoverCurrentTask(
+            ProcessChangeResult result = await _processEngine.ResumeCurrentTask(
                 new ProcessNextRequest
                 {
                     User = User,
@@ -433,12 +433,12 @@ public class ProcessController : ControllerBase
         }
         catch (PlatformHttpException e)
         {
-            _logger.LogError("Platform exception when recovering current task. {Message}", e.Message);
-            return HandlePlatformHttpException(e, "Recover current task failed.");
+            _logger.LogError("Platform exception when resuming current task. {Message}", e.Message);
+            return HandlePlatformHttpException(e, "Resume current task failed.");
         }
         catch (Exception exception)
         {
-            return ExceptionResponse(exception, "Recover current task failed.");
+            return ExceptionResponse(exception, "Resume current task failed.");
         }
     }
 
@@ -800,7 +800,7 @@ public class ProcessController : ControllerBase
         processNextState switch
         {
             ProcessNextState.Retrying => "retrying",
-            ProcessNextState.RecoveryRequired => "recoveryRequired",
+            ProcessNextState.ResumeRequired => "resumeRequired",
             _ => throw new ArgumentOutOfRangeException(nameof(processNextState), processNextState, null),
         };
 }

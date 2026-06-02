@@ -368,9 +368,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         root.GetProperty("detail")
             .GetString()
             .Should()
-            .Contain(
-                "Do not create a duplicate instance; resolve the workflow failure and call the recovery endpoint."
-            );
+            .Contain("Do not create a duplicate instance; resolve the workflow failure and call the resume endpoint.");
         root.GetProperty("technicalDetail")
             .GetString()
             .Should()
@@ -379,9 +377,9 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             );
         root.GetProperty("initializationState").GetString().Should().Be("workflowFailed");
         root.GetProperty("workflowAccepted").GetBoolean().Should().BeTrue();
-        root.GetProperty("recommendedAction").GetString().Should().Be("recoverCurrentTask");
-        JsonElement recoveryEndpoint = root.GetProperty("recoveryEndpoint");
-        recoveryEndpoint.GetProperty("method").GetString().Should().Be("POST");
+        root.GetProperty("recommendedAction").GetString().Should().Be("resumeCurrentTask");
+        JsonElement resumeEndpoint = root.GetProperty("resumeEndpoint");
+        resumeEndpoint.GetProperty("method").GetString().Should().Be("POST");
         JsonElement workflowFailure = root.GetProperty("workflowFailure");
         workflowFailure.GetProperty("kind").GetString().Should().Be(WorkflowFailureKind.StepFailed.ToString());
         workflowFailure.GetProperty("stepOperationId").GetString().Should().Be("StartTask");
@@ -395,11 +393,11 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         string instanceId = root.GetProperty("instanceId").GetString()!;
         string[] instanceIdParts = instanceId.Split('/');
         Guid instanceGuid = Guid.Parse(instanceIdParts[1]);
-        recoveryEndpoint
+        resumeEndpoint
             .GetProperty("path")
             .GetString()
             .Should()
-            .Be($"/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/recover");
+            .Be($"/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/resume");
         Instance storedInstance = await TestData.GetInstance(org, app, instanceOwnerPartyId, instanceGuid);
         storedInstance.Status?.IsHardDeleted.Should().NotBe(true);
 

@@ -504,22 +504,27 @@ public class InstancesController : ControllerBase
                 CancellationToken.None
             );
 
-            // Dispatch process state change to async engine
-            if (processStateChange is not null)
+            // An instance must never exist without a process to enqueue in the workflow engine.
+            if (processStateChange is null)
             {
-                int partyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
-                Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-                await using var instanceLock = _instanceLocker.InitLock(partyId, instanceGuid);
-                await instanceLock.Lock();
-                instance = await _processEngine.SubmitInitialProcessState(
-                    instance,
-                    processStateChange,
-                    _instanceLocker.CurrentLockToken
-                        ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock"),
-                    isInstantiation: true,
-                    notification: notification
+                throw new InvalidOperationException(
+                    "Instantiated instance has no process state change to enqueue in the workflow engine."
                 );
             }
+
+            // Dispatch process state change to async engine
+            int partyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
+            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+            await using var instanceLock = _instanceLocker.InitLock(partyId, instanceGuid);
+            await instanceLock.Lock();
+            instance = await _processEngine.SubmitInitialProcessState(
+                instance,
+                processStateChange,
+                _instanceLocker.CurrentLockToken
+                    ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock"),
+                isInstantiation: true,
+                notification: notification
+            );
         }
         catch (WorkflowSubmissionFailedException exception)
         {
@@ -813,23 +818,28 @@ public class InstancesController : ControllerBase
 
             instance = await _instanceClient.GetInstance(instance);
 
-            // Dispatch process state change to async engine
-            if (processStateChange is not null)
+            // An instance must never exist without a process to enqueue in the workflow engine.
+            if (processStateChange is null)
             {
-                int partyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
-                Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-                await using var instanceLock = _instanceLocker.InitLock(partyId, instanceGuid);
-                await instanceLock.Lock();
-                instance = await _processEngine.SubmitInitialProcessState(
-                    instance,
-                    processStateChange,
-                    _instanceLocker.CurrentLockToken
-                        ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock"),
-                    isInstantiation: true,
-                    prefill: instansiationInstance.Prefill,
-                    notification: instansiationInstance.Notification
+                throw new InvalidOperationException(
+                    "Instantiated instance has no process state change to enqueue in the workflow engine."
                 );
             }
+
+            // Dispatch process state change to async engine
+            int partyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
+            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+            await using var instanceLock = _instanceLocker.InitLock(partyId, instanceGuid);
+            await instanceLock.Lock();
+            instance = await _processEngine.SubmitInitialProcessState(
+                instance,
+                processStateChange,
+                _instanceLocker.CurrentLockToken
+                    ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock"),
+                isInstantiation: true,
+                prefill: instansiationInstance.Prefill,
+                notification: instansiationInstance.Notification
+            );
         }
         catch (WorkflowSubmissionFailedException exception)
         {
@@ -1449,8 +1459,8 @@ public class InstancesController : ControllerBase
             message,
             initializationState: "workflowFailed",
             instance: exception.Instance,
-            recommendedAction: "recoverCurrentTask",
-            recoveryEndpoint: CreateProcessRecoverEndpoint(org, app, exception.Instance),
+            recommendedAction: "resumeCurrentTask",
+            resumeEndpoint: CreateProcessResumeEndpoint(org, app, exception.Instance),
             workflowFailure: exception.WorkflowFailure,
             workflowAccepted: true,
             processStateChanged: exception.ProcessStateChanged
@@ -1490,7 +1500,7 @@ public class InstancesController : ControllerBase
         Instance? instance,
         string recommendedAction,
         bool? instanceDeleted = null,
-        RecoveryEndpoint? recoveryEndpoint = null,
+        ResumeEndpoint? resumeEndpoint = null,
         WorkflowFailure? workflowFailure = null,
         bool? workflowAccepted = null,
         string? workflowSubmissionFailureKind = null,
@@ -1524,9 +1534,9 @@ public class InstancesController : ControllerBase
             problemDetails.Extensions["instanceDeleted"] = instanceDeleted.Value;
         }
 
-        if (recoveryEndpoint is not null)
+        if (resumeEndpoint is not null)
         {
-            problemDetails.Extensions["recoveryEndpoint"] = recoveryEndpoint;
+            problemDetails.Extensions["resumeEndpoint"] = resumeEndpoint;
         }
 
         if (workflowAccepted.HasValue)
@@ -1580,9 +1590,9 @@ public class InstancesController : ControllerBase
             ("workflowAcceptanceUnknown", _, _, _, _) =>
                 "Runtime submitted the initial workflow, but could not determine whether the workflow engine accepted it. Inspect the instance and workflow state before retrying instance creation.",
             ("workflowFailed", _, _, true, true) =>
-                "The workflow engine accepted the initial workflow, but the workflow failed after process state may have been updated in Storage. Do not create a duplicate instance; resolve the workflow failure and call the recovery endpoint.",
+                "The workflow engine accepted the initial workflow, but the workflow failed after process state may have been updated in Storage. Do not create a duplicate instance; resolve the workflow failure and call the resume endpoint.",
             ("workflowFailed", _, _, true, _) =>
-                "The workflow engine accepted the initial workflow, but the workflow failed before instance initialization completed. Do not create a duplicate instance; resolve the workflow failure and call the recovery endpoint.",
+                "The workflow engine accepted the initial workflow, but the workflow failed before instance initialization completed. Do not create a duplicate instance; resolve the workflow failure and call the resume endpoint.",
             _ => "Runtime could not complete instance initialization. Inspect the response details before retrying.",
         };
 
@@ -1599,16 +1609,16 @@ public class InstancesController : ControllerBase
         problemDetails.Extensions["instanceGuid"] = instanceIdentifier.InstanceGuid;
     }
 
-    private static RecoveryEndpoint CreateProcessRecoverEndpoint(string org, string app, Instance instance)
+    private static ResumeEndpoint CreateProcessResumeEndpoint(string org, string app, Instance instance)
     {
         var instanceIdentifier = new InstanceIdentifier(instance);
-        return new RecoveryEndpoint(
+        return new ResumeEndpoint(
             "POST",
-            $"/{org}/{app}/instances/{instanceIdentifier.InstanceOwnerPartyId}/{instanceIdentifier.InstanceGuid}/process/recover"
+            $"/{org}/{app}/instances/{instanceIdentifier.InstanceOwnerPartyId}/{instanceIdentifier.InstanceGuid}/process/resume"
         );
     }
 
-    private sealed record RecoveryEndpoint(string Method, string Path);
+    private sealed record ResumeEndpoint(string Method, string Path);
 
     private async Task<EnforcementResult> AuthorizeAction(
         string org,

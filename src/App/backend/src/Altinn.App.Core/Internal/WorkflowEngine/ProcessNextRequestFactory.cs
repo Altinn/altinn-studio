@@ -21,8 +21,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// Result from <see cref="ProcessNextRequestFactory.Create"/> containing both the request body
 /// and the metadata that must be sent via URL path and HTTP headers.
 /// </summary>
-//TODO: RENAME
-internal sealed record WorkflowEnqueueBundle(
+internal sealed record WorkflowEnqueueEnvelope(
     WorkflowEnqueueRequest Request,
     string Namespace,
     string IdempotencyKey,
@@ -62,11 +61,11 @@ internal sealed class ProcessNextRequestFactory
     }
 
     /// <summary>
-    /// Creates a WorkflowEnqueueBundle from the process state change.
+    /// Creates a WorkflowEnqueueEnvelope from the process state change.
     /// The bundle contains the request body plus the metadata (namespace, idempotency key,
     /// collection key) that must be sent via URL path and HTTP headers.
     /// </summary>
-    public async Task<WorkflowEnqueueBundle> Create(
+    public async Task<WorkflowEnqueueEnvelope> Create(
         Instance instance,
         ProcessStateChange processStateChange,
         string lockToken,
@@ -131,7 +130,7 @@ internal sealed class ProcessNextRequestFactory
             ],
         };
 
-        return new WorkflowEnqueueBundle(request, ns, effectiveIdempotencyKey, collectionKey);
+        return new WorkflowEnqueueEnvelope(request, ns, effectiveIdempotencyKey, collectionKey);
     }
 
     internal static string? CreateProcessNextId(ProcessElementInfo? currentTask) =>
