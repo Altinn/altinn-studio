@@ -8,9 +8,7 @@
   "customManagers": [
     {
       "customType": "regex",
-      "managerFilePatterns": [
-        "//\\.github/workflows/app-frontend-k6-browser\\.yml$//"
-      ],
+      "managerFilePatterns": ["//\\.github/workflows/app-frontend-k6-browser\\.yml$//"],
       "matchStrings": ["grafana/k6:(?<currentValue>[\\w.-]+)-with-browser"],
       "datasourceTemplate": "docker",
       "depNameTemplate": "grafana/k6",
@@ -55,6 +53,11 @@
     },
     {
       "matchFileNames": ["src/App/**"],
+      "matchPackageNames": ["/^@digdir\\/designsystemet-/"],
+      "groupName": "Design system in App"
+    },
+    {
+      "matchFileNames": ["src/App/**"],
       "additionalBranchPrefix": "app/",
       "commitMessageSuffix": " (app)"
     },
@@ -71,17 +74,6 @@
     {
       "matchFileNames": ["src/App/**"],
       "matchPackageNames": [
-        "@digdir/designsystemet-react",
-        "@digdir/designsystemet-css",
-        "@digdir/designsystemet-theme"
-      ],
-      "groupName": "Digdir design system",
-      "schedule": ["* 0-7 * * 1-5"],
-      "minimumReleaseAge": "3 days"
-    },
-    {
-      "matchFileNames": ["src/App/**"],
-      "matchPackageNames": [
         "/dotnet(-|\\/)sdk/",
         "/^Microsoft\\.AspNetCore/",
         "/^Microsoft\\.Extensions/",
@@ -91,18 +83,11 @@
     },
     {
       "matchFileNames": ["src/App/**"],
-      "matchPackageNames": [
-        "/^Microsoft\\.CodeAnalysis/",
-        "/^Microsoft\\.Build/"
-      ],
+      "matchPackageNames": ["/^Microsoft\\.CodeAnalysis/", "/^Microsoft\\.Build/"],
       "enabled": false
     },
     {
-      "matchFileNames": [
-        "src/App/codelists/**",
-        "src/App/fileanalyzers/**",
-        "src/App/Designer/**"
-      ],
+      "matchFileNames": ["src/App/codelists/**", "src/App/fileanalyzers/**", "src/App/Designer/**"],
       "ignoreDeps": ["Altinn.App.Core"]
     },
     {
@@ -119,7 +104,6 @@
         "src/Altinn.Platform/**",
         "src/test/**",
         "src/Runtime/localtest/**",
-        "src/App/frontend/**",
         "src/App/backend/**",
         "src/App/fileanalyzers/**",
         "src/App/codelists/**"
