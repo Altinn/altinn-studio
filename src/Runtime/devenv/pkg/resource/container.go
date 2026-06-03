@@ -22,6 +22,7 @@ type Container struct {
 	Name           string
 	RestartPolicy  string
 	User           string
+	UsernsMode     string
 	Networks       []ResourceRef
 	DependsOn      []ResourceRef
 	Ports          []types.PortMapping

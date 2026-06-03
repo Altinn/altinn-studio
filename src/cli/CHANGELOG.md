@@ -8,6 +8,41 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.11] - 2026-05-29
+
+### Added
+
+- Add `apps search` for discovering app repositories in Altinn Studio.
+
+### Fixed
+
+- Support starting localtest with rootless Podman setups where the host user has a large domain UID/GID outside the default subordinate ID mapping.
+- Relabel localtest bind mounts on SELinux-enabled Podman setups so containers can read generated resources.
+
+## [0.1.0-preview.10] - 2026-05-22
+
+### Changed
+
+- Update localtest image.
+
+### Fixed
+
+- Fix Windows PowerShell installer architecture detection.
+- Make Windows installs fall back to the default location when no usable interactive prompt is available.
+- Support `studioctl self update` and `studioctl self uninstall` on Windows by completing binary replacement/removal after the running process exits.
+- Render plain output in Windows PowerShell ISE to avoid unreadable ANSI codes and spinner/status glyphs.
+- Clean up stale `studioctl` update artifacts from the Windows install directory during uninstall.
+
+## [0.1.0-preview.9] - 2026-05-22
+
+### Added
+
+- Add `studioctl auth login --with-token` for logging in with an existing Studio/Designer API key from standard input.
+
+### Changed
+
+- Update localtest image.
+
 ## [0.1.0-preview.8] - 2026-05-13
 
 ### Changed

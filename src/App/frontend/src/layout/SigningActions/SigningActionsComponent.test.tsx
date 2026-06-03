@@ -5,7 +5,6 @@ import { screen } from '@testing-library/dom';
 import { render as renderRtl, RenderOptions } from '@testing-library/react';
 import { randomUUID } from 'crypto';
 
-import { AppComponentsBridge } from 'src/AppComponentsBridge';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -316,5 +315,4 @@ describe('SigningActionsComponent', () => {
   );
 });
 
-const render = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) =>
-  renderRtl(<AppComponentsBridge>{ui}</AppComponentsBridge>, options);
+const render = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) => renderRtl(ui, options);

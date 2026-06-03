@@ -13,7 +13,10 @@ import type { CompExternalExact, CompTypes, ILayout } from 'src/layout/layout';
 import type { NodeGeneratorProps } from 'src/layout/LayoutComponent';
 import type { ChildClaims } from 'src/utils/layout/generator/GeneratorContext';
 
-export function LayoutSetGenerator() {
+// Memoized so that a parent re-render (e.g. react-router re-rendering the route tree on every page
+// navigation) does not cascade into the entire node-generator tree. This component takes no props and
+// only re-renders when its context dependency (useLayouts) actually changes.
+export const LayoutSetGenerator = React.memo(function LayoutSetGenerator() {
   const layouts = GeneratorInternal.useLayouts();
 
   return (
@@ -35,7 +38,7 @@ export function LayoutSetGenerator() {
       );
     })
   );
-}
+});
 
 interface PageProps {
   layout: ILayout;

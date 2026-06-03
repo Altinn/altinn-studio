@@ -1,6 +1,7 @@
-import type { AgentResponse, AssistantMessageData } from '@studio/assistant';
-import { ErrorMessages } from '@studio/assistant';
+import type { AgentResponse, AssistantMessageData, Message } from '@studio/assistant';
+import { ErrorMessages, MessageAuthor } from '@studio/assistant';
 import {
+  decorateMessagesWithTraceIds,
   formatErrorMessage,
   formatRejectionMessage,
   getAssistantMessageContent,
@@ -64,6 +65,39 @@ describe('messageUtils', () => {
     it('returns true for chat mode or explicit flag', () => {
       expect(shouldSkipBranchOps({ mode: 'chat' })).toBe(true);
       expect(shouldSkipBranchOps({ no_branch_operations: true })).toBe(true);
+    });
+  });
+
+  describe('decorateMessagesWithTraceIds', () => {
+    const assistantMessage: Message = {
+      id: 'assistant-1',
+      role: MessageAuthor.Assistant,
+      content: 'Hi',
+      createdAt: 'now',
+    };
+    const userMessage: Message = {
+      id: 'user-1',
+      role: MessageAuthor.User,
+      content: 'Hello',
+      createdAt: 'now',
+      allowAppChanges: false,
+    };
+
+    it('attaches traceId to assistant messages with a matching id', () => {
+      const [decorated] = decorateMessagesWithTraceIds([assistantMessage], {
+        'assistant-1': 'trace-1',
+      });
+      expect(decorated).toEqual({ ...assistantMessage, traceId: 'trace-1' });
+    });
+
+    it('leaves messages without a matching traceId unchanged', () => {
+      const [decorated] = decorateMessagesWithTraceIds([assistantMessage], {});
+      expect(decorated).toBe(assistantMessage);
+    });
+
+    it('does not decorate user messages', () => {
+      const [decorated] = decorateMessagesWithTraceIds([userMessage], { 'user-1': 'trace-1' });
+      expect(decorated).toBe(userMessage);
     });
   });
 });

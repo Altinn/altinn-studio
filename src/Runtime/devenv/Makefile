@@ -46,19 +46,19 @@ lint-config: golangci-lint ## Verify linter configuration
 
 test: ## Run all tests
 	@echo "Running tests..."
-	@go test -count=1 ./...
+	@go run ./cmd/tester test
 	@echo "✓ All tests passed"
 
-test-e2e: ## Run e2e tests (none in this module)
-	@echo "No dedicated e2e tests for this module."
+test-e2e: ## Run e2e tests
+	@go run ./cmd/tester test-e2e
 
 test-verbose: ## Run all tests with verbose output
 	@echo "Running tests with verbose output..."
-	@go test -v -count=1 ./...
+	@go run ./cmd/tester test -- -v
 
 test-coverage: ## Run tests with coverage report
 	@echo "Running tests with coverage..."
-	@go test -cover -coverprofile=coverage.out ./...
+	@go run ./cmd/tester test -- -cover -coverprofile=coverage.out
 	@echo ""
 	@echo "Coverage by package:"
 	@go tool cover -func=coverage.out
@@ -67,7 +67,7 @@ test-coverage: ## Run tests with coverage report
 
 test-race: ## Run tests with race detector
 	@echo "Running tests with race detector..."
-	@go test -race -count=1 ./...
+	@go run ./cmd/tester test -- -race
 	@echo "✓ No race conditions detected"
 
 check: tidy fmt lint test ## Run fmt, lint, and test

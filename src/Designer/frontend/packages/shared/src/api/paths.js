@@ -223,6 +223,7 @@ export const chatThreadsPath = (org, app) => `${apiBasePath}/${org}/${app}/chat/
 export const chatThreadPath = (org, app, threadId) => `${apiBasePath}/${org}/${app}/chat/threads/${threadId}`; // Put, Delete
 export const chatMessagesPath = (org, app, threadId) => `${apiBasePath}/${org}/${app}/chat/threads/${threadId}/messages`; // Get, Post
 export const chatMessagePath = (org, app, threadId, messageId) => `${apiBasePath}/${org}/${app}/chat/threads/${threadId}/messages/${messageId}`; // Delete
+export const chatFeedbackPath = (org, app, traceId) => `${apiBasePath}/${org}/${app}/chat/feedback/${traceId}`; // Put
 
 // Contact
 export const belongsToOrg = () => `${apiBasePath}/contact/belongs-to-org`;

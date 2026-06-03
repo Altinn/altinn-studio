@@ -86,9 +86,13 @@ import {
   chatMessagesPath,
   chatMessagePath,
   uiFoldersPath,
+  chatFeedbackPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
-import type { AddRepoParams, ChatThread, CreateChatMessagePayload, CreateChatThreadPayload } from 'app-shared/types/api';
+import type { AddRepoParams } from 'app-shared/types/api';
+import type { ChatFeedbackPayload } from 'app-shared/types/api/ChatFeedbackPayload';
+import type { ChatMessage, CreateChatMessagePayload } from 'app-shared/types/api/ChatMessage';
+import type { ChatThread, CreateChatThreadPayload } from 'app-shared/types/api/ChatThread';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
 import type { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploymentPayload';
 import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
@@ -281,5 +285,6 @@ export const updateBotAccount = (org: string, botAccountId: string, deployEnviro
 export const createChatThread = (org: string, app: string, payload: CreateChatThreadPayload) => post<ChatThread>(chatThreadsPath(org, app), payload);
 export const updateChatThread = (org: string, app: string, threadId: string, payload: { title: string }) => put(chatThreadPath(org, app, threadId), payload);
 export const deleteChatThread = (org: string, app: string, threadId: string) => del(chatThreadPath(org, app, threadId));
-export const createChatMessage = (org: string, app: string, threadId: string, payload: CreateChatMessagePayload) => post(chatMessagesPath(org, app, threadId), payload);
+export const createChatMessage = (org: string, app: string, threadId: string, payload: CreateChatMessagePayload) => post<ChatMessage, CreateChatMessagePayload>(chatMessagesPath(org, app, threadId), payload);
 export const deleteChatMessage = (org: string, app: string, threadId: string, messageId: string) => del(chatMessagePath(org, app, threadId, messageId));
+export const sendChatFeedback = (org: string, app: string, traceId: string, payload: ChatFeedbackPayload) => put(chatFeedbackPath(org, app, traceId), payload);

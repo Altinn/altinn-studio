@@ -7,6 +7,7 @@ from agents.services.events import sink
 from agents.workflows.reviewer.pipeline import (
     execute_reviewer_workflow,
 )
+from shared.utils.langfuse_utils import get_current_trace_id
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -193,6 +194,7 @@ async def handle(state: AgentState) -> AgentState:
                         "author": "assistant",
                         "content": summary,
                         "filesChanged": changed_files,
+                        "traceId": get_current_trace_id(),
                     },
                 )
             )
@@ -265,6 +267,7 @@ async def handle(state: AgentState) -> AgentState:
                     "author": "assistant",
                     "content": summary,
                     "filesChanged": changed_files,
+                    "traceId": get_current_trace_id(),
                 },
             )
         )
@@ -300,6 +303,7 @@ async def handle(state: AgentState) -> AgentState:
                     "author": "assistant",
                     "content": f"## Error\n\nAn error occurred during processing: {str(e)}",
                     "filesChanged": [],
+                    "traceId": get_current_trace_id(),
                 },
             )
         )

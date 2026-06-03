@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet, ScrollRestoration } from 'react-router';
 import { Slide, ToastContainer } from 'react-toastify';
 
-import { AppComponentsBridge } from 'src/AppComponentsBridge';
+import { AppLanguageTranslatorProvider } from 'src/AppLanguageTranslatorProvider';
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { ViewportWrapper } from 'src/components/ViewportWrapper';
 import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
@@ -15,7 +15,7 @@ import { PartyPrefetcher } from 'src/queries/partyPrefetcher';
 export function AppLayout() {
   return (
     <>
-      <AppComponentsBridge>
+      <AppLanguageTranslatorProvider>
         <NavigationFocusStateProvider>
           <ErrorBoundary>
             <ViewportWrapper>
@@ -38,7 +38,7 @@ export function AppLayout() {
             </ViewportWrapper>
           </ErrorBoundary>
         </NavigationFocusStateProvider>
-      </AppComponentsBridge>
+      </AppLanguageTranslatorProvider>
       <ScrollRestoration />
     </>
   );

@@ -19,12 +19,12 @@ internal interface IIndexPageGenerator
     /// <param name="org">The organization identifier.</param>
     /// <param name="app">The application identifier.</param>
     /// <param name="appGlobalState">The bootstrap global state for the app.</param>
-    /// <param name="frontendVersionOverride">Optional frontend version URL override (only used in development).</param>
+    /// <param name="appFrontendAssetBaseUrlOverride">Optional app frontend asset base URL override (only used in development).</param>
     /// <returns>The generated HTML content.</returns>
     Task<string> Generate(
         string org,
         string app,
         BootstrapGlobalResponse appGlobalState,
-        string? frontendVersionOverride = null
+        string? appFrontendAssetBaseUrlOverride = null
     );
 }
