@@ -74,12 +74,6 @@ public class UiFoldersController : Controller
             );
         }
 
-        //if page-level config is being used, only one layoutSet can be selected each time.
-        if (layoutSets.Count != 1)
-        {
-            return BadRequest("Exactly one layoutSet must be specified when querying pages.");
-        }
-
         return Ok(
             await _uiFoldersService.GetPagesValidationOnNavigation(
                 editingContext,
@@ -120,12 +114,6 @@ public class UiFoldersController : Controller
             return Ok();
         }
 
-        //if page-level config is being used, only one layoutSet can be selected each time.
-        if (layoutSets.Count != 1)
-        {
-            return BadRequest("Exactly one layoutSet must be specified when saving pages.");
-        }
-
         await _uiFoldersService.SavePagesValidationOnNavigation(
             editingContext,
             layoutSets[0],
@@ -162,12 +150,6 @@ public class UiFoldersController : Controller
                 cancellationToken
             );
             return Ok();
-        }
-
-        //if page-level config is being used, only one layoutSet can be selected each time.
-        if (layoutSets.Count != 1)
-        {
-            return BadRequest("Exactly one layoutSet must be specified when deleting pages.");
         }
 
         await _uiFoldersService.SavePagesValidationOnNavigation(

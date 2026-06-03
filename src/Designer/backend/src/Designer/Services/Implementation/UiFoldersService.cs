@@ -14,6 +14,8 @@ using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 
+namespace Altinn.Studio.Designer.Services.Implementation;
+
 public class UiFoldersService : IUiFoldersService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
@@ -138,8 +140,15 @@ public class UiFoldersService : IUiFoldersService
         Dictionary<string, ValidationOnNavigation?> results = [];
         foreach (string layoutSetId in layoutSetIds)
         {
-            LayoutSettings layoutSettings = await repository.GetLayoutSettings(layoutSetId, cancellationToken);
-            results[layoutSetId] = layoutSettings.Pages?.ValidationOnNavigation;
+            try
+            {
+                LayoutSettings layoutSettings = await repository.GetLayoutSettings(layoutSetId, cancellationToken);
+                results[layoutSetId] = layoutSettings.Pages?.ValidationOnNavigation;
+            }
+            catch (Exception e) when (e is FileNotFoundException or JsonException)
+            {
+                _logger.LogWarning(e, "Could not read Settings.json for layout set {LayoutSetId}. Skipping.", layoutSetId);
+            }
         }
         return results;
     }
@@ -174,8 +183,15 @@ public class UiFoldersService : IUiFoldersService
         Dictionary<string, ValidationOnNavigation?> results = [];
         foreach (string pageId in pageIds)
         {
-            JsonNode layout = await repository.GetLayout(layoutSetId, pageId, cancellationToken);
-            results[pageId] = layout["data"]?["validationOnNavigation"]?.Deserialize<ValidationOnNavigation>();
+            try
+            {
+                JsonNode layout = await repository.GetLayout(layoutSetId, pageId, cancellationToken);
+                results[pageId] = layout["data"]?["validationOnNavigation"]?.Deserialize<ValidationOnNavigation>();
+            }
+            catch (Exception e) when (e is FileNotFoundException or JsonException)
+            {
+                _logger.LogWarning(e, "Could not read layout file for page {PageId} in layout set {LayoutSetId}. Skipping.", pageId, layoutSetId);
+            }
         }
         return results;
     }
