@@ -1,7 +1,6 @@
 export {
   getResourceIdentifierErrorMessage,
   deepCompare,
-  getAvailableEnvironments,
   getEnvLabel,
   availableForTypeMap,
   resourceStatusMap,

@@ -21,9 +21,9 @@ import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useTranslation, Trans } from 'react-i18next';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { getAvailableEnvironments } from '../../utils/resourceUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { UrlConstants } from '../../utils/urlUtils';
+import type { EnvId } from '../../utils/resourceUtils';
 
 export type DeployResourcePageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;
@@ -278,13 +278,13 @@ export const DeployResourcePage = ({
                 {t('resourceadm.deploy_select_env_label')}
               </StudioParagraph>
               <div className={classes.environmentWrapper}>
-                {getAvailableEnvironments(org).map((env) => {
-                  const versionString = getVersionString(env.id);
+                {publishStatusData.publishedVersions.map((version) => {
+                  const versionString = getVersionString(version.environment);
                   return (
                     <ResourceDeployEnvCard
-                      key={env.id}
+                      key={version.environment}
                       isDeployPossible={isDeployPossible(versionString)}
-                      env={env}
+                      env={version.environment as EnvId}
                       currentEnvVersion={versionString}
                       newEnvVersion={
                         resourceVersionText !== versionString ? resourceVersionText : undefined

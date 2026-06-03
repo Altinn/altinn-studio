@@ -98,21 +98,6 @@ const environments: Record<EnvId, Environment> = {
   },
 };
 
-export const getAvailableEnvironments = (org: string): Environment[] => {
-  const availableEnvs = [environments['tt02'], environments['prod']];
-  if (org === 'ttd' || org === 'digdir') {
-    availableEnvs.push(
-      environments['yt01'],
-      environments['at22'],
-      environments['at23'],
-      environments['at24'],
-    );
-  }
-  if (org === 'skd') {
-    availableEnvs.push(environments['yt01']);
-  }
-  return availableEnvs;
-};
 export const getEnvLabel = (env: EnvId): string => {
   return environments[env]?.label || '';
 };

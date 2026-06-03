@@ -3,14 +3,11 @@ import {
   getEnvLabel,
   mapKeywordStringToKeywordTypeArray,
   validateResource,
-  getMigrationErrorMessage,
-  getAvailableEnvironments,
   getResourcePolicyRules,
   getResourceSubjects,
 } from './';
 import { createAccessListSubject, type EnvId } from './resourceUtils';
-import type { Resource, ResourceError, ResourceFormError } from 'app-shared/types/ResourceAdm';
-import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import type { Resource, ResourceFormError } from 'app-shared/types/ResourceAdm';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import {
   emptyPolicyRule,
@@ -343,42 +340,6 @@ describe('deepCompare', () => {
       const validationErrors = validateResource(resource, textMock);
       expect(validationErrors.length).toBe(13);
     });
-  });
-});
-
-describe('getAvailableEnvironments', () => {
-  it('returns default environment list for org nav', () => {
-    const environments = getAvailableEnvironments('nav');
-    expect(environments.map(({ id }) => id)).toEqual(['tt02', 'prod']);
-  });
-
-  it('returns all environments for org ttd', () => {
-    const environments = getAvailableEnvironments('ttd');
-    expect(environments.map(({ id }) => id)).toEqual([
-      'tt02',
-      'prod',
-      'yt01',
-      'at22',
-      'at23',
-      'at24',
-    ]);
-  });
-
-  it('returns all environments for org digdir', () => {
-    const environments = getAvailableEnvironments('digdir');
-    expect(environments.map(({ id }) => id)).toEqual([
-      'tt02',
-      'prod',
-      'yt01',
-      'at22',
-      'at23',
-      'at24',
-    ]);
-  });
-
-  it('returns default environment list + yt01 for org skd', () => {
-    const environments = getAvailableEnvironments('skd');
-    expect(environments.map(({ id }) => id)).toEqual(['tt02', 'prod', 'yt01']);
   });
 });
 

@@ -15,7 +15,7 @@ import { NewAccessListModal } from '../../components/NewAccessListModal';
 import { getAccessListPageUrl, getResourceDashboardURL } from '../../utils/urlUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import type { EnvId } from '../../utils/resourceUtils';
-import { getAvailableEnvironments, getEnvLabel } from '../../utils/resourceUtils';
+import { getEnvLabel } from '../../utils/resourceUtils';
 import { AccessListErrorMessage } from '../../components/AccessListErrorMessage';
 import type { ResourceError } from 'app-shared/types/ResourceAdm';
 import { ButtonRouterLink } from 'app-shared/components/ButtonRouterLink';
@@ -41,12 +41,19 @@ export const ListAdminPage = (): React.JSX.Element => {
     [org, app, navigate],
   );
 
+  const avilableEnvironments: EnvId[] = React.useMemo(
+    () =>
+      org === 'digdir' || org === 'ttd'
+        ? ['prod', 'tt02', 'at22', 'at23', 'at24', 'yt01']
+        : ['prod', 'tt02'],
+    [org],
+  );
+
   useEffect(() => {
     if (!selectedEnv) {
-      const availableEnvs = getAvailableEnvironments(org);
-      navigateToListEnv(availableEnvs[0].id, true);
+      navigateToListEnv(avilableEnvironments[0], true);
     }
-  }, [org, selectedEnv, navigateToListEnv]);
+  }, [org, selectedEnv, navigateToListEnv, avilableEnvironments]);
 
   const handleBackClick = (event: React.MouseEvent<HTMLAnchorElement>): void => {
     event.preventDefault();
@@ -69,10 +76,10 @@ export const ListAdminPage = (): React.JSX.Element => {
           onChange={(value) => navigateToListEnv(value as EnvId)}
           value={selectedEnv}
         >
-          {getAvailableEnvironments(org).map((environment) => {
+          {avilableEnvironments.map((environment) => {
             return (
-              <StudioToggleGroup.Item key={environment.id} value={environment.id}>
-                {t(environment.label)}
+              <StudioToggleGroup.Item key={environment} value={environment}>
+                {t(getEnvLabel(environment))}
               </StudioToggleGroup.Item>
             );
           })}
