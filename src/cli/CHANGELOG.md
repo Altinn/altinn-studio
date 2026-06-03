@@ -8,6 +8,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.11] - 2026-05-29
+
 ### Added
 
 - Add `apps search` for discovering app repositories in Altinn Studio.

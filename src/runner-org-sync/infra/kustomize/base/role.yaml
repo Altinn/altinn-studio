@@ -1,0 +1,20 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: runner-org-sync
+rules:
+  # Per-org registration-token Secrets and the KEDA PAT Secret:
+  # - list to inventory managed registration Secrets,
+  # - get to check existence,
+  # - create on onboarding / first KEDA Secret write,
+  # - update for the KEDA Secret when its KV value rotates,
+  # - delete on offboarding.
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "create", "update", "delete"]
+
+  # Runner-org-list ConfigMap: get to detect drift, create on first run,
+  # update on subsequent changes.
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "create", "update"]

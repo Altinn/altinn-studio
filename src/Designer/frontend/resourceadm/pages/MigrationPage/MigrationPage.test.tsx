@@ -14,6 +14,18 @@ const defaultProps: MigrationPageProps = {
   serviceEdition: '2',
 };
 
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => ({
+    org: 'ttd',
+  }),
+}));
+jest.mock('../../utils/userUtils/userUtils', () => ({
+  ...jest.requireActual('../../utils/userUtils/userUtils'),
+  isTT02SBLBridgeEnabled: jest.fn().mockReturnValue(true),
+  isProdSBLBridgeEnabled: jest.fn().mockReturnValue(true),
+}));
+
 describe('MigrationPage', () => {
   it('Should show status alerts for migration ready status', async () => {
     renderMigrationPage({
@@ -66,7 +78,7 @@ describe('MigrationPage', () => {
               environment: 'at23',
             },
             {
-              version: null,
+              version: '1',
               environment: 'at24',
             },
             {
