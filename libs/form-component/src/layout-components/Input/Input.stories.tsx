@@ -10,7 +10,7 @@ import type { InputLayoutProps } from './Input';
 // Controlled wrapper so the playground reflects typing for every variant.
 function ControlledInput(args: InputLayoutProps) {
   const [value, setValue] = useState(args.value ?? '');
-  return <InputLayout {...args} value={value} onChange={setValue} onNumberChange={setValue} />;
+  return <InputLayout {...args} value={value} onChange={setValue} />;
 }
 
 // The story keys mimic text-resource bindings. The provider below resolves them to display strings,

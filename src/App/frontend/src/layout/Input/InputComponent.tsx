@@ -64,14 +64,6 @@ export function InputComponent({ baseComponentId, overrideDisplay }: PropsFromGe
         hasValidations={hasValidations}
         validationsId={`${baseComponentId}-validations`}
         onChange={(value) => setValue('simpleBinding', value)}
-        onNumberChange={(value, reportResult) => {
-          setValue('simpleBinding', value, (result) =>
-            reportResult({
-              convertedValue: typeof result === 'object' ? result.convertedValue?.toString() : undefined,
-              error: typeof result === 'object' ? result.error : true,
-            }),
-          );
-        }}
         onBlur={() => debounce('blur')}
       />
     </ComponentStructureWrapper>

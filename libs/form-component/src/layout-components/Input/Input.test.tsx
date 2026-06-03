@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -6,7 +6,7 @@ import userEvent from '@testing-library/user-event';
 // eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
 import { LanguageTranslatorProvider } from '../../LanguageTranslatorProvider';
 import { InputLayout } from './Input';
-import type { InputLayoutProps, NumberCommitResult } from './Input';
+import type { InputLayoutProps } from './Input';
 
 interface Stubs {
   lang?: (key: string | undefined) => ReactNode;
@@ -57,23 +57,42 @@ describe('InputLayout', () => {
     expect(onChange).toHaveBeenCalledWith('a');
   });
 
-  it('forwards the new value and a result reporter from the number variant', async () => {
+  it('forwards the new value from the number variant', async () => {
     const user = userEvent.setup();
-    const onNumberChange = vi.fn();
-    renderInput({ title: 'x', numberFormat: { thousandSeparator: true }, onNumberChange });
+    const onChange = vi.fn();
+    renderInput({ title: 'x', numberFormat: { thousandSeparator: true }, onChange });
     await user.type(screen.getByRole('textbox'), '5');
-    expect(onNumberChange).toHaveBeenCalledWith('5', expect.any(Function));
+    expect(onChange).toHaveBeenCalledWith('5');
   });
 
-  it('keeps the typed value on screen while it only differs from the stored value by trailing decimal zeros', async () => {
+  it('keeps the typed value on screen while it only differs from the committed value by trailing decimal zeros', async () => {
     const user = userEvent.setup();
-    // Mimic the data layer normalising the typed value (e.g. '5.0' -> '5') and report it back.
-    const onNumberChange = (value: string, reportResult: (r: NumberCommitResult) => void) =>
-      reportResult({ convertedValue: value.replace(/[.,]0+$/, ''), error: false });
-    renderInput({ title: 'x', numberFormat: { decimalSeparator: '.' }, onNumberChange });
+
+    // A controlled harness whose onChange mimics the data layer normalising the value (e.g. the
+    // committed value for '5.0' comes back as '5'). The component should still show what was typed.
+    function Harness() {
+      const [value, setValue] = useState('');
+      return (
+        <LanguageTranslatorProvider
+          lang={(key) => key ?? null}
+          translate={(key) => key}
+          TranslateComponent={({ tKey }) => <span>{tKey}</span>}
+        >
+          <InputLayout
+            id='input'
+            title='x'
+            numberFormat={{ decimalSeparator: '.' }}
+            value={value}
+            onChange={(next) => setValue(next.replace(/[.,]0+$/, ''))}
+          />
+        </LanguageTranslatorProvider>
+      );
+    }
+
+    render(<Harness />);
     const input = screen.getByRole('textbox');
     await user.type(input, '5.0');
-    // Without the transient local value the field would snap to the normalised '5'.
+    // Without the transient value the field would snap to the normalised '5'.
     expect(input).toHaveValue('5.0');
   });
 
