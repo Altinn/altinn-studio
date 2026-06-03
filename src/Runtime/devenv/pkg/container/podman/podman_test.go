@@ -38,6 +38,32 @@ func TestBuildCreateArgs_UserNamespaceAndRelabelBind(t *testing.T) {
 	}
 }
 
+func TestParsePodmanVersionIgnoresNonStringFields(t *testing.T) {
+	t.Parallel()
+
+	version, err := parsePodmanVersion([]byte(`{
+  "Client": {
+    "Version": "5.8.1",
+    "APIVersion": 5.8,
+    "Built": 1780000000
+  },
+  "Server": {
+    "Version": "5.8.2",
+    "APIVersion": 5.8,
+    "Built": 1780000001
+  }
+}`))
+	if err != nil {
+		t.Fatalf("parsePodmanVersion() error = %v", err)
+	}
+	if version.ClientVersion != "5.8.1" {
+		t.Fatalf("ClientVersion = %q, want 5.8.1", version.ClientVersion)
+	}
+	if version.ServerVersion != "5.8.2" {
+		t.Fatalf("ServerVersion = %q, want 5.8.2", version.ServerVersion)
+	}
+}
+
 func TestParseContainerInspect_ImageIDUsesImageNotDigest(t *testing.T) {
 	t.Parallel()
 

@@ -65,14 +65,30 @@ func podmanVersion(ctx context.Context) (podmanVersionInfo, error) {
 		return podmanVersionInfo{}, fmt.Errorf("podman not responsive: %w", err)
 	}
 
-	var version map[string]map[string]string
-	if err := json.Unmarshal(output, &version); err != nil {
+	version, err := parsePodmanVersion(output)
+	if err != nil {
 		return podmanVersionInfo{}, fmt.Errorf("parse podman version: %w", err)
 	}
 
+	return version, nil
+}
+
+func parsePodmanVersion(output []byte) (podmanVersionInfo, error) {
+	var version struct {
+		Client struct {
+			Version string `json:"Version"`
+		} `json:"Client"`
+		Server struct {
+			Version string `json:"Version"`
+		} `json:"Server"`
+	}
+	if err := json.Unmarshal(output, &version); err != nil {
+		return podmanVersionInfo{}, fmt.Errorf("unmarshal podman version: %w", err)
+	}
+
 	return podmanVersionInfo{
-		ClientVersion: version["Client"]["Version"],
-		ServerVersion: version["Server"]["Version"],
+		ClientVersion: version.Client.Version,
+		ServerVersion: version.Server.Version,
 	}, nil
 }
 
