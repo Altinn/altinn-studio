@@ -32,6 +32,7 @@ export enum QueryKey {
   LayoutNames = 'LayoutNames',
   LayoutSets = 'LayoutSets',
   LayoutSetsExtended = 'LayoutSetsExtended',
+  LayoutSetsExtendedV9 = 'LayoutSetsExtendedV9',
   OptionList = 'OptionList',
   OptionListsUsage = 'OptionListsUsage',
   OptionLists = 'OptionLists',
@@ -67,6 +68,7 @@ export enum QueryKey {
   Pages = 'Pages',
   TaskNavigationGroup = 'TaskNavigationGroup',
   ValidationOnNavigationLayoutSets = 'ValidationOnNavigationLayoutSets',
+  ValidationOnNavigation = 'ValidationOnNavigation',
 
   // Admin
   ErrorMetrics = 'ErrorMetrics',
