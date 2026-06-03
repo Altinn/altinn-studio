@@ -1,9 +1,6 @@
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
 import { FormStore } from 'src/features/form/FormContext';
-import {
-  validateDataModelBindingsAny,
-  validateDataModelBindingsSimple,
-} from 'src/utils/layout/generator/validation/hooks';
+import { validateDataModelBindingsAny, validateDataModelBindingsSimple } from 'src/utils/layout/validation/hooks';
 import type { IDataModelBindings } from 'src/layout/layout';
 
 export function useValidateSimpleBindingWithOptionalGroup<T extends 'Checkboxes' | 'MultipleSelect'>(

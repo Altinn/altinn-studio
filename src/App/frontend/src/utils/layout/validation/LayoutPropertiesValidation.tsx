@@ -4,15 +4,37 @@ import type { FC } from 'react';
 import { formatLayoutSchemaValidationError } from 'src/features/devtools/utils/layoutSchemaValidation';
 import { FormStore } from 'src/features/form/FormContext';
 import { getComponentDef, implementsDataModelBindingValidation } from 'src/layout';
-import { GeneratorValidation } from 'src/utils/layout/generator/validation/GenerationValidationContext';
+import {
+  LayoutValidation,
+  shouldValidateLayoutConfiguration,
+} from 'src/utils/layout/validation/LayoutValidationContext';
 import { duplicateStringFilter } from 'src/utils/stringHelper';
 import type { CompDef } from 'src/layout';
 import type { CompTypes, NodeValidationProps } from 'src/layout/layout';
 
 /**
- * Validates the properties of a node. Note that this is not the same as validating form data in the node.
+ * Validates each configured component once. This deliberately uses the static layout components instead of generated
+ * nodes, so children of empty repeating groups are included and repeated rows do not duplicate diagnostics.
  */
-export function NodePropertiesValidation<T extends CompTypes>(props: NodeValidationProps<T>) {
+export function LayoutPropertiesValidation() {
+  const components = FormStore.bootstrap.useLayoutLookups().allComponents;
+
+  if (!shouldValidateLayoutConfiguration()) {
+    return null;
+  }
+
+  return Object.values(components).map((component) =>
+    component ? (
+      <ComponentPropertiesValidation
+        key={component.id}
+        externalItem={component}
+        intermediateItem={component}
+      />
+    ) : null,
+  );
+}
+
+function ComponentPropertiesValidation<T extends CompTypes>(props: NodeValidationProps<T>) {
   const def = getComponentDef(props.externalItem.type);
   const LayoutValidators = def.renderLayoutValidators.bind(def) as unknown as FC<NodeValidationProps<T>>;
 
@@ -35,7 +57,6 @@ function DataModelValidation<T extends CompTypes>({ externalItem, intermediateIt
         def.useDataModelBindingValidation(externalItem.id, intermediateItem.dataModelBindings)
       : emptyArray;
 
-  // Must run after nodes have been added for the errors to actually be added
   useEffect(() => {
     if (!errors.length) {
       return;
@@ -52,7 +73,7 @@ function DataModelValidation<T extends CompTypes>({ externalItem, intermediateIt
 }
 
 function SchemaValidation<T extends CompTypes>({ intermediateItem, externalItem }: NodeValidationProps<T>) {
-  const validate = GeneratorValidation.useValidate();
+  const validate = LayoutValidation.useValidate();
   const addError = FormStore.layoutDiagnostics.useAddError();
 
   useEffect(() => {

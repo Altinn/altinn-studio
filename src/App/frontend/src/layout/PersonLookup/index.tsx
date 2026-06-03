@@ -6,8 +6,8 @@ import { validateEmptyFieldOnlyOneBinding } from 'src/features/validation/nodeVa
 import { PersonLookupDef } from 'src/layout/PersonLookup/config.def.generated';
 import { PersonLookupComponent } from 'src/layout/PersonLookup/PersonLookupComponent';
 import { PersonLookupSummary } from 'src/layout/PersonLookup/PersonLookupSummary';
-import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
+import { validateDataModelBindingsAny } from 'src/utils/layout/validation/hooks';
 import type { ComponentValidation } from 'src/features/validation';
 import type { ComponentValidationContext, PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';

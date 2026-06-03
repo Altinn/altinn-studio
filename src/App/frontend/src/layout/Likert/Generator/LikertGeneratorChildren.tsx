@@ -8,7 +8,6 @@ import { GeneratorInternal, GeneratorRowProvider } from 'src/utils/layout/genera
 import { GenerateNodeChildren } from 'src/utils/layout/generator/LayoutSetGenerator';
 import {
   mutateComponentId,
-  mutateComponentIdPlain,
   mutateDataModelBindings,
   mutateMapping,
 } from 'src/utils/layout/generator/NodeRepeatingChildren';
@@ -79,12 +78,7 @@ const GenerateLikertRowInner = React.memo(function ({ rowIndex, questionsBinding
   );
 
   return (
-    <GeneratorRowProvider
-      rowIndex={rowIndex}
-      idMutators={[mutateComponentIdPlain(rowIndex)]}
-      recursiveMutators={recursiveMutators}
-      groupBinding={questionsBinding}
-    >
+    <GeneratorRowProvider recursiveMutators={recursiveMutators}>
       <GenerateNodeChildren claims={childClaims} />
     </GeneratorRowProvider>
   );
