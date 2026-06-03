@@ -22,6 +22,12 @@ spec:
         kind: HelmRepository
         name: studio-charts
         namespace: default
+  valuesFrom:
+    # runner-org-sync writes this ConfigMap in studio-runners. The
+    # runners.yaml key contains root Helm values with the dynamic runners list.
+    - kind: ConfigMap
+      name: runner-org-list
+      valuesKey: runners.yaml
   values:
     image:
       tag: "{{ .Values.imageTag }}"
@@ -32,6 +38,32 @@ spec:
       enabled: {{ .Values.dockerInDocker.enabled }}
     shareWorkspace:
       enabled: {{ .Values.shareWorkspace.enabled }}
+
+    # Chart-level Gitea config: the workload chart synthesises each runner
+    # pod's GITEA_INSTANCE_URL / RUNNER_LABELS env vars from here. The KEDA
+    # github-runner scaler uses apiUrl to poll org queue depth.
+    gitea:
+      instanceUrl: "{{ .Values.giteaInstanceUrl }}"
+      apiUrl: "{{ .Values.giteaInstanceUrl }}/api/v1"
+      # The runner advertises `ubuntu-latest:host` to act_runner (`:host`
+      # selects run-on-host mode); the KEDA scaler filters by `ubuntu-latest`
+      # only, matching what workflows put in `runs-on:`.
+      runnerLabels: "ubuntu-latest:host"
+      scalerLabels: "ubuntu-latest"
+
+    # KEDA wiring: name of the TriggerAuthentication ScaledJobs reference.
+    # The CR is materialised by runner-org-sync's deploy in the same
+    # namespace (src/runner-org-sync/infra/kustomize/triggerauthentication.yaml).
+    keda:
+      authenticationRef:
+        name: keda-gitea-auth
+
+    # Per-org concurrency caps. Default applies to every org; overrides
+    # keyed by org name take precedence.
+    maxConcurrentDefault: {{ .Values.maxConcurrentDefault | default 2 }}
+    maxConcurrentOverrides:
+      {{- toYaml (.Values.maxConcurrentOverrides | default dict) | nindent 6 }}
+
     resources:
       requests:
         cpu: 500m
@@ -41,24 +73,7 @@ spec:
         cpu: "2"
         memory: 2Gi
         ephemeral-storage: 20Gi
-    runners:
-    {{- $giteaUrl := .Values.giteaInstanceUrl }}
-    {{- range index .Values.runners .Values.environment }}
-    - name: {{ .name }}
-      replicas: {{ .replicas }}
-      environmentVariables:
-      - name: GITEA_INSTANCE_URL
-        value: "{{ $giteaUrl }}"
-      - name: GITEA_RUNNER_EPHEMERAL
-        value: "1"
-      - name: GITEA_RUNNER_LABELS
-        value: "ubuntu-latest:host"
-      - name: GITEA_RUNNER_REGISTRATION_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: {{ .registrationTokenSecretName }}
-            key: token
-    {{- end }}
+
     tolerations:
       - key: "purpose"
         operator: "Equal"
