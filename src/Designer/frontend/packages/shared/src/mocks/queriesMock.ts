@@ -149,6 +149,9 @@ export const queriesMock: ServicesContextProps = {
   getLayoutSetsExtended: jest
     .fn()
     .mockImplementation(() => Promise.resolve<LayoutSetModel[]>(layoutSetsExtendedMock)),
+  getLayoutSetsExtendedV9: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<LayoutSetModel[]>(layoutSetsExtendedMock)),
   getValidationOnNavigationLayoutSets: jest
     .fn()
     .mockImplementation(() => Promise.resolve({ show: [], page: '' })),
