@@ -6,6 +6,7 @@ import { SearchParams } from 'src/core/routing/types';
 import { exprCastValue } from 'src/features/expressions';
 import { Decimal } from 'src/features/expressions/Decimal';
 import { ExprRuntimeError, NodeRelationNotFound } from 'src/features/expressions/errors';
+import { ObjectFunctionEvaluator } from 'src/features/expressions/ObjectFunctionEvaluator';
 import { ExprVal } from 'src/features/expressions/types';
 import { addError, isValidValue } from 'src/features/expressions/validation';
 import { makeIndexedId } from 'src/features/form/layout/utils/makeIndexedId';
@@ -20,6 +21,7 @@ import type {
   ExprFunctionName,
   ExprFunctions,
   ExprValToActual,
+  ValidObject,
   ValidValue,
 } from 'src/features/expressions/types';
 import type { ValidationContext } from 'src/features/expressions/validation';
@@ -323,6 +325,11 @@ export const ExprFunctionDefinitions = {
   list: {
     args: args(rest(ExprVal.Any)),
     returns: ExprVal.List,
+    needs: noSources,
+  },
+  object: {
+    args: args(rest(ExprVal.Any)),
+    returns: ExprVal.Object,
     needs: noSources,
   },
   _experimentalSelectAndMap: {
@@ -796,6 +803,9 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
   },
   list(...items): ValidValue[] {
     return items;
+  },
+  object(...argumentList): ValidObject {
+    return new ObjectFunctionEvaluator(this, argumentList).evaluate();
   },
   _experimentalSelectAndMap(path, propertyToSelect, prepend, append, appendToLastElement = true) {
     if (path === null || propertyToSelect == null) {

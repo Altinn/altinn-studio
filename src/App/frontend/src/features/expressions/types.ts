@@ -15,6 +15,7 @@ export enum ExprVal {
   Number = '__number__',
   Date = '__date__', // Actually just a string, but must be parsable as a date (ane lets us work with Date internally)
   List = '__list__',
+  Object = '__object__',
   Any = '__any__',
 }
 
@@ -28,9 +29,11 @@ export type ExprValToActual<T extends ExprVal = ExprVal> = T extends ExprVal.Dat
         ? boolean
         : T extends ExprVal.List
           ? ValidArray
-          : T extends ExprVal.Any
-            ? ValidValue
-            : unknown;
+          : T extends ExprVal.Object
+            ? ValidObject
+            : T extends ExprVal.Any
+              ? ValidValue
+              : unknown;
 
 /**
  * This type replaces ExprVal with the actual value type, or expression that returns that type.
@@ -136,5 +139,6 @@ export interface ExprDateExtensions {
 
 export type ExprDate = Date & { exprDateExtensions: ExprDateExtensions };
 
-export type ValidValue = string | number | boolean | null | ValidArray;
+export type ValidValue = string | number | boolean | null | ValidArray | ValidObject;
 export type ValidArray = Array<ValidValue>;
+export type ValidObject = { [key: string]: ValidValue };
