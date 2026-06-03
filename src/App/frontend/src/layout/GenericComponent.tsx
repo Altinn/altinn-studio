@@ -172,10 +172,6 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
         key={`grid-${nodeId}`}
         className={classNames(classes.container, gridToClasses(grid?.labelGrid, classes), pageBreakStyles(pageBreak))}
       >
-        {/* Re-bind the language translator to this component's data-model location so text resources
-            with data-model variables (e.g. {0} bound to dataModel.*) resolve in the component's
-            context. The root-level AppLanguageTranslatorProvider in AppLayout has no component
-            location, which would leave such variables unresolved for migrated lib components. */}
         <AppLanguageTranslatorProvider>
           <RenderComponent {...componentProps} />
         </AppLanguageTranslatorProvider>
