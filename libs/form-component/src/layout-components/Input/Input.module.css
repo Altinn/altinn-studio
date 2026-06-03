@@ -12,3 +12,9 @@
 .text-align-center input {
   text-align: center;
 }
+
+.optionalIndicator {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--ds-color-neutral-text-subtle, #6a6a6a);
+}
