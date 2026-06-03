@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 
 import { FormStore } from 'src/features/form/FormContext';
-import { usePdfLayoutName, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { getComponentDef } from 'src/layout';
 import { GeneratorInternal, GeneratorPageProvider } from 'src/utils/layout/generator/GeneratorContext';
 import {
@@ -50,10 +49,6 @@ function PageGenerator({ layout, name }: PageProps) {
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const topLevel = layoutLookups.topLevelComponents[name];
-  const pageOrder = useRawPageOrder();
-  const pdfPage = usePdfLayoutName();
-  const isValid = pageOrder.includes(name) || name === pdfPage;
-
   const topLevelIdsAsClaims = useMemo(() => {
     const claims: ChildClaims = new Set();
     for (const id of topLevel || []) {
@@ -67,10 +62,7 @@ function PageGenerator({ layout, name }: PageProps) {
   }
 
   return (
-    <GeneratorPageProvider
-      pageKey={name}
-      isValid={isValid}
-    >
+    <GeneratorPageProvider pageKey={name}>
       <GenerateNodeChildren claims={topLevelIdsAsClaims} />
     </GeneratorPageProvider>
   );

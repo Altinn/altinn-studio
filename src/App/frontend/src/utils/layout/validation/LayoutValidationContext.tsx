@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 import type Ajv from 'ajv';
@@ -6,13 +6,11 @@ import type { ErrorObject } from 'ajv';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { createContext } from 'src/core/contexts/context';
-import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import {
   createLayoutValidator,
   EMPTY_SCHEMA_NAME,
   LAYOUT_SCHEMA_NAME,
 } from 'src/features/devtools/utils/layoutSchemaValidation';
-import { FormStore } from 'src/features/form/FormContext';
 import { isDev } from 'src/utils/isDev';
 
 interface Context {
@@ -20,15 +18,15 @@ interface Context {
 }
 
 const { Provider, useCtx } = createContext<Context>({
-  name: 'GenerationValidation',
+  name: 'LayoutValidation',
   required: true,
 });
 
-export const GeneratorValidation = {
+export const LayoutValidation = {
   useValidate: () => useCtx().schemaValidator,
 };
 
-export function GeneratorValidationProvider({ children }) {
+export function LayoutValidationProvider({ children }) {
   const [schemaValidator, setSchemaValidator] = React.useState<ValidateFunc | undefined>(undefined);
 
   return (
@@ -73,12 +71,10 @@ function FetchLayoutSchema({
 }
 
 function useIsLayoutValidationEnabled() {
-  const hasBeenEnabledBefore = useRef(false);
-  const panelOpen = useDevToolsStore((s) => s.isOpen);
-  const hasErrors = FormStore.layoutDiagnostics.useHasErrors();
-  const enabled = isDev() || hasErrors || panelOpen || hasBeenEnabledBefore.current;
-  hasBeenEnabledBefore.current = enabled;
+  return shouldValidateLayoutConfiguration();
+}
 
+export function shouldValidateLayoutConfiguration() {
   if (window.forceNodePropertiesValidation === 'on') {
     return true;
   }
@@ -87,7 +83,7 @@ function useIsLayoutValidationEnabled() {
     return false;
   }
 
-  return enabled;
+  return isDev();
 }
 
 /**

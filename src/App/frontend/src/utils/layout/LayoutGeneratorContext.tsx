@@ -9,7 +9,8 @@ import { useNavigationParam } from 'src/hooks/navigation';
 import { TaskKeys } from 'src/routesBuilder';
 import { GeneratorGlobalProvider } from 'src/utils/layout/generator/GeneratorContext';
 import { LayoutSetGenerator } from 'src/utils/layout/generator/LayoutSetGenerator';
-import { GeneratorValidationProvider } from 'src/utils/layout/generator/validation/GenerationValidationContext';
+import { LayoutPropertiesValidation } from 'src/utils/layout/validation/LayoutPropertiesValidation';
+import { LayoutValidationProvider } from 'src/utils/layout/validation/LayoutValidationContext';
 
 export function LayoutGeneratorProvider({ children }: PropsWithChildren) {
   const isInTaskTransition = useIsInTaskTransition();
@@ -26,9 +27,10 @@ export function LayoutGeneratorProvider({ children }: PropsWithChildren) {
 
   return (
     <GeneratorGlobalProvider layouts={layouts}>
-      <GeneratorValidationProvider>
-        <LayoutSetGenerator />
-      </GeneratorValidationProvider>
+      <LayoutValidationProvider>
+        <LayoutPropertiesValidation />
+      </LayoutValidationProvider>
+      <LayoutSetGenerator />
       {window.Cypress && <UpdateAttachmentsForCypress />}
       {children}
     </GeneratorGlobalProvider>

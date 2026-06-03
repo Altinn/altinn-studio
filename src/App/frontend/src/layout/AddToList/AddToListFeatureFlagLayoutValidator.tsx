@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 import { FormStore } from 'src/features/form/FormContext';
 import { getFeature } from 'src/features/toggles';
 import type { NodeValidationProps } from 'src/layout/layout';
@@ -6,11 +8,14 @@ export function AddToListFeatureFlagLayoutValidator({ intermediateItem }: NodeVa
   const simpleTableEnabled = getFeature('addToListEnabled');
 
   const addError = FormStore.layoutDiagnostics.useAddError();
-  if (!simpleTableEnabled.value) {
-    const error = `You need to enable the feature flag addToListEnabled to use this component. Please note that the component is experimental
+  useEffect(() => {
+    if (!simpleTableEnabled.value) {
+      const error = `You need to enable the feature flag addToListEnabled to use this component. Please note that the component is experimental
     and the configuration is likely to change.`;
-    addError(error, intermediateItem.id, 'node');
-    window.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
-  }
+      addError(error, intermediateItem.id, 'node');
+      window.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
+    }
+  }, [addError, intermediateItem.id, simpleTableEnabled.value]);
+
   return null;
 }

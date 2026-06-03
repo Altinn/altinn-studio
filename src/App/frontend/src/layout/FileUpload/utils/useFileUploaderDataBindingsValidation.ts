@@ -1,9 +1,6 @@
 import { FormStore } from 'src/features/form/FormContext';
 import { isDataModelBindingsRequired } from 'src/layout';
-import {
-  validateDataModelBindingsList,
-  validateDataModelBindingsSimple,
-} from 'src/utils/layout/generator/validation/hooks';
+import { validateDataModelBindingsList, validateDataModelBindingsSimple } from 'src/utils/layout/validation/hooks';
 import type { IDataModelBindings } from 'src/layout/layout';
 
 export function useFileUploaderDataBindingsValidation<T extends 'FileUpload' | 'FileUploadWithTag' | 'ImageUpload'>(

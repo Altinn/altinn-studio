@@ -1,13 +1,11 @@
 import React, { Fragment, useMemo } from 'react';
 
-import dot from 'dot-object';
-
 import { FormStore } from 'src/features/form/FormContext';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { GeneratorInternal, GeneratorRowProvider } from 'src/utils/layout/generator/GeneratorContext';
 import { GenerateNodeChildren } from 'src/utils/layout/generator/LayoutSetGenerator';
 import type { IDataModelReference } from 'src/layout/common.generated';
-import type { ChildClaims, ChildIdMutator, ChildMutator } from 'src/utils/layout/generator/GeneratorContext';
+import type { ChildClaims, ChildMutator } from 'src/utils/layout/generator/GeneratorContext';
 
 interface Props {
   claims: ChildClaims | undefined;
@@ -18,15 +16,9 @@ export const NodeRepeatingChildren = NodeRepeatingChildrenWorker;
 const emptySet: ChildClaims = new Set();
 function NodeRepeatingChildrenWorker({ claims }: Props) {
   const binding = 'group'; // Hardcoded for RepeatingGroup
-  const multiPageSupport = 'edit.multiPage'; // Hardcoded for RepeatingGroup
   const item = GeneratorInternal.useIntermediateItem();
   const groupBinding = item?.dataModelBindings?.[binding];
   const numRows = FormStore.data.useFreshNumRows(groupBinding);
-  const multiPage = multiPageSupport && dot.pick(multiPageSupport, item) === true;
-  const multiPageMapping = useMemo(
-    () => (multiPage ? makeMultiPageMapping(item?.['children']) : undefined),
-    [item, multiPage],
-  );
 
   return (
     <>
@@ -42,7 +34,6 @@ function NodeRepeatingChildrenWorker({ claims }: Props) {
             rowIndex={index}
             groupBinding={groupBinding}
             claims={claims ?? emptySet}
-            multiPageMapping={multiPageMapping}
           />
         </Fragment>
       ))}
@@ -54,7 +45,6 @@ interface GenerateRowProps {
   rowIndex: number;
   claims: ChildClaims;
   groupBinding: IDataModelReference;
-  multiPageMapping: MultiPageMapping | undefined;
 }
 
 const GenerateRow = React.memo((props: GenerateRowProps) => (
@@ -67,7 +57,7 @@ const GenerateRow = React.memo((props: GenerateRowProps) => (
 ));
 GenerateRow.displayName = 'GenerateRow';
 
-function GenerateRowInner({ rowIndex, claims, groupBinding, multiPageMapping }: GenerateRowProps) {
+function GenerateRowInner({ rowIndex, claims, groupBinding }: GenerateRowProps) {
   const depth = GeneratorInternal.useDepth();
   const recursiveMutators = useMemo(
     () => [
@@ -79,33 +69,10 @@ function GenerateRowInner({ rowIndex, claims, groupBinding, multiPageMapping }: 
   );
 
   return (
-    <GeneratorRowProvider
-      rowIndex={rowIndex}
-      multiPageMapping={multiPageMapping}
-      groupBinding={groupBinding}
-      idMutators={[mutateComponentIdPlain(rowIndex)]}
-      recursiveMutators={recursiveMutators}
-    >
+    <GeneratorRowProvider recursiveMutators={recursiveMutators}>
       <GenerateNodeChildren claims={claims} />
     </GeneratorRowProvider>
   );
-}
-
-export interface MultiPageMapping {
-  [childId: string]: number;
-}
-
-function makeMultiPageMapping(children: string[] | undefined): MultiPageMapping {
-  const mapping: MultiPageMapping = {};
-  for (const child of children ?? []) {
-    const [pageIndex, childId] = child.split(':', 2);
-    mapping[childId] = parseInt(pageIndex, 10);
-  }
-  return mapping;
-}
-
-export function mutateComponentIdPlain(rowIndex: number): ChildIdMutator {
-  return (id) => `${id}-${rowIndex}`;
 }
 
 export function mutateComponentId(rowIndex: number): ChildMutator {

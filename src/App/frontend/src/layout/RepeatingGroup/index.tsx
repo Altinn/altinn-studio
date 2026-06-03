@@ -22,8 +22,8 @@ import { validateRepGroupMinCountForNode } from 'src/layout/RepeatingGroup/useVa
 import { EmptyChildrenBoundary } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import { GenerateNodeChildren } from 'src/utils/layout/generator/LayoutSetGenerator';
 import { NodeRepeatingChildren } from 'src/utils/layout/generator/NodeRepeatingChildren';
-import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { claimRepeatingChildren } from 'src/utils/layout/plugins/claimRepeatingChildren';
+import { validateDataModelBindingsAny } from 'src/utils/layout/validation/hooks';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { BaseValidation, ComponentValidation } from 'src/features/validation';
 import type { CompExternal, IDataModelBindings } from 'src/layout/layout';

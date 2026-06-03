@@ -1,7 +1,7 @@
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
 import { FormStore } from 'src/features/form/FormContext';
-import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { useExternalItem } from 'src/utils/layout/hooks';
+import { validateDataModelBindingsAny } from 'src/utils/layout/validation/hooks';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
 

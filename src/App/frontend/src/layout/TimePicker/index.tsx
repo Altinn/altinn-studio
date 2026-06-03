@@ -9,8 +9,8 @@ import { TimePickerDef } from 'src/layout/TimePicker/config.def.generated';
 import { TimePickerComponent } from 'src/layout/TimePicker/TimePickerComponent';
 import { TimePickerSummary } from 'src/layout/TimePicker/TimePickerSummary';
 import { validateTimePicker } from 'src/layout/TimePicker/useTimePickerValidation';
-import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
+import { validateDataModelBindingsAny } from 'src/utils/layout/validation/hooks';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { BaseValidation, ComponentValidation } from 'src/features/validation';
 import type {

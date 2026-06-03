@@ -8,8 +8,8 @@ import { AddressSummary } from 'src/layout/Address/AddressSummary/AddressSummary
 import { AddressDef } from 'src/layout/Address/config.def.generated';
 import { validateAddress } from 'src/layout/Address/useAddressValidation';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
+import { validateDataModelBindingsAny } from 'src/utils/layout/validation/hooks';
 import type { ComponentValidation } from 'src/features/validation';
 import type { ComponentValidationContext, PropsFromGenericComponent, ValidateComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';

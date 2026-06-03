@@ -6,13 +6,11 @@ import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { GeneratorInternal, GeneratorNodeProvider } from 'src/utils/layout/generator/GeneratorContext';
 import { useGeneratorErrorBoundaryNodeRef } from 'src/utils/layout/generator/GeneratorErrorBoundary';
-import { NodePropertiesValidation } from 'src/utils/layout/generator/validation/NodePropertiesValidation';
 import type { SimpleEval } from 'src/features/expressions';
 import type { ExprResolved, ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { FormComponentProps, SummarizableComponentProps } from 'src/layout/common.generated';
 import type {
   CompExternal,
-  CompExternalExact,
   CompIntermediate,
   CompIntermediateExact,
   CompTypes,
@@ -36,24 +34,14 @@ export function NodeGenerator({ children, externalItem }: PropsWithChildren<Node
   // eslint-disable-next-line react-compiler/react-compiler
   useGeneratorErrorBoundaryNodeRef().current = { type: 'node', id: intermediateItem.id };
 
-  const commonProps: CommonProps<CompTypes> = { externalItem };
-
   return (
     <GeneratorNodeProvider
       parentBaseId={externalItem.id}
       item={intermediateItem}
     >
-      <NodePropertiesValidation
-        {...commonProps}
-        intermediateItem={intermediateItem}
-      />
       {children}
     </GeneratorNodeProvider>
   );
-}
-
-interface CommonProps<T extends CompTypes> {
-  externalItem: CompExternalExact<T>;
 }
 
 /**
