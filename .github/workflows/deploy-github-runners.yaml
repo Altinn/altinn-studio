@@ -1,0 +1,95 @@
+name: Deploy GitHub Runners
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/deploy-github-runners.yaml'
+      - '.github/workflows/template-docker-push.yaml'
+      - '.github/workflows/template-flux-config-push.yaml'
+      - '.github/workflows/template-helm-push.yaml'
+      - 'charts/github-runner/**'
+      - 'charts/github-runner-config/**'
+      - 'src/github-runner/**'
+
+  workflow_dispatch:
+    inputs:
+      environments:
+        description: 'Environments to deploy to. Multiple environments can be specified by separating them with a comma.'
+        required: false
+        default: 'staging'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  construct-environments-array:
+    uses: ./.github/workflows/template-studio-construct-environments.yaml
+    with:
+      inputs: ${{ toJSON(github.event.inputs) }}
+
+  determine-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.determine-tag.outputs.tag }}
+    steps:
+      - name: Determine tag
+        id: determine-tag
+        run: |
+          SHORT_SHA="${GITHUB_SHA::10}"
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "tag=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          else
+            sanitized_branch_name=$(echo "${{ github.ref_name }}" | tr -d '()' | tr '/' '-')
+            echo "tag=${sanitized_branch_name}-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          fi
+
+  docker-build-push:
+    needs: determine-tag
+    uses: ./.github/workflows/template-docker-push.yaml
+    with:
+      tags: ${{ needs.determine-tag.outputs.tag }},latest
+      registry-name: altinntjenestercontainerregistry.azurecr.io
+      repository-name: altinn-github-runner
+      context: src/github-runner
+      dockerfile: src/github-runner/Dockerfile
+      environment: dev
+    secrets:
+      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+  helm-push:
+    needs: determine-tag
+    uses: ./.github/workflows/template-helm-push.yaml
+    with:
+      tag: 0.1.0+${{ needs.determine-tag.outputs.tag }}
+      chart-name: github-runner
+      registry-name: altinntjenestercontainerregistry.azurecr.io
+      environment: dev
+    secrets:
+      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+  flux-config-push:
+    needs: [docker-build-push, helm-push, determine-tag, construct-environments-array]
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.construct-environments-array.outputs.result) }}
+    uses: ./.github/workflows/template-flux-config-push.yaml
+    with:
+      tag: ${{ needs.determine-tag.outputs.tag }}
+      registry-name: altinntjenestercontainerregistry.azurecr.io
+      environment: ${{ matrix.environment }}
+      config-chart-name: github-runner-config
+      artifact-name: github-runners
+      helm-set-arguments: chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }},imageTag=${{ needs.determine-tag.outputs.tag }},releaseName=github-runners
+      trace-workflow: false
+      trace-team-name: 'team-studio'
+    secrets:
+      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+      trace-connection-string: ${{ secrets.APP_INSIGHTS_CONNECTION_STRING }}
+      trace-repo-token: ${{ secrets.GITHUB_TOKEN }}

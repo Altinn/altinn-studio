@@ -1,0 +1,67 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: {{ .Values.releaseName }}
+  namespace: github-runners
+spec:
+  releaseName: {{ .Values.releaseName }}
+  targetNamespace: github-runners
+  interval: 5m
+  install:
+    remediation:
+      retries: 1
+  upgrade:
+    remediation:
+      retries: 1
+  chart:
+    spec:
+      version: "{{ .Values.chartVersion }}"
+      chart: github-runner
+      sourceRef:
+        kind: HelmRepository
+        name: studio-charts
+        namespace: default
+  values:
+    image:
+      tag: "{{ .Values.imageTag }}"
+    nameOverride: {{ .Values.releaseName }}
+    fullnameOverride: {{ .Values.releaseName }}
+    runtimeClassName: {{ .Values.runtimeClassName | quote }}
+
+    github:
+      owner: {{ .Values.github.owner | quote }}
+      repository: {{ .Values.github.repository | quote }}
+      runnerScope: {{ .Values.github.runnerScope | quote }}
+      runnerLabels: {{ .Values.github.runnerLabels | quote }}
+      scalerLabels: {{ .Values.github.scalerLabels | quote }}
+      appId: {{ .Values.github.appId | quote }}
+      installationId: {{ .Values.github.installationId | quote }}
+      runnerGroup: {{ .Values.github.runnerGroup | quote }}
+
+    auth:
+      secretName: {{ .Values.auth.secretName | quote }}
+      appPrivateKeyKey: {{ .Values.auth.appPrivateKeyKey | quote }}
+
+    dockerInDocker:
+      enabled: {{ .Values.dockerInDocker.enabled }}
+      diskSize: {{ .Values.dockerInDocker.diskSize | quote }}
+    shareWorkspace:
+      enabled: {{ .Values.shareWorkspace.enabled }}
+      sizeLimit: {{ .Values.shareWorkspace.sizeLimit | quote }}
+
+    keda:
+      authenticationRef:
+        name: github-runner-auth
+      maxReplicaCount: {{ .Values.maxConcurrentRunners }}
+
+    resources:
+      {{- toYaml .Values.resources | nindent 6 }}
+
+    tolerations:
+      - key: "purpose"
+        operator: "Equal"
+        value: "github-runner"
+        effect: "NoSchedule"
+    nodeSelector:
+      purpose: github-runner

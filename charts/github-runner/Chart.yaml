@@ -1,0 +1,6 @@
+apiVersion: v2
+name: github-runner
+description: GitHub Actions runners backed by KEDA ScaledJobs
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

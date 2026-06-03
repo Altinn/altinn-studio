@@ -1,0 +1,80 @@
+image:
+  repository: altinntjenestercontainerregistry.azurecr.io/altinn-github-runner
+  pullPolicy: Always
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+runtimeClassName: ""
+
+github:
+  apiUrl: "https://api.github.com"
+  host: "github.com"
+  serverUrl: "https://github.com"
+  owner: "Altinn"
+  repository: "altinn-studio"
+  runnerScope: "repo"
+  runnerLabels: "self-hosted,linux,x64,altinn-studio"
+  scalerLabels: "altinn-studio"
+  noDefaultLabels: "false"
+  enableEtags: "true"
+  appId: ""
+  installationId: ""
+  runnerGroup: "Default"
+
+auth:
+  secretName: "github-runner-auth"
+  appPrivateKeyKey: "appPrivateKey"
+
+dockerInDocker:
+  enabled: false
+  image:
+    repository: docker
+    tag: "dind"
+    pullPolicy: IfNotPresent
+  diskSize: "30G"
+
+shareWorkspace:
+  enabled: false
+  path: "/home/runner/_work"
+  sizeLimit: "20Gi"
+
+keda:
+  authenticationRef:
+    name: github-runner-auth
+  maxReplicaCount: 4
+  minReplicaCount: 0
+  pollingInterval: 30
+  ttlSecondsAfterFinished: 300
+  activeDeadlineSeconds: 7200
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 5
+  targetWorkflowQueueLength: "1"
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 1001
+
+securityContext: {}
+
+resources:
+  requests:
+    cpu: "4"
+    memory: 8Gi
+    ephemeral-storage: 45Gi
+  limits:
+    cpu: "4"
+    memory: 8Gi
+    ephemeral-storage: 60Gi
+
+extraEnv: []
+volumes: []
+volumeMounts: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
