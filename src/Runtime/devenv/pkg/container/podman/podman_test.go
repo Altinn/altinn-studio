@@ -69,7 +69,10 @@ func TestParseContainerInspect_HealthStatus(t *testing.T) {
     "Id": "container-id",
     "Name": "my-container",
     "Image": "sha256:image-id",
-    "Config": { "Labels": {} },
+    "Config": {
+      "Labels": {},
+      "Healthcheck": { "Test": [ "CMD-SHELL", "wget -nv -t1 --spider http://localhost:5101/health || exit 1" ] }
+    },
     "State": {
       "Status": "running",
       "Running": true,
@@ -86,6 +89,37 @@ func TestParseContainerInspect_HealthStatus(t *testing.T) {
 	}
 	if info.State.HealthStatus != "healthy" {
 		t.Fatalf("HealthStatus = %q, want healthy", info.State.HealthStatus)
+	}
+}
+
+func TestParseContainerInspect_IgnoresHealthStatusWithoutConfiguredHealthcheck(t *testing.T) {
+	t.Parallel()
+
+	output := []byte(`[
+  {
+    "Id": "container-id",
+    "Name": "my-container",
+    "Image": "sha256:image-id",
+    "Config": {
+      "Labels": {},
+      "Healthcheck": {}
+    },
+    "State": {
+      "Status": "running",
+      "Running": true,
+      "Paused": false,
+      "ExitCode": 0,
+      "Health": { "Status": "starting", "FailingStreak": 0, "Log": null }
+    }
+  }
+]`)
+
+	info, err := parseContainerInspect(output)
+	if err != nil {
+		t.Fatalf("parseContainerInspect() error: %v", err)
+	}
+	if info.State.HealthStatus != "" {
+		t.Fatalf("HealthStatus = %q, want empty", info.State.HealthStatus)
 	}
 }
 

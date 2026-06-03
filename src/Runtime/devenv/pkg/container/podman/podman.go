@@ -279,7 +279,7 @@ func (c *Client) ContainerState(ctx context.Context, nameOrID string) (types.Con
 
 	return types.ContainerState{
 		Status:       state.Status,
-		HealthStatus: podmanHealthStatus(state.Health.Status, state.Healthcheck.Status),
+		HealthStatus: podmanStateHealthStatus(state.Health.Status, state.Healthcheck.Status),
 		Running:      state.Running,
 		Paused:       state.Paused,
 		ExitCode:     state.ExitCode,
@@ -438,7 +438,8 @@ func (c *Client) ImagePullWithProgress(
 
 type containerInspectInfo struct {
 	Config struct {
-		Labels map[string]string `json:"Labels"`
+		Labels      map[string]string       `json:"Labels"`
+		Healthcheck podmanHealthcheckConfig `json:"Healthcheck"`
 	} `json:"Config"`
 	ID              string `json:"Id"`
 	Name            string `json:"Name"`
@@ -466,6 +467,10 @@ type podmanHealthInfo struct {
 	Status string `json:"Status"`
 }
 
+type podmanHealthcheckConfig struct {
+	Test []string `json:"Test"`
+}
+
 func parseContainerInspect(output []byte) (types.ContainerInfo, error) {
 	var info []containerInspectInfo
 	if err := json.Unmarshal(output, &info); err != nil {
@@ -483,16 +488,35 @@ func parseContainerInspect(output []byte) (types.ContainerInfo, error) {
 		Labels:  info[0].Config.Labels,
 		Ports:   publishedPortsFromPodmanInspect(info[0].NetworkSettings.Ports),
 		State: types.ContainerState{
-			Status:       info[0].State.Status,
-			HealthStatus: podmanHealthStatus(info[0].State.Health.Status, info[0].State.Healthcheck.Status),
-			Running:      info[0].State.Running,
-			Paused:       info[0].State.Paused,
-			ExitCode:     info[0].State.ExitCode,
+			Status: info[0].State.Status,
+			HealthStatus: podmanHealthStatus(
+				info[0].Config.Healthcheck,
+				info[0].State.Health.Status,
+				info[0].State.Healthcheck.Status,
+			),
+			Running:  info[0].State.Running,
+			Paused:   info[0].State.Paused,
+			ExitCode: info[0].State.ExitCode,
 		},
 	}, nil
 }
 
-func podmanHealthStatus(health, healthcheck string) string {
+func podmanHealthStatus(config podmanHealthcheckConfig, health, healthcheck string) string {
+	if !podmanHealthcheckConfigured(config) {
+		// Config.Healthcheck is the effective healthcheck command configured for the container.
+		// State.Health.Status is the runtime result of that command. If no command is configured,
+		// Podman cannot run a healthcheck or transition the container to "healthy", even if
+		// State.Health.Status is present. Ignore the status in that case.
+		return ""
+	}
+	return podmanStateHealthStatus(health, healthcheck)
+}
+
+func podmanHealthcheckConfigured(config podmanHealthcheckConfig) bool {
+	return len(config.Test) > 0 && !strings.EqualFold(config.Test[0], "none")
+}
+
+func podmanStateHealthStatus(health, healthcheck string) string {
 	if health != "" {
 		return health
 	}
