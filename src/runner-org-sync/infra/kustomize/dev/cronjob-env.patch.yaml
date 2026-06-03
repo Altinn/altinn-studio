@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: runner-org-sync
+spec:
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: runner-org-sync
+              env:
+                - name: RUNNER_ORG_SYNC_ORGS
+                  value: "ttd"
+                - name: RUNNER_ORG_SYNC_KEYVAULT_NAME
+                  value: "altinn-studio-dev-kv"
+                - name: OTEL_RESOURCE_ATTRIBUTES
+                  value: "service.namespace=studio-runners,deployment.environment=dev"
