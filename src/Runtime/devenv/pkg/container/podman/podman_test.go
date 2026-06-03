@@ -123,6 +123,37 @@ func TestParseContainerInspect_IgnoresHealthStatusWithoutConfiguredHealthcheck(t
 	}
 }
 
+func TestParseContainerInspect_IgnoresHealthStatusForDisabledHealthcheck(t *testing.T) {
+	t.Parallel()
+
+	output := []byte(`[
+  {
+    "Id": "container-id",
+    "Name": "my-container",
+    "Image": "sha256:image-id",
+    "Config": {
+      "Labels": {},
+      "Healthcheck": { "Test": [ "NONE" ] }
+    },
+    "State": {
+      "Status": "running",
+      "Running": true,
+      "Paused": false,
+      "ExitCode": 0,
+      "Health": { "Status": "starting", "FailingStreak": 0, "Log": null }
+    }
+  }
+]`)
+
+	info, err := parseContainerInspect(output)
+	if err != nil {
+		t.Fatalf("parseContainerInspect() error: %v", err)
+	}
+	if info.State.HealthStatus != "" {
+		t.Fatalf("HealthStatus = %q, want empty", info.State.HealthStatus)
+	}
+}
+
 func TestParseContainerInspect_Empty_ReturnsNotFound(t *testing.T) {
 	t.Parallel()
 

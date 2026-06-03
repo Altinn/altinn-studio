@@ -185,7 +185,7 @@ type ContainerToolchain struct {
 	SocketPath string
 	// ClientVersion is the local CLI/client version when the access mode exposes one.
 	ClientVersion string
-	// ServerVersion is the remote daemon or Podman machine version when available.
+	// ServerVersion is the remote daemon/runtime version when available.
 	ServerVersion string
 	Platform      ContainerPlatform
 	AccessMode    ContainerAccessMode

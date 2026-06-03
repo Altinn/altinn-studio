@@ -90,6 +90,11 @@ func (s *Service) probeContainerRuntime(
 	toolchain := cli.Toolchain()
 	platformName := toolchain.Platform.String()
 	version := containerToolVersion(tools, platformToolVersionName(toolchain.Platform))
+	if (version == "" || version == unknownValue) &&
+		toolchain.Platform == container.PlatformPodman &&
+		toolchain.ClientVersion != "" {
+		version = toolchain.ClientVersion
+	}
 	if version == "" {
 		version = unknownValue
 	}
