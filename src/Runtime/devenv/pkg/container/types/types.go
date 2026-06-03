@@ -183,7 +183,7 @@ func (s DetectionSource) String() string {
 // ContainerToolchain describes the selected platform and how this package talks to it.
 type ContainerToolchain struct {
 	SocketPath string
-	// ClientVersion is the local CLI/client version when the access mode exposes one.
+	// ClientVersion is the local CLI version or negotiated API client version when available.
 	ClientVersion string
 	// ServerVersion is the remote daemon/runtime version when available.
 	ServerVersion string

@@ -213,11 +213,11 @@ func (c *DoctorCommand) renderDoctorPrerequisitesSection(table *ui.Table, prereq
 	if prerequisites.ContainerResolved != "" {
 		doctorKeyValue(table, "Resolved", prerequisites.ContainerResolved)
 	}
-	if prerequisites.PodmanClient != "" {
-		doctorKeyValue(table, "Podman client", prerequisites.PodmanClient)
+	if prerequisites.ContainerClient != "" {
+		doctorKeyValue(table, "Client", prerequisites.ContainerClient)
 	}
-	if prerequisites.PodmanServer != "" {
-		doctorKeyValue(table, "Podman server", prerequisites.PodmanServer)
+	if prerequisites.ContainerServer != "" {
+		doctorKeyValue(table, "Server", prerequisites.ContainerServer)
 	}
 	if tools := doctorContainerToolsLabel(prerequisites.ContainerTools); tools != "" {
 		doctorKeyValue(table, "Tools", tools)

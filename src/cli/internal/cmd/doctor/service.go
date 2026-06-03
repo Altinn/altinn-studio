@@ -93,8 +93,8 @@ type Prerequisites struct {
 	WindowsValue      string          `json:"-"`
 	ContainerResolved string          `json:"containerResolved,omitempty"`
 	ContainerHost     string          `json:"containerHost,omitempty"`
-	PodmanClient      string          `json:"podmanClient,omitempty"`
-	PodmanServer      string          `json:"podmanServer,omitempty"`
+	ContainerClient   string          `json:"containerClient,omitempty"`
+	ContainerServer   string          `json:"containerServer,omitempty"`
 	ContainerTools    []ContainerTool `json:"containerTools,omitempty"`
 	Windows           *Check          `json:"windows,omitempty"`
 	Dotnet            Check           `json:"dotnet"`

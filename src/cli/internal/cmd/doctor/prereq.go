@@ -29,8 +29,8 @@ func (s *Service) collectPrerequisites(ctx context.Context) *Prerequisites {
 	prerequisites.ContainerResolved = containerResolved
 	prerequisites.ContainerTools = containerTools
 	prerequisites.ContainerHost = strings.TrimSpace(os.Getenv("DOCKER_HOST"))
-	prerequisites.PodmanClient = toolchain.ClientVersion
-	prerequisites.PodmanServer = toolchain.ServerVersion
+	prerequisites.ContainerClient = toolchain.ClientVersion
+	prerequisites.ContainerServer = toolchain.ServerVersion
 	prerequisites.Container = Check{
 		Error: errorString(containerErr),
 		OK:    containerErr == nil,

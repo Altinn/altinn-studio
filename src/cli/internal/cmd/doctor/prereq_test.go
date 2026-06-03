@@ -232,11 +232,11 @@ func TestCollectPrerequisitesReportsPodmanClientServerMismatch(t *testing.T) {
 	if prereqs.Container.OK {
 		t.Fatal("collectPrerequisites() Container.OK = true, want false")
 	}
-	if prereqs.PodmanClient != "5.8.2" || prereqs.PodmanServer != "5.2.4" {
+	if prereqs.ContainerClient != "5.8.2" || prereqs.ContainerServer != "5.2.4" {
 		t.Fatalf(
-			"collectPrerequisites() podman versions = client %q server %q",
-			prereqs.PodmanClient,
-			prereqs.PodmanServer,
+			"collectPrerequisites() container versions = client %q server %q",
+			prereqs.ContainerClient,
+			prereqs.ContainerServer,
 		)
 	}
 	want := "podman client/server version mismatch: client 5.8.2, server 5.2.4"
