@@ -55,14 +55,12 @@ export const getDeprecatedAltinn2SubjectsFromRules = (
 export const getDeprecatedAltinn2SubjectsFromRule = (
   subjects: string[],
 ): { urn: string; name: string }[] => {
-  return subjects
-    .filter((subject) => deprecatedAltinn2Roles.hasOwnProperty(subject))
-    .reduce((acc, subject) => {
-      const lowerSubject = subject.toLowerCase();
-      const name = deprecatedAltinn2Roles[lowerSubject];
-      if (name) {
-        acc.push({ urn: lowerSubject, name });
-      }
-      return acc;
-    }, []);
+  return subjects.reduce((acc, subject) => {
+    const lowerSubject = subject.toLowerCase();
+    const name = deprecatedAltinn2Roles[lowerSubject];
+    if (name) {
+      acc.push({ urn: lowerSubject, name });
+    }
+    return acc;
+  }, []);
 };
