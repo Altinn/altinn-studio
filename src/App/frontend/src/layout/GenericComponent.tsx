@@ -5,6 +5,7 @@ import type { SetURLSearchParams } from 'react-router';
 import { FatalError, FatalErrorEmpty, Flex } from '@app/form-component';
 import classNames from 'classnames';
 
+import { AppLanguageTranslatorProvider } from 'src/AppLanguageTranslatorProvider';
 import { SearchParams } from 'src/core/routing/types';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
@@ -148,10 +149,12 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
   if (overrideDisplay?.directRender || layoutComponent.directRender()) {
     return (
       <FormComponentContextProvider value={formComponentContext}>
-        <RenderComponent
-          {...componentProps}
-          ref={containerDivRef}
-        />
+        <AppLanguageTranslatorProvider>
+          <RenderComponent
+            {...componentProps}
+            ref={containerDivRef}
+          />
+        </AppLanguageTranslatorProvider>
       </FormComponentContextProvider>
     );
   }
@@ -169,7 +172,13 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
         key={`grid-${nodeId}`}
         className={classNames(classes.container, gridToClasses(grid?.labelGrid, classes), pageBreakStyles(pageBreak))}
       >
-        <RenderComponent {...componentProps} />
+        {/* Re-bind the language translator to this component's data-model location so text resources
+            with data-model variables (e.g. {0} bound to dataModel.*) resolve in the component's
+            context. The root-level AppLanguageTranslatorProvider in AppLayout has no component
+            location, which would leave such variables unresolved for migrated lib components. */}
+        <AppLanguageTranslatorProvider>
+          <RenderComponent {...componentProps} />
+        </AppLanguageTranslatorProvider>
       </Flex>
     </FormComponentContextProvider>
   );

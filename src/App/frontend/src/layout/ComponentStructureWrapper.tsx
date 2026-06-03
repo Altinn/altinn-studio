@@ -3,7 +3,6 @@ import type { PropsWithChildren } from 'react';
 
 import { Flex } from '@app/form-component';
 
-import { AppLanguageTranslatorProvider } from 'src/AppLanguageTranslatorProvider';
 import { Label } from 'src/components/label/Label';
 import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useFormComponentCtx } from 'src/layout/FormComponentContext';
@@ -80,7 +79,7 @@ export function ComponentStructureWrapper({
         size={{ xs: 12, ...innerSpan }}
         style={style}
       >
-        <AppLanguageTranslatorProvider>{children}</AppLanguageTranslatorProvider>
+        {children}
       </Flex>
       {showValidationMessages && (
         <Flex
