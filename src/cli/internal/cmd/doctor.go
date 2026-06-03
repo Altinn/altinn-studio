@@ -201,10 +201,23 @@ func (c *DoctorCommand) renderDoctorPrerequisitesSection(table *ui.Table, prereq
 	if prerequisites.Container.OK {
 		doctorKeyValueStatus(table, true, "Container", containerValue)
 	} else {
-		doctorKeyValueStatus(table, false, "Container", "not found")
+		msg := "not found"
+		if containerValue != unknownValue {
+			msg = containerValue
+		}
+		doctorKeyValueStatus(table, false, "Container", msg)
+		if prerequisites.Container.Error != "" {
+			doctorKeyValue(table, "Error", prerequisites.Container.Error)
+		}
 	}
 	if prerequisites.ContainerResolved != "" {
 		doctorKeyValue(table, "Resolved", prerequisites.ContainerResolved)
+	}
+	if prerequisites.PodmanClient != "" {
+		doctorKeyValue(table, "Podman client", prerequisites.PodmanClient)
+	}
+	if prerequisites.PodmanServer != "" {
+		doctorKeyValue(table, "Podman server", prerequisites.PodmanServer)
 	}
 	if tools := doctorContainerToolsLabel(prerequisites.ContainerTools); tools != "" {
 		doctorKeyValue(table, "Tools", tools)

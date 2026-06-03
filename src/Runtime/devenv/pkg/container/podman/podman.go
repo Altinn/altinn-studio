@@ -29,15 +29,16 @@ func New(ctx context.Context, toolchain types.ContainerToolchain) (*Client, erro
 	if _, err := exec.LookPath("podman"); err != nil {
 		return nil, fmt.Errorf("podman not found in PATH: %w", err)
 	}
-	// Verify podman is responsive
-	cmd := processutil.CommandContext(ctx, "podman", "version", "--format", "{{.Version}}")
-	if err := cmd.Run(); err != nil {
-		return nil, fmt.Errorf("podman not responsive: %w", err)
+	version, err := podmanVersion(ctx)
+	if err != nil {
+		return nil, err
 	}
 	toolchain.AccessMode = types.AccessPodmanCLI
 	if toolchain.Platform == types.PlatformUnknown {
 		toolchain.Platform = types.PlatformPodman
 	}
+	toolchain.ClientVersion = version.ClientVersion
+	toolchain.ServerVersion = version.ServerVersion
 	toolchain.SELinux = detectSELinuxEnabled(ctx)
 	return &Client{toolchain: toolchain}, nil
 }
@@ -50,6 +51,29 @@ func (c *Client) Close() error {
 // Toolchain returns the resolved platform and access mode metadata.
 func (c *Client) Toolchain() types.ContainerToolchain {
 	return c.toolchain
+}
+
+type podmanVersionInfo struct {
+	ClientVersion string
+	ServerVersion string
+}
+
+func podmanVersion(ctx context.Context) (podmanVersionInfo, error) {
+	cmd := processutil.CommandContext(ctx, "podman", "version", "--format", "json")
+	output, err := cmd.Output()
+	if err != nil {
+		return podmanVersionInfo{}, fmt.Errorf("podman not responsive: %w", err)
+	}
+
+	var version map[string]map[string]string
+	if err := json.Unmarshal(output, &version); err != nil {
+		return podmanVersionInfo{}, fmt.Errorf("parse podman version: %w", err)
+	}
+
+	return podmanVersionInfo{
+		ClientVersion: version["Client"]["Version"],
+		ServerVersion: version["Server"]["Version"],
+	}, nil
 }
 
 func reportProgress(onProgress types.ProgressHandler, progress types.ProgressUpdate) {
