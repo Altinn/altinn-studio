@@ -66,7 +66,11 @@ public class UiFoldersController : Controller
         if (pages == null || pages.Count == 0)
         {
             return Ok(
-                await _uiFoldersService.GetLayoutSetsValidationOnNavigation(editingContext, layoutSets, cancellationToken)
+                await _uiFoldersService.GetLayoutSetsValidationOnNavigation(
+                    editingContext,
+                    layoutSets,
+                    cancellationToken
+                )
             );
         }
 
@@ -77,7 +81,12 @@ public class UiFoldersController : Controller
         }
 
         return Ok(
-            await _uiFoldersService.GetPagesValidationOnNavigation(editingContext, layoutSets[0], pages, cancellationToken)
+            await _uiFoldersService.GetPagesValidationOnNavigation(
+                editingContext,
+                layoutSets[0],
+                pages,
+                cancellationToken
+            )
         );
     }
 
@@ -102,7 +111,12 @@ public class UiFoldersController : Controller
 
         if (pages == null || pages.Count == 0)
         {
-            await _uiFoldersService.SaveLayoutSetsValidationOnNavigation(editingContext, layoutSets, config, cancellationToken);
+            await _uiFoldersService.SaveLayoutSetsValidationOnNavigation(
+                editingContext,
+                layoutSets,
+                config,
+                cancellationToken
+            );
             return Ok();
         }
 
@@ -112,7 +126,13 @@ public class UiFoldersController : Controller
             return BadRequest("Exactly one layoutSet must be specified when saving pages.");
         }
 
-        await _uiFoldersService.SavePagesValidationOnNavigation(editingContext, layoutSets[0], pages, config, cancellationToken);
+        await _uiFoldersService.SavePagesValidationOnNavigation(
+            editingContext,
+            layoutSets[0],
+            pages,
+            config,
+            cancellationToken
+        );
         return Ok();
     }
 
@@ -135,7 +155,12 @@ public class UiFoldersController : Controller
 
         if (pages == null || pages.Count == 0)
         {
-            await _uiFoldersService.SaveLayoutSetsValidationOnNavigation(editingContext, layoutSets, null, cancellationToken);
+            await _uiFoldersService.SaveLayoutSetsValidationOnNavigation(
+                editingContext,
+                layoutSets,
+                null,
+                cancellationToken
+            );
             return Ok();
         }
 
@@ -145,7 +170,13 @@ public class UiFoldersController : Controller
             return BadRequest("Exactly one layoutSet must be specified when deleting pages.");
         }
 
-        await _uiFoldersService.SavePagesValidationOnNavigation(editingContext, layoutSets[0], pages, null, cancellationToken);
+        await _uiFoldersService.SavePagesValidationOnNavigation(
+            editingContext,
+            layoutSets[0],
+            pages,
+            null,
+            cancellationToken
+        );
         return Ok();
     }
 
