@@ -1,3 +1,5 @@
+#nullable disable
+
 using LocalTest.Configuration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;

@@ -1,3 +1,5 @@
+#nullable disable
+
 using LocalTest.Models;
 
 namespace LocalTest.Services.LocalFrontend.Interface;

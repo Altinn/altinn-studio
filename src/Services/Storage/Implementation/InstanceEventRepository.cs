@@ -1,3 +1,5 @@
+#nullable disable
+
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using LocalTest.Configuration;

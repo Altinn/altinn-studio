@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
 

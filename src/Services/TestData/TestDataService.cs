@@ -1,4 +1,3 @@
-#nullable enable
 using LocalTest.Configuration;
 using LocalTest.Services.LocalApp.Interface;
 using Microsoft.Extensions.Caching.Memory;
