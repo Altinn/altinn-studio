@@ -149,7 +149,13 @@ export const queriesMock: ServicesContextProps = {
   getLayoutSetsExtended: jest
     .fn()
     .mockImplementation(() => Promise.resolve<LayoutSetModel[]>(layoutSetsExtendedMock)),
+  getLayoutSetsExtendedV9: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<LayoutSetModel[]>(layoutSetsExtendedMock)),
   getValidationOnNavigationLayoutSets: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve({ show: [], page: '' })),
+  getGlobalValidationOnNavigation: jest
     .fn()
     .mockImplementation(() => Promise.resolve({ show: [], page: '' })),
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
@@ -329,6 +335,7 @@ export const queriesMock: ServicesContextProps = {
   deleteOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteValidationOnNavigationLayoutSets: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteGlobalValidationOnNavigation: jest.fn().mockImplementation(() => Promise.resolve()),
   discardChanges: jest.fn().mockImplementation(() => Promise.resolve()),
   generateModels: jest.fn().mockImplementation(() => Promise.resolve()),
   importCodeListFromOrgToApp: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
@@ -356,6 +363,7 @@ export const queriesMock: ServicesContextProps = {
   updateAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppConfig: jest.fn().mockImplementation(() => Promise.resolve()),
   updateValidationOnNavigationLayoutSets: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateGlobalValidationOnNavigation: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOptionListId: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOrgCodeListId: jest.fn().mockImplementation(() => Promise.resolve()),
