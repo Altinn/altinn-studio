@@ -26,6 +26,7 @@ import { getAvailableEnvironments } from '../../utils/resourceUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { UrlConstants } from '../../utils/urlUtils';
 import { getDeprecatedAltinn2SubjectsFromRules } from 'app-shared/utils/altinn2RoleUtils';
+import { Altinn2RoleWarning } from 'app-shared/components/Altinn2RoleWarning/Altinn2RoleWarning';
 
 export type DeployResourcePageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;
@@ -269,20 +270,10 @@ export const DeployResourcePage = ({
             <div className={classes.contentWrapper}>
               {displayStatusCard()}
               {deprecatedAltinn2Roles.length > 0 && (
-                <StudioAlert data-color='warning' className={classes.altinn2RoleWarning}>
-                  <Trans
-                    i18nKey='resourceadm.deploy_status_altinn2_role_warning'
-                    components={{
-                      ul: (
-                        <ul>
-                          {deprecatedAltinn2Roles.map((role) => (
-                            <li key={role.urn}>{role.name}</li>
-                          ))}
-                        </ul>
-                      ),
-                    }}
-                  />
-                </StudioAlert>
+                <Altinn2RoleWarning
+                  itemType={t('resourceadm.deploy_resource_item')}
+                  deprecatedAltinn2Roles={deprecatedAltinn2Roles}
+                />
               )}
               <StudioParagraph className={classes.informationText}>
                 <Trans i18nKey='resourceadm.deploy_description'>

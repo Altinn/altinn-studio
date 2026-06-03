@@ -1,9 +1,9 @@
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { Buildings3Icon, PersonIcon } from '@studio/icons';
-import { StudioAlert } from '@studio/components';
 import { SubjectListItem } from '../SubjectListItem';
 import classes from './ChosenSubjects.module.css';
 import { getDeprecatedAltinn2SubjectsFromRule } from 'app-shared/utils/altinn2RoleUtils';
+import { Altinn2RoleWarning } from 'app-shared/components/Altinn2RoleWarning/Altinn2RoleWarning';
 
 type ChosenSubjectGroup = {
   heading: string;
@@ -67,20 +67,10 @@ export const ChosenSubjects = ({ isPersonSubject, groups }: ChosenSubjectsProps)
         <Icon fontSize={24} /> {heading}
       </div>
       {deprecatedAltinn2Roles.length > 0 && (
-        <StudioAlert data-color='warning' className={classes.deprecatedRoleAlert}>
-          <Trans
-            i18nKey='policy_editor.deprecated_altinn2_role_warning'
-            components={{
-              ul: (
-                <ul>
-                  {deprecatedAltinn2Roles.map((role) => (
-                    <li key={role.urn}>{role.name}</li>
-                  ))}
-                </ul>
-              ),
-            }}
-          />
-        </StudioAlert>
+        <Altinn2RoleWarning
+          itemType={t('policy_editor.deprecated_altinn2_role_warning_item_type')}
+          deprecatedAltinn2Roles={deprecatedAltinn2Roles}
+        />
       )}
       <div className={classes.chosenSubjectContainer}>
         <div className={classes.chosenSubjectColumn}>
