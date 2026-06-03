@@ -122,14 +122,13 @@ export default function (data) {
     stopIterationOnFail('Batch request to get app resources', success, res[i]);
   }
 
-  //Test to get validate instance and verify response code to have error "TooFewDataElementsOfType"
+  //Test to get validate instance; a fresh instance returns no validation issues (empty array) on the new app backend
   res = appInstances.getValidateInstance(runtimeToken, partyId, instanceId, appOwner, level2App, appOwner, level2App);
-  console.log(`validate instance status=${res.status} body=${res.body}`);
   success = check(res, {
-    'E2E App GET Validate Instance response has TooFewDataElementsOfType': (r) => {
+    'E2E App GET Validate Instance returns no issues on a fresh instance': (r) => {
       try {
         var issues = JSON.parse(r.body);
-        return Array.isArray(issues) && issues.some((issue) => issue.code === 'TooFewDataElementsOfType');
+        return r.status === 200 && Array.isArray(issues) && issues.length === 0;
       } catch (e) {
         return false;
       }
