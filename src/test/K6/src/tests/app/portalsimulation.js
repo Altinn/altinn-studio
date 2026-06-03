@@ -5,6 +5,7 @@
 */
 
 import { check } from 'k6';
+import { SharedArray } from 'k6/data';
 import { addErrorCount, stopIterationOnFail } from '../../errorcounter.js';
 import * as appInstances from '../../api/app/instances.js';
 import * as appData from '../../api/app/data.js';
@@ -15,16 +16,23 @@ import * as setUpData from '../../setup.js';
 import * as appInstantiation from '../../api/app/instantiation.js';
 import * as appResources from '../../api/app/resources.js';
 import * as altinnCdn from '../../api/altinn-cdn/altinn-cdn.js';
+import { generateToken } from '../../api/altinn-testtools/token-generator.js';
 import { generateJUnitXML, reportPath } from '../../report.js';
 
-const userName = __ENV.username;
-const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
+const environment = __ENV.env.toLowerCase();
+const tokenGeneratorUserName = __ENV.tokengenuser;
+const tokenGeneratorUserPwd = __ENV.tokengenuserpwd;
+const fileName = 'users_' + environment + '.json';
 
 let instanceFormDataXml = open('../../data/' + level2App + '.xml');
 let pdfAttachment = open('../../data/test_file_pdf.pdf', 'b');
 let bigAttachment = open('../../data/test_file_morethan_1mb.txt', 'b');
+let users = new SharedArray('test users', function () {
+  return JSON.parse(open('../../data/' + fileName));
+});
+const usersCount = users.length;
 
 export const options = {
   thresholds: {
@@ -32,21 +40,31 @@ export const options = {
   },
 };
 
-//Function to setup data and return AltinnstudioRuntime Token
-export function setup() {
-  var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);
-  var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
-  var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
-  data.RuntimeToken = altinnStudioRuntimeCookie;
-  setUpData.clearCookies();
-  return data;
-}
-
 //Tests for App API : Portal simulation
-export default function (data) {
-  const runtimeToken = data['RuntimeToken'];
-  const partyId = data['partyId'];
+export default function () {
+  var userNumber = (__VU - 1) % usersCount;
   var instanceId, dataId, res, success, attachmentDataType, isReceiptPdfGenerated;
+  var userSSN, userId, partyId, runtimeToken;
+
+  try {
+    userSSN = users[userNumber].username;
+    userId = users[userNumber].userid;
+    partyId = users[userNumber].partyid;
+  } catch (error) {
+    stopIterationOnFail('Testdata missing', false, null);
+  }
+
+  //Generate a personal token for a synthetic test user (replaces the Altinn 2 password login)
+  var tokenGenParams = {
+    env: environment,
+    scopes: 'altinn:instances.read,altinn:instances.write',
+    userId: userId,
+    partyId: partyId,
+    authLvl: 3,
+    pid: userSSN,
+  };
+  runtimeToken = generateToken('personal', tokenGeneratorUserName, tokenGeneratorUserPwd, tokenGenParams);
+  setUpData.clearCookies();
 
   //get resources from Altinn CDN
   res = altinnCdn.getToolkits();
