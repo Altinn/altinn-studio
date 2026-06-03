@@ -367,6 +367,7 @@ function makeActions(
         dot.str(reference.field, newValue, state.dataModels[reference.dataType].invalidCurrentData);
       } else {
         dot.delete(reference.field, state.dataModels[reference.dataType].invalidCurrentData);
+        dot.delete(reference.field, state.dataModels[reference.dataType].currentData);
         dot.str(reference.field, convertedValue, state.dataModels[reference.dataType].currentData);
       }
       return { newValue, convertedValue, error, hadError };
