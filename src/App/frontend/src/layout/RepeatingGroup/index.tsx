@@ -20,22 +20,14 @@ import { SummaryRepeatingGroup } from 'src/layout/RepeatingGroup/Summary/Summary
 import { RepeatingGroupSummary } from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupSummary';
 import { validateRepGroupMinCountForNode } from 'src/layout/RepeatingGroup/useValidateRepGroupMinCount';
 import { EmptyChildrenBoundary } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
-import { GenerateNodeChildren } from 'src/utils/layout/generator/LayoutSetGenerator';
-import { NodeRepeatingChildren } from 'src/utils/layout/generator/NodeRepeatingChildren';
 import { claimRepeatingChildren } from 'src/utils/layout/plugins/claimRepeatingChildren';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/hooks';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { BaseValidation, ComponentValidation } from 'src/features/validation';
-import type { CompExternal, IDataModelBindings } from 'src/layout/layout';
-import type {
-  ChildClaimerProps,
-  ExprResolver,
-  NodeGeneratorProps,
-  SummaryRendererProps,
-} from 'src/layout/LayoutComponent';
+import type { IDataModelBindings } from 'src/layout/layout';
+import type { ChildClaimerProps, ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { RepGroupInternal } from 'src/layout/RepeatingGroup/types';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { ChildClaims } from 'src/utils/layout/generator/GeneratorContext';
 
 export class RepeatingGroup extends RepeatingGroupDef implements ValidateComponent<'RepeatingGroup'>, ValidationFilter {
   render = forwardRef<HTMLDivElement, PropsFromGenericComponent<'RepeatingGroup'>>(
@@ -170,27 +162,6 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
     // }
 
     return hiddenImplicitly;
-  }
-
-  extraNodeGeneratorChildren(props: NodeGeneratorProps): JSX.Element | null {
-    const item = props.externalItem as CompExternal<'RepeatingGroup'>;
-    const repeatingClaims: ChildClaims = new Set(props.childClaims?.values() ?? []);
-    const gridRowClaims: ChildClaims = new Set();
-    for (const row of [...(item.rowsBefore || []), ...(item.rowsAfter || [])]) {
-      for (const cell of row.cells.values()) {
-        if (cell && 'component' in cell && cell.component && repeatingClaims.has(cell.component)) {
-          gridRowClaims.add(cell.component);
-          repeatingClaims.delete(cell.component);
-        }
-      }
-    }
-
-    return (
-      <>
-        <NodeRepeatingChildren claims={repeatingClaims} />
-        <GenerateNodeChildren claims={gridRowClaims} />
-      </>
-    );
   }
 
   claimChildren(props: ChildClaimerProps<'RepeatingGroup'>): void {

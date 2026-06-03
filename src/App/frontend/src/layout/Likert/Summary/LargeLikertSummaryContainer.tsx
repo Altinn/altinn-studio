@@ -6,7 +6,7 @@ import { Heading } from '@digdir/designsystemet-react';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
-import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
+import { makeLikertChildId } from 'src/layout/Likert/makeLikertChildId';
 import classes from 'src/layout/Likert/Summary/LikertSummaryComponent.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';

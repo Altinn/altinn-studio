@@ -1,5 +1,5 @@
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
-import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
+import { makeLikertChildId } from 'src/layout/Likert/makeLikertChildId';
 import type { CompExternal, ILayoutCollection, ILayouts } from 'src/layout/layout';
 
 export function processLayouts(layouts: ILayoutCollection, dataModelType: string) {

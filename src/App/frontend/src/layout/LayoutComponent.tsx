@@ -9,12 +9,11 @@ import { validateEmptyFieldAllBindings } from 'src/features/validation/nodeValid
 import { CompCategory } from 'src/layout/common';
 import { getComponentCapabilities } from 'src/layout/index';
 import { SummaryItemCompact } from 'src/layout/Summary/SummaryItemCompact';
-import { GenerateNodeChildren } from 'src/utils/layout/generator/LayoutSetGenerator';
-import { NodeGenerator } from 'src/utils/layout/generator/NodeGenerator';
 import type { CompCapabilities } from 'src/codegen/Config';
 import type { SimpleEval } from 'src/features/expressions';
 import type { ExprResolved, ExprVal } from 'src/features/expressions/types';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
+import type { OptionsValueType } from 'src/features/options/useGetOptions';
 import type { ComponentValidation } from 'src/features/validation';
 import type { ComponentBase, FormComponentProps, SummarizableComponentProps } from 'src/layout/common.generated';
 import type { ComponentValidationContext, PropsFromGenericComponent, ValidateEmptyField } from 'src/layout/index';
@@ -29,12 +28,6 @@ import type {
 } from 'src/layout/layout';
 import type { LegacySummaryOverrides } from 'src/layout/Summary/SummaryComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { ChildClaims } from 'src/utils/layout/generator/GeneratorContext';
-
-export interface NodeGeneratorProps {
-  externalItem: CompExternalExact<CompTypes>;
-  childClaims: ChildClaims | undefined;
-}
 
 export interface ExprResolver<Type extends CompTypes> {
   item: CompIntermediateExact<Type>;
@@ -61,14 +54,6 @@ export abstract class AnyComponent<Type extends CompTypes> {
     | ((props: PropsFromGenericComponent<Type>) => JSX.Element | null);
 
   renderSummary2?(props: Summary2Props): JSX.Element | null;
-
-  /**
-   * Render a node generator for this component. This can be overridden if you want to extend
-   * the default node generator with additional functionality.
-   */
-  renderNodeGenerator(props: NodeGeneratorProps): JSX.Element | null {
-    return <NodeGenerator {...props}>{this.extraNodeGeneratorChildren(props)}</NodeGenerator>;
-  }
 
   /**
    * Override this if you need to implement specific validators for the layout config, or if you need to
@@ -140,11 +125,8 @@ export abstract class AnyComponent<Type extends CompTypes> {
     return validate(schemaPointer, component);
   }
 
-  /**
-   * Extra components to render out in the node generator children
-   */
-  extraNodeGeneratorChildren(_props: NodeGeneratorProps): JSX.Element | null {
-    return null;
+  getOptionsEffectValueType(): OptionsValueType | undefined {
+    return undefined;
   }
 }
 
@@ -234,10 +216,6 @@ export abstract class ContainerComponent<Type extends CompTypes> extends _FormCo
 
   isDataModelBindingsRequired(_baseComponentId: string, _layoutLookups: LayoutLookups): boolean {
     return false;
-  }
-
-  extraNodeGeneratorChildren(props: NodeGeneratorProps): JSX.Element | null {
-    return <GenerateNodeChildren claims={props.childClaims} />;
   }
 
   abstract claimChildren(props: ChildClaimerProps<Type>): void;

@@ -1,8 +1,9 @@
 import dot from 'dot-object';
 
+import { FormStore } from 'src/features/form/FormContext';
 import { MissingRowIdException } from 'src/features/formData/MissingRowIdException';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
-import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
+import { makeLikertChildId } from 'src/layout/Likert/makeLikertChildId';
 import { getLikertStartStopIndex } from 'src/layout/Likert/rowUtils';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
@@ -16,26 +17,46 @@ export type RowContext = {
   rowId: string;
 };
 
+export type DerivedLayoutParent =
+  | {
+      type: 'node';
+      id: string;
+      baseId: string;
+    }
+  | {
+      type: 'page';
+      id: string;
+      baseId: string;
+    };
+
 export type DerivedLayoutNode = {
   id: string;
   baseId: string;
   pageKey: string;
   parentId: string | undefined;
+  parent: DerivedLayoutParent;
   rowContexts: RowContext[];
   rowIds: string[];
   intermediateItem: CompIntermediate;
 };
 
+type RowSource = 'debounced' | 'current';
+
+interface DeriveLayoutNodesOptions {
+  rowSource?: RowSource;
+}
+
 type DeriveNodesContext = {
   state: FormStoreState;
   lookups: LayoutLookups;
   rowsByBinding: Map<string, BaseRow[]>;
+  rowSource: RowSource;
 };
 
 type WalkNodesArgs = {
   pageKey: string;
   baseId: string;
-  parentId: string | undefined;
+  parent: DerivedLayoutParent;
   rowContexts: RowContext[];
   output: DerivedLayoutNode[];
 };
@@ -110,7 +131,11 @@ function getRows(context: DeriveNodesContext, binding: IDataModelReference | und
     return cached;
   }
 
-  const rawRows = dot.pick(binding.field, context.state.data.models[binding.dataType]?.debouncedCurrentData);
+  const source =
+    context.rowSource === 'current'
+      ? context.state.data.models[binding.dataType]?.currentData
+      : context.state.data.models[binding.dataType]?.debouncedCurrentData;
+  const rawRows = dot.pick(binding.field, source);
   if (!Array.isArray(rawRows)) {
     context.rowsByBinding.set(cacheKey, emptyArray);
     return emptyArray;
@@ -149,7 +174,8 @@ function walkNodes(context: DeriveNodesContext, args: WalkNodesArgs) {
     id: intermediateItem.id,
     baseId: args.baseId,
     pageKey: args.pageKey,
-    parentId: args.parentId,
+    parentId: args.parent.type === 'node' ? args.parent.id : undefined,
+    parent: args.parent,
     rowContexts: args.rowContexts,
     rowIds: args.rowContexts.map((row) => row.rowId),
     intermediateItem,
@@ -164,7 +190,7 @@ function walkNodes(context: DeriveNodesContext, args: WalkNodesArgs) {
   if (node.intermediateItem.type === 'RepeatingGroup') {
     const { repeated, staticChildren } = splitRepeatingChildren(node.intermediateItem, childBaseIds);
     for (const childId of staticChildren) {
-      walkNodes(context, { ...args, baseId: childId, parentId: node.id });
+      walkNodes(context, { ...args, baseId: childId, parent: { type: 'node', id: node.id, baseId: args.baseId } });
     }
 
     const groupBinding = node.intermediateItem.dataModelBindings.group;
@@ -173,7 +199,7 @@ function walkNodes(context: DeriveNodesContext, args: WalkNodesArgs) {
         walkNodes(context, {
           ...args,
           baseId: childId,
-          parentId: node.id,
+          parent: { type: 'node', id: node.id, baseId: args.baseId },
           rowContexts: appendRowContext(args.rowContexts, groupBinding, row),
         });
       }
@@ -190,7 +216,7 @@ function walkNodes(context: DeriveNodesContext, args: WalkNodesArgs) {
       walkNodes(context, {
         ...args,
         baseId: childId,
-        parentId: node.id,
+        parent: { type: 'node', id: node.id, baseId: args.baseId },
         rowContexts: appendRowContext(args.rowContexts, questionsBinding, row),
       });
     }
@@ -198,18 +224,22 @@ function walkNodes(context: DeriveNodesContext, args: WalkNodesArgs) {
   }
 
   for (const childId of childBaseIds) {
-    walkNodes(context, { ...args, baseId: childId, parentId: node.id });
+    walkNodes(context, { ...args, baseId: childId, parent: { type: 'node', id: node.id, baseId: args.baseId } });
   }
 }
 
 /**
  * Expands the current layout synchronously without storing derived node state.
  */
-export function deriveLayoutNodes(state: FormStoreState): DerivedLayoutNode[] {
+export function deriveLayoutNodes(
+  state: FormStoreState,
+  { rowSource = 'debounced' }: DeriveLayoutNodesOptions = {},
+): DerivedLayoutNode[] {
   const context: DeriveNodesContext = {
     state,
     lookups: state.bootstrap.layoutLookups,
     rowsByBinding: new Map(),
+    rowSource,
   };
   const nodes: DerivedLayoutNode[] = [];
 
@@ -218,7 +248,7 @@ export function deriveLayoutNodes(state: FormStoreState): DerivedLayoutNode[] {
       walkNodes(context, {
         pageKey,
         baseId,
-        parentId: undefined,
+        parent: { type: 'page', id: pageKey, baseId: pageKey },
         rowContexts: [],
         output: nodes,
       });
@@ -226,6 +256,10 @@ export function deriveLayoutNodes(state: FormStoreState): DerivedLayoutNode[] {
   }
 
   return nodes;
+}
+
+export function useDerivedLayoutNodes(options?: DeriveLayoutNodesOptions): DerivedLayoutNode[] {
+  return FormStore.raw.useMemoSelector((state) => deriveLayoutNodes(state, options));
 }
 
 /**

@@ -20,9 +20,9 @@ import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { isDev } from 'src/utils/isDev';
 import { ComponentErrorBoundary } from 'src/utils/layout/ComponentErrorBoundary';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useExternalItem } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { EvalExprOptions } from 'src/features/expressions';
 import type { IGridStyling } from 'src/layout/common.generated';
 import type { GenericComponentOverrideDisplay, IFormComponentContext } from 'src/layout/FormComponentContext';
@@ -42,13 +42,13 @@ function NonMemoGenericComponent<Type extends CompTypes = CompTypes>({
   overrideDisplay,
 }: IGenericComponentProps<Type>) {
   const nodeId = useIndexedId(baseComponentId);
-  const generatorErrors = FormStore.layoutDiagnostics.useNodeErrors(nodeId);
+  const layoutDiagnosticErrors = FormStore.layoutDiagnostics.useNodeErrors(nodeId);
 
-  if (generatorErrors && Object.keys(generatorErrors).length > 0) {
+  if (layoutDiagnosticErrors && Object.keys(layoutDiagnosticErrors).length > 0) {
     return (
       <ComponentErrorList
         baseComponentId={baseComponentId}
-        errors={Object.keys(generatorErrors)}
+        errors={Object.keys(layoutDiagnosticErrors)}
       />
     );
   }

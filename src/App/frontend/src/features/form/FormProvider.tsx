@@ -23,6 +23,7 @@ import {
   getRootFormStore,
   processBootstrap,
 } from 'src/features/form/FormContext';
+import { FormEffectsProvider } from 'src/features/form/FormEffectsProvider';
 import { getPrefillFromSessionStorage } from 'src/features/form/getPrefillFromSessionStorage';
 import { useLayoutOverrides } from 'src/features/form/layout/layoutOverrides';
 import { createPageNavigationSlice } from 'src/features/form/layout/PageNavigationContext';
@@ -45,7 +46,6 @@ import { createValidationSlice, ValidationEffects } from 'src/features/validatio
 import { useNavigationParam } from 'src/hooks/navigation';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { createLayoutDiagnosticsSlice } from 'src/utils/layout/LayoutDiagnostics';
-import { LayoutGeneratorProvider } from 'src/utils/layout/LayoutGeneratorContext';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import type { FormBootstrapBase } from 'src/features/formBootstrap/types';
 import type { FormDataSliceProps } from 'src/features/formData/FormDataWrite';
@@ -119,13 +119,13 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
       <FormDataWriteEffects />
       <AttachmentEffects />
       <ValidationEffects />
-      <LayoutGeneratorProvider>
+      <FormEffectsProvider>
         <PaymentInformationProvider>
           <OrderDetailsProvider>
             <MaybePaymentProvider hasProcess={hasProcess}>{children}</MaybePaymentProvider>
           </OrderDetailsProvider>
         </PaymentInformationProvider>
-      </LayoutGeneratorProvider>
+      </FormEffectsProvider>
     </FormStoreProvider>
   );
 }

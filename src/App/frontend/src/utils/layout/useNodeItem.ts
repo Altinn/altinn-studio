@@ -1,7 +1,7 @@
 import { FormStore } from 'src/features/form/FormContext';
 import { getComponentDef } from 'src/layout';
 import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
-import { useExpressionResolverProps } from 'src/utils/layout/generator/NodeGenerator';
+import { useExpressionResolverProps } from 'src/utils/layout/expressionResolver';
 import { useDataModelBindingsFor, useIntermediateItem } from 'src/utils/layout/hooks';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { FormDataSelector } from 'src/layout';
