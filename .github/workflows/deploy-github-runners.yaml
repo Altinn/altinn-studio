@@ -1,22 +1,12 @@
 name: Deploy GitHub Runners
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
-      - '.github/workflows/deploy-github-runners.yaml'
-      - '.github/workflows/template-docker-push.yaml'
-      - '.github/workflows/template-flux-config-push.yaml'
-      - '.github/workflows/template-helm-push.yaml'
-      - 'charts/github-runner/**'
-      - 'charts/github-runner-config/**'
       - 'src/github-runner/**'
+      - '.github/workflows/deploy-github-runners.yaml'
 
   workflow_dispatch:
-    inputs:
-      environments:
-        description: 'Environments to deploy to. Multiple environments can be specified by separating them with a comma.'
-        required: false
-        default: 'staging'
 
 permissions:
   id-token: write
@@ -26,70 +16,92 @@ jobs:
   construct-environments-array:
     uses: ./.github/workflows/template-studio-construct-environments.yaml
     with:
-      inputs: ${{ toJSON(github.event.inputs) }}
+      inputs: '{"environments":"staging"}'
 
-  determine-tag:
+  push-artifact:
+    name: Push GitHub runners as OCI artifact
     runs-on: ubuntu-latest
+    environment: dev
+    env:
+      REGISTRY_NAME: altinntjenestercontainerregistry
     outputs:
-      tag: ${{ steps.determine-tag.outputs.tag }}
+      CONFIG_REPO: ${{ steps.vars.outputs.config-repo }}
+    defaults:
+      run:
+        working-directory: src/github-runner
     steps:
-      - name: Determine tag
-        id: determine-tag
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set vars
+        id: vars
         run: |
-          SHORT_SHA="${GITHUB_SHA::10}"
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            echo "tag=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
-          else
-            sanitized_branch_name=$(echo "${{ github.ref_name }}" | tr -d '()' | tr '/' '-')
-            echo "tag=${sanitized_branch_name}-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
-          fi
+          SHA="${GITHUB_SHA::10}"
+          echo "short-sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "image-repo=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:${SHA}" >> "$GITHUB_OUTPUT"
+          echo "config-repo=altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/github-runners-repo:${SHA}" >> "$GITHUB_OUTPUT"
 
-  docker-build-push:
-    needs: determine-tag
-    uses: ./.github/workflows/template-docker-push.yaml
-    with:
-      tags: ${{ needs.determine-tag.outputs.tag }},latest
-      registry-name: altinntjenestercontainerregistry.azurecr.io
-      repository-name: altinn-github-runner
-      context: src/github-runner
-      dockerfile: src/github-runner/Dockerfile
-      environment: dev
-    secrets:
-      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
-      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
-      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
-  helm-push:
-    needs: determine-tag
-    uses: ./.github/workflows/template-helm-push.yaml
-    with:
-      tag: 0.1.0+${{ needs.determine-tag.outputs.tag }}
-      chart-name: github-runner
-      registry-name: altinntjenestercontainerregistry.azurecr.io
-      environment: dev
-    secrets:
-      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
-      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
-      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+      - name: az acr login
+        run: az acr login --name ${{ env.REGISTRY_NAME }}
 
-  flux-config-push:
-    needs: [docker-build-push, helm-push, determine-tag, construct-environments-array]
+      - name: flux install
+        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
+
+      - name: docker build
+        run: docker build -t ${{ steps.vars.outputs.image-repo }} -f Dockerfile .
+
+      - name: push image
+        run: docker push ${{ steps.vars.outputs.image-repo }}
+
+      - name: patch base with image tag
+        working-directory: src/github-runner/infra/kustomize/base
+        run: |
+          export IMAGE="${{ steps.vars.outputs.image-repo }}"
+          export IMAGE_TAG="${{ steps.vars.outputs.short-sha }}"
+          yq -i '.metadata.annotations["altinn.studio/image"] = env(IMAGE)' scaledjob.yaml
+          yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' scaledjob.yaml
+
+      - name: push artifact
+        working-directory: src/github-runner/infra/kustomize
+        run: |
+          flux push artifact oci://${{ steps.vars.outputs.config-repo }} \
+            --provider=azure \
+            --reproducible \
+            --path="." \
+            --source="$(git config --get remote.origin.url)" \
+            --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
+
+  tag:
+    name: Tag artifact
+    needs: [push-artifact, construct-environments-array]
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    env:
+      REGISTRY_NAME: altinntjenestercontainerregistry
     strategy:
       matrix:
         include: ${{ fromJSON(needs.construct-environments-array.outputs.result) }}
-    uses: ./.github/workflows/template-flux-config-push.yaml
-    with:
-      tag: ${{ needs.determine-tag.outputs.tag }}
-      registry-name: altinntjenestercontainerregistry.azurecr.io
-      environment: ${{ matrix.environment }}
-      config-chart-name: github-runner-config
-      artifact-name: github-runners
-      helm-set-arguments: chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }},imageTag=${{ needs.determine-tag.outputs.tag }},releaseName=github-runners
-      trace-workflow: false
-      trace-team-name: 'team-studio'
-    secrets:
-      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
-      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
-      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
-      trace-connection-string: ${{ secrets.APP_INSIGHTS_CONNECTION_STRING }}
-      trace-repo-token: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name ${{ env.REGISTRY_NAME }}
+
+      - name: flux install
+        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
+
+      - name: tag artifact
+        run: |
+          flux tag artifact oci://${{ needs.push-artifact.outputs.CONFIG_REPO }} \
+            --tag ${{ matrix.environment }}

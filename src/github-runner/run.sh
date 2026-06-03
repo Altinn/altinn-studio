@@ -15,6 +15,7 @@ RUNNER_GROUP="${RUNNER_GROUP:-Default}"
 : "${APP_PRIVATE_KEY:?APP_PRIVATE_KEY is required}"
 
 APP_PRIVATE_KEY="${APP_PRIVATE_KEY//\\n/$'\n'}"
+unset APP_INSTALLATION_ID
 
 if [[ "${GITHUB_HOST}" == "github.com" ]]; then
   GITHUB_API_URL="${GITHUB_API_URL:-https://api.github.com}"

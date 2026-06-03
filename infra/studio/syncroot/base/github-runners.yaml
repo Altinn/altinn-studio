@@ -5,7 +5,9 @@ metadata:
   namespace: default
 spec:
   interval: 5m
-  url: oci://altinntjenestercontainerregistry.azurecr.io/configs/github-runners-${ENVIRONMENT}
+  url: oci://altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/github-runners-repo
+  ref:
+    tag: ${ENVIRONMENT}
   provider: azure
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -20,6 +22,6 @@ spec:
     kind: OCIRepository
     name: github-runners
     namespace: default
-  path: ./
+  path: ./${ENVIRONMENT}
   prune: true
   timeout: 1m
