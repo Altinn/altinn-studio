@@ -2,7 +2,7 @@
   This test is to create an instance with form data xml using multipart request body.
   Test data required: username, password, app requiring level 2 login (reference app: ttd/apps-test)
   command to run the test: docker-compose run k6 run /src/tests/app/multipartdata.js
-  -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=*** -e sblaccesskey=***
+  -e env=*** -e org=*** -e pid=*** -e testidppwd=*** -e level2app=*** -e appsaccesskey=*** -e sblaccesskey=***
 */
 
 import { check } from 'k6';
@@ -14,8 +14,6 @@ import { deleteSblInstance } from '../../api/platform/storage/messageboxinstance
 import * as setUpData from '../../setup.js';
 import { generateJUnitXML, reportPath } from '../../report.js';
 
-const userName = __ENV.username;
-const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
 const appName = __ENV.level2app;
 let instanceFormDataXml = open('../../data/' + appName + '.xml');
@@ -29,8 +27,7 @@ export const options = {
 
 //Function to setup data and return AltinnstudioRuntime Token and user data
 export function setup() {
-  var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);
-  var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
+  var altinnStudioRuntimeCookie = setUpData.getAltinnTokenForUser();
   var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, appName);
   data.RuntimeToken = altinnStudioRuntimeCookie;
   return data;

@@ -1,7 +1,7 @@
 /*
   Create and archive instances of T3.0 apps with attachment component and simulate all the api calls from portal
   example: k6 run -i 20 --duration 1m /src/tests/app/portalsimulation.js
-  -e env=test -e org=ttd -e level2app=apps-test -e tokengenuser=*** -e tokengenuserpwd=***
+  -e env=test -e org=ttd -e level2app=apps-test -e pid=*** -e testidppwd=***
 */
 
 import { check } from 'k6';
@@ -15,14 +15,10 @@ import * as setUpData from '../../setup.js';
 import * as appInstantiation from '../../api/app/instantiation.js';
 import * as appResources from '../../api/app/resources.js';
 import * as altinnCdn from '../../api/altinn-cdn/altinn-cdn.js';
-import { generateToken } from '../../api/altinn-testtools/token-generator.js';
 import { generateJUnitXML, reportPath } from '../../report.js';
 
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
-const environment = __ENV.env.toLowerCase();
-const tokenGeneratorUserName = __ENV.tokengenuser;
-const tokenGeneratorUserPwd = __ENV.tokengenuserpwd;
 
 let instanceFormDataXml = open('../../data/' + level2App + '.xml');
 let pdfAttachment = open('../../data/test_file_pdf.pdf', 'b');
@@ -35,11 +31,7 @@ export const options = {
 };
 
 export function setup() {
-  var tokenGenParams = {
-    env: environment,
-    scopes: 'altinn:instances.read,altinn:instances.write',
-  };
-  var runtimeToken = generateToken('personal', tokenGeneratorUserName, tokenGeneratorUserPwd, tokenGenParams);
+  var runtimeToken = setUpData.getAltinnTokenForUser();
   var data = setUpData.getUserData(runtimeToken, appOwner, level2App);
   data.RuntimeToken = runtimeToken;
   setUpData.clearCookies();

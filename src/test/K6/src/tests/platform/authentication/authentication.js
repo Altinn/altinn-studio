@@ -1,15 +1,12 @@
 /*
     Test data required: username and password
     Command: docker-compose run k6 run /src/tests/platform/authentication/authentication.js
-    -e env=*** -e username=*** -e userpwd=*** -e appsaccesskey=***
+    -e env=*** -e pid=*** -e testidppwd=*** -e appsaccesskey=***
 */
 
 import * as setUpData from '../../../setup.js';
 import { generateJUnitXML, reportPath } from '../../../report.js';
 import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.1/index.js';
-
-const userName = __ENV.username;
-const userPassword = __ENV.userpwd;
 
 export const options = {
   thresholds: {
@@ -19,10 +16,7 @@ export const options = {
 
 //Tests for platform authentication
 export default function () {
-  //Authenticate towards Altinn 2
-  var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);
-  //Authenticate towards Altinn 3
-  setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
+  setUpData.getAltinnTokenForUser();
 }
 
 export function handleSummary(data) {

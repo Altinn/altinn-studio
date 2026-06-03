@@ -1,6 +1,6 @@
 /*
     Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
-    Command: docker-compose run k6 run /src/tests/platform/storage/deleteinstances.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appIds=org/app1,org/app2 -e appsaccesskey=*** -e sblaccesskey=***
+    Command: docker-compose run k6 run /src/tests/platform/storage/deleteinstances.js -e env=*** -e org=*** -e pid=*** -e testidppwd=*** -e level2app=*** -e appIds=org/app1,org/app2 -e appsaccesskey=*** -e sblaccesskey=***
 */
 
 import { check } from 'k6';
@@ -9,8 +9,6 @@ import * as setUpData from '../../../setup.js';
 import { addErrorCount, stopIterationOnFail } from '../../../errorcounter.js';
 import * as instances from '../../../api/platform/storage/instances.js';
 
-const userName = __ENV.username;
-const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
 const environment = __ENV.env.toLowerCase();
@@ -24,8 +22,7 @@ export const options = {
 
 //Function to setup data and return AltinnstudioRuntime Token and user details
 export function setup() {
-  var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);
-  var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
+  var altinnStudioRuntimeCookie = setUpData.getAltinnTokenForUser();
   var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
   data.RuntimeToken = altinnStudioRuntimeCookie;
   setUpData.clearCookies();
@@ -64,13 +61,13 @@ export default function (data) {
       appId: appIds,
     };
 
-    instanceIds = getInstanceIds(runtimeToken, filters)
+    instanceIds = getInstanceIds(runtimeToken, filters);
     do {
       if (instanceIds.length > 0) {
         sbl.hardDeleteManyInstances(runtimeToken, instanceIds);
 
         //Find more instances to loop through
-        instanceIds = getInstanceIds(runtimeToken, filters)
+        instanceIds = getInstanceIds(runtimeToken, filters);
       }
     } while (instanceIds.length > 0);
 

@@ -1,7 +1,7 @@
 /*
     Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
     Command: docker-compose run k6 run /src/tests/platform/receipt/receipt.js
-    -e env=*** -e org=*** -e level2app=*** -e username=*** -e userpwd=*** -e appsaccesskey=***
+    -e env=*** -e org=*** -e level2app=*** -e pid=*** -e testidppwd=*** -e appsaccesskey=***
 */
 
 import { check } from 'k6';
@@ -11,8 +11,6 @@ import * as instances from '../../../api/platform/storage/instances.js';
 import * as receipt from '../../../api/platform/receipt.js';
 import { generateJUnitXML, reportPath } from '../../../report.js';
 
-const userName = __ENV.username;
-const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
 let instanceJson = open('../../../data/instance.json');
@@ -26,8 +24,7 @@ export const options = {
 
 //Function to setup data and return AltinnstudioRuntime Token, instance and user details
 export function setup() {
-  var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);
-  var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
+  var altinnStudioRuntimeCookie = setUpData.getAltinnTokenForUser();
   var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
   data.RuntimeToken = altinnStudioRuntimeCookie;
   setUpData.clearCookies();
