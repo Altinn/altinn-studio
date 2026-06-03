@@ -124,8 +124,16 @@ export default function (data) {
 
   //Test to get validate instance and verify response code to have error "TooFewDataElementsOfType"
   res = appInstances.getValidateInstance(runtimeToken, partyId, instanceId, appOwner, level2App, appOwner, level2App);
+  console.log(`validate instance status=${res.status} body=${res.body}`);
   success = check(res, {
-    'E2E App GET Validate Instance response has TooFewDataElementsOfType': (r) => JSON.parse(r.body)[0].code === 'TooFewDataElementsOfType',
+    'E2E App GET Validate Instance response has TooFewDataElementsOfType': (r) => {
+      try {
+        var issues = JSON.parse(r.body);
+        return Array.isArray(issues) && issues.some((issue) => issue.code === 'TooFewDataElementsOfType');
+      } catch (e) {
+        return false;
+      }
+    },
   });
   addErrorCount(success);
 
