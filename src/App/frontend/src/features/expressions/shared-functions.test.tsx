@@ -26,7 +26,7 @@ import {
   StatelessRouter,
 } from 'src/test/renderWithProviders';
 import { NestedDataModelLocationProviders } from 'src/utils/layout/DataModelLocation';
-import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { FunctionTest, FunctionTestBase, SharedTestFunctionContext } from 'src/features/expressions/shared';
 import type { ExprPositionalArgs, ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
 import type { IDataModelBindings, ILayoutCollection } from 'src/layout/layout';

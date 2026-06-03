@@ -4,15 +4,14 @@ import type { PropsWithChildren } from 'react';
 import { Loader } from 'src/core/loading/Loader';
 import { UpdateAttachmentsForCypress } from 'src/features/attachments/UpdateAttachmentsForCypress';
 import { FormStore } from 'src/features/form/FormContext';
+import { FormEffects } from 'src/features/form/FormEffects';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { TaskKeys } from 'src/routesBuilder';
-import { GeneratorGlobalProvider } from 'src/utils/layout/generator/GeneratorContext';
-import { LayoutSetGenerator } from 'src/utils/layout/generator/LayoutSetGenerator';
 import { LayoutPropertiesValidation } from 'src/utils/layout/validation/LayoutPropertiesValidation';
 import { LayoutValidationProvider } from 'src/utils/layout/validation/LayoutValidationContext';
 
-export function LayoutGeneratorProvider({ children }: PropsWithChildren) {
+export function FormEffectsProvider({ children }: PropsWithChildren) {
   const isInTaskTransition = useIsInTaskTransition();
   const layouts = FormStore.bootstrap.useLayouts();
   const resetDiagnostics = FormStore.raw.useStaticSelector((state) => state.layoutDiagnostics.reset);
@@ -22,18 +21,18 @@ export function LayoutGeneratorProvider({ children }: PropsWithChildren) {
   }, [layouts, resetDiagnostics]);
 
   if (isInTaskTransition) {
-    return <Loader reason='nodes' />;
+    return <Loader reason='form-effects' />;
   }
 
   return (
-    <GeneratorGlobalProvider layouts={layouts}>
+    <>
       <LayoutValidationProvider>
         <LayoutPropertiesValidation />
       </LayoutValidationProvider>
-      <LayoutSetGenerator />
+      <FormEffects />
       {window.Cypress && <UpdateAttachmentsForCypress />}
       {children}
-    </GeneratorGlobalProvider>
+    </>
   );
 }
 

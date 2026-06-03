@@ -5,7 +5,6 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
-import { RunOptionsEffects } from 'src/features/options/RunOptionsEffects';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { validateEmptyFieldOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { DropdownDef } from 'src/layout/Dropdown/config.def.generated';
@@ -17,7 +16,7 @@ import { validateDataModelBindingsSimple } from 'src/utils/layout/validation/hoo
 import type { ComponentValidation } from 'src/features/validation';
 import type { ComponentValidationContext, PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver, NodeGeneratorProps, SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class Dropdown extends DropdownDef {
@@ -27,8 +26,8 @@ export class Dropdown extends DropdownDef {
     },
   );
 
-  extraNodeGeneratorChildren(_props: NodeGeneratorProps): JSX.Element | null {
-    return <RunOptionsEffects valueType='single' />;
+  getOptionsEffectValueType() {
+    return 'single' as const;
   }
 
   useDisplayData(baseComponentId: string): string {

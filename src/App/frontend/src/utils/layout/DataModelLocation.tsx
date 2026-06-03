@@ -5,6 +5,7 @@ import { createContext } from 'src/core/contexts/context';
 import { FormStore } from 'src/features/form/FormContext';
 import { getDataModelLocationForIndexedNode } from 'src/utils/layout/hierarchy';
 import type { IDataModelReference } from 'src/layout/common.generated';
+import type { RowContext } from 'src/utils/layout/deriveLayoutNodes';
 
 export type IdMutator = (id: string) => string;
 
@@ -151,6 +152,28 @@ export function NestedDataModelLocationProviders({ reference, children }: PropsW
 
   // Recursively nest the providers from outermost to innermost
   return groupContexts.reduceRight(
+    (child, { groupBinding, rowIndex }) => (
+      <DataModelLocationProvider
+        key={`${groupBinding.dataType}-${groupBinding.field}-${rowIndex}`}
+        groupBinding={groupBinding}
+        rowIndex={rowIndex}
+      >
+        {child}
+      </DataModelLocationProvider>
+    ),
+    children as React.ReactElement,
+  );
+}
+
+export function DataModelLocationProviderFromRowContexts({
+  rowContexts,
+  children,
+}: PropsWithChildren<{ rowContexts: RowContext[] }>) {
+  if (rowContexts.length === 0) {
+    return children;
+  }
+
+  return rowContexts.reduceRight(
     (child, { groupBinding, rowIndex }) => (
       <DataModelLocationProvider
         key={`${groupBinding.dataType}-${groupBinding.field}-${rowIndex}`}

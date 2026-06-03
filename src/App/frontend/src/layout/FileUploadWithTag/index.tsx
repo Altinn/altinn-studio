@@ -3,7 +3,6 @@ import React, { forwardRef, type JSX } from 'react';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useAttachmentsFor } from 'src/features/attachments/hooks';
 import { attachmentSelector, makeAttachmentNode } from 'src/features/attachments/tools';
-import { RunOptionsEffects } from 'src/features/options/RunOptionsEffects';
 import { AttachmentSummaryComponent2 } from 'src/layout/FileUpload/AttachmentSummaryComponent2';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { FileUploadLayoutValidator } from 'src/layout/FileUpload/FileUploadLayoutValidator';
@@ -17,7 +16,7 @@ import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { AnyValidation, ComponentValidation } from 'src/features/validation';
 import type { ComponentValidationContext, PropsFromGenericComponent, ValidateComponent } from 'src/layout';
 import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
-import type { ExprResolver, NodeGeneratorProps, SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateComponent<'FileUploadWithTag'> {
@@ -27,8 +26,8 @@ export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateC
     },
   );
 
-  extraNodeGeneratorChildren(_props: NodeGeneratorProps): JSX.Element | null {
-    return <RunOptionsEffects valueType='single' />;
+  getOptionsEffectValueType() {
+    return 'single' as const;
   }
 
   renderDefaultValidations(): boolean {

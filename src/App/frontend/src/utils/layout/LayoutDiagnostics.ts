@@ -1,14 +1,14 @@
 import { FormStore } from 'src/features/form/FormContext';
 import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
 
-export interface GeneratorErrors {
+export interface LayoutDiagnosticErrors {
   // The key is the error message, making sure we do not store duplicates.
   [key: string]: true;
 }
 
 export type LayoutDiagnosticsSliceState = {
   hasErrors: boolean;
-  errors: Record<string, GeneratorErrors | undefined>;
+  errors: Record<string, LayoutDiagnosticErrors | undefined>;
   addError: (error: string, id: string, type: 'node' | 'page') => void;
   reset: () => void;
 };
@@ -40,7 +40,7 @@ export const layoutDiagnosticsHooks = {
     FormStore.raw.useMemoSelector((state) =>
       Object.fromEntries(
         Object.entries(state.layoutDiagnostics.errors)
-          .filter((entry): entry is [string, GeneratorErrors] => entry[1] !== undefined)
+          .filter((entry): entry is [string, LayoutDiagnosticErrors] => entry[1] !== undefined)
           .map(([key, errors]) => [key, Object.keys(errors)]),
       ),
     ),
