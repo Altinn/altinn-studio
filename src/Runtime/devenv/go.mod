@@ -12,7 +12,7 @@ require (
 	github.com/fluxcd/pkg/apis/meta v1.25.1
 	github.com/fluxcd/pkg/oci v0.62.0
 	github.com/fluxcd/source-controller/api v1.8.1
-	github.com/go-git/go-git/v5 v5.16.5
+	github.com/go-git/go-git/v5 v5.17.1
 	golang.org/x/sync v0.19.0
 	helm.sh/helm/v3 v3.20.1
 	k8s.io/api v0.35.3
@@ -35,7 +35,7 @@ require (
 	github.com/ProtonMail/go-crypto v1.3.0 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/cloudflare/circl v1.6.1 // indirect
+	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/containerd/containerd v1.7.30 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
@@ -62,7 +62,7 @@ require (
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
-	github.com/go-git/go-billy/v5 v5.7.0 // indirect
+	github.com/go-git/go-billy/v5 v5.8.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.22.4 // indirect
