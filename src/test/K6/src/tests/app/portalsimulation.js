@@ -1,11 +1,10 @@
 /*
   Create and archive instances of T3.0 apps with attachment component and simulate all the api calls from portal
   example: k6 run -i 20 --duration 1m /src/tests/app/portalsimulation.js
-  -e env=test -e org=ttd -e level2app=apps-test -e appsaccesskey=*** -e sblaccesskey=*** -e username=*** -e userpwd=***
+  -e env=test -e org=ttd -e level2app=apps-test -e tokengenuser=*** -e tokengenuserpwd=***
 */
 
 import { check } from 'k6';
-import { SharedArray } from 'k6/data';
 import { addErrorCount, stopIterationOnFail } from '../../errorcounter.js';
 import * as appInstances from '../../api/app/instances.js';
 import * as appData from '../../api/app/data.js';
@@ -24,15 +23,10 @@ const level2App = __ENV.level2app;
 const environment = __ENV.env.toLowerCase();
 const tokenGeneratorUserName = __ENV.tokengenuser;
 const tokenGeneratorUserPwd = __ENV.tokengenuserpwd;
-const fileName = 'users_' + environment + '.json';
 
 let instanceFormDataXml = open('../../data/' + level2App + '.xml');
 let pdfAttachment = open('../../data/test_file_pdf.pdf', 'b');
 let bigAttachment = open('../../data/test_file_morethan_1mb.txt', 'b');
-let users = new SharedArray('test users', function () {
-  return JSON.parse(open('../../data/' + fileName));
-});
-const usersCount = users.length;
 
 export const options = {
   thresholds: {
@@ -40,31 +34,23 @@ export const options = {
   },
 };
 
-//Tests for App API : Portal simulation
-export default function () {
-  var userNumber = (__VU - 1) % usersCount;
-  var instanceId, dataId, res, success, attachmentDataType, isReceiptPdfGenerated;
-  var userSSN, userId, partyId, runtimeToken;
-
-  try {
-    userSSN = users[userNumber].username;
-    userId = users[userNumber].userid;
-    partyId = users[userNumber].partyid;
-  } catch (error) {
-    stopIterationOnFail('Testdata missing', false, null);
-  }
-
-  //Generate a personal token for a synthetic test user (replaces the Altinn 2 password login)
+export function setup() {
   var tokenGenParams = {
     env: environment,
     scopes: 'altinn:instances.read,altinn:instances.write',
-    userId: userId,
-    partyId: partyId,
-    authLvl: 3,
-    pid: userSSN,
   };
-  runtimeToken = generateToken('personal', tokenGeneratorUserName, tokenGeneratorUserPwd, tokenGenParams);
+  var runtimeToken = generateToken('personal', tokenGeneratorUserName, tokenGeneratorUserPwd, tokenGenParams);
+  var data = setUpData.getUserData(runtimeToken, appOwner, level2App);
+  data.RuntimeToken = runtimeToken;
   setUpData.clearCookies();
+  return data;
+}
+
+//Tests for App API : Portal simulation
+export default function (data) {
+  const runtimeToken = data['RuntimeToken'];
+  const partyId = data['partyId'];
+  var instanceId, dataId, res, success, attachmentDataType, isReceiptPdfGenerated;
 
   //get resources from Altinn CDN
   res = altinnCdn.getToolkits();
