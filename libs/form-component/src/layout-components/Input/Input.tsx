@@ -156,16 +156,30 @@ export interface InputLayoutControlProps {
   hasValidations?: boolean;
   /** The id of the element holding validation messages, used for aria-describedby. */
   validationsId?: string;
-  /** Change handler for the text/search variants. */
-  onChange?: InputFieldProps['onChange'];
-  /** Value-change handler for the number/pattern variants. */
-  onValueChange?: NumericFormatProps['onValueChange'];
+  /**
+   * Called with the new value for the text, search and pattern variants, and on paste. The
+   * component already filters out non-user-originated changes and normalises pasted input.
+   */
+  onChange?: (value: string) => void;
+  /**
+   * Called with the new value for the number variant. The wrapper commits the value and reports the
+   * canonical result via `reportResult`; the component uses that to decide whether to keep the
+   * user's in-progress input on screen (e.g. while typing trailing-zero decimals).
+   */
+  onNumberChange?: (value: string, reportResult: (result: NumberCommitResult) => void) => void;
   /** Blur handler for the text/search/pattern variants. */
   onBlur?: () => void;
-  /** Blur handler for the number variant (used to commit/clear the in-progress value). */
-  onNumberBlur?: () => void;
-  /** Paste handler for the number variant. */
-  onPaste?: (event: React.ClipboardEvent<HTMLInputElement>) => void;
+}
+
+/**
+ * The outcome of committing a value to the data layer, reported back to the component so it can
+ * decide whether to keep showing the user's in-progress input. Deliberately data-model-agnostic.
+ */
+export interface NumberCommitResult {
+  /** The canonical value the data layer stored after conversion/normalisation. */
+  convertedValue?: string;
+  /** Whether the committed value failed validation. */
+  error?: boolean;
 }
 
 export interface InputLayoutProps extends InputLayoutConfig, InputLayoutControlProps {}
@@ -257,11 +271,44 @@ export function InputLayout(props: InputLayoutProps) {
     hasValidations = false,
     validationsId,
     onChange,
-    onValueChange,
+    onNumberChange,
     onBlur,
-    onNumberBlur,
-    onPaste,
   } = props;
+
+  // Transient display value for the number variant: while the user types trailing-zero decimals
+  // (e.g. '123.000') the data layer normalises the stored value to '123', which would otherwise
+  // snap the field. We hold the user's input on screen until it no longer only differs by trailing
+  // zeros, or until blur. Owned here so the wrapper only commits data and reports the result.
+  const [localValue, setLocalValue] = React.useState<string | undefined>(undefined);
+
+  // react-number-format emits onValueChange both for user input and for prop-driven re-formatting
+  // (e.g. a visual-only decimalScale change). We only forward genuine user edits.
+  const handlePatternValueChange: NumericFormatProps['onValueChange'] = (values, sourceInfo) => {
+    if (sourceInfo.source === 'prop') {
+      return;
+    }
+    onChange?.(values.value);
+  };
+
+  const handleNumberValueChange: NumericFormatProps['onValueChange'] = (values, sourceInfo) => {
+    if (sourceInfo.source === 'prop') {
+      return;
+    }
+    const typed = values.value;
+    onNumberChange?.(typed, ({ convertedValue, error: hasError = true }) => {
+      const noZeroesAfterComma = typed.replace(/[.,]0+$/, '');
+      if (
+        !hasError &&
+        convertedValue !== undefined &&
+        typed !== convertedValue &&
+        noZeroesAfterComma === convertedValue
+      ) {
+        setLocalValue(typed);
+      } else {
+        setLocalValue(undefined);
+      }
+    });
+  };
 
   const { lang, translate, TranslateComponent } = useTranslation();
 
@@ -320,7 +367,7 @@ export function InputLayout(props: InputLayoutProps) {
             {...labelProps}
             value={value}
             type={variant.type}
-            onChange={onChange}
+            onChange={(event) => onChange?.(event.target.value)}
             characterLimit={characterLimit}
           />
         );
@@ -332,7 +379,7 @@ export function InputLayout(props: InputLayoutProps) {
             {...variant.format}
             value={value}
             type='text'
-            onValueChange={onValueChange}
+            onValueChange={handlePatternValueChange}
             characterLimit={characterLimit}
           />
         );
@@ -344,11 +391,20 @@ export function InputLayout(props: InputLayoutProps) {
             {...variant.format}
             prefix={translate(variant.format.prefix ?? '')}
             suffix={translate(variant.format.suffix ?? '')}
-            value={value}
+            value={localValue ?? value}
             type='text'
-            onBlur={onNumberBlur}
-            onValueChange={onValueChange}
-            onPaste={onPaste}
+            onBlur={() => setLocalValue(undefined)}
+            onValueChange={handleNumberValueChange}
+            onPaste={(event: React.ClipboardEvent<HTMLInputElement>) => {
+              // Workaround for a react-number-format bug that removes the decimal on paste, and for
+              // Norwegian users pasting a comma decimal separator. Resolve when this is fixed:
+              // https://github.com/s-yadav/react-number-format/issues/349
+              event.preventDefault();
+              if (readOnly) {
+                return;
+              }
+              onChange?.(event.clipboardData.getData('Text').replace(',', '.'));
+            }}
             characterLimit={characterLimit}
           />
         );

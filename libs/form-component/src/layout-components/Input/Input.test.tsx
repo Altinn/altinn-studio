@@ -1,12 +1,12 @@
 import { type ReactNode } from 'react';
 
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 // eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
 import { LanguageTranslatorProvider } from '../../LanguageTranslatorProvider';
 import { InputLayout } from './Input';
-import type { InputLayoutProps } from './Input';
+import type { InputLayoutProps, NumberCommitResult } from './Input';
 
 interface Stubs {
   lang?: (key: string | undefined) => ReactNode;
@@ -49,12 +49,46 @@ describe('InputLayout', () => {
     expect(screen.queryByText('First name')).not.toBeInTheDocument();
   });
 
-  it('forwards change events from the text variant', async () => {
+  it('forwards the new value from the text variant', async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     renderInput({ title: 'x', onChange });
     await user.type(screen.getByRole('textbox'), 'a');
-    expect(onChange).toHaveBeenCalled();
+    expect(onChange).toHaveBeenCalledWith('a');
+  });
+
+  it('forwards the new value and a result reporter from the number variant', async () => {
+    const user = userEvent.setup();
+    const onNumberChange = vi.fn();
+    renderInput({ title: 'x', numberFormat: { thousandSeparator: true }, onNumberChange });
+    await user.type(screen.getByRole('textbox'), '5');
+    expect(onNumberChange).toHaveBeenCalledWith('5', expect.any(Function));
+  });
+
+  it('keeps the typed value on screen while it only differs from the stored value by trailing decimal zeros', async () => {
+    const user = userEvent.setup();
+    // Mimic the data layer normalising the typed value (e.g. '5.0' -> '5') and report it back.
+    const onNumberChange = (value: string, reportResult: (r: NumberCommitResult) => void) =>
+      reportResult({ convertedValue: value.replace(/[.,]0+$/, ''), error: false });
+    renderInput({ title: 'x', numberFormat: { decimalSeparator: '.' }, onNumberChange });
+    const input = screen.getByRole('textbox');
+    await user.type(input, '5.0');
+    // Without the transient local value the field would snap to the normalised '5'.
+    expect(input).toHaveValue('5.0');
+  });
+
+  it('normalises a pasted comma decimal separator to a dot for the number variant', () => {
+    const onChange = vi.fn();
+    renderInput({ title: 'x', numberFormat: { decimalSeparator: ',' }, onChange });
+    fireEvent.paste(screen.getByRole('textbox'), { clipboardData: { getData: () => '1,5' } });
+    expect(onChange).toHaveBeenCalledWith('1.5');
+  });
+
+  it('does not forward a paste when read-only', () => {
+    const onChange = vi.fn();
+    renderInput({ title: 'x', numberFormat: { decimalSeparator: ',' }, readOnly: true, onChange });
+    fireEvent.paste(screen.getByRole('textbox'), { clipboardData: { getData: () => '1,5' } });
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   it('renders a search input for the search variant', () => {

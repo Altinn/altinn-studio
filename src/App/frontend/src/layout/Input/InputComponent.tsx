@@ -32,10 +32,7 @@ export function InputComponent({ baseComponentId, overrideDisplay }: PropsFromGe
     setValue,
   } = useDataModelBindings(dataModelBindings, saveWhileTyping);
 
-  const [localValue, setLocalValue] = React.useState<string | undefined>(undefined);
-  const formValue = localValue ?? realFormValue;
-  const numberFormat = useMapToReactNumberConfig(formatting, formValue)?.number;
-  const isPatternFormat = !!numberFormat && 'format' in numberFormat;
+  const numberFormat = useMapToReactNumberConfig(formatting, realFormValue)?.number;
 
   const debounce = FormStore.data.useDebounceImmediately();
   const isValid = useIsValid(baseComponentId);
@@ -62,61 +59,20 @@ export function InputComponent({ baseComponentId, overrideDisplay }: PropsFromGe
         renderLabel={overrideDisplay?.renderLabel}
         renderedInTable={overrideDisplay?.renderedInTable}
         rowReadOnly={overrideDisplay?.rowReadOnly}
-        value={formValue}
+        value={realFormValue}
         error={!isValid}
         hasValidations={hasValidations}
         validationsId={`${baseComponentId}-validations`}
-        onChange={(event) => {
-          setValue('simpleBinding', event.target.value);
-        }}
-        onValueChange={(values, sourceInfo) => {
-          if (sourceInfo.source === 'prop') {
-            // Do not update the value if the change is from props (i.e. let's not send form data updates when
-            // visual-only decimalScale changes)
-            return;
-          }
-          if (isPatternFormat) {
-            setValue('simpleBinding', values.value);
-            return;
-          }
-          setValue('simpleBinding', values.value, (result) => {
-            const noZeroesAfterComma = values.value.replace(/[.,]0+$/, '');
-            const converted = typeof result === 'object' ? result.convertedValue?.toString() : undefined;
-            const hasError = typeof result === 'object' ? result.error : true;
-            if (
-              !hasError &&
-              converted !== undefined &&
-              values.value !== converted &&
-              noZeroesAfterComma === converted
-            ) {
-              // Use local state temporarily when the value can be converted to a number, but the user is not
-              // yet sure if they're going to type more digits after zero-only decimals. I.e. they've typed
-              // '123.000' or similar. This will be stored as '123'.
-              setLocalValue(values.value);
-            } else {
-              setLocalValue(undefined);
-            }
-          });
+        onChange={(value) => setValue('simpleBinding', value)}
+        onNumberChange={(value, reportResult) => {
+          setValue('simpleBinding', value, (result) =>
+            reportResult({
+              convertedValue: typeof result === 'object' ? result.convertedValue?.toString() : undefined,
+              error: typeof result === 'object' ? result.error : true,
+            }),
+          );
         }}
         onBlur={() => debounce('blur')}
-        onNumberBlur={() => setLocalValue(undefined)}
-        onPaste={(event) => {
-          /* This is a workaround for a react-number-format bug that
-           * removes the decimal on paste.
-           * We should be able to remove it when this issue gets fixed:
-           * https://github.com/s-yadav/react-number-format/issues/349
-           *  */
-          event.preventDefault();
-          if (readOnly) {
-            return;
-          }
-          const pastedText = event.clipboardData.getData('Text');
-          if (pastedText.indexOf(',') !== -1) {
-            setValue('simpleBinding', pastedText.replace(',', '.'));
-          } else {
-            setValue('simpleBinding', pastedText);
-          }
-        }}
       />
     </ComponentStructureWrapper>
   );
