@@ -54,6 +54,7 @@ public class RepositoryService : IRepository
     private readonly IResourceRegistry _resourceRegistryService;
     private readonly ICustomTemplateService _templateService;
     private readonly IAuthorizationPolicyService _authorizationPolicyService;
+    private readonly IAppScopesService _appScopesService;
     private readonly JsonSerializerOptions _serializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -75,6 +76,7 @@ public class RepositoryService : IRepository
     /// <param name="resourceRegistryService">The service for publishing resource in the ResourceRegistry</param>
     /// <param name="templateService">The service for handling custom templates</param>
     /// <param name="authorizationPolicyService">The service for policy files</param>
+    /// <param name="appScopesService">The service for handling app scopes</param>
     public RepositoryService(
         ServiceRepositorySettings repositorySettings,
         GeneralSettings generalSettings,
@@ -87,7 +89,8 @@ public class RepositoryService : IRepository
         ITextsService textsService,
         IResourceRegistry resourceRegistryService,
         ICustomTemplateService templateService,
-        IAuthorizationPolicyService authorizationPolicyService
+        IAuthorizationPolicyService authorizationPolicyService,
+        IAppScopesService appScopesService
     )
     {
         _settings = repositorySettings;
@@ -102,6 +105,7 @@ public class RepositoryService : IRepository
         _resourceRegistryService = resourceRegistryService;
         _templateService = templateService;
         _authorizationPolicyService = authorizationPolicyService;
+        _appScopesService = appScopesService;
     }
 
     /// <summary>
@@ -307,6 +311,9 @@ public class RepositoryService : IRepository
                     Message = "App created",
                 };
                 _sourceControl.PushChangesForRepository(authenticatedContext, commitInfo);
+                await _appScopesService.AddDefaultMaskinportenScopesAsync(
+                    AltinnRepoEditingContext.FromOrgRepoDeveloper(org, serviceConfig.RepositoryName, developer)
+                );
             }
             catch (Exception)
             {
@@ -666,7 +673,10 @@ public class RepositoryService : IRepository
                 repository,
                 AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)
             );
-            string resourceFileName = GetResourceFileName(updatedResource.Identifier);
+            string resourceFileStructureName = ResourceAdminHelper.GetResourceFileStructureName(
+                updatedResource.Identifier
+            );
+            string resourceFileName = GetResourceFileName(resourceFileStructureName);
 
             foreach (FileSystemObject resourceFile in resourceFiles)
             {
@@ -693,10 +703,17 @@ public class RepositoryService : IRepository
     {
         try
         {
-            bool isResourceIdentifierValid =
-                !string.IsNullOrEmpty(newResource.Identifier)
-                && Regex.IsMatch(newResource.Identifier, _resourceIdentifierRegex)
-                && !newResource.Identifier.StartsWith("app_");
+            bool hasIdentifier = !string.IsNullOrEmpty(newResource.Identifier);
+            bool isValidFormat =
+                hasIdentifier
+                && (
+                    Regex.IsMatch(newResource.Identifier, _resourceIdentifierRegex)
+                    || ResourceAdminHelper.IsMigratedAltinn1App(newResource.Identifier)
+                );
+            bool isValidResourceType =
+                !newResource.Identifier.StartsWith("app_") || newResource.ResourceType == ResourceType.MigratedApp;
+
+            bool isResourceIdentifierValid = isValidFormat && isValidResourceType;
             if (!isResourceIdentifierValid)
             {
                 return new StatusCodeResult(400);
@@ -709,13 +726,18 @@ public class RepositoryService : IRepository
                     repository,
                     AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)
                 );
+
+                string resourceFileStructureName = ResourceAdminHelper.GetResourceFileStructureName(
+                    newResource.Identifier
+                );
+
                 string fullPathOfNewResource = Path.Combine(
                     repopath,
-                    newResource.Identifier.AsFileName(),
-                    GetResourceFileName(newResource.Identifier)
+                    resourceFileStructureName,
+                    GetResourceFileName(resourceFileStructureName)
                 );
                 string newResourceJson = System.Text.Json.JsonSerializer.Serialize(newResource, _serializerOptions);
-                Directory.CreateDirectory(Path.Combine(repopath, newResource.Identifier.AsFileName()));
+                Directory.CreateDirectory(Path.Combine(repopath, resourceFileStructureName));
                 File.WriteAllText(fullPathOfNewResource, newResourceJson);
 
                 return new StatusCodeResult(201);
@@ -746,10 +768,11 @@ public class RepositoryService : IRepository
         CancellationToken cancellationToken = default
     )
     {
+        string resourceFileStructureName = ResourceAdminHelper.GetResourceFileStructureName(identifier);
         List<ServiceResource> resourcesInRepo = await GetServiceResources(
             org,
             repository,
-            identifier,
+            resourceFileStructureName,
             cancellationToken
         );
         return resourcesInRepo.Where(r => r.Identifier == identifier).FirstOrDefault();

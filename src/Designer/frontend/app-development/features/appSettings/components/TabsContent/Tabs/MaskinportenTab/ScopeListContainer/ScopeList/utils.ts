@@ -1,4 +1,5 @@
 import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
+export { isDefaultMaskinportenScope } from 'app-development/utils/maskinportenScopes';
 
 export function mapSelectedValuesToMaskinportenScopes(
   selectedValues: string[],
@@ -17,26 +18,24 @@ export function combineSelectedAndMaskinportenScopes(
   selectedScopes: MaskinportenScope[],
   maskinportenScopes: MaskinportenScope[],
 ): MaskinportenScope[] {
-  const combinedScopesList: MaskinportenScope[] = mergeTwoScopeListsToOne(
-    maskinportenScopes,
-    selectedScopes,
-  );
+  return sortScopesForDisplay(mergeTwoScopeListsToOne(maskinportenScopes, selectedScopes));
+}
 
-  const selectedScopeNames = new Set<string>(
-    selectedScopes.map((scope: MaskinportenScope) => scope.scope),
-  );
+export function sortScopesForDisplay(scopes: MaskinportenScope[]): MaskinportenScope[] {
+  return [...scopes].sort((left: MaskinportenScope, right: MaskinportenScope) => {
+    const leftIsServiceOwnerScope = isServiceOwnerScope(left.scope);
+    const rightIsServiceOwnerScope = isServiceOwnerScope(right.scope);
 
-  return combinedScopesList.sort((left: MaskinportenScope, right: MaskinportenScope) => {
-    const leftIsSelected = selectedScopeNames.has(left.scope);
-    const rightIsSelected = selectedScopeNames.has(right.scope);
-
-    if (leftIsSelected !== rightIsSelected) {
-      return leftIsSelected ? -1 : 1;
+    if (leftIsServiceOwnerScope !== rightIsServiceOwnerScope) {
+      return leftIsServiceOwnerScope ? -1 : 1;
     }
 
     return left.scope.localeCompare(right.scope, undefined, { sensitivity: 'base' });
   });
 }
+
+const isServiceOwnerScope = (scopeName: string): boolean =>
+  scopeName.startsWith('altinn:serviceowner');
 
 const mergeTwoScopeListsToOne = (
   maskinPortenScopes: MaskinportenScope[],

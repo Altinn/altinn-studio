@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -112,13 +113,13 @@ func TestReleaseWorkflow_LocalRepo(t *testing.T) {
 	// 1) Release v1.0.0-preview.1 from main.
 	promoted := s.prepareAndMerge(previewV100p1, mainBranchName)
 	assertVersionSectionContains(t, promoted, previewV100p1, "First stable feature")
-	s.release(previewV100p1, mainBranchName, true)
+	s.release(previewV100p1, true)
 
 	// 2) Stabilize v1.0.0 by promoting the existing prerelease history.
 	promoted = s.prepareAndMerge(stableV100, releaseV100)
 	assertVersionOrder(t, promoted, stableV100, previewV100p1)
 	assertVersionSectionContains(t, promoted, stableV100, "First stable feature")
-	s.release(stableV100, releaseV100, false)
+	s.release(stableV100, false)
 
 	v110, previewV110p1 := v110.nextPrerelease(t, 1)
 	v110, previewV110p2 := v110.nextPrerelease(t, 2)
@@ -140,7 +141,7 @@ func TestReleaseWorkflow_LocalRepo(t *testing.T) {
 	// 3) Release v1.1.0-preview.1 on main.
 	promoted = s.prepareAndMerge(previewV110p1, mainBranchName)
 	assertVersionOrder(t, promoted, previewV110p1, stableV100)
-	s.release(previewV110p1, mainBranchName, true)
+	s.release(previewV110p1, true)
 
 	// 4) Bugfix on main.
 	s.landFeature(
@@ -162,14 +163,14 @@ func TestReleaseWorkflow_LocalRepo(t *testing.T) {
 	promoted = s.prepareAndMerge(previewV110p2, mainBranchName)
 	assertVersionOrder(t, promoted, previewV110p2, previewV110p1)
 	assertVersionOrder(t, promoted, previewV110p1, stableV100)
-	s.release(previewV110p2, mainBranchName, true)
+	s.release(previewV110p2, true)
 
 	// 6) Backport bugfix, then release v1.0.1 from release branch.
 	s.backportAndMerge(bugfixSHA, v100.lineVersion(), releaseV100, "Merge backport PR")
 	v100, patchV101 := v100.nextPatch(t, 1)
 	promoted = s.prepareAndMerge(patchV101, releaseV100)
 	assertVersionOrder(t, promoted, patchV101, stableV100)
-	s.release(patchV101, releaseV100, false)
+	s.release(patchV101, false)
 
 	runFinalizeAndNextPreviewSequence(t, s, finalizeAndPreviewArgs{
 		releaseV100:   releaseV100,
@@ -279,17 +280,11 @@ func TestRunWorkflow_StudioctlLikeRepo_LocalRepo(t *testing.T) {
 		rel("v1.2.0-preview.1", "2025-01-01", cat("Added", "Older studioctl preview")),
 	))
 
-	t.Chdir(repo.dir)
-	err := internal.RunWorkflow(t.Context(), internal.WorkflowRequest{
-		Component:             studioctlComponent,
-		BaseBranch:            mainBranchName,
-		DryRun:                true,
-		Draft:                 true,
-		UnsafeSkipBranchCheck: false,
-	}, logger)
-	if err != nil {
-		t.Fatalf("RunWorkflow() error = %v", err)
-	}
+	runReleaser(t, logger, repo.dir, "workflow",
+		"-component", studioctlComponent,
+		"-base-branch", mainBranchName,
+		"-dry-run",
+	)
 
 	outputDir := filepath.Join(repo.dir, "build", "release")
 	notes, readErr := os.ReadFile(filepath.Join(outputDir, "release-notes.md"))
@@ -661,9 +656,10 @@ func (s *workflowScenario) headSHA() string {
 	return strings.TrimSpace(runGit(s.t, s.log, s.repo.dir, "rev-parse", "HEAD"))
 }
 
-func (s *workflowScenario) release(version, target string, prerelease bool) {
+func (s *workflowScenario) release(version string, prerelease bool) {
 	s.t.Helper()
 	s.gh.reset()
+	target := s.headSHA()
 	workflow, err := internal.NewWorkflow(
 		s.t.Context(),
 		internal.WorkflowConfig{
@@ -733,7 +729,7 @@ func runFinalizeV110AndFirstV120Preview(t *testing.T, s *workflowScenario, args 
 	assertVersionSectionContains(
 		t, promotedStable110, args.stableV110, "Preview track feature", "Critical bugfix",
 	)
-	s.release(args.stableV110, args.releaseV110, false)
+	s.release(args.stableV110, false)
 
 	s.landFeature(
 		"feature/v120-preview1",
@@ -752,7 +748,7 @@ func runFinalizeV110AndFirstV120Preview(t *testing.T, s *workflowScenario, args 
 	)
 	promotedPreview120p1 := s.prepareAndMerge(args.previewV120p1, mainBranchName)
 	assertVersionOrder(t, promotedPreview120p1, args.previewV120p1, args.stableV110)
-	s.release(args.previewV120p1, mainBranchName, true)
+	s.release(args.previewV120p1, true)
 
 	s.landFeature(
 		"feature/v120-bugfix2",
@@ -790,7 +786,7 @@ func runBackportsAndSecondV120Preview(
 	promotedPreview120p2 := s.prepareAndMerge(args.previewV120p2, mainBranchName)
 	assertVersionOrder(t, promotedPreview120p2, args.previewV120p2, args.previewV120p1)
 	assertVersionOrder(t, promotedPreview120p2, args.previewV120p1, args.stableV110)
-	s.release(args.previewV120p2, mainBranchName, true)
+	s.release(args.previewV120p2, true)
 }
 
 func squashMergeBranch(t *testing.T, log internal.Logger, repoDir, sourceBranch, commitMsg string) {
@@ -812,6 +808,41 @@ func runGit(t *testing.T, log internal.Logger, dir string, args ...string) strin
 		t.Fatalf("git %s: %v", strings.Join(args, " "), err)
 	}
 	return out
+}
+
+func runReleaser(t *testing.T, log internal.Logger, dir string, args ...string) {
+	t.Helper()
+
+	if log == nil {
+		log = internal.NopLogger{}
+	}
+
+	bin := filepath.Join(t.TempDir(), "releaser")
+	if runtime.GOOS == "windows" {
+		bin += ".exe"
+	}
+	buildArgs := []string{"build", "-o", bin, "."}
+	log.Command("go", buildArgs)
+	buildCmd := exec.CommandContext(t.Context(), "go", buildArgs...)
+	buildCmd.Dir = cliRootDir()
+	buildOutput, err := buildCmd.CombinedOutput()
+	if len(buildOutput) > 0 {
+		log.Info("%s", strings.TrimSpace(string(buildOutput)))
+	}
+	if err != nil {
+		t.Fatalf("go %s: %v\n%s", strings.Join(buildArgs, " "), err, string(buildOutput))
+	}
+
+	log.Command(bin, args)
+	cmd := exec.CommandContext(t.Context(), bin, args...)
+	cmd.Dir = dir
+	output, err := cmd.CombinedOutput()
+	if len(output) > 0 {
+		log.Info("%s", strings.TrimSpace(string(output)))
+	}
+	if err != nil {
+		t.Fatalf("%s %s: %v\n%s", bin, strings.Join(args, " "), err, string(output))
+	}
 }
 
 func writeFile(t *testing.T, path, content string) {

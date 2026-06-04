@@ -2,6 +2,19 @@
 
 Simple release flow for a component.
 
+## Supported components
+
+- `studioctl`: uses a Go builder registered by the releaser CLI.
+- `fileanalyzers`: has no releaser builder; the GitHub workflow handles package build and publish.
+
+## Builders
+
+Component-specific artifact builders live in the releaser root as `builder_<component>.go`.
+Register built-in builders in `builder_00_register.go`.
+
+Components without a builder still support `prepare` and `workflow`; `workflow` creates a changelog-only
+GitHub release and leaves artifact build/publish to the component's CI workflow.
+
 ## Branches
 
 - `main`: prereleases (`vX.Y.Z-preview.N`)

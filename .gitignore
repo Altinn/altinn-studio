@@ -81,6 +81,7 @@ ipch/
 *.opensdf
 *.sdf
 *.cachefile
+*.lscache
 
 # Visual Studio profiler
 *.psess
@@ -165,6 +166,7 @@ AppPackages/
 
 # Others
 *.Cache
+*.lscache
 ClientBin/
 [Ss]tyle[Cc]op.*
 !stylecop.json

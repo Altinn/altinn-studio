@@ -1,8 +1,8 @@
 import React from 'react';
 
+import { Button } from '@app/form-component';
 import { Link } from '@digdir/designsystemet-react';
 
-import { Button } from 'src/app-components/Button/Button';
 import { Lang } from 'src/features/language/Lang';
 import { useProfile } from 'src/features/profile/ProfileProvider';
 import { SigningPanel } from 'src/layout/SigningActions/PanelSigning';

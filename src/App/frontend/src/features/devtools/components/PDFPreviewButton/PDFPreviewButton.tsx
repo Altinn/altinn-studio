@@ -1,9 +1,9 @@
 import React from 'react';
 
+import { Button } from '@app/form-component';
 import { Fieldset } from '@digdir/designsystemet-react';
 import { FilePdfIcon } from '@navikt/aksel-icons';
 
-import { Button } from 'src/app-components/Button/Button';
 import { PDFGeneratorPreview } from 'src/components/PDFGeneratorPreview/PDFGeneratorPreview';
 import classes from 'src/features/devtools/components/PDFPreviewButton/PDFPreview.module.css';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';

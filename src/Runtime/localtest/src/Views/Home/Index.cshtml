@@ -26,7 +26,7 @@
       } else {
         <pre>
           @(Model.HttpException.ToString())
-          @(Model.HttpException.StackTrace.ToString())
+          @(Model.HttpException.StackTrace?.ToString())
         </pre>
       }
     </div>
@@ -60,11 +60,31 @@
       @using (Html.BeginForm("LogInTestUser", "Home", FormMethod.Post, new { Class = "form-signin", enctype = "multipart/form-data" }))
       {
         @Html.AntiForgeryToken();
+        @Html.HiddenFor(model => model.RedirectUrl);
         @if(Model.TestApps != null)
         {
           <div class="form-group">
             <label for="AppPathSelection">Select app to test</label>
-            @Html.DropDownListFor(model => model.AppPathSelection, Model.TestApps, new { Class = "form-control", id = "AppPathSelection" })
+            <select class="form-control" id="AppPathSelection" name="AppPathSelection">
+              @foreach (var app in Model.TestApps)
+              {
+                if (app.Selected)
+                {
+                  <option value="@app.Value"
+                          selected="selected"
+                          data-show-frontend-version-switcher="@app.ShowFrontendVersionSwitcher.ToString().ToLowerInvariant()">
+                    @app.Text
+                  </option>
+                }
+                else
+                {
+                  <option value="@app.Value"
+                          data-show-frontend-version-switcher="@app.ShowFrontendVersionSwitcher.ToString().ToLowerInvariant()">
+                    @app.Text
+                  </option>
+                }
+              }
+            </select>
           </div>
         }
         <div class="form-group">
@@ -91,7 +111,7 @@
 
     @if(!string.IsNullOrWhiteSpace(Model.LocalFrontendUrl))
     {
-      <div class="alert alert-primary" role="alert">
+      <div class="alert alert-primary @(Model.ShowFrontendVersionSwitcher ? string.Empty : "d-none")" id="frontendVersionAlert" role="alert">
         Using @Model.LocalFrontendDescription. @Html.ActionLink("Use a different frontend version", "Index", "FrontendVersion")
       </div>
     }
@@ -105,8 +125,21 @@
     const prefillLink = document.getElementById('prefillLink');
     const prefillOrg = document.getElementById('prefillOrg');
     const authLevelSelect = document.querySelector('select[name="AuthenticationLevel"]');
+    const frontendVersionNavItem = document.getElementById('frontendVersionNavItem');
+    const frontendVersionAlert = document.getElementById('frontendVersionAlert');
     let userHasManuallyChangedAuthLevel = false;
     let currentRequestApp = null;
+
+    const updateFrontendVersionVisibility = () => {
+      if (!appSelect) {
+        return;
+      }
+
+      const selectedOption = appSelect.options[appSelect.selectedIndex];
+      const showFrontendVersionSwitcher = selectedOption?.dataset.showFrontendVersionSwitcher !== 'false';
+      frontendVersionNavItem?.classList.toggle('d-none', !showFrontendVersionSwitcher);
+      frontendVersionAlert?.classList.toggle('d-none', !showFrontendVersionSwitcher);
+    };
 
     if (appSelect && prefillLink && prefillOrg && authLevelSelect) {
       authLevelSelect.addEventListener('change', () => {
@@ -124,7 +157,11 @@
         if (response.ok && selectedApp === currentRequestApp && !userHasManuallyChangedAuthLevel) {
           authLevelSelect.value = await response.text();
         }
+
+        updateFrontendVersionVisibility();
       });
+
+      updateFrontendVersionVisibility();
     }
   });
 </script>

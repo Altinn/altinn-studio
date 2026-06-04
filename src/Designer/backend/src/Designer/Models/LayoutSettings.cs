@@ -11,6 +11,12 @@ public class LayoutSettings
     [JsonPropertyName("pages")]
     public Pages? Pages { get; set; }
 
+    [JsonPropertyName("defaultDataType")]
+    public string? DataType { get; set; }
+
+    [JsonPropertyName("type")]
+    public string? Type { get; set; }
+
     [JsonExtensionData]
     public IDictionary<string, object?>? UnknownProperties { get; set; }
 }

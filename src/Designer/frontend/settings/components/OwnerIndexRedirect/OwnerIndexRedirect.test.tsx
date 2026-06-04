@@ -64,6 +64,11 @@ describe('OwnerIndexRedirect', () => {
     expect(screen.getByText('User page')).toBeInTheDocument();
   });
 
+  it('redirects to the api-keys page when owner matches the logged-in user with different casing', () => {
+    renderOwnerIndexRedirect('/TestUser');
+    expect(screen.getByText('User page')).toBeInTheDocument();
+  });
+
   it('renders the no-org-selected message when owner matches the logged-in user and studioOidc is disabled', () => {
     mockEnvironment.environment = { featureFlags: { studioOidc: false } };
     mockUseFeatureFlag.mockReturnValue(true);

@@ -68,10 +68,13 @@ func newClient(ctx context.Context, toolchain types.ContainerToolchain) (*Client
 		closeBestEffort(cli)
 		return nil, fmt.Errorf("failed to connect to docker daemon: %w", err)
 	}
+	toolchain = normalizeToolchain(toolchain, "")
+	toolchain = withVersionMetadata(ctx, cli, toolchain)
+	toolchain.SELinux = detectSELinuxEnabled(ctx, cli)
 
 	return &Client{
 		cli:       cli,
-		toolchain: normalizeToolchain(toolchain, ""),
+		toolchain: toolchain,
 	}, nil
 }
 
@@ -97,10 +100,13 @@ func newClientWithHost(ctx context.Context, toolchain types.ContainerToolchain, 
 		closeBestEffort(cli)
 		return nil, fmt.Errorf("failed to connect to docker daemon: %w", err)
 	}
+	toolchain = normalizeToolchain(toolchain, strings.TrimPrefix(host, "unix://"))
+	toolchain = withVersionMetadata(ctx, cli, toolchain)
+	toolchain.SELinux = detectSELinuxEnabled(ctx, cli)
 
 	return &Client{
 		cli:       cli,
-		toolchain: normalizeToolchain(toolchain, strings.TrimPrefix(host, "unix://")),
+		toolchain: toolchain,
 	}, nil
 }
 
@@ -110,6 +116,32 @@ func normalizeToolchain(toolchain types.ContainerToolchain, socketPath string) t
 		toolchain.SocketPath = socketPath
 	}
 	return toolchain
+}
+
+type versionClient interface {
+	ClientVersion() string
+	ServerVersion(ctx context.Context) (dockertypes.Version, error)
+}
+
+func withVersionMetadata(
+	ctx context.Context,
+	cli versionClient,
+	toolchain types.ContainerToolchain,
+) types.ContainerToolchain {
+	// ClientVersion is the negotiated Docker API version; ServerVersion is the daemon version.
+	toolchain.ClientVersion = cli.ClientVersion()
+	if version, err := cli.ServerVersion(ctx); err == nil {
+		toolchain.ServerVersion = version.Version
+	}
+	return toolchain
+}
+
+func detectSELinuxEnabled(ctx context.Context, cli *client.Client) bool {
+	info, err := cli.Info(ctx)
+	if err != nil {
+		return false
+	}
+	return infoHasSELinux(info)
 }
 
 // DetectPlatform probes the daemon reached via environment configuration.
@@ -302,10 +334,12 @@ func buildDockerConfigs(
 
 	hostCfg := &dockercontainer.HostConfig{
 		PortBindings:  portBindings,
-		Mounts:        buildBindMounts(cfg.Volumes),
+		Binds:         buildVolumeBinds(cfg.Volumes),
+		Mounts:        buildMounts(cfg.Volumes),
 		ExtraHosts:    cfg.ExtraHosts,
 		RestartPolicy: buildRestartPolicy(cfg.RestartPolicy),
 		NetworkMode:   dockercontainer.NetworkMode(primaryNetwork),
+		UsernsMode:    dockercontainer.UsernsMode(cfg.UsernsMode),
 		CapAdd:        capAdd,
 	}
 
@@ -358,9 +392,12 @@ func buildRestartPolicy(policy string) dockercontainer.RestartPolicy {
 	return rp
 }
 
-func buildBindMounts(volumes []types.VolumeMount) []dockermount.Mount {
+func buildMounts(volumes []types.VolumeMount) []dockermount.Mount {
 	mounts := make([]dockermount.Mount, 0, len(volumes))
 	for _, v := range volumes {
+		if v.Type == types.VolumeMountTypeBind && v.SELinuxRelabel != types.SELinuxRelabelNone {
+			continue
+		}
 		mounts = append(mounts, dockermount.Mount{
 			Type:     dockerMountType(v.Type),
 			Source:   v.HostPath,
@@ -369,6 +406,24 @@ func buildBindMounts(volumes []types.VolumeMount) []dockermount.Mount {
 		})
 	}
 	return mounts
+}
+
+func buildVolumeBinds(volumes []types.VolumeMount) []string {
+	var binds []string
+	for _, v := range volumes {
+		if v.Type != types.VolumeMountTypeBind || v.SELinuxRelabel == types.SELinuxRelabelNone {
+			continue
+		}
+		options := make([]string, 0, 2)
+		if v.ReadOnly {
+			options = append(options, "ro")
+		}
+		options = append(options, string(v.SELinuxRelabel))
+
+		bind := v.HostPath + ":" + v.ContainerPath + ":" + strings.Join(options, ",")
+		binds = append(binds, bind)
+	}
+	return binds
 }
 
 func dockerMountType(mountType types.VolumeMountType) dockermount.Type {
@@ -434,6 +489,15 @@ func platformFromInfo(info systemtypes.Info) (types.ContainerPlatform, bool) {
 	values = append(values, info.SecurityOptions...)
 
 	return platformFromStrings(values...)
+}
+
+func infoHasSELinux(info systemtypes.Info) bool {
+	for _, option := range info.SecurityOptions {
+		if strings.Contains(strings.ToLower(option), "selinux") {
+			return true
+		}
+	}
+	return false
 }
 
 func platformFromStrings(values ...string) (types.ContainerPlatform, bool) {

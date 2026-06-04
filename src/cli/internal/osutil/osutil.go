@@ -10,6 +10,8 @@ import (
 const fallbackCommandName = "studioctl"
 
 const (
+	// DisableTerminalDecorationsEnv disables ANSI colors, animated spinners, and Unicode status markers.
+	DisableTerminalDecorationsEnv = "STUDIOCTL_DISABLE_TERMINAL_DECORATIONS"
 	// OSLinux is the runtime.GOOS value for Linux.
 	OSLinux = "linux"
 	// OSDarwin is the runtime.GOOS value for macOS.

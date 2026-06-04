@@ -1,3 +1,5 @@
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
@@ -47,6 +49,18 @@ namespace LocalTest.Controllers.Authentication
             string token = _authenticationService.GenerateToken(principal);
             _logger.LogInformation("End of refreshing token");
             return await Task.FromResult(Ok(token));
+        }
+
+        [AllowAnonymous]
+        [HttpGet("authentication")]
+        public ActionResult Authenticate([FromQuery(Name = "goto")] string goTo)
+        {
+            if (string.IsNullOrWhiteSpace(goTo))
+            {
+                return Redirect("/");
+            }
+
+            return Redirect($"/?goto={Uri.EscapeDataString(goTo)}");
         }
 
         [HttpGet("orgToken")]

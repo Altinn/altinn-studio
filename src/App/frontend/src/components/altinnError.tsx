@@ -1,8 +1,8 @@
 import React from 'react';
 
+import { FatalError } from '@app/form-component';
 import cn from 'classnames';
 
-import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import classes from 'src/components/altinnError.module.css';
 import { Lang } from 'src/features/language/Lang';
 import { getHelpCircleIllustrationUrl } from 'src/utils/urls/appUrlHelper';
@@ -44,7 +44,7 @@ export const AltinnError = ({
         </span>
       )}
       <h1 className={cn(classes.title, classes.contentMargin)}>{title}</h1>
-      <p className={cn(classes.articleText, classes.contentMargin)}>{content}</p>
+      <section className={cn(classes.articleText, classes.contentMargin)}>{content}</section>
       {showContactInfo && (
         <p>
           <Lang

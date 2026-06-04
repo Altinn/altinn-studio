@@ -1,9 +1,9 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
+import { Flex } from '@app/form-component';
 import cn from 'classnames';
 
-import { Flex } from 'src/app-components/Flex/Flex';
 import classes from 'src/components/AltinnCollapsible.module.css';
 
 export interface IAltinnCollapsibleListProps extends PropsWithChildren {

@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { Button } from 'src/app-components/Button/Button';
+import { Button } from '@app/form-component';
+
 import { useAttachmentState } from 'src/features/attachments/hooks';
 import { FormStore } from 'src/features/form/FormContext';
 import { getUiConfig } from 'src/features/form/ui';
@@ -81,6 +82,7 @@ export const ButtonComponent = ({ baseComponentId, ...componentProps }: PropsFro
         id={item.id}
         onClick={submitTask}
         isLoading={isProcessingNext || isConfirming}
+        loadingLabel={langAsString('general.loading')}
         disabled={disabled}
         color='success'
       >

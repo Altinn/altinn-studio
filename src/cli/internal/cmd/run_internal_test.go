@@ -140,6 +140,29 @@ func TestParseRunFlagsCanDisableRandomHostPort(t *testing.T) {
 	}
 }
 
+func TestParseRunFlagsReadsDevFrontend(t *testing.T) {
+	t.Parallel()
+
+	cmd := &RunCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	flags, _, _, err := cmd.parseRunFlags([]string{"--dev-frontend"}, "run")
+	if err != nil {
+		t.Fatalf("parseRunFlags() error = %v", err)
+	}
+	if !flags.devFrontend {
+		t.Fatal("devFrontend = false, want true")
+	}
+}
+
+func TestRunAppFrontendAssetBaseUrlUsesTopologyFrontendDevServer(t *testing.T) {
+	t.Parallel()
+
+	got := runAppFrontendAssetBaseUrl(envtopology.NewLocal("8000"), runFlags{devFrontend: true})
+	want := "http://app-frontend.local.altinn.cloud:8000"
+	if got != want {
+		t.Fatalf("runAppFrontendAssetBaseUrl() = %q, want %q", got, want)
+	}
+}
+
 func TestRunDetachedOutputPrintJSON(t *testing.T) {
 	t.Parallel()
 
@@ -277,6 +300,15 @@ func TestDotnetRunCommandEnvDoesNotEnableAnsiColorForDetached(t *testing.T) {
 	t.Parallel()
 
 	got := dotnetRunCommandEnv([]string{"PATH=/bin"}, runFlags{detach: true}, true)
+	if envContainsPrefix(got, dotnetAnsiColorRedirectionEnv+"=") {
+		t.Fatalf("env = %v, did not want %s", got, dotnetAnsiColorRedirectionEnv)
+	}
+}
+
+func TestDotnetRunCommandEnvDoesNotEnableAnsiColorWhenOutputIsNotTerminal(t *testing.T) {
+	t.Parallel()
+
+	got := dotnetRunCommandEnv([]string{"PATH=/bin"}, runFlags{}, false)
 	if envContainsPrefix(got, dotnetAnsiColorRedirectionEnv+"=") {
 		t.Fatalf("env = %v, did not want %s", got, dotnetAnsiColorRedirectionEnv)
 	}

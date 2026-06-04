@@ -8,15 +8,72 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.12] - 2026-06-04
+
+### Added
+
+- Show resolved container runtime client/server versions in `studioctl doctor`.
+
+### Changed
+
+- Update localtest and workflow-engine images.
+
+### Fixed
+
+- Ignore stale Podman container health status when no healthcheck command is configured.
+- Warn in `studioctl doctor` when the Podman CLI client/server versions differ.
+- Run localtest PDF and workflow-engine service containers with their image default user to avoid Podman `keep-id` group mapping failures on macOS.
+
+## [0.1.0-preview.11] - 2026-05-29
+
+### Added
+
+- Add `apps search` for discovering app repositories in Altinn Studio.
+
+### Fixed
+
+- Support starting localtest with rootless Podman setups where the host user has a large domain UID/GID outside the default subordinate ID mapping.
+- Relabel localtest bind mounts on SELinux-enabled Podman setups so containers can read generated resources.
+
+## [0.1.0-preview.10] - 2026-05-22
+
+### Changed
+
+- Update localtest image.
+
+### Fixed
+
+- Fix Windows PowerShell installer architecture detection.
+- Make Windows installs fall back to the default location when no usable interactive prompt is available.
+- Support `studioctl self update` and `studioctl self uninstall` on Windows by completing binary replacement/removal after the running process exits.
+- Render plain output in Windows PowerShell ISE to avoid unreadable ANSI codes and spinner/status glyphs.
+- Clean up stale `studioctl` update artifacts from the Windows install directory during uninstall.
+
+## [0.1.0-preview.9] - 2026-05-22
+
+### Added
+
+- Add `studioctl auth login --with-token` for logging in with an existing Studio/Designer API key from standard input.
+
+### Changed
+
+- Update localtest image.
+
+## [0.1.0-preview.8] - 2026-05-13
+
 ### Changed
 
 - Breaking: make `--follow` default to `false` for log commands.
 - Breaking: rename `studioctl servers` to `studioctl server`.
+- Breaking: simplify install scripts by removing `--repo`, `--asset`, `--skip-resources`, `STUDIOCTL_REPO`, `STUDIOCTL_ASSET`, and `STUDIOCTL_SKIP_RESOURCES`.
 - Rename `app-manager` to `studioctl-server`, including install/update migration cleanup of legacy runtime files, installed payload, and logs.
 - Show progress while `app run --mode container` pulls/builds and starts the app container.
+- `studioctl self uninstall` now asks for confirmation; use `-y` or `--yes` for non-interactive uninstall.
+- `studioctl auth` uses login through web browser/auth code and Ansattporten session to create Studio API key.
 
 ### Fixed
 
+- Redirect unauthenticated app URLs opened from `studioctl app run` through the localtest login page.
 - Keep running apps visible in localtest after restarting the localtest environment.
 - Improve localtest resource reconciliation so `env up` removes managed resources that are no longer requested, such as pgAdmin or monitoring, without restarting unchanged core containers.
 

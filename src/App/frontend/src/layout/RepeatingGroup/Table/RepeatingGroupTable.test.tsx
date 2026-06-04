@@ -335,6 +335,43 @@ describe('RepeatingGroupTable', () => {
     });
   });
 
+  describe('buttonLayout', () => {
+    const { setScreenWidth } = mockMediaQuery(992);
+    beforeEach(() => {
+      setScreenWidth(1337);
+    });
+
+    it('should render a single action column when buttonLayout is vertical', async () => {
+      const groupWithVerticalButtons = getFormLayoutRepeatingGroupMock({
+        id: 'mock-container-id',
+        edit: { buttonLayout: 'vertical' },
+      });
+      const layout = getLayout(groupWithVerticalButtons, components);
+      await render(layout);
+      const columnHeaders = screen.getAllByRole('columnheader');
+      expect(columnHeaders).toHaveLength(5);
+    });
+
+    it('should keep compact icon-only behavior in view mode when using vertical button layout', async () => {
+      const groupWithVerticalCompactButtons = getFormLayoutRepeatingGroupMock({
+        id: 'mock-container-id',
+        edit: { compactButtons: true, buttonLayout: 'vertical' },
+      });
+      const layout = getLayout(groupWithVerticalCompactButtons, components);
+      await render(layout);
+      const editButtons = screen.getAllByRole('button', { name: /Rediger/i });
+      const deleteButtons = screen.getAllByRole('button', { name: /Slett/i });
+      expect(editButtons).toHaveLength(4);
+      expect(deleteButtons).toHaveLength(4);
+      editButtons.forEach((button) => {
+        expect(button).not.toHaveTextContent('Rediger');
+      });
+      deleteButtons.forEach((button) => {
+        expect(button).not.toHaveTextContent('Slett');
+      });
+    });
+  });
+
   const render = (
     layout = getLayout(group, components),
     formData: object = {

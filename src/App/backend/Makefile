@@ -35,22 +35,22 @@ test: build
 # All projects (analyzers, integration tests...)
 .PHONY: clean-all
 clean-all:
-	dotnet clean -v q solutions/All.sln
+	dotnet clean -v q solutions/All.slnx
 
 .PHONY: restore-all
 restore-all:
 	@echo "Restoring NuGet packages..."
-	dotnet restore -v q solutions/All.sln
+	dotnet restore -v q solutions/All.slnx
 
 .PHONY: build-all
 build-all: restore-all
 	@echo "Building all projects..."
-	dotnet build --no-restore -v m solutions/All.sln
+	dotnet build --no-restore -v m solutions/All.slnx
 
 .PHONY: test-all
 test-all: build-all
 	@echo "Running all tests..."
-	dotnet test --no-restore --no-build -v m solutions/All.sln
+	dotnet test --no-restore --no-build -v m solutions/All.slnx
 
 # Only integration tests
 .PHONY: test-integration

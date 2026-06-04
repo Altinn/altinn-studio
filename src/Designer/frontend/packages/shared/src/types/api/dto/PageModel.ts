@@ -12,4 +12,5 @@ export type GroupModel = {
   order: PageModel[];
   type?: GroupType;
   markWhenCompleted?: boolean;
+  expandedByDefault?: boolean;
 };
