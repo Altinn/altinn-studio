@@ -7,7 +7,7 @@ import type { PropsFromGenericComponent } from 'src/layout';
 
 export class Audio extends AudioDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Audio'>>(
-    function LayoutComponentImageRender(props, _): JSX.Element | null {
+    function LayoutComponentAudioRender(props, _): JSX.Element | null {
       return <AudioComponent {...props} />;
     },
   );
