@@ -29,15 +29,16 @@ func New(ctx context.Context, toolchain types.ContainerToolchain) (*Client, erro
 	if _, err := exec.LookPath("podman"); err != nil {
 		return nil, fmt.Errorf("podman not found in PATH: %w", err)
 	}
-	// Verify podman is responsive
-	cmd := processutil.CommandContext(ctx, "podman", "version", "--format", "{{.Version}}")
-	if err := cmd.Run(); err != nil {
-		return nil, fmt.Errorf("podman not responsive: %w", err)
+	version, err := podmanVersion(ctx)
+	if err != nil {
+		return nil, err
 	}
 	toolchain.AccessMode = types.AccessPodmanCLI
 	if toolchain.Platform == types.PlatformUnknown {
 		toolchain.Platform = types.PlatformPodman
 	}
+	toolchain.ClientVersion = version.ClientVersion
+	toolchain.ServerVersion = version.ServerVersion
 	toolchain.SELinux = detectSELinuxEnabled(ctx)
 	return &Client{toolchain: toolchain}, nil
 }
@@ -50,6 +51,45 @@ func (c *Client) Close() error {
 // Toolchain returns the resolved platform and access mode metadata.
 func (c *Client) Toolchain() types.ContainerToolchain {
 	return c.toolchain
+}
+
+type podmanVersionInfo struct {
+	ClientVersion string
+	ServerVersion string
+}
+
+func podmanVersion(ctx context.Context) (podmanVersionInfo, error) {
+	cmd := processutil.CommandContext(ctx, "podman", "version", "--format", "json")
+	output, err := cmd.Output()
+	if err != nil {
+		return podmanVersionInfo{}, fmt.Errorf("podman not responsive: %w", err)
+	}
+
+	version, err := parsePodmanVersion(output)
+	if err != nil {
+		return podmanVersionInfo{}, fmt.Errorf("parse podman version: %w", err)
+	}
+
+	return version, nil
+}
+
+func parsePodmanVersion(output []byte) (podmanVersionInfo, error) {
+	var version struct {
+		Client struct {
+			Version string `json:"Version"`
+		} `json:"Client"`
+		Server struct {
+			Version string `json:"Version"`
+		} `json:"Server"`
+	}
+	if err := json.Unmarshal(output, &version); err != nil {
+		return podmanVersionInfo{}, fmt.Errorf("unmarshal podman version: %w", err)
+	}
+
+	return podmanVersionInfo{
+		ClientVersion: version.Client.Version,
+		ServerVersion: version.Server.Version,
+	}, nil
 }
 
 func reportProgress(onProgress types.ProgressHandler, progress types.ProgressUpdate) {
@@ -279,7 +319,7 @@ func (c *Client) ContainerState(ctx context.Context, nameOrID string) (types.Con
 
 	return types.ContainerState{
 		Status:       state.Status,
-		HealthStatus: podmanHealthStatus(state.Health.Status, state.Healthcheck.Status),
+		HealthStatus: podmanStateHealthStatus(state.Health.Status, state.Healthcheck.Status),
 		Running:      state.Running,
 		Paused:       state.Paused,
 		ExitCode:     state.ExitCode,
@@ -438,7 +478,8 @@ func (c *Client) ImagePullWithProgress(
 
 type containerInspectInfo struct {
 	Config struct {
-		Labels map[string]string `json:"Labels"`
+		Labels      map[string]string       `json:"Labels"`
+		Healthcheck podmanHealthcheckConfig `json:"Healthcheck"`
 	} `json:"Config"`
 	ID              string `json:"Id"`
 	Name            string `json:"Name"`
@@ -466,6 +507,10 @@ type podmanHealthInfo struct {
 	Status string `json:"Status"`
 }
 
+type podmanHealthcheckConfig struct {
+	Test []string `json:"Test"`
+}
+
 func parseContainerInspect(output []byte) (types.ContainerInfo, error) {
 	var info []containerInspectInfo
 	if err := json.Unmarshal(output, &info); err != nil {
@@ -483,16 +528,35 @@ func parseContainerInspect(output []byte) (types.ContainerInfo, error) {
 		Labels:  info[0].Config.Labels,
 		Ports:   publishedPortsFromPodmanInspect(info[0].NetworkSettings.Ports),
 		State: types.ContainerState{
-			Status:       info[0].State.Status,
-			HealthStatus: podmanHealthStatus(info[0].State.Health.Status, info[0].State.Healthcheck.Status),
-			Running:      info[0].State.Running,
-			Paused:       info[0].State.Paused,
-			ExitCode:     info[0].State.ExitCode,
+			Status: info[0].State.Status,
+			HealthStatus: podmanHealthStatus(
+				info[0].Config.Healthcheck,
+				info[0].State.Health.Status,
+				info[0].State.Healthcheck.Status,
+			),
+			Running:  info[0].State.Running,
+			Paused:   info[0].State.Paused,
+			ExitCode: info[0].State.ExitCode,
 		},
 	}, nil
 }
 
-func podmanHealthStatus(health, healthcheck string) string {
+func podmanHealthStatus(config podmanHealthcheckConfig, health, healthcheck string) string {
+	if !podmanHealthcheckConfigured(config) {
+		// Config.Healthcheck is the effective healthcheck command configured for the container.
+		// State.Health.Status is the runtime result of that command. If no command is configured,
+		// Podman cannot run a healthcheck or transition the container to "healthy", even if
+		// State.Health.Status is present. Ignore the status in that case.
+		return ""
+	}
+	return podmanStateHealthStatus(health, healthcheck)
+}
+
+func podmanHealthcheckConfigured(config podmanHealthcheckConfig) bool {
+	return len(config.Test) > 0 && !strings.EqualFold(config.Test[0], "none")
+}
+
+func podmanStateHealthStatus(health, healthcheck string) string {
 	if health != "" {
 		return health
 	}
