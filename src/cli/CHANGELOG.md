@@ -8,6 +8,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.12] - 2026-06-04
+
 ### Added
 
 - Show resolved container runtime client/server versions in `studioctl doctor`.
