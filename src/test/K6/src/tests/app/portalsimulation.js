@@ -123,7 +123,7 @@ export default function (data) {
   }
 
   //Test to get validate instance; a fresh instance returns no validation issues (empty array) on the new app backend
-  res = appInstances.getValidateInstance(runtimeToken, partyId, instanceId, appOwner, level2App, appOwner, level2App);
+  res = appInstances.getValidateInstance(runtimeToken, partyId, instanceId, appOwner, level2App);
   success = check(res, {
     'E2E App GET Validate Instance returns no issues on a fresh instance': (r) => {
       try {
