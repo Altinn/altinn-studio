@@ -1,3 +1,10 @@
+/* Workaround to make the combobox shrink on narrow screens */
+.container [class*='ds-combobox__input__wrapper'],
+.container [class*='ds-combobox__chip-and-input'],
+.container input {
+  min-width: 0;
+}
+
 .readOnly > div {
   background: var(--ds-color-neutral-surface-tinted);
   border-color: var(--ds-color-neutral-border-subtle);
@@ -47,4 +54,17 @@
       var(--_dsc-input-diagonal-3),
       var(--_dsc-input-diagonal-4)
     );
+}
+
+.optionalIndicator {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--ds-color-neutral-text-subtle, #6a6a6a);
+}
+
+.popoverButtonContainer {
+  display: flex;
+  flex-direction: row;
+  margin-top: 0.625rem;
+  gap: 0.625rem;
 }
