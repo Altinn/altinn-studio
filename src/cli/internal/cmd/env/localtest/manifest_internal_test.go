@@ -28,6 +28,28 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 	assertWorkflowEngineContainerConfig(t, mustContainerSpec(t, resources, components.ContainerWorkflowEngine))
 }
 
+func TestCoreContainers_ServiceContainersUseImageUser(t *testing.T) {
+	t.Setenv(config.EnvCI, "")
+
+	opts := newResourceBuildOptions(t.TempDir(), false)
+	opts.RuntimeUser = "501:20"
+	opts.RuntimeUsernsMode = "keep-id"
+
+	resources := mustManifest(t, opts).Resources
+	for _, name := range []string{components.ContainerPDF3, components.ContainerWorkflowEngine} {
+		container := findResource(resources, resource.ContainerID(name))
+		if container == nil {
+			t.Fatalf("manifest missing %q", name)
+		}
+		if container.User != "" {
+			t.Fatalf("%s.User = %q, want image default", name, container.User)
+		}
+		if container.UsernsMode != "" {
+			t.Fatalf("%s.UsernsMode = %q, want image default", name, container.UsernsMode)
+		}
+	}
+}
+
 func assertLocaltestContainerConfig(t *testing.T, localtest components.ContainerSpec, dataDir string) {
 	t.Helper()
 	topology := testTopology()

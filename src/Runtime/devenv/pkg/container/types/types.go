@@ -183,10 +183,14 @@ func (s DetectionSource) String() string {
 // ContainerToolchain describes the selected platform and how this package talks to it.
 type ContainerToolchain struct {
 	SocketPath string
-	Platform   ContainerPlatform
-	AccessMode ContainerAccessMode
-	Source     DetectionSource
-	SELinux    bool
+	// ClientVersion is the local CLI version or negotiated API client version when available.
+	ClientVersion string
+	// ServerVersion is the remote daemon/runtime version when available.
+	ServerVersion string
+	Platform      ContainerPlatform
+	AccessMode    ContainerAccessMode
+	Source        DetectionSource
+	SELinux       bool
 }
 
 // PortMapping defines a container port binding.
