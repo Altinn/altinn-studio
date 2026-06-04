@@ -9,6 +9,7 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
+using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository;
 
@@ -442,17 +443,26 @@ public class GitRepository
     /// <param name="relativeFilePath">Relative path to the file to get the absolute path for.</param>
     protected string GetAbsoluteFileOrDirectoryPathSanitized(string relativeFilePath)
     {
-        if (relativeFilePath.StartsWith("/") || relativeFilePath.StartsWith("\\"))
+        Guard.AssertNotNullOrEmpty(relativeFilePath, nameof(relativeFilePath));
+        // Normalize separators first so rooted-path checks are consistent across platforms.
+        relativeFilePath = relativeFilePath.Replace('\\', Path.DirectorySeparatorChar);
+        // Reject absolute/rooted input from callers. Only repository-relative paths are allowed.
+
+        if (Path.IsPathRooted(relativeFilePath))
         {
-            relativeFilePath = relativeFilePath[1..];
+            throw new BadHttpRequestException("Invalid file path.");
         }
 
-        // We do this to avoid paths like c:\altinn\repositories\developer\org\repo\..\..\somefile.txt
-        // By first combining the paths, the getting the full path you will get c:\altinn\repositories\developer\org\repo\somefile.txt
-        // This also makes it easier to avoid people trying to get outside their repository directory.
-        relativeFilePath = relativeFilePath.Replace('\\', Path.DirectorySeparatorChar);
-        string absoluteFilePath = Path.Combine(RepositoryDirectory, relativeFilePath);
-        absoluteFilePath = Path.GetFullPath(absoluteFilePath);
+        string repositoryRoot = Path.GetFullPath(RepositoryDirectory);
+        string absoluteFilePath = Path.GetFullPath(Path.Combine(repositoryRoot, relativeFilePath));
+        string repositoryRootWithSeparator = repositoryRoot.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        if (
+            !absoluteFilePath.Equals(repositoryRoot, StringComparison.Ordinal)
+            && !absoluteFilePath.StartsWith(repositoryRootWithSeparator, StringComparison.Ordinal)
+        )
+        {
+            throw new BadHttpRequestException("Invalid file path.");
+        }
         return absoluteFilePath;
     }
 
