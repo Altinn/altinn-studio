@@ -8,6 +8,22 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.12] - 2026-06-04
+
+### Added
+
+- Show resolved container runtime client/server versions in `studioctl doctor`.
+
+### Changed
+
+- Update localtest and workflow-engine images.
+
+### Fixed
+
+- Ignore stale Podman container health status when no healthcheck command is configured.
+- Warn in `studioctl doctor` when the Podman CLI client/server versions differ.
+- Run localtest PDF and workflow-engine service containers with their image default user to avoid Podman `keep-id` group mapping failures on macOS.
+
 ## [0.1.0-preview.11] - 2026-05-29
 
 ### Added

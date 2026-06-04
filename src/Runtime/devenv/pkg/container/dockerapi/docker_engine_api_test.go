@@ -1,6 +1,7 @@
 package dockerapi
 
 import (
+	"context"
 	"errors"
 	"io"
 	"slices"
@@ -19,6 +20,7 @@ import (
 var errNetworkActiveEndpoints = errors.New(
 	`error response from daemon: error while removing network: network altinntestlocal_network has active endpoints`,
 )
+var errServerVersionUnavailable = errors.New("server version unavailable")
 
 func TestBuildMounts(t *testing.T) {
 	t.Parallel()
@@ -240,6 +242,52 @@ func TestInfoHasSELinux(t *testing.T) {
 				t.Fatalf("infoHasSELinux() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestWithVersionMetadata(t *testing.T) {
+	t.Parallel()
+
+	toolchain := withVersionMetadata(
+		t.Context(),
+		fakeVersionClient{
+			clientVersion: "1.51",
+			serverVersion: dockertypes.Version{
+				Version: "28.2.2",
+			},
+		},
+		types.ContainerToolchain{
+			Platform:   types.PlatformDocker,
+			AccessMode: types.AccessDockerEngineAPI,
+			Source:     types.SourceDefault,
+		},
+	)
+
+	if toolchain.ClientVersion != "1.51" {
+		t.Fatalf("withVersionMetadata() ClientVersion = %q, want 1.51", toolchain.ClientVersion)
+	}
+	if toolchain.ServerVersion != "28.2.2" {
+		t.Fatalf("withVersionMetadata() ServerVersion = %q, want 28.2.2", toolchain.ServerVersion)
+	}
+}
+
+func TestWithVersionMetadataIgnoresServerVersionError(t *testing.T) {
+	t.Parallel()
+
+	toolchain := withVersionMetadata(
+		t.Context(),
+		fakeVersionClient{
+			clientVersion: "1.51",
+			err:           errServerVersionUnavailable,
+		},
+		types.ContainerToolchain{},
+	)
+
+	if toolchain.ClientVersion != "1.51" {
+		t.Fatalf("withVersionMetadata() ClientVersion = %q, want 1.51", toolchain.ClientVersion)
+	}
+	if toolchain.ServerVersion != "" {
+		t.Fatalf("withVersionMetadata() ServerVersion = %q, want empty", toolchain.ServerVersion)
 	}
 }
 
@@ -634,4 +682,18 @@ func TestUpdateTrackedProgress_ReplacesProgressWhenPhaseChanges(t *testing.T) {
 	if got.phase != "Extracting" || got.current != 10 || got.total != 100 {
 		t.Fatalf("tracked progress = %+v, want phase=Extracting current=10 total=100", got)
 	}
+}
+
+type fakeVersionClient struct {
+	err           error
+	serverVersion dockertypes.Version
+	clientVersion string
+}
+
+func (c fakeVersionClient) ClientVersion() string {
+	return c.clientVersion
+}
+
+func (c fakeVersionClient) ServerVersion(context.Context) (dockertypes.Version, error) {
+	return c.serverVersion, c.err
 }
