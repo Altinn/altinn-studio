@@ -5,7 +5,6 @@ import dot from 'dot-object';
 
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
-import { FormStore } from 'src/features/form/FormContext';
 import { evalQueryParameters } from 'src/features/options/evalQueryParameters';
 import { ObjectToGroupLayoutValidator } from 'src/features/saveToGroup/ObjectToGroupLayoutValidator';
 import { validateGroupIsEmpty } from 'src/features/saveToGroup/useValidateGroupIsEmpty';
@@ -17,7 +16,11 @@ import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/hooks';
 import type { ComponentValidation } from 'src/features/validation';
-import type { ComponentValidationContext, PropsFromGenericComponent } from 'src/layout';
+import type {
+  ComponentValidationContext,
+  DataModelBindingValidationContext,
+  PropsFromGenericComponent,
+} from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
@@ -94,12 +97,14 @@ export class List extends ListDef {
     return <ObjectToGroupLayoutValidator {...props} />;
   }
 
-  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'List'>): string[] {
+  validateDataModelBindings(
+    baseComponentId: string,
+    bindings: IDataModelBindings<'List'>,
+    { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
+  ): string[] {
     const errors: string[] = [];
     const allowedLeafTypes = ['string', 'boolean', 'number', 'integer'];
     const groupBinding = bindings?.group;
-    const lookupBinding = FormStore.bootstrap.useLookupBinding();
-    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
 
     if (groupBinding) {
       const [groupErrors] = validateDataModelBindingsAny(

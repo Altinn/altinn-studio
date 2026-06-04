@@ -1,6 +1,5 @@
 import React, { forwardRef } from 'react';
 
-import { FormStore } from 'src/features/form/FormContext';
 import { ApiTable } from 'src/layout/SimpleTable/ApiTable';
 import { ApiTableSummary } from 'src/layout/SimpleTable/ApiTableSummary';
 import { SimpleTableDef } from 'src/layout/SimpleTable/config.def.generated';
@@ -9,16 +8,18 @@ import { SimpleTableFeatureFlagLayoutValidator } from 'src/layout/SimpleTable/Si
 import { SimpleTableSummary } from 'src/layout/SimpleTable/SimpleTableSummary';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/hooks';
-import type { PropsFromGenericComponent } from 'src/layout';
+import type { DataModelBindingValidationContext, PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class SimpleTable extends SimpleTableDef {
-  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'SimpleTable'>): string[] {
-    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
+  validateDataModelBindings(
+    baseComponentId: string,
+    bindings: IDataModelBindings<'SimpleTable'>,
+    { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
+  ): string[] {
     const component = layoutLookups.getComponent(baseComponentId, 'SimpleTable');
-    const lookupBinding = FormStore.bootstrap.useLookupBinding();
     const [errors, result] = validateDataModelBindingsAny(
       baseComponentId,
       bindings,

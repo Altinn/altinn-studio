@@ -1,14 +1,13 @@
-import { FormStore } from 'src/features/form/FormContext';
 import { isDataModelBindingsRequired } from 'src/layout';
 import { validateDataModelBindingsList, validateDataModelBindingsSimple } from 'src/utils/layout/validation/hooks';
+import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 
-export function useFileUploaderDataBindingsValidation<T extends 'FileUpload' | 'FileUploadWithTag' | 'ImageUpload'>(
+export function validateFileUploaderDataBindings<T extends 'FileUpload' | 'FileUploadWithTag' | 'ImageUpload'>(
   baseComponentId: string,
   bindings: IDataModelBindings<T>,
+  { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
 ): string[] {
-  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const lookupBinding = FormStore.bootstrap.useLookupBinding();
   const isRequired = isDataModelBindingsRequired(baseComponentId, layoutLookups);
   const hasBinding = bindings && ('simpleBinding' in bindings || 'list' in bindings);
 

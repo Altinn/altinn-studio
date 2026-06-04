@@ -3,13 +3,13 @@ import type { JSX } from 'react';
 
 import type {
   ComponentValidationContext,
+  DataModelBindingValidationContext,
   PropsFromGenericComponent,
   ValidateComponent,
   ValidationFilter,
   ValidationFilterFunction,
 } from '..';
 
-import { FormStore } from 'src/features/form/FormContext';
 import { FrontendValidationSource } from 'src/features/validation';
 import { claimGridRowsChildren } from 'src/layout/Grid/claimGridRowsChildren';
 import { RepeatingGroupDef } from 'src/layout/RepeatingGroup/config.def.generated';
@@ -110,9 +110,11 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
     return true;
   }
 
-  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'RepeatingGroup'>): string[] {
-    const lookupBinding = FormStore.bootstrap.useLookupBinding();
-    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
+  validateDataModelBindings(
+    baseComponentId: string,
+    bindings: IDataModelBindings<'RepeatingGroup'>,
+    { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
+  ): string[] {
     const [errors, result] = validateDataModelBindingsAny(
       baseComponentId,
       bindings,

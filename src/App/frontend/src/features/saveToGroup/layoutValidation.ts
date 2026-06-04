@@ -1,17 +1,16 @@
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
-import { FormStore } from 'src/features/form/FormContext';
 import { validateDataModelBindingsAny, validateDataModelBindingsSimple } from 'src/utils/layout/validation/hooks';
+import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 
-export function useValidateSimpleBindingWithOptionalGroup<T extends 'Checkboxes' | 'MultipleSelect'>(
+export function validateSimpleBindingWithOptionalGroup<T extends 'Checkboxes' | 'MultipleSelect'>(
   baseComponentId: string,
   bindings: IDataModelBindings<T>,
+  { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
 ) {
   const errors: string[] = [];
   const allowedLeafTypes = ['string', 'boolean', 'number', 'integer'];
   const { group: groupBinding, simpleBinding, label: labelBinding, metadata: metadataBinding } = bindings ?? {};
-  const lookupBinding = FormStore.bootstrap.useLookupBinding();
-  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
 
   if (groupBinding) {
     const [groupErrors] = validateDataModelBindingsAny(
