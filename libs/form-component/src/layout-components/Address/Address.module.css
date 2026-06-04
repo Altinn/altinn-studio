@@ -18,3 +18,13 @@
 .addressComponentSmallInputs {
   max-width: 90px;
 }
+
+.optionalIndicator {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--ds-color-neutral-text-subtle, #6a6a6a);
+}
+
+.helpTextContainer {
+  padding: 2px 4px;
+}
