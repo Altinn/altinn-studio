@@ -7,6 +7,7 @@ import type { UserEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { codeLists, coloursFile } from './test-data/codeLists';
 import { screen, within } from '@studio/ui-test';
+import { FileNameUtils } from '@studio/pure-functions';
 
 // Test data:
 const onPublish = jest.fn();
@@ -28,7 +29,8 @@ describe('CodeListsPage', () => {
   it('Renders with the given code lists', () => {
     renderCodeListPage();
     codeLists.forEach((codeList) => {
-      expect(screen.getDetailsBySummary(codeList.name)).toBeInTheDocument();
+      const expectedVisibleName = FileNameUtils.removeExtension(codeList.name);
+      expect(screen.getDetailsBySummary(expectedVisibleName)).toBeInTheDocument();
     });
   });
 
@@ -73,7 +75,7 @@ describe('CodeListsPage', () => {
     const user = userEvent.setup();
     renderCodeListPage();
 
-    const nameField = getNameField(coloursFile.name);
+    const nameField = getNameField(FileNameUtils.removeExtension(coloursFile.name));
     const newName = 'a';
     await user.clear(nameField);
     await user.type(nameField, newName);
