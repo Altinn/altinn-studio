@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -12,6 +13,8 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.Extensions.Logging;
+
+namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class UiFoldersService : IUiFoldersService
 {
@@ -25,7 +28,16 @@ public class UiFoldersService : IUiFoldersService
     }
 
     private AltinnAppGitRepository GetRepository(AltinnRepoEditingContext editingContext) =>
-        _altinnGitRepositoryFactory.GetAltinnAppGitRepository(editingContext.Org, editingContext.Repo, editingContext.Developer);
+        _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            editingContext.Org,
+            editingContext.Repo,
+            editingContext.Developer
+        );
+
+    private string SanitizeForLog(string input)
+    {
+        return input.Replace('\r', ' ').Replace('\n', ' ');
+    }
 
     public async Task<IEnumerable<LayoutSetDto>> GetLayoutSetsExtended(
         AltinnRepoEditingContext editingContext,
@@ -57,17 +69,19 @@ public class UiFoldersService : IUiFoldersService
                     continue;
                 }
 
-                string taskType = TaskTypeFromDefinitions(definitions, layoutSetName);
+                string? taskType = hasMatchingTask ? TaskTypeFromDefinitions(definitions, layoutSetName) : null;
                 PagesDto pages = PagesDto.From(layoutSettings);
+                int pageCount =
+                    pages.Groups != null ? pages.Groups.Sum(group => group.Pages.Count) : pages.Pages!.Count;
+
                 layoutSets.Add(
                     new LayoutSetDto
                     {
                         Id = layoutSetName,
                         DataType = layoutSettings.DataType,
                         Type = layoutSettings.Type,
-                        Task = new TaskModel { Type = taskType },
-                        PageCount =
-                            pages.Groups != null ? pages.Groups.Sum(group => group.Pages.Count) : pages.Pages!.Count,
+                        Task = taskType != null ? new TaskModel { Type = taskType } : null,
+                        PageCount = pageCount,
                     }
                 );
             }
@@ -76,7 +90,7 @@ public class UiFoldersService : IUiFoldersService
                 _logger.LogWarning(
                     e,
                     "Could not read Settings.json for layout set {LayoutSetName}. Skipping.",
-                    layoutSetName
+                    SanitizeForLog(layoutSetName)
                 );
             }
         }
@@ -118,6 +132,111 @@ public class UiFoldersService : IUiFoldersService
 
         globalSettingsFile.ValidationOnNavigation = config;
         await altinnAppGitRepository.SaveGlobalSettingsFile(globalSettingsFile);
+    }
+
+    public async Task<Dictionary<string, ValidationOnNavigation?>> GetLayoutSetsValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        IEnumerable<string> layoutSetIds,
+        CancellationToken cancellationToken
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository repository = GetRepository(editingContext);
+        Dictionary<string, ValidationOnNavigation?> results = [];
+        foreach (string layoutSetId in layoutSetIds)
+        {
+            try
+            {
+                LayoutSettings layoutSettings = await repository.GetLayoutSettings(layoutSetId, cancellationToken);
+                results[layoutSetId] = layoutSettings.Pages?.ValidationOnNavigation;
+            }
+            catch (Exception e) when (e is FileNotFoundException or JsonException)
+            {
+                _logger.LogWarning(
+                    e,
+                    "Could not read Settings.json for layout set {LayoutSetId}. Skipping.",
+                    SanitizeForLog(layoutSetId)
+                );
+            }
+        }
+        return results;
+    }
+
+    public async Task SaveLayoutSetsValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        IEnumerable<string> layoutSetIds,
+        ValidationOnNavigation? config,
+        CancellationToken cancellationToken
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository repository = GetRepository(editingContext);
+        foreach (string layoutSetId in layoutSetIds)
+        {
+            LayoutSettings layoutSettings = await repository.GetLayoutSettings(layoutSetId, cancellationToken);
+            layoutSettings.Pages ??= new Pages();
+            layoutSettings.Pages.ValidationOnNavigation = config;
+            await repository.SaveLayoutSettings(layoutSetId, layoutSettings);
+        }
+    }
+
+    public async Task<Dictionary<string, ValidationOnNavigation?>> GetPagesValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetId,
+        IEnumerable<string> pageIds,
+        CancellationToken cancellationToken
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository repository = GetRepository(editingContext);
+        Dictionary<string, ValidationOnNavigation?> results = [];
+        foreach (string pageId in pageIds)
+        {
+            try
+            {
+                JsonNode layout = await repository.GetLayout(layoutSetId, pageId, cancellationToken);
+                results[pageId] = layout["data"]?["validationOnNavigation"]?.Deserialize<ValidationOnNavigation>();
+            }
+            catch (Exception e) when (e is FileNotFoundException or JsonException)
+            {
+                _logger.LogWarning(
+                    e,
+                    "Could not read layout file for page {PageId} in layout set {LayoutSetId}. Skipping.",
+                    SanitizeForLog(pageId),
+                    layoutSetId
+                );
+            }
+        }
+        return results;
+    }
+
+    public async Task SavePagesValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetId,
+        IEnumerable<string> pageIds,
+        ValidationOnNavigation? config,
+        CancellationToken cancellationToken
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository repository = GetRepository(editingContext);
+        foreach (string pageId in pageIds)
+        {
+            JsonNode layout = await repository.GetLayout(layoutSetId, pageId, cancellationToken);
+
+            if (config == null)
+            {
+                layout["data"]?.AsObject().Remove("validationOnNavigation");
+            }
+            else
+            {
+                JsonObject data = layout["data"]?.AsObject() ?? [];
+                data["validationOnNavigation"] = JsonSerializer.SerializeToNode(config);
+                layout["data"] = data;
+            }
+
+            await repository.SaveLayout(layoutSetId, pageId, layout, cancellationToken);
+        }
     }
 
     public async Task<IEnumerable<TaskNavigationGroupDto>> GetGlobalTaskNavigationDto(

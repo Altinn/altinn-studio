@@ -1,3 +1,5 @@
+#nullable disable
+
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Events.Models

@@ -1,0 +1,17 @@
+# KEDA TriggerAuthentication for the github-runner scaler.
+#
+# The .name + .secretTargetRef[0].name + .secretTargetRef[0].key fields here
+# are pinned to the same values runner-org-sync writes via env on its CronJob
+# (RUNNER_ORG_SYNC_KEDA_PAT_SECRET_NAME / _SECRET_KEY) and the same name the
+# workload chart references (charts/gitea-org-runner values.yaml's
+# keda.authenticationRef.name). If you rename any of them, change all four
+# places at once or KEDA scalers will fail with "auth ref not found".
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: keda-gitea-auth
+spec:
+  secretTargetRef:
+    - parameter: personalAccessToken
+      name: keda-gitea-pat
+      key: token

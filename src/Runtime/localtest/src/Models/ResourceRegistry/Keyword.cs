@@ -1,4 +1,6 @@
-﻿namespace Altinn.ResourceRegistry.Core.Models
+#nullable disable
+
+namespace Altinn.ResourceRegistry.Core.Models
 {
     /// <summary>
     /// Model for defining keywords

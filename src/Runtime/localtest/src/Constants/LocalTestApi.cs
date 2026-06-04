@@ -1,3 +1,5 @@
+#nullable disable
+
 namespace LocalTest.Constants
 {
     public static class LocalTestApi
