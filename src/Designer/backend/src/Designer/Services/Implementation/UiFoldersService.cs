@@ -42,12 +42,22 @@ public class UiFoldersService : IUiFoldersService
         _logger = logger;
     }
 
-    private AltinnAppGitRepository GetRepository(AltinnRepoEditingContext editingContext) =>
-        _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+    private AltinnAppGitRepository GetRepository(
+        AltinnRepoEditingContext editingContext,
+        CancellationToken cancellationToken
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
             editingContext.Org,
             editingContext.Repo,
             editingContext.Developer
         );
+    }
+
+    private static bool ProcessHasTask(Definitions definitions, string taskId) =>
+        definitions.Process.Tasks.Any(task => task.Id == taskId);
 
     public async Task<IEnumerable<LayoutSetDto>> GetLayoutSets(
         AltinnRepoEditingContext editingContext,
@@ -90,6 +100,24 @@ public class UiFoldersService : IUiFoldersService
             Task = info.TaskType != null ? new TaskModel { Type = info.TaskType } : null,
         };
 
+    private static async Task ValidateNewLayoutSetName(
+        AltinnAppGitRepository altinnAppGitRepository,
+        string layoutSetName,
+        CancellationToken cancellationToken
+    )
+    {
+        if (!Regex.IsMatch(layoutSetName, LayoutSetNameRegEx))
+        {
+            throw new InvalidLayoutSetIdException("New layout set name is not valid.");
+        }
+
+        IEnumerable<string> existingLayoutSets = await altinnAppGitRepository.GetUiFolders(cancellationToken);
+        if (existingLayoutSets.Contains(layoutSetName))
+        {
+            throw new NonUniqueLayoutSetIdException($"Layout set name, {layoutSetName}, already exists.");
+        }
+    }
+
     public async Task<IEnumerable<LayoutSetDto>> AddLayoutSet(
         AltinnRepoEditingContext editingContext,
         LayoutSetConfig newLayoutSet,
@@ -97,19 +125,20 @@ public class UiFoldersService : IUiFoldersService
         CancellationToken cancellationToken
     )
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext);
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
-        if (!Regex.IsMatch(newLayoutSet.Id, LayoutSetNameRegEx))
-        {
-            throw new InvalidLayoutSetIdException("New layout set name is not valid.");
-        }
+        await ValidateNewLayoutSetName(altinnAppGitRepository, newLayoutSet.Id, cancellationToken);
 
-        IEnumerable<string> existingLayoutSets = await altinnAppGitRepository.GetUiFolders(cancellationToken);
-        if (existingLayoutSets.Contains(newLayoutSet.Id))
-        {
-            throw new NonUniqueLayoutSetIdException($"Layout set name, {newLayoutSet.Id}, already exists.");
-        }
+        // if (!Regex.IsMatch(newLayoutSet.Id, LayoutSetNameRegEx))
+        // {
+        //     throw new InvalidLayoutSetIdException("New layout set name is not valid.");
+        // }
+
+        // IEnumerable<string> existingLayoutSets = await altinnAppGitRepository.GetUiFolders(cancellationToken);
+        // if (existingLayoutSets.Contains(newLayoutSet.Id))
+        // {
+        //     throw new NonUniqueLayoutSetIdException($"Layout set name, {newLayoutSet.Id}, already exists.");
+        // }
 
         try
         {
@@ -137,24 +166,14 @@ public class UiFoldersService : IUiFoldersService
         CancellationToken cancellationToken
     )
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext);
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
-        if (!Regex.IsMatch(newLayoutSetName, LayoutSetNameRegEx))
-        {
-            throw new InvalidLayoutSetIdException("New layout set name is not valid.");
-        }
-
-        IEnumerable<string> existingLayoutSets = await altinnAppGitRepository.GetUiFolders(cancellationToken);
-        if (existingLayoutSets.Contains(newLayoutSetName))
-        {
-            throw new NonUniqueLayoutSetIdException($"Layout set name, {newLayoutSetName}, already exists.");
-        }
+        await ValidateNewLayoutSetName(altinnAppGitRepository, newLayoutSetName, cancellationToken);
 
         // In v9 a non-subform layout set's folder name equals its process task id, so renaming such a
         // layout set must also rename the corresponding task in the process definition.
         Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
-        bool isTaskConnected = definitions.Process.Tasks.Any(task => task.Id == oldLayoutSetName);
+        bool isTaskConnected = ProcessHasTask(definitions, oldLayoutSetName);
 
         altinnAppGitRepository.ChangeLayoutSetFolderName(oldLayoutSetName, newLayoutSetName, cancellationToken);
 
@@ -213,8 +232,7 @@ public class UiFoldersService : IUiFoldersService
         CancellationToken cancellationToken
     )
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext);
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
         string? dataType = (
             await TryGetLayoutSettings(altinnAppGitRepository, layoutSetToDeleteId, cancellationToken)
@@ -462,8 +480,7 @@ public class UiFoldersService : IUiFoldersService
         CancellationToken cancellationToken
     )
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext);
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
         IEnumerable<string> uiFolders = await altinnAppGitRepository.GetUiFolders(cancellationToken);
         Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
@@ -514,8 +531,7 @@ public class UiFoldersService : IUiFoldersService
         CancellationToken cancellationToken
     )
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext);
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
         UiSettings globalSettingsFile = await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken);
         return globalSettingsFile?.ValidationOnNavigation;
@@ -527,8 +543,7 @@ public class UiFoldersService : IUiFoldersService
         CancellationToken cancellationToken
     )
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext);
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
         UiSettings globalSettingsFile =
             await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken) ?? new UiSettings();
@@ -562,9 +577,7 @@ public class UiFoldersService : IUiFoldersService
         CancellationToken cancellationToken
     )
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext);
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
         UiSettings globalSettingsFile = await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken);
         return globalSettingsFile?.TaskNavigation?.ToList() ?? [];
@@ -575,8 +588,7 @@ public class UiFoldersService : IUiFoldersService
         CancellationToken cancellationToken
     )
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext);
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
         Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
         return definitions.Process.Tasks;
@@ -588,9 +600,7 @@ public class UiFoldersService : IUiFoldersService
         CancellationToken cancellationToken
     )
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext);
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
         IEnumerable<TaskNavigationGroup> taskNavigationGroupList = taskNavigationGroupDtoList.Select(x => x.ToDomain());
 
