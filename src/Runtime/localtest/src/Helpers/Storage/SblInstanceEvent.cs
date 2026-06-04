@@ -1,3 +1,5 @@
+#nullable disable
+
 using System;
 using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;

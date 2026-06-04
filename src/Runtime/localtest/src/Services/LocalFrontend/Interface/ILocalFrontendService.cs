@@ -1,4 +1,3 @@
-#nullable enable
 using LocalTest.Models;
 
 namespace LocalTest.Services.LocalFrontend.Interface;
