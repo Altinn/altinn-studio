@@ -44,6 +44,7 @@ export const useAddLayoutSetMutation = (org: string, app: string) => {
       if (isLayoutSets(layoutSets)) {
         queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSets);
         queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSetsExtendedV4, org, app] });
+        queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSetsExtended, org, app] });
       }
     },
   });
