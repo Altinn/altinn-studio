@@ -103,6 +103,16 @@ func TestRunWorkflow_SelectsLatestPrereleaseForMain(t *testing.T) {
 	if !strings.Contains(string(content), "Latest preview notes") {
 		t.Fatalf("release notes did not use latest prerelease:\n%s", string(content))
 	}
+	for _, want := range []string{
+		"## Install or update",
+		"studioctl self update",
+		"https://altinn.studio/designer/api/v1/studioctl/install.sh",
+		"https://altinn.studio/designer/api/v1/studioctl/install.ps1",
+	} {
+		if !strings.Contains(string(content), want) {
+			t.Fatalf("release notes missing studioctl install/update text %q:\n%s", want, string(content))
+		}
+	}
 	const prereleaseCompare = "**Full Changelog**: https://github.com/Altinn/altinn-studio/compare/studioctl/v1.2.0-preview.1...studioctl/v1.2.0-preview.2"
 	if !strings.Contains(string(content), prereleaseCompare) {
 		t.Fatalf("release notes missing compare link %q:\n%s", prereleaseCompare, string(content))
@@ -256,6 +266,28 @@ func createStudioctlWorkflowRepo(t *testing.T, changelog string) string {
 	runGitCmd(t, repoDir, "config", "user.name", "Test User")
 
 	writeRepoFile(t, repoDir, "src/cli/CHANGELOG.md", changelog)
+	writeRepoFile(t, repoDir, "src/cli/RELEASE_NOTES_INTRO.md", `## Install or update
+
+Update an existing installation:
+
+~~~sh
+studioctl self update
+~~~
+
+Install a new copy:
+
+Linux and macOS:
+
+~~~sh
+curl -sSL https://altinn.studio/designer/api/v1/studioctl/install.sh | sh
+~~~
+
+Windows PowerShell:
+
+~~~powershell
+iwr https://altinn.studio/designer/api/v1/studioctl/install.ps1 -useb | iex
+~~~
+`)
 	writeRepoFile(t, repoDir, "README.md", "test\n")
 
 	runGitCmd(t, repoDir, "add", ".")
