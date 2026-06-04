@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -516,8 +517,7 @@ func (w *Workflow) withComponentReleaseNotesIntro(notes string) (string, error) 
 	if err != nil {
 		return "", err
 	}
-	//nolint:gosec // G304: path is built from trusted component metadata and validated under repo root.
-	intro, err := os.ReadFile(introPath)
+	intro, err := fs.ReadFile(os.DirFS(w.config.RepoRoot), introPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return strings.TrimSpace(notes), nil
@@ -536,7 +536,11 @@ func (w *Workflow) componentReleaseNotesIntroPath() (string, error) {
 	if rel == "." || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
 		return "", fmt.Errorf("%w: %s", errUnsafeReleaseNotesPath, introPath)
 	}
-	return introPath, nil
+	rel = filepath.ToSlash(rel)
+	if !fs.ValidPath(rel) {
+		return "", fmt.Errorf("%w: %s", errUnsafeReleaseNotesPath, introPath)
+	}
+	return rel, nil
 }
 
 func withReleaseNotesIntro(notes, intro string) string {
