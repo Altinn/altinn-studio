@@ -6,7 +6,7 @@ import dot from 'dot-object';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getCommaSeparatedOptionsToText } from 'src/features/options/getCommaSeparatedOptionsToText';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
-import { useValidateSimpleBindingWithOptionalGroup } from 'src/features/saveToGroup/layoutValidation';
+import { validateSimpleBindingWithOptionalGroup } from 'src/features/saveToGroup/layoutValidation';
 import { ObjectToGroupLayoutValidator } from 'src/features/saveToGroup/ObjectToGroupLayoutValidator';
 import { validateGroupIsEmpty } from 'src/features/saveToGroup/useValidateGroupIsEmpty';
 import { MultipleChoiceSummary } from 'src/layout/Checkboxes/MultipleChoiceSummary';
@@ -16,7 +16,11 @@ import { MultipleSelectSummary } from 'src/layout/MultipleSelect/MultipleSelectS
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { ComponentValidation } from 'src/features/validation';
-import type { ComponentValidationContext, PropsFromGenericComponent } from 'src/layout';
+import type {
+  ComponentValidationContext,
+  DataModelBindingValidationContext,
+  PropsFromGenericComponent,
+} from 'src/layout';
 import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -84,7 +88,11 @@ export class MultipleSelect extends MultipleSelectDef {
     return <ObjectToGroupLayoutValidator {...props} />;
   }
 
-  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'MultipleSelect'>): string[] {
-    return useValidateSimpleBindingWithOptionalGroup(baseComponentId, bindings);
+  validateDataModelBindings(
+    baseComponentId: string,
+    bindings: IDataModelBindings<'MultipleSelect'>,
+    context: DataModelBindingValidationContext,
+  ): string[] {
+    return validateSimpleBindingWithOptionalGroup(baseComponentId, bindings, context);
   }
 }

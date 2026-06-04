@@ -11,10 +11,15 @@ import { FileUploadLayoutValidator } from 'src/layout/FileUpload/FileUploadLayou
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
 import { validateAttachmentDataElements } from 'src/layout/FileUpload/useValidateAttachmentDataElements';
 import { validateMinNumberOfAttachmentsForNode } from 'src/layout/FileUpload/useValidateMinNumberOfAttachments';
-import { useFileUploaderDataBindingsValidation } from 'src/layout/FileUpload/utils/useFileUploaderDataBindingsValidation';
+import { validateFileUploaderDataBindings } from 'src/layout/FileUpload/utils/useFileUploaderDataBindingsValidation';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { AnyValidation, ComponentValidation } from 'src/features/validation';
-import type { ComponentValidationContext, PropsFromGenericComponent, ValidateComponent } from 'src/layout';
+import type {
+  ComponentValidationContext,
+  DataModelBindingValidationContext,
+  PropsFromGenericComponent,
+  ValidateComponent,
+} from 'src/layout';
 import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -86,7 +91,11 @@ export class FileUpload extends FileUploadDef implements ValidateComponent<'File
     return parentLayout?.type === 'RepeatingGroup';
   }
 
-  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'FileUpload'>): string[] {
-    return useFileUploaderDataBindingsValidation(baseComponentId, bindings);
+  validateDataModelBindings(
+    baseComponentId: string,
+    bindings: IDataModelBindings<'FileUpload'>,
+    context: DataModelBindingValidationContext,
+  ): string[] {
+    return validateFileUploaderDataBindings(baseComponentId, bindings, context);
   }
 }

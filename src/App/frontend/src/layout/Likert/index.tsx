@@ -3,7 +3,6 @@ import type { JSX } from 'react';
 
 import type { PropsFromGenericComponent } from '..';
 
-import { FormStore } from 'src/features/form/FormContext';
 import { LikertDef } from 'src/layout/Likert/config.def.generated';
 import { LikertComponent } from 'src/layout/Likert/LikertComponent';
 import { makeLikertChildId } from 'src/layout/Likert/makeLikertChildId';
@@ -11,6 +10,7 @@ import { LikertSummaryComponent } from 'src/layout/Likert/Summary/LikertSummaryC
 import { LikertSummary } from 'src/layout/Likert/Summary2/LikertSummary';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/hooks';
 import type { ComponentValidation } from 'src/features/validation';
+import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { ChildClaimerProps, ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -43,9 +43,11 @@ export class Likert extends LikertDef {
     return true;
   }
 
-  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'Likert'>): string[] {
-    const lookupBinding = FormStore.bootstrap.useLookupBinding();
-    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
+  validateDataModelBindings(
+    baseComponentId: string,
+    bindings: IDataModelBindings<'Likert'>,
+    { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
+  ): string[] {
     const [questionsErr, questions] = validateDataModelBindingsAny(
       baseComponentId,
       bindings,

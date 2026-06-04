@@ -2,7 +2,6 @@ import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
-import { FormStore } from 'src/features/form/FormContext';
 import { FrontendValidationSource } from 'src/features/validation';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { TimePickerDef } from 'src/layout/TimePicker/config.def.generated';
@@ -15,6 +14,7 @@ import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { BaseValidation, ComponentValidation } from 'src/features/validation';
 import type {
   ComponentValidationContext,
+  DataModelBindingValidationContext,
   PropsFromGenericComponent,
   ValidateComponent,
   ValidationFilter,
@@ -64,9 +64,11 @@ export class TimePicker extends TimePickerDef implements ValidateComponent<'Time
     return [TimePicker.schemaFormatFilter];
   }
 
-  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'TimePicker'>): string[] {
-    const lookupBinding = FormStore.bootstrap.useLookupBinding();
-    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
+  validateDataModelBindings(
+    baseComponentId: string,
+    bindings: IDataModelBindings<'TimePicker'>,
+    { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
+  ): string[] {
     const validation = validateDataModelBindingsAny(
       baseComponentId,
       bindings,

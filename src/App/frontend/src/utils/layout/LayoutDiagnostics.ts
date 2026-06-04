@@ -10,6 +10,7 @@ export type LayoutDiagnosticsSliceState = {
   hasErrors: boolean;
   errors: Record<string, LayoutDiagnosticErrors | undefined>;
   addError: (error: string, id: string, type: 'node' | 'page') => void;
+  replaceErrors: (errors: Record<string, string[]>) => void;
   reset: () => void;
 };
 
@@ -27,6 +28,15 @@ export function createLayoutDiagnosticsSlice(set: FormStoreSet): FormStoreState[
         state.layoutDiagnostics.errors[key] ??= {};
         state.layoutDiagnostics.errors[key][error] = true;
         state.layoutDiagnostics.hasErrors = true;
+      }),
+    replaceErrors: (errors) =>
+      set((state) => {
+        const nextErrors: Record<string, LayoutDiagnosticErrors> = {};
+        for (const [key, messages] of Object.entries(errors)) {
+          nextErrors[key] = Object.fromEntries(messages.map((message) => [message, true]));
+        }
+        state.layoutDiagnostics.errors = nextErrors;
+        state.layoutDiagnostics.hasErrors = Object.keys(nextErrors).length > 0;
       }),
     reset: () =>
       set((state) => {

@@ -4,7 +4,6 @@ import type { JSX } from 'react';
 import { formatISOString, getDateFormat } from '@app/form-component';
 
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
-import { FormStore } from 'src/features/form/FormContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { FrontendValidationSource } from 'src/features/validation';
 import { DatepickerDef } from 'src/layout/Datepicker/config.def.generated';
@@ -19,6 +18,7 @@ import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { BaseValidation, ComponentValidation } from 'src/features/validation';
 import type {
   ComponentValidationContext,
+  DataModelBindingValidationContext,
   PropsFromGenericComponent,
   ValidateComponent,
   ValidationFilter,
@@ -112,10 +112,12 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
     return filters;
   }
 
-  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'Datepicker'>): string[] {
-    const lookupBinding = FormStore.bootstrap.useLookupBinding();
-    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-    const component = FormStore.bootstrap.useLayoutLookups().getComponent(baseComponentId, 'Datepicker');
+  validateDataModelBindings(
+    baseComponentId: string,
+    bindings: IDataModelBindings<'Datepicker'>,
+    { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
+  ): string[] {
+    const component = layoutLookups.getComponent(baseComponentId, 'Datepicker');
     const validation = validateDataModelBindingsAny(
       baseComponentId,
       bindings,

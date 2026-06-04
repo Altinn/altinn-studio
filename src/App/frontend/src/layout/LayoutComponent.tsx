@@ -16,7 +16,12 @@ import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
 import type { ComponentValidation } from 'src/features/validation';
 import type { ComponentBase, FormComponentProps, SummarizableComponentProps } from 'src/layout/common.generated';
-import type { ComponentValidationContext, PropsFromGenericComponent, ValidateEmptyField } from 'src/layout/index';
+import type {
+  ComponentValidationContext,
+  DataModelBindingValidationContext,
+  PropsFromGenericComponent,
+  ValidateEmptyField,
+} from 'src/layout/index';
 import type {
   CompExternal,
   CompExternalExact,
@@ -180,7 +185,11 @@ abstract class _FormComponent<Type extends CompTypes> extends AnyComponent<Type>
   /**
    * Runs validation on data model bindings. Returns an array of error messages.
    */
-  public useDataModelBindingValidation(_baseComponentId: string, _bindings: IDataModelBindings<Type>): string[] {
+  public validateDataModelBindings(
+    _baseComponentId: string,
+    _bindings: IDataModelBindings<Type>,
+    _context: DataModelBindingValidationContext,
+  ): string[] {
     return [];
   }
 }

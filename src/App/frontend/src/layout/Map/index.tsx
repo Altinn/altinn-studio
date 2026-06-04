@@ -1,17 +1,15 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { FormStore } from 'src/features/form/FormContext';
 import { MapDef } from 'src/layout/Map/config.def.generated';
-import { useValidateGeometriesBindings } from 'src/layout/Map/features/geometries/useValidateGeometriesBindings';
+import { validateGeometriesBindings } from 'src/layout/Map/features/geometries/useValidateGeometriesBindings';
 import { MapComponent } from 'src/layout/Map/MapComponent';
 import { MapComponentSummary } from 'src/layout/Map/MapComponentSummary';
 import { MapSummary } from 'src/layout/Map/Summary2/MapSummary';
 import { parseLocation } from 'src/layout/Map/utils';
-import { useExternalItem } from 'src/utils/layout/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/hooks';
-import type { PropsFromGenericComponent } from 'src/layout';
+import type { DataModelBindingValidationContext, PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -37,11 +35,14 @@ export class Map extends MapDef {
     return <MapSummary {...props} />;
   }
 
-  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'Map'>): string[] {
+  validateDataModelBindings(
+    baseComponentId: string,
+    bindings: IDataModelBindings<'Map'>,
+    context: DataModelBindingValidationContext,
+  ): string[] {
     const errors: string[] = [];
-    const lookupBinding = FormStore.bootstrap.useLookupBinding();
-    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-    const toolbar = useExternalItem(baseComponentId, 'Map').toolbar;
+    const { lookupBinding, layoutLookups } = context;
+    const toolbar = layoutLookups.getComponent(baseComponentId, 'Map').toolbar;
 
     if (bindings?.simpleBinding && bindings?.geometryIsEditable) {
       errors.push(
@@ -68,7 +69,7 @@ export class Map extends MapDef {
     );
     simpleBindingErrors && errors.push(...simpleBindingErrors);
 
-    const geometriesBindingErrors = useValidateGeometriesBindings(baseComponentId, bindings);
+    const geometriesBindingErrors = validateGeometriesBindings(baseComponentId, bindings, context);
     errors.push(...geometriesBindingErrors);
 
     return errors;

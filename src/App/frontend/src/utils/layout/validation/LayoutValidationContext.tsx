@@ -1,11 +1,8 @@
-import React, { useEffect } from 'react';
-
 import { useQuery } from '@tanstack/react-query';
 import type Ajv from 'ajv';
 import type { ErrorObject } from 'ajv';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
-import { createContext } from 'src/core/contexts/context';
 import {
   createLayoutValidator,
   EMPTY_SCHEMA_NAME,
@@ -13,65 +10,22 @@ import {
 } from 'src/features/devtools/utils/layoutSchemaValidation';
 import { isDev } from 'src/utils/isDev';
 
-interface Context {
-  schemaValidator: ValidateFunc | undefined;
-}
+export type LayoutValidationResult = Record<string, string[]>;
+export type ValidateFunc = ReturnType<typeof makeValidateFunc>;
 
-const { Provider, useCtx } = createContext<Context>({
-  name: 'LayoutValidation',
-  required: true,
-});
-
-export const LayoutValidation = {
-  useValidate: () => useCtx().schemaValidator,
-};
-
-export function LayoutValidationProvider({ children }) {
-  const [schemaValidator, setSchemaValidator] = React.useState<ValidateFunc | undefined>(undefined);
-
-  return (
-    <Provider
-      value={{
-        schemaValidator,
-      }}
-    >
-      <FetchLayoutSchema setSchemaValidator={setSchemaValidator} />
-      {children}
-    </Provider>
-  );
-}
-
-function FetchLayoutSchema({
-  setSchemaValidator,
-}: {
-  setSchemaValidator: React.Dispatch<React.SetStateAction<ValidateFunc | undefined>>;
-}) {
-  const enabled = useIsLayoutValidationEnabled();
-
+export function useLayoutSchemaValidator(enabled = shouldValidateLayoutConfiguration()): ValidateFunc | undefined {
   const { fetchLayoutSchema } = useAppQueries();
-  const { data: validate, isSuccess } = useQuery({
+  return useQuery({
     enabled,
     queryKey: ['fetchLayoutSchema'],
     queryFn: async () => {
       const schema = await fetchLayoutSchema();
       if (!schema) {
-        return null;
+        return undefined;
       }
       return makeValidateFunc(createLayoutValidator(schema));
     },
-  });
-
-  useEffect(() => {
-    if (isSuccess && validate) {
-      setSchemaValidator(validate);
-    }
-  }, [isSuccess, validate, setSchemaValidator]);
-
-  return null;
-}
-
-function useIsLayoutValidationEnabled() {
-  return shouldValidateLayoutConfiguration();
+  }).data;
 }
 
 export function shouldValidateLayoutConfiguration() {
@@ -107,5 +61,3 @@ function makeValidateFunc(validator: Ajv) {
 
   return validate;
 }
-
-type ValidateFunc = ReturnType<typeof makeValidateFunc>;
