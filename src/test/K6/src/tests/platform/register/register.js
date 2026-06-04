@@ -10,7 +10,6 @@
 */
 
 import { check } from 'k6';
-import { addErrorCount } from '../../../errorcounter.js';
 import * as setUpData from '../../../setup.js';
 import * as appInstances from '../../../api/app/instances.js';
 import { generateJUnitXML, reportPath } from '../../../report.js';
@@ -21,7 +20,7 @@ const instanceOwnerOrgnr = __ENV.instanceOwnerOrgnr;
 
 export const options = {
   thresholds: {
-    errors: ['count<1'],
+    checks: ['rate==1.0'],
   },
   setupTimeout: '1m',
 };
@@ -45,21 +44,19 @@ export default function (data) {
   const runtimeToken = data['RuntimeToken'];
   const ssn = data['ssn'];
   const orgNr = data['orgNumber'];
-  var res, success;
+  var res;
 
   //Test regiter party lookup indirectly by creating an instance with app api and ssn details
   res = appInstances.postCreateInstanceWithSsnOrOrg(runtimeToken, 'ssn', ssn, appOwner, level2App);
-  success = check(res, {
+  check(res, {
     'Instance created by looking up SSN in register': (r) => r.status === 201,
   });
-  addErrorCount(success);
 
   //Test regiter party lookup indirectly by creating an instance with app api and ssn details
   res = appInstances.postCreateInstanceWithSsnOrOrg(runtimeToken, 'org', orgNr, appOwner, level2App);
-  success = check(res, {
+  check(res, {
     'Instance created by looking up Org in register': (r) => r.status === 201,
   });
-  addErrorCount(success);
 }
 
 export function handleSummary(data) {

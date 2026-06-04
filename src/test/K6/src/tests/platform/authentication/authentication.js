@@ -10,7 +10,7 @@ import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.1/index.js';
 
 export const options = {
   thresholds: {
-    errors: ['count<1'],
+    checks: ['rate==1.0'],
   },
 };
 

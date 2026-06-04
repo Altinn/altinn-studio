@@ -5,7 +5,6 @@
 */
 
 import { check } from 'k6';
-import { addErrorCount } from '../../../errorcounter.js';
 import * as setUpData from '../../../setup.js';
 import * as instances from '../../../api/platform/storage/instances.js';
 import * as receipt from '../../../api/platform/receipt.js';
@@ -17,7 +16,7 @@ let instanceJson = open('../../../data/instance.json');
 
 export const options = {
   thresholds: {
-    errors: ['count<1'],
+    checks: ['rate==1.0'],
   },
   setupTimeout: '1m',
 };
@@ -39,14 +38,13 @@ export default function (data) {
   const runtimeToken = data['RuntimeToken'];
   const partyId = data['partyId'];
   const instanceId = data['instanceId'];
-  var res, success;
+  var res;
 
   res = receipt.getReceipt(partyId, instanceId, runtimeToken);
-  success = check(res, {
+  check(res, {
     'Get receipt Status is 200': (r) => r.status === 200,
     'Get receipt includes party info': (r) => JSON.parse(r.body).party.partyId == partyId,
   });
-  addErrorCount(success);
 }
 
 export function handleSummary(data) {

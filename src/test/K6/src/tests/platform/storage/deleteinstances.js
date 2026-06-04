@@ -6,7 +6,7 @@
 import { check } from 'k6';
 import * as sbl from '../../../api/platform/storage/messageboxinstances.js';
 import * as setUpData from '../../../setup.js';
-import { addErrorCount, stopIterationOnFail } from '../../../errorcounter.js';
+import { stopIterationOnFail } from '../../../errorcounter.js';
 import * as instances from '../../../api/platform/storage/instances.js';
 
 const appOwner = __ENV.org;
@@ -16,7 +16,7 @@ let appIds = __ENV.appIds;
 
 export const options = {
   thresholds: {
-    errors: ['count<1'],
+    checks: ['rate==1.0'],
   },
 };
 
@@ -74,7 +74,6 @@ export default function (data) {
     success = check(instanceIds.length, {
       'Hard delete instances for party. Remaining instance count is 0': (c) => c === 0,
     });
-    addErrorCount(success);
-    stopIterationOnFail('Hard delete instances for party. Remaining instance count is 0');
+    stopIterationOnFail('Hard delete instances for party. Remaining instance count is 0', success);
   });
 }
