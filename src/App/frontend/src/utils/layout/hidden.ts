@@ -12,7 +12,7 @@ import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { collectHiddenSources, evaluateHiddenSources } from 'src/utils/layout/hiddenUtils';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { EvalExprOptions } from 'src/features/expressions';
-import type { IHiddenLayoutsExternal } from 'src/types';
+import type { ILayoutCollection } from 'src/layout/layout';
 import type { HiddenSource } from 'src/utils/layout/hiddenUtils';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
@@ -130,12 +130,12 @@ export function useIsHiddenPage(pageKey: string | undefined, options: Omit<IsHid
     throw new Error("useIsHiddenPage doesn't support changing the pageKey, that would break the rule of hooks");
   }
 
-  const hiddenExpressions = FormStore.bootstrap.useHiddenLayoutsExpressions();
-  const dataSources = useExpressionDataSources(hiddenExpressions);
+  const layoutCollection = FormStore.bootstrap.useLayoutCollection();
+  const dataSources = useExpressionDataSources(layoutCollection);
   const pageOrder = useRawPageOrder();
   const forcedVisible = useIsForcedVisibleByDevTools();
 
-  const hidden = isHiddenPage({ pageKey, dataSources, pageOrder, hiddenExpressions, ...options });
+  const hidden = isHiddenPage({ pageKey, dataSources, pageOrder, layoutCollection, ...options });
 
   if (hidden && forcedVisible && options.respectDevTools !== false) {
     return false;
@@ -148,20 +148,22 @@ export function useIsHiddenPage(pageKey: string | undefined, options: Omit<IsHid
  * Check which pages are hidden, returning a Set with the ones that are hidden
  */
 export function useHiddenPages(options: Omit<IsHiddenOptions, 'includeReason'> = {}): Set<string> {
-  const pages = Object.keys(FormStore.bootstrap.useLaxLayouts() || {});
-  const hiddenExpressions = FormStore.bootstrap.useLaxHiddenLayoutsExpressions() || {};
-  const dataSources = useExpressionDataSources(hiddenExpressions);
+  const layoutCollection = FormStore.bootstrap.useLaxLayoutCollection();
+  const dataSources = useExpressionDataSources(layoutCollection);
   const pageOrder = useRawPageOrder();
 
-  const out = new Set<string>();
-  for (const pageKey of pages) {
-    const hidden = isHiddenPage({ pageKey, dataSources, pageOrder, hiddenExpressions, ...options });
-    if (hidden) {
-      out.add(pageKey);
+  return useMemo(() => {
+    const pages = Object.keys(layoutCollection || {});
+    const out = new Set<string>();
+    for (const pageKey of pages) {
+      const hidden = isHiddenPage({ pageKey, dataSources, pageOrder, layoutCollection: layoutCollection!, ...options });
+      if (hidden) {
+        out.add(pageKey);
+      }
     }
-  }
 
-  return out;
+    return out;
+  }, [dataSources, layoutCollection, options, pageOrder]);
 }
 
 interface IsHiddenProps extends Pick<IsHiddenOptions<boolean>, 'respectPageOrder'> {
@@ -224,7 +226,7 @@ function useIsForcedVisibleByDevTools() {
 
 interface IsHiddenPageProps extends Pick<IsHiddenOptions<boolean>, 'respectPageOrder'> {
   pageKey: string | undefined;
-  hiddenExpressions: IHiddenLayoutsExternal;
+  layoutCollection: ILayoutCollection;
   dataSources: ExpressionDataSources;
   pageOrder: string[];
 }
@@ -232,7 +234,7 @@ interface IsHiddenPageProps extends Pick<IsHiddenOptions<boolean>, 'respectPageO
 function isHiddenPage({
   pageOrder,
   pageKey,
-  hiddenExpressions,
+  layoutCollection,
   dataSources,
   respectPageOrder = false,
 }: IsHiddenPageProps) {
@@ -242,7 +244,7 @@ function isHiddenPage({
   if (respectPageOrder && !pageOrder.includes(pageKey)) {
     return true;
   }
-  const hiddenExpr = hiddenExpressions[pageKey];
+  const hiddenExpr = layoutCollection[pageKey]?.data.hidden;
   if (hiddenExpr === undefined) {
     return false;
   }

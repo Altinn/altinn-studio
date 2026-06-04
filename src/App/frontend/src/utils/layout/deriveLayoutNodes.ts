@@ -221,15 +221,20 @@ function walkNodes(context: DeriveNodesContext, args: WalkNodesArgs) {
 /**
  * Expands the current layout synchronously without storing derived node state.
  */
-export function deriveLayoutNodes(state: FormStoreState): DerivedLayoutNode[] {
+export function deriveLayoutNodes(state: FormStoreState, pageKeys?: Iterable<string>): DerivedLayoutNode[] {
   const context: DeriveNodesContext = {
     state,
     lookups: state.bootstrap.layoutLookups,
     rowsByBinding: new Map(),
   };
   const nodes: DerivedLayoutNode[] = [];
+  const includedPages = pageKeys ? new Set(pageKeys) : undefined;
 
   for (const [pageKey, topLevel] of Object.entries(context.lookups.topLevelComponents)) {
+    if (includedPages && !includedPages.has(pageKey)) {
+      continue;
+    }
+
     for (const baseId of topLevel ?? emptyArray) {
       walkNodes(context, {
         pageKey,

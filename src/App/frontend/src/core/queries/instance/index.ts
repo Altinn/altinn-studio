@@ -9,6 +9,7 @@ import {
   instanceDataQuery,
   instanceQueryKeys,
   useCreateInstance as useCreateInstanceInternal,
+  useGetCachedInstanceData,
 } from 'src/core/queries/instance/instance.queries';
 import { parseInstanceId } from 'src/core/queries/instance/utils';
 import type { InstanceApi } from 'src/core/api-client/instance.api';
@@ -123,6 +124,7 @@ export {
   ensureInstanceData,
   instanceQueryKeys,
   useActiveInstances,
+  useGetCachedInstanceData,
   useCreateInstance,
   useCachedInstanceQueries,
   useCurrentInstance,

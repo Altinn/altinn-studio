@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useReducer, useRef } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useReducer, useRef } from 'react';
 
 import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
@@ -57,7 +57,6 @@ export type ExpressionDependency =
   | { type: 'applicationSettings' }
   | { type: 'currentLanguage' }
   | { type: 'currentPage' }
-  | { type: 'dataElementCount'; dataType: string }
   | { type: 'displayValue'; componentId: string }
   | { type: 'externalApi' }
   | { type: 'formData'; reference: IDataModelReference }
@@ -155,8 +154,6 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: Runtim
   const textResourceQueries = useTextResourcesQueries();
 
   const displayValueLookups = useMemo(() => collectDisplayValueLookups(toEvaluate), [toEvaluate]);
-  // Expression definitions are static for a mounted component. Avoid requiring FormStore in non-form expression
-  // contexts when displayValue is not used.
   // eslint-disable-next-line react-compiler/react-compiler,react-hooks/rules-of-hooks
   const displayValues = displayValueLookups.length > 0 ? useDisplayDataFor(displayValueLookups) : emptyDisplayValues;
 
@@ -167,121 +164,156 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: Runtim
   }
 
   const instanceId = instanceOwnerPartyId && instanceGuid ? `${instanceOwnerPartyId}/${instanceGuid}` : undefined;
-  const externalApiIds = getApplicationMetadata().externalApiIds ?? [];
-  const inputs: SnapshotInputs = {
-    applicationSettings,
-    currentLanguage,
-    currentPage,
-    currentDataModelPath,
-    externalApiIds,
-    instanceId,
-    store,
-    textResourcesApi,
-    dataModelReaders,
-    instanceQueries,
-    queryCacheObserver,
-    externalApiQueries,
-    textResourceQueries,
-  };
-  const collected = new Map<string, ExpressionDependency>();
-  const track = (dependency: ExpressionDependency) => collected.set(makeDependencyKey(dependency), dependency);
+  const externalApiIds = getApplicationMetadata().externalApiIds ?? emptyExternalApiIds;
+  const inputs: SnapshotInputs = useMemo(
+    () => ({
+      applicationSettings,
+      currentLanguage,
+      currentPage,
+      currentDataModelPath,
+      externalApiIds,
+      instanceId,
+      store,
+      textResourcesApi,
+      dataModelReaders,
+      instanceQueries,
+      queryCacheObserver,
+      externalApiQueries,
+      textResourceQueries,
+    }),
+    [
+      applicationSettings,
+      currentDataModelPath,
+      currentLanguage,
+      currentPage,
+      dataModelReaders,
+      externalApiIds,
+      externalApiQueries,
+      instanceId,
+      instanceQueries,
+      queryCacheObserver,
+      store,
+      textResourceQueries,
+      textResourcesApi,
+    ],
+  );
+
+  observerRef.current.updateInputs(inputs);
+  observerRef.current.beginCollect();
 
   useLayoutEffect(() => {
     const observer = observerRef.current!;
-    observer.commit(inputs, collected);
+    observer.commitCollect();
     return observer.subscribe();
   });
 
-  const { runtime: runtimeOverrides, unsupportedDataSources, errorSuffix } = overrides ?? {};
-  const assertDataSourceSupported = (dataSource: ExpressionDataSource) => {
-    if (unsupportedDataSources?.has(dataSource)) {
-      const message = `Expressions using data source "${dataSource}" are not supported in ${
-        errorSuffix ? errorSuffix : 'this context'
-      }.`;
-      window.logErrorOnce(message);
-      throw new Error(message);
-    }
-  };
-
-  const output: ExpressionDataSources = {
-    currentDataModelPath,
-    langToolsSelector: (dataModelPath) => {
-      track({ type: 'language', dataModelPath });
-      return buildLanguageTools({ inputs, dataModelPath, track });
+  const { runtime: runtimeOverridesFromProps, unsupportedDataSources, errorSuffix } = overrides ?? {};
+  const runtimeOverrides = useShallowMemo(runtimeOverridesFromProps ?? emptyRuntimeOverrides);
+  const assertDataSourceSupported = useCallback(
+    (dataSource: ExpressionDataSource) => {
+      if (unsupportedDataSources?.has(dataSource)) {
+        const message = `Expressions using data source "${dataSource}" are not supported in ${
+          errorSuffix ? errorSuffix : 'this context'
+        }.`;
+        window.logErrorOnce(message);
+        throw new Error(message);
+      }
     },
-    track,
-    getDependencies: () => [...collected.values()],
-    context: {
-      currentLanguage: () => {
-        track({ type: 'currentLanguage' });
-        return currentLanguage;
+    [errorSuffix, unsupportedDataSources],
+  );
+
+  return useMemo<ExpressionDataSources>(
+    () => ({
+      currentDataModelPath,
+      langToolsSelector: (dataModelPath) => {
+        observerRef.current!.track({ type: 'language', dataModelPath });
+        return buildLanguageTools({ inputs, dataModelPath });
       },
-      currentPage: () => {
-        track({ type: 'currentPage' });
-        return currentPage;
+      track: (dependency) => observerRef.current!.track(dependency),
+      getDependencies: () => observerRef.current!.getDependencies(),
+      context: {
+        currentLanguage: () => {
+          observerRef.current!.track({ type: 'currentLanguage' });
+          return currentLanguage;
+        },
+        currentPage: () => {
+          observerRef.current!.track({ type: 'currentPage' });
+          return currentPage;
+        },
+        currentDataModelPath: () => currentDataModelPath,
+        assertDataSourceSupported,
       },
-      currentDataModelPath: () => currentDataModelPath,
+      application: {
+        getSettings: () => {
+          observerRef.current!.track({ type: 'applicationSettings' });
+          return applicationSettings;
+        },
+      },
+      formData: {
+        defaultDataType: () => getDefaultDataTypeFromStore(store),
+        hasDataType: (dataType) => getReadableDataTypesFromStore(store).includes(dataType),
+        read: (reference) => {
+          observerRef.current!.track({ type: 'formData', reference });
+          return readFormDataFromStore(store, reference);
+        },
+      },
+      layout: {
+        getLookups: () => {
+          assertDataSourceSupported('layout');
+          observerRef.current!.track({ type: 'layout' });
+          return getLayoutLookupsFromStore(store);
+        },
+      },
+      options: {
+        getStaticOptions: (optionsId) => {
+          observerRef.current!.track({ type: 'options', optionsId });
+          return getStaticOptionsFromStore(store, optionsId);
+        },
+      },
+      instance: {
+        countDataElements: (dataType) => instanceQueries.countDataElements(instanceId, dataType),
+        getDataSources: () => {
+          observerRef.current!.track({ type: 'instanceDataSources' });
+          return getInstanceDataSourcesFromCache(instanceQueries, instanceId);
+        },
+        getProcess: () => {
+          observerRef.current!.track({ type: 'process' });
+          return getProcessFromCache(instanceQueries, instanceId);
+        },
+      },
+      externalApi: {
+        getAll: () => {
+          assertDataSourceSupported('externalApi');
+          observerRef.current!.track({ type: 'externalApi' });
+          externalApiQueries.ensureLoaded(instanceId, externalApiIds);
+          return externalApiQueries.getCached(instanceId, externalApiIds);
+        },
+      },
+      displayValue: {
+        get: (componentId) => {
+          assertDataSourceSupported('displayValue');
+          observerRef.current!.track({ type: 'displayValue', componentId });
+          return displayValues[componentId];
+        },
+      },
+      ...runtimeOverrides,
+    }),
+    [
+      applicationSettings,
       assertDataSourceSupported,
-    },
-    application: {
-      getSettings: () => {
-        track({ type: 'applicationSettings' });
-        return applicationSettings;
-      },
-    },
-    formData: {
-      defaultDataType: () => getDefaultDataTypeFromStore(store),
-      hasDataType: (dataType) => getReadableDataTypesFromStore(store).includes(dataType),
-      read: (reference) => {
-        track({ type: 'formData', reference });
-        return readFormDataFromStore(store, reference);
-      },
-    },
-    layout: {
-      getLookups: () => {
-        assertDataSourceSupported('layout');
-        track({ type: 'layout' });
-        return getLayoutLookupsFromStore(store);
-      },
-    },
-    options: {
-      getStaticOptions: (optionsId) => {
-        track({ type: 'options', optionsId });
-        return getStaticOptionsFromStore(store, optionsId);
-      },
-    },
-    instance: {
-      countDataElements: (dataType) => {
-        track({ type: 'dataElementCount', dataType });
-        return instanceQueries.countDataElements(instanceId, dataType);
-      },
-      getDataSources: () => {
-        track({ type: 'instanceDataSources' });
-        return getInstanceDataSourcesFromCache(instanceQueries, instanceId);
-      },
-      getProcess: () => {
-        track({ type: 'process' });
-        return getProcessFromCache(instanceQueries, instanceId);
-      },
-    },
-    externalApi: {
-      getAll: () => {
-        assertDataSourceSupported('externalApi');
-        track({ type: 'externalApi' });
-        externalApiQueries.ensureLoaded(instanceId, externalApiIds);
-        return externalApiQueries.getCached(instanceId, externalApiIds);
-      },
-    },
-    displayValue: {
-      get: (componentId) => {
-        assertDataSourceSupported('displayValue');
-        track({ type: 'displayValue', componentId });
-        return displayValues[componentId];
-      },
-    },
-  };
-
-  return useShallowMemo({ ...output, ...runtimeOverrides });
+      currentDataModelPath,
+      currentLanguage,
+      currentPage,
+      displayValues,
+      externalApiIds,
+      externalApiQueries,
+      inputs,
+      instanceId,
+      instanceQueries,
+      runtimeOverrides,
+      store,
+    ],
+  );
 }
 
 /**
@@ -291,6 +323,7 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: Runtim
  */
 class ExpressionObserver {
   private inputs?: SnapshotInputs;
+  private collected = new Map<string, ExpressionDependency>();
   private active = new Map<string, ExpressionDependency>();
   private lastValues = new Map<string, unknown>();
   private unsubscribeStore?: (() => void) | null;
@@ -300,10 +333,25 @@ class ExpressionObserver {
 
   constructor(private readonly onChange: () => void) {}
 
-  commit(inputs: SnapshotInputs, dependencies: Map<string, ExpressionDependency>) {
+  updateInputs(inputs: SnapshotInputs) {
     this.inputs = inputs;
-    this.active = new Map(dependencies);
+  }
+
+  beginCollect() {
+    this.collected.clear();
+  }
+
+  track(dependency: ExpressionDependency) {
+    this.collected.set(makeDependencyKey(dependency), dependency);
+  }
+
+  commitCollect() {
+    this.active = new Map(this.collected);
     this.lastValues = this.readValues(this.active);
+  }
+
+  getDependencies() {
+    return [...this.active.values()];
   }
 
   subscribe() {
@@ -319,12 +367,12 @@ class ExpressionObserver {
     this.unsubscribeStore =
       inputs.store !== ContextNotProvided
         ? inputs.store.subscribe(() => {
-            this.checkForChanges();
+            this.checkForChanges('form store');
           })
         : null;
 
     this.unsubscribeQuery = inputs.queryCacheObserver.subscribe(() => {
-      this.checkForChanges();
+      this.checkForChanges('query cache');
     });
     this.subscribed = true;
 
@@ -337,14 +385,24 @@ class ExpressionObserver {
     };
   }
 
-  private checkForChanges() {
+  private checkForChanges(trigger: 'form store' | 'query cache') {
     if (!this.inputs || this.active.size === 0) {
       return;
     }
 
     const nextValues = this.readValues(this.active);
     for (const [key, nextValue] of nextValues) {
-      if (!deepEqual(this.lastValues.get(key), nextValue)) {
+      const previousValue = this.lastValues.get(key);
+      if (!deepEqual(previousValue, nextValue)) {
+        // eslint-disable-next-line no-console
+        console.log('[useExpressionDataSources] rerender caused by changed dependency', {
+          trigger,
+          key,
+          dependency: this.active.get(key)!,
+          previousValue,
+          nextValue,
+          activeDependencies: [...this.active.values()],
+        });
         this.lastValues = nextValues;
         this.scheduleRerender();
         return;
@@ -387,8 +445,6 @@ function readDependencyValue(inputs: SnapshotInputs, dependency: ExpressionDepen
       return inputs.currentLanguage;
     case 'currentPage':
       return inputs.currentPage;
-    case 'dataElementCount':
-      return inputs.instanceQueries.countDataElements(inputs.instanceId, dependency.dataType);
     case 'displayValue':
       return dependency.componentId;
     case 'externalApi':
@@ -419,11 +475,9 @@ function readDependencyValue(inputs: SnapshotInputs, dependency: ExpressionDepen
 function buildLanguageTools({
   inputs,
   dataModelPath,
-  track,
 }: {
   inputs: SnapshotInputs;
   dataModelPath: IDataModelReference | undefined;
-  track: (dependency: ExpressionDependency) => void;
 }): IUseLanguage {
   ensureTextResourcesFetched(inputs);
   const textResources = getTextResourcesFromCache(inputs);
@@ -436,10 +490,7 @@ function buildLanguageTools({
     dataModels: inputs.dataModelReaders,
     defaultDataType: getDefaultDataTypeFromStore(inputs.store),
     formDataTypes: getReadableDataTypesFromStore(inputs.store),
-    formDataSelector: (reference) => {
-      track({ type: 'formData', reference });
-      return readFormDataFromStore(inputs.store, reference);
-    },
+    formDataSelector: (reference) => readFormDataFromStore(inputs.store, reference),
   });
 }
 
@@ -554,8 +605,6 @@ function makeDependencyKey(dependency: ExpressionDependency) {
       return `formData:${dependency.reference.dataType}:${dependency.reference.field}`;
     case 'displayValue':
       return `displayValue:${dependency.componentId}`;
-    case 'dataElementCount':
-      return `dataElementCount:${dependency.dataType}`;
     case 'options':
       return `options:${dependency.optionsId}`;
     case 'language':
@@ -566,3 +615,5 @@ function makeDependencyKey(dependency: ExpressionDependency) {
 }
 
 const emptyDisplayValues: Record<string, string | undefined> = {};
+const emptyExternalApiIds: string[] = [];
+const emptyRuntimeOverrides: Partial<ExpressionDataSources> = {};

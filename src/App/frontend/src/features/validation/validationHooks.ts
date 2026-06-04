@@ -1,10 +1,17 @@
 import { useCallback } from 'react';
 
+import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
+import { useGetCachedInstanceData } from 'src/core/queries/instance';
 import { FormStore } from 'src/features/form/FormContext';
-import { usePdfLayoutName, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
+import {
+  processLayoutSettings,
+  usePdfLayoutName,
+  useRawPageOrder,
+} from 'src/features/form/layoutSettings/processLayoutSettings';
+import { getUiFolderSettings } from 'src/features/form/ui';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
-import { FrontendValidationSource } from 'src/features/validation';
+import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import {
   buildDerivedValidationState,
   emptyBreakdown,
@@ -12,7 +19,7 @@ import {
   getNodeRefValidations,
   getValidationsForNode,
 } from 'src/features/validation/deriveValidationState';
-import { useAsRef } from 'src/hooks/useAsRef';
+import { useAllNavigationParams } from 'src/hooks/navigation';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { AnyValidation, NodeRefValidation, NodeVisibility, ValidationSeverity } from 'src/features/validation';
 import type {
@@ -59,23 +66,49 @@ function useDerivedState() {
   return useDerivedStateSnapshot().derived;
 }
 
+function useDerivedPageState(pageKeys: string[]) {
+  const state = FormStore.raw.useSelector((state) => state);
+  const inputs = useDerivedValidationStateInputs();
+  return buildDerivedValidationState(state, { ...inputs, includedPageKeys: pageKeys });
+}
+
 /**
  * Returns a stable callback that derives from the store snapshot available when
- * it is called. This is used by event handlers that must not read render-time
- * derived state after newer form data has reached the store.
+ * it is called, without subscribing this hook to derived validation changes.
  */
-function useDerivedStateWithFreshBuilder() {
+function useFreshDerivedStateBuilder() {
   const store = FormStore.raw.useStore();
-  const { derived, inputs } = useDerivedStateSnapshot();
-  const inputsRef = useAsRef(inputs);
+  const getCachedInstanceData = useGetCachedInstanceData();
+  const taskOverrides = useTaskOverrides();
+  const { instanceOwnerPartyId, instanceGuid, taskId: urlTaskId } = useAllNavigationParams();
+  const formState = store.getState();
+  const hiddenDataSources = useExpressionDataSources(formState.bootstrap.layouts, hiddenExpressionRuntimeOverrides);
+  const evalDataSources = useExpressionDataSources(formState.bootstrap.processedLayouts);
+  const snapshotInputs = useCallback((): DerivedValidationStateInputs => {
+    const latestState = store.getState();
+    const layoutSettings = processLayoutSettings(getUiFolderSettings(latestState.bootstrap.uiFolder));
+    const instance = getCachedInstanceData(instanceOwnerPartyId, instanceGuid);
 
-  const buildFreshDerivedState = useCallback(() => {
-    // Keep consumers reactive while rebuilding from the latest store snapshot when they read.
-    void derived;
-    return buildDerivedValidationState(store.getState(), inputsRef.current);
-  }, [derived, inputsRef, store]);
+    return {
+      pageOrder: layoutSettings.order,
+      pdfLayoutName: layoutSettings.pdfLayoutName,
+      hiddenDataSources,
+      evalDataSources,
+      instanceData: instance?.data ?? emptyArray,
+      taskId: taskOverrides?.taskId ?? instance?.process?.currentTask?.elementId ?? urlTaskId,
+    };
+  }, [
+    evalDataSources,
+    getCachedInstanceData,
+    hiddenDataSources,
+    instanceGuid,
+    instanceOwnerPartyId,
+    store,
+    taskOverrides,
+    urlTaskId,
+  ]);
 
-  return { buildFreshDerivedState, derived };
+  return useCallback(() => buildDerivedValidationState(store.getState(), snapshotInputs()), [snapshotInputs, store]);
 }
 
 /** Returns the masks that currently control validation visibility for a generated node. */
@@ -96,6 +129,27 @@ export function useVisibleValidations(indexedId: string | undefined, showAll?: b
   return indexedId ? getValidationsForNode(derived, indexedId, showAll ? 'showAll' : 'visible') : emptyArray;
 }
 
+/** Returns visible validations for one generated node without rerendering when unrelated validations change. */
+export function useVisibleValidationsForNode(
+  baseComponentId: string,
+  indexedId: string | undefined,
+  showAll?: boolean,
+): AnyValidation[] {
+  const inputs = useDerivedValidationStateInputs();
+  return FormStore.raw.useMemoSelector((state) => {
+    if (!indexedId) {
+      return emptyArray;
+    }
+
+    const pageKey = state.bootstrap.layoutLookups.componentToPage[baseComponentId];
+    const derived = buildDerivedValidationState(state, {
+      ...inputs,
+      includedPageKeys: pageKey ? [pageKey] : undefined,
+    });
+    return getValidationsForNode(derived, indexedId, showAll ? 'showAll' : 'visible');
+  });
+}
+
 /** Returns visible validations for a generated node and its descendants. */
 export function useVisibleValidationsDeep(
   indexedId: string,
@@ -104,8 +158,9 @@ export function useVisibleValidationsDeep(
   restriction?: number,
   severity?: ValidationSeverity,
 ): NodeRefValidation[] {
-  const selector = useVisibleValidationsDeepSelector();
-  return selector(indexedId, mask, includeSelf, restriction, severity);
+  const derived = useDerivedState();
+  const nodeIds = [...(includeSelf ? [indexedId] : emptyArray), ...getDescendantIds(derived, indexedId, restriction)];
+  return nodeIds.flatMap((nodeId) => getNodeRefValidations(derived, nodeId, mask, severity));
 }
 
 /**
@@ -113,7 +168,7 @@ export function useVisibleValidationsDeep(
  * This is suitable for event handlers that run after the rendering snapshot.
  */
 export function useVisibleValidationsDeepSelector() {
-  const { buildFreshDerivedState } = useDerivedStateWithFreshBuilder();
+  const buildFreshDerivedState = useFreshDerivedStateBuilder();
   return useCallback(
     (
       indexedId: string,
@@ -143,38 +198,31 @@ export function useAllValidations(
   return derived.nodes.flatMap((node) => getNodeRefValidations(derived, node.id, mask, severity, includeHidden));
 }
 
-/** Returns a callback for reading one generated node's validations from the latest store state. */
-export function useValidationsSelector() {
-  const { buildFreshDerivedState } = useDerivedStateWithFreshBuilder();
-  return useCallback(
-    (nodeId: string, mask: NodeVisibility, severity?: ValidationSeverity, includeHidden = false) =>
-      getValidationsForNode(buildFreshDerivedState(), nodeId, mask, severity, includeHidden),
-    [buildFreshDerivedState],
+/** Returns validation arrays grouped by page from the current render snapshot. */
+export function usePageValidations(pageKeys: string[]) {
+  const derived = useDerivedPageState(pageKeys);
+  return Object.fromEntries(
+    pageKeys.map((pageKey) => {
+      const nodeIds = derived.nodeIdsByPage.get(pageKey) ?? emptyArray;
+      return [
+        pageKey,
+        {
+          visibleErrors: nodeIds.flatMap((nodeId) => getValidationsForNode(derived, nodeId, 'visible', 'error')),
+          allErrors: nodeIds.flatMap((nodeId) => getValidationsForNode(derived, nodeId, ValidationMask.All, 'error')),
+        },
+      ];
+    }),
   );
-}
-
-/** Returns page node IDs and a validation selector while deriving the render snapshot only once. */
-export function useValidationsSelectorWithNodeIdsByPage(pageKeys: string[]) {
-  const { buildFreshDerivedState, derived } = useDerivedStateWithFreshBuilder();
-  const nodeIdsByPage = Object.fromEntries(
-    pageKeys.map((pageKey) => [pageKey, derived.nodeIdsByPage.get(pageKey) ?? emptyArray]),
-  );
-  const validationsSelector = useCallback(
-    (nodeId: string, mask: NodeVisibility, severity?: ValidationSeverity, includeHidden = false) =>
-      getValidationsForNode(buildFreshDerivedState(), nodeId, mask, severity, includeHidden),
-    [buildFreshDerivedState],
-  );
-  return { nodeIdsByPage, validationsSelector };
 }
 
 /** Returns a callback that builds the latest validation snapshot when invoked. */
 export function useGetDerivedValidationState() {
-  return useDerivedStateWithFreshBuilder().buildFreshDerivedState;
+  return useFreshDerivedStateBuilder();
 }
 
 /** Returns a callback for reading validations across all generated nodes from the latest store state. */
 export function useGetNodesWithErrors() {
-  const { buildFreshDerivedState } = useDerivedStateWithFreshBuilder();
+  const buildFreshDerivedState = useFreshDerivedStateBuilder();
   return useCallback(
     (mask: NodeVisibility, severity?: ValidationSeverity, includeHidden = false) => {
       const freshDerived = buildFreshDerivedState();
