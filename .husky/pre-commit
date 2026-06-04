@@ -6,12 +6,9 @@ yarn lint-staged
 
   if [ -n "$STAGED_FILES_DESIGNER_BACKEND" ]; then
     echo "Found staged C# files in src/Designer/backend, running csharpier..."
-    echo "Staged files: $STAGED_FILES_DESIGNER_BACKEND"
     cd src/Designer/backend
     dotnet tool restore
     dotnet csharpier format $STAGED_FILES_DESIGNER_BACKEND
     git add $STAGED_FILES_DESIGNER_BACKEND
-  else
-    echo "No C# files staged for commit in src/Designer/backend."
   fi
 )
