@@ -12,6 +12,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Show resolved container runtime client/server versions in `studioctl doctor`.
 
+### Changed
+
+- Update localtest and workflow-engine images.
+
 ### Fixed
 
 - Ignore stale Podman container health status when no healthcheck command is configured.
