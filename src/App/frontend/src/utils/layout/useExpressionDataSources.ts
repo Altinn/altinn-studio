@@ -365,14 +365,10 @@ class ExpressionObserver {
     }
 
     this.unsubscribeStore =
-      inputs.store !== ContextNotProvided
-        ? inputs.store.subscribe(() => {
-            this.checkForChanges('form store');
-          })
-        : null;
+      inputs.store !== ContextNotProvided ? inputs.store.subscribe(() => this.checkForChanges()) : null;
 
     this.unsubscribeQuery = inputs.queryCacheObserver.subscribe(() => {
-      this.checkForChanges('query cache');
+      this.checkForChanges();
     });
     this.subscribed = true;
 
@@ -385,7 +381,7 @@ class ExpressionObserver {
     };
   }
 
-  private checkForChanges(trigger: 'form store' | 'query cache') {
+  private checkForChanges() {
     if (!this.inputs || this.active.size === 0) {
       return;
     }
@@ -394,15 +390,6 @@ class ExpressionObserver {
     for (const [key, nextValue] of nextValues) {
       const previousValue = this.lastValues.get(key);
       if (!deepEqual(previousValue, nextValue)) {
-        // eslint-disable-next-line no-console
-        console.log('[useExpressionDataSources] rerender caused by changed dependency', {
-          trigger,
-          key,
-          dependency: this.active.get(key)!,
-          previousValue,
-          nextValue,
-          activeDependencies: [...this.active.values()],
-        });
         this.lastValues = nextValues;
         this.scheduleRerender();
         return;
