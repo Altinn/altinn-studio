@@ -235,34 +235,6 @@ public class UiFoldersService : IUiFoldersService
         return await GetLayoutSets(editingContext, cancellationToken);
     }
 
-    // private async Task<string?> TryGetDataType(
-    //     AltinnAppGitRepository altinnAppGitRepository,
-    //     string layoutSetName,
-    //     CancellationToken cancellationToken
-    // )
-    // {
-    //     try
-    //     {
-    //         LayoutSettings layoutSettings = await altinnAppGitRepository.GetLayoutSettings(
-    //             layoutSetName,
-    //             cancellationToken
-    //         );
-    //         return layoutSettings.DataType;
-    //     }
-    //     catch (Exception e) when (e is FileNotFoundException or JsonException)
-    //     {
-    //         string sanitizedLayoutSetName = (layoutSetName ?? string.Empty)
-    //             .Replace("\r", string.Empty)
-    //             .Replace("\n", string.Empty);
-    //         _logger.LogWarning(
-    //             e,
-    //             "Could not read Settings.json for layout set {LayoutSetName} while deleting. Skipping data type cleanup.",
-    //             sanitizedLayoutSetName
-    //         );
-    //         return null;
-    //     }
-    // }
-
     private async Task<LayoutSettings?> TryGetLayoutSettings(
         AltinnAppGitRepository altinnAppGitRepository,
         string layoutSetName,
