@@ -27,8 +27,7 @@ public class ApiKeysController(IApiKeyService apiKeyService) : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        if (!ModelState.IsValid)
-        {
+        if (!ModelState.IsValid) {
             return BadRequest(ModelState);
         }
 
@@ -47,8 +46,7 @@ public class ApiKeysController(IApiKeyService apiKeyService) : ControllerBase
 
     [AllowApiKey]
     [HttpGet]
-    public async Task<ActionResult<List<ApiKeyResponse>>> List(CancellationToken cancellationToken)
-    {
+    public async Task<ActionResult<List<ApiKeyResponse>>> List(CancellationToken cancellationToken) {
         string username = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
         var apiKeys = await apiKeyService.ListAsync(username, ApiKeyType.User, cancellationToken);
