@@ -147,7 +147,11 @@ public class UiFoldersService : IUiFoldersService
             }
             catch (Exception e) when (e is FileNotFoundException or JsonException)
             {
-                _logger.LogWarning(e, "Could not read Settings.json for layout set {LayoutSetId}. Skipping.", layoutSetId);
+                _logger.LogWarning(
+                    e,
+                    "Could not read Settings.json for layout set {LayoutSetId}. Skipping.",
+                    layoutSetId
+                );
             }
         }
         return results;
@@ -190,7 +194,12 @@ public class UiFoldersService : IUiFoldersService
             }
             catch (Exception e) when (e is FileNotFoundException or JsonException)
             {
-                _logger.LogWarning(e, "Could not read layout file for page {PageId} in layout set {LayoutSetId}. Skipping.", pageId, layoutSetId);
+                _logger.LogWarning(
+                    e,
+                    "Could not read layout file for page {PageId} in layout set {LayoutSetId}. Skipping.",
+                    pageId,
+                    layoutSetId
+                );
             }
         }
         return results;
