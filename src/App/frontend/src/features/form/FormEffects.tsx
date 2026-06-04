@@ -6,7 +6,7 @@ import { DataModelLocationProviderFromRowContexts } from 'src/utils/layout/DataM
 import { useDerivedLayoutNodes } from 'src/utils/layout/deriveLayoutNodes';
 
 export function FormEffects() {
-  const nodes = useDerivedLayoutNodes({ rowSource: 'current' });
+  const nodes = useDerivedLayoutNodes();
 
   return (
     <>

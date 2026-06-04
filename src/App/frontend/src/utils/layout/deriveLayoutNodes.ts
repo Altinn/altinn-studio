@@ -40,17 +40,10 @@ export type DerivedLayoutNode = {
   intermediateItem: CompIntermediate;
 };
 
-type RowSource = 'debounced' | 'current';
-
-interface DeriveLayoutNodesOptions {
-  rowSource?: RowSource;
-}
-
 type DeriveNodesContext = {
   state: FormStoreState;
   lookups: LayoutLookups;
   rowsByBinding: Map<string, BaseRow[]>;
-  rowSource: RowSource;
 };
 
 type WalkNodesArgs = {
@@ -131,10 +124,7 @@ function getRows(context: DeriveNodesContext, binding: IDataModelReference | und
     return cached;
   }
 
-  const source =
-    context.rowSource === 'current'
-      ? context.state.data.models[binding.dataType]?.currentData
-      : context.state.data.models[binding.dataType]?.debouncedCurrentData;
+  const source = context.state.data.models[binding.dataType]?.debouncedCurrentData;
   const rawRows = dot.pick(binding.field, source);
   if (!Array.isArray(rawRows)) {
     context.rowsByBinding.set(cacheKey, emptyArray);
@@ -231,15 +221,11 @@ function walkNodes(context: DeriveNodesContext, args: WalkNodesArgs) {
 /**
  * Expands the current layout synchronously without storing derived node state.
  */
-export function deriveLayoutNodes(
-  state: FormStoreState,
-  { rowSource = 'debounced' }: DeriveLayoutNodesOptions = {},
-): DerivedLayoutNode[] {
+export function deriveLayoutNodes(state: FormStoreState): DerivedLayoutNode[] {
   const context: DeriveNodesContext = {
     state,
     lookups: state.bootstrap.layoutLookups,
     rowsByBinding: new Map(),
-    rowSource,
   };
   const nodes: DerivedLayoutNode[] = [];
 
@@ -258,8 +244,8 @@ export function deriveLayoutNodes(
   return nodes;
 }
 
-export function useDerivedLayoutNodes(options?: DeriveLayoutNodesOptions): DerivedLayoutNode[] {
-  return FormStore.raw.useMemoSelector((state) => deriveLayoutNodes(state, options));
+export function useDerivedLayoutNodes(): DerivedLayoutNode[] {
+  return FormStore.raw.useMemoSelector((state) => deriveLayoutNodes(state));
 }
 
 /**
