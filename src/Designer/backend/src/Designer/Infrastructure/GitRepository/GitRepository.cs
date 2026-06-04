@@ -373,11 +373,7 @@ public class GitRepository
     {
         string absoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(relativeFilePath);
 
-        try
-        {
-            Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
-        }
-        catch (ArgumentException)
+        if (!absoluteFilePath.StartsWith(RepositoryDirectory))
         {
             return false;
         }
@@ -393,11 +389,7 @@ public class GitRepository
     {
         string absoluteDirectoryPath = GetAbsoluteFileOrDirectoryPathSanitized(relativeDirectoryPath);
 
-        try
-        {
-            Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteDirectoryPath);
-        }
-        catch (ArgumentException)
+        if (!absoluteDirectoryPath.StartsWith(RepositoryDirectory))
         {
             return false;
         }
