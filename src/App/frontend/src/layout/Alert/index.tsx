@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { Alert as AlertComponent } from 'src/layout/Alert/Alert';
+import { AlertComponent } from 'src/layout/Alert/AlertComponent';
 import { AlertDef } from 'src/layout/Alert/config.def.generated';
 import type { PropsFromGenericComponent } from 'src/layout';
 

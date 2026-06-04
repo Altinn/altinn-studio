@@ -2,7 +2,7 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
-import { Alert } from 'src/layout/Alert/Alert';
+import { AlertComponent } from 'src/layout/Alert/AlertComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { CompExternal } from 'src/layout/layout';
 
@@ -36,7 +36,7 @@ const render = async ({
 }: Partial<CompExternal<'Alert'>> & { title?: string; body?: string } = {}) =>
   await renderGenericComponentTest<'Alert'>({
     type: 'Alert',
-    renderer: (props) => <Alert {...props} />,
+    renderer: (props) => <AlertComponent {...props} />,
     component: {
       id: 'alert-box',
       textResourceBindings: {
