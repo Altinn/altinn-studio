@@ -25,32 +25,6 @@
         "textResourceBindings": {
           "title": "Side1.Input-bYOAVi.title"
         }
-      },
-      {
-        "dataModelBindings": {
-          "simpleBinding": {
-            "field": "property2",
-            "dataType": "SubformModel"
-          }
-        },
-        "id": "Input-property2",
-        "type": "Input",
-        "textResourceBindings": {
-          "title": "Side1.Input-fXTmSF.title"
-        }
-      },
-      {
-        "dataModelBindings": {
-          "simpleBinding": {
-            "field": "property3",
-            "dataType": "SubformModel"
-          }
-        },
-        "id": "Input-property3",
-        "type": "Input",
-        "textResourceBindings": {
-          "title": "Side1.Input-RYcotn.title"
-        }
       }
     ]
   }
