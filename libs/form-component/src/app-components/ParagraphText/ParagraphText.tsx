@@ -7,8 +7,6 @@ function isInlineNode(node: ReactNode): boolean {
 }
 
 export function ParagraphText({ children }: PropsWithChildren) {
-  // The text resolver wraps inline content in a <span>; block-level content (headings, lists,
-  // etc.) is not, and must be wrapped in a <div> rather than nested directly inside a <p>.
   const inline = isInlineNode(children);
   return <DsParagraph asChild={!inline}>{inline ? children : <div>{children}</div>}</DsParagraph>;
 }
