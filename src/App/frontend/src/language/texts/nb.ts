@@ -152,6 +152,8 @@ export function nb() {
     'general.close': 'Lukk',
     'general.contains': 'Inneholder',
     'general.control_submit': 'Kontroller og send inn',
+    'general.copy': 'Kopier',
+    'general.copied': 'Kopiert',
     'general.create_new': 'Opprett ny',
     'general.create': 'Opprett',
     'general.customer_service_phone_number': '+47 75 00 60 00',
@@ -239,6 +241,7 @@ export function nb() {
     'instantiate.unknown_error_text': 'Det har skjedd en ukjent feil, vennligst prøv igjen senere.',
     'instantiate.unknown_error_status': 'Ukjent feil',
     'instantiate.unknown_error_customer_support': 'Om problemet vedvarer, ta kontakt med oss på brukerservice {0}.',
+    'instantiate.unknown_error_show_details': 'Vis detaljer om feilen',
     'instantiate.forbidden_action_error_title': 'Du mangler rettigheter til å utføre denne handlingen',
     'instantiate.forbidden_action_error_text':
       'Det ser ut til at du mangler rettigheter til å utføre denne handlingen.',

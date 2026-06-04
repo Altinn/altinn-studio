@@ -1,3 +1,5 @@
+#nullable disable
+
 
 using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Storage.Helpers;

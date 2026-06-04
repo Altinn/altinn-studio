@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -73,6 +74,23 @@ type Repository struct {
 	CloneURL    string `json:"clone_url"`
 	SSHURL      string `json:"ssh_url"`
 	HTMLURL     string `json:"html_url"`
+}
+
+// SearchAppsRequest contains app search filters.
+type SearchAppsRequest struct {
+	Query string
+	Sort  string
+	Order string
+	Page  int
+	Limit int
+}
+
+// SearchAppsResult contains app search results and pagination metadata.
+type SearchAppsResult struct {
+	Data       []Repository `json:"data"`
+	Ok         bool         `json:"ok"`
+	TotalCount int          `json:"totalCount"`
+	TotalPages int          `json:"totalPages"`
 }
 
 // Client is an API client for Altinn Studio.
@@ -194,6 +212,59 @@ func (c *Client) GetRepo(ctx context.Context, org, repo string) (*Repository, er
 	}
 
 	return &repository, nil
+}
+
+// SearchApps searches app repositories visible to the authenticated user through the Designer API.
+func (c *Client) SearchApps(ctx context.Context, search SearchAppsRequest) (*SearchAppsResult, error) {
+	endpoint := fmt.Sprintf("%s://%s/designer/api/repos/search", c.scheme, c.host)
+	query := url.Values{}
+	if search.Query != "" {
+		query.Set("keyword", search.Query)
+	}
+	if search.Sort != "" {
+		query.Set("sortBy", search.Sort)
+	}
+	if search.Order != "" {
+		query.Set("order", search.Order)
+	}
+	if search.Page > 0 {
+		query.Set("page", strconv.Itoa(search.Page))
+	}
+	if search.Limit > 0 {
+		query.Set("limit", strconv.Itoa(search.Limit))
+	}
+	if encoded := query.Encode(); encoded != "" {
+		endpoint += "?" + encoded
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("create request: %w", err)
+	}
+
+	c.setRequestHeaders(req)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("execute request: %w", err)
+	}
+	defer closeResponseBody(resp.Body)
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return nil, ErrUnauthorized
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body) //nolint:errcheck // Best effort read for error message
+		return nil, fmt.Errorf("%w %d: %s", ErrUnexpectedStatus, resp.StatusCode, string(body))
+	}
+
+	var result SearchAppsResult
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+
+	return &result, nil
 }
 
 // CloneRepo clones a repository to the specified destination.

@@ -8,6 +8,7 @@ using Xunit.Abstractions;
 namespace Altinn.App.Integration.Tests.Basic;
 
 [Trait("Category", "Integration")]
+[Collection(IntegrationTestCollections.Pdf)]
 public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _classFixture)
     : IClassFixture<AppFixtureClassFixture>
 {

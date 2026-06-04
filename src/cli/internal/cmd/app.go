@@ -378,7 +378,8 @@ func (c *AppCommand) parseAppUpgradeFlags(args []string) (appUpgradeFlags, bool,
 }
 
 func isSupportedAppUpgradeKind(kind string) bool {
-	return kind == appUpgradeKindFrontendV4 || kind == appUpgradeKindBackendV8 || kind == appUpgradeKindV9
+	return kind == appUpgradeKindFrontendV4 || kind == appUpgradeKindBackendV8 ||
+		kind == appUpgradeKindV9
 }
 
 func (c *AppCommand) appUpgradeUsageLine() string {

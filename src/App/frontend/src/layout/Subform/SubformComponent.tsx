@@ -1,12 +1,11 @@
 import React from 'react';
 import { useNavigation } from 'react-router';
 
-import { Button, Flex, Spinner } from '@app/form-component';
+import { Button, FatalError, Flex, Spinner } from '@app/form-component';
 import { Table } from '@digdir/designsystemet-react';
 import { PencilIcon, PlusIcon, TrashIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import { Caption } from 'src/components/form/caption/Caption';
 import { FormStore } from 'src/features/form/FormContext';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';

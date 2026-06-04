@@ -45,6 +45,11 @@ COPY src/Designer/frontend/settings/package.json ./src/Designer/frontend/setting
 COPY libs/form-component/package.json ./libs/form-component/
 COPY libs/form-engine/package.json ./libs/form-engine/
 
+ARG CYPRESS_INSTALL_BINARY=0
+ARG PUPPETEER_SKIP_DOWNLOAD=true
+ENV CYPRESS_INSTALL_BINARY=${CYPRESS_INSTALL_BINARY}
+ENV PUPPETEER_SKIP_DOWNLOAD=${PUPPETEER_SKIP_DOWNLOAD}
+
 RUN yarn --immutable
 
 COPY . .
