@@ -34,6 +34,11 @@ public class UiFoldersService : IUiFoldersService
             editingContext.Developer
         );
 
+    private string SanitizeForLog(string input)
+    {
+        return input.Replace('\r', ' ').Replace('\n', ' ');
+    }
+
     public async Task<IEnumerable<LayoutSetDto>> GetLayoutSetsExtended(
         AltinnRepoEditingContext editingContext,
         CancellationToken cancellationToken
@@ -85,7 +90,7 @@ public class UiFoldersService : IUiFoldersService
                 _logger.LogWarning(
                     e,
                     "Could not read Settings.json for layout set {LayoutSetName}. Skipping.",
-                    layoutSetName
+                    SanitizeForLog(layoutSetName)
                 );
             }
         }
@@ -150,7 +155,7 @@ public class UiFoldersService : IUiFoldersService
                 _logger.LogWarning(
                     e,
                     "Could not read Settings.json for layout set {LayoutSetId}. Skipping.",
-                    layoutSetId
+                    SanitizeForLog(layoutSetId)
                 );
             }
         }
@@ -197,7 +202,7 @@ public class UiFoldersService : IUiFoldersService
                 _logger.LogWarning(
                     e,
                     "Could not read layout file for page {PageId} in layout set {LayoutSetId}. Skipping.",
-                    pageId,
+                    SanitizeForLog(pageId),
                     layoutSetId
                 );
             }
