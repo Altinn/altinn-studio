@@ -1,4 +1,6 @@
-﻿using System.Text.Json.Serialization;
+#nullable disable
+
+using System.Text.Json.Serialization;
 
 using Altinn.Notifications.Core.Enums;
 
