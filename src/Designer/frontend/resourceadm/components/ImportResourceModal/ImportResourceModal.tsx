@@ -25,6 +25,7 @@ import {
   getValidIdentifierPrefixes,
 } from '../../utils/resourceUtils';
 import { ResourceAdmDialogContent } from '../ResourceAdmDialogContent/ResourceAdmDialogContent';
+import { isProdSBLBridgeEnabled, isTT02SBLBridgeEnabled } from 'resourceadm/utils/userUtils';
 
 export type ImportResourceModalProps = {
   onClose: () => void;
@@ -151,11 +152,20 @@ export const ImportResourceModal = forwardRef<HTMLDialogElement, ImportResourceM
               <StudioSelect.Option value={''} disabled>
                 {t('resourceadm.dashboard_import_modal_select_env_option')}
               </StudioSelect.Option>
-              {environmentOptions.map((env) => (
-                <StudioSelect.Option key={env.id} value={env.id}>
-                  {t(env.label)}
-                </StudioSelect.Option>
-              ))}
+              {environmentOptions
+                .filter((env) => {
+                  if (env.id === 'tt02') {
+                    return isTT02SBLBridgeEnabled();
+                  } else if (env.id === 'prod') {
+                    return isProdSBLBridgeEnabled();
+                  }
+                  return true;
+                })
+                .map((env) => (
+                  <StudioSelect.Option key={env.id} value={env.id}>
+                    {t(env.label)}
+                  </StudioSelect.Option>
+                ))}
             </StudioSelect>
             {selectedEnv && (
               <div>

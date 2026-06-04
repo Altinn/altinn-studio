@@ -28,6 +28,7 @@ import { useUrlParams } from '../../hooks/useUrlParams';
 import { StudioContentMenu, StudioSpinner } from '@studio/components';
 import type { StudioContentMenuButtonTabProps } from '@studio/components';
 import { useGetConsentTemplates } from '../../hooks/queries/useGetConsentTemplates';
+import { isProdSBLBridgeEnabled, isTT02SBLBridgeEnabled } from 'resourceadm/utils/userUtils';
 
 /**
  * @component
@@ -169,7 +170,11 @@ export const ResourcePage = (): React.JSX.Element => {
    * Decide if the migration page should be accessible or not
    */
   const isMigrateEnabled = (): boolean => {
-    return !!altinn2References && resourceData.resourceType === 'GenericAccessResource';
+    return (
+      !!altinn2References &&
+      resourceData.resourceType === 'GenericAccessResource' &&
+      (isTT02SBLBridgeEnabled() || isProdSBLBridgeEnabled())
+    );
   };
 
   const aboutPageId = 'about';
