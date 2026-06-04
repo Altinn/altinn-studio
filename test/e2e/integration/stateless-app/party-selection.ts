@@ -1,12 +1,17 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { cyMockResponses, removeAllButOneOrg } from 'test/e2e/pageobjects/party-mocks';
 import { cyUserCredentials } from 'test/e2e/support/auth';
+import { Tenor } from 'test/e2e/support/users';
 
 const appFrontend = new AppFrontend();
 
 describe('Stateless party selection', () => {
   it('should show party selection before starting instance', () => {
-    const user = cyUserCredentials.accountant.firstName;
+    const user =
+      Cypress.env('type') === 'localtest'
+        ? cyUserCredentials.accountant.firstName
+        : Tenor.users.humanAndrefiolin.name.toUpperCase();
+
     cyMockResponses({
       partyTypesAllowed: {
         person: true,
@@ -20,7 +25,7 @@ describe('Stateless party selection', () => {
       doNotPromptForParty: false,
     });
 
-    cy.startAppInstance(appFrontend.apps.stateless, { cyUser: 'accountant' });
+    cy.startAppInstance(appFrontend.apps.stateless, { cyUser: 'accountant', tenorUser: Tenor.users.humanAndrefiolin });
     cy.get(appFrontend.partySelection.appHeader).should('be.visible');
     cy.findByText(/ikke bli spurt om aktør hver gang/).should('be.visible');
 

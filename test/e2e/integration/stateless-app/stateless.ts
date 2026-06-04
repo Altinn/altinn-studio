@@ -1,5 +1,6 @@
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+import { Tenor } from 'test/e2e/support/users';
 
 const appFrontend = new AppFrontend();
 
@@ -42,7 +43,11 @@ describe('Stateless', () => {
   });
 
   it('is possible to start app instance from stateless app', () => {
-    const userFirstName = Cypress.env('defaultFirstName');
+    const userFirstName =
+      Cypress.env('type') === 'localtest'
+        ? Cypress.env('defaultFirstName')
+        : Tenor.users.saligBlomsterplante.firstName.toUpperCase();
+
     cy.startStatefulFromStateless();
     cy.findByRole('textbox', { name: /navn/i }).should('have.value', userFirstName);
     cy.findByRole('textbox', { name: /id/i }).should('have.value', '1364');

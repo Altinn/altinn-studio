@@ -14,10 +14,10 @@ describe('Auto save behavior', () => {
     cy.goto('group');
 
     cy.findByRole('checkbox', { name: appFrontend.group.prefill.liten }).check();
-    cy.get('@saveFormData.all').should('have.length', 1);
+    cy.get('@saveFormData.all').should('have.length', 2);
 
     cy.findByRole('button', { name: 'Neste' }).clickAndGone();
-    cy.get('@saveFormData.all').should('have.length', 2); // The row has a fiels with preselectedOptionIndex
+    cy.get('@saveFormData.all').should('have.length', 3); // The row has a fiels with preselectedOptionIndex
     cy.findByRole('button', { name: 'Forrige' }).clickAndGone();
 
     // Doing an extra wait to be sure no request is sent to backend
@@ -25,7 +25,7 @@ describe('Auto save behavior', () => {
     cy.waitForNetworkIdle(100);
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(100);
-    cy.get('@saveFormData.all').should('have.length', 2);
+    cy.get('@saveFormData.all').should('have.length', 3);
   });
 
   it('onChangePage: Should not save form when interacting with form element(checkbox), but should save on navigating between pages', () => {
@@ -37,11 +37,11 @@ describe('Auto save behavior', () => {
     // Doing a hard wait to be sure no request is sent to backend
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(1000);
-    cy.get('@saveFormData.all').should('have.length', 0);
+    cy.get('@saveFormData.all').should('have.length', 1);
 
     // At this point we've saved the prefill value (1).
     cy.findByRole('button', { name: 'Neste' }).clickAndGone();
-    cy.get('@saveFormData.all').should('have.length', 1);
+    cy.get('@saveFormData.all').should('have.length', 2);
 
     // Clicking the back button does not save anything, because we didn't
     // change anything in the form data worth saving
@@ -55,34 +55,34 @@ describe('Auto save behavior', () => {
 
     // At some point when we got the reply back we saw that one of those new rows should have a preselectedOptionIndex,
     // so that gets set and saved as well during a page navigation (2).
-    cy.get('@saveFormData.all').should('have.length', 2);
+    cy.get('@saveFormData.all').should('have.length', 3);
 
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.get(appFrontend.group.mainGroup).should('be.visible');
 
     // We have now clicked 'Ja' to show the repeating group (3)
     cy.findByRole('button', { name: 'Forrige' }).clickAndGone();
-    cy.get('@saveFormData.all').should('have.length', 3);
+    cy.get('@saveFormData.all').should('have.length', 4);
 
     // NavigationBar
     cy.findByRole('checkbox', { name: appFrontend.group.prefill.middels }).check();
 
     // Now we've added 'middels' (4)
     cy.gotoNavPage('repeating');
-    cy.get('@saveFormData.all').should('have.length', 4);
+    cy.get('@saveFormData.all').should('have.length', 5);
 
     // Icon previous button
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).uncheck();
 
     // Now we've unchecked 'ja' and added a preselectedOptionIndex for the new row (5)
     cy.findByRole('button', { name: 'Forrige' }).clickAndGone();
-    cy.get('@saveFormData.all').should('have.length', 5);
+    cy.get('@saveFormData.all').should('have.length', 6);
 
     // Doing a hard wait to be sure no request is sent to backend
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(1000);
     cy.waitUntilSaved();
-    cy.get('@saveFormData.all').should('have.length', 5);
+    cy.get('@saveFormData.all').should('have.length', 6);
   });
 
   (['current', 'all'] as const).forEach((pages) => {

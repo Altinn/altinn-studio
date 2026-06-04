@@ -2,6 +2,8 @@ import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { cyMockResponses, CyPartyMocks, removeAllButKeepOrg } from 'test/e2e/pageobjects/party-mocks';
 import { cyUserCredentials } from 'test/e2e/support/auth';
+import { Tenor } from 'test/e2e/support/users';
+import type { CyUser } from 'test/e2e/support/auth';
 
 import type { IParty } from 'src/types/shared';
 
@@ -10,7 +12,8 @@ const appFrontend = new AppFrontend();
 // Org numbers the accountant test user only represents as accountant — no instantiate rights, so
 // instantiation returns 403.
 const NonInstantiableOrgForAccountant = {
-  AldrendeOppstemtTigerAS: '213611372',
+  DdgFitness: '897069650',
+  StabilSmulApe: '313252698',
 } as const;
 
 describe('Party selection', () => {
@@ -123,44 +126,38 @@ describe('Party selection', () => {
     });
   });
 
-  [false].forEach((doNotPromptForParty) => {
-    it(`${
-      doNotPromptForParty ? 'Does not prompt' : 'Prompts'
-    } for party when doNotPromptForParty = ${doNotPromptForParty}, on instantiation with multiple possible parties`, () => {
-      cyMockResponses({
-        allowedToInstantiate: (parties) => [...parties, CyPartyMocks.ExamplePerson1],
-        doNotPromptForParty,
-      });
-      cy.startAppInstance(appFrontend.apps.frontendTest);
-
-      if (!doNotPromptForParty) {
-        cy.get(appFrontend.partySelection.appHeader).should('be.visible');
-        cy.get('[id^="party-"]').should('be.visible');
-        cy.findByRole('heading', { name: 'Hvorfor ser jeg dette?' }).should('be.visible');
-        cy.findByRole('heading', { name: 'Hvorfor ser jeg dette?' })
-          .siblings('p')
-          .first()
-          .should(
-            'contain.text',
-            'Du kan endre profilinnstillingene dine for å ikke bli spurt om aktør hver gang du starter utfylling av et nytt skjema.',
-          );
-        cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('not.exist');
-
-        cy.visualTesting('reportee-selection');
-
-        cy.get('[id^="party-"]').eq(0).click();
-      }
-
-      cy.get(appFrontend.appHeader).should('be.visible');
-      cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
-      cy.get('[id^="party-"]').should('not.exist');
-
-      // Test that it goes straight in when accessing an existing instance
-      cy.reloadAndWait();
-
-      cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
-      cy.get('[id^="party-"]').should('not.exist');
+  it(`Prompts for party when doNotPromptForParty = false, on instantiation with multiple possible parties`, () => {
+    cyMockResponses({
+      allowedToInstantiate: (parties) => [...parties, CyPartyMocks.ExamplePerson1],
+      doNotPromptForParty: false,
     });
+    cy.startAppInstance(appFrontend.apps.frontendTest, { tenorUser: Tenor.users.humanAndrefiolin });
+
+    cy.get(appFrontend.partySelection.appHeader).should('be.visible');
+    cy.get('[id^="party-"]').should('be.visible');
+    cy.findByRole('heading', { name: 'Hvorfor ser jeg dette?' }).should('be.visible');
+    cy.findByRole('heading', { name: 'Hvorfor ser jeg dette?' })
+      .siblings('p')
+      .first()
+      .should(
+        'contain.text',
+        'Du kan endre profilinnstillingene dine for å ikke bli spurt om aktør hver gang du starter utfylling av et nytt skjema.',
+      );
+    cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('not.exist');
+
+    cy.visualTesting('reportee-selection');
+
+    clickValidParty('default');
+
+    cy.get(appFrontend.appHeader).should('be.visible');
+    cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
+    cy.get('[id^="party-"]').should('not.exist');
+
+    // Test that it goes straight in when accessing an existing instance
+    cy.reloadAndWait();
+
+    cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
+    cy.get('[id^="party-"]').should('not.exist');
   });
 
   [true, false].forEach((doNotPromptForParty) => {
@@ -186,7 +183,11 @@ describe('Party selection', () => {
         (req) => {
           req.on('response', (res) => {
             const parties = res.body as IParty[];
-            correctParty = parties[0]; // parties.find((party: IParty) => party.partyId == partyId);
+            if (Cypress.env('type') === 'localtest') {
+              correctParty = parties.find((party) => party.name === cyUserCredentials.default.displayName);
+            } else {
+              correctParty = parties.find((party) => party.name === Tenor.users.humanAndrefiolin.name.toUpperCase());
+            }
             if (!correctParty) {
               throw new Error(`No parties returned from api`);
             }
@@ -212,7 +213,10 @@ describe('Party selection', () => {
         },
       );
 
-      cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'default' });
+      cy.startAppInstance(appFrontend.apps.frontendTest, {
+        cyUser: 'default',
+        tenorUser: Tenor.users.humanAndrefiolin,
+      });
       cy.get(appFrontend.appHeader).should('be.visible');
       cy.get('[id^="party-"]').should('not.exist');
 
@@ -230,7 +234,10 @@ describe('Party selection', () => {
         appPromptForPartyOverride,
         allowedToInstantiate: (parties) => [...parties, CyPartyMocks.ExamplePerson1],
       });
-      cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'default' });
+      cy.startAppInstance(appFrontend.apps.frontendTest, {
+        cyUser: 'default',
+        tenorUser: Tenor.users.humanAndrefiolin,
+      });
 
       if (appPromptForPartyOverride === 'always') {
         cy.get(appFrontend.partySelection.appHeader).should('be.visible');
@@ -242,7 +249,7 @@ describe('Party selection', () => {
           .should('contain.text', 'Denne appen er satt opp til å alltid spørre om aktør.');
         cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('not.exist');
 
-        cy.get('[id^="party-"]').eq(0).click();
+        clickValidParty('default');
       }
 
       cy.get(appFrontend.appHeader).should('be.visible');
@@ -254,18 +261,29 @@ describe('Party selection', () => {
 
   it('Should be possible to select another party if instantiation fails, and go back to party selection and instantiate again', () => {
     cy.allowFailureOnEnd();
-    const user = cyUserCredentials.accountant.firstName;
     // Pin a specific org by number instead of taking the first one — the tt02 party list order is
     // not stable, and an org the user *can* instantiate for may otherwise end up first.
     cyMockResponses({
-      allowedToInstantiate: (parties) =>
+      allowedToInstantiate: (parties) => {
+        const userToKeep =
+          Cypress.env('type') === 'localtest'
+            ? cyUserCredentials.accountant.displayName
+            : Tenor.users.humanAndrefiolin.name.toUpperCase();
+        const orgToKeep =
+          Cypress.env('type') === 'localtest'
+            ? NonInstantiableOrgForAccountant.DdgFitness
+            : NonInstantiableOrgForAccountant.StabilSmulApe;
         // Removing all other users as well, since one of the users are not allowed to instantiate on tt02
-        removeAllButKeepOrg(parties, NonInstantiableOrgForAccountant.AldrendeOppstemtTigerAS).filter(
-          (party) => party.orgNumber || party.name.includes(user),
-        ),
+        return removeAllButKeepOrg(parties, orgToKeep).filter(
+          (party) => party.orgNumber || party.name.includes(userToKeep),
+        );
+      },
       doNotPromptForParty: false,
     });
-    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'accountant' });
+    cy.startAppInstance(appFrontend.apps.frontendTest, {
+      cyUser: 'accountant',
+      tenorUser: Tenor.users.humanAndrefiolin,
+    });
 
     // Select the organisation. This is not allowed to instantiate in this app, so it will throw an error.
     cy.findAllByText(/org\.nr\. \d+/)
@@ -282,10 +300,7 @@ describe('Party selection', () => {
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(500);
 
-    // The person on the other hand is allowed to instantiate
-    cy.findAllByText(/personnr\. \d+/)
-      .first()
-      .click();
+    clickValidParty('accountant');
     cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
 
     // To make sure this instance is different from the next, we navigate to the next process step in this one
@@ -308,3 +323,11 @@ describe('Party selection', () => {
     cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
   });
 });
+
+function clickValidParty(cyUser: CyUser) {
+  if (Cypress.env('type') === 'localtest') {
+    cy.findByText(cyUserCredentials[cyUser].displayName).click();
+  } else {
+    cy.findByText(Tenor.users.humanAndrefiolin.name.toUpperCase()).click();
+  }
+}

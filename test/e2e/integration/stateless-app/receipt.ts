@@ -1,5 +1,6 @@
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+import { Tenor } from 'test/e2e/support/users';
 
 const appFrontend = new AppFrontend();
 
@@ -31,7 +32,10 @@ describe('Receipt', () => {
     cy.get(appFrontend.feedback).should('contain.text', 'Firmanavn: Foo bar AS');
     cy.get(appFrontend.feedback).should('contain.text', 'Org.nr: 12345678901');
 
-    const userFirstName = Cypress.env('defaultFirstName');
+    const userFirstName =
+      Cypress.env('type') === 'localtest'
+        ? Cypress.env('defaultFirstName')
+        : Tenor.users.saligBlomsterplante.firstName.toUpperCase();
     cy.get(appFrontend.feedback).should('contain.text', `Navn: ${userFirstName}`);
     cy.get(appFrontend.feedback).should('contain.text', 'ID: 1364');
 

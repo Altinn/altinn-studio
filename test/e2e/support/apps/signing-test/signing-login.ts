@@ -1,71 +1,33 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-import type { CyUser } from 'test/e2e/support/auth';
+import { Tenor } from 'test/e2e/support/users';
+import type { TenorUser } from 'test/e2e/support/users';
 
-import type { IParty } from 'src/types/shared';
+type User = 'manager' | 'accountant' | 'auditor';
 
-export function signingTestLogin(user: CyUser) {
+const tenorUserMapping: Record<User, TenorUser> = {
+  manager: Tenor.users.raffinertFilm,
+  accountant: Tenor.users.beskjedenGitar,
+  auditor: Tenor.users.dypsindigLoddsnor,
+};
+
+export function signingTestLogin(user: User) {
   const appFrontend = new AppFrontend();
   cy.waitUntilSaved();
   cy.url().then((url) => {
     const instanceSuffix = new URL(url).hash;
-    const partyId = Cypress.env('signingPartyId');
+    cy.log('Instance suffix:', instanceSuffix || 'none');
 
-    if (partyId) {
-      // Intercepting party list to only return the party we want to use. This will be automatically used by
-      // app-frontend when it starts.
-      let correctParty: IParty | undefined = undefined;
+    const tenorUser = tenorUserMapping[user];
 
-      // The /parties request and /current request happen in parallel, so we need
-      // to await the first request in order to use its value in the second intercept.
-      let resolveParties: () => void;
-      const partiesPromise = new Promise<void>((res) => {
-        resolveParties = res;
-      });
+    cy.startAppInstance(appFrontend.apps.signingTest, { cyUser: user, urlSuffix: instanceSuffix, tenorUser });
 
-      cy.intercept(
-        {
-          method: 'GET',
-          url: `**/api/v1/parties?allowedtoinstantiatefilter=true`,
-          times: 1,
-        },
-        (req) => {
-          req.on('response', (res) => {
-            const parties = res.body as IParty[];
-            correctParty = parties.find((party: IParty) => party.partyId == partyId);
-            if (!correctParty) {
-              throw new Error(`Could not find party with id ${partyId}`);
-            }
-            res.send([correctParty]);
-            resolveParties();
-          });
-        },
-      );
-      cy.intercept(
-        {
-          method: 'GET',
-          url: `**/api/authorization/parties/current?returnPartyObject=true`,
-          times: 1,
-        },
-        (req) => {
-          req.on('response', async (res) => {
-            await partiesPromise;
-            if (!correctParty) {
-              throw new Error(`Could not find party with id ${partyId}`);
-            }
-            res.send(correctParty);
-          });
-        },
-      );
+    if (!instanceSuffix && Cypress.env('type') !== 'localtest') {
+      const org = Tenor.orgs.overflodigSlemTigerAS;
+      cy.findByText('Hvem vil du sende inn for?').should('be.visible');
+      cy.findByRole('textbox', { name: 'Søk etter aktør' }).type(org.name);
+      cy.findByRole('button', { name: new RegExp(`org.nr. ${org.orgNr}`) }).click();
     }
 
-    cy.startAppInstance(appFrontend.apps.signingTest, { cyUser: user, urlSuffix: instanceSuffix });
-
-    if (Cypress.env('type') === 'production-like' && instanceSuffix) {
-      // We need to reload after re-logging in on tt02 when we already had a session, because the startAppInstance
-      // command will not reload the page if we already are visiting the correct URL.
-      cy.reloadAndWait();
-    }
-
-    cy.assertUser(user);
+    cy.assertUser(user, tenorUser);
   });
 }

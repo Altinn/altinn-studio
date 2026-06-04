@@ -459,7 +459,7 @@ describe('PDF', () => {
 
   // Used to cause a crash, @see https://github.com/Altinn/app-frontend-react/pull/2019
   it('Grid in Group should display correctly', { retries: 0 }, () => {
-    cy.intercept('GET', '**/layouts/**', (req) => {
+    cy.intercept('GET', '**/layouts/changename', (req) => {
       req.on('response', (res) => {
         const body: ILayoutCollection = JSON.parse(res.body);
         res.send({

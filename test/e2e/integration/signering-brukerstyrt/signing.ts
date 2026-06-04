@@ -1,40 +1,17 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-import { type TenorOrg, type TenorUser } from 'test/e2e/support/auth';
+import { Tenor } from 'test/e2e/support/users';
 import { reverseName } from 'test/e2e/support/utils';
 
 const appFrontend = new AppFrontend();
 
-const sivilisertAvansertIsbjoernSA: TenorOrg = {
-  name: 'Sivilisert Avansert Isbjørn SA',
-  orgNr: '312405091',
-};
-
-const tenorUsers: Record<string, TenorUser> = {
-  humanAndrefiolin: {
-    name: 'Human Andrefiolin',
-    ssn: '09876298713',
-    role: 'CEO',
-  },
-  varsomDiameter: {
-    name: 'Varsom Diameter',
-    ssn: '03835698199',
-    role: 'Chairman',
-  },
-  standhaftigBjornunge: {
-    name: 'Standhaftig Bjørnunge',
-    ssn: '23849199013',
-  },
-  snaalDugnad: {
-    name: 'Snål Dugnad',
-    ssn: '10928198958',
-  },
-} as const;
-
 describe('Signing', () => {
   it('should allow signing by a specified signee and on behalf of a company', () => {
+    cy.preventPartySelection();
+
     // Step 1: Log in as the initial user
     cy.startAppInstance(appFrontend.apps.signeringBrukerstyrt, {
-      tenorUser: tenorUsers.humanAndrefiolin,
+      cyUser: null,
+      tenorUser: Tenor.users.humanAndrefiolin,
       authenticationLevel: '2',
     });
 
@@ -49,12 +26,12 @@ describe('Signing', () => {
 
       // Person: Human Andrefiolin
       cy.findByRole('button', { name: /legg til person/i }).click();
-      cy.findByRole('textbox', { name: /fødselsnummer/i }).type(tenorUsers.humanAndrefiolin.ssn);
-      cy.findByRole('textbox', { name: /navn/i }).type(tenorUsers.humanAndrefiolin.name.split(' ')[1]);
+      cy.findByRole('textbox', { name: /fødselsnummer/i }).type(Tenor.users.humanAndrefiolin.ssn);
+      cy.findByRole('textbox', { name: /navn/i }).type(Tenor.users.humanAndrefiolin.name.split(' ')[1]);
       cy.findByRole('button', { name: /hent opplysninger/i }).click();
 
       cy.waitUntilSaved();
-      cy.findByRole('textbox', { name: /navn/i }).should('have.value', tenorUsers.humanAndrefiolin.name.toUpperCase());
+      cy.findByRole('textbox', { name: /navn/i }).should('have.value', Tenor.users.humanAndrefiolin.name.toUpperCase());
 
       cy.findByRole('textbox', { name: /adresse/i }).type('Testveien 1');
       cy.findByRole('textbox', { name: /postnr/i }).type('0244');
@@ -65,14 +42,14 @@ describe('Signing', () => {
 
       //Person: Standhaftig Bjørnunge
       cy.findByRole('button', { name: /legg til person/i }).click();
-      cy.findByRole('textbox', { name: /fødselsnummer/i }).type(tenorUsers.standhaftigBjornunge.ssn);
-      cy.findByRole('textbox', { name: /navn/i }).type(tenorUsers.standhaftigBjornunge.name.split(' ')[1]);
+      cy.findByRole('textbox', { name: /fødselsnummer/i }).type(Tenor.users.standhaftigBjornunge.ssn);
+      cy.findByRole('textbox', { name: /navn/i }).type(Tenor.users.standhaftigBjornunge.name.split(' ')[1]);
       cy.findByRole('button', { name: /hent opplysninger/i }).click();
 
       cy.waitUntilSaved();
       cy.findByRole('textbox', { name: /navn/i }).should(
         'have.value',
-        tenorUsers.standhaftigBjornunge.name.toUpperCase(),
+        Tenor.users.standhaftigBjornunge.name.toUpperCase(),
       );
 
       cy.findByRole('textbox', { name: /adresse/i }).type('Testveien 2');
@@ -84,7 +61,7 @@ describe('Signing', () => {
 
       // Virksomhet: Sivilisert Avansert Isbjørn SA
       cy.findByRole('button', { name: /legg til virksomhet/i }).click();
-      cy.findByRole('textbox', { name: /organisasjonsnummer/i }).type(sivilisertAvansertIsbjoernSA.orgNr);
+      cy.findByRole('textbox', { name: /organisasjonsnummer/i }).type(Tenor.orgs.sivilisertAvansertIsbjoernSA.orgNr);
       cy.findByRole('button', { name: /hent opplysninger/i }).click();
       cy.findByTestId('group-edit-container').within(() => {
         cy.findByRole('button', { name: /lagre og lukk/i }).click();
@@ -98,8 +75,8 @@ describe('Signing', () => {
       cy.findByRole('button', { name: /neste/i }).click();
 
       // Styre
-      cy.findByRole('textbox', { name: /fødselsnummer/i }).type(tenorUsers.varsomDiameter.ssn);
-      cy.findByRole('textbox', { name: /etternavn/i }).type(tenorUsers.varsomDiameter.name.split(' ')[1]);
+      cy.findByRole('textbox', { name: /fødselsnummer/i }).type(Tenor.users.varsomDiameter.ssn);
+      cy.findByRole('textbox', { name: /etternavn/i }).type(Tenor.users.varsomDiameter.name.split(' ')[1]);
       cy.findByRole('button', { name: /hent opplysninger/i }).click();
 
       cy.findByRole('radio', {
@@ -115,17 +92,20 @@ describe('Signing', () => {
         name: /personer som skal signere personer som skal signere beskrivelse/i,
       }).within(() => {
         cy.findByRole('row', {
-          name: new RegExp(`${sivilisertAvansertIsbjoernSA.name} (venter på signering|varsling mislyktes)`, 'i'),
-        });
-        cy.findByRole('row', {
           name: new RegExp(
-            `(${tenorUsers.humanAndrefiolin.name}|${reverseName(tenorUsers.humanAndrefiolin.name)}) (venter på signering|varsling mislyktes)`,
+            `${Tenor.orgs.sivilisertAvansertIsbjoernSA.name} (venter på signering|varsling mislyktes)`,
             'i',
           ),
         });
         cy.findByRole('row', {
           name: new RegExp(
-            `(${tenorUsers.standhaftigBjornunge.name}|${reverseName(tenorUsers.standhaftigBjornunge.name)}) (venter på signering|varsling mislyktes)`,
+            `(${Tenor.users.humanAndrefiolin.name}|${reverseName(Tenor.users.humanAndrefiolin.name)}) (venter på signering|varsling mislyktes)`,
+            'i',
+          ),
+        });
+        cy.findByRole('row', {
+          name: new RegExp(
+            `(${Tenor.users.standhaftigBjornunge.name}|${reverseName(Tenor.users.standhaftigBjornunge.name)}) (venter på signering|varsling mislyktes)`,
             'i',
           ),
         });
@@ -147,7 +127,7 @@ describe('Signing', () => {
       }).within(() => {
         cy.findByRole('row', {
           name: new RegExp(
-            `(${tenorUsers.humanAndrefiolin.name}|${reverseName(tenorUsers.humanAndrefiolin.name)})`,
+            `(${Tenor.users.humanAndrefiolin.name}|${reverseName(Tenor.users.humanAndrefiolin.name)})`,
             'i',
           ),
         }).within(() => {
@@ -155,7 +135,7 @@ describe('Signing', () => {
         });
       });
 
-      cy.findByText(new RegExp(`du signerer på vegne av ${sivilisertAvansertIsbjoernSA.name}`, 'i'));
+      cy.findByText(new RegExp(`du signerer på vegne av ${Tenor.orgs.sivilisertAvansertIsbjoernSA.name}`, 'i'));
       cy.findByRole('checkbox', { name: /jeg bekrefter at informasjonen og dokumentene er korrekte/i }).click();
       cy.findByRole('button', { name: 'Signer' }).click();
 
@@ -165,7 +145,7 @@ describe('Signing', () => {
 
     cy.hash().then((hash) => {
       cy.startAppInstance(appFrontend.apps.signeringBrukerstyrt, {
-        tenorUser: tenorUsers.humanAndrefiolin,
+        tenorUser: Tenor.users.humanAndrefiolin,
         authenticationLevel: '2',
         urlSuffix: `/${hash}`,
       });

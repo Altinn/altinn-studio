@@ -188,7 +188,7 @@ export function removeAllButKeepOrg(parties: IParty[], orgNumber: string): IPart
   // present, e.g. in docker/podman/localtest environments that have entirely different test data.
   const org = parties.find((party) => party.partyTypeName === PartyType.Organisation && party.orgNumber === orgNumber);
   if (!org) {
-    return removeAllButOneOrg(parties);
+    throw new Error(`Could not find organisation with orgNumber ${orgNumber} in party list`);
   }
   const persons = parties.filter((party) => party.partyTypeName === PartyType.Person);
   return [org, ...persons];
