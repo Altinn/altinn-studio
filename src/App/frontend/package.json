@@ -150,6 +150,7 @@
     "fast-json-patch": "3.1.1",
     "html-react-parser": "6.0.1",
     "immer": "11.1.4",
+    "jmespath": "0.16.0",
     "jsonpointer": "5.0.1",
     "leaflet": "1.9.4",
     "leaflet-draw": "1.0.4",

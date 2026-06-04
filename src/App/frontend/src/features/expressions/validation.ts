@@ -331,6 +331,12 @@ export const ExprValidation = {
   throwIfInvalid,
 };
 
+export function assertValidValue(value: unknown): asserts value is ValidValue {
+  if (!isValidValue(value)) {
+    throw new Error(`Invalid expression value.`);
+  }
+}
+
 export function isValidValue(value: unknown): value is ValidValue {
   return (
     typeof value === 'string' ||
