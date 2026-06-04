@@ -12,7 +12,7 @@ export const useLayoutSetsExtendedQuery = (
   app: string,
 ): UseQueryResult<LayoutSetModel[], Error> => {
   const { data: appVersion } = useAppVersionQuery(org, app);
-  const { getLayoutSetsExtended, getLayoutSetsExtendedV9 } = useServicesContext();
+  const { getLayoutSetsExtendedV4, getLayoutSetsExtended } = useServicesContext();
 
   const useV9Endpoint = !isBelowSupportedVersion(
     appVersion?.backendVersion,
@@ -21,12 +21,12 @@ export const useLayoutSetsExtendedQuery = (
 
   return useQuery<LayoutSetModel[]>({
     queryKey: [
-      useV9Endpoint ? QueryKey.LayoutSetsExtendedV9 : QueryKey.LayoutSetsExtended,
+      useV9Endpoint ? QueryKey.LayoutSetsExtended : QueryKey.LayoutSetsExtendedV4,
       org,
       app,
     ],
     queryFn: () =>
-      useV9Endpoint ? getLayoutSetsExtendedV9(org, app) : getLayoutSetsExtended(org, app),
+      useV9Endpoint ? getLayoutSetsExtended(org, app) : getLayoutSetsExtendedV4(org, app),
     enabled: !!appVersion,
   });
 };

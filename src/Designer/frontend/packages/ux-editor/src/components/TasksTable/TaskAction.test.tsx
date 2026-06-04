@@ -160,7 +160,7 @@ const renderTaskAction = ({ props, appContextProps }: RenderTaskActionProps = {}
   };
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.TaskNavigationGroup, org, app], mockTask);
-  queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
+  queryClient.setQueryData([QueryKey.LayoutSetsExtendedV4, org, app], layoutSetsExtendedMock);
   const mergedProps = { ...mockProps, ...props };
   renderWithProviders(<TaskAction {...mergedProps} />, { queryClient, appContextProps });
 };

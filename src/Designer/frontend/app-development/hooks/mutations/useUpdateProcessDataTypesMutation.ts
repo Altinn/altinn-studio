@@ -11,7 +11,7 @@ export const useUpdateProcessDataTypesMutation = (org: string, app: string) => {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadataModelIds, org, app] });
       await queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSets, org, app] });
-      await queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSetsExtended, org, app] });
+      await queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSetsExtendedV4, org, app] });
     },
   });
 };

@@ -146,10 +146,10 @@ export const queriesMock: ServicesContextProps = {
   getImageFileNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getLayoutNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
-  getLayoutSetsExtended: jest
+  getLayoutSetsExtendedV4: jest
     .fn()
     .mockImplementation(() => Promise.resolve<LayoutSetModel[]>(layoutSetsExtendedMock)),
-  getLayoutSetsExtendedV9: jest
+  getLayoutSetsExtended: jest
     .fn()
     .mockImplementation(() => Promise.resolve<LayoutSetModel[]>(layoutSetsExtendedMock)),
   getValidationOnNavigationLayoutSets: jest

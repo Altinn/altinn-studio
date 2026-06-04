@@ -26,6 +26,6 @@ describe('TaskCardBar', () => {
 });
 
 const renderTaskCardBar = ({ queryClient = createQueryClientMock() } = {}) => {
-  queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], mockLayoutSetsModel);
+  queryClient.setQueryData([QueryKey.LayoutSetsExtendedV4, org, app], mockLayoutSetsModel);
   return renderWithProviders(<TaskCardBar />, { queryClient });
 };
