@@ -90,7 +90,8 @@
         { "$ref": "#/definitions/func-stringSlice" },
         { "$ref": "#/definitions/func-upperCaseFirst" },
         { "$ref": "#/definitions/func-lowerCaseFirst" },
-        { "$ref": "#/definitions/func-optionLabel" }
+        { "$ref": "#/definitions/func-optionLabel" },
+        { "$ref": "#/definitions/func-jmespath" }
       ]
     },
     "boolean": {
@@ -123,7 +124,8 @@
         { "$ref": "#/definitions/func-startsWith" },
         { "$ref": "#/definitions/func-commaContains" },
         { "$ref": "#/definitions/func-compare" },
-        { "$ref": "#/definitions/func-compare-inverse" }
+        { "$ref": "#/definitions/func-compare-inverse" },
+        { "$ref": "#/definitions/func-jmespath" }
       ]
     },
     "number": {
@@ -145,7 +147,8 @@
         { "$ref": "#/definitions/func-multiply" },
         { "$ref": "#/definitions/func-stringLength" },
         { "$ref": "#/definitions/func-stringIndexOf" },
-        { "$ref": "#/definitions/func-countDataElements" }
+        { "$ref": "#/definitions/func-countDataElements" },
+        { "$ref": "#/definitions/func-jmespath" }
       ]
     },
     "list": {
@@ -155,7 +158,8 @@
     "strict-list": {
       "title": "Any expression returning a list (strict)",
       "anyOf": [
-        { "$ref": "#/definitions/func-list" }
+        { "$ref": "#/definitions/func-list" },
+        { "$ref": "#/definitions/func-jmespath" }
       ]
     },
     "object": {
@@ -165,7 +169,8 @@
     "strict-object": {
       "title": "Any expression returning an object (strict)",
       "anyOf": [
-        { "$ref": "#/definitions/func-object" }
+        { "$ref": "#/definitions/func-object" },
+        { "$ref": "#/definitions/func-jmespath" }
       ]
     },
     "func-if": {
@@ -732,7 +737,8 @@
         { "const": "jmespath" },
         { "$ref": "#/definitions/any" },
         { "$ref": "#/definitions/string" }
-      ]
+      ],
+      "additionalItems": false
     },
     "compare-operator": {
       "title": "Comparison operator",
