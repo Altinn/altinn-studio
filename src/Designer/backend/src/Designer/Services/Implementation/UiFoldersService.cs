@@ -216,7 +216,9 @@ public class UiFoldersService : IUiFoldersService
         cancellationToken.ThrowIfCancellationRequested();
         AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext);
 
-        string? dataType = await TryGetDataType(altinnAppGitRepository, layoutSetToDeleteId, cancellationToken);
+        string? dataType = (
+            await TryGetLayoutSettings(altinnAppGitRepository, layoutSetToDeleteId, cancellationToken)
+        )?.DataType;
         if (!string.IsNullOrEmpty(dataType))
         {
             await DeleteTaskRefInApplicationMetadata(altinnAppGitRepository, dataType);
@@ -233,7 +235,35 @@ public class UiFoldersService : IUiFoldersService
         return await GetLayoutSets(editingContext, cancellationToken);
     }
 
-    private async Task<string?> TryGetDataType(
+    // private async Task<string?> TryGetDataType(
+    //     AltinnAppGitRepository altinnAppGitRepository,
+    //     string layoutSetName,
+    //     CancellationToken cancellationToken
+    // )
+    // {
+    //     try
+    //     {
+    //         LayoutSettings layoutSettings = await altinnAppGitRepository.GetLayoutSettings(
+    //             layoutSetName,
+    //             cancellationToken
+    //         );
+    //         return layoutSettings.DataType;
+    //     }
+    //     catch (Exception e) when (e is FileNotFoundException or JsonException)
+    //     {
+    //         string sanitizedLayoutSetName = (layoutSetName ?? string.Empty)
+    //             .Replace("\r", string.Empty)
+    //             .Replace("\n", string.Empty);
+    //         _logger.LogWarning(
+    //             e,
+    //             "Could not read Settings.json for layout set {LayoutSetName} while deleting. Skipping data type cleanup.",
+    //             sanitizedLayoutSetName
+    //         );
+    //         return null;
+    //     }
+    // }
+
+    private async Task<LayoutSettings?> TryGetLayoutSettings(
         AltinnAppGitRepository altinnAppGitRepository,
         string layoutSetName,
         CancellationToken cancellationToken
@@ -241,24 +271,22 @@ public class UiFoldersService : IUiFoldersService
     {
         try
         {
-            LayoutSettings layoutSettings = await altinnAppGitRepository.GetLayoutSettings(
-                layoutSetName,
-                cancellationToken
-            );
-            return layoutSettings.DataType;
+            return await altinnAppGitRepository.GetLayoutSettings(layoutSetName, cancellationToken);
         }
         catch (Exception e) when (e is FileNotFoundException or JsonException)
         {
-            string sanitizedLayoutSetName = (layoutSetName ?? string.Empty)
-                .Replace("\r", string.Empty)
-                .Replace("\n", string.Empty);
             _logger.LogWarning(
                 e,
-                "Could not read Settings.json for layout set {LayoutSetName} while deleting. Skipping data type cleanup.",
-                sanitizedLayoutSetName
+                "Could not read Settings.json for layout set {LayoutSetName}. Skipping.",
+                SanitizeForLog(layoutSetName)
             );
             return null;
         }
+    }
+
+    private static string SanitizeForLog(string input)
+    {
+        return input.Replace('\r', ' ').Replace('\n', ' ');
     }
 
     private static async Task DeleteTaskRefInApplicationMetadata(
@@ -472,33 +500,28 @@ public class UiFoldersService : IUiFoldersService
 
         foreach (string layoutSetName in uiFolders)
         {
-            try
+            LayoutSettings? layoutSettings = await TryGetLayoutSettings(
+                altinnAppGitRepository,
+                layoutSetName,
+                cancellationToken
+            );
+
+            if (layoutSettings is null)
             {
-                LayoutSettings layoutSettings = await altinnAppGitRepository.GetLayoutSettings(
-                    layoutSetName,
-                    cancellationToken
-                );
-
-                bool isSubform = layoutSettings.Type == "subform";
-                bool hasMatchingTask = definitions.Process.Tasks.Any(task => task.Id == layoutSetName);
-
-                if (!isSubform && !hasMatchingTask)
-                {
-                    continue;
-                }
-
-                string? taskType = hasMatchingTask ? TaskTypeFromDefinitions(definitions, layoutSetName) : null;
-
-                layoutSets.Add(new LayoutSetInfo(layoutSetName, layoutSettings, taskType));
+                continue;
             }
-            catch (Exception e) when (e is FileNotFoundException or JsonException)
+
+            bool isSubform = layoutSettings.Type == "subform";
+            bool hasMatchingTask = definitions.Process.Tasks.Any(task => task.Id == layoutSetName);
+
+            if (!isSubform && !hasMatchingTask)
             {
-                _logger.LogWarning(
-                    e,
-                    "Could not read Settings.json for layout set {LayoutSetName}. Skipping.",
-                    layoutSetName
-                );
+                continue;
             }
+
+            string? taskType = hasMatchingTask ? TaskTypeFromDefinitions(definitions, layoutSetName) : null;
+
+            layoutSets.Add(new LayoutSetInfo(layoutSetName, layoutSettings, taskType));
         }
 
         return layoutSets;
