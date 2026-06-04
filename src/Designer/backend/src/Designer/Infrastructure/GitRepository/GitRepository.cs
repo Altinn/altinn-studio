@@ -9,7 +9,6 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
-using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository;
 
@@ -218,8 +217,7 @@ public class GitRepository
             CreateDirectory(absoluteFilePath);
         }
 
-        cancellationToken.ThrowIfCancellationRequested();
-        await File.WriteAllTextAsync(absoluteFilePath, text, Encoding.UTF8, cancellationToken);
+        await WriteTextAsync(absoluteFilePath, text, cancellationToken);
     }
 
     /// <summary>
@@ -375,7 +373,10 @@ public class GitRepository
     {
         string absoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(relativeFilePath);
 
-        Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
+        if (!absoluteFilePath.StartsWith(RepositoryDirectory))
+        {
+            return false;
+        }
 
         return File.Exists(absoluteFilePath);
     }
@@ -388,7 +389,10 @@ public class GitRepository
     {
         string absoluteDirectoryPath = GetAbsoluteFileOrDirectoryPathSanitized(relativeDirectoryPath);
 
-        Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteDirectoryPath);
+        if (!absoluteDirectoryPath.StartsWith(RepositoryDirectory))
+        {
+            return false;
+        }
 
         return Directory.Exists(absoluteDirectoryPath);
     }
@@ -443,26 +447,17 @@ public class GitRepository
     /// <param name="relativeFilePath">Relative path to the file to get the absolute path for.</param>
     protected string GetAbsoluteFileOrDirectoryPathSanitized(string relativeFilePath)
     {
-        Guard.AssertNotNullOrEmpty(relativeFilePath, nameof(relativeFilePath));
-        // Normalize separators first so rooted-path checks are consistent across platforms.
+        if (relativeFilePath.StartsWith("/") || relativeFilePath.StartsWith("\\"))
+        {
+            relativeFilePath = relativeFilePath[1..];
+        }
+
+        // We do this to avoid paths like c:\altinn\repositories\developer\org\repo\..\..\somefile.txt
+        // By first combining the paths, the getting the full path you will get c:\altinn\repositories\developer\org\repo\somefile.txt
+        // This also makes it easier to avoid people trying to get outside their repository directory.
         relativeFilePath = relativeFilePath.Replace('\\', Path.DirectorySeparatorChar);
-        // Reject absolute/rooted input from callers. Only repository-relative paths are allowed.
-
-        if (Path.IsPathRooted(relativeFilePath))
-        {
-            throw new BadHttpRequestException("Invalid file path.");
-        }
-
-        string repositoryRoot = Path.GetFullPath(RepositoryDirectory);
-        string absoluteFilePath = Path.GetFullPath(Path.Combine(repositoryRoot, relativeFilePath));
-        string repositoryRootWithSeparator = repositoryRoot.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
-        if (
-            !absoluteFilePath.Equals(repositoryRoot, StringComparison.Ordinal)
-            && !absoluteFilePath.StartsWith(repositoryRootWithSeparator, StringComparison.Ordinal)
-        )
-        {
-            throw new BadHttpRequestException("Invalid file path.");
-        }
+        string absoluteFilePath = Path.Combine(RepositoryDirectory, relativeFilePath);
+        absoluteFilePath = Path.GetFullPath(absoluteFilePath);
         return absoluteFilePath;
     }
 
@@ -497,6 +492,25 @@ public class GitRepository
         }
 
         return sb.ToString();
+    }
+
+    private static async Task WriteTextAsync(
+        string absoluteFilePath,
+        string text,
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        byte[] encodedText = Encoding.UTF8.GetBytes(text);
+        await using FileStream sourceStream = new(
+            absoluteFilePath,
+            FileMode.Create,
+            FileAccess.Write,
+            FileShare.None,
+            bufferSize: 4096,
+            useAsync: true
+        );
+        await sourceStream.WriteAsync(encodedText.AsMemory(0, encodedText.Length), cancellationToken);
     }
 
     private static async Task WriteAsync(
