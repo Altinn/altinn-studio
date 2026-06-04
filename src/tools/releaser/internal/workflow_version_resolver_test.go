@@ -108,9 +108,10 @@ func TestRunWorkflow_SelectsLatestPrereleaseForMain(t *testing.T) {
 		"studioctl self update",
 		"https://altinn.studio/designer/api/v1/studioctl/install.sh",
 		"https://altinn.studio/designer/api/v1/studioctl/install.ps1",
+		"## Changelog\n\n### Added",
 	} {
 		if !strings.Contains(string(content), want) {
-			t.Fatalf("release notes missing studioctl install/update text %q:\n%s", want, string(content))
+			t.Fatalf("release notes missing expected content %q:\n%s", want, string(content))
 		}
 	}
 	const prereleaseCompare = "**Full Changelog**: https://github.com/Altinn/altinn-studio/compare/studioctl/v1.2.0-preview.1...studioctl/v1.2.0-preview.2"

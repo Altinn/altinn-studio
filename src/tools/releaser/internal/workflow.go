@@ -552,5 +552,5 @@ func withReleaseNotesIntro(notes, intro string) string {
 	if notes == "" {
 		return intro
 	}
-	return intro + "\n\n" + notes
+	return intro + "\n\n## Changelog\n\n" + notes
 }
