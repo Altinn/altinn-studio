@@ -217,7 +217,8 @@ public class GitRepository
             CreateDirectory(absoluteFilePath);
         }
 
-        await WriteTextAsync(absoluteFilePath, text, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        await File.WriteAllTextAsync(absoluteFilePath, text, Encoding.UTF8, cancellationToken);
     }
 
     /// <summary>
@@ -373,10 +374,7 @@ public class GitRepository
     {
         string absoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(relativeFilePath);
 
-        if (!absoluteFilePath.StartsWith(RepositoryDirectory))
-        {
-            return false;
-        }
+        Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
 
         return File.Exists(absoluteFilePath);
     }
@@ -389,10 +387,7 @@ public class GitRepository
     {
         string absoluteDirectoryPath = GetAbsoluteFileOrDirectoryPathSanitized(relativeDirectoryPath);
 
-        if (!absoluteDirectoryPath.StartsWith(RepositoryDirectory))
-        {
-            return false;
-        }
+        Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteDirectoryPath);
 
         return Directory.Exists(absoluteDirectoryPath);
     }
@@ -492,25 +487,6 @@ public class GitRepository
         }
 
         return sb.ToString();
-    }
-
-    private static async Task WriteTextAsync(
-        string absoluteFilePath,
-        string text,
-        CancellationToken cancellationToken = default
-    )
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        byte[] encodedText = Encoding.UTF8.GetBytes(text);
-        await using FileStream sourceStream = new(
-            absoluteFilePath,
-            FileMode.Create,
-            FileAccess.Write,
-            FileShare.None,
-            bufferSize: 4096,
-            useAsync: true
-        );
-        await sourceStream.WriteAsync(encodedText.AsMemory(0, encodedText.Length), cancellationToken);
     }
 
     private static async Task WriteAsync(
