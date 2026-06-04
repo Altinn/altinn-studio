@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useReducer, useRef } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useReducer, useRef } from 'react';
 
 import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
@@ -164,22 +164,40 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: Runtim
   }
 
   const instanceId = instanceOwnerPartyId && instanceGuid ? `${instanceOwnerPartyId}/${instanceGuid}` : undefined;
-  const externalApiIds = getApplicationMetadata().externalApiIds ?? [];
-  const inputs: SnapshotInputs = {
-    applicationSettings,
-    currentLanguage,
-    currentPage,
-    currentDataModelPath,
-    externalApiIds,
-    instanceId,
-    store,
-    textResourcesApi,
-    dataModelReaders,
-    instanceQueries,
-    queryCacheObserver,
-    externalApiQueries,
-    textResourceQueries,
-  };
+  const externalApiIds = getApplicationMetadata().externalApiIds ?? emptyExternalApiIds;
+  const inputs: SnapshotInputs = useMemo(
+    () => ({
+      applicationSettings,
+      currentLanguage,
+      currentPage,
+      currentDataModelPath,
+      externalApiIds,
+      instanceId,
+      store,
+      textResourcesApi,
+      dataModelReaders,
+      instanceQueries,
+      queryCacheObserver,
+      externalApiQueries,
+      textResourceQueries,
+    }),
+    [
+      applicationSettings,
+      currentDataModelPath,
+      currentLanguage,
+      currentPage,
+      dataModelReaders,
+      externalApiIds,
+      externalApiQueries,
+      instanceId,
+      instanceQueries,
+      queryCacheObserver,
+      store,
+      textResourceQueries,
+      textResourcesApi,
+    ],
+  );
+
   observerRef.current.updateInputs(inputs);
   observerRef.current.beginCollect();
 
@@ -189,93 +207,113 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: Runtim
     return observer.subscribe();
   });
 
-  const { runtime: runtimeOverrides, unsupportedDataSources, errorSuffix } = overrides ?? {};
-  const assertDataSourceSupported = (dataSource: ExpressionDataSource) => {
-    if (unsupportedDataSources?.has(dataSource)) {
-      const message = `Expressions using data source "${dataSource}" are not supported in ${
-        errorSuffix ? errorSuffix : 'this context'
-      }.`;
-      window.logErrorOnce(message);
-      throw new Error(message);
-    }
-  };
-
-  const output: ExpressionDataSources = {
-    currentDataModelPath,
-    langToolsSelector: (dataModelPath) => {
-      observerRef.current!.track({ type: 'language', dataModelPath });
-      return buildLanguageTools({ inputs, dataModelPath });
+  const { runtime: runtimeOverridesFromProps, unsupportedDataSources, errorSuffix } = overrides ?? {};
+  const runtimeOverrides = useShallowMemo(runtimeOverridesFromProps ?? emptyRuntimeOverrides);
+  const assertDataSourceSupported = useCallback(
+    (dataSource: ExpressionDataSource) => {
+      if (unsupportedDataSources?.has(dataSource)) {
+        const message = `Expressions using data source "${dataSource}" are not supported in ${
+          errorSuffix ? errorSuffix : 'this context'
+        }.`;
+        window.logErrorOnce(message);
+        throw new Error(message);
+      }
     },
-    track: (dependency) => observerRef.current!.track(dependency),
-    getDependencies: () => observerRef.current!.getDependencies(),
-    context: {
-      currentLanguage: () => {
-        observerRef.current!.track({ type: 'currentLanguage' });
-        return currentLanguage;
+    [errorSuffix, unsupportedDataSources],
+  );
+
+  return useMemo<ExpressionDataSources>(
+    () => ({
+      currentDataModelPath,
+      langToolsSelector: (dataModelPath) => {
+        observerRef.current!.track({ type: 'language', dataModelPath });
+        return buildLanguageTools({ inputs, dataModelPath });
       },
-      currentPage: () => {
-        observerRef.current!.track({ type: 'currentPage' });
-        return currentPage;
+      track: (dependency) => observerRef.current!.track(dependency),
+      getDependencies: () => observerRef.current!.getDependencies(),
+      context: {
+        currentLanguage: () => {
+          observerRef.current!.track({ type: 'currentLanguage' });
+          return currentLanguage;
+        },
+        currentPage: () => {
+          observerRef.current!.track({ type: 'currentPage' });
+          return currentPage;
+        },
+        currentDataModelPath: () => currentDataModelPath,
+        assertDataSourceSupported,
       },
-      currentDataModelPath: () => currentDataModelPath,
+      application: {
+        getSettings: () => {
+          observerRef.current!.track({ type: 'applicationSettings' });
+          return applicationSettings;
+        },
+      },
+      formData: {
+        defaultDataType: () => getDefaultDataTypeFromStore(store),
+        hasDataType: (dataType) => getReadableDataTypesFromStore(store).includes(dataType),
+        read: (reference) => {
+          observerRef.current!.track({ type: 'formData', reference });
+          return readFormDataFromStore(store, reference);
+        },
+      },
+      layout: {
+        getLookups: () => {
+          assertDataSourceSupported('layout');
+          observerRef.current!.track({ type: 'layout' });
+          return getLayoutLookupsFromStore(store);
+        },
+      },
+      options: {
+        getStaticOptions: (optionsId) => {
+          observerRef.current!.track({ type: 'options', optionsId });
+          return getStaticOptionsFromStore(store, optionsId);
+        },
+      },
+      instance: {
+        countDataElements: (dataType) => instanceQueries.countDataElements(instanceId, dataType),
+        getDataSources: () => {
+          observerRef.current!.track({ type: 'instanceDataSources' });
+          return getInstanceDataSourcesFromCache(instanceQueries, instanceId);
+        },
+        getProcess: () => {
+          observerRef.current!.track({ type: 'process' });
+          return getProcessFromCache(instanceQueries, instanceId);
+        },
+      },
+      externalApi: {
+        getAll: () => {
+          assertDataSourceSupported('externalApi');
+          observerRef.current!.track({ type: 'externalApi' });
+          externalApiQueries.ensureLoaded(instanceId, externalApiIds);
+          return externalApiQueries.getCached(instanceId, externalApiIds);
+        },
+      },
+      displayValue: {
+        get: (componentId) => {
+          assertDataSourceSupported('displayValue');
+          observerRef.current!.track({ type: 'displayValue', componentId });
+          return displayValues[componentId];
+        },
+      },
+      ...runtimeOverrides,
+    }),
+    [
+      applicationSettings,
       assertDataSourceSupported,
-    },
-    application: {
-      getSettings: () => {
-        observerRef.current!.track({ type: 'applicationSettings' });
-        return applicationSettings;
-      },
-    },
-    formData: {
-      defaultDataType: () => getDefaultDataTypeFromStore(store),
-      hasDataType: (dataType) => getReadableDataTypesFromStore(store).includes(dataType),
-      read: (reference) => {
-        observerRef.current!.track({ type: 'formData', reference });
-        return readFormDataFromStore(store, reference);
-      },
-    },
-    layout: {
-      getLookups: () => {
-        assertDataSourceSupported('layout');
-        observerRef.current!.track({ type: 'layout' });
-        return getLayoutLookupsFromStore(store);
-      },
-    },
-    options: {
-      getStaticOptions: (optionsId) => {
-        observerRef.current!.track({ type: 'options', optionsId });
-        return getStaticOptionsFromStore(store, optionsId);
-      },
-    },
-    instance: {
-      countDataElements: (dataType) => instanceQueries.countDataElements(instanceId, dataType),
-      getDataSources: () => {
-        observerRef.current!.track({ type: 'instanceDataSources' });
-        return getInstanceDataSourcesFromCache(instanceQueries, instanceId);
-      },
-      getProcess: () => {
-        observerRef.current!.track({ type: 'process' });
-        return getProcessFromCache(instanceQueries, instanceId);
-      },
-    },
-    externalApi: {
-      getAll: () => {
-        assertDataSourceSupported('externalApi');
-        observerRef.current!.track({ type: 'externalApi' });
-        externalApiQueries.ensureLoaded(instanceId, externalApiIds);
-        return externalApiQueries.getCached(instanceId, externalApiIds);
-      },
-    },
-    displayValue: {
-      get: (componentId) => {
-        assertDataSourceSupported('displayValue');
-        observerRef.current!.track({ type: 'displayValue', componentId });
-        return displayValues[componentId];
-      },
-    },
-  };
-
-  return useShallowMemo({ ...output, ...runtimeOverrides });
+      currentDataModelPath,
+      currentLanguage,
+      currentPage,
+      displayValues,
+      externalApiIds,
+      externalApiQueries,
+      inputs,
+      instanceId,
+      instanceQueries,
+      runtimeOverrides,
+      store,
+    ],
+  );
 }
 
 /**
@@ -329,12 +367,12 @@ class ExpressionObserver {
     this.unsubscribeStore =
       inputs.store !== ContextNotProvided
         ? inputs.store.subscribe(() => {
-            this.checkForChanges();
+            this.checkForChanges('form store');
           })
         : null;
 
     this.unsubscribeQuery = inputs.queryCacheObserver.subscribe(() => {
-      this.checkForChanges();
+      this.checkForChanges('query cache');
     });
     this.subscribed = true;
 
@@ -347,14 +385,24 @@ class ExpressionObserver {
     };
   }
 
-  private checkForChanges() {
+  private checkForChanges(trigger: 'form store' | 'query cache') {
     if (!this.inputs || this.active.size === 0) {
       return;
     }
 
     const nextValues = this.readValues(this.active);
     for (const [key, nextValue] of nextValues) {
-      if (!deepEqual(this.lastValues.get(key), nextValue)) {
+      const previousValue = this.lastValues.get(key);
+      if (!deepEqual(previousValue, nextValue)) {
+        // eslint-disable-next-line no-console
+        console.log('[useExpressionDataSources] rerender caused by changed dependency', {
+          trigger,
+          key,
+          dependency: this.active.get(key)!,
+          previousValue,
+          nextValue,
+          activeDependencies: [...this.active.values()],
+        });
         this.lastValues = nextValues;
         this.scheduleRerender();
         return;
@@ -567,3 +615,5 @@ function makeDependencyKey(dependency: ExpressionDependency) {
 }
 
 const emptyDisplayValues: Record<string, string | undefined> = {};
+const emptyExternalApiIds: string[] = [];
+const emptyRuntimeOverrides: Partial<ExpressionDataSources> = {};
