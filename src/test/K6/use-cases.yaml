@@ -61,6 +61,7 @@ steps:
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Get token'
+  continueOnError: false
   condition: and(succeeded(), eq(variables['availability'], 'up'))
 
 - script: |
