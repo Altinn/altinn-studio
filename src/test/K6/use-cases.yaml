@@ -46,7 +46,7 @@ steps:
   displayName: 'Check availability'
 
 - script: |
-   k6 run  --quiet $(pwd)/src/tests/platform/authentication/authentication.js -e env=$(environment) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey)
+   k6 run  --quiet $(pwd)/src/tests/platform/authentication/authentication.js -e env=$(environment) -e pid=$(pid) -e testidppwd=$(testidppwd) -e appsaccesskey=$(appsAccessSubsKey)
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Authentication'
@@ -54,32 +54,45 @@ steps:
   condition: and(succeeded(), eq(variables['availability'], 'up'))
 
 - script: |
-   k6 run  --quiet $(pwd)/src/tests/app/portalsimulation.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
-
-   k6 run  --quiet $(pwd)/src/tests/app/multipartdata.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
+   k6 run  --quiet $(pwd)/src/tests/app/portalsimulation.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e pid=$(pid) -e testidppwd=$(testidppwd) -e appsaccesskey=$(appsAccessSubsKey)
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
-  displayName: 'App'
+  displayName: 'Portal simulation'
   condition: and(succeededOrFailed(), eq(variables['availability'], 'up'))
 
 - script: |
-   k6 run  --quiet $(pwd)/src/tests/altinn-ui/messagebox.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey)
-
-   k6 run  --quiet $(pwd)/src/tests/platform/register/register.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey)
-
-   k6 run  --quiet $(pwd)/src/tests/platform/receipt/receipt.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey)
+   k6 run  --quiet $(pwd)/src/tests/app/multipartdata.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e pid=$(pid) -e testidppwd=$(testidppwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
-  displayName: 'Platform'
+  displayName: 'Multipart data'
   condition: and(succeededOrFailed(), eq(variables['availability'], 'up'))
 
 - script: |
-   k6 run  --quiet $(pwd)/src/tests/platform/storage/deleteinstances.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
+   k6 run  --quiet $(pwd)/src/tests/platform/register/register.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e pid=$(pid) -e testidppwd=$(testidppwd) -e appsaccesskey=$(appsAccessSubsKey)
 
+  workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
+  displayName: 'Register'
+  condition: and(succeededOrFailed(), eq(variables['availability'], 'up'))
+
+- script: |
+   k6 run  --quiet $(pwd)/src/tests/platform/receipt/receipt.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e pid=$(pid) -e testidppwd=$(testidppwd) -e appsaccesskey=$(appsAccessSubsKey)
+
+  workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
+  displayName: 'Receipt'
+  condition: and(succeededOrFailed(), eq(variables['availability'], 'up'))
+
+- script: |
+   k6 run  --quiet $(pwd)/src/tests/platform/storage/deleteinstances.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e pid=$(pid) -e testidppwd=$(testidppwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
+
+  workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
+  displayName: 'Delete instances'
+  condition: and(succeededOrFailed(), eq(variables['availability'], 'up'))
+
+- script: |
    k6 run --quiet $(pwd)/src/tests/app/appowner/complete-instances.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e tokengenuser=$(tokengenuser) -e tokengenuserpwd=$(tokengenuserpwd) -e scopes=altinn:serviceowner/instances.read,altinn:serviceowner/instances.write
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
-  displayName: 'Cleanup'
+  displayName: 'Complete instances'
   condition: and(succeededOrFailed(), eq(variables['availability'], 'up'))
 
 - task: PublishTestResults@2
@@ -90,6 +103,6 @@ steps:
      **/src/test/K6/src/reports/*.xml
     searchFolder: '$(Build.SourcesDirectory)'
     mergeTestResults: true
-    failOnStderr: true
+    failTaskOnFailedTests: true
     testRunTitle: '$(environment)_use_cases'
   condition: and(succeededOrFailed(), eq(variables['availability'], 'up'))
