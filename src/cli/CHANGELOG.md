@@ -8,6 +8,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Add `studioctl app env` for printing the local app harness environment, with `--json` output for app startup integration.
+
 ### Fixed
 
 - Update `studioctl app upgrade v9` to target `net10.0` and resolve v9 app package versions from configured NuGet sources.
