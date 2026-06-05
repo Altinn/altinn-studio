@@ -2,10 +2,10 @@
 yarn lint-staged
 
 (
-  STAGED_FILES_DESIGNER_BACKEND=$(git diff --cached --name-only --diff-filter=ACM | grep -e '^src/Designer/backend' | grep -E '\.cs$|\.csx$|\.config$' | sed 's|^src/Designer/backend/||')
+  STAGED_FILES_DESIGNER_BACKEND=$(git diff --cached --name-only --diff-filter=ACM | grep -e '^src/Designer/backend' | sed 's|^src/Designer/backend/||')
 
   if [ -n "$STAGED_FILES_DESIGNER_BACKEND" ]; then
-    echo "Found staged C# files in src/Designer/backend, running csharpier..."
+    echo "Found staged files in src/Designer/backend, running csharpier..."
     cd src/Designer/backend
     dotnet tool restore
     dotnet csharpier format $STAGED_FILES_DESIGNER_BACKEND
