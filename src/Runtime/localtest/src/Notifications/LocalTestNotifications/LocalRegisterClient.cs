@@ -1,4 +1,6 @@
-﻿using Altinn.Notifications.Core.Integrations;
+#nullable disable
+
+using Altinn.Notifications.Core.Integrations;
 using Altinn.Notifications.Core.Models.ContactPoints;
 
 using LocalTest.Services.TestData;
