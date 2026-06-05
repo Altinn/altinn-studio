@@ -77,6 +77,10 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         if (returnCode == 0)
+            returnCode = await MigrateLaunchSettings(projectFile);
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        if (returnCode == 0)
             returnCode = await ConvertConditionalRenderingRules(projectFolder);
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -124,6 +128,21 @@ internal static class V8Tov9Upgrade
         await rewriter.RemovePackageReference("Swashbuckle.AspNetCore");
         await UpgradeConsole.Out.WriteLineAsync("Swashbuckle.AspNetCore package reference removed");
         return 0;
+    }
+
+    static async Task<int> MigrateLaunchSettings(string projectFile)
+    {
+        try
+        {
+            await LaunchSettingsMigration.Migrate(projectFile);
+            await UpgradeConsole.Out.WriteLineAsync("Launch settings migrated");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating launch settings: {ex.Message}");
+            return 1;
+        }
     }
 
     static async Task<int> ConvertToProjectReferences(
