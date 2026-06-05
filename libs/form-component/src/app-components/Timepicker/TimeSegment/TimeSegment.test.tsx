@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import type { TimeSegmentProps } from '@app/form-component/app-components/Timepicker/types';
 
-import type { TimeSegmentProps } from '../types';
 import { TimeSegment } from './TimeSegment';
 
 describe('TimeSegment Component', () => {

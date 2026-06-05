@@ -1,10 +1,10 @@
 import React, { useRef, useState } from 'react';
 import type { MonthCaption } from 'react-day-picker';
 
+import { Flex } from '@app/form-component/app-components/Flex/Flex';
 import { CalendarIcon } from '@navikt/aksel-icons';
 import { isValid as isValidDate } from 'date-fns';
 
-import { Flex } from '../Flex/Flex';
 import styles from './Calendar.module.css';
 import { DatePickerCalendar } from './DatePickerCalendar';
 import { DatePickerDialog } from './DatepickerDialog';
