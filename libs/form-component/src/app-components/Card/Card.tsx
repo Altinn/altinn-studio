@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Card, Heading, Paragraph } from '@digdir/designsystemet-react';
+import { Card, type CardProps, Heading, Paragraph } from '@digdir/designsystemet-react';
 
 import classes from './Card.module.css';
 
@@ -10,7 +10,7 @@ export type AppCardProps = {
   footer?: React.ReactNode;
   media?: React.ReactNode;
   mediaPosition?: 'top' | 'bottom';
-  color?: Parameters<typeof Card>[0]['color'];
+  color?: CardProps['data-color'];
   children?: React.ReactNode;
   variant?: 'tinted' | 'default';
   className?: string;

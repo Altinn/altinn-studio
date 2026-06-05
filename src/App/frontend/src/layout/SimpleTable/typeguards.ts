@@ -1,6 +1,5 @@
+import type { FormDataObject, FormDataValue } from '@app/form-component';
 import type { JSONSchema7, JSONSchema7Definition } from 'json-schema';
-
-import type { FormDataObject, FormDataValue } from 'src/app-components/DynamicForm/DynamicForm';
 
 export function isFormDataValue(value: unknown): value is FormDataValue {
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' || value === null) {

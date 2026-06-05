@@ -1,4 +1,5 @@
 export * from './AddLanguagePayload';
+export * from './ChatFeedbackPayload';
 export * from './ChatMessage';
 export * from './ChatThread';
 export * from './AddRepoParams';

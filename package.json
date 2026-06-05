@@ -13,6 +13,7 @@
     ],
     "./src/App/frontend/**/*.json": "yarn --cwd src/App/frontend eslint --cache --fix",
     "./src/App/frontend/**/*.{css,md}": "prettier -w",
+    "./libs/form-component/**/*.{js,jsx,ts,tsx}": "yarn --cwd libs/form-component eslint --cache --fix",
     "*{js,jsx,tsx,ts,css,md}": "prettier -w",
     "./src/Designer/frontend/language/src/*.json": "yarn run sort-texts"
   },

@@ -1,4 +1,3 @@
-#nullable enable
 using Altinn.ResourceRegistry.Core.Enums;
 using Altinn.ResourceRegistry.Core.Models;
 using System.Text.Json.Serialization;

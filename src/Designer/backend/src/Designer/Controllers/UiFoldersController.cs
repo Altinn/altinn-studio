@@ -1,0 +1,207 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Altinn.Studio.Designer.Filters;
+using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
+using Altinn.Studio.Designer.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Altinn.Studio.Designer.Controllers;
+
+/// <summary>
+/// Controller for handling UI folder related operations for v9 and newer, such as fetching and saving settings for validation on navigation and task navigation.
+/// </summary>
+[ApiController]
+[Authorize]
+[AutoValidateAntiforgeryToken]
+[Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/ui-folders")]
+public class UiFoldersController : Controller
+{
+    private readonly IUiFoldersService _uiFoldersService;
+
+    public UiFoldersController(IUiFoldersService uiFoldersService)
+    {
+        _uiFoldersService = uiFoldersService;
+    }
+
+    private AltinnRepoEditingContext CreateContext(string org, string app)
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        return AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+    }
+
+    [HttpGet("layout-sets/extended")]
+    [UseSystemTextJson]
+    public async Task<IActionResult> GetLayoutSetsExtended(string org, string app, CancellationToken cancellationToken)
+    {
+        AltinnRepoEditingContext editingContext = CreateContext(org, app);
+        IEnumerable<LayoutSetDto> uiFolders = await _uiFoldersService.GetLayoutSetsExtended(
+            editingContext,
+            cancellationToken
+        );
+        return Ok(uiFolders);
+    }
+
+    [HttpGet("settings/validation-on-navigation")]
+    [UseSystemTextJson]
+    public async Task<IActionResult> GetValidationOnNavigation(
+        string org,
+        string app,
+        [FromQuery] List<string>? layoutSets,
+        [FromQuery] List<string>? pages,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnRepoEditingContext editingContext = CreateContext(org, app);
+
+        if (layoutSets == null || layoutSets.Count == 0)
+        {
+            return Ok(await _uiFoldersService.GetGlobalValidationOnNavigation(editingContext, cancellationToken));
+        }
+
+        if (pages == null || pages.Count == 0)
+        {
+            return Ok(
+                await _uiFoldersService.GetLayoutSetsValidationOnNavigation(
+                    editingContext,
+                    layoutSets,
+                    cancellationToken
+                )
+            );
+        }
+
+        return Ok(
+            await _uiFoldersService.GetPagesValidationOnNavigation(
+                editingContext,
+                layoutSets[0],
+                pages,
+                cancellationToken
+            )
+        );
+    }
+
+    [HttpPost("settings/validation-on-navigation")]
+    [UseSystemTextJson]
+    public async Task<IActionResult> SaveValidationOnNavigation(
+        string org,
+        string app,
+        [FromQuery] List<string>? layoutSets,
+        [FromQuery] List<string>? pages,
+        [FromBody] ValidationOnNavigation config,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnRepoEditingContext editingContext = CreateContext(org, app);
+
+        if (layoutSets == null || layoutSets.Count == 0)
+        {
+            await _uiFoldersService.SaveGlobalValidationOnNavigation(editingContext, config, cancellationToken);
+            return Ok();
+        }
+
+        if (pages == null || pages.Count == 0)
+        {
+            await _uiFoldersService.SaveLayoutSetsValidationOnNavigation(
+                editingContext,
+                layoutSets,
+                config,
+                cancellationToken
+            );
+            return Ok();
+        }
+
+        await _uiFoldersService.SavePagesValidationOnNavigation(
+            editingContext,
+            layoutSets[0],
+            pages,
+            config,
+            cancellationToken
+        );
+        return Ok();
+    }
+
+    [HttpDelete("settings/validation-on-navigation")]
+    public async Task<IActionResult> DeleteValidationOnNavigation(
+        string org,
+        string app,
+        [FromQuery] List<string>? layoutSets,
+        [FromQuery] List<string>? pages,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnRepoEditingContext editingContext = CreateContext(org, app);
+
+        if (layoutSets == null || layoutSets.Count == 0)
+        {
+            await _uiFoldersService.SaveGlobalValidationOnNavigation(editingContext, null, cancellationToken);
+            return Ok();
+        }
+
+        if (pages == null || pages.Count == 0)
+        {
+            await _uiFoldersService.SaveLayoutSetsValidationOnNavigation(
+                editingContext,
+                layoutSets,
+                null,
+                cancellationToken
+            );
+            return Ok();
+        }
+
+        await _uiFoldersService.SavePagesValidationOnNavigation(
+            editingContext,
+            layoutSets[0],
+            pages,
+            null,
+            cancellationToken
+        );
+        return Ok();
+    }
+
+    [HttpGet("settings/task-navigation")]
+    [UseSystemTextJson]
+    public async Task<IActionResult> GetGlobalTaskNavigation(
+        string org,
+        string app,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnRepoEditingContext editingContext = CreateContext(org, app);
+        IEnumerable<TaskNavigationGroupDto> result = await _uiFoldersService.GetGlobalTaskNavigationDto(
+            editingContext,
+            cancellationToken
+        );
+
+        return Ok(result);
+    }
+
+    [HttpPost("settings/task-navigation")]
+    [UseSystemTextJson]
+    public async Task<IActionResult> UpdateGlobalTaskNavigation(
+        string org,
+        string app,
+        [FromBody] IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDtoList,
+        CancellationToken cancellationToken
+    )
+    {
+        try
+        {
+            AltinnRepoEditingContext editingContext = CreateContext(org, app);
+            await _uiFoldersService.UpdateGlobalTaskNavigation(
+                editingContext,
+                taskNavigationGroupDtoList,
+                cancellationToken
+            );
+
+            return NoContent();
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(exception.Message);
+        }
+    }
+}

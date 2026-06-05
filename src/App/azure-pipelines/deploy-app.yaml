@@ -22,6 +22,7 @@ variables:
   # GITEA_ENVIRONMENT: ''
   # HOSTNAME: ''
   # TAGNAME: ''
+  # DEPLOYMENT_ID: ''
   # APP_AUTH_HEADER_NAME: '' # Optional header name for token auth (e.g. "X-Api-Key"). When set, uses header instead of URL-embedded token.
   # TRACEPARENT: '' # Optional W3C traceparent for correlation
   # TRACESTATE: '' # Optional W3C tracestate for correlation
@@ -69,6 +70,7 @@ steps:
           [ -z "$GITEA_ENVIRONMENT" ] && ERRORS+=("GITEA_ENVIRONMENT is required when PUSH_APPS_OCI_IMAGE is not 'false'")
           [ -z "$APP_COMMIT_ID" ] && ERRORS+=("APP_COMMIT_ID is required when PUSH_APPS_OCI_IMAGE is not 'false'")
           [ -z "$TAGNAME" ] && ERRORS+=("TAGNAME is required when PUSH_APPS_OCI_IMAGE is not 'false'")
+          [ -z "$DEPLOYMENT_ID" ] && ERRORS+=("DEPLOYMENT_ID is required when PUSH_APPS_OCI_IMAGE is not 'false'")
         fi
 
         # Variables required when pushing sync-root GitOps image
@@ -597,7 +599,7 @@ steps:
               retries: 1
           chart:
             spec:
-              version: 3.10.0
+              version: 3.10.1
               chart: deployment
               sourceRef:
                 kind: HelmRepository
@@ -650,6 +652,8 @@ steps:
               value: ${AI_INSTR_KEY}
             - name: AppSettings__AppVersion
               value: "${TAGNAME}"
+        podAnnotations:
+          altinn.studio/deployment-id: "${DEPLOYMENT_ID}"
         EOF
 
         # Add service and ingressRoute

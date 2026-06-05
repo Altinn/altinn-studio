@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Diagnostics;
 using System.Linq;
 using System.Xml;
@@ -6,6 +8,7 @@ using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using LocalTest.Configuration;
+using LocalTest.Constants;
 using LocalTest.Models;
 using LocalTest.Services.Authentication.Implementation;
 using LocalTest.Services.Authentication.Interface;
@@ -87,13 +90,15 @@ namespace LocalTest.Controllers
             {
                 using var timeoutCancellationTokenSource = new CancellationTokenSource(LocalAppViewTimeout);
                 var cancellationToken = timeoutCancellationTokenSource.Token;
-                model.TestApps = await GetAppsList(cancellationToken);
+                model.TestApps = await GetAppSelectionOptions(cancellationToken);
                 model.TestUsers = await GetTestUsersAndPartiesSelectList(cancellationToken);
                 model.UserSelect = Request.Cookies["Localtest_User.Party_Select"];
                 model.SelectRedirectApp();
-                var selectedAppId =
-                    model.AppPathSelection
-                    ?? (model.TestApps.Count() == 1 ? model.TestApps.First().Value : null);
+                var selectedApp =
+                    model.TestApps.FirstOrDefault(app => app.Selected)
+                    ?? (model.TestApps.Count == 1 ? model.TestApps.First() : null);
+                var selectedAppId = model.AppPathSelection ?? selectedApp?.Value;
+                model.ShowFrontendVersionSwitcher = selectedApp?.ShowFrontendVersionSwitcher ?? true;
                 var defaultAuthLevel = await GetAppAuthLevel(selectedAppId, cancellationToken);
                 model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
             }
@@ -115,7 +120,7 @@ namespace LocalTest.Controllers
         [HttpGet("/Home/Localtest/Version")]
         public IActionResult Version()
         {
-            return Ok("4");
+            return Ok(LocalTestApi.Version);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -519,6 +524,32 @@ namespace LocalTest.Controllers
         {
             var applications = await _localApp.GetApplications(cancellationToken);
             return applications.Select((kv) => GetSelectItem(kv.Value, kv.Key)).ToList();
+        }
+
+        private async Task<List<AppSelectionOption>> GetAppSelectionOptions(CancellationToken cancellationToken = default)
+        {
+            var applications = await _localApp.GetApplications(cancellationToken);
+            var appOptions = new List<AppSelectionOption>();
+
+            foreach (var (path, app) in applications)
+            {
+                var appVersion = await _localApp.GetAppVersion(path, cancellationToken);
+                appOptions.Add(
+                    new AppSelectionOption
+                    {
+                        Value = path,
+                        Text = app.Id,
+                        ShowFrontendVersionSwitcher = ShouldShowFrontendVersionSwitcher(appVersion),
+                    }
+                );
+            }
+
+            return appOptions;
+        }
+
+        private static bool ShouldShowFrontendVersionSwitcher(Version appVersion)
+        {
+            return appVersion is null || appVersion.Major < BrowserRoutingAppVersion.Major;
         }
 
         private static SelectListItem GetSelectItem(Application app, string path)

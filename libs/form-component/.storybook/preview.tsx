@@ -1,13 +1,15 @@
-import type { Preview } from '@storybook/react-vite';
-
 import '@digdir/designsystemet-css';
 import '@digdir/designsystemet-css/theme';
-import '../src/styles/global.css';
+
+import type { Preview } from '@storybook/react-vite';
+
+import 'src/styles/global.css';
 
 const preview: Preview = {
   parameters: {
     layout: 'centered',
   },
+  tags: ['autodocs'],
   decorators: [
     (Story) => (
       <div data-color-scheme='light' data-size='md'>

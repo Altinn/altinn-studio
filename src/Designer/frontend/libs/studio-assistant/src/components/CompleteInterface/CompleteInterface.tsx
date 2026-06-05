@@ -29,6 +29,7 @@ export function CompleteInterface({
   onSelectThread,
   onDeleteThread,
   onCreateThread,
+  onMessageFeedback,
   previewContent,
   fileBrowserContent,
   currentUser,
@@ -91,6 +92,7 @@ export function CompleteInterface({
             onCancelWorkflow={onCancelWorkflow}
             cancelledMessageContent={cancelledMessageContent}
             onCancelledMessageConsumed={onCancelledMessageConsumed}
+            onMessageFeedback={onMessageFeedback}
             workflowStatus={currentThreadWorkflowStatus}
             enableCompactInterface={false}
             currentUser={currentUser}

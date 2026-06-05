@@ -18,6 +18,7 @@ import { ImportAltinn3ResourceModal } from '../../components/ImportAltinn3Resour
 import { useImportResourceFromAltinn3Mutation } from '../../hooks/mutations/useImportResourceFromAltinn3Mutation';
 import type { EnvId } from '../../utils/resourceUtils';
 import type { Resource } from 'app-shared/types/ResourceAdm';
+import { isProdSBLBridgeEnabled, isTT02SBLBridgeEnabled } from 'resourceadm/utils/userUtils';
 
 /**
  * @component
@@ -136,15 +137,19 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
             <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
           </StudioButton>
           <div className={classes.verticalDivider} data-color='neutral' />
-          <StudioButton
-            variant='tertiary'
-            onClick={() => importAltinn2ServiceModalRef.current.showModal()}
-            data-size='md'
-            icon={<MigrationIcon />}
-          >
-            <strong>{t('resourceadm.dashboard_import_resource')}</strong>
-          </StudioButton>
-          <div className={classes.verticalDivider} data-color='neutral' />
+          {(isTT02SBLBridgeEnabled() || isProdSBLBridgeEnabled()) && (
+            <>
+              <StudioButton
+                variant='tertiary'
+                onClick={() => importAltinn2ServiceModalRef.current.showModal()}
+                data-size='md'
+                icon={<MigrationIcon />}
+              >
+                <strong>{t('resourceadm.dashboard_import_resource')}</strong>
+              </StudioButton>
+              <div className={classes.verticalDivider} data-color='neutral' />
+            </>
+          )}
           <StudioButton
             variant='tertiary'
             onClick={() => createResourceModalRef.current?.showModal()}

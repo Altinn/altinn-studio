@@ -110,6 +110,17 @@ describe('StudioctlAuth', () => {
     ).toBeInTheDocument();
   });
 
+  it('renders the authorization details when the route owner matches the logged-in user with different casing', async () => {
+    renderStudioctlAuth({
+      initialEntries: [`/Test-User/studioctl-auth?requestId=${requestId}`],
+    });
+
+    expect(
+      await screen.findByRole('heading', { name: textMock('settings.studioctl_auth.heading') }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(authRequest.clientName)).toBeInTheDocument();
+  });
+
   it('confirms and redirects to the callback URL', async () => {
     const user = userEvent.setup();
     const confirmStudioctlAuthRequest = jest

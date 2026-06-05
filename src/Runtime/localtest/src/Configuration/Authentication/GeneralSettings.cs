@@ -1,3 +1,5 @@
+#nullable disable
+
 using System;
 
 namespace Altinn.Platform.Authentication.Configuration

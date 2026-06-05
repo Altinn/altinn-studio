@@ -1,3 +1,5 @@
+using Altinn.App.Analyzers.Utils;
+
 namespace Altinn.App.Analyzers.SourceTextGenerator;
 
 public static class SourceReaderUtils
@@ -52,11 +54,12 @@ public static class SourceReaderUtils
         return typeSymbol.ToDisplayString(_format);
     }
 
-    public record PropertyTypeInfo(
+    internal record PropertyTypeInfo(
         ITypeSymbol PropertyType,
         bool IsNullable,
         ITypeSymbol? PropertyCollectionType,
-        bool IsNullableCollection
+        bool IsNullableCollection,
+        bool IsIndexableCollection
     )
     {
         public string PropertyTypeString => TypeSymbolToString(PropertyType);
@@ -64,24 +67,32 @@ public static class SourceReaderUtils
             PropertyCollectionType is null ? null : TypeSymbolToString(PropertyCollectionType);
     };
 
-    public static PropertyTypeInfo GetTypeFromProperty(ITypeSymbol propertyTypeSymbol)
+    internal record CollectionTypeSymbols(INamedTypeSymbol ICollectionOfT, INamedTypeSymbol IListOfT);
+
+    internal static CollectionTypeSymbols? GetCollectionTypeSymbols(Compilation compilation)
+    {
+        var iCollectionOfT = compilation.GetBestTypeByMetadataName(typeof(ICollection<>));
+        var iListOfT = compilation.GetBestTypeByMetadataName(typeof(IList<>));
+
+        return iCollectionOfT is null || iListOfT is null ? null : new CollectionTypeSymbols(iCollectionOfT, iListOfT);
+    }
+
+    internal static PropertyTypeInfo GetTypeFromProperty(
+        ITypeSymbol propertyTypeSymbol,
+        CollectionTypeSymbols? collectionTypeSymbols
+    )
     {
         var (unwrappedTypeSymbol, isNullable) = UnwrapNullable(propertyTypeSymbol);
 
         switch (unwrappedTypeSymbol)
         {
             case INamedTypeSymbol { Arity: 1 } namedTypeSymbol:
-                var collectionTypeSymbol = namedTypeSymbol.AllInterfaces.FirstOrDefault(i =>
-                    i.MetadataName == "ICollection`1"
-                    && i.ContainingNamespace.Name == "Generic"
-                    && i.ContainingNamespace.ContainingNamespace.Name == "Collections"
-                    && i.ContainingNamespace.ContainingNamespace.ContainingNamespace.Name == "System"
-                    && i.ContainingNamespace
-                        .ContainingNamespace
-                        .ContainingNamespace
-                        .ContainingNamespace
-                        .IsGlobalNamespace
-                );
+                if (collectionTypeSymbols is not { } symbols)
+                {
+                    break;
+                }
+
+                var collectionTypeSymbol = GetGenericTypeOrInterface(namedTypeSymbol, symbols.ICollectionOfT);
 
                 if (collectionTypeSymbol is not null)
                 {
@@ -92,7 +103,8 @@ public static class SourceReaderUtils
                         PropertyType: collectionValueProperty,
                         IsNullable: isValueNullable,
                         PropertyCollectionType: unwrappedTypeSymbol,
-                        IsNullableCollection: isNullable
+                        IsNullableCollection: isNullable,
+                        IsIndexableCollection: GetGenericTypeOrInterface(namedTypeSymbol, symbols.IListOfT) is not null
                     );
                 }
 
@@ -106,7 +118,22 @@ public static class SourceReaderUtils
                 );
         }
 
-        return new PropertyTypeInfo(unwrappedTypeSymbol, isNullable, null, false);
+        return new PropertyTypeInfo(unwrappedTypeSymbol, isNullable, null, false, false);
+    }
+
+    private static INamedTypeSymbol? GetGenericTypeOrInterface(
+        INamedTypeSymbol symbol,
+        INamedTypeSymbol genericTypeDefinition
+    )
+    {
+        if (SymbolEqualityComparer.Default.Equals(symbol.OriginalDefinition, genericTypeDefinition.OriginalDefinition))
+        {
+            return symbol;
+        }
+
+        return symbol.AllInterfaces.FirstOrDefault(i =>
+            SymbolEqualityComparer.Default.Equals(i.OriginalDefinition, genericTypeDefinition.OriginalDefinition)
+        );
     }
 
     public static bool HasJsonIgnoreAttribute(IPropertySymbol property)

@@ -5,6 +5,7 @@ using Xunit.Abstractions;
 namespace Altinn.App.Integration.Tests.InstanceLocking;
 
 [Trait("Category", "Integration")]
+[Collection(IntegrationTestCollections.Pdf)]
 public sealed class InstanceLockTests(ITestOutputHelper _output, AppFixtureClassFixture _classFixture)
     : IClassFixture<AppFixtureClassFixture>
 {

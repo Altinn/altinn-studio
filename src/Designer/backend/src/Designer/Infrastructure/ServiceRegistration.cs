@@ -110,6 +110,7 @@ public static class ServiceRegistration
         services.AddHttpClient<IOrgService, OrgService>();
         services.AddHttpClient<ImageClient>();
         services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
+        services.AddTransient<IUiFoldersService, UiFoldersService>();
         services.AddTransient<ITaskNavigationService, TaskNavigationService>();
         services.AddTransient<IPreviewService, PreviewService>();
         services.AddTransient<IDataService, DataService>();
@@ -124,7 +125,7 @@ public static class ServiceRegistration
         services.AddTransient<IKafkaProducer, KafkaProducer>();
         services.AddTransient<IGiteaContentLibraryService, GiteaContentLibraryService>();
         services.AddTransient<IGitOpsConfigurationManager, GitRepoGitOpsConfigurationManager>();
-        services.AddTransient<IGitOpsManifestsRenderer, ScribanGitOpsManifestsRenderer>();
+        services.AddTransient<IGitOpsManifestsRenderer, GitOpsManifestsRenderer>();
         services.AddTransient<IOrgLibraryService, OrgLibraryService>();
         services.AddTransient<IAltinnAppServiceResourceService, AltinnAppServiceResourceService>();
         services.AddTransient<ICustomTemplateService, CustomTemplateService>();

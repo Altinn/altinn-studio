@@ -121,7 +121,7 @@ func workflowEngineDbContainer(ctx *Options) *ContainerSpec {
 }
 
 func workflowEngineContainer(ctx *Options) *ContainerSpec {
-	return newContainerSpec(
+	spec := newContainerSpec(
 		ContainerWorkflowEngine,
 		nil,
 		workflowEngineEnv(ctx.Topology),
@@ -130,6 +130,9 @@ func workflowEngineContainer(ctx *Options) *ContainerSpec {
 		[]string{ContainerWorkflowEngineDb, ContainerLocaltest},
 		nil,
 	)
+	// Workflow-engine has no host-writable mounts, so use the image user instead of host UID/GID remapping.
+	spec.UseDefaultUser = true
+	return spec
 }
 
 func workflowEngineEnv(topology envtopology.Local) map[string]string {
