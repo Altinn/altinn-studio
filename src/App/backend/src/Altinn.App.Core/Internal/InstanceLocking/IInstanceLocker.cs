@@ -1,8 +1,12 @@
 namespace Altinn.App.Core.Internal.InstanceLocking;
 
-internal interface IInstanceLocker : IAsyncDisposable
+internal interface IInstanceLocker
 {
-    ValueTask LockAsync();
+    IInstanceLock InitLock();
 
-    ValueTask LockAsync(TimeSpan ttl);
+    Task<IInstanceLock> Lock();
+
+    Task<IInstanceLock> Lock(TimeSpan ttl);
+
+    string? CurrentLockToken { get; }
 }
