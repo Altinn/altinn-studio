@@ -7,6 +7,7 @@ namespace Altinn.Studio.StudioctlServer.Studioctl;
 
 internal sealed class AppUpgradeService : IDisposable
 {
+    // TODO: split into per-version upgrade services.
     private const string DefaultProjectFile = "App/App.csproj";
     private const string DefaultProcessFile = "App/config/process/process.bpmn";
     private const string DefaultAppSettingsFolder = "App";
