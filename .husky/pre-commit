@@ -2,11 +2,12 @@
 yarn lint-staged
 
 (
-  STAGED_FILES_DESIGNER_BACKEND=$(git diff --cached --name-only --diff-filter=ACM | grep -e '^src/Designer/backend' | sed 's|^src/Designer/backend/||')
+  DESIGNER_BACKEND_PATH="src/Designer/backend/"
+  STAGED_FILES_DESIGNER_BACKEND=$(git diff --cached --name-only --diff-filter=ACM | grep -e "^${DESIGNER_BACKEND_PATH}" | sed "s|^${DESIGNER_BACKEND_PATH}||")
 
   if [ -n "$STAGED_FILES_DESIGNER_BACKEND" ]; then
-    echo "Found staged files in src/Designer/backend, running csharpier..."
-    cd src/Designer/backend
+    echo "Found staged files in $DESIGNER_BACKEND_PATH, running csharpier..."
+    cd $DESIGNER_BACKEND_PATH
     dotnet csharpier format $STAGED_FILES_DESIGNER_BACKEND
     git add $STAGED_FILES_DESIGNER_BACKEND
   fi
