@@ -19,7 +19,7 @@ verify_dotnet_dependencies() {
 
   if [ -n "$STAGED_FILES" ]; then
     echo "Found staged files in $DESIGNER_BACKEND_PATH, running csharpier..."
-    cd $DESIGNER_BACKEND_PATH
+    cd $DESIGNER_BACKEND_PATH || exit 1
     verify_dotnet_dependencies
     dotnet csharpier format $STAGED_FILES
     git add $STAGED_FILES
