@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -407,6 +408,10 @@ func (w *Workflow) createGitHubRelease(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("extract release notes: %w", err)
 	}
+	notes, err = w.withComponentReleaseNotesIntro(notes)
+	if err != nil {
+		return fmt.Errorf("read release notes intro: %w", err)
+	}
 	if w.config.Draft {
 		previousVersion := previousReleasedVersion(w.parsedChangelog, verStr)
 		previousTag := ""
@@ -503,4 +508,49 @@ func (w *Workflow) printSummary() {
 		w.log.Info("")
 		w.log.Success("Release workflow completed successfully!")
 	}
+}
+
+const releaseNotesIntroFile = "RELEASE_NOTES_INTRO.md"
+
+func (w *Workflow) withComponentReleaseNotesIntro(notes string) (string, error) {
+	introPath, err := w.componentReleaseNotesIntroPath()
+	if err != nil {
+		return "", err
+	}
+	intro, err := fs.ReadFile(os.DirFS(w.config.RepoRoot), introPath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return strings.TrimSpace(notes), nil
+		}
+		return "", fmt.Errorf("read %s: %w", introPath, err)
+	}
+	return withReleaseNotesIntro(notes, string(intro)), nil
+}
+
+func (w *Workflow) componentReleaseNotesIntroPath() (string, error) {
+	introPath := filepath.Join(w.config.RepoRoot, w.component.SourcePath, releaseNotesIntroFile)
+	rel, err := filepath.Rel(w.config.RepoRoot, introPath)
+	if err != nil {
+		return "", fmt.Errorf("evaluate release notes intro path: %w", err)
+	}
+	if rel == "." || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return "", fmt.Errorf("%w: %s", errUnsafeReleaseNotesPath, introPath)
+	}
+	rel = filepath.ToSlash(rel)
+	if !fs.ValidPath(rel) {
+		return "", fmt.Errorf("%w: %s", errUnsafeReleaseNotesPath, introPath)
+	}
+	return rel, nil
+}
+
+func withReleaseNotesIntro(notes, intro string) string {
+	intro = strings.TrimSpace(intro)
+	notes = strings.TrimSpace(notes)
+	if intro == "" {
+		return notes
+	}
+	if notes == "" {
+		return intro
+	}
+	return intro + "\n\n## Changelog\n\n" + notes
 }
