@@ -1057,7 +1057,9 @@ public class AltinnAppGitRepository : AltinnGitRepository
         {
             throw new BadHttpRequestException("Invalid layout set name.");
         }
-        return layoutSetName;
+        // Path.GetFileName strips any path information, acting as a sanitizer that
+        // breaks the path-injection taint flow (no-op for an already-validated segment).
+        return Path.GetFileName(layoutSetName);
     }
 
     private static string ValidateLayoutName(string layoutName)
@@ -1072,7 +1074,9 @@ public class AltinnAppGitRepository : AltinnGitRepository
         {
             throw new BadHttpRequestException("Invalid layout name.");
         }
-        return layoutName;
+        // Path.GetFileName strips any path information, acting as a sanitizer that
+        // breaks the path-injection taint flow (no-op for an already-validated segment).
+        return Path.GetFileName(layoutName);
     }
 
     // can be null if app does not use layout set
