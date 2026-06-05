@@ -58,7 +58,7 @@ jobs:
 
           environment="prod"
           if [[ "$version" == *"-preview."* ]]; then
-            environment="test"
+            environment="dev"
           elif [[ "$version" == *"-rc."* ]]; then
             environment="staging"
           fi
