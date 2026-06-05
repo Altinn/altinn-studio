@@ -11,6 +11,7 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 internal sealed record V8Tov9UpgradeOptions(
     string ProjectFolder,
     string ProjectFile,
+    int TargetMajorVersion,
     string TargetFramework,
     bool SkipCsprojUpgrade,
     bool ConvertPackageReferences,
@@ -51,14 +52,23 @@ internal static class V8Tov9Upgrade
         if (!options.SkipCsprojUpgrade)
         {
             if (options.ConvertPackageReferences)
+            {
                 returnCode = await ConvertToProjectReferences(
                     projectFolder,
                     projectFile,
                     options.TargetFramework,
                     options.StudioRoot
                 );
+            }
             else
-                returnCode = await UpgradeProjectFile(projectFile, options.TargetFramework);
+            {
+                var targetVersion = await V9PackageVersionResolver.ResolveLatestTargetVersion(
+                    projectFolder,
+                    options.TargetMajorVersion,
+                    options.CancellationToken
+                );
+                returnCode = await UpgradeProjectFile(projectFile, targetVersion, options.TargetFramework);
+            }
         }
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -93,12 +103,12 @@ internal static class V8Tov9Upgrade
         return returnCode;
     }
 
-    static async Task<int> UpgradeProjectFile(string projectFile, string targetFramework)
+    static async Task<int> UpgradeProjectFile(string projectFile, string targetVersion, string targetFramework)
     {
         try
         {
-            var rewriter = new ProjectFileRewriter(projectFile, targetFramework: targetFramework);
-            await rewriter.SetTargetFramework();
+            var rewriter = new ProjectFileRewriter(projectFile, targetVersion, targetFramework);
+            await rewriter.Upgrade();
             return 0;
         }
         catch (Exception ex)
