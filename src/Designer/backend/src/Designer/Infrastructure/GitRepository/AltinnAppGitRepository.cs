@@ -434,6 +434,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
         if (DirectoryExistsByRelativePath(relativePath))
         {
             string absolutePath = GetAbsoluteFileOrDirectoryPathSanitized(relativePath);
+            Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absolutePath);
             Directory.Delete(absolutePath, true);
         }
     }
