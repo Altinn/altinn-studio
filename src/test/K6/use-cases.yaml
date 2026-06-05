@@ -26,7 +26,6 @@ steps:
     Contents: |
       *.xml
       result.txt
-      token.txt
       /src/test/K6/src/reports/*
   condition: succeededOrFailed()
 
@@ -50,15 +49,18 @@ steps:
   displayName: 'Check availability'
 
 - script: |
-   set -e
-
-   k6 run  --quiet --logformat raw --console-output=$(Build.SourcesDirectory)/token.txt $(pwd)/src/tests/platform/authentication/authentication.js -e env=$(environment) -e pid=$(pid) -e testidppwd=$(testidppwd) -e appsaccesskey=$(appsAccessSubsKey)
-
-   echo "##vso[task.setvariable variable=runtimetoken;issecret=true]`cat $(Build.SourcesDirectory)/token.txt`"
+   k6 run  --quiet $(pwd)/src/tests/platform/authentication/authentication.js -e env=$(environment) -e pid=$(pid) -e testidppwd=$(testidppwd) -e appsaccesskey=$(appsAccessSubsKey)
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Authentication'
   continueOnError: false
+  condition: and(succeeded(), eq(variables['availability'], 'up'))
+
+- script: |
+   k6 run --quiet --log-output=stdout --log-format=raw $(pwd)/src/gettoken.js -e env=$(environment) -e pid=$(pid) -e testidppwd=$(testidppwd)
+
+  workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
+  displayName: 'Get token'
   condition: and(succeeded(), eq(variables['availability'], 'up'))
 
 - script: |

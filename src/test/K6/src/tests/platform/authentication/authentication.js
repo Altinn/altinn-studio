@@ -16,8 +16,7 @@ export const options = {
 
 //Tests for platform authentication
 export default function () {
-  const runtimeToken = setUpData.getAltinnTokenForUser();
-  console.log(runtimeToken);
+  setUpData.getAltinnTokenForUser();
 }
 
 export function handleSummary(data) {
