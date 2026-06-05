@@ -9,7 +9,7 @@ images:
       tag: "94897eff31"
     pdf3:
       image: ghcr.io/altinn/altinn-studio/runtime-pdf3-worker
-      tag: "b885f9a75f"
+      tag: "694406e93c"
     workflow-engine:
       image: ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app
       tag: "567e1be1f1"
