@@ -7,6 +7,9 @@ trigger: none
 
 pr: none
 
+variables:
+  runtimetoken: ''
+
 schedules:
 - cron: "*/15 * * * *"
   displayName: Bruksmønster
@@ -23,6 +26,7 @@ steps:
     Contents: |
       *.xml
       result.txt
+      token.txt
       /src/test/K6/src/reports/*
   condition: succeededOrFailed()
 
@@ -46,7 +50,11 @@ steps:
   displayName: 'Check availability'
 
 - script: |
-   k6 run  --quiet $(pwd)/src/tests/platform/authentication/authentication.js -e env=$(environment) -e pid=$(pid) -e testidppwd=$(testidppwd) -e appsaccesskey=$(appsAccessSubsKey)
+   set -e
+
+   k6 run  --quiet --logformat raw --console-output=$(Build.SourcesDirectory)/token.txt $(pwd)/src/tests/platform/authentication/authentication.js -e env=$(environment) -e pid=$(pid) -e testidppwd=$(testidppwd) -e appsaccesskey=$(appsAccessSubsKey)
+
+   echo "##vso[task.setvariable variable=runtimetoken;issecret=true]`cat $(Build.SourcesDirectory)/token.txt`"
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Authentication'
@@ -54,35 +62,35 @@ steps:
   condition: and(succeeded(), eq(variables['availability'], 'up'))
 
 - script: |
-   k6 run  --quiet $(pwd)/src/tests/app/portalsimulation.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e pid=$(pid) -e testidppwd=$(testidppwd) -e appsaccesskey=$(appsAccessSubsKey)
+   k6 run  --quiet $(pwd)/src/tests/app/portalsimulation.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e pid=$(pid) -e testidppwd=$(testidppwd) -e runtimetoken=$(runtimetoken) -e appsaccesskey=$(appsAccessSubsKey)
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Portal simulation'
   condition: and(succeededOrFailed(), eq(variables['availability'], 'up'))
 
 - script: |
-   k6 run  --quiet $(pwd)/src/tests/app/multipartdata.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e pid=$(pid) -e testidppwd=$(testidppwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
+   k6 run  --quiet $(pwd)/src/tests/app/multipartdata.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e pid=$(pid) -e testidppwd=$(testidppwd) -e runtimetoken=$(runtimetoken) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Multipart data'
   condition: and(succeededOrFailed(), eq(variables['availability'], 'up'))
 
 - script: |
-   k6 run  --quiet $(pwd)/src/tests/platform/register/register.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e pid=$(pid) -e testidppwd=$(testidppwd) -e appsaccesskey=$(appsAccessSubsKey)
+   k6 run  --quiet $(pwd)/src/tests/platform/register/register.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e pid=$(pid) -e testidppwd=$(testidppwd) -e runtimetoken=$(runtimetoken) -e appsaccesskey=$(appsAccessSubsKey)
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Register'
   condition: and(succeededOrFailed(), eq(variables['availability'], 'up'))
 
 - script: |
-   k6 run  --quiet $(pwd)/src/tests/platform/receipt/receipt.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e pid=$(pid) -e testidppwd=$(testidppwd) -e appsaccesskey=$(appsAccessSubsKey)
+   k6 run  --quiet $(pwd)/src/tests/platform/receipt/receipt.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e pid=$(pid) -e testidppwd=$(testidppwd) -e runtimetoken=$(runtimetoken) -e appsaccesskey=$(appsAccessSubsKey)
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Receipt'
   condition: and(succeededOrFailed(), eq(variables['availability'], 'up'))
 
 - script: |
-   k6 run  --quiet $(pwd)/src/tests/platform/storage/deleteinstances.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e pid=$(pid) -e testidppwd=$(testidppwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
+   k6 run  --quiet $(pwd)/src/tests/platform/storage/deleteinstances.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e pid=$(pid) -e testidppwd=$(testidppwd) -e runtimetoken=$(runtimetoken) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Delete instances'
