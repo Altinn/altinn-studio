@@ -2,6 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { Buildings3Icon, PersonIcon } from '@studio/icons';
 import { SubjectListItem } from '../SubjectListItem';
 import classes from './ChosenSubjects.module.css';
+import { getDeprecatedAltinn2SubjectsFromRule } from 'app-shared/utils/altinn2RoleUtils';
+import { Altinn2RoleWarning } from 'app-shared/components/Altinn2RoleWarning/Altinn2RoleWarning';
 
 type ChosenSubjectGroup = {
   heading: string;
@@ -32,6 +34,10 @@ export const ChosenSubjects = ({ isPersonSubject, groups }: ChosenSubjectsProps)
     ? t('policy_editor.person_subjects_header')
     : t('policy_editor.org_subjects_header');
 
+  const deprecatedAltinn2Roles = getDeprecatedAltinn2SubjectsFromRule(
+    groups.flatMap((group) => group.items.map((item) => item.urn)),
+  );
+
   const generateGroup = (group: ChosenSubjectGroup) => {
     return (
       <div key={group.heading} className={classes.chosenSubjectList} data-color='neutral'>
@@ -60,6 +66,12 @@ export const ChosenSubjects = ({ isPersonSubject, groups }: ChosenSubjectsProps)
       <div className={classes.chosenSubjectHeader}>
         <Icon fontSize={24} /> {heading}
       </div>
+      {deprecatedAltinn2Roles.length > 0 && (
+        <Altinn2RoleWarning
+          itemType={t('policy_editor.deprecated_altinn2_role_warning_item_type')}
+          deprecatedAltinn2Roles={deprecatedAltinn2Roles}
+        />
+      )}
       <div className={classes.chosenSubjectContainer}>
         <div className={classes.chosenSubjectColumn}>
           {sortedGroups.slice(0, sortedGroups.length > 2 ? 2 : 1).map(generateGroup)}

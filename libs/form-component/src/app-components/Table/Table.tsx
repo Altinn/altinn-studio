@@ -1,10 +1,10 @@
 import React from 'react';
 
+import { Spinner } from '@app/form-component/app-components/Spinner/Spinner';
 import { Button, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import { format, isValid, parseISO } from 'date-fns';
 
-import { Spinner } from '../Spinner/Spinner';
 import classes from './Table.module.css';
 
 export type TableCellValue =

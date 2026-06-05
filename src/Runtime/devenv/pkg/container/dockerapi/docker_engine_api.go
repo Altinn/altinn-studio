@@ -69,6 +69,7 @@ func newClient(ctx context.Context, toolchain types.ContainerToolchain) (*Client
 		return nil, fmt.Errorf("failed to connect to docker daemon: %w", err)
 	}
 	toolchain = normalizeToolchain(toolchain, "")
+	toolchain = withVersionMetadata(ctx, cli, toolchain)
 	toolchain.SELinux = detectSELinuxEnabled(ctx, cli)
 
 	return &Client{
@@ -100,6 +101,7 @@ func newClientWithHost(ctx context.Context, toolchain types.ContainerToolchain, 
 		return nil, fmt.Errorf("failed to connect to docker daemon: %w", err)
 	}
 	toolchain = normalizeToolchain(toolchain, strings.TrimPrefix(host, "unix://"))
+	toolchain = withVersionMetadata(ctx, cli, toolchain)
 	toolchain.SELinux = detectSELinuxEnabled(ctx, cli)
 
 	return &Client{
@@ -112,6 +114,24 @@ func normalizeToolchain(toolchain types.ContainerToolchain, socketPath string) t
 	toolchain.AccessMode = types.AccessDockerEngineAPI
 	if socketPath != "" {
 		toolchain.SocketPath = socketPath
+	}
+	return toolchain
+}
+
+type versionClient interface {
+	ClientVersion() string
+	ServerVersion(ctx context.Context) (dockertypes.Version, error)
+}
+
+func withVersionMetadata(
+	ctx context.Context,
+	cli versionClient,
+	toolchain types.ContainerToolchain,
+) types.ContainerToolchain {
+	// ClientVersion is the negotiated Docker API version; ServerVersion is the daemon version.
+	toolchain.ClientVersion = cli.ClientVersion()
+	if version, err := cli.ServerVersion(ctx); err == nil {
+		toolchain.ServerVersion = version.Version
 	}
 	return toolchain
 }

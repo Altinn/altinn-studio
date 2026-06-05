@@ -46,7 +46,7 @@ func pdfImage(ctx *Options) resource.ImageResource {
 }
 
 func pdfContainer(ctx *Options) *ContainerSpec {
-	return newContainerSpec(
+	spec := newContainerSpec(
 		ContainerPDF3,
 		// TODO: same as above, we only need host port mapping here because old
 		[]types.PortMapping{newPort("5300", "5031")},
@@ -56,6 +56,9 @@ func pdfContainer(ctx *Options) *ContainerSpec {
 		[]string{ContainerLocaltest},
 		nil,
 	)
+	// PDF runs as an internal service and has no host-writable mounts, so avoid host UID/GID remapping.
+	spec.UseDefaultUser = true
+	return spec
 }
 
 func pdfEnv(topology envtopology.Local) map[string]string {

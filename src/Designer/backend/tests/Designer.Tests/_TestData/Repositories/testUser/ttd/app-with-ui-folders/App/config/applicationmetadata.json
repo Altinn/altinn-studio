@@ -1,0 +1,31 @@
+{
+  "id": "ttd/app-with-ui-folders",
+  "org": "ttd",
+  "title": {
+    "nb": "app-with-ui-folders"
+  },
+  "dataTypes": [
+    {
+      "id": "myModel",
+      "allowedContentTypes": ["application/xml"],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.myModel"
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organisation": false,
+    "person": true,
+    "subUnit": false
+  },
+  "autoDeleteOnProcessEnd": false,
+  "created": "2024-01-01T00:00:00Z",
+  "createdBy": "testUser",
+  "lastChanged": "2024-01-01T00:00:00Z",
+  "lastChangedBy": "testUser"
+}

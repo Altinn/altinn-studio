@@ -1,11 +1,9 @@
 import type { PropsWithChildren, Ref } from 'react';
 
+import { Spinner } from '@app/form-component/app-components/Spinner';
 import { Button as DesignSystemButton } from '@digdir/designsystemet-react';
-import type { ButtonProps as DesignSystemButtonProps } from '@digdir/designsystemet-react';
-
-import { Spinner } from '../Spinner';
-
 import cn from 'classnames';
+import type { ButtonProps as DesignSystemButtonProps } from '@digdir/designsystemet-react';
 
 import classes from './Button.module.css';
 
