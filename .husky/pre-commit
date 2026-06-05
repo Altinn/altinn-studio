@@ -1,14 +1,27 @@
 #!/usr/bin/env sh
 yarn lint-staged
 
+verify_dotnet_dependencies() {
+  if ! command -v dotnet >/dev/null 2>&1; then
+    echo "Error: dotnet CLI is not installed or not in PATH"
+    exit 1
+  fi
+
+  if ! dotnet csharpier --version >/dev/null 2>&1; then
+    echo "Error: CSharpier is not installed. Run 'dotnet tool restore' or 'dotnet tool install -g csharpier'"
+    exit 1
+  fi
+}
+
 (
   DESIGNER_BACKEND_PATH="src/Designer/backend/"
-  STAGED_FILES_DESIGNER_BACKEND=$(git diff --cached --name-only --diff-filter=ACM | grep -e "^${DESIGNER_BACKEND_PATH}" | sed "s|^${DESIGNER_BACKEND_PATH}||")
+  STAGED_FILES=$(git diff --cached --name-only -z --diff-filter=ACM | grep -z "^${DESIGNER_BACKEND_PATH}" | sed -z "s|^${DESIGNER_BACKEND_PATH}||" | xargs -0)
 
-  if [ -n "$STAGED_FILES_DESIGNER_BACKEND" ]; then
+  if [ -n "$STAGED_FILES" ]; then
     echo "Found staged files in $DESIGNER_BACKEND_PATH, running csharpier..."
     cd $DESIGNER_BACKEND_PATH
-    dotnet csharpier format $STAGED_FILES_DESIGNER_BACKEND
-    git add $STAGED_FILES_DESIGNER_BACKEND
+    verify_dotnet_dependencies
+    dotnet csharpier format $STAGED_FILES
+    git add $STAGED_FILES
   fi
 )
