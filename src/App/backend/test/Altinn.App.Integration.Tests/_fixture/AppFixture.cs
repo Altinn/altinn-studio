@@ -112,7 +112,8 @@ public sealed partial class AppFixture : IAsyncDisposable
         ITestOutputHelper output,
         string app = TestApps.Basic,
         string scenario = "default",
-        bool isClassFixture = false
+        bool isClassFixture = false,
+        IReadOnlyDictionary<string, string>? environmentVariables = null
     )
     {
         var timer = Stopwatch.StartNew();
@@ -166,6 +167,7 @@ public sealed partial class AppFixture : IAsyncDisposable
                 fixtureConfigurationPath,
                 _nugetPackagesDirectory,
                 appFrontendAssetBaseUrl,
+                environmentVariables,
                 logger,
                 cancellationToken
             );

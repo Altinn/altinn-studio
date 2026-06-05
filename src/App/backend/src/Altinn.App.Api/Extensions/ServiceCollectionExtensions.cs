@@ -228,13 +228,7 @@ public static class ServiceCollectionExtensions
         services.AddHostedService<TelemetryInitialization>();
         services.AddSingleton<Telemetry>();
 
-        // This bit of code makes ASP.NET Core spans always root.
-        // Depending on infrastructure used and how the application is exposed/called,
-        // it might be a good idea to be in control of the root span (and therefore the size, baggage etch)
-        // Taken from: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1773
-        _ = Sdk.SuppressInstrumentation; // Just to trigger static constructor. The static constructor in Sdk initializes Propagators.DefaultTextMapPropagator which we depend on below
-        Sdk.SetDefaultTextMapPropagator(new OtelPropagator(Propagators.DefaultTextMapPropagator));
-        DistributedContextPropagator.Current = new AspNetCorePropagator();
+        ConfigureRootRequestPropagation(services);
 
         var appInsightsConnectionString = GetAppInsightsConnectionStringForOtel(config, env);
         var useOpenTelemetryCollector = config.GetValue<bool?>("AppSettings:UseOpenTelemetryCollector");
@@ -379,6 +373,65 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     private static bool IsPdfGeneratorRequest(IHeaderDictionary headers) => headers.ContainsKey("X-Altinn-IsPdf");
 
+    // This makes ASP.NET Core request spans start as root spans so callers cannot control app trace size.
+    // ASP.NET Core copies DistributedContextPropagator.Current into DI during WebApplication.CreateBuilder,
+    // so update both the static default and the already-registered service descriptor.
+    // Based on the workaround discussed in https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1773.
+    private static void ConfigureRootRequestPropagation(IServiceCollection services)
+    {
+        _ = Sdk.SuppressInstrumentation; // Triggers Sdk static initialization before reading the default propagator.
+
+        if (Propagators.DefaultTextMapPropagator is not OtelPropagator)
+        {
+            Sdk.SetDefaultTextMapPropagator(new OtelPropagator(Propagators.DefaultTextMapPropagator));
+        }
+
+        if (DistributedContextPropagator.Current is not AspNetCorePropagator)
+        {
+            DistributedContextPropagator.Current = new AspNetCorePropagator(
+                DistributedContextPropagator.Current,
+                ownsInner: false
+            );
+        }
+
+        var existingDescriptor = services.LastOrDefault(service =>
+            service.ServiceType == typeof(DistributedContextPropagator)
+        );
+
+        services.RemoveAll<DistributedContextPropagator>();
+        services.AddSingleton(serviceProvider =>
+        {
+            var (inner, ownsInner) = ResolveDistributedContextPropagator(serviceProvider, existingDescriptor);
+            return inner is AspNetCorePropagator ? inner : new AspNetCorePropagator(inner, ownsInner);
+        });
+    }
+
+    private static (DistributedContextPropagator Propagator, bool OwnsInstance) ResolveDistributedContextPropagator(
+        IServiceProvider serviceProvider,
+        ServiceDescriptor? descriptor
+    )
+    {
+        if (descriptor is null)
+            return (DistributedContextPropagator.Current, false);
+
+        if (descriptor.ImplementationInstance is DistributedContextPropagator instance)
+            return (instance, false);
+
+        if (descriptor.ImplementationFactory is not null)
+            return ((DistributedContextPropagator)descriptor.ImplementationFactory(serviceProvider), true);
+
+        if (descriptor.ImplementationType is not null)
+        {
+            return (
+                (DistributedContextPropagator)
+                    ActivatorUtilities.CreateInstance(serviceProvider, descriptor.ImplementationType),
+                true
+            );
+        }
+
+        return (DistributedContextPropagator.Current, false);
+    }
+
     internal sealed class OtelPropagator : TextMapPropagator
     {
         private readonly TextMapPropagator _inner;
@@ -403,11 +456,17 @@ public static class ServiceCollectionExtensions
             _inner.Inject(context, carrier, setter);
     }
 
-    internal sealed class AspNetCorePropagator : DistributedContextPropagator
+    internal sealed class AspNetCorePropagator : DistributedContextPropagator, IDisposable, IAsyncDisposable
     {
         private readonly DistributedContextPropagator _inner;
+        private readonly bool _ownsInner;
+        private bool _disposed;
 
-        public AspNetCorePropagator() => _inner = CreateDefaultPropagator();
+        public AspNetCorePropagator(DistributedContextPropagator inner, bool ownsInner)
+        {
+            _inner = inner;
+            _ownsInner = ownsInner;
+        }
 
         public override IReadOnlyCollection<string> Fields => _inner.Fields;
 
@@ -441,6 +500,28 @@ public static class ServiceCollectionExtensions
 
         public override void Inject(Activity? activity, object? carrier, PropagatorSetterCallback? setter) =>
             _inner.Inject(activity, carrier, setter);
+
+        public void Dispose()
+        {
+            if (!_ownsInner || _disposed)
+                return;
+
+            _disposed = true;
+            if (_inner is IDisposable disposable)
+                disposable.Dispose();
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (!_ownsInner || _disposed)
+                return;
+
+            _disposed = true;
+            if (_inner is IAsyncDisposable asyncDisposable)
+                await asyncDisposable.DisposeAsync();
+            else if (_inner is IDisposable disposable)
+                disposable.Dispose();
+        }
     }
 
     private static void AddAuthorizationPolicies(IServiceCollection services)
