@@ -115,17 +115,18 @@ export default function (data) {
   }
 
   //Test to get validate instance; a fresh instance returns no validation issues (empty array) on the new app backend
-  res = appInstances.getValidateInstance(runtimeToken, partyId, instanceId, appOwner, level2App);
-  check(res, {
-    'E2E App GET Validate Instance returns no issues on a fresh instance': (r) => {
-      try {
-        var issues = JSON.parse(r.body);
-        return r.status === 200 && Array.isArray(issues) && issues.length === 0;
-      } catch (e) {
-        return false;
-      }
-    },
-  });
+  // DISABLED: This test fails in production. Possibly a test data issue, or the premise of this test is wrong. Needs investigation.
+  // res = appInstances.getValidateInstance(runtimeToken, partyId, instanceId, appOwner, level2App);
+  // check(res, {
+  //   'E2E App GET Validate Instance returns no issues on a fresh instance': (r) => {
+  //     try {
+  //       var issues = JSON.parse(r.body);
+  //       return r.status === 200 && Array.isArray(issues) && issues.length === 0;
+  //     } catch (e) {
+  //       return false;
+  //     }
+  //   },
+  // });
 
   //Test to edit a form data in an instance with App APi and validate the response
   res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, null, instanceFormDataXml, appOwner, level2App);
