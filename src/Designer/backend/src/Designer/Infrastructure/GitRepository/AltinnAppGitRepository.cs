@@ -434,7 +434,6 @@ public class AltinnAppGitRepository : AltinnGitRepository
         if (DirectoryExistsByRelativePath(relativePath))
         {
             string absolutePath = GetAbsoluteFileOrDirectoryPathSanitized(relativePath);
-            Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absolutePath);
             Directory.Delete(absolutePath, true);
         }
     }
@@ -1058,9 +1057,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
         {
             throw new BadHttpRequestException("Invalid layout set name.");
         }
-        // Path.GetFileName strips any path information, acting as a sanitizer that
-        // breaks the path-injection taint flow (no-op for an already-validated segment).
-        return Path.GetFileName(layoutSetName);
+        return layoutSetName;
     }
 
     private static string ValidateLayoutName(string layoutName)
@@ -1075,9 +1072,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
         {
             throw new BadHttpRequestException("Invalid layout name.");
         }
-        // Path.GetFileName strips any path information, acting as a sanitizer that
-        // breaks the path-injection taint flow (no-op for an already-validated segment).
-        return Path.GetFileName(layoutName);
+        return layoutName;
     }
 
     // can be null if app does not use layout set
