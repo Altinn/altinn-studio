@@ -8,6 +8,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.13] - 2026-06-05
+
 ### Added
 
 - Add `studioctl app env` for printing the local app harness environment, with `--json` output for app startup integration.
