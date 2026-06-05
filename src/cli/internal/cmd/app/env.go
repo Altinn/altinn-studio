@@ -39,6 +39,7 @@ func newAppEnv(current []string) appEnv {
 func (e appEnv) addRunDefaults(kestrelURL string, topology envtopology.Local, appFrontendAssetBaseUrl string) {
 	endpoints := newAppEndpointConfig(topology)
 
+	e.values["STUDIOCTL_APP_RUN"] = "1"
 	e.setDefault("ASPNETCORE_ENVIRONMENT", "Development")
 	e.setDefault("Kestrel__EndPoints__Http__Url", kestrelURL)
 	if appFrontendAssetBaseUrl != "" {
