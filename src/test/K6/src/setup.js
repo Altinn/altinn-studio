@@ -105,6 +105,9 @@ export function loginWithMockporten(pid, password) {
 
 //Returns an AltinnstudioRuntime token for an end user (mockporten in test, Altinn 2 login in prod)
 export function getAltinnTokenForUser() {
+  if (__ENV.runtimetoken) {
+    return __ENV.runtimetoken;
+  }
   if (environment === 'prod') {
     var aspxauthCookie = authenticateUser(__ENV.username, __ENV.userpwd);
     return getAltinnStudioRuntimeToken(aspxauthCookie);
