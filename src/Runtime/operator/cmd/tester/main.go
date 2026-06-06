@@ -274,7 +274,12 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainer
 					KustomizationName: "operator-app",
 					Namespace:         "runtime-operator",
 					Rollouts: []harness.Rollout{
-						{Deployment: "operator-controller-manager", Namespace: "runtime-operator"},
+						{
+							Deployment:    "operator-controller-manager",
+							Namespace:     "runtime-operator",
+							Container:     "manager",
+							MountCABundle: true,
+						},
 					},
 				},
 			},
