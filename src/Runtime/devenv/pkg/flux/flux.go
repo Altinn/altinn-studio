@@ -21,6 +21,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
 
+	"altinn.studio/devenv/pkg/cabundle"
 	"altinn.studio/devenv/pkg/kubernetes"
 )
 
@@ -47,6 +48,10 @@ const (
 	fluxInstallConcurrency = 8
 	fluxModulePath         = "github.com/fluxcd/flux2/v2"
 	yamlDecoderBufferSize  = 4096
+	fluxCABundleConfigMap  = "devenv-ca-bundle"
+	fluxCABundleKey        = "ca-bundle.pem"
+	fluxCABundleVolume     = "devenv-ca-bundle"
+	fluxCABundleDigestAnno = "altinn.studio/devenv-ca-bundle-digest"
 )
 
 // FluxClient provides Flux operations using native Go packages.
@@ -120,7 +125,15 @@ func (c *FluxClient) Install(components []string, installOpts InstallOptions) er
 		return fmt.Errorf("failed to parse flux manifests: %w", err)
 	}
 
-	patchDeployments(objects, installOpts)
+	caPatch, caConfigured, err := newCABundleInstallPatch()
+	if err != nil {
+		return fmt.Errorf("resolve Flux CA bundle patch: %w", err)
+	}
+	if caConfigured {
+		objects = insertCABundleConfigMap(objects, caPatch.configMap())
+	}
+
+	patchDeployments(objects, installOpts, caPatch)
 
 	if _, err := c.kubeClient.ApplyObjects(context.Background(), objectsToRuntime(objects)...); err != nil {
 		return fmt.Errorf("failed to apply flux install manifests: %w", err)
@@ -193,15 +206,63 @@ func objectsToRuntime(objects []*unstructured.Unstructured) []runtime.Object {
 	return result
 }
 
-func patchDeployments(objects []*unstructured.Unstructured, opts InstallOptions) {
+type caBundleInstallPatch struct {
+	data   string
+	digest string
+}
+
+func newCABundleInstallPatch() (*caBundleInstallPatch, bool, error) {
+	bundle, configured, err := cabundle.FromEnv()
+	if err != nil {
+		return nil, true, fmt.Errorf("resolve CA bundle: %w", err)
+	}
+	if !configured {
+		return nil, false, nil
+	}
+
+	return &caBundleInstallPatch{data: string(bundle.Data), digest: bundle.Digest}, true, nil
+}
+
+func (p *caBundleInstallPatch) configMap() *unstructured.Unstructured {
+	return &unstructured.Unstructured{
+		Object: map[string]any{
+			"apiVersion": "v1",
+			"kind":       "ConfigMap",
+			"metadata": map[string]any{
+				"name":      fluxCABundleConfigMap,
+				"namespace": "flux-system",
+			},
+			"data": map[string]any{
+				fluxCABundleKey: p.data,
+			},
+		},
+	}
+}
+
+func insertCABundleConfigMap(
+	objects []*unstructured.Unstructured,
+	configMap *unstructured.Unstructured,
+) []*unstructured.Unstructured {
+	out := make([]*unstructured.Unstructured, 0, len(objects)+1)
+	inserted := false
+	for _, obj := range objects {
+		out = append(out, obj)
+		if !inserted && obj.GetKind() == "Namespace" && obj.GetName() == "flux-system" {
+			out = append(out, configMap)
+			inserted = true
+		}
+	}
+	if !inserted {
+		out = append([]*unstructured.Unstructured{configMap}, out...)
+	}
+	return out
+}
+
+func patchDeployments(objects []*unstructured.Unstructured, opts InstallOptions, caPatch *caBundleInstallPatch) {
 	for _, obj := range objects {
 		if obj.GetKind() != "Deployment" || obj.GetNamespace() != "flux-system" {
 			continue
 		}
-		if obj.GetName() == "notification-controller" {
-			continue
-		}
-
 		containers, found, err := unstructured.NestedSlice(obj.Object, "spec", "template", "spec", "containers")
 		if err != nil || !found || len(containers) == 0 {
 			continue
@@ -211,9 +272,17 @@ func patchDeployments(objects []*unstructured.Unstructured, opts InstallOptions)
 		if !ok {
 			continue
 		}
-		patchContainerArgs(container, opts)
-		if opts.OptimizeProbes {
-			patchProbes(container)
+
+		if obj.GetName() != "notification-controller" {
+			patchContainerArgs(container, opts)
+			if opts.OptimizeProbes {
+				patchProbes(container)
+			}
+		}
+		if caPatch != nil {
+			patchCABundleDigestAnnotation(obj, caPatch.digest)
+			patchCABundleVolume(obj)
+			patchContainerCABundle(container)
 		}
 
 		containers[0] = container
@@ -228,6 +297,67 @@ func patchDeployments(objects []*unstructured.Unstructured, opts InstallOptions)
 			continue
 		}
 	}
+}
+
+func patchCABundleDigestAnnotation(obj *unstructured.Unstructured, digest string) {
+	annotations, found, err := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "annotations")
+	if err != nil || !found {
+		annotations = map[string]string{}
+	}
+	annotations[fluxCABundleDigestAnno] = digest
+	if err := unstructured.SetNestedStringMap(
+		obj.Object,
+		annotations,
+		"spec",
+		"template",
+		"metadata",
+		"annotations",
+	); err != nil {
+		return
+	}
+}
+
+func patchCABundleVolume(obj *unstructured.Unstructured) {
+	volumes, found, err := unstructured.NestedSlice(obj.Object, "spec", "template", "spec", "volumes")
+	if err != nil || !found {
+		volumes = []any{}
+	}
+
+	out := make([]any, 0, len(volumes)+1)
+	for _, volume := range volumes {
+		volumeMap, ok := volume.(map[string]any)
+		if !ok || volumeMap["name"] != fluxCABundleVolume {
+			out = append(out, volume)
+		}
+	}
+	out = append(out, cabundle.KubernetesConfigMapVolume(fluxCABundleVolume, fluxCABundleConfigMap, fluxCABundleKey))
+
+	if err := unstructured.SetNestedSlice(obj.Object, out, "spec", "template", "spec", "volumes"); err != nil {
+		return
+	}
+}
+
+func patchContainerCABundle(container map[string]any) {
+	patchContainerCABundleEnv(container)
+	patchContainerCABundleVolumeMount(container)
+}
+
+func patchContainerCABundleEnv(container map[string]any) {
+	env, found, err := unstructured.NestedSlice(container, "env")
+	if err != nil || !found {
+		env = []any{}
+	}
+
+	container["env"] = cabundle.ApplyKubernetesEnv(env)
+}
+
+func patchContainerCABundleVolumeMount(container map[string]any) {
+	mounts, found, err := unstructured.NestedSlice(container, "volumeMounts")
+	if err != nil || !found {
+		mounts = []any{}
+	}
+
+	container["volumeMounts"] = cabundle.ApplyKubernetesVolumeMount(mounts, fluxCABundleVolume, fluxCABundleKey)
 }
 
 func patchContainerArgs(container map[string]any, opts InstallOptions) {

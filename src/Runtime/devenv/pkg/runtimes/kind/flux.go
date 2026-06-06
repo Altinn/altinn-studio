@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"altinn.studio/devenv/pkg/cabundle"
 	"altinn.studio/devenv/pkg/flux"
 	"altinn.studio/devenv/pkg/kubernetes"
 	"altinn.studio/devenv/pkg/runtimes/kind/manifests"
@@ -42,10 +43,19 @@ func (r *KindContainerRuntime) installFluxToCluster() error {
 	installed := r.isFluxInstalled()
 	if installed {
 		writeKindStdoutln("Flux already installed")
-		return nil
+
+		if _, configured, err := cabundle.FromEnv(); err != nil {
+			return fmt.Errorf("resolve CA bundle: %w", err)
+		} else if !configured {
+			return nil
+		}
+
+		writeKindStdoutln("Refreshing Flux CA bundle configuration...")
 	}
 
-	writeKindStdoutln("Installing Flux controllers...")
+	if !installed {
+		writeKindStdoutln("Installing Flux controllers...")
+	}
 
 	components := []string{
 		"source-controller",

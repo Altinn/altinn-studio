@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 
+	"altinn.studio/devenv/pkg/cabundle"
 	"altinn.studio/devenv/pkg/container"
 
 	corev1 "k8s.io/api/core/v1"
@@ -88,7 +89,6 @@ func (r *KindContainerRuntime) createRegistry(ctx context.Context) error {
 			},
 		},
 	}
-
 	if _, err := r.ContainerClient.CreateContainer(ctx, cfg); err != nil {
 		return fmt.Errorf("failed to create registry container: %w", err)
 	}
@@ -134,7 +134,6 @@ func (r *KindContainerRuntime) createProxyRegistry(ctx context.Context, name, ho
 			},
 		},
 	}
-
 	if _, err := r.ContainerClient.CreateContainer(ctx, cfg); err != nil {
 		return fmt.Errorf("failed to create proxy registry container: %w", err)
 	}
@@ -157,7 +156,6 @@ func (r *KindContainerRuntime) isProxyRegistryRunning(ctx context.Context, name 
 
 // startProxyRegistries ensures all proxy registry containers are running.
 func (r *KindContainerRuntime) startProxyRegistries(ctx context.Context) error {
-	// Define proxy registries
 	proxies := []struct {
 		name      string
 		hostPort  string
@@ -282,6 +280,10 @@ func (r *KindContainerRuntime) configureRegistryMirror(
 	registry, mirrorName, upstreamURL string,
 ) error {
 	registryDir := "/etc/containerd/certs.d/" + registry
+	caBundle, caConfigured, err := cabundle.FromEnv()
+	if err != nil {
+		return fmt.Errorf("resolve CA bundle: %w", err)
+	}
 
 	// Create the hosts.toml content
 	var hostsToml string
@@ -301,6 +303,18 @@ func (r *KindContainerRuntime) configureRegistryMirror(
 		// Create registry directory in node
 		if err := r.ContainerClient.Exec(ctx, node, []string{"mkdir", "-p", registryDir}); err != nil {
 			return fmt.Errorf("failed to create registry dir in node %s: %w", node, err)
+		}
+		if caConfigured {
+			if err := r.ContainerClient.ExecWithIO(
+				ctx,
+				node,
+				[]string{"cp", "/dev/stdin", registryDir + "/ca.crt"},
+				bytes.NewReader(caBundle.Data),
+				nil,
+				nil,
+			); err != nil {
+				return fmt.Errorf("failed to write registry CA in node %s: %w", node, err)
+			}
 		}
 
 		// Write hosts.toml to node
@@ -385,9 +399,15 @@ func (r *KindContainerRuntime) configureRegistry(ctx context.Context) error {
 	if wasChanged, err := r.createRegistryConfigMap(ctx); err != nil {
 		return err
 	} else if !wasChanged {
-		// If we configmap was already there, then we must have configured
-		// everything else as well
-		return nil
+		// If the ConfigMap was already there, registry/node configuration has
+		// already run. CA-enabled runs still refresh node registry trust files.
+		_, caConfigured, err := cabundle.FromEnv()
+		if err != nil {
+			return fmt.Errorf("resolve CA bundle: %w", err)
+		}
+		if !caConfigured {
+			return nil
+		}
 	}
 
 	// Connect registry to kind network

@@ -389,6 +389,10 @@ func (r *KindContainerRuntime) Run() error {
 		}
 	}
 
+	if err := r.configureCABundleInNodes(ctx); err != nil {
+		return fmt.Errorf("failed to configure CA bundle in kind nodes: %w", err)
+	}
+
 	// Step 4: Configure registry
 	writeKindStdoutln("\n4. Configuring container registry...")
 	start = time.Now()
