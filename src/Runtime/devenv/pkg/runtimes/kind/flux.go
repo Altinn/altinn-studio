@@ -15,6 +15,8 @@ import (
 
 var errFluxControllerReadyTimeout = errors.New("timeout waiting for flux controller to be ready")
 
+const traefikRolloutTimeout = 2 * time.Minute
+
 func writeKindStdoutln(args ...any) {
 	if _, err := fmt.Fprintln(os.Stdout, args...); err != nil {
 		return
@@ -111,47 +113,17 @@ func (r *KindContainerRuntime) waitForFluxControllers() error {
 	return nil
 }
 
-// areTraefikCRDsInstalled checks if Traefik CRDs are available in the cluster.
-func (r *KindContainerRuntime) areTraefikCRDsInstalled() (bool, error) {
-	// Check for the IngressRoute CRD, which is used by testserver
-	exists, err := r.KubernetesClient.CRDExists("ingressroutes.traefik.io")
-	if err != nil {
-		return false, fmt.Errorf("failed to check for traefik CRD: %w", err)
-	}
-	return exists, nil
-}
-
 func (r *KindContainerRuntime) reconcileBaseInfra() error {
-	// First check if Traefik CRDs are already installed, if they are
-	// the cluster was probably already running and we can just skip
-	installed, err := r.areTraefikCRDsInstalled()
-	if err != nil {
-		return err
-	}
-
-	if installed {
-		writeKindStdoutln("Base infrastructure already running, skipping")
-		if r.IngressReadyEvent != nil {
-			r.IngressReadyEvent <- nil
-		}
-		return nil
-	}
-
 	writeKindStdoutln("Reconciling base infra (blocking)...")
 
-	asyncOpts := flux.DefaultReconcileOptions()
-	asyncOpts.ShouldWait = false
 	syncOpts := flux.DefaultReconcileOptions()
 
 	if r.options.IncludeLinkerd {
-		if err := r.FluxClient.ReconcileHelmRelease("linkerd-crds", "linkerd", true, asyncOpts); err != nil {
+		if err := r.FluxClient.ReconcileHelmRelease("linkerd-crds", "linkerd", true, syncOpts); err != nil {
 			return fmt.Errorf("failed to reconcile base infra: %w", err)
 		}
 	}
-	if err := r.FluxClient.ReconcileHelmRelease("traefik-crds", "traefik", true, asyncOpts); err != nil {
-		return fmt.Errorf("failed to reconcile base infra: %w", err)
-	}
-	if err := r.FluxClient.ReconcileHelmRelease("traefik", "traefik", true, asyncOpts); err != nil {
+	if err := r.FluxClient.ReconcileHelmRelease("traefik-crds", "traefik", true, syncOpts); err != nil {
 		return fmt.Errorf("failed to reconcile base infra: %w", err)
 	}
 	if r.options.IncludeLinkerd {
@@ -159,27 +131,46 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 			return fmt.Errorf("failed to reconcile base infra: %w", err)
 		}
 	}
+	if err := r.FluxClient.ReconcileHelmRelease("traefik", "traefik", true, syncOpts); err != nil {
+		return fmt.Errorf("failed to reconcile base infra: %w", err)
+	}
 	if r.options.IncludeMonitoring {
 		_ = r.options.IncludeMonitoring
+	}
+
+	if err := r.waitForIngressReady(); err != nil {
+		if r.IngressReadyEvent != nil {
+			r.IngressReadyEvent <- err
+		}
+		return err
 	}
 
 	writeKindStdoutln("✓ Base infra reconciled")
 
 	if r.IngressReadyEvent != nil {
-		go func() {
-			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-			defer cancel()
-
-			err := r.KubernetesClient.WatchCondition(ctx, flux.HelmReleaseGVR, "traefik", "traefik", "Ready", "True")
-			writeKindStdoutf("Done waiting for ingress. Error=%v\n", err)
-			if err != nil {
-				r.IngressReadyEvent <- fmt.Errorf("error waiting for traefik HelmRelease: %w", err)
-				return
-			}
-			r.IngressReadyEvent <- nil
-		}()
+		r.IngressReadyEvent <- nil
 	}
 
+	return nil
+}
+
+func (r *KindContainerRuntime) waitForIngressReady() error {
+	ctx, cancel := context.WithTimeout(context.Background(), traefikRolloutTimeout)
+	defer cancel()
+
+	if err := r.KubernetesClient.WatchCondition(
+		ctx,
+		flux.HelmReleaseGVR,
+		"traefik",
+		"traefik",
+		"Ready",
+		"True",
+	); err != nil {
+		return fmt.Errorf("error waiting for traefik HelmRelease: %w", err)
+	}
+	if err := r.KubernetesClient.RolloutStatus("traefik", "traefik", traefikRolloutTimeout); err != nil {
+		return fmt.Errorf("error waiting for traefik rollout: %w", err)
+	}
 	return nil
 }
 

@@ -190,7 +190,8 @@ func setupRuntime(
 			{Name: "kustomize", URL: "oci://localhost:5001/runtime-pdf3-repo:local", Path: "infra/kustomize"},
 		},
 		Deployments: []harness.Deployment{{
-			Name: "pdf3",
+			Name:           "pdf3",
+			WaitForIngress: true,
 			Kustomize: &harness.KustomizeDeploy{
 				SyncRootDir:       "infra/kustomize/local-syncroot-" + variantName,
 				KustomizationName: "pdf3-app",
