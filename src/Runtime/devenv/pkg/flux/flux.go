@@ -48,9 +48,9 @@ const (
 	fluxInstallConcurrency = 8
 	fluxModulePath         = "github.com/fluxcd/flux2/v2"
 	yamlDecoderBufferSize  = 4096
-	fluxCABundleConfigMap  = "devenv-ca-bundle"
-	fluxCABundleKey        = "ca-bundle.pem"
-	fluxCABundleVolume     = "devenv-ca-bundle"
+	fluxCABundleConfigMap  = cabundle.KubernetesConfigMapName
+	fluxCABundleKey        = cabundle.KubernetesConfigMapKey
+	fluxCABundleVolume     = cabundle.KubernetesVolumeName
 	fluxCABundleDigestAnno = "altinn.studio/devenv-ca-bundle-digest"
 )
 

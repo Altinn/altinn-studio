@@ -54,6 +54,12 @@ func pushArtifact(_ context.Context, cfg Config, runtime *kind.KindContainerRunt
 	if !filepath.IsAbs(artPath) {
 		artPath = filepath.Join(cfg.ProjectRoot, artPath)
 	}
+	preparedPath, cleanup, err := prepareCABundleArtifact(cfg, artPath)
+	if err != nil {
+		return err
+	}
+	defer cleanup()
+	artPath = preparedPath
 
 	source := art.Source
 	if source == "" {
@@ -210,6 +216,9 @@ func deployKustomize(cfg Config, runtime *kind.KindContainerRuntime, kd *Kustomi
 	if _, err := runtime.KubernetesClient.ApplyManifest(manifest); err != nil {
 		return fmt.Errorf("failed to apply manifest: %w", err)
 	}
+	if err := applyCABundleConfigMapsForRollouts(runtime, kd.Rollouts); err != nil {
+		return err
+	}
 
 	// Reconcile Kustomization
 	writeStdoutln("Triggering Kustomization reconciliation...")
@@ -247,6 +256,9 @@ func deployHelm(cfg Config, runtime *kind.KindContainerRuntime, hd *HelmDeploy) 
 	if _, err := runtime.KubernetesClient.ApplyManifest(string(manifest)); err != nil {
 		return fmt.Errorf("failed to apply manifest: %w", err)
 	}
+	if err := applyCABundleConfigMapsForRollouts(runtime, hd.Rollouts); err != nil {
+		return err
+	}
 
 	reconcileOpts := flux.DefaultReconcileOptions()
 	if hd.ReconcileOpts != nil {
@@ -280,6 +292,10 @@ func deployHelm(cfg Config, runtime *kind.KindContainerRuntime, hd *HelmDeploy) 
 }
 
 func waitForRollouts(runtime *kind.KindContainerRuntime, rollouts []Rollout) error {
+	if err := configureCABundleForRollouts(runtime, rollouts); err != nil {
+		return err
+	}
+
 	for _, rollout := range rollouts {
 		writeStdoutf("Waiting for %s deployment...\n", rollout.Deployment)
 		timeout := rollout.Timeout

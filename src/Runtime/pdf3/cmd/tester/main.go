@@ -197,7 +197,11 @@ func setupRuntime(
 				Namespace:         "runtime-pdf3",
 				Rollouts: []harness.Rollout{
 					{Deployment: "pdf3-proxy", Namespace: "runtime-pdf3"},
-					{Deployment: "pdf3-worker", Namespace: "runtime-pdf3"},
+					{
+						Deployment:    "pdf3-worker",
+						Namespace:     "runtime-pdf3",
+						MountCABundle: true,
+					},
 				},
 			},
 		}},

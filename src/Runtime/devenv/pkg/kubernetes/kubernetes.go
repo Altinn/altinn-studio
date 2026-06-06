@@ -211,6 +211,21 @@ func (c *KubernetesClient) ApplyObjects(ctx context.Context, objs ...runtime.Obj
 	return strings.Join(results, "\n"), nil
 }
 
+// PatchDeployment applies a strategic merge patch to a Deployment.
+func (c *KubernetesClient) PatchDeployment(ctx context.Context, deployment, namespace string, patch []byte) error {
+	_, err := c.clientset.AppsV1().Deployments(namespace).Patch(
+		ctx,
+		deployment,
+		types.StrategicMergePatchType,
+		patch,
+		metav1.PatchOptions{},
+	)
+	if err != nil {
+		return fmt.Errorf("patch deployment %s/%s: %w", namespace, deployment, err)
+	}
+	return nil
+}
+
 // Get checks if a Kubernetes resource exists.
 // Returns nil if the resource exists, error otherwise.
 func (c *KubernetesClient) Get(gvr schema.GroupVersionResource, name, namespace string) error {

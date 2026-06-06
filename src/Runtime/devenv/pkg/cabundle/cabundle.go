@@ -16,6 +16,12 @@ const (
 	EnvStudioCABundle = "STUDIO_CA_BUNDLE"
 	// EnvVarsKey contains a CSV list of CA env vars managed by this package.
 	EnvVarsKey = "STUDIO_CA_ENV_VARS"
+	// KubernetesConfigMapName is the shared ConfigMap name used for fixture workloads.
+	KubernetesConfigMapName = "devenv-ca-bundle"
+	// KubernetesConfigMapKey is the shared ConfigMap key used for fixture workloads.
+	KubernetesConfigMapKey = "ca-bundle.pem"
+	// KubernetesVolumeName is the shared volume name used for fixture workloads.
+	KubernetesVolumeName = "devenv-ca-bundle"
 	// ContainerPath is where the host CA bundle is mounted/copied inside kind nodes and cluster pods.
 	// Keep this outside generated trust-store directories: update-ca-certificates may replace
 	// /etc/ssl/certs entries with symlinks, making repeated registration copy a file onto itself.

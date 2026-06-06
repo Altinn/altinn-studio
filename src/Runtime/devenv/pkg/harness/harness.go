@@ -99,9 +99,11 @@ type HelmDeploy struct {
 
 // Rollout identifies a deployment to wait for.
 type Rollout struct {
-	Deployment string
-	Namespace  string
-	Timeout    time.Duration // defaults to 2 minutes if zero
+	Deployment    string
+	Namespace     string
+	Container     string
+	MountCABundle bool
+	Timeout       time.Duration // defaults to 2 minutes if zero
 }
 
 // Result from harness execution.
