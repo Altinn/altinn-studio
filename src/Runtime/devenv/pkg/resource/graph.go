@@ -18,7 +18,6 @@ var (
 	errGraphDisabledDependency = errors.New("enabled resource depends on disabled resource")
 	errGraphNilDependency      = errors.New("resource depends on nil resource")
 	errGraphDependencyCycle    = errors.New("dependency cycle detected")
-	errGraphEmptyID            = errors.New("resource graph ID is empty")
 )
 
 // Graph manages a DAG of resources with dependency tracking.

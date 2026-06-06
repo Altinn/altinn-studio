@@ -1,8 +1,10 @@
-package resource
+package executor
 
 import (
 	"log"
 	"runtime/debug"
+
+	"altinn.studio/devenv/pkg/resource"
 )
 
 // EventType identifies the kind of resource lifecycle event.
@@ -58,7 +60,7 @@ type Progress struct {
 type Event struct {
 	Error    error
 	Progress *Progress
-	Resource ResourceID
+	Resource resource.ResourceID
 	Type     EventType
 }
 

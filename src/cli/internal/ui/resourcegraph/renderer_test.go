@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/devenv/pkg/resource/executor"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -33,10 +34,10 @@ func TestTableRenderer_FansOutImageProgressToAllDependentContainers(t *testing.T
 		OperationApply,
 	)
 
-	renderer.OnEvent(resource.Event{
-		Type:     resource.EventApplyProgress,
+	renderer.OnEvent(executor.Event{
+		Type:     executor.EventApplyProgress,
 		Resource: image.ID(),
-		Progress: &resource.Progress{Message: "pulling", Current: 4, Total: 10},
+		Progress: &executor.Progress{Message: "pulling", Current: 4, Total: 10},
 	})
 
 	rowA := renderer.model.rows["container-a"]
@@ -76,7 +77,7 @@ func TestTableRenderer_RendersNetworkAsDedicatedRow(t *testing.T) {
 		OperationApply,
 	)
 
-	renderer.OnEvent(resource.Event{Type: resource.EventApplyDone, Resource: network.ID()})
+	renderer.OnEvent(executor.Event{Type: executor.EventApplyDone, Resource: network.ID()})
 	renderer.mu.Lock()
 	renderer.renderLocked()
 	renderer.mu.Unlock()
@@ -109,8 +110,8 @@ func TestApplyEventToRow_SanitizesFailureMessage(t *testing.T) {
 	t.Parallel()
 
 	row := newProgressRow("container-a")
-	changed := applyEventToRow(row, resource.Event{
-		Type:     resource.EventApplyFailed,
+	changed := applyEventToRow(row, executor.Event{
+		Type:     executor.EventApplyFailed,
 		Resource: resource.ResourceID("container:container-a"),
 		Error:    errPullPermissionDenied,
 	}, time.Now())
@@ -141,8 +142,8 @@ func TestTableRenderer_FailAllPreservesSpecificFailureAndCancelsCollateral(t *te
 		OperationApply,
 	)
 
-	renderer.OnEvent(resource.Event{
-		Type:     resource.EventApplyFailed,
+	renderer.OnEvent(executor.Event{
+		Type:     executor.EventApplyFailed,
 		Resource: containerA.ID(),
 		Error:    errSpecificFailure,
 	})
@@ -193,8 +194,8 @@ func TestTableRenderer_StopFlushesDirtyState(t *testing.T) {
 	)
 
 	renderer.Start()
-	renderer.OnEvent(resource.Event{Type: resource.EventApplyDone, Resource: image.ID()})
-	renderer.OnEvent(resource.Event{Type: resource.EventApplyDone, Resource: container.ID()})
+	renderer.OnEvent(executor.Event{Type: executor.EventApplyDone, Resource: image.ID()})
+	renderer.OnEvent(executor.Event{Type: executor.EventApplyDone, Resource: container.ID()})
 	renderer.Stop()
 
 	rendered := out.String()
@@ -223,8 +224,8 @@ func TestTableRenderer_DestroyUsesRemovedState(t *testing.T) {
 		OperationDestroy,
 	)
 
-	renderer.OnEvent(resource.Event{Type: resource.EventDestroyStart, Resource: container.ID()})
-	renderer.OnEvent(resource.Event{Type: resource.EventDestroyDone, Resource: container.ID()})
+	renderer.OnEvent(executor.Event{Type: executor.EventDestroyStart, Resource: container.ID()})
+	renderer.OnEvent(executor.Event{Type: executor.EventDestroyDone, Resource: container.ID()})
 	renderer.mu.Lock()
 	renderer.renderLocked()
 	renderer.mu.Unlock()
@@ -244,13 +245,13 @@ func TestDestroyRenderer_OmitsAlreadyDestroyedRows(t *testing.T) {
 	image := &resource.RemoteImage{Ref: "ghcr.io/altinn/test:latest"}
 	running := &resource.Container{Name: "localtest", Image: resource.Ref(image)}
 	destroyed := &resource.Container{Name: "localtest-pgadmin", Image: resource.Ref(image)}
-	resources := []resource.PlannedResource{
+	resources := []executor.PlannedResource{
 		{Resource: running, ID: running.ID()},
 		{Resource: destroyed, ID: destroyed.ID()},
 	}
-	statuses := map[resource.ResourceID]resource.Status{
-		running.ID():   resource.StatusReady,
-		destroyed.ID(): resource.StatusDestroyed,
+	statuses := map[resource.ResourceID]executor.Status{
+		running.ID():   executor.StatusReady,
+		destroyed.ID(): executor.StatusDestroyed,
 	}
 
 	renderer := NewTableWithPlan(
@@ -273,11 +274,11 @@ func TestApplyRenderer_InitializesReadyRowsFromStatus(t *testing.T) {
 
 	image := &resource.RemoteImage{Ref: "ghcr.io/altinn/test:latest"}
 	container := &resource.Container{Name: "localtest", Image: resource.Ref(image)}
-	resources := []resource.PlannedResource{
+	resources := []executor.PlannedResource{
 		{Resource: container, ID: container.ID()},
 	}
-	statuses := map[resource.ResourceID]resource.Status{
-		container.ID(): resource.StatusReady,
+	statuses := map[resource.ResourceID]executor.Status{
+		container.ID(): executor.StatusReady,
 	}
 
 	renderer := NewTableWithPlan(
@@ -313,7 +314,7 @@ func TestTableRenderer_DestroyGlobalFailureAppearsInFooter(t *testing.T) {
 		OperationDestroy,
 	)
 
-	renderer.OnEvent(resource.Event{Type: resource.EventDestroyDone, Resource: container.ID()})
+	renderer.OnEvent(executor.Event{Type: executor.EventDestroyDone, Resource: container.ID()})
 	renderer.FailAll("destroy level: network failure")
 
 	rendered := out.String()
@@ -335,10 +336,10 @@ func TestCompactRenderer_RendersPerContainerRows(t *testing.T) {
 		OperationApply,
 	)
 
-	renderer.OnEvent(resource.Event{
-		Type:     resource.EventApplyProgress,
+	renderer.OnEvent(executor.Event{
+		Type:     executor.EventApplyProgress,
 		Resource: image.ID(),
-		Progress: &resource.Progress{Message: "pulling", Current: 2, Total: 4},
+		Progress: &executor.Progress{Message: "pulling", Current: 2, Total: 4},
 	})
 	renderer.mu.Lock()
 	lines := renderer.layout.renderLines(renderer.model, 50, time.Unix(1000, 0))
@@ -381,15 +382,15 @@ func TestLogRenderer_PrintsMilestoneLines(t *testing.T) {
 	)
 
 	renderer.Start()
-	renderer.OnEvent(resource.Event{Type: resource.EventApplyStart, Resource: image.ID()})
-	renderer.OnEvent(resource.Event{
-		Type:     resource.EventApplyProgress,
+	renderer.OnEvent(executor.Event{Type: executor.EventApplyStart, Resource: image.ID()})
+	renderer.OnEvent(executor.Event{
+		Type:     executor.EventApplyProgress,
 		Resource: image.ID(),
-		Progress: &resource.Progress{Message: "pulling layers", Current: 2, Total: 10},
+		Progress: &executor.Progress{Message: "pulling layers", Current: 2, Total: 10},
 	})
-	renderer.OnEvent(resource.Event{Type: resource.EventApplyDone, Resource: container.ID()})
-	renderer.OnEvent(resource.Event{
-		Type:     resource.EventApplyFailed,
+	renderer.OnEvent(executor.Event{Type: executor.EventApplyDone, Resource: container.ID()})
+	renderer.OnEvent(executor.Event{
+		Type:     executor.EventApplyFailed,
 		Resource: container.ID(),
 		Error:    errSpecificFailure,
 	})
@@ -424,16 +425,16 @@ func TestLogRenderer_DeduplicatesProgressMilestones(t *testing.T) {
 		"",
 	)
 
-	renderer.OnEvent(resource.Event{Type: resource.EventApplyStart, Resource: image.ID()})
-	renderer.OnEvent(resource.Event{
-		Type:     resource.EventApplyProgress,
+	renderer.OnEvent(executor.Event{Type: executor.EventApplyStart, Resource: image.ID()})
+	renderer.OnEvent(executor.Event{
+		Type:     executor.EventApplyProgress,
 		Resource: image.ID(),
-		Progress: &resource.Progress{Message: "pulling layers", Current: 2, Total: 10},
+		Progress: &executor.Progress{Message: "pulling layers", Current: 2, Total: 10},
 	})
-	renderer.OnEvent(resource.Event{
-		Type:     resource.EventApplyProgress,
+	renderer.OnEvent(executor.Event{
+		Type:     executor.EventApplyProgress,
 		Resource: image.ID(),
-		Progress: &resource.Progress{Message: "pulling layers", Current: 2, Total: 10},
+		Progress: &executor.Progress{Message: "pulling layers", Current: 2, Total: 10},
 	})
 
 	rendered := out.String()
@@ -447,7 +448,7 @@ func TestLogRenderer_PrintsPlannedResourceWithoutDesiredResource(t *testing.T) {
 	out := &bytes.Buffer{}
 	renderer := NewLogWithPlan(
 		ui.NewOutput(out, io.Discard, false),
-		[]resource.PlannedResource{{
+		[]executor.PlannedResource{{
 			Resource: nil,
 			ID:       id,
 		}},
@@ -456,8 +457,8 @@ func TestLogRenderer_PrintsPlannedResourceWithoutDesiredResource(t *testing.T) {
 		"",
 	)
 
-	renderer.OnEvent(resource.Event{Type: resource.EventDestroyStart, Resource: id})
-	renderer.OnEvent(resource.Event{Type: resource.EventDestroyDone, Resource: id})
+	renderer.OnEvent(executor.Event{Type: executor.EventDestroyStart, Resource: id})
+	renderer.OnEvent(executor.Event{Type: executor.EventDestroyDone, Resource: id})
 
 	rendered := out.String()
 	if !strings.Contains(rendered, "stale-container: stopping") {
@@ -527,8 +528,8 @@ func TestScreenRenderer_StopLeavesCursorAtLineStartForFollowupOutput(t *testing.
 	renderer := NewTable(output, []resource.Resource{image, container}, OperationApply)
 
 	renderer.Start()
-	renderer.OnEvent(resource.Event{Type: resource.EventApplyDone, Resource: image.ID()})
-	renderer.OnEvent(resource.Event{Type: resource.EventApplyDone, Resource: container.ID()})
+	renderer.OnEvent(executor.Event{Type: executor.EventApplyDone, Resource: image.ID()})
+	renderer.OnEvent(executor.Event{Type: executor.EventApplyDone, Resource: container.ID()})
 	renderer.Stop()
 	output.Success("Environment started")
 

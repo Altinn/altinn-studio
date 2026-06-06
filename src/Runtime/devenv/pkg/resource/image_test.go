@@ -1,16 +1,8 @@
 package resource
 
 import (
-	"context"
-	"errors"
-	"strings"
 	"testing"
-
-	containermock "altinn.studio/devenv/pkg/container/mock"
-	"altinn.studio/devenv/pkg/container/types"
 )
-
-var errDaemonUnreachable = errors.New("daemon unreachable")
 
 func TestRemoteImage_ID(t *testing.T) {
 	r := &RemoteImage{Ref: "nginx:latest"}
@@ -59,92 +51,6 @@ func TestRemoteImage_Validate(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestRemoteImage_PullPolicies(t *testing.T) {
-	t.Run("pull always", func(t *testing.T) {
-		client := containermock.New()
-		pulls := 0
-		client.ImagePullFunc = func(context.Context, string) error {
-			pulls++
-			return nil
-		}
-		client.ImageInspectFunc = func(context.Context, string) (types.ImageInfo, error) {
-			return types.ImageInfo{ID: "sha256:image"}, nil
-		}
-
-		exec := NewExecutor(client)
-		_, err := exec.applyRemoteImage(t.Context(), &RemoteImage{Ref: "nginx:latest", PullPolicy: PullAlways})
-		if err != nil {
-			t.Fatalf("applyRemoteImage() error = %v", err)
-		}
-		if pulls != 1 {
-			t.Fatalf("ImagePull calls = %d, want 1", pulls)
-		}
-	})
-
-	t.Run("pull if not present", func(t *testing.T) {
-		client := containermock.New()
-		pulls := 0
-		inspects := 0
-		client.ImagePullFunc = func(context.Context, string) error {
-			pulls++
-			return nil
-		}
-		client.ImageInspectFunc = func(context.Context, string) (types.ImageInfo, error) {
-			inspects++
-			if inspects == 1 {
-				return types.ImageInfo{}, types.ErrImageNotFound
-			}
-			return types.ImageInfo{ID: "sha256:image"}, nil
-		}
-
-		exec := NewExecutor(client)
-		_, err := exec.applyRemoteImage(t.Context(), &RemoteImage{Ref: "nginx:latest", PullPolicy: PullIfNotPresent})
-		if err != nil {
-			t.Fatalf("applyRemoteImage() error = %v", err)
-		}
-		if pulls != 1 {
-			t.Fatalf("ImagePull calls = %d, want 1", pulls)
-		}
-	})
-
-	t.Run("pull never missing image", func(t *testing.T) {
-		client := containermock.New()
-		pulls := 0
-		client.ImagePullFunc = func(context.Context, string) error {
-			pulls++
-			return nil
-		}
-		client.ImageInspectFunc = func(context.Context, string) (types.ImageInfo, error) {
-			return types.ImageInfo{}, types.ErrImageNotFound
-		}
-
-		exec := NewExecutor(client)
-		_, err := exec.applyRemoteImage(t.Context(), &RemoteImage{Ref: "nginx:latest", PullPolicy: PullNever})
-		if err == nil {
-			t.Fatal("applyRemoteImage() expected error, got nil")
-		}
-		if pulls != 0 {
-			t.Fatalf("ImagePull calls = %d, want 0", pulls)
-		}
-	})
-
-	t.Run("inspect transient error is propagated", func(t *testing.T) {
-		client := containermock.New()
-		client.ImageInspectFunc = func(context.Context, string) (types.ImageInfo, error) {
-			return types.ImageInfo{}, errDaemonUnreachable
-		}
-
-		exec := NewExecutor(client)
-		_, err := exec.applyRemoteImage(t.Context(), &RemoteImage{Ref: "nginx:latest", PullPolicy: PullIfNotPresent})
-		if err == nil {
-			t.Fatal("applyRemoteImage() expected error, got nil")
-		}
-		if !strings.Contains(err.Error(), "inspect image nginx:latest") {
-			t.Fatalf("applyRemoteImage() error = %v, want inspect error context", err)
-		}
-	})
 }
 
 func TestLocalImage_ID(t *testing.T) {

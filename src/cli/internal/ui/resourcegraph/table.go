@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/devenv/pkg/resource/executor"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -19,9 +20,9 @@ func NewTable(out *ui.Output, resources []resource.Resource, operation Operation
 // NewTableWithPlan creates the wide interactive table renderer from planned resources.
 func NewTableWithPlan(
 	out *ui.Output,
-	resources []resource.PlannedResource,
+	resources []executor.PlannedResource,
 	operation Operation,
-	statuses map[resource.ResourceID]resource.Status,
+	statuses map[resource.ResourceID]executor.Status,
 ) *TableRenderer {
 	return &TableRenderer{
 		screenRenderer: newScreenRendererPlanned(out, resources, operation, statuses, tableLayout{}),

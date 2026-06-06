@@ -1,4 +1,4 @@
-package resource
+package executor
 
 import (
 	"fmt"
