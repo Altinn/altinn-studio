@@ -263,9 +263,11 @@ func newRuntimeConfig(root string, variant kind.KindContainerRuntimeVariant) har
 					Namespace:         "runtime-gateway",
 					Rollouts: []harness.Rollout{
 						{
-							Deployment: "gateway",
-							Namespace:  "runtime-gateway",
-							Timeout:    2 * time.Minute,
+							Deployment:    "gateway",
+							Namespace:     "runtime-gateway",
+							Container:     "gateway",
+							MountCABundle: true,
+							Timeout:       2 * time.Minute,
 						},
 					},
 					ReconcileOpts: nil,
