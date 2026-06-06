@@ -29,7 +29,7 @@ func TestExecutor_ApplyContainer_DoesNotWaitForReadyByDefault(t *testing.T) {
 	}
 
 	graph := NewGraph(testGraphID)
-	image := &RemoteImage{Ref: "localtest:latest"}
+	image := &PulledImage{Ref: "localtest:latest"}
 	container := &Container{
 		Name:  "localtest",
 		Image: Ref(image),
@@ -69,7 +69,7 @@ func TestExecutor_ApplySkipsDisabledResources(t *testing.T) {
 
 	graph := NewGraph(testGraphID)
 	disabled := false
-	image := &LocalImage{
+	image := &BuiltImage{
 		Enabled:     &disabled,
 		ContextPath: "/tmp/app",
 		Tag:         "app:latest",
@@ -126,7 +126,7 @@ func TestExecutor_ApplyDestroysStaleGraphResources(t *testing.T) {
 	}
 
 	graph := NewGraph(testGraphID)
-	if err := graph.Add(&RemoteImage{Ref: "localtest:latest"}); err != nil {
+	if err := graph.Add(&PulledImage{Ref: "localtest:latest"}); err != nil {
 		t.Fatalf("graph.Add() error = %v", err)
 	}
 
@@ -282,7 +282,7 @@ func TestExecutor_ApplyFailsOnUnmanagedContainerNameCollision(t *testing.T) {
 	}
 
 	graph := NewGraph(testGraphID)
-	image := &RemoteImage{Ref: "localtest:latest"}
+	image := &PulledImage{Ref: "localtest:latest"}
 	container := &Container{
 		Name:  "localtest",
 		Image: Ref(image),
@@ -314,7 +314,7 @@ func TestExecutor_ApplyFailsOnUnmanagedContainerNameCollisionWithMatchingLabels(
 	}
 
 	graph := NewGraph(testGraphID)
-	image := &RemoteImage{Ref: "localtest:latest"}
+	image := &PulledImage{Ref: "localtest:latest"}
 	container := &Container{
 		Name:   "localtest",
 		Image:  Ref(image),
@@ -363,7 +363,7 @@ func TestExecutor_ApplyReturnsImageOutputs(t *testing.T) {
 	}
 
 	graph := NewGraph(testGraphID)
-	image := &RemoteImage{Ref: "ghcr.io/altinn/test:latest", PullPolicy: PullIfNotPresent}
+	image := &PulledImage{Ref: "ghcr.io/altinn/test:latest", PullPolicy: PullIfNotPresent}
 	if err := graph.Add(image); err != nil {
 		t.Fatalf("graph.Add(image) error = %v", err)
 	}
@@ -410,7 +410,7 @@ func TestExecutor_ApplyReturnsContainerOutputs(t *testing.T) {
 	}
 
 	graph := NewGraph(testGraphID)
-	image := &RemoteImage{Ref: "ghcr.io/altinn/test:latest", PullPolicy: PullIfNotPresent}
+	image := &PulledImage{Ref: "ghcr.io/altinn/test:latest", PullPolicy: PullIfNotPresent}
 	container := &Container{Name: "app", Image: Ref(image)}
 	if err := graph.Add(image); err != nil {
 		t.Fatalf("graph.Add(image) error = %v", err)
@@ -458,7 +458,7 @@ func TestExecutor_ApplyContainer_WaitsForReadyWhenEnabled(t *testing.T) {
 	}
 
 	graph := NewGraph(testGraphID)
-	image := &RemoteImage{Ref: "localtest:latest"}
+	image := &PulledImage{Ref: "localtest:latest"}
 	container := &Container{
 		Name:  "localtest",
 		Image: Ref(image),
@@ -499,7 +499,7 @@ func TestExecutor_Status_SkipsResources(t *testing.T) {
 		return types.ImageInfo{}, nil
 	}
 
-	image := &RemoteImage{Ref: "localtest:latest"}
+	image := &PulledImage{Ref: "localtest:latest"}
 	container := &Container{Name: "localtest", Image: Ref(image)}
 	graph := NewGraph(testGraphID)
 	mustAddResource(t, graph, image)
@@ -580,7 +580,7 @@ func TestExecutor_DestroyNetwork_UsesLifecycleErrorHandler(t *testing.T) {
 	}
 }
 
-func TestExecutor_ApplyRemoteImage_EmitsProgressEvents(t *testing.T) {
+func TestExecutor_ApplyPulledImage_EmitsProgressEvents(t *testing.T) {
 	t.Parallel()
 
 	client := containermock.New()
@@ -602,7 +602,7 @@ func TestExecutor_ApplyRemoteImage_EmitsProgressEvents(t *testing.T) {
 		return nil
 	}
 
-	img := &RemoteImage{
+	img := &PulledImage{
 		Ref:        "ghcr.io/altinn/test:latest",
 		PullPolicy: PullAlways,
 	}

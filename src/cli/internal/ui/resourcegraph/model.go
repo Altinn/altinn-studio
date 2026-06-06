@@ -386,10 +386,12 @@ func stateForApplyStart(resourceID resource.ResourceID) string {
 	switch {
 	case strings.HasPrefix(id, "network:"):
 		return stateCreating
-	case strings.HasPrefix(id, "image:local:"):
+	case strings.HasPrefix(id, "image:built:"):
 		return stateBuilding
-	case strings.HasPrefix(id, "image:remote:"):
+	case strings.HasPrefix(id, "image:pulled:"):
 		return statePulling
+	case strings.HasPrefix(id, "image:published:"):
+		return stateWorking
 	case strings.HasPrefix(id, "container:"):
 		return stateStarting
 	default:

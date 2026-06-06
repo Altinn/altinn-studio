@@ -41,7 +41,7 @@ func New(client containerclient.ContainerClient) Backend {
 // Supports reports whether this backend can apply and observe r.
 func (b Backend) Supports(r resource.Resource) bool {
 	switch r.(type) {
-	case *resource.RemoteImage, *resource.LocalImage, *resource.Network, *resource.Container:
+	case *resource.PulledImage, *resource.BuiltImage, *resource.PublishedImage, *resource.Network, *resource.Container:
 		return true
 	default:
 		return false
@@ -67,10 +67,12 @@ func (b Backend) Apply(
 	r resource.Resource,
 ) (executor.Output, error) {
 	switch res := r.(type) {
-	case *resource.RemoteImage:
-		return b.applyRemoteImage(ctx, backendCtx, res)
-	case *resource.LocalImage:
-		return b.applyLocalImage(ctx, backendCtx, res)
+	case *resource.PulledImage:
+		return b.applyPulledImage(ctx, backendCtx, res)
+	case *resource.BuiltImage:
+		return b.applyBuiltImage(ctx, backendCtx, res)
+	case *resource.PublishedImage:
+		return b.applyPublishedImage(ctx, backendCtx, res)
 	case *resource.Network:
 		return b.applyNetwork(ctx, backendCtx.GraphID, res)
 	case *resource.Container:
@@ -87,7 +89,7 @@ func (b Backend) Observe(
 	r resource.Resource,
 ) (executor.ObservedResource, error) {
 	switch res := r.(type) {
-	case *resource.RemoteImage:
+	case *resource.PulledImage:
 		status, err := b.imageStatus(ctx, res.Ref)
 		return executor.ObservedResource{
 			Resource:  r,
@@ -96,12 +98,21 @@ func (b Backend) Observe(
 			Status:    status,
 			Managed:   false,
 		}, err
-	case *resource.LocalImage:
+	case *resource.BuiltImage:
 		status, err := b.imageStatus(ctx, res.Tag)
 		return executor.ObservedResource{
 			Resource:  r,
 			Type:      executor.ResourceTypeImage,
 			RuntimeID: res.Tag,
+			Status:    status,
+			Managed:   false,
+		}, err
+	case *resource.PublishedImage:
+		status, err := b.imageStatus(ctx, res.Ref)
+		return executor.ObservedResource{
+			Resource:  r,
+			Type:      executor.ResourceTypeImage,
+			RuntimeID: res.Ref,
 			Status:    status,
 			Managed:   false,
 		}, err

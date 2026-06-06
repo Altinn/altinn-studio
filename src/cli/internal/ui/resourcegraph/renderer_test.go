@@ -24,7 +24,7 @@ var (
 func TestTableRenderer_FansOutImageProgressToAllDependentContainers(t *testing.T) {
 	t.Parallel()
 
-	image := &resource.RemoteImage{Ref: "ghcr.io/altinn/test:latest"}
+	image := &resource.PulledImage{Ref: "ghcr.io/altinn/test:latest"}
 	containerA := &resource.Container{Name: "container-a", Image: resource.Ref(image)}
 	containerB := &resource.Container{Name: "container-b", Image: resource.Ref(image)}
 
@@ -68,7 +68,7 @@ func TestTableRenderer_RendersNetworkAsDedicatedRow(t *testing.T) {
 	defer restoreTermFuncs()
 
 	network := &resource.Network{Name: "altinntestlocal_network"}
-	image := &resource.RemoteImage{Ref: "ghcr.io/altinn/test:latest"}
+	image := &resource.PulledImage{Ref: "ghcr.io/altinn/test:latest"}
 	container := &resource.Container{Name: "localtest", Image: resource.Ref(image)}
 	out := &fakeFDBuffer{fd: 7}
 	renderer := NewTable(
@@ -131,8 +131,8 @@ func TestTableRenderer_FailAllPreservesSpecificFailureAndCancelsCollateral(t *te
 	)
 	defer restoreTermFuncs()
 
-	imageA := &resource.RemoteImage{Ref: "ghcr.io/altinn/test:a"}
-	imageB := &resource.RemoteImage{Ref: "ghcr.io/altinn/test:b"}
+	imageA := &resource.PulledImage{Ref: "ghcr.io/altinn/test:a"}
+	imageB := &resource.PulledImage{Ref: "ghcr.io/altinn/test:b"}
 	containerA := &resource.Container{Name: "localtest-pdf3", Image: resource.Ref(imageA)}
 	containerB := &resource.Container{Name: "localtest", Image: resource.Ref(imageB)}
 	out := &fakeFDBuffer{fd: 7}
@@ -184,7 +184,7 @@ func TestTableRenderer_StopFlushesDirtyState(t *testing.T) {
 	)
 	defer restoreTermFuncs()
 
-	image := &resource.RemoteImage{Ref: "ghcr.io/altinn/test:latest"}
+	image := &resource.PulledImage{Ref: "ghcr.io/altinn/test:latest"}
 	container := &resource.Container{Name: "container-a", Image: resource.Ref(image)}
 	out := &fakeFDBuffer{fd: 7}
 	renderer := NewTable(
@@ -215,7 +215,7 @@ func TestTableRenderer_DestroyUsesRemovedState(t *testing.T) {
 	)
 	defer restoreTermFuncs()
 
-	image := &resource.RemoteImage{Ref: "ghcr.io/altinn/test:latest"}
+	image := &resource.PulledImage{Ref: "ghcr.io/altinn/test:latest"}
 	container := &resource.Container{Name: "localtest", Image: resource.Ref(image)}
 	out := &fakeFDBuffer{fd: 7}
 	renderer := NewTable(
@@ -242,7 +242,7 @@ func TestTableRenderer_DestroyUsesRemovedState(t *testing.T) {
 func TestDestroyRenderer_OmitsAlreadyDestroyedRows(t *testing.T) {
 	t.Parallel()
 
-	image := &resource.RemoteImage{Ref: "ghcr.io/altinn/test:latest"}
+	image := &resource.PulledImage{Ref: "ghcr.io/altinn/test:latest"}
 	running := &resource.Container{Name: "localtest", Image: resource.Ref(image)}
 	destroyed := &resource.Container{Name: "localtest-pgadmin", Image: resource.Ref(image)}
 	resources := []executor.PlannedResource{
@@ -272,7 +272,7 @@ func TestDestroyRenderer_OmitsAlreadyDestroyedRows(t *testing.T) {
 func TestApplyRenderer_InitializesReadyRowsFromStatus(t *testing.T) {
 	t.Parallel()
 
-	image := &resource.RemoteImage{Ref: "ghcr.io/altinn/test:latest"}
+	image := &resource.PulledImage{Ref: "ghcr.io/altinn/test:latest"}
 	container := &resource.Container{Name: "localtest", Image: resource.Ref(image)}
 	resources := []executor.PlannedResource{
 		{Resource: container, ID: container.ID()},
@@ -305,7 +305,7 @@ func TestTableRenderer_DestroyGlobalFailureAppearsInFooter(t *testing.T) {
 	)
 	defer restoreTermFuncs()
 
-	image := &resource.RemoteImage{Ref: "ghcr.io/altinn/test:latest"}
+	image := &resource.PulledImage{Ref: "ghcr.io/altinn/test:latest"}
 	container := &resource.Container{Name: "localtest", Image: resource.Ref(image)}
 	out := &fakeFDBuffer{fd: 7}
 	renderer := NewTable(
@@ -326,7 +326,7 @@ func TestTableRenderer_DestroyGlobalFailureAppearsInFooter(t *testing.T) {
 func TestCompactRenderer_RendersPerContainerRows(t *testing.T) {
 	t.Setenv("NO_COLOR", "1")
 
-	image := &resource.RemoteImage{Ref: "ghcr.io/altinn/test:latest"}
+	image := &resource.PulledImage{Ref: "ghcr.io/altinn/test:latest"}
 	containerA := &resource.Container{Name: "localtest", Image: resource.Ref(image)}
 	containerB := &resource.Container{Name: "localtest-pdf3", Image: resource.Ref(image)}
 	out := &bytes.Buffer{}
@@ -371,7 +371,7 @@ func TestRenderCompactRow_StaysWithinRequestedWidth(t *testing.T) {
 }
 
 func TestLogRenderer_PrintsMilestoneLines(t *testing.T) {
-	image := &resource.RemoteImage{Ref: "ghcr.io/altinn/test:latest"}
+	image := &resource.PulledImage{Ref: "ghcr.io/altinn/test:latest"}
 	container := &resource.Container{Name: "localtest", Image: resource.Ref(image)}
 	out := &bytes.Buffer{}
 	renderer := NewLog(
@@ -415,7 +415,7 @@ func TestLogRenderer_PrintsMilestoneLines(t *testing.T) {
 }
 
 func TestLogRenderer_DeduplicatesProgressMilestones(t *testing.T) {
-	image := &resource.RemoteImage{Ref: "ghcr.io/altinn/test:latest"}
+	image := &resource.PulledImage{Ref: "ghcr.io/altinn/test:latest"}
 	container := &resource.Container{Name: "localtest", Image: resource.Ref(image)}
 	out := &bytes.Buffer{}
 	renderer := NewLog(
@@ -522,7 +522,7 @@ func TestScreenRenderer_StopLeavesCursorAtLineStartForFollowupOutput(t *testing.
 	defer restoreTermFuncs()
 
 	out := &fakeFDBuffer{fd: 7}
-	image := &resource.RemoteImage{Ref: "ghcr.io/altinn/test:latest"}
+	image := &resource.PulledImage{Ref: "ghcr.io/altinn/test:latest"}
 	container := &resource.Container{Name: "localtest", Image: resource.Ref(image)}
 	output := ui.NewOutput(out, io.Discard, false)
 	renderer := NewTable(output, []resource.Resource{image, container}, OperationApply)

@@ -1082,13 +1082,13 @@ func containerRunProgressResources(spec appsvc.DockerRunSpec, flags runFlags) []
 
 func containerRunProgressImage(imageTag string, flags runFlags) resource.Resource {
 	if flags.pullImage {
-		return &resource.RemoteImage{
+		return &resource.PulledImage{
 			Enabled:    nil,
 			Ref:        imageTag,
 			PullPolicy: resource.PullAlways,
 		}
 	}
-	return &resource.LocalImage{
+	return &resource.BuiltImage{
 		Enabled:     nil,
 		ContextPath: ".",
 		Dockerfile:  "",

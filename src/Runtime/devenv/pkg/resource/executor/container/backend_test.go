@@ -17,8 +17,8 @@ const testGraphID = resource.GraphID("test")
 
 type Container = resource.Container
 type Network = resource.Network
-type RemoteImage = resource.RemoteImage
-type LocalImage = resource.LocalImage
+type PulledImage = resource.PulledImage
+type BuiltImage = resource.BuiltImage
 type Resource = resource.Resource
 type ImageResource = resource.ImageResource
 type LifecycleOptions = resource.LifecycleOptions

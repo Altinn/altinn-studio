@@ -10,10 +10,10 @@ import (
 	"altinn.studio/devenv/pkg/resource/executor"
 )
 
-func (b Backend) applyRemoteImage(
+func (b Backend) applyPulledImage(
 	ctx context.Context,
 	backendCtx executor.BackendContext,
-	img *resource.RemoteImage,
+	img *resource.PulledImage,
 ) (executor.Output, error) {
 	_, err := b.client.ImageInspect(ctx, img.Ref)
 	imageExists := err == nil
@@ -52,10 +52,10 @@ func (b Backend) applyRemoteImage(
 	return executor.ImageOutput{ImageID: info.ID}, nil
 }
 
-func (b Backend) applyLocalImage(
+func (b Backend) applyBuiltImage(
 	ctx context.Context,
 	backendCtx executor.BackendContext,
-	img *resource.LocalImage,
+	img *resource.BuiltImage,
 ) (executor.Output, error) {
 	dockerfile := img.Dockerfile
 	if dockerfile == "" {
@@ -71,6 +71,31 @@ func (b Backend) applyLocalImage(
 	info, err := b.client.ImageInspect(ctx, img.Tag)
 	if err != nil {
 		return nil, fmt.Errorf("inspect built image %s: %w", img.Tag, err)
+	}
+
+	return executor.ImageOutput{ImageID: info.ID}, nil
+}
+
+func (b Backend) applyPublishedImage(
+	ctx context.Context,
+	backendCtx executor.BackendContext,
+	img *resource.PublishedImage,
+) (executor.Output, error) {
+	sourceOutput, ok := backendCtx.Outputs().Image(img.Source.ID())
+	if !ok {
+		return nil, fmt.Errorf("%w: %s", errImageNotResolved, img.Source.ID())
+	}
+
+	if err := b.client.Tag(ctx, sourceOutput.ImageID, img.Ref); err != nil {
+		return nil, fmt.Errorf("tag image %s as %s: %w", sourceOutput.ImageID, img.Ref, err)
+	}
+	if err := b.client.Push(ctx, img.Ref); err != nil {
+		return nil, fmt.Errorf("push image %s: %w", img.Ref, err)
+	}
+
+	info, err := b.client.ImageInspect(ctx, img.Ref)
+	if err != nil {
+		return nil, fmt.Errorf("inspect published image %s: %w", img.Ref, err)
 	}
 
 	return executor.ImageOutput{ImageID: info.ID}, nil

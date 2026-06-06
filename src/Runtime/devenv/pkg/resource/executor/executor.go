@@ -298,7 +298,7 @@ func retainOnDestroy(r resource.Resource) bool {
 
 func defaultRetainOnDestroy(r resource.Resource) bool {
 	switch r.(type) {
-	case *resource.RemoteImage, *resource.LocalImage:
+	case *resource.PulledImage, *resource.BuiltImage, *resource.PublishedImage:
 		return true
 	default:
 		return false
