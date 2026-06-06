@@ -65,6 +65,19 @@ func (g *Graph) Add(r Resource) error {
 	return nil
 }
 
+// AddAll registers a set of resources in insertion order.
+func (g *Graph) AddAll(resources ...Resource) error {
+	for _, r := range resources {
+		if err := g.Add(r); err != nil {
+			if r == nil {
+				return err
+			}
+			return fmt.Errorf("add resource %s: %w", r.ID(), err)
+		}
+	}
+	return nil
+}
+
 // Get returns a resource by ID, or nil if not found.
 func (g *Graph) Get(id ResourceID) Resource {
 	g.mu.RLock()

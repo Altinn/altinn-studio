@@ -98,8 +98,8 @@ type InstallOptions struct {
 	OptimizeProbes    bool
 }
 
-// LocalTestInstallOptions returns InstallOptions optimized for local testing.
-func LocalTestInstallOptions() InstallOptions {
+// LocalInstallOptions returns InstallOptions optimized for local provisioning.
+func LocalInstallOptions() InstallOptions {
 	return InstallOptions{
 		LeaderElection:    false,
 		Concurrent:        fluxInstallConcurrency,
@@ -110,6 +110,15 @@ func LocalTestInstallOptions() InstallOptions {
 
 // Install installs Flux to the cluster with the specified components and options.
 func (c *FluxClient) Install(components []string, installOpts InstallOptions) error {
+	return c.InstallContext(context.Background(), components, installOpts)
+}
+
+// InstallContext installs Flux to the cluster with the specified components and options using ctx.
+func (c *FluxClient) InstallContext(
+	ctx context.Context,
+	components []string,
+	installOpts InstallOptions,
+) error {
 	opts, err := defaultInstallOptions(components)
 	if err != nil {
 		return err
@@ -135,7 +144,7 @@ func (c *FluxClient) Install(components []string, installOpts InstallOptions) er
 
 	patchDeployments(objects, installOpts, caPatch)
 
-	if _, err := c.kubeClient.ApplyObjects(context.Background(), objectsToRuntime(objects)...); err != nil {
+	if _, err := c.kubeClient.ApplyObjects(ctx, objectsToRuntime(objects)...); err != nil {
 		return fmt.Errorf("failed to apply flux install manifests: %w", err)
 	}
 
@@ -455,6 +464,9 @@ func (c *FluxClient) reconcileSource(
 	sourceGVR := kindToGVR(sourceRef.Kind)
 	if sourceGVR.Resource == "" {
 		return fmt.Errorf("%w: %s", errUnknownSourceKind, sourceRef.Kind)
+	}
+	if sourceRef.Kind == sourcev1.HelmRepositoryKind {
+		return c.ReconcileHelmRepository(sourceRef.Name, sourceRef.Namespace, opts)
 	}
 
 	return c.reconcile(sourceGVR, sourceRef.Name, sourceRef.Namespace, opts)

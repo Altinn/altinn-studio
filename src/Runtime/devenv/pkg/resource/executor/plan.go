@@ -156,7 +156,9 @@ func unmanagedCollisionBlocksApply(r resource.Resource, observed ObservedResourc
 		return false
 	}
 	switch r.(type) {
-	case *resource.Container, *resource.Network:
+	case *resource.Container:
+		return true
+	case *resource.Network:
 		return true
 	default:
 		return false

@@ -68,7 +68,7 @@ func (r *KindContainerRuntime) installFluxToCluster() error {
 		components = append(components, "notification-controller")
 	}
 
-	opts := flux.LocalTestInstallOptions()
+	opts := flux.LocalInstallOptions()
 	if err := r.FluxClient.Install(components, opts); err != nil {
 		return fmt.Errorf("install flux controllers: %w", err)
 	}

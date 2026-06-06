@@ -113,9 +113,10 @@ func (l *BuiltImage) Validate() error {
 
 // PublishedImage is a registry image reference published from another image resource.
 type PublishedImage struct {
-	Enabled *bool
-	Ref     string
-	Source  ResourceRef
+	Enabled   *bool
+	Ref       string
+	Source    ResourceRef
+	DependsOn []ResourceRef
 }
 
 // ID returns the unique identifier for this image.
@@ -125,7 +126,7 @@ func (p *PublishedImage) ID() ResourceID {
 
 // Dependencies returns resources that must be applied before this image.
 func (p *PublishedImage) Dependencies() []ResourceRef {
-	return appendWithRequiredRef(nil, p.Source)
+	return appendWithRequiredRef(p.DependsOn, p.Source)
 }
 
 // ImageRef returns the registry reference for container API calls.

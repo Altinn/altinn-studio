@@ -84,7 +84,7 @@ func TestPatchDeploymentsAddsCABundle(t *testing.T) {
 	obj := fluxDeployment("source-controller")
 	patchDeployments(
 		[]*unstructured.Unstructured{obj},
-		LocalTestInstallOptions(),
+		LocalInstallOptions(),
 		&caBundleInstallPatch{data: "test-ca", digest: "test-digest"},
 	)
 
@@ -100,7 +100,7 @@ func TestPatchDeploymentsAddsCABundleToNotificationController(t *testing.T) {
 	obj := fluxDeployment("notification-controller")
 	patchDeployments(
 		[]*unstructured.Unstructured{obj},
-		LocalTestInstallOptions(),
+		LocalInstallOptions(),
 		&caBundleInstallPatch{data: "test-ca", digest: "test-digest"},
 	)
 

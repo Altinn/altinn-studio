@@ -19,6 +19,18 @@ const (
 	ResourceTypeNetwork
 	// ResourceTypeContainer identifies a container runtime resource.
 	ResourceTypeContainer
+	// ResourceTypeKindCluster identifies a kind cluster runtime resource.
+	ResourceTypeKindCluster
+	// ResourceTypeFlux identifies Flux controller installation state.
+	ResourceTypeFlux
+	// ResourceTypeOCI identifies a published OCI artifact.
+	ResourceTypeOCI
+	// ResourceTypeKubernetes identifies applied Kubernetes object state.
+	ResourceTypeKubernetes
+	// ResourceTypeLocalFile identifies a local file resource.
+	ResourceTypeLocalFile
+	// ResourceTypeGitCheckout identifies a local Git checkout resource.
+	ResourceTypeGitCheckout
 )
 
 // ObservedResource describes actual runtime state for a desired or discovered resource.

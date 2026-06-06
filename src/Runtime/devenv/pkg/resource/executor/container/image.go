@@ -86,11 +86,11 @@ func (b Backend) applyPublishedImage(
 		return nil, fmt.Errorf("%w: %s", errImageNotResolved, img.Source.ID())
 	}
 
-	if err := b.client.Tag(ctx, sourceOutput.ImageID, img.Ref); err != nil {
-		return nil, fmt.Errorf("tag image %s as %s: %w", sourceOutput.ImageID, img.Ref, err)
+	if tagErr := b.client.Tag(ctx, sourceOutput.ImageID, img.Ref); tagErr != nil {
+		return nil, fmt.Errorf("tag image %s as %s: %w", sourceOutput.ImageID, img.Ref, tagErr)
 	}
-	if err := b.client.Push(ctx, img.Ref); err != nil {
-		return nil, fmt.Errorf("push image %s: %w", img.Ref, err)
+	if pushErr := b.client.Push(ctx, img.Ref); pushErr != nil {
+		return nil, fmt.Errorf("push image %s: %w", img.Ref, pushErr)
 	}
 
 	info, err := b.client.ImageInspect(ctx, img.Ref)
