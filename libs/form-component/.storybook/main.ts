@@ -14,8 +14,6 @@ const config: StorybookConfig = {
     options: {},
   },
   viteFinal: async (config) => {
-    // Resolve tsconfig `paths` (e.g. @app/form-component/* -> ./src/*) so subpath imports
-    // work without declaring them in the package's `exports`. Mirrors vitest.config.ts.
     config.plugins?.push(tsconfigPaths());
     return config;
   },
