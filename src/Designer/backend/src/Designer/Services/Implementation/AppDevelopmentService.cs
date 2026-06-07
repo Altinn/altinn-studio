@@ -290,14 +290,15 @@ public class AppDevelopmentService : IAppDevelopmentService
         CancellationToken cancellationToken = default
     )
     {
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
+
         if (string.IsNullOrEmpty(layoutSetName))
         {
             // Fallback to first model in app metadata if no layout set is provided
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-                altinnRepoEditingContext.Org,
-                altinnRepoEditingContext.Repo,
-                altinnRepoEditingContext.Developer
-            );
             ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(
                 cancellationToken
             );
@@ -309,9 +310,15 @@ public class AppDevelopmentService : IAppDevelopmentService
                 ?? string.Empty;
         }
 
-        LayoutSets layoutSets = await GetLayoutSets(altinnRepoEditingContext, cancellationToken);
-        var foundLayoutSet = layoutSets.Sets.Find(set => set.Id == layoutSetName);
+        if (altinnAppGitRepository.IsV9OrNewer())
+        {
+            Designer.Models.LayoutSettings layoutSettings =
+                await altinnAppGitRepository.GetLayoutSettings(layoutSetName, cancellationToken);
+            return layoutSettings.DataType ?? string.Empty;
+        }
 
+        LayoutSets layoutSets = await GetLayoutSets(altinnRepoEditingContext, cancellationToken);
+        LayoutSetConfig foundLayoutSet = layoutSets.Sets.Find(set => set.Id == layoutSetName);
         return foundLayoutSet.DataType;
     }
 

@@ -537,20 +537,55 @@ public class SchemaModelService : ISchemaModelService
         if (applicationMetadata.DataTypes != null)
         {
             DataType dataTypeToDelete = applicationMetadata.DataTypes.Find(m => m.Id == id);
-            if (altinnAppGitRepository.AppUsesLayoutSets())
+            if (altinnAppGitRepository.IsV9OrNewer())
             {
-                var layoutSets = await altinnAppGitRepository.GetLayoutSetsFile();
-                List<LayoutSetConfig> layoutSetsWithDataTypeToDelete = layoutSets.Sets.FindAll(set =>
-                    set.DataType == id
-                );
-                foreach (LayoutSetConfig layoutSet in layoutSetsWithDataTypeToDelete)
-                {
-                    layoutSet.DataType = null;
-                }
-                await altinnAppGitRepository.SaveLayoutSets(layoutSets);
+                await ClearDefaultDataTypeFromLayoutSettings(altinnAppGitRepository, id);
+            }
+            else
+            {
+                await ClearDataTypeFromLayoutSets(altinnAppGitRepository, id);
             }
             applicationMetadata.DataTypes.Remove(dataTypeToDelete);
             await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
+        }
+    }
+
+    private static async Task ClearDataTypeFromLayoutSets(AltinnAppGitRepository altinnAppGitRepository, string id)
+    {
+        LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile();
+        List<LayoutSetConfig> layoutSetsWithDataTypeToDelete = layoutSets.Sets.FindAll(set => set.DataType == id);
+        foreach (LayoutSetConfig layoutSet in layoutSetsWithDataTypeToDelete)
+        {
+            layoutSet.DataType = null;
+        }
+        await altinnAppGitRepository.SaveLayoutSets(layoutSets);
+    }
+
+    private static async Task ClearDefaultDataTypeFromLayoutSettings(
+        AltinnAppGitRepository altinnAppGitRepository,
+        string id
+    )
+    {
+        IEnumerable<string> uiFolders = await altinnAppGitRepository.GetUiFolders();
+        foreach (string layoutSetName in uiFolders)
+        {
+            LayoutSettings layoutSettings;
+            try
+            {
+                layoutSettings = await altinnAppGitRepository.GetLayoutSettings(layoutSetName);
+            }
+            catch (Exception e) when (e is FileNotFoundException or JsonException)
+            {
+                continue;
+            }
+
+            if (layoutSettings.DataType != id)
+            {
+                continue;
+            }
+
+            layoutSettings.DataType = null;
+            await altinnAppGitRepository.SaveLayoutSettings(layoutSetName, layoutSettings);
         }
     }
 

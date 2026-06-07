@@ -79,6 +79,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
 
     private static readonly Regex s_layoutSetNameRegex = new(@"^[a-zA-Z0-9_\-]{2,28}$", RegexOptions.Compiled);
     private static readonly Regex s_layoutNameRegex = new(@"^[a-zA-Z0-9_\-]{1,128}$", RegexOptions.Compiled);
+    private static readonly string[] s_appLibPackageNames = ["Altinn.App.Api", "Altinn.App.Api.Experimental"];
 
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
@@ -449,6 +450,33 @@ public class AltinnAppGitRepository : AltinnGitRepository
         string layoutSetJsonFilePath = Path.Combine(LayoutsFolderName, "layout-sets.json");
 
         return FileExistsByRelativePath(layoutSetJsonFilePath);
+    }
+
+    /// <summary>
+    /// Returns true if the app uses Altinn.App.Api version 9 or newer.
+    /// Falls back to checking absence of layout-sets.json if the version cannot be
+    /// determined from the csproj file.
+    /// <returns>A boolean representing if the app uses version 9 or newer</returns>
+    /// </summary>
+    public bool IsV9OrNewer()
+    {
+        IEnumerable<string> csprojFiles = FindFiles(["*.csproj"]);
+
+        foreach (string csprojFile in csprojFiles)
+        {
+            if (
+                PackageVersionHelper.TryGetPackageVersionFromCsprojFile(
+                    csprojFile,
+                    s_appLibPackageNames,
+                    out var version
+                )
+            )
+            {
+                return version.Major >= 9;
+            }
+        }
+
+        return !AppUsesLayoutSets();
     }
 
     /// <summary>
