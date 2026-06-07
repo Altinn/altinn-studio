@@ -3,7 +3,7 @@ import '@digdir/designsystemet-css/theme';
 
 import type { Preview } from '@storybook/react-vite';
 
-import 'src/styles/global.css';
+import '@app/form-component/styles/global.css';
 
 const preview: Preview = {
   parameters: {

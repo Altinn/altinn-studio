@@ -68,6 +68,7 @@
     "storybook": "10.2.16",
     "typescript": "5.9.3",
     "typescript-plugin-css-modules": "5.2.0",
+    "vite-tsconfig-paths": "6.1.1",
     "vitest": "^4.1.5"
   }
 }
