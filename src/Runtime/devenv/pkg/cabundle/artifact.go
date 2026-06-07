@@ -1,9 +1,7 @@
-package harness
+package cabundle
 
 import (
 	"bytes"
-	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -11,12 +9,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"altinn.studio/devenv/pkg/cabundle"
-	"altinn.studio/devenv/pkg/runtimes/kind"
+	"altinn.studio/devenv/pkg/kubernetes"
+	"altinn.studio/devenv/pkg/resource"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/yaml"
 )
@@ -28,221 +27,98 @@ const (
 	yamlDecoderBufferSize    = 4096
 )
 
-func configureCABundleForRollouts(runtime *kind.KindContainerRuntime, rollouts []Rollout) error {
-	bundle, configured, err := cabundle.FromEnv()
-	if err != nil {
-		return fmt.Errorf("resolve CA bundle: %w", err)
-	}
-	if !configured {
-		return nil
-	}
-
-	for _, rollout := range rollouts {
-		if !rollout.MountCABundle {
-			continue
-		}
-		namespace := rollout.Namespace
-		if namespace == "" {
-			namespace = defaultNamespace
-		}
-		if err := applyCABundleConfigMap(runtime, bundle, namespace); err != nil {
-			return err
-		}
-		if err := patchDeploymentCABundle(runtime, bundle, rollout); err != nil {
-			return err
-		}
-	}
-	return nil
+// KubernetesWorkload identifies a Kubernetes Deployment/container that should receive the CA bundle.
+type KubernetesWorkload struct {
+	Deployment string
+	Namespace  string
+	Container  string
 }
 
-func applyCABundleConfigMapsForRollouts(runtime *kind.KindContainerRuntime, rollouts []Rollout) error {
-	bundle, configured, err := cabundle.FromEnv()
-	if err != nil {
-		return fmt.Errorf("resolve CA bundle: %w", err)
-	}
-	if !configured {
-		return nil
-	}
-
-	seen := map[string]bool{}
-	for _, rollout := range rollouts {
-		if !rollout.MountCABundle {
-			continue
-		}
-		namespace := rollout.Namespace
-		if namespace == "" {
-			namespace = defaultNamespace
-		}
-		if seen[namespace] {
-			continue
-		}
-		if err := applyCABundleConfigMap(runtime, bundle, namespace); err != nil {
-			return err
-		}
-		seen[namespace] = true
-	}
-	return nil
+// PreparedArtifact is an artifact path prepared for resource graph publication.
+type PreparedArtifact struct {
+	cleanup func() error
+	Path    string
 }
 
-func applyCABundleConfigMap(runtime *kind.KindContainerRuntime, bundle *cabundle.Bundle, namespace string) error {
-	configMap := &corev1.ConfigMap{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "ConfigMap",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      cabundle.KubernetesConfigMapName,
-			Namespace: namespace,
-			Annotations: map[string]string{
-				caBundleDigestAnnotation: bundle.Digest,
-			},
-		},
-		Data: map[string]string{
-			cabundle.KubernetesConfigMapKey: string(bundle.Data),
-		},
+// PrepareKubernetesArtifact copies and patches a Kubernetes artifact directory with CA bundle mounts/env.
+func PrepareKubernetesArtifact(
+	artifactPath string,
+	bundle *Bundle,
+	workloads []KubernetesWorkload,
+) (*PreparedArtifact, error) {
+	if bundle == nil || len(workloads) == 0 {
+		return &PreparedArtifact{Path: artifactPath}, nil
 	}
 
-	if _, err := runtime.KubernetesClient.ApplyObjects(context.Background(), configMap); err != nil {
-		return fmt.Errorf("apply CA bundle ConfigMap in namespace %s: %w", namespace, err)
-	}
-	return nil
-}
-
-func patchDeploymentCABundle(runtime *kind.KindContainerRuntime, bundle *cabundle.Bundle, rollout Rollout) error {
-	patch, err := deploymentCABundlePatch(bundle, rollout)
+	info, err := os.Stat(artifactPath)
 	if err != nil {
-		return err
-	}
-	namespace := rollout.Namespace
-	if namespace == "" {
-		namespace = defaultNamespace
-	}
-	if err := runtime.KubernetesClient.PatchDeployment(
-		context.Background(),
-		rollout.Deployment,
-		namespace,
-		patch,
-	); err != nil {
-		return fmt.Errorf("patch CA bundle into rollout deployment %s/%s: %w", namespace, rollout.Deployment, err)
-	}
-	return nil
-}
-
-func deploymentCABundlePatch(bundle *cabundle.Bundle, rollout Rollout) ([]byte, error) {
-	containerName := rollout.Container
-	if containerName == "" {
-		containerName = rollout.Deployment
-	}
-
-	patch := map[string]any{
-		"spec": map[string]any{
-			"template": map[string]any{
-				"metadata": map[string]any{
-					"annotations": map[string]any{
-						caBundleDigestAnnotation: bundle.Digest,
-					},
-				},
-				"spec": map[string]any{
-					"volumes": []any{
-						cabundle.KubernetesConfigMapVolume(
-							cabundle.KubernetesVolumeName,
-							cabundle.KubernetesConfigMapName,
-							cabundle.KubernetesConfigMapKey,
-						),
-					},
-					"containers": []any{
-						map[string]any{
-							"name": containerName,
-							"env":  cabundle.ApplyKubernetesEnv(nil),
-							"volumeMounts": cabundle.ApplyKubernetesVolumeMount(
-								nil,
-								cabundle.KubernetesVolumeName,
-								cabundle.KubernetesConfigMapKey,
-							),
-						},
-					},
-				},
-			},
-		},
-	}
-
-	data, err := json.Marshal(patch)
-	if err != nil {
-		return nil, fmt.Errorf("marshal CA bundle deployment patch: %w", err)
-	}
-	return data, nil
-}
-
-func prepareCABundleArtifact(cfg Config, artPath string) (string, func(), error) {
-	bundle, configured, err := cabundle.FromEnv()
-	if err != nil {
-		return "", nil, fmt.Errorf("resolve CA bundle: %w", err)
-	}
-	if !configured {
-		return artPath, func() {}, nil
-	}
-
-	rollouts := caBundleRollouts(cfg.Deployments)
-	if len(rollouts) == 0 {
-		return artPath, func() {}, nil
-	}
-
-	info, err := os.Stat(artPath)
-	if err != nil {
-		return "", nil, fmt.Errorf("stat artifact path: %w", err)
+		return nil, fmt.Errorf("stat artifact path: %w", err)
 	}
 	if !info.IsDir() {
-		return artPath, func() {}, nil
+		return &PreparedArtifact{Path: artifactPath}, nil
 	}
 
 	tmpDir, err := os.MkdirTemp("", "devenv-ca-artifact-*")
 	if err != nil {
-		return "", nil, fmt.Errorf("create temporary CA artifact directory: %w", err)
+		return nil, fmt.Errorf("create temporary CA artifact directory: %w", err)
 	}
-	cleanup := func() {
+	cleanup := func() error {
 		if removeErr := os.RemoveAll(tmpDir); removeErr != nil {
-			writeStderrf("warning: failed to remove temporary CA artifact directory %s: %v\n", tmpDir, removeErr)
+			return fmt.Errorf("remove temporary CA artifact directory %s: %w", tmpDir, removeErr)
 		}
+		return nil
 	}
 
-	patchedPath := filepath.Join(tmpDir, filepath.Base(artPath))
-	if copyErr := copyDirectory(artPath, patchedPath); copyErr != nil {
-		cleanup()
-		return "", nil, copyErr
+	patchedPath := filepath.Join(tmpDir, filepath.Base(artifactPath))
+	if copyErr := copyDirectory(artifactPath, patchedPath); copyErr != nil {
+		cleanupPreparedArtifact(cleanup)
+		return nil, copyErr
 	}
-	patched, err := patchCABundleArtifactFiles(patchedPath, bundle, rollouts)
+	patched, err := patchCABundleArtifactFiles(patchedPath, bundle, workloads)
 	if err != nil {
-		cleanup()
-		return "", nil, err
+		cleanupPreparedArtifact(cleanup)
+		return nil, err
 	}
 	if !patched {
-		cleanup()
-		return artPath, func() {}, nil
+		cleanupPreparedArtifact(cleanup)
+		return &PreparedArtifact{Path: artifactPath}, nil
 	}
 
-	return patchedPath, cleanup, nil
+	return &PreparedArtifact{Path: patchedPath, cleanup: cleanup}, nil
 }
 
-func caBundleRollouts(deployments []Deployment) []Rollout {
-	var rollouts []Rollout
-	for _, deployment := range deployments {
-		if deployment.Kustomize != nil {
-			rollouts = appendCABundleRollouts(rollouts, deployment.Kustomize.Rollouts)
-		}
-		if deployment.Helm != nil {
-			rollouts = appendCABundleRollouts(rollouts, deployment.Helm.Rollouts)
-		}
+// Cleanup removes temporary files created for the prepared artifact.
+func (p *PreparedArtifact) Cleanup() error {
+	if p == nil || p.cleanup == nil {
+		return nil
 	}
-	return rollouts
+	return p.cleanup()
 }
 
-func appendCABundleRollouts(dst []Rollout, rollouts []Rollout) []Rollout {
-	for _, rollout := range rollouts {
-		if rollout.MountCABundle {
-			dst = append(dst, rollout)
-		}
+// KubernetesConfigMapObjectSet returns a ConfigMap object set for CA-aware workloads.
+func KubernetesConfigMapObjectSet(
+	bundle *Bundle,
+	cluster resource.ResourceRef,
+	name string,
+	workloads []KubernetesWorkload,
+	deps []resource.ResourceRef,
+) (*resource.KubernetesObjectSet, bool, error) {
+	if bundle == nil || len(workloads) == 0 {
+		return nil, false, nil
 	}
-	return dst
+	manifest, err := kubernetesConfigMaps(bundle, workloads)
+	if err != nil {
+		return nil, false, err
+	}
+	if manifest == "" {
+		return nil, false, nil
+	}
+	return &resource.KubernetesObjectSet{
+		Name:      name,
+		Cluster:   cluster,
+		Manifest:  manifest,
+		DependsOn: deps,
+	}, true, nil
 }
 
 func copyDirectory(src, dst string) error {
@@ -282,11 +158,7 @@ func copyFile(src, dst string) error {
 	if err != nil {
 		return fmt.Errorf("open artifact file %s: %w", src, err)
 	}
-	defer func() {
-		if closeErr := source.Close(); closeErr != nil {
-			writeStderrf("warning: failed to close artifact file %s: %v\n", src, closeErr)
-		}
-	}()
+	defer closeFileBestEffort(source)
 
 	info, err := source.Stat()
 	if err != nil {
@@ -297,11 +169,7 @@ func copyFile(src, dst string) error {
 	if err != nil {
 		return fmt.Errorf("create artifact file %s: %w", dst, err)
 	}
-	defer func() {
-		if closeErr := target.Close(); closeErr != nil {
-			writeStderrf("warning: failed to close artifact file %s: %v\n", dst, closeErr)
-		}
-	}()
+	defer closeFileBestEffort(target)
 
 	if _, err := io.Copy(target, source); err != nil {
 		return fmt.Errorf("copy artifact file %s: %w", src, err)
@@ -309,7 +177,23 @@ func copyFile(src, dst string) error {
 	return nil
 }
 
-func patchCABundleArtifactFiles(root string, bundle *cabundle.Bundle, rollouts []Rollout) (bool, error) {
+func cleanupPreparedArtifact(cleanup func() error) {
+	if err := cleanup(); err != nil {
+		return
+	}
+}
+
+func closeFileBestEffort(file *os.File) {
+	if err := file.Close(); err != nil {
+		return
+	}
+}
+
+func patchCABundleArtifactFiles(
+	root string,
+	bundle *Bundle,
+	workloads []KubernetesWorkload,
+) (bool, error) {
 	patchedAny := false
 	err := filepath.WalkDir(root, func(path string, entry os.DirEntry, walkErr error) error {
 		if walkErr != nil {
@@ -318,7 +202,7 @@ func patchCABundleArtifactFiles(root string, bundle *cabundle.Bundle, rollouts [
 		if entry.IsDir() || !isPatchableYAMLPath(path) {
 			return nil
 		}
-		patched, err := patchCABundleArtifactFile(path, bundle, rollouts)
+		patched, err := patchCABundleArtifactFile(path, bundle, workloads)
 		if err != nil {
 			return err
 		}
@@ -344,7 +228,11 @@ func isPatchableYAMLPath(path string) bool {
 	return name != "kustomization.yaml" && name != "kustomization.yml"
 }
 
-func patchCABundleArtifactFile(path string, bundle *cabundle.Bundle, rollouts []Rollout) (bool, error) {
+func patchCABundleArtifactFile(
+	path string,
+	bundle *Bundle,
+	workloads []KubernetesWorkload,
+) (bool, error) {
 	//nolint:gosec // Artifact manifest paths are resolved from configured fixture inputs.
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -366,7 +254,7 @@ func patchCABundleArtifactFile(path string, bundle *cabundle.Bundle, rollouts []
 			continue
 		}
 		obj := unstructured.Unstructured{Object: document}
-		objectPatched, err := patchDeploymentObjectCABundle(&obj, bundle, rollouts)
+		objectPatched, err := patchDeploymentObjectCABundle(&obj, bundle, workloads)
 		if err != nil {
 			return false, fmt.Errorf("patch artifact deployment %s: %w", path, err)
 		}
@@ -398,8 +286,8 @@ func patchCABundleArtifactFile(path string, bundle *cabundle.Bundle, rollouts []
 
 func patchDeploymentObjectCABundle(
 	obj *unstructured.Unstructured,
-	bundle *cabundle.Bundle,
-	rollouts []Rollout,
+	bundle *Bundle,
+	workloads []KubernetesWorkload,
 ) (bool, error) {
 	if obj.GetKind() != "Deployment" {
 		return false, nil
@@ -420,23 +308,23 @@ func patchDeploymentObjectCABundle(
 			continue
 		}
 		name, ok := container["name"].(string)
-		if !ok || !shouldPatchContainer(name, rollouts) {
+		if !ok || !shouldPatchContainer(obj.GetName(), name, workloads) {
 			continue
 		}
 		env, found, err := unstructured.NestedSlice(container, "env")
 		if err != nil || !found {
 			env = []any{}
 		}
-		container["env"] = cabundle.ApplyKubernetesEnv(env)
+		container["env"] = ApplyKubernetesEnv(env)
 
 		mounts, found, err := unstructured.NestedSlice(container, "volumeMounts")
 		if err != nil || !found {
 			mounts = []any{}
 		}
-		container["volumeMounts"] = cabundle.ApplyKubernetesVolumeMount(
+		container["volumeMounts"] = ApplyKubernetesVolumeMount(
 			mounts,
-			cabundle.KubernetesVolumeName,
-			cabundle.KubernetesConfigMapKey,
+			KubernetesVolumeName,
+			KubernetesConfigMapKey,
 		)
 		containers[i] = container
 		patched = true
@@ -465,13 +353,16 @@ func patchDeploymentObjectCABundle(
 	return true, nil
 }
 
-func shouldPatchContainer(name string, rollouts []Rollout) bool {
-	for _, rollout := range rollouts {
-		container := rollout.Container
-		if container == "" {
-			container = rollout.Deployment
+func shouldPatchContainer(deployment, container string, workloads []KubernetesWorkload) bool {
+	for _, workload := range workloads {
+		if workload.Deployment != "" && workload.Deployment != deployment {
+			continue
 		}
-		if container == name {
+		targetContainer := workload.Container
+		if targetContainer == "" {
+			targetContainer = workload.Deployment
+		}
+		if targetContainer == container {
 			return true
 		}
 	}
@@ -487,14 +378,14 @@ func patchCABundleObjectVolume(obj *unstructured.Unstructured) error {
 	out := make([]any, 0, len(volumes)+1)
 	for _, volume := range volumes {
 		volumeMap, ok := volume.(map[string]any)
-		if !ok || volumeMap["name"] != cabundle.KubernetesVolumeName {
+		if !ok || volumeMap["name"] != KubernetesVolumeName {
 			out = append(out, volume)
 		}
 	}
-	out = append(out, cabundle.KubernetesConfigMapVolume(
-		cabundle.KubernetesVolumeName,
-		cabundle.KubernetesConfigMapName,
-		cabundle.KubernetesConfigMapKey,
+	out = append(out, KubernetesConfigMapVolume(
+		KubernetesVolumeName,
+		KubernetesConfigMapName,
+		KubernetesConfigMapKey,
 	))
 
 	if err := unstructured.SetNestedSlice(obj.Object, out, "spec", "template", "spec", "volumes"); err != nil {
@@ -520,4 +411,53 @@ func patchCABundleObjectAnnotation(obj *unstructured.Unstructured, digest string
 		return fmt.Errorf("set deployment CA annotation: %w", err)
 	}
 	return nil
+}
+
+func kubernetesConfigMaps(bundle *Bundle, workloads []KubernetesWorkload) (string, error) {
+	seen := map[string]bool{}
+	objects := make([]k8sruntime.Object, 0)
+	for _, workload := range workloads {
+		namespace := namespaceOrDefault(workload.Namespace)
+		if seen[namespace] {
+			continue
+		}
+		seen[namespace] = true
+		objects = append(objects, &corev1.Namespace{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: "v1",
+				Kind:       "Namespace",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name: namespace,
+			},
+		})
+		objects = append(objects, &corev1.ConfigMap{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: "v1",
+				Kind:       "ConfigMap",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      KubernetesConfigMapName,
+				Namespace: namespace,
+				Annotations: map[string]string{
+					caBundleDigestAnnotation: bundle.Digest,
+				},
+			},
+			Data: map[string]string{
+				KubernetesConfigMapKey: string(bundle.Data),
+			},
+		})
+	}
+	manifest, err := kubernetes.ObjectsManifest(objects)
+	if err != nil {
+		return "", fmt.Errorf("render CA bundle ConfigMaps: %w", err)
+	}
+	return manifest, nil
+}
+
+func namespaceOrDefault(namespace string) string {
+	if namespace == "" {
+		return defaultNamespace
+	}
+	return namespace
 }

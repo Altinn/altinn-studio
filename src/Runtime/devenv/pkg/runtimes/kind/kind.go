@@ -6,8 +6,8 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -15,12 +15,20 @@ import (
 
 	"altinn.studio/devenv/pkg/cache"
 	"altinn.studio/devenv/pkg/container"
+	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/flux"
 	"altinn.studio/devenv/pkg/helm"
 	"altinn.studio/devenv/pkg/kindclient"
 	"altinn.studio/devenv/pkg/kubernetes"
 	"altinn.studio/devenv/pkg/oci"
-	"altinn.studio/devenv/pkg/runtimes"
+	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/devenv/pkg/resource/executor"
+	containerbackend "altinn.studio/devenv/pkg/resource/executor/container"
+	fluxbackend "altinn.studio/devenv/pkg/resource/executor/flux"
+	kindbackend "altinn.studio/devenv/pkg/resource/executor/kind"
+	kubernetesbackend "altinn.studio/devenv/pkg/resource/executor/kubernetes"
+	localbackend "altinn.studio/devenv/pkg/resource/executor/local"
+	ocibackend "altinn.studio/devenv/pkg/resource/executor/oci"
 	"altinn.studio/devenv/pkg/runtimes/kind/manifests"
 )
 
@@ -46,7 +54,6 @@ var testserverIndexHtml []byte
 var testserverEur1Html []byte
 
 var (
-	errRegistryStartTimeout   = errors.New("timed out waiting for registry")
 	errNoCurrentCluster       = errors.New("no KindContainerRuntime cluster is currently running")
 	errUnknownVariant         = errors.New("unknown variant")
 	errConflictingVariant     = errors.New("another KindContainerRuntime cluster variant is already running")
@@ -54,12 +61,14 @@ var (
 )
 
 const (
-	standardClusterName       = "runtime-fixture-kind-standard"
-	minimalClusterName        = "runtime-fixture-kind-minimal"
-	registryReadyTimeout      = 30 * time.Second
-	registryPollInterval      = 250 * time.Millisecond
-	defaultTestserverReplicas = int32(3)
-	minimalTestserverReplicas = int32(1)
+	standardClusterName        = "runtime-fixture-kind-standard"
+	minimalClusterName         = "runtime-fixture-kind-minimal"
+	baseInfrastructureName     = "kind-base-infrastructure"
+	defaultTestserverReplicas  = int32(3)
+	minimalTestserverReplicas  = int32(1)
+	defaultRegistryImage       = "registry:2"
+	traefikRolloutTimeout      = 2 * time.Minute
+	registryHealthCheckRetries = 30
 )
 
 type KindContainerRuntimeVariant int
@@ -68,6 +77,17 @@ const (
 	KindContainerRuntimeVariantStandard KindContainerRuntimeVariant = iota
 	KindContainerRuntimeVariantMinimal
 )
+
+func (v KindContainerRuntimeVariant) String() string {
+	switch v {
+	case KindContainerRuntimeVariantStandard:
+		return "standard"
+	case KindContainerRuntimeVariantMinimal:
+		return "minimal"
+	default:
+		return "unknown"
+	}
+}
 
 // KindContainerRuntimeOptions holds configuration options for the Kind runtime.
 type KindContainerRuntimeOptions struct {
@@ -115,10 +135,375 @@ type KindContainerRuntime struct {
 	options              KindContainerRuntimeOptions
 }
 
-// logDuration logs the duration of an operation
-// Usage: defer logDuration("Operation name", time.Now()).
-func logDuration(stepName string, start time.Time) {
-	writeKindStdoutf("  [%s took %s]\n", stepName, time.Since(start))
+// Graph returns the desired resource graph for the kind fixture itself.
+func (r *KindContainerRuntime) Graph() (*resource.Graph, error) {
+	graph := resource.NewGraph(resource.GraphID("kind-runtime:" + r.clusterName))
+
+	registryImage := &resource.PulledImage{
+		Ref:        defaultRegistryImage,
+		PullPolicy: resource.PullIfNotPresent,
+	}
+	if err := addRuntimeResource(graph, registryImage); err != nil {
+		return nil, err
+	}
+
+	registry := registryContainer(registryImage)
+	if err := addRuntimeResource(graph, registry); err != nil {
+		return nil, err
+	}
+
+	proxyEnabled := !isCI
+	proxyMirrors, err := addProxyRegistries(graph, r.cachePath, registryImage, &proxyEnabled)
+	if err != nil {
+		return nil, fmt.Errorf("add proxy registries: %w", err)
+	}
+	mirrors := make([]resource.KindRegistryMirror, 0, 1+len(proxyMirrors))
+	mirrors = append(mirrors, resource.KindRegistryMirror{
+		Host:     "localhost:" + registryPort,
+		Endpoint: resource.Ref(registry),
+	})
+	mirrors = append(mirrors, proxyMirrors...)
+
+	cluster := &resource.KindCluster{
+		Name:            r.clusterName,
+		Variant:         r.variant.String(),
+		CachePath:       r.cachePath,
+		RegistryMirrors: mirrors,
+	}
+	if addErr := addRuntimeResource(graph, cluster); addErr != nil {
+		return nil, addErr
+	}
+
+	fluxInstall := &resource.FluxInstallation{
+		Name:       r.clusterName,
+		Cluster:    resource.Ref(cluster),
+		Components: fluxComponents(r.options),
+	}
+	if addErr := addRuntimeResource(graph, fluxInstall); addErr != nil {
+		return nil, addErr
+	}
+
+	baseInfra, err := baseInfrastructureObjectSet(r.options, cluster, fluxInstall)
+	if err != nil {
+		return nil, err
+	}
+	if addErr := addRuntimeResource(graph, baseInfra); addErr != nil {
+		return nil, addErr
+	}
+
+	testserverEnabled := r.options.IncludeTestserver
+	testserver, err := testserverObjectSet(
+		r.variant,
+		cluster,
+		baseInfra,
+		&testserverEnabled,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if addErr := addRuntimeResource(graph, testserver); addErr != nil {
+		return nil, addErr
+	}
+
+	return graph, nil
+}
+
+func addProxyRegistries(
+	graph *resource.Graph,
+	cachePath string,
+	image *resource.PulledImage,
+	proxyEnabled *bool,
+) ([]resource.KindRegistryMirror, error) {
+	proxies := []struct {
+		name      string
+		host      string
+		hostPort  string
+		remoteURL string
+	}{
+		{registryDockerName, "docker.io", registryDockerPort, "https://registry-1.docker.io"},
+		{registryK8sName, "registry.k8s.io", registryK8sPort, "https://registry.k8s.io"},
+		{registryGhcrName, "ghcr.io", registryGhcrPort, "https://ghcr.io"},
+	}
+
+	mirrors := make([]resource.KindRegistryMirror, 0, len(proxies))
+	for _, proxy := range proxies {
+		config := proxyRegistryConfigFile(cachePath, proxy.name, proxy.remoteURL, proxyEnabled)
+		if err := addRuntimeResource(graph, config); err != nil {
+			return nil, fmt.Errorf("add proxy registry config %s: %w", proxy.name, err)
+		}
+		container := proxyRegistryContainer(image, config, proxy.name, proxy.hostPort, proxyEnabled)
+		if err := addRuntimeResource(graph, container); err != nil {
+			return nil, fmt.Errorf("add proxy registry container %s: %w", proxy.name, err)
+		}
+		mirrors = append(mirrors, resource.KindRegistryMirror{
+			Enabled:  proxyEnabled,
+			Host:     proxy.host,
+			Endpoint: resource.Ref(container),
+			Upstream: proxy.remoteURL,
+		})
+	}
+	return mirrors, nil
+}
+
+func addRuntimeResource(graph *resource.Graph, res resource.Resource) error {
+	if err := graph.Add(res); err != nil {
+		return fmt.Errorf("add resource %s: %w", res.ID(), err)
+	}
+	return nil
+}
+
+func registryContainer(image *resource.PulledImage) *resource.Container {
+	return &resource.Container{
+		Name:          registryName,
+		Image:         resource.Ref(image),
+		RestartPolicy: "always",
+		Ports: []types.PortMapping{
+			{
+				HostIP:        "127.0.0.1",
+				HostPort:      registryPort,
+				ContainerPort: "5000",
+			},
+		},
+		HealthCheck: registryHealthCheck(),
+		Lifecycle: resource.ContainerLifecycleOptions{
+			WaitForReady: true,
+		},
+	}
+}
+
+func proxyRegistryConfigFile(cachePath, name, remoteURL string, proxyEnabled *bool) *resource.LocalFile {
+	return &resource.LocalFile{
+		Enabled: proxyEnabled,
+		Name:    "registry-config-" + name,
+		Path:    filepath.Join(cachePath, "registry-configs", name, "config.yml"),
+		Content: []byte(getRegistryProxyConfig(remoteURL)),
+		Mode:    configFilePerm,
+	}
+}
+
+func proxyRegistryContainer(
+	image *resource.PulledImage,
+	config *resource.LocalFile,
+	name string,
+	hostPort string,
+	proxyEnabled *bool,
+) *resource.Container {
+	return &resource.Container{
+		Enabled:       proxyEnabled,
+		Name:          name,
+		Image:         resource.Ref(image),
+		RestartPolicy: "always",
+		DependsOn:     resource.Deps(config),
+		Ports: []types.PortMapping{
+			{
+				HostIP:        "127.0.0.1",
+				HostPort:      hostPort,
+				ContainerPort: "5000",
+			},
+		},
+		Volumes: []types.VolumeMount{
+			{
+				HostPath:      config.Path,
+				ContainerPath: "/etc/docker/registry/config.yml",
+				Type:          types.VolumeMountTypeBind,
+			},
+		},
+		HealthCheck: registryHealthCheck(),
+		Lifecycle: resource.ContainerLifecycleOptions{
+			WaitForReady: true,
+		},
+	}
+}
+
+func registryHealthCheck() *types.HealthCheck {
+	return &types.HealthCheck{
+		Test:        []string{"CMD-SHELL", "wget -q -O- http://localhost:5000/v2/ >/dev/null"},
+		Interval:    1 * time.Second,
+		Timeout:     1 * time.Second,
+		Retries:     registryHealthCheckRetries,
+		StartPeriod: 1 * time.Second,
+	}
+}
+
+func baseInfrastructureObjectSet(
+	options KindContainerRuntimeOptions,
+	cluster *resource.KindCluster,
+	fluxInstall *resource.FluxInstallation,
+) (*resource.KubernetesObjectSet, error) {
+	manifest, err := kubernetes.ObjectsManifest(
+		manifests.BuildBaseInfrastructure(certCACrt, certIssuerCrt, certIssuerKey, options.IncludeLinkerd),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("render base infrastructure manifest: %w", err)
+	}
+	return &resource.KubernetesObjectSet{
+		Name:      baseInfrastructureName,
+		Cluster:   resource.Ref(cluster),
+		Manifest:  manifest,
+		DependsOn: resource.Deps(fluxInstall),
+		Readiness: baseInfrastructureReadiness(options),
+	}, nil
+}
+
+func baseInfrastructureReadiness(options KindContainerRuntimeOptions) []resource.KubernetesReadinessCheck {
+	checks := make([]resource.KubernetesReadinessCheck, 0, 5)
+	if options.IncludeLinkerd {
+		checks = append(checks, resource.KubernetesReadinessCheck{
+			Kind:      resource.KubernetesReadinessFluxHelmRelease,
+			Namespace: "linkerd",
+			Name:      "linkerd-crds",
+		})
+	}
+	checks = append(checks, resource.KubernetesReadinessCheck{
+		Kind:      resource.KubernetesReadinessFluxHelmRelease,
+		Namespace: "traefik",
+		Name:      "traefik-crds",
+	})
+	if options.IncludeLinkerd {
+		checks = append(checks, resource.KubernetesReadinessCheck{
+			Kind:      resource.KubernetesReadinessFluxHelmRelease,
+			Namespace: "linkerd",
+			Name:      "linkerd-control-plane",
+		})
+	}
+	checks = append(checks,
+		resource.KubernetesReadinessCheck{
+			Kind:      resource.KubernetesReadinessFluxHelmRelease,
+			Namespace: "traefik",
+			Name:      "traefik",
+			Timeout:   traefikRolloutTimeout,
+		},
+		resource.KubernetesReadinessCheck{
+			Kind:      resource.KubernetesReadinessDeploymentAvailable,
+			Namespace: "traefik",
+			Name:      "traefik",
+			Timeout:   traefikRolloutTimeout,
+		},
+	)
+	return checks
+}
+
+func testserverObjectSet(
+	variant KindContainerRuntimeVariant,
+	cluster *resource.KindCluster,
+	baseInfra *resource.KubernetesObjectSet,
+	testserverEnabled *bool,
+) (*resource.KubernetesObjectSet, error) {
+	replicas := defaultTestserverReplicas
+	if variant == KindContainerRuntimeVariantMinimal {
+		replicas = minimalTestserverReplicas
+	}
+	manifest, err := kubernetes.ObjectsManifest(
+		manifests.BuildTestserver(
+			testserverNginxConf,
+			testserverIndexHtml,
+			testserverEur1Html,
+			jumpboxNginxConf,
+			replicas,
+		),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("render testserver manifest: %w", err)
+	}
+	return &resource.KubernetesObjectSet{
+		Enabled:   testserverEnabled,
+		Name:      "kind-testserver",
+		Cluster:   resource.Ref(cluster),
+		Manifest:  manifest,
+		DependsOn: resource.Deps(baseInfra),
+		Readiness: []resource.KubernetesReadinessCheck{
+			{
+				Kind:      resource.KubernetesReadinessDeploymentAvailable,
+				Namespace: "default",
+				Name:      "testserver",
+			},
+			{
+				Kind:      resource.KubernetesReadinessDeploymentAvailable,
+				Namespace: "default",
+				Name:      "jumpbox",
+			},
+		},
+	}, nil
+}
+
+func fluxComponents(options KindContainerRuntimeOptions) []string {
+	components := []string{
+		"source-controller",
+		"helm-controller",
+		"kustomize-controller",
+	}
+	if options.IncludeFluxNotificationController {
+		components = append(components, "notification-controller")
+	}
+	return components
+}
+
+// Executor returns an executor with the backends needed for the kind fixture graph.
+func (r *KindContainerRuntime) Executor() (*executor.Executor, error) {
+	exec := executor.New()
+	if err := exec.RegisterBackend(localbackend.New()); err != nil {
+		return nil, fmt.Errorf("register local backend: %w", err)
+	}
+	if err := exec.RegisterBackend(containerbackend.New(r.ContainerClient)); err != nil {
+		return nil, fmt.Errorf("register container backend: %w", err)
+	}
+	kindBackend, err := kindbackend.New(r.ContainerClient)
+	if err != nil {
+		return nil, fmt.Errorf("create kind backend: %w", err)
+	}
+	if registerErr := exec.RegisterBackend(kindBackend); registerErr != nil {
+		return nil, fmt.Errorf("register kind backend: %w", registerErr)
+	}
+	if registerErr := exec.RegisterBackend(fluxbackend.New()); registerErr != nil {
+		return nil, fmt.Errorf("register flux backend: %w", registerErr)
+	}
+	if registerErr := exec.RegisterBackend(kubernetesbackend.New()); registerErr != nil {
+		return nil, fmt.Errorf("register Kubernetes backend: %w", registerErr)
+	}
+	ociBackend, err := ocibackend.New()
+	if err != nil {
+		return nil, fmt.Errorf("create OCI backend: %w", err)
+	}
+	if registerErr := exec.RegisterBackend(ociBackend); registerErr != nil {
+		return nil, fmt.Errorf("register OCI backend: %w", registerErr)
+	}
+	exec.SetObserver(graphObserver(r))
+	return exec, nil
+}
+
+func graphObserver(r *KindContainerRuntime) executor.Observer {
+	return executor.ObserverFunc(func(event executor.Event) {
+		if event.Type != executor.EventApplyDone && event.Type != executor.EventApplyFailed {
+			return
+		}
+		switch event.Resource {
+		case resource.ContainerID(registryName):
+			notifyRegistryStarted(r, event.Error)
+		case r.BaseInfrastructureRef().ID():
+			notifyIngressReady(r, event.Error)
+		}
+	})
+}
+
+func notifyRegistryStarted(r *KindContainerRuntime, err error) {
+	if r.RegistryStartedEvent == nil {
+		return
+	}
+	notifyNonBlocking(r.RegistryStartedEvent, err)
+}
+
+func notifyIngressReady(r *KindContainerRuntime, err error) {
+	if r.IngressReadyEvent == nil {
+		return
+	}
+	notifyNonBlocking(r.IngressReadyEvent, err)
+}
+
+func notifyNonBlocking(ch chan<- error, err error) {
+	select {
+	case ch <- err:
+	default:
+	}
 }
 
 // New creates a new KindContainerRuntime instance.
@@ -263,6 +648,11 @@ func (r *KindContainerRuntime) initializeClients() error {
 	return nil
 }
 
+// InitializeClients initializes Kubernetes and Flux clients for the current cluster.
+func (r *KindContainerRuntime) InitializeClients() error {
+	return r.initializeClients()
+}
+
 func newInternal(
 	r *KindContainerRuntime,
 	clusters []string,
@@ -304,172 +694,6 @@ func newInternal(
 		r.kindConfig = manifests.BuildStandardConfig(clusterName)
 	case KindContainerRuntimeVariantMinimal:
 		r.kindConfig = manifests.BuildMinimalConfig(clusterName)
-	}
-
-	return nil
-}
-
-// Run ensures the container runtime is running
-// This function is idempotent - it can be called multiple times safely.
-//
-//nolint:funlen,gocognit,gocyclo,nestif // Runtime startup is a linear orchestration flow.
-func (r *KindContainerRuntime) Run() error {
-	writeKindStdoutln("=== Starting Kind Container Runtime ===")
-	ctx := context.Background()
-
-	// Step 1: Setup container registry
-	writeKindStdoutln("\n1. Setting up container registry...")
-	start := time.Now()
-	if err := r.startRegistry(ctx); err != nil {
-		return fmt.Errorf("failed to setup registry: %w", err)
-	}
-	writeKindStdoutln("✓ Container registry ready")
-	logDuration("Setup container registry", start)
-
-	if r.RegistryStartedEvent != nil {
-		go func() {
-			succeeded := false
-			defer func() { writeKindStdoutf("Done waiting for registry. Succeeded=%t\n", succeeded) }()
-			timeout := registryReadyTimeout
-			deadline := time.Now().Add(timeout)
-
-			httpClient := &http.Client{
-				Timeout: 1 * time.Second,
-			}
-
-			for !time.Now().After(deadline) {
-				req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost:5001/v2/", nil)
-				if err != nil {
-					break
-				}
-
-				resp, err := httpClient.Do(req)
-				if err == nil && resp.StatusCode == http.StatusOK {
-					if closeErr := resp.Body.Close(); closeErr != nil {
-						break
-					}
-					succeeded = true
-					break
-				} else if resp != nil {
-					if closeErr := resp.Body.Close(); closeErr != nil {
-						break
-					}
-				}
-				time.Sleep(registryPollInterval)
-			}
-			if succeeded {
-				r.RegistryStartedEvent <- nil
-			} else {
-				r.RegistryStartedEvent <- errRegistryStartTimeout
-			}
-		}()
-	}
-
-	// Step 3: Check if cluster exists, create if not
-	writeKindStdoutln("\n3. Checking Kind cluster...")
-	exists, err := r.clusterExists()
-	if err != nil {
-		return fmt.Errorf("failed to check cluster: %w", err)
-	}
-
-	if !exists {
-		start = time.Now()
-		if err := r.createCluster(); err != nil {
-			return fmt.Errorf("failed to create cluster: %w", err)
-		}
-		logDuration("Create cluster", start)
-	} else {
-		writeKindStdoutf("✓ Cluster %s already exists\n", r.clusterName)
-	}
-
-	// Initialize kubernetes/flux clients now that cluster exists
-	if r.KubernetesClient == nil {
-		if err := r.initializeClients(); err != nil {
-			return fmt.Errorf("failed to initialize clients: %w", err)
-		}
-	}
-
-	if err := r.configureCABundleInNodes(ctx); err != nil {
-		return fmt.Errorf("failed to configure CA bundle in kind nodes: %w", err)
-	}
-
-	// Step 4: Configure registry
-	writeKindStdoutln("\n4. Configuring container registry...")
-	start = time.Now()
-	if err := r.configureRegistry(ctx); err != nil {
-		return fmt.Errorf("failed to configure registry: %w", err)
-	}
-	writeKindStdoutln("✓ Container registry configured")
-	logDuration("Configure container registry", start)
-
-	if err := r.installInfra(); err != nil {
-		return err
-	}
-
-	writeKindStdoutln("\n=== Kind Container Runtime Ready ===")
-	return nil
-}
-
-// installInfra sets up all components for the Standard variant.
-//
-//nolint:funcorder // Installation steps are grouped with runtime setup flow for readability.
-func (r *KindContainerRuntime) installInfra() error {
-	// Step 5: Install Flux
-	writeKindStdoutln("\n5. Installing Flux...")
-	start := time.Now()
-	if err := r.installFluxToCluster(); err != nil {
-		return fmt.Errorf("failed to install flux: %w", err)
-	}
-	writeKindStdoutln("✓ Flux installed")
-	logDuration("Install Flux", start)
-
-	// Step 6: Deploy base infrastructure
-	writeKindStdoutln("\n6. Deploying base infrastructure...")
-	start = time.Now()
-	if err := r.applyBaseInfrastructure(); err != nil {
-		return fmt.Errorf("failed to deploy base infrastructure: %w", err)
-	}
-	writeKindStdoutln("✓ Base infrastructure deployed")
-	logDuration("Deploy base infrastructure", start)
-
-	// Step 7: Wait for Flux controllers
-	writeKindStdoutln("\n7. Waiting for Flux controllers...")
-	start = time.Now()
-	if err := r.waitForFluxControllers(); err != nil {
-		return fmt.Errorf("failed waiting for flux controllers: %w", err)
-	}
-	writeKindStdoutln("✓ Flux controllers ready")
-	logDuration("Wait for Flux controllers", start)
-
-	// Step 8: Reconcile base infra
-	writeKindStdoutln("\n8. Reconciling base infra...")
-	start = time.Now()
-	if err := r.reconcileBaseInfra(); err != nil {
-		return fmt.Errorf("failed to reconcile base infra: %w", err)
-	}
-	writeKindStdoutln("✓ Base infra ready")
-	logDuration("Reconcile base infra", start)
-
-	// Step 9: Apply testserver manifest (only if enabled)
-	if r.options.IncludeTestserver {
-		writeKindStdoutln("\n9. Applying testserver manifest...")
-		start = time.Now()
-		replicas := defaultTestserverReplicas
-		if r.variant == KindContainerRuntimeVariantMinimal {
-			replicas = minimalTestserverReplicas
-		}
-		testserverObjs := manifests.BuildTestserver(
-			testserverNginxConf,
-			testserverIndexHtml,
-			testserverEur1Html,
-			jumpboxNginxConf,
-			replicas,
-		)
-		if _, err := r.KubernetesClient.ApplyObjects(context.Background(), testserverObjs...); err != nil {
-			return fmt.Errorf("failed to apply testserver manifest: %w", err)
-		}
-		writeKindStdoutln("✓ Testserver manifest applied")
-		logDuration("Apply testserver manifest", start)
 	}
 
 	return nil
@@ -526,4 +750,22 @@ func (r *KindContainerRuntime) GetContextName() string {
 	return "kind-" + r.clusterName
 }
 
-var _ runtimes.ContainerRuntime = (*KindContainerRuntime)(nil)
+// ClusterName returns the kind cluster name managed by this runtime.
+func (r *KindContainerRuntime) ClusterName() string {
+	return r.clusterName
+}
+
+// ClusterRef returns a reference to the kind cluster resource managed by this runtime.
+func (r *KindContainerRuntime) ClusterRef() resource.ResourceRef {
+	return resource.RefID(resource.KindClusterID(r.clusterName))
+}
+
+// RegistryRef returns a reference to the local registry container resource managed by this runtime.
+func (r *KindContainerRuntime) RegistryRef() resource.ResourceRef {
+	return resource.RefID(resource.ContainerID(registryName))
+}
+
+// BaseInfrastructureRef returns a reference to the base Kubernetes object set managed by this runtime.
+func (r *KindContainerRuntime) BaseInfrastructureRef() resource.ResourceRef {
+	return resource.RefID(resource.KubernetesObjectSetID(baseInfrastructureName))
+}

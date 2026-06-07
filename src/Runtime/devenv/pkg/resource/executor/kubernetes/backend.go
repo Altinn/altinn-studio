@@ -42,14 +42,24 @@ type clusterClients struct {
 }
 
 type kubernetesOperations interface {
-	ApplyManifest(yamlContent string) (string, error)
+	ApplyManifestContext(ctx context.Context, yamlContent string) (string, error)
 	KustomizeRender(path string) (string, error)
 	RolloutStatusContext(ctx context.Context, deployment, namespace string, timeout time.Duration) error
 }
 
 type fluxOperations interface {
-	ReconcileHelmRelease(name, namespace string, withSource bool, opts flux.ReconcileOptions) error
-	ReconcileKustomization(name, namespace string, withSource bool, opts flux.ReconcileOptions) error
+	ReconcileHelmReleaseContext(
+		ctx context.Context,
+		name, namespace string,
+		withSource bool,
+		opts flux.ReconcileOptions,
+	) error
+	ReconcileKustomizationContext(
+		ctx context.Context,
+		name, namespace string,
+		withSource bool,
+		opts flux.ReconcileOptions,
+	) error
 }
 
 // New creates a Kubernetes resource backend.
@@ -138,7 +148,7 @@ func (b *Backend) applyObjectSet(ctx context.Context, objects *resource.Kubernet
 	if err != nil {
 		return err
 	}
-	if _, applyErr := clients.kube.ApplyManifest(manifest); applyErr != nil {
+	if _, applyErr := clients.kube.ApplyManifestContext(ctx, manifest); applyErr != nil {
 		return fmt.Errorf("apply Kubernetes object set %s: %w", objects.Name, applyErr)
 	}
 	for _, readiness := range objects.Readiness {
@@ -199,7 +209,8 @@ func (b *Backend) applyReadiness(
 		if fluxErr != nil {
 			return clients, fluxErr
 		}
-		if err := updatedClients.flux.ReconcileKustomization(
+		if err := updatedClients.flux.ReconcileKustomizationContext(
+			ctx,
 			readiness.Name,
 			readiness.Namespace,
 			true,
@@ -213,7 +224,8 @@ func (b *Backend) applyReadiness(
 		if fluxErr != nil {
 			return clients, fluxErr
 		}
-		if err := updatedClients.flux.ReconcileHelmRelease(
+		if err := updatedClients.flux.ReconcileHelmReleaseContext(
+			ctx,
 			readiness.Name,
 			readiness.Namespace,
 			true,

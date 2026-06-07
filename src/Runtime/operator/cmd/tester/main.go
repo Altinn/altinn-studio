@@ -11,8 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"altinn.studio/devenv/pkg/harness"
+	"altinn.studio/devenv/pkg/cabundle"
 	"altinn.studio/devenv/pkg/kubernetes"
+	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/devenv/pkg/runtimes/kind"
 	"altinn.studio/operator/internal/config"
 )
@@ -239,72 +240,293 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainer
 		return nil, fmt.Errorf("failed to find project root: %w", err)
 	}
 
-	cfg := harness.Config{
-		ProjectRoot:    projectRoot,
-		Variant:        variant,
-		ClusterOptions: kind.DefaultOptions(),
-		Images: []harness.Image{
-			{Name: "controller", Dockerfile: "Dockerfile", Tag: "localhost:5001/runtime-operator-controller:latest"},
-			{Name: "fakes", Dockerfile: "Dockerfile.fakes", Tag: "localhost:5001/runtime-operator-fakes:latest"},
-			{
-				Name:       "localtestapp",
-				Context:    "test/app",
-				Dockerfile: "test/app/Dockerfile",
-				Tag:        "localhost:5001/runtime-operator-localtestapp:latest",
-			},
-		},
-		Artifacts: []harness.Artifact{
-			{Name: "kustomize", URL: "oci://localhost:5001/runtime-operator-repo:local", Path: "config"},
-		},
-		HelmCharts: []harness.HelmChart{
-			{
-				Name:       "deployment",
-				RepoURL:    "https://github.com/Altinn/altinn-studio-charts.git",
-				RepoBranch: "main",
-				ChartPath:  "charts/deployment",
-				OCIRef:     "oci://localhost:5001",
-			},
-		},
-		Deployments: []harness.Deployment{
-			{
-				Name:           "operator",
-				WaitForIngress: true, // depends on Traefik CRDs (IngressRoute)
-				Kustomize: &harness.KustomizeDeploy{
-					SyncRootDir:       "config/local-syncroot-minimal",
-					KustomizationName: "operator-app",
-					Namespace:         "runtime-operator",
-					Rollouts: []harness.Rollout{
-						{
-							Deployment:    "operator-controller-manager",
-							Namespace:     "runtime-operator",
-							Container:     "manager",
-							MountCABundle: true,
-						},
-					},
-				},
-			},
-			{
-				Name: "localtestapp",
-				Helm: &harness.HelmDeploy{
-					ManifestPath:            "config/local-minimal/localtestapp.yaml",
-					HelmRepositoryName:      "altinn-deployment-chart",
-					HelmRepositoryNamespace: "default",
-					HelmReleaseName:         "ttd-localtestapp",
-					HelmReleaseNamespace:    "default",
-					Rollouts: []harness.Rollout{
-						{Deployment: "ttd-localtestapp-deployment-v2", Namespace: "default"},
-					},
-				},
-			},
-		},
-	}
-
-	result, err := harness.RunAsync(cfg, harness.AsyncOptions{})
+	runtime, err := kind.New(variant, filepath.Join(projectRoot, ".cache"), kind.DefaultOptions())
 	if err != nil {
-		return nil, fmt.Errorf("start runtime harness: %w", err)
+		return nil, fmt.Errorf("create kind runtime: %w", err)
 	}
 
-	return result.Runtime, nil
+	graph, cleanup, err := operatorGraph(projectRoot, runtime)
+	if err != nil {
+		closeRuntimeBestEffort(runtime)
+		return nil, err
+	}
+	defer cleanupBestEffort(cleanup)
+
+	if err := applyRuntimeGraph(runtime, graph); err != nil {
+		closeRuntimeBestEffort(runtime)
+		return nil, err
+	}
+
+	return runtime, nil
+}
+
+func operatorGraph(projectRoot string, runtime *kind.KindContainerRuntime) (*resource.Graph, func() error, error) {
+	graph, err := runtime.Graph()
+	if err != nil {
+		return nil, nil, fmt.Errorf("build kind runtime graph: %w", err)
+	}
+
+	bundle, _, err := cabundle.FromEnv()
+	if err != nil {
+		return nil, nil, fmt.Errorf("resolve CA bundle: %w", err)
+	}
+	workloads := operatorCABundleWorkloads()
+
+	publishedRefs, cleanup, err := addOperatorPublishResources(graph, runtime, projectRoot, bundle, workloads)
+	if err != nil {
+		return nil, nil, err
+	}
+	publishedDeps := append([]resource.ResourceRef{runtime.BaseInfrastructureRef()}, publishedRefs...)
+	if err := addOperatorDeploymentResources(
+		graph,
+		runtime,
+		projectRoot,
+		bundle,
+		workloads,
+		publishedDeps,
+	); err != nil {
+		cleanupBestEffort(cleanup)
+		return nil, nil, err
+	}
+
+	return graph, cleanup, nil
+}
+
+func operatorCABundleWorkloads() []cabundle.KubernetesWorkload {
+	return []cabundle.KubernetesWorkload{{
+		Deployment: "controller-manager",
+		Namespace:  "runtime-operator",
+		Container:  "manager",
+	}}
+}
+
+func addOperatorPublishResources(
+	graph *resource.Graph,
+	runtime *kind.KindContainerRuntime,
+	projectRoot string,
+	bundle *cabundle.Bundle,
+	workloads []cabundle.KubernetesWorkload,
+) ([]resource.ResourceRef, func() error, error) {
+	imageResources, imageRefs := operatorImageResources(projectRoot, runtime)
+	artifactResources, artifactRefs, cleanup, err := operatorArtifactResources(
+		projectRoot,
+		runtime,
+		bundle,
+		workloads,
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+	if err := graph.AddAll(append(imageResources, artifactResources...)...); err != nil {
+		cleanupBestEffort(cleanup)
+		return nil, nil, fmt.Errorf("add operator publish resources: %w", err)
+	}
+
+	return append(imageRefs, artifactRefs...), cleanup, nil
+}
+
+func operatorImageResources(
+	projectRoot string,
+	runtime *kind.KindContainerRuntime,
+) ([]resource.Resource, []resource.ResourceRef) {
+	controllerImage := &resource.BuiltImage{
+		ContextPath: projectRoot,
+		Dockerfile:  "Dockerfile",
+		Tag:         "devenv-build/operator-controller:latest",
+	}
+	fakesImage := &resource.BuiltImage{
+		ContextPath: projectRoot,
+		Dockerfile:  "Dockerfile.fakes",
+		Tag:         "devenv-build/operator-fakes:latest",
+	}
+	localtestAppImage := &resource.BuiltImage{
+		ContextPath: filepath.Join(projectRoot, "test/app"),
+		Dockerfile:  "test/app/Dockerfile",
+		Tag:         "devenv-build/operator-localtestapp:latest",
+	}
+	controllerPublished := &resource.PublishedImage{
+		Ref:       "localhost:5001/runtime-operator-controller:latest",
+		Source:    resource.Ref(controllerImage),
+		DependsOn: []resource.ResourceRef{runtime.RegistryRef()},
+	}
+	fakesPublished := &resource.PublishedImage{
+		Ref:       "localhost:5001/runtime-operator-fakes:latest",
+		Source:    resource.Ref(fakesImage),
+		DependsOn: []resource.ResourceRef{runtime.RegistryRef()},
+	}
+	localtestAppPublished := &resource.PublishedImage{
+		Ref:       "localhost:5001/runtime-operator-localtestapp:latest",
+		Source:    resource.Ref(localtestAppImage),
+		DependsOn: []resource.ResourceRef{runtime.RegistryRef()},
+	}
+
+	return []resource.Resource{
+			controllerImage,
+			fakesImage,
+			localtestAppImage,
+			controllerPublished,
+			fakesPublished,
+			localtestAppPublished,
+		}, []resource.ResourceRef{
+			resource.Ref(controllerPublished),
+			resource.Ref(fakesPublished),
+			resource.Ref(localtestAppPublished),
+		}
+}
+
+func operatorArtifactResources(
+	projectRoot string,
+	runtime *kind.KindContainerRuntime,
+	bundle *cabundle.Bundle,
+	workloads []cabundle.KubernetesWorkload,
+) ([]resource.Resource, []resource.ResourceRef, func() error, error) {
+	preparedArtifact, err := cabundle.PrepareKubernetesArtifact(
+		filepath.Join(projectRoot, "config"),
+		bundle,
+		workloads,
+	)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("prepare operator kustomize artifact: %w", err)
+	}
+
+	operatorArtifact := &resource.OCIArtifact{
+		Format:    resource.OCIArtifactFormatGeneric,
+		Name:      "runtime-operator-kustomize",
+		URL:       "oci://localhost:5001/runtime-operator-repo:local",
+		Path:      preparedArtifact.Path,
+		Source:    "local",
+		Revision:  "local",
+		DependsOn: []resource.ResourceRef{runtime.RegistryRef()},
+	}
+	chartCheckout := &resource.GitCheckout{
+		Name:    "helm-chart-deployment",
+		RepoURL: "https://github.com/Altinn/altinn-studio-charts.git",
+		Ref:     "main",
+		Path:    filepath.Join(projectRoot, ".cache", "helm-charts", "deployment"),
+	}
+	chartArtifact := &resource.OCIArtifact{
+		Format: resource.OCIArtifactFormatHelmChart,
+		Name:   "helm-chart-deployment",
+		URL:    "oci://localhost:5001",
+		Path:   filepath.Join(chartCheckout.Path, "charts/deployment"),
+		DependsOn: []resource.ResourceRef{
+			resource.Ref(chartCheckout),
+			runtime.RegistryRef(),
+		},
+	}
+
+	return []resource.Resource{
+			operatorArtifact,
+			chartCheckout,
+			chartArtifact,
+		}, []resource.ResourceRef{
+			resource.Ref(operatorArtifact),
+			resource.Ref(chartArtifact),
+		}, preparedArtifact.Cleanup, nil
+}
+
+func addOperatorDeploymentResources(
+	graph *resource.Graph,
+	runtime *kind.KindContainerRuntime,
+	projectRoot string,
+	bundle *cabundle.Bundle,
+	workloads []cabundle.KubernetesWorkload,
+	publishedDeps []resource.ResourceRef,
+) error {
+	operatorDeps := append([]resource.ResourceRef{}, publishedDeps...)
+	configMapSet, hasConfigMapSet, err := cabundle.KubernetesConfigMapObjectSet(
+		bundle,
+		runtime.ClusterRef(),
+		"deployment-operator-ca-bundle",
+		workloads,
+		operatorDeps,
+	)
+	if err != nil {
+		return fmt.Errorf("create operator CA bundle ConfigMap resource: %w", err)
+	}
+	if hasConfigMapSet {
+		if err := graph.AddAll(configMapSet); err != nil {
+			return fmt.Errorf("add operator CA bundle ConfigMap resource: %w", err)
+		}
+		operatorDeps = append(operatorDeps, resource.Ref(configMapSet))
+	}
+
+	operatorObjects := &resource.KubernetesObjectSet{
+		Name:      "deployment-operator",
+		Cluster:   runtime.ClusterRef(),
+		Path:      filepath.Join(projectRoot, "config/local-syncroot-minimal"),
+		DependsOn: operatorDeps,
+		Readiness: []resource.KubernetesReadinessCheck{
+			{
+				Kind:      resource.KubernetesReadinessFluxKustomization,
+				Namespace: "runtime-operator",
+				Name:      "operator-app",
+			},
+			{
+				Kind:      resource.KubernetesReadinessDeploymentAvailable,
+				Namespace: "runtime-operator",
+				Name:      "operator-controller-manager",
+			},
+		},
+	}
+	localtestAppObjects := &resource.KubernetesObjectSet{
+		Name:      "deployment-localtestapp",
+		Cluster:   runtime.ClusterRef(),
+		Path:      filepath.Join(projectRoot, "config/local-minimal/localtestapp.yaml"),
+		DependsOn: publishedDeps,
+		Readiness: []resource.KubernetesReadinessCheck{
+			{
+				Kind:      resource.KubernetesReadinessFluxHelmRelease,
+				Namespace: "default",
+				Name:      "ttd-localtestapp",
+			},
+			{
+				Kind:      resource.KubernetesReadinessDeploymentAvailable,
+				Namespace: "default",
+				Name:      "ttd-localtestapp-deployment-v2",
+			},
+		},
+	}
+	if err := graph.AddAll(operatorObjects, localtestAppObjects); err != nil {
+		return fmt.Errorf("add operator Kubernetes object set resources: %w", err)
+	}
+
+	return nil
+}
+
+func applyRuntimeGraph(runtime *kind.KindContainerRuntime, graph *resource.Graph) error {
+	stdoutln("Applying runtime resource graph...")
+	start := time.Now()
+	runtimeExecutor, err := runtime.Executor()
+	if err != nil {
+		return fmt.Errorf("create runtime executor: %w", err)
+	}
+	if _, err := runtimeExecutor.Apply(context.Background(), graph); err != nil {
+		return fmt.Errorf("apply runtime resource graph: %w", err)
+	}
+	if runtime.KubernetesClient == nil {
+		if err := runtime.InitializeClients(); err != nil {
+			return fmt.Errorf("initialize runtime clients: %w", err)
+		}
+	}
+	stdoutf("  [Applied runtime resource graph took %s]\n", time.Since(start).Round(10*time.Millisecond))
+	stdoutln("=== Runtime Setup Complete ===")
+	return nil
+}
+
+func cleanupBestEffort(cleanup func() error) {
+	if cleanup == nil {
+		return
+	}
+	if err := cleanup(); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: %v\n", err)
+	}
+}
+
+func closeRuntimeBestEffort(runtime *kind.KindContainerRuntime) {
+	if err := runtime.Close(); err != nil {
+		return
+	}
 }
 
 func runStart() int {

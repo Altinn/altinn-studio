@@ -13,9 +13,14 @@ import (
 	"altinn.studio/devenv/pkg/resource/executor"
 )
 
-const appsApp = "apps/app"
+const (
+	appsApp          = "apps/app"
+	testContextValue = "expected"
+)
 
 var errFluxUnavailable = errors.New("flux unavailable")
+
+type testContextKey struct{}
 
 func TestApplyKubernetesObjectSetAppliesManifestAndReadiness(t *testing.T) {
 	t.Parallel()
@@ -51,6 +56,41 @@ func TestApplyKubernetesObjectSetAppliesManifestAndReadiness(t *testing.T) {
 	}
 	if got := fluxClient.kustomizationOpts[0]; got.ShouldWait != true || got.Timeout != defaultReadinessTimeout {
 		t.Fatalf("kustomization opts = %+v, want wait with default timeout", got)
+	}
+}
+
+func TestApplyKubernetesObjectSetPassesContextToApplyAndReadiness(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.WithValue(t.Context(), testContextKey{}, testContextValue)
+	manifestPath := t.TempDir() + "/manifest.yaml"
+	writeNamespaceManifest(t, manifestPath)
+	fluxClient := &fakeFlux{}
+	kube := &fakeKube{}
+	backend := newTestBackend(kube, fluxClient)
+	cluster := &resource.KindCluster{Name: "cluster"}
+	objects := &resource.KubernetesObjectSet{
+		Name:    "app",
+		Cluster: resource.Ref(cluster),
+		Path:    manifestPath,
+		Readiness: []resource.KubernetesReadinessCheck{
+			{Kind: resource.KubernetesReadinessFluxHelmRelease, Namespace: "apps", Name: "app"},
+			{Kind: resource.KubernetesReadinessDeploymentAvailable, Namespace: "apps", Name: "app"},
+		},
+	}
+
+	if _, err := backend.Apply(ctx, executor.BackendContext{GraphID: "test"}, objects); err != nil {
+		t.Fatalf("Apply() error = %v", err)
+	}
+
+	for name, got := range map[string]bool{
+		"apply":               kube.applyContextMatched,
+		"rollout":             kube.rolloutContextMatched,
+		"helm reconciliation": fluxClient.helmReleaseContextMatched[0],
+	} {
+		if !got {
+			t.Fatalf("%s context did not preserve test value", name)
+		}
 	}
 }
 
@@ -205,11 +245,14 @@ func newTestBackend(kube *fakeKube, fluxClient *fakeFlux) *Backend {
 }
 
 type fakeKube struct {
-	appliedManifest string
-	rollouts        []string
+	appliedManifest       string
+	rollouts              []string
+	applyContextMatched   bool
+	rolloutContextMatched bool
 }
 
-func (f *fakeKube) ApplyManifest(yamlContent string) (string, error) {
+func (f *fakeKube) ApplyManifestContext(ctx context.Context, yamlContent string) (string, error) {
+	f.applyContextMatched = ctx.Value(testContextKey{}) == testContextValue
 	f.appliedManifest = yamlContent
 	return "applied", nil
 }
@@ -219,31 +262,51 @@ func (f *fakeKube) KustomizeRender(path string) (string, error) {
 }
 
 func (f *fakeKube) RolloutStatusContext(
-	_ context.Context,
+	ctx context.Context,
 	deployment,
 	namespace string,
 	_ time.Duration,
 ) error {
+	f.rolloutContextMatched = ctx.Value(testContextKey{}) == testContextValue
 	f.rollouts = append(f.rollouts, namespace+"/"+deployment)
 	return nil
 }
 
 type fakeFlux struct {
-	kustomizations    []string
-	kustomizationOpts []flux.ReconcileOptions
-	helmReleases      []string
-	helmReleaseOpts   []flux.ReconcileOptions
+	kustomizations              []string
+	kustomizationOpts           []flux.ReconcileOptions
+	kustomizationContextMatched []bool
+	helmReleases                []string
+	helmReleaseOpts             []flux.ReconcileOptions
+	helmReleaseContextMatched   []bool
 }
 
-func (f *fakeFlux) ReconcileHelmRelease(name, namespace string, _ bool, opts flux.ReconcileOptions) error {
+func (f *fakeFlux) ReconcileHelmReleaseContext(
+	ctx context.Context,
+	name,
+	namespace string,
+	_ bool,
+	opts flux.ReconcileOptions,
+) error {
 	f.helmReleases = append(f.helmReleases, namespace+"/"+name)
 	f.helmReleaseOpts = append(f.helmReleaseOpts, opts)
+	f.helmReleaseContextMatched = append(f.helmReleaseContextMatched, ctx.Value(testContextKey{}) == testContextValue)
 	return nil
 }
 
-func (f *fakeFlux) ReconcileKustomization(name, namespace string, _ bool, opts flux.ReconcileOptions) error {
+func (f *fakeFlux) ReconcileKustomizationContext(
+	ctx context.Context,
+	name,
+	namespace string,
+	_ bool,
+	opts flux.ReconcileOptions,
+) error {
 	f.kustomizations = append(f.kustomizations, namespace+"/"+name)
 	f.kustomizationOpts = append(f.kustomizationOpts, opts)
+	f.kustomizationContextMatched = append(
+		f.kustomizationContextMatched,
+		ctx.Value(testContextKey{}) == testContextValue,
+	)
 	return nil
 }
 

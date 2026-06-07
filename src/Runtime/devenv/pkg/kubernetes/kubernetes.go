@@ -158,10 +158,9 @@ func (c *KubernetesClient) applyUnstructured(ctx context.Context, obj *unstructu
 	return fmt.Sprintf("%s/%s configured", strings.ToLower(gvk.Kind), obj.GetName()), nil
 }
 
-// ApplyManifest applies Kubernetes manifest YAML content using Server-Side Apply.
+// ApplyManifestContext applies Kubernetes manifest YAML content using Server-Side Apply.
 // This function is idempotent - it can be called multiple times safely.
-func (c *KubernetesClient) ApplyManifest(yamlContent string) (string, error) {
-	ctx := context.Background()
+func (c *KubernetesClient) ApplyManifestContext(ctx context.Context, yamlContent string) (string, error) {
 	decoder := utilyaml.NewYAMLOrJSONDecoder(strings.NewReader(yamlContent), yamlDecoderBufferSize)
 	var results []string
 
@@ -246,21 +245,6 @@ func ObjectToUnstructured(obj runtime.Object) (*unstructured.Unstructured, error
 		return nil, fmt.Errorf("failed to convert object to unstructured: %w", err)
 	}
 	return &unstructured.Unstructured{Object: content}, nil
-}
-
-// PatchDeployment applies a strategic merge patch to a Deployment.
-func (c *KubernetesClient) PatchDeployment(ctx context.Context, deployment, namespace string, patch []byte) error {
-	_, err := c.clientset.AppsV1().Deployments(namespace).Patch(
-		ctx,
-		deployment,
-		types.StrategicMergePatchType,
-		patch,
-		metav1.PatchOptions{},
-	)
-	if err != nil {
-		return fmt.Errorf("patch deployment %s/%s: %w", namespace, deployment, err)
-	}
-	return nil
 }
 
 // Get checks if a Kubernetes resource exists.
@@ -609,10 +593,15 @@ func (c *KubernetesClient) CollectLogs(opts LogOptions) error {
 	return nil
 }
 
-// Annotate sets or updates an annotation on a Kubernetes resource.
-func (c *KubernetesClient) Annotate(gvr schema.GroupVersionResource, name, namespace, key, value string) error {
-	ctx := context.Background()
-
+// AnnotateContext sets or updates an annotation on a Kubernetes resource.
+func (c *KubernetesClient) AnnotateContext(
+	ctx context.Context,
+	gvr schema.GroupVersionResource,
+	name,
+	namespace,
+	key,
+	value string,
+) error {
 	patch := map[string]any{
 		"metadata": map[string]any{
 			"annotations": map[string]string{
@@ -683,14 +672,13 @@ func (c *KubernetesClient) GetConditionStatus(
 	return "", nil
 }
 
-// GetFieldString returns a string field value from a resource at the given path.
-func (c *KubernetesClient) GetFieldString(
+// GetFieldStringContext returns a string field value from a resource at the given path.
+func (c *KubernetesClient) GetFieldStringContext(
+	ctx context.Context,
 	gvr schema.GroupVersionResource,
 	name, namespace string,
 	fields ...string,
 ) (string, error) {
-	ctx := context.Background()
-
 	var dr dynamic.ResourceInterface
 	if namespace != "" {
 		dr = c.dynamicClient.Resource(gvr).Namespace(namespace)
@@ -721,10 +709,13 @@ type SourceRef struct {
 	Namespace string
 }
 
-// GetSourceRef returns the sourceRef from a HelmRelease or Kustomization resource.
-func (c *KubernetesClient) GetSourceRef(gvr schema.GroupVersionResource, name, namespace string) (*SourceRef, error) {
-	ctx := context.Background()
-
+// GetSourceRefContext returns the sourceRef from a HelmRelease or Kustomization resource.
+func (c *KubernetesClient) GetSourceRefContext(
+	ctx context.Context,
+	gvr schema.GroupVersionResource,
+	name,
+	namespace string,
+) (*SourceRef, error) {
 	var dr dynamic.ResourceInterface
 	if namespace != "" {
 		dr = c.dynamicClient.Resource(gvr).Namespace(namespace)
