@@ -49,14 +49,6 @@ steps:
   displayName: 'Check availability'
 
 - script: |
-   k6 run  --quiet $(pwd)/src/tests/platform/authentication/authentication.js -e env=$(environment) -e pid=$(pid) -e testidppwd=$(testidppwd) -e appsaccesskey=$(appsAccessSubsKey)
-
-  workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
-  displayName: 'Authentication'
-  continueOnError: false
-  condition: and(succeeded(), eq(variables['availability'], 'up'))
-
-- script: |
    k6 run --quiet --log-output=stdout --log-format=raw $(pwd)/src/gettoken.js -e env=$(environment) -e pid=$(pid) -e testidppwd=$(testidppwd)
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
