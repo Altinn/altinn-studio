@@ -1,4 +1,6 @@
-﻿using System.Text.Json.Serialization;
+#nullable disable
+
+using System.Text.Json.Serialization;
 
 namespace Altinn.Platform.Authentication.Model
 {

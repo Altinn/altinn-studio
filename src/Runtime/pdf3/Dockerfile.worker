@@ -31,11 +31,17 @@ RUN echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula sele
     fc-cache -f -v && \
     rm -rf /var/lib/apt/lists/*
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libnss3-tools && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 COPY --from=builder /app/main .
+COPY docker-entrypoint.sh .
 
-RUN mkdir -p ./output
+RUN chmod +x ./docker-entrypoint.sh && \
+    mkdir -p ./output
 
 EXPOSE 5031
 
@@ -45,4 +51,5 @@ RUN mkdir -p /tmp/user-home && \
 ENV HOME=/tmp/user-home
 USER nobody
 
-ENTRYPOINT ["./main"]
+ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["./main"]

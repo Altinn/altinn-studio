@@ -1,3 +1,5 @@
+#nullable disable
+
 namespace Altinn.Platform.Authorization.Constants
 {
     /// <summary>

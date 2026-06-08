@@ -5,14 +5,6 @@ import { ClockIcon } from '@navikt/aksel-icons';
 
 import styles from './TimePicker.module.css';
 import { TimeSegment } from './TimeSegment/TimeSegment';
-import type {
-  DropdownFocusState,
-  NavigationAction,
-  SegmentType,
-  TimeConstraints,
-  TimePickerProps,
-  TimeValue,
-} from './types';
 import { calculateNextFocusState } from './utils/calculateNextFocusState/calculateNextFocusState';
 import { formatDisplayHour } from './utils/formatDisplayHour/formatDisplayHour';
 import {
@@ -24,6 +16,14 @@ import { handleSegmentValueChange } from './utils/handleSegmentValueChange/handl
 import { normalizeHour } from './utils/normalizeHour';
 import { getSegmentConstraints, parseTimeString } from './utils/timeConstraintUtils';
 import { formatTimeValue } from './utils/timeFormatUtils';
+import type {
+  DropdownFocusState,
+  NavigationAction,
+  SegmentType,
+  TimeConstraints,
+  TimePickerProps,
+  TimeValue,
+} from './types';
 
 export const TimePicker: React.FC<TimePickerProps> = ({
   id,
