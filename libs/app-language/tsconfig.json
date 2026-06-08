@@ -10,7 +10,10 @@
     "noUnusedLocals": true,
     "declaration": true,
     "emitDeclarationOnly": false,
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "@app/language/*": ["./src/*"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

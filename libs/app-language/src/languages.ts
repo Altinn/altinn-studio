@@ -1,6 +1,6 @@
-import { en } from './texts/en';
-import { nb } from './texts/nb';
-import { nn } from './texts/nn';
+import { en } from '@app/language/texts/en';
+import { nb } from '@app/language/texts/nb';
+import { nn } from '@app/language/texts/nn';
 
 export type FixedLanguageList = ReturnType<typeof en>;
 

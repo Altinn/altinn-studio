@@ -1,4 +1,4 @@
-import type { FixedLanguageList } from '../languages';
+import type { FixedLanguageList } from '@app/language';
 
 export function nn() {
   return {
