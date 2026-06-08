@@ -3,11 +3,11 @@ import {
   type FixedLanguageList,
   getLanguageFromCode,
   type LooseAutocomplete,
+  replaceParameters,
+  type SimpleLangParam,
   type ValidLanguageKey,
 } from '@app/language';
 import type { Decorator } from '@storybook/react-vite';
-
-type TranslationParams = (string | number | undefined)[];
 
 // English is used as the language for Storybook previews.
 const language: FixedLanguageList = getLanguageFromCode('en');
@@ -18,7 +18,7 @@ const language: FixedLanguageList = getLanguageFromCode('en');
  */
 function translateKey(
   key: LooseAutocomplete<ValidLanguageKey> | undefined,
-  params?: TranslationParams,
+  params?: SimpleLangParam[],
 ): string {
   if (key === undefined) {
     return '';
@@ -27,10 +27,7 @@ function translateKey(
   if (!params?.length) {
     return text;
   }
-  return params.reduce<string>(
-    (acc, param, index) => acc.replaceAll(`{${index}}`, String(param ?? '')),
-    text,
-  );
+  return replaceParameters(text, params);
 }
 
 /**

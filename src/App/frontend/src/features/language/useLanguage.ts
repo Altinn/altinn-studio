@@ -1,7 +1,7 @@
 import { Children, isValidElement, useCallback, useMemo } from 'react';
 import type { JSX, ReactNode } from 'react';
 
-import { type FixedLanguageList, getLanguageFromCode } from '@app/language';
+import { type FixedLanguageList, getLanguageFromCode, replaceParameters } from '@app/language';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { FormStore } from 'src/features/form/FormContext';
@@ -419,29 +419,6 @@ function tryReadFromDataModel(
   }
   return formDataSelector({ dataType: dataModelName, field: path });
 }
-
-const replaceParameters = (nameString: string, params: SimpleLangParam[]) => {
-  if (nameString === undefined) {
-    return nameString;
-  }
-
-  let mutatingString = nameString;
-  for (const index in params) {
-    const param = params[index];
-    let paramAsString: string | undefined;
-    if (typeof param === 'string') {
-      paramAsString = param;
-    } else if (typeof param === 'number') {
-      paramAsString = param.toString();
-    }
-
-    if (paramAsString !== undefined) {
-      mutatingString = mutatingString.replaceAll(`{${index}}`, paramAsString);
-    }
-  }
-
-  return mutatingString;
-};
 
 function isTextReference(obj: unknown): obj is TextReference {
   return (
