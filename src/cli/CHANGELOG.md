@@ -8,6 +8,12 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.14] - 2026-06-08
+
+### Changed
+
+- Update localtest PDF worker image.
+
 ## [0.1.0-preview.13] - 2026-06-05
 
 ### Added
