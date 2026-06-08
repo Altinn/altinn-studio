@@ -33,3 +33,20 @@
 .unnamed {
   font-style: italic;
 }
+
+.summary.added {
+  --badge-colour: var(--ds-color-success-base-default);
+}
+
+.summary.changed {
+  --badge-colour: var(--ds-color-info-base-default);
+}
+
+.summary::after {
+  aspect-ratio: 1;
+  background-color: var(--badge-colour);
+  border-radius: 100%;
+  content: '';
+  height: var(--ds-size-3);
+  margin-inline-start: var(--ds-size-1);
+}
