@@ -61,9 +61,9 @@ export const WithCharacterLimit: Story = {
   args: {
     label: 'Short bio',
     characterLimit: {
-      limit: 50,
-      under: 'characters remaining',
-      over: 'characters too many',
+      limit: 30,
+      under: '%d characters remaining',
+      over: '%d characters too many',
     },
   },
 };

@@ -1,4 +1,8 @@
-import type { SegmentConstraints, TimeValue } from '../../types';
+import type {
+  SegmentConstraints,
+  TimeValue,
+} from '@app/form-component/app-components/Timepicker/types';
+
 import { handleSegmentValueChange } from './handleSegmentValueChange';
 
 describe('handleSegmentValueChange', () => {

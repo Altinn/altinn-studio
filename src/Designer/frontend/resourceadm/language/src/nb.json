@@ -189,6 +189,7 @@
   "resourceadm.deploy_version_label": "Nytt versjonsnummer",
   "resourceadm.deploy_version_number_text": "Versjonsnummer: ",
   "resourceadm.deploy_version_text": "En ressurs trenger å ha et versjonsnummer før den blir publisert. Ved endringer må versjonsnummer oppdateres før ny publisering.",
+  "resourceadm.deploy_resource_item": "ressursen",
   "resourceadm.error_back_to_dashboard": "Gå tilbake til dashbord",
   "resourceadm.error_page_text": "Du har nådd en ugyldig adresse",
   "resourceadm.import_resource_empty_list": "Det finnes ingen servicer i {{env}}-miljøet",

@@ -617,6 +617,22 @@ public class AltinnAppGitRepository : AltinnGitRepository
         }
     }
 
+    public Task<IEnumerable<string>> GetUiFolders(CancellationToken cancellationToken = default)
+    {
+        string uiPath = LayoutsFolderName;
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (!DirectoryExistsByRelativePath(uiPath))
+        {
+            throw new NotFoundException("No UI folder was found for this app");
+        }
+
+        // The UI folder should only contain folders for layout sets, so we return the folder names
+        IEnumerable<string> folders = GetDirectoriesByRelativeDirectory(uiPath).Select(Path.GetFileName);
+        return Task.FromResult(folders);
+    }
+
     public async Task<UiSettings> GetGlobalSettingsFile(CancellationToken cancellationToken = default)
     {
         string globalSettingsFilePath = GetPathToGlobalSettingsFile();

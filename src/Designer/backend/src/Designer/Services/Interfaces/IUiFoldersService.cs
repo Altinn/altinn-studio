@@ -8,6 +8,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 
 public interface IUiFoldersService
 {
+    public Task<IEnumerable<LayoutSetDto>> GetLayoutSetsExtended(
+        AltinnRepoEditingContext context,
+        CancellationToken cancellationToken
+    );
+
     public Task<ValidationOnNavigation?> GetGlobalValidationOnNavigation(
         AltinnRepoEditingContext context,
         CancellationToken cancellationToken
@@ -16,6 +21,34 @@ public interface IUiFoldersService
     public Task SaveGlobalValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
         ValidationOnNavigation? validationOnNavigation,
+        CancellationToken cancellationToken
+    );
+
+    public Task<Dictionary<string, ValidationOnNavigation?>> GetLayoutSetsValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        IEnumerable<string> layoutSetIds,
+        CancellationToken cancellationToken
+    );
+
+    public Task SaveLayoutSetsValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        IEnumerable<string> layoutSetIds,
+        ValidationOnNavigation? config,
+        CancellationToken cancellationToken
+    );
+
+    public Task<Dictionary<string, ValidationOnNavigation?>> GetPagesValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetId,
+        IEnumerable<string> pageIds,
+        CancellationToken cancellationToken
+    );
+
+    public Task SavePagesValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetId,
+        IEnumerable<string> pageIds,
+        ValidationOnNavigation? config,
         CancellationToken cancellationToken
     );
 

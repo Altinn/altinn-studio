@@ -202,6 +202,11 @@ internal sealed class StudioctlEnvironmentLease : IAsyncDisposable
 internal sealed class StudioctlAppProcess : IAsyncDisposable
 {
     private static readonly TimeSpan _stopTimeout = TimeSpan.FromSeconds(10);
+    private static readonly HashSet<string> _reservedEnvironmentVariables = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "AppFixture__ConfigurationPath",
+        "NUGET_PACKAGES",
+    };
 
     private readonly ILogger _logger;
 
@@ -237,6 +242,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
         string fixtureConfigurationPath,
         string nugetPackagesDirectory,
         string appFrontendAssetBaseUrl,
+        IReadOnlyDictionary<string, string>? environmentVariables,
         ILogger logger,
         CancellationToken cancellationToken
     )
@@ -245,6 +251,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
             appDirectory,
             fixtureConfigurationPath,
             nugetPackagesDirectory,
+            environmentVariables,
             logger,
             cancellationToken,
             appFrontendAssetBaseUrl,
@@ -282,6 +289,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
             appDirectory,
             fixtureConfigurationPath: null,
             nugetPackagesDirectory: null,
+            environmentVariables: null,
             logger,
             CancellationToken.None,
             appFrontendAssetBaseUrl: null,
@@ -405,6 +413,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
         string workingDirectory,
         string? fixtureConfigurationPath,
         string? nugetPackagesDirectory,
+        IReadOnlyDictionary<string, string>? environmentVariables,
         ILogger logger,
         CancellationToken cancellationToken,
         string? appFrontendAssetBaseUrl,
@@ -424,6 +433,16 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
             process.StartInfo.Environment["NUGET_PACKAGES"] = nugetPackagesDirectory;
         if (appFrontendAssetBaseUrl is not null)
             process.StartInfo.Environment["AppSettings__AppFrontendAssetBaseUrl"] = appFrontendAssetBaseUrl;
+        if (environmentVariables is not null)
+        {
+            foreach (var (key, value) in environmentVariables)
+            {
+                if (_reservedEnvironmentVariables.Contains(key))
+                    throw new InvalidOperationException($"Environment variable '{key}' is reserved by the fixture.");
+
+                process.StartInfo.Environment[key] = value;
+            }
+        }
         foreach (var argument in arguments)
             process.StartInfo.ArgumentList.Add(argument);
 

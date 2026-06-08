@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react';
 
-import classes from './FullWidthWrapper.module.css';
 import { FullWidthWrapper, type IFullWidthWrapperProps } from './FullWidthWrapper';
+import classes from './FullWidthWrapper.module.css';
 
 const renderWrapper = (props?: IFullWidthWrapperProps) => {
   const result = render(

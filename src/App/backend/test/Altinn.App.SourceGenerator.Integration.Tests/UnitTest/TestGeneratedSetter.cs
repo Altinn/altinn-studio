@@ -71,14 +71,14 @@ public class TestGeneratedSetter
         // Test source-generated implementation
         var generatedSkjema = CreateTestSkjema();
         IFormDataWrapper generatedWrapper =
-            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema);
+            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema, null!);
         var generatedResult = generatedWrapper.Set(path, ExpressionValue.FromObject(value));
         Assert.True(generatedResult, $"Source-generated Set failed for path: {path}");
         var generatedActual = generatedWrapper.Get(path);
 
         // Test reflection implementation
         var reflectionSkjema = CreateTestSkjema();
-        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema);
+        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema, null!);
         var reflectionResult = reflectionWrapper.Set(path, ExpressionValue.FromObject(value));
         Assert.True(reflectionResult, $"Reflection Set failed for path: {path}");
         var reflectionActual = reflectionWrapper.Get(path);
@@ -103,12 +103,12 @@ public class TestGeneratedSetter
         // Test source-generated implementation
         var generatedSkjema = CreateTestSkjema();
         IFormDataWrapper generatedWrapper =
-            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema);
+            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema, null!);
         var generatedResult = generatedWrapper.Set(path, ExpressionValue.FromObject(value));
 
         // Test reflection implementation
         var reflectionSkjema = CreateTestSkjema();
-        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema);
+        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema, null!);
         var reflectionResult = reflectionWrapper.Set(path, ExpressionValue.FromObject(value));
 
         // Both should succeed or both should fail
@@ -134,12 +134,12 @@ public class TestGeneratedSetter
         // Test source-generated implementation
         var generatedSkjema = CreateTestSkjema();
         IFormDataWrapper generatedWrapper =
-            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema);
+            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema, null!);
         var generatedResult = generatedWrapper.Set(path, ExpressionValue.FromObject(value));
 
         // Test reflection implementation
         var reflectionSkjema = CreateTestSkjema();
-        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema);
+        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema, null!);
         var reflectionResult = reflectionWrapper.Set(path, ExpressionValue.FromObject(value));
 
         // Both should have the same success/failure result
@@ -168,12 +168,12 @@ public class TestGeneratedSetter
         // Test source-generated implementation
         var generatedSkjema = CreateTestSkjema();
         IFormDataWrapper generatedWrapper =
-            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema);
+            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema, null!);
         var generatedResult = generatedWrapper.Set(path, "test-value");
 
         // Test reflection implementation
         var reflectionSkjema = CreateTestSkjema();
-        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema);
+        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema, null!);
         var reflectionResult = reflectionWrapper.Set(path, "test-value");
 
         // Both should have the same behavior
@@ -186,11 +186,11 @@ public class TestGeneratedSetter
         // Test negative index handling
         var generatedSkjema = CreateTestSkjema();
         IFormDataWrapper generatedWrapper =
-            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema);
+            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema, null!);
         Assert.Throws<DataModelException>(() => generatedWrapper.Set("skjemainnhold[-1].navn", "value"));
 
         var reflectionSkjema = CreateTestSkjema();
-        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema);
+        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema, null!);
         Assert.Throws<DataModelException>(() => reflectionWrapper.Set("skjemainnhold[-1].navn", "value"));
     }
 
@@ -203,11 +203,11 @@ public class TestGeneratedSetter
 
         var generatedSkjema = CreateTestSkjema();
         IFormDataWrapper generatedWrapper =
-            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema);
+            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema, null!);
         var generatedResult = generatedWrapper.Set(tooLongPath, "value", [1, 3, 4]);
 
         var reflectionSkjema = CreateTestSkjema();
-        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema);
+        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema, null!);
         var reflectionResult = reflectionWrapper.Set(tooLongPath, "value", [1, 3, 4]);
 
         // Both should fail for non-existent long path
@@ -221,10 +221,10 @@ public class TestGeneratedSetter
         // Test a complex scenario with multiple sets
         var generatedSkjema = CreateTestSkjema();
         IFormDataWrapper generatedWrapper =
-            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema);
+            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema, null!);
 
         var reflectionSkjema = CreateTestSkjema();
-        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema);
+        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema, null!);
 
         // Perform multiple sets
         var operations = new (string path, object value)[]
@@ -268,10 +268,10 @@ public class TestGeneratedSetter
         // Test that Set creates intermediate objects when they are null
         var generatedSkjema = new Skjema { Skjemanummer = "123", EierAdresse = null };
         IFormDataWrapper generatedWrapper =
-            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema);
+            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema, null!);
 
         var reflectionSkjema = new Skjema { Skjemanummer = "123", EierAdresse = null };
-        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema);
+        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema, null!);
 
         // Try to set a nested property on a null object
         var generatedResult = generatedWrapper.Set("eierAdresse.gate", "new-street");
@@ -293,8 +293,8 @@ public class TestGeneratedSetter
     {
         var model = new Empty();
         IFormDataWrapper generatedWrapper =
-            new Altinn_App_SourceGenerator_Integration_Tests_Models_EmptyFormDataWrapper(model);
-        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(model);
+            new Altinn_App_SourceGenerator_Integration_Tests_Models_EmptyFormDataWrapper(model, null!);
+        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(model, null!);
 
         var generatedResult = generatedWrapper.Set("someProperty", "value");
         var reflectionResult = reflectionWrapper.Set("someProperty", "value");
@@ -313,11 +313,11 @@ public class TestGeneratedSetter
     {
         var generatedSkjema = CreateTestSkjema();
         IFormDataWrapper generatedWrapper =
-            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema);
+            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema, null!);
         var generatedResult = generatedWrapper.Set(path, ExpressionValue.FromObject(value));
 
         var reflectionSkjema = CreateTestSkjema();
-        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema);
+        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema, null!);
         var reflectionResult = reflectionWrapper.Set(path, ExpressionValue.FromObject(value));
 
         // Both should succeed
