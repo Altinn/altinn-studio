@@ -49,7 +49,9 @@ steps:
   displayName: 'Check availability'
 
 - script: |
-   k6 run --quiet --log-output=stdout --log-format=raw $(pwd)/src/gettoken.js -e env=$(environment) -e pid=$(pid) -e testidppwd=$(testidppwd)
+   k6 run --quiet --log-format raw --console-output=$(Build.SourcesDirectory)/result.txt $(pwd)/src/gettoken.js -e env=$(environment) -e pid=$(pid) -e testidppwd=$(testidppwd)
+
+   echo "##vso[task.setvariable variable=runtimetoken;issecret=true]`cat $(Build.SourcesDirectory)/result.txt`"
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Get token'

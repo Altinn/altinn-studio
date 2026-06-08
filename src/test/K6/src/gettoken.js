@@ -14,11 +14,8 @@ export default function () {
   } catch (e) {
     runtimeToken = null;
   }
-  const success = check(runtimeToken, {
+  check(runtimeToken, {
     'Acquired token is a JWT': (t) => typeof t === 'string' && t.split('.').length === 3,
   });
-  if (success) {
-    // Sets environment variable in Azure DevOps pipeline.
-    console.log(`##vso[task.setvariable variable=runtimetoken;issecret=true]${runtimeToken}`);
-  }
+  console.log(runtimeToken);
 }
