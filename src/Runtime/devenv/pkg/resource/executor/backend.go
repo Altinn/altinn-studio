@@ -20,7 +20,7 @@ type BackendContext struct {
 	GraphID resource.GraphID
 }
 
-// Outputs returns a snapshot of outputs produced by resources applied before the current level.
+// Outputs returns a snapshot of outputs produced by resources completed before the current resource started.
 func (c BackendContext) Outputs() Outputs {
 	return c.outputs
 }
