@@ -115,7 +115,7 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
             throw new NotSupportedException("Legacy single data accessor does not implement GetPreviousDataAccessor");
         }
 
-        public LayoutEvaluatorState? GetLayoutEvaluatorState()
+        public LayoutEvaluatorState GetLayoutEvaluatorState()
         {
             return new LayoutEvaluatorState(
                 this,

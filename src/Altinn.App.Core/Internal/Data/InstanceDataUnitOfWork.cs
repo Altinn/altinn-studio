@@ -181,19 +181,15 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     private LayoutEvaluatorState? _layoutEvaluatorStateCache;
 
-    public LayoutEvaluatorState? GetLayoutEvaluatorState()
+    public LayoutEvaluatorState GetLayoutEvaluatorState()
     {
-        if (TaskId is null)
-        {
-            return null;
-        }
         if (_layoutEvaluatorStateCache is not null)
         {
             return _layoutEvaluatorStateCache;
         }
 
         // Could use a double lock here, but a deadlock is more problematic than creating the state twice
-        var layouts = _appResources.GetLayoutModelForTask(TaskId);
+        var layouts = TaskId is null ? null : _appResources.GetLayoutModelForTask(TaskId);
 
         _layoutEvaluatorStateCache = new LayoutEvaluatorState(
             this,
