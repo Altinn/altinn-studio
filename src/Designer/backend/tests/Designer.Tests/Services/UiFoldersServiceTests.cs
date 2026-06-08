@@ -7,8 +7,11 @@ using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
+using MediatR;
 using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.Services;
@@ -73,6 +76,8 @@ public class UiFoldersServiceTests : IDisposable
         );
         UiFoldersService service = new(
             new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory()),
+            new Mock<IProcessModelingService>().Object,
+            new Mock<IPublisher>().Object,
             NullLogger<UiFoldersService>.Instance
         );
         return (editingContext, service);
