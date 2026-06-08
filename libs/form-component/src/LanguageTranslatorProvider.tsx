@@ -1,12 +1,13 @@
 import { createContext, type JSX, type PropsWithChildren, type ReactNode, useContext } from 'react';
 
-import type { ValidLanguageKey } from '@app/language';
+import type { LooseAutocomplete, ValidLanguageKey } from '@app/language';
 
-type LangFn = (key: ValidLanguageKey | undefined, params?: TranslationParams) => ReactNode;
+type LanguageKey = LooseAutocomplete<ValidLanguageKey>;
+type LangFn = (key: LanguageKey | undefined, params?: TranslationParams) => ReactNode;
 type TranslationParams = (string | number | undefined)[];
-type TranslateFn = (key: ValidLanguageKey, params?: TranslationParams) => string;
+type TranslateFn = (key: LanguageKey, params?: TranslationParams) => string;
 type TranslateComponent = (args: {
-  tKey: ValidLanguageKey;
+  tKey: LanguageKey;
   params?: TranslationParams;
 }) => string | JSX.Element | JSX.Element[] | null;
 

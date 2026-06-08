@@ -10,6 +10,13 @@ export type FixedLanguageList = ReturnType<typeof en>;
  */
 export type ValidLanguageKey = keyof FixedLanguageList;
 
+/**
+ * Allows any string while still suggesting the known members of `T` in autocomplete.
+ * Mirrors the `LooseAutocomplete` type used in the app frontend so language key arguments
+ * keep autocomplete without rejecting arbitrary (e.g. dynamic) keys.
+ */
+export type LooseAutocomplete<T extends string> = T | (string & {}); // NOSONAR
+
 // This makes sure we don't generate a new object
 // each time (which would fail shallow comparisons, in for example React.memo)
 const cachedLanguages: Record<string, FixedLanguageList> = {};
