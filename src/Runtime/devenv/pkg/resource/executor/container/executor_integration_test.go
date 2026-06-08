@@ -1,272 +1,15 @@
-package resource
+package containerbackend
 
 import (
 	"context"
 	"errors"
 	"slices"
-	"strings"
 	"testing"
 
 	containermock "altinn.studio/devenv/pkg/container/mock"
 	"altinn.studio/devenv/pkg/container/types"
+	"altinn.studio/devenv/pkg/resource/executor"
 )
-
-var (
-	errDaemonUnavailable = errors.New("daemon unavailable")
-	errStopFailed        = errors.New("stop failed")
-	errRemoveFailed      = errors.New("remove failed")
-)
-
-func TestNormalizedContainerLabels_DoesNotMutateInput(t *testing.T) {
-	t.Parallel()
-
-	container := &Container{
-		Name:   "localtest",
-		Image:  RefID("image:localtest"),
-		Labels: map[string]string{"altinn.studio/cli": "localtest"},
-	}
-
-	labels := normalizedContainerLabels(container, testGraphID, "sha256:image", []string{"net-a"})
-
-	if labels[containerSpecHashLabel] == "" {
-		t.Fatalf("missing %q label", containerSpecHashLabel)
-	}
-	if labels[GraphIDLabel] != testGraphID.String() {
-		t.Fatalf("graph label = %q, want %q", labels[GraphIDLabel], testGraphID)
-	}
-
-	if _, exists := container.Labels[containerSpecHashLabel]; exists {
-		t.Fatalf("input labels were mutated with %q", containerSpecHashLabel)
-	}
-}
-
-func TestContainerSpecHash_ChangesOnConfigChange(t *testing.T) {
-	t.Parallel()
-
-	base := &Container{
-		Name:          "localtest",
-		Image:         RefID("image:localtest"),
-		Env:           []string{"A=1", "B=2"},
-		Ports:         []types.PortMapping{{HostPort: "8000", ContainerPort: "5101"}},
-		Volumes:       []types.VolumeMount{{HostPath: "/tmp/a", ContainerPath: "/a"}},
-		Command:       []string{"dotnet", "LocalTest.dll"},
-		ExtraHosts:    []string{"host.docker.internal:172.17.0.1"},
-		RestartPolicy: "always",
-		User:          "1000:1000",
-	}
-
-	baseHash := containerSpecHash(base, "sha256:image-v1", []string{"bridge"})
-
-	modified := *base
-	modified.Ports = []types.PortMapping{{HostPort: "8001", ContainerPort: "5101"}}
-	modifiedHash := containerSpecHash(&modified, "sha256:image-v1", []string{"bridge"})
-
-	if baseHash == modifiedHash {
-		t.Fatalf("container spec hash did not change when ports changed")
-	}
-}
-
-func TestContainerSpecHash_IgnoresSliceOrderForSetLikeFields(t *testing.T) {
-	t.Parallel()
-
-	left := &Container{
-		Name:          "localtest",
-		Image:         RefID("image:localtest"),
-		Env:           []string{"B=2", "A=1"},
-		ExtraHosts:    []string{"h2:2.2.2.2", "h1:1.1.1.1"},
-		RestartPolicy: "always",
-	}
-
-	right := &Container{
-		Name:          "localtest",
-		Image:         RefID("image:localtest"),
-		Env:           []string{"A=1", "B=2"},
-		ExtraHosts:    []string{"h1:1.1.1.1", "h2:2.2.2.2"},
-		RestartPolicy: "always",
-	}
-
-	leftHash := containerSpecHash(left, "sha256:image-v1", []string{"b", "a"})
-	rightHash := containerSpecHash(right, "sha256:image-v1", []string{"a", "b"})
-
-	if leftHash != rightHash {
-		t.Fatalf("container spec hash changed for equivalent set-like fields")
-	}
-}
-
-func TestContainerSpecHash_ChangesOnNetworkAliasChange(t *testing.T) {
-	t.Parallel()
-
-	base := &Container{
-		Name:           "localtest",
-		Image:          RefID("image:localtest"),
-		NetworkAliases: []string{"local.altinn.cloud"},
-	}
-
-	baseHash := containerSpecHash(base, "sha256:image-v1", []string{"bridge"})
-
-	modified := *base
-	modified.NetworkAliases = []string{"local.altinn.cloud", "altinn.local"}
-	modifiedHash := containerSpecHash(&modified, "sha256:image-v1", []string{"bridge"})
-
-	if baseHash == modifiedHash {
-		t.Fatalf("container spec hash did not change when network aliases changed")
-	}
-}
-
-func TestContainerSpecHash_ChangesOnUsernsModeChange(t *testing.T) {
-	t.Parallel()
-
-	base := &Container{
-		Name:       "localtest",
-		Image:      RefID("image:localtest"),
-		User:       "1000:1000",
-		UsernsMode: "",
-	}
-
-	baseHash := containerSpecHash(base, "sha256:image-v1", []string{"bridge"})
-
-	modified := *base
-	modified.UsernsMode = "keep-id"
-	modifiedHash := containerSpecHash(&modified, "sha256:image-v1", []string{"bridge"})
-
-	if baseHash == modifiedHash {
-		t.Fatalf("container spec hash did not change when user namespace mode changed")
-	}
-}
-
-func TestContainerSpecHash_ChangesOnVolumeMountTypeChange(t *testing.T) {
-	t.Parallel()
-
-	base := &Container{
-		Name:    "postgres",
-		Image:   RefID("image:postgres"),
-		Volumes: []types.VolumeMount{{HostPath: "data", ContainerPath: "/var/lib/postgresql"}},
-	}
-
-	baseHash := containerSpecHash(base, "sha256:image-v1", []string{"bridge"})
-
-	modified := *base
-	modified.Volumes = []types.VolumeMount{{
-		HostPath:      "data",
-		ContainerPath: "/var/lib/postgresql",
-		Type:          types.VolumeMountTypeVolume,
-	}}
-	modifiedHash := containerSpecHash(&modified, "sha256:image-v1", []string{"bridge"})
-
-	if baseHash == modifiedHash {
-		t.Fatalf("container spec hash did not change when volume mount type changed")
-	}
-}
-
-func TestExecutor_StopAndRemoveContainer_PropagatesStopError(t *testing.T) {
-	t.Parallel()
-
-	client := containermock.New()
-	client.ContainerStopFunc = func(context.Context, string, *int) error {
-		return errDaemonUnavailable
-	}
-	removeCalled := false
-	client.ContainerRemoveFunc = func(context.Context, string, bool) error {
-		removeCalled = true
-		return nil
-	}
-
-	exec := NewExecutor(client)
-	err := exec.stopAndRemoveContainer(t.Context(), "test")
-	if err == nil {
-		t.Fatal("stopAndRemoveContainer() expected error, got nil")
-	}
-	if !strings.Contains(err.Error(), "stop container test") {
-		t.Fatalf("stopAndRemoveContainer() error = %v, want stop error context", err)
-	}
-	if !removeCalled {
-		t.Fatal("ContainerRemove was not called after stop failure")
-	}
-}
-
-func TestExecutor_StopAndRemoveContainer_JoinsStopAndRemoveErrors(t *testing.T) {
-	t.Parallel()
-
-	client := containermock.New()
-	client.ContainerStopFunc = func(context.Context, string, *int) error { return errStopFailed }
-	client.ContainerRemoveFunc = func(context.Context, string, bool) error { return errRemoveFailed }
-
-	exec := NewExecutor(client)
-	err := exec.stopAndRemoveContainer(t.Context(), "test")
-	if err == nil {
-		t.Fatal("stopAndRemoveContainer() expected error, got nil")
-	}
-	if !errors.Is(err, errStopFailed) {
-		t.Fatalf("stopAndRemoveContainer() error = %v, want to include stopErr", err)
-	}
-	if !errors.Is(err, errRemoveFailed) {
-		t.Fatalf("stopAndRemoveContainer() error = %v, want to include removeErr", err)
-	}
-}
-
-func TestExecutor_StopAndRemoveContainer_IgnoresContainerNotFound(t *testing.T) {
-	t.Parallel()
-
-	client := containermock.New()
-	client.ContainerStopFunc = func(context.Context, string, *int) error {
-		return types.ErrContainerNotFound
-	}
-	client.ContainerRemoveFunc = func(context.Context, string, bool) error {
-		return types.ErrContainerNotFound
-	}
-
-	exec := NewExecutor(client)
-	if err := exec.stopAndRemoveContainer(t.Context(), "test"); err != nil {
-		t.Fatalf("stopAndRemoveContainer() error = %v, want nil", err)
-	}
-}
-
-func TestExecutor_WaitForContainerReady_WaitsForHealthy(t *testing.T) {
-	t.Parallel()
-
-	client := containermock.New()
-	inspectCalls := 0
-	client.ContainerInspectFunc = func(context.Context, string) (types.ContainerInfo, error) {
-		inspectCalls++
-		state := types.ContainerState{
-			Status:       "running",
-			HealthStatus: "starting",
-			Running:      true,
-		}
-		if inspectCalls > 1 {
-			state.HealthStatus = "healthy"
-		}
-		return types.ContainerInfo{State: state}, nil
-	}
-
-	err := NewExecutor(client).waitForContainerReady(t.Context(), "localtest")
-	if err != nil {
-		t.Fatalf("waitForContainerReady() error = %v, want nil", err)
-	}
-	if inspectCalls != 2 {
-		t.Fatalf("ContainerInspect calls = %d, want 2", inspectCalls)
-	}
-}
-
-func TestExecutor_WaitForContainerReady_FailsOnUnhealthy(t *testing.T) {
-	t.Parallel()
-
-	client := containermock.New()
-	client.ContainerInspectFunc = func(context.Context, string) (types.ContainerInfo, error) {
-		return types.ContainerInfo{
-			State: types.ContainerState{
-				Status:       "running",
-				HealthStatus: "unhealthy",
-				Running:      true,
-			},
-		}, nil
-	}
-
-	err := NewExecutor(client).waitForContainerReady(t.Context(), "localtest")
-	if !errors.Is(err, errContainerUnhealthy) {
-		t.Fatalf("waitForContainerReady() error = %v, want errContainerUnhealthy", err)
-	}
-}
 
 func TestExecutor_ApplyContainer_DoesNotWaitForReadyByDefault(t *testing.T) {
 	t.Parallel()
@@ -286,7 +29,7 @@ func TestExecutor_ApplyContainer_DoesNotWaitForReadyByDefault(t *testing.T) {
 	}
 
 	graph := NewGraph(testGraphID)
-	image := &RemoteImage{Ref: "localtest:latest"}
+	image := &PulledImage{Ref: "localtest:latest"}
 	container := &Container{
 		Name:  "localtest",
 		Image: Ref(image),
@@ -298,7 +41,7 @@ func TestExecutor_ApplyContainer_DoesNotWaitForReadyByDefault(t *testing.T) {
 		t.Fatalf("graph.Add(container) error = %v", err)
 	}
 
-	_, err := NewExecutor(client).Apply(t.Context(), graph)
+	_, err := newTestExecutor(client).Apply(t.Context(), graph)
 	if err != nil {
 		t.Fatalf("Apply() error = %v, want nil", err)
 	}
@@ -326,7 +69,7 @@ func TestExecutor_ApplySkipsDisabledResources(t *testing.T) {
 
 	graph := NewGraph(testGraphID)
 	disabled := false
-	image := &LocalImage{
+	image := &BuiltImage{
 		Enabled:     &disabled,
 		ContextPath: "/tmp/app",
 		Tag:         "app:latest",
@@ -335,7 +78,7 @@ func TestExecutor_ApplySkipsDisabledResources(t *testing.T) {
 		t.Fatalf("graph.Add(image) error = %v", err)
 	}
 
-	if _, err := NewExecutor(client).Apply(t.Context(), graph); err != nil {
+	if _, err := newTestExecutor(client).Apply(t.Context(), graph); err != nil {
 		t.Fatalf("Apply() error = %v, want nil", err)
 	}
 	if buildCalled {
@@ -383,11 +126,11 @@ func TestExecutor_ApplyDestroysStaleGraphResources(t *testing.T) {
 	}
 
 	graph := NewGraph(testGraphID)
-	if err := graph.Add(&RemoteImage{Ref: "localtest:latest"}); err != nil {
+	if err := graph.Add(&PulledImage{Ref: "localtest:latest"}); err != nil {
 		t.Fatalf("graph.Add() error = %v", err)
 	}
 
-	if _, err := NewExecutor(client).Apply(t.Context(), graph); err != nil {
+	if _, err := newTestExecutor(client).Apply(t.Context(), graph); err != nil {
 		t.Fatalf("Apply() error = %v", err)
 	}
 	if removedContainer != "stale-container-id" {
@@ -444,7 +187,7 @@ func TestExecutor_ApplyRetainsDisabledResourceWithLifecycleOption(t *testing.T) 
 		t.Fatalf("graph.Add() error = %v", err)
 	}
 
-	if _, err := NewExecutor(client).Apply(t.Context(), graph); err != nil {
+	if _, err := newTestExecutor(client).Apply(t.Context(), graph); err != nil {
 		t.Fatalf("Apply() error = %v", err)
 	}
 }
@@ -487,7 +230,7 @@ func TestExecutor_StatusPreservesInspectedContainerHealthWhenDiscoveredByGraphLa
 	}
 	mustAddResource(t, graph, container)
 
-	snapshot, err := NewExecutor(client).Status(t.Context(), graph)
+	snapshot, err := newTestExecutor(client).Status(t.Context(), graph)
 	if err != nil {
 		t.Fatalf("Status() error = %v", err)
 	}
@@ -516,7 +259,7 @@ func TestExecutor_ApplyValidatesGraphBeforeDestroyingStaleResources(t *testing.T
 	}
 	mustAddResource(t, graph, container)
 
-	if _, err := NewExecutor(client).Apply(t.Context(), graph); err == nil {
+	if _, err := newTestExecutor(client).Apply(t.Context(), graph); err == nil {
 		t.Fatal("Apply() error = nil, want graph validation error")
 	}
 }
@@ -539,7 +282,7 @@ func TestExecutor_ApplyFailsOnUnmanagedContainerNameCollision(t *testing.T) {
 	}
 
 	graph := NewGraph(testGraphID)
-	image := &RemoteImage{Ref: "localtest:latest"}
+	image := &PulledImage{Ref: "localtest:latest"}
 	container := &Container{
 		Name:  "localtest",
 		Image: Ref(image),
@@ -547,9 +290,9 @@ func TestExecutor_ApplyFailsOnUnmanagedContainerNameCollision(t *testing.T) {
 	mustAddResource(t, graph, image)
 	mustAddResource(t, graph, container)
 
-	_, err := NewExecutor(client).Apply(t.Context(), graph)
-	if !errors.Is(err, errResourceOwnershipConflict) {
-		t.Fatalf("Apply() error = %v, want errResourceOwnershipConflict", err)
+	_, err := newTestExecutor(client).Apply(t.Context(), graph)
+	if !errors.Is(err, executor.ErrResourceOwnershipConflict) {
+		t.Fatalf("Apply() error = %v, want executor.ErrResourceOwnershipConflict", err)
 	}
 }
 
@@ -571,7 +314,7 @@ func TestExecutor_ApplyFailsOnUnmanagedContainerNameCollisionWithMatchingLabels(
 	}
 
 	graph := NewGraph(testGraphID)
-	image := &RemoteImage{Ref: "localtest:latest"}
+	image := &PulledImage{Ref: "localtest:latest"}
 	container := &Container{
 		Name:   "localtest",
 		Image:  Ref(image),
@@ -580,9 +323,9 @@ func TestExecutor_ApplyFailsOnUnmanagedContainerNameCollisionWithMatchingLabels(
 	mustAddResource(t, graph, image)
 	mustAddResource(t, graph, container)
 
-	_, err := NewExecutor(client).Apply(t.Context(), graph)
-	if !errors.Is(err, errResourceOwnershipConflict) {
-		t.Fatalf("Apply() error = %v, want errResourceOwnershipConflict", err)
+	_, err := newTestExecutor(client).Apply(t.Context(), graph)
+	if !errors.Is(err, executor.ErrResourceOwnershipConflict) {
+		t.Fatalf("Apply() error = %v, want executor.ErrResourceOwnershipConflict", err)
 	}
 }
 
@@ -605,9 +348,9 @@ func TestExecutor_ApplyFailsOnUnmanagedNetworkNameCollision(t *testing.T) {
 	graph := NewGraph(testGraphID)
 	mustAddResource(t, graph, &Network{Name: "altinntestlocal_network"})
 
-	_, err := NewExecutor(client).Apply(t.Context(), graph)
-	if !errors.Is(err, errResourceOwnershipConflict) {
-		t.Fatalf("Apply() error = %v, want errResourceOwnershipConflict", err)
+	_, err := newTestExecutor(client).Apply(t.Context(), graph)
+	if !errors.Is(err, executor.ErrResourceOwnershipConflict) {
+		t.Fatalf("Apply() error = %v, want executor.ErrResourceOwnershipConflict", err)
 	}
 }
 
@@ -620,12 +363,12 @@ func TestExecutor_ApplyReturnsImageOutputs(t *testing.T) {
 	}
 
 	graph := NewGraph(testGraphID)
-	image := &RemoteImage{Ref: "ghcr.io/altinn/test:latest", PullPolicy: PullIfNotPresent}
+	image := &PulledImage{Ref: "ghcr.io/altinn/test:latest", PullPolicy: PullIfNotPresent}
 	if err := graph.Add(image); err != nil {
 		t.Fatalf("graph.Add(image) error = %v", err)
 	}
 
-	outputs, err := NewExecutor(client).Apply(t.Context(), graph)
+	outputs, err := newTestExecutor(client).Apply(t.Context(), graph)
 	if err != nil {
 		t.Fatalf("Apply() error = %v", err)
 	}
@@ -667,7 +410,7 @@ func TestExecutor_ApplyReturnsContainerOutputs(t *testing.T) {
 	}
 
 	graph := NewGraph(testGraphID)
-	image := &RemoteImage{Ref: "ghcr.io/altinn/test:latest", PullPolicy: PullIfNotPresent}
+	image := &PulledImage{Ref: "ghcr.io/altinn/test:latest", PullPolicy: PullIfNotPresent}
 	container := &Container{Name: "app", Image: Ref(image)}
 	if err := graph.Add(image); err != nil {
 		t.Fatalf("graph.Add(image) error = %v", err)
@@ -676,7 +419,7 @@ func TestExecutor_ApplyReturnsContainerOutputs(t *testing.T) {
 		t.Fatalf("graph.Add(container) error = %v", err)
 	}
 
-	outputs, err := NewExecutor(client).Apply(t.Context(), graph)
+	outputs, err := newTestExecutor(client).Apply(t.Context(), graph)
 	if err != nil {
 		t.Fatalf("Apply() error = %v", err)
 	}
@@ -715,7 +458,7 @@ func TestExecutor_ApplyContainer_WaitsForReadyWhenEnabled(t *testing.T) {
 	}
 
 	graph := NewGraph(testGraphID)
-	image := &RemoteImage{Ref: "localtest:latest"}
+	image := &PulledImage{Ref: "localtest:latest"}
 	container := &Container{
 		Name:  "localtest",
 		Image: Ref(image),
@@ -730,69 +473,12 @@ func TestExecutor_ApplyContainer_WaitsForReadyWhenEnabled(t *testing.T) {
 		t.Fatalf("graph.Add(container) error = %v", err)
 	}
 
-	_, err := NewExecutor(client).Apply(t.Context(), graph)
+	_, err := newTestExecutor(client).Apply(t.Context(), graph)
 	if err != nil {
 		t.Fatalf("Apply() error = %v, want nil", err)
 	}
 	if inspectCalls != 4 {
 		t.Fatalf("ContainerInspect calls = %d, want 4", inspectCalls)
-	}
-}
-
-func TestExecutor_ContainerStatus_UsesHealth(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name  string
-		state types.ContainerState
-		want  Status
-	}{
-		{
-			name: "running without healthcheck is ready",
-			state: types.ContainerState{
-				Status:  "running",
-				Running: true,
-			},
-			want: StatusReady,
-		},
-		{
-			name: "starting healthcheck is pending",
-			state: types.ContainerState{
-				Status:       "running",
-				HealthStatus: "starting",
-				Running:      true,
-			},
-			want: StatusPending,
-		},
-		{
-			name: "unhealthy healthcheck is failed",
-			state: types.ContainerState{
-				Status:       "running",
-				HealthStatus: "unhealthy",
-				Running:      true,
-			},
-			want: StatusFailed,
-		},
-		{
-			name: "exited zero is failed for long running resources",
-			state: types.ContainerState{
-				Status:   "exited",
-				ExitCode: 0,
-				Running:  false,
-			},
-			want: StatusFailed,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			got := containerInfoStatus(types.ContainerInfo{State: tt.state})
-			if got != tt.want {
-				t.Fatalf("containerInfoStatus() = %v, want %v", got, tt.want)
-			}
-		})
 	}
 }
 
@@ -813,13 +499,13 @@ func TestExecutor_Status_SkipsResources(t *testing.T) {
 		return types.ImageInfo{}, nil
 	}
 
-	image := &RemoteImage{Ref: "localtest:latest"}
+	image := &PulledImage{Ref: "localtest:latest"}
 	container := &Container{Name: "localtest", Image: Ref(image)}
 	graph := NewGraph(testGraphID)
 	mustAddResource(t, graph, image)
 	mustAddResource(t, graph, container)
 
-	snapshot, err := NewExecutor(client).Status(t.Context(), graph, SkipResource(func(r Resource) bool {
+	snapshot, err := newTestExecutor(client).Status(t.Context(), graph, SkipResource(func(r Resource) bool {
 		_, ok := r.(ImageResource)
 		return ok
 	}))
@@ -854,7 +540,7 @@ func TestExecutor_DestroyNetwork_PropagatesNetworkInUseByDefault(t *testing.T) {
 		t.Fatalf("graph.Add() error = %v", err)
 	}
 
-	err := NewExecutor(client).Destroy(t.Context(), graph)
+	err := newTestExecutor(client).Destroy(t.Context(), graph)
 	if !errors.Is(err, types.ErrNetworkInUse) {
 		t.Fatalf("Destroy() error = %v, want ErrNetworkInUse", err)
 	}
@@ -889,12 +575,12 @@ func TestExecutor_DestroyNetwork_UsesLifecycleErrorHandler(t *testing.T) {
 		t.Fatalf("graph.Add() error = %v", err)
 	}
 
-	if err := NewExecutor(client).Destroy(t.Context(), graph); err != nil {
+	if err := newTestExecutor(client).Destroy(t.Context(), graph); err != nil {
 		t.Fatalf("Destroy() error = %v, want nil", err)
 	}
 }
 
-func TestExecutor_ApplyRemoteImage_EmitsProgressEvents(t *testing.T) {
+func TestExecutor_ApplyPulledImage_EmitsProgressEvents(t *testing.T) {
 	t.Parallel()
 
 	client := containermock.New()
@@ -916,7 +602,7 @@ func TestExecutor_ApplyRemoteImage_EmitsProgressEvents(t *testing.T) {
 		return nil
 	}
 
-	img := &RemoteImage{
+	img := &PulledImage{
 		Ref:        "ghcr.io/altinn/test:latest",
 		PullPolicy: PullAlways,
 	}
@@ -942,7 +628,7 @@ func TestExecutor_ApplyRemoteImage_EmitsProgressEvents(t *testing.T) {
 		return nil
 	}
 
-	exec := NewExecutor(client)
+	exec := newTestExecutor(client)
 	exec.SetObserver(ObserverFunc(func(event Event) {
 		if event.Type != EventApplyProgress || event.Resource != img.ID() {
 			return

@@ -236,7 +236,7 @@ func TestMonitoringContainers_OtelUsesLocalDomainAlias(t *testing.T) {
 func TestResourceBuilder_FailsForUnknownContainerDependency(t *testing.T) {
 	t.Setenv(config.EnvCI, "true")
 
-	image := &resource.RemoteImage{Ref: "example.local/dependent:latest"}
+	image := &resource.PulledImage{Ref: "example.local/dependent:latest"}
 	network := resource.Ref(&resource.Network{Name: components.NetworkName})
 	containerResource := &resource.Container{
 		Name:      "localtest-dependent",

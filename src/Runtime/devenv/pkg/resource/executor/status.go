@@ -1,8 +1,10 @@
-// Package resource provides a generalized IaC-style resource abstraction
-// for managing infrastructure as a DAG of dependent resources.
-package resource
+package executor
 
-import "fmt"
+import (
+	"fmt"
+
+	"altinn.studio/devenv/pkg/resource"
+)
 
 // Status represents the current state of a resource.
 type Status int
@@ -60,11 +62,11 @@ type StatusOption func(*StatusOptions)
 
 // StatusOptions controls status collection behavior.
 type StatusOptions struct {
-	skip func(Resource) bool
+	skip func(resource.Resource) bool
 }
 
 // SkipResource excludes resources matching skip from status collection.
-func SkipResource(skip func(Resource) bool) StatusOption {
+func SkipResource(skip func(resource.Resource) bool) StatusOption {
 	return func(opts *StatusOptions) {
 		opts.skip = skip
 	}
@@ -80,6 +82,6 @@ func newStatusOptions(options []StatusOption) StatusOptions {
 	return opts
 }
 
-func (o StatusOptions) skipResource(resource Resource) bool {
-	return o.skip != nil && o.skip(resource)
+func (o StatusOptions) skipResource(r resource.Resource) bool {
+	return o.skip != nil && o.skip(r)
 }

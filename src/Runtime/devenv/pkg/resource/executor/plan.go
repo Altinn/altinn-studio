@@ -1,24 +1,26 @@
-package resource
+package executor
 
 import (
 	"fmt"
 	"slices"
+
+	"altinn.studio/devenv/pkg/resource"
 )
 
 type applyPlan struct {
-	destroy   []ResourceID
-	conflict  []ResourceID
-	reconcile []ResourceID
+	destroy   []resource.ResourceID
+	conflict  []resource.ResourceID
+	reconcile []resource.ResourceID
 }
 
 type destroyPlan struct {
-	destroy []ResourceID
+	destroy []resource.ResourceID
 }
 
 // PlannedResource is one resource operation selected by Apply or Destroy.
 type PlannedResource struct {
-	Resource Resource
-	ID       ResourceID
+	Resource resource.Resource
+	ID       resource.ResourceID
 }
 
 // ApplyPlan describes the operations Apply selected before execution starts.
@@ -56,7 +58,7 @@ func newApplyOptions(opts []ApplyOption) applyOptions {
 	return options
 }
 
-func notifyApplyPlan(opts applyOptions, g *Graph, snapshot Snapshot, plan applyPlan) error {
+func notifyApplyPlan(opts applyOptions, g *resource.Graph, snapshot Snapshot, plan applyPlan) error {
 	if opts.onPlan == nil {
 		return nil
 	}
@@ -89,7 +91,7 @@ func newDestroyOptions(opts []DestroyOption) destroyOptions {
 	return options
 }
 
-func notifyDestroyPlan(opts destroyOptions, g *Graph, snapshot Snapshot, plan destroyPlan) error {
+func notifyDestroyPlan(opts destroyOptions, g *resource.Graph, snapshot Snapshot, plan destroyPlan) error {
 	if opts.onPlan == nil {
 		return nil
 	}
@@ -99,7 +101,7 @@ func notifyDestroyPlan(opts destroyOptions, g *Graph, snapshot Snapshot, plan de
 	})
 }
 
-func plannedResources(g *Graph, ids []ResourceID) []PlannedResource {
+func plannedResources(g *resource.Graph, ids []resource.ResourceID) []PlannedResource {
 	resources := make([]PlannedResource, 0, len(ids))
 	for _, id := range ids {
 		resources = append(resources, PlannedResource{
@@ -110,19 +112,19 @@ func plannedResources(g *Graph, ids []ResourceID) []PlannedResource {
 	return resources
 }
 
-func buildApplyPlan(g *Graph, actual Snapshot) applyPlan {
+func buildApplyPlan(g *resource.Graph, actual Snapshot) applyPlan {
 	plan := applyPlan{
-		destroy:   make([]ResourceID, 0),
-		conflict:  make([]ResourceID, 0),
-		reconcile: make([]ResourceID, 0),
+		destroy:   make([]resource.ResourceID, 0),
+		conflict:  make([]resource.ResourceID, 0),
+		reconcile: make([]resource.ResourceID, 0),
 	}
-	destroySet := make(map[ResourceID]struct{})
+	destroySet := make(map[resource.ResourceID]struct{})
 
 	for _, r := range g.All() {
 		id := r.ID()
 		observed, exists := actual.Resources[id]
 		switch {
-		case resourceEnabled(r):
+		case resource.IsEnabled(r):
 			if exists && unmanagedCollisionBlocksApply(r, observed) {
 				plan.conflict = append(plan.conflict, id)
 				continue
@@ -149,21 +151,23 @@ func buildApplyPlan(g *Graph, actual Snapshot) applyPlan {
 	return plan
 }
 
-func unmanagedCollisionBlocksApply(r Resource, observed ObservedResource) bool {
+func unmanagedCollisionBlocksApply(r resource.Resource, observed ObservedResource) bool {
 	if observed.Status == StatusDestroyed || observed.Managed {
 		return false
 	}
 	switch r.(type) {
-	case *Container, *Network:
+	case *resource.Container:
+		return true
+	case *resource.Network:
 		return true
 	default:
 		return false
 	}
 }
 
-func buildDestroyPlan(g *Graph, actual Snapshot) destroyPlan {
+func buildDestroyPlan(g *resource.Graph, actual Snapshot) destroyPlan {
 	plan := destroyPlan{
-		destroy: make([]ResourceID, 0),
+		destroy: make([]resource.ResourceID, 0),
 	}
 	for id, observed := range actual.Resources {
 		if observed.Status == StatusDestroyed {
@@ -189,10 +193,10 @@ func validateNoOwnershipConflicts(plan applyPlan, actual Snapshot) error {
 	}
 	id := plan.conflict[0]
 	observed := actual.Resources[id]
-	return fmt.Errorf("%w: %s (%s)", errResourceOwnershipConflict, id, observed.RuntimeID)
+	return fmt.Errorf("%w: %s (%s)", ErrResourceOwnershipConflict, id, observed.RuntimeID)
 }
 
-func addResourceID(ids *[]ResourceID, seen map[ResourceID]struct{}, id ResourceID) {
+func addResourceID(ids *[]resource.ResourceID, seen map[resource.ResourceID]struct{}, id resource.ResourceID) {
 	if seen == nil {
 		*ids = append(*ids, id)
 		return

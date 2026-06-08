@@ -36,7 +36,7 @@ func registerPgAdminComponents(manifest *Manifest, opts *Options) {
 
 func pgAdminImage(ctx *Options) resource.ImageResource {
 	enabled := ctx.IncludePgAdmin
-	return &resource.RemoteImage{
+	return &resource.PulledImage{
 		Enabled:    resourceEnabledRef(enabled),
 		Ref:        imageRef(ctx.Images.Core.PgAdmin.Ref(), ContainerPgAdmin, enabled),
 		PullPolicy: resource.PullIfNotPresent,
