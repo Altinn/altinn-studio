@@ -1,9 +1,8 @@
 import { type ReactNode } from 'react';
 
+import { LanguageTranslatorProvider } from '@app/form-component/LanguageTranslatorProvider';
 import { render, screen } from '@testing-library/react';
 
-// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
-import { LanguageTranslatorProvider } from '../../LanguageTranslatorProvider';
 import { Paragraph } from './Paragraph';
 
 interface Stubs {

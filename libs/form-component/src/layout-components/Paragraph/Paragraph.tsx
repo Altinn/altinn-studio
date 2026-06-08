@@ -1,8 +1,6 @@
-// this eslint-disables will be fixed once this PR is merged:
-// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
-import { HelpText, ParagraphText } from '../../app-components';
-// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
-import { useTranslation } from '../../LanguageTranslatorProvider';
+import { HelpText, ParagraphText } from '@app/form-component/app-components';
+import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
+
 import classes from './Paragraph.module.css';
 
 export interface ParagraphProps {
