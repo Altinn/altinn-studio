@@ -1,9 +1,8 @@
 import '@digdir/designsystemet-css';
 import '@digdir/designsystemet-css/theme';
 
+import { StaticLanguageTranslatorProvider } from '@app/form-component/test/StaticLanguageTranslatorProvider';
 import type { Preview } from '@storybook/react-vite';
-
-import { withLanguageTranslator } from './withLanguageTranslator';
 
 import '@app/form-component/styles/global.css';
 
@@ -13,7 +12,12 @@ const preview: Preview = {
   },
   tags: ['autodocs'],
   decorators: [
-    withLanguageTranslator,
+    // Provide the real translations from @app/language so components using useTranslation() render translated text.
+    (Story) => (
+      <StaticLanguageTranslatorProvider>
+        <Story />
+      </StaticLanguageTranslatorProvider>
+    ),
     (Story) => (
       <div data-color-scheme='light' data-size='md'>
         <Story />
