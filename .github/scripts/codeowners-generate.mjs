@@ -51,7 +51,6 @@ const GROUPS = [
     ],
     extraPaths: [
       '.github/workflows/app-frontend-codeql.yml',
-      '.github/workflows/app-frontend-compare-repos.yml',
       '.github/workflows/app-frontend-cypress.yml',
       '.github/workflows/app-frontend-k6-browser.yml',
       '.github/workflows/app-frontend-lighthouse-ci.yml',
