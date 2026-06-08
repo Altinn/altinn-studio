@@ -105,7 +105,7 @@ export function en() {
       'You can not upload more than {0} files. No files were uploaded.',
     'form_filler.file_uploader_validation_error_file_ending': 'is not an allowed file type.',
     'form_filler.file_uploader_validation_error_file_number':
-      'You need to upload {0} attachement(s) to continue',
+      'You need to upload {0} attachment(s) to continue',
     'form_filler.file_uploader_validation_error_file_size': '{0} exeeds the valid file size.',
     'form_filler.file_uploader_validation_error_general':
       'There was a problem with the file {0}. Make sure the file has correct file type and does not exeed the size limit.',
