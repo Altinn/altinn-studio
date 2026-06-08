@@ -14,13 +14,13 @@ public class GiteaDeployEnvironmentAccessService(IGiteaClient giteaClient) : IDe
     private const string DeployTeamPrefix = "Deploy-";
 
     public async Task GrantAccessAsync(
-        string org,
         string username,
         IEnumerable<string> environments,
+        List<Team> deployTeams,
         CancellationToken cancellationToken = default
     )
     {
-        List<Team> teams = await ResolveDeployTeamsAsync(org, environments, cancellationToken);
+        List<Team> teams = ResolveDeployTeams(environments, deployTeams);
         foreach (Team team in teams)
         {
             await giteaClient.AddTeamMemberAsync(team.Id, username, cancellationToken);
@@ -28,13 +28,13 @@ public class GiteaDeployEnvironmentAccessService(IGiteaClient giteaClient) : IDe
     }
 
     public async Task RevokeAccessAsync(
-        string org,
         string username,
         IEnumerable<string> environments,
+        List<Team> deployTeams,
         CancellationToken cancellationToken = default
     )
     {
-        List<Team> teams = await ResolveDeployTeamsAsync(org, environments, cancellationToken);
+        List<Team> teams = ResolveDeployTeams(environments, deployTeams);
         foreach (Team team in teams)
         {
             await giteaClient.RemoveTeamMemberAsync(team.Id, username, cancellationToken);
@@ -50,11 +50,10 @@ public class GiteaDeployEnvironmentAccessService(IGiteaClient giteaClient) : IDe
 
     public async Task<List<string>> GetDeployEnvironmentsAsync(
         string username,
-        string org,
+        List<Team> deployTeams,
         CancellationToken cancellationToken = default
     )
     {
-        List<Team> deployTeams = await GetDeployTeamsAsync(org, cancellationToken);
         bool[] memberships = await Task.WhenAll(
             deployTeams.Select(t => giteaClient.IsTeamMemberAsync(t.Id, username, cancellationToken))
         );
@@ -91,14 +90,7 @@ public class GiteaDeployEnvironmentAccessService(IGiteaClient giteaClient) : IDe
         return deployTeams.Zip(memberLists).ToDictionary(x => x.First.Id, x => x.Second);
     }
 
-    private async Task<List<Team>> ResolveDeployTeamsAsync(
-        string org,
-        IEnumerable<string> environments,
-        CancellationToken cancellationToken
-    )
-    {
-        List<Team> deployTeams = await GetDeployTeamsAsync(org, cancellationToken);
-        return
+    private static List<Team> ResolveDeployTeams(IEnumerable<string> environments, List<Team> deployTeams) =>
         [
             .. environments
                 .Select(env =>
@@ -108,5 +100,4 @@ public class GiteaDeployEnvironmentAccessService(IGiteaClient giteaClient) : IDe
                 })
                 .OfType<Team>(),
         ];
-    }
 }
