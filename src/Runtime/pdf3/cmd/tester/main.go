@@ -14,8 +14,9 @@ import (
 	"sync"
 	"time"
 
-	"altinn.studio/devenv/pkg/harness"
+	"altinn.studio/devenv/pkg/cabundle"
 	"altinn.studio/devenv/pkg/kubernetes"
+	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/devenv/pkg/runtimes/kind"
 	localharness "altinn.studio/pdf3/test/harness"
 )
@@ -178,36 +179,216 @@ func setupRuntime(
 		variantName = "standard"
 	}
 
-	cfg := harness.Config{
-		ProjectRoot:    root,
-		Variant:        variant,
-		ClusterOptions: options,
-		Images: []harness.Image{
-			{Name: "proxy", Dockerfile: "Dockerfile.proxy", Tag: "localhost:5001/runtime-pdf3-proxy:latest"},
-			{Name: "worker", Dockerfile: "Dockerfile.worker", Tag: "localhost:5001/runtime-pdf3-worker:latest"},
-		},
-		Artifacts: []harness.Artifact{
-			{Name: "kustomize", URL: "oci://localhost:5001/runtime-pdf3-repo:local", Path: "infra/kustomize"},
-		},
-		Deployments: []harness.Deployment{{
-			Name: "pdf3",
-			Kustomize: &harness.KustomizeDeploy{
-				SyncRootDir:       "infra/kustomize/local-syncroot-" + variantName,
-				KustomizationName: "pdf3-app",
-				Namespace:         "runtime-pdf3",
-				Rollouts: []harness.Rollout{
-					{Deployment: "pdf3-proxy", Namespace: "runtime-pdf3"},
-					{Deployment: "pdf3-worker", Namespace: "runtime-pdf3"},
-				},
-			},
-		}},
+	runtime, err := kind.New(variant, filepath.Join(root, ".cache"), options)
+	if err != nil {
+		return nil, fmt.Errorf("create kind runtime: %w", err)
 	}
 
-	result, err := harness.Run(cfg)
+	graph, cleanup, err := pdf3Graph(root, runtime, variantName)
 	if err != nil {
-		return nil, fmt.Errorf("run runtime harness: %w", err)
+		return nil, err
 	}
-	return result.Runtime, nil
+	defer cleanupBestEffort(cleanup)
+
+	if err := applyRuntimeGraph(runtime, graph); err != nil {
+		return nil, err
+	}
+	return runtime, nil
+}
+
+func pdf3Graph(
+	root string,
+	runtime *kind.KindContainerRuntime,
+	variantName string,
+) (*resource.Graph, func() error, error) {
+	graph, err := runtime.Graph()
+	if err != nil {
+		return nil, nil, fmt.Errorf("build kind runtime graph: %w", err)
+	}
+	bundle, _, err := cabundle.FromEnv()
+	if err != nil {
+		return nil, nil, fmt.Errorf("resolve CA bundle: %w", err)
+	}
+	workloads := []cabundle.KubernetesWorkload{{
+		Deployment: "pdf3-worker",
+		Namespace:  "runtime-pdf3",
+	}}
+
+	published, cleanup, err := addPDF3PublishResources(graph, runtime, root, bundle, workloads)
+	if err != nil {
+		return nil, nil, err
+	}
+	deps := []resource.ResourceRef{
+		runtime.BaseInfrastructureRef(),
+		resource.Ref(published.proxy),
+		resource.Ref(published.worker),
+		resource.Ref(published.artifact),
+	}
+	if err := addPDF3DeploymentResources(graph, runtime, root, variantName, bundle, workloads, deps); err != nil {
+		cleanupBestEffort(cleanup)
+		return nil, nil, err
+	}
+
+	return graph, cleanup, nil
+}
+
+type pdf3PublishedResources struct {
+	proxy    *resource.PublishedImage
+	worker   *resource.PublishedImage
+	artifact *resource.OCIArtifact
+}
+
+func addPDF3PublishResources(
+	graph *resource.Graph,
+	runtime *kind.KindContainerRuntime,
+	root string,
+	bundle *cabundle.Bundle,
+	workloads []cabundle.KubernetesWorkload,
+) (pdf3PublishedResources, func() error, error) {
+	proxyImage := &resource.BuiltImage{
+		ContextPath: root,
+		Dockerfile:  "Dockerfile.proxy",
+		Tag:         "pdf3-proxy:latest",
+	}
+	workerImage := &resource.BuiltImage{
+		ContextPath: root,
+		Dockerfile:  "Dockerfile.worker",
+		Tag:         "pdf3-worker:latest",
+	}
+	proxyPublished := &resource.PublishedImage{
+		Ref:       "localhost:5001/runtime-pdf3-proxy:latest",
+		Source:    resource.Ref(proxyImage),
+		DependsOn: []resource.ResourceRef{runtime.RegistryRef()},
+	}
+	workerPublished := &resource.PublishedImage{
+		Ref:       "localhost:5001/runtime-pdf3-worker:latest",
+		Source:    resource.Ref(workerImage),
+		DependsOn: []resource.ResourceRef{runtime.RegistryRef()},
+	}
+	preparedArtifact, err := cabundle.PrepareKubernetesArtifact(
+		filepath.Join(root, "infra/kustomize"),
+		bundle,
+		workloads,
+	)
+	if err != nil {
+		return pdf3PublishedResources{}, nil, fmt.Errorf("prepare pdf3 kustomize artifact: %w", err)
+	}
+	artifact := &resource.OCIArtifact{
+		Format:    resource.OCIArtifactFormatGeneric,
+		Name:      "runtime-pdf3-kustomize",
+		URL:       "oci://localhost:5001/runtime-pdf3-repo:local",
+		Path:      preparedArtifact.Path,
+		DependsOn: []resource.ResourceRef{runtime.RegistryRef()},
+	}
+	if err := graph.AddAll(
+		proxyImage,
+		workerImage,
+		proxyPublished,
+		workerPublished,
+		artifact,
+	); err != nil {
+		cleanupBestEffort(preparedArtifact.Cleanup)
+		return pdf3PublishedResources{}, nil, fmt.Errorf("add pdf3 publish resources: %w", err)
+	}
+
+	return pdf3PublishedResources{
+		proxy:    proxyPublished,
+		worker:   workerPublished,
+		artifact: artifact,
+	}, preparedArtifact.Cleanup, nil
+}
+
+func addPDF3DeploymentResources(
+	graph *resource.Graph,
+	runtime *kind.KindContainerRuntime,
+	root string,
+	variantName string,
+	bundle *cabundle.Bundle,
+	workloads []cabundle.KubernetesWorkload,
+	deps []resource.ResourceRef,
+) error {
+	configMapSet, hasConfigMapSet, err := cabundle.KubernetesConfigMapObjectSet(
+		bundle,
+		runtime.ClusterRef(),
+		"deployment-pdf3-ca-bundle",
+		workloads,
+		deps,
+	)
+	if err != nil {
+		return fmt.Errorf("create pdf3 CA bundle ConfigMap resource: %w", err)
+	}
+	if hasConfigMapSet {
+		if err := graph.AddAll(configMapSet); err != nil {
+			return fmt.Errorf("add pdf3 CA bundle ConfigMap resource: %w", err)
+		}
+		deps = append(deps, resource.Ref(configMapSet))
+	}
+
+	objects := &resource.KubernetesObjectSet{
+		Name:      "deployment-pdf3",
+		Cluster:   runtime.ClusterRef(),
+		Path:      filepath.Join(root, "infra/kustomize/local-syncroot-"+variantName),
+		DependsOn: deps,
+		Readiness: []resource.KubernetesReadinessCheck{
+			{
+				Kind:      resource.KubernetesReadinessFluxKustomization,
+				Namespace: "runtime-pdf3",
+				Name:      "pdf3-app",
+			},
+			{
+				Kind:      resource.KubernetesReadinessDeploymentAvailable,
+				Namespace: "runtime-pdf3",
+				Name:      "pdf3-proxy",
+			},
+			{
+				Kind:      resource.KubernetesReadinessDeploymentAvailable,
+				Namespace: "runtime-pdf3",
+				Name:      "pdf3-worker",
+			},
+		},
+	}
+	if err := graph.AddAll(objects); err != nil {
+		return fmt.Errorf("add pdf3 Kubernetes object set resource: %w", err)
+	}
+	return nil
+}
+
+func applyRuntimeGraph(runtime *kind.KindContainerRuntime, graph *resource.Graph) error {
+	if err := stdoutln("Applying runtime resource graph..."); err != nil {
+		return err
+	}
+	start := time.Now()
+	runtimeExecutor, err := runtime.Executor()
+	if err != nil {
+		return fmt.Errorf("create runtime executor: %w", err)
+	}
+	if _, err := runtimeExecutor.Apply(context.Background(), graph); err != nil {
+		return fmt.Errorf("apply runtime resource graph: %w", err)
+	}
+	if runtime.KubernetesClient == nil {
+		if err := runtime.InitializeClients(); err != nil {
+			return fmt.Errorf("initialize runtime clients: %w", err)
+		}
+	}
+	if err := stdoutf(
+		"  [Applied runtime resource graph took %s]\n",
+		time.Since(start).Round(10*time.Millisecond),
+	); err != nil {
+		return err
+	}
+	if err := stdoutln("=== Runtime Setup Complete ==="); err != nil {
+		return err
+	}
+	return nil
+}
+
+func cleanupBestEffort(cleanup func() error) {
+	if cleanup == nil {
+		return
+	}
+	if err := cleanup(); err != nil {
+		stderrf("warning: %v\n", err)
+	}
 }
 
 func runStart(args []string) int {
@@ -272,14 +453,27 @@ func runStop() int {
 		return writeErrorf("Failed to find project root", err)
 	}
 
-	result, err := harness.LoadExisting(filepath.Join(root, ".cache"))
+	runtime, err := kind.LoadCurrent(filepath.Join(root, ".cache"))
 	if err != nil {
 		return writeErrorf("Failed to load runtime", err)
 	}
+	closeRuntime := true
+	defer func() {
+		if closeRuntime {
+			if closeErr := runtime.Close(); closeErr != nil {
+				stderrf("Failed to close runtime: %v\n", closeErr)
+			}
+		}
+	}()
 
-	if err := result.Runtime.Stop(); err != nil {
+	if err := runtime.Stop(); err != nil {
 		return writeErrorf("Failed to stop runtime", err)
 	}
+	if err := runtime.Close(); err != nil {
+		closeRuntime = false
+		return writeErrorf("Failed to close runtime", err)
+	}
+	closeRuntime = false
 
 	if err := stdoutln("=== Runtime Stopped ==="); err != nil {
 		stderrf("failed to write stop status: %v\n", err)
@@ -781,7 +975,12 @@ func waitForDeployments(runtime *kind.KindContainerRuntime) error {
 				errCh <- fmt.Errorf("write deployment status: %w", err)
 				return
 			}
-			if err := runtime.KubernetesClient.RolloutStatus(target.name, "runtime-pdf3", 2*time.Minute); err != nil {
+			if err := runtime.KubernetesClient.RolloutStatus(
+				context.Background(),
+				target.name,
+				"runtime-pdf3",
+				2*time.Minute,
+			); err != nil {
 				errCh <- fmt.Errorf("%s: %w", target.name, err)
 			}
 		}(target)

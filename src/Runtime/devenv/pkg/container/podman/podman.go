@@ -170,6 +170,15 @@ func (c *Client) Push(ctx context.Context, image string) error {
 	return nil
 }
 
+// Tag creates or updates an image tag.
+func (c *Client) Tag(ctx context.Context, source, target string) error {
+	output, err := runPodmanCommand(ctx, []string{"tag", source, target})
+	if err != nil {
+		return fmt.Errorf("podman tag failed: %w\nOutput: %s", err, string(output))
+	}
+	return nil
+}
+
 // CreateContainer creates and optionally starts a container.
 func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig) (string, error) {
 	args := buildCreateArgs(cfg)

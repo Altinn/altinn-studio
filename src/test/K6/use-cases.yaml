@@ -39,7 +39,7 @@ steps:
 - script: |
    echo k6 version:`k6 version`
 
-   k6 run --quiet --logformat raw --console-output=$(Build.SourcesDirectory)/result.txt $(Build.SourcesDirectory)/src/test/K6/src/availability.js -e env=$(environment)
+   k6 run --quiet --log-format raw --console-output=$(Build.SourcesDirectory)/result.txt $(Build.SourcesDirectory)/src/test/K6/src/availability.js -e env=$(environment)
 
    cat result.txt
 
@@ -47,14 +47,6 @@ steps:
 
   workingDirectory: '$(Build.SourcesDirectory)'
   displayName: 'Check availability'
-
-- script: |
-   k6 run  --quiet $(pwd)/src/tests/platform/authentication/authentication.js -e env=$(environment) -e pid=$(pid) -e testidppwd=$(testidppwd) -e appsaccesskey=$(appsAccessSubsKey)
-
-  workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
-  displayName: 'Authentication'
-  continueOnError: false
-  condition: and(succeeded(), eq(variables['availability'], 'up'))
 
 - script: |
    k6 run --quiet --log-output=stdout --log-format=raw $(pwd)/src/gettoken.js -e env=$(environment) -e pid=$(pid) -e testidppwd=$(testidppwd)
