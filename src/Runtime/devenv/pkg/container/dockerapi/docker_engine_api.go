@@ -254,6 +254,14 @@ func (c *Client) Push(ctx context.Context, img string) error {
 	return nil
 }
 
+// Tag creates or updates an image tag.
+func (c *Client) Tag(ctx context.Context, source, target string) error {
+	if err := c.cli.ImageTag(ctx, source, target); err != nil {
+		return fmt.Errorf("tag image %s as %s: %w", source, target, err)
+	}
+	return nil
+}
+
 func runtimeCLI(platform types.ContainerPlatform) (string, error) {
 	binary := platform.BuildCLI()
 	if binary == "" {

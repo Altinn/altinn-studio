@@ -53,11 +53,10 @@ jobs:
 
       - name: type-check
         run: yarn typecheck
-      #
-      # todo:
-      # - name: run eslint
-      #   run: yarn lint
-      #
+
+      - name: run eslint
+        run: yarn lint
+
       - name: run tests
         run: yarn test
         # TODO : Run with coverage (yarn test --coverage ?)

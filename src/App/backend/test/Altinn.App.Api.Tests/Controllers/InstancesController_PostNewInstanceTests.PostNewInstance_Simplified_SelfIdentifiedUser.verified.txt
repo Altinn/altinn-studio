@@ -127,11 +127,51 @@
       HasParent: true
     },
     {
+      Name: Process.GenerateChangeEvent,
+      IdFormat: W3C,
+      Tags: [
+        {
+          process.event.type: process_StartEvent
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.GenerateChangeEvent,
+      IdFormat: W3C,
+      Tags: [
+        {
+          process.event.type: process_StartTask
+        }
+      ],
+      HasParent: true
+    },
+    {
       Name: Process.HandleEvents,
       IdFormat: W3C,
       Tags: [
         {
           instance.guid: Guid_2
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.LoadAuthDetails,
+      IdFormat: W3C,
+      Tags: [
+        {
+          user.authentication.type: User
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.LoadAuthDetails,
+      IdFormat: W3C,
+      Tags: [
+        {
+          user.authentication.type: User
         }
       ],
       HasParent: true
@@ -175,6 +215,16 @@
     {
       Name: ProcessClient.GetProcessDefinition,
       IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessNavigator.GetNextTask,
+      IdFormat: W3C,
+      Tags: [
+        {
+          process.current.element: StartEvent_1
+        }
+      ],
       HasParent: true
     },
     {
