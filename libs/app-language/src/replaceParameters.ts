@@ -8,19 +8,14 @@ export type SimpleLangParam = string | number | undefined;
  */
 export function replaceParameters(nameString: string, params: SimpleLangParam[]): string {
   let mutatingString = nameString;
-  for (const index in params) {
-    const param = params[index];
-    let paramAsString: string | undefined;
-    if (typeof param === 'string') {
-      paramAsString = param;
-    } else if (typeof param === 'number') {
-      paramAsString = param.toString();
+  params.forEach((param, index) => {
+    if (typeof param === 'string' || typeof param === 'number') {
+      const paramAsString = String(param);
+      // Use a replacer function so the param value is inserted verbatim; a plain replacement string
+      // would interpret `$`-tokens (`$&`, `$$`, `$1`, ...) instead of treating them as literal data.
+      mutatingString = mutatingString.replaceAll(`{${index}}`, () => paramAsString);
     }
-
-    if (paramAsString !== undefined) {
-      mutatingString = mutatingString.replaceAll(`{${index}}`, paramAsString);
-    }
-  }
+  });
 
   return mutatingString;
 }

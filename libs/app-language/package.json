@@ -8,9 +8,12 @@
   },
   "private": true,
   "scripts": {
-    "typecheck": "tsc --noEmit -p ./"
+    "typecheck": "tsc --noEmit -p ./",
+    "test": "vitest",
+    "test:ci": "vitest run"
   },
   "devDependencies": {
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "4.1.5"
   }
 }
