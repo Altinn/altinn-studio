@@ -276,7 +276,7 @@ func addGatewayPublishResources(
 		Enabled:     nil,
 		ContextPath: srcRoot,
 		Dockerfile:  filepath.Join(srcRoot, "Runtime", "gateway", "Dockerfile"),
-		Tag:         "devenv-build/gateway:latest",
+		Tag:         "gateway:latest",
 		Build: types.BuildOptions{
 			CacheFrom: nil,
 			CacheTo:   nil,

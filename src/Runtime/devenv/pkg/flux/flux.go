@@ -108,13 +108,8 @@ func LocalInstallOptions() InstallOptions {
 	}
 }
 
-// Install installs Flux to the cluster with the specified components and options.
-func (c *FluxClient) Install(components []string, installOpts InstallOptions) error {
-	return c.InstallContext(context.Background(), components, installOpts)
-}
-
-// InstallContext installs Flux to the cluster with the specified components and options using ctx.
-func (c *FluxClient) InstallContext(
+// Install installs Flux to the cluster with the specified components and options using ctx.
+func (c *FluxClient) Install(
 	ctx context.Context,
 	components []string,
 	installOpts InstallOptions,
@@ -418,16 +413,16 @@ func toInterfaceSlice(s []string) []any {
 	return result
 }
 
-// ReconcileHelmRepositoryContext reconciles a HelmRepository source.
+// ReconcileHelmRepository reconciles a HelmRepository source.
 // For OCI-type repositories, this is a no-op since they don't have reconciliation status.
-func (c *FluxClient) ReconcileHelmRepositoryContext(
+func (c *FluxClient) ReconcileHelmRepository(
 	ctx context.Context,
 	name,
 	namespace string,
 	opts ReconcileOptions,
 ) error {
 	// Check if this is an OCI-type repository - they don't have Ready status
-	repoType, err := c.kubeClient.GetFieldStringContext(ctx, helmRepositoryGVR, name, namespace, "spec", "type")
+	repoType, err := c.kubeClient.GetFieldString(ctx, helmRepositoryGVR, name, namespace, "spec", "type")
 	if err == nil && repoType == "oci" {
 		// OCI repositories are static references, no reconciliation needed
 		return nil
@@ -435,8 +430,8 @@ func (c *FluxClient) ReconcileHelmRepositoryContext(
 	return c.reconcile(ctx, helmRepositoryGVR, name, namespace, opts)
 }
 
-// ReconcileHelmReleaseContext reconciles a HelmRelease resource.
-func (c *FluxClient) ReconcileHelmReleaseContext(
+// ReconcileHelmRelease reconciles a HelmRelease resource.
+func (c *FluxClient) ReconcileHelmRelease(
 	ctx context.Context,
 	name,
 	namespace string,
@@ -451,8 +446,8 @@ func (c *FluxClient) ReconcileHelmReleaseContext(
 	return c.reconcile(ctx, HelmReleaseGVR, name, namespace, opts)
 }
 
-// ReconcileKustomizationContext reconciles a Kustomization resource.
-func (c *FluxClient) ReconcileKustomizationContext(
+// ReconcileKustomization reconciles a Kustomization resource.
+func (c *FluxClient) ReconcileKustomization(
 	ctx context.Context,
 	name,
 	namespace string,
@@ -474,7 +469,7 @@ func (c *FluxClient) reconcileSource(
 	name, namespace string,
 	opts ReconcileOptions,
 ) error {
-	sourceRef, err := c.kubeClient.GetSourceRefContext(ctx, gvr, name, namespace)
+	sourceRef, err := c.kubeClient.GetSourceRef(ctx, gvr, name, namespace)
 	if err != nil {
 		return fmt.Errorf("failed to get sourceRef for %s/%s: %w", gvr.Resource, name, err)
 	}
@@ -484,7 +479,7 @@ func (c *FluxClient) reconcileSource(
 		return fmt.Errorf("%w: %s", errUnknownSourceKind, sourceRef.Kind)
 	}
 	if sourceRef.Kind == sourcev1.HelmRepositoryKind {
-		return c.ReconcileHelmRepositoryContext(ctx, sourceRef.Name, sourceRef.Namespace, opts)
+		return c.ReconcileHelmRepository(ctx, sourceRef.Name, sourceRef.Namespace, opts)
 	}
 
 	return c.reconcile(ctx, sourceGVR, sourceRef.Name, sourceRef.Namespace, opts)
@@ -500,7 +495,7 @@ func (c *FluxClient) reconcile(
 ) error {
 	timestamp := time.Now().Format(time.RFC3339Nano)
 
-	if err := c.kubeClient.AnnotateContext(
+	if err := c.kubeClient.Annotate(
 		ctx,
 		gvr,
 		name,

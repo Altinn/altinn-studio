@@ -248,12 +248,12 @@ func addPDF3PublishResources(
 	proxyImage := &resource.BuiltImage{
 		ContextPath: root,
 		Dockerfile:  "Dockerfile.proxy",
-		Tag:         "devenv-build/pdf3-proxy:latest",
+		Tag:         "pdf3-proxy:latest",
 	}
 	workerImage := &resource.BuiltImage{
 		ContextPath: root,
 		Dockerfile:  "Dockerfile.worker",
-		Tag:         "devenv-build/pdf3-worker:latest",
+		Tag:         "pdf3-worker:latest",
 	}
 	proxyPublished := &resource.PublishedImage{
 		Ref:       "localhost:5001/runtime-pdf3-proxy:latest",
@@ -975,7 +975,12 @@ func waitForDeployments(runtime *kind.KindContainerRuntime) error {
 				errCh <- fmt.Errorf("write deployment status: %w", err)
 				return
 			}
-			if err := runtime.KubernetesClient.RolloutStatus(target.name, "runtime-pdf3", 2*time.Minute); err != nil {
+			if err := runtime.KubernetesClient.RolloutStatus(
+				context.Background(),
+				target.name,
+				"runtime-pdf3",
+				2*time.Minute,
+			); err != nil {
 				errCh <- fmt.Errorf("%s: %w", target.name, err)
 			}
 		}(target)

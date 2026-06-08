@@ -251,7 +251,7 @@ type fakeKube struct {
 	rolloutContextMatched bool
 }
 
-func (f *fakeKube) ApplyManifestContext(ctx context.Context, yamlContent string) (string, error) {
+func (f *fakeKube) ApplyManifest(ctx context.Context, yamlContent string) (string, error) {
 	f.applyContextMatched = ctx.Value(testContextKey{}) == testContextValue
 	f.appliedManifest = yamlContent
 	return "applied", nil
@@ -261,7 +261,7 @@ func (f *fakeKube) KustomizeRender(path string) (string, error) {
 	return "rendered:" + path, nil
 }
 
-func (f *fakeKube) RolloutStatusContext(
+func (f *fakeKube) RolloutStatus(
 	ctx context.Context,
 	deployment,
 	namespace string,
@@ -281,7 +281,7 @@ type fakeFlux struct {
 	helmReleaseContextMatched   []bool
 }
 
-func (f *fakeFlux) ReconcileHelmReleaseContext(
+func (f *fakeFlux) ReconcileHelmRelease(
 	ctx context.Context,
 	name,
 	namespace string,
@@ -294,7 +294,7 @@ func (f *fakeFlux) ReconcileHelmReleaseContext(
 	return nil
 }
 
-func (f *fakeFlux) ReconcileKustomizationContext(
+func (f *fakeFlux) ReconcileKustomization(
 	ctx context.Context,
 	name,
 	namespace string,

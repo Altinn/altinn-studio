@@ -127,7 +127,7 @@ func (f *fakeKube) ApplyObjects(_ context.Context, objs ...runtime.Object) (stri
 	return "applied", nil
 }
 
-func (f *fakeKube) Get(schema.GroupVersionResource, string, string) error {
+func (f *fakeKube) Get(context.Context, schema.GroupVersionResource, string, string) error {
 	return nil
 }
 

@@ -76,11 +76,11 @@ type fakeKube struct {
 	rollouts []string
 }
 
-func (f *fakeKube) GetContext(context.Context, schema.GroupVersionResource, string, string) error {
+func (f *fakeKube) Get(context.Context, schema.GroupVersionResource, string, string) error {
 	return nil
 }
 
-func (f *fakeKube) RolloutStatusContext(
+func (f *fakeKube) RolloutStatus(
 	_ context.Context,
 	deployment,
 	namespace string,
@@ -94,7 +94,7 @@ type fakeFlux struct {
 	installed []string
 }
 
-func (f *fakeFlux) InstallContext(_ context.Context, components []string, _ flux.InstallOptions) error {
+func (f *fakeFlux) Install(_ context.Context, components []string, _ flux.InstallOptions) error {
 	f.installed = append(f.installed, components...)
 	return nil
 }

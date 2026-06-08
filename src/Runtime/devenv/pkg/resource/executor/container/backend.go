@@ -50,17 +50,10 @@ func (b Backend) Supports(r resource.Resource) bool {
 
 // SupportsObserved reports whether this backend can destroy a discovered runtime resource.
 func (b Backend) SupportsObserved(observed executor.ObservedResource) bool {
+	//nolint:exhaustive // This backend only owns image, network, and container runtime resources.
 	switch observed.Type {
 	case executor.ResourceTypeImage, executor.ResourceTypeNetwork, executor.ResourceTypeContainer:
 		return true
-	case executor.ResourceTypeUnknown,
-		executor.ResourceTypeKindCluster,
-		executor.ResourceTypeFlux,
-		executor.ResourceTypeOCI,
-		executor.ResourceTypeKubernetes,
-		executor.ResourceTypeLocalFile,
-		executor.ResourceTypeGitCheckout:
-		return false
 	default:
 		return false
 	}

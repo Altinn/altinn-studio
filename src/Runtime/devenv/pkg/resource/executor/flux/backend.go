@@ -41,12 +41,12 @@ type clusterClients struct {
 }
 
 type kubernetesOperations interface {
-	GetContext(ctx context.Context, gvr schema.GroupVersionResource, name, namespace string) error
-	RolloutStatusContext(ctx context.Context, deployment, namespace string, timeout time.Duration) error
+	Get(ctx context.Context, gvr schema.GroupVersionResource, name, namespace string) error
+	RolloutStatus(ctx context.Context, deployment, namespace string, timeout time.Duration) error
 }
 
 type fluxOperations interface {
-	InstallContext(ctx context.Context, components []string, installOpts flux.InstallOptions) error
+	Install(ctx context.Context, components []string, installOpts flux.InstallOptions) error
 }
 
 // New creates a Flux resource backend.
@@ -140,11 +140,11 @@ func (b *Backend) applyFluxInstallation(ctx context.Context, installation *resou
 	if len(components) == 0 {
 		components = []string{"source-controller", "helm-controller", "kustomize-controller"}
 	}
-	if err := clients.flux.InstallContext(ctx, components, flux.LocalInstallOptions()); err != nil {
+	if err := clients.flux.Install(ctx, components, flux.LocalInstallOptions()); err != nil {
 		return fmt.Errorf("install flux controllers: %w", err)
 	}
 	for _, component := range components {
-		if err := clients.kube.RolloutStatusContext(
+		if err := clients.kube.RolloutStatus(
 			ctx,
 			component,
 			"flux-system",
@@ -161,8 +161,8 @@ func (b *Backend) fluxInstalled(ctx context.Context, installation *resource.Flux
 	if err != nil {
 		return false, err
 	}
-	return clients.kube.GetContext(ctx, kubernetes.NamespaceGVR, "flux-system", "") == nil &&
-		clients.kube.GetContext(ctx, kubernetes.DeploymentGVR, "source-controller", "flux-system") == nil, nil
+	return clients.kube.Get(ctx, kubernetes.NamespaceGVR, "flux-system", "") == nil &&
+		clients.kube.Get(ctx, kubernetes.DeploymentGVR, "source-controller", "flux-system") == nil, nil
 }
 
 func (b *Backend) ensureClusterClients(ref resource.ResourceRef) (clusterClients, error) {

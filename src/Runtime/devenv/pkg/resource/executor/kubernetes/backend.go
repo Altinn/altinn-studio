@@ -42,19 +42,19 @@ type clusterClients struct {
 }
 
 type kubernetesOperations interface {
-	ApplyManifestContext(ctx context.Context, yamlContent string) (string, error)
+	ApplyManifest(ctx context.Context, yamlContent string) (string, error)
 	KustomizeRender(path string) (string, error)
-	RolloutStatusContext(ctx context.Context, deployment, namespace string, timeout time.Duration) error
+	RolloutStatus(ctx context.Context, deployment, namespace string, timeout time.Duration) error
 }
 
 type fluxOperations interface {
-	ReconcileHelmReleaseContext(
+	ReconcileHelmRelease(
 		ctx context.Context,
 		name, namespace string,
 		withSource bool,
 		opts flux.ReconcileOptions,
 	) error
-	ReconcileKustomizationContext(
+	ReconcileKustomization(
 		ctx context.Context,
 		name, namespace string,
 		withSource bool,
@@ -148,7 +148,7 @@ func (b *Backend) applyObjectSet(ctx context.Context, objects *resource.Kubernet
 	if err != nil {
 		return err
 	}
-	if _, applyErr := clients.kube.ApplyManifestContext(ctx, manifest); applyErr != nil {
+	if _, applyErr := clients.kube.ApplyManifest(ctx, manifest); applyErr != nil {
 		return fmt.Errorf("apply Kubernetes object set %s: %w", objects.Name, applyErr)
 	}
 	for _, readiness := range objects.Readiness {
@@ -200,7 +200,7 @@ func (b *Backend) applyReadiness(
 	opts := fluxReconcileOptions(readiness, timeout)
 	switch readiness.Kind {
 	case resource.KubernetesReadinessDeploymentAvailable:
-		if err := clients.kube.RolloutStatusContext(ctx, readiness.Name, readiness.Namespace, timeout); err != nil {
+		if err := clients.kube.RolloutStatus(ctx, readiness.Name, readiness.Namespace, timeout); err != nil {
 			return clients, fmt.Errorf("wait for deployment rollout: %w", err)
 		}
 		return clients, nil
@@ -209,7 +209,7 @@ func (b *Backend) applyReadiness(
 		if fluxErr != nil {
 			return clients, fluxErr
 		}
-		if err := updatedClients.flux.ReconcileKustomizationContext(
+		if err := updatedClients.flux.ReconcileKustomization(
 			ctx,
 			readiness.Name,
 			readiness.Namespace,
@@ -224,7 +224,7 @@ func (b *Backend) applyReadiness(
 		if fluxErr != nil {
 			return clients, fluxErr
 		}
-		if err := updatedClients.flux.ReconcileHelmReleaseContext(
+		if err := updatedClients.flux.ReconcileHelmRelease(
 			ctx,
 			readiness.Name,
 			readiness.Namespace,

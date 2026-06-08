@@ -58,7 +58,7 @@ type kindOperations interface {
 
 type kubernetesOperations interface {
 	ApplyObjects(ctx context.Context, objs ...runtime.Object) (string, error)
-	Get(gvr schema.GroupVersionResource, name, namespace string) error
+	Get(ctx context.Context, gvr schema.GroupVersionResource, name, namespace string) error
 }
 
 // New creates a kind resource backend.

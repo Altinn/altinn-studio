@@ -158,9 +158,9 @@ func (c *KubernetesClient) applyUnstructured(ctx context.Context, obj *unstructu
 	return fmt.Sprintf("%s/%s configured", strings.ToLower(gvk.Kind), obj.GetName()), nil
 }
 
-// ApplyManifestContext applies Kubernetes manifest YAML content using Server-Side Apply.
+// ApplyManifest applies Kubernetes manifest YAML content using Server-Side Apply.
 // This function is idempotent - it can be called multiple times safely.
-func (c *KubernetesClient) ApplyManifestContext(ctx context.Context, yamlContent string) (string, error) {
+func (c *KubernetesClient) ApplyManifest(ctx context.Context, yamlContent string) (string, error) {
 	decoder := utilyaml.NewYAMLOrJSONDecoder(strings.NewReader(yamlContent), yamlDecoderBufferSize)
 	var results []string
 
@@ -247,15 +247,9 @@ func ObjectToUnstructured(obj runtime.Object) (*unstructured.Unstructured, error
 	return &unstructured.Unstructured{Object: content}, nil
 }
 
-// Get checks if a Kubernetes resource exists.
+// Get checks if a Kubernetes resource exists using ctx.
 // Returns nil if the resource exists, error otherwise.
-func (c *KubernetesClient) Get(gvr schema.GroupVersionResource, name, namespace string) error {
-	return c.GetContext(context.Background(), gvr, name, namespace)
-}
-
-// GetContext checks if a Kubernetes resource exists using ctx.
-// Returns nil if the resource exists, error otherwise.
-func (c *KubernetesClient) GetContext(
+func (c *KubernetesClient) Get(
 	ctx context.Context,
 	gvr schema.GroupVersionResource,
 	name,
@@ -289,15 +283,9 @@ func (c *KubernetesClient) CRDExists(crdName string) (bool, error) {
 	return true, nil
 }
 
-// RolloutStatus waits for a deployment rollout to complete using a watch.
+// RolloutStatus waits for a deployment rollout to complete using a watch and ctx.
 // Returns an error if the rollout fails or times out.
-func (c *KubernetesClient) RolloutStatus(deployment, namespace string, timeout time.Duration) error {
-	return c.RolloutStatusContext(context.Background(), deployment, namespace, timeout)
-}
-
-// RolloutStatusContext waits for a deployment rollout to complete using a watch and ctx.
-// Returns an error if the rollout fails or times out.
-func (c *KubernetesClient) RolloutStatusContext(
+func (c *KubernetesClient) RolloutStatus(
 	ctx context.Context,
 	deployment,
 	namespace string,
@@ -593,8 +581,8 @@ func (c *KubernetesClient) CollectLogs(opts LogOptions) error {
 	return nil
 }
 
-// AnnotateContext sets or updates an annotation on a Kubernetes resource.
-func (c *KubernetesClient) AnnotateContext(
+// Annotate sets or updates an annotation on a Kubernetes resource.
+func (c *KubernetesClient) Annotate(
 	ctx context.Context,
 	gvr schema.GroupVersionResource,
 	name,
@@ -672,8 +660,8 @@ func (c *KubernetesClient) GetConditionStatus(
 	return "", nil
 }
 
-// GetFieldStringContext returns a string field value from a resource at the given path.
-func (c *KubernetesClient) GetFieldStringContext(
+// GetFieldString returns a string field value from a resource at the given path.
+func (c *KubernetesClient) GetFieldString(
 	ctx context.Context,
 	gvr schema.GroupVersionResource,
 	name, namespace string,
@@ -709,8 +697,8 @@ type SourceRef struct {
 	Namespace string
 }
 
-// GetSourceRefContext returns the sourceRef from a HelmRelease or Kustomization resource.
-func (c *KubernetesClient) GetSourceRefContext(
+// GetSourceRef returns the sourceRef from a HelmRelease or Kustomization resource.
+func (c *KubernetesClient) GetSourceRef(
 	ctx context.Context,
 	gvr schema.GroupVersionResource,
 	name,
