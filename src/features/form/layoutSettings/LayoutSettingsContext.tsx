@@ -130,6 +130,7 @@ const defaults: Omit<Required<GlobalPageSettings>, 'validationOnNavigation'> = {
   showExpandWidthButton: false,
   autoSaveBehavior: 'onChangeFormData',
   expandedWidth: false,
+  hideAppNameInPdf: false,
   taskNavigation: [],
   navigationTitle: 'navigation.form_pages',
 };
