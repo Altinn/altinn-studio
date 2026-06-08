@@ -1,10 +1,12 @@
 import { createContext, type JSX, type PropsWithChildren, type ReactNode, useContext } from 'react';
 
-type LangFn = (key: string | undefined, params?: TranslationParams) => ReactNode;
+import type { ValidLanguageKey } from '@app/language';
+
+type LangFn = (key: ValidLanguageKey | undefined, params?: TranslationParams) => ReactNode;
 type TranslationParams = (string | number | undefined)[];
-type TranslateFn = (key: string, params?: TranslationParams) => string;
+type TranslateFn = (key: ValidLanguageKey, params?: TranslationParams) => string;
 type TranslateComponent = (args: {
-  tKey: string;
+  tKey: ValidLanguageKey;
   params?: TranslationParams;
 }) => string | JSX.Element | JSX.Element[] | null;
 

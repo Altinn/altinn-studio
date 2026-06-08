@@ -13,7 +13,7 @@
     "lint:fix": "yarn lint --fix",
     "test": "vitest",
     "test:ci": "vitest run",
-    "typecheck": "tsc --noEmit -p ./",
+    "typecheck": "tsc --noEmit",
     "storybook": "storybook dev -p 6008",
     "build-storybook": "storybook build"
   },
@@ -33,6 +33,7 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@app/language": "workspace:*",
     "@chromatic-com/storybook": "^5.0.1",
     "@digdir/designsystemet-css": "1.11.1",
     "@digdir/designsystemet-react": "1.11.1",

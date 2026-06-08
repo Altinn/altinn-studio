@@ -11,7 +11,9 @@
     "resolveJsonModule": true,
     "noUnusedLocals": true,
     "paths": {
-      "@app/form-component/*": ["./src/*"]
+      "@app/form-component/*": ["./src/*"],
+      "@app/language": ["../app-language/src/index.ts"],
+      "@app/language/*": ["../app-language/src/*"]
     },
     "plugins": [
       {

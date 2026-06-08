@@ -27,7 +27,8 @@ export function en() {
     'confirm.deadline': 'Deadline',
     'confirm.sender': 'Party',
     'confirm.title': 'Check your responses before submitting',
-    'custom_actions.general_error': 'Something went wrong with this action. Please try again later.',
+    'custom_actions.general_error':
+      'Something went wrong with this action. Please try again later.',
     'date_picker.invalid_date_message': 'Invalid date format. Use the format {0}.',
     'date_picker.cancel_label': 'Cancel',
     'date_picker.clear_label': 'Clear',
@@ -42,8 +43,10 @@ export function en() {
     'date_picker.format_text': 'For example {0}',
     'devtools.filter_logs': 'Filter logs',
     'time_picker.invalid_time_message': 'Invalid time format. Use format {0}.',
-    'time_picker.min_time_exceeded': 'The time you selected is before the earliest allowed time ({0}).',
-    'time_picker.max_time_exceeded': 'The time you selected is after the latest allowed time ({0}).',
+    'time_picker.min_time_exceeded':
+      'The time you selected is before the earliest allowed time ({0}).',
+    'time_picker.max_time_exceeded':
+      'The time you selected is after the latest allowed time ({0}).',
     'timepicker.hours': 'Hours',
     'timepicker.minutes': 'Minutes',
     'timepicker.seconds': 'Seconds',
@@ -52,10 +55,13 @@ export function en() {
     'feedback.body':
       'Waiting for verification. When this is complete you will be forwarded to the next step or receipt automatically.',
     'form_filler.error_add_subform': 'Failed to add subform entry, please try again.',
-    'form_filler.error_delete_subform': 'An error occurred while deleting the subform entry, please try again.',
+    'form_filler.error_delete_subform':
+      'An error occurred while deleting the subform entry, please try again.',
     'form_filler.error_fetch_subform': 'Error loading form data',
-    'form_filler.error_max_count_reached_subform_server': 'The maximum number of {0} entries has been reached',
-    'form_filler.error_max_count_reached_subform_local': 'The maximum number of {0} entries has been reached ({1})',
+    'form_filler.error_max_count_reached_subform_server':
+      'The maximum number of {0} entries has been reached',
+    'form_filler.error_max_count_reached_subform_local':
+      'The maximum number of {0} entries has been reached ({1})',
     'form_filler.error_min_count_not_reached_subform': 'At least {0} {1} entry is required',
     'form_filler.error_validation_inside_subform': 'There are errors in one of more {0} entries',
     'form_filler.subform_default_header': 'Items',
@@ -81,7 +87,8 @@ export function en() {
     'form_filler.file_uploader_list_status_done': 'Uploaded',
     'form_filler.file_uploader_status_scanning': 'Scanning...',
     'form_filler.file_uploader_status_infected': 'Infected',
-    'form_filler.file_uploader_infected_file_alert': 'The file {0} is infected with malware and cannot be used.',
+    'form_filler.file_uploader_infected_file_alert':
+      'The file {0} is infected with malware and cannot be used.',
     'form_filler.file_uploader_infected_file_action': 'Please upload a clean file.',
     'form_filler.file_uploader_remove_infected_files': 'Remove infected files before submission.',
     'form_filler.file_uploader_max_size_mb': 'Maximum file size {0} MB',
@@ -90,13 +97,15 @@ export function en() {
     'form_filler.file_uploader_show_more_errors': 'Show {0} more',
     'form_filler.file_uploader_show_fewer_errors': 'Show fewer',
     'form_filler.file_uploader_valid_file_format': 'Valid file types are:',
-    'form_filler.file_uploader_failed_to_upload_file': 'The file <u title="{1}">{0}</u> could not be uploaded',
+    'form_filler.file_uploader_failed_to_upload_file':
+      'The file <u title="{1}">{0}</u> could not be uploaded',
     'form_filler.file_uploader_validation_error_delete':
       'Something went wrong trying to delete the file, please try again.',
     'form_filler.file_uploader_validation_error_exceeds_max_files':
       'You can not upload more than {0} files. No files were uploaded.',
     'form_filler.file_uploader_validation_error_file_ending': 'is not an allowed file type.',
-    'form_filler.file_uploader_validation_error_file_number': 'You need to upload {0} attachement(s) to continue',
+    'form_filler.file_uploader_validation_error_file_number':
+      'You need to upload {0} attachement(s) to continue',
     'form_filler.file_uploader_validation_error_file_size': '{0} exeeds the valid file size.',
     'form_filler.file_uploader_validation_error_general':
       'There was a problem with the file {0}. Make sure the file has correct file type and does not exeed the size limit.',
@@ -201,7 +210,8 @@ export function en() {
     'general.wait_for_attachments': 'Hold on, we are processing attachments',
     'general.wait_for_attachments_infected': 'Remove infected files before continuing',
     'general.wait_for_attachments_scanning': 'Scanning files for malware...',
-    'general.part_of_form_completed': "This part of the form is not currently available. You can't change it.",
+    'general.part_of_form_completed':
+      "This part of the form is not currently available. You can't change it.",
     'general.invalid_task_id': 'This part of the form does not exist.',
     'general.navigate_to_current_process': 'Navigate to the current process step',
     'group.row_error':
@@ -211,7 +221,8 @@ export function en() {
     'iframe_component.unsupported_browser_title': 'Your browser is unsupported',
     'iframe_component.unsupported_browser':
       'Your browser does not support iframes that use srcdoc. This may result in not being able to see all the content intended to be displayed here. We recommend trying a different browser.',
-    'image_upload_component.animated_warning': 'If the image is animated, only the first frame will be shown.',
+    'image_upload_component.animated_warning':
+      'If the image is animated, only the first frame will be shown.',
     'image_upload_component.button_change': 'Change image',
     'image_upload_component.button_delete': 'Delete image',
     'image_upload_component.button_save': 'Save image',
@@ -219,7 +230,8 @@ export function en() {
     'image_upload_component.slider_zoom': 'Zoom',
     'image_upload_component.summary_empty': "You haven't uploaded an image",
     'image_upload_component.reset': 'Reset position and zoom',
-    'image_upload_component.error_invalid_file_type': 'Invalid file format. Please upload an image file.',
+    'image_upload_component.error_invalid_file_type':
+      'Invalid file format. Please upload an image file.',
     'image_upload_component.error_file_size_exceeded': 'File size exceeds 10MB limit.',
     'image_upload_component.error_required': 'You must upload an image',
     'image_upload_component.valid_file_types': 'Image files only',
@@ -239,23 +251,28 @@ export function en() {
     'instantiate.unknown_error_title': 'Unknown error',
     'instantiate.unknown_error_text': 'An unknown error occcurred, please try again later.',
     'instantiate.unknown_error_status': 'Unknown error',
-    'instantiate.unknown_error_customer_support': 'If the problem persists, contact us at customer service at {0}.',
+    'instantiate.unknown_error_customer_support':
+      'If the problem persists, contact us at customer service at {0}.',
     'instantiate.unknown_error_show_details': 'Show error details',
-    'instantiate.forbidden_action_error_title': 'You do not have permission to perform this action.',
-    'instantiate.forbidden_action_error_text': 'It looks like you do not have permission to perform this action.',
+    'instantiate.forbidden_action_error_title':
+      'You do not have permission to perform this action.',
+    'instantiate.forbidden_action_error_text':
+      'It looks like you do not have permission to perform this action.',
     'instantiate.forbidden_action_error_status': '403 - Forbidden',
     'instantiate.forbidden_action_error_customer_support':
       'If you need help, contact us at customer service <br/> {0}.',
     'instantiate.authorization_error_main_title': 'You do not have permission to view this app.',
     'instantiate.authorization_error_instantiate_validation_title': 'You cannot start this service',
-    'instantiate.authorization_error_rights': 'It looks like you do not have permission to start this service for {0}',
+    'instantiate.authorization_error_rights':
+      'It looks like you do not have permission to start this service for {0}',
     'instantiate.authorization_error_ask':
       'If you are representing a person it is the one you are representing that can give you the required rights to start this service. If you are you representing an organization you have to ask for the required rights from persons with access delegation rights within your organization.',
     'instantiate.authorization_error_check_rights':
       '<a href="https://{0}/ui/Profile/" target="_blank">See who has rights to delegate access under "Others with rights within the organization"</a>.',
     'instantiate.authorization_error_info_rights':
       '<a href="https://{0}/hjelp/profil/enkelttjenester-og-roller/" target="_blank">Learn more about roles and rights</a>.',
-    'instantiate.authorization_error_info_customer_service': 'You can also contact customer service at {0}.',
+    'instantiate.authorization_error_info_customer_service':
+      'You can also contact customer service at {0}.',
     'instantiate.authorization_error_instantiate_validation_info_customer_service':
       'If you need help, contact customer service at {0}.',
     'instantiate.starting': 'Just a minute, we’ll get the information you need',
@@ -272,7 +289,8 @@ export function en() {
     'party_selection.no_valid_selection_first_part': 'This is a app for {0}',
     'party_selection.no_valid_selection_second_part':
       'It looks like you do not have access to a party who is allowed to start {0}.',
-    'party_selection.no_valid_selection_third_part': 'To start this app, you must have accesses associated with {0}.',
+    'party_selection.no_valid_selection_third_part':
+      'To start this app, you must have accesses associated with {0}.',
     'party_selection.no_valid_selection_binding_word': 'and',
     'party_selection.change_party': 'change party here',
     'party_selection.read_more_roles_link': 'You can read more about roles and rights here.',
@@ -294,7 +312,8 @@ export function en() {
     'party_selection.why_seeing_this': 'Why am I seeing this?',
     'party_selection.seeing_this_preference':
       'You can change your [profile settings](https://altinn.no/ui/Profile) to not get prompted for party selection each time you start a new instance. You can find this setting under **Profile** > **Advanced settings** > **Do not ask what party I represent each time I start to fill in a new form**.',
-    'party_selection.seeing_this_override': 'This app has been configured to always prompt you for party selection.',
+    'party_selection.seeing_this_override':
+      'This app has been configured to always prompt you for party selection.',
     'payment.pay': 'Pay',
     'payment.summary': 'Summary',
     'payment.alert.paid': 'You have paid!',
@@ -327,8 +346,10 @@ export function en() {
     'organisation_lookup.orgnr_label': 'Organisation number',
     'organisation_lookup.org_name': 'Organisation name',
     'organisation_lookup.from_registry_description': 'From the CCR',
-    'organisation_lookup.validation_error_not_found': 'Organisation number not found in the registry',
-    'organisation_lookup.validation_invalid_response_from_server': 'Invalid response from the server',
+    'organisation_lookup.validation_error_not_found':
+      'Organisation number not found in the registry',
+    'organisation_lookup.validation_invalid_response_from_server':
+      'Invalid response from the server',
     'organisation_lookup.unknown_error': 'An unknown error occurred. Please try again later',
     'organisation_lookup.validation_error_orgnr': 'The organisation number is invalid',
     'organisation_lookup.error_required': 'You have to fill out {0} and fetch details',
@@ -349,7 +370,8 @@ export function en() {
       'Too many requests. You have been locked out of the search functionality for one hour. Please try again later.',
     'person_lookup.validation_error_forbidden':
       'You do not have permission to perform this action. A security level of minimum 2 is required.',
-    'person_lookup.validation_invalid_response_from_server': 'An error occurred. Please try again later.',
+    'person_lookup.validation_invalid_response_from_server':
+      'An error occurred. Please try again later.',
     'person_lookup.unknown_error': 'An unknown error occurred. Please try again later.',
     'helptext.button_title': 'Help',
     'helptext.button_title_prefix': 'Helptext for',
@@ -412,16 +434,20 @@ export function en() {
       'As long as the component has configuration errors, we cannot show it in the form. Fix the errors and try again.',
     'config_error.subform_no_datatype_layoutset':
       'Data type specification not found in App/ui/{folderId}/Settings.json',
-    'config_error.subform_no_datatype_appmetadata': "Data type '{0}' was not found in applicationmetadata.json",
+    'config_error.subform_no_datatype_appmetadata':
+      "Data type '{0}' was not found in applicationmetadata.json",
     'config_error.subform_misconfigured_add_button':
       "Data type '{0}' is marked as 'disallowUserCreate=true', but the subform component is configured with 'showAddButton=true'. This is a contradiction, as the user will never be permitted to perform the add-button operation.",
     'config_error.file_upload_same_binding':
       'There are multiple FileUpload components with the same data model binding. Each component must have a unique binding. Other components with the same binding: {0}',
     'config_error.deletion_strategy_no_group':
       'The fields deletionStrategy and checked can only be used together with group.',
-    'config_error.group_no_deletion_strategy': 'When you have set group, you must also set deletionStrategy.',
-    'config_error.soft_delete_no_checked': 'When you have set deletionStrategy to soft, you must also set "checked".',
-    'config_error.hard_delete_with_checked': 'When you have set deletionStrategy to hard, you cannot set "checked".',
+    'config_error.group_no_deletion_strategy':
+      'When you have set group, you must also set deletionStrategy.',
+    'config_error.soft_delete_no_checked':
+      'When you have set deletionStrategy to soft, you must also set "checked".',
+    'config_error.hard_delete_with_checked':
+      'When you have set deletionStrategy to hard, you cannot set "checked".',
     'version_error.version_mismatch': 'Version mismatch',
     'version_error.version_mismatch_message':
       'This version of the app frontend is not compatible with the version of the backend libraries you are using. Update to the latest version of the packages and try again.',
@@ -449,7 +475,8 @@ export function en() {
     'signing.submit_panel_description': 'All parties have signed! Select "{0}" to complete.',
     'signing.submit_button': 'Submit form',
     'signing.submit_panel_radio_group_legend': 'Who do you want to sign on behalf of?',
-    'signing.submit_panel_radio_group_description': 'The following are parties you may sign on behalf of.',
+    'signing.submit_panel_radio_group_description':
+      'The following are parties you may sign on behalf of.',
     'signing.submit_panel_single_org_choice': 'You are signing on behalf of {0}.',
     'signing.submit_panel_myself_choice': 'Myself',
     'signing.awaiting_other_signatures_panel_title': 'Waiting for signatures',
@@ -461,8 +488,10 @@ export function en() {
       'There are missing signatures. You can submit the form when all parties have signed.',
     'signing.no_action_required_panel_title_has_signed': 'You have signed the form',
     'signing.no_action_required_panel_title_not_signed': 'Nothing to sign',
-    'signing.no_action_required_panel_description_has_signed': "You're all set! You can now go back to your inbox.",
-    'signing.no_action_required_panel_description_not_signed': 'You do not have access to sign this form.',
+    'signing.no_action_required_panel_description_has_signed':
+      "You're all set! You can now go back to your inbox.",
+    'signing.no_action_required_panel_description_not_signed':
+      'You do not have access to sign this form.',
     'signing.no_action_required_button': 'Go to inbox',
     'signing.api_error_panel_title': 'Could not fetch signing status',
     'signing.api_error_panel_description':
@@ -481,10 +510,12 @@ export function en() {
     'signing.error_signing': 'Something went wrong when signing. Please try again.',
     'signing.error_signing_not_confirmed_documents':
       'You have to confirm that you have read the documents before signing.',
-    'signing.error_signing_no_on_behalf_of': 'You have to choose who you are signing on behalf of before signing.',
+    'signing.error_signing_no_on_behalf_of':
+      'You have to choose who you are signing on behalf of before signing.',
     'signee_list.parse_error': 'Error loading signee list.',
     'signee_list.unknown_api_error': 'An error occurred when fetching signees.',
-    'signee_list.api_error_display': 'An error occurred when fetching signees. See devtool logs for more information.',
+    'signee_list.api_error_display':
+      'An error occurred when fetching signees. See devtool logs for more information.',
     'signee_list.no_signees': 'No signees found.',
     'signee_list.signee_status_signed': 'Signed',
     'signee_list.signee_status_waiting': 'Waiting for signing',
@@ -519,7 +550,8 @@ export function en() {
     'service_task.retry_button': 'Try again',
     'service_task.back_button': 'Go back',
     'service_task_custom_pdf_default.title': 'Something went wrong',
-    'service_task_custom_pdf_default.body': 'An error occurred during automatic processing of the form.',
+    'service_task_custom_pdf_default.body':
+      'An error occurred during automatic processing of the form.',
     'service_task_custom_pdf_default.help_text':
       'You can try to process again by clicking "Try again". If the problem persists, contact customer service at +47 75 00 60 00.',
     'service_task_custom_pdf_default.retry_button': 'Try again',

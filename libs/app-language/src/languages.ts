@@ -1,8 +1,14 @@
-import { en } from 'src/language/texts/en';
-import { nb } from 'src/language/texts/nb';
-import { nn } from 'src/language/texts/nn';
+import { en } from './texts/en';
+import { nb } from './texts/nb';
+import { nn } from './texts/nn';
 
 export type FixedLanguageList = ReturnType<typeof en>;
+
+/**
+ * All valid language keys, derived from the English texts which act as the source of truth.
+ * Use this to type-check that a translation key actually exists.
+ */
+export type ValidLanguageKey = keyof FixedLanguageList;
 
 // This makes sure we don't generate a new object
 // each time (which would fail shallow comparisons, in for example React.memo)
