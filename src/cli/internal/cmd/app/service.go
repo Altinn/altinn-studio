@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"altinn.studio/studioctl/internal/auth"
+	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/studio"
 )
@@ -17,12 +18,12 @@ var ErrNotLoggedIn = errors.New("not logged in")
 
 // Service contains app command logic.
 type Service struct {
-	credentialsHome string
+	cfg *config.Config
 }
 
 // NewService creates a new app command service.
-func NewService(credentialsHome string) *Service {
-	return &Service{credentialsHome: credentialsHome}
+func NewService(cfg *config.Config) *Service {
+	return &Service{cfg: cfg}
 }
 
 // UpdateResult contains detected app location for update flow.
@@ -65,9 +66,26 @@ type CloneResult struct {
 	AbsPath string
 }
 
+// SearchRequest contains repository search inputs.
+type SearchRequest struct {
+	Env   string
+	Query string
+	Sort  string
+	Order string
+	Page  int
+	Limit int
+}
+
+// SearchResult contains repositories found by app search.
+type SearchResult struct {
+	Repositories []studio.Repository
+	TotalCount   int
+	TotalPages   int
+}
+
 // ResolveHost resolves the configured host for an environment.
 func (s *Service) ResolveHost(env string) (string, error) {
-	creds, err := auth.LoadCredentials(s.credentialsHome)
+	creds, err := auth.LoadCredentials(s.cfg.Home)
 	if err != nil {
 		return "", fmt.Errorf("load credentials: %w", err)
 	}
@@ -85,7 +103,7 @@ func (s *Service) ResolveHost(env string) (string, error) {
 
 // Clone clones an app repository and returns destination metadata.
 func (s *Service) Clone(ctx context.Context, req CloneRequest) (CloneResult, error) {
-	creds, err := auth.LoadCredentials(s.credentialsHome)
+	creds, err := auth.LoadCredentials(s.cfg.Home)
 	if err != nil {
 		return CloneResult{}, fmt.Errorf("load credentials: %w", err)
 	}
@@ -98,7 +116,7 @@ func (s *Service) Clone(ctx context.Context, req CloneRequest) (CloneResult, err
 		return CloneResult{}, fmt.Errorf("get credentials for %s: %w", req.Env, err)
 	}
 
-	client := studio.NewClient(envCreds)
+	client := studio.NewClientForEnv(req.Env, s.cfg.Home, envCreds, s.cfg.Version)
 	cloneErr := client.CloneRepo(ctx, req.Org, req.Repo, req.Destination)
 	if cloneErr != nil {
 		return CloneResult{}, fmt.Errorf("clone repo: %w", cloneErr)
@@ -111,5 +129,39 @@ func (s *Service) Clone(ctx context.Context, req CloneRequest) (CloneResult, err
 
 	return CloneResult{
 		AbsPath: absPath,
+	}, nil
+}
+
+// Search searches app repositories visible in the selected environment.
+func (s *Service) Search(ctx context.Context, req SearchRequest) (SearchResult, error) {
+	creds, err := auth.LoadCredentials(s.cfg.Home)
+	if err != nil {
+		return SearchResult{}, fmt.Errorf("load credentials: %w", err)
+	}
+
+	envCreds, err := creds.Get(req.Env)
+	if err != nil {
+		if errors.Is(err, auth.ErrNotLoggedIn) {
+			return SearchResult{}, fmt.Errorf("%w: %s", ErrNotLoggedIn, req.Env)
+		}
+		return SearchResult{}, fmt.Errorf("get credentials for %s: %w", req.Env, err)
+	}
+
+	client := studio.NewClientForEnv(req.Env, s.cfg.Home, envCreds, s.cfg.Version)
+	result, err := client.SearchApps(ctx, studio.SearchAppsRequest{
+		Query: req.Query,
+		Sort:  req.Sort,
+		Order: req.Order,
+		Page:  req.Page,
+		Limit: req.Limit,
+	})
+	if err != nil {
+		return SearchResult{}, fmt.Errorf("search repos: %w", err)
+	}
+
+	return SearchResult{
+		Repositories: result.Data,
+		TotalCount:   result.TotalCount,
+		TotalPages:   result.TotalPages,
 	}, nil
 }

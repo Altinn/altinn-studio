@@ -1,6 +1,5 @@
 import { useEnvironmentTitle } from 'admin/features/apps/hooks/useEnvironmentTitle';
 import classes from './AppMetrics.module.css';
-import { useParams } from 'react-router-dom';
 import {
   StudioAlert,
   StudioCard,
@@ -13,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import 'chartjs-adapter-date-fns';
 
 import { AppMetric } from './AppMetric';
+import { AppMetricPlaceholder } from './AppMetricPlaceholder';
 import { useAppHealthMetricsQuery } from 'admin/features/apps/hooks/queries/useAppHealthMetricsQuery';
 import { AppHealthMetric } from './AppHealthMetric';
 import { TimeRangeSelect } from 'admin/features/apps/components/TimeRangeSelect/TimeRangeSelect';
@@ -29,7 +29,8 @@ import {
 import { useAppErrorMetricsQuery } from 'admin/features/apps/hooks/queries/useAppErrorMetricsQuery';
 import { AppErrorMetric } from './AppErrorMetric';
 import { isAxiosError } from 'axios';
-import { useCurrentOrg } from 'admin/layout/PageLayout';
+import { useCurrentOrg } from 'admin/contexts/OrgContext';
+import { useRequiredRoutePathsParams } from 'admin/hooks/useRequiredRoutePathsParams';
 
 ChartJS.register(LinearScale, BarElement, ArcElement, Title, Tooltip, Filler, TimeScale);
 
@@ -39,15 +40,16 @@ export type AppMetricsProps = {
 };
 
 export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
-  const { org, environment, app } = useParams() as {
-    org: string;
-    environment: string;
-    app: string;
-  };
-  const { t, i18n } = useTranslation();
+  const {
+    owner: org,
+    environment,
+    app,
+  } = useRequiredRoutePathsParams(['owner', 'environment', 'app']);
+  const { t } = useTranslation();
 
   const envTitle = useEnvironmentTitle(environment);
-  const orgName = useCurrentOrg().name[i18n.language];
+  const currentOrg = useCurrentOrg();
+  const orgName = currentOrg.full_name || currentOrg.username;
 
   const {
     data: appHealthMetrics,
@@ -147,6 +149,13 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
       } else {
         return <StudioError className={classes.metric}>{t('admin.metrics.app.error')}</StudioError>;
       }
+    }
+
+    const hasData = appMetrics?.some((metric) => metric.counts.length > 0);
+    if (!hasData) {
+      return appMetrics?.map((metric) => (
+        <AppMetricPlaceholder key={metric.name} metric={metric} range={range} />
+      ));
     }
 
     return appMetrics?.map((metric) => (

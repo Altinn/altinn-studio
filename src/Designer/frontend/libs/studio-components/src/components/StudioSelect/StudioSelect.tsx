@@ -1,4 +1,3 @@
-import { useId } from 'react';
 import type { ReactElement } from 'react';
 import classes from './StudioSelect.module.css';
 import { Select } from '@digdir/designsystemet-react';
@@ -23,18 +22,12 @@ export function StudioSelect({
   className,
   ...rest
 }: StudioSelectProps): ReactElement {
-  const id: string = useId();
-  const descriptionId: string | undefined = description ? `${id}-description` : undefined;
-  const hasError: boolean = !!error;
-
   return (
     <StudioField className={cn(classes.field, className)}>
       <StudioLabel>{label}</StudioLabel>
-      {description && <StudioParagraph id={descriptionId}>{description}</StudioParagraph>}
-      <Select aria-invalid={hasError} aria-describedby={descriptionId} {...rest}>
-        {children}
-      </Select>
-      {hasError && <StudioValidationMessage>{error}</StudioValidationMessage>}
+      {description && <StudioParagraph data-field='description'>{description}</StudioParagraph>}
+      <Select {...rest}>{children}</Select>
+      {!!error && <StudioValidationMessage>{error}</StudioValidationMessage>}
     </StudioField>
   );
 }

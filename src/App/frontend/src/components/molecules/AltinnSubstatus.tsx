@@ -1,8 +1,8 @@
 import React from 'react';
 
+import { Flex } from '@app/form-component';
 import { Paragraph } from '@digdir/designsystemet-react';
 
-import { Flex } from 'src/app-components/Flex/Flex';
 import classes from 'src/components/molecules/AltinnSubstatus.module.css';
 
 export interface IInformationPaperProps {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json.Serialization;
@@ -172,6 +173,17 @@ public static class TestingApis
             }
         );
 
+        app.MapPost(
+                "/test/fixture-configuration/reload",
+                () =>
+                {
+                    FixtureConfigurationService.Instance.Reload();
+                    return Results.Ok();
+                }
+            )
+            .AllowAnonymous()
+            .WithName("API testing - POST - reload fixture configuration");
+
         // AUTHZ
         // Minimal API endpoints that should be protected by scopes
         app.MapGet(
@@ -180,10 +192,15 @@ public static class TestingApis
                 {
                     var service =
                         serviceProvider.GetRequiredService<Altinn.App.Api.Infrastructure.Middleware.ScopeAuthorizationService>();
+                    var metadata = service
+                        .Metadata.Where(endpoint =>
+                            endpoint.Endpoint
+                                is not "POST /test/fixture-configuration/reload"
+                                    and not "GET /{org}/{app}/api/testing/telemetry/current-activity"
+                        )
+                        .ToArray();
 
-                    return Results.Ok(
-                        new { hasDefinedCustomScopes = service.HasDefinedCustomScopes, metadata = service.Metadata }
-                    );
+                    return Results.Ok(new { hasDefinedCustomScopes = service.HasDefinedCustomScopes, metadata });
                 }
             )
             .WithName("API testing - GET - metadata");
@@ -223,6 +240,27 @@ public static class TestingApis
             )
             .AllowAnonymous()
             .WithName("API testing - GET - public");
+
+        app.MapGet(
+                "/{org}/{app}/api/testing/telemetry/current-activity",
+                () =>
+                {
+                    var activity = Activity.Current;
+                    return Results.Json(
+                        new CurrentActivityResult
+                        {
+                            TraceId = activity?.TraceId.ToString(),
+                            SpanId = activity?.SpanId.ToString(),
+                            ParentSpanId = activity?.ParentSpanId.ToString(),
+                            ParentId = activity?.ParentId,
+                            Recorded = activity?.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded),
+                            IsAllDataRequested = activity?.IsAllDataRequested,
+                        }
+                    );
+                }
+            )
+            .AllowAnonymous()
+            .WithName("API testing - GET - current activity");
 
         return app;
     }

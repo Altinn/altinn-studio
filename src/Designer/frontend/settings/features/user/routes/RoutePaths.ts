@@ -1,4 +1,5 @@
 export enum RoutePaths {
-  User = 'user',
   ApiKeys = 'api-keys',
+  Privacy = 'privacy',
+  StudioctlAuth = 'studioctl-auth',
 }

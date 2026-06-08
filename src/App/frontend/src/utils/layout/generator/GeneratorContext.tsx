@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import type { PropsWithChildren, RefObject } from 'react';
 
-import { ContextNotProvided, createContext } from 'src/core/contexts/context';
+import { createContext } from 'src/core/contexts/context';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompIntermediate, CompIntermediateExact, CompTypes, ILayouts } from 'src/layout/layout';
@@ -59,7 +59,7 @@ interface GeneratorContext {
   setNodeProp: (request: SetNodePropRequest) => void;
 }
 
-const { Provider, useCtx, useLaxCtx } = createContext<GeneratorContext>({
+const { Provider, useCtx } = createContext<GeneratorContext>({
   name: 'Generator',
   required: true,
 });
@@ -102,22 +102,23 @@ export function GeneratorNodeProvider({ children, parentBaseId, item }: PropsWit
  * This provider is meant to be used for pages, i.e. the top level components in the hierarchy. Above that
  * we have the GeneratorGlobalProvider.
  */
-export function GeneratorPageProvider({ children, ...rest }: PropsWithChildren<PageProviderProps>) {
+export function GeneratorPageProvider({ children, pageKey, isValid }: PropsWithChildren<PageProviderProps>) {
   const parent = useCtx();
   const value: GeneratorContext = useMemo(
     () => ({
       ...parent,
-      parentBaseId: rest.pageKey,
-      parentIndexedId: rest.pageKey,
+      parentBaseId: pageKey,
+      parentIndexedId: pageKey,
       parentType: 'page',
 
       // For a page, the depth starts at 1 because in principle the page is the top level node, at depth 0, so
       // when a page provides a depth indicator to its children (the top level components on that page), it should be 1.
       depth: 1,
 
-      ...rest,
+      pageKey,
+      isValid,
     }),
-    [parent, rest],
+    [parent, pageKey, isValid],
   );
 
   return <Provider value={value}>{children}</Provider>;
@@ -158,7 +159,14 @@ function GeneratorRowProviderInner({
 export const GeneratorRowProvider = React.memo(GeneratorRowProviderInner);
 GeneratorRowProvider.displayName = 'GeneratorRowProvider';
 
-export function GeneratorGlobalProvider({ children, ...rest }: PropsWithChildren<GlobalProviderProps>) {
+export function GeneratorGlobalProvider({
+  children,
+  layouts,
+  registry,
+  addNode,
+  removeNode,
+  setNodeProp,
+}: PropsWithChildren<GlobalProviderProps>) {
   const value: GeneratorContext = useMemo(
     () => ({
       item: undefined,
@@ -170,18 +178,18 @@ export function GeneratorGlobalProvider({ children, ...rest }: PropsWithChildren
       parentIndexedId: undefined,
       parentType: undefined,
       pageKey: undefined,
-      ...rest,
+      layouts,
+      registry,
+      addNode,
+      removeNode,
+      setNodeProp,
     }),
-    [rest],
+    [layouts, registry, addNode, removeNode, setNodeProp],
   );
   return <Provider value={value}>{children}</Provider>;
 }
 
 export const GeneratorInternal = {
-  useIsInsideGenerator: () => {
-    const ctx = useLaxCtx();
-    return ctx === ContextNotProvided ? false : ctx.depth > 0;
-  },
   useRegistry: () => useCtx().registry,
   useIdMutators: () => useCtx().idMutators ?? emptyArray,
   useRecursiveMutators: () => useCtx().recursiveMutators ?? emptyArray,

@@ -181,7 +181,7 @@ internal sealed class ScopeAuthorizationService(
     public IReadOnlyList<ApiEndpointInfo> Metadata =>
         _metadataLookup
             ?.Select(kvp => new ApiEndpointInfo(kvp.Key.ToString(), kvp.Value))
-            .OrderBy(kv => kv.Endpoint)
+            .OrderBy(kv => kv.Endpoint, StringComparer.Ordinal)
             .ToArray()
         ?? [];
 
@@ -250,6 +250,7 @@ internal sealed class ScopeAuthorizationService(
                 || !string.IsNullOrWhiteSpace(appMetadata.ApiScopes?.Users?.Write)
                 || !string.IsNullOrWhiteSpace(appMetadata.ApiScopes?.ServiceOwners?.Read)
                 || !string.IsNullOrWhiteSpace(appMetadata.ApiScopes?.ServiceOwners?.Write);
+
             ProcessEndpoints(appMetadata);
 
             _initialization.TrySetResult();
@@ -272,10 +273,23 @@ internal sealed class ScopeAuthorizationService(
     {
         var metadataLookup = new Dictionary<ApiEndpoint, ScopeRequirementMetadata>();
         var endpoints = _endpointDataSources.SelectMany(ed => ed.Endpoints).ToArray();
+        var routeEndpoints = endpoints.OfType<RouteEndpoint>().ToArray();
+
         foreach (var endpointObj in endpoints)
         {
             if (endpointObj is not RouteEndpoint endpoint)
+            {
+                if (IsMvcInertEndpoint(endpointObj))
+                {
+                    _logger.LogDebug(
+                        "Skipping non-routable MVC inert endpoint {DisplayName} during scope authorization initialization",
+                        endpointObj.DisplayName
+                    );
+                    continue;
+                }
+
                 throw new Exception("Unexpected endpoint type: " + endpointObj.GetType().FullName);
+            }
 
             var httpMethods = GetEndpointHttpMethods(endpoint);
             foreach (var httpMethod in httpMethods)
@@ -310,18 +324,13 @@ internal sealed class ScopeAuthorizationService(
 
         if (_logger.IsEnabled(LogLevel.Debug) && HasDefinedCustomScopes)
         {
-            endpoints = _endpointDataSources.SelectMany(ed => ed.Endpoints).ToArray();
-
             var message = new StringBuilder("Endpoint API scope authorization summary:\n");
-            foreach (var endpoint in endpoints)
+            foreach (var endpoint in routeEndpoints)
             {
                 var httpMethods = GetEndpointHttpMethods(endpoint);
                 foreach (var httpMethod in httpMethods)
                 {
-                    var apiEndpoint = new ApiEndpoint(
-                        endpoint as RouteEndpoint ?? throw new Exception("Not a route endpoint"),
-                        httpMethod
-                    );
+                    var apiEndpoint = new ApiEndpoint(endpoint, httpMethod);
                     var metadata = _metadataLookup.GetValueOrDefault(apiEndpoint);
                     if (metadata is not null)
                     {
@@ -373,6 +382,16 @@ internal sealed class ScopeAuthorizationService(
 
             _logger.LogDebug(message.ToString());
         }
+    }
+
+    private static bool IsMvcInertEndpoint(Endpoint endpoint)
+    {
+        if (endpoint.GetType() != typeof(Endpoint))
+            return false;
+
+        // MapFallbackToController creates non-routable MVC "inert" endpoints for dynamic selection.
+        // They are represented by base Endpoint instances with MVC action metadata, not RouteEndpoint instances.
+        return endpoint.Metadata.GetMetadata<ControllerActionDescriptor>() is not null;
     }
 
     private void ProcessEndpoint(

@@ -1,6 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["local>Altinn/renovate-config", ":prHourlyLimit4"],
+  "extends": [
+    "local>Altinn/renovate-config",
+    ":prHourlyLimit4",
+    "helpers:pinGitHubActionDigestsToSemver"
+  ],
   "customManagers": [
     {
       "customType": "regex",
@@ -51,6 +55,11 @@
     },
     {
       "matchFileNames": ["src/App/**"],
+      "matchPackageNames": ["/^@digdir\\/designsystemet-/"],
+      "groupName": "Design system in App"
+    },
+    {
+      "matchFileNames": ["src/App/**"],
       "additionalBranchPrefix": "app/",
       "commitMessageSuffix": " (app)"
     },
@@ -63,17 +72,6 @@
       "matchFileNames": ["src/Runtime/pdf3/**"],
       "additionalBranchPrefix": "pdf3/",
       "commitMessageSuffix": " (pdf3)"
-    },
-    {
-      "matchFileNames": ["src/App/**"],
-      "matchPackageNames": [
-        "@digdir/designsystemet-react",
-        "@digdir/designsystemet-css",
-        "@digdir/designsystemet-theme"
-      ],
-      "groupName": "Digdir design system",
-      "schedule": ["* 0-7 * * 1-5"],
-      "minimumReleaseAge": "0"
     },
     {
       "matchFileNames": ["src/App/**"],
@@ -115,7 +113,6 @@
         "src/Altinn.Platform/**",
         "src/test/**",
         "src/Runtime/localtest/**",
-        "src/App/frontend/**",
         "src/App/backend/**",
         "src/App/fileanalyzers/**",
         "src/App/codelists/**"

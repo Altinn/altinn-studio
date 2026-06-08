@@ -1,6 +1,9 @@
+#nullable disable
+
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
 
+using Altinn.Studio.EnvTopology;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
@@ -45,7 +48,7 @@ using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.Register.Implementation;
 using LocalTest.Services.Register.Interface;
 using LocalTest.Services.Storage.Implementation;
-using LocalTest.Tunnel;
+using LocalTest.HostBridge;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.FileProviders;
@@ -81,6 +84,7 @@ namespace LocalTest
             services.Configure<Altinn.Common.PEP.Configuration.PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 
             services.Configure<LocalPlatformSettings>(Configuration.GetSection("LocalPlatformSettings"));
+            services.AddBoundTopology(Configuration);
             services.AddControllersWithViews();
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
@@ -113,6 +117,7 @@ namespace LocalTest
             services.AddTransient<TestDataService>();
             services.AddTransient<TenorDataRepository>();
             services.AddSingleton<IInstanceLockRepository, InstanceLockRepository>();
+            services.AddTransient<IProcessDataCleanupService, ProcessDataCleanupService>();
 
             services.AddSingleton<IContextHandler, ContextHandler>();
             services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPoint>();
@@ -203,19 +208,12 @@ namespace LocalTest
 
             services.AddDirectoryBrowser();
 
-            // The tunnel is opportunistic on top of HTTP mode, so the existing LocalAppHttp path stays in place.
-            if ("http".Equals(Configuration["LocalPlatformSettings:LocalAppMode"], StringComparison.InvariantCultureIgnoreCase))
-            {
-                services.AddTransient<ILocalApp, LocalAppHttp>();
-            }
-            else
-            {
-                services.AddTransient<ILocalApp, LocalAppFile>();
-            }
+            services.AddTransient<ILocalApp, LocalAppHttp>();
 
             services.AddTransient<ILocalFrontendService, LocalFrontendService>();
-            services.AddSingleton<AppTunnelClient>();
-            services.AddSingleton<AppTunnelProxy>();
+            services.AddSingleton<HostBridgeClient>();
+            services.AddSingleton<EnvRouteProxy>();
+            services.AddSingleton<HostRouteProxy>();
 
             services.AddHttpForwarder();
 
@@ -274,10 +272,10 @@ namespace LocalTest
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.Map(Altinn.Studio.AppTunnel.TunnelDefaults.EndpointPath, async context =>
+                endpoints.Map(Altinn.Studio.HostBridge.HostBridgeDefaults.EndpointPath, async context =>
                 {
-                    var appTunnelClient = context.RequestServices.GetRequiredService<AppTunnelClient>();
-                    await appTunnelClient.Accept(context, context.RequestAborted);
+                    var hostBridgeClient = context.RequestServices.GetRequiredService<HostBridgeClient>();
+                    await hostBridgeClient.Accept(context, context.RequestAborted);
                 });
 
                 endpoints.MapControllerRoute(

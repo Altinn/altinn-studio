@@ -1,4 +1,3 @@
-#nullable enable
 using System.Text.Json;
 
 using Microsoft.AspNetCore.Mvc;
@@ -42,7 +41,7 @@ public class FrontendVersionController : Controller
             frontendVersion.Versions.Add(new SelectListItem()
             {
                 Text = $"Local dev-server on port {localPort.Port} ({localPort.Branch} branch)",
-                Value = $"http://localhost:{localPort.Port}/",
+                Value = localPort.Url,
                 Group = groupLocalVersions
             });
         }

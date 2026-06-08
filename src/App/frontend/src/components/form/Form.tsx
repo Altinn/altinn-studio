@@ -1,13 +1,15 @@
 import React, { useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 
-import { Flex } from 'src/app-components/Flex/Flex';
+import { Flex } from '@app/form-component';
+
 import classes from 'src/components/form/Form.module.css';
 import { MessageBanner } from 'src/components/form/MessageBanner';
 import { ErrorReport, ErrorReportList } from 'src/components/message/ErrorReport';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
-import { NavigateToStartUrl } from 'src/components/wrappers/ProcessWrapper';
+import { Loader } from 'src/core/loading/Loader';
 import { SearchParams } from 'src/core/routing/types';
+import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useAllAttachments } from 'src/features/attachments/hooks';
@@ -15,15 +17,15 @@ import { FileScanResults } from 'src/features/attachments/types';
 import { FormStore } from 'src/features/form/FormContext';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { replaceAndPreventResetOptions } from 'src/features/navigation/navigationOptions';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
 import { useQueryKey } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
-import { useCurrentView, useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useCurrentView, useNavigatePage, useStartUrl } from 'src/hooks/useNavigatePage';
 import { getComponentCapabilities } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { getPageTitle } from 'src/utils/getPageTitle';
@@ -53,14 +55,11 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   useEffect(() => {
     if (shouldValidateFormPage && !shouldNavigateToStart) {
       onFormSubmitValidation();
-      setSearchParams(
-        (params) => {
-          const nextParams = new URLSearchParams(params);
-          nextParams.delete(SearchParams.Validate);
-          return nextParams;
-        },
-        { replace: true },
-      );
+      setSearchParams((params) => {
+        const nextParams = new URLSearchParams(params);
+        nextParams.delete(SearchParams.Validate);
+        return nextParams;
+      }, replaceAndPreventResetOptions);
     }
   }, [onFormSubmitValidation, searchParams, setSearchParams, shouldValidateFormPage, shouldNavigateToStart]);
 
@@ -82,7 +81,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   useSetExpandedWidth();
 
   if (shouldNavigateToStart) {
-    return <NavigateToStartUrl forceCurrentTask={false} />;
+    return <NavigateToStartUrl />;
   }
 
   const hasSetCurrentPageId = currentPageId in textResources;
@@ -178,7 +177,7 @@ function useRedirectToStoredPage() {
  */
 function useSetExpandedWidth() {
   const currentPageId = useCurrentView();
-  const expandedPagesFromLayout = FormBootstrap.useExpandedWidthLayouts();
+  const expandedPagesFromLayout = FormStore.bootstrap.useExpandedWidthLayouts();
   const expandedWidthFromSettings = usePageSettings().expandedWidth;
   const { setExpandedWidth } = useUiConfigContext();
 
@@ -195,7 +194,7 @@ function useSetExpandedWidth() {
 
 const emptyArray = [];
 function useFormState(currentPageId: string | undefined): FormState {
-  const lookups = FormBootstrap.useLayoutLookups();
+  const lookups = FormStore.bootstrap.useLayoutLookups();
   const topLevelIds = currentPageId ? (lookups.topLevelComponents[currentPageId] ?? emptyArray) : emptyArray;
   const { formErrors, taskErrors } = useTaskErrors();
   const hasErrors = Boolean(formErrors.length) || Boolean(taskErrors.length);
@@ -258,10 +257,35 @@ function HandleNavigationFocusComponent() {
         searchParams.delete(SearchParams.ExitSubform);
         const basePath = locationRef.current.pathname;
         const nextLocation = searchParams.size > 0 ? `${basePath}?${searchParams.toString()}` : basePath;
-        navigate(nextLocation, { replace: true });
+        navigate(nextLocation, replaceAndPreventResetOptions);
       }
     })();
   }, [navigate, locationRef, exitSubform, validate, onFormSubmitValidation]);
 
   return null;
+}
+
+/**
+ * TODO: Move to route loader.
+ * This can't move to a route loader yet because it depends on hidden page filtering, which requires
+ * React context (layout data, form data, expression evaluation).
+ *
+ * To remove this: move hidden-page awareness into the page route loader so it can redirect
+ * before rendering, then replace the Form.tsx usage with a loader-level redirect.
+ */
+function NavigateToStartUrl() {
+  const navigate = useNavigate();
+  const startUrl = useStartUrl();
+  const location = useLocation();
+  const isNavigating = useIsNavigating();
+
+  const currentLocation = location.pathname + location.search;
+
+  useEffect(() => {
+    if (currentLocation !== startUrl && !isNavigating) {
+      navigate(startUrl, { replace: true });
+    }
+  }, [currentLocation, navigate, startUrl, isNavigating]);
+
+  return <Loader reason='navigate-to-start' />;
 }

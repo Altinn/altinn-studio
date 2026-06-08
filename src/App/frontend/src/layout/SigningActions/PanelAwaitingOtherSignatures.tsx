@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
-import { Button } from 'src/app-components/Button/Button';
+import { Button } from '@app/form-component';
+
 import { Lang } from 'src/features/language/Lang';
 import { SigningPanel } from 'src/layout/SigningActions/PanelSigning';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';

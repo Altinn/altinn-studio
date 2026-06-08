@@ -1,7 +1,16 @@
-import type { AgentResponse, AssistantMessageData } from '@studio/assistant';
-import { ErrorMessages } from '@studio/assistant';
+import type { AgentResponse, AssistantMessageData, Message } from '@studio/assistant';
+import { ErrorMessages, MessageAuthor } from '@studio/assistant';
 
-// To do: Improve message formatting code.
+export function decorateMessagesWithTraceIds(
+  messages: Message[],
+  traceIdsByMessageId: Record<string, string>,
+): Message[] {
+  return messages.map((message) => {
+    if (message.role !== MessageAuthor.Assistant || !message.id) return message;
+    const traceId = traceIdsByMessageId[message.id];
+    return traceId ? { ...message, traceId } : message;
+  });
+}
 
 export function formatRejectionMessage(result: AgentResponse): string {
   const suggestions = result.parsed_intent?.suggestions

@@ -17,19 +17,26 @@ public interface ICorrespondenceRequestBuilderResourceId
 
 /// <summary>
 /// Indicates that the <see cref="CorrespondenceRequestBuilder"/> instance is on the <see cref="CorrespondenceRequest.Sender"/> step.
+/// <see cref="ICorrespondenceRequestBuilderSendersReference"/> is also implemented, so calling <see cref="WithSender(OrganisationNumber)"/> is optional.
 /// </summary>
-public interface ICorrespondenceRequestBuilderSender
+public interface ICorrespondenceRequestBuilderSender : ICorrespondenceRequestBuilderSendersReference
 {
     /// <summary>
     /// Sets the sender of the correspondence.
     /// </summary>
     /// <param name="sender">The correspondence sender</param>
+    [Obsolete(
+        "This method is deprecated. The sender is now automatically determined from the Resource Registry based on the resourceId."
+    )]
     ICorrespondenceRequestBuilderSendersReference WithSender(OrganisationNumber sender);
 
     /// <summary>
     /// Sets the sender of the correspondence.
     /// </summary>
     /// <param name="sender">A string representing a Norwegian organisation number (e.g. 991825827 or 0192:991825827)</param>
+    [Obsolete(
+        "This method is deprecated. The sender is now automatically determined from the Resource Registry based on the resourceId."
+    )]
     ICorrespondenceRequestBuilderSendersReference WithSender(string sender);
 }
 
@@ -146,16 +153,17 @@ public interface ICorrespondenceRequestBuilder
         ICorrespondenceRequestBuilderContent
 {
     /// <summary>
-    /// Sets the date and time when the correspondence can be deleted from the system.
-    /// </summary>
-    /// <param name="allowSystemDeleteAfter">The point in time when the correspondence may be safely deleted</param>
-    ICorrespondenceRequestBuilder WithAllowSystemDeleteAfter(DateTimeOffset allowSystemDeleteAfter);
-
-    /// <summary>
     /// Sets due date and time for the correspondence.
     /// </summary>
     /// <param name="dueDateTime">The point in time when the correspondence is due</param>
     ICorrespondenceRequestBuilder WithDueDateTime(DateTimeOffset dueDateTime);
+
+    /// <summary>
+    /// Sets when Altinn can remove the correspondence from its database.
+    /// </summary>
+    /// <param name="allowSystemDeleteAfter">The point in time when the correspondence can be deleted</param>
+    [Obsolete("AllowSystemDeleteAfter is no longer supported by the Correspondence API.")]
+    ICorrespondenceRequestBuilder WithAllowSystemDeleteAfter(DateTimeOffset allowSystemDeleteAfter);
 
     /// <summary>
     /// Sets the requested publish time for the correspondence.
@@ -251,6 +259,12 @@ public interface ICorrespondenceRequestBuilder
     /// </summary>
     /// <param name="isConfirmationNeeded">A boolean value indicating if confirmation is needed or not</param>
     ICorrespondenceRequestBuilder WithIsConfirmationNeeded(bool isConfirmationNeeded);
+
+    /// <summary>
+    /// Sets whether the correspondence is confidential.
+    /// </summary>
+    /// <param name="isConfidential">A boolean value indicating if the correspondence is confidential or not</param>
+    ICorrespondenceRequestBuilder WithIsConfidential(bool isConfidential);
 
     /// <summary>
     /// <p>Adds an existing attachment reference to the correspondence.</p>

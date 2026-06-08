@@ -1,7 +1,6 @@
 using Altinn.App.Core.Features.Options.Altinn2Provider;
 using Altinn.App.Core.Features.Options.Altinn3LibraryCodeList;
 using Altinn.App.Core.Models;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Core.Features.Options;
@@ -42,24 +41,12 @@ public static class CommonOptionProviderServiceCollectionExtensions
         int? codeListVersion = null
     )
     {
-        if (
-            serviceCollection.All(serviceDescriptor =>
-                serviceDescriptor.ServiceType != typeof(Altinn2MetadataApiClient)
-            )
-        )
+        if (!(metadataApiId ?? id).Equals("ASF_Land", StringComparison.OrdinalIgnoreCase))
         {
-            serviceCollection.AddHttpClient<Altinn2MetadataApiClient>();
+            throw new NotImplementedException("Altinn 2 codelists only works in compatibility mode for \"ASF_Land\"");
         }
 
-        serviceCollection.AddTransient<IAppOptionsProvider>(sp => new Altinn2CodeListProvider(
-            sp.GetRequiredService<IMemoryCache>(),
-            sp.GetRequiredService<Altinn2MetadataApiClient>(),
-            id,
-            transform,
-            filter,
-            metadataApiId,
-            codeListVersion
-        ));
+        serviceCollection.AddTransient<IAppOptionsProvider>(sp => new Altinn2CodeListProvider(id, transform, filter));
         return serviceCollection;
     }
 

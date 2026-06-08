@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -19,6 +20,7 @@ var (
 	ErrChangelogMissing     = errors.New("changelog version section not found")
 	ErrBuildFailed          = errors.New("build failed")
 	ErrReleaseBranchMissing = errors.New("release branch does not exist for stable release")
+	errReleaseTargetMissing = errors.New("release target commit is empty")
 )
 
 // WorkflowConfig configures the release workflow.
@@ -43,6 +45,7 @@ type Workflow struct {
 	tag              *Tag
 	changelogContent string
 	parsedChangelog  *changelog.Changelog
+	artifacts        []string
 	config           WorkflowConfig
 }
 
@@ -103,6 +106,7 @@ func NewWorkflow(
 		tag:              nil,
 		changelogContent: "",
 		parsedChangelog:  nil,
+		artifacts:        nil,
 	}, nil
 }
 
@@ -388,6 +392,7 @@ func (w *Workflow) buildArtifacts(ctx context.Context) error {
 	}
 
 	w.log.Success(fmt.Sprintf("Built %d artifacts successfully", len(artifacts)))
+	w.artifacts = append([]string(nil), artifacts...)
 	return nil
 }
 
@@ -402,6 +407,10 @@ func (w *Workflow) createGitHubRelease(ctx context.Context) error {
 	notes, err := w.parsedChangelog.ExtractNotes(verStr)
 	if err != nil {
 		return fmt.Errorf("extract release notes: %w", err)
+	}
+	notes, err = w.withComponentReleaseNotesIntro(notes)
+	if err != nil {
+		return fmt.Errorf("read release notes intro: %w", err)
 	}
 	if w.config.Draft {
 		previousVersion := previousReleasedVersion(w.parsedChangelog, verStr)
@@ -425,17 +434,17 @@ func (w *Workflow) createGitHubRelease(ctx context.Context) error {
 		return fmt.Errorf("write release notes: %w", writeErr)
 	}
 
-	assets, err := w.collectAssets()
-	if err != nil {
-		return fmt.Errorf("collect assets: %w", err)
-	}
+	assets := append([]string(nil), w.artifacts...)
 
-	target := w.determineTargetBranch()
+	target, err := w.determineReleaseTarget(ctx)
+	if err != nil {
+		return err
+	}
 	tagFull := w.tag.Full()
 	title := w.component.ReleaseTitle(verStr)
 
 	w.log.Info("Creating release with %d assets...", len(assets))
-	w.log.Detail("Target branch", target)
+	w.log.Detail("Target commit", target)
 
 	if w.config.DryRun {
 		w.log.Info("(dry-run) Would create release:")
@@ -471,32 +480,16 @@ func (w *Workflow) createGitHubRelease(ctx context.Context) error {
 	return nil
 }
 
-// determineTargetBranch returns the branch where the tag should be created.
-func (w *Workflow) determineTargetBranch() string {
-	if w.tag.Version.IsPrerelease {
-		return mainBranch
-	}
-	return w.tag.ReleaseBranch()
-}
-
-func (w *Workflow) collectAssets() ([]string, error) {
-	entries, err := os.ReadDir(w.config.OutputDir)
+func (w *Workflow) determineReleaseTarget(ctx context.Context) (string, error) {
+	target, err := w.git.HeadCommit(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("read output dir: %w", err)
+		return "", fmt.Errorf("resolve release target commit: %w", err)
 	}
-
-	var assets []string
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-		if entry.Name() == releaseNotesFile {
-			continue
-		}
-		assets = append(assets, filepath.Join(w.config.OutputDir, entry.Name()))
+	target = strings.TrimSpace(target)
+	if target == "" {
+		return "", errReleaseTargetMissing
 	}
-
-	return assets, nil
+	return target, nil
 }
 
 func (w *Workflow) printSummary() {
@@ -515,4 +508,49 @@ func (w *Workflow) printSummary() {
 		w.log.Info("")
 		w.log.Success("Release workflow completed successfully!")
 	}
+}
+
+const releaseNotesIntroFile = "RELEASE_NOTES_INTRO.md"
+
+func (w *Workflow) withComponentReleaseNotesIntro(notes string) (string, error) {
+	introPath, err := w.componentReleaseNotesIntroPath()
+	if err != nil {
+		return "", err
+	}
+	intro, err := fs.ReadFile(os.DirFS(w.config.RepoRoot), introPath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return strings.TrimSpace(notes), nil
+		}
+		return "", fmt.Errorf("read %s: %w", introPath, err)
+	}
+	return withReleaseNotesIntro(notes, string(intro)), nil
+}
+
+func (w *Workflow) componentReleaseNotesIntroPath() (string, error) {
+	introPath := filepath.Join(w.config.RepoRoot, w.component.SourcePath, releaseNotesIntroFile)
+	rel, err := filepath.Rel(w.config.RepoRoot, introPath)
+	if err != nil {
+		return "", fmt.Errorf("evaluate release notes intro path: %w", err)
+	}
+	if rel == "." || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return "", fmt.Errorf("%w: %s", errUnsafeReleaseNotesPath, introPath)
+	}
+	rel = filepath.ToSlash(rel)
+	if !fs.ValidPath(rel) {
+		return "", fmt.Errorf("%w: %s", errUnsafeReleaseNotesPath, introPath)
+	}
+	return rel, nil
+}
+
+func withReleaseNotesIntro(notes, intro string) string {
+	intro = strings.TrimSpace(intro)
+	notes = strings.TrimSpace(notes)
+	if intro == "" {
+		return notes
+	}
+	if notes == "" {
+		return intro
+	}
+	return intro + "\n\n## Changelog\n\n" + notes
 }

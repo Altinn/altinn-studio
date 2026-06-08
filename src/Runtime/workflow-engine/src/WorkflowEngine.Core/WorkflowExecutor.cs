@@ -163,13 +163,17 @@ internal class WorkflowExecutor : IWorkflowExecutor
 internal static partial class WorkflowExecutorLogs
 {
     [LoggerMessage(LogLevel.Information, "Executing step {Step} for workflow {Workflow}")]
-    public static partial void ExecutingStep(this ILogger<WorkflowExecutor> logger, Step step, Workflow workflow);
+    internal static partial void ExecutingStep(this ILogger<WorkflowExecutor> logger, Step step, Workflow workflow);
 
     [LoggerMessage(LogLevel.Information, "Step {Step} executed with success in {Elapsed}")]
-    public static partial void SuccessfulExecution(this ILogger<WorkflowExecutor> logger, Step step, TimeSpan elapsed);
+    internal static partial void SuccessfulExecution(
+        this ILogger<WorkflowExecutor> logger,
+        Step step,
+        TimeSpan elapsed
+    );
 
     [LoggerMessage(LogLevel.Error, "Step {Step} executed with error in {Elapsed}: {Message}")]
-    public static partial void FailedExecution(
+    internal static partial void FailedExecution(
         this ILogger<WorkflowExecutor> logger,
         Step step,
         TimeSpan elapsed,
@@ -177,7 +181,7 @@ internal static partial class WorkflowExecutorLogs
     );
 
     [LoggerMessage(LogLevel.Error, "Execution of step {Step} failed after {Elapsed}: {Message}")]
-    public static partial void UnhandledExecutionError(
+    internal static partial void UnhandledExecutionError(
         this ILogger<WorkflowExecutor> logger,
         Step step,
         TimeSpan elapsed,

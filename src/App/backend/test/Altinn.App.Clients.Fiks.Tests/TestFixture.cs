@@ -7,6 +7,7 @@ using Altinn.App.Clients.Fiks.FiksArkiv;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Clients.Fiks.FiksIO;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Maskinporten;
@@ -87,9 +88,7 @@ internal sealed record TestFixture(
     public IFiksArkivInstanceClient FiksArkivInstanceClient =>
         App.Services.GetRequiredService<IFiksArkivInstanceClient>();
     public IServiceTask FiksArkivServiceTask =>
-        AppImplementationFactory
-            .GetAll<IServiceTask>()
-            .First(x => x.Type == Altinn.App.Clients.Fiks.FiksArkiv.FiksArkivServiceTask.Identifier);
+        AppImplementationFactory.GetAll<IServiceTask>().First(x => x.Type == AltinnTaskTypes.FiksArkiv);
     public ResiliencePipeline<FiksIOMessageResponse> FiksIOResiliencePipeline =>
         App.Services.ResolveResiliencePipeline();
     public IFiksIOClientFactory FiksIOClientFactory => App.Services.GetRequiredService<IFiksIOClientFactory>();

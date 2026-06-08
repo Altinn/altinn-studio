@@ -4,6 +4,7 @@ package types
 import (
 	"errors"
 	"strings"
+	"time"
 )
 
 // ErrContainerNotFound is returned when a container does not exist.
@@ -17,6 +18,9 @@ var ErrNetworkInUse = errors.New("network in use")
 
 // ErrImageNotFound is returned when an image does not exist.
 var ErrImageNotFound = errors.New("image not found")
+
+// ErrVolumeNotFound is returned when a volume does not exist.
+var ErrVolumeNotFound = errors.New("volume not found")
 
 // defaultPodmanCapabilities are capabilities that Docker includes by default but Podman doesn't.
 // Adding these ensures consistent behavior across runtimes.
@@ -179,9 +183,14 @@ func (s DetectionSource) String() string {
 // ContainerToolchain describes the selected platform and how this package talks to it.
 type ContainerToolchain struct {
 	SocketPath string
-	Platform   ContainerPlatform
-	AccessMode ContainerAccessMode
-	Source     DetectionSource
+	// ClientVersion is the local CLI version or negotiated API client version when available.
+	ClientVersion string
+	// ServerVersion is the remote daemon/runtime version when available.
+	ServerVersion string
+	Platform      ContainerPlatform
+	AccessMode    ContainerAccessMode
+	Source        DetectionSource
+	SELinux       bool
 }
 
 // PortMapping defines a container port binding.
@@ -206,19 +215,56 @@ type ContainerListFilter struct {
 	All    bool
 }
 
-// VolumeMount defines a bind mount.
+// NetworkListFilter restricts network listing.
+type NetworkListFilter struct {
+	Labels map[string]string
+}
+
+// VolumeMountType defines the source type for a container volume mount.
+type VolumeMountType string
+
+// Supported volume mount types.
+const (
+	VolumeMountTypeBind   VolumeMountType = "bind"
+	VolumeMountTypeVolume VolumeMountType = "volume"
+)
+
+// SELinuxRelabel controls SELinux relabeling for bind mounts on runtimes that support it.
+type SELinuxRelabel string
+
+// Supported SELinux relabel modes.
+const (
+	SELinuxRelabelNone    SELinuxRelabel = ""
+	SELinuxRelabelShared  SELinuxRelabel = "z"
+	SELinuxRelabelPrivate SELinuxRelabel = "Z"
+)
+
+// VolumeMount defines a bind mount or named volume mount.
 type VolumeMount struct {
-	HostPath      string
-	ContainerPath string
-	ReadOnly      bool
+	HostPath       string
+	ContainerPath  string
+	Type           VolumeMountType
+	SELinuxRelabel SELinuxRelabel
+	ReadOnly       bool
+}
+
+// HealthCheck defines a container health check configuration.
+type HealthCheck struct {
+	Test        []string      // Command to run (e.g., ["CMD-SHELL", "pg_isready -U postgres"])
+	Interval    time.Duration // Time between checks (default: 30s)
+	Timeout     time.Duration // Max time for a single check (default: 30s)
+	Retries     int           // Consecutive failures before unhealthy (default: 3)
+	StartPeriod time.Duration // Grace period before checks count (default: 0s)
 }
 
 // ContainerConfig defines options for creating a container.
 type ContainerConfig struct {
 	Labels         map[string]string
+	HealthCheck    *HealthCheck
 	Name           string
 	Image          string
 	User           string
+	UsernsMode     string
 	RestartPolicy  string
 	ExtraHosts     []string
 	NetworkAliases []string

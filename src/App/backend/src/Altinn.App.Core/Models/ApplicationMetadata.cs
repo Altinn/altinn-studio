@@ -1,3 +1,4 @@
+using System.Reflection;
 using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 
@@ -68,8 +69,14 @@ public class ApplicationMetadata : Application
 
     static ApplicationMetadata()
     {
-        // TODO: fix this, before going to next major after v8
-        LibVersion = "8.0.0.0";
+        LibVersion = ResolveLibVersion();
+    }
+
+    private static string? ResolveLibVersion()
+    {
+        Assembly assembly = typeof(ApplicationMetadata).Assembly;
+        string? fileVersion = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
+        return string.IsNullOrWhiteSpace(fileVersion) ? assembly.GetName().Version?.ToString() : fileVersion;
     }
 
     /// <summary>

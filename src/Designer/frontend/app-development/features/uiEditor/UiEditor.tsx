@@ -1,4 +1,5 @@
 import { SubApp as UiEditorLatest } from '@altinn/ux-editor/SubApp';
+import { SubApp as UiEditorV4 } from '@altinn/ux-editor-v4/SubApp';
 import { SubApp as UiEditorV3 } from '@altinn/ux-editor-v3/SubApp';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
@@ -6,7 +7,7 @@ import { usePreviewContext } from '../../contexts/PreviewContext';
 import { useLayoutContext } from '../../contexts/LayoutContext';
 import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { MAXIMUM_SUPPORTED_FRONTEND_VERSION } from 'app-shared/constants';
+import { MAXIMUM_SUPPORTED_FRONTEND_VERSION, NEXT_V9_VERSION } from 'app-shared/constants';
 import { isBelowSupportedVersion } from 'app-shared/utils/compareFunctions';
 
 export default function UiEditor() {
@@ -22,24 +23,30 @@ export default function UiEditor() {
 
   if (!version) return null;
 
-  const renderUiEditorContent = () => {
-    const handleLayoutSetNameChange = (layoutSetName: string) => {
-      setSelectedLayoutSetName(layoutSetName);
-    };
-
-    return (
-      <UiEditorLatest
-        shouldReloadPreview={shouldReloadPreview}
-        previewHasLoaded={previewHasLoaded}
-        onLayoutSetNameChange={handleLayoutSetNameChange}
-      />
-    );
+  const handleLayoutSetNameChange = (layoutSetName: string) => {
+    setSelectedLayoutSetName(layoutSetName);
   };
 
-  const isLatestFrontendVersion = !isBelowSupportedVersion(
-    version?.frontendVersion,
+  const sharedProps = {
+    shouldReloadPreview,
+    previewHasLoaded,
+    onLayoutSetNameChange: handleLayoutSetNameChange,
+  };
+
+  const isV9 = !isBelowSupportedVersion(version.frontendVersion, NEXT_V9_VERSION);
+
+  if (isV9) {
+    return <UiEditorLatest {...sharedProps} />;
+  }
+
+  const isLatestSupportedVersion = !isBelowSupportedVersion(
+    version.frontendVersion,
     MAXIMUM_SUPPORTED_FRONTEND_VERSION,
   );
 
-  return isLatestFrontendVersion ? renderUiEditorContent() : <UiEditorV3 />;
+  if (isLatestSupportedVersion) {
+    return <UiEditorV4 {...sharedProps} />;
+  }
+
+  return <UiEditorV3 />;
 }

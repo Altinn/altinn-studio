@@ -10,13 +10,13 @@ import { type NavigationMenuGroup } from '../types/NavigationMenuGroup';
 const menuItemsMock: HeaderMenuItem[] = [
   {
     key: HeaderMenuItemKey.OrgLibrary,
-    link: '/a/ttd',
+    getLink: () => '/a/ttd',
     group: HeaderMenuGroupKey.Tools,
     name: 'org-library',
   },
   {
     key: HeaderMenuItemKey.AppDashboard,
-    link: '/b/ttd',
+    getLink: () => '/b/ttd',
     group: HeaderMenuGroupKey.Tools,
     name: 'app-dashboard',
   },

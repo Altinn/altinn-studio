@@ -1,7 +1,10 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
+const path = require('node:path');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const env = require('dotenv').config();
 
 const enableJestPreview = env.parsed?.JEST_PREVIEW === 'true';
+const repoNodeModules = path.resolve(__dirname, '../../..', 'node_modules');
 
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 const config = {
@@ -24,6 +27,11 @@ const config = {
   moduleNameMapper: {
     '^src/(.*)$': '<rootDir>/src/$1',
     '^schemas/(.*)$': '<rootDir>/schemas/$1',
+    '^@app/form-component/(.*)$': '<rootDir>/../../../libs/form-component/src/$1',
+    '^react$': path.join(repoNodeModules, 'react'),
+    '^react-dom$': path.join(repoNodeModules, 'react-dom'),
+    '^react/jsx-runtime$': path.join(repoNodeModules, 'react/jsx-runtime.js'),
+    '^react/jsx-dev-runtime$': path.join(repoNodeModules, 'react/jsx-dev-runtime.js'),
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'json'],
   testRegex: '\\.test\\.(ts|tsx|js|jsx)$',

@@ -1,8 +1,10 @@
 # Workflow Engine App
 
+@../workflow-engine/AGENTS.md
+
 Runtime host for the workflow engine, targeting the Altinn App platform. This is the deployable executable that composes `WorkflowEngine.Core` and its supporting libraries into a running web application.
 
-For core engine documentation, see the [workflow-engine README](../workflow-engine/README.md) and [technical guide](../workflow-engine/docs/technical-guide.md).
+Core conventions (architecture, command pattern, code style, tests, dashboard) are inherited from the import above. This file covers only what's app-specific. For deeper core documentation, see the [technical guide](../workflow-engine/docs/technical-guide.md).
 
 ## Architecture
 
@@ -13,7 +15,7 @@ For core engine documentation, see the [workflow-engine README](../workflow-engi
 ## Projects
 
 | Project                    | Purpose                                                        |
-| -------------------------- | -------------------------------------------------------------- |
+|----------------------------|----------------------------------------------------------------|
 | `WorkflowEngine.App`       | Web host: `Program.cs`, config files, Dockerfile               |
 | `WorkflowEngine.App.Tests` | Unit + integration tests for AppCommand, config, enqueue flows |
 
@@ -50,24 +52,12 @@ Uses `WorkflowEngine.TestKit` from the core project for shared infrastructure:
 
 Run with `dotnet test`.
 
-## Docker Compose
+## Local Harness
 
-Includes the core `workflow-engine/docker-compose.yaml` and adds the engine container.
+Use `studioctl env up --dev-workflow-engine` to start localtest with the workflow-engine route bound to the host, then run `dotnet run --project src/WorkflowEngine.App`.
 
-```
-docker-compose.yaml          # Profiles: "app" (engine+postgres), "full" (everything)
-```
+| Service           | Port       | Purpose                      |
+|-------------------|------------|------------------------------|
+| `workflow-engine` | 9090       | Host app runtime             |
 
-| Container         | Port             | Purpose                                    |
-| ----------------- | ---------------- | ------------------------------------------ |
-| `workflow-engine` | 8080, 8081       | App runtime (8081 = metrics)               |
-| `postgres`        | 5433             | Database                                   |
-| `pgadmin`         | 5050             | PostgreSQL admin UI                        |
-| `lgtm`            | 7070, 4317, 4318 | Grafana + Prometheus + Loki + Tempo + OTLP |
-| `wiremock`        | 6060             | Mock app callbacks                         |
-
-**Deploy engine**: `docker compose build workflow-engine && docker compose --profile app up -d --no-deps workflow-engine`
-
-## Code Style
-
-Inherits `Directory.Build.props` with CSharpier formatting enforced at build time.
+The app project does not own a Docker Compose harness.

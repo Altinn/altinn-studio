@@ -13,7 +13,7 @@ import { renderWithProviders } from '../../test/testUtils';
 jest.mock('@altinn/ux-editor-v3/SubApp', () => ({
   SubApp: () => <div data-testid='version 3' />,
 }));
-jest.mock('@altinn/ux-editor/SubApp', () => ({
+jest.mock('@altinn/ux-editor-v4/SubApp', () => ({
   SubApp: ({ onLayoutSetNameChange }: { onLayoutSetNameChange: (name: string) => void }) => {
     useEffect(() => {
       onLayoutSetNameChange('test-layout');
@@ -35,7 +35,7 @@ describe('UiEditor', () => {
     expect(screen.queryByTestId('latest version')).not.toBeInTheDocument();
   });
 
-  type FrontendVersion = null | '3.0.0' | '4.0.0';
+  type FrontendVersion = null | '3.0.0' | '4.0.0' | '9.0.0';
   type PackageVersion = 'version 3' | 'latest version';
   type TestCase = [PackageVersion, FrontendVersion];
 

@@ -5,6 +5,7 @@ using Xunit.Abstractions;
 namespace Altinn.App.Integration.Tests.InstanceLocking;
 
 [Trait("Category", "Integration")]
+[Collection(IntegrationTestCollections.Pdf)]
 public sealed class InstanceLockTests(ITestOutputHelper _output, AppFixtureClassFixture _classFixture)
     : IClassFixture<AppFixtureClassFixture>
 {
@@ -14,7 +15,7 @@ public sealed class InstanceLockTests(ITestOutputHelper _output, AppFixtureClass
         await using var fixtureScope = await _classFixture.Get(_output, TestApps.Basic, "instance-lock");
         var fixture = fixtureScope.Fixture;
 
-        var client = fixture.GetAppClient();
+        var client = fixture.GetDirectAppClient();
 
         var resetResponse = await client.PostAsync("/test/instance-lock/reset", null);
         resetResponse.EnsureSuccessStatusCode();

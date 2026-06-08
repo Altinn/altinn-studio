@@ -1,3 +1,4 @@
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
@@ -39,7 +40,7 @@ public class ProcessNavigatorTests
                     Outgoing = new List<string> { "Flow3" },
                     ExtensionElements = new ExtensionElements()
                     {
-                        TaskExtension = new() { TaskType = "confirmation", AltinnActions = new() },
+                        TaskExtension = new() { TaskType = AltinnTaskTypes.Confirmation, AltinnActions = new() },
                     },
                 }
             );
@@ -184,7 +185,7 @@ public class ProcessNavigatorTests
                     {
                         TaskExtension = new()
                         {
-                            TaskType = "data",
+                            TaskType = AltinnTaskTypes.Data,
                             AltinnActions = new() { new("submit") },
                         },
                     },

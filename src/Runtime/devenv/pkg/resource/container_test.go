@@ -13,8 +13,29 @@ func TestContainer_ID(t *testing.T) {
 	}
 }
 
+func TestContainerID(t *testing.T) {
+	if got := ContainerID("test-container"); got != "container:test-container" {
+		t.Errorf("ContainerID() = %q, want %q", got, "container:test-container")
+	}
+
+	container := &Container{Name: "test-container"}
+	name, ok := ContainerNameFromRef(Ref(container))
+	if !ok || name != container.Name {
+		t.Fatalf("ContainerNameFromRef(resource) = %q, %v", name, ok)
+	}
+
+	name, ok = ContainerNameFromRef(RefID(container.ID()))
+	if !ok || name != container.Name {
+		t.Fatalf("ContainerNameFromRef(id) = %q, %v", name, ok)
+	}
+
+	if name, ok := ContainerNameFromID("kind-cluster:test"); ok || name != "" {
+		t.Fatalf("ContainerNameFromID(non-container) = %q, %v", name, ok)
+	}
+}
+
 func TestContainer_Dependencies(t *testing.T) {
-	image := &RemoteImage{Ref: "nginx:latest"}
+	image := &PulledImage{Ref: "nginx:latest"}
 	network := &Network{Name: "testnet"}
 
 	c := &Container{
@@ -37,7 +58,7 @@ func TestContainer_Dependencies(t *testing.T) {
 }
 
 func TestContainer_Dependencies_NoNetworks(t *testing.T) {
-	image := &RemoteImage{Ref: "nginx:latest"}
+	image := &PulledImage{Ref: "nginx:latest"}
 
 	c := &Container{
 		Name:  "test-container",
@@ -55,7 +76,7 @@ func TestContainer_Dependencies_NoNetworks(t *testing.T) {
 }
 
 func TestContainer_Dependencies_MultipleNetworks(t *testing.T) {
-	image := &RemoteImage{Ref: "nginx:latest"}
+	image := &PulledImage{Ref: "nginx:latest"}
 	net1 := &Network{Name: "frontend"}
 	net2 := &Network{Name: "backend"}
 
@@ -78,6 +99,26 @@ func TestContainer_Dependencies_MultipleNetworks(t *testing.T) {
 	}
 	if deps[2].ID() != net2.ID() {
 		t.Errorf("Dependencies()[2].ID() = %q, want %q", deps[2].ID(), net2.ID())
+	}
+}
+
+func TestContainer_Dependencies_ExplicitContainerDependencies(t *testing.T) {
+	image := &PulledImage{Ref: "nginx:latest"}
+	network := &Network{Name: "testnet"}
+
+	c := &Container{
+		Name:      "test-container",
+		Image:     Ref(image),
+		Networks:  []ResourceRef{Ref(network)},
+		DependsOn: []ResourceRef{RefID(ContainerID("database"))},
+	}
+
+	deps := c.Dependencies()
+	if len(deps) != 3 {
+		t.Fatalf("Dependencies() returned %d deps, want 3", len(deps))
+	}
+	if deps[2].ID() != ContainerID("database") {
+		t.Errorf("Dependencies()[2].ID() = %q, want %q", deps[2].ID(), ContainerID("database"))
 	}
 }
 

@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 
 export function UpdateDataElementIdsForCypress() {
-  const dataElementIds = FormBootstrap.useDataElementIds();
+  const dataElementIds = FormStore.bootstrap.useDataElementIds();
 
   useEffect(() => {
     if (window.Cypress) {

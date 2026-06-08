@@ -45,6 +45,7 @@ using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Files;
 using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
@@ -123,7 +124,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IText, TextClient>();
 #pragma warning restore CS0618 // Type or member is obsolete
         services.AddHttpClient<IProcessClient, ProcessClient>();
-        services.AddHttpClient<InstanceLockClient>();
+        services.AddSingleton<InstanceLockClient>();
         services.AddHttpClient<IPersonClient, PersonClient>();
         services.AddHttpClient<IAccessManagementClient, AccessManagementClient>();
 
@@ -207,6 +208,7 @@ public static class ServiceCollectionExtensions
         services.Configure<FrontEndSettings>(configuration.GetSection(nameof(FrontEndSettings)));
         services.Configure<PlatformFrontendSettings>(configuration.GetSection(nameof(PlatformFrontendSettings)));
         services.Configure<PdfGeneratorSettings>(configuration.GetSection(nameof(PdfGeneratorSettings)));
+        services.AddTransient<IFileService, FileService>();
 
         services.AddRuntimeEnvironment();
         if (env.IsDevelopment())
@@ -329,6 +331,7 @@ public static class ServiceCollectionExtensions
             services.Configure<NetsPaymentSettings>(configurationSection);
             services.AddHttpClient<INetsClient, NetsClient>();
             services.AddTransient<IPaymentProcessor, NetsPaymentProcessor>();
+            services.TryAddSingleton<INetsWebhookSecretProvider, NetsWebhookSecretProvider>();
         }
     }
 
@@ -376,17 +379,17 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<IProcessEventHandlerDelegator, ProcessEventHandlingDelegator>();
         services.TryAddTransient<IProcessEventDispatcher, ProcessEventDispatcher>();
         services.TryAddTransient<ExclusiveGatewayFactory>();
+        services.AddTransient<ProcessStateEnricher>();
 
         services.AddTransient<IProcessTaskInitializer, ProcessTaskInitializer>();
         services.AddTransient<IProcessTaskFinalizer, ProcessTaskFinalizer>();
         services.AddTransient<IProcessTaskDataLocker, ProcessTaskDataLocker>();
-        services.AddTransient<IProcessTaskCleaner, ProcessTaskCleaner>();
         services.AddTransient<IStartTaskEventHandler, StartTaskEventHandler>();
         services.AddTransient<IEndTaskEventHandler, EndTaskEventHandler>();
         services.AddTransient<IAbandonTaskEventHandler, AbandonTaskEventHandler>();
         services.AddTransient<IEndEventEventHandler, EndEventEventHandler>();
 
-        services.AddScoped<IInstanceLocker, InstanceLocker>();
+        services.AddSingleton<IInstanceLocker, InstanceLocker>();
 
         // Process tasks
         services.AddTransient<IProcessTask, DataProcessTask>();

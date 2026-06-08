@@ -11,6 +11,7 @@ on:
       - 'release/studioctl/v*'
     paths:
       - 'src/cli/CHANGELOG.md'
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -19,10 +20,19 @@ jobs:
   release:
     name: Build and release
     runs-on: ubuntu-latest
-    # Only run if PR was merged AND has the release label
+    # Automatically release same-repo release PRs. Fork PRs can be retried manually
+    # from main after merge because their pull_request token cannot publish releases.
     if: >
-      github.event.pull_request.merged == true &&
-      contains(github.event.pull_request.labels.*.name, 'release/studioctl')
+      (
+        github.event_name == 'workflow_dispatch' &&
+        github.ref == 'refs/heads/main'
+      ) ||
+      (
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.merged == true &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        contains(github.event.pull_request.labels.*.name, 'release/studioctl')
+      )
 
     steps:
       - name: Checkout repository
@@ -30,14 +40,30 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.merge_commit_sha || github.sha }}
 
       - name: Checkout base branch
+        env:
+          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || 'main' }}
+          MERGE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.merge_commit_sha || github.sha }}
         run: |
-          BASE="${{ github.event.pull_request.base.ref }}"
-          MERGE_SHA="${{ github.event.pull_request.merge_commit_sha }}"
-          git fetch origin "$BASE"
-          git checkout -B "$BASE" "$MERGE_SHA"
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" && "${GITHUB_REF}" != "refs/heads/main" ]]; then
+            echo "Manual studioctl releases must be dispatched from main"
+            exit 1
+          fi
+
+          if [[ "${BASE_BRANCH}" != "main" && ! "${BASE_BRANCH}" =~ ^release/studioctl/v[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid base branch: ${BASE_BRANCH}"
+            exit 1
+          fi
+
+          git fetch origin "$BASE_BRANCH"
+          git checkout -B "$BASE_BRANCH" "$MERGE_SHA"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
+        with:
+          global-json-file: src/cli/global.json
 
       - name: Setup Go
         uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
@@ -53,23 +79,33 @@ jobs:
       - name: Run release workflow
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || 'main' }}
         run: |
-          go run . workflow --component studioctl --base-branch "${{ github.event.pull_request.base.ref }}"
+          go run . workflow --component studioctl --base-branch "$BASE_BRANCH"
         working-directory: src/tools/releaser
 
       - name: Summary
         if: always()
         run: |
-          echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **PR**: #${{ github.event.pull_request.number }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Base branch**: ${{ github.event.pull_request.base.ref }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version source**: latest released section in src/cli/CHANGELOG.md" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## Release Summary"
+            echo ""
+            if [[ -n "${PR_NUMBER}" ]]; then
+              echo "- **PR**: #${PR_NUMBER}"
+            fi
+            echo "- **Base branch**: ${BASE_BRANCH}"
+            echo "- **Version source**: latest released section in src/cli/CHANGELOG.md"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
 
           if [[ -d "build/release" ]]; then
-            echo "### Assets" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            ls -la build/release/ >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "No assets found"
-            echo '```' >> $GITHUB_STEP_SUMMARY
+            {
+              echo "### Assets"
+              echo '```'
+              ls -la build/release/ 2>/dev/null || echo "No assets found"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
+        env:
+          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || 'main' }}
+          PR_NUMBER: ${{ github.event_name == 'pull_request' && github.event.pull_request.number || '' }}

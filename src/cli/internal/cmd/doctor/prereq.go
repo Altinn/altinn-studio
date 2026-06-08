@@ -8,8 +8,10 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 
 	"altinn.studio/devenv/pkg/container"
+	"altinn.studio/studioctl/internal/osutil"
 )
 
 func (s *Service) collectPrerequisites(ctx context.Context) *Prerequisites {
@@ -22,17 +24,19 @@ func (s *Service) collectPrerequisites(ctx context.Context) *Prerequisites {
 		OK:    dotnetErr == nil,
 	}
 
-	containerValue, containerResolved, containerTools, containerErr := s.probeContainerRuntime(ctx)
+	containerValue, containerResolved, containerTools, toolchain, containerErr := s.probeContainerRuntime(ctx)
 	prerequisites.ContainerValue = containerValue
 	prerequisites.ContainerResolved = containerResolved
 	prerequisites.ContainerTools = containerTools
 	prerequisites.ContainerHost = strings.TrimSpace(os.Getenv("DOCKER_HOST"))
+	prerequisites.ContainerClient = toolchain.ClientVersion
+	prerequisites.ContainerServer = toolchain.ServerVersion
 	prerequisites.Container = Check{
 		Error: errorString(containerErr),
 		OK:    containerErr == nil,
 	}
 
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == osutil.OSWindows {
 		windowsValue, windowsErr := s.probeWindowsVersion(ctx)
 		prerequisites.WindowsValue = windowsValue
 		prerequisites.Windows = &Check{
@@ -59,7 +63,9 @@ func (s *Service) probeDotnet(ctx context.Context) (string, error) {
 	return version, nil
 }
 
-func (s *Service) probeContainerRuntime(ctx context.Context) (string, string, []ContainerTool, error) {
+func (s *Service) probeContainerRuntime(
+	ctx context.Context,
+) (string, string, []ContainerTool, container.ContainerToolchain, error) {
 	tools := s.collectContainerTools(ctx)
 
 	detect := container.Detect
@@ -69,7 +75,11 @@ func (s *Service) probeContainerRuntime(ctx context.Context) (string, string, []
 
 	cli, err := detect(ctx)
 	if err != nil {
-		return "", "", tools, fmt.Errorf("%w: %w", errNoContainerRuntime, err)
+		return "", "", tools, container.ContainerToolchain{}, fmt.Errorf(
+			"%w: %w",
+			errNoContainerRuntime,
+			err,
+		)
 	}
 	defer func() {
 		if closeErr := cli.Close(); closeErr != nil {
@@ -80,6 +90,11 @@ func (s *Service) probeContainerRuntime(ctx context.Context) (string, string, []
 	toolchain := cli.Toolchain()
 	platformName := toolchain.Platform.String()
 	version := containerToolVersion(tools, platformToolVersionName(toolchain.Platform))
+	if (version == "" || version == unknownValue) &&
+		toolchain.Platform == container.PlatformPodman &&
+		toolchain.ClientVersion != "" {
+		version = toolchain.ClientVersion
+	}
 	if version == "" {
 		version = unknownValue
 	}
@@ -89,7 +104,7 @@ func (s *Service) probeContainerRuntime(ctx context.Context) (string, string, []
 		resolved += " (" + toolchain.Source.String() + ")"
 	}
 
-	return platformName + " (" + version + ")", resolved, tools, nil
+	return platformName + " (" + version + ")", resolved, tools, toolchain, podmanToolchainError(toolchain)
 }
 
 func (s *Service) probeWindowsVersion(ctx context.Context) (string, error) {
@@ -133,6 +148,23 @@ func extractMajorVersion(version string) int {
 	return major
 }
 
+func podmanToolchainError(toolchain container.ContainerToolchain) error {
+	if toolchain.Platform != container.PlatformPodman ||
+		toolchain.AccessMode != container.AccessPodmanCLI ||
+		toolchain.ClientVersion == "" ||
+		toolchain.ServerVersion == "" ||
+		toolchain.ClientVersion == toolchain.ServerVersion {
+		return nil
+	}
+
+	return fmt.Errorf(
+		"%w: client %s, server %s",
+		errPodmanVersionDiff,
+		toolchain.ClientVersion,
+		toolchain.ServerVersion,
+	)
+}
+
 func extractVersionFromOutput(output string) string {
 	// Handle "Docker version 24.0.7, build afdd53b" or "podman version 4.9.0"
 	parts := strings.Fields(output)
@@ -146,25 +178,38 @@ func extractVersionFromOutput(output string) string {
 
 func (s *Service) collectContainerTools(ctx context.Context) []ContainerTool {
 	toolNames := []string{"colima", "docker", "podman"}
-	tools := make([]ContainerTool, 0, len(toolNames))
+	results := make(chan ContainerTool, len(toolNames))
+	var wg sync.WaitGroup
 
 	for _, name := range toolNames {
 		if _, err := s.lookupPath(name); err != nil {
 			continue
 		}
 
-		version := unknownValue
-		output, err := s.runVersionOutput(ctx, name)
-		if err != nil {
-			s.debugf("%s --version failed: %v", name, err)
-		} else if parsed := extractVersionFromOutput(strings.TrimSpace(string(output))); parsed != "" {
-			version = parsed
-		}
+		wg.Go(func() {
+			version := unknownValue
+			output, err := s.runVersionOutput(ctx, name)
+			if err != nil {
+				s.debugf("%s --version failed: %v", name, err)
+			} else if parsed := extractVersionFromOutput(strings.TrimSpace(string(output))); parsed != "" {
+				version = parsed
+			}
 
-		tools = append(tools, ContainerTool{
-			Name:    name,
-			Version: version,
+			results <- ContainerTool{
+				Name:    name,
+				Version: version,
+			}
 		})
+	}
+
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	tools := make([]ContainerTool, 0, len(toolNames))
+	for tool := range results {
+		tools = append(tools, tool)
 	}
 
 	slices.SortFunc(tools, func(a, b ContainerTool) int {

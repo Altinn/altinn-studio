@@ -1,16 +1,16 @@
 import React, { Fragment, type PropsWithChildren } from 'react';
 
+import { Flex } from '@app/form-component';
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
 
-import { Flex } from 'src/app-components/Flex/Flex';
 import { Label, LabelInner } from 'src/components/label/Label';
 import { TaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
+import { FormStore } from 'src/features/form/FormContext';
 import { FormProvider } from 'src/features/form/FormProvider';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Subform/Summary/SubformSummaryComponent2.module.css';
@@ -154,7 +154,7 @@ const DoSummaryWrapper = ({
 };
 
 export function AllSubformSummaryComponent2() {
-  const lookups = FormBootstrap.useLayoutLookups();
+  const lookups = FormStore.bootstrap.useLayoutLookups();
   const allIds = Object.values(lookups.topLevelComponents)
     .flat()
     .filter((id) => (id ? lookups.allComponents[id]?.type === 'Subform' : false))

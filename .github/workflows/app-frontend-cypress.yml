@@ -13,6 +13,8 @@ on:
       - 'src/App/frontend/test/**'
       - 'src/App/frontend/package.json'
       - 'src/test/apps/**'
+      - 'libs/form-component/src/**'
+      - 'libs/form-component/package.json'
       - '.github/actions/**'
       - '.github/workflows/app-frontend-cypress.yml'
   workflow_dispatch:
@@ -72,7 +74,7 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           APP_TEST_IMAGE_REPOSITORY: ${{ env.APP_TEST_IMAGE_REPOSITORY }}
-          STUDIOCTL_REGISTRY_CACHE_WRITE: "true"
+          STUDIOCTL_REGISTRY_CACHE_WRITE: 'true'
         with:
           script: |
             const fs = require('fs/promises');
@@ -134,7 +136,6 @@ jobs:
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
         with:
-          run-frontend: true
           run-localtest: true
           app-run-targets-json: ${{ needs.build-app-images.outputs.app-run-targets-json }}
 
@@ -165,7 +166,7 @@ jobs:
           PERCY_TARGET_BRANCH: ${{ github.base_ref || 'main' }}
           IS_PR_DRAFT: ${{ github.event.pull_request.draft }}
         run: |
-          base_command='npx cypress run --record --parallel --group altinn-app-frontend --tag altinn-app-frontend --browser chrome --ci-build-id "${{ github.run_id }}-${{ github.run_attempt }}" --spec test/e2e/integration --env environment=docker'
+          base_command='npx cypress run --record --parallel --group altinn-app-frontend --tag altinn-app-frontend --browser chrome --ci-build-id "${{ github.run_id }}-${{ github.run_attempt }}" --spec test/e2e/integration --env environment=localtest'
 
           if [ "${ENABLE_PERCY:-false}" = "true" ]; then
             container_command="npx percy exec --parallel -- ${base_command}"
@@ -195,7 +196,9 @@ jobs:
         if: failure()
         with:
           name: app-frontend-logs
-          path: src/App/frontend/test/logs/*
+          path: |
+            src/App/frontend/test/logs/*
+            ${{ env.STUDIOCTL_HOME }}/logs/**
 
       - name: Stop localtest
         if: always()
@@ -242,7 +245,6 @@ jobs:
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
         with:
-          run-frontend: true
           run-localtest: true
           app-run-targets-json: ${{ steps.app-run-targets.outputs.app-run-targets-json }}
 
@@ -265,7 +267,7 @@ jobs:
             -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
             -w "${GITHUB_WORKSPACE}/src/App/frontend" \
             "${CYPRESS_BROWSER_IMAGE}" \
-            bash -lc 'npx cypress run --browser chrome --spec test/e2e/integration --env environment=docker'
+            bash -lc 'npx cypress run --browser chrome --spec test/e2e/integration --env environment=localtest'
 
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: failure()
@@ -275,6 +277,7 @@ jobs:
             src/App/frontend/test/logs/*
             src/App/frontend/test/screenshots/*
             src/App/frontend/test/videos/*
+            ${{ env.STUDIOCTL_HOME }}/logs/**
 
       - name: Stop localtest
         if: always()

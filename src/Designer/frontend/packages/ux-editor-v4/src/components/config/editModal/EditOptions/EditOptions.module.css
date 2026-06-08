@@ -1,0 +1,12 @@
+.root {
+  padding: var(--studio-legacy-property-button-vertical-spacing) var(--fds-spacing-5);
+  gap: var(--fds-spacing-3);
+}
+
+.optionsHeading {
+  font-size: medium;
+}
+
+.errorMessage {
+  margin: var(--fds-spacing-5) var(--fds-spacing-5) 0;
+}

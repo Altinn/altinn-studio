@@ -135,7 +135,7 @@ func dockerTagFromPath(path string) string {
 }
 
 func buildCacheOptions(ref string) types.BuildOptions {
-	if ref == "" || !config.IsTruthyEnv(os.Getenv("CI")) {
+	if ref == "" || !config.IsCI() {
 		return types.BuildOptions{
 			CacheFrom: nil,
 			CacheTo:   nil,

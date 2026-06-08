@@ -1,0 +1,87 @@
+package executor
+
+import (
+	"fmt"
+
+	"altinn.studio/devenv/pkg/resource"
+)
+
+// Status represents the current state of a resource.
+type Status int
+
+const (
+	// StatusUnknown means the resource state could not be determined.
+	StatusUnknown Status = iota
+	// StatusPending means the resource exists but is not ready to act yet.
+	StatusPending
+	// StatusCreating means reconciliation is actively creating the resource.
+	StatusCreating
+	// StatusReady means the resource is healthy and available.
+	StatusReady
+	// StatusFailed means reconciliation completed in a failed state.
+	StatusFailed
+	// StatusDestroying means reconciliation is actively removing the resource.
+	StatusDestroying
+	// StatusDestroyed means the resource no longer exists.
+	StatusDestroyed
+)
+
+func (s Status) String() string {
+	switch s {
+	case StatusUnknown:
+		return "unknown"
+	case StatusPending:
+		return "pending"
+	case StatusCreating:
+		return "creating"
+	case StatusReady:
+		return "ready"
+	case StatusFailed:
+		return "failed"
+	case StatusDestroying:
+		return "destroying"
+	case StatusDestroyed:
+		return "destroyed"
+	default:
+		return fmt.Sprintf("Status(%d)", s)
+	}
+}
+
+// IsTerminal returns true if the status represents a final state.
+func (s Status) IsTerminal() bool {
+	return s == StatusReady || s == StatusFailed || s == StatusDestroyed
+}
+
+// IsHealthy returns true if the resource is in a healthy operational state.
+func (s Status) IsHealthy() bool {
+	return s == StatusReady
+}
+
+// StatusOption customizes status collection.
+type StatusOption func(*StatusOptions)
+
+// StatusOptions controls status collection behavior.
+type StatusOptions struct {
+	skip func(resource.Resource) bool
+}
+
+// SkipResource excludes resources matching skip from status collection.
+func SkipResource(skip func(resource.Resource) bool) StatusOption {
+	return func(opts *StatusOptions) {
+		opts.skip = skip
+	}
+}
+
+func newStatusOptions(options []StatusOption) StatusOptions {
+	var opts StatusOptions
+	for _, option := range options {
+		if option != nil {
+			option(&opts)
+		}
+	}
+	return opts
+}
+
+func (o StatusOptions) skipResource(r resource.Resource) bool {
+	return o.skip != nil && o.skip(r)
+}

@@ -7,10 +7,13 @@ import (
 
 	"altinn.studio/devenv/pkg/container/mock"
 	"altinn.studio/devenv/pkg/container/types"
+	containerbackend "altinn.studio/devenv/pkg/resource/executor/container"
 	"altinn.studio/studioctl/internal/cmd/env/localtest"
 )
 
 var errConnRefused = errors.New("connection refused")
+
+const testGraphID = "studioctl-localtest"
 
 func TestCheckForLegacyLocaltest(t *testing.T) {
 	t.Parallel()
@@ -32,12 +35,12 @@ func TestCheckForLegacyLocaltest(t *testing.T) {
 			wantLegacy: false,
 		},
 		{
-			name: "containers exist with studioctl label",
+			name: "containers exist with graph label value",
 			setup: func(c *mock.Client) {
 				c.ContainerInspectFunc = func(_ context.Context, _ string) (types.ContainerInfo, error) {
 					return types.ContainerInfo{
 						State:  types.ContainerState{Running: true},
-						Labels: map[string]string{localtest.LabelKey: localtest.LabelValue},
+						Labels: map[string]string{containerbackend.GraphIDLabel: testGraphID},
 					}, nil
 				}
 			},
@@ -63,7 +66,7 @@ func TestCheckForLegacyLocaltest(t *testing.T) {
 				c.ContainerInspectFunc = func(_ context.Context, _ string) (types.ContainerInfo, error) {
 					return types.ContainerInfo{
 						State:  types.ContainerState{Running: true},
-						Labels: map[string]string{localtest.LabelKey: "other-value"},
+						Labels: map[string]string{containerbackend.GraphIDLabel: "other-value"},
 					}, nil
 				}
 			},
@@ -105,7 +108,7 @@ func TestCheckForLegacyLocaltest(t *testing.T) {
 					}
 					return types.ContainerInfo{
 						State:  types.ContainerState{Running: true},
-						Labels: map[string]string{localtest.LabelKey: localtest.LabelValue},
+						Labels: map[string]string{containerbackend.GraphIDLabel: testGraphID},
 					}, nil
 				}
 			},

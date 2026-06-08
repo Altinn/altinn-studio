@@ -17,7 +17,7 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o main ./cmd/worker
 
-FROM docker.io/chromedp/headless-shell:stable@sha256:43d8b0d7980c76aa9d9f8a8556d2d994073fdb9c755744cc27667e351e2fe9d5
+FROM docker.io/chromedp/headless-shell:stable@sha256:f7db1bdf1560201b361844f11c7da300d0c5936f8618e128a7d2c75ae221a3a3
 
 USER root
 
@@ -31,11 +31,17 @@ RUN echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula sele
     fc-cache -f -v && \
     rm -rf /var/lib/apt/lists/*
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libnss3-tools && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 COPY --from=builder /app/main .
+COPY docker-entrypoint.sh .
 
-RUN mkdir -p ./output
+RUN chmod +x ./docker-entrypoint.sh && \
+    mkdir -p ./output
 
 EXPOSE 5031
 
@@ -45,4 +51,5 @@ RUN mkdir -p /tmp/user-home && \
 ENV HOME=/tmp/user-home
 USER nobody
 
-ENTRYPOINT ["./main"]
+ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["./main"]

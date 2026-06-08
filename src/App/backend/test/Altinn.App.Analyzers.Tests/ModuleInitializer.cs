@@ -14,7 +14,7 @@ public class ModuleInitializer
     {
         var testProjectDir = GetTestProjectDirectory();
         Directory.SetCurrentDirectory(testProjectDir.FullName);
-        var path = Path.Join(testProjectDir.FullName, "testapp", "App.sln");
+        var path = Path.Join(testProjectDir.FullName, "testapp", "App.slnx");
         Assert.True(File.Exists(path));
         path = Path.GetFullPath(path);
         Assert.True(File.Exists(path));

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
@@ -11,9 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" />
-    <PackageReference Include="Docker.DotNet" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="Testcontainers" />
     <PackageReference Include="xunit" />
     <PackageReference Include="Xunit.Combinatorial" />
     <PackageReference Include="xunit.runner.visualstudio" />
@@ -26,6 +24,7 @@
     <!-- TODO: cleaner sharing -->
     <Compile Include="_testapps/_shared/FixtureConfiguration.cs" />
     <Compile Include="_testapps/_shared/ConnectivityResult.cs" />
+    <Compile Include="_testapps/_shared/CurrentActivityResult.cs" />
     <Compile Remove="_localtest/**" />
   </ItemGroup>
 

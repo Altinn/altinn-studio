@@ -103,6 +103,17 @@ func TestRunWorkflow_SelectsLatestPrereleaseForMain(t *testing.T) {
 	if !strings.Contains(string(content), "Latest preview notes") {
 		t.Fatalf("release notes did not use latest prerelease:\n%s", string(content))
 	}
+	for _, want := range []string{
+		"## Install or update",
+		"studioctl self update",
+		"https://altinn.studio/designer/api/v1/studioctl/install.sh",
+		"https://altinn.studio/designer/api/v1/studioctl/install.ps1",
+		"## Changelog\n\n### Added",
+	} {
+		if !strings.Contains(string(content), want) {
+			t.Fatalf("release notes missing expected content %q:\n%s", want, string(content))
+		}
+	}
 	const prereleaseCompare = "**Full Changelog**: https://github.com/Altinn/altinn-studio/compare/studioctl/v1.2.0-preview.1...studioctl/v1.2.0-preview.2"
 	if !strings.Contains(string(content), prereleaseCompare) {
 		t.Fatalf("release notes missing compare link %q:\n%s", prereleaseCompare, string(content))
@@ -255,36 +266,29 @@ func createStudioctlWorkflowRepo(t *testing.T, changelog string) string {
 	runGitCmd(t, repoDir, "config", "user.email", "test@example.com")
 	runGitCmd(t, repoDir, "config", "user.name", "Test User")
 
-	writeRepoFile(t, repoDir, "go.mod", "module altinn.studio/studioctl\n\ngo 1.22.0\n")
-	writeRepoFile(
-		t,
-		repoDir,
-		"internal/cmd/version.go",
-		"package cmd\n\nvar version = \"dev\"\n\nfunc Version() string { return version }\n",
-	)
-	writeRepoFile(
-		t,
-		repoDir,
-		"src/cli/cmd/studioctl/main.go",
-		"package main\n\nimport (\n\t\"fmt\"\n\tcmd \"altinn.studio/studioctl/internal/cmd\"\n)\n\nfunc main() { fmt.Println(cmd.Version()) }\n",
-	)
-	writeRepoFile(
-		t,
-		repoDir,
-		"src/cli/app-manager/app-manager.csproj",
-		"<Project Sdk=\"Microsoft.NET.Sdk.Web\"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><AssemblyName>app-manager</AssemblyName><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup></Project>\n",
-	)
-	writeRepoFile(
-		t,
-		repoDir,
-		"src/cli/app-manager/Program.cs",
-		"var builder = WebApplication.CreateSlimBuilder(args);\nvar app = builder.Build();\napp.MapGet(\"/api/v1/healthz\", () => Results.Ok());\napp.Run();\n",
-	)
-	writeRepoFile(t, repoDir, "src/cli/cmd/studioctl/install.sh", "#!/usr/bin/env sh\necho install\n")
-	writeRepoFile(t, repoDir, "src/cli/cmd/studioctl/install.ps1", "Write-Host 'install'\n")
-	writeRepoFile(t, repoDir, "src/Runtime/localtest/testdata/data.txt", "data\n")
-	writeRepoFile(t, repoDir, "src/Runtime/localtest/infra/config.json", "{}\n")
 	writeRepoFile(t, repoDir, "src/cli/CHANGELOG.md", changelog)
+	writeRepoFile(t, repoDir, "src/cli/RELEASE_NOTES_INTRO.md", `## Install or update
+
+Update an existing installation:
+
+~~~sh
+studioctl self update
+~~~
+
+Install a new copy:
+
+Linux and macOS:
+
+~~~sh
+curl -sSL https://altinn.studio/designer/api/v1/studioctl/install.sh | sh
+~~~
+
+Windows PowerShell:
+
+~~~powershell
+iwr https://altinn.studio/designer/api/v1/studioctl/install.ps1 -useb | iex
+~~~
+`)
 	writeRepoFile(t, repoDir, "README.md", "test\n")
 
 	runGitCmd(t, repoDir, "add", ".")

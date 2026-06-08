@@ -37,10 +37,10 @@ var (
 	// ErrUnknownEnvironment is returned when an unknown environment is specified.
 	ErrUnknownEnvironment = errors.New("unknown environment")
 
-	// ErrTokenRequired is returned when a token is required but not provided.
-	ErrTokenRequired = errors.New("token is required")
+	// ErrLoginCodeRequired is returned when a login code is required but not provided.
+	ErrLoginCodeRequired = errors.New("login code is required")
 
-	// ErrInvalidToken is returned when token validation fails.
+	// ErrInvalidToken is returned when auth validation fails.
 	ErrInvalidToken = errors.New("invalid token")
 
 	// ErrInvalidRepoFormat is returned when repository format is invalid.

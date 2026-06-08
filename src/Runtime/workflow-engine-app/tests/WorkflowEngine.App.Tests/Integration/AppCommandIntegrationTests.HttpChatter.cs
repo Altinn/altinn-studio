@@ -24,7 +24,7 @@ public sealed partial class AppCommandIntegrationTests
     public async Task AppCommand_FullHttpChatter_DocumentsExchange()
     {
         var output = TestContext.Current.TestOutputHelper!;
-        var correlationId = Guid.NewGuid();
+        var collectionKey = Guid.NewGuid().ToString();
 
         // Arrange — WireMock stubs: both steps return state to demonstrate propagation.
         // Catch-all first, then specific stubs (WireMock: more specific match wins).
@@ -33,7 +33,8 @@ public sealed partial class AppCommandIntegrationTests
 
         var callbackBasePath =
             $"/{EngineAppFixture.DefaultOrg}/{EngineAppFixture.DefaultApp}"
-            + $"/instances/{EngineAppFixture.DefaultPartyId}/{EngineAppFixture.DefaultInstanceGuid}";
+            + $"/instances/{EngineAppFixture.DefaultPartyId}/{EngineAppFixture.DefaultInstanceGuid}"
+            + "/workflow-engine-callbacks";
 
         fixture
             .WireMock.Given(Request.Create().WithPath($"{callbackBasePath}/chatter-step-1"))
@@ -72,7 +73,7 @@ public sealed partial class AppCommandIntegrationTests
         var response = await client.EnqueueWithQueryParams(
             request,
             idempotencyKey: "app-chatter-idem",
-            correlationId: correlationId
+            collectionKey: collectionKey
         );
         var workflowId = response.Workflows.Single().DatabaseId;
         var status = await client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
@@ -183,8 +184,8 @@ public sealed partial class AppCommandIntegrationTests
                 HttpChatterHelpers.GetHeader(headers, WorkflowMetadataConstants.Headers.Namespace)
             );
             Assert.Equal(
-                correlationId.ToString(),
-                HttpChatterHelpers.GetHeader(headers, WorkflowMetadataConstants.Headers.CorrelationId)
+                collectionKey,
+                HttpChatterHelpers.GetHeader(headers, WorkflowMetadataConstants.Headers.CollectionKey)
             );
         }
     }

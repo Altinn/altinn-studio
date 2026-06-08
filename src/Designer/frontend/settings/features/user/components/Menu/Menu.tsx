@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { StudioContentMenu } from '@studio/components';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ShieldLockIcon } from '@studio/icons';
+import { KeyHorizontalIcon, PadlockLockedIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { RoutePaths } from '../../routes/RoutePaths';
 
@@ -14,7 +14,12 @@ export function Menu(): ReactElement {
     {
       tabId: RoutePaths.ApiKeys,
       tabName: t('settings.user.api_keys.api_keys'),
-      icon: <ShieldLockIcon />,
+      icon: <KeyHorizontalIcon />,
+    },
+    {
+      tabId: RoutePaths.Privacy,
+      tabName: t('settings.user.privacy.heading'),
+      icon: <PadlockLockedIcon />,
     },
   ];
   return (

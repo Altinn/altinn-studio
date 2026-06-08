@@ -1,10 +1,10 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -12,6 +12,8 @@ using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.Designer.Clients.Interfaces;
+using Altinn.Studio.Designer.Exceptions.SharedContent;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Preview;
@@ -20,6 +22,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Models;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -40,6 +43,7 @@ namespace Altinn.Studio.Designer.Controllers;
 /// <param name="previewService">Preview Service</param>
 /// <param name="textsService">Texts Service</param>
 /// <param name="appDevelopmentService">App Development Service</param>
+/// <param name="sharedContentClient">Shared Content Client</param>
 /// Factory class that knows how to create types of <see cref="AltinnGitRepository"/>
 [ApiController]
 [Authorize]
@@ -49,22 +53,16 @@ namespace Altinn.Studio.Designer.Controllers;
 [Route(
     "{org:regex(^(?!(designer|editor|dashboard|preview|admin|resourceadm|info|settings)$).+$)}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}"
 )]
-public class PreviewController(
+public partial class PreviewController(
     IHttpContextAccessor httpContextAccessor,
     IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
     ISchemaModelService schemaModelService,
     IPreviewService previewService,
     ITextsService textsService,
-    IAppDevelopmentService appDevelopmentService
+    IAppDevelopmentService appDevelopmentService,
+    ISharedContentClient sharedContentClient
 ) : Controller
 {
-    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
-    private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
-    private readonly ISchemaModelService _schemaModelService = schemaModelService;
-    private readonly IPreviewService _previewService = previewService;
-    private readonly ITextsService _textsService = textsService;
-    private readonly IAppDevelopmentService _appDevelopmentService = appDevelopmentService;
-
     // This value will be overridden to act as the task number for apps that use layout sets
     private const int PartyId = 51001;
 
@@ -90,8 +88,8 @@ public class PreviewController(
     [Route("/app-specific-preview/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}")]
     public async Task<IActionResult> AppFrontendSpecificPreview(string org, string app)
     {
-        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+        string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
             org,
             app,
             developer
@@ -127,8 +125,8 @@ public class PreviewController(
             imageFilePath = imageFileName;
         }
 
-        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+        string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
             org,
             app,
             developer
@@ -152,8 +150,8 @@ public class PreviewController(
         CancellationToken cancellationToken
     )
     {
-        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+        string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
             org,
             app,
             developer
@@ -161,7 +159,7 @@ public class PreviewController(
         ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(
             cancellationToken
         );
-        string appNugetVersionString = _appDevelopmentService
+        string appNugetVersionString = appDevelopmentService
             .GetAppLibVersion(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer))
             .ToString();
         // This property is populated at runtime by the apps, so we need to mock it here
@@ -187,8 +185,8 @@ public class PreviewController(
         CancellationToken cancellationToken
     )
     {
-        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+        string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
             org,
             app,
             developer
@@ -219,8 +217,8 @@ public class PreviewController(
     {
         try
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                 org,
                 app,
                 developer
@@ -247,8 +245,8 @@ public class PreviewController(
     {
         try
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                 org,
                 app,
                 developer
@@ -286,8 +284,8 @@ public class PreviewController(
     {
         try
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                 org,
                 app,
                 developer
@@ -394,7 +392,7 @@ public class PreviewController(
     [HttpGet]
     [Route("api/v1/parties")]
     [UseSystemTextJson]
-    public ActionResult<List<Party>> AllowedToInstantiateFilter([FromQuery] string allowedToInstantiateFilter)
+    public ActionResult<List<Party>> AllowedToInstantiateFilter([FromQuery] string? allowedToInstantiateFilter)
     {
         List<Party> parties = new()
         {
@@ -440,8 +438,8 @@ public class PreviewController(
         CancellationToken cancellationToken
     )
     {
-        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+        string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
             org,
             app,
             developer
@@ -461,10 +459,10 @@ public class PreviewController(
     [Route("/designer/api/{org}/{app}/mock-instance-id")]
     public async Task<ActionResult<string>> GetInstanceId(string org, string app, CancellationToken cancellationToken)
     {
-        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-        string refererHeader = Request.Headers["Referer"];
-        string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
-        Instance mockInstance = await _previewService.GetMockInstance(
+        string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+        string? refererHeader = Request.Headers["Referer"];
+        string? layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
+        Instance mockInstance = await previewService.GetMockInstance(
             org,
             app,
             developer,
@@ -491,8 +489,8 @@ public class PreviewController(
         CancellationToken cancellationToken
     )
     {
-        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+        string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
             org,
             app,
             developer
@@ -525,7 +523,7 @@ public class PreviewController(
             // If app-frontend tries to fetch a datamodel for a mockDataModelId we will return the first
             // datamodel in appMetadata since our mocked preview will not use this datamodel anyway, but
             // app-frontend expects an actual datamodel as a response
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                 org,
                 app,
                 developer
@@ -538,8 +536,9 @@ public class PreviewController(
                 .Id;
             modelPath = $"/App/models/{existingDataTypeId}.schema.json";
         }
+
         string decodedPath = Uri.UnescapeDataString(modelPath);
-        string json = await _schemaModelService.GetSchema(
+        string json = await schemaModelService.GetSchema(
             AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer),
             decodedPath,
             cancellationToken
@@ -563,7 +562,7 @@ public class PreviewController(
     )
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
             org,
             app,
             developer
@@ -592,7 +591,7 @@ public class PreviewController(
     )
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
             org,
             app,
             developer
@@ -620,7 +619,7 @@ public class PreviewController(
         try
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                 org,
                 app,
                 developer
@@ -654,7 +653,7 @@ public class PreviewController(
         try
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                 org,
                 app,
                 developer
@@ -686,7 +685,7 @@ public class PreviewController(
         try
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                 org,
                 app,
                 developer
@@ -723,7 +722,7 @@ public class PreviewController(
         try
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                 org,
                 app,
                 developer
@@ -754,11 +753,12 @@ public class PreviewController(
         {
             List<ApplicationLanguage> applicationLanguages = new();
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            IList<string> languages = _textsService.GetLanguages(org, app, developer);
+            IList<string> languages = textsService.GetLanguages(org, app, developer);
             foreach (string language in languages)
             {
                 applicationLanguages.Add(new ApplicationLanguage() { Language = language });
             }
+
             return Ok(applicationLanguages);
         }
         catch (NotFoundException)
@@ -772,30 +772,50 @@ public class PreviewController(
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="app">Application identifier which is unique within an organisation.</param>
-    /// <param name="optionListId">The id of the options list</param>
+    /// <param name="optionsListIdOrLibraryRef">The id or reference to the options list</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The options list if it exists, otherwise nothing</returns>
     [HttpGet]
-    [Route("api/options/{optionListId}")]
+    [Route("api/options/{optionsListIdOrLibraryRef}")]
     public async Task<ActionResult<string>> GetOptions(
         string org,
         string app,
-        string optionListId,
+        string optionsListIdOrLibraryRef,
         CancellationToken cancellationToken
     )
     {
         try
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-                org,
-                app,
-                developer
-            );
-            string options = await altinnAppGitRepository.GetOptionsList(optionListId, cancellationToken);
-            return Ok(options);
+            var libRefMatch = LibraryRefRegex().Match(optionsListIdOrLibraryRef);
+            if (libRefMatch.Success)
+            {
+                var codeList = await sharedContentClient.GetPublishedCodeListForOrg(
+                    libRefMatch.Groups["org"].Value,
+                    libRefMatch.Groups["codeListId"].Value,
+                    libRefMatch.Groups["version"].Value,
+                    cancellationToken
+                );
+
+                var optionsList = MapToOptions(codeList);
+                return JsonSerializer.Serialize(optionsList);
+            }
+            else
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                    org,
+                    app,
+                    developer
+                );
+
+                string options = await altinnAppGitRepository.GetOptionsList(
+                    optionsListIdOrLibraryRef,
+                    cancellationToken
+                );
+                return Ok(options);
+            }
         }
-        catch (NotFoundException)
+        catch (Exception ex) when (ex is NotFoundException or SharedContentRequestException)
         {
             // Return empty list since app-frontend don't handle a null result
             return Ok(new List<string>());
@@ -815,8 +835,8 @@ public class PreviewController(
     {
         try
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                 org,
                 app,
                 developer
@@ -876,6 +896,55 @@ public class PreviewController(
         return Ok(lookupResponse);
     }
 
+    private static List<Option> MapToOptions(CodeList? libraryCodeListResponse)
+    {
+        if (libraryCodeListResponse?.Codes == null)
+        {
+            return [];
+        }
+
+        return libraryCodeListResponse
+            .Codes.Select(code =>
+            {
+                return new Option
+                {
+                    Value = code.Value,
+                    Label = GetValueWithLanguageFallback(code.Label),
+                    Description = GetValueWithLanguageFallback(code.Description),
+                    HelpText = GetValueWithLanguageFallback(code.HelpText),
+                };
+            })
+            .ToList();
+    }
+
+    /// <summary>
+    /// Gets a value from a language collection.
+    /// Attempts to find a value in this order: Nb, Nn, En, then first available (alphabetically by key).
+    /// </summary>
+    private static string? GetValueWithLanguageFallback(Dictionary<string, string>? languageCollection)
+    {
+        if (languageCollection == null)
+        {
+            return null;
+        }
+
+        if (languageCollection.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        if (
+            languageCollection.TryGetValue(LanguageConst.Nb, out string? value)
+            || languageCollection.TryGetValue(LanguageConst.Nn, out value)
+            || languageCollection.TryGetValue(LanguageConst.En, out value)
+        )
+        {
+            return value;
+        }
+
+        return languageCollection.OrderBy(x => x.Key).First().Value;
+    }
+
     /// <summary>
     /// Adds the pdfLayoutName to pages.order in the layout settings for preview purposes.
     /// The actual Settings.json file is not modified.
@@ -883,8 +952,8 @@ public class PreviewController(
     /// <param name="layoutSettings">The layout settings JsonNode to modify in-place.</param>
     private static void AddPdfLayoutNameToPageOrder(JsonNode layoutSettings)
     {
-        JsonObject pagesObject = layoutSettings?["pages"] as JsonObject;
-        string pdfLayoutName = pagesObject?["pdfLayoutName"]?.GetValue<string>();
+        JsonObject? pagesObject = layoutSettings?["pages"] as JsonObject;
+        string? pdfLayoutName = pagesObject?["pdfLayoutName"]?.GetValue<string>();
         if (string.IsNullOrEmpty(pdfLayoutName))
         {
             return;
@@ -892,7 +961,7 @@ public class PreviewController(
 
         if (pagesObject?["groups"] is JsonArray groups)
         {
-            JsonObject lastGroupWithOrder = groups.OfType<JsonObject>().LastOrDefault(g => g["order"] is JsonArray);
+            JsonObject? lastGroupWithOrder = groups.OfType<JsonObject>().LastOrDefault(g => g["order"] is JsonArray);
 
             if (lastGroupWithOrder?["order"] is JsonArray groupOrder)
             {
@@ -915,10 +984,10 @@ public class PreviewController(
         }
     }
 
-    private static string GetSelectedLayoutSetInEditorFromRefererHeader(string refererHeader)
+    private static string? GetSelectedLayoutSetInEditorFromRefererHeader(string? refererHeader)
     {
-        Uri refererUri = new(refererHeader);
-        string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
+        Uri refererUri = new(refererHeader!);
+        string? layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
 
         return string.IsNullOrEmpty(layoutSetName) ? null : layoutSetName;
     }
@@ -946,4 +1015,7 @@ public class PreviewController(
 
         return applicationMetadata;
     }
+
+    [GeneratedRegex(@"^lib\*\*(?<org>[a-zA-Z0-9]+)\*\*(?<codeListId>[a-zA-Z0-9_-]+)\*\*(?<version>[a-zA-Z0-9._-]+)$")]
+    private static partial Regex LibraryRefRegex();
 }

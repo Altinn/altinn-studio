@@ -1,5 +1,7 @@
 import { get } from 'app-shared/utils/networking';
 import {
+  chatThreadsPath,
+  chatMessagesPath,
   altinn2LinkServicesPath,
   appMetadataPath,
   appPolicyPath,
@@ -81,12 +83,13 @@ import {
   publishedResourcesPath,
   customTemplatesPath,
   userApiKeysPath,
+  studioctlAuthRequestPath,
   contactPointsPath,
   botAccountsPath,
   botAccountApiKeysPath,
 } from './paths';
 
-import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
+import type { AppReleasesResponse, ChatMessage, ChatThread, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
 import type { Branch, CurrentBranchInfo } from 'app-shared/types/api/BranchTypes';
@@ -135,6 +138,7 @@ import type { AppValidationResult } from 'app-development/hooks/queries/useAppVa
 import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
 import type { AppSettings } from 'app-shared/types/AppSettings';
 import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
+import type { StudioctlAuthRequest } from 'app-shared/types/api/StudioctlAuth';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
 import type { BotAccount, BotAccountApiKey } from 'app-shared/types/BotAccount';
 
@@ -239,8 +243,13 @@ export const getOrgTextLanguages = (org: string): Promise<string[] | null> => ge
 export const getOrgTextResources = (org: string, language: string): Promise<ITextResourcesWithLanguage | null> => get<ITextResourcesWithLanguage | null>(orgTextResourcesPath(org, language));
 export const getPublishedResources = (org: string, path?: string): Promise<string[]> => get<string[]>(publishedResourcesPath(org, path));
 
+// Assistant chat
+export const getChatThreads = (org: string, app: string) => get<ChatThread[]>(chatThreadsPath(org, app));
+export const getChatMessages = (org: string, app: string, threadId: string) => get<ChatMessage[]>(chatMessagesPath(org, app, threadId));
+
 // User settings
 export const getUserApiKeys = () => get<UserApiKey[]>(userApiKeysPath());
+export const getStudioctlAuthRequest = (id: string) => get<StudioctlAuthRequest>(studioctlAuthRequestPath(id));
 
 // Org settings - Contact points
 export const getContactPoints = (org: string) => get<ContactPoint[]>(contactPointsPath(org));

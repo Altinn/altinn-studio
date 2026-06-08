@@ -106,12 +106,12 @@ const buildLabelsHTML = (wf, interactive) => {
     } else {
         html += `<span class="seg key">${esc(wf.namespace)}</span>`;
     }
-    if (wf.correlationId) {
+    if (wf.collectionKey) {
         html += `<span class="seg-sep">/</span>`;
         if (interactive) {
-            html += `<span class="seg key" onclick="toggleLabelFilter('correlationId','${esc(wf.correlationId)}')" title="Filter by correlationId">${esc(wf.correlationId)}</span>`;
+            html += `<span class="seg key" onclick="toggleLabelFilter('collectionKey','${esc(wf.collectionKey)}')" title="Filter by collectionKey">${esc(wf.collectionKey)}</span>`;
         } else {
-            html += `<span class="seg key" title="correlationId">${esc(wf.correlationId)}</span>`;
+            html += `<span class="seg key" title="collectionKey">${esc(wf.collectionKey)}</span>`;
         }
     }
     if (wf.labels) {
@@ -251,7 +251,7 @@ const buildFilterText = (wf) => {
     if (wf.labels) {
         for (const [k, v] of Object.entries(wf.labels)) parts.push(k, v);
     }
-    if (wf.correlationId) parts.push(wf.correlationId);
+    if (wf.collectionKey) parts.push(wf.collectionKey);
     for (const s of wf.steps) parts.push(s.commandDetail, s.operationId);
     return parts.join(' ').toLowerCase();
 };
@@ -275,7 +275,7 @@ export const setCardFilterData = (card, wf) => {
     card.dataset.filter = buildFilterText(wf);
     card.dataset.status = buildStatusTags(wf);
     card.dataset.namespace = wf.namespace.toLowerCase();
-    if (wf.correlationId) card.dataset.correlationid = wf.correlationId.toLowerCase();
+    if (wf.collectionKey) card.dataset.collectionkey = wf.collectionKey.toLowerCase();
     if (wf.labels) {
         card.dataset.labels = Object.entries(wf.labels)
             .map(([k, v]) => `${k}:${v}`)

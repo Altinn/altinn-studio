@@ -5,6 +5,7 @@ import { AttachmentSummaryComponent2 } from 'src/layout/FileUpload/AttachmentSum
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { FileUploadLayoutValidator } from 'src/layout/FileUpload/FileUploadLayoutValidator';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
+import { useValidateAttachmentDataElements } from 'src/layout/FileUpload/useValidateAttachmentDataElements';
 import { useValidateMinNumberOfAttachments } from 'src/layout/FileUpload/useValidateMinNumberOfAttachments';
 import { useFileUploaderDataBindingsValidation } from 'src/layout/FileUpload/utils/useFileUploaderDataBindingsValidation';
 import { FileUploadWithTagDef } from 'src/layout/FileUploadWithTag/config.def.generated';
@@ -59,7 +60,11 @@ export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateC
   }
 
   useComponentValidation(baseComponentId: string): ComponentValidation[] {
-    return [...useValidateMinNumberOfAttachments(baseComponentId), ...useValidateMissingTag(baseComponentId)];
+    return [
+      ...useValidateMinNumberOfAttachments(baseComponentId),
+      ...useValidateMissingTag(baseComponentId),
+      ...useValidateAttachmentDataElements(baseComponentId),
+    ];
   }
 
   isDataModelBindingsRequired(baseComponentId: string, layoutLookups: LayoutLookups): boolean {

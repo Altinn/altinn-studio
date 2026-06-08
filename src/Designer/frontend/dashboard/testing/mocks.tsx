@@ -1,6 +1,6 @@
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { Queries, RenderHookOptions, RenderOptions } from '@testing-library/react';
-import { render, renderHook } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import type { MemoryRouterProps } from 'react-router-dom';
 import { MemoryRouter } from 'react-router-dom';
@@ -12,6 +12,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 import type { FeatureFlag } from '@studio/feature-flags';
+import { renderAndRunTimers } from '@studio/ui-test';
 
 type WrapperArgs = {
   queries: Partial<ServicesContextProps>;
@@ -60,7 +61,7 @@ export function renderWithProviders(
         initialEntries,
       })(children),
   };
-  return render(component, renderOptions);
+  return renderAndRunTimers(component, renderOptions);
 }
 
 export function renderHookWithProviders<HookResult, Props>(

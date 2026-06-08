@@ -84,11 +84,11 @@ internal sealed class ScopedVerifier
 
     public async Task VerifyLogs([CallerFilePath] string sourceFile = "")
     {
-        var snapshotLogs = _fixture.GetSnapshotAppLogs();
+        var snapshotLogs = await _fixture.GetSnapshotAppLogs();
         await Verify(snapshotLogs, snapshotName: "Logs", sourceFile: sourceFile);
 
-        var appLogs = _fixture.GetAppLogs();
-        var localtestLogs = _fixture.GetLocaltestLogs();
+        var appLogs = await _fixture.GetAppLogs();
+        var localtestLogs = await _fixture.GetLocaltestLogs();
         await Verify(appLogs, snapshotName: "AppLogs", sourceFile: sourceFile)
             .UseDirectory("_snapshots/_local")
             .AutoVerify(includeBuildServer: true);

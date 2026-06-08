@@ -21,19 +21,19 @@ export function useTaskErrors(): {
   formErrors: NodeRefValidation<AnyValidation<'error'>>[];
   taskErrors: BaseValidation<'error'>[];
 } {
-  const [dataModels, taskValidations, showAllBackendErrors] = FormStore.raw.useShallowSelector((state) => [
-    state.validation.state.dataModels,
+  const [dataModels, taskValidations, showAllUnboundValidations] = FormStore.raw.useShallowSelector((state) => [
+    state.data.models,
     state.validation.state.task,
-    state.validation.showAllBackendErrors,
+    state.validation.showAllUnboundValidations,
   ]);
 
-  const formErrorVisibility: NodeVisibility = showAllBackendErrors ? 'showAll' : 'visible';
+  const formErrorVisibility: NodeVisibility = showAllUnboundValidations ? 'showAll' : 'visible';
 
   const _formErrors = FormStore.nodes.useAllValidations(formErrorVisibility, 'error');
   const formErrors = !_formErrors.length ? emptyArray : _formErrors;
 
   const taskErrors = useMemo(() => {
-    if (!showAllBackendErrors) {
+    if (!showAllUnboundValidations) {
       return emptyArray;
     }
 
@@ -43,14 +43,14 @@ export function useTaskErrors(): {
     const boundErrorIds = new Set(formErrors.filter(hasBackendValidationId).map((v) => v.backendValidationId));
 
     // Unbound field errors
-    for (const fields of Object.values(dataModels)) {
-      for (const field of Object.values(fields)) {
-        allBackendErrors.push(
-          ...(selectValidations(field, backendMask, 'error').filter(
-            // Only select backend errors which are not already visible through formErrors
-            (v) => v.backendValidationId && !boundErrorIds.has(v.backendValidationId),
-          ) as BaseValidation<'error'>[]),
-        );
+    for (const validations of Object.values(dataModels).map((dataModel) => dataModel.validations.backend)) {
+      for (const field of Object.values(validations)) {
+        for (const validation of selectValidations(field, backendMask, 'error')) {
+          // Only select backend errors which are not already visible through formErrors
+          if (validation.backendValidationId && !boundErrorIds.has(validation.backendValidationId)) {
+            allBackendErrors.push(validation as BaseValidation<'error'>);
+          }
+        }
       }
     }
 
@@ -58,7 +58,7 @@ export function useTaskErrors(): {
     allBackendErrors.push(...validationsOfSeverity(taskValidations, 'error'));
 
     return allBackendErrors?.length ? allBackendErrors : emptyArray;
-  }, [dataModels, formErrors, showAllBackendErrors, taskValidations]);
+  }, [dataModels, formErrors, showAllUnboundValidations, taskValidations]);
 
   return {
     formErrors,

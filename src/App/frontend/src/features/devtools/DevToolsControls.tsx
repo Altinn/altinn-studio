@@ -10,22 +10,19 @@ import { DevToolsLogs } from 'src/features/devtools/components/DevToolsLogs/DevT
 import { DownloadXMLButton } from 'src/features/devtools/components/DownloadXMLButton/DownloadXMLButton';
 import { ExpressionPlayground } from 'src/features/devtools/components/ExpressionPlayground/ExpressionPlayground';
 import { ComponentSelector } from 'src/features/devtools/components/LayoutInspector/ComponentSelector';
-// There are no beta features at this time
-// import { FeatureToggles } from 'src/features/devtools/components/FeatureToggles/FeatureToggles';
 import { LayoutInspector } from 'src/features/devtools/components/LayoutInspector/LayoutInspector';
 import { NodeInspector } from 'src/features/devtools/components/NodeInspector/NodeInspector';
 import { PDFPreviewButton } from 'src/features/devtools/components/PDFPreviewButton/PDFPreviewButton';
 import { PermissionsEditor } from 'src/features/devtools/components/PermissionsEditor/PermissionsEditor';
-import { VersionSwitcher } from 'src/features/devtools/components/VersionSwitcher/VersionSwitcher';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import classes from 'src/features/devtools/DevTools.module.css';
-import { FormProviderHooks } from 'src/features/form/FormContext';
+import { FormStore } from 'src/features/form/FormContext';
 
 export const DevToolsControls = () => {
   const activeTab = useDevToolsStore((state) => state.activeTab);
   const setActiveTab = useDevToolsStore((state) => state.actions.setActiveTab);
-  const isInForm = FormProviderHooks.useIsInContext();
+  const isInForm = FormStore.useIsInContext();
 
   return (
     <Tabs
@@ -60,7 +57,6 @@ export const DevToolsControls = () => {
           <PDFPreviewButton />
           <DevNavigationButtons />
           <DevHiddenFunctionality />
-          <VersionSwitcher />
           <PermissionsEditor />
           <DevLanguageSelector />
           <DownloadXMLButton />
@@ -97,11 +93,6 @@ export const DevToolsControls = () => {
           <ExpressionPlayground />
         </Tabs.Panel>
       )}
-      {
-        // <Tabs.Content value={DevToolsTab.FeatureToggles}>
-        //   <FeatureToggles />
-        // </Tabs.Content>
-      }
     </Tabs>
   );
 };

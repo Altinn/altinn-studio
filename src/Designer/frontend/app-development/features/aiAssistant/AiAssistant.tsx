@@ -7,29 +7,34 @@ import { Preview } from './components/Preview';
 import { FileBrowser } from './components/FileBrowser';
 import classes from './AiAssistant.module.css';
 import { useUserQuery } from 'app-shared/hooks/queries';
+import { useChatFeedbackMutation } from 'app-shared/hooks/mutations/useChatFeedbackMutation';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioCenter, StudioAlert, StudioParagraph } from '@studio/components';
 
 function AiAssistant(): ReactElement {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
   const { data: currentUser } = useUserQuery();
   const userHasAccessToAssistant = useAltinityPermissions();
+  const { mutate: sendChatFeedback } = useChatFeedbackMutation(org, app);
 
   const {
     connectionStatus,
     workflowStatus,
     chatThreads,
+    messages,
     currentSessionId,
     onSubmitMessage,
     cancelCurrentWorkflow,
     cancelledMessageContent,
     clearCancelledMessageContent,
     selectThread,
-    createNewThread,
+    clearCurrentSession,
     deleteThread,
   } = useAltinityAssistant();
 
   const texts: AssistantTexts = {
-    heading: t('ai_assistant.heading'),
+    heading: t('top_menu.ai_assistant'),
     preview: t('ai_assistant.preview'),
     fileBrowser: t('ai_assistant.file_browser'),
     hideThreads: t('ai_assistant.hide_threads'),
@@ -54,6 +59,10 @@ function AiAssistant(): ReactElement {
       branchDocsLink: t('ai_assistant.about_assistant_branch_docs_link'),
       disclaimer: t('ai_assistant.about_assistant_disclaimer'),
     },
+    emptyThread: {
+      welcome: t('ai_assistant.empty_thread_welcome'),
+      instruction: t('ai_assistant.empty_thread_instruction'),
+    },
     textarea: {
       placeholder: t('ai_assistant.textarea_placeholder'),
       wait: 'Vent litt ...',
@@ -64,14 +73,22 @@ function AiAssistant(): ReactElement {
     send: t('ai_assistant.send'),
     cancel: 'Avbryt',
     assistantFirstMessage: t('ai_assistant.assistant_first_message'),
+    feedback: {
+      thumbsUp: t('ai_assistant.feedback_thumbs_up'),
+      thumbsDown: t('ai_assistant.feedback_thumbs_down'),
+      heading: t('ai_assistant.feedback_heading'),
+      detailsLabel: t('ai_assistant.feedback_details_label'),
+      detailsOptionalTag: t('general.optional'),
+      submit: t('ai_assistant.feedback_submit'),
+      cancel: t('general.cancel'),
+    },
   };
 
   if (!userHasAccessToAssistant) {
     return (
       <StudioCenter>
         <StudioAlert>
-          <StudioParagraph>{t('ai_assistant.access_denied_1')}</StudioParagraph>
-          <StudioParagraph>{t('ai_assistant.access_denied_2')}</StudioParagraph>
+          <StudioParagraph>{t('ai_assistant.access_denied')}</StudioParagraph>
         </StudioAlert>
       </StudioCenter>
     );
@@ -83,14 +100,16 @@ function AiAssistant(): ReactElement {
         texts={texts}
         enableCompactInterface={false}
         chatThreads={chatThreads}
+        messages={messages}
         activeThreadId={currentSessionId}
         onSubmitMessage={onSubmitMessage}
         onCancelWorkflow={cancelCurrentWorkflow}
         cancelledMessageContent={cancelledMessageContent}
         onCancelledMessageConsumed={clearCancelledMessageContent}
         onSelectThread={selectThread}
-        onCreateThread={createNewThread}
+        onCreateThread={clearCurrentSession}
         onDeleteThread={deleteThread}
+        onMessageFeedback={sendChatFeedback}
         connectionStatus={connectionStatus}
         workflowStatus={workflowStatus}
         previewContent={<Preview />}

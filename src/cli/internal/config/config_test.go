@@ -44,6 +44,14 @@ func TestIsTruthyEnv(t *testing.T) {
 	}
 }
 
+func TestIsCI(t *testing.T) {
+	t.Setenv(config.EnvCI, "true")
+
+	if !config.IsCI() {
+		t.Fatalf("IsCI() = false, want true")
+	}
+}
+
 func TestNew(t *testing.T) {
 	t.Parallel()
 
@@ -144,6 +152,29 @@ func TestNewWithEnvSocketDir(t *testing.T) {
 	if cfg.SocketDir != socketDir {
 		t.Errorf("SocketDir = %q, want %q", cfg.SocketDir, socketDir)
 	}
+	if cfg.StudioctlServerLockPath() != filepath.Join(socketDir, config.StudioctlServerName+".lock") {
+		t.Errorf("StudioctlServerLockPath() = %q, want lock in socket dir", cfg.StudioctlServerLockPath())
+	}
+	if cfg.BoundTopologyConfigDir() != filepath.Join(cfg.DataDir, "generated", "topology") {
+		t.Errorf("BoundTopologyConfigDir() = %q, want generated topology dir in data dir", cfg.BoundTopologyConfigDir())
+	}
+	if cfg.BoundTopologyConfigPath() != filepath.Join(cfg.DataDir, "generated", "topology", "result.json") {
+		t.Errorf(
+			"BoundTopologyConfigPath() = %q, want generated topology config in data dir",
+			cfg.BoundTopologyConfigPath(),
+		)
+	}
+	if cfg.BoundTopologyBaseConfigPath() != filepath.Join(
+		cfg.DataDir,
+		"generated",
+		"topology",
+		"env.json",
+	) {
+		t.Errorf(
+			"BoundTopologyBaseConfigPath() = %q, want generated base topology config in data dir",
+			cfg.BoundTopologyBaseConfigPath(),
+		)
+	}
 }
 
 func TestNewDoctorFallback(t *testing.T) {
@@ -162,10 +193,6 @@ func TestNewDoctorFallback(t *testing.T) {
 		if cfg.SocketDir != home {
 			t.Errorf("SocketDir = %q, want %q (same as Home)", cfg.SocketDir, home)
 		}
-		if cfg.Images.Utility.Busybox.Image == "" {
-			t.Error("expected fallback Busybox image to be set")
-		}
-
 		if _, err := os.Stat(home); !os.IsNotExist(err) {
 			t.Errorf("home directory should not be created in fallback mode, stat err = %v", err)
 		}

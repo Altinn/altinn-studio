@@ -16,32 +16,111 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-# List of runners to deploy. Each runner will create a separate deployment.
+# Set to "kata-vm-isolation" to run pods in a Kata microVM on AKS Pod Sandboxing nodes.
+# Leave empty to use the default runc runtime.
+runtimeClassName: ""
+
+# Docker-in-Docker sidecar. When enabled, a privileged dockerd container is added to each
+# runner pod and DOCKER_HOST is injected into the runner container pointing at the sidecar.
+# Intended to be combined with runtimeClassName: kata-vm-isolation so "privileged"
+# is scoped to the microVM, not the host node.
+#
+# On kata, /var/lib/docker cannot use the default emptyDir (virtio-fs doesn't support
+# overlay as an upper filesystem). The sidecar's entrypoint therefore loop-mounts a
+# sparse ext4 image file at /var/lib/docker when it detects virtio-fs. diskSize controls
+# the logical size of that sparse file; physical usage grows only with actual writes.
+dockerInDocker:
+  enabled: false
+  image:
+    repository: docker
+    tag: "dind"
+    pullPolicy: IfNotPresent
+  diskSize: "15G"
+
+# Shared workspace: mounts a shared emptyDir at act_runner's cache dir in both
+# the runner and the dockerd sidecar. This makes any bind mount from the tenant's
+# workflow (including $(pwd), $GITHUB_WORKSPACE, and tools like studioctl) resolve
+# correctly across the DinD container boundary, because the docker client's
+# filesystem view (runner) and the docker daemon's filesystem view (dockerd
+# sidecar) are otherwise disjoint. The default path /root/.cache/act is where
+# act_runner stores every per-job session directory, so all workflow state lands
+# inside the shared tree automatically.
+#
+# NOTE: STUDIOCTL_HOME is set in the altinn-gitea-runner image itself
+# (Dockerfile ENV) to /root/.cache/act/studioctl, which MUST be inside
+# shareWorkspace.path. If you change `path` here, also update STUDIOCTL_HOME
+# in the runner image Dockerfile — otherwise studioctl's bind mounts will
+# fail because dockerd won't see studioctl's testdata via the shared volume.
+shareWorkspace:
+  enabled: false
+  path: "/root/.cache/act"
+  sizeLimit: "10Gi"
+
+# Gitea connection details. Used both for the runner registration env vars
+# inside each Job pod, and for the KEDA scaler's queue-depth polling URL.
+gitea:
+  # Base URL of the Gitea instance (no /api/v1 suffix). Injected as
+  # GITEA_INSTANCE_URL on the runner container so act_runner registers here.
+  instanceUrl: "http://altinn-repositories-public.default.svc.cluster.local"
+  # Full API URL including /api/v1. Consumed by the KEDA github-runner scaler
+  # which polls the Actions queue. Gitea's Actions API is GitHub-compatible.
+  apiUrl: "http://altinn-repositories-public.default.svc.cluster.local/api/v1"
+  # Labels advertised by the runner via GITEA_RUNNER_LABELS env var. The
+  # `:host` suffix is act_runner's runner-type hint (run jobs natively in
+  # the pod instead of in docker); only the part BEFORE the colon is the
+  # label name workflows match against with `runs-on:`.
+  runnerLabels: "ubuntu-latest:host"
+  # The label name (without runner-type suffix) the KEDA scaler filters
+  # workflow runs by. Must match the value workflows put in `runs-on:`.
+  # Derived from runnerLabels by stripping the ":<type>" suffix; expose
+  # separately so a workflow expecting "ubuntu-latest" isn't filtered out
+  # by a scaler looking for the literal "ubuntu-latest:host".
+  scalerLabels: "ubuntu-latest"
+
+# KEDA / ScaledJob configuration. Per-org caps live below in maxConcurrent*.
+keda:
+  # Reference to a TriggerAuthentication CRD in the same namespace as the
+  # ScaledJob, holding the read-only Gitea PAT the scaler uses to poll the
+  # queue. Created out-of-band (one per cluster), not by this chart.
+  authenticationRef:
+    name: keda-gitea-auth
+  # How often KEDA polls Gitea per ScaledJob. 30s is the KEDA default; raise
+  # if Gitea complains about request rate (1 req per org per pollingInterval).
+  pollingInterval: 30
+  # KEDA cleans up completed Jobs older than this many seconds.
+  ttlSecondsAfterFinished: 300
+  # Hard cap on total Job runtime. Pod is killed if it exceeds this even
+  # while polling for work. Set to a value larger than the longest legitimate
+  # workflow you expect. Default 1800 = 30 min; raise if workflows can run
+  # longer, lower if you want orphaned idle runners reaped faster.
+  activeDeadlineSeconds: 1800
+  # K8s keeps the last N successful / failed Job records visible.
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 5
+  # How many queued workflows each runner is expected to drain. With "1",
+  # KEDA wants one new runner per queued workflow (subject to maxReplicaCount).
+  targetWorkflowQueueLength: "1"
+
+# Per-org concurrency caps. The chart applies maxConcurrentDefault to every
+# org unless overridden by an explicit entry in maxConcurrentOverrides.
+# maxConcurrentOverrides is keyed by org code (matching runners[].name).
+maxConcurrentDefault: 2
+maxConcurrentOverrides: {}
+  # brg: 6
+  # ssb: 5
+
+# List of orgs to render a ScaledJob for. Populated by the consumer (typically
+# the gitea-org-runner-config wrapper chart via Flux valuesFrom from the
+# runner-org-list ConfigMap that runner-org-sync writes).
+#
+# Shape: [{ name, registrationTokenSecretName }]. The chart constructs all
+# runner env vars (GITEA_INSTANCE_URL, GITEA_RUNNER_LABELS, etc.) from
+# chart-level config; no per-runner environmentVariables block is needed.
 runners: []
   # - name: ttd
-  #   replicas: 5
-  #   environmentVariables:
-  #     - name: GITEA_INSTANCE_URL
-  #       value: "https://gitea.example.com"
-  #     - name: GITEA_RUNNER_REGISTRATION_TOKEN
-  #       valueFrom:
-  #         secretKeyRef:
-  #           name: gitea-runner-ttd-token
-  #           key: token
-  #     - name: GITEA_RUNNER_NAME
-  #       value: "ttd-runner"
+  #   registrationTokenSecretName: altinn-gitea-runner-ttd-secret
   # - name: brg
-  #   replicas: 3
-  #   environmentVariables:
-  #     - name: GITEA_INSTANCE_URL
-  #       value: "https://gitea.example.com"
-  #     - name: GITEA_RUNNER_REGISTRATION_TOKEN
-  #       valueFrom:
-  #         secretKeyRef:
-  #           name: gitea-runner-brg-token
-  #           key: token
-  #     - name: GITEA_RUNNER_NAME
-  #       value: "brg-runner"
+  #   registrationTokenSecretName: altinn-gitea-runner-brg-secret
 
 # This is for setting Kubernetes Annotations to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
@@ -55,7 +134,6 @@ podSecurityContext:
 
 # securityContext:
 #   privileged: false
-
   # capabilities:
   #   drop:
   #   - ALL
@@ -63,12 +141,7 @@ podSecurityContext:
   # runAsNonRoot: true
   # runAsUser: 1000
 
-
 resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   # limits:
   #   cpu: 100m
   #   memory: 128Mi
@@ -76,16 +149,11 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
-# This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
+# Optional extra env vars merged onto the runner container.
+extraEnv: []
+  # - name: SOMETHING
+  #   value: "..."
 
 nodeSelector: {}
-
 tolerations: []
-
 affinity: {}

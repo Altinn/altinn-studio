@@ -8,20 +8,18 @@ import (
 
 	"altinn.studio/devenv/pkg/processutil"
 	"altinn.studio/studioctl/internal/osutil"
-
-	"golang.org/x/term"
+	"altinn.studio/studioctl/internal/ui"
 )
 
 func buildSystem(ctx context.Context) *System {
-	stdoutFD, stdoutFDOK := osutil.FDInt(os.Stdout.Fd())
 	system := &System{
 		OS:           runtime.GOOS,
 		Architecture: runtime.GOARCH,
 		OSName:       "",
 		OSVersion:    "",
 		Terminal:     os.Getenv("TERM"),
-		ColorEnabled: os.Getenv("NO_COLOR") == "",
-		TTY:          stdoutFDOK && term.IsTerminal(stdoutFD),
+		ColorEnabled: ui.Colors(),
+		TTY:          ui.StdoutIsTerminal(),
 	}
 
 	if system.Terminal == "" {
@@ -39,11 +37,11 @@ func buildSystem(ctx context.Context) *System {
 // getOSVersion returns the OS name and version.
 func getOSVersion(ctx context.Context) (osName, osVersion string) {
 	switch runtime.GOOS {
-	case "linux":
+	case osutil.OSLinux:
 		return getLinuxVersion(ctx)
-	case "darwin":
+	case osutil.OSDarwin:
 		return getDarwinVersion(ctx)
-	case osWindows:
+	case osutil.OSWindows:
 		return getWindowsVersion(ctx)
 	default:
 		return "", ""

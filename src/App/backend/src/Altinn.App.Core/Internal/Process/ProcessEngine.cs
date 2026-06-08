@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
@@ -161,6 +162,8 @@ public class ProcessEngine : IProcessEngine
         bool firstIteration = true;
         int iterationCount = 0;
 
+        await using var instanceLock = _instanceLocker.InitLock();
+
         do
         {
             if (iterationCount >= MaxNextIterationsAllowed)
@@ -198,7 +201,7 @@ public class ProcessEngine : IProcessEngine
                 Language = request.Language,
             };
 
-            result = await ProcessNext(processNextRequest, ct);
+            result = await ProcessNext(processNextRequest, instanceLock, ct);
 
             if (!result.Success)
             {
@@ -225,7 +228,11 @@ public class ProcessEngine : IProcessEngine
     /// <summary>
     /// Internal method that performs a single process next operation without automatic service task handling.
     /// </summary>
-    private async Task<ProcessChangeResult> ProcessNext(ProcessNextRequest request, CancellationToken ct = default)
+    private async Task<ProcessChangeResult> ProcessNext(
+        ProcessNextRequest request,
+        IInstanceLock instanceLock,
+        CancellationToken ct = default
+    )
     {
         Instance instance = request.Instance;
 
@@ -255,14 +262,14 @@ public class ProcessEngine : IProcessEngine
             };
         }
 
-        await _instanceLocker.LockAsync();
-
         _logger.LogDebug(
             "User successfully authorized to perform process next. Task ID: {CurrentTaskId}. Task type: {AltinnTaskType}. Action: {ProcessNextAction}.",
             LogSanitizer.Sanitize(currentTaskId),
             LogSanitizer.Sanitize(altinnTaskType),
             LogSanitizer.Sanitize(request.Action ?? "none")
         );
+
+        await instanceLock.Lock();
 
         string checkedAction = request.Action ?? ConvertTaskTypeToAction(altinnTaskType);
         bool isServiceTask = false;
@@ -427,6 +434,8 @@ public class ProcessEngine : IProcessEngine
         CancellationToken ct
     )
     {
+        using var activity = _telemetry?.StartProcessHandleUserActionActivity(instance, request.Action);
+
         Authenticated currentAuth = _authenticationContext.Current;
         IUserAction? actionHandler = _userActionService.GetActionHandler(request.Action);
 
@@ -694,13 +703,19 @@ public class ProcessEngine : IProcessEngine
 
     private async Task<InstanceEvent> GenerateProcessChangeEvent(string eventType, Instance instance, DateTime now)
     {
+        using var activity = _telemetry?.StartProcessGenerateChangeEventActivity(instance, eventType);
+
         var currentAuth = _authenticationContext.Current;
         PlatformUser user;
         switch (currentAuth)
         {
             case Authenticated.User auth:
             {
-                var details = await auth.LoadDetails(validateSelectedParty: true);
+                Authenticated.User.Details details;
+                using (_telemetry?.StartProcessLoadAuthDetailsActivity(nameof(Authenticated.User)))
+                {
+                    details = await auth.LoadDetails(validateSelectedParty: true);
+                }
                 user = new PlatformUser
                 {
                     UserId = auth.UserId,
@@ -749,6 +764,8 @@ public class ProcessEngine : IProcessEngine
 
     private async Task<MoveToNextResult> HandleMoveToNext(Instance instance, string? action)
     {
+        using var activity = _telemetry?.StartProcessMoveToNextActivity(instance, action);
+
         ProcessStateChange? processStateChange = await MoveProcessStateToNextAndGenerateEvents(instance, action);
 
         if (processStateChange is null)
@@ -757,7 +774,11 @@ public class ProcessEngine : IProcessEngine
         }
 
         instance = await HandleEventsAndUpdateStorage(instance, null, processStateChange.Events);
-        await _processEventDispatcher.RegisterEventWithEventsComponent(instance);
+
+        using (_telemetry?.StartProcessRegisterEventActivity(instance))
+        {
+            await _processEventDispatcher.RegisterEventWithEventsComponent(instance);
+        }
 
         return new MoveToNextResult(instance, processStateChange);
     }
@@ -790,15 +811,15 @@ public class ProcessEngine : IProcessEngine
     {
         switch (actionOrTaskType)
         {
-            case "data":
-            case "feedback":
-            case "pdf":
-            case "eFormidling":
-            case "fiksArkiv":
+            case AltinnTaskTypes.Data:
+            case AltinnTaskTypes.Feedback:
+            case AltinnTaskTypes.Pdf:
+            case AltinnTaskTypes.EFormidling:
+            case AltinnTaskTypes.FiksArkiv:
                 return "write";
-            case "confirmation":
+            case AltinnTaskTypes.Confirmation:
                 return "confirm";
-            case "signing":
+            case AltinnTaskTypes.Signing:
                 return "sign";
             default:
                 // Not any known task type, so assume it is an action type

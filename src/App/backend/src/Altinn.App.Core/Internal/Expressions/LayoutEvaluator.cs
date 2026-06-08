@@ -1,3 +1,4 @@
+using System.Globalization;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout;

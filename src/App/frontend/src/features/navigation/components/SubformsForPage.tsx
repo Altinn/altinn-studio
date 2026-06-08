@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 
 import { ChevronDownIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { ExprVal } from 'src/features/expressions/types';
+import { FormStore } from 'src/features/form/FormContext';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/features/navigation/components/SubformsForPage.module.css';
 import { isSubformValidation } from 'src/features/validation';
 import { useComponentValidationsFor } from 'src/features/validation/selectors/componentValidationsForNode';
+import { useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { useIsAnyProcessing } from 'src/hooks/useProcessingMutation';
 import {
@@ -23,8 +24,8 @@ import { useExternalItem } from 'src/utils/layout/hooks';
 import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IData } from 'src/types/shared';
 
-export function SubformsForPage({ pageKey }: { pageKey: string }) {
-  const lookups = FormBootstrap.useLayoutLookups();
+export function SubformsForPage({ pageKey, expandedByDefault }: { pageKey: string; expandedByDefault?: boolean }) {
+  const lookups = FormStore.bootstrap.useLayoutLookups();
   const subformIds = lookups.topLevelComponents[pageKey]?.filter((id) => lookups.allComponents[id]?.type === 'Subform');
   if (!subformIds?.length) {
     return null;
@@ -34,16 +35,21 @@ export function SubformsForPage({ pageKey }: { pageKey: string }) {
     <SubformGroup
       key={baseId}
       baseId={baseId}
+      expandedByDefault={expandedByDefault}
     />
   ));
 }
 
-function SubformGroup({ baseId }: { baseId: string }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const pageKey = FormBootstrap.useLayoutLookups().componentToPage[baseId];
+function SubformGroup({ baseId, expandedByDefault }: { baseId: string; expandedByDefault?: boolean }) {
+  const currentPageId = useNavigationParam('pageKey');
+  const pageKey = FormStore.bootstrap.useLayoutLookups().componentToPage[baseId];
   if (!pageKey) {
     throw new Error(`Unable to find page for subform with id ${baseId}`);
   }
+
+  const isCurrentPage = pageKey === currentPageId;
+  const [isOpen, setIsOpen] = useState(isCurrentPage || !!expandedByDefault);
+  useLayoutEffect(() => setIsOpen(isCurrentPage || !!expandedByDefault), [isCurrentPage, expandedByDefault]);
 
   const subformIdsWithError = useComponentValidationsFor(baseId).find(isSubformValidation)?.subformDataElementIds;
   const { layoutSet, textResourceBindings, entryDisplayName } = useExternalItem(baseId, 'Subform');

@@ -1,4 +1,3 @@
-﻿#nullable enable
 #if !LOCALTEST
 using Altinn.Notifications.Configuration;
 #endif

@@ -10,15 +10,16 @@
   background-color: var(--studio-designer-header-background-secondary);
 }
 
-.dropDownMenuGroup:not(:last-child) {
+.separator {
   border-bottom: 1px solid var(--ds-color-border-subtle);
-  padding-bottom: var(--ds-size-2);
-}
-
-.dropDownMenuGroup:not(:first-child) {
-  padding-top: var(--ds-size-2);
+  margin: var(--ds-size-2) 0;
+  list-style: none;
 }
 
 .profileMenuFooter {
   padding: var(--ds-size-4);
+}
+
+.menuList :global([aria-checked='true']) {
+  background-color: var(--fds-semantic-surface-neutral-selected);
 }

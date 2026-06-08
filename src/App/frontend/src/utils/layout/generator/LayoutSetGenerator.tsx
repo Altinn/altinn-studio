@@ -2,7 +2,6 @@ import React, { useEffect, useMemo } from 'react';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { usePdfLayoutName, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { getComponentDef } from 'src/layout';
 import { GeneratorInternal, GeneratorPageProvider } from 'src/utils/layout/generator/GeneratorContext';
 import {
@@ -14,7 +13,10 @@ import type { CompExternalExact, CompTypes, ILayout } from 'src/layout/layout';
 import type { NodeGeneratorProps } from 'src/layout/LayoutComponent';
 import type { ChildClaims } from 'src/utils/layout/generator/GeneratorContext';
 
-export function LayoutSetGenerator() {
+// Memoized so that a parent re-render (e.g. react-router re-rendering the route tree on every page
+// navigation) does not cascade into the entire node-generator tree. This component takes no props and
+// only re-renders when its context dependency (useLayouts) actually changes.
+export const LayoutSetGenerator = React.memo(function LayoutSetGenerator() {
   const layouts = GeneratorInternal.useLayouts();
 
   return (
@@ -36,7 +38,7 @@ export function LayoutSetGenerator() {
       );
     })
   );
-}
+});
 
 interface PageProps {
   layout: ILayout;
@@ -47,7 +49,7 @@ function PageGenerator({ layout, name }: PageProps) {
   // eslint-disable-next-line react-compiler/react-compiler
   useGeneratorErrorBoundaryNodeRef().current = { type: 'page', id: name };
 
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const topLevel = layoutLookups.topLevelComponents[name];
   const pageOrder = useRawPageOrder();
   const pdfPage = usePdfLayoutName();
@@ -97,8 +99,8 @@ interface NodeChildrenProps {
 }
 
 export function GenerateNodeChildren({ claims }: NodeChildrenProps) {
-  const layoutMap = FormBootstrap.useLayoutLookups().allComponents;
-  const map = FormBootstrap.useLayoutLookups().childClaims;
+  const layoutMap = FormStore.bootstrap.useLayoutLookups().allComponents;
+  const map = FormStore.bootstrap.useLayoutLookups().childClaims;
 
   return (
     <WhenParentAdded>

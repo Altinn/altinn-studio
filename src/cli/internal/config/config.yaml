@@ -6,10 +6,19 @@ images:
   core:
     localtest:
       image: ghcr.io/altinn/altinn-studio/runtime-localtest
-      tag: "500ebc096f"
+      tag: "94897eff31"
     pdf3:
       image: ghcr.io/altinn/altinn-studio/runtime-pdf3-worker
-      tag: "f359420517"
+      tag: "694406e93c"
+    workflow-engine:
+      image: ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app
+      tag: "567e1be1f1"
+    workflow-engine-db:
+      image: postgres
+      tag: "18.3"
+    pgadmin:
+      image: dpage/pgadmin4
+      tag: "9.14"
 
   monitoring:
     tempo:
@@ -27,8 +36,3 @@ images:
     grafana:
       image: grafana/grafana
       tag: "10.4.2"
-
-  utility:
-    busybox:
-      image: busybox
-      tag: "1.37"

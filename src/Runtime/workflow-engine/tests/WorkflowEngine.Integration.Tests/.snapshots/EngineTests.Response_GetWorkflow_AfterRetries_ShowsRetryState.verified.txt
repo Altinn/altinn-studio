@@ -2,7 +2,7 @@
   databaseId: {Scrubbed},
   operationId: op-wf,
   idempotencyKey: idem-Guid_1,
-  namespace: ttd:e2e-tests,
+  namespace: ttd-e2e-tests,
   createdAt: {Scrubbed},
   updatedAt: {Scrubbed},
   backoffUntil: {Scrubbed},
@@ -21,7 +21,21 @@
         type: webhook
       },
       status: Completed,
-      retryCount: 2
+      retryCount: 2,
+      errorHistory: [
+        {
+          timestamp: DateTimeOffset_1,
+          message: Webhook execution failed with status 500: <no body content>,
+          httpStatusCode: 500,
+          wasRetryable: true
+        },
+        {
+          timestamp: DateTimeOffset_2,
+          message: Webhook execution failed with status 500: <no body content>,
+          httpStatusCode: 500,
+          wasRetryable: true
+        }
+      ]
     }
   ]
 }

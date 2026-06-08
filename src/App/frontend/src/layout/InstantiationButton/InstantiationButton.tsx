@@ -1,15 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
 
-import { Button } from 'src/app-components/Button/Button';
+import { Button } from '@app/form-component';
+
 import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
 import { parseInstanceId } from 'src/core/queries/instance';
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
-import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
-import { focusMainContent } from 'src/hooks/useNavigatePage';
 import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { buildInstanceUrl } from 'src/routesBuilder';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
@@ -19,13 +18,13 @@ type Props = Omit<React.PropsWithChildren<IInstantiationButtonComponentProvidedP
 
 // TODO(Datamodels): This uses mapping and therefore only supports the "default" data model
 export const InstantiationButton = ({ children, ...props }: Props) => {
+  const { langAsString } = useLanguage();
   const instantiation = useInstantiation();
   const performProcess = useProcessingMutation('instantiation');
   const isLoading = useIsThisProcessing('instantiation');
   const isAnyProcessing = useIsAnyProcessing();
-  const prefill = FormStore.data.useMapping(props.mapping, FormBootstrap.useDefaultDataType());
+  const prefill = FormStore.data.useMapping(props.mapping, FormStore.bootstrap.useDefaultDataType());
   const party = useSelectedParty();
-  const setNavigationEffect = useSetNavigationEffect();
   const navigate = useNavigate();
 
   return (
@@ -49,17 +48,13 @@ export const InstantiationButton = ({ children, ...props }: Props) => {
             if (data) {
               const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(data.id);
               const url = buildInstanceUrl(instanceOwnerPartyId, instanceGuid);
-              setNavigationEffect({
-                targetLocation: url,
-                matchStart: true,
-                callback: focusMainContent,
-              });
               navigate(url);
             }
           })
         }
         disabled={isAnyProcessing}
         isLoading={isLoading}
+        loadingLabel={langAsString('general.loading')}
         variant='secondary'
         color='first'
       >

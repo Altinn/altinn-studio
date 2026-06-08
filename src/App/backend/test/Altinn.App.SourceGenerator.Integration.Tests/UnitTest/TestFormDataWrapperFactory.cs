@@ -15,7 +15,7 @@ public class TestFormDataWrapperFactory(ITestOutputHelper testOutputHelper)
         // Arrange
         var model = new Skjema();
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        var wrapper = FormDataWrapperFactory.Create(model);
+        var wrapper = FormDataWrapperFactory.Create(model, null!, null);
         testOutputHelper.WriteLine($"First execution {stopwatch.Elapsed.TotalMicroseconds} microseconds");
         Assert.IsType<Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper>(wrapper);
         Assert.IsNotType<ReflectionFormDataWrapper>(wrapper);
@@ -35,7 +35,7 @@ public class TestFormDataWrapperFactory(ITestOutputHelper testOutputHelper)
             GC.WaitForPendingFinalizers();
 
             stopwatch.Restart();
-            var w = FormDataWrapperFactory.Create(model);
+            var w = FormDataWrapperFactory.Create(model, null!, null);
             stopwatch.Stop();
             samples[i] = stopwatch.Elapsed;
 

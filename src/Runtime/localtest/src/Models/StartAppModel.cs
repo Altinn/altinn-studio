@@ -1,3 +1,5 @@
+#nullable disable
+
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
@@ -7,24 +9,19 @@ using System.Threading.Tasks;
 
 namespace LocalTest.Models
 {
-    public enum AppMode
+    public class AppSelectionOption
     {
-        Http,
-        File
+        public string Value { get; set; }
+
+        public string Text { get; set; }
+
+        public bool Selected { get; set; }
+
+        public bool ShowFrontendVersionSwitcher { get; set; }
     }
 
     public class StartAppModel
     {
-        /// <summary>
-        /// Defines if a app has defined invalid path
-        /// </summary>
-        public bool InvalidAppPath { get; set; }
-
-        /// <summary>
-        /// _localPlatformSettings.AppRepositoryBasePath
-        /// </summary>
-        public string AppPath { get; set; }
-
         /// <summary>
         /// Path to TestData form localPlatformSettings
         /// </summary>
@@ -34,11 +31,6 @@ namespace LocalTest.Models
         /// Signals that no TestUsers could be found in TestData
         /// </summary>
         public bool InvalidTestDataPath { get; set; }
-
-        /// <summary>
-        /// LocalAppUrl from localPlatformSettings
-        /// </summary>
-        public string LocalAppUrl { get; set; }
 
         /// <summary>
         /// HttpRequestException that might have resultet from _localApp.GetApplications()
@@ -71,10 +63,20 @@ namespace LocalTest.Models
         public string AuthenticationLevel { get; set; }
 
         /// <summary>
+        /// Url to redirect to after localtest has created authentication cookies.
+        /// </summary>
+        public string RedirectUrl { get; set; }
+
+        /// <summary>
         /// Url for where to load the local frontend from
         /// (implemented as a cookie consumed by localtest proxy middleware)
         /// </summary>
         public string LocalFrontendUrl { get; set; }
+
+        /// <summary>
+        /// Human-readable description of the configured frontend source.
+        /// </summary>
+        public string LocalFrontendDescription { get; set; }
 
         /// <summary>
         /// List of TestUsers for dropdown
@@ -84,16 +86,53 @@ namespace LocalTest.Models
         /// <summary>
         /// List of selectable Apps for dropdown
         /// </summary>
-        public List<SelectListItem> TestApps { get; set; }
+        public List<AppSelectionOption> TestApps { get; set; }
+
+        /// <summary>
+        /// Whether frontend version switching UI should be visible for the selected app.
+        /// </summary>
+        public bool ShowFrontendVersionSwitcher { get; set; } = true;
 
         /// <summary>
         /// List of possible authentication levels
         /// </summary>
         public IEnumerable<SelectListItem> AuthenticationLevels { get; set; }
 
-        /// <summary>
-        /// The current app mode
-        /// </summary>
-        public AppMode AppMode { get; set; }
+        public void SelectRedirectApp()
+        {
+            var appId = GetAppIdFromRedirectUrl();
+            if (string.IsNullOrEmpty(appId))
+            {
+                return;
+            }
+
+            var selectedApp = TestApps.FirstOrDefault(
+                app => string.Equals(app.Text, appId, StringComparison.OrdinalIgnoreCase)
+            );
+            if (selectedApp == null)
+            {
+                return;
+            }
+
+            selectedApp.Selected = true;
+            AppPathSelection = selectedApp.Value;
+            ShowFrontendVersionSwitcher = selectedApp.ShowFrontendVersionSwitcher;
+        }
+
+        private string GetAppIdFromRedirectUrl()
+        {
+            if (string.IsNullOrWhiteSpace(RedirectUrl) || !Uri.TryCreate(RedirectUrl, UriKind.Absolute, out var uri))
+            {
+                return null;
+            }
+
+            var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            if (segments.Length < 2)
+            {
+                return null;
+            }
+
+            return $"{segments[0]}/{segments[1]}";
+        }
     }
 }

@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: studio-runners
+
+resources:
+  - serviceaccount.yaml
+  - role.yaml
+  - rolebinding.yaml
+  - cronjob.yaml
+  - triggerauthentication.yaml
+  - networkpolicy.yaml
+
+# Copy the image annotation onto the container spec. The annotation value
+# is itself substituted at deploy time by Flux post-build substitution.
+replacements:
+  - source:
+      kind: CronJob
+      name: runner-org-sync
+      fieldPath: metadata.annotations.[altinn.studio/image]
+    targets:
+      - select:
+          kind: CronJob
+          name: runner-org-sync
+        fieldPaths:
+          - spec.jobTemplate.spec.template.spec.containers.[name=runner-org-sync].image

@@ -1,6 +1,7 @@
 package dockerapi
 
 import (
+	"context"
 	"errors"
 	"io"
 	"slices"
@@ -19,11 +20,12 @@ import (
 var errNetworkActiveEndpoints = errors.New(
 	`error response from daemon: error while removing network: network altinntestlocal_network has active endpoints`,
 )
+var errServerVersionUnavailable = errors.New("server version unavailable")
 
-func TestBuildBindMounts(t *testing.T) {
+func TestBuildMounts(t *testing.T) {
 	t.Parallel()
 
-	got := buildBindMounts([]types.VolumeMount{
+	got := buildMounts([]types.VolumeMount{
 		{
 			HostPath:      "/Users/someuser/Library/Application Support/altinn-studio/data/testdata",
 			ContainerPath: "/testdata",
@@ -33,6 +35,11 @@ func TestBuildBindMounts(t *testing.T) {
 			HostPath:      "/tmp/config.yaml",
 			ContainerPath: "/etc/config.yaml",
 			ReadOnly:      true,
+		},
+		{
+			HostPath:      "localtest-workflow-engine-db-data",
+			ContainerPath: "/var/lib/postgresql",
+			Type:          types.VolumeMountTypeVolume,
 		},
 	})
 
@@ -49,6 +56,12 @@ func TestBuildBindMounts(t *testing.T) {
 			Target:   "/etc/config.yaml",
 			ReadOnly: true,
 		},
+		{
+			Type:     dockermount.TypeVolume,
+			Source:   "localtest-workflow-engine-db-data",
+			Target:   "/var/lib/postgresql",
+			ReadOnly: false,
+		},
 	}
 
 	if len(got) != len(want) {
@@ -59,6 +72,48 @@ func TestBuildBindMounts(t *testing.T) {
 		if got[i] != want[i] {
 			t.Fatalf("buildBindMounts()[%d] = %#v, want %#v", i, got[i], want[i])
 		}
+	}
+}
+
+func TestBuildDockerConfigs_PodmanUserNamespaceAndRelabelBind(t *testing.T) {
+	t.Parallel()
+
+	cfg := types.ContainerConfig{
+		Image:      "alpine",
+		User:       "1000:1000",
+		UsernsMode: "keep-id",
+		Volumes: []types.VolumeMount{
+			{
+				HostPath:       "/tmp/config.sql",
+				ContainerPath:  "/docker-entrypoint-initdb.d/01-tuning.sql",
+				Type:           types.VolumeMountTypeBind,
+				SELinuxRelabel: types.SELinuxRelabelShared,
+				ReadOnly:       true,
+			},
+			{
+				HostPath:      "postgres-data",
+				ContainerPath: "/var/lib/postgresql",
+				Type:          types.VolumeMountTypeVolume,
+			},
+		},
+	}
+
+	_, hostCfg, _ := buildDockerConfigs(cfg, types.PlatformPodman)
+
+	if got := string(hostCfg.UsernsMode); got != "keep-id" {
+		t.Fatalf("hostCfg.UsernsMode = %q, want keep-id", got)
+	}
+	wantBinds := []string{"/tmp/config.sql:/docker-entrypoint-initdb.d/01-tuning.sql:ro,z"}
+	if !slices.Equal(hostCfg.Binds, wantBinds) {
+		t.Fatalf("hostCfg.Binds = %#v, want %#v", hostCfg.Binds, wantBinds)
+	}
+	wantMounts := []dockermount.Mount{{
+		Type:   dockermount.TypeVolume,
+		Source: "postgres-data",
+		Target: "/var/lib/postgresql",
+	}}
+	if !slices.Equal(hostCfg.Mounts, wantMounts) {
+		t.Fatalf("hostCfg.Mounts = %#v, want %#v", hostCfg.Mounts, wantMounts)
 	}
 }
 
@@ -156,12 +211,96 @@ func TestPlatformFromHost(t *testing.T) {
 	}
 }
 
+func TestInfoHasSELinux(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		info systemtypes.Info
+		want bool
+	}{
+		{
+			name: "selinux enabled",
+			info: systemtypes.Info{
+				SecurityOptions: []string{"name=seccomp,profile=default", "name=selinux"},
+			},
+			want: true,
+		},
+		{
+			name: "selinux absent",
+			info: systemtypes.Info{
+				SecurityOptions: []string{"name=seccomp,profile=default", "name=rootless"},
+			},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := infoHasSELinux(tt.info); got != tt.want {
+				t.Fatalf("infoHasSELinux() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestWithVersionMetadata(t *testing.T) {
+	t.Parallel()
+
+	toolchain := withVersionMetadata(
+		t.Context(),
+		fakeVersionClient{
+			clientVersion: "1.51",
+			serverVersion: dockertypes.Version{
+				Version: "28.2.2",
+			},
+		},
+		types.ContainerToolchain{
+			Platform:   types.PlatformDocker,
+			AccessMode: types.AccessDockerEngineAPI,
+			Source:     types.SourceDefault,
+		},
+	)
+
+	if toolchain.ClientVersion != "1.51" {
+		t.Fatalf("withVersionMetadata() ClientVersion = %q, want 1.51", toolchain.ClientVersion)
+	}
+	if toolchain.ServerVersion != "28.2.2" {
+		t.Fatalf("withVersionMetadata() ServerVersion = %q, want 28.2.2", toolchain.ServerVersion)
+	}
+}
+
+func TestWithVersionMetadataIgnoresServerVersionError(t *testing.T) {
+	t.Parallel()
+
+	toolchain := withVersionMetadata(
+		t.Context(),
+		fakeVersionClient{
+			clientVersion: "1.51",
+			err:           errServerVersionUnavailable,
+		},
+		types.ContainerToolchain{},
+	)
+
+	if toolchain.ClientVersion != "1.51" {
+		t.Fatalf("withVersionMetadata() ClientVersion = %q, want 1.51", toolchain.ClientVersion)
+	}
+	if toolchain.ServerVersion != "" {
+		t.Fatalf("withVersionMetadata() ServerVersion = %q, want empty", toolchain.ServerVersion)
+	}
+}
+
 func TestBuild_ColimaRequiresDockerCLIAtCallSite(t *testing.T) {
 	t.Setenv("PATH", "")
 
 	c := &Client{
 		toolchain: types.ContainerToolchain{
-			Platform: types.PlatformColima,
+			Platform:   types.PlatformColima,
+			AccessMode: types.AccessUnknown,
+			Source:     types.SourceUnknown,
+			SocketPath: "",
+			SELinux:    false,
 		},
 	}
 
@@ -543,4 +682,18 @@ func TestUpdateTrackedProgress_ReplacesProgressWhenPhaseChanges(t *testing.T) {
 	if got.phase != "Extracting" || got.current != 10 || got.total != 100 {
 		t.Fatalf("tracked progress = %+v, want phase=Extracting current=10 total=100", got)
 	}
+}
+
+type fakeVersionClient struct {
+	err           error
+	serverVersion dockertypes.Version
+	clientVersion string
+}
+
+func (c fakeVersionClient) ClientVersion() string {
+	return c.clientVersion
+}
+
+func (c fakeVersionClient) ServerVersion(context.Context) (dockertypes.Version, error) {
+	return c.serverVersion, c.err
 }

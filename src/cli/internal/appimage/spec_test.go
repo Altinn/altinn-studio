@@ -12,6 +12,8 @@ import (
 	"altinn.studio/studioctl/internal/osutil"
 )
 
+const testAppSDKImage = "example.test/dotnet-sdk:app-dockerfile"
+
 func TestBuildSpecForApp_GeneratesDockerfileForStudioRepoApp(t *testing.T) {
 	t.Parallel()
 
@@ -59,7 +61,7 @@ func TestBuildSpecForApp_GeneratesDockerfileForStudioRepoApp(t *testing.T) {
 	publish := `RUN ["dotnet","publish","test/apps/frontend-test/App/App.csproj","-c","Release","-o","/app_output","-p:CSharpier_Bypass=true","--no-restore"]`
 	copyConfig := `COPY ["test/apps/frontend-test/App/config/","/app_output/config/"]`
 	assertContainsAll(t, spec.DockerfileContent, []string{
-		"FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS restore",
+		"FROM " + testAppSDKImage + " AS restore",
 		`COPY ["test/apps/frontend-test/App/App.csproj","test/apps/frontend-test/App/"]`,
 		`COPY ["App/backend/src/Altinn.App.Api/Altinn.App.Api.csproj","App/backend/src/Altinn.App.Api/"]`,
 		`COPY ["App/backend/src/Altinn.App.Core/Altinn.App.Core.csproj","App/backend/src/Altinn.App.Core/"]`,
@@ -71,7 +73,7 @@ func TestBuildSpecForApp_GeneratesDockerfileForStudioRepoApp(t *testing.T) {
 		`COPY ["App/backend/src/Altinn.App.Core/","App/backend/src/Altinn.App.Core/"]`,
 		publish,
 		copyConfig,
-		"FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final",
+		"FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final",
 		"RUN apk add --no-cache icu-libs tzdata",
 		"ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false",
 		`ENTRYPOINT ["dotnet","Altinn.App.dll"]`,
@@ -79,7 +81,7 @@ func TestBuildSpecForApp_GeneratesDockerfileForStudioRepoApp(t *testing.T) {
 	assertInOrder(
 		t,
 		spec.DockerfileContent,
-		[]string{publish, copyConfig, "FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final"},
+		[]string{publish, copyConfig, "FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final"},
 	)
 	if strings.Contains(spec.DockerfileContent, "COPY . .") {
 		t.Fatal("generated Dockerfile must not copy the full context")
@@ -117,7 +119,7 @@ func TestBuildSpecForApp_GeneratedDockerfileRejectsSingleStageAppDockerfile(t *t
 	srcRoot := filepath.Join(studioRoot, "src")
 	appRoot := filepath.Join(srcRoot, "test", "apps", "single-stage-test")
 	writeTestFile(t, filepath.Join(appRoot, "App", "App.csproj"), `<Project Sdk="Microsoft.NET.Sdk.Web" />`)
-	writeTestFile(t, filepath.Join(appRoot, "Dockerfile"), "FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine\n")
+	writeTestFile(t, filepath.Join(appRoot, "Dockerfile"), "FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine\n")
 
 	_, err := appimage.BuildSpecForApp(repocontext.Detection{
 		AppRoot:      appRoot,
@@ -140,10 +142,10 @@ func TestBuildSpecForApp_GeneratedDockerfileRejectsFinalStageWithoutBuildOutputC
 	srcRoot := filepath.Join(studioRoot, "src")
 	appRoot := filepath.Join(srcRoot, "test", "apps", "missing-output-copy-test")
 	writeTestFile(t, filepath.Join(appRoot, "App", "App.csproj"), `<Project Sdk="Microsoft.NET.Sdk.Web" />`)
-	writeTestFile(t, filepath.Join(appRoot, "Dockerfile"), `FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
+	writeTestFile(t, filepath.Join(appRoot, "Dockerfile"), `FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 RUN dotnet publish App.csproj --configuration Release --output /out
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final
 ENTRYPOINT ["dotnet","App.dll"]
 `)
 
@@ -162,7 +164,7 @@ ENTRYPOINT ["dotnet","App.dll"]
 }
 
 func TestBuildSpecForApp_GeneratedDockerfileUsesAppSpecificCacheRef(t *testing.T) {
-	t.Setenv("CI", "true")
+	t.Setenv(config.EnvCI, "true")
 	t.Setenv(config.EnvRegistryCacheWrite, "")
 
 	studioRoot := t.TempDir()
@@ -236,7 +238,7 @@ func TestBuildSpecForApp_StandaloneAppInjectsConfigCopy(t *testing.T) {
 
 	publish := "RUN dotnet publish App.csproj --configuration Release --output /app_output"
 	copyConfig := `COPY ["App/config/","/app_output/config/"]`
-	final := "FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final"
+	final := "FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final"
 	assertInOrder(t, spec.DockerfileContent, []string{publish, copyConfig, final})
 }
 
@@ -245,13 +247,13 @@ func TestBuildSpecForApp_StandaloneAppDoesNotDuplicateExistingConfigCopy(t *test
 
 	appRoot := t.TempDir()
 	writeTestFile(t, filepath.Join(appRoot, "App", "config", "authorization", "policy.xml"), "<Policy />")
-	writeTestFile(t, filepath.Join(appRoot, "Dockerfile"), `FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
+	writeTestFile(t, filepath.Join(appRoot, "Dockerfile"), `FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 WORKDIR /App
 COPY /App .
 RUN dotnet publish App.csproj --configuration Release --output /app_output
 COPY /App/config /app_output/config
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final
 WORKDIR /App
 COPY --from=build /app_output .
 ENTRYPOINT ["dotnet","Altinn.Application.dll"]
@@ -279,7 +281,7 @@ func TestBuildSpecForApp_StandaloneAppInjectsConfigCopyInBuildStage(t *testing.T
 
 	appRoot := t.TempDir()
 	writeTestFile(t, filepath.Join(appRoot, "App", "config", "authorization", "policy.xml"), "<Policy />")
-	writeTestFile(t, filepath.Join(appRoot, "Dockerfile"), `FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
+	writeTestFile(t, filepath.Join(appRoot, "Dockerfile"), `FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 WORKDIR /App
 COPY /App .
 RUN dotnet publish App.csproj --configuration Release --output /app_output
@@ -287,7 +289,7 @@ RUN dotnet publish App.csproj --configuration Release --output /app_output
 FROM alpine AS tools
 RUN echo tools
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final
 WORKDIR /App
 COPY --from=build /app_output .
 ENTRYPOINT ["dotnet","Altinn.Application.dll"]
@@ -304,7 +306,7 @@ ENTRYPOINT ["dotnet","Altinn.Application.dll"]
 	publish := "RUN dotnet publish App.csproj --configuration Release --output /app_output"
 	copyConfig := `COPY ["App/config/","/app_output/config/"]`
 	tools := "FROM alpine AS tools"
-	final := "FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final"
+	final := "FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final"
 	assertInOrder(t, spec.DockerfileContent, []string{publish, copyConfig, tools, final})
 }
 
@@ -348,12 +350,12 @@ func writeTestFile(t *testing.T, path, content string) {
 func writeTestAppDockerfile(t *testing.T, appRoot, entrypoint string) {
 	t.Helper()
 
-	writeTestFile(t, filepath.Join(appRoot, "Dockerfile"), `FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
+	writeTestFile(t, filepath.Join(appRoot, "Dockerfile"), `FROM `+testAppSDKImage+` AS build
 WORKDIR /App
 COPY /App .
 RUN dotnet publish App.csproj --configuration Release --output /app_output
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final
 EXPOSE 5005
 WORKDIR /App
 COPY --from=build /app_output .

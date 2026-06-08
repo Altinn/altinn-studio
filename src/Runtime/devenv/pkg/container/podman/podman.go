@@ -29,15 +29,17 @@ func New(ctx context.Context, toolchain types.ContainerToolchain) (*Client, erro
 	if _, err := exec.LookPath("podman"); err != nil {
 		return nil, fmt.Errorf("podman not found in PATH: %w", err)
 	}
-	// Verify podman is responsive
-	cmd := processutil.CommandContext(ctx, "podman", "version", "--format", "{{.Version}}")
-	if err := cmd.Run(); err != nil {
-		return nil, fmt.Errorf("podman not responsive: %w", err)
+	version, err := podmanVersion(ctx)
+	if err != nil {
+		return nil, err
 	}
 	toolchain.AccessMode = types.AccessPodmanCLI
 	if toolchain.Platform == types.PlatformUnknown {
 		toolchain.Platform = types.PlatformPodman
 	}
+	toolchain.ClientVersion = version.ClientVersion
+	toolchain.ServerVersion = version.ServerVersion
+	toolchain.SELinux = detectSELinuxEnabled(ctx)
 	return &Client{toolchain: toolchain}, nil
 }
 
@@ -51,10 +53,69 @@ func (c *Client) Toolchain() types.ContainerToolchain {
 	return c.toolchain
 }
 
+type podmanVersionInfo struct {
+	ClientVersion string
+	ServerVersion string
+}
+
+func podmanVersion(ctx context.Context) (podmanVersionInfo, error) {
+	cmd := processutil.CommandContext(ctx, "podman", "version", "--format", "json")
+	output, err := cmd.Output()
+	if err != nil {
+		return podmanVersionInfo{}, fmt.Errorf("podman not responsive: %w", err)
+	}
+
+	version, err := parsePodmanVersion(output)
+	if err != nil {
+		return podmanVersionInfo{}, fmt.Errorf("parse podman version: %w", err)
+	}
+
+	return version, nil
+}
+
+func parsePodmanVersion(output []byte) (podmanVersionInfo, error) {
+	var version struct {
+		Client struct {
+			Version string `json:"Version"`
+		} `json:"Client"`
+		Server struct {
+			Version string `json:"Version"`
+		} `json:"Server"`
+	}
+	if err := json.Unmarshal(output, &version); err != nil {
+		return podmanVersionInfo{}, fmt.Errorf("unmarshal podman version: %w", err)
+	}
+
+	return podmanVersionInfo{
+		ClientVersion: version.Client.Version,
+		ServerVersion: version.Server.Version,
+	}, nil
+}
+
 func reportProgress(onProgress types.ProgressHandler, progress types.ProgressUpdate) {
 	if onProgress != nil {
 		onProgress(progress)
 	}
+}
+
+func detectSELinuxEnabled(ctx context.Context) bool {
+	cmd := processutil.CommandContext(ctx, "podman", "info", "--format", "json")
+	output, err := cmd.Output()
+	if err != nil {
+		return false
+	}
+
+	var info struct {
+		Host struct {
+			Security struct {
+				SELinuxEnabled bool `json:"selinuxEnabled"`
+			} `json:"security"`
+		} `json:"host"`
+	}
+	if err := json.Unmarshal(output, &info); err != nil {
+		return false
+	}
+	return info.Host.Security.SELinuxEnabled
 }
 
 func runPodmanCommand(ctx context.Context, args []string) ([]byte, error) {
@@ -109,69 +170,18 @@ func (c *Client) Push(ctx context.Context, image string) error {
 	return nil
 }
 
+// Tag creates or updates an image tag.
+func (c *Client) Tag(ctx context.Context, source, target string) error {
+	output, err := runPodmanCommand(ctx, []string{"tag", source, target})
+	if err != nil {
+		return fmt.Errorf("podman tag failed: %w\nOutput: %s", err, string(output))
+	}
+	return nil
+}
+
 // CreateContainer creates and optionally starts a container.
-//
-//nolint:gocyclo,gocognit // The Podman CLI argument assembly is easiest to review inline.
 func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig) (string, error) {
-	args := []string{"create"}
-
-	if cfg.Name != "" {
-		args = append(args, "--name", cfg.Name)
-	}
-
-	if cfg.RestartPolicy != "" && cfg.RestartPolicy != "no" {
-		args = append(args, "--restart="+cfg.RestartPolicy)
-	}
-
-	// Handle networks
-	for _, net := range cfg.Networks {
-		args = append(args, "--network", net)
-	}
-
-	for _, alias := range cfg.NetworkAliases {
-		args = append(args, "--network-alias", alias)
-	}
-
-	for _, p := range cfg.Ports {
-		portArg := fmt.Sprintf("%s:%s", p.HostPort, p.ContainerPort)
-		if p.HostIP != "" {
-			portArg = fmt.Sprintf("%s:%s", p.HostIP, portArg)
-		}
-		args = append(args, "-p", portArg)
-	}
-
-	for _, v := range cfg.Volumes {
-		volArg := fmt.Sprintf("%s:%s", v.HostPath, v.ContainerPath)
-		if v.ReadOnly {
-			volArg += ":ro"
-		}
-		args = append(args, "-v", volArg)
-	}
-
-	for _, e := range cfg.Env {
-		args = append(args, "-e", e)
-	}
-
-	for k, v := range cfg.Labels {
-		args = append(args, "--label", fmt.Sprintf("%s=%s", k, v))
-	}
-
-	for _, host := range cfg.ExtraHosts {
-		args = append(args, "--add-host", host)
-	}
-
-	if cfg.User != "" {
-		args = append(args, "--user", cfg.User)
-	}
-
-	// Add capabilities (merge defaults with any explicit ones)
-	caps := types.MergeCapabilities(types.DefaultPodmanCapabilities(), cfg.CapAdd)
-	for _, cap := range caps {
-		args = append(args, "--cap-add", cap)
-	}
-
-	args = append(args, cfg.Image)
-	args = append(args, cfg.Command...)
+	args := buildCreateArgs(cfg)
 
 	cmd := processutil.CommandContext(ctx, "podman", args...)
 	output, err := cmd.CombinedOutput()
@@ -197,10 +207,111 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 	return containerID, nil
 }
 
+// buildCreateArgs assembles the podman create CLI arguments from a ContainerConfig.
+func buildCreateArgs(cfg types.ContainerConfig) []string {
+	args := []string{"create"}
+
+	if cfg.Name != "" {
+		args = append(args, "--name", cfg.Name)
+	}
+
+	if cfg.RestartPolicy != "" && cfg.RestartPolicy != "no" {
+		args = append(args, "--restart="+cfg.RestartPolicy)
+	}
+
+	for _, net := range cfg.Networks {
+		args = append(args, "--network", net)
+	}
+
+	for _, alias := range cfg.NetworkAliases {
+		args = append(args, "--network-alias", alias)
+	}
+
+	for _, p := range cfg.Ports {
+		portArg := fmt.Sprintf("%s:%s", p.HostPort, p.ContainerPort)
+		if p.HostIP != "" {
+			portArg = fmt.Sprintf("%s:%s", p.HostIP, portArg)
+		}
+		args = append(args, "-p", portArg)
+	}
+
+	for _, v := range cfg.Volumes {
+		volArg := fmt.Sprintf("%s:%s", v.HostPath, v.ContainerPath)
+		options := volumeOptions(v)
+		if len(options) > 0 {
+			volArg += ":" + strings.Join(options, ",")
+		}
+		args = append(args, "-v", volArg)
+	}
+
+	for _, e := range cfg.Env {
+		args = append(args, "-e", e)
+	}
+
+	for k, v := range cfg.Labels {
+		args = append(args, "--label", fmt.Sprintf("%s=%s", k, v))
+	}
+
+	for _, host := range cfg.ExtraHosts {
+		args = append(args, "--add-host", host)
+	}
+
+	if cfg.User != "" {
+		args = append(args, "--user", cfg.User)
+	}
+	if cfg.UsernsMode != "" {
+		args = append(args, "--userns", cfg.UsernsMode)
+	}
+
+	caps := types.MergeCapabilities(types.DefaultPodmanCapabilities(), cfg.CapAdd)
+	for _, cap := range caps {
+		args = append(args, "--cap-add", cap)
+	}
+
+	args = appendHealthCheckArgs(args, cfg.HealthCheck)
+
+	args = append(args, cfg.Image)
+	args = append(args, cfg.Command...)
+
+	return args
+}
+
+func volumeOptions(v types.VolumeMount) []string {
+	options := make([]string, 0, 2)
+	if v.ReadOnly {
+		options = append(options, "ro")
+	}
+	if v.Type == types.VolumeMountTypeBind && v.SELinuxRelabel != types.SELinuxRelabelNone {
+		options = append(options, string(v.SELinuxRelabel))
+	}
+	return options
+}
+
+// appendHealthCheckArgs appends health check CLI flags if configured.
+func appendHealthCheckArgs(args []string, hc *types.HealthCheck) []string {
+	if hc == nil || len(hc.Test) == 0 {
+		return args
+	}
+	args = append(args, "--health-cmd", podmanHealthCmd(hc.Test))
+	if hc.Interval > 0 {
+		args = append(args, "--health-interval", hc.Interval.String())
+	}
+	if hc.Timeout > 0 {
+		args = append(args, "--health-timeout", hc.Timeout.String())
+	}
+	if hc.Retries > 0 {
+		args = append(args, "--health-retries", strconv.Itoa(hc.Retries))
+	}
+	if hc.StartPeriod > 0 {
+		args = append(args, "--health-start-period", hc.StartPeriod.String())
+	}
+	return args
+}
+
 // ContainerState returns the state of a container.
 // Returns ErrContainerNotFound if the container does not exist.
 func (c *Client) ContainerState(ctx context.Context, nameOrID string) (types.ContainerState, error) {
-	cmd := processutil.CommandContext(ctx, "podman", "inspect", "--format", "{{json .State}}", nameOrID)
+	cmd := processutil.CommandContext(ctx, "podman", "container", "inspect", "--format", "{{json .State}}", nameOrID)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		lower := strings.ToLower(string(output))
@@ -217,7 +328,7 @@ func (c *Client) ContainerState(ctx context.Context, nameOrID string) (types.Con
 
 	return types.ContainerState{
 		Status:       state.Status,
-		HealthStatus: podmanHealthStatus(state.Health.Status, state.Healthcheck.Status),
+		HealthStatus: podmanStateHealthStatus(state.Health.Status, state.Healthcheck.Status),
 		Running:      state.Running,
 		Paused:       state.Paused,
 		ExitCode:     state.ExitCode,
@@ -226,7 +337,15 @@ func (c *Client) ContainerState(ctx context.Context, nameOrID string) (types.Con
 
 // ContainerNetworks returns the networks the container is attached to.
 func (c *Client) ContainerNetworks(ctx context.Context, nameOrID string) ([]string, error) {
-	cmd := processutil.CommandContext(ctx, "podman", "inspect", "-f", "{{json .NetworkSettings.Networks}}", nameOrID)
+	cmd := processutil.CommandContext(
+		ctx,
+		"podman",
+		"container",
+		"inspect",
+		"-f",
+		"{{json .NetworkSettings.Networks}}",
+		nameOrID,
+	)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		lower := strings.ToLower(string(output))
@@ -367,13 +486,14 @@ func (c *Client) ImagePullWithProgress(
 }
 
 type containerInspectInfo struct {
-	ID          string `json:"Id"`
-	Name        string `json:"Name"`
-	Image       string `json:"Image"`
-	ImageDigest string `json:"ImageDigest"`
-	Config      struct {
-		Labels map[string]string `json:"Labels"`
+	Config struct {
+		Labels      map[string]string       `json:"Labels"`
+		Healthcheck podmanHealthcheckConfig `json:"Healthcheck"`
 	} `json:"Config"`
+	ID              string `json:"Id"`
+	Name            string `json:"Name"`
+	Image           string `json:"Image"`
+	ImageDigest     string `json:"ImageDigest"`
 	NetworkSettings struct {
 		Ports map[string][]struct {
 			HostIP   string `json:"HostIp"`
@@ -396,6 +516,10 @@ type podmanHealthInfo struct {
 	Status string `json:"Status"`
 }
 
+type podmanHealthcheckConfig struct {
+	Test []string `json:"Test"`
+}
+
 func parseContainerInspect(output []byte) (types.ContainerInfo, error) {
 	var info []containerInspectInfo
 	if err := json.Unmarshal(output, &info); err != nil {
@@ -405,8 +529,6 @@ func parseContainerInspect(output []byte) (types.ContainerInfo, error) {
 		return types.ContainerInfo{}, types.ErrContainerNotFound
 	}
 
-	// Docker reports a resolved image ID here; Podman exposes it as `.Image`.
-	// `.ImageDigest` is a manifest digest and does not match `ImageInspect().ID`.
 	return types.ContainerInfo{
 		ID:      info[0].ID,
 		Name:    info[0].Name,
@@ -415,16 +537,35 @@ func parseContainerInspect(output []byte) (types.ContainerInfo, error) {
 		Labels:  info[0].Config.Labels,
 		Ports:   publishedPortsFromPodmanInspect(info[0].NetworkSettings.Ports),
 		State: types.ContainerState{
-			Status:       info[0].State.Status,
-			HealthStatus: podmanHealthStatus(info[0].State.Health.Status, info[0].State.Healthcheck.Status),
-			Running:      info[0].State.Running,
-			Paused:       info[0].State.Paused,
-			ExitCode:     info[0].State.ExitCode,
+			Status: info[0].State.Status,
+			HealthStatus: podmanHealthStatus(
+				info[0].Config.Healthcheck,
+				info[0].State.Health.Status,
+				info[0].State.Healthcheck.Status,
+			),
+			Running:  info[0].State.Running,
+			Paused:   info[0].State.Paused,
+			ExitCode: info[0].State.ExitCode,
 		},
 	}, nil
 }
 
-func podmanHealthStatus(health, healthcheck string) string {
+func podmanHealthStatus(config podmanHealthcheckConfig, health, healthcheck string) string {
+	if !podmanHealthcheckConfigured(config) {
+		// Config.Healthcheck is the effective healthcheck command configured for the container.
+		// State.Health.Status is the runtime result of that command. If no command is configured,
+		// Podman cannot run a healthcheck or transition the container to "healthy", even if
+		// State.Health.Status is present. Ignore the status in that case.
+		return ""
+	}
+	return podmanStateHealthStatus(health, healthcheck)
+}
+
+func podmanHealthcheckConfigured(config podmanHealthcheckConfig) bool {
+	return len(config.Test) > 0 && !strings.EqualFold(config.Test[0], "none")
+}
+
+func podmanStateHealthStatus(health, healthcheck string) string {
 	if health != "" {
 		return health
 	}
@@ -433,7 +574,7 @@ func podmanHealthStatus(health, healthcheck string) string {
 
 // ContainerInspect returns detailed information about a container.
 func (c *Client) ContainerInspect(ctx context.Context, nameOrID string) (types.ContainerInfo, error) {
-	cmd := processutil.CommandContext(ctx, "podman", "inspect", nameOrID)
+	cmd := processutil.CommandContext(ctx, "podman", "container", "inspect", nameOrID)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		lower := strings.ToLower(string(output))
@@ -712,6 +853,60 @@ func (c *Client) NetworkInspect(ctx context.Context, nameOrID string) (types.Net
 	}, nil
 }
 
+type podmanNetworkListInfo struct {
+	Labels      map[string]string `json:"labels"`
+	LabelsTitle map[string]string `json:"Labels"`
+	ID          string            `json:"id"`
+	IDTitle     string            `json:"ID"`
+	Name        string            `json:"name"`
+	NameTitle   string            `json:"Name"`
+	Driver      string            `json:"driver"`
+	DriverTitle string            `json:"Driver"`
+}
+
+// ListNetworks returns networks matching the provided filters.
+func (c *Client) ListNetworks(ctx context.Context, filter types.NetworkListFilter) ([]types.NetworkInfo, error) {
+	args := make([]string, 0, 4+2*len(filter.Labels))
+	args = append(args, "network", "ls", "--format", "json")
+	for key, value := range filter.Labels {
+		label := key
+		if value != "" {
+			label += "=" + value
+		}
+		args = append(args, "--filter", "label="+label)
+	}
+
+	output, err := runPodmanCommand(ctx, args)
+	if err != nil {
+		return nil, fmt.Errorf("podman list networks failed: %w\nOutput: %s", err, string(output))
+	}
+
+	var networks []podmanNetworkListInfo
+	if err := json.Unmarshal(bytes.TrimSpace(output), &networks); err != nil {
+		return nil, fmt.Errorf("failed to parse podman network list output: %w", err)
+	}
+
+	result := make([]types.NetworkInfo, 0, len(networks))
+	for _, net := range networks {
+		result = append(result, types.NetworkInfo{
+			ID:     firstNonEmpty(net.ID, net.IDTitle),
+			Name:   firstNonEmpty(net.Name, net.NameTitle),
+			Driver: firstNonEmpty(net.Driver, net.DriverTitle),
+			Labels: firstNonNilMap(net.Labels, net.LabelsTitle),
+		})
+	}
+	return result, nil
+}
+
+func firstNonNilMap(values ...map[string]string) map[string]string {
+	for _, value := range values {
+		if value != nil {
+			return value
+		}
+	}
+	return nil
+}
+
 // NetworkRemove removes a network.
 func (c *Client) NetworkRemove(ctx context.Context, nameOrID string) error {
 	cmd := processutil.CommandContext(ctx, "podman", "network", "rm", nameOrID)
@@ -732,6 +927,32 @@ func (c *Client) NetworkRemove(ctx context.Context, nameOrID string) error {
 	return nil
 }
 
+// VolumeRemove removes a named volume.
+func (c *Client) VolumeRemove(ctx context.Context, name string, force bool) error {
+	args := []string{"volume", "rm"}
+	if force {
+		args = append(args, "-f")
+	}
+	args = append(args, name)
+
+	cmd := processutil.CommandContext(ctx, "podman", args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		if isVolumeNotFoundOutput(output) {
+			return types.ErrVolumeNotFound
+		}
+		return fmt.Errorf("podman volume rm failed: %w\nOutput: %s", err, string(output))
+	}
+	return nil
+}
+
+func isVolumeNotFoundOutput(output []byte) bool {
+	lower := strings.ToLower(string(output))
+	return strings.Contains(lower, "no such volume") ||
+		strings.Contains(lower, "no such object") ||
+		strings.Contains(lower, "volume does not exist")
+}
+
 // ContainerLogs returns a stream of container logs.
 func (c *Client) ContainerLogs(
 	ctx context.Context,
@@ -743,7 +964,7 @@ func (c *Client) ContainerLogs(
 	if follow {
 		args = append(args, "-f")
 	}
-	if tail != "" {
+	if tail != "" && tail != "all" {
 		args = append(args, "--tail", tail)
 	}
 	args = append(args, nameOrID)
@@ -852,4 +1073,24 @@ func (c *Client) ContainerWait(ctx context.Context, nameOrID string) (int, error
 	}
 
 	return exitCode, nil
+}
+
+// podmanHealthCmd converts a Docker-style health check test to a podman --health-cmd string.
+// Docker format: ["CMD-SHELL", "command"] or ["CMD", "arg1", "arg2"]
+// Podman expects a single shell string for --health-cmd.
+func podmanHealthCmd(test []string) string {
+	if len(test) == 0 {
+		return ""
+	}
+	switch test[0] {
+	case "CMD-SHELL":
+		if len(test) > 1 {
+			return test[1]
+		}
+		return ""
+	case "CMD":
+		return strings.Join(test[1:], " ")
+	default:
+		return strings.Join(test, " ")
+	}
 }

@@ -151,7 +151,7 @@ async def handle(state: AgentState) -> AgentState:
                 "tools_used": list(tool_results.keys()),
                 "sources": cited_sources,  # Only sources that were actually cited
                 "mode": "chat",
-                "trace_id": main_span.trace_id,
+                "traceId": main_span.trace_id,
             }
 
             # Add this Q&A to conversation history for future context
@@ -626,9 +626,9 @@ def _extract_sources(tool_results: Dict[str, Any]) -> List[Dict[str, Any]]:
                     sources.append({
                         "title": title,
                         "url": url,
-                        "preview": preview,
+                        "previewText": preview,
                         "relevance": float(relevance),
-                        "matched_terms": matched_terms,
+                        "matchedTerms": matched_terms,
                         "tool": tool_name,
                     })
 

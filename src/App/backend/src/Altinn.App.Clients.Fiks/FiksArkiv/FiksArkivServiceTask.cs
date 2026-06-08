@@ -1,5 +1,6 @@
 using Altinn.App.Clients.Fiks.Constants;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
@@ -13,8 +14,7 @@ internal sealed class FiksArkivServiceTask : IServiceTask
     private readonly IFiksArkivHost _fiksArkivHost;
     private readonly FiksArkivSettings _fiksArkivSettings;
 
-    internal const string Identifier = "fiksArkiv";
-    public string Type => Identifier;
+    public string Type => AltinnTaskTypes.FiksArkiv;
 
     public FiksArkivServiceTask(
         IFiksArkivHost fiksArkivHost,

@@ -61,18 +61,12 @@ public class RequestPartValidator
                 }
             }
 
-            long contentSize = part.FileSize != 0 ? part.FileSize : part.Bytes.Length;
-
-            if (contentSize == 0)
+            if (part.FileSize == 0)
             {
                 return $"The multipart section named {part.Name} has no data. Cannot process empty part.";
             }
 
-            if (
-                dataType.MaxSize.HasValue
-                && dataType.MaxSize > 0
-                && contentSize > (long)dataType.MaxSize.Value * 1024 * 1024
-            )
+            if (dataType.MaxSize is > 0 && part.FileSize > (long)dataType.MaxSize.Value * 1024 * 1024)
             {
                 return $"The multipart section named {part.Name} exceeds the size limit of element type '{dataType.Id}'";
             }

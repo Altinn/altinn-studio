@@ -97,13 +97,7 @@ public class WorkflowWriteBufferTests
             ],
         };
 
-        var metadata = new WorkflowRequestMetadata(
-            "test-ns",
-            $"idem-{key}",
-            Guid.NewGuid(),
-            DateTimeOffset.UtcNow,
-            null
-        );
+        var metadata = new WorkflowRequestMetadata("test-ns", $"idem-{key}", null, DateTimeOffset.UtcNow, null);
         var hash = request.ComputeHash();
         return (request, metadata, hash);
     }

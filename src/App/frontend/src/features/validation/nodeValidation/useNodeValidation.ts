@@ -1,5 +1,5 @@
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { useExpressionValidation } from 'src/features/validation/expressionValidation/useExpressionValidation';
 import {
   type CompDef,
   getComponentDef,
@@ -25,7 +25,7 @@ export function useNodeValidation(baseComponentId: string): AnyValidation[] {
   const def = getComponentDef(component.type);
   const indexedId = useIndexedId(baseComponentId);
   const registry = GeneratorInternal.useRegistry();
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const dataModelBindings = GeneratorInternal.useIntermediateItem()?.dataModelBindings;
   const bindings = Object.entries((dataModelBindings ?? {}) as Record<string, IDataModelReference>);
 
@@ -43,14 +43,20 @@ export function useNodeValidation(baseComponentId: string): AnyValidation[] {
     unfiltered.push(...def.useComponentValidation(baseComponentId));
   }
 
-  const getDataElementIdForDataType = FormBootstrap.useGetDataElementIdForDataType();
   const fieldValidations = FormStore.raw.useMemoSelector((state) => {
     const validations: BaseValidation[] = [];
     for (const [bindingKey, { dataType, field }] of bindings) {
-      const dataElementId = getDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
-      const fieldValidations = state.validation.state.dataModels[dataElementId]?.[field];
-      if (fieldValidations) {
-        validations.push(...fieldValidations.map((v) => ({ ...v, bindingKey })));
+      const dataModel = state.data.models[dataType];
+      if (dataModel) {
+        const fieldValidations = [
+          ...(dataModel.validations.backend[field] ?? []),
+          ...(dataModel.validations.invalidData[field] ?? []),
+          ...(dataModel.validations.schema[field] ?? []),
+        ];
+
+        if (fieldValidations.length > 0) {
+          validations.push(...fieldValidations.map((v) => ({ ...v, bindingKey })));
+        }
       }
     }
 
@@ -63,6 +69,10 @@ export function useNodeValidation(baseComponentId: string): AnyValidation[] {
   });
 
   unfiltered.push(...fieldValidations);
+  const expressionValidations = useExpressionValidation(bindings);
+  for (const { bindingKey, validations } of expressionValidations) {
+    unfiltered.push(...validations.map((validation) => ({ ...validation, bindingKey })));
+  }
 
   const filtered = filter(unfiltered, baseComponentId, def, layoutLookups);
   if (filtered.length === 0) {

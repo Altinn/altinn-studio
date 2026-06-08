@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.IO;
 
 namespace LocalTest.Configuration
@@ -13,11 +15,6 @@ namespace LocalTest.Configuration
         /// The path to the local storage folder
         /// </summary>
         public string LocalTestingStorageBasePath { get; set; }
-
-        /// <summary>
-        /// The folder where the app that is tested is located. Used to retrieve app configuration
-        /// </summary>
-        public string AppRepositoryBasePath { get; set; }
 
         public string BlobStorageFolder { get; set; } = "blobs/";
 
@@ -42,20 +39,6 @@ namespace LocalTest.Configuration
                 _localTestDataPath = value;
             }
         }
-
-        public string LocalFrontendHostname { get; set; } = "localhost";
-
-        public string LocalFrontendProtocol { get; set; } = "http";
-
-        /// <summary>
-        /// Url for the local app when LocalAppMode == http
-        /// <summary>
-        public string LocalAppUrl { get; set; }
-
-        /// <summary>
-        /// which access mode to use ("file", "http")
-        /// <summary>
-        public string LocalAppMode { get; set; }
 
         public string DocumentDbFolder { get; set; } = "documentdb/";
 
@@ -84,11 +67,5 @@ namespace LocalTest.Configuration
         public string TenorDataFolder { get; set; } = "tenorUsers";
 
         public string InstanceDelegationsDataFolder { get; set; } = "instanceDelegations";
-
-        public string LocalGrafanaUrl { get; set; }
-
-        public string LocalPdfServiceUrl { get; set; }
-
-        public string LocalReceiptUrl { get; set; }
     }
 }

@@ -13,6 +13,7 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Repository.Models.AppScope;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -114,7 +115,14 @@ public class RepositoryServiceTests
         var repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repositoryName, developer);
         var repositoryRemoteDirectory = TestDataHelper.GetTestDataRemoteRepository(org, repositoryName);
 
-        var repositoryService = GetServiceForTest(developer);
+        Mock<IAppScopesService> appScopesServiceMock = new();
+        appScopesServiceMock
+            .Setup(s =>
+                s.AddDefaultMaskinportenScopesAsync(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(null as AppScopesEntity);
+
+        var repositoryService = GetServiceForTest(developer, appScopesServiceMock: appScopesServiceMock.Object);
 
         try
         {
@@ -128,6 +136,16 @@ public class RepositoryServiceTests
                 .GetAltinnStudioSettings();
             Assert.Equal(AltinnRepositoryType.App, altinnStudioSettings.RepoType);
             Assert.True(altinnStudioSettings.UseNullableReferenceTypes);
+            appScopesServiceMock.Verify(
+                s =>
+                    s.AddDefaultMaskinportenScopesAsync(
+                        It.Is<AltinnRepoEditingContext>(context =>
+                            context.Org == org && context.Repo == repositoryName && context.Developer == developer
+                        ),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
         }
         finally
         {
@@ -198,7 +216,7 @@ public class RepositoryServiceTests
             );
             int actualCloneCount = Directory
                 .GetDirectories(developerClonePath)
-                .Count(d => d.Contains(targetRepositoryName));
+                .Count(d => Path.GetFileName(d).Equals(targetRepositoryName, StringComparison.Ordinal));
             Assert.Equal(1, actualCloneCount);
         }
         finally
@@ -295,7 +313,7 @@ public class RepositoryServiceTests
                 """
             );
 
-            Assert.True(File.Exists(configPath), $"Før kopiering: config.json mangler i root: {configPath}");
+            Assert.True(File.Exists(configPath), $"Before copying: config.json missing in source root: {configPath}");
 
             RepositoryService sut = GetServiceForTest(developer);
 
@@ -306,7 +324,7 @@ public class RepositoryServiceTests
             string destConfigPath = Path.Combine(destRepoPath, "config.json");
             Assert.True(
                 File.Exists(destConfigPath),
-                $"Etter kopiering: config.json ble ikke funnet i target root: {destConfigPath}"
+                $"After copying: config.json not found in target root: {destConfigPath}"
             );
 
             string configJson = File.ReadAllText(destConfigPath);
@@ -595,7 +613,8 @@ public class RepositoryServiceTests
     private static RepositoryService GetServiceForTest(
         string developer,
         ISourceControl sourceControlMock = null,
-        ICustomTemplateService customTemplateServiceMock = null
+        ICustomTemplateService customTemplateServiceMock = null,
+        IAppScopesService appScopesServiceMock = null
     )
     {
         HttpContext ctx = GetHttpContextForTestUser(developer);
@@ -663,6 +682,7 @@ public class RepositoryServiceTests
 
         IResourceRegistry resourceRegistryService = new Mock<IResourceRegistry>().Object;
         IAuthorizationPolicyService authorizationPolicyServiceMock = new Mock<IAuthorizationPolicyService>().Object;
+        appScopesServiceMock ??= new Mock<IAppScopesService>().Object;
 
         RepositoryService service = new(
             repoSettings,
@@ -676,7 +696,8 @@ public class RepositoryServiceTests
             textsService,
             resourceRegistryService,
             customTemplateServiceMock,
-            authorizationPolicyServiceMock
+            authorizationPolicyServiceMock,
+            appScopesServiceMock
         );
 
         return service;

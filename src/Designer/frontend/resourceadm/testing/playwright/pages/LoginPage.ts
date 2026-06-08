@@ -30,7 +30,7 @@ export class LoginPage {
 
   public async goToGiteaLoginPage(): Promise<void> {
     await this.frontPageLoginButton.click();
-    await this.page.waitForURL('/repos/user/login');
+    await this.page.waitForURL(/\/repos\/user\/login/);
   }
 
   public async writeUsername(username: string): Promise<void> {

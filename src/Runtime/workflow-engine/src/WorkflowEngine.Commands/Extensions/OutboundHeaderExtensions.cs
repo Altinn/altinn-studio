@@ -10,7 +10,7 @@ public static class OutboundHeaderExtensions
 {
     /// <summary>
     /// Adds standard workflow metadata headers (idempotency key, workflow ID, operation ID,
-    /// namespace, and optionally correlation ID) to an outbound HTTP request.
+    /// namespace, and optionally collection key) to an outbound HTTP request.
     /// </summary>
     public static void AddWorkflowMetadataHeaders(this HttpRequestMessage request, CommandExecutionContext context)
     {
@@ -18,7 +18,7 @@ public static class OutboundHeaderExtensions
         request.Headers.Add(WorkflowMetadataConstants.Headers.WorkflowId, context.Workflow.DatabaseId.ToString());
         request.Headers.Add(WorkflowMetadataConstants.Headers.OperationId, context.Step.OperationId);
         request.Headers.Add(WorkflowMetadataConstants.Headers.Namespace, context.Workflow.Namespace);
-        if (context.Workflow.CorrelationId is { } cid)
-            request.Headers.Add(WorkflowMetadataConstants.Headers.CorrelationId, cid.ToString());
+        if (context.Workflow.CollectionKey is { } collectionKey)
+            request.Headers.Add(WorkflowMetadataConstants.Headers.CollectionKey, collectionKey);
     }
 }

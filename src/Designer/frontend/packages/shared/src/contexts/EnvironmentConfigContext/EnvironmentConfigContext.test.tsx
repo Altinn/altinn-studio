@@ -13,9 +13,9 @@ jest.mock('app-shared/api/paths', () => ({
 }));
 
 const TestComponent = () => {
-  const { environment, isLoading, error } = useEnvironmentConfig();
+  const { environment, isPending, error } = useEnvironmentConfig();
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isPending) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
   if (!environment) return <div>No environment</div>;
 

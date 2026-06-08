@@ -1,22 +1,20 @@
 import React from 'react';
 
+import { Flex, Spinner } from '@app/form-component';
 import { CaretDownFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { Flex } from 'src/app-components/Flex/Flex';
-import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useGetNavigationIsPrevented } from 'src/features/navigation/utils';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useNavigationParam } from 'src/hooks/navigation';
+import { useAsRef } from 'src/hooks/useAsRef';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
-import {
-  useCurrentProcessKey,
-  useIsAnyProcessing,
-  useProcessingMutationWithKey,
-} from 'src/hooks/useProcessingMutation';
+import { usePageValidation } from 'src/hooks/usePageValidation';
+import { useCurrentProcessKey, useProcessingMutationWithKey } from 'src/hooks/useProcessingMutation';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/NavigationBar/NavigationBarComponent.module.css';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
@@ -53,6 +51,57 @@ const NavigationButton = React.forwardRef(
 
 NavigationButton.displayName = 'NavigationButton';
 
+interface INavigationPageButton {
+  pageId: string;
+  index: number;
+  current: boolean;
+  disabled: boolean;
+  showSpinner: boolean;
+  loadingLabel: string;
+  onNavigate: (pageId: string) => void;
+  buttonRef?: React.Ref<HTMLButtonElement>;
+}
+
+/**
+ * Memoized so that navigating between pages only re-renders the buttons whose props actually changed
+ * (the previously- and newly-selected page), instead of the entire page list.
+ */
+const NavigationPageButton = React.memo(function NavigationPageButton({
+  pageId,
+  index,
+  current,
+  disabled,
+  showSpinner,
+  loadingLabel,
+  onNavigate,
+  buttonRef,
+}: INavigationPageButton) {
+  const handleClick = React.useCallback(() => onNavigate(pageId), [onNavigate, pageId]);
+
+  return (
+    <li className={classes.containerBase}>
+      <NavigationButton
+        disabled={disabled}
+        current={current}
+        onClick={handleClick}
+        ref={buttonRef}
+      >
+        <div className={classes.buttonContent}>
+          {showSpinner && (
+            <Spinner
+              className={classes.spinner}
+              aria-label={loadingLabel}
+            />
+          )}
+          <span>
+            {index + 1}. <Lang id={pageId} />
+          </span>
+        </div>
+      </NavigationButton>
+    </li>
+  );
+});
+
 export const NavigationBarComponent = ({ baseComponentId }: PropsFromGenericComponent<'NavigationBar'>) => {
   const { compact, validateOnForward, validateOnBackward } = useItemWhenType(baseComponentId, 'NavigationBar');
   const [showMenu, setShowMenu] = React.useState(false);
@@ -63,40 +112,77 @@ export const NavigationBarComponent = ({ baseComponentId }: PropsFromGenericComp
   const onPageNavigationValidation = useOnPageNavigationValidation();
   const performProcess = useProcessingMutationWithKey<NavigatePageProcessKey>('navigate-page');
   const currentProcessKey = useCurrentProcessKey<NavigatePageProcessKey>('navigate-page');
-  const isAnyProcessing = useIsAnyProcessing();
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
+  const loadingLabel = langAsString('general.loading');
 
-  const firstPageLink = React.useRef<HTMLButtonElement>(undefined);
+  const { getPageValidation } = usePageValidation(baseComponentId);
+  // Use component-level validation if set, otherwise fall back to page-level
+  // When page-level validation is set, only validate forward navigation
+  const validationOnForward = getPageValidation() ?? validateOnForward;
+  const validationOnBackward = getPageValidation() ? undefined : validateOnBackward;
 
-  const handleNavigationClick = (pageId: string) =>
-    performProcess(pageId, async () => {
-      const currentIndex = order.indexOf(currentPageId);
-      const newIndex = order.indexOf(pageId);
+  const getNavigationIsPrevented = useGetNavigationIsPrevented();
 
-      const isForward = newIndex > currentIndex && currentIndex !== -1;
-      const isBackward = newIndex < currentIndex && currentIndex !== -1;
+  const firstPageLink = React.useRef<HTMLButtonElement | null>(null);
 
-      const pageKey = layoutLookups.componentToPage[baseComponentId];
+  // Bundle everything the click handler reads into a ref so the handler identity stays stable across
+  // navigations. This lets the memoized NavigationPageButton bail out of re-rendering.
+  const clickStateRef = useAsRef({
+    order,
+    currentPageId,
+    layoutLookups,
+    baseComponentId,
+    maybeSaveOnPageChange,
+    validationOnForward,
+    validationOnBackward,
+    onPageNavigationValidation,
+    navigateToPage,
+  });
 
-      if (pageId === currentPageId || newIndex === -1 || !pageKey) {
-        return;
-      }
+  const handleNavigationClick = React.useCallback(
+    (pageId: string) =>
+      performProcess(pageId, async () => {
+        const {
+          order,
+          currentPageId,
+          layoutLookups,
+          baseComponentId,
+          maybeSaveOnPageChange,
+          validationOnForward,
+          validationOnBackward,
+          onPageNavigationValidation,
+          navigateToPage,
+        } = clickStateRef.current;
 
-      await maybeSaveOnPageChange();
+        const currentIndex = order.indexOf(currentPageId);
+        const newIndex = order.indexOf(pageId);
 
-      if (isForward && validateOnForward && (await onPageNavigationValidation(pageKey, validateOnForward))) {
-        // Block navigation if validation fails
-        return;
-      }
+        const isForward = newIndex > currentIndex && currentIndex !== -1;
+        const isBackward = newIndex < currentIndex && currentIndex !== -1;
 
-      if (isBackward && validateOnBackward && (await onPageNavigationValidation(pageKey, validateOnBackward))) {
-        // Block navigation if validation fails
-        return;
-      }
+        const pageKey = layoutLookups.componentToPage[baseComponentId];
 
-      setShowMenu(false);
-      navigateToPage(pageId, { skipAutoSave: true });
-    });
+        if (pageId === currentPageId || newIndex === -1 || !pageKey) {
+          return;
+        }
+
+        await maybeSaveOnPageChange();
+
+        if (isForward && validationOnForward && (await onPageNavigationValidation(pageKey, validationOnForward))) {
+          // Block navigation if validation fails
+          return;
+        }
+
+        if (isBackward && validationOnBackward && (await onPageNavigationValidation(pageKey, validationOnBackward))) {
+          // Block navigation if validation fails
+          return;
+        }
+
+        setShowMenu(false);
+        navigateToPage(pageId, { skipAutoSave: true });
+      }),
+    [performProcess, clickStateRef],
+  );
 
   const shouldShowMenu = !isMobile || showMenu;
 
@@ -155,29 +241,20 @@ export const NavigationBarComponent = ({ baseComponentId }: PropsFromGenericComp
               })}
             >
               {order.map((pageId, index) => (
-                <li
+                <NavigationPageButton
                   key={pageId}
-                  className={classes.containerBase}
-                >
-                  <NavigationButton
-                    disabled={isAnyProcessing}
-                    current={currentPageId === pageId}
-                    onClick={() => handleNavigationClick(pageId)}
-                    ref={index === 0 ? firstPageLink : null}
-                  >
-                    <div className={classes.buttonContent}>
-                      {currentProcessKey === pageId && (
-                        <Spinner
-                          className={classes.spinner}
-                          aria-label={langAsString('general.loading')}
-                        />
-                      )}
-                      <span>
-                        {index + 1}. <Lang id={pageId} />
-                      </span>
-                    </div>
-                  </NavigationButton>
-                </li>
+                  pageId={pageId}
+                  index={index}
+                  current={currentPageId === pageId}
+                  // Note: intentionally not disabled by `isAnyProcessing`. Double-navigation is already blocked
+                  // synchronously inside performProcess, and dimming every button during navigation caused the
+                  // whole bar to flash.
+                  disabled={getNavigationIsPrevented(pageId)}
+                  showSpinner={currentProcessKey === pageId}
+                  loadingLabel={loadingLabel}
+                  onNavigate={handleNavigationClick}
+                  buttonRef={index === 0 ? firstPageLink : undefined}
+                />
               ))}
             </ul>
           )}

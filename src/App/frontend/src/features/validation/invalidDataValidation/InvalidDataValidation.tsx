@@ -1,46 +1,41 @@
-import { useEffect } from 'react';
-
 import dot from 'dot-object';
 
 import { FrontendValidationSource, ValidationMask } from '..';
-
-import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import type { FieldValidations } from '..';
 
 function isScalar(value: unknown): value is string | number | boolean {
   return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean';
 }
 
-export function InvalidDataValidation({ dataType }: { dataType: string }) {
-  const updateDataModelValidations = FormStore.validation.useUpdateDataModelValidations();
-  const invalidData = FormStore.data.useInvalidDebounced(dataType);
-  const dataElementId = FormBootstrap.useDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
+interface DeriveInvalidDataValidationsParams {
+  invalidData: object;
+  dataElementId: string | null;
+}
 
-  useEffect(() => {
-    const validations = {};
-
-    if (Object.keys(invalidData).length > 0) {
-      const flattened = dot.dot(invalidData);
-      for (const [field, value] of Object.entries(flattened)) {
-        if (!isScalar(value)) {
-          continue;
-        }
-
-        if (!validations[field]) {
-          validations[field] = [];
-        }
-
-        validations[field].push({
-          field,
-          source: FrontendValidationSource.InvalidData,
-          message: { key: 'validation_errors.pattern' },
-          severity: 'error',
-          category: ValidationMask.Schema, // Use same visibility as schema validations
-        });
-      }
+export function deriveInvalidDataValidations({
+  invalidData,
+  dataElementId,
+}: DeriveInvalidDataValidationsParams): FieldValidations {
+  const validations: FieldValidations = {};
+  const flattened = dot.dot(invalidData);
+  for (const [field, value] of Object.entries(flattened)) {
+    if (!isScalar(value)) {
+      continue;
     }
-    updateDataModelValidations('invalidData', dataElementId, validations);
-  }, [dataElementId, invalidData, updateDataModelValidations]);
 
-  return null;
+    if (!validations[field]) {
+      validations[field] = [];
+    }
+
+    validations[field].push({
+      field,
+      dataElementId: dataElementId ?? '',
+      source: FrontendValidationSource.InvalidData,
+      message: { key: 'validation_errors.pattern' },
+      severity: 'error',
+      category: ValidationMask.Schema,
+    });
+  }
+
+  return validations;
 }

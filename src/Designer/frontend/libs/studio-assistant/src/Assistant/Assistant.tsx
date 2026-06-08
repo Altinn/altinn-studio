@@ -1,8 +1,9 @@
 import React from 'react';
 import type { ReactElement } from 'react';
-import type { ChatThread, UserMessage } from '../types/ChatThread';
+import type { ChatThread, UserMessage, Message } from '../types/ChatThread';
 import { CompactInterface } from '../components/CompactInterface/CompactInterface';
 import { CompleteInterface } from '../components/CompleteInterface/CompleteInterface';
+import type { UserFeedback } from '../types/UserFeedback';
 import type { AssistantTexts } from '../types/AssistantTexts';
 import type { ConnectionStatus } from '../types/ConnectionStatus';
 import type { WorkflowStatus } from '../types/WorkflowStatus';
@@ -11,6 +12,7 @@ import type { User } from '../types/User';
 export type AssistantProps = {
   texts: AssistantTexts;
   chatThreads?: ChatThread[];
+  messages?: Message[];
   enableCompactInterface?: boolean;
   activeThreadId: string;
   connectionStatus: ConnectionStatus;
@@ -21,6 +23,7 @@ export type AssistantProps = {
   onSelectThread?: (threadId: string) => void;
   onDeleteThread?: (threadId: string) => void;
   onCreateThread?: () => void;
+  onMessageFeedback?: (feedback: UserFeedback) => void;
   workflowStatus: WorkflowStatus;
   previewContent: ReactElement;
   fileBrowserContent?: ReactElement;
@@ -30,6 +33,7 @@ export type AssistantProps = {
 export function Assistant({
   texts,
   chatThreads,
+  messages,
   enableCompactInterface = false,
   activeThreadId,
   connectionStatus,
@@ -41,6 +45,7 @@ export function Assistant({
   onSelectThread,
   onDeleteThread,
   onCreateThread,
+  onMessageFeedback,
   previewContent,
   fileBrowserContent,
   currentUser,
@@ -51,6 +56,7 @@ export function Assistant({
     <CompleteInterface
       texts={texts}
       chatThreads={chatThreads}
+      messages={messages}
       activeThreadId={activeThreadId}
       connectionStatus={connectionStatus}
       workflowStatus={workflowStatus}
@@ -61,6 +67,7 @@ export function Assistant({
       onSelectThread={onSelectThread}
       onDeleteThread={onDeleteThread}
       onCreateThread={onCreateThread}
+      onMessageFeedback={onMessageFeedback}
       previewContent={previewContent}
       fileBrowserContent={fileBrowserContent}
       currentUser={currentUser}

@@ -1,5 +1,4 @@
-﻿#nullable disable
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Mime;
@@ -11,7 +10,6 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
-using JetBrains.Annotations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -53,8 +51,8 @@ public class ProcessModelingController : ControllerBase
     public async Task<IActionResult> UpsertProcessDefinitionAndNotify(
         string org,
         string repo,
-        [FromForm] IFormFile content,
-        [FromForm] string metadata,
+        [FromForm] IFormFile? content,
+        [FromForm] string? metadata,
         CancellationToken cancellationToken
     )
     {
@@ -70,7 +68,7 @@ public class ProcessModelingController : ControllerBase
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
 
-        await using Stream stream = content.OpenReadStream();
+        await using Stream stream = content!.OpenReadStream();
         try
         {
             await _processModelingService.SaveProcessDefinitionAsync(editingContext, stream, cancellationToken);
@@ -130,7 +128,7 @@ public class ProcessModelingController : ControllerBase
         [FromRoute] string dataTypeId,
         [FromQuery] string taskId,
         CancellationToken cancellationToken,
-        [FromBody] [CanBeNull] List<string> allowedContributors
+        [FromBody] List<string>? allowedContributors
     )
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);

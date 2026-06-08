@@ -1,5 +1,4 @@
-﻿#nullable disable
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -238,8 +237,8 @@ public class ResourceAdminController : ControllerBase
         try
         {
             PagedAccessListResponse pagedListResponse = await _resourceRegistry.GetAccessLists(org, env, "");
-            accessLists.AddRange(pagedListResponse.Data);
-            string nextPage = pagedListResponse.NextPage;
+            accessLists.AddRange(pagedListResponse.Data!);
+            string? nextPage = pagedListResponse.NextPage;
 
             while (!string.IsNullOrWhiteSpace(nextPage))
             {
@@ -248,7 +247,7 @@ public class ResourceAdminController : ControllerBase
                     env,
                     nextPage
                 );
-                accessLists.AddRange(nextPagedListResponse.Data);
+                accessLists.AddRange(nextPagedListResponse.Data!);
                 nextPage = nextPagedListResponse.NextPage;
             }
         }
@@ -356,11 +355,22 @@ public class ResourceAdminController : ControllerBase
             foreach (string environment in environments)
             {
                 string cacheKey = $"resourcelist_${environment}";
-                if (!_memoryCache.TryGetValue(cacheKey, out List<ServiceResource> environmentResources))
+                if (!_memoryCache.TryGetValue(cacheKey, out List<ServiceResource>? environmentResources))
                 {
                     try
                     {
-                        environmentResources = await _resourceRegistry.GetResourceList(environment, false);
+                        environmentResources = await _resourceRegistry.GetServiceResourceList(
+                            environment,
+                            includeApps: true,
+                            includeAltinn2: false,
+                            includeMigratedApps: true
+                        );
+
+                        // This might look a bit weird (why not just set includeApps: false above?), but with includeApps: false, MigratedApp resources will not be returned either even with includeMigratedApps: true
+                        environmentResources = environmentResources
+                            .Where(resource => resource.ResourceType != ResourceType.AltinnApp)
+                            .ToList();
+
                         var cacheEntryOptions = new MemoryCacheEntryOptions()
                             .SetPriority(CacheItemPriority.High)
                             .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
@@ -373,14 +383,14 @@ public class ResourceAdminController : ControllerBase
                     }
                 }
 
-                IEnumerable<ServiceResource> environmentResourcesForOrg = environmentResources.Where(x =>
+                IEnumerable<ServiceResource> environmentResourcesForOrg = environmentResources!.Where(x =>
                     x.HasCompetentAuthority?.Orgcode != null
                     && x.HasCompetentAuthority.Orgcode.Equals(org, StringComparison.OrdinalIgnoreCase)
                 );
 
                 foreach (ServiceResource resource in environmentResourcesForOrg)
                 {
-                    ListviewServiceResource listResource = listviewServiceResources.FirstOrDefault(x =>
+                    ListviewServiceResource? listResource = listviewServiceResources.FirstOrDefault(x =>
                         x.Identifier == resource.Identifier
                     );
                     if (listResource == null)
@@ -395,7 +405,7 @@ public class ResourceAdminController : ControllerBase
                         };
                         listviewServiceResources.Add(listResource);
                     }
-                    listResource.Environments.Add(environment);
+                    listResource.Environments!.Add(environment);
                 }
             }
         }
@@ -481,7 +491,13 @@ public class ResourceAdminController : ControllerBase
     public async Task<ActionResult> AddExistingResource(string org, string resourceId, string env)
     {
         string repository = GetRepositoryName(org);
-        ServiceResource resource = await _resourceRegistry.GetResource(resourceId, env);
+        List<ServiceResource> allResources = await _resourceRegistry.GetServiceResourceList(
+            env.ToLower(),
+            includeAltinn2: false,
+            includeApps: true,
+            includeMigratedApps: true
+        );
+        ServiceResource? resource = allResources.Find(r => r.Identifier == resourceId);
         if (resource == null)
         {
             return new StatusCodeResult(404);
@@ -494,7 +510,8 @@ public class ResourceAdminController : ControllerBase
         }
 
         XacmlPolicy policy = await _resourceRegistry.GetResourcePolicy(resourceId, env);
-        await _repository.SavePolicy(org, repository, resource.Identifier, policy);
+        string resourceFileStructureName = ResourceAdminHelper.GetResourceFileStructureName(resourceId);
+        await _repository.SavePolicy(org, repository, resourceFileStructureName, policy);
         return Ok(resource);
     }
 
@@ -547,8 +564,13 @@ public class ResourceAdminController : ControllerBase
     [Route("designer/api/{org}/resources/altinn2/delegationcount/{serviceCode}/{serviceEdition}/{env}")]
     public async Task<ActionResult> GetDelegationCount(string org, string serviceCode, int serviceEdition, string env)
     {
-        List<ServiceResource> allResources = await _resourceRegistry.GetResourceList(env.ToLower(), true);
-        bool serviceExists = allResources.Any(x => x.Identifier.Equals($"se_{serviceCode}_{serviceEdition}"));
+        List<ServiceResource> allResources = await _resourceRegistry.GetServiceResourceList(
+            env.ToLower(),
+            includeAltinn2: true,
+            includeApps: false,
+            includeMigratedApps: false
+        );
+        bool serviceExists = allResources.Any(x => x.Identifier!.Equals($"se_{serviceCode}_{serviceEdition}"));
         if (!serviceExists)
         {
             return new NotFoundResult();
@@ -595,7 +617,7 @@ public class ResourceAdminController : ControllerBase
     public async Task<ActionResult<List<DataTheme>>> GetSectors(CancellationToken cancellationToken)
     {
         string cacheKey = "sectors";
-        if (!_memoryCache.TryGetValue(cacheKey, out List<DataTheme> sectors))
+        if (!_memoryCache.TryGetValue(cacheKey, out List<DataTheme>? sectors))
         {
             DataThemesContainer dataThemesContainer = await _resourceRegistryOptions.GetSectors(cancellationToken);
 
@@ -608,7 +630,7 @@ public class ResourceAdminController : ControllerBase
             _memoryCache.Set(cacheKey, sectors, cacheEntryOptions);
         }
 
-        return sectors;
+        return sectors!;
     }
 
     [HttpGet]
@@ -616,7 +638,7 @@ public class ResourceAdminController : ControllerBase
     public async Task<ActionResult<List<LosTerm>>> GetGetLosTerms(CancellationToken cancellationToken)
     {
         string cacheKey = "losterms";
-        if (!_memoryCache.TryGetValue(cacheKey, out List<LosTerm> sectors))
+        if (!_memoryCache.TryGetValue(cacheKey, out List<LosTerm>? sectors))
         {
             LosTerms losTerms = await _resourceRegistryOptions.GetLosTerms(cancellationToken);
 
@@ -629,7 +651,7 @@ public class ResourceAdminController : ControllerBase
             _memoryCache.Set(cacheKey, sectors, cacheEntryOptions);
         }
 
-        return sectors;
+        return sectors!;
     }
 
     [HttpGet]
@@ -637,7 +659,7 @@ public class ResourceAdminController : ControllerBase
     public async Task<ActionResult<List<EuroVocTerm>>> GetEuroVoc(CancellationToken cancellationToken)
     {
         string cacheKey = "eurovocs";
-        if (!_memoryCache.TryGetValue(cacheKey, out List<EuroVocTerm> sectors))
+        if (!_memoryCache.TryGetValue(cacheKey, out List<EuroVocTerm>? sectors))
         {
             EuroVocTerms euroVocTerms = await _resourceRegistryOptions.GetEuroVocTerms(cancellationToken);
 
@@ -649,7 +671,7 @@ public class ResourceAdminController : ControllerBase
             _memoryCache.Set(cacheKey, sectors, cacheEntryOptions);
         }
 
-        return sectors;
+        return sectors!;
     }
 
     [HttpGet]
@@ -665,9 +687,14 @@ public class ResourceAdminController : ControllerBase
 
         // GET full list of resources (with apps) in environment
         string cacheKey = $"resourcelist_with_apps${env}";
-        if (!_memoryCache.TryGetValue(cacheKey, out List<ServiceResource> environmentResources))
+        if (!_memoryCache.TryGetValue(cacheKey, out List<ServiceResource>? environmentResources))
         {
-            environmentResources = await _resourceRegistry.GetResourceList(env, false, true);
+            environmentResources = await _resourceRegistry.GetServiceResourceList(
+                env,
+                includeApps: true,
+                includeAltinn2: false,
+                includeMigratedApps: true
+            );
 
             MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions()
                 .SetPriority(CacheItemPriority.High)
@@ -675,7 +702,7 @@ public class ResourceAdminController : ControllerBase
             _memoryCache.Set(cacheKey, environmentResources, cacheEntryOptions);
         }
 
-        List<AttributeMatchV2> resources = subjectResources.Find(x => x.Subject.Urn == accesspackage)?.Resources;
+        List<AttributeMatchV2>? resources = subjectResources.Find(x => x.Subject.Urn == accesspackage)?.Resources;
 
         OrgList orgList = await GetOrgList();
         List<AccessPackageService> result = [];
@@ -683,19 +710,19 @@ public class ResourceAdminController : ControllerBase
         // return resources for all subjectResources
         resources?.ForEach(resourceMatch =>
         {
-            ServiceResource fullResource = environmentResources.Find(x => x.Identifier == resourceMatch.Value);
+            ServiceResource? fullResource = environmentResources!.Find(x => x.Identifier == resourceMatch.Value);
 
             if (fullResource != null)
             {
-                orgList.Orgs.TryGetValue(fullResource.HasCompetentAuthority.Orgcode.ToLower(), out Org organization);
+                orgList.Orgs.TryGetValue(fullResource.HasCompetentAuthority!.Orgcode.ToLower(), out Org? organization);
 
                 result.Add(
                     new AccessPackageService()
                     {
                         Identifier = resourceMatch.Value,
-                        Title = fullResource?.Title,
+                        Title = fullResource.Title,
                         HasCompetentAuthority = fullResource.HasCompetentAuthority,
-                        LogoUrl = organization.Logo,
+                        LogoUrl = organization!.Logo,
                     }
                 );
             }
@@ -712,15 +739,20 @@ public class ResourceAdminController : ControllerBase
     public async Task<ActionResult<List<AvailableService>>> GetAltinn2LinkServices(string org, string env)
     {
         string cacheKey = "availablelinkservices:" + org + env;
-        if (!_memoryCache.TryGetValue(cacheKey, out List<AvailableService> linkServices))
+        if (!_memoryCache.TryGetValue(cacheKey, out List<AvailableService>? linkServices))
         {
             List<AvailableService> unfiltered = new List<AvailableService>();
-            List<ServiceResource> allResources = await _resourceRegistry.GetResourceList(env.ToLower(), true);
+            List<ServiceResource> allResources = await _resourceRegistry.GetServiceResourceList(
+                env.ToLower(),
+                includeApps: false,
+                includeAltinn2: true,
+                includeMigratedApps: false
+            );
 
             foreach (ServiceResource resource in allResources)
             {
                 if (
-                    resource?.HasCompetentAuthority.Orgcode != null
+                    resource.HasCompetentAuthority!.Orgcode != null
                     && resource.ResourceReferences != null
                     && resource.ResourceReferences.Exists(r =>
                         r.ReferenceType != null && r.ReferenceType.Equals(ResourceReferenceType.ServiceCode)
@@ -729,7 +761,7 @@ public class ResourceAdminController : ControllerBase
                 )
                 {
                     AvailableService service = new AvailableService();
-                    if (resource.Title.ContainsKey("nb"))
+                    if (resource.Title!.ContainsKey("nb"))
                     {
                         service.ServiceName = resource.Title["nb"];
                     }
@@ -769,7 +801,7 @@ public class ResourceAdminController : ControllerBase
             _memoryCache.Set(cacheKey, linkServices, cacheEntryOptions);
         }
 
-        return linkServices;
+        return linkServices!;
     }
 
     private ValidationProblemDetails ValidateResource(ServiceResource resource)
@@ -898,7 +930,8 @@ public class ResourceAdminController : ControllerBase
     {
         if (repository == $"{org}-resources")
         {
-            string xacmlPolicyPath = _repository.GetPolicyPath(org, repository, id);
+            string resourceFileStructureName = ResourceAdminHelper.GetResourceFileStructureName(id);
+            string xacmlPolicyPath = _repository.GetPolicyPath(org, repository, resourceFileStructureName);
             ActionResult publishResult = await _repository.PublishResource(org, repository, id, env, xacmlPolicyPath);
             _memoryCache.Remove($"resourcelist_${env}");
             return publishResult;
@@ -915,7 +948,7 @@ public class ResourceAdminController : ControllerBase
     public async Task<List<ConsentTemplate>> GetConsentTemplates(string org)
     {
         string cacheKey = $"consentTemplates${org}";
-        if (!_memoryCache.TryGetValue(cacheKey, out List<ConsentTemplate> consentTemplates))
+        if (!_memoryCache.TryGetValue(cacheKey, out List<ConsentTemplate>? consentTemplates))
         {
             consentTemplates = await _resourceRegistry.GetConsentTemplates(org);
 
@@ -926,12 +959,12 @@ public class ResourceAdminController : ControllerBase
             _memoryCache.Set(cacheKey, consentTemplates, cacheEntryOptions);
         }
 
-        return consentTemplates;
+        return consentTemplates!;
     }
 
-    private async Task<CompetentAuthority> GetCompetentAuthorityFromOrg(string org)
+    private async Task<CompetentAuthority?> GetCompetentAuthorityFromOrg(string org)
     {
-        Org organization = await GetOrg(org);
+        Org? organization = await GetOrg(org);
         if (organization == null)
         {
             return null;
@@ -944,11 +977,11 @@ public class ResourceAdminController : ControllerBase
         };
     }
 
-    private async Task<Org> GetOrg(string org)
+    private async Task<Org?> GetOrg(string org)
     {
         OrgList orgList = await GetOrgList();
 
-        if (orgList.Orgs.TryGetValue(org, out Org organization))
+        if (orgList.Orgs.TryGetValue(org, out Org? organization))
         {
             return organization;
         }
@@ -959,7 +992,7 @@ public class ResourceAdminController : ControllerBase
     private async Task<OrgList> GetOrgList()
     {
         string cacheKey = "orglist";
-        if (!_memoryCache.TryGetValue(cacheKey, out OrgList orgList))
+        if (!_memoryCache.TryGetValue(cacheKey, out OrgList? orgList))
         {
             orgList = await _orgService.GetOrgList();
 
@@ -970,7 +1003,7 @@ public class ResourceAdminController : ControllerBase
             _memoryCache.Set(cacheKey, orgList, cacheEntryOptions);
         }
 
-        return orgList;
+        return orgList!;
     }
 
     private static bool IsServiceOwner(ServiceResource resource, string loggedInOrg)
@@ -997,7 +1030,7 @@ public class ResourceAdminController : ControllerBase
     private async Task<ResourceVersionInfo> AddEnvironmentResourceStatus(string env, string id)
     {
         ServiceResource resource = await _resourceRegistry.GetResource(id, env);
-        string version;
+        string? version;
         if (resource == null)
         {
             version = null;

@@ -85,9 +85,11 @@ public static class ServiceRegistration
         services.AddTransient<IAppScopesService, AppScopesService>();
         services.AddTransient<IAppSettingsService, AppSettingsService>();
         services.AddTransient<IContactPointsService, ContactPointsService>();
+        services.AddTransient<IChatService, ChatService>();
         services.AddTransient<IAppInactivityUndeployService, AppInactivityUndeployService>();
         services.AddTransient<IKubernetesDeploymentsService, KubernetesDeploymentsService>();
         services.AddTransient<IAppResourcesService, AppResourcesService>();
+        services.AddTransient<INotificationService, NotificationService>();
         services.AddTransient<IAlertsService, AlertsService>();
         services.AddTransient<IBranchService, BranchService>();
         services.AddTransient<IMetricsService, MetricsService>();
@@ -104,9 +106,11 @@ public static class ServiceRegistration
         services.AddTransient<IOrgContentService, OrgContentService>();
         services.AddTransient<IEnvironmentsService, EnvironmentsService>();
         services.AddSingleton<IStudioctlInstallScriptService, StudioctlInstallScriptService>();
+        services.AddScoped<StudioctlAuthService>();
         services.AddHttpClient<IOrgService, OrgService>();
         services.AddHttpClient<ImageClient>();
         services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
+        services.AddTransient<IUiFoldersService, UiFoldersService>();
         services.AddTransient<ITaskNavigationService, TaskNavigationService>();
         services.AddTransient<IPreviewService, PreviewService>();
         services.AddTransient<IDataService, DataService>();
@@ -121,7 +125,7 @@ public static class ServiceRegistration
         services.AddTransient<IKafkaProducer, KafkaProducer>();
         services.AddTransient<IGiteaContentLibraryService, GiteaContentLibraryService>();
         services.AddTransient<IGitOpsConfigurationManager, GitRepoGitOpsConfigurationManager>();
-        services.AddTransient<IGitOpsManifestsRenderer, ScribanGitOpsManifestsRenderer>();
+        services.AddTransient<IGitOpsManifestsRenderer, GitOpsManifestsRenderer>();
         services.AddTransient<IOrgLibraryService, OrgLibraryService>();
         services.AddTransient<IAltinnAppServiceResourceService, AltinnAppServiceResourceService>();
         services.AddTransient<ICustomTemplateService, CustomTemplateService>();

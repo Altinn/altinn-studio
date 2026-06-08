@@ -9,6 +9,7 @@ import type { DOMNode, Element as ReactParserElement, HTMLReactParserOptions } f
 
 import { LinkToPotentialNode } from 'src/components/form/LinkToPotentialNode';
 import { LinkToPotentialPage } from 'src/components/form/LinkToPotentialPage';
+import { preventFocusAndScrollResetOptions } from 'src/features/navigation/navigationOptions';
 import { cachedFunction } from 'src/utils/cachedFunction';
 
 marked.use(mangle());
@@ -133,14 +134,20 @@ const parserOptions: HTMLReactParserOptions = {
     if (isElement(domNode) && domNode.name === 'a' && domNode.attribs['data-link-type'] === 'LinkToPotentialNode') {
       return React.createElement(
         LinkToPotentialNode,
-        { to: domNode.attribs.href, preventScrollReset: true },
+        {
+          to: domNode.attribs.href,
+          ...preventFocusAndScrollResetOptions,
+        },
         domToReact(domNode.children as DOMNode[], parserOptions),
       );
     }
     if (isElement(domNode) && domNode.name === 'a' && domNode.attribs['data-link-type'] === 'LinkToPotentialPage') {
       return React.createElement(
         LinkToPotentialPage,
-        { to: domNode.attribs.href, preventScrollReset: true },
+        {
+          to: domNode.attribs.href,
+          ...preventFocusAndScrollResetOptions,
+        },
         domToReact(domNode.children as DOMNode[], parserOptions),
       );
     }

@@ -36,6 +36,27 @@ public class ChatRepository : IChatRepository
     }
 
     /// <inheritdoc />
+    public async Task<ChatThreadEntity?> GetThreadAsync(
+        Guid threadId,
+        AltinnRepoEditingContext context,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var dbModel = await _dbContext
+            .ChatThreads.AsNoTracking()
+            .FirstOrDefaultAsync(
+                t =>
+                    t.Id == threadId
+                    && t.Org == context.Org
+                    && t.App == context.Repo
+                    && t.CreatedBy == context.Developer,
+                cancellationToken
+            );
+
+        return dbModel is null ? null : ChatThreadMapper.MapToModel(dbModel);
+    }
+
+    /// <inheritdoc />
     public async Task<ChatThreadEntity> CreateThreadAsync(
         ChatThreadEntity thread,
         CancellationToken cancellationToken = default
@@ -67,6 +88,19 @@ public class ChatRepository : IChatRepository
     }
 
     /// <inheritdoc />
+    public async Task<int> DeleteInactiveThreadsAsync(DateTime cutoff, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext
+            .ChatThreads.Where(thread =>
+                thread.CreatedAt < cutoff
+                && _dbContext
+                    .ChatMessages.Where(message => message.ThreadId == thread.Id)
+                    .All(message => message.CreatedAt < cutoff)
+            )
+            .ExecuteDeleteAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<List<ChatMessageEntity>> GetMessagesAsync(
         Guid threadId,
         CancellationToken cancellationToken = default
@@ -91,5 +125,13 @@ public class ChatRepository : IChatRepository
         _dbContext.ChatMessages.Add(dbModel);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return ChatMessageMapper.MapToModel(dbModel);
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteMessageAsync(Guid threadId, Guid messageId, CancellationToken cancellationToken = default)
+    {
+        await _dbContext
+            .ChatMessages.Where(m => m.ThreadId == threadId && m.Id == messageId)
+            .ExecuteDeleteAsync(cancellationToken);
     }
 }

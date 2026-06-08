@@ -8,6 +8,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
+import { FeatureFlagsProvider } from '@studio/feature-flags';
 
 type ProviderData = {
   queries?: Partial<ServicesContextProps>;
@@ -21,9 +22,11 @@ export function renderWithProviders(
   const renderOptions: RenderOptions = {
     wrapper: ({ children }) => (
       <MemoryRouter initialEntries={initialEntries}>
-        <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
-          {children}
-        </ServicesContextProvider>
+        <FeatureFlagsProvider>
+          <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
+            {children}
+          </ServicesContextProvider>
+        </FeatureFlagsProvider>
       </MemoryRouter>
     ),
   };
@@ -37,9 +40,11 @@ export function renderHookWithProviders<T>(
   return renderHook(hook, {
     wrapper: ({ children }) => (
       <MemoryRouter initialEntries={initialEntries}>
-        <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
-          {children}
-        </ServicesContextProvider>
+        <FeatureFlagsProvider>
+          <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
+            {children}
+          </ServicesContextProvider>
+        </FeatureFlagsProvider>
       </MemoryRouter>
     ),
   });

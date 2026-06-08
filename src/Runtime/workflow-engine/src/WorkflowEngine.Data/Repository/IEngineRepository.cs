@@ -17,7 +17,7 @@ internal interface IEngineRepository
         int pageSize,
         Guid? cursor = null,
         bool includeTotalCount = false,
-        Guid? correlationId = null,
+        string? collectionKey = null,
         string? ns = null,
         IReadOnlyDictionary<string, string>? labelFilters = null,
         CancellationToken cancellationToken = default
@@ -50,7 +50,7 @@ internal interface IEngineRepository
         bool retriedOnly = false,
         Dictionary<string, string>? labelFilters = null,
         string? namespaceFilter = null,
-        string? correlationId = null,
+        string? collectionKey = null,
         CancellationToken cancellationToken = default
     );
 
@@ -111,6 +111,19 @@ internal interface IEngineRepository
     Task<Workflow?> GetWorkflow(Guid workflowId, string ns, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Returns the root workflow plus every workflow it can reach — directly or transitively,
+    /// upstream or downstream — through dependency or link relations within <paramref name="ns"/>.
+    /// Each returned <see cref="Workflow"/> has its steps, dependencies, dependents, and links
+    /// eagerly loaded. Ordered by <c>CreatedAt</c>, then <c>Id</c>. Returns <c>null</c> if the
+    /// root workflow does not exist in the given namespace.
+    /// </summary>
+    Task<IReadOnlyList<Workflow>?> GetWorkflowDependencyGraph(
+        Guid workflowId,
+        string ns,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Updates a workflow in the repository.
     /// </summary>
     Task UpdateWorkflow(Workflow workflow, bool updateTimestamp = true, CancellationToken cancellationToken = default);
@@ -130,14 +143,10 @@ internal interface IEngineRepository
 
     /// <summary>
     /// Atomically fetches and locks available workflows for processing using FOR UPDATE SKIP LOCKED.
-    /// Also reclaims stale workflows stuck in Processing whose heartbeat has expired.
+    /// Stale workflow reclaim and poison abandonment run as separate sweeps in
+    /// <c>DbMaintenanceService</c>; reclaimed rows re-enter this fetch as <c>Enqueued</c>.
     /// </summary>
-    Task<FetchResult> FetchAndLockWorkflows(
-        int count,
-        TimeSpan staleThreshold,
-        int maxReclaimCount,
-        CancellationToken cancellationToken
-    );
+    Task<List<Workflow>> FetchAndLockWorkflows(int count, CancellationToken cancellationToken);
 
     /// <summary>
     /// Sets the <c>CancellationRequestedAt</c> flag on a workflow.
@@ -163,7 +172,7 @@ internal interface IEngineRepository
 
     /// <summary>
     /// Returns the subset of <paramref name="inFlightIds"/> that have a non-null <c>CancellationRequestedAt</c>.
-    /// Used by <see cref="WorkflowEngine.Core.CancellationWatcherService"/> for cross-pod cancellation propagation.
+    /// Used by <c>WorkflowEngine.Core.CancellationWatcherService</c> for cross-pod cancellation propagation.
     /// </summary>
     Task<IReadOnlyList<Guid>> GetPendingCancellations(
         IReadOnlyList<Guid> inFlightIds,
@@ -171,21 +180,28 @@ internal interface IEngineRepository
     );
 
     /// <summary>
-    /// Batch-updates HeartbeatAt for all specified workflow IDs in a single statement.
+    /// Batch-updates HeartbeatAt for all specified workflow leases in a single statement.
     /// Used by the processor to prove liveness of in-flight workers.
     /// Skips workflows whose <c>UpdatedAt</c> is newer than <paramref name="staleThreshold"/> —
     /// a recent status write already proves liveness.
+    /// Rows are only updated when the caller's <c>LeaseToken</c> matches the current value on the row;
+    /// stale-token heartbeats silently no-op so a reclaimed row goes back to <c>HeartbeatAt</c> aging
+    /// and remains stale-recoverable.
     /// </summary>
     Task BatchUpdateHeartbeats(
-        IReadOnlyList<Guid> workflowIds,
+        IReadOnlyList<(Guid WorkflowId, Guid LeaseToken)> leases,
         TimeSpan staleThreshold,
         CancellationToken cancellationToken
     );
 
     /// <summary>
     /// Batch-updates multiple workflows and their dirty steps in a single transaction using raw SQL.
+    /// Each workflow is only written when its <c>LeaseToken</c> still matches the value on the row —
+    /// workflows that have been reclaimed by another host are silently rejected and their step updates
+    /// are skipped. Returns the accepted/rejected split; callers should fault the corresponding
+    /// submit-waiters with <c>LeaseLostException</c> on rejected ids.
     /// </summary>
-    Task BatchUpdateWorkflowsAndSteps(
+    Task<BatchUpdateResult> BatchUpdateWorkflowsAndSteps(
         IReadOnlyList<BatchWorkflowStatusUpdate> updates,
         CancellationToken cancellationToken
     );
@@ -211,4 +227,21 @@ internal interface IEngineRepository
     /// Returns true if the workflow was found, is Requeued, and had a non-null BackoffUntil.
     /// </summary>
     Task<bool> SkipBackoff(Guid workflowId, string ns, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets all workflow collections in a namespace.
+    /// </summary>
+    Task<IReadOnlyList<WorkflowCollectionResponse>> GetCollections(
+        string ns,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Gets a single workflow collection by key and namespace, including head workflow statuses.
+    /// </summary>
+    Task<WorkflowCollectionDetailResponse?> GetCollection(
+        string key,
+        string ns,
+        CancellationToken cancellationToken = default
+    );
 }
