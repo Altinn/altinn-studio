@@ -9,7 +9,6 @@ import {
   type ValidLanguageKey,
 } from '@app/language';
 
-/** The languages with static translations available outside the app (test and Storybook). */
 export type StaticLanguageCode = 'en' | 'nb' | 'nn';
 
 type StaticLanguageTranslatorProviderProps = PropsWithChildren<{
