@@ -407,7 +407,7 @@ const render = (props?: Partial<Summary2OverrideProps>) => {
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSet1NameMock], {
     [layout1NameMock]: layoutMockWithMultipleSelect,
   });
-  queryClient.setQueryData([QueryKey.LayoutSetsExtendedV4, org, app], layoutSetsExtendedMock);
+  queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
   renderWithProviders(<Summary2Override {...defaultProps} {...props} />, {
     queryClient,
     appContextProps: {

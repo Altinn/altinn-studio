@@ -37,7 +37,8 @@ describe('useTaskNames', () => {
 
 const renderUseTaskNames = (task: TaskNavigationGroup) => {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.LayoutSetsExtendedV4, org, app], layoutSetsExtendedMock);
+  queryClient.setQueryData([QueryKey.AppVersion, org, app], { backendVersion: '9.0.0' });
+  queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
 
   return renderHookWithProviders(() => useTaskNavigationGroupName(task), {
     queryClient,

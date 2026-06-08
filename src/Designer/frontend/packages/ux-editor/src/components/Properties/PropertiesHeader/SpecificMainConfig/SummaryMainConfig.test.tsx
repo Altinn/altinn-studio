@@ -45,7 +45,7 @@ const summary2TargetLayoutSet = () =>
 const handleComponentChange = jest.fn();
 const render = (component: FormItem<ComponentType.Summary2>) => {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.LayoutSetsExtendedV4, org, app], layoutSetsExtendedMock);
+  queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
 
   renderWithProviders(
     <SummaryMainConfig component={component} handleComponentChange={handleComponentChange} />,
