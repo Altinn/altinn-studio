@@ -11,8 +11,7 @@ export function replaceParameters(nameString: string, params: SimpleLangParam[])
   params.forEach((param, index) => {
     if (typeof param === 'string' || typeof param === 'number') {
       const paramAsString = String(param);
-      // Use a replacer function so the param value is inserted verbatim; a plain replacement string
-      // would interpret `$`-tokens (`$&`, `$$`, `$1`, ...) instead of treating them as literal data.
+      // Use a replacer function so the param value is inserted verbatim, otherwise replaceParameters('{0}', ['$$']) would not work a expected
       mutatingString = mutatingString.replaceAll(`{${index}}`, () => paramAsString);
     }
   });

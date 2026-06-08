@@ -14,7 +14,6 @@ describe('replaceParameters', () => {
   });
 
   it('inserts replacement text literally without interpreting $-tokens', () => {
-    //expect(replaceParameters('Price: {0}', ['$&100'])).toBe('Price: $&100');
     expect(replaceParameters('{0}', ['$$'])).toBe('$$');
   });
 });
