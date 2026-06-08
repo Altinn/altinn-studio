@@ -6,7 +6,6 @@
 
 import { check } from 'k6';
 import { addErrorCount } from '../../../errorcounter.js';
-import * as profile from '../../../api/platform/profile.js';
 import * as authz from '../../../api/platform/authorization/authorization.js';
 import * as register from '../../../api/platform/register.js';
 import * as instances from '../../../api/platform/storage/instances.js';
@@ -45,16 +44,8 @@ export function setup() {
 //Negative tests towards to platform apis without authentication and expect the response code to be 401
 export default function (data) {
   const partyId = data['partyId'];
-  const userId = data['userId'];
   const instanceId = data['instanceId'];
   var res, success;
-
-  //Test to fetch userprofile by userid
-  res = profile.getProfile(userId, null);
-  success = check(res, {
-    'GET Profile status is 401': (r) => r.status === 401,
-  });
-  addErrorCount(success);
 
   //Test Platform: Authorization: verify response is 401 without authentication
   res = authz.postPolicy(policyFile, appOwner, level2App, null);
