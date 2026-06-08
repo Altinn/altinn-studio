@@ -45,13 +45,19 @@ var (
 )
 
 const (
-	fluxInstallConcurrency = 8
-	fluxModulePath         = "github.com/fluxcd/flux2/v2"
-	yamlDecoderBufferSize  = 4096
-	fluxCABundleConfigMap  = cabundle.KubernetesConfigMapName
-	fluxCABundleKey        = cabundle.KubernetesConfigMapKey
-	fluxCABundleVolume     = cabundle.KubernetesVolumeName
-	fluxCABundleDigestAnno = "altinn.studio/devenv-ca-bundle-digest"
+	fluxInstallConcurrency      = 8
+	fluxInstallGenerateAttempts = 3
+	fluxModulePath              = "github.com/fluxcd/flux2/v2"
+	yamlDecoderBufferSize       = 4096
+	fluxCABundleConfigMap       = cabundle.KubernetesConfigMapName
+	fluxCABundleKey             = cabundle.KubernetesConfigMapKey
+	fluxCABundleVolume          = cabundle.KubernetesVolumeName
+	fluxCABundleDigestAnno      = "altinn.studio/devenv-ca-bundle-digest"
+)
+
+var (
+	installGenerate               = install.Generate
+	fluxInstallGenerateRetryDelay = 2 * time.Second
 )
 
 // FluxClient provides Flux operations using native Go packages.
@@ -119,12 +125,12 @@ func (c *FluxClient) Install(
 		return err
 	}
 
-	manifest, err := install.Generate(opts, "")
+	manifest, err := generateInstallManifest(ctx, opts)
 	if err != nil {
 		return fmt.Errorf("failed to generate flux install manifests: %w", err)
 	}
 
-	objects, err := parseManifestYAML(manifest.Content)
+	objects, err := parseManifestYAML(manifest)
 	if err != nil {
 		return fmt.Errorf("failed to parse flux manifests: %w", err)
 	}
@@ -144,6 +150,58 @@ func (c *FluxClient) Install(
 	}
 
 	return nil
+}
+
+func generateInstallManifest(ctx context.Context, opts install.Options) (string, error) {
+	var lastErr error
+	for attempt := 1; attempt <= fluxInstallGenerateAttempts; attempt++ {
+		manifest, err := installGenerate(opts, "")
+		if err == nil {
+			return manifest.Content, nil
+		}
+		lastErr = err
+		if attempt == fluxInstallGenerateAttempts || !isRetryableInstallGenerateError(err) {
+			return "", err
+		}
+		if err := waitForInstallGenerateRetry(ctx); err != nil {
+			return "", err
+		}
+	}
+	return "", lastErr
+}
+
+func waitForInstallGenerateRetry(ctx context.Context) error {
+	timer := time.NewTimer(fluxInstallGenerateRetryDelay)
+	defer timer.Stop()
+
+	select {
+	case <-ctx.Done():
+		return fmt.Errorf("wait before retrying Flux install manifest generation: %w", ctx.Err())
+	case <-timer.C:
+		return nil
+	}
+}
+
+func isRetryableInstallGenerateError(err error) bool {
+	message := strings.ToLower(err.Error())
+	retryableFragments := []string{
+		"status: 429",
+		"status: 500",
+		"status: 502",
+		"status: 503",
+		"status: 504",
+		"connection reset",
+		"i/o timeout",
+		"temporary failure",
+		"timeout",
+		"tls handshake timeout",
+	}
+	for _, fragment := range retryableFragments {
+		if strings.Contains(message, fragment) {
+			return true
+		}
+	}
+	return false
 }
 
 func defaultInstallOptions(components []string) (install.Options, error) {

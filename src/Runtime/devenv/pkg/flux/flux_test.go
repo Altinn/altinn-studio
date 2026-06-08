@@ -1,12 +1,22 @@
 package flux
 
 import (
+	"context"
+	"errors"
 	"os"
 	"testing"
+	"time"
 
+	"github.com/fluxcd/flux2/v2/pkg/manifestgen"
+	"github.com/fluxcd/flux2/v2/pkg/manifestgen/install"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	"altinn.studio/devenv/pkg/cabundle"
+)
+
+var (
+	errTransientFluxManifestDownload    = errors.New("failed to download manifests.tar.gz, status: 504 Gateway Timeout")
+	errNonTransientFluxManifestDownload = errors.New("failed to download manifests.tar.gz, status: 404 Not Found")
 )
 
 func TestNewCABundleInstallPatch(t *testing.T) {
@@ -117,6 +127,90 @@ func TestPatchDeploymentsAddsCABundleToNotificationController(t *testing.T) {
 	}
 	if len(args) != 1 || args[0] != "--enable-leader-election" {
 		t.Fatalf("notification-controller args = %v, want unchanged leader election arg", args)
+	}
+}
+
+func TestGenerateInstallManifestRetriesTransientDownloadFailure(t *testing.T) {
+	restore := replaceInstallGenerate(t, func(attempt int) (*manifestgen.Manifest, error) {
+		if attempt == 1 {
+			return nil, errTransientFluxManifestDownload
+		}
+		return &manifestgen.Manifest{Content: "ok"}, nil
+	})
+	defer restore()
+
+	restoreDelay := replaceInstallGenerateRetryDelay(t, time.Nanosecond)
+	defer restoreDelay()
+
+	manifest, err := generateInstallManifest(context.Background(), install.MakeDefaultOptions())
+	if err != nil {
+		t.Fatalf("generateInstallManifest() error = %v", err)
+	}
+	if manifest != "ok" {
+		t.Fatalf("manifest = %q, want ok", manifest)
+	}
+}
+
+func TestGenerateInstallManifestDoesNotRetryNonTransientFailure(t *testing.T) {
+	var attempts int
+	restore := replaceInstallGenerate(t, func(attempt int) (*manifestgen.Manifest, error) {
+		attempts = attempt
+		return nil, errNonTransientFluxManifestDownload
+	})
+	defer restore()
+
+	_, err := generateInstallManifest(context.Background(), install.MakeDefaultOptions())
+	if err == nil {
+		t.Fatal("generateInstallManifest() error = nil, want error")
+	}
+	if attempts != 1 {
+		t.Fatalf("attempts = %d, want 1", attempts)
+	}
+}
+
+func TestGenerateInstallManifestHonorsContextBetweenRetries(t *testing.T) {
+	restore := replaceInstallGenerate(t, func(int) (*manifestgen.Manifest, error) {
+		return nil, errTransientFluxManifestDownload
+	})
+	defer restore()
+
+	restoreDelay := replaceInstallGenerateRetryDelay(t, time.Hour)
+	defer restoreDelay()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := generateInstallManifest(ctx, install.MakeDefaultOptions())
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("generateInstallManifest() error = %v, want context.Canceled", err)
+	}
+}
+
+func replaceInstallGenerate(
+	t *testing.T,
+	replacement func(attempt int) (*manifestgen.Manifest, error),
+) func() {
+	t.Helper()
+
+	original := installGenerate
+	var attempts int
+	installGenerate = func(opts install.Options, manifestsBase string) (*manifestgen.Manifest, error) {
+		attempts++
+		return replacement(attempts)
+	}
+
+	return func() {
+		installGenerate = original
+	}
+}
+
+func replaceInstallGenerateRetryDelay(t *testing.T, replacement time.Duration) func() {
+	t.Helper()
+
+	original := fluxInstallGenerateRetryDelay
+	fluxInstallGenerateRetryDelay = replacement
+	return func() {
+		fluxInstallGenerateRetryDelay = original
 	}
 }
 
