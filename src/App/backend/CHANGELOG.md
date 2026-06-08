@@ -8,6 +8,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [9.0.0-preview.1] - 2026-06-08
+
 ### Added
 
 - Bundle the built app frontend in `Altinn.App.Api`.
