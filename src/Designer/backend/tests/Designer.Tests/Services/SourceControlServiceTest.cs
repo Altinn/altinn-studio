@@ -377,6 +377,7 @@ public class SourceControlServiceTest : IDisposable
         string repoName = TestDataHelper.GenerateTestRepoName();
         string remoteRepoDir = TestDataHelper.GetTestDataRepositoryDirectory(_org, $"{repoName}-remote", _developer);
         _repoDir = TestDataHelper.GetTestDataRepositoryDirectory(_org, repoName, _developer);
+        // The apostrophe is deliberate; it verifies parsing does not stop at quotes inside valid branch names.
         const string staleRemoteBranchName = "develop'/test";
         const string replacementRemoteBranchName = "develop'";
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, repoName, _developer);

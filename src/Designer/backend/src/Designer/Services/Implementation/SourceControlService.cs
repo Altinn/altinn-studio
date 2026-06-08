@@ -47,6 +47,13 @@ public class SourceControlService(
 
     private const string DefaultBranch = General.DefaultBranch;
 
+    // LibGit2Sharp does not expose the blocked ref/path structurally, so these patterns document
+    // the libgit2 v1.8.4 fetch error messages this targeted stale-ref recovery understands.
+    private const string CannotLockRefMessagePrefix = "cannot lock ref '";
+    private const string CannotLockRefMessageSuffix = "', there are refs beneath that folder";
+    private const string CouldNotRemoveDirectoryPrefix = "could not remove directory '";
+    private const string ParentIsNotDirectorySuffix = "': parent is not directory";
+
     /// <inheritdoc/>
     public string CloneRemoteRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext)
     {
@@ -288,8 +295,6 @@ public class SourceControlService(
         string exceptionMessage
     )
     {
-        const string CannotLockRefMessagePrefix = "cannot lock ref '";
-        const string CannotLockRefMessageSuffix = "', there are refs beneath that folder";
         string? canonicalRef = ExtractQuotedValue(
             exceptionMessage,
             CannotLockRefMessagePrefix,
@@ -300,8 +305,6 @@ public class SourceControlService(
             return canonicalRef;
         }
 
-        const string CouldNotRemoveDirectoryPrefix = "could not remove directory '";
-        const string ParentIsNotDirectorySuffix = "': parent is not directory";
         string? path = ExtractQuotedValue(exceptionMessage, CouldNotRemoveDirectoryPrefix, ParentIsNotDirectorySuffix);
         canonicalRef = GetRemoteTrackingRefFromPath(repo, remote, path);
         if (IsRemoteTrackingRefForRemote(canonicalRef, remote))
