@@ -138,7 +138,7 @@ jobs:
         id: nuget-login
         uses: NuGet/login@ebc737b6fc418a6ca0073cf116ec8dc156d8b81e # v1
         with:
-          user: altinn
+          user: ${{ vars.NUGET_TRUSTED_PUBLISHING_USER }}
 
       - name: Publish packages to NuGet
         env:
