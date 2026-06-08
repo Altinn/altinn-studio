@@ -49,8 +49,8 @@ public class TestAltinnRowIds
     public void TestAddAndRemoveAltinnRowId(bool reflection)
     {
         IFormDataWrapper dataWrapper = reflection
-            ? new ReflectionFormDataWrapper(_skjema)
-            : new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(_skjema);
+            ? new ReflectionFormDataWrapper(_skjema, null!)
+            : new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(_skjema, null!);
 
         // Verify that every rowId is empty
         Assert.Equal(Guid.Empty, _skjema.Skjemainnhold?[0]?.AltinnRowId);

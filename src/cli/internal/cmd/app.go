@@ -16,6 +16,7 @@ import (
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
+	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/studio"
 	"altinn.studio/studioctl/internal/studioctlserver"
@@ -99,6 +100,7 @@ func (c *AppCommand) Usage() string {
 		"Subcommands:",
 		"  build     Build an app container image",
 		"  clone     Clone an app repository from Altinn Studio",
+		"  env       Print app environment for local development",
 		"  logs      Stream app logs",
 		"  ps        List running apps",
 		"  run       Run app locally",
@@ -125,6 +127,8 @@ func (c *AppCommand) Run(ctx context.Context, args []string) error {
 		return c.runBuild(ctx, subArgs)
 	case "clone":
 		return c.runClone(ctx, subArgs)
+	case "env":
+		return c.runEnv(ctx, subArgs)
 	case appLogsSubcommand:
 		return c.logs.run(ctx, subArgs)
 	case "ps":
@@ -245,6 +249,123 @@ func (c *AppCommand) appBuildUsage() string {
 		"  --json                Output as JSON",
 		"  -h, --help            Show this help",
 	)
+}
+
+type appEnvFlags struct {
+	appPath        string
+	devFrontend    bool
+	jsonOutput     bool
+	randomHostPort bool
+}
+
+func (c *AppCommand) runEnv(ctx context.Context, args []string) error {
+	flags, help, err := c.parseAppEnvFlags(args)
+	if err != nil {
+		return err
+	}
+	if help {
+		c.out.Print(c.appEnvUsage())
+		return nil
+	}
+
+	result, err := repocontext.DetectFromCwd(ctx, flags.appPath)
+	if err != nil {
+		return fmt.Errorf("detect app: %w", err)
+	}
+	if !result.InAppRepo {
+		return fmt.Errorf("%w: run from an app directory or use -p to specify path", ErrNoAppFound)
+	}
+
+	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
+	spec, err := c.service.BuildDotnetRunSpec(
+		ctx,
+		result.AppRoot,
+		nil,
+		nil,
+		topology,
+		appsvc.DotnetRunOptions{
+			AppFrontendAssetBaseUrl: appEnvFrontendAssetBaseURL(topology, flags),
+			RandomHostPort:          flags.randomHostPort,
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("build app environment: %w", err)
+	}
+
+	return printAppEnv(c.out, spec.Env, flags.jsonOutput)
+}
+
+func (c *AppCommand) parseAppEnvFlags(args []string) (appEnvFlags, bool, error) {
+	fs := flag.NewFlagSet("app env", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+
+	var flags appEnvFlags
+	fs.StringVar(&flags.appPath, "p", "", "App directory path")
+	fs.StringVar(&flags.appPath, "path", "", "App directory path")
+	fs.StringVar(&flags.appPath, "project", "", "App project or directory path")
+	fs.BoolVar(&flags.devFrontend, "dev-frontend", false, "Use frontend dev server assets")
+	fs.BoolVar(&flags.jsonOutput, "json", false, "Output as JSON")
+	fs.BoolVar(&flags.randomHostPort, "random-host-port", true, "Use a random host port")
+
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return flags, true, nil
+		}
+		return flags, false, fmt.Errorf("parsing flags: %w", err)
+	}
+
+	return flags, false, nil
+}
+
+func appEnvFrontendAssetBaseURL(topology envtopology.Local, flags appEnvFlags) string {
+	if !flags.devFrontend {
+		return ""
+	}
+	return topology.PublicBaseURL(envtopology.ComponentFrontendDevServer)
+}
+
+func (c *AppCommand) appEnvUsage() string {
+	return joinLines(
+		fmt.Sprintf(
+			"Usage: %s app env [-p PATH] [--project PATH] [--random-host-port] [--dev-frontend] [--json]",
+			osutil.CurrentBin(),
+		),
+		"",
+		"Prints the local development environment that studioctl uses to run an app.",
+		"",
+		"Options:",
+		"  -p, --path PATH       App directory path",
+		"  --project PATH        App project or directory path",
+		"  --random-host-port    Use a random host port (default: true)",
+		"  --dev-frontend        Use frontend dev server assets",
+		"  --json                Output as JSON",
+		"  -h, --help            Show this help",
+	)
+}
+
+func printAppEnv(out *ui.Output, env []string, jsonOutput bool) error {
+	if jsonOutput {
+		return printJSONOutput(out, "app env", envMap(env))
+	}
+	for _, entry := range env {
+		out.Println(entry)
+	}
+	return nil
+}
+
+// The JSON shape from `studioctl app env --json` is consumed by Altinn.App.Api
+// during local Development startup. Keep it as a flat string map of environment
+// variable names to values; add new keys freely, but coordinate renames/removals
+// with app-lib compatibility.
+func envMap(env []string) map[string]string {
+	values := make(map[string]string, len(env))
+	for _, entry := range env {
+		key, value, ok := strings.Cut(entry, "=")
+		if ok && key != "" {
+			values[key] = value
+		}
+	}
+	return values
 }
 
 func (c *AppCommand) runUpdate(ctx context.Context, args []string) error {

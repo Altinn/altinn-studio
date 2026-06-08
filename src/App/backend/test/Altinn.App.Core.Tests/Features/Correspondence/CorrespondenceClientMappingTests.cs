@@ -136,7 +136,7 @@ public class CorrespondenceClientMappingTests
         var corr = root.GetProperty("correspondence");
 
         corr.GetProperty("resourceId").GetString().Should().Be("resource-id");
-        corr.GetProperty("sender").GetString().Should().Be(orgSender.ToUrnFormattedString());
+        // corr.GetProperty("sender").GetString().Should().Be(orgSender.ToUrnFormattedString()); Builder mapping removed
         corr.GetProperty("sendersReference").GetString().Should().Be("senders-ref");
         corr.GetProperty("messageSender").GetString().Should().Be("message-sender");
         corr.GetProperty("ignoreReservation").GetBoolean().Should().BeTrue();

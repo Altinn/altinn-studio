@@ -18,6 +18,7 @@ import (
 	containertypes "altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/processutil"
 	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/devenv/pkg/resource/executor"
 	"altinn.studio/studioctl/internal/appcontainers"
 	"altinn.studio/studioctl/internal/appimage"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
@@ -1081,13 +1082,13 @@ func containerRunProgressResources(spec appsvc.DockerRunSpec, flags runFlags) []
 
 func containerRunProgressImage(imageTag string, flags runFlags) resource.Resource {
 	if flags.pullImage {
-		return &resource.RemoteImage{
+		return &resource.PulledImage{
 			Enabled:    nil,
 			Ref:        imageTag,
 			PullPolicy: resource.PullAlways,
 		}
 	}
-	return &resource.LocalImage{
+	return &resource.BuiltImage{
 		Enabled:     nil,
 		ContextPath: ".",
 		Dockerfile:  "",
@@ -1130,49 +1131,49 @@ func (p *containerRunProgress) Fail(err error) {
 }
 
 func (p *containerRunProgress) DestroyStart(id resource.ResourceID) {
-	p.emit(resource.EventDestroyStart, id, nil, nil)
+	p.emit(executor.EventDestroyStart, id, nil, nil)
 }
 
 func (p *containerRunProgress) DestroyDone(id resource.ResourceID) {
-	p.emit(resource.EventDestroyDone, id, nil, nil)
+	p.emit(executor.EventDestroyDone, id, nil, nil)
 }
 
 func (p *containerRunProgress) DestroyFailed(id resource.ResourceID, err error) {
-	p.emit(resource.EventDestroyFailed, id, err, nil)
+	p.emit(executor.EventDestroyFailed, id, err, nil)
 }
 
 func (p *containerRunProgress) ApplyStart(id resource.ResourceID) {
-	p.emit(resource.EventApplyStart, id, nil, nil)
+	p.emit(executor.EventApplyStart, id, nil, nil)
 }
 
 func (p *containerRunProgress) ApplyDone(id resource.ResourceID) {
-	p.emit(resource.EventApplyDone, id, nil, nil)
+	p.emit(executor.EventApplyDone, id, nil, nil)
 }
 
 func (p *containerRunProgress) ApplyFailed(id resource.ResourceID, err error) {
-	p.emit(resource.EventApplyFailed, id, err, nil)
+	p.emit(executor.EventApplyFailed, id, err, nil)
 }
 
 func (p *containerRunProgress) ApplyProgress(id resource.ResourceID, update containertypes.ProgressUpdate) {
-	progress := resource.Progress{
+	progress := executor.Progress{
 		Message:       update.Message,
 		Current:       update.Current,
 		Total:         update.Total,
 		Indeterminate: update.Indeterminate,
 	}
-	p.emit(resource.EventApplyProgress, id, nil, &progress)
+	p.emit(executor.EventApplyProgress, id, nil, &progress)
 }
 
 func (p *containerRunProgress) emit(
-	eventType resource.EventType,
+	eventType executor.EventType,
 	id resource.ResourceID,
 	err error,
-	progress *resource.Progress,
+	progress *executor.Progress,
 ) {
 	if !p.Enabled() {
 		return
 	}
-	p.renderer.OnEvent(resource.Event{
+	p.renderer.OnEvent(executor.Event{
 		Error:    err,
 		Progress: progress,
 		Resource: id,

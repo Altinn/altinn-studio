@@ -14,6 +14,8 @@ import (
 	"altinn.studio/devenv/pkg/container"
 	containertypes "altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/devenv/pkg/resource/executor"
+	containerbackend "altinn.studio/devenv/pkg/resource/executor/container"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 	"altinn.studio/studioctl/internal/config"
@@ -56,6 +58,14 @@ type Env struct {
 	out    *ui.Output
 	client container.ContainerClient
 	paths  components.Paths
+}
+
+func newResourceExecutor(client container.ContainerClient) (*executor.Executor, error) {
+	exec := executor.New()
+	if err := exec.RegisterBackend(containerbackend.New(client)); err != nil {
+		return nil, fmt.Errorf("register container backend: %w", err)
+	}
+	return exec, nil
 }
 
 // NewEnv creates a new localtest environment manager.
@@ -242,8 +252,11 @@ func (e *Env) status(ctx context.Context, opts statusOptions) (*Status, error) {
 		return nil, fmt.Errorf("build resource graph: %w", err)
 	}
 
-	executor := resource.NewExecutor(e.client)
-	snapshot, err := executor.Status(ctx, graph, resource.SkipResource(isImageResource))
+	exec, err := newResourceExecutor(e.client)
+	if err != nil {
+		return nil, fmt.Errorf("create resource executor: %w", err)
+	}
+	snapshot, err := exec.Status(ctx, graph, executor.SkipResource(isImageResource))
 	if err != nil {
 		return nil, fmt.Errorf("get resource status: %w", err)
 	}
@@ -274,14 +287,17 @@ func (e *Env) hasManagedResources(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("build resource graph: %w", err)
 	}
 
-	executor := resource.NewExecutor(e.client)
-	snapshot, err := executor.Status(ctx, graph, resource.SkipResource(isImageResource))
+	exec, err := newResourceExecutor(e.client)
+	if err != nil {
+		return false, fmt.Errorf("create resource executor: %w", err)
+	}
+	snapshot, err := exec.Status(ctx, graph, executor.SkipResource(isImageResource))
 	if err != nil {
 		return false, fmt.Errorf("get resource status: %w", err)
 	}
 
 	for _, observed := range snapshot.Resources {
-		if !observed.Managed || observed.Status == resource.StatusDestroyed {
+		if !observed.Managed || observed.Status == executor.StatusDestroyed {
 			continue
 		}
 		if observed.Resource != nil && !isRuntimeResource(observed.Resource) {
@@ -335,16 +351,19 @@ func (e *Env) applyResources(ctx context.Context, resources []resource.Resource,
 		return err
 	}
 
-	executor := resource.NewExecutor(e.client)
+	exec, err := newResourceExecutor(e.client)
+	if err != nil {
+		return fmt.Errorf("create resource executor: %w", err)
+	}
 	spinnerMsg := "Starting localtest environment..."
 	if imageMode == components.DevMode {
 		spinnerMsg = "Building and starting localtest environment (dev mode)..."
 	}
 
 	var renderer resourcegraph.Renderer
-	if _, err := executor.Apply(ctx, graph, resource.WithApplyPlan(func(plan resource.ApplyPlan) error {
+	if _, err := exec.Apply(ctx, graph, executor.WithApplyPlan(func(plan executor.ApplyPlan) error {
 		e.startRenderer(
-			executor,
+			exec,
 			&renderer,
 			applyPlannedResources(plan),
 			resourcegraph.OperationApply,
@@ -374,10 +393,13 @@ func (e *Env) destroyResources(ctx context.Context, resources []resource.Resourc
 	}
 
 	var renderer resourcegraph.Renderer
-	executor := resource.NewExecutor(e.client)
-	if err := executor.Destroy(ctx, graph, resource.WithDestroyPlan(func(plan resource.DestroyPlan) error {
+	exec, err := newResourceExecutor(e.client)
+	if err != nil {
+		return fmt.Errorf("create resource executor: %w", err)
+	}
+	if err := exec.Destroy(ctx, graph, executor.WithDestroyPlan(func(plan executor.DestroyPlan) error {
 		e.startRenderer(
-			executor,
+			exec,
 			&renderer,
 			plan.Destroy,
 			resourcegraph.OperationDestroy,
@@ -400,11 +422,11 @@ func (e *Env) destroyResources(ctx context.Context, resources []resource.Resourc
 }
 
 func (e *Env) startRenderer(
-	executor *resource.Executor,
+	exec *executor.Executor,
 	renderer *resourcegraph.Renderer,
-	resources []resource.PlannedResource,
+	resources []executor.PlannedResource,
 	operation resourcegraph.Operation,
-	statuses map[resource.ResourceID]resource.Status,
+	statuses map[resource.ResourceID]executor.Status,
 	logStartMessage string,
 ) {
 	switch resourcegraph.DetectMode(e.out, e.cfg.Verbose) {
@@ -434,11 +456,11 @@ func (e *Env) startRenderer(
 		*renderer = resourcegraph.NewLogWithPlan(e.out, resources, operation, statuses, logStartMessage)
 	}
 	(*renderer).Start()
-	executor.SetObserver(*renderer)
+	exec.SetObserver(*renderer)
 }
 
-func applyPlannedResources(plan resource.ApplyPlan) []resource.PlannedResource {
-	resources := make([]resource.PlannedResource, 0, len(plan.Destroy)+len(plan.Reconcile))
+func applyPlannedResources(plan executor.ApplyPlan) []executor.PlannedResource {
+	resources := make([]executor.PlannedResource, 0, len(plan.Destroy)+len(plan.Reconcile))
 	resources = append(resources, plan.Destroy...)
 	resources = append(resources, plan.Reconcile...)
 	return resources
@@ -446,7 +468,7 @@ func applyPlannedResources(plan resource.ApplyPlan) []resource.PlannedResource {
 
 func localtestStatus(
 	resources []resource.Resource,
-	snapshot resource.Snapshot,
+	snapshot executor.Snapshot,
 	requireDesired bool,
 ) *Status {
 	status := Status{
@@ -464,7 +486,7 @@ func localtestStatus(
 		}
 
 		resourceStatus := managedResourceStatus(snapshot, containerResource.ID())
-		if !resource.IsEnabled(containerResource) && resourceStatus == resource.StatusDestroyed {
+		if !resource.IsEnabled(containerResource) && resourceStatus == executor.StatusDestroyed {
 			continue
 		}
 		status.Containers = append(
@@ -475,7 +497,7 @@ func localtestStatus(
 		if containerConverged(containerResource, resourceStatus, requireDesired) {
 			convergedContainers++
 		}
-		if resourceStatus != resource.StatusDestroyed {
+		if resourceStatus != executor.StatusDestroyed {
 			status.AnyRunning = true
 		}
 	}
@@ -484,33 +506,33 @@ func localtestStatus(
 	return &status
 }
 
-func managedResourceStatus(snapshot resource.Snapshot, id resource.ResourceID) resource.Status {
+func managedResourceStatus(snapshot executor.Snapshot, id resource.ResourceID) executor.Status {
 	if !managedResourcePresent(snapshot, id) {
-		return resource.StatusDestroyed
+		return executor.StatusDestroyed
 	}
 	return snapshot.Resources[id].Status
 }
 
-func managedResourcePresent(snapshot resource.Snapshot, id resource.ResourceID) bool {
+func managedResourcePresent(snapshot executor.Snapshot, id resource.ResourceID) bool {
 	observed, ok := snapshot.Resources[id]
-	return ok && observed.Managed && observed.Status != resource.StatusDestroyed
+	return ok && observed.Managed && observed.Status != executor.StatusDestroyed
 }
 
-func containerConverged(containerResource *resource.Container, status resource.Status, requireDesired bool) bool {
+func containerConverged(containerResource *resource.Container, status executor.Status, requireDesired bool) bool {
 	if resource.IsEnabled(containerResource) {
 		return status.IsHealthy()
 	}
 	if !requireDesired {
 		return status.IsHealthy()
 	}
-	return status == resource.StatusDestroyed
+	return status == executor.StatusDestroyed
 }
 
-func localtestStatusString(status resource.Status) string {
-	if status == resource.StatusDestroyed {
+func localtestStatusString(status executor.Status) string {
+	if status == executor.StatusDestroyed {
 		return "not found"
 	}
-	if status == resource.StatusReady {
+	if status == executor.StatusReady {
 		return "running"
 	}
 	return status.String()

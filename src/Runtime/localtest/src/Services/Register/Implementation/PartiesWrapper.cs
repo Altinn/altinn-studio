@@ -1,4 +1,3 @@
-#nullable enable
 using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 

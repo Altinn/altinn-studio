@@ -1,4 +1,5 @@
-import type { TimeValue } from '../types';
+import type { TimeValue } from '@app/form-component/app-components/Timepicker/types';
+
 import {
   getNextValidValue,
   getSegmentConstraints,

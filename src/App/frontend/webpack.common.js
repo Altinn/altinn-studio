@@ -14,6 +14,8 @@ module.exports = {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.css'],
     alias: {
       src: path.resolve(__dirname, './src'),
+      '@app/form-component$': path.resolve(__dirname, '../../../libs/form-component/src/index.ts'),
+      '@app/form-component': path.resolve(__dirname, '../../../libs/form-component/src'),
       // Workspace packages imported from outside this directory (i.e. libs) should resolve
       // the same React instance as the app frontend bundle and Jest runtime.
       react: path.join(repoNodeModules, 'react'),

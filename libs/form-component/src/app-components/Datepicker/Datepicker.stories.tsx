@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import type { MonthCaptionProps } from 'react-day-picker';
 
+import { fn } from 'storybook/test';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import 'react-day-picker/style.css';
-
 import { DatePickerControl } from './Datepicker';
-import { fn } from 'storybook/test';
+
+import 'react-day-picker/style.css';
 
 const NoopDropdownCaption = ({ calendarMonth }: MonthCaptionProps) => (
   <div style={{ padding: 8, fontWeight: 600 }}>

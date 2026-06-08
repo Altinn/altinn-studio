@@ -1,4 +1,3 @@
-#nullable enable
 using Altinn.Platform.Register.Models;
 using LocalTest.Services.Register.Interface;
 using LocalTest.Services.TestData;
