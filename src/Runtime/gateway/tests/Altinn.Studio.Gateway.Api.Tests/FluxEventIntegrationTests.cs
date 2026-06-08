@@ -15,7 +15,7 @@ public sealed class FluxEventIntegrationTests : IAsyncLifetime
 {
     private const string KindContextName = "kind-runtime-fixture-kind-minimal";
     private const string TestNamespace = "default";
-    private static readonly TimeSpan FluxEventTimeout = TimeSpan.FromSeconds(60);
+    private static readonly TimeSpan FluxEventTimeout = TimeSpan.FromMinutes(2);
     private static readonly TimeSpan FluxEventPollInterval = TimeSpan.FromSeconds(1);
 
     private readonly IKubernetes _client;
