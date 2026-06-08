@@ -42,7 +42,13 @@ const GROUPS = [
   {
     title: 'Team Utforming',
     owner: '@altinn/team-altinn-studio-utforming',
-    roots: ['libs/form-component', 'libs/form-engine', 'src/App/frontend', 'src/Designer/frontend'],
+    roots: [
+      'libs/form-component',
+      'libs/form-engine',
+      'libs/app-language',
+      'src/App/frontend',
+      'src/Designer/frontend',
+    ],
     extraPaths: [
       '.github/workflows/app-frontend-codeql.yml',
       '.github/workflows/app-frontend-compare-repos.yml',

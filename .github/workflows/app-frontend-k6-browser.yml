@@ -15,6 +15,8 @@ on:
       - 'src/test/apps/**'
       - 'libs/form-component/src/**'
       - 'libs/form-component/package.json'
+      - 'libs/app-language/src/**'
+      - 'libs/app-language/package.json'
       - '.github/actions/**'
       - '.github/workflows/app-frontend-k6-browser.yml'
   workflow_dispatch:
