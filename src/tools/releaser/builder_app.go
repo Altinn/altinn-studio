@@ -65,14 +65,11 @@ func (b *appBuilder) Build(ctx context.Context, ver *version.Version, outputDir 
 		return nil, fmt.Errorf("pack app backend: %w", packErr)
 	}
 
-	artifacts, err := appPackageArtifacts(outputDir)
+	releaseAssets, err := appReleaseAssets(outputDir)
 	if err != nil {
 		return nil, err
 	}
-	if len(artifacts) == 0 {
-		return nil, fmt.Errorf("%w in %s", errAppPackageArtifactsMissing, outputDir)
-	}
-	return artifacts, nil
+	return releaseAssets, nil
 }
 
 func appInformationalVersion(ctx context.Context, git *internal.GitCLI, ver *version.Version) (string, error) {
@@ -159,4 +156,17 @@ func appPackageArtifacts(outputDir string) ([]string, error) {
 	}
 	sort.Strings(artifacts)
 	return artifacts, nil
+}
+
+func appReleaseAssets(outputDir string) ([]string, error) {
+	packages, err := appPackageArtifacts(outputDir)
+	if err != nil {
+		return nil, err
+	}
+	if len(packages) == 0 {
+		return nil, fmt.Errorf("%w in %s", errAppPackageArtifactsMissing, outputDir)
+	}
+
+	// App packages are published to NuGet by the workflow, not attached to the GitHub release.
+	return nil, nil
 }

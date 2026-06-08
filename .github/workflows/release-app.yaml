@@ -177,10 +177,10 @@ jobs:
 
           if [[ -d "build/release" ]]; then
             {
-              echo "### Assets"
+              echo "### NuGet packages"
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
-            ls -la build/release/ >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "No assets found"
+            ls -la build/release/ >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "No packages found"
             echo '```' >> "$GITHUB_STEP_SUMMARY"
           fi
         env:
