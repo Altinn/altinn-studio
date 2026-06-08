@@ -137,7 +137,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                 var dataElement = GetDataElement(dataElementIdentifier);
 
                 return FormDataWrapperFactory.Create(
-                    _modelSerializationService.DeserializeFromStorage(binaryData.Span, dataType, dataElement)
+                    _modelSerializationService.DeserializeFromStorage(binaryData.Span, dataType, dataElement),
+                    dataType,
+                    dataElement
                 );
             }
         );
@@ -260,8 +262,12 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             dataElement: null,
             dataType: dataType,
             contentType: contentType,
-            currentFormDataWrapper: FormDataWrapperFactory.Create(model),
-            previousFormDataWrapper: FormDataWrapperFactory.Create(_modelSerializationService.GetEmpty(dataType)),
+            currentFormDataWrapper: FormDataWrapperFactory.Create(model, dataType, null),
+            previousFormDataWrapper: FormDataWrapperFactory.Create(
+                _modelSerializationService.GetEmpty(dataType),
+                dataType,
+                null
+            ),
             currentBinaryData: bytes,
             previousBinaryData: default // empty memory reference
         );
@@ -377,9 +383,15 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                     contentType: dataElement.ContentType,
                     currentFormDataWrapper: _formDataCache.TryGetCachedValue(dataElementIdentifier, out var cfd)
                         ? cfd
-                        : FormDataWrapperFactory.Create(_modelSerializationService.GetEmpty(dataType)),
+                        : FormDataWrapperFactory.Create(
+                            _modelSerializationService.GetEmpty(dataType),
+                            dataType,
+                            dataElement
+                        ),
                     previousFormDataWrapper: FormDataWrapperFactory.Create(
-                        _modelSerializationService.GetEmpty(dataType)
+                        _modelSerializationService.GetEmpty(dataType),
+                        dataType,
+                        dataElement
                     ),
                     currentBinaryData: ReadOnlyMemory<byte>.Empty,
                     previousBinaryData: _binaryCache.TryGetCachedValue(dataElementIdentifier, out var value)
@@ -472,7 +484,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                         // For patch requests we could get the previous data from the patch, but it's not available here
                         // and deserializing twice is not a big deal
                         previousFormDataWrapper: FormDataWrapperFactory.Create(
-                            _modelSerializationService.DeserializeFromStorage(cachedBinary.Span, dataType, dataElement)
+                            _modelSerializationService.DeserializeFromStorage(cachedBinary.Span, dataType, dataElement),
+                            dataType,
+                            dataElement
                         ),
                         currentBinaryData: currentBinary,
                         previousBinaryData: cachedBinary
@@ -593,6 +607,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     internal async Task UpdateInstanceData(DataElementChanges changes)
     {
+        using var activity = _telemetry?.StartUpdateInstanceData(changes);
         if (HasAbandonIssues)
         {
             throw new InvalidOperationException("AbandonAllChanges has been called, and no changes should be saved");

@@ -309,7 +309,6 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
             Correspondence = new CorrespondenceDetailsRequest
             {
                 ResourceId = request.ResourceId,
-                Sender = request.Sender.ToUrnFormattedString(),
                 SendersReference = request.SendersReference,
                 MessageSender = request.MessageSender,
                 Content = BuildCorrespondenceContent(request.Content),

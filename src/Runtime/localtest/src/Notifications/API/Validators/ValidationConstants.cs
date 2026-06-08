@@ -1,4 +1,6 @@
-﻿namespace Altinn.Notifications.Validators
+#nullable disable
+
+namespace Altinn.Notifications.Validators
 {
     /// <summary>
     /// Class comprised of all shared validation constants

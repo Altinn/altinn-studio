@@ -142,7 +142,7 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
                     ?? throw new JsonException(
                         "Could not deserialize back datamodel after removing shadow fields. Data was \"null\""
                     );
-                dataAccessor.SetFormData(dataElement, FormDataWrapperFactory.Create(newData));
+                dataAccessor.SetFormData(dataElement, FormDataWrapperFactory.Create(newData, dataType, dataElement));
             }
         }
     }

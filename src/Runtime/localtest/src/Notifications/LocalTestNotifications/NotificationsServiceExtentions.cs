@@ -1,3 +1,5 @@
+#nullable disable
+
 using Altinn.Notifications.Core.Configuration;
 using Altinn.Notifications.Core.Integrations;
 using Altinn.Notifications.Core.Persistence;
