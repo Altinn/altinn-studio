@@ -154,7 +154,7 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
                 // SetFormData is internal, but we know the dataMutator is InstanceDataUnitOfWork
                 if (dataMutator is Internal.Data.InstanceDataUnitOfWork unitOfWork)
                 {
-                    unitOfWork.SetFormData(dataElement, FormDataWrapperFactory.Create(newData));
+                    unitOfWork.SetFormData(dataElement, FormDataWrapperFactory.Create(newData, dataType, dataElement));
                 }
                 else
                 {

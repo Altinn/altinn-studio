@@ -87,7 +87,7 @@ internal sealed class WorkflowCallbackStateService
             Type modelType = _appModel.GetModelType(classRef);
             byte[] jsonBytes = JsonSerializer.SerializeToUtf8Bytes(entry.Data);
             object model = _modelSerializationService.DeserializeJson(jsonBytes, modelType);
-            IFormDataWrapper wrapper = FormDataWrapperFactory.Create(model);
+            IFormDataWrapper wrapper = FormDataWrapperFactory.Create(model, dataType, dataElement);
 
             (ReadOnlyMemory<byte> storageBytes, _) = _modelSerializationService.SerializeToStorage(
                 model,

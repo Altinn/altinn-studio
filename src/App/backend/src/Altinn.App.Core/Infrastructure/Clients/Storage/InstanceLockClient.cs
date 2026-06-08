@@ -34,7 +34,7 @@ internal sealed class InstanceLockClient(
     public async Task<string> AcquireInstanceLock(
         Guid instanceGuid,
         int instanceOwnerPartyId,
-        TimeSpan expiration,
+        TimeSpan ttl,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
     )
@@ -47,7 +47,7 @@ internal sealed class InstanceLockClient(
             cancellationToken: cancellationToken
         );
 
-        var request = new InstanceLockRequest { TtlSeconds = (int)expiration.TotalSeconds };
+        var request = new InstanceLockRequest { TtlSeconds = GetTtlSeconds(ttl) };
         var content = JsonContent.Create(request);
 
         using var client = CreateHttpClient();
@@ -93,7 +93,7 @@ internal sealed class InstanceLockClient(
     {
         using var activity = _telemetry?.StartUpdateInstanceLockActivity(instanceGuid, instanceOwnerPartyId, ttl);
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/lock";
-        var instanceLockRequest = new InstanceLockRequest { TtlSeconds = (int)ttl.TotalSeconds };
+        var instanceLockRequest = new InstanceLockRequest { TtlSeconds = GetTtlSeconds(ttl) };
 
         var userToken = await _authenticationTokenResolver.GetAccessToken(
             authenticationMethod ?? _defaultAuthenticationMethod,
@@ -112,5 +112,16 @@ internal sealed class InstanceLockClient(
         {
             throw await PlatformHttpResponseSnapshotException.CreateAndDisposeHttpResponse(response, cancellationToken);
         }
+    }
+
+    private static int GetTtlSeconds(TimeSpan ttl)
+    {
+        var ttlSeconds = (int)ttl.TotalSeconds;
+        if (ttlSeconds < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(ttl), "TTL cannot be negative.");
+        }
+
+        return ttlSeconds;
     }
 }

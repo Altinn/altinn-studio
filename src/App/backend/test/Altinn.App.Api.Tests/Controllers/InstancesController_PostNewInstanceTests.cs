@@ -9,11 +9,14 @@ using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.FileAnalysis;
+using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models.Process;
+using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
@@ -79,6 +82,96 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
     }
 
     [Fact]
+    public async Task PostNewInstanceWithContent_ValidFilename_Succeeds()
+    {
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        string filename = "validfile.png";
+
+        OverrideServicesForThisTest = services =>
+        {
+            services.AddTransient<IFileAnalyser, FilenameAnalyserStub>();
+            services.AddTransient<IFileValidator, FilenameValidatorStub>();
+        };
+
+        HttpClient client = GetRootedClient(org, app);
+        string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+
+        // Create instance data with valid filename
+        using var content = new MultipartFormDataContent();
+        var fileContent = new ByteArrayContent([1, 2, 5]);
+        fileContent.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+        fileContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+        {
+            Name = "\"specificFileType\"",
+            FileName = $"\"{filename}\"",
+        };
+        content.Add(fileContent);
+
+        // Create instance
+        var createResponse = await client.PostAsync(
+            $"{org}/{app}/instances/?instanceOwnerPartyId={instanceOwnerPartyId}",
+            content
+        );
+        var createResponseContent = await createResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(createResponseContent);
+
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        var createResponseParsed = JsonSerializer.Deserialize<Instance>(createResponseContent, JsonSerializerOptions)!;
+        var instanceId = createResponseParsed.Id;
+
+        // Verify the file data element was created - filename validation passed
+        var dataElement = Assert.Single(createResponseParsed.Data, d => d.DataType == "specificFileType");
+        Assert.Equal("image/png", dataElement.ContentType);
+
+        TestData.DeleteInstanceAndData(org, app, instanceId);
+    }
+
+    [Fact]
+    public async Task PostNewInstanceWithContent_InvalidFilename_Fails()
+    {
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        string filename = "malicious.exe";
+
+        OverrideServicesForThisTest = services =>
+        {
+            services.AddTransient<IFileAnalyser, FilenameAnalyserStub>();
+            services.AddTransient<IFileValidator, FilenameValidatorStub>();
+        };
+
+        HttpClient client = GetRootedClient(org, app);
+        string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+
+        // Create instance data with filename that has disallowed extension
+        using var content = new MultipartFormDataContent();
+        var fileContent = new ByteArrayContent([1, 2, 5]);
+        fileContent.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+        fileContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+        {
+            Name = "\"specificFileType\"",
+            FileName = $"\"{filename}\"",
+        };
+        content.Add(fileContent);
+
+        // Create instance
+        var createResponse = await client.PostAsync(
+            $"{org}/{app}/instances/?instanceOwnerPartyId={instanceOwnerPartyId}",
+            content
+        );
+        var createResponseContent = await createResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(createResponseContent);
+
+        Assert.Equal(HttpStatusCode.BadRequest, createResponse.StatusCode);
+        Assert.Contains("Invalid filename", createResponseContent);
+    }
+
+    [Fact]
     public async Task PostNewInstanceWithContent_EnsureDataIsPresent()
     {
         // Setup test data
@@ -115,43 +208,33 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             content
         );
         var createResponseContent = await createResponse.Content.ReadAsStringAsync();
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Created, createResponseContent);
-
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
         var createResponseParsed = JsonSerializer.Deserialize<Instance>(createResponseContent, JsonSerializerOptions)!;
 
         // Verify Data id
-        var instanceId = createResponseParsed.Id;
-        createResponseParsed.Data.Should().HaveCount(3, "We posted 3 data elements");
-        var dataGuid = createResponseParsed
-            .Data.Should()
-            .ContainSingle(d => d.DataType == "default", "we posted 1 default type")
-            .Which?.Id;
+        Assert.Equal(3, createResponseParsed.Data.Count);
 
         // Verify stored data
+        var instanceId = createResponseParsed.Id;
+        var dataGuid = createResponseParsed.Data.Single(x => x.DataType == "default").Id;
         var readDataElementResponse = await client.GetAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}");
-        readDataElementResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, readDataElementResponse.StatusCode);
         var readDataElementResponseContent = await readDataElementResponse.Content.ReadAsStringAsync();
         var readDataElementResponseParsed = JsonSerializer.Deserialize<Skjema>(readDataElementResponseContent)!;
-        readDataElementResponseParsed.Melding!.Name.Should().Be(testName);
+        Assert.Equal(testName, readDataElementResponseParsed.Melding!.Name);
 
         // Verify specific file types
-        var specificFileType = createResponseParsed
-            .Data.Should()
-            .ContainSingle(d => d.DataType == "specificFileType")
-            .Which;
-        specificFileType.ContentType.Should().Be("image/png");
+        var specificFileType = createResponseParsed.Data.Single(d => d.DataType == "specificFileType");
+        Assert.Equal("image/png", specificFileType.ContentType);
         var pdfContent = await client.GetByteArrayAsync(
             $"/{org}/{app}/instances/{instanceId}/data/{specificFileType.Id}"
         );
-        pdfContent.Should().BeEquivalentTo(new byte[] { 1, 2, 5 });
+        Assert.Equal(new byte[] { 1, 2, 5 }, pdfContent);
 
-        var pdfElement = createResponseParsed
-            .Data.Should()
-            .ContainSingle(d => d.ContentType == "application/pdf")
-            .Which;
-        pdfElement.DataType.Should().Be("9edd53de-f46f-40a1-bb4d-3efb93dc113d");
+        var pdfElement = createResponseParsed.Data.Single(d => d.ContentType == "application/pdf");
+        Assert.Equal("9edd53de-f46f-40a1-bb4d-3efb93dc113d", pdfElement.DataType);
         var pngContent = await client.GetByteArrayAsync($"/{org}/{app}/instances/{instanceId}/data/{pdfElement.Id}");
-        pngContent.Should().BeEquivalentTo(new byte[] { 1, 2, 4 });
+        Assert.Equal(new byte[] { 1, 2, 4 }, pngContent);
 
         TestData.DeleteInstanceAndData(org, app, instanceId);
     }
@@ -194,7 +277,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         string app = "permissive-app";
         int instanceOwnerPartyId = token.PartyId;
 
-        this.OverrideServicesForThisTest = (services) =>
+        OverrideServicesForThisTest = services =>
         {
             services.AddTelemetrySink(
                 additionalActivitySources: source => source.Name == "Microsoft.AspNetCore",
@@ -213,15 +296,15 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             token.Token
         );
         var instanceId = createResponseParsed.Id;
-        createResponseParsed.Data.Should().HaveCount(1, "Create instance should create a data element");
-        var dataGuid = createResponseParsed.Data.First().Id;
+        Assert.Single(createResponseParsed.Data);
 
         // Verify stored data
+        var dataGuid = createResponseParsed.Data.First().Id;
         var readDataElementResponse = await client.GetAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}");
-        readDataElementResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, readDataElementResponse.StatusCode);
         var readDataElementResponseContent = await readDataElementResponse.Content.ReadAsStringAsync();
         var readDataElementResponseParsed = JsonSerializer.Deserialize<Skjema>(readDataElementResponseContent)!;
-        readDataElementResponseParsed.Melding.Should().BeNull(); // No content yet
+        Assert.Null(readDataElementResponseParsed.Melding);
         TestData.DeleteInstanceAndData(org, app, instanceId);
 
         await Verify(await GetTelemetrySnapshot(numberOfActivities: 2, numberOfMetrics: 2))
@@ -249,16 +332,16 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             prefill
         );
         var instanceId = createResponseParsed.Id;
-        createResponseParsed.Data.Should().HaveCount(1, "Create instance should create a data element");
+        Assert.Single(createResponseParsed.Data);
         var dataGuid = createResponseParsed.Data.First().Id;
 
         // Verify stored data
         var readDataElementResponse = await client.GetAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}");
-        readDataElementResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, readDataElementResponse.StatusCode);
         var readDataElementResponseContent = await readDataElementResponse.Content.ReadAsStringAsync();
         var readDataElementResponseParsed = JsonSerializer.Deserialize<Skjema>(readDataElementResponseContent)!;
         Assert.NotNull(readDataElementResponseParsed.Melding);
-        readDataElementResponseParsed.Melding.Name.Should().Be("TestName");
+        Assert.Equal("TestName", readDataElementResponseParsed.Melding.Name);
         TestData.DeleteInstanceAndData(org, app, instanceId);
     }
 
@@ -451,8 +534,8 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         var createResponseContent = await createResponse.Content.ReadAsStringAsync();
         OutputHelper.WriteLine(createResponseContent);
 
-        createResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
-        createResponseContent.Should().Contain("Failed to deserialize XML");
+        Assert.Equal(HttpStatusCode.BadRequest, createResponse.StatusCode);
+        Assert.Contains("Failed to deserialize XML", createResponseContent);
         var responseObject = System.Text.Json.JsonSerializer.Deserialize<ProblemDetails>(createResponseContent);
         Assert.Equal("Failed to deserialize XML", responseObject?.Title);
         Assert.Equal(expectedDescription, responseObject?.Detail);
@@ -460,15 +543,13 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         var telemetrySnapshot = await GetTelemetrySnapshot(numberOfActivities: 1, numberOfMetrics: 0);
 
-        telemetrySnapshot
-            .Activities.Should()
-            .ContainSingle(a => a.Name == "SerializationService.DeserializeXml")
-            .Which.Events.Should()
-            .ContainSingle(e => e.Name == "exception")
-            .Which.Tags.Should()
-            .ContainSingle(t => t.Key == "exception.type")
-            .Which.Value.Should()
-            .Be("System.InvalidOperationException");
+        var activity = Assert.Single(
+            telemetrySnapshot.Activities!,
+            a => a.Name == "SerializationService.DeserializeXml"
+        );
+        var activityEvent = Assert.Single(activity.Events, e => e.Name == "exception");
+        var tag = Assert.Single(activityEvent.Tags, t => t.Key == "exception.type");
+        Assert.Equal("System.InvalidOperationException", tag.Value);
     }
 
     [Fact]
@@ -500,10 +581,11 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             content
         );
         var createResponseContent = await createResponse.Content.ReadAsStringAsync();
-        createResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest, createResponseContent);
-        createResponseContent
-            .Should()
-            .Contain("Multipart section named, 'wrongName' does not correspond to an element");
+        Assert.Equal(HttpStatusCode.BadRequest, createResponse.StatusCode);
+        Assert.Contains(
+            "Multipart section named, 'wrongName' does not correspond to an element",
+            createResponseContent
+        );
     }
 
     [Fact]
@@ -514,7 +596,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         string org = "tdd";
         string app = "contributer-restriction";
         int instanceOwnerPartyId = 501337;
-        this.OverrideServicesForThisTest = services =>
+        OverrideServicesForThisTest = services =>
             services.AddSingleton(new AppMetadataMutationHook(app => app.DisallowUserInstantiation = true));
         HttpClient client = GetRootedClient(org, app);
         string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
@@ -537,7 +619,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             content
         );
         var createResponseContent = await createResponse.Content.ReadAsStringAsync();
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden, createResponseContent);
+        Assert.Equal(HttpStatusCode.Forbidden, createResponse.StatusCode);
     }
 
     [Fact]
@@ -554,11 +636,12 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         );
 
         var response = await client.PostAsync($"{org}/{app}/instances", content);
-        response.Should().HaveStatusCode(HttpStatusCode.Created);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var responseContent = await response.Content.ReadAsStringAsync();
         var instance = JsonSerializer.Deserialize<Instance>(responseContent, JsonSerializerOptions);
-        instance.Should().NotBeNull();
-        instance!.Id.Should().NotBeNullOrEmpty();
+        Assert.NotNull(instance);
+        Assert.NotNull(instance.Id);
+        Assert.NotEmpty(instance.Id);
 
         TestData.DeleteInstanceAndData(org, app, instance.Id);
     }
@@ -595,15 +678,15 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         var response = await client.PostAsync($"{org}/{app}/instances", content);
         var responseContent = await response.Content.ReadAsStringAsync();
         OutputHelper.WriteLine(responseContent);
-        response.Should().HaveStatusCode(HttpStatusCode.Created);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var instance = JsonSerializer.Deserialize<Instance>(responseContent, JsonSerializerOptions)!;
-        instance.Should().NotBeNull();
-        instance.Id.Should().NotBeNullOrEmpty();
-        instance.Status.Should().NotBeNull();
-        instance.Status.ReadStatus.Should().Be(ReadStatus.UpdatedSinceLastReview);
-        instance.Status.Substatus.Should().NotBeNull();
-        instance.Status.Substatus!.Label.Should().Be("min label");
-        instance.Status.Substatus!.Description.Should().Be("min beskrivelse");
+        Assert.NotNull(instance);
+        Assert.NotEmpty(instance.Id);
+        Assert.NotNull(instance.Status);
+        Assert.Equal(ReadStatus.UpdatedSinceLastReview, instance.Status.ReadStatus);
+        Assert.NotNull(instance.Status.Substatus);
+        Assert.Equal("min label", instance.Status.Substatus!.Label);
+        Assert.Equal("min beskrivelse", instance.Status.Substatus!.Description);
 
         TestData.DeleteInstanceAndData(org, app, instance.Id);
     }
@@ -626,11 +709,12 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             $"{org}/{app}/instances?instanceOwnerPartyId={instanceOwnerPartyId}",
             content
         );
-        response.Should().HaveStatusCode(HttpStatusCode.Created);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var responseContent = await response.Content.ReadAsStringAsync();
         var instance = JsonSerializer.Deserialize<Instance>(responseContent, JsonSerializerOptions);
-        instance.Should().NotBeNull();
-        instance!.Id.Should().NotBeNullOrEmpty();
+        Assert.NotNull(instance);
+        Assert.NotNull(instance.Id);
+        Assert.NotEmpty(instance.Id);
 
         TestData.DeleteInstanceAndData(org, app, instance.Id);
     }
@@ -642,7 +726,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         string org = "tdd";
         string app = "contributer-restriction";
         int instanceOwnerPartyId = 501337;
-        this.OverrideServicesForThisTest = services =>
+        OverrideServicesForThisTest = services =>
             services.AddSingleton(new AppMetadataMutationHook(app => app.DisallowUserInstantiation = true));
         HttpClient client = GetRootedClient(org, app);
         string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
@@ -661,8 +745,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         // Create instance
         var createResponse = await client.PostAsync($"{org}/{app}/instances/create", content);
-        var createResponseContent = await createResponse.Content.ReadAsStringAsync();
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden, createResponseContent);
+        Assert.Equal(HttpStatusCode.Forbidden, createResponse.StatusCode);
     }
 
     [Fact]
@@ -685,7 +768,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         string org = "tdd";
         string app = "contributer-restriction";
         int instanceOwnerPartyId = 501337;
-        this.OverrideServicesForThisTest = services =>
+        OverrideServicesForThisTest = services =>
         {
             services.AddSingleton(pdfMock.Object);
             services.AddSingleton(new AppMetadataMutationHook(app => app.DisallowUserInstantiation = true));
@@ -702,7 +785,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             client,
             orgToken
         );
-        sourceInstance.Data.Should().HaveCount(1, "Create instance should create a data element");
+        Assert.Single(sourceInstance.Data);
         var dataGuid = sourceInstance.Data.First().Id;
         var patch = new JsonPatch(
             PatchOperation.Replace(JsonPointer.Create("melding"), JsonNode.Parse("{\"name\": \"Ola Olsen\"}"))
@@ -734,7 +817,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         // Create copy instance
         var createResponse = await client.PostAsync($"{org}/{app}/instances/create", content);
         var createResponseContent = await createResponse.Content.ReadAsStringAsync();
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Created, createResponseContent);
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
 
         TestData.DeleteInstanceAndData(org, app, sourceInstance.Id);
 
@@ -743,6 +826,89 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         {
             TestData.DeleteInstanceAndData(org, app, createResponseParsed.Id);
         }
+    }
+
+    [Fact]
+    public async Task CopyInstance_CopyInstanceValidator_Returns_Forbidden_When_Validation_Fails()
+    {
+        var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
+        using var pdfReturnStream = new MemoryStream();
+        pdfMock
+            .Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pdfReturnStream);
+
+        var copyInstanceValidatorMock = new Mock<ICopyInstanceValidator>();
+        copyInstanceValidatorMock
+            .Setup(v => v.Validate(It.IsAny<IInstanceDataAccessor>()))
+            .ReturnsAsync(
+                new InstantiationValidationResult
+                {
+                    Valid = false,
+                    Message = "Copy validation failed for test purposes",
+                }
+            );
+
+        // Setup test data
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        OverrideServicesForThisTest = services =>
+        {
+            services.AddSingleton(pdfMock.Object);
+            services.AddSingleton(copyInstanceValidatorMock.Object);
+        };
+        HttpClient client = GetRootedClient(org, app);
+
+        string orgToken = TestAuthentication.GetServiceOwnerToken("405003309", org: "tdd");
+        string userToken = TestAuthentication.GetUserToken(1337, 501337);
+
+        // Create source instance
+        var (sourceInstance, _) = await InstancesControllerFixture.CreateInstanceSimplified(
+            org,
+            app,
+            instanceOwnerPartyId,
+            client,
+            orgToken
+        );
+        Assert.Single(sourceInstance.Data);
+        var dataGuid = sourceInstance.Data.First().Id;
+        var patch = new JsonPatch(
+            PatchOperation.Replace(JsonPointer.Create("melding"), JsonNode.Parse("{\"name\": \"Ola Olsen\"}"))
+        );
+        await UpdateInstanceData(org, app, client, userToken, sourceInstance.Id, dataGuid, patch);
+        await CompleteInstance(org, app, client, userToken, sourceInstance.Id);
+
+        var sourceInstanceId = sourceInstance.Id;
+
+        // Attempt to copy instance with validation error
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            AuthorizationSchemes.Bearer,
+            userToken
+        );
+
+        var body = $$"""
+                {
+                    "prefill": {},
+                    "instanceOwner": {
+                        "partyId": "{{instanceOwnerPartyId}}"
+                    },
+                    "sourceInstanceId": "{{sourceInstanceId}}"
+                }
+            """;
+        using var content = new StringContent(body, Encoding.UTF8, "application/json");
+
+        // Create copy instance - should fail
+        var createResponse = await client.PostAsync($"{org}/{app}/instances/create", content);
+        var createResponseContent = await createResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(createResponseContent);
+
+        Assert.Equal(HttpStatusCode.Forbidden, createResponse.StatusCode);
+        Assert.Contains("Copy validation failed for test purposes", createResponseContent);
+
+        // Verify the validator was called
+        copyInstanceValidatorMock.Verify(v => v.Validate(It.IsAny<IInstanceDataAccessor>()), Times.Once);
+
+        TestData.DeleteInstanceAndData(org, app, sourceInstance.Id);
     }
 
     private async Task UpdateInstanceData(
@@ -767,7 +933,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             $"/{org}/{app}/instances/{instanceId}/data/{dataGuid}",
             updateDataElementContent
         );
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     private async Task CompleteInstance(string org, string app, HttpClient client, string token, string instanceId)
@@ -777,7 +943,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         using var nextResponse = await client.PutAsync($"{org}/{app}/instances/{instanceId}/process/next", null);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
         OutputHelper.WriteLine(nextResponseContent);
-        nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, nextResponse.StatusCode);
     }
 
     private sealed class RejectingWorkflowEngineClient(HttpStatusCode statusCode) : IWorkflowEngineClient
@@ -913,5 +1079,63 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             bool cascade = false,
             CancellationToken ct = default
         ) => throw new NotSupportedException();
+    }
+}
+
+public class FilenameAnalyserStub : IFileAnalyser
+{
+    public string Id { get; private set; } = "mimeTypeAnalyser";
+
+    public Task<FileAnalysisResult> Analyse(Stream stream, string? filename = null)
+    {
+        return Task.FromResult(
+            new FileAnalysisResult(Id)
+            {
+                MimeType = "image/png",
+                Filename = filename,
+                Extensions = new List<string>() { "png" },
+            }
+        );
+    }
+}
+
+public class FilenameValidatorStub : IFileValidator
+{
+    public string Id { get; private set; } = "mimeTypeValidator";
+
+    public Task<(bool Success, IEnumerable<ValidationIssue> Errors)> Validate(
+        DataType dataType,
+        IEnumerable<FileAnalysisResult> fileAnalysisResults
+    )
+    {
+        List<ValidationIssue> errors = new();
+
+        var fileAnalysisResult = fileAnalysisResults.FirstOrDefault();
+        var filename = fileAnalysisResult?.Filename;
+
+        if (string.IsNullOrEmpty(filename))
+        {
+            return Task.FromResult((true, (IEnumerable<ValidationIssue>)errors));
+        }
+
+        // Check for disallowed file extensions (simulating filename validation)
+        string[] disallowedExtensions = [".exe", ".bat", ".sh", ".cmd", ".ps1"];
+        string extension = Path.GetExtension(filename).ToLowerInvariant();
+
+        if (disallowedExtensions.Contains(extension))
+        {
+            ValidationIssue error = new()
+            {
+                Source = ValidationIssueSources.File,
+                Code = ValidationIssueCodes.DataElementCodes.InvalidFileNameFormat,
+                Severity = ValidationIssueSeverity.Error,
+                Description = $"Invalid filename: '{filename}' has a disallowed extension '{extension}'.",
+            };
+
+            errors.Add(error);
+            return Task.FromResult((false, (IEnumerable<ValidationIssue>)errors));
+        }
+
+        return Task.FromResult((true, (IEnumerable<ValidationIssue>)errors));
     }
 }

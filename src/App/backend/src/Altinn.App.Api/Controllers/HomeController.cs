@@ -128,7 +128,8 @@ public class HomeController : Controller
                 _appId.Org,
                 _appId.App,
                 appGlobalState,
-                appFrontendAssetBaseUrlOverride
+                appFrontendAssetBaseUrlOverride,
+                _env.IsDevelopment()
             );
             return Content(html, "text/html; charset=utf-8");
         }

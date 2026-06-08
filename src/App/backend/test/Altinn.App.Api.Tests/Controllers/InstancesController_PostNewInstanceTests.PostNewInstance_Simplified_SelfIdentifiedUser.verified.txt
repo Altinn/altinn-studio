@@ -56,6 +56,56 @@
       HasParent: true
     },
     {
+      Name: InstanceDataAccessor.UpdateInstanceData,
+      IdFormat: W3C,
+      Tags: [
+        {
+          numberOfChangedDataElements: 0
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: InstanceDataAccessor.UpdateInstanceData,
+      IdFormat: W3C,
+      Tags: [
+        {
+          numberOfChangedDataElements: 0
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: InstanceDataAccessor.UpdateInstanceData,
+      IdFormat: W3C,
+      Tags: [
+        {
+          numberOfChangedDataElements: 1
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: InstanceDataAccessor.UpdateInstanceData,
+      IdFormat: W3C,
+      Tags: [
+        {
+          numberOfChangedDataElements: 0
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: InstanceDataAccessor.UpdateInstanceData,
+      IdFormat: W3C,
+      Tags: [
+        {
+          numberOfChangedDataElements: 0
+        }
+      ],
+      HasParent: true
+    },
+    {
       Name: POST {org}/{app}/instances/create,
       Kind: Server,
       IdFormat: W3C,
@@ -247,6 +297,36 @@
       HasParent: true
     },
     {
+      Name: Process.GenerateChangeEvent,
+      IdFormat: W3C,
+      Tags: [
+        {
+          process.event.type: process_EndTask
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.LoadAuthDetails,
+      IdFormat: W3C,
+      Tags: [
+        {
+          user.authentication.type: User
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.LoadAuthDetails,
+      IdFormat: W3C,
+      Tags: [
+        {
+          user.authentication.type: User
+        }
+      ],
+      HasParent: true
+    },
+    {
       Name: Process.Start,
       IdFormat: W3C,
       Status: Ok,
@@ -275,6 +355,16 @@
     {
       Name: ProcessClient.GetProcessDefinition,
       IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessNavigator.GetNextTask,
+      IdFormat: W3C,
+      Tags: [
+        {
+          process.current.element: StartEvent_1
+        }
+      ],
       HasParent: true
     },
     {

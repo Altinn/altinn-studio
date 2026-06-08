@@ -43,7 +43,7 @@ export function authenticateECUser(username, password, orgNumber) {
   var requestBody = {
     UserName: username,
     Password: password,
-    OrganizationNumber: orgNumber
+    OrganizationNumber: orgNumber,
   };
   var params = {
     headers: {
@@ -61,11 +61,10 @@ export function authenticateECUser(username, password, orgNumber) {
   var ecUserData = {
     userName: res.Username,
     userId: res.UserID,
-    partyId: res.PartyID
-  }
+    partyId: res.PartyID,
+  };
 
   return ecUserData;
-
 }
 
 //Request to Authenticate an user and returns AltinnStudioRuntime Token
@@ -80,6 +79,40 @@ export function getAltinnStudioRuntimeToken(aspxauthCookie) {
   addErrorCount(success);
   stopIterationOnFail('T3.0 Authentication Failed', success, res);
   return res.body;
+}
+
+//Logs in an end user via mockporten (test IDP) and returns the AltinnStudioRuntime token
+export function loginWithMockporten(pid, password) {
+  clearCookies();
+  var endpoint = config.platformAuthentication['authentication'] + '?goto=' + config.platformAuthentication['refresh'] + '&iss=mockporten';
+  var res = http.get(endpoint);
+  var success = check(res, {
+    'Mockporten login form loaded': (r) => r.status === 200,
+  });
+  addErrorCount(success);
+  stopIterationOnFail('Mockporten login form not loaded', success, res);
+
+  res = res.submitForm({
+    fields: { Pid: pid, Password: password },
+  });
+  success = check(res, {
+    'Mockporten authentication success': (r) => r.status === 200,
+  });
+  addErrorCount(success);
+  stopIterationOnFail('Mockporten authentication failed', success, res);
+  return res.body;
+}
+
+//Returns an AltinnstudioRuntime token for an end user (mockporten in test, Altinn 2 login in prod)
+export function getAltinnTokenForUser() {
+  if (__ENV.runtimetoken) {
+    return __ENV.runtimetoken;
+  }
+  if (environment === 'prod') {
+    var aspxauthCookie = authenticateUser(__ENV.username, __ENV.userpwd);
+    return getAltinnStudioRuntimeToken(aspxauthCookie);
+  }
+  return loginWithMockporten(__ENV.pid, __ENV.testidppwd);
 }
 
 //Request to get user data and returns partyId, ssn, userId, orgNr
@@ -100,7 +133,7 @@ export function getUserData(altinnStudioRuntimeCookie, appOwner, appName, orgNo)
     ssn: res.party.ssn,
     partyId: res.partyId,
     orgNumber: orgNo,
-    orgNumberPartyId: null
+    orgNumberPartyId: null,
   };
 
   //get parties and find an Org that an user can represent
@@ -113,16 +146,15 @@ export function getUserData(altinnStudioRuntimeCookie, appOwner, appName, orgNo)
 
   res = JSON.parse(res.body);
   for (var i = 0; i < res.length; i++) {
-    if ( orgNo == null && res[i].orgNumber != null && res[i].orgNumber != '') {
-        userData.orgNumberPartyId = res[i].partyId;
-        userData.orgNumber = res[i].orgNumber;
-        break;
-      }
-      else if( orgNo != null && orgNo == res[i].orgNumber){
-        userData.orgNumberPartyId = res[i].partyId;
-        break;
-      }
+    if (orgNo == null && res[i].orgNumber != null && res[i].orgNumber != '') {
+      userData.orgNumberPartyId = res[i].partyId;
+      userData.orgNumber = res[i].orgNumber;
+      break;
+    } else if (orgNo != null && orgNo == res[i].orgNumber) {
+      userData.orgNumberPartyId = res[i].partyId;
+      break;
     }
+  }
   return userData;
 }
 
@@ -155,5 +187,5 @@ export function getAltinnTokenForTTD() {
 export function getSBLBuildVersion() {
   var endpoint = config.sbl['altinnBuildVersion'];
   var res = http.get(endpoint);
-  return res.body.replace(/[^0-9a-zA-Z.]/g, "");
+  return res.body.replace(/[^0-9a-zA-Z.]/g, '');
 }

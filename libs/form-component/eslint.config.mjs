@@ -182,9 +182,9 @@ export default defineConfig([
         {
           patterns: [
             {
-              regex: 'src/(?!app-components)',
+              regex: '@app/form-component/(?!app-components)',
               message:
-                'app-components should not import from outside src/app-components/. Keep these components self-contained.',
+                'app-components should not import from outside @app/form-component/app-components/. Keep these components self-contained.',
             },
           ],
         },

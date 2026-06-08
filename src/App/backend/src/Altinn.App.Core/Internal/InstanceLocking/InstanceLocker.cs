@@ -40,6 +40,13 @@ internal sealed class InstanceLocker(
             _currentLock.Value = holder;
         }
 
+        if (!holder.TryActivateHandle())
+        {
+            throw new InvalidOperationException(
+                "A lock handle is already active in the current async context. Dispose the existing handle before creating another."
+            );
+        }
+
         return new InstanceLockHandle(client, telemetry, holder, instanceGuid, instanceOwnerPartyId);
     }
 
@@ -57,8 +64,16 @@ internal sealed class InstanceLocker(
 
     private static async Task<IInstanceLock> AcquireAndReturn(IInstanceLock handle, TimeSpan? ttl)
     {
-        await handle.Lock(ttl);
-        return handle;
+        try
+        {
+            await handle.Lock(ttl);
+            return handle;
+        }
+        catch
+        {
+            await handle.DisposeAsync();
+            throw;
+        }
     }
 
     public string? CurrentLockToken => _currentLock.Value?.LockToken;
@@ -94,7 +109,22 @@ internal sealed class InstanceLocker(
 
     private sealed class InstanceLockHolder
     {
+        private bool _hasActiveHandle;
+
         public string? LockToken { get; set; }
+
+        public bool TryActivateHandle()
+        {
+            if (_hasActiveHandle)
+            {
+                return false;
+            }
+
+            _hasActiveHandle = true;
+            return true;
+        }
+
+        public void ReleaseHandle() => _hasActiveHandle = false;
     }
 
     private sealed class InstanceLockHandle(
@@ -106,9 +136,12 @@ internal sealed class InstanceLocker(
     ) : IInstanceLock
     {
         private static readonly TimeSpan _defaultTtl = TimeSpan.FromMinutes(5);
+        private bool _disposed;
 
         public async Task Lock(TimeSpan? ttl = null)
         {
+            ThrowIfDisposed();
+
             if (holder.LockToken is not null)
             {
                 return;
@@ -120,15 +153,25 @@ internal sealed class InstanceLocker(
 
         public async Task UpdateTtl(TimeSpan ttl)
         {
+            ThrowIfDisposed();
+
             var lockToken = holder.LockToken ?? throw new InvalidOperationException("No lock held.");
             await client.UpdateInstanceLock(instanceGuid, instanceOwnerPartyId, lockToken, ttl);
         }
 
         public async ValueTask DisposeAsync()
         {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+
             var lockToken = holder.LockToken;
             if (lockToken is null)
             {
+                holder.ReleaseHandle();
                 return;
             }
 
@@ -139,11 +182,17 @@ internal sealed class InstanceLocker(
                 await client.UpdateInstanceLock(instanceGuid, instanceOwnerPartyId, lockToken, TimeSpan.Zero);
 
                 holder.LockToken = null;
+                holder.ReleaseHandle();
             }
             catch (Exception e)
             {
                 activity?.Errored(e);
             }
+        }
+
+        private void ThrowIfDisposed()
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
         }
     }
 }

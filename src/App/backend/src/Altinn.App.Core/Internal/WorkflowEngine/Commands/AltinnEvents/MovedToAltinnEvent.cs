@@ -11,10 +11,12 @@ internal sealed class MovedToAltinnEvent : IWorkflowEngineCommand
     public string GetKey() => Key;
 
     private readonly IEventsClient _eventsClient;
+    private readonly Telemetry? _telemetry;
 
-    public MovedToAltinnEvent(IEventsClient eventsClient)
+    public MovedToAltinnEvent(IEventsClient eventsClient, Telemetry? telemetry = null)
     {
         _eventsClient = eventsClient;
+        _telemetry = telemetry;
     }
 
     public async Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext parameters)
@@ -28,11 +30,14 @@ internal sealed class MovedToAltinnEvent : IWorkflowEngineCommand
                     "Current task is not set on instance process. Cannot raise movedTo event."
                 );
 
-            await _eventsClient.AddEvent(
-                $"app.instance.process.movedTo.{instance.Process.CurrentTask.ElementId}",
-                instance,
-                StorageAuthenticationMethod.ServiceOwner()
-            );
+            using (_telemetry?.StartProcessRegisterEventActivity(instance))
+            {
+                await _eventsClient.AddEvent(
+                    $"app.instance.process.movedTo.{instance.Process.CurrentTask.ElementId}",
+                    instance,
+                    StorageAuthenticationMethod.ServiceOwner()
+                );
+            }
 
             return new SuccessfulProcessEngineCommandResult();
         }

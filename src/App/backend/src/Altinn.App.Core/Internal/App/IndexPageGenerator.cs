@@ -39,11 +39,20 @@ internal sealed class IndexPageGenerator : IIndexPageGenerator
         string org,
         string app,
         BootstrapGlobalResponse appGlobalState,
-        string? appFrontendAssetBaseUrlOverride = null
+        string? appFrontendAssetBaseUrlOverride = null,
+        bool isDevelopment = false
     )
     {
-        if (appFrontendAssetBaseUrlOverride is null)
+        string appFrontendAssetBaseUrl;
+        if (appFrontendAssetBaseUrlOverride is not null)
         {
+            // Development override (e.g. `studioctl run --dev-frontend`): serve from the configured URL.
+            appFrontendAssetBaseUrl = appFrontendAssetBaseUrlOverride;
+        }
+        else if (isDevelopment)
+        {
+            // Monorepo development without a configured frontend URL: no bundled frontend exists,
+            // so guide the developer to build/serve it themselves.
             var htmlContentError = $$"""
                 <!DOCTYPE html>
                 <html lang="no">
@@ -68,8 +77,11 @@ internal sealed class IndexPageGenerator : IIndexPageGenerator
                 """;
             return htmlContentError;
         }
-
-        string appFrontendAssetBaseUrl = appFrontendAssetBaseUrlOverride;
+        else
+        {
+            // Released app (v9 packaging): serve the bundled frontend.
+            appFrontendAssetBaseUrl = $"/{org}/{app}/altinn-app-frontend";
+        }
 
         var featureToggles = await _frontendFeatures.GetFrontendFeatures();
         var featureTogglesJson = JsonSerializer.Serialize(featureToggles, _jsonSerializerOptions);

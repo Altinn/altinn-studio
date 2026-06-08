@@ -12,7 +12,7 @@ import (
 	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/devenv/pkg/container/mock"
 	"altinn.studio/devenv/pkg/container/types"
-	"altinn.studio/devenv/pkg/resource"
+	containerbackend "altinn.studio/devenv/pkg/resource/executor/container"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	"altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
@@ -341,7 +341,7 @@ func TestDown_StopsStaleManagedResources(t *testing.T) {
 		return []types.ContainerInfo{{
 			ID:     "stale-container-id",
 			Name:   "stale-container",
-			Labels: map[string]string{resource.GraphIDLabel: testGraphID},
+			Labels: map[string]string{containerbackend.GraphIDLabel: testGraphID},
 		}}, nil
 	}
 	client.ContainerRemoveFunc = func(_ context.Context, nameOrID string, _ bool) error {
@@ -415,7 +415,7 @@ func TestLogs_JSONOutputsOneObjectPerLine(t *testing.T) {
 func managedContainerInfo(state types.ContainerState) types.ContainerInfo {
 	return types.ContainerInfo{
 		State:  state,
-		Labels: map[string]string{resource.GraphIDLabel: testGraphID},
+		Labels: map[string]string{containerbackend.GraphIDLabel: testGraphID},
 	}
 }
 

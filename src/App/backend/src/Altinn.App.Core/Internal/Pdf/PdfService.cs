@@ -3,7 +3,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Helpers.Extensions;
-using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
@@ -435,23 +435,23 @@ public class PdfService : IPdfService
         string? subformDataElementId
     )
     {
-        LayoutEvaluatorState state =
-            dataAccessor.GetLayoutEvaluatorState()
-            ?? throw new InvalidOperationException("LayoutEvaluatorState should not be null. No current task?");
-
         DataElementIdentifier? dataElementIdentifier =
             subformDataElementId != null
                 ? new DataElementIdentifier(subformDataElementId)
                 : (DataElementIdentifier?)null;
 
         var componentContext = new ComponentContext(
-            state,
+            dataAccessor,
             component: null,
             rowIndices: null,
             dataElementIdentifier: dataElementIdentifier
         );
 
-        return await _translationService.TranslateTextKey(customFileNameTextResourceKey, state, componentContext);
+        return await _translationService.TranslateTextKey(
+            customFileNameTextResourceKey,
+            dataAccessor,
+            componentContext
+        );
     }
 }
 

@@ -11,10 +11,12 @@ internal sealed class CompletedAltinnEvent : IWorkflowEngineCommand
     public string GetKey() => Key;
 
     private readonly IEventsClient _eventsClient;
+    private readonly Telemetry? _telemetry;
 
-    public CompletedAltinnEvent(IEventsClient eventsClient)
+    public CompletedAltinnEvent(IEventsClient eventsClient, Telemetry? telemetry = null)
     {
         _eventsClient = eventsClient;
+        _telemetry = telemetry;
     }
 
     public async Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext parameters)
@@ -28,11 +30,14 @@ internal sealed class CompletedAltinnEvent : IWorkflowEngineCommand
                     "End event is not set on instance process. Cannot raise completed event."
                 );
 
-            await _eventsClient.AddEvent(
-                "app.instance.process.completed",
-                instance,
-                StorageAuthenticationMethod.ServiceOwner()
-            );
+            using (_telemetry?.StartProcessRegisterEventActivity(instance))
+            {
+                await _eventsClient.AddEvent(
+                    "app.instance.process.completed",
+                    instance,
+                    StorageAuthenticationMethod.ServiceOwner()
+                );
+            }
 
             return new SuccessfulProcessEngineCommandResult();
         }

@@ -170,6 +170,8 @@ public static class MimeTypeMap
             { ".gtar", new("application/x-gtar") },
             { ".gz", new("application/x-gzip") },
             { ".h", new("text/plain") },
+            { ".heic", new("image/heic") },
+            { ".heif", new("image/heif") },
             { ".hdf", new("application/x-hdf") },
             { ".hdml", new("text/x-hdml") },
             { ".hhc", new("application/x-oleobject") },

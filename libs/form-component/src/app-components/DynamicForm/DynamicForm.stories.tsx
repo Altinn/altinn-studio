@@ -4,10 +4,10 @@ import type { MonthCaptionProps } from 'react-day-picker';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { JSONSchema7 } from 'json-schema';
 
-import 'react-day-picker/style.css';
-
 import { DynamicForm } from './DynamicForm';
 import type { FormDataObject } from './DynamicForm';
+
+import 'react-day-picker/style.css';
 
 const NoopDropdownCaption = ({ calendarMonth }: MonthCaptionProps) => (
   <div style={{ padding: 8, fontWeight: 600 }}>

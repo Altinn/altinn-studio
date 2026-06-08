@@ -497,6 +497,8 @@ internal class ProcessEngine : IProcessEngine
         CancellationToken ct
     )
     {
+        using var activity = _telemetry?.StartProcessHandleUserActionActivity(instance, request.Action);
+
         Authenticated currentAuth = _authenticationContext.Current;
         IUserAction? actionHandler = _userActionService.GetActionHandler(request.Action);
 
@@ -592,6 +594,11 @@ internal class ProcessEngine : IProcessEngine
         {
             return null;
         }
+
+        string changeEventType = action is "reject"
+            ? InstanceEventType.process_AbandonTask.ToString()
+            : InstanceEventType.process_EndTask.ToString();
+        using var activity = _telemetry?.StartProcessGenerateChangeEventActivity(instance, changeEventType);
 
         PlatformUser user = await ExtractPlatformUser();
         ProcessStateChange result = await ComputeNextTransition(instance, action, user);
@@ -693,29 +700,37 @@ internal class ProcessEngine : IProcessEngine
     private async Task<PlatformUser> ExtractPlatformUser()
     {
         var currentAuth = _authenticationContext.Current;
-        return currentAuth switch
+        switch (currentAuth)
         {
-            Authenticated.User auth => new PlatformUser
+            case Authenticated.User auth:
             {
-                UserId = auth.UserId,
-                AuthenticationLevel = auth.AuthenticationLevel,
-                NationalIdentityNumber = (await auth.LoadDetails(validateSelectedParty: true)).Profile.Party.SSN,
-            },
-            Authenticated.Org => new PlatformUser { }, // TODO: what do we do here?
-            Authenticated.ServiceOwner auth => new PlatformUser
-            {
-                OrgId = auth.Name,
-                AuthenticationLevel = auth.AuthenticationLevel,
-            },
-            Authenticated.SystemUser auth => new PlatformUser
-            {
-                SystemUserId = auth.SystemUserId[0],
-                SystemUserOwnerOrgNo = auth.SystemUserOrgNr.Get(Models.OrganisationNumberFormat.Local),
-                SystemUserName = null, // TODO: will get this name later when a lookup API is implemented or the name is passed in token
-                AuthenticationLevel = auth.AuthenticationLevel,
-            },
-            _ => throw new InvalidOperationException($"Unknown authentication context: {currentAuth.GetType().Name}"),
-        };
+                Authenticated.User.Details details;
+                using (_telemetry?.StartProcessLoadAuthDetailsActivity(nameof(Authenticated.User)))
+                {
+                    details = await auth.LoadDetails(validateSelectedParty: true);
+                }
+                return new PlatformUser
+                {
+                    UserId = auth.UserId,
+                    AuthenticationLevel = auth.AuthenticationLevel,
+                    NationalIdentityNumber = details.Profile.Party.SSN,
+                };
+            }
+            case Authenticated.Org:
+                return new PlatformUser { }; // TODO: what do we do here?
+            case Authenticated.ServiceOwner auth:
+                return new PlatformUser { OrgId = auth.Name, AuthenticationLevel = auth.AuthenticationLevel };
+            case Authenticated.SystemUser auth:
+                return new PlatformUser
+                {
+                    SystemUserId = auth.SystemUserId[0],
+                    SystemUserOwnerOrgNo = auth.SystemUserOrgNr.Get(Models.OrganisationNumberFormat.Local),
+                    SystemUserName = null, // TODO: will get this name later when a lookup API is implemented or the name is passed in token
+                    AuthenticationLevel = auth.AuthenticationLevel,
+                };
+            default:
+                throw new InvalidOperationException($"Unknown authentication context: {currentAuth.GetType().Name}");
+        }
     }
 
     private async Task<MoveToNextResult> HandleMoveToNext(
@@ -726,6 +741,8 @@ internal class ProcessEngine : IProcessEngine
         CancellationToken ct = default
     )
     {
+        using var activity = _telemetry?.StartProcessMoveToNextActivity(instance, action);
+
         // Compute the transition without mutating instance.Process, then capture the old instance/form-data
         // snapshot before mutating instance.Process so the callback starts from the task being left.
         string? currentTaskId = instance.Process?.CurrentTask?.ElementId;

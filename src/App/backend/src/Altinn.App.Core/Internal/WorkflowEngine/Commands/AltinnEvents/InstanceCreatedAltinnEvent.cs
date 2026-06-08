@@ -11,10 +11,12 @@ internal sealed class InstanceCreatedAltinnEvent : IWorkflowEngineCommand
     public string GetKey() => Key;
 
     private readonly IEventsClient _eventsClient;
+    private readonly Telemetry? _telemetry;
 
-    public InstanceCreatedAltinnEvent(IEventsClient eventsClient)
+    public InstanceCreatedAltinnEvent(IEventsClient eventsClient, Telemetry? telemetry = null)
     {
         _eventsClient = eventsClient;
+        _telemetry = telemetry;
     }
 
     public async Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext parameters)
@@ -23,7 +25,14 @@ internal sealed class InstanceCreatedAltinnEvent : IWorkflowEngineCommand
 
         try
         {
-            await _eventsClient.AddEvent("app.instance.created", instance, StorageAuthenticationMethod.ServiceOwner());
+            using (_telemetry?.StartProcessRegisterEventActivity(instance))
+            {
+                await _eventsClient.AddEvent(
+                    "app.instance.created",
+                    instance,
+                    StorageAuthenticationMethod.ServiceOwner()
+                );
+            }
 
             return new SuccessfulProcessEngineCommandResult();
         }
