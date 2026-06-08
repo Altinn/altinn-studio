@@ -1,38 +1,31 @@
-import { createContext, type JSX, type PropsWithChildren, type ReactNode, useContext } from 'react';
+import { createContext, type PropsWithChildren, type ReactNode, useContext } from 'react';
 
 import type { LooseAutocomplete, ValidLanguageKey } from '@app/language';
 
 type LanguageKey = LooseAutocomplete<ValidLanguageKey>;
-type LangFn = (key: LanguageKey | undefined, params?: TranslationParams) => ReactNode;
-type TranslationParams = (string | number | undefined)[];
-type TranslateFn = (key: LanguageKey, params?: TranslationParams) => string;
-type TranslateComponent = (args: {
-  tKey: LanguageKey;
-  params?: TranslationParams;
-}) => string | JSX.Element | JSX.Element[] | null;
+type LangParams = (string | number | undefined)[];
+type LangFn = (key: LanguageKey | undefined, params?: LangParams) => ReactNode;
+type LangAsStringFn = (key: LanguageKey | undefined, params?: LangParams) => string;
 
 type LanguageTranslatorContextProps = {
   lang: LangFn;
-  translate: TranslateFn;
-  TranslateComponent: TranslateComponent;
+  langAsString: LangAsStringFn;
 };
 
 const contextNoTranslate: LanguageTranslatorContextProps = {
   lang: (key) => key ?? null,
-  translate: (key) => key,
-  TranslateComponent: ({ tKey }) => tKey,
+  langAsString: (key) => key ?? '',
 };
 
 const LanguageTranslatorContext = createContext<LanguageTranslatorContextProps>(contextNoTranslate);
 
 export function LanguageTranslatorProvider({
   lang,
-  translate,
-  TranslateComponent,
+  langAsString,
   children,
 }: PropsWithChildren<LanguageTranslatorContextProps>) {
   return (
-    <LanguageTranslatorContext.Provider value={{ lang, translate, TranslateComponent }}>
+    <LanguageTranslatorContext.Provider value={{ lang, langAsString }}>
       {children}
     </LanguageTranslatorContext.Provider>
   );

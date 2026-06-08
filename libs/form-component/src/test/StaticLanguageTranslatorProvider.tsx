@@ -43,11 +43,7 @@ export function StaticLanguageTranslatorProvider({
   };
 
   return (
-    <LanguageTranslatorProvider
-      lang={translateKey}
-      translate={translateKey}
-      TranslateComponent={({ tKey, params }) => translateKey(tKey, params)}
-    >
+    <LanguageTranslatorProvider lang={translateKey} langAsString={translateKey}>
       {children}
     </LanguageTranslatorProvider>
   );
