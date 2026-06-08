@@ -37,10 +37,20 @@ public sealed partial class AppFixture
         }
     }
 
-    internal class ApiResponse(AppFixture fixture, HttpResponseMessage response) : IDisposable
+    internal class ApiResponse : IDisposable
     {
-        public AppFixture Fixture = fixture;
-        private HttpResponseMessage? _response = response;
+        public AppFixture Fixture { get; }
+        private HttpResponseMessage? _response;
+
+        public ApiResponse(AppFixture fixture, HttpResponseMessage response)
+        {
+            Fixture = fixture;
+            _response = response;
+
+            if ((int)response.StatusCode >= 500)
+                fixture.TestErrored = true;
+        }
+
         public HttpResponseMessage Response
         {
             get
