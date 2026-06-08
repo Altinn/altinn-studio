@@ -4,8 +4,7 @@ import type { LayoutSetModel } from '../../types/api/dto/LayoutSetModel';
 import { QueryKey } from '../../types/QueryKey';
 import { isBelowSupportedVersion } from '../../utils/compareFunctions';
 import { useAppVersionQuery } from './useAppVersionQuery';
-
-const LAYOUT_SETS_EXTENDED_V9_VERSION = 9;
+import { NEXT_V9_VERSION } from '../../constants';
 
 export const useLayoutSetsExtendedQuery = (
   org: string,
@@ -14,10 +13,7 @@ export const useLayoutSetsExtendedQuery = (
   const { data: appVersion } = useAppVersionQuery(org, app);
   const { getLayoutSetsExtendedV4, getLayoutSetsExtended } = useServicesContext();
 
-  const useV9Endpoint = !isBelowSupportedVersion(
-    appVersion?.backendVersion,
-    LAYOUT_SETS_EXTENDED_V9_VERSION,
-  );
+  const useV9Endpoint = !isBelowSupportedVersion(appVersion?.backendVersion, NEXT_V9_VERSION);
 
   return useQuery<LayoutSetModel[]>({
     queryKey: [
