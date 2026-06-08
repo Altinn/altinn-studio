@@ -14,7 +14,7 @@ const language: FixedLanguageList = getLanguageFromCode('en');
 
 /**
  * Looks up the real translation for a key and substitutes positional `{0}`, `{1}`, ... params.
- * Falls back to the key itself if no translation is found.
+ * Falls back to the key itself if it is missing, mirroring the no-op provider behaviour.
  */
 function translateKey(
   key: LooseAutocomplete<ValidLanguageKey> | undefined,
@@ -27,7 +27,6 @@ function translateKey(
   if (!params?.length) {
     return text;
   }
-  // Replace parameters, equivalent to what is done in replaceParameters in useLanguage.ts. Consider extracting to a shared util later
   return params.reduce<string>(
     (acc, param, index) => acc.replaceAll(`{${index}}`, String(param ?? '')),
     text,
