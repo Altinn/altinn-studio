@@ -1,7 +1,7 @@
 import { Children, isValidElement, useCallback, useMemo } from 'react';
 import type { JSX, ReactNode } from 'react';
 
-import { type FixedLanguageList, getLanguageFromCode, replaceParameters } from '@app/language';
+import { type FixedLanguageList, getLanguageFromCode, replaceParameters, type ValidLanguageKey } from '@app/language';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { FormStore } from 'src/features/form/FormContext';
@@ -75,8 +75,6 @@ export interface TextResourceVariablesDataSources extends BaseTextResourceVariab
   formDataTypes: string[] | typeof ContextNotProvided;
   formDataSelector: FormDataSelector | typeof ContextNotProvided;
 }
-
-export type ValidLanguageKey = keyof FixedLanguageList;
 
 /**
  * Hook to resolve a key to a language string or React element (if the key is found and contains markdown or HTML).
