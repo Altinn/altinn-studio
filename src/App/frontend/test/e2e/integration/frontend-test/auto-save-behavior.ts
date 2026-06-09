@@ -26,7 +26,7 @@ describe('Auto save behavior', () => {
     cy.goto('group');
 
     cy.findByRole('checkbox', { name: appFrontend.group.prefill.liten }).check();
-    cy.get('@saveFormData.all').should('have.length', 1);
+    cy.get('@saveFormData.all').should('have.length', 2);
 
     cy.findByRole('button', { name: 'Neste' }).clickAndGone();
     cy.get('@saveFormData.all').should('have.length', 1);
@@ -60,11 +60,11 @@ describe('Auto save behavior', () => {
     // Doing a hard wait to be sure no request is sent to backend
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(1000);
-    cy.get('@saveFormData.all').should('have.length', 0);
+    cy.get('@saveFormData.all').should('have.length', 1);
 
     // At this point we've saved the prefill value (1).
     cy.findByRole('button', { name: 'Neste' }).clickAndGone();
-    cy.get('@saveFormData.all').should('have.length', 1);
+    cy.get('@saveFormData.all').should('have.length', 2);
 
     // Clicking the back button does not save anything, because we didn't
     // change anything in the form data worth saving

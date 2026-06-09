@@ -442,7 +442,7 @@ describe('PDF', () => {
 
   // Used to cause a crash, @see https://github.com/Altinn/app-frontend-react/pull/2019
   it('Grid in Group should display correctly', { retries: 0 }, () => {
-    cy.intercept('GET', '**/bootstrap-form/**', (req) => {
+    cy.intercept('GET', '**/bootstrap-form/Task_2', (req) => {
       req.on('response', (res) => {
         const body = res.body as FormBootstrapResponse;
         body.layouts.grid = {

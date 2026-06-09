@@ -625,6 +625,12 @@ Cypress.Commands.add('directSnapshot', (snapshotName, { width, minHeight }, rese
   }
 });
 
+/**
+ * After the navigation rewrite where we now add the current task ID to the URL, this test is only realistic if
+ * we remove the task and page from the URL before rendering the PDF. This is because the real PDF generator
+ * won't know about the task and page, and will load this URL and assume the app will figure out how to display
+ * the current task as a PDF.
+ */
 function buildPdfUrl(href: string): string {
   const regex = getInstanceIdRegExp();
   const instanceId = regex.exec(href)?.[1];
@@ -669,18 +675,11 @@ Cypress.Commands.add(
 
     cy.log('Testing PDF');
 
-    // Build PDF url and visit
     cy.window({ log: false }).then((win) => {
-      const visitUrl = buildUrl(win.location.href);
-
-      // Visit this first so that we don't just re-route in the active react app
-      win.location.href = 'about:blank';
-
-      // After the navigation rewrite where we now add the current task ID to the URL, this test is only realistic if
-      // we remove the task and page from the URL before rendering the PDF. This is because the real PDF generator
-      // won't know about the task and page, and will load this URL and assume the app will figure out how to display
-      // the current task as a PDF.
-      cy.visit(visitUrl);
+      // A regular cy.visit() would not work here, as it would just trigger a hash-change
+      const url = buildUrl(win.location.href);
+      cy.visit(`${win.location.protocol}//${win.location.host}${win.location.pathname}/login.html`);
+      cy.visit(url);
     });
 
     // Wait for readyForPrint, after this everything should be rendered so using timeout: 0
@@ -1024,4 +1023,13 @@ Cypress.Commands.add('expectPageBreaks', (expectedCount: number) => {
 
 Cypress.Commands.add('setFeatureToggle', (toggleName: IFeatureToggles, value: boolean) => {
   cy.setCookie(`FEATURE_${toggleName}`, value.toString());
+});
+
+Cypress.Commands.add('preventPartySelection', () => {
+  cy.intercept('**/api/v1/applicationmetadata', (req) => {
+    req.reply((res) => {
+      const body = res.body as IncomingApplicationMetadata;
+      body.promptForParty = 'never';
+    });
+  }).as('preventPartySelection');
 });
