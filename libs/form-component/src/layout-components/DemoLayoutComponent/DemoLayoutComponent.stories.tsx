@@ -16,16 +16,20 @@ type Story = StoryObj<typeof meta>;
 
 export const Preview: Story = {
   args: {
-    content:
-      '<h2>This is content set with props a text, but can be html or mark down</h2><p>And this is a paragraph</p>',
+    content: `<h3>This is content set with props a plain text, but can be html or mark down</h2>
+      <p>And this is a <strong>paragraph</strong></p>
+      <ul>
+        <li>And this is a list item</li>
+        <li>And this is another list item</li>
+      </ul>`,
   },
 };
 
 export const WithMarkdown: Story = {
   args: {
-    content: `# This is content set with props a text, but can be html or mark down
+    content: `### This is content set with props a text, but can be **html** or **mark down**
 
-And this is a paragraph
+And this is a **paragraph**
 
 - And this is a list item
 - And this is another list item`,
