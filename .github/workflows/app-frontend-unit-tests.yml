@@ -8,8 +8,8 @@ on:
       - 'src/App/frontend/package.json'
       - 'app-libs/form-component/src/**'
       - 'app-libs/form-component/package.json'
-      - 'app-libs/app-language/src/**'
-      - 'app-libs/app-language/package.json'
+      - 'app-libs/language/src/**'
+      - 'app-libs/language/package.json'
       - '.github/workflows/app-frontend-unit-tests.yml'
   workflow_dispatch:
 

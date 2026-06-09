@@ -200,9 +200,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@app/language@workspace:*, @app/language@workspace:app-libs/app-language":
+"@app/language@workspace:*, @app/language@workspace:app-libs/language":
   version: 0.0.0-use.local
-  resolution: "@app/language@workspace:app-libs/app-language"
+  resolution: "@app/language@workspace:app-libs/language"
   dependencies:
     typescript: "npm:5.9.3"
     vitest: "npm:4.1.5"
