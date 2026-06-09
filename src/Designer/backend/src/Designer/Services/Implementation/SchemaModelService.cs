@@ -547,7 +547,7 @@ public class SchemaModelService : ISchemaModelService
             {
                 await ClearDefaultDataTypeFromLayoutSettings(altinnAppGitRepository, id);
             }
-            else
+            else if (altinnAppGitRepository.AppUsesLayoutSets())
             {
                 await ClearDataTypeFromLayoutSets(altinnAppGitRepository, id);
             }
