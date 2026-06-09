@@ -1,6 +1,7 @@
 import type { PropsWithChildren } from 'react';
 
 import { LanguageTranslatorProvider } from '@app/form-component/LanguageTranslatorProvider';
+import { parseAndCleanText } from '@app/form-component/text/parseAndCleanText';
 import {
   getLanguageFromCode,
   type LooseAutocomplete,
@@ -42,7 +43,10 @@ export function StaticLanguageTranslatorProvider({
   };
 
   return (
-    <LanguageTranslatorProvider lang={translateKey} langAsString={translateKey}>
+    <LanguageTranslatorProvider
+      lang={(key, params) => parseAndCleanText(translateKey(key, params))}
+      langAsString={translateKey}
+    >
       {children}
     </LanguageTranslatorProvider>
   );

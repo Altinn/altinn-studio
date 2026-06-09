@@ -10,5 +10,8 @@ export type { DataModelBinding } from './types/DataModelBinding';
 
 export { LanguageTranslatorProvider } from './LanguageTranslatorProvider';
 
+export { parseAndCleanText, isElement } from './text/parseAndCleanText';
+export type { ParserReplace } from './text/parseAndCleanText';
+
 export * from './app-components';
 export * from './layout-components/common/HelpTextContainer';
