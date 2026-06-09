@@ -144,7 +144,7 @@ internal sealed class CleanInstanceDataAccessor : IInstanceDataAccessor
         return _dataAccessor.GetDataElement(dataElementIdentifier);
     }
 
-    public LayoutEvaluatorState? GetLayoutEvaluatorState()
+    public LayoutEvaluatorState GetLayoutEvaluatorState()
     {
         throw new NotImplementedException(
             "GetLayoutEvaluatorState is not implemented in CleanInstanceDataAccessor, because LayoutEvaluatorState will be deprecated."

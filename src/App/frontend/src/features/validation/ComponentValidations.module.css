@@ -8,6 +8,7 @@
 .softValidation {
   margin-top: var(--ds-size-2);
   break-inside: avoid;
+  text-align: left;
 }
 
 .softValidationListItem {
