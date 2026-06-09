@@ -112,7 +112,8 @@ public sealed partial class AppFixture : IAsyncDisposable
         ITestOutputHelper output,
         string app = TestApps.Basic,
         string scenario = "default",
-        bool isClassFixture = false
+        bool isClassFixture = false,
+        IReadOnlyDictionary<string, string>? environmentVariables = null
     )
     {
         var timer = Stopwatch.StartNew();
@@ -134,10 +135,8 @@ public sealed partial class AppFixture : IAsyncDisposable
         string? generatedAppDirectory = null;
         try
         {
-            await Task.WhenAll(
-                EnsureLibrariesPacked(logger, cancellationToken),
-                EnsureFrontendBuilt(logger, cancellationToken)
-            );
+            await EnsureFrontendBuilt(logger, cancellationToken);
+            await EnsureLibrariesPacked(logger, cancellationToken);
             var originalAppId = GetAppId(app);
             var appIdentity = AppIdentity.Create(originalAppId);
             var effectiveApp = $"{appIdentity.App}-f{fixtureInstance:0000}";
@@ -166,6 +165,7 @@ public sealed partial class AppFixture : IAsyncDisposable
                 fixtureConfigurationPath,
                 _nugetPackagesDirectory,
                 appFrontendAssetBaseUrl,
+                environmentVariables,
                 logger,
                 cancellationToken
             );
@@ -426,7 +426,7 @@ public sealed partial class AppFixture : IAsyncDisposable
 
         await SyncPackages(generatedDirectory, cancellationToken);
         await SyncShared(generatedDirectory, cancellationToken);
-        await SyncFrontend(generatedDirectory, logger, cancellationToken);
+        Directory.CreateDirectory(Path.Join(generatedDirectory, "App", "wwwroot"));
         CopyScenarioOverrides(name, scenario, generatedDirectory);
 
         foreach (
@@ -789,47 +789,6 @@ public sealed partial class AppFixture : IAsyncDisposable
             var fileName = Path.GetFileName(file);
             var destFile = Path.Join(appSharedDirectory, fileName);
             await using var source = File.OpenRead(file);
-            await using var destination = File.Create(destFile);
-            await source.CopyToAsync(destination, cancellationToken);
-        }
-    }
-
-    private static async Task SyncFrontend(
-        string generatedDirectory,
-        ILogger logger,
-        CancellationToken cancellationToken
-    )
-    {
-        var frontendBuildDirectory = Path.Join(_repoSourceDirectory, "App", "frontend", "dist");
-
-        const string missingFilesErrorMessage =
-            "The frontend should have been built during test setup. Install yarn and run "
-            + "'cd src/App/frontend && yarn build', or set SKIP_FRONTEND_BUILD=true to use pre-built files.";
-        if (!Directory.Exists(frontendBuildDirectory))
-        {
-            throw new DirectoryNotFoundException(
-                $"Expected frontend build directory '{frontendBuildDirectory}' to exist. {missingFilesErrorMessage}"
-            );
-        }
-
-        var appStaticFrontendDirectory = Path.Join(generatedDirectory, "App", "wwwroot", "altinn-app-frontend");
-        if (Directory.Exists(appStaticFrontendDirectory))
-            Directory.Delete(appStaticFrontendDirectory, true);
-        Directory.CreateDirectory(appStaticFrontendDirectory);
-
-        string[] fileNamesToCopy = ["altinn-app-frontend.js", "altinn-app-frontend.css"];
-        var frontendBuildFiles = Directory.GetFiles(frontendBuildDirectory);
-        foreach (var fileName in fileNamesToCopy)
-        {
-            var sourceFile =
-                frontendBuildFiles.FirstOrDefault(file => Path.GetFileName(file) == fileName)
-                ?? throw new FileNotFoundException(
-                    $"Expected frontend file '{fileName}' not found in '{frontendBuildDirectory}'. {missingFilesErrorMessage}"
-                );
-
-            var destFile = Path.Join(appStaticFrontendDirectory, fileName);
-            logger.LogInformation("Copying {SourceFile} to {DestFile}", sourceFile, destFile);
-            await using var source = File.OpenRead(sourceFile);
             await using var destination = File.Create(destFile);
             await source.CopyToAsync(destination, cancellationToken);
         }

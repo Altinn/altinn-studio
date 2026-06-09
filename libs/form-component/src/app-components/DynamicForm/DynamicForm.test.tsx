@@ -1,6 +1,7 @@
+import type { MonthCaptionProps } from 'react-day-picker';
+
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { MonthCaptionProps } from 'react-day-picker';
 import type { JSONSchema7 } from 'json-schema';
 
 import { DynamicForm } from './DynamicForm';

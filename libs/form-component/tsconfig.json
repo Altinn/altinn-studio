@@ -10,8 +10,10 @@
     "strict": true,
     "resolveJsonModule": true,
     "noUnusedLocals": true,
+    "noEmit": true,
     "paths": {
-      "src/*": ["./src/*"]
+      "@app/form-component/*": ["./src/*"],
+      "@app/language/*": ["../app-language/src/*"]
     },
     "plugins": [
       {

@@ -44,6 +44,7 @@ COPY src/Designer/frontend/testing/playwright/package.json ./src/Designer/fronte
 COPY src/Designer/frontend/settings/package.json ./src/Designer/frontend/settings/
 COPY libs/form-component/package.json ./libs/form-component/
 COPY libs/form-engine/package.json ./libs/form-engine/
+COPY libs/app-language/package.json ./libs/app-language/
 
 ARG CYPRESS_INSTALL_BINARY=0
 ARG PUPPETEER_SKIP_DOWNLOAD=true
@@ -67,7 +68,7 @@ WORKDIR /version
 RUN echo "{\"version\": \"${DESIGNER_VERSION}\"}" > version.json
 
 # Prepare app template
-FROM alpine@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659 AS app-template-release
+FROM alpine@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11 AS app-template-release
 RUN apk add --no-cache rsync
 
 COPY ./src/App/template/src /app-template-dotnet-src

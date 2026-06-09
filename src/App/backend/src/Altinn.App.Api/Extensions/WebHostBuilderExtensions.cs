@@ -31,6 +31,7 @@ public static class WebHostBuilderExtensions
                 }
 
                 configBuilder.AddInMemoryCollection(config);
+                StudioctlLocalConfiguration.AddIfAvailable(configBuilder, context.HostingEnvironment);
 
                 var runtimeSecretsDirectory = context.Configuration["AppSettings:RuntimeSecretsDirectory"];
                 if (string.IsNullOrWhiteSpace(runtimeSecretsDirectory))

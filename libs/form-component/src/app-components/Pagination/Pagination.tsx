@@ -1,6 +1,11 @@
 import React from 'react';
 
 import {
+  useIsMini,
+  useIsMobile,
+  useIsTablet,
+} from '@app/form-component/app-components/hooks/useDeviceWidths';
+import {
   Field,
   Label,
   Pagination as DesignSystemPagination,
@@ -9,7 +14,6 @@ import {
 } from '@digdir/designsystemet-react';
 import type { UsePaginationProps } from '@digdir/designsystemet-react';
 
-import { useIsMini, useIsMobile, useIsTablet } from '../hooks/useDeviceWidths';
 import classes from './Pagination.module.css';
 
 export type PaginationProps = {
