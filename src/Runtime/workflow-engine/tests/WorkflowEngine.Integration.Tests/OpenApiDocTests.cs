@@ -48,14 +48,14 @@ public class OpenApiDocTests(EngineAppFixture<Program> fixture)
         using var doc = await GetOpenApiDoc(client);
 
         var documentUrl = doc.RootElement.GetProperty("externalDocs").GetProperty("url").GetString();
-        Assert.Contains("technical-guide.md", documentUrl);
+        Assert.Contains("technical-guide.md", documentUrl, StringComparison.Ordinal);
 
         var cancelUrl = FindPath(doc, "/cancel")
             .GetProperty("post")
             .GetProperty("externalDocs")
             .GetProperty("url")
             .GetString();
-        Assert.Contains("#immediate-vs-distributed-cancellation", cancelUrl);
+        Assert.Contains("#immediate-vs-distributed-cancellation", cancelUrl, StringComparison.Ordinal);
     }
 
     [Fact]
