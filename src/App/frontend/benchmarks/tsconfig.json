@@ -10,6 +10,7 @@
     "noUncheckedIndexedAccess": true,
     "paths": {
       "@app/form-component/*": ["../../../../libs/form-component/src/*"],
+      "@app/language/*": ["../../../../libs/app-language/src/*"],
       "src/*": ["../src/*"]
     }
   }

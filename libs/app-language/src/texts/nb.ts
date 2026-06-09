@@ -1,4 +1,4 @@
-import type { FixedLanguageList } from 'src/language/languages';
+import type { FixedLanguageList } from '@app/language/types';
 
 export function nb() {
   return {
@@ -19,7 +19,8 @@ export function nb() {
     'address_component.simplified': 'Enkel',
     'address_component.title_text_binding': 'Søk etter ledetekst for Adressekomponenten',
     'address_component.zip_code': 'Postnr',
-    'address_component.validation_error_zipcode': 'Postnummer er ugyldig. Et postnummer består kun av 4 siffer.',
+    'address_component.validation_error_zipcode':
+      'Postnummer er ugyldig. Et postnummer består kun av 4 siffer.',
     'address_component.validation_error_house_number': 'Bolignummer er ugyldig',
     'confirm.answers': 'Dine svar',
     'confirm.attachments': 'Vedlegg',
@@ -52,11 +53,15 @@ export function nb() {
     'timepicker.am_pm': 'AM/PM',
     'feedback.title': '## Du blir snart videresendt',
     'feedback.body': 'Vi venter på verifikasjon, når den er på plass blir du videresendt.',
-    'form_filler.error_add_subform': 'Det oppstod en feil ved opprettelse av underskjema, vennligst prøv igjen',
-    'form_filler.error_delete_subform': 'Noe gikk galt ved sletting av underskjema, vennligst prøv igjen',
+    'form_filler.error_add_subform':
+      'Det oppstod en feil ved opprettelse av underskjema, vennligst prøv igjen',
+    'form_filler.error_delete_subform':
+      'Noe gikk galt ved sletting av underskjema, vennligst prøv igjen',
     'form_filler.error_fetch_subform': 'Feil ved lasting av skjemadata',
-    'form_filler.error_max_count_reached_subform_server': 'Maks antall {0} oppføringer har blitt nådd',
-    'form_filler.error_max_count_reached_subform_local': 'Maks antall {0} oppføringer har blitt nådd {1}',
+    'form_filler.error_max_count_reached_subform_server':
+      'Maks antall {0} oppføringer har blitt nådd',
+    'form_filler.error_max_count_reached_subform_local':
+      'Maks antall {0} oppføringer har blitt nådd {1}',
     'form_filler.error_min_count_not_reached_subform': 'Minst {0} {1} oppføring er påkrevd',
     'form_filler.error_validation_inside_subform': 'Det er feil i en eller flere {0} oppføringer',
     'form_filler.subform_default_header': 'Oppføringer',
@@ -92,12 +97,16 @@ export function nb() {
     'form_filler.file_uploader_show_more_errors': 'Vis {0} flere',
     'form_filler.file_uploader_show_fewer_errors': 'Vis færre',
     'form_filler.file_uploader_valid_file_format': 'Tillatte filformater er:',
-    'form_filler.file_uploader_failed_to_upload_file': 'Filen <u title="{1}">{0}</u> kunne ikke lastes opp',
-    'form_filler.file_uploader_validation_error_delete': 'Noe gikk galt under slettingen av filen, prøv igjen senere.',
+    'form_filler.file_uploader_failed_to_upload_file':
+      'Filen <u title="{1}">{0}</u> kunne ikke lastes opp',
+    'form_filler.file_uploader_validation_error_delete':
+      'Noe gikk galt under slettingen av filen, prøv igjen senere.',
     'form_filler.file_uploader_validation_error_exceeds_max_files':
       'Du kan ikke laste opp flere enn {0} filer. Ingen filer ble lastet opp.',
-    'form_filler.file_uploader_validation_error_file_ending': 'er ikke blant de tillatte filtypene.',
-    'form_filler.file_uploader_validation_error_file_number': 'For å fortsette må du laste opp {0} vedlegg',
+    'form_filler.file_uploader_validation_error_file_ending':
+      'er ikke blant de tillatte filtypene.',
+    'form_filler.file_uploader_validation_error_file_number':
+      'For å fortsette må du laste opp {0} vedlegg',
     'form_filler.file_uploader_validation_error_file_size': '{0} overskrider tillatt filstørrelse.',
     'form_filler.file_uploader_validation_error_general':
       'Det var et problem med filen {0}. Forsikre deg om at filen har rett filtype og ikke overskrider maks filstørrelse.',
@@ -206,13 +215,15 @@ export function nb() {
       'Denne delen av skjemaet er ikke tilgjengelig. Du kan ikke gjøre endringer her nå.',
     'general.invalid_task_id': 'Denne delen av skjemaet finnes ikke.',
     'general.navigate_to_current_process': 'Gå til riktig prosessteg',
-    'group.row_error': 'En av radene er ikke fylt ut riktig, dette må fikses før skjema kan sendes inn',
+    'group.row_error':
+      'En av radene er ikke fylt ut riktig, dette må fikses før skjema kan sendes inn',
     'group.row_popover_delete_message': 'Er du sikker på at du vil slette denne raden?',
     'group.row_popover_delete_button_confirm': 'Ja, slett raden',
     'iframe_component.unsupported_browser_title': 'Nettleseren din støttes ikke',
     'iframe_component.unsupported_browser':
       'Nettleseren du bruker støtter ikke iframes som benytter seg av srcdoc. Dette kan føre til at du ikke ser all innholdet som er ment å vises her. Vi anbefaler deg å prøve en annen nettleser.',
-    'image_upload_component.animated_warning': 'Hvis bildet er animert, vises bare det første bildet.',
+    'image_upload_component.animated_warning':
+      'Hvis bildet er animert, vises bare det første bildet.',
     'image_upload_component.button_change': 'Bytt bilde',
     'image_upload_component.button_delete': 'Slett bildet',
     'image_upload_component.button_save': 'Lagre bilde',
@@ -221,7 +232,8 @@ export function nb() {
     'image_upload_component.summary_empty': 'Du har ikke lastet opp noe bilde',
     'image_upload_component.reset': 'Tilbakestill zoom og plassering',
     'image_upload_component.error_invalid_file_type': 'Ugyldig filformat. Last opp en bildefil.',
-    'image_upload_component.error_file_size_exceeded': 'Filen er for stor. Største tillatte filstørrelse er 10MB.',
+    'image_upload_component.error_file_size_exceeded':
+      'Filen er for stor. Største tillatte filstørrelse er 10MB.',
     'image_upload_component.error_required': 'Du må laste opp et bilde',
     'image_upload_component.valid_file_types': 'Bildefiler er tillatt',
     'input_components.remaining_characters': 'Du har %d tegn igjen',
@@ -240,16 +252,20 @@ export function nb() {
     'instantiate.unknown_error_title': 'Ukjent feil',
     'instantiate.unknown_error_text': 'Det har skjedd en ukjent feil, vennligst prøv igjen senere.',
     'instantiate.unknown_error_status': 'Ukjent feil',
-    'instantiate.unknown_error_customer_support': 'Om problemet vedvarer, ta kontakt med oss på brukerservice {0}.',
+    'instantiate.unknown_error_customer_support':
+      'Om problemet vedvarer, ta kontakt med oss på brukerservice {0}.',
     'instantiate.unknown_error_show_details': 'Vis detaljer om feilen',
-    'instantiate.forbidden_action_error_title': 'Du mangler rettigheter til å utføre denne handlingen',
+    'instantiate.forbidden_action_error_title':
+      'Du mangler rettigheter til å utføre denne handlingen',
     'instantiate.forbidden_action_error_text':
       'Det ser ut til at du mangler rettigheter til å utføre denne handlingen.',
     'instantiate.forbidden_action_error_status': '403 - Forbidden',
     'instantiate.forbidden_action_error_customer_support':
       'Hvis du trenger hjelp, ta kontakt med oss på brukerservice <br/> {0}.',
-    'instantiate.authorization_error_main_title': 'Du mangler rettigheter for å se denne tjenesten.',
-    'instantiate.authorization_error_instantiate_validation_title': 'Du kan ikke starte denne tjenesten',
+    'instantiate.authorization_error_main_title':
+      'Du mangler rettigheter for å se denne tjenesten.',
+    'instantiate.authorization_error_instantiate_validation_title':
+      'Du kan ikke starte denne tjenesten',
     'instantiate.authorization_error_rights':
       'Det ser ut til at du ikke har rettigheter til å starte denne tjenesten for {0}',
     'instantiate.authorization_error_ask':
@@ -258,7 +274,8 @@ export function nb() {
       '<a href="https://{0}/ui/Profile/" target="_blank">Se hvem som har rollen tilgangsstyring under "Andre med rettigheter til virksomheten"</a>.',
     'instantiate.authorization_error_info_rights':
       '<a href="https://{0}/hjelp/profil/enkelttjenester-og-roller/" target="_blank">Her finner du mer informasjon om roller og rettigheter</a>.',
-    'instantiate.authorization_error_info_customer_service': 'Du kan også kontakte oss på brukerservice {0}.',
+    'instantiate.authorization_error_info_customer_service':
+      'Du kan også kontakte oss på brukerservice {0}.',
     'instantiate.authorization_error_instantiate_validation_info_customer_service':
       'Om du står fast kontakt oss på brukerservice {0}.',
     'instantiate.starting': 'Vent litt, vi henter det du trenger',
@@ -279,7 +296,8 @@ export function nb() {
       'For å starte denne tjenesten må du ha tilganger som knytter deg til en {0}.',
     'party_selection.no_valid_selection_binding_word': 'og',
     'party_selection.change_party': 'skift aktør her',
-    'party_selection.read_more_roles_link': 'Her finner du mer informasjon om roller og rettigheter',
+    'party_selection.read_more_roles_link':
+      'Her finner du mer informasjon om roller og rettigheter',
     'party_selection.binding_word': 'eller',
     'party_selection.header': 'Hvem vil du sende inn for?',
     'party_selection.load_more': 'Last flere',
@@ -331,7 +349,8 @@ export function nb() {
     'organisation_lookup.orgnr_label': 'Organisasjonsnummer',
     'organisation_lookup.org_name': 'Organisasjonsnavn',
     'organisation_lookup.from_registry_description': 'Fra enhetsregisteret',
-    'organisation_lookup.validation_error_not_found': 'Organisasjonsnummeret ble ikke funnet i enhetsregisteret',
+    'organisation_lookup.validation_error_not_found':
+      'Organisasjonsnummeret ble ikke funnet i enhetsregisteret',
     'organisation_lookup.validation_invalid_response_from_server': 'Ugyldig respons fra server',
     'organisation_lookup.unknown_error': 'Ukjent feil. Vennligst prøv igjen senere',
     'organisation_lookup.validation_error_orgnr': 'Organisasjonsnummeret er ugyldig',
@@ -353,7 +372,8 @@ export function nb() {
       'Du har nådd grensen for antall søk. Du har blitt utestengt fra søkefunksjonaliteten i en time. Vennligst prøv igjen senere.',
     'person_lookup.validation_error_forbidden':
       'Du har ikke tilgang til å søke på denne personen. Sikkerhetsnivå 2 eller høyere kreves.',
-    'person_lookup.validation_invalid_response_from_server': 'Det oppstod en feil. Vennligst prøv igjen senere.',
+    'person_lookup.validation_invalid_response_from_server':
+      'Det oppstod en feil. Vennligst prøv igjen senere.',
     'person_lookup.unknown_error': 'Ukjent feil. Vennligst prøv igjen senere.',
     'helptext.button_title': 'Hjelp',
     'helptext.button_title_prefix': 'Hjelpetekst for',
@@ -416,15 +436,20 @@ export function nb() {
       'Så lenge komponenten har konfigurasjonsfeil kan vi ikke vise den i skjemaet. Rett opp i feilene og prøv igjen.',
     'config_error.subform_no_datatype_layoutset':
       'Datatype-spesifikasjon ikke funnet i App/ui/{folderId}/Settings.json.',
-    'config_error.subform_no_datatype_appmetadata': "Datatype '{0}' ble ikke funnet i applicationmetadata.json.",
+    'config_error.subform_no_datatype_appmetadata':
+      "Datatype '{0}' ble ikke funnet i applicationmetadata.json.",
     'config_error.subform_misconfigured_add_button':
       "Datatype '{0}' er markert som 'disallowUserCreate=true', men underskjema-komponenten er konfigurert med 'showAddButton=true'. Dette er en motsetning, siden brukeren aldri vil få lov til å utføre handlingene bak legg-til knappen.",
     'config_error.file_upload_same_binding':
       'Det er flere filopplastingskomponenter med samme datamodell-binding. Hver komponent må ha en unik binding. Andre komponenter med samme binding: {0}',
-    'config_error.deletion_strategy_no_group': 'Feltene deletionStrategy og checked kan kun brukes sammen med group.',
-    'config_error.group_no_deletion_strategy': 'Når du har satt group må du også sette deletionStrategy.',
-    'config_error.soft_delete_no_checked': 'Når du har satt deletionStrategy til soft må du også sette "checked".',
-    'config_error.hard_delete_with_checked': 'Når du har satt deletionStrategy til hard kan du ikke sette "checked".',
+    'config_error.deletion_strategy_no_group':
+      'Feltene deletionStrategy og checked kan kun brukes sammen med group.',
+    'config_error.group_no_deletion_strategy':
+      'Når du har satt group må du også sette deletionStrategy.',
+    'config_error.soft_delete_no_checked':
+      'Når du har satt deletionStrategy til soft må du også sette "checked".',
+    'config_error.hard_delete_with_checked':
+      'Når du har satt deletionStrategy til hard kan du ikke sette "checked".',
     'version_error.version_mismatch': 'Versjonsfeil',
     'version_error.version_mismatch_message':
       'Denne versjonen av app frontend er ikke kompatibel med den versjonen av backend-bibliotekene du bruker. Oppdater til nyeste versjon av pakkene og prøv igjen.',
@@ -435,7 +460,8 @@ export function nb() {
     'missing_row_id_error.full_message':
       'Datamodellen mangler egenskapen {0} i stien {1}. Dette skal automatisk bli lagt til i datamodellen dersom du bruker riktig versjon av nuget-pakkene og har kjørt migreringsverktøyene. Les mer om verktøyene i dokumentasjonen: https://docs.altinn.studio/community/changelog/app-nuget/v8/migrating-from-v7/',
     'likert.left_column_default_header_text': 'Spørsmål',
-    'process_error.submit_error_please_retry': 'Noe gikk galt under innsendingen, prøv igjen om noen minutter.',
+    'process_error.submit_error_please_retry':
+      'Noe gikk galt under innsendingen, prøv igjen om noen minutter.',
     'pdfPreview.error': 'Kunne ikke forhåndsvise PDF',
     'pdfPreview.defaultButtonText': 'Forhåndsvis PDF',
     'taskTypes.data': 'Utfylling',
@@ -450,7 +476,8 @@ export function nb() {
     'signing.submit_panel_description': 'Alle parter har signert! Velg "{0}" for å fullføre.',
     'signing.submit_button': 'Send inn skjemaet',
     'signing.submit_panel_radio_group_legend': 'Hvem ønsker du å signere på vegne av?',
-    'signing.submit_panel_radio_group_description': 'Følgende er parter du har rettigheter til å signere på vegne av.',
+    'signing.submit_panel_radio_group_description':
+      'Følgende er parter du har rettigheter til å signere på vegne av.',
     'signing.submit_panel_single_org_choice': 'Du signerer på vegne av {0}.',
     'signing.submit_panel_myself_choice': 'Meg selv',
     'signing.awaiting_other_signatures_panel_title': 'Venter på signaturer',
@@ -462,8 +489,10 @@ export function nb() {
       'Det mangler signaturer. Du kan sende inn skjemaet når alle parter har signert.',
     'signing.no_action_required_panel_title_has_signed': 'Du har signert skjemaet',
     'signing.no_action_required_panel_title_not_signed': 'Ingenting å signere',
-    'signing.no_action_required_panel_description_has_signed': 'Alt i orden! Du kan nå gå tilbake til innboksen.',
-    'signing.no_action_required_panel_description_not_signed': 'Du har ikke tilgang til å signere dette skjemaet.',
+    'signing.no_action_required_panel_description_has_signed':
+      'Alt i orden! Du kan nå gå tilbake til innboksen.',
+    'signing.no_action_required_panel_description_not_signed':
+      'Du har ikke tilgang til å signere dette skjemaet.',
     'signing.no_action_required_button': 'Gå til innboksen',
     'signing.api_error_panel_title': 'Kunne ikke hente signeringsstatus',
     'signing.api_error_panel_description':
@@ -481,8 +510,10 @@ export function nb() {
     'signing.error_missing_signing_rights':
       'Noe gikk galt. Nåværende bruker skal signere, men har ikke rettigheter til å gjøre det.',
     'signing.error_signing': 'Noe gikk galt under signeringen. Prøv igjen.',
-    'signing.error_signing_not_confirmed_documents': 'Du må bekrefte at du har lest dokumentene før du signerer.',
-    'signing.error_signing_no_on_behalf_of': 'Du må velge hvem du signerer på vegne av før du signerer.',
+    'signing.error_signing_not_confirmed_documents':
+      'Du må bekrefte at du har lest dokumentene før du signerer.',
+    'signing.error_signing_no_on_behalf_of':
+      'Du må velge hvem du signerer på vegne av før du signerer.',
     'signee_list.parse_error': 'Feil ved lasting av signatarliste.',
     'signee_list.unknown_api_error': 'En feil oppstod under henting av signatarer.',
     'signee_list.api_error_display':
@@ -519,7 +550,8 @@ export function nb() {
     'service_task.retry_button': 'Prøv igjen',
     'service_task.back_button': 'Gå tilbake',
     'service_task_custom_pdf_default.title': 'Noe gikk galt',
-    'service_task_custom_pdf_default.body': 'En feil oppstod under automatisk behandling av skjemaet.',
+    'service_task_custom_pdf_default.body':
+      'En feil oppstod under automatisk behandling av skjemaet.',
     'service_task_custom_pdf_default.help_text':
       'Du kan prøve å utføre behandlingen på nytt ved å klikke på "Prøv igjen". Hvis problemet vedvarer, ta kontakt med oss på brukerservice +47 75 00 60 00.',
     'service_task_custom_pdf_default.retry_button': 'Prøv igjen',

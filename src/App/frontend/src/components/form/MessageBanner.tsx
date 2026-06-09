@@ -1,10 +1,10 @@
 import React from 'react';
 
 import classNames from 'classnames';
+import type { ValidLanguageKey } from '@app/language';
 
 import classes from 'src/components/form/MessageBanner.module.css';
 import { Lang } from 'src/features/language/Lang';
-import type { ValidLanguageKey } from 'src/features/language/useLanguage';
 
 interface IMessageBannerProps {
   error?: boolean;

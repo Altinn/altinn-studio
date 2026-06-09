@@ -1,8 +1,7 @@
-import { en } from 'src/language/texts/en';
-import { nb } from 'src/language/texts/nb';
-import { nn } from 'src/language/texts/nn';
-
-export type FixedLanguageList = ReturnType<typeof en>;
+import { en } from '@app/language/texts/en';
+import { nb } from '@app/language/texts/nb';
+import { nn } from '@app/language/texts/nn';
+import type { FixedLanguageList } from './types';
 
 // This makes sure we don't generate a new object
 // each time (which would fail shallow comparisons, in for example React.memo)

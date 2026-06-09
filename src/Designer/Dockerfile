@@ -44,6 +44,7 @@ COPY src/Designer/frontend/testing/playwright/package.json ./src/Designer/fronte
 COPY src/Designer/frontend/settings/package.json ./src/Designer/frontend/settings/
 COPY libs/form-component/package.json ./libs/form-component/
 COPY libs/form-engine/package.json ./libs/form-engine/
+COPY libs/app-language/package.json ./libs/app-language/
 
 ARG CYPRESS_INSTALL_BINARY=0
 ARG PUPPETEER_SKIP_DOWNLOAD=true
