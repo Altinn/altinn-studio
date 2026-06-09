@@ -13,14 +13,17 @@ public class ProcessDataTypesChangedLayoutSettingsHandler : INotificationHandler
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
+    private readonly IAppVersionService _appVersionService;
 
     public ProcessDataTypesChangedLayoutSettingsHandler(
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-        IFileSyncHandlerExecutor fileSyncHandlerExecutor
+        IFileSyncHandlerExecutor fileSyncHandlerExecutor,
+        IAppVersionService appVersionService
     )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
+        _appVersionService = appVersionService;
     }
 
     public async Task Handle(ProcessDataTypesChangedEvent notification, CancellationToken cancellationToken)
@@ -39,7 +42,7 @@ public class ProcessDataTypesChangedLayoutSettingsHandler : INotificationHandler
                     notification.EditingContext.Developer
                 );
 
-                if (!repository.IsV9OrNewer())
+                if (_appVersionService.GetAppLibVersion(notification.EditingContext).Major < 9)
                 {
                     return hasChanges;
                 }

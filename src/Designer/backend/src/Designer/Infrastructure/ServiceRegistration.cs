@@ -109,6 +109,7 @@ public static class ServiceRegistration
         services.AddScoped<StudioctlAuthService>();
         services.AddHttpClient<IOrgService, OrgService>();
         services.AddHttpClient<ImageClient>();
+        services.AddTransient<IAppVersionService, AppVersionService>();
         services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
         services.AddTransient<IUiFoldersService, UiFoldersService>();
         services.AddTransient<ITaskNavigationService, TaskNavigationService>();
