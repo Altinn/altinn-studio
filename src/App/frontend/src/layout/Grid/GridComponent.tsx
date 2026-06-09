@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { ConditionalWrapper, Fieldset, FullWidthWrapper } from '@app/form-component';
+import { ConditionalWrapper, Fieldset, FullWidthWrapper, HelpTextContainer } from '@app/form-component';
 import { Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import { Caption } from 'src/components/form/caption/Caption';
-import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { LabelContent } from 'src/components/label/LabelContent';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
