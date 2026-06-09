@@ -80,8 +80,6 @@ public class AltinnAppGitRepository : AltinnGitRepository
     private static readonly Regex s_layoutSetNameRegex = new(@"^[a-zA-Z0-9_\-]{2,28}$", RegexOptions.Compiled);
     private static readonly Regex s_layoutNameRegex = new(@"^[a-zA-Z0-9_\-]{1,128}$", RegexOptions.Compiled);
 
-    private static readonly Regex s_layoutSetNameRegex = new(@"^[a-zA-Z0-9_\-]{2,28}$", RegexOptions.Compiled);
-    private static readonly Regex s_layoutNameRegex = new(@"^[a-zA-Z0-9_\-]{1,128}$", RegexOptions.Compiled);
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
         WriteIndented = true,
