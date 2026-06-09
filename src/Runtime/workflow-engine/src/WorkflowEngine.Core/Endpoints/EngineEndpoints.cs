@@ -20,47 +20,61 @@ internal static class EngineEndpoints
         app.MapGet("/api/v1/namespaces", EngineRequestHandlers.ListNamespaces)
             .WithTags("Namespaces")
             .WithName("ListNamespaces")
+            .WithSummary("List namespaces")
             .WithDescription("Lists all distinct namespaces");
 
-        var group = app.MapGroup("/api/v1/{namespace}/workflows").WithTags("Workflows");
+        var workflowsGroup = app.MapGroup("/api/v1/{namespace}/workflows").WithTags("Workflows");
 
-        group
+        workflowsGroup
             .MapPost("", EngineRequestHandlers.EnqueueWorkflows)
             .WithName("EnqueueWorkflows")
+            .WithSummary("Enqueue workflows")
             .WithDescription("Enqueues one or more workflows, resolving their dependency graph");
 
-        group
+        workflowsGroup
             .MapGet("", EngineRequestHandlers.ListWorkflows)
             .WithName("ListWorkflows")
+            .WithSummary("List workflows")
             .WithDescription("Lists workflows, optionally filtered by collection key, labels, and statuses");
 
-        group
+        workflowsGroup
             .MapGet("/{workflowId:guid}", EngineRequestHandlers.GetWorkflow)
             .WithName("GetWorkflow")
+            .WithSummary("Get workflow")
             .WithDescription("Gets details of a single workflow by database ID");
 
-        group
+        workflowsGroup
             .MapGet("/{workflowId:guid}/dependency-graph", EngineRequestHandlers.GetWorkflowDependencyGraph)
             .WithName("GetWorkflowDependencyGraph")
+            .WithSummary("Get workflow dependency graph")
             .WithDescription(
                 "Gets the connected dependency graph reachable from the requested workflow through dependency or link relations in either direction"
             );
 
-        group
+        workflowsGroup
             .MapPost("/{workflowId:guid}/cancel", EngineRequestHandlers.CancelWorkflow)
             .WithName("CancelWorkflow")
+            .WithSummary("Cancel workflow")
             .WithDescription("Requests cancellation of a workflow");
 
-        group
+        workflowsGroup
             .MapPost("/{workflowId:guid}/resume", EngineRequestHandlers.ResumeWorkflow)
             .WithName("ResumeWorkflow")
+            .WithSummary("Resume workflow")
             .WithDescription("Resumes a terminal workflow (failed, canceled, dependency-failed) for re-processing");
 
         var collectionGroup = app.MapGroup("/api/v1/{namespace}/collections").WithTags("Collections");
 
         collectionGroup
+            .MapGet("", EngineRequestHandlers.ListCollections)
+            .WithName("ListCollections")
+            .WithSummary("List collections")
+            .WithDescription("Lists all workflow collections in the namespace, ordered by most recently updated");
+
+        collectionGroup
             .MapGet("/{key}", EngineRequestHandlers.GetCollection)
             .WithName("GetCollection")
+            .WithSummary("Get collection")
             .WithDescription("Gets a single workflow collection by key, including head workflow statuses");
 
         return app;
@@ -400,10 +414,21 @@ internal static class EngineRequestHandlers
         return edges;
     }
 
-    /// <summary>
-    /// Gets a single workflow collection by <paramref name="key"/> within the requested namespace.
-    /// Normalizes <paramref name="ns"/>, records the query metric, and returns 404 when the collection is missing.
-    /// </summary>
+    public static async Task<Results<Ok<IReadOnlyList<WorkflowCollectionResponse>>, NoContent>> ListCollections(
+        [FromRoute(Name = "namespace")] string ns,
+        [FromServices] IEngineRepository repository,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list-collections"));
+
+        ns = NormalizeNamespace(ns);
+
+        var collections = await repository.GetCollections(ns, cancellationToken);
+
+        return collections.Count == 0 ? TypedResults.NoContent() : TypedResults.Ok(collections);
+    }
+
     public static async Task<Results<Ok<WorkflowCollectionDetailResponse>, NotFound>> GetCollection(
         [FromRoute(Name = "namespace")] string ns,
         [FromRoute] string key,
