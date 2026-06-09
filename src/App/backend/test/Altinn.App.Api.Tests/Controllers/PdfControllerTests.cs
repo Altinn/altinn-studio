@@ -6,6 +6,7 @@ using Altinn.App.Core.Infrastructure.Clients.Pdf;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
@@ -88,7 +89,8 @@ public class PdfControllerTests
             generalSettingsOptions,
             _logger.Object,
             _authenticationContext.Object,
-            _translationService.Object
+            _translationService.Object,
+            _appResources.Object
         );
         return pdfService;
     }

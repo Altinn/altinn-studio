@@ -7,10 +7,12 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Tests.TestUtils;
@@ -631,6 +633,323 @@ public class PdfServiceTests
         return mutatorMock;
     }
 
+    [Fact]
+    public async Task GenerateAndStorePdf_WithDisplayFooter_HideAppNameInPdfExpression_EvaluatesToTrue_FooterShouldNotContainAppName()
+    {
+        // Arrange
+        _appResources
+            .Setup(s => s.GetGlobalUiSettings())
+            .Returns(
+                new GlobalPageSettings
+                {
+                    HideAppNameInPdf = new Expression(
+                        ExpressionFunction.equals,
+                        new Expression((ExpressionValue)"a"),
+                        new Expression((ExpressionValue)"a")
+                    ),
+                }
+            );
+
+        _pdfGeneratorClient
+            .Setup(s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new MemoryStream());
+        _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
+
+        var target = SetupPdfService(
+            pdfGeneratorClient: _pdfGeneratorClient,
+            generalSettingsOptions: _generalSettingsOptions,
+            pdfGeneratorSettingsOptions: Options.Create(new PdfGeneratorSettings { DisplayFooter = true })
+        );
+
+        Instance instance = new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+            Data = [],
+        };
+
+        // Act
+        var mutatorMock = CreateMutatorMock(instance);
+        await target.GenerateAndStorePdf(mutatorMock.Object, ct: CancellationToken.None);
+
+        _pdfGeneratorClient.Verify(
+            s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.Is<string?>(footer => footer != null && !footer.Contains("not-really-an-app")),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task GenerateAndStorePdf_WithDisplayFooter_HideAppNameInPdfTrue_FooterShouldNotContainAppName()
+    {
+        // Arrange
+        _appResources
+            .Setup(s => s.GetGlobalUiSettings())
+            .Returns(new GlobalPageSettings { HideAppNameInPdf = new Expression(ExpressionValue.True) });
+        _pdfGeneratorClient
+            .Setup(s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new MemoryStream());
+        _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
+
+        var target = SetupPdfService(
+            pdfGeneratorClient: _pdfGeneratorClient,
+            generalSettingsOptions: _generalSettingsOptions,
+            pdfGeneratorSettingsOptions: Options.Create(new PdfGeneratorSettings { DisplayFooter = true })
+        );
+
+        Instance instance = new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+        };
+
+        // Act
+        var mutatorMock = CreateMutatorMock(instance);
+        await target.GenerateAndStorePdf(mutatorMock.Object, ct: CancellationToken.None);
+
+        // Assert
+        _pdfGeneratorClient.Verify(
+            s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.Is<string?>(footer => footer != null && !footer.Contains("not-really-an-app")),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task GenerateAndStorePdf_WithDisplayFooter_HideAppNameInPdfFalse_FooterShouldContainAppName()
+    {
+        // Arrange
+        _appResources
+            .Setup(s => s.GetGlobalUiSettings())
+            .Returns(new GlobalPageSettings { HideAppNameInPdf = new Expression(ExpressionValue.False) });
+        _pdfGeneratorClient
+            .Setup(s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new MemoryStream());
+        _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
+
+        var target = SetupPdfService(
+            pdfGeneratorClient: _pdfGeneratorClient,
+            generalSettingsOptions: _generalSettingsOptions,
+            pdfGeneratorSettingsOptions: Options.Create(new PdfGeneratorSettings { DisplayFooter = true })
+        );
+
+        Instance instance = new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+        };
+
+        // Act
+        var mutatorMock = CreateMutatorMock(instance);
+        await target.GenerateAndStorePdf(mutatorMock.Object, ct: CancellationToken.None);
+
+        // Assert
+        _pdfGeneratorClient.Verify(
+            s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.Is<string?>(footer => footer != null && footer.Contains("not-really-an-app")),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task GenerateAndStorePdf_WithDisplayFooter_NoUiSettings_FooterShouldContainAppName()
+    {
+        // Arrange
+        _pdfGeneratorClient
+            .Setup(s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new MemoryStream());
+        _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
+
+        var target = SetupPdfService(
+            pdfGeneratorClient: _pdfGeneratorClient,
+            generalSettingsOptions: _generalSettingsOptions,
+            pdfGeneratorSettingsOptions: Options.Create(new PdfGeneratorSettings { DisplayFooter = true })
+        );
+
+        Instance instance = new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+        };
+
+        // Act
+        var mutatorMock = CreateMutatorMock(instance);
+        await target.GenerateAndStorePdf(mutatorMock.Object, ct: CancellationToken.None);
+
+        // Assert
+        _pdfGeneratorClient.Verify(
+            s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.Is<string?>(footer => footer != null && footer.Contains("not-really-an-app")),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task GenerateAndStorePdf_WithDisplayFooter_MalformedLayoutSets_ShouldStillGeneratePdfWithAppName()
+    {
+        // Arrange
+        _appResources.Setup(s => s.GetGlobalUiSettings()).Throws<System.Text.Json.JsonException>();
+        _pdfGeneratorClient
+            .Setup(s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new MemoryStream());
+        _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
+
+        var target = SetupPdfService(
+            pdfGeneratorClient: _pdfGeneratorClient,
+            generalSettingsOptions: _generalSettingsOptions,
+            pdfGeneratorSettingsOptions: Options.Create(new PdfGeneratorSettings { DisplayFooter = true })
+        );
+
+        Instance instance = new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+        };
+
+        // Act
+        var mutatorMock = CreateMutatorMock(instance);
+        await target.GenerateAndStorePdf(mutatorMock.Object, ct: CancellationToken.None);
+
+        // Assert
+        _pdfGeneratorClient.Verify(
+            s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.Is<string?>(footer => footer != null && footer.Contains("not-really-an-app")),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task GeneratePdf_NoMutator_HideAppNameInPdfExpression_EvaluatesToTrue_FooterShouldNotContainAppName()
+    {
+        // Arrange: the non-mutator GeneratePdf(Instance, taskId, ...) path (preview/signing/payment) has no
+        // data accessor in scope, so a non-literal expression must fall back to InstanceDataUnitOfWorkInitializer.Init.
+        // This test fails if that initializer is ever removed from PdfService.
+        _appResources
+            .Setup(s => s.GetGlobalUiSettings())
+            .Returns(
+                new GlobalPageSettings
+                {
+                    HideAppNameInPdf = new Expression(
+                        ExpressionFunction.equals,
+                        new Expression((ExpressionValue)"a"),
+                        new Expression((ExpressionValue)"a")
+                    ),
+                }
+            );
+
+        _pdfGeneratorClient
+            .Setup(s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new MemoryStream());
+        _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
+
+        var target = SetupPdfService(
+            pdfGeneratorClient: _pdfGeneratorClient,
+            generalSettingsOptions: _generalSettingsOptions,
+            pdfGeneratorSettingsOptions: Options.Create(new PdfGeneratorSettings { DisplayFooter = true })
+        );
+
+        Instance instance = new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+            Data = [],
+        };
+
+        // Act
+        await target.GeneratePdf(instance, "Task_1", isPreview: false, ct: CancellationToken.None);
+
+        // Assert
+        _pdfGeneratorClient.Verify(
+            s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.Is<string?>(footer => footer != null && !footer.Contains("not-really-an-app")),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
     private PdfService SetupPdfService(
         Mock<IAppResources>? appResources = null,
         Mock<IHttpContextAccessor>? httpContentAccessor = null,
@@ -641,6 +960,38 @@ public class PdfServiceTests
         TelemetrySink? telemetrySink = null
     )
     {
+        // Setup a mock service provider with InstanceDataUnitOfWorkInitializer (used by hideAppNameInPdf evaluation)
+        var mockServiceProvider = new Mock<IServiceProvider>();
+        var mockDataClient = new Mock<IDataClient>();
+        var mockInstanceClient = new Mock<IInstanceClient>();
+        var mockAppMetadata = new Mock<IAppMetadata>();
+
+        var dataType = new DataType() { Id = "Model" };
+        var applicationMetadata = new ApplicationMetadata("digdir/not-really-an-app") { DataTypes = [dataType] };
+        mockAppMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+
+        var uiFolderComponent = new UiFolderComponent(new List<PageComponent>(), "layout", dataType);
+        var layoutModel = new LayoutModel([uiFolderComponent], null);
+        var appResourcesForInitializer = appResources ?? _appResources;
+        appResourcesForInitializer.Setup(x => x.GetLayoutModelForFolder(It.IsAny<string>())).Returns(layoutModel);
+
+        var initializer = new InstanceDataUnitOfWorkInitializer(
+            mockDataClient.Object,
+            mockInstanceClient.Object,
+            mockAppMetadata.Object,
+            new TranslationService(
+                new AppIdentifier("digdir", "not-really-an-app"),
+                appResources?.Object ?? _appResources.Object,
+                FakeLoggerXunit.Get<TranslationService>(_outputHelper)
+            ),
+            null!, // ModelSerializationService not needed for these tests
+            appResources?.Object ?? _appResources.Object,
+            Options.Create(new FrontEndSettings()),
+            null
+        );
+
+        mockServiceProvider.Setup(x => x.GetService(typeof(InstanceDataUnitOfWorkInitializer))).Returns(initializer);
+
         return new PdfService(
             httpContentAccessor?.Object ?? _httpContextAccessor.Object,
             pdfGeneratorClient?.Object ?? _pdfGeneratorClient.Object,
@@ -653,6 +1004,8 @@ public class PdfServiceTests
                 appResources?.Object ?? _appResources.Object,
                 FakeLoggerXunit.Get<TranslationService>(_outputHelper)
             ),
+            appResources?.Object ?? _appResources.Object,
+            mockServiceProvider.Object,
             telemetrySink?.Object
         );
     }

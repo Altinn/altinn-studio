@@ -1,7 +1,5 @@
+import { type FixedLanguageList, getLanguageFromCode } from '@app/language';
 import { TZDate } from '@date-fns/tz';
-
-import { getLanguageFromCode } from 'src/language/languages';
-import type { FixedLanguageList } from 'src/language/languages';
 
 const UNICODE_TOKENS = /[^a-zA-Z0-9]+/g;
 type Separator = string | undefined;
