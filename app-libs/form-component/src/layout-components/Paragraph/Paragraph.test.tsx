@@ -7,15 +7,14 @@ import { Paragraph } from './Paragraph';
 
 interface Stubs {
   lang?: (key: string | undefined) => ReactNode;
-  translate?: (key: string) => string;
+  langAsString?: (key: string | undefined) => string;
 }
 
-const renderParagraph = (ui: ReactNode, { lang, translate }: Stubs = {}) =>
+const renderParagraph = (ui: ReactNode, { lang, langAsString }: Stubs = {}) =>
   render(
     <LanguageTranslatorProvider
       lang={lang ?? ((key) => key ?? null)}
-      translate={translate ?? ((key) => key)}
-      TranslateComponent={({ tKey }) => <span>{tKey}</span>}
+      langAsString={langAsString ?? ((key) => key ?? '')}
     >
       {ui}
     </LanguageTranslatorProvider>,
@@ -46,14 +45,14 @@ describe('Paragraph', () => {
 
   it('composes the help aria-label from the resolved title and the translated prefix', () => {
     renderParagraph(<Paragraph id='p' title='my.title' help='my.help' />, {
-      translate: (key) => {
+      langAsString: (key) => {
         if (key === 'my.title') {
           return 'My Title';
         }
         if (key === 'helptext.button_title_prefix') {
           return 'Help for';
         }
-        return key;
+        return key ?? '';
       },
     });
     expect(screen.getByRole('button')).toHaveAttribute('aria-label', 'Help for My Title');
@@ -61,7 +60,7 @@ describe('Paragraph', () => {
 
   it('falls back to the button_title key for the aria-label when there is no title', () => {
     renderParagraph(<Paragraph id='p' help='my.help' />, {
-      translate: (key) => (key === 'helptext.button_title' ? 'Help' : key),
+      langAsString: (key) => (key === 'helptext.button_title' ? 'Help' : (key ?? '')),
     });
     expect(screen.getByRole('button')).toHaveAttribute('aria-label', 'Help');
   });

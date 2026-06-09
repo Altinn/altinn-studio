@@ -472,7 +472,7 @@ const renderBase = async ({
         devTools={false}
         dataModelFetcher={false}
       >
-        {children}
+        <AppLanguageTranslatorProvider>{children}</AppLanguageTranslatorProvider>
       </RenderStart>
     </Providers>
   );

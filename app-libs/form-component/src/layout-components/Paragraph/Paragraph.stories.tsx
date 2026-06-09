@@ -31,8 +31,7 @@ const meta = {
     (Story) => (
       <LanguageTranslatorProvider
         lang={(key) => (key ? (TEXTS[key] ?? key) : null)}
-        translate={(key) => STRINGS[key] ?? key}
-        TranslateComponent={({ tKey }) => TEXTS[tKey] ?? tKey}
+        langAsString={(key) => (key ? (STRINGS[key] ?? key) : '')}
       >
         <Story />
       </LanguageTranslatorProvider>

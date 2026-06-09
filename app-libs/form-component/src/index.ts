@@ -12,3 +12,4 @@ export { LanguageTranslatorProvider } from './LanguageTranslatorProvider';
 
 export * from './app-components';
 export * from './layout-components';
+export * from './layout-components/common/HelpTextContainer';
