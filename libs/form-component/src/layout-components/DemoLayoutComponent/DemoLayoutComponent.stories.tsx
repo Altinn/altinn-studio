@@ -14,4 +14,20 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Preview: Story = {};
+export const Preview: Story = {
+  args: {
+    content:
+      '<h2>This is content set with props a text, but can be html or mark down</h2><p>And this is a paragraph</p>',
+  },
+};
+
+export const WithMarkdown: Story = {
+  args: {
+    content: `# This is content set with props a text, but can be html or mark down
+
+And this is a paragraph
+
+- And this is a list item
+- And this is another list item`,
+  },
+};
