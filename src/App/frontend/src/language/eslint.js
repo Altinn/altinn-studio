@@ -5,7 +5,7 @@ let validLanguageKeys = undefined;
 function getValidLanguageKeys(source = undefined) {
   if (validLanguageKeys === undefined || source !== undefined) {
     const sourceCode =
-      source ?? fs.readFileSync(`${__dirname}/../../../../../libs/app-language/src/texts/en.ts`, 'utf-8');
+      source ?? fs.readFileSync(`${__dirname}/../../../../../app-libs/app-language/src/texts/en.ts`, 'utf-8');
     const functionSet = sourceCode.replace('export function en() {', 'en = () => {');
     if (functionSet.indexOf('return') === -1) {
       throw new Error('Language file en.ts does not contain a return statement');

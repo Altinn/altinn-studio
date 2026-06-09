@@ -6,10 +6,10 @@ on:
     paths:
       - 'src/App/frontend/src/**'
       - 'src/App/frontend/package.json'
-      - 'libs/form-component/src/**'
-      - 'libs/form-component/package.json'
-      - 'libs/app-language/src/**'
-      - 'libs/app-language/package.json'
+      - 'app-libs/form-component/src/**'
+      - 'app-libs/form-component/package.json'
+      - 'app-libs/app-language/src/**'
+      - 'app-libs/app-language/package.json'
       - '.github/workflows/app-frontend-unit-tests.yml'
   workflow_dispatch:
 

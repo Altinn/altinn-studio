@@ -4,10 +4,10 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
-      - 'libs/form-component/src/**'
-      - 'libs/form-component/package.json'
-      - 'libs/form-component/tsconfig.json'
-      - 'libs/form-component/vitest.config.ts'
+      - 'app-libs/form-component/src/**'
+      - 'app-libs/form-component/package.json'
+      - 'app-libs/form-component/tsconfig.json'
+      - 'app-libs/form-component/vitest.config.ts'
       - '.github/workflows/libs-form-component-unit-tests.yml'
   workflow_dispatch:
 
@@ -23,7 +23,7 @@ jobs:
     name: Unit tests
     defaults:
       run:
-        working-directory: libs/form-component/
+        working-directory: app-libs/form-component/
     steps:
       - name: checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
