@@ -15,6 +15,8 @@ import type { IFeatureToggles } from 'src/features/toggles';
 import type { ILayoutFile } from 'src/layout/common.generated';
 import type { ILayoutCollection, ILayouts } from 'src/layout/layout';
 import JQueryWithSelector = Cypress.JQueryWithSelector;
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
+
 import type { IDataModelMultiPatchResponse } from 'src/features/formData/types';
 
 const appFrontend = new AppFrontend();
@@ -676,10 +678,16 @@ Cypress.Commands.add(
     cy.log('Testing PDF');
 
     cy.window({ log: false }).then((win) => {
-      // A regular cy.visit() would not work here, as it would just trigger a hash-change
-      const url = buildUrl(win.location.href);
-      cy.visit(`${win.location.protocol}//${win.location.host}${win.location.pathname}/login.html`);
-      cy.visit(url);
+      const visitUrl = buildUrl(win.location.href);
+
+      // Visit this first so that we don't just re-route in the active react app
+      win.location.href = 'about:blank';
+
+      // After the navigation rewrite where we now add the current task ID to the URL, this test is only realistic if
+      // we remove the task and page from the URL before rendering the PDF. This is because the real PDF generator
+      // won't know about the task and page, and will load this URL and assume the app will figure out how to display
+      // the current task as a PDF.
+      cy.visit(visitUrl);
     });
 
     // Wait for readyForPrint, after this everything should be rendered so using timeout: 0
@@ -1026,10 +1034,7 @@ Cypress.Commands.add('setFeatureToggle', (toggleName: IFeatureToggles, value: bo
 });
 
 Cypress.Commands.add('preventPartySelection', () => {
-  cy.intercept('**/api/v1/applicationmetadata', (req) => {
-    req.reply((res) => {
-      const body = res.body as IncomingApplicationMetadata;
-      body.promptForParty = 'never';
-    });
-  }).as('preventPartySelection');
+  interceptAltinnAppGlobalData((globalData) => {
+    globalData.applicationMetadata.promptForParty = 'never';
+  });
 });

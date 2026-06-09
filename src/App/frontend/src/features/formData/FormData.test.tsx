@@ -162,8 +162,11 @@ async function statefulRender(props: RenderProps) {
     queries: {
       ...props.queries,
       fetchFormBootstrapForInstance: async (...args) => {
-        const obj = (await props.queries?.fetchFormBootstrapForInstance?.(...args)) ?? getFormBootstrapMock();
-        obj.dataModels[defaultDataTypeMock].schema = mockSchema;
+        const defaults = getFormBootstrapMock();
+        const obj = (await props.queries?.fetchFormBootstrapForInstance?.(...args)) ?? defaults;
+        if (obj.dataModels[defaultDataTypeMock].schema === defaults.dataModels[defaultDataTypeMock].schema) {
+          obj.dataModels[defaultDataTypeMock].schema = mockSchema;
+        }
         obj.layouts = {};
         return obj;
       },
@@ -857,8 +860,13 @@ describe('FormData', () => {
       return statefulRender({
         renderer: <ListWriter />,
         queries: {
-          fetchDataModelSchema: async () => listSchema,
-          fetchFormData: async () => ({ designs: [{ attachmentId: ['id-1', 'id-2'] }] }),
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].schema = listSchema;
+              obj.dataModels[defaultDataTypeMock].initialData = {
+                designs: [{ attachmentId: ['id-1', 'id-2'] }],
+              };
+            }),
         },
       });
     }

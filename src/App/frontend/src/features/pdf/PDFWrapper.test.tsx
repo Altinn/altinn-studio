@@ -6,7 +6,6 @@ import { screen, waitFor } from '@testing-library/react';
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getPartyMock, getServiceOwnerPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
@@ -14,7 +13,6 @@ import { FormProvider } from 'src/features/form/FormProvider';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { AppQueries } from 'src/queries/types';
 
 const exampleGuid = '75154373-aed4-41f7-95b4-e5b5115c2edc';
 const exampleInstanceId = `512345/${exampleGuid}`;
@@ -24,7 +22,7 @@ enum RenderAs {
   ServiceOwner,
 }
 
-const render = async (renderAs: RenderAs, queriesOverride?: Partial<AppQueries>) => {
+const render = async (renderAs: RenderAs) => {
   window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock((m) => {
     m.org = 'brg';
     m.partyTypesAllowed.person = true;
@@ -71,7 +69,6 @@ const render = async (renderAs: RenderAs, queriesOverride?: Partial<AppQueries>)
         getFormBootstrapMock((obj) => {
           obj.layouts = {};
         }),
-      ...queriesOverride,
     },
     apis: {
       instanceApi: {
@@ -111,9 +108,8 @@ describe('PDFWrapper', () => {
     });
 
     it('should show app name when hideAppNameInPdf is set to false', async () => {
-      const result = await render(RenderAs.User, {
-        fetchLayoutSets: async () => ({ ...getLayoutSetsMock(), uiSettings: { hideAppNameInPdf: false } }),
-      });
+      window.altinnAppGlobalData.ui.settings!.hideAppNameInPdf = false;
+      const result = await render(RenderAs.User);
 
       await waitFor(() => expect(result.container.querySelector('#readyForPrint')).not.toBeNull(), { timeout: 5000 });
 
@@ -121,9 +117,8 @@ describe('PDFWrapper', () => {
     });
 
     it('should hide app name when hideAppNameInPdf is set to true', async () => {
-      const result = await render(RenderAs.User, {
-        fetchLayoutSets: async () => ({ ...getLayoutSetsMock(), uiSettings: { hideAppNameInPdf: true } }),
-      });
+      window.altinnAppGlobalData.ui.settings!.hideAppNameInPdf = true;
+      const result = await render(RenderAs.User);
 
       await waitFor(() => expect(result.container.querySelector('#readyForPrint')).not.toBeNull(), { timeout: 5000 });
 

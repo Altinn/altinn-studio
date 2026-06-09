@@ -10,23 +10,14 @@ type ReqCounter = { count: number };
 describe('Auto save behavior', () => {
   it('onChangeFormData: Should save form data when interacting with form element(checkbox) but not on navigation', () => {
     interceptAltinnAppGlobalData((globalData) => {
-      globalData.ui.settings ??= {
-        hideCloseButton: false,
-        showLanguageSelector: false,
-        showExpandWidthButton: false,
-        expandedWidth: false,
-        showProgress: true,
-        autoSaveBehavior: 'onChangePage',
-        taskNavigation: [],
-      };
-      globalData.ui.settings.autoSaveBehavior = 'onChangeFormData';
+      globalData.ui.settings!.autoSaveBehavior = 'onChangeFormData';
     });
+    cy.goto('group');
+    cy.waitUntilSaved();
     cy.intercept('PATCH', '**/data?language=*').as('saveFormData');
 
-    cy.goto('group');
-
     cy.findByRole('checkbox', { name: appFrontend.group.prefill.liten }).check();
-    cy.get('@saveFormData.all').should('have.length', 2);
+    cy.get('@saveFormData.all').should('have.length', 1);
 
     cy.findByRole('button', { name: 'Neste' }).clickAndGone();
     cy.get('@saveFormData.all').should('have.length', 1);
@@ -42,29 +33,21 @@ describe('Auto save behavior', () => {
 
   it('onChangePage: Should not save form when interacting with form element(checkbox), but should save on navigating between pages', () => {
     interceptAltinnAppGlobalData((globalData) => {
-      globalData.ui.settings ??= {
-        hideCloseButton: false,
-        showLanguageSelector: false,
-        showExpandWidthButton: false,
-        expandedWidth: false,
-        showProgress: true,
-        autoSaveBehavior: 'onChangePage',
-        taskNavigation: [],
-      };
-      globalData.ui.settings.autoSaveBehavior = 'onChangePage';
+      globalData.ui.settings!.autoSaveBehavior = 'onChangePage';
     });
-    cy.intercept('PATCH', '**/data?language=*').as('saveFormData');
     cy.goto('group');
+    cy.waitUntilSaved();
+    cy.intercept('PATCH', '**/data?language=*').as('saveFormData');
 
     cy.findByRole('checkbox', { name: appFrontend.group.prefill.liten }).check();
     // Doing a hard wait to be sure no request is sent to backend
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(1000);
-    cy.get('@saveFormData.all').should('have.length', 1);
+    cy.get('@saveFormData.all').should('have.length', 0);
 
     // At this point we've saved the prefill value (1).
     cy.findByRole('button', { name: 'Neste' }).clickAndGone();
-    cy.get('@saveFormData.all').should('have.length', 2);
+    cy.get('@saveFormData.all').should('have.length', 1);
 
     // Clicking the back button does not save anything, because we didn't
     // change anything in the form data worth saving
@@ -107,16 +90,7 @@ describe('Auto save behavior', () => {
   (['current', 'all'] as const).forEach((pages) => {
     it(`should run save before single field validation with navigation trigger ${pages || 'undefined'}`, () => {
       interceptAltinnAppGlobalData((globalData) => {
-        globalData.ui.settings ??= {
-          hideCloseButton: false,
-          showLanguageSelector: false,
-          showExpandWidthButton: false,
-          expandedWidth: false,
-          showProgress: true,
-          autoSaveBehavior: 'onChangePage',
-          taskNavigation: [],
-        };
-        globalData.ui.settings.autoSaveBehavior = 'onChangePage';
+        globalData.ui.settings!.autoSaveBehavior = 'onChangePage';
       });
       cy.interceptLayout('Task_2', (component) => {
         if (component.type === 'NavigationButtons') {
@@ -128,8 +102,8 @@ describe('Auto save behavior', () => {
         }
       });
 
-      cy.intercept('PATCH', '**/data?language=*').as('saveFormData');
       cy.goto('changename');
+      cy.intercept('PATCH', '**/data?language=*').as('saveFormData');
 
       // The newFirstName field has a trigger for single field validation, and it should cause a very specific error
       // message to appear if the field is set to 'test'. Regardless of the trigger on page navigation, if we're saving
@@ -196,16 +170,7 @@ describe('Auto save behavior', () => {
   ([undefined, 'current', 'currentAndPrevious', 'all'] as const).forEach((validateOnNext) => {
     it(`should run save before single field validation with validateOnNext = ${validateOnNext || 'undefined'}`, () => {
       interceptAltinnAppGlobalData((globalData) => {
-        globalData.ui.settings ??= {
-          hideCloseButton: false,
-          showLanguageSelector: false,
-          showExpandWidthButton: false,
-          expandedWidth: false,
-          showProgress: true,
-          autoSaveBehavior: 'onChangePage',
-          taskNavigation: [],
-        };
-        globalData.ui.settings.autoSaveBehavior = 'onChangePage';
+        globalData.ui.settings!.autoSaveBehavior = 'onChangePage';
       });
       cy.interceptLayout('Task_2', (component) => {
         if (component.type === 'NavigationButtons') {

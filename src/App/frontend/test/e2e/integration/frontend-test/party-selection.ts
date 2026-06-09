@@ -224,11 +224,3 @@ describe('Party selection', () => {
     cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
   });
 });
-
-function clickValidParty(cyUser: CyUser) {
-  if (Cypress.env('type') === 'localtest') {
-    cy.findByText(cyUserCredentials[cyUser].displayName).click();
-  } else {
-    cy.findByText(Tenor.users.humanAndrefiolin.name.toUpperCase()).click();
-  }
-}
