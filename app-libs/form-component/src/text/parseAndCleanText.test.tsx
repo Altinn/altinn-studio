@@ -39,6 +39,38 @@ describe('parseAndCleanText', () => {
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
+  it('treats spoofed hostnames as external', () => {
+    render(
+      <div data-testid='wrapper'>{parseAndCleanText('[spoof](https://altinn.no.evil.com)')}</div>,
+    );
+    const link = screen.getByRole('link', { name: 'spoof' });
+    expect(link).toHaveClass('target-external');
+  });
+
+  it('treats trusted Altinn subdomains as internal', () => {
+    render(
+      <div data-testid='wrapper'>
+        {parseAndCleanText('[internal](https://www.altinn.no/help)')}
+      </div>,
+    );
+    const link = screen.getByRole('link', { name: 'internal' });
+    expect(link).toHaveClass('target-internal');
+    expect(link).not.toHaveClass('target-external');
+  });
+
+  it('keeps relative, mailto and anchor links internal', () => {
+    render(
+      <div data-testid='wrapper'>
+        {parseAndCleanText('[rel](/some/path) [mail](mailto:a@altinn.no) [anchor](#section)')}
+      </div>,
+    );
+    for (const name of ['rel', 'mail', 'anchor']) {
+      const link = screen.getByRole('link', { name });
+      expect(link).toHaveClass('target-internal');
+      expect(link).not.toHaveClass('target-external');
+    }
+  });
+
   it('lets an injected replace override node rendering and fall through otherwise', () => {
     const replace: ParserReplace = (domNode) => {
       if (isElement(domNode) && domNode.name === 'a') {

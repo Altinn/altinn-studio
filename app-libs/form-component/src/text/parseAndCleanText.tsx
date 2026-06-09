@@ -11,6 +11,30 @@ import type {
 
 marked.use(mangle());
 
+const TRUSTED_DOMAINS = ['local.altinn', 'altinn.no', 'altinn.cloud', 'basefarm.net'];
+
+/**
+ * Determines whether a link points off-site. Only absolute or protocol-relative URLs can be
+ * external; relative paths, `mailto:`, and `#anchor` links stay internal. For candidate URLs the
+ * hostname is parsed and compared exactly (or as a subdomain) against the trusted list, so that
+ * spoofed hosts like `https://altinn.no.evil.com` are correctly treated as external. URLs that look
+ * absolute but fail to parse are treated as external/unsafe.
+ */
+function isExternalLink(url: string, baseURI: string): boolean {
+  if (!/^(https?:)?\/\//i.test(url)) {
+    return false;
+  }
+
+  let hostname: string;
+  try {
+    hostname = new URL(url, baseURI).hostname.toLowerCase();
+  } catch {
+    return true;
+  }
+
+  return !TRUSTED_DOMAINS.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`));
+}
+
 DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   if (!(node instanceof Element)) {
     return;
@@ -19,12 +43,9 @@ DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   if (node['tagName'] === 'A') {
     node.classList.add('altinnLink');
     const url = node.getAttribute('href') || '';
-    if (
-      url.startsWith('http') &&
-      !url.match(/(local\.altinn|altinn\.no|altinn\.cloud|basefarm\.net)/)
-    ) {
+
+    if (isExternalLink(url, node.baseURI)) {
       node.classList.add('target-external');
-      node.setAttribute('rel', 'noopener noreferrer');
     } else {
       node.classList.add('target-internal');
     }
@@ -33,6 +54,7 @@ DOMPurify.addHook('afterSanitizeAttributes', (node) => {
       node.setAttribute('target', '_self');
     } else {
       node.setAttribute('target', '_blank');
+      node.setAttribute('rel', 'noopener noreferrer');
     }
   }
 });
