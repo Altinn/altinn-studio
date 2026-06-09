@@ -21,6 +21,6 @@ The goal is to allow Studio Designer to use this library for application preview
 
 ### Rendering Focus
 
-This library should contain minimal business logic and focus on rendering based on props and data. Business logic should remain in /src/App/frontend or be moved to libs/form-engine.
+This library should contain minimal business logic and focus on rendering based on props and data. Business logic should remain in /src/App/frontend or be moved to app-libs/form-engine.
 
-**Guideline:** If code does not depend on React, consider keeping it in /src/App/frontend or move it to libs/form-engine. In other words, if we for some reason were to use another library than React, it is beneficial if this library only contains code that actually needs to be rewritten because of that change.
+**Guideline:** If code does not depend on React, consider keeping it in /src/App/frontend or move it to app-libs/form-engine. In other words, if we for some reason were to use another library than React, it is beneficial if this library only contains code that actually needs to be rewritten because of that change.

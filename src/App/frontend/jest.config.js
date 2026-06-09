@@ -27,8 +27,8 @@ const config = {
   moduleNameMapper: {
     '^src/(.*)$': '<rootDir>/src/$1',
     '^schemas/(.*)$': '<rootDir>/schemas/$1',
-    '^@app/form-component/(.*)$': '<rootDir>/../../../libs/form-component/src/$1',
-    '^@app/language/(.*)$': '<rootDir>/../../../libs/app-language/src/$1',
+    '^@app/form-component/(.*)$': '<rootDir>/../../../app-libs/form-component/src/$1',
+    '^@app/language/(.*)$': '<rootDir>/../../../app-libs/language/src/$1',
     '^react$': path.join(repoNodeModules, 'react'),
     '^react-dom$': path.join(repoNodeModules, 'react-dom'),
     '^react/jsx-runtime$': path.join(repoNodeModules, 'react/jsx-runtime.js'),

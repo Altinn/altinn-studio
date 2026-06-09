@@ -5,7 +5,7 @@ const appFrontend = new AppFrontend();
 
 describe('Anonymous (stateless)', () => {
   beforeEach(() => {
-    cy.startAppInstance(appFrontend.apps.anonymousStateless, { cyUser: null });
+    cy.startAppInstance(appFrontend.apps.anonymousStateless, { cyUser: null, tenorUser: null });
     cy.get(appFrontend.stateless.name).should('exist').and('be.visible');
   });
 

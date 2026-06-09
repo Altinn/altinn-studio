@@ -262,12 +262,23 @@ This enables safe horizontal scaling: if Instance A crashes, Instance B reclaims
 POST /api/v1/{namespace}/workflows/{workflowId}/cancel
 ```
 
-1. Sets `CancellationRequestedAt` in the database
+1. Sets `CancellationRequestedAt` in the database (durable, atomic — this is the source of truth)
 2. `CancellationWatcherService` polls for pending cancellations
 3. In-flight workflows receive a cancellation token signal
 4. `WorkflowHandler` catches the cancellation and marks the workflow `Canceled`
 
 Cancellation is **idempotent** — multiple calls return the original timestamp.
+
+### Immediate vs. distributed cancellation
+
+Setting the database flag always succeeds atomically, but *when* the workflow actually stops depends on where it is running. The `canceledImmediately` field in the response distinguishes the two paths:
+
+- **Immediate (`canceledImmediately: true`)** — the pod that received the cancel request is the same pod currently executing the workflow. Its `CancellationTokenSource` is triggered synchronously before the response returns, aborting the running step's in-flight work (e.g. the outbound HTTP call) right away. Sub-second, bounded only by how promptly the command honors its token.
+- **Distributed (`canceledImmediately: false`)** — the flag is set, but the workflow isn't in the receiving pod's in-flight set. It is either:
+    - **running on another pod** — picked up by that pod's `CancellationWatcherService` on its next tick (`CancellationWatcherInterval`, default 2s), or
+    - **not yet started** (Enqueued/Requeued) — finalized as `Canceled` the next time the processor fetches it, without executing any step.
+
+In all cases the database flag guarantees the workflow *will* be canceled; `canceledImmediately` only reports whether the interrupt was delivered in-process during the call. A `200` response means the request was accepted and applied; a `202` means cancellation was already pending (idempotent re-request).
 
 ## Resume
 
@@ -506,10 +517,30 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
 
 ### List Workflows
 
-Filter by labels:
+```http
+GET /api/v1/{namespace}/workflows
+```
+
+Supports the following optional query parameters (all repeatable params can be supplied multiple times):
+
+| Parameter       | Repeatable | Description                                                                                                                                          |
+| --------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `status`        | Yes        | Filter by workflow status. Case-insensitive. One of `Enqueued`, `Processing`, `Requeued`, `Completed`, `Failed`, `Canceled`, `DependencyFailed`. Omit to return all statuses; an unrecognized value returns `400 Bad Request`. |
+| `label`         | Yes        | Filter by label, formatted as `key:value`. Entries without a `:` are ignored.                                                                        |
+| `collectionKey` | No         | Filter to a single collection.                                                                                                                       |
+| `cursor`        | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                          |
+| `pageSize`      | No         | Items per page. Defaults to 25, clamped to the range 1–100.                                                                                           |
+
+Filter by status — e.g. all failed workflows (combine values to widen the set):
 
 ```http
-GET /api/v1/ttd:my-app/workflows?labels.org=ttd&labels.app=my-app
+GET /api/v1/ttd:my-app/workflows?status=Failed&status=DependencyFailed
+```
+
+Filter by labels (repeated `label` param, `key:value` format):
+
+```http
+GET /api/v1/ttd:my-app/workflows?label=org:ttd&label=app:my-app
 ```
 
 Find all workflows for a specific collection via collectionKey:
@@ -518,13 +549,26 @@ Find all workflows for a specific collection via collectionKey:
 GET /api/v1/ttd:my-app/workflows?collectionKey=a1b2c3d4-e5f6-7890-abcd-ef1234567890
 ```
 
-Or combine filters — e.g. all workflows for a specific instance owner:
+Or combine filters — e.g. all failed workflows for a specific instance owner:
 
 ```http
-GET /api/v1/ttd:my-app/workflows?labels.instanceOwnerPartyId=50001234
+GET /api/v1/ttd:my-app/workflows?status=Failed&label=instanceOwnerPartyId:50001234
 ```
 
-Returns an array of `WorkflowStatusResponse` (same shape as the single workflow GET above).
+**Response (200 OK):** a cursor-paginated `PaginatedResponse` wrapping `WorkflowStatusResponse` items (each the same shape as the single workflow GET above). Returns `204 No Content` when no workflows match.
+
+```json
+{
+    "data": [
+        /* WorkflowStatusResponse items */
+    ],
+    "pageSize": 25,
+    "totalCount": 142,
+    "nextCursor": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+}
+```
+
+Paginate by passing `nextCursor` back as `?cursor=`. A `null` `nextCursor` indicates the last page.
 
 ### Cancel Workflow
 
@@ -542,6 +586,8 @@ POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/cancel
 }
 ```
 
+`canceledImmediately` reports whether the interrupt was delivered synchronously (the receiving pod was running the workflow) or whether it will be applied via the distributed path — see [Immediate vs. distributed cancellation](#immediate-vs-distributed-cancellation). Returns `202 Accepted` instead when cancellation was already pending, `409 Conflict` when the workflow is already terminal, and `404 Not Found` when it doesn't exist.
+
 ### Resume Workflow
 
 ```
@@ -555,6 +601,46 @@ POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/resume?c
     "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
     "resumedAt": "2026-03-19T10:02:00+00:00",
     "cascadeResumed": []
+}
+```
+
+### List Collections
+
+Lists all collections in the namespace, ordered by most recently updated. Each entry carries its head workflow IDs as bare GUIDs (not status-enriched — use **Get Collection** below for head statuses).
+
+```http
+GET /api/v1/{namespace}/collections
+```
+
+**Response (200 OK):** an array of collection summaries. Returns `204 No Content` when the namespace has no collections.
+
+```json
+[
+    {
+        "key": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "namespace": "ttd:my-app",
+        "heads": ["f47ac10b-58cc-4372-a567-0e02b2c3d479"],
+        "createdAt": "2026-03-19T10:00:00+00:00",
+        "updatedAt": "2026-03-19T10:00:05+00:00"
+    }
+]
+```
+
+### Get Collection
+
+```http
+GET /api/v1/{namespace}/collections/{key}
+```
+
+**Response (200 OK):** a single collection with its head workflow statuses, or `404 Not Found` when the key is unknown in the namespace.
+
+```json
+{
+    "key": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "namespace": "ttd:my-app",
+    "heads": [{ "databaseId": "f47ac10b-58cc-4372-a567-0e02b2c3d479", "status": "Completed" }],
+    "createdAt": "2026-03-19T10:00:00+00:00",
+    "updatedAt": "2026-03-19T10:00:05+00:00"
 }
 ```
 
