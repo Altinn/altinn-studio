@@ -9,6 +9,8 @@ on:
       - 'src/App/frontend/**'
       - 'libs/form-component/src/**'
       - 'libs/form-component/package.json'
+      - 'libs/app-language/src/**'
+      - 'libs/app-language/package.json'
       - 'src/Runtime/localtest/**'
       - 'src/test/apps/component-library/**'
   pull_request:
@@ -19,6 +21,8 @@ on:
       - 'src/App/frontend/**'
       - 'libs/form-component/src/**'
       - 'libs/form-component/package.json'
+      - 'libs/app-language/src/**'
+      - 'libs/app-language/package.json'
       - 'src/Runtime/localtest/**'
       - 'src/test/apps/component-library/**'
   workflow_dispatch:

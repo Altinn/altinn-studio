@@ -9,7 +9,6 @@ namespace Altinn.App.Core.Features.Correspondence.Builder;
 public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
 {
     private string? _resourceId;
-    private OrganisationNumber? _sender;
     private string? _sendersReference;
     private CorrespondenceContent? _content;
     private List<CorrespondenceAttachment>? _contentAttachments;
@@ -42,18 +41,22 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
     }
 
     /// <inheritdoc/>
+    [Obsolete(
+        "This method is deprecated. The sender is now automatically determined from the Resource Registry based on the resourceId."
+    )]
     public ICorrespondenceRequestBuilderSendersReference WithSender(OrganisationNumber sender)
     {
-        BuilderUtils.NotNullOrEmpty(sender, "Sender cannot be empty");
-        _sender = sender;
+        // Intentional no-op: sender is now automatically determined from the Resource Registry.
         return this;
     }
 
     /// <inheritdoc/>
+    [Obsolete(
+        "This method is deprecated. The sender is now automatically determined from the Resource Registry based on the resourceId."
+    )]
     public ICorrespondenceRequestBuilderSendersReference WithSender(string sender)
     {
-        BuilderUtils.NotNullOrEmpty(sender, "Sender cannot be empty");
-        _sender = OrganisationNumber.Parse(sender);
+        // Intentional no-op: sender is now automatically determined from the Resource Registry.
         return this;
     }
 
@@ -318,7 +321,6 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
     public CorrespondenceRequest Build()
     {
         BuilderUtils.NotNullOrEmpty(_resourceId);
-        BuilderUtils.NotNullOrEmpty(_sender);
         BuilderUtils.NotNullOrEmpty(_sendersReference);
         BuilderUtils.NotNullOrEmpty(_content);
         BuilderUtils.NotNullOrEmpty(_recipients);
@@ -326,7 +328,6 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
         return new CorrespondenceRequest
         {
             ResourceId = _resourceId,
-            Sender = _sender.Value,
             SendersReference = _sendersReference,
             Content = _content with { Attachments = _contentAttachments },
             DueDateTime = _dueDateTime,

@@ -2,10 +2,10 @@ import React from 'react';
 import type { InputHTMLAttributes, ReactNode } from 'react';
 
 import {
+  type FieldCounterProps,
   Paragraph,
   Textfield,
   type TextfieldProps,
-  type FieldCounterProps,
 } from '@digdir/designsystemet-react';
 
 import classes from './Input.module.css';

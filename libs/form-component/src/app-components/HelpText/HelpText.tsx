@@ -4,8 +4,8 @@ import type { PropsWithChildren, Ref } from 'react';
 import { Popover } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
-import { HelpTextIcon } from './HelpTextIcon';
 import classes from './HelpText.module.css';
+import { HelpTextIcon } from './HelpTextIcon';
 
 export interface HelpTextProps extends PropsWithChildren {
   id?: string;
@@ -27,7 +27,7 @@ export function HelpText({
 }: HelpTextProps) {
   const [open, setOpen] = useState(false);
 
-  const ariaLabel = title ? `${titlePrefix ? `${titlePrefix} ` : ''}${title}` : undefined;
+  const ariaLabel = title ? [titlePrefix, title].filter(Boolean).join(' ') : undefined;
 
   return (
     <Popover.TriggerContext>

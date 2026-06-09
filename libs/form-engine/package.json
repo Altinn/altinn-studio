@@ -11,7 +11,7 @@
     "test": "vitest",
     "test:ci": "vitest run",
     "lint": "eslint \"src/**/*.ts*\"",
-    "typecheck": "tsc --noEmit -p ./"
+    "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
     "react": "^19.0.0",

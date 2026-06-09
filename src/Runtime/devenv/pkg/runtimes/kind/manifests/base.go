@@ -158,7 +158,7 @@ func buildTraefikCRDsRelease() *helmv2.HelmRelease {
 			Chart: &helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:   "traefik-crds",
-					Version: "1.11.0",
+					Version: "1.13.1",
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Kind:      "HelmRepository",
 						Name:      "traefik-crds",
@@ -171,6 +171,10 @@ func buildTraefikCRDsRelease() *helmv2.HelmRelease {
 }
 
 func buildLinkerdCRDsRelease() *helmv2.HelmRelease {
+	values := map[string]any{
+		"installGatewayAPI": true,
+	}
+
 	return &helmv2.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "helm.toolkit.fluxcd.io/v2",
@@ -185,7 +189,7 @@ func buildLinkerdCRDsRelease() *helmv2.HelmRelease {
 			Chart: &helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:   "linkerd-crds",
-					Version: "2025.7.6",
+					Version: "2026.4.2",
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Kind:      "HelmRepository",
 						Name:      "linkerd-edge",
@@ -193,6 +197,7 @@ func buildLinkerdCRDsRelease() *helmv2.HelmRelease {
 					},
 				},
 			},
+			Values: mustMarshalJSON(values),
 		},
 	}
 }
@@ -244,7 +249,7 @@ func buildLinkerdControlPlaneRelease() *helmv2.HelmRelease {
 			Chart: &helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:   "linkerd-control-plane",
-					Version: "2025.7.6",
+					Version: "2026.4.2",
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Kind:      "HelmRepository",
 						Name:      "linkerd-edge",
@@ -361,7 +366,7 @@ func buildTraefikRelease(includeLinkerd bool) *helmv2.HelmRelease {
 			Chart: &helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:   "traefik",
-					Version: "37.1.1",
+					Version: "39.0.8",
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Kind:      "HelmRepository",
 						Name:      "traefik",

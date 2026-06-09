@@ -1,5 +1,5 @@
-import { FormComponentActionType } from './FormComponentActionType';
 import type { DataModelBinding } from './DataModelBinding';
+import type { FormComponentActionType } from './FormComponentActionType';
 
 export type PatchDataModelPayload = {
   dataModelBinding: DataModelBinding;
