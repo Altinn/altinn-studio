@@ -1,13 +1,13 @@
 import escapeRegex from 'escape-string-regexp';
 
 import { cyUserLogin, tenorUserLogin } from 'test/e2e/support/auth';
+import { Tenor } from 'test/e2e/support/users';
 import type { AppResponseRef } from 'test/e2e/support/auth';
 
 Cypress.Commands.add('startAppInstance', function (appName, options) {
   const {
     cyUser = 'default',
-    tenorUser = null,
-    evaluateBefore,
+    tenorUser = Tenor.users.saligBlomsterplante,
     urlSuffix = '',
     authenticationLevel = '1',
   } = options || {};
@@ -70,17 +70,9 @@ Cypress.Commands.add('startAppInstance', function (appName, options) {
 
     cy.get<AppResponseRef>('@appResponse').then((ref) => {
       cy.intercept({ url: targetUrl }, (req) => {
-        const cookies = req.headers['cookie'] || '';
         req.on('response', (res) => {
-          if (typeof res.body === 'string' || res.statusCode === 200) {
-            if (ref.current) {
-              ref.current(res);
-              return;
-            }
-
-            if (evaluateBefore && !cookies.includes('cy-evaluated-js=true')) {
-              res.body = generateHtmlToEval(evaluateBefore);
-            }
+          if ((typeof res.body === 'string' || res.statusCode === 200) && ref.current) {
+            ref.current(res);
           }
         });
       }).as('app');
@@ -96,7 +88,9 @@ Cypress.Commands.add('startAppInstance', function (appName, options) {
     cy.clearCookies({ domain: 'platform.tt02.altinn.no' });
   }
 
-  if (tenorUser) {
+  if (tenorUser && cyUser && Cypress.env('type') === 'localtest') {
+    cyUserLogin({ cyUser, authenticationLevel, appName });
+  } else if (tenorUser) {
     tenorUserLogin({ appName, tenorUser, authenticationLevel });
   } else if (cyUser) {
     cyUserLogin({ cyUser, authenticationLevel, appName });
@@ -113,32 +107,4 @@ export function getTargetUrl(appName: string) {
   return Cypress.env('type') === 'localtest'
     ? `${Cypress.config('baseUrl')}/ttd/${appName}`
     : `https://ttd.apps.${Cypress.config('baseUrl')?.slice(8)}/ttd/${appName}`;
-}
-
-function generateHtmlToEval(javascript: string) {
-  return `
-    <html lang="en">
-    <head>
-      <title>Evaluating JavaScript before starting app</title>
-      <script>
-        async function toEvaluate() {
-          ${javascript}
-        }
-
-        window.addEventListener('DOMContentLoaded', async () => {
-          const maybeReturnUrl = await toEvaluate();
-          document.cookie = 'cy-evaluated-js=true';
-          if (maybeReturnUrl && typeof maybeReturnUrl === 'string') {
-            window.location.href = maybeReturnUrl;
-          } else {
-            window.location.reload();
-          }
-        });
-      </script>
-    </head>
-    <body>
-      <div id="cy-evaluating-js"></div>
-    </body>
-  </html>
-  `.trim();
 }

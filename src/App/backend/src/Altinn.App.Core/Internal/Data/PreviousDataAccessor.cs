@@ -19,7 +19,7 @@ internal class PreviousDataAccessor : IInstanceDataAccessor
     private readonly FrontEndSettings _frontEndSettings;
     private readonly ITranslationService _translationService;
     private readonly Telemetry? _telemetry;
-    private readonly Lazy<LayoutEvaluatorState?> _layoutEvaluatorState;
+    private readonly Lazy<LayoutEvaluatorState> _layoutEvaluatorState;
 
     private readonly ConcurrentDictionary<DataElementIdentifier, Task<IFormDataWrapper>> _previousDataCache = new();
 
@@ -41,7 +41,7 @@ internal class PreviousDataAccessor : IInstanceDataAccessor
         _layoutEvaluatorState = new(() =>
         {
             var originalState = _dataAccessor.GetLayoutEvaluatorState();
-            return originalState?.WithDataAccessor(this);
+            return originalState.WithDataAccessor(this);
         });
     }
 
@@ -106,7 +106,7 @@ internal class PreviousDataAccessor : IInstanceDataAccessor
         return this;
     }
 
-    public LayoutEvaluatorState? GetLayoutEvaluatorState()
+    public LayoutEvaluatorState GetLayoutEvaluatorState()
     {
         return _layoutEvaluatorState.Value;
     }

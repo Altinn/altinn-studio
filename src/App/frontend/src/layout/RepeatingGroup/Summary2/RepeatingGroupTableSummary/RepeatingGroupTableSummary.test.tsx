@@ -20,6 +20,7 @@ interface LayoutOptions {
   hidden?: NodeId[];
   readOnly?: Record<string, ExprValToActualOrExpr<ExprVal.Boolean>>;
   editButton?: boolean;
+  withRowsBefore?: boolean;
   withRowsAfter?: boolean;
   tableHeaders?: string[];
 }
@@ -33,6 +34,7 @@ describe('RepeatingGroupTableSummary', () => {
     hidden = [],
     readOnly = {},
     editButton,
+    withRowsBefore,
     withRowsAfter,
     tableHeaders = ['input3'],
   }: LayoutOptions = {}): ILayoutCollection => ({
@@ -49,6 +51,13 @@ describe('RepeatingGroupTableSummary', () => {
             children: ['input1', 'input2', 'input3'],
             maxCount: 3,
             hidden: hidden.includes('repeating-group'),
+            ...(withRowsBefore && {
+              rowsBefore: [
+                {
+                  cells: [{ text: 'summary.before' }],
+                },
+              ],
+            }),
             ...(withRowsAfter && {
               rowsAfter: [
                 {
@@ -237,6 +246,11 @@ describe('RepeatingGroupTableSummary', () => {
   test('should render rowsAfter in summary table', async () => {
     await render({ layout: createLayout({ editButton: true, withRowsAfter: true }) });
     expect(screen.getByText('summary.total')).toBeInTheDocument();
+  });
+
+  test('should render rowsBefore in summary table', async () => {
+    await render({ layout: createLayout({ editButton: true, withRowsBefore: true }) });
+    expect(screen.getByText('summary.before')).toBeInTheDocument();
   });
 
   test('should handle nested child component inside group when editing', async () => {
