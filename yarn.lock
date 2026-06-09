@@ -124,9 +124,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@app/form-component@workspace:*, @app/form-component@workspace:libs/form-component":
+"@app/form-component@workspace:*, @app/form-component@workspace:app-libs/form-component":
   version: 0.0.0-use.local
-  resolution: "@app/form-component@workspace:libs/form-component"
+  resolution: "@app/form-component@workspace:app-libs/form-component"
   dependencies:
     "@app/language": "workspace:*"
     "@chromatic-com/storybook": "npm:^5.0.1"
@@ -181,9 +181,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@app/form-engine@workspace:*, @app/form-engine@workspace:libs/form-engine":
+"@app/form-engine@workspace:*, @app/form-engine@workspace:app-libs/form-engine":
   version: 0.0.0-use.local
-  resolution: "@app/form-engine@workspace:libs/form-engine"
+  resolution: "@app/form-engine@workspace:app-libs/form-engine"
   dependencies:
     "@testing-library/jest-dom": "npm:6.9.1"
     "@testing-library/react": "npm:16.3.2"
@@ -200,9 +200,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@app/language@workspace:*, @app/language@workspace:libs/app-language":
+"@app/language@workspace:*, @app/language@workspace:app-libs/language":
   version: 0.0.0-use.local
-  resolution: "@app/language@workspace:libs/app-language"
+  resolution: "@app/language@workspace:app-libs/language"
   dependencies:
     typescript: "npm:5.9.3"
     vitest: "npm:4.1.5"
