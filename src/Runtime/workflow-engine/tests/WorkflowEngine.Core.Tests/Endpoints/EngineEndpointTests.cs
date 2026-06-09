@@ -607,7 +607,8 @@ public class EngineEndpointTests
             DefaultNamespace,
             null,
             null,
-            [PersistentItemStatus.Enqueued, PersistentItemStatus.Failed],
+            // Mixed case asserts the handler parses status values case-insensitively.
+            ["enqueued", "Failed"],
             testCursor,
             999,
             repositoryMock.Object,

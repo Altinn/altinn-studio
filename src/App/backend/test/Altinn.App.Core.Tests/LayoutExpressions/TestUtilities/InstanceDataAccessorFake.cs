@@ -115,7 +115,7 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
         );
     }
 
-    public LayoutEvaluatorState? GetLayoutEvaluatorState()
+    public LayoutEvaluatorState GetLayoutEvaluatorState()
     {
         ArgumentNullException.ThrowIfNull(_translationService);
         ArgumentNullException.ThrowIfNull(_frontEndSettings);
