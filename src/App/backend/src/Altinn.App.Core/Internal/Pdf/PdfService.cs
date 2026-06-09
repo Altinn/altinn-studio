@@ -24,14 +24,6 @@ namespace Altinn.App.Core.Internal.Pdf;
 /// </summary>
 public class PdfService : IPdfService
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        AllowTrailingCommas = true,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        PropertyNameCaseInsensitive = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
-
     private readonly IDataClient _dataClient;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IPdfGeneratorClient _pdfGeneratorClient;
@@ -399,28 +391,15 @@ public class PdfService : IPdfService
 
     private async Task<bool> GetHideAppNameInPdf(Instance instance, string taskId, string? language)
     {
-        string? layoutSets = _resources.GetLayoutSets();
-        if (string.IsNullOrEmpty(layoutSets))
-            return false;
-
         try
         {
-            using var jsonDoc = JsonDocument.Parse(
-                layoutSets,
-                new JsonDocumentOptions { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip }
-            );
-            var root = jsonDoc.RootElement;
-
-            if (
-                !root.TryGetProperty("uiSettings", out var uiSettings)
-                || !uiSettings.TryGetProperty("hideAppNameInPdf", out var hideAppName)
-            )
+            var hideAppName = _resources.GetGlobalUiSettings()?.HideAppNameInPdf;
+            if (hideAppName is null)
                 return false;
 
-            if (hideAppName.ValueKind == JsonValueKind.True)
-                return true;
-            if (hideAppName.ValueKind == JsonValueKind.False)
-                return false;
+            var expression = hideAppName.Value;
+            if (expression.IsLiteralValue)
+                return expression.ValueUnion.Bool;
 
             if (_instanceDataUnitOfWorkInitializer is null)
             {
@@ -430,12 +409,11 @@ public class PdfService : IPdfService
                 return false;
             }
 
-            var expression = hideAppName.Deserialize<Expression>(_jsonSerializerOptions);
             var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
             var state = dataAccessor.GetLayoutEvaluatorState();
 
-            var layoutSet = _resources.GetLayoutSetForTask(taskId);
-            DataElementIdentifier? dataElement = layoutSet?.DataType is { } dataType
+            var settings = _resources.GetLayoutSettingsForFolder(taskId);
+            DataElementIdentifier? dataElement = settings?.DefaultDataType is { } dataType
                 ? instance.Data?.Find(d => d.DataType == dataType)
                 : null;
 
@@ -448,12 +426,7 @@ public class PdfService : IPdfService
             var result = await ExpressionEvaluator.EvaluateExpression(state, expression, componentContext);
             return result is true;
         }
-        catch (JsonException e)
-        {
-            _logger.LogWarning(e, "Failed to evaluate hideAppNameInPdf, defaulting to showing app name");
-            return false;
-        }
-        catch (InvalidOperationException e)
+        catch (Exception e) when (e is JsonException or InvalidOperationException or InvalidCastException)
         {
             _logger.LogWarning(e, "Failed to evaluate hideAppNameInPdf, defaulting to showing app name");
             return false;

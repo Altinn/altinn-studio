@@ -13,6 +13,7 @@ using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Tests.TestUtils;
@@ -480,8 +481,17 @@ public class PdfServiceTests
     {
         // Arrange
         _appResources
-            .Setup(s => s.GetLayoutSets())
-            .Returns("""{"sets":[],"uiSettings":{"hideAppNameInPdf":["equals","a","a"]}}""");
+            .Setup(s => s.GetGlobalUiSettings())
+            .Returns(
+                new GlobalPageSettings
+                {
+                    HideAppNameInPdf = new Expression(
+                        ExpressionFunction.equals,
+                        new Expression((ExpressionValue)"a"),
+                        new Expression((ExpressionValue)"a")
+                    ),
+                }
+            );
 
         _pdfGeneratorClient.Setup(s =>
             s.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>())
@@ -520,7 +530,9 @@ public class PdfServiceTests
     public async Task GenerateAndStorePdf_WithDisplayFooter_HideAppNameInPdfTrue_FooterShouldNotContainAppName()
     {
         // Arrange
-        _appResources.Setup(s => s.GetLayoutSets()).Returns("""{"sets":[],"uiSettings":{"hideAppNameInPdf":true}}""");
+        _appResources
+            .Setup(s => s.GetGlobalUiSettings())
+            .Returns(new GlobalPageSettings { HideAppNameInPdf = new Expression(ExpressionValue.True) });
         _pdfGeneratorClient.Setup(s =>
             s.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>())
         );
@@ -558,7 +570,9 @@ public class PdfServiceTests
     public async Task GenerateAndStorePdf_WithDisplayFooter_HideAppNameInPdfFalse_FooterShouldContainAppName()
     {
         // Arrange
-        _appResources.Setup(s => s.GetLayoutSets()).Returns("""{"sets":[],"uiSettings":{"hideAppNameInPdf":false}}""");
+        _appResources
+            .Setup(s => s.GetGlobalUiSettings())
+            .Returns(new GlobalPageSettings { HideAppNameInPdf = new Expression(ExpressionValue.False) });
         _pdfGeneratorClient.Setup(s =>
             s.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>())
         );
@@ -633,7 +647,7 @@ public class PdfServiceTests
     public async Task GenerateAndStorePdf_WithDisplayFooter_MalformedLayoutSets_ShouldStillGeneratePdfWithAppName()
     {
         // Arrange
-        _appResources.Setup(s => s.GetLayoutSets()).Returns("{invalid json");
+        _appResources.Setup(s => s.GetGlobalUiSettings()).Throws<System.Text.Json.JsonException>();
         _pdfGeneratorClient.Setup(s =>
             s.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>())
         );
