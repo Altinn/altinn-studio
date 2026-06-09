@@ -273,7 +273,7 @@ Cancellation is **idempotent** — multiple calls return the original timestamp.
 
 Setting the database flag always succeeds atomically, but *when* the workflow actually stops depends on where it is running. The `canceledImmediately` field in the response distinguishes the two paths:
 
-- **Immediate (`canceledImmediately: true`)** — the pod that received the cancel request is the same pod currently executing the workflow. Its `CancellationTokenSource` is triggered synchronously before the response returns, aborting the running step's in-flight work (e.g. the outbound HTTP call) right away. Sub-second, bounded only by how promptly the command honours its token.
+- **Immediate (`canceledImmediately: true`)** — the pod that received the cancel request is the same pod currently executing the workflow. Its `CancellationTokenSource` is triggered synchronously before the response returns, aborting the running step's in-flight work (e.g. the outbound HTTP call) right away. Sub-second, bounded only by how promptly the command honors its token.
 - **Distributed (`canceledImmediately: false`)** — the flag is set, but the workflow isn't in the receiving pod's in-flight set. It is either:
     - **running on another pod** — picked up by that pod's `CancellationWatcherService` on its next tick (`CancellationWatcherInterval`, default 2s), or
     - **not yet started** (Enqueued/Requeued) — finalized as `Canceled` the next time the processor fetches it, without executing any step.

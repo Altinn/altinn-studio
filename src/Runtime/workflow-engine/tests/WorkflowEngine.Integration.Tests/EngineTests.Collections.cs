@@ -30,6 +30,10 @@ public partial class EngineTests
         Assert.Contains(collections, c => c.Key == "col-1");
         Assert.Contains(collections, c => c.Key == "col-2");
         Assert.All(collections, c => Assert.NotEmpty(c.Heads));
+
+        // Contract: ordered by most recently updated (UpdatedAt ?? CreatedAt), descending.
+        var orderingKeys = collections.Select(c => c.UpdatedAt ?? c.CreatedAt).ToList();
+        Assert.Equal(orderingKeys.OrderByDescending(k => k), orderingKeys);
     }
 
     [Fact]
