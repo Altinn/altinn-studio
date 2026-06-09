@@ -23,27 +23,27 @@ internal static class EngineEndpoints
             .WithSummary("List namespaces")
             .WithDescription("Lists all distinct namespaces");
 
-        var workflowsGroup = app.MapGroup("/api/v1/{namespace}/workflows").WithTags("Workflows");
+        var workflowGroup = app.MapGroup("/api/v1/{namespace}/workflows").WithTags("Workflows");
 
-        workflowsGroup
+        workflowGroup
             .MapPost("", EngineRequestHandlers.EnqueueWorkflows)
             .WithName("EnqueueWorkflows")
             .WithSummary("Enqueue workflows")
             .WithDescription("Enqueues one or more workflows, resolving their dependency graph");
 
-        workflowsGroup
+        workflowGroup
             .MapGet("", EngineRequestHandlers.ListWorkflows)
             .WithName("ListWorkflows")
             .WithSummary("List workflows")
             .WithDescription("Lists workflows, optionally filtered by collection key, labels, and statuses");
 
-        workflowsGroup
+        workflowGroup
             .MapGet("/{workflowId:guid}", EngineRequestHandlers.GetWorkflow)
             .WithName("GetWorkflow")
             .WithSummary("Get workflow")
             .WithDescription("Gets details of a single workflow by database ID");
 
-        workflowsGroup
+        workflowGroup
             .MapGet("/{workflowId:guid}/dependency-graph", EngineRequestHandlers.GetWorkflowDependencyGraph)
             .WithName("GetWorkflowDependencyGraph")
             .WithSummary("Get workflow dependency graph")
@@ -51,13 +51,13 @@ internal static class EngineEndpoints
                 "Gets the connected dependency graph reachable from the requested workflow through dependency or link relations in either direction"
             );
 
-        workflowsGroup
+        workflowGroup
             .MapPost("/{workflowId:guid}/cancel", EngineRequestHandlers.CancelWorkflow)
             .WithName("CancelWorkflow")
             .WithSummary("Cancel workflow")
             .WithDescription("Requests cancellation of a workflow");
 
-        workflowsGroup
+        workflowGroup
             .MapPost("/{workflowId:guid}/resume", EngineRequestHandlers.ResumeWorkflow)
             .WithName("ResumeWorkflow")
             .WithSummary("Resume workflow")
