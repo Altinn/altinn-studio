@@ -31,7 +31,6 @@ export enum QueryKey {
   JsonSchema = 'JsonSchema',
   LayoutNames = 'LayoutNames',
   LayoutSets = 'LayoutSets',
-  LayoutSetsExtendedV4 = 'LayoutSetsExtendedV4',
   LayoutSetsExtended = 'LayoutSetsExtended',
   OptionList = 'OptionList',
   OptionListsUsage = 'OptionListsUsage',

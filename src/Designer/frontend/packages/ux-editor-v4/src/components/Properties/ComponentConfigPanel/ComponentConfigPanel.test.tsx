@@ -343,7 +343,7 @@ const renderComponentConfig = (
     [QueryKey.FormComponent, formItemContextProps.formItem?.type],
     componentSchemaMocks[formItemContextProps.formItem?.type],
   );
-  queryClientMock.setQueryData([QueryKey.LayoutSetsExtendedV4, org, app], layoutSetsExtendedMock);
+  queryClientMock.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
   queryClientMock.setQueryData([QueryKey.ImageFileNames, org, app], []);
 
   return renderWithProviders(getComponent(formItemContextProps), {

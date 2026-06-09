@@ -26,7 +26,6 @@ export class SyncSuccessQueriesInvalidator extends Queue {
     'layout-sets.json': [
       [QueryKey.LayoutSets, '[org]', '[app]'],
       [QueryKey.LayoutSetsExtended, '[org]', '[app]'],
-      [QueryKey.LayoutSetsExtendedV4, '[org]', '[app]'],
     ],
     'policy.xml': [[QueryKey.AppPolicy, '[org]', '[app]']],
     'Settings.json': [[QueryKey.FormLayoutSettings, '[org]', '[app]', '[layoutSetName]']],

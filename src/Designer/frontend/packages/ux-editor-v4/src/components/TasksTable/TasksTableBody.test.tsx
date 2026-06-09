@@ -140,7 +140,7 @@ const renderTasksTableBody = ({
     isNavigationMode: true,
   };
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.LayoutSetsExtendedV4, org, app], layoutSetsExtended);
+  queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtended);
   const mergedProps = { ...defaultProps, ...props };
 
   return renderWithProviders(

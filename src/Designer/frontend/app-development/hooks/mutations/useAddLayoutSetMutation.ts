@@ -43,7 +43,6 @@ export const useAddLayoutSetMutation = (org: string, app: string) => {
       // when process-editor renders the tasks and 'adds' them on first mount, when they already exists.
       if (isLayoutSets(layoutSets)) {
         queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSets);
-        queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSetsExtendedV4, org, app] });
         queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSetsExtended, org, app] });
       }
     },

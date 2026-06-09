@@ -17,10 +17,6 @@ export const useDeleteLayoutSetMutation = (org: string, app: string) => {
         removeLayoutSet(layoutSetIdToUpdate),
       );
       queryClient.setQueryData<LayoutSetModel[]>(
-        [QueryKey.LayoutSetsExtendedV4, org, app],
-        removeLayoutSetModel(layoutSetIdToUpdate),
-      );
-      queryClient.setQueryData<LayoutSetModel[]>(
         [QueryKey.LayoutSetsExtended, org, app],
         removeLayoutSetModel(layoutSetIdToUpdate),
       );

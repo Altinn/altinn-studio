@@ -58,7 +58,7 @@ describe('SettingsNavigation', () => {
 
 const renderSettingsNavigation = async () => {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.LayoutSetsExtendedV4, org, app], layoutSetsExtendedMock);
+  queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
 
   return renderWithProviders(<SettingsNavigation />, { queryClient });
 };
