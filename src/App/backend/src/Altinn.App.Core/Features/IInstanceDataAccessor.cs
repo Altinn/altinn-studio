@@ -76,7 +76,7 @@ public interface IInstanceDataAccessor
     /// <see cref="IInstanceDataAccessor"/> directly in the expression evaluator.
     /// </summary>
     /// <returns></returns>
-    internal LayoutEvaluatorState? GetLayoutEvaluatorState();
+    internal LayoutEvaluatorState GetLayoutEvaluatorState();
 
     /// <summary>
     /// <para>Set the authentication method used when reading and writing data of the given data type.</para>

@@ -166,6 +166,7 @@ interface GridRowsProps {
   isNested: boolean;
   mutableColumnSettings: ITableColumnFormatting;
   hiddenColumnIndices?: number[];
+  bodyClassName?: string;
 }
 
 export function GridRowsRenderer({
@@ -174,6 +175,7 @@ export function GridRowsRenderer({
   isNested,
   mutableColumnSettings,
   hiddenColumnIndices = [],
+  bodyClassName,
 }: GridRowsProps) {
   const batches: { type: 'header' | 'body'; rows: GridRow[] }[] = [];
 
@@ -193,7 +195,10 @@ export function GridRowsRenderer({
         const WrapperComponent = batch.type === 'header' ? Table.Head : Table.Body;
 
         return (
-          <WrapperComponent key={batchIdx}>
+          <WrapperComponent
+            key={batchIdx}
+            className={batch.type === 'body' ? bodyClassName : undefined}
+          >
             {batch.rows.map((row, rowIdx) => (
               <GridRowRenderer
                 key={rowIdx}

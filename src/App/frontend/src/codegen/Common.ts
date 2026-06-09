@@ -798,6 +798,13 @@ const common = {
           .setDescription('Shows the listed tasks in the sidebar navigation menu'),
       ),
       new CG.prop('validationOnNavigation', CG.common('PageValidation').optional()),
+      new CG.prop(
+        'hideAppNameInPdf',
+        new CG.expr(ExprVal.Boolean)
+          .setTitle('Hide app name in PDF')
+          .setDescription('Controls whether the app name is hidden in the PDF header and footer.')
+          .optional({ default: false }),
+      ),
     ),
   IPagesBaseSettings: () =>
     new CG.obj(
@@ -817,7 +824,6 @@ const common = {
             'Name of a custom layout file to use for PDF creation instead of the automatically generated PDF.',
           ),
       ),
-      new CG.prop('validationOnNavigation', CG.common('PageValidation').optional()),
     ),
   INavigationBasePageGroup: () =>
     new CG.obj(
