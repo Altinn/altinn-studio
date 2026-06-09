@@ -36,10 +36,14 @@ internal static class EngineEndpoints
             .WithName("ListWorkflows")
             .WithSummary("List workflows")
             .WithDescription(
-                "Lists workflows in the namespace, newest first. Optionally filtered by status (repeatable, "
-                    + "case-insensitive), label (key:value, repeatable), and collectionKey. Cursor-paginated: pass "
-                    + "the nextCursor from a response back as the cursor parameter. Returns 204 No Content when "
-                    + "nothing matches, and 400 Bad Request for an unrecognized status value."
+                """
+                Lists workflows in the namespace, newest first.
+
+                Optionally filtered by status (repeatable, case-insensitive), label (key:value, repeatable),
+                and collectionKey. Cursor-paginated: pass the nextCursor from a response back as the cursor parameter.
+
+                Returns 204 No Content when nothing matches, and 400 Bad Request for an unrecognized status value.
+                """
             );
 
         workflowGroup
@@ -61,11 +65,16 @@ internal static class EngineEndpoints
             .WithName("CancelWorkflow")
             .WithSummary("Cancel workflow")
             .WithDescription(
-                "Requests cancellation of a workflow (idempotent). 200 OK returns canceledImmediately, which is "
-                    + "true when the workflow was running on the pod that received the request (token fired "
-                    + "synchronously) or false when it will be canceled via the distributed path. 202 Accepted "
-                    + "when cancellation was already pending, 409 Conflict when the workflow is already terminal, "
-                    + "404 Not Found when it does not exist."
+                """
+                Requests cancellation of a workflow. The request is idempotent.
+
+                200 OK returns canceledImmediately: true when the workflow was running on the pod that received
+                the request, so its cancellation token fired synchronously; false when it will be canceled via the
+                distributed path instead.
+
+                202 Accepted when cancellation was already pending, 409 Conflict when the workflow is already
+                terminal, 404 Not Found when it does not exist.
+                """
             );
 
         workflowGroup
@@ -73,9 +82,12 @@ internal static class EngineEndpoints
             .WithName("ResumeWorkflow")
             .WithSummary("Resume workflow")
             .WithDescription(
-                "Resumes a terminal workflow (Failed, Canceled, DependencyFailed) back to Enqueued for re-processing. "
-                    + "Pass cascade=true to also resume workflows left in DependencyFailed by this one. "
-                    + "409 Conflict when the workflow is not in a resumable state, 404 Not Found when it does not exist."
+                """
+                Resumes a terminal workflow (Failed, Canceled, DependencyFailed) back to Enqueued for re-processing.
+                Pass cascade=true to also resume workflows left in DependencyFailed by this one.
+
+                409 Conflict when the workflow is not in a resumable state, 404 Not Found when it does not exist.
+                """
             );
 
         var collectionGroup = app.MapGroup("/api/v1/{namespace}/collections").WithTags("Collections");
