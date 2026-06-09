@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 using WorkflowEngine.Models;
 
+// Urls should not be hard-coded
+#pragma warning disable S1075
+
 namespace WorkflowEngine.Core.Metadata;
 
 /// <summary>
@@ -83,8 +86,7 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
                             Type = JsonSchemaType.String,
                             Enum =
                             [
-                                .. Enum.GetNames<PersistentItemStatus>()
-                                    .Select(name => (JsonNode)JsonValue.Create(name)!),
+                                .. Enum.GetNames<PersistentItemStatus>().Select(JsonNode (x) => JsonValue.Create(x)),
                             ],
                         },
                     };
