@@ -26,7 +26,11 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
     /// <summary>Per-operation deep links into the technical guide (operationId → heading anchor).</summary>
     private static readonly Dictionary<string, string> _operationDocAnchors = new()
     {
+        ["ListNamespaces"] = "api-reference",
+        ["EnqueueWorkflows"] = "enqueue-workflows",
         ["ListWorkflows"] = "list-workflows",
+        ["GetWorkflow"] = "get-single-workflow",
+        ["GetWorkflowDependencyGraph"] = "dependency-graphs",
         ["CancelWorkflow"] = "immediate-vs-distributed-cancellation",
         ["ResumeWorkflow"] = "resume",
         ["ListCollections"] = "list-collections",

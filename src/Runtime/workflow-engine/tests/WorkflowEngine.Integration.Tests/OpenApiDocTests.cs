@@ -58,6 +58,44 @@ public class OpenApiDocTests(EngineAppFixture<Program> fixture)
         Assert.Contains("#immediate-vs-distributed-cancellation", cancelUrl);
     }
 
+    [Fact]
+    public async Task EveryOperation_LinksToTechnicalGuide()
+    {
+        using var client = fixture.CreateEngineClient();
+        using var doc = await GetOpenApiDoc(client);
+
+        var missing = new List<string>();
+        foreach (var path in doc.RootElement.GetProperty("paths").EnumerateObject())
+        {
+            foreach (var operation in path.Value.EnumerateObject())
+            {
+                if (!_httpMethods.Contains(operation.Name))
+                    continue;
+
+                var linked =
+                    operation.Value.TryGetProperty("externalDocs", out var externalDocs)
+                    && externalDocs.TryGetProperty("url", out var url)
+                    && (url.GetString()?.Contains("technical-guide.md", StringComparison.Ordinal) ?? false);
+
+                if (!linked)
+                    missing.Add($"{operation.Name.ToUpperInvariant()} {path.Name}");
+            }
+        }
+
+        Assert.True(missing.Count == 0, $"Operations missing a technical-guide link: {string.Join(", ", missing)}");
+    }
+
+    private static readonly HashSet<string> _httpMethods = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "get",
+        "post",
+        "put",
+        "patch",
+        "delete",
+        "options",
+        "head",
+    };
+
     private static JsonElement FindPath(JsonDocument doc, string suffix)
     {
         foreach (var path in doc.RootElement.GetProperty("paths").EnumerateObject())
