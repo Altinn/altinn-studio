@@ -22,7 +22,7 @@ export const Preview: Story = {
 
 export const withHtml: Story = {
   args: {
-    content: `<h3>This is content set with props a html, but can be html or mark down</h2>
+    content: `<h3>This is content set with props a html, but can be html or mark down</h3>
       <p>And this is a <strong>paragraph</strong></p>
       <ul>
         <li>And this is a list item</li>
