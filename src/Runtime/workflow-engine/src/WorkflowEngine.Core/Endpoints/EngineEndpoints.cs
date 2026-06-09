@@ -153,11 +153,13 @@ internal static class EngineRequestHandlers
         };
     }
 
-    public static async Task<Results<Ok<PaginatedResponse<WorkflowStatusResponse>>, NoContent>> ListWorkflows(
+    public static async Task<
+        Results<Ok<PaginatedResponse<WorkflowStatusResponse>>, NoContent, ProblemHttpResult>
+    > ListWorkflows(
         [FromRoute] string @namespace,
         [FromQuery] string? collectionKey,
         [FromQuery(Name = "label")] string[]? labels,
-        [FromQuery(Name = "status")] PersistentItemStatus[]? statuses,
+        [FromQuery(Name = "status")] string[]? statuses,
         [FromQuery] Guid? cursor,
         [FromQuery] int? pageSize,
         [FromServices] IEngineRepository repository,
@@ -167,12 +169,17 @@ internal static class EngineRequestHandlers
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list"));
 
+        if (!TryParseStatuses(statuses, out var effectiveStatuses, out var invalidStatus))
+            return TypedResults.Problem(
+                detail: $"'{invalidStatus}' is not a valid workflow status. Valid values: {string.Join(", ", AllPersistentItemStatuses)}.",
+                statusCode: StatusCodes.Status400BadRequest
+            );
+
         var pagination = settings.Value.Pagination;
         var effectivePageSize = Math.Clamp(pageSize ?? pagination.DefaultPageSize, 1, pagination.MaxPageSize);
 
         var ns = NormalizeNamespace(@namespace);
         var labelFilters = ParseLabelFilters(labels);
-        var effectiveStatuses = GetQueryStatuses(statuses);
         var result = await repository.QueryWorkflows(
             effectivePageSize,
             effectiveStatuses,
@@ -355,8 +362,37 @@ internal static class EngineRequestHandlers
 
     private static readonly PersistentItemStatus[] AllPersistentItemStatuses = Enum.GetValues<PersistentItemStatus>();
 
-    private static PersistentItemStatus[] GetQueryStatuses(PersistentItemStatus[]? statuses) =>
-        statuses is { Length: > 0 } ? statuses : AllPersistentItemStatuses;
+    /// <summary>
+    /// Parses repeated <c>?status=</c> query values into <see cref="PersistentItemStatus"/> values,
+    /// case-insensitively (query-string binding bypasses the JSON converter that handles request bodies).
+    /// Returns all statuses when none are supplied. Returns <see langword="false"/> and sets
+    /// <paramref name="invalid"/> to the offending value when one is not a recognized status.
+    /// </summary>
+    private static bool TryParseStatuses(string[]? raw, out PersistentItemStatus[] statuses, out string? invalid)
+    {
+        invalid = null;
+        if (raw is null or { Length: 0 })
+        {
+            statuses = AllPersistentItemStatuses;
+            return true;
+        }
+
+        var parsed = new PersistentItemStatus[raw.Length];
+        for (int i = 0; i < raw.Length; i++)
+        {
+            if (!Enum.TryParse(raw[i], ignoreCase: true, out PersistentItemStatus status) || !Enum.IsDefined(status))
+            {
+                statuses = [];
+                invalid = raw[i];
+                return false;
+            }
+
+            parsed[i] = status;
+        }
+
+        statuses = parsed;
+        return true;
+    }
 
     private static List<WorkflowDependencyGraphEdgeResponse> BuildDependencyGraphEdges(
         IReadOnlyList<Workflow> workflows

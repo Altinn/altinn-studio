@@ -525,7 +525,7 @@ Supports the following optional query parameters (all repeatable params can be s
 
 | Parameter       | Repeatable | Description                                                                                                                                          |
 | --------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `status`        | Yes        | Filter by workflow status. Case-insensitive. One of `Enqueued`, `Processing`, `Requeued`, `Completed`, `Failed`, `Canceled`, `DependencyFailed`. Omit to return all statuses. |
+| `status`        | Yes        | Filter by workflow status. Case-insensitive. One of `Enqueued`, `Processing`, `Requeued`, `Completed`, `Failed`, `Canceled`, `DependencyFailed`. Omit to return all statuses; an unrecognized value returns `400 Bad Request`. |
 | `label`         | Yes        | Filter by label, formatted as `key:value`. Entries without a `:` are ignored.                                                                        |
 | `collectionKey` | No         | Filter to a single collection.                                                                                                                       |
 | `cursor`        | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                          |

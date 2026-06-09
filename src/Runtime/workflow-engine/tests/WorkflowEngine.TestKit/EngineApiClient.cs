@@ -237,6 +237,13 @@ public sealed class EngineApiClient : IDisposable
     }
 
     /// <summary>
+    /// Issues a raw GET to the workflows list endpoint with the supplied query string
+    /// (e.g. <c>"?status=failed"</c>). Used to exercise binding/validation directly.
+    /// </summary>
+    public Task<HttpResponseMessage> ListWorkflowsRaw(string queryString = "", string? ns = null) =>
+        _client.GetAsync($"{GetBasePath(ns)}{queryString}", CancellationToken.None);
+
+    /// <summary>
     /// Lists workflows with cursor-based pagination. Returns the full paginated response or an empty one on 204 No Content.
     /// </summary>
     public async Task<PaginatedResponse<WorkflowStatusResponse>> ListWorkflowsPaginated(
