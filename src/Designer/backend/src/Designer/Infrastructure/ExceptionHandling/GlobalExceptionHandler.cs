@@ -22,7 +22,7 @@ public sealed class GlobalExceptionHandler(IProblemDetailsService problemDetails
         HttpStatusCode statusCode = ResolveStatusCode(exception);
         httpContext.Response.StatusCode = (int)statusCode;
 
-        bool includeExceptionDetails = environment.IsDevelopment() || environment.IsStaging();
+        bool includeExceptionDetails = environment.IsDevelopment();
 
         await problemDetailsService.TryWriteAsync(
             new ProblemDetailsContext
