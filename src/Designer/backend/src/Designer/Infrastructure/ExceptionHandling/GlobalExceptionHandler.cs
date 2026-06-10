@@ -24,7 +24,7 @@ public sealed class GlobalExceptionHandler(IProblemDetailsService problemDetails
 
         bool includeExceptionDetails = environment.IsDevelopment();
 
-        await problemDetailsService.TryWriteAsync(
+        return await problemDetailsService.TryWriteAsync(
             new ProblemDetailsContext
             {
                 HttpContext = httpContext,
@@ -38,8 +38,6 @@ public sealed class GlobalExceptionHandler(IProblemDetailsService problemDetails
                 },
             }
         );
-
-        return true;
     }
 
     private static HttpStatusCode ResolveStatusCode(Exception exception) =>
