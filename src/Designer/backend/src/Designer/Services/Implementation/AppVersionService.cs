@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -21,22 +22,26 @@ public class AppVersionService : IAppVersionService
 
     public SemanticVersion GetAppLibVersion(AltinnRepoEditingContext altinnRepoEditingContext)
     {
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+        AltinnAppGitRepository repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
             altinnRepoEditingContext.Org,
             altinnRepoEditingContext.Repo,
             altinnRepoEditingContext.Developer
         );
 
-        IEnumerable<string> csprojFiles = altinnAppGitRepository.FindFiles(["*.csproj"]);
-
-        foreach (string csprojFile in csprojFiles)
-        {
-            if (PackageVersionHelper.TryGetPackageVersionFromCsprojFile(csprojFile, s_appLibPackageNames, out SemanticVersion version))
-            {
-                return version;
-            }
-        }
-
-        throw new FileNotFoundException("Unable to extract the version of the app-lib from csproj files.");
+        return FindVersion(repository.FindFiles(["*.csproj"]))
+            ?? throw new FileNotFoundException("Unable to extract the version of the app-lib from csproj files.");
     }
+
+    private static SemanticVersion? FindVersion(IEnumerable<string> csprojFiles) =>
+        csprojFiles
+            .Select(file =>
+                PackageVersionHelper.TryGetPackageVersionFromCsprojFile(
+                    file,
+                    s_appLibPackageNames,
+                    out SemanticVersion version
+                )
+                    ? version
+                    : null
+            )
+            .FirstOrDefault(v => v is not null);
 }

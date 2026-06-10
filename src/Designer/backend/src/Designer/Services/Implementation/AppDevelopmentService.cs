@@ -17,7 +17,6 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
-using NuGet.Versioning;
 using LayoutSets = Altinn.Studio.Designer.Models.LayoutSets;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
@@ -854,12 +853,6 @@ public class AppDevelopmentService : IAppDevelopmentService
         }
 
         await altinnAppGitRepository.SaveRuleConfiguration(layoutSetName, ruleConfig, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public SemanticVersion GetAppLibVersion(AltinnRepoEditingContext altinnRepoEditingContext)
-    {
-        return _appVersionService.GetAppLibVersion(altinnRepoEditingContext);
     }
 
     public bool TryGetFrontendVersion(AltinnRepoEditingContext altinnRepoEditingContext, out string version)

@@ -1,6 +1,6 @@
 import type { CyHttpMessages, RouteHandler } from 'cypress/types/net-stubbing';
 
-import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
+import type { TenorLoginParams, TenorUser } from 'test/e2e/support/users';
 
 import type { IProcess, ITask } from 'src/types/shared';
 
@@ -84,9 +84,29 @@ export const cyUserCredentials: { [K in CyUser]: UserInfo } = {
 export const getDisplayName = (user: CyUser) => cyUserCredentials[user].displayName;
 export const getLocalPartyId = (user: CyUser) => cyUserCredentials[user].localPartyId;
 
-Cypress.Commands.add('assertUser', (user: CyUser) => {
-  cy.get('[data-testid=AppHeader]').should('contain.text', getDisplayName(user));
+Cypress.Commands.add('assertUser', (user: CyUser, tenorUser: TenorUser) => {
+  if (Cypress.env('type') === 'localtest') {
+    cy.get('[data-testid=AppHeader]').should('contain.text', getDisplayName(user));
+  } else {
+    cy.get('[data-testid=AppHeader]').should('contain.text', tenorUser.reverseName.toUpperCase());
+  }
 });
+
+const emptyPageHtml = `
+<h3>Empty page loaded, proceeding to app</h3>
+<script>
+  (() => {
+    const reloadOnHashChange = () => {
+      if (window.location.hash) {
+        window.location.reload();
+      }
+    };
+
+    window.addEventListener('hashchange', reloadOnHashChange);
+    reloadOnHashChange();
+  })();
+</script>
+`;
 
 type MinimalTask = Pick<ITask, 'read' | 'write' | 'actions'>;
 function getPermissions(format: string): MinimalTask {
@@ -160,7 +180,7 @@ export function cyUserLogin({ cyUser, authenticationLevel, appName }: CyUserLogi
     return loginSelfIdentifiedTt02Login(userName, userPassword);
   }
 
-  return cyUserTt02Login(userName, userPassword);
+  throw new Error(`Login not implemented for user: ${cyUser}`);
 }
 
 type LocalLoginParams =
@@ -209,7 +229,7 @@ function localLogin({ authenticationLevel, appName, ...rest }: LocalLoginParams)
   cy.intercept({ method: 'POST', url: '/Home/LogInTestUser', times: 1 }, (req) => {
     req.on('response', (res) => {
       expect(res.statusCode).to.eq(302);
-      res.send(200, '<h3>Empty page loaded, proceeding to app</h3>');
+      res.send(200, emptyPageHtml);
     });
   }).as('login');
 
@@ -218,6 +238,7 @@ function localLogin({ authenticationLevel, appName, ...rest }: LocalLoginParams)
 }
 
 function loginSelfIdentifiedTt02Login(user: string, pwd: string) {
+  // TODO: This does not work after A2 sunset, we'll need to find another way to login with a self-identified user in tests
   const loginUrl = 'https://tt02.altinn.no/ui/Authentication/SelfIdentified';
   cy.visit(loginUrl);
   cy.findByRole('textbox', { name: /Brukernavn/i }).type(user);
@@ -232,35 +253,13 @@ function loginSelfIdentifiedTt02Login(user: string, pwd: string) {
     (req) => {
       req.on('response', (res) => {
         expect(res.statusCode).to.eq(302);
-        res.send(200, '<h3>Empty page loaded, proceeding to app</h3>');
+        res.send(200, emptyPageHtml);
       });
     },
   ).as('login');
 
   cy.findByRole('button', { name: /Logg inn/i }).click();
   cy.findByRole('heading', { name: 'Empty page loaded, proceeding to app' }).should('exist');
-}
-
-function cyUserTt02Login(user: string, pwd: string) {
-  cy.request({
-    method: 'POST',
-    url: `${Cypress.config('baseUrl')}/api/authentication/authenticatewithpassword`,
-    headers: {
-      'Content-Type': 'application/hal+json',
-    },
-    body: JSON.stringify({
-      UserName: user,
-      UserPassword: pwd,
-    }),
-  }).as('login');
-  waitForLogin();
-}
-
-function waitForLogin() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  cy.get('@login').should((r: any) => {
-    expect(r?.response?.statusCode ?? r?.status).to.eq(200);
-  });
 }
 
 /************************
@@ -273,31 +272,10 @@ function waitForLogin() {
  *
  ************************/
 
-export type TenorOrg = {
-  name: string;
-  orgNr: string;
-};
-
-export type TenorUser = {
-  name: string;
-  ssn: string;
-  role?: string;
-  orgs?: string[];
-};
-
 export type AppResponseRef = { current: ((res: CyHttpMessages.IncomingHttpResponse) => void) | undefined };
-
-type TenorLoginParams = {
-  appName: string;
-  tenorUser: TenorUser;
-  authenticationLevel: string;
-};
 
 export function tenorUserLogin(props: TenorLoginParams) {
   cy.log(`Logging in as Tenor user: ${props.tenorUser.name}`);
-  interceptAltinnAppGlobalData((globalData) => {
-    globalData.applicationMetadata.promptForParty = 'never';
-  });
 
   if (Cypress.env('type') === 'localtest') {
     return localLogin({ displayName: props.tenorUser.name, ...props });
@@ -307,11 +285,22 @@ export function tenorUserLogin(props: TenorLoginParams) {
 }
 
 function tenorTt02Login({ appName, tenorUser }: Omit<TenorLoginParams, 'authenticationLevel'>) {
-  cy.visit(`https://ttd.apps.${Cypress.config('baseUrl')?.slice(8)}/ttd/${appName}`);
+  // This page was made to have an endpoint serving text/html for Cypress to set the correct origin before logging in
+  // via Tenor (as that happens on another origin). If we just visited the app directly, Cypress would notice the
+  // redirect and think the login page was the app itself, and some things would break (like accessing window.Cypress).
+  const appOrigin = `https://ttd.apps.${Cypress.config('baseUrl')?.slice(8)}`;
+  const appUrl = `${appOrigin}/ttd/${appName}`;
+  cy.visit(`${appUrl}/login.html`);
+  cy.location('origin').should('eq', appOrigin);
+  cy.get('h2').should('have.text', 'Placeholder page for Cypress to set origin before logging in via Tenor');
+  cy.get('a').click();
 
-  cy.findByRole('link', { name: /testid lag din egen testbruker/i }).click();
-  cy.findByRole('textbox', { name: /personidentifikator \(syntetisk\)/i }).clear();
-  cy.findByRole('textbox', { name: /personidentifikator \(syntetisk\)/i }).type(tenorUser.ssn);
+  cy.origin('https://login.test.idporten.no', () => {
+    cy.get('a[href="/authorize/testid1"]').click();
+  });
+  cy.origin('https://testid.test.idporten.no', { args: tenorUser }, (tenorUser) => {
+    cy.get('input[name=pid]').type(tenorUser.ssn);
+  });
 
   cy.get<AppResponseRef>('@appResponse').then((ref) => {
     ref.current = (res) => {
@@ -345,10 +334,13 @@ function tenorTt02Login({ appName, tenorUser }: Omit<TenorLoginParams, 'authenti
         });
       }
 
-      res.send(200, '<h3>Empty page loaded, proceeding to app</h3>');
+      res.send(200, emptyPageHtml);
     };
   });
 
-  cy.findByRole('button', { name: /autentiser/i }).click();
+  cy.origin('https://testid.test.idporten.no', () => {
+    cy.get('button[type=submit]').click();
+  });
+
   cy.findByRole('heading', { name: 'Empty page loaded, proceeding to app' }).should('exist');
 }
