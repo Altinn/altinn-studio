@@ -715,6 +715,14 @@ public sealed partial class AppFixture : IAsyncDisposable
             await EnsureYarnAvailable(logger, cancellationToken);
 
             var frontendDirectory = Path.Join(_repoSourceDirectory, "App", "frontend");
+            logger.LogInformation("Installing frontend dependencies");
+            await new Command(
+                "yarn",
+                "install --immutable",
+                frontendDirectory,
+                logger,
+                CancellationToken: cancellationToken
+            );
             await new Command("yarn", "build", frontendDirectory, logger, CancellationToken: cancellationToken);
 
             VerifyFrontendBuilt(logger);

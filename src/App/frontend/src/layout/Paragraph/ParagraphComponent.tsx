@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
+import { HelpTextContainer } from '@app/form-component';
+
 import { Lang, LangAsParagraph } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';

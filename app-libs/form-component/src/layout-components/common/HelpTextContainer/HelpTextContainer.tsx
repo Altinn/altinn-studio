@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { HelpText } from '@app/form-component';
+import { HelpText } from '@app/form-component/app-components/HelpText';
+import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 
-import classes from 'src/components/form/HelpTextContainer.module.css';
-import { useLanguage } from 'src/features/language/useLanguage';
+import classes from './HelpTextContainer.module.css';
 
 export interface IHelpTextContainerProps {
   id?: string;
@@ -12,7 +12,7 @@ export interface IHelpTextContainerProps {
 }
 
 export function HelpTextContainer({ id, helpText, title }: IHelpTextContainerProps) {
-  const { langAsString } = useLanguage();
+  const { langAsString } = useTranslation();
   return (
     <HelpText
       id={id ? `${id}-helptext` : undefined}
