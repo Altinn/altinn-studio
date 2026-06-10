@@ -124,6 +124,27 @@ describe('InputLayout', () => {
     expect(screen.getByRole('textbox')).toHaveValue('+47 444 44 444');
   });
 
+  it('accepts a configured allowed decimal separator while typing for the number variant', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    renderInput({
+      title: 'x',
+      numberFormat: { allowedDecimalSeparators: [',', '.'], decimalSeparator: ',' },
+      onChange,
+    });
+    const input = screen.getByRole('textbox');
+    // Typing a '.' must be accepted as the decimal separator (and shown as ',') even though the
+    // configured decimalSeparator is ','. Without allowedDecimalSeparators the '.' is dropped.
+    await user.type(input, '11.1');
+    expect(input).toHaveValue('11,1');
+    expect(onChange).toHaveBeenLastCalledWith('11.1');
+  });
+
+  it('forwards the autocomplete attribute to the input', () => {
+    renderInput({ title: 'x', autocomplete: 'name' });
+    expect(screen.getByRole('textbox')).toHaveAttribute('autocomplete', 'name');
+  });
+
   it('renders the resolved prefix and suffix', () => {
     renderInput(
       { title: 'x', prefix: 'pre.key', suffix: 'suf.key' },
