@@ -21,12 +21,12 @@ public class ApplicationMetadataTests
     : PreviewControllerTestsBase<ApplicationMetadataTests>,
         IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly Mock<IAppDevelopmentService> _appDevelopmentServiceMock;
+    private readonly Mock<IAppVersionService> _appVersionServiceMock;
 
     public ApplicationMetadataTests(WebApplicationFactory<Program> factory)
         : base(factory)
     {
-        _appDevelopmentServiceMock = new Mock<IAppDevelopmentService>();
+        _appVersionServiceMock = new Mock<IAppVersionService>();
     }
 
     protected override void ConfigureTestServices(IServiceCollection services)
@@ -38,7 +38,7 @@ public class ApplicationMetadataTests
             c.StorageContainerName = "storageAccountName";
         });
         services.AddSingleton<IGiteaClient, IGiteaClientMock>();
-        services.AddSingleton(_appDevelopmentServiceMock.Object);
+        services.AddSingleton(_appVersionServiceMock.Object);
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class ApplicationMetadataTests
             Developer,
             "App/config/applicationmetadata.json"
         );
-        _appDevelopmentServiceMock
+        _appVersionServiceMock
             .Setup(rs => rs.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
             .Returns(NuGet.Versioning.NuGetVersion.Parse("1.0.0"));
 
@@ -79,7 +79,7 @@ public class ApplicationMetadataTests
             Developer,
             "App/config/applicationmetadata.json"
         );
-        _appDevelopmentServiceMock
+        _appVersionServiceMock
             .Setup(rs => rs.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
             .Returns(NuGet.Versioning.NuGetVersion.Parse("8.0.0"));
 
@@ -118,7 +118,7 @@ public class ApplicationMetadataTests
         Assert.True(originalApplicationMetadata.PartyTypesAllowed.SubUnit);
         Assert.True(originalApplicationMetadata.PartyTypesAllowed.BankruptcyEstate);
 
-        _appDevelopmentServiceMock
+        _appVersionServiceMock
             .Setup(rs => rs.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
             .Returns(NuGet.Versioning.NuGetVersion.Parse("8.0.0"));
 
