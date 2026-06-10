@@ -45,7 +45,7 @@ func registerWorkflowEngineComponents(manifest *Manifest, opts *Options) {
 }
 
 func workflowEngineDbImage(ctx *Options) resource.ImageResource {
-	return &resource.RemoteImage{
+	return &resource.PulledImage{
 		Enabled:    nil,
 		Ref:        ctx.Images.Core.WorkflowEngineDb.Ref(),
 		PullPolicy: resource.PullIfNotPresent,
@@ -54,14 +54,14 @@ func workflowEngineDbImage(ctx *Options) resource.ImageResource {
 
 func workflowEngineImage(ctx *Options) resource.ImageResource {
 	if ctx.DevWorkflowEngine {
-		return &resource.RemoteImage{
+		return &resource.PulledImage{
 			Enabled:    resourceEnabledRef(false),
 			Ref:        imageRef(ctx.Images.Core.WorkflowEngine.Ref(), ContainerWorkflowEngine, false),
 			PullPolicy: resource.PullIfNotPresent,
 		}
 	}
 	if ctx.ImageMode == DevMode && ctx.DevConfig != nil {
-		return &resource.LocalImage{
+		return &resource.BuiltImage{
 			Enabled:     nil,
 			ContextPath: filepath.ToSlash(filepath.Join(ctx.DevConfig.RepoRoot, "src")),
 			Dockerfile: filepath.ToSlash(
@@ -74,7 +74,7 @@ func workflowEngineImage(ctx *Options) resource.ImageResource {
 			Tag: devImageTagWorkflowEngine,
 		}
 	}
-	return &resource.RemoteImage{
+	return &resource.PulledImage{
 		Enabled:    nil,
 		Ref:        ctx.Images.Core.WorkflowEngine.Ref(),
 		PullPolicy: resource.PullIfNotPresent,

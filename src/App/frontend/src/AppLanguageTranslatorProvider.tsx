@@ -3,7 +3,6 @@ import type { PropsWithChildren } from 'react';
 
 import { LanguageTranslatorProvider } from '@app/form-component';
 
-import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 
 export function AppLanguageTranslatorProvider({ children }: PropsWithChildren) {
@@ -12,13 +11,7 @@ export function AppLanguageTranslatorProvider({ children }: PropsWithChildren) {
   return (
     <LanguageTranslatorProvider
       lang={lang}
-      translate={langAsString}
-      TranslateComponent={({ tKey, params }) => (
-        <Lang
-          id={tKey}
-          params={params}
-        />
-      )}
+      langAsString={langAsString}
     >
       {children}
     </LanguageTranslatorProvider>

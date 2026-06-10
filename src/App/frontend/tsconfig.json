@@ -22,6 +22,8 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "paths": {
+      "@app/form-component/*": ["../../../app-libs/form-component/src/*"],
+      "@app/language/*": ["../../../app-libs/language/src/*"],
       "src/*": ["src/*"],
       "test/*": ["test/*"],
       "schemas/*": ["schemas/*"],

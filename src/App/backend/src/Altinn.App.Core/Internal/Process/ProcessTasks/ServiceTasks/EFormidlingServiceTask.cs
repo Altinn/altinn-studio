@@ -43,13 +43,6 @@ internal sealed class EFormidlingServiceTask : IEFormidlingServiceTask
     /// <inheritdoc/>
     public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
     {
-        if (_eFormidlingService is null)
-        {
-            throw new ProcessException(
-                $"No implementation of {nameof(IEFormidlingService)} has been added to the DI container. Remember to add eFormidling services. Use AddEFormidlingServices2<TM,TR> to register eFormidling services."
-            );
-        }
-
         string taskId = context.InstanceDataMutator.Instance.Process.CurrentTask.ElementId;
         Instance instance = context.InstanceDataMutator.Instance;
         ValidAltinnEFormidlingConfiguration configuration = await GetValidAltinnEFormidlingConfiguration(taskId);
@@ -61,6 +54,13 @@ internal sealed class EFormidlingServiceTask : IEFormidlingServiceTask
                 LogSanitizer.Sanitize(taskId)
             );
             return ServiceTaskResult.Success();
+        }
+
+        if (_eFormidlingService is null)
+        {
+            throw new ProcessException(
+                $"No implementation of {nameof(IEFormidlingService)} has been added to the DI container. Remember to add eFormidling services. Use AddEFormidlingServices2<TM,TR> to register eFormidling services."
+            );
         }
 
         _logger.LogDebug(

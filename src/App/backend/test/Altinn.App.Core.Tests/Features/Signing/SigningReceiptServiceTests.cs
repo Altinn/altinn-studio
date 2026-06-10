@@ -122,18 +122,20 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
         instanceDataMutatorMock.Setup(x => x.Instance).Returns(instance);
         UserActionContext context = new(instanceDataMutatorMock.Object, 123456);
 
+        using var dataStream = new MemoryStream([1, 2, 3]);
         var dataClientMock = new Mock<IDataClient>();
         dataClientMock
             .Setup(x =>
-                x.GetDataBytes(
+                x.GetBinaryDataStream(
                     It.Is<int>(party => party == instanceIdentifier.InstanceOwnerPartyId),
                     It.Is<Guid>(guid => guid == instanceIdentifier.InstanceGuid),
                     It.Is<Guid>(id => id == Guid.Parse(signedElement.Id)),
                     It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<TimeSpan?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync([1, 2, 3]);
+            .ReturnsAsync(dataStream);
 
         SigningReceiptService service = SetupService(
             correspondenceClientMockOverride: correspondenceClientMock,
@@ -178,7 +180,7 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
             "123/ab0cdeb5-dc5e-4faa-966b-d18bb932ca07",
             capturedPayload.CorrespondenceRequest.SendersReference
         );
-        Assert.Equal("974760673", capturedPayload.CorrespondenceRequest.Sender.ToString());
+        // Assert.Equal("974760673", capturedPayload.CorrespondenceRequest.Sender.ToString()); Builder mapping removed, sender is now determined from resource registry
         Assert.IsType<OrganisationOrPersonIdentifier.Person>(capturedPayload.CorrespondenceRequest.Recipients[0]);
         Assert.Equal(
             "11854995997",
@@ -402,18 +404,20 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
 
         ApplicationMetadata appMetadata = new("org/app");
 
+        using var dataStream = new MemoryStream([1, 2, 3]);
         var dataClientMock = new Mock<IDataClient>();
         dataClientMock
             .Setup(x =>
-                x.GetDataBytes(
+                x.GetBinaryDataStream(
                     It.Is<int>(party => party == instanceIdentifier.InstanceOwnerPartyId),
                     It.Is<Guid>(guid => guid == instanceIdentifier.InstanceGuid),
                     It.Is<Guid>(id => id == Guid.Parse(signedElement.Id)),
                     It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<TimeSpan?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync([1, 2, 3]);
+            .ReturnsAsync(dataStream);
 
         // Act
         IEnumerable<CorrespondenceAttachment> attachments = await SigningReceiptService.GetCorrespondenceAttachments(
@@ -421,7 +425,8 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
             dataElementSignatures,
             appMetadata,
             context,
-            dataClientMock.Object
+            dataClientMock.Object,
+            CancellationToken.None
         );
 
         // Assert

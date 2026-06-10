@@ -56,6 +56,7 @@ studioctl auth login --env dev --with-token < token.txt
 
 `studioctl app run` wraps `dotnet run --project <app>/App` and auto-detects the app directory.
 `studioctl run` is a short alias for the same operation.
+`studioctl app env --json` prints the local harness environment used by v9 app startup when running from an IDE.
 
 ## Core commands
 
@@ -63,6 +64,7 @@ studioctl auth login --env dev --with-token < token.txt
 - `studioctl apps search`: search app repositories in Altinn Studio
 - `studioctl app clone`: clone `org/repo` from the selected Altinn Studio environment
 - `studioctl app run`: run app locally
+- `studioctl app env`: print local app harness environment as KEY=value text (`--json` for JSON output)
 - `studioctl env up`: start localtest
 - `studioctl env down`: stop localtest
 - `studioctl env status`: show runtime/container status

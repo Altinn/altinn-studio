@@ -30,6 +30,9 @@ public sealed class EngineApiClient : IDisposable
     private string GetBasePath(string? ns = null) =>
         $"/api/v1/{Uri.EscapeDataString(ns ?? _defaultNamespace)}/workflows";
 
+    private string GetCollectionsBasePath(string? ns = null) =>
+        $"/api/v1/{Uri.EscapeDataString(ns ?? _defaultNamespace)}/collections";
+
     /// <summary>
     /// Enqueues a batch and asserts a 2xx response. Throws on failure.
     /// Uses <see cref="DefaultNamespace"/> and a unique idempotency key if not specified.
@@ -234,6 +237,13 @@ public sealed class EngineApiClient : IDisposable
     }
 
     /// <summary>
+    /// Issues a raw GET to the workflows list endpoint with the supplied query string
+    /// (e.g. <c>"?status=failed"</c>). Used to exercise binding/validation directly.
+    /// </summary>
+    public Task<HttpResponseMessage> ListWorkflowsRaw(string queryString = "", string? ns = null) =>
+        _client.GetAsync($"{GetBasePath(ns)}{queryString}", CancellationToken.None);
+
+    /// <summary>
     /// Lists workflows with cursor-based pagination. Returns the full paginated response or an empty one on 204 No Content.
     /// </summary>
     public async Task<PaginatedResponse<WorkflowStatusResponse>> ListWorkflowsPaginated(
@@ -309,6 +319,22 @@ public sealed class EngineApiClient : IDisposable
             [PersistentItemStatus.Enqueued, PersistentItemStatus.Processing, PersistentItemStatus.Requeued],
             ns
         );
+
+    /// <summary>
+    /// Lists all workflow collections in the namespace. Returns an empty list on 204 No Content.
+    /// </summary>
+    public async Task<IReadOnlyList<WorkflowCollectionResponse>> ListCollections(string? ns = null)
+    {
+        using var response = await _client.GetAsync(GetCollectionsBasePath(ns));
+
+        if (response.StatusCode == HttpStatusCode.NoContent)
+            return [];
+
+        return await AssertSuccessAndDeserialize<List<WorkflowCollectionResponse>>(response);
+    }
+
+    public Task<HttpResponseMessage> ListCollectionsRaw(string? ns = null) =>
+        _client.GetAsync(GetCollectionsBasePath(ns), CancellationToken.None);
 
     /// <summary>
     /// Polls <see cref="GetWorkflow(Guid)"/> every 100 ms until the workflow reaches

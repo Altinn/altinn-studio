@@ -1,8 +1,10 @@
 using System.Globalization;
+using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Helpers.Extensions;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Texts;
@@ -30,6 +32,7 @@ public class PdfService : IPdfService
     private readonly IAuthenticationContext _authenticationContext;
     private readonly ITranslationService _translationService;
     private readonly GeneralSettings _generalSettings;
+    private readonly IAppResources _resources;
     private readonly InstanceDataUnitOfWorkInitializer? _instanceDataUnitOfWorkInitializer;
     private readonly Telemetry? _telemetry;
     internal const string PdfElementType = "ref-data-as-pdf";
@@ -47,6 +50,7 @@ public class PdfService : IPdfService
         ILogger<PdfService> logger,
         IAuthenticationContext authenticationContext,
         ITranslationService translationService,
+        IAppResources resources,
         IServiceProvider? serviceProvider = null,
         Telemetry? telemetry = null
     )
@@ -59,6 +63,7 @@ public class PdfService : IPdfService
         _logger = logger;
         _authenticationContext = authenticationContext;
         _translationService = translationService;
+        _resources = resources;
         _instanceDataUnitOfWorkInitializer = serviceProvider?.GetService<InstanceDataUnitOfWorkInitializer>();
         _telemetry = telemetry;
     }
@@ -207,7 +212,7 @@ public class PdfService : IPdfService
         }
         else if (displayFooter)
         {
-            footerContent = await GetFooterContent(instance, language);
+            footerContent = await GetFooterContent(instance, taskId, language);
         }
 
         Stream pdfContent = await _pdfGeneratorClient.GeneratePdf(uri, footerContent, ct);
@@ -339,7 +344,7 @@ public class PdfService : IPdfService
             </div>";
     }
 
-    private async Task<string> GetFooterContent(Instance instance, string? language)
+    private async Task<string> GetFooterContent(Instance instance, string taskId, string? language)
     {
         TimeZoneInfo timeZone = TimeZoneInfo.Utc;
         try
@@ -354,15 +359,19 @@ public class PdfService : IPdfService
 
         DateTimeOffset now = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, timeZone);
 
-        string title = await _translationService.TranslateTextKey("appName", language) ?? "Altinn";
+        bool hideAppName = await GetHideAppNameInPdf(instance, taskId, language);
 
         string dateGenerated = now.ToString("dd.MM.yyyy HH:mm", new CultureInfo("nb-NO"));
         string altinnReferenceId = instance.Id.Split("/")[1].Split("-")[4];
 
+        string title = hideAppName
+            ? string.Empty
+            : $"<span>{await _translationService.TranslateTextKey("appName", language) ?? "Altinn"}</span>";
+
         string footerTemplate =
             $@"<div style='font-family: Inter; font-size: 12px; width: 100%; display: flex; flex-direction: row; align-items: center; gap: 12px; padding: 0 70px 0 70px;'>
                 <div style='display: flex; flex-direction: row; width: 100%; align-items: center'>
-                    <span>{title}</span>
+                    {title}
                     <div
                         id='header-template'
                         style='color: #F00; font-weight: 700; border: 1px solid #F00; padding: 6px 8px; margin-left: auto;'
@@ -378,6 +387,50 @@ public class PdfService : IPdfService
                 </div>
             </div>";
         return footerTemplate;
+    }
+
+    private async Task<bool> GetHideAppNameInPdf(Instance instance, string taskId, string? language)
+    {
+        try
+        {
+            var hideAppName = _resources.GetGlobalUiSettings()?.HideAppNameInPdf;
+            if (hideAppName is null)
+                return false;
+
+            var expression = hideAppName.Value;
+            if (expression.IsLiteralValue)
+                return expression.ValueUnion.Bool;
+
+            if (_instanceDataUnitOfWorkInitializer is null)
+            {
+                _logger.LogWarning(
+                    "Cannot evaluate hideAppNameInPdf expression: InstanceDataUnitOfWorkInitializer is not available"
+                );
+                return false;
+            }
+
+            var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
+            var state = dataAccessor.GetLayoutEvaluatorState();
+
+            var settings = _resources.GetLayoutSettingsForFolder(taskId);
+            DataElementIdentifier? dataElement = settings?.DefaultDataType is { } dataType
+                ? instance.Data?.Find(d => d.DataType == dataType)
+                : null;
+
+            var componentContext = new ComponentContext(
+                dataAccessor,
+                component: null,
+                rowIndices: null,
+                dataElementIdentifier: dataElement
+            );
+            var result = await ExpressionEvaluator.EvaluateExpression(state, expression, componentContext);
+            return result is true;
+        }
+        catch (Exception e) when (e is JsonException or InvalidOperationException or InvalidCastException)
+        {
+            _logger.LogWarning(e, "Failed to evaluate hideAppNameInPdf, defaulting to showing app name");
+            return false;
+        }
     }
 
     private static List<KeyValuePair<string, string>> CreateAutoPdfTaskIdsQueryParams(
@@ -403,23 +456,23 @@ public class PdfService : IPdfService
         string? subformDataElementId
     )
     {
-        LayoutEvaluatorState state =
-            dataAccessor.GetLayoutEvaluatorState()
-            ?? throw new InvalidOperationException("LayoutEvaluatorState should not be null. No current task?");
-
         DataElementIdentifier? dataElementIdentifier =
             subformDataElementId != null
                 ? new DataElementIdentifier(subformDataElementId)
                 : (DataElementIdentifier?)null;
 
         var componentContext = new ComponentContext(
-            state,
+            dataAccessor,
             component: null,
             rowIndices: null,
             dataElementIdentifier: dataElementIdentifier
         );
 
-        return await _translationService.TranslateTextKey(customFileNameTextResourceKey, state, componentContext);
+        return await _translationService.TranslateTextKey(
+            customFileNameTextResourceKey,
+            dataAccessor,
+            componentContext
+        );
     }
 }
 

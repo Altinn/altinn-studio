@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { Flex } from '@app/form-component';
+import { Flex, HelpTextContainer } from '@app/form-component';
 
-import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
