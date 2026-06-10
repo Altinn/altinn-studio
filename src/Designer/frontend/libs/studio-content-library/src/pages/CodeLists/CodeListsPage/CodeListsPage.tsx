@@ -25,6 +25,7 @@ import { Errors } from './Errors';
 import type { CodeListFile } from '../../../types/CodeListFile';
 import type { CodeListFileMap } from './types/CodeListFileMap';
 import { Link } from '@digdir/designsystemet-react';
+import { useRouterContext } from '../../../ContentLibrary/RouterContext';
 
 export type CodeListsPageProps = {
   codeLists: CodeListFile[];
@@ -198,6 +199,7 @@ type SaveMessageProps = {
 
 function SaveMessage({ state, isSaved }: SaveMessageProps): React.ReactNode {
   const { t } = useTranslation();
+  const { contactPagePath } = useRouterContext();
   switch (state) {
     case 'ok':
       return isSaved
@@ -209,7 +211,7 @@ function SaveMessage({ state, isSaved }: SaveMessageProps): React.ReactNode {
       return (
         <Trans
           i18nKey='app_content_library.code_lists.save.error'
-          components={{ a: <Link href='/info/contact'>{null}</Link> }}
+          components={{ a: <Link href={contactPagePath}>{null}</Link> }}
         />
       );
   }

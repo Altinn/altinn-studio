@@ -9,6 +9,8 @@ import { FileNameUtils, ArrayUtils, ObjectUtils } from '@studio/pure-functions';
 import type { CodeList } from '../../../../types/CodeList';
 import type { CodeListFileWithProblem, OrdinaryCodeListFile } from '../../../../types/CodeListFile';
 import { screen } from '@studio/ui-test';
+import { RouterContextProvider } from '../../../../ContentLibrary/RouterContext';
+import { PageName } from '../../../../types/PageName';
 
 // Test data:
 const currentFile = fruitsFile;
@@ -157,7 +159,19 @@ describe('CodeListDataEditor', () => {
 });
 
 function renderCodeListDataEditor(props: Partial<CodeListDataEditorProps> = {}): RenderResult {
-  return render(<CodeListDataEditor {...defaultProps} {...props} />);
+  return render(<CodeListDataEditor {...defaultProps} {...props} />, {
+    wrapper: (p) => (
+      <RouterContextProvider
+        value={{
+          location: PageName.LandingPage,
+          navigate: jest.fn(),
+          renderLink: jest.fn(),
+          contactPagePath: '/contact/',
+        }}
+        {...p}
+      />
+    ),
+  });
 }
 
 function getNameInput(): HTMLElement {
