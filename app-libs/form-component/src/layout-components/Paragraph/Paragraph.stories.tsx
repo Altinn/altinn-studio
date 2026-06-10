@@ -2,12 +2,6 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { Paragraph } from './Paragraph';
 
-/**
- * Paragraph resolves its `title` and `help` props through the translation context, which parses the
- * resolved text as HTML or markdown. That means you can put plain text, an HTML snippet, or markdown
- * directly in the story args below and it will be rendered accordingly. The global Storybook
- * decorator provides a StaticLanguageTranslatorProvider that performs this parsing.
- */
 const meta = {
   title: 'LayoutComponents/Paragraph',
   component: Paragraph,
