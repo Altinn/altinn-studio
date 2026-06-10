@@ -271,14 +271,14 @@ Cancellation is **idempotent** — multiple calls return the original timestamp.
 
 ### Immediate vs. distributed cancellation
 
-Setting the database flag always succeeds atomically, but *when* the workflow actually stops depends on where it is running. The `canceledImmediately` field in the response distinguishes the two paths:
+Setting the database flag always succeeds atomically, but _when_ the workflow actually stops depends on where it is running. The `canceledImmediately` field in the response distinguishes the two paths:
 
 - **Immediate (`canceledImmediately: true`)** — the pod that received the cancel request is the same pod currently executing the workflow. Its `CancellationTokenSource` is triggered synchronously before the response returns, aborting the running step's in-flight work (e.g. the outbound HTTP call) right away. Sub-second, bounded only by how promptly the command honors its token.
 - **Distributed (`canceledImmediately: false`)** — the flag is set, but the workflow isn't in the receiving pod's in-flight set. It is either:
     - **running on another pod** — picked up by that pod's `CancellationWatcherService` on its next tick (`CancellationWatcherInterval`, default 2s), or
     - **not yet started** (Enqueued/Requeued) — finalized as `Canceled` the next time the processor fetches it, without executing any step.
 
-In all cases the database flag guarantees the workflow *will* be canceled; `canceledImmediately` only reports whether the interrupt was delivered in-process during the call. A `200` response means the request was accepted and applied; a `202` means cancellation was already pending (idempotent re-request).
+In all cases the database flag guarantees the workflow _will_ be canceled; `canceledImmediately` only reports whether the interrupt was delivered in-process during the call. A `200` response means the request was accepted and applied; a `202` means cancellation was already pending (idempotent re-request).
 
 ## Resume
 
@@ -523,13 +523,13 @@ GET /api/v1/{namespace}/workflows
 
 Supports the following optional query parameters (all repeatable params can be supplied multiple times):
 
-| Parameter       | Repeatable | Description                                                                                                                                          |
-| --------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Parameter       | Repeatable | Description                                                                                                                                                                                                                    |
+| --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `status`        | Yes        | Filter by workflow status. Case-insensitive. One of `Enqueued`, `Processing`, `Requeued`, `Completed`, `Failed`, `Canceled`, `DependencyFailed`. Omit to return all statuses; an unrecognized value returns `400 Bad Request`. |
-| `label`         | Yes        | Filter by label, formatted as `key:value`. Entries without a `:` are ignored.                                                                        |
-| `collectionKey` | No         | Filter to a single collection.                                                                                                                       |
-| `cursor`        | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                          |
-| `pageSize`      | No         | Items per page. Defaults to 25, clamped to the range 1–100.                                                                                           |
+| `label`         | Yes        | Filter by label, formatted as `key:value`. Entries without a `:` are ignored.                                                                                                                                                  |
+| `collectionKey` | No         | Filter to a single collection.                                                                                                                                                                                                 |
+| `cursor`        | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                                                                                                   |
+| `pageSize`      | No         | Items per page. Defaults to 25, clamped to the range 1–100.                                                                                                                                                                    |
 
 Filter by status — e.g. all failed workflows (combine values to widen the set):
 

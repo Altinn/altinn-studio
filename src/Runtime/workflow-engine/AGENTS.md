@@ -5,7 +5,7 @@ Reusable class library for async workflow processing. Provides the core engine, 
 ## Projects
 
 | Project                     | Purpose                                                                                                 |
-|-----------------------------|---------------------------------------------------------------------------------------------------------|
+| --------------------------- | ------------------------------------------------------------------------------------------------------- |
 | `WorkflowEngine.Core`       | Core engine class library: processing loop, HTTP endpoints, executor, extensions                        |
 | `WorkflowEngine.Commands`   | Command plugin system (Webhook). Runtime-specific commands (e.g. AppCommand) live in their host project |
 | `WorkflowEngine.Models`     | Domain models: `Workflow`, `Step`, `EngineRequest`, status enums                                        |
@@ -48,7 +48,7 @@ Reusable class library for async workflow processing. Provides the core engine, 
 Infrastructure-only (no engine host). Supporting services for local development.
 
 | Container           | Port             | Purpose                                    |
-|---------------------|------------------|--------------------------------------------|
+| ------------------- | ---------------- | ------------------------------------------ |
 | `postgres`          | 9543             | Database                                   |
 | `pgadmin`           | 5050             | PostgreSQL admin UI                        |
 | `lgtm`              | 7070, 4317, 4318 | Grafana + Prometheus + Loki + Tempo + OTLP |

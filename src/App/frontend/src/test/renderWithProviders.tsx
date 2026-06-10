@@ -346,7 +346,9 @@ function InstanceFormAndLayoutProviders({ children, formDataProxies }: InstanceP
   return (
     <InstanceProvider>
       <FormDataWriteProxyProvider value={formDataProxies}>
-        <FormProvider>{children}</FormProvider>
+        <FormProvider>
+          <AppLanguageTranslatorProvider>{children}</AppLanguageTranslatorProvider>
+        </FormProvider>
       </FormDataWriteProxyProvider>
     </InstanceProvider>
   );
