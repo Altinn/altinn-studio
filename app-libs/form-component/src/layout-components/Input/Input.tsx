@@ -1,37 +1,30 @@
 import React from 'react';
 import type { HTMLInputAutoCompleteAttribute, ReactElement } from 'react';
-import type { NumericFormatProps, PatternFormatProps } from 'react-number-format';
+import type { NumericFormatProps } from 'react-number-format';
 
 import {
   FormattedInput,
-  HelpText,
   Input as InputField,
   Label,
   NumericInput,
 } from '@app/form-component/app-components';
 import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
+import { HelpTextContainer } from '@app/form-component/layout-components/common/HelpTextContainer';
+import {
+  isNumberFormat,
+  isPatternFormat,
+} from '@app/form-component/layout-components/Input/number-format-helpers';
 import type {
   IGridStyling,
   InputProps as InputFieldProps,
 } from '@app/form-component/app-components';
+import type {
+  NumberFormat,
+  NumericConfig,
+  PatternConfig,
+} from '@app/form-component/layout-components/Input/number-format-helpers';
 
 import classes from './Input.module.css';
-
-// `size`/`customInput` are owned by the underlying field components, and the label/aria props are
-// driven by the layout component itself. They are omitted here so spreading the config does not
-// clash with the field's `size` prop or re-widen its `aria-label`/`aria-labelledby` union.
-type OmittedFieldKeys = 'size' | 'customInput' | 'aria-label' | 'aria-labelledby' | 'label';
-type NumericConfig = Omit<NumericFormatProps, OmittedFieldKeys>;
-type PatternConfig = Omit<PatternFormatProps, OmittedFieldKeys>;
-
-/** The resolved react-number-format config (i.e. the `formatting.number` part). */
-export type NumberFormat = NumericConfig | PatternConfig;
-
-const isPatternFormat = (format: NumberFormat | undefined): format is PatternConfig =>
-  format ? (format as PatternConfig).format !== undefined : false;
-
-const isNumberFormat = (format: NumberFormat | undefined): format is NumericConfig =>
-  format ? (format as PatternConfig).format === undefined : false;
 
 type Variant =
   | { type: 'search' }
@@ -76,8 +69,6 @@ function getMobileKeyboardProps(
   }
 
   if (variant.type === 'pattern') {
-    // Pattern inputs are simple. They fill out spaces or separators for you automatically, so the user can focus on
-    // typing the numbers.
     return { inputMode: 'numeric', pattern: undefined };
   }
 
@@ -401,13 +392,7 @@ export function InputLayout(props: InputLayoutProps) {
     ) : undefined;
 
   const helpComponent: ReactElement | undefined = help ? (
-    <HelpText
-      id={`${id}-helptext`}
-      titlePrefix={title ? langAsString('helptext.button_title_prefix') : undefined}
-      title={title ? langAsString(title) : langAsString('helptext.button_title')}
-    >
-      {lang(help)}
-    </HelpText>
+    <HelpTextContainer id={id} title={title} helpText={lang(help)} />
   ) : undefined;
 
   const descriptionComponent: ReactElement | undefined = description ? (
