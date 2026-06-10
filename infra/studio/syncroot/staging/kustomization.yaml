@@ -17,3 +17,17 @@ patches:
       metadata:
         name: altinn-altinity-agents
         namespace: default
+  - patch: |-
+      $patch: delete
+      apiVersion: source.toolkit.fluxcd.io/v1
+      kind: OCIRepository
+      metadata:
+        name: github-runners
+        namespace: default
+  - patch: |-
+      $patch: delete
+      apiVersion: kustomize.toolkit.fluxcd.io/v1
+      kind: Kustomization
+      metadata:
+        name: github-runners
+        namespace: default
