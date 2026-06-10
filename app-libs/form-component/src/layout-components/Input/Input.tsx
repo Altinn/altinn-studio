@@ -2,20 +2,20 @@ import React from 'react';
 import type { HTMLInputAutoCompleteAttribute, ReactElement } from 'react';
 import type { NumericFormatProps, PatternFormatProps } from 'react-number-format';
 
-// this eslint-disables will be fixed once this PR is merged:
-// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
 import {
   FormattedInput,
   HelpText,
   Input as InputField,
   Label,
   NumericInput,
-} from '../../app-components';
-// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
-import { useTranslation } from '../../LanguageTranslatorProvider';
+} from '@app/form-component/app-components';
+import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
+import type {
+  IGridStyling,
+  InputProps as InputFieldProps,
+} from '@app/form-component/app-components';
+
 import classes from './Input.module.css';
-// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
-import type { IGridStyling, InputProps as InputFieldProps } from '../../app-components';
 
 // `size`/`customInput` are owned by the underlying field components, and the label/aria props are
 // driven by the layout component itself. They are omitted here so spreading the config does not
