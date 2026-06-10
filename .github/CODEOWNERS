@@ -23,9 +23,7 @@ src/test/K6/**/yarn.lock                                        @altinn/team-cor
 .github/workflows/storybook-to-github-pages.yaml                @altinn/team-altinn-studio-utforming
 .github/workflows/studio-components-deploy.yaml                 @altinn/team-altinn-studio-utforming
 .github/workflows/studio-components-legacy-deploy.yaml          @altinn/team-altinn-studio-utforming
-libs/app-language/**/package.json                               @altinn/team-altinn-studio-utforming
-libs/form-component/**/package.json                             @altinn/team-altinn-studio-utforming
-libs/form-engine/**/package.json                                @altinn/team-altinn-studio-utforming
+app-libs/**/package.json                                        @altinn/team-altinn-studio-utforming
 src/App/frontend/**/docker-compose.yml                          @altinn/team-altinn-studio-utforming
 src/App/frontend/**/package.json                                @altinn/team-altinn-studio-utforming
 src/Designer/frontend/**/package.json                           @altinn/team-altinn-studio-utforming
