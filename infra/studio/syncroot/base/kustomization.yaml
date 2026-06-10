@@ -6,7 +6,6 @@ resources:
   - altinn-loadbalancer.yaml
   - kubernetes-wrapper.yaml
   - gitea-runners.yaml
-  - github-runners.yaml
   - altinn-mcp-server.yaml
   - altinn-altinity-agents.yaml
   - lhci.yaml

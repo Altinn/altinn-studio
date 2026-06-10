@@ -16,7 +16,7 @@ jobs:
   construct-environments-array:
     uses: ./.github/workflows/template-studio-construct-environments.yaml
     with:
-      inputs: '{"environments":"prod"}'
+      override-default-studio-environments: prod
 
   push-artifact:
     name: Push GitHub runners as OCI artifact
