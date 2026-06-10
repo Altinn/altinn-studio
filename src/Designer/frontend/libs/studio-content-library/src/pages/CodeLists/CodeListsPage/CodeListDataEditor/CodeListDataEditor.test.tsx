@@ -7,7 +7,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { userEvent } from '@testing-library/user-event';
 import { FileNameUtils, ArrayUtils, ObjectUtils } from '@studio/pure-functions';
 import type { CodeList } from '../../../../types/CodeList';
-import type { OrdinaryCodeListFile } from '../../../../types/CodeListFile';
+import type { CodeListFileWithProblem, OrdinaryCodeListFile } from '../../../../types/CodeListFile';
 import { screen } from '@studio/ui-test';
 
 // Test data:
@@ -146,6 +146,13 @@ describe('CodeListDataEditor', () => {
     renderCodeListDataEditor({ savedFile: null });
     const summary = screen.getSummaryByText(codeListName);
     expect(summary).toHaveClass('added');
+  });
+
+  it('Displays an error message when the file could not be loaded because of backend errors', () => {
+    const fileWithProblem: CodeListFileWithProblem = { name: 'fail.json', problem: {} };
+    renderCodeListDataEditor({ currentFile: fileWithProblem });
+    const expectedMessage = textMock('app_content_library.code_lists.backend_error');
+    expect(screen.getByText(expectedMessage)).toBeInTheDocument();
   });
 });
 

@@ -1,64 +1,47 @@
-import { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import type { ChangeEventHandler, ReactElement, ReactNode } from 'react';
 import { useCodeListEditorTexts } from '../useCodeListEditorTexts';
 import {
+  StudioAlert,
   StudioCodeListEditor,
   StudioDeleteButton,
   StudioDetails,
+  StudioLink,
   StudioTextfield,
 } from '@studio/components';
 import type { CodeList } from '../../../../types/CodeList';
 import type { CodeListData } from '../../../../types/CodeListData';
-import { codeListFileToData, fileState, updateCodes, updateName } from './utils';
+import {
+  codeListFileToData,
+  fileState,
+  getCodeListNameFromFile,
+  hasContent,
+  updateCodes,
+  updateName,
+} from './utils';
 import type { FileState } from './utils';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import classes from './CodeListDataEditor.module.css';
 import { Publishing } from './Publishing';
-import type { CodeListFile } from '../../../../types/CodeListFile';
+import type { CodeListFile, OrdinaryCodeListFile } from '../../../../types/CodeListFile';
 import cn from 'classnames';
 
-export type CodeListDataEditorProps = Readonly<{
-  currentFile: CodeListFile;
+export type CodeListDataEditorProps<FileInfo = CodeListFile> = Readonly<{
+  currentFile: FileInfo;
   isPublishing: boolean;
   onDelete: () => void;
   onPublish: (data: CodeListData) => void;
-  onUpdate: (newFile: CodeListFile) => void;
+  onUpdate: (newFile: OrdinaryCodeListFile) => void;
   publishedCodeLists: string[];
-  savedFile: CodeListFile | null;
+  savedFile: FileInfo | null;
 }>;
 
 export function CodeListDataEditor({
   currentFile,
-  isPublishing,
-  onDelete,
-  onPublish,
-  onUpdate,
-  publishedCodeLists,
   savedFile,
+  ...rest
 }: CodeListDataEditorProps): ReactElement {
-  const texts = useCodeListEditorTexts();
-  const { t } = useTranslation();
-
-  const data = useMemo<CodeListData>(() => codeListFileToData(currentFile), [currentFile]);
-
-  const handleNameChange: ChangeEventHandler<HTMLInputElement> = useCallback(
-    (event) => {
-      const { value } = event.target;
-      const newFile = updateName(currentFile, value);
-      onUpdate(newFile);
-    },
-    [currentFile, onUpdate],
-  );
-
-  const handleCodeListUpdate = useCallback(
-    (newCodeList: CodeList): void => {
-      const newFile = updateCodes(currentFile, newCodeList);
-      onUpdate(newFile);
-    },
-    [currentFile, onUpdate],
-  );
-
-  const handlePublish = useCallback((): void => onPublish(data), [data, onPublish]);
+  const name = getCodeListNameFromFile(currentFile);
 
   const state = useMemo<FileState>(
     () => fileState(currentFile, savedFile),
@@ -68,33 +51,13 @@ export function CodeListDataEditor({
   return (
     <StudioDetails>
       <StudioDetails.Summary className={cn(classes.summary, fileStateToClassMap[state])}>
-        <Name name={data.name} />
+        <Name name={name} />
       </StudioDetails.Summary>
-      <StudioDetails.Content className={classes.content} data-color='info'>
-        <StudioTextfield
-          className={classes.nameField}
-          label={t('app_content_library.code_lists.name')}
-          onChange={handleNameChange}
-          value={data.name}
-        />
-        <StudioDeleteButton className={classes.deleteButton} onDelete={onDelete}>
-          {t('general.delete')}
-        </StudioDeleteButton>
-        <Publishing
-          className={classes.publishing}
-          codeListName={data.name}
-          isPending={isPublishing}
-          onPublish={handlePublish}
-          publishedCodeLists={publishedCodeLists}
-        />
-        <StudioCodeListEditor
-          className={classes.codes}
-          codeList={data.codes}
-          fallbackLanguage={DEFAULT_LANGUAGE}
-          onUpdateCodeList={handleCodeListUpdate}
-          texts={texts}
-        />
-      </StudioDetails.Content>
+      {hasContent(currentFile) ? (
+        <OrdinaryFileEditorContent currentFile={currentFile} {...rest} />
+      ) : (
+        <BackendError />
+      )}
     </StudioDetails>
   );
 }
@@ -114,3 +77,81 @@ const fileStateToClassMap: Record<FileState, string | null> = {
   saved: null,
   withProblem: null,
 };
+
+type OrdinaryFileEditorContentProps = Omit<
+  CodeListDataEditorProps<OrdinaryCodeListFile>,
+  'savedFile'
+>;
+
+function OrdinaryFileEditorContent({
+  currentFile,
+  isPublishing,
+  onDelete,
+  onPublish,
+  onUpdate,
+  publishedCodeLists,
+}: OrdinaryFileEditorContentProps): React.ReactElement {
+  const texts = useCodeListEditorTexts();
+  const { t } = useTranslation();
+
+  const data = useMemo<CodeListData>(() => codeListFileToData(currentFile), [currentFile]);
+
+  const handleNameChange: ChangeEventHandler<HTMLInputElement> = useCallback(
+    (event) => {
+      const { value } = event.target;
+      const newFile = updateName<OrdinaryCodeListFile>(currentFile, value);
+      onUpdate(newFile);
+    },
+    [currentFile, onUpdate],
+  );
+
+  const handleCodeListUpdate = useCallback(
+    (newCodeList: CodeList): void => {
+      const newFile = updateCodes(currentFile, newCodeList);
+      onUpdate(newFile);
+    },
+    [currentFile, onUpdate],
+  );
+
+  const handlePublish = useCallback((): void => onPublish(data), [data, onPublish]);
+  return (
+    <StudioDetails.Content className={classes.content}>
+      <StudioTextfield
+        className={classes.nameField}
+        label={t('app_content_library.code_lists.name')}
+        onChange={handleNameChange}
+        value={data.name}
+      />
+      <StudioDeleteButton className={classes.deleteButton} onDelete={onDelete}>
+        {t('general.delete')}
+      </StudioDeleteButton>
+      <Publishing
+        className={classes.publishing}
+        codeListName={data.name}
+        isPending={isPublishing}
+        onPublish={handlePublish}
+        publishedCodeLists={publishedCodeLists}
+      />
+      <StudioCodeListEditor
+        className={classes.codes}
+        codeList={data.codes}
+        fallbackLanguage={DEFAULT_LANGUAGE}
+        onUpdateCodeList={handleCodeListUpdate}
+        texts={texts}
+      />
+    </StudioDetails.Content>
+  );
+}
+
+function BackendError(): React.ReactElement {
+  return (
+    <StudioDetails.Content>
+      <StudioAlert data-color='danger'>
+        <Trans
+          i18nKey='app_content_library.code_lists.backend_error'
+          components={{ a: <StudioLink href='/info/contact'>{null}</StudioLink> }}
+        />
+      </StudioAlert>
+    </StudioDetails.Content>
+  );
+}
