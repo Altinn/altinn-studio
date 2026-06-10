@@ -24,10 +24,12 @@ export const PageNavigationRouter =
   };
 
 export function createLoaderFunctionArgs(partialArgs: Partial<LoaderFunctionArgs>): LoaderFunctionArgs {
+  const request = partialArgs.request ?? new Request('http://localhost/');
   return {
-    request: partialArgs.request ?? new Request('http://localhost/'),
+    request,
+    url: partialArgs.url ?? new URL(request.url),
+    pattern: partialArgs.pattern ?? '',
     params: partialArgs.params ?? {},
     context: partialArgs.context ?? new RouterContextProvider(),
-    unstable_pattern: partialArgs.unstable_pattern ?? '',
   };
 }
