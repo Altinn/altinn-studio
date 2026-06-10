@@ -64,7 +64,7 @@ describe('Input', () => {
   });
 
   it('shows a character counter when characterLimit is set', () => {
-    render(
+    const { container } = render(
       <Input
         aria-label='Bio'
         value='Hi'
@@ -73,11 +73,13 @@ describe('Input', () => {
       />,
     );
 
-    expect(screen.getByText(/characters left/i)).toBeInTheDocument();
+    // The design system renders the counter text into the data-label attribute (shown via CSS content).
+    const counter = container.querySelector('[data-field="counter"]');
+    expect(counter).toHaveAttribute('data-label', 'characters left');
   });
 
   it('hides the character counter for read-only inputs', () => {
-    render(
+    const { container } = render(
       <Input
         aria-label='Bio'
         value='Hi'
@@ -87,7 +89,7 @@ describe('Input', () => {
       />,
     );
 
-    expect(screen.queryByText(/characters left/i)).not.toBeInTheDocument();
+    expect(container.querySelector('[data-field="counter"]')).not.toBeInTheDocument();
   });
 
   describe('textonly', () => {

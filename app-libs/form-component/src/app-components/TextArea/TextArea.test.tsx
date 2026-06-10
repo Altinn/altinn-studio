@@ -59,7 +59,7 @@ describe('TextArea', () => {
   });
 
   it('renders a character counter when characterLimit is provided', () => {
-    render(
+    const { container } = render(
       <TextArea
         id='ta'
         value='abc'
@@ -68,6 +68,8 @@ describe('TextArea', () => {
       />,
     );
 
-    expect(screen.getByText('7 characters left')).toBeInTheDocument();
+    // The design system renders the counter text into the data-label attribute (shown via CSS content).
+    const counter = container.querySelector('[data-field="counter"]');
+    expect(counter).toHaveAttribute('data-label', '7 characters left');
   });
 });
