@@ -28,6 +28,7 @@ public class AppDevelopmentService : IAppDevelopmentService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly ISchemaModelService _schemaModelService;
+    private readonly IAppVersionService _appVersionService;
     private readonly string _layoutSetNameRegEx = @"^[a-zA-Z0-9_\-]{2,28}$";
 
     /// <summary>
@@ -35,13 +36,16 @@ public class AppDevelopmentService : IAppDevelopmentService
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
     /// <param name="schemaModelService">ISchemaModelService</param>
+    /// <param name="appVersionService">IAppVersionService</param>
     public AppDevelopmentService(
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-        ISchemaModelService schemaModelService
+        ISchemaModelService schemaModelService,
+        IAppVersionService appVersionService
     )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _schemaModelService = schemaModelService;
+        _appVersionService = appVersionService;
     }
 
     /// <inheritdoc />
@@ -289,14 +293,15 @@ public class AppDevelopmentService : IAppDevelopmentService
         CancellationToken cancellationToken = default
     )
     {
-        if (string.IsNullOrEmpty(layoutSetName))
-        {
-            // Fallback to first model in app metadata if no layout set is provided
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                 altinnRepoEditingContext.Org,
                 altinnRepoEditingContext.Repo,
                 altinnRepoEditingContext.Developer
             );
+
+        if (string.IsNullOrEmpty(layoutSetName))
+        {
+            // Fallback to first model in app metadata if no layout set is provided
             ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(
                 cancellationToken
             );
@@ -308,8 +313,15 @@ public class AppDevelopmentService : IAppDevelopmentService
                 ?? string.Empty;
         }
 
+        if (_appVersionService.GetAppLibVersion(altinnRepoEditingContext).Major >= 9)
+        {
+            Designer.Models.LayoutSettings layoutSettings =
+                await altinnAppGitRepository.GetLayoutSettings(layoutSetName, cancellationToken);
+            return layoutSettings.DefaultDataType ?? string.Empty;
+        }
+
         LayoutSets layoutSets = await GetLayoutSets(altinnRepoEditingContext, cancellationToken);
-        var foundLayoutSet = layoutSets.Sets.Find(set => set.Id == layoutSetName);
+        LayoutSetConfig foundLayoutSet = layoutSets.Sets.Find(set => set.Id == layoutSetName);
 
         return foundLayoutSet.DataType;
     }
