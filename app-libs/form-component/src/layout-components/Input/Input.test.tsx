@@ -10,15 +10,14 @@ import type { InputLayoutProps } from './Input';
 
 interface Stubs {
   lang?: (key: string | undefined) => ReactNode;
-  translate?: (key: string) => string;
+  langAsString?: (key: string | undefined) => string;
 }
 
-const renderInput = (props: Partial<InputLayoutProps>, { lang, translate }: Stubs = {}) =>
+const renderInput = (props: Partial<InputLayoutProps>, { lang, langAsString }: Stubs = {}) =>
   render(
     <LanguageTranslatorProvider
       lang={lang ?? ((key) => key ?? null)}
-      translate={translate ?? ((key) => key)}
-      TranslateComponent={({ tKey }) => <span>{tKey}</span>}
+      langAsString={langAsString ?? ((key) => key ?? '')}
     >
       <InputLayout id='input' {...props} />
     </LanguageTranslatorProvider>,
@@ -28,7 +27,7 @@ describe('InputLayout', () => {
   it('renders a textbox whose accessible name is the resolved title', () => {
     renderInput(
       { title: 'my.title' },
-      { translate: (key) => (key === 'my.title' ? 'First name' : key) },
+      { langAsString: (key) => (key === 'my.title' ? 'First name' : (key ?? '')) },
     );
     expect(screen.getByRole('textbox', { name: 'First name' })).toBeInTheDocument();
   });
@@ -73,11 +72,7 @@ describe('InputLayout', () => {
     function Harness() {
       const [value, setValue] = useState('');
       return (
-        <LanguageTranslatorProvider
-          lang={(key) => key ?? null}
-          translate={(key) => key}
-          TranslateComponent={({ tKey }) => <span>{tKey}</span>}
-        >
+        <LanguageTranslatorProvider lang={(key) => key ?? null} langAsString={(key) => key ?? ''}>
           <InputLayout
             id='input'
             title='x'
@@ -132,7 +127,10 @@ describe('InputLayout', () => {
   it('renders the resolved prefix and suffix', () => {
     renderInput(
       { title: 'x', prefix: 'pre.key', suffix: 'suf.key' },
-      { translate: (key) => ({ 'pre.key': 'NOK', 'suf.key': 'per month' })[key] ?? key },
+      {
+        langAsString: (key) =>
+          ({ 'pre.key': 'NOK', 'suf.key': 'per month' })[key ?? ''] ?? key ?? '',
+      },
     );
     expect(screen.getByText('NOK')).toBeInTheDocument();
     expect(screen.getByText('per month')).toBeInTheDocument();
@@ -177,8 +175,8 @@ describe('InputLayout', () => {
     renderInput(
       { title: 'x', maxLength: 10 },
       {
-        translate: (key) =>
-          key === 'input_components.remaining_characters' ? '%d characters left' : key,
+        langAsString: (key) =>
+          key === 'input_components.remaining_characters' ? '%d characters left' : (key ?? ''),
       },
     );
     expect(screen.getByText(/characters left/i)).toBeInTheDocument();
@@ -189,7 +187,7 @@ describe('InputLayout', () => {
       { title: 'my.title', showOptionalMarking: true },
       {
         lang: (key) => (key === 'my.title' ? 'First name' : null),
-        translate: (key) => (key === 'general.optional' ? 'optional' : key),
+        langAsString: (key) => (key === 'general.optional' ? 'optional' : (key ?? '')),
       },
     );
     expect(screen.getByText(/optional/i)).toBeInTheDocument();

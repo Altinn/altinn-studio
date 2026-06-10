@@ -287,7 +287,7 @@ export function InputLayout(props: InputLayoutProps) {
     onChange?.(values.value);
   };
 
-  const { lang, translate, TranslateComponent } = useTranslation();
+  const { lang, langAsString } = useTranslation();
 
   const labelId = getLabelId(id);
   const descriptionId = getDescriptionId(id);
@@ -300,14 +300,14 @@ export function InputLayout(props: InputLayoutProps) {
       ? undefined
       : {
           limit: maxLength,
-          under: translate('input_components.remaining_characters'),
-          over: translate('input_components.exceeded_max_limit'),
+          under: langAsString('input_components.remaining_characters'),
+          over: langAsString('input_components.exceeded_max_limit'),
         };
 
   // Kept separate from `inputProps` (and spread directly into each field) so the field's
   // `aria-label` / `aria-labelledby` discriminated union is preserved rather than widened.
   const labelProps: { 'aria-label': string } | { 'aria-labelledby': string } = title
-    ? { 'aria-label': translate(title) }
+    ? { 'aria-label': langAsString(title) }
     : { 'aria-labelledby': labelId };
 
   const inputProps = {
@@ -327,8 +327,8 @@ export function InputLayout(props: InputLayoutProps) {
     required,
     onBlur,
     error,
-    prefix: prefix ? translate(prefix) : undefined,
-    suffix: suffix ? translate(suffix) : undefined,
+    prefix: prefix ? langAsString(prefix) : undefined,
+    suffix: suffix ? langAsString(suffix) : undefined,
     style: { width: '100%' },
     inputMode,
     pattern,
@@ -366,8 +366,8 @@ export function InputLayout(props: InputLayoutProps) {
             {...inputProps}
             {...labelProps}
             {...variant.format}
-            prefix={translate(variant.format.prefix ?? '')}
-            suffix={translate(variant.format.suffix ?? '')}
+            prefix={langAsString(variant.format.prefix ?? '')}
+            suffix={langAsString(variant.format.suffix ?? '')}
             value={numberDisplayValue}
             type='text'
             onBlur={() => setPendingValue(undefined)}
@@ -392,21 +392,21 @@ export function InputLayout(props: InputLayoutProps) {
   const labelText = shouldShowLabel ? lang(title) : undefined;
 
   const requiredIndicator: ReactElement | undefined = required ? (
-    <span> {translate('form_filler.required_label')}</span>
+    <span> {langAsString('form_filler.required_label')}</span>
   ) : undefined;
 
   const optionalIndicator: ReactElement | undefined =
     !required && showOptionalMarking && !readOnly ? (
-      <span className={classes.optionalIndicator}>{` (${translate('general.optional')})`}</span>
+      <span className={classes.optionalIndicator}>{` (${langAsString('general.optional')})`}</span>
     ) : undefined;
 
   const helpComponent: ReactElement | undefined = help ? (
     <HelpText
       id={`${id}-helptext`}
-      titlePrefix={title ? translate('helptext.button_title_prefix') : undefined}
-      title={title ? translate(title) : translate('helptext.button_title')}
+      titlePrefix={title ? langAsString('helptext.button_title_prefix') : undefined}
+      title={title ? langAsString(title) : langAsString('helptext.button_title')}
     >
-      <TranslateComponent tKey={help} />
+      {lang(help)}
     </HelpText>
   ) : undefined;
 

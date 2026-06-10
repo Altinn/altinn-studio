@@ -1,9 +1,9 @@
 import { useState } from 'react';
 
+import { LanguageTranslatorProvider } from '@app/form-component/LanguageTranslatorProvider';
+import { parseAndCleanText } from '@app/form-component/text/parseAndCleanText';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
-import { LanguageTranslatorProvider } from '../../LanguageTranslatorProvider';
 import { INPUT_LAYOUT_CONFIG_KEYS, InputLayout } from './Input';
 import type { InputLayoutProps } from './Input';
 
@@ -14,7 +14,9 @@ function ControlledInput(args: InputLayoutProps) {
 }
 
 // The story keys mimic text-resource bindings. The provider below resolves them to display strings,
-// the same way the app does at runtime via the language context.
+// the same way the app does at runtime via the language context. Any value that isn't a known key is
+// passed through and parsed, so you can also type raw HTML or markdown straight into the args (e.g.
+// the `description` or `help` controls) and it will render — see the WithHtml/WithMarkdown stories.
 const TEXTS: Record<string, string> = {
   'input.title': 'First name',
   'input.description': 'As written in your passport.',
@@ -47,9 +49,8 @@ const meta = {
   decorators: [
     (Story) => (
       <LanguageTranslatorProvider
-        lang={(key) => (key ? (TEXTS[key] ?? key) : null)}
-        translate={(key) => TEXTS[key] ?? key}
-        TranslateComponent={({ tKey }) => TEXTS[tKey] ?? tKey}
+        lang={(key) => parseAndCleanText(key ? (TEXTS[key] ?? key) : '')}
+        langAsString={(key) => (key ? (TEXTS[key] ?? key) : '')}
       >
         <Story />
       </LanguageTranslatorProvider>
@@ -134,5 +135,25 @@ export const WithError: Story = {
 export const WithCharacterLimit: Story = {
   args: {
     maxLength: 30,
+  },
+};
+
+// The `description` and `help` props are resolved through the language context, which parses the
+// text as HTML or markdown. You can therefore put a raw HTML snippet straight into the args.
+export const WithHtml: Story = {
+  args: {
+    description: 'As written in your passport, e.g. <strong>Ada Lovelace</strong>.',
+    help: '<p>We only use your name to <em>personalise</em> the form.</p><ul><li>Never shared</li><li>Never stored elsewhere</li></ul>',
+  },
+};
+
+// …or markdown.
+export const WithMarkdown: Story = {
+  args: {
+    description: 'As written in your passport, e.g. **Ada Lovelace**.',
+    help: `We only use your name to _personalise_ the form.
+
+- Never shared
+- Never stored elsewhere`,
   },
 };
