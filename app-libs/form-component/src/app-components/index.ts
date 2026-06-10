@@ -2,6 +2,7 @@ export * from './AccordionItem';
 export * from './ConditionalWrapper';
 export * from './Button';
 export * from './Card';
+export * from './ConfirmPopover';
 export * from './Datepicker';
 export * from './DynamicForm';
 export * from './Dropzone';
