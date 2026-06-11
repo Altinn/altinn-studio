@@ -9,6 +9,8 @@ import { codeLists, coloursFile } from './test-data/codeLists';
 import { screen, within } from '@studio/ui-test';
 import { FileNameUtils } from '@studio/pure-functions';
 import type { CodeListFile } from '../../../types/CodeListFile';
+import { RouterContextProvider } from '../../../ContentLibrary/RouterContext';
+import { PageName } from '../../../types/PageName';
 
 // Test data:
 const onPublish = jest.fn();
@@ -140,7 +142,19 @@ describe('CodeListsPage', () => {
 });
 
 function renderCodeListPage(props?: Partial<CodeListsPageProps>): RenderResult {
-  return render(<CodeListsPage {...defaultProps} {...props} />);
+  return render(<CodeListsPage {...defaultProps} {...props} />, {
+    wrapper: (p) => (
+      <RouterContextProvider
+        value={{
+          location: PageName.LandingPage,
+          navigate: jest.fn(),
+          renderLink: jest.fn(),
+          contactPagePath: '/contact/',
+        }}
+        {...p}
+      />
+    ),
+  });
 }
 
 const addNewCodeList = async (user: UserEvent): Promise<void> =>
