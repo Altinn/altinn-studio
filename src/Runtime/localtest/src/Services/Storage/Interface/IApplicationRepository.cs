@@ -1,3 +1,5 @@
+#nullable disable
+
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Repository;

@@ -3583,7 +3583,7 @@
         "tags": [
           "Instances"
         ],
-        "summary": "Simplified Instanciation with support for fieldprefill",
+        "summary": "Simplified instantiation with support for fieldprefill",
         "parameters": [
           {
             "name": "org",
@@ -3613,7 +3613,7 @@
           }
         ],
         "requestBody": {
-          "description": "instansiation information",
+          "description": "instantiation information",
           "content": {
             "application/json": {
               "schema": {
@@ -9583,7 +9583,7 @@
           }
         },
         "additionalProperties": false,
-        "description": "Specialized model for instansiation of instances"
+        "description": "Specialized model for instantiation of instances"
       },
       "InstantiationNotification": {
         "type": "object",

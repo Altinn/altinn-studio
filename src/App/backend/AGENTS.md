@@ -110,7 +110,7 @@ We have Architecture Decision Records in the `/doc/adr/` folder.
 
 ### Versioning
 
-- Uses **semantic versioning** with MinVer
+- Uses **semantic versioning** for packages
 - Avoid breaking changes (we plan to release major versions yearly. Some breaking changes can be done inbetween but must be manually verified)
 - PR titles become release notes
 - Normal interfaces in Altinn.App.Core must be binary compatible within a major version so that users can have local packages that still work (never remove a method)

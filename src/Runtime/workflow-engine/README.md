@@ -57,9 +57,12 @@ See swagger for a [full list](http://localhost:9090/swagger) of endpoints. The m
 ```
 GET  /api/v1/namespaces                        (list distinct namespaces)
 POST /api/v1/{namespace}/workflows             (enqueue workflows)
-GET  /api/v1/{namespace}/workflows             (list active workflows, paginated via ?page & ?pageSize)
+GET  /api/v1/{namespace}/workflows             (list workflows; filter by ?status, ?label, ?collectionKey; cursor-paginated via ?cursor & ?pageSize)
 GET  /api/v1/{namespace}/workflows/{id}        (get single workflow with steps)
 POST /api/v1/{namespace}/workflows/{id}/cancel (request cancellation)
+POST /api/v1/{namespace}/workflows/{id}/resume (resume a terminal workflow)
+GET  /api/v1/{namespace}/collections           (list collections in the namespace)
+GET  /api/v1/{namespace}/collections/{key}     (get single collection with head statuses)
 ```
 
 ## Migrations
