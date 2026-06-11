@@ -17,6 +17,7 @@ namespace Designer.Tests.Services;
 public class AppDevelopmentServiceTest : IDisposable
 {
     private readonly Mock<ISchemaModelService> _schemaModelServiceMock;
+    private readonly Mock<IAppVersionService> _appVersionServiceMock;
     private readonly IAppDevelopmentService _appDevelopmentService;
     private readonly AltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly string _org = "ttd";
@@ -26,8 +27,13 @@ public class AppDevelopmentServiceTest : IDisposable
     public AppDevelopmentServiceTest()
     {
         _schemaModelServiceMock = new Mock<ISchemaModelService>();
+        _appVersionServiceMock = new Mock<IAppVersionService>();
         _altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        _appDevelopmentService = new AppDevelopmentService(_altinnGitRepositoryFactory, _schemaModelServiceMock.Object);
+        _appDevelopmentService = new AppDevelopmentService(
+            _altinnGitRepositoryFactory,
+            _schemaModelServiceMock.Object,
+            _appVersionServiceMock.Object
+        );
     }
 
     public string CreatedTestRepoPath { get; set; }

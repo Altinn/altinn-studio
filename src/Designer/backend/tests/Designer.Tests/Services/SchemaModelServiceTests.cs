@@ -22,12 +22,14 @@ namespace Designer.Tests.Services;
 public class SchemaModelServiceTests
 {
     private readonly Mock<IApplicationMetadataService> _applicationMetadataService;
+    private readonly Mock<IAppVersionService> _appVersionServiceMock;
     private readonly AltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly ISchemaModelService _schemaModelService;
 
     public SchemaModelServiceTests()
     {
         _applicationMetadataService = new Mock<IApplicationMetadataService>();
+        _appVersionServiceMock = new Mock<IAppVersionService>();
         _altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(
             TestDataHelper.GetTestDataRepositoriesRootDirectory()
         );
@@ -38,7 +40,8 @@ public class SchemaModelServiceTests
             TestDataHelper.XmlSchemaToJsonSchemaConverter,
             TestDataHelper.JsonSchemaToXmlSchemaConverter,
             TestDataHelper.ModelMetadataToCsharpConverter,
-            _applicationMetadataService.Object
+            _applicationMetadataService.Object,
+            _appVersionServiceMock.Object
         );
     }
 

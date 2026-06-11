@@ -13,17 +13,24 @@ namespace Designer.Tests.Services;
 
 public class ProcessModelingServiceTests : FluentTestsBase<ProcessModelingServiceTests>
 {
+    private readonly Mock<ISchemaModelService> _schemaModelServiceMock;
+    private readonly Mock<IAppVersionService> _appVersionServiceMock;
     private readonly AltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IAppDevelopmentService _appDevelopmentService;
     public string CreatedTestRepoPath { get; set; }
 
     public ProcessModelingServiceTests()
     {
-        var schemaModelServiceMock = new Mock<ISchemaModelService>();
+        _schemaModelServiceMock = new Mock<ISchemaModelService>();
+        _appVersionServiceMock = new Mock<IAppVersionService>();
         _altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(
             TestDataHelper.GetTestDataRepositoriesRootDirectory()
         );
-        _appDevelopmentService = new AppDevelopmentService(_altinnGitRepositoryFactory, schemaModelServiceMock.Object);
+        _appDevelopmentService = new AppDevelopmentService(
+            _altinnGitRepositoryFactory,
+            _schemaModelServiceMock.Object,
+            _appVersionServiceMock.Object
+        );
     }
 
     [Theory]
