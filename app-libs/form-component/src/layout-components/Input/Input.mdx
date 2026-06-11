@@ -1,42 +1,9 @@
-import { Meta, Title, Subtitle, Description, Primary, Controls, Stories } from '@storybook/addon-docs/blocks';
+import { Meta } from '@storybook/addon-docs/blocks';
 
+import { LayoutComponentDocs } from '../common/storybook';
 import * as InputStories from './Input.stories';
 import { INPUT_PROP_CATEGORIES } from './Input';
 
-{/*
-  Custom docs page (replaces the default autodocs template for Input). It exists so each group of
-  props can sit under a real markdown heading — a heading that is NOT a collapse toggle, unlike a
-  Storybook `table.category`. We render one Controls table per group, each limited to that group's
-  props via `include`.
-*/}
-
-export const studioConfigKeys = Object.entries(INPUT_PROP_CATEGORIES)
-  .filter(([, category]) => category === 'config')
-  .map(([key]) => key);
-
-export const runtimeKeys = Object.entries(INPUT_PROP_CATEGORIES)
-  .filter(([, category]) => category === 'runtime')
-  .map(([key]) => key);
-
 <Meta of={InputStories} />
 
-<Title />
-<Subtitle />
-<Description />
-
-<Primary />
-
-## Studio configurable
-
-Props that are configurable in Altinn Studio.
-
-<Controls of={InputStories.Preview} include={studioConfigKeys} />
-
-## Runtime (injected)
-
-Internal wiring supplied by the runtime wrapper — data binding, display overrides, validation state
-and event handlers. Not part of the Studio configuration.
-
-<Controls of={InputStories.Preview} include={runtimeKeys} />
-
-<Stories />
+<LayoutComponentDocs categories={INPUT_PROP_CATEGORIES} />

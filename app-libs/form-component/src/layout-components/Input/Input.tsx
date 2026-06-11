@@ -18,6 +18,7 @@ import type {
   IGridStyling,
   InputProps as InputFieldProps,
 } from '@app/form-component/app-components';
+import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type {
   NumberFormat,
   NumericConfig,
@@ -90,76 +91,39 @@ function getMobileKeyboardProps(
   return { inputMode: 'text', pattern: undefined };
 }
 
-/**
- * All props the component accepts. Two groups live side by side here, distinguished only by the
- * `@category` tag and by {@link INPUT_PROP_CATEGORIES}:
- *
- * - `config` — props that map 1:1 to the component's Studio-configurable options. These are what an
- *   app developer documents and experiments with in Storybook.
- * - `runtime` — internal wiring supplied by the runtime wrapper (data binding, display overrides,
- *   validation state, event handlers). NOT part of the Studio configuration.
- */
 export interface InputLayoutProps {
-  /** @category config — The component id. */
+  // Studio-configurable props.
   id: string;
-  /** @category config — Text-resource key for the field label. */
   title?: string;
-  /** @category config — Text-resource key for the description shown below the label. */
   description?: string;
-  /** @category config — Text-resource key for the help text shown in a tooltip next to the label. */
   help?: string;
-  /** @category config — Text-resource key for the prefix shown before the input value. */
   prefix?: string;
-  /** @category config — Text-resource key for the suffix shown after the input value. */
   suffix?: string;
-  /** @category config — Variant of the input field. Number/pattern formatting is driven by `numberFormat`. */
   variant?: 'text' | 'search';
-  /** @category config — Resolved react-number-format config. When set, the field renders as a numeric or pattern input. */
   numberFormat?: NumberFormat;
-  /** @category config — Text alignment of the value inside the field. */
   align?: 'left' | 'center' | 'right';
-  /** @category config — The HTML autocomplete attribute. */
   autocomplete?: HTMLInputAutoCompleteAttribute;
-  /** @category config — Adds a remaining-characters counter to the field. */
   maxLength?: number;
-  /** @category config — Whether the field is required. */
   required?: boolean;
-  /** @category config — Whether the field is read-only. */
   readOnly?: boolean;
-  /** @category config — Whether to render an "(optional)" marking when the field is not required. */
   showOptionalMarking?: boolean;
-  /** @category config — Grid sizing for the label. */
   grid?: IGridStyling;
 
-  /** @category runtime — Whether the label should be rendered (defaults to true). */
+  // Runtime wiring, injected by the wrapper.
   renderLabel?: boolean;
-  /** @category runtime — When rendered inside a table cell the label is hidden and aria wiring changes. */
   renderedInTable?: boolean;
-  /** @category runtime — When the surrounding row is read-only, render the value as plain text. */
   rowReadOnly?: boolean;
-  /** @category runtime — The current value of the field. */
   value?: string;
-  /** @category runtime — Whether the field is in an error state. */
   error?: boolean;
-  /** @category runtime — Whether there are validation messages associated with the field. */
   hasValidations?: boolean;
-  /** @category runtime — The id of the element holding validation messages, used for aria-describedby. */
   validationsId?: string;
-  /**
-   * @category runtime — Called with the new value for every variant, and on paste. The component
-   * already filters out non-user-originated changes and normalises pasted input. The committed value
-   * is expected to flow back in via `value`.
-   */
   onChange?: (value: string) => void;
-  /** @category runtime — Blur handler for the text/search/pattern variants. */
   onBlur?: () => void;
 }
 
 /**
- * Classifies every prop as either a Studio-configurable option (`config`) or internal runtime wiring
- * (`runtime`). The `satisfies Record<keyof InputLayoutProps, ...>` keeps this exhaustive: adding a
- * prop to {@link InputLayoutProps} without classifying it here is a compile error. Storybook reads
- * this to sort the controls into "Studio configurable" and "Runtime" categories.
+ * Sorts each prop into a Storybook docs group. `satisfies PropCategories<InputLayoutProps>` makes it
+ * exhaustive, so a new prop must be classified here.
  */
 export const INPUT_PROP_CATEGORIES = {
   id: 'config',
@@ -186,7 +150,7 @@ export const INPUT_PROP_CATEGORIES = {
   validationsId: 'runtime',
   onChange: 'runtime',
   onBlur: 'runtime',
-} satisfies Record<keyof InputLayoutProps, 'config' | 'runtime'>;
+} satisfies PropCategories<InputLayoutProps>;
 
 function getLabelId(id: string) {
   return `label-${id}`;
