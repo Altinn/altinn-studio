@@ -18,7 +18,7 @@ jobs:
   build-and-test:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Build and test
-    runs-on: [self-hosted, Linux]
+    runs-on: self-hosted
     timeout-minutes: 30
     defaults:
       run:
