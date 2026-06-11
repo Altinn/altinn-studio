@@ -9,7 +9,8 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 internal interface IWorkflowCallbackSecretProvider
 {
     /// <summary>
-    /// Gets the secret used for signing JWT tokens for workflow engine callbacks (the newest available code).
+    /// Gets the secret used for signing JWT tokens for workflow engine callbacks
+    /// (the first non-expired code, codes are ordered newest-first).
     /// </summary>
     AppCode GetSigningSecret();
 
@@ -32,7 +33,15 @@ internal sealed class WorkflowCallbackSecretProvider(IOptionsMonitor<AppCodesSet
         var codes = options.CurrentValue.WorkflowEngineCallback;
         if (codes is null or { Count: 0 })
             throw new WorkflowCallbackSecretNotFoundException(NotConfiguredMessage);
-        return codes[0];
+
+        // The newest code may expire while the host is running; never sign with an expired code.
+        var now = DateTimeOffset.UtcNow;
+        AppCode? code = codes.Find(c => c.ExpiresAt > now);
+        return code
+            ?? throw new WorkflowCallbackSecretNotFoundException(
+                "AppCodes:WorkflowEngineCallback contains only expired codes. At least one non-expired code is "
+                    + "required to sign callback tokens."
+            );
     }
 
     /// <inheritdoc />

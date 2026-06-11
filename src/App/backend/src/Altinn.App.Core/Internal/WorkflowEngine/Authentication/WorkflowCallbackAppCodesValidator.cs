@@ -1,3 +1,4 @@
+using System.Text;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Microsoft.Extensions.Options;
 
@@ -10,6 +11,9 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 /// </summary>
 internal sealed class WorkflowCallbackAppCodesValidator : IValidateOptions<AppCodesSettings>
 {
+    // HS256 requires a key of at least 128 bits; shorter codes make token signing throw at enqueue time.
+    private const int MinCodeBytes = 16;
+
     public ValidateOptionsResult Validate(string? name, AppCodesSettings options)
     {
         var codes = options.WorkflowEngineCallback;
@@ -28,6 +32,14 @@ internal sealed class WorkflowCallbackAppCodesValidator : IValidateOptions<AppCo
             return ValidateOptionsResult.Fail(
                 "AppCodes:WorkflowEngineCallback contains only expired codes. At least one non-expired callback "
                     + "code is required."
+            );
+        }
+
+        if (codes.Exists(c => Encoding.UTF8.GetByteCount(c.Code) < MinCodeBytes))
+        {
+            return ValidateOptionsResult.Fail(
+                $"AppCodes:WorkflowEngineCallback contains a code shorter than {MinCodeBytes} bytes. Callback "
+                    + "tokens are signed with HMAC-SHA256, which requires a key of at least 128 bits."
             );
         }
 

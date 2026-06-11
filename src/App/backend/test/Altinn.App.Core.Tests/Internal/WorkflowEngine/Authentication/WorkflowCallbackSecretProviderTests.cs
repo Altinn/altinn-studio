@@ -11,13 +11,13 @@ public class WorkflowCallbackSecretProviderTests
 
     private WorkflowCallbackSecretProvider CreateSut() => new(_optionsMonitorMock.Object);
 
-    private static AppCode MakeCode(string id, string code) =>
+    private static AppCode MakeCode(string id, string code, DateTimeOffset? expiresAt = null) =>
         new()
         {
             Id = id,
             Code = code,
             IssuedAt = DateTimeOffset.UtcNow,
-            ExpiresAt = DateTimeOffset.UtcNow.AddDays(186),
+            ExpiresAt = expiresAt ?? DateTimeOffset.UtcNow.AddDays(186),
         };
 
     private void SetupCodes(List<AppCode> codes) =>
@@ -42,6 +42,28 @@ public class WorkflowCallbackSecretProviderTests
         var result = CreateSut().GetSigningSecret();
 
         Assert.Equal("only-secret", result.Code);
+    }
+
+    [Fact]
+    public void GetSigningSecret_FirstCodeExpired_ReturnsFirstNonExpiredCode()
+    {
+        SetupCodes([
+            MakeCode("id-expired", "expired-secret", DateTimeOffset.UtcNow.AddDays(-1)),
+            MakeCode("id-valid", "valid-secret"),
+        ]);
+
+        var result = CreateSut().GetSigningSecret();
+
+        Assert.Equal("id-valid", result.Id);
+    }
+
+    [Fact]
+    public void GetSigningSecret_OnlyExpiredCodes_Throws()
+    {
+        SetupCodes([MakeCode("id-expired", "expired-secret", DateTimeOffset.UtcNow.AddDays(-1))]);
+
+        var ex = Assert.Throws<WorkflowCallbackSecretNotFoundException>(() => CreateSut().GetSigningSecret());
+        Assert.Contains("expired", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

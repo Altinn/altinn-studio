@@ -15,7 +15,7 @@ namespace Altinn.App.Api.Controllers;
 
 /// <summary>
 /// Controller for handling process engine callbacks. Authenticated via the WorkflowEngineCallback scheme:
-/// the engine replays the app-minted JWT (bound to this instance) as an Authorization: Bearer header.
+/// the engine replays the app-minted JWT (bound to this instance) in the Altinn-Workflow-Callback-Token header.
 /// </summary>
 [ApiController]
 [Authorize(AuthenticationSchemes = WorkflowEngineCallbackAuthenticationHandler.SchemeName)]

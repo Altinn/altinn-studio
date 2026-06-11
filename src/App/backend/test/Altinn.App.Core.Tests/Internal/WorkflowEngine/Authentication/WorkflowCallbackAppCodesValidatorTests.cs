@@ -5,11 +5,11 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Authentication;
 
 public class WorkflowCallbackAppCodesValidatorTests
 {
-    private static AppCode MakeCode(DateTimeOffset expiresAt) =>
+    private static AppCode MakeCode(DateTimeOffset expiresAt, string code = "a-code-that-is-long-enough-for-hmac") =>
         new()
         {
             Id = "id",
-            Code = "code",
+            Code = code,
             IssuedAt = DateTimeOffset.UtcNow.AddDays(-1),
             ExpiresAt = expiresAt,
         };
@@ -54,5 +54,49 @@ public class WorkflowCallbackAppCodesValidatorTests
 
         Assert.True(result.Failed);
         Assert.Contains("expired", result.FailureMessage, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Validate_FirstCodeExpiredButAnotherValid_Succeeds()
+    {
+        var settings = new AppCodesSettings
+        {
+            WorkflowEngineCallback =
+            [
+                MakeCode(DateTimeOffset.UtcNow.AddDays(-1)),
+                MakeCode(DateTimeOffset.UtcNow.AddDays(10)),
+            ],
+        };
+
+        var result = new WorkflowCallbackAppCodesValidator().Validate(null, settings);
+
+        Assert.True(result.Succeeded);
+    }
+
+    [Fact]
+    public void Validate_CodeShorterThanMinimumKeyLength_Fails()
+    {
+        var settings = new AppCodesSettings
+        {
+            WorkflowEngineCallback = [MakeCode(DateTimeOffset.UtcNow.AddDays(10), code: "too-short")],
+        };
+
+        var result = new WorkflowCallbackAppCodesValidator().Validate(null, settings);
+
+        Assert.True(result.Failed);
+        Assert.Contains("128 bits", result.FailureMessage);
+    }
+
+    [Fact]
+    public void Validate_CodeOfExactlyMinimumKeyLength_Succeeds()
+    {
+        var settings = new AppCodesSettings
+        {
+            WorkflowEngineCallback = [MakeCode(DateTimeOffset.UtcNow.AddDays(10), code: "exactly-16-chars")],
+        };
+
+        var result = new WorkflowCallbackAppCodesValidator().Validate(null, settings);
+
+        Assert.True(result.Succeeded);
     }
 }

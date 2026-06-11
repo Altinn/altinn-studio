@@ -15,19 +15,18 @@ public class WorkflowCallbackTokenValidatorTests
 
     private WorkflowCallbackTokenValidator CreateSut() => new(_secretProviderMock.Object, _loggerMock.Object);
 
-    private static string GenerateToken(Guid instanceGuid, string secret, string secretId, DateTime? expires = null)
+    private static string GenerateToken(Guid instanceGuid, string secret, string? secretId, DateTime? expires = null)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var handler = new JsonWebTokenHandler();
+        var claims = new Dictionary<string, object> { [JwtRegisteredClaimNames.Jti] = instanceGuid.ToString() };
+        if (secretId is not null)
+            claims["secret_id"] = secretId;
         return handler.CreateToken(
             new SecurityTokenDescriptor
             {
-                Claims = new Dictionary<string, object>
-                {
-                    [JwtRegisteredClaimNames.Jti] = instanceGuid.ToString(),
-                    ["secret_id"] = secretId,
-                },
+                Claims = claims,
                 Expires = expires ?? DateTime.UtcNow.AddDays(186),
                 SigningCredentials = credentials,
             }
@@ -100,6 +99,20 @@ public class WorkflowCallbackTokenValidatorTests
         SetupSecrets(("id-1", secret));
 
         var token = GenerateToken(instanceGuid, secret, "unknown-id");
+        var result = await CreateSut().ValidateToken(token, instanceGuid);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task ValidateToken_MissingSecretIdClaim_ReturnsFalse()
+    {
+        const string secret = "correct-secret-that-is-long-enough-ok";
+        var instanceGuid = Guid.NewGuid();
+        SetupSecrets(("id-1", secret));
+
+        // Correctly signed, but the secret_id claim is absent — must be rejected, not fall back.
+        var token = GenerateToken(instanceGuid, secret, secretId: null);
         var result = await CreateSut().ValidateToken(token, instanceGuid);
 
         Assert.False(result);

@@ -8,7 +8,7 @@ namespace Altinn.App.Api.Infrastructure.Authentication;
 
 /// <summary>
 /// Authenticates workflow engine callbacks. The engine replays a JWT (minted by the app at enqueue time)
-/// as an <c>Authorization: Bearer</c> header. The token is validated against the app's
+/// in the <c>Altinn-Workflow-Callback-Token</c> header. The token is validated against the app's
 /// <c>WorkflowEngineCallback</c> codes and must be bound to the instance in the route.
 /// </summary>
 internal sealed class WorkflowEngineCallbackAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>

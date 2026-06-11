@@ -26,8 +26,8 @@ internal sealed record AppWorkflowContext
     public required Guid InstanceGuid { get; init; }
 
     /// <summary>
-    /// JWT minted by the app at enqueue time, carried opaquely by the engine and replayed as an
-    /// <c>Authorization: Bearer</c> header on every callback so the app can authenticate the engine.
+    /// JWT minted by the app at enqueue time, carried opaquely by the engine and replayed in the
+    /// <c>Altinn-Workflow-Callback-Token</c> header on every callback so the app can authenticate the engine.
     /// </summary>
     [JsonPropertyName("callbackToken")]
     public required string CallbackToken { get; init; }

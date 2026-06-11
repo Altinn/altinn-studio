@@ -57,11 +57,17 @@ internal sealed class WorkflowCallbackTokenValidator(
             return false;
         }
 
-        string? secretId = jwt.GetClaim("secret_id")?.Value;
-        AppCode? appCode = secretId is not null
-            ? secrets.FirstOrDefault(s => s.Id == secretId)
-            : secrets.FirstOrDefault();
+        if (!jwt.TryGetClaim("secret_id", out var secretIdClaim))
+        {
+            logger.LogWarning(
+                "Workflow callback token validation failed: token has no secret_id claim for instance {InstanceGuid}.",
+                instanceGuid
+            );
+            return false;
+        }
 
+        string secretId = secretIdClaim.Value;
+        AppCode? appCode = secrets.FirstOrDefault(s => s.Id == secretId);
         if (appCode is null)
         {
             logger.LogWarning(
@@ -79,6 +85,7 @@ internal sealed class WorkflowCallbackTokenValidator(
             {
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = key,
+                ValidAlgorithms = [SecurityAlgorithms.HmacSha256],
                 ValidateIssuer = false,
                 ValidateAudience = false,
                 ValidateLifetime = true,
