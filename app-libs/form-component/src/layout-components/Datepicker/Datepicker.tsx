@@ -5,6 +5,7 @@ import {
   getDateFormat,
   getDatepickerFormat,
 } from '@app/form-component/app-components';
+import { useCurrentLanguage } from '@app/form-component/CurrentLanguageProvider';
 import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 
 import { DropdownCaption } from './DropdownCaption';
@@ -16,7 +17,6 @@ export interface DatepickerProps {
   value: string;
   /** Unicode date format from the component config. Falls back to the locale's short date format. */
   format?: string;
-  locale: string;
   /** Min date as an ISO string or a date flag (e.g. `today`). */
   minDate?: string;
   /** Max date as an ISO string or a date flag (e.g. `today`). */
@@ -32,7 +32,6 @@ export function Datepicker({
   id,
   value,
   format,
-  locale,
   minDate,
   maxDate,
   timeStamp = true,
@@ -42,8 +41,9 @@ export function Datepicker({
   onValueChange,
 }: DatepickerProps) {
   const { langAsString } = useTranslation();
+  const currentLanguage = useCurrentLanguage();
 
-  const dateFormat = getDatepickerFormat(getDateFormat(format, locale));
+  const dateFormat = getDatepickerFormat(getDateFormat(format, currentLanguage));
   const calculatedMinDate = getDateConstraint(minDate, 'min');
   const calculatedMaxDate = getDateConstraint(maxDate, 'max');
 
@@ -57,16 +57,11 @@ export function Datepicker({
         onValueChange={onValueChange}
         readOnly={readOnly}
         required={required}
-        locale={locale}
+        locale={currentLanguage}
         minDate={calculatedMinDate}
         maxDate={calculatedMaxDate}
         DropdownCaption={(props) => (
-          <DropdownCaption
-            {...props}
-            minDate={calculatedMinDate}
-            maxDate={calculatedMaxDate}
-            locale={locale}
-          />
+          <DropdownCaption {...props} minDate={calculatedMinDate} maxDate={calculatedMaxDate} />
         )}
         buttonAriaLabel={langAsString('date_picker.aria_label_icon')}
         calendarIconTitle={langAsString('date_picker.aria_label_icon')}

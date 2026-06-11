@@ -7,7 +7,6 @@ const baseProps = {
   id: 'my-datepicker',
   value: '2025-03-15',
   format: 'dd.MM.yyyy',
-  locale: 'en',
   onValueChange: () => {},
 };
 

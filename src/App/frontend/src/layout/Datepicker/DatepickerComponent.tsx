@@ -3,14 +3,12 @@ import React from 'react';
 import { Datepicker, Label } from '@app/form-component';
 
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function DatepickerComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'Datepicker'>) {
-  const languageLocale = useCurrentLanguage();
   const { minDate, maxDate, format, timeStamp, readOnly, required, id, dataModelBindings, grid, autocomplete } =
     useItemWhenType(baseComponentId, 'Datepicker');
 
@@ -35,7 +33,6 @@ export function DatepickerComponent({ baseComponentId, overrideDisplay }: PropsF
           id={id}
           value={formData.simpleBinding}
           format={format}
-          locale={languageLocale}
           minDate={minDate}
           maxDate={maxDate}
           timeStamp={timeStamp}

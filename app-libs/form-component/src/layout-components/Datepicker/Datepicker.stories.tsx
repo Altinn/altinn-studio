@@ -15,7 +15,6 @@ const meta = {
     id: 'datepicker-preview',
     value: '2025-03-15',
     format: 'dd.MM.yyyy',
-    locale: 'nb',
     onValueChange: fn(),
   },
 } satisfies Meta<typeof Datepicker>;

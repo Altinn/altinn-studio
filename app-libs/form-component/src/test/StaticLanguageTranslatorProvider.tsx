@@ -1,5 +1,6 @@
 import type { PropsWithChildren } from 'react';
 
+import { CurrentLanguageProvider } from '@app/form-component/CurrentLanguageProvider';
 import { LanguageTranslatorProvider } from '@app/form-component/LanguageTranslatorProvider';
 import { parseAndCleanText } from '@app/form-component/text/parseAndCleanText';
 import {
@@ -51,11 +52,13 @@ export function StaticLanguageTranslatorProvider({
   };
 
   return (
-    <LanguageTranslatorProvider
-      lang={(key, params) => parseAndCleanText(translateKey(key, params))}
-      langAsString={translateKey}
-    >
-      {children}
-    </LanguageTranslatorProvider>
+    <CurrentLanguageProvider currentLanguage={language}>
+      <LanguageTranslatorProvider
+        lang={(key, params) => parseAndCleanText(translateKey(key, params))}
+        langAsString={translateKey}
+      >
+        {children}
+      </LanguageTranslatorProvider>
+    </CurrentLanguageProvider>
   );
 }

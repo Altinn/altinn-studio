@@ -8,6 +8,7 @@ import {
   getYears,
   useDatePickerClose,
 } from '@app/form-component/app-components';
+import { useCurrentLanguage } from '@app/form-component/CurrentLanguageProvider';
 import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 import { Select } from '@digdir/designsystemet-react';
 import { ArrowLeftIcon, ArrowRightIcon, XMarkIcon } from '@navikt/aksel-icons';
@@ -18,19 +19,13 @@ import styles from './DropdownCaption.module.css';
 type DropdownCaptionProps = MonthCaptionProps & {
   minDate?: Date;
   maxDate?: Date;
-  locale: string;
 };
 
-export const DropdownCaption = ({
-  calendarMonth,
-  id,
-  minDate,
-  maxDate,
-  locale,
-}: DropdownCaptionProps) => {
+export const DropdownCaption = ({ calendarMonth, id, minDate, maxDate }: DropdownCaptionProps) => {
   const { goToMonth, nextMonth, previousMonth } = useDayPicker();
   const { langAsString } = useTranslation();
-  const dateLib = getDateLib(locale ?? 'nb');
+  const currentLanguage = useCurrentLanguage();
+  const dateLib = getDateLib(currentLanguage);
   const onClose = useDatePickerClose();
 
   const handleYearChange = (year: string) => {
