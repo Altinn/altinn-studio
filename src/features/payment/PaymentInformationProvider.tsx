@@ -26,11 +26,17 @@ export function usePaymentInformationQueryDef(
 
   const selectedLanguage = useCurrentLanguage();
 
+  // Returning from the hosted payment page races with the payment webhook that advances the process.
+  // The endpoint can briefly fail (e.g. while the data element is momentarily locked, or a transient
+  // 5xx/network blip) — retry a few times so a single bad response doesn't strand the user on the
+  // error page before the backend has settled. Mirrors the instance-data query's retry policy.
   if (appSupportsPaymentWebhooks(altinnNugetVersion)) {
     return {
       queryKey: ['fetchPaymentInfoForTask', instanceId, selectedLanguage],
       queryFn: instanceId ? () => fetchPaymentInformationForTask(instanceId, selectedLanguage, taskId) : skipToken,
       enabled: enabled && !!instanceId,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     };
   } else {
     return {
@@ -38,6 +44,8 @@ export function usePaymentInformationQueryDef(
       queryFn: instanceId ? () => fetchPaymentInformation(instanceId, selectedLanguage) : skipToken,
       enabled: enabled && !!instanceId,
       gcTime: 0,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     };
   }
 }
