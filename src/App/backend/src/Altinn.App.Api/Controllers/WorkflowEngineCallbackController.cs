@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.InstanceLocking;
@@ -13,10 +14,11 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.App.Api.Controllers;
 
 /// <summary>
-/// Controller for handling process engine callbacks.
+/// Controller for handling process engine callbacks. Authenticated via the WorkflowEngineCallback scheme:
+/// the engine replays the app-minted JWT (bound to this instance) as an Authorization: Bearer header.
 /// </summary>
 [ApiController]
-[AllowAnonymous]
+[Authorize(AuthenticationSchemes = WorkflowEngineCallbackAuthenticationHandler.SchemeName)]
 [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/workflow-engine-callbacks")]
 public class WorkflowEngineCallbackController : ControllerBase
 {

@@ -18,7 +18,12 @@ internal sealed class WorkflowEngineCallbackAuthenticationHandler : Authenticati
     /// </summary>
     public const string SchemeName = "WorkflowEngineCallback";
 
-    private const string BearerPrefix = "Bearer ";
+    /// <summary>
+    /// The request header carrying the workflow engine callback token. A dedicated header is used (rather
+    /// than <c>Authorization</c>) so the token is not mistaken for an Altinn platform token by the default
+    /// authentication scheme.
+    /// </summary>
+    public const string TokenHeaderName = "Altinn-Workflow-Callback-Token";
 
     private readonly IWorkflowCallbackTokenValidator _validator;
 
@@ -35,17 +40,12 @@ internal sealed class WorkflowEngineCallbackAuthenticationHandler : Authenticati
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        string? authorization = Request.Headers.Authorization;
-        if (
-            string.IsNullOrWhiteSpace(authorization)
-            || !authorization.StartsWith(BearerPrefix, StringComparison.Ordinal)
-        )
+        string? token = Request.Headers[TokenHeaderName];
+        if (string.IsNullOrWhiteSpace(token))
         {
-            // No bearer token: let the pipeline treat this as unauthenticated (401).
+            // No token: let the pipeline treat this as unauthenticated (401).
             return AuthenticateResult.NoResult();
         }
-
-        string token = authorization[BearerPrefix.Length..].Trim();
 
         // The token is bound to the instance via its jti claim; verify against the route's instanceGuid.
         if (

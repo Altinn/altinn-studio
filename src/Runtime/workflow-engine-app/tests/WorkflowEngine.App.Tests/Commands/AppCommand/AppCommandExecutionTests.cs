@@ -63,7 +63,7 @@ public class AppCommandExecutionTests
     }
 
     [Fact]
-    public async Task Execute_ReplaysCallbackTokenAsBearerHeader()
+    public async Task Execute_ReplaysCallbackTokenInDedicatedHeader()
     {
         using var fixture = AppCommandTestFixture.Create();
         var command = GetAppCommand(fixture);
@@ -76,8 +76,9 @@ public class AppCommandExecutionTests
 
         Assert.Equal(ExecutionStatus.Success, result.Status);
         var captured = fixture.HttpHandler.Requests[0];
-        Assert.True(captured.Headers.TryGetValue("Authorization", out var authValues));
-        Assert.Equal("Bearer test-callback-token", Assert.Single(authValues));
+        Assert.True(captured.Headers.TryGetValue("Altinn-Workflow-Callback-Token", out var tokenValues));
+        Assert.Equal("test-callback-token", Assert.Single(tokenValues));
+        Assert.False(captured.Headers.ContainsKey("Authorization"));
     }
 
     [Fact]

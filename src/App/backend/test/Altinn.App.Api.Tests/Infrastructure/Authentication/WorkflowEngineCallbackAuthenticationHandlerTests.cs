@@ -14,7 +14,7 @@ public class WorkflowEngineCallbackAuthenticationHandlerTests
     private readonly Mock<IWorkflowCallbackTokenValidator> _validatorMock = new(MockBehavior.Strict);
 
     private async Task<(AuthenticateResult Result, HttpContext Context)> Authenticate(
-        string? authorizationHeader,
+        string? tokenHeader,
         object? instanceGuidRouteValue
     )
     {
@@ -29,8 +29,8 @@ public class WorkflowEngineCallbackAuthenticationHandlerTests
         );
 
         var context = new DefaultHttpContext();
-        if (authorizationHeader is not null)
-            context.Request.Headers.Authorization = authorizationHeader;
+        if (tokenHeader is not null)
+            context.Request.Headers[WorkflowEngineCallbackAuthenticationHandler.TokenHeaderName] = tokenHeader;
         if (instanceGuidRouteValue is not null)
             context.Request.RouteValues["instanceGuid"] = instanceGuidRouteValue;
 
@@ -46,16 +46,7 @@ public class WorkflowEngineCallbackAuthenticationHandlerTests
     [Fact]
     public async Task NoAuthorizationHeader_ReturnsNoResult()
     {
-        var (result, _) = await Authenticate(authorizationHeader: null, instanceGuidRouteValue: Guid.NewGuid());
-
-        Assert.False(result.Succeeded);
-        Assert.True(result.None);
-    }
-
-    [Fact]
-    public async Task NonBearerScheme_ReturnsNoResult()
-    {
-        var (result, _) = await Authenticate("Basic abc123", Guid.NewGuid());
+        var (result, _) = await Authenticate(tokenHeader: null, instanceGuidRouteValue: Guid.NewGuid());
 
         Assert.False(result.Succeeded);
         Assert.True(result.None);
@@ -64,7 +55,7 @@ public class WorkflowEngineCallbackAuthenticationHandlerTests
     [Fact]
     public async Task MissingInstanceGuidRouteValue_Fails()
     {
-        var (result, _) = await Authenticate("Bearer some-token", instanceGuidRouteValue: null);
+        var (result, _) = await Authenticate("some-token", instanceGuidRouteValue: null);
 
         Assert.False(result.Succeeded);
         Assert.NotNull(result.Failure);
@@ -76,7 +67,7 @@ public class WorkflowEngineCallbackAuthenticationHandlerTests
         var instanceGuid = Guid.NewGuid();
         _validatorMock.Setup(x => x.ValidateToken("good-token", instanceGuid)).ReturnsAsync(true);
 
-        var (result, _) = await Authenticate("Bearer good-token", instanceGuid);
+        var (result, _) = await Authenticate("good-token", instanceGuid);
 
         Assert.True(result.Succeeded);
         Assert.Equal(
@@ -91,21 +82,9 @@ public class WorkflowEngineCallbackAuthenticationHandlerTests
         var instanceGuid = Guid.NewGuid();
         _validatorMock.Setup(x => x.ValidateToken("bad-token", instanceGuid)).ReturnsAsync(false);
 
-        var (result, _) = await Authenticate("Bearer bad-token", instanceGuid);
+        var (result, _) = await Authenticate("bad-token", instanceGuid);
 
         Assert.False(result.Succeeded);
         Assert.NotNull(result.Failure);
-    }
-
-    [Fact]
-    public async Task BearerTokenIsTrimmed_BeforeValidation()
-    {
-        var instanceGuid = Guid.NewGuid();
-        _validatorMock.Setup(x => x.ValidateToken("token-value", instanceGuid)).ReturnsAsync(true);
-
-        var (result, _) = await Authenticate("Bearer    token-value   ", instanceGuid);
-
-        Assert.True(result.Succeeded);
-        _validatorMock.Verify(x => x.ValidateToken("token-value", instanceGuid), Times.Once);
     }
 }
