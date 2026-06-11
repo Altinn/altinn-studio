@@ -22,9 +22,9 @@ Shared building blocks reused between layout components (see [`common/README.md`
 ## Storybook docs setup
 
 Layout components share a single docs page layout so every component's Storybook page looks the
-same: the props are split into **Studio configurable** and **Runtime (injected)** groups, each under
-its own heading and controls table. The headings are real markdown headings (not collapsible
-`table.category` sections), and every prop stays editable.
+same: the **Studio configurable** props are shown under a heading, and the **Runtime (injected)**
+props in a collapsed section below them. Both are plain controls tables (not `table.category`
+sections), and every prop stays editable.
 
 To give a component this page, two pieces are needed.
 

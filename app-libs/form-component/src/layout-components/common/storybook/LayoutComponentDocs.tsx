@@ -12,18 +12,17 @@ import type { PropCategory } from './propCategories';
 
 interface LayoutComponentDocsProps {
   /**
-   * The component's prop classification (e.g. `INPUT_PROP_CATEGORIES`). Studio-configurable and
-   * runtime props are rendered in separate controls tables, each under its own heading.
+   * The component's prop classification (e.g. `INPUT_PROP_CATEGORIES`). The Studio-configurable props
+   * are shown under a heading; the runtime props in a collapsible section below it.
    */
   categories: Record<string, PropCategory>;
 }
 
 /**
  * Shared docs page for layout components. Drop it into a component's `*.mdx` (below a
- * `<Meta of={...} />`) to get the standard layout: title, description, primary preview, then one
- * controls table per prop group under a real markdown heading — a heading that is NOT a collapse
- * toggle, unlike a Storybook `table.category`. Every prop stays editable. The runtime section is
- * omitted when a component has no runtime props.
+ * `<Meta of={...} />`) to get the standard layout: title, description, primary preview, the
+ * Studio-configurable props under a heading, then the runtime props in a collapsed `<details>`
+ * section. Every prop stays editable. The runtime section is omitted when a component has none.
  */
 export function LayoutComponentDocs({ categories }: LayoutComponentDocsProps) {
   const { configKeys, runtimeKeys } = splitPropKeys(categories);
@@ -40,14 +39,16 @@ export function LayoutComponentDocs({ categories }: LayoutComponentDocsProps) {
       <Controls include={configKeys} />
 
       {runtimeKeys.length > 0 && (
-        <>
-          <h2>Runtime (injected)</h2>
+        <details>
+          <summary>
+            <h2 style={{ display: 'inline' }}>Runtime (injected)</h2>
+          </summary>
           <p>
             Internal wiring supplied by the runtime wrapper — data binding, display overrides,
             validation state and event handlers. Not part of the Studio configuration.
           </p>
           <Controls include={runtimeKeys} />
-        </>
+        </details>
       )}
 
       <Stories />
