@@ -169,7 +169,7 @@ __metadata:
     mime: "npm:^4.1.0"
     prettier: "npm:3.8.3"
     react-content-loader: "npm:7.1.2"
-    react-day-picker: "npm:^9.14.0"
+    react-day-picker: "npm:^10.0.0"
     react-dropzone: "npm:^15.0.0"
     react-number-format: "npm:^5.4.5"
     storybook: "npm:10.2.16"
@@ -21707,7 +21707,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-day-picker@npm:9.14.0, react-day-picker@npm:^9.14.0":
+"react-day-picker@npm:9.14.0":
   version: 9.14.0
   resolution: "react-day-picker@npm:9.14.0"
   dependencies:
@@ -21718,6 +21718,22 @@ __metadata:
   peerDependencies:
     react: ">=16.8.0"
   checksum: 10/a4e05e6af3d5535e34909aa1c258904765da73f5299ddf031838f92fff8493d4bad9140088e94ddc9041b07410f9803d3ee27e7fc67d78cf0d2c8622089723f5
+  languageName: node
+  linkType: hard
+
+"react-day-picker@npm:^10.0.0":
+  version: 10.0.1
+  resolution: "react-day-picker@npm:10.0.1"
+  dependencies:
+    "@date-fns/tz": "npm:^1.4.1"
+    date-fns: "npm:^4.1.0"
+  peerDependencies:
+    "@types/react": ">=16.8.0"
+    react: ">=16.8.0"
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 10/fdc1c30c5520b455832c624fd44214b94ec7f6b75d87616746c7c172b338032686b2b1496bccc44cc48383a1d18622295c63d58f092dca6bfd3d6214a0de0859
   languageName: node
   linkType: hard
 
