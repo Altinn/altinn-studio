@@ -43,6 +43,21 @@ internal sealed class WorkflowCallbackAppCodesValidator : IValidateOptions<AppCo
             );
         }
 
+        // Tokens are matched to their signing code via the Id (secret_id claim); duplicates would make
+        // the lookup ambiguous and silently shadow one of the codes.
+        var duplicateIds = codes
+            .GroupBy(c => c.Id, StringComparer.Ordinal)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToList();
+        if (duplicateIds.Count > 0)
+        {
+            return ValidateOptionsResult.Fail(
+                $"AppCodes:WorkflowEngineCallback contains duplicate Id values: {string.Join(", ", duplicateIds)}. "
+                    + "Code Ids must be unique so callback tokens can be matched to the code that signed them."
+            );
+        }
+
         return ValidateOptionsResult.Success;
     }
 }

@@ -5,10 +5,14 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Authentication;
 
 public class WorkflowCallbackAppCodesValidatorTests
 {
-    private static AppCode MakeCode(DateTimeOffset expiresAt, string code = "a-code-that-is-long-enough-for-hmac") =>
+    private static AppCode MakeCode(
+        DateTimeOffset expiresAt,
+        string code = "a-code-that-is-long-enough-for-hmac",
+        string id = "id"
+    ) =>
         new()
         {
-            Id = "id",
+            Id = id,
             Code = code,
             IssuedAt = DateTimeOffset.UtcNow.AddDays(-1),
             ExpiresAt = expiresAt,
@@ -63,8 +67,8 @@ public class WorkflowCallbackAppCodesValidatorTests
         {
             WorkflowEngineCallback =
             [
-                MakeCode(DateTimeOffset.UtcNow.AddDays(-1)),
-                MakeCode(DateTimeOffset.UtcNow.AddDays(10)),
+                MakeCode(DateTimeOffset.UtcNow.AddDays(-1), id: "id-old"),
+                MakeCode(DateTimeOffset.UtcNow.AddDays(10), id: "id-new"),
             ],
         };
 
@@ -85,6 +89,41 @@ public class WorkflowCallbackAppCodesValidatorTests
 
         Assert.True(result.Failed);
         Assert.Contains("128 bits", result.FailureMessage);
+    }
+
+    [Fact]
+    public void Validate_DuplicateCodeIds_Fails()
+    {
+        var settings = new AppCodesSettings
+        {
+            WorkflowEngineCallback =
+            [
+                MakeCode(DateTimeOffset.UtcNow.AddDays(10), id: "duplicate-id"),
+                MakeCode(DateTimeOffset.UtcNow.AddDays(20), id: "duplicate-id"),
+            ],
+        };
+
+        var result = new WorkflowCallbackAppCodesValidator().Validate(null, settings);
+
+        Assert.True(result.Failed);
+        Assert.Contains("duplicate-id", result.FailureMessage);
+    }
+
+    [Fact]
+    public void Validate_DistinctCodeIds_Succeeds()
+    {
+        var settings = new AppCodesSettings
+        {
+            WorkflowEngineCallback =
+            [
+                MakeCode(DateTimeOffset.UtcNow.AddDays(10), id: "id-1"),
+                MakeCode(DateTimeOffset.UtcNow.AddDays(20), id: "id-2"),
+            ],
+        };
+
+        var result = new WorkflowCallbackAppCodesValidator().Validate(null, settings);
+
+        Assert.True(result.Succeeded);
     }
 
     [Fact]
