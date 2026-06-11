@@ -150,6 +150,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:^5.0.0"
     classnames: "npm:2.5.1"
     date-fns: "npm:^4.1.0"
+    dompurify: "npm:3.4.2"
     eslint: "npm:10.3.0"
     eslint-config-prettier: "npm:10.1.8"
     eslint-plugin-import: "npm:2.32.0"
@@ -161,7 +162,10 @@ __metadata:
     eslint-plugin-simple-import-sort: "npm:12.1.1"
     eslint-plugin-sonarjs: "npm:4.0.3"
     globals: "npm:17.6.0"
+    html-react-parser: "npm:6.0.1"
     jsdom: "npm:^26.1.0"
+    marked: "npm:17.0.6"
+    marked-mangle: "npm:1.1.13"
     mime: "npm:^4.1.0"
     prettier: "npm:3.8.3"
     react-content-loader: "npm:7.1.2"
@@ -5994,27 +5998,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@protobufjs/codegen@npm:^2.0.4":
-  version: 2.0.4
-  resolution: "@protobufjs/codegen@npm:2.0.4"
-  checksum: 10/c6ee5fa172a8464f5253174d3c2353ea520c2573ad7b6476983d9b1346f4d8f2b44aa29feb17a949b83c1816bc35286a5ea265ed9d8fdd2865acfa09668c0447
+"@protobufjs/codegen@npm:^2.0.5":
+  version: 2.0.5
+  resolution: "@protobufjs/codegen@npm:2.0.5"
+  checksum: 10/290335fa114f26202abc0695f279d53e2fd516b01cfd8298923591e0bda011295ff40e3582a1cda0a0f27cbc5039a0292082d5ad08872bb5d6243a614ac15c88
   languageName: node
   linkType: hard
 
-"@protobufjs/eventemitter@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@protobufjs/eventemitter@npm:1.1.0"
-  checksum: 10/03af3e99f17ad421283d054c88a06a30a615922a817741b43ca1b13e7c6b37820a37f6eba9980fb5150c54dba6e26cb6f7b64a6f7d8afa83596fafb3afa218c3
+"@protobufjs/eventemitter@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "@protobufjs/eventemitter@npm:1.1.1"
+  checksum: 10/a54dc1aff4475ffad4fdf3235c71a553f5e40e3b4cf6a2e217151895a61cb4eb0be20d63791db22441ca25e594671f1021977133f9939540750231ff7d8e9dd6
   languageName: node
   linkType: hard
 
-"@protobufjs/fetch@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@protobufjs/fetch@npm:1.1.0"
+"@protobufjs/fetch@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "@protobufjs/fetch@npm:1.1.1"
   dependencies:
     "@protobufjs/aspromise": "npm:^1.1.1"
-    "@protobufjs/inquire": "npm:^1.1.0"
-  checksum: 10/67ae40572ad536e4ef94269199f252c024b66e3059850906bdaee161ca1d75c73d04d35cd56f147a8a5a079f5808e342b99e61942c1dae15604ff0600b09a958
+  checksum: 10/427cf2da8c69b494b0df3b2fb1f43c97f0f71ca2c8ef8232dac7e44f2527ad0cc9cecb243eda14a918e86018bfa6d54d92252240d2b37ed205b13adb5506fa1d
   languageName: node
   linkType: hard
 
@@ -6025,10 +6028,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@protobufjs/inquire@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@protobufjs/inquire@npm:1.1.0"
-  checksum: 10/c09efa34a5465cb120775e1a482136f2340a58b4abce7e93d72b8b5a9324a0e879275016ef9fcd73d72a4731639c54f2bb755bb82f916e4a78892d1d840bb3d2
+"@protobufjs/inquire@npm:^1.1.2":
+  version: 1.1.2
+  resolution: "@protobufjs/inquire@npm:1.1.2"
+  checksum: 10/259756489c75a751552df60d18f82503d2534855646397b96b91cf15807fa852e99bd9eb73dabb64da37aec7913844032ecb031a4326d82aae622f5e4c2f8a17
   languageName: node
   linkType: hard
 
@@ -6046,10 +6049,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@protobufjs/utf8@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@protobufjs/utf8@npm:1.1.0"
-  checksum: 10/131e289c57534c1d73a0e55782d6751dd821db1583cb2f7f7e017c9d6747addaebe79f28120b2e0185395d990aad347fb14ffa73ef4096fa38508d61a0e64602
+"@protobufjs/utf8@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "@protobufjs/utf8@npm:1.1.1"
+  checksum: 10/ed0c3f9ff1afd602a0aed54c4c03a0b8f641686a5587d8949e088dcac653fb2019d15691ed92eef23dfdf9f4293249532d0508ecd15cef810acf026917719a19
   languageName: node
   linkType: hard
 
@@ -9768,7 +9771,6 @@ __metadata:
     cypress-wait-until: "npm:3.0.2"
     date-fns: "npm:4.1.0"
     decimal.js: "npm:10.6.0"
-    dompurify: "npm:3.4.3"
     dot-object: "npm:2.1.5"
     dotenv: "npm:17.4.2"
     esbuild-loader: "npm:4.4.3"
@@ -9808,8 +9810,6 @@ __metadata:
     leaflet: "npm:1.9.4"
     leaflet-draw: "npm:1.0.4"
     lru-cache: "npm:11.3.6"
-    marked: "npm:17.0.6"
-    marked-mangle: "npm:1.1.13"
     mini-css-extract-plugin: "npm:2.10.2"
     prettier: "npm:3.8.3"
     puppeteer: "npm:^24.29.0"
@@ -12702,15 +12702,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:3.4.3":
-  version: 3.4.3
-  resolution: "dompurify@npm:3.4.3"
+"dompurify@npm:3.4.2":
+  version: 3.4.2
+  resolution: "dompurify@npm:3.4.2"
   dependencies:
     "@types/trusted-types": "npm:^2.0.7"
   dependenciesMeta:
     "@types/trusted-types":
       optional: true
-  checksum: 10/037b226c866b3156c9ce2d3bced57225e7d82d46ecbe24448b6a43d6ce4ad92836f2747b318db786f70ce313068665d6dc192e43f5bf88d2e30d088c37247a1c
+  checksum: 10/8681a27f17412e754b38d080e39abb36fb14dbf58194d520eedd45b47986323966a0391df540a2011bce72dd37d67f2a015246a58f39d48e3e8f6051274fb974
   languageName: node
   linkType: hard
 
@@ -15577,6 +15577,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"html-dom-parser@npm:7.0.1":
+  version: 7.0.1
+  resolution: "html-dom-parser@npm:7.0.1"
+  dependencies:
+    domhandler: "npm:6.0.1"
+    htmlparser2: "npm:12.0.0"
+  checksum: 10/94e1f2b0999b92a42bf549555b91756924663a85c4cad18387312155249f2170cc8afd8948c1b9ebb1c3c8270cd4bfca65764b08312bb8bacb15035c59a95b52
+  languageName: node
+  linkType: hard
+
 "html-dom-parser@npm:7.1.0":
   version: 7.1.0
   resolution: "html-dom-parser@npm:7.1.0"
@@ -15625,6 +15635,24 @@ __metadata:
   dependencies:
     void-elements: "npm:3.1.0"
   checksum: 10/8743b76cc50e46d1956c1ad879d18eb9613b0d2d81e24686d633f9f69bb26b84676f64a926973de793cca479997017a63219278476d617b6c42d68246d7c07fe
+  languageName: node
+  linkType: hard
+
+"html-react-parser@npm:6.0.1":
+  version: 6.0.1
+  resolution: "html-react-parser@npm:6.0.1"
+  dependencies:
+    domhandler: "npm:6.0.1"
+    html-dom-parser: "npm:7.0.1"
+    react-property: "npm:2.0.2"
+    style-to-js: "npm:1.1.21"
+  peerDependencies:
+    "@types/react": 0.14 || 15 || 16 || 17 || 18 || 19
+    react: 0.14 || 15 || 16 || 17 || 18 || 19
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 10/6dd2d8325d7b5b2e96948dfb18076215ec5827b8f4fbcdfba0a682d218a2a7a62062bf177ba49a7ed87ce81164e555ae4baae53babec92a5710c79e02435c2b7
   languageName: node
   linkType: hard
 
@@ -19318,7 +19346,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"long@npm:^5.0.0":
+"long@npm:^5.3.2":
   version: 5.3.2
   resolution: "long@npm:5.3.2"
   checksum: 10/b6b55ddae56fcce2864d37119d6b02fe28f6dd6d9e44fd22705f86a9254b9321bd69e9ffe35263b4846d54aba197c64882adcb8c543f2383c1e41284b321ea64
@@ -21346,22 +21374,22 @@ __metadata:
   linkType: hard
 
 "protobufjs@npm:^7.3.0":
-  version: 7.5.4
-  resolution: "protobufjs@npm:7.5.4"
+  version: 7.6.2
+  resolution: "protobufjs@npm:7.6.2"
   dependencies:
     "@protobufjs/aspromise": "npm:^1.1.2"
     "@protobufjs/base64": "npm:^1.1.2"
-    "@protobufjs/codegen": "npm:^2.0.4"
-    "@protobufjs/eventemitter": "npm:^1.1.0"
-    "@protobufjs/fetch": "npm:^1.1.0"
+    "@protobufjs/codegen": "npm:^2.0.5"
+    "@protobufjs/eventemitter": "npm:^1.1.1"
+    "@protobufjs/fetch": "npm:^1.1.1"
     "@protobufjs/float": "npm:^1.0.2"
-    "@protobufjs/inquire": "npm:^1.1.0"
+    "@protobufjs/inquire": "npm:^1.1.2"
     "@protobufjs/path": "npm:^1.1.2"
     "@protobufjs/pool": "npm:^1.1.0"
-    "@protobufjs/utf8": "npm:^1.1.0"
+    "@protobufjs/utf8": "npm:^1.1.1"
     "@types/node": "npm:>=13.7.0"
-    long: "npm:^5.0.0"
-  checksum: 10/88d677bb6f11a2ecec63fdd053dfe6d31120844d04e865efa9c8fbe0674cd077d6624ecfdf014018a20dcb114ae2a59c1b21966dd8073e920650c71370966439
+    long: "npm:^5.3.2"
+  checksum: 10/964e39237febf2369cba371175a49602ccc7582f059504ab35e27adb01c690ad669bc2c134577f08f5fb55d1dc8320483f6a65a97f236dc6e749046d89283b5f
   languageName: node
   linkType: hard
 
@@ -23061,9 +23089,9 @@ __metadata:
   linkType: hard
 
 "shell-quote@npm:^1.8.3":
-  version: 1.8.3
-  resolution: "shell-quote@npm:1.8.3"
-  checksum: 10/5473e354637c2bd698911224129c9a8961697486cff1fb221f234d71c153fc377674029b0223d1d3c953a68d451d79366abfe53d1a0b46ee1f28eb9ade928f4c
+  version: 1.8.4
+  resolution: "shell-quote@npm:1.8.4"
+  checksum: 10/a3e3796385f2cd5cf0b78207a4439f0c7395c0833fc75b2473084b5d298c109c5c0fa687fcd1c04e4b4484866e5bb8eaae7efae443b80fff71ea7e29baf11f0c
   languageName: node
   linkType: hard
 
