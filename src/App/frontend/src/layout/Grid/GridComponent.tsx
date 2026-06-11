@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { ConditionalWrapper, Fieldset, FullWidthWrapper } from '@app/form-component';
+import { ConditionalWrapper, Fieldset, FullWidthWrapper, HelpTextContainer } from '@app/form-component';
 import { Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import { Caption } from 'src/components/form/caption/Caption';
-import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { LabelContent } from 'src/components/label/LabelContent';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
@@ -166,6 +165,7 @@ interface GridRowsProps {
   isNested: boolean;
   mutableColumnSettings: ITableColumnFormatting;
   hiddenColumnIndices?: number[];
+  bodyClassName?: string;
 }
 
 export function GridRowsRenderer({
@@ -174,6 +174,7 @@ export function GridRowsRenderer({
   isNested,
   mutableColumnSettings,
   hiddenColumnIndices = [],
+  bodyClassName,
 }: GridRowsProps) {
   const batches: { type: 'header' | 'body'; rows: GridRow[] }[] = [];
 
@@ -193,7 +194,10 @@ export function GridRowsRenderer({
         const WrapperComponent = batch.type === 'header' ? Table.Head : Table.Body;
 
         return (
-          <WrapperComponent key={batchIdx}>
+          <WrapperComponent
+            key={batchIdx}
+            className={batch.type === 'body' ? bodyClassName : undefined}
+          >
             {batch.rows.map((row, rowIdx) => (
               <GridRowRenderer
                 key={rowIdx}

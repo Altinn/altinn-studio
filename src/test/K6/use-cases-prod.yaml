@@ -36,7 +36,7 @@ steps:
 - script: |
    echo k6 version:`k6 version`
 
-   k6 run --quiet --logformat raw --console-output=$(Build.SourcesDirectory)/result.txt $(Build.SourcesDirectory)/src/test/K6/src/availability.js -e env=$(environment)
+   k6 run --quiet --log-format raw --console-output=$(Build.SourcesDirectory)/result.txt $(Build.SourcesDirectory)/src/test/K6/src/availability.js -e env=$(environment)
 
    cat result.txt
 

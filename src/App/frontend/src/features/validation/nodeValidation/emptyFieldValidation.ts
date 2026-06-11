@@ -1,9 +1,10 @@
+import type { ValidLanguageKey } from '@app/language';
+
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { readDataFromState } from 'src/features/validation/nodeValidation/readDataFromState';
 import { getFieldNameKey } from 'src/utils/formComponentUtils';
-import type { ValidLanguageKey } from 'src/features/language/useLanguage';
 import type { ComponentValidationContext } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompTypes } from 'src/layout/layout';

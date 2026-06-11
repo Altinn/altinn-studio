@@ -5,7 +5,7 @@ import { Messages } from './Messages/Messages';
 import type { UserFeedback } from '../../types/UserFeedback';
 import { UserInput } from './UserInput/UserInput';
 import classes from './ChatColumn.module.css';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph, StudioResizableLayout } from '@studio/components';
 import type { Message } from '../../types/ChatThread';
 import type { AssistantTexts } from '../../types/AssistantTexts';
 import type { User } from '../../types/User';
@@ -62,33 +62,35 @@ export function ChatColumn({
   const hasMessages = messages.length > 0;
 
   return (
-    <div className={classes.chatColumn}>
-      <div className={cn(classes.messagesWrapper, { [classes.hasMessages]: hasMessages })}>
-        {hasMessages ? (
-          <>
-            <Messages
-              messages={messages}
-              workflowStatus={workflowStatus}
-              currentUser={currentUser}
-              assistantAvatarUrl={undefined}
-              feedbackTexts={texts.feedback}
-              onMessageFeedback={onMessageFeedback}
-            />
-            <div ref={messagesEndRef} />
-          </>
-        ) : (
-          placeholderContent
-        )}
-      </div>
-      <UserInput
-        texts={texts}
-        onSubmitMessage={onSubmitMessage}
-        onCancelWorkflow={onCancelWorkflow}
-        cancelledMessageContent={cancelledMessageContent}
-        onCancelledMessageConsumed={onCancelledMessageConsumed}
-        workflowIsActive={workflowIsActive}
-        enableCompactInterface={enableCompactInterface}
-      />
-    </div>
+    <StudioResizableLayout.Container orientation='vertical' localStorageContext='chat-column'>
+      <StudioResizableLayout.Element minimumSize={100}>
+        <div className={cn(classes.messagesWrapper, { [classes.hasMessages]: hasMessages })}>
+          {hasMessages ? (
+            <>
+              <Messages
+                messages={messages}
+                workflowStatus={workflowStatus}
+                currentUser={currentUser}
+                assistantAvatarUrl={undefined}
+              />
+              <div ref={messagesEndRef} />
+            </>
+          ) : (
+            placeholderContent
+          )}
+        </div>
+      </StudioResizableLayout.Element>
+      <StudioResizableLayout.Element minimumSize={150} style={{ overflow: 'hidden' }}>
+        <UserInput
+          texts={texts}
+          onSubmitMessage={onSubmitMessage}
+          onCancelWorkflow={onCancelWorkflow}
+          cancelledMessageContent={cancelledMessageContent}
+          onCancelledMessageConsumed={onCancelledMessageConsumed}
+          workflowIsActive={workflowIsActive}
+          enableCompactInterface={enableCompactInterface}
+        />
+      </StudioResizableLayout.Element>
+    </StudioResizableLayout.Container>
   );
 }

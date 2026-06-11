@@ -13,8 +13,10 @@ on:
       - 'src/App/frontend/test/**'
       - 'src/App/frontend/package.json'
       - 'src/test/apps/**'
-      - 'libs/form-component/src/**'
-      - 'libs/form-component/package.json'
+      - 'app-libs/form-component/src/**'
+      - 'app-libs/form-component/package.json'
+      - 'app-libs/language/src/**'
+      - 'app-libs/language/package.json'
       - '.github/actions/**'
       - '.github/workflows/app-frontend-cypress.yml'
   workflow_dispatch:
