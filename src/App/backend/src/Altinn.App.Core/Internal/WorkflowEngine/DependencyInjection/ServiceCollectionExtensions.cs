@@ -24,6 +24,7 @@ internal static class ServiceCollectionExtensions
 
         // Callback authentication (app signs at enqueue, app validates at callback)
         services.TryAddSingleton<IWorkflowCallbackSecretProvider, WorkflowCallbackSecretProvider>();
+        services.TryAddSingleton<IWorkflowCallbackTokenGenerator, WorkflowCallbackTokenGenerator>();
 
         // Process engine callback handlers - TaskStart
         services.AddTransient<IWorkflowEngineCommand, CommonTaskInitialization>();
