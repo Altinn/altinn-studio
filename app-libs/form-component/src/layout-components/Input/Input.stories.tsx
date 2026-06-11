@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { INPUT_LAYOUT_CONFIG_KEYS, InputLayout } from './Input';
+import { InputLayout } from './Input';
 import type { InputLayoutProps } from './Input';
 
 function ControlledInput(args: InputLayoutProps) {
@@ -10,14 +10,14 @@ function ControlledInput(args: InputLayoutProps) {
   return <InputLayout {...args} value={value} onChange={setValue} />;
 }
 
+// Every prop is editable and left ungrouped (no `table.category`), so nothing in the Controls panel
+// is collapsible. The Input.mdx docs page separates the configurable and runtime props under real
+// markdown headings.
 const meta = {
   title: 'LayoutComponents/Input',
   component: InputLayout,
   parameters: {
     layout: 'padded',
-    // Only the configurable (Studio-mapped) props get controls; the internal wiring
-    // (value, error, validation ids and event handlers) stays hidden and non-editable.
-    controls: { include: INPUT_LAYOUT_CONFIG_KEYS },
   },
   argTypes: {
     variant: { control: 'inline-radio', options: ['text', 'search'] },

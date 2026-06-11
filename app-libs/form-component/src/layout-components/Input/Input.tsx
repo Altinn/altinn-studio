@@ -91,97 +91,102 @@ function getMobileKeyboardProps(
 }
 
 /**
- * Props that map 1:1 to the component's Studio-configurable options. These are the props an app
- * developer documents and experiments with in Storybook — see {@link INPUT_LAYOUT_CONFIG_KEYS}.
+ * All props the component accepts. Two groups live side by side here, distinguished only by the
+ * `@category` tag and by {@link INPUT_PROP_CATEGORIES}:
+ *
+ * - `config` — props that map 1:1 to the component's Studio-configurable options. These are what an
+ *   app developer documents and experiments with in Storybook.
+ * - `runtime` — internal wiring supplied by the runtime wrapper (data binding, display overrides,
+ *   validation state, event handlers). NOT part of the Studio configuration.
  */
-export interface InputLayoutConfig {
-  /** The component id. */
+export interface InputLayoutProps {
+  /** @category config — The component id. */
   id: string;
-  /** Text-resource key for the field label. */
+  /** @category config — Text-resource key for the field label. */
   title?: string;
-  /** Text-resource key for the description shown below the label. */
+  /** @category config — Text-resource key for the description shown below the label. */
   description?: string;
-  /** Text-resource key for the help text shown in a tooltip next to the label. */
+  /** @category config — Text-resource key for the help text shown in a tooltip next to the label. */
   help?: string;
-  /** Text-resource key for the prefix shown before the input value. */
+  /** @category config — Text-resource key for the prefix shown before the input value. */
   prefix?: string;
-  /** Text-resource key for the suffix shown after the input value. */
+  /** @category config — Text-resource key for the suffix shown after the input value. */
   suffix?: string;
-  /** Variant of the input field. Number/pattern formatting is driven by `numberFormat`. */
+  /** @category config — Variant of the input field. Number/pattern formatting is driven by `numberFormat`. */
   variant?: 'text' | 'search';
-  /** Resolved react-number-format config. When set, the field renders as a numeric or pattern input. */
+  /** @category config — Resolved react-number-format config. When set, the field renders as a numeric or pattern input. */
   numberFormat?: NumberFormat;
-  /** Text alignment of the value inside the field. */
+  /** @category config — Text alignment of the value inside the field. */
   align?: 'left' | 'center' | 'right';
-  /** The HTML autocomplete attribute. */
+  /** @category config — The HTML autocomplete attribute. */
   autocomplete?: HTMLInputAutoCompleteAttribute;
-  /** Adds a remaining-characters counter to the field. */
+  /** @category config — Adds a remaining-characters counter to the field. */
   maxLength?: number;
-  /** Whether the field is required. */
+  /** @category config — Whether the field is required. */
   required?: boolean;
-  /** Whether the field is read-only. */
+  /** @category config — Whether the field is read-only. */
   readOnly?: boolean;
-  /** Whether to render an "(optional)" marking when the field is not required. */
+  /** @category config — Whether to render an "(optional)" marking when the field is not required. */
   showOptionalMarking?: boolean;
-  /** Grid sizing for the label. */
+  /** @category config — Grid sizing for the label. */
   grid?: IGridStyling;
-}
 
-/**
- * Internal wiring supplied by the runtime wrapper: data binding, display overrides, validation
- * state and event handlers. These are intentionally NOT part of the Studio configuration and are
- * hidden from the Storybook controls (only {@link INPUT_LAYOUT_CONFIG_KEYS} are shown).
- */
-export interface InputLayoutControlProps {
-  /** Whether the label should be rendered (defaults to true). */
+  /** @category runtime — Whether the label should be rendered (defaults to true). */
   renderLabel?: boolean;
-  /** When rendered inside a table cell the label is hidden and aria wiring changes. */
+  /** @category runtime — When rendered inside a table cell the label is hidden and aria wiring changes. */
   renderedInTable?: boolean;
-  /** When the surrounding row is read-only, render the value as plain text. */
+  /** @category runtime — When the surrounding row is read-only, render the value as plain text. */
   rowReadOnly?: boolean;
-  /** The current value of the field. */
+  /** @category runtime — The current value of the field. */
   value?: string;
-  /** Whether the field is in an error state. */
+  /** @category runtime — Whether the field is in an error state. */
   error?: boolean;
-  /** Whether there are validation messages associated with the field. */
+  /** @category runtime — Whether there are validation messages associated with the field. */
   hasValidations?: boolean;
-  /** The id of the element holding validation messages, used for aria-describedby. */
+  /** @category runtime — The id of the element holding validation messages, used for aria-describedby. */
   validationsId?: string;
   /**
-   * Called with the new value for every variant, and on paste. The component already filters out
-   * non-user-originated changes and normalises pasted input. The committed value is expected to flow
-   * back in via `value`.
+   * @category runtime — Called with the new value for every variant, and on paste. The component
+   * already filters out non-user-originated changes and normalises pasted input. The committed value
+   * is expected to flow back in via `value`.
    */
   onChange?: (value: string) => void;
-  /** Blur handler for the text/search/pattern variants. */
+  /** @category runtime — Blur handler for the text/search/pattern variants. */
   onBlur?: () => void;
 }
 
-export interface InputLayoutProps extends InputLayoutConfig, InputLayoutControlProps {}
-
 /**
- * The configurable props, derived from {@link InputLayoutConfig}. The `satisfies Record<...>` keeps
- * this list exhaustive: adding a prop to `InputLayoutConfig` without listing it here is a compile
- * error. Storybook uses it (`controls.include`) to show controls for exactly the configurable props
- * and nothing else.
+ * Classifies every prop as either a Studio-configurable option (`config`) or internal runtime wiring
+ * (`runtime`). The `satisfies Record<keyof InputLayoutProps, ...>` keeps this exhaustive: adding a
+ * prop to {@link InputLayoutProps} without classifying it here is a compile error. Storybook reads
+ * this to sort the controls into "Studio configurable" and "Runtime" categories.
  */
-export const INPUT_LAYOUT_CONFIG_KEYS = Object.keys({
-  id: true,
-  title: true,
-  description: true,
-  help: true,
-  prefix: true,
-  suffix: true,
-  variant: true,
-  numberFormat: true,
-  align: true,
-  autocomplete: true,
-  maxLength: true,
-  required: true,
-  readOnly: true,
-  showOptionalMarking: true,
-  grid: true,
-} satisfies Record<keyof InputLayoutConfig, true>) as (keyof InputLayoutConfig)[];
+export const INPUT_PROP_CATEGORIES = {
+  id: 'config',
+  title: 'config',
+  description: 'config',
+  help: 'config',
+  prefix: 'config',
+  suffix: 'config',
+  variant: 'config',
+  numberFormat: 'config',
+  align: 'config',
+  autocomplete: 'config',
+  maxLength: 'config',
+  required: 'config',
+  readOnly: 'config',
+  showOptionalMarking: 'config',
+  grid: 'config',
+  renderLabel: 'runtime',
+  renderedInTable: 'runtime',
+  rowReadOnly: 'runtime',
+  value: 'runtime',
+  error: 'runtime',
+  hasValidations: 'runtime',
+  validationsId: 'runtime',
+  onChange: 'runtime',
+  onBlur: 'runtime',
+} satisfies Record<keyof InputLayoutProps, 'config' | 'runtime'>;
 
 function getLabelId(id: string) {
   return `label-${id}`;
