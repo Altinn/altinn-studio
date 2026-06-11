@@ -6,6 +6,7 @@ using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using FluentAssertions;
 using Microsoft.AspNetCore.Builder;
@@ -342,6 +343,19 @@ public class ApiTestBase
             sp,
             sp.GetRequiredService<Altinn.App.Core.Internal.WorkflowEngine.WorkflowCallbackStateService>()
         ));
+
+        // Provide a WorkflowEngineCallback app-code so the enqueue path can mint callback tokens.
+        services.Configure<AppCodesSettings>(o =>
+            o.WorkflowEngineCallback = [
+                new AppCode
+                {
+                    Id = "test",
+                    Code = "test-workflow-engine-callback-secret-long-enough",
+                    IssuedAt = DateTimeOffset.UtcNow,
+                    ExpiresAt = DateTimeOffset.UtcNow.AddDays(186),
+                },
+            ]
+        );
 
         // Mock the events client since it calls external services
         var eventsClientMock = new Mock<Altinn.App.Core.Internal.Events.IEventsClient>();

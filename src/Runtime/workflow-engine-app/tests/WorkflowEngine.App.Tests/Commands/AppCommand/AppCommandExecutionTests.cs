@@ -63,6 +63,24 @@ public class AppCommandExecutionTests
     }
 
     [Fact]
+    public async Task Execute_ReplaysCallbackTokenAsBearerHeader()
+    {
+        using var fixture = AppCommandTestFixture.Create();
+        var command = GetAppCommand(fixture);
+        var data = CreateCommandData("test-command");
+        var step = AppCommandTestFixture.CreateStep(CreateCommand("test-command"));
+        var workflow = AppCommandTestFixture.CreateWorkflow(step);
+        var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
+
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ExecutionStatus.Success, result.Status);
+        var captured = fixture.HttpHandler.Requests[0];
+        Assert.True(captured.Headers.TryGetValue("Authorization", out var authValues));
+        Assert.Equal("Bearer test-callback-token", Assert.Single(authValues));
+    }
+
+    [Fact]
     public async Task Execute_PreservesFullActorIdentity_AcrossContextRoundTrip()
     {
         // Regression guard for the "preserve actor identity across handoff" path.
@@ -95,6 +113,7 @@ public class AppCommandExecutionTests
                 App = "test-app",
                 InstanceOwnerPartyId = 12345,
                 InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+                CallbackToken = "test-callback-token",
             }
         );
         var roundTrippedContext = contextElement.Deserialize<AppWorkflowContext>();
@@ -362,6 +381,7 @@ public class AppCommandExecutionTests
             App = "test-app",
             InstanceOwnerPartyId = 12345,
             InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+            CallbackToken = "test-callback-token",
         };
         // Validate should catch the missing lock token before execution
         var validationResult = command.Validate(data, contextWithoutLock);

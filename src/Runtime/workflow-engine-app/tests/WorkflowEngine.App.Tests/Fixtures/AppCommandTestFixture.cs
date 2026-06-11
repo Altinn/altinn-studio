@@ -104,6 +104,7 @@ internal sealed record AppCommandTestFixture(
             App = "test-app",
             InstanceOwnerPartyId = 12345,
             InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+            CallbackToken = "test-callback-token",
         };
 
     public static JsonElement DefaultWorkflowContext => JsonSerializer.SerializeToElement(DefaultContext);
