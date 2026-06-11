@@ -100,13 +100,19 @@ cleanup() {
   if [[ -f "${RUNNER_HOME}/.runner" ]]; then
     echo "Removing GitHub runner registration"
     remove_token="$(request_token "${remove_url}")"
-  "${RUNNER_HOME}/config.sh" remove --token "${remove_token}" || true
+    "${RUNNER_HOME}/config.sh" remove --token "${remove_token}" || true
   fi
 }
 
 trap cleanup EXIT INT TERM
 
-mkdir -p "${RUNNER_WORKDIR}"
+mkdir -p \
+  "${RUNNER_WORKDIR}" \
+  "${RUNNER_WORKDIR}/_tool" \
+  "${RUNNER_HOME}/.cache/go-build" \
+  "${RUNNER_HOME}/.cache/yarn" \
+  "${RUNNER_HOME}/.nuget/packages" \
+  "${RUNNER_HOME}/go/pkg/mod"
 cd "${RUNNER_HOME}"
 
 registration_token="$(request_token "${registration_url}")"
