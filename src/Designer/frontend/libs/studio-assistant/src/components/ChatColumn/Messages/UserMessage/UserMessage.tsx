@@ -3,7 +3,7 @@ import { StudioCard, StudioParagraph } from '@studio/components';
 import { PaperclipIcon } from '@studio/icons';
 import type { User } from '../../../../types/User';
 import type { UserAttachment, UserMessage } from '../../../../types/ChatThread';
-import { ChatAvatar } from '../../ChatAvatar';
+import { MessageRow } from '../MessageRow';
 import classes from './UserMessage.module.css';
 
 export type UserMessageProps = {
@@ -17,18 +17,14 @@ export function UserMessage({ message, currentUser }: UserMessageProps): ReactEl
   const hasAttachments = attachments.length > 0;
 
   return (
-    <div className={classes.userRow}>
-      <div className={classes.messageWrapper}>
-        <div className={classes.messageMeta}>{userLabel}</div>
-        <StudioCard className={classes.userMessage}>
-          {message.content && (
-            <StudioParagraph className={classes.messageBody}>{message.content}</StudioParagraph>
-          )}
-          {hasAttachments && <UserAttachmentList attachments={attachments} />}
-        </StudioCard>
-      </div>
-      <ChatAvatar src={currentUser?.avatar_url} label={userLabel} variant='user' />
-    </div>
+    <MessageRow label={userLabel} variant='user' avatarSrc={currentUser?.avatar_url}>
+      <StudioCard className={classes.userMessage}>
+        {message.content && (
+          <StudioParagraph className={classes.messageBody}>{message.content}</StudioParagraph>
+        )}
+        {hasAttachments && <UserAttachmentList attachments={attachments} />}
+      </StudioCard>
+    </MessageRow>
   );
 }
 

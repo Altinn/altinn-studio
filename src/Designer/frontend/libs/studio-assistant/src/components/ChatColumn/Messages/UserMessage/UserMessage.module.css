@@ -1,26 +1,3 @@
-.userRow {
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  gap: var(--ds-size-4);
-}
-
-.messageMeta {
-  font-size: var(--ds-font-size-small);
-  font-weight: var(--ds-font-weight-medium);
-  color: var(--ds-color-text-subtle);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.messageWrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: var(--ds-size-2);
-  max-width: 100ch;
-}
-
 .userMessage {
   max-width: 100ch;
   background-color: var(--ds-color-accent-background-tinted);

@@ -2,7 +2,7 @@ import type { ReactElement } from 'react';
 import cn from 'classnames';
 import { StudioAvatar } from '@studio/components';
 import classes from './ChatAvatar.module.css';
-import assistantLogo from '../../../assets/altinity-logo.png';
+import assistantLogo from '../../../../assets/altinity-logo.png';
 
 export type ChatAvatarVariant = 'user' | 'assistant';
 

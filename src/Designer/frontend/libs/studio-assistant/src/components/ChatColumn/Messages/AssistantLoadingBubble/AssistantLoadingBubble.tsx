@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { StudioSpinner } from '@studio/components';
-import { ChatAvatar } from '../../ChatAvatar';
+import { MessageRow } from '../MessageRow';
 import classes from './AssistantLoadingBubble.module.css';
 
 export type AssistantLoadingBubbleProps = {
@@ -15,15 +15,11 @@ export function AssistantLoadingBubble({
   assistantAvatarUrl,
 }: AssistantLoadingBubbleProps): ReactElement {
   return (
-    <div className={classes.assistantRow}>
-      <ChatAvatar src={assistantAvatarUrl} label={assistantName} variant='assistant' />
-      <div className={classes.assistantMessage}>
-        <div className={classes.messageMeta}>{assistantName}</div>
-        <div className={classes.assistantBody}>
-          <StudioSpinner data-size='sm' className={classes.inlineSpinner} aria-hidden={true} />
-          <div className={classes.loadingText}>{content}</div>
-        </div>
+    <MessageRow label={assistantName} variant='assistant' avatarSrc={assistantAvatarUrl}>
+      <div className={classes.assistantBody}>
+        <StudioSpinner data-size='sm' className={classes.inlineSpinner} aria-hidden={true} />
+        <div className={classes.loadingText}>{content}</div>
       </div>
-    </div>
+    </MessageRow>
   );
 }
