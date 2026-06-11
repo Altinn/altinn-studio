@@ -5,13 +5,13 @@ import type { UserFeedback } from '../../../../types/UserFeedback';
 import { formatAssistantMessageContent } from '../../../../utils/messageUtils';
 import { ChatAvatar } from '../../ChatAvatar';
 import { MessageFeedback } from '../MessageFeedback';
-import { ASSISTANT_LABEL } from '../constants';
 import { SourceList } from './SourceList';
 import { FilesChangedList } from './FilesChangedList';
 import classes from './AssistantMessage.module.css';
 
 export type AssistantMessageProps = {
   message: AssistantMessage;
+  assistantName: string;
   assistantAvatarUrl?: string;
   feedbackTexts?: MessageFeedbackTexts;
   onMessageFeedback?: (feedback: UserFeedback) => void;
@@ -19,6 +19,7 @@ export type AssistantMessageProps = {
 
 export function AssistantMessage({
   message,
+  assistantName,
   assistantAvatarUrl,
   feedbackTexts,
   onMessageFeedback,
@@ -30,9 +31,9 @@ export function AssistantMessage({
 
   return (
     <div className={classes.assistantRow}>
-      <ChatAvatar src={assistantAvatarUrl} label={ASSISTANT_LABEL} variant='assistant' />
+      <ChatAvatar src={assistantAvatarUrl} label={assistantName} variant='assistant' />
       <div className={classes.assistantMessage}>
-        <div className={classes.messageMeta}>{ASSISTANT_LABEL}</div>
+        <div className={classes.messageMeta}>{assistantName}</div>
         <div className={classes.assistantBody}>
           <div
             className={classes.assistantContent}

@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react';
-import { useRef, useEffect } from 'react';
 import cn from 'classnames';
 import { Messages } from './Messages/Messages';
 import type { UserFeedback } from '../../types/UserFeedback';
@@ -37,13 +36,6 @@ export function ChatColumn({
   currentUser,
 }: ChatColumnProps): ReactElement {
   const workflowIsActive = workflowStatus?.isActive === true;
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView?.({ behavior: 'smooth' });
-    }
-  }, [messages, workflowIsActive]);
 
   const placeholderContent = (
     <div className={classes.emptyThread}>
@@ -65,17 +57,15 @@ export function ChatColumn({
     <div className={classes.chatColumn}>
       <div className={cn(classes.messagesWrapper, { [classes.hasMessages]: hasMessages })}>
         {hasMessages ? (
-          <>
-            <Messages
-              messages={messages}
-              workflowStatus={workflowStatus}
-              currentUser={currentUser}
-              assistantAvatarUrl={undefined}
-              feedbackTexts={texts.feedback}
-              onMessageFeedback={onMessageFeedback}
-            />
-            <div ref={messagesEndRef} />
-          </>
+          <Messages
+            messages={messages}
+            assistantName={texts.heading}
+            workflowStatus={workflowStatus}
+            currentUser={currentUser}
+            assistantAvatarUrl={undefined}
+            feedbackTexts={texts.feedback}
+            onMessageFeedback={onMessageFeedback}
+          />
         ) : (
           placeholderContent
         )}

@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import type { Message } from '../../../types/ChatThread';
 import { MessageAuthor } from '../../../types/MessageAuthor';
+import { mockTexts } from '../../../mocks/mockTexts';
 
 const userMessageContent = 'User message';
 const assistantMessageContent = 'Assistant response';
@@ -53,6 +54,7 @@ describe('Messages', () => {
 
 const defaultProps: MessagesProps = {
   messages: mockMessages,
+  assistantName: mockTexts.heading,
 };
 
 const renderMessages = (props: Partial<MessagesProps> = {}): RenderResult =>

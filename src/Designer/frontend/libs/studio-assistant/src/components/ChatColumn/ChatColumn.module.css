@@ -19,7 +19,10 @@
 }
 
 .hasMessages {
-  display: block;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  overflow-y: hidden;
   padding: var(--ds-size-4) var(--ds-size-6);
 }
 

@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import { useEffect, useRef } from 'react';
 import type { User } from '../../../types/User';
 import { MessageAuthor } from '../../../types/MessageAuthor';
 import classes from './Messages.module.css';
@@ -12,6 +13,7 @@ import { AssistantLoadingBubble } from './AssistantLoadingBubble';
 
 export type MessagesProps = {
   messages: Message[];
+  assistantName: string;
   workflowStatus?: WorkflowStatus;
   currentUser?: User;
   assistantAvatarUrl?: string;
@@ -21,6 +23,7 @@ export type MessagesProps = {
 
 export function Messages({
   messages,
+  assistantName,
   workflowStatus,
   currentUser,
   assistantAvatarUrl,
@@ -29,9 +32,15 @@ export function Messages({
 }: MessagesProps): ReactElement {
   const showLoadingBubble = workflowStatus?.isActive === true;
   const loadingBubbleText = workflowStatus?.message ?? '';
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    container?.scrollTo?.({ top: container.scrollHeight, behavior: 'smooth' });
+  }, [messages, showLoadingBubble]);
 
   return (
-    <div className={classes.messagesContainer}>
+    <div ref={containerRef} className={classes.messagesContainer}>
       {messages.map((message, index) =>
         message.role === MessageAuthor.User ? (
           <UserMessage key={index} message={message} currentUser={currentUser} />
@@ -39,6 +48,7 @@ export function Messages({
           <AssistantMessage
             key={index}
             message={message}
+            assistantName={assistantName}
             assistantAvatarUrl={assistantAvatarUrl}
             feedbackTexts={feedbackTexts}
             onMessageFeedback={onMessageFeedback}
@@ -48,6 +58,7 @@ export function Messages({
       {showLoadingBubble && (
         <AssistantLoadingBubble
           content={loadingBubbleText}
+          assistantName={assistantName}
           assistantAvatarUrl={assistantAvatarUrl}
         />
       )}

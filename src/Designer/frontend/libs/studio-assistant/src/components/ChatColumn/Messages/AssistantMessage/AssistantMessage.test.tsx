@@ -2,7 +2,7 @@ import { AssistantMessage, type AssistantMessageProps } from './AssistantMessage
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { MessageAuthor } from '../../../../types/MessageAuthor';
-import { messageFeedbackTexts } from '../../../../mocks/mockTexts';
+import { messageFeedbackTexts, mockTexts } from '../../../../mocks/mockTexts';
 
 const assistantMessageContent = 'Assistant response';
 
@@ -65,6 +65,7 @@ describe('AssistantMessage', () => {
 
 const defaultProps: AssistantMessageProps = {
   message: createAssistantMessage(),
+  assistantName: mockTexts.heading,
   feedbackTexts: messageFeedbackTexts,
   onMessageFeedback: jest.fn(),
 };

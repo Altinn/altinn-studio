@@ -4,7 +4,6 @@ import { PaperclipIcon } from '@studio/icons';
 import type { User } from '../../../../types/User';
 import type { UserAttachment, UserMessage } from '../../../../types/ChatThread';
 import { ChatAvatar } from '../../ChatAvatar';
-import { DEFAULT_USER_LABEL } from '../constants';
 import classes from './UserMessage.module.css';
 
 export type UserMessageProps = {
@@ -13,7 +12,7 @@ export type UserMessageProps = {
 };
 
 export function UserMessage({ message, currentUser }: UserMessageProps): ReactElement {
-  const userLabel = currentUser?.full_name ?? DEFAULT_USER_LABEL;
+  const userLabel = currentUser ? currentUser.full_name || currentUser.login : '';
   const attachments = message.attachments ?? [];
   const hasAttachments = attachments.length > 0;
 
