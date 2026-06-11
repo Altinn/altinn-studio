@@ -64,7 +64,8 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
                     "org": "{{EngineAppFixture.DefaultOrg}}",
                     "app": "{{EngineAppFixture.DefaultApp}}",
                     "instanceOwnerPartyId": {{EngineAppFixture.DefaultPartyId}},
-                    "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+                    "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                    "callbackToken": "test-callback-token"
                 },
                 "workflows": [
                     {
@@ -229,7 +230,8 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
                     "org": "{{EngineAppFixture.DefaultOrg}}",
                     "app": "{{EngineAppFixture.DefaultApp}}",
                     "instanceOwnerPartyId": {{EngineAppFixture.DefaultPartyId}},
-                    "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+                    "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                    "callbackToken": "test-callback-token"
                 },
                 "workflows": [
                     {
