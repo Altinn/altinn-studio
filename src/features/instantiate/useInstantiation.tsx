@@ -7,6 +7,7 @@ import type { AxiosError } from 'axios';
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { instanceQueries } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { maybeAuthenticationRedirect } from 'src/utils/maybeAuthenticationRedirect';
 import type { IInstance } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
@@ -36,8 +37,11 @@ export function useInstantiation() {
     mutationKey: ['instantiate'],
     mutationFn: (args: InstantiationArgs) =>
       typeof args === 'number' ? doInstantiate(args, currentLanguage) : doInstantiateWithPrefill(args, currentLanguage),
-    onError: (error: HttpClientError) => {
+    onError: async (error: HttpClientError) => {
       window.logError(`Instantiation failed:\n`, error);
+
+      // Redirect to step-up authentication if the error is a too-low auth level. No-op otherwise.
+      await maybeAuthenticationRedirect(error);
     },
     onSuccess: async (data) => {
       const [instanceOwnerPartyId, instanceGuid] = data.id.split('/');
