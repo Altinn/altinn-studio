@@ -71,6 +71,7 @@ jobs:
     name: Tag syncroot (${{ matrix.tag }})
     needs: push-syncroot-artifact
     runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
     permissions:
       id-token: write
     strategy:
@@ -78,6 +79,7 @@ jobs:
       matrix:
         include:
           - tag: test
+            environment: adminservices_test
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
