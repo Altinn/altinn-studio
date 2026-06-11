@@ -1,5 +1,4 @@
-import { useState } from 'react';
-
+import { useArgs } from 'storybook/preview-api';
 import { fn } from 'storybook/test';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
@@ -17,30 +16,33 @@ const meta = {
     format: 'dd.MM.yyyy',
     onValueChange: fn(),
   },
+  // Keep the `value` control in sync with the selected date, so the Controls panel and the
+  // component reflect each other (two-way binding) instead of drifting apart.
+  render: function Render(args) {
+    const [{ value }, updateArgs] = useArgs();
+    return (
+      <Datepicker
+        {...args}
+        value={value}
+        onValueChange={(newValue) => {
+          args.onValueChange(newValue);
+          updateArgs({ value: newValue });
+        }}
+      />
+    );
+  },
 } satisfies Meta<typeof Datepicker>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-const Wrapper = (args: React.ComponentProps<typeof Datepicker>) => {
-  const [value, setValue] = useState(args.value);
-  const handleValueChange = (newValue: string) => {
-    args.onValueChange(newValue);
-    setValue(newValue);
-  };
-  return <Datepicker {...args} value={value} onValueChange={handleValueChange} />;
-};
-
-export const Preview: Story = {
-  render: (args) => <Wrapper {...args} />,
-};
+export const Preview: Story = {};
 
 export const ReadOnly: Story = {
   args: {
     readOnly: true,
   },
-  render: (args) => <Wrapper {...args} />,
 };
 
 export const WithMinMax: Story = {
@@ -48,5 +50,4 @@ export const WithMinMax: Story = {
     minDate: '2025-01-01',
     maxDate: '2025-12-31',
   },
-  render: (args) => <Wrapper {...args} />,
 };
