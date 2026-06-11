@@ -91,7 +91,7 @@ spec:
               - name: RUNNER_SCOPE
                 value: repo
               - name: RUNNER_LABELS
-                value: self-hosted
+                value: self-hosted,Linux
               - name: RUNNER_GROUP
                 value: Default
               - name: RUNNER_WORKDIR
@@ -158,7 +158,7 @@ spec:
         owner: Altinn
         runnerScope: repo
         repos: altinn-studio
-        labels: self-hosted
+        labels: self-hosted,Linux
         noDefaultLabels: "true"
         enableEtags: "false"
         applicationIDFromEnv: APP_ID
