@@ -365,7 +365,7 @@ public class SchemaModelService : ISchemaModelService
             var altinnCoreFile = altinnAppGitRepository.GetAltinnCoreFileByRelativePath(relativeFilePath);
             var schemaFileName = altinnAppGitRepository.GetSchemaName(relativeFilePath);
 
-            bool isV9OrNewer = _appVersionService.GetAppLibVersion(altinnRepoEditingContext).Major >= 9;
+            bool isV9OrNewer = _appVersionService.GetAppLibVersion(altinnRepoEditingContext)?.Major >= 9 == true;
             await DeleteDatatypeFromApplicationMetadataAndLayoutSets(
                 altinnAppGitRepository,
                 schemaFileName,

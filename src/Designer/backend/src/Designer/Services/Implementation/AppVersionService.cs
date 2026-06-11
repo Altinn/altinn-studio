@@ -1,3 +1,4 @@
+#nullable disable
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -28,11 +29,10 @@ public class AppVersionService : IAppVersionService
             altinnRepoEditingContext.Developer
         );
 
-        return FindVersion(repository.FindFiles(["*.csproj"]))
-            ?? throw new FileNotFoundException("Unable to extract the version of the app-lib from csproj files.");
+        return FindVersion(repository.FindFiles(["*.csproj"]));
     }
 
-    private static SemanticVersion? FindVersion(IEnumerable<string> csprojFiles) =>
+    private static SemanticVersion FindVersion(IEnumerable<string> csprojFiles) =>
         csprojFiles
             .Select(file =>
                 PackageVersionHelper.TryGetPackageVersionFromCsprojFile(

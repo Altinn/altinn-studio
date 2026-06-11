@@ -8,6 +8,7 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
+using NuGet.Versioning;
 
 namespace Altinn.Studio.Designer.EventHandlers.ProcessDataTypeChanged;
 
@@ -36,7 +37,8 @@ public class ProcessDataTypesChangedLayoutSettingsHandler : INotificationHandler
             $"App/ui/{notification.ConnectedTaskId}/Settings.json",
             async () =>
             {
-                if (_appVersionService.GetAppLibVersion(notification.EditingContext).Major < 9)
+                SemanticVersion version = _appVersionService.GetAppLibVersion(notification.EditingContext);
+                if (version is null || version.Major < 9)
                 {
                     return false;
                 }
