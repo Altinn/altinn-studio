@@ -1,9 +1,9 @@
 import React, { forwardRef } from 'react';
 
+import { HelpTextContainer } from '@app/form-component';
 import cn from 'classnames';
 
 import { Description } from 'src/components/form/Description';
-import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { getDescriptionId } from 'src/components/label/Label';

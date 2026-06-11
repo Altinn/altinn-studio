@@ -17,7 +17,6 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
-using NuGet.Versioning;
 using LayoutSets = Altinn.Studio.Designer.Models.LayoutSets;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
@@ -843,36 +842,6 @@ public class AppDevelopmentService : IAppDevelopmentService
         }
 
         await altinnAppGitRepository.SaveRuleConfiguration(layoutSetName, ruleConfig, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public SemanticVersion GetAppLibVersion(AltinnRepoEditingContext altinnRepoEditingContext)
-    {
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-            altinnRepoEditingContext.Org,
-            altinnRepoEditingContext.Repo,
-            altinnRepoEditingContext.Developer
-        );
-
-        var csprojFiles = altinnAppGitRepository.FindFiles(new[] { "*.csproj" });
-
-        string[] packageNames = ["Altinn.App.Api", "Altinn.App.Api.Experimental"];
-
-        foreach (string csprojFile in csprojFiles)
-        {
-            if (
-                PackageVersionHelper.TryGetPackageVersionFromCsprojFile(
-                    csprojFile,
-                    packageNames,
-                    out SemanticVersion version
-                )
-            )
-            {
-                return version;
-            }
-        }
-
-        throw new FileNotFoundException("Unable to extract the version of the app-lib from csproj files.");
     }
 
     public bool TryGetFrontendVersion(AltinnRepoEditingContext altinnRepoEditingContext, out string version)

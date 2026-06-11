@@ -77,6 +77,9 @@ type ContainerClient interface {
 	// Push pushes an image to a registry
 	Push(ctx context.Context, image string) error
 
+	// Tag creates or updates an image tag.
+	Tag(ctx context.Context, source, target string) error
+
 	// CreateContainer creates and optionally starts a container
 	CreateContainer(ctx context.Context, cfg types.ContainerConfig) (containerID string, err error)
 
