@@ -4,6 +4,7 @@ using Altinn.App.Api.Controllers.Attributes;
 using Altinn.App.Api.Controllers.Conventions;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Api.Helpers.Patch;
+using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Infrastructure.Health;
 using Altinn.App.Api.Infrastructure.Lifetime;
@@ -23,6 +24,7 @@ using Altinn.Common.PEP.Clients;
 using AltinnCore.Authentication.JwtCookie;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -575,7 +577,11 @@ public static class ServiceCollectionExtensions
                 {
                     options.RequireHttpsMetadata = false;
                 }
-            });
+            })
+            .AddScheme<AuthenticationSchemeOptions, WorkflowEngineCallbackAuthenticationHandler>(
+                WorkflowEngineCallbackAuthenticationHandler.SchemeName,
+                _ => { }
+            );
     }
 
     private static void AddAntiforgery(IServiceCollection services)
