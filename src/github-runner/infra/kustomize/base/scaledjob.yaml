@@ -49,8 +49,17 @@ spec:
                 fi
                 exec dockerd-entrypoint.sh --host=tcp://0.0.0.0:2376
             startupProbe:
-              tcpSocket:
-                port: 2376
+              exec:
+                command:
+                  - sh
+                  - -c
+                  - |
+                    docker --host=tcp://localhost:2376 \
+                      --tlsverify \
+                      --tlscacert=/certs/client/ca.pem \
+                      --tlscert=/certs/client/cert.pem \
+                      --tlskey=/certs/client/key.pem \
+                      info >/dev/null
               periodSeconds: 2
               failureThreshold: 45
             volumeMounts:
@@ -138,8 +147,8 @@ spec:
         runnerScope: repo
         repos: altinn-studio
         labels: self-hosted
-        noDefaultLabels: "false"
-        enableEtags: "true"
+        noDefaultLabels: "true"
+        enableEtags: "false"
         applicationIDFromEnv: APP_ID
         installationIDFromEnv: APP_INSTALLATION_ID
         targetWorkflowQueueLength: "1"

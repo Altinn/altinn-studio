@@ -3,7 +3,10 @@ FROM ghcr.io/actions/actions-runner:2.330.0@sha256:ee54ad8776606f29434f159196529
 USER root
 
 COPY run.sh /usr/local/bin/altinn-github-runner
-RUN chmod +x /usr/local/bin/altinn-github-runner
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends make \
+    && rm -rf /var/lib/apt/lists/* \
+    && chmod +x /usr/local/bin/altinn-github-runner
 
 USER runner
 WORKDIR /home/runner
