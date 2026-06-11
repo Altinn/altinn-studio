@@ -1,10 +1,10 @@
 #nullable disable
 using System.Linq;
 using System.Threading;
-using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Hubs.Sync;
+using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;

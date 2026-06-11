@@ -294,10 +294,10 @@ public class AppDevelopmentService : IAppDevelopmentService
     )
     {
         AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-                altinnRepoEditingContext.Org,
-                altinnRepoEditingContext.Repo,
-                altinnRepoEditingContext.Developer
-            );
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
 
         if (string.IsNullOrEmpty(layoutSetName))
         {
@@ -315,8 +315,10 @@ public class AppDevelopmentService : IAppDevelopmentService
 
         if (_appVersionService.GetAppLibVersion(altinnRepoEditingContext).Major >= 9)
         {
-            Designer.Models.LayoutSettings layoutSettings =
-                await altinnAppGitRepository.GetLayoutSettings(layoutSetName, cancellationToken);
+            Designer.Models.LayoutSettings layoutSettings = await altinnAppGitRepository.GetLayoutSettings(
+                layoutSetName,
+                cancellationToken
+            );
             return layoutSettings.DefaultDataType ?? string.Empty;
         }
 

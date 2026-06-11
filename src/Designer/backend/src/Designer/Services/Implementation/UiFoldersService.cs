@@ -249,7 +249,7 @@ public class UiFoldersService : IUiFoldersService
 
         string? dataType = (
             await TryGetLayoutSettings(altinnAppGitRepository, layoutSetToDeleteId, cancellationToken)
-        )?.DataType;
+        )?.DefaultDataType;
         if (!string.IsNullOrEmpty(dataType))
         {
             await DeleteTaskRefInApplicationMetadata(altinnAppGitRepository, dataType);

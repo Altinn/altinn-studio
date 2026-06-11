@@ -42,7 +42,10 @@ public class ProcessDataTypesChangedLayoutSetsHandler : INotificationHandler<Pro
                     notification.EditingContext.Developer
                 );
 
-                if (!repository.AppUsesLayoutSets() || _appVersionService.GetAppLibVersion(notification.EditingContext).Major >= 9)
+                if (
+                    !repository.AppUsesLayoutSets()
+                    || _appVersionService.GetAppLibVersion(notification.EditingContext).Major >= 9
+                )
                 {
                     return hasChanges;
                 }

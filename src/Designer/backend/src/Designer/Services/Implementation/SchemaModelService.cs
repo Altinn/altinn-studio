@@ -366,7 +366,11 @@ public class SchemaModelService : ISchemaModelService
             var schemaFileName = altinnAppGitRepository.GetSchemaName(relativeFilePath);
 
             bool isV9OrNewer = _appVersionService.GetAppLibVersion(altinnRepoEditingContext).Major >= 9;
-            await DeleteDatatypeFromApplicationMetadataAndLayoutSets(altinnAppGitRepository, schemaFileName, isV9OrNewer);
+            await DeleteDatatypeFromApplicationMetadataAndLayoutSets(
+                altinnAppGitRepository,
+                schemaFileName,
+                isV9OrNewer
+            );
             DeleteRelatedSchemaFiles(altinnAppGitRepository, schemaFileName, altinnCoreFile.Directory);
         }
         else
@@ -590,7 +594,6 @@ public class SchemaModelService : ISchemaModelService
             await altinnAppGitRepository.SaveLayoutSettings(layoutSetName, layoutSettings);
         }
     }
-
 
     private string GetFullTypeName(ApplicationMetadata application, string csharpModelName)
     {
