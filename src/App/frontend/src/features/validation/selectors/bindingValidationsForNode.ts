@@ -19,7 +19,7 @@ export function useBindingValidationsFor<T extends CompTypes>(
 ): { [binding in keyof NonNullable<IDataModelBindings<T>>]: OutValues } | undefined {
   const showAll = FormStore.validation.useShowAllUnboundValidations();
   const indexedId = useIndexedId(baseComponentId);
-  const component = useVisibleValidations(indexedId, showAll);
+  const component = useVisibleValidations(baseComponentId, indexedId, showAll);
   const dataModelBindings = useDataModelBindingsFor(baseComponentId);
 
   return useMemo(() => {

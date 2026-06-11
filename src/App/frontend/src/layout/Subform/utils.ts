@@ -9,11 +9,7 @@ import { FormStore } from 'src/features/form/FormContext';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { useStrictInstanceId } from 'src/features/instance/InstanceContext';
 import { useInnerLanguageWithForcedPathSelector } from 'src/features/language/useLanguage';
-import {
-  type ExpressionDataSource,
-  type ExpressionDataSources,
-  useExpressionDataSources,
-} from 'src/utils/layout/useExpressionDataSources';
+import { type ExpressionDataSources, useExpressionDataSourcesBase } from 'src/utils/layout/useExpressionDataSources';
 import { getStatefulDataModelUrl } from 'src/utils/urls/appUrlHelper';
 import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IDataModelReference } from 'src/layout/common.generated';
@@ -61,14 +57,10 @@ function useLangToolsSelectorForSubform(dataType: string, subformData: unknown) 
   );
 }
 
-const dataSourcesNotSupportedInSubform = new Set<ExpressionDataSource>(['displayValue', 'layout']);
+const dataSourcesNotSupportedInSubform = new Set(['displayValue', 'layout'] as const);
 
-export function useExpressionDataSourcesForSubform(
-  dataType: string,
-  subformData: unknown,
-  toEvaluate: unknown,
-): ExpressionDataSources {
-  const baseRuntime = useExpressionDataSources(toEvaluate, {
+export function useExpressionDataSourcesForSubform(dataType: string, subformData: unknown): ExpressionDataSources {
+  const baseRuntime = useExpressionDataSourcesBase({
     unsupportedDataSources: dataSourcesNotSupportedInSubform,
     errorSuffix: '"entryDisplayName" or "cellContent" in Subform component',
   });

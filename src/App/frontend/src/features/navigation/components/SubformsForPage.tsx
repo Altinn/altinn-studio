@@ -126,7 +126,7 @@ function SubformLink({
   const disabled = useIsAnyProcessing();
   const enterSubform = useEnterSubform();
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
-  const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData, entryDisplayName);
+  const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData);
 
   const subformEntryName =
     !isSubformDataFetching && !subformDataError

@@ -30,8 +30,8 @@ const categories = [
 
 export const ValidationInspector = ({ baseComponentId }: ValidationInspectorProps) => {
   const indexedId = useIndexedId(baseComponentId);
-  const validations = useRawValidations(indexedId);
-  const rawVisibility = useValidationVisibilityBreakdown(indexedId);
+  const validations = useRawValidations(baseComponentId, indexedId);
+  const rawVisibility = useValidationVisibilityBreakdown(baseComponentId, indexedId);
   const nodeVisibility = rawVisibility.effective;
   const dataModelBindings = useDataModelBindingsFor(baseComponentId);
   const type = useExternalItem(baseComponentId).type;

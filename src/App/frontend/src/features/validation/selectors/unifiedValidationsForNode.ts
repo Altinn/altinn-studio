@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import type { NodeRefValidation } from '..';
 
 import { FormStore } from 'src/features/form/FormContext';
-import { useVisibleValidationsForNode } from 'src/features/validation/validationHooks';
+import { useVisibleValidations } from 'src/features/validation/validationHooks';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 
 /**
@@ -15,7 +15,7 @@ const emptyArray = [];
 export function useUnifiedValidationsForNode(baseComponentId: string): NodeRefValidation[] {
   const nodeId = useIndexedId(baseComponentId);
   const showAll = FormStore.validation.useShowAllUnboundValidations();
-  const validations = useVisibleValidationsForNode(baseComponentId, nodeId, showAll);
+  const validations = useVisibleValidations(baseComponentId, nodeId, showAll);
 
   return useMemo(() => {
     if (!nodeId) {
