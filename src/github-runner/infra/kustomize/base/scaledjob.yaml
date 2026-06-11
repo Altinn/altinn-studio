@@ -126,12 +126,24 @@ spec:
                 readOnly: true
               - name: runner-work
                 mountPath: /home/runner/_work
+              - name: runner-temp
+                mountPath: /home/runner/_work/_temp
+              - name: runner-tmp
+                mountPath: /tmp
         volumes:
           - name: docker-certs
             emptyDir: {}
           - name: runner-work
             emptyDir:
               sizeLimit: 20Gi
+          - name: runner-temp
+            emptyDir:
+              medium: Memory
+              sizeLimit: 2Gi
+          - name: runner-tmp
+            emptyDir:
+              medium: Memory
+              sizeLimit: 2Gi
         nodeSelector:
           purpose: github-runner
         tolerations:
