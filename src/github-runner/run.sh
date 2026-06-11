@@ -108,8 +108,9 @@ trap cleanup EXIT INT TERM
 
 mkdir -p \
   "${RUNNER_WORKDIR}" \
-  "${RUNNER_WORKDIR}/_tool" \
+  "${RUNNER_WORKDIR}/_temp" \
   "${RUNNER_HOME}/.cache/go-build" \
+  "${RUNNER_HOME}/.npm" \
   "${RUNNER_HOME}/.cache/yarn" \
   "${RUNNER_HOME}/.nuget/packages" \
   "${RUNNER_HOME}/go/pkg/mod"
