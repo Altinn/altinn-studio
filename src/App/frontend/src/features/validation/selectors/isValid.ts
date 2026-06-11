@@ -5,6 +5,6 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 
 export function useIsValid(baseComponentId: string): boolean {
   const showAll = FormStore.validation.useShowAllUnboundValidations();
-  const validations = useVisibleValidations(useIndexedId(baseComponentId), showAll);
+  const validations = useVisibleValidations(baseComponentId, useIndexedId(baseComponentId), showAll);
   return !hasValidationErrors(validations);
 }

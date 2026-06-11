@@ -20,28 +20,26 @@ import {
   getValidationsForNode,
 } from 'src/features/validation/deriveValidationState';
 import { useAllNavigationParams } from 'src/hooks/navigation';
-import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
+import { useExpressionDataSources, useExpressionDataSourcesBase } from 'src/utils/layout/useExpressionDataSources';
 import type { AnyValidation, NodeRefValidation, NodeVisibility, ValidationSeverity } from 'src/features/validation';
 import type {
   DerivedValidationStateInputs,
   ValidationVisibilityBreakdown as ValidationVisibilityBreakdownType,
 } from 'src/features/validation/deriveValidationState';
-import type { RuntimeOverrides } from 'src/utils/layout/useExpressionDataSources';
+import type { ExpressionRuntimeOverrides } from 'src/utils/layout/useExpressionDataSources';
 
 export type ValidationVisibilityBreakdown = ValidationVisibilityBreakdownType;
 
 const emptyArray: never[] = [];
-const hiddenExpressionRuntimeOverrides = {
-  unsupportedDataSources: new Set(['displayValue']),
+const hiddenExpressionRuntimeOverrides: ExpressionRuntimeOverrides = {
   errorSuffix: 'hidden expressions',
-} satisfies RuntimeOverrides;
+};
 
 function useDerivedValidationStateInputs(): DerivedValidationStateInputs {
   const pageOrder = useRawPageOrder();
   const pdfLayoutName = usePdfLayoutName();
   const processedLayouts = FormStore.bootstrap.useLayouts();
-  const layoutCollection = FormStore.bootstrap.useLayoutCollection();
-  const hiddenDataSources = useExpressionDataSources(layoutCollection, hiddenExpressionRuntimeOverrides);
+  const hiddenDataSources = useExpressionDataSourcesBase(hiddenExpressionRuntimeOverrides);
   const evalDataSources = useExpressionDataSources(processedLayouts);
   const instanceData = useInstanceDataQuery({ select: (instance) => instance.data }).data ?? emptyArray;
   const taskId = useProcessTaskId();
@@ -49,27 +47,31 @@ function useDerivedValidationStateInputs(): DerivedValidationStateInputs {
   return { pageOrder, pdfLayoutName, hiddenDataSources, evalDataSources, instanceData, taskId };
 }
 
-/**
- * Derives a validation snapshot during render so hooks stay reactive to form
- * state and expression dependencies without storing derived validation state.
- */
-function useDerivedStateSnapshot() {
+function useDerivedState() {
   const state = FormStore.raw.useSelector((state) => state);
   const inputs = useDerivedValidationStateInputs();
-  return {
-    derived: buildDerivedValidationState(state, inputs),
-    inputs,
-  };
-}
-
-function useDerivedState() {
-  return useDerivedStateSnapshot().derived;
+  return buildDerivedValidationState(state, inputs);
 }
 
 function useDerivedPageState(pageKeys: string[]) {
   const state = FormStore.raw.useSelector((state) => state);
   const inputs = useDerivedValidationStateInputs();
   return buildDerivedValidationState(state, { ...inputs, includedPageKeys: pageKeys });
+}
+
+function useDerivedStateForBaseComponent<T>(
+  baseComponentId: string,
+  select: (derived: ReturnType<typeof buildDerivedValidationState>) => T,
+) {
+  const inputs = useDerivedValidationStateInputs();
+  return FormStore.raw.useMemoSelector((state) => {
+    const pageKey = state.bootstrap.layoutLookups.componentToPage[baseComponentId];
+    const derived = buildDerivedValidationState(state, {
+      ...inputs,
+      includedPageKeys: pageKey ? [pageKey] : undefined,
+    });
+    return select(derived);
+  });
 }
 
 /**
@@ -82,7 +84,7 @@ function useFreshDerivedStateBuilder() {
   const taskOverrides = useTaskOverrides();
   const { instanceOwnerPartyId, instanceGuid, taskId: urlTaskId } = useAllNavigationParams();
   const formState = store.getState();
-  const hiddenDataSources = useExpressionDataSources(formState.bootstrap.layouts, hiddenExpressionRuntimeOverrides);
+  const hiddenDataSources = useExpressionDataSourcesBase(hiddenExpressionRuntimeOverrides);
   const evalDataSources = useExpressionDataSources(formState.bootstrap.processedLayouts);
   const snapshotInputs = useCallback((): DerivedValidationStateInputs => {
     const latestState = store.getState();
@@ -111,56 +113,47 @@ function useFreshDerivedStateBuilder() {
   return useCallback(() => buildDerivedValidationState(store.getState(), snapshotInputs()), [snapshotInputs, store]);
 }
 
-/** Returns the masks that currently control validation visibility for a generated node. */
-export function useValidationVisibilityBreakdown(indexedId: string | undefined): ValidationVisibilityBreakdownType {
-  const derived = useDerivedState();
-  return indexedId ? (derived.visibleBreakdownByNode.get(indexedId) ?? emptyBreakdown) : emptyBreakdown;
+/** Returns validation visibility for one generated node without rerendering when unrelated validations change. */
+export function useValidationVisibilityBreakdown(
+  baseComponentId: string,
+  indexedId: string | undefined,
+): ValidationVisibilityBreakdownType {
+  return useDerivedStateForBaseComponent(baseComponentId, (derived) =>
+    indexedId ? (derived.visibleBreakdownByNode.get(indexedId) ?? emptyBreakdown) : emptyBreakdown,
+  );
 }
 
-/** Returns every calculated validation for a generated node without applying visibility filtering. */
-export function useRawValidations(indexedId: string | undefined): AnyValidation[] {
-  const derived = useDerivedState();
-  return indexedId ? (derived.rawValidationsByNode.get(indexedId) ?? emptyArray) : emptyArray;
-}
-
-/** Returns the validations currently visible for a generated node. */
-export function useVisibleValidations(indexedId: string | undefined, showAll?: boolean): AnyValidation[] {
-  const derived = useDerivedState();
-  return indexedId ? getValidationsForNode(derived, indexedId, showAll ? 'showAll' : 'visible') : emptyArray;
+/** Returns raw validations for one generated node without rerendering when unrelated validations change. */
+export function useRawValidations(baseComponentId: string, indexedId: string | undefined): AnyValidation[] {
+  return useDerivedStateForBaseComponent(baseComponentId, (derived) =>
+    indexedId ? (derived.rawValidationsByNode.get(indexedId) ?? emptyArray) : emptyArray,
+  );
 }
 
 /** Returns visible validations for one generated node without rerendering when unrelated validations change. */
-export function useVisibleValidationsForNode(
+export function useVisibleValidations(
   baseComponentId: string,
   indexedId: string | undefined,
   showAll?: boolean,
 ): AnyValidation[] {
-  const inputs = useDerivedValidationStateInputs();
-  return FormStore.raw.useMemoSelector((state) => {
-    if (!indexedId) {
-      return emptyArray;
-    }
-
-    const pageKey = state.bootstrap.layoutLookups.componentToPage[baseComponentId];
-    const derived = buildDerivedValidationState(state, {
-      ...inputs,
-      includedPageKeys: pageKey ? [pageKey] : undefined,
-    });
-    return getValidationsForNode(derived, indexedId, showAll ? 'showAll' : 'visible');
-  });
+  return useDerivedStateForBaseComponent(baseComponentId, (derived) =>
+    indexedId ? getValidationsForNode(derived, indexedId, showAll ? 'showAll' : 'visible') : emptyArray,
+  );
 }
 
-/** Returns visible validations for a generated node and its descendants. */
+/** Returns visible descendant validations scoped to the page containing the requested base component. */
 export function useVisibleValidationsDeep(
+  baseComponentId: string,
   indexedId: string,
   mask: NodeVisibility,
   includeSelf: boolean,
   restriction?: number,
   severity?: ValidationSeverity,
 ): NodeRefValidation[] {
-  const derived = useDerivedState();
-  const nodeIds = [...(includeSelf ? [indexedId] : emptyArray), ...getDescendantIds(derived, indexedId, restriction)];
-  return nodeIds.flatMap((nodeId) => getNodeRefValidations(derived, nodeId, mask, severity));
+  return useDerivedStateForBaseComponent(baseComponentId, (derived) => {
+    const nodeIds = [...(includeSelf ? [indexedId] : emptyArray), ...getDescendantIds(derived, indexedId, restriction)];
+    return nodeIds.flatMap((nodeId) => getNodeRefValidations(derived, nodeId, mask, severity));
+  });
 }
 
 /**
@@ -236,7 +229,7 @@ export function useGetNodesWithErrors() {
 
 /** Indicates whether a page currently contains a visible required-field validation. */
 export function usePageHasVisibleRequiredValidations(pageKey: string | undefined) {
-  const derived = useDerivedState();
+  const derived = useDerivedPageState(pageKey ? [pageKey] : emptyArray);
   if (!pageKey) {
     return false;
   }

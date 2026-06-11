@@ -109,7 +109,7 @@ export interface ExpressionDataSources {
  * This is mainly used to replace parts of the runtime in special contexts like subforms, or to forbid some
  * expression data sources entirely.
  */
-export type RuntimeOverrides = {
+export type ExpressionRuntimeOverrides = {
   runtime?: Partial<ExpressionDataSources>;
   unsupportedDataSources?: Set<ExpressionDataSource>;
   errorSuffix?: string;
@@ -140,7 +140,41 @@ type SnapshotInputs = {
  * Unlike the old hook-selection approach, this always evaluates against current snapshots and lets the observer
  * subscribe later only to the dependencies that were actually touched.
  */
-export function useExpressionDataSources(toEvaluate: unknown, overrides?: RuntimeOverrides): ExpressionDataSources {
+export function useExpressionDataSourcesBase(overrides?: ExpressionRuntimeOverrides): ExpressionDataSources {
+  return useExpressionDataSourcesRuntime({
+    ...overrides,
+    unsupportedDataSources: new Set([...(overrides?.unsupportedDataSources ?? []), 'displayValue']),
+  });
+}
+
+export function useExpressionDataSources(
+  toEvaluate: unknown,
+  overrides?: ExpressionRuntimeOverrides,
+): ExpressionDataSources {
+  if (overrides?.unsupportedDataSources?.has('displayValue')) {
+    throw new Error('Use the expressionDataSourcesBase hook instead');
+  }
+  const displayValueLookups = useMemo(() => collectDisplayValueLookups(toEvaluate), [toEvaluate]);
+  // eslint-disable-next-line react-compiler/react-compiler,react-hooks/rules-of-hooks
+  const displayValues = displayValueLookups.length > 0 ? useDisplayDataFor(displayValueLookups) : emptyDisplayValues;
+  const runtime = useExpressionDataSourcesRuntime(overrides);
+
+  return useMemo<ExpressionDataSources>(
+    () => ({
+      ...runtime,
+      displayValue: {
+        get: (componentId) => {
+          runtime.context.assertDataSourceSupported('displayValue');
+          runtime.track({ type: 'displayValue', componentId });
+          return displayValues[componentId];
+        },
+      },
+    }),
+    [displayValues, runtime],
+  );
+}
+
+function useExpressionDataSourcesRuntime(overrides: ExpressionRuntimeOverrides | undefined): ExpressionDataSources {
   const applicationSettings = useApplicationSettings();
   const currentLanguage = useCurrentLanguage();
   const { pageKey: currentPage, instanceOwnerPartyId, instanceGuid } = useAllNavigationParams();
@@ -152,10 +186,6 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: Runtim
   const queryCacheObserver = useQueryCacheObserver();
   const externalApiQueries = useExternalApiQueries();
   const textResourceQueries = useTextResourcesQueries();
-
-  const displayValueLookups = useMemo(() => collectDisplayValueLookups(toEvaluate), [toEvaluate]);
-  // eslint-disable-next-line react-compiler/react-compiler,react-hooks/rules-of-hooks
-  const displayValues = displayValueLookups.length > 0 ? useDisplayDataFor(displayValueLookups) : emptyDisplayValues;
 
   const [, forceRender] = useReducer((n: number) => n + 1, 0);
   const observerRef = useRef<ExpressionObserver>(undefined);
@@ -219,7 +249,7 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: Runtim
         throw new Error(message);
       }
     },
-    [errorSuffix, unsupportedDataSources],
+    [unsupportedDataSources, errorSuffix],
   );
 
   return useMemo<ExpressionDataSources>(
@@ -293,7 +323,7 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: Runtim
         get: (componentId) => {
           assertDataSourceSupported('displayValue');
           observerRef.current!.track({ type: 'displayValue', componentId });
-          return displayValues[componentId];
+          return undefined;
         },
       },
       ...runtimeOverrides,
@@ -304,7 +334,6 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: Runtim
       currentDataModelPath,
       currentLanguage,
       currentPage,
-      displayValues,
       externalApiIds,
       externalApiQueries,
       inputs,
