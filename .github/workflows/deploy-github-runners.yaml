@@ -5,6 +5,9 @@ on:
     paths:
       - 'src/github-runner/**'
       - 'src/tools/releaser/go.mod'
+      - 'package.json'
+      - 'src/App/frontend/package.json'
+      - 'src/test/K6/package.json'
       - '.github/workflows/deploy-github-runners.yaml'
 
   workflow_dispatch:
@@ -63,8 +66,39 @@ jobs:
           test -n "${GO_VERSION}"
           echo "version=${GO_VERSION}" >> "$GITHUB_OUTPUT"
 
+      - name: Resolve Yarn versions
+        id: yarn-versions
+        run: |
+          PACKAGE_MANIFESTS=(
+            ../../package.json
+            ../App/frontend/package.json
+            ../test/K6/package.json
+          )
+
+          YARN_VERSION="$(jq -r '.packageManager // empty' ../../package.json | sed -n 's/^yarn@//p')"
+          test -n "${YARN_VERSION}"
+
+          readarray -t YARN_VERSIONS < <(
+            jq -r '.packageManager // empty' "${PACKAGE_MANIFESTS[@]}" \
+              | sed -n 's/^yarn@//p' \
+              | sort -Vu
+          )
+          test "${#YARN_VERSIONS[@]}" -gt 0
+
+          YARN_EXTRA_VERSIONS="$(printf '%s\n' "${YARN_VERSIONS[@]}" | awk -v version="${YARN_VERSION}" '$0 != version' | paste -sd ' ' -)"
+          {
+            echo "version=${YARN_VERSION}"
+            echo "extra-versions=${YARN_EXTRA_VERSIONS}"
+          } >> "$GITHUB_OUTPUT"
+
       - name: docker build
-        run: docker build --build-arg GO_VERSION=${{ steps.go-version.outputs.version }} -t ${{ steps.vars.outputs.image-repo }} -f Dockerfile .
+        run: |
+          docker build \
+            --build-arg GO_VERSION=${{ steps.go-version.outputs.version }} \
+            --build-arg YARN_VERSION=${{ steps.yarn-versions.outputs.version }} \
+            --build-arg YARN_EXTRA_VERSIONS="${{ steps.yarn-versions.outputs.extra-versions }}" \
+            -t ${{ steps.vars.outputs.image-repo }} \
+            -f Dockerfile .
 
       - name: push image
         run: docker push ${{ steps.vars.outputs.image-repo }}

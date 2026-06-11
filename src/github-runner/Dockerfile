@@ -2,7 +2,8 @@ FROM ghcr.io/actions/actions-runner:2.335.1@sha256:08c30b0a7105f64bddfc485d2487a
 
 ARG GO_VERSION=1.26.1
 ARG NODE_CHANNEL=22
-ARG YARN_CHANNEL=stable
+ARG YARN_VERSION=4.12.0
+ARG YARN_EXTRA_VERSIONS="4.5.0 4.14.1"
 ARG DOTNET_CHANNELS="8.0 9.0 10.0"
 ARG DOTNET_INSTALL_SCRIPT_COMMIT=6f559c420847ded38591392dafe785ad511f39f5
 ARG DOTNET_INSTALL_SCRIPT_SHA256=082f7685e156738a1b2e2ed8381a621870d4ce8e8c59278034556f05c186eb2e
@@ -69,7 +70,9 @@ RUN apt-get update \
     done \
     && rm -f /tmp/dotnet-install.sh \
     && PATH="/opt/tools/node/current/bin:${PATH}" COREPACK_HOME=/opt/corepack corepack enable \
-    && PATH="/opt/tools/node/current/bin:${PATH}" COREPACK_HOME=/opt/corepack corepack prepare "yarn@${YARN_CHANNEL}" --activate \
+    && for yarn_version in ${YARN_EXTRA_VERSIONS} ${YARN_VERSION}; do \
+      PATH="/opt/tools/node/current/bin:${PATH}" COREPACK_HOME=/opt/corepack corepack prepare "yarn@${yarn_version}" --activate; \
+    done \
     && chown -R runner:runner /home/runner/.cache /home/runner/.npm /home/runner/.nuget /home/runner/go /home/runner/_work /opt/tools /opt/corepack
 
 ENV CGO_ENABLED=1
