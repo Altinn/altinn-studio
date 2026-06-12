@@ -1,45 +1,18 @@
 import React from 'react';
 
-import { DatePickerControl, Flex, getDateConstraint, getDateFormat, Label } from '@app/form-component';
+import { Datepicker, Label } from '@app/form-component';
 
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { DropdownCaption } from 'src/layout/Datepicker/DropdownCaption';
-import { getDatepickerFormat } from 'src/utils/dateUtils';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-import 'react-day-picker/style.css';
-
 export function DatepickerComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'Datepicker'>) {
-  const { langAsString } = useLanguage();
-  const languageLocale = useCurrentLanguage();
-  const {
-    minDate,
-    maxDate,
-    format,
-    timeStamp = true,
-    readOnly,
-    required,
-    id,
-    dataModelBindings,
-    grid,
-    autocomplete,
-  } = useItemWhenType(baseComponentId, 'Datepicker');
-
-  const calculatedMinDate = getDateConstraint(minDate, 'min');
-  const calculatedMaxDate = getDateConstraint(maxDate, 'max');
-  const dateFormat = getDatepickerFormat(getDateFormat(format, languageLocale));
+  const { minDate, maxDate, format, timeStamp, readOnly, required, id, dataModelBindings, grid, autocomplete } =
+    useItemWhenType(baseComponentId, 'Datepicker');
 
   const { setValue, formData } = useDataModelBindings(dataModelBindings);
-  const value = formData.simpleBinding;
-
-  const handleInputValueChange = (isoDateString: string) => {
-    setValue('simpleBinding', isoDateString);
-  };
 
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
     useLabel({ baseComponentId, overrideDisplay });
@@ -56,34 +29,18 @@ export function DatepickerComponent({ baseComponentId, overrideDisplay }: PropsF
       description={getDescriptionComponent()}
     >
       <ComponentStructureWrapper baseComponentId={baseComponentId}>
-        <Flex
-          container
-          item
-          size={{ xs: 12 }}
-        >
-          <DatePickerControl
-            id={id}
-            value={value}
-            dateFormat={dateFormat}
-            timeStamp={timeStamp}
-            onValueChange={handleInputValueChange}
-            readOnly={readOnly}
-            required={required}
-            locale={languageLocale}
-            minDate={calculatedMinDate}
-            maxDate={calculatedMaxDate}
-            DropdownCaption={(props) => (
-              <DropdownCaption
-                {...props}
-                minDate={calculatedMinDate}
-                maxDate={calculatedMaxDate}
-              />
-            )}
-            buttonAriaLabel={langAsString('date_picker.aria_label_icon')}
-            calendarIconTitle={langAsString('date_picker.aria_label_icon')}
-            autoComplete={autocomplete}
-          />
-        </Flex>
+        <Datepicker
+          id={id}
+          value={formData.simpleBinding}
+          format={format}
+          minDate={minDate}
+          maxDate={maxDate}
+          timeStamp={timeStamp}
+          readOnly={readOnly}
+          required={required}
+          autoComplete={autocomplete}
+          onValueChange={(isoDateString) => setValue('simpleBinding', isoDateString)}
+        />
       </ComponentStructureWrapper>
     </Label>
   );

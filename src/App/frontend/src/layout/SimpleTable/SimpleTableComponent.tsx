@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { AppTable, FieldRenderer } from '@app/form-component';
+import { AppTable, DropdownCaption, FieldRenderer, getDatepickerFormat } from '@app/form-component';
 import { Link } from '@digdir/designsystemet-react';
 import { PencilIcon, TrashIcon } from '@navikt/aksel-icons';
 import { pick } from 'dot-object';
@@ -14,9 +14,7 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { AddToListModal } from 'src/layout/AddToList/AddToList';
-import { DropdownCaption } from 'src/layout/Datepicker/DropdownCaption';
 import { isFormDataObjectArray, isValidItemsSchema } from 'src/layout/SimpleTable/typeguards';
-import { getDatepickerFormat } from 'src/utils/dateUtils';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindingsForTable } from 'src/layout/SimpleTable/config.generated';

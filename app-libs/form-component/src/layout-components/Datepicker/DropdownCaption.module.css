@@ -12,6 +12,15 @@
   min-width: 0;
 }
 
+/*
+ * Workaround to make the combobox shrink on narrow screens
+ */
+.yearComboboxContainer [class*='ds-combobox__input__wrapper'],
+.yearComboboxContainer [class*='ds-combobox__chip-and-input'],
+.yearComboboxContainer input {
+  min-width: 0;
+}
+
 @media (max-width: 480px) {
   .datepickerCaption {
     display: grid;
