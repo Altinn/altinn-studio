@@ -3,12 +3,17 @@ import { Scope, convertToExternalConfig } from '../utils/ValidateNavigationUtils
 import type { InternalConfigState } from '../utils/ValidateNavigationTypes';
 import { useConvertToInternalConfig } from '../utils/useConvertToInternalConfig';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useValidationOnNavigationGroupedSettingsQuery } from '@altinn/ux-editor/hooks/queries/useValidationOnNavigationGroupedSettingsQuery';
 import { useUpdateValidationOnNavigationLayoutSettingsMutation } from '@altinn/ux-editor/hooks/mutations/useUpdateValidationOnNavigationLayoutSettingsMutation';
+import { ValidationOnNavigationLevel } from 'app-shared/types/global';
+import { useValidationOnNavigationQuery } from '@altinn/ux-editor/hooks/queries/useValidationOnNavigationQuery';
 
 export const ValidateSelectedTasksConfig = () => {
   const { org, app } = useStudioEnvironmentParams();
-  const { data: settingsValidationData } = useValidationOnNavigationGroupedSettingsQuery(org, app);
+  const { data: settingsValidationData } = useValidationOnNavigationQuery(
+    org,
+    app,
+    ValidationOnNavigationLevel.LayoutSets,
+  );
   const { mutate: updateSettings } = useUpdateValidationOnNavigationLayoutSettingsMutation(
     org,
     app,
