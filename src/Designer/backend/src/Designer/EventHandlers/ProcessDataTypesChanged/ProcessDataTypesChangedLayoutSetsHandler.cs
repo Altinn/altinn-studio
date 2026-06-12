@@ -7,6 +7,7 @@ using Altinn.Studio.Designer.Hubs.Sync;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
+using NuGet.Versioning;
 
 namespace Altinn.Studio.Designer.EventHandlers.ProcessDataTypeChanged;
 
@@ -42,10 +43,8 @@ public class ProcessDataTypesChangedLayoutSetsHandler : INotificationHandler<Pro
                     notification.EditingContext.Developer
                 );
 
-                if (
-                    !repository.AppUsesLayoutSets()
-                    || _appVersionService.GetAppLibVersion(notification.EditingContext).Major >= 9
-                )
+                SemanticVersion version = _appVersionService.GetAppLibVersion(notification.EditingContext);
+                if (!repository.AppUsesLayoutSets() || version != null && version.Major >= 9)
                 {
                     return hasChanges;
                 }
