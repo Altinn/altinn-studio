@@ -34,7 +34,7 @@ __metadata:
   peerDependencies:
     react: 18.3.1
     react-dom: 18.3.1
-    typescript: 5.9.3
+    typescript: 6.0.3
   languageName: unknown
   linkType: soft
 
@@ -50,7 +50,7 @@ __metadata:
   peerDependencies:
     react: 18.3.1
     react-dom: 18.3.1
-    typescript: 5.9.3
+    typescript: 6.0.3
   languageName: unknown
   linkType: soft
 
@@ -86,7 +86,7 @@ __metadata:
   peerDependencies:
     react: 18.3.1
     react-dom: 18.3.1
-    typescript: 5.9.3
+    typescript: 6.0.3
   languageName: unknown
   linkType: soft
 
@@ -104,7 +104,7 @@ __metadata:
     react-redux: "npm:9.2.0"
     redux: "npm:5.0.1"
     redux-mock-store: "npm:1.5.5"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     uuid: "npm:13.0.0"
   languageName: unknown
   linkType: soft
@@ -119,7 +119,7 @@ __metadata:
     jest: "npm:29.7.0"
     react: "npm:19.2.5"
     react-dom: "npm:19.2.5"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     uuid: "npm:13.0.0"
   languageName: unknown
   linkType: soft
@@ -173,7 +173,7 @@ __metadata:
     react-dropzone: "npm:^15.0.0"
     react-number-format: "npm:^5.4.5"
     storybook: "npm:10.2.16"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     typescript-plugin-css-modules: "npm:5.2.0"
     vite-tsconfig-paths: "npm:6.1.1"
     vitest: "npm:^4.1.5"
@@ -196,7 +196,7 @@ __metadata:
     "@types/react-dom": "npm:19.2.3"
     "@vitejs/plugin-react": "npm:^5.0.0"
     jsdom: "npm:^26.1.0"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     vitest: "npm:^4.1.5"
   peerDependencies:
     react: ^19.0.0
@@ -208,7 +208,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@app/language@workspace:app-libs/language"
   dependencies:
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     vitest: "npm:4.1.5"
   languageName: unknown
   linkType: soft
@@ -6774,7 +6774,7 @@ __metadata:
     jest: "npm:29.7.0"
     jest-environment-jsdom: "npm:29.7.0"
     ts-jest: "npm:29.4.6"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -6803,7 +6803,7 @@ __metadata:
     react-dom: "npm:19.2.5"
     storybook: "npm:^10.2.11"
     ts-jest: "npm:^29.1.1"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     uuid: "npm:13.0.0"
   languageName: unknown
   linkType: soft
@@ -6834,7 +6834,7 @@ __metadata:
     react-dnd-html5-backend: "npm:16.0.1"
     storybook: "npm:^10.2.11"
     ts-jest: "npm:^29.1.1"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
   peerDependencies:
     react: 18.2.0 || 19.0.0 || 19.1 || 19.2
     react-dom: 18.2.0 || 19.0.0 || 19.1 || 19.2
@@ -6855,7 +6855,7 @@ __metadata:
     jest: "npm:29.7.0"
     jest-environment-jsdom: "npm:29.7.0"
     ts-jest: "npm:29.4.6"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -6871,7 +6871,7 @@ __metadata:
     jest: "npm:29.7.0"
     jest-environment-jsdom: "npm:29.7.0"
     ts-jest: "npm:^29.1.1"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
     react-dom: ^18.2.0 || ^19.0.0
@@ -6895,7 +6895,7 @@ __metadata:
     jest: "npm:29.7.0"
     jest-environment-jsdom: "npm:29.7.0"
     ts-jest: "npm:^29.1.1"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -6913,7 +6913,7 @@ __metadata:
     react: "npm:19.2.5"
     react-dom: "npm:19.2.5"
     ts-jest: "npm:^29.1.1"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     uuid: "npm:13.0.0"
   peerDependencies:
     react-router-dom: ">=6.0.0"
@@ -6933,7 +6933,7 @@ __metadata:
     react: "npm:19.2.5"
     react-dom: "npm:19.2.5"
     ts-jest: "npm:^29.1.1"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -6946,7 +6946,7 @@ __metadata:
     jest: "npm:^29.7.0"
     jest-environment-jsdom: "npm:^29.7.0"
     ts-jest: "npm:^29.1.1"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -6962,7 +6962,7 @@ __metadata:
     jest: "npm:29.7.0"
     jest-environment-jsdom: "npm:29.7.0"
     ts-jest: "npm:^29.1.1"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
     react-dom: ^18.2.0 || ^19.0.0
@@ -9367,7 +9367,7 @@ __metadata:
     react-dom: "npm:19.2.5"
     react-i18next: "npm:16.5.6"
     react-router-dom: "npm:6.30.3"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     vite: "npm:^6.3.2"
   languageName: unknown
   linkType: soft
@@ -9699,7 +9699,7 @@ __metadata:
     react-dom: "npm:19.2.5"
     react-i18next: "npm:16.5.6"
     react-router-dom: "npm:6.30.3"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     vite: "npm:^6.3.2"
   languageName: unknown
   linkType: soft
@@ -9850,7 +9850,7 @@ __metadata:
     react: "npm:19.2.5"
     react-dom: "npm:19.2.5"
     react-router-dom: "npm:6.30.3"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     vite: "npm:^6.3.2"
   languageName: unknown
   linkType: soft
@@ -9869,7 +9869,7 @@ __metadata:
     react: "npm:19.2.5"
     react-dom: "npm:19.2.5"
     react-router-dom: "npm:6.30.3"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -12142,7 +12142,7 @@ __metadata:
     react: "npm:19.2.5"
     react-dom: "npm:19.2.5"
     react-router-dom: "npm:6.30.3"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     vite: "npm:^6.3.2"
   languageName: unknown
   linkType: soft
@@ -22434,7 +22434,7 @@ __metadata:
     markdown-to-jsx: "npm:7.7.17"
     react: "npm:19.2.5"
     react-dom: "npm:19.2.5"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     vite: "npm:^6.3.2"
   languageName: unknown
   linkType: soft
@@ -23876,7 +23876,7 @@ __metadata:
     react-toastify: "npm:11.0.5"
     source-map-loader: "npm:5.0.0"
     swc-loader: "npm:0.2.7"
-    typescript: "npm:5.9.3"
+    typescript: "npm:6.0.3"
     typescript-plugin-css-modules: "npm:5.2.0"
     vite: "npm:^6.3.2"
     whatwg-fetch: "npm:3.6.20"
@@ -24854,6 +24854,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"typescript@npm:6.0.3":
+  version: 6.0.3
+  resolution: "typescript@npm:6.0.3"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 10/0ef2357a4cffd916b52b683a021cdab0f81eea4e9aa35f2d254581c9a5106da02224e3392e1b0ed42b7a48f80c966e5f52b8e1a27941fa0523c1705a9c2e0330
+  languageName: node
+  linkType: hard
+
 "typescript@patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A>=5#optional!builtin<compat/typescript>":
   version: 5.9.3
   resolution: "typescript@patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"
@@ -24861,6 +24871,16 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10/696e1b017bc2635f4e0c94eb4435357701008e2f272f553d06e35b494b8ddc60aa221145e286c28ace0c89ee32827a28c2040e3a69bdc108b1a5dc8fb40b72e3
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@npm%3A6.0.3#optional!builtin<compat/typescript>":
+  version: 6.0.3
+  resolution: "typescript@patch:typescript@npm%3A6.0.3#optional!builtin<compat/typescript>::version=6.0.3&hash=5786d5"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 10/22b67a18dafedf9b1468b64ca20d9aa02ea61d449b65413d8aa6552aeb63f52ef369e86beb25b6b4c91a803d9726ee5c196f391a9b64201263263410a4223ee6
   languageName: node
   linkType: hard
 
