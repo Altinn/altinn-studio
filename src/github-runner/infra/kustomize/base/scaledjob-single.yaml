@@ -1,0 +1,118 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+  name: github-runners-single
+  labels:
+    app.kubernetes.io/name: github-runner
+    app.kubernetes.io/component: runner-single
+  annotations:
+    altinn.studio/image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:latest
+    altinn.studio/image-tag: latest
+spec:
+  maxReplicaCount: 2
+  minReplicaCount: 0
+  pollingInterval: 30
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 5
+  jobTargetRef:
+    backoffLimit: 0
+    ttlSecondsAfterFinished: 300
+    activeDeadlineSeconds: 7200
+    template:
+      metadata:
+        labels:
+          app.kubernetes.io/name: github-runner
+          app.kubernetes.io/component: runner-single
+      spec:
+        runtimeClassName: kata-vm-isolation
+        restartPolicy: Never
+        securityContext:
+          fsGroup: 1001
+        containers:
+          - name: github-runner
+            image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:latest
+            imagePullPolicy: Always
+            command: ["/usr/local/bin/altinn-github-runner-dind"]
+            securityContext:
+              privileged: true
+              runAsUser: 0
+              runAsGroup: 0
+            env:
+              - name: DOCKER_HOST
+                value: unix:///var/run/docker.sock
+              - name: GITHUB_API_URL
+                value: https://api.github.com
+              - name: GITHUB_HOST
+                value: github.com
+              - name: GITHUB_SERVER_URL
+                value: https://github.com
+              - name: GITHUB_OWNER
+                value: Altinn
+              - name: GITHUB_REPOSITORY
+                value: altinn-studio
+              - name: RUNNER_SCOPE
+                value: repo
+              - name: RUNNER_LABELS
+                value: self-hosted,self-hosted-single
+              - name: RUNNER_GROUP
+                value: Default
+              - name: RUNNER_WORKDIR
+                value: /home/runner/_work
+              - name: RUNNER_WORK_DISK_SIZE
+                value: 20G
+              - name: DOCKER_DISK_SIZE
+                value: 30G
+              - name: APP_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: github-runner-auth
+                    key: appId
+              - name: APP_INSTALLATION_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: github-runner-auth
+                    key: installationId
+              - name: APP_PRIVATE_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: github-runner-auth
+                    key: appPrivateKey
+            resources:
+              requests:
+                cpu: "4"
+                memory: 8Gi
+                ephemeral-storage: 60Gi
+              limits:
+                cpu: "4"
+                memory: 8Gi
+                ephemeral-storage: 70Gi
+            volumeMounts:
+              - name: runner-tmp
+                mountPath: /tmp
+        volumes:
+          - name: runner-tmp
+            emptyDir:
+              medium: Memory
+              sizeLimit: 2Gi
+        nodeSelector:
+          purpose: github-runner
+        tolerations:
+          - key: purpose
+            operator: Equal
+            value: github-runner
+            effect: NoSchedule
+  triggers:
+    - type: github-runner
+      metadata:
+        githubApiURL: https://api.github.com
+        owner: Altinn
+        runnerScope: repo
+        repos: altinn-studio
+        labels: self-hosted,self-hosted-single
+        noDefaultLabels: "true"
+        enableEtags: "false"
+        applicationIDFromEnv: APP_ID
+        installationIDFromEnv: APP_INSTALLATION_ID
+        targetWorkflowQueueLength: "1"
+      authenticationRef:
+        name: github-runner-auth
