@@ -110,7 +110,6 @@ export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFro
           selected={formatSelectedValue(selectedValues, options)}
           onSelectedChange={(option) => handleChange(option ? [option.value] : [])}
           onBlur={() => debounce}
-          name={overrideDisplay?.renderedInTable ? langAsString(textResourceBindings?.title) : undefined}
           className={cn(comboboxClasses.container, classes.showCaretsWithoutClear, { [classes.readOnly]: readOnly })}
           style={{ width: '100%' }}
         >
