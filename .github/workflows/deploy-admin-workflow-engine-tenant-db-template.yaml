@@ -1,12 +1,12 @@
-name: Admin - deploy syncroot
+name: Admin - deploy workflow-engine-tenant-db-template
 
 on:
   push:
     branches:
       - main
     paths:
-      - infra/admin/syncroot/**
-      - .github/workflows/deploy-admin-syncroot.yaml
+      - infra/admin/workflow-engine-tenant-db-template/**
+      - .github/workflows/deploy-admin-workflow-engine-tenant-db-template.yaml
   workflow_dispatch:
 
 permissions:
@@ -14,8 +14,8 @@ permissions:
   contents: read
 
 jobs:
-  push-syncroot-artifact:
-    name: Push syncroot as OCI artifact
+  push-workflow-engine-tenant-db-template-artifact:
+    name: Push workflow-engine-tenant-db-template as OCI artifact
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -47,19 +47,19 @@ jobs:
       - name: flux install
         uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
 
-      - name: push syncroot artifact
+      - name: push tenant-db-template artifact
         run: |
-          cd syncroot/
-          flux push artifact oci://altinncr.azurecr.io/studio/syncroot-admin:${{ steps.vars.outputs.short-sha }} \
+          cd workflow-engine-tenant-db-template/
+          flux push artifact oci://altinncr.azurecr.io/studio/workflow-engine-tenant-db-template:${{ steps.vars.outputs.short-sha }} \
             --provider=generic \
             --reproducible \
             --path="." \
             --source="$(git config --get remote.origin.url)" \
             --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
 
-  tag-syncroot:
-    name: Tag syncroot (${{ matrix.tag }})
-    needs: push-syncroot-artifact
+  tag-workflow-engine-tenant-db-template:
+    name: Tag workflow-engine-tenant-db-template (${{ matrix.tag }})
+    needs: push-workflow-engine-tenant-db-template-artifact
     runs-on: ubuntu-latest
     environment: ${{ matrix.environment }}
     permissions:
@@ -89,7 +89,7 @@ jobs:
       - name: flux install
         uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
 
-      - name: tag syncroot artifact
+      - name: tag tenant-db-template artifact
         run: |
-          flux tag artifact oci://altinncr.azurecr.io/studio/syncroot-admin:${{ needs.push-syncroot-artifact.outputs.short-sha }} \
+          flux tag artifact oci://altinncr.azurecr.io/studio/workflow-engine-tenant-db-template:${{ needs.push-workflow-engine-tenant-db-template-artifact.outputs.short-sha }} \
             --tag ${{ matrix.tag }}
