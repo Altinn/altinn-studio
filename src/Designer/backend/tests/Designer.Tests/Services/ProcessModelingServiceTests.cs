@@ -6,6 +6,7 @@ using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
 using Moq;
+using NuGet.Versioning;
 using SharedResources.Tests;
 using Xunit;
 
@@ -23,6 +24,9 @@ public class ProcessModelingServiceTests : FluentTestsBase<ProcessModelingServic
     {
         _schemaModelServiceMock = new Mock<ISchemaModelService>();
         _appVersionServiceMock = new Mock<IAppVersionService>();
+        _appVersionServiceMock
+            .Setup(s => s.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
+            .Returns(new SemanticVersion(8, 0, 0));
         _altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(
             TestDataHelper.GetTestDataRepositoriesRootDirectory()
         );

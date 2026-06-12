@@ -14,6 +14,7 @@ using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
 using Moq;
+using NuGet.Versioning;
 using SharedResources.Tests;
 using Xunit;
 
@@ -30,6 +31,9 @@ public class SchemaModelServiceTests
     {
         _applicationMetadataService = new Mock<IApplicationMetadataService>();
         _appVersionServiceMock = new Mock<IAppVersionService>();
+        _appVersionServiceMock
+            .Setup(s => s.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
+            .Returns(new SemanticVersion(8, 0, 0));
         _altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(
             TestDataHelper.GetTestDataRepositoriesRootDirectory()
         );
