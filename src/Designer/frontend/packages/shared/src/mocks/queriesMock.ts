@@ -359,6 +359,7 @@ export const queriesMock: ServicesContextProps = {
   updateAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppConfig: jest.fn().mockImplementation(() => Promise.resolve()),
   updateValidationOnNavigationLayoutSets: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateValidationOnNavigation: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOptionListId: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOrgCodeListId: jest.fn().mockImplementation(() => Promise.resolve()),

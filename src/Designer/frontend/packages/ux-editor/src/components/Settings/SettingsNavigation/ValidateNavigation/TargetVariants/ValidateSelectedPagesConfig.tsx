@@ -3,8 +3,8 @@ import { Scope, convertToExternalConfig } from '../utils/ValidateNavigationUtils
 import type { InternalConfigState } from '../utils/ValidateNavigationTypes';
 import { useConvertToInternalConfig } from '../utils/useConvertToInternalConfig';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useValidationOnNavigationPageSettingsMutation } from '@altinn/ux-editor/hooks/mutations/useValidationOnNavigationPageSettingsMutation';
-import { useValidationOnNavigationQuery } from '@altinn/ux-editor/hooks/queries/useValidationOnNavigationQuery';
+import { useValidationOnNavigationQuery } from '../../../../../hooks/queries/useValidationOnNavigationQuery';
+import { useValidationOnNavigationMutation } from '../../../../../hooks/mutations/useValidationOnNavigationMutation';
 import { ValidationOnNavigationLevel } from 'app-shared/types/global';
 
 export const ValidateSelectedPagesConfig = () => {
@@ -14,7 +14,11 @@ export const ValidateSelectedPagesConfig = () => {
     app,
     ValidationOnNavigationLevel.Pages,
   );
-  const { mutate: updatePages } = useValidationOnNavigationPageSettingsMutation(org, app);
+  const { mutate: updatePages } = useValidationOnNavigationMutation(
+    org,
+    app,
+    ValidationOnNavigationLevel.Pages,
+  );
   const internalConfigs = useConvertToInternalConfig(pageValidationData ?? []);
 
   const handleSave = (updatedConfig: InternalConfigState, index?: number) => {
