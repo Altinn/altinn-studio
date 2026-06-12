@@ -9,8 +9,6 @@ import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewCo
 import { layout1NameMock, layout2NameMock } from './layoutMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
-import { QueryKey } from 'app-shared/types/QueryKey';
-import type { AppVersion } from 'app-shared/types/AppVersion';
 import type { AppContextProps } from '../AppContext';
 import { AppContext } from '../AppContext';
 import { appContextMock } from './appContextMock';
@@ -38,12 +36,6 @@ export const formLayoutSettingsMock: ILayoutSettings = {
 export const textLanguagesMock = ['nb', 'nn', 'en'];
 
 export const optionListIdsMock: string[] = ['test-1', 'test-2'];
-
-// ux-editor targets apps on version 9 or newer, so tests should present a v9 by default.
-export const appVersionMock: AppVersion = {
-  backendVersion: '9.0.0',
-  frontendVersion: '9.0.0',
-};
 
 const defaultAppRouteParams: AppRouteParams = {
   org: testOrg,
@@ -86,7 +78,6 @@ function wrapper({
   featureFlags = [],
   featureFlagMutations = defaultFeatureFlagMutations,
 }: WrapperArgs): (component: ReactNode) => ReactElement {
-  seedDefaultAppVersion(queryClient, appRouteParams);
   const renderComponent = (component: ReactNode): ReactElement => (
     <AppRouter params={{ ...appRouteParams, ...uxEditorParams }}>
       <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
@@ -108,13 +99,6 @@ function wrapper({
   );
   renderComponent.displayName = 'renderComponent';
   return renderComponent;
-}
-
-function seedDefaultAppVersion(queryClient: QueryClient, { org, app }: AppRouteParams): void {
-  const queryKey = [QueryKey.AppVersion, org, app];
-  if (!queryClient.getQueryData(queryKey)) {
-    queryClient.setQueryData(queryKey, appVersionMock);
-  }
 }
 
 type AppRouterProps = {
