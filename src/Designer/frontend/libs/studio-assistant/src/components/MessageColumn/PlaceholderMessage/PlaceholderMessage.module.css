@@ -1,6 +1,6 @@
 .placeholderMessage {
   text-align: center;
-  max-width: 28rem; /* a touch narrower for focus */
+  max-width: 28rem;
   margin-inline: auto;
   display: flex;
   flex-direction: column;
@@ -19,7 +19,7 @@
   box-shadow:
     inset 0 0 0 1px color-mix(in srgb, var(--ds-color-border-subtle) 40%, transparent),
     0 10px 28px color-mix(in srgb, var(--ds-color-accent) 14%, transparent);
-  color: var(--ds-color-text); /* base color; body overrides below */
+  color: var(--ds-color-text);
 }
 
 .placeholderMessage p {
@@ -29,7 +29,7 @@
 
 .icon {
   align-self: center;
-  width: 4.75rem; /* bigger icon */
+  width: 4.75rem;
   height: 4.75rem;
   border-radius: 999px;
   display: grid;
@@ -68,7 +68,6 @@
   animation-delay: 0.36s;
 }
 
-/* motion safety */
 @media (prefers-reduced-motion: reduce) {
   .icon {
     animation: none;
@@ -78,7 +77,6 @@
   }
 }
 
-/* keyframes */
 @keyframes float {
   0%,
   100% {
