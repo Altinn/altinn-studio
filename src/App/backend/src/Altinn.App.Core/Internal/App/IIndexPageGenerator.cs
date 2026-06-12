@@ -20,13 +20,11 @@ internal interface IIndexPageGenerator
     /// <param name="app">The application identifier.</param>
     /// <param name="appGlobalState">The bootstrap global state for the app.</param>
     /// <param name="appFrontendAssetBaseUrlOverride">Optional app frontend asset base URL override (only used in development).</param>
-    /// <param name="isDevelopment">Whether the app is running in a development environment. When true and no override is supplied, an instructional page is returned instead of serving a bundled frontend.</param>
     /// <returns>The generated HTML content.</returns>
     Task<string> Generate(
         string org,
         string app,
         BootstrapGlobalResponse appGlobalState,
-        string? appFrontendAssetBaseUrlOverride = null,
-        bool isDevelopment = false
+        string? appFrontendAssetBaseUrlOverride = null
     );
 }

@@ -39,49 +39,10 @@ internal sealed class IndexPageGenerator : IIndexPageGenerator
         string org,
         string app,
         BootstrapGlobalResponse appGlobalState,
-        string? appFrontendAssetBaseUrlOverride = null,
-        bool isDevelopment = false
+        string? appFrontendAssetBaseUrl = null
     )
     {
-        string appFrontendAssetBaseUrl;
-        if (appFrontendAssetBaseUrlOverride is not null)
-        {
-            // Development override (e.g. `studioctl run --dev-frontend`): serve from the configured URL.
-            appFrontendAssetBaseUrl = appFrontendAssetBaseUrlOverride;
-        }
-        else if (isDevelopment)
-        {
-            // Monorepo development without a configured frontend URL: no bundled frontend exists,
-            // so guide the developer to build/serve it themselves.
-            var htmlContentError = $$"""
-                <!DOCTYPE html>
-                <html lang="no">
-                <head>
-                 <meta charset="utf-8">
-                 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-                 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-                 <title>{{org}} - {{app}}</title>
-                 <link rel="icon" href="https://altinncdn.no/favicon.ico">
-                </head>
-                <body>
-                <h1>Not implemented yet</h1>
-                  <p>Sorry, loading our built-in frontend is not yet supported. Please build and host frontend from the monorepo code yourself.</p>
-                  <p>To serve a production-level/faster build with no hot-reloads:</p>
-                  <pre>cd src/App/frontend; yarn build; yarn serve 8080</pre>
-                  <p>To serve a slightly slower build with hot-reloads tailored for development:</p>
-                  <pre>cd src/App/frontend; yarn start</pre>
-                  <p>Then make sure to restart this app with:</p>
-                  <pre>studioctl run --dev-frontend</pre>
-                </body>
-                </html>
-                """;
-            return htmlContentError;
-        }
-        else
-        {
-            // Released app (v9 packaging): serve the bundled frontend.
-            appFrontendAssetBaseUrl = $"/{org}/{app}/altinn-app-frontend";
-        }
+        appFrontendAssetBaseUrl ??= $"/{org}/{app}/altinn-app-frontend";
 
         var featureToggles = await _frontendFeatures.GetFrontendFeatures();
         var featureTogglesJson = JsonSerializer.Serialize(featureToggles, _jsonSerializerOptions);
