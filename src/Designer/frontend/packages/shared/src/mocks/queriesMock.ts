@@ -152,6 +152,9 @@ export const queriesMock: ServicesContextProps = {
   getValidationOnNavigationLayoutSets: jest
     .fn()
     .mockImplementation(() => Promise.resolve({ show: [], page: '' })),
+  getValidationOnNavigation: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve({ show: [], page: '' })),
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getOptionList: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
   getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionListsResponse>([])),
@@ -356,6 +359,7 @@ export const queriesMock: ServicesContextProps = {
   updateAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppConfig: jest.fn().mockImplementation(() => Promise.resolve()),
   updateValidationOnNavigationLayoutSets: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateValidationOnNavigation: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOptionListId: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOrgCodeListId: jest.fn().mockImplementation(() => Promise.resolve()),
