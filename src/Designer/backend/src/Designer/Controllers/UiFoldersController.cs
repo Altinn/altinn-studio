@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -117,24 +118,22 @@ public class UiFoldersController : Controller
     public async Task<IActionResult> GetValidationOnNavigation(
         string org,
         string app,
-        [FromQuery] bool layoutSets,
-        [FromQuery] bool pages,
+        [FromQuery] ValidationOnNavigationLevel level,
         CancellationToken cancellationToken
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
 
-        if (pages)
+        return level switch
         {
-            return Ok(await _uiFoldersService.GetPagesValidationOnNavigation(editingContext, cancellationToken));
-        }
-
-        if (layoutSets)
-        {
-            return Ok(await _uiFoldersService.GetLayoutSetsValidationOnNavigation(editingContext, cancellationToken));
-        }
-
-        return Ok(await _uiFoldersService.GetGlobalValidationOnNavigation(editingContext, cancellationToken));
+            ValidationOnNavigationLevel.Pages => Ok(
+                await _uiFoldersService.GetPagesValidationOnNavigation(editingContext, cancellationToken)
+            ),
+            ValidationOnNavigationLevel.LayoutSets => Ok(
+                await _uiFoldersService.GetLayoutSetsValidationOnNavigation(editingContext, cancellationToken)
+            ),
+            _ => Ok(await _uiFoldersService.GetGlobalValidationOnNavigation(editingContext, cancellationToken)),
+        };
     }
 
     [HttpPost("settings/validation-on-navigation")]
