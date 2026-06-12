@@ -47,6 +47,13 @@ public class SourceControlService(
 
     private const string DefaultBranch = General.DefaultBranch;
 
+    // LibGit2Sharp does not expose the blocked ref/path structurally, so these patterns document
+    // the libgit2 v1.8.4 fetch error messages this targeted stale-ref recovery understands.
+    private const string CannotLockRefMessagePrefix = "cannot lock ref '";
+    private const string CannotLockRefMessageSuffix = "', there are refs beneath that folder";
+    private const string CouldNotRemoveDirectoryPrefix = "could not remove directory '";
+    private const string ParentIsNotDirectorySuffix = "': parent is not directory";
+
     /// <inheritdoc/>
     public string CloneRemoteRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext)
     {
@@ -213,15 +220,142 @@ public class SourceControlService(
                 {
                     CredentialsProvider = self.GetCredentialsHandler(authenticatedContext),
                     CustomHeaders = self.GetAuthCustomHeaders(authenticatedContext),
+                    Prune = true,
                 };
 
                 foreach (Remote remote in repo.Network.Remotes)
                 {
                     IEnumerable<string> refSpecs = remote.FetchRefSpecs.Select(x => x.Specification);
-                    Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
+                    try
+                    {
+                        Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
+                    }
+                    catch (LibGit2SharpException ex)
+                    {
+                        // Libgit2 applies prune too late for branch shape changes like origin/develop/test <-> origin/develop.
+                        // Remove only blocking stale remote-tracking refs before retrying fetch.
+                        if (!RemoveRemoteTrackingRefsBlockingFetch(repo, remote, ex))
+                        {
+                            throw;
+                        }
+
+                        Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
+                    }
                 }
             }
         );
+    }
+
+    private static bool RemoveRemoteTrackingRefsBlockingFetch(
+        LibGit2Sharp.Repository repo,
+        Remote remote,
+        LibGit2SharpException exception
+    )
+    {
+        string? blockedRef = GetBlockedRemoteTrackingRef(repo, remote, exception.Message);
+        if (blockedRef is null)
+        {
+            return false;
+        }
+
+        string remoteTrackingPrefix = $"refs/remotes/{remote.Name}/";
+        string staleChildRefPrefix = $"{blockedRef}/";
+        List<string> refsToRemove = repo
+            .Refs.Where(reference =>
+                reference.IsRemoteTrackingBranch
+                && reference.CanonicalName.StartsWith(staleChildRefPrefix, StringComparison.Ordinal)
+            )
+            .Select(reference => reference.CanonicalName)
+            .ToList();
+
+        for (
+            int slashIndex = blockedRef.LastIndexOf('/');
+            slashIndex > remoteTrackingPrefix.Length;
+            slashIndex = blockedRef.LastIndexOf('/', slashIndex - 1)
+        )
+        {
+            string staleParentRef = blockedRef[..slashIndex];
+            if (repo.Refs[staleParentRef]?.IsRemoteTrackingBranch == true)
+            {
+                refsToRemove.Add(staleParentRef);
+            }
+        }
+
+        foreach (string refToRemove in refsToRemove.Distinct())
+        {
+            repo.Refs.Remove(refToRemove);
+        }
+
+        return refsToRemove.Count > 0;
+    }
+
+    private static string? GetBlockedRemoteTrackingRef(
+        LibGit2Sharp.Repository repo,
+        Remote remote,
+        string exceptionMessage
+    )
+    {
+        string? canonicalRef = ExtractQuotedValue(
+            exceptionMessage,
+            CannotLockRefMessagePrefix,
+            CannotLockRefMessageSuffix
+        );
+        if (IsRemoteTrackingRefForRemote(canonicalRef, remote))
+        {
+            return canonicalRef;
+        }
+
+        string? path = ExtractQuotedValue(exceptionMessage, CouldNotRemoveDirectoryPrefix, ParentIsNotDirectorySuffix);
+        canonicalRef = GetRemoteTrackingRefFromPath(repo, remote, path);
+        if (IsRemoteTrackingRefForRemote(canonicalRef, remote))
+        {
+            return canonicalRef;
+        }
+
+        return null;
+    }
+
+    private static bool IsRemoteTrackingRefForRemote(string? canonicalRef, Remote remote)
+    {
+        string remoteTrackingPrefix = $"refs/remotes/{remote.Name}/";
+        return canonicalRef?.StartsWith(remoteTrackingPrefix, StringComparison.Ordinal) == true;
+    }
+
+    private static string? ExtractQuotedValue(string message, string prefix, string suffix)
+    {
+        int valueStart = message.IndexOf(prefix, StringComparison.Ordinal);
+        if (valueStart < 0)
+        {
+            return null;
+        }
+
+        valueStart += prefix.Length;
+        int valueEnd = message.IndexOf(suffix, valueStart, StringComparison.Ordinal);
+        if (valueEnd < valueStart)
+        {
+            return null;
+        }
+
+        return message[valueStart..valueEnd];
+    }
+
+    private static string? GetRemoteTrackingRefFromPath(LibGit2Sharp.Repository repo, Remote remote, string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return null;
+        }
+
+        string normalizedPath = path.Replace('\\', '/');
+        string normalizedGitDirectory = repo.Info.Path.Replace('\\', '/').TrimEnd('/');
+        string remoteTrackingPathPrefix = $"{normalizedGitDirectory}/refs/remotes/{remote.Name}/";
+        if (!normalizedPath.StartsWith(remoteTrackingPathPrefix, StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        string refName = normalizedPath[remoteTrackingPathPrefix.Length..];
+        return string.IsNullOrWhiteSpace(refName) ? null : $"refs/remotes/{remote.Name}/{refName}";
     }
 
     /// <inheritdoc/>

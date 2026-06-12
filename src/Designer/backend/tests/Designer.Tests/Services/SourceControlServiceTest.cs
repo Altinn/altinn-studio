@@ -56,7 +56,7 @@ public class SourceControlServiceTest : IDisposable
             _settings,
             _giteaClientMock.Object,
             new Mock<IGitServerAuthHeadersProvider>().Object,
-            new Mock<IConfiguration>().Object
+            new ConfigurationBuilder().Build()
         );
     }
 
@@ -369,6 +369,121 @@ public class SourceControlServiceTest : IDisposable
         Assert.Empty(result);
     }
 
+    [Fact]
+    public void FetchRemoteChanges_RemoteBranchReplacedByParentBranch_PrunesStaleRemoteTrackingBranch()
+    {
+        // Arrange
+        Setup();
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        string remoteRepoDir = TestDataHelper.GetTestDataRepositoryDirectory(_org, $"{repoName}-remote", _developer);
+        _repoDir = TestDataHelper.GetTestDataRepositoryDirectory(_org, repoName, _developer);
+        // The apostrophe is deliberate; it verifies parsing does not stop at quotes inside valid branch names.
+        const string staleRemoteBranchName = "develop'/test";
+        const string replacementRemoteBranchName = "develop'";
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, repoName, _developer);
+        AltinnAuthenticatedRepoEditingContext authenticatedContext =
+            AltinnAuthenticatedRepoEditingContext.FromEditingContext(editingContext, "dummytoken");
+
+        try
+        {
+            Directory.CreateDirectory(remoteRepoDir);
+            Repository.Init(remoteRepoDir);
+
+            using (var remoteRepo = new Repository(remoteRepoDir))
+            {
+                LibGit2Sharp.Commit initialCommit = CommitFile(
+                    remoteRepo,
+                    remoteRepoDir,
+                    "test.txt",
+                    "Initial content"
+                );
+                remoteRepo.CreateBranch(staleRemoteBranchName, initialCommit);
+            }
+
+            Repository.Clone(remoteRepoDir, _repoDir);
+
+            using (var clonedRepo = new Repository(_repoDir))
+            {
+                Assert.NotNull(clonedRepo.Branches[$"origin/{staleRemoteBranchName}"]);
+                Assert.Null(clonedRepo.Branches[$"origin/{replacementRemoteBranchName}"]);
+            }
+
+            using (var remoteRepo = new Repository(remoteRepoDir))
+            {
+                remoteRepo.Branches.Remove(staleRemoteBranchName);
+                remoteRepo.CreateBranch(replacementRemoteBranchName, remoteRepo.Head.Tip);
+            }
+
+            // Act
+            _sourceControlService.FetchRemoteChanges(authenticatedContext);
+
+            // Assert
+            using var repo = new Repository(_repoDir);
+            Assert.Null(repo.Branches[$"origin/{staleRemoteBranchName}"]);
+            Assert.NotNull(repo.Branches[$"origin/{replacementRemoteBranchName}"]);
+        }
+        finally
+        {
+            DeleteDirectoryIfExists(remoteRepoDir);
+        }
+    }
+
+    [Fact]
+    public void FetchRemoteChanges_RemoteParentBranchReplacedByChildBranch_PrunesStaleRemoteTrackingBranch()
+    {
+        // Arrange
+        Setup();
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        string remoteRepoDir = TestDataHelper.GetTestDataRepositoryDirectory(_org, $"{repoName}-remote", _developer);
+        _repoDir = TestDataHelper.GetTestDataRepositoryDirectory(_org, repoName, _developer);
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, repoName, _developer);
+        AltinnAuthenticatedRepoEditingContext authenticatedContext =
+            AltinnAuthenticatedRepoEditingContext.FromEditingContext(editingContext, "dummytoken");
+
+        try
+        {
+            Directory.CreateDirectory(remoteRepoDir);
+            Repository.Init(remoteRepoDir);
+
+            using (var remoteRepo = new Repository(remoteRepoDir))
+            {
+                LibGit2Sharp.Commit initialCommit = CommitFile(
+                    remoteRepo,
+                    remoteRepoDir,
+                    "test.txt",
+                    "Initial content"
+                );
+                remoteRepo.CreateBranch("develop", initialCommit);
+            }
+
+            Repository.Clone(remoteRepoDir, _repoDir);
+
+            using (var clonedRepo = new Repository(_repoDir))
+            {
+                Assert.NotNull(clonedRepo.Branches["origin/develop"]);
+                Assert.Null(clonedRepo.Branches["origin/develop/test"]);
+            }
+
+            using (var remoteRepo = new Repository(remoteRepoDir))
+            {
+                remoteRepo.Branches.Remove("develop");
+                remoteRepo.CreateBranch("develop/test", remoteRepo.Head.Tip);
+            }
+
+            // Act
+            _sourceControlService.FetchRemoteChanges(authenticatedContext);
+
+            // Assert
+            using var repo = new Repository(_repoDir);
+            Assert.Null(repo.Branches["origin/develop"]);
+            Assert.NotNull(repo.Branches["origin/develop/test"]);
+        }
+        finally
+        {
+            DeleteDirectoryIfExists(remoteRepoDir);
+        }
+    }
+
     private static HttpContext GetHttpContextForTestUser(string userName)
     {
         List<Claim> claims = new();
@@ -406,7 +521,7 @@ public class SourceControlServiceTest : IDisposable
             repoSettings,
             giteaMock.Object,
             new Mock<IGitServerAuthHeadersProvider>().Object,
-            new Mock<IConfiguration>().Object
+            new ConfigurationBuilder().Build()
         );
 
         return service;
@@ -447,6 +562,21 @@ public class SourceControlServiceTest : IDisposable
         File.WriteAllText(filePath, content);
     }
 
+    private static LibGit2Sharp.Commit CommitFile(
+        Repository repo,
+        string repoDirectory,
+        string fileName,
+        string content,
+        string commitMessage = "Initial commit"
+    )
+    {
+        string filePath = Path.Join(repoDirectory, fileName);
+        File.WriteAllText(filePath, content);
+        Commands.Stage(repo, fileName);
+        var signature = new LibGit2Sharp.Signature("testUser", "testUser@test.com", DateTimeOffset.Now);
+        return repo.Commit(commitMessage, signature, signature);
+    }
+
     private string GetHeadBranchName()
     {
         using var repo = new Repository(_repoDir);
@@ -472,11 +602,17 @@ public class SourceControlServiceTest : IDisposable
         {
             return;
         }
+
+        DeleteDirectoryIfExists(_repoDir);
+    }
+
+    private static void DeleteDirectoryIfExists(string directory)
+    {
         try
         {
-            if (Directory.Exists(_repoDir))
+            if (Directory.Exists(directory))
             {
-                Directory.Delete(_repoDir, true);
+                Directory.Delete(directory, true);
             }
         }
         catch (Exception ex)
