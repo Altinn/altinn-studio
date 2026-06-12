@@ -2468,6 +2468,7 @@ namespace Altinn.App.Core.Implementation
         public string? GetApplicationXACMLPolicy() { }
         public string GetClassRefForLogicDataType(string dataType) { }
         public System.Threading.Tasks.Task<string?> GetFooter() { }
+        public Altinn.App.Core.Models.GlobalPageSettings? GetGlobalUiSettings() { }
         [System.Obsolete("Use GetLayoutModelForFolder instead", true)]
         public Altinn.App.Core.Models.Layout.LayoutModel GetLayoutModel(string? layoutSetId = null) { }
         public Altinn.App.Core.Models.Layout.LayoutModel? GetLayoutModelForFolder(string folder) { }
@@ -2994,6 +2995,7 @@ namespace Altinn.App.Core.Internal.App
         string? GetApplicationXACMLPolicy();
         string GetClassRefForLogicDataType(string dataType);
         System.Threading.Tasks.Task<string?> GetFooter();
+        Altinn.App.Core.Models.GlobalPageSettings? GetGlobalUiSettings();
         [System.Obsolete("Use GetLayoutModelForFolder instead", true)]
         Altinn.App.Core.Models.Layout.LayoutModel GetLayoutModel(string? layoutSetId = null);
         Altinn.App.Core.Models.Layout.LayoutModel? GetLayoutModelForFolder(string folder);
@@ -3417,7 +3419,7 @@ namespace Altinn.App.Core.Internal.Pdf
     }
     public class PdfService : Altinn.App.Core.Internal.Pdf.IPdfService
     {
-        public PdfService(Altinn.App.Core.Internal.Data.IDataClient dataClient, Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor, Altinn.App.Core.Internal.Pdf.IPdfGeneratorClient pdfGeneratorClient, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Internal.Pdf.PdfGeneratorSettings> pdfGeneratorSettings, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.GeneralSettings> generalSettings, Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Internal.Pdf.PdfService> logger, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, Altinn.App.Core.Internal.Texts.ITranslationService translationService, System.IServiceProvider? serviceProvider = null, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
+        public PdfService(Altinn.App.Core.Internal.Data.IDataClient dataClient, Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor, Altinn.App.Core.Internal.Pdf.IPdfGeneratorClient pdfGeneratorClient, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Internal.Pdf.PdfGeneratorSettings> pdfGeneratorSettings, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.GeneralSettings> generalSettings, Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Internal.Pdf.PdfService> logger, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, Altinn.App.Core.Internal.Texts.ITranslationService translationService, Altinn.App.Core.Internal.App.IAppResources resources, System.IServiceProvider? serviceProvider = null, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
         public System.Threading.Tasks.Task GenerateAndStorePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, System.Threading.CancellationToken ct) { }
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> GenerateAndStorePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, string? customFileNameTextResourceKey, System.Collections.Generic.List<string>? autoGeneratePdfForTaskIds = null, System.Threading.CancellationToken ct = default) { }
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> GenerateAndStoreSubformPdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, string? customFileNameTextResourceKey, Altinn.App.Core.Internal.Pdf.SubformPdfContext subformPdfContext, System.Threading.CancellationToken ct) { }
@@ -4382,8 +4384,12 @@ namespace Altinn.App.Core.Models
         public Altinn.App.Core.Models.AutoSaveBehavior AutoSaveBehavior { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("expandedWidth")]
         public bool ExpandedWidth { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("hideAppNameInPdf")]
+        public Altinn.App.Core.Models.Expressions.Expression? HideAppNameInPdf { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("hideCloseButton")]
         public bool HideCloseButton { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("navigationTitle")]
+        public Altinn.App.Core.Models.Expressions.Expression? NavigationTitle { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("showExpandWidthButton")]
         public bool ShowExpandWidthButton { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("showLanguageSelector")]
@@ -4392,6 +4398,8 @@ namespace Altinn.App.Core.Models
         public bool ShowProgress { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("taskNavigation")]
         public System.Collections.Generic.List<Altinn.App.Core.Models.TaskNavigationEntry>? TaskNavigation { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("validationOnNavigation")]
+        public Altinn.App.Core.Models.PageValidation? ValidationOnNavigation { get; set; }
     }
     public interface ILanguageCodeStandard
     {
@@ -4617,6 +4625,24 @@ namespace Altinn.App.Core.Models
         public required System.Collections.Generic.List<string> Order { get; set; }
         public string? Type { get; set; }
     }
+    public class PageValidation
+    {
+        public PageValidation() { }
+        [System.Text.Json.Serialization.JsonPropertyName("page")]
+        public Altinn.App.Core.Models.PageValidationScope Page { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("show")]
+        public System.Collections.Generic.List<Altinn.App.Core.Models.ValidationMask> Show { get; set; }
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<Altinn.App.Core.Models.PageValidationScope>))]
+    public enum PageValidationScope
+    {
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("current")]
+        Current = 0,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("currentAndPrevious")]
+        CurrentAndPrevious = 1,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("all")]
+        All = 2,
+    }
     public class Pages
     {
         public Pages() { }
@@ -4682,6 +4708,24 @@ namespace Altinn.App.Core.Models
         public int UserId { get; set; }
         public string UserName { get; set; }
         public Altinn.Platform.Register.Models.Party UserParty { get; set; }
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<Altinn.App.Core.Models.ValidationMask>))]
+    public enum ValidationMask
+    {
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("Schema")]
+        Schema = 0,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("Component")]
+        Component = 1,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("Expression")]
+        Expression = 2,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("CustomBackend")]
+        CustomBackend = 3,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("Required")]
+        Required = 4,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("AllExceptRequired")]
+        AllExceptRequired = 5,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("All")]
+        All = 6,
     }
 }
 namespace Altinn.App.Core.Models.Expressions

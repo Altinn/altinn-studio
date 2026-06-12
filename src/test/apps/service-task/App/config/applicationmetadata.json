@@ -1,8 +1,32 @@
 {
+  "description": {
+    "nb": "service-task",
+    "en": "service-task",
+    "nn": "service-task"
+  },
+  "access": {
+    "rightDescription": {
+      "nb": "",
+      "en": "",
+      "nn": ""
+    },
+    "delegable": false,
+    "visible": false
+  },
+  "contactPoints": [
+    {
+      "category": "",
+      "email": "bjorn-tore.gjerde@digdir.no",
+      "telephone": "",
+      "contactPage": ""
+    }
+  ],
   "id": "ttd/service-task",
   "org": "ttd",
   "title": {
-    "nb": "service-task"
+    "nb": "service-task",
+    "nn": "service-task",
+    "en": "service-task"
   },
   "dataTypes": [
     {
@@ -41,9 +65,8 @@
         "classRef": "Altinn.App.Models.model.model",
         "allowAnonymousOnStateless": false,
         "autoDeleteOnProcessEnd": false,
-        "allowUserCreate": false,
-        "allowUserDelete": false,
-        "allowInSubform": false
+        "disallowUserCreate": false,
+        "disallowUserDelete": false
       },
       "taskId": "Task_Utfylling1",
       "maxCount": 1,
@@ -64,9 +87,8 @@
         "classRef": "Altinn.App.Models.Model2.Model2",
         "allowAnonymousOnStateless": false,
         "autoDeleteOnProcessEnd": false,
-        "allowUserCreate": false,
-        "allowUserDelete": false,
-        "allowInSubform": false
+        "disallowUserCreate": false,
+        "disallowUserDelete": false
       },
       "taskId": "Task_Utfylling2",
       "maxCount": 1,
@@ -87,10 +109,10 @@
         "classRef": "Altinn.App.Models.SubformModel.SubformModel",
         "allowAnonymousOnStateless": false,
         "autoDeleteOnProcessEnd": false,
-        "allowUserCreate": false,
-        "allowUserDelete": false,
-        "allowInSubform": false
+        "disallowUserCreate": false,
+        "disallowUserDelete": false
       },
+      "maxCount": 0,
       "minCount": 1,
       "enablePdfCreation": false,
       "enableFileScan": false,

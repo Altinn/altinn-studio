@@ -445,7 +445,7 @@ public class LayoutEvaluatorState
         return _componentModel?.DefaultDataType;
     }
 
-    internal LayoutEvaluatorState? WithDataAccessor(IInstanceDataAccessor dataAccessor)
+    internal LayoutEvaluatorState WithDataAccessor(IInstanceDataAccessor dataAccessor)
     {
         return new LayoutEvaluatorState(
             dataAccessor,
