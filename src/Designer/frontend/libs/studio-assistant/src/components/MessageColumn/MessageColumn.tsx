@@ -3,14 +3,14 @@ import cn from 'classnames';
 import { Messages } from './Messages/Messages';
 import type { UserFeedback } from '../../types/UserFeedback';
 import { UserInput } from './UserInput/UserInput';
-import classes from './ChatColumn.module.css';
+import classes from './MessageColumn.module.css';
 import { StudioParagraph } from '@studio/components';
 import type { Message } from '../../types/ChatThread';
 import type { AssistantTexts } from '../../types/AssistantTexts';
 import type { User } from '../../types/User';
 import type { WorkflowStatus } from '../../types/WorkflowStatus';
 
-export type ChatColumnProps = {
+export type MessageColumnProps = {
   texts: AssistantTexts;
   messages: Message[];
   onSubmitMessage: (message: Message) => void;
@@ -23,7 +23,7 @@ export type ChatColumnProps = {
   currentUser?: User;
 };
 
-export function ChatColumn({
+export function MessageColumn({
   texts,
   messages,
   onSubmitMessage,
@@ -34,7 +34,7 @@ export function ChatColumn({
   workflowStatus,
   enableCompactInterface,
   currentUser,
-}: ChatColumnProps): ReactElement {
+}: MessageColumnProps): ReactElement {
   const workflowIsActive = workflowStatus?.isActive === true;
 
   const placeholderContent = (
@@ -54,7 +54,7 @@ export function ChatColumn({
   const hasMessages = messages.length > 0;
 
   return (
-    <div className={classes.chatColumn}>
+    <div className={classes.messageColumn}>
       <div className={cn(classes.messagesWrapper, { [classes.hasMessages]: hasMessages })}>
         {hasMessages ? (
           <Messages

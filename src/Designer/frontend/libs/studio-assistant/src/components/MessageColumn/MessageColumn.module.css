@@ -1,4 +1,4 @@
-.chatColumn {
+.messageColumn {
   display: flex;
   flex-direction: column;
   width: 100%;
