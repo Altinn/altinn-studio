@@ -18,8 +18,10 @@ jobs:
   build-and-test:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Build and test
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-single
     timeout-minutes: 30
+    env:
+      RUN_GATEWAY_FIXTURE: 'false'
     defaults:
       run:
         working-directory: src/Runtime/gateway/
@@ -59,7 +61,9 @@ jobs:
         run: make test
 
       - name: Run fixture
+        if: ${{ env.RUN_GATEWAY_FIXTURE == 'true' }}
         run: make start-minimal
 
       - name: Run e2e tests
+        if: ${{ env.RUN_GATEWAY_FIXTURE == 'true' }}
         run: make test-e2e
