@@ -25,6 +25,10 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
     private readonly ILogger<AppCommand> _logger;
 
     private const string CommandTypeId = "app";
+
+    // Must match Altinn.App.Api WorkflowEngineCallbackAuthenticationHandler.TokenHeaderName.
+    private const string CallbackTokenHeaderName = "Altinn-Workflow-Callback-Token";
+
     public override string CommandType => CommandTypeId;
 
     public AppCommand(
@@ -85,6 +89,9 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
 
         if (string.IsNullOrWhiteSpace(workflowContext.LockToken))
             return new CommandValidationResult.Invalid("AppCommand requires a 'lockToken' in workflow context");
+
+        if (string.IsNullOrWhiteSpace(workflowContext.CallbackToken))
+            return new CommandValidationResult.Invalid("AppCommand requires a 'callbackToken' in workflow context");
 
         return new CommandValidationResult.Valid();
     }
@@ -174,6 +181,10 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
 #pragma warning restore S1075
         var client = _httpClientFactory.CreateClient();
         client.BaseAddress = new Uri(baseUrl);
+
+        // Replay the app-minted token in a dedicated header so the callback controller can authenticate
+        // the engine. A custom header (not Authorization) avoids collision with Altinn platform auth.
+        client.DefaultRequestHeaders.Add(CallbackTokenHeaderName, workflowContext.CallbackToken);
 
         return client;
     }

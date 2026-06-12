@@ -16,6 +16,7 @@ public class InstanceInformationTests
             App = "my-app",
             InstanceOwnerPartyId = 50001,
             InstanceGuid = instanceGuid,
+            CallbackToken = "test-callback-token",
         };
 
         var info = InstanceInformation.FromContext(context);

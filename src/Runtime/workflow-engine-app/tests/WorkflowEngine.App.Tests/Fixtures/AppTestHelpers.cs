@@ -94,6 +94,7 @@ internal sealed class AppTestHelpers(AppTestFixture fixture)
                 App = EngineAppFixture.DefaultApp,
                 InstanceOwnerPartyId = int.Parse(EngineAppFixture.DefaultPartyId, NumberFormatInfo.InvariantInfo),
                 InstanceGuid = EngineAppFixture.DefaultInstanceGuid,
+                CallbackToken = "test-callback-token",
             }
         );
 }

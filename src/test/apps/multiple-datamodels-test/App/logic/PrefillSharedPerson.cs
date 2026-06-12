@@ -1,20 +1,22 @@
 using System.Threading.Tasks;
-using Altinn.App.Core.Features;
-using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Models;
 using Altinn.App.Models.sharedperson;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.logic;
 
-public class PrefillSharedPerson(IDataClient dataClient) : IProcessTaskEnd
+public class PrefillSharedPerson : IOnTaskEndingHandler
 {
-    public async Task End(string taskId, Instance instance)
-    {
-        if (taskId != "Task_1")
-            return;
+    public bool ShouldRunForTask(string taskId) => taskId == "Task_1";
 
-        FormDataHelper formDataHelper = new FormDataHelper(instance, dataClient);
-        sharedperson person = await formDataHelper.GetFormData<sharedperson>();
+    public async Task<OnEndingHandlerResult> ExecuteAsync(OnTaskEndingHandlerContext context)
+    {
+        Instance instance = context.InstanceDataMutator.Instance;
+        DataElement dataElement = instance.Data.Find(d => d.DataType == nameof(sharedperson));
+
+        var person = (sharedperson)
+            await context.InstanceDataMutator.GetFormData(new DataElementIdentifier(dataElement));
 
         person.name = "Ola Nordmann";
         person.address = new address
@@ -24,6 +26,6 @@ public class PrefillSharedPerson(IDataClient dataClient) : IProcessTaskEnd
             city = "Kardemomme By",
         };
 
-        await formDataHelper.UpdateFormData(person);
+        return OnEndingHandlerResult.Success();
     }
 }

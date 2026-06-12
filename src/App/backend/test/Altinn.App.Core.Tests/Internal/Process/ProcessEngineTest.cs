@@ -17,6 +17,7 @@ using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -2633,6 +2634,10 @@ public sealed class ProcessEngineTest
                     new Altinn.App.Core.Configuration.AppSettings { RegisterEventsWithEventsComponent = true }
                 )
             );
+            var callbackTokenGeneratorMock = new Mock<IWorkflowCallbackTokenGenerator>(MockBehavior.Strict);
+            callbackTokenGeneratorMock.Setup(g => g.GenerateToken(It.IsAny<Guid>())).Returns("test-callback-token");
+            services.TryAddTransient<IWorkflowCallbackTokenGenerator>(_ => callbackTokenGeneratorMock.Object);
+
             services.TryAddTransient<ProcessNextRequestFactory>();
             services.TryAddTransient<WorkflowCallbackStateService>();
 
