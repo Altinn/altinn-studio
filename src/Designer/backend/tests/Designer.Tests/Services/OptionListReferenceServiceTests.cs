@@ -125,8 +125,11 @@ public class OptionListReferenceServiceTests
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(
             TestDataHelper.GetTestDataRepositoriesRootDirectory()
         );
-        var schemaModelServiceMock = new Mock<ISchemaModelService>().Object;
-        AppDevelopmentService appDevelopmentService = new(altinnGitRepositoryFactory, schemaModelServiceMock);
+        AppDevelopmentService appDevelopmentService = new(
+            altinnGitRepositoryFactory,
+            new Mock<ISchemaModelService>().Object,
+            new Mock<IAppVersionService>().Object
+        );
         OptionListReferenceService optionListReferenceService = new(altinnGitRepositoryFactory, appDevelopmentService);
 
         return optionListReferenceService;

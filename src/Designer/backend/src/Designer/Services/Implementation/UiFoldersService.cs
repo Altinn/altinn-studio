@@ -97,7 +97,7 @@ public class UiFoldersService : IUiFoldersService
         new()
         {
             Id = info.LayoutSetName,
-            DataType = info.LayoutSettings.DataType,
+            DataType = info.LayoutSettings.DefaultDataType,
             Type = info.LayoutSettings.Type,
             Task = info.TaskType != null ? new TaskModel { Type = info.TaskType } : null,
         };
@@ -249,7 +249,7 @@ public class UiFoldersService : IUiFoldersService
 
         string? dataType = (
             await TryGetLayoutSettings(altinnAppGitRepository, layoutSetToDeleteId, cancellationToken)
-        )?.DataType;
+        )?.DefaultDataType;
         if (!string.IsNullOrEmpty(dataType))
         {
             await DeleteTaskRefInApplicationMetadata(altinnAppGitRepository, dataType);
