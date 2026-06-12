@@ -9,6 +9,21 @@ fs_type() {
   df -PT "$1" | awk 'NR == 2 { print $2 }'
 }
 
+ensure_loop_devices() {
+  local index
+
+  if [[ ! -e /dev/loop-control ]]; then
+    log "creating missing /dev/loop-control"
+    mknod /dev/loop-control c 10 237 2>/dev/null || true
+  fi
+
+  for index in $(seq 0 7); do
+    if [[ ! -e "/dev/loop${index}" ]]; then
+      mknod "/dev/loop${index}" b 7 "${index}" 2>/dev/null || true
+    fi
+  done
+}
+
 mount_ext4_image() {
   local image="$1"
   local size="$2"
@@ -23,7 +38,18 @@ mount_ext4_image() {
   mkdir -p "$(dirname "${image}")" "${mountpoint}"
   truncate -s "${size}" "${image}"
   mkfs.ext4 -F -q "${image}"
-  mount -o loop,noatime "${image}" "${mountpoint}"
+  ensure_loop_devices
+
+  if mount -o loop,noatime "${image}" "${mountpoint}"; then
+    return
+  fi
+
+  log "failed to mount ext4 image at ${mountpoint}; continuing on existing filesystem"
+  log "mountpoint diagnostics for ${mountpoint}"
+  ls -ld "${mountpoint}" "$(dirname "${mountpoint}")" 2>&1 || true
+  log "loop device diagnostics"
+  losetup -f 2>&1 || true
+  ls -l /dev/loop* 2>&1 || true
 }
 
 maybe_mount_ext4_image() {
