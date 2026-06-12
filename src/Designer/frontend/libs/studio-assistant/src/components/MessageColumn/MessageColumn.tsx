@@ -1,10 +1,10 @@
 import type { ReactElement } from 'react';
 import cn from 'classnames';
 import { Messages } from './Messages/Messages';
+import { PlaceholderMessage } from './PlaceholderMessage';
 import type { UserFeedback } from '../../types/UserFeedback';
 import { UserInput } from './UserInput/UserInput';
 import classes from './MessageColumn.module.css';
-import { StudioParagraph } from '@studio/components';
 import type { Message } from '../../types/ChatThread';
 import type { AssistantTexts } from '../../types/AssistantTexts';
 import type { User } from '../../types/User';
@@ -36,21 +36,6 @@ export function MessageColumn({
   currentUser,
 }: MessageColumnProps): ReactElement {
   const workflowIsActive = workflowStatus?.isActive === true;
-
-  const placeholderContent = (
-    <div className={classes.emptyThread}>
-      <div className={classes.emptyThreadIcon}>
-        <span className={classes.bubble}>
-          <span className={classes.dot}></span>
-          <span className={classes.dot}></span>
-          <span className={classes.dot}></span>
-        </span>
-      </div>
-      <StudioParagraph data-size='lg'>{texts.emptyThread.welcome}</StudioParagraph>
-      <StudioParagraph data-size='lg'>{texts.emptyThread.instruction}</StudioParagraph>
-    </div>
-  );
-
   const hasMessages = messages.length > 0;
 
   return (
@@ -67,7 +52,7 @@ export function MessageColumn({
             onMessageFeedback={onMessageFeedback}
           />
         ) : (
-          placeholderContent
+          <PlaceholderMessage texts={texts.emptyThread} />
         )}
       </div>
       <UserInput
