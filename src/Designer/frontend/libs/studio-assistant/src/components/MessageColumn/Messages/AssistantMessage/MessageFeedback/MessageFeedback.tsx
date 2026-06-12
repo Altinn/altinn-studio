@@ -8,8 +8,8 @@ import {
   StudioTextarea,
 } from '@studio/components';
 import { ThumbDownIcon, ThumbUpIcon, PaperplaneFillIcon, XMarkIcon } from '@studio/icons';
-import type { MessageFeedbackTexts } from '../../../../types/AssistantTexts';
-import type { FeedbackPayload } from '../../../../types/UserFeedback';
+import type { MessageFeedbackTexts } from '../../../../../types/AssistantTexts';
+import type { FeedbackPayload } from '../../../../../types/UserFeedback';
 import classes from './MessageFeedback.module.css';
 
 export type MessageFeedbackProps = {

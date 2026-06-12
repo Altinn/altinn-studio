@@ -1,17 +1,17 @@
 import type { ReactElement } from 'react';
-import { useRef, useEffect } from 'react';
 import cn from 'classnames';
 import { Messages } from './Messages/Messages';
+import { PlaceholderMessage } from './PlaceholderMessage';
 import type { UserFeedback } from '../../types/UserFeedback';
 import { UserInput } from './UserInput/UserInput';
-import classes from './ChatColumn.module.css';
-import { StudioParagraph, StudioResizableLayout } from '@studio/components';
+import classes from './MessageColumn.module.css';
+import { StudioResizableLayout } from '@studio/components';
 import type { Message } from '../../types/ChatThread';
 import type { AssistantTexts } from '../../types/AssistantTexts';
 import type { User } from '../../types/User';
 import type { WorkflowStatus } from '../../types/WorkflowStatus';
 
-export type ChatColumnProps = {
+export type MessageColumnProps = {
   texts: AssistantTexts;
   messages: Message[];
   onSubmitMessage: (message: Message) => void;
@@ -24,7 +24,7 @@ export type ChatColumnProps = {
   currentUser?: User;
 };
 
-export function ChatColumn({
+export function MessageColumn({
   texts,
   messages,
   onSubmitMessage,
@@ -35,30 +35,8 @@ export function ChatColumn({
   workflowStatus,
   enableCompactInterface,
   currentUser,
-}: ChatColumnProps): ReactElement {
+}: MessageColumnProps): ReactElement {
   const workflowIsActive = workflowStatus?.isActive === true;
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView?.({ behavior: 'smooth' });
-    }
-  }, [messages, workflowIsActive]);
-
-  const placeholderContent = (
-    <div className={classes.emptyThread}>
-      <div className={classes.emptyThreadIcon}>
-        <span className={classes.bubble}>
-          <span className={classes.dot}></span>
-          <span className={classes.dot}></span>
-          <span className={classes.dot}></span>
-        </span>
-      </div>
-      <StudioParagraph data-size='lg'>{texts.emptyThread.welcome}</StudioParagraph>
-      <StudioParagraph data-size='lg'>{texts.emptyThread.instruction}</StudioParagraph>
-    </div>
-  );
-
   const hasMessages = messages.length > 0;
 
   return (
@@ -66,17 +44,17 @@ export function ChatColumn({
       <StudioResizableLayout.Element minimumSize={100}>
         <div className={cn(classes.messagesWrapper, { [classes.hasMessages]: hasMessages })}>
           {hasMessages ? (
-            <>
-              <Messages
-                messages={messages}
-                workflowStatus={workflowStatus}
-                currentUser={currentUser}
-                assistantAvatarUrl={undefined}
-              />
-              <div ref={messagesEndRef} />
-            </>
+            <Messages
+              messages={messages}
+              assistantName={texts.heading}
+              workflowStatus={workflowStatus}
+              currentUser={currentUser}
+              assistantAvatarUrl={undefined}
+              feedbackTexts={texts.feedback}
+              onMessageFeedback={onMessageFeedback}
+            />
           ) : (
-            placeholderContent
+            <PlaceholderMessage texts={texts.emptyThread} />
           )}
         </div>
       </StudioResizableLayout.Element>

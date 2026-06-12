@@ -1,6 +1,6 @@
-import { ChatColumn } from './ChatColumn';
+import { MessageColumn } from './MessageColumn';
 import { render, screen } from '@testing-library/react';
-import type { ChatColumnProps } from './ChatColumn';
+import type { MessageColumnProps } from './MessageColumn';
 import { MessageAuthor } from '../../types/MessageAuthor';
 import type { Message } from '../../types/ChatThread';
 import { mockTexts } from '../../mocks/mockTexts';
@@ -23,9 +23,9 @@ const mockMessages: Message[] = [
   },
 ];
 
-describe('ChatColumn', () => {
+describe('MessageColumn', () => {
   it('should render messages and user input', () => {
-    renderChatColumn({ messages: mockMessages });
+    renderMessageColumn({ messages: mockMessages });
 
     const userMessage = screen.getByText(userMessageContent);
     const assistantMessage = screen.getByText(assistantMessageContent);
@@ -39,13 +39,13 @@ describe('ChatColumn', () => {
   });
 });
 
-const defaultProps: ChatColumnProps = {
+const defaultProps: MessageColumnProps = {
   texts: mockTexts,
   messages: [],
   onSubmitMessage: jest.fn(),
   enableCompactInterface: false,
 };
 
-const renderChatColumn = (props?: Partial<ChatColumnProps>): void => {
-  render(<ChatColumn {...defaultProps} {...props} />);
+const renderMessageColumn = (props?: Partial<MessageColumnProps>): void => {
+  render(<MessageColumn {...defaultProps} {...props} />);
 };
