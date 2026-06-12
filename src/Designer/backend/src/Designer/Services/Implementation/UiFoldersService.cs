@@ -584,8 +584,8 @@ public class UiFoldersService : IUiFoldersService
                 .Select(group => new ValidationOnNavigationDto
                 {
                     Tasks = [.. group.Select(item => item.LayoutSetName)],
-                    Show = group.First().Show!,
-                    Page = group.First().Page!,
+                    Show = group.First().Show ?? [],
+                    Page = group.First().Page ?? string.Empty,
                 }),
         ];
     }
@@ -681,8 +681,8 @@ public class UiFoldersService : IUiFoldersService
                     {
                         Task = layoutSetInfo.LayoutSetName,
                         Pages = [.. group.Select(item => item.PageName)],
-                        Page = group.First().Nav!.Page!,
-                        Show = [.. group.First().Nav!.Show!.OrderBy(s => s)],
+                        Page = group.First().Nav?.Page ?? string.Empty,
+                        Show = [.. (group.First().Nav?.Show ?? []).OrderBy(s => s)],
                     })
             );
         }

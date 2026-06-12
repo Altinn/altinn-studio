@@ -149,32 +149,38 @@ public class UiFoldersController : Controller
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
 
-        switch (level)
+        try
         {
-            case ValidationOnNavigationLevel.Pages:
-                await _uiFoldersService.SavePagesValidationOnNavigation(
-                    editingContext,
-                    config.Deserialize<List<PageValidationOnNavigationDto>>() ?? [],
-                    cancellationToken
-                );
-                break;
-            case ValidationOnNavigationLevel.LayoutSets:
-                await _uiFoldersService.SaveLayoutSetsValidationOnNavigation(
-                    editingContext,
-                    config.Deserialize<List<ValidationOnNavigationDto>>() ?? [],
-                    cancellationToken
-                );
-                break;
-            default:
-                ValidationOnNavigation? global = config.Deserialize<ValidationOnNavigation>();
-                await _uiFoldersService.SaveGlobalValidationOnNavigation(
-                    editingContext,
-                    IsEmpty(global) ? null : global,
-                    cancellationToken
-                );
-                break;
+            switch (level)
+            {
+                case ValidationOnNavigationLevel.Pages:
+                    await _uiFoldersService.SavePagesValidationOnNavigation(
+                        editingContext,
+                        config.Deserialize<List<PageValidationOnNavigationDto>>() ?? [],
+                        cancellationToken
+                    );
+                    break;
+                case ValidationOnNavigationLevel.LayoutSets:
+                    await _uiFoldersService.SaveLayoutSetsValidationOnNavigation(
+                        editingContext,
+                        config.Deserialize<List<ValidationOnNavigationDto>>() ?? [],
+                        cancellationToken
+                    );
+                    break;
+                default:
+                    ValidationOnNavigation? global = config.Deserialize<ValidationOnNavigation>();
+                    await _uiFoldersService.SaveGlobalValidationOnNavigation(
+                        editingContext,
+                        IsEmpty(global) ? null : global,
+                        cancellationToken
+                    );
+                    break;
+            }
         }
-
+        catch (JsonException)
+        {
+            return BadRequest("Invalid JSON format for the provided configuration.");
+        }
         return Ok();
     }
 
