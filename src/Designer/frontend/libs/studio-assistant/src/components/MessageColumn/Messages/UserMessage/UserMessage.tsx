@@ -41,7 +41,7 @@ function UserAttachmentList({ attachments }: UserAttachmentListProps): ReactElem
 
         return (
           <li key={key} className={classes.userAttachmentItem}>
-            {isImage ? (
+            {isImage && attachment.dataBase64 ? (
               <img
                 src={attachment.dataBase64}
                 alt={attachment.name}
