@@ -70,6 +70,8 @@ RUN apt-get update \
     && rm -f /tmp/dotnet-install.sh \
     && PATH="/opt/tools/node/current/bin:${PATH}" COREPACK_HOME=/opt/corepack corepack enable \
     && PATH="/opt/tools/node/current/bin:${PATH}" COREPACK_HOME=/opt/corepack corepack prepare "yarn@${YARN_CHANNEL}" --activate \
+    && git config --system checkout.workers 4 \
+    && git config --system checkout.thresholdForParallelism 100 \
     && chown -R runner:runner /home/runner/.cache /home/runner/.npm /home/runner/.nuget /home/runner/go /home/runner/_work /opt/tools /opt/corepack
 
 ENV CGO_ENABLED=1
