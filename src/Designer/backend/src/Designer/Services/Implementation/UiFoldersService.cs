@@ -116,14 +116,6 @@ public class UiFoldersService : IUiFoldersService
         }
     }
 
-    private static void ValidateLayoutSetNames(IEnumerable<string> layoutSetNames)
-    {
-        foreach (string layoutSetName in layoutSetNames)
-        {
-            ValidateLayoutSetName(layoutSetName);
-        }
-    }
-
     private static async Task ValidateNewLayoutSetName(
         AltinnAppGitRepository altinnAppGitRepository,
         string layoutSetName,
@@ -550,47 +542,7 @@ public class UiFoldersService : IUiFoldersService
         return globalSettingsFile?.ValidationOnNavigation;
     }
 
-    public Task SaveValidationOnNavigation(
-        AltinnRepoEditingContext editingContext,
-        ValidationOnNavigationConfigDto config,
-        CancellationToken cancellationToken
-    )
-    {
-        ValidationOnNavigation validation = new() { Page = config.Page, Show = config.Show };
-        return ApplyValidationOnNavigation(editingContext, config, validation, cancellationToken);
-    }
-
-    public Task DeleteValidationOnNavigation(
-        AltinnRepoEditingContext editingContext,
-        ValidationOnNavigationConfigDto config,
-        CancellationToken cancellationToken
-    )
-    {
-        return ApplyValidationOnNavigation(editingContext, config, null, cancellationToken);
-    }
-
-    private async Task ApplyValidationOnNavigation(
-        AltinnRepoEditingContext editingContext,
-        ValidationOnNavigationConfigDto target,
-        ValidationOnNavigation? config,
-        CancellationToken cancellationToken
-    )
-    {
-        if (target.Task != null && target.Pages is { Count: > 0 })
-        {
-            await SavePagesValidationOnNavigation(editingContext, target.Task, target.Pages, config, cancellationToken);
-        }
-        else if (target.Tasks is { Count: > 0 })
-        {
-            await SaveLayoutSetsValidationOnNavigation(editingContext, target.Tasks, config, cancellationToken);
-        }
-        else
-        {
-            await SaveGlobalValidationOnNavigation(editingContext, config, cancellationToken);
-        }
-    }
-
-    private async Task SaveGlobalValidationOnNavigation(
+    public async Task SaveGlobalValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
         ValidationOnNavigation? config,
         CancellationToken cancellationToken
@@ -638,21 +590,40 @@ public class UiFoldersService : IUiFoldersService
         ];
     }
 
-    private async Task SaveLayoutSetsValidationOnNavigation(
+    public async Task SaveLayoutSetsValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
-        IEnumerable<string> layoutSetIds,
-        ValidationOnNavigation? config,
+        IEnumerable<ValidationOnNavigationDto> settings,
         CancellationToken cancellationToken
     )
     {
         AltinnAppGitRepository repository = GetRepository(editingContext, cancellationToken);
-        ValidateLayoutSetNames(layoutSetIds);
-        foreach (string layoutSetId in layoutSetIds)
+        List<LayoutSetInfo> layoutSetInfos = await GetLayoutSetInfos(editingContext, cancellationToken);
+
+        // Full replace: map each targeted layout set to its config; any layout set absent from the payload
+        // has its validation cleared.
+        Dictionary<string, ValidationOnNavigation> configByLayoutSet = [];
+        foreach (ValidationOnNavigationDto setting in settings)
         {
-            LayoutSettings layoutSettings = await repository.GetLayoutSettings(layoutSetId, cancellationToken);
+            ValidationOnNavigation config = new() { Page = setting.Page, Show = setting.Show };
+            foreach (string layoutSetId in setting.Tasks)
+            {
+                configByLayoutSet[layoutSetId] = config;
+            }
+        }
+
+        foreach (LayoutSetInfo layoutSetInfo in layoutSetInfos)
+        {
+            configByLayoutSet.TryGetValue(layoutSetInfo.LayoutSetName, out ValidationOnNavigation? config);
+
+            LayoutSettings layoutSettings = layoutSetInfo.LayoutSettings;
+            if (layoutSettings.Pages?.ValidationOnNavigation == null && config == null)
+            {
+                continue;
+            }
+
             layoutSettings.Pages ??= new Pages();
             layoutSettings.Pages.ValidationOnNavigation = config;
-            await repository.SaveLayoutSettings(layoutSetId, layoutSettings);
+            await repository.SaveLayoutSettings(layoutSetInfo.LayoutSetName, layoutSettings);
         }
     }
 
@@ -718,32 +689,50 @@ public class UiFoldersService : IUiFoldersService
         return result;
     }
 
-    private async Task SavePagesValidationOnNavigation(
+    public async Task SavePagesValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
-        string layoutSetId,
-        IEnumerable<string> pageIds,
-        ValidationOnNavigation? config,
+        IEnumerable<PageValidationOnNavigationDto> settings,
         CancellationToken cancellationToken
     )
     {
         AltinnAppGitRepository repository = GetRepository(editingContext, cancellationToken);
-        ValidateLayoutSetName(layoutSetId);
-        foreach (string pageId in pageIds)
+        List<PageValidationOnNavigationDto> settingsList = [.. settings];
+        List<LayoutSetInfo> layoutSetInfos = await GetLayoutSetInfos(editingContext, cancellationToken);
+
+        // Full replace: within each layout set, pages present in the payload get their config and any other
+        // page has its validation cleared.
+        foreach (LayoutSetInfo layoutSetInfo in layoutSetInfos)
         {
-            JsonNode layout = await repository.GetLayout(layoutSetId, pageId, cancellationToken);
+            List<PageValidationOnNavigationDto> groupsForLayoutSet =
+            [
+                .. settingsList.Where(group => group.Task == layoutSetInfo.LayoutSetName),
+            ];
 
-            if (config == null)
+            foreach (string pageId in repository.GetLayoutNames(layoutSetInfo.LayoutSetName))
             {
-                layout["data"]?.AsObject().Remove("validationOnNavigation");
-            }
-            else
-            {
-                JsonObject data = layout["data"]?.AsObject() ?? [];
-                data["validationOnNavigation"] = JsonSerializer.SerializeToNode(config);
-                layout["data"] = data;
-            }
+                JsonNode layout = await repository.GetLayout(layoutSetInfo.LayoutSetName, pageId, cancellationToken);
+                JsonObject? data = layout["data"]?.AsObject();
+                if (data == null)
+                {
+                    continue;
+                }
 
-            await repository.SaveLayout(layoutSetId, pageId, layout, cancellationToken);
+                PageValidationOnNavigationDto? matchingGroup = groupsForLayoutSet.FirstOrDefault(group =>
+                    group.Pages.Contains(pageId)
+                );
+
+                if (matchingGroup != null)
+                {
+                    data["validationOnNavigation"] = JsonSerializer.SerializeToNode(
+                        new ValidationOnNavigation { Page = matchingGroup.Page, Show = matchingGroup.Show }
+                    );
+                    await repository.SaveLayout(layoutSetInfo.LayoutSetName, pageId, layout, cancellationToken);
+                }
+                else if (data.Remove("validationOnNavigation"))
+                {
+                    await repository.SaveLayout(layoutSetInfo.LayoutSetName, pageId, layout, cancellationToken);
+                }
+            }
         }
     }
 

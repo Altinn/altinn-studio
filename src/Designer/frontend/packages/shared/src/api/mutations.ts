@@ -63,6 +63,7 @@ import {
   layoutConvertToPageGroupsPath,
   layoutConvertToPageOrderPath,
   taskNavigationGroupPath,
+  validationOnNavigationPath,
   orgCodeListUpdateIdPath,
   orgLibraryUpdatePath,
   orgCodeListPublishPath,
@@ -98,6 +99,8 @@ import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePay
 import type { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
 import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
 import type { ILayoutSettings, ITextResourcesObjectFormat, ITextResourcesWithLanguage, IValidationOnNavigationLayoutSets, IValidationOnNavigationLayoutSettings, IValidationOnNavigationPageSettings } from 'app-shared/types/global';
+import { ValidationOnNavigationLevel } from 'app-shared/types/global';
+import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
@@ -198,6 +201,7 @@ export const changePageOrder = (org: string, app: string, layoutSetName: string,
 export const changePageGroups = (org: string, app: string, layoutSetName: string, pageGroups: PagesModel) => put(layoutPageGroupsPath(org, app, layoutSetName), pageGroups);
 export const convertToPageGroups = (org: string, app: string, layoutSetName: string) => post(layoutConvertToPageGroupsPath(org, app, layoutSetName));
 export const convertToPageOrder = (org: string, app: string, layoutSetName: string) => post(layoutConvertToPageOrderPath(org, app, layoutSetName));
+export const updateValidationOnNavigation = <TConfig>(org: string, app: string, level: ValidationOnNavigationLevel, config: TConfig) => post<void, TConfig>(`${validationOnNavigationPath(org, app)}${buildQueryParams({ level })}`, config);
 export const updateValidationOnNavigationLayoutSets = (org: string, app: string, payload: IValidationOnNavigationLayoutSets) => post<IValidationOnNavigationLayoutSets>(`${layoutSetsPath(org, app)}/validation-on-navigation`, payload);
 export const deleteValidationOnNavigationLayoutSets = (org: string, app: string) => del(`${layoutSetsPath(org, app)}/validation-on-navigation`);
 

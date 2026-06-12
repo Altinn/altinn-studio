@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
@@ -141,28 +142,44 @@ public class UiFoldersController : Controller
     public async Task<IActionResult> SaveValidationOnNavigation(
         string org,
         string app,
-        [FromBody] ValidationOnNavigationConfigDto config,
+        [FromQuery] ValidationOnNavigationLevel level,
+        [FromBody] JsonElement config,
         CancellationToken cancellationToken
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        await _uiFoldersService.SaveValidationOnNavigation(editingContext, config, cancellationToken);
+
+        switch (level)
+        {
+            case ValidationOnNavigationLevel.Pages:
+                await _uiFoldersService.SavePagesValidationOnNavigation(
+                    editingContext,
+                    config.Deserialize<List<PageValidationOnNavigationDto>>() ?? [],
+                    cancellationToken
+                );
+                break;
+            case ValidationOnNavigationLevel.LayoutSets:
+                await _uiFoldersService.SaveLayoutSetsValidationOnNavigation(
+                    editingContext,
+                    config.Deserialize<List<ValidationOnNavigationDto>>() ?? [],
+                    cancellationToken
+                );
+                break;
+            default:
+                ValidationOnNavigation? global = config.Deserialize<ValidationOnNavigation>();
+                await _uiFoldersService.SaveGlobalValidationOnNavigation(
+                    editingContext,
+                    IsEmpty(global) ? null : global,
+                    cancellationToken
+                );
+                break;
+        }
+
         return Ok();
     }
 
-    [HttpDelete("settings/validation-on-navigation")]
-    [UseSystemTextJson]
-    public async Task<IActionResult> DeleteValidationOnNavigation(
-        string org,
-        string app,
-        [FromBody] ValidationOnNavigationConfigDto config,
-        CancellationToken cancellationToken
-    )
-    {
-        AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        await _uiFoldersService.DeleteValidationOnNavigation(editingContext, config, cancellationToken);
-        return Ok();
-    }
+    private static bool IsEmpty(ValidationOnNavigation? config) =>
+        config == null || (string.IsNullOrEmpty(config.Page) && (config.Show == null || config.Show.Count == 0));
 
     [HttpGet("settings/task-navigation")]
     [UseSystemTextJson]

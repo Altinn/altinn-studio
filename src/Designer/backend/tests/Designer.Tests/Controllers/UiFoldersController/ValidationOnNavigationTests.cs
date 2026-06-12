@@ -101,13 +101,13 @@ public class ValidationOnNavigationTests(WebApplicationFactory<Program> factory)
 
     [Theory]
     [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
-    public async Task DeleteGlobalValidationOnNavigation_ReturnsOk(string org, string app, string developer)
+    public async Task SaveGlobalValidationOnNavigation_WhenEmpty_ClearsConfig(string org, string app, string developer)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
 
         string url = VersionPrefix(org, targetRepository);
-        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url)
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
             Content = new StringContent("{}", Encoding.UTF8, MediaTypeNames.Application.Json),
         };
