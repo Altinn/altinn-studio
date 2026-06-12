@@ -11,6 +11,17 @@ export interface ILayoutSettings {
   receiptLayoutName?: string;
 }
 
+export type ValidationOnNavigation =
+  | IValidationOnNavigationLayoutSets
+  | IValidationOnNavigationLayoutSettings[]
+  | IValidationOnNavigationPageSettings[];
+
+export enum ValidationOnNavigationLevel {
+  Global = 'global',
+  LayoutSets = 'layoutSets',
+  Pages = 'pages',
+}
+
 export interface IValidationOnNavigationLayoutSets {
   show?: string[];
   page?: string;
