@@ -6,6 +6,7 @@ import type {
   PagesConfig,
   TextResourceWithLanguage,
   CodeListData,
+  OrdinaryCodeListFile,
 } from '@studio/content-library';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import {
@@ -59,6 +60,7 @@ import { usePublishCodeList } from './usePublishCodeList';
 import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
 import { usePublishedResourcesQuery } from 'app-shared/hooks/queries/usePublishedResourcesQuery';
 import { useContentLibraryRouter } from 'app-shared/hooks/useContentLibraryRouter';
+import { FileNameUtils } from '@studio/pure-functions';
 
 export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -222,14 +224,13 @@ function useCodeListsProps(orgName: string): PagesConfig['codeLists'] {
     orgName,
     PUBLISHED_CODE_LIST_FOLDER,
   );
-
   const libraryCodeLists = backendCodeListsToLibraryCodeLists(data);
 
   const handleSave = useCallback(
-    (codeListDataList: CodeListData[]): void => {
+    (codeListFiles: OrdinaryCodeListFile[]): void => {
       const payload = libraryCodeListsToUpdatePayload(
         data,
-        codeListDataList,
+        codeListFiles,
         t('org_content_library.code_lists.commit_message_default'),
       );
       mutate(payload);
@@ -247,7 +248,8 @@ function useCodeListsProps(orgName: string): PagesConfig['codeLists'] {
 
   return {
     codeLists: libraryCodeLists,
-    isPublishing,
+    isPublishing: (fileName: string): boolean =>
+      isPublishing(FileNameUtils.removeExtension(fileName)),
     onPublish: handlePublish,
     onSave: handleSave,
     publishedCodeLists,
