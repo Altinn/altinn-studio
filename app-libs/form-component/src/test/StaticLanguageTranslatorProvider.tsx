@@ -54,6 +54,7 @@ export function StaticLanguageTranslatorProvider({
     <LanguageTranslatorProvider
       lang={(key, params) => parseAndCleanText(translateKey(key, params))}
       langAsString={translateKey}
+      currentLanguage={language}
     >
       {children}
     </LanguageTranslatorProvider>
