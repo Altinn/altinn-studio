@@ -95,19 +95,6 @@
   font-weight: normal;
 }
 
-.assistantContent pre[data-language]::before {
-  content: attr(data-language);
-  position: absolute;
-  top: 6px;
-  right: 10px;
-  font-size: 0.625rem;
-  color: #6a737d;
-  text-transform: uppercase;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  opacity: 0.7;
-}
-
 .assistantContent ul {
   margin: 0.375rem 0;
   padding-left: 1.5rem;
