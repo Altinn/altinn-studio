@@ -6,7 +6,7 @@
   "private": true,
   "devDependencies": {
     "@studio/ui-test": "workspace:^",
-    "vite": "^6.3.2"
+    "vite": "^6.4.3"
   },
   "scripts": {
     "build": "vite build",

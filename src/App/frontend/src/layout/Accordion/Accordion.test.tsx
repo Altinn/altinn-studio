@@ -9,23 +9,23 @@ describe('Accordion', () => {
   it('should display text from textResourceBindings', async () => {
     await render({ title: 'Accordion title' });
 
-    expect(await screen.findByRole('button', { name: /accordion title/i })).toBeInTheDocument();
+    expect(await screen.findByText(/accordion title/i)).toBeInTheDocument();
   });
 
   it('should display text from textResourceBindings if an ID to a text resource is used as title', async () => {
     await render({ title: 'accordion.title' });
 
-    expect(await screen.findByRole('button', { name: /this is a title/i })).toBeInTheDocument();
+    expect(await screen.findByText(/this is a title/i)).toBeInTheDocument();
   });
 
   it('should open accordion by default if openByDefault is set to true', async () => {
     await render({ openByDefault: true, title: 'accordion.title' });
-    expect(await screen.findByRole('button', { name: /this is a title/i })).toHaveAttribute('aria-expanded', 'true');
+    expect((await screen.findByText(/this is a title/i)).closest('details')).toHaveAttribute('open');
   });
 
   it('accordion should be closed by default if openByDefault is set to false', async () => {
     await render({ openByDefault: false, title: 'accordion.title' });
-    expect(await screen.findByRole('button', { name: /this is a title/i })).toHaveAttribute('aria-expanded', 'false');
+    expect((await screen.findByText(/this is a title/i)).closest('details')).not.toHaveAttribute('open');
   });
 });
 
