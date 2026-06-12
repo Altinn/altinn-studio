@@ -107,7 +107,10 @@ public class ValidationOnNavigationTests(WebApplicationFactory<Program> factory)
         await CopyRepositoryForTest(org, app, developer, targetRepository);
 
         string url = VersionPrefix(org, targetRepository);
-        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url)
+        {
+            Content = new StringContent("{}", Encoding.UTF8, MediaTypeNames.Application.Json),
+        };
 
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

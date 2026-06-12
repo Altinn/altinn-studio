@@ -44,21 +44,8 @@ public interface IUiFoldersService
         CancellationToken cancellationToken
     );
 
-    public Task SaveGlobalValidationOnNavigation(
-        AltinnRepoEditingContext editingContext,
-        ValidationOnNavigation? validationOnNavigation,
-        CancellationToken cancellationToken
-    );
-
     public Task<IEnumerable<ValidationOnNavigationDto>> GetLayoutSetsValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
-        CancellationToken cancellationToken
-    );
-
-    public Task SaveLayoutSetsValidationOnNavigation(
-        AltinnRepoEditingContext editingContext,
-        IEnumerable<string> layoutSetIds,
-        ValidationOnNavigation? config,
         CancellationToken cancellationToken
     );
 
@@ -67,11 +54,15 @@ public interface IUiFoldersService
         CancellationToken cancellationToken
     );
 
-    public Task SavePagesValidationOnNavigation(
+    public Task SaveValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
-        string layoutSetId,
-        IEnumerable<string> pageIds,
-        ValidationOnNavigation? config,
+        ValidationOnNavigationConfigDto config,
+        CancellationToken cancellationToken
+    );
+
+    public Task DeleteValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        ValidationOnNavigationConfigDto config,
         CancellationToken cancellationToken
     );
 

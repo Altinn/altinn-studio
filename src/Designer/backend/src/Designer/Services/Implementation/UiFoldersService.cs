@@ -550,7 +550,47 @@ public class UiFoldersService : IUiFoldersService
         return globalSettingsFile?.ValidationOnNavigation;
     }
 
-    public async Task SaveGlobalValidationOnNavigation(
+    public Task SaveValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        ValidationOnNavigationConfigDto config,
+        CancellationToken cancellationToken
+    )
+    {
+        ValidationOnNavigation validation = new() { Page = config.Page, Show = config.Show };
+        return ApplyValidationOnNavigation(editingContext, config, validation, cancellationToken);
+    }
+
+    public Task DeleteValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        ValidationOnNavigationConfigDto config,
+        CancellationToken cancellationToken
+    )
+    {
+        return ApplyValidationOnNavigation(editingContext, config, null, cancellationToken);
+    }
+
+    private async Task ApplyValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        ValidationOnNavigationConfigDto target,
+        ValidationOnNavigation? config,
+        CancellationToken cancellationToken
+    )
+    {
+        if (target.Task != null && target.Pages is { Count: > 0 })
+        {
+            await SavePagesValidationOnNavigation(editingContext, target.Task, target.Pages, config, cancellationToken);
+        }
+        else if (target.Tasks is { Count: > 0 })
+        {
+            await SaveLayoutSetsValidationOnNavigation(editingContext, target.Tasks, config, cancellationToken);
+        }
+        else
+        {
+            await SaveGlobalValidationOnNavigation(editingContext, config, cancellationToken);
+        }
+    }
+
+    private async Task SaveGlobalValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
         ValidationOnNavigation? config,
         CancellationToken cancellationToken
@@ -598,7 +638,7 @@ public class UiFoldersService : IUiFoldersService
         ];
     }
 
-    public async Task SaveLayoutSetsValidationOnNavigation(
+    private async Task SaveLayoutSetsValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
         IEnumerable<string> layoutSetIds,
         ValidationOnNavigation? config,
@@ -678,7 +718,7 @@ public class UiFoldersService : IUiFoldersService
         return result;
     }
 
-    public async Task SavePagesValidationOnNavigation(
+    private async Task SavePagesValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
         string layoutSetId,
         IEnumerable<string> pageIds,

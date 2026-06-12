@@ -141,76 +141,26 @@ public class UiFoldersController : Controller
     public async Task<IActionResult> SaveValidationOnNavigation(
         string org,
         string app,
-        [FromQuery] List<string>? layoutSets,
-        [FromQuery] List<string>? pages,
-        [FromBody] ValidationOnNavigation config,
+        [FromBody] ValidationOnNavigationConfigDto config,
         CancellationToken cancellationToken
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-
-        if (layoutSets == null || layoutSets.Count == 0)
-        {
-            await _uiFoldersService.SaveGlobalValidationOnNavigation(editingContext, config, cancellationToken);
-            return Ok();
-        }
-
-        if (pages == null || pages.Count == 0)
-        {
-            await _uiFoldersService.SaveLayoutSetsValidationOnNavigation(
-                editingContext,
-                layoutSets,
-                config,
-                cancellationToken
-            );
-            return Ok();
-        }
-
-        await _uiFoldersService.SavePagesValidationOnNavigation(
-            editingContext,
-            layoutSets[0],
-            pages,
-            config,
-            cancellationToken
-        );
+        await _uiFoldersService.SaveValidationOnNavigation(editingContext, config, cancellationToken);
         return Ok();
     }
 
     [HttpDelete("settings/validation-on-navigation")]
+    [UseSystemTextJson]
     public async Task<IActionResult> DeleteValidationOnNavigation(
         string org,
         string app,
-        [FromQuery] List<string>? layoutSets,
-        [FromQuery] List<string>? pages,
+        [FromBody] ValidationOnNavigationConfigDto config,
         CancellationToken cancellationToken
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
-
-        if (layoutSets == null || layoutSets.Count == 0)
-        {
-            await _uiFoldersService.SaveGlobalValidationOnNavigation(editingContext, null, cancellationToken);
-            return Ok();
-        }
-
-        if (pages == null || pages.Count == 0)
-        {
-            await _uiFoldersService.SaveLayoutSetsValidationOnNavigation(
-                editingContext,
-                layoutSets,
-                null,
-                cancellationToken
-            );
-            return Ok();
-        }
-
-        await _uiFoldersService.SavePagesValidationOnNavigation(
-            editingContext,
-            layoutSets[0],
-            pages,
-            null,
-            cancellationToken
-        );
+        await _uiFoldersService.DeleteValidationOnNavigation(editingContext, config, cancellationToken);
         return Ok();
     }
 
