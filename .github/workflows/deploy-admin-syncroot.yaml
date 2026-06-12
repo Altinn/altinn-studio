@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - infra/admin/syncroot/**
+      - infra/admin/workflow-engine-db/**
       - infra/admin/workflow-engine-tenant-db-template/**
       - .github/workflows/deploy-admin-syncroot.yaml
   workflow_dispatch:
@@ -58,6 +59,16 @@ jobs:
             --source="$(git config --get remote.origin.url)" \
             --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
 
+      - name: push workflow-engine-db artifact
+        run: |
+          cd workflow-engine-db/
+          flux push artifact oci://altinncr.azurecr.io/studio/workflow-engine-db:${{ steps.vars.outputs.short-sha }} \
+            --provider=generic \
+            --reproducible \
+            --path="." \
+            --source="$(git config --get remote.origin.url)" \
+            --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
+
       - name: push tenant-db-template artifact
         run: |
           cd workflow-engine-tenant-db-template/
@@ -103,6 +114,11 @@ jobs:
       - name: tag syncroot artifact
         run: |
           flux tag artifact oci://altinncr.azurecr.io/studio/syncroot-admin:${{ needs.push-syncroot-artifact.outputs.short-sha }} \
+            --tag ${{ matrix.tag }}
+
+      - name: tag workflow-engine-db artifact
+        run: |
+          flux tag artifact oci://altinncr.azurecr.io/studio/workflow-engine-db:${{ needs.push-syncroot-artifact.outputs.short-sha }} \
             --tag ${{ matrix.tag }}
 
       - name: tag tenant-db-template artifact
