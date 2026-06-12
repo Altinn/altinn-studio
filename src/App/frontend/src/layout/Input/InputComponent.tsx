@@ -1,292 +1,71 @@
 import React from 'react';
 
-import { FormattedInput, Input, Label, NumericInput } from '@app/form-component';
-import type { InputProps } from '@app/form-component';
+import { InputLayout } from '@app/form-component';
 
-import { getDescriptionId, getLabelId } from 'src/components/label/Label';
 import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { useMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import classes from 'src/layout/Input/InputComponent.module.css';
-import { isNumberFormat, isPatternFormat } from 'src/layout/Input/number-format-helpers';
-import { buildAriaDescribedBy, useCharacterLimit } from 'src/utils/inputUtils';
-import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type {
-  HTMLAutoCompleteValues,
-  NumberFormatProps as NumberFormatPropsCG,
-  PatternFormatProps as PatternFormatPropsCG,
-} from 'src/layout/common.generated';
 
-type NumberFormatProps = Omit<NumberFormatPropsCG, 'thousandSeparator' | 'decimalSeparator' | 'suffix' | 'prefix'> & {
-  thousandSeparator?: boolean | string;
-  decimalSeparator?: string;
-  suffix?: string;
-  prefix?: string;
-};
-
-type PatternFormatProps = Omit<PatternFormatPropsCG, 'format'> & {
-  format: string;
-};
-
-type SearchVariant = { type: 'search' };
-type TextVariant = { type: 'text' };
-type NumberVariant = { type: 'number'; format: NumberFormatProps };
-type PatternVariant = { type: 'pattern'; format: PatternFormatProps };
-type Variant = SearchVariant | TextVariant | NumberVariant | PatternVariant;
-
-function getVariantWithFormat(
-  type: 'text' | 'search' | undefined,
-  format: NumberFormatProps | PatternFormatProps | undefined,
-): Variant {
-  if (type === 'search') {
-    return { type: 'search' };
-  }
-  if (isPatternFormat(format)) {
-    return { type: 'pattern', format };
-  }
-  if (isNumberFormat(format)) {
-    return { type: 'number', format };
-  }
-  return { type: 'text' };
-}
-
-function getMobileKeyboardProps(
-  variant: Variant,
-  autocomplete: HTMLAutoCompleteValues | undefined,
-): Pick<InputProps, 'inputMode' | 'pattern'> {
-  if (variant.type === 'search') {
-    return { inputMode: 'search', pattern: undefined };
-  }
-
-  if (autocomplete === 'email') {
-    return { inputMode: 'email', pattern: undefined };
-  }
-
-  if (autocomplete === 'url' || autocomplete === 'photo') {
-    return { inputMode: 'url', pattern: undefined };
-  }
-
-  if (autocomplete === 'tel') {
-    return { inputMode: 'tel', pattern: '[-+()0-9]*' };
-  }
-
-  if (variant.type === 'pattern') {
-    // Pattern inputs are simple. They fill out spaces or separators for you automatically, so the user can focus on
-    // typing the numbers.
-    return { inputMode: 'numeric', pattern: undefined };
-  }
-
-  if (variant.type === 'number') {
-    if (variant.format.allowNegative === false) {
-      return { inputMode: 'decimal', pattern: `[0-9,.]*` };
-    }
-
-    if (navigator?.platform && /iPhone|iPad/.test(navigator.platform)) {
-      // Decimal on iOS does not allow negative numbers, so we have to fall back to text
-      // when negatives are allowed. For more details, see the issue:
-      // https://github.com/s-yadav/react-number-format/issues/189#issuecomment-623267349
-      return { inputMode: 'text', pattern: `-?[0-9,.]*` };
-    }
-
-    return { inputMode: 'decimal', pattern: `-?[0-9,.]*` };
-  }
-
-  return { inputMode: 'text', pattern: undefined };
-}
-
-const InputVariant = ({
-  baseComponentId,
-  overrideDisplay,
-  labelId,
-}: Pick<PropsFromGenericComponent<'Input'>, 'baseComponentId' | 'overrideDisplay'> & { labelId: string }) => {
+export function InputComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'Input'>) {
   const {
     id,
     readOnly,
     required,
+    grid,
     formatting,
-    variant: inputVariant,
+    variant,
     textResourceBindings,
     dataModelBindings,
     saveWhileTyping,
     autocomplete,
     maxLength,
+    labelSettings,
   } = useItemWhenType(baseComponentId, 'Input');
+
   const {
     formData: { simpleBinding: realFormValue },
     setValue,
   } = useDataModelBindings(dataModelBindings, saveWhileTyping);
-  const { langAsString } = useLanguage();
-  const characterLimit = useCharacterLimit(maxLength);
 
-  const [localValue, setLocalValue] = React.useState<string | undefined>(undefined);
-  const formValue = localValue ?? realFormValue;
-  const reactNumberFormatConfig = useMapToReactNumberConfig(formatting, formValue);
-  const variant = getVariantWithFormat(inputVariant, reactNumberFormatConfig?.number);
-  const { inputMode, pattern } = getMobileKeyboardProps(variant, autocomplete);
+  const numberFormat = useMapToReactNumberConfig(formatting, realFormValue)?.number;
+
   const debounce = FormStore.data.useDebounceImmediately();
-
-  const descriptionId = getDescriptionId(id);
-  const validationsId = `${baseComponentId}-validations`;
-  const validations = useUnifiedValidationsForNode(baseComponentId);
-  const hasValidations = validations.length > 0;
-
-  const inputDescribedBy = buildAriaDescribedBy({
-    renderedInTable: overrideDisplay?.renderedInTable,
-    hasTitle: !!textResourceBindings?.title,
-    descriptionId,
-    hasDescription: !!textResourceBindings?.description,
-    validationsId,
-    hasValidations,
-  });
-
-  const labelProps = textResourceBindings?.title
-    ? { 'aria-label': langAsString(textResourceBindings.title) }
-    : { 'aria-labelledby': labelId };
-
-  const inputProps: InputProps = {
-    id,
-    ...labelProps,
-    'aria-describedby': inputDescribedBy,
-    autoComplete: autocomplete,
-    className: formatting?.align ? classes[`text-align-${formatting.align}`] : '',
-    readOnly,
-    textonly: overrideDisplay?.rowReadOnly && readOnly,
-    required,
-    onBlur: () => debounce('blur'),
-    error: !useIsValid(baseComponentId),
-    prefix: textResourceBindings?.prefix ? langAsString(textResourceBindings.prefix) : undefined,
-    suffix: textResourceBindings?.suffix ? langAsString(textResourceBindings.suffix) : undefined,
-    style: { width: '100%' },
-    inputMode,
-    pattern,
-  };
-
-  switch (variant.type) {
-    case 'search':
-    case 'text':
-      return (
-        <Input
-          {...inputProps}
-          value={formValue}
-          type={variant.type}
-          onChange={(event) => {
-            setValue('simpleBinding', event.target.value);
-          }}
-          characterLimit={characterLimit}
-        />
-      );
-    case 'pattern':
-      return (
-        <FormattedInput
-          {...inputProps}
-          {...variant.format}
-          value={formValue}
-          type='text'
-          onValueChange={(values, sourceInfo) => {
-            if (sourceInfo.source === 'prop') {
-              return;
-            }
-            setValue('simpleBinding', values.value);
-          }}
-          characterLimit={characterLimit}
-        />
-      );
-    case 'number':
-      return (
-        <NumericInput
-          {...inputProps}
-          {...variant.format}
-          prefix={langAsString(variant.format.prefix)}
-          suffix={langAsString(variant.format.suffix)}
-          value={formValue}
-          type='text'
-          onBlur={() => {
-            setLocalValue(undefined);
-          }}
-          onValueChange={(values, sourceInfo) => {
-            if (sourceInfo.source === 'prop') {
-              // Do not update the value if the change is from props (i.e. let's not send form data updates when
-              // visual-only decimalScale changes)
-              return;
-            }
-            setValue('simpleBinding', values.value, (result) => {
-              const noZeroesAfterComma = values.value.replace(/[.,]0+$/, '');
-              const converted = typeof result === 'object' ? result.convertedValue?.toString() : undefined;
-              const hasError = typeof result === 'object' ? result.error : true;
-              if (
-                !hasError &&
-                converted !== undefined &&
-                values.value !== converted &&
-                noZeroesAfterComma === converted
-              ) {
-                // Use local state temporarily when the value can be converted to a number, but the user is not
-                // yet sure if they're going to type more digits after zero-only decimals. I.e. they've typed
-                // '123.000' or similar. This will be stored as '123'.
-                setLocalValue(values.value);
-              } else {
-                setLocalValue(undefined);
-              }
-            });
-          }}
-          onPaste={(event: React.ClipboardEvent<HTMLInputElement>) => {
-            /* This is a workaround for a react-number-format bug that
-             * removes the decimal on paste.
-             * We should be able to remove it when this issue gets fixed:
-             * https://github.com/s-yadav/react-number-format/issues/349
-             *  */
-            event.preventDefault();
-            if (inputProps.readOnly) {
-              return;
-            }
-            const pastedText = event.clipboardData.getData('Text');
-            if (pastedText.indexOf(',') !== -1) {
-              setValue('simpleBinding', pastedText.replace(',', '.'));
-            } else {
-              setValue('simpleBinding', pastedText);
-            }
-          }}
-          characterLimit={characterLimit}
-        />
-      );
-  }
-};
-
-export const InputComponent: React.FunctionComponent<PropsFromGenericComponent<'Input'>> = ({
-  baseComponentId,
-  overrideDisplay,
-}) => {
-  const { grid, id, required } = useItemWhenType(baseComponentId, 'Input');
-
-  const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
-    useLabel({ baseComponentId, overrideDisplay });
-
-  const labelId = getLabelId(id);
+  const isValid = useIsValid(baseComponentId);
+  const hasValidations = useUnifiedValidationsForNode(baseComponentId).length > 0;
 
   return (
-    <Label
-      id={labelId}
-      htmlFor={id}
-      label={labelText}
-      grid={grid?.labelGrid}
-      required={required}
-      requiredIndicator={getRequiredComponent()}
-      optionalIndicator={getOptionalComponent()}
-      help={getHelpTextComponent()}
-      description={getDescriptionComponent()}
-    >
-      <ComponentStructureWrapper baseComponentId={baseComponentId}>
-        <InputVariant
-          baseComponentId={baseComponentId}
-          overrideDisplay={overrideDisplay}
-          labelId={labelId}
-        />
-      </ComponentStructureWrapper>
-    </Label>
+    <ComponentStructureWrapper baseComponentId={baseComponentId}>
+      <InputLayout
+        id={id}
+        title={textResourceBindings?.title}
+        description={textResourceBindings?.description}
+        help={textResourceBindings?.help}
+        prefix={textResourceBindings?.prefix}
+        suffix={textResourceBindings?.suffix}
+        variant={variant}
+        numberFormat={numberFormat}
+        align={formatting?.align}
+        autocomplete={autocomplete}
+        maxLength={maxLength}
+        required={required}
+        readOnly={readOnly}
+        showOptionalMarking={!!labelSettings?.optionalIndicator}
+        grid={grid?.labelGrid}
+        renderLabel={overrideDisplay?.renderLabel}
+        renderedInTable={overrideDisplay?.renderedInTable}
+        rowReadOnly={overrideDisplay?.rowReadOnly}
+        value={realFormValue}
+        error={!isValid}
+        hasValidations={hasValidations}
+        validationsId={`${baseComponentId}-validations`}
+        onChange={(value) => setValue('simpleBinding', value)}
+        onBlur={() => debounce('blur')}
+      />
+    </ComponentStructureWrapper>
   );
-};
+}
