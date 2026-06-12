@@ -38,6 +38,13 @@ const StudioResizableLayoutElement = forwardRef<HTMLDivElement, StudioResizableL
   ): ReactElement => {
     const { orientation, containerSize, isResizing } = useStudioResizableLayoutContext(index ?? 0);
 
+    const minSize = collapsed ? collapsedSize : minimumSize;
+    const maxSize = collapsed ? collapsedSize : maximumSize;
+    const sizeConstraints =
+      orientation === 'vertical'
+        ? { minHeight: minSize, maxHeight: maxSize }
+        : { minWidth: minSize, maxWidth: maxSize };
+
     return (
       <>
         <div
@@ -46,8 +53,7 @@ const StudioResizableLayoutElement = forwardRef<HTMLDivElement, StudioResizableL
           style={{
             ...style,
             flexGrow: containerSize,
-            maxWidth: collapsed ? collapsedSize : maximumSize,
-            minWidth: collapsed ? collapsedSize : minimumSize,
+            ...sizeConstraints,
             /* Ensures iFrames don't swallow the mouseup event needed to release the drag */
             pointerEvents: isResizing ? 'none' : undefined,
           }}

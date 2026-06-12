@@ -57,6 +57,7 @@ src/AI/mcp/**/uv.lock                                           @ErlingHauan
 .github/workflows/cli-build-test.yaml                           @altinn/team-altinn-studio-kjoring
 .github/workflows/construct-environments-script-test.yaml       @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-gitea-runners.yaml                     @altinn/team-altinn-studio-kjoring
+.github/workflows/deploy-github-runners.yaml                    @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-lhci-server.yaml                       @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-loadbalancer.yaml                      @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-repositories.yaml                      @altinn/team-altinn-studio-kjoring
