@@ -1,6 +1,5 @@
 #nullable disable
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
