@@ -3,7 +3,7 @@ import type { AssistantMessage } from '../../../../types/ChatThread';
 import type { MessageFeedbackTexts } from '../../../../types/AssistantTexts';
 import type { UserFeedback } from '../../../../types/UserFeedback';
 import { formatAssistantMessageContent } from '../../../../utils/messageUtils';
-import { MessageFeedback } from '../MessageFeedback';
+import { MessageFeedback } from './MessageFeedback';
 import { MessageRow } from '../MessageRow';
 import { SourceList } from './SourceList';
 import { FilesChangedList } from './FilesChangedList';
