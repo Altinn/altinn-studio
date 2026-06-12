@@ -50,9 +50,8 @@ public interface IUiFoldersService
         CancellationToken cancellationToken
     );
 
-    public Task<Dictionary<string, ValidationOnNavigation?>> GetLayoutSetsValidationOnNavigation(
+    public Task<IEnumerable<ValidationOnNavigationDto>> GetLayoutSetsValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
-        IEnumerable<string> layoutSetIds,
         CancellationToken cancellationToken
     );
 
@@ -63,10 +62,8 @@ public interface IUiFoldersService
         CancellationToken cancellationToken
     );
 
-    public Task<Dictionary<string, ValidationOnNavigation?>> GetPagesValidationOnNavigation(
+    public Task<IEnumerable<PageValidationOnNavigationDto>> GetPagesValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
-        string layoutSetId,
-        IEnumerable<string> pageIds,
         CancellationToken cancellationToken
     );
 

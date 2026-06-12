@@ -117,37 +117,24 @@ public class UiFoldersController : Controller
     public async Task<IActionResult> GetValidationOnNavigation(
         string org,
         string app,
-        [FromQuery] List<string>? layoutSets,
-        [FromQuery] List<string>? pages,
+        [FromQuery] bool layoutSets,
+        [FromQuery] bool pages,
         CancellationToken cancellationToken
     )
     {
         AltinnRepoEditingContext editingContext = CreateContext(org, app);
 
-        if (layoutSets == null || layoutSets.Count == 0)
+        if (pages)
         {
-            return Ok(await _uiFoldersService.GetGlobalValidationOnNavigation(editingContext, cancellationToken));
+            return Ok(await _uiFoldersService.GetPagesValidationOnNavigation(editingContext, cancellationToken));
         }
 
-        if (pages == null || pages.Count == 0)
+        if (layoutSets)
         {
-            return Ok(
-                await _uiFoldersService.GetLayoutSetsValidationOnNavigation(
-                    editingContext,
-                    layoutSets,
-                    cancellationToken
-                )
-            );
+            return Ok(await _uiFoldersService.GetLayoutSetsValidationOnNavigation(editingContext, cancellationToken));
         }
 
-        return Ok(
-            await _uiFoldersService.GetPagesValidationOnNavigation(
-                editingContext,
-                layoutSets[0],
-                pages,
-                cancellationToken
-            )
-        );
+        return Ok(await _uiFoldersService.GetGlobalValidationOnNavigation(editingContext, cancellationToken));
     }
 
     [HttpPost("settings/validation-on-navigation")]

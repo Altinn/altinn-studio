@@ -565,32 +565,37 @@ public class UiFoldersService : IUiFoldersService
         await altinnAppGitRepository.SaveGlobalSettingsFile(globalSettingsFile);
     }
 
-    public async Task<Dictionary<string, ValidationOnNavigation?>> GetLayoutSetsValidationOnNavigation(
+    public async Task<IEnumerable<ValidationOnNavigationDto>> GetLayoutSetsValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
-        IEnumerable<string> layoutSetIds,
         CancellationToken cancellationToken
     )
     {
-        AltinnAppGitRepository repository = GetRepository(editingContext, cancellationToken);
-        ValidateLayoutSetNames(layoutSetIds);
-        Dictionary<string, ValidationOnNavigation?> results = [];
-        foreach (string layoutSetId in layoutSetIds)
-        {
-            try
-            {
-                LayoutSettings layoutSettings = await repository.GetLayoutSettings(layoutSetId, cancellationToken);
-                results[layoutSetId] = layoutSettings.Pages?.ValidationOnNavigation;
-            }
-            catch (Exception e) when (e is FileNotFoundException or JsonException)
-            {
-                _logger.LogWarning(
-                    e,
-                    "Could not read Settings.json for layout set {LayoutSetId}. Skipping.",
-                    SanitizeForLog(layoutSetId)
-                );
-            }
-        }
-        return results;
+        List<LayoutSetInfo> layoutSetInfos = await GetLayoutSetInfos(editingContext, cancellationToken);
+
+        // Layout sets that share the same validation config are grouped into a single entry, with the
+        // sharing layout set ids listed under Tasks.
+        return
+        [
+            .. layoutSetInfos
+                .Where(info => info.LayoutSettings.Pages?.ValidationOnNavigation != null)
+                .Select(info => new
+                {
+                    info.LayoutSetName,
+                    info.LayoutSettings.Pages!.ValidationOnNavigation!.Show,
+                    info.LayoutSettings.Pages.ValidationOnNavigation.Page,
+                })
+                .GroupBy(item => new
+                {
+                    ShowKey = item.Show != null ? string.Join(",", item.Show.OrderBy(s => s)) : string.Empty,
+                    item.Page,
+                })
+                .Select(group => new ValidationOnNavigationDto
+                {
+                    Tasks = [.. group.Select(item => item.LayoutSetName)],
+                    Show = group.First().Show!,
+                    Page = group.First().Page!,
+                }),
+        ];
     }
 
     public async Task SaveLayoutSetsValidationOnNavigation(
@@ -611,34 +616,66 @@ public class UiFoldersService : IUiFoldersService
         }
     }
 
-    public async Task<Dictionary<string, ValidationOnNavigation?>> GetPagesValidationOnNavigation(
+    public async Task<IEnumerable<PageValidationOnNavigationDto>> GetPagesValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
-        string layoutSetId,
-        IEnumerable<string> pageIds,
         CancellationToken cancellationToken
     )
     {
         AltinnAppGitRepository repository = GetRepository(editingContext, cancellationToken);
-        ValidateLayoutSetName(layoutSetId);
-        Dictionary<string, ValidationOnNavigation?> results = [];
-        foreach (string pageId in pageIds)
+        List<LayoutSetInfo> layoutSetInfos = await GetLayoutSetInfos(editingContext, cancellationToken);
+
+        List<PageValidationOnNavigationDto> result = [];
+        foreach (LayoutSetInfo layoutSetInfo in layoutSetInfos)
         {
-            try
+            List<(string PageName, ValidationOnNavigation? Nav)> pageValidations = [];
+            foreach (string pageId in repository.GetLayoutNames(layoutSetInfo.LayoutSetName))
             {
-                JsonNode layout = await repository.GetLayout(layoutSetId, pageId, cancellationToken);
-                results[pageId] = layout["data"]?["validationOnNavigation"]?.Deserialize<ValidationOnNavigation>();
+                try
+                {
+                    JsonNode layout = await repository.GetLayout(
+                        layoutSetInfo.LayoutSetName,
+                        pageId,
+                        cancellationToken
+                    );
+                    JsonNode? validationNode = layout["data"]?["validationOnNavigation"];
+                    if (validationNode == null)
+                    {
+                        continue;
+                    }
+                    pageValidations.Add((pageId, validationNode.Deserialize<ValidationOnNavigation>()));
+                }
+                catch (Exception e) when (e is FileNotFoundException or JsonException)
+                {
+                    _logger.LogWarning(
+                        e,
+                        "Could not read layout file for page {PageId} in layout set {LayoutSetId}. Skipping.",
+                        SanitizeForLog(pageId),
+                        SanitizeForLog(layoutSetInfo.LayoutSetName)
+                    );
+                }
             }
-            catch (Exception e) when (e is FileNotFoundException or JsonException)
-            {
-                _logger.LogWarning(
-                    e,
-                    "Could not read layout file for page {PageId} in layout set {LayoutSetId}. Skipping.",
-                    SanitizeForLog(pageId),
-                    layoutSetId
-                );
-            }
+
+            // Within a layout set, pages that share the same validation config are grouped into a single
+            // entry, with the sharing page names listed under Pages.
+            result.AddRange(
+                pageValidations
+                    .GroupBy(item => new
+                    {
+                        Page = item.Nav!.Page ?? string.Empty,
+                        ShowKey = item.Nav.Show != null
+                            ? string.Join(",", item.Nav.Show.OrderBy(s => s))
+                            : string.Empty,
+                    })
+                    .Select(group => new PageValidationOnNavigationDto
+                    {
+                        Task = layoutSetInfo.LayoutSetName,
+                        Pages = [.. group.Select(item => item.PageName)],
+                        Page = group.First().Nav!.Page!,
+                        Show = [.. group.First().Nav!.Show!.OrderBy(s => s)],
+                    })
+            );
         }
-        return results;
+        return result;
     }
 
     public async Task SavePagesValidationOnNavigation(
