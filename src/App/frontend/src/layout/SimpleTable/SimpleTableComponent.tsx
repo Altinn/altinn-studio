@@ -65,6 +65,11 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
       buttonText: <Lang id='general.delete' />,
       icon: <TrashIcon />,
       color: 'danger',
+      confirm: {
+        message: <Lang id='group.row_popover_delete_message' />,
+        confirmText: <Lang id='group.row_popover_delete_button_confirm' />,
+        cancelText: <Lang id='general.cancel' />,
+      },
     });
   }
 

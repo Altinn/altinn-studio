@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { type ReactNode } from 'react';
 
+import { ConfirmPopover } from '@app/form-component/app-components/ConfirmPopover';
 import { Spinner } from '@app/form-component/app-components/Spinner/Spinner';
 import { Button, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
@@ -23,12 +24,19 @@ export interface Column<T> {
   enableInlineEditing?: boolean;
 }
 
+export interface TableActionButtonConfirm {
+  message: ReactNode;
+  confirmText: ReactNode;
+  cancelText: ReactNode;
+}
+
 export interface TableActionButton<T = unknown> {
   onClick: (rowIdx: number, rowData: T) => void;
   buttonText: React.ReactNode;
   icon: React.ReactNode;
   color?: 'first' | 'second' | 'success' | 'danger';
   variant?: 'tertiary' | 'primary' | 'secondary';
+  confirm?: TableActionButtonConfirm;
 }
 
 export interface AppTableProps<T> {
@@ -194,18 +202,38 @@ export function AppTable<T>({
               {actionButtons && actionButtons.length > 0 && (
                 <Table.Cell>
                   <div className={classes.buttonContainer}>
-                    {actionButtons.map((button, idx) => (
-                      <Button
-                        key={idx}
-                        onClick={() => button.onClick(rowIndex, rowData)}
-                        data-size='sm'
-                        variant={button.variant ? button.variant : defaultButtonVariant}
-                        color={button.color ? button.color : 'second'}
-                      >
-                        {button.buttonText}
-                        {button.icon}
-                      </Button>
-                    ))}
+                    {actionButtons.map((button, idx) => {
+                      const { confirm } = button;
+                      const handleAction = () => button.onClick(rowIndex, rowData);
+                      const buttonElement = (
+                        <Button
+                          key={idx}
+                          onClick={confirm ? undefined : handleAction}
+                          data-size='sm'
+                          variant={button.variant ?? defaultButtonVariant}
+                          color={button.color ?? 'second'}
+                        >
+                          {button.buttonText}
+                          {button.icon}
+                        </Button>
+                      );
+
+                      if (!confirm) {
+                        return buttonElement;
+                      }
+
+                      return (
+                        <ConfirmPopover
+                          key={idx}
+                          message={confirm.message}
+                          confirmText={confirm.confirmText}
+                          cancelText={confirm.cancelText}
+                          onConfirm={handleAction}
+                        >
+                          {buttonElement}
+                        </ConfirmPopover>
+                      );
+                    })}
                   </div>
                 </Table.Cell>
               )}
