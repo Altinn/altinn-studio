@@ -599,11 +599,6 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/validationconfig/{dataTypeId}")]
         public Microsoft.AspNetCore.Mvc.ActionResult GetValidationConfiguration(string org, string app, string dataTypeId) { }
     }
-    public class SchemaPostVisitor : Microsoft.OpenApi.Services.OpenApiVisitorBase
-    {
-        public SchemaPostVisitor() { }
-        public override void Visit(Microsoft.OpenApi.Models.OpenApiSchema schema) { }
-    }
     [Altinn.App.Api.Infrastructure.Filters.AutoValidateAntiforgeryTokenIfAuthCookie]
     [Microsoft.AspNetCore.Mvc.ApiController]
     [Microsoft.AspNetCore.Mvc.ResponseCache(Duration=0, Location=Microsoft.AspNetCore.Mvc.ResponseCacheLocation.None, NoStore=true)]
@@ -624,21 +619,6 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.SigningStateResponse), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetSigneesState([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, System.Threading.CancellationToken ct, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null, [Microsoft.AspNetCore.Mvc.FromQuery] string? taskId = null) { }
-    }
-    public static class Snippets
-    {
-        public static readonly Microsoft.OpenApi.Models.OpenApiSecurityScheme AltinnTokenSecurityScheme;
-        public static readonly Microsoft.OpenApi.Models.OpenApiReference ProblemDetailsResponseReference;
-        public static System.Collections.Generic.IDictionary<string, Microsoft.OpenApi.Models.OpenApiParameter> CommonParameters { get; }
-        public static Microsoft.OpenApi.Models.OpenApiParameter DataGuidParameterReference { get; }
-        public static Microsoft.OpenApi.Models.OpenApiParameter InstanceGuidParameterReference { get; }
-        public static Microsoft.OpenApi.Models.OpenApiParameter InstanceOwnerPartyIdParameterReference { get; }
-        public static Microsoft.OpenApi.Models.OpenApiSchema InstanceWriteSchema { get; }
-        public static Microsoft.OpenApi.Models.OpenApiParameter LanguageParameterReference { get; }
-        public static Microsoft.OpenApi.Models.OpenApiSchema PatchSchema { get; }
-        public static Microsoft.OpenApi.Models.OpenApiResponse ProblemDetailsResponseSchema { get; }
-        public static Microsoft.OpenApi.Models.OpenApiResponses AddCommonErrorResponses(Microsoft.OpenApi.Models.OpenApiResponses responses) { }
-        public static Microsoft.OpenApi.Models.OpenApiResponses AddCommonErrorResponses(System.Net.HttpStatusCode statusCode, Microsoft.OpenApi.Models.OpenApiResponse response) { }
     }
     [Altinn.App.Api.Infrastructure.Filters.AutoValidateAntiforgeryTokenIfAuthCookie]
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/v1/data")]
