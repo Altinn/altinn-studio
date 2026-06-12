@@ -1,9 +1,20 @@
 .inputContainer {
   display: flex;
   flex-direction: column;
+  width: 100%;
   padding: var(--ds-size-4);
   gap: var(--ds-size-4);
-  border-top: 1px solid var(--ds-color-neutral-border-subtle);
+}
+
+.textareaContainer {
+  flex: 1;
+  min-height: 0;
+}
+
+.textareaContainer textarea {
+  height: 100%;
+  min-height: 0;
+  resize: none;
 }
 
 .actionsRow {

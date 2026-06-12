@@ -104,6 +104,7 @@ export function UserInput({
   return (
     <div className={classes.inputContainer}>
       <StudioTextarea
+        className={classes.textareaContainer}
         value={messageContent}
         onChange={(e) => setMessageContent(e.target.value)}
         onKeyDown={handleKeyDown}
