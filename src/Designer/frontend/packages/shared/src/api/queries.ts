@@ -98,7 +98,7 @@ import type { DataModelMetadataJson, DataModelMetadataXsd } from 'app-shared/typ
 import type { Environment } from 'app-shared/types/Environment';
 import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import type { ILayoutSettings, IValidationOnNavigationLayoutSettings, IValidationOnNavigationPageSettings, ITextResourcesWithLanguage, IFrontEndSettings, IValidationOnNavigationLayoutSets, ValidationOnNavigation } from 'app-shared/types/global';
+import type { ILayoutSettings, IValidationOnNavigationLayoutSettings, IValidationOnNavigationPageSettings, ITextResourcesWithLanguage, IFrontEndSettings, IValidationOnNavigationLayoutSets, ValidationOnNavigationByLevel } from 'app-shared/types/global';
 import { ValidationOnNavigationLevel } from 'app-shared/types/global';
 import type { Organization } from 'app-shared/types/Organization';
 import type { OrgList } from 'app-shared/types/OrgList';
@@ -199,8 +199,8 @@ export const getUserOrgPermissions = (org: string) => get(userOrgPermissionsPath
 export const searchRepos = (filter: SearchRepoFilterParams) => get<SearchRepositoryResponse>(`${repoSearchPath()}${buildQueryParams(filter)}`);
 export const validateImageFromExternalUrl = (owner: string, app: string, url: string) => get<ExternalImageUrlValidationResponse>(validateImageFromExternalUrlPath(owner, app, url));
 export const canUseFeature = (featureName: FeatureName) => get<CanUseFeature>(canUseFeaturePath(featureName));
-export const getValidationOnNavigation = (org: string, app: string, level: ValidationOnNavigationLevel = ValidationOnNavigationLevel.Global) =>
-  get<ValidationOnNavigation>(`${validationOnNavigationPath(org, app)}${buildQueryParams(level === ValidationOnNavigationLevel.Global ? {} : { [level]: true })}`);
+export const getValidationOnNavigation = <T extends ValidationOnNavigationLevel = ValidationOnNavigationLevel.Global>(org: string, app: string, level: T = ValidationOnNavigationLevel.Global as T) =>
+  get<ValidationOnNavigationByLevel[T]>(`${validationOnNavigationPath(org, app)}${buildQueryParams(level === ValidationOnNavigationLevel.Global ? {} : { [level]: true })}`);
 
 // Layout
 export const getPages = (org: string, app: string, layoutSet: string) => get<PagesModel>(layoutPagesPath(org, app, layoutSet));

@@ -22,6 +22,12 @@ export enum ValidationOnNavigationLevel {
   Pages = 'pages',
 }
 
+export type ValidationOnNavigationByLevel = {
+  [ValidationOnNavigationLevel.Global]: IValidationOnNavigationLayoutSets;
+  [ValidationOnNavigationLevel.LayoutSets]: IValidationOnNavigationLayoutSettings[];
+  [ValidationOnNavigationLevel.Pages]: IValidationOnNavigationPageSettings[];
+};
+
 export interface IValidationOnNavigationLayoutSets {
   show?: string[];
   page?: string;
