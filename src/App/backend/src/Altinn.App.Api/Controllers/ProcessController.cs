@@ -6,6 +6,7 @@ using Altinn.App.Api.Models;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Registers;
@@ -41,6 +42,7 @@ public class ProcessController : ControllerBase
     private readonly ProcessStateEnricher _processStateEnricher;
     private readonly IRegisterClient _registerClient;
     private readonly IDataElementAccessChecker _dataElementAccessChecker;
+    private readonly IInstanceLocker _instanceLocker;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessController"/>
@@ -51,7 +53,6 @@ public class ProcessController : ControllerBase
         IProcessClient processClient,
         IValidationService validationService,
         IProcessReader processReader,
-        IProcessEngine processEngine,
         IServiceProvider serviceProvider,
         IProcessEngineAuthorizer processEngineAuthorizer,
         ProcessStateEnricher processStateEnricher
@@ -61,13 +62,14 @@ public class ProcessController : ControllerBase
         _instanceClient = instanceClient;
         _processClient = processClient;
         _processReader = processReader;
-        _processEngine = processEngine;
+        _processEngine = serviceProvider.GetRequiredService<IProcessEngine>();
         _processEngineAuthorizer = processEngineAuthorizer;
         _validationService = validationService;
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _processStateEnricher = processStateEnricher;
         _registerClient = serviceProvider.GetRequiredService<IRegisterClient>();
         _dataElementAccessChecker = serviceProvider.GetRequiredService<IDataElementAccessChecker>();
+        _instanceLocker = serviceProvider.GetRequiredService<IInstanceLocker>();
     }
 
     /// <summary>
@@ -158,19 +160,25 @@ public class ProcessController : ControllerBase
                 StartEventId = startEvent,
                 User = User,
             };
-            ProcessChangeResult result = await _processEngine.GenerateProcessStartEvents(request);
+            ProcessChangeResult result = await _processEngine.CreateInitialProcessState(request);
             if (!result.Success)
             {
                 return Conflict(result.ErrorMessage);
             }
 
-            await _processEngine.HandleEventsAndUpdateStorage(instance, null, result.ProcessStateChange?.Events);
+            if (result.ProcessStateChange is not null)
+            {
+                await using var instanceLock = _instanceLocker.InitLock(instanceOwnerPartyId, instanceGuid);
+                await instanceLock.Lock();
+                instance = await _processEngine.SubmitInitialProcessState(
+                    instance,
+                    result.ProcessStateChange,
+                    _instanceLocker.CurrentLockToken
+                        ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock")
+                );
+            }
 
-            AppProcessState appProcessState = await _processStateEnricher.Enrich(
-                instance,
-                result.ProcessStateChange?.NewProcessState,
-                User
-            );
+            AppProcessState appProcessState = await _processStateEnricher.Enrich(instance, instance.Process, User);
             return Ok(appProcessState);
         }
         catch (PlatformHttpException e)
@@ -299,7 +307,7 @@ public class ProcessController : ControllerBase
                 org,
                 instanceOwnerPartyId,
                 instanceGuid,
-                authenticationMethod: null,
+                null,
                 ct
             );
 
@@ -333,7 +341,10 @@ public class ProcessController : ControllerBase
                 );
                 SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
-                var instanceOwnerPartyTask = _registerClient.GetPartyUnchecked(instanceOwnerPartyId, ct);
+                var instanceOwnerPartyTask = _registerClient.GetPartyUnchecked(
+                    instanceOwnerPartyId,
+                    cancellationToken: ct
+                );
                 var processStateTask = _processStateEnricher.Enrich(
                     instance,
                     result.ProcessStateChange.NewProcessState,
@@ -366,6 +377,68 @@ public class ProcessController : ControllerBase
         catch (Exception exception)
         {
             return ExceptionResponse(exception, "Process next failed.");
+        }
+    }
+
+    /// <summary>
+    /// Resumes the workflow that established the instance's current task.
+    /// </summary>
+    [HttpPost("resume")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<AppProcessState>> ResumeCurrentTask(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int instanceOwnerPartyId,
+        [FromRoute] Guid instanceGuid,
+        CancellationToken ct
+    )
+    {
+        try
+        {
+            Instance instance = await _instanceClient.GetInstance(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                null,
+                ct
+            );
+
+            ProcessChangeResult result = await _processEngine.ResumeCurrentTask(
+                new ProcessNextRequest
+                {
+                    User = User,
+                    Instance = instance,
+                    Action = null,
+                    Language = null,
+                },
+                ct
+            );
+
+            if (!result.Success)
+            {
+                return GetResultForError(result);
+            }
+
+            Instance freshInstance = result.MutatedInstance ?? instance;
+            AppProcessState appProcessState = await _processStateEnricher.Enrich(
+                freshInstance,
+                freshInstance.Process,
+                User
+            );
+
+            return Ok(appProcessState);
+        }
+        catch (PlatformHttpException e)
+        {
+            _logger.LogError("Platform exception when resuming current task. {Message}", e.Message);
+            return HandlePlatformHttpException(e, "Resume current task failed.");
+        }
+        catch (Exception exception)
+        {
+            return ExceptionResponse(exception, "Resume current task failed.");
         }
     }
 
@@ -466,7 +539,9 @@ public class ProcessController : ControllerBase
                 {
                     Instance = instance,
                     User = User,
-                    Action = ProcessEngine.ConvertTaskTypeToAction(instance.Process.CurrentTask.AltinnTaskType),
+                    Action = Altinn.App.Core.Internal.Process.ProcessEngine.ConvertTaskTypeToAction(
+                        instance.Process.CurrentTask.AltinnTaskType
+                    ),
                     Language = language,
                 };
                 ProcessChangeResult result = await _processEngine.Next(request);
@@ -475,6 +550,8 @@ public class ProcessController : ControllerBase
                 {
                     return GetResultForError(result);
                 }
+
+                instance = result.MutatedInstance ?? instance;
             }
             catch (Exception ex)
             {
@@ -539,19 +616,45 @@ public class ProcessController : ControllerBase
 
     private ActionResult GetResultForError(ProcessChangeResult result)
     {
+        if (result.WorkflowFailure is not null)
+        {
+            int statusCode =
+                result.WorkflowFailure.Kind == WorkflowFailureKind.Timeout
+                    ? StatusCodes.Status504GatewayTimeout
+                    : StatusCodes.Status500InternalServerError;
+
+            var problemDetails = new ProblemDetails
+            {
+                Detail = result.ErrorMessage,
+                Status = statusCode,
+                Title = "Something went wrong while moving to the next task.",
+            };
+            problemDetails.Extensions["workflowFailure"] = result.WorkflowFailure;
+            if (result.ProcessStateOnFailure is not null)
+            {
+                problemDetails.Extensions["processStateChanged"] = true;
+                problemDetails.Extensions["processState"] = result.ProcessStateOnFailure;
+            }
+
+            return StatusCode(statusCode, problemDetails);
+        }
+
         switch (result.ErrorType)
         {
             case ProcessErrorType.Conflict:
+                Dictionary<string, object?> extensions = new() { { "validationIssues", result.ValidationIssues } };
+                if (result.ProcessNextState is { } processNextState)
+                {
+                    extensions["processNextState"] = ToProcessNextStateValue(processNextState);
+                }
+
                 return Conflict(
                     new ProblemDetails()
                     {
                         Detail = result.ErrorMessage,
                         Status = StatusCodes.Status409Conflict,
                         Title = result.ErrorTitle,
-                        Extensions = new Dictionary<string, object?>
-                        {
-                            { "validationIssues", result.ValidationIssues },
-                        },
+                        Extensions = extensions,
                     }
                 );
             case ProcessErrorType.Internal:
@@ -692,4 +795,12 @@ public class ProcessController : ControllerBase
 
         return ExceptionResponse(e, defaultMessage);
     }
+
+    private static string ToProcessNextStateValue(ProcessNextState processNextState) =>
+        processNextState switch
+        {
+            ProcessNextState.Retrying => "retrying",
+            ProcessNextState.ResumeRequired => "resumeRequired",
+            _ => throw new ArgumentOutOfRangeException(nameof(processNextState), processNextState, null),
+        };
 }

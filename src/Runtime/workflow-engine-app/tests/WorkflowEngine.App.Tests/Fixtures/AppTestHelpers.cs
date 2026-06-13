@@ -88,7 +88,7 @@ internal sealed class AppTestHelpers(AppTestFixture fixture)
         JsonSerializer.SerializeToElement(
             new AppWorkflowContext
             {
-                Actor = new Actor { UserIdOrOrgNumber = "test-user" },
+                Actor = new Actor { OrgId = "test-user" },
                 LockToken = lockToken!,
                 Org = EngineAppFixture.DefaultOrg,
                 App = EngineAppFixture.DefaultApp,

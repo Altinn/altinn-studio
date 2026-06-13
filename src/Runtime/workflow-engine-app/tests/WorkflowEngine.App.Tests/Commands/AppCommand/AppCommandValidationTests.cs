@@ -19,7 +19,7 @@ public class AppCommandValidationTests
     private static AppWorkflowContext ValidContext =>
         new()
         {
-            Actor = new Actor { UserIdOrOrgNumber = "test-user-123" },
+            Actor = new Actor { OrgId = "test-user-123" },
             LockToken = "test-lock-key",
             Org = "ttd",
             App = "test-app",
@@ -79,17 +79,15 @@ public class AppCommandValidationTests
         Assert.Contains("actor", invalid.Message, StringComparison.OrdinalIgnoreCase);
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void Validate_EmptyActorUserIdOrOrgNumber_Rejects(string? userIdOrOrgNumber)
+    [Fact]
+    public void Validate_ActorWithoutIdentity_Rejects()
     {
-        var context = ValidContext with { Actor = new Actor { UserIdOrOrgNumber = userIdOrOrgNumber! } };
+        var context = ValidContext with { Actor = new Actor() };
 
         var result = Command.Validate(ValidData, context);
 
-        Assert.IsType<CommandValidationResult.Invalid>(result);
+        var invalid = Assert.IsType<CommandValidationResult.Invalid>(result);
+        Assert.Contains("identity", invalid.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Theory]

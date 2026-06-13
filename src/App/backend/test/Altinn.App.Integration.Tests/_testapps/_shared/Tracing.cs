@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
@@ -13,6 +14,7 @@ using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Process.Authorization;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Core.Models.Validation;
@@ -52,9 +54,8 @@ public static class TracingDI
         services.AddSingleton<IInstantiationProcessor, InstantiationProcessor>();
         services.AddSingleton<IInstantiationValidator, InstantiationValidator>();
         services.AddSingleton<IProcessEnd, ProcessEnd>();
-        services.AddSingleton<IProcessTaskAbandon, ProcessTaskAbandon>();
-        services.AddSingleton<IProcessTaskEnd, ProcessTaskEnd>();
-        services.AddSingleton<IProcessTaskStart, ProcessTaskStart>();
+        services.AddSingleton<IProcessTask, TracingDataProcessTask>();
+        services.AddSingleton<IProcessTask, TracingConfirmationProcessTask>();
         services.AddSingleton<ITaskValidator, TaskValidator>();
         services.AddSingleton<IUserAction, UserAction>();
         services.AddSingleton<IUserActionAuthorizer, UserActionAuthorizer>();
@@ -283,29 +284,48 @@ internal sealed class ProcessEnd : IProcessEnd
     }
 }
 
-internal sealed class ProcessTaskAbandon : IProcessTaskAbandon
+internal sealed class TracingDataProcessTask : IProcessTask
 {
-    public Task Abandon(string taskId, Instance instance)
+    public string Type => AltinnTaskTypes.Data;
+
+    public Task Start(ProcessTaskContext context)
     {
-        SnapshotLogger.LogInfo("IProcessTaskAbandon.Abandon");
+        SnapshotLogger.LogInfo("IProcessTask.Start");
+        return Task.CompletedTask;
+    }
+
+    public Task End(ProcessTaskContext context)
+    {
+        SnapshotLogger.LogInfo("IProcessTask.End");
+        return Task.CompletedTask;
+    }
+
+    public Task Abandon(ProcessTaskContext context)
+    {
+        SnapshotLogger.LogInfo("IProcessTask.Abandon");
         return Task.CompletedTask;
     }
 }
 
-internal sealed class ProcessTaskEnd : IProcessTaskEnd
+internal sealed class TracingConfirmationProcessTask : IProcessTask
 {
-    public Task End(string taskId, Instance instance)
+    public string Type => AltinnTaskTypes.Confirmation;
+
+    public Task Start(ProcessTaskContext context)
     {
-        SnapshotLogger.LogInfo("IProcessTaskEnd.End");
+        SnapshotLogger.LogInfo("IProcessTask.Start");
         return Task.CompletedTask;
     }
-}
 
-internal sealed class ProcessTaskStart : IProcessTaskStart
-{
-    public Task Start(string taskId, Instance instance, Dictionary<string, string>? prefill)
+    public Task End(ProcessTaskContext context)
     {
-        SnapshotLogger.LogInfo("IProcessTaskStart.Start");
+        SnapshotLogger.LogInfo("IProcessTask.End");
+        return Task.CompletedTask;
+    }
+
+    public Task Abandon(ProcessTaskContext context)
+    {
+        SnapshotLogger.LogInfo("IProcessTask.Abandon");
         return Task.CompletedTask;
     }
 }

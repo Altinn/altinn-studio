@@ -48,9 +48,9 @@ public sealed class SignDocumentManagerTests : IDisposable
 
         // Setup default party lookup behavior
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
+            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
             .ReturnsAsync(
-                (PartyLookup lookup) =>
+                (PartyLookup lookup, StorageAuthenticationMethod? _) =>
                 {
                     if (lookup.Ssn is not null)
                     {

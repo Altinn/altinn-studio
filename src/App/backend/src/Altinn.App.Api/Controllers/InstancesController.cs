@@ -13,19 +13,20 @@ using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
-using Altinn.App.Core.Features.Notifications;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Files;
+using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Texts;
+using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
@@ -42,6 +43,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
+using IProcessEngine = Altinn.App.Core.Internal.Process.IProcessEngine;
 
 namespace Altinn.App.Api.Controllers;
 
@@ -74,12 +76,12 @@ public class InstancesController : ControllerBase
     private readonly IHostEnvironment _env;
     private readonly ModelSerializationService _serializationService;
     private readonly InternalPatchService _patchService;
-    private readonly INotificationService _notificationService;
     private readonly ITranslationService _translationService;
     private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly IDataElementAccessChecker _dataElementAccessChecker;
     private readonly ProcessStateEnricher _processStateEnricher;
+    private readonly IInstanceLocker _instanceLocker;
     private readonly IFileService _fileService;
     private const long RequestSizeLimit = 2000 * 1024 * 1024;
 
@@ -98,12 +100,10 @@ public class InstancesController : ControllerBase
         IOptions<AppSettings> appSettings,
         IPrefill prefillService,
         IProfileClient profileClient,
-        IProcessEngine processEngine,
         IOrganizationClient orgClient,
         IHostEnvironment env,
         ModelSerializationService serializationService,
         InternalPatchService patchService,
-        INotificationService notificationService,
         ITranslationService translationService,
         IServiceProvider serviceProvider
     )
@@ -120,18 +120,18 @@ public class InstancesController : ControllerBase
         _appSettings = appSettings.Value;
         _prefillService = prefillService;
         _profileClient = profileClient;
-        _processEngine = processEngine;
+        _processEngine = serviceProvider.GetRequiredService<IProcessEngine>();
         _orgClient = orgClient;
         _env = env;
         _serializationService = serializationService;
         _patchService = patchService;
-        _notificationService = notificationService;
         _translationService = translationService;
         _fileService = serviceProvider.GetRequiredService<IFileService>();
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _authenticationContext = authenticationContext;
         _dataElementAccessChecker = serviceProvider.GetRequiredService<IDataElementAccessChecker>();
         _processStateEnricher = serviceProvider.GetRequiredService<ProcessStateEnricher>();
+        _instanceLocker = serviceProvider.GetRequiredService<IInstanceLocker>();
     }
 
     /// <summary>
@@ -192,7 +192,10 @@ public class InstancesController : ControllerBase
                 );
             }
 
-            var instanceOwnerParty = await _registerClient.GetPartyUnchecked(instanceOwnerPartyId, cancellationToken);
+            var instanceOwnerParty = await _registerClient.GetPartyUnchecked(
+                instanceOwnerPartyId,
+                cancellationToken: cancellationToken
+            );
 
             var dto = InstanceResponse.From(
                 await instance.WithOnlyAccessibleDataElements(_dataElementAccessChecker),
@@ -266,7 +269,10 @@ public class InstancesController : ControllerBase
                 );
             }
 
-            var instanceOwnerPartyTask = _registerClient.GetPartyUnchecked(instanceOwnerPartyId, cancellationToken);
+            var instanceOwnerPartyTask = _registerClient.GetPartyUnchecked(
+                instanceOwnerPartyId,
+                cancellationToken: cancellationToken
+            );
             var processStateTask = _processStateEnricher.Enrich(instance, instance.Process, User);
 
             await Task.WhenAll(instanceOwnerPartyTask, processStateTask);
@@ -444,20 +450,20 @@ public class InstancesController : ControllerBase
 
         Instance instance;
         instanceTemplate.Process = null;
-        ProcessStateChange? change = null;
+        ProcessStateChange? processStateChange;
 
         try
         {
             // start process and goto next task
             ProcessStartRequest processStartRequest = new() { Instance = instanceTemplate, User = User };
 
-            ProcessChangeResult result = await _processEngine.GenerateProcessStartEvents(processStartRequest);
+            ProcessChangeResult result = await _processEngine.CreateInitialProcessState(processStartRequest);
             if (!result.Success)
             {
                 return Conflict(result.ErrorMessage);
             }
 
-            change = result.ProcessStateChange;
+            processStateChange = result.ProcessStateChange;
 
             // create the instance
             instance = await _instanceClient.CreateInstance(
@@ -485,7 +491,7 @@ public class InstancesController : ControllerBase
                 return StatusCode(prefillProblem.Status ?? 500, prefillProblem);
             }
 
-            // get the updated instance
+            // Get the updated instance
             instance = await _instanceClient.GetInstance(
                 app,
                 org,
@@ -495,9 +501,44 @@ public class InstancesController : ControllerBase
                 CancellationToken.None
             );
 
-            // notify app and store events
-            _logger.LogInformation("Events sent to process engine: {Events}", change?.Events);
-            await _processEngine.HandleEventsAndUpdateStorage(instance, null, change?.Events);
+            // An instance must never exist without a process to enqueue in the workflow engine.
+            if (processStateChange is null)
+            {
+                throw new InvalidOperationException(
+                    "Instantiated instance has no process state change to enqueue in the workflow engine."
+                );
+            }
+
+            // Dispatch process state change to async engine
+            int partyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
+            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+            await using var instanceLock = _instanceLocker.InitLock(partyId, instanceGuid);
+            await instanceLock.Lock();
+            instance = await _processEngine.SubmitInitialProcessState(
+                instance,
+                processStateChange,
+                _instanceLocker.CurrentLockToken
+                    ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock"),
+                isInstantiation: true,
+                notification: notification
+            );
+        }
+        catch (WorkflowSubmissionFailedException exception)
+        {
+            return await HandleInitialWorkflowSubmissionFailure(
+                exception,
+                instance,
+                $"Initial process workflow submission failed for instance {instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}"
+            );
+        }
+        catch (WorkflowExecutionFailedException exception)
+        {
+            return HandleInitialWorkflowExecutionFailure(
+                exception,
+                $"Initial process workflow execution failed for instance {exception.Instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}",
+                org,
+                app
+            );
         }
         catch (Exception exception)
         {
@@ -506,31 +547,6 @@ public class InstancesController : ControllerBase
                 exception,
                 $"Instantiation of data elements failed for instance {instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}"
             );
-        }
-
-        await RegisterEvent("app.instance.created", instance);
-
-        if (notification is not null)
-        {
-            try
-            {
-                CancellationToken doNotCancelNotification = CancellationToken.None;
-                await _notificationService.NotifyInstanceOwnerOnInstantiation(
-                    instance,
-                    party,
-                    notification,
-                    doNotCancelNotification
-                );
-            }
-            catch (Exception ex)
-            {
-                // TODO: retry with workflow engine
-                _logger.LogError(
-                    ex,
-                    "Failed to send instantiation notification for instance {InstanceId}",
-                    instance.Id
-                );
-            }
         }
 
         SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
@@ -730,20 +746,10 @@ public class InstancesController : ControllerBase
         }
 
         Instance? instance = null;
-        ProcessChangeResult processResult;
+        ProcessStateChange? processStateChange = null;
         try
         {
-            // start process and goto next task
             instanceTemplate.Process = null;
-
-            var request = new ProcessStartRequest()
-            {
-                Instance = instanceTemplate,
-                User = User,
-                Prefill = instansiationInstance.Prefill,
-            };
-
-            processResult = await _processEngine.GenerateProcessStartEvents(request);
 
             Instance? source = null;
 
@@ -800,6 +806,22 @@ public class InstancesController : ControllerBase
                 }
             }
 
+            // Calculate initial process state in memory before creating the instance with process state
+            var startRequest = new ProcessStartRequest()
+            {
+                Instance = instanceTemplate,
+                User = User,
+                Prefill = instansiationInstance.Prefill,
+            };
+
+            ProcessChangeResult processResult = await _processEngine.CreateInitialProcessState(startRequest);
+            if (!processResult.Success)
+            {
+                return Conflict(processResult.ErrorMessage);
+            }
+            processStateChange = processResult.ProcessStateChange;
+
+            // Create instance WITH process state
             instance = await _instanceClient.CreateInstance(
                 org,
                 app,
@@ -813,11 +835,46 @@ public class InstancesController : ControllerBase
                 await CopyDataFromSourceInstance(application, instance, source);
             }
 
-            instance = await _instanceClient.GetInstance(instance, authenticationMethod: null, CancellationToken.None);
-            await _processEngine.HandleEventsAndUpdateStorage(
+            instance = await _instanceClient.GetInstance(instance);
+
+            // An instance must never exist without a process to enqueue in the workflow engine.
+            if (processStateChange is null)
+            {
+                throw new InvalidOperationException(
+                    "Instantiated instance has no process state change to enqueue in the workflow engine."
+                );
+            }
+
+            // Dispatch process state change to async engine
+            int partyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
+            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+            await using var instanceLock = _instanceLocker.InitLock(partyId, instanceGuid);
+            await instanceLock.Lock();
+            instance = await _processEngine.SubmitInitialProcessState(
                 instance,
-                instansiationInstance.Prefill,
-                processResult.ProcessStateChange?.Events
+                processStateChange,
+                _instanceLocker.CurrentLockToken
+                    ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock"),
+                isInstantiation: true,
+                prefill: instansiationInstance.Prefill,
+                notification: instansiationInstance.Notification
+            );
+        }
+        catch (WorkflowSubmissionFailedException exception)
+        {
+            return await HandleInitialWorkflowSubmissionFailure(
+                exception,
+                instance,
+                $"Initial process workflow submission failed for appId {org}/{app} for party {instanceTemplate.InstanceOwner?.PartyId}"
+            );
+        }
+        catch (WorkflowExecutionFailedException exception)
+        {
+            return HandleInitialWorkflowExecutionFailure(
+                exception,
+                $"Initial process workflow execution failed for appId {org}/{app} for party {instanceTemplate.InstanceOwner?.PartyId}",
+                org,
+                app
             );
         }
         catch (Exception exception)
@@ -830,31 +887,7 @@ public class InstancesController : ControllerBase
             );
         }
 
-        await RegisterEvent("app.instance.created", instance);
-
-        if (instansiationInstance.Notification is not null)
-        {
-            try
-            {
-                CancellationToken doNotCancelNotification = CancellationToken.None;
-                await _notificationService.NotifyInstanceOwnerOnInstantiation(
-                    instance,
-                    party,
-                    instansiationInstance.Notification,
-                    doNotCancelNotification
-                );
-            }
-            catch (Exception ex)
-            {
-                // TODO: retry with workflow engine
-                _logger.LogError(
-                    ex,
-                    "Failed to send instantiation notification for instance {InstanceId}",
-                    instance.Id
-                );
-            }
-        }
-
+        ArgumentNullException.ThrowIfNull(instance);
         SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
         string url = instance.SelfLinks.Apps;
 
@@ -981,12 +1014,17 @@ public class InstancesController : ControllerBase
             }
         }
 
+        // Calculate initial process state in memory before creating the instance with process state
         ProcessStartRequest processStartRequest = new() { Instance = targetInstance, User = User };
-
-        ProcessChangeResult startResult = await _processEngine.GenerateProcessStartEvents(processStartRequest);
+        ProcessChangeResult startResult = await _processEngine.CreateInitialProcessState(processStartRequest);
+        if (!startResult.Success)
+        {
+            return Conflict(startResult.ErrorMessage);
+        }
 
         try
         {
+            // Create instance WITH process state
             targetInstance = await _instanceClient.CreateInstance(
                 org,
                 app,
@@ -1003,22 +1041,50 @@ public class InstancesController : ControllerBase
                 CancellationToken.None
             );
 
-            await _processEngine.HandleEventsAndUpdateStorage(
-                targetInstance,
-                null,
-                startResult.ProcessStateChange?.Events
-            );
-
-            await RegisterEvent("app.instance.created", targetInstance);
+            // Dispatch process state change to async engine
+            if (startResult.ProcessStateChange is not null)
+            {
+                int targetPartyId = int.Parse(targetInstance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
+                Guid targetInstanceGuid = Guid.Parse(targetInstance.Id.Split("/")[1]);
+                await using var instanceLock = _instanceLocker.InitLock(targetPartyId, targetInstanceGuid);
+                await instanceLock.Lock();
+                targetInstance = await _processEngine.SubmitInitialProcessState(
+                    targetInstance,
+                    startResult.ProcessStateChange,
+                    _instanceLocker.CurrentLockToken
+                        ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock"),
+                    isInstantiation: true
+                );
+            }
 
             string url = SelfLinkHelper.BuildFrontendSelfLink(targetInstance, Request);
 
             return Redirect(url);
         }
+        catch (WorkflowSubmissionFailedException exception)
+        {
+            // HandleInitialWorkflowSubmissionFailure hard-deletes the instance when the workflow was not accepted.
+            return await HandleInitialWorkflowSubmissionFailure(
+                exception,
+                targetInstance,
+                $"Initial process workflow submission failed for appId {org}/{app} for party {targetInstance.InstanceOwner?.PartyId}"
+            );
+        }
+        catch (WorkflowExecutionFailedException exception)
+        {
+            // Workflow was accepted but execution failed; the instance is intentionally retained for resume.
+            return HandleInitialWorkflowExecutionFailure(
+                exception,
+                $"Initial process workflow execution failed for appId {org}/{app} for party {targetInstance.InstanceOwner?.PartyId}",
+                org,
+                app
+            );
+        }
         catch (Exception exception)
         {
+            // Any other failure after CreateInstance (e.g. data copy or storage read) leaves an orphaned
+            // instance, so clean it up before surfacing the error.
             await TryDeleteInstance(targetInstance);
-
             return ExceptionResponse(
                 exception,
                 $"Copying instance {instanceOwnerPartyId}/{instanceGuid} failed for party {targetInstance?.InstanceOwner?.PartyId}"
@@ -1436,6 +1502,208 @@ public class InstancesController : ControllerBase
         return StatusCode(500, $"{message}");
     }
 
+    private async Task<ObjectResult> HandleInitialWorkflowSubmissionFailure(
+        WorkflowSubmissionFailedException exception,
+        Instance? instance,
+        string message
+    )
+    {
+        bool instanceDeleted = false;
+        if (exception.Kind == WorkflowSubmissionFailureKind.NotAccepted && instance is not null)
+        {
+            instanceDeleted = await TryHardDeleteCreatedInstance(instance, "initial workflow was not accepted");
+        }
+
+        return CreateWorkflowInitializationProblem(
+            exception,
+            message,
+            exception.Kind == WorkflowSubmissionFailureKind.NotAccepted
+                ? "workflowNotAccepted"
+                : "workflowAcceptanceUnknown",
+            instance,
+            recommendedAction: exception.Kind == WorkflowSubmissionFailureKind.NotAccepted && instanceDeleted
+                ? "retryInstanceCreation"
+                : "inspectInstance",
+            instanceDeleted: instanceDeleted,
+            workflowSubmissionFailureKind: exception.Kind.ToString(),
+            workflowSubmissionStatusCode: exception.StatusCode,
+            workflowCollectionKey: exception.CollectionKey
+        );
+    }
+
+    private ObjectResult HandleInitialWorkflowExecutionFailure(
+        WorkflowExecutionFailedException exception,
+        string message,
+        string org,
+        string app
+    )
+    {
+        return CreateWorkflowInitializationProblem(
+            exception,
+            message,
+            initializationState: "workflowFailed",
+            instance: exception.Instance,
+            recommendedAction: "resumeCurrentTask",
+            resumeEndpoint: CreateProcessResumeEndpoint(org, app, exception.Instance),
+            workflowFailure: exception.WorkflowFailure,
+            workflowAccepted: true,
+            processStateChanged: exception.ProcessStateChanged
+        );
+    }
+
+    private async Task<bool> TryHardDeleteCreatedInstance(Instance instance, string reason)
+    {
+        try
+        {
+            var instanceIdentifier = new InstanceIdentifier(instance);
+            await _instanceClient.DeleteInstance(
+                instanceIdentifier.InstanceOwnerPartyId,
+                instanceIdentifier.InstanceGuid,
+                hard: true,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
+            return true;
+        }
+        catch (Exception deleteException)
+        {
+            _logger.LogError(
+                deleteException,
+                "Failed to delete instance {InstanceId} after {Reason}.",
+                instance.Id,
+                reason
+            );
+            return false;
+        }
+    }
+
+    private ObjectResult CreateWorkflowInitializationProblem(
+        Exception exception,
+        string message,
+        string initializationState,
+        Instance? instance,
+        string recommendedAction,
+        bool? instanceDeleted = null,
+        ResumeEndpoint? resumeEndpoint = null,
+        WorkflowFailure? workflowFailure = null,
+        bool? workflowAccepted = null,
+        string? workflowSubmissionFailureKind = null,
+        HttpStatusCode? workflowSubmissionStatusCode = null,
+        string? workflowCollectionKey = null,
+        bool processStateChanged = false
+    )
+    {
+        const int statusCode = StatusCodes.Status500InternalServerError;
+
+        _logger.LogError(exception, message);
+
+        var problemDetails = new ProblemDetails
+        {
+            Detail = CreateWorkflowInitializationDetail(
+                initializationState,
+                recommendedAction,
+                instanceDeleted,
+                workflowAccepted,
+                processStateChanged
+            ),
+            Status = statusCode,
+            Title = "Instance initialization failed.",
+        };
+        problemDetails.Extensions["initializationState"] = initializationState;
+        problemDetails.Extensions["recommendedAction"] = recommendedAction;
+        problemDetails.Extensions["technicalDetail"] = message;
+
+        if (instanceDeleted.HasValue)
+        {
+            problemDetails.Extensions["instanceDeleted"] = instanceDeleted.Value;
+        }
+
+        if (resumeEndpoint is not null)
+        {
+            problemDetails.Extensions["resumeEndpoint"] = resumeEndpoint;
+        }
+
+        if (workflowAccepted.HasValue)
+        {
+            problemDetails.Extensions["workflowAccepted"] = workflowAccepted.Value;
+        }
+
+        if (workflowFailure is not null)
+        {
+            problemDetails.Extensions["workflowFailure"] = workflowFailure;
+        }
+
+        if (!string.IsNullOrWhiteSpace(workflowSubmissionFailureKind))
+        {
+            problemDetails.Extensions["workflowSubmissionFailureKind"] = workflowSubmissionFailureKind;
+        }
+
+        if (workflowSubmissionStatusCode.HasValue)
+        {
+            problemDetails.Extensions["workflowSubmissionStatusCode"] = (int)workflowSubmissionStatusCode.Value;
+        }
+
+        if (!string.IsNullOrWhiteSpace(workflowCollectionKey))
+        {
+            problemDetails.Extensions["workflowCollectionKey"] = workflowCollectionKey;
+        }
+
+        if (processStateChanged)
+        {
+            problemDetails.Extensions["processStateChanged"] = true;
+        }
+
+        AddInstanceExtensions(problemDetails, instance);
+
+        return StatusCode(statusCode, problemDetails);
+    }
+
+    private static string CreateWorkflowInitializationDetail(
+        string initializationState,
+        string recommendedAction,
+        bool? instanceDeleted,
+        bool? workflowAccepted,
+        bool processStateChanged
+    ) =>
+        (initializationState, recommendedAction, instanceDeleted, workflowAccepted, processStateChanged) switch
+        {
+            ("workflowNotAccepted", "retryInstanceCreation", true, _, _) =>
+                "Runtime created the instance, but the initial workflow was not accepted by the workflow engine. The created instance was deleted, so the client can safely retry instance creation.",
+            ("workflowNotAccepted", _, false, _, _) =>
+                "Runtime created the instance, but the initial workflow was not accepted by the workflow engine. Runtime could not delete the created instance, so inspect the instance before retrying instance creation.",
+            ("workflowAcceptanceUnknown", _, _, _, _) =>
+                "Runtime submitted the initial workflow, but could not determine whether the workflow engine accepted it. Inspect the instance and workflow state before retrying instance creation.",
+            ("workflowFailed", _, _, true, true) =>
+                "The workflow engine accepted the initial workflow, but the workflow failed after process state may have been updated in Storage. Do not create a duplicate instance; resolve the workflow failure and call the resume endpoint.",
+            ("workflowFailed", _, _, true, _) =>
+                "The workflow engine accepted the initial workflow, but the workflow failed before instance initialization completed. Do not create a duplicate instance; resolve the workflow failure and call the resume endpoint.",
+            _ => "Runtime could not complete instance initialization. Inspect the response details before retrying.",
+        };
+
+    private static void AddInstanceExtensions(ProblemDetails problemDetails, Instance? instance)
+    {
+        if (instance?.Id is null)
+        {
+            return;
+        }
+
+        problemDetails.Extensions["instanceId"] = instance.Id;
+        var instanceIdentifier = new InstanceIdentifier(instance);
+        problemDetails.Extensions["instanceOwnerPartyId"] = instanceIdentifier.InstanceOwnerPartyId;
+        problemDetails.Extensions["instanceGuid"] = instanceIdentifier.InstanceGuid;
+    }
+
+    private static ResumeEndpoint CreateProcessResumeEndpoint(string org, string app, Instance instance)
+    {
+        var instanceIdentifier = new InstanceIdentifier(instance);
+        return new ResumeEndpoint(
+            "POST",
+            $"/{org}/{app}/instances/{instanceIdentifier.InstanceOwnerPartyId}/{instanceIdentifier.InstanceGuid}/process/resume"
+        );
+    }
+
+    private sealed record ResumeEndpoint(string Method, string Path);
+
     private async Task<EnforcementResult> AuthorizeAction(
         string org,
         string app,
@@ -1478,7 +1746,7 @@ public class InstancesController : ControllerBase
             {
                 return await _registerClient.GetPartyUnchecked(
                     int.Parse(instanceOwner.PartyId, CultureInfo.InvariantCulture),
-                    this.HttpContext.RequestAborted
+                    cancellationToken: this.HttpContext.RequestAborted
                 );
             }
             catch (Exception e) when (e is not ServiceException)
@@ -1507,7 +1775,10 @@ public class InstancesController : ControllerBase
                             $"Failed to lookup party by external identifier: {instanceOwner.ExternalIdentifier}. No partyId found for the provided external identifier."
                         );
                     }
-                    return await _registerClient.GetPartyUnchecked(partyId.Value, this.HttpContext.RequestAborted);
+                    return await _registerClient.GetPartyUnchecked(
+                        partyId.Value,
+                        cancellationToken: this.HttpContext.RequestAborted
+                    );
                 }
                 if (!string.IsNullOrEmpty(instanceOwner.PersonNumber))
                 {
@@ -1535,7 +1806,10 @@ public class InstancesController : ControllerBase
                             $"Failed to lookup party by username: {instanceOwner.Username}. No partyId found for the provided idporten self identified email address."
                         );
                     }
-                    return await _registerClient.GetPartyUnchecked(partyId.Value, this.HttpContext.RequestAborted);
+                    return await _registerClient.GetPartyUnchecked(
+                        partyId.Value,
+                        cancellationToken: this.HttpContext.RequestAborted
+                    );
                 }
                 else
                 {
@@ -1647,7 +1921,7 @@ public class InstancesController : ControllerBase
             }
         }
 
-        var taskId = instance.Process?.CurrentTask?.ElementId;
+        string? taskId = instance.Process?.CurrentTask?.ElementId;
 
         if (taskId is null)
             throw new InvalidOperationException("There should be a task while initializing data");

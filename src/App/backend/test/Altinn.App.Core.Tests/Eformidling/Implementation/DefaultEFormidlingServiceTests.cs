@@ -278,7 +278,7 @@ public class DefaultEFormidlingServiceTests
         eFormidlingClient.Verify(ec => ec.SendMessage(instanceGuid.ToString(), expectedReqHeaders));
         fixture
             .Mock<IEventsClient>()
-            .Verify(e => e.AddEvent(EformidlingConstants.CheckInstanceStatusEventType, instance));
+            .Verify(e => e.AddEvent(EformidlingConstants.CheckInstanceStatusEventType, instance, null));
 
         eFormidlingClient.VerifyNoOtherCalls();
         fixture.Mock<IEventsClient>().VerifyNoOtherCalls();

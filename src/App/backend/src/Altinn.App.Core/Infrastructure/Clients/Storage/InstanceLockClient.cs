@@ -21,8 +21,6 @@ internal sealed class InstanceLockClient(
 {
     private readonly AuthenticationMethod _defaultAuthenticationMethod = StorageAuthenticationMethod.CurrentUser();
 
-    private const string LockTokenHeaderName = "Altinn-Storage-Lock-Token";
-
     private HttpClient CreateHttpClient()
     {
         var settings = _platformSettings.CurrentValue;
@@ -105,7 +103,7 @@ internal sealed class InstanceLockClient(
         using HttpRequestMessage request = new(HttpMethod.Patch, apiUrl);
         request.Content = JsonContent.Create(instanceLockRequest);
         request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, userToken);
-        request.Headers.Add(LockTokenHeaderName, lockToken);
+        request.Headers.Add(General.LockTokenHeaderName, lockToken);
 
         using var client = CreateHttpClient();
         using var response = await client.SendAsync(request, cancellationToken);
