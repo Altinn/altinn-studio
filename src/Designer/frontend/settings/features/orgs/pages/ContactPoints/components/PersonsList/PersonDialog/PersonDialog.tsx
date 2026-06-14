@@ -23,6 +23,7 @@ import {
 import { useAddContactPointMutation } from '../../../../../hooks/useAddContactPointMutation';
 import { useUpdateContactPointMutation } from '../../../../../hooks/useUpdateContactPointMutation';
 import { personToPayload } from '../personUtils';
+import type { ContactPoint } from 'app-shared/types/ContactPoint';
 
 export type Person = {
   name: string;
@@ -37,14 +38,25 @@ type PersonDialogProps = {
   availableEnvironments: string[];
   org: string;
   editingId: string | null;
+  auditInfo: ContactPoint | null;
   onClose: () => void;
 };
+
+const formatDate = (isoString: string): string =>
+  new Date(isoString).toLocaleString('nb-NO', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
 export const PersonDialog = ({
   initialValue,
   availableEnvironments,
   org,
   editingId,
+  auditInfo,
   onClose,
 }: PersonDialogProps): ReactElement => {
   const { t } = useTranslation();
@@ -165,6 +177,23 @@ export const PersonDialog = ({
             </div>
           </StudioCheckboxGroup>
         </div>
+        {auditInfo && (
+          <StudioParagraph size='sm' className={classes.auditInfo}>
+            {auditInfo.createdByUsername
+              ? t('settings.orgs.contact_points.audit_created_by_date', {
+                  username: auditInfo.createdByUsername,
+                  date: formatDate(auditInfo.createdAt),
+                })
+              : t('settings.orgs.contact_points.audit_created_date', {
+                  date: formatDate(auditInfo.createdAt),
+                })}
+            {auditInfo.updatedByUsername &&
+              ` · ${t('settings.orgs.contact_points.audit_updated_by_date', {
+                username: auditInfo.updatedByUsername,
+                date: formatDate(auditInfo.updatedAt),
+              })}`}
+          </StudioParagraph>
+        )}
         <StudioFormActions
           primary={{
             label: isEditing ? t('general.save') : t('general.add'),
