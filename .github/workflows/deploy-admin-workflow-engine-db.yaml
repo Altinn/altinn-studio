@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - feat/admin-syncroot
     paths:
       - infra/admin/workflow-engine-db/**
       - .github/workflows/deploy-admin-workflow-engine-db.yaml

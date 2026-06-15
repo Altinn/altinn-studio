@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - feat/admin-syncroot
     paths:
       - infra/admin/workflow-engine-tenant-db-template/**
       - .github/workflows/deploy-admin-workflow-engine-tenant-db-template.yaml
