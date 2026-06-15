@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 import {
   AppTable,
-  DropdownCaption,
+  DatePickerDrowpdownCaption,
   FieldRenderer,
   type FormDataObject,
   type TableActionButton,
@@ -136,7 +136,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
             setShowEdit(false);
           }}
           backdropClose={true}
-          DropdownCaption={DropdownCaption}
+          DropdownCaption={DatePickerDrowpdownCaption}
         />
       )}
 
@@ -201,7 +201,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
                     handleChange(nextValue, rowIndex);
                   }}
                   schema={schema}
-                  DropdownCaption={DropdownCaption}
+                  DropdownCaption={DatePickerDrowpdownCaption}
                   buttonAriaLabel={langAsString('date_picker.aria_label_icon')}
                   calendarIconTitle={langAsString('date_picker.aria_label_icon')}
                 />

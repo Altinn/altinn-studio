@@ -1,6 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import { type DatePickerControlProps, DropdownCaption, DynamicForm, type FormDataObject } from '@app/form-component';
+import {
+  type DatePickerControlProps,
+  DatePickerDrowpdownCaption,
+  DynamicForm,
+  type FormDataObject,
+} from '@app/form-component';
 import { Button, Dialog } from '@digdir/designsystemet-react';
 import { v4 as uuidv4 } from 'uuid';
 import type { JSONSchema7 } from 'json-schema';
@@ -143,7 +148,7 @@ export function AddToListComponent({ baseComponentId }: PropsFromGenericComponen
             setShowForm(false);
           }}
           backdropClose={true}
-          DropdownCaption={DropdownCaption}
+          DropdownCaption={DatePickerDrowpdownCaption}
         />
       )}
 

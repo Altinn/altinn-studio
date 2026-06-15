@@ -2,26 +2,31 @@ import { formatMonthDropdown, useDayPicker } from 'react-day-picker';
 import type { MonthCaptionProps } from 'react-day-picker';
 
 import { Button } from '@app/form-component/app-components/Button';
+import { useDatePickerClose } from '@app/form-component/app-components/Datepicker/DatepickerDialog';
 import {
   getDateLib,
   getMonths,
   getYears,
-  useDatePickerClose,
-} from '@app/form-component/app-components/Datepicker';
+} from '@app/form-component/app-components/Datepicker/utils/dateHelpers';
 import { useCurrentLanguage, useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 import comboboxClasses from '@app/form-component/styles/combobox.module.css';
 import { Select } from '@digdir/designsystemet-react';
 import { ArrowLeftIcon, ArrowRightIcon, XMarkIcon } from '@navikt/aksel-icons';
 import { addYears, setMonth, setYear, startOfMonth, subYears } from 'date-fns';
 
-import styles from './DropdownCaption.module.css';
+import styles from './DatePickerDrowpdownCaption.module.css';
 
-type DropdownCaptionProps = MonthCaptionProps & {
+type DatePickerDrowpdownCaptionProps = MonthCaptionProps & {
   minDate?: Date;
   maxDate?: Date;
 };
 
-export const DropdownCaption = ({ calendarMonth, id, minDate, maxDate }: DropdownCaptionProps) => {
+export const DatePickerDrowpdownCaption = ({
+  calendarMonth,
+  id,
+  minDate,
+  maxDate,
+}: DatePickerDrowpdownCaptionProps) => {
   const { goToMonth, nextMonth, previousMonth } = useDayPicker();
   const { langAsString } = useTranslation();
   const languageLocale = useCurrentLanguage();

@@ -1,1 +1,0 @@
-export { DropdownCaption } from './DropdownCaption';

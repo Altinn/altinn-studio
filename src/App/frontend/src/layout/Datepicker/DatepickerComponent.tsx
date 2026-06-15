@@ -1,6 +1,13 @@
 import React from 'react';
 
-import { DatePickerControl, DropdownCaption, Flex, getDateConstraint, getDateFormat, Label } from '@app/form-component';
+import {
+  DatePickerControl,
+  DatePickerDrowpdownCaption,
+  Flex,
+  getDateConstraint,
+  getDateFormat,
+  Label,
+} from '@app/form-component';
 
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -70,7 +77,7 @@ export function DatepickerComponent({ baseComponentId, overrideDisplay }: PropsF
             minDate={calculatedMinDate}
             maxDate={calculatedMaxDate}
             DropdownCaption={(props) => (
-              <DropdownCaption
+              <DatePickerDrowpdownCaption
                 {...props}
                 minDate={calculatedMinDate}
                 maxDate={calculatedMaxDate}
