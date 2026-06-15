@@ -21,7 +21,6 @@ export type AppConfigNew = {
   status?: StatusOption;
   selfIdentifiedUserEnabled?: boolean;
   enterpriseUserEnabled?: boolean;
-  availableForType?: AvailableForTypeOption[];
   contactPoints?: ContactPoint[];
   visible?: boolean;
 };
@@ -32,13 +31,6 @@ export type Keyword = {
 };
 
 export type StatusOption = 'Completed' | 'Deprecated' | 'UnderDevelopment' | 'Withdrawn';
-
-export type AvailableForTypeOption =
-  | 'PrivatePerson'
-  | 'LegalEntityEnterprise'
-  | 'Company'
-  | 'BankruptcyEstate'
-  | 'SelfRegisteredUser';
 
 export type ResourceType = 'altinnapp';
 
