@@ -55,7 +55,7 @@ internal static class DockerfileMigration
     }
 
     /// <summary>
-    /// Derives the .NET image tag from the target framework, e.g. "net10.0" =&gt; "10.0-alpine".
+    /// Derives the .NET image tag from the target framework, e.g. "net10.0" => "10.0-alpine".
     /// </summary>
     private static string GetImageTag(string targetFramework)
     {
