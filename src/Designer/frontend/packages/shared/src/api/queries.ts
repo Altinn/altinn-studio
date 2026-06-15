@@ -201,8 +201,8 @@ export const getUserOrgPermissions = (org: string) => get(userOrgPermissionsPath
 export const searchRepos = (filter: SearchRepoFilterParams) => get<SearchRepositoryResponse>(`${repoSearchPath()}${buildQueryParams(filter)}`);
 export const validateImageFromExternalUrl = (owner: string, app: string, url: string) => get<ExternalImageUrlValidationResponse>(validateImageFromExternalUrlPath(owner, app, url));
 export const canUseFeature = (featureName: FeatureName) => get<CanUseFeature>(canUseFeaturePath(featureName));
-export const getValidationOnNavigation = <T extends ValidationOnNavigationLevel = ValidationOnNavigationLevel.Global>(org: string, app: string, level: T = ValidationOnNavigationLevel.Global) =>
-  get<ValidationOnNavigationByLevel[T]>(`${validationOnNavigationPath(org, app)}${buildQueryParams({ level })}`);
+export const getValidationOnNavigation = <T extends ValidationOnNavigationLevel = ValidationOnNavigationLevel.Global>(org: string, app: string, level?: T) =>
+  get<ValidationOnNavigationByLevel[T]>(`${validationOnNavigationPath(org, app)}${buildQueryParams({ level: level ?? ValidationOnNavigationLevel.Global })}`);
 
 // Layout
 export const getPages = (org: string, app: string, layoutSet: string) => get<PagesModel>(layoutPagesPath(org, app, layoutSet));
