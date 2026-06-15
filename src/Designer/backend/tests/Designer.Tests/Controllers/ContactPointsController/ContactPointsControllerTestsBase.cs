@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
@@ -29,7 +30,25 @@ public abstract class ContactPointsControllerTestsBase<TTestClass>
         WebApplicationFactory<Program> factory,
         DesignerDbFixture designerDbFixture
     )
-        : base(factory, designerDbFixture) { }
+        : base(factory, designerDbFixture)
+    {
+        EnsureTestUserAccountExists();
+    }
+
+    private void EnsureTestUserAccountExists()
+    {
+        const string TestUsername = "testUser";
+        if (DesignerDbFixture.DbContext.UserAccounts.Any(u => u.Username == TestUsername))
+        {
+            return;
+        }
+
+        DesignerDbFixture.DbContext.UserAccounts.Add(
+            new UserAccountDbModel { Username = TestUsername, Created = DateTimeOffset.UtcNow }
+        );
+        DesignerDbFixture.DbContext.SaveChanges();
+        DesignerDbFixture.DbContext.ChangeTracker.Clear();
+    }
 
     protected async Task<ContactPointDbModel> SeedContactPointAsync(
         string org,
