@@ -74,8 +74,10 @@ jobs:
         run: |
           export IMAGE="${{ steps.vars.outputs.image-repo }}"
           export IMAGE_TAG="${{ steps.vars.outputs.short-sha }}"
-          yq -i '.metadata.annotations["altinn.studio/image"] = env(IMAGE)' scaledjob.yaml
-          yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' scaledjob.yaml
+          for file in scaledjob.yaml scaledjob-single.yaml; do
+            yq -i '.metadata.annotations["altinn.studio/image"] = env(IMAGE)' "$file"
+            yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' "$file"
+          done
 
       - name: push artifact
         working-directory: src/github-runner/infra/kustomize
