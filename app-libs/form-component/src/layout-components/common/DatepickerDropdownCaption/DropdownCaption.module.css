@@ -11,11 +11,6 @@
   flex: 1;
   min-width: 0;
 }
-.comboboxContainer [class*='ds-combobox__input__wrapper'],
-.comboboxContainer [class*='ds-combobox__chip-and-input'],
-.comboboxContainer input {
-  min-width: 0;
-}
 
 @media (max-width: 480px) {
   .datepickerCaption {

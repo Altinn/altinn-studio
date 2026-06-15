@@ -9,6 +9,7 @@ import {
   useDatePickerClose,
 } from '@app/form-component/app-components/Datepicker';
 import { useCurrentLanguage, useTranslation } from '@app/form-component/LanguageTranslatorProvider';
+import comboboxClasses from '@app/form-component/styles/combobox.module.css';
 import { Select } from '@digdir/designsystemet-react';
 import { ArrowLeftIcon, ArrowRightIcon, XMarkIcon } from '@navikt/aksel-icons';
 import { addYears, setMonth, setYear, startOfMonth, subYears } from 'date-fns';
@@ -85,7 +86,7 @@ export const DropdownCaption = ({ calendarMonth, id, minDate, maxDate }: Dropdow
           value={calendarMonth.date.getFullYear().toString()}
           onChange={(e) => handleYearChange(e.target.value)}
           aria-label={langAsString('date_picker.aria_label_year_dropdown')}
-          className={styles.comboboxContainer}
+          className={comboboxClasses.container}
         >
           {years.map((date) => (
             <Select.Option
