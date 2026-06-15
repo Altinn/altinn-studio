@@ -71,8 +71,8 @@ describe('Frontend urlHelper.ts', () => {
       );
     });
     it('should return the expected url for getUpgradeAuthLevelUrl', () => {
-      expect(getUpgradeAuthLevelUrl('overlord')).toBe(
-        'https://local.altinn.cloud/ui/authentication/upgrade?goTo=https%3A%2F%2Fplatform.local.altinn.cloud%2Fauthentication%2Fapi%2Fv1%2Fauthentication%3Fgoto%3Dhttps%3A%2F%2Flocal.altinn.cloud%2Fttd%2Ftest&reqAuthLevel=overlord',
+      expect(getUpgradeAuthLevelUrl()).toBe(
+        'https://platform.local.altinn.cloud/authentication/api/v1/authentication?goTo=https%3A%2F%2Flocal.altinn.cloud%2Fttd%2Ftest&acr_values=idporten-loa-high',
       );
     });
   });
@@ -98,16 +98,16 @@ describe('Frontend urlHelper.ts', () => {
     describe('util', () => {
       it('should return the expected url for getUpgradeAuthLevelUrl', () => {
         resetWindow();
-        expect(getUpgradeAuthLevelUrl('overlord')).toBe(
-          'https://altinn.no/ui/authentication/upgrade?goTo=https%3A%2F%2Fplatform.altinn.no%2Fauthentication%2Fapi%2Fv1%2Fauthentication%3Fgoto%3Dhttps%3A%2F%2Flocal.altinn.cloud%2Fttd%2Ftest&reqAuthLevel=overlord',
+        expect(getUpgradeAuthLevelUrl()).toBe(
+          'https://platform.altinn.no/authentication/api/v1/authentication?goTo=https%3A%2F%2Flocal.altinn.cloud%2Fttd%2Ftest&acr_values=idporten-loa-high',
         );
       });
       it('changes the window location', () => {
         resetWindow();
         expect(window.location.href).toBe('https://ttd.apps.altinn.no/ttd/test');
-        redirectToUpgrade('overlord');
+        redirectToUpgrade();
         expect(window.location.href).toBe(
-          'https://altinn.no/ui/authentication/upgrade?goTo=https%3A%2F%2Fplatform.altinn.no%2Fauthentication%2Fapi%2Fv1%2Fauthentication%3Fgoto%3Dhttps%3A%2F%2Flocal.altinn.cloud%2Fttd%2Ftest&reqAuthLevel=overlord',
+          'https://platform.altinn.no/authentication/api/v1/authentication?goTo=https%3A%2F%2Flocal.altinn.cloud%2Fttd%2Ftest&acr_values=idporten-loa-high',
         );
       });
     });

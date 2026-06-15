@@ -130,13 +130,14 @@ export const getRedirectUrl = (returnUrl: string) => {
   return `${appPath}/api/v1/redirect?url=${encodedUriComponent}`;
 };
 
-export const getUpgradeAuthLevelUrl = (reqAuthLevel: string) => {
-  const redirect: string =
-    `https://platform.${getHostname()}` + `/authentication/api/v1/authentication?goto=${appPath}`;
-  return `https://${getHostname()}/ui/authentication/upgrade?goTo=${encodeURIComponent(
-    redirect,
-  )}&reqAuthLevel=${reqAuthLevel}`;
-};
+/**
+ * Builds the platform authentication URL that triggers a step-up to security level high (`idporten-loa-high`),
+ * returning the user to the app (`goTo`) once the higher level has been obtained.
+ */
+export const getUpgradeAuthLevelUrl = () =>
+  `https://platform.${getHostname()}/authentication/api/v1/authentication?goTo=${encodeURIComponent(
+    appPath,
+  )}&acr_values=idporten-loa-high`;
 
 export const getEnvironmentLoginUrl = (oidcProvider: string | null) => {
   // First split away the protocol 'https://' and take the last part. Then split on dots.
@@ -181,8 +182,8 @@ export const getHostname = () => {
   throw new Error('Unknown domain');
 };
 
-export const redirectToUpgrade = (reqAuthLevel: string) => {
-  window.location.href = getUpgradeAuthLevelUrl(reqAuthLevel);
+export const redirectToUpgrade = () => {
+  window.location.href = getUpgradeAuthLevelUrl();
 };
 
 export const getJsonSchemaUrl = () => `${appPath}/api/jsonschema/`;
