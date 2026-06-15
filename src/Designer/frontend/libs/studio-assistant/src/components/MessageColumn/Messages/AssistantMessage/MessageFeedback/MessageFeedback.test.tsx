@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MessageFeedback } from './MessageFeedback';
 import type { MessageFeedbackProps } from './MessageFeedback';
-import { messageFeedbackTexts as feedbackTexts } from '../../../../mocks/mockTexts';
+import { messageFeedbackTexts as feedbackTexts } from '../../../../../mocks/mockTexts';
 
 describe('MessageFeedback', () => {
   it('renders thumbs up and thumbs down buttons', () => {
