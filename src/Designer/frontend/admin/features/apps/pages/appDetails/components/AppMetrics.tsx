@@ -163,6 +163,17 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
     ));
   };
 
+  const allMissingRights =
+    appHealthMetricsIsError &&
+    isAxiosError(appHealthMetricsError) &&
+    appHealthMetricsError.response?.status === 403 &&
+    appErrorMetricsIsError &&
+    isAxiosError(appErrorMetricsError) &&
+    appErrorMetricsError.response?.status === 403 &&
+    appMetricsIsError &&
+    isAxiosError(appMetricsError) &&
+    appMetricsError.response?.status === 403;
+
   return (
     <StudioCard data-color='neutral' className={classes.container}>
       <StudioHeading className={classes.heading} data-size='sm'>
@@ -173,9 +184,17 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
         />
       </StudioHeading>
       <div className={classes.content}>
-        {renderAppHealthMetrics()}
-        {renderAppErrorMetrics()}
-        {renderAppMetrics()}
+        {allMissingRights ? (
+          <StudioAlert data-color='info' className={classes.metric}>
+            {t('admin.metrics.missing_rights', { envTitle, orgName })}
+          </StudioAlert>
+        ) : (
+          <>
+            {renderAppHealthMetrics()}
+            {renderAppErrorMetrics()}
+            {renderAppMetrics()}
+          </>
+        )}
       </div>
     </StudioCard>
   );
