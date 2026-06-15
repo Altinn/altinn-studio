@@ -1,4 +1,9 @@
-"""Fetch LLM token usage from Langfuse and aggregate into Studio cost-schema rows."""
+"""Fetches LLM token usage from Langfuse and aggregates into a list of cost objects
+that can be used to bill users.
+
+Traces contain metadata (service owner ID, app name).
+Observations contain LLM metrics (token usage, model name), and are children of traces.
+"""
 
 import asyncio
 import base64
@@ -29,9 +34,11 @@ async def get_previous_day_token_usage() -> list[DailyTokenUsageRow]:
         RuntimeError: If Langfuse credentials are missing (caller should
             map to HTTP 503).
     """
-    window_start, window_end = _previous_utc_day_window()
+    trace_window_start, observation_window_start, window_end = (
+        _previous_day_query_windows()
+    )
     traces, observations = await _fetch_traces_and_observations(
-        window_start, window_end
+        trace_window_start, observation_window_start, window_end
     )
 
     trace_objects = [_as_trace(item) for item in traces]
@@ -43,7 +50,9 @@ async def get_previous_day_token_usage() -> list[DailyTokenUsageRow]:
 
 
 async def _fetch_traces_and_observations(
-    window_start: datetime, window_end: datetime
+    trace_window_start: datetime,
+    observation_window_start: datetime,
+    window_end: datetime,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     config = get_config()
     auth_header = _create_auth_header(
@@ -60,7 +69,7 @@ async def _fetch_traces_and_observations(
                 client,
                 "/api/public/traces",
                 {
-                    "fromTimestamp": window_start.isoformat(),
+                    "fromTimestamp": trace_window_start.isoformat(),
                     "toTimestamp": window_end.isoformat(),
                 },
             ),
@@ -69,7 +78,7 @@ async def _fetch_traces_and_observations(
                 "/api/public/observations",
                 {
                     "type": "GENERATION",
-                    "fromStartTime": window_start.isoformat(),
+                    "fromStartTime": observation_window_start.isoformat(),
                     "toStartTime": window_end.isoformat(),
                 },
             ),
@@ -85,11 +94,24 @@ def _create_auth_header(public_key: str | None, secret_key: str | None) -> str:
     return f"Basic {token}"
 
 
-def _previous_utc_day_window() -> tuple[datetime, datetime]:
+def _previous_day_query_windows() -> tuple[datetime, datetime, datetime]:
+    """Build the query windows for fetching the previous UTC day's data.
+
+    A workflow can start just before midnight but log its observations after
+    midnight. Such an observation belongs to the new day yet points to a trace
+    from the day before, so the trace window reaches back an extra day to keep
+    aggregation from failing on the missing trace.
+
+    Returns:
+        trace_window_start: two days before window_end.
+        observation_window_start: one day before window_end.
+        window_end: midnight (00:00 UTC) at the start of the current day.
+    """
     now = datetime.now(UTC)
-    today_start = datetime(now.year, now.month, now.day, tzinfo=UTC)
-    yesterday_start = today_start - timedelta(days=1)
-    return yesterday_start, today_start
+    window_end = datetime(now.year, now.month, now.day, tzinfo=UTC)
+    observation_window_start = window_end - timedelta(days=1)
+    trace_window_start = window_end - timedelta(days=2)
+    return trace_window_start, observation_window_start, window_end
 
 
 async def _fetch_all_pages(

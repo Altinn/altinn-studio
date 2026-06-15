@@ -1,7 +1,7 @@
 """Tests for metrics.token_usage helpers."""
 
 import base64
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 
 import httpx
@@ -11,21 +11,24 @@ from metrics import token_usage
 from metrics.token_usage import (
     PAGE_SIZE,
     _create_auth_header,
-    _previous_utc_day_window,
+    _previous_day_query_windows,
     get_previous_day_token_usage,
 )
 
 
-class TestPreviousUtcDayWindow:
+class TestPreviousDayQueryWindows:
     def test_returns_yesterday_midnight_to_today_midnight_utc(self):
         fixed_now = datetime(2026, 5, 11, 14, 37, 12, tzinfo=UTC)
         with patch("metrics.token_usage.datetime") as datetime_mock:
             datetime_mock.now.return_value = fixed_now
             datetime_mock.side_effect = datetime
 
-            window_start, window_end = _previous_utc_day_window()
+            trace_window_start, observation_window_start, window_end = (
+                _previous_day_query_windows()
+            )
 
-        assert window_start == datetime(2026, 5, 10, tzinfo=UTC)
+        assert trace_window_start == datetime(2026, 5, 9, tzinfo=UTC)
+        assert observation_window_start == datetime(2026, 5, 10, tzinfo=UTC)
         assert window_end == datetime(2026, 5, 11, tzinfo=UTC)
 
     def test_handles_month_boundary(self):
@@ -34,9 +37,12 @@ class TestPreviousUtcDayWindow:
             datetime_mock.now.return_value = fixed_now
             datetime_mock.side_effect = datetime
 
-            window_start, window_end = _previous_utc_day_window()
+            trace_window_start, observation_window_start, window_end = (
+                _previous_day_query_windows()
+            )
 
-        assert window_start == datetime(2026, 5, 31, tzinfo=UTC)
+        assert trace_window_start == datetime(2026, 5, 30, tzinfo=UTC)
+        assert observation_window_start == datetime(2026, 5, 31, tzinfo=UTC)
         assert window_end == datetime(2026, 6, 1, tzinfo=UTC)
 
 
@@ -89,7 +95,7 @@ class TestFetchPreviousDayTokenUsage:
             == "Basic " + base64.b64encode(b"pk-123:sk-abc").decode()
         )
 
-    def test_fetches_traces_and_observations_over_the_same_window(self):
+    def test_fetches_traces_with_extra_lookback_for_midnight_spanning_sessions(self):
         handler = _RequestHandler(
             [[_trace_payload("trace-1", "ttd", "my-app")]],
             [[_observation_payload("obs-1", "trace-1")]],
@@ -102,7 +108,11 @@ class TestFetchPreviousDayTokenUsage:
 
         trace_params = handler.params_by_path["/api/public/traces"]
         observation_params = handler.params_by_path["/api/public/observations"]
-        assert trace_params["fromTimestamp"] == observation_params["fromStartTime"]
+        trace_window_start = datetime.fromisoformat(trace_params["fromTimestamp"])
+        observation_window_start = datetime.fromisoformat(
+            observation_params["fromStartTime"]
+        )
+        assert trace_window_start == observation_window_start - timedelta(days=1)
         assert trace_params["toTimestamp"] == observation_params["toStartTime"]
 
 
