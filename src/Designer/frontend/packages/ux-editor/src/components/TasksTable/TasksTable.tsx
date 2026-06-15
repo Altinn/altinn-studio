@@ -31,6 +31,7 @@ export const TasksTable = ({
   const handleMoveAllTasks = () => {
     if (!isNavigationMode || confirm(t('ux_editor.task_table.remove_tasks'))) {
       const newNavigationTaskList = isNavigationMode ? [] : allTasks;
+      console.log(newNavigationTaskList);
       updateTaskNavigationGroup(newNavigationTaskList);
     }
   };

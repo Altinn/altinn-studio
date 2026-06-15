@@ -193,7 +193,8 @@ export const getRuleConfig = (owner: string, app: string, layoutSetName: string)
 export const getRuleModel = (owner: string, app: string, layoutSetName: string) => get<string>(ruleHandlerPath(owner, app, layoutSetName));
 export const getStarredRepos = () => get<Repository[]>(userStarredListPath());
 export const getTextLanguages = (owner: string, app: string): Promise<string[]> => get(textLanguagesPath(owner, app));
-export const getTaskNavigationGroup = (org: string, app: string) => get<TaskNavigationGroup[]>(taskNavigationGroupPath(org, app));
+export const getTaskNavigationGroupV4 = (org: string, app: string) => get<TaskNavigationGroup[]>(taskNavigationGroupPath(org, app));
+export const getTaskNavigationGroup = (org: string, app: string) => get<TaskNavigationGroup[]>(`${uiFoldersPath(org, app)}/settings/task-navigation`);
 export const getTextResources = (owner: string, app: string, lang: string) => get<ITextResourcesWithLanguage>(textResourcesPath(owner, app, lang));
 export const getUser = () => get<User>(userCurrentPath());
 export const getWidgetSettings = (owner: string, app: string) => get<WidgetSettingsResponse | null>(widgetSettingsPath(owner, app));

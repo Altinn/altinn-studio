@@ -63,6 +63,7 @@ import {
   layoutConvertToPageGroupsPath,
   layoutConvertToPageOrderPath,
   taskNavigationGroupPath,
+  uiFoldersPath,
   validationOnNavigationPath,
   orgCodeListUpdateIdPath,
   orgLibraryUpdatePath,
@@ -188,7 +189,8 @@ export const updateDataType = (org: string, app: string, dataModelName: string, 
 export const uploadOptionList = (org: string, app: string, payload: FormData) => post<void, FormData>(optionListUploadPath(org, app), payload, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const updateOptionList = (org: string, app: string, optionsListId: string, payload: Option[]) => put<Option[]>(optionListUpdatePath(org, app, optionsListId), payload);
 export const updateOptionListId = (org: string, app: string, optionsListId: string, newOptionsListId: string) => put<void, string>(optionListIdUpdatePath(org, app, optionsListId), JSON.stringify(newOptionsListId), { headers: { 'Content-Type': 'application/json' } });
-export const updateTaskNavigationGroup = (org: string, app: string, payload: TaskNavigationGroup[]) => post<TaskNavigationGroup[]>(taskNavigationGroupPath(org, app), payload);
+export const updateTaskNavigationGroupV4 = (org: string, app: string, payload: TaskNavigationGroup[]) => post<TaskNavigationGroup[]>(taskNavigationGroupPath(org, app), payload);
+export const updateTaskNavigationGroup = (org: string, app: string, payload: TaskNavigationGroup[]) => post<TaskNavigationGroup[]>(`${uiFoldersPath(org, app)}/settings/task-navigation`, payload);
 export const updateValidationOnNavigationLayoutSettings = (org: string, app: string, payload: IValidationOnNavigationLayoutSettings[]) => post<IValidationOnNavigationLayoutSettings[]>(validateNavigationLayoutSettingsPath(org, app), payload);
 export const updateValidationOnNavigationPageSettings = (org: string, app: string, payload: IValidationOnNavigationPageSettings[]) => post<void, IValidationOnNavigationPageSettings[]>(validateNavigationPageSettingsPath(org, app), payload);
 export const importCodeListFromOrgToApp = (org: string, app: string, codeListId: string): Promise<ImportCodeListResponse> => post<ImportCodeListResponse>(importCodeListFromOrgPath(org, app, codeListId));
