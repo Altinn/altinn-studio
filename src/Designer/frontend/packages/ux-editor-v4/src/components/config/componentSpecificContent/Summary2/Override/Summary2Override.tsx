@@ -10,7 +10,7 @@ import { PlusCircleIcon } from '@studio/icons';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import { useComponentTitle } from '../../../../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
+import { useLayoutSetsExtendedQuery } from '../../../../../hooks/queries/useLayoutSetsExtendedQuery';
 import { getComponentOptions, getTargetLayoutSetName } from '../Summary2Target/targetUtils';
 import type { FormItem } from '@altinn/ux-editor-v4/types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
