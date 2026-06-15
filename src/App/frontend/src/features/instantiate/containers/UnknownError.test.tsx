@@ -30,8 +30,8 @@ describe('Unknown error', () => {
 
     expect(console.error).not.toHaveBeenCalled();
 
-    const showDetailsSummary = screen.getByText('Vis detaljer om feilen');
-    await user.click(showDetailsSummary);
+    const showDetailsButton = screen.getByRole('button', { name: 'Vis detaljer om feilen' });
+    await user.click(showDetailsButton);
     expect(screen.getByText('Error test message')).toBeInTheDocument();
 
     const writeTextMock = jest.spyOn(navigator.clipboard, 'writeText').mockResolvedValue();

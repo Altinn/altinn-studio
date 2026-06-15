@@ -11,8 +11,8 @@
     "typecheck": "tsc --noEmit -p ./"
   },
   "dependencies": {
-    "@digdir/designsystemet-css": "1.15.0",
-    "@digdir/designsystemet-react": "1.15.0",
+    "@digdir/designsystemet-css": "1.13.2",
+    "@digdir/designsystemet-react": "1.13.2",
     "@digdir/designsystemet-theme": "1.11.0",
     "@studio/icons": "workspace:^",
     "@studio/pure-functions": "workspace:^",

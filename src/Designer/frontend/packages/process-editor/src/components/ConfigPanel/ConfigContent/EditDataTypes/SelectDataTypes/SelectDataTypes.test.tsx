@@ -37,7 +37,7 @@ describe('SelectDataTypes', () => {
         mutateDataTypes: mutateDataTypesMock,
       },
     );
-    const suggestionInput = screen.getByRole('combobox', {
+    const suggestionInput = screen.getByRole('textbox', {
       name: textMock('process_editor.configuration_panel_set_data_model_label'),
     });
     await user.click(suggestionInput);
@@ -57,7 +57,7 @@ describe('SelectDataTypes', () => {
     const dataModelIds = ['dataModel1', 'dataModel2'];
     renderSelectDataTypes({ dataModelIds, existingDataType });
 
-    const suggestionInput = screen.getByRole('combobox', {
+    const suggestionInput = screen.getByRole('textbox', {
       name: textMock('process_editor.configuration_panel_set_data_model_label'),
     });
 
@@ -81,7 +81,7 @@ describe('SelectDataTypes', () => {
         mutateDataTypes: mutateDataTypesMock,
       },
     );
-    const suggestionInput = screen.getByRole('combobox', {
+    const suggestionInput = screen.getByRole('textbox', {
       name: textMock('process_editor.configuration_panel_set_data_model_label'),
     });
     await user.click(suggestionInput);
@@ -130,7 +130,7 @@ describe('SelectDataTypes', () => {
         mutateDataTypes: mutateDataTypesMock,
       },
     );
-    const suggestionInput = screen.getByRole('combobox', {
+    const suggestionInput = screen.getByRole('textbox', {
       name: textMock('process_editor.configuration_panel_set_data_model_label'),
     });
     await user.click(suggestionInput);

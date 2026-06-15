@@ -39,8 +39,8 @@
   "devDependencies": {
     "@app/language": "workspace:*",
     "@chromatic-com/storybook": "^5.2.1",
-    "@digdir/designsystemet-css": "1.15.0",
-    "@digdir/designsystemet-react": "1.15.0",
+    "@digdir/designsystemet-css": "1.11.1",
+    "@digdir/designsystemet-react": "1.11.1",
     "@eslint/compat": "2.1.0",
     "@eslint/js": "^10.0.1",
     "@navikt/aksel-icons": "8.12.1",

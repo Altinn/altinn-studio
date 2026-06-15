@@ -68,17 +68,6 @@ Object.defineProperty(document, 'getAnimations', {
   writable: true,
 });
 
-// document.elementFromPoint must be mocked because it is used by the design system's popover to
-// determine whether it is the top layer (e.g. for Escape light-dismiss), but it is not supported by jsdom.
-// jsdom has no layout, so we return the currently open popover, which is the element on top.
-Object.defineProperty(document, 'elementFromPoint', {
-  value: () => {
-    const openPopovers = document.querySelectorAll('[popover].\\:popover-open');
-    return openPopovers[openPopovers.length - 1] ?? null;
-  },
-  writable: true,
-});
-
 // Use Node's implementation of Web Crypto API, since Jest does not have access to browser's Web Crypto API
 Object.defineProperty(window, 'crypto', {
   value: webcrypto,

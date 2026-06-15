@@ -1,4 +1,4 @@
-import type { ComponentRef, Ref } from 'react';
+import type { Ref } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { StudioErrorSummary } from './';
@@ -29,9 +29,7 @@ describe('StudioErrorSummary', () => {
   });
 
   it('should support forwarding the ref', () => {
-    testRefForwarding<ComponentRef<typeof StudioErrorSummary>>((ref) =>
-      renderStudioErrorSummary({}, ref),
-    );
+    testRefForwarding<HTMLDivElement>((ref) => renderStudioErrorSummary({}, ref));
   });
 });
 
@@ -41,7 +39,7 @@ const item2: string = 'Test Item 2';
 
 function renderStudioErrorSummary(
   props: StudioErrorSummaryProps,
-  ref?: Ref<ComponentRef<typeof StudioErrorSummary>>,
+  ref?: Ref<HTMLDivElement>,
 ): RenderResult {
   return render(
     <StudioErrorSummary {...props} ref={ref}>
