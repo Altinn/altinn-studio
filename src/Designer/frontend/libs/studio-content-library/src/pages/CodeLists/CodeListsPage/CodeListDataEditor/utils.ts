@@ -4,6 +4,7 @@ import type { CodeListFile, OrdinaryCodeListFile } from '../../../../types/CodeL
 import { isCodeListValid } from './validators/isCodelistValid';
 import { FileNameUtils } from '@studio/pure-functions';
 import { Guard } from '@studio/guard';
+import type { CodeListParseErrorCode } from '../../../../types/CodeListParseErrorCode';
 
 export const updateName = <FileInfo extends { name: string } = CodeListFile>(
   file: FileInfo,
@@ -33,13 +34,24 @@ export function getCodeListNameFromFile(file: CodeListFile): string {
 export const hasContent = (file: CodeListFile): file is OrdinaryCodeListFile =>
   file.hasOwnProperty('content');
 
-function codeListFileContentToData(fileContent: string): CodeList {
+export function codeListFileContentToData(fileContent: string): CodeList {
+  let data: unknown;
   try {
-    const data = JSON.parse(fileContent);
-    return isCodeListValid(data) ? data : [];
+    data = JSON.parse(fileContent);
   } catch {
-    /* istanbul ignore next */
-    return [];
+    throw new CodeListParseError('invalid-json-syntax');
+  }
+  if (!isCodeListValid(data)) throw new CodeListParseError('invalid-code-list');
+  return data;
+}
+
+export class CodeListParseError {
+  readonly #code: CodeListParseErrorCode;
+  constructor(code: CodeListParseErrorCode) {
+    this.#code = code;
+  }
+  get code(): CodeListParseErrorCode {
+    return this.#code;
   }
 }
 
