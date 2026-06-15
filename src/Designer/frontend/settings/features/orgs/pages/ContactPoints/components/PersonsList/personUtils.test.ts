@@ -75,6 +75,8 @@ const contactPointWithBoth: ContactPoint = {
     { id: 'm1', methodType: 'email', value: 'cp@example.com' },
     { id: 'm2', methodType: 'sms', value: '11111111' },
   ],
+  createdAt: '2024-01-01T00:00:00Z',
+  updatedAt: '2024-01-01T00:00:00Z',
 };
 
 const contactPointEmailOnly: ContactPoint = {
@@ -83,6 +85,8 @@ const contactPointEmailOnly: ContactPoint = {
   isActive: false,
   environments: [],
   methods: [{ id: 'm3', methodType: 'email', value: 'only@example.com' }],
+  createdAt: '2024-01-01T00:00:00Z',
+  updatedAt: '2024-01-01T00:00:00Z',
 };
 
 const contactPointNoMethods: ContactPoint = {
@@ -91,6 +95,8 @@ const contactPointNoMethods: ContactPoint = {
   isActive: true,
   environments: [],
   methods: [],
+  createdAt: '2024-01-01T00:00:00Z',
+  updatedAt: '2024-01-01T00:00:00Z',
 };
 
 describe('contactPointToPerson', () => {

@@ -31,7 +31,6 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
   const [isOpen, setIsOpen] = useState(false);
   const [initialValue, setInitialValue] = useState<Person>(createEmptyPerson([]));
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingContactPoint, setEditingContactPoint] = useState<ContactPoint | null>(null);
 
   const { mutate: toggleActive } = useToggleContactPointActiveMutation(org);
   const { mutate: deletePerson } = useDeleteContactPointMutation(org);
@@ -39,17 +38,17 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
   const { data: orgs } = useOrgListQuery();
   const availableEnvironments = orgs?.[org]?.environments ?? [];
 
+  const editingContactPoint = persons.find((p) => p.id === editingId) ?? null;
+
   const openAddDialog = () => {
     setInitialValue(createEmptyPerson(availableEnvironments));
     setEditingId(null);
-    setEditingContactPoint(null);
     setIsOpen(true);
   };
 
   const openEditDialog = (person: ContactPoint) => {
     setInitialValue(contactPointToPerson(person));
     setEditingId(person.id);
-    setEditingContactPoint(person);
     setIsOpen(true);
   };
 

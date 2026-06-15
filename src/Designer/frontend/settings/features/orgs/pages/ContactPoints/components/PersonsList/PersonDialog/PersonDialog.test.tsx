@@ -38,6 +38,7 @@ const renderPersonDialog = (
       availableEnvironments={availableEnvironments}
       org={org}
       editingId={editingId}
+      auditInfo={null}
       onClose={onClose}
     />,
     { queries },

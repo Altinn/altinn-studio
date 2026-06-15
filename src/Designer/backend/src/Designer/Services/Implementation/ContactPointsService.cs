@@ -70,16 +70,18 @@ public class ContactPointsService(
 
     private async Task<Guid> ResolveUserAccountIdAsync(string username, CancellationToken cancellationToken)
     {
-        var userAccount = await dbContext
+        var id = await dbContext
             .UserAccounts.AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
+            .Where(u => u.Username == username)
+            .Select(u => (Guid?)u.Id)
+            .FirstOrDefaultAsync(cancellationToken);
 
-        if (userAccount is null)
+        if (id is null)
         {
             throw new InvalidOperationException($"User account not found for username '{username}'.");
         }
 
-        return userAccount.Id;
+        return id.Value;
     }
 
     private static ContactPoint MapToDomain(ContactPointEntity entity) =>

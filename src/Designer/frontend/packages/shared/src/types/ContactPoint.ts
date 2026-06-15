@@ -18,6 +18,9 @@ export type ContactPoint = {
   updatedAt: string;
 };
 
-export type ContactPointPayload = Omit<ContactPoint, 'id' | 'methods'> & {
+export type ContactPointPayload = Omit<
+  ContactPoint,
+  'id' | 'methods' | 'createdAt' | 'updatedAt' | 'createdByUsername' | 'updatedByUsername'
+> & {
   methods: Omit<ContactMethod, 'id'>[];
 };

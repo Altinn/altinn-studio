@@ -178,20 +178,24 @@ export const PersonDialog = ({
           </StudioCheckboxGroup>
         </div>
         {auditInfo && (
-          <StudioParagraph size='sm' className={classes.auditInfo}>
-            {auditInfo.createdByUsername
-              ? t('settings.orgs.contact_points.audit_created_by_date', {
-                  username: auditInfo.createdByUsername,
-                  date: formatDate(auditInfo.createdAt),
-                })
-              : t('settings.orgs.contact_points.audit_created_date', {
-                  date: formatDate(auditInfo.createdAt),
-                })}
-            {auditInfo.updatedByUsername &&
-              ` · ${t('settings.orgs.contact_points.audit_updated_by_date', {
-                username: auditInfo.updatedByUsername,
-                date: formatDate(auditInfo.updatedAt),
-              })}`}
+          <StudioParagraph data-size='sm' className={classes.auditInfo}>
+            {`${
+              auditInfo.createdByUsername
+                ? t('settings.orgs.contact_points.audit_created_by_date', {
+                    username: auditInfo.createdByUsername,
+                    date: formatDate(auditInfo.createdAt),
+                  })
+                : t('settings.orgs.contact_points.audit_created_date', {
+                    date: formatDate(auditInfo.createdAt),
+                  })
+            }${
+              auditInfo.updatedByUsername
+                ? ` · ${t('settings.orgs.contact_points.audit_updated_by_date', {
+                    username: auditInfo.updatedByUsername,
+                    date: formatDate(auditInfo.updatedAt),
+                  })}`
+                : ''
+            }`}
           </StudioParagraph>
         )}
         <StudioFormActions

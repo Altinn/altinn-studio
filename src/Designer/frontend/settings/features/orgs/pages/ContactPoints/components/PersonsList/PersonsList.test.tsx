@@ -26,6 +26,8 @@ const person1: ContactPoint = {
     { id: 'm1', methodType: 'email', value: 'test@example.com' },
     { id: 'm2', methodType: 'sms', value: '12345678' },
   ],
+  createdAt: '2024-01-01T00:00:00Z',
+  updatedAt: '2024-01-01T00:00:00Z',
 };
 
 const person2: ContactPoint = {
@@ -34,6 +36,8 @@ const person2: ContactPoint = {
   isActive: false,
   environments: [],
   methods: [{ id: 'm3', methodType: 'email', value: 'bob@example.com' }],
+  createdAt: '2024-01-01T00:00:00Z',
+  updatedAt: '2024-01-01T00:00:00Z',
 };
 
 const defaultProps: { org: string; persons: ContactPoint[] } = {

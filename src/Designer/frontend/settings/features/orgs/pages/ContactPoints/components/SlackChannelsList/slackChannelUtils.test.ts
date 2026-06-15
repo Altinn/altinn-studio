@@ -43,6 +43,8 @@ const contactPointWithSlack: ContactPoint = {
   isActive: true,
   environments: ['tt02'],
   methods: [{ id: 'm1', methodType: 'slack', value: 'https://hooks.slack.com/services/abc' }],
+  createdAt: '2024-01-01T00:00:00Z',
+  updatedAt: '2024-01-01T00:00:00Z',
 };
 
 const contactPointNoSlack: ContactPoint = {
@@ -51,6 +53,8 @@ const contactPointNoSlack: ContactPoint = {
   isActive: false,
   environments: [],
   methods: [],
+  createdAt: '2024-01-01T00:00:00Z',
+  updatedAt: '2024-01-01T00:00:00Z',
 };
 
 describe('contactPointToSlackChannel', () => {
