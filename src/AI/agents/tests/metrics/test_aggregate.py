@@ -1,6 +1,5 @@
 """Tests for the LLM cost aggregator."""
 import logging
-from types import SimpleNamespace
 
 import pytest
 
@@ -21,25 +20,25 @@ def make_obs(
     output_tokens=50,
     extra_usage_details=None,
 ):
-    usage = SimpleNamespace(
-        input=input_tokens,
-        output=output_tokens,
-        total=input_tokens + output_tokens,
-    )
+    usage = {
+        "input": input_tokens,
+        "output": output_tokens,
+        "total": input_tokens + output_tokens,
+    }
     usage_details = {
         "input": input_tokens,
         "output": output_tokens,
         "total": input_tokens + output_tokens,
         **(extra_usage_details or {}),
     }
-    return SimpleNamespace(
-        id=obs_id,
-        trace_id=trace_id,
-        start_time=start_time,
-        model=model,
-        usage=usage,
-        usage_details=usage_details,
-    )
+    return {
+        "id": obs_id,
+        "trace_id": trace_id,
+        "start_time": start_time,
+        "model": model,
+        "usage": usage,
+        "usage_details": usage_details,
+    }
 
 
 def make_trace(
@@ -49,7 +48,7 @@ def make_trace(
     user_id=SERVICE_OWNER,
 ):
     metadata = {"app_name": app_name} if app_name is not None else {}
-    return SimpleNamespace(id=trace_id, user_id=user_id, metadata=metadata)
+    return {"id": trace_id, "user_id": user_id, "metadata": metadata}
 
 
 class TestBucketing:
@@ -144,9 +143,9 @@ class TestEdgeCases:
         assert rows[0]["serviceresourceid"] == "unknown"
         assert DEFAULT_TRACE_ID in caplog.text
 
-    def test_raises_when_user_id_missing(self):
+    def test_raises_when_user_id_empty(self):
         observations = [make_obs()]
-        traces = {DEFAULT_TRACE_ID: make_trace(user_id=None)}
+        traces = {DEFAULT_TRACE_ID: make_trace(user_id="")}
 
         with pytest.raises(ValueError, match="Missing service owner code"):
             aggregate_token_usage(observations, traces, LOADED_AT)
@@ -159,7 +158,7 @@ class TestEdgeCases:
 
     def test_warns_when_model_missing(self, caplog):
         observations = [make_obs()]
-        observations[0].model = None
+        observations[0]["model"] = None
         traces = {DEFAULT_TRACE_ID: make_trace()}
 
         with caplog.at_level(logging.WARNING):

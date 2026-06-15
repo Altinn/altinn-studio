@@ -32,7 +32,7 @@ class TestGetLlmCostsHappyPath:
             "tokens_by_model": {"gpt-4o": {"input": 100, "output": 50, "total": 150}},
         }
         with patch(
-            "api.routes.metrics.fetch_previous_day_token_usage",
+            "api.routes.metrics.get_previous_day_token_usage",
             new_callable=AsyncMock,
         ) as mock_fetch:
             mock_fetch.return_value = [sample_row]
@@ -47,7 +47,7 @@ class TestGetLlmCostsHappyPath:
 class TestGetLlmCostsErrorMapping:
     def test_langfuse_not_initialized_returns_503(self):
         with patch(
-            "api.routes.metrics.fetch_previous_day_token_usage",
+            "api.routes.metrics.get_previous_day_token_usage",
             new_callable=AsyncMock,
             side_effect=RuntimeError("Langfuse client is not initialized"),
         ):
@@ -57,7 +57,7 @@ class TestGetLlmCostsErrorMapping:
 
     def test_upstream_error_returns_502(self):
         with patch(
-            "api.routes.metrics.fetch_previous_day_token_usage",
+            "api.routes.metrics.get_previous_day_token_usage",
             new_callable=AsyncMock,
             side_effect=Exception("Langfuse API 500"),
         ):

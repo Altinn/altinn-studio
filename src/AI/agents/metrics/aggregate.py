@@ -1,11 +1,6 @@
-"""Aggregate Langfuse GENERATION observations into Studio cost-schema rows.
+"""Aggregate Langfuse traces and observations into a cost schema."""
 
-Pure function — no I/O. Bucketing key is `(service_owner_code, app_name, date)`
-and tokens are summed both at the bucket level and per-model.
-"""
-
-from datetime import date, datetime
-from typing import Any, TypedDict
+from typing import Any, NamedTuple, TypedDict
 
 from shared.config import get_config
 from shared.utils.logging_utils import get_logger
@@ -40,36 +35,49 @@ class DailyTokenUsageRow(TypedDict):
     tokens_by_model: dict[str, dict[str, int]]
 
 
+class Trace(TypedDict):
+    id: str
+    user_id: str
+    metadata: dict[str, Any]
+
+
+class Observation(TypedDict):
+    id: str
+    trace_id: str
+    start_time: str
+    model: str | None
+    usage: Any
+    usage_details: dict[str, Any]
+
+
+class BucketKey(NamedTuple):
+    service_owner_code: str
+    app_name: str
+    date: str
+
+
 def aggregate_token_usage(
-    observations: list[Any],
-    traces_by_id: dict[str, Any],
+    observations: list[Observation],
+    traces_by_id: dict[str, Trace],
     loaded_at: str,
 ) -> list[DailyTokenUsageRow]:
-    """Aggregate a flat list of generation observations into token usage rows.
-
-    Args:
-        observations: GENERATION observations from Langfuse (each must expose
-            `id`, `trace_id`, `start_time`, `model`, `usage`, `usage_details`).
-        traces_by_id: Traces keyed by id (each must expose `id`, `user_id`,
-            `metadata`).
-        loaded_at: ISO 8601 timestamp captured by the caller for the entire run.
-    """
-    buckets: dict[tuple[str, str, str], dict] = {}
+    """Aggregate lists of traces and observations into token usage rows."""
+    buckets: dict[BucketKey, dict] = {}
 
     for observation in observations:
-        trace = traces_by_id.get(observation.trace_id)
+        trace = traces_by_id.get(observation["trace_id"])
         if trace is None:
             raise ValueError(
-                f"Missing trace {observation.trace_id} for observation {observation.id}"
+                f"Missing trace {observation['trace_id']} for observation {observation['id']}"
             )
 
-        service_owner_code = trace.user_id
+        service_owner_code = trace["user_id"]
         if not service_owner_code:
-            raise ValueError(f"Missing service owner code for {trace.id}")
+            raise ValueError(f"Missing service owner code for {trace['id']}")
 
-        app_name = _read_app_name(trace)
-        observation_date = _to_date_string(observation.start_time)
-        bucket_key = (service_owner_code, app_name, observation_date)
+        app_name = _get_app_name(trace)
+        observation_date = _to_date_string(observation["start_time"])
+        bucket_key = BucketKey(service_owner_code, app_name, observation_date)
 
         bucket = buckets.setdefault(
             bucket_key,
@@ -84,22 +92,22 @@ def aggregate_token_usage(
             },
         )
 
-        usage = observation.usage
+        usage = observation["usage"]
         bucket["input_tokens"] += _usage_value(usage, "input")
         bucket["output_tokens"] += _usage_value(usage, "output")
         bucket["total_tokens"] += _usage_value(usage, "total")
 
-        model = observation.model
+        model = observation["model"]
         if not model:
             log.warning(
                 "Missing model for observation on trace %s — bucketing under '%s'",
-                observation.trace_id,
+                observation["trace_id"],
                 UNKNOWN,
             )
             model = UNKNOWN
 
         model_tokens = bucket["tokens_by_model"].setdefault(model, {})
-        for usage_key, usage_value in (observation.usage_details or {}).items():
+        for usage_key, usage_value in (observation["usage_details"] or {}).items():
             model_tokens[usage_key] = model_tokens.get(usage_key, 0) + usage_value
 
     langfuse_host = get_config().LANGFUSE_HOST
@@ -108,27 +116,22 @@ def aggregate_token_usage(
     ]
 
 
-def _read_app_name(trace: Any) -> str:
-    metadata = trace.metadata or {}
+def _get_app_name(trace: Trace) -> str:
+    metadata = trace["metadata"] or {}
     app_name = metadata.get("app_name")
     if not app_name:
         log.warning(
             "Missing metadata.app_name for trace %s — bucketing under '%s'",
-            trace.id,
+            trace["id"],
             UNKNOWN,
         )
         return UNKNOWN
     return app_name
 
 
-def _to_date_string(start_time: Any) -> str:
-    if isinstance(start_time, str):
-        return start_time[:10]
-    if isinstance(start_time, datetime):
-        return start_time.date().isoformat()
-    if isinstance(start_time, date):
-        return start_time.isoformat()
-    raise TypeError(f"Unsupported start_time type: {type(start_time)!r}")
+def _to_date_string(start_time: str) -> str:
+    iso_date_length = len("YYYY-MM-DD")
+    return start_time[:iso_date_length]
 
 
 def _usage_value(usage: Any, key: str) -> int:

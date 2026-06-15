@@ -1,4 +1,5 @@
 """Tests for metrics.token_usage helpers."""
+
 import base64
 from datetime import UTC, datetime
 from unittest.mock import patch
@@ -9,9 +10,9 @@ import pytest
 from metrics import token_usage
 from metrics.token_usage import (
     PAGE_SIZE,
-    _basic_auth_header,
+    _create_auth_header,
     _previous_utc_day_window,
-    fetch_previous_day_token_usage,
+    get_previous_day_token_usage,
 )
 
 
@@ -41,17 +42,17 @@ class TestPreviousUtcDayWindow:
 
 class TestBasicAuthHeader:
     def test_encodes_public_and_secret_key(self):
-        header = _basic_auth_header("pk-123", "sk-abc")
+        header = _create_auth_header("pk-123", "sk-abc")
         expected_token = base64.b64encode(b"pk-123:sk-abc").decode()
         assert header == f"Basic {expected_token}"
 
     def test_raises_when_public_key_missing(self):
         with pytest.raises(RuntimeError, match="credentials are not configured"):
-            _basic_auth_header(None, "sk-abc")
+            _create_auth_header(None, "sk-abc")
 
     def test_raises_when_secret_key_missing(self):
         with pytest.raises(RuntimeError, match="credentials are not configured"):
-            _basic_auth_header("pk-123", None)
+            _create_auth_header("pk-123", None)
 
 
 class TestFetchPreviousDayTokenUsage:
@@ -72,7 +73,7 @@ class TestFetchPreviousDayTokenUsage:
         with _patched_httpx_client(handler), _patched_config():
             import asyncio
 
-            rows = asyncio.run(fetch_previous_day_token_usage())
+            rows = asyncio.run(get_previous_day_token_usage())
 
         assert len(rows) == 1
         row = rows[0]
@@ -83,9 +84,26 @@ class TestFetchPreviousDayTokenUsage:
         assert row["total_tokens"] == 150 * (PAGE_SIZE + 1)
         assert handler.requests_for("/api/public/observations") == 2
         assert handler.requests_for("/api/public/traces") == 1
-        assert handler.last_auth_header == "Basic " + base64.b64encode(
-            b"pk-123:sk-abc"
-        ).decode()
+        assert (
+            handler.last_auth_header
+            == "Basic " + base64.b64encode(b"pk-123:sk-abc").decode()
+        )
+
+    def test_fetches_traces_and_observations_over_the_same_window(self):
+        handler = _RequestHandler(
+            [[_trace_payload("trace-1", "ttd", "my-app")]],
+            [[_observation_payload("obs-1", "trace-1")]],
+        )
+
+        with _patched_httpx_client(handler), _patched_config():
+            import asyncio
+
+            asyncio.run(get_previous_day_token_usage())
+
+        trace_params = handler.params_by_path["/api/public/traces"]
+        observation_params = handler.params_by_path["/api/public/observations"]
+        assert trace_params["fromTimestamp"] == observation_params["fromStartTime"]
+        assert trace_params["toTimestamp"] == observation_params["toStartTime"]
 
 
 def _trace_payload(trace_id: str, user_id: str, app_name: str) -> dict:
@@ -115,9 +133,11 @@ class _RequestHandler:
         }
         self._call_counts = {path: 0 for path in self._pages_by_path}
         self.last_auth_header: str | None = None
+        self.params_by_path: dict[str, dict] = {}
 
     def __call__(self, request: httpx.Request) -> httpx.Response:
         self.last_auth_header = request.headers.get("authorization")
+        self.params_by_path[request.url.path] = dict(request.url.params)
         pages = self._pages_by_path[request.url.path]
         page_number = int(request.url.params["page"])
         self._call_counts[request.url.path] += 1
