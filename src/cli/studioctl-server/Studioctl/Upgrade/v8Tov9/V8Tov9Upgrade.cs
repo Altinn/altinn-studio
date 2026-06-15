@@ -69,6 +69,9 @@ internal static class V8Tov9Upgrade
                 );
                 returnCode = await UpgradeProjectFile(projectFile, targetVersion, options.TargetFramework);
             }
+
+            if (returnCode == 0)
+                returnCode = await MigrateDockerfile(projectFolder, options.TargetFramework);
         }
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -118,6 +121,20 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             await UpgradeConsole.Error.WriteLineAsync($"Error upgrading project file: {ex.Message}");
+            return 1;
+        }
+    }
+
+    static async Task<int> MigrateDockerfile(string projectFolder, string targetFramework)
+    {
+        try
+        {
+            await DockerfileMigration.Migrate(projectFolder, targetFramework);
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            await UpgradeConsole.Error.WriteLineAsync($"Error migrating Dockerfile: {ex.Message}");
             return 1;
         }
     }
