@@ -138,6 +138,24 @@ describe('PageHeader', () => {
     );
   });
 
+  it('renders nav links without owner segment when owner is undefined', () => {
+    render(
+      <MemoryRouter>
+        <PageHeader owner={undefined} onOrgSelect={mockOrgSelect} onUserSelect={mockUserSelect} />
+      </MemoryRouter>,
+    );
+    expect(
+      screen.getByRole('link', { name: textMock('dashboard.header_item_dashboard') }),
+    ).toHaveAttribute('href', `/dashboard/app-dashboard/`);
+    expect(
+      screen.getByRole('link', { name: textMock('dashboard.header_item_library') }),
+    ).toHaveAttribute('href', `/dashboard/org-library/`);
+    expect(screen.getByRole('link', { name: textMock('admin.apps.title') })).toHaveAttribute(
+      'href',
+      '/admin/',
+    );
+  });
+
   describe('dashboard link active state', () => {
     const appDashboardBasePath = `${DASHBOARD_BASENAME}/${APP_DASHBOARD_BASENAME}`;
 
