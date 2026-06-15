@@ -18,9 +18,13 @@ internal interface IWorkflowCallbackTokenGenerator
 }
 
 /// <inheritdoc />
-internal sealed class WorkflowCallbackTokenGenerator(IWorkflowCallbackSecretProvider secretProvider)
-    : IWorkflowCallbackTokenGenerator
+internal sealed class WorkflowCallbackTokenGenerator(
+    IWorkflowCallbackSecretProvider secretProvider,
+    TimeProvider? timeProvider = null
+) : IWorkflowCallbackTokenGenerator
 {
+    private readonly TimeProvider _timeProvider = timeProvider ?? TimeProvider.System;
+
     /// <inheritdoc />
     public string GenerateToken(Guid instanceGuid)
     {
@@ -38,7 +42,7 @@ internal sealed class WorkflowCallbackTokenGenerator(IWorkflowCallbackSecretProv
             },
             // Bind the token lifetime to the signing code: the engine replays the same token on every
             // callback, so it must remain valid for as long as the code that signed it is accepted.
-            IssuedAt = DateTime.UtcNow,
+            IssuedAt = _timeProvider.GetUtcNow().UtcDateTime,
             Expires = appCode.ExpiresAt.UtcDateTime,
             SigningCredentials = credentials,
         };

@@ -2,6 +2,7 @@ using System.Text;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Time.Testing;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
@@ -13,9 +14,16 @@ public class WorkflowCallbackTokenValidatorTests
     private readonly Mock<IWorkflowCallbackSecretProvider> _secretProviderMock = new(MockBehavior.Strict);
     private readonly Mock<ILogger<WorkflowCallbackTokenValidator>> _loggerMock = new();
 
-    private WorkflowCallbackTokenValidator CreateSut() => new(_secretProviderMock.Object, _loggerMock.Object);
+    private WorkflowCallbackTokenValidator CreateSut(TimeProvider? timeProvider = null) =>
+        new(_secretProviderMock.Object, _loggerMock.Object, timeProvider);
 
-    private static string GenerateToken(Guid instanceGuid, string secret, string? secretId, DateTime? expires = null)
+    private static string GenerateToken(
+        Guid instanceGuid,
+        string secret,
+        string? secretId,
+        DateTime? expires = null,
+        DateTime? notBefore = null
+    )
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -27,6 +35,10 @@ public class WorkflowCallbackTokenValidatorTests
             new SecurityTokenDescriptor
             {
                 Claims = claims,
+                // When not specified, the handler stamps nbf/iat at the current wall-clock time; tests that
+                // pin a fake clock in the past must set NotBefore so the token is not "not yet valid".
+                NotBefore = notBefore,
+                IssuedAt = notBefore,
                 Expires = expires ?? DateTime.UtcNow.AddDays(186),
                 SigningCredentials = credentials,
             }
@@ -142,6 +154,73 @@ public class WorkflowCallbackTokenValidatorTests
 
         var token = GenerateToken(instanceGuid, secret, secretId, expires: DateTime.UtcNow.AddMinutes(-10));
         var result = await CreateSut().ValidateToken(token, instanceGuid);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task ValidateToken_ValidAtInjectedTime_HonorsInjectedClockOverWallClock()
+    {
+        // Fake clock far in the past; token expires shortly after the fake "now" but years before the
+        // real wall clock. A true result proves the injected clock — not DateTime.UtcNow — drives validation.
+        var now = new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        const string secret = "test-secret-that-is-long-enough-for-hmac";
+        const string secretId = "id-1";
+        var instanceGuid = Guid.NewGuid();
+        SetupSecrets((secretId, secret));
+
+        var token = GenerateToken(
+            instanceGuid,
+            secret,
+            secretId,
+            expires: now.UtcDateTime.AddHours(1),
+            notBefore: now.UtcDateTime.AddHours(-1)
+        );
+        var result = await CreateSut(new FakeTimeProvider(now)).ValidateToken(token, instanceGuid);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task ValidateToken_ExpiredWithinClockSkew_ReturnsTrue()
+    {
+        var now = new DateTimeOffset(2025, 6, 1, 12, 0, 0, TimeSpan.Zero);
+        const string secret = "test-secret-that-is-long-enough-for-hmac";
+        const string secretId = "id-1";
+        var instanceGuid = Guid.NewGuid();
+        SetupSecrets((secretId, secret));
+
+        // Expired 4 minutes before the injected "now" — inside the 5-minute clock skew.
+        var token = GenerateToken(
+            instanceGuid,
+            secret,
+            secretId,
+            expires: now.UtcDateTime.AddMinutes(-4),
+            notBefore: now.UtcDateTime.AddHours(-1)
+        );
+        var result = await CreateSut(new FakeTimeProvider(now)).ValidateToken(token, instanceGuid);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task ValidateToken_ExpiredBeyondClockSkew_ReturnsFalse()
+    {
+        var now = new DateTimeOffset(2025, 6, 1, 12, 0, 0, TimeSpan.Zero);
+        const string secret = "test-secret-that-is-long-enough-for-hmac";
+        const string secretId = "id-1";
+        var instanceGuid = Guid.NewGuid();
+        SetupSecrets((secretId, secret));
+
+        // Expired 6 minutes before the injected "now" — beyond the 5-minute clock skew.
+        var token = GenerateToken(
+            instanceGuid,
+            secret,
+            secretId,
+            expires: now.UtcDateTime.AddMinutes(-6),
+            notBefore: now.UtcDateTime.AddHours(-1)
+        );
+        var result = await CreateSut(new FakeTimeProvider(now)).ValidateToken(token, instanceGuid);
 
         Assert.False(result);
     }

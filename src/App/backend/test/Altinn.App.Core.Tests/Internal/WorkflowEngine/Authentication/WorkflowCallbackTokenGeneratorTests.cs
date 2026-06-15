@@ -1,5 +1,6 @@
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
+using Microsoft.Extensions.Time.Testing;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Moq;
 
@@ -9,7 +10,8 @@ public class WorkflowCallbackTokenGeneratorTests
 {
     private readonly Mock<IWorkflowCallbackSecretProvider> _secretProviderMock = new(MockBehavior.Strict);
 
-    private WorkflowCallbackTokenGenerator CreateSut() => new(_secretProviderMock.Object);
+    private WorkflowCallbackTokenGenerator CreateSut(TimeProvider? timeProvider = null) =>
+        new(_secretProviderMock.Object, timeProvider);
 
     private static AppCode MakeCode(string id, string code, DateTimeOffset expiresAt) =>
         new()
@@ -66,6 +68,22 @@ public class WorkflowCallbackTokenGeneratorTests
         Assert.Equal(3, token.Split('.').Length);
         var jwt = new JsonWebTokenHandler().ReadJsonWebToken(token);
         Assert.Equal("HS256", jwt.Alg);
+    }
+
+    [Fact]
+    public void GenerateToken_IssuedAtUsesInjectedClock()
+    {
+        var instant = new DateTimeOffset(2025, 1, 1, 12, 0, 0, TimeSpan.Zero);
+        var timeProvider = new FakeTimeProvider(instant);
+        _secretProviderMock
+            .Setup(x => x.GetSigningSecret())
+            .Returns(MakeCode("secret-id-1", "a-secret-that-is-long-enough-for-hmac", instant.AddDays(186)));
+
+        var token = CreateSut(timeProvider).GenerateToken(Guid.NewGuid());
+
+        var jwt = new JsonWebTokenHandler().ReadJsonWebToken(token);
+        // iat is second-precision and is driven by the injected clock, not the wall clock.
+        Assert.Equal(instant.UtcDateTime, jwt.IssuedAt);
     }
 
     [Fact]

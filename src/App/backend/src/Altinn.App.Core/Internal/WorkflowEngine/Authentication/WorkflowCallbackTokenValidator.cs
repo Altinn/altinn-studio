@@ -21,9 +21,14 @@ internal interface IWorkflowCallbackTokenValidator
 /// <inheritdoc />
 internal sealed class WorkflowCallbackTokenValidator(
     IWorkflowCallbackSecretProvider secretProvider,
-    ILogger<WorkflowCallbackTokenValidator> logger
+    ILogger<WorkflowCallbackTokenValidator> logger,
+    TimeProvider? timeProvider = null
 ) : IWorkflowCallbackTokenValidator
 {
+    private static readonly TimeSpan _clockSkew = TimeSpan.FromMinutes(5);
+
+    private readonly TimeProvider _timeProvider = timeProvider ?? TimeProvider.System;
+
     public async Task<bool> ValidateToken(string? token, Guid instanceGuid)
     {
         if (string.IsNullOrWhiteSpace(token))
@@ -89,7 +94,11 @@ internal sealed class WorkflowCallbackTokenValidator(
                 ValidateIssuer = false,
                 ValidateAudience = false,
                 ValidateLifetime = true,
-                ClockSkew = TimeSpan.FromMinutes(5),
+                // Use the injected clock for lifetime validation. TokenValidationParameters.TimeProvider
+                // is not public in the referenced Microsoft.IdentityModel version, so override the
+                // lifetime check directly (this also applies our clock skew, since the default skew
+                // handling is bypassed when a custom LifetimeValidator is set).
+                LifetimeValidator = ValidateLifetimeWithInjectedClock,
             }
         );
 
@@ -116,6 +125,31 @@ internal sealed class WorkflowCallbackTokenValidator(
             );
             return false;
         }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Validates the token lifetime against the injected <see cref="TimeProvider"/>, applying the same
+    /// clock skew the default validator would. Tokens without an expiry are rejected.
+    /// </summary>
+    private bool ValidateLifetimeWithInjectedClock(
+        DateTime? notBefore,
+        DateTime? expires,
+        SecurityToken securityToken,
+        TokenValidationParameters validationParameters
+    )
+    {
+        if (expires is null)
+            return false;
+
+        DateTime now = _timeProvider.GetUtcNow().UtcDateTime;
+
+        if (now > expires.Value + _clockSkew)
+            return false;
+
+        if (notBefore is not null && now < notBefore.Value - _clockSkew)
+            return false;
 
         return true;
     }
