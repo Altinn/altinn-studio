@@ -8,15 +8,6 @@ import { app, org } from '@studio/testing/testids';
 import { repository } from 'app-shared/mocks/mocks';
 import { renderWithProviders } from '../../../test/mocks';
 import { StudioPageHeaderContextProvider } from '@studio/components/src/components/StudioPageHeader/context';
-import { FeatureFlag, FeatureFlagsContextProvider } from '@studio/feature-flags';
-
-const mockEnvironment: { environment: { featureFlags: { studioOidc: boolean } } | null } = {
-  environment: null,
-};
-
-jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
-  useEnvironmentConfig: () => mockEnvironment,
-}));
 
 jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
 
@@ -49,10 +40,6 @@ const defaultProps: UserProfileMenuProps = {
 };
 
 describe('UserProfileMenu', () => {
-  beforeEach(() => {
-    mockEnvironment.environment = null;
-  });
-
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -87,9 +74,8 @@ describe('UserProfileMenu', () => {
     expect(screen.getByAltText(textMock('general.profile_icon'))).toBeInTheDocument();
   });
 
-  it('should include user settings link in profile menu when studioOidc is enabled', async () => {
+  it('should include user settings link in profile menu', async () => {
     const user = userEvent.setup();
-    mockEnvironment.environment = { featureFlags: { studioOidc: true } };
 
     renderUserProfileMenu();
 
@@ -98,40 +84,16 @@ describe('UserProfileMenu', () => {
     expect(screen.getByRole('menuitem', { name: textMock('settings') })).toBeInTheDocument();
   });
 
-  it('should include user settings link in profile menu when Admin feature flag is enabled', async () => {
-    const user = userEvent.setup();
-    mockEnvironment.environment = { featureFlags: { studioOidc: false } };
-
-    renderUserProfileMenu({ flags: [FeatureFlag.Admin] });
-
-    await user.click(screen.getByRole('button'));
-
-    expect(screen.getByRole('menuitem', { name: textMock('settings') })).toBeInTheDocument();
-  });
-
-  it('should not include user settings link in profile menu when neither studioOidc nor Admin flag is enabled', async () => {
-    const user = userEvent.setup();
-    mockEnvironment.environment = { featureFlags: { studioOidc: false } };
-
-    renderUserProfileMenu();
-
-    await user.click(screen.getByRole('button'));
-
-    expect(screen.queryByRole('menuitem', { name: textMock('settings') })).not.toBeInTheDocument();
-  });
 });
 
 type RenderOptions = {
   props?: Partial<UserProfileMenuProps>;
-  flags?: FeatureFlag[];
 };
 
-const renderUserProfileMenu = ({ props, flags = [] }: RenderOptions = {}) => {
+const renderUserProfileMenu = ({ props }: RenderOptions = {}) => {
   return renderWithProviders()(
-    <FeatureFlagsContextProvider value={{ flags }}>
-      <StudioPageHeaderContextProvider variant='preview'>
-        <UserProfileMenu {...defaultProps} {...props} />
-      </StudioPageHeaderContextProvider>
-    </FeatureFlagsContextProvider>,
+    <StudioPageHeaderContextProvider variant='preview'>
+      <UserProfileMenu {...defaultProps} {...props} />
+    </StudioPageHeaderContextProvider>,
   );
 };

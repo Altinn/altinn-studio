@@ -18,15 +18,6 @@ jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
 jest.mock('../NoOrgSelected/NoOrgSelected', () => ({
   NoOrgSelected: () => <div data-testid='no-org-selected' />,
 }));
-jest.mock('../NotFound/NotFound', () => ({
-  NotFound: () => <div data-testid='not-found' />,
-}));
-
-const mockUseFeatureFlag = jest.fn();
-jest.mock('@studio/feature-flags', () => ({
-  ...jest.requireActual('@studio/feature-flags'),
-  useFeatureFlag: () => mockUseFeatureFlag(),
-}));
 
 const RoutedOwnerIndexRedirect = () => (
   <Routes>
@@ -54,7 +45,6 @@ const renderOwnerIndexRedirect = (initialPath: string, seedUser = true) => {
 describe('OwnerIndexRedirect', () => {
   beforeEach(() => {
     mockEnvironment.environment = { featureFlags: { studioOidc: true } };
-    mockUseFeatureFlag.mockReturnValue(false);
   });
 
   afterEach(() => jest.clearAllMocks());
@@ -71,7 +61,6 @@ describe('OwnerIndexRedirect', () => {
 
   it('renders the no-org-selected message when owner matches the logged-in user and studioOidc is disabled', () => {
     mockEnvironment.environment = { featureFlags: { studioOidc: false } };
-    mockUseFeatureFlag.mockReturnValue(true);
     renderOwnerIndexRedirect('/testuser');
     expect(screen.getByTestId('no-org-selected')).toBeInTheDocument();
   });
@@ -83,16 +72,8 @@ describe('OwnerIndexRedirect', () => {
 
   it('redirects to the contact-points page when owner is an org and studioOidc is disabled', () => {
     mockEnvironment.environment = { featureFlags: { studioOidc: false } };
-    mockUseFeatureFlag.mockReturnValue(true);
     renderOwnerIndexRedirect('/ttd');
     expect(screen.getByText('Contact points page')).toBeInTheDocument();
-  });
-
-  it('renders a not-found page when neither studioOidc nor Admin flag is enabled', () => {
-    mockEnvironment.environment = { featureFlags: { studioOidc: false } };
-    mockUseFeatureFlag.mockReturnValue(false);
-    renderOwnerIndexRedirect('/ttd');
-    expect(screen.getByTestId('not-found')).toBeInTheDocument();
   });
 
   it('renders nothing when user data is not yet available', () => {
@@ -101,6 +82,5 @@ describe('OwnerIndexRedirect', () => {
     expect(screen.queryByText('Bot accounts page')).not.toBeInTheDocument();
     expect(screen.queryByText('Contact points page')).not.toBeInTheDocument();
     expect(screen.queryByTestId('no-org-selected')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('not-found')).not.toBeInTheDocument();
   });
 });
