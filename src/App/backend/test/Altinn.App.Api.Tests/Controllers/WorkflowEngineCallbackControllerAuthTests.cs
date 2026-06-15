@@ -1,6 +1,6 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Text;
-using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -44,8 +44,8 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
     {
         var instanceGuid = Guid.NewGuid();
         using var client = GetRootedClient(Org, App);
-        client.DefaultRequestHeaders.Add(
-            WorkflowEngineCallbackAuthenticationHandler.TokenHeaderName,
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
             GenerateToken(instanceGuid)
         );
         using var content = EmptyPayload();
@@ -60,8 +60,8 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
     public async Task Callback_WithTokenForDifferentInstance_ReturnsUnauthorized()
     {
         using var client = GetRootedClient(Org, App);
-        client.DefaultRequestHeaders.Add(
-            WorkflowEngineCallbackAuthenticationHandler.TokenHeaderName,
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
             GenerateToken(Guid.NewGuid())
         );
         using var content = EmptyPayload();

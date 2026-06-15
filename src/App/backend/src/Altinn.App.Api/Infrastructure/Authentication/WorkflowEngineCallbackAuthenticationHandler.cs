@@ -8,9 +8,15 @@ namespace Altinn.App.Api.Infrastructure.Authentication;
 
 /// <summary>
 /// Authenticates workflow engine callbacks. The engine replays a JWT (minted by the app at enqueue time)
-/// in the <c>Altinn-Workflow-Callback-Token</c> header. The token is validated against the app's
+/// in the <c>Authorization: Bearer</c> header. The token is validated against the app's
 /// <c>WorkflowEngineCallback</c> codes and must be bound to the instance in the route.
 /// </summary>
+/// <remarks>
+/// The callback token shares the <c>Authorization</c> header with platform tokens, so the engine and the
+/// default cookie/bearer scheme would otherwise conflict. A selector policy scheme
+/// (<see cref="SelectorSchemeName"/>) forwards callback requests to this scheme and all other requests to
+/// the JwtCookie scheme, based on <see cref="IsCallbackRequest"/>.
+/// </remarks>
 internal sealed class WorkflowEngineCallbackAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
     /// <summary>
@@ -19,11 +25,16 @@ internal sealed class WorkflowEngineCallbackAuthenticationHandler : Authenticati
     public const string SchemeName = "WorkflowEngineCallback";
 
     /// <summary>
-    /// The request header carrying the workflow engine callback token. A dedicated header is used (rather
-    /// than <c>Authorization</c>) so the token is not mistaken for an Altinn platform token by the default
-    /// authentication scheme.
+    /// The name of the default (selector) scheme that forwards to either this scheme or the JwtCookie scheme.
     /// </summary>
-    public const string TokenHeaderName = "Altinn-Workflow-Callback-Token";
+    public const string SelectorSchemeName = "WorkflowEngineCallbackSelector";
+
+    /// <summary>
+    /// The path segment that identifies a workflow engine callback request.
+    /// </summary>
+    private const string CallbackPathSegment = "/workflow-engine-callbacks/";
+
+    private const string BearerPrefix = "Bearer ";
 
     private readonly IWorkflowCallbackTokenValidator _validator;
 
@@ -38,12 +49,28 @@ internal sealed class WorkflowEngineCallbackAuthenticationHandler : Authenticati
         _validator = validator;
     }
 
+    /// <summary>
+    /// Determines whether <paramref name="path"/> targets the workflow engine callback endpoint. Used by the
+    /// selector scheme to forward only callback requests to this handler.
+    /// </summary>
+    public static bool IsCallbackRequest(PathString path) =>
+        path.Value is { } value && value.Contains(CallbackPathSegment, StringComparison.OrdinalIgnoreCase);
+
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        string? token = Request.Headers[TokenHeaderName];
+        string authorization = Request.Headers.Authorization.ToString();
+        if (
+            string.IsNullOrWhiteSpace(authorization)
+            || !authorization.StartsWith(BearerPrefix, StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            // No bearer token: let the pipeline treat this as unauthenticated (401).
+            return AuthenticateResult.NoResult();
+        }
+
+        string token = authorization[BearerPrefix.Length..].Trim();
         if (string.IsNullOrWhiteSpace(token))
         {
-            // No token: let the pipeline treat this as unauthenticated (401).
             return AuthenticateResult.NoResult();
         }
 

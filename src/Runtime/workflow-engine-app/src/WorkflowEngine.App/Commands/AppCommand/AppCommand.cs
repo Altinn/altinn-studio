@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Commands.Extensions;
@@ -25,9 +26,6 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
     private readonly ILogger<AppCommand> _logger;
 
     private const string CommandTypeId = "app";
-
-    // Must match Altinn.App.Api WorkflowEngineCallbackAuthenticationHandler.TokenHeaderName.
-    private const string CallbackTokenHeaderName = "Altinn-Workflow-Callback-Token";
 
     public override string CommandType => CommandTypeId;
 
@@ -182,9 +180,13 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
         var client = _httpClientFactory.CreateClient();
         client.BaseAddress = new Uri(baseUrl);
 
-        // Replay the app-minted token in a dedicated header so the callback controller can authenticate
-        // the engine. A custom header (not Authorization) avoids collision with Altinn platform auth.
-        client.DefaultRequestHeaders.Add(CallbackTokenHeaderName, workflowContext.CallbackToken);
+        // Replay the app-minted token as a bearer token so the callback controller can authenticate the
+        // engine. The app's selector auth scheme routes callback requests to the WorkflowEngineCallback
+        // scheme, so this does not collide with the default platform (cookie/bearer) authentication.
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            workflowContext.CallbackToken
+        );
 
         return client;
     }

@@ -83,7 +83,7 @@ Content-Type: application/json; charset=utf-8
 
 POST http://localhost:{PORT}/ttd/e2e-tests/instances/50001/Guid_2/workflow-engine-callbacks/chatter-step-1 HTTP/1.1
 Host: localhost
-Altinn-Workflow-Callback-Token: test-callback-token
+Authorization: Bearer test-callback-token
 Collection-Key: Guid_1
 Content-Type: application/json; charset=utf-8
 Idempotency-Key: Guid_4
@@ -116,7 +116,7 @@ Content-Type: application/json
 
 POST http://localhost:{PORT}/ttd/e2e-tests/instances/50001/Guid_2/workflow-engine-callbacks/chatter-step-2 HTTP/1.1
 Host: localhost
-Altinn-Workflow-Callback-Token: test-callback-token
+Authorization: Bearer test-callback-token
 Collection-Key: Guid_1
 Content-Type: application/json; charset=utf-8
 Idempotency-Key: Guid_5

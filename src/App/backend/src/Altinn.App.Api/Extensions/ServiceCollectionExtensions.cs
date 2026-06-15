@@ -559,25 +559,45 @@ public static class ServiceCollectionExtensions
     )
     {
         services
-            .AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
-            .AddJwtCookie(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
+            // The default scheme is a selector: it forwards authentication/challenge to the
+            // WorkflowEngineCallback scheme for workflow callback requests, and to the JwtCookie
+            // scheme for everything else. This lets workflow callbacks use a standard
+            // "Authorization: Bearer" header without the JwtCookie handler (which also reads bearer
+            // tokens) attempting to validate the app-minted callback token as a platform token during
+            // UseAuthentication()'s automatic authentication of the default scheme.
+            .AddAuthentication(options =>
+                options.DefaultScheme = WorkflowEngineCallbackAuthenticationHandler.SelectorSchemeName
+            )
+            .AddPolicyScheme(
+                WorkflowEngineCallbackAuthenticationHandler.SelectorSchemeName,
+                WorkflowEngineCallbackAuthenticationHandler.SelectorSchemeName,
+                options =>
+                    options.ForwardDefaultSelector = static context =>
+                        WorkflowEngineCallbackAuthenticationHandler.IsCallbackRequest(context.Request.Path)
+                            ? WorkflowEngineCallbackAuthenticationHandler.SchemeName
+                            : JwtCookieDefaults.AuthenticationScheme
+            )
+            .AddJwtCookie(
+                JwtCookieDefaults.AuthenticationScheme,
+                options =>
                 {
-                    ValidateIssuerSigningKey = true,
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    RequireExpirationTime = true,
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero,
-                };
-                options.JwtCookieName = Altinn.App.Core.Constants.General.RuntimeCookieName;
-                options.MetadataAddress = config["AppSettings:OpenIdWellKnownEndpoint"];
-                if (env.IsDevelopment())
-                {
-                    options.RequireHttpsMetadata = false;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        RequireExpirationTime = true,
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.Zero,
+                    };
+                    options.JwtCookieName = Altinn.App.Core.Constants.General.RuntimeCookieName;
+                    options.MetadataAddress = config["AppSettings:OpenIdWellKnownEndpoint"];
+                    if (env.IsDevelopment())
+                    {
+                        options.RequireHttpsMetadata = false;
+                    }
                 }
-            })
+            )
             .AddScheme<AuthenticationSchemeOptions, WorkflowEngineCallbackAuthenticationHandler>(
                 WorkflowEngineCallbackAuthenticationHandler.SchemeName,
                 _ => { }

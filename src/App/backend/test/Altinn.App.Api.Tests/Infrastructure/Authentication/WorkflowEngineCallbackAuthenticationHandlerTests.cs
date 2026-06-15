@@ -13,8 +13,13 @@ public class WorkflowEngineCallbackAuthenticationHandlerTests
 {
     private readonly Mock<IWorkflowCallbackTokenValidator> _validatorMock = new(MockBehavior.Strict);
 
-    private async Task<(AuthenticateResult Result, HttpContext Context)> Authenticate(
-        string? tokenHeader,
+    private Task<(AuthenticateResult Result, HttpContext Context)> Authenticate(
+        string? token,
+        object? instanceGuidRouteValue
+    ) => AuthenticateWithHeader(token is null ? null : $"Bearer {token}", instanceGuidRouteValue);
+
+    private async Task<(AuthenticateResult Result, HttpContext Context)> AuthenticateWithHeader(
+        string? authorizationHeader,
         object? instanceGuidRouteValue
     )
     {
@@ -29,8 +34,8 @@ public class WorkflowEngineCallbackAuthenticationHandlerTests
         );
 
         var context = new DefaultHttpContext();
-        if (tokenHeader is not null)
-            context.Request.Headers[WorkflowEngineCallbackAuthenticationHandler.TokenHeaderName] = tokenHeader;
+        if (authorizationHeader is not null)
+            context.Request.Headers.Authorization = authorizationHeader;
         if (instanceGuidRouteValue is not null)
             context.Request.RouteValues["instanceGuid"] = instanceGuidRouteValue;
 
@@ -46,10 +51,32 @@ public class WorkflowEngineCallbackAuthenticationHandlerTests
     [Fact]
     public async Task NoAuthorizationHeader_ReturnsNoResult()
     {
-        var (result, _) = await Authenticate(tokenHeader: null, instanceGuidRouteValue: Guid.NewGuid());
+        var (result, _) = await Authenticate(token: null, instanceGuidRouteValue: Guid.NewGuid());
 
         Assert.False(result.Succeeded);
         Assert.True(result.None);
+    }
+
+    [Theory]
+    [InlineData("some-token")] // No "Bearer " prefix.
+    [InlineData("Bearer ")] // Bearer prefix but empty token.
+    [InlineData("Bearer    ")] // Bearer prefix but whitespace token.
+    public async Task NonBearerOrEmptyAuthorizationHeader_ReturnsNoResult(string authorizationHeader)
+    {
+        var (result, _) = await AuthenticateWithHeader(authorizationHeader, instanceGuidRouteValue: Guid.NewGuid());
+
+        Assert.False(result.Succeeded);
+        Assert.True(result.None);
+    }
+
+    [Theory]
+    [InlineData("/tdd/app/instances/500600/3a1b/workflow-engine-callbacks/some-command", true)]
+    [InlineData("/tdd/app/instances/500600/3a1b/WORKFLOW-ENGINE-CALLBACKS/some-command", true)]
+    [InlineData("/tdd/app/instances/500600/3a1b/process/next", false)]
+    [InlineData("/", false)]
+    public void IsCallbackRequest_MatchesOnlyCallbackPaths(string path, bool expected)
+    {
+        Assert.Equal(expected, WorkflowEngineCallbackAuthenticationHandler.IsCallbackRequest(path));
     }
 
     [Fact]
