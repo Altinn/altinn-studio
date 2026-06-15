@@ -1,9 +1,8 @@
 import React, { useMemo } from 'react';
 
+import { AltinnContentLoader, PrettyDateAndTime } from '@app/form-component';
 import { formatDate } from 'date-fns';
 
-import { PrettyDateAndTime } from 'src/app-components/Datepicker/utils/dateHelpers';
-import { AltinnContentLoader } from 'src/app-components/loading/AltinnContentLoader/AltinnContentLoader';
 import { ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
 import { ReceiptComponentSimple } from 'src/components/organisms/AltinnReceiptSimple';
 import { PresentationComponent } from 'src/components/presentation/Presentation';

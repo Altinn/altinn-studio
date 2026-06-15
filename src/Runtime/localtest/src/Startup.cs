@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
 
@@ -115,6 +117,7 @@ namespace LocalTest
             services.AddTransient<TestDataService>();
             services.AddTransient<TenorDataRepository>();
             services.AddSingleton<IInstanceLockRepository, InstanceLockRepository>();
+            services.AddTransient<IProcessDataCleanupService, ProcessDataCleanupService>();
 
             services.AddSingleton<IContextHandler, ContextHandler>();
             services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPoint>();

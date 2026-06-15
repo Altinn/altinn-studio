@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 
-import { Button, Spinner } from '@app/form-component';
+import { Button, FullWidthWrapper, Panel, Spinner } from '@app/form-component';
 import { Checkbox, Heading, ValidationMessage } from '@digdir/designsystemet-react';
 
-import { Panel } from 'src/app-components/Panel/Panel';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { Lang } from 'src/features/language/Lang';
@@ -101,19 +100,18 @@ export function AwaitingCurrentUserSignaturePanel({
 
   // This shouldn't really happen, but if it does it indicates that our backend is out of sync with Autorisasjon somehow
   if (!canSign) {
-    return <UnknownError />;
+    return <UnknownError error={new Error('Unknown error during signing: User cannot sign in')} />;
   }
 
   if (isApiLoading) {
     return (
-      <Panel
-        variant='info'
-        isOnBottom
-      >
-        <div className={classes.loadingContainer}>
-          <Spinner aria-label={langAsString('signing.loading')} />
-        </div>
-      </Panel>
+      <FullWidthWrapper isOnBottom>
+        <Panel variant='info'>
+          <div className={classes.loadingContainer}>
+            <Spinner aria-label={langAsString('signing.loading')} />
+          </div>
+        </Panel>
+      </FullWidthWrapper>
     );
   }
 

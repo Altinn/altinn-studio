@@ -374,8 +374,12 @@ public sealed class ValidationServiceTests : IDisposable
                     dataElement: _defaultDataElement,
                     dataType: _defaultDataType,
                     contentType: "application/xml",
-                    previousFormDataWrapper: FormDataWrapperFactory.Create(previousData),
-                    currentFormDataWrapper: FormDataWrapperFactory.Create(data),
+                    previousFormDataWrapper: FormDataWrapperFactory.Create(
+                        previousData,
+                        _defaultDataType,
+                        _defaultDataElement
+                    ),
+                    currentFormDataWrapper: FormDataWrapperFactory.Create(data, _defaultDataType, _defaultDataElement),
                     previousBinaryData: null,
                     currentBinaryData: null
                 ),
@@ -420,8 +424,8 @@ public sealed class ValidationServiceTests : IDisposable
                 dataElement: _defaultDataElement,
                 dataType: _defaultDataType,
                 contentType: "application/xml",
-                currentFormDataWrapper: FormDataWrapperFactory.Create(data),
-                previousFormDataWrapper: FormDataWrapperFactory.Create(data),
+                currentFormDataWrapper: FormDataWrapperFactory.Create(data, _defaultDataType, _defaultDataElement),
+                previousFormDataWrapper: FormDataWrapperFactory.Create(data, _defaultDataType, _defaultDataElement),
                 previousBinaryData: null,
                 currentBinaryData: null
             ),

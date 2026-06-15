@@ -202,6 +202,11 @@ internal sealed class StudioctlEnvironmentLease : IAsyncDisposable
 internal sealed class StudioctlAppProcess : IAsyncDisposable
 {
     private static readonly TimeSpan _stopTimeout = TimeSpan.FromSeconds(10);
+    private static readonly HashSet<string> _reservedEnvironmentVariables = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "AppFixture__ConfigurationPath",
+        "NUGET_PACKAGES",
+    };
 
     private readonly ILogger _logger;
 
@@ -236,6 +241,8 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
         string appDirectory,
         string fixtureConfigurationPath,
         string nugetPackagesDirectory,
+        string appFrontendAssetBaseUrl,
+        IReadOnlyDictionary<string, string>? environmentVariables,
         ILogger logger,
         CancellationToken cancellationToken
     )
@@ -244,8 +251,10 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
             appDirectory,
             fixtureConfigurationPath,
             nugetPackagesDirectory,
+            environmentVariables,
             logger,
             cancellationToken,
+            appFrontendAssetBaseUrl,
             "run",
             "--mode",
             "process",
@@ -280,8 +289,10 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
             appDirectory,
             fixtureConfigurationPath: null,
             nugetPackagesDirectory: null,
+            environmentVariables: null,
             logger,
             CancellationToken.None,
+            appFrontendAssetBaseUrl: null,
             "app",
             "stop",
             "--path",
@@ -290,14 +301,14 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
         );
     }
 
-    public IReadOnlyList<string> GetLogLines(int startLine = 0)
+    public async Task<IReadOnlyList<string>> GetLogLines(int startLine, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(LogPath) || !File.Exists(LogPath))
             return [];
 
         try
         {
-            return ReadLogLines(LogPath, startLine);
+            return await ReadLogLines(LogPath, startLine, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -306,15 +317,27 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
         }
     }
 
-    public int GetLogLineCount() => GetLogLines().Count;
+    public async Task<int> GetLogLineCount(CancellationToken cancellationToken) =>
+        (await GetLogLines(startLine: 0, cancellationToken)).Count;
 
-    internal static IReadOnlyList<string> ReadLogLines(string path, int startLine = 0)
+    internal static async Task<IReadOnlyList<string>> ReadLogLines(
+        string path,
+        int startLine,
+        CancellationToken cancellationToken
+    )
     {
-        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+        using var stream = new FileStream(
+            path,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.ReadWrite | FileShare.Delete,
+            bufferSize: 4096,
+            options: FileOptions.Asynchronous | FileOptions.SequentialScan
+        );
         using var reader = new StreamReader(stream);
 
         var lines = new List<string>();
-        while (reader.ReadLine() is { } line)
+        while (await reader.ReadLineAsync(cancellationToken) is { } line)
             lines.Add(line);
 
         if (startLine <= 0)
@@ -390,8 +413,10 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
         string workingDirectory,
         string? fixtureConfigurationPath,
         string? nugetPackagesDirectory,
+        IReadOnlyDictionary<string, string>? environmentVariables,
         ILogger logger,
         CancellationToken cancellationToken,
+        string? appFrontendAssetBaseUrl,
         params string[] arguments
     )
     {
@@ -406,6 +431,18 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
             process.StartInfo.Environment["AppFixture__ConfigurationPath"] = fixtureConfigurationPath;
         if (nugetPackagesDirectory is not null)
             process.StartInfo.Environment["NUGET_PACKAGES"] = nugetPackagesDirectory;
+        if (appFrontendAssetBaseUrl is not null)
+            process.StartInfo.Environment["AppSettings__AppFrontendAssetBaseUrl"] = appFrontendAssetBaseUrl;
+        if (environmentVariables is not null)
+        {
+            foreach (var (key, value) in environmentVariables)
+            {
+                if (_reservedEnvironmentVariables.Contains(key))
+                    throw new InvalidOperationException($"Environment variable '{key}' is reserved by the fixture.");
+
+                process.StartInfo.Environment[key] = value;
+            }
+        }
         foreach (var argument in arguments)
             process.StartInfo.ArgumentList.Add(argument);
 

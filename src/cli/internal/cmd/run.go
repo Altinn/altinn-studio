@@ -18,6 +18,7 @@ import (
 	containertypes "altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/processutil"
 	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/devenv/pkg/resource/executor"
 	"altinn.studio/studioctl/internal/appcontainers"
 	"altinn.studio/studioctl/internal/appimage"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
@@ -100,6 +101,7 @@ func (c *RunCommand) UsageFor(commandPath string) string {
 		"  -m, --mode MODE       Run mode: process or container (default: process)",
 		"  -d, --detach          Run app in background",
 		"  --random-host-port    Use a random host port (default: true)",
+		"  --dev-frontend        Use frontend dev server assets",
 		"  --image-tag IMAGE     Use a specific app container image tag (container mode)",
 		"  --pull                Pull app container image before start (container mode)",
 		"  --skip-build          Skip building the app container image (container mode)",
@@ -115,6 +117,7 @@ type runFlags struct {
 	detach         bool
 	pullImage      bool
 	randomHostPort bool
+	devFrontend    bool
 	skipBuild      bool
 	jsonOutput     bool
 }
@@ -198,6 +201,7 @@ func (c *RunCommand) parseRunFlags(args []string, commandPath string) (runFlags,
 	fs.BoolVar(&flags.detach, "detach", false, "Run app in background")
 	fs.BoolVar(&flags.pullImage, "pull", false, "Pull app container image before start")
 	fs.BoolVar(&flags.randomHostPort, "random-host-port", true, "Use a random host port")
+	fs.BoolVar(&flags.devFrontend, "dev-frontend", false, "Use frontend dev server assets")
 	fs.BoolVar(&flags.skipBuild, "skip-build", false, "Skip building the app container image")
 	fs.BoolVar(&flags.jsonOutput, "json", false, "Output as JSON")
 
@@ -334,6 +338,13 @@ func (c *RunCommand) runTarget(
 	}
 }
 
+func runAppFrontendAssetBaseUrl(topology envtopology.Local, flags runFlags) string {
+	if !flags.devFrontend {
+		return ""
+	}
+	return topology.PublicBaseURL(envtopology.ComponentFrontendDevServer)
+}
+
 func (c *RunCommand) runDotnet(
 	ctx context.Context,
 	target appsvc.RunTarget,
@@ -348,7 +359,10 @@ func (c *RunCommand) runDotnet(
 		args,
 		os.Environ(),
 		topology,
-		appsvc.DotnetRunOptions{RandomHostPort: flags.randomHostPort},
+		appsvc.DotnetRunOptions{
+			RandomHostPort:          flags.randomHostPort,
+			AppFrontendAssetBaseUrl: runAppFrontendAssetBaseUrl(topology, flags),
+		},
 	)
 	if specErr != nil {
 		return fmt.Errorf("build process run spec: %w", specErr)
@@ -1053,6 +1067,7 @@ func containerRunProgressResources(spec appsvc.DockerRunSpec, flags runFlags) []
 		Name:           spec.Config.Name,
 		RestartPolicy:  "",
 		User:           "",
+		UsernsMode:     "",
 		Networks:       nil,
 		DependsOn:      nil,
 		Ports:          nil,
@@ -1067,13 +1082,13 @@ func containerRunProgressResources(spec appsvc.DockerRunSpec, flags runFlags) []
 
 func containerRunProgressImage(imageTag string, flags runFlags) resource.Resource {
 	if flags.pullImage {
-		return &resource.RemoteImage{
+		return &resource.PulledImage{
 			Enabled:    nil,
 			Ref:        imageTag,
 			PullPolicy: resource.PullAlways,
 		}
 	}
-	return &resource.LocalImage{
+	return &resource.BuiltImage{
 		Enabled:     nil,
 		ContextPath: ".",
 		Dockerfile:  "",
@@ -1116,49 +1131,49 @@ func (p *containerRunProgress) Fail(err error) {
 }
 
 func (p *containerRunProgress) DestroyStart(id resource.ResourceID) {
-	p.emit(resource.EventDestroyStart, id, nil, nil)
+	p.emit(executor.EventDestroyStart, id, nil, nil)
 }
 
 func (p *containerRunProgress) DestroyDone(id resource.ResourceID) {
-	p.emit(resource.EventDestroyDone, id, nil, nil)
+	p.emit(executor.EventDestroyDone, id, nil, nil)
 }
 
 func (p *containerRunProgress) DestroyFailed(id resource.ResourceID, err error) {
-	p.emit(resource.EventDestroyFailed, id, err, nil)
+	p.emit(executor.EventDestroyFailed, id, err, nil)
 }
 
 func (p *containerRunProgress) ApplyStart(id resource.ResourceID) {
-	p.emit(resource.EventApplyStart, id, nil, nil)
+	p.emit(executor.EventApplyStart, id, nil, nil)
 }
 
 func (p *containerRunProgress) ApplyDone(id resource.ResourceID) {
-	p.emit(resource.EventApplyDone, id, nil, nil)
+	p.emit(executor.EventApplyDone, id, nil, nil)
 }
 
 func (p *containerRunProgress) ApplyFailed(id resource.ResourceID, err error) {
-	p.emit(resource.EventApplyFailed, id, err, nil)
+	p.emit(executor.EventApplyFailed, id, err, nil)
 }
 
 func (p *containerRunProgress) ApplyProgress(id resource.ResourceID, update containertypes.ProgressUpdate) {
-	progress := resource.Progress{
+	progress := executor.Progress{
 		Message:       update.Message,
 		Current:       update.Current,
 		Total:         update.Total,
 		Indeterminate: update.Indeterminate,
 	}
-	p.emit(resource.EventApplyProgress, id, nil, &progress)
+	p.emit(executor.EventApplyProgress, id, nil, &progress)
 }
 
 func (p *containerRunProgress) emit(
-	eventType resource.EventType,
+	eventType executor.EventType,
 	id resource.ResourceID,
 	err error,
-	progress *resource.Progress,
+	progress *executor.Progress,
 ) {
 	if !p.Enabled() {
 		return
 	}
-	p.renderer.OnEvent(resource.Event{
+	p.renderer.OnEvent(executor.Event{
 		Error:    err,
 		Progress: progress,
 		Resource: id,
@@ -1175,8 +1190,9 @@ func (c *RunCommand) runDocker(
 ) error {
 	result := target.Detection
 	spec, specErr := c.service.BuildDockerRunSpec(result, args, topology, appsvc.DockerRunOptions{
-		ImageTag:       flags.imageTag,
-		RandomHostPort: flags.randomHostPort,
+		ImageTag:                flags.imageTag,
+		RandomHostPort:          flags.randomHostPort,
+		AppFrontendAssetBaseUrl: runAppFrontendAssetBaseUrl(topology, flags),
 	})
 	if specErr != nil {
 		return fmt.Errorf("build docker run spec: %w", specErr)

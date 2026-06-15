@@ -12,8 +12,6 @@ import (
 	"strings"
 )
 
-const dotnetSDKImage = "mcr.microsoft.com/dotnet/sdk:8.0-alpine"
-
 const dockerfileCopyMinFields = 4
 
 var (
@@ -27,13 +25,13 @@ func generateDockerfile(runRepo repoContext) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	finalStage, err := appDockerfileFinalStage(runRepo.AppRoot)
+	buildImage, finalStage, err := appDockerfileGeneratedStages(runRepo.AppRoot)
 	if err != nil {
 		return "", err
 	}
 
 	var b strings.Builder
-	b.WriteString("FROM " + dotnetSDKImage + " AS restore\n")
+	b.WriteString("FROM " + buildImage + " AS restore\n")
 	b.WriteString("WORKDIR /repo\n")
 	for _, file := range runRepo.ProjectFiles {
 		if err := writeCopyFile(&b, runRepo.BuildRoot, file); err != nil {
@@ -79,30 +77,35 @@ func generateDockerfile(runRepo repoContext) (string, error) {
 	return b.String(), nil
 }
 
-func appDockerfileFinalStage(appRoot string) (string, error) {
+func appDockerfileGeneratedStages(appRoot string) (string, string, error) {
 	dockerfile := filepath.Join(appRoot, "Dockerfile")
 	//nolint:gosec // G304: appRoot comes from repository detection and is constrained before use.
 	data, err := os.ReadFile(dockerfile)
 	if err != nil {
-		return "", fmt.Errorf("read app Dockerfile: %w", err)
+		return "", "", fmt.Errorf("read app Dockerfile: %w", err)
+	}
+
+	buildImage, err := namedStageImage(data, "build")
+	if err != nil {
+		return "", "", fmt.Errorf("%w: %s: %w", errUnsupportedAppDockerfile, dockerfile, err)
 	}
 
 	start, err := finalStageStart(data)
 	if err != nil {
-		return "", fmt.Errorf("%w: %s: %w", errUnsupportedAppDockerfile, dockerfile, err)
+		return "", "", fmt.Errorf("%w: %s: %w", errUnsupportedAppDockerfile, dockerfile, err)
 	}
 	stage := string(data[start:])
 	if !strings.HasSuffix(stage, "\n") {
 		stage += "\n"
 	}
 	if !finalStageCopiesGeneratedBuildOutput(stage) {
-		return "", fmt.Errorf(
+		return "", "", fmt.Errorf(
 			"%w: %s: final stage must copy /app_output from build stage",
 			errUnsupportedAppDockerfile,
 			dockerfile,
 		)
 	}
-	return stage, nil
+	return buildImage, stage, nil
 }
 
 func appDockerfileWithConfigCopy(runRepo repoContext) (string, bool, error) {
@@ -187,6 +190,41 @@ func namedStageStart(data []byte, stageName string) (int, error) {
 		offset += len(line)
 	}
 	return 0, fmt.Errorf("%w: %s", errDockerfileStageNotFound, stageName)
+}
+
+func namedStageImage(data []byte, stageName string) (string, error) {
+	continued := false
+	for _, line := range bytes.SplitAfter(data, []byte("\n")) {
+		if !continued && isDockerfileInstruction(line, "FROM") {
+			if image, ok := dockerfileFromStageImage(line, stageName); ok {
+				return image, nil
+			}
+		}
+		continued = dockerfileLineContinues(string(line))
+	}
+	return "", fmt.Errorf("%w: %s", errDockerfileStageNotFound, stageName)
+}
+
+func dockerfileFromStageImage(line []byte, stageName string) (string, bool) {
+	fields := strings.Fields(string(line))
+	if len(fields) < 4 || !strings.EqualFold(fields[0], "FROM") {
+		return "", false
+	}
+
+	imageIndex := 1
+	for imageIndex < len(fields) && strings.HasPrefix(fields[imageIndex], "--") {
+		imageIndex++
+	}
+	if imageIndex >= len(fields) {
+		return "", false
+	}
+
+	for i := imageIndex + 1; i+1 < len(fields); i++ {
+		if strings.EqualFold(fields[i], "AS") && strings.EqualFold(fields[i+1], stageName) {
+			return fields[imageIndex], true
+		}
+	}
+	return "", false
 }
 
 func isNamedStage(line []byte, stageName string) bool {

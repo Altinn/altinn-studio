@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>Altinn.Application</AssemblyName>
     <RootNamespace>Altinn.App</RootNamespace>
     <UserSecretsId>833f0be1-8b48-403d-8631-c14e0da2ef0a</UserSecretsId>
@@ -9,7 +9,6 @@
     <ProjectReference Include="../../../../App/backend/src/Altinn.App.Api/Altinn.App.Api.csproj" />
     <ProjectReference Include="../../../../App/backend/src/Altinn.App.Core/Altinn.App.Core.csproj" />
     <ProjectReference Include="../../../../App/codelists/src/Altinn.Codelists/Altinn.Codelists.csproj" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\css\" />

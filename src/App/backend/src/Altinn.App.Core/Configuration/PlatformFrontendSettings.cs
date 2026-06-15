@@ -12,11 +12,6 @@ internal class PlatformFrontendSettings
     public Uri PostalCodesUrl { get; set; } = new("https://altinncdn.no/postcodes/registry.json");
 
     /// <summary>
-    /// Base URL for the app frontend CDN.
-    /// </summary>
-    public Uri AppFrontendCdnBaseUrl { get; set; } = new("https://altinncdn.no/toolkits/altinn-app-frontend");
-
-    /// <summary>
     /// URL for the Altinn logo SVG.
     /// </summary>
     public Uri AltinnLogoUrl { get; set; } = new("https://altinncdn.no/img/Altinn-logo-blue.svg");

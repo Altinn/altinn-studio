@@ -1,9 +1,7 @@
 import React from 'react';
 
-import { DatePickerControl } from 'src/app-components/Datepicker/Datepicker';
-import { getDateConstraint, getDateFormat } from 'src/app-components/Datepicker/utils/dateHelpers';
-import { Flex } from 'src/app-components/Flex/Flex';
-import { Label } from 'src/app-components/Label/Label';
+import { DatePickerControl, Flex, getDateConstraint, getDateFormat, Label } from '@app/form-component';
+
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';

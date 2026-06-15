@@ -17,6 +17,7 @@ export interface AssistantMessageData {
   sources?: Source[];
   mode?: 'chat' | 'edit';
   no_branch_operations?: boolean;
+  traceId?: string;
 }
 
 export interface WorkflowStatusData {

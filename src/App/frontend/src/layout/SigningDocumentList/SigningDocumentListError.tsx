@@ -1,9 +1,9 @@
 import React from 'react';
 
+import { FatalError } from '@app/form-component';
 import { isAxiosError } from 'axios';
 import { ZodError } from 'zod';
 
-import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { problemDetailsSchema } from 'src/layout/SigneeList/SigneeListError';

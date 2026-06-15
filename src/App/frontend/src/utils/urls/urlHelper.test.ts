@@ -82,16 +82,16 @@ describe('Shared urlHelper.ts', () => {
   test('returnUrlToArchive() returning correct environments without dialogId', () => {
     const partyId = 12345;
     expect(returnUrlToArchive(hostTT, partyId)).toBe(
-      'https://tt02.altinn.no/ui/Reportee/ChangeReporteeAndRedirect?goTo=https%3A%2F%2Faf.tt02.altinn.no%2F&R=12345',
+      'https://am.ui.tt02.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=https%3A%2F%2Faf.tt02.altinn.no%2F',
     );
     expect(returnUrlToArchive(hostAT, partyId)).toBe(
-      'https://at21.altinn.cloud/ui/Reportee/ChangeReporteeAndRedirect?goTo=https%3A%2F%2Faf.at21.altinn.cloud%2F&R=12345',
+      'https://am.ui.at21.altinn.cloud/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=https%3A%2F%2Faf.at21.altinn.cloud%2F',
     );
     expect(returnUrlToArchive(hostYT, partyId)).toBe(
-      'https://yt01.altinn.cloud/ui/Reportee/ChangeReporteeAndRedirect?goTo=https%3A%2F%2Faf.yt01.altinn.cloud%2F&R=12345',
+      'https://am.ui.yt01.altinn.cloud/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=https%3A%2F%2Faf.yt01.altinn.cloud%2F',
     );
     expect(returnUrlToArchive(hostProd, partyId)).toBe(
-      'https://altinn.no/ui/Reportee/ChangeReporteeAndRedirect?goTo=https%3A%2F%2Faf.altinn.no%2F&R=12345',
+      'https://am.ui.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=https%3A%2F%2Faf.altinn.no%2F',
     );
     expect(returnUrlToArchive(hostDocker, partyId)).toBe('http://local.altinn.cloud/');
     expect(returnUrlToArchive(hostPodman, partyId)).toBe('http://local.altinn.cloud:8000/');
@@ -104,16 +104,16 @@ describe('Shared urlHelper.ts', () => {
     const partyId = 12345;
     const dialogId = '123e4567-e89b-12d3-a456-426614174000';
     expect(returnUrlToArchive(hostTT, partyId, dialogId)).toBe(
-      'https://tt02.altinn.no/ui/Reportee/ChangeReporteeAndRedirect?goTo=https%3A%2F%2Faf.tt02.altinn.no%2Finbox%2F123e4567-e89b-12d3-a456-426614174000&R=12345',
+      'https://am.ui.tt02.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=https%3A%2F%2Faf.tt02.altinn.no%2Finbox%2F123e4567-e89b-12d3-a456-426614174000',
     );
     expect(returnUrlToArchive(hostAT, partyId, dialogId)).toBe(
-      'https://at21.altinn.cloud/ui/Reportee/ChangeReporteeAndRedirect?goTo=https%3A%2F%2Faf.at21.altinn.cloud%2Finbox%2F123e4567-e89b-12d3-a456-426614174000&R=12345',
+      'https://am.ui.at21.altinn.cloud/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=https%3A%2F%2Faf.at21.altinn.cloud%2Finbox%2F123e4567-e89b-12d3-a456-426614174000',
     );
     expect(returnUrlToArchive(hostYT, partyId, dialogId)).toBe(
-      'https://yt01.altinn.cloud/ui/Reportee/ChangeReporteeAndRedirect?goTo=https%3A%2F%2Faf.yt01.altinn.cloud%2Finbox%2F123e4567-e89b-12d3-a456-426614174000&R=12345',
+      'https://am.ui.yt01.altinn.cloud/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=https%3A%2F%2Faf.yt01.altinn.cloud%2Finbox%2F123e4567-e89b-12d3-a456-426614174000',
     );
     expect(returnUrlToArchive(hostProd, partyId, dialogId)).toBe(
-      'https://altinn.no/ui/Reportee/ChangeReporteeAndRedirect?goTo=https%3A%2F%2Faf.altinn.no%2Finbox%2F123e4567-e89b-12d3-a456-426614174000&R=12345',
+      'https://am.ui.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=https%3A%2F%2Faf.altinn.no%2Finbox%2F123e4567-e89b-12d3-a456-426614174000',
     );
     expect(returnUrlToArchive(hostDocker, partyId, dialogId)).toBe('http://local.altinn.cloud/');
     expect(returnUrlToArchive(hostPodman, partyId, dialogId)).toBe('http://local.altinn.cloud:8000/');
@@ -165,10 +165,10 @@ describe('Shared urlHelper.ts', () => {
   });
 
   test('logoutUrlAltinn() returning correct environments', () => {
-    expect(logoutUrlAltinn(hostTT)).toBe('https://tt02.altinn.no/ui/authentication/LogOut');
-    expect(logoutUrlAltinn(hostAT)).toBe('https://at21.altinn.cloud/ui/authentication/LogOut');
-    expect(logoutUrlAltinn(hostYT)).toBe('https://yt01.altinn.cloud/ui/authentication/LogOut');
-    expect(logoutUrlAltinn(hostProd)).toBe('https://altinn.no/ui/authentication/LogOut');
+    expect(logoutUrlAltinn(hostTT)).toBe('https://platform.tt02.altinn.no/authentication/api/v1/logout');
+    expect(logoutUrlAltinn(hostAT)).toBe('https://platform.at21.altinn.cloud/authentication/api/v1/logout');
+    expect(logoutUrlAltinn(hostYT)).toBe('https://platform.yt01.altinn.cloud/authentication/api/v1/logout');
+    expect(logoutUrlAltinn(hostProd)).toBe('https://platform.altinn.no/authentication/api/v1/logout');
     expect(logoutUrlAltinn(hostDocker)).toBe('http://local.altinn.cloud/');
     expect(logoutUrlAltinn(hostPodman)).toBe('http://local.altinn.cloud:8000/');
     expect(logoutUrlAltinn(hostStudio)).toBe(undefined);

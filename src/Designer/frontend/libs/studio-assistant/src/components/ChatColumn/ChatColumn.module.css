@@ -1,14 +1,7 @@
-.chatColumn {
-  display: flex;
-  flex-direction: column;
+.messagesWrapper {
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.messagesWrapper {
-  flex: 1 1 0;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
@@ -23,7 +16,7 @@
   padding: var(--ds-size-4) var(--ds-size-6);
 }
 
-.emptyState {
+.emptyThread {
   text-align: center;
   max-width: 28rem; /* a touch narrower for focus */
   margin-inline: auto;
@@ -47,18 +40,18 @@
   color: var(--ds-color-text); /* base color; headings/body override below */
 }
 
-.emptyState h3 {
+.emptyThread h3 {
   margin: 0;
   font-weight: 600;
   letter-spacing: 0.2px;
 }
 
-.emptyState p {
+.emptyThread p {
   margin: 0;
   color: color-mix(in srgb, var(--ds-color-text) 88%, transparent);
 }
 
-.emptyStateIcon {
+.emptyThreadIcon {
   align-self: center;
   width: 4.75rem; /* bigger icon */
   height: 4.75rem;
@@ -101,7 +94,7 @@
 
 /* motion safety */
 @media (prefers-reduced-motion: reduce) {
-  .emptyStateIcon {
+  .emptyThreadIcon {
     animation: none;
   }
   .dot {

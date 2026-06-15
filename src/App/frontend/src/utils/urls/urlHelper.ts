@@ -22,8 +22,12 @@ function buildArbeidsflateUrl(altinnHost: string): string {
   return `https://af.${altinnHost}/`;
 }
 
+function buildAccessManagementBaseUrl(altinnHost: string): string {
+  return `https://am.ui.${altinnHost}/`;
+}
+
 function redirectAndChangeParty(goTo: string, partyId: number): string {
-  return `ui/Reportee/ChangeReporteeAndRedirect?goTo=${encodeURIComponent(goTo)}&R=${partyId}`;
+  return `accessmanagement/api/v1/reportee/changeandredirect?partyId=${partyId}&goTo=${encodeURIComponent(goTo)}`;
 }
 
 export const returnBaseUrlToAltinn = (host: string): string | undefined => {
@@ -39,9 +43,8 @@ function buildArbeidsflateRedirectUrl(host: string, partyId?: number, dialogId?:
     return `http://${host}/`;
   }
 
-  const baseUrl = returnBaseUrlToAltinn(host);
   const altinnHost = extractAltinnHost(host);
-  if (!baseUrl || !altinnHost) {
+  if (!altinnHost) {
     return undefined;
   }
 
@@ -52,8 +55,9 @@ function buildArbeidsflateRedirectUrl(host: string, partyId?: number, dialogId?:
     return targetUrl;
   }
 
-  // Use A2 redirect mechanism with A3 arbeidsflate URL to maintain party context
-  return `${baseUrl}${redirectAndChangeParty(targetUrl, partyId)}`;
+  // Use access management changeandredirect endpoint to switch party and redirect to A3 arbeidsflate
+  const amBaseUrl = buildAccessManagementBaseUrl(altinnHost);
+  return `${amBaseUrl}${redirectAndChangeParty(targetUrl, partyId)}`;
 }
 
 export const getMessageBoxUrl = (partyId?: number, dialogId?: string): string | undefined =>
@@ -101,15 +105,15 @@ export const returnUrlToAllForms = (host: string): string | undefined => {
 };
 
 export function logoutUrlAltinn(host: string): string | undefined {
-  if (host.match(localRegex)) {
+  if (isLocalEnvironment(host)) {
     return `http://${host}/`;
   }
 
-  const baseUrl = returnBaseUrlToAltinn(host);
-  if (!baseUrl) {
+  const altinnHost = extractAltinnHost(host);
+  if (!altinnHost) {
     return;
   }
-  return `${baseUrl}ui/authentication/LogOut`;
+  return `https://platform.${altinnHost}/authentication/api/v1/logout`;
 }
 
 export function customEncodeURI(uri: string): string {

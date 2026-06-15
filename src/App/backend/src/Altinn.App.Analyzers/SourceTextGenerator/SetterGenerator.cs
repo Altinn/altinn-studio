@@ -90,7 +90,16 @@ internal static class SetterGenerator
             if (modelPathNode.Properties.Count == 0)
             {
                 // Simple list element - direct set
-                if (modelPathNode.IsNullable || modelPathNode.IsCSharpValueType())
+                if (!modelPathNode.IsIndexableList)
+                {
+                    builder.Append(
+                        """
+                                return false;
+
+                        """
+                    );
+                }
+                else if (modelPathNode.IsNullable || modelPathNode.IsCSharpValueType())
                 {
                     builder.Append(
                         $$"""
@@ -121,9 +130,11 @@ internal static class SetterGenerator
             }
             else
             {
+                var itemAccessor = CollectionAccessorGenerator.GenerateAccessor(modelPathNode, "model", "literalIndex");
                 builder.Append(
-                    """
-                            return SetRecursive(model[literalIndex], path, offset, value);
+                    $$"""
+                            var item = {{itemAccessor}};
+                            return SetRecursive(item, path, offset, value);
 
                     """
                 );
@@ -232,6 +243,16 @@ internal static class SetterGenerator
             if (child.ListType != null)
             {
                 // Generate list creation helper
+                var ensureCollection = child.IsIndexableList
+                    ? $"model.{child.CSharpName} ??= new();"
+                    : $$"""
+                        if (model.{{child.CSharpName}} is null)
+                                {
+                                    return false;
+                                }
+
+                        """;
+
                 builder.Append(
                     $$"""
 
@@ -243,7 +264,7 @@ internal static class SetterGenerator
                             global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
                         )
                         {
-                            model.{{child.CSharpName}} ??= new();
+                            {{ensureCollection}}
                             return SetRecursive(model.{{child.CSharpName}}, path, literalIndex, nextOffset, value);
                         }
 

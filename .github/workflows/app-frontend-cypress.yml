@@ -13,6 +13,10 @@ on:
       - 'src/App/frontend/test/**'
       - 'src/App/frontend/package.json'
       - 'src/test/apps/**'
+      - 'app-libs/form-component/src/**'
+      - 'app-libs/form-component/package.json'
+      - 'app-libs/language/src/**'
+      - 'app-libs/language/package.json'
       - '.github/actions/**'
       - '.github/workflows/app-frontend-cypress.yml'
   workflow_dispatch:
@@ -72,7 +76,7 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           APP_TEST_IMAGE_REPOSITORY: ${{ env.APP_TEST_IMAGE_REPOSITORY }}
-          STUDIOCTL_REGISTRY_CACHE_WRITE: "true"
+          STUDIOCTL_REGISTRY_CACHE_WRITE: 'true'
         with:
           script: |
             const fs = require('fs/promises');
@@ -134,7 +138,6 @@ jobs:
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
         with:
-          run-frontend: true
           run-localtest: true
           app-run-targets-json: ${{ needs.build-app-images.outputs.app-run-targets-json }}
 
@@ -244,7 +247,6 @@ jobs:
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
         with:
-          run-frontend: true
           run-localtest: true
           app-run-targets-json: ${{ steps.app-run-targets.outputs.app-run-targets-json }}
 

@@ -1,9 +1,5 @@
 import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
-
-const mandatoryMaskinportenScopeNames: Set<string> = new Set([
-  'altinn:serviceowner/instances.read',
-  'altinn:serviceowner/instances.write',
-]);
+export { isDefaultMaskinportenScope } from 'app-development/utils/maskinportenScopes';
 
 export function mapSelectedValuesToMaskinportenScopes(
   selectedValues: string[],
@@ -37,9 +33,6 @@ export function sortScopesForDisplay(scopes: MaskinportenScope[]): MaskinportenS
     return left.scope.localeCompare(right.scope, undefined, { sensitivity: 'base' });
   });
 }
-
-export const isMandatoryMaskinportenScope = (scopeName: string): boolean =>
-  mandatoryMaskinportenScopeNames.has(scopeName);
 
 const isServiceOwnerScope = (scopeName: string): boolean =>
   scopeName.startsWith('altinn:serviceowner');
