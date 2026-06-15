@@ -46,7 +46,7 @@ class Observation(TypedDict):
     trace_id: str
     start_time: str
     model: str | None
-    usage: Any
+    usage: dict[str, Any] | None
     usage_details: dict[str, Any]
 
 
@@ -134,12 +134,10 @@ def _to_date_string(start_time: str) -> str:
     return start_time[:iso_date_length]
 
 
-def _usage_value(usage: Any, key: str) -> int:
+def _usage_value(usage: dict[str, Any] | None, key: str) -> int:
     if usage is None:
         return 0
-    if isinstance(usage, dict):
-        return usage.get(key) or 0
-    return getattr(usage, key, 0) or 0
+    return usage.get(key) or 0
 
 
 def _to_usage_row(
