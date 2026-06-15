@@ -15,6 +15,7 @@ const defaultChannel: SlackChannel = {
   webhookUrl: '',
   isActive: true,
   environments: [],
+  reportFrequency: 'none',
 };
 
 const validChannel: SlackChannel = {
@@ -22,6 +23,7 @@ const validChannel: SlackChannel = {
   webhookUrl: 'https://hooks.slack.com/services/T00/B00/abc123',
   isActive: true,
   environments: [],
+  reportFrequency: 'none',
 };
 
 type RenderProps = {

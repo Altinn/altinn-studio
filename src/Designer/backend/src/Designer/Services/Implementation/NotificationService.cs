@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
@@ -25,8 +26,7 @@ internal sealed class NotificationService(
     AlertsSettings alertsSettings
 ) : INotificationService
 {
-    private const string SlackErrorEmoji = ":x:";
-    private const string UnicodeErrorEmoji = "❌";
+    private const int SlackSectionTextLimit = 3000;
 
     public async Task NotifyInternalAsync(
         string org,
@@ -90,7 +90,52 @@ internal sealed class NotificationService(
         List<Task> notificationTasks = contactPoints
             .SelectMany(contactPoint =>
                 contactPoint.Methods.Select(method =>
-                    SendContactMethodAsync(contactPoint, method, payload, cancellationToken)
+                    SendContactMethodAsync(contactPoint, method, payload, null, cancellationToken)
+                )
+            )
+            .ToList();
+
+        await Task.WhenAll(notificationTasks);
+    }
+
+    public async Task NotifyReportContactPointsAsync(
+        string org,
+        AltinnEnvironment environment,
+        ReportFrequency frequency,
+        NotificationPayload payload,
+        byte[]? pdfBytes,
+        CancellationToken cancellationToken
+    )
+    {
+        using var activity = ServiceTelemetry.Source.StartActivity(
+            $"{nameof(NotificationService)}.{nameof(NotifyReportContactPointsAsync)}"
+        );
+        activity?.SetTag("title", payload.Title);
+        activity?.SetTag("org", org);
+        activity?.SetTag("environment", environment.Name);
+        activity?.SetTag("frequency", frequency.ToString());
+
+        IReadOnlyList<ContactPointEntity> contactPoints;
+        try
+        {
+            contactPoints = await contactPointsRepository.GetActiveReportContactPointsAsync(
+                org,
+                environment.Name,
+                cancellationToken
+            );
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, "Failed to retrieve report contact points.");
+            activity?.AddException(ex);
+            return;
+        }
+
+        List<Task> notificationTasks = contactPoints
+            .Where(cp => cp.ReportFrequency == frequency)
+            .SelectMany(contactPoint =>
+                contactPoint.Methods.Select(method =>
+                    SendContactMethodAsync(contactPoint, method, payload, pdfBytes, cancellationToken)
                 )
             )
             .ToList();
@@ -102,6 +147,7 @@ internal sealed class NotificationService(
         ContactPointEntity contactPoint,
         ContactMethodEntity method,
         NotificationPayload payload,
+        byte[]? pdfBytes,
         CancellationToken cancellationToken
     )
     {
@@ -115,15 +161,27 @@ internal sealed class NotificationService(
         try
         {
             string idempotencyKey = $"{contactPoint.Id}-{method.Id}-{payload.Id}";
+
             switch (method.MethodType)
             {
                 case ContactMethodType.Email:
+                    IReadOnlyList<EmailAttachment>? attachments = pdfBytes is not null
+                        ?
+                        [
+                            new EmailAttachment
+                            {
+                                Filename = $"{payload.Id}.pdf",
+                                Data = Convert.ToBase64String(pdfBytes),
+                            },
+                        ]
+                        : null;
                     await altinnNotificationsClient.SendEmailNotification(
                         idempotencyKey,
                         method.Value,
-                        $"{UnicodeErrorEmoji} {payload.Title}",
+                        FormatTitle(payload),
                         FormatEmailBody(payload),
                         EmailContentType.Html,
+                        attachments: attachments,
                         cancellationToken: cancellationToken
                     );
                     break;
@@ -153,7 +211,10 @@ internal sealed class NotificationService(
 
     private static string FormatEmailBody(NotificationPayload payload)
     {
-        string title = $"{UnicodeErrorEmoji} {payload.Title}";
+        string title = FormatTitle(payload);
+        string body = string.IsNullOrWhiteSpace(payload.Body)
+            ? ""
+            : $"<pre style=\"font-family: sans-serif; white-space: pre-wrap\">{WebUtility.HtmlEncode(payload.Body)}</pre>";
         return $"""
             <h1>{WebUtility.HtmlEncode(title)}</h1>
             <table cellpadding="4">
@@ -165,6 +226,7 @@ internal sealed class NotificationService(
                     )}
                 </tbody>
             </table>
+            {body}
             <table cellpadding="4">
                 <tbody>
                 <tr>
@@ -182,7 +244,8 @@ internal sealed class NotificationService(
     private static string FormatSmsBody(NotificationPayload payload)
     {
         string fields = string.Join("\n", payload.Fields.Select(f => $"{f.Label}: {f.Value}"));
-        return $"{payload.Title}\n\n{fields}";
+        string body = string.IsNullOrWhiteSpace(payload.Body) ? "" : $"\n\n{payload.Body}";
+        return $"{payload.Title}\n\n{fields}{body}";
     }
 
     private static SlackMessage FormatSlackMessage(NotificationPayload payload)
@@ -196,20 +259,76 @@ internal sealed class NotificationService(
             .ToList();
 
         string fallbackValues = string.Join(" - ", payload.Fields.Select(f => $"`{f.Value}`"));
-
-        return new SlackMessage
+        string titlePrefix = string.IsNullOrWhiteSpace(payload.Emoji) ? "" : $"{payload.Emoji} ";
+        var blocks = new List<SlackBlock>
         {
-            Text = $"{SlackErrorEmoji} {fallbackValues} - *{payload.Title}*",
-            Blocks =
-            [
-                new SlackBlock
+            new()
+            {
+                Type = "section",
+                Text = new SlackText { Type = "mrkdwn", Text = $"{titlePrefix}*{payload.Title}*" },
+            },
+            new() { Type = "context", Elements = infoElements },
+        };
+
+        blocks.AddRange(
+            SplitSlackSections(payload.Body)
+                .Select(section => new SlackBlock
                 {
                     Type = "section",
-                    Text = new SlackText { Type = "mrkdwn", Text = $"{SlackErrorEmoji} *{payload.Title}*" },
-                },
-                new SlackBlock { Type = "context", Elements = infoElements },
-                new SlackBlock { Type = "context", Elements = linkElements },
-            ],
-        };
+                    Text = new SlackText { Type = "mrkdwn", Text = section },
+                })
+        );
+        if (linkElements.Count > 0)
+        {
+            blocks.Add(new SlackBlock { Type = "context", Elements = linkElements });
+        }
+
+        return new SlackMessage { Text = $"{titlePrefix}{fallbackValues} - *{payload.Title}*", Blocks = blocks };
+    }
+
+    private static string FormatTitle(NotificationPayload payload) =>
+        string.IsNullOrWhiteSpace(payload.Emoji) ? payload.Title : $"{payload.Emoji} {payload.Title}";
+
+    private static IEnumerable<string> SplitSlackSections(string body)
+    {
+        if (string.IsNullOrWhiteSpace(body))
+        {
+            yield break;
+        }
+
+        var section = new StringBuilder();
+        foreach (string line in body.Split('\n'))
+        {
+            if (section.Length > 0 && section.Length + line.Length + 1 > SlackSectionTextLimit)
+            {
+                yield return section.ToString();
+                section.Clear();
+            }
+
+            if (line.Length <= SlackSectionTextLimit)
+            {
+                if (section.Length > 0)
+                {
+                    section.Append('\n');
+                }
+                section.Append(line);
+                continue;
+            }
+
+            for (int offset = 0; offset < line.Length; offset += SlackSectionTextLimit)
+            {
+                if (section.Length > 0)
+                {
+                    yield return section.ToString();
+                    section.Clear();
+                }
+                yield return line.Substring(offset, Math.Min(SlackSectionTextLimit, line.Length - offset));
+            }
+        }
+
+        if (section.Length > 0)
+        {
+            yield return section.ToString();
+        }
     }
 }

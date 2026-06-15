@@ -1,0 +1,46 @@
+.container {
+  padding: 24px;
+  font-size: system-ui, sans-serif;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  gap: 24px;
+  flex-direction: column;
+}
+
+.title {
+  font-size: 20px;
+}
+
+.metaTable {
+  font-size: 13px;
+}
+
+.metaCell {
+  padding: 4px 0;
+}
+
+.noApps {
+  color: #666;
+  font-style: italic;
+}
+
+.appSection {
+}
+
+.appTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.metricsContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  zoom: 0.8;
+}
+
+.metricItem {
+  min-width: 0;
+}

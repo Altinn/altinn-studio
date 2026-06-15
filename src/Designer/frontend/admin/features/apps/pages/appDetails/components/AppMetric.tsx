@@ -8,10 +8,14 @@ import { getChartOptions } from 'admin/features/apps/utils/charts';
 type AppMetricProps = {
   range: number;
   metric: Metric;
+  className?: string;
 };
 
-export const AppMetric = ({ range, metric }: AppMetricProps) => {
+export const AppMetric = ({ range, metric, className }: AppMetricProps) => {
   const { t } = useTranslation();
+
+  console.log('metric.bucketSize', metric.bucketSize);
+  console.log('range', range);
   const options = getChartOptions(metric.bucketSize, range);
   const count = metric.counts.reduce((sum, item) => sum + item, 0);
 
@@ -27,7 +31,12 @@ export const AppMetric = ({ range, metric }: AppMetricProps) => {
   };
 
   return (
-    <Alert color={'info'} title={t(`admin.metrics.${metric.name}`)} count={count.toString()}>
+    <Alert
+      color={'info'}
+      title={t(`admin.metrics.${metric.name}`)}
+      count={count.toString()}
+      className={className}
+    >
       <Bar options={options} data={metricsChartData} />
     </Alert>
   );

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -147,9 +148,96 @@ public class NotificationServiceTests
                     It.IsAny<string>(),
                     It.IsAny<EmailContentType>(),
                     It.IsAny<SendingTime>(),
+                    It.IsAny<IReadOnlyList<EmailAttachment>>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task NotifyServiceOwnersAsync_WhenInformationalPayload_ShouldRenderBodyForAllMethods()
+    {
+        SetupContactPoints(
+            "ttd",
+            "tt02",
+            [
+                BuildContactPoint([
+                    new ContactMethodEntity
+                    {
+                        Id = Guid.NewGuid(),
+                        MethodType = ContactMethodType.Email,
+                        Value = "owner@example.com",
+                    },
+                    new ContactMethodEntity
+                    {
+                        Id = Guid.NewGuid(),
+                        MethodType = ContactMethodType.Sms,
+                        Value = "+4700000001",
+                    },
+                    new ContactMethodEntity
+                    {
+                        Id = Guid.NewGuid(),
+                        MethodType = ContactMethodType.Slack,
+                        Value = s_contactSlackWebhook.ToString(),
+                    },
+                ]),
+            ]
+        );
+        var payload = new NotificationPayload(
+            "report-id",
+            "Altinn Studio - periodisk rapport",
+            [("Organisasjon", "ttd")],
+            [],
+            "app-one\n3 feilende process/next"
+        );
+        var service = CreateService();
+
+        await service.NotifyServiceOwnersAsync(
+            "ttd",
+            AltinnEnvironment.FromName("tt02"),
+            payload,
+            CancellationToken.None
+        );
+
+        _notificationClient.Verify(c =>
+            c.SendEmailNotification(
+                It.IsAny<string>(),
+                "owner@example.com",
+                "Altinn Studio - periodisk rapport",
+                It.Is<string>(body =>
+                    body.Contains("app-one") && body.Contains("3 feilende process/next") && !body.Contains("❌")
+                ),
+                EmailContentType.Html,
+                It.IsAny<SendingTime>(),
+                It.IsAny<IReadOnlyList<EmailAttachment>>(),
+                It.IsAny<CancellationToken>()
+            )
+        );
+        _notificationClient.Verify(c =>
+            c.SendSmsNotification(
+                It.IsAny<string>(),
+                "+4700000001",
+                It.Is<string>(body =>
+                    body.Contains("app-one") && body.Contains("3 feilende process/next") && !body.Contains("❌")
+                ),
+                It.IsAny<SendingTime>(),
+                It.IsAny<CancellationToken>()
+            )
+        );
+        _slackClient.Verify(c =>
+            c.SendMessageAsync(
+                s_contactSlackWebhook,
+                It.Is<SlackMessage>(message =>
+                    !message.Text.Contains(":x:")
+                    && message.Blocks.Any(block =>
+                        block.Text != null
+                        && block.Text.Text.Contains("app-one")
+                        && block.Text.Text.Contains("3 feilende process/next")
+                    )
+                ),
+                It.IsAny<CancellationToken>()
+            )
         );
     }
 
@@ -266,6 +354,7 @@ public class NotificationServiceTests
                     It.IsAny<string>(),
                     It.IsAny<EmailContentType>(),
                     It.IsAny<SendingTime>(),
+                    It.IsAny<IReadOnlyList<EmailAttachment>>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -317,6 +406,7 @@ public class NotificationServiceTests
                     It.IsAny<string>(),
                     It.IsAny<EmailContentType>(),
                     It.IsAny<SendingTime>(),
+                    It.IsAny<IReadOnlyList<EmailAttachment>>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -415,6 +505,7 @@ public class NotificationServiceTests
                     It.IsAny<string>(),
                     It.IsAny<EmailContentType>(),
                     It.IsAny<SendingTime>(),
+                    It.IsAny<IReadOnlyList<EmailAttachment>>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once

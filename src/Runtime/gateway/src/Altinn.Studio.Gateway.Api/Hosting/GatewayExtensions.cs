@@ -62,6 +62,11 @@ internal static class GatewayExtensions
             .Services.AddOptions<GatewayContext>()
             .Bind(builder.Configuration.GetSection("Gateway"))
             .ValidateOnStart();
+        builder
+            .Services.AddOptions<Pdf3ProxySettings>()
+            .Bind(builder.Configuration.GetSection("Pdf3Proxy"))
+            .Validate(settings => settings.BaseAddress != null, "Pdf3Proxy.BaseAddress is required.")
+            .ValidateOnStart();
 
         builder.Services.AddKeyedSingleton<IAlertsClient>(
             AlertsClientSettings.AlertsClientProvider.Grafana,
@@ -86,6 +91,14 @@ internal static class GatewayExtensions
         );
         builder.Services.AddDesignerClients(builder.Configuration);
         builder.Services.AddKubernetesServices();
+        builder.Services.AddHttpClient(
+            "pdf3-proxy",
+            (serviceProvider, client) =>
+            {
+                var settings = serviceProvider.GetRequiredService<IOptionsMonitor<Pdf3ProxySettings>>().CurrentValue;
+                client.BaseAddress = settings.BaseAddress;
+            }
+        );
 
         return builder;
     }

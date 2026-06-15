@@ -29,6 +29,7 @@ const channel1: ContactPoint = {
   name: '#general',
   isActive: true,
   environments: ['tt02'],
+  reportFrequency: 'none',
   methods: [{ id: 'm1', methodType: 'slack', value: 'https://hooks.slack.com/general' }],
 };
 
@@ -37,6 +38,7 @@ const channel2: ContactPoint = {
   name: '#dev',
   isActive: false,
   environments: [],
+  reportFrequency: 'none',
   methods: [{ id: 'm2', methodType: 'slack', value: 'https://hooks.slack.com/dev' }],
 };
 
