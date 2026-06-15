@@ -698,7 +698,7 @@ public class DeploymentService : IDeploymentService
             links.Add((buildLogUrl, "Bygglogg"));
         }
 
-        var payload = new NotificationPayload(buildId, status, fields, links);
+        var payload = new NotificationPayload(buildId, status, fields, links, Emoji: "❌");
 
         await Task.WhenAll(
             _notificationService.NotifyInternalAsync(org, environment, payload, cancellationToken),
