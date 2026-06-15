@@ -1,9 +1,14 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
+using Altinn.App.Core.Internal.WorkflowEngine.Models;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Tests.Common.Auth;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
@@ -72,6 +77,46 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         using var response = await client.PostAsync(CallbackUrl(Guid.NewGuid()), content);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Callback_WithStateForDifferentInstance_ReturnsForbidden()
+    {
+        // The token authenticates for the route instance, but the state blob targets a DIFFERENT instance.
+        // The controller must reject this so a token scoped to one instance cannot drive another's state.
+        var routeInstanceGuid = Guid.NewGuid();
+        var otherInstanceGuid = Guid.NewGuid();
+
+        using var client = GetRootedClient(Org, App);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            GenerateToken(routeInstanceGuid)
+        );
+
+        var stateInstance = new Instance
+        {
+            Id = $"{InstanceOwnerPartyId}/{otherInstanceGuid}",
+            AppId = $"{Org}/{App}",
+            Org = Org,
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId.ToString() },
+            Data = [],
+        };
+        var payload = new AppCallbackPayload
+        {
+            CommandKey = MutateProcessState.Key,
+            Actor = new Actor { Language = "nb" },
+            LockToken = "lock-token",
+            WorkflowId = Guid.NewGuid(),
+            State = JsonSerializer.Serialize(new WorkflowCallbackState { Instance = stateInstance, FormData = [] }),
+        };
+        using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+
+        using var response = await client.PostAsync(
+            $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{routeInstanceGuid}/workflow-engine-callbacks/{MutateProcessState.Key}",
+            content
+        );
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [Fact]

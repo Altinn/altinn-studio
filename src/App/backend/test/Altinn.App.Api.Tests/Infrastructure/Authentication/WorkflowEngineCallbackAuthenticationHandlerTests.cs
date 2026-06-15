@@ -74,6 +74,11 @@ public class WorkflowEngineCallbackAuthenticationHandlerTests
     [InlineData("/tdd/app/instances/500600/3a1b/WORKFLOW-ENGINE-CALLBACKS/some-command", true)]
     [InlineData("/tdd/app/instances/500600/3a1b/process/next", false)]
     [InlineData("/", false)]
+    // Tightened from a bare substring match: the segment must sit in the real callback route shape, so an
+    // unrelated app path containing it is not forced onto the callback scheme (and does not lose JwtCookie).
+    [InlineData("/tdd/workflow-engine-callbacks/some-command", false)] // No /instances/{party}/{guid}/ prefix.
+    [InlineData("/tdd/app/instances/not-a-number/3a1b/workflow-engine-callbacks/cmd", false)] // Party id not numeric.
+    [InlineData("/tdd/app/instances/500600/3a1b/workflow-engine-callbacks/", false)] // No command segment.
     public void IsCallbackRequest_MatchesOnlyCallbackPaths(string path, bool expected)
     {
         Assert.Equal(expected, WorkflowEngineCallbackAuthenticationHandler.IsCallbackRequest(path));

@@ -108,6 +108,27 @@ public class WorkflowEngineCallbackController : ControllerBase
             payload.Actor.Language
         );
 
+        // Defense-in-depth: the callback token only binds the route instanceGuid, but the instance that is
+        // actually mutated and saved comes from the (engine-stored) state blob. Reject if the blob targets a
+        // different instance than the route, so a token scoped to one instance cannot be replayed against
+        // another instance's state.
+        string restoredInstanceId = instanceDataUnitOfWork.Instance.Id;
+        if (!string.Equals(restoredInstanceId, instanceId.ToString(), StringComparison.OrdinalIgnoreCase))
+        {
+            _logger.LogError(
+                "Callback state instance mismatch. CommandKey: {CommandKey}, RouteInstance: {InstanceId}, StateInstance: {StateInstanceId}.",
+                commandKey,
+                instanceId,
+                restoredInstanceId
+            );
+            activity?.SetStatus(ActivityStatusCode.Error, "Instance mismatch");
+            return NonRetryableProblem(
+                "Instance Mismatch",
+                "Callback state does not match the instance in the request route.",
+                StatusCodes.Status403Forbidden
+            );
+        }
+
         string? currentTaskId = instanceDataUnitOfWork.Instance.Process?.CurrentTask?.ElementId;
 
         ProcessEngineCommandResult result = await command.Execute(

@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+using System.Text.RegularExpressions;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Microsoft.AspNetCore.Authentication;
@@ -19,7 +20,8 @@ namespace Altinn.App.Api.Infrastructure.Authentication;
 /// (<see cref="SelectorSchemeName"/>) forwards callback requests to this scheme and all other requests to
 /// the JwtCookie scheme, based on <see cref="IsCallbackRequest"/>.
 /// </remarks>
-internal sealed class WorkflowEngineCallbackAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+internal sealed partial class WorkflowEngineCallbackAuthenticationHandler
+    : AuthenticationHandler<AuthenticationSchemeOptions>
 {
     /// <summary>
     /// The name of the authentication scheme.
@@ -32,9 +34,16 @@ internal sealed class WorkflowEngineCallbackAuthenticationHandler : Authenticati
     public const string SelectorSchemeName = "WorkflowEngineCallbackSelector";
 
     /// <summary>
-    /// The path segment that identifies a workflow engine callback request.
+    /// Matches the workflow engine callback route shape
+    /// <c>.../instances/{instanceOwnerPartyId}/{instanceGuid}/workflow-engine-callbacks/{commandKey}</c>.
+    /// A precise match (rather than a bare substring) prevents unrelated app paths that happen to contain the
+    /// segment from being routed to the callback scheme and losing their normal JwtCookie authentication.
     /// </summary>
-    private const string CallbackPathSegment = "/workflow-engine-callbacks/";
+    [GeneratedRegex(
+        @"/instances/\d+/[^/]+/workflow-engine-callbacks/[^/]+/?$",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant
+    )]
+    private static partial Regex CallbackPathRegex();
 
     private readonly IWorkflowCallbackTokenValidator _validator;
 
@@ -54,7 +63,7 @@ internal sealed class WorkflowEngineCallbackAuthenticationHandler : Authenticati
     /// selector scheme to forward only callback requests to this handler.
     /// </summary>
     public static bool IsCallbackRequest(PathString path) =>
-        path.Value is { } value && value.Contains(CallbackPathSegment, StringComparison.OrdinalIgnoreCase);
+        path.Value is { } value && CallbackPathRegex().IsMatch(value);
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {

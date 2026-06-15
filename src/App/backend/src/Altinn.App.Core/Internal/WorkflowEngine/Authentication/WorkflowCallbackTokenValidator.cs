@@ -93,6 +93,20 @@ internal sealed class WorkflowCallbackTokenValidator : IWorkflowCallbackTokenVal
             return false;
         }
 
+        // Reject codes that are themselves expired (with the same clock skew applied to token lifetime).
+        // Token expiry is bound to the signing code's expiry, so a legitimate token from an expired code is
+        // already expired; this additionally blocks forged tokens (future exp) minted from a leaked code that
+        // is still mounted but past its expiry, so code expiry remains a meaningful security boundary.
+        if (_timeProvider.GetUtcNow() > appCode.ExpiresAt + _clockSkew)
+        {
+            _logger.LogWarning(
+                "Workflow callback token validation failed: secret {SecretId} is expired for instance {InstanceGuid}.",
+                secretId,
+                instanceGuid
+            );
+            return false;
+        }
+
         SymmetricSecurityKey key = new(Encoding.UTF8.GetBytes(appCode.Code));
         TokenValidationResult result = await handler.ValidateTokenAsync(
             token,

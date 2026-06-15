@@ -229,6 +229,41 @@ public class WorkflowCallbackTokenValidatorTests
     }
 
     [Fact]
+    public async Task ValidateToken_SecretCodeExpired_ReturnsFalse()
+    {
+        var now = new DateTimeOffset(2025, 6, 1, 12, 0, 0, TimeSpan.Zero);
+        const string secret = "test-secret-that-is-long-enough-for-hmac";
+        const string secretId = "id-1";
+        var instanceGuid = Guid.NewGuid();
+
+        // The mounted code is past its expiry (beyond clock skew). Even a token whose own exp is far in the
+        // future — as an attacker holding the leaked-but-expired code could mint — must be rejected, so code
+        // expiry stays a meaningful security boundary on the validation path.
+        _secretProviderMock
+            .Setup(x => x.GetValidationSecrets())
+            .Returns([
+                new AppCode
+                {
+                    Id = secretId,
+                    Code = secret,
+                    IssuedAt = now.AddDays(-200),
+                    ExpiresAt = now.AddMinutes(-10),
+                },
+            ]);
+
+        var token = GenerateToken(
+            instanceGuid,
+            secret,
+            secretId,
+            expires: now.UtcDateTime.AddDays(30),
+            notBefore: now.UtcDateTime.AddHours(-1)
+        );
+        var result = await CreateSut(new FakeTimeProvider(now)).ValidateToken(token, instanceGuid);
+
+        Assert.False(result);
+    }
+
+    [Fact]
     public async Task ValidateToken_JtiDoesNotMatchInstanceGuid_ReturnsFalse()
     {
         const string secret = "test-secret-that-is-long-enough-for-hmac";
