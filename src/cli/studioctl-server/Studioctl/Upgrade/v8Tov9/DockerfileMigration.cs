@@ -4,13 +4,11 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 
 /// <summary>
 /// Updates the .NET base image tags in the app Dockerfile to match the target framework
-/// of the upgraded project. Without this, a v9 app left targeting net10.0 would still be
-/// built and published with the .NET 8 SDK/runtime images and fail to build.
+/// of the upgraded project.
 /// </summary>
 internal static class DockerfileMigration
 {
-    // Matches "FROM mcr.microsoft.com/dotnet/{sdk|aspnet}:<tag>[ AS <stage>]" and rewrites
-    // the image tag.
+    // Matches "FROM mcr.microsoft.com/dotnet/{sdk|aspnet}:<tag>[ AS <stage>]"
     private static readonly Regex _sdkImagePattern = new(
         @"(^FROM mcr\.microsoft\.com/dotnet/sdk):(.+?)( AS .*)?$",
         RegexOptions.None,
