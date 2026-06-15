@@ -53,13 +53,13 @@ spec:
               - name: RUNNER_SCOPE
                 value: repo
               - name: RUNNER_LABELS
-                value: self-hosted,self-hosted-single
+                value: self-hosted-single
               - name: RUNNER_GROUP
                 value: Default
               - name: RUNNER_WORKDIR
                 value: /home/runner/_work
-              - name: RUNNER_WORK_DISK_SIZE
-                value: 20G
+              - name: RUNNER_HOME_DISK_SIZE
+                value: 40G
               - name: DOCKER_DISK_SIZE
                 value: 30G
               - name: APP_ID
@@ -81,11 +81,11 @@ spec:
               requests:
                 cpu: "4"
                 memory: 8Gi
-                ephemeral-storage: 60Gi
+                ephemeral-storage: 75Gi
               limits:
                 cpu: "4"
                 memory: 8Gi
-                ephemeral-storage: 70Gi
+                ephemeral-storage: 85Gi
             volumeMounts:
               - name: runner-tmp
                 mountPath: /tmp
@@ -108,7 +108,7 @@ spec:
         owner: Altinn
         runnerScope: repo
         repos: altinn-studio
-        labels: self-hosted,self-hosted-single
+        labels: self-hosted-single
         noDefaultLabels: "true"
         enableEtags: "false"
         applicationIDFromEnv: APP_ID
