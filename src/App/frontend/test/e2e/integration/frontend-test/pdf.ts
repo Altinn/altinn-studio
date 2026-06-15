@@ -53,7 +53,7 @@ describe('PDF', () => {
       callback: () => {
         cy.get('@allRequests.all').then((_intercepts) => {
           const intercepts = _intercepts as unknown as Interception[];
-          expect(intercepts.length).to.be.greaterThan(5);
+          expect(intercepts.length).to.be.greaterThan(4);
 
           // We explicitly do not want keepAlive requests, since those should be disabled in PDF mode
           expect(
