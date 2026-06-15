@@ -17,7 +17,7 @@ import {
   getPageOptions,
   getTargetLayoutSetName,
 } from './targetUtils';
-import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
+import { useLayoutSetsExtendedQuery } from '../../../../../hooks/queries/useLayoutSetsExtendedQuery';
 import cn from 'classnames';
 import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
 

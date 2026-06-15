@@ -19,7 +19,6 @@ public class SubformPdfServiceTaskTests
     private readonly Mock<ILogger<SubformPdfServiceTask>> _loggerMock = new();
     private readonly Mock<IProcessReader> _processReaderMock = new();
     private readonly Mock<IDataClient> _dataClientMock = new();
-    private readonly Mock<IProcessTaskCleaner> _processTaskCleanerMock = new();
     private readonly SubformPdfServiceTask _serviceTask;
 
     private const string SubformComponentId = "subform-mopeder";
@@ -67,7 +66,6 @@ public class SubformPdfServiceTaskTests
             _processReaderMock.Object,
             _pdfServiceMock.Object,
             _dataClientMock.Object,
-            _processTaskCleanerMock.Object,
             _loggerMock.Object
         );
     }
@@ -168,46 +166,6 @@ public class SubformPdfServiceTaskTests
 
         // Act
         await Assert.ThrowsAsync<ApplicationConfigException>(async () => await _serviceTask.Execute(context));
-    }
-
-    // ===== CLEANUP TESTS =====
-
-    [Fact]
-    public async Task Execute_Should_CallProcessTaskCleanerWithCorrectTaskId()
-    {
-        // Arrange
-        SetupProcessReader();
-        var instance = CreateInstanceWithSubformData();
-        var context = CreateServiceTaskContext(instance);
-
-        // Act
-        await _serviceTask.Execute(context);
-
-        // Assert - verify ProcessTaskCleaner was called with the correct taskId
-        _processTaskCleanerMock.Verify(
-            x =>
-                x.RemoveAllDataElementsGeneratedFromTask(
-                    It.Is<Instance>(i => i == instance),
-                    It.Is<string>(t => t == "taskId")
-                ),
-            Times.Once
-        );
-    }
-
-    [Fact]
-    public async Task Execute_WhenCleanupFails_Should_PropagateException()
-    {
-        // Arrange
-        SetupProcessReader();
-        var instance = CreateInstanceWithSubformData();
-        var context = CreateServiceTaskContext(instance);
-
-        _processTaskCleanerMock
-            .Setup(x => x.RemoveAllDataElementsGeneratedFromTask(It.IsAny<Instance>(), It.IsAny<string>()))
-            .ThrowsAsync(new Exception("Cleanup failed"));
-
-        // Act & Assert - should propagate the exception
-        await Assert.ThrowsAsync<Exception>(async () => await _serviceTask.Execute(context));
     }
 
     // ===== METADATA TESTS =====
@@ -473,37 +431,6 @@ public class SubformPdfServiceTaskTests
     }
 
     // ===== INTEGRATION SCENARIOS =====
-
-    [Fact]
-    public async Task Execute_Should_CleanupBeforePdfGeneration()
-    {
-        // Arrange
-        SetupProcessReader();
-        var instance = CreateInstanceWithSubformData();
-        var context = CreateServiceTaskContext(instance);
-
-        // Act
-        await _serviceTask.Execute(context);
-
-        // Assert - cleanup should happen before PDF generation
-        _processTaskCleanerMock.Verify(
-            x => x.RemoveAllDataElementsGeneratedFromTask(It.IsAny<Instance>(), It.IsAny<string>()),
-            Times.Once
-        );
-
-        // And PDFs should be generated
-        _pdfServiceMock.Verify(
-            x =>
-                x.GenerateAndStoreSubformPdf(
-                    It.IsAny<Instance>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<SubformPdfContext>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Exactly(2)
-        );
-    }
 
     [Fact]
     public async Task Execute_WithMultipleSubformDataElements_Should_CreateCorrectMetadataForEach()

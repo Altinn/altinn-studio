@@ -267,6 +267,27 @@ describe('RepeatingGroupTable', () => {
     ])('hides column from %s when header cell has columnOptions.hidden', async (_label, extraRowsProp) => {
       await renderExtraRowsWithHiddenSecondColumn(extraRowsProp);
     });
+
+    it('should render rowsBefore before column headers when header is false', async () => {
+      const groupWithRowsBefore = getFormLayoutRepeatingGroupMock({
+        id: 'mock-container-id',
+        tableHeaders: ['field1', 'field2', 'field3'],
+        rowsBefore: [
+          {
+            header: false,
+            cells: [{ text: 'extra.before.row' }],
+          },
+        ],
+      });
+      await render(getLayout(groupWithRowsBefore, components), undefined, [
+        { id: 'extra.before.row', value: 'Row before text' },
+      ]);
+
+      const rowsBeforeText = screen.getByText('Row before text');
+      const columnHeader = screen.getByRole('columnheader', { name: 'Title1' });
+
+      expect(rowsBeforeText.compareDocumentPosition(columnHeader) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
   });
 
   describe('mobile view', () => {
@@ -332,6 +353,43 @@ describe('RepeatingGroupTable', () => {
       const deleteButtons = screen.getAllByRole('button', { name: /Slett/i });
       expect(deleteButtons[0]).toHaveTextContent('Slett');
       expect(deleteButtons[1]).not.toHaveTextContent('Slett');
+    });
+  });
+
+  describe('buttonLayout', () => {
+    const { setScreenWidth } = mockMediaQuery(992);
+    beforeEach(() => {
+      setScreenWidth(1337);
+    });
+
+    it('should render a single action column when buttonLayout is vertical', async () => {
+      const groupWithVerticalButtons = getFormLayoutRepeatingGroupMock({
+        id: 'mock-container-id',
+        edit: { buttonLayout: 'vertical' },
+      });
+      const layout = getLayout(groupWithVerticalButtons, components);
+      await render(layout);
+      const columnHeaders = screen.getAllByRole('columnheader');
+      expect(columnHeaders).toHaveLength(5);
+    });
+
+    it('should keep compact icon-only behavior in view mode when using vertical button layout', async () => {
+      const groupWithVerticalCompactButtons = getFormLayoutRepeatingGroupMock({
+        id: 'mock-container-id',
+        edit: { compactButtons: true, buttonLayout: 'vertical' },
+      });
+      const layout = getLayout(groupWithVerticalCompactButtons, components);
+      await render(layout);
+      const editButtons = screen.getAllByRole('button', { name: /Rediger/i });
+      const deleteButtons = screen.getAllByRole('button', { name: /Slett/i });
+      expect(editButtons).toHaveLength(4);
+      expect(deleteButtons).toHaveLength(4);
+      editButtons.forEach((button) => {
+        expect(button).not.toHaveTextContent('Rediger');
+      });
+      deleteButtons.forEach((button) => {
+        expect(button).not.toHaveTextContent('Slett');
+      });
     });
   });
 

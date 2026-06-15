@@ -25,7 +25,11 @@ public class GetServicesForAccessPackage
             ResourceRegistryMock
                 .Setup(r => r.GetSubjectResources(It.IsAny<List<string>>(), It.IsAny<string>()))
                 .ReturnsAsync([]);
-            ResourceRegistryMock.Setup(r => r.GetResourceList(It.IsAny<string>(), false, true)).ReturnsAsync([]);
+            ResourceRegistryMock
+                .Setup(r =>
+                    r.GetServiceResourceList(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>())
+                )
+                .ReturnsAsync([]);
 
             // Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);

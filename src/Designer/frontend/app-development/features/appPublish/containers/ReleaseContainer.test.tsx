@@ -11,6 +11,8 @@ import { repoStatus } from 'app-shared/mocks/mocks';
 import userEvent from '@testing-library/user-event';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import { FeatureFlagsContextProvider } from '@studio/feature-flags';
+import type { OrgList } from 'app-shared/types/OrgList';
+import { TestAppRouter } from '@studio/testing/testRoutingUtils';
 
 const renderReleaseContainer = (queries?: Partial<ServicesContextProps>) => {
   const allQueries: ServicesContextProps = {
@@ -20,15 +22,17 @@ const renderReleaseContainer = (queries?: Partial<ServicesContextProps>) => {
 
   render(
     <FeatureFlagsContextProvider value={{ flags: [] }}>
-      <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-        <ReleaseContainer />
-      </ServicesContextProvider>
+      <TestAppRouter>
+        <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
+          <ReleaseContainer />
+        </ServicesContextProvider>
+      </TestAppRouter>
     </FeatureFlagsContextProvider>,
   );
 };
 
 describe('ReleaseContainer', () => {
-  afterEach(() => jest.clearAllMocks);
+  afterEach(() => jest.clearAllMocks());
   it('renders the component with a spinner', () => {
     renderReleaseContainer();
     expect(screen.getByText(textMock('app_release.release_tab_versions'))).toBeInTheDocument();
@@ -62,7 +66,6 @@ describe('ReleaseContainer', () => {
     expect(screen.getByText(textMock('app_create_release.ok'))).toBeInTheDocument();
     expect(screen.getByText(textMock('app_release.release_title'))).toBeInTheDocument();
     expect(screen.getByText(textMock('app_release.release_title_link'))).toBeInTheDocument();
-    expect(mockGetBranchStatus).toHaveBeenCalledTimes(1);
     expect(mockGetBranchStatus).toHaveBeenCalledTimes(1);
   });
 
@@ -142,6 +145,149 @@ describe('ReleaseContainer', () => {
     expect(latestCommitLink).toBeInTheDocument();
   });
 
+  it('renders an option to build release if Maskinporten scopes differ from latest release', async () => {
+    const mockLatestCommit = '123';
+    const mockTagName = 'v1';
+    const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(repoStatus));
+    const mockGetBranchStatus = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ commit: { id: mockLatestCommit } }));
+    const mockGetAppReleases = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        results: [
+          {
+            targetCommitish: mockLatestCommit,
+            tagName: mockTagName,
+            buildInputs: { maskinportenScopes: ['altinn:serviceowner'] },
+            build: { result: BuildResult.succeeded, status: BuildStatus.completed },
+          },
+        ],
+      }),
+    );
+    const mockGetSelectedMaskinportenScopes = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        scopes: [
+          {
+            scope: 'altinn:serviceowner',
+            description: 'Brukes til å indikere at klienten er et tjenesteeiersystem.',
+          },
+          {
+            scope: 'altinn:serviceowner/instances.read',
+            description: 'Klienter kan lese data knyttet til alle appene til tjenesteeieren.',
+          },
+        ],
+      }),
+    );
+
+    renderReleaseContainer({
+      getRepoStatus: mockGetRepoStatus,
+      getBranchStatus: mockGetBranchStatus,
+      getAppReleases: mockGetAppReleases,
+      getOrgList: jest.fn().mockImplementation(() => Promise.resolve(orgListWithTestOrg)),
+      getSelectedMaskinportenScopes: mockGetSelectedMaskinportenScopes,
+    });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('app_create_release.loading')),
+    );
+
+    expect(mockGetSelectedMaskinportenScopes).toHaveBeenCalled();
+    expect(screen.getByText(textMock('app_release.release_title'))).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(textMock('app_create_release.release_version_number')),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('app_create_release.no_changes_on_current_release')),
+    ).not.toBeInTheDocument();
+  });
+
+  it('renders an option to build release if latest release was built before Maskinporten scopes were stored', async () => {
+    const mockLatestCommit = '123';
+    const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(repoStatus));
+    const mockGetBranchStatus = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ commit: { id: mockLatestCommit } }));
+    const mockGetAppReleases = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        results: [
+          {
+            targetCommitish: mockLatestCommit,
+            tagName: 'v1',
+            build: { result: BuildResult.succeeded, status: BuildStatus.completed },
+          },
+        ],
+      }),
+    );
+    const mockGetSelectedMaskinportenScopes = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        scopes: [
+          {
+            scope: 'altinn:serviceowner',
+            description: 'Brukes til å indikere at klienten er et tjenesteeiersystem.',
+          },
+        ],
+      }),
+    );
+
+    renderReleaseContainer({
+      getRepoStatus: mockGetRepoStatus,
+      getBranchStatus: mockGetBranchStatus,
+      getAppReleases: mockGetAppReleases,
+      getOrgList: jest.fn().mockImplementation(() => Promise.resolve(orgListWithTestOrg)),
+      getSelectedMaskinportenScopes: mockGetSelectedMaskinportenScopes,
+    });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('app_create_release.loading')),
+    );
+
+    expect(screen.getByText(textMock('app_release.release_title'))).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(textMock('app_create_release.release_version_number')),
+    ).toBeInTheDocument();
+  });
+
+  it('does not query Maskinporten scopes for apps outside service owner organisations', async () => {
+    const mockLatestCommit = '123';
+    const mockTagName = 'v1';
+    const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(repoStatus));
+    const mockGetBranchStatus = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ commit: { id: mockLatestCommit } }));
+    const mockGetAppReleases = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        results: [
+          {
+            targetCommitish: mockLatestCommit,
+            tagName: mockTagName,
+            build: { result: BuildResult.succeeded, status: BuildStatus.completed },
+          },
+        ],
+      }),
+    );
+    const mockGetSelectedMaskinportenScopes = jest.fn();
+
+    renderReleaseContainer({
+      getRepoStatus: mockGetRepoStatus,
+      getBranchStatus: mockGetBranchStatus,
+      getAppReleases: mockGetAppReleases,
+      getOrgList: jest.fn().mockImplementation(() => Promise.resolve({ orgs: {} })),
+      getSelectedMaskinportenScopes: mockGetSelectedMaskinportenScopes,
+    });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('app_create_release.loading')),
+    );
+
+    expect(mockGetSelectedMaskinportenScopes).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(textMock('app_release.release_built_on_version', { version: mockTagName })),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('app_create_release.no_changes_on_current_release')),
+    ).toBeInTheDocument();
+  });
+
   it('renders status that there local changes that will not be included in build if not pushed', async () => {
     const user = userEvent.setup();
     const mockGetRepoStatus = jest
@@ -182,3 +328,15 @@ describe('ReleaseContainer', () => {
     ).toBeInTheDocument();
   });
 });
+
+const orgListWithTestOrg: OrgList = {
+  orgs: {
+    testOrg: {
+      name: { nb: 'Testdepartementet' },
+      logo: '',
+      orgnr: '123456789',
+      homepage: '',
+      environments: [],
+    },
+  },
+};

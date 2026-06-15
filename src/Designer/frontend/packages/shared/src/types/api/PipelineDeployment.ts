@@ -48,6 +48,11 @@ export enum WarningEventType {
 const succeededEventTypeValues = Object.values(SucceededEventType);
 const failedEventTypeValues = Object.values(FailedEventType);
 const warningEventTypeValues = Object.values(WarningEventType);
+const deploymentSchedulingGracePeriodMs = 5 * 60 * 1000;
+
+const isResourceRegistryEventType = (eventType: DeployEvent['eventType']): boolean =>
+  eventType === EventType.ResourceRegistryPublishSucceeded ||
+  eventType === WarningEventType.ResourceRegistryPublishFailed;
 
 export const getDeploymentWarnings = (
   deployment: PipelineDeployment | undefined,
@@ -68,6 +73,16 @@ export const getDeployStatus = (deployment: PipelineDeployment | undefined): Bui
   const lastEventType = lastEvent?.eventType;
   const warnings = getDeploymentWarnings(deployment);
   if (lastEventType) {
+    const lastEventAgeMs = new Date().getTime() - new Date(lastEvent.created).getTime();
+
+    if (
+      isResourceRegistryEventType(lastEventType) &&
+      !deployment?.build &&
+      lastEventAgeMs > deploymentSchedulingGracePeriodMs
+    ) {
+      return BuildResult.failed;
+    }
+
     if (succeededEventTypeValues.includes(lastEventType as SucceededEventType)) {
       if (warnings.length > 0) {
         return BuildResult.partiallySucceeded;
@@ -82,8 +97,7 @@ export const getDeployStatus = (deployment: PipelineDeployment | undefined): Bui
 
       if (
         lastEventType === EventType.PipelineSucceeded &&
-        (isDeprecatedPipeline ||
-          new Date().getTime() - new Date(lastEvent.created).getTime() > 15 * 60 * 1000)
+        (isDeprecatedPipeline || lastEventAgeMs > 15 * 60 * 1000)
       ) {
         if (warnings.length > 0) {
           return BuildResult.partiallySucceeded;

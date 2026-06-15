@@ -7,6 +7,10 @@ on:
       - '.github/workflows/app-frontend-lighthouse-ci.yml'
       - '.github/actions/**'
       - 'src/App/frontend/**'
+      - 'app-libs/form-component/src/**'
+      - 'app-libs/form-component/package.json'
+      - 'app-libs/language/src/**'
+      - 'app-libs/language/package.json'
       - 'src/Runtime/localtest/**'
       - 'src/test/apps/component-library/**'
   pull_request:
@@ -15,6 +19,10 @@ on:
       - '.github/workflows/app-frontend-lighthouse-ci.yml'
       - '.github/actions/**'
       - 'src/App/frontend/**'
+      - 'app-libs/form-component/src/**'
+      - 'app-libs/form-component/package.json'
+      - 'app-libs/language/src/**'
+      - 'app-libs/language/package.json'
       - 'src/Runtime/localtest/**'
       - 'src/test/apps/component-library/**'
   workflow_dispatch:
@@ -48,7 +56,6 @@ jobs:
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
         with:
-          run-frontend: true
           run-localtest: true
           app-run-targets-json: |
             [{ "path": "src/test/apps/component-library" }]

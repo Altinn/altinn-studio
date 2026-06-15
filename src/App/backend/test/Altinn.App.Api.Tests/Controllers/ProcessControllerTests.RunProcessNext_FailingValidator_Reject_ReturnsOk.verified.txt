@@ -99,11 +99,93 @@
       HasParent: true
     },
     {
+      Name: Process.GenerateChangeEvent,
+      IdFormat: W3C,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        },
+        {
+          process.event.type: process_AbandonTask
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.GenerateChangeEvent,
+      IdFormat: W3C,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        },
+        {
+          process.event.type: process_EndEvent
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.GenerateChangeEvent,
+      IdFormat: W3C,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        },
+        {
+          process.event.type: Submited
+        }
+      ],
+      HasParent: true
+    },
+    {
       Name: Process.HandleEvents,
       IdFormat: W3C,
       Tags: [
         {
           instance.guid: Guid_1
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.LoadAuthDetails,
+      IdFormat: W3C,
+      Tags: [
+        {
+          user.authentication.type: User
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.LoadAuthDetails,
+      IdFormat: W3C,
+      Tags: [
+        {
+          user.authentication.type: User
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.LoadAuthDetails,
+      IdFormat: W3C,
+      Tags: [
+        {
+          user.authentication.type: User
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.MoveToNext,
+      IdFormat: W3C,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        },
+        {
+          process.action: reject
         }
       ],
       HasParent: true
@@ -148,6 +230,16 @@
       HasParent: true
     },
     {
+      Name: Process.RegisterEvent,
+      IdFormat: W3C,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        }
+      ],
+      HasParent: true
+    },
+    {
       Name: Process.StoreEvents,
       IdFormat: W3C,
       Tags: [
@@ -160,6 +252,22 @@
     {
       Name: ProcessClient.GetProcessDefinition,
       IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessNavigator.GetNextTask,
+      IdFormat: W3C,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        },
+        {
+          process.action: reject
+        },
+        {
+          process.current.element: Task_1
+        }
+      ],
       HasParent: true
     },
     {

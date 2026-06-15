@@ -18,6 +18,11 @@ export function addErrorCount(success) {
  */
 export function stopIterationOnFail(testName, success, res) {
   if (!success && res != null) {
+    console.error(
+      `[FAIL] ${testName} status=${res.status} url=${res.url} duration=${res.timings.duration}ms ` +
+        `request_id=${res.headers['Request-Id'] || res.headers['request-id'] || ''} ` +
+        `body=${res.body}`,
+    );
     fail(testName + ': Response code: ' + res.status);
   } else if (!success) {
     fail(testName);

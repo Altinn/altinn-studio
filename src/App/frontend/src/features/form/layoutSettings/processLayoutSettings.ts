@@ -13,7 +13,7 @@ export function processLayoutSettings(settings: ILayoutSettings | null | undefin
   if (!settings) {
     return {
       order: emptyArray,
-      groups: emptyArray,
+      groups: undefined,
       pageSettings: getGlobalUiSettings(),
       pdfLayoutName: undefined,
     };
@@ -45,6 +45,7 @@ export function processLayoutSettings(settings: ILayoutSettings | null | undefin
     taskNavigation: settings.pages.taskNavigation?.map((g) => ({ ...g, id: uuidv4() })),
     navigationTitle: settings.pages.navigationTitle,
     validationOnNavigation: settings.pages.validationOnNavigation,
+    hideAppNameInPdf: settings.pages.hideAppNameInPdf,
   };
 
   return {

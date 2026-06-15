@@ -273,7 +273,7 @@ public class GiteaClient(
             Title = serviceResource.Title,
         };
 
-        string resourceFolder = serviceResource.Identifier;
+        string resourceFolder = ResourceAdminHelper.GetResourceFileStructureName(serviceResource.Identifier);
 
         HttpResponseMessage fileResponse = await httpClient.GetAsync(
             $"repos/{org}/{repo}/commits?path={resourceFolder}&stat=false&verification=false&files=false",

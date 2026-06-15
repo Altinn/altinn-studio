@@ -1,11 +1,18 @@
 package kind
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
+	"time"
+)
+
+var (
+	errTestRegistry = errors.New("registry")
+	errTestIngress  = errors.New("ingress")
 )
 
 func TestNew_CreatesRequiredFiles(t *testing.T) {
@@ -49,6 +56,57 @@ func TestNew_CreatesRequiredFiles(t *testing.T) {
 				t.Error("kindConfig was not created")
 			}
 		})
+	}
+}
+
+func TestNotifyRegistryStarted_DoesNotBlockWithoutReceiver(t *testing.T) {
+	runtime := &KindContainerRuntime{RegistryStartedEvent: make(chan error)}
+
+	done := make(chan struct{})
+	go func() {
+		notifyRegistryStarted(runtime, nil)
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(100 * time.Millisecond):
+		t.Fatal("notifyRegistryStarted blocked without receiver")
+	}
+}
+
+func TestNotifyIngressReady_DoesNotBlockWithoutReceiver(t *testing.T) {
+	runtime := &KindContainerRuntime{IngressReadyEvent: make(chan error)}
+
+	done := make(chan struct{})
+	go func() {
+		notifyIngressReady(runtime, nil)
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(100 * time.Millisecond):
+		t.Fatal("notifyIngressReady blocked without receiver")
+	}
+}
+
+func TestNotifyEvents_SendWhenChannelCanReceive(t *testing.T) {
+	registryEvents := make(chan error, 1)
+	ingressEvents := make(chan error, 1)
+	runtime := &KindContainerRuntime{
+		RegistryStartedEvent: registryEvents,
+		IngressReadyEvent:    ingressEvents,
+	}
+
+	notifyRegistryStarted(runtime, errTestRegistry)
+	notifyIngressReady(runtime, errTestIngress)
+
+	if err := <-registryEvents; !errors.Is(err, errTestRegistry) {
+		t.Fatalf("registry event error = %v, want %v", err, errTestRegistry)
+	}
+	if err := <-ingressEvents; !errors.Is(err, errTestIngress) {
+		t.Fatalf("ingress event error = %v, want %v", err, errTestIngress)
 	}
 }
 

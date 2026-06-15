@@ -1,10 +1,10 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
+import { Flex } from '@app/form-component';
 import { Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
-import { Flex } from 'src/app-components/Flex/Flex';
 import classes from 'src/components/presentation/Header.module.css';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 

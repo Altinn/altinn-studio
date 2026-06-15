@@ -18,7 +18,7 @@ func buildSystem(ctx context.Context) *System {
 		OSName:       "",
 		OSVersion:    "",
 		Terminal:     os.Getenv("TERM"),
-		ColorEnabled: os.Getenv("NO_COLOR") == "",
+		ColorEnabled: ui.Colors(),
 		TTY:          ui.StdoutIsTerminal(),
 	}
 

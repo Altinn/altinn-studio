@@ -1,9 +1,9 @@
 import React from 'react';
 
+import { ConditionalWrapper } from '@app/form-component';
 import { Fieldset, useCheckboxGroup } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
-import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { LabelContent } from 'src/components/label/LabelContent';
 import { Lang } from 'src/features/language/Lang';

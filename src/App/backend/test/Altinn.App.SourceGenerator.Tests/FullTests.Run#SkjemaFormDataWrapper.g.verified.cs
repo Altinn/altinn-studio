@@ -11,6 +11,10 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
 
     public global::System.Type BackingDataType => typeof(global::Altinn.App.SourceGenerator.Tests.Skjema);
 
+    public global::Altinn.Platform.Storage.Interface.Models.DataType DataType { get; }
+
+    public global::Altinn.Platform.Storage.Interface.Models.DataElement? DataElement { get; }
+
     public T BackingData<T>()
         where T : class
     {
@@ -20,13 +24,19 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
             );
     }
 
-    public Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper(object dataModel)
+    public Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper(
+        object dataModel,
+        global::Altinn.Platform.Storage.Interface.Models.DataType dataType,
+        global::Altinn.Platform.Storage.Interface.Models.DataElement? dataElement = null
+    )
     {
         _dataModel =
             dataModel as global::Altinn.App.SourceGenerator.Tests.Skjema
             ?? throw new global::System.ArgumentException(
                 $"Data model must be of type Altinn.App.SourceGenerator.Tests.Skjema, (was {dataModel?.GetType().FullName ?? "null"})"
             );
+        DataType = dataType;
+        DataElement = dataElement;
     }
 
     #region Getters
@@ -81,7 +91,8 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
             return null;
         }
 
-        return GetRecursive(model[literalIndex], path, offset);
+        var item = model[literalIndex];
+        return GetRecursive(item, path, offset);
     }
 
     private static object? GetRecursive(
@@ -108,6 +119,9 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
             "withListOfString" => GetRecursive(model.WithListOfString, path, literalIndex, nextOffset),
             "withListOfInt" => GetRecursive(model.WithListOfInt, path, literalIndex, nextOffset),
             "withListOfNullableInt" => GetRecursive(model.ListNullableInt, path, literalIndex, nextOffset),
+            "withHashSetOfString" => GetRecursive(model.WithHashSetOfString, path, literalIndex, nextOffset),
+            "withHashSetOfInt" => GetRecursive(model.WithHashSetOfInt, path, literalIndex, nextOffset),
+            "hashSetAdresse" => GetRecursive(model.HashSetAdresse, path, literalIndex, nextOffset),
             // _ => throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException($"{path} is not a valid path."),
             _ => null,
         };
@@ -173,7 +187,8 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
             return null;
         }
 
-        return GetRecursive(model[literalIndex], path, offset);
+        var item = model[literalIndex];
+        return GetRecursive(item, path, offset);
     }
 
     private static object? GetRecursive(
@@ -233,6 +248,67 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         }
 
         return model[literalIndex];
+    }
+
+    private static object? GetRecursive(
+        global::System.Collections.Generic.HashSet<string>? model,
+        global::System.ReadOnlySpan<char> path,
+        int literalIndex,
+        int offset
+    )
+    {
+        if (literalIndex == -1)
+        {
+            return model;
+        }
+
+        if (model is null || literalIndex < 0 || literalIndex >= model.Count)
+        {
+            return null;
+        }
+
+        return global::System.Linq.Enumerable.ElementAt(model, literalIndex);
+    }
+
+    private static object? GetRecursive(
+        global::System.Collections.Generic.HashSet<int>? model,
+        global::System.ReadOnlySpan<char> path,
+        int literalIndex,
+        int offset
+    )
+    {
+        if (literalIndex == -1)
+        {
+            return model;
+        }
+
+        if (model is null || literalIndex < 0 || literalIndex >= model.Count)
+        {
+            return null;
+        }
+
+        return global::System.Linq.Enumerable.ElementAt(model, literalIndex);
+    }
+
+    private static object? GetRecursive(
+        global::System.Collections.Generic.HashSet<global::Altinn.App.SourceGenerator.Tests.Adresse>? model,
+        global::System.ReadOnlySpan<char> path,
+        int literalIndex,
+        int offset
+    )
+    {
+        if (literalIndex == -1)
+        {
+            return model;
+        }
+
+        if (model is null || literalIndex < 0 || literalIndex >= model.Count)
+        {
+            return null;
+        }
+
+        var item = global::System.Linq.Enumerable.ElementAt(model, literalIndex);
+        return GetRecursive(item, path, offset);
     }
 
     #endregion Getters
@@ -339,7 +415,8 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         {
             return false;
         }
-        return SetRecursive(model[literalIndex], path, offset, value);
+        var item = model[literalIndex];
+        return SetRecursive(item, path, offset, value);
     }
 
     private static bool SetRecursive(
@@ -437,6 +514,30 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                     nextOffset,
                     value
                 );
+            case "withHashSetOfString":
+                return SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Tests_SkjemaInnhold_WithHashSetOfString(
+                    model,
+                    path,
+                    literalIndex,
+                    nextOffset,
+                    value
+                );
+            case "withHashSetOfInt":
+                return SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Tests_SkjemaInnhold_WithHashSetOfInt(
+                    model,
+                    path,
+                    literalIndex,
+                    nextOffset,
+                    value
+                );
+            case "hashSetAdresse":
+                return SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Tests_SkjemaInnhold_HashSetAdresse(
+                    model,
+                    path,
+                    literalIndex,
+                    nextOffset,
+                    value
+                );
             default:
                 return false;
         }
@@ -510,6 +611,54 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
     {
         model.ListNullableInt ??= new();
         return SetRecursive(model.ListNullableInt, path, literalIndex, nextOffset, value);
+    }
+
+    private static bool SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Tests_SkjemaInnhold_WithHashSetOfString(
+        global::Altinn.App.SourceGenerator.Tests.SkjemaInnhold model,
+        global::System.ReadOnlySpan<char> path,
+        int literalIndex,
+        int nextOffset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model.WithHashSetOfString is null)
+        {
+            return false;
+        }
+
+        return SetRecursive(model.WithHashSetOfString, path, literalIndex, nextOffset, value);
+    }
+
+    private static bool SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Tests_SkjemaInnhold_WithHashSetOfInt(
+        global::Altinn.App.SourceGenerator.Tests.SkjemaInnhold model,
+        global::System.ReadOnlySpan<char> path,
+        int literalIndex,
+        int nextOffset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model.WithHashSetOfInt is null)
+        {
+            return false;
+        }
+
+        return SetRecursive(model.WithHashSetOfInt, path, literalIndex, nextOffset, value);
+    }
+
+    private static bool SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Tests_SkjemaInnhold_HashSetAdresse(
+        global::Altinn.App.SourceGenerator.Tests.SkjemaInnhold model,
+        global::System.ReadOnlySpan<char> path,
+        int literalIndex,
+        int nextOffset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model.HashSetAdresse is null)
+        {
+            return false;
+        }
+
+        return SetRecursive(model.HashSetAdresse, path, literalIndex, nextOffset, value);
     }
 
     private static bool SetRecursive(
@@ -619,7 +768,8 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         {
             return false;
         }
-        return SetRecursive(model[literalIndex], path, offset, value);
+        var item = model[literalIndex];
+        return SetRecursive(item, path, offset, value);
     }
 
     private static bool SetRecursive(
@@ -694,6 +844,64 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
             return true;
         }
         return false;
+    }
+
+    private static bool SetRecursive(
+        global::System.Collections.Generic.HashSet<string>? model,
+        global::System.ReadOnlySpan<char> path,
+        int literalIndex,
+        int offset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model is null || literalIndex < 0)
+        {
+            return false;
+        }
+        if (model.Count <= literalIndex)
+        {
+            return false;
+        }
+        return false;
+    }
+
+    private static bool SetRecursive(
+        global::System.Collections.Generic.HashSet<int>? model,
+        global::System.ReadOnlySpan<char> path,
+        int literalIndex,
+        int offset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model is null || literalIndex < 0)
+        {
+            return false;
+        }
+        if (model.Count <= literalIndex)
+        {
+            return false;
+        }
+        return false;
+    }
+
+    private static bool SetRecursive(
+        global::System.Collections.Generic.HashSet<global::Altinn.App.SourceGenerator.Tests.Adresse>? model,
+        global::System.ReadOnlySpan<char> path,
+        int literalIndex,
+        int offset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model is null || literalIndex < 0)
+        {
+            return false;
+        }
+        if (model.Count <= literalIndex)
+        {
+            return false;
+        }
+        var item = global::System.Linq.Enumerable.ElementAt(model, literalIndex);
+        return SetRecursive(item, path, offset, value);
     }
 
     #endregion Setters
@@ -1086,6 +1294,157 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                     return;
                 }
                 return;
+            case "withHashSetOfString":
+                segment.CopyTo(buffer.Slice(bufferOffset));
+                bufferOffset += 19;
+
+                if (literalIndex != -1)
+                {
+                    // Copy index from path to buffer
+                    buffer[bufferOffset++] = '[';
+                    if (!literalIndex.TryFormat(buffer[bufferOffset..], out int charsWritten))
+                    {
+                        throw new global::System.ArgumentException(
+                            $"Buffer too small to write index for {path}."
+                        );
+                    }
+
+                    bufferOffset += charsWritten;
+                    buffer[bufferOffset++] = ']';
+                    rowIndexes = default;
+                }
+                else if (rowIndexes.Length >= 1)
+                {
+                    // Write index from rowIndexes to buffer
+                    buffer[bufferOffset++] = '[';
+                    if (!rowIndexes[0].TryFormat(buffer[bufferOffset..], out int charsWritten))
+                    {
+                        throw new global::System.ArgumentException(
+                            $"Buffer too small to write index for {path}."
+                        );
+                    }
+                    bufferOffset += charsWritten;
+                    buffer[bufferOffset++] = ']';
+                    rowIndexes = rowIndexes.Slice(1);
+                }
+                else if (pathOffset == -1)
+                {
+                    // No more segments in the path, and the last part is valid in a list
+                    // without index (e.g. "model.listProperty" is valid, but "model.listProperty.val" needs an index)
+                    return;
+                }
+                else
+                {
+                    // No index to write, but there are more segments in the path
+                    // thus the path is not valid
+                    bufferOffset = 0;
+                    return;
+                }
+                return;
+            case "withHashSetOfInt":
+                segment.CopyTo(buffer.Slice(bufferOffset));
+                bufferOffset += 16;
+
+                if (literalIndex != -1)
+                {
+                    // Copy index from path to buffer
+                    buffer[bufferOffset++] = '[';
+                    if (!literalIndex.TryFormat(buffer[bufferOffset..], out int charsWritten))
+                    {
+                        throw new global::System.ArgumentException(
+                            $"Buffer too small to write index for {path}."
+                        );
+                    }
+
+                    bufferOffset += charsWritten;
+                    buffer[bufferOffset++] = ']';
+                    rowIndexes = default;
+                }
+                else if (rowIndexes.Length >= 1)
+                {
+                    // Write index from rowIndexes to buffer
+                    buffer[bufferOffset++] = '[';
+                    if (!rowIndexes[0].TryFormat(buffer[bufferOffset..], out int charsWritten))
+                    {
+                        throw new global::System.ArgumentException(
+                            $"Buffer too small to write index for {path}."
+                        );
+                    }
+                    bufferOffset += charsWritten;
+                    buffer[bufferOffset++] = ']';
+                    rowIndexes = rowIndexes.Slice(1);
+                }
+                else if (pathOffset == -1)
+                {
+                    // No more segments in the path, and the last part is valid in a list
+                    // without index (e.g. "model.listProperty" is valid, but "model.listProperty.val" needs an index)
+                    return;
+                }
+                else
+                {
+                    // No index to write, but there are more segments in the path
+                    // thus the path is not valid
+                    bufferOffset = 0;
+                    return;
+                }
+                return;
+            case "hashSetAdresse":
+                segment.CopyTo(buffer.Slice(bufferOffset));
+                bufferOffset += 14;
+
+                if (literalIndex != -1)
+                {
+                    // Copy index from path to buffer
+                    buffer[bufferOffset++] = '[';
+                    if (!literalIndex.TryFormat(buffer[bufferOffset..], out int charsWritten))
+                    {
+                        throw new global::System.ArgumentException(
+                            $"Buffer too small to write index for {path}."
+                        );
+                    }
+
+                    bufferOffset += charsWritten;
+                    buffer[bufferOffset++] = ']';
+                    rowIndexes = default;
+                }
+                else if (rowIndexes.Length >= 1)
+                {
+                    // Write index from rowIndexes to buffer
+                    buffer[bufferOffset++] = '[';
+                    if (!rowIndexes[0].TryFormat(buffer[bufferOffset..], out int charsWritten))
+                    {
+                        throw new global::System.ArgumentException(
+                            $"Buffer too small to write index for {path}."
+                        );
+                    }
+                    bufferOffset += charsWritten;
+                    buffer[bufferOffset++] = ']';
+                    rowIndexes = rowIndexes.Slice(1);
+                }
+                else if (pathOffset == -1)
+                {
+                    // No more segments in the path, and the last part is valid in a list
+                    // without index (e.g. "model.listProperty" is valid, but "model.listProperty.val" needs an index)
+                    return;
+                }
+                else
+                {
+                    // No index to write, but there are more segments in the path
+                    // thus the path is not valid
+                    bufferOffset = 0;
+                    return;
+                }
+                if (pathOffset != -1)
+                {
+                    AddIndexToPathRecursive_Altinn_App_SourceGenerator_Tests_Adresse(
+                        path,
+                        pathOffset,
+                        rowIndexes,
+                        buffer,
+                        ref bufferOffset
+                    );
+                }
+                return;
             default:
                 bufferOffset = 0;
                 return;
@@ -1207,7 +1566,11 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
     /// <inheritdoc />
     public global::Altinn.App.Core.Internal.Data.IFormDataWrapper Copy()
     {
-        return new Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper(CopyRecursive(_dataModel));
+        return new Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper(
+            CopyRecursive(_dataModel),
+            DataType,
+            DataElement
+        );
     }
 
     [return: global::System.Diagnostics.CodeAnalysis.NotNullIfNotNull("data")]
@@ -1274,6 +1637,9 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
             WithListOfString = CopyRecursive(data.WithListOfString),
             WithListOfInt = CopyRecursive(data.WithListOfInt),
             ListNullableInt = CopyRecursive(data.ListNullableInt),
+            WithHashSetOfString = CopyRecursive(data.WithHashSetOfString),
+            WithHashSetOfInt = CopyRecursive(data.WithHashSetOfInt),
+            HashSetAdresse = CopyRecursive(data.HashSetAdresse),
         };
     }
 
@@ -1395,6 +1761,66 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         return result;
     }
 
+    [return: global::System.Diagnostics.CodeAnalysis.NotNullIfNotNull("list")]
+    private static global::System.Collections.Generic.HashSet<string>? CopyRecursive(
+        global::System.Collections.Generic.HashSet<string>? list
+    )
+    {
+        if (list is null)
+        {
+            return null!;
+        }
+        // csharpier-ignore
+        global::System.Collections.Generic.HashSet<string> result = new (list.Count);
+
+        foreach (var item in list)
+        {
+            result.Add(item);
+        }
+
+        return result;
+    }
+
+    [return: global::System.Diagnostics.CodeAnalysis.NotNullIfNotNull("list")]
+    private static global::System.Collections.Generic.HashSet<int>? CopyRecursive(
+        global::System.Collections.Generic.HashSet<int>? list
+    )
+    {
+        if (list is null)
+        {
+            return null!;
+        }
+        // csharpier-ignore
+        global::System.Collections.Generic.HashSet<int> result = new (list.Count);
+
+        foreach (var item in list)
+        {
+            result.Add(item);
+        }
+
+        return result;
+    }
+
+    [return: global::System.Diagnostics.CodeAnalysis.NotNullIfNotNull("list")]
+    private static global::System.Collections.Generic.HashSet<global::Altinn.App.SourceGenerator.Tests.Adresse>? CopyRecursive(
+        global::System.Collections.Generic.HashSet<global::Altinn.App.SourceGenerator.Tests.Adresse>? list
+    )
+    {
+        if (list is null)
+        {
+            return null!;
+        }
+        // csharpier-ignore
+        global::System.Collections.Generic.HashSet<global::Altinn.App.SourceGenerator.Tests.Adresse> result = new (list.Count);
+
+        foreach (var item in list)
+        {
+            result.Add(CopyRecursive(item));
+        }
+
+        return result;
+    }
+
     #endregion Copy
     #region Remove
 
@@ -1479,7 +1905,8 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         }
         else
         {
-            RemoveRecursive(model[index], path, offset, rowRemovalOption);
+            var item = model[index];
+            RemoveRecursive(item, path, offset, rowRemovalOption);
         }
     }
 
@@ -1543,6 +1970,24 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                 break;
             case "withListOfNullableInt":
                 RemoveRecursive(model.ListNullableInt, path, nextOffset, literalIndex, rowRemovalOption);
+                break;
+            case "withHashSetOfString" when (nextOffset is -1) && (literalIndex is -1):
+                model.WithHashSetOfString = default;
+                break;
+            case "withHashSetOfString":
+                RemoveRecursive(model.WithHashSetOfString, path, nextOffset, literalIndex, rowRemovalOption);
+                break;
+            case "withHashSetOfInt" when (nextOffset is -1) && (literalIndex is -1):
+                model.WithHashSetOfInt = default;
+                break;
+            case "withHashSetOfInt":
+                RemoveRecursive(model.WithHashSetOfInt, path, nextOffset, literalIndex, rowRemovalOption);
+                break;
+            case "hashSetAdresse" when (nextOffset is -1) && (literalIndex is -1):
+                model.HashSetAdresse = default;
+                break;
+            case "hashSetAdresse":
+                RemoveRecursive(model.HashSetAdresse, path, nextOffset, literalIndex, rowRemovalOption);
                 break;
             default:
                 // throw new ArgumentException("{path} is not a valid path.");
@@ -1644,7 +2089,8 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         }
         else
         {
-            RemoveRecursive(model[index], path, offset, rowRemovalOption);
+            var item = model[index];
+            RemoveRecursive(item, path, offset, rowRemovalOption);
         }
     }
 
@@ -1730,6 +2176,77 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         }
     }
 
+    private static void RemoveRecursive(
+        global::System.Collections.Generic.HashSet<string>? model,
+        global::System.ReadOnlySpan<char> path,
+        int offset,
+        int index,
+        global::Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption
+    )
+    {
+        if (model is null)
+        {
+            return;
+        }
+        if (index < 0 || index >= model.Count)
+        {
+            return;
+        }
+        if (offset == -1)
+        {
+            return;
+        }
+    }
+
+    private static void RemoveRecursive(
+        global::System.Collections.Generic.HashSet<int>? model,
+        global::System.ReadOnlySpan<char> path,
+        int offset,
+        int index,
+        global::Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption
+    )
+    {
+        if (model is null)
+        {
+            return;
+        }
+        if (index < 0 || index >= model.Count)
+        {
+            return;
+        }
+        if (offset == -1)
+        {
+            return;
+        }
+    }
+
+    private static void RemoveRecursive(
+        global::System.Collections.Generic.HashSet<global::Altinn.App.SourceGenerator.Tests.Adresse>? model,
+        global::System.ReadOnlySpan<char> path,
+        int offset,
+        int index,
+        global::Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption
+    )
+    {
+        if (model is null)
+        {
+            return;
+        }
+        if (index < 0 || index >= model.Count)
+        {
+            return;
+        }
+        if (offset == -1)
+        {
+            return;
+        }
+        else
+        {
+            var item = global::System.Linq.Enumerable.ElementAt(model, index);
+            RemoveRecursive(item, path, offset, rowRemovalOption);
+        }
+    }
+
     #endregion Remove
     #region AltinnRowIds
 
@@ -1786,6 +2303,16 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         if (dataModel.TidligereAdresse is not null)
         {
             foreach (var item in dataModel.TidligereAdresse)
+            {
+                if (item is not null)
+                {
+                    SetAltinnRowIds(item, initialize);
+                }
+            }
+        }
+        if (dataModel.HashSetAdresse is not null)
+        {
+            foreach (var item in dataModel.HashSetAdresse)
             {
                 if (item is not null)
                 {
@@ -1898,7 +2425,8 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
     internal static void Register()
     {
         global::Altinn.App.Core.Internal.Data.FormDataWrapperFactory.Register<global::Altinn.App.SourceGenerator.Tests.Skjema>(
-            dataModel => new Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper(dataModel)
+            (dataModel, dataType, dataElement) =>
+                new Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper(dataModel, dataType, dataElement)
         );
     }
 }
@@ -2101,6 +2629,68 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
 //           "TypeName": "int",
 //           "IsJsonValueType": true,
 //           "ListType": "global::System.Collections.Generic.List<int?>",
+//         },
+//         {
+//           "JsonName": "withHashSetOfString",
+//           "CSharpName": "WithHashSetOfString",
+//           "IsNullable": false,
+//           "TypeName": "string",
+//           "IsJsonValueType": true,
+//           "ListType": "global::System.Collections.Generic.HashSet<string>",
+//         },
+//         {
+//           "JsonName": "withHashSetOfInt",
+//           "CSharpName": "WithHashSetOfInt",
+//           "IsNullable": false,
+//           "TypeName": "int",
+//           "IsJsonValueType": true,
+//           "ListType": "global::System.Collections.Generic.HashSet<int>",
+//         },
+//         {
+//           "JsonName": "hashSetAdresse",
+//           "CSharpName": "HashSetAdresse",
+//           "IsNullable": false,
+//           "TypeName": "global::Altinn.App.SourceGenerator.Tests.Adresse",
+//           "IsJsonValueType": false,
+//           "ListType": "global::System.Collections.Generic.HashSet<global::Altinn.App.SourceGenerator.Tests.Adresse>",
+//           "Properties": [
+//             {
+//               "JsonName": "altinnRowId",
+//               "CSharpName": "AltinnRowId",
+//               "IsNullable": false,
+//               "TypeName": "global::System.Guid",
+//               "IsJsonValueType": true,
+//             },
+//             {
+//               "JsonName": "gate",
+//               "CSharpName": "Gate",
+//               "IsNullable": true,
+//               "TypeName": "string",
+//               "IsJsonValueType": true,
+//             },
+//             {
+//               "JsonName": "postnummer",
+//               "CSharpName": "Postnummer",
+//               "IsNullable": true,
+//               "TypeName": "int",
+//               "IsJsonValueType": true,
+//             },
+//             {
+//               "JsonName": "poststed",
+//               "CSharpName": "Poststed",
+//               "IsNullable": true,
+//               "TypeName": "string",
+//               "IsJsonValueType": true,
+//             },
+//             {
+//               "JsonName": "tags",
+//               "CSharpName": "Tags",
+//               "IsNullable": false,
+//               "TypeName": "string",
+//               "IsJsonValueType": true,
+//               "ListType": "global::System.Collections.Generic.List<string>",
+//             }
+//           ]
 //         }
 //       ]
 //     },

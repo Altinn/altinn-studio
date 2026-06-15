@@ -1,14 +1,31 @@
-import { renderHook } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
 import { useAppSettingsMenuTabConfigs } from './useAppSettingsMenuTabConfigs';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { renderHookWithProviders } from 'app-development/test/mocks';
+import type { OrgList } from 'app-shared/types/OrgList';
+
+const orgListWithTestOrg: OrgList = {
+  orgs: {
+    testOrg: {
+      name: { nb: 'Testdepartementet' },
+      logo: '',
+      orgnr: '123456789',
+      homepage: '',
+      environments: [],
+    },
+  },
+};
 
 describe('useAppSettingsMenuTabConfigs', () => {
-  it('returns correct tab configurations with translated names and icons', () => {
-    const { result } = renderHook(() => useAppSettingsMenuTabConfigs());
+  it('returns correct tab configurations with translated names and icons for service owner apps', async () => {
+    const getOrgList = jest.fn().mockImplementation(() => Promise.resolve(orgListWithTestOrg));
+    const { renderHookResult } = renderHookWithProviders({ getOrgList })(() =>
+      useAppSettingsMenuTabConfigs(),
+    );
 
-    expect(result.current).toHaveLength(6);
+    await waitFor(() => expect(renderHookResult.result.current).toHaveLength(6));
 
-    expect(result.current).toEqual([
+    expect(renderHookResult.result.current).toEqual([
       {
         tabId: 'about',
         tabName: textMock('app_settings.left_nav_tab_about'),
@@ -40,5 +57,22 @@ describe('useAppSettingsMenuTabConfigs', () => {
         icon: expect.any(Object),
       },
     ]);
+  });
+
+  it('hides the service owner only tabs for personal apps', async () => {
+    const getOrgList = jest.fn().mockImplementation(() => Promise.resolve<OrgList>({ orgs: {} }));
+    const { renderHookResult } = renderHookWithProviders({ getOrgList })(() =>
+      useAppSettingsMenuTabConfigs(),
+    );
+
+    await waitFor(() => expect(getOrgList).toHaveBeenCalledTimes(1));
+
+    expect(renderHookResult.result.current).toHaveLength(4);
+    expect(renderHookResult.result.current).not.toContainEqual(
+      expect.objectContaining({ tabId: 'run' }),
+    );
+    expect(renderHookResult.result.current).not.toContainEqual(
+      expect.objectContaining({ tabId: 'maskinporten' }),
+    );
   });
 });

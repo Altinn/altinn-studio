@@ -1,4 +1,3 @@
-#nullable enable
 using System.Diagnostics;
 using Altinn.Platform.Storage.Authorization;
 using Altinn.Platform.Storage.Helpers;

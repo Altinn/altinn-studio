@@ -77,7 +77,6 @@ import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResp
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { RepoDiffResponse } from 'app-shared/types/api/RepoDiffResponse';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
-import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 import type { OptionList } from 'app-shared/types/OptionList';
 import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
 import type { LayoutSetModel } from '../types/api/dto/LayoutSetModel';
@@ -147,6 +146,9 @@ export const queriesMock: ServicesContextProps = {
   getImageFileNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getLayoutNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
+  getLayoutSetsExtendedV4: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<LayoutSetModel[]>(layoutSetsExtendedMock)),
   getLayoutSetsExtended: jest
     .fn()
     .mockImplementation(() => Promise.resolve<LayoutSetModel[]>(layoutSetsExtendedMock)),
@@ -257,12 +259,10 @@ export const queriesMock: ServicesContextProps = {
   // Queries - PrgetBpmnFile
   getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getProcessTaskType: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
-  getMaskinportenScopes: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve<MaskinportenScope[]>([])),
+  getMaskinportenScopes: jest.fn().mockImplementation(() => Promise.resolve({ scopes: [] })),
   getSelectedMaskinportenScopes: jest
     .fn()
-    .mockImplementation(() => Promise.resolve<MaskinportenScope[]>([])),
+    .mockImplementation(() => Promise.resolve({ scopes: [] })),
   getAppSettings: jest
     .fn()
     .mockImplementation(() => Promise.resolve<AppSettings>({ undeployOnInactivity: false })),
@@ -413,6 +413,7 @@ export const queriesMock: ServicesContextProps = {
   deleteChatThread: jest.fn().mockImplementation(() => Promise.resolve()),
   createChatMessage: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteChatMessage: jest.fn().mockImplementation(() => Promise.resolve()),
+  sendChatFeedback: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Org settings - Contact points
   addContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),

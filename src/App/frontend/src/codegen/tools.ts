@@ -3,7 +3,14 @@ import { loadESLint } from 'eslint';
 import fs from 'node:fs/promises';
 import type { ESLint } from 'eslint';
 
+const writtenPaths = new Set<string>();
+
+export function getWrittenPaths(): ReadonlySet<string> {
+  return writtenPaths;
+}
+
 export async function saveFile(targetPath: string, _content: string, removeText?: RegExp, fileExisted?: boolean) {
+  writtenPaths.add(targetPath);
   const content = `${_content.trim()}\n`;
   try {
     const fd = await fs.open(targetPath, 'r+');
@@ -49,6 +56,7 @@ async function getESLint() {
 type TsResult = { result: string };
 
 export async function saveTsFile(targetPath: string, content: TsResult | Promise<TsResult>) {
+  writtenPaths.add(targetPath);
   const { result } = await content;
   const contentHash = crypto.createHash('sha256').update(result).digest('hex');
   const _fileExists = await fileExists(targetPath);

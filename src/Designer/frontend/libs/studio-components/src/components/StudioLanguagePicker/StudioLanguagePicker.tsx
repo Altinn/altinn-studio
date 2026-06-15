@@ -2,7 +2,12 @@ import { StudioSelect } from '../StudioSelect';
 import { StudioButton } from '../StudioButton';
 import { StudioDeleteButton } from '../StudioDeleteButton';
 import { useCallback, useState, useRef, forwardRef } from 'react';
-import type { ChangeEventHandler, KeyboardEventHandler, ReactElement } from 'react';
+import type {
+  ChangeEventHandler,
+  FocusEventHandler,
+  KeyboardEventHandler,
+  ReactElement,
+} from 'react';
 import classes from './StudioLanguagePicker.module.css';
 import { PlusCircleIcon } from '@studio/icons';
 import { StudioTextfield } from '../StudioTextfield';
@@ -103,8 +108,10 @@ function LanguageAdder({ onAdd, ...rest }: LanguageAdderProps): ReactElement {
     [onAdd, setIsOpen],
   );
 
+  const handleFocusOutside = useCallback((): void => setIsOpen(false), [setIsOpen]);
+
   if (isOpen) {
-    return <OpenLanguageAdder onAdd={handleAdd} {...rest} />;
+    return <OpenLanguageAdder onAdd={handleAdd} onFocusOutside={handleFocusOutside} {...rest} />;
   } else {
     return (
       <StudioButton
@@ -118,20 +125,36 @@ function LanguageAdder({ onAdd, ...rest }: LanguageAdderProps): ReactElement {
   }
 }
 
-type OpenLanguageAdderProps = LanguageAdderProps;
+type OpenLanguageAdderProps = LanguageAdderProps & { readonly onFocusOutside: () => void };
 
-function OpenLanguageAdder({ languageCodes, onAdd, texts }: OpenLanguageAdderProps): ReactElement {
+function OpenLanguageAdder({
+  languageCodes,
+  onAdd,
+  onFocusOutside,
+  texts,
+}: OpenLanguageAdderProps): ReactElement {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
 
   const tryAdd = useCallback((): void => {
     const input = inputRef.current!;
     if (input.reportValidity()) onAdd(input.value);
   }, [inputRef, onAdd]);
 
+  const handleBlur = useCallback((): void => {
+    requestAnimationFrame(() => {
+      const focusableElements: (Element | null)[] = [inputRef.current, buttonRef.current];
+      if (!focusableElements.includes(document.activeElement)) {
+        onFocusOutside();
+      }
+    });
+  }, [onFocusOutside]);
+
   return (
     <>
       <AddLanguageField
         languageCodes={languageCodes}
+        onBlur={handleBlur}
         onEnterKeyDown={tryAdd}
         ref={inputRef}
         texts={texts}
@@ -140,7 +163,9 @@ function OpenLanguageAdder({ languageCodes, onAdd, texts }: OpenLanguageAdderPro
         className={classes.addFieldButton}
         data-variant='secondary'
         icon={<PlusCircleIcon />}
+        onBlur={handleBlur}
         onClick={tryAdd}
+        ref={buttonRef}
         title={texts.add}
       />
     </>
@@ -148,11 +173,12 @@ function OpenLanguageAdder({ languageCodes, onAdd, texts }: OpenLanguageAdderPro
 }
 
 type AddLanguageFieldProps = Pick<OpenLanguageAdderProps, 'languageCodes' | 'texts'> & {
+  readonly onBlur: FocusEventHandler<HTMLInputElement>;
   readonly onEnterKeyDown: KeyboardEventHandler<HTMLInputElement>;
 };
 
 const AddLanguageField = forwardRef<HTMLInputElement, AddLanguageFieldProps>(
-  ({ languageCodes, onEnterKeyDown, texts }, ref): ReactElement => {
+  ({ languageCodes, onBlur, onEnterKeyDown, texts }, ref): ReactElement => {
     const inputRef = useForwardedRef<HTMLInputElement | null>(ref);
 
     const validateInput = useCallback(
@@ -190,6 +216,7 @@ const AddLanguageField = forwardRef<HTMLInputElement, AddLanguageFieldProps>(
         autoFocus
         className={classes.addField}
         label={texts.newLanguageCode}
+        onBlur={onBlur}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         ref={inputCallback}

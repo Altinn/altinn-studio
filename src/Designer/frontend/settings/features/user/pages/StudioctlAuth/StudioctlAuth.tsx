@@ -12,6 +12,7 @@ import {
 import { StudioPageError } from 'app-shared/components';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
+import { StringUtils } from '@studio/pure-functions';
 import { NotFound } from '../../../../components/NotFound/NotFound';
 import { useRequiredRoutePathsParams } from '../../../../hooks/useRequiredRoutePathsParams';
 import { useStudioctlAuthRequestQuery } from '../../hooks/queries/useStudioctlAuthRequestQuery';
@@ -26,8 +27,9 @@ export const StudioctlAuth = (): React.ReactElement => {
   const requestId = searchParams.get('requestId');
   const { environment, isPending: isEnvironmentPending } = useEnvironmentConfig();
   const { data: user, isPending: isUserPending, isError: isUserError } = useUserQuery();
+  const ownerMatchesUser = StringUtils.areCaseInsensitiveEqual(owner, user?.login ?? '');
   const canLoadRequest =
-    Boolean(environment?.featureFlags?.studioOidc) && owner === user?.login && Boolean(requestId);
+    Boolean(environment?.featureFlags?.studioOidc) && ownerMatchesUser && Boolean(requestId);
   const {
     data: request,
     isPending: isRequestPending,
@@ -50,7 +52,7 @@ export const StudioctlAuth = (): React.ReactElement => {
     return <StudioPageError />;
   }
 
-  if (!environment?.featureFlags?.studioOidc || owner !== user?.login || !requestId) {
+  if (!environment?.featureFlags?.studioOidc || !ownerMatchesUser || !requestId) {
     return <NotFound />;
   }
 

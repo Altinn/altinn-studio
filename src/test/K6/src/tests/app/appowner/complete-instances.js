@@ -53,7 +53,7 @@ export default function (data) {
         'Instance is confirmed complete': (r) => r.status === 200,
       });
       addErrorCount(success);
-      stopIterationOnFail('Complete confirm instances as app owner');
+      stopIterationOnFail('Complete confirm instances as app owner', success);
     });
   }
 }
