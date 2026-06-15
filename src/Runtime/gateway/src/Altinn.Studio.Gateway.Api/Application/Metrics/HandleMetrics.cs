@@ -47,6 +47,139 @@ internal static class HandleMetrics
         return Results.Ok(metrics);
     }
 
+    internal static async Task<IResult> GetReportMetrics(
+        IOptionsMonitor<GatewayContext> gatewayContext,
+        IServiceProvider serviceProvider,
+        IOptionsMonitor<MetricsClientSettings> metricsClientSettings,
+        HelmReleaseClient helmReleaseClient,
+        ILogger<Program> logger,
+        string originEnvironment,
+        int range,
+        CancellationToken cancellationToken
+    )
+    {
+        IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
+            metricsClientSettings.CurrentValue.Provider
+        );
+        var currentGatewayContext = gatewayContext.CurrentValue;
+
+        var now = DateTimeOffset.UtcNow;
+        var from = now.AddMinutes(-range);
+        var bucketSize = AzureMonitorClient.GetBucketSize(range);
+
+        var labelSelector = HelmReleaseLabelSelector.ForOrgAndSourceEnvironment(
+            currentGatewayContext.ServiceOwner,
+            originEnvironment
+        );
+        var appsTask = helmReleaseClient.List(
+            "default",
+            labelSelector: labelSelector,
+            cancellationToken: cancellationToken
+        );
+        var metricsTask = metricsClient.GetMetrics(range, cancellationToken);
+        var failedRequestsTask = metricsClient.GetAllAppsFailedRequests(range, cancellationToken);
+
+        var helmReleases = await appsTask;
+        var amMetrics = await metricsTask;
+        var amFailedRequests = await failedRequestsTask;
+
+        var apps = new List<string>();
+        foreach (var helmRelease in helmReleases)
+        {
+            if (
+                !HelmReleaseMapping.TryCreateAppDeployment(
+                    helmRelease,
+                    currentGatewayContext.Environment,
+                    out var deployment,
+                    out var error
+                )
+            )
+            {
+                logger.LogError(
+                    "Invalid HelmRelease state for {HelmReleaseName}: {Error}",
+                    helmRelease.GetName(),
+                    error
+                );
+                continue;
+            }
+            apps.Add(deployment.App);
+        }
+
+        var metricsLookup = amMetrics.ToDictionary(m => (m.AppName.ToLowerInvariant(), m.Name.ToLowerInvariant()));
+
+        var metrics = apps.SelectMany(app =>
+            AzureMonitorClient.MetricNames.Select(name =>
+                metricsLookup.TryGetValue((app.ToLowerInvariant(), name.ToLowerInvariant()), out var existing)
+                    ? new Metric
+                    {
+                        AppName = existing.AppName,
+                        Name = existing.Name,
+                        Timestamps = existing.Timestamps,
+                        Counts = existing.Counts,
+                        BucketSize = bucketSize,
+                    }
+                    : new Metric
+                    {
+                        AppName = app,
+                        Name = name,
+                        Timestamps = [],
+                        Counts = [],
+                        BucketSize = bucketSize,
+                    }
+            )
+        );
+
+        var errorMetricsLookup = amFailedRequests.ToDictionary(r =>
+            (r.AppName.ToLowerInvariant(), r.Name.ToLowerInvariant())
+        );
+
+        var errorMetrics = apps.SelectMany(app =>
+            AzureMonitorClient.OperationNameKeys.Select(name =>
+            {
+                var logsUrl = metricsClient.GetLogsUrl(
+                    currentGatewayContext.AzureSubscriptionId,
+                    currentGatewayContext.ServiceOwner,
+                    currentGatewayContext.Environment,
+                    [app],
+                    name,
+                    from,
+                    now
+                );
+                return errorMetricsLookup.TryGetValue(
+                    (app.ToLowerInvariant(), name.ToLowerInvariant()),
+                    out var existing
+                )
+                    ? new AllAppsErrorMetric
+                    {
+                        AppName = existing.AppName,
+                        Name = existing.Name,
+                        Timestamps = existing.Timestamps,
+                        Counts = existing.Counts,
+                        BucketSize = bucketSize,
+                        LogsUrl = logsUrl,
+                    }
+                    : new AllAppsErrorMetric
+                    {
+                        AppName = app,
+                        Name = name,
+                        Timestamps = [],
+                        Counts = [],
+                        BucketSize = bucketSize,
+                        LogsUrl = logsUrl,
+                    };
+            })
+        );
+
+        return Results.Ok(
+            new ReportMetrics
+            {
+                Apps = apps,
+                Metrics = metrics,
+                ErrorMetrics = errorMetrics,
+            }
+        );
+    }
+
     internal static async Task<IResult> GetAppMetrics(
         IServiceProvider serviceProvider,
         IOptionsMonitor<MetricsClientSettings> metricsClientSettings,

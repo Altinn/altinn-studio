@@ -96,6 +96,7 @@ public class ContactPointsService(
             UpdatedByUsername = entity.UpdatedByUsername,
             UpdatedAt = entity.UpdatedAt,
             Environments = entity.Environments,
+            ReportFrequency = entity.ReportFrequency,
             Methods = entity
                 .Methods.Select(m => new ContactMethod
                 {
@@ -123,6 +124,7 @@ public class ContactPointsService(
             CreatedAt = createdByUserAccountId.HasValue ? now : contactPoint.CreatedAt,
             UpdatedByUserAccountId = updatedByUserAccountId,
             UpdatedAt = now,
+            ReportFrequency = contactPoint.ReportFrequency,
             Methods = contactPoint
                 .Methods.Select(m => new ContactMethodEntity
                 {

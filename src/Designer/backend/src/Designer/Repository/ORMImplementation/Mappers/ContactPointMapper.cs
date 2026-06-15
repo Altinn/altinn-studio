@@ -1,4 +1,5 @@
 using System.Linq;
+using Altinn.Studio.Designer.Models.ContactPoints;
 using Altinn.Studio.Designer.Repository.Models.ContactPoint;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 
@@ -19,6 +20,7 @@ public static class ContactPointMapper
             CreatedAt = entity.CreatedAt,
             UpdatedByUserAccountId = entity.UpdatedByUserAccountId,
             UpdatedAt = entity.UpdatedAt,
+            ReportFrequency = (int)entity.ReportFrequency,
             Methods = entity
                 .Methods.Select(m => new ContactMethodDbModel
                 {
@@ -46,6 +48,7 @@ public static class ContactPointMapper
             UpdatedByUserAccountId = dbModel.UpdatedByUserAccountId,
             UpdatedByUsername = dbModel.UpdatedByUserAccount?.Username,
             UpdatedAt = dbModel.UpdatedAt,
+            ReportFrequency = (ReportFrequency)dbModel.ReportFrequency,
             Methods = dbModel
                 .Methods.Select(m => new ContactMethodEntity
                 {

@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Altinn.Studio.Gateway.Api.Application.Pdf;
 using Altinn.Studio.Gateway.Api.Clients.AlertsClient.Contracts;
 using Altinn.Studio.Gateway.Api.Clients.Designer.Contracts;
 using Altinn.Studio.Gateway.Api.Endpoints.Internal.Contracts;
@@ -22,10 +23,15 @@ namespace Altinn.Studio.Gateway.Api;
 [JsonSerializable(typeof(IEnumerable<AlertRule>))]
 [JsonSerializable(typeof(AlertPayload))]
 [JsonSerializable(typeof(Alert))]
+[JsonSerializable(typeof(IEnumerable<Metric>))]
 [JsonSerializable(typeof(IEnumerable<ErrorMetric>))]
 [JsonSerializable(typeof(IEnumerable<AppMetric>))]
 [JsonSerializable(typeof(IEnumerable<AppErrorMetric>))]
+[JsonSerializable(typeof(ReportMetrics))]
+[JsonSerializable(typeof(IEnumerable<AllAppsErrorMetric>))]
 [JsonSerializable(typeof(AppActivityMetricsResponse))]
 [JsonSerializable(typeof(List<AppHealthMetric>))]
 [JsonSerializable(typeof(TriggerReconcileRequest))]
+[JsonSerializable(typeof(PdfGenerateRequest))]
+[JsonSerializable(typeof(Pdf3ProxyRequest))]
 internal sealed partial class AppJsonSerializerContext : JsonSerializerContext { }

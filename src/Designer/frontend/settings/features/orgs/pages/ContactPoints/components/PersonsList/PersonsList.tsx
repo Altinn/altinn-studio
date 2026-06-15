@@ -24,6 +24,7 @@ const createEmptyPerson = (availableEnvironments: string[]): Person => ({
   phone: '',
   isActive: true,
   environments: availableEnvironments,
+  reportFrequency: 'none',
 });
 
 export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement => {
@@ -76,6 +77,9 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
             <StudioTable.HeaderCell>
               {t('settings.orgs.contact_points.col_environments')}
             </StudioTable.HeaderCell>
+            <StudioTable.HeaderCell>
+              {t('settings.orgs.contact_points.col_reports')}
+            </StudioTable.HeaderCell>
             <StudioTable.HeaderCell />
           </StudioTable.Row>
         </StudioTable.Head>
@@ -96,6 +100,13 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
                 <StudioTable.Cell>{email}</StudioTable.Cell>
                 <StudioTable.Cell>{phone}</StudioTable.Cell>
                 <EnvironmentsCell environments={person.environments} />
+                <StudioTable.Cell>
+                  {person.reportFrequency && person.reportFrequency !== 'none'
+                    ? t(
+                        `settings.orgs.contact_points.report_frequency_${person.reportFrequency}`,
+                      )
+                    : '–'}
+                </StudioTable.Cell>
                 <ActionsCell
                   onEdit={() => openEditDialog(person)}
                   onDelete={() => deletePerson(person.id)}

@@ -50,6 +50,8 @@ public class GeneralSettings : ISettingsMarker
 
     public string OrganizationsUrl { get; set; }
 
+    public string BaseUrl => HostName.Contains("localhost") ? $"http://{HostName}" : $"https://{HostName}";
+
     /// <summary>
     /// Gets the origin environment name based on the host name.
     /// </summary>

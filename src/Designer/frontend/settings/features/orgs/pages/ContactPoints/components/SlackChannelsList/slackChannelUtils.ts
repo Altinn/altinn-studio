@@ -5,6 +5,7 @@ export const slackChannelToPayload = (channel: SlackChannel): ContactPointPayloa
   name: channel.channelName,
   isActive: channel.isActive,
   environments: channel.environments,
+  reportFrequency: channel.reportFrequency,
   methods: [{ methodType: 'slack', value: channel.webhookUrl }],
 });
 
@@ -12,5 +13,6 @@ export const contactPointToSlackChannel = (cp: ContactPoint): SlackChannel => ({
   channelName: cp.name,
   isActive: cp.isActive,
   environments: cp.environments,
+  reportFrequency: cp.reportFrequency ?? 'none',
   webhookUrl: cp.methods.find((m) => m.methodType === 'slack')?.value ?? '',
 });

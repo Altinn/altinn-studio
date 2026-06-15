@@ -11,6 +11,7 @@ const payload: ContactPointPayload = {
   name: 'Test',
   isActive: true,
   environments: [],
+  reportFrequency: 'none',
   methods: [{ methodType: 'email', value: 'test@example.com' }],
 };
 

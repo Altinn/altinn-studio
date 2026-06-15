@@ -18,30 +18,38 @@ import {
 } from './PageRouterErrorBoundary';
 import { routerRoutes } from './routes';
 import { IndexRedirect } from 'admin/components/IndexRedirect/IndexRedirect';
+import { Report } from 'admin/features/reports/Report';
 
 const router = createBrowserRouter(
-  createRoutesFromElements(
-    <Route path='/' element={<PageLayout />} errorElement={<AppRouteErrorBoundary />}>
-      <Route index element={<IndexRedirect />} />
-      <Route
-        path={RoutePaths.Owner}
-        element={<OrgPageLayout />}
-        errorElement={<RouteErrorBoundary />}
-      >
-        <Route element={<AppsLayout />} errorElement={<RouteErrorBoundary />}>
-          {routerRoutes.map((route) => (
-            <Route
-              key={route.path}
-              path={route.path}
-              element={<route.page />}
-              errorElement={<RouteErrorBoundary />}
-            />
-          ))}
+  [
+    {
+      id: 'report-render',
+      path: RoutePaths.ReportRender,
+      element: <Report />,
+    },
+    ...createRoutesFromElements(
+      <Route path='/' element={<PageLayout />} errorElement={<AppRouteErrorBoundary />}>
+        <Route index element={<IndexRedirect />} />
+        <Route
+          path={RoutePaths.Owner}
+          element={<OrgPageLayout />}
+          errorElement={<RouteErrorBoundary />}
+        >
+          <Route element={<AppsLayout />} errorElement={<RouteErrorBoundary />}>
+            {routerRoutes.map((route) => (
+              <Route
+                key={route.path}
+                path={route.path}
+                element={<route.page />}
+                errorElement={<RouteErrorBoundary />}
+              />
+            ))}
+          </Route>
+          <Route path='*' element={<NotFound />} errorElement={<NotFoundRouteErrorBoundary />} />
         </Route>
-        <Route path='*' element={<NotFound />} errorElement={<NotFoundRouteErrorBoundary />} />
-      </Route>
-    </Route>,
-  ),
+      </Route>,
+    ),
+  ],
   {
     basename: ADMIN_BASENAME,
   },
