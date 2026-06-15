@@ -1,18 +1,15 @@
 import React from 'react';
 
-import { DatePickerControl, Flex, getDateConstraint, getDateFormat, Label } from '@app/form-component';
+import { DatePickerControl, DropdownCaption, Flex, getDateConstraint, getDateFormat, Label } from '@app/form-component';
 
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { DropdownCaption } from 'src/layout/Datepicker/DropdownCaption';
 import { getDatepickerFormat } from 'src/utils/dateUtils';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
-
-import 'react-day-picker/style.css';
 
 export function DatepickerComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'Datepicker'>) {
   const { langAsString } = useLanguage();
