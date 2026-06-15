@@ -18,4 +18,9 @@ public interface IContactPointsRepository
     Task<ContactPointEntity> UpdateAsync(ContactPointEntity entity, CancellationToken cancellationToken = default);
     Task ToggleActiveAsync(string org, Guid id, bool isActive, CancellationToken cancellationToken = default);
     Task DeleteAsync(string org, Guid id, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ContactPointEntity>> GetActiveReportContactPointsAsync(
+        string org,
+        string environment,
+        CancellationToken cancellationToken = default
+    );
 }

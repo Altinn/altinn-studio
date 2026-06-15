@@ -8,9 +8,10 @@ import { Alert } from 'admin/features/apps/components/Alert/Alert';
 type AppErrorMetricProps = {
   metric: Metric;
   range: number;
+  className?: string;
 };
 
-export const AppErrorMetric = ({ metric, range }: AppErrorMetricProps) => {
+export const AppErrorMetric = ({ metric, range, className }: AppErrorMetricProps) => {
   const { t } = useTranslation();
   const options = getChartOptions(metric.bucketSize, range);
   const count = metric.counts.reduce((sum, item) => sum + item, 0);
@@ -33,6 +34,7 @@ export const AppErrorMetric = ({ metric, range }: AppErrorMetricProps) => {
       title={t(`admin.metrics.${metric.name}`)}
       count={count.toString()}
       url={metric.logsUrl}
+      className={className}
     >
       <Bar options={options} data={metricsChartData} />
     </Alert>

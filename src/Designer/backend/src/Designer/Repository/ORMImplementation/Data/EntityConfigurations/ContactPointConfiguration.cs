@@ -58,6 +58,13 @@ public class ContactPointConfiguration : IEntityTypeConfiguration<ContactPointDb
         builder.Property(e => e.UpdatedAt).HasColumnType("timestamptz").HasColumnName("updated_at").IsRequired();
 
         builder
+            .Property(e => e.ReportFrequency)
+            .HasColumnType("integer")
+            .HasColumnName("report_frequency")
+            .HasDefaultValue(0)
+            .IsRequired();
+
+        builder
             .HasMany(e => e.Methods)
             .WithOne(e => e.ContactPoint)
             .HasForeignKey(e => e.ContactPointId)

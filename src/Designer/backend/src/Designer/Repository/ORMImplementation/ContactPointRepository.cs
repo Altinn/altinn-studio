@@ -72,6 +72,7 @@ public class ContactPointRepository(DesignerdbContext dbContext) : IContactPoint
         existing.Environments = entity.Environments;
         existing.UpdatedByUserAccountId = entity.UpdatedByUserAccountId;
         existing.UpdatedAt = entity.UpdatedAt;
+        existing.ReportFrequency = (int)entity.ReportFrequency;
 
         dbContext.ContactMethods.RemoveRange(existing.Methods);
         existing.Methods = entity
@@ -104,5 +105,20 @@ public class ContactPointRepository(DesignerdbContext dbContext) : IContactPoint
     {
         cancellationToken.ThrowIfCancellationRequested();
         await dbContext.ContactPoints.Where(p => p.Org == org && p.Id == id).ExecuteDeleteAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<ContactPointEntity>> GetActiveReportContactPointsAsync(
+        string org,
+        string environment,
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var dbModels = await dbContext
+            .ContactPoints.AsNoTracking()
+            .Include(p => p.Methods)
+            .Where(p => p.Org == org && p.IsActive && p.Environments.Contains(environment) && p.ReportFrequency != 0)
+            .ToListAsync(cancellationToken);
+        return dbModels.Select(ContactPointMapper.MapToEntity).ToList();
     }
 }

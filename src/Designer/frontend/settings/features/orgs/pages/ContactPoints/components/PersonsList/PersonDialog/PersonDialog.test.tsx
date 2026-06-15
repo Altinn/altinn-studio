@@ -14,6 +14,7 @@ const defaultPerson: Person = {
   phone: '',
   isActive: true,
   environments: [],
+  reportFrequency: 'none',
 };
 
 type RenderProps = {
@@ -112,6 +113,7 @@ describe('PersonDialog', () => {
         phone: '',
         isActive: true,
         environments: [],
+        reportFrequency: 'none',
       },
       editingId: 'person-1',
     });
