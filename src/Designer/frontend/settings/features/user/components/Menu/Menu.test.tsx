@@ -11,26 +11,39 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }));
 
-const renderMenu = () =>
-  renderWithProviders(<Menu />, { initialEntries: ['/settings/user/api-keys'] });
+const renderMenu = (initialEntries: string[] = ['/settings/user/api-keys']) =>
+  renderWithProviders(<Menu />, { initialEntries });
 
-const getTab = () =>
-  screen.getByRole('tab', {
-    name: textMock('settings.user.api_keys.api_keys'),
-  });
+const getApiKeysTab = () =>
+  screen.getByRole('tab', { name: textMock('settings.user.api_keys.api_keys') });
+
+const getPrivacyTab = () =>
+  screen.getByRole('tab', { name: textMock('settings.user.privacy.heading') });
 
 describe('Menu', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('renders the api keys tab as selected', () => {
+  it('renders the api keys tab as selected when on the api-keys route', () => {
     renderMenu();
-    expect(getTab()).toHaveAttribute('tabindex', '0');
+    expect(getApiKeysTab()).toHaveAttribute('tabindex', '0');
   });
 
-  it('navigates to tab when a tab is clicked', async () => {
+  it('renders the privacy tab as selected when on the privacy route', () => {
+    renderMenu(['/settings/user/privacy']);
+    expect(getPrivacyTab()).toHaveAttribute('tabindex', '0');
+  });
+
+  it('navigates to api-keys when the api keys tab is clicked', async () => {
     const user = userEvent.setup();
     renderMenu();
-    await user.click(getTab());
+    await user.click(getApiKeysTab());
     expect(mockNavigate).toHaveBeenCalledWith(expect.objectContaining({ pathname: 'api-keys' }));
+  });
+
+  it('navigates to privacy when the privacy tab is clicked', async () => {
+    const user = userEvent.setup();
+    renderMenu();
+    await user.click(getPrivacyTab());
+    expect(mockNavigate).toHaveBeenCalledWith(expect.objectContaining({ pathname: 'privacy' }));
   });
 });

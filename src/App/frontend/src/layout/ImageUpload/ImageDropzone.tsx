@@ -1,13 +1,13 @@
 import React from 'react';
 
+import { Dropzone } from '@app/form-component';
 import cn from 'classnames';
+import type { IDropzoneProps } from '@app/form-component';
 
-import { Dropzone } from 'src/app-components/Dropzone/Dropzone';
 import { getDescriptionId } from 'src/components/label/Label';
 import { Lang } from 'src/features/language/Lang';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import classes from 'src/layout/ImageUpload/ImageDropzone.module.css';
-import type { IDropzoneProps } from 'src/app-components/Dropzone/Dropzone';
 
 type ImageDropzoneProps = {
   baseComponentId: string;
@@ -40,7 +40,9 @@ export function ImageDropzone({ baseComponentId, hasErrors, readOnly, onDrop, dr
       <div className={classes.dropZone}>
         <b id={dragLabelId}>
           {isMobile ? (
-            <Lang id='form_filler.file_uploader_upload' />
+            <span className={classes.underLine}>
+              <Lang id='form_filler.file_uploader_upload' />
+            </span>
           ) : (
             <>
               <Lang id='form_filler.file_uploader_drag' />

@@ -33,7 +33,7 @@ public class SubunitOnlyAppTests(ITestOutputHelper _output, AppFixtureClassFixtu
             scrubbers: new Scrubbers(StringScrubber: Scrubbers.InstanceStringScrubber(data))
         );
 
-        await verifier.Verify(fixture.GetSnapshotAppLogs(), snapshotName: "Logs");
+        await verifier.Verify(await fixture.GetSnapshotAppLogs(), snapshotName: "Logs");
     }
 
     [Fact]
@@ -47,8 +47,16 @@ public class SubunitOnlyAppTests(ITestOutputHelper _output, AppFixtureClassFixtu
 
         Assert.True(response.Response.IsSuccessStatusCode);
         using var applicationMetadata = await response.Read<ApplicationMetadata>();
+        if (
+            applicationMetadata.Data.Model?.AltinnNugetVersion is { } altinnNugetVersion
+            && Version.TryParse(altinnNugetVersion, out var parsedVersion)
+        )
+        {
+            applicationMetadata.Data.Model.AltinnNugetVersion = parsedVersion.Major.ToString();
+        }
+
         await verifier.Verify<ApplicationMetadata>(applicationMetadata);
 
-        await verifier.Verify(fixture.GetSnapshotAppLogs(), snapshotName: "Logs");
+        await verifier.Verify(await fixture.GetSnapshotAppLogs(), snapshotName: "Logs");
     }
 }

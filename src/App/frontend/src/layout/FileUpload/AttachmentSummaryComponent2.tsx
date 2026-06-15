@@ -59,10 +59,12 @@ export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2P
           className={classes.summaryLabelMargin}
           weight='regular'
         />
-        <EditButton
-          className={classes.summaryEditButton}
-          targetBaseComponentId={targetBaseComponentId}
-        />
+        {isEmpty && (
+          <EditButton
+            className={classes.summaryEditButton}
+            targetBaseComponentId={targetBaseComponentId}
+          />
+        )}
       </div>
       {filteredAttachments.length === 0 ? (
         <Paragraph asChild>

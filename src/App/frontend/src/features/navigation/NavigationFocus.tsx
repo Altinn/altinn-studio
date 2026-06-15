@@ -40,7 +40,10 @@ export function NavigationFocus(): null {
       return;
     }
 
-    document.getElementById('main-content')?.focus({ preventScroll: true });
+    const existingFocus = document.activeElement;
+    if (!existingFocus || existingFocus === document.body) {
+      document.getElementById('main-content')?.focus({ preventScroll: true });
+    }
     setHandledNavigationKey(key);
   });
 

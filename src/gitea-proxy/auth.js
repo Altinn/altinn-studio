@@ -7,12 +7,38 @@ var oidcEnabled = process.env.STUDIO_OIDC_ENABLED === 'true';
 var apiKeyAllowedPattern =
   /^\/[^/]+\/[^/]+(\.git)?\/(info\/refs|git-upload-pack|git-receive-pack)(\?|$)|^\/api\/v1\//;
 
+function getApiKey(r) {
+  var headerApiKey = r.headersIn['X-Api-Key'];
+  if (headerApiKey) {
+    return headerApiKey;
+  }
+
+  var authorization = r.headersIn.Authorization || r.headersIn.authorization;
+  if (!authorization || authorization.slice(0, 6).toLowerCase() !== 'basic ') {
+    return '';
+  }
+
+  try {
+    var decoded = Buffer.from(authorization.slice(6), 'base64').toString();
+    var separatorIndex = decoded.indexOf(':');
+    if (separatorIndex < 0) {
+      return '';
+    }
+    return decoded.slice(separatorIndex + 1);
+  } catch (e) {
+    r.warn('Failed to decode Basic auth: ' + e.message);
+    return '';
+  }
+}
+
 function handleRequest(r) {
   if (!oidcEnabled) {
     r.internalRedirect('@proxy_to_gitea_clean');
     return;
   }
 
+  var apiKey = getApiKey(r);
+  r.variables.auth_api_key = apiKey;
   r.subrequest('/_internal/userinfo', { method: 'GET' }, function (reply) {
     if (reply.status === 401 || reply.status === 403) {
       r.internalRedirect('@proxy_to_gitea_clean');

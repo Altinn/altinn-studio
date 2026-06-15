@@ -8,7 +8,7 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { WhenParentAdded } from 'src/utils/layout/generator/GeneratorStages';
 import { useIsHidden } from 'src/utils/layout/hidden';
-import type { AnyValidation, AttachmentValidation } from 'src/features/validation/index';
+import type { AnyValidation } from 'src/features/validation/index';
 import type { CompExternal, CompIntermediate } from 'src/layout/layout';
 
 export function StoreValidationsInNode() {
@@ -53,24 +53,6 @@ function useStoreValidations(baseComponentId: string) {
     shouldSetValidations && setNodeProp({ nodeId: indexedId, prop: 'validations', value: validations });
   }, [indexedId, setNodeProp, shouldSetValidations, validations]);
 
-  // Reduce visibility as validations are fixed
-  const visibilityToSet = FormStore.nodes.useNodeData(indexedId, undefined, (data) => {
-    if (!('validationVisibility' in data)) {
-      return undefined;
-    }
-    const currentValidationMask = validations.reduce((mask, { category }) => mask | category, 0);
-    const newVisibilityMask = currentValidationMask & data.validationVisibility;
-    if ((newVisibilityMask | data.initialVisibility) !== data.validationVisibility) {
-      return newVisibilityMask | data.initialVisibility;
-    }
-    return undefined;
-  });
-
-  useEffect(() => {
-    visibilityToSet !== undefined &&
-      setNodeProp({ nodeId: indexedId, prop: 'validationVisibility', value: visibilityToSet });
-  }, [indexedId, setNodeProp, visibilityToSet]);
-
   // Hidden state needs to be set for validations as a temporary solution
   const hidden = useIsHidden(baseComponentId, { respectPageOrder: true });
   const shouldSetHidden = FormStore.nodes.useNodeData(indexedId, undefined, (data) =>
@@ -87,22 +69,7 @@ function useUpdatedValidations(validations: AnyValidation[], nodeId: string) {
     if (!('validations' in data) || !data.validations) {
       return validations;
     }
-
-    const copy = [...validations];
-    for (const [idx, validation] of copy.entries()) {
-      if (!('attachmentId' in validation)) {
-        continue;
-      }
-      // Preserve the visibility of existing attachment validations
-      const existing = data.validations.find(
-        (v) => 'attachmentId' in v && v.attachmentId === validation.attachmentId,
-      ) as AttachmentValidation;
-      if (existing) {
-        copy[idx] = { ...validation, visibility: existing.visibility };
-      }
-    }
-
-    return copy;
+    return validations;
   });
 }
 

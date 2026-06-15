@@ -1,4 +1,4 @@
-using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Models.Expressions;
 
 namespace Altinn.App.Core.Models.Layout.Components.Base;
@@ -37,11 +37,11 @@ public abstract class ReferenceComponent : BaseLayoutComponent
                 if (claimedComponents.TryGetValue(componentId, out var claimedComponent))
                 {
                     throw new ArgumentException(
-                        $"Attempted to claim child with id {componentId} to component {Id}, but it has already been claimed by {claimedComponent}."
+                        $"""Attempted to claim child with id "{componentId}" to component "{Id}", but it has already been claimed by "{claimedComponent}"."""
                     );
                 }
                 throw new ArgumentException(
-                    $"Attempted to claim child with id {componentId} to component {Id}, but the componentId does not exist"
+                    $"""Attempted to claim child with id "{componentId}" to component "{Id}", but the componentId does not exist"""
                 );
             }
 
@@ -61,7 +61,7 @@ public abstract class ReferenceComponent : BaseLayoutComponent
     /// </summary>
     private protected async Task<ComponentContext> GetClaimedChildComponentContext(
         string componentId,
-        LayoutEvaluatorState state,
+        IInstanceDataAccessor dataAccessor,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
         Dictionary<string, UiFolderComponent> layoutsLookup
@@ -79,12 +79,12 @@ public abstract class ReferenceComponent : BaseLayoutComponent
             throw new ArgumentException($"Child component with ID '{componentId}' is not claimed.");
         }
 
-        return await component.GetContext(state, defaultDataElementIdentifier, rowIndexes, layoutsLookup);
+        return await component.GetContext(dataAccessor, defaultDataElementIdentifier, rowIndexes, layoutsLookup);
     }
 
     /// <inheritdoc />
     public override async Task<ComponentContext> GetContext(
-        LayoutEvaluatorState state,
+        IInstanceDataAccessor dataAccessor,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
         Dictionary<string, UiFolderComponent> layoutsLookup
@@ -103,7 +103,7 @@ public abstract class ReferenceComponent : BaseLayoutComponent
             childContexts.Add(
                 await GetClaimedChildComponentContext(
                     childId,
-                    state,
+                    dataAccessor,
                     defaultDataElementIdentifier,
                     rowIndexes,
                     layoutsLookup
@@ -111,6 +111,6 @@ public abstract class ReferenceComponent : BaseLayoutComponent
             );
         }
 
-        return new ComponentContext(state, this, rowIndexes, defaultDataElementIdentifier, childContexts);
+        return new ComponentContext(dataAccessor, this, rowIndexes, defaultDataElementIdentifier, childContexts);
     }
 }

@@ -8,6 +8,7 @@ using Xunit.Abstractions;
 namespace Altinn.App.Integration.Tests.Basic;
 
 [Trait("Category", "Integration")]
+[Collection(IntegrationTestCollections.Pdf)]
 public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _classFixture)
     : IClassFixture<AppFixtureClassFixture>
 {
@@ -105,7 +106,7 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
         using var download2 = await fixture.Instances.Download(token, readInstantiationResponse);
         await download2.Verify(verifier);
 
-        await verifier.Verify(fixture.GetSnapshotAppLogs(), snapshotName: "Logs");
+        await verifier.Verify(await fixture.GetSnapshotAppLogs(), snapshotName: "Logs");
     }
 
     [Theory]

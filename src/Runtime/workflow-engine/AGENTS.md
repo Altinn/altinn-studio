@@ -5,7 +5,7 @@ Reusable class library for async workflow processing. Provides the core engine, 
 ## Projects
 
 | Project                     | Purpose                                                                                                 |
-|-----------------------------|---------------------------------------------------------------------------------------------------------|
+| --------------------------- | ------------------------------------------------------------------------------------------------------- |
 | `WorkflowEngine.Core`       | Core engine class library: processing loop, HTTP endpoints, executor, extensions                        |
 | `WorkflowEngine.Commands`   | Command plugin system (Webhook). Runtime-specific commands (e.g. AppCommand) live in their host project |
 | `WorkflowEngine.Models`     | Domain models: `Workflow`, `Step`, `EngineRequest`, status enums                                        |
@@ -33,10 +33,13 @@ Reusable class library for async workflow processing. Provides the core engine, 
 
 - `GET /api/v1/namespaces` — list distinct namespaces
 - `POST /api/v1/{namespace}/workflows` — enqueue workflows, supports batch with dependency graphs
-- `GET /api/v1/{namespace}/workflows` — paginated list of active workflows (optional page, pageSize, collectionKey, label filters)
+- `GET /api/v1/{namespace}/workflows` — cursor-paginated list of workflows. Optional filters: `status` (repeatable, case-insensitive — `Enqueued`, `Processing`, `Requeued`, `Completed`, `Failed`, `Canceled`, `DependencyFailed`; omitting it returns all statuses), `label` (repeatable, `key:value`), `collectionKey`, `cursor`, `pageSize` (default 25, max 100). Returns a `PaginatedResponse` (`data`, `pageSize`, `totalCount`, `nextCursor`) or `204 No Content` when nothing matches
 - `GET /api/v1/{namespace}/workflows/{workflowId:guid}` — get single workflow with all steps
+- `GET /api/v1/{namespace}/workflows/{workflowId:guid}/dependency-graph` — get the connected dependency graph reachable from the workflow (nodes + edges)
 - `POST /api/v1/{namespace}/workflows/{workflowId:guid}/cancel` — request cancellation (idempotent)
-- `POST /api/v1/{namespace}/workflows/{workflowId:guid}/resume` — resume a terminal workflow for re-processing
+- `POST /api/v1/{namespace}/workflows/{workflowId:guid}/resume` — resume a terminal workflow for re-processing (optional `?cascade=true` to also resume dependents in `DependencyFailed`)
+- `GET /api/v1/{namespace}/collections` — list all collections in the namespace (ordered by most recently updated; heads as bare IDs), or `204 No Content` when none exist
+- `GET /api/v1/{namespace}/collections/{key}` — get a single workflow collection by key, including head workflow statuses
 - Health endpoints: `/health`, `/health/ready`, `/health/live`
 - Dashboard SSE/REST endpoints under `/dashboard/*` (see Dashboard docs)
 
@@ -45,8 +48,8 @@ Reusable class library for async workflow processing. Provides the core engine, 
 Infrastructure-only (no engine host). Supporting services for local development.
 
 | Container           | Port             | Purpose                                    |
-|---------------------|------------------|--------------------------------------------|
-| `postgres`          | 5433             | Database                                   |
+| ------------------- | ---------------- | ------------------------------------------ |
+| `postgres`          | 9543             | Database                                   |
 | `pgadmin`           | 5050             | PostgreSQL admin UI                        |
 | `lgtm`              | 7070, 4317, 4318 | Grafana + Prometheus + Loki + Tempo + OTLP |
 | `blackbox-exporter` | —                | Prometheus blackbox exporter               |

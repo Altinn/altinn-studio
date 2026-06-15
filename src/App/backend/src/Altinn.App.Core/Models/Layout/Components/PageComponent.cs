@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 using System.Text.Json;
-using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Models.Expressions;
 
 namespace Altinn.App.Core.Models.Layout.Components;
@@ -98,6 +98,8 @@ public sealed class PageComponent : Base.BaseComponent
             component.ClaimChildren(pageComponentLookup, claimedComponentIds);
         }
 
+        var childComponentList = componentList.Where(c => !claimedComponentIds.ContainsKey(c.Id)).ToList();
+
         // Preserve order but remove components that have been claimed
         return new PageComponent()
         {
@@ -109,11 +111,11 @@ public sealed class PageComponent : Base.BaseComponent
             Required = Expression.False,
             ReadOnly = Expression.False,
             Hidden = hidden,
-            RemoveWhenHidden = Expression.Null,
+            RemoveWhenHidden = Expression.Undefined,
             DataModelBindings = ImmutableDictionary<string, ModelBinding>.Empty,
             TextResourceBindings = ImmutableDictionary<string, Expression>.Empty,
             // Custom properties
-            ChildComponents = componentList.Where(c => !claimedComponentIds.ContainsKey(c.Id)).ToList(),
+            ChildComponents = childComponentList,
             AllComponents = componentList,
         };
     }
@@ -132,7 +134,7 @@ public sealed class PageComponent : Base.BaseComponent
     /// Get the context for this page component
     /// </summary>
     public async Task<ComponentContext> GetContextForPage(
-        LayoutEvaluatorState state,
+        IInstanceDataAccessor dataAccessor,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
         Dictionary<string, UiFolderComponent> layoutsLookup
@@ -142,10 +144,10 @@ public sealed class PageComponent : Base.BaseComponent
         foreach (var component in ChildComponents)
         {
             childContexts.Add(
-                await component.GetContext(state, defaultDataElementIdentifier, rowIndexes, layoutsLookup)
+                await component.GetContext(dataAccessor, defaultDataElementIdentifier, rowIndexes, layoutsLookup)
             );
         }
 
-        return new ComponentContext(state, this, rowIndexes, defaultDataElementIdentifier, childContexts);
+        return new ComponentContext(dataAccessor, this, rowIndexes, defaultDataElementIdentifier, childContexts);
     }
 }

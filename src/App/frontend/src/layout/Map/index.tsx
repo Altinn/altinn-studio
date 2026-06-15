@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { MapDef } from 'src/layout/Map/config.def.generated';
 import { useValidateGeometriesBindings } from 'src/layout/Map/features/geometries/useValidateGeometriesBindings';
 import { MapComponent } from 'src/layout/Map/MapComponent';
@@ -39,8 +39,8 @@ export class Map extends MapDef {
 
   useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'Map'>): string[] {
     const errors: string[] = [];
-    const lookupBinding = FormBootstrap.useLookupBinding();
-    const layoutLookups = FormBootstrap.useLayoutLookups();
+    const lookupBinding = FormStore.bootstrap.useLookupBinding();
+    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
     const toolbar = useExternalItem(baseComponentId, 'Map').toolbar;
 
     if (bindings?.simpleBinding && bindings?.geometryIsEditable) {
@@ -81,6 +81,15 @@ export class Map extends MapDef {
         latitude: props.evalNum(props.item.centerLocation?.latitude, 0),
         longitude: props.evalNum(props.item.centerLocation?.longitude, 0),
       },
+      ...(props.item.toolbar && {
+        toolbar: {
+          polyline: props.evalBool(props.item.toolbar.polyline, false),
+          polygon: props.evalBool(props.item.toolbar.polygon, false),
+          rectangle: props.evalBool(props.item.toolbar.rectangle, false),
+          circle: props.evalBool(props.item.toolbar.circle, false),
+          marker: props.evalBool(props.item.toolbar.marker, false),
+        },
+      }),
     };
   }
 }

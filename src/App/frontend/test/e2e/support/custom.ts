@@ -15,9 +15,30 @@ import type { IFeatureToggles } from 'src/features/toggles';
 import type { ILayoutFile } from 'src/layout/common.generated';
 import type { ILayoutCollection, ILayouts } from 'src/layout/layout';
 import JQueryWithSelector = Cypress.JQueryWithSelector;
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
+
 import type { IDataModelMultiPatchResponse } from 'src/features/formData/types';
 
 const appFrontend = new AppFrontend();
+
+Cypress.Commands.add('tab', { prevSubject: 'optional' }, (_subject, options) => {
+  const shift = options?.shift ?? false;
+  const params = { key: 'Tab', code: 'Tab', keyCode: 9, modifiers: shift ? 8 : 0 };
+  cy.wrap(
+    Cypress.automation('remote:debugger:protocol', {
+      command: 'Input.dispatchKeyEvent',
+      params: { type: 'keyDown', ...params },
+    }),
+    { log: false },
+  );
+  cy.wrap(
+    Cypress.automation('remote:debugger:protocol', {
+      command: 'Input.dispatchKeyEvent',
+      params: { type: 'keyUp', ...params },
+    }),
+    { log: false },
+  );
+});
 
 Cypress.Commands.add('assertTextWithoutWhiteSpaces', { prevSubject: true }, (subject, expectedText) => {
   const normalWhiteSpace = (subject[0].value || ' ').replace(/\u00a0/g, ' ');
@@ -606,6 +627,12 @@ Cypress.Commands.add('directSnapshot', (snapshotName, { width, minHeight }, rese
   }
 });
 
+/**
+ * After the navigation rewrite where we now add the current task ID to the URL, this test is only realistic if
+ * we remove the task and page from the URL before rendering the PDF. This is because the real PDF generator
+ * won't know about the task and page, and will load this URL and assume the app will figure out how to display
+ * the current task as a PDF.
+ */
 function buildPdfUrl(href: string): string {
   const regex = getInstanceIdRegExp();
   const instanceId = regex.exec(href)?.[1];
@@ -650,7 +677,6 @@ Cypress.Commands.add(
 
     cy.log('Testing PDF');
 
-    // Build PDF url and visit
     cy.window({ log: false }).then((win) => {
       const visitUrl = buildUrl(win.location.href);
 
@@ -1005,4 +1031,10 @@ Cypress.Commands.add('expectPageBreaks', (expectedCount: number) => {
 
 Cypress.Commands.add('setFeatureToggle', (toggleName: IFeatureToggles, value: boolean) => {
   cy.setCookie(`FEATURE_${toggleName}`, value.toString());
+});
+
+Cypress.Commands.add('preventPartySelection', () => {
+  interceptAltinnAppGlobalData((globalData) => {
+    globalData.applicationMetadata.promptForParty = 'never';
+  });
 });

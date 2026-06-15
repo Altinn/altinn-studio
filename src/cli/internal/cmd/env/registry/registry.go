@@ -13,9 +13,8 @@ import (
 )
 
 var (
-	errConfigRequired          = errors.New("config is required")
-	errOutputRequired          = errors.New("output is required")
-	errContainerClientRequired = errors.New("container client is required")
+	errConfigRequired = errors.New("config is required")
+	errOutputRequired = errors.New("output is required")
 )
 
 type options struct {
@@ -63,9 +62,6 @@ func Envs(opts ...Option) ([]envtypes.Env, error) {
 	}
 	if resolved.out == nil {
 		return nil, fmt.Errorf("registry: %w", errOutputRequired)
-	}
-	if resolved.containerClient == nil {
-		return nil, fmt.Errorf("registry: %w", errContainerClientRequired)
 	}
 
 	return []envtypes.Env{

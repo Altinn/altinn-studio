@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
+import { Spinner } from '@app/form-component';
+
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/ImageUpload/ImageCanvas/ImagePreview.module.css';
 import type { UploadedAttachment } from 'src/features/attachments';

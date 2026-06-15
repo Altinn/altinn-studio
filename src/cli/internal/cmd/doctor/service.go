@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os/exec"
 	"sort"
+	"strings"
 
 	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/devenv/pkg/processutil"
@@ -27,10 +28,6 @@ const (
 	// minWindowsVersionParts is the minimum number of parts in a Windows version string (major.minor.build).
 	minWindowsVersionParts = 3
 
-	// On-disk state file names used by CLI components.
-	doctorConfigFileName       = "config.yaml"
-	doctorResourcesPlatformDir = "AltinnPlatformLocal"
-
 	// Disk check levels.
 	diskLevelOK    = "ok"
 	diskLevelInfo  = "info"
@@ -41,6 +38,7 @@ const (
 var (
 	errDotnetVersionTooOld = errors.New("dotnet version too old")
 	errNoContainerRuntime  = errors.New("no container runtime found")
+	errPodmanVersionDiff   = errors.New("podman client/server version mismatch")
 	errUnsupportedCommand  = errors.New("unsupported command")
 	errWindowsVersionOld   = errors.New("windows version too old")
 	errWindowsVersionUnk   = errors.New("windows version unknown")
@@ -51,7 +49,7 @@ type Service struct {
 	cfg             *config.Config
 	debugf          func(format string, args ...any)
 	lookPath        func(file string) (string, error)
-	versionOutput   func(ctx context.Context, name string) ([]byte, error)
+	versionOutput   func(ctx context.Context, name string, args ...string) ([]byte, error)
 	containerDetect func(ctx context.Context) (container.ContainerClient, error)
 }
 
@@ -95,6 +93,8 @@ type Prerequisites struct {
 	WindowsValue      string          `json:"-"`
 	ContainerResolved string          `json:"containerResolved,omitempty"`
 	ContainerHost     string          `json:"containerHost,omitempty"`
+	ContainerClient   string          `json:"containerClient,omitempty"`
+	ContainerServer   string          `json:"containerServer,omitempty"`
 	ContainerTools    []ContainerTool `json:"containerTools,omitempty"`
 	Windows           *Check          `json:"windows,omitempty"`
 	Dotnet            Check           `json:"dotnet"`
@@ -160,7 +160,7 @@ func New(cfg *config.Config, debugf func(format string, args ...any)) *Service {
 // BuildReport builds a doctor report from system state.
 func (s *Service) BuildReport(ctx context.Context) Report {
 	return Report{
-		CLI:           &CLI{Version: s.cfg.Version},
+		CLI:           &CLI{Version: s.cfg.Version.String()},
 		System:        buildSystem(ctx),
 		Prerequisites: s.collectPrerequisites(ctx),
 		Auth:          s.buildAuth(),
@@ -205,25 +205,27 @@ func (s *Service) lookupPath(file string) (string, error) {
 	return path, nil
 }
 
-func (s *Service) runVersionOutput(ctx context.Context, name string) ([]byte, error) {
-	if s != nil && s.versionOutput != nil {
-		return s.versionOutput(ctx, name)
-	}
-
-	return commandVersionOutput(ctx, name)
-}
-
-func commandVersionOutput(ctx context.Context, name string) ([]byte, error) {
+func (s *Service) runVersionOutput(ctx context.Context, name string, args ...string) ([]byte, error) {
 	switch name {
 	case "dotnet", "docker", "podman", "colima":
-		output, err := processutil.CommandContext(ctx, name, "--version").Output()
-		if err != nil {
-			return nil, fmt.Errorf("run %s --version: %w", name, err)
+		if len(args) == 0 {
+			args = []string{"--version"}
 		}
-		return output, nil
+		if s != nil && s.versionOutput != nil {
+			return s.versionOutput(ctx, name, args...)
+		}
+		return commandVersionOutput(ctx, name, args...)
 	default:
 		return nil, fmt.Errorf("%w: %s", errUnsupportedCommand, name)
 	}
+}
+
+func commandVersionOutput(ctx context.Context, name string, args ...string) ([]byte, error) {
+	output, err := processutil.CommandContext(ctx, name, args...).Output()
+	if err != nil {
+		return nil, fmt.Errorf("run %s %s: %w", name, strings.Join(args, " "), err)
+	}
+	return output, nil
 }
 
 func (s *Service) buildAuth() *Auth {

@@ -1,4 +1,4 @@
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { getComponentDef, implementsDisplayData } from 'src/layout';
 import { useExternalItem } from 'src/utils/layout/hooks';
@@ -22,7 +22,7 @@ export function useDisplayData(baseComponentId: string): string {
  * you'll break the rules of hooks.
  */
 export function useDisplayDataFor(componentIds: string[]): { [componentId: string]: string | undefined } {
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const output: { [componentId: string]: string | undefined } = {};
 
   for (const id of componentIds) {

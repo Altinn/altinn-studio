@@ -1,14 +1,14 @@
 import React from 'react';
 
+import { DisplayDate } from '@app/form-component';
 import cn from 'classnames';
 import { isValid, parseISO } from 'date-fns';
 
-import classes from 'src/app-components/Date/Date.module.css';
-import { DisplayDate } from 'src/app-components/Date/DisplayDate';
-import { translationKey } from 'src/AppComponentsBridge';
 import { getLabelId } from 'src/components/label/Label';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import classes from 'src/layout/Date/Date.module.css';
 import { formatDateLocale } from 'src/utils/dateUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
@@ -19,6 +19,7 @@ export const DateComponent = ({ baseComponentId }: PropsFromGenericComponent<'Da
   const { textResourceBindings, direction: _direction, value, icon, format } = item;
   const direction = _direction ?? 'horizontal';
   const language = useCurrentLanguage();
+  const { langAsString } = useLanguage();
   const parsedValue = parseISO(value);
   const indexedId = useIndexedId(baseComponentId);
 
@@ -57,7 +58,7 @@ export const DateComponent = ({ baseComponentId }: PropsFromGenericComponent<'Da
       <DisplayDate
         value={displayData}
         iconUrl={icon}
-        iconAltText={translationKey(textResourceBindings.title)}
+        iconAltText={langAsString(textResourceBindings.title)}
         labelId={getLabelId(indexedId)}
       />
     </ComponentStructureWrapper>

@@ -1,9 +1,9 @@
 import React, { useCallback, useMemo } from 'react';
 
+import { ConditionalWrapper } from '@app/form-component';
 import { Pagination, Table, usePagination } from '@digdir/designsystemet-react';
 import type { UsePaginationProps } from '@digdir/designsystemet-react';
 
-import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';

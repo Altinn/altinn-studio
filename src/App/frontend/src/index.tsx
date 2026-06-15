@@ -16,17 +16,27 @@ import 'src/features/logging';
 import 'src/features/styleInjection';
 import 'src/features/toggles';
 
+import { createAppQueryClient } from 'src/appQueryClient';
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
+import { backendValidationApi, instanceApi, partyApi, textResourcesApi } from 'src/core/api-client';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import * as queries from 'src/queries/queries';
-import { queryClient } from 'src/queryClient';
 import { createRouter } from 'src/router';
+import type { ApiClients } from 'src/core/api-client/ApiClients';
 
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
+
+const queryClient = createAppQueryClient();
+const apiClients: ApiClients = {
+  backendValidationApi,
+  partyApi,
+  instanceApi,
+  textResourcesApi,
+};
 
 document.addEventListener('DOMContentLoaded', () => {
   if (isRedirectingFromHashRoute) {
@@ -37,9 +47,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('root');
   const root = container && createRoot(container);
   root?.render(
-    <AppQueriesProvider {...queries}>
+    <AppQueriesProvider
+      queryClient={queryClient}
+      {...queries}
+    >
       <ErrorBoundary>
-        <RouterProvider router={createRouter(queryClient)} />
+        <RouterProvider router={createRouter({ queryClient, apiClients })} />
       </ErrorBoundary>
     </AppQueriesProvider>,
   );

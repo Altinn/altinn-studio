@@ -1,6 +1,7 @@
 package components
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -9,7 +10,10 @@ import (
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
+	"altinn.studio/studioctl/internal/osutil"
 )
+
+const localtestStorageDir = "AltinnPlatformLocal"
 
 // ContainerSpec defines a container to run.
 type ContainerSpec struct {
@@ -28,13 +32,16 @@ type ContainerSpec struct {
 // Options holds options for building the resource graph.
 type Options struct {
 	DevConfig         *DevImageConfig
+	RuntimeUser       string // "uid:gid" to run containers as (prevents root-owned bind mount files)
+	RuntimeUsernsMode string
 	Images            config.ImagesConfig
 	Paths             Paths
-	RuntimeUser       string // "uid:gid" to run containers as (prevents root-owned bind mount files)
 	Topology          envtopology.Local
 	ImageMode         ImageMode
+	DevWorkflowEngine bool
 	IncludeMonitoring bool
 	IncludePgAdmin    bool
+	RelabelBinds      bool
 }
 
 // Paths contains localtest data paths used by component resources.
@@ -51,6 +58,19 @@ func NewPaths(dataDir string) Paths {
 	}
 }
 
+// LocaltestStoragePath returns the host path used for localtest persisted storage.
+func LocaltestStoragePath(dataDir string) string {
+	return filepath.Join(dataDir, localtestStorageDir)
+}
+
+// EnsureLocaltestStorageDir creates the localtest persisted storage directory.
+func EnsureLocaltestStorageDir(dataDir string) error {
+	if err := os.MkdirAll(LocaltestStoragePath(dataDir), osutil.DirPermDefault); err != nil {
+		return fmt.Errorf("create localtest storage directory: %w", err)
+	}
+	return nil
+}
+
 func newPort(hostPort, containerPort string) types.PortMapping {
 	return types.PortMapping{
 		HostPort:      hostPort,
@@ -62,28 +82,31 @@ func newPort(hostPort, containerPort string) types.PortMapping {
 
 func newVolume(hostPath, containerPath string) types.VolumeMount {
 	return types.VolumeMount{
-		HostPath:      hostPath,
-		ContainerPath: containerPath,
-		ReadOnly:      false,
-		Type:          types.VolumeMountTypeBind,
+		HostPath:       hostPath,
+		ContainerPath:  containerPath,
+		Type:           types.VolumeMountTypeBind,
+		SELinuxRelabel: types.SELinuxRelabelNone,
+		ReadOnly:       false,
 	}
 }
 
 func newReadOnlyVolume(hostPath, containerPath string) types.VolumeMount {
 	return types.VolumeMount{
-		HostPath:      hostPath,
-		ContainerPath: containerPath,
-		ReadOnly:      true,
-		Type:          types.VolumeMountTypeBind,
+		HostPath:       hostPath,
+		ContainerPath:  containerPath,
+		Type:           types.VolumeMountTypeBind,
+		SELinuxRelabel: types.SELinuxRelabelNone,
+		ReadOnly:       true,
 	}
 }
 
 func newNamedVolume(name, containerPath string) types.VolumeMount {
 	return types.VolumeMount{
-		HostPath:      name,
-		ContainerPath: containerPath,
-		ReadOnly:      false,
-		Type:          types.VolumeMountTypeVolume,
+		HostPath:       name,
+		ContainerPath:  containerPath,
+		Type:           types.VolumeMountTypeVolume,
+		SELinuxRelabel: types.SELinuxRelabelNone,
+		ReadOnly:       false,
 	}
 }
 
@@ -145,11 +168,14 @@ func newContainerResource(
 	imageRes resource.ImageResource,
 	network resource.ResourceRef,
 	user string,
+	usernsMode string,
+	relabelBinds bool,
 	enabled *bool,
 ) *resource.Container {
 	containerUser := user
 	if spec.UseDefaultUser {
 		containerUser = ""
+		usernsMode = ""
 	}
 
 	return &resource.Container{
@@ -160,7 +186,7 @@ func newContainerResource(
 		Networks:    []resource.ResourceRef{network},
 		DependsOn:   containerDependencyRefs(spec.Dependencies),
 		Ports:       spec.Ports,
-		Volumes:     spec.Volumes,
+		Volumes:     relabelBindMounts(spec.Volumes, relabelBinds),
 		Env:         toEnvSlice(spec.Environment),
 		Labels:      nil,
 		Command:     spec.Command,
@@ -175,7 +201,24 @@ func newContainerResource(
 		NetworkAliases: spec.NetworkAliases,
 		RestartPolicy:  "",
 		User:           containerUser,
+		UsernsMode:     usernsMode,
 	}
+}
+
+func relabelBindMounts(volumes []types.VolumeMount, relabel bool) []types.VolumeMount {
+	if len(volumes) == 0 {
+		return nil
+	}
+	result := slices.Clone(volumes)
+	if !relabel {
+		return result
+	}
+	for i, volume := range result {
+		if volume.Type == types.VolumeMountTypeBind {
+			result[i].SELinuxRelabel = types.SELinuxRelabelShared
+		}
+	}
+	return result
 }
 
 func containerDependencyRefs(names []string) []resource.ResourceRef {

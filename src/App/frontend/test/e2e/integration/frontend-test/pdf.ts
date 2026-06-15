@@ -442,7 +442,7 @@ describe('PDF', () => {
 
   // Used to cause a crash, @see https://github.com/Altinn/app-frontend-react/pull/2019
   it('Grid in Group should display correctly', { retries: 0 }, () => {
-    cy.intercept('GET', '**/bootstrap-form/**', (req) => {
+    cy.intercept('GET', '**/bootstrap-form/Task_2**', (req) => {
       req.on('response', (res) => {
         const body = res.body as FormBootstrapResponse;
         body.layouts.grid = {
@@ -485,10 +485,11 @@ describe('PDF', () => {
     // Wait for page to load
     cy.get('#finishedLoading').should('exist');
 
-    // This should provoke an unknown error. It used to intercept form data, but failures in loading form data from
-    // FormDataReaders (used from text resources) do not lead to errors, so this test could become flaky when that
-    // was the first request out of the gate.
-    cy.intercept('GET', '**/process', (req) => req.reply({ statusCode: 404, body: 'Not Found' })).as('failing');
+    // This should provoke an unknown error. Process data is now embedded in the instance response,
+    // so we intercept the instance endpoint instead of the removed /process endpoint.
+    cy.intercept('GET', /\/instances\/\d+\/[a-f0-9-]+\/enriched$/, (req) =>
+      req.reply({ statusCode: 404, body: 'Not Found' }),
+    ).as('failing');
 
     // Visit the PDF page and reload
     cy.location('href').then((href) => {

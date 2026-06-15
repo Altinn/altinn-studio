@@ -2,14 +2,11 @@ package components
 
 import (
 	"context"
-	"fmt"
-	"os"
 	"path/filepath"
 
 	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/studioctl/internal/envtopology"
-	"altinn.studio/studioctl/internal/osutil"
 )
 
 const (
@@ -23,13 +20,13 @@ const (
 func registerCoreComponents(manifest *Manifest, opts *Options) {
 	manifest.addContainer(opts, localtestImage(opts), localtestContainer(opts), true)
 	manifest.addPreparation("localtest storage directory", func(context.Context) error {
-		return ensureLocaltestStorageDir(opts.Paths)
+		return EnsureLocaltestStorageDir(opts.Paths.DataDir)
 	})
 }
 
 func localtestImage(ctx *Options) resource.ImageResource {
 	if ctx.ImageMode == DevMode && ctx.DevConfig != nil {
-		return &resource.LocalImage{
+		return &resource.BuiltImage{
 			Enabled:     nil,
 			ContextPath: filepath.ToSlash(filepath.Join(ctx.DevConfig.RepoRoot, "src")),
 			Dockerfile:  filepath.ToSlash(filepath.Join(ctx.DevConfig.RepoRoot, "src/Runtime/localtest/Dockerfile")),
@@ -37,7 +34,7 @@ func localtestImage(ctx *Options) resource.ImageResource {
 			Tag:         devImageTagLocaltest,
 		}
 	}
-	return &resource.RemoteImage{
+	return &resource.PulledImage{
 		Enabled:    nil,
 		Ref:        ctx.Images.Core.Localtest.Ref(),
 		PullPolicy: resource.PullIfNotPresent,
@@ -71,7 +68,7 @@ func localtestContainer(ctx *Options) *ContainerSpec {
 				envtopology.BoundTopologyContainerDir,
 			),
 			newVolume(filepath.Join(ctx.Paths.DataDir, "testdata"), "/testdata"),
-			newVolume(filepath.Join(ctx.Paths.DataDir, "AltinnPlatformLocal"), "/AltinnPlatformLocal"),
+			newVolume(LocaltestStoragePath(ctx.Paths.DataDir), "/AltinnPlatformLocal"),
 		},
 		ctx.Topology.LocaltestIngressHosts(),
 		nil,
@@ -89,11 +86,4 @@ func localtestEnv(topology envtopology.Local, ingressPort string) map[string]str
 		"LocalPlatformSettings__LocalTestingStaticTestDataPath": "/testdata/",
 		envtopology.BoundTopologyOptionsConfigPathEnv:           envtopology.BoundTopologyConfigContainerPath,
 	}
-}
-
-func ensureLocaltestStorageDir(paths Paths) error {
-	if err := os.MkdirAll(filepath.Join(paths.DataDir, "AltinnPlatformLocal"), osutil.DirPermDefault); err != nil {
-		return fmt.Errorf("create localtest storage directory: %w", err)
-	}
-	return nil
 }

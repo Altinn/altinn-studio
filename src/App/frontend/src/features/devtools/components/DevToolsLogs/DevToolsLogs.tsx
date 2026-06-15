@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+import { Button, Input } from '@app/form-component';
 import {
   DownloadIcon,
   ExclamationmarkTriangleFillIcon,
@@ -8,11 +9,9 @@ import {
   XMarkOctagonFillIcon,
 } from '@navikt/aksel-icons';
 
-import { Button } from 'src/app-components/Button/Button';
-import { Input } from 'src/app-components/Input/Input';
-import { translationKey } from 'src/AppComponentsBridge';
 import classes from 'src/features/devtools/components/DevToolsLogs/DevToolsLogs.module.css';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
+import { useLanguage } from 'src/features/language/useLanguage';
 
 const colorMap = {
   error: 'red',
@@ -21,6 +20,7 @@ const colorMap = {
 };
 
 export const DevToolsLogs = () => {
+  const { langAsString } = useLanguage();
   const logs = useDevToolsStore((state) => state.logs);
   const [filter, setFilter] = useState('');
   const [showLevels, setShowLevels] = useState({ error: true, warn: true, info: true });
@@ -72,10 +72,10 @@ export const DevToolsLogs = () => {
         </Button>
         <div className={classes.filterField}>
           <Input
-            aria-label={translationKey('devtools.filter_logs')}
+            aria-label={langAsString('devtools.filter_logs')}
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            placeholder={translationKey('devtools.filter_logs')}
+            placeholder={langAsString('devtools.filter_logs')}
           />
         </div>
 

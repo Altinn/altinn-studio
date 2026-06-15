@@ -38,17 +38,24 @@
 /* ====
 TODO(1779): Remove these styles after going through all the different Table styles in
 Altinn, and making sure they are consistent. */
-.repeatingGroupTable > thead > tr > th {
+.repeatingGroupTable > thead > tr > th,
+.repeatingGroupTable th {
   background-color: #f5f5f5;
   border-bottom: 1px solid #dde3e5;
   padding-top: 15px;
   padding-bottom: 15px;
+  font-weight: 500;
+}
+
+.repeatingGroupTable > tbody.rowsBeforeInTableHeaderGroup {
+  display: table-header-group;
 }
 
 .repeatingGroupTable > tbody > tr > td {
   border-bottom-color: #dde3e5;
   padding-top: 12px;
   padding-bottom: 12px;
+  vertical-align: -webkit-baseline-middle;
 }
 /* ==== */
 

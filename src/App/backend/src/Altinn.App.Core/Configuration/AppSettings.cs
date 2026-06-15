@@ -131,6 +131,15 @@ public class AppSettings
         "https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css";
 
     /// <summary>
+    /// Gets or sets the frontend asset URL used by the generated controller index page.
+    /// </summary>
+    /// <remarks>
+    /// This setting is only honored when the host runs in the Development environment. PDF rendering runs in a
+    /// container, so avoid loopback URLs such as <c>localhost</c> because they resolve inside the container.
+    /// </remarks>
+    public string? AppFrontendAssetBaseUrl { get; set; }
+
+    /// <summary>
     /// Open Id Connect Well known endpoint
     /// </summary>
 #nullable disable
@@ -217,4 +226,10 @@ public class AppSettings
     /// Directory containing runtime secrets JSON files.
     /// </summary>
     public string RuntimeSecretsDirectory { get; set; } = DefaultRuntimeSecretsDirectory;
+
+    /// <summary>
+    /// Enforce that a DataType (applicationmetadata.json) that specifies a taskId is only externally mutatable (using app apis) when the instance is in this task.
+    /// This is a temporary setting to help identify components with incorrect data bindings, and will be removed in the next major version.
+    /// </summary>
+    public bool EnforceDataTypeTaskId { get; set; } = false;
 }

@@ -1,0 +1,44 @@
+.elementContainer {
+  display: flex;
+  align-items: center;
+}
+
+.selected .elementContainer {
+  font-weight: 700;
+}
+
+.pageContainer {
+  flex: 1;
+}
+
+.pageButton {
+  cursor: pointer;
+  padding: var(--fds-spacing-3);
+}
+
+.selected .pageButton {
+  font-weight: 700;
+}
+
+.pageField {
+  padding: var(--fds-spacing-1);
+}
+
+.ellipsisButton {
+  margin-left: 1.2rem;
+  visibility: hidden;
+}
+
+.elementContainer:hover .ellipsisButton {
+  visibility: visible;
+}
+
+.errorMessage {
+  font-size: 13px;
+  font-weight: 400;
+  padding-top: 6px;
+}
+
+.invalid {
+  color: red;
+}

@@ -22,7 +22,8 @@ public interface IResourceRegistry
     Task<List<ServiceResource>> GetServiceResourceList(
         string env,
         bool includeApps = false,
-        bool includeAltinn2 = false
+        bool includeAltinn2 = false,
+        bool includeMigratedApps = false
     );
 
     Task<bool> ServiceResourceExists(string id, string env);
@@ -34,18 +35,6 @@ public interface IResourceRegistry
     /// <param name="env"></param>
     /// <returns></returns>
     Task<ServiceResource> GetResource(string id, string env);
-
-    /// <summary>
-    /// Get all resources exposed by resource registry. It includeds apps and Altinn 2 servces
-    /// </summary>
-    /// <returns></returns>
-    Task<List<ServiceResource>> GetResources(string env);
-
-    /// <summary>
-    /// Integration point for retrieving the full list of resources
-    /// </summary>
-    /// <returns>The resource full list of all resources if exists</returns>
-    Task<List<ServiceResource>> GetResourceList(string env, bool includeAltinn2, bool includeApps = false);
 
     /// <summary>
     /// Get Resource from Altinn 2 service

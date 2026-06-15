@@ -2,7 +2,6 @@ import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query
 
 import { useInstanceApi } from 'src/core/contexts/ApiProvider';
 import { parseInstanceId } from 'src/core/queries/instance/utils';
-import { removeProcessFromInstance } from 'src/features/instance/instanceUtils';
 import type { InstanceApi, Instantiation } from 'src/core/api-client/instance.api';
 
 type InstantiationArgs = number | Instantiation;
@@ -33,15 +32,11 @@ export function instanceDataQuery({ instanceOwnerPartyId, instanceGuid, instance
     queryKey: instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }),
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    queryFn: async () => {
-      try {
-        const instance = await instanceApi.getInstance({ instanceOwnerPartyId, instanceGuid });
-        return removeProcessFromInstance(instance);
-      } catch (error) {
-        window.logError('Fetching instance data failed:\n', error);
-        throw error;
-      }
-    },
+    queryFn: () => instanceApi.getInstance({ instanceOwnerPartyId, instanceGuid }),
+    // Cache is canonical; refresh is explicit via mutations, poll-driven setQueryData,
+    // or invalidateQueries. Prevents the route loader from refetching on every URL change
+    // and prevents transient cache-vs-URL mismatches in ProcessWrapper.
+    staleTime: Infinity,
   });
 }
 
@@ -67,10 +62,7 @@ export function useCreateInstance(language: string) {
     },
     onSuccess: (data) => {
       const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(data.id);
-      queryClient.setQueryData(
-        instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }),
-        removeProcessFromInstance(data),
-      );
+      queryClient.setQueryData(instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }), data);
     },
   });
 }

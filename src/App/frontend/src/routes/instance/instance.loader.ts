@@ -1,25 +1,16 @@
 import type { LoaderFunctionArgs } from 'react-router';
 
 import { prefetchInstanceData } from 'src/core/queries/instance';
-import { processQueries } from 'src/features/instance/useProcessQuery';
+import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
-import type { InstanceApi } from 'src/core/api-client/instance.api';
 
-export function instanceLoader(instanceApi: InstanceApi) {
-  return function loader({ params, context }: LoaderFunctionArgs) {
-    const { instanceOwnerPartyId, instanceGuid } = params;
-    const instanceId = instanceOwnerPartyId && instanceGuid ? `${instanceOwnerPartyId}/${instanceGuid}` : undefined;
-    const queryClient = context.get(queryClientContext);
+export function instanceLoader({ params, context }: LoaderFunctionArgs): null {
+  const { instanceOwnerPartyId, instanceGuid } = params;
+  const queryClient = context.get(queryClientContext);
+  const { instanceApi } = context.get(apiClientsContext);
 
-    // Fire-and-forget: warm the cache without blocking route rendering.
-    // The route components show their own loading states via <Loader />.
-    if (instanceOwnerPartyId && instanceGuid) {
-      prefetchInstanceData(queryClient, { instanceOwnerPartyId, instanceGuid, instanceApi });
-    }
-    if (instanceId) {
-      queryClient.prefetchQuery(processQueries.processState(instanceId));
-    }
-
-    return null;
-  };
+  if (instanceOwnerPartyId && instanceGuid) {
+    prefetchInstanceData(queryClient, { instanceOwnerPartyId, instanceGuid, instanceApi });
+  }
+  return null;
 }

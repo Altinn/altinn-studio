@@ -16,6 +16,7 @@ using Altinn.Studio.Designer.Hubs;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.Infrastructure.DeveloperSession;
+using Altinn.Studio.Designer.Infrastructure.ExceptionHandling;
 using Altinn.Studio.Designer.Infrastructure.Maskinporten;
 using Altinn.Studio.Designer.Middleware;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
@@ -162,6 +163,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
     services.Configure<AltinitySettings>(configuration.GetSection("AltinitySettings"));
     services.AddSingleton<IAltinityWebSocketService, AltinityWebSocketService>();
+    services.AddHttpClient<IAltinityAgentClient, AltinityAgentClient>();
     var maskinPortenClientName = "MaskinportenClient";
     services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(
         maskinPortenClientName,
@@ -186,6 +188,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.ConfigureDataProtection(configuration, logger);
     services.ConfigureMvc();
+    services.AddProblemDetails();
+    services.AddExceptionHandler<GlobalExceptionHandler>();
     services.ConfigureNonMarkedSettings(configuration);
 
     services.RegisterTypedHttpClients(configuration, env);
@@ -222,6 +226,16 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         });
         signalRBuilder.AddStackExchangeRedis(redisSettings.ConnectionString);
     }
+    else if (env.IsDevelopment() || env.IsEnvironment("Test"))
+    {
+        services.AddDistributedMemoryCache();
+    }
+    else
+    {
+        throw new InvalidOperationException(
+            "Redis cache must be enabled outside Development/Test because studioctl auth codes require a shared distributed cache."
+        );
+    }
 
     if (!env.IsDevelopment())
     {
@@ -248,14 +262,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 void Configure(IConfiguration configuration)
 {
     logger.LogInformation("// Program.cs // Configure // Attempting to configure env");
-    if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
-    {
-        app.UseExceptionHandler("/error-local-development");
-    }
-    else
-    {
-        app.UseExceptionHandler("/error");
-    }
+    app.UseExceptionHandler();
 
     app.UseDefaultFiles();
     app.UseStaticFiles(

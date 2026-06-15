@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
+	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/envtopology"
 )
@@ -15,10 +16,14 @@ func defaultTopology() envtopology.Local {
 	return envtopology.NewLocal("8000")
 }
 
+func testService() *appsvc.Service {
+	return appsvc.NewService(&config.Config{Version: config.NewVersion("test-version")})
+}
+
 func TestBuildDockerRunSpec_AddsDockerLocaltestEnv(t *testing.T) {
 	t.Parallel()
 
-	spec, err := appsvc.NewService("").BuildDockerRunSpec(repocontext.Detection{
+	spec, err := testService().BuildDockerRunSpec(repocontext.Detection{
 		AppRoot:   t.TempDir(),
 		InAppRepo: true,
 	}, nil, defaultTopology(), appsvc.DockerRunOptions{})
@@ -37,12 +42,49 @@ func TestBuildDockerRunSpec_AddsDockerLocaltestEnv(t *testing.T) {
 	})
 }
 
+func TestBuildDockerRunSpec_DoesNotAddAppFrontendAssetBaseUrlByDefault(t *testing.T) {
+	t.Parallel()
+
+	appPath := t.TempDir()
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+
+	spec, err := testService().BuildDockerRunSpec(repocontext.Detection{
+		AppRoot:   appPath,
+		InAppRepo: true,
+	}, nil, defaultTopology(), appsvc.DockerRunOptions{})
+	if err != nil {
+		t.Fatalf("BuildDockerRunSpec() error = %v", err)
+	}
+
+	assertEnvMissing(t, spec.Config.Env, "AppSettings__AppFrontendAssetBaseUrl")
+}
+
+func TestBuildDockerRunSpec_UsesAppFrontendAssetBaseUrlOverride(t *testing.T) {
+	t.Parallel()
+
+	appPath := t.TempDir()
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+	want := "http://app-frontend.local.altinn.cloud:8000"
+
+	spec, err := testService().BuildDockerRunSpec(repocontext.Detection{
+		AppRoot:   appPath,
+		InAppRepo: true,
+	}, nil, defaultTopology(), appsvc.DockerRunOptions{AppFrontendAssetBaseUrl: want})
+	if err != nil {
+		t.Fatalf("BuildDockerRunSpec() error = %v", err)
+	}
+
+	if got := envValue(t, spec.Config.Env, "AppSettings__AppFrontendAssetBaseUrl"); got != want {
+		t.Fatalf("AppSettings__AppFrontendAssetBaseUrl = %q, want app frontend asset base URL override", got)
+	}
+}
+
 func TestBuildDockerRunSpec_UsesImageTagOverride(t *testing.T) {
 	t.Parallel()
 
 	want := "ghcr.io/altinn/altinn-studio/app:frontend-test"
 
-	spec, err := appsvc.NewService("").BuildDockerRunSpec(repocontext.Detection{
+	spec, err := testService().BuildDockerRunSpec(repocontext.Detection{
 		AppRoot:   t.TempDir(),
 		InAppRepo: true,
 	}, nil, defaultTopology(), appsvc.DockerRunOptions{ImageTag: want})
@@ -60,7 +102,7 @@ func TestBuildDotnetRunSpec_BindsNativeAppPort(t *testing.T) {
 
 	appPath := t.TempDir()
 	projectPath := writeAppProject(t, appPath)
-	spec, err := appsvc.NewService("").BuildDotnetRunSpec(
+	spec, err := testService().BuildDotnetRunSpec(
 		t.Context(),
 		appPath,
 		nil,
@@ -98,12 +140,34 @@ func TestBuildDotnetRunSpec_BindsNativeAppPort(t *testing.T) {
 	}
 }
 
+func TestBuildDotnetRunSpec_DoesNotAddAppFrontendAssetBaseUrlByDefault(t *testing.T) {
+	t.Parallel()
+
+	appPath := t.TempDir()
+	writeAppProject(t, appPath)
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+
+	spec, err := testService().BuildDotnetRunSpec(
+		t.Context(),
+		appPath,
+		nil,
+		nil,
+		defaultTopology(),
+		appsvc.DotnetRunOptions{},
+	)
+	if err != nil {
+		t.Fatalf("BuildDotnetRunSpec() error = %v", err)
+	}
+
+	assertEnvMissing(t, spec.Env, "AppSettings__AppFrontendAssetBaseUrl")
+}
+
 func TestBuildDotnetRunSpec_PreservesCurrentEnv(t *testing.T) {
 	t.Parallel()
 
 	appPath := t.TempDir()
 	writeAppProject(t, appPath)
-	spec, err := appsvc.NewService("").BuildDotnetRunSpec(
+	spec, err := testService().BuildDotnetRunSpec(
 		t.Context(),
 		appPath,
 		nil,
@@ -130,12 +194,61 @@ func TestBuildDotnetRunSpec_PreservesCurrentEnv(t *testing.T) {
 	}
 }
 
+func TestBuildDotnetRunSpec_PreservesAppFrontendAssetBaseUrlOverride(t *testing.T) {
+	t.Parallel()
+
+	appPath := t.TempDir()
+	writeAppProject(t, appPath)
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+
+	spec, err := testService().BuildDotnetRunSpec(
+		t.Context(),
+		appPath,
+		nil,
+		[]string{"AppSettings__AppFrontendAssetBaseUrl=http://localhost:5173"},
+		defaultTopology(),
+		appsvc.DotnetRunOptions{},
+	)
+	if err != nil {
+		t.Fatalf("BuildDotnetRunSpec() error = %v", err)
+	}
+
+	if got := envValue(t, spec.Env, "AppSettings__AppFrontendAssetBaseUrl"); got != "http://localhost:5173" {
+		t.Fatalf("AppSettings__AppFrontendAssetBaseUrl = %q, want current env value", got)
+	}
+}
+
+func TestBuildDotnetRunSpec_UsesAppFrontendAssetBaseUrlOptionOverCurrentEnv(t *testing.T) {
+	t.Parallel()
+
+	appPath := t.TempDir()
+	writeAppProject(t, appPath)
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+	want := "http://app-frontend.local.altinn.cloud:8000"
+
+	spec, err := testService().BuildDotnetRunSpec(
+		t.Context(),
+		appPath,
+		nil,
+		[]string{"AppSettings__AppFrontendAssetBaseUrl=http://localhost:5173"},
+		defaultTopology(),
+		appsvc.DotnetRunOptions{AppFrontendAssetBaseUrl: want},
+	)
+	if err != nil {
+		t.Fatalf("BuildDotnetRunSpec() error = %v", err)
+	}
+
+	if got := envValue(t, spec.Env, "AppSettings__AppFrontendAssetBaseUrl"); got != want {
+		t.Fatalf("AppSettings__AppFrontendAssetBaseUrl = %q, want app frontend asset base URL option", got)
+	}
+}
+
 func TestBuildDotnetRunSpec_RandomHostPortAsksKestrelToSelectPort(t *testing.T) {
 	t.Parallel()
 
 	appPath := t.TempDir()
 	writeAppProject(t, appPath)
-	spec, err := appsvc.NewService("").BuildDotnetRunSpec(
+	spec, err := testService().BuildDotnetRunSpec(
 		t.Context(),
 		appPath,
 		[]string{"--seed", "1"},
@@ -181,7 +294,7 @@ func TestResolveRunTarget_ReadsAppID(t *testing.T) {
 	appPath := t.TempDir()
 	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
 
-	target, err := appsvc.NewService("").ResolveRunTarget(t.Context(), appPath)
+	target, err := testService().ResolveRunTarget(t.Context(), appPath)
 	if err != nil {
 		t.Fatalf("ResolveRunTarget() error = %v", err)
 	}
@@ -199,7 +312,8 @@ func TestResolveRunTarget_RejectsInvalidAppID(t *testing.T) {
 	appPath := t.TempDir()
 	writeAppMetadata(t, appPath, `{"id":"invalid"}`)
 
-	if _, err := appsvc.NewService("").ResolveRunTarget(t.Context(), appPath); err == nil {
+	_, err := testService().ResolveRunTarget(t.Context(), appPath)
+	if err == nil {
 		t.Fatal("ResolveRunTarget() error = nil, want error")
 	}
 }
@@ -229,6 +343,17 @@ func envValue(t *testing.T, env []string, key string) string {
 	}
 	t.Fatalf("env missing %q\n%v", key, env)
 	return ""
+}
+
+func assertEnvMissing(t *testing.T, env []string, key string) {
+	t.Helper()
+
+	prefix := key + "="
+	for _, entry := range env {
+		if strings.HasPrefix(entry, prefix) {
+			t.Fatalf("env contains %q\n%v", key, env)
+		}
+	}
 }
 
 func assertEqualStrings(t *testing.T, name string, got, want []string) {

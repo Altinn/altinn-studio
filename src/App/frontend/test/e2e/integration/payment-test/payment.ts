@@ -28,6 +28,10 @@ describe('Payment', () => {
         method: 'GET',
         url: '**/ttd/payment-test/instances/**/**/payment*',
       }).as('paymentInfoRequest');
+
+      // TODO: This should be removed once we have a more realistic payment provider that pushes the process for us
+      cy.findByText('Du har betalt!').should('be.visible');
+      cy.findByRole('button', { name: /Neste/ }).click();
     });
 
     it('should redirect to the payment page, then the successpage', () => {

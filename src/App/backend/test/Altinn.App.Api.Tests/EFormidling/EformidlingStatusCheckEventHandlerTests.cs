@@ -1,17 +1,12 @@
-using System.Security.Cryptography.X509Certificates;
-using Altinn.ApiClients.Maskinporten.Config;
-using Altinn.ApiClients.Maskinporten.Interfaces;
-using Altinn.ApiClients.Maskinporten.Services;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Infrastructure.Clients.Maskinporten;
-using Altinn.App.Core.Internal.Maskinporten;
+using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
 using Altinn.Common.EFormidlingClient;
 using Altinn.Common.EFormidlingClient.Models;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 
@@ -20,20 +15,9 @@ namespace Altinn.App.Api.Tests.EFormidling;
 public class EformidlingStatusCheckEventHandlerTests
 {
     [Fact]
-    public async Task ProcessEvent_WithX509Created_ShouldReturnFalse()
-    {
-        IEventHandler eventHandler = GetMockedEventHandler(false, false);
-        CloudEvent cloudEvent = GetValidCloudEvent();
-
-        bool processStatus = await eventHandler.ProcessEvent(cloudEvent);
-
-        processStatus.Should().BeFalse();
-    }
-
-    [Fact]
     public async Task ProcessEvent_WithJwkCreated_ShouldReturnFalse()
     {
-        IEventHandler eventHandler = GetMockedEventHandler(true, false);
+        IEventHandler eventHandler = GetMockedEventHandler(false);
         CloudEvent cloudEvent = GetValidCloudEvent();
 
         bool processStatus = await eventHandler.ProcessEvent(cloudEvent);
@@ -44,7 +28,7 @@ public class EformidlingStatusCheckEventHandlerTests
     [Fact]
     public async Task ProcessEvent_WithJwkDelivered_ShouldReturnTrue()
     {
-        IEventHandler eventHandler = GetMockedEventHandler(true, true);
+        IEventHandler eventHandler = GetMockedEventHandler(true);
         CloudEvent cloudEvent = GetValidCloudEvent();
 
         bool processStatus = await eventHandler.ProcessEvent(cloudEvent);
@@ -68,7 +52,7 @@ public class EformidlingStatusCheckEventHandlerTests
         };
     }
 
-    private static IEventHandler GetMockedEventHandler(bool useJwk, bool delivered)
+    private static IEventHandler GetMockedEventHandler(bool delivered)
     {
         var eFormidlingClientMock = new Mock<IEFormidlingClient>();
         Statuses statuses = GetStatues(delivered);
@@ -84,68 +68,25 @@ public class EformidlingStatusCheckEventHandlerTests
         var httpClientFactoryMock = new Mock<IHttpClientFactory>();
         httpClientFactoryMock.Setup(s => s.CreateClient(It.IsAny<string>())).Returns(httpClientMock.Object);
 
-        var eFormidlingLoggerMock = new Mock<ILogger<EformidlingStatusCheckEventHandler>>();
-        var eFormidlingLoggerMock2 = new Mock<ILogger<EformidlingStatusCheckEventHandler2>>();
+        Mock<IAuthenticationTokenResolver> authenticationTokenResolverMock = new(MockBehavior.Strict);
+        authenticationTokenResolverMock
+            .Setup(a => a.GetAccessToken(It.IsAny<AuthenticationMethod.AltinnToken>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JwtToken.Parse(TestAuthentication.GetOrgToken()));
 
-        var maskinportenServiceLoggerMock = new Mock<ILogger<MaskinportenService>>();
-        var tokenCacheProviderMock = new Mock<ITokenCacheProvider>();
-
-        var maskinportenServiceMock = new Mock<MaskinportenService>(
-            httpClientMock.Object,
-            maskinportenServiceLoggerMock.Object,
-            tokenCacheProviderMock.Object
+        return new EformidlingStatusCheckEventHandler2(
+            eFormidlingClientMock.Object,
+            httpClientFactoryMock.Object,
+            NullLogger<EformidlingStatusCheckEventHandler2>.Instance,
+            authenticationTokenResolverMock.Object,
+            Options.Create(
+                new PlatformSettings
+                {
+                    ApiEventsEndpoint = "http://localhost:5101/events/api/v1/",
+                    SubscriptionKey = "key",
+                }
+            ),
+            Options.Create(Mock.Of<GeneralSettings>())
         );
-
-        var maskinportenSettingsMock = new MaskinportenSettings()
-        {
-            Environment = "ver2",
-            ClientId = Guid.NewGuid().ToString(),
-        };
-
-        var x509CertificateMock = new Mock<X509Certificate2>().Object;
-        var x509CertificateProviderMock = new Mock<IX509CertificateProvider>();
-        x509CertificateProviderMock.Setup(s => s.GetCertificate().Result).Returns(x509CertificateMock);
-
-        var maskinPortenTokenProviderMock = new Mock<IMaskinportenTokenProvider>();
-        maskinPortenTokenProviderMock
-            .Setup(s => s.GetAltinnExchangedToken(It.IsAny<string>()))
-            .ReturnsAsync("myAltinnAccesstoken");
-
-        IOptions<PlatformSettings> platformSettingsMock = Options.Create(
-            new PlatformSettings()
-            {
-                ApiEventsEndpoint = "http://localhost:5101/events/api/v1/",
-                SubscriptionKey = "key",
-            }
-        );
-        var generalSettingsMock = new Mock<GeneralSettings>();
-
-        IEventHandler eventHandler;
-        if (useJwk)
-        {
-            eventHandler = new EformidlingStatusCheckEventHandler2(
-                eFormidlingClientMock.Object,
-                httpClientFactoryMock.Object,
-                eFormidlingLoggerMock2.Object,
-                maskinPortenTokenProviderMock.Object,
-                platformSettingsMock,
-                Options.Create(generalSettingsMock.Object)
-            );
-        }
-        else
-        {
-            eventHandler = new EformidlingStatusCheckEventHandler(
-                eFormidlingClientMock.Object,
-                httpClientFactoryMock.Object,
-                eFormidlingLoggerMock.Object,
-                maskinportenServiceMock.Object,
-                Options.Create(maskinportenSettingsMock),
-                x509CertificateProviderMock.Object,
-                platformSettingsMock,
-                Options.Create(generalSettingsMock.Object)
-            );
-        }
-        return eventHandler;
     }
 
     private static Statuses GetStatues(bool delivered)

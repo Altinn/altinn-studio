@@ -34,7 +34,7 @@ COPY src/Designer/frontend/packages/schema-editor/package.json ./src/Designer/fr
 COPY src/Designer/frontend/packages/schema-model/package.json ./src/Designer/frontend/packages/schema-model/
 COPY src/Designer/frontend/packages/shared/package.json ./src/Designer/frontend/packages/shared/
 COPY src/Designer/frontend/packages/text-editor/package.json ./src/Designer/frontend/packages/text-editor/
-COPY src/Designer/frontend/packages/ux-editor/package.json ./src/Designer/frontend/packages/ux-editor/
+COPY src/Designer/frontend/packages/ux-editor-v4/package.json ./src/Designer/frontend/packages/ux-editor-v4/
 COPY src/Designer/frontend/packages/ux-editor-v3/package.json ./src/Designer/frontend/packages/ux-editor-v3/
 COPY src/Designer/frontend/resourceadm/package.json ./src/Designer/frontend/resourceadm/
 COPY src/Designer/frontend/resourceadm/testing/playwright/package.json ./src/Designer/frontend/resourceadm/testing/playwright/
@@ -42,7 +42,14 @@ COPY src/Designer/frontend/studio-root/package.json ./src/Designer/frontend/stud
 COPY src/Designer/frontend/testing/cypress/package.json ./src/Designer/frontend/testing/cypress/
 COPY src/Designer/frontend/testing/playwright/package.json ./src/Designer/frontend/testing/playwright/
 COPY src/Designer/frontend/settings/package.json ./src/Designer/frontend/settings/
-COPY libs/form-component/package.json ./libs/form-component/
+COPY app-libs/form-component/package.json ./app-libs/form-component/
+COPY app-libs/form-engine/package.json ./app-libs/form-engine/
+COPY app-libs/language/package.json ./app-libs/language/
+
+ARG CYPRESS_INSTALL_BINARY=0
+ARG PUPPETEER_SKIP_DOWNLOAD=true
+ENV CYPRESS_INSTALL_BINARY=${CYPRESS_INSTALL_BINARY}
+ENV PUPPETEER_SKIP_DOWNLOAD=${PUPPETEER_SKIP_DOWNLOAD}
 
 RUN yarn --immutable
 
@@ -61,7 +68,7 @@ WORKDIR /version
 RUN echo "{\"version\": \"${DESIGNER_VERSION}\"}" > version.json
 
 # Prepare app template
-FROM alpine@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659 AS app-template-release
+FROM alpine@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11 AS app-template-release
 RUN apk add --no-cache rsync
 
 COPY ./src/App/template/src /app-template-dotnet-src

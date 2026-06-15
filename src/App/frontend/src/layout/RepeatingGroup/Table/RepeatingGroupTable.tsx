@@ -1,15 +1,18 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import { Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import { Caption } from 'src/components/form/caption/Caption';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { evalExpr } from 'src/features/expressions';
+import { ExprVal } from 'src/features/expressions/types';
+import { ExprValidation } from 'src/features/expressions/validation';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { GridRowsRenderer } from 'src/layout/Grid/GridComponent';
-import { useBaseIdsFromGridRows } from 'src/layout/Grid/tools';
+import { getGridCellHiddenExpr, useBaseIdsFromGridRows } from 'src/layout/Grid/tools';
 import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/EditContainer/RepeatingGroupsEditContainer';
 import { RepeatingGroupPagination } from 'src/layout/RepeatingGroup/Pagination/RepeatingGroupPagination';
 import {
@@ -27,6 +30,7 @@ import utilClasses from 'src/styles/utils.module.css';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useExternalItem } from 'src/utils/layout/hooks';
+import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { GridCell, ITableColumnFormatting } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
@@ -61,7 +65,10 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
 
   const isEmpty = numRows === 0;
   const isEditingFirstRow = RepGroupContext.useIsEditingRow(firstRowId);
-  const showTableHeader = numRows > 0 && !(numRows == 1 && firstRowId !== undefined && isEditingFirstRow);
+  const hasColumnsWithEditInTable =
+    tableColumns && Object.keys(tableColumns).some((colId) => tableColumns[colId].editInTable);
+  const showTableHeader =
+    numRows > 0 && (hasColumnsWithEditInTable || !(numRows == 1 && firstRowId !== undefined && isEditingFirstRow));
 
   const showDeleteButtonColumns = new Set<boolean>();
   const showEditButtonColumns = new Set<boolean>();
@@ -76,10 +83,14 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
   if (edit?.mode === 'onlyTable') {
     displayEditColumn = false;
   }
+  const useVerticalButtonLayout = edit?.buttonLayout === 'vertical';
+  const columnCount = useVerticalButtonLayout
+    ? Number(displayEditColumn || displayDeleteColumn)
+    : Number(displayEditColumn) + Number(displayDeleteColumn);
 
-  const parent = FormBootstrap.useLayoutLookups().componentToParent[baseComponentId];
+  const parent = FormStore.bootstrap.useLayoutLookups().componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';
-  const extraCells = [...(displayEditColumn ? [null] : []), ...(displayDeleteColumn ? [null] : [])];
+  const extraCells = Array.from({ length: columnCount }, () => null);
 
   return (
     <div
@@ -137,19 +148,38 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
                   />
                 ))}
               </DataModelLocationProvider>
-              {displayEditColumn && (
-                <Table.HeaderCell style={{ padding: 0, paddingRight: '10px' }}>
-                  <span className={utilClasses.visuallyHidden}>
-                    <Lang id='general.edit' />
-                  </span>
-                </Table.HeaderCell>
-              )}
-              {displayDeleteColumn && (
-                <Table.HeaderCell style={{ padding: 0 }}>
-                  <span className={utilClasses.visuallyHidden}>
-                    <Lang id='general.delete' />
-                  </span>
-                </Table.HeaderCell>
+              {useVerticalButtonLayout ? (
+                (displayEditColumn || displayDeleteColumn) && (
+                  <Table.HeaderCell style={{ padding: 0 }}>
+                    {displayEditColumn && (
+                      <span className={utilClasses.visuallyHidden}>
+                        <Lang id='general.edit' />
+                      </span>
+                    )}
+                    {displayDeleteColumn && (
+                      <span className={utilClasses.visuallyHidden}>
+                        <Lang id='general.delete' />
+                      </span>
+                    )}
+                  </Table.HeaderCell>
+                )
+              ) : (
+                <>
+                  {displayEditColumn && (
+                    <Table.HeaderCell style={{ padding: 0, paddingRight: '10px' }}>
+                      <span className={utilClasses.visuallyHidden}>
+                        <Lang id='general.edit' />
+                      </span>
+                    </Table.HeaderCell>
+                  )}
+                  {displayDeleteColumn && (
+                    <Table.HeaderCell style={{ padding: 0 }}>
+                      <span className={utilClasses.visuallyHidden}>
+                        <Lang id='general.delete' />
+                      </span>
+                    </Table.HeaderCell>
+                  )}
+                </>
               )}
             </Table.Row>
           </Table.Head>
@@ -164,6 +194,8 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
               uuid={row.uuid}
               displayDeleteColumn={displayDeleteColumn}
               displayEditColumn={displayEditColumn}
+              columnCount={columnCount}
+              useVerticalButtonLayout={useVerticalButtonLayout}
               tableIds={tableIdsWithoutHiddenColumns}
               hiddenColumns={hiddenColumns}
             />
@@ -186,6 +218,8 @@ function RowToDisplay({
   dataModelBindings: { group },
   displayDeleteColumn,
   displayEditColumn,
+  columnCount,
+  useVerticalButtonLayout,
   index,
   uuid,
   tableIds,
@@ -195,12 +229,16 @@ function RowToDisplay({
   dataModelBindings: IDataModelBindings<'RepeatingGroup'>;
   displayDeleteColumn: boolean;
   displayEditColumn: boolean;
+  columnCount: number;
+  useVerticalButtonLayout: boolean;
   tableIds: string[];
   hiddenColumns: string[];
 } & BaseRow) {
   const component = useExternalItem(baseComponentId, 'RepeatingGroup');
   const mobileView = useIsMobileOrTablet();
   const isEditingRow = RepGroupContext.useIsEditingRow(uuid);
+  const editContainerColSpan = mobileView ? 2 : tableIds.length + 3 + columnCount;
+
   return (
     <DataModelLocationProvider
       groupBinding={group}
@@ -216,6 +254,7 @@ function RowToDisplay({
         mobileView={mobileView}
         displayDeleteColumn={displayDeleteColumn}
         displayEditColumn={displayEditColumn}
+        useVerticalButtonLayout={useVerticalButtonLayout}
         hiddenColumns={hiddenColumns}
       />
       {isEditingRow && (
@@ -227,7 +266,7 @@ function RowToDisplay({
         >
           <Table.Cell
             style={{ padding: 0, borderTop: 0 }}
-            colSpan={mobileView ? 2 : tableIds.length + 3 + (displayEditColumn ? 1 : 0) + (displayDeleteColumn ? 1 : 0)}
+            colSpan={editContainerColSpan}
           >
             {component.edit?.mode !== 'onlyTable' && <RepeatingGroupsEditContainer editId={uuid} />}
           </Table.Cell>
@@ -250,10 +289,36 @@ function ExtraRows({ where, extraCells, columnSettings, hiddenColumnIndices }: E
   const { visibleRows } = useRepeatingGroupRowState();
   const isEmpty = visibleRows.length === 0;
   const { rowsBefore, rowsAfter } = useExternalItem(baseComponentId, 'RepeatingGroup');
-  const parent = FormBootstrap.useLayoutLookups().componentToParent[baseComponentId];
+  const parent = FormStore.bootstrap.useLayoutLookups().componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';
 
   const rows = where === 'Before' ? rowsBefore : rowsAfter;
+  const columnHiddenExprs = useMemo(() => rows?.find((r) => r.header)?.cells?.map(getGridCellHiddenExpr) ?? [], [rows]);
+  const expressionDataSources = useExpressionDataSources(columnHiddenExprs);
+  const hiddenFromExtraRows = useMemo(
+    () =>
+      columnHiddenExprs.reduce<number[]>((indices, hiddenExpr, cellIdx) => {
+        if (!ExprValidation.isValidOrScalar(hiddenExpr, ExprVal.Boolean)) {
+          return indices;
+        }
+
+        const hidden = evalExpr(hiddenExpr, expressionDataSources, {
+          returnType: ExprVal.Boolean,
+          defaultValue: false,
+          errorIntroText: `Invalid expression for hidden in RepeatingGroup ${where} column ${cellIdx}`,
+        });
+        if (hidden) {
+          indices.push(cellIdx);
+        }
+        return indices;
+      }, []),
+    [columnHiddenExprs, expressionDataSources, where],
+  );
+  const mergedHiddenColumnIndices = useMemo(
+    () => [...new Set([...hiddenColumnIndices, ...hiddenFromExtraRows])],
+    [hiddenColumnIndices, hiddenFromExtraRows],
+  );
+
   const mobileBaseIds = useBaseIdsFromGridRows(rows, mobileView);
   if (isEmpty || !rows) {
     return null;
@@ -288,7 +353,8 @@ function ExtraRows({ where, extraCells, columnSettings, hiddenColumnIndices }: E
       extraCells={extraCells}
       isNested={isNested}
       mutableColumnSettings={columnSettings}
-      hiddenColumnIndices={hiddenColumnIndices}
+      hiddenColumnIndices={mergedHiddenColumnIndices}
+      bodyClassName={where === 'Before' ? classes.rowsBeforeInTableHeaderGroup : undefined}
     />
   );
 }
@@ -300,7 +366,7 @@ function TitleCell({
   baseComponentId: string;
   columnSettings: IGroupColumnFormatting;
 }) {
-  const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings);
+  const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings, true);
 
   return (
     <Table.HeaderCell

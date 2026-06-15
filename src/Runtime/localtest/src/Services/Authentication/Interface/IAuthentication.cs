@@ -1,4 +1,3 @@
-#nullable enable
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.IdentityModel.Tokens.Jwt;
@@ -6,6 +5,8 @@ using Altinn.Platform.Profile.Models;
 
 namespace LocalTest.Services.Authentication.Interface
 {
+    // TODO: delete, TestAuthenticationService is better and matches
+    // tokens actually issued (structure, content).
     public interface IAuthentication
     {
         /// <summary>

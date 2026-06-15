@@ -1,0 +1,41 @@
+POST /api/v1/ttd-e2e-tests/workflows HTTP/1.1
+Collection-Key: head-ctrl-is-head-exclude
+Idempotency-Key: idem-Guid_1
+Content-Type: application/json; charset=utf-8
+
+{
+  "labels": {
+    "org": "ttd",
+    "app": "e2e-tests"
+  },
+  "context": null,
+  "workflows": [
+    {
+      "ref": "wf-shadow",
+      "operationId": "op-wf-shadow",
+      "steps": [
+        {
+          "operationId": "/ping-shadow",
+          "command": {
+            "type": "webhook",
+            "maxExecutionTime": null,
+            "data": {
+              "uri": "http://localhost:{PORT}/ping-shadow",
+              "payload": null,
+              "contentType": null
+            }
+          },
+          "retryStrategy": null,
+          "labels": null
+        }
+      ],
+      "startAt": null,
+      "state": null,
+      "dependsOn": null,
+      "links": null,
+      "dependsOnHeads": true,
+      "isHead": false
+    }
+  ]
+}
+

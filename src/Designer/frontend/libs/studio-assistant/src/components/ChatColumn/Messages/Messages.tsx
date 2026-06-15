@@ -5,6 +5,7 @@ import type { User } from '../../../types/User';
 import { MessageAuthor } from '../../../types/MessageAuthor';
 import classes from './Messages.module.css';
 import type { Message, UserAttachment, UserMessage, Source } from '../../../types/ChatThread';
+import type { MessageFeedbackTexts } from '../../../types/AssistantTexts';
 import type { WorkflowStatus } from '../../../types/WorkflowStatus';
 import {
   formatAssistantMessageContent,
@@ -12,6 +13,8 @@ import {
   isUrlSafe,
 } from '../../../utils/messageUtils';
 import { ChatAvatar } from '../ChatAvatar';
+import { MessageFeedback } from './MessageFeedback';
+import type { UserFeedback } from '../../../types/UserFeedback';
 
 const ASSISTANT_LABEL = 'Altinity';
 const DEFAULT_USER_LABEL = 'Deg';
@@ -21,6 +24,8 @@ export type MessagesProps = {
   workflowStatus?: WorkflowStatus;
   currentUser?: User;
   assistantAvatarUrl?: string;
+  feedbackTexts?: MessageFeedbackTexts;
+  onMessageFeedback?: (feedback: UserFeedback) => void;
 };
 
 export function Messages({
@@ -28,6 +33,8 @@ export function Messages({
   workflowStatus,
   currentUser,
   assistantAvatarUrl,
+  feedbackTexts,
+  onMessageFeedback,
 }: MessagesProps): ReactElement {
   const showLoadingBubble = workflowStatus?.isActive === true;
   const loadingBubbleText = workflowStatus?.message ?? '';
@@ -40,6 +47,8 @@ export function Messages({
           message={message}
           currentUser={currentUser}
           assistantAvatarUrl={assistantAvatarUrl}
+          feedbackTexts={feedbackTexts}
+          onMessageFeedback={onMessageFeedback}
         />
       ))}
       {showLoadingBubble && (
@@ -79,10 +88,18 @@ type MessageItemProps = {
   message: Message;
   currentUser?: User;
   assistantAvatarUrl?: string;
+  feedbackTexts?: MessageFeedbackTexts;
+  onMessageFeedback?: (feedback: UserFeedback) => void;
 };
 
-function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemProps): ReactElement {
-  const isUser = message.author === MessageAuthor.User;
+function MessageItem({
+  message,
+  currentUser,
+  assistantAvatarUrl,
+  feedbackTexts,
+  onMessageFeedback,
+}: MessageItemProps): ReactElement {
+  const isUser = message.role === MessageAuthor.User;
   const userLabel = currentUser?.full_name ?? DEFAULT_USER_LABEL;
 
   const renderUserAttachments = (attachments: UserAttachment[]): ReactElement | null => {
@@ -140,7 +157,7 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
   }
 
   const renderFilesChanged = (): ReactElement | null => {
-    if (message.author !== MessageAuthor.Assistant) return null;
+    if (message.role !== MessageAuthor.Assistant) return null;
 
     const assistantMessage = message;
     if (!assistantMessage.filesChanged || assistantMessage.filesChanged.length === 0) return null;
@@ -203,21 +220,21 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
             {source.relevance !== undefined && (
               <span className={classes.sourceRelevance}>{Math.round(source.relevance * 100)}%</span>
             )}
-            {source.content_length !== undefined && (
-              <span className={classes.sourceSize}>{formatFileSize(source.content_length)}</span>
+            {source.contentLength && (
+              <span className={classes.sourceSize}>{formatFileSize(source.contentLength)}</span>
             )}
           </div>
         </div>
-        {source.matched_terms && (
-          <div className={classes.sourceMatched}>Matched: {source.matched_terms}</div>
+        {source.matchedTerms && (
+          <div className={classes.sourceMatched}>Matched: {source.matchedTerms}</div>
         )}
-        {source.preview && <div className={classes.sourcePreview}>{source.preview}</div>}
+        {source.previewText && <div className={classes.sourcePreview}>{source.previewText}</div>}
       </div>
     );
   };
 
   const renderSources = (): ReactElement | null => {
-    if (message.author !== MessageAuthor.Assistant) return null;
+    if (message.role !== MessageAuthor.Assistant) return null;
 
     const assistantMessage = message;
     if (!assistantMessage.sources || assistantMessage.sources.length === 0) return null;
@@ -256,6 +273,9 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
     );
   };
 
+  const traceId = message.role === MessageAuthor.Assistant ? message.traceId : undefined;
+  const showFeedback = traceId && feedbackTexts && onMessageFeedback;
+
   return (
     <div className={`${classes.messageRow} ${classes.assistantRow}`}>
       <ChatAvatar src={assistantAvatarUrl} label={ASSISTANT_LABEL} variant='assistant' />
@@ -269,6 +289,12 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
         </div>
         {renderSources()}
         {renderFilesChanged()}
+        {showFeedback && (
+          <MessageFeedback
+            texts={feedbackTexts}
+            onSubmit={(payload) => onMessageFeedback({ traceId, payload })}
+          />
+        )}
       </div>
     </div>
   );

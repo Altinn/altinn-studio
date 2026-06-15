@@ -13,6 +13,9 @@ export function getGlobalPageSettingsMock(): GlobalPageSettings {
     showProgress: false,
     autoSaveBehavior: 'onChangeFormData',
     taskNavigation: [],
+    navigationTitle: undefined,
+    validationOnNavigation: undefined,
+    hideAppNameInPdf: false,
   };
 }
 

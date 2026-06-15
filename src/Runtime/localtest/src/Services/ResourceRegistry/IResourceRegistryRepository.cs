@@ -1,3 +1,5 @@
+#nullable disable
+
 using Altinn.ResourceRegistry.Core.Models;
 using Altinn.ResourceRegistry.Models;
 using System.Collections.Generic;

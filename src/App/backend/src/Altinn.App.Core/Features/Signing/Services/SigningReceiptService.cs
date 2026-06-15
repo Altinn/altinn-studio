@@ -64,7 +64,8 @@ internal sealed class SigningReceiptService(
             dataElementSignatures,
             applicationMetadata,
             context,
-            _dataClient
+            _dataClient,
+            ct
         );
 
         return await _correspondenceClient.Send(
@@ -72,7 +73,6 @@ internal sealed class SigningReceiptService(
                 CorrespondenceRequestBuilder
                     .Create()
                     .WithResourceId(resource)
-                    .WithSender(senderOrgNumber)
                     .WithSendersReference(instanceIdentifier.ToString())
                     .WithRecipient(recipient)
                     .WithContent(content)
@@ -188,7 +188,8 @@ internal sealed class SigningReceiptService(
         IEnumerable<DataElementSignature> dataElementSignatures,
         ApplicationMetadata appMetadata,
         UserActionContext context,
-        IDataClient dataClient
+        IDataClient dataClient,
+        CancellationToken cancellationToken
     )
     {
         List<CorrespondenceAttachment> attachments = [];
@@ -204,12 +205,13 @@ internal sealed class SigningReceiptService(
                     .WithFilename(filename)
                     .WithSendersReference(element.Id)
                     .WithData(
-                        await dataClient.GetDataBytes(
+                        await dataClient.GetBinaryDataStream(
                             instanceIdentifier.InstanceOwnerPartyId,
                             instanceIdentifier.InstanceGuid,
                             Guid.Parse(element.Id),
                             authenticationMethod: null,
-                            CancellationToken.None
+                            timeout: TimeSpan.FromHours(1),
+                            cancellationToken
                         )
                     )
                     .Build()

@@ -2,9 +2,10 @@ import type { ReactElement } from 'react';
 import { useRef, useEffect } from 'react';
 import cn from 'classnames';
 import { Messages } from './Messages/Messages';
+import type { UserFeedback } from '../../types/UserFeedback';
 import { UserInput } from './UserInput/UserInput';
 import classes from './ChatColumn.module.css';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph, StudioResizableLayout } from '@studio/components';
 import type { Message } from '../../types/ChatThread';
 import type { AssistantTexts } from '../../types/AssistantTexts';
 import type { User } from '../../types/User';
@@ -17,6 +18,7 @@ export type ChatColumnProps = {
   onCancelWorkflow?: () => void;
   cancelledMessageContent?: string | null;
   onCancelledMessageConsumed?: () => void;
+  onMessageFeedback?: (feedback: UserFeedback) => void;
   workflowStatus?: WorkflowStatus;
   enableCompactInterface: boolean;
   currentUser?: User;
@@ -29,6 +31,7 @@ export function ChatColumn({
   onCancelWorkflow,
   cancelledMessageContent,
   onCancelledMessageConsumed,
+  onMessageFeedback,
   workflowStatus,
   enableCompactInterface,
   currentUser,
@@ -43,49 +46,51 @@ export function ChatColumn({
   }, [messages, workflowIsActive]);
 
   const placeholderContent = (
-    <div className={classes.emptyState}>
-      <div className={classes.emptyStateIcon}>
+    <div className={classes.emptyThread}>
+      <div className={classes.emptyThreadIcon}>
         <span className={classes.bubble}>
           <span className={classes.dot}></span>
           <span className={classes.dot}></span>
           <span className={classes.dot}></span>
         </span>
       </div>
-      <StudioParagraph data-size='lg'>
-        Velkommen til Altinity!
-        <br /> Skriv i feltet under for å begynne.
-      </StudioParagraph>
+      <StudioParagraph data-size='lg'>{texts.emptyThread.welcome}</StudioParagraph>
+      <StudioParagraph data-size='lg'>{texts.emptyThread.instruction}</StudioParagraph>
     </div>
   );
 
   const hasMessages = messages.length > 0;
 
   return (
-    <div className={classes.chatColumn}>
-      <div className={cn(classes.messagesWrapper, { [classes.hasMessages]: hasMessages })}>
-        {hasMessages ? (
-          <>
-            <Messages
-              messages={messages}
-              workflowStatus={workflowStatus}
-              currentUser={currentUser}
-              assistantAvatarUrl={undefined}
-            />
-            <div ref={messagesEndRef} />
-          </>
-        ) : (
-          placeholderContent
-        )}
-      </div>
-      <UserInput
-        texts={texts}
-        onSubmitMessage={onSubmitMessage}
-        onCancelWorkflow={onCancelWorkflow}
-        cancelledMessageContent={cancelledMessageContent}
-        onCancelledMessageConsumed={onCancelledMessageConsumed}
-        workflowIsActive={workflowIsActive}
-        enableCompactInterface={enableCompactInterface}
-      />
-    </div>
+    <StudioResizableLayout.Container orientation='vertical' localStorageContext='chat-column'>
+      <StudioResizableLayout.Element minimumSize={100}>
+        <div className={cn(classes.messagesWrapper, { [classes.hasMessages]: hasMessages })}>
+          {hasMessages ? (
+            <>
+              <Messages
+                messages={messages}
+                workflowStatus={workflowStatus}
+                currentUser={currentUser}
+                assistantAvatarUrl={undefined}
+              />
+              <div ref={messagesEndRef} />
+            </>
+          ) : (
+            placeholderContent
+          )}
+        </div>
+      </StudioResizableLayout.Element>
+      <StudioResizableLayout.Element minimumSize={150} style={{ overflow: 'hidden' }}>
+        <UserInput
+          texts={texts}
+          onSubmitMessage={onSubmitMessage}
+          onCancelWorkflow={onCancelWorkflow}
+          cancelledMessageContent={cancelledMessageContent}
+          onCancelledMessageConsumed={onCancelledMessageConsumed}
+          workflowIsActive={workflowIsActive}
+          enableCompactInterface={enableCompactInterface}
+        />
+      </StudioResizableLayout.Element>
+    </StudioResizableLayout.Container>
   );
 }

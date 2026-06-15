@@ -1,13 +1,43 @@
+using System.Net;
 using Microsoft.EntityFrameworkCore;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
+using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;
 
 public partial class EngineTests
 {
+    [Fact]
+    public async Task ListWorkflows_StatusFilter_IsCaseInsensitive()
+    {
+        // Arrange — a workflow that runs to completion.
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/hook")])
+        );
+        var response = await _client.Enqueue(request);
+        var workflowId = response.Workflows.Single().DatabaseId;
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+
+        // Act — filter using a lowercase status (query binding bypasses the JSON converter).
+        using var lower = await _client.ListWorkflowsRaw("?status=completed");
+
+        // Assert — accepted and returns the workflow, identical to the PascalCase form.
+        Assert.Equal(HttpStatusCode.OK, lower.StatusCode);
+        var body = await EngineApiClient.AssertSuccessAndDeserialize<PaginatedResponse<WorkflowStatusResponse>>(lower);
+        Assert.Contains(body.Data, w => w.DatabaseId == workflowId);
+    }
+
+    [Fact]
+    public async Task ListWorkflows_UnknownStatus_ReturnsBadRequest()
+    {
+        using var response = await _client.ListWorkflowsRaw("?status=bogus");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     [Fact]
     public async Task GetWorkflow_AfterCompletion_ReturnsFullDetails()
     {
@@ -66,6 +96,8 @@ public partial class EngineTests
         Assert.NotEmpty(active);
         Assert.Single(active);
         Assert.Equal(workflowId, active[0].DatabaseId);
+
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
     }
 
     [Fact]
@@ -106,19 +138,53 @@ public partial class EngineTests
         // Act
         var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var activeFromApi = await _client.ListActiveWorkflows();
-        var scheduledFromDb = await context.GetScheduledWorkflows().ToListAsync(TestContext.Current.CancellationToken);
+        var enqueuedFromApi = await PollUntilFound(
+            async () => await _client.ListWorkflows([PersistentItemStatus.Enqueued]),
+            workflowId,
+            wf => wf.DatabaseId
+        );
+        var scheduledFromDb = await PollUntilFound(
+            async () =>
+                await context
+                    .GetScheduledWorkflows()
+                    .Select(wf => wf.ToDomainModel())
+                    .ToListAsync(TestContext.Current.CancellationToken),
+            workflowId,
+            wf => wf.DatabaseId
+        );
 
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Assert
         await _testHelpers.AssertDbWorkflowCount(1);
 
-        Assert.Empty(activeFromApi);
-        Assert.Equal(workflowId, scheduledFromDb.Single().Id);
+        Assert.Single(enqueuedFromApi);
+        Assert.Equal(workflowId, enqueuedFromApi[0].DatabaseId);
+        Assert.Equal(workflowId, scheduledFromDb.Single().DatabaseId);
 
         var logs = fixture.WireMock.LogEntries;
         Assert.Single(logs);
         Assert.Contains("/scheduled", logs[0].RequestMessage.AbsolutePath, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static async Task<List<T>> PollUntilFound<T>(
+        Func<Task<List<T>>> getWorkflows,
+        Guid workflowId,
+        Func<T, Guid> getDatabaseId
+    )
+    {
+        while (!TestContext.Current.CancellationToken.IsCancellationRequested)
+        {
+            List<T> workflows = await getWorkflows();
+            if (workflows.Any(wf => getDatabaseId(wf) == workflowId))
+            {
+                return workflows;
+            }
+
+            await Task.Delay(100, TestContext.Current.CancellationToken);
+        }
+
+        TestContext.Current.CancellationToken.ThrowIfCancellationRequested();
+        throw new InvalidOperationException("Cancellation should have thrown.");
     }
 }

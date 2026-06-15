@@ -32,7 +32,7 @@ export function useEvalExpression<V extends ExprVal>(
   const dataSources = useExpressionDataSources(expr);
   const options = useShallowMemo(_options);
   return useMemo(() => {
-    if (!ExprValidation.isValidOrScalar(expr, options.returnType)) {
+    if (expr === undefined || !ExprValidation.isValidOrScalar(expr, options.returnType)) {
       return options.defaultValue;
     }
 

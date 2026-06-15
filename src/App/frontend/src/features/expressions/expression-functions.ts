@@ -129,7 +129,7 @@ export const ExprFunctionDefinitions = {
     needs: noSources,
   },
   plus: {
-    args: args(required(ExprVal.Number), required(ExprVal.Number)),
+    args: args(required(ExprVal.Number), rest(ExprVal.Number)),
     returns: ExprVal.Number,
     needs: noSources,
   },
@@ -139,7 +139,7 @@ export const ExprFunctionDefinitions = {
     needs: noSources,
   },
   multiply: {
-    args: args(required(ExprVal.Number), required(ExprVal.Number)),
+    args: args(required(ExprVal.Number), rest(ExprVal.Number)),
     returns: ExprVal.Number,
     needs: noSources,
   },
@@ -394,23 +394,24 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
   lessThanEq(arg1, arg2) {
     return compare(this, 'lessThanEq', arg1, arg2);
   },
-  plus(term1, term2) {
-    return applyNullableBinaryOperation(Decimal.add, [term1, term2]);
+  plus(...terms) {
+    return terms.reduce((prev, current) => applyBinaryOperation(Decimal.add, [prev, current]), 0);
   },
   minus(minuend, subtrahend) {
-    return applyNullableBinaryOperation(Decimal.subtract, [minuend, subtrahend]);
+    return applyBinaryOperation(Decimal.subtract, [minuend, subtrahend]);
   },
-  multiply(factor1, factor2) {
-    return applyNullableBinaryOperation(Decimal.multiply, [factor1, factor2]);
+  multiply(...factors) {
+    return factors.reduce((prev, current) => applyBinaryOperation(Decimal.multiply, [prev, current]), 1);
   },
   divide(dividend, divisor) {
-    if (dividend === null || divisor === null) {
-      return null;
-    } else if (divisor === 0) {
-      throw new ExprRuntimeError(this.expr, this.path, 'The second argument is 0, cannot divide by 0');
-    } else {
-      return Decimal.divide(dividend, divisor);
-    }
+    const divideNumbers = (dividendNumber: number, divisorNumber: number): number => {
+      if (divisorNumber === 0) {
+        throw new ExprRuntimeError(this.expr, this.path, 'The second argument is 0, cannot divide by 0');
+      } else {
+        return Decimal.divide(dividendNumber, divisorNumber);
+      }
+    };
+    return applyBinaryOperation(divideNumbers, [dividend, divisor]);
   },
   concat: (...args) => args.join(''),
   and: (...args) => args.reduce((prev, cur) => prev && !!cur, true),
@@ -797,6 +798,9 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     if (!dataType) {
       throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup dataType undefined`);
     }
+    if (this.dataSources.formDataSelector === ContextNotProvided) {
+      return '';
+    }
     const array = this.dataSources.formDataSelector({ field: path, dataType });
     if (typeof array != 'object' || !Array.isArray(array)) {
       return '';
@@ -889,11 +893,11 @@ function pickSimpleValue(
   if (!isValidDataType) {
     throw new ExprRuntimeError(params.expr, params.path, `Data model with type ${path.dataType} not found`);
   }
-
-  const value = params.dataSources.formDataSelector(path);
-  if (value === ContextNotProvided) {
+  if (params.dataSources.formDataSelector === ContextNotProvided) {
     return null;
   }
+
+  const value = params.dataSources.formDataSelector(path);
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
     return value;
   }
@@ -1025,11 +1029,11 @@ function compare(
   return def.impl.call(ctx, a, b);
 }
 
-function applyNullableBinaryOperation(
+function applyBinaryOperation(
   operation: (a: number, b: number) => number,
   [a, b]: [number | null, number | null],
-): number | null {
-  return a === null || b === null ? null : operation(a, b);
+): number {
+  return operation(a || 0, b || 0);
 }
 
 function validateDatesForSameDay(this: EvaluateExpressionParams, a: ExprDate, b: ExprDate) {

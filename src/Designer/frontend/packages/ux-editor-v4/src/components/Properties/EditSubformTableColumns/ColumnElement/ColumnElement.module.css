@@ -1,0 +1,8 @@
+.wrapper {
+  margin-top: var(--fds-spacing-1);
+}
+
+.headerWrapper {
+  display: flex;
+  justify-content: space-between;
+}

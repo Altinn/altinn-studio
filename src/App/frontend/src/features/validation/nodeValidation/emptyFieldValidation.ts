@@ -1,9 +1,10 @@
+import type { ValidLanguageKey } from '@app/language';
+
 import { FormStore } from 'src/features/form/FormContext';
 import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { getFieldNameKey } from 'src/utils/formComponentUtils';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useItemFor } from 'src/utils/layout/useNodeItem';
-import type { ValidLanguageKey } from 'src/features/language/useLanguage';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompTypes } from 'src/layout/layout';
 

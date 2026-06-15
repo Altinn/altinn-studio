@@ -15,6 +15,7 @@ describe('Subform test', () => {
     //Add data to main form field
     const name = 'Jonas';
     cy.get('#Input-Name').should('be.visible').type(name);
+    cy.get('#Input-Age').type('30');
 
     // Test process next when required subform is missing
     cy.findByRole('button', { name: /Neste/i }).click();
@@ -94,7 +95,10 @@ describe('Subform test', () => {
       cy.wrap($toast).should('have.class', 'Toastify__toast--error');
     });
 
-    cy.get('#Input-Age').type('30');
+    // Previously we waited to fill out the 'age' until this point. In the v9 version, a breaking change here caused the
+    // validation visibility to change slightly. Before, new required errors that appeared after navigation was stopped
+    // would not automatically appear in the error report - now they do. Only when all visible validations have been
+    // resolved will the visibility mask be reset, and the errorReport hidden again.
     cy.get(appFrontend.errorReport).should('not.exist');
 
     // Delete the last two mopeds (those with errors)

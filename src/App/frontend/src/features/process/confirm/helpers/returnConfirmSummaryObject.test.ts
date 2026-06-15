@@ -57,18 +57,36 @@ describe('returnConfirmSummaryObject', () => {
     });
   });
 
-  it('should return sender as empty string when neither ssn or orgNumber is present', () => {
+  it('should return sender as name only when neither ssn nor orgNumber is present', () => {
     const result = returnConfirmSummaryObject({
       langTools,
       instanceOwnerParty: {
         partyId: 50001,
-        name: 'Ola Bedrift',
+        name: 'Ola Selvidentifisert',
       } as IParty,
     });
 
     expect(result).toEqual({
       'confirm.sender': {
-        value: '',
+        value: 'Ola Selvidentifisert',
+      },
+    });
+  });
+
+  it('should return sender as name only when ssn and orgNumber are null', () => {
+    const result = returnConfirmSummaryObject({
+      langTools,
+      instanceOwnerParty: {
+        partyId: 50001,
+        name: 'Ola Selvidentifisert',
+        ssn: null,
+        orgNumber: null,
+      } as IParty,
+    });
+
+    expect(result).toEqual({
+      'confirm.sender': {
+        value: 'Ola Selvidentifisert',
       },
     });
   });

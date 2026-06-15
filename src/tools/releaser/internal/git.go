@@ -35,6 +35,8 @@ type GitRunner interface {
 	PushWithUpstream(ctx context.Context, remote, branch string) error
 	// RepoRoot returns the git repository root directory.
 	RepoRoot(ctx context.Context) (string, error)
+	// HeadCommit returns the current HEAD commit SHA.
+	HeadCommit(ctx context.Context) (string, error)
 	// WorkingTreeClean checks if working tree has no uncommitted changes.
 	WorkingTreeClean(ctx context.Context) (bool, error)
 }
@@ -135,6 +137,11 @@ func (g *GitCLI) PushWithUpstream(ctx context.Context, remote, branch string) er
 // Run executes a git command and returns stdout.
 func (g *GitCLI) Run(ctx context.Context, args ...string) (string, error) {
 	return g.run(ctx, args...)
+}
+
+// HeadCommit returns the current HEAD commit SHA.
+func (g *GitCLI) HeadCommit(ctx context.Context) (string, error) {
+	return g.Run(ctx, "rev-parse", "HEAD")
 }
 
 // RepoRoot returns the git repository root directory.

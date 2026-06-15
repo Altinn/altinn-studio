@@ -1,7 +1,6 @@
 {
   "$schema": "https://on.cypress.io/cypress.schema.json",
   "baseUrl": "https://tt02.altinn.no",
-  "frontendUrl": "http://localhost:8080",
   "env": {
     "type": "production-like",
 
@@ -28,8 +27,6 @@
     "selfIdentifiedFullName": "olemartinorg",
     "selfIdentifiedFirstName": "olemartinorg",
     "selfIdentifiedUserName": "olemartinorg",
-    "selfIdentifiedUserPwd": "qkwcaDU9qsaA3iL5bgKGMLpfYdf3vzpb",
-
-    "signingPartyId": "51826033"
+    "selfIdentifiedUserPwd": "qkwcaDU9qsaA3iL5bgKGMLpfYdf3vzpb"
   }
 }

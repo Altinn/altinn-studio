@@ -1,5 +1,5 @@
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import { useFormLayoutSettingsQuery } from '@altinn/ux-editor/hooks/queries/useFormLayoutSettingsQuery';
+import { useFormLayoutSettingsQuery } from '@altinn/ux-editor-v4/hooks/queries/useFormLayoutSettingsQuery';
 
 export type PreviewLayoutMetadata = {
   layoutSetName?: string;

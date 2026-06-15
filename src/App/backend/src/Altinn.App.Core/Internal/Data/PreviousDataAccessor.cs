@@ -19,6 +19,7 @@ internal class PreviousDataAccessor : IInstanceDataAccessor
     private readonly FrontEndSettings _frontEndSettings;
     private readonly ITranslationService _translationService;
     private readonly Telemetry? _telemetry;
+    private readonly Lazy<LayoutEvaluatorState> _layoutEvaluatorState;
 
     private readonly ConcurrentDictionary<DataElementIdentifier, Task<IFormDataWrapper>> _previousDataCache = new();
 
@@ -37,6 +38,11 @@ internal class PreviousDataAccessor : IInstanceDataAccessor
         _modelSerializationService = modelSerializationService;
         _frontEndSettings = frontEndSettings;
         _telemetry = telemetry;
+        _layoutEvaluatorState = new(() =>
+        {
+            var originalState = _dataAccessor.GetLayoutEvaluatorState();
+            return originalState.WithDataAccessor(this);
+        });
     }
 
     public Instance Instance => _dataAccessor.Instance;
@@ -69,10 +75,12 @@ internal class PreviousDataAccessor : IInstanceDataAccessor
                         );
                     }
                     var dataElement = GetDataElement(id);
-                    var binaryData = await _dataAccessor.GetBinaryData(id).ConfigureAwait(false);
+                    var binaryData = await GetBinaryData(id).ConfigureAwait(false);
 
                     return FormDataWrapperFactory.Create(
-                        _modelSerializationService.DeserializeFromStorage(binaryData.Span, dataType, dataElement)
+                        _modelSerializationService.DeserializeFromStorage(binaryData.Span, dataType, dataElement),
+                        dataType,
+                        dataElement
                     );
                 }
             )
@@ -98,15 +106,18 @@ internal class PreviousDataAccessor : IInstanceDataAccessor
         return this;
     }
 
-    public LayoutEvaluatorState? GetLayoutEvaluatorState()
+    public LayoutEvaluatorState GetLayoutEvaluatorState()
     {
-        throw new NotImplementedException(
-            "GetLayoutEvaluatorState is not implemented in PreviousDataAccessor, because LayoutEvaluatorState will be deprecated."
-        );
+        return _layoutEvaluatorState.Value;
     }
 
     public async Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementIdentifier dataElementIdentifier)
     {
+        if (_dataAccessor is InstanceDataUnitOfWork dataUnitOfWork)
+        {
+            return await dataUnitOfWork.GetPersistedBinaryData(dataElementIdentifier).ConfigureAwait(false);
+        }
+
         return await _dataAccessor.GetBinaryData(dataElementIdentifier).ConfigureAwait(false);
     }
 

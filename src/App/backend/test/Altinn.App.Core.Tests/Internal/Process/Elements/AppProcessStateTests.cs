@@ -1,4 +1,5 @@
 #nullable disable
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
@@ -25,7 +26,7 @@ public class AppProcessStateTests
                 Validated = new() { Timestamp = DateTime.Now, CanCompleteTask = false },
                 ElementId = "Task_1",
                 FlowType = "FlowType",
-                AltinnTaskType = "data",
+                AltinnTaskType = AltinnTaskTypes.Data,
             },
         };
         AppProcessState expected = new AppProcessState()
@@ -75,7 +76,7 @@ public class AppProcessStateTests
                 Validated = null,
                 ElementId = "Task_1",
                 FlowType = "FlowType",
-                AltinnTaskType = "data",
+                AltinnTaskType = AltinnTaskTypes.Data,
             },
         };
         AppProcessState expected = new AppProcessState()

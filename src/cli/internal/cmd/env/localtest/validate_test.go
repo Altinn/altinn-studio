@@ -7,10 +7,8 @@ import (
 
 	"altinn.studio/devenv/pkg/container/mock"
 	"altinn.studio/devenv/pkg/container/types"
-	"altinn.studio/devenv/pkg/resource"
+	containerbackend "altinn.studio/devenv/pkg/resource/executor/container"
 	"altinn.studio/studioctl/internal/cmd/env/localtest"
-	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
-	"altinn.studio/studioctl/internal/envtopology"
 )
 
 var errConnRefused = errors.New("connection refused")
@@ -42,7 +40,7 @@ func TestCheckForLegacyLocaltest(t *testing.T) {
 				c.ContainerInspectFunc = func(_ context.Context, _ string) (types.ContainerInfo, error) {
 					return types.ContainerInfo{
 						State:  types.ContainerState{Running: true},
-						Labels: map[string]string{resource.GraphIDLabel: testGraphID},
+						Labels: map[string]string{containerbackend.GraphIDLabel: testGraphID},
 					}, nil
 				}
 			},
@@ -68,7 +66,7 @@ func TestCheckForLegacyLocaltest(t *testing.T) {
 				c.ContainerInspectFunc = func(_ context.Context, _ string) (types.ContainerInfo, error) {
 					return types.ContainerInfo{
 						State:  types.ContainerState{Running: true},
-						Labels: map[string]string{resource.GraphIDLabel: "other-value"},
+						Labels: map[string]string{containerbackend.GraphIDLabel: "other-value"},
 					}, nil
 				}
 			},
@@ -110,7 +108,7 @@ func TestCheckForLegacyLocaltest(t *testing.T) {
 					}
 					return types.ContainerInfo{
 						State:  types.ContainerState{Running: true},
-						Labels: map[string]string{resource.GraphIDLabel: testGraphID},
+						Labels: map[string]string{containerbackend.GraphIDLabel: testGraphID},
 					}, nil
 				}
 			},
@@ -126,7 +124,7 @@ func TestCheckForLegacyLocaltest(t *testing.T) {
 			client := mock.New()
 			tc.setup(client)
 
-			err := localtest.CheckForLegacyLocaltest(context.Background(), client, legacyCheckResources(t, false))
+			err := localtest.CheckForLegacyLocaltest(context.Background(), client)
 
 			if tc.wantErr && err == nil {
 				t.Error("CheckForLegacyLocaltest() error = nil, want error")
@@ -139,42 +137,4 @@ func TestCheckForLegacyLocaltest(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestCheckForLegacyLocaltest_PgAdminOnlyCheckedWhenIncluded(t *testing.T) {
-	t.Parallel()
-
-	client := mock.New()
-	client.ContainerInspectFunc = func(_ context.Context, name string) (types.ContainerInfo, error) {
-		if name != components.ContainerPgAdmin {
-			return types.ContainerInfo{}, types.ErrContainerNotFound
-		}
-		return types.ContainerInfo{
-			State:  types.ContainerState{Running: true},
-			Labels: map[string]string{},
-		}, nil
-	}
-
-	if err := localtest.CheckForLegacyLocaltest(
-		context.Background(),
-		client,
-		legacyCheckResources(t, false),
-	); err != nil {
-		t.Fatalf("CheckForLegacyLocaltest(includePgAdmin=false) error = %v, want nil", err)
-	}
-	err := localtest.CheckForLegacyLocaltest(context.Background(), client, legacyCheckResources(t, true))
-	if !errors.Is(err, localtest.ErrLegacyLocaltestRunning) {
-		t.Fatalf("CheckForLegacyLocaltest(includePgAdmin=true) error = %v, want ErrLegacyLocaltestRunning", err)
-	}
-}
-
-func legacyCheckResources(t *testing.T, includePgAdmin bool) []resource.Resource {
-	t.Helper()
-	manifest := components.NewManifest(&components.Options{
-		Paths:          components.NewPaths(t.TempDir()),
-		Topology:       envtopology.NewLocal("8000"),
-		ImageMode:      components.ReleaseMode,
-		IncludePgAdmin: includePgAdmin,
-	})
-	return manifest.Resources
 }

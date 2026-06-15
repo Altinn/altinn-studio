@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { useMemo, useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { StudioResizableLayout } from '@studio/components';
 import { ToolColumn } from '../ToolColumn/ToolColumn';
 import classes from './CompleteInterface.module.css';
@@ -9,7 +9,6 @@ import { ThreadColumnCollapsed } from '../ThreadColumnCollapsed/ThreadColumnColl
 import { ChatColumn } from '../ChatColumn/ChatColumn';
 import { ToolColumnMode } from '../../types/ToolColumnMode';
 import type { AssistantProps } from '../../Assistant/Assistant';
-import { createNewChatThread } from '../../utils/threadUtils';
 
 export type CompleteInterfaceProps = Omit<AssistantProps, 'enableCompactInterface'>;
 
@@ -19,6 +18,7 @@ export type CompleteInterfaceProps = Omit<AssistantProps, 'enableCompactInterfac
 export function CompleteInterface({
   texts,
   chatThreads = [],
+  messages = [],
   onSubmitMessage,
   onCancelWorkflow,
   cancelledMessageContent,
@@ -29,6 +29,7 @@ export function CompleteInterface({
   onSelectThread,
   onDeleteThread,
   onCreateThread,
+  onMessageFeedback,
   previewContent,
   fileBrowserContent,
   currentUser,
@@ -38,11 +39,6 @@ export function CompleteInterface({
 
   const currentThreadWorkflowStatus =
     workflowStatus?.sessionId === activeThreadId ? workflowStatus : undefined;
-
-  const currentThread = useMemo(() => {
-    const thread = chatThreads.find((t) => t.id === activeThreadId);
-    return thread ?? createNewChatThread(texts.newThread);
-  }, [activeThreadId, chatThreads, texts]);
 
   const handleToggleCollapse = (): void => setIsThreadColumnCollapsed(!isThreadColumnCollapsed);
 
@@ -79,7 +75,7 @@ export function CompleteInterface({
             <ThreadColumn
               texts={texts}
               chatThreads={chatThreads}
-              selectedThreadId={activeThreadId ? currentThread.id : undefined}
+              selectedThreadId={activeThreadId || undefined}
               currentSessionId={activeThreadId}
               onSelectThread={onSelectThread}
               onDeleteThread={onDeleteThread}
@@ -91,11 +87,12 @@ export function CompleteInterface({
         <StudioResizableLayout.Element minimumSize={400}>
           <ChatColumn
             texts={texts}
-            messages={currentThread?.messages ?? []}
+            messages={messages}
             onSubmitMessage={onSubmitMessage}
             onCancelWorkflow={onCancelWorkflow}
             cancelledMessageContent={cancelledMessageContent}
             onCancelledMessageConsumed={onCancelledMessageConsumed}
+            onMessageFeedback={onMessageFeedback}
             workflowStatus={currentThreadWorkflowStatus}
             enableCompactInterface={false}
             currentUser={currentUser}

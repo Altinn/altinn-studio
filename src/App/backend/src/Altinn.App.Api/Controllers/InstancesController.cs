@@ -19,6 +19,7 @@ using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
+using Altinn.App.Core.Internal.Files;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Process;
@@ -78,6 +79,8 @@ public class InstancesController : ControllerBase
     private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly IDataElementAccessChecker _dataElementAccessChecker;
+    private readonly ProcessStateEnricher _processStateEnricher;
+    private readonly IFileService _fileService;
     private const long RequestSizeLimit = 2000 * 1024 * 1024;
 
     /// <summary>
@@ -124,9 +127,11 @@ public class InstancesController : ControllerBase
         _patchService = patchService;
         _notificationService = notificationService;
         _translationService = translationService;
+        _fileService = serviceProvider.GetRequiredService<IFileService>();
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _authenticationContext = authenticationContext;
         _dataElementAccessChecker = serviceProvider.GetRequiredService<IDataElementAccessChecker>();
+        _processStateEnricher = serviceProvider.GetRequiredService<ProcessStateEnricher>();
     }
 
     /// <summary>
@@ -199,6 +204,84 @@ public class InstancesController : ControllerBase
         catch (Exception exception)
         {
             return ExceptionResponse(exception, $"Get instance {instanceOwnerPartyId}/{instanceGuid} failed");
+        }
+    }
+
+    /// <summary>
+    /// Gets an instance object from storage with enriched process state including authorized actions,
+    /// read/write access, element types, and process task metadata.
+    /// </summary>
+    /// <param name="org">unique identifier of the organisation responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
+    /// <param name="instanceGuid">unique id to identify the instance</param>
+    /// <param name="cancellationToken">cancellation token</param>
+    /// <returns>the instance with enriched process state</returns>
+    [Authorize]
+    [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}/enriched")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(EnrichedInstanceResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult> GetEnriched(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int instanceOwnerPartyId,
+        [FromRoute] Guid instanceGuid,
+        CancellationToken cancellationToken
+    )
+    {
+        EnforcementResult enforcementResult = await AuthorizeAction(
+            org,
+            app,
+            instanceOwnerPartyId,
+            instanceGuid,
+            "read"
+        );
+
+        if (!enforcementResult.Authorized)
+        {
+            return Forbidden(enforcementResult);
+        }
+
+        try
+        {
+            Instance instance = await _instanceClient.GetInstance(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                ct: cancellationToken
+            );
+            SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
+
+            string? userOrgClaim = User.GetOrg();
+
+            if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.OrdinalIgnoreCase))
+            {
+                await _instanceClient.UpdateReadStatus(
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    "read",
+                    ct: cancellationToken
+                );
+            }
+
+            var instanceOwnerPartyTask = _registerClient.GetPartyUnchecked(instanceOwnerPartyId, cancellationToken);
+            var processStateTask = _processStateEnricher.Enrich(instance, instance.Process, User);
+
+            await Task.WhenAll(instanceOwnerPartyTask, processStateTask);
+
+            var dto = EnrichedInstanceResponse.From(
+                await instance.WithOnlyAccessibleDataElements(_dataElementAccessChecker),
+                await instanceOwnerPartyTask,
+                await processStateTask
+            );
+
+            return Ok(dto);
+        }
+        catch (Exception exception)
+        {
+            return ExceptionResponse(exception, $"Get enriched instance {instanceOwnerPartyId}/{instanceGuid} failed");
         }
     }
 
@@ -395,16 +478,10 @@ public class InstancesController : ControllerBase
 
         try
         {
-            var prefillProblem = await StorePrefillParts(instance, application, requestParts, language);
+            var prefillProblem = await StoreParts(instance, application, requestParts, language);
             if (prefillProblem is not null)
             {
-                await _instanceClient.DeleteInstance(
-                    int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture),
-                    Guid.Parse(instance.Id.Split("/")[1]),
-                    hard: true,
-                    authenticationMethod: null,
-                    CancellationToken.None
-                );
+                await TryDeleteInstance(instance);
                 return StatusCode(prefillProblem.Status ?? 500, prefillProblem);
             }
 
@@ -424,6 +501,7 @@ public class InstancesController : ControllerBase
         }
         catch (Exception exception)
         {
+            await TryDeleteInstance(instance);
             return ExceptionResponse(
                 exception,
                 $"Instantiation of data elements failed for instance {instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}"
@@ -490,11 +568,11 @@ public class InstancesController : ControllerBase
     }
 
     /// <summary>
-    /// Simplified Instanciation with support for fieldprefill
+    /// Simplified instantiation with support for fieldprefill
     /// </summary>
     /// <param name="org">unique identifier of the organisation responsible for the app</param>
     /// <param name="app">application identifier which is unique within an organisation</param>
-    /// <param name="instansiationInstance">instansiation information</param>
+    /// <param name="instansiationInstance">instantiation information</param>
     /// <param name="language">The currently active user language</param>
     /// <returns>The new instance</returns>
     [HttpPost("create")]
@@ -583,7 +661,7 @@ public class InstancesController : ControllerBase
         if (
             isCopyRequest
             && party.PartyId.ToString(CultureInfo.InvariantCulture)
-                != instansiationInstance?.SourceInstanceId?.Split("/")[0]
+                != instansiationInstance.SourceInstanceId?.Split("/")[0]
         )
         {
             return BadRequest("It is not possible to copy instances between instance owners.");
@@ -651,7 +729,7 @@ public class InstancesController : ControllerBase
             return StatusCode(StatusCodes.Status403Forbidden, validationResult);
         }
 
-        Instance instance;
+        Instance? instance = null;
         ProcessChangeResult processResult;
         try
         {
@@ -672,7 +750,7 @@ public class InstancesController : ControllerBase
             if (isCopyRequest)
             {
                 string[] sourceSplit =
-                    instansiationInstance?.SourceInstanceId?.Split("/")
+                    instansiationInstance.SourceInstanceId?.Split("/")
                     ?? throw new ArgumentException("SourceInstanceId is null or not in the correct format");
                 Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
 
@@ -699,6 +777,27 @@ public class InstancesController : ControllerBase
                 {
                     return BadRequest("It is not possible to copy an instance that isn't archived.");
                 }
+
+                var copyInstanceValidator = _appImplementationFactory.Get<ICopyInstanceValidator>();
+                if (copyInstanceValidator is not null)
+                {
+                    var sourceInstanceDataUnitOfWork = await _instanceDataUnitOfWorkInitializer.Init(
+                        source,
+                        null,
+                        language
+                    );
+                    validationResult = await copyInstanceValidator.Validate(sourceInstanceDataUnitOfWork);
+                    if (validationResult != null && !validationResult.Valid)
+                    {
+                        _logger.LogWarning(
+                            "CopyInstanceValidator rejected instantiation for party {PartyId}: {@ValidationResult}",
+                            party.PartyId,
+                            validationResult
+                        );
+                        await TranslateValidationResult(validationResult, language);
+                        return StatusCode(StatusCodes.Status403Forbidden, validationResult);
+                    }
+                }
             }
 
             instance = await _instanceClient.CreateInstance(
@@ -723,6 +822,8 @@ public class InstancesController : ControllerBase
         }
         catch (Exception exception)
         {
+            await TryDeleteInstance(instance);
+
             return ExceptionResponse(
                 exception,
                 $"Instantiation of appId {org}/{app} failed for party {instanceTemplate.InstanceOwner?.PartyId}"
@@ -850,37 +951,104 @@ public class InstancesController : ControllerBase
         InstantiationValidationResult? validationResult = await instantiationValidator.Validate(targetInstance);
         if (validationResult != null && !validationResult.Valid)
         {
+            _logger.LogWarning(
+                "InstantiationValidator rejected instantiation for party {PartyId}: {@ValidationResult}",
+                instanceOwnerPartyId,
+                validationResult
+            );
             await TranslateValidationResult(validationResult, language);
             return StatusCode(StatusCodes.Status403Forbidden, validationResult);
+        }
+
+        var copyInstanceValidator = _appImplementationFactory.Get<ICopyInstanceValidator>();
+        if (copyInstanceValidator is not null)
+        {
+            var sourceInstanceDataUnitOfWork = await _instanceDataUnitOfWorkInitializer.Init(
+                sourceInstance,
+                null,
+                language
+            );
+            validationResult = await copyInstanceValidator.Validate(sourceInstanceDataUnitOfWork);
+            if (validationResult != null && !validationResult.Valid)
+            {
+                _logger.LogWarning(
+                    "CopyInstanceValidator rejected instantiation for party {PartyId}: {@ValidationResult}",
+                    instanceOwnerPartyId,
+                    validationResult
+                );
+                await TranslateValidationResult(validationResult, language);
+                return StatusCode(StatusCodes.Status403Forbidden, validationResult);
+            }
         }
 
         ProcessStartRequest processStartRequest = new() { Instance = targetInstance, User = User };
 
         ProcessChangeResult startResult = await _processEngine.GenerateProcessStartEvents(processStartRequest);
 
-        targetInstance = await _instanceClient.CreateInstance(
-            org,
-            app,
-            targetInstance,
-            authenticationMethod: null,
-            CancellationToken.None
-        );
+        try
+        {
+            targetInstance = await _instanceClient.CreateInstance(
+                org,
+                app,
+                targetInstance,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
 
-        await CopyDataFromSourceInstance(application, targetInstance, sourceInstance);
+            await CopyDataFromSourceInstance(application, targetInstance, sourceInstance);
 
-        targetInstance = await _instanceClient.GetInstance(
-            targetInstance,
-            authenticationMethod: null,
-            CancellationToken.None
-        );
+            targetInstance = await _instanceClient.GetInstance(
+                targetInstance,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
 
-        await _processEngine.HandleEventsAndUpdateStorage(targetInstance, null, startResult.ProcessStateChange?.Events);
+            await _processEngine.HandleEventsAndUpdateStorage(
+                targetInstance,
+                null,
+                startResult.ProcessStateChange?.Events
+            );
 
-        await RegisterEvent("app.instance.created", targetInstance);
+            await RegisterEvent("app.instance.created", targetInstance);
 
-        string url = SelfLinkHelper.BuildFrontendSelfLink(targetInstance, Request);
+            string url = SelfLinkHelper.BuildFrontendSelfLink(targetInstance, Request);
 
-        return Redirect(url);
+            return Redirect(url);
+        }
+        catch (Exception exception)
+        {
+            await TryDeleteInstance(targetInstance);
+
+            return ExceptionResponse(
+                exception,
+                $"Copying instance {instanceOwnerPartyId}/{instanceGuid} failed for party {targetInstance?.InstanceOwner?.PartyId}"
+            );
+        }
+    }
+
+    private async Task TryDeleteInstance(Instance? targetInstance)
+    {
+        if (targetInstance?.Id is not null)
+        {
+            try
+            {
+                await _instanceClient.DeleteInstance(
+                    int.Parse(targetInstance.InstanceOwner.PartyId, CultureInfo.InvariantCulture),
+                    Guid.Parse(targetInstance.Id.Split("/")[1]),
+                    hard: true,
+                    authenticationMethod: null,
+                    CancellationToken.None
+                );
+            }
+            catch (Exception deleteException)
+            {
+                _logger.LogError(
+                    deleteException,
+                    "Failed to delete instance {InstanceId} during cleanup after an unsuccessful operation. Manual cleanup might be required.",
+                    targetInstance.Id
+                );
+            }
+        }
     }
 
     /// <summary>
@@ -1394,7 +1562,7 @@ public class InstancesController : ControllerBase
         }
     }
 
-    private async Task<ProblemDetails?> StorePrefillParts(
+    private async Task<ProblemDetails?> StoreParts(
         Instance instance,
         ApplicationMetadata appInfo,
         List<RequestPart> parts,
@@ -1427,9 +1595,23 @@ public class InstancesController : ControllerBase
                 };
             }
 
+            if (
+                await _dataElementAccessChecker.GetCreateProblem(
+                    instance,
+                    dataType,
+                    _authenticationContext.Current,
+                    part.FileSize
+                ) is
+                { } accessProblem
+            )
+            {
+                return accessProblem;
+            }
+
+            _logger.LogInformation("Storing part {partName}", part.Name);
+
             if (dataType.AppLogic?.ClassRef != null)
             {
-                _logger.LogInformation("Storing part {partName}", part.Name);
                 var deserializationResult = await _serializationService.DeserializeSingleFromStream(
                     new MemoryAsStream(part.Bytes),
                     part.ContentType,
@@ -1451,7 +1633,16 @@ public class InstancesController : ControllerBase
             }
             else
             {
-                _logger.LogInformation("Storing part {partName}", part.Name);
+                var fileValidationIssues = await _fileService.RunFileAnalysisAndValidation(
+                    dataType,
+                    part.Bytes,
+                    part.FileName
+                );
+
+                if (fileValidationIssues is not null)
+                {
+                    return new DataPostErrorResponse("File validation failed", fileValidationIssues);
+                }
                 dataMutator.AddBinaryDataElement(dataType.Id, part.ContentType, part.FileName, part.Bytes);
             }
         }

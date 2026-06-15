@@ -35,7 +35,7 @@ export class AppFrontend {
     /** @see https://dev.altinn.studio/repos/ttd/stateless-app */
     stateless: 'stateless-app',
 
-    /** @see https://dev.altinn.studio/repos/ttd/subform-test */
+    /** @see https://altinn.studio/repos/ttd/subform-test */
     subformTest: 'subform-test',
   };
 
@@ -179,7 +179,6 @@ export class AppFrontend {
       tagsDropDown: 'input[id^="attachment-tag-dropdown"]',
       saveTag: '[id^="attachment-save-tag-button"]',
       uploaded: '#tagFile',
-      error: '[data-componentid="fileUploadWithTags-changename"] [data-validation]',
       unwantedChar: String.fromCharCode(31),
     },
     reasonRelationship: '#reasonRelationship',
@@ -218,7 +217,7 @@ export class AppFrontend {
     secondGroup_table: '[id^="group-group2-table"]',
     subGroup: '[id^="group-subGroup"]',
     currentValue: 'input[id^="currentValue"]',
-    navigationBarButton: '#form-content-nav2 > div > nav > button',
+    navigationBarButton: '#form-content-nav2 [data-testid="NavigationBar"] > button[aria-controls="navigation-menu"]',
     newValue: 'input[id^="newValue"]',
     newValueLabel: 'label[for^="newValue"]',
     addNewItem: '[id^="add-button-mainGroup"]',

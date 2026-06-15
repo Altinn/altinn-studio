@@ -12,19 +12,18 @@ src/test/K6/**/yarn.lock                                        @altinn/team-cor
 
 # Team Utforming
 .github/workflows/app-frontend-codeql.yml                       @altinn/team-altinn-studio-utforming
-.github/workflows/app-frontend-compare-repos.yml                @altinn/team-altinn-studio-utforming
 .github/workflows/app-frontend-cypress.yml                      @altinn/team-altinn-studio-utforming
 .github/workflows/app-frontend-k6-browser.yml                   @altinn/team-altinn-studio-utforming
 .github/workflows/app-frontend-lighthouse-ci.yml                @altinn/team-altinn-studio-utforming
 .github/workflows/app-frontend-unit-tests.yml                   @altinn/team-altinn-studio-utforming
 .github/workflows/designer-frontend-codeql.yml                  @altinn/team-altinn-studio-utforming
-.github/workflows/designer-frontend-config-coverage.yml         @altinn/team-altinn-studio-utforming
 .github/workflows/designer-frontend-playwright-staging.yml      @altinn/team-altinn-studio-utforming
 .github/workflows/designer-frontend-run-playwright-on-pr.yaml   @altinn/team-altinn-studio-utforming
 .github/workflows/designer-frontend-unit-tests.yml              @altinn/team-altinn-studio-utforming
 .github/workflows/storybook-to-github-pages.yaml                @altinn/team-altinn-studio-utforming
 .github/workflows/studio-components-deploy.yaml                 @altinn/team-altinn-studio-utforming
 .github/workflows/studio-components-legacy-deploy.yaml          @altinn/team-altinn-studio-utforming
+app-libs/**/package.json                                        @altinn/team-altinn-studio-utforming
 src/App/frontend/**/docker-compose.yml                          @altinn/team-altinn-studio-utforming
 src/App/frontend/**/package.json                                @altinn/team-altinn-studio-utforming
 src/Designer/frontend/**/package.json                           @altinn/team-altinn-studio-utforming
@@ -58,6 +57,7 @@ src/AI/mcp/**/uv.lock                                           @ErlingHauan
 .github/workflows/cli-build-test.yaml                           @altinn/team-altinn-studio-kjoring
 .github/workflows/construct-environments-script-test.yaml       @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-gitea-runners.yaml                     @altinn/team-altinn-studio-kjoring
+.github/workflows/deploy-github-runners.yaml                    @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-lhci-server.yaml                       @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-loadbalancer.yaml                      @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-repositories.yaml                      @altinn/team-altinn-studio-kjoring
@@ -96,13 +96,14 @@ charts/gitea-org-runner-config/**/Chart.yaml                    @altinn/team-alt
 charts/gitea-org-runner/**/Chart.yaml                           @altinn/team-altinn-studio-kjoring
 src/cli/**/*.csproj                                             @altinn/team-altinn-studio-kjoring
 src/cli/**/Directory.Packages.props                             @altinn/team-altinn-studio-kjoring
+src/cli/**/dockerfile*                                          @altinn/team-altinn-studio-kjoring
 src/cli/**/global.json                                          @altinn/team-altinn-studio-kjoring
 src/cli/**/go.mod                                               @altinn/team-altinn-studio-kjoring
 src/cli/**/go.sum                                               @altinn/team-altinn-studio-kjoring
+src/gitea-proxy/**/docker-compose.*.yml                         @altinn/team-altinn-studio-kjoring
 src/gitea-proxy/**/Dockerfile*                                  @altinn/team-altinn-studio-kjoring
 src/gitea-runner/**/Dockerfile*                                 @altinn/team-altinn-studio-kjoring
 src/gitea/**/Dockerfile*                                        @altinn/team-altinn-studio-kjoring
-src/gitea/**/package.json                                       @altinn/team-altinn-studio-kjoring
 src/lhci-server/**/compose.yaml                                 @altinn/team-altinn-studio-kjoring
 src/lhci-server/**/Dockerfile*                                  @altinn/team-altinn-studio-kjoring
 src/lhci-server/**/package.json                                 @altinn/team-altinn-studio-kjoring
@@ -122,13 +123,10 @@ src/Runtime/kubernetes-wrapper/**/Directory.Packages.props      @altinn/team-alt
 src/Runtime/kubernetes-wrapper/**/Dockerfile*                   @altinn/team-altinn-studio-kjoring
 src/Runtime/kubernetes-wrapper/**/global.json                   @altinn/team-altinn-studio-kjoring
 src/Runtime/localtest/**/*.csproj                               @altinn/team-altinn-studio-kjoring
-src/Runtime/localtest/**/docker-compose.*.yml                   @altinn/team-altinn-studio-kjoring
-src/Runtime/localtest/**/docker-compose.yml                     @altinn/team-altinn-studio-kjoring
 src/Runtime/localtest/**/Dockerfile*                            @altinn/team-altinn-studio-kjoring
 src/Runtime/localtest/**/global.json                            @altinn/team-altinn-studio-kjoring
 src/Runtime/localtest/**/package-lock.json                      @altinn/team-altinn-studio-kjoring
 src/Runtime/localtest/**/package.json                           @altinn/team-altinn-studio-kjoring
-src/Runtime/localtest/**/podman-compose.yml                     @altinn/team-altinn-studio-kjoring
 src/Runtime/operator/**/*.csproj                                @altinn/team-altinn-studio-kjoring
 src/Runtime/operator/**/Chart.yaml                              @altinn/team-altinn-studio-kjoring
 src/Runtime/operator/**/docker-compose.yml                      @altinn/team-altinn-studio-kjoring
@@ -150,7 +148,6 @@ src/tools/releaser/**/go.mod                                    @altinn/team-alt
 .github/workflows/runtime-workflow-engine-tests.yaml            @altinn/team-altinn-studio-flyt
 src/Runtime/workflow-engine-app/**/*.csproj                     @altinn/team-altinn-studio-flyt
 src/Runtime/workflow-engine-app/**/Directory.Packages.props     @altinn/team-altinn-studio-flyt
-src/Runtime/workflow-engine-app/**/docker-compose.yaml          @altinn/team-altinn-studio-flyt
 src/Runtime/workflow-engine-app/**/Dockerfile*                  @altinn/team-altinn-studio-flyt
 src/Runtime/workflow-engine/**/*.csproj                         @altinn/team-altinn-studio-flyt
 src/Runtime/workflow-engine/**/Directory.Packages.props         @altinn/team-altinn-studio-flyt

@@ -216,6 +216,13 @@ export const previewWebSocketHub = () => `/hubs/preview`;
 export const altinityWebSocketHub = () => '/hubs/altinity';
 export const altinityAttachmentsUploadPath = () => `/designer/api/altinity/attachments`;
 
+// Assistant Chat
+export const chatThreadsPath = (org, app) => `${apiBasePath}/${org}/${app}/chat/threads`; // Get, Post
+export const chatThreadPath = (org, app, threadId) => `${apiBasePath}/${org}/${app}/chat/threads/${threadId}`; // Put, Delete
+export const chatMessagesPath = (org, app, threadId) => `${apiBasePath}/${org}/${app}/chat/threads/${threadId}/messages`; // Get, Post
+export const chatMessagePath = (org, app, threadId, messageId) => `${apiBasePath}/${org}/${app}/chat/threads/${threadId}/messages/${messageId}`; // Delete
+export const chatFeedbackPath = (org, app, traceId) => `${apiBasePath}/${org}/${app}/chat/feedback/${traceId}`; // Put
+
 // Contact
 export const belongsToOrg = () => `${apiBasePath}/contact/belongs-to-org`;
 
@@ -228,6 +235,9 @@ export const customTemplatesPath = () => `${apiBasePath}/customtemplates`; // GE
 // User settings
 export const userApiKeyPath = (id) => `${apiBasePath}/v1/user/api-keys/${id}`; // DELETE
 export const userApiKeysPath = () => `${apiBasePath}/v1/user/api-keys`; // GET, POST
+export const studioctlAuthRequestPath = (id) => `${apiBasePathV1}/studioctl/auth/requests/${id}`; // GET
+export const studioctlAuthRequestConfirmPath = (id) => `${studioctlAuthRequestPath(id)}/confirm`; // POST
+export const studioctlAuthRequestCancelPath = (id) => `${studioctlAuthRequestPath(id)}/cancel`; // POST
 
 // Org settings - Contact points
 export const contactPointsPath = (org) => `${apiBasePath}/v1/orgs/${org}/contact-points`; // Get, Post

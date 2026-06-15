@@ -20,12 +20,34 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 	t.Setenv(config.EnvCI, "")
 
 	dataDir := t.TempDir()
-	resources := localtestResources(dataDir, false, true)
+	resources := localtestResources(t, dataDir, false, true)
 
 	assertLocaltestContainerConfig(t, mustContainerSpec(t, resources, components.ContainerLocaltest), dataDir)
 	assertPdf3ContainerConfig(t, mustContainerSpec(t, resources, components.ContainerPDF3))
 	assertWorkflowEngineDbContainerConfig(t, mustContainerSpec(t, resources, components.ContainerWorkflowEngineDb))
 	assertWorkflowEngineContainerConfig(t, mustContainerSpec(t, resources, components.ContainerWorkflowEngine))
+}
+
+func TestCoreContainers_ServiceContainersUseImageUser(t *testing.T) {
+	t.Setenv(config.EnvCI, "")
+
+	opts := newResourceBuildOptions(t.TempDir(), false)
+	opts.RuntimeUser = "501:20"
+	opts.RuntimeUsernsMode = "keep-id"
+
+	resources := mustManifest(t, opts).Resources
+	for _, name := range []string{components.ContainerPDF3, components.ContainerWorkflowEngine} {
+		container := findResource(resources, resource.ContainerID(name))
+		if container == nil {
+			t.Fatalf("manifest missing %q", name)
+		}
+		if container.User != "" {
+			t.Fatalf("%s.User = %q, want image default", name, container.User)
+		}
+		if container.UsernsMode != "" {
+			t.Fatalf("%s.UsernsMode = %q, want image default", name, container.UsernsMode)
+		}
+	}
 }
 
 func assertLocaltestContainerConfig(t *testing.T, localtest components.ContainerSpec, dataDir string) {
@@ -81,6 +103,33 @@ func assertWorkflowEngineDbContainerConfig(t *testing.T, workflowEngineDb compon
 	}
 }
 
+func TestResourceBuilder_DevWorkflowEngineExposesDbAndDisablesEngine(t *testing.T) {
+	t.Setenv(config.EnvCI, "")
+
+	opts := newResourceBuildOptions(t.TempDir(), false)
+	opts.DevWorkflowEngine = true
+	resources := mustManifest(t, opts).Resources
+
+	engine := findResource(resources, resource.ContainerID(components.ContainerWorkflowEngine))
+	if engine == nil {
+		t.Fatalf("manifest missing %q", components.ContainerWorkflowEngine)
+	}
+	if resource.IsEnabled(engine) {
+		t.Fatalf("workflow-engine enabled = true, want false")
+	}
+
+	workflowEngineDb := mustContainerSpec(t, resources, components.ContainerWorkflowEngineDb)
+	wantPort := containertypes.PortMapping{
+		HostPort:      "9543",
+		ContainerPort: "5432",
+		HostIP:        "127.0.0.1",
+		Protocol:      "",
+	}
+	if got := workflowEngineDb.Ports; len(got) != 1 || got[0] != wantPort {
+		t.Fatalf("workflowEngineDb.Ports = %v, want [%v]", got, wantPort)
+	}
+}
+
 func assertWorkflowEngineContainerConfig(t *testing.T, workflowEngine components.ContainerSpec) {
 	t.Helper()
 	if got := workflowEngine.Ports; got != nil {
@@ -97,6 +146,12 @@ func assertWorkflowEngineContainerConfig(t *testing.T, workflowEngine components
 			"workflowEngine.Environment[ConnectionStrings__WorkflowEngine] = %q, want localtest-workflow-engine-db host",
 			got,
 		)
+	}
+	if got := workflowEngine.Environment["ASPNETCORE_HTTP_PORTS"]; got != "9090" {
+		t.Fatalf("workflowEngine.Environment[ASPNETCORE_HTTP_PORTS] = %q, want 9090", got)
+	}
+	if got := workflowEngine.Environment["ASPNETCORE_ENVIRONMENT"]; got != "Development" {
+		t.Fatalf("workflowEngine.Environment[ASPNETCORE_ENVIRONMENT] = %q, want Development", got)
 	}
 	if !slices.Equal(
 		workflowEngine.Dependencies,
@@ -136,7 +191,7 @@ func TestResourceBuilder_AddsPgAdminOnlyWhenRequested(t *testing.T) {
 
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			resources := localtestResources(t.TempDir(), false, tt.includePgAdmin)
+			resources := localtestResources(t, t.TempDir(), false, tt.includePgAdmin)
 			pgAdmin := findResource(resources, resource.ContainerID(components.ContainerPgAdmin))
 			if pgAdmin == nil {
 				t.Fatalf("manifest missing %q", components.ContainerPgAdmin)
@@ -151,8 +206,8 @@ func TestResourceBuilder_AddsPgAdminOnlyWhenRequested(t *testing.T) {
 func TestResourceBuilder_LocaltestAliasesDoNotChangeWithPgAdmin(t *testing.T) {
 	t.Setenv(config.EnvCI, "")
 
-	withoutPgAdmin := localtestResources(t.TempDir(), false, false)
-	withPgAdmin := localtestResources(t.TempDir(), false, true)
+	withoutPgAdmin := localtestResources(t, t.TempDir(), false, false)
+	withPgAdmin := localtestResources(t, t.TempDir(), false, true)
 
 	without := findResource(withoutPgAdmin, resource.ContainerID(components.ContainerLocaltest))
 	with := findResource(withPgAdmin, resource.ContainerID(components.ContainerLocaltest))
@@ -169,7 +224,7 @@ func TestResourceBuilder_LocaltestAliasesDoNotChangeWithPgAdmin(t *testing.T) {
 }
 
 func TestMonitoringContainers_OtelUsesLocalDomainAlias(t *testing.T) {
-	resources := localtestResources(t.TempDir(), true)
+	resources := localtestResources(t, t.TempDir(), true)
 	container := mustContainerSpec(t, resources, components.ContainerMonitoringOtelCollector)
 
 	want := []string{testTopology().OTelHost()}
@@ -181,7 +236,7 @@ func TestMonitoringContainers_OtelUsesLocalDomainAlias(t *testing.T) {
 func TestResourceBuilder_FailsForUnknownContainerDependency(t *testing.T) {
 	t.Setenv(config.EnvCI, "true")
 
-	image := &resource.RemoteImage{Ref: "example.local/dependent:latest"}
+	image := &resource.PulledImage{Ref: "example.local/dependent:latest"}
 	network := resource.Ref(&resource.Network{Name: components.NetworkName})
 	containerResource := &resource.Container{
 		Name:      "localtest-dependent",
@@ -211,7 +266,7 @@ func TestCoreContainers_PgAdminUsesImportedPassfile(t *testing.T) {
 
 	dataDir := t.TempDir()
 	opts := newResourceBuildOptions(dataDir, false, true)
-	resources := components.NewManifest(opts).Resources
+	resources := mustManifest(t, opts).Resources
 	pgAdmin := mustContainerSpec(t, resources, components.ContainerPgAdmin)
 	if got := pgAdmin.Ports; got != nil {
 		t.Fatalf("pgAdmin.Ports = %v, want nil", got)
@@ -239,7 +294,7 @@ func TestCoreContainers_PgAdminUsesImportedPassfile(t *testing.T) {
 func TestManifestPrepareWritesLocalFiles(t *testing.T) {
 	dataDir := t.TempDir()
 	opts := newResourceBuildOptions(dataDir, false, true)
-	manifest := components.NewManifest(opts)
+	manifest := mustManifest(t, opts)
 
 	if err := manifest.Prepare(t.Context()); err != nil {
 		t.Fatalf("Prepare() error = %v", err)
@@ -287,8 +342,19 @@ func newResourceBuildOptions(dataDir string, includeMonitoring bool, includePgAd
 	}
 }
 
-func localtestResources(dataDir string, includeMonitoring bool, includePgAdmin ...bool) []resource.Resource {
-	return components.NewManifest(newResourceBuildOptions(dataDir, includeMonitoring, includePgAdmin...)).Resources
+func localtestResources(
+	t *testing.T,
+	dataDir string,
+	includeMonitoring bool,
+	includePgAdmin ...bool,
+) []resource.Resource {
+	t.Helper()
+	return mustManifest(t, newResourceBuildOptions(dataDir, includeMonitoring, includePgAdmin...)).Resources
+}
+
+func mustManifest(t *testing.T, opts *components.Options) *components.Manifest {
+	t.Helper()
+	return components.NewManifest(opts)
 }
 
 func testTopology() envtopology.Local {

@@ -3,6 +3,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Secrets;
 internal sealed class AppCodesSettings
 {
     public List<AppCode> NotificationCallback { get; set; } = [];
+    public List<AppCode> PaymentsCallback { get; set; } = [];
 }
 
 internal sealed class AppCode

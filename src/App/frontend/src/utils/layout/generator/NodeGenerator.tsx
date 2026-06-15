@@ -5,7 +5,6 @@ import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { getComponentCapabilities, getComponentDef } from 'src/layout';
 import { GeneratorInternal, GeneratorNodeProvider } from 'src/utils/layout/generator/GeneratorContext';
 import { useGeneratorErrorBoundaryNodeRef } from 'src/utils/layout/generator/GeneratorErrorBoundary';
@@ -81,7 +80,7 @@ function AddRemoveNode<T extends CompTypes>({
   const rowIndex = GeneratorInternal.useRowIndex();
   const pageKey = GeneratorInternal.usePage() ?? '';
   const idMutators = GeneratorInternal.useIdMutators();
-  const layoutMap = FormBootstrap.useLayoutLookups().allComponents;
+  const layoutMap = FormStore.bootstrap.useLayoutLookups().allComponents;
   const isValid = GeneratorInternal.useIsValid();
   const getCapabilities = useCallback((type: CompTypes) => getComponentCapabilities(type), []);
   const stateFactoryProps = useMemo(

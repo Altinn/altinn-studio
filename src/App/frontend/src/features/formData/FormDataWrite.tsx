@@ -14,7 +14,6 @@ import {
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { getFormDataQueryKey } from 'src/features/formData/useFormDataQuery';
@@ -639,13 +638,6 @@ export const formDataHooks = {
     });
   },
 
-  useLaxDebouncedSelectorProps() {
-    return FormStore.raw.useLaxDelayedSelectorProps({
-      mode: 'simple',
-      selector: debouncedSelector,
-    });
-  },
-
   /**
    * The same as useDebouncedSelector(), but will return BaseRow[] instead of the raw data. This is useful if you
    * just want to fetch the number of rows, and the indexes/uuids of those rows, without fetching the actual data
@@ -725,7 +717,7 @@ export const formDataHooks = {
    * This is useful for finding all instances of a field in repeating groups.
    */
   useDebouncedAllPaths(reference: IDataModelReference | undefined): string[] {
-    const lookupTool = FormBootstrap.useLookupBinding();
+    const lookupTool = FormStore.bootstrap.useLookupBinding();
     const [, lookupErr] = (reference ? lookupTool?.(reference) : undefined) ?? [undefined, undefined];
 
     // When lookupTool is available and doesn't report a missing repeating group error, we know there's no

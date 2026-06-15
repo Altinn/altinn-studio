@@ -145,7 +145,12 @@ dotnet_diagnostic.CA1725.severity = warning
 dotnet_diagnostic.IDE0080.severity = error
 
 # CA1859: Use concrete types when possible for improved performance
-dotnet_diagnostic.CA1859.severity = warning
+# Keep disabled because this can narrow public or extension seams used by app code.
+dotnet_diagnostic.CA1859.severity = none
+
+# CA1873: Avoid evaluating expensive arguments when logging is disabled
+# Keep disabled because it is too noisy for the existing logging style after moving to the .NET 10 analyzer set.
+dotnet_diagnostic.CA1873.severity = none
 
 # CA1716: Rename namespace "" so that it no longer conflicts with the reserved language keyword 'Interface'
 # TODO: fixing this would be breaking

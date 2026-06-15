@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -112,13 +113,13 @@ func TestReleaseWorkflow_LocalRepo(t *testing.T) {
 	// 1) Release v1.0.0-preview.1 from main.
 	promoted := s.prepareAndMerge(previewV100p1, mainBranchName)
 	assertVersionSectionContains(t, promoted, previewV100p1, "First stable feature")
-	s.release(previewV100p1, mainBranchName, true)
+	s.release(previewV100p1, true)
 
 	// 2) Stabilize v1.0.0 by promoting the existing prerelease history.
 	promoted = s.prepareAndMerge(stableV100, releaseV100)
 	assertVersionOrder(t, promoted, stableV100, previewV100p1)
 	assertVersionSectionContains(t, promoted, stableV100, "First stable feature")
-	s.release(stableV100, releaseV100, false)
+	s.release(stableV100, false)
 
 	v110, previewV110p1 := v110.nextPrerelease(t, 1)
 	v110, previewV110p2 := v110.nextPrerelease(t, 2)
@@ -140,7 +141,7 @@ func TestReleaseWorkflow_LocalRepo(t *testing.T) {
 	// 3) Release v1.1.0-preview.1 on main.
 	promoted = s.prepareAndMerge(previewV110p1, mainBranchName)
 	assertVersionOrder(t, promoted, previewV110p1, stableV100)
-	s.release(previewV110p1, mainBranchName, true)
+	s.release(previewV110p1, true)
 
 	// 4) Bugfix on main.
 	s.landFeature(
@@ -162,14 +163,14 @@ func TestReleaseWorkflow_LocalRepo(t *testing.T) {
 	promoted = s.prepareAndMerge(previewV110p2, mainBranchName)
 	assertVersionOrder(t, promoted, previewV110p2, previewV110p1)
 	assertVersionOrder(t, promoted, previewV110p1, stableV100)
-	s.release(previewV110p2, mainBranchName, true)
+	s.release(previewV110p2, true)
 
 	// 6) Backport bugfix, then release v1.0.1 from release branch.
 	s.backportAndMerge(bugfixSHA, v100.lineVersion(), releaseV100, "Merge backport PR")
 	v100, patchV101 := v100.nextPatch(t, 1)
 	promoted = s.prepareAndMerge(patchV101, releaseV100)
 	assertVersionOrder(t, promoted, patchV101, stableV100)
-	s.release(patchV101, releaseV100, false)
+	s.release(patchV101, false)
 
 	runFinalizeAndNextPreviewSequence(t, s, finalizeAndPreviewArgs{
 		releaseV100:   releaseV100,
@@ -279,49 +280,13 @@ func TestRunWorkflow_StudioctlLikeRepo_LocalRepo(t *testing.T) {
 		rel("v1.2.0-preview.1", "2025-01-01", cat("Added", "Older studioctl preview")),
 	))
 
-	t.Chdir(repo.dir)
-	err := internal.RunWorkflow(t.Context(), internal.WorkflowRequest{
-		Component:             studioctlComponent,
-		BaseBranch:            mainBranchName,
-		DryRun:                true,
-		Draft:                 true,
-		UnsafeSkipBranchCheck: false,
-	}, logger)
-	if err != nil {
-		t.Fatalf("RunWorkflow() error = %v", err)
-	}
+	runReleaser(t, logger, repo.dir, "workflow",
+		"-component", studioctlComponent,
+		"-base-branch", mainBranchName,
+		"-dry-run",
+	)
 
 	outputDir := filepath.Join(repo.dir, "build", "release")
-	expectedArtifacts := []string{
-		"studioctl-linux-amd64",
-		"studioctl-linux-arm64",
-		"studioctl-darwin-amd64",
-		"studioctl-darwin-arm64",
-		"studioctl-windows-amd64.exe",
-		"studioctl-windows-arm64.exe",
-		"app-manager-linux-amd64.tar.gz",
-		"app-manager-linux-arm64.tar.gz",
-		"app-manager-darwin-amd64.tar.gz",
-		"app-manager-darwin-arm64.tar.gz",
-		"app-manager-windows-amd64.tar.gz",
-		"app-manager-windows-arm64.tar.gz",
-		"localtest-resources.tar.gz",
-		"install.sh",
-		"install.ps1",
-		"SHA256SUMS",
-		"release-notes.md",
-	}
-	for _, name := range expectedArtifacts {
-		path := filepath.Join(outputDir, name)
-		info, statErr := os.Stat(path)
-		if statErr != nil {
-			t.Fatalf("expected artifact %s: %v", name, statErr)
-		}
-		if info.Size() == 0 {
-			t.Fatalf("artifact %s is empty", name)
-		}
-	}
-
 	notes, readErr := os.ReadFile(filepath.Join(outputDir, "release-notes.md"))
 	if readErr != nil {
 		t.Fatalf("read release notes: %v", readErr)
@@ -330,31 +295,26 @@ func TestRunWorkflow_StudioctlLikeRepo_LocalRepo(t *testing.T) {
 		t.Fatalf("release notes missing latest prerelease notes:\n%s", string(notes))
 	}
 
-	checksums, readErr := os.ReadFile(filepath.Join(outputDir, "SHA256SUMS"))
+	entries, readErr := os.ReadDir(outputDir)
 	if readErr != nil {
-		t.Fatalf("read SHA256SUMS: %v", readErr)
+		t.Fatalf("read output dir: %v", readErr)
 	}
-	lines := strings.Split(strings.TrimSpace(string(checksums)), "\n")
-	if len(lines) != 15 {
-		t.Fatalf("SHA256SUMS line count = %d, want 15", len(lines))
+	artifactCount := 0
+	for _, entry := range entries {
+		if entry.IsDir() || entry.Name() == "release-notes.md" {
+			continue
+		}
+		info, statErr := entry.Info()
+		if statErr != nil {
+			t.Fatalf("stat output artifact %s: %v", entry.Name(), statErr)
+		}
+		if info.Size() == 0 {
+			t.Fatalf("output artifact %s is empty", entry.Name())
+		}
+		artifactCount++
 	}
-	if !strings.Contains(string(checksums), "localtest-resources.tar.gz") {
-		t.Fatalf("SHA256SUMS missing localtest-resources.tar.gz entry:\n%s", string(checksums))
-	}
-
-	expectedTag := "studioctl/v1.2.0-preview.2"
-	for _, scriptName := range []string{"install.sh", "install.ps1"} {
-		scriptBytes, err := os.ReadFile(filepath.Join(outputDir, scriptName))
-		if err != nil {
-			t.Fatalf("read %s: %v", scriptName, err)
-		}
-		script := string(scriptBytes)
-		if !strings.Contains(script, expectedTag) {
-			t.Fatalf("%s missing stamped tag %q:\n%s", scriptName, expectedTag, script)
-		}
-		if !strings.Contains(script, "__STUDIOCTL_DEFAULT_VERSION__") {
-			t.Fatalf("%s missing fallback marker placeholder", scriptName)
-		}
+	if artifactCount == 0 {
+		t.Fatal("builder produced no artifacts")
 	}
 }
 
@@ -415,33 +375,52 @@ func prepareStudioctlLikeLayout(t *testing.T, log internal.Logger, repoDir, comp
 	)
 	writeFile(
 		t,
-		filepath.Join(repoDir, "src", "cli", "app-manager", "app-manager.csproj"),
-		"<Project Sdk=\"Microsoft.NET.Sdk.Web\"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><AssemblyName>app-manager</AssemblyName><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup></Project>\n",
-	)
-	writeFile(
-		t,
-		filepath.Join(repoDir, "src", "cli", "app-manager", "Program.cs"),
-		"var builder = WebApplication.CreateSlimBuilder(args);\nvar app = builder.Build();\napp.MapGet(\"/api/v1/healthz\", () => Results.Ok());\napp.Run();\n",
-	)
-	writeFile(
-		t,
-		filepath.Join(repoDir, "src", "cli", "cmd", "studioctl", "install.sh"),
-		"#!/usr/bin/env sh\nDEFAULT_VERSION=\"__STUDIOCTL_DEFAULT_VERSION__\"\nif [ \"$DEFAULT_VERSION\" = \"__STUDIOCTL_DEFAULT_VERSION__\" ]; then\n\tDEFAULT_VERSION=\"latest\"\nfi\necho \"$DEFAULT_VERSION\"\n",
-	)
-	writeFile(
-		t,
-		filepath.Join(repoDir, "src", "cli", "cmd", "studioctl", "install.ps1"),
-		"$DefaultVersion = \"__STUDIOCTL_DEFAULT_VERSION__\"\nif ($DefaultVersion -eq \"__STUDIOCTL_DEFAULT_VERSION__\") { $DefaultVersion = \"latest\" }\nWrite-Host $DefaultVersion\n",
-	)
-	writeFile(
-		t,
-		filepath.Join(repoDir, "src", "Runtime", "localtest", "testdata", "data.txt"),
-		"data\n",
-	)
-	writeFile(
-		t,
-		filepath.Join(repoDir, "src", "Runtime", "localtest", "infra", "config.json"),
-		"{}\n",
+		filepath.Join(repoDir, "src", "cli", "cmd", "dev", "main.go"),
+		`package main
+
+import (
+	"encoding/json"
+	"flag"
+	"fmt"
+	"os"
+	"path/filepath"
+)
+
+func main() {
+	args := os.Args[1:]
+	if len(args) > 0 && args[0] == "dist" {
+		args = args[1:]
+	}
+	flag.String("version", "dev", "")
+	output := flag.String("output", "build", "")
+	platform := flag.String("platform", "all", "")
+	manifest := flag.String("manifest", "", "")
+	release := flag.Bool("release", false, "")
+	_ = flag.CommandLine.Parse(args)
+	if *platform != "all" {
+		_, _ = fmt.Fprintf(os.Stderr, "unexpected platform: %s", *platform)
+		os.Exit(2)
+	}
+	if !*release {
+		_, _ = fmt.Fprint(os.Stderr, "missing -release")
+		os.Exit(2)
+	}
+
+	_ = os.MkdirAll(*output, 0o755)
+	artifacts := []string{write(*output, "artifact-one"), write(*output, "artifact-two")}
+	if *manifest != "" {
+		_ = os.MkdirAll(filepath.Dir(*manifest), 0o755)
+		content, _ := json.Marshal(map[string]any{"artifacts": artifacts})
+		_ = os.WriteFile(*manifest, content, 0o644)
+	}
+}
+
+func write(dir, name string) string {
+	path := filepath.Join(dir, name)
+	_ = os.WriteFile(path, []byte(name+"\n"), 0o644)
+	return path
+}
+`,
 	)
 	writeFile(
 		t,
@@ -677,9 +656,10 @@ func (s *workflowScenario) headSHA() string {
 	return strings.TrimSpace(runGit(s.t, s.log, s.repo.dir, "rev-parse", "HEAD"))
 }
 
-func (s *workflowScenario) release(version, target string, prerelease bool) {
+func (s *workflowScenario) release(version string, prerelease bool) {
 	s.t.Helper()
 	s.gh.reset()
+	target := s.headSHA()
 	workflow, err := internal.NewWorkflow(
 		s.t.Context(),
 		internal.WorkflowConfig{
@@ -749,7 +729,7 @@ func runFinalizeV110AndFirstV120Preview(t *testing.T, s *workflowScenario, args 
 	assertVersionSectionContains(
 		t, promotedStable110, args.stableV110, "Preview track feature", "Critical bugfix",
 	)
-	s.release(args.stableV110, args.releaseV110, false)
+	s.release(args.stableV110, false)
 
 	s.landFeature(
 		"feature/v120-preview1",
@@ -768,7 +748,7 @@ func runFinalizeV110AndFirstV120Preview(t *testing.T, s *workflowScenario, args 
 	)
 	promotedPreview120p1 := s.prepareAndMerge(args.previewV120p1, mainBranchName)
 	assertVersionOrder(t, promotedPreview120p1, args.previewV120p1, args.stableV110)
-	s.release(args.previewV120p1, mainBranchName, true)
+	s.release(args.previewV120p1, true)
 
 	s.landFeature(
 		"feature/v120-bugfix2",
@@ -806,7 +786,7 @@ func runBackportsAndSecondV120Preview(
 	promotedPreview120p2 := s.prepareAndMerge(args.previewV120p2, mainBranchName)
 	assertVersionOrder(t, promotedPreview120p2, args.previewV120p2, args.previewV120p1)
 	assertVersionOrder(t, promotedPreview120p2, args.previewV120p1, args.stableV110)
-	s.release(args.previewV120p2, mainBranchName, true)
+	s.release(args.previewV120p2, true)
 }
 
 func squashMergeBranch(t *testing.T, log internal.Logger, repoDir, sourceBranch, commitMsg string) {
@@ -828,6 +808,41 @@ func runGit(t *testing.T, log internal.Logger, dir string, args ...string) strin
 		t.Fatalf("git %s: %v", strings.Join(args, " "), err)
 	}
 	return out
+}
+
+func runReleaser(t *testing.T, log internal.Logger, dir string, args ...string) {
+	t.Helper()
+
+	if log == nil {
+		log = internal.NopLogger{}
+	}
+
+	bin := filepath.Join(t.TempDir(), "releaser")
+	if runtime.GOOS == "windows" {
+		bin += ".exe"
+	}
+	buildArgs := []string{"build", "-o", bin, "."}
+	log.Command("go", buildArgs)
+	buildCmd := exec.CommandContext(t.Context(), "go", buildArgs...)
+	buildCmd.Dir = cliRootDir()
+	buildOutput, err := buildCmd.CombinedOutput()
+	if len(buildOutput) > 0 {
+		log.Info("%s", strings.TrimSpace(string(buildOutput)))
+	}
+	if err != nil {
+		t.Fatalf("go %s: %v\n%s", strings.Join(buildArgs, " "), err, string(buildOutput))
+	}
+
+	log.Command(bin, args)
+	cmd := exec.CommandContext(t.Context(), bin, args...)
+	cmd.Dir = dir
+	output, err := cmd.CombinedOutput()
+	if len(output) > 0 {
+		log.Info("%s", strings.TrimSpace(string(output)))
+	}
+	if err != nil {
+		t.Fatalf("%s %s: %v\n%s", bin, strings.Join(args, " "), err, string(output))
+	}
 }
 
 func writeFile(t *testing.T, path, content string) {

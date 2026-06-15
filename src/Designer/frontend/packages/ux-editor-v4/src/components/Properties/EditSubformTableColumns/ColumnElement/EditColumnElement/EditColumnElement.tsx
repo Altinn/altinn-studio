@@ -1,0 +1,185 @@
+import type { ReactElement } from 'react';
+import { useState } from 'react';
+import classes from './EditColumnElement.module.css';
+import type { TableColumn } from '../../types/TableColumn';
+import { useTranslation } from 'react-i18next';
+import {
+  StudioSuggestion,
+  StudioActionCloseButton,
+  StudioCard,
+  StudioHeading,
+  StudioDeleteButton,
+  StudioDivider,
+  type StudioSuggestionItem,
+} from '@studio/components';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
+import type { FormItem } from '../../../../../types/FormItem';
+import { EditColumnElementContent } from './EditColumnElementContent';
+import {
+  getComponentsForSubformTable,
+  getDefaultDataModel,
+} from '../../utils/editSubformTableColumnsUtils';
+import { DataModelBindingsCombobox } from './DataModelBindingsCombobox';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
+import type { IDataModelBindingsKeyValueExplicit } from '../../../../../types/global';
+
+export type EditColumnElementProps = {
+  tableColumn: TableColumn;
+  columnNumber: number;
+  onDeleteColumn: () => void;
+  onChange: (tableColumn: TableColumn) => void;
+  onClose: () => void;
+  subformLayout: string;
+};
+
+export const EditColumnElement = ({
+  tableColumn,
+  columnNumber,
+  onDeleteColumn,
+  onChange,
+  onClose,
+  subformLayout,
+}: EditColumnElementProps): ReactElement => {
+  const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: formLayouts } = useFormLayoutsQuery(org, app, subformLayout);
+  const { data: layoutSets } = useLayoutSetsQuery(org, app);
+
+  const [selectedComponentId, setSelectedComponentId] = useState<string>();
+
+  const selectComponent = (componentId: string) => {
+    setSelectedComponentId(componentId);
+
+    const selectedComponent = availableComponents.find((comp) => comp.id === componentId);
+
+    const bindingKey = Object.keys(selectedComponent.dataModelBindings)[0];
+
+    const binding = selectedComponent?.dataModelBindings?.[bindingKey];
+
+    onChange({
+      ...tableColumn,
+      headerContent: selectedComponent.textResourceBindings?.title,
+      cellContent: { query: binding.field },
+    });
+  };
+
+  const handleBindingChange = (
+    dataModelBindings: IDataModelBindingsKeyValueExplicit,
+    dataModelBindingKey: string,
+  ) => {
+    const { field } = dataModelBindings[dataModelBindingKey];
+    const updatedTableColumn = {
+      ...tableColumn,
+      cellContent: { query: field },
+    };
+    onChange(updatedTableColumn);
+  };
+
+  const subformDefaultDataModel = getDefaultDataModel(layoutSets, subformLayout);
+  const availableComponents = getComponentsForSubformTable(formLayouts, subformDefaultDataModel);
+  const isSaveButtonDisabled = !tableColumn.headerContent || !tableColumn.cellContent?.query;
+
+  const component = availableComponents.find((comp) => comp.id === selectedComponentId);
+  const dataModelBindingKeys = Object.keys(component?.dataModelBindings ?? {});
+  const hasMultipleDataModelBindings = dataModelBindingKeys.length > 1;
+  const isTableColumnDefined = tableColumn.headerContent || tableColumn.cellContent?.query;
+
+  return (
+    <StudioCard className={classes.wrapper}>
+      <EditColumnElementHeader columnNumber={columnNumber} />
+      <EditColumnElementComponentSelect
+        components={availableComponents}
+        onSelectComponent={selectComponent}
+        selectedId={selectedComponentId}
+      />
+      {hasMultipleDataModelBindings && (
+        <DataModelBindingsCombobox
+          componentType={component?.type}
+          dataModelBindings={component?.dataModelBindings}
+          onDataModelBindingChange={(dataModelBindingKey: string) =>
+            handleBindingChange(component?.dataModelBindings, dataModelBindingKey)
+          }
+          initialDataModelBindingKey={dataModelBindingKeys[0]}
+        />
+      )}
+      {isTableColumnDefined && (
+        <EditColumnElementContent
+          subformLayout={subformLayout}
+          tableColumn={tableColumn}
+          onChange={onChange}
+        />
+      )}
+      <div className={classes.buttons}>
+        <StudioActionCloseButton
+          data-size='sm'
+          onClick={onClose}
+          title={t('general.save')}
+          disabled={isSaveButtonDisabled}
+        />
+        <StudioDeleteButton data-size='sm' title={t('general.delete')} onDelete={onDeleteColumn} />
+      </div>
+    </StudioCard>
+  );
+};
+
+type EditColumnElementHeaderProps = {
+  columnNumber: number;
+};
+const EditColumnElementHeader = ({ columnNumber }: EditColumnElementHeaderProps) => {
+  const { t } = useTranslation();
+  return (
+    <>
+      <StudioHeading data-size='2xs' className={classes.header}>
+        {t('ux_editor.properties_panel.subform_table_columns.column_header', { columnNumber })}
+      </StudioHeading>
+      <StudioDivider className={classes.divider} color='subtle' />
+    </>
+  );
+};
+
+export type EditColumnElementComponentSelectProps = {
+  components: FormItem[];
+  onSelectComponent: (value: string) => void;
+  selectedId?: string;
+};
+export const EditColumnElementComponentSelect = ({
+  components,
+  onSelectComponent,
+  selectedId,
+}: EditColumnElementComponentSelectProps) => {
+  const { t } = useTranslation();
+
+  const handleSelectedChange = (item: StudioSuggestionItem) => {
+    onSelectComponent(item.value);
+  };
+
+  const selectedItem: StudioSuggestionItem = selectedId
+    ? { value: selectedId, label: selectedId }
+    : undefined;
+
+  return (
+    <StudioSuggestion
+      label={t('ux_editor.properties_panel.subform_table_columns.choose_component')}
+      description={t(
+        'ux_editor.properties_panel.subform_table_columns.choose_component_description',
+      )}
+      emptyText={t(
+        'ux_editor.properties_panel.subform_table_columns.no_components_available_message',
+      )}
+      filter={() => true}
+      selected={selectedItem}
+      onSelectedChange={handleSelectedChange}
+      id='columncomponentselect'
+    >
+      {components.map((comp: FormItem) => (
+        <StudioSuggestion.Option key={comp.id} value={comp.id}>
+          <div>
+            <div>{comp.id}</div>
+            <div className={classes.optionDescription}>{comp.type}</div>
+          </div>
+        </StudioSuggestion.Option>
+      ))}
+    </StudioSuggestion>
+  );
+};

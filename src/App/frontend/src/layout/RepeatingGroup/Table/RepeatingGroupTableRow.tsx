@@ -1,17 +1,15 @@
 import React, { useLayoutEffect } from 'react';
 import type { JSX } from 'react';
 
+import { Button, Flex } from '@app/form-component';
 import { Table } from '@digdir/designsystemet-react';
 import { PencilIcon, TrashIcon, XMarkOctagonFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { Button } from 'src/app-components/Button/Button';
-import { Flex } from 'src/app-components/Flex/Flex';
-import { translationKey } from 'src/AppComponentsBridge';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import { useDisplayData, useDisplayDataFor } from 'src/features/displayData/useDisplayData';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
@@ -44,6 +42,7 @@ export interface IRepeatingGroupTableRowProps {
   mobileView: boolean;
   displayEditColumn: boolean;
   displayDeleteColumn: boolean;
+  useVerticalButtonLayout: boolean;
   hiddenColumns: string[];
 }
 
@@ -85,6 +84,7 @@ export function RepeatingGroupTableRow({
   mobileView,
   displayEditColumn,
   displayDeleteColumn,
+  useVerticalButtonLayout,
   hiddenColumns,
 }: IRepeatingGroupTableRowProps): JSX.Element | null {
   const mobileViewSmall = useIsMobile();
@@ -104,7 +104,7 @@ export function RepeatingGroupTableRow({
 
   const alertOnDelete = useAlertOnChange(Boolean(editForRow?.alertOnDelete), deleteRow);
 
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const rawTableIds = useTableComponentIds(baseComponentId);
   const tableItems = rawTableIds
     .filter((id) => !hiddenColumns.includes(id))
@@ -125,12 +125,7 @@ export function RepeatingGroupTableRow({
 
   return (
     <Table.Row
-      className={cn(
-        {
-          [classes.tableRowError]: rowHasErrors,
-        },
-        className,
-      )}
+      className={cn({ [classes.tableRowError]: rowHasErrors }, className)}
       data-row-num={index}
       data-row-uuid={uuid}
     >
@@ -206,57 +201,102 @@ export function RepeatingGroupTableRow({
         </Table.Cell>
       )}
       {!mobileView ? (
-        <>
-          {editForRow?.editButton === false &&
-          editForRow?.deleteButton === false &&
-          (displayEditColumn || displayDeleteColumn) ? (
-            <Table.Cell
-              key={`editDelete-${uuid}`}
-              colSpan={displayEditColumn && displayDeleteColumn ? 2 : 1}
-            />
-          ) : null}
-          {editForRow?.editButton !== false && displayEditColumn && (
-            <Table.Cell
-              key={`edit-${uuid}`}
-              className={classes.buttonCell}
-              colSpan={displayDeleteColumn && editForRow?.deleteButton === false ? 2 : 1}
-            >
-              <div className={classes.buttonInCellWrapper}>
-                <EditElement
-                  mobileViewSmall={false}
-                  ariaExpanded={isEditingRow}
-                  indexedId={indexedId}
-                  uuid={uuid}
-                  onClick={() => toggleEditing({ index, uuid })}
-                  editButtonText={editButtonText}
-                  rowHasErrors={rowHasErrors}
-                  compactButtons={compactButtons}
-                />
-              </div>
-            </Table.Cell>
-          )}
-          {editForRow?.deleteButton !== false && displayDeleteColumn && (
-            <Table.Cell
-              key={`delete-${uuid}`}
-              className={cn(classes.buttonCell)}
-              colSpan={displayEditColumn && editForRow?.editButton === false ? 2 : 1}
-            >
-              <div className={classes.buttonInCellWrapper}>
-                <DeleteElement
-                  index={index}
-                  uuid={uuid}
-                  isDeletingRow={isDeletingRow}
-                  editForRow={editForRow}
-                  deleteButtonText={deleteButtonText}
-                  alertOnDeleteProps={alertOnDelete}
-                  langAsString={langAsString}
+        useVerticalButtonLayout ? (
+          <>
+            {editForRow?.editButton === false &&
+            editForRow?.deleteButton === false &&
+            (displayEditColumn || displayDeleteColumn) ? (
+              <Table.Cell key={`editDelete-${uuid}`} />
+            ) : null}
+            {(editForRow?.editButton !== false || editForRow?.deleteButton !== false) &&
+              (displayEditColumn || displayDeleteColumn) && (
+                <Table.Cell
+                  key={`actions-${uuid}`}
+                  className={classes.buttonCell}
                 >
-                  {compactButtons ? (isEditingRow ? deleteButtonText : null) : deleteButtonText}
-                </DeleteElement>
-              </div>
-            </Table.Cell>
-          )}
-        </>
+                  <div className={classes.buttonInCellWrapper}>
+                    {editForRow?.editButton !== false && displayEditColumn && (
+                      <EditElement
+                        mobileViewSmall={false}
+                        ariaExpanded={isEditingRow}
+                        indexedId={indexedId}
+                        uuid={uuid}
+                        onClick={() => toggleEditing({ index, uuid })}
+                        editButtonText={editButtonText}
+                        rowHasErrors={rowHasErrors}
+                        compactButtons={compactButtons}
+                      />
+                    )}
+                    {editForRow?.deleteButton !== false && displayDeleteColumn && (
+                      <DeleteElement
+                        index={index}
+                        uuid={uuid}
+                        isDeletingRow={isDeletingRow}
+                        editForRow={editForRow}
+                        deleteButtonText={deleteButtonText}
+                        alertOnDeleteProps={alertOnDelete}
+                        langAsString={langAsString}
+                      >
+                        {compactButtons ? (isEditingRow ? deleteButtonText : null) : deleteButtonText}
+                      </DeleteElement>
+                    )}
+                  </div>
+                </Table.Cell>
+              )}
+          </>
+        ) : (
+          <>
+            {editForRow?.editButton === false &&
+            editForRow?.deleteButton === false &&
+            (displayEditColumn || displayDeleteColumn) ? (
+              <Table.Cell
+                key={`editDelete-${uuid}`}
+                colSpan={displayEditColumn && displayDeleteColumn ? 2 : 1}
+              />
+            ) : null}
+            {editForRow?.editButton !== false && displayEditColumn && (
+              <Table.Cell
+                key={`edit-${uuid}`}
+                className={classes.buttonCell}
+                colSpan={displayDeleteColumn && editForRow?.deleteButton === false ? 2 : 1}
+              >
+                <div className={classes.buttonInCellWrapper}>
+                  <EditElement
+                    mobileViewSmall={false}
+                    ariaExpanded={isEditingRow}
+                    indexedId={indexedId}
+                    uuid={uuid}
+                    onClick={() => toggleEditing({ index, uuid })}
+                    editButtonText={editButtonText}
+                    rowHasErrors={rowHasErrors}
+                    compactButtons={compactButtons}
+                  />
+                </div>
+              </Table.Cell>
+            )}
+            {editForRow?.deleteButton !== false && displayDeleteColumn && (
+              <Table.Cell
+                key={`delete-${uuid}`}
+                className={cn(classes.buttonCell)}
+                colSpan={displayEditColumn && editForRow?.editButton === false ? 2 : 1}
+              >
+                <div className={classes.buttonInCellWrapper}>
+                  <DeleteElement
+                    index={index}
+                    uuid={uuid}
+                    isDeletingRow={isDeletingRow}
+                    editForRow={editForRow}
+                    deleteButtonText={deleteButtonText}
+                    alertOnDeleteProps={alertOnDelete}
+                    langAsString={langAsString}
+                  >
+                    {compactButtons ? (isEditingRow ? deleteButtonText : null) : deleteButtonText}
+                  </DeleteElement>
+                </div>
+              </Table.Cell>
+            )}
+          </>
+        )
       ) : (
         <Table.Cell
           className={cn(classes.buttonCell, classes.mobileTableCell)}
@@ -344,9 +384,9 @@ function EditElement({
       aria-controls={ariaExpanded ? `group-edit-container-${indexedId}-${uuid}` : undefined}
       variant='tertiary'
       color='second'
-      icon={!ariaExpanded && mobileViewSmall}
+      icon={!ariaExpanded && (compactButtons || mobileViewSmall)}
       onClick={onClick}
-      aria-label={translationKey(ariaLabel)}
+      aria-label={ariaLabel}
       className={classes.tableButton}
     >
       {showText && editButtonText}
@@ -410,7 +450,7 @@ function DeleteElement({
         popoverTarget={`delete-warning-popover-${uuid}`}
         disabled={isDeletingRow || disabled}
         onClick={() => handleDelete({ index, uuid })}
-        aria-label={translationKey(ariaLabel)}
+        aria-label={ariaLabel}
         icon={!children}
         className={classes.tableButton}
       >
@@ -514,7 +554,7 @@ function FindDeepValidations({
   columnSettings: CompRepeatingGroupExternal['tableColumns'];
 }) {
   const baseComponentId = useRepeatingGroupComponentId();
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const rawTableIds = useTableComponentIds(baseComponentId);
   const tableItems = rawTableIds.map((baseId) => ({
     baseId,

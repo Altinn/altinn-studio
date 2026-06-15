@@ -1,13 +1,13 @@
 import { Children, isValidElement, useCallback, useMemo } from 'react';
 import type { JSX, ReactNode } from 'react';
 
+import { type FixedLanguageList, getLanguageFromCode, replaceParameters, type ValidLanguageKey } from '@app/language';
+
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { DataModelReaders } from 'src/features/formData/FormDataReaders';
 import { Lang } from 'src/features/language/Lang';
 import { useLangToolsDataSources } from 'src/features/language/useLangToolsDataSources';
-import { type FixedLanguageList, getLanguageFromCode } from 'src/language/languages';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
 import { getKeyWithoutIndexIndicators } from 'src/utils/databindings';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
@@ -15,7 +15,6 @@ import { smartLowerCaseFirst } from 'src/utils/formComponentUtils';
 import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
 import type { DataModelReader, useDataModelReaders } from 'src/features/formData/FormDataReaders';
 import type { TextResourceMap } from 'src/features/language/textResources';
-import type { LimitedTextResourceVariablesDataSources } from 'src/features/language/useLangToolsDataSources';
 import type { FormDataSelector } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { LooseAutocomplete } from 'src/types';
@@ -63,18 +62,19 @@ export interface IUseLanguage {
   elementAsString(element: ReactNode): string;
 }
 
-export interface TextResourceVariablesDataSources {
+export interface BaseTextResourceVariablesDataSources {
   applicationSettings: IApplicationSettings | null;
   instanceDataSources: IInstanceDataSources | null;
   customTextParameters: Record<string, string> | null;
   dataModelPath?: IDataModelReference;
   dataModels: ReturnType<typeof useDataModelReaders>;
+}
+
+export interface TextResourceVariablesDataSources extends BaseTextResourceVariablesDataSources {
   defaultDataType: string | undefined | typeof ContextNotProvided;
   formDataTypes: string[] | typeof ContextNotProvided;
   formDataSelector: FormDataSelector | typeof ContextNotProvided;
 }
-
-export type ValidLanguageKey = keyof FixedLanguageList;
 
 /**
  * Hook to resolve a key to a language string or React element (if the key is found and contains markdown or HTML).
@@ -91,15 +91,15 @@ export function useLanguage() {
 
 export function useLanguageWithForcedPath(dataModelPath: IDataModelReference | undefined) {
   const sources = useLangToolsDataSources();
-  const defaultDataType = FormBootstrap.useLaxDefaultDataType();
-  const formDataTypes = FormBootstrap.useLaxReadableDataTypes();
+  const defaultDataType = FormStore.bootstrap.useLaxDefaultDataType();
+  const formDataTypes = FormStore.bootstrap.useLaxReadableDataTypes();
   const formDataSelector = FormStore.data.useLaxDebouncedSelector();
 
   return useMemo(() => {
     const { textResources, language, selectedLanguage, ...dataSources } = sources;
 
     return staticUseLanguage(textResources, language, selectedLanguage, {
-      ...(dataSources as LimitedTextResourceVariablesDataSources),
+      ...dataSources,
       dataModelPath,
       defaultDataType,
       formDataTypes,
@@ -417,29 +417,6 @@ function tryReadFromDataModel(
   }
   return formDataSelector({ dataType: dataModelName, field: path });
 }
-
-const replaceParameters = (nameString: string, params: SimpleLangParam[]) => {
-  if (nameString === undefined) {
-    return nameString;
-  }
-
-  let mutatingString = nameString;
-  for (const index in params) {
-    const param = params[index];
-    let paramAsString: string | undefined;
-    if (typeof param === 'string') {
-      paramAsString = param;
-    } else if (typeof param === 'number') {
-      paramAsString = param.toString();
-    }
-
-    if (paramAsString !== undefined) {
-      mutatingString = mutatingString.replaceAll(`{${index}}`, paramAsString);
-    }
-  }
-
-  return mutatingString;
-};
 
 function isTextReference(obj: unknown): obj is TextReference {
   return (

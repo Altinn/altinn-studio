@@ -26,9 +26,10 @@ Windows (PowerShell):
 iwr https://altinn.studio/designer/api/v1/studioctl/install.ps1 -useb | iex
 ```
 
-The install flow also installs `app-manager` and localtest resources by default.
+The install flow also installs `studioctl-server` and localtest resources by default.
 If no terminal prompt is available, the installer uses the recommended writable user location.
-It stops running apps and localtest before replacement, and restarts `app-manager` if it was running.
+It stops running apps, localtest, and `studioctl-server` before replacement.
+`studioctl-server` starts later when a command needs it.
 
 Pin to a specific version:
 
@@ -46,15 +47,24 @@ studioctl env up
 studioctl app run
 ```
 
-`studioctl auth login` uses a PAT with `read:user` and `repo` scopes.
+`studioctl auth login` opens Designer for Ansattporten login and stores a Designer API key locally.
+For agents and automations, pass an existing Studio/Designer API key on standard input:
+
+```sh
+studioctl auth login --env dev --with-token < token.txt
+```
+
 `studioctl app run` wraps `dotnet run --project <app>/App` and auto-detects the app directory.
 `studioctl run` is a short alias for the same operation.
+`studioctl app env --json` prints the local harness environment used by v9 app startup when running from an IDE.
 
 ## Core commands
 
-- `studioctl auth login`: login with PAT for `prod`, `dev`, or `staging`
+- `studioctl auth login`: login with Ansattporten or `--with-token` for `prod`, `dev`, `staging`, or `local`
+- `studioctl apps search`: search app repositories in Altinn Studio
 - `studioctl app clone`: clone `org/repo` from the selected Altinn Studio environment
 - `studioctl app run`: run app locally
+- `studioctl app env`: print local app harness environment as KEY=value text (`--json` for JSON output)
 - `studioctl env up`: start localtest
 - `studioctl env down`: stop localtest
 - `studioctl env status`: show runtime/container status
@@ -69,7 +79,7 @@ cd src/cli
 make user-install
 ```
 
-That installs `studioctl`, `app-manager`, and localtest resources into your user setup.
+That installs `studioctl`, `studioctl-server`, and localtest resources into your user setup.
 It uses the same upgrade-safe flow as the release install scripts.
 
 Development loop:

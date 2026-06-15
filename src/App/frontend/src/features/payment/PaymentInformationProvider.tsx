@@ -6,6 +6,7 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
+import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useIsPayment } from 'src/features/payment/utils';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
@@ -15,13 +16,16 @@ export function usePaymentInformationQueryDef(
   enabled: boolean,
   instanceId?: string,
 ): QueryDefinition<PaymentResponsePayload> {
-  const { fetchPaymentInformation } = useAppQueries();
+  const { fetchPaymentInformationForTask } = useAppQueries();
+  const { data: process } = useProcessQuery();
+  const taskId = process?.currentTask?.elementId;
+
   const selectedLanguage = useCurrentLanguage();
+
   return {
-    queryKey: ['fetchPaymentInfo'],
-    queryFn: instanceId ? () => fetchPaymentInformation(instanceId, selectedLanguage) : skipToken,
+    queryKey: ['fetchPaymentInfoForTask', instanceId, selectedLanguage],
+    queryFn: instanceId ? () => fetchPaymentInformationForTask(instanceId, selectedLanguage, taskId) : skipToken,
     enabled: enabled && !!instanceId,
-    gcTime: 0,
   };
 }
 

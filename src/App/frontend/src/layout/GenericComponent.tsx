@@ -2,11 +2,10 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router';
 import type { SetURLSearchParams } from 'react-router';
 
+import { FatalError, FatalErrorEmpty, Flex } from '@app/form-component';
 import classNames from 'classnames';
 
-import { FatalError } from 'src/app-components/error/FatalError/FatalError';
-import { FatalErrorEmpty } from 'src/app-components/error/FatalErrorEmpty/FatalErrorEmpty';
-import { Flex } from 'src/app-components/Flex/Flex';
+import { AppLanguageTranslatorProvider } from 'src/AppLanguageTranslatorProvider';
 import { SearchParams } from 'src/core/routing/types';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
@@ -150,10 +149,12 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
   if (overrideDisplay?.directRender || layoutComponent.directRender()) {
     return (
       <FormComponentContextProvider value={formComponentContext}>
-        <RenderComponent
-          {...componentProps}
-          ref={containerDivRef}
-        />
+        <AppLanguageTranslatorProvider>
+          <RenderComponent
+            {...componentProps}
+            ref={containerDivRef}
+          />
+        </AppLanguageTranslatorProvider>
       </FormComponentContextProvider>
     );
   }
@@ -171,7 +172,9 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
         key={`grid-${nodeId}`}
         className={classNames(classes.container, gridToClasses(grid?.labelGrid, classes), pageBreakStyles(pageBreak))}
       >
-        <RenderComponent {...componentProps} />
+        <AppLanguageTranslatorProvider>
+          <RenderComponent {...componentProps} />
+        </AppLanguageTranslatorProvider>
       </Flex>
     </FormComponentContextProvider>
   );
@@ -268,19 +271,44 @@ function cleanupQuery(searchParams: URLSearchParams, setSearchParams: SetURLSear
   }
 }
 
-function findElementToFocus(div: HTMLDivElement | null, binding: string | null) {
-  const targetElements = div?.querySelectorAll('input,textarea,select,p');
-  const targetHtmlElements = targetElements
-    ? Array.from(targetElements).filter((node) => node instanceof HTMLElement)
-    : [];
-
-  if (targetHtmlElements?.length > 0) {
-    const elementWithBinding = binding
-      ? Array.from(targetHtmlElements).find((htmlElement) => htmlElement?.dataset.bindingkey === binding)
-      : undefined;
-
-    return elementWithBinding ?? targetHtmlElements[0];
+export function findElementToFocus(div: HTMLDivElement | null, binding: string | null) {
+  if (!div) {
+    return undefined;
   }
 
-  return undefined;
+  const targetElements = Array.from(
+    div.querySelectorAll<HTMLElement>(
+      ['input', 'textarea', 'select', 'button', '[tabindex]:not([tabindex="-1"])', '[contenteditable="true"]'].join(
+        ',',
+      ),
+    ),
+  );
+
+  if (targetElements.length === 0) {
+    return undefined;
+  }
+
+  const hasBinding = binding !== null;
+
+  if (hasBinding) {
+    const matchesBinding = (element: HTMLElement) => element.dataset.bindingkey === binding;
+    const bindingInput = targetElements.find(
+      (element) => matchesBinding(element) && element.matches('input,textarea,select'),
+    );
+    if (bindingInput) {
+      return bindingInput;
+    }
+
+    const anyBinding = targetElements.find(matchesBinding);
+    if (anyBinding) {
+      return anyBinding;
+    }
+  }
+
+  const firstInputLike = targetElements.find((element) => element.matches('input,textarea,select'));
+  if (firstInputLike) {
+    return firstInputLike;
+  }
+
+  return targetElements[0];
 }

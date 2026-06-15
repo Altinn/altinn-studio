@@ -25,10 +25,13 @@ public sealed class EngineApiClient : IDisposable
         _client = handlers.Length > 0 ? fixture.CreateEngineClient(handlers) : fixture.CreateEngineClient();
     }
 
-    public static string DefaultNamespace => $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}";
+    public static string DefaultNamespace => $"{EngineAppFixture.DefaultOrg}-{EngineAppFixture.DefaultApp}";
 
     private string GetBasePath(string? ns = null) =>
         $"/api/v1/{Uri.EscapeDataString(ns ?? _defaultNamespace)}/workflows";
+
+    private string GetCollectionsBasePath(string? ns = null) =>
+        $"/api/v1/{Uri.EscapeDataString(ns ?? _defaultNamespace)}/collections";
 
     /// <summary>
     /// Enqueues a batch and asserts a 2xx response. Throws on failure.
@@ -148,15 +151,15 @@ public sealed class EngineApiClient : IDisposable
     /// <summary>
     /// Gets a workflow status and returns the raw <see cref="HttpResponseMessage"/>.
     /// </summary>
-    public Task<HttpResponseMessage> GetWorkflowRaw(Guid workflowId) =>
-        _client.GetAsync($"{GetBasePath()}/{workflowId}", CancellationToken.None);
+    public Task<HttpResponseMessage> GetWorkflowRaw(Guid workflowId, string? ns = null) =>
+        _client.GetAsync($"{GetBasePath(ns)}/{workflowId}", CancellationToken.None);
 
     /// <summary>
     /// Gets a workflow status and returns either a parsed result or <c>null</c> on 404.
     /// </summary>
-    public async Task<WorkflowStatusResponse?> GetWorkflow(Guid workflowId)
+    public async Task<WorkflowStatusResponse?> GetWorkflow(Guid workflowId, string? ns = null)
     {
-        using var response = await GetWorkflowRaw(workflowId);
+        using var response = await GetWorkflowRaw(workflowId, ns);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
             return null;
@@ -172,6 +175,35 @@ public sealed class EngineApiClient : IDisposable
         }
 
         return await AssertSuccessAndDeserialize<WorkflowStatusResponse>(response);
+    }
+
+    /// <summary>
+    /// Gets a workflow dependency graph and returns the raw <see cref="HttpResponseMessage"/>.
+    /// </summary>
+    public Task<HttpResponseMessage> GetWorkflowDependencyGraphRaw(Guid workflowId, string? ns = null) =>
+        _client.GetAsync($"{GetBasePath(ns)}/{workflowId}/dependency-graph", CancellationToken.None);
+
+    /// <summary>
+    /// Gets a workflow dependency graph and returns either a parsed result or <c>null</c> on 404.
+    /// </summary>
+    public async Task<WorkflowDependencyGraphResponse?> GetWorkflowDependencyGraph(Guid workflowId, string? ns = null)
+    {
+        using var response = await GetWorkflowDependencyGraphRaw(workflowId, ns);
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+            return null;
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException(
+                $"GetWorkflowDependencyGraph returned {(int)response.StatusCode} {response.StatusCode}: {body}",
+                inner: null,
+                statusCode: response.StatusCode
+            );
+        }
+
+        return await AssertSuccessAndDeserialize<WorkflowDependencyGraphResponse>(response);
     }
 
     /// <summary>
@@ -205,11 +237,19 @@ public sealed class EngineApiClient : IDisposable
     }
 
     /// <summary>
-    /// Lists active workflows with cursor-based pagination. Returns the full paginated response or an empty one on 204 No Content.
+    /// Issues a raw GET to the workflows list endpoint with the supplied query string
+    /// (e.g. <c>"?status=failed"</c>). Used to exercise binding/validation directly.
     /// </summary>
-    public async Task<PaginatedResponse<WorkflowStatusResponse>> ListActiveWorkflowsPaginated(
+    public Task<HttpResponseMessage> ListWorkflowsRaw(string queryString = "", string? ns = null) =>
+        _client.GetAsync($"{GetBasePath(ns)}{queryString}", CancellationToken.None);
+
+    /// <summary>
+    /// Lists workflows with cursor-based pagination. Returns the full paginated response or an empty one on 204 No Content.
+    /// </summary>
+    public async Task<PaginatedResponse<WorkflowStatusResponse>> ListWorkflowsPaginated(
         Guid? cursor = null,
         int? pageSize = null,
+        IReadOnlyList<PersistentItemStatus>? statuses = null,
         string? ns = null
     )
     {
@@ -218,6 +258,11 @@ public sealed class EngineApiClient : IDisposable
             qs.Add($"cursor={cursor.Value}");
         if (pageSize.HasValue)
             qs.Add($"pageSize={pageSize.Value}");
+        if (statuses is not null)
+        {
+            foreach (var status in statuses)
+                qs.Add($"status={status}");
+        }
 
         var path = qs.Count > 0 ? $"{GetBasePath(ns)}?{string.Join("&", qs)}" : GetBasePath(ns);
         using var response = await _client.GetAsync(path);
@@ -234,17 +279,20 @@ public sealed class EngineApiClient : IDisposable
     }
 
     /// <summary>
-    /// Lists all active workflows by iterating through every page using cursor-based pagination.
-    /// Convenience wrapper around <see cref="ListActiveWorkflowsPaginated"/> that returns the full dataset.
+    /// Lists all workflows by iterating through every page using cursor-based pagination.
+    /// Convenience wrapper around <see cref="ListWorkflowsPaginated"/> that returns the full dataset.
     /// </summary>
-    public async Task<List<WorkflowStatusResponse>> ListActiveWorkflows(string? ns = null)
+    public async Task<List<WorkflowStatusResponse>> ListWorkflows(
+        IReadOnlyList<PersistentItemStatus>? statuses = null,
+        string? ns = null
+    )
     {
         var all = new List<WorkflowStatusResponse>();
         Guid? cursor = null;
 
         while (true)
         {
-            var result = await ListActiveWorkflowsPaginated(cursor: cursor, ns: ns);
+            var result = await ListWorkflowsPaginated(cursor: cursor, statuses: statuses, ns: ns);
             all.AddRange(result.Data);
 
             if (result.NextCursor is null)
@@ -253,6 +301,40 @@ public sealed class EngineApiClient : IDisposable
             cursor = result.NextCursor;
         }
     }
+
+    public Task<PaginatedResponse<WorkflowStatusResponse>> ListActiveWorkflowsPaginated(
+        Guid? cursor = null,
+        int? pageSize = null,
+        string? ns = null
+    ) =>
+        ListWorkflowsPaginated(
+            cursor,
+            pageSize,
+            [PersistentItemStatus.Enqueued, PersistentItemStatus.Processing, PersistentItemStatus.Requeued],
+            ns
+        );
+
+    public Task<List<WorkflowStatusResponse>> ListActiveWorkflows(string? ns = null) =>
+        ListWorkflows(
+            [PersistentItemStatus.Enqueued, PersistentItemStatus.Processing, PersistentItemStatus.Requeued],
+            ns
+        );
+
+    /// <summary>
+    /// Lists all workflow collections in the namespace. Returns an empty list on 204 No Content.
+    /// </summary>
+    public async Task<IReadOnlyList<WorkflowCollectionResponse>> ListCollections(string? ns = null)
+    {
+        using var response = await _client.GetAsync(GetCollectionsBasePath(ns));
+
+        if (response.StatusCode == HttpStatusCode.NoContent)
+            return [];
+
+        return await AssertSuccessAndDeserialize<List<WorkflowCollectionResponse>>(response);
+    }
+
+    public Task<HttpResponseMessage> ListCollectionsRaw(string? ns = null) =>
+        _client.GetAsync(GetCollectionsBasePath(ns), CancellationToken.None);
 
     /// <summary>
     /// Polls <see cref="GetWorkflow(Guid)"/> every 100 ms until the workflow reaches

@@ -1,11 +1,10 @@
 import React from 'react';
 import { useParams } from 'react-router';
 
+import { AppTable } from '@app/form-component';
 import { Link } from '@digdir/designsystemet-react';
 import { DownloadIcon } from '@navikt/aksel-icons';
 
-import { AppTable } from 'src/app-components/Table/Table';
-import { translationKey } from 'src/AppComponentsBridge';
 import { Caption } from 'src/components/form/caption/Caption';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -23,7 +22,6 @@ export function SigningDocumentListComponent({
 }) {
   const { instanceOwnerPartyId, instanceGuid } = useParams();
   const { langAsString } = useLanguage();
-
   const { data, isLoading, error } = useDocumentList(instanceOwnerPartyId, instanceGuid);
 
   if (error) {
@@ -37,7 +35,7 @@ export function SigningDocumentListComponent({
       headerClassName={classes.header}
       tableClassName={classes.table}
       data={data ?? []}
-      emptyText={translationKey('general.empty_table')}
+      emptyText={langAsString('general.empty_table')}
       caption={
         textResourceBindings?.title ? (
           <Caption
@@ -50,7 +48,7 @@ export function SigningDocumentListComponent({
       }
       columns={[
         {
-          header: translationKey('signing_document_list.header_filename'),
+          header: langAsString('signing_document_list.header_filename'),
           accessors: [],
           renderCell: (_, rowData) => (
             <Link
@@ -66,18 +64,18 @@ export function SigningDocumentListComponent({
           ),
         },
         {
-          header: translationKey('signing_document_list.header_attachment_type'),
+          header: langAsString('signing_document_list.header_attachment_type'),
           accessors: [],
           renderCell: (_, rowData) => rowData.attachmentTypes.map((it) => langAsString(it)).join(', '),
         },
         {
-          header: translationKey('signing_document_list.header_size'),
+          header: langAsString('signing_document_list.header_size'),
           accessors: [],
           renderCell: (_, rowData) => getSizeWithUnit(rowData.size),
         },
         {
           header: null,
-          ariaLabel: translationKey('signing_document_list.download'),
+          ariaLabel: langAsString('signing_document_list.download'),
           accessors: [],
           renderCell: (_, rowData) => (
             <Link

@@ -8,7 +8,6 @@ import { useIsStateless } from 'src/features/applicationMetadata';
 import { FormStore } from 'src/features/form/FormContext';
 import { usePageSettings, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { getUiConfig } from 'src/features/form/ui';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import {
   preventFocusAndScrollResetOptions,
@@ -219,6 +218,8 @@ export function useNavigatePage() {
     await waitForSave(autoSaveBehavior === 'onChangePage');
   }, [autoSaveBehavior, waitForSave]);
 
+  const [_, setVisitedPages] = useVisitedPages();
+
   const navigateToPage = useCallback(
     async (page?: string, options?: NavigateToPageOptions) => {
       const preventScrollReset = options?.searchParams?.has(SearchParams.FocusComponentId);
@@ -243,6 +244,14 @@ export function useNavigatePage() {
         await refetchInitialValidations();
       }
 
+      setVisitedPages((visitedPages) => {
+        const currentPage = navParams.current.pageKey;
+        if (!currentPage || visitedPages.includes(currentPage)) {
+          return visitedPages;
+        }
+        return [...visitedPages, currentPage];
+      });
+
       const searchParams = options?.searchParams ? `?${options.searchParams.toString()}` : '';
       if (isStateless) {
         const url = `/${page}${searchParams}`;
@@ -260,10 +269,9 @@ export function useNavigatePage() {
       const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page}${searchParams}`;
       navigate(url, options, navOptions);
     },
-    [orderRef, isStateless, navParams, navigate, maybeSaveOnPageChange, refetchInitialValidations],
+    [orderRef, isStateless, navParams, navigate, maybeSaveOnPageChange, refetchInitialValidations, setVisitedPages],
   );
 
-  const [_, setVisitedPages] = useVisitedPages();
   /**
    * This function fetch the next page index on function
    * invocation and then navigates to the next page. This is
@@ -278,20 +286,9 @@ export function useNavigatePage() {
         return;
       }
 
-      setVisitedPages((prev) => {
-        const visitedPages = [...prev];
-        if (currentPage && !prev.includes(currentPage)) {
-          visitedPages.push(currentPage);
-        }
-        if (!prev.includes(nextPage)) {
-          visitedPages.push(nextPage);
-        }
-        return visitedPages;
-      });
-
       await navigateToPage(nextPage, options);
     },
-    [navParams, navigateToPage, orderRef, setVisitedPages],
+    [navParams, navigateToPage, orderRef],
   );
 
   /**
@@ -378,7 +375,7 @@ export function useVisitedPages() {
 const emptyArray = [];
 
 export function useNavigateToComponent() {
-  const layoutLookups = FormBootstrap.useLayoutLookups();
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const { navigateToPage } = useNavigatePage();
   const currentPageId = useCurrentView();
   const [searchParams, setSearchParams] = useSearchParams();

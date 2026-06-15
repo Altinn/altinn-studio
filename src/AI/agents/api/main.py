@@ -20,7 +20,12 @@ from shared.config import get_config
 
 # Get configuration
 config = get_config()
-from api.routes import agent_router, metrics_router, register_websocket_routes
+from api.routes import (
+    agent_router,
+    feedback_router,
+    metrics_router,
+    register_websocket_routes,
+)
 
 # Configure logging
 logging.basicConfig(level=getattr(logging, config.LOG_LEVEL), format=config.LOG_FORMAT)
@@ -111,6 +116,7 @@ app.add_middleware(
 register_websocket_routes(app)
 app.include_router(agent_router)
 app.include_router(metrics_router)
+app.include_router(feedback_router)
 
 
 @app.get("/favicon.ico")

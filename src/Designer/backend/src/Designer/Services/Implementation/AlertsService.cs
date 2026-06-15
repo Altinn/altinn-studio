@@ -1,27 +1,22 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Hubs.AlertsUpdate;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Alerts;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
-using Altinn.Studio.Designer.TypedHttpClients.Slack;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
 internal sealed class AlertsService(
     IRuntimeGatewayClient runtimeGatewayClient,
     IHubContext<AlertsUpdatedHub, IAlertsUpdateClient> alertsUpdatedHubContext,
-    ISlackClient slackClient,
-    AlertsSettings alertsSettings,
-    GeneralSettings generalSettings,
-    ILogger<AlertsService> logger
+    INotificationService notificationService,
+    IHostEnvironment hostEnvironment
 ) : IAlertsService
 {
     /// <inheritdoc />
@@ -43,73 +38,36 @@ internal sealed class AlertsService(
     )
     {
         var apps = alert
-            .Alerts.Where(alertInstance => alertInstance.Status == "firing")
-            .Select(alertInstance => alertInstance.App)
+            .Apps.Where(app => app.Instances.Any(i => i.Status == "firing"))
+            .Select(app => app.App)
             .ToList();
 
         if (apps.Count > 0)
         {
-            await SendToSlackAsync(org, environment, apps, alert.Name, alert.Url, alert.LogsUrl, cancellationToken);
+            var fields = new List<(string, string)>
+            {
+                ("Organisasjon", org),
+                ("Miljø", environment.Name),
+                (apps.Count == 1 ? "Applikasjon" : "Applikasjoner", string.Join(", ", apps)),
+            };
+            if (!hostEnvironment.IsProduction())
+            {
+                fields.Add(("Studio-miljø", hostEnvironment.EnvironmentName));
+            }
+
+            var links = new List<(string, string)>
+            {
+                (alert.Url.OriginalString, "Grafana"),
+                (alert.LogsUrl.OriginalString, "Application Insights"),
+            };
+
+            var payload = new NotificationPayload(alert.Id, alert.Name, fields, links);
+            await Task.WhenAll(
+                notificationService.NotifyInternalAsync(org, environment, payload, cancellationToken),
+                notificationService.NotifyServiceOwnersAsync(org, environment, payload, cancellationToken)
+            );
         }
 
         await alertsUpdatedHubContext.Clients.Group(org).AlertsUpdated(new AlertsUpdated(environment.Name));
-    }
-
-    private async Task SendToSlackAsync(
-        string org,
-        AltinnEnvironment environment,
-        List<string> apps,
-        string alertName,
-        Uri grafanaUrl,
-        Uri appInsightsUrl,
-        CancellationToken cancellationToken
-    )
-    {
-        string studioEnv = generalSettings.OriginEnvironment;
-        string appsFormatted = string.Join(", ", apps.Select(a => $"`{a}`"));
-        const string Emoji = ":x:";
-
-        var links = new List<SlackText>
-        {
-            new() { Type = "mrkdwn", Text = $"<{grafanaUrl}|Grafana>" },
-            new() { Type = "mrkdwn", Text = $"<{appInsightsUrl.OriginalString}|Application Insights>" },
-        };
-
-        var message = new SlackMessage
-        {
-            Text = $"{Emoji} `{org}` - `{environment.Name}` - {appsFormatted} - *{alertName}*",
-            Blocks =
-            [
-                new SlackBlock
-                {
-                    Type = "section",
-                    Text = new SlackText { Type = "mrkdwn", Text = $"{Emoji} *{alertName}*" },
-                },
-                new SlackBlock
-                {
-                    Type = "context",
-                    Elements = new List<SlackText>
-                    {
-                        new() { Type = "mrkdwn", Text = $"Org: `{org}`" },
-                        new() { Type = "mrkdwn", Text = $"Env: `{environment.Name}`" },
-                        new() { Type = "mrkdwn", Text = $"Apps: {appsFormatted}" },
-                        new() { Type = "mrkdwn", Text = $"Studio env: `{studioEnv}`" },
-                    },
-                },
-                new SlackBlock { Type = "context", Elements = links },
-            ],
-        };
-        try
-        {
-            await slackClient.SendMessageAsync(
-                alertsSettings.GetSlackWebhookUrl(environment),
-                message,
-                cancellationToken
-            );
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            logger.LogError(ex, "Failed to send Slack alert notification. Alert Name: {AlertName}", alertName);
-        }
     }
 }

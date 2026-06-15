@@ -3,14 +3,14 @@
   "isRoot": true,
   "tools": {
     "minver-cli": {
-      "version": "6.1.0",
+      "version": "7.0.0",
       "commands": [
         "minver"
       ],
       "rollForward": false
     },
     "csharpier": {
-      "version": "1.2.5",
+      "version": "1.2.6",
       "commands": [
         "csharpier"
       ],

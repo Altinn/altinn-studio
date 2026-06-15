@@ -79,6 +79,7 @@ export interface IInstance {
   status?: IInstanceStatus | null;
   title?: ITitle | null;
   visibleAfter?: string;
+  process?: IProcess;
   completeConfirmations?: unknown;
   presentationTexts?: unknown;
   dataValues?: unknown;
@@ -286,7 +287,6 @@ export interface IApplicationSettings {
 }
 
 export interface IPlatformFrontendSettings {
-  appFrontendCdnBaseUrl: string;
   altinnLogoUrl: string;
   helpCircleIllustrationUrl: string;
   postalCodesUrl: string;

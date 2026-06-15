@@ -7,7 +7,7 @@ using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Data.Entities;
 
-[Table("Steps", Schema = SchemaNames.Engine)]
+[Table("steps", Schema = SchemaNames.Engine)]
 internal sealed class StepEntity
 {
     [Key]

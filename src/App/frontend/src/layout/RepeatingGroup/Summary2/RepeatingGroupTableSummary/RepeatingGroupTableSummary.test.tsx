@@ -6,6 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
+import * as deepValidationsForNodeModule from 'src/features/validation/selectors/deepValidationsForNode';
 import * as useNavigatePageModule from 'src/hooks/useNavigatePage';
 import { RepeatingGroupProvider } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepeatingGroupTableSummary } from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/RepeatingGroupTableSummary';
@@ -19,6 +20,7 @@ interface LayoutOptions {
   hidden?: NodeId[];
   readOnly?: Record<string, ExprValToActualOrExpr<ExprVal.Boolean>>;
   editButton?: boolean;
+  withRowsBefore?: boolean;
   withRowsAfter?: boolean;
   tableHeaders?: string[];
 }
@@ -32,6 +34,7 @@ describe('RepeatingGroupTableSummary', () => {
     hidden = [],
     readOnly = {},
     editButton,
+    withRowsBefore,
     withRowsAfter,
     tableHeaders = ['input3'],
   }: LayoutOptions = {}): ILayoutCollection => ({
@@ -48,6 +51,13 @@ describe('RepeatingGroupTableSummary', () => {
             children: ['input1', 'input2', 'input3'],
             maxCount: 3,
             hidden: hidden.includes('repeating-group'),
+            ...(withRowsBefore && {
+              rowsBefore: [
+                {
+                  cells: [{ text: 'summary.before' }],
+                },
+              ],
+            }),
             ...(withRowsAfter && {
               rowsAfter: [
                 {
@@ -238,6 +248,11 @@ describe('RepeatingGroupTableSummary', () => {
     expect(screen.getByText('summary.total')).toBeInTheDocument();
   });
 
+  test('should render rowsBefore in summary table', async () => {
+    await render({ layout: createLayout({ editButton: true, withRowsBefore: true }) });
+    expect(screen.getByText('summary.before')).toBeInTheDocument();
+  });
+
   test('should handle nested child component inside group when editing', async () => {
     const user = userEvent.setup();
     const navigate = jest.fn();
@@ -302,6 +317,44 @@ describe('RepeatingGroupTableSummary', () => {
     await waitFor(() =>
       expect(navigate).toHaveBeenCalledWith('repeating-group', 'repeating-group', expect.any(Object)),
     );
+  });
+
+  test('should render row error in matching column cell', async () => {
+    jest
+      .spyOn(deepValidationsForNodeModule, 'useDeepValidationsForNode')
+      .mockImplementation((_baseComponentId, _includeSelf, restriction) =>
+        restriction === 0
+          ? ([
+              {
+                severity: 'error',
+                baseComponentId: 'input2',
+                message: { key: 'Error.for.input2' },
+              },
+            ] as never)
+          : ([] as never),
+      );
+    await render({ layout: createLayout({ tableHeaders: ['input1', 'input2', 'input3'] }) });
+    const errorMessage = screen.getByText('Error.for.input2');
+    expect(errorMessage.closest('td')).toHaveAttribute('data-header-title', 'Input 2');
+  });
+
+  test('should render unmapped row error in first visible column cell', async () => {
+    jest
+      .spyOn(deepValidationsForNodeModule, 'useDeepValidationsForNode')
+      .mockImplementation((_baseComponentId, _includeSelf, restriction) =>
+        restriction === 0
+          ? ([
+              {
+                severity: 'error',
+                baseComponentId: undefined,
+                message: { key: 'Error.unmapped' },
+              },
+            ] as never)
+          : ([] as never),
+      );
+    await render({ layout: createLayout({ tableHeaders: ['input1', 'input2', 'input3'] }) });
+    const errorMessage = screen.getByText('Error.unmapped');
+    expect(errorMessage.closest('td')).toHaveAttribute('data-header-title', 'Input 1');
   });
 
   type IRenderProps = {

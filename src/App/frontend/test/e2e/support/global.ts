@@ -2,14 +2,15 @@ import type JQuery from 'cypress/types/jquery';
 import type { RouteMatcher } from 'cypress/types/net-stubbing';
 import type { ConsoleMessage } from 'cypress-fail-on-console-error';
 
-import type { CyUser, TenorUser } from 'test/e2e/support/auth';
+import type { CyUser } from 'test/e2e/support/auth';
+import type { TenorUser } from 'test/e2e/support/users';
 
 import type { IFeatureToggles } from 'src/features/toggles';
 import type { BackendValidationIssue, BackendValidationIssuesWithSource } from 'src/features/validation';
 import type { CompExternal, ILayoutCollection, ILayouts } from 'src/layout/layout';
 
-export type FrontendTestTask = 'message' | 'changename' | 'group' | 'likert' | 'datalist' | 'confirm';
-export type FillableFrontendTasks = Exclude<FrontendTestTask, 'message' | 'confirm'>;
+export type FrontendTestTask = 'message' | 'changename' | 'group' | 'likert' | 'datalist';
+export type FillableFrontendTasks = Exclude<FrontendTestTask, 'message'>;
 
 export type StartAppInstanceOptions = {
   // User to log in as
@@ -19,11 +20,6 @@ export type StartAppInstanceOptions = {
   tenorUser?: TenorUser | null;
 
   authenticationLevel?: '0' | '1' | '2';
-
-  // JavaScript code to evaluate before starting the app instance (evaluates in the browser, in context of the app).
-  // The code runs inside an async function, and if it ends with a return value, that value will assumed to be a
-  // URL that the app page should be navigated to.
-  evaluateBefore?: string;
 
   // You can add a URL suffix if you need, for example to start a specific instance
   urlSuffix?: string;
@@ -52,7 +48,7 @@ declare global {
       /**
        * Quickly go to a certain task in the app
        */
-      goto(target: FrontendTestTask, options?: StartAppInstanceOptions): Chainable<Element>;
+      goto(target: FrontendTestTask): Chainable<Element>;
 
       /**
        * In 'ttd/frontend-test' we're using a pattern of initially hidden pages to expand with new test cases.
@@ -95,6 +91,11 @@ declare global {
       waitForLoad(): Chainable<null>;
 
       /**
+       * Intercept application metadata and prevent party selection
+       */
+      preventPartySelection(): Chainable<null>;
+
+      /**
        * Start an app instance based on the environment selected
        * @example cy.startAppInstance('appName')
        */
@@ -107,10 +108,9 @@ declare global {
       addItemToGroup(oldValue: number, newValue: number, comment: string, openByDefault?: boolean): Chainable<Element>;
 
       /**
-       * Typings for tab plugin
+       * Press the Tab key (or Shift+Tab) from the current subject or focused element.
        */
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      tab(...args: any[]): Chainable<null>;
+      tab(options?: { shift?: boolean }): Chainable<null>;
 
       /**
        * Missing typings in Cypress, added here for proper TypeScript support
@@ -165,7 +165,7 @@ declare global {
 
       iframeCustom(): Chainable<null>;
 
-      assertUser(user: CyUser): Chainable<null>;
+      assertUser(user: CyUser, tenorUser: TenorUser): Chainable<null>;
       interceptPermissions(): Chainable<null>;
       setPermissions(permissionFormat: string): void;
 

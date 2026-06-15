@@ -39,7 +39,6 @@ export function UserInput({
   }, [cancelledMessageContent, onCancelledMessageConsumed]);
 
   const hasTextContent = messageContent.trim().length > 0;
-  const canSubmit = hasTextContent || attachments.length > 0;
 
   const resetInputs = useCallback((): void => {
     setMessageContent('');
@@ -89,7 +88,7 @@ export function UserInput({
   }, []);
 
   const handleSubmit = (): void => {
-    if (!canSubmit) return;
+    if (!hasTextContent) return;
     const message: UserMessage = createUserMessage(messageContent, allowAppChanges, attachments);
     onSubmitMessage(message);
     resetInputs();
@@ -105,6 +104,7 @@ export function UserInput({
   return (
     <div className={classes.inputContainer}>
       <StudioTextarea
+        className={classes.textareaContainer}
         value={messageContent}
         onChange={(e) => setMessageContent(e.target.value)}
         onKeyDown={handleKeyDown}
@@ -121,7 +121,6 @@ export function UserInput({
                 ref={fileInputRef}
                 type='file'
                 className={classes.hiddenFileInput}
-                data-testid='user-input-file'
                 aria-label={texts.addAttachment}
               />
               <StudioButton
@@ -148,7 +147,7 @@ export function UserInput({
             {texts.cancel} <XMarkIcon />
           </StudioButton>
         ) : (
-          <StudioButton onClick={handleSubmit} disabled={!canSubmit}>
+          <StudioButton onClick={handleSubmit} disabled={!hasTextContent}>
             {texts.send} <PaperplaneFillIcon />
           </StudioButton>
         )}
