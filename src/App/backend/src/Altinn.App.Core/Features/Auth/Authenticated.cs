@@ -777,11 +777,11 @@ public abstract class Authenticated
         {
             foreach (var claim in token.Payload)
             {
-                TryAssign(claim, JwtClaims.Issuer, ref IssuerClaim);
+                TryAssign(claim, JwtClaimTypes.Issuer, ref IssuerClaim);
                 TryAssign(claim, "actual_iss", ref ActualIssuerClaim);
                 TryAssign(claim, AltinnCoreClaimTypes.AuthenticationLevel, ref AuthLevelClaim);
                 TryAssign(claim, AltinnCoreClaimTypes.AuthenticateMethod, ref AuthMethodClaim);
-                TryAssign(claim, JwtClaims.Scope, ref ScopeClaim);
+                TryAssign(claim, JwtClaimTypes.Scope, ref ScopeClaim);
                 TryAssign(claim, "acr", ref AcrClaim);
                 TryAssign(claim, AltinnCoreClaimTypes.Org, ref OrgClaim);
                 TryAssign(claim, AltinnCoreClaimTypes.OrgNumber, ref OrgNoClaim);

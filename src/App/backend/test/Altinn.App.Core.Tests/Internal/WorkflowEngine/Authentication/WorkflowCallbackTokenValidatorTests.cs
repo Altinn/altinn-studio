@@ -29,10 +29,10 @@ public class WorkflowCallbackTokenValidatorTests
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var handler = new JsonWebTokenHandler();
-        var claims = new Dictionary<string, object> { [JwtClaims.JwtId] = instanceGuid.ToString() };
+        var claims = new Dictionary<string, object> { [JwtClaimTypes.JwtId] = instanceGuid.ToString() };
 
         if (secretId is not null)
-            claims[JwtClaims.SecretId] = secretId;
+            claims[JwtClaimTypes.SecretId] = secretId;
 
         return handler.CreateToken(
             new SecurityTokenDescriptor

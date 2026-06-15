@@ -26,8 +26,8 @@ public class NotificationConditionCodeValidatorTests
             {
                 Claims = new Dictionary<string, object>
                 {
-                    [JwtClaims.JwtId] = instanceGuid.ToString(),
-                    [JwtClaims.SecretId] = secretId,
+                    [JwtClaimTypes.JwtId] = instanceGuid.ToString(),
+                    [JwtClaimTypes.SecretId] = secretId,
                 },
                 Expires = expires ?? DateTime.UtcNow.AddDays(31),
                 SigningCredentials = credentials,

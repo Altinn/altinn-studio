@@ -72,7 +72,7 @@ internal sealed class WorkflowCallbackTokenValidator : IWorkflowCallbackTokenVal
             return false;
         }
 
-        if (!jwt.TryGetClaim(JwtClaims.SecretId, out var secretIdClaim))
+        if (!jwt.TryGetClaim(JwtClaimTypes.SecretId, out var secretIdClaim))
         {
             _logger.LogWarning(
                 "Workflow callback token validation failed: token has no secret_id claim for instance {InstanceGuid}.",
@@ -119,7 +119,8 @@ internal sealed class WorkflowCallbackTokenValidator : IWorkflowCallbackTokenVal
         }
 
         bool jtiMatches =
-            result.Claims.TryGetValue(JwtClaims.JwtId, out object? jti) && jti?.ToString() == instanceGuid.ToString();
+            result.Claims.TryGetValue(JwtClaimTypes.JwtId, out object? jti)
+            && jti?.ToString() == instanceGuid.ToString();
 
         if (!jtiMatches)
         {

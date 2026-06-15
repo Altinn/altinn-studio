@@ -36,8 +36,8 @@ public class WorkflowCallbackTokenGeneratorTests
         var token = CreateSut().GenerateToken(instanceGuid);
 
         var jwt = new JsonWebTokenHandler().ReadJsonWebToken(token);
-        Assert.Equal(instanceGuid.ToString(), jwt.GetClaim(JwtClaims.JwtId).Value);
-        Assert.Equal("secret-id-1", jwt.GetClaim(JwtClaims.SecretId).Value);
+        Assert.Equal(instanceGuid.ToString(), jwt.GetClaim(JwtClaimTypes.JwtId).Value);
+        Assert.Equal("secret-id-1", jwt.GetClaim(JwtClaimTypes.SecretId).Value);
     }
 
     [Fact]
