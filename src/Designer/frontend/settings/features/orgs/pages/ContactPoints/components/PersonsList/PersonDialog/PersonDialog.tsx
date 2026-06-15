@@ -42,8 +42,8 @@ type PersonDialogProps = {
   onClose: () => void;
 };
 
-const formatDate = (isoString: string): string =>
-  new Date(isoString).toLocaleString('nb-NO', {
+const formatDate = (isoString: string, locale: string): string =>
+  new Date(isoString).toLocaleString(locale, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -59,7 +59,7 @@ export const PersonDialog = ({
   auditInfo,
   onClose,
 }: PersonDialogProps): ReactElement => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [person, setPerson] = useState(initialValue);
   const [submitted, setSubmitted] = useState(false);
 
@@ -183,16 +183,16 @@ export const PersonDialog = ({
               auditInfo.createdByUsername
                 ? t('settings.orgs.contact_points.audit_created_by_date', {
                     username: auditInfo.createdByUsername,
-                    date: formatDate(auditInfo.createdAt),
+                    date: formatDate(auditInfo.createdAt, i18n.language),
                   })
                 : t('settings.orgs.contact_points.audit_created_date', {
-                    date: formatDate(auditInfo.createdAt),
+                    date: formatDate(auditInfo.createdAt, i18n.language),
                   })
             }${
               auditInfo.updatedByUsername
                 ? ` · ${t('settings.orgs.contact_points.audit_updated_by_date', {
                     username: auditInfo.updatedByUsername,
-                    date: formatDate(auditInfo.updatedAt),
+                    date: formatDate(auditInfo.updatedAt, i18n.language),
                   })}`
                 : ''
             }`}

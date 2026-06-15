@@ -24,11 +24,27 @@ namespace Altinn.Studio.Designer.Migrations
                 schema: "designer",
                 table: "contact_points",
                 type: "timestamptz",
+                nullable: true
+            );
+
+            migrationBuilder.Sql(
+                """
+                UPDATE designer.contact_points
+                SET updated_at = created_at
+                WHERE updated_at IS NULL;
+                """
+            );
+
+            migrationBuilder.AlterColumn<DateTimeOffset>(
+                name: "updated_at",
+                schema: "designer",
+                table: "contact_points",
+                type: "timestamptz",
                 nullable: false,
-                defaultValue: new DateTimeOffset(
-                    new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                    new TimeSpan(0, 0, 0, 0, 0)
-                )
+                defaultValueSql: "CURRENT_TIMESTAMP",
+                oldClrType: typeof(DateTimeOffset),
+                oldType: "timestamptz",
+                oldNullable: true
             );
 
             migrationBuilder.AddColumn<Guid>(

@@ -1,10 +1,11 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderWithProviders } from '../../../../../../../testing/mocks';
 import { PersonDialog } from './PersonDialog';
 import type { Person } from './PersonDialog';
+import type { ContactPoint } from 'app-shared/types/ContactPoint';
 
 const org = 'ttd';
 
@@ -16,11 +17,22 @@ const defaultPerson: Person = {
   environments: [],
 };
 
+const defaultAuditInfo: ContactPoint = {
+  id: 'person-1',
+  name: 'Test Person',
+  isActive: true,
+  environments: [],
+  methods: [],
+  createdAt: '2024-01-15T10:30:00Z',
+  updatedAt: '2024-01-16T09:00:00Z',
+};
+
 type RenderProps = {
   initialValue?: Person;
   availableEnvironments?: string[];
   editingId?: string | null;
   onClose?: jest.Mock;
+  auditInfo?: ContactPoint | null;
 };
 
 const renderPersonDialog = (
@@ -29,6 +41,7 @@ const renderPersonDialog = (
     availableEnvironments = ['tt02', 'production'],
     editingId = null,
     onClose = jest.fn(),
+    auditInfo = null,
   }: RenderProps = {},
   queries: Parameters<typeof renderWithProviders>[1]['queries'] = {},
 ) =>
@@ -38,7 +51,7 @@ const renderPersonDialog = (
       availableEnvironments={availableEnvironments}
       org={org}
       editingId={editingId}
-      auditInfo={null}
+      auditInfo={auditInfo}
       onClose={onClose}
     />,
     { queries },
@@ -209,6 +222,80 @@ describe('PersonDialog', () => {
     renderPersonDialog({ initialValue: { ...defaultPerson, name: 'Test', phone: 'abc' } });
     await user.click(getAddButton());
     expect(queriesMock.addContactPoint).not.toHaveBeenCalled();
+  });
+
+  it('updates phone field state when typed into', async () => {
+    const user = userEvent.setup();
+    renderPersonDialog({ initialValue: { ...defaultPerson, name: 'Test' } });
+    await user.type(getPhoneInput(), '12345678');
+    await user.click(getAddButton());
+    expect(queriesMock.addContactPoint).toHaveBeenCalledWith(
+      org,
+      expect.objectContaining({
+        methods: expect.arrayContaining([expect.objectContaining({ value: '12345678' })]),
+      }),
+    );
+  });
+
+  it('updates environments when a checkbox is clicked', async () => {
+    const user = userEvent.setup();
+    renderPersonDialog({
+      initialValue: { ...defaultPerson, name: 'Test', email: 'test@example.com' },
+    });
+    await user.click(screen.getByRole('checkbox', { name: 'tt02' }));
+    await user.click(getAddButton());
+    expect(queriesMock.addContactPoint).toHaveBeenCalledWith(
+      org,
+      expect.objectContaining({ environments: ['tt02'] }),
+    );
+  });
+
+  it('calls onClose after successful add', async () => {
+    const onClose = jest.fn();
+    const user = userEvent.setup();
+    renderPersonDialog({
+      initialValue: { ...defaultPerson, name: 'Test', email: 'test@example.com' },
+      onClose,
+    });
+    await user.click(getAddButton());
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+  });
+
+  it('calls onClose after successful update', async () => {
+    const onClose = jest.fn();
+    const user = userEvent.setup();
+    renderPersonDialog({
+      initialValue: { ...defaultPerson, name: 'Test', email: 'test@example.com' },
+      editingId: 'person-1',
+      onClose,
+    });
+    await user.click(getSaveButton());
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+  });
+
+  it('does not render audit info when auditInfo is null', () => {
+    renderPersonDialog();
+    expect(screen.queryByText(/audit_created/)).not.toBeInTheDocument();
+  });
+
+  it('renders audit created-by-date text when auditInfo has createdByUsername', () => {
+    renderPersonDialog({ auditInfo: { ...defaultAuditInfo, createdByUsername: 'testuser' } });
+    expect(screen.getByText(/audit_created_by_date/)).toBeInTheDocument();
+  });
+
+  it('renders audit created-date text when auditInfo has no createdByUsername', () => {
+    renderPersonDialog({ auditInfo: defaultAuditInfo });
+    expect(screen.getByText(/audit_created_date/)).toBeInTheDocument();
+  });
+
+  it('renders audit updated-by-date text when auditInfo has updatedByUsername', () => {
+    renderPersonDialog({ auditInfo: { ...defaultAuditInfo, updatedByUsername: 'updater' } });
+    expect(screen.getByText(/audit_updated_by_date/)).toBeInTheDocument();
+  });
+
+  it('does not render audit updated-by-date text when auditInfo has no updatedByUsername', () => {
+    renderPersonDialog({ auditInfo: defaultAuditInfo });
+    expect(screen.queryByText(/audit_updated_by_date/)).not.toBeInTheDocument();
   });
 
   it('does not show email format error when email field is empty', async () => {

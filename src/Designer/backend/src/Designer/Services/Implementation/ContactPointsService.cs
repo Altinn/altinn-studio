@@ -120,6 +120,7 @@ public class ContactPointsService(
             IsActive = contactPoint.IsActive,
             Environments = contactPoint.Environments,
             CreatedByUserAccountId = createdByUserAccountId,
+            CreatedAt = createdByUserAccountId.HasValue ? now : contactPoint.CreatedAt,
             UpdatedByUserAccountId = updatedByUserAccountId,
             UpdatedAt = now,
             Methods = contactPoint

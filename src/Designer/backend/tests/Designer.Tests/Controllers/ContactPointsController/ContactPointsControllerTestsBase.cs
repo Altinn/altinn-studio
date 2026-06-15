@@ -23,6 +23,7 @@ public abstract class ContactPointsControllerTestsBase<TTestClass>
     where TTestClass : class
 {
     protected const string AllowedOrg = "Org1";
+    protected const string TestUsername = "testUser";
 
     protected static string VersionPrefix(string org) => $"/designer/api/v1/orgs/{org}/contact-points";
 
@@ -37,7 +38,6 @@ public abstract class ContactPointsControllerTestsBase<TTestClass>
 
     private void EnsureTestUserAccountExists()
     {
-        const string TestUsername = "testUser";
         if (DesignerDbFixture.DbContext.UserAccounts.Any(u => u.Username == TestUsername))
         {
             return;
