@@ -1,4 +1,5 @@
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Menu } from './Menu';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -57,5 +58,13 @@ describe('Menu', () => {
     mockEnvironment.environment = { featureFlags: { studioOidc: false } };
     renderMenu();
     expect(getContactPointsTab()).toBeInTheDocument();
+  });
+
+  it('navigates when a tab is clicked', async () => {
+    const user = userEvent.setup();
+    mockEnvironment.environment = { featureFlags: { studioOidc: false } };
+    renderMenu();
+    await user.click(getContactPointsTab());
+    expect(mockNavigate).toHaveBeenCalledWith({ pathname: 'contact-points' });
   });
 });

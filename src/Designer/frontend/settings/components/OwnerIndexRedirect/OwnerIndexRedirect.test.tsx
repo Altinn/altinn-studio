@@ -2,11 +2,11 @@ import { screen } from '@testing-library/react';
 import { Route, Routes } from 'react-router-dom';
 import { OwnerIndexRedirect } from './OwnerIndexRedirect';
 import { renderWithProviders } from '../../testing/mocks';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
 import { user as userMock } from 'app-shared/mocks/mocks';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { RoutePaths as UserRoutePaths } from '../../features/user/routes/RoutePaths';
 import { RoutePaths as OrgRoutePaths } from '../../features/orgs/routes/RoutePaths';
+
 const userWithLogin = { ...userMock, login: 'testuser' };
 
 const mockEnvironment: { environment: { featureFlags: { studioOidc: boolean } } | null } = {
@@ -17,6 +17,12 @@ jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
 }));
 jest.mock('../NoOrgSelected/NoOrgSelected', () => ({
   NoOrgSelected: () => <div data-testid='no-org-selected' />,
+}));
+
+const mockUseUserQuery = jest.fn();
+jest.mock('app-shared/hooks/queries', () => ({
+  ...jest.requireActual('app-shared/hooks/queries'),
+  useUserQuery: () => mockUseUserQuery(),
 }));
 
 const RoutedOwnerIndexRedirect = () => (
@@ -31,20 +37,13 @@ const RoutedOwnerIndexRedirect = () => (
   </Routes>
 );
 
-const renderOwnerIndexRedirect = (initialPath: string, seedUser = true) => {
-  const queryClient = createQueryClientMock();
-  if (seedUser) {
-    queryClient.setQueryData([QueryKey.CurrentUser], userWithLogin);
-  }
-  return renderWithProviders(<RoutedOwnerIndexRedirect />, {
-    queryClient,
-    initialEntries: [initialPath],
-  });
-};
+const renderOwnerIndexRedirect = (initialPath: string) =>
+  renderWithProviders(<RoutedOwnerIndexRedirect />, { initialEntries: [initialPath] });
 
 describe('OwnerIndexRedirect', () => {
   beforeEach(() => {
     mockEnvironment.environment = { featureFlags: { studioOidc: true } };
+    mockUseUserQuery.mockReturnValue({ isPending: false, isError: false, data: userWithLogin });
   });
 
   afterEach(() => jest.clearAllMocks());
@@ -77,10 +76,17 @@ describe('OwnerIndexRedirect', () => {
   });
 
   it('renders nothing when user data is not yet available', () => {
-    renderOwnerIndexRedirect('/ttd', false);
+    mockUseUserQuery.mockReturnValue({ isPending: true, isError: false, data: undefined });
+    renderOwnerIndexRedirect('/ttd');
     expect(screen.queryByText('User page')).not.toBeInTheDocument();
     expect(screen.queryByText('Bot accounts page')).not.toBeInTheDocument();
     expect(screen.queryByText('Contact points page')).not.toBeInTheDocument();
     expect(screen.queryByTestId('no-org-selected')).not.toBeInTheDocument();
+  });
+
+  it('renders an error page when the user query fails', () => {
+    mockUseUserQuery.mockReturnValue({ isPending: false, isError: true, data: undefined });
+    renderOwnerIndexRedirect('/ttd');
+    expect(screen.getByText(textMock('general.page_error_title'))).toBeInTheDocument();
   });
 });
