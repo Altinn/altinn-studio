@@ -1,5 +1,7 @@
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
@@ -34,8 +36,6 @@ internal sealed class WorkflowEngineCallbackAuthenticationHandler : Authenticati
     /// </summary>
     private const string CallbackPathSegment = "/workflow-engine-callbacks/";
 
-    private const string BearerPrefix = "Bearer ";
-
     private readonly IWorkflowCallbackTokenValidator _validator;
 
     public WorkflowEngineCallbackAuthenticationHandler(
@@ -58,21 +58,17 @@ internal sealed class WorkflowEngineCallbackAuthenticationHandler : Authenticati
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        string authorization = Request.Headers.Authorization.ToString();
         if (
-            string.IsNullOrWhiteSpace(authorization)
-            || !authorization.StartsWith(BearerPrefix, StringComparison.OrdinalIgnoreCase)
+            !AuthenticationHeaderValue.TryParse(Request.Headers.Authorization, out AuthenticationHeaderValue? header)
+            || !AuthorizationSchemes.Bearer.Equals(header.Scheme, StringComparison.OrdinalIgnoreCase)
+            || string.IsNullOrWhiteSpace(header.Parameter)
         )
         {
             // No bearer token: let the pipeline treat this as unauthenticated (401).
             return AuthenticateResult.NoResult();
         }
 
-        string token = authorization[BearerPrefix.Length..].Trim();
-        if (string.IsNullOrWhiteSpace(token))
-        {
-            return AuthenticateResult.NoResult();
-        }
+        string token = header.Parameter;
 
         // The token is bound to the instance via its jti claim; verify against the route's instanceGuid.
         if (
