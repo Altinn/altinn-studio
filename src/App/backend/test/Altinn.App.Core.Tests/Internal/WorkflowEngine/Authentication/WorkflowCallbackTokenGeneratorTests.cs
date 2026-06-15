@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Microsoft.Extensions.Time.Testing;
@@ -35,8 +36,8 @@ public class WorkflowCallbackTokenGeneratorTests
         var token = CreateSut().GenerateToken(instanceGuid);
 
         var jwt = new JsonWebTokenHandler().ReadJsonWebToken(token);
-        Assert.Equal(instanceGuid.ToString(), jwt.GetClaim(JwtRegisteredClaimNames.Jti).Value);
-        Assert.Equal("secret-id-1", jwt.GetClaim("secret_id").Value);
+        Assert.Equal(instanceGuid.ToString(), jwt.GetClaim(JwtClaims.JwtId).Value);
+        Assert.Equal("secret-id-1", jwt.GetClaim(JwtClaims.SecretId).Value);
     }
 
     [Fact]

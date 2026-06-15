@@ -1,4 +1,5 @@
 using System.Text;
+using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
@@ -18,17 +19,24 @@ internal interface IWorkflowCallbackTokenGenerator
 }
 
 /// <inheritdoc />
-internal sealed class WorkflowCallbackTokenGenerator(
-    IWorkflowCallbackSecretProvider secretProvider,
-    TimeProvider? timeProvider = null
-) : IWorkflowCallbackTokenGenerator
+internal sealed class WorkflowCallbackTokenGenerator : IWorkflowCallbackTokenGenerator
 {
-    private readonly TimeProvider _timeProvider = timeProvider ?? TimeProvider.System;
+    private readonly TimeProvider _timeProvider;
+    private readonly IWorkflowCallbackSecretProvider _secretProvider;
+
+    public WorkflowCallbackTokenGenerator(
+        IWorkflowCallbackSecretProvider secretProvider,
+        TimeProvider? timeProvider = null
+    )
+    {
+        _timeProvider = timeProvider ?? TimeProvider.System;
+        _secretProvider = secretProvider;
+    }
 
     /// <inheritdoc />
     public string GenerateToken(Guid instanceGuid)
     {
-        AppCode appCode = secretProvider.GetSigningSecret();
+        AppCode appCode = _secretProvider.GetSigningSecret();
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(appCode.Code));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -37,8 +45,8 @@ internal sealed class WorkflowCallbackTokenGenerator(
         {
             Claims = new Dictionary<string, object>
             {
-                [JwtRegisteredClaimNames.Jti] = instanceGuid.ToString(),
-                ["secret_id"] = appCode.Id,
+                [JwtClaims.JwtId] = instanceGuid.ToString(),
+                [JwtClaims.SecretId] = appCode.Id,
             },
             // Bind the token lifetime to the signing code: the engine replays the same token on every
             // callback, so it must remain valid for as long as the code that signed it is accepted.

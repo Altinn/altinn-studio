@@ -3,9 +3,9 @@ using Altinn.App.Core.Constants;
 namespace Altinn.App.Core.Features.Maskinporten.Constants;
 
 /// <summary>
-/// Relevant known Digdir JWT claim types.
+/// Relevant known Digdir JWT claims.
 /// </summary>
-internal static class JwtClaimTypes
+internal static class JwtClaims
 {
     public const string Expiration = "exp";
     public const string IssuedAt = "iat";
@@ -13,6 +13,7 @@ internal static class JwtClaimTypes
     public const string Audience = "aud";
     public const string Scope = "scope";
     public const string Issuer = "iss";
+    public const string SecretId = "secret_id";
 
     public static class Altinn
     {

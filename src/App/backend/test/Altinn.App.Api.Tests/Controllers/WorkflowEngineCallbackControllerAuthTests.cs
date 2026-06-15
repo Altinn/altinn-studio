@@ -1,7 +1,9 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
+using Altinn.App.Api.Tests.Data;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
+using Altinn.App.Tests.Common.Auth;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
@@ -68,6 +70,67 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
 
         // Token's jti is bound to a different instance than the one in the route.
         using var response = await client.PostAsync(CallbackUrl(Guid.NewGuid()), content);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Callback_WithUserToken_ReturnsUnauthorized()
+    {
+        // A regular end-user JwtCookie token must not be accepted on a callback endpoint: the selector
+        // routes callback paths to the callback handler, which only honors workflow callback tokens.
+        using var client = GetRootedClient(Org, App);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            TestAuthentication.GetUserToken(userId: 1337, partyId: InstanceOwnerPartyId)
+        );
+        using var content = EmptyPayload();
+
+        using var response = await client.PostAsync(CallbackUrl(Guid.NewGuid()), content);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    // --- Selector fall-through: non-callback requests must still flow through JwtCookie exactly as before. ---
+
+    private const int ProcessPartyId = 500000;
+    private static readonly Guid _processInstanceGuid = new("5d9e906b-83ed-44df-85a7-2f104c640bff");
+
+    private static string ProcessUrl(int partyId, Guid instanceGuid) =>
+        $"/{Org}/{App}/instances/{partyId}/{instanceGuid}/process";
+
+    [Fact]
+    public async Task NonCallbackRequest_WithValidUserToken_StillAuthenticatesViaJwtCookie()
+    {
+        // The selector must forward non-callback requests to JwtCookie unchanged: a valid user token
+        // still authenticates and authorizes the regular (old) execution path.
+        using var client = GetRootedUserClient(Org, App, userId: 1337, partyId: ProcessPartyId, authenticationLevel: 3);
+        TestData.PrepareInstance(Org, App, ProcessPartyId, _processInstanceGuid);
+        try
+        {
+            using var response = await client.GetAsync(ProcessUrl(ProcessPartyId, _processInstanceGuid));
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+        finally
+        {
+            TestData.DeleteInstanceAndData(Org, App, ProcessPartyId, _processInstanceGuid);
+        }
+    }
+
+    [Fact]
+    public async Task NonCallbackRequest_WithCallbackToken_IsNotAuthenticated()
+    {
+        // A workflow callback token must not grant access to non-callback endpoints: the selector routes
+        // these to JwtCookie, which cannot validate the HMAC callback token, so authentication fails.
+        // Use a plain [Authorize] endpoint (no resource policy) so the assertion isolates authentication.
+        using var client = GetRootedClient(Org, App);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            GenerateToken(Guid.NewGuid())
+        );
+
+        using var response = await client.GetAsync($"{Org}/{App}/api/v1/profile/user");
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }

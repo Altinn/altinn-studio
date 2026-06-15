@@ -1,4 +1,5 @@
 using System.Text;
+using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Notifications.SecretProvider;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Microsoft.Extensions.Logging;
@@ -25,8 +26,8 @@ public class NotificationConditionCodeValidatorTests
             {
                 Claims = new Dictionary<string, object>
                 {
-                    [JwtRegisteredClaimNames.Jti] = instanceGuid.ToString(),
-                    ["secret_id"] = secretId,
+                    [JwtClaims.JwtId] = instanceGuid.ToString(),
+                    [JwtClaims.SecretId] = secretId,
                 },
                 Expires = expires ?? DateTime.UtcNow.AddDays(31),
                 SigningCredentials = credentials,

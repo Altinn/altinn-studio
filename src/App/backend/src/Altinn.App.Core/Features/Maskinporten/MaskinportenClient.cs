@@ -304,8 +304,8 @@ internal sealed class MaskinportenClient : IMaskinportenClient
             SigningCredentials = new SigningCredentials(settings.GetJsonWebKey(), SecurityAlgorithms.RsaSha256),
             Claims = new Dictionary<string, object>
             {
-                [JwtClaimTypes.Scope] = formattedScopes,
-                [JwtClaimTypes.JwtId] = Guid.NewGuid().ToString(),
+                [JwtClaims.Scope] = formattedScopes,
+                [JwtClaims.JwtId] = Guid.NewGuid().ToString(),
             },
         };
 

@@ -188,7 +188,7 @@ public static class TestAuthentication
             new(AltinnCoreClaimTypes.AuthenticateMethod, "BankID", ClaimValueTypes.String, iss),
             new(AltinnCoreClaimTypes.AuthenticationLevel, authLevel.ToString(), ClaimValueTypes.Integer32, iss),
             new("jti", Guid.NewGuid().ToString(), ClaimValueTypes.String, iss),
-            new(JwtClaimTypes.Scope, "altinn:portal/enduser", ClaimValueTypes.String, iss),
+            new(JwtClaims.Scope, "altinn:portal/enduser", ClaimValueTypes.String, iss),
         ];
 
         return new ClaimsPrincipal(new ClaimsIdentity(claims, "mock"));
@@ -284,7 +284,7 @@ public static class TestAuthentication
             new(AltinnCoreClaimTypes.AuthenticateMethod, "Mock", ClaimValueTypes.String, iss),
             new(AltinnCoreClaimTypes.AuthenticationLevel, "0", ClaimValueTypes.Integer32, iss),
             new("jti", Guid.NewGuid().ToString(), ClaimValueTypes.String, iss),
-            new(JwtClaimTypes.Scope, "altinn:portal/enduser", ClaimValueTypes.String, iss),
+            new(JwtClaims.Scope, "altinn:portal/enduser", ClaimValueTypes.String, iss),
         ];
 
         return new ClaimsPrincipal(new ClaimsIdentity(claims, "mock"));
@@ -367,14 +367,14 @@ public static class TestAuthentication
         );
         Claim[] claims =
         [
-            new(JwtClaimTypes.Scope, scope, ClaimValueTypes.String, iss),
+            new(JwtClaims.Scope, scope, ClaimValueTypes.String, iss),
             new("token_type", AuthorizationSchemes.Bearer, ClaimValueTypes.String, iss),
             new("client_id", Guid.NewGuid().ToString(), ClaimValueTypes.String, iss),
             new("consumer", consumer, ClaimValueTypes.String, iss),
             new(AltinnCoreClaimTypes.OrgNumber, orgNumber, ClaimValueTypes.String, iss),
             new(AltinnCoreClaimTypes.AuthenticateMethod, "maskinporten", ClaimValueTypes.String, iss),
             new(AltinnCoreClaimTypes.AuthenticationLevel, "3", ClaimValueTypes.Integer32, iss),
-            new(JwtClaimTypes.Issuer, iss, ClaimValueTypes.String, iss),
+            new(JwtClaims.Issuer, iss, ClaimValueTypes.String, iss),
             new("jti", Guid.NewGuid().ToString(), ClaimValueTypes.String, iss),
         ];
 
@@ -448,7 +448,7 @@ public static class TestAuthentication
         );
         Claim[] claims =
         [
-            new(JwtClaimTypes.Scope, scope, ClaimValueTypes.String, iss),
+            new(JwtClaims.Scope, scope, ClaimValueTypes.String, iss),
             new("token_type", AuthorizationSchemes.Bearer, ClaimValueTypes.String, iss),
             new("client_id", Guid.NewGuid().ToString(), ClaimValueTypes.String, iss),
             new("consumer", consumer, ClaimValueTypes.String, iss),
@@ -456,7 +456,7 @@ public static class TestAuthentication
             new(AltinnCoreClaimTypes.OrgNumber, orgNumber, ClaimValueTypes.String, iss),
             new(AltinnCoreClaimTypes.AuthenticateMethod, "maskinporten", ClaimValueTypes.String, iss),
             new(AltinnCoreClaimTypes.AuthenticationLevel, "3", ClaimValueTypes.Integer32, iss),
-            new(JwtClaimTypes.Issuer, iss, ClaimValueTypes.String, iss),
+            new(JwtClaims.Issuer, iss, ClaimValueTypes.String, iss),
             new("jti", Guid.NewGuid().ToString(), ClaimValueTypes.String, iss),
         ];
 
@@ -528,9 +528,9 @@ public static class TestAuthentication
 
         var payload = new JwtPayload
         {
-            { JwtClaimTypes.Issuer, iss },
+            { JwtClaims.Issuer, iss },
             { "token_type", AuthorizationSchemes.Bearer },
-            { JwtClaimTypes.Scope, scope },
+            { JwtClaims.Scope, scope },
             { "client_id", Guid.NewGuid().ToString() },
             { "jti", Guid.NewGuid().ToString() },
             { AltinnCoreClaimTypes.OrgNumber, supplierOrgNumber },
@@ -643,10 +643,10 @@ public static class TestAuthentication
     {
         List<Claim> claims = [];
         const string issuer = "https://test.maskinporten.no/";
-        claims.Add(new Claim(JwtClaimTypes.Issuer, issuer, ClaimValueTypes.String, issuer));
-        claims.Add(new Claim(JwtClaimTypes.Scope, scope, ClaimValueTypes.String, issuer));
-        claims.Add(new Claim(JwtClaimTypes.JwtId, Guid.NewGuid().ToString(), ClaimValueTypes.String, issuer));
-        claims.Add(new Claim(JwtClaimTypes.Maskinporten.AuthenticationMethod, "Mock", ClaimValueTypes.String, issuer));
+        claims.Add(new Claim(JwtClaims.Issuer, issuer, ClaimValueTypes.String, issuer));
+        claims.Add(new Claim(JwtClaims.Scope, scope, ClaimValueTypes.String, issuer));
+        claims.Add(new Claim(JwtClaims.JwtId, Guid.NewGuid().ToString(), ClaimValueTypes.String, issuer));
+        claims.Add(new Claim(JwtClaims.Maskinporten.AuthenticationMethod, "Mock", ClaimValueTypes.String, issuer));
 
         ClaimsIdentity identity = new("mock");
         identity.AddClaims(claims);
