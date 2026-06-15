@@ -11,6 +11,15 @@
     <Features>strict</Features>
     <NuGetAudit>true</NuGetAudit>
     <NuGetAuditMode>all</NuGetAuditMode>
+    <!--
+      Use forward slashes for the output paths. The SDK defaults to "bin\" / "obj\" (backslash), which on
+      non-Windows hosts is a literal character rather than a separator. That makes the generated
+      DefaultItemExcludes (e.g. "bin\/**") fail to match the real "bin/..." output, so the Web SDK's
+      recursive content glob sweeps the project's own output back in as content-to-copy and re-copies it one
+      level deeper on every build — producing the runaway bin/Debug/net10.0/bin/Debug/... nesting.
+    -->
+    <BaseOutputPath>bin/</BaseOutputPath>
+    <BaseIntermediateOutputPath>obj/</BaseIntermediateOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
