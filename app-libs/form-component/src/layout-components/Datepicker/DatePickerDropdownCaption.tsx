@@ -14,19 +14,19 @@ import { Select } from '@digdir/designsystemet-react';
 import { ArrowLeftIcon, ArrowRightIcon, XMarkIcon } from '@navikt/aksel-icons';
 import { addYears, setMonth, setYear, startOfMonth, subYears } from 'date-fns';
 
-import styles from './DatePickerDrowpdownCaption.module.css';
+import styles from './DatePickerDropdownCaption.module.css';
 
-type DatePickerDrowpdownCaptionProps = MonthCaptionProps & {
+type DatePickerDropdownCaptionProps = MonthCaptionProps & {
   minDate?: Date;
   maxDate?: Date;
 };
 
-export const DatePickerDrowpdownCaption = ({
+export const DatePickerDropdownCaption = ({
   calendarMonth,
   id,
   minDate,
   maxDate,
-}: DatePickerDrowpdownCaptionProps) => {
+}: DatePickerDropdownCaptionProps) => {
   const { goToMonth, nextMonth, previousMonth } = useDayPicker();
   const { langAsString } = useTranslation();
   const languageLocale = useCurrentLanguage();

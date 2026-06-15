@@ -1,1 +1,1 @@
-export { DatePickerDrowpdownCaption } from './DatePickerDrowpdownCaption';
+export { DatePickerDropdownCaption } from './DatePickerDropdownCaption';

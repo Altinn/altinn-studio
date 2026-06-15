@@ -2,7 +2,7 @@ import React from 'react';
 
 import {
   DatePickerControl,
-  DatePickerDrowpdownCaption,
+  DatePickerDropdownCaption,
   Flex,
   getDateConstraint,
   getDateFormat,
@@ -77,7 +77,7 @@ export function DatepickerComponent({ baseComponentId, overrideDisplay }: PropsF
             minDate={calculatedMinDate}
             maxDate={calculatedMaxDate}
             DropdownCaption={(props) => (
-              <DatePickerDrowpdownCaption
+              <DatePickerDropdownCaption
                 {...props}
                 minDate={calculatedMinDate}
                 maxDate={calculatedMaxDate}
