@@ -21,7 +21,8 @@ export class JmespathFunctionEvaluator extends FunctionEvaluator<[ValidValue, st
     try {
       return jmespath.search(data, query);
     } catch (error: unknown) {
-      this.throwRuntimeException(`Jmespath error`);
+      const message = error instanceof Error ? `Jmespath error: ${error.message}` : 'Unknown Jmespath error';
+      this.throwRuntimeException(message);
     }
   }
 
