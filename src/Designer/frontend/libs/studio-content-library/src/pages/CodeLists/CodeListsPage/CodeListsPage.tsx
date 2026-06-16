@@ -85,7 +85,10 @@ export function CodeListsPage({
           setSavedMap(codeListMap);
           setSaveState('ok');
         })
-        .catch(() => setSaveState('error'));
+        .catch((error: unknown) => {
+          setSaveState('error');
+          console.error(error);
+        });
     }
   }, [codeListMap, onSave]);
 

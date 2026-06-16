@@ -126,6 +126,7 @@ describe('CodeListsPage', () => {
   it('Displays an error message when the saving request fails', async () => {
     const user = userEvent.setup();
     const failingOnSave = jest.fn<Promise<void>, [CodeListFile[]]>(async () => Promise.reject());
+    const consoleError = jest.spyOn(console, 'error').mockImplementation();
     renderCodeListPage({ onSave: failingOnSave });
 
     const nameField = getNameField(FileNameUtils.removeExtension(coloursFile.name));
@@ -136,6 +137,8 @@ describe('CodeListsPage', () => {
 
     const expectedMessage = textMock('app_content_library.code_lists.save.error');
     expect(screen.getByText(expectedMessage)).toBeInTheDocument();
+
+    consoleError.mockRestore();
   });
 });
 
