@@ -9,9 +9,9 @@
     "not op_mini all"
   ],
   "dependencies": {
-    "react": "19.2.5",
-    "react-dom": "19.2.5",
-    "react-router-dom": "6.30.3"
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "react-router-dom": "7.17.0"
   },
   "devDependencies": {
     "@studio/ui-test": "workspace:^",

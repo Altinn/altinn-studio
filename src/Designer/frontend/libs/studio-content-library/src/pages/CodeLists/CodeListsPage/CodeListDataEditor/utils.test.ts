@@ -1,13 +1,13 @@
 import { updateCodes, updateName } from './utils';
-import { fruitsData } from '../test-data/codeLists';
+import { fruitsFile } from '../test-data/codeLists';
 import type { CodeList } from '../../../../types/CodeList';
 
 describe('CodeListDataEditor utils', () => {
   describe('updateName', () => {
     it('Updates the name of the code list', () => {
       const newName = 'new name';
-      const result = updateName(fruitsData, newName);
-      expect(result.name).toBe(newName);
+      const result = updateName(fruitsFile, newName);
+      expect(result.name).toBe(newName + '.json');
     });
   });
 
@@ -17,8 +17,8 @@ describe('CodeListDataEditor utils', () => {
         { value: 'apple', label: { nb: 'Eple', en: 'Apple' } },
         { value: 'pear', label: { nb: 'Pære', en: 'Pear' } },
       ];
-      const result = updateCodes(fruitsData, newCodes);
-      expect(result.codes).toBe(newCodes);
+      const result = updateCodes(fruitsFile, newCodes);
+      expect(result.content).toBe(JSON.stringify(newCodes));
     });
   });
 });
