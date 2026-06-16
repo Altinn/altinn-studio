@@ -80,9 +80,10 @@ spec:
             resources:
               requests:
                 cpu: "4"
-                memory: 8Gi
-                ephemeral-storage: 75Gi
+                memory: 12Gi
+                ephemeral-storage: 100Gi
               limits:
+                cpu: "4"
                 memory: 12Gi
                 ephemeral-storage: 100Gi
             volumeMounts:
