@@ -1,18 +1,23 @@
-import { fruitsData } from '../test-data/codeLists';
+import { fruitsFile } from '../test-data/codeLists';
 import { CodeListDataEditor } from './CodeListDataEditor';
 import type { CodeListDataEditorProps } from './CodeListDataEditor';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { userEvent } from '@testing-library/user-event';
+import { FileNameUtils, ArrayUtils } from '@studio/pure-functions';
+import type { CodeList } from '../../../../types/CodeList';
+import type { OrdinaryCodeListFile } from '../../../../types/CodeListFile';
 
 // Test data:
-const data = fruitsData;
+const file = fruitsFile;
+const codeListName = FileNameUtils.removeExtension(file.name);
+const extractCodeList = ({ content }: OrdinaryCodeListFile): CodeList => JSON.parse(content);
 const onUpdate = jest.fn();
 const onDelete = jest.fn();
 const onPublish = jest.fn();
 const defaultProps: CodeListDataEditorProps = {
-  data,
+  file,
   isPublishing: false,
   onDelete,
   onPublish,
@@ -25,20 +30,20 @@ describe('CodeListDataEditor', () => {
 
   it('Renders the code list editor with given content', () => {
     renderCodeListDataEditor();
-    const expectedNumberOfRowsIncludingHeaders = data.codes.length + 1;
+    const expectedNumberOfRowsIncludingHeaders = extractCodeList(file).length + 1;
     expect(screen.getAllByRole('row')).toHaveLength(expectedNumberOfRowsIncludingHeaders);
   });
 
   it('Renders an input field with the given name', () => {
     renderCodeListDataEditor();
-    expect(getNameInput()).toHaveValue(data.name);
+    expect(getNameInput()).toHaveValue(codeListName);
   });
 
   it('Calls onUpdate with updated data when the code list name is changed', async () => {
     const user = userEvent.setup();
     renderCodeListDataEditor();
     const additionalCharacter = 'a';
-    const newName = data.name + additionalCharacter;
+    const newName = codeListName + additionalCharacter + '.json';
     await user.type(getNameInput(), additionalCharacter);
     expect(onUpdate).toHaveBeenLastCalledWith(expect.objectContaining({ name: newName }));
   });
@@ -50,11 +55,9 @@ describe('CodeListDataEditor', () => {
     const firstCodeInputLabel = textMock('code_list_editor.value_item', { number: 1 });
     const firstCodeInput = screen.getByRole('textbox', { name: firstCodeInputLabel });
     await user.type(firstCodeInput, newFirstCode);
-    expect(onUpdate).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        codes: expect.arrayContaining([expect.objectContaining({ value: newFirstCode })]),
-      }),
-    );
+    const updatedFile = ArrayUtils.last<OrdinaryCodeListFile>(onUpdate!.mock.calls[0]);
+    const updatedCodeList = extractCodeList(updatedFile);
+    expect(updatedCodeList[0].value).toEqual(newFirstCode);
   });
 
   it('Calls onDelete when the delete button is clicked', async () => {
@@ -65,7 +68,7 @@ describe('CodeListDataEditor', () => {
   });
 
   it('Renders with placeholder when name is empty', () => {
-    renderCodeListDataEditor({ data: { ...data, name: '' } });
+    renderCodeListDataEditor({ file: { ...file, name: '.json' } });
     const placeholderText = textMock('app_content_library.code_lists.unnamed');
     expect(screen.getByText(placeholderText)).toBeInTheDocument();
   });
@@ -82,11 +85,11 @@ describe('CodeListDataEditor', () => {
     const publishButtonName = textMock('app_content_library.code_lists.publish');
     await user.click(screen.getByRole('button', { name: publishButtonName }));
     expect(onPublish).toHaveBeenCalledTimes(1);
-    expect(onPublish).toHaveBeenCalledWith(data);
+    expect(onPublish).toHaveBeenCalledWith({ name: codeListName, codes: extractCodeList(file) });
   });
 
   it('Disables the publish button when no name is given', () => {
-    renderCodeListDataEditor({ data: { ...data, name: '' } });
+    renderCodeListDataEditor({ file: { ...file, name: '.json' } });
     const publishButtonName = textMock('app_content_library.code_lists.publish');
     expect(screen.getByRole('button', { name: publishButtonName })).toBeDisabled();
   });
@@ -98,11 +101,10 @@ describe('CodeListDataEditor', () => {
   });
 
   it('Displays a status message containing the version number when the code list is published', () => {
-    const { name } = fruitsData;
     const publishedCodeLists: string[] = [
-      `${name}/_index.json`,
-      `${name}/_latest.json`,
-      `${name}/1.json`,
+      `${codeListName}/_index.json`,
+      `${codeListName}/_latest.json`,
+      `${codeListName}/1.json`,
     ];
     renderCodeListDataEditor({ publishedCodeLists });
     const expectedMessage = textMock('app_content_library.code_lists.latest_version', {

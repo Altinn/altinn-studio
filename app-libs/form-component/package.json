@@ -67,6 +67,7 @@
     "eslint-plugin-react-hooks": "7.1.1",
     "eslint-plugin-simple-import-sort": "12.1.1",
     "eslint-plugin-sonarjs": "4.0.3",
+    "eslint-plugin-storybook": "10.4.2",
     "globals": "17.6.0",
     "jsdom": "^26.1.0",
     "prettier": "3.8.4",

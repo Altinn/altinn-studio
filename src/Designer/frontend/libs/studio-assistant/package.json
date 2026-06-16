@@ -6,6 +6,7 @@
   "dependencies": {
     "@digdir/designsystemet-theme": "^1.10.0",
     "@studio/components": "workspace:^",
-    "dompurify": "^3.4.9"
+    "dompurify": "^3.4.9",
+    "marked": "^17.0.6"
   }
 }

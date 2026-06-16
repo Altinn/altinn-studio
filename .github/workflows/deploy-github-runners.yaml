@@ -1,0 +1,119 @@
+name: Deploy GitHub Runners
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/github-runner/**'
+      - 'src/tools/releaser/go.mod'
+      - '.github/workflows/deploy-github-runners.yaml'
+
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  construct-environments-array:
+    uses: ./.github/workflows/template-studio-construct-environments.yaml
+    with:
+      override-default-studio-environments: prod
+
+  push-artifact:
+    name: Push GitHub runners as OCI artifact
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      REGISTRY_NAME: altinntjenestercontainerregistry
+    outputs:
+      CONFIG_REPO: ${{ steps.vars.outputs.config-repo }}
+    defaults:
+      run:
+        working-directory: src/github-runner
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set vars
+        id: vars
+        run: |
+          SHA="${GITHUB_SHA::10}"
+          {
+            echo "short-sha=$SHA"
+            echo "image-repo=altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:${SHA}"
+            echo "config-repo=altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/github-runners-repo:${SHA}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name ${{ env.REGISTRY_NAME }}
+
+      - name: flux install
+        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
+
+      - name: Resolve Go version
+        id: go-version
+        run: |
+          GO_VERSION="$(awk '$1 == "go" { print $2; exit }' ../tools/releaser/go.mod)"
+          test -n "${GO_VERSION}"
+          echo "version=${GO_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: docker build
+        run: docker build --build-arg GO_VERSION=${{ steps.go-version.outputs.version }} -t ${{ steps.vars.outputs.image-repo }} -f Dockerfile .
+
+      - name: push image
+        run: docker push ${{ steps.vars.outputs.image-repo }}
+
+      - name: patch base with image tag
+        working-directory: src/github-runner/infra/kustomize/base
+        run: |
+          export IMAGE="${{ steps.vars.outputs.image-repo }}"
+          export IMAGE_TAG="${{ steps.vars.outputs.short-sha }}"
+          for file in scaledjob.yaml scaledjob-single.yaml; do
+            yq -i '.metadata.annotations["altinn.studio/image"] = env(IMAGE)' "$file"
+            yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' "$file"
+          done
+
+      - name: push artifact
+        working-directory: src/github-runner/infra/kustomize
+        run: |
+          flux push artifact oci://${{ steps.vars.outputs.config-repo }} \
+            --provider=azure \
+            --reproducible \
+            --path="." \
+            --source="$(git config --get remote.origin.url)" \
+            --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
+
+  tag:
+    name: Tag artifact
+    needs: [push-artifact, construct-environments-array]
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    env:
+      REGISTRY_NAME: altinntjenestercontainerregistry
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.construct-environments-array.outputs.result) }}
+    steps:
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name ${{ env.REGISTRY_NAME }}
+
+      - name: flux install
+        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
+
+      - name: tag artifact
+        run: |
+          flux tag artifact oci://${{ needs.push-artifact.outputs.CONFIG_REPO }} \
+            --tag ${{ matrix.environment }}

@@ -5,7 +5,7 @@ import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './SettingsNavigation.module.css';
 import { TasksTable } from '../../TasksTable/TasksTable';
-import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
+import { useLayoutSetsExtendedQuery } from '../../../hooks/queries/useLayoutSetsExtendedQuery';
 import { getHiddenTasks } from '../SettingsUtils';
 import { ValidateNavigation } from './ValidateNavigation/ValidateNavigation';
 
