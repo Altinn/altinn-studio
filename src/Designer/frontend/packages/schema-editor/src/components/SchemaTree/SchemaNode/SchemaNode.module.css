@@ -18,7 +18,8 @@
 }
 
 .schemaNodeLabel:hover .actionButtons,
-.schemaNodeLabel:focus-within .actionButtons {
+.schemaNodeLabel:focus-within .actionButtons,
+.actionButtons:has([aria-expanded='true']) {
   visibility: visible;
 }
 
