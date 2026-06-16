@@ -1,25 +1,34 @@
-import React from 'react';
 import { formatMonthDropdown, useDayPicker } from 'react-day-picker';
 import type { MonthCaptionProps } from 'react-day-picker';
 
-import { Button, getDateLib, getMonths, getYears, useDatePickerClose } from '@app/form-component';
+import { Button } from '@app/form-component/app-components/Button';
+import { useDatePickerClose } from '@app/form-component/app-components/Datepicker/DatepickerDialog';
+import {
+  getDateLib,
+  getMonths,
+  getYears,
+} from '@app/form-component/app-components/Datepicker/utils/dateHelpers';
+import { useCurrentLanguage, useTranslation } from '@app/form-component/LanguageTranslatorProvider';
+import comboboxClasses from '@app/form-component/styles/combobox.module.css';
 import { Select } from '@digdir/designsystemet-react';
 import { ArrowLeftIcon, ArrowRightIcon, XMarkIcon } from '@navikt/aksel-icons';
 import { addYears, setMonth, setYear, startOfMonth, subYears } from 'date-fns';
 
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useLanguage } from 'src/features/language/useLanguage';
-import styles from 'src/layout/Datepicker/DropdownCaption.module.css';
-import comboboxClasses from 'src/styles/combobox.module.css';
+import styles from './DatePickerDropdownCaption.module.css';
 
-type DropdownCaptionProps = MonthCaptionProps & {
+type DatePickerDropdownCaptionProps = MonthCaptionProps & {
   minDate?: Date;
   maxDate?: Date;
 };
 
-export const DropdownCaption = ({ calendarMonth, id, minDate, maxDate }: DropdownCaptionProps) => {
+export const DatePickerDropdownCaption = ({
+  calendarMonth,
+  id,
+  minDate,
+  maxDate,
+}: DatePickerDropdownCaptionProps) => {
   const { goToMonth, nextMonth, previousMonth } = useDayPicker();
-  const { langAsString } = useLanguage();
+  const { langAsString } = useTranslation();
   const languageLocale = useCurrentLanguage();
   const dateLib = getDateLib(languageLocale ?? 'nb');
   const onClose = useDatePickerClose();
@@ -41,8 +50,10 @@ export const DropdownCaption = ({ calendarMonth, id, minDate, maxDate }: Dropdow
   const fromDate = minDate ?? subYears(calendarMonth.date, 100);
   const toDate = maxDate ?? addYears(calendarMonth.date, 100);
 
-  const isPrevMonthDisabled = !previousMonth || (minDate && startOfMonth(previousMonth) < startOfMonth(minDate));
-  const isNextMonthDisabled = !nextMonth || (maxDate && startOfMonth(nextMonth) > startOfMonth(maxDate));
+  const isPrevMonthDisabled =
+    !previousMonth || (minDate && startOfMonth(previousMonth) < startOfMonth(minDate));
+  const isNextMonthDisabled =
+    !nextMonth || (maxDate && startOfMonth(nextMonth) > startOfMonth(maxDate));
   const years = getYears(fromDate, toDate, calendarMonth.date.getFullYear()).reverse();
   const months = getMonths(fromDate, toDate, calendarMonth.date);
 
@@ -68,10 +79,7 @@ export const DropdownCaption = ({ calendarMonth, id, minDate, maxDate }: Dropdow
           aria-label={langAsString('date_picker.aria_label_month_dropdown')}
         >
           {months.map((date) => (
-            <Select.Option
-              key={date.getMonth()}
-              value={date.getMonth().toString()}
-            >
+            <Select.Option key={date.getMonth()} value={date.getMonth().toString()}>
               {langAsString(formatMonthDropdown(date, dateLib))}
             </Select.Option>
           ))}
