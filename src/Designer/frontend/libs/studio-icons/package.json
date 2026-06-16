@@ -8,8 +8,8 @@
   },
   "dependencies": {
     "@navikt/aksel-icons": "^7.0.0",
-    "react": "19.2.5",
-    "react-dom": "19.2.5"
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "6.9.1",
