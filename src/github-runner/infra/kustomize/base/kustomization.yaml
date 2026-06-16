@@ -2,6 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - scaledjob.yaml
+  - scaledjob-single.yaml
   - triggerauthentication.yaml
 replacements:
   - source:
@@ -12,5 +13,10 @@ replacements:
       - select:
           kind: ScaledJob
           name: github-runners
+        fieldPaths:
+          - spec.jobTargetRef.template.spec.containers.[name=github-runner].image
+      - select:
+          kind: ScaledJob
+          name: github-runners-single
         fieldPaths:
           - spec.jobTargetRef.template.spec.containers.[name=github-runner].image

@@ -1,5 +1,6 @@
 import React from 'react';
 
+import comboboxClasses from '@app/form-component/styles/combobox.module.css';
 import { Chip, EXPERIMENTAL_Suggestion as Suggestion, Fieldset } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
@@ -8,7 +9,6 @@ import { FormStore } from 'src/features/form/FormContext';
 import { useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
-import comboboxClasses from 'src/styles/combobox.module.css';
 import { useHiddenPages } from 'src/utils/layout/hidden';
 import { optionFilter } from 'src/utils/options';
 
