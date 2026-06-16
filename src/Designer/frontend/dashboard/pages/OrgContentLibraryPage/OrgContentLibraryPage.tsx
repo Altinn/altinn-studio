@@ -246,10 +246,14 @@ function useCodeListsProps(orgName: string): PagesConfig['codeLists'] {
     [publish],
   );
 
+  const isPublishingFile = useCallback(
+    (fileName: string): boolean => isPublishing(FileNameUtils.removeExtension(fileName)),
+    [isPublishing],
+  );
+
   return {
     codeLists: libraryCodeLists,
-    isPublishing: (fileName: string): boolean =>
-      isPublishing(FileNameUtils.removeExtension(fileName)),
+    isPublishing: isPublishingFile,
     onPublish: handlePublish,
     onSave: handleSave,
     publishedCodeLists,
