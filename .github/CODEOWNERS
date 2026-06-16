@@ -5,6 +5,11 @@
 # so unrelated diffs do not trigger owner review requests.
 #
 
+# Team Core
+src/test/K6/**/docker-compose.yml                               @altinn/team-core
+src/test/K6/**/package.json                                     @altinn/team-core
+src/test/K6/**/yarn.lock                                        @altinn/team-core
+
 # Team Utforming
 .github/workflows/app-frontend-codeql.yml                       @altinn/team-altinn-studio-utforming
 .github/workflows/app-frontend-cypress.yml                      @altinn/team-altinn-studio-utforming
@@ -133,9 +138,6 @@ src/Runtime/pdf3/**/go.mod                                      @altinn/team-alt
 src/Runtime/pdf3/**/go.sum                                      @altinn/team-altinn-studio-kjoring
 src/Runtime/pdf3/**/package.json                                @altinn/team-altinn-studio-kjoring
 src/Runtime/pdf3/**/yarn.lock                                   @altinn/team-altinn-studio-kjoring
-src/test/K6/**/docker-compose.yml                               @altinn/team-altinn-studio-kjoring
-src/test/K6/**/package.json                                     @altinn/team-altinn-studio-kjoring
-src/test/K6/**/yarn.lock                                        @altinn/team-altinn-studio-kjoring
 src/tools/health/**/go.mod                                      @altinn/team-altinn-studio-kjoring
 src/tools/health/**/go.sum                                      @altinn/team-altinn-studio-kjoring
 src/tools/releaser/**/go.mod                                    @altinn/team-altinn-studio-kjoring
