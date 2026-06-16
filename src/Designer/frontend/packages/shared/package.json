@@ -6,8 +6,8 @@
     "bpmn-moddle": "9.0.4",
     "classnames": "2.5.1",
     "qs": "6.15.2",
-    "react": "19.2.5",
-    "react-dom": "19.2.5",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
     "react-router-dom": "7.17.0"
   },
   "devDependencies": {
