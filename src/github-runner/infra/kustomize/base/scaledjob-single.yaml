@@ -9,7 +9,7 @@ metadata:
     altinn.studio/image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner:latest
     altinn.studio/image-tag: latest
 spec:
-  maxReplicaCount: 2
+  maxReplicaCount: 64
   minReplicaCount: 0
   pollingInterval: 30
   successfulJobsHistoryLimit: 5
@@ -83,9 +83,8 @@ spec:
                 memory: 8Gi
                 ephemeral-storage: 75Gi
               limits:
-                cpu: "4"
-                memory: 8Gi
-                ephemeral-storage: 85Gi
+                memory: 12Gi
+                ephemeral-storage: 100Gi
             volumeMounts:
               - name: runner-tmp
                 mountPath: /tmp
