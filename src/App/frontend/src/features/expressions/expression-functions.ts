@@ -911,6 +911,13 @@ export const ExprFunctionValidationExtensions: { [K in ExprFunctionName]?: FuncV
       }
     },
   },
+  object: {
+    validator({ rawArgs, ctx, path }) {
+      if (rawArgs.length % 2 === 1) {
+        addError(ctx, path, 'The object function must have an even number of arguments');
+      }
+    },
+  },
 };
 
 function pickSimpleValue(

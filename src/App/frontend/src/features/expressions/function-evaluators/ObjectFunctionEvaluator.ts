@@ -9,16 +9,9 @@ export class ObjectFunctionEvaluator extends FunctionEvaluator<ValidValue[], Val
   }
 
   evaluate(): ValidObject {
-    this.assertEvenNumberOfArguments();
     const keys = this.extractAndVerifyKeys();
     const values = this.extractOddIndexedArguments();
     return ObjectFunctionEvaluator.objectFromKeysAndValues(keys, values);
-  }
-
-  private assertEvenNumberOfArguments(): void {
-    if (this.argumentList.length % 2 === 1) {
-      this.throwRuntimeException('The object function must have an even number of arguments');
-    }
   }
 
   private extractAndVerifyKeys(): string[] {
