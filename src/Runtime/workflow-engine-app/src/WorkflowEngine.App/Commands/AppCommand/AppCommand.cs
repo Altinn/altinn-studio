@@ -26,7 +26,6 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
     private readonly ILogger<AppCommand> _logger;
 
     private const string CommandTypeId = "app";
-
     public override string CommandType => CommandTypeId;
 
     public AppCommand(

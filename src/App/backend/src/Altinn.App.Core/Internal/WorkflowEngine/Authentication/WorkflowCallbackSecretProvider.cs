@@ -10,7 +10,7 @@ internal interface IWorkflowCallbackSecretProvider
 {
     /// <summary>
     /// Gets the secret used for signing JWT tokens for workflow engine callbacks
-    /// (the first non-expired code, codes are ordered newest-first).
+    /// (the first non-expired code, in configuration order).
     /// </summary>
     AppCode GetSigningSecret();
 
@@ -34,7 +34,7 @@ internal sealed class WorkflowCallbackSecretProvider(IOptionsMonitor<AppCodesSet
         if (codes is null or { Count: 0 })
             throw new WorkflowCallbackSecretNotFoundException(NotConfiguredMessage);
 
-        // The newest code may expire while the host is running; never sign with an expired code.
+        // A code may expire while the host is running; never sign with an expired code.
         var now = DateTimeOffset.UtcNow;
         AppCode? code = codes.Find(c => c.ExpiresAt > now);
         return code

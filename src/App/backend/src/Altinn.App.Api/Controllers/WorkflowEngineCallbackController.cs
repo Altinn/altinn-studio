@@ -60,10 +60,6 @@ public class WorkflowEngineCallbackController : ControllerBase
     {
         using Activity? activity = _telemetry?.StartProcessEngineCallbackActivity(instanceGuid, commandKey);
 
-        // Set the lock token from the workflow engine payload so all Storage clients include it
-        var instanceLocker = _serviceProvider.GetRequiredService<IInstanceLocker>();
-        instanceLocker.UseExternalLockToken(payload.LockToken);
-
         var appId = new AppIdentifier(org, app);
         var instanceId = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
 
@@ -81,7 +77,7 @@ public class WorkflowEngineCallbackController : ControllerBase
             activity?.SetStatus(ActivityStatusCode.Error, "Command not found");
             return NonRetryableProblem(
                 "Command Not Found",
-                $"Workflow app command not found.",
+                "Workflow app command not found.",
                 StatusCodes.Status404NotFound
             );
         }
@@ -127,6 +123,12 @@ public class WorkflowEngineCallbackController : ControllerBase
                 StatusCodes.Status422UnprocessableEntity
             );
         }
+
+        // Set the lock token from the workflow engine payload so all Storage clients include it. Done after the
+        // state blob has been validated against the route instance, so the token is only applied once we know
+        // the callback targets the expected instance.
+        var instanceLocker = _serviceProvider.GetRequiredService<IInstanceLocker>();
+        instanceLocker.UseExternalLockToken(payload.LockToken);
 
         string? currentTaskId = instanceDataUnitOfWork.Instance.Process?.CurrentTask?.ElementId;
 
