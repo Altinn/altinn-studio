@@ -565,16 +565,14 @@ public static class ServiceCollectionExtensions
             // "Authorization: Bearer" header without the JwtCookie handler (which also reads bearer
             // tokens) attempting to validate the app-minted callback token as a platform token during
             // UseAuthentication()'s automatic authentication of the default scheme.
-            .AddAuthentication(options =>
-                options.DefaultScheme = WorkflowEngineCallbackAuthenticationHandler.SelectorSchemeName
-            )
+            .AddAuthentication(options => options.DefaultScheme = WorkflowEngineCallbackDefaults.SelectorScheme)
             .AddPolicyScheme(
-                WorkflowEngineCallbackAuthenticationHandler.SelectorSchemeName,
-                WorkflowEngineCallbackAuthenticationHandler.SelectorSchemeName,
+                WorkflowEngineCallbackDefaults.SelectorScheme,
+                WorkflowEngineCallbackDefaults.SelectorScheme,
                 options =>
                     options.ForwardDefaultSelector = static context =>
-                        WorkflowEngineCallbackAuthenticationHandler.IsCallbackRequest(context.Request.Path)
-                            ? WorkflowEngineCallbackAuthenticationHandler.SchemeName
+                        WorkflowEngineCallbackAuthenticationHandler.IsCallbackRequest(context.GetEndpoint())
+                            ? WorkflowEngineCallbackDefaults.AuthenticationScheme
                             : JwtCookieDefaults.AuthenticationScheme
             )
             .AddJwtCookie(
@@ -599,7 +597,7 @@ public static class ServiceCollectionExtensions
                 }
             )
             .AddScheme<AuthenticationSchemeOptions, WorkflowEngineCallbackAuthenticationHandler>(
-                WorkflowEngineCallbackAuthenticationHandler.SchemeName,
+                WorkflowEngineCallbackDefaults.AuthenticationScheme,
                 _ => { }
             );
     }

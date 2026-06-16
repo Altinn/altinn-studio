@@ -18,7 +18,7 @@ namespace Altinn.App.Api.Controllers;
 /// the engine replays the app-minted JWT (bound to this instance) in the Authorization: Bearer header.
 /// </summary>
 [ApiController]
-[Authorize(AuthenticationSchemes = WorkflowEngineCallbackAuthenticationHandler.SchemeName)]
+[Authorize(AuthenticationSchemes = WorkflowEngineCallbackDefaults.AuthenticationScheme)]
 [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/workflow-engine-callbacks")]
 public class WorkflowEngineCallbackController : ControllerBase
 {

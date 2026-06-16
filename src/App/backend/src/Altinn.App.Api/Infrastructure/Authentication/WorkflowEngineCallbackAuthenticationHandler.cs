@@ -1,10 +1,10 @@
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
-using System.Text.RegularExpressions;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Api.Infrastructure.Authentication;
@@ -17,34 +17,11 @@ namespace Altinn.App.Api.Infrastructure.Authentication;
 /// <remarks>
 /// The callback token shares the <c>Authorization</c> header with platform tokens, so the engine and the
 /// default cookie/bearer scheme would otherwise conflict. A selector policy scheme
-/// (<see cref="SelectorSchemeName"/>) forwards callback requests to this scheme and all other requests to
-/// the JwtCookie scheme, based on <see cref="IsCallbackRequest"/>.
+/// (<see cref="WorkflowEngineCallbackDefaults.SelectorScheme"/>) forwards callback requests to this scheme
+/// and all other requests to the JwtCookie scheme, based on <see cref="IsCallbackRequest"/>.
 /// </remarks>
-internal sealed partial class WorkflowEngineCallbackAuthenticationHandler
-    : AuthenticationHandler<AuthenticationSchemeOptions>
+internal sealed class WorkflowEngineCallbackAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
-    /// <summary>
-    /// The name of the authentication scheme.
-    /// </summary>
-    public const string SchemeName = "WorkflowEngineCallback";
-
-    /// <summary>
-    /// The name of the default (selector) scheme that forwards to either this scheme or the JwtCookie scheme.
-    /// </summary>
-    public const string SelectorSchemeName = "WorkflowEngineCallbackSelector";
-
-    /// <summary>
-    /// Matches the workflow engine callback route shape
-    /// <c>.../instances/{instanceOwnerPartyId}/{instanceGuid}/workflow-engine-callbacks/{commandKey}</c>.
-    /// A precise match (rather than a bare substring) prevents unrelated app paths that happen to contain the
-    /// segment from being routed to the callback scheme and losing their normal JwtCookie authentication.
-    /// </summary>
-    [GeneratedRegex(
-        @"/instances/\d+/[^/]+/workflow-engine-callbacks/[^/]+/?$",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant
-    )]
-    private static partial Regex CallbackPathRegex();
-
     private readonly IWorkflowCallbackTokenValidator _validator;
 
     public WorkflowEngineCallbackAuthenticationHandler(
@@ -59,11 +36,18 @@ internal sealed partial class WorkflowEngineCallbackAuthenticationHandler
     }
 
     /// <summary>
-    /// Determines whether <paramref name="path"/> targets the workflow engine callback endpoint. Used by the
-    /// selector scheme to forward only callback requests to this handler.
+    /// Determines whether the matched <paramref name="endpoint"/> authenticates via this callback scheme, by
+    /// inspecting its authorization metadata. Used by the selector scheme to forward only callback requests to
+    /// this handler.
     /// </summary>
-    public static bool IsCallbackRequest(PathString path) =>
-        path.Value is { } value && CallbackPathRegex().IsMatch(value);
+    public static bool IsCallbackRequest(Endpoint? endpoint) =>
+        endpoint?.Metadata.GetOrderedMetadata<IAuthorizeData>().Any(HasCallbackScheme) is true;
+
+    private static bool HasCallbackScheme(IAuthorizeData data) =>
+        data.AuthenticationSchemes is { } schemes
+        && schemes
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Contains(WorkflowEngineCallbackDefaults.AuthenticationScheme, StringComparer.Ordinal);
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
@@ -94,8 +78,11 @@ internal sealed partial class WorkflowEngineCallbackAuthenticationHandler
         }
 
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, instanceGuid.ToString()) };
-        var identity = new ClaimsIdentity(claims, SchemeName);
-        var ticket = new AuthenticationTicket(new ClaimsPrincipal(identity), SchemeName);
+        var identity = new ClaimsIdentity(claims, WorkflowEngineCallbackDefaults.AuthenticationScheme);
+        var ticket = new AuthenticationTicket(
+            new ClaimsPrincipal(identity),
+            WorkflowEngineCallbackDefaults.AuthenticationScheme
+        );
         return AuthenticateResult.Success(ticket);
     }
 }

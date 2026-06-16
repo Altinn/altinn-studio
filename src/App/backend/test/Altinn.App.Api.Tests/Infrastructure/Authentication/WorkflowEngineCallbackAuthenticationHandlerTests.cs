@@ -2,6 +2,7 @@ using System.Text.Encodings.Web;
 using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -40,7 +41,7 @@ public class WorkflowEngineCallbackAuthenticationHandlerTests
             context.Request.RouteValues["instanceGuid"] = instanceGuidRouteValue;
 
         var scheme = new AuthenticationScheme(
-            WorkflowEngineCallbackAuthenticationHandler.SchemeName,
+            WorkflowEngineCallbackDefaults.AuthenticationScheme,
             null,
             typeof(WorkflowEngineCallbackAuthenticationHandler)
         );
@@ -69,19 +70,32 @@ public class WorkflowEngineCallbackAuthenticationHandlerTests
         Assert.True(result.None);
     }
 
+    private static Endpoint EndpointWith(params object[] metadata) =>
+        new(static _ => Task.CompletedTask, new EndpointMetadataCollection(metadata), displayName: null);
+
     [Theory]
-    [InlineData("/tdd/app/instances/500600/3a1b/workflow-engine-callbacks/some-command", true)]
-    [InlineData("/tdd/app/instances/500600/3a1b/WORKFLOW-ENGINE-CALLBACKS/some-command", true)]
-    [InlineData("/tdd/app/instances/500600/3a1b/process/next", false)]
-    [InlineData("/", false)]
-    // Tightened from a bare substring match: the segment must sit in the real callback route shape, so an
-    // unrelated app path containing it is not forced onto the callback scheme (and does not lose JwtCookie).
-    [InlineData("/tdd/workflow-engine-callbacks/some-command", false)] // No /instances/{party}/{guid}/ prefix.
-    [InlineData("/tdd/app/instances/not-a-number/3a1b/workflow-engine-callbacks/cmd", false)] // Party id not numeric.
-    [InlineData("/tdd/app/instances/500600/3a1b/workflow-engine-callbacks/", false)] // No command segment.
-    public void IsCallbackRequest_MatchesOnlyCallbackPaths(string path, bool expected)
+    // The endpoint's own [Authorize(AuthenticationSchemes = ...)] declaration is what routes it to the
+    // callback scheme — matching on metadata, not the request path, so the selector can't drift from the
+    // controller and unrelated paths can't be misrouted.
+    [InlineData(WorkflowEngineCallbackDefaults.AuthenticationScheme, true)]
+    [InlineData("Foo," + WorkflowEngineCallbackDefaults.AuthenticationScheme, true)] // among a list
+    [InlineData(WorkflowEngineCallbackDefaults.AuthenticationScheme + " , Foo", true)] // whitespace trimmed
+    [InlineData("JwtCookie", false)] // a different scheme
+    [InlineData(null, false)] // [Authorize] with no scheme declared
+    public void IsCallbackRequest_MatchesEndpointDeclaringCallbackScheme(string? schemes, bool expected)
     {
-        Assert.Equal(expected, WorkflowEngineCallbackAuthenticationHandler.IsCallbackRequest(path));
+        var endpoint = EndpointWith(new AuthorizeAttribute { AuthenticationSchemes = schemes });
+
+        Assert.Equal(expected, WorkflowEngineCallbackAuthenticationHandler.IsCallbackRequest(endpoint));
+    }
+
+    [Fact]
+    public void IsCallbackRequest_NullOrUnauthorizedEndpoint_ReturnsFalse()
+    {
+        // No matched endpoint (e.g. a 404 path), and a matched endpoint with no authorization metadata, both
+        // fall through to the default JwtCookie scheme.
+        Assert.False(WorkflowEngineCallbackAuthenticationHandler.IsCallbackRequest(endpoint: null));
+        Assert.False(WorkflowEngineCallbackAuthenticationHandler.IsCallbackRequest(EndpointWith()));
     }
 
     [Fact]
