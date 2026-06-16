@@ -35,7 +35,7 @@ export class AppFrontend {
     /** @see https://dev.altinn.studio/repos/ttd/stateless-app */
     stateless: 'stateless-app',
 
-    /** @see https://dev.altinn.studio/repos/ttd/subform-test */
+    /** @see https://altinn.studio/repos/ttd/subform-test */
     subformTest: 'subform-test',
   };
 

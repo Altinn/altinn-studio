@@ -29,7 +29,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 // This file should be as close to the Program.cs file in the app template
 // as possible to ensure we test the configuration of the dependency injection
@@ -120,7 +120,7 @@ void ConfigureMockServices(IServiceCollection services, ConfigurationManager con
     services.AddTransient<IAppModel, AppModelMock<Program>>();
     services.AddTransient<IEventsClient, EventsClientMock>();
     services.AddTransient<ISignClient, SignClientMock>();
-    services.AddScoped<IInstanceLocker, InstanceLockerMock>();
+    services.AddSingleton<IInstanceLocker, InstanceLockerMock>();
 
     services.PostConfigureAll<JwtCookieOptions>(options =>
     {

@@ -17,6 +17,8 @@ public class HomeControllerTest_AppFrontendAssetBaseUrl : ApiTestBase, IClassFix
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
+    private const string GeneratedOrg = "xunit";
+    private const string GeneratedApp = "test-app";
 
     public HomeControllerTest_AppFrontendAssetBaseUrl(
         WebApplicationFactory<Program> factory,
@@ -46,14 +48,16 @@ public class HomeControllerTest_AppFrontendAssetBaseUrl : ApiTestBase, IClassFix
     }
 
     [Fact]
-    public async Task Index_FailsByDefault()
+    public async Task Index_UsesBundledAppFrontendByDefault()
     {
         using var client = GetRootedClient(Org, App, configureServices: ConfigureStatelessAnonymousApp);
         using var response = await client.GetAsync($"{Org}/{App}/");
         var html = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("loading our built-in frontend is not yet supported", html);
+        Assert.Contains($"href=\"/{GeneratedOrg}/{GeneratedApp}/altinn-app-frontend/altinn-app-frontend.css\"", html);
+        Assert.Contains($"src=\"/{GeneratedOrg}/{GeneratedApp}/altinn-app-frontend/altinn-app-frontend.js\"", html);
+        Assert.DoesNotContain("loading our built-in frontend is not yet supported", html);
     }
 
     private static void ConfigureStatelessAnonymousApp(IServiceCollection services)

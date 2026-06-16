@@ -28,7 +28,7 @@ func registerPDFComponents(manifest *Manifest, opts *Options) {
 
 func pdfImage(ctx *Options) resource.ImageResource {
 	if ctx.ImageMode == DevMode && ctx.DevConfig != nil {
-		return &resource.LocalImage{
+		return &resource.BuiltImage{
 			Enabled:     nil,
 			ContextPath: filepath.ToSlash(filepath.Join(ctx.DevConfig.RepoRoot, "src/Runtime/pdf3")),
 			Dockerfile: filepath.ToSlash(
@@ -38,7 +38,7 @@ func pdfImage(ctx *Options) resource.ImageResource {
 			Tag:   devImageTagPDF3,
 		}
 	}
-	return &resource.RemoteImage{
+	return &resource.PulledImage{
 		Enabled:    nil,
 		Ref:        ctx.Images.Core.PDF3.Ref(),
 		PullPolicy: resource.PullIfNotPresent,

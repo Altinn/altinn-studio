@@ -3583,7 +3583,7 @@
         "tags": [
           "Instances"
         ],
-        "summary": "Simplified Instanciation with support for fieldprefill",
+        "summary": "Simplified instantiation with support for fieldprefill",
         "parameters": [
           {
             "name": "org",
@@ -3613,7 +3613,7 @@
           }
         ],
         "requestBody": {
-          "description": "instansiation information",
+          "description": "instantiation information",
           "content": {
             "application/json": {
               "schema": {
@@ -9583,7 +9583,7 @@
           }
         },
         "additionalProperties": false,
-        "description": "Specialized model for instansiation of instances"
+        "description": "Specialized model for instantiation of instances"
       },
       "InstantiationNotification": {
         "type": "object",
@@ -11429,5 +11429,97 @@
         "additionalProperties": false
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "Actions"
+    },
+    {
+      "name": "ApplicationLanguage"
+    },
+    {
+      "name": "ApplicationMetadata"
+    },
+    {
+      "name": "ApplicationSettings"
+    },
+    {
+      "name": "Authentication"
+    },
+    {
+      "name": "Authorization"
+    },
+    {
+      "name": "Data"
+    },
+    {
+      "name": "DataLists"
+    },
+    {
+      "name": "DataTags"
+    },
+    {
+      "name": "EventsReceiver"
+    },
+    {
+      "name": "ExternalApi"
+    },
+    {
+      "name": "FileScan"
+    },
+    {
+      "name": "FormBootstrap"
+    },
+    {
+      "name": "Home"
+    },
+    {
+      "name": "Instances"
+    },
+    {
+      "name": "LookupOrganisation"
+    },
+    {
+      "name": "LookupPerson"
+    },
+    {
+      "name": "Options"
+    },
+    {
+      "name": "Parties"
+    },
+    {
+      "name": "Payment"
+    },
+    {
+      "name": "Pdf"
+    },
+    {
+      "name": "Process"
+    },
+    {
+      "name": "Profile"
+    },
+    {
+      "name": "Redirect"
+    },
+    {
+      "name": "Resource"
+    },
+    {
+      "name": "Signing"
+    },
+    {
+      "name": "StatelessData"
+    },
+    {
+      "name": "Texts"
+    },
+    {
+      "name": "UserDefinedMetadata"
+    },
+    {
+      "name": "Validate"
+    }
+  ]
 }
