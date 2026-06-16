@@ -34,11 +34,7 @@
   font-style: italic;
 }
 
-.summary.added {
-  --badge-colour: var(--ds-color-success-base-default);
-}
-
-.summary.changed {
+.summary:is(.added, .changed) {
   --badge-colour: var(--ds-color-info-base-default);
 }
 
