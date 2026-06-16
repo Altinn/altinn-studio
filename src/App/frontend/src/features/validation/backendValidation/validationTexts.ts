@@ -1,4 +1,5 @@
-import type { ValidLanguageKey } from 'src/features/language/useLanguage';
+import type { ValidLanguageKey } from '@app/language';
+
 import type { BuiltInValidationIssueSources } from 'src/features/validation';
 
 export type IValidationTextMap = {

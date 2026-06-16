@@ -2,6 +2,7 @@ import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query
 
 import { useInstanceApi } from 'src/core/contexts/ApiProvider';
 import { parseInstanceId } from 'src/core/queries/instance/utils';
+import { maybeAuthenticationRedirect } from 'src/utils/maybeAuthenticationRedirect';
 import type { InstanceApi, Instantiation } from 'src/core/api-client/instance.api';
 
 type InstantiationArgs = number | Instantiation;
@@ -57,8 +58,11 @@ export function useCreateInstance(language: string) {
       typeof args === 'number'
         ? instanceApi.create({ instanceOwnerPartyId: args, language })
         : instanceApi.createWithPrefill({ data: args, language }),
-    onError: (error) => {
+    onError: async (error) => {
       window.logError('Instantiation failed:\n', error);
+
+      // Redirect to step-up authentication if the error is a too-low auth level. No-op otherwise.
+      await maybeAuthenticationRedirect(error);
     },
     onSuccess: (data) => {
       const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(data.id);

@@ -145,15 +145,16 @@ public class RequiredValidatorTests
         );
 
         var validationService = sp.GetRequiredService<IValidationService>();
+        var dataType = dataMutator.GetDataType("mainLayout_dataType");
         var changes = new DataElementChanges([
             new FormDataChange(
                 contentType: "application/xml",
-                dataType: dataMutator.GetDataType("mainLayout_dataType"),
+                dataType: dataType,
                 dataElement: null,
                 currentBinaryData: null,
                 previousBinaryData: null,
-                currentFormDataWrapper: FormDataWrapperFactory.Create(data),
-                previousFormDataWrapper: FormDataWrapperFactory.Create(new Model()),
+                currentFormDataWrapper: FormDataWrapperFactory.Create(data, dataType, null),
+                previousFormDataWrapper: FormDataWrapperFactory.Create(new Model(), dataType, null),
                 type: ChangeType.Created
             ),
         ]);

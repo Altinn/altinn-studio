@@ -74,6 +74,7 @@ export const layoutPageGroupsPath = (org, app, layoutSetName) => `${layoutPath(o
 export const layoutConvertToPageGroupsPath = (org, app, layoutSetName) => `${layoutPath(org, app, layoutSetName)}/convert-to-pagegroups/`;
 export const layoutConvertToPageOrderPath = (org, app, layoutSetName) => `${layoutPath(org, app, layoutSetName)}/convert-to-pageorder/`;
 export const taskNavigationGroupPath = (org, app) => `${apiBasePath}/${org}/${app}/task-navigation`; // Get, Post, Put, Delete
+export const uiFoldersPath = (org, app) => `${apiBasePath}/${org}/${app}/ui-folders`;
 
 // Gitea
 export const gitCommitPath = (org, app, commitId) => `/repos/${org}/${app}/commit/${commitId}`;

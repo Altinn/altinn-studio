@@ -7,9 +7,9 @@
       "expects": 0.02
     },
     {
-      "name": "Should return null when both of the arguments are null",
+      "name": "Should return 0 when both of the arguments are null",
       "expression": ["multiply", null, null],
-      "expects": null
+      "expects": 0
     },
     {
       "name": "Should multiply the two negative arguments",
@@ -17,14 +17,14 @@
       "expects": 0.02
     },
     {
-      "name": "Should return null when one of the arguments is null [null, decimal]",
+      "name": "Should return 0 when one of the arguments is null [null, decimal]",
       "expression": ["multiply", null, 2.1],
-      "expects": null
+      "expects": 0
     },
     {
-      "name": "Should return null when one of the arguments is null [decimal, null]",
+      "name": "Should return 0 when one of the arguments is null [decimal, null]",
       "expression": ["multiply", 2.1, null],
-      "expects": null
+      "expects": 0
     },
     {
       "name": "Should multiply two integers",
@@ -162,14 +162,19 @@
       "expectsFailure": "Expected number, got value \"e2\""
     },
     {
-      "name": "Should throw exception when less than two arguments are provided",
-      "expression": ["multiply", 0.1],
+      "name": "Should throw exception when no arguments are provided",
+      "expression": ["multiply"],
       "expectsFailure": "Invalid"
     },
     {
-      "name": "Should throw exception when more than two arguments are present",
+      "name": "Should return the only factor when only one is provided",
+      "expression": ["multiply", 0.1],
+      "expects": 0.1
+    },
+    {
+      "name": "Should return the product of all factors when more than two factors are present",
       "expression": ["multiply", 0.1, 0.2, 15, 1.50],
-      "expectsFailure": "Invalid"
+      "expects": 0.45
     },
     {
       "name": "Should multiply negative and positive decimal numbers",

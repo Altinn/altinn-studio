@@ -265,13 +265,6 @@ public interface IAppDevelopmentService
     );
 
     /// <summary>
-    /// Get's the version of the app-lib used in repo
-    /// </summary>
-    /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-    /// <returns>A <see cref="NuGet.Versioning.SemanticVersion"/> holding the version of the app-lib used in app.</returns>
-    public NuGet.Versioning.SemanticVersion GetAppLibVersion(AltinnRepoEditingContext altinnRepoEditingContext);
-
-    /// <summary>
     /// Try to pull the frontend version from the repo and return it.
     /// </summary>
     /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
