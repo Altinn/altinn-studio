@@ -1,0 +1,28 @@
+.assistantBody {
+  margin: 0;
+  color: var(--ds-color-text-primary);
+  line-height: 1.6;
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+}
+
+.inlineSpinner {
+  flex-shrink: 0;
+  color: var(--ds-color-text-subtle);
+}
+
+.loadingText {
+  flex: 1 1 auto;
+  animation: assistantPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes assistantPulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
