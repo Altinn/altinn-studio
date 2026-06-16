@@ -1,16 +1,12 @@
-"""Fetches LLM token usage from Langfuse and aggregates into a list of cost objects
+"""Aggregates LLM token usage from Langfuse into a list of cost objects
 that can be used to bill users.
 
 Traces contain metadata (service owner ID, app name).
 Observations contain LLM metrics (token usage, model name), and are children of traces.
 """
 
-import asyncio
-import base64
 from datetime import UTC, datetime, timedelta
 from typing import Any
-
-import httpx
 
 from metrics.aggregate import (
     DailyTokenUsageRow,
@@ -18,16 +14,11 @@ from metrics.aggregate import (
     Trace,
     aggregate_token_usage,
 )
-from shared.config import get_config
-from shared.utils.logging_utils import get_logger
-
-log = get_logger(__name__)
+from metrics.langfuse_client import fetch_traces_and_observations
 
 # Workflows starting seconds before midnight will create a trace at day 0, and observations at day 1.
 # The trace buffer makes sure we fetch all relevant traces before aggregating.
 TRACE_LOOKBACK_BUFFER = timedelta(days=1)
-PAGE_SIZE = 50
-REQUEST_TIMEOUT_SECONDS = 30
 
 
 async def get_previous_day_token_usage() -> list[DailyTokenUsageRow]:
@@ -43,7 +34,7 @@ async def _token_usage_for_window(
 ) -> list[DailyTokenUsageRow]:
     """Fetch and aggregate token usage rows for an arbitrary UTC window."""
     trace_window_start = observation_window_start - TRACE_LOOKBACK_BUFFER
-    traces, observations = await _fetch_traces_and_observations(
+    traces, observations = await fetch_traces_and_observations(
         trace_window_start, observation_window_start, window_end
     )
 
@@ -53,71 +44,6 @@ async def _token_usage_for_window(
 
     loaded_at = datetime.now(UTC).isoformat(timespec="seconds")
     return aggregate_token_usage(observation_objects, traces_by_id, loaded_at)
-
-
-async def _fetch_traces_and_observations(
-    trace_window_start: datetime,
-    observation_window_start: datetime,
-    window_end: datetime,
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    config = get_config()
-    auth_header = _create_auth_header(
-        config.LANGFUSE_PUBLIC_KEY, config.LANGFUSE_SECRET_KEY
-    )
-
-    async with httpx.AsyncClient(
-        base_url=config.LANGFUSE_HOST,
-        headers={"Authorization": auth_header},
-        timeout=REQUEST_TIMEOUT_SECONDS,
-    ) as client:
-        traces, observations = await asyncio.gather(
-            _fetch_all_pages(
-                client,
-                "/api/public/traces",
-                {
-                    "fromTimestamp": trace_window_start.isoformat(),
-                    "toTimestamp": window_end.isoformat(),
-                },
-            ),
-            _fetch_all_pages(
-                client,
-                "/api/public/observations",
-                {
-                    "type": "GENERATION",
-                    "fromStartTime": observation_window_start.isoformat(),
-                    "toStartTime": window_end.isoformat(),
-                },
-            ),
-        )
-
-    return traces, observations
-
-
-def _create_auth_header(public_key: str | None, secret_key: str | None) -> str:
-    if not public_key or not secret_key:
-        raise RuntimeError("Langfuse credentials are not configured")
-    token = base64.b64encode(f"{public_key}:{secret_key}".encode()).decode()
-    return f"Basic {token}"
-
-
-async def _fetch_all_pages(
-    client: httpx.AsyncClient,
-    path: str,
-    params: dict[str, Any],
-) -> list[dict[str, Any]]:
-    items: list[dict[str, Any]] = []
-    page_number = 1
-    while True:
-        response = await client.get(
-            path, params={**params, "limit": PAGE_SIZE, "page": page_number}
-        )
-        response.raise_for_status()
-        page_items = response.json().get("data") or []
-        items.extend(page_items)
-        if len(page_items) < PAGE_SIZE:
-            break
-        page_number += 1
-    return items
 
 
 def _as_trace(payload: dict[str, Any]) -> Trace:

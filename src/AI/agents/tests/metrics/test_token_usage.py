@@ -5,14 +5,10 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 
 import httpx
-import pytest
 
-from metrics import token_usage
-from metrics.token_usage import (
-    PAGE_SIZE,
-    _create_auth_header,
-    get_previous_day_token_usage,
-)
+from metrics import langfuse_client
+from metrics.langfuse_client import PAGE_SIZE
+from metrics.token_usage import get_previous_day_token_usage
 
 
 class TestPreviousDayWindow:
@@ -50,21 +46,6 @@ class TestPreviousDayWindow:
             asyncio.run(get_previous_day_token_usage())
 
         return handler.params_by_path["/api/public/observations"]
-
-
-class TestBasicAuthHeader:
-    def test_encodes_public_and_secret_key(self):
-        header = _create_auth_header("pk-123", "sk-abc")
-        expected_token = base64.b64encode(b"pk-123:sk-abc").decode()
-        assert header == f"Basic {expected_token}"
-
-    def test_raises_when_public_key_missing(self):
-        with pytest.raises(RuntimeError, match="credentials are not configured"):
-            _create_auth_header(None, "sk-abc")
-
-    def test_raises_when_secret_key_missing(self):
-        with pytest.raises(RuntimeError, match="credentials are not configured"):
-            _create_auth_header("pk-123", None)
 
 
 class TestFetchPreviousDayTokenUsage:
@@ -171,7 +152,9 @@ def _patched_httpx_client(handler):
         kwargs.pop("timeout", None)
         return original_async_client(transport=httpx.MockTransport(handler), **kwargs)
 
-    return patch.object(token_usage.httpx, "AsyncClient", side_effect=make_client)
+    return patch.object(
+        langfuse_client.httpx, "AsyncClient", side_effect=make_client
+    )
 
 
 def _patched_config():
@@ -184,4 +167,4 @@ def _patched_config():
             "LANGFUSE_HOST": "https://langfuse.example.com",
         },
     )()
-    return patch("metrics.token_usage.get_config", return_value=fake_config)
+    return patch("metrics.langfuse_client.get_config", return_value=fake_config)

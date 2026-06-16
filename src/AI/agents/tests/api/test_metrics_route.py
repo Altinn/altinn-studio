@@ -17,7 +17,7 @@ class TestGetLlmCostsHappyPath:
             "serviceownercode": "ttd",
             "messagesender": None,
             "serviceresourceid": "my-app",
-            "serviceresourcetitle": None,
+            "serviceresourcetitle": "My App",
             "recipienttype": None,
             "costcenter": None,
             "messagecount": None,
