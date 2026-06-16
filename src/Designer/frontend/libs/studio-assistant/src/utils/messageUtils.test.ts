@@ -82,7 +82,7 @@ describe('messageUtils', () => {
     });
 
     it('splits blank-line separated blocks into separate paragraphs', () => {
-      expect(formatAssistantMessageContent('first\n\nsecond')).toBe('<p>first</p><p>second</p>');
+      expect(formatAssistantMessageContent('first\n\nsecond')).toBe('<p>first</p>\n<p>second</p>');
     });
 
     it('converts headings', () => {
@@ -115,11 +115,16 @@ describe('messageUtils', () => {
       expect(formatAssistantMessageContent('use `npm test`')).toContain('<code>npm test</code>');
     });
 
-    it('preserves fenced code blocks with language attribute and escapes html inside', () => {
+    it('preserves fenced code blocks and escapes html inside', () => {
       const input = '```ts\nconst x = <T>() => 1;\n```';
       const result = formatAssistantMessageContent(input);
-      expect(result).toContain('<pre data-language="ts">');
-      expect(result).toContain('<code>const x = &lt;T&gt;() =&gt; 1;</code>');
+      expect(result).toContain('<pre>');
+      expect(result).toContain('const x = &lt;T&gt;() =&gt; 1;');
+    });
+
+    it('converts markdown links to anchor tags', () => {
+      const result = formatAssistantMessageContent('[Altinn](https://altinn.no)');
+      expect(result).toContain('<a href="https://altinn.no">Altinn</a>');
     });
 
     it('strips "Kilder" sections and standalone [Source: ...] lines', () => {
@@ -139,24 +144,19 @@ describe('messageUtils', () => {
       expect(formatAssistantMessageContent('')).toBe('');
     });
 
-    it('escapes html inside bold markdown', () => {
-      const result = formatAssistantMessageContent('**<img src=x>**');
-      expect(result).toContain('<strong>&lt;img src=x&gt;</strong>');
+    it('removes event handler attributes from inline html', () => {
+      const result = formatAssistantMessageContent('<img src=x onerror=alert(1)>');
+      expect(result).not.toContain('onerror');
     });
 
-    it('escapes html inside headings', () => {
-      const result = formatAssistantMessageContent('# <script>evil</script>');
-      expect(result).toContain('<h1>&lt;script&gt;evil&lt;/script&gt;</h1>');
+    it('removes javascript: urls from links', () => {
+      const result = formatAssistantMessageContent('[click](javascript:alert(1))');
+      expect(result).not.toContain('javascript:');
     });
 
     it('escapes html inside inline code', () => {
       const result = formatAssistantMessageContent('`<b>raw</b>`');
       expect(result).toContain('<code>&lt;b&gt;raw&lt;/b&gt;</code>');
-    });
-
-    it('escapes html inside list items', () => {
-      const result = formatAssistantMessageContent('- <img src=x>');
-      expect(result).toContain('<li>&lt;img src=x&gt;</li>');
     });
   });
 });

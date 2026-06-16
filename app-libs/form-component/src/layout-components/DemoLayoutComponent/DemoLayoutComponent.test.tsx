@@ -11,6 +11,7 @@ describe('DemoLayoutComponent', () => {
     expect(
       screen.getByText(/The static text with key helptext\.button_title is translated as: Help/),
     ).toBeInTheDocument();
+    expect(screen.getByText(/The current language is: en/)).toBeInTheDocument();
   });
 
   it('uses the translations for the given language', () => {
@@ -20,6 +21,7 @@ describe('DemoLayoutComponent', () => {
     expect(
       screen.getByText(/The static text with key helptext\.button_title is translated as: Hjelp/),
     ).toBeInTheDocument();
+    expect(screen.getByText(/The current language is: nb/)).toBeInTheDocument();
   });
 
   it('renders HTML content as parsed React nodes', () => {

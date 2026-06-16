@@ -10,22 +10,29 @@ ARG DOTNET_INSTALL_SCRIPT_SHA256=082f7685e156738a1b2e2ed8381a621870d4ce8e8c59278
 USER root
 
 COPY run.sh /usr/local/bin/altinn-github-runner
+COPY run-with-dockerd.sh /usr/local/bin/altinn-github-runner-dind
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
       build-essential \
       ca-certificates \
       curl \
+      docker.io \
+      e2fsprogs \
       git \
+      iproute2 \
+      iptables \
       jq \
       libicu74 \
       make \
       pkg-config \
       tar \
       unzip \
+      util-linux \
       xz-utils \
       zstd \
     && rm -rf /var/lib/apt/lists/* \
     && chmod +x /usr/local/bin/altinn-github-runner \
+    && chmod +x /usr/local/bin/altinn-github-runner-dind \
     && mkdir -p \
       /home/runner/.cache/go-build \
       /home/runner/.npm \
@@ -70,6 +77,9 @@ RUN apt-get update \
     && rm -f /tmp/dotnet-install.sh \
     && PATH="/opt/tools/node/current/bin:${PATH}" COREPACK_HOME=/opt/corepack corepack enable \
     && PATH="/opt/tools/node/current/bin:${PATH}" COREPACK_HOME=/opt/corepack corepack prepare "yarn@${YARN_CHANNEL}" --activate \
+    && git config --system checkout.workers 4 \
+    && git config --system checkout.thresholdForParallelism 100 \
+    && usermod -aG docker runner \
     && chown -R runner:runner /home/runner/.cache /home/runner/.npm /home/runner/.nuget /home/runner/go /home/runner/_work /opt/tools /opt/corepack
 
 ENV CGO_ENABLED=1

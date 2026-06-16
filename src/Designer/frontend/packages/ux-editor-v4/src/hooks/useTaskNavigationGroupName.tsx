@@ -1,4 +1,4 @@
-import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
+import { useLayoutSetsExtendedQuery } from './queries/useLayoutSetsExtendedQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import { useTextResourceValue } from '../components/TextResource/hooks/useTextResourceValue';

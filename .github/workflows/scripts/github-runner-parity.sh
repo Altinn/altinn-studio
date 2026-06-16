@@ -103,6 +103,10 @@ benchmark_small_files "${GITHUB_WORKSPACE:-$(pwd)}"
 
 section "Disk"
 run_optional df -h
+run_optional df -PT / "${HOME}/_work" /var/lib/docker /tmp
 
 section "Mounts"
 run_optional mount
+
+section "Docker"
+run_optional docker info

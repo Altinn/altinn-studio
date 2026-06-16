@@ -1,10 +1,11 @@
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
+import { useCurrentLanguage, useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 
 export interface DemoLayoutComponentProps {
   content: string;
 }
 export function DemoLayoutComponent({ content }: DemoLayoutComponentProps) {
   const { langAsString, lang } = useTranslation();
+  const currentLanguage = useCurrentLanguage();
 
   return (
     <>
@@ -13,7 +14,11 @@ export function DemoLayoutComponent({ content }: DemoLayoutComponentProps) {
         The static text with key helptext.button_title is translated as:{' '}
         {langAsString('helptext.button_title')}
       </p>
-      <p>Below is content set with props a text, but can be html or mark down</p>
+      <p>The current language is: {currentLanguage}</p>
+      <p>
+        Below is the content. It is a property of type text, but the text can be html or markdown
+        and will be parsed accordingly.
+      </p>
       <div>{lang(content)}</div>
     </>
   );

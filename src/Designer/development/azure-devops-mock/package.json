@@ -6,11 +6,11 @@
   "dependencies": {
     "axios": "1.15.2",
     "cors": "2.8.6",
-    "express": "4.22.1",
+    "express": "5.2.1",
     "morgan": "1.10.1",
     "nodemon": "3.1.14",
     "p-queue": "8.1.1",
-    "uuid": "13.0.0"
+    "uuid": "13.0.1"
   },
   "license": "MIT",
   "main": "index.js",

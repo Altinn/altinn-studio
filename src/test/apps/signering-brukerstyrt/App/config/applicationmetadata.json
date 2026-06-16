@@ -2,8 +2,32 @@
   "id": "ttd/signering-brukerstyrt",
   "org": "ttd",
   "title": {
-    "nb": "Stiftelse av aksjeselskap"
+    "nb": "Stiftelse av aksjeselskap",
+    "nn": "Lågå ei sjølskåp",
+    "en": "Founding a publicly traded company"
   },
+  "description": {
+    "nb": "Et skjema for å stifte et aksjeselskap, med signering av stiftere og revisor",
+    "en": "A form for founding a publicly traded company, with signatures from founders and auditor",
+    "nn": "Eit skjema for å stifte eit aksjeselskap, med signaturar frå stiftere og revisor"
+  },
+  "access": {
+    "rightDescription": {
+      "nb": "Ved å gi tilgang til denne tjenesten gir du en annen person fullmakt til å bruke den på dine vegne. Les beskrivelsen av tjenesten for mer informasjon om hva tilgangen innebærer.",
+      "en": "By granting access to this service, you are authorising another person to use it on your behalf. Please read the service description for more information about what this access entails.",
+      "nn": "Når du gir tilgang til denne tenesta, gir du ein annan person fullmakt til å bruka ho på dine vegner. Les skildringa av tenesta for meir informasjon om kva tilgangen inneber."
+    },
+    "delegable": true,
+    "visible": true
+  },
+  "contactPoints": [
+    {
+      "category": "tittel",
+      "email": "epost",
+      "telephone": "tlf",
+      "contactPage": "lenke"
+    }
+  ],
   "dataTypes": [
     {
       "id": "ref-data-as-pdf",
