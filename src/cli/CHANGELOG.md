@@ -10,7 +10,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- Update `studioctl app upgrade v9` to rewrite the app `Dockerfile` .NET base images to match the upgraded target framework (`net10.0`), so v9 apps build and publish on the correct .NET SDK/runtime images.
+- Update `studioctl app upgrade v9` to rewrite the app `Dockerfile` .NET base images to match the upgraded target framework (`net10.0`).
 
 ## [0.1.0-preview.14] - 2026-06-08
 
