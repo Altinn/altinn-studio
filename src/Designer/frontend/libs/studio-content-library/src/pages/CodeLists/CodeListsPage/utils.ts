@@ -7,6 +7,7 @@ import type {
   OrdinaryCodeListFile,
 } from '../../../types/CodeListFile';
 import type { CodeListFileMap } from './types/CodeListFileMap';
+import { Guard } from '@studio/guard';
 
 export function createCodeListMap(codeLists: CodeListFile[]): CodeListFileMap {
   const entries: [string, CodeListFile][] = codeLists.map((codeList) => [uuid(), codeList]);
@@ -54,7 +55,13 @@ function codeListNames(codeListMap: CodeListFileMap): string[] {
 export function areFileMapsEqual(map1: CodeListFileMap, map2: CodeListFileMap): boolean {
   return (
     areFileKeysEqual(map1, map2) &&
-    map1.keys().every((key) => areFilesEqualIfNoError(map1.get(key), map2.get(key)))
+    map1.keys().every((key) => {
+      const file1 = map1.get(key);
+      const file2 = map2.get(key);
+      Guard.againstUndefined(file1);
+      Guard.againstUndefined(file2);
+      return areFilesEqualIfNoError(file1, file2);
+    })
   );
 }
 
