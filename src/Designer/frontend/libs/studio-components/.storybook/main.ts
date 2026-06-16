@@ -23,6 +23,6 @@ const config: StorybookConfig = {
 };
 export default config;
 
-function getAbsolutePath(value: string) {
+function getAbsolutePath(value: string): string {
   return dirname(fileURLToPath(import.meta.resolve(`${value}/package.json`)));
 }
