@@ -61,7 +61,7 @@ class TestBucketing:
         assert len(rows) == 1
         assert rows[0]["date"] == "2026-05-03"
         assert rows[0]["serviceownercode"] == SERVICE_OWNER
-        assert rows[0]["serviceresourceid"] == "ttd-my-app"
+        assert rows[0]["serviceresourceid"] == "app_ttd_ttd-my-app"
         assert rows[0]["messagesender"] == SERVICE_OWNER
 
     def test_splits_observations_across_different_days(self):
@@ -140,7 +140,7 @@ class TestEdgeCases:
         with caplog.at_level(logging.WARNING):
             rows = aggregate_token_usage(observations, traces, LOADED_AT)
 
-        assert rows[0]["serviceresourceid"] == "unknown"
+        assert rows[0]["serviceresourceid"] == "app_ttd_unknown"
         assert DEFAULT_TRACE_ID in caplog.text
 
     def test_raises_when_user_id_empty(self):

@@ -8,6 +8,7 @@ from shared.utils.logging_utils import get_logger
 log = get_logger(__name__)
 
 UNKNOWN = "unknown"
+RR_APP_PREFIX = "app"
 
 
 class DailyTokenUsageRow(TypedDict):
@@ -152,8 +153,8 @@ def _to_usage_row(
         "serviceownerorgnr": None,
         "serviceownercode": bucket["service_owner_code"],
         "messagesender": bucket["service_owner_code"],
-        "serviceresourceid": bucket["app_name"],
-        "serviceresourcetitle": None,
+        "serviceresourceid": f"{RR_APP_PREFIX}_{bucket['service_owner_code']}_{bucket['app_name']}",
+        "serviceresourcetitle": bucket["app_name"],
         "recipienttype": None,
         "costcenter": None,
         "messagecount": None,
