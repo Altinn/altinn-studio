@@ -34,13 +34,9 @@
   font-style: italic;
 }
 
-.summary:is(.added, .changed) {
-  --badge-colour: var(--ds-color-info-base-default);
-}
-
-.summary::after {
+.summary:is(.added, .changed)::after {
   aspect-ratio: 1;
-  background-color: var(--badge-colour);
+  background-color: var(--ds-color-info-base-default);
   border-radius: 100%;
   content: '';
   height: var(--ds-size-3);
