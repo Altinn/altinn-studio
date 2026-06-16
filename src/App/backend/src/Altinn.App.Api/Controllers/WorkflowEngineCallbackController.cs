@@ -103,29 +103,28 @@ public class WorkflowEngineCallbackController : ControllerBase
             );
         }
 
-        InstanceDataUnitOfWork instanceDataUnitOfWork = await _workflowCallbackStateService.RestoreState(
-            payload.State,
-            payload.Actor.Language
-        );
-
-        // Defense-in-depth: the callback token only binds the route instanceGuid, but the instance that is
-        // actually mutated and saved comes from the (engine-stored) state blob. Reject if the blob targets a
-        // different instance than the route, so a token scoped to one instance cannot be replayed against
-        // another instance's state.
-        string restoredInstanceId = instanceDataUnitOfWork.Instance.Id;
-        if (!string.Equals(restoredInstanceId, instanceId.ToString(), StringComparison.OrdinalIgnoreCase))
+        InstanceDataUnitOfWork instanceDataUnitOfWork;
+        try
+        {
+            instanceDataUnitOfWork = await _workflowCallbackStateService.RestoreState(
+                instanceId,
+                payload.State,
+                payload.Actor.Language
+            );
+        }
+        catch (WorkflowCallbackStateException e)
         {
             _logger.LogError(
-                "Callback state instance mismatch. CommandKey: {CommandKey}, RouteInstance: {InstanceId}, StateInstance: {StateInstanceId}.",
+                e,
+                "Failed to restore workflow callback state. CommandKey: {CommandKey}, Instance: {InstanceId}.",
                 commandKey,
-                instanceId,
-                restoredInstanceId
+                instanceId
             );
-            activity?.SetStatus(ActivityStatusCode.Error, "Instance mismatch");
+            activity?.SetStatus(ActivityStatusCode.Error, "Invalid callback state");
             return NonRetryableProblem(
-                "Instance Mismatch",
-                "Callback state does not match the instance in the request route.",
-                StatusCodes.Status403Forbidden
+                "Invalid State",
+                "Workflow callback state could not be restored for this instance.",
+                StatusCodes.Status422UnprocessableEntity
             );
         }
 

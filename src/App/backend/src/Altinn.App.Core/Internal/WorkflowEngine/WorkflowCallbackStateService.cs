@@ -54,15 +54,34 @@ internal sealed class WorkflowCallbackStateService
     /// <summary>
     /// Restores workflow callback state from a previously captured state string.
     /// </summary>
-    public async Task<InstanceDataUnitOfWork> RestoreState(string state, string? language)
+    /// <param name="expectedInstance">
+    /// The instance the caller is authorized to act on (from the callback route). The restored state blob
+    /// must target this same instance.
+    /// </param>
+    /// <param name="state">The opaque state blob captured at enqueue time.</param>
+    /// <param name="language">The actor language to initialize the unit of work with.</param>
+    public async Task<InstanceDataUnitOfWork> RestoreState(
+        InstanceIdentifier expectedInstance,
+        string state,
+        string? language
+    )
     {
         WorkflowCallbackState callbackState =
             JsonSerializer.Deserialize<WorkflowCallbackState>(state)
-            ?? throw new InvalidOperationException(
+            ?? throw new WorkflowCallbackStateException(
                 "Failed to deserialize workflow callback state from callback payload"
             );
 
         Instance instance = callbackState.Instance;
+
+        // Assert that the decoded instance object has the expected id
+        if (!string.Equals(instance.Id, expectedInstance.ToString(), StringComparison.OrdinalIgnoreCase))
+        {
+            throw new WorkflowCallbackStateException(
+                $"Workflow callback state instance '{instance.Id}' does not match the expected route instance '{expectedInstance}'."
+            );
+        }
+
         string? taskId = instance.Process?.CurrentTask?.ElementId;
 
         InstanceDataUnitOfWork unitOfWork = await _unitOfWorkInitializer.Init(
