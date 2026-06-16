@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"time"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -90,16 +93,29 @@ func (r *MaskinportenClientReconciler) processPendingMaskinportenRotationRollout
 	ctx context.Context,
 	now time.Time,
 ) error {
+	ctx, span := r.runtime.Tracer().Start(
+		ctx,
+		"MaskinportenRotationRollout.processPending",
+		trace.WithAttributes(attribute.String("scheduled_at", now.UTC().Format(time.RFC3339))),
+	)
+	defer span.End()
+
 	logger := log.FromContext(ctx).WithName("maskinporten-rotation-rollout")
 	serviceOwnerID := r.serviceOwnerID()
+	span.SetAttributes(attribute.String("service_owner", serviceOwnerID))
 	if serviceOwnerID == "" {
+		span.SetStatus(codes.Error, "operator service owner scope is empty")
+		span.RecordError(errEmptyOperatorServiceOwnerScope)
 		return errEmptyOperatorServiceOwnerScope
 	}
 
 	list := &resourcesv1alpha1.MaskinportenClientList{}
 	if err := r.List(ctx, list); err != nil {
+		span.SetStatus(codes.Error, "list MaskinportenClients")
+		span.RecordError(err)
 		return fmt.Errorf("list MaskinportenClients: %w", err)
 	}
+	span.SetAttributes(attribute.Int("maskinporten_client_count", len(list.Items)))
 
 	var errs []error
 	for i := range list.Items {
@@ -120,20 +136,10 @@ func (r *MaskinportenClientReconciler) processPendingMaskinportenRotationRollout
 			continue
 		}
 
-		fingerprint, err := r.pendingRotationFingerprint(ctx, instance, deploymentName)
-		if err != nil {
-			errs = append(errs, err)
-			continue
-		}
-		if fingerprint == "" {
-			continue
-		}
-
-		if err := r.processPendingMaskinportenRotationRollout(
+		if err := r.processInScopeMaskinportenRotationRollout(
 			ctx,
 			instance,
 			deploymentName,
-			fingerprint,
 			now,
 		); err != nil {
 			logger.Error(
@@ -142,13 +148,58 @@ func (r *MaskinportenClientReconciler) processPendingMaskinportenRotationRollout
 				"maskinportenClient", instance.Name,
 				"namespace", instance.Namespace,
 				"deployment", deploymentName,
-				"fingerprint", fingerprint,
 			)
 			errs = append(errs, err)
 		}
 	}
 
-	return errors.Join(errs...)
+	if err := errors.Join(errs...); err != nil {
+		span.SetStatus(codes.Error, "one or more Maskinporten rotation rollouts failed")
+		span.RecordError(err)
+		return err
+	}
+
+	span.SetStatus(codes.Ok, "processed Maskinporten rotation rollouts")
+	return nil
+}
+
+func (r *MaskinportenClientReconciler) processInScopeMaskinportenRotationRollout(
+	ctx context.Context,
+	instance *resourcesv1alpha1.MaskinportenClient,
+	deploymentName string,
+	now time.Time,
+) error {
+	ctx, span := r.runtime.Tracer().Start(
+		ctx,
+		"MaskinportenRotationRollout.processItem",
+		trace.WithAttributes(
+			attribute.String("namespace", instance.Namespace),
+			attribute.String("maskinporten_client", instance.Name),
+			attribute.String("deployment", deploymentName),
+		),
+	)
+	defer span.End()
+
+	fingerprint, err := r.pendingRotationFingerprint(ctx, instance, deploymentName)
+	if err != nil {
+		span.SetStatus(codes.Error, "determine pending rotation fingerprint")
+		span.RecordError(err)
+		return err
+	}
+	if fingerprint == "" {
+		span.SetStatus(codes.Ok, "no pending rotation")
+		return nil
+	}
+	span.SetAttributes(attribute.String("fingerprint", fingerprint))
+
+	if err := r.processPendingMaskinportenRotationRollout(ctx, instance, deploymentName, fingerprint, now); err != nil {
+		span.SetStatus(codes.Error, "process pending rotation rollout")
+		span.RecordError(err)
+		return err
+	}
+
+	span.SetStatus(codes.Ok, "processed pending rotation rollout")
+	return nil
 }
 
 func (r *MaskinportenClientReconciler) processPendingMaskinportenRotationRollout(
@@ -220,7 +271,7 @@ func (r *MaskinportenClientReconciler) pendingRotationFingerprint(
 	if fromStatus := pendingRotationFingerprintFromStatus(instance); fromStatus != "" {
 		return fromStatus, nil
 	}
-	return r.pendingRotationFingerprintFromSecret(ctx, instance, deploymentName)
+	return r.pendingRotationFingerprintFromSecretRecovery(ctx, instance, deploymentName)
 }
 
 func pendingRotationFingerprintFromStatus(instance *resourcesv1alpha1.MaskinportenClient) string {
@@ -234,7 +285,10 @@ func pendingRotationFingerprintFromStatus(instance *resourcesv1alpha1.Maskinport
 	return pending
 }
 
-func (r *MaskinportenClientReconciler) pendingRotationFingerprintFromSecret(
+// pendingRotationFingerprintFromSecretRecovery is a crash-recovery fallback for the narrow case where
+// the app Secret was updated with rotated credentials but the MaskinportenClient status update did not persist.
+// MaskinportenClient status remains the primary source of truth for pending rollout state.
+func (r *MaskinportenClientReconciler) pendingRotationFingerprintFromSecretRecovery(
 	ctx context.Context,
 	instance *resourcesv1alpha1.MaskinportenClient,
 	deploymentName string,
