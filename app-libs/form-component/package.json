@@ -27,7 +27,7 @@
     "marked-mangle": "1.1.13",
     "mime": "^4.1.0",
     "react-content-loader": "7.1.2",
-    "react-day-picker": "9.14.0",
+    "react-day-picker": "10.0.1",
     "react-dropzone": "^15.0.0",
     "react-number-format": "^5.4.5"
   },
@@ -66,7 +66,7 @@
     "eslint-plugin-prettier": "5.5.5",
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "7.1.1",
-    "eslint-plugin-simple-import-sort": "12.1.1",
+    "eslint-plugin-simple-import-sort": "13.0.0",
     "eslint-plugin-sonarjs": "4.0.3",
     "eslint-plugin-storybook": "10.4.2",
     "globals": "17.6.0",

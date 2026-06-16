@@ -9,7 +9,7 @@
     "react": "19.2.5",
     "react-dom": "19.2.5",
     "typescript": "5.9.3",
-    "uuid": "13.0.0"
+    "uuid": "13.0.1"
   },
   "devDependencies": {
     "@studio/ui-test": "workspace:^",
