@@ -62,7 +62,7 @@ class TestBucketing:
         assert rows[0]["date"] == "2026-05-03"
         assert rows[0]["serviceownercode"] == SERVICE_OWNER
         assert rows[0]["serviceresourceid"] == "app_ttd_ttd-my-app"
-        assert rows[0]["messagesender"] == SERVICE_OWNER
+        assert rows[0]["messagesender"] is None
 
     def test_splits_observations_across_different_days(self):
         observations = [

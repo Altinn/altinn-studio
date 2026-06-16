@@ -18,9 +18,9 @@ class DailyTokenUsageRow(TypedDict):
     day: str
     serviceownerorgnr: str | None
     serviceownercode: str
-    messagesender: str
+    messagesender: str | None
     serviceresourceid: str
-    serviceresourcetitle: str | None
+    serviceresourcetitle: str
     recipienttype: str | None
     costcenter: str | None
     messagecount: int | None
@@ -28,8 +28,7 @@ class DailyTokenUsageRow(TypedDict):
     databasestoragebytes: int | None
     attachmentstoragebytes: int | None
     loaded_at: str
-    source_file: str
-
+    source: str
     input_tokens: int
     output_tokens: int
     total_tokens: int
@@ -152,7 +151,7 @@ def _to_usage_row(
         "day": day,
         "serviceownerorgnr": None,
         "serviceownercode": bucket["service_owner_code"],
-        "messagesender": bucket["service_owner_code"],
+        "messagesender": None,
         "serviceresourceid": f"{RR_APP_PREFIX}_{bucket['service_owner_code']}_{bucket['app_name']}",
         "serviceresourcetitle": bucket["app_name"],
         "recipienttype": None,
@@ -162,7 +161,7 @@ def _to_usage_row(
         "databasestoragebytes": None,
         "attachmentstoragebytes": None,
         "loaded_at": loaded_at,
-        "source_file": langfuse_host,
+        "source": langfuse_host,
         "input_tokens": bucket["input_tokens"],
         "output_tokens": bucket["output_tokens"],
         "total_tokens": bucket["total_tokens"],
