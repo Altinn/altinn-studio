@@ -8,10 +8,12 @@
     <PackageVersion Include="AngleSharp" Version="1.4.0" />
     <PackageVersion Include="Jint" Version="4.6.4" />
     <PackageVersion Include="LibGit2Sharp" Version="0.31.0" />
+    <PackageVersion Include="coverlet.collector" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.11.2" />
     <PackageVersion Include="Microsoft.Build" Version="18.4.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.14.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
     <PackageVersion Include="MinVer" Version="6.1.0" />
     <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" />
     <PackageVersion Include="CSharpier.MsBuild" Version="1.2.6" />
@@ -21,5 +23,8 @@
     <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.4.0" />
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.4.0" />
     <PackageVersion Include="Microsoft.NET.StringTools" Version="18.4.0" />
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.9" />
+    <PackageVersion Include="xunit.v3" Version="3.2.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
   </ItemGroup>
 </Project>
