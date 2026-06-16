@@ -144,12 +144,18 @@ create-pr:
 		echo "Install GitHub CLI to enable automatic PR creation: https://cli.github.com/"; \
 	fi
 
-# Generate individual sync targets dynamically
-$(foreach subtree,$(SUBTREES), \
-	$(eval sync-$(word 1,$(subst |, ,$(subtree))): ; \
-		$$(call create-sync-branch,$(word 1,$(subst |, ,$(subtree)))) \
-		$$(call pull-subtree,$(word 1,$(subst |, ,$(subtree))),$(word 2,$(subst |, ,$(subtree))),$(word 3,$(subst |, ,$(subtree))),$(word 4,$(subst |, ,$(subtree)))) \
-		@$$(MAKE) create-pr SUBTREE_NAME=$(word 1,$(subst |, ,$(subtree)))))
+# Generate individual sync targets dynamically.
+# Each macro must live on its own recipe line (like sync-test-apps below); joining
+# them with backslash continuations collapses them into a single shell command,
+# which breaks command separation and the @-silenced recursive make call.
+define sync-target-template
+sync-$(word 1,$(subst |, ,$(1))):
+	$$(call create-sync-branch,$(word 1,$(subst |, ,$(1))))
+	$$(call pull-subtree,$(word 1,$(subst |, ,$(1))),$(word 2,$(subst |, ,$(1))),$(word 3,$(subst |, ,$(1))),$(word 4,$(subst |, ,$(1))))
+	@$$(MAKE) create-pr SUBTREE_NAME=$(word 1,$(subst |, ,$(1)))
+endef
+
+$(foreach subtree,$(SUBTREES),$(eval $(call sync-target-template,$(subtree))))
 
 # Sync all test apps
 sync-test-apps: ## Sync all test app subtrees

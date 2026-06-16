@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
+import comboboxClasses from '@app/form-component/styles/combobox.module.css';
 import { Checkbox, EXPERIMENTAL_Suggestion as Suggestion, Fieldset, Tabs } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
@@ -12,7 +13,6 @@ import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
 import { useNavigationParam } from 'src/hooks/navigation';
-import comboboxClasses from 'src/styles/combobox.module.css';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
 import { deriveLayoutNodes } from 'src/utils/layout/deriveLayoutNodes';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';

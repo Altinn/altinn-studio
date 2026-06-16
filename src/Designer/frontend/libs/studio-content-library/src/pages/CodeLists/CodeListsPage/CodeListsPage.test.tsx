@@ -5,8 +5,9 @@ import type { CodeListsPageProps } from './CodeListsPage';
 import { userEvent } from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { codeLists, coloursData } from './test-data/codeLists';
+import { codeLists, coloursFile } from './test-data/codeLists';
 import { screen, within } from '@studio/ui-test';
+import { FileNameUtils } from '@studio/pure-functions';
 
 // Test data:
 const onPublish = jest.fn();
@@ -28,7 +29,8 @@ describe('CodeListsPage', () => {
   it('Renders with the given code lists', () => {
     renderCodeListPage();
     codeLists.forEach((codeList) => {
-      expect(screen.getDetailsBySummary(codeList.name)).toBeInTheDocument();
+      const expectedVisibleName = FileNameUtils.removeExtension(codeList.name);
+      expect(screen.getDetailsBySummary(expectedVisibleName)).toBeInTheDocument();
     });
   });
 
@@ -73,7 +75,7 @@ describe('CodeListsPage', () => {
     const user = userEvent.setup();
     renderCodeListPage();
 
-    const nameField = getNameField(coloursData.name);
+    const nameField = getNameField(FileNameUtils.removeExtension(coloursFile.name));
     const newName = 'a';
     await user.clear(nameField);
     await user.type(nameField, newName);
@@ -82,7 +84,7 @@ describe('CodeListsPage', () => {
     expect(onSave).toHaveBeenCalledTimes(1);
     const savedCodeLists = onSave.mock.calls[0][0];
     expect(savedCodeLists).toHaveLength(codeLists.length);
-    expect(savedCodeLists[0].name).toEqual(newName);
+    expect(savedCodeLists[0].name).toEqual(newName + '.json');
   });
 
   it('Does not call onSave when there are validation errors', async () => {

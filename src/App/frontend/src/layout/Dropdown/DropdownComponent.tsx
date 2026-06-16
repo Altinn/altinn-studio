@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 
 import { Label } from '@app/form-component';
+import comboboxClasses from '@app/form-component/styles/combobox.module.css';
 import { EXPERIMENTAL_Suggestion as Suggestion, Label as DSLabel } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { SuggestionItem } from '@digdir/designsystemet-react';
@@ -16,7 +17,6 @@ import { useGetOptions } from 'src/features/options/useGetOptions';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/Dropdown/DropdownComponent.module.css';
-import comboboxClasses from 'src/styles/combobox.module.css';
 import utilClasses from 'src/styles/utils.module.css';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
