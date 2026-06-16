@@ -1,0 +1,5 @@
+[
+  { "value": "red", "label": { "nb": "Rød", "en": "Red" } },
+  { "value": "green", "label": { "nb": "Grønn", "en": "Green" } },
+  { "value": "blue", "label": { "nb": "Blå", "en": "Blue" } }
+]

@@ -6,23 +6,24 @@ import {
   addCodeListToMap,
   createCodeListMap,
   deleteCodeListFromMap,
-  updateCodeListDataInMap,
   validateCodeListMap,
+  updateCodeListFileInMap,
 } from './utils';
 import { CodeListDataEditor } from './CodeListDataEditor';
-import type { CodeListMap } from './types/CodeListMap';
 import type { CodeListData } from '../../../types/CodeListData';
 import classes from './CodeListsPage.module.css';
 import { FloppydiskIcon, PlusIcon } from '@studio/icons';
 import type { CodeListMapError } from './types/CodeListMapError';
 import { Errors } from './Errors';
+import type { CodeListFile } from '../../../types/CodeListFile';
+import type { CodeListFileMap } from './types/CodeListFileMap';
 
 export type CodeListsPageProps = {
-  codeLists: CodeListData[];
-  isPublishing: (codeListName: string) => boolean;
+  codeLists: CodeListFile[];
+  isPublishing: (fileName: string) => boolean;
   publishedCodeLists: string[];
   onPublish: (data: CodeListData) => void;
-  onSave: (data: CodeListData[]) => void;
+  onSave: (data: CodeListFile[]) => void;
 };
 
 export function CodeListsPage({
@@ -33,12 +34,12 @@ export function CodeListsPage({
   publishedCodeLists,
 }: CodeListsPageProps): ReactElement {
   const { t } = useTranslation();
-  const [codeListMap, setCodeListMap] = useState<CodeListMap>(createCodeListMap(codeLists));
+  const [codeListMap, setCodeListMap] = useState<CodeListFileMap>(createCodeListMap(codeLists));
   const [errors, setErrors] = useState<CodeListMapError[]>([]);
 
-  const handleUpdateCodeListData = useCallback(
-    (key: string, newData: CodeListData): void => {
-      const newCodeListMap = updateCodeListDataInMap(codeListMap, key, newData);
+  const handleUpdateCodeListFile = useCallback(
+    (key: string, newFile: CodeListFile): void => {
+      const newCodeListMap = updateCodeListFileInMap(codeListMap, key, newFile);
       setCodeListMap(newCodeListMap);
     },
     [codeListMap, setCodeListMap],
@@ -63,8 +64,8 @@ export function CodeListsPage({
       setErrors(validationErrors);
     } else {
       setErrors([]);
-      const updatedCodeLists: CodeListData[] = [...codeListMap.values()];
-      onSave(updatedCodeLists);
+      const updatedCodeListFiles: CodeListFile[] = [...codeListMap.values()];
+      onSave(updatedCodeListFiles);
     }
   }, [codeListMap, onSave]);
 
@@ -84,7 +85,7 @@ export function CodeListsPage({
         isPublishing={isPublishing}
         onDeleteCodeList={handleDeleteCodeList}
         onPublish={onPublish}
-        onUpdateCodeListData={handleUpdateCodeListData}
+        onUpdateCodeListFile={handleUpdateCodeListFile}
         publishedCodeLists={publishedCodeLists}
       />
       <Errors errors={errors} />
@@ -96,11 +97,11 @@ export function CodeListsPage({
 }
 
 type ListOfCodeListsProps = Readonly<{
-  codeListMap: CodeListMap;
-  isPublishing: (codeListName: string) => boolean;
+  codeListMap: CodeListFileMap;
+  isPublishing: (fileName: string) => boolean;
   onDeleteCodeList: (key: string) => void;
   onPublish: (data: CodeListData) => void;
-  onUpdateCodeListData: (key: string, newData: CodeListData) => void;
+  onUpdateCodeListFile: (key: string, newFile: CodeListFile) => void;
   publishedCodeLists: string[];
 }>;
 
@@ -109,7 +110,7 @@ function ListOfCodeLists({
   isPublishing,
   onDeleteCodeList,
   onPublish,
-  onUpdateCodeListData,
+  onUpdateCodeListFile,
   publishedCodeLists,
 }: ListOfCodeListsProps): ReactElement {
   const { t } = useTranslation();
@@ -120,14 +121,14 @@ function ListOfCodeLists({
   } else {
     return (
       <StudioCard>
-        {[...codeListMap].map(([key, data]) => (
+        {[...codeListMap].map(([key, file]) => (
           <CodeListDataEditor
-            data={data}
-            isPublishing={isPublishing(data.name)}
+            file={file}
+            isPublishing={isPublishing(file.name)}
             key={key}
             onDelete={() => onDeleteCodeList(key)}
             onPublish={onPublish}
-            onUpdate={(newData) => onUpdateCodeListData(key, newData)}
+            onUpdate={(newData) => onUpdateCodeListFile(key, newData)}
             publishedCodeLists={publishedCodeLists}
           />
         ))}

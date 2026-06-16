@@ -1,0 +1,14 @@
+[
+  {
+    "value": "car",
+    "label": { "nb": "Bil", "nn": "Bil", "en": "Car" }
+  },
+  {
+    "value": "bike",
+    "label": { "nb": "Sykkel", "nn": "Sykkel", "en": "Bike" }
+  },
+  {
+    "value": "boat",
+    "label": { "nb": "Båt", "nn": "Båt", "en": "Boat" }
+  }
+]
