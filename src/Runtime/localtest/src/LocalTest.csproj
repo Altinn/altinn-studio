@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <UserSecretsId>56f36ce2-b44b-415e-a8a5-f399a76e35b9</UserSecretsId>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
 
     <!-- Allow copied code to use #if LOCALTEST to maintain changes for localtest from core services -->
     <DefineConstants>$(DefineConstants);LOCALTEST</DefineConstants>

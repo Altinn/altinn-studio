@@ -11,8 +11,9 @@ import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { SearchParams } from 'src/core/routing/types';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
+import { ExprVal } from 'src/features/expressions/types';
 import { FormStore } from 'src/features/form/FormContext';
-import { usePdfLayoutName } from 'src/features/form/layoutSettings/processLayoutSettings';
+import { usePageSettings, usePdfLayoutName } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsPayment } from 'src/features/payment/utils';
 import classes from 'src/features/pdf/PDFView.module.css';
@@ -27,6 +28,7 @@ import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { SummaryComponent2 } from 'src/layout/Summary2/SummaryComponent2/SummaryComponent2';
 import { TaskSummaryWrapper } from 'src/layout/Summary2/SummaryComponent2/TaskSummaryWrapper';
+import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
 import { useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import { useItemIfType } from 'src/utils/layout/useNodeItem';
@@ -132,6 +134,12 @@ function PdfWrapping({ children }: PropsWithChildren) {
   const appName = useAppName();
   const { langAsString } = useLanguage();
   const isPayment = useIsPayment();
+  const { hideAppNameInPdf: hideAppNameInPdfExpr } = usePageSettings();
+  const hideAppNameInPdf = useEvalExpression(hideAppNameInPdfExpr, {
+    returnType: ExprVal.Boolean,
+    defaultValue: false,
+    errorIntroText: 'Invalid expression for hideAppNameInPdf in Settings.json',
+  });
 
   return (
     <div
@@ -147,12 +155,14 @@ function PdfWrapping({ children }: PropsWithChildren) {
         </div>
       )}
       {appOwner && <span role='doc-subtitle'>{appOwner}</span>}
-      <Heading
-        level={1}
-        data-size='lg'
-      >
-        {isPayment ? `${appName} - ${langAsString('payment.receipt.title')}` : appName}
-      </Heading>
+      {!hideAppNameInPdf && (
+        <Heading
+          level={1}
+          data-size='lg'
+        >
+          {isPayment ? `${appName} - ${langAsString('payment.receipt.title')}` : appName}
+        </Heading>
+      )}
       {children}
       <ReadyForPrint type='print' />
     </div>

@@ -11,7 +11,6 @@ internal sealed class SubformPdfServiceTask(
     IProcessReader processReader,
     IPdfService pdfService,
     IDataClient dataClient,
-    IProcessTaskCleaner processTaskCleaner,
     ILogger<SubformPdfServiceTask> logger
 ) : IServiceTask
 {
@@ -29,9 +28,6 @@ internal sealed class SubformPdfServiceTask(
         string? filenameTextResourceKey = config.FilenameTextResourceKey;
         string subformComponentId = config.SubformComponentId;
         string subformDataTypeId = config.SubformDataTypeId;
-
-        // Clean up any existing PDFs from previous failed attempts
-        await processTaskCleaner.RemoveAllDataElementsGeneratedFromTask(instance, taskId);
 
         List<DataElement> subformDataElements = instance.Data.Where(x => x.DataType == subformDataTypeId).ToList();
 

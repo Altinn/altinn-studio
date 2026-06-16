@@ -1,3 +1,5 @@
+#nullable disable
+
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Repository;
 

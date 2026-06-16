@@ -1322,8 +1322,7 @@ public sealed class ProcessEngineTest
                     .ReturnsAsync(() => updatedInstance);
             }
 
-            instanceLockerMock.Setup(x => x.DisposeAsync()).Returns(ValueTask.CompletedTask);
-            instanceLockerMock.Setup(x => x.LockAsync()).Returns(ValueTask.CompletedTask);
+            instanceLockerMock.Setup(x => x.InitLock()).Returns(Moq.Mock.Of<IInstanceLock>());
 
             services.TryAddTransient<IAuthenticationContext>(_ => authenticationContextMock.Object);
             services.TryAddTransient<IProcessNavigator>(_ => processNavigatorMock.Object);

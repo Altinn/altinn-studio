@@ -23,7 +23,6 @@ public class ProcessTaskInitializer : IProcessTaskInitializer
     private readonly IAppModel _appModel;
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IInstanceClient _instanceClient;
-    private readonly IProcessTaskCleaner _processTaskCleaner;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessTaskInitializer"/> class.
@@ -35,7 +34,6 @@ public class ProcessTaskInitializer : IProcessTaskInitializer
     /// <param name="appModel"></param>
     /// <param name="serviceProvider"></param>
     /// <param name="instanceClient"></param>
-    /// <param name="processTaskCleaner"></param>
     public ProcessTaskInitializer(
         ILogger<ProcessTaskInitializer> logger,
         IAppMetadata appMetadata,
@@ -43,8 +41,7 @@ public class ProcessTaskInitializer : IProcessTaskInitializer
         IPrefill prefillService,
         IAppModel appModel,
         IServiceProvider serviceProvider,
-        IInstanceClient instanceClient,
-        IProcessTaskCleaner processTaskCleaner
+        IInstanceClient instanceClient
     )
     {
         _logger = logger;
@@ -54,15 +51,12 @@ public class ProcessTaskInitializer : IProcessTaskInitializer
         _appModel = appModel;
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
         _instanceClient = instanceClient;
-        _processTaskCleaner = processTaskCleaner;
     }
 
     /// <inheritdoc/>
     public async Task Initialize(string taskId, Instance instance, Dictionary<string, string>? prefill)
     {
         _logger.LogDebug("OnStartProcessTask for {InstanceId}", instance.Id);
-
-        await _processTaskCleaner.RemoveAllDataElementsGeneratedFromTask(instance, taskId);
 
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
 

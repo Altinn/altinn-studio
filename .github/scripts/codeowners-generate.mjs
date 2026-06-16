@@ -42,10 +42,9 @@ const GROUPS = [
   {
     title: 'Team Utforming',
     owner: '@altinn/team-altinn-studio-utforming',
-    roots: ['libs/form-component', 'libs/form-engine', 'src/App/frontend', 'src/Designer/frontend'],
+    roots: ['app-libs', 'src/App/frontend', 'src/Designer/frontend'],
     extraPaths: [
       '.github/workflows/app-frontend-codeql.yml',
-      '.github/workflows/app-frontend-compare-repos.yml',
       '.github/workflows/app-frontend-cypress.yml',
       '.github/workflows/app-frontend-k6-browser.yml',
       '.github/workflows/app-frontend-lighthouse-ci.yml',
@@ -105,6 +104,7 @@ const GROUPS = [
       '.github/workflows/cli-build-test.yaml',
       '.github/workflows/construct-environments-script-test.yaml',
       '.github/workflows/deploy-gitea-runners.yaml',
+      '.github/workflows/deploy-github-runners.yaml',
       '.github/workflows/deploy-lhci-server.yaml',
       '.github/workflows/deploy-loadbalancer.yaml',
       '.github/workflows/deploy-repositories.yaml',

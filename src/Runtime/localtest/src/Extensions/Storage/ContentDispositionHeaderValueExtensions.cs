@@ -1,3 +1,5 @@
+#nullable disable
+
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 

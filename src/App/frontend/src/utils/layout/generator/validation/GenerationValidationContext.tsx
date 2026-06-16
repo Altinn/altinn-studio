@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
-import type { ErrorObject } from 'ajv';
 import type Ajv from 'ajv';
+import type { ErrorObject } from 'ajv';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { createContext } from 'src/core/contexts/context';

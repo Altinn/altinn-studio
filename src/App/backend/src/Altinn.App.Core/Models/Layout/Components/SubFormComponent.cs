@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
-using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Models.Expressions;
 
 namespace Altinn.App.Core.Models.Layout.Components;
@@ -50,7 +50,7 @@ public sealed class SubFormComponent : Base.BaseLayoutComponent
 
     /// <inheritdoc />
     public override async Task<ComponentContext> GetContext(
-        LayoutEvaluatorState state,
+        IInstanceDataAccessor dataAccessor,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
         Dictionary<string, UiFolderComponent> layoutsLookup
@@ -65,7 +65,7 @@ public sealed class SubFormComponent : Base.BaseLayoutComponent
 
         List<ComponentContext> childContexts = [];
         foreach (
-            DataElementIdentifier dataElement in state.Instance.Data.Where(d =>
+            DataElementIdentifier dataElement in dataAccessor.Instance.Data.Where(d =>
                 d.DataType == layoutSet.DefaultDataType.Id
             )
         )
@@ -74,11 +74,11 @@ public sealed class SubFormComponent : Base.BaseLayoutComponent
             // We don't have any need for a "SubFormRow" context.
             foreach (var subformPage in layoutSet.Pages)
             {
-                childContexts.Add(await subformPage.GetContextForPage(state, dataElement, null, layoutsLookup));
+                childContexts.Add(await subformPage.GetContextForPage(dataAccessor, dataElement, null, layoutsLookup));
             }
         }
 
-        return new ComponentContext(state, this, rowIndexes, defaultDataElementIdentifier, childContexts);
+        return new ComponentContext(dataAccessor, this, rowIndexes, defaultDataElementIdentifier, childContexts);
     }
 
     /// <inheritdoc />

@@ -189,7 +189,7 @@ describe('Party selection', () => {
 
     cy.intercept('**/active', []).as('activeInstances');
 
-    // Select the first organisation. This is not allowed to instantiate in this app, so it will throw an error.
+    // Select the organisation. This is not allowed to instantiate in this app, so it will throw an error.
     cy.findAllByText(/org\.nr\. \d+/)
       .first()
       .click();

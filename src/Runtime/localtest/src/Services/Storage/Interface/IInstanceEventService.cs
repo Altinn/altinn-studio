@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+#nullable disable
+
+using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 
