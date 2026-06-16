@@ -4395,6 +4395,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@navikt/aksel-icons@npm:8.10.5, @navikt/aksel-icons@npm:^8.2.0, @navikt/aksel-icons@npm:^8.9.0":
+  version: 8.10.5
+  resolution: "@navikt/aksel-icons@npm:8.10.5"
+  checksum: 10/6a7b005e664c326e840111bba62845c8106d140030ceca2d400fca75aadd5e7e0fdf3e7f959cd233f0c93ff22ebeca78941b8a7f83d0e2cca0e47b5d75583261
+  languageName: node
+  linkType: hard
+
 "@navikt/aksel-icons@npm:8.10.6":
   version: 8.10.6
   resolution: "@navikt/aksel-icons@npm:8.10.6"
@@ -4413,13 +4420,6 @@ __metadata:
   version: 7.40.0
   resolution: "@navikt/aksel-icons@npm:7.40.0"
   checksum: 10/3aa95caee5484355b8e1bbe06fa3f4c1dd2f5db48c3c27e445f8ce53438e3571949f957178b2dbc81163c148f5c5c000222e67afe60556955419ad06ce505fab
-  languageName: node
-  linkType: hard
-
-"@navikt/aksel-icons@npm:^8.2.0, @navikt/aksel-icons@npm:^8.9.0":
-  version: 8.10.5
-  resolution: "@navikt/aksel-icons@npm:8.10.5"
-  checksum: 10/6a7b005e664c326e840111bba62845c8106d140030ceca2d400fca75aadd5e7e0fdf3e7f959cd233f0c93ff22ebeca78941b8a7f83d0e2cca0e47b5d75583261
   languageName: node
   linkType: hard
 
