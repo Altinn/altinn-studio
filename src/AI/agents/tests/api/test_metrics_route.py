@@ -37,7 +37,7 @@ class TestGetLlmCostsHappyPath:
         ) as mock_fetch:
             mock_fetch.return_value = [sample_row]
 
-            response = TestClient(app).get("/api/metrics/daily-usage")
+            response = TestClient(app).get("/api/metrics/tokens/daily")
 
         assert response.status_code == 200
         assert response.json() == [sample_row]
@@ -51,7 +51,7 @@ class TestGetLlmCostsErrorMapping:
             new_callable=AsyncMock,
             side_effect=RuntimeError("Langfuse client is not initialized"),
         ):
-            response = TestClient(app).get("/api/metrics/daily-usage")
+            response = TestClient(app).get("/api/metrics/tokens/daily")
 
         assert response.status_code == 503
 
@@ -61,6 +61,6 @@ class TestGetLlmCostsErrorMapping:
             new_callable=AsyncMock,
             side_effect=Exception("Langfuse API 500"),
         ):
-            response = TestClient(app).get("/api/metrics/daily-usage")
+            response = TestClient(app).get("/api/metrics/tokens/daily")
 
         assert response.status_code == 502

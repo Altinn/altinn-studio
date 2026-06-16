@@ -7,7 +7,7 @@ router = APIRouter(prefix="/api/metrics", tags=["metrics"])
 log = get_logger(__name__)
 
 
-@router.get("/daily-usage")
+@router.get("/tokens/daily")
 async def get_daily_usage() -> list[DailyTokenUsageRow]:
     """Returns token usage per service owner for the previous day"""
     try:
