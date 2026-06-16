@@ -10,7 +10,7 @@
     "morgan": "1.11.0",
     "nodemon": "3.1.14",
     "p-queue": "8.1.1",
-    "uuid": "13.0.2"
+    "uuid": "13.0.1"
   },
   "license": "MIT",
   "main": "index.js",

@@ -12,7 +12,7 @@
     "react-redux": "9.3.0",
     "redux": "5.0.1",
     "typescript": "5.9.3",
-    "uuid": "13.0.2"
+    "uuid": "13.0.1"
   },
   "devDependencies": {
     "@studio/ui-test": "workspace:^",
