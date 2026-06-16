@@ -70,6 +70,41 @@ maybe_mount_ext4_image() {
   mount_ext4_image "${image}" "${size}" "${mountpoint}" || true
 }
 
+raise_proc_limit() {
+  local path="$1"
+  local value="$2"
+  local name="$3"
+  local current
+
+  if [[ ! -r "${path}" ]]; then
+    log "${name} is not readable; keeping kernel default"
+    return
+  fi
+
+  current="$(cat "${path}")"
+  if [[ "${current}" =~ ^[0-9]+$ ]] && (( current >= value )); then
+    log "${name} is ${current}; keeping existing value"
+    return
+  fi
+
+  if [[ ! -w "${path}" ]]; then
+    log "${name} is ${current}; cannot raise to ${value}"
+    return
+  fi
+
+  if echo "${value}" > "${path}"; then
+    log "set ${name}=${value}"
+  else
+    log "failed to set ${name}=${value}; keeping ${current}"
+  fi
+}
+
+configure_kernel_limits() {
+  raise_proc_limit /proc/sys/fs/inotify/max_user_instances 1024 fs.inotify.max_user_instances
+  raise_proc_limit /proc/sys/fs/inotify/max_user_watches 1048576 fs.inotify.max_user_watches
+  raise_proc_limit /proc/sys/fs/inotify/max_queued_events 32768 fs.inotify.max_queued_events
+}
+
 mount_runner_home() {
   local image="$1"
   local size="$2"
@@ -153,6 +188,7 @@ export YARN_CACHE_FOLDER="${YARN_CACHE_FOLDER:-${RUNNER_HOME}/.cache/yarn}"
 runner_pid=""
 
 mkdir -p "${RUNNER_HOME}" /var/lib/docker /var/run "${RUNNER_DIND_DISK_DIR}"
+configure_kernel_limits
 
 mount_runner_home "${RUNNER_DIND_DISK_DIR}/runner-home.img" "${RUNNER_HOME_DISK_SIZE}" "${RUNNER_DIND_DISK_DIR}/home"
 maybe_mount_ext4_image "${RUNNER_DIND_DISK_DIR}/docker.img" "${DOCKER_DISK_SIZE}" /var/lib/docker

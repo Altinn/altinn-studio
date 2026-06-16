@@ -28,6 +28,7 @@ RUN apt-get update \
       tar \
       unzip \
       util-linux \
+      wget \
       xz-utils \
       zstd \
     && rm -rf /var/lib/apt/lists/* \
