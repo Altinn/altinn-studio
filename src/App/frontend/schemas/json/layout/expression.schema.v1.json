@@ -714,7 +714,7 @@
     },
     "func-object": {
       "title": "Create an object",
-      "description": "This function creates a list from its arguments.",
+      "description": "This function creates an object from its arguments.",
       "type": "array",
       "items": [
         { "const": "object" }
