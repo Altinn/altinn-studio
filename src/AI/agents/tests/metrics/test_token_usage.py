@@ -1,170 +1,134 @@
-"""Tests for metrics.token_usage helpers."""
+"""Tests for fetching and windowing token usage from Langfuse."""
 
-import base64
 from datetime import UTC, datetime, timedelta
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
-import httpx
+import metrics.token_usage as token_usage
+from metrics.token_usage import (
+    _token_usage_for_window,
+    get_previous_day_token_usage,
+)
 
-from metrics import langfuse_client
-from metrics.langfuse_client import PAGE_SIZE
-from metrics.token_usage import get_previous_day_token_usage
-
-
-class TestPreviousDayWindow:
-    def test_queries_yesterday_midnight_to_today_midnight_utc(self):
-        observation_params = self._observation_params_at(
-            datetime(2026, 5, 11, 14, 37, 12, tzinfo=UTC)
-        )
-
-        assert observation_params["fromStartTime"] == "2026-05-10T00:00:00+00:00"
-        assert observation_params["toStartTime"] == "2026-05-11T00:00:00+00:00"
-
-    def test_handles_month_boundary(self):
-        observation_params = self._observation_params_at(
-            datetime(2026, 6, 1, 0, 5, 0, tzinfo=UTC)
-        )
-
-        assert observation_params["fromStartTime"] == "2026-05-31T00:00:00+00:00"
-        assert observation_params["toStartTime"] == "2026-06-01T00:00:00+00:00"
-
-    @staticmethod
-    def _observation_params_at(fixed_now: datetime) -> dict:
-        handler = _RequestHandler(
-            [[_trace_payload("trace-1", "ttd", "my-app")]],
-            [[_observation_payload("obs-1", "trace-1")]],
-        )
-        with (
-            _patched_httpx_client(handler),
-            _patched_config(),
-            patch("metrics.token_usage.datetime") as datetime_mock,
-        ):
-            datetime_mock.now.return_value = fixed_now
-            datetime_mock.side_effect = datetime
-            import asyncio
-
-            asyncio.run(get_previous_day_token_usage())
-
-        return handler.params_by_path["/api/public/observations"]
+FIXED_NOW = datetime(2026, 5, 4, 13, 30, tzinfo=UTC)
+MIDNIGHT_TODAY = datetime(2026, 5, 4, tzinfo=UTC)
+MIDNIGHT_PREVIOUS_DAY = datetime(2026, 5, 3, tzinfo=UTC)
 
 
-class TestFetchPreviousDayTokenUsage:
-    """End-to-end test that drives the public function through a fake httpx
-    transport, exercising pagination and the camelCase→snake_case mapping into
-    aggregate_token_usage."""
-
-    def test_paginates_and_aggregates(self):
-        traces_pages = [
-            [_trace_payload("trace-1", "ttd", "my-app")],
-        ]
-        observations_pages = [
-            [_observation_payload(f"obs-{i}", "trace-1") for i in range(PAGE_SIZE)],
-            [_observation_payload("obs-final", "trace-1")],
-        ]
-        handler = _RequestHandler(traces_pages, observations_pages)
-
-        with _patched_httpx_client(handler), _patched_config():
-            import asyncio
-
-            rows = asyncio.run(get_previous_day_token_usage())
-
-        assert len(rows) == 1
-        row = rows[0]
-        assert row["serviceownercode"] == "ttd"
-        assert row["serviceresourceid"] == "app_ttd_my-app"
-        assert row["input_tokens"] == 100 * (PAGE_SIZE + 1)
-        assert row["output_tokens"] == 50 * (PAGE_SIZE + 1)
-        assert row["total_tokens"] == 150 * (PAGE_SIZE + 1)
-        assert handler.requests_for("/api/public/observations") == 2
-        assert handler.requests_for("/api/public/traces") == 1
-        assert (
-            handler.last_auth_header
-            == "Basic " + base64.b64encode(b"pk-123:sk-abc").decode()
-        )
-
-    def test_fetches_traces_with_extra_lookback_for_midnight_spanning_sessions(self):
-        handler = _RequestHandler(
-            [[_trace_payload("trace-1", "ttd", "my-app")]],
-            [[_observation_payload("obs-1", "trace-1")]],
-        )
-
-        with _patched_httpx_client(handler), _patched_config():
-            import asyncio
-
-            asyncio.run(get_previous_day_token_usage())
-
-        trace_params = handler.params_by_path["/api/public/traces"]
-        observation_params = handler.params_by_path["/api/public/observations"]
-        trace_window_start = datetime.fromisoformat(trace_params["fromTimestamp"])
-        observation_window_start = datetime.fromisoformat(
-            observation_params["fromStartTime"]
-        )
-        assert trace_window_start == observation_window_start - timedelta(days=1)
-        assert trace_params["toTimestamp"] == observation_params["toStartTime"]
+class _FixedDatetime(datetime):
+    @classmethod
+    def now(cls, tz=None):
+        return FIXED_NOW
 
 
-def _trace_payload(trace_id: str, user_id: str, app_name: str) -> dict:
+def make_raw_trace(trace_id="trace-1", user_id="ttd", metadata=None):
     return {
         "id": trace_id,
         "userId": user_id,
-        "metadata": {"app_name": app_name},
+        "metadata": metadata if metadata is not None else {"app_name": "ttd-app"},
+        "nonRelevantAttribute": "some-value",
     }
 
 
-def _observation_payload(obs_id: str, trace_id: str) -> dict:
+def make_raw_observation(obs_id="obs-1", trace_id="trace-1"):
     return {
         "id": obs_id,
         "traceId": trace_id,
-        "startTime": "2026-05-10T10:00:00Z",
+        "startTime": "2026-05-03T10:00:00Z",
         "model": "gpt-4o",
         "usage": {"input": 100, "output": 50, "total": 150},
         "usageDetails": {"input": 100, "output": 50, "total": 150},
+        "nonRelevantAttribute": "some-value",
     }
 
 
-class _RequestHandler:
-    def __init__(self, traces_pages, observations_pages):
-        self._pages_by_path = {
-            "/api/public/traces": traces_pages,
-            "/api/public/observations": observations_pages,
+class TestGetPreviousDayTokenUsage:
+    @patch.object(token_usage, "datetime", _FixedDatetime)
+    @patch.object(token_usage, "_token_usage_for_window", new_callable=AsyncMock)
+    async def test_sets_window_end_at_midnight_today(self, mock_token_usage_for_window):
+        await get_previous_day_token_usage()
+
+        _, window_end = mock_token_usage_for_window.call_args.args
+        assert window_end == MIDNIGHT_TODAY
+
+    @patch.object(token_usage, "datetime", _FixedDatetime)
+    @patch.object(token_usage, "_token_usage_for_window", new_callable=AsyncMock)
+    async def test_sets_observation_window_start_at_midnight_previous_day(
+        self, mock_token_usage_for_window
+    ):
+        await get_previous_day_token_usage()
+
+        observation_window_start, _ = mock_token_usage_for_window.call_args.args
+        assert observation_window_start == MIDNIGHT_PREVIOUS_DAY
+
+
+class TestTokenUsageForWindow:
+    @patch.object(token_usage, "aggregate_token_usage")
+    @patch.object(token_usage, "fetch_traces_and_observations", new_callable=AsyncMock)
+    async def test_sets_trace_window_start_one_day_before_observation_window_start(
+        self, mock_fetch_traces_and_observations, _mock_aggregate_token_usage
+    ):
+        mock_fetch_traces_and_observations.return_value = ([], [])
+
+        await _token_usage_for_window(MIDNIGHT_PREVIOUS_DAY, MIDNIGHT_TODAY)
+
+        trace_window_start, observation_window_start, window_end = (
+            mock_fetch_traces_and_observations.call_args.args
+        )
+        assert trace_window_start == MIDNIGHT_PREVIOUS_DAY - timedelta(days=1)
+        assert observation_window_start == MIDNIGHT_PREVIOUS_DAY
+        assert window_end == MIDNIGHT_TODAY
+
+    @patch.object(token_usage, "aggregate_token_usage")
+    @patch.object(token_usage, "fetch_traces_and_observations", new_callable=AsyncMock)
+    async def test_converts_raw_traces_to_domain_traces(
+        self, mock_fetch_traces_and_observations, _mock_aggregate_token_usage
+    ):
+        mock_fetch_traces_and_observations.return_value = (
+            [make_raw_trace(metadata={"app_name": "ttd-app"})],
+            [],
+        )
+
+        await _token_usage_for_window(MIDNIGHT_PREVIOUS_DAY, MIDNIGHT_TODAY)
+
+        _, traces_by_id, _ = _mock_aggregate_token_usage.call_args.args
+        assert traces_by_id["trace-1"] == {
+            "id": "trace-1",
+            "user_id": "ttd",
+            "metadata": {"app_name": "ttd-app"},
         }
-        self._call_counts = {path: 0 for path in self._pages_by_path}
-        self.last_auth_header: str | None = None
-        self.params_by_path: dict[str, dict] = {}
 
-    def __call__(self, request: httpx.Request) -> httpx.Response:
-        self.last_auth_header = request.headers.get("authorization")
-        self.params_by_path[request.url.path] = dict(request.url.params)
-        pages = self._pages_by_path[request.url.path]
-        page_number = int(request.url.params["page"])
-        self._call_counts[request.url.path] += 1
-        page_items = pages[page_number - 1] if page_number - 1 < len(pages) else []
-        return httpx.Response(200, json={"data": page_items})
+    @patch.object(token_usage, "aggregate_token_usage")
+    @patch.object(token_usage, "fetch_traces_and_observations", new_callable=AsyncMock)
+    async def test_converts_raw_observations_to_domain_observations(
+        self, mock_fetch_traces_and_observations, _mock_aggregate_token_usage
+    ):
+        mock_fetch_traces_and_observations.return_value = ([], [make_raw_observation()])
 
-    def requests_for(self, path: str) -> int:
-        return self._call_counts[path]
+        await _token_usage_for_window(MIDNIGHT_PREVIOUS_DAY, MIDNIGHT_TODAY)
 
+        observations, _, _ = _mock_aggregate_token_usage.call_args.args
+        assert observations == [
+            {
+                "id": "obs-1",
+                "trace_id": "trace-1",
+                "start_time": "2026-05-03T10:00:00Z",
+                "model": "gpt-4o",
+                "usage": {"input": 100, "output": 50, "total": 150},
+                "usage_details": {"input": 100, "output": 50, "total": 150},
+            }
+        ]
 
-def _patched_httpx_client(handler):
-    original_async_client = httpx.AsyncClient
+    @patch.object(token_usage, "aggregate_token_usage")
+    @patch.object(token_usage, "fetch_traces_and_observations", new_callable=AsyncMock)
+    async def test_maps_traces_by_id(
+        self, mock_fetch_traces_and_observations, _mock_aggregate_token_usage
+    ):
+        mock_fetch_traces_and_observations.return_value = (
+            [make_raw_trace(trace_id="trace-1"), make_raw_trace(trace_id="trace-2")],
+            [],
+        )
 
-    def make_client(**kwargs):
-        kwargs.pop("timeout", None)
-        return original_async_client(transport=httpx.MockTransport(handler), **kwargs)
+        await _token_usage_for_window(MIDNIGHT_PREVIOUS_DAY, MIDNIGHT_TODAY)
 
-    return patch.object(
-        langfuse_client.httpx, "AsyncClient", side_effect=make_client
-    )
-
-
-def _patched_config():
-    fake_config = type(
-        "FakeConfig",
-        (),
-        {
-            "LANGFUSE_PUBLIC_KEY": "pk-123",
-            "LANGFUSE_SECRET_KEY": "sk-abc",
-            "LANGFUSE_HOST": "https://langfuse.example.com",
-        },
-    )()
-    return patch("metrics.langfuse_client.get_config", return_value=fake_config)
+        _, traces_by_id, _ = _mock_aggregate_token_usage.call_args.args
+        assert set(traces_by_id) == {"trace-1", "trace-2"}

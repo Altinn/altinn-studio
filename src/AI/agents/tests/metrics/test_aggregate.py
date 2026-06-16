@@ -1,16 +1,17 @@
 """Tests for the LLM cost aggregator."""
+
 import logging
 
 import pytest
 
-from metrics.aggregate import aggregate_token_usage
+from metrics.aggregate import Observation, Trace, aggregate_token_usage
 
 LOADED_AT = "2026-05-04T02:00:00.000Z"
 SERVICE_OWNER = "ttd"
 DEFAULT_TRACE_ID = "trace-1"
 
 
-def make_obs(
+def make_observation(
     *,
     trace_id=DEFAULT_TRACE_ID,
     obs_id="obs-1",
@@ -19,7 +20,7 @@ def make_obs(
     input_tokens=100,
     output_tokens=50,
     extra_usage_details=None,
-):
+) -> Observation:
     usage = {
         "input": input_tokens,
         "output": output_tokens,
@@ -46,14 +47,14 @@ def make_trace(
     trace_id=DEFAULT_TRACE_ID,
     app_name="ttd-my-app",
     user_id=SERVICE_OWNER,
-):
+) -> Trace:
     metadata = {"app_name": app_name} if app_name is not None else {}
     return {"id": trace_id, "user_id": user_id, "metadata": metadata}
 
 
 class TestBucketing:
     def test_buckets_observations_into_one_row_per_owner_app_date(self):
-        observations = [make_obs()]
+        observations = [make_observation()]
         traces = {DEFAULT_TRACE_ID: make_trace()}
 
         rows = aggregate_token_usage(observations, traces, LOADED_AT)
@@ -66,8 +67,8 @@ class TestBucketing:
 
     def test_splits_observations_across_different_days(self):
         observations = [
-            make_obs(trace_id="trace-1", start_time="2026-05-03T10:00:00Z"),
-            make_obs(trace_id="trace-2", start_time="2026-05-04T10:00:00Z"),
+            make_observation(trace_id="trace-1", start_time="2026-05-03T10:00:00Z"),
+            make_observation(trace_id="trace-2", start_time="2026-05-04T10:00:00Z"),
         ]
         traces = {
             "trace-1": make_trace(trace_id="trace-1"),
@@ -81,8 +82,8 @@ class TestBucketing:
 
     def test_one_row_per_service_owner(self):
         observations = [
-            make_obs(trace_id="trace-ttd", start_time="2026-05-03T10:00:00Z"),
-            make_obs(trace_id="trace-skd", start_time="2026-05-03T11:00:00Z"),
+            make_observation(trace_id="trace-ttd", start_time="2026-05-03T10:00:00Z"),
+            make_observation(trace_id="trace-skd", start_time="2026-05-03T11:00:00Z"),
         ]
         traces = {
             "trace-ttd": make_trace(
@@ -102,8 +103,8 @@ class TestBucketing:
 class TestTokenSums:
     def test_sums_tokens_across_multiple_observations(self):
         observations = [
-            make_obs(trace_id="trace-1", input_tokens=100, output_tokens=50),
-            make_obs(trace_id="trace-2", input_tokens=200, output_tokens=100),
+            make_observation(trace_id="trace-1", input_tokens=100, output_tokens=50),
+            make_observation(trace_id="trace-2", input_tokens=200, output_tokens=100),
         ]
         traces = {
             "trace-1": make_trace(trace_id="trace-1"),
@@ -119,7 +120,7 @@ class TestTokenSums:
 
 class TestDateParts:
     def test_year_month_day_are_string_parts_of_date(self):
-        observations = [make_obs(start_time="2026-05-03T10:00:00Z")]
+        observations = [make_observation(start_time="2026-05-03T10:00:00Z")]
         traces = {DEFAULT_TRACE_ID: make_trace()}
 
         [row] = aggregate_token_usage(observations, traces, LOADED_AT)
@@ -134,7 +135,7 @@ class TestEdgeCases:
         assert aggregate_token_usage([], {}, LOADED_AT) == []
 
     def test_warns_when_app_name_missing(self, caplog):
-        observations = [make_obs()]
+        observations = [make_observation()]
         traces = {DEFAULT_TRACE_ID: make_trace(app_name=None)}
 
         with caplog.at_level(logging.WARNING):
@@ -144,14 +145,14 @@ class TestEdgeCases:
         assert DEFAULT_TRACE_ID in caplog.text
 
     def test_raises_when_user_id_empty(self):
-        observations = [make_obs()]
+        observations = [make_observation()]
         traces = {DEFAULT_TRACE_ID: make_trace(user_id="")}
 
         with pytest.raises(ValueError, match="Missing service owner code"):
             aggregate_token_usage(observations, traces, LOADED_AT)
 
     def test_skips_observation_when_parent_trace_missing(self, caplog):
-        observations = [make_obs(trace_id="unknown-trace")]
+        observations = [make_observation(trace_id="unknown-trace")]
 
         with caplog.at_level(logging.WARNING):
             rows = aggregate_token_usage(observations, {}, LOADED_AT)
@@ -160,7 +161,7 @@ class TestEdgeCases:
         assert "unknown-trace" in caplog.text
 
     def test_warns_when_model_missing(self, caplog):
-        observations = [make_obs()]
+        observations = [make_observation()]
         observations[0]["model"] = None
         traces = {DEFAULT_TRACE_ID: make_trace()}
 
@@ -173,7 +174,7 @@ class TestEdgeCases:
 
 class TestTokensByModel:
     def test_one_entry_per_model_in_bucket(self):
-        observations = [make_obs(input_tokens=100, output_tokens=50)]
+        observations = [make_observation(input_tokens=100, output_tokens=50)]
         traces = {DEFAULT_TRACE_ID: make_trace()}
 
         [row] = aggregate_token_usage(observations, traces, LOADED_AT)
@@ -184,13 +185,13 @@ class TestTokensByModel:
 
     def test_keeps_models_separate(self):
         observations = [
-            make_obs(
+            make_observation(
                 trace_id="trace-1",
                 model="gpt-4o",
                 input_tokens=100,
                 output_tokens=50,
             ),
-            make_obs(
+            make_observation(
                 trace_id="trace-2",
                 model="gpt-4o-mini",
                 input_tokens=200,
@@ -214,14 +215,14 @@ class TestTokensByModel:
 
     def test_preserves_and_sums_non_standard_usage_details(self):
         observations = [
-            make_obs(
+            make_observation(
                 trace_id="trace-1",
                 model="claude-sonnet-4-6",
                 input_tokens=100,
                 output_tokens=50,
                 extra_usage_details={"cache_read_input_tokens": 200},
             ),
-            make_obs(
+            make_observation(
                 trace_id="trace-2",
                 model="claude-sonnet-4-6",
                 input_tokens=100,
