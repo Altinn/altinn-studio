@@ -32,7 +32,7 @@
     "react": "19.2.5",
     "react-dom": "19.2.5",
     "react-i18next": "17.0.8",
-    "react-router-dom": "6.30.3"
+    "react-router-dom": "7.17.0"
   },
   "devDependencies": {
     "jest": "29.7.0",
