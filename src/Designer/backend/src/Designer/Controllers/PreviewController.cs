@@ -42,8 +42,8 @@ namespace Altinn.Studio.Designer.Controllers;
 /// <param name="schemaModelService">Schema Model Service</param>
 /// <param name="previewService">Preview Service</param>
 /// <param name="textsService">Texts Service</param>
-/// <param name="appDevelopmentService">App Development Service</param>
 /// <param name="sharedContentClient">Shared Content Client</param>
+/// <param name="appVersionService">App Version Service</param>
 /// Factory class that knows how to create types of <see cref="AltinnGitRepository"/>
 [ApiController]
 [Authorize]
@@ -59,8 +59,8 @@ public partial class PreviewController(
     ISchemaModelService schemaModelService,
     IPreviewService previewService,
     ITextsService textsService,
-    IAppDevelopmentService appDevelopmentService,
-    ISharedContentClient sharedContentClient
+    ISharedContentClient sharedContentClient,
+    IAppVersionService appVersionService
 ) : Controller
 {
     // This value will be overridden to act as the task number for apps that use layout sets
@@ -159,7 +159,7 @@ public partial class PreviewController(
         ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(
             cancellationToken
         );
-        string appNugetVersionString = appDevelopmentService
+        string appNugetVersionString = appVersionService
             .GetAppLibVersion(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer))
             .ToString();
         // This property is populated at runtime by the apps, so we need to mock it here

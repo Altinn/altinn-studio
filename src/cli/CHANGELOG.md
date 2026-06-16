@@ -8,6 +8,39 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.14] - 2026-06-08
+
+### Changed
+
+- Update localtest PDF worker image.
+
+## [0.1.0-preview.13] - 2026-06-05
+
+### Added
+
+- Add `studioctl app env` for printing the local app harness environment, with `--json` output for app startup integration.
+
+### Fixed
+
+- Update `studioctl app upgrade v9` to target `net10.0` and resolve v9 app package versions from configured NuGet sources.
+- Update `studioctl app upgrade v9` to replace legacy IIS Express launch settings with the standard `App` project launch profile.
+
+## [0.1.0-preview.12] - 2026-06-04
+
+### Added
+
+- Show resolved container runtime client/server versions in `studioctl doctor`.
+
+### Changed
+
+- Update localtest and workflow-engine images.
+
+### Fixed
+
+- Ignore stale Podman container health status when no healthcheck command is configured.
+- Warn in `studioctl doctor` when the Podman CLI client/server versions differ.
+- Run localtest PDF and workflow-engine service containers with their image default user to avoid Podman `keep-id` group mapping failures on macOS.
+
 ## [0.1.0-preview.11] - 2026-05-29
 
 ### Added

@@ -7,11 +7,13 @@ namespace Altinn.Studio.StudioctlServer.Studioctl;
 
 internal sealed class AppUpgradeService : IDisposable
 {
-    // TODO: split into per-version, separate tfm for v9 etc...
+    // TODO: split into per-version upgrade services.
     private const string DefaultProjectFile = "App/App.csproj";
     private const string DefaultProcessFile = "App/config/process/process.bpmn";
     private const string DefaultAppSettingsFolder = "App";
-    private const string DefaultTargetFramework = "net8.0";
+    private const string DefaultBackendTargetFramework = "net8.0";
+    private const string DefaultV9TargetFramework = "net10.0";
+    private const int DefaultV9TargetMajorVersion = 9;
     private const string DefaultFrontendTargetVersion = "4";
     private const string DefaultBackendTargetVersion = "8.7.0";
     private const string DefaultIndexFile = "App/views/Home/Index.cshtml";
@@ -109,7 +111,7 @@ internal sealed class AppUpgradeService : IDisposable
                     ProcessFile: DefaultProcessFile,
                     AppSettingsFolder: DefaultAppSettingsFolder,
                     TargetVersion: DefaultBackendTargetVersion,
-                    TargetFramework: DefaultTargetFramework,
+                    TargetFramework: DefaultBackendTargetFramework,
                     SkipCodeUpgrade: false,
                     SkipProcessUpgrade: false,
                     SkipCsprojUpgrade: false,
@@ -124,7 +126,8 @@ internal sealed class AppUpgradeService : IDisposable
                 new V8Tov9UpgradeOptions(
                     ProjectFolder: request.ProjectFolder,
                     ProjectFile: DefaultProjectFile,
-                    TargetFramework: DefaultTargetFramework,
+                    TargetMajorVersion: DefaultV9TargetMajorVersion,
+                    TargetFramework: DefaultV9TargetFramework,
                     SkipCsprojUpgrade: false,
                     ConvertPackageReferences: request.ConvertPackageReferences,
                     StudioRoot: request.StudioRoot,

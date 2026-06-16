@@ -362,6 +362,10 @@
     {
       "id": "AttachmentListPage",
       "value": "Vedleggsliste"
+    },
+    {
+      "id": "ParagraphPage",
+      "value": "Avsnitt"
     }
   ]
 }

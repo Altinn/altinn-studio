@@ -76,6 +76,20 @@ func TestCLIArgValidation(t *testing.T) {
 			t.Fatalf("runValidateChangelog() error = %v, want %v", err, errBaseHeadRequired)
 		}
 	})
+
+	t.Run("resolve version requires component", func(t *testing.T) {
+		err := runResolveVersion([]string{"-base-branch", "main"})
+		if !errors.Is(err, errComponentRequired) {
+			t.Fatalf("runResolveVersion() error = %v, want %v", err, errComponentRequired)
+		}
+	})
+
+	t.Run("resolve version requires base branch", func(t *testing.T) {
+		err := runResolveVersion([]string{"-component", "studioctl"})
+		if !errors.Is(err, errBaseBranchRequired) {
+			t.Fatalf("runResolveVersion() error = %v, want %v", err, errBaseBranchRequired)
+		}
+	})
 }
 
 func TestWorkflowCommandRequiresCI(t *testing.T) {

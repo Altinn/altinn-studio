@@ -234,7 +234,7 @@ public class FiksArkivConfigResolverTest
             .Returns(modelDataElement);
         instanceDataAccessorMock
             .Setup(x => x.GetFormDataWrapper(It.IsAny<DataElementIdentifier>()))
-            .ReturnsAsync(FormDataWrapperFactory.Create(model));
+            .ReturnsAsync(FormDataWrapperFactory.Create(model, null!, null));
 
         fixture
             .LayoutStateInitializerMock.Setup(x =>
@@ -361,7 +361,7 @@ public class FiksArkivConfigResolverTest
             .Returns(modelDataElement);
         instanceDataAccessorMock
             .Setup(x => x.GetFormDataWrapper(It.IsAny<DataElementIdentifier>()))
-            .ReturnsAsync(FormDataWrapperFactory.Create(model));
+            .ReturnsAsync(FormDataWrapperFactory.Create(model, null!, null));
 
         fixture
             .LayoutStateInitializerMock.Setup(x =>

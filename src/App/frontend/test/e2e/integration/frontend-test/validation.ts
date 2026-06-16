@@ -932,7 +932,7 @@ describe('Validation', () => {
       },
     };
 
-    cy.intercept('GET', '**/bootstrap-form/**', (req) => {
+    cy.intercept('GET', '**/bootstrap-form/Task_2**', (req) => {
       req.on('response', (res) => {
         const body = res.body as FormBootstrapResponse;
         body.dataModels['ServiceModel-test'].initialValidationIssues!.push({

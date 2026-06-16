@@ -117,16 +117,20 @@ public class InternalPatchService
 
             var newModel = newModelResult.Ok;
             // Reset dataAccessor to provide the patched model.
-            dataAccessor.SetFormData(dataElementIdentifier, FormDataWrapperFactory.Create(newModel));
+            var dataType = dataAccessor.GetDataType(dataElementIdentifier);
+            dataAccessor.SetFormData(
+                dataElementIdentifier,
+                FormDataWrapperFactory.Create(newModel, dataType, dataElement)
+            );
 
             changesAfterPatch.Add(
                 new FormDataChange(
                     type: ChangeType.Updated,
                     dataElement: dataElement,
                     contentType: dataElement.ContentType,
-                    dataType: dataAccessor.GetDataType(dataElementIdentifier),
-                    previousFormDataWrapper: FormDataWrapperFactory.Create(oldModel),
-                    currentFormDataWrapper: FormDataWrapperFactory.Create(newModel),
+                    dataType: dataType,
+                    previousFormDataWrapper: FormDataWrapperFactory.Create(oldModel, dataType, dataElement),
+                    currentFormDataWrapper: FormDataWrapperFactory.Create(newModel, dataType, dataElement),
                     previousBinaryData: await dataAccessor.GetBinaryData(dataElementIdentifier),
                     currentBinaryData: null // Set this after DataProcessors have run
                 )

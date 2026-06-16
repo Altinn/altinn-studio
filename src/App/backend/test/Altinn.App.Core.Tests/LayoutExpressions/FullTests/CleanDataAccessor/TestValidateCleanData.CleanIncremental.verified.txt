@@ -100,7 +100,29 @@
                 HideSubLayout: false
               },
               CurrentFormDataWrapper: {
-                BackingDataType: MainModel
+                BackingDataType: MainModel,
+                DataType: {
+                  Id: mainLayout_dataType,
+                  AppLogic: {
+                    ClassRef: Altinn.App.Core.Tests.LayoutExpressions.FullTests.CleanDataAccessor.MainModel,
+                    AllowAnonymousOnStateless: false,
+                    AutoDeleteOnProcessEnd: false,
+                    DisallowUserCreate: false,
+                    DisallowUserDelete: false
+                  },
+                  TaskId: Task_1-access,
+                  MinCount: 0,
+                  EnablePdfCreation: true,
+                  EnableFileScan: false,
+                  ValidationErrorOnPendingFileScan: false
+                },
+                DataElement: {
+                  Id: Guid_4,
+                  DataType: mainLayout_dataType,
+                  ContentType: application/xml,
+                  Locked: false,
+                  IsRead: true
+                }
               },
               PreviousBinaryData: {
                 Length: 1411,
@@ -150,7 +172,30 @@
                 UnboundField: unbound1
               },
               CurrentFormDataWrapper: {
-                BackingDataType: SubModel
+                BackingDataType: SubModel,
+                DataType: {
+                  Id: subLayout_dataType,
+                  AppLogic: {
+                    ClassRef: Altinn.App.Core.Tests.LayoutExpressions.FullTests.CleanDataAccessor.SubModel,
+                    AllowAnonymousOnStateless: false,
+                    AutoDeleteOnProcessEnd: false,
+                    DisallowUserCreate: false,
+                    DisallowUserDelete: false
+                  },
+                  TaskId: Task_1-access,
+                  MaxCount: 0,
+                  MinCount: 0,
+                  EnablePdfCreation: true,
+                  EnableFileScan: false,
+                  ValidationErrorOnPendingFileScan: false
+                },
+                DataElement: {
+                  Id: Guid_5,
+                  DataType: subLayout_dataType,
+                  ContentType: application/xml,
+                  Locked: false,
+                  IsRead: true
+                }
               },
               PreviousBinaryData: {
                 Length: 337,
@@ -211,7 +256,30 @@
                 ]
               },
               CurrentFormDataWrapper: {
-                BackingDataType: SubModel
+                BackingDataType: SubModel,
+                DataType: {
+                  Id: subLayout_dataType,
+                  AppLogic: {
+                    ClassRef: Altinn.App.Core.Tests.LayoutExpressions.FullTests.CleanDataAccessor.SubModel,
+                    AllowAnonymousOnStateless: false,
+                    AutoDeleteOnProcessEnd: false,
+                    DisallowUserCreate: false,
+                    DisallowUserDelete: false
+                  },
+                  TaskId: Task_1-access,
+                  MaxCount: 0,
+                  MinCount: 0,
+                  EnablePdfCreation: true,
+                  EnableFileScan: false,
+                  ValidationErrorOnPendingFileScan: false
+                },
+                DataElement: {
+                  Id: Guid_7,
+                  DataType: subLayout_dataType,
+                  ContentType: application/xml,
+                  Locked: false,
+                  IsRead: true
+                }
               },
               PreviousBinaryData: {
                 Length: 507,

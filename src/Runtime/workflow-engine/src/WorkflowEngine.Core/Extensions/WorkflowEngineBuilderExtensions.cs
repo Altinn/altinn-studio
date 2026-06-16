@@ -84,6 +84,8 @@ public static class WorkflowEngineBuilderExtensions
             builder.Services.AddOpenApi(options =>
             {
                 options.AddOperationTransformer<WorkflowMetadataOperationTransformer>();
+                options.AddOperationTransformer<EngineApiDocsOperationTransformer>();
+                options.AddDocumentTransformer<EngineApiDocsDocumentTransformer>();
             });
 
             return builder;

@@ -392,10 +392,9 @@
       "type": "array",
       "items": [
         { "const": "plus" },
-        { "$ref": "#/definitions/number" },
         { "$ref": "#/definitions/number" }
       ],
-      "additionalItems": false
+      "additionalItems": { "$ref": "#/definitions/number" }
     },
     "func-minus": {
       "title": "Subtraction",
@@ -414,10 +413,9 @@
       "type": "array",
       "items": [
         { "const": "multiply" },
-        { "$ref": "#/definitions/number" },
         { "$ref": "#/definitions/number" }
       ],
-      "additionalItems": false
+      "additionalItems": { "$ref": "#/definitions/number" }
     },
     "func-divide": {
       "title": "Division",
