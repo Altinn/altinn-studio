@@ -18,7 +18,7 @@ concurrency:
 jobs:
   unit-tests:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-single
     timeout-minutes: 30
     name: Unit tests
     defaults:
@@ -38,7 +38,7 @@ jobs:
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
-        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+        run: echo "dir=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         id: yarn-cache
