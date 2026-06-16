@@ -1,5 +1,6 @@
 """Aggregate Langfuse traces and observations into a cost schema."""
 
+from datetime import UTC, datetime
 from typing import Any, TypedDict
 
 from shared.config import get_config
@@ -127,8 +128,7 @@ def _get_app_name(trace: Trace) -> str:
 
 
 def _to_date_string(start_time: str) -> str:
-    iso_date_length = len("YYYY-MM-DD")
-    return start_time[:iso_date_length]
+    return datetime.fromisoformat(start_time).astimezone(UTC).strftime("%Y-%m-%d")
 
 
 def _usage_value(usage: dict[str, Any] | None, key: str) -> int:

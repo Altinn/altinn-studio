@@ -129,6 +129,15 @@ class TestDateParts:
         assert row["month"] == "05"
         assert row["day"] == "03"
 
+    def test_converts_offset_timestamp_to_utc_day(self):
+        # 00:30 at +02:00 is 22:30 UTC the previous day.
+        observations = [make_observation(start_time="2026-05-04T00:30:00+02:00")]
+        traces = {DEFAULT_TRACE_ID: make_trace()}
+
+        [row] = aggregate_token_usage(observations, traces, LOADED_AT)
+
+        assert row["date"] == "2026-05-03"
+
 
 class TestEdgeCases:
     def test_empty_observations_returns_empty(self):
