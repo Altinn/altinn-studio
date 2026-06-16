@@ -33,8 +33,6 @@ const personContactPoint: ContactPoint = {
   isActive: true,
   environments: [],
   methods: [{ id: 'method-1', methodType: 'email', value: 'test@example.com' }],
-  createdAt: '2024-01-01T00:00:00Z',
-  updatedAt: '2024-01-01T00:00:00Z',
 };
 
 const slackContactPoint: ContactPoint = {
@@ -43,8 +41,6 @@ const slackContactPoint: ContactPoint = {
   isActive: true,
   environments: [],
   methods: [{ id: 'method-2', methodType: 'slack', value: 'https://hooks.slack.com/test' }],
-  createdAt: '2024-01-01T00:00:00Z',
-  updatedAt: '2024-01-01T00:00:00Z',
 };
 
 const renderContactPoints = (

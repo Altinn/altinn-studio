@@ -29,8 +29,6 @@ const channel1: ContactPoint = {
   isActive: true,
   environments: ['tt02'],
   methods: [{ id: 'm1', methodType: 'slack', value: 'https://hooks.slack.com/general' }],
-  createdAt: '2024-01-01T00:00:00Z',
-  updatedAt: '2024-01-01T00:00:00Z',
 };
 
 const channel2: ContactPoint = {
@@ -39,8 +37,6 @@ const channel2: ContactPoint = {
   isActive: false,
   environments: [],
   methods: [{ id: 'm2', methodType: 'slack', value: 'https://hooks.slack.com/dev' }],
-  createdAt: '2024-01-01T00:00:00Z',
-  updatedAt: '2024-01-01T00:00:00Z',
 };
 
 const defaultProps: { org: string; channels: ContactPoint[] } = {

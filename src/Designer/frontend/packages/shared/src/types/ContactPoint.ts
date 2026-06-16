@@ -12,15 +12,8 @@ export type ContactPoint = {
   isActive: boolean;
   environments: string[];
   methods: ContactMethod[];
-  createdByUsername?: string;
-  createdAt: string;
-  updatedByUsername?: string;
-  updatedAt: string;
 };
 
-export type ContactPointPayload = Omit<
-  ContactPoint,
-  'id' | 'methods' | 'createdAt' | 'updatedAt' | 'createdByUsername' | 'updatedByUsername'
-> & {
+export type ContactPointPayload = Omit<ContactPoint, 'id' | 'methods'> & {
   methods: Omit<ContactMethod, 'id'>[];
 };

@@ -38,8 +38,6 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
   const { data: orgs } = useOrgListQuery();
   const availableEnvironments = orgs?.[org]?.environments ?? [];
 
-  const editingContactPoint = persons.find((p) => p.id === editingId) ?? null;
-
   const openAddDialog = () => {
     setInitialValue(createEmptyPerson(availableEnvironments));
     setEditingId(null);
@@ -116,7 +114,6 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
           availableEnvironments={availableEnvironments}
           org={org}
           editingId={editingId}
-          auditInfo={editingContactPoint}
           onClose={() => setIsOpen(false)}
         />
       )}
