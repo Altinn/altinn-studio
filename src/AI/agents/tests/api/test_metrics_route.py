@@ -42,25 +42,3 @@ class TestGetLlmCostsHappyPath:
         assert response.status_code == 200
         assert response.json() == [sample_row]
         mock_fetch.assert_awaited_once_with()
-
-
-class TestGetLlmCostsErrorMapping:
-    def test_langfuse_not_initialized_returns_503(self):
-        with patch(
-            "api.routes.metrics.get_previous_day_token_usage",
-            new_callable=AsyncMock,
-            side_effect=RuntimeError("Langfuse client is not initialized"),
-        ):
-            response = TestClient(app).get("/api/metrics/tokens/daily")
-
-        assert response.status_code == 503
-
-    def test_upstream_error_returns_502(self):
-        with patch(
-            "api.routes.metrics.get_previous_day_token_usage",
-            new_callable=AsyncMock,
-            side_effect=Exception("Langfuse API 500"),
-        ):
-            response = TestClient(app).get("/api/metrics/tokens/daily")
-
-        assert response.status_code == 502

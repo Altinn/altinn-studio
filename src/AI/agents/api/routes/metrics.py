@@ -1,22 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
 from metrics import DailyTokenUsageRow, get_previous_day_token_usage
-from shared.utils.logging_utils import get_logger
 
-router = APIRouter(prefix="/api/metrics", tags=["metrics"])
-log = get_logger(__name__)
+router = APIRouter(prefix="/api/metrics")
 
 
 @router.get("/tokens/daily")
 async def get_daily_usage() -> list[DailyTokenUsageRow]:
-    """Returns token usage per service owner for the previous day"""
-    try:
-        return await get_previous_day_token_usage()
-    except RuntimeError as init_error:
-        raise HTTPException(status_code=503, detail=str(init_error)) from init_error
-    except Exception as upstream_error:
-        log.exception("Failed to fetch LLM token usage from Langfuse")
-        raise HTTPException(
-            status_code=502,
-            detail=f"Langfuse fetch failed: {upstream_error}",
-        ) from upstream_error
+    """Returns token usage per service owner for the previous day."""
+    return await get_previous_day_token_usage()

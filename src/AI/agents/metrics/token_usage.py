@@ -31,12 +31,7 @@ REQUEST_TIMEOUT_SECONDS = 30
 
 
 async def get_previous_day_token_usage() -> list[DailyTokenUsageRow]:
-    """Fetch and aggregate LLM token usage rows for the previous UTC day.
-
-    Raises:
-        RuntimeError: If Langfuse credentials are missing (caller should
-            map to HTTP 503).
-    """
+    """Fetch and aggregate LLM token usage rows for the previous UTC day."""
     now = datetime.now(UTC)
     window_end = datetime(now.year, now.month, now.day, tzinfo=UTC)
     observation_window_start = window_end - timedelta(days=1)
