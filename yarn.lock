@@ -8766,16 +8766,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ally.js@npm:^1.4.1":
-  version: 1.4.1
-  resolution: "ally.js@npm:1.4.1"
-  dependencies:
-    css.escape: "npm:^1.5.0"
-    platform: "npm:1.3.3"
-  checksum: 10/91ce8ecea5bd62f45889aa84f25041760a4627d0bb73b285dab9056bca96a91fc9fd30d95c2d80a58c9f2afffc18d3bb972ff84b4376f18d14f561804b265616
-  languageName: node
-  linkType: hard
-
 "altinn-studio@workspace:.":
   version: 0.0.0-use.local
   resolution: "altinn-studio@workspace:."
@@ -11057,7 +11047,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"css.escape@npm:^1.5.0, css.escape@npm:^1.5.1":
+"css.escape@npm:^1.5.1":
   version: 1.5.1
   resolution: "css.escape@npm:1.5.1"
   checksum: 10/f6d38088d870a961794a2580b2b2af1027731bb43261cfdce14f19238a88664b351cc8978abc20f06cc6bbde725699dec8deb6fe9816b139fc3f2af28719e774
@@ -11186,12 +11176,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cypress-plugin-tab@npm:1.0.5":
-  version: 1.0.5
-  resolution: "cypress-plugin-tab@npm:1.0.5"
-  dependencies:
-    ally.js: "npm:^1.4.1"
-  checksum: 10/87d68c8caf03bb8d330901c68caa4253442d7c5364dae92899c744286a459dd16fd47c3633288eb35940655b3079502d425c83fbb489841722c7f4d7c77dd212
+"cypress-plugin-tab@npm:2.0.0":
+  version: 2.0.0
+  resolution: "cypress-plugin-tab@npm:2.0.0"
+  peerDependencies:
+    cypress: ">=10"
+  checksum: 10/be7236fdd793675f19c4fd60abf7023671703c27e9a451906113cdea545c07d5e1b79ce76f279dc35208e14c2da35121e48fd0e4f68e5b914852d87556c8c523
   languageName: node
   linkType: hard
 
@@ -11203,7 +11193,7 @@ __metadata:
     axe-core: "npm:4.11.1"
     cypress: "npm:14.5.4"
     cypress-axe: "npm:1.7.0"
-    cypress-plugin-tab: "npm:1.0.5"
+    cypress-plugin-tab: "npm:2.0.0"
     eslint: "npm:8.57.1"
   languageName: unknown
   linkType: soft
@@ -19851,13 +19841,6 @@ __metadata:
     pvutils: "npm:^1.1.3"
     tslib: "npm:^2.8.1"
   checksum: 10/a937347584b27012919f69e4b3865b2fd09dced85a344f9a22bbf1376dd9e1534ccbe0bbdb997807b4990b07865c1ea028447d78b2c8a64436d4d393193a0777
-  languageName: node
-  linkType: hard
-
-"platform@npm:1.3.3":
-  version: 1.3.3
-  resolution: "platform@npm:1.3.3"
-  checksum: 10/3abaa62cf5c7cf549d0a7564ce97caa32615d9dbbc1c19a83ed95dfa2749d0dc68d13cb704e1858022ac5f18de412aa6878cc2521df524cfe9764f9fd51e6802
   languageName: node
   linkType: hard
 
