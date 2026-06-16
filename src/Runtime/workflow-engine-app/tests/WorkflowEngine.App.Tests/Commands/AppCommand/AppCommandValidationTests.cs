@@ -25,6 +25,7 @@ public class AppCommandValidationTests
             App = "test-app",
             InstanceOwnerPartyId = 12345,
             InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+            CallbackToken = "test-callback-token",
         };
 
     private static AppCommandData ValidData => new() { CommandKey = "do-something" };
@@ -144,6 +145,20 @@ public class AppCommandValidationTests
 
         var invalid = Assert.IsType<CommandValidationResult.Invalid>(result);
         Assert.Contains("lockToken", invalid.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Validate_MissingCallbackToken_Rejects(string? callbackToken)
+    {
+        var context = ValidContext with { CallbackToken = callbackToken! };
+
+        var result = Command.Validate(ValidData, context);
+
+        var invalid = Assert.IsType<CommandValidationResult.Invalid>(result);
+        Assert.Contains("callbackToken", invalid.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

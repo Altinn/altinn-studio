@@ -87,9 +87,20 @@ internal sealed record Command(
                         exited = proc.WaitForExit(TimeSpan.FromSeconds(0.5));
                     } while (!exited);
 
-                    // WaitForExit() can hang indefinitely while draining redirected output from dotnet pack.
-                    // The command has exited at this point, so only give output handlers a bounded grace period.
-                    proc.WaitForExit(TimeSpan.FromSeconds(5));
+                    // The process has exited, but the async output handlers may not have seen all output yet.
+                    // Only the parameterless WaitForExit() drains the redirected streams to EOF, and it can hang
+                    // indefinitely while draining output from dotnet pack, so bound it with a grace period.
+                    var drainThread = new Thread(() =>
+                    {
+                        try
+                        {
+                            proc.WaitForExit();
+                        }
+                        catch { }
+                    });
+                    drainThread.IsBackground = true;
+                    drainThread.Start();
+                    drainThread.Join(TimeSpan.FromSeconds(5));
 
                     if (proc.ExitCode != 0)
                     {

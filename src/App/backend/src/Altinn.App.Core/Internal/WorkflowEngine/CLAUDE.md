@@ -34,7 +34,7 @@ WorkflowEngineCallbackController.ExecuteCommand()
 - **ALL commands MUST be idempotent** - the engine retries failed commands with configurable backoff
 - **Commands run in separate HTTP requests** - each callback is independent; state is passed between commands via an opaque JSON blob (see State Passthrough below)
 - **Three command phases**: task-end commands → `MutateProcessState` (in-memory state transition) → task-start commands → `SaveProcessStateToStorage` (persist to Storage) → post-commit commands
-- **Authentication**: Callbacks use `[AllowAnonymous]` currently (TODO: X-Api-Key scheme). Data operations use `StorageAuthenticationMethod.ServiceOwner()`
+- **Authentication**: Callbacks are authenticated with the `WorkflowEngineCallback` scheme. The app mints a JWT at enqueue time (signed with a `WorkflowEngineCallback` app-code, `jti` = instance guid), carries it opaquely through the engine in `AppWorkflowContext.CallbackToken`, and the engine replays it on every callback in the `Authorization: Bearer` header. A selector policy scheme (the app's default auth scheme) routes callback requests to the `WorkflowEngineCallback` scheme and all other requests to the JwtCookie scheme, so the bearer token does not collide with platform auth. The app validates signature, lifetime, and that `jti` matches the route instance. Data operations use `StorageAuthenticationMethod.ServiceOwner()`
 
 ## File Structure
 
@@ -89,7 +89,7 @@ WorkflowEngine/
 │   ├── StepRequest.cs                       - Single step (operationId + command + retryStrategy + metadata)
 │   ├── CommandDefinition.cs                 - CommandDefinition: flat record with type + data (JsonElement)
 │   ├── AppCommandData.cs                    - Data for "app" commands (commandKey + payload)
-│   ├── AppWorkflowContext.cs                - Context for app commands (actor, lockToken, org, app, party, guid)
+│   ├── AppWorkflowContext.cs                - Context for app commands (actor, lockToken, org, app, party, guid, callbackToken)
 │   ├── AppCallbackPayload.cs                - Payload engine sends back per callback (includes workflowId)
 │   ├── AppCallbackResponse.cs               - Success response with updated state blob (nullable)
 │   ├── Actor.cs                             - User/org identity for the request
@@ -230,5 +230,4 @@ All data saves during callbacks use `StorageAuthenticationMethod.ServiceOwner()`
 
 ## Known TODOs / Notes
 
-- Authentication on callback controller: currently `[AllowAnonymous]`, should use X-Api-Key scheme
 - `AppCallbackPayload.LockToken` naming inconsistency with engine (LockKey vs LockToken)

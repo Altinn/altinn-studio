@@ -24,4 +24,11 @@ internal sealed record AppWorkflowContext
 
     [JsonPropertyName("instanceGuid")]
     public required Guid InstanceGuid { get; init; }
+
+    /// <summary>
+    /// JWT minted by the app at enqueue time, carried opaquely by the engine and replayed in the
+    /// <c>Authorization: Bearer</c> header on every callback so the app can authenticate the engine.
+    /// </summary>
+    [JsonPropertyName("callbackToken")]
+    public required string CallbackToken { get; init; }
 }

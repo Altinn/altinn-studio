@@ -726,7 +726,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/validate")]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> ValidateInstance([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string? ignoredValidators = null, [Microsoft.AspNetCore.Mvc.FromQuery] bool? onlyIncrementalValidators = default, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
     }
-    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+    [Microsoft.AspNetCore.Authorization.Authorize(AuthenticationSchemes="WorkflowEngineCallback")]
     [Microsoft.AspNetCore.Mvc.ApiController]
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/workflow-eng" +
         "ine-callbacks")]

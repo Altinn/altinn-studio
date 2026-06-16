@@ -14,7 +14,7 @@ describe('Service task', () => {
       'be.visible',
     );
 
-    assertAndDismissNotification('Service task fail returned a failed result!');
+    assertAndDismissNotification("Service task 'fail' failed: Form data requested the service task to fail.");
 
     // This layout-set does not have a pdfLayoutName, so it will auto-generate a PDF
     cy.testPdf({
@@ -47,7 +47,7 @@ describe('Service task', () => {
     cy.findByText(/En feil oppstod under automatisk behandling av skjemaet/).should('be.visible');
     cy.findByText(/Du kan prøve å utføre behandlingen på nytt/).should('be.visible');
     cy.visualTesting('service-task-no-layout-set');
-    assertAndDismissNotification('Service task fail returned a failed result!');
+    assertAndDismissNotification("Service task 'fail' failed: Form data requested the service task to fail.");
 
     cy.testPdf({
       snapshotName: 'service-task-with-multiple-tasks',

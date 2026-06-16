@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Commands.Extensions;
@@ -85,6 +86,9 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
 
         if (string.IsNullOrWhiteSpace(workflowContext.LockToken))
             return new CommandValidationResult.Invalid("AppCommand requires a 'lockToken' in workflow context");
+
+        if (string.IsNullOrWhiteSpace(workflowContext.CallbackToken))
+            return new CommandValidationResult.Invalid("AppCommand requires a 'callbackToken' in workflow context");
 
         return new CommandValidationResult.Valid();
     }
@@ -174,6 +178,14 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
 #pragma warning restore S1075
         var client = _httpClientFactory.CreateClient();
         client.BaseAddress = new Uri(baseUrl);
+
+        // Replay the app-minted token as a bearer token so the callback controller can authenticate the
+        // engine. The app's selector auth scheme routes callback requests to the WorkflowEngineCallback
+        // scheme, so this does not collide with the default platform (cookie/bearer) authentication.
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            workflowContext.CallbackToken
+        );
 
         return client;
     }

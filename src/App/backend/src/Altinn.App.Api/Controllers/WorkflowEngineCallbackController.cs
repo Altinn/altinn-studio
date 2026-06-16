@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.InstanceLocking;
@@ -13,10 +14,11 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.App.Api.Controllers;
 
 /// <summary>
-/// Controller for handling process engine callbacks.
+/// Controller for handling process engine callbacks. Authenticated via the WorkflowEngineCallback scheme:
+/// the engine replays the app-minted JWT (bound to this instance) in the Authorization: Bearer header.
 /// </summary>
 [ApiController]
-[AllowAnonymous]
+[Authorize(AuthenticationSchemes = WorkflowEngineCallbackDefaults.AuthenticationScheme)]
 [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/workflow-engine-callbacks")]
 public class WorkflowEngineCallbackController : ControllerBase
 {
@@ -58,10 +60,6 @@ public class WorkflowEngineCallbackController : ControllerBase
     {
         using Activity? activity = _telemetry?.StartProcessEngineCallbackActivity(instanceGuid, commandKey);
 
-        // Set the lock token from the workflow engine payload so all Storage clients include it
-        var instanceLocker = _serviceProvider.GetRequiredService<IInstanceLocker>();
-        instanceLocker.UseExternalLockToken(payload.LockToken);
-
         var appId = new AppIdentifier(org, app);
         var instanceId = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
 
@@ -79,7 +77,7 @@ public class WorkflowEngineCallbackController : ControllerBase
             activity?.SetStatus(ActivityStatusCode.Error, "Command not found");
             return NonRetryableProblem(
                 "Command Not Found",
-                $"Workflow app command not found.",
+                "Workflow app command not found.",
                 StatusCodes.Status404NotFound
             );
         }
@@ -101,10 +99,36 @@ public class WorkflowEngineCallbackController : ControllerBase
             );
         }
 
-        InstanceDataUnitOfWork instanceDataUnitOfWork = await _workflowCallbackStateService.RestoreState(
-            payload.State,
-            payload.Actor.Language
-        );
+        InstanceDataUnitOfWork instanceDataUnitOfWork;
+        try
+        {
+            instanceDataUnitOfWork = await _workflowCallbackStateService.RestoreState(
+                instanceId,
+                payload.State,
+                payload.Actor.Language
+            );
+        }
+        catch (WorkflowCallbackStateException e)
+        {
+            _logger.LogError(
+                e,
+                "Failed to restore workflow callback state. CommandKey: {CommandKey}, Instance: {InstanceId}.",
+                commandKey,
+                instanceId
+            );
+            activity?.SetStatus(ActivityStatusCode.Error, "Invalid callback state");
+            return NonRetryableProblem(
+                "Invalid State",
+                "Workflow callback state could not be restored for this instance.",
+                StatusCodes.Status422UnprocessableEntity
+            );
+        }
+
+        // Set the lock token from the workflow engine payload so all Storage clients include it. Done after the
+        // state blob has been validated against the route instance, so the token is only applied once we know
+        // the callback targets the expected instance.
+        var instanceLocker = _serviceProvider.GetRequiredService<IInstanceLocker>();
+        instanceLocker.UseExternalLockToken(payload.LockToken);
 
         string? currentTaskId = instanceDataUnitOfWork.Instance.Process?.CurrentTask?.ElementId;
 

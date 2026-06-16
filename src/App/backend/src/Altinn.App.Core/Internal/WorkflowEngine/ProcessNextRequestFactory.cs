@@ -5,6 +5,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
@@ -44,13 +45,15 @@ internal sealed class ProcessNextRequestFactory
     private readonly AppIdentifier _appIdentifier;
     private readonly AppSettings _appSettings;
     private readonly IAppMetadata _appMetadata;
+    private readonly IWorkflowCallbackTokenGenerator _callbackTokenGenerator;
 
     public ProcessNextRequestFactory(
         AppImplementationFactory appImplementationFactory,
         IAuthenticationContext authenticationContext,
         AppIdentifier appIdentifier,
         IOptions<AppSettings> appSettings,
-        IAppMetadata appMetadata
+        IAppMetadata appMetadata,
+        IWorkflowCallbackTokenGenerator callbackTokenGenerator
     )
     {
         _appImplementationFactory = appImplementationFactory;
@@ -58,6 +61,7 @@ internal sealed class ProcessNextRequestFactory
         _appIdentifier = appIdentifier;
         _appSettings = appSettings.Value;
         _appMetadata = appMetadata;
+        _callbackTokenGenerator = callbackTokenGenerator;
     }
 
     /// <summary>
@@ -106,6 +110,7 @@ internal sealed class ProcessNextRequestFactory
             App = _appIdentifier.App,
             InstanceOwnerPartyId = instanceId.InstanceOwnerPartyId,
             InstanceGuid = instanceId.InstanceGuid,
+            CallbackToken = _callbackTokenGenerator.GenerateToken(instanceId.InstanceGuid),
         };
 
         string ns = $"{_appIdentifier.Org}/{_appIdentifier.App}";

@@ -5,6 +5,7 @@ using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.WorkflowEngine;
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.AltinnEvents;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
@@ -84,12 +85,16 @@ public class ProcessNextRequestFactoryTests
                 }
             );
 
+        var callbackTokenGeneratorMock = new Mock<IWorkflowCallbackTokenGenerator>();
+        callbackTokenGeneratorMock.Setup(x => x.GenerateToken(It.IsAny<Guid>())).Returns("test-callback-token");
+
         return new ProcessNextRequestFactory(
             appImplFactory,
             authContextMock.Object,
             TestAppIdentifier,
             appSettings,
-            appMetadataMock.Object
+            appMetadataMock.Object,
+            callbackTokenGeneratorMock.Object
         );
     }
 
