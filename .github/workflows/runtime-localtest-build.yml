@@ -4,6 +4,7 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
+      - '.github/workflows/runtime-localtest-build.yml'
       - 'src/Runtime/localtest/**'
 
 concurrency:
