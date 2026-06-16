@@ -1,4 +1,5 @@
 """Tests for the LLM cost metrics API route."""
+
 from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
@@ -16,8 +17,8 @@ class TestGetLlmCostsHappyPath:
             "serviceownerorgnr": None,
             "serviceownercode": "ttd",
             "messagesender": None,
-            "serviceresourceid": "my-app",
-            "serviceresourcetitle": "My App",
+            "serviceresourceid": "app_ttd_my-app",
+            "serviceresourcetitle": "my-app",
             "recipienttype": None,
             "costcenter": None,
             "messagecount": None,
