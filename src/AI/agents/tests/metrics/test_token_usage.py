@@ -11,39 +11,45 @@ from metrics import token_usage
 from metrics.token_usage import (
     PAGE_SIZE,
     _create_auth_header,
-    _previous_day_query_windows,
     get_previous_day_token_usage,
 )
 
 
-class TestPreviousDayQueryWindows:
-    def test_returns_yesterday_midnight_to_today_midnight_utc(self):
-        fixed_now = datetime(2026, 5, 11, 14, 37, 12, tzinfo=UTC)
-        with patch("metrics.token_usage.datetime") as datetime_mock:
-            datetime_mock.now.return_value = fixed_now
-            datetime_mock.side_effect = datetime
+class TestPreviousDayWindow:
+    def test_queries_yesterday_midnight_to_today_midnight_utc(self):
+        observation_params = self._observation_params_at(
+            datetime(2026, 5, 11, 14, 37, 12, tzinfo=UTC)
+        )
 
-            trace_window_start, observation_window_start, window_end = (
-                _previous_day_query_windows()
-            )
-
-        assert trace_window_start == datetime(2026, 5, 9, tzinfo=UTC)
-        assert observation_window_start == datetime(2026, 5, 10, tzinfo=UTC)
-        assert window_end == datetime(2026, 5, 11, tzinfo=UTC)
+        assert observation_params["fromStartTime"] == "2026-05-10T00:00:00+00:00"
+        assert observation_params["toStartTime"] == "2026-05-11T00:00:00+00:00"
 
     def test_handles_month_boundary(self):
-        fixed_now = datetime(2026, 6, 1, 0, 5, 0, tzinfo=UTC)
-        with patch("metrics.token_usage.datetime") as datetime_mock:
+        observation_params = self._observation_params_at(
+            datetime(2026, 6, 1, 0, 5, 0, tzinfo=UTC)
+        )
+
+        assert observation_params["fromStartTime"] == "2026-05-31T00:00:00+00:00"
+        assert observation_params["toStartTime"] == "2026-06-01T00:00:00+00:00"
+
+    @staticmethod
+    def _observation_params_at(fixed_now: datetime) -> dict:
+        handler = _RequestHandler(
+            [[_trace_payload("trace-1", "ttd", "my-app")]],
+            [[_observation_payload("obs-1", "trace-1")]],
+        )
+        with (
+            _patched_httpx_client(handler),
+            _patched_config(),
+            patch("metrics.token_usage.datetime") as datetime_mock,
+        ):
             datetime_mock.now.return_value = fixed_now
             datetime_mock.side_effect = datetime
+            import asyncio
 
-            trace_window_start, observation_window_start, window_end = (
-                _previous_day_query_windows()
-            )
+            asyncio.run(get_previous_day_token_usage())
 
-        assert trace_window_start == datetime(2026, 5, 30, tzinfo=UTC)
-        assert observation_window_start == datetime(2026, 5, 31, tzinfo=UTC)
-        assert window_end == datetime(2026, 6, 1, tzinfo=UTC)
+        return handler.params_by_path["/api/public/observations"]
 
 
 class TestBasicAuthHeader:
@@ -84,7 +90,7 @@ class TestFetchPreviousDayTokenUsage:
         assert len(rows) == 1
         row = rows[0]
         assert row["serviceownercode"] == "ttd"
-        assert row["serviceresourceid"] == "my-app"
+        assert row["serviceresourceid"] == "app_ttd_my-app"
         assert row["input_tokens"] == 100 * (PAGE_SIZE + 1)
         assert row["output_tokens"] == 50 * (PAGE_SIZE + 1)
         assert row["total_tokens"] == 150 * (PAGE_SIZE + 1)

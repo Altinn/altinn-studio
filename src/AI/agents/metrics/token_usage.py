@@ -23,6 +23,9 @@ from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
 
+# Workflows starting seconds before midnight will create a trace at day 0, and observations at day 1.
+# The trace buffer makes sure we fetch all relevant traces before aggregating.
+TRACE_LOOKBACK_BUFFER = timedelta(days=1)
 PAGE_SIZE = 50
 REQUEST_TIMEOUT_SECONDS = 30
 
@@ -34,9 +37,17 @@ async def get_previous_day_token_usage() -> list[DailyTokenUsageRow]:
         RuntimeError: If Langfuse credentials are missing (caller should
             map to HTTP 503).
     """
-    trace_window_start, observation_window_start, window_end = (
-        _previous_day_query_windows()
-    )
+    now = datetime.now(UTC)
+    window_end = datetime(now.year, now.month, now.day, tzinfo=UTC)
+    observation_window_start = window_end - timedelta(days=1)
+    return await _token_usage_for_window(observation_window_start, window_end)
+
+
+async def _token_usage_for_window(
+    observation_window_start: datetime, window_end: datetime
+) -> list[DailyTokenUsageRow]:
+    """Fetch and aggregate token usage rows for an arbitrary UTC window."""
+    trace_window_start = observation_window_start - TRACE_LOOKBACK_BUFFER
     traces, observations = await _fetch_traces_and_observations(
         trace_window_start, observation_window_start, window_end
     )
@@ -92,26 +103,6 @@ def _create_auth_header(public_key: str | None, secret_key: str | None) -> str:
         raise RuntimeError("Langfuse credentials are not configured")
     token = base64.b64encode(f"{public_key}:{secret_key}".encode()).decode()
     return f"Basic {token}"
-
-
-def _previous_day_query_windows() -> tuple[datetime, datetime, datetime]:
-    """Build the query windows for fetching the previous UTC day's data.
-
-    A workflow can start just before midnight but log its observations after
-    midnight. Such an observation belongs to the new day yet points to a trace
-    from the day before, so the trace window reaches back an extra day to keep
-    aggregation from failing on the missing trace.
-
-    Returns:
-        trace_window_start: two days before window_end.
-        observation_window_start: one day before window_end.
-        window_end: midnight (00:00 UTC) at the start of the current day.
-    """
-    now = datetime.now(UTC)
-    window_end = datetime(now.year, now.month, now.day, tzinfo=UTC)
-    observation_window_start = window_end - timedelta(days=1)
-    trace_window_start = window_end - timedelta(days=2)
-    return trace_window_start, observation_window_start, window_end
 
 
 async def _fetch_all_pages(
