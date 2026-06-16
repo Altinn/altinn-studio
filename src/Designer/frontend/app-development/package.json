@@ -23,7 +23,7 @@
     "posthog-js": "1.385.0",
     "react": "19.2.7",
     "react-dom": "19.2.7",
-    "react-i18next": "16.6.6",
+    "react-i18next": "17.0.8",
     "react-router-dom": "6.30.4"
   },
   "devDependencies": {

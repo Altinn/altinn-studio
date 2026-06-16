@@ -5,6 +5,7 @@
   "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
+    "./styles/combobox.module.css": "./src/styles/combobox.module.css",
     "./styles/global.css": "./src/styles/global.css"
   },
   "private": true,
@@ -26,7 +27,7 @@
     "marked-mangle": "1.1.13",
     "mime": "^4.1.0",
     "react-content-loader": "7.1.2",
-    "react-day-picker": "^9.14.0",
+    "react-day-picker": "9.14.0",
     "react-dropzone": "^15.0.0",
     "react-number-format": "^5.4.5"
   },
