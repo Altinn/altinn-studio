@@ -150,11 +150,14 @@ class TestEdgeCases:
         with pytest.raises(ValueError, match="Missing service owner code"):
             aggregate_token_usage(observations, traces, LOADED_AT)
 
-    def test_raises_when_trace_missing_for_observation(self):
+    def test_skips_observation_when_parent_trace_missing(self, caplog):
         observations = [make_obs(trace_id="unknown-trace")]
 
-        with pytest.raises(ValueError, match="Missing trace"):
-            aggregate_token_usage(observations, {}, LOADED_AT)
+        with caplog.at_level(logging.WARNING):
+            rows = aggregate_token_usage(observations, {}, LOADED_AT)
+
+        assert rows == []
+        assert "unknown-trace" in caplog.text
 
     def test_warns_when_model_missing(self, caplog):
         observations = [make_obs()]

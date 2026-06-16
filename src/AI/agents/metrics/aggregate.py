@@ -1,6 +1,6 @@
 """Aggregate Langfuse traces and observations into a cost schema."""
 
-from typing import Any, NamedTuple, TypedDict
+from typing import Any, TypedDict
 
 from shared.config import get_config
 from shared.utils.logging_utils import get_logger
@@ -50,26 +50,23 @@ class Observation(TypedDict):
     usage_details: dict[str, Any]
 
 
-class BucketKey(NamedTuple):
-    service_owner_code: str
-    app_name: str
-    date: str
-
-
 def aggregate_token_usage(
     observations: list[Observation],
     traces_by_id: dict[str, Trace],
     loaded_at: str,
 ) -> list[DailyTokenUsageRow]:
     """Aggregate lists of traces and observations into token usage rows."""
-    buckets: dict[BucketKey, dict] = {}
+    buckets: dict[str, dict] = {}
 
     for observation in observations:
         trace = traces_by_id.get(observation["trace_id"])
         if trace is None:
-            raise ValueError(
-                f"Missing trace {observation['trace_id']} for observation {observation['id']}"
+            log.warning(
+                "Skipping observation %s — parent trace %s not found",
+                observation["id"],
+                observation["trace_id"],
             )
+            continue
 
         service_owner_code = trace["user_id"]
         if not service_owner_code:
@@ -77,7 +74,7 @@ def aggregate_token_usage(
 
         app_name = _get_app_name(trace)
         observation_date = _to_date_string(observation["start_time"])
-        bucket_key = BucketKey(service_owner_code, app_name, observation_date)
+        bucket_key = f"{service_owner_code}-{app_name}-{observation_date}"
 
         bucket = buckets.setdefault(
             bucket_key,
