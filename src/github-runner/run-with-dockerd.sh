@@ -50,6 +50,7 @@ mount_ext4_image() {
   log "loop device diagnostics"
   losetup -f 2>&1 || true
   ls -l /dev/loop* 2>&1 || true
+  return 1
 }
 
 maybe_mount_ext4_image() {
@@ -66,7 +67,32 @@ maybe_mount_ext4_image() {
     return
   fi
 
-  mount_ext4_image "${image}" "${size}" "${mountpoint}"
+  mount_ext4_image "${image}" "${size}" "${mountpoint}" || true
+}
+
+mount_runner_home() {
+  local image="$1"
+  local size="$2"
+  local staging_mount="$3"
+
+  if mountpoint -q "${RUNNER_HOME}"; then
+    log "${RUNNER_HOME} is already a mountpoint"
+    return
+  fi
+
+  if ! mount_ext4_image "${image}" "${size}" "${staging_mount}"; then
+    return
+  fi
+
+  log "copying runner home into ext4 image"
+  cp -a "${RUNNER_HOME}/." "${staging_mount}/"
+  chown -R runner:runner "${staging_mount}"
+
+  if mount --bind "${staging_mount}" "${RUNNER_HOME}"; then
+    return
+  fi
+
+  log "failed to bind mount ${staging_mount} at ${RUNNER_HOME}; continuing on existing filesystem"
 }
 
 wait_for_docker() {
@@ -115,23 +141,29 @@ export HOME="${RUNNER_HOME}"
 export USER=runner
 export LOGNAME=runner
 
-RUNNER_WORK_DISK_SIZE="${RUNNER_WORK_DISK_SIZE:-20G}"
+RUNNER_HOME_DISK_SIZE="${RUNNER_HOME_DISK_SIZE:-40G}"
 DOCKER_DISK_SIZE="${DOCKER_DISK_SIZE:-30G}"
 RUNNER_DIND_DISK_DIR="${RUNNER_DIND_DISK_DIR:-/var/lib/github-runner-disks}"
+export GOPATH="${GOPATH:-${RUNNER_HOME}/go}"
+export GOCACHE="${GOCACHE:-${RUNNER_HOME}/.cache/go-build}"
+export GOMODCACHE="${GOMODCACHE:-${GOPATH}/pkg/mod}"
+export NUGET_PACKAGES="${NUGET_PACKAGES:-${RUNNER_HOME}/.nuget/packages}"
+export npm_config_cache="${npm_config_cache:-${RUNNER_HOME}/.npm}"
+export YARN_CACHE_FOLDER="${YARN_CACHE_FOLDER:-${RUNNER_HOME}/.cache/yarn}"
 runner_pid=""
 
-mkdir -p "${RUNNER_HOME}" "${RUNNER_WORKDIR}" /var/lib/docker /var/run "${RUNNER_DIND_DISK_DIR}"
+mkdir -p "${RUNNER_HOME}" /var/lib/docker /var/run "${RUNNER_DIND_DISK_DIR}"
 
-maybe_mount_ext4_image "${RUNNER_DIND_DISK_DIR}/runner-work.img" "${RUNNER_WORK_DISK_SIZE}" "${RUNNER_WORKDIR}"
+mount_runner_home "${RUNNER_DIND_DISK_DIR}/runner-home.img" "${RUNNER_HOME_DISK_SIZE}" "${RUNNER_DIND_DISK_DIR}/home"
 maybe_mount_ext4_image "${RUNNER_DIND_DISK_DIR}/docker.img" "${DOCKER_DISK_SIZE}" /var/lib/docker
 
 mkdir -p \
   "${RUNNER_WORKDIR}/_temp" \
-  "${RUNNER_HOME}/.cache/go-build" \
-  "${RUNNER_HOME}/.cache/yarn" \
-  "${RUNNER_HOME}/.npm" \
-  "${RUNNER_HOME}/.nuget/packages" \
-  "${RUNNER_HOME}/go/pkg/mod"
+  "${GOCACHE}" \
+  "${YARN_CACHE_FOLDER}" \
+  "${npm_config_cache}" \
+  "${NUGET_PACKAGES}" \
+  "${GOMODCACHE}"
 chown -R runner:runner \
   "${RUNNER_WORKDIR}" \
   "${RUNNER_HOME}/.cache" \
@@ -140,7 +172,7 @@ chown -R runner:runner \
   "${RUNNER_HOME}/go"
 
 log "filesystem layout before dockerd startup"
-df -PT / "${RUNNER_WORKDIR}" /var/lib/docker /tmp || true
+df -PT / "${RUNNER_HOME}" "${RUNNER_WORKDIR}" /var/lib/docker /tmp || true
 
 dockerd --host="${DOCKER_HOST}" --ip6tables=false &
 dockerd_pid="$!"

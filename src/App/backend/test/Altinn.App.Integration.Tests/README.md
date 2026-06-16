@@ -7,7 +7,7 @@ This project contains scenario-based integration tests for Altinn apps. The test
 - `studioctl` installed and available on `PATH`
 - A local container runtime usable by `studioctl env up`
 
-The harness starts localtest with `studioctl env up --detach` if no environment is running. If localtest was already running, the harness reuses it and does not stop it during cleanup.
+The harness starts localtest with `studioctl env up --detach` if no environment is running. It always sets `STUDIOCTL_INTERNAL_DEV=true` on its `studioctl` subprocesses so localtest uses images built from the current monorepo checkout when available. If localtest was already running, the harness reuses it and does not stop it during cleanup.
 
 ## Architecture
 
