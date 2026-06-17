@@ -1930,6 +1930,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@cypress/webpack-preprocessor@npm:7.1.1":
+  version: 7.1.1
+  resolution: "@cypress/webpack-preprocessor@npm:7.1.1"
+  dependencies:
+    bluebird: "npm:3.7.1"
+    debug: "npm:^4.3.4"
+    lodash: "npm:^4.17.20"
+    semver: "npm:^7.7.3"
+  peerDependencies:
+    "@babel/core": ^7.28.0
+    "@babel/preset-env": ^7.26.0
+    babel-loader: ^9 || ^10
+    webpack: ^5
+  checksum: 10/9860e5c1142702532156747c6ef6d5aa6cea9a383accb973c313b93df55a9e17dbe46b8b939c5a1c66e124609430977b883e81c690a132409e8b5c9330fe1aed
+  languageName: node
+  linkType: hard
+
 "@cypress/xvfb@npm:^1.2.4":
   version: 1.2.4
   resolution: "@cypress/xvfb@npm:1.2.4"
@@ -9195,6 +9212,7 @@ __metadata:
     "@babel/preset-react": "npm:7.28.5"
     "@babel/runtime": "npm:7.29.7"
     "@babel/runtime-corejs3": "npm:7.29.7"
+    "@cypress/webpack-preprocessor": "npm:7.1.1"
     "@date-fns/tz": "npm:1.4.1"
     "@digdir/designsystemet-css": "npm:1.11.1"
     "@digdir/designsystemet-react": "npm:1.11.1"
@@ -10108,6 +10126,13 @@ __metadata:
   version: 2.0.2
   resolution: "blob-util@npm:2.0.2"
   checksum: 10/b2c5a20c677f2a6c3821cf13c5522d64af96e666bc40cce6b43f87d16e89a55e2eab2f6264ec3f36d7f810eba848aa7e2bc611e47c14eb6395136c0b0a8b29ea
+  languageName: node
+  linkType: hard
+
+"bluebird@npm:3.7.1":
+  version: 3.7.1
+  resolution: "bluebird@npm:3.7.1"
+  checksum: 10/2af420fcd493dea6aa2f53007bc511d44cd1da90e31810b405366956e4d9ca1c56f0c6d725e3444d9c59df7cacc9e3390ab52bd7d86c09852464d8a247f59841
   languageName: node
   linkType: hard
 
@@ -18391,6 +18416,13 @@ __metadata:
   version: 4.17.23
   resolution: "lodash@npm:4.17.23"
   checksum: 10/82504c88250f58da7a5a4289f57a4f759c44946c005dd232821c7688b5fcfbf4a6268f6a6cdde4b792c91edd2f3b5398c1d2a0998274432cff76def48735e233
+  languageName: node
+  linkType: hard
+
+"lodash@npm:^4.17.20":
+  version: 4.18.1
+  resolution: "lodash@npm:4.18.1"
+  checksum: 10/306fea53dfd39dad1f03d45ba654a2405aebd35797b673077f401edb7df2543623dc44b9effbb98f69b32152295fff725a4cec99c684098947430600c6af0c3f
   languageName: node
   linkType: hard
 
